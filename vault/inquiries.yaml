@@ -13,6 +13,9 @@ inquiries:
     title: "Tumbler Algebra"
     question: "What algebraic properties must the Xanadu addressing system satisfy? What ordering, arithmetic, and structural guarantees do tumblers provide?"
     area: addressing
+    agents:
+      nelson: 10
+      gregory: 10
 
   - id: 2
     title: "Address Permanence"

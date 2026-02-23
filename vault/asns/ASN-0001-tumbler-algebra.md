@@ -1,541 +1,408 @@
 # ASN-0001: Tumbler Algebra
 
-*2026-02-22*
+*2026-02-23*
 
-We wish to understand the algebraic structure that the Xanadu addressing
-system must satisfy. The system assigns every piece of content a permanent
-address — a "tumbler" — and these addresses must support ordering,
-containment queries, arithmetic for editing operations, and
-coordination-free allocation across a global network. We seek the minimal
-set of abstract properties that any correct implementation of this
-addressing scheme must provide.
+We wish to understand what algebraic structure the Xanadu addressing system must possess. The system assigns every piece of content a permanent address — a *tumbler* — and these addresses must support comparison, containment testing, arithmetic for editing operations, and coordination-free allocation across a global network. We seek the minimal set of abstract properties that any correct implementation must provide, deriving each from the design requirements rather than from any particular implementation.
+
+The approach is: state what the system must guarantee, then discover what properties of the address algebra are necessary and sufficient for those guarantees. We begin with the carrier set and work outward.
+
 
 ## The carrier set
 
-A tumbler is a finite sequence of non-negative integers. We write a tumbler
-as `t = d₁.d₂.d₃. ... .dₙ` where each `dᵢ ∈ ℕ` and `n ≥ 1`. The set of
-all tumblers is `T`. We require `T` to be closed under the operations we
-shall introduce, and we require `T` to be unbounded — there is no maximum
-tumbler, and between any two tumblers in the system, fresh addresses can
-always be generated.
+A tumbler is a finite sequence of non-negative integers. We write `t = d₁.d₂. ... .dₙ` where each `dᵢ ∈ ℕ` and `n ≥ 1`. The set of all tumblers is **T**. Nelson describes each component as a "digit" with "no upper limit" — the term is misleading, since each "digit" is an arbitrary-precision natural number, not a single decimal digit. The variable-length encoding ("humber") is designed so that small values are compact and large values expand as needed: "very short when a number is small, and as large as it needs to be when the number is big."
 
-Nelson is explicit about unboundedness: each component is a "humber," an
-accordion-like notation that is "very short when a number is small, and as
-large as it needs to be when the number is big." The guarantee is that the
-address space within any subtree is inexhaustible. We state this as our
-first property:
+This gives us our first property:
 
-**T0 (Unbounded components).** For every tumbler `t = d₁. ... .dₙ` and
-every component position `i` with `1 ≤ i ≤ n`, and every bound `M ∈ ℕ`,
-there exists a tumbler `t'` in `T` that agrees with `t` on all components
-except `i`, where `t'.dᵢ > M`.
+**T0 (Unbounded components).** `(A t ∈ T, i : 1 ≤ i ≤ #t : (A M ∈ ℕ :: (E t' ∈ T :: t' agrees with t except t'.dᵢ > M)))`.
 
-This property is what separates the tumbler system from fixed-width
-addressing. An implementation that silently truncates when a component
-exceeds some representation limit violates T0. We observe that Gregory's
-implementation uses a fixed 16-digit mantissa with an exponent field,
-giving it a large but finite representable range. When `tumblerincrement`
-overflows this range, the system terminates with a fatal error; when
-`tumbleradd` overflows, it silently truncates. Both behaviors violate T0 —
-the abstract specification demands unbounded components, and any correct
-implementation must either provide them or prove that the reachable state
-space never exercises the bound.
+In words: for every tumbler and every component position, there exists a tumbler whose value at that position exceeds any given bound. The address space within any subtree is inexhaustible.
+
+T0 is what separates the tumbler design from fixed-width addressing. Nelson conceived the docuverse as "ever-growing": "Our kingdom is already twice the size of Spain, and every day we drift makes it bigger." A fixed-width representation inevitably exhausts; T0 guarantees this cannot happen at the abstract level.
+
+We observe that Gregory's implementation uses a fixed 16-digit mantissa of 32-bit unsigned integers, giving a large but finite representable range. When the allocation primitive `tumblerincrement` would exceed this range, it detects the overflow and terminates fatally. The general addition routine `tumbleradd` silently truncates. Both behaviors violate T0. The abstract specification demands unbounded components; a correct implementation must either provide them or demonstrate that the reachable state space never exercises the bound. Gregory's overflow check in the allocation path is evidence that the implementers were aware of the gap — they chose detection over correctness, halting rather than corrupting.
+
 
 ## The total order
 
-We need a total order on `T`. Nelson describes the tumbler line as "a flat
-mapping of a particular tree" — the depth-first traversal of the docuverse's
-containment tree. Two tumblers are compared by the following rule:
+We require a total order on T. Nelson describes the "tumbler line" as "a flat mapping of a particular tree" — the depth-first traversal of the docuverse's containment hierarchy. The tree has servers at the root, accounts under servers, documents under accounts, elements under documents. Depth-first traversal of this tree produces a linear sequence in which every subtree occupies a contiguous interval. The ordering rule is lexicographic:
 
-**T1 (Lexicographic order).** For tumblers `a = a₁. ... .aₘ` and
-`b = b₁. ... .bₙ`, define `a < b` iff there exists `k ≥ 1` such that
-`(A i : 1 ≤ i < k : aᵢ = bᵢ)` and either:
+**T1 (Lexicographic order).** For tumblers `a = a₁. ... .aₘ` and `b = b₁. ... .bₙ`, define `a < b` iff there exists `k ≥ 1` such that `(A i : 1 ≤ i < k : aᵢ = bᵢ)` and either:
 
   (i) `k ≤ min(m, n)` and `aₖ < bₖ`, or
 
-  (ii) `k = m + 1 ≤ n` (a is a proper prefix of b).
+  (ii) `k = m + 1 ≤ n` (that is, `a` is a proper prefix of `b`).
 
-This is the standard lexicographic extension with the convention that a
-prefix is less than any proper extension. The result is a total order: for
-any `a, b ∈ T`, exactly one of `a < b`, `a = b`, or `a > b` holds.
+The prefix convention — a prefix is less than any proper extension — is what makes depth-first traversal work. The server address `2` is less than every address within server `2`'s subtree, because every such address extends the prefix `2` with further components. This means server `2`'s subtree begins immediately after `2` in the order and extends until some address whose first component exceeds `2`.
 
-The order must be decidable from the addresses alone — no index
-consultation required. Nelson is unambiguous: "you always know where you
-are, and can at once ascertain the home document of any specific word or
-character." We state this as:
+T1 gives a total order: for any `a, b ∈ T`, exactly one of `a < b`, `a = b`, `a > b` holds. This is a standard mathematical fact about lexicographic orderings on well-ordered alphabets — ℕ is well-ordered, so the lexicographic extension to finite sequences is total.
 
-**T2 (Decidable comparison).** For any two tumblers `a, b ∈ T`, the
-relation `a < b`, `a = b`, or `a > b` is decidable from the addresses
-alone in time proportional to the lengths of `a` and `b`.
+Nelson requires that comparison be self-contained — no index consultation needed: "you always know where you are, and can at once ascertain the home document of any specific word or character." We state:
 
-An important consequence of T1 is that equality of tumblers means
-component-wise equality. There must be no representation in which two
-distinct bit patterns denote the same abstract tumbler. We state this
-as a separate requirement because it is exactly where implementations can
-go wrong:
+**T2 (Intrinsic comparison).** The order relation T1 is computable from the two tumblers alone, without consulting any external data structure. The comparison examines at most `min(#a, #b)` component pairs.
 
-**T3 (Canonical representation).** Each tumbler `t ∈ T` has exactly one
-representation. If two representations compare as order-equivalent under
-T1, they are identical.
+The importance of T2 is operational: span containment tests, link search, and the enfilade traversal all reduce to tumbler comparison. If comparison required a lookup, these operations would depend on auxiliary state, and the system's decentralization guarantee would collapse — one could not determine whether an address falls within a span without access to the index that manages that span.
 
-Gregory's implementation reveals a subtle violation: the tumbler struct
-carries metadata fields (`xvartumbler`, `varandnotfixed`) that are ignored
-by the ordering comparison (`tumblercmp`) but checked by the equality test
-(`tumblereq`). The normalization routine (`tumblerjustify`) canonicalizes
-the mathematical value (sign, exponent, mantissa) but leaves the metadata
-fields untouched. This means two tumblers can be order-equivalent yet
-compare as unequal — a violation of T3. The abstract specification demands
-that order-equivalence and equality coincide. Any representation metadata
-that can cause them to diverge must either be excluded from equality testing
-or included in order comparison.
+
+## Canonical form
+
+Equality of tumblers must mean component-wise identity. There must be no representation in which two distinct sequences of components denote the same abstract tumbler:
+
+**T3 (Canonical representation).** `(A a, b ∈ T : a₁ = b₁ ∧ ... ∧ aₙ = bₙ ∧ #a = #b ≡ a = b)`.
+
+If two tumblers have the same length and the same components at every position, they are the same tumbler. Conversely, if they differ in any component or in length, they are distinct. No normalization, no trailing-zero ambiguity, no exponent variation can create aliases.
+
+Gregory's implementation achieves T3 through a normalization routine (`tumblerjustify`) that shifts leading zeros out of the mantissa and adjusts the exponent. After justification, the first mantissa element is nonzero (unless the tumbler is the zero tumbler), creating a unique representation for each value. A validation routine enforces the invariant with checks including `if (ptr->exp && ptr->mantissa[0] == 0) { ... "fucked up non-normalized" }`. The implementers' frustration is palpable; T3 is easy to state and surprisingly difficult to maintain through all arithmetic paths.
+
+T3 matters because address identity is load-bearing. If two representations could denote the same tumbler, then equality tests might give false negatives, span containment checks might fail for addresses that should match, and the permanence guarantee T7 (below) could be silently circumvented — the system might allocate a "new" address that is actually an alias for an existing one.
+
 
 ## Hierarchical structure
 
-Tumblers are not flat identifiers. They encode a containment hierarchy:
-server, account, document, element. Nelson uses zero-valued components as
-delimiters — a tumbler has at most three zero components, partitioning it
-into four fields:
+Tumblers encode a containment hierarchy. Nelson uses zero-valued components as structural delimiters:
 
-```
-Node . 0 . User . 0 . Document . 0 . Element
-```
+> "There are four major fields, each expandable indefinitely, with three major dividers between them. These fields are Server, User, Document and Contents."
 
-We formalize this. Let `0` denote a component with value zero. A tumbler in
-the Xanadu I-space has the form:
+> "A tumbler address may have at most three zero digits... These are interpreted as the major dividers, and have lexical significance as punctuation."
 
-```
-t = N₁. ... .Nₐ . 0 . U₁. ... .Uᵦ . 0 . D₁. ... .Dᵧ . 0 . E₁. ... .Eδ
-```
+We formalize this. Define a *field separator* as a component with value zero. An I-space tumbler has the form:
 
-where each `Nᵢ, Uⱼ, Dₖ, Eₗ > 0`. The four fields are the **node field**
-(server), **user field** (account), **document field** (which may encode
-version ancestry through further subdivision), and **element field** (which
-distinguishes content subspaces). Not every tumbler need have all four
-fields — a tumbler with only one zero addresses a document family, a
-tumbler with no zeros addresses a server.
+`t = N₁. ... .Nₐ . 0 . U₁. ... .Uᵦ . 0 . D₁. ... .Dᵧ . 0 . E₁. ... .Eδ`
 
-**T4 (Hierarchical parsing).** Every tumbler `t ∈ T` used as an I-space
-address contains at most three zero-valued components, and these occur in
-the order dictated by the four-field structure. The number of zeros
-determines the specificity: zero zeros addresses a node, one zero a user
-account, two zeros a document, three zeros an element.
+where each `Nᵢ, Uⱼ, Dₖ, Eₗ > 0`. The four fields are:
 
-From T1 and T4 together, a fundamental property follows: every subtree of
-the containment hierarchy maps to a contiguous range on the tumbler line.
-If server 2 contains accounts 2.0.1 through 2.0.47, then every tumbler
-beginning with prefix `2` lies between `2` and the next server `3` (or
-whatever follows). No tumbler from server 3 can interleave with server 2's
-addresses, because the lexicographic order on the first component
-separates them completely.
+- **Node field** `N₁. ... .Nₐ`: identifies the server. Always begins with 1 ("since all other servers are descended from it").
+- **User field** `U₁. ... .Uᵦ`: identifies the account.
+- **Document field** `D₁. ... .Dᵧ`: identifies the document and version. Nelson notes that the boundary between base document and version within this field is not syntactically marked — "the version, or subdocument number is only an accidental extension of the document number."
+- **Element field** `E₁. ... .Eδ`: identifies the content element. The first component distinguishes the *subspace*: 1 for text content, 2 for links.
 
-**T5 (Contiguous subtrees).** For any tumbler prefix `p`, the set
-`{t ∈ T : p ≼ t}` (where `≼` denotes the prefix relation) forms a
-contiguous interval under the total order T1. That is:
+Not every tumbler need have all four fields. A tumbler with zero zeros addresses a node. One zero: a user account. Two zeros: a document. Three zeros: an element. The count of zero-valued components determines the specificity level.
 
-  `(A a, b, c : p ≼ a ∧ p ≼ c ∧ a < b < c : p ≼ b)`
+**T4 (Hierarchical parsing).** Every tumbler `t ∈ T` used as an I-space address contains at most three zero-valued components, appearing in order as field separators. The function `fields(t)` that extracts the node, user, document, and element fields is well-defined and computable from `t` alone.
 
-This is the property that makes spans work. A span is a pair of tumbler
-endpoints, and everything between them is determined by the tree structure.
-Nelson: "The first point of a span may designate a server, an account, a
-document or an element; so may the last point. There is no choice as to
-what lies between; this is implicit in the choice of first and last
-point." T5 is what makes this possible — if subtrees were not contiguous,
-a span between two endpoints might include content from unrelated parts
-of the hierarchy.
+T4, combined with the total order T1, gives us the property that makes spans work:
+
+**T5 (Contiguous subtrees).** For any tumbler prefix `p`, the set `{t ∈ T : p ≼ t}` (where `≼` denotes "is a prefix of") forms a contiguous interval under T1:
+
+  `[p ≼ a ∧ p ≼ c ∧ a ≤ b ≤ c ⟹ p ≼ b]`
+
+*Proof.* From T1, if `p ≼ a` then `a` agrees with `p` on the first `#p` components. If `a ≤ b ≤ c` and both `a` and `c` share prefix `p`, then `b` must also share prefix `p` — for if `b` diverged from `p` at some position `k ≤ #p`, then either `bₖ < pₖ` (contradicting `a ≤ b` since `aₖ = pₖ`) or `bₖ > pₖ` (contradicting `b ≤ c` since `cₖ = pₖ`). ∎
+
+This is Nelson's key insight: "The first point of a span may designate a server, an account, a document or an element; so may the last point. There is no choice as to what lies between; this is implicit in the choice of first and last point." T5 is what makes this true. A span between two endpoints under the same prefix captures exactly the addresses under that prefix between those endpoints — no addresses from unrelated subtrees can interleave.
+
 
 ## Decidable containment
 
-From T4 and T5, containment relationships are decidable by prefix
-comparison:
+The total order T1 determines *sequence* (which address comes first). But the system also needs *containment* — does address `a` belong to account `b`? Is document `d₁` under the same server as document `d₂`? These are not ordering questions; they are prefix questions.
 
-**T6 (Decidable containment).** For any two tumblers `a, b ∈ T`, the
-following are decidable from the addresses alone, by inspecting the
-appropriate field:
+**T6 (Decidable containment).** For any two tumblers `a, b ∈ T`, the following are decidable from the addresses alone:
 
-  (a) Whether `a` and `b` belong to the same node (node fields equal).
+  (a) Whether `a` and `b` share the same node field.
 
-  (b) Whether `a` and `b` belong to the same account (node and user fields
-  equal).
+  (b) Whether `a` and `b` share the same node and user fields.
 
-  (c) Whether `a` and `b` belong to the same document family (node, user,
-  and document-prefix fields equal).
+  (c) Whether `a` and `b` share the same node, user, and document-lineage fields.
 
-  (d) Whether `a` is an ancestor-version of `b` within a document family
-  (document field of `a` is a prefix of document field of `b`).
+  (d) Whether the document field of `a` is a prefix of the document field of `b` (structural subordination within a document family).
 
-One qualification is necessary. Nelson warns that the version hierarchy
-encoded in the document field records *structural subordination* — who
-allocated the address — not *content derivation*. The address `5.3` tells
-us that version `5.3` was created under document `5`, but not whether it
-was forked from version `5`, from version `5.2`, or created empty. Formal
-derivation history requires consulting the version graph, not just the
-address. T6(d) captures the structural relationship; the semantic
-relationship is outside the tumbler algebra.
+T6 follows immediately from T4 — we extract the relevant fields and compare. But we must note what T6(d) does NOT capture. The document field records the *allocation hierarchy* — who baptised which sub-number — not the *derivation history*. Version `5.3` was allocated under document `5`, but this tells us nothing about which version's content was copied to create `5.3`. Nelson is candid: "the version, or subdocument number is only an accidental extension of the document number, and strictly implies no specific relationship of derivation." Formal version-derivation requires the version graph, not just the address.
+
+Gregory's implementation confirms the distinction between ordering and containment. The codebase provides both `tumblercmp` (total order comparison, used for sorting and interval queries) and `tumbleraccounteq` (prefix-matching predicate, used for containment). The latter truncates the candidate to the length of the parent and checks for exact match — this is the operational realization of T6, and it is a genuinely different algorithm from the ordering comparison. An implementation that tried to derive containment from the total order alone would fail: `tumblercmp(1.1.0.2, 1.1.0.2.0.5) = LESS` and `tumblercmp(1.1.0.2, 1.1.0.3.0.1) = LESS`, but only the first represents a parent-child relationship.
+
+
+## Subspace disjointness
+
+Within a document's element space, the first component after the third zero delimiter identifies the *subspace*: 1 for text, 2 for links. Nelson also mentions that the link subspace "could be further subdivided" by additional components after `2`. The critical property is permanent separation:
+
+**T7 (Subspace disjointness).** The subspace identifier (the first component of the element field) permanently separates the address space into disjoint regions. No tumbler in subspace `s₁` can equal or be confused with a tumbler in subspace `s₂ ≠ s₁`.
+
+  `(A a, b ∈ T : a.E₁ ≠ b.E₁ ⟹ a ≠ b)`
+
+This is a trivial consequence of T3 (canonical representation) and T4 (hierarchical parsing): if two tumblers differ in their first element-field component, they are distinct. But we state it explicitly because it is load-bearing for editorial operations. INSERT shifts text positions forward, and the system must guarantee that no link position is affected. T7 is the structural basis for that guarantee — shifts within subspace 1 cannot produce addresses in subspace 2, because the subspace identifier is part of the address, not metadata.
+
+The ordering T1 places all text addresses (subspace 1) before all link addresses (subspace 2) within the same document, because `1 < 2` at the subspace position. This is a consequence, not an assumption — it falls out of the lexicographic order.
+
 
 ## Permanence
 
-The most consequential algebraic property is that once a tumbler is
-assigned to content, the assignment is irrevocable:
+The most consequential property of the tumbler algebra is that the mapping from addresses to content is write-once:
 
-**T7 (Address permanence).** If tumbler `a` is assigned to content at any
-point in the system's history, then `a` remains assigned to that same
-content for all subsequent states. No operation removes an address from
-I-space, and no operation changes the content at an assigned address.
+**T8 (Address permanence).** If tumbler `a ∈ T` is assigned to content `c` at any point in the system's history, then for all subsequent states, `a` remains assigned to `c`. No operation removes an address from I-space. No operation changes the content at an assigned address.
 
-This is Nelson's P0: "any address of any document in an ever-growing
-network may be specified by a permanent tumbler address." T7 is what makes
-links stable — links reference I-space tumblers, and because those tumblers
-are permanent, links survive all editing operations.
+Nelson: "any address of any document in an ever-growing network may be specified by a permanent tumbler address." And: "those bytes remain in all other documents where they have been included." T8 is what makes links stable — links reference I-space tumblers, and because those tumblers are permanent, links survive all editing. It is what makes transclusion meaningful — transcluded content maintains its identity because its address never changes. It is what makes royalty accounting possible — the address encodes the originating server, user, and document, and this attribution can never be revised.
 
-A consequence of T7 is that the I-space is append-only. New content
-receives fresh addresses; existing addresses are never reused:
+Even addresses that have no stored content are irrevocably claimed. Nelson calls these "ghost elements": "the docuverse is the occupied tumbler-space — as occupied by conceptually assigned positions, even if nothing represents them in storage." A ghost element cannot be reused for new content; it is a permanent gap. Gaps are features, not defects.
 
-**T8 (Monotonic allocation).** Within any partition of the address space
-(any fixed prefix), the allocation of new addresses is strictly monotonic.
-If address `a` is allocated before address `b` within the same partition,
-then `a < b` under the total order T1.
 
-Gregory confirms this: I-address allocation uses `tumblerincrement` with
-`rightshift=0`, producing a strictly increasing sequence like `2.1.0.1.0.1.3.1`,
-`2.1.0.1.0.1.3.2`, `2.1.0.1.0.1.3.3`. The counter never retreats. T8 is
-what prevents address collision within a partition — combined with the
-hierarchical partitioning (T9 below), it prevents collision globally.
+## Monotonic allocation
+
+T8 tells us that addresses, once assigned, are permanent. We now ask: in what order are new addresses assigned?
+
+**T9 (Forward allocation).** Within any partition of the address space (any subtree identified by a fixed prefix), the allocation of new addresses is strictly monotonic. If address `a` is allocated before address `b` within the same partition, then `a < b` under T1.
+
+  `(A a, b : same_partition(a, b) ∧ allocated_before(a, b) : a < b)`
+
+Nelson's design is explicitly chronological: "suppose we create an append-only storage system. User makes changes, the changes difflessly into the storage system, filed, as it were, chronologically." And the forking mechanism is sequential: "successive new digits to the right ... 2.1, 2.2, 2.3, 2.4 are successive items being placed under 2." The word "successive" carries the weight: 2.2 follows 2.1, never precedes it.
+
+T9 prohibits gap-filling. If address 2.3 was allocated and address 2.5 was allocated, then 2.4 either was allocated between them or is a permanent ghost. The system never goes back to fill 2.4 after allocating 2.5. To reuse a gap would violate T8 (the gap address may have been linked to as a ghost element) and T9 (the allocation counter would retreat).
+
+Gregory confirms: I-address allocation uses `tumblerincrement` with `rightshift=0`, producing sequences like `...3.0.1.3.1`, `...3.0.1.3.2`, `...3.0.1.3.3` — strictly increasing, never retreating. The overflow check in `tumblerincrement` (fatal error when `idx + rightshift >= NPLACES`) is the point at which the implementation admits it cannot satisfy T9 for arbitrarily large addresses. The abstract specification demands T9 unconditionally; the implementation approximates it within its representable range and fails loudly at the boundary.
+
+A consequence of T8 and T9 together is that I-space is a *growing set* in the lattice-theoretic sense: the set of allocated addresses can only increase, and new elements always appear at the frontier of the ordering within their partition.
+
 
 ## Coordination-free uniqueness
 
-The tumbler hierarchy exists so that independent actors can allocate
-addresses without communicating. Nelson: "The owner of a given item controls
-the allocation of the numbers under it." The mechanism is structural
-partitioning — no two owners share a prefix:
+The tumbler hierarchy exists so that independent actors can allocate addresses without communicating:
 
-**T9 (Partition independence).** The address space is partitioned by prefix
-into ownership domains. Each domain has exactly one allocator. Two
-allocators with distinct prefixes can allocate simultaneously, and the
-resulting addresses are guaranteed distinct.
+**T10 (Partition independence).** The address space is partitioned by prefix into ownership domains. Two allocators with distinct, non-nesting prefixes can allocate simultaneously, and the resulting addresses are guaranteed distinct.
 
-Formally: let `p₁` and `p₂` be prefixes such that neither is a prefix of
-the other (`p₁ ⋠ p₂ ∧ p₂ ⋠ p₁`). Then for any `a` with prefix `p₁`
-and any `b` with prefix `p₂`, we have `a ≠ b`. This follows immediately
-from the definition of prefix and the lexicographic order, but it is
-worth stating explicitly because it is the mechanism by which a global
-address space avoids global coordination.
+Formally: let `p₁` and `p₂` be prefixes such that neither is a prefix of the other (`p₁ ⋠ p₂ ∧ p₂ ⋠ p₁`). Then for any tumbler `a` with prefix `p₁` and any tumbler `b` with prefix `p₂`, `a ≠ b`.
 
-Together, T8 and T9 guarantee address uniqueness:
+This follows from the definition: if `a` has prefix `p₁` and `b` has prefix `p₂`, and the prefixes diverge at some position `k` with `p₁ₖ ≠ p₂ₖ`, then `aₖ = p₁ₖ ≠ p₂ₖ = bₖ`, so `a ≠ b`. The proof is elementary, but the property is architecturally profound. Nelson: "The owner of a given item controls the allocation of the numbers under it." No central allocator is needed. No coordination protocol is needed. The address structure itself makes collision impossible.
 
-**Theorem (Uniqueness).** No two distinct pieces of content ever receive
-the same tumbler address.
+From T9 and T10 together:
 
-*Proof.* Consider two allocations producing addresses `a` and `b`. If
-they occur within the same partition (same owner prefix), T8 guarantees
-`a ≠ b` because allocation is monotonic. If they occur in different
-partitions, T9 guarantees `a ≠ b` because distinct prefixes produce
-distinct addresses. ∎
+**Theorem (Global uniqueness).** No two distinct allocations, anywhere in the system, at any time, produce the same address.
+
+*Proof.* Consider allocations producing addresses `a` and `b`. If they occur within the same partition (same owner prefix), T9 guarantees `a ≠ b` because allocation is strictly monotonic. If they occur in different partitions, T10 guarantees `a ≠ b` because non-nesting prefixes produce distinct addresses. ∎
+
+This theorem is the foundation of the entire addressing architecture. Every subsequent guarantee — link stability, transclusion identity, royalty tracing — depends on the uniqueness of addresses. And uniqueness is achieved without any distributed consensus, simply by the structure of the names.
+
 
 ## Tumbler arithmetic
 
-We now come to the most delicate part of the algebra: the arithmetic
-operations that editing requires. When content is inserted into a document
-at virtual position `p`, all content after `p` must shift forward by the
-length of the insertion. This shifting is performed by tumbler addition.
-When content is deleted, the inverse shift is performed by tumbler
-subtraction.
+We now turn to the arithmetic operations. The system's editing model requires shifting V-space positions forward on INSERT and backward on DELETE. These shifts are performed by tumbler addition and subtraction. We are careful to note that these operations apply to **V-space positions** — the mutable arrangement layer — not to I-space addresses, which are permanent by T8.
 
-We must be careful here. The shift operations apply to **V-space positions**
-— the mutable arrangement layer — not to I-space addresses (which are
-permanent by T7). V-space positions are themselves tumblers, but they
-represent "where this byte appears in the document right now," and that
-changes with every edit.
+V-space positions are themselves tumblers, but they encode "where this byte appears in the document right now," and that changes with every edit. I-space addresses encode "which byte this is, forever."
 
 ### Addition for shifting
 
-Let `⊕` denote tumbler addition, used to shift V-positions forward. We need:
+Let `⊕` denote tumbler addition, used to shift V-positions forward after insertion:
 
-**TA0 (Well-defined addition).** For tumblers `a, w ∈ T` where `w`
-represents a positive width, `a ⊕ w` is a well-defined tumbler in `T`.
+**TA0 (Well-defined addition).** For tumblers `a, w ∈ T` where `w` represents a positive displacement, `a ⊕ w` is a well-defined tumbler in `T`.
 
-**TA1 (Order preservation of addition).** For tumblers `a, b, w ∈ T` with
-`w > 0` (positive width):
+**TA1 (Order preservation under addition).** `(A a, b, w : a < b ∧ w > 0 : a ⊕ w < b ⊕ w)`.
 
-  `a < b ⟹ a ⊕ w < b ⊕ w`
-
-This is the critical property for INSERT correctness. If two bytes were in
-order before the insertion, they must remain in order after shifting.
-Without TA1, an INSERT could scramble the relative ordering of content
-within a document.
-
-Gregory's implementation evidence reveals that TA1 likely holds for
-same-exponent operands — i.e., when the positions and the width are at the
-same hierarchical level — but is not proven for the general case. The
-fixed-precision representation means that addition across widely different
-exponent ranges may lose information. We observe that the system's correct
-operation for INSERT depends on shifts occurring within a single subspace,
-where exponents match. The abstract specification demands TA1 universally;
-a correct implementation must either provide it or prove that only
-same-exponent additions are reachable.
+TA1 is the critical property for INSERT correctness. If two bytes were in reading order before the insertion, they must remain in reading order after shifting. Without TA1, INSERT could scramble the relative ordering of content within a document — a catastrophic failure.
 
 ### Subtraction for shifting
 
-Let `⊖` denote tumbler subtraction, used to shift V-positions backward
-after deletion. We need:
+Let `⊖` denote tumbler subtraction, used to shift V-positions backward after deletion:
 
-**TA2 (Well-defined subtraction).** For tumblers `a, w ∈ T` where
-`a > w` (the position exceeds the width), `a ⊖ w` is a well-defined
-tumbler in `T`.
+**TA2 (Well-defined subtraction).** For tumblers `a, w ∈ T` where `a ≥ w`, `a ⊖ w` is a well-defined tumbler in `T`.
 
-**TA3 (Order preservation of subtraction).** For tumblers `a, b, w ∈ T`
-with `w > 0` and `a > w` and `b > w`:
+**TA3 (Order preservation under subtraction).** `(A a, b, w : a < b ∧ a ≥ w ∧ b ≥ w : a ⊖ w < b ⊖ w)`.
 
-  `a < b ⟹ a ⊖ w < b ⊖ w`
+### Inverse
 
-**TA4 (Inverse).** For tumblers `a, w ∈ T` with `w > 0`:
+**TA4 (Inverse).** `(A a, w : w > 0 : (a ⊕ w) ⊖ w = a)`.
 
-  `(a ⊕ w) ⊖ w = a`
-
-TA4 ensures that INSERT followed by DELETE at the same point restores the
-original positions. Without it, the system could accumulate drift —
-repeated insert-delete cycles shifting content progressively.
+TA4 ensures that INSERT followed by DELETE at the same point restores the original V-positions. Without it, the system could accumulate drift — repeated insert-delete cycles shifting content progressively.
 
 ### Increment for allocation
 
-A separate operation, distinct from the shifting arithmetic, is the
-allocation increment. When the system allocates a new address, it takes
-the highest existing address in a partition and produces the next one.
-This is not addition of a width; it is advancement of a counter at a
-specified hierarchical level.
+A separate operation, distinct from the shifting arithmetic, handles address allocation. When the system allocates a new I-space address, it takes the highest existing address in a partition and produces the next one. This is not addition of a width; it is advancement of a counter at a specified hierarchical level.
 
-**TA5 (Hierarchical increment).** For tumbler `t ∈ T` and level `k ≥ 0`,
-there exists an operation `inc(t, k)` that produces a tumbler `t'` such
-that:
+**TA5 (Hierarchical increment).** For tumbler `t ∈ T` and level `k ≥ 0`, there exists an operation `inc(t, k)` producing tumbler `t'` such that:
 
-  (a) `t' > t` (strictly greater),
+  (a) `t' > t` (strictly greater under T1),
 
   (b) `t'` agrees with `t` on all components before the increment point,
 
-  (c) the increment point is determined by `k` — when `k = 0`, the last
-  significant component advances by one; when `k > 0`, a new component is
-  created `k` positions deeper, producing a child rather than a sibling.
+  (c) when `k = 0`, the last significant component advances (producing a *sibling*); when `k > 0`, a new component is introduced `k` positions deeper (producing a *child*).
 
-Gregory's analysis confirms this structure precisely. `tumblerincrement(t, 0, 1)`
-advances the last significant digit: `1.1.0.3` becomes `1.1.0.4`.
-`tumblerincrement(t, 1, 1)` extends one level deeper: `1.1.0.2` becomes
-`1.1.0.2.1`. The `rightshift` parameter controls whether we produce the
-next sibling (`k = 0`) or the first child (`k > 0`).
+Gregory's implementation reveals the concrete mechanism. `tumblerincrement(t, 0, 1)` advances the last significant digit: `1.1.0.3` becomes `1.1.0.4`. `tumblerincrement(t, 1, 1)` extends one level deeper: `1.1.0.2` becomes `1.1.0.2.1`. The `rightshift` parameter controls the level. For a zero tumbler (all components zero), the increment also *sets* the exponent to position the new digit correctly — a special-case behavior that produces the first address in a previously empty partition.
 
-This is the mechanism by which the four-level hierarchy is populated:
-creating a new account under a server uses `k = depth-1` to produce the
-first child, while allocating successive documents under an account uses
-`k = 0` to produce the next sibling at the document level.
+This is the mechanism by which the four-level hierarchy is populated. Creating a new account under a server uses a deep increment to produce the first child. Allocating successive documents under an account uses a shallow increment to produce the next sibling.
+
+### The zero tumbler
+
+We must say a word about the zero tumbler — the tumbler with all components equal to zero. It occupies a special position in the algebra:
+
+**TA6 (Zero tumbler).** The zero tumbler `0 ∈ T` is less than every positive tumbler under T1, and is not a valid address — it does not designate content in either I-space or V-space.
+
+The zero tumbler serves as a *sentinel*: it marks uninitialized values, acts as a reference point for integer extraction, and denotes "unbounded" when used as a span endpoint (meaning the span extends to the end of the address space). Gregory's implementation uses `iszerotumbler` as a guard at every entry point — operations reject zero-width spans, zero document addresses, and zero insertion points. The zero tumbler is below all valid addresses, making it a natural lower bound.
+
 
 ## Subspace confinement
 
-A document's element space is subdivided into subspaces: text content
-lives in the `1.x` subspace, links in the `2.x` subspace. When INSERT
-shifts text positions forward, link positions must not be affected. This
-is a crucial structural invariant:
+When INSERT shifts text positions forward, link positions within the same document must not be affected. Text lives in element subspace 1; links live in element subspace 2. The shift must be *confined* to the subspace it applies to:
 
-**TA6 (Subspace confinement).** Let `S₁` and `S₂` be distinct subspaces
-within a document (e.g., text subspace `1.x` and link subspace `2.x`).
-A shift operation (addition or subtraction of width `w`) applied to
-positions in `S₁` must not alter any position in `S₂`.
+**TA7 (Subspace confinement).** Let `S₁` and `S₂` be distinct element subspaces within a document. A shift operation (addition or subtraction of width `w`) applied to a position in `S₁` produces a result in `S₁`, and no position in `S₂` is affected.
 
-Formally: if `a ∈ S₁` and `b ∈ S₂` with `S₁ ≠ S₂`, then the result of
-shifting `a` by `w` produces a tumbler that is still in `S₁`, and the
-position `b` is unchanged by the shift operation.
+  `(A a ∈ S₁, w : a ⊕ w ∈ S₁)` and symmetrically for `⊖`.
 
-This property has a fascinating implementation history. Gregory reveals
-that INSERT and DELETE achieve subspace confinement through entirely
-different mechanisms:
+  `(A b ∈ S₂ : b is unchanged by any shift within S₁)`
 
-- **INSERT** uses a structural mechanism: a "two-blade knife" that
-  explicitly computes the boundary of the current subspace and classifies
-  entries on either side. Entries beyond the boundary are never passed to
-  the addition operation at all. The confinement is achieved by *not
-  calling* the arithmetic, not by any property of the arithmetic itself.
+TA7 is a single abstract property, but Gregory's analysis reveals a striking asymmetry in how the two editing operations achieve it:
 
-- **DELETE** relies on an arithmetic accident: `strongsub` (the subtraction
-  routine) contains an exponent guard that returns the minuend unchanged
-  when the subtrahend has a lower exponent. Since text widths have lower
-  exponents than link positions, subtracting a text width from a link
-  position is a no-op. The confinement is achieved by an *incidental
-  property* of the arithmetic.
+For **INSERT**, the implementation uses an explicit structural guard — a "two-blade knife" that computes the boundary between subspaces. The boundary tumbler is constructed by a four-step arithmetic computation: increment at the parent level, extract the fractional tail via `beheadtumbler`, subtract the tail's leading component, and increment at the next finer level. This produces the precise tumbler at which the next subspace begins (e.g., `2.1` for the link subspace boundary when inserting in text subspace `1.x`). Entries beyond this boundary are never passed to the addition operation. Confinement is achieved by *not calling* the arithmetic on cross-subspace entries.
 
-The abstract specification does not prescribe either mechanism. TA6 states
-what must hold; how it is achieved is an implementation choice. But the
-asymmetry is instructive: the abstract property is the same, yet the two
-operations rely on fundamentally different invariants to provide it. An
-implementation that "fixes" the subtraction to handle cross-exponent
-operands correctly would break DELETE's subspace isolation while leaving
-INSERT's intact.
+For **DELETE**, the implementation relies on an incidental property of the subtraction algorithm. The routine `strongsub` contains an exponent guard that returns the minuend unchanged when the subtrahend has a smaller exponent. Since text widths (fractional V-positions, exponent ≤ -1) have smaller exponents than link positions (whole-number subspace identifiers, exponent = 0), subtracting a text width from a link position is a no-op. Confinement is achieved by an *accidental arithmetic property*, not by deliberate structural design.
 
-This teaches us something about the relationship between abstract
-properties and implementation strategies: **TA6 is one property, but it
-may require different proof obligations depending on the operation and
-the implementation's arithmetic characteristics.** The specification must
-state the property; the verification must check each operation separately.
+The abstract specification does not prescribe either mechanism. TA7 states what must hold; how it is achieved is an implementation choice. But the asymmetry teaches us something important: **TA7 is one property, but each operation may require a different proof obligation.** An implementation that "corrects" the subtraction to handle cross-exponent operands would break DELETE's subspace isolation while leaving INSERT's intact. The abstract property is stable; the implementation strategies are fragile in different ways.
+
 
 ## What tumbler arithmetic is NOT
 
-We must note explicitly what the tumbler algebra does *not* guarantee.
+We must state explicitly what the tumbler algebra does not guarantee. These negative results constrain what an implementer may assume.
 
-**Non-associativity.** We do NOT require `(a ⊕ b) ⊕ c = a ⊕ (b ⊕ c)`.
-Gregory's analysis suggests that fixed-precision implementations will
-violate associativity when operands span different exponent ranges, and
-even the abstract operation has no design need for associativity — shifts
-are always applied as a single operation (shift by the inserted width),
-never composed from multiple smaller shifts.
+**The algebra is not a group.** There is no additive identity — the zero tumbler is a sentinel, not a neutral element for addition. There is no additive inverse for every element — subtraction is only defined when `a ≥ w`. The algebra is not closed under subtraction in general.
 
-**Non-commutativity.** We do NOT require `a ⊕ b = b ⊕ a`. Tumbler
-addition is a shift — "move position `a` forward by width `b`" — and
-the operands play asymmetric roles. The first operand is a position; the
-second is a displacement. Swapping them is not meaningful.
+**Addition is not associative.** We do NOT require `(a ⊕ b) ⊕ c = a ⊕ (b ⊕ c)`. The design has no need for associativity — shifts are always applied as a single operation (shift by the inserted width), never composed from multiple smaller shifts. Gregory's implementation does not implement carry propagation in `tumbleradd` — it adds at most two digit positions, then copies the remaining digits from one input. This makes the operation fast but non-associative for operands at different exponent levels.
 
-**No additive identity.** We do not require a zero tumbler that acts as
-an identity for addition. Gregory notes that the implementation has two
-representations of zero (positive and negative), which already complicates
-identity. And the zero tumbler serves a different role — it is used as a
-sentinel for uninitialized values, not as a neutral element.
+**Addition is not commutative.** We do NOT require `a ⊕ b = b ⊕ a`. The operands play asymmetric roles: the first is a *position*, the second is a *displacement*. Swapping them is semantically meaningless.
 
-The absence of these properties means tumbler arithmetic is NOT a group,
-NOT a ring, NOT a field. It is a more modest structure: an ordered set
-with a monotone shift operation. This is all that editing requires.
+**There is no multiplication or division.** Gregory's analysis of the complete codebase confirms: no `tumblermult`, no `tumblerdiv`, no scaling operation of any kind. The arithmetic repertoire is: add, subtract, increment, compare. This makes sense — tumblers are *addresses*, not quantities. You don't multiply two file paths or divide an address by three. The operations that exist are exactly those needed for navigating, shifting, and allocating in a hierarchical address space.
+
+The absence of algebraic structure beyond a monotone shift is not a deficiency. It is the *minimum* that editing requires. An ordered set with an order-preserving shift and an allocation increment is sufficient. Anything more would be unused machinery and unverified obligation.
+
 
 ## The two address spaces
 
-We have so far spoken of "tumblers" as if they formed a single space. In
-fact, the system maintains two distinct spaces, each using tumblers as
-addresses but with radically different algebraic contracts:
+We have so far treated tumblers as a single set. In fact the system maintains two address spaces, each using tumblers but with different algebraic contracts:
 
-**I-space (identity space)** uses tumblers as permanent content identifiers.
-The algebraic contract is:
+**I-space (identity space)** uses tumblers as permanent content identifiers. The applicable properties are:
 
-  - T7 (permanence): once assigned, never removed or changed
-  - T8 (monotonic allocation): new addresses always increase
-  - T9 (partition independence): disjoint owners, no coordination
+  - T8 (permanence): once assigned, never removed or changed
+  - T9 (forward allocation): new addresses always increase within a partition
+  - T10 (partition independence): disjoint owners, no coordination needed
   - TA5 (hierarchical increment): allocation produces siblings or children
 
-The arithmetic operations TA0–TA4 (addition, subtraction) are NOT used on
-I-space addresses. I-space addresses are compared and allocated, never
-shifted.
+I-space addresses are compared (T1) and containment-tested (T6), but they are never shifted. The arithmetic operations TA0–TA4 do not apply to I-space addresses.
 
-**V-space (virtual space)** uses tumblers as mutable document positions.
-The algebraic contract is:
+**V-space (virtual space)** uses tumblers as mutable document positions. The applicable properties are:
 
-  - T1 (total order): positions are ordered
+  - T1 (total order): positions are ordered by reading sequence
   - TA0–TA4 (arithmetic): positions shift on INSERT and DELETE
-  - TA6 (subspace confinement): shifts respect subspace boundaries
+  - TA7 (subspace confinement): shifts respect subspace boundaries
 
-V-space has NO permanence guarantee. Nelson is explicit: "The address of
-a byte in its native document is of no concern to the user or to the front
-end; indeed, it may be constantly changing." V-positions are ephemeral,
-dense (contiguous from 1 to the document's current length), and
-rearranged by every editing operation.
+V-space has no permanence guarantee. Nelson is explicit: "The address of a byte in its native document is of no concern to the user or to the front end; indeed, it may be constantly changing." V-positions run contiguously from 1 to the document's current length and are rearranged by every editing operation.
 
-The document is the **mapping** between these two spaces: a function from
-V-positions to I-addresses. INSERT, DELETE, and REARRANGE modify this
-mapping. The I-addresses themselves are untouched — content does not move,
-only the arrangement changes.
+**T11 (Dual-space separation).** The permanence properties (T8, T9, T10) apply exclusively to I-space. The shift-arithmetic properties (TA0–TA4, TA7) apply exclusively to V-space. No operation shifts an I-space address. No operation claims permanence for a V-space position.
 
-**T10 (Dual-space separation).** The permanence properties (T7, T8, T9)
-apply to I-space addresses. The arithmetic properties (TA0–TA4, TA6) apply
-to V-space positions. No operation applies shifting arithmetic to I-space
-addresses, and no operation claims permanence for V-space positions.
+T11 is the architectural core. Links attach to I-space addresses and therefore survive editing. Editing operations modify V-space positions and therefore do not violate permanence. The two spaces share the same carrier set T and the same ordering T1, but their operational contracts are disjoint.
 
-This separation is the architectural core of the tumbler system. Links
-attach to I-space addresses and therefore survive editing. Editing
-operations modify V-space positions and therefore do not break permanence.
-The two spaces share the same carrier set `T` and the same ordering T1,
-but their algebraic contracts are disjoint.
+The document is the *mapping* between these two spaces: a function from V-positions to I-addresses. The POOM (permutation of the original media) is precisely this mapping, represented as a sequence of spans. INSERT, DELETE, and REARRANGE modify the POOM. The I-addresses it maps to are untouched — content does not move; only the arrangement changes.
 
-## Spans as an algebraic consequence
 
-A span is a pair `(start, length)` where `start ∈ T` and `length ∈ T`
-represent a contiguous range of addresses. From T1 (total order) and T5
-(contiguous subtrees), we can derive that a span in I-space identifies a
-contiguous set of addresses at any level of the hierarchy — a single
-byte, a range of bytes, an entire document, everything by one author,
-or everything on one server.
+## Spans
 
-**T11 (Span well-definedness).** A span `(s, ℓ)` with `s ∈ T` and
-`ℓ > 0` denotes the set `{t ∈ T : s ≤ t < s ⊕ ℓ}`. This set is
-non-empty (it contains at least `s`) and contiguous under T1 (there
-are no gaps — any tumbler between two members of the set is also a
-member).
+A span is a pair `(s, ℓ)` where `s ∈ T` is a start address and `ℓ` is a length, denoting the contiguous range from `s` up to but not including `s ⊕ ℓ`. Spans are the fundamental unit of content reference: links reference spans, transclusion copies spans, the POOM is a sequence of spans.
 
-The contiguity of spans follows from T5: the set of all tumblers sharing
-a prefix is contiguous, and a span within a subspace is a sub-interval
-of such a set. Spans are the fundamental unit of content reference in the
-system — links reference spans, transclusion copies spans, and the POOM
-(the permutation of the original media) is a sequence of spans mapping
-V-positions to I-addresses.
+**T12 (Span well-definedness).** A span `(s, ℓ)` with `ℓ > 0` denotes the set `{t ∈ T : s ≤ t < s ⊕ ℓ}`. This set is contiguous under T1 — there is no tumbler between two members that is not itself a member.
 
-## Formal summary: the tumbler algebra
+Contiguity follows from T5 (contiguous subtrees) and the order-preservation of addition (TA1). The span is a sub-interval of the tumbler line, and sub-intervals of a total order are contiguous by definition.
 
-We collect the structure. The tumbler algebra is a six-tuple
-`(T, <, ⊕, ⊖, inc, fields)` where:
+Nelson makes spans self-describing at every hierarchical level: "A digit of 'one' may be used to designate all of a given version, all versions of a given document, all works of a given author, all documents in a given project, all documents on a given server — or the entire docuverse." The "1-position convention" exploits T5: because subtrees are contiguous, a span whose start is a high-level prefix (like a server address) and whose length reaches to the next sibling captures exactly that server's entire content. No enumeration needed.
 
-- `T` is the carrier set of finite sequences of non-negative integers (T0)
-- `<` is the lexicographic total order on `T` (T1, T2)
-- `⊕ : T × T → T` is order-preserving addition for V-space shifts (TA0, TA1)
-- `⊖ : T × T → T` is order-preserving subtraction for V-space shifts (TA2, TA3)
-- `⊕` and `⊖` are mutual inverses (TA4)
-- `inc : T × ℕ → T` is hierarchical increment for allocation (TA5)
-- `fields : T → Node × User × Document × Element` is the parser that
-  extracts the four hierarchical fields (T4)
+And a span may be empty — populated by nothing at present — yet valid: "A span that contains nothing today may at a later time contain a million documents." The range is determined by the endpoints; what is actually stored within that range is a question about the current state of I-space, not about the tumbler algebra.
 
-The algebra satisfies:
 
-- Unbounded components (T0)
-- Canonical representation (T3)
-- Contiguous subtrees (T5)
-- Decidable containment (T6)
-- Address permanence for I-space (T7)
-- Monotonic allocation (T8)
-- Partition independence (T9)
-- Dual-space separation (T10)
-- Span well-definedness (T11)
-- Subspace confinement for V-space arithmetic (TA6)
+## Representation and discreteness
 
-This is a minimal set. Each property is required by at least one system
-guarantee: T7 for link stability, T5 for span queries, T9 for
-decentralization, TA1 for INSERT correctness, TA6 for subspace isolation.
-Removing any property breaks a system-level guarantee.
+We have stated the abstract properties. One question remains: does the tumbler algebra, as abstractly specified, give a *dense* or *discrete* ordering?
+
+At the abstract level, T is dense in the sense that T0 (unbounded components) allows arbitrarily many tumblers to be constructed between any two that differ in a component — one can always extend a prefix to produce intermediate values. Between `1.3` and `1.5`, the addresses `1.4`, `1.3.1`, `1.3.2`, and so on all lie.
+
+But at the implementation level, the story changes. Gregory's implementation uses a fixed 16-digit mantissa where each digit is a 32-bit unsigned integer. Two tumblers that differ by exactly 1 in their last significant position have no representable tumbler between them. Concretely: `1.0.0. ... .0` (16 digits) and `1.0.0. ... .1` (differing only in position 16) are adjacent — there is no 17th digit to subdivide the gap.
+
+This is the same phenomenon as adjacent floating-point numbers: the abstract reals are dense, but the representable values are discrete. The abstract tumbler algebra (T0) demands unbounded components and therefore density. Any finite-precision implementation necessarily violates density at the margin. A correct implementation must demonstrate that address allocation never drives the system into a region where density failure matters — that is, the reachable allocations never need to subdivide a gap that the representation has made atomic.
+
+
+## Enfilade displacement arithmetic
+
+One further use of tumbler arithmetic deserves mention: the 2D enfilade that implements the POOM stores displacements as pairs of tumblers, one for the V-dimension and one for the I-dimension. The displacement of a parent node is the component-wise minimum of its children's displacements, and children store offsets relative to their parent.
+
+**TA8 (Orthogonal dimensions).** In the 2D enfilade displacement arithmetic, V-displacements and I-displacements are added, subtracted, minimized, and maximized independently. There is no cross-dimensional operation that combines a V-value with an I-value.
+
+  `add(⟨v₁, i₁⟩, ⟨v₂, i₂⟩) = ⟨v₁ ⊕ v₂, i₁ ⊕ i₂⟩`
+
+  `min(⟨v₁, i₁⟩, ⟨v₂, i₂⟩) = ⟨min(v₁, v₂), min(i₁, i₂)⟩`
+
+Gregory confirms: the `lockadd`, `locksubtract`, `lockmin`, and `lockmax` routines each loop through dimensions, applying single-tumbler arithmetic to each independently. The dimensions never interact. This is not surprising — a V-position and an I-address have entirely different semantics, and mixing them would be meaningless — but it is worth stating because it simplifies verification: proving correctness of 2D displacement arithmetic reduces to proving correctness of each 1D tumbler operation separately.
+
+
+## Formal summary
+
+We collect the structure. The tumbler algebra is a tuple `(T, <, ⊕, ⊖, inc, fields, 0)` where:
+
+- `T` is the carrier set of finite sequences of non-negative integers, with unbounded components (T0)
+- `<` is the lexicographic total order on `T` (T1), intrinsically computable (T2), with canonical representation (T3)
+- The hierarchical parsing function `fields` extracts four-level containment (T4), yielding contiguous subtrees (T5) and decidable containment (T6)
+- The element subspace disjointness (T7) guarantees permanent separation of content types
+- `T8–T10` establish permanence, forward allocation, and partition independence for I-space
+- `T11` separates the I-space and V-space contracts
+- `⊕` and `⊖` are order-preserving shift operations for V-space (TA0–TA3), mutually inverse (TA4)
+- `inc` is hierarchical increment for allocation (TA5)
+- `0` is the zero tumbler sentinel (TA6)
+- `TA7` confines shifts to their subspace
+- `TA8` ensures orthogonality of V and I dimensions in displacement arithmetic
+- Spans are self-describing contiguous ranges (T12)
+
+Each property is required by at least one system guarantee:
+
+| Property | Required by |
+|----------|-------------|
+| T0 | Unbounded growth of docuverse |
+| T1, T2 | Span containment, link search, enfilade traversal |
+| T3 | Address identity, uniqueness |
+| T4, T5, T6 | Hierarchical queries, self-describing spans |
+| T7 | Editorial subspace isolation |
+| T8 | Link stability, transclusion identity |
+| T9 | Append-only I-space, no address collision within partitions |
+| T10 | Decentralized allocation |
+| T11 | Separation of mutable arrangement from permanent identity |
+| T12 | Content reference by span |
+| TA0–TA4 | INSERT/DELETE correctness |
+| TA5 | Address allocation |
+| TA6 | Sentinel and lower bound |
+| TA7 | INSERT/DELETE subspace isolation |
+| TA8 | 2D enfilade correctness |
+
+Removing any property breaks a system-level guarantee. This is the minimal algebra.
+
 
 ## Properties Introduced
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| T0 | Every tumbler component is unbounded — no maximum value | introduced |
-| T1 | Tumblers are totally ordered by lexicographic comparison with prefix-less-than convention | introduced |
-| T2 | Tumbler comparison is decidable from the addresses alone in time proportional to their length | introduced |
-| T3 | Each tumbler has exactly one canonical representation; order-equivalence implies equality | introduced |
+| T0 | Every component of a tumbler is unbounded — no maximum value exists | introduced |
+| T1 | Tumblers are totally ordered by lexicographic comparison, with the prefix-less-than convention | introduced |
+| T2 | Tumbler comparison is computable from the two addresses alone, examining at most min(#a, #b) components | introduced |
+| T3 | Each tumbler has exactly one canonical representation; component-wise identity is both necessary and sufficient for equality | introduced |
 | T4 | An I-space tumbler has at most three zero-valued components, partitioning it into four hierarchical fields (node, user, document, element) | introduced |
 | T5 | The set of tumblers sharing a prefix forms a contiguous interval under T1 | introduced |
-| T6 | Containment (same node, same account, same document family, ancestor-version) is decidable from addresses alone | introduced |
-| T7 | Once a tumbler is assigned to content, the assignment is permanent and the content at that address is immutable | introduced |
-| T8 | Within any partition (fixed prefix), new allocations are strictly monotonically increasing | introduced |
-| T9 | Disjoint ownership prefixes guarantee distinct addresses without coordination | introduced |
-| T10 | Permanence (T7–T9) applies to I-space; arithmetic (TA0–TA4, TA6) applies to V-space; the contracts are disjoint | introduced |
-| T11 | A span (start, length) denotes a contiguous, non-empty set of tumblers | introduced |
-| TA0 | Tumbler addition `a ⊕ w` is well-defined for positive width `w` | introduced |
-| TA1 | Addition preserves the total order: `a < b ⟹ a ⊕ w < b ⊕ w` for `w > 0` | introduced |
-| TA2 | Tumbler subtraction `a ⊖ w` is well-defined when `a > w` | introduced |
-| TA3 | Subtraction preserves the total order: `a < b ⟹ a ⊖ w < b ⊖ w` when both are defined | introduced |
-| TA4 | Addition and subtraction are mutual inverses: `(a ⊕ w) ⊖ w = a` | introduced |
-| TA5 | Hierarchical increment `inc(t, k)` produces `t' > t` at the specified level, yielding a sibling (k=0) or child (k>0) | introduced |
-| TA6 | Shift operations (⊕, ⊖) applied within one subspace do not affect positions in any other subspace | introduced |
+| T6 | Containment (same node, same account, same document family, structural subordination) is decidable from addresses alone | introduced |
+| T7 | Subspaces (text, links) within a document's element field are permanently disjoint | introduced |
+| T8 | Once a tumbler is assigned to content, the assignment is permanent and the content is immutable | introduced |
+| T9 | Within any partition, new allocations are strictly monotonically increasing; gaps are permanent | introduced |
+| T10 | Allocators with non-nesting prefixes produce distinct addresses without coordination | introduced |
+| T11 | Permanence (T8–T10) applies to I-space; shift arithmetic (TA0–TA4, TA7) applies to V-space; the contracts are disjoint | introduced |
+| T12 | A span (start, length) denotes a contiguous, self-describing set of tumblers | introduced |
+| TA0 | Tumbler addition a ⊕ w is well-defined for positive width w | introduced |
+| TA1 | Addition preserves the total order: a < b ⟹ a ⊕ w < b ⊕ w for w > 0 | introduced |
+| TA2 | Tumbler subtraction a ⊖ w is well-defined when a ≥ w | introduced |
+| TA3 | Subtraction preserves the total order: a < b ⟹ a ⊖ w < b ⊖ w when both are defined | introduced |
+| TA4 | Addition and subtraction are mutual inverses: (a ⊕ w) ⊖ w = a | introduced |
+| TA5 | Hierarchical increment inc(t, k) produces t' > t, yielding sibling (k=0) or child (k>0) | introduced |
+| TA6 | The zero tumbler is less than all positive tumblers and is not a valid address; it serves as sentinel | introduced |
+| TA7 | Shift operations applied within one subspace produce results in that subspace and do not affect other subspaces | introduced |
+| TA8 | In 2D displacement arithmetic, V and I dimensions are operated on independently with no cross-dimensional combination | introduced |
+
 
 ## Open Questions
 
-How must tumbler arithmetic interact with the zero-valued field separators — can addition ever produce or consume a zero component, and what constraint prevents shifting a V-position across a field boundary?
+Must addition preserve order universally, or only when the position and width share the same hierarchical depth — and if the latter, what precondition must the system enforce to guarantee that only same-depth additions occur?
 
-What algebraic property of the POOM (the V→I mapping) must hold for span intersection to be computable from the mapping alone, without enumerating individual positions?
+Can addition ever produce or consume a zero-valued component, and what constraint prevents a V-space shift from crossing a field boundary?
 
-Must the width used in shift operations (⊕, ⊖) always share the same hierarchical depth as the positions being shifted, or can the system guarantee TA1 and TA6 for widths at arbitrary depths?
+What algebraic property of the POOM mapping must hold for span intersection to be computable from the mapping alone, without enumerating individual positions?
 
-What must a correct implementation guarantee about allocation counter durability across crashes — is monotonicity (T8) a per-session or a global-history requirement?
+Must allocation counter durability across crashes be a global-history property or only a per-session property — and what recovery mechanism restores monotonicity after a crash that loses the counter state?
 
-Under what conditions does tumbler addition compose — are there system states where two successive shifts `(a ⊕ w₁) ⊕ w₂` must equal a single shift `a ⊕ (w₁ + w₂)`, and if so, what precondition restricts the operands?
+Under what conditions, if any, must two successive shifts `(a ⊕ w₁) ⊕ w₂` equal a single shift `a ⊕ (w₁ ⊕ w₂)`, and what system invariant guarantees this when it is needed?
 
-What must the system guarantee when comparing tumblers from different subspaces — does the total order T1 extend meaningfully across the text/link boundary, or is cross-subspace comparison only well-defined for containment queries?
+What minimal auxiliary structure must the system maintain to reconstruct version-derivation history, given that it is not decidable from addresses alone?
 
-If version-derivation is not decidable from addresses alone (T6 qualification), what minimal auxiliary structure must the system maintain to reconstruct the derivation graph?
+What must the system guarantee about the zero tumbler's interaction with span arithmetic — if a span endpoint is the zero sentinel, how must containment and intersection operations behave?
