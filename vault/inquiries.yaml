@@ -21,6 +21,9 @@ inquiries:
     title: "Address Permanence"
     question: "What guarantees must the system provide about address stability? Once content is assigned an address, what operations may and may not affect that assignment?"
     area: addressing
+    agents:
+      nelson: 10
+      gregory: 10
 
   - id: 3
     title: "I-Space and V-Space"
