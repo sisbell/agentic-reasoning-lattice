@@ -1,0 +1,14 @@
+# Sub-Questions — Transclusion (COPY)
+
+**Inquiry:** What must content sharing through transclusion guarantee? How does transclusion differ from duplication? What properties of the original are preserved in the copy?
+
+1. [nelson] When content from one document appears in another through transclusion, must the system guarantee that a reader can always trace that content back to its original document and author?
+2. [nelson] If the original content is permanent and cannot be altered, does transclusion inherit that same permanence guarantee, or can a transcluding document lose access to what it shares?
+3. [nelson] Must links attached to the original content remain visible and functional when that content appears through transclusion in a different document?
+4. [nelson] What distinguishes transclusion from copying at the level of identity — does the shared content retain the same identity as the original, or does it acquire a new one?
+5. [nelson] When a document transcludes content, must the system guarantee that the original author receives attribution and compensation, even across arbitrary depths of re-transclusion?
+6. [gregory] When COPY (vcopy) transfers a V-span from source to target, does the target POOM receive entries pointing to the exact same I-addresses as the source, or does any intermediate step (such as vspanset2sporglset or insertpm) ever allocate fresh I-addresses for the copied content?
+7. [gregory] If document A contains text at I-addresses [.0.1.1,.0.1.5] and document B transcludes that same span, then document A DELETEs the text from its POOM, does find_links on document B still discover links whose endsets reference those I-addresses — confirming that the transcluding document's copy is fully independent of the source document's subsequent edits?
+8. [gregory] When COPY creates DOCISPAN entries in the spanfilade for the target document, does it create one entry per contiguous I-span in the copied specset, and are these entries structurally identical (same I-address range, different document ID) to the source document's existing DOCISPAN entries?
+9. [gregory] If a user INSERTs the string "Hello" into document A and separately INSERTs the identical string "Hello" into document B, do find_links and compare_versions treat these two instances as completely unrelated content (distinct I-addresses), whereas a COPY of document A's "Hello" into document B would make them appear as shared content — and is this the sole behavioral distinction between duplication and transclusion?
+10. [gregory] When isanextensionnd detects that copied I-addresses are contiguous with an existing POOM entry in the target document (reach == origin), does the silent coalescing into a single crum preserve the property that find_links discovers links to the coalesced content, or could the merge alter the I-span boundaries reported during sporgl conversion in a way that affects link endpoint overlap detection?
