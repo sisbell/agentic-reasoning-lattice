@@ -4,8 +4,8 @@
 # Questions are framed abstractly to prevent implementation drift.
 # New inquiries can be added from ASN open questions.
 #
-# agents.nelson — number of Nelson sub-questions (default: 5)
-# agents.gregory — number of Gregory sub-questions (default: 5)
+# agents.nelson — number of Nelson sub-questions (default: 10)
+# agents.gregory — number of Gregory sub-questions (default: 10)
 # Set either to 0 to skip that expert. Set to 1 for a focused follow-up.
 
 inquiries:

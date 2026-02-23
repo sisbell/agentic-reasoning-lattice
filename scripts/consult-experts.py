@@ -136,7 +136,7 @@ def _call_decompose(prompt, label, model="opus"):
         return result.stdout
 
 
-def decompose_inquiry(inquiry_text, num_nelson=5, num_gregory=5, model="opus"):
+def decompose_inquiry(inquiry_text, num_nelson=10, num_gregory=10, model="opus"):
     """Two-pass decompose: Nelson (design vocabulary) then Gregory (with KB context).
 
     Nelson questions use design vocabulary only — no implementation contamination.
@@ -458,9 +458,9 @@ def main():
     parser.add_argument("--inquiry-id", type=int,
                         help="Load inquiry by ID from inquiries.yaml")
     parser.add_argument("--nelson", type=int, default=None,
-                        help="Number of Nelson questions (overrides inquiries.yaml, default: 5)")
+                        help="Number of Nelson questions (overrides inquiries.yaml, default: 10)")
     parser.add_argument("--gregory", type=int, default=None,
-                        help="Number of Gregory questions (overrides inquiries.yaml, default: 5)")
+                        help="Number of Gregory questions (overrides inquiries.yaml, default: 10)")
     parser.add_argument("--model", "-m", default="opus",
                         choices=["sonnet", "opus"],
                         help="Model for question generation (default: opus)")
@@ -473,8 +473,8 @@ def main():
     # Load inquiry
     inquiry_title = "Ad-hoc inquiry"
     asn_label = "adhoc"
-    num_nelson = 5
-    num_gregory = 5
+    num_nelson = 10
+    num_gregory = 10
     if args.inquiry_id:
         inquiry = load_inquiry(args.inquiry_id)
         inquiry_text = inquiry["question"]
