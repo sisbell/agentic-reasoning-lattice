@@ -482,8 +482,8 @@ def main():
         asn_label = f"{args.inquiry_id:04d}"
         # Read per-inquiry agent counts from YAML (agents.nelson, agents.gregory)
         agents = inquiry.get("agents", {})
-        num_nelson = agents.get("nelson", 5)
-        num_gregory = agents.get("gregory", 5)
+        num_nelson = agents.get("nelson", 10)
+        num_gregory = agents.get("gregory", 10)
     elif args.question:
         inquiry_text = args.question
     else:
