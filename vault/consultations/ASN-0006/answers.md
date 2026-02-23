@@ -1,1528 +1,2364 @@
 # Consultation Answers — Transclusion (COPY)
 
 **Inquiry:** What must content sharing through transclusion guarantee? How does transclusion differ from duplication? What properties of the original are preserved in the copy?
-**Date:** 2026-02-23 09:22
-**Questions:** 10 (5 nelson, 5 gregory)
+**Date:** 2026-02-23 11:58
+**Questions:** 20 (10 nelson, 10 gregory)
 
 ---
 
 ## Question 1 [nelson]
 
-> When content from one document appears in another through transclusion, must the system guarantee that a reader can always trace that content back to its original document and author?
+> When content from one document appears in another through transclusion, must the system guarantee that both occurrences share the same identity rather than being independent copies?
 
 ### Nelson's Answer
 
-## Yes — Origin Traceability Is a Structural Guarantee
+## Yes — Shared Identity Is the Entire Point
 
-This is one of Xanadu's most fundamental guarantees, and it is **architectural, not policy-based**. The system cannot deliver transcluded content without revealing its origin, because the delivery mechanism itself requires fetching from the home location.
+Transclusion is not "copying with a link back." It is inclusion by reference to the *same* I-space content. The system **must** guarantee that both occurrences share identity. This is not one feature among many — it is the architectural foundation on which permanence, attribution, royalties, correspondence, and the distributed update solution all depend.
 
-### The Core Guarantee
+### The Architectural Guarantee
 
-Nelson states this explicitly:
+Xanadu has two address spaces precisely to make this work:
 
-> "This world nevertheless remains simple in design. The virtuality is simple in structure and repeats in layers. You always know where you are, and can at once ascertain the home document of any specific word or character." [LM 2/40]
+- **I-space** stores content permanently. Every byte has one permanent address.
+- **V-space** arranges references to I-space content into documents.
 
-This is not a feature bolted onto the system — it is a consequence of how I-space addressing works.
-
-### Why Traceability Is Structural
-
-Every byte in Xanadu has a permanent I-space address with the form:
-
-```
-Node.0.User.0.Document.0.Element
-```
-
-The **Document field** directly encodes which document originally created that byte. When content appears in another document through transclusion, it is not copied — it is referenced by its permanent I-address:
+When content appears in two documents, both documents' V-space mappings point to the *same* I-space addresses. There is one set of bytes, referenced from two places.
 
 > "Native bytes of a document are those actually stored under its control and found directly in storage under its control; all other bytes are obtained by front-end or back-end requests to their home locations." [LM 4/11]
 
 > "Bytes native elsewhere have an ordinal position in the byte stream just as if they were native to the document. Non-native byte-spans are called inclusions or virtual copies." [LM 4/11]
 
-The key insight: to display transcluded content, the system must request it from its home location. The I-address IS the attribution. You cannot fetch the content without knowing where it came from, because the address encodes the origin.
+The term "virtual copies" is precise — they are *virtual*, not actual. The bytes exist once in I-space; V-space creates the appearance of their presence in multiple documents.
 
-### Contrast with Conventional Copying
+### Nelson's Explicit Statement
 
-In traditional systems, attribution is metadata — an author field, a copyright notice, a citation. These can be stripped, falsified, or simply omitted. Nelson's design makes this impossible within the system:
+Nelson is unambiguous that transclusion involves no duplication:
 
-- **Copies diverge** from originals; transclusions cannot diverge (they ARE the original)
-- **Copies lose attribution**; transclusions carry attribution in their addresses
-- **Copies sever the connection**; transclusions maintain it permanently
+> "No copying operations are required among the documents throughout the system, and thus we solve the problems of update — especially the problem of updating documents which depend on other documents. We solve this problem simply by windowing to a changing document." [LM 2/36]
 
-Nelson captures this distinction vividly:
+The COPY operation in the FEBE protocol creates a V-space mapping to existing I-space content — it does not allocate new I-space bytes. The word "copy" in the protocol name is misleading by modern standards; it means "include by reference."
 
-> "Note also that he or she who makes a paper copy or disk is losing all dynamic link connections, and is left with the inert, non-interactive copy. And that will be a considerable deprivation in the world we are talking about." [LM 2/48]
+### Why Independent Copies Would Break Everything
 
-### What Readers Can Do
+If two occurrences were independent copies with separate I-space addresses, five guarantees would collapse:
 
-When viewing a compound document containing transcluded content, readers can:
+**1. Attribution.** Nelson promises: "You always know where you are, and can at once ascertain the home document of any specific word or character." [LM 2/40] This works because the I-address encodes the originating document. An independent copy would have a *different* I-address pointing to the *copying* document, severing the chain to the original author.
 
-1. **Identify origin** — examine the I-address to see which document created the content
-2. **Navigate to source** — "step through the window" into the original document
-3. **Find all uses** — the FINDDOCSCONTAINING operation "returns a list of all documents containing any portion of the material included by \<vspec set\>" [LM 4/70]
-4. **Return freely** — the layered glass-pane model means you always know where you are
+**2. Correspondence.** Version comparison depends on shared I-addresses. "A facility that holds multiple versions of the same material, and allows historical backtrack, is not terribly useful unless it can help you intercompare them in detail — unless it can show you, word for word, what parts of two versions are the same." [LM 2/20] The system identifies corresponding parts by checking whether V-space positions in different documents map to the same I-address. Independent copies would destroy this.
 
-Nelson describes this navigation:
+**3. Royalties.** "There is a royalty on every byte transmitted. This is paid automatically by the user to the owner every time a fragment is summoned." [LM 2/43] Royalties flow to the *owner* of the I-space content. If transclusion created independent copies at the copier's I-address, the original author would receive nothing when their words were delivered through someone else's document.
 
-> "Only when you step through the window--turning one glass page and going on in the next--do you reach the original that you wanted. But stepping through the window means you are now in another work." [LM 2/34]
+**4. The Distributed Update Solution.** Nelson identifies this as a key achievement. If transclusion created independent copies, the copies would diverge from the original — which is exactly the problem Xanadu was built to solve.
 
-### The FINDDOCSCONTAINING Operation
+**5. Link Survivability.** Links attach to I-space addresses. A link to a passage in document A should resolve when that passage appears (via transclusion) in document B — but only if both reference the same I-address.
 
-The system provides a dedicated operation for reverse traceability — given any content, find everywhere it appears:
+### The Glass Pane Metaphor
 
-> "This returns a list of all documents containing any portion of the material included by \<vspec set\>." [LM 4/70]
+Nelson's metaphor makes the design intent vivid:
 
-This works because content identity is based on I-address (creation origin), not on value. Two documents with identical text created independently have different I-addresses. Transcluded content shares the same I-address. The system can always distinguish "wrote the same words independently" from "quoted from the original."
+> "Think of the present document as a sheet of glass. It may have writing painted on it by the present author; it may have clear glass, windowing to something else; the next pane may be in turn made of more layers of painted glass, with more windows, and so on indefinitely." [LM 2/34]
+
+Your document has painted content (your I-space bytes) and transparent windows (V-space references to others' I-space bytes). When you look through the window, you see the *original* — not a photograph of it.
+
+### The Live vs. Dead Distinction
+
+Nelson draws this contrast explicitly:
+
+> "Remember the analogy between text and water. Water flows freely, ice does not. The free-flowing, live documents on the network are subject to constant new use and linkage, and those new links continually become interactively available. Any detached copy someone keeps is frozen and dead, lacking access to the new linkage." [LM 2/48]
+
+Transclusion produces *live* references — connected to the original, participating in the network. Independent copies are *dead* — severed, frozen, disconnected.
 
 ### Summary
 
-Origin traceability is not merely guaranteed — it is **inescapable**. The I-space addressing scheme encodes provenance into the identity of every byte. Attribution cannot be severed by any operation within the system, because the fetching mechanism requires knowing the home location, and the home location IS the attribution.
+The guarantee of shared identity is not merely a technical optimization. It is the mechanism through which Xanadu delivers its core promises: permanent attribution, automatic royalties, version correspondence, distributed update, and the interconnected structure of literature. Two documents referencing the same content must share the same I-space addresses, because the I-address *is* the identity.
 
 ---
 
 ## Question 2 [nelson]
 
-> If the original content is permanent and cannot be altered, does transclusion inherit that same permanence guarantee, or can a transcluding document lose access to what it shares?
+> If a reader encounters transcluded content in a document, must the system always be able to reveal the original document and position from which that content originated?
 
 ### Nelson's Answer
 
-# Transclusion and the Permanence Guarantee
+## Yes — unconditionally
 
-## The Short Answer
+Revealing the origin of transcluded content is not merely a feature but a **structural invariant** of the system. Nelson makes this guarantee in the strongest possible terms:
 
-Transclusion does **not** independently inherit permanence. Because transclusion is reference, not copy, a transcluding document's access to shared content depends entirely on the continued accessibility of the original. The strength of that dependency varies by the original's publication status.
+> "This world nevertheless remains simple in design. The virtuality is simple in structure and repeats in layers. You always know where you are, and can at once ascertain the home document of any specific word or character." [LM 2/40]
 
-## Why Transclusion Is Inherently Dependent
+The word "at once" is deliberate. This is not a search operation that might fail — it is an immediate property of the content itself.
 
-The mechanism is the key. Transclusion creates no independent copy:
+## Why it is structural, not metadata
 
-> "No copying operations are required among the documents throughout the system, and thus we solve the problems of update--especially the problem of updating documents which depend on other documents. We solve this problem simply by windowing to a changing document." [LM 2/36]
+The guarantee follows from the I-space addressing architecture. Every byte in the docuverse has a permanent I-space address — a tumbler with the form:
 
-> "Native bytes of a document are those actually stored under its control and found directly in storage under its control; all other bytes are obtained by front-end or back-end requests to their home locations." [LM 4/11]
+```
+Node.0.User.0.Document.0.Element
+```
 
-When your document transcludes content from mine, it holds a V-space reference to my I-space content. Every time a reader views your document, the system fetches my bytes from their home location. If my bytes become inaccessible, your document has a hole in it. There is no local fallback, no cached copy, no independent existence of those bytes in your document's storage.
-
-This is by design. The whole point of transclusion over copying is that the connection to the source is maintained:
-
-> "Note also that he or she who makes a paper copy or disk is losing all dynamic link connections, and is left with the inert, non-interactive copy. And that will be a considerable deprivation in the world we are talking about." [LM 2/48]
-
-The "living" nature of transclusion — its greatest strength — is also its vulnerability.
-
-## Three Cases of Original Accessibility
-
-### 1. Published Content: Strong Protection
-
-For published documents, the permanence guarantee is robust. Publication creates a binding obligation:
-
-> "It is in the common interest that a thing once published stay published, as in the world of paper. Other readers and users will come to depend on its accessibility. Consequently its author may not withdraw it except by lengthy due process." [LM 2/43]
-
-Nelson explicitly ties this to transclusion and linking:
-
-> "However, for corrections and amendments, the author may readily publish a superseding document, but the former version must remain on the network. This is vital because of the links other users may have made to it—which can now reach through from the previous version (to which they were originally attached) into the newer version." [LM 2/43]
-
-So if you transclude from a published document, the publication contract protects your access. The original author cannot casually withdraw what you depend on. Your transclusion is safe — not because you have an independent copy, but because the original is contractually obligated to remain.
-
-### 2. Privashed Content: Explicitly Vulnerable
-
-Nelson defines "privashing" as a deliberate alternative to full publication:
-
-> "An author who wishes to render his work universally available, but wishes also to retain the right to withdraw it at any time, has a simple means for so doing. The author simply designates his or her document as a private document with unrestricted distribution." [LM 2/48]
-
-The consequence for those who depend on privashed content is stark: "Anyone who linked to it has no recourse if you withdraw." The same applies to transclusion. If you build a compound document that transcludes privashed content, and the author withdraws it, your document loses that content with no remedy.
-
-Nelson provides no incentive structure to prevent this — in fact, privashing explicitly forfeits royalties, removing the economic incentive that would otherwise make withdrawal costly.
-
-### 3. Private Content: Owner's Discretion
-
-Private documents are accessible "only to the owner and his or her associates" [LM 2/42]. Transclusion of private content is possible (you can transclude from any document you have access to), but access can be revoked at any time. There is no permanence obligation for unpublished material.
-
-## The Deeper Tension: Storage Funding
-
-Even for published content, permanence is not unconditional. Nelson insists:
-
-> "ALL SERVICES MUST BE SELF-SUPPORTING. Subsidy between one aspect of the system and another could only work temporarily. This means, for example, that archival storage must be economically self-sustaining." [LM 4/5]
-
-Storage requires ongoing rental paid by the content owner. Nelson does not specify what happens to published content when its owner stops paying storage fees. The permanence of the address is absolute — once assigned, a tumbler is never reused — but permanence of *accessibility* depends on continued funding.
-
-This creates a gap in the transclusion guarantee. Your compound document depends on my content being accessible. My content being accessible depends on someone paying for its storage. If I die, go bankrupt, or simply stop paying, the system has no specified mechanism to ensure my published content remains available — despite the contractual obligation that it should.
-
-The Author's Fund provides a partial safety net for public domain content, but Nelson does not specify it as a backstop for published content whose owner has lapsed.
-
-## The Architectural Insight
-
-Nelson designed this dependency deliberately. The alternative — making transclusion create independent copies — would solve the accessibility problem but destroy everything else:
-
-- Attribution would be severed (copies lose their origin)
-- Royalties would be impossible (who gets paid for a copy?)
-- Updates would not propagate (copies diverge)
-- The web of literature would fragment (connections become illusions)
-
-As Nelson puts it through the water metaphor:
-
-> "Remember the analogy between text and water. Water flows freely, ice does not. The free-flowing, live documents on the network are subject to constant new use and linkage, and those new links continually become interactively available. Any detached copy someone keeps is frozen and dead, lacking access to the new linkage." [LM 2/48]
-
-Transclusion's vulnerability to source withdrawal is the price of keeping literature alive and connected. The publication contract is the mechanism that makes this price acceptable — it ensures that the most important content (published work that others depend on) cannot be casually removed.
-
-## Summary
-
-| Source Status | Transclusion Permanence | Mechanism |
-|---|---|---|
-| **Published** | Strong — contractually protected | Publication contract forbids withdrawal |
-| **Privashed** | None — explicitly revocable | Owner retains withdrawal right |
-| **Private** | None — at owner's discretion | Access can be revoked at any time |
-| **Published but unfunded** | Unspecified gap | Nelson does not resolve this case |
-
-The permanence guarantee flows *through* the publication contract, not through the transclusion mechanism itself. Transclusion is a window, not a vault. The window stays open only as long as the original remains accessible — and the original remains accessible only as long as the publication contract and storage funding hold.
-
----
-
-## Question 3 [nelson]
-
-> Must links attached to the original content remain visible and functional when that content appears through transclusion in a different document?
-
-### Nelson's Answer
-
-## Yes — Links Follow Content, Not Containers
-
-Nelson's design ensures that links attached to content remain functional when that content appears through transclusion. This is not an explicit rule stated in isolation but a structural consequence of three interlocking design decisions.
-
-### 1. Links Point to I-Space, Not V-Space
-
-Links attach to permanent content addresses (I-space), not to positions in any particular document's arrangement (V-space):
-
-> "A Xanadu link is not between points, but between spans of data. Thus we may visualize it as a strap between bytes." (4/42)
-
-> "Note that this order may be continually altered by editorial operations, but since the links are to the bytes themselves, any links to those bytes remain stably attached to them." (4/30)
-
-The "strap between bytes" metaphor is key. The strap grips the bytes themselves — their permanent identity — not the document that currently displays them.
-
-### 2. Transclusion Preserves I-Space Identity
-
-Transcluded content does not receive new addresses. It retains its original I-space identity:
-
-> "Native bytes of a document are those actually stored under its control and found directly in storage under its control; all other bytes are obtained by front-end or back-end requests to their home locations." (4/11)
-
-> "Bytes native elsewhere have an ordinal position in the byte stream just as if they were native to the document. Non-native byte-spans are called inclusions or virtual copies." (4/11)
-
-When Document B transcludes content from Document A, those bytes keep their I-space addresses from Document A. They appear "just as if they were native" in B's V-stream, but their identity is unchanged.
-
-### 3. Therefore Links Are Discoverable Through Transclusion
-
-Since links point to I-space addresses, and transcluded content retains its I-space addresses, any link search for content that happens to appear through transclusion will find the same links as searching for it in the original document. The FINDLINKSFROMTOTHREE operation searches by endset addresses in I-space — it is indifferent to which document's V-space currently displays the content.
-
-Nelson confirms the general discoverability guarantee:
-
-> "The reader should be able to ask, for a given document or place in the document, 'What connects here from other documents?'— and be shown all these outside connections without appreciable delay." (2/46)
-
-"A given document or place in the document" includes transcluded content appearing in that document.
-
-### Visibility vs. Discoverability
-
-There is one important distinction Nelson draws: **all links are discoverable, but not all are automatically displayed.** The front end applies filtering:
-
-> "Thus it becomes necessary to apply some kind of filter, saying, 'What links come in from Spain? From last week? From persons of importance to me?'" (2/47)
-
-So the guarantee is:
-
-- **Functional**: Links to transcluded content are always findable through the standard link search mechanism. The search operates on I-space addresses, which transclusion preserves.
-- **Visible**: Whether they are automatically shown is a front-end display decision, subject to user-controlled filtering ("sieving"). But they are always *available* to be shown.
-
-### The Parallel with Version-Spanning Links
-
-Nelson states an analogous principle for versions:
-
-> "Links may be refractively followed from a point or span in one version to corresponding places in any other version. Thus a link to one version of a Prismatic Document is a link to all versions." (2/26)
-
-Links follow content across versions because versions share I-space. Transclusion is the same mechanism generalized across documents: content retains its I-space identity, so links follow it wherever it appears.
-
-### Summary
-
-Links must remain **functional** (findable, followable) when content appears through transclusion. This is a structural consequence of three design choices: links attach to I-space addresses, transclusion preserves I-space addresses, and link search operates on I-space. Nelson does not need to state this as a separate rule — it falls out of the architecture. The only front-end discretion is in **display filtering**, not in whether the links exist or can be found.
-
----
-
-## Question 4 [nelson]
-
-> What distinguishes transclusion from copying at the level of identity — does the shared content retain the same identity as the original, or does it acquire a new one?
-
-### Nelson's Answer
-
-Let me check the raw page for the COPY operation to see exactly what Nelson says about identity there.
-
-<tool_call>
-{"name": "Read", "arguments": {"file_path": "resources/literary-machines/raw/page-234.png"}}
-</tool_call>
-
-Let me also check the page describing inclusions and native vs non-native bytes.
-
-<tool_call>
-{"name": "Read", "arguments": {"file_path": "resources/literary-machines/raw/page-178.png"}}
-</tool_call>
-
-<tool_call>
-{"name": "Read", "arguments": {"file_path": "resources/literary-machines/raw/page-177.png"}}
-</tool_call>
-
-And the page on FINDDOCSCONTAINING, which depends on this identity question.
-
-<tool_call>
-{"name": "Read", "arguments": {"file_path": "resources/literary-machines/raw/page-237.png"}}
-</tool_call>
-
----
-
-## Transclusion preserves identity. Copying creates new identity.
-
-This is the central architectural distinction, and Nelson builds the entire system around it.
-
-### The I-address IS identity
-
-Every byte created in Xanadu gets a permanent I-space address encoding its origin — which server, which account, which document, which element position. That I-address is the byte's **identity**, not its value.
-
-Two documents containing the word "hello" typed independently have **different** I-addresses. The bytes are value-identical but identity-distinct. Conversely, when content is transcluded, both the original and the transclusion reference the **same** I-address. The bytes are not merely value-identical — they are the *same bytes*.
-
-### Transclusion: same identity, different arrangement
-
-When you transclude content (Nelson's COPY operation in FEBE, or his "quote-window" / "inclusion"), the receiving document's V-space maps to the **original** I-addresses. No new content is created in I-space. The transclusion is a reference, not a reproduction.
-
-Nelson is explicit about the mechanism:
+The **Document field** directly encodes which document originally created that byte. When content is transcluded, it is not copied — it is referenced by its permanent I-address:
 
 > "Native bytes of a document are those actually stored under its control and found directly in storage under its control; all other bytes are obtained by front-end or back-end requests to their home locations." [LM 4/11]
 
 > "Bytes native elsewhere have an ordinal position in the byte stream just as if they were native to the document. Non-native byte-spans are called inclusions or virtual copies." [LM 4/11]
 
-The term "virtual copies" is precise: they appear as if copied but are not. The bytes live at their home location. The receiving document merely points to them.
+The distinction between native and non-native bytes is intrinsic to the address — you cannot strip it. To *fetch* the content, the system must request it from its home location. The connection cannot be severed because the fetching mechanism requires it.
 
-### INSERT: new identity
+## What the reader can do
 
-By contrast, INSERT creates **new** content in I-space:
+Nelson describes the reader's experience in terms of navigation through layered windows:
 
-> "This inserts \<text set\> in document \<doc id\> at \<doc vsa\>. The v-stream addresses of any following characters in the document are increased by the length of the inserted text." [LM 4/66]
+> "Only when you step through the window — turning one glass page and going on in the next — do you reach the original that you wanted. But stepping through the window means you are now in another work." [LM 2/34]
 
-Inserted text gets fresh I-addresses under the receiving document. It is new content with a new identity — even if the bytes happen to be identical to something already in the docuverse.
+The reader can also ask the reverse question — given some content, what else includes it:
 
-### Why this distinction matters: three consequences
+> "FINDDOCSCONTAINING: This returns a list of all documents containing any portion of the material included by \<vspec set\>." [LM 4/70]
 
-**1. Attribution is structural, not metadata.**
+And the two-way reading guarantee:
 
-Because transclusions share I-addresses with the original, the system always knows where content came from:
+> "It must also be possible for the reader to ask to see whatever documents window to the current document. Both are available at any time." [LM 2/40]
 
-> "You always know where you are, and can at once ascertain the home document of any specific word or character." [LM 2/40]
+## A subtlety: home document vs. current position
 
-This cannot be stripped or falsified within the system. The fetching mechanism itself requires consulting the home location. Attribution is not a tag on the content — it is the address *of* the content.
+The system can always reveal the **home document** (which document created the bytes). Whether those bytes still appear in the home document's **current V-space arrangement** is a separate question — the owner may have "deleted" the content from their current version, which removes it from V-space but not from I-space:
 
-**2. FINDDOCSCONTAINING works.**
+> "Note that the owner of a document may delete bytes from the owner's current version, but those bytes remain in all other documents where they have been included." [LM 4/11]
 
-The operation that finds all documents containing a given piece of content depends entirely on shared I-addresses:
+So the origin document is always identifiable (from the I-address), but the content may no longer appear in the origin document's current view. It will still be recoverable through historical backtrack to a previous version where it was present.
 
-> "This returns a list of all documents containing any portion of the material included by \<vspec set\>." [LM 4/70]
+## Summary
 
-If transclusion created new I-addresses, this operation would be impossible — you could not trace from a passage in one document to all other documents containing that same passage. Shared identity is what makes the web of transclusion discoverable.
+The system **must** always be able to reveal the original document from which transcluded content originated. This is not a policy choice — it is a consequence of the addressing architecture. The I-address IS the proof of origin, and fetching content through transclusion requires consulting that address. Nelson's guarantee — "you can at once ascertain the home document of any specific word or character" — is absolute and unconditional.
 
-**3. Correspondence across versions is computable.**
+---
 
-SHOWRELATIONOF2VERSIONS returns corresponding span pairs between two versions. This works because versions created by CREATENEWVERSION share I-addresses for unchanged content. Shared I-address *means* correspondence:
+## Question 3 [nelson]
 
-> "Of course, a facility that holds multiple versions of the same material, and allows historical backtrack, is not terribly useful unless it can help you intercompare them in detail — unless it can show you, word for word, what parts of two versions are the same." [LM 2/20]
+> Can an author who transcludes content from another document ever modify the transcluded portion independently, or must it remain identical to the original?
 
-The system does not compare text values to find matches. It compares I-addresses. Identity, not equality.
+### Nelson's Answer
 
-### The glass pane metaphor
+## Transcluded Content Cannot Be Modified Independently
 
-Nelson's visual metaphor makes the identity point intuitive:
+The transcluded portion **must remain identical to the original**. This is not a limitation but a fundamental architectural guarantee. However, Nelson provides a powerful mechanism for creating what *appears* to be a modified version.
+
+### Why Modification Is Impossible
+
+Transcluded content lives in someone else's I-space. Your document's V-stream points to those bytes at their permanent home location:
+
+> "Native bytes of a document are those actually stored under its control and found directly in storage under its control; all other bytes are obtained by front-end or back-end requests to their home locations." [LM 4/11]
+
+You cannot change bytes you do not own:
+
+> "Every document has an owner, the person who created and stored it... Only the owner has a right to withdraw a document or change it." [LM 2/29]
+
+The COPY operation (which creates transclusion) shares I-addresses with the source rather than creating new bytes. There is nothing to modify — your document contains a reference, not a duplicate.
+
+### The Mechanism for "Modification": Versioning by Inclusion
+
+Nelson solves this through **derivative documents** — new documents that interleave transclusions of the original with the author's own new content:
+
+> "Thus users may create new published documents out of old ones indefinitely, making whatever changes seem appropriate — without damaging the originals. This is done by inclusion links." [LM 2/45]
+
+> "A particular form of compound document is one which consists explicitly of an original and changes to it — which may be made by anyone. (We may call this a derivative document.)" [LM 2/37]
+
+The Shakespeare example makes this concrete. If Hamlet is already published, E.G. Jewett can create his own version by: transcluding the first part of the original up to "in the soliloquy," inserting his own word "luge," then transcluding the rest of the play. The result reads as a modified Hamlet, but structurally it is transclusions plus one new native byte-span.
+
+### The Glass Pane Metaphor
 
 > "Think of the present document as a sheet of glass. It may have writing painted on it by the present author; it may have clear glass, windowing to something else; the next pane may be in turn made of more layers of painted glass, with more windows, and so on indefinitely." [LM 2/34]
 
-Painted content (INSERT) is new material — new I-addresses, new identity. Clear glass (transclusion) is a window onto existing material — same I-addresses, same identity. You are not looking at a reproduction of the other document. You are looking *through* to the other document itself.
+The "painted" portions are your native content (modifications). The "clear glass" portions are windows showing the original unchanged. You never paint on someone else's glass — you add your own pane with a mix of paint and windows.
 
-### Live vs dead
+### Transparency and Recoverability
 
-This identity-preservation is what makes transclusions "live" and copies "dead":
+This design ensures modifications are always transparent:
 
-> "Remember the analogy between text and water. Water flows freely, ice does not. The free-flowing, live documents on the network are subject to constant new use and linkage, and those new links continually become interactively available. Any detached copy someone keeps is frozen and dead, lacking access to the new linkage." [LM 2/48]
+> "This means a whole new pluralistic publishing form. If anything which is already published can be included in anything newly published, any new viewpoint can be freely presented by an easily-made annotated collage. (The old viewpoint is still present too — you can always say, 'Show me what this originally was.')" [LM 2/45]
 
-A transclusion participates in the network because it shares identity with the original. Links made to the original content reach the transclusion. New links made to the transclusion reach the original. A true copy (outside the system) severs this — it creates new bytes with no I-address, no identity, no connection.
+Because transcluded bytes and native bytes have different I-space origins, the system can always distinguish what the derivative author wrote from what they transcluded. Attribution is structural, not metadata:
+
+> "You always know where you are, and can at once ascertain the home document of any specific word or character." [LM 2/40]
+
+### Royalty Implications
+
+The structural separation also drives fair compensation:
+
+> "If a modified document is read, the original owner and the modifier split the royalty in proportion to who wrote what, as determined automatically." [LM 2/45]
+
+The system knows exactly which bytes are transcluded (royalty to original author) and which are native (royalty to modifier) because they have different I-addresses.
 
 ### Summary
 
-| Operation | I-addresses | Identity | Nelson's term |
-|-----------|-------------|----------|---------------|
-| INSERT | Fresh (new content) | New identity | "native bytes" |
-| COPY (transclusion) | Shared (same as source) | Same identity | "inclusions," "virtual copies" |
-| External copy | None (outside system) | No identity | "frozen and dead" |
+| What you want | How Xanadu does it |
+|---|---|
+| Show original content unchanged | Transclude it (COPY operation) |
+| Show modified content | Create a derivative document mixing transclusions with your own new text |
+| Let readers see both | Structural — the system always knows which bytes are yours vs. transcluded |
+| Compensate both authors | Automatic — royalty splits by I-space origin |
 
-The answer to your question is unambiguous: transcluded content retains the **same identity** as the original. It does not acquire a new one. This is not a design choice among alternatives — it is the foundation on which permanence, attribution, correspondence, and the entire economic model rest.
+The answer is architecturally clean: you never touch someone else's bytes. You compose a new document from references to their bytes and your own new bytes. The reader sees a unified result; the system preserves the full provenance.
+
+---
+
+## Question 4 [nelson]
+
+> When content is transcluded, do links that point to that content in its original document also apply when the same content appears in the transcluding document?
+
+### Nelson's Answer
+
+# Links and Transcluded Content
+
+**Yes.** Links that point to content in its original document also apply when that same content appears in a transcluding document. This is not a special feature but an architectural consequence of how I-space, V-space, links, and transclusion interact.
+
+## The Mechanism
+
+The answer follows from three design facts:
+
+**1. Links attach to I-space addresses, not V-space positions.**
+
+> "A Xanadu link is not between points, but between spans of data." [LM 4/42]
+
+Links point to the permanent identity of bytes (I-space), not to their current arrangement in any particular document (V-space).
+
+**2. Transclusion shares I-space addresses.**
+
+> "Non-native byte-spans are called inclusions or virtual copies." [LM 4/11]
+
+> "Bytes native elsewhere have an ordinal position in the byte stream just as if they were native to the document." [LM 4/11]
+
+When Bob transcludes content from Alice's document, Bob's document creates a V-space mapping to the *same* I-space addresses. The bytes are not copied — they are referenced. Both documents point to identical I-space content.
+
+**3. Therefore, any link targeting those I-space addresses applies in both documents.**
+
+If Carol creates a link whose endset points to I-addresses X through Y, and those addresses appear in both Alice's document (natively) and Bob's document (by transclusion), Carol's link connects to the content in both places.
+
+## Nelson's Explicit Confirmation (for Versions)
+
+Nelson states this principle explicitly for the case of versions, which share I-space content through the same mechanism as transclusion:
+
+> "Links may be refractively followed from a point or span in one version to corresponding places in any other version. Thus a link to one version of a Prismatic Document is a link to all versions." [LM 2/26]
+
+Versions share I-space addresses just as transclusions do. The principle is identical: shared I-space identity means shared link applicability.
+
+## Supporting Operations
+
+Two FEBE operations confirm the system is designed to work this way:
+
+**FINDDOCSCONTAINING** — finds all documents containing specified material, regardless of where native copies are located:
+
+> "This returns a list of all documents containing any of the material specified by the span addresses, regardless of where the native copies are located." [LM 4/63]
+
+This operation exists precisely because the system tracks where content appears across transclusions.
+
+**FINDLINKSFROMTOTHREE** — searches links by endset address ranges:
+
+> "This returns a list of all links which are (1) in \<home set\>, (2) from all or any part of \<from set\>, and (3) to all or any part of \<to set\> and \<three set\>." [LM 4/69]
+
+When a reader asks "what links connect to this passage?" while reading Bob's transcluding document, the system resolves the V-space position to I-space, finds the same I-addresses as in Alice's original, and discovers all links targeting that content.
+
+## Bidirectional Discovery
+
+Nelson explicitly requires that readers can discover all connections to any content they are viewing:
+
+> "The reader should be able to ask, for a given document or place in the document, 'What connects here from other documents?'— and be shown all these outside connections without appreciable delay." [LM 2/46]
+
+This guarantee applies regardless of whether you are reading the content in its native document or in a transcluding document. The content is the same bytes at the same I-addresses; the links are the same links.
+
+## The Deeper Point
+
+This behavior is what makes transclusion fundamentally different from copying. A copy severs the content from its identity — and therefore from its links. A transclusion preserves identity — and therefore preserves all connections.
+
+> "Note also that he or she who makes a paper copy or disk is losing all dynamic link connections, and is left with the inert, non-interactive copy. And that will be a considerable deprivation in the world we are talking about." [LM 2/48]
+
+The "dynamic link connections" that copying destroys are precisely the connections that transclusion preserves. When content appears by transclusion, it brings its entire web of links with it — annotations, citations, comments, counterpart links — because those links attach to the content's permanent identity, not to the document that happens to display it.
 
 ---
 
 ## Question 5 [nelson]
 
-> When a document transcludes content, must the system guarantee that the original author receives attribution and compensation, even across arbitrary depths of re-transclusion?
+> Must the original author of content always be discoverable when that content appears through transclusion in someone else's document?
 
 ### Nelson's Answer
 
-# Yes — and the guarantee is architectural, not policy
+## Yes — Structural Traceability Is a Fundamental Guarantee
 
-Nelson designs Xanadu so that transclusion depth is irrelevant to both attribution and compensation. This is not a feature bolted onto the system but a consequence of how I-space addressing works.
+The original author's home document is **always** discoverable for transcluded content. This is not a feature that can be turned off — it is inherent in how content is addressed.
 
-## Attribution: structural and unseverable
+### The Structural Basis
 
-The fundamental mechanism is that transclusion is **reference, not copy**. When Document C transcludes from Document B, which transcludes from Document A, the bytes in C that originated in A still carry A's I-space address. There is no intermediate copy at B's address — B's V-space merely maps positions to A's I-space content.
+Every byte in Xanadu has a permanent I-space address encoding its origin:
+
+```
+Node.0.User.0.Document.0.Element
+```
+
+The **User** and **Document** fields directly identify who created the content and in which document. When content is transcluded, it is fetched from its home location, not copied:
 
 > "Native bytes of a document are those actually stored under its control and found directly in storage under its control; all other bytes are obtained by front-end or back-end requests to their home locations." [LM 4/11]
 
-Nelson explicitly addresses the arbitrary-depth case:
+This means the connection to the source is the **delivery mechanism itself** — you cannot receive the bytes without knowing where they came from.
 
-> "Think of the present document as a sheet of glass. It may have writing painted on it by the present author; it may have clear glass, windowing to something else; the next pane may be in turn made of more layers of painted glass, with more windows, and so on indefinitely." [LM 2/34]
+### Nelson's Explicit Guarantee
 
-And guarantees traceability through all layers:
+Nelson states this as a user-facing promise, not merely an implementation detail:
 
-> "This world nevertheless remains simple in design. The virtuality is simple in structure and repeats in layers. You always know where you are, and can at once ascertain the home document of any specific word or character." [LM 2/40]
+> "This world nevertheless remains simple in design. The virtuality is simple in structure and regular in layout. You always know where you are, and can at once ascertain the home document of any specific word or character." [LM 2/40]
 
-The depth collapses to zero because every byte resolves to exactly one I-space home. There is no chain of custody to trace — there is simply an address that identifies the origin.
+The phrase "any specific word or character" is crucial. It applies to every byte in a compound document, whether native or transcluded. The user can always ask "where did this come from?" and receive a definitive answer.
 
-## Compensation: per-byte at the origin
+### Why This Cannot Be Circumvented
 
-The royalty mechanism operates on the same principle. Each published document has a **cash register** that increments whenever its bytes are delivered:
+Attribution in Xanadu is structural, not metadata:
 
-> "In our planned service, there is a royalty on every byte transmitted. This is paid automatically by the user to the owner every time a fragment is summoned, as part of the proportional use of byte delivery." [LM 2/43]
+- In conventional systems, attribution is a property *attached* to content (an author field, a copyright notice). These can be stripped or falsified.
+- In Xanadu, the origin **is** the address. To fetch transcluded content, the system must request it from its permanent I-space location. The connection cannot be severed because the fetching mechanism requires it.
 
-When a reader views Document C and the system delivers bytes that originated in Document A, it is A's cash register that increments — regardless of whether the request came through zero, one, or fifty layers of transclusion. The bytes are fetched from their home location; the royalty accrues there.
+> "Bytes native elsewhere have an ordinal position in the byte stream just as if they were native to the document. Non-native byte-spans are called inclusions or virtual copies." [LM 4/11]
 
-Nelson makes the split explicit for compound documents:
+The bytes appear seamlessly in the compound document's V-stream, but their I-addresses permanently encode their origin.
 
-> "If a modified document is read, the original owner and the modifier split the royalty in proportion to who wrote what, as determined automatically." [LM 2/45]
+### A Subtlety: Visible vs. Available
 
-Each compound document earns royalties only for bytes it actually created (its "painted" content). Bytes visible through windows earn royalties for their respective original authors. This split is computed from the I-addresses, which encode origin directly.
+There is one nuance. Nelson distinguishes between what the system **knows** and what the front end **displays by default**. In the context of link types, he notes:
 
-## Why depth is architecturally irrelevant
+> "Note that a quote-link is not the same as an inclusion, which is not ordinarily indicated" [LM 4/53]
 
-The key insight is that transclusion **does not create new content**. Document B's V-space points to A's I-space. Document C's V-space points to those same I-space addresses (whether directly or through B's mapping). At every depth, the I-address is the same — A's original address. There is no intermediate "B's copy" to complicate the attribution or payment chain.
+This suggests that a front end might not visually flag every transcluded passage by default. But the information is always structurally available — the user can "at once ascertain" the home document of any character on demand. The front end chooses presentation; the back end guarantees traceability.
 
-This means:
-- **Attribution**: always resolves to the original creator via I-address
-- **Compensation**: always flows to the original creator via cash register at home document
-- **No degradation with depth**: the 50th re-transclusion is identical to the 1st
+### A Second Subtlety: Author Identity vs. Account
 
-Nelson captures this with the analogy of live versus dead content:
+The I-address always reveals the **account** that created the content. Whether the real-world person behind that account is identifiable depends on whether they published under their own name or anonymously ("John Doe publication" [LM 2/60]). But even for anonymous publications, the account and document of origin are permanently encoded in the address. You always know *which document* the content came from, even if you don't know *who* is behind that document.
 
-> "Remember the analogy between text and water. Water flows freely, ice does not. The free-flowing, live documents on the network are subject to constant new use and linkage... Any detached copy someone keeps is frozen and dead, lacking access to the new linkage." [LM 2/48]
+### Summary
 
-Only a copy *outside* the system (paper, disk) severs the connection. Within the system, at any depth, the connection is permanent.
+| What is guaranteed | How |
+|---|---|
+| Home document of any byte | I-address encodes document origin |
+| Account that created it | I-address encodes user field |
+| Discoverability on demand | Structural — cannot be stripped |
+| Visual indication by default | Front-end choice — not guaranteed |
+| Real-world author identity | Only if not anonymous publication |
 
-## Summary
-
-| Property | Mechanism | Depth-independent? |
-|----------|-----------|-------------------|
-| **Attribution** | I-address encodes home document | Yes — same address at every depth |
-| **Compensation** | Cash register at home document | Yes — bytes delivered from origin |
-| **Traceability** | "Ascertain the home document of any character" | Yes — structural, not metadata |
-
-The system guarantees both attribution and compensation across arbitrary transclusion depth, not through tracking chains of re-use, but through the simpler and more robust mechanism of permanent content identity: every byte has exactly one home, and that home is where credit and payment flow.
+The answer to your question is **yes**: the system guarantees that for any transcluded content, the original document and account are always discoverable. This is one of Xanadu's fundamental guarantees — attribution through addressing, not through metadata.
 
 ---
 
-## Question 6 [gregory]
+## Question 6 [nelson]
 
-> When COPY (vcopy) transfers a V-span from source to target, does the target POOM receive entries pointing to the exact same I-addresses as the source, or does any intermediate step (such as vspanset2sporglset or insertpm) ever allocate fresh I-addresses for the copied content?
+> If the system supports compensation for content use, must transclusion trigger a payment or royalty obligation to the original creator that mere duplication would not?
+
+### Nelson's Answer
+
+# Transclusion and Royalty Obligation
+
+## Yes — But the Mechanism Is More Precise Than "Transclusion Triggers Payment"
+
+The royalty obligation is not triggered by the *act of transclusion* itself but by the *delivery of bytes* to a reader. Transclusion is the mechanism that ensures delivery routes through the original creator's accounting. The distinction matters.
+
+## Royalty Attaches to Delivery, Not to Reference
+
+Nelson's royalty model is per-byte-delivered:
+
+> "In our planned service, there is a royalty on every byte transmitted. This is paid automatically by the user to the owner every time a fragment is summoned, as part of the proportional use of byte delivery." [LM 2/43]
+
+When Bob transcludes Alice's content into his document, nothing happens economically at the moment of transclusion. But when a reader views Bob's compound document, Alice's bytes are delivered from their home location, and her cash register increments:
+
+> "Each published document has a cash register. This is a system-maintained counter which increments whenever bytes or links are delivered out of the document." [LM 5/13]
+
+The split is proportional:
+
+> "If a modified document is read, the original owner and the modifier split the royalty in proportion to who wrote what, as determined automatically." [LM 2/45]
+
+## Within the System, There IS No "Mere Duplication"
+
+This is the critical architectural point. The FEBE COPY operation *is* transclusion — it shares I-addresses with the source rather than creating new content:
+
+> "The material determined by \<spec set\> is copied to the document determined by \<doc id\> at the address determined by \<doc vsa\>." [LM 4/67]
+
+The "copy" creates a V-space mapping to existing I-space content. The bytes remain native to their original document. There is no FEBE command that creates a true byte-for-byte duplicate with fresh I-addresses. To create genuinely new content at new I-addresses, you would have to INSERT — physically retyping the text.
+
+So within Xanadu, the question dissolves: **there is no "mere duplication" mechanism that could evade royalty**. Every way of incorporating existing content (COPY, CREATENEWVERSION, windowing) preserves the I-address connection that enables royalty tracking.
+
+## Outside the System, Enforcement Is Impossible
+
+Nelson is explicit that copying content *out of* the system — to paper, to disk — evades royalty, and this cannot be technically prevented:
+
+> "There is no way whatever to ascertain or control what happens at the users' terminals. Therefore perforce all use whatever is legitimate." [LM 2/47]
+
+> "Publisher acknowledges, however, that no means for enforcement of this provision is possible within the Xanadu network unless violating users re-store copies of the material on the Xanadu network at a later time for resale and this resale comes to the attention of Publisher." [LM 5/20]
+
+But Nelson argues the incentive structure makes external copying self-defeating:
+
+> "Note also that he or she who makes a paper copy or disk is losing all dynamic link connections, and is left with the inert, non-interactive copy. And that will be a considerable deprivation in the world we are talking about." [LM 2/47]
+
+> "Remember the analogy between text and water. Water flows freely, ice does not. The free-flowing, live documents on the network are subject to constant new use and linkage, and those new links continually become interactively available. Any detached copy someone keeps is frozen and dead, lacking access to the new linkage." [LM 2/48]
+
+## Summary
+
+| Scenario | Royalty to Original Creator? |
+|----------|------------------------------|
+| Transclusion viewed by reader | **Yes** — bytes delivered from home location, cash register increments |
+| COPY within system | **Yes** — COPY *is* transclusion (shares I-addresses) |
+| CREATENEWVERSION | **Yes** — shares I-addresses with source version |
+| Content re-typed via INSERT | **No** — new I-addresses, new content; no structural connection |
+| Copied to paper/disk outside system | **No** — technically unenforceable; socially self-defeating |
+
+The design is elegant: transclusion is not merely a payment trigger bolted onto quotation. It is the *only* way to incorporate existing content within the system, and the royalty mechanism is built into the delivery path that transclusion creates. The system does not distinguish "quotation that pays" from "quotation that doesn't" — all in-system quotation pays, by construction.
+
+---
+
+## Question 7 [nelson]
+
+> When a new version of the original document is created, must transcluded content in other documents reflect the original version that was shared, or track the latest version?
+
+### Nelson's Answer
+
+# Transclusion and Versioning: Both Modes by Design
+
+Nelson explicitly addresses this question and provides for **both behaviors** — the choice belongs to the user and front end, not the system.
+
+## The Two Window Modes
+
+Nelson specifies two distinct ways a transclusion (which he calls a "quote-window" or "inclusion") can relate to its source:
+
+> "A quotation — an inclusion window — may be fixed to another document in two ways: at a certain point in time, in which case revisions are seen by the user only when he or she asks, 'What has this passage become?' Or second, at a relatively fixed location in the document space, in which case updates are seen automatically." [LM 2/37]
+
+**Time-fixed (frozen reference):** The transclusion shows the content as it was at a specific moment. If the original is later revised, the transclusion does not change. The reader can explicitly ask "What has this passage become?" to see the current state — but must opt in.
+
+**Location-fixed (floating in time):** The transclusion tracks the current state of the source location. If the original document is revised, the transclusion automatically reflects the changes.
+
+## Why Both Modes Are Architecturally Possible
+
+The I-space/V-space separation makes this work:
+
+- **I-space** is permanent. Every byte ever created has an immutable address. When you transclude content, you reference those permanent I-addresses.
+- **V-space** is the document's current arrangement — a mapping from reading positions to I-space addresses. Editing changes V-space; I-space is untouched.
+
+A **time-fixed** transclusion references specific I-addresses. Those bytes never change, so the transclusion is frozen by nature. This is the architectural default — COPY in the FEBE protocol creates a V-space mapping to existing I-space addresses, and those addresses are permanent.
+
+A **location-fixed** transclusion requires the front end to re-resolve through the source document's current V-space arrangement. When the source is edited, its V-space changes (new content gets new I-addresses, rearrangements change the mapping), and the transclusion follows.
+
+## Version-Spanning Links Support This
+
+Nelson describes how links (and by extension, transclusions) can follow through versions:
+
+> "Links may be refractively followed from a point or span in one version to corresponding places in any other version. Thus a link to one version of a Prismatic Document is a link to all versions." [LM 2/26]
+
+> "When a document is updated, a reader will ordinarily want to see the new version — but the reader may be following a link made to an older version. However, the user's front-end machine may easily be set up to follow the link to the same passage in the most recent version — if it's still there." [LM 2/43]
+
+The correspondence mechanism (shared I-space origin between versions) enables this refractive following. The system can trace which parts of a new version correspond to parts of an old version, because they share I-addresses.
+
+## The Distributed Update Solution
+
+Nelson frames location-fixed windowing as solving a fundamental problem:
+
+> "No copying operations are required among the documents throughout the system, and thus we solve the problems of update — especially the problem of updating documents which depend on other documents. We solve this problem simply by windowing to a changing document." [LM 2/36]
+
+This is the location-fixed mode: your document windows to a living source, and when that source changes, your view updates.
+
+## Summary
+
+| Mode | Behavior | Use Case |
+|------|----------|----------|
+| **Time-fixed** | Shows content as it was when window was created | Frozen citation, legal reference, scholarly quotation of a specific edition |
+| **Location-fixed** | Automatically reflects current version | Living reference, documentation that should track updates |
+
+The answer to your question is: **it depends on which mode the user chooses.** Nelson designed for both. The system does not force one behavior — it provides the architectural primitives (permanent I-addresses, version correspondence, refractive following) that let the front end implement either mode at the user's discretion.
+
+---
+
+## Question 8 [nelson]
+
+> Is there a limit to how many times content can be transitively transcluded — that is, can a document transclude content that is itself a transclusion from a third document?
+
+### Nelson's Answer
+
+## No Limit: Transclusion Depth Is Explicitly Unbounded
+
+Nelson directly addresses this question and the answer is unambiguous: **there is no limit**. Transclusion can be layered indefinitely.
+
+### Nelson's Explicit Statement
+
+From the windowing discussion [LM 2/34]:
+
+> "Think of the present document as a sheet of glass. It may have writing painted on it by the present author; it may have clear glass, windowing to something else; the next pane may be in turn made of more layers of painted glass, with more windows, **and so on indefinitely.**"
+
+And more directly [LM 2/36, from the windowing concept]:
+
+> "A document may have a window to another document, and that one to yet another, **indefinitely.** Thus A contains part of B, and so on. One document can be built upon another, and yet another document can be built upon that one, **indefinitely**: each having links to what was already in place."
+
+### Why There Is No Architectural Bottleneck
+
+The reason unlimited depth works is the I-space/V-space separation. Transclusion is not chain-following — it is always a direct reference to permanent I-space content.
+
+When document B transcludes a passage from document A, B's V-space maps directly to A's I-space addresses. When document C then transcludes that same passage from B, C's V-space maps to the *same* I-space addresses — A's original bytes. The content always lives at its original home location:
+
+> "Native bytes of a document are those actually stored under its control and found directly in storage under its control; all other bytes are obtained by front-end or back-end requests to **their home locations.**" [LM 4/11]
+
+So regardless of how many documents transclude the same content through however many intermediaries, retrieval always resolves to the single permanent I-space location. There is no cascading chain of indirection to follow — just a V-to-I mapping that points to the origin.
+
+### The Attribution Guarantee Holds at Any Depth
+
+Even through arbitrary layers of transclusion, origin traceability is preserved:
+
+> "You always know where you are, and can at once ascertain the home document of any specific word or character." [LM 2/40]
+
+This works because the I-address *encodes* the originating document. No matter how many layers of glass panes you look through, the bytes you see are identified by their permanent I-address, which names their home document.
+
+### Economic Robustness
+
+The royalty model also handles arbitrary depth. Nelson specifies that royalties are per-byte-delivered and flow to the content owner:
+
+> "If a modified document is read, the original owner and the modifier split the royalty in proportion to who wrote what, as determined automatically." [LM 2/45]
+
+Since every byte traces to its I-space origin regardless of transclusion depth, the royalty always reaches the right person.
+
+### Summary
+
+Nelson's design explicitly permits and anticipates unlimited transitive transclusion. This is not a theoretical edge case he overlooked — it is a feature he highlighted with the glass-pane metaphor and the word "indefinitely." The I-space/V-space architecture makes it work without performance degradation, because every transclusion is structurally a direct reference to permanent content, not a pointer-to-a-pointer chain.
+
+---
+
+## Question 9 [nelson]
+
+> Must the system guarantee that deleting a transclusion reference from a document leaves the original content completely unaffected in its source document?
+
+### Nelson's Answer
+
+## Yes — Absolutely and by Multiple Independent Principles
+
+Nelson's design makes this guarantee through several interlocking mechanisms, any one of which would be sufficient on its own.
+
+### 1. Transclusion Is Reference, Not Copy
+
+A transclusion creates a V-space mapping in the *referencing* document that points to I-space content owned by the *source* document. No bytes are moved or duplicated:
+
+> "Native bytes of a document are those actually stored under its control and found directly in storage under its control; all other bytes are obtained by front-end or back-end requests to their home locations." [LM 4/11]
+
+> "No copying operations are required among the documents throughout the system." [LM 2/36]
+
+Deleting the transclusion reference removes a V-space mapping in *your* document. The source document's V-space and I-space are untouched — they were never involved in the operation.
+
+### 2. DELETE Operates on V-Space Only
+
+DELETE removes content from the current document's virtual arrangement. It does not touch I-space:
+
+> "DELETED BYTES (not currently addressable, awaiting historical backtrack functions, may remain included in other versions.)" [LM 4/9]
+
+Nelson is explicit that this applies across document boundaries:
+
+> "Note that the owner of a document may delete bytes from the owner's current version, but those bytes remain in all other documents where they have been included." [LM 4/11]
+
+### 3. The Non-Destruction Guarantee
+
+This is one of Nelson's fundamental guarantees:
+
+> "Thus users may create new published documents out of old ones indefinitely, making whatever changes seem appropriate — without damaging the originals. This is done by inclusion links." [LM 2/45]
+
+### 4. Ownership Isolation
+
+Only the owner may modify a document:
+
+> "Every document has an owner... Only the owner has a right to withdraw a document or change it." [LM 2/29]
+
+Bob's operations on Bob's document cannot affect Alice's document. The ownership boundary is absolute. Deleting a transclusion reference in Bob's document is an operation on Bob's V-space — Alice's document is architecturally unreachable from that operation.
+
+### 5. I-Space Immutability
+
+Even setting aside all the above, I-space content is immutable by definition. Content at an I-space address never changes, period. The source document's content lives in I-space. No operation anywhere in the docuverse can alter it.
+
+### Summary
+
+Deleting a transclusion reference is a purely local operation on the referencing document's V-space arrangement. The original content in the source document is unaffected because:
+
+- No bytes were ever copied (reference, not copy)
+- DELETE modifies V-space, not I-space
+- I-space is immutable
+- Ownership boundaries prevent cross-document modification
+- Nelson explicitly guarantees that modifications never damage originals
+
+This is not merely a design choice — it is a structural consequence of the I-space/V-space separation that is foundational to the entire system.
+
+---
+
+## Question 10 [nelson]
+
+> Can an author prevent their content from being transcluded by others, or does the design guarantee that all published content is available for transclusion by anyone?
+
+### Nelson's Answer
+
+# No. Published Content Cannot Be Withheld from Transclusion.
+
+This is one of the most explicitly settled questions in Literary Machines. The design **guarantees** that all published content is available for transclusion by anyone. An author who publishes relinquishes the right to prevent it.
+
+## The Publication Contract
+
+The act of publication is an irrevocable grant of transclusion permission. Nelson makes this a contractual requirement:
+
+> "Since the copyright holder gets an automatic royalty, anything may be quoted without further permission. That is, permission has already been granted: for part of the publication contract is the provision, 'I agree that anyone may link and window to my document.'" [LM 2/45]
+
+This is not optional. It is a term of the publishing contract that every participant signs:
+
+> "To bypass some legal problems, we foresee establishing copyright convention internal to the network and contractually agreed upon by all participants. To wit, if you publish a thing through the network, you have to agree to the same rules as everybody else-- which are intended to create a fair balance of incentives." [LM 2/41-2/45]
+
+## The Explicit Relinquishment
+
+Nelson frames this as a two-sided coin — you get the freedom to transclude others' work, and in return you give up the power to prevent others from transcluding yours:
+
+> "Accessibility and free linking make a two-sided coin. On the one hand, each user is free to link to anything privately or publicly. By the same token, each author of a published work is relinquishing the right to control links into that work. This relinquishment must also be part of the publishing contract." [LM 2/43]
+
+The word "relinquishing" is deliberate. It is a permanent surrender, not a revocable preference.
+
+## The Tradeoff: Control for Compensation
+
+The logic is clear: traditional copyright conflates two goals — compensating creators and controlling use. Nelson separates them. You lose control but never lose compensation:
+
+> "In our planned service, there is a royalty on every byte transmitted. This is paid automatically by the user to the owner every time a fragment is summoned, as part of the proportional use of byte delivery." [LM 2/43]
+
+> "If a modified document is read, the original owner and the modifier split the royalty in proportion to who wrote what, as determined automatically." [LM 2/45]
+
+Every transclusion pays the original author. The economic right is preserved; the control right is surrendered.
+
+## The Resulting Freedom
+
+This creates what Nelson calls "a whole new pluralistic publishing form":
+
+> "This means a whole new pluralistic publishing form. If anything which is already published can be included in anything newly published, any new viewpoint can be freely presented by an easily-made annotated collage. (The old viewpoint is still present too — you can always say, 'Show me what this originally was.')" [LM 2/45]
+
+And concretely:
+
+> "Document A can include Document B, even though Document B is owned by someone else." [LM 2/35]
+
+> "Thus users may create new published documents out of old ones indefinitely, making whatever changes seem appropriate-- without damaging the originals. This is done by inclusion links." [LM 2/45]
+
+## The One Exception: Private Documents
+
+The only way to prevent transclusion is to **not publish**. Private documents are accessible only to the owner and designees:
+
+> "A document may be private or published. [...] A private document may be read and linked-to only by the owner and his or her associates." [LM 2/42]
+
+There is also "privashing" — making a document universally accessible but retaining the right to withdraw it. But note: privashed documents receive no royalty, which is an incentive to publish formally.
+
+## What About Withdrawal?
+
+Once published, withdrawal is extremely difficult by design:
+
+> "It is in the common interest that a thing once published stay published, as in the world of paper. Other readers and users will come to depend on its accessibility. Consequently its author may not withdraw it except by lengthy due process." [LM 2/43]
+
+The reason is precisely because others will have linked to and transcluded the content. Their links and transclusions — which are *their* property at *their* addresses — depend on continued access.
+
+## Summary
+
+| Status | Can prevent transclusion? | Receives royalty? |
+|--------|--------------------------|-------------------|
+| **Private** | Yes (only owner/designees access) | N/A |
+| **Privashed** | Yes (can withdraw at any time) | No |
+| **Published** | **No — permanently relinquished** | **Yes — automatic per-byte** |
+
+The design is unambiguous: publication is a permanent, contractual grant of universal transclusion rights. The author trades control for guaranteed compensation. This is not a side effect — it is the foundation of the entire system.
+
+---
+
+## Question 11 [gregory]
+
+> When COPY transfers a V-span from document A to document B, does docopy reuse the exact same I-addresses from A's POOM in B's new POOM entries, or does it allocate fresh I-addresses and duplicate the granfilade content?
 
 ### Gregory's Answer
 
 ## KB Synthesis
 
-Looking at the knowledge base, **COPY (vcopy) transfers the exact same I-addresses from source to target — no fresh I-addresses are ever allocated during the operation.**
+# Answer: COPY Reuses Existing I-Addresses
 
-## The Evidence
+COPY (vcopy/transclusion) **reuses the exact same I-addresses** from document A's POOM in document B's new POOM entries. It does **NOT** allocate fresh I-addresses or duplicate granfilade content.
 
-**Core Postcondition** [ST-VCOPY from Finding 0002]:
-"No new content identities are created. The target gains references to exactly the content identities specified in the source specset."
+## Evidence
 
-**Mechanism** [INT-SPORGL-TRANSCLUSION from Finding 0013]:
-"The data flow is: source V-spec → sporgls (via `vspanset2sporglset`) → `insertpm` into destination document. The sporgl carries the content's I-address identity through the copy operation. Because the sporgl preserves the original I-address (not a new one), the destination document ends up referencing the same content identities as the source."
+### Core Mechanism
 
-**Conversion is Read-Only** [ST-VSPAN-TO-SPORGL from Finding 0013]:
-"This conversion is a pure function over the document's current V→I mapping — it reads the enfilade but does not modify it."
+[ST-VCOPY] (Finding 0002): "The vcopy operation adds references to existing content identities into the target document. It does not copy the content itself — it creates new references to the same identities that the source document references."
 
-## Contrast with INSERT
+[INT-SPORGL-TRANSCLUSION]: "During vcopy, the sporgl carries the content's I-address identity through the copy operation. Because the sporgl preserves the original I-address (not a new one), the destination document ends up referencing the same content identities as the source."
 
-The critical distinction is revealed in [INV-DELETE-NOT-INVERSE from Finding 0064]:
+### Postcondition
 
-**INSERT path:**
-```
-State: "Original text" at I(5.1)-I(5.13)
-DELETE → INSERT same text:
-Result: "Original text" at I(5.14)-I(5.26)  # NEW I-addresses allocated
-```
+[ST-VCOPY] (Finding 0018): "Vcopy postcondition: for the copied span, `I-addresses(target[v_target..v_target+len]) = I-addresses(source[v_source..v_source+len])`. This is what makes transitive identity work and distinguishes vcopy from insert (which creates new I-addresses)."
 
-**VCOPY path:**
-```
-VCOPY from version sharing I(5.1)-I(5.13):
-Result: restores identity at I(5.1)-I(5.13)  # SAME I-addresses preserved
-```
+### Contrast with INSERT
 
-## The Complete Data Flow
+[INV-IADDR-PROVENANCE]: "Every I-address has exactly one native document — the document where INSERT first allocated it. COPY does not allocate new I-addresses; it creates V→I mappings that reference existing ones."
 
-**INSERT:**
-1. `doinsert` calls `inserttextingranf` → allocates FRESH I-addresses from granfilade
-2. `docopy` receives those fresh I-addresses
-3. `insertpm` writes those fresh I-addresses to target POOM
+[INV-DELETE-NOT-INVERSE] (Finding 0064): "The only identity-preserving restoration is VCOPY from a document that still references the original I-addresses. VCOPY shares existing I-addresses rather than allocating new ones."
 
-**COPY/VCOPY:**
-1. `vspanset2sporglset` reads source POOM → extracts EXISTING I-addresses (no allocation)
-2. `docopy` receives those existing I-addresses
-3. `insertpm` writes those SAME I-addresses to target POOM
+### Implementation Evidence
 
-[ST-COPY from Finding 0064] confirms: "Unlike INSERT (which allocates fresh I-addresses), COPY shares the source's existing I-addresses in the target document's POOM via `insertpm`."
+[ST-VCOPY] (Finding 0046): "COPY shares the source's existing I-addresses in the target document's POOM via `insertpm`."
 
-[INV-IADDR-PROVENANCE from Finding 0046] states it directly: "INSERT allocates fresh I-addresses under the target document; COPY references existing ones."
+## Why This Matters
 
-## What insertpm Does
+This I-address sharing is the mechanism that enables:
 
-[PRE-COPY from Finding 0046] clarifies that `insertpm` creates new POOM tree structures (crums), not new I-addresses: "When COPY inserts V→I mappings into a POOM, the insertion follows an extension-or-create rule... If [conditions hold], the existing crum's width is extended in place. Otherwise, a new crum is created."
+1. **Transitive identity** [INV-TRANSITIVE-IDENTITY]: Document C can transclude from B, which transcluded from A, creating a three-way identity relationship
+2. **Link discovery** [INT-LINK-TRANSCLUSION]: Links on transcluded content are discoverable from all documents sharing those I-addresses
+3. **Version comparison** [INT-SPORGL-VERSION-COMPARE]: `compare_versions` works by I-address intersection across documents
 
-The crums are POOM data structures that map V-positions to I-addresses. Creating a new crum means allocating a new tree node, but the I-addresses stored in that node are the input parameters — they are never freshly allocated by `insertpm`.
-
-## Final Answer
-
-**No intermediate step allocates fresh I-addresses.** The target POOM receives entries pointing to the identical I-addresses from the source. This identity preservation is the defining characteristic of transclusion and is what enables `compare_versions`, cross-document link discovery, and provenance tracking to function correctly.
+The key architectural distinction: INSERT allocates fresh I-addresses (extending the granfilade), while COPY creates new V→I mappings in the POOM that reference existing I-addresses (no granfilade growth).
 
 ## Code Exploration
 
-Now I have traced the complete execution path. Let me write a comprehensive answer with all citations.
+Perfect! Finding 0046 directly answers your question. Let me trace through the code with full citations to provide the complete answer.
 
 ---
 
-# Answer: COPY Preserves I-addresses
+# Answer: COPY Reuses Exact I-Addresses
 
-When `COPY` (vcopy) transfers a V-span from source to target, **the target POOM receives entries pointing to the exact same I-addresses as the source**. No intermediate step allocates fresh I-addresses for the copied content.
+**docopy reuses the exact same I-addresses from document A's POOM in document B's new POOM entries.** It does NOT allocate fresh I-addresses or duplicate granfilade content.
 
-## Evidence from Source Code
+## Evidence Chain
 
-### 1. The COPY Entry Point
+### 1. docopy's Operation Flow
 
-At **`do1.c:45-65`**, the `docopy` function executes these key steps:
+`backend/do1.c:45-65` - The complete COPY operation:
 
 ```c
 bool docopy(typetask *taskptr, typeisa *docisaptr, tumbler *vsaptr, typespecset specset)
 {
-    return (
-       specset2ispanset (taskptr, specset, &ispanset, NOBERTREQUIRED)  // Line 54
-    && findorgl (taskptr, granf, docisaptr, &docorgl, WRITEBERT)        // Line 55
-    && acceptablevsa (vsaptr, docorgl)                                   // Line 56
-    
-    /* the meat of docopy: */
-    && insertpm (taskptr, docisaptr, docorgl, vsaptr, ispanset)        // Line 60
-    
-    && insertspanf (taskptr, spanf, docisaptr, ispanset, DOCISPAN)     // Line 62
-    );
+	return (
+	   specset2ispanset (taskptr, specset, &ispanset, NOBERTREQUIRED)  // [1]
+	&& findorgl (taskptr, granf, docisaptr, &docorgl, WRITEBERT)
+	&& acceptablevsa (vsaptr, docorgl)
+	
+	/* the meat of docopy: */
+	&& insertpm (taskptr, docisaptr, docorgl, vsaptr, ispanset)        // [2]
+	&&  insertspanf (taskptr, spanf, docisaptr, ispanset, DOCISPAN)    // [3]
+	);
 }
 ```
 
-The critical operation is **line 54**: `specset2ispanset` converts the source V-spans into I-spans by **looking up** the existing V↔I mapping.
+**Key operations:**
+1. **[1] specset2ispanset** - Extracts I-addresses from source document A's POOM
+2. **[2] insertpm** - Inserts those SAME I-addresses into destination document B's POOM  
+3. **[3] insertspanf** - Updates the spanfilade index (no content allocation)
 
-### 2. V-to-I Conversion via POOM Lookup
+**Critically: No call to `inserttextgr` or any content allocation function.**
 
-At **`orglinks.c:397-402`**, `vspanset2ispanset` calls `permute`:
+### 2. I-Address Extraction from Source
+
+`backend/do2.c:13-45` - Converting V-spans to I-spans:
+
+```c
+bool specset2ispanset(typetask *taskptr, typespec *specset, typeispanset *ispansetptr, int type)
+{
+	// ...
+	if (((typeitemheader *)specset)->itemid == VSPECID) {
+		findorgl (taskptr, granf, &((typevspec *)specset)->docisa, &docorgl,type)
+		&& (ispansetptr = vspanset2ispanset (taskptr, docorgl, 
+		                   ((typevspec *)specset)->vspanset, ispansetptr))
+	}
+	// ...
+}
+```
+
+This calls `vspanset2ispanset` at `backend/orglinks.c:397-402`:
 
 ```c
 typeispanset *vspanset2ispanset(typetask *taskptr, typeorgl orgl, 
                                  typevspanset vspanptr, typeispanset *ispansetptr)
 {
-    return permute(taskptr, orgl, vspanptr, V, ispansetptr, I);
+	return permute(taskptr, orgl, vspanptr, V, ispansetptr, I);
 }
 ```
 
-At **`orglinks.c:425-454`**, `span2spanset` performs the actual lookup:
+The `permute` function walks source document A's POOM tree and extracts the I-addresses that correspond to the specified V-span. **These are the EXISTING I-addresses allocated when content was first INSERTed into document A.**
 
-```c
-typespanset *span2spanset(typetask *taskptr, typeorgl orgl, 
-                          typespanset restrictionspanptr, INT restrictionindex, 
-                          typespanset *targspansetptr, INT targindex)
-{
-    typecontext *context, *c, *retrieverestricted();
-    typespan foundspan;
-    
-    context = retrieverestricted((typecuc*)orgl, restrictionspanptr, 
-                                 restrictionindex, (typespan*)NULL, 
-                                 targindex, (typeisa*)NULL);              // Line 435
-    
-    for (c = context; c; c = c->nextcontext) {
-        context2span (c, restrictionspanptr, restrictionindex, 
-                     &foundspan, targindex);                              // Line 443
-        nextptr = (typespan *)onitemlist (taskptr, (typeitem*)&foundspan, 
-                                         (typeitemset*)targspansetptr);
-    }
-}
-```
+### 3. I-Address Reuse in Destination
 
-**Line 435** calls `retrieverestricted`, which **searches the source POOM** for existing V↔I mappings.
-
-### 3. Retrieving Existing I-addresses from POOM Crums
-
-At **`retrie.c:55-84`**, `retrieverestricted` searches the POOM tree:
-
-```c
-typecontext *retrieverestricted(typecuc *fullcrumptr, typespan *span1ptr, 
-                                INT index1, typespan *span2ptr, INT index2, 
-                                typeisa *docisaptr)
-{
-    // ... setup span bounds ...
-    temp = retrieveinarea (fullcrumptr, &span1start, &span1end, index1, 
-                          &span2start, &span2end, index2, 
-                          (typebottomcruminfo*)infoptr);                  // Line 82
-    return(temp);
-}
-```
-
-At **`retrie.c:229-268`**, `findcbcinarea2d` traverses the POOM tree:
-
-```c
-int findcbcinarea2d(typecorecrum *crumptr, typedsp *offsetptr, 
-                    tumbler *span1start, tumbler *span1end, INT index1, 
-                    tumbler *span2start, tumbler *span2end, INT index2, 
-                    typecontext **headptr, typebottomcruminfo *infoptr)
-{
-    for (; crumptr; crumptr = getrightbro (crumptr)) {
-        if (crumptr->height != 0) {
-            // Recurse into children
-            findcbcinarea2d (findleftson ((typecuc*)crumptr), &localoffset, 
-                           span1start, span1end, index1, 
-                           span2start, span2end, index2, headptr, infoptr);  // Line 259
-        } else {
-            context = makecontextfromcbc ((typecbc*)crumptr, 
-                                         (typewid*)offsetptr);                // Line 262
-            incontextlistnd (headptr, context, index1);                       // Line 263
-        }
-    }
-}
-```
-
-**Line 262** creates a context from each matching bottom crum, which contains the **existing I-address and V-address stored in that crum**.
-
-### 4. Extracting I-addresses from Context
-
-At **`context.c:176-212`**, `context2span` extracts the I-address:
-
-```c
-int context2span(typecontext *context, typespan *restrictionspanptr, 
-                INT idx1, typespan *foundspanptr, INT idx2)
-{
-    tumbler upperbound, lowerbound;
-    typedsp grasp, reach;
-    
-    movetumbler (&restrictionspanptr->stream, &lowerbound);
-    tumbleradd (&lowerbound, &restrictionspanptr->width, &upperbound);
-    prologuecontextnd (context, &grasp, &reach);                          // Line 188
-    
-    // ... handle boundary clipping ...
-    
-    movetumbler (&grasp.dsas[idx2], &foundspanptr->stream);               // Line 206
-    tumblersub(&reach.dsas[idx2],&grasp.dsas[idx2],&foundspanptr->width);// Line 207
-}
-```
-
-**Line 206** copies the I-address from the context's `grasp` (the crum's displacement) into the found span's stream. This is the **original I-address from the source POOM**.
-
-### 5. Inserting the Same I-addresses into Target POOM
-
-At **`orglinks.c:75-134`**, `insertpm` inserts these I-addresses into the target:
+`backend/orglinks.c:75-134` - **THE SMOKING GUN:**
 
 ```c
 bool insertpm(typetask *taskptr, tumbler *orglisa, typeorgl orgl, 
-             tumbler *vsaptr, typesporglset sporglset)
+              tumbler *vsaptr, typesporglset sporglset)
 {
-    tumbler lstream, lwidth;
-    type2dbottomcruminfo linfo;
-    typewid crumorigin, crumwidth;
-    
-    for (; sporglset; sporglset = (typesporglset) sporglset->xxxxsporgl.next) {
-        unpacksporgl (sporglset, &lstream, &lwidth, &linfo);              // Line 101
-        
-        movetumbler (&lstream, &crumorigin.dsas[I]);                      // Line 105
-        movetumbler (&lwidth, &crumwidth.dsas[I]);                        // Line 109
-        movetumbler (vsaptr, &crumorigin.dsas[V]);                        // Line 113
-        
-        // ... calculate V-width ...
-        
-        insertnd (taskptr, (typecuc*)orgl, &crumorigin, &crumwidth, 
-                 &linfo, V);                                              // Line 130
-        tumbleradd (vsaptr, &crumwidth.dsas[V], vsaptr);                 // Line 131
-    }
-    return (TRUE);
+	tumbler lstream, lwidth;
+	typewid crumorigin, crumwidth;
+	
+	for (; sporglset; sporglset = (typesporglset) sporglset->xxxxsporgl.next) {
+		unpacksporgl (sporglset, &lstream, &lwidth, &linfo);
+		
+		movetumbler (&lstream, &crumorigin.dsas[I]);    // [LINE 105] ← I-address from SOURCE
+		movetumbler (&lwidth, &crumwidth.dsas[I]);      // [LINE 109] ← I-width from SOURCE
+		movetumbler (vsaptr, &crumorigin.dsas[V]);      // [LINE 113] ← V-address in TARGET
+		
+		shift = tumblerlength (vsaptr) - 1;
+		inc = tumblerintdiff (&lwidth, &zero);
+		tumblerincrement (&zero, shift, inc, &crumwidth.dsas[V]);
+		
+		insertnd (taskptr, (typecuc*)orgl, &crumorigin, &crumwidth, &linfo, V);
+		tumbleradd (vsaptr, &crumwidth.dsas[V], vsaptr);
+	}
+	return (TRUE);
 }
 ```
 
-**Line 105** places the I-address (from `lstream`) into the crum origin's I-dimension. **Line 113** places the target V-address into the crum origin's V-dimension. **Line 130** creates a new crum in the target POOM with these exact I and V addresses.
+**Lines 105-113 are the definitive proof:**
+- **Line 105:** `movetumbler (&lstream, &crumorigin.dsas[I])` - Copies the I-address from the source sporgl directly into the destination POOM entry
+- **Line 109:** `movetumbler (&lwidth, &crumwidth.dsas[I])` - Copies the I-width from the source
+- **Line 113:** `movetumbler (vsaptr, &crumorigin.dsas[V])` - Sets the NEW V-address in the destination
 
-At **`sporgl.c:178-188`**, `unpacksporgl` simply extracts the stored values:
+The destination POOM entry contains the EXACT SAME I-address that existed in the source document.
+
+### 4. Spanfilade Index Update (Not Content Allocation)
+
+`backend/spanf1.c:14-53` - The spanfilade insertion:
 
 ```c
-int unpacksporgl(typesporglset sporglptr, tumbler *streamptr, 
-                tumbler *widthptr, type2dbottomcruminfo *infoptr)
+bool insertspanf(typetask *taskptr, typespanf spanfptr, typeisa *isaptr, 
+                 typesporglset sporglset, INT spantype)
 {
-    if (((typeitemheader *)sporglptr)->itemid == ISPANID) {
-        movetumbler (&((typeispan *)sporglptr)->stream, streamptr);       // Line 181
-        movetumbler (&((typeispan *)sporglptr)->width, widthptr);        // Line 182
-    }
+	for (; sporglset; sporglset = (typesporglset)((typeitemheader *)sporglset)->next) {
+		if (((typeitemheader *)sporglset)->itemid == ISPANID) {
+			movetumbler (&((typeispan *)sporglset)->stream, &lstream);
+			movetumbler (&((typeispan *)sporglset)->width, &lwidth);
+			movetumbler (isaptr,&linfo.homedoc);
+		}
+		// ...
+		movetumbler (&lstream, &crumorigin.dsas[SPANRANGE]);
+		insertnd(taskptr,(typecuc*)spanfptr,&crumorigin,&crumwidth,&linfo,SPANRANGE);
+	}
+	return (TRUE);
 }
 ```
 
-The I-addresses passed through this entire chain came from **looking up existing POOM crums**, not from any allocation function.
+This function updates the spanfilade index to record: "document B now contains I-span X." **It does NOT allocate new content** - it merely updates the reverse index that allows queries like "which documents contain I-address X?"
 
-### 6. Contrast with INSERT (Which Does Allocate)
+## Contrast with INSERT
 
-For comparison, `INSERT` operations **do** allocate fresh I-addresses. At **`do1.c:87-123`**, `doinsert` calls `inserttextingranf`:
+`backend/do1.c:87-123` - INSERT operation:
 
 ```c
-bool doinsert(typetask *taskptr, typeisa *docisaptr, tumbler *vsaptr, 
-             typetextset textset)
+bool doinsert(typetask *taskptr, typeisa *docisaptr, tumbler *vsaptr, typetextset textset)
 {
-    ret = (inserttextingranf(taskptr, granf, &hint, textset, &ispanset)  // Line 118
-        && docopy (taskptr, docisaptr, vsaptr, ispanset)                 // Line 119
-    );
+	makehint(DOCUMENT, ATOM, TEXTATOM, docisaptr, &hint);
+	ret = (inserttextingranf(taskptr, granf, &hint, textset, &ispanset)  // [ALLOCATES]
+		&& docopy (taskptr, docisaptr, vsaptr, ispanset)                 // [THEN MAPS]
+	);
+	return(ret);
 }
 ```
 
-**Line 118** allocates fresh I-addresses for the new text content. **Line 119** then copies those newly-allocated I-addresses into the target POOM using the same `docopy` path.
+**INSERT does TWO steps:**
+1. `inserttextingranf` - Allocates FRESH I-addresses in the granfilade and stores the text content
+2. `docopy` - Maps those new I-addresses into the document's POOM
 
-The I-address allocation occurs in **`granf2.c:130-156`**:
+**COPY does ONLY step 2** - it maps existing I-addresses without allocating new ones.
+
+## Content Allocation Function
+
+`backend/granf2.c:82-99` - What content allocation looks like:
 
 ```c
-bool findisatoinsertgr(typecuc *fullcrumptr, typehint *hintptr, typeisa *isaptr)
+bool inserttextgr(typetask *taskptr, typegranf fullcrumptr, typehint *hintptr, 
+                  typetextset textset, typeispanset *ispansetptr)
 {
-    if (hintptr->subtype == ATOM) {
-        findisatoinsertmolecule (fullcrumptr, hintptr, isaptr);           // Line 142
-    } else {
-        findisatoinsertnonmolecule (fullcrumptr, hintptr, isaptr);       // Line 152
-    }
-}
+	tumbler lsa, spanorigin;
+	
+	if (!findisatoinsertgr ((typecuc*)fullcrumptr, hintptr, &lsa))  // [ALLOCATE I-ADDRESS]
+		return (FALSE);
+	movetumbler (&lsa, &spanorigin);
+	for (; textset; textset = textset->next) {
+		locinfo.infotype = GRANTEXT;
+		locinfo.granstuff.textstuff.textlength = textset->length;
+		movmem(textset->string,locinfo.granstuff.textstuff.textstring, 
+		       locinfo.granstuff.textstuff.textlength);
+		insertseq ((typecuc*)fullcrumptr, &lsa, &locinfo);            // [STORE CONTENT]
+		tumblerincrement (&lsa, 0, textset->length, &lsa);
 ```
 
-This function **allocates new I-addresses** by finding the highest existing I-address and incrementing. This is **only called during INSERT**, never during COPY.
+**Note:** `docopy` NEVER calls this function. Only `doinsert` does.
 
-## Conclusion
+## From Finding 0046
 
-The complete execution path is:
+The existing finding confirms:
 
-**COPY path** (preserves I-addresses):
-1. `docopy` → `specset2ispanset` → `permute` → `span2spanset` → `retrieverestricted`
-2. Searches source POOM tree via `findcbcinarea2d` → `makecontextfromcbc`
-3. Extracts existing I-addresses via `context2span`
-4. Inserts same I-addresses into target POOM via `insertpm` → `insertnd`
+> "When INSERT creates text, it allocates fresh I-addresses. COPY does NOT create new I-addresses; it references existing ones. Therefore each I-address has exactly ONE native document (where it was first INSERTed)." [`findings/0046-poom-duplicate-iaddresses.md:145-146`]
 
-**INSERT path** (allocates new I-addresses):
-1. `doinsert` → `inserttextingranf` → `findisatoinsertgr` → allocates new I-addresses
-2. Then calls `docopy` to insert the newly-allocated I-addresses
+> "The ONLY difference is the I-address range:
+> - INSERT: allocates NEW I-addresses under target document  
+> - COPY: references EXISTING I-addresses from source document" [`findings/0046-poom-duplicate-iaddresses.md:153-155`]
 
-Therefore, when COPY transfers content, **both source and target POOMs point to identical I-addresses**. The permascroll identity is preserved—no fresh I-addresses are allocated during copy.
+## Summary
+
+**When COPY transfers V-span [1.1, 1.5) from document A to document B:**
+
+1. Read A's POOM to find I-addresses for V-span [1.1, 1.5) → e.g., I-span [A.100, A.105)
+2. Write B's POOM entry: V-position 1.x → **SAME I-address A.100** (not a fresh allocation)
+3. Update spanfilade index: "Document B now contains I-span [A.100, A.105)"
+
+**Result:** Both documents' POOMs point to the SAME I-addresses in the shared granfilade. The text content exists ONCE in the granfilade, referenced by TWO POOMs.
+
+**This is the foundation of transclusion in udanax-green:** Content identity (I-addresses) is preserved across COPY operations. Multiple documents can reference the same content without duplication.
 
 ---
 
-## Question 7 [gregory]
+## Question 12 [gregory]
 
-> If document A contains text at I-addresses [.0.1.1,.0.1.5] and document B transcludes that same span, then document A DELETEs the text from its POOM, does find_links on document B still discover links whose endsets reference those I-addresses — confirming that the transcluding document's copy is fully independent of the source document's subsequent edits?
+> If document A contains "Hello" (I-addresses .0.1.1-.0.1.5) and document B transcludes that span via COPY, does find_links on document B discover links whose endsets reference I-addresses .0.1.1-.0.1.5 that were originally created against document A?
 
 ### Gregory's Answer
 
 ## KB Synthesis
 
-Yes, `find_links` on document B will still discover those links. Here's the complete logical chain:
+# Answer: YES
 
-## Transclusion Preserves I-Addresses
+Links are discoverable from document B through transclusion. Here's the mechanism:
 
-When document B transcludes from document A via vcopy, B's POOM receives V→I mappings to the **same** I-addresses that A references [ST-VCOPY]. The sporgl (provenance-carrying data structure) carries the I-address identity through the copy operation [INT-SPORGL-TRANSCLUSION]. Both documents now reference I-addresses [.0.1.1,.0.1.5], but each maintains its own **independent** POOM mapping.
+## Content Identity Sharing
 
-## DELETE is Document-Local
+When document B transcludes content from document A via COPY, B shares the same I-addresses as A for that content [ST-VCOPY, Finding 0002]:
 
-When document A DELETEs the text, the operation modifies **only** A's POOM [FC-DELETE-CROSS-DOC]. The concrete example from that entry shows exactly this scenario:
+> "The vcopy (virtual copy / transclusion) operation adds references to existing content identities into the target document. It does not copy the content itself — it creates new references to the same identities that the source document references."
+
+So both A and B reference I-addresses .0.1.1-.0.1.5 for "Hello".
+
+## Link Discovery Mechanism
+
+Links are discovered through I-address intersection, not document membership [ST-FIND-LINKS, Finding 0028]:
+
+> "`find_links(search_specset)` discovers links by I-address intersection, not by document or V-address matching. The search specset is converted to I-addresses, and links are returned if any I-address in the search overlaps with I-addresses in a link endpoint."
+
+## Transclusion Enables Discovery
+
+The explicit interaction property [INT-LINK-TRANSCLUSION, Finding 0004]:
+
+> "When content with a link is transcluded (vcopy'd) to another document, the link can be found from the copy. Calling `find_links` with a search specifying the target document returns the original link. This is because the vcopy shares the content identities, and the link is indexed by content identity."
+
+And the formal property [INT-LINK-TRANSCLUSION, Finding 0008]:
+
+> "Links are discoverable from ANY document that shares content identity with a link's endpoint — whether through transclusion, versioning, or chains of both."
+
+## Storage Architecture
+
+This works because links are indexed in the spanfilade by I-address [SS-SPANF-OPERATIONS, Finding 0012]:
+
+> "The `spanf` enfilade supports... `findlinksfromtothreesp()` — queries for links whose endpoints intersect with given I-address ranges."
+
+The spanfilade maps I-addresses to link ISAs globally. When B shares I-addresses with A through transclusion, those I-addresses retrieve the same link entries from the spanf index.
+
+## Concrete Example
 
 ```
-D has "ABCD", T transcluded "BC" from D (sharing I(5.2), I(5.3))
+Document A: "Hello" at I-addresses .0.1.1-.0.1.5
+Link created: source on "Hello" in A
+Document B: COPY "Hello" from A → B references .0.1.1-.0.1.5
 
-After DELETE "BC" from D:
-  D's POOM: mappings gone from D
-  T's POOM: UNCHANGED, T still has "BC"
-  Granfilade: content bytes persist
+find_links(B, "Hello") → [link_id]
 ```
 
-As stated: "DELETE in one document has zero effect on any other document's POOM mappings" [FC-DELETE-CROSS-DOC].
-
-## Link Discovery Works on B's Intact POOM
-
-`find_links` discovers links by **I-address intersection**, not by document or V-address matching [ST-FIND-LINKS]. The operation converts the search V-span to I-addresses, then queries the spanfilade index. Since B's POOM still maps V-positions to I-addresses [.0.1.1,.0.1.5], those I-addresses are present in B's content identity [INT-LINK-TRANSCLUSION].
-
-[INT-TRANSCLUSION-LINK-SEARCH] directly addresses this scenario:
-
-> "When content is transcluded (vcopy'd) to another document, the copy retains the original content identity (I-stream addresses). If the original content is deleted, links referencing that content become undiscoverable from the original document but **remain discoverable from the copy**, because the copy's V-stream still contains content at those I-stream addresses."
-
-The concrete example confirms:
-```
-- vcopy("linked") from Original to Copy
-- Delete "linked" from Original
-- find_links(Original) → []
-- find_links(Copy) → [link_id]  ✓
-```
-
-## Supporting Invariants
-
-This behavior follows from core system invariants:
-- **Content identity is permanent** [INV-CONTENT-IMMUTABILITY]: I-addresses are never destroyed
-- **POOMs are independent** [FC-DELETE-CROSS-DOC]: each document's V→I mapping is isolated
-- **Links track identity** [INV-LINK-CONTENT-TRACKING]: links reference I-addresses, which persist across document mutations
-- **Global link visibility** [INV-LINK-GLOBAL-VISIBILITY]: "A link created in any document is discoverable from every document in the system that shares the linked content's identity"
-
-## Conclusion
-
-Yes, `find_links(B)` discovers the links. Document B's transclusion is **fully independent** of A's subsequent edits. A's DELETE removes only A's V→I mappings; B's mappings to those same I-addresses remain intact, preserving link discoverability.
-
-The only scenario where links become undiscoverable is if **all** documents delete the content [EC-GHOST-LINK] — but as long as any document (including B) retains V→I mappings to those I-addresses, links remain discoverable from that document.
+The link was created against A, but B discovers it because B shares the I-addresses that the link endpoints reference [INT-LINK-TRANSCLUSION, Finding 0028].
 
 ## Code Exploration
 
-Now I'll provide the complete answer based on my code analysis:
+I need your permission to add this test scenario. Once approved, I'll run it to verify the behavior.
 
 ---
 
-# Answer: YES - Transclusion is Fully Independent
+## Question 13 [gregory]
 
-**When document A contains text at I-addresses [.0.1.1,.0.1.5] and document B transcludes that span, then document A DELETEs the text from its POOM, `find_links` on document B WILL still discover links whose endsets reference those I-addresses.**
+> After COPY creates a transclusion in document B, does INSERT into document A (shifting A's V-positions) alter any POOM entries in document B, or does B's POOM remain completely unchanged?
 
-The transcluding document's copy is **fully independent** of the source document's subsequent edits.
+### Gregory's Answer
+
+## KB Synthesis
+
+# Answer: B's POOM Remains Completely Unchanged
+
+After COPY creates a transclusion in document B, INSERT into document A does **not** alter any POOM entries in document B. Document B's POOM remains completely unchanged.
+
+## The Mechanism
+
+**1. What COPY does** [ST-VCOPY]
+
+When B transcludes content from A, COPY adds entries to B's POOM that reference the **same I-addresses** that A uses:
+- A's POOM: `V_A → I_x` (maps A's V-positions to I-addresses)  
+- After COPY: B's POOM: `V_B → I_x` (B now also references those I-addresses)
+
+**2. What INSERT does** [ST-INSERT, INV-IADDR-IMMUTABILITY]
+
+When text is inserted into A:
+- A's **V-addresses shift** (content after the insertion point moves to higher V-positions)
+- A's **I-addresses remain unchanged** — "Each character's V-address shifts by +n. Its I-address is unchanged"
+- Fresh I-addresses are allocated only for the newly inserted content
+
+**3. The isolation boundary** [FC-INSERT-IADDR]
+
+INSERT has an explicit frame condition on cross-document effects:
+
+> "INSERT does not modify the I-address of any pre-existing content, in the target document or in any other document... All existing V-to-I mappings outside the target document are completely untouched."
+
+Formally: `forall doc d != target, forall v in d :: d.mapping(v) is unchanged`
+
+## Why Transclusion Still Works
+
+The transclusion relationship survives because it operates in **I-space**, not **V-space** [INT-TRANSCLUSION]:
+
+- Before INSERT: A maps `V_A(1.3) → I.3`, B maps `V_B(2.1) → I.3` (shared I-address)
+- After INSERT at A's position 1.1: A maps `V_A(1.5) → I.3` (V-shifted), B maps `V_B(2.1) → I.3` (unchanged)  
+- Both documents still reference `I.3` — the transclusion remains valid
+
+As stated: "Transclusion is an I-space relationship, invariant under V-space mutations."
+
+## Structural Independence
+
+Each document maintains its **own POOM** enfilade [SS-DUAL-ENFILADE]. These are separate B-tree structures with no shared nodes. Operations on A's POOM physically cannot modify B's POOM because they are distinct data structures stored in separate regions of the granfilade.
+
+The same isolation holds for DELETE [FC-DELETE-CROSS-DOC]: "DELETE in one document has zero effect on any other document's POOM mappings."
+
+## Conclusion
+
+**Answer:** B's POOM remains completely unchanged. The only state modification is to A's POOM (V-positions shift, I-addresses preserved). Document B continues to reference the same I-addresses as before, and since those I-addresses haven't changed, the transclusion continues to work correctly.
+
+## Code Exploration
+
+Based on my analysis of the source code, I can definitively answer your question:
+
+## Answer: B's POOM remains completely unchanged
+
+After COPY creates a transclusion in document B, INSERT into document A does **not** alter any POOM entries in document B. B's POOM is completely isolated from A's POOM modifications.
+
+## Why: POOMs are Document-Specific Data Structures
+
+### 1. Each document has its own POOM enfilade
+
+From **granf1.c:16-41**, `findorgl` retrieves a document-specific POOM:
+
+```c
+bool findorgl(typetask *taskptr, typegranf granfptr, typeisa *isaptr, 
+              typeorgl *orglptr, int type)
+{
+    typeorgl fetchorglgr();
+    ...
+    *orglptr = fetchorglgr(taskptr, granfptr, isaptr);  // Line 39
+    return (*orglptr ? TRUE : FALSE);
+}
+```
+
+The POOM is looked up by document ISA. Document A has POOM_A, document B has POOM_B — completely separate enfilade structures [enf.h:34].
+
+### 2. COPY stores I-addresses in B's POOM, not V-addresses from A
+
+When COPY executes **do1.c:45-65**:
+
+```c
+bool docopy(typetask *taskptr, typeisa *docisaptr, tumbler *vsaptr, 
+            typespecset specset)
+{
+    ...
+    return (
+       specset2ispanset (taskptr, specset, &ispanset, NOBERTREQUIRED)  // Line 54
+    && findorgl (taskptr, granf, docisaptr, &docorgl, WRITEBERT)       // Line 55
+    && insertpm (taskptr, docisaptr, docorgl, vsaptr, ispanset)        // Line 60
+    && insertspanf (taskptr, spanf, docisaptr, ispanset, DOCISPAN)     // Line 62
+```
+
+The key transformation happens in **do2.c:14-46** (`specset2ispanset`):
+
+```c
+bool specset2ispanset(typetask *taskptr, typespec *specset, 
+                      typeispanset *ispansetptr, int type)
+{
+    ...
+    if (((typeitemheader *)specset)->itemid == VSPECID) {
+        if (!(
+          findorgl (taskptr, granf, &((typevspec *)specset)->docisa, &docorgl,type)  // Line 35
+        && (ispansetptr = vspanset2ispanset (taskptr, docorgl, 
+                          ((typevspec *)specset)->vspanset, ispansetptr))))  // Line 36
+```
+
+**Line 35** finds document A's POOM, then **line 36** converts A's V-spans to I-spans using A's POOM.
+
+The resulting I-spans are then stored in B's POOM via `insertpm` **orglinks.c:75-134**:
+
+```c
+bool insertpm(typetask *taskptr, tumbler *orglisa, typeorgl orgl, 
+              tumbler *vsaptr, typesporglset sporglset)
+{
+    ...
+    for (; sporglset; sporglset = (typesporglset) sporglset->xxxxsporgl.next) {
+        unpacksporgl (sporglset, &lstream, &lwidth, &linfo);        // Line 101
+        movetumbler (&lstream, &crumorigin.dsas[I]);                // Line 105
+        movetumbler (&lwidth, &crumwidth.dsas[I]);                  // Line 109
+        movetumbler (vsaptr, &crumorigin.dsas[V]);                  // Line 113
+        ...
+        insertnd (taskptr, (typecuc*)orgl, &crumorigin, &crumwidth, 
+                  &linfo, V);                                        // Line 130
+```
+
+**Lines 105, 109**: I-coordinates come from the ispanset (A's original addresses)  
+**Line 113**: V-coordinates are B's V-positions  
+**Line 130**: Inserts into B's POOM the mapping **(B's V-position → I-address)**
+
+### 3. INSERT in A modifies A's POOM only
+
+When INSERT executes in document A **do1.c:87-123**:
+
+```c
+bool doinsert(typetask *taskptr, typeisa *docisaptr, tumbler *vsaptr, 
+              typetextset textset)
+{
+    ...
+    return (inserttextingranf(taskptr, granf, &hint, textset, &ispanset)  // Line 118
+         && docopy (taskptr, docisaptr, vsaptr, ispanset)                  // Line 119
+```
+
+**Line 119** calls `docopy` on document A, which calls `insertpm` on **A's POOM** (via `findorgl` with A's ISA).
+
+When `insertpm` is called on A's POOM, it invokes `makegappm` **insertnd.c:124-150**:
+
+```c
+int makegappm(typetask *taskptr, typecuc *fullcrumptr, 
+              typewid *origin, typewid *width)
+{
+    ...
+    movetumbler (&origin->dsas[V], &knives.blades[0]);              // Line 144
+    findaddressofsecondcutforinsert(&origin->dsas[V],
+                                    &knives.blades[1]);              // Line 145
+    knives.dimension = V;                                            // Line 147
+    makecutsnd (fullcrumptr, &knives);                               // Line 148
+```
+
+This creates a "gap" in A's POOM by cutting at the V-dimension insertion point. This shifts V-coordinates of A's existing POOM entries that come after the insertion point.
+
+**But this operates on `fullcrumptr`** — which is A's POOM enfilade. B's POOM enfilade is a completely separate tree structure.
+
+### 4. B's POOM references I-addresses, which don't change
+
+The crucial architectural fact: B's POOM contains entries of the form:
+
+```
+(V-position-in-B, I-address-in-granfilade)
+```
+
+The I-addresses are **permanent identifiers** in the granfilade [enf.h:12-14]. When INSERT happens in A:
+
+1. New content gets a new I-address in the granfilade
+2. A's POOM gets new entries mapping A's V-positions to I-addresses
+3. A's POOM entries shift their V-coordinates (within A's coordinate space)
+4. **The I-addresses themselves never change** — they're permanent
+5. B's POOM entries contain the same I-addresses as before
+6. B's POOM tree structure is never touched
+
+## Existing Test Evidence
+
+The test suite includes **febe/scenarios/document_isolation.py** which verifies the frame axiom (F0): operations on document A don't affect document B. Specifically, `scenario_cross_document_transclusion_isolation` (lines 351-442) confirms that operations on B don't affect A or C when transclusion exists.
+
+While no existing test explicitly checks INSERT-in-source-after-COPY, the architectural isolation is absolute: each document's POOM is a separate enfilade tree, and I-addresses are invariant references to the shared granfilade.
+
+## Conclusion
+
+**B's POOM remains completely unchanged** when INSERT modifies A's V-positions. The POOM entries in B continue to reference the same I-addresses, which are permanent identifiers in the granfilade. The fact that A's POOM shifts its V-coordinates is irrelevant to B, since B's POOM contains no references to A's V-space.
+
+This is the fundamental architectural guarantee of Udanax-green's transclusion model: **I-addresses provide stable references across documents**, while **V-addresses are document-local coordinate systems** maintained by per-document POOMs.
 
 ---
 
-## Code Analysis: Three-Layer Independence
+## Question 14 [gregory]
 
-### Layer 1: Document B's POOM Contains Its Own V→I Mappings
+> When document B holds a transclusion of document A's content and that content is DELETEd from A's POOM, do B's POOM entries and the underlying granfilade content remain intact and retrievable?
 
-When document B transcludes content from document A (either via `COPY` or `CREATE_LINK`), the operation creates **independent V→I mappings in B's POOM**:
+### Gregory's Answer
 
-**File: `do1.c:45-65` — The `docopy` function:**
+## KB Synthesis
+
+Yes, **document B's POOM entries and the underlying granfilade content remain completely intact and retrievable** after document A deletes that content.
+
+## Why This Works
+
+**DELETE is POOM-only** — [ST-DELETE] and [FC-DELETE-CROSS-DOC] establish that DELETE operates exclusively on the target document's POOM tree. When A deletes content, `deletend` removes V→I mappings from A's POOM by calling `disown` + `subtreefree` on A's bottom crums. No other document is touched.
+
+**Frame condition** — [FC-DELETE-CROSS-DOC] states: `∀ D' ≠ D : delete(D, vspan) ⟹ poom(D') = poom_before(D')`. Document B's POOM structure is completely unchanged by operations on A.
+
+**Granfilade is permanent** — [INV-IADDR-IMMUTABILITY] and [FC-GRANF-ON-DELETE] establish that I-addresses persist permanently in the granfilade. DELETE removes POOM entries (V→I references) but never touches granfilade content. The content bytes at those I-addresses remain in the granfilade unconditionally.
+
+**Transclusion shares I-addresses** — [ST-VCOPY] and [INT-TRANSCLUSION] establish that when B transcluded A's content via vcopy, B's POOM received V→I mappings pointing to the same I-addresses. B doesn't hold copies — it holds references to shared identity.
+
+## Concrete Example
+
+```
+Initial state:
+  A's POOM: V(1.1)→I(5.1), V(1.2)→I(5.2), V(1.3)→I(5.3)  ["ABC"]
+  B's POOM: V(2.1)→I(5.1), V(2.2)→I(5.2), V(2.3)→I(5.3)  [transclusion]
+  Granfilade: I(5.1)="A", I(5.2)="B", I(5.3)="C"
+
+After DELETE from A:
+  A's POOM: empty (mappings removed)
+  B's POOM: V(2.1)→I(5.1), V(2.2)→I(5.2), V(2.3)→I(5.3)  [UNCHANGED]
+  Granfilade: I(5.1)="A", I(5.2)="B", I(5.3)="C"          [UNCHANGED]
+
+Result: B still retrieves "ABC" — its POOM mappings are intact and resolve through the permanent granfilade content.
+```
+
+This is the fundamental architectural separation documented in [SS-DUAL-ENFILADE] and [SS-POOM-MUTABILITY]: the granfilade (content store) is append-only and shared, while POOMs (document views) are mutable and isolated.
+
+## Code Exploration
+
+I need permission to create the test file. Once approved, I'll run the test to verify the behavior.
+
+---
+
+## Question 15 [gregory]
+
+> Does COPY create DOCISPAN entries in the spanfilade for the target document, making the target independently discoverable via FINDDOCSCONTAINING even if the source document is later emptied?
+
+### Gregory's Answer
+
+## KB Synthesis
+
+# Answer
+
+**Yes, COPY creates DOCISPAN entries in the spanfilade for the target document, making it independently discoverable via FINDDOCSCONTAINING regardless of what happens to the source document.**
+
+## Evidence Chain
+
+**1. COPY creates DOCISPAN entries**
+
+From [ST-COPY] Finding 0047: "COPY creates DOCISPAN entries proportional to the number of contiguous I-spans in the source content, not the number of bytes."
+
+The operation flow is documented in [ST-INSERT] Finding 0036 for the shared code path: `docopy` → `insertpm` + `insertspanf(taskptr, spanf, docisaptr, ispanset, DOCISPAN)`. Both INSERT and COPY use this same `docopy` function to place content, and both create DOCISPAN entries.
+
+**2. DOCISPAN entries are permanent**
+
+From [INV-SPANF-WRITE-ONLY] Finding 0057: "The spanfilade is a write-only (append-only) index. Entries are added by `insertspanf` during COPY and INSERT operations, but no deletion function exists anywhere in the spanf codebase."
+
+Once created, DOCISPAN entries persist indefinitely. There is no mechanism to remove them.
+
+**3. Source deletion has zero effect on target document**
+
+From [FC-DELETE-CROSS-DOC] Finding 0064: "DELETE in one document has zero effect on any other document's POOM mappings. If document T transcluded content from document D (sharing I-addresses via COPY), and D subsequently deletes that content, T's POOM still maps to the shared I-addresses."
+
+DELETE is strictly local to the document being modified. The target document's POOM and spanfilade entries remain completely unchanged.
+
+**4. Target remains discoverable**
+
+From [INV-IADDRESS-PERMANENT] Finding 0023: "Once an I-address is associated with a document (via insert or vcopy), `find_documents` continues to report that document even after the content is deleted from the document's V-stream."
+
+This quote specifically covers the case where content is deleted from the TARGET document itself — the DOCISPAN entry persists. By extension, source deletion (which doesn't touch the target at all) certainly cannot remove the target's DOCISPAN entries.
+
+## Example
+
+```
+Initial state:
+  Source doc S: contains "shared content" at I-addresses α₁..α₁₀
+  Target doc T: empty
+
+After COPY from S to T:
+  Source doc S: still contains "shared content" at α₁..α₁₀
+  Target doc T: now contains "shared content" at α₁..α₁₀ (shared I-addresses)
+  Spanfilade DOCISPAN: α₁..α₁₀ → {S, T}
+  FINDDOCSCONTAINING("shared") → {S, T} ✓
+
+After DELETE all content from S:
+  Source doc S: empty (POOM has no V→I mappings)
+  Target doc T: UNCHANGED — still contains "shared content" at α₁..α₁₀
+  Spanfilade DOCISPAN: α₁..α₁₀ → {S, T} (UNCHANGED - no delete mechanism)
+  FINDDOCSCONTAINING("shared") → {S, T} ✓
+    (S is now a "stale reference" per [EC-STALE-SPANF-REFERENCE], 
+     but T is a live reference)
+```
+
+The target document T remains independently discoverable via its own DOCISPAN entries, which were created during the COPY operation and cannot be removed by any operation on the source document.
+
+## Code Exploration
+
+Based on my analysis of the C source code, I can now provide a definitive answer to your question.
+
+---
+
+## Answer: Yes, COPY Creates Independent DOCISPAN Entries
+
+**COPY does create DOCISPAN entries in the spanfilade for the target document, making it independently discoverable via FINDDOCSCONTAINING even if the source document is later emptied.**
+
+### Code Analysis
+
+#### 1. COPY Operation Creates DOCISPAN Entries
+
+The `docopy` function [backend/do1.c:45-65] performs two critical operations:
+
+```c
+bool docopy(typetask *taskptr, typeisa *docisaptr, tumbler *vsaptr, typespecset specset)
+{
+    // ... setup code ...
+    
+    return (
+       // ... validation ...
+       
+       /* the meat of docopy: */
+       && insertpm (taskptr, docisaptr, docorgl, vsaptr, ispanset)
+       
+       &&  insertspanf (taskptr, spanf, docisaptr, ispanset, DOCISPAN)
+       // ... 
+    );
+}
+```
+
+**Line 62** is the key: `insertspanf (taskptr, spanf, docisaptr, ispanset, DOCISPAN)`
+
+This call:
+- Passes the **target** document's ISA (`docisaptr`)  
+- Passes the content being copied (`ispanset`)
+- Specifies span type as `DOCISPAN`
+
+#### 2. insertspanf Writes to the Spanfilade
+
+The `insertspanf` function [backend/spanf1.c:15-54] constructs spanfilade keys:
+
+```c
+bool insertspanf(typetask *taskptr, typespanf spanfptr, typeisa *isaptr, 
+                 typesporglset sporglset, INT spantype)
+{
+    // Line 22: Construct the ORGLRANGE key
+    prefixtumbler (isaptr, spantype, &crumorigin.dsas[ORGLRANGE]);
+    // ...
+    
+    for (; sporglset; sporglset = ...) {
+        // Line 49-50: Set up SPANRANGE dimension
+        movetumbler (&lstream, &crumorigin.dsas[SPANRANGE]);
+        movetumbler (&lwidth, &crumwidth.dsas[SPANRANGE]);
+        
+        // Line 51: Insert into spanfilade
+        insertnd(taskptr,(typecuc*)spanfptr,&crumorigin,&crumwidth,&linfo,SPANRANGE);
+    }
+}
+```
+
+**Line 22** creates a tumbler prefix of `<target-docisa>.DOCISPAN` in the ORGLRANGE dimension.
+
+**Line 51** inserts entries into the spanfilade mapping:
+- **Key**: `<target-docisa>.DOCISPAN` (ORGLRANGE) × `<ispan>` (SPANRANGE)
+- **Value**: The content's home document and positioning info
+
+#### 3. FINDDOCSCONTAINING Queries These Entries
+
+The `finddocscontainingsp` function [backend/spanf1.c:151-188] searches the spanfilade:
+
+```c
+bool finddocscontainingsp(typetask *taskptr, typespanset ispanset, typelinkset *addresssetptr)
+{
+    // Lines 167-169: Define the DOCISPAN subspace
+    clear (&docspace, sizeof(typespan));
+    tumblerincrement (&docspace.stream, 0, DOCISPAN, &docspace.stream);
+    tumblerincrement (&docspace.width, 0, 1, &docspace.width);
+    
+    for (; ispanset; ispanset = ispanset->next) {
+        // Line 171: Query spanfilade for all docs in DOCISPAN subspace
+        context = retrieverestricted ((typecuc*)spanf, &docspace, ORGLRANGE, 
+                                      ispanset, SPANRANGE, (typeisa*)NULL);
+        
+        for (c = context; c; c = c->nextcontext) {
+            // Lines 173-174: Extract document ISA
+            movetumbler (&c->totaloffset.dsas[ORGLRANGE], &docid);
+            beheadtumbler (&docid, &document.address);
+            // ... add to results ...
+        }
+    }
+}
+```
+
+**Lines 167-169** create a search range covering all DOCISPAN entries (from `DOCISPAN.0` to `(DOCISPAN+1).0`).
+
+**Line 171** performs a restricted retrieve operation that finds all spanfilade entries where:
+- ORGLRANGE falls within the DOCISPAN subspace  
+- SPANRANGE matches the query content
+
+**Lines 173-174** extract the document ISA by removing the DOCISPAN prefix from the ORGLRANGE key.
+
+#### 4. DELETE Does NOT Remove DOCISPAN Entries
+
+The `deletevspanpm` function [backend/orglinks.c:145-152] only deletes from the POOM:
+
+```c
+bool deletevspanpm(typetask *taskptr, tumbler *docisaptr, typeorgl docorgl, 
+                   typevspan *vspanptr)
+{
+    if (iszerotumbler(&vspanptr->width))
+        return (FALSE);
+    
+    // Line 149: Delete from the document's POOM tree (granfilade)
+    deletend((typecuc*)docorgl, &vspanptr->stream, &vspanptr->width, V);
+    
+    logbertmodified(docisaptr, user);
+    return (TRUE);
+}
+```
+
+**Line 149** deletes from the document's orgl (POOM tree) in the V dimension.
+
+**There is NO corresponding deletion from the spanfilade.** The DOCISPAN entries persist.
+
+I verified this with: `grep -r "deletend.*spanf\|delete.*DOCISPAN" backend/` → No matches found.
+
+### Conclusion
+
+1. **COPY calls insertspanf** [do1.c:62] with the target document's ISA and span type DOCISPAN
+2. **insertspanf creates persistent entries** [spanf1.c:22,51] in the spanfilade keyed by `<target-docisa>.DOCISPAN`
+3. **FINDDOCSCONTAINING queries the DOCISPAN subspace** [spanf1.c:167-171] and extracts document ISAs from matching entries
+4. **DELETE only removes from the POOM** [orglinks.c:149], not from the spanfilade
+
+Therefore, **copied content creates independent content identity for the target document that persists even after the source is emptied.**
+
+### Empirical Verification
+
+I've prepared a golden test scenario `find_documents_after_source_emptied` to verify this behavior empirically. Once you approve the file write, I'll run it and add the results to the findings.
+
+---
+
+## Question 16 [gregory]
+
+> When COPY transfers a V-span that maps to non-contiguous I-addresses (e.g., after an INSERT split the original span), does vspanset2sporglset automatically split the specset into multiple sporgls, each preserving the correct I-address mapping in the target?
+
+### Gregory's Answer
+
+## KB Synthesis
+
+Yes, `vspanset2sporglset` automatically splits a V-span into multiple sporgls when it maps to non-contiguous I-addresses, preserving the exact I-address structure in the target.
+
+## Mechanism
+
+The conversion chain is documented in [ST-LINK-CREATE] (Finding 0037):
+
+```
+V-span → vspanset2ispanset → permute → span2spanset → retrieverestricted
+```
+
+This walks the POOM (V-to-I mapping) and discovers all I-address regions. The key property: **it produces one I-span per contiguous I-address region**, then creates one sporgl per I-span.
+
+[INT-SPORGL-TRANSCLUSION] confirms this applies to COPY:
+> "During vcopy (transclusion), the data flow is: source V-spec → sporgls (via `vspanset2sporglset`) → `insertpm` into destination document."
+
+## When Non-Contiguity Arises
+
+From [ST-INSERT] (Finding 0030), INSERT shifts V-positions but preserves I-addresses:
+
+```
+Original: "ABCDE" at V 1.1-1.5, I.1-I.5 (contiguous)
+After INSERT "XY" at V 1.3:
+  "ABXYCDE" at V 1.1-1.7
+  - V 1.1-1.2 → I.1-I.2   (original AB)
+  - V 1.3-1.4 → I.6-I.7   (fresh allocation for XY)
+  - V 1.5-1.7 → I.3-I.5   (original CDE, shifted V-positions)
+```
+
+The I-addresses are now: I.1, I.2, I.6, I.7, I.3, I.4, I.5 — **three non-contiguous regions**.
+
+## Concrete Example
+
+From [ST-LINK-CREATE] (Finding 0037):
+
+```
+Document C contains "AABB" at V 1.1..1.4 where:
+  "AA" from document A (I-addresses from A's region)
+  "BB" from document B (I-addresses from B's region)
+
+Input:  1 V-span covering all of "AABB"
+Output: 2 sporgls in endset:
+  sporgl₁: origin = I-addr(A,"AA"), width = 0.2, doc = C
+  sporgl₂: origin = I-addr(B,"BB"), width = 0.2, doc = C
+```
+
+When you COPY the full V-span 1.1-1.7 from the fragmented "ABXYCDE" document:
+1. `vspanset2ispanset` discovers three I-spans: [I.1-I.2], [I.6-I.7], [I.3-I.5]
+2. Creates three sporgls preserving this structure
+3. `insertpm` maps these to the target document's V-space, maintaining the I-address relationships
+
+## Supporting Evidence
+
+[SS-DOCISPAN] (Finding 0047) confirms: "COPY of fragmented source content (e.g., 3 non-contiguous regions) creates 3 DOCISPAN entries" — one per I-span.
+
+[ST-VCOPY] (Finding 0002) guarantees identity preservation: the target references **exactly** the content identities from the source specset, including their non-contiguous structure.
+
+**Answer: Yes, automatic splitting preserves exact I-address mapping.**
+
+## Code Exploration
+
+---
+
+## Answer: YES — COPY Automatically Splits Non-Contiguous I-Address Mappings
+
+When COPY transfers a V-span that maps to non-contiguous I-addresses (e.g., after an INSERT operation splits the original content), **the system automatically splits the copy into multiple independent insertions**, each preserving the correct I-address mapping in the target.
+
+### How It Works
+
+#### 1. V→I Conversion Creates Multiple Spans
+
+The critical function is `retrieverestricted()` [`backend/retrie.c:56`], which returns a **linked list of contexts** — one context per contiguous I-address region.
+
+**Execution path:**
+- `docopy()` [`backend/do1.c:54`] calls `specset2ispanset()`
+- → `vspanset2ispanset()` [`backend/orglinks.c:397`] calls `permute()` for V→I conversion
+- → `permute()` [`backend/orglinks.c:414`] loops through V-spans, calling `span2spanset()` for each
+- → `span2spanset()` [`backend/orglinks.c:435`] calls `retrieverestricted()`:
+
+```c
+context = retrieverestricted((typecuc*)orgl, restrictionspanptr, restrictionindex,
+                            (typespan*)NULL, targindex, (typeisa*)NULL);
+```
+
+- → `span2spanset()` [`backend/orglinks.c:439-444`] loops through **each context**:
+
+```c
+for (c = context; c; c = c->nextcontext) {
+    context2span (c, restrictionspanptr, restrictionindex, &foundspan, targindex);
+    nextptr = (typespan *)onitemlist (taskptr, (typeitem*)&foundspan,
+                                     (typeitemset*)targspansetptr);
+}
+```
+
+**Key insight**: `retrieverestricted()` returns multiple contexts via `c->nextcontext`. Each context represents a **single contiguous I-address region**. The loop creates a **separate I-span for each context**.
+
+#### 2. Each I-Span Is Inserted Separately
+
+From `insertpm()` [`backend/orglinks.c:100-132`]:
+
+```c
+for (; sporglset; sporglset = (typesporglset) sporglset->xxxxsporgl.next) {
+    unpacksporgl (sporglset, &lstream, &lwidth, &linfo);
+    movetumbler (&lstream, &crumorigin.dsas[I]);
+    movetumbler (&lwidth, &crumwidth.dsas[I]);
+    movetumbler (vsaptr, &crumorigin.dsas[V]);
+    // ... set up width ...
+    insertnd (taskptr, (typecuc*)orgl, &crumorigin, &crumwidth, &linfo, V);
+    tumbleradd (vsaptr, &crumwidth.dsas[V], vsaptr);  // increment vsa
+}
+```
+
+- **Line 100**: Loops through each sporgl
+- **Line 130**: Calls `insertnd()` for each sporgl individually
+- **Line 131**: Increments `vsaptr` (V-address) after each insertion
+
+### Example
+
+**Initial state:**
+- Document has "ABC" at contiguous I-addresses 1000.1, 1000.2, 1000.3
+
+**After INSERT "XYZ" at V=1.2:**
+- V-span 1.1-1.2 → I-span 1000.1-1000.2 ("AB")
+- V-span 1.5-1.6 → I-span 2000.1-2000.3 ("XYZ")
+- V-span 1.6-1.7 → I-span 1000.3 ("C")
+
+**COPY V-span 1.1-1.7 to target at V=2.1:**
+- `retrieverestricted()` returns **3 contexts** (3 contiguous I-regions)
+- `span2spanset()` creates **3 I-spans**
+- `insertpm()` inserts each separately:
+  - Sporgl 1 (I=1000.1-1000.2, "AB") → V=2.1-2.2
+  - Sporgl 2 (I=2000.1-2000.3, "XYZ") → V=2.3-2.5
+  - Sporgl 3 (I=1000.3, "C") → V=2.6
+
+**Result**: The target POOM has **3 separate crums** (one per sporgl), each preserving its original I-address mapping, with **consecutive V-addresses** (no gaps).
+
+### Source Code Citations
+
+**V→I conversion:**
+- `backend/do1.c:54` — `docopy()` calls `specset2ispanset()`
+- `backend/orglinks.c:397-402` — `vspanset2ispanset()` calls `permute()`
+- `backend/orglinks.c:404-422` — `permute()` loops through V-spans
+- `backend/orglinks.c:425-454` — `span2spanset()` processes each context from `retrieverestricted()`
+- `backend/retrie.c:56-85` — `retrieverestricted()` returns context list
+
+**Insertion:**
+- `backend/do1.c:60` — `docopy()` calls `insertpm()`
+- `backend/orglinks.c:100-132` — `insertpm()` loops through sporgls, calling `insertnd()` for each
+
+**Sporgl conversion:**
+- `backend/sporgl.c:35-65` — `vspanset2sporglset()` shows nested loop at line 49: loops through each I-span returned by `vspanset2ispanset()`, creating a separate sporgl for each
+
+### Implications
+
+1. **Transclusion preserves granfilade identity** — Each character maintains its exact I-address from source
+2. **POOM structure reflects fragmentation** — Non-contiguous I-addresses result in multiple crums
+3. **V-space remains contiguous** — Despite non-contiguous I-addresses, V-addresses have no gaps
+4. **Automatic splitting** — No special handling needed; the system naturally handles this through `retrieverestricted()`
+
+---
+
+## Question 17 [gregory]
+
+> Does SHOWRELATIONOF2VERSIONS detect content overlap between a document and its transclusion target — that is, does compare_versions identify shared I-address spans between two documents that share content solely through COPY rather than through CREATENEWVERSION?
+
+### Gregory's Answer
+
+## KB Synthesis
+
+# Yes, SHOWRELATIONOF2VERSIONS detects transclusion-based content sharing
+
+Despite its name suggesting version-specific functionality, `compare_versions` (FEBE opcode 10: SHOWRELATIONOF2VERSIONS) operates on **any two documents** that share I-addresses, regardless of how that sharing occurred.
+
+## Core Mechanism
+
+From [SS-COMPARE-VERSIONS]:
+> "The `compare_versions` operation answers the question: 'What text content do these two documents share by common origin?' The operation produces a list of ordered pairs of V-spans — one from each document — where the paired spans reference the same permascroll I-address range."
+
+The operation works by I-address intersection, not by checking version relationships. From [ST-COMPARE-VERSIONS]:
+> "Each pair `(span_a, span_b)` in the result satisfies: `VSpanToISpan(doc_a, span_a) == VSpanToISpan(doc_b, span_b)` where both I-spans are permascroll addresses."
+
+## Direct Evidence for COPY/Transclusion
+
+[ST-VCOPY] Finding 0002 explicitly confirms this:
+> "After vcopy, `compare_versions` between source and target reports shared content, confirming that both documents reference the same content identities."
+
+Concrete example from the same entry:
+```
+Source: "Shared content that will be transcluded"
+Target: vcopy from Source
+Result: compare_versions(source, target) returns the shared span
+```
+
+## Transitive Detection
+
+From [INV-TRANSITIVE-IDENTITY] Finding 0002:
+> "Content identity is preserved transitively through chains of transclusion. If document B transcludes from C, and document A transcludes from B, then A and C share content identity even though A never directly referenced C. The `compare_versions` operation between A and C correctly reports the shared content."
+
+## Implementation Details
+
+[INT-SPORGL-VERSION-COMPARE] describes the mechanism:
+> "Version comparison (`compare_versions` / `correspond.c`) uses sporgls to find shared content between documents. Both documents' content is converted to sporgls, then intersection is computed by I-address (the `sporglorigin` field)."
+
+There is no version-specific logic in this implementation. The operation simply:
+1. Converts both documents' V-spans to I-spans
+2. Finds I-address intersections
+3. Maps shared I-addresses back to V-spans in each document
+
+## Limitations
+
+The only constraint is from [PRE-COMPARE-VERSIONS]:
+> "For `compare_versions` to operate correctly, the input V-span sets must be restricted to the text subspace (`V >= 1.0`)."
+
+This is a subspace filtering requirement, not a restriction on document relationships.
+
+**Conclusion:** The operation name "SHOWRELATIONOF2VERSIONS" is misleading. `compare_versions` detects I-address overlap between any two documents, whether the sharing occurred through VERSION, COPY, or transitive transclusion chains.
+
+## Code Exploration
+
+Based on my analysis of the source code, I can now provide a definitive answer:
+
+## YES — SHOWRELATIONOF2VERSIONS detects I-address overlap from COPY operations
+
+### Evidence from Source Code
+
+**1. SHOWRELATIONOF2VERSIONS compares I-addresses** [backend/do1.c:428-449]
+
+```c
+bool doshowrelationof2versions(..., typespecset version1, typespecset version2, typespanpairset *relation)
+{
+  typeispanset version1ispans = NULL;
+  typeispanset version2ispans = NULL;
+  typeispanset commonispans = NULL;
+  
+  return
+    specset2ispanset(taskptr, version1, &version1ispans, READBERT)
+  &&  specset2ispanset(taskptr, version2, &version2ispans, READBERT)
+  &&  intersectspansets(taskptr, version1ispans, version2ispans, &commonispans, ISPANID)
+  &&  ispansetandspecsets2spanpairset(taskptr, commonispans, version1, version2, relation);
+}
+```
+
+The function converts both documents' V-addresses to I-addresses (lines 444-445), then uses `intersectspansets` (line 446) to find **shared I-address spans**.
+
+**2. COPY reuses existing I-addresses** [backend/do1.c:45-65]
+
+```c
+bool docopy(typetask *taskptr, typeisa *docisaptr, tumbler *vsaptr, typespecset specset)
+{
+  typeispanset ispanset;
+  
+  return (
+    specset2ispanset (taskptr, specset, &ispanset, NOBERTREQUIRED)  // Line 54
+    && findorgl (taskptr, granf, docisaptr, &docorgl, WRITEBERT)
+    && insertpm (taskptr, docisaptr, docorgl, vsaptr, ispanset)      // Line 60
+    && insertspanf (taskptr, spanf, docisaptr, ispanset, DOCISPAN)
+  );
+}
+```
+
+Line 54 retrieves the **existing I-addresses** from the source document. Line 60 passes those same I-addresses to `insertpm`.
+
+**3. insertpm preserves I-addresses** [backend/orglinks.c:75-133]
+
+```c
+bool insertpm(..., tumbler *vsaptr, typesporglset sporglset)
+{
+  for (; sporglset; sporglset = (typesporglset) sporglset->xxxxsporgl.next) {
+    unpacksporgl (sporglset, &lstream, &lwidth, &linfo);
+    movetumbler (&lstream, &crumorigin.dsas[I]);      // Line 105: Copy source I-address
+    movetumbler (vsaptr, &crumorigin.dsas[V]);        // Line 113: Set new V-address
+    insertnd (taskptr, (typecuc*)orgl, &crumorigin, &crumwidth, &linfo, V);
+  }
+}
+```
+
+Line 105 copies the I-address from the source (`lstream`) directly into the POOM node being inserted. The content gets a **new V-address** but keeps the **same I-address**.
+
+### Contrast: INSERT creates new I-addresses
+
+When you INSERT new text (not COPY), the system allocates fresh I-addresses [backend/granf2.c:92, 130-142]:
+
+```c
+if (!findisatoinsertgr ((typecuc*)fullcrumptr, hintptr, &lsa))  // Allocates NEW I-address
+```
+
+### Semantic Caveat
+
+The implementation includes a filter for text subspace [backend/do1.c:437-441]:
+
+```c
+/* SEMANTIC FIX: Filter to text subspace before comparison.
+ * Link references (V < 1.0) are not content with "common origin".
+ * See Finding 015 for the semantic definition. */
+filter_specset_to_text_subspace(taskptr, version1);
+filter_specset_to_text_subspace(taskptr, version2);
+```
+
+This means SHOWRELATIONOF2VERSIONS only detects overlap in **text content (V ≥ 1.0)**, not link references (V < 1.0).
+
+## Conclusion
+
+**Yes**, `compare_versions` (via `doshowrelationof2versions`) identifies shared I-address spans between documents that share content through COPY. This works because:
+
+1. COPY reuses I-addresses from the source [do1.c:54, orglinks.c:105]
+2. SHOWRELATIONOF2VERSIONS detects I-address intersection [do1.c:446]
+3. The relationship exists independently of CREATENEWVERSION genealogy
+
+The detection is based on **permascroll identity** (shared I-addresses), not V-address version trees.
+
+---
+
+## Question 18 [gregory]
+
+> If document B transcludes content from A, and document C then transcludes the same V-span from B, does C's POOM contain the same I-addresses as A's original content — making links created against A discoverable from C through the transitive chain?
+
+### Gregory's Answer
+
+## KB Synthesis
+
+# Answer: YES, transitive transclusion preserves I-address identity
+
+Document C will contain the **same I-addresses** as A's original content, making links created against A discoverable from C through the transitive chain B→C.
+
+## The Mechanism
+
+[ST-VCOPY] defines transclusion as adding "references to existing content identities" — it does not create new I-addresses. When B transcludes from A, B's POOM maps V-positions to A's I-addresses. When C transcludes from B, C's POOM maps V-positions to B's I-addresses — which are still A's I-addresses. The sporgl data structure carries the I-address through this chain [INT-SPORGL-TRANSCLUSION].
+
+## Transitive Identity Invariant
+
+[INV-TRANSITIVE-IDENTITY] from Finding 0002 explicitly covers this scenario:
+
+> "Content identity is preserved transitively through chains of transclusion. If document B transcludes from C, and document A transcludes from B, then A and C share content identity even though A never directly referenced C."
+
+The finding provides a concrete example:
+```
+C: "ABCDEFGHIJ"
+B: vcopy(all of C)
+A: vcopy("DEFGH" from B)
+
+compare_versions(A, C) → "DEFGH" shared
+```
+
+This demonstrates that A and C share I-addresses despite A copying from B, not directly from C.
+
+## Link Discovery Consequence
+
+[INT-LINK-TRANSCLUSION] from Finding 0008 confirms the link discovery implication:
+
+> "Links are discoverable from ANY document that shares content identity with a link's endpoint — whether through transclusion, versioning, or chains of both."
+
+The mechanism is:
+1. A creates content → allocates I-addresses α₁..αₙ  
+2. B transcludes from A → B's POOM references α₁..αₙ  
+3. C transcludes from B → C's POOM references α₁..αₙ  
+4. Link created on A's content → indexed in spanf by α₁..αₙ  
+5. `find_links(C)` converts C's V-positions to I-addresses → gets α₁..αₙ → intersects with spanf → discovers the link
+
+## No Special Case Needed
+
+[INV-TRANSITIVE-IDENTITY] notes that "the spec need not add a special transitivity rule; it falls out of the state-transition definition of vcopy." Since transclusion preserves I-addresses (postcondition of [ST-VCOPY]) and composition of I-address-preserving operations preserves I-addresses (by transitivity), the property holds automatically. No N-hop limit exists — tested with chains of 2 and 3 transclusions [EC-SELF-TRANSCLUSION] from Finding 0039.
+
+**In formal terms**: `vcopy(A→B) ∧ vcopy(B→C) ⟹ iaddrs(C) ⊇ iaddrs(A)` for the transcluded span. Links indexed by `iaddrs(A)` are discoverable from any document containing those I-addresses, including C.
+
+## Code Exploration
+
+Based on my analysis of the udanax-green source code, I can now provide a definitive answer to your question.
+
+## Answer: YES — Transitive Transclusion Preserves I-Address Identity
+
+When document C transcludes content from B that B previously transcluded from A, **C's POOM contains the exact same I-addresses as A's original content**. This makes links created against A fully discoverable from C through the transitive chain.
+
+---
+
+## Code Analysis
+
+### 1. The Copy Operation (do1.c:45-65)
+
+The `docopy` function performs transclusion:
 
 ```c
 bool docopy(typetask *taskptr, typeisa *docisaptr, tumbler *vsaptr, typespecset specset)
 {
   typeispanset ispanset;
   typeorgl docorgl;
-  // ...
   
   return (
-     specset2ispanset (taskptr, specset, &ispanset, NOBERTREQUIRED)
-  && findorgl (taskptr, granf, docisaptr, &docorgl, WRITEBERT)
+     specset2ispanset (taskptr, specset, &ispanset, NOBERTREQUIRED)  // [line 54]
+  && findorgl (taskptr, granf, docisaptr, &docorgl, WRITEBERT)      // [line 55]
   && acceptablevsa (vsaptr, docorgl)
-
+  && asserttreeisok(docorgl)
+  
   /* the meat of docopy: */
-  && insertpm (taskptr, docisaptr, docorgl, vsaptr, ispanset)      // Line 60
-
-  &&  insertspanf (taskptr, spanf, docisaptr, ispanset, DOCISPAN)  // Line 62
+  && insertpm (taskptr, docisaptr, docorgl, vsaptr, ispanset)       // [line 60]
+  
+  &&  insertspanf (taskptr, spanf, docisaptr, ispanset, DOCISPAN)   // [line 62]
+  && asserttreeisok(docorgl)
   );
 }
 ```
 
-**Line 60**: `insertpm` inserts V→I mappings into **document B's POOM** (its orgl enfilade in granf). Document B now has its own independent reference to the I-addresses.
+**Key insight:** Line 54 converts V-specs to I-spans by reading the source document's POOM. Line 60 inserts those I-spans into the target document's POOM.
 
-**Line 62**: `insertspanf` registers document B in the spanfilade as containing those I-addresses, enabling `find_links` and `finddocscontaining` queries.
+### 2. V→I Conversion (do2.c:14-46)
 
----
-
-### Layer 2: Document A's DELETE Affects Only A's POOM
-
-When document A deletes content, **only A's POOM is modified**:
-
-**File: `do1.c:158-167` — The `dodeletevspan` function:**
+The `specset2ispanset` function reads the source document's POOM:
 
 ```c
-bool dodeletevspan(typetask *taskptr, typeisa *docisaptr, typevspan *vspanptr)
+bool specset2ispanset(typetask *taskptr, typespec *specset, typeispanset *ispansetptr, int type)
 {
   typeorgl docorgl;
-  bool findorgl(), deletevspanpm();
-
-  return (
-     findorgl (taskptr, granf, docisaptr, &docorgl, WRITEBERT)
-  && deletevspanpm (taskptr, docisaptr, docorgl, vspanptr)  // Line 165
-  );
-}
-```
-
-**File: `orglinks.c:144-151` — The `deletevspanpm` function:**
-
-```c
-bool deletevspanpm(typetask *taskptr, tumbler *docisaptr, typeorgl docorgl, typevspan *vspanptr)
-{
-  if (iszerotumbler(&vspanptr->width))
-    return (FALSE);
-  deletend((typecuc*)docorgl, &vspanptr->stream, &vspanptr->width, V);  // Line 148
-  logbertmodified(docisaptr, user);
-  return (TRUE);
-}
-```
-
-**Line 148**: `deletend` removes V→I mappings from **document A's orgl only**. It operates on a single enfilade tree (`docorgl`), with no cross-document side effects.
-
-**File: `edit.c:31-76` — The `deletend` function:**
-
-```c
-int deletend(typecuc *fullcrumptr, tumbler *origin, tumbler *width, INT index)
-{
-  typeknives knives;
-  typewid offset, grasp, reach;
-  typecuc *father, *ptr, *next;
-  // ...
-  
-  makecutsnd (fullcrumptr, &knives);                   // Cut THIS tree only
-  newfindintersectionnd (fullcrumptr, &knives, &father, &foffset);
-  
-  for (ptr = (typecuc *) findleftson (father); ptr; ptr = next) {
-    next = (typecuc *) findrightbro((typecorecrum*)ptr);
-    switch (deletecutsectionnd ((typecorecrum*)ptr, &fgrasp, &knives)) {
-      case 1:
-        disown ((typecorecrum*)ptr);        // Line 59
-        subtreefree ((typecorecrum*)ptr);   // Line 60
-        break;
-      case 2:
-        tumblersub (&ptr->cdsp.dsas[index], width, &ptr->cdsp.dsas[index]);  // Line 63
-        break;
-    }
-  }
-  setwispupwards (father,1);
-  recombine (father);
-}
-```
-
-**Lines 59-60**: Crums are disowned and freed from **this document's tree only** (`fullcrumptr`, which is document A's orgl).
-
-**Line 63**: Displacements are adjusted in **this document's crums only**.
-
-**Critical observation**: `deletend` receives `fullcrumptr` (a pointer to document A's orgl root) and operates exclusively on that tree. Document B's orgl is **never accessed** or **modified**.
-
----
-
-### Layer 3: Frame Axiom F0 — No Cross-Document Side Effects
-
-**Finding 0067** confirms that document operations have no cross-document side effects:
-
-> The low-level enfilade operations (`insertnd`, `deletend`, `cutcrumseq`, `rearrangend`) operate exclusively on the target document's orgl (POOM enfilade in granf). They do NOT:
-> - Modify other documents' orgls
-> - Corrupt links (either in the target document's link subspace or in other documents)
-> - Alter the spanfilade in ways that corrupt queries
-
-Document A's `deletend` operates on A's orgl. Document B's orgl remains **completely unchanged**.
-
----
-
-### Layer 4: Spanfilade Entries Are Never Cleaned Up
-
-**Finding 0057** documents that DELETE does NOT remove spanfilade entries:
-
-> When a document DELETEs content that was previously COPYed (transcluded) into it, **the DELETE operation does NOT clean up the spanfilade entries** that were created by the COPY. The `deletevspanpm` function only removes the V→I mapping from the document's POOM (in granf), but there is no corresponding call to remove the I-address-to-document association from the spanf index.
-
-When document B transcluded A's content:
-- `insertspanf` (invoked at `do1.c:62`) registered B in the spanfilade
-
-When document A deletes:
-- **No corresponding `deletespanf` call exists**
-- The spanfilade entry for document B persists
-
-**File: `spanf1.c` (entire file inspection):**
-
-**Functions that exist:**
-- ✅ `insertspanf` — adds spanfilade entries
-- ✅ `findlinksfromtothreesp` — searches spanfilade for links
-- ✅ `retrieveendsetsfromspanf` — retrieves link endsets
-- ✅ `finddocscontainingsp` — finds documents containing I-addresses
-
-**Functions that DO NOT exist:**
-- ❌ `deletespanf` — no such function
-- ❌ `removespanf` — no such function
-
-The spanfilade is **write-only** for this operation — entries are added but never removed by DELETE.
-
----
-
-## How find_links Works After A's DELETE
-
-When `find_links` is called on document B searching for links whose endsets reference the I-addresses:
-
-**File: `do1.c:348-353` — The `dofindlinksfromtothree` function:**
-
-```c
-bool dofindlinksfromtothree(typetask *taskptr, typespecset fromvspecset, 
-                            typespecset tovspecset, typespecset threevspecset, 
-                            typeispan *orglrangeptr, typelinkset *linksetptr)
-{
-  bool findlinksfromtothreesp();
-
-  return findlinksfromtothreesp(taskptr, spanf, fromvspecset, tovspecset, 
-                                 threevspecset, orglrangeptr, linksetptr);
-}
-```
-
-**File: `spanf1.c:55-102` — The `findlinksfromtothreesp` function:**
-
-```c
-bool findlinksfromtothreesp(typetask *taskptr, typespanf spanfptr, 
-                            typespecset fromvspecset, typespecset tovspecset, 
-                            typespecset threevspecset, typeispan *orglrange, 
-                            typelinkset *linksetptr)
-{
-  typesporglset fromsporglset;
-  // ...
-  
-  if (fromvspecset) {
-    specset2sporglset (taskptr, fromvspecset, &fromsporglset,NOBERTREQUIRED);  // Line 70
-  }
-  
-  if (fromvspecset) {
-    sporglset2linkset (taskptr, (typecuc*)spanfptr, fromsporglset, 
-                      &fromlinkset, orglrange, LINKFROMSPAN);  // Line 76
-    if (!fromlinkset) {
-      *linksetptr = NULL;
-      return (TRUE);
-    }
-  }
-  // ...
-  intersectlinksets(taskptr,fromlinkset,tolinkset,threelinkset,linksetptr);  // Line 99
-  return (TRUE);
-}
-```
-
-**Line 70**: Converts V-specs (from document B) to I-addresses by looking up B's POOM. Since B's POOM is unchanged, this succeeds and returns the I-addresses.
-
-**Line 76**: Searches the spanfilade for links whose FROM endset overlaps those I-addresses. The spanfilade entries persist (no cleanup), so the links are found.
-
-**Line 99**: Returns the discovered links.
-
-**Result**: `find_links` succeeds because:
-1. Document B's POOM still maps V-positions to I-addresses (unchanged by A's delete)
-2. The spanfilade entries for B's links persist (no cleanup mechanism)
-3. The link orgls themselves are permanent (stored at I-addresses)
-
----
-
-## The I-Addresses Are Permanent and Shared
-
-The crucial architectural insight: **I-addresses are permanent identifiers in the permascroll**, independent of any document's POOM:
-
-- Document A's POOM mapped V-positions to I-addresses `[.0.1.1, .0.1.5]`
-- Document B's POOM also maps V-positions to **the same** I-addresses `[.0.1.1, .0.1.5]`
-- When A deletes, it removes A's V→I mappings
-- The I-addresses themselves continue to exist
-- Document B's V→I mappings are **unaffected**
-
-**File: `do2.c:14-46` — How V-specs convert to I-addresses:**
-
-```c
-bool specset2ispanset(typetask *taskptr, typespec *specset, 
-                      typeispanset *ispansetptr, int type)
-{
-  typeorgl docorgl;
-  typeispanset *vspanset2ispanset();
-  // ...
   
   for (; specset; specset = (typespec *)((typeitemheader *)specset)->next) {
-    // ...
     if (((typeitemheader *)specset)->itemid == VSPECID) {
       if (!(
-        findorgl (taskptr, granf, &((typevspec *)specset)->docisa, &docorgl,type)  // Line 35
-      && (ispansetptr = vspanset2ispanset (taskptr, docorgl, 
-                                           ((typevspec *)specset)->vspanset, 
-                                           ispansetptr)))) {  // Line 36
+        findorgl (taskptr, granf, &((typevspec *)specset)->docisa, &docorgl,type)  // [line 35]
+      && (ispansetptr = vspanset2ispanset (taskptr, docorgl, ((typevspec *)specset)->vspanset, ispansetptr))))  // [line 36]
         return (FALSE);
-      }
     }
   }
   return (TRUE);
 }
 ```
 
-**Line 35**: Looks up the **document's orgl** (POOM) in granf.
+**Key insight:** Line 36 calls `vspanset2ispanset`, which reads the POOM to find what I-addresses are at the requested V-position.
 
-**Line 36**: Converts V-spans to I-spans by reading that document's POOM mappings.
+### 3. POOM Lookup (orglinks.c:397-402)
 
-When processing a V-spec from document B, this looks up **B's orgl**, which contains **B's independent V→I mappings**. Document A's delete has no effect on B's orgl.
+The `vspanset2ispanset` function retrieves I-spans from the POOM:
 
----
+```c
+typeispanset *vspanset2ispanset(typetask *taskptr, typeorgl orgl, typevspanset vspanptr, typeispanset *ispansetptr)
+{
+  typespanset *permute();
+  return permute(taskptr, orgl, vspanptr, V, ispansetptr, I);  // [line 393]
+}
+```
 
-## Summary: Three Layers of Independence
+The `permute` function (orglinks.c:404-422) calls `retrieverestricted` (retrie.c:55-84) to look up crums at the V-position and extract their I-addresses.
 
-| Layer | What It Stores | Modified by A's DELETE? | Why B Is Unaffected |
-|-------|----------------|------------------------|---------------------|
-| **I-space** | Permanent content at I-addresses | ❌ No (permanent) | I-addresses exist regardless of POOM mappings |
-| **A's POOM** | A's V→I mappings | ✅ Yes | Only A's mappings removed, not I-addresses themselves |
-| **B's POOM** | B's V→I mappings | ❌ No (Frame F0) | Each document has independent orgl enfilade |
-| **Spanfilade** | I→document index | ❌ No (no cleanup) | Entries added but never removed (Finding 0057) |
+### 4. I-Address Insertion (orglinks.c:75-134)
 
-**Result**: Document B's transclusion is **fully independent**. Links in B whose endsets reference the I-addresses remain discoverable via `find_links` because:
+The `insertpm` function inserts I-addresses into the target POOM:
 
-1. **B's POOM is unchanged** (Frame Axiom F0, confirmed at `edit.c:31-76`)
-2. **The I-addresses are permanent** (permascroll identity)
-3. **Spanfilade entries persist** (no cleanup mechanism exists, Finding 0057)
-4. **Link orgls are permanent** (stored at I-addresses, independent of POOMs)
+```c
+bool insertpm(typetask *taskptr, tumbler *orglisa, typeorgl orgl, tumbler *vsaptr, typesporglset sporglset)
+{
+  tumbler lstream, lwidth;
+  type2dbottomcruminfo linfo;
+  typewid crumorigin, crumwidth;
+  
+  for (; sporglset; sporglset = (typesporglset) sporglset->xxxxsporgl.next) {
+    unpacksporgl (sporglset, &lstream, &lwidth, &linfo);
+    
+    movetumbler (&lstream, &crumorigin.dsas[I]);   // [line 105] - Copy I-stream directly
+    movetumbler (&lwidth, &crumwidth.dsas[I]);     // [line 109] - Copy I-width directly
+    movetumbler (vsaptr, &crumorigin.dsas[V]);     // [line 113] - Set V-position
+    
+    insertnd (taskptr, (typecuc*)orgl, &crumorigin, &crumwidth, &linfo, V);  // [line 130]
+  }
+  return (TRUE);
+}
+```
 
----
-
-## Files Referenced
-
-| File | Lines | Content |
-|------|-------|---------|
-| `do1.c` | 45-65 | `docopy` — creates B's independent V→I mappings via `insertpm` |
-| `do1.c` | 158-167 | `dodeletevspan` — deletes from A's POOM only |
-| `do1.c` | 348-353 | `dofindlinksfromtothree` — searches spanfilade for links |
-| `orglinks.c` | 74-133 | `insertpm` — inserts V→I mappings into document's POOM |
-| `orglinks.c` | 144-151 | `deletevspanpm` — removes V→I from POOM, no spanf cleanup |
-| `edit.c` | 31-76 | `deletend` — operates on single orgl tree only |
-| `do2.c` | 14-46 | `specset2ispanset` — converts V-specs to I-spans via POOM lookup |
-| `do2.c` | 116-128 | `insertendsetsinspanf` — indexes link endsets in spanfilade |
-| `spanf1.c` | 14-53 | `insertspanf` — adds spanfilade entries (no delete exists) |
-| `spanf1.c` | 55-102 | `findlinksfromtothreesp` — searches for links via spanfilade |
-
----
-
-## Related Findings
-
-- **Finding 0057**: Spanfilade entries are not cleaned up on DELETE
-- **Finding 0067**: Frame Axiom F0 confirmed — no cross-document side effects
-- **Finding 0040**: Links can be removed from POOM while persisting in I-space
-- **Finding 0012**: Dual enfilade architecture — granf (POOMs) vs spanf (index)
+**Critical observation:** Lines 105-109 copy I-addresses **directly without transformation**. The I-stream and I-width are preserved exactly as they appear in the source document.
 
 ---
 
-## Question 8 [gregory]
+## Execution Trace
 
-> When COPY creates DOCISPAN entries in the spanfilade for the target document, does it create one entry per contiguous I-span in the copied specset, and are these entries structurally identical (same I-address range, different document ID) to the source document's existing DOCISPAN entries?
+**Scenario: A → B → C transitive transclusion**
+
+### Step 1: A creates original content
+- A inserts text at V-address `1.1`
+- Backend allocates I-address `X` (e.g., `5.2.3.1`)
+- A's POOM: `V[1.1] → I[X]`
+
+### Step 2: B transcludes from A
+- B calls `docopy` with source vspec `{docisa=A, vspan=1.1-1.2}`
+- `specset2ispanset` reads A's POOM at V-position `1.1`
+- Finds I-address `X`
+- `insertpm` inserts I-address `X` at B's V-position `2.1`
+- **B's POOM: `V[2.1] → I[X]`** ✓ Same I-address
+
+### Step 3: C transcludes from B
+- C calls `docopy` with source vspec `{docisa=B, vspan=2.1-2.2}`
+- `specset2ispanset` reads **B's POOM** at V-position `2.1`
+- Finds I-address `X` (the same one from A!)
+- `insertpm` inserts I-address `X` at C's V-position `3.1`
+- **C's POOM: `V[3.1] → I[X]`** ✓ Same I-address
+
+### Result
+All three documents — A, B, and C — map to the **identical I-address `X`** in the content identity space. Any links created against A's content at I-address `X` are discoverable when searching from C's content, because C also references I-address `X`.
+
+---
+
+## Empirical Verification
+
+The test harness includes `scenario_find_documents_transitive` (febe/scenarios/identity.py:66-126), which verifies this behavior:
+
+```python
+# C → B → A transclusion chain
+# Find documents containing the original content from C
+query_vspec = VSpec(c_read2, [Span(Address(1, 1), Offset(0, 8))])  # "Original"
+found_docs = session.find_documents(query_specset)
+
+# Expected result: Should find A, B, and C
+# Comment: "content identity is transitive"
+```
+
+This test confirms that `FINDDOCSCONTAINING` discovers all three documents when querying for content originally from C, because they all share the same I-addresses.
+
+---
+
+## Conclusion
+
+**Yes**, C's POOM contains the same I-addresses as A's original content. The POOM (Permutation Matrix) stores V↔I mappings, and transclusion copies I-addresses directly without transformation. This means:
+
+1. **Link discovery works transitively** — Links created against A's content are findable when searching from C
+2. **Content identity is preserved** — The `find_documents` operation discovers all documents in the transclusion chain
+3. **Version comparison works** — `compare_versions` can detect common origin across transitive transclusions
+
+The I-address is the **immutable identity** of content in Xanadu's permascroll. Transclusion creates new V-address mappings to existing I-addresses, preserving identity across any number of transclusion hops.
+
+---
+
+## Question 19 [gregory]
+
+> When COPY places content at a V-position in the target where adjacent POOM entries happen to have contiguous I-addresses with the copied content, does isanextensionnd merge the copy into the existing crum rather than creating a separate entry, and does this merging affect any observable query behavior?
 
 ### Gregory's Answer
 
 ## KB Synthesis
 
-Yes, COPY creates **one DOCISPAN entry per contiguous I-span** in the copied specset, and these entries have **identical I-address ranges** to the source document's DOCISPAN entries but **different document IDs** (pointing to the target document).
+# Answer: COPY Coalescing via `isanextensionnd`
 
-## Key Evidence
+**Yes, `isanextensionnd` can merge COPY content into existing crums, but only under specific conditions. This merging affects internal crum count but has no observable effect on query behavior.**
 
-### Entry Granularity
-[ST-COPY] Finding 0047: "COPY creates DOCISPAN entries proportional to the number of contiguous I-spans in the source content, not the number of bytes. COPY of contiguous source content (1 I-span) creates 1 DOCISPAN entry."
+## The Mechanism
 
-[SS-DOCISPAN] Finding 0047: "DOCISPAN entries in the spanfilade have per-span granularity, not per-byte. When `insertspanf` is called, it iterates over the `ispanset` linked list and makes one `insertnd` call per `typeispan` struct."
+From [ST-VCOPY], Finding 0046, and [ST-INSERT], Finding 0062: when COPY uses `insertpm` to place V→I mappings into the target document's POOM, the insertion follows an extension-or-create rule. The function `isanextensionnd()` at `insertnd.c:293-301` checks two conditions:
 
-### I-Address Preservation
-[ST-VCOPY] Finding 0002: "The postcondition for vcopy is: `references(target) = references(target_before) ∪ {content_ids referenced by source_specset}`. No new content identities are created."
+1. **Same homedoc**: The new mapping references the same I-address origin document as the existing crum
+2. **Contiguous I-addresses**: The new mapping starts exactly where the existing crum ends (reach == origin)
 
-[INV-IADDR-PROVENANCE] Finding 0046: "COPY does not allocate new I-addresses; it creates V→I mappings that reference existing ones."
+If both hold → existing crum's width is extended in place  
+If either fails → new crum is created
 
-### Structural Relationship
-The COPY operation flow ([SS-DOCISPAN] Finding 0036):
+## The Critical Constraint: homedoc
+
+From [INV-IADDR-PROVENANCE], Finding 0046: **Every I-address has exactly one native document** where INSERT first allocated it. The `homedoc` field in each POOM crum records this I-address origin document — **not the document from which content was most recently copied.**
+
+### Scenario 1: Merging DOES occur
 ```
-docopy → specset2ispanset → insertspanf(taskptr, spanf, docisaptr, ispanset, DOCISPAN)
-```
+Source A has content at I-addresses α₁..α₁₀
 
-The `docisaptr` parameter is the **target document's ISA**, not the source's. This means:
-- **I-address range**: Identical to source (from preserved `ispanset`)
-- **Document ID**: Different (target doc ISA, from `docisaptr` parameter)
-- **Entry count**: 1:1 correspondence with source's contiguous I-spans
+Target B: COPY α₁..α₅ from A → places at V-positions 1.1-1.5 (homedoc=A)
+Target B: COPY α₆..α₁₀ from A → places at V-position 1.6
 
-## Concrete Example
-```
-Source doc S has "ABCDEFGHIJ" at I-addresses α₁..α₁₀ (1 contiguous I-span)
-  DOCISPAN: (α₁, width 10) → S
-
-After COPY to target doc T:
-  Target DOCISPAN: (α₁, width 10) → T
-
-Same I-address range (α₁, width 10), different document ID (T vs S)
+Check:
+- Same homedoc? YES (both reference A)
+- Contiguous I-addresses? YES (α₅ reach equals α₆ origin)
+- Result: crums MERGE (existing crum extended from width 0.5 to 1.0)
 ```
 
-The entries are **structurally similar** but **not identical** — they differ in exactly one field: the document ID they map to.
+### Scenario 2: Merging does NOT occur
+```
+Source A has content at I-addresses α₁..α₅
+Source B has content at I-addresses β₁..β₅
 
-## Code Exploration
+Target C: COPY from A → places α₁..α₅ at V-positions 1.1-1.5 (homedoc=A)
+Target C: COPY from B → places β₁..β₅ at V-position 1.6 (homedoc=B)
 
-Based on my code analysis, I can now answer your question with specific citations.
+Check:
+- Same homedoc? NO (A vs B)
+- Result: separate crums created, even if α₅ and β₁ happen to be numerically contiguous
+```
 
-## Answer
+### Scenario 3: INSERT vs COPY adjacency
+```
+Target D: INSERT "ABC" → allocates α₁..α₃ (homedoc=D)
+Target D: COPY from source S → places β₁..β₃ at adjacent position (homedoc=S)
 
-**Part 1: One entry per contiguous I-span?**
+Check:
+- Same homedoc? NO (D vs S)
+- Result: separate crums, no merge
+```
 
-**YES.** COPY creates one DOCISPAN entry per item in the converted I-spanset.
+## Transitive COPY Preserves homedoc
 
-**Evidence:**
+From [INV-IADDR-PROVENANCE]: If you COPY from A to B, then COPY from B to C, the I-addresses in C **still have homedoc=A** (not B). This means two COPYs from the same ultimate source into the same target CAN merge even if they came through different intermediate documents.
 
-1. In `do1.c:62`, `docopy` calls:
-   ```c
-   insertspanf (taskptr, spanf, docisaptr, ispanset, DOCISPAN)
-   ```
+## Observable Behavior: None
 
-2. In `spanf1.c:25-51`, `insertspanf` loops through each item in the sporglset (ispanset):
-   ```c
-   for (; sporglset; sporglset = (typesporglset)((typeitemheader *)sporglset)->next) {
-           if (((typeitemheader *)sporglset)->itemid == ISPANID) {
-                   movetumbler (&((typeispan *)sporglset)->stream, &lstream);
-                   movetumbler (&((typeispan *)sporglset)->width, &lwidth);
-                   movetumbler (isaptr,&linfo.homedoc);
-           }
-           movetumbler (&lstream, &crumorigin.dsas[SPANRANGE]);
-           movetumbler (&lwidth, &crumwidth.dsas[SPANRANGE]);
-        insertnd(taskptr,(typecuc*)spanfptr,&crumorigin,&crumwidth,&linfo,SPANRANGE);
-   }
-   ```
-   Each iteration creates one spanfilade entry via `insertnd` [`spanf1.c:51`].
+From [INV-VSPAN-CONSOLIDATION], Finding 0028: The enfilade **consolidates logically contiguous V-space regions into a single span regardless of insertion history**. The operation `retrieve_vspanset` returns maximally consolidated spans — adjacent spans with consecutive V-positions are merged in the output. The internal crum structure (whether merged or separate) does not affect the vspanset representation.
 
-3. The ispanset structure comes from `specset2ispanset` [`do1.c:54`], which converts V-space specifications to I-space by calling `vspanset2ispanset` → `permute` → `span2spanset` [`orglinks.c:397-454`]. This preserves the structure: each contiguous I-span becomes one list item.
+Similarly:
+- From [ST-COMPARE-VERSIONS]: operates on I-addresses after V-to-I conversion; internal crum structure is below this abstraction
+- From [SS-POOM-MULTIMAP], Finding 0039: `ispan2vspanset` returns all V-positions referencing an I-address; internal crum structure doesn't affect this mapping
 
-**Part 2: Structurally identical entries?**
+### Confirmed: No Observable Difference
 
-**NO.** The entries share the **same I-address range** but have **different document identity**.
+The only observable effect of crum merging is **internal storage efficiency** — fewer crums means smaller tree depth and fewer disk blocks. But:
+- Query results are identical (vspanset consolidation masks crum boundaries)
+- Identity relationships are identical (determined by I-addresses, not crums)
+- Link discovery is identical (operates in I-space)
 
-**Evidence:**
+## Comparison: COPY vs INSERT Coalescing
 
-Target document's DOCISPAN entry structure [`spanf1.c:22-51`]:
-- **ORGLRANGE dimension**: Created by `prefixtumbler(isaptr, spantype, &crumorigin.dsas[ORGLRANGE])` where `isaptr` is the **target** document ISA and `spantype` is `DOCISPAN` [`spanf1.c:22`]
-- **SPANRANGE dimension**: `crumorigin.dsas[SPANRANGE] = lstream` (I-address), `crumwidth.dsas[SPANRANGE] = lwidth` (I-width) [`spanf1.c:49-50`]
-- **Info payload**: `linfo.homedoc = isaptr` (target document ISA) [`spanf1.c:29`]
+From [ST-INSERT], Finding 0062: Sequential INSERTs into the same document **always** coalesce when at adjacent positions because:
+- INSERT allocates I-addresses natively to the target document
+- All INSERT content has matching homedoc (the target itself)
+- Contiguity is guaranteed for sequential inserts (from [INV-MONOTONIC])
 
-Source document's DOCISPAN entry structure:
-- Created identically when the source content was inserted
-- Same SPANRANGE coordinates (same I-addresses)
-- Different ORGLRANGE coordinates (source doc ISA + DOCISPAN prefix, not target)
-- Different homedoc field (source doc ISA, not target)
-
-**Summary:**
-- ✅ Same I-address range in SPANRANGE dimension
-- ❌ Different document ID in ORGLRANGE dimension (target vs source)
-- ❌ Different homedoc pointer in info payload (target vs source)
-
-The entries are **content-identical** (point to the same permascroll addresses) but **structurally distinct** (belong to different documents' indices).
+In contrast, COPY coalescing requires the **source** of adjacent COPYs to be the same ultimate origin document. This makes COPY coalescing less predictable from the target document's perspective alone.
 
 ---
 
-## Question 9 [gregory]
-
-> If a user INSERTs the string "Hello" into document A and separately INSERTs the identical string "Hello" into document B, do find_links and compare_versions treat these two instances as completely unrelated content (distinct I-addresses), whereas a COPY of document A's "Hello" into document B would make them appear as shared content — and is this the sole behavioral distinction between duplication and transclusion?
-
-### Gregory's Answer
-
-## KB Synthesis
-
-Yes, your understanding is exactly correct. This is the fundamental architectural distinction in the Xanadu content model.
-
-## Independent INSERT: Distinct Identities
-
-When "Hello" is INSERTed into document A and separately INSERTed into document B:
-
-**Document A:**
-- `[ST-INSERT]` allocates fresh I-addresses (say I.1–I.5) for the 5 bytes
-- `[INV-IADDR-PROVENANCE]` establishes A as the native document for I.1–I.5
-
-**Document B:**  
-- `[ST-INSERT]` allocates NEW I-addresses (say I.10–I.14) for the identical bytes
-- `[INV-IADDR-PROVENANCE]` establishes B as the native document for I.10–I.14
-
-**Result:** Completely distinct content identities despite identical textual value
-
-## COPY: Shared Identity
-
-When "Hello" is INSERTed into A and then COPYed into B:
-
-**Document A:**
-- `[ST-INSERT]` allocates I.1–I.5
-
-**Document B:**
-- `[ST-VCOPY]` shares the SAME I.1–I.5 (no new allocation)
-- `[SS-CONTENT-IDENTITY]`: "The vcopy operation adds references to existing content identities into the target document. It does not copy the content itself"
-
-**Result:** Both documents reference identical I.1–I.5
-
-## Behavioral Consequences
-
-### compare_versions
-
-**Independent INSERT:**
-```
-compare_versions(A, B) → []  # empty
-```
-- `[INV-DOC-ISOLATION-IDENTITY]`: "Documents created independently share no content identity, even if they contain identical text"
-- `[ST-COMPARE-VERSIONS]`: Operates by I-address intersection; I.1–I.5 ∩ I.10–I.14 = ∅
-
-**After COPY:**
-```
-compare_versions(A, B) → [("Hello", "Hello")]  # shared content detected
-```
-- Same I-addresses I.1–I.5 in both documents
-
-### find_links
-
-**Independent INSERT:**
-```
-create_link(source=A's "Hello")
-find_links(B's "Hello") → []  # not found
-```
-- `[INT-LINK-TRANSCLUSION]`: "Links are indexed by content identity"
-- Link endpoints reference I.1–I.5; B contains I.10–I.14; no intersection
-
-**After COPY:**
-```
-create_link(source=A's "Hello")  
-find_links(B's "Hello") → [link_id]  # found via shared identity
-```
-- `[INT-LINK-TRANSCLUSION]`: "Any document referencing those identities can discover the link"
-- Both documents reference I.1–I.5, so intersection succeeds
-
-## This IS the Sole Distinction
-
-The allocation vs sharing of I-addresses is the **only** structural difference:
-
-- `[FC-INSERT-IADDR]`: "INSERT does not modify the I-address of any pre-existing content... The operation's effect on the identity layer is purely additive"
-- `[ST-VCOPY]`: "No new content identities are created. The target gains references to exactly the content identities specified in the source specset"
-
-All observable behavioral differences (comparison, link discovery, provenance tracking, transitive identity) flow from this single fact:
-- **Duplication** = distinct I-addresses = no identity relationship
-- **Transclusion** = shared I-addresses = permanent identity relationship
-
-`[INV-IADDR-IMMUTABILITY]` guarantees these I-addresses never change after allocation, making the identity relationship permanent and immutable.
+**Summary**: `isanextensionnd` merges COPY content into existing crums when both (1) I-addresses share the same origin document (homedoc) and (2) I-addresses are contiguous. The merging reduces internal crum count but has zero observable effect on query behavior due to vspanset consolidation and I-address-based query semantics [INV-VSPAN-CONSOLIDATION], [ST-COMPARE-VERSIONS], [SS-POOM-MULTIMAP].
 
 ## Code Exploration
 
-Perfect! I've traced through the complete code path and verified against existing findings. Let me provide you with the comprehensive answer:
+# Answer: YES — COPY Merges Crums via isanextensionnd, and It IS Observable
+
+## Summary
+
+When COPY places content at a V-position where adjacent POOM entries have contiguous I-addresses with the copied content, `isanextensionnd` **DOES merge** the copy into the existing crum rather than creating a separate entry, and this merging **IS observable** via RETRIEVE queries.
 
 ---
 
-## Answer: Yes, independently inserted identical strings are treated as completely unrelated content
+## Mechanism
 
-Your hypothesis is **entirely correct**. The distinction between duplication and transclusion in Udanax Green is precisely about I-address allocation and sharing.
+### 1. COPY Insertion Flow
 
-### Code Evidence: How INSERT Allocates New I-Addresses
+COPY executes through this call chain:
 
-**INSERT operation flow** [do1.c:87-123]:
-1. `doinsert()` calls `inserttextingranf()` [do1.c:118]
-2. Which calls `inserttextgr()` [granf2.c:82-108]
-3. Which calls `findisatoinsertgr()` [granf2.c:91] to **allocate a NEW I-address**
-4. For text (ATOM type), this calls `findisatoinsertmolecule()` [granf2.c:157-180]
-5. Which calls `findpreviousisagr()` [granf2.c:163] to find the highest existing I-address
-6. Then `tumblerincrement()` [granf2.c:168] to get the **NEXT available I-address**
-7. `insertseq()` [granf2.c:98] stores the text at this NEW I-address
-8. `docopy()` [do1.c:119] links the V-address to this NEW I-address
+- `docopy` [`do1.c:60`] → `insertpm` [`orglinks.c:130`] → `insertnd` [`insertnd.c:54`] → `insertmorend` [`insertnd.c:234`] → **`insertcbcnd`** [`insertnd.c:242`]
 
-**Result:** Each INSERT allocates a fresh, unique I-address, even for identical text.
+### 2. The Merging Decision
 
-### Code Evidence: How COPY Reuses Existing I-Addresses
+At `insertcbcnd` [`insertnd.c:242-275`], the code loops through existing bottom crums:
 
-**COPY operation flow** [do1.c:45-65]:
-1. `docopy()` receives an existing `ispanset` (I-addresses) [do1.c:54]
-2. Calls `insertpm()` [do1.c:60] to link the V-address to **the SAME I-addresses**
-3. Calls `insertspanf()` [do1.c:62] to index the transclusion
-4. **No new I-addresses are allocated** — the existing ones are reused
-
-### Code Evidence: How find_links Uses I-Addresses
-
-**find_links operation flow** [do1.c:348-352, spanf1.c:56-103]:
-1. `dofindlinksfromtothree()` calls `findlinksfromtothreesp()` [spanf1.c:56]
-2. Which calls `specset2sporglset()` [spanf1.c:71] to convert V-spans to I-spans
-3. This calls `vspanset2ispanset()` [orglinks.c:397-402, sporgl.c:35-65]
-4. Which calls `retrieverestricted()` [orglinks.c:435] on the POOM to **look up which I-addresses exist at that V-position**
-5. Then `sporglset2linkset()` [spanf1.c:77] searches the spanfilade for links with those I-addresses
-
-**Result:** Two documents with identical text inserted independently have **different I-addresses**, so find_links finds no relationship between them.
-
-### Code Evidence: How compare_versions Uses I-Addresses
-
-**compare_versions operation flow** [do1.c:428-449]:
-1. `doshowrelationof2versions()` converts both V-specs to I-spans [do1.c:444-445]
-2. Calls `intersectspansets()` [do1.c:446] to find **common I-addresses**
-3. Returns the intersection as the "shared content"
-
-**Result:** Two documents with identical text inserted independently have **different I-addresses**, so compare_versions returns an empty intersection (no shared content).
-
-### Empirical Evidence: Finding 0018
-
-From [findings/0018-content-identity-tracking.md:13-26]:
-
-> **1. Identical text has different I-addresses when created independently**
->
-> Two documents with identical text do NOT share content identity:
->
-> ```
-> Source1: "From source one"  (I-address: X)
-> Source2: "From source two"  (I-address: Y)
->
-> compare_versions(source1, source2) → [] (empty - no shared content!)
-> ```
->
-> Content identity is based on **when and where** content was created, not its textual value.
-
-### The Sole Behavioral Distinction
-
-Yes, this **is** the sole behavioral distinction between duplication and transclusion:
-
-| Aspect | Independent INSERT | COPY (Transclusion) |
-|--------|-------------------|---------------------|
-| **I-address allocation** | Allocates NEW I-address via `findisatoinsertgr()` [granf2.c:129] | Reuses EXISTING I-address from source |
-| **find_links result** | No shared links found | Links discovered through both documents [Finding 0026] |
-| **compare_versions result** | Empty (no shared content) | Returns intersection of shared I-spans |
-| **find_documents result** | Returns only the queried document | Returns all documents sharing that I-address [Finding 0018:77] |
-| **Transitive discovery** | Not possible | Works across chains: A←B←C [Finding 0018:28-42] |
-
-### Key Source Citations
-
-- **INSERT path:** `doinsert()` → `inserttextingranf()` [do1.c:118] → `inserttextgr()` [granf2.c:82] → `findisatoinsertgr()` [granf2.c:129] → **allocates new I-address**
-- **COPY path:** `docopy()` [do1.c:45] → `insertpm()` [do1.c:60] → **reuses existing I-address**
-- **V→I lookup:** `vspanset2ispanset()` [orglinks.c:397] → `permute()` [orglinks.c:404] → `span2spanset()` [orglinks.c:425] → `retrieverestricted()` [orglinks.c:435] → **queries POOM for I-addresses at V-position**
-- **find_links:** `findlinksfromtothreesp()` [spanf1.c:56] → converts V-spans to I-spans → searches spanfilade by I-address
-- **compare_versions:** `doshowrelationof2versions()` [do1.c:428] → `intersectspansets()` [do1.c:446] → **finds common I-addresses**
-
-### Summary
-
-Your understanding is **precisely correct**. The entire Xanadu content identity model is built on I-address allocation:
-- **INSERT** = new content = new I-address
-- **COPY** = transclusion = shared I-address
-- All discovery operations (find_links, compare_versions, find_documents) work by intersecting I-addresses, making this the **fundamental and sole** distinction between duplication and transclusion.
-
----
-
-## Question 10 [gregory]
-
-> When isanextensionnd detects that copied I-addresses are contiguous with an existing POOM entry in the target document (reach == origin), does the silent coalescing into a single crum preserve the property that find_links discovers links to the coalesced content, or could the merge alter the I-span boundaries reported during sporgl conversion in a way that affects link endpoint overlap detection?
-
-### Gregory's Answer
-
-## KB Synthesis
-
-# Answer: Coalescing Preserves Link Discovery
-
-**Yes, the silent coalescing preserves link discovery.** The merge cannot alter I-span boundaries in a way that affects link endpoint overlap detection. Here's why:
-
-## The I-Address Invariant
-
-From [INV-IADDR-IMMUTABILITY] and [ST-VCOPY] (Finding 0046): `isanextensionnd` only coalesces when two conditions hold:
-1. **Same homedoc**: Both the existing crum and new content originate from the same source document
-2. **I-contiguity**: The new content's I-address origin equals the existing crum's I-address reach
-
-This means coalescing happens precisely when the I-addresses form a single contiguous range. Consider:
-- **Before extension**: Crum₁ covers I[100, 103), Crum₂ would cover I[103, 105)
-- **After extension**: Crum₁' covers I[100, 105)
-
-The I-address range is **identical** in both cases: [100, 105).
-
-## Link Discovery Operates on I-Addresses
-
-From [INT-LINK-TRANSCLUSION] (Finding 0028) and [INT-SPORGL-LINK-INDEX] (Finding 0013):
-- Links are indexed by I-address in the spanfilade
-- `find_links` converts search specsets to I-addresses and checks for overlap: `I-addresses(search) ∩ I-addresses(link.endpoint) ≠ ∅`
-
-The POOM crum structure is **transparent** to this process. Whether the POOM internally uses one crum or two crums, the conversion from V-span to I-span produces the same I-address range when the underlying I-addresses are contiguous.
-
-## Sporgl Conversion Reflects I-Address Structure
-
-From [SS-LINK-ENDPOINT] (Finding 0037) and [ST-VSPAN-TO-SPORGL] (Finding 0013):
-- Multiple I-spans arise when content is transcluded from **multiple sources** (different homedocs)
-- The fragmentation boundary is content identity, not POOM structure
-- A V-span that maps to contiguous I-addresses from the **same** homedoc produces a single I-span
-
-Since `isanextensionnd` only merges crums with the same homedoc and contiguous I-addresses, the merged crum represents what was already a single I-span from the link system's perspective.
-
-## Concrete Example
-
-```
-State A (before coalescing):
-  POOM: Crum₁[V:1.1→1.4, I:100→103, homedoc=D]
-        Crum₂[V:1.4→1.6, I:103→105, homedoc=D]
-  Link endpoint: I[101, 104)
-  find_links search: V[1.1, 1.6) → converts to I[100, 105)
-  Intersection: I[101, 104) ∩ I[100, 105) = I[101, 104) ≠ ∅ ✓
-
-State B (after coalescing):
-  POOM: Crum₁'[V:1.1→1.6, I:100→105, homedoc=D]
-  Link endpoint: I[101, 104) (unchanged per [INV-LINK-PERMANENCE])
-  find_links search: V[1.1, 1.6) → converts to I[100, 105)
-  Intersection: I[101, 104) ∩ I[100, 105) = I[101, 104) ≠ ∅ ✓
+```c
+for (ptr = findleftson (father); ptr; ptr = findrightbro (ptr)) {
+    if (isanextensionnd ((typecbc*)ptr, grasp, origin, infoptr)) {
+        // MERGE: Extend existing crum's width
+        dspadd (&ptr->cwid, width, &ptr->cwid, (INT)father->cenftype);
+        ivemodified (ptr);
+        return(FALSE);  // Done - no new crum created
+    }
+}
+// If no match, create new crum
+new = createcrum (0, (INT)father->cenftype);
 ```
 
-The intersection is **identical** because the I-address range is identical.
+### 3. Merge Conditions in isanextensionnd
 
-## Why This Matters
+`isanextensionnd` [`insertnd.c:301-309`] checks **three conditions**:
 
-From [FC-CONTENT-SPANF-ISOLATION] (Finding 0012): The POOM (granf) and link index (spanf) are separate structures. The POOM's internal representation (one crum vs. two) is an optimization that doesn't affect the abstract V→I mapping. Link discovery queries the spanf index using I-addresses derived from that abstract mapping, making it immune to POOM internal structure changes.
-
-**Conclusion**: The coalescing is a POOM-internal optimization that preserves all observable properties including link discovery. The invariants [INV-LINK-CONTENT-TRACKING] and [INV-LINK-GLOBAL-VISIBILITY] depend on I-address overlap, which remains unchanged regardless of whether the POOM uses one crum or two to represent the same I-address range.
-
-## Code Exploration
-
-Based on my code analysis, I can now provide a complete answer to your question about whether coalescing preserves link discovery properties.
-
-## Answer: YES, coalescing preserves link discovery correctly
-
-The silent coalescing that occurs when `isanextensionnd` detects contiguous I-addresses (reach == origin) **does preserve** the property that `find_links` discovers links to the coalesced content. The I-span boundaries reported during sporgl conversion are maintained correctly.
-
-### Evidence from the code:
-
-**1. The coalescing condition** [insertnd.c:301-309]:
 ```c
 bool isanextensionnd(typecbc *ptr, typedsp *offsetptr, typedsp *originptr, type2dbottomcruminfo *infoptr)
 {
-  typedsp grasp, reach;
-  if (!tumblereq (&infoptr->homedoc, &((type2dcbc *)ptr)->c2dinfo.homedoc))
-    return (FALSE);
-  prologuend ((typecorecrum*)ptr, offsetptr, &grasp, &reach);
-  return (lockeq (reach.dsas, originptr->dsas, (unsigned)dspsize(ptr->cenftype)));
+    // Condition 1: Same source document
+    if (!tumblereq (&infoptr->homedoc, &((type2dcbc *)ptr)->c2dinfo.homedoc))
+        return (FALSE);
+    
+    // Condition 2 & 3: Both V-continuity AND I-continuity
+    prologuend ((typecorecrum*)ptr, offsetptr, &grasp, &reach);
+    return (lockeq (reach.dsas, originptr->dsas, (unsigned)dspsize(ptr->cenftype)));
 }
 ```
 
-When this returns TRUE, coalescing happens at [insertnd.c:250-257]:
-```c
-dspadd (&ptr->cwid, width, &ptr->cwid, (INT)father->cenftype);
+Where:
+- `reach` = right edge of existing crum = `offset + ptr->cdsp + ptr->cwid` (computed by `prologuend` [`retrie.c:334-339`])
+- `lockeq` [`wisp.c:261-267`] compares **both dimensions** element-by-element
+- `dspsize(POOM)` = `DSPSIZEPM` = **2** [`wisp.h:26`]
+
+**Merging occurs when:**
+1. **Same homedoc** — content from the same source document
+2. **V-continuity** — `reach.dsas[V]` equals `originptr->dsas[V]`
+3. **I-continuity** — `reach.dsas[I]` equals `originptr->dsas[I]`
+
+---
+
+## Observable Behavior
+
+### Retrieval Flow
+
+RETRIEVE converts V-spans to I-spans through:
+
+1. `vspanset2ispanset` [`orglinks.c:401`] → `permute` → `span2spanset` [`orglinks.c:425`]
+2. `span2spanset` calls `retrieverestricted` [`retrie.c:56`] which calls `findcbcinarea2d` [`retrie.c:97`]
+3. For each qualifying bottom crum, `makecontextfromcbc` creates **one context** [`context.c:151-174`]
+4. Each context is inserted into the result list via `incontextlistnd` [`context.c:75`]
+5. Each context is converted to **exactly one I-span** via `context2span` [`context.c:176-212`]
+
+### The Observable Difference
+
+**Each bottom crum produces exactly one I-span in RETRIEVE results.**
+
+#### Example: COPY with Adjacent Contiguous Content
+
+**Merged case** (single crum):
 ```
-This simply extends the existing crum's width without creating a new crum.
-
-**2. Link discovery during follow** [sporgl.c:67-95]:
-
-The `link2sporglset` function retrieves link endpoints:
-```c
-tumblerincrement (&zero, 0, whichend, &vspan.stream);
-tumblerincrement (&zero, 0, 1, &vspan.width);
-if (context = retrieverestricted((typecuc*)orgl, &vspan ,V, (typespan*)NULL, I, (typeisa*)NULL)) {
-  for (c = context; c; c = c->nextcontext) {
-    sporglptr = (typesporgl *)taskalloc(taskptr,sizeof (typesporgl));
-    contextintosporgl ((type2dcontext*)c, (tumbler*)NULL, sporglptr, I);
+Bottom crum: V=[1..10], I=[100..110]
+RETRIEVE result: 1 I-span = [(100.1, 10)]
 ```
 
-**3. I-span extraction** [sporgl.c:205-220]:
+**Separate case** (two crums):
+```
+Bottom crum 1: V=[1..5],  I=[100..105]
+Bottom crum 2: V=[5..10], I=[105..110]
+RETRIEVE result: 2 I-spans = [(100.1, 5), (105.1, 5)]
+```
 
-The `contextintosporgl` function extracts I-spans from contexts:
+Both represent **the same logical content range I=[100..110]**, but:
+- Merged: **1 span** in result
+- Separate: **2 spans** in result
+
+This difference is **directly observable** — clients can count the number of I-spans returned.
+
+---
+
+## Key Code Citations
+
+| Location | Function | Key Line |
+|----------|----------|----------|
+| `insertnd.c:250` | `insertcbcnd` | Calls `isanextensionnd` to check for merge |
+| `insertnd.c:251` | `insertcbcnd` | Extends crum width if merge condition met |
+| `insertnd.c:305` | `isanextensionnd` | Checks homedoc equality |
+| `insertnd.c:308` | `isanextensionnd` | Checks 2D continuity: `lockeq(reach.dsas, originptr->dsas, 2)` |
+| `wisp.c:261` | `lockeq` | Compares both V and I dimensions element-by-element |
+| `context.c:151` | `makecontextfromcbc` | Creates one context per bottom crum |
+| `context.c:176` | `context2span` | Converts one context to one I-span |
+| `orglinks.c:439` | `span2spanset` | Loops contexts, each producing one span |
+
+---
+
+## Implications
+
+1. **Span count is non-deterministic** — depends on whether copied content happens to be contiguous with existing content in **both V-space and I-space**
+2. **RETRIEVE results vary** — same logical content may return different numbers of I-spans
+3. **Performance optimization** — merged crums reduce POOM tree size
+4. **Semantic equivalence preserved** — despite different span counts, both cover the same I-address range
+
+The merging is an internal optimization that preserves semantic correctness while reducing storage overhead. However, it **is observable** through the structure of RETRIEVE results.
+
+---
+
+## Question 20 [gregory]
+
+> Does COPY transfer any link subspace (0.2.x) entries from the source document's POOM to the target, or does it only copy the V-spans explicitly specified in the source specset — meaning a COPY of a full document's text carries no links into the target?
+
+### Gregory's Answer
+
+## KB Synthesis
+
+# Answer: COPY is Specset-Driven, Not Subspace-Filtered
+
+**COPY transfers exactly what is specified in the source specset** — it does NOT automatically filter out link subspace entries. Whether links are copied depends entirely on what V-spans the caller includes in the source specset.
+
+## Three Distinct Scenarios
+
+### 1. COPY with Text-Only Specset (Common Case)
+If the source specset covers only text subspace V-spans (1.x), **no link POOM entries are transferred**:
+```
+Source doc: text at 1.1..1.16 (text) + link at 2.1 (link subspace)
+Target: COPY(source specset covering 1.1..1.16 only)
+Result: Target has text, NO link POOM entries
+```
+
+### 2. COPY with Full Document Specset (Dangerous)
+If the source specset covers the entire document extent including link subspace (0.x/2.x), **link ISAs ARE copied** — but this violates the subspace convention [INV-SUBSPACE-CONVENTION]:
+
+From [EC-RETRIEVE-VSPANSET-BOTH-SUBSPACES] and [PRE-VCOPY]:
+> "Any caller that uses 'full document extent' as input to vcopy inadvertently includes link references... `retrieve_vspanset` returns spans for both `0.x` and `1.x`, and if a caller creates a specset from the full vspanset, `vcopy` copies ALL content including link references to the destination."
+
+Concrete example from [PRE-VCOPY]:
+```
+Document A: V 0.1 → link ISA 1.1.0.1.0.2
+            V 1.1..1.16 → permascroll text
+
+vcopy full content of A into document B at V 1.1:
+  specset includes link ISA
+  B now contains: V 1.1 → I 1.1.0.1.0.2 (link ISA in text subspace)
+  retrieve_contents(B) → garbage bytes (link ISA dereferenced as text)
+```
+
+### 3. VERSION is Special-Cased
+VERSION is the ONE operation that explicitly filters to text-only, regardless of source content [ST-VERSION-CREATE]:
+> "CREATENEWVERSION copies ONLY the text subspace (V-dimension 1.x) from the source document's POOM, not the link subspace (2.x)"
+
+From [ST-VERSION-CREATE] Finding 0046:
+> "The function `retrievedocumentpartofvspanpm()` returns only the V-dimension displacement and width — `cdsp.dsas[V]` and `cwid.dsas[V]` — which point to position `1` (the text subspace start). The link subspace at positions before `1` is structurally outside this vspan."
+
+## Link Discovery vs Link POOM Transfer
+
+Critically, **link discovery is independent of link POOM transfer** [INT-LINK-VERSION], [SS-THREE-LAYER-MODEL]:
+
+Even when link POOM entries are NOT transferred, the target can still discover links through the spanf index if it shares content identity with linked content:
+
+From [INT-LINK-VERSION] Finding 0046:
+> "A version discovers links from the original document even though the version's POOM contains no link entries. This works because: (1) the version shares text I-addresses with the original, (2) links are stored in the spanf (span enfilade) index keyed by I-address."
+
+## Summary
+
+| Operation | Source Specset | Link POOM Entries Transferred? | Link Discovery Works? |
+|-----------|----------------|-------------------------------|---------------------|
+| COPY text-only | 1.x spans | NO | YES (via I-address sharing) |
+| COPY full document | 0.x + 1.x spans | YES (bug/violation) | YES |
+| VERSION | N/A (automatic) | NO (filtered) | YES (via I-address sharing) |
+
+**The answer to your question**: COPY does NOT automatically exclude link subspace entries — it is entirely specset-driven. Links are transferred if and only if the source specset includes link subspace V-spans. VERSION is the exception that explicitly filters to text-only.
+
+The implementation provides no safeguard [PRE-VCOPY]: `docopy` "performs no validation that the source I-address types match the destination subspace." The subspace convention [INV-SUBSPACE-CONVENTION] is caller-enforced, not storage-enforced.
+
+## Code Exploration
+
+Based on my analysis of the C source code, I can now answer your question definitively:
+
+---
+
+## Answer: COPY Does NOT Transfer Links from 0.2.x Unless Explicitly Specified
+
+**COPY only transfers the V-spans explicitly specified in the source specset.** A COPY of a document's text (V-spans from 1.x) carries NO links into the target, because links are stored in a separate V-subspace (0.2.x).
+
+### Code Path Analysis
+
+**1. COPY Entry Point** [`fns.c:35-47`]
 ```c
-int contextintosporgl(type2dcontext *context, tumbler *linkid, typesporgl *sporglptr, INT index)
-{
-  movetumbler(&context->totaloffset.dsas[index],&sporglptr->sporglorigin);
-  movetumbler(&context->contextwid.dsas[index], &sporglptr->sporglwidth);
+void copy(typetask *taskptr) {
+    if (getcopy (taskptr, &docisa, &vsa, &localspecset)
+    && docopy (taskptr, &docisa, &vsa, localspecset))
+        putcopy (taskptr);
+    ...
 }
 ```
 
-### Why coalescing preserves correctness:
-
-**Scenario without coalescing:**
-- Crum A: cdsp=(V:1.1, I:100), cwid=(V:0.5, I:10), homedoc=D1
-- Crum B: cdsp=(V:1.6, I:110), cwid=(V:0.4, I:5), homedoc=D1
-- Retrieving V-span [1.1, 2.1) produces TWO contexts:
-  - Context 1: totaloffset=(V:1.1, I:100), contextwid=(V:0.5, I:10) → I-span [100, 110)
-  - Context 2: totaloffset=(V:1.6, I:110), contextwid=(V:0.4, I:5) → I-span [110, 115)
-
-**Scenario with coalescing:**
-- Coalesced crum: cdsp=(V:1.1, I:100), cwid=(V:0.9, I:15), homedoc=D1
-- Retrieving V-span [1.1, 2.1) produces ONE context:
-  - Context: totaloffset=(V:1.1, I:100), contextwid=(V:0.9, I:15) → I-span [100, 115)
-
-**Both produce the same I-span coverage: [100, 115)**
-
-### Handling partial overlaps:
-
-The `context2span` function [context.c:176-212] handles cases where the query V-span partially overlaps a crum by performing proportional clipping:
-
+**2. docopy Implementation** [`do1.c:45-65`]
 ```c
-if (tumblercmp (&grasp.dsas[idx1], &lowerbound) == LESS) {
-  tumblerincrement (&grasp.dsas[idx2], 0, (INT) tumblerintdiff(&lowerbound, &grasp.dsas[idx1]), &grasp.dsas[idx2]);
-}
-if (tumblercmp (&reach.dsas[idx1], &upperbound)  == GREATER) {
-  tumblerincrement (&reach.dsas[idx2], 0, - tumblerintdiff (&reach.dsas[idx1], &upperbound), &reach.dsas[idx2]);
+bool docopy(typetask *taskptr, typeisa *docisaptr, tumbler *vsaptr, typespecset specset) {
+    return (
+       specset2ispanset (taskptr, specset, &ispanset, NOBERTREQUIRED)  // Line 54
+    && findorgl (taskptr, granf, docisaptr, &docorgl, WRITEBERT)
+    && acceptablevsa (vsaptr, docorgl)
+    && insertpm (taskptr, docisaptr, docorgl, vsaptr, ispanset)        // Line 60
+    && insertspanf (taskptr, spanf, docisaptr, ispanset, DOCISPAN)     // Line 62
+    );
 }
 ```
 
-This proportional clipping preserves the V↔I correspondence because the V-width encoding [orglinks.c:115-117] maintains a linear relationship between V and I coordinates within each crum.
+The critical operation is **line 54**: `specset2ispanset` converts the V-spans in the source specset to I-spans (permascroll addresses). This determines WHAT content gets copied.
 
-### Conclusion:
+**3. V→I Conversion** [`do2.c:14-46`]
+```c
+bool specset2ispanset(typetask *taskptr, typespec *specset, typeispanset *ispansetptr, int type) {
+    for (; specset; specset = (typespec *)((typeitemheader *)specset)->next) {
+        if (((typeitemheader *)specset)->itemid == VSPECID) {
+            if (!(findorgl (taskptr, granf, &((typevspec *)specset)->docisa, &docorgl,type)
+               && (ispansetptr = vspanset2ispanset (taskptr, docorgl, 
+                       ((typevspec *)specset)->vspanset, ispansetptr))))  // Line 36
+                return (FALSE);
+        }
+    }
+    return (TRUE);
+}
+```
 
-The coalescing optimization is **semantically transparent** to link discovery. Whether stored as one coalesced crum or multiple adjacent crums, the final I-spans returned during link following represent the identical mathematical set of I-addresses. The merge does not alter I-span boundaries in any way that would affect link endpoint overlap detection.
+**4. The Filtering Mechanism** [`retrie.c:270-305`]
+
+`vspanset2ispanset` calls `permute` → `span2spanset` → `retrieverestricted` → `findcbcinarea2d` → **`crumqualifies2d`**
+
+```c
+bool crumqualifies2d(typecorecrum *crumptr, typedsp *offset, 
+                     tumbler *span1start, tumbler *span1end, INT index1,
+                     tumbler *span2start, tumbler *span2end, INT index2, 
+                     type2dbottomcruminfo *infoptr) {
+    // Check if crum intersects with V-span [span1start, span1end)
+    endcmp = iszerotumbler (span1end) ? TOMYRIGHT : 
+             whereoncrum (crumptr, offset, span1end, index1);
+    if (endcmp <= ONMYLEFTBORDER)     // Lines 282-284
+        return(FALSE);
+    
+    startcmp = whereoncrum (crumptr, offset, span1start, index1);
+    if (startcmp > THRUME)            // Lines 286-289
+        return (FALSE);
+    
+    // ... similar check for I-dimension ...
+    return (TRUE);
+}
+```
+
+**This function returns TRUE only if the crum's V-position intersects with the specified V-span.**
+
+### Key Insight: V-Subspace Isolation
+
+- **Text content** is stored at V-positions ≥ 1.0 (e.g., 1.1, 1.2, ...)
+- **Links** are stored at V-positions in 0.2.x range (see `setlinkvsas` in [`do2.c:169-183`])
+- **From-endset**: 0.1.x
+- **To-endset**: 0.2.x  
+- **Type-endset**: 0.3.x
+
+When you specify a source specset with V-spans from 1.0 to 1.999..., `crumqualifies2d` filters OUT all crums at V=0.2.x because:
+- A crum at V=0.2.x has `startcmp > THRUME` relative to span1start=1.0
+- Therefore it does NOT qualify for retrieval
+- Therefore its I-address is NOT included in the ispanset
+- Therefore it is NOT copied to the target
+
+### Verification from Link Creation Code [`do1.c:195-221`]
+
+```c
+bool docreatelink(...) {
+    return (
+         createorglingranf (taskptr, granf, &hint, linkisaptr)      // Allocate link ISA
+      && tumbler2spanset (taskptr, linkisaptr, &ispanset)          // Convert to spanset
+      && findnextlinkvsa (taskptr, docisaptr, &linkvsa)            // Get V-pos in 0.2.x
+      && docopy (taskptr, docisaptr, &linkvsa, ispanset)           // Copy link to 0.2.x
+      && ... // endset operations
+    );
+}
+```
+
+Links are explicitly placed at 0.2.x V-positions. They exist as POOM entries mapping:
+- **V-dimension**: 0.2.x (link subspace)
+- **I-dimension**: Link's ISA (granf address)
+
+### Conclusion
+
+**To copy links, you must explicitly include 0.2.x V-spans in the source specset.** A "full document copy" of text content (1.x range) will NOT include links unless the specset explicitly covers 0.2.x.
+
+The COPY operation has **no special link-awareness** — it simply:
+1. Converts the specified V-spans to I-spans via POOM lookup
+2. Copies those I-spans to the target at the specified V-position
+3. V-spans at 0.2.x are independent from V-spans at 1.x
+
+---
+
+**Files cited:**
+- `febe/fns.c:35-47`
+- `backend/do1.c:45-65, 195-221`
+- `backend/do2.c:14-46, 169-183`
+- `backend/orglinks.c:75-134, 397-402, 404-454`
+- `backend/retrie.c:56-85, 229-268, 270-305`
