@@ -159,7 +159,7 @@ def main():
                         help="Read question from stdin")
     parser.add_argument("--model", "-m", default="opus",
                         help="Model (default: opus)")
-    parser.add_argument("--effort", default=None,
+    parser.add_argument("--effort", default="max",
                         help="Thinking effort level (low/medium/high/max)")
     parser.add_argument("--with-png", action="store_true",
                         help="Enable tool access to read Literary Machines page images")

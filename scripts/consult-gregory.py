@@ -174,7 +174,7 @@ def main():
                         help="Read question from stdin")
     parser.add_argument("--model", "-m", default="sonnet",
                         help="Model (default: sonnet)")
-    parser.add_argument("--effort", default=None,
+    parser.add_argument("--effort", default="max",
                         help="Thinking effort level (low/medium/high/max)")
     parser.add_argument("--kb-only", action="store_true",
                         help="Run KB synthesis agent only")
