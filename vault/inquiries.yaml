@@ -1,0 +1,70 @@
+# Inquiries — Abstract questions that drive ASN generation
+#
+# Each inquiry produces one independent ASN.
+# Questions are framed abstractly to prevent implementation drift.
+# New inquiries can be added from ASN open questions.
+#
+# agents.nelson — number of Nelson sub-questions (default: 5)
+# agents.gregory — number of Gregory sub-questions (default: 5)
+# Set either to 0 to skip that expert. Set to 1 for a focused follow-up.
+
+inquiries:
+  - id: 1
+    title: "Tumbler Algebra"
+    question: "What algebraic properties must the Xanadu addressing system satisfy? What ordering, arithmetic, and structural guarantees do tumblers provide?"
+    area: addressing
+
+  - id: 2
+    title: "Address Permanence"
+    question: "What guarantees must the system provide about address stability? Once content is assigned an address, what operations may and may not affect that assignment?"
+    area: addressing
+
+  - id: 3
+    title: "I-Space and V-Space"
+    question: "What is the relationship between permanent content storage (I-space) and mutable document arrangement (V-space)? What invariants connect them?"
+    area: content-model
+
+  - id: 4
+    title: "Content Insertion"
+    question: "What must INSERT preserve and establish? What are its preconditions, postconditions, and frame conditions with respect to the address space, existing content, and links?"
+    area: operations
+
+  - id: 5
+    title: "Content Deletion"
+    question: "What must DELETE preserve? What happens to addresses, links, and other documents that reference deleted content? In what sense is deletion reversible?"
+    area: operations
+
+  - id: 6
+    title: "Transclusion (COPY)"
+    question: "What must content sharing through transclusion guarantee? How does transclusion differ from duplication? What properties of the original are preserved in the copy?"
+    area: operations
+
+  - id: 7
+    title: "Links and Endsets"
+    question: "What must bidirectional links guarantee? What are endset semantics — how do links survive editing, deletion, and rearrangement of their target content?"
+    area: links
+
+  - id: 8
+    title: "Link Discovery"
+    question: "What guarantees must link discovery provide? If content A links to content B, under what conditions can B discover the link? What about transcluded content?"
+    area: links
+
+  - id: 9
+    title: "Version Semantics"
+    question: "What does creating a new version preserve and establish? What is the version fork model — how do versions relate to each other and to shared content?"
+    area: versioning
+
+  - id: 10
+    title: "Content Retrieval"
+    question: "What must RETRIEVE guarantee about returned content? How does retrieval interact with transclusion, versioning, and the two address spaces?"
+    area: operations
+
+  - id: 11
+    title: "Document Lifecycle"
+    question: "What invariants govern document creation, ownership, and the relationship between documents in the docuverse? What does it mean to open, close, and create documents?"
+    area: documents
+
+  - id: 12
+    title: "Enfilade Properties"
+    question: "What abstract properties must the indexing data structure satisfy? What guarantees about range queries, composable widths, and structural balance does the system require — independent of any particular tree implementation?"
+    area: data-structures

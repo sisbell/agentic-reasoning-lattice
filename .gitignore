@@ -1,0 +1,7 @@
+.DS_Store
+*.pyc
+__pycache__/
+.env
+vault/usage-log.jsonl
+resources/literary-machines/*.pdf
+resources/literary-machines/raw/

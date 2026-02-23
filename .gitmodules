@@ -1,0 +1,3 @@
+[submodule "udanax-test-harness"]
+	path = udanax-test-harness
+	url = git@github.com:sisbell/udanax-test-harness.git
