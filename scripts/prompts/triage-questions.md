@@ -86,34 +86,40 @@ Assign one of these areas based on the question's primary concern:
 
 ## Output Format
 
-Return a JSON object. Be precise — the script will parse this programmatically.
+Write a markdown triage report. The script parses this, so follow the format exactly.
 
-```json
-{
-  "asn": "ASN-NNNN",
-  "evaluated": [
-    {
-      "question": "The exact open question text from the ASN",
-      "qualifies": true,
-      "reason": "One sentence explaining why it qualifies or doesn't"
-    }
-  ],
-  "new_inquiries": [
-    {
-      "title": "Short Title (2-5 words)",
-      "question": "Abstract question, 1-2 sentences max. Do NOT enumerate specific approaches or answer options — that biases the investigation. Ask what must hold, not which mechanism to use. The sub-question generators will add specifics.",
-      "area": "one-of-the-areas-above",
-      "source": "ASN-NNNN open question: brief description",
-      "agents": {
-        "nelson": 10,
-        "gregory": 10
-      },
-      "rationale": "One sentence on why this is new territory"
-    }
-  ]
-}
+### If questions are promoted
+
+```
+# Triage: ASN-NNNN
+
+## Promoted
+
+- **The exact open question text from the ASN**
+  Rationale: One sentence explaining why it qualifies
+  - Title: Short Title (2-5 words)
+  - Question: Abstract inquiry question, 1-2 sentences max
+  - Area: one-of-the-areas-above
+  - Nelson: 10
+  - Gregory: 10
+
+## Declined
+
+- **The exact open question text from the ASN**
+  Rationale: One sentence explaining why it doesn't qualify
 ```
 
-If no questions qualify, return `"new_inquiries": []`. This is a valid and common outcome — most ASNs will not spawn new inquiries.
+### If no questions are promoted
 
-Return ONLY the JSON object. No markdown fencing, no commentary before or after.
+```
+# Triage: ASN-NNNN
+
+## Declined
+
+- **The exact open question text from the ASN**
+  Rationale: One sentence explaining why it doesn't qualify
+```
+
+This is a valid and common outcome — most ASNs will not spawn new inquiries.
+
+Output ONLY the triage report. No commentary before or after.

@@ -92,7 +92,7 @@ def build_prompt(asn_content, inquiries_text, existing_triage):
 
 
 def invoke_claude(prompt, model="opus", effort="max"):
-    """Call claude --print. Returns response text."""
+    """Call claude --print. Returns plain text response."""
     model_flag = {
         "opus": "claude-opus-4-6",
         "sonnet": "claude-sonnet-4-6",
@@ -101,8 +101,6 @@ def invoke_claude(prompt, model="opus", effort="max"):
     cmd = [
         "claude", "--print",
         "--model", model_flag,
-        "--output-format", "json",
-        "--tools", "",
     ]
 
     env = os.environ.copy()
@@ -123,39 +121,60 @@ def invoke_claude(prompt, model="opus", effort="max"):
         if result.stderr:
             for line in result.stderr.strip().split("\n")[:3]:
                 print(f"    {line}", file=sys.stderr)
-        return "", elapsed, {}
+        return "", elapsed
 
-    try:
-        data = json.loads(result.stdout)
-        text = data.get("result", "")
-        usage = data.get("usage", {})
-        cost = data.get("total_cost_usd", 0)
-        inp = (usage.get("input_tokens", 0) +
-               usage.get("cache_read_input_tokens", 0) +
-               usage.get("cache_creation_input_tokens", 0))
-        out = usage.get("output_tokens", 0)
-
-        print(f"  [{elapsed:.0f}s] in:{inp} out:{out} ${cost:.4f}",
-              file=sys.stderr)
-
-        return text, elapsed, {"input_tokens": inp, "output_tokens": out,
-                               "cost_usd": cost}
-    except (json.JSONDecodeError, KeyError):
-        print(f"  [{elapsed:.0f}s] [parse error]", file=sys.stderr)
-        return result.stdout, elapsed, {}
+    print(f"  [{elapsed:.0f}s]", file=sys.stderr)
+    return result.stdout.strip(), elapsed
 
 
-def parse_response(text):
-    """Extract JSON from Claude's response."""
-    cleaned = text.strip()
-    if cleaned.startswith("```"):
-        lines = cleaned.split("\n")
-        lines = lines[1:]
-        if lines and lines[-1].strip() == "```":
-            lines = lines[:-1]
-        cleaned = "\n".join(lines)
+def parse_promoted(text):
+    """Extract promoted inquiry metadata from triage markdown."""
+    inquiries = []
+    in_promoted = False
+    current = None
 
-    return json.loads(cleaned)
+    for line in text.split("\n"):
+        stripped = line.strip()
+
+        if stripped.startswith("## Promoted"):
+            in_promoted = True
+            continue
+        if stripped.startswith("## Declined"):
+            in_promoted = False
+            if current:
+                inquiries.append(current)
+                current = None
+            continue
+
+        if not in_promoted:
+            continue
+
+        # New promoted question
+        if stripped.startswith("- **"):
+            if current:
+                inquiries.append(current)
+            current = {}
+            continue
+
+        if current is None:
+            continue
+
+        # Parse metadata lines
+        if stripped.startswith("- Title:"):
+            current["title"] = stripped[len("- Title:"):].strip()
+        elif stripped.startswith("- Question:"):
+            current["question"] = stripped[len("- Question:"):].strip()
+        elif stripped.startswith("- Area:"):
+            current["area"] = stripped[len("- Area:"):].strip()
+        elif stripped.startswith("- Nelson:"):
+            current["nelson"] = int(stripped[len("- Nelson:"):].strip())
+        elif stripped.startswith("- Gregory:"):
+            current["gregory"] = int(stripped[len("- Gregory:"):].strip())
+
+    if current:
+        inquiries.append(current)
+
+    return inquiries
 
 
 def append_inquiry_yaml(data, inquiry, next_id):
@@ -165,11 +184,10 @@ def append_inquiry_yaml(data, inquiry, next_id):
         "title": inquiry["title"],
         "question": inquiry["question"],
         "area": inquiry["area"],
-        "source": inquiry["source"],
+        "source": f"ASN triage",
     }
-    agents = inquiry.get("agents", {})
-    nelson = agents.get("nelson", 10)
-    gregory = agents.get("gregory", 10)
+    nelson = inquiry.get("nelson", 10)
+    gregory = inquiry.get("gregory", 10)
     if nelson != 10 or gregory != 10:
         entry["agents"] = {"nelson": nelson, "gregory": gregory}
 
@@ -209,61 +227,7 @@ def write_inquiries_yaml(data):
     INQUIRIES_FILE.write_text(header + "\n".join(lines) + "\n")
 
 
-def write_triage_file(asn_label, result):
-    """Write the full triage evaluation to vault/triage/ASN-NNNN.md."""
-    TRIAGE_DIR.mkdir(parents=True, exist_ok=True)
-
-    evaluated = result.get("evaluated", [])
-    new_inquiries = result.get("new_inquiries", [])
-
-    lines = [f"# Triage: {asn_label}", ""]
-
-    # Promoted questions
-    promoted = [e for e in evaluated if e.get("qualifies")]
-    if promoted:
-        lines.append("## Promoted")
-        lines.append("")
-        for e in promoted:
-            # Find the matching inquiry for this question
-            matching = [ni for ni in new_inquiries
-                        if ni.get("source", "").endswith(
-                            e["question"][:40].lower().replace(" ", "-")[:30]
-                        )]
-            inquiry_ref = ""
-            for ni in new_inquiries:
-                # Match by rationale or source overlap
-                if ni.get("rationale") == e.get("reason"):
-                    inquiry_ref = f" → Inquiry: {ni['title']}"
-                    break
-            if not inquiry_ref and new_inquiries:
-                # Fall back to source field matching
-                for ni in new_inquiries:
-                    src = ni.get("source", "")
-                    if any(word in src.lower() for word in
-                           e["question"][:50].lower().split()[:5]):
-                        inquiry_ref = f" → Inquiry: {ni['title']}"
-                        break
-
-            lines.append(f"- **{e['question']}**{inquiry_ref}")
-            lines.append(f"  {e['reason']}")
-            lines.append("")
-
-    # Declined questions
-    declined = [e for e in evaluated if not e.get("qualifies")]
-    if declined:
-        lines.append("## Declined")
-        lines.append("")
-        for e in declined:
-            lines.append(f"- **{e['question']}**")
-            lines.append(f"  {e['reason']}")
-            lines.append("")
-
-    out_path = TRIAGE_DIR / f"{asn_label}.md"
-    out_path.write_text("\n".join(lines))
-    return out_path
-
-
-def log_usage(asn_label, elapsed, usage):
+def log_usage(asn_label, elapsed):
     """Append a usage entry to the log."""
     try:
         entry = {
@@ -271,9 +235,6 @@ def log_usage(asn_label, elapsed, usage):
             "skill": "triage-questions",
             "asn": asn_label,
             "elapsed_s": round(elapsed, 1),
-            "input_tokens": usage.get("input_tokens", 0),
-            "output_tokens": usage.get("output_tokens", 0),
-            "cost_usd": usage.get("cost_usd", 0),
         }
         with open(USAGE_LOG, "a") as f:
             f.write(json.dumps(entry) + "\n")
@@ -291,7 +252,7 @@ def main():
     parser.add_argument("--effort", default="max",
                         help="Thinking effort level (low/medium/high/max)")
     parser.add_argument("--dry-run", action="store_true",
-                        help="Show decisions without updating files")
+                        help="Show output without updating files")
     args = parser.parse_args()
 
     # Find ASN
@@ -313,72 +274,56 @@ def main():
           file=sys.stderr)
 
     # Invoke Claude
-    text, elapsed, usage = invoke_claude(prompt, model=args.model,
-                                         effort=args.effort)
+    text, elapsed = invoke_claude(prompt, model=args.model, effort=args.effort)
 
     if not text:
         print("  No response produced", file=sys.stderr)
         sys.exit(1)
 
-    # Parse response
-    try:
-        result = parse_response(text)
-    except (json.JSONDecodeError, ValueError) as e:
-        print(f"  Failed to parse JSON response: {e}", file=sys.stderr)
-        print(f"  Raw response:\n{text[:500]}", file=sys.stderr)
-        sys.exit(1)
+    # Parse promoted inquiries from markdown
+    promoted = parse_promoted(text)
 
-    # Display evaluation
-    evaluated = result.get("evaluated", [])
-    new_inquiries = result.get("new_inquiries", [])
-
-    print(f"\n  Evaluated {len(evaluated)} open questions:", file=sys.stderr)
-    for eq in evaluated:
-        status = "YES" if eq["qualifies"] else "no"
-        q = eq["question"][:70] + "..." if len(eq["question"]) > 70 else eq["question"]
-        print(f"    [{status:>3}] {q}", file=sys.stderr)
-        print(f"          {eq['reason']}", file=sys.stderr)
-
-    if not new_inquiries:
+    # Display summary
+    if promoted:
+        print(f"\n  {len(promoted)} new inquiry/inquiries:", file=sys.stderr)
+        for ni in promoted:
+            n = ni.get("nelson", 10)
+            g = ni.get("gregory", 10)
+            print(f"    -> {ni.get('title', '?')} [{ni.get('area', '?')}] "
+                  f"(nelson:{n} gregory:{g})", file=sys.stderr)
+    else:
         print(f"\n  No new inquiries from {asn_label}", file=sys.stderr)
 
-    if new_inquiries:
-        print(f"\n  {len(new_inquiries)} new inquiry/inquiries:", file=sys.stderr)
-        for ni in new_inquiries:
-            agents = ni.get("agents", {})
-            n = agents.get("nelson", 10)
-            g = agents.get("gregory", 10)
-            print(f"    -> {ni['title']} [{ni['area']}] (nelson:{n} gregory:{g})",
-                  file=sys.stderr)
-            print(f"       {ni['question'][:80]}...", file=sys.stderr)
-
     if args.dry_run:
-        print(f"\n  [DRY RUN] Would update files", file=sys.stderr)
-        print(json.dumps(result, indent=2))
-        log_usage(asn_label, elapsed, usage)
+        print(f"\n  [DRY RUN] Would write triage file", file=sys.stderr)
+        print(text)
+        log_usage(asn_label, elapsed)
         return
 
-    # Write triage file (always — records all decisions)
-    triage_path = write_triage_file(asn_label, result)
+    # Write triage file (Claude's output directly)
+    TRIAGE_DIR.mkdir(parents=True, exist_ok=True)
+    triage_path = TRIAGE_DIR / f"{asn_label}.md"
+    triage_path.write_text(text + "\n")
     print(f"  [UPDATED] {triage_path.relative_to(WORKSPACE)}", file=sys.stderr)
 
-    # Update inquiries.yaml (only if new inquiries)
-    if new_inquiries:
+    # Update inquiries.yaml if promoted
+    if promoted:
         cur_id = next_inquiry_id(inq_data)
-        for ni in new_inquiries:
-            append_inquiry_yaml(inq_data, ni, cur_id)
-            print(f"  [ADD] Inquiry {cur_id}: {ni['title']}", file=sys.stderr)
-            cur_id += 1
+        for ni in promoted:
+            if "title" in ni and "question" in ni and "area" in ni:
+                append_inquiry_yaml(inq_data, ni, cur_id)
+                print(f"  [ADD] Inquiry {cur_id}: {ni['title']}", file=sys.stderr)
+                cur_id += 1
 
         write_inquiries_yaml(inq_data)
         print(f"  [UPDATED] {INQUIRIES_FILE.relative_to(WORKSPACE)}",
               file=sys.stderr)
 
     # Log usage
-    log_usage(asn_label, elapsed, usage)
+    log_usage(asn_label, elapsed)
 
-    # Print result JSON to stdout for pipeline consumption
-    print(json.dumps(result, indent=2))
+    # Print full output
+    print(text)
 
 
 if __name__ == "__main__":
