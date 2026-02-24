@@ -51,18 +51,21 @@ is the mutable layer — editing operations modify poom(d).
 address ranges to the set of link entries whose endsets overlap those
 ranges. This is the global index used by link discovery operations. A
 LinkEntry records the link's identity and endpoint type (from, to,
-three-set).
+three-set). CΣ3 is derived state — it can be computed from the link
+structures stored in I-space.
 
 **CΣ4 (content-location index).** Σ.locidx : IAddr → Set(DocId) maps
 I-space addresses to the set of documents whose arrangement mappings
 currently reference those addresses. This is the global index used by
-FINDDOCSCONTAINING.
-
-Both CΣ3 and CΣ4 are derived state — they can be computed from the
-arrangement mappings and the link store — but they are maintained
-incrementally for efficiency. The question is what consistency the
-system must guarantee between these derived indexes and the authoritative
+FINDDOCSCONTAINING. CΣ4 is derived state — it can be computed from the
 arrangement mappings.
+
+The two global indexes have different derivation sources: CΣ3 depends on
+the link structures in I-space (which are immutable once created), while
+CΣ4 depends on the arrangement mappings (which are mutable). This
+distinction matters for the concurrency argument — CΣ3's source is
+immutable, so its derivation is stable; CΣ4's source changes with every
+INSERT and DELETE, so its maintenance requires more care.
 
 
 ## The write domain
@@ -105,8 +108,7 @@ exclusively within that tree. The frame axiom is enforced by
 construction: no code path from one document's POOM reaches another
 document's POOM.
 
-**CON1 (Allocation disjointness).** For documents d₁, d₂ under
-different accounts:
+**CON1 (Allocation disjointness).** For distinct documents d₁ ≠ d₂:
 
     alloc_range(d₁) ∩ alloc_range(d₂) = ∅
 
@@ -115,10 +117,11 @@ d may allocate. Each document allocates I-space addresses within a
 subrange of the global address space determined by the document's own
 tumbler prefix. The address-allocation function searches for the
 highest existing address below an upper bound derived solely from the
-target document's address, then increments. Since two documents under
-different accounts have different tumbler prefixes, their upper bounds
-fall in non-overlapping regions of the address space. The search ranges
-are disjoint by the prefix-freeness of tumbler addresses.
+target document's address, then increments. Since distinct documents
+have distinct tumbler prefixes — whether under the same account or
+different accounts — their upper bounds fall in non-overlapping regions
+of the address space. The search ranges are disjoint by the
+prefix-freeness of tumbler addresses.
 
 Nelson states the principle directly: "the owner of a given item
 controls the allocation of the numbers under it." Gregory's
@@ -174,26 +177,47 @@ absence of copies is the key: there is nothing to fall out of sync
 because there was never a second copy. The system does not maintain
 consistency between copies; it achieves consistency by not having copies.
 
-We can now state the main isolation theorem.
+We can now state the main isolation theorem. The theorem concerns
+*write-write* conflicts on authoritative state. Cross-document
+*read-write* conflicts do exist — COPY and RETRIEVECONTENTS read
+another document's mutable POOM — but they are resolved by the
+before-or-after atomicity guarantee (CON5), not by the absence of
+shared mutable state.
 
-**Theorem (Writer independence).** For any two operations op₁ on
-document d₁ and op₂ on document d₂ where d₁ ≠ d₂:
+**Theorem (Writer independence — no write-write conflicts).** For any
+two operations op₁ on document d₁ and op₂ on document d₂ where d₁ ≠ d₂:
 
-    op₁ does not write to any component that op₂ reads as authoritative state
-    op₂ does not write to any component that op₁ reads as authoritative state
+    wd(d₁) ∩ wd(d₂) = ∅
+
+That is, the write domains of operations on distinct documents are
+disjoint. No operation on d₁ modifies any state component that an
+operation on d₂ also modifies.
 
 *Proof.* op₁ writes to Σ.poom(d₁) and allocates in alloc_range(d₁). op₂
 writes to Σ.poom(d₂) and allocates in alloc_range(d₂). By CON0,
 poom(d₁) ≠ poom(d₂). By CON1, alloc_range(d₁) ∩ alloc_range(d₂) = ∅.
-The only authoritative state op₁ reads from outside wd(d₁) is I-space
-content — and I-space content is immutable (CΣ1), so op₂ cannot modify
-what op₁ reads. Symmetrically for op₂. ∎
+Link index entries created by op₁ are indexed under I-addresses in
+alloc_range(d₁); those created by op₂ under alloc_range(d₂); by CON1
+these are disjoint. Content-location index entries modified by op₁
+concern poom(d₁); those by op₂ concern poom(d₂); by CON0 these are
+disjoint. ∎
 
-This theorem establishes that at the authoritative-state level, no
-coordination between writers of different documents is ever needed. The
-writers operate on disjoint mutable state and read only immutable shared
-state. The result is stronger than mere serializability — the operations
-are truly independent, as if they executed in separate universes.
+The absence of write-write conflicts means concurrent writers never need
+coordination to avoid lost updates. Read-write conflicts — where an
+operation on d₂ reads mutable state belonging to d₁ — are a separate
+concern, addressed by CON5 below. The important cases are:
+
+- *COPY from d₁ into d₂*: reads poom(d₁) to resolve source V-positions
+  to I-addresses. If d₁ is concurrently modified, CON5 guarantees the
+  COPY observes a consistent before-or-after snapshot of poom(d₁).
+
+- *RETRIEVECONTENTS on d₁ from session owning d₂*: reads poom(d₁) and
+  ispace. The POOM read is on mutable state; CON5 applies. The ispace
+  read is on immutable state; CΣ1 suffices.
+
+- *Link and content-location queries*: read the global indexes, which
+  are derived state maintained atomically (CON8). CON5 ensures the
+  query observes a consistent snapshot.
 
 
 ## The global index question
@@ -209,13 +233,12 @@ contains content at new I-space addresses — and a concurrent
 FINDDOCSCONTAINING query from another session must decide whether to
 include d₁ in its results.
 
-We observe that these global indexes have a crucial property: they are
+We observe that the link index has a crucial property: it is
 *append-only with respect to document operations*. Links are added to the
 index when CREATELINK executes; no document operation removes a link from
-the index. Content-location entries are added when INSERT or COPY
-extends a document's arrangement; DELETE removes the document's POOM
-entry but — critically — does not remove the link index entries that
-reference the deleted content's I-space addresses.
+the index. DELETE removes the document's POOM entry but — critically —
+does not remove the link index entries that reference the deleted
+content's I-space addresses.
 
 Gregory's implementation confirms this forcefully: no function in the
 spanfilade (link index) codebase performs deletion. The spanfilade is
@@ -232,6 +255,34 @@ where the subset relation means: every entry present in Σ.linkidx is
 also present in Σ'.linkidx with the same content. The link index only
 grows. No document operation — not even DELETE — removes entries from
 the link index.
+
+**CON3a (Content-location index append-only).** For any document
+operation op taking the system from Σ to Σ':
+
+    Σ.locidx ⊆ Σ'.locidx
+
+The content-location index, like the link index, only grows. When a
+document adds content to its arrangement, new entries appear in locidx;
+when a document deletes content from its arrangement, the entries remain.
+The index becomes an over-approximation: locidx(a) may contain documents
+that no longer reference address a in their current POOM. This is
+consistent with CON9's ⊇ — the index never under-approximates.
+
+The append-only property of locidx is the simplest choice that satisfies
+the concurrency requirements. Pruning locidx on DELETE would require
+coordinating the POOM update with the locidx update, and a concurrent
+reader observing a half-pruned locidx would violate CON5. The
+append-only choice eliminates this coordination problem entirely: readers
+of locidx never observe entries disappearing, so no torn state is
+possible from pruning. The cost is stale entries — locidx may report
+that document d contains content at address a when d's current POOM no
+longer references a — but this is operationally harmless (the query
+returns a superset of the true answer) and consistent with Nelson's
+philosophy of "continuously valid" partial knowledge.
+
+Gregory's implementation confirms this: DELETE calls `deletend` on the
+document's POOM tree and performs no corresponding update to any global
+index structure.
 
 This property has a profound consequence: link discovery through
 transclusion survives content deletion in the source document. If
@@ -268,11 +319,10 @@ changes is which documents provide a path to reach them.
 ## Before-or-after atomicity
 
 We have established that writers of different documents do not conflict
-at the authoritative-state level. But what about a reader who queries
-global state while a writer is mid-operation? A session executing
-FINDDOCSCONTAINING or FINDLINKSFROMTOTHREE accesses the global indexes
-while another session's INSERT or CREATELINK may be modifying them. What
-must the reader observe?
+at the authoritative-state level (no write-write conflicts). But
+read-write conflicts exist: COPY reads another document's mutable POOM,
+and queries read the mutable global indexes. What must a reader observe
+when concurrent mutations are in progress?
 
 Nelson is precise about the constraint without prescribing the
 mechanism. Each FEBE command is defined as acting on a consistent, complete
@@ -289,18 +339,24 @@ atomicity*: every observation of the system must be consistent with some
 complete, settled state.
 
 **CON5 (Before-or-after atomicity).** For any query Q executing
-concurrently with a mutation M, the result of Q must be consistent with
-a state that is either:
+concurrently with a set of mutations M₁, M₂, ..., Mₖ, the result of Q
+must be consistent with a state reachable by applying some prefix of the
+mutations in some serializable order. That is, there exists a
+permutation π of {1, ..., k} and an index j (0 ≤ j ≤ k) such that:
 
-    (a) the state before M's effects are visible, or
-    (b) the state after M's effects are fully applied
+    result(Q, observed_state) = result(Q, M_π(j) ∘ ... ∘ M_π(1)(Σ₀))
 
-No query may observe a state in which M's effects are partially applied.
+where Σ₀ is the state before any of the concurrent mutations. No query
+may observe a state in which any single mutation's effects are partially
+applied; each mutation is either fully reflected or not reflected at all
+in the observed state.
 
-Formally, let Σ₀ be the state before M, and Σ₁ = M(Σ₀) the state
-after. Then:
-
-    result(Q, observed_state) ∈ { result(Q, Σ₀), result(Q, Σ₁) }
+For the single-mutation case, this reduces to the binary formulation:
+Q observes either the state before M or the state after M. For multiple
+concurrent mutations, CON5 requires that the observed state correspond
+to a consistent interleaving — not a state where M₁'s effects on one
+index are visible while M₂'s effects on another index are not, unless
+that combination corresponds to a valid serialization point.
 
 CON5 does *not* require that the reader see the latest state. A reader
 may observe a state that is one, two, or many operations behind the
@@ -397,9 +453,13 @@ We justify CON7 by enumerating all forms of cross-document interaction
 and showing that none requires ordering:
 
 *Transclusion (COPY).* When document d₂ transcludes from d₁, the COPY
-operation reads I-space addresses from d₁ (immutable by CΣ1) and writes
-to d₂'s POOM (isolated by CON0). No lock on d₁ is needed because the
-data read is permanent.
+operation reads poom(d₁) to resolve source V-positions to I-addresses,
+then writes to poom(d₂) and allocates in alloc_range(d₂). The read of
+poom(d₁) is a cross-document read of mutable state — but it is a *read*
+only, not a write, and CON5 guarantees that the COPY observes a
+consistent before-or-after snapshot of poom(d₁). The resolved I-addresses
+are then used as immutable data (by CΣ1). No ordering between d₁'s
+operations and d₂'s COPY is required; snapshot isolation suffices.
 
 *Link creation (CREATELINK).* A link's endsets reference I-space
 addresses. The link is stored in its home document's address space (by
@@ -416,22 +476,22 @@ global link index (append-only) and the querying session's own POOM
 content-location index by I-space address. Like link queries, this reads
 global derived state and requires no access to any specific document.
 
-*Version creation (CREATENEWVERSION).* Reads the source document's
-arrangement mapping and creates a new document with the same content
-references. The new version shares I-space addresses with the original
-but has its own POOM. The read of the source POOM and the write of the
-new POOM are both operations on the version-creating session's behalf;
-they require per-document ordering within the source document's
-operation stream but no ordering relative to operations on unrelated
-documents.
+*Version creation (CREATENEWVERSION).* Creates a new version within the
+same document — reading the source version's arrangement mapping and
+producing a new POOM that shares the same I-space addresses. Both the
+read and the write are within a single document's scope. This is
+a per-document operation; it does not cross document boundaries and
+requires only per-document ordering.
 
-In every case, the cross-document interaction reads only immutable state
-(I-space content) or append-only derived state (link index,
-content-location index). No cross-document interaction involves a
-read-write conflict on mutable authoritative state. The per-document
-ordering ensures that operations within a single document are well-
-ordered; the structural properties (CΣ1, CON0, CON1) ensure that
-operations on different documents cannot interfere.
+In every case, cross-document interaction either reads immutable state
+(I-space content, by CΣ1), reads append-only derived state (link index,
+content-location index, by CON3/CON3a), or reads mutable authoritative
+state under snapshot isolation (another document's POOM, by CON5). No
+cross-document interaction involves a write-write conflict on
+authoritative state (by the writer-independence theorem). The
+per-document ordering ensures that operations within a single document
+are well-ordered; snapshot isolation (CON5) ensures that cross-document
+reads observe consistent states.
 
 Nelson confirms this architectural intent: "An ever-growing network,
 instantaneously supplying text and graphics to millions of simultaneous
@@ -443,14 +503,21 @@ document ordering scales with the number of documents; global ordering
 does not.
 
 **Corollary (No cross-document blocking).** No operation on document d₁
-can block or delay an operation on document d₂, where d₁ ≠ d₂. The
-owner of a document is never impeded by activity on another document.
+can block or delay an operation on document d₂, where d₁ ≠ d₂, provided
+the operation on d₂ does not read mutable state belonging to d₁.
+Single-document operations (INSERT, DELETE, REARRANGE, CREATELINK) on d₂
+are never impeded by activity on d₁. Cross-document operations (COPY
+from d₁ into d₂) require a consistent snapshot of d₁'s POOM, which
+CON5 guarantees without blocking — the reader observes a before-or-after
+state, never waits for the writer.
 
-*Proof.* By CON7, operations on d₁ and d₂ have no ordering requirement.
-By CON0, they modify disjoint authoritative state. By CΣ1, shared
-content is immutable. By CON3, the global link index is append-only and
-requires no coordination for reads. No mechanism exists by which op₁
-could cause op₂ to wait. ∎
+*Proof.* By the writer-independence theorem, operations on d₁ and d₂
+have no write-write conflicts. Single-document operations on d₂ read
+only d₂'s own POOM (isolated by CON0), I-space content (immutable by
+CΣ1), and the global indexes (append-only by CON3/CON3a and consistent
+by CON5). None of these reads can be blocked by d₁'s operations.
+Cross-document operations read d₁'s POOM under CON5's snapshot
+guarantee, which does not require blocking. ∎
 
 The sole exception is infrastructure availability: if d₁ and d₂ reside
 on different servers and the network connection between them fails, a
@@ -472,11 +539,12 @@ atomic state transition. The system transitions directly from the
 pre-operation state Σ to the post-operation state Σ' = op(Σ). No
 intermediate state between Σ and Σ' is observable by any session.
 
-CON8 is stronger than CON5. CON5 says queries see consistent snapshots;
-CON8 says mutations produce consistent snapshots in one step. Together
-they ensure that the system is always in a state where all invariants
-hold — the arrangement mappings, the global indexes, and the derived
-relationships between them are all mutually consistent at every
+CON8 is stronger than CON5: it constrains the *producer* of state
+transitions (each operation's effects are indivisible) while CON5
+constrains the *consumer* (each query observes a consistent state).
+Together they ensure that the system is always in a state where all
+invariants hold — the arrangement mappings, the global indexes, and the
+derived relationships between them are all mutually consistent at every
 observable instant.
 
 For operations that modify both authoritative state and derived indexes,
@@ -502,19 +570,20 @@ indexes:
 
 The indexes are *at least* as complete as the authoritative state
 implies. They may contain entries for documents that have since deleted
-the content from their arrangement (by CON3, the link index does not
-remove entries on DELETE), but they must never be missing an entry that
+the content from their arrangement (by CON3 and CON3a, neither index
+removes entries on DELETE), but they must never be missing an entry that
 the current arrangement implies should be present.
 
 The ⊇ rather than = in CON9 is deliberate. The link index is
 append-only (CON3), so after DELETE it may contain entries for I-space
 addresses that no document's current POOM references. The
-content-location index may similarly contain stale entries. These
-over-approximations are safe — a query that returns a superset of the
-true answer is conservative, not incorrect. The requirement is that the
-indexes never under-approximate: every link and every content-location
-relationship that currently exists in the authoritative state must be
-discoverable through the indexes.
+content-location index is likewise append-only (CON3a), so it may
+contain stale entries for documents that have since deleted their
+references. These over-approximations are safe — a query that returns a
+superset of the true answer is conservative, not incorrect. The
+requirement is that the indexes never under-approximate: every link and
+every content-location relationship that currently exists in the
+authoritative state must be discoverable through the indexes.
 
 Nelson's eventual-consistency model for the distributed case relaxes
 even this: each server's indexes reflect what that server knows, which
@@ -536,25 +605,30 @@ positions whose I-space addresses are A:
     (b) (A d : d ≠ d₁ : Σ'.poom(d) = Σ.poom(d))
     (c) Σ'.ispace = Σ.ispace
     (d) Σ'.linkidx = Σ.linkidx
+    (e) Σ'.locidx = Σ.locidx
 
 Part (a) is the effect. Part (b) follows from CON0 (arrangement
 isolation). Part (c) follows from CΣ1 (I-space immutability) — deletion
 removes content from a document's virtual view, not from existence. Part
 (d) follows from CON3 (link index append-only) — the link index does not
 track which documents currently reference an I-space address, only which
-links have endsets at that address.
+links have endsets at that address. Part (e) follows from CON3a
+(content-location index append-only) — the content-location index
+retains its entries even when a document removes the corresponding
+V-positions, producing the over-approximation that CON9(a)'s ⊇ permits.
 
-The combination of (b), (c), and (d) means that DELETE on d₁ is
+The combination of (b), (c), (d), and (e) means that DELETE on d₁ is
 completely invisible to any operation on d₂. Not merely serializable,
 not merely isolated — *invisible*. Document d₂'s arrangement, the
-content it references, and the links discoverable through it are all
-identical before and after d₁'s DELETE. The operation might as well not
-have happened, from d₂'s perspective.
+content it references, the links discoverable through it, and the
+content-location entries reflecting it are all identical before and
+after d₁'s DELETE. The operation might as well not have happened, from
+d₂'s perspective.
 
 This is the strongest possible form of cross-document isolation for
 DELETE, and it follows directly from the architecture: DELETE modifies
-one component of state (a single document's POOM), and that component is
-structurally isolated from all other documents.
+one component of state (a single document's POOM), and all other state
+components — including both global indexes — are structurally unaffected.
 
 
 ## Link creation and the shared index
@@ -596,6 +670,70 @@ semantic of bidirectional linking in a shared content space. "Each user
 is free to link to anything privately or publicly." The link index is the
 mechanism by which this freedom is realised: it is a global, shared
 structure precisely because linking is a global, shared capability.
+
+
+## A concrete scenario
+
+To test these properties against a specific execution, we trace the
+following scenario. Let D₁ and D₂ be distinct documents owned by
+different users. Both documents contain text, and D₂ has transcluded
+a passage from D₁ — specifically, I-space addresses {a₁, a₂, a₃}
+appear in both poom(D₁) and poom(D₂). The initial state is Σ₀.
+
+*Concurrent operations.* User A performs INSERT of text 'XY' at virtual
+position 3 in document D₁. Simultaneously, User B performs CREATELINK
+in document D₂, creating a link with from-endset spanning {a₁, a₂}
+(the shared addresses) and to-endset in D₂'s own address range.
+
+*State components touched by INSERT on D₁:*
+
+    writes: poom(D₁) — new V-positions inserted at position 3
+            ispace — two new entries at fresh addresses in alloc_range(D₁)
+            locidx — new entries mapping the fresh addresses to D₁
+    reads:  poom(D₁) — to locate insertion point
+
+*State components touched by CREATELINK on D₂:*
+
+    writes: poom(D₂) — link orgl added (link subspace of D₂'s address)
+            ispace — new link structure at fresh addresses in alloc_range(D₂)
+            linkidx — new entries at {a₁, a₂} for from-endset,
+                       at D₂'s addresses for to-endset
+    reads:  poom(D₂) — to resolve endset V-positions to I-addresses
+
+*Write-domain disjointness (writer independence).* The write domains are
+disjoint at the authoritative level: poom(D₁) vs poom(D₂) (CON0);
+alloc_range(D₁) vs alloc_range(D₂) (CON1). The linkidx writes from
+CREATELINK create *new* entries (at addresses in alloc_range(D₂) and at
+{a₁, a₂}); the INSERT creates no linkidx entries. The locidx writes
+from INSERT create new entries at fresh addresses in alloc_range(D₁);
+CREATELINK does not modify locidx. No write-write conflict exists.
+
+*Link discoverability from D₁.* After CREATELINK completes, the link
+index contains entries at {a₁, a₂} for the new link. Since poom(D₁)
+still maps virtual positions to {a₁, a₂, a₃} (INSERT at position 3
+shifts positions but does not remove the transclusion), a link query on
+D₁ resolves V-positions to I-addresses, searches linkidx, and discovers
+the new link. The link was created in D₂ but is discoverable from D₁ —
+this is the intended semantic of bidirectional linking through shared
+I-space addresses.
+
+*CON5 for a concurrent query.* Suppose session C executes
+FINDDOCSCONTAINING for address a₁ concurrently with both operations. By
+CON5, session C observes a state consistent with some serialization of
+the completed mutations. The possible observations are:
+
+    (i)   neither INSERT nor CREATELINK reflected — locidx(a₁) ⊇ {D₁, D₂}
+    (ii)  INSERT reflected, CREATELINK not — locidx(a₁) ⊇ {D₁, D₂} (unchanged; INSERT adds entries at fresh addresses, not a₁)
+    (iii) CREATELINK reflected, INSERT not — locidx(a₁) ⊇ {D₁, D₂} (CREATELINK does not modify locidx entries at a₁)
+    (iv)  both reflected — locidx(a₁) ⊇ {D₁, D₂}
+
+In every case, the query result is consistent — {D₁, D₂} are reported
+as containing a₁, because both documents' POOMs reference a₁ and
+neither operation removes that reference. The append-only properties
+(CON3, CON3a) ensure that no concurrent mutation can remove entries that
+the query expects to find. CON8 ensures each mutation's index updates
+are all-or-nothing, so session C never observes a state where (say)
+INSERT's POOM update is visible but its locidx update is not.
 
 
 ## The crash boundary
@@ -671,8 +809,8 @@ execution) and is silent on the granularity of persistence.
 
 ## Derivability
 
-We have introduced thirteen properties. Not all are independent. Let us
-identify the derivability relationships.
+We have introduced properties CΣ1–CΣ4, CON0–CON13, and CON3a. Not all
+are independent. Let us identify the derivability relationships.
 
 CON2 (transclusion read stability) follows from CΣ1 (I-space
 immutability) and CON0 (arrangement isolation). It is a theorem, not an
@@ -681,14 +819,18 @@ axiom.
 CON4 (cross-document link survival) follows from CON0, CON3, and the
 structure of link queries. It is a theorem.
 
-The writer-independence theorem follows from CΣ1, CON0, and CON1. It is
+The writer-independence theorem follows from CON0 and CON1. It is
 a theorem.
 
-The no-cross-document-blocking corollary follows from CON7, CON0, CΣ1,
-and CON3. It is a theorem.
+The no-cross-document-blocking corollary follows from writer
+independence, CON5, CΣ1, CON3, and CON3a. It is a theorem.
 
 CON11 (link creation atomicity) is an instance of CON8 (operation
 atomicity). It is a theorem.
+
+CON3a (content-location index append-only) is a design choice confirmed
+by the operation definitions: no operation prunes locidx. It has the
+same status as CON3.
 
 The independent properties — those not derivable from others in this
 note — are:
@@ -697,17 +839,31 @@ note — are:
 - CON0 (arrangement isolation) — follows from protocol structure
 - CON1 (allocation disjointness) — follows from addressing architecture
 - CON3 (link index append-only) — follows from operation definitions
-- CON5 (before-or-after atomicity) — axiomatic
-- CON7 (per-document ordering sufficiency) — derived from the above, but
-  stated as a design principle
-- CON8 (operation atomicity) — axiomatic, implies CON5 for single-server
-- CON10 (DELETE locality) — follows from operation definition and CON0/CΣ1/CON3
+- CON3a (content-location index append-only) — follows from operation definitions
+- CON8 (operation atomicity) — axiomatic
+- CON10 (DELETE locality) — follows from operation definition and CON0/CΣ1/CON3/CON3a
 
-Of these, the truly axiomatic properties — those that cannot be derived
-from anything more primitive in this note — are CΣ1, CON5, and CON8.
-CON0 and CON1 are structural consequences of the addressing architecture.
-CON3 is a consequence of the operation definitions. The remaining
-properties are theorems.
+Of these, CON8 is the single truly axiomatic concurrency property — it
+cannot be derived from anything more primitive in this note. CΣ1 is
+axiomatic but concerns permanence, not concurrency per se. CON0 and
+CON1 are structural consequences of the addressing architecture. CON3
+and CON3a are consequences of the operation definitions.
+
+CON5 (before-or-after atomicity) is a theorem in the single-server
+case: it follows from CON8 (each operation is atomic) plus sequential
+execution (Gregory's single-threaded event loop). In the single-server
+model, if each operation produces an indivisible state transition and
+operations execute one at a time, every query trivially observes a
+before-or-after state. For a multi-server or genuinely concurrent
+implementation, CON5 would need to be promoted to an independent axiom,
+since CON8 alone (without sequential execution) does not guarantee that
+*readers* observe consistent snapshots. The distinction is: CON8
+constrains the *shape* of state transitions; CON5 constrains the
+*visibility* of those transitions to concurrent readers.
+
+CON7 (per-document ordering sufficiency) is derived from the above, but
+stated as a design principle — it summarizes the consequence of writer
+independence combined with the structure of cross-document interactions.
 
 
 ## What is not required
@@ -750,19 +906,20 @@ per-document persistence boundaries are implementation choices.
 |-------|-----------|--------|
 | CΣ1 | ispace content is immutable once allocated; dom(ispace) only grows | introduced |
 | CΣ2 | each document d has its own arrangement mapping poom(d) : VPos ⇀ IAddr | introduced |
-| CΣ3 | linkidx : IAddr → Set(LinkEntry) is the global link index | introduced |
-| CΣ4 | locidx : IAddr → Set(DocId) is the global content-location index | introduced |
+| CΣ3 | linkidx : IAddr → Set(LinkEntry) is the global link index; derived from link structures in I-space | introduced |
+| CΣ4 | locidx : IAddr → Set(DocId) is the global content-location index; derived from arrangement mappings | introduced |
 | CON0 | poom(d₁) and poom(d₂) are disjoint state components for d₁ ≠ d₂ | introduced |
-| CON1 | alloc_range(d₁) ∩ alloc_range(d₂) = ∅ for documents under different accounts | introduced |
+| CON1 | alloc_range(d₁) ∩ alloc_range(d₂) = ∅ for all distinct documents d₁ ≠ d₂ | introduced |
 | CON2 | transclusion read stability: operations on d₁ leave d₂'s transcluded content and arrangement unchanged (theorem from CΣ1 + CON0) | introduced |
 | CON3 | link index is append-only: Σ.linkidx ⊆ Σ'.linkidx for any document operation | introduced |
+| CON3a | content-location index is append-only: Σ.locidx ⊆ Σ'.locidx for any document operation | introduced |
 | CON4 | cross-document link survival: DELETE on d₁ does not affect link discoverability from d₂ (theorem from CON0 + CON3) | introduced |
-| CON5 | before-or-after atomicity: every query observes a state consistent with some complete pre- or post-operation state | introduced |
+| CON5 | before-or-after atomicity: every query observes a state consistent with some serializable prefix of completed mutations | introduced |
 | CON6 | link index access independence: link queries require no access authorization for documents other than the querying session's own | introduced |
 | CON7 | per-document ordering sufficiency: total ordering within each document suffices; no cross-document ordering required | introduced |
 | CON8 | operation atomicity: each FEBE operation is a single atomic state transition; no intermediate state is observable | introduced |
 | CON9 | index-arrangement consistency: global indexes never under-approximate the authoritative state (may over-approximate) | introduced |
-| CON10 | DELETE locality: DELETE modifies only the target document's poom; ispace, linkidx, and all other pooms are unchanged | introduced |
+| CON10 | DELETE locality: DELETE modifies only the target document's poom; ispace, linkidx, locidx, and all other pooms are unchanged | introduced |
 | CON11 | link creation atomicity: CREATELINK indexes all three endsets atomically (instance of CON8) | introduced |
 | CON12 | crash atomicity gap: CON8 holds only for operations that complete without process-level interruption | introduced |
 | CON13 | flush globality: persistence flush writes all modified state globally, not per-session or per-document | introduced |
@@ -772,9 +929,7 @@ per-document persistence boundaries are implementation choices.
 
 Must the content-location index (CΣ4) eventually converge to equality with the authoritative state, or is permanent over-approximation (stale entries from deleted arrangements) acceptable?
 
-What consistency must CREATENEWVERSION guarantee when the source document is being concurrently modified by its owner — must the version snapshot a consistent pre- or post-operation state of the source arrangement?
-
-Does the append-only property of the link index (CON3) extend to the content-location index, or may content-location entries be removed when a document deletes content from its arrangement?
+What consistency must CREATENEWVERSION guarantee when the source version is being concurrently modified by its owner — must the new version snapshot a consistent pre- or post-operation state of the source arrangement?
 
 If the system is extended to support multiple servers with BEBE replication, what convergence guarantee must the global indexes satisfy — eventual consistency, bounded staleness, or causal consistency?
 
@@ -783,3 +938,5 @@ What must the system guarantee about the ordering of link-index updates relative
 Under what conditions, if any, may orphaned I-space entries from crash-interrupted operations be reclaimed without violating CΣ1's permanence guarantee?
 
 Must CON5 (before-or-after atomicity) hold across multi-operation sequences — for instance, must a session that performs INSERT followed by CREATELINK present both effects atomically to other sessions, or may the INSERT be visible before the CREATELINK?
+
+What classification of operations — single-document vs cross-document — does the concurrency model require, and what additional properties must cross-document operations (COPY, RETRIEVECONTENTS) satisfy beyond CON5's snapshot guarantee?
