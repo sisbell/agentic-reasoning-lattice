@@ -25,13 +25,19 @@ The global permanent layer is then simply the union across all servers:
     ispace = (∪ s : s ∈ S : ispace_s)
     spanf  = (∪ s : s ∈ S : spanf_s)
 
-And the critical observation: *this union is always well-defined*. There are no conflicts to resolve. If two servers both know about address *a*, they must agree on its content — because content at an I-address is immutable once created. Let us state this as a property.
+And the critical observation: *this union is always well-defined*. There are no conflicts to resolve. If two servers both know about address *a*, they must agree on its content. Let us state this as a property.
 
 **REP1** (Content agreement). For all servers *s, s' ∈ S* and every address *a*:
 
     (a, v) ∈ ispace_s  ∧  (a, v') ∈ ispace_s'   ⟹   v = v'
 
-This is not a protocol requirement — it is a structural consequence of two deeper properties working together: address uniqueness (no two independent creations can produce the same address) and content immutability (once stored, a value never changes). We shall derive each in turn.
+And the analogous property for DOCISPAN:
+
+**REP1'** (Provenance agreement). For all servers *s, s' ∈ S* and every DOCISPAN record identifier *r*:
+
+    (r, d) ∈ spanf_s  ∧  (r, d') ∈ spanf_s'   ⟹   d = d'
+
+REP1 is not purely structural — it depends on both address allocation properties (no two independent creations produce the same address) and a protocol property (replicated copies are faithfully transferred). We shall derive both components.
 
 ---
 
@@ -51,13 +57,27 @@ and every address allocated by *s* begins with *prefix(s)*.
 
 The allocation of node-level prefixes is the *sole* coordination point in the entire system. It occurs once, at server provisioning, when a parent node assigns a fresh prefix to a new child. After that initial "baptism," the server operates independently forever.
 
-Within its prefix, a server allocates addresses by monotonic sequential extension — appending the next integer at the appropriate level of the hierarchy. Account 3 under node `1.1` creates documents `1.1.0.3.0.1`, then `1.1.0.3.0.2`, then `1.1.0.3.0.3` — the counter advances and never retreats.
+Within its prefix, a server allocates addresses by monotonic sequential extension within each document subspace. Account 3 under node `1.1` creates documents `1.1.0.3.0.1`, then `1.1.0.3.0.2`, then `1.1.0.3.0.3` — the counter advances and never retreats. Within document `1.1.0.3.0.1`, the text content addresses `1.1.0.3.0.1.1.1`, `1.1.0.3.0.1.1.2`, ... increase monotonically. But the server may interleave operations across documents — inserting first into document 1, then into document 2, then back into document 1. The globally interleaved sequence of addresses is not necessarily increasing, because different document prefixes are incomparable. The freshness guarantee is *per allocation domain*.
 
-**REP3** (Monotonic allocation). For each server *s*, the sequence of addresses allocated by *s* is strictly increasing in the tumbler ordering.
+**REP3** (Monotonic allocation). For each server *s* and each document subspace *d.k* managed by *s*, the sequence of addresses allocated within *d.k* is strictly increasing in the tumbler ordering.
 
-From REP2 and REP3 together we can derive REP1. Suppose *(a, v) ∈ ispace_s* and *(a, v') ∈ ispace_s'*. If *s = s'*, then within a single server the same address cannot be assigned twice (by REP3 — the counter only advances). If *s ≠ s'*, then *a* begins with *prefix(s)* and also with *prefix(s')*, but by REP2 these prefixes are distinct — contradiction. So the case *s ≠ s'* with the same address cannot arise.
+The uniqueness of I-address allocation rests on three properties working together, not two. We need:
 
-This is the key structural insight: **the tumbler hierarchy partitions the address space into disjoint regions, one per server, making content agreement a geometric property of the naming scheme rather than a protocol property of the communication layer.** Two servers cannot contradict each other because they cannot even *name* the same content independently.
+- **REP2** (inter-server): distinct servers have disjoint prefixes, so addresses allocated by different servers cannot collide.
+- **REP6** (intra-server, per-document): each document has exactly one authoritative writer, so two concurrent processes cannot allocate under the same document prefix simultaneously. (We state REP6 fully in the mutable layer section below; we invoke it here for the allocation argument.)
+- **REP3** (intra-document): within a single writer's document subspace, monotonic counters prevent reuse.
+
+With all three, allocation uniqueness follows. Suppose address *a* is allocated by server *s* within document *d*. By REP2, no other server allocates addresses with *prefix(s)*. By REP6, no other process on *s* allocates addresses within *d*'s subspace concurrently. By REP3, the single writer's monotonic counter never revisits an address within that subspace. So *a* is allocated exactly once in the entire system.
+
+But this establishes uniqueness only for independently allocated content — that two servers cannot independently create the same address. A server also holds content *received through replication*: server *s* with prefix `1.1` may hold *(1.2.0.1.1.5, "hello")* received from server *s'* with prefix `1.2`. For such replicated content, agreement is a *protocol* requirement, not a structural consequence. The inter-server protocol must faithfully transfer content — it must not corrupt, fabricate, or alter the (address, value) pairs it carries. We state this explicitly:
+
+**REP3'** (Faithful transfer). When server *s* receives a content pair *(a, v)* from server *s'*, the pair is identical to the pair stored at *s'*: no corruption, fabrication, or alteration occurs in transit.
+
+From REP2, REP3, REP6, and REP3' together we derive REP1. Suppose *(a, v) ∈ ispace_s* and *(a, v') ∈ ispace_s'*. Each pair was either locally allocated or received through replication. Consider the cases. If both were locally allocated, then by the allocation-uniqueness argument above, the two servers cannot have independently allocated the same address — so they are the same server, and REP3 prevents double assignment. If one or both were received through replication, then by REP3' each copy is faithful to the original allocation, and by allocation uniqueness the original is unique — so *v = v'*.
+
+The argument for REP1' (provenance agreement) parallels this. DOCISPAN records are created by the operations that create content — INSERT generates both a content pair in ispace and a provenance record in spanf. By REP6, these operations occur only at the document's home server. So DOCISPAN records are partitioned by document authority just as I-addresses are partitioned by server prefix: two servers cannot independently create conflicting provenance records for the same content, and faithful transfer ensures replicated copies agree.
+
+This is the key structural insight: **the tumbler hierarchy partitions the address space into disjoint regions, one per server, making content agreement primarily a geometric property of the naming scheme.** Two servers cannot contradict each other because they cannot independently *name* the same content. For replicated copies, a minimal protocol requirement — faithful transfer — closes the remaining gap.
 
 ---
 
@@ -70,7 +90,7 @@ When server *s'* receives information from server *s*, every piece of that infor
 1. Content at an address *s'* has never seen — new knowledge, incorporated without conflict.
 2. Content at an address *s'* already knows — necessarily identical by REP1, so a no-op.
 
-There is no third case. There is no "content at an address *s'* knows differently" — REP2 makes this impossible. This means information transfer between servers is *idempotent* and *order-independent*.
+There is no third case. There is no "content at an address *s'* knows differently" — REP2 and REP3' together make this impossible. This means information transfer between servers is *idempotent* and *order-independent*.
 
 **REP4** (Order-independent accumulation). For any set of messages *M₁, M₂, ...* received by server *s* from other servers, the final state *ispace_s* and *spanf_s* are independent of the order in which the messages arrive.
 
@@ -90,9 +110,9 @@ If each server holds only a subset of the global state, we need a property that 
 
 (b) *Structural coherence*: the DOCISPAN records in *spanf_s(t)* correctly describe the provenance relationships among the content in *ispace_s(t)* — no false provenance claims.
 
-(c) *Subset validity*: every true assertion about *(ispace_s(t), spanf_s(t))* is also true of *(ispace, spanf)* — the server's local state is a valid restriction of the global state, never an incorrect extrapolation.
+(c) *Monotonic embedding*: the local permanent layer embeds faithfully into the global state — *ispace_s ⊆ ispace* and *spanf_s ⊆ spanf* — with no false-positive content. Every (address, value) pair in *ispace_s* appears identically in the global *ispace*; every DOCISPAN record in *spanf_s* appears identically in the global *spanf*. The local state is correct but possibly incomplete.
 
-Notice what REP5 does *not* require: completeness. A server may be unaware of vast amounts of content. It may have no knowledge of entire document trees, entire account subtrees, entire server nodes. This is not an error state — it is normal operation. The server's knowledge is *correct but partial*.
+Notice what REP5 does *not* require: completeness. A server may be unaware of vast amounts of content. It may have no knowledge of entire document trees, entire account subtrees, entire server nodes. This is not an error state — it is normal operation. The server's knowledge is *correct but partial*. Positive existential facts — "address *a* exists with value *v*" — that hold locally also hold globally. But negative facts — "address *a* does not exist" — may be locally true (the server has not yet received it) and globally false (it exists on another server). The asymmetry is inherent in partial knowledge.
 
 This is the subrepresentation model. Each server begins from "the null case" and grows. At every point, its state is a valid subset of the global state. The transition from a smaller subset to a larger one (by receiving new content) preserves validity because new content is only *added* — it cannot contradict what is already known.
 
@@ -114,9 +134,9 @@ Other servers may hold cached copies of *d*'s POOM, but these are read-only snap
 
 This eliminates the distributed mutable-state problem entirely. There are no concurrent POOM modifications to reconcile because there is only one writer. Within the home server, POOM modifications are serialized (a single-threaded event loop suffices; any serialization mechanism would do). Between servers, POOM state flows one way: from the authoritative home server to read-only caches elsewhere.
 
-Gregory's implementation evidence confirms this architecture emphatically. The BERT (access control) mechanism prevents two connections from holding simultaneous write access to the same document. When a second user attempts to modify a document already open for writing, the system creates a new version — a separate document with its own POOM, under the second user's own address space. The two users diverge into parallel branches rather than competing for the same mutable state.
+Gregory's implementation evidence confirms this architecture emphatically. The BERT (access control) mechanism prevents two connections from holding simultaneous write access to the same document. The essential property is single-writer exclusion of POOM modification; the resolution strategy when a second user requests modification is a policy choice. In one mode (BERTMODEONLY), the second user is refused — the request fails outright. In another mode (BERTMODECOPYIF), the system creates a new version — a separate document with its own POOM, under the second user's own address prefix — automatically diverting the modification to an independent branch. In a third mode (BERTMODECOPY), branching occurs unconditionally. All three modes preserve the invariant: no two writers modify the same POOM simultaneously.
 
-**REP7** (Divergence by branching). When two users wish to modify the same document concurrently, the system creates independent versions — each under the respective user's address prefix, each with its own POOM — rather than allowing concurrent modification of a single POOM.
+**REP7** (Single-writer POOM exclusion). The system prevents concurrent modification of a single POOM. When a second user requests modification of a document already open for writing, the system either refuses the request or diverts the modification to an independent version under the second user's own address prefix.
 
 This is a profound design choice. It transforms the concurrency problem from "how do we merge conflicting edits?" to "how do we compare parallel versions?" — and Nelson provides exactly the tools for the latter (SHOWRELATIONOF2VERSIONS) without attempting the former. There is no MERGE operation in the protocol. Divergence is the design, not a failure mode.
 
@@ -148,24 +168,27 @@ The word "eventually" is load-bearing. If *l*'s home server is disconnected, *s*
 
 We can now characterize the full replication model. Each server maintains a *subrepresentation* — a partial but valid model of the entire docuverse.
 
-Let us define the state of server *s* as Σ_s = (ispace_s, spanf_s, pooms_s, map_s) where:
+Let us define the state of server *s*. We distinguish *authoritative* components — state that *s* is the source of truth for — from *cached* components — state that *s* has obtained from other servers and may discard under memory pressure.
 
-- *ispace_s* ⊆ *ispace* — the permanent content known to *s*
+Σ_s = (ispace_s, spanf_s, auth_pooms_s, cached_pooms_s, map_s) where:
+
+- *ispace_s* ⊆ *ispace* — the permanent content known to *s* (authoritative for addresses under *prefix(s)*; replicated for others)
 - *spanf_s* ⊆ *spanf* — the DOCISPAN records known to *s*
-- *pooms_s* — the set of POOMs for documents homed at *s* (authoritative) plus cached POOMs for documents homed elsewhere (read-only snapshots)
+- *auth_pooms_s* — the set of POOMs for documents homed at *s* (authoritative; modified only by *s*)
+- *cached_pooms_s* — cached snapshots of POOMs for documents homed elsewhere (read-only; may be evicted)
 - *map_s* — routing information: for each tumbler prefix, which server to contact
 
 The subrepresentation grows through four mechanisms, as Nelson enumerates: (1) demand-driven content migration — a user's request for remote content causes it to be fetched and cached; (2) index replication — link and DOCISPAN indexes migrate to enable local search; (3) load rebalancing — popular content replicates closer to demand; (4) redundancy — backup copies for resilience.
 
-All four mechanisms are *additive*. No mechanism removes content from a server's knowledge (though cache eviction may reclaim storage, the system can always re-fetch from the authoritative source). This yields the monotonic knowledge property:
+The authoritative components — ispace_s, spanf_s, and auth_pooms_s — are monotonic. Content once stored in ispace is never retracted (REP0). Provenance records once stored in spanf are never erased. Authoritative POOMs grow in the sense that the version history extends (new versions may be created; old versions are never destroyed). The cached components — cached_pooms_s and map_s — are *not* monotonic: cache eviction may reclaim storage, and routing tables may be updated. The system can always re-fetch evicted cached state from the authoritative source, so eviction represents loss of local access, not loss of knowledge from the network.
 
-**REP10** (Monotonic knowledge). For every server *s* and times *t₁ < t₂*:
+**REP10** (Authoritative monotonicity). For every server *s* and times *t₁ < t₂*:
 
-    Σ_s(t₁) ⊆ Σ_s(t₂)
+    ispace_s(t₁) ⊆ ispace_s(t₂)    ∧    spanf_s(t₁) ⊆ spanf_s(t₂)    ∧    auth_pooms_s(t₁) ⊆ auth_pooms_s(t₂)
 
-where the subset relation is defined component-wise. The server's knowledge of the docuverse only grows.
+The authoritative components of a server's state only grow. Cached components may shrink through eviction without violating the model — the invariant is that the authoritative source remains available for re-fetching.
 
-Combined with REP5 (local validity), this means each server traces a monotonically improving path through the lattice of valid subsets of the global state. It begins with the empty set (still valid — Nelson's "null case") and grows toward the full state, driven by demand. It need never reach the full state; what matters is that what it knows is correct.
+Combined with REP5 (local validity), this means each server's authoritative state traces a monotonically improving path through the lattice of valid subsets of the global state. It begins with the empty set (still valid — Nelson's "null case") and grows toward the full state, driven by demand. It need never reach the full state; what matters is that what it knows is correct.
 
 ---
 
@@ -176,16 +199,17 @@ We are now in a position to say what the inter-server protocol must provide, and
 BEBE need NOT provide:
 - **Distributed consensus** — the permanent layer is conflict-free by construction.
 - **Change propagation for existing content** — I-space content never changes.
-- **Cache invalidation** — cached content is immutable, so caches never become stale.
+- **Cache invalidation for permanent content** — cached I-space content is immutable, so those caches never become stale. (Cached POOMs *can* become stale, but staleness is bounded by the demand-driven re-fetch model.)
 - **Conflict resolution** — conflicts cannot arise in the permanent layer, and the mutable layer has single-writer authority.
 - **Global ordering** — the final accumulated state is order-independent (REP4).
 
 BEBE MUST provide:
 - **Request forwarding** — routing a content request to the server that holds the answer.
 - **Content transfer** — moving immutable content between servers on demand.
+- **Faithful transfer** — ensuring that content pairs are not corrupted, fabricated, or altered in transit (REP3').
 - **Availability** — published content must remain reachable despite server and network failures.
 
-**REP11** (Replication sufficiency). The inter-server protocol satisfies the convergence requirements of the docuverse if and only if it provides: (a) correct routing of requests to authoritative servers, (b) faithful transfer of immutable content, and (c) eventual reachability of all published content.
+**REP11** (Replication sufficiency). The inter-server protocol satisfies the convergence requirements of the docuverse if and only if it provides: (a) correct routing of requests to authoritative servers, (b) faithful transfer of immutable content (REP3'), and (c) eventual reachability of all published content.
 
 The simplicity of this requirement is remarkable. Nelson designed — whether by insight or by instinct — a system in which document-local editing combined with immutable shared content eliminates the hardest problems in distributed systems. The inter-server protocol is not a distributed consistency protocol; it is a distributed caching and forwarding protocol, which is among the easiest kinds to implement correctly.
 
@@ -211,16 +235,20 @@ The gap in this guarantee is economic. Storage requires ongoing payment. If a co
 
 ## The convergence theorem
 
-We can now state the overall convergence guarantee. It is not a protocol property but a structural consequence of the architectural commitments.
+We can now state the overall convergence guarantee. It rests on the full chain of properties developed above — structural, allocation, and protocol.
 
-**Theorem** (Convergence). *If REP0 through REP4 hold, then for any two servers s, s' ∈ S that can eventually communicate, their permanent layers converge:*
+**Theorem** (Convergence). *If REP0 (monotonicity), REP1 (content agreement, derived from REP2+REP3+REP6+REP3'), REP4 (order independence), and REP11(b)+(c) (faithful transfer and eventual reachability) all hold, then for any two servers s, s' ∈ S that can eventually communicate, their permanent layers converge:*
 
     lim(t→∞) ispace_s(t) = lim(t→∞) ispace_s'(t) = ispace
     lim(t→∞) spanf_s(t)  = lim(t→∞) spanf_s'(t)  = spanf
 
-*provided all published content is eventually forwarded to requesting servers.*
+*for the published portion of the docuverse.*
 
-The proof is straightforward. By REP0, each server's permanent layer only grows. By REP4, the order of growth is irrelevant. By REP1, the target state (the global union) is well-defined and unambiguous. The only question is whether each server eventually receives all content — and this is exactly what REP11(c) guarantees for published content.
+The proof has two parts — consistency of the target, and convergence toward it.
+
+*Consistency of the target.* The global union *ispace = (∪ s : s ∈ S : ispace_s)* is well-defined: by REP1, no two servers hold conflicting values for the same address, so the union contains at most one value per address. Likewise for *spanf* by REP1'. This is the non-trivial content of the theorem — and it rests on the full derivation of REP1 from REP2 (prefix disjointness), REP3 (per-domain monotonic allocation), REP6 (single-writer authority), and REP3' (faithful transfer).
+
+*Convergence toward the target.* By REP0, each server's permanent layer only grows. By REP4, the order of growth is irrelevant. By REP11(c), every piece of published content is eventually forwarded to any requesting server. So for any address *a* in the published portion of the global ispace, and any server *s*, there exists a time after which *a ∈ ispace_s*. The permanent layers converge to the published portion of the global union.
 
 For unpublished content (private documents that have not been made public), convergence is neither required nor expected. A server need not learn about private content on other servers. The convergence guarantee applies to the *published* portion of the docuverse — the shared, accessible, economically sustained layer that constitutes the literary commonwealth.
 
@@ -232,17 +260,57 @@ We observe that this convergence is strictly weaker than "eventual consistency" 
 
 We have shown that the permanent layer is conflict-free and the mutable layer has single-writer authority. But there is an architectural gap that any implementation must address.
 
-Gregory's evidence reveals that the I-address allocation algorithm — find the current maximum address in the document's subspace, increment by one — is *purely a function of local state*. If two separate processes (or two hypothetical servers) both attempted to allocate I-addresses under the same document, they would compute the same "next available" address from their respective copies of the state and produce a collision.
+The I-address allocation algorithm — find the current maximum address in the document's subspace, increment by one — is *purely a function of local state*. If two separate processes (or two hypothetical servers) both attempted to allocate I-addresses under the same document, they would compute the same "next available" address from their respective copies of the state and produce a collision.
 
 REP2 (prefix disjointness) prevents this between different servers' documents. REP6 (document authority) prevents this for a single document by ensuring only one server writes to it. But the protection is architectural, not algorithmic — the allocation mechanism itself contains no distributed coordination. An implementation that violated REP6 (e.g., by allowing two servers to accept inserts into the same document) would immediately violate REP1 (content agreement).
 
-This is not a flaw in the design; it is a *consequence* of the design. The tumbler hierarchy provides partition safety between servers. Within a server, serialization provides safety between operations. The combination is complete — but both layers are necessary. The partition alone is insufficient; the serialization alone is insufficient; together they are exact.
+This is not a flaw in the design; it is a *consequence* of the design. The tumbler hierarchy provides partition safety between servers. Within a server, serialization provides safety between operations. The combination is complete — but both layers are necessary. The partition alone is insufficient (it does not prevent collisions within a prefix); the serialization alone is insufficient (it does not extend across servers); together they are exact. This is exactly the three-way dependency captured in the REP1 derivation: REP2 ∧ REP3 ∧ REP6 ∧ REP3' ⟹ REP1.
 
-**REP13** (Allocation safety composition). The uniqueness of I-address allocation (REP1) depends on both REP2 (inter-server prefix disjointness) and REP6 (intra-server document authority). Neither is independently sufficient.
+---
 
-    REP1  ⟸  REP2 ∧ REP3 ∧ REP6
+## A worked example
 
-This decomposition makes explicit what an implementer must provide. A multi-server deployment needs: (a) unique node prefixes assigned at provisioning time, (b) monotonic allocation within each prefix, and (c) single-writer authority for each document's mutable state and address subspace. With all three, I-address uniqueness follows by construction and no distributed consensus protocol is required.
+We walk through a concrete scenario to verify the properties against their own definitions. Let server S1 have prefix `1.1` and server S2 have prefix `1.2`. We denote the state at each step.
+
+**Step 1: S1 creates a document.** User Alice on S1 creates a new document. S1 allocates document address `1.1.0.1.0.1` (node `1.1`, account `1`, document `1`). This is a local operation; S2 is unaware.
+
+    ispace_S1 = {}                  ispace_S2 = {}
+    spanf_S1  = {}                  spanf_S2  = {}
+    auth_pooms_S1 = {POOM for 1.1.0.1.0.1: empty}
+
+REP0 holds trivially (nothing has shrunk). REP2 holds (each server allocates only under its own prefix). REP5 holds (both servers have correct, empty subsets of the global state).
+
+**Step 2: Alice inserts "Hello" into her document.** S1 performs INSERT into document `1.1.0.1.0.1`, version 1. S1 allocates I-address `1.1.0.1.0.1.1.1` and stores content "Hello".
+
+    ispace_S1 = {(1.1.0.1.0.1.1.1, "Hello")}
+    spanf_S1  = {(1.1.0.1.0.1.1.1 → doc 1.1.0.1.0.1, originating)}
+    auth_pooms_S1: POOM for 1.1.0.1.0.1 maps V-pos 1 → I-addr 1.1.0.1.0.1.1.1
+
+REP0 holds (ispace_S1 grew). REP3 holds (first allocation in this document subspace). REP1 holds trivially (S2 has no overlapping content).
+
+**Step 3: User Bob on S2 requests Alice's document.** Bob's front end asks S2 for document `1.1.0.1.0.1`. S2 does not have it locally, so via BEBE routing (REP11(a)), S2 forwards the request to S1. S1 returns the I-space content and DOCISPAN records. S2 stores them locally, along with a cached copy of the POOM.
+
+    ispace_S1 = {(1.1.0.1.0.1.1.1, "Hello")}     ispace_S2 = {(1.1.0.1.0.1.1.1, "Hello")}
+    spanf_S1  = {(1.1.0.1.0.1.1.1 → ...)}          spanf_S2  = {(1.1.0.1.0.1.1.1 → ...)}
+    cached_pooms_S2: snapshot of POOM for 1.1.0.1.0.1
+
+REP0 holds (S2's ispace and spanf grew; S1's unchanged). REP3' holds (the pair received by S2 is identical to S1's original). REP1 holds: the only shared address is `1.1.0.1.0.1.1.1`, and both servers agree on its value "Hello". REP5(c) holds: every fact in ispace_S2 is also true in the global ispace.
+
+**Step 4: Bob transcludes Alice's content into his own document.** Bob creates document `1.2.0.1.0.1` on S2 and performs a COPY (transclusion) of Alice's content. S2 does *not* allocate a new I-address — transclusion shares the original identity. S2's POOM for Bob's document maps V-pos 1 → I-addr `1.1.0.1.0.1.1.1` (Alice's address). S2 creates a DOCISPAN record noting the transclusion.
+
+    ispace_S2 = {(1.1.0.1.0.1.1.1, "Hello")}  — unchanged; no new content allocated
+    spanf_S2  = {(1.1.0.1.0.1.1.1 → doc 1.1.0.1.0.1, originating),
+                 (1.1.0.1.0.1.1.1 → doc 1.2.0.1.0.1, transcluded)}
+    auth_pooms_S2: POOM for 1.2.0.1.0.1 maps V-pos 1 → I-addr 1.1.0.1.0.1.1.1
+
+REP6 holds: Alice's document POOM is modified only at S1 (its home); Bob's document POOM is modified only at S2 (its home). REP1 still holds: both servers agree on the content at `1.1.0.1.0.1.1.1`. The transclusion created no new I-space content — it reused the existing address, preserving content identity.
+
+**Step 5: Alice inserts more text.** Alice inserts "World" into her document on S1. S1 allocates I-address `1.1.0.1.0.1.1.2`.
+
+    ispace_S1 = {(1.1.0.1.0.1.1.1, "Hello"), (1.1.0.1.0.1.1.2, "World")}
+    ispace_S2 = {(1.1.0.1.0.1.1.1, "Hello")}  — S2 does not yet know about "World"
+
+REP3 holds: within document `1.1.0.1.0.1`'s text subspace, `1.1.0.1.0.1.1.2 > 1.1.0.1.0.1.1.1`. REP5 holds for S2: its ispace is a subset of the global ispace — correct but incomplete. S2's cached POOM for Alice's document is now stale (it does not reflect the "World" insertion), but this is expected: cached POOMs are read-only snapshots, and the authoritative state on S1 is the single source of truth.
 
 ---
 
@@ -278,21 +346,22 @@ The result is a distributed system that requires no consensus protocol, no distr
 | Label | Statement | Status |
 |-------|-----------|--------|
 | REP0 | Each server's permanent layer (ispace, spanf) grows monotonically: ispace_s(t₁) ⊆ ispace_s(t₂) for t₁ < t₂ | introduced |
-| REP1 | Content agreement: if two servers both know address *a*, they agree on its content | introduced |
+| REP1 | Content agreement: if two servers both know address *a*, they agree on its content; derived from REP2 ∧ REP3 ∧ REP6 ∧ REP3' | introduced |
+| REP1' | Provenance agreement: if two servers both hold DOCISPAN record *r*, they agree on its content; derived from REP6 ∧ REP3' | introduced |
 | REP2 | Prefix disjointness: distinct servers have distinct node-level tumbler prefixes; all addresses allocated by *s* begin with prefix(s) | introduced |
-| REP3 | Monotonic allocation: within each server, allocated addresses are strictly increasing | introduced |
+| REP3 | Monotonic allocation: within each server *s* and each document subspace *d.k*, allocated addresses are strictly increasing | introduced |
+| REP3' | Faithful transfer: replicated content pairs are identical to their originals; no corruption, fabrication, or alteration in transit | introduced |
 | REP4 | Order-independent accumulation: the final permanent-layer state is independent of message arrival order | introduced |
-| REP5 | Local validity: each server's subset is internally consistent, structurally coherent, and a valid restriction of the global state | introduced |
+| REP5 | Local validity: each server's subset is internally consistent, structurally coherent, and a monotonic embedding of the global state (correct but possibly incomplete) | introduced |
 | REP6 | Document authority: each document has exactly one authoritative server for its mutable state | introduced |
-| REP7 | Divergence by branching: concurrent modification requests produce independent versions, not conflicting edits | introduced |
+| REP7 | Single-writer POOM exclusion: concurrent modification of a single POOM is prevented; second modifier is either refused or diverted to an independent version | introduced |
 | REP8 | Coordination-free link creation: a link may be stored without communicating with the servers holding the linked content | introduced |
 | REP9 | Eventual link discovery: links become discoverable when connectivity to their home server is available | introduced |
-| REP10 | Monotonic knowledge: each server's total state (Σ_s) only grows over time | introduced |
-| REP11 | Replication sufficiency: the inter-server protocol needs only routing, faithful transfer, and eventual reachability | introduced |
+| REP10 | Authoritative monotonicity: ispace_s, spanf_s, and auth_pooms_s only grow; cached components (cached_pooms_s, map_s) may shrink through eviction | introduced |
+| REP11 | Replication sufficiency: the inter-server protocol needs only routing, faithful transfer (REP3'), and eventual reachability | introduced |
 | REP12 | Publication permanence: published content must remain reachable, though transient unavailability is acceptable | introduced |
-| REP13 | Allocation safety composition: REP1 depends on both REP2 (inter-server) and REP6 (intra-server); neither alone suffices | introduced |
 | REP14 | Comparison without convergence: the system provides version comparison but no merge; divergence is permanent | introduced |
-| Σ_s | Server state: (ispace_s, spanf_s, pooms_s, map_s) | introduced |
+| Σ_s | Server state: (ispace_s, spanf_s, auth_pooms_s, cached_pooms_s, map_s) — authoritative vs cached distinction | introduced |
 | home(d) | Function mapping each document to its authoritative server | introduced |
 | prefix(s) | Function mapping each server to its node-level tumbler prefix | introduced |
 
@@ -314,3 +383,5 @@ Under what conditions can the economic failure of a content owner violate REP12 
 If a server's cached snapshot of a remote document's POOM is stale, can query results (e.g., FINDDOCSCONTAINING) be silently incomplete, and what must the system disclose about result completeness?
 
 What consistency guarantees must hold between the DOCISPAN index and the I-space content it references — can a server hold provenance records for content it has not yet obtained?
+
+What integrity mechanisms must REP3' rely on in practice — checksums, authenticated channels, or cryptographic signatures — and what is the failure model when transfer corruption occurs?
