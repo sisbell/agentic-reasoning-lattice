@@ -38,15 +38,43 @@ the tumbler hierarchy — concretely, when the mantissa of a matches the
 initial segment of the mantissa of d up to a's length, with the appropriate
 zero-separator structure.
 
+We require two further properties. First, accounts are permanent:
+
+**DL-A0 (account permanence).**
+
+    a ∈ Σ.accounts  ⟹  a ∈ Σ'.accounts    for all subsequent Σ'
+
+This is necessary for owner(d) to remain well-defined: if the witnessing
+account could disappear, the prefix relation would lose its witness and the
+ownership function would become partial. Nelson treats accounts as permanent
+structural positions in the tumbler hierarchy — they are allocated by the
+node operator and persist indefinitely [LM 4/29].
+
+Second, no account address is a prefix of another:
+
+**DL-A1 (account prefix-freeness).**
+
+    (A a₁, a₂ : a₁ ∈ Σ.accounts ∧ a₂ ∈ Σ.accounts ∧ a₁ ≠ a₂ :
+      ¬prefix(a₁, a₂) ∧ ¬prefix(a₂, a₁))
+
+This follows from the tumbler hierarchy's zero-field structure: account
+addresses occupy a single level in the hierarchy, separated by zero-field
+boundaries. An account address has the form node.0.user, and no such
+address can be a proper prefix of another address at the same level —
+extending an account address crosses a zero-field boundary into the document
+level. DL-A1 is what makes the definite description below well-defined.
+
 We define the *owner* of a document as the account whose address is a
 prefix of the document's address:
 
     owner(d) = (THE a : a ∈ Σ.accounts : prefix(a, d))
 
-The uniqueness of this account follows from the tumbler hierarchy: account
-addresses are separated by zero-field boundaries that prevent one account
-from being a prefix of another. We write owner(d) throughout, understanding
-it as a function derived from the address, not stored separately.
+The existence of such an account is guaranteed by DΣ2. The uniqueness
+follows from DL-A1: if two distinct accounts a₁ and a₂ were both prefixes
+of d, then — since the tumbler ordering is hierarchical — one would
+necessarily be a prefix of the other, contradicting DL-A1. We write
+owner(d) throughout, understanding it as a function derived from the
+address, not stored separately.
 
 **DΣ3 (content).** Σ.ispace : IAddr ⇀ Byte is the permanent content store,
 a partial function from I-space addresses to content bytes. We take as
@@ -66,10 +94,29 @@ monotonically advancing counter — it never retreats:
 
     Σ.next(a) ≤ Σ'.next(a)    for all subsequent Σ' and accounts a
 
+We require that the allocation mechanism produces addresses under the
+account's own prefix:
+
+**DL-ALLOC (allocation produces subtree addresses).**
+
+    (A a : a ∈ Σ.accounts : prefix(a, Σ.next(a)))
+
+That is, the next available address under account a has a as a proper
+prefix. Since the counter only advances within the account's subtree (by
+tumbler forking, which appends sub-digits), every allocated address inherits
+the account prefix. This is what makes DL5 (ownership from address)
+derivable from the allocation mechanism.
+
 **DΣ6 (session state).** Σ.sessions : Set(SessionEntry) where each entry
 records (connection, document, access-level). This component tracks which
 documents are currently open in which sessions. It is orthogonal to document
 content.
+
+**DΣ7 (links).** For each document d ∈ Σ.docs, Σ.links(d) : Set(Link) is
+the set of links homed in d. Each link has three endsets (from, to, type),
+each being a set of I-space address spans. We state this component
+explicitly because frame conditions must address links alongside
+arrangements.
 
 
 ## Document Identity
@@ -99,17 +146,17 @@ consequence is important: a tumbler address unambiguously identifies one
 document across all time.
 
 **DL2 (address non-reuse).** Once allocated, a document address is never
-assigned to a different document:
+recycled — no future allocation produces the same address:
 
-    d ∈ Σ.docs  ⟹  (A Σ' : Σ' subsequent to Σ :
-      identity(d, Σ) = identity(d, Σ'))
+    d ∈ Σ.docs  ⟹
+      (A d' : d' is freshly allocated in any Σ' subsequent to Σ : d' ≠ d)
 
-where identity(d, Σ) denotes whatever state was associated with d at its
-creation. This follows from DL0 (the address remains in docs) together
-with the fact that no operation removes a document from docs and re-inserts
-it with different initial state. The forking mechanism that generates
-addresses only advances — there is no "reclaim" or "recycle" operation in
-the protocol.
+This follows from the monotonicity of the allocation counter (DΣ5): since
+Σ.next(a) only advances, and the fresh address is always at or beyond the
+current counter value, no previously allocated address can be produced
+again. Together with DL0 (the address remains in docs) and DL1 (addresses
+are unique), DL2 establishes that a tumbler is a permanently unique
+identifier — it denotes one document and one document only, across all time.
 
 Nelson explains the architectural rationale: "new items may be continually
 inserted in tumbler-space while the other addresses remain valid" [LM
@@ -149,10 +196,10 @@ It returns the id of the new document" [LM 4/65].
 
 We pause to note the significance. An empty document is a valid, first-class
 entity. It has an address (permanent), an owner (derived from the address),
-and an arrangement (empty). It can be linked to. It can be opened. It is a
-position in the docuverse — baptized, named, owned — waiting for content.
-Nelson's metaphor is precise: the owner "designates new addresses by
-forking" [LM 4/17], and designation precedes population.
+and an arrangement (empty). It can be opened. It is a position in the
+docuverse — baptized, named, owned — waiting for content. Nelson's metaphor
+is precise: the owner "designates new addresses by forking" [LM 4/17], and
+designation precedes population.
 
     DL5 (ownership from address):  owner(d) = a
 
@@ -162,11 +209,10 @@ because a is a prefix of d. The document at address `1.0.2.0.5` is owned by
 account `1.0.2` because `1.0.2` is its account-level prefix. No ownership
 table is consulted; the tumbler encodes the relationship structurally.
 
-Gregory's implementation confirms this: ownership is determined by
-`tumbleraccounteq`, which performs prefix matching on the tumbler mantissa —
-comparing digits until the account's double-zero terminator, then declaring
-the document to be "under" that account. The abstract property is: ownership
-is a prefix relation, not an association table.
+The derivation is: DL-ALLOC guarantees that the address produced by
+advancing Σ.next(a) has a as a proper prefix. Since owner(d) is defined as
+the unique account that is a prefix of d (DΣ2, DL-A1), and a is that
+account, we have owner(d) = a.
 
     DL6 (counter advance):  Σ'.next(a) > Σ.next(a)
 
@@ -184,10 +230,14 @@ guarantees DL3 — freshness follows from the monotonicity of allocation.
     DL-F3 (other accounts unchanged):
       (A a' : a' ∈ Σ.accounts ∧ a' ≠ a : Σ'.next(a') = Σ.next(a'))
 
+    DL-F4 (links unchanged):
+      (A d' : d' ∈ Σ.docs : Σ'.links(d') = Σ.links(d'))
+
 The frame conditions are as important as the postconditions. DL-F1 says that
 no existing document's arrangement is disturbed. DL-F2 says that no I-space
 content is created or modified. DL-F3 says that other accounts' allocation
-counters are unaffected.
+counters are unaffected. DL-F4 says that no document's links are altered —
+creating an empty document introduces no links.
 
 Nelson derives DL-F1 from three converging principles: tumbler permanence
 (addresses don't break), ownership (creating B cannot modify A, because B's
@@ -198,12 +248,9 @@ making whatever changes seem appropriate — without damaging the originals"
 principle holds a fortiori for the simpler case of creating a fresh
 empty document.
 
-Gregory's implementation corroborates: CREATENEWDOCUMENT's entire execution
-path (`do1.c:234–241`) consists of a `makehint` call and a
-`createorglingranf` call. The latter allocates an address in the granfilade
-and initialises an empty POOM. It touches neither the spanfilade nor any
-other document's orgl. The operation creates one granfilade entry and one
-empty POOM tree — nothing else.
+CREATENEWDOCUMENT's effect is entirely additive: it allocates one address
+and initialises one empty arrangement. It touches neither the content store
+nor any other document's state.
 
 
 ## The Empty Document
@@ -220,14 +267,20 @@ This is immediate: retrieval resolves V-positions through the arrangement
 mapping, and the empty mapping has no positions to resolve. An empty
 document is readable — it simply has nothing to say.
 
-**DL8 (empty document linkability).** An empty document d ∈ Σ.docs may be
-the target of a link. Links reference I-space addresses in their endsets,
-and a link may also reference the document's address as a structural
-designator (e.g., a metalink identifying document-level properties). Nelson
-confirms: if one can link to a *node* or an *account* with no stored
-content — "it is possible to link to a node, or an account, even though
-there is nothing stored in the docuverse corresponding to them" [LM 4/23] —
-then one can certainly link to a created document that happens to be empty.
+**DL8 (empty document addressability).** An empty document d ∈ Σ.docs can
+be identified by its tumbler address — it can be opened, queried, and named
+as a target of operations. However, it cannot be the target of a link's
+content endsets, because link endsets reference I-space addresses and an
+empty document has no I-space content: img(Σ.poom(d)) = ∅, so there are no
+I-addresses to reference.
+
+Nelson confirms that the system can address entities with no stored content:
+"it is possible to link to a node, or an account, even though there is
+nothing stored in the docuverse corresponding to them" [LM 4/23]. But
+"link to" here means "address" or "identify" — the entity is reachable in
+the tumbler space. For a link's endset to reference specific content within
+a document, that content must first exist. An empty document is addressable
+but not yet linkable-to at the content level.
 
 The empty state is not a degenerate case to be avoided. The typical workflow
 is CREATENEWDOCUMENT followed by INSERT to add content. Between creation and
@@ -248,8 +301,9 @@ the ownership relation holds forever:
 
 *Proof.* owner(d) is derived from d's tumbler address by prefix extraction.
 The address is immutable (DL0 — the document remains; DL2 — the address is
-never reassigned). The account set only grows (accounts are permanent). So
-the prefix relation cannot change.  ∎
+never recycled). The account set only grows (DL-A0 — accounts are
+permanent). So the witnessing account remains in Σ.accounts, and the prefix
+relation — being a structural property of the tumbler — cannot change.  ∎
 
 Nelson states the user-facing consequence: "once assigned a User account,
 the user will have full control over its subdivision forevermore" [LM 4/29].
@@ -346,39 +400,63 @@ This asymmetry has a structural consequence: owner(v) = user.account in both
 cases. When the user owns the source, this is consistent (the version lives
 under the same account). When the user does not own the source, the version
 lands in the user's own address space — reflecting that they now own this
-derivative work.
+derivative work. The owned-source case places the version as a sub-address
+(depth 1: a child of the source), while the unowned-source case allocates a
+fresh document under the user's account (depth 2: identical in structure to
+CREATENEWDOCUMENT).
 
-Gregory's implementation confirms: `docreatenewversion` (`do1.c:268–275`)
-tests `tumbleraccounteq(isaptr, wheretoputit) && isthisusersdocument(isaptr)`.
-Owned documents use `makehint(DOCUMENT, DOCUMENT, ...)` with depth=1
-(sub-address of source); unowned documents use `makehint(ACCOUNT,
-DOCUMENT, ...)` with depth=2 (new document under the user's account,
-identical to CREATENEWDOCUMENT).
+**DL15 (content sharing).** The new version's arrangement preserves the
+source's text arrangement — not merely the same set of I-addresses, but
+the same V-to-I mapping structure restricted to the text subspace:
 
-**DL15 (content sharing).** The new version's arrangement references the
-same I-space addresses as the source's text content:
+    Σ'.poom(v) = Σ.poom(source)|text
 
-    img(Σ'.poom(v)) = img(Σ.poom(source)|text)
+where f|text denotes the *domain restriction* of the arrangement mapping
+f to V-positions in the text subspace. A document's arrangement maps
+V-positions across two subspaces: text (subspace 1.x) and links (subspace
+0.x). Versioning copies the text arrangement but not the link arrangement —
+the new version begins with no links of its own. The restriction is a
+domain restriction: for each V-position p in the text subspace of the
+source, Σ'.poom(v)(p) = Σ.poom(source)(p), and the new version has no
+other mappings.
 
-where img denotes the image (the set of I-addresses referenced). Content is
-not copied — it is shared by reference through I-space addresses. Both
-documents' arrangement mappings point to the same permanent bytes.
-
-Gregory's implementation confirms: CREATENEWVERSION allocates one document
-orgl (`do1.c:281`), then `insertpm` copies existing I-addresses into the
-new POOM (`do1.c:297`). No fresh content is allocated in I-space. The
-content bytes exist once; the arrangements reference them multiply.
+A consequence is that no new I-space content is allocated. The I-addresses
+referenced by Σ'.poom(v) are exactly those already referenced by the
+source's text arrangement. Content bytes exist once in I-space;
+arrangements reference them multiply.
 
 **DL16 (source unchanged).** CREATENEWVERSION does not modify the source:
 
     Σ'.poom(source) = Σ.poom(source)
 
-The source document's arrangement, links, and content are completely
-unaffected. This is Nelson's non-destruction guarantee applied to
-versioning: "without damaging the originals" [LM 2/45]. Combined with
-DL15 (content sharing), this means the operation is purely additive — it
-creates new state (the version's document entry and arrangement) without
-altering existing state.
+The source document's arrangement is completely unaffected. This is Nelson's
+non-destruction guarantee applied to versioning: "without damaging the
+originals" [LM 2/45]. Combined with DL15 (content sharing), this means the
+operation is purely additive — it creates new state (the version's document
+entry and arrangement) without altering existing state.
+
+*Frame conditions:*
+
+    DL-V1 (existing documents unchanged):
+      (A d' : d' ∈ Σ.docs ∧ d' ≠ source :
+        Σ'.poom(d') = Σ.poom(d'))
+
+    DL-V2 (content unchanged):  Σ'.ispace = Σ.ispace
+
+    DL-V3 (other accounts unchanged):
+      (A a' : a' ∈ Σ.accounts ∧ a' ≠ user.account :
+        Σ'.next(a') = Σ.next(a'))
+
+    DL-V4 (links unchanged):
+      (A d' : d' ∈ Σ.docs : Σ'.links(d') = Σ.links(d'))
+
+DL-V1 together with DL16 covers all existing documents: the source is
+unchanged (DL16), and every other existing document is unchanged (DL-V1).
+DL-V2 says no I-space content is created — the version references existing
+I-addresses. DL-V3 says allocation counters for other accounts are
+unaffected. DL-V4 says no existing document's links are altered; the new
+version begins with an empty link set (Σ'.links(v) = ∅), which does not
+affect any existing document.
 
 **DL17 (version equality).** No version is distinguished as primary:
 
@@ -397,7 +475,7 @@ storage*: all versions are equally valid views of a shared body of content.
 ## The Session Layer
 
 We now turn to a part of the specification that Nelson deliberately left
-open and Gregory's implementation filled in. The question is: what
+open and that any implementation must address. The question is: what
 coordination is needed when multiple connections interact with documents?
 
 Nelson's 17 FEBE commands are stateless — "What the Xanadu storage and
@@ -408,10 +486,10 @@ document by tumbler address, issues a command, and receives a response.
 There is no concept of a "currently open document."
 
 Yet any implementation must address practical coordination: what happens
-when two connections attempt to modify the same document? Gregory's BERT
-(Back-End Request Token) mechanism provides the answer, and we abstract its
-properties here — not because they are Nelson's specification, but because
-they represent the minimal coordination any implementation must provide.
+when two connections attempt to modify the same document? We abstract the
+minimal coordination properties here — not because they are Nelson's
+specification, but because they represent what any implementation must
+provide to uphold the lifecycle guarantees above.
 
 **DL18 (session entry).** A session entry records a triple
 (connection, document, access-level) where access-level ∈ {READ, WRITE}:
@@ -445,9 +523,8 @@ not an error — it is a redirection. The user always succeeds in writing,
 possibly to a new document. Nelson does not specify this mechanism, but it
 is consistent with his design intent that "users may create new published
 documents out of old ones indefinitely, making whatever changes seem
-appropriate — without damaging the originals" [LM 2/45]. Gregory
-implements this through BERT's "COPYIF" mode, which automatically branches
-on write denial.
+appropriate — without damaging the originals" [LM 2/45]. The redirection
+is a session-layer policy that automatically branches on write denial.
 
 **DL21 (session orthogonality).** Session state is orthogonal to document
 content. Opening or closing a document does not alter its arrangement,
@@ -459,12 +536,9 @@ I-space content, or links:
       Σ'.docs = Σ.docs
 
 A session entry is an access control token, not a document state component.
-Gregory's implementation confirms this precisely: CLOSEDOCUMENT
-(`bert.c:325–336`) removes the BERT entry from the hash table and nothing
-else. It makes no calls to `fetchorglgr`, `orglfree`, or any function that
-touches the document's enfilade. The orgl remains in the node cache,
-protected by its `orglincore` flag, until memory pressure evicts it —
-completely independent of whether any session holds it open.
+Session operations manipulate only the session table — they do not touch
+document arrangements, the content store, or the link index. A document's
+state is entirely independent of whether any session holds it open.
 
 **DL22 (no in-place access upgrade).** A session cannot upgrade from READ
 to WRITE access on the same document:
@@ -473,17 +547,18 @@ to WRITE access on the same document:
       ¬ may_add(c, d, WRITE) to Σ'.sessions without first removing (c, d, READ)
 
 The path from reader to writer requires closing the read session and opening
-a new write session — or, under the COPYIF mode, creating a new version
-and writing to that instead. There is no mutation of the access-level field
-in an existing session entry.
+a new write session — or, under the redirection policy (DL20), creating a
+new version and writing to that instead. There is no mutation of the
+access-level field in an existing session entry.
 
-Gregory's implementation makes this vivid: the `bertentry` struct stores
-`type` (READBERT or WRITEBERT) which is set once at allocation
-(`bert.c:145`) and never modified. The `checkforopen` function
-(`bert.c:52–87`) returns -1 (denied) when a WRITEBERT request encounters
-the same connection's existing READBERT entry — the function returns before
-it even examines other connections' entries. The denial is triggered by
-the requester's *own* prior read access.
+The abstract justification is that session entries are immutable tokens: a
+session is created with a fixed access level and destroyed as a unit. This
+is the minimal property needed to prevent a read-to-write escalation from
+bypassing write exclusivity (DL19) — if a reader could silently become a
+writer, two writers could coexist (one original, one upgraded). The denial
+applies even when the requesting connection is the one already holding the
+read entry: the requester's *own* prior read session blocks the write
+request.
 
 
 ## Publication Boundary
@@ -545,13 +620,25 @@ Formally, for any d' ∈ Σ.docs:
 
     Σ'.poom(d') = Σ.poom(d')                           — arrangement preserved
     ∧ Σ'.ispace|dom(Σ.ispace) = Σ.ispace               — content preserved
-    ∧ links_homed_in(d', Σ') = links_homed_in(d', Σ)   — links preserved
 
-*Proof.* CREATENEWDOCUMENT: by DL-F1 and DL-F2 directly.
-CREATENEWVERSION: by DL16 (source unchanged) and the frame condition that
-all documents other than the source and the new version are unaffected. The
-new version is fresh (DL13), so it is not in Σ.docs and the quantification
-over Σ.docs excludes it. ∎
+*Proof.* CREATENEWDOCUMENT: by DL-F1 (arrangements unchanged) and DL-F2
+(I-space unchanged) directly.
+
+CREATENEWVERSION: for d' = source, DL16 gives Σ'.poom(source) =
+Σ.poom(source). For d' ≠ source, DL-V1 gives Σ'.poom(d') = Σ.poom(d').
+So all existing documents' arrangements are preserved. DL-V2 gives
+Σ'.ispace = Σ.ispace, so I-space content is preserved.
+
+The new version is fresh (DL13), so it is not in Σ.docs and the
+quantification over d' ∈ Σ.docs excludes it.  ∎
+
+*Note on links.* The frame conditions DL-F4 and DL-V4 establish that
+neither operation modifies any existing document's link set. We could
+strengthen DL-ISO to include Σ'.links(d') = Σ.links(d'), and the proof
+would follow directly from these frame conditions. We state this separately
+because DΣ7 (the link state component) was introduced for this purpose, and
+the link isolation property depends entirely on the frame conditions rather
+than any deeper structural argument.
 
 The isolation guarantee follows from four converging principles: tumbler
 permanence (addresses never invalidated), ownership exclusivity (creating B
@@ -559,6 +646,76 @@ cannot touch A if B's creator does not own A), I-space immutability (content
 never changes), and the append-only address space (new documents are added,
 never substituted). Nelson does not state isolation as a single axiom, but
 it is a necessary consequence of his architectural choices.
+
+
+## Worked Example
+
+We verify the properties against a concrete scenario.
+
+*Initial state Σ₀.* Account `1.0.2` exists: `1.0.2` ∈ Σ₀.accounts.
+Account `1.0.3` exists: `1.0.3` ∈ Σ₀.accounts. Both allocation counters
+are at their initial values: Σ₀.next(`1.0.2`) = `1.0.2.0.1`,
+Σ₀.next(`1.0.3`) = `1.0.3.0.1`. The document set, I-space, and link
+sets are all empty.
+
+*Step 1: CREATENEWDOCUMENT(`1.0.2`) → Σ₁.*
+
+Check PRE-DOC: `1.0.2` ∈ Σ₀.accounts. ✓
+
+This produces document d₁ = `1.0.2.0.1`.
+
+- DL3 (fresh): `1.0.2.0.1` ∈ Σ₁.docs ∧ `1.0.2.0.1` ∉ Σ₀.docs. ✓
+- DL4 (empty): dom(Σ₁.poom(d₁)) = ∅. ✓
+- DL5 (ownership): owner(d₁) = `1.0.2`, because prefix(`1.0.2`, `1.0.2.0.1`). ✓
+  (DL-ALLOC guarantees the allocated address has the account prefix.)
+- DL6 (counter): Σ₁.next(`1.0.2`) = `1.0.2.0.2` > `1.0.2.0.1`. ✓
+- DL-F2 (content unchanged): Σ₁.ispace = Σ₀.ispace = ∅. ✓
+- DL-F3 (other accounts): Σ₁.next(`1.0.3`) = `1.0.3.0.1` = Σ₀.next(`1.0.3`). ✓
+- DL-F4 (links unchanged): no links exist; Σ₁.links = Σ₀.links. ✓
+
+*Step 2: INSERT into d₁ — content "AB" at position 1.* This produces Σ₂.
+
+The INSERT operation allocates two I-space addresses (say i₁, i₂) with
+Σ₂.ispace(i₁) = 'A' and Σ₂.ispace(i₂) = 'B', and sets Σ₂.poom(d₁)
+to map V-position 1 → i₁, V-position 2 → i₂.
+
+Now dom(Σ₂.poom(d₁)) = {1, 2} and img(Σ₂.poom(d₁)) = {i₁, i₂}.
+
+*Step 3: CREATENEWVERSION(d₁, user `1.0.2`) → Σ₃.* Same owner versions.
+
+- DL13 (fresh): produces v₁ = `1.0.2.0.1.0.1`. v₁ ∈ Σ₃.docs ∧ v₁ ∉ Σ₂.docs. ✓
+- DL14 (address placement, same owner): v₁ = d₁ ∥ `0.1`, so
+  prefix(`1.0.2.0.1`, `1.0.2.0.1.0.1`). The version is a sub-address of the source. ✓
+- DL5 (ownership): owner(v₁) = `1.0.2` (the same account). ✓
+- DL15 (content sharing): Σ₃.poom(v₁) = Σ₂.poom(d₁)|text. Since d₁ has
+  only text content (no links), this is Σ₃.poom(v₁) = Σ₂.poom(d₁):
+  V-position 1 → i₁, V-position 2 → i₂. Same mapping, same I-addresses. ✓
+- DL16 (source unchanged): Σ₃.poom(d₁) = Σ₂.poom(d₁). ✓
+- DL-V2 (content unchanged): Σ₃.ispace = Σ₂.ispace. No new I-addresses allocated. ✓
+- DL-V4 (links unchanged): Σ₃.links(d₁) = Σ₂.links(d₁). ✓
+
+*Step 4: CREATENEWVERSION(d₁, user `1.0.3`) → Σ₄.* Cross-user versioning.
+
+User `1.0.3` does not own d₁, so the version is allocated under `1.0.3`:
+
+- DL13 (fresh): produces v₂ = `1.0.3.0.1`. v₂ ∈ Σ₄.docs ∧ v₂ ∉ Σ₃.docs. ✓
+- DL14 (address placement, different owner):
+  prefix(`1.0.3`, `1.0.3.0.1`) ∧ ¬prefix(`1.0.2.0.1`, `1.0.3.0.1`).
+  The version lives under the versioning user's account, not the source's. ✓
+- DL5 (ownership): owner(v₂) = `1.0.3`. The cross-user versioner owns
+  their derivative. ✓
+- DL15 (content sharing): Σ₄.poom(v₂) = Σ₃.poom(d₁)|text. Same
+  I-addresses i₁, i₂. Content is shared, not copied. ✓
+- DL16 (source unchanged): Σ₄.poom(d₁) = Σ₃.poom(d₁). ✓
+- DL-V1 (other documents): Σ₄.poom(v₁) = Σ₃.poom(v₁). The earlier
+  version is also unaffected. ✓
+- DL-V3 (other accounts): Σ₄.next(`1.0.2`) = Σ₃.next(`1.0.2`). Account
+  `1.0.2`'s counter is unaffected by `1.0.3`'s allocation. ✓
+
+*Final state.* Σ₄.docs = {d₁, v₁, v₂}. All three documents reference
+the same I-space content {i₁, i₂}. d₁ and v₁ are owned by `1.0.2`; v₂
+is owned by `1.0.3`. No document's creation disturbed any other's state.
+DL-ISO holds at every step.
 
 
 ## Properties Introduced
@@ -571,28 +728,37 @@ it is a necessary consequence of his architectural choices.
 | DΣ4 | Σ.poom(d) : VPos ⇀ IAddr — arrangement mapping per document | introduced |
 | DΣ5 | Σ.next : Tumbler → Tumbler — per-account allocation counter, monotonically advancing | introduced |
 | DΣ6 | Σ.sessions : Set(connection, document, access-level) — session state | introduced |
+| DΣ7 | Σ.links(d) : Set(Link) — links homed in each document | introduced |
+| DL-A0 | a ∈ Σ.accounts ⟹ a ∈ Σ'.accounts — account permanence | introduced |
+| DL-A1 | no account address is a prefix of another — prefix-freeness | introduced |
+| DL-ALLOC | Σ.next(a) produces addresses with prefix(a, _) — allocation stays in account subtree | introduced |
 | owner(d) | owner(d) = (THE a : a ∈ Σ.accounts : prefix(a, d)) — ownership derived from address prefix | introduced |
 | DL0 | d ∈ Σ.docs ⟹ d ∈ Σ'.docs — document identity is permanent | introduced |
 | DL1 | distinct documents have distinct addresses | introduced |
-| DL2 | allocated addresses are never reassigned to different documents | introduced |
+| DL2 | allocated addresses are never recycled — no future allocation reuses a past address | introduced |
 | PRE-DOC | CREATENEWDOCUMENT requires only a ∈ Σ.accounts | introduced |
 | DL3 | CREATENEWDOCUMENT produces a fresh address: d ∈ Σ'.docs ∧ d ∉ Σ.docs | introduced |
 | DL4 | freshly created document has empty arrangement: dom(Σ'.poom(d)) = ∅ | introduced |
-| DL5 | owner(d) = a — ownership derived from address at creation | introduced |
+| DL5 | owner(d) = a — ownership derived from DL-ALLOC and prefix structure | introduced |
 | DL6 | allocation counter strictly advances on creation | introduced |
 | DL-F1 | existing documents' arrangements unchanged by CREATENEWDOCUMENT | introduced |
 | DL-F2 | I-space unchanged by CREATENEWDOCUMENT | introduced |
 | DL-F3 | other accounts' counters unchanged by CREATENEWDOCUMENT | introduced |
+| DL-F4 | existing documents' links unchanged by CREATENEWDOCUMENT | introduced |
 | DL7 | retrieval from an empty document returns the empty sequence | introduced |
-| DL8 | an empty document may be the target of a link | introduced |
-| DL9 | ownership is permanent — owner(d) never changes | introduced |
+| DL8 | an empty document is addressable but not linkable-to at the content level | introduced |
+| DL9 | ownership is permanent — owner(d) never changes (proof from DL0, DL2, DL-A0) | introduced |
 | DL10 | only the owner may modify a document's arrangement | introduced |
 | DL11 | owner controls out-links (links homed in the document) | introduced |
 | DL12 | publication relinquishes owner control over linking, transclusion, and withdrawal | introduced |
 | DL13 | CREATENEWVERSION produces a fresh document | introduced |
 | DL14 | version address encodes derivation (sub-address of source if same owner; user's account otherwise) | introduced |
-| DL15 | version shares I-space addresses with source's text content (no new allocation) | introduced |
+| DL15 | version's text arrangement equals source's text arrangement (domain restriction to text subspace) | introduced |
 | DL16 | CREATENEWVERSION does not modify the source document | introduced |
+| DL-V1 | existing documents' (other than source) arrangements unchanged by CREATENEWVERSION | introduced |
+| DL-V2 | I-space unchanged by CREATENEWVERSION | introduced |
+| DL-V3 | other accounts' counters unchanged by CREATENEWVERSION | introduced |
+| DL-V4 | existing documents' links unchanged by CREATENEWVERSION | introduced |
 | DL17 | no operation distinguishes "primary" vs "derivative" versions | introduced |
 | DL18 | session entry is (connection, document, access-level) | introduced |
 | DL19 | at most one write session per document at any time | introduced |
@@ -602,7 +768,7 @@ it is a necessary consequence of his architectural choices.
 | DL23 | publication is voluntary — only owner initiates | introduced |
 | DL24 | publication is near-permanent — withdrawal requires extraordinary process | introduced |
 | DL25 | publication grants universal read/link/transclude access but not modification | introduced |
-| DL-ISO | neither creation operation modifies any existing document's observable state (theorem) | introduced |
+| DL-ISO | neither creation operation modifies any existing document's arrangement or I-space (theorem) | introduced |
 
 
 ## Open Questions
