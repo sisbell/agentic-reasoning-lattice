@@ -32,7 +32,6 @@ WORKSPACE = Path(__file__).resolve().parent.parent
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts"
 INQUIRIES_PATH = WORKSPACE / "vault" / "inquiries.yaml"
 CONSULT_DIR = WORKSPACE / "vault" / "consultations"
-TRANSCRIPTS_DIR = WORKSPACE / "vault" / "transcripts"
 USAGE_LOG = WORKSPACE / "vault" / "usage-log.jsonl"
 NELSON_SCRIPT = WORKSPACE / "scripts" / "consult-nelson.py"
 TEST_HARNESS = WORKSPACE / "udanax-test-harness"
@@ -408,13 +407,6 @@ def run_consultations(questions, asn_label, output_dir):
                 combined = kb_answer or code_answer or "[No answer produced]"
 
             results[i] = (authority, question, combined)
-
-            # Save Gregory transcript
-            ts = datetime.now().strftime("%Y%m%d-%H%M%S")
-            transcript_dir = TRANSCRIPTS_DIR / f"{asn_label}-gregory-{ts}"
-            transcript_dir.mkdir(parents=True, exist_ok=True)
-            (transcript_dir / "question.md").write_text(question + "\n")
-            (transcript_dir / "answer.md").write_text(combined + "\n")
 
         print(f"  [PHASE 2] All done", file=sys.stderr)
 

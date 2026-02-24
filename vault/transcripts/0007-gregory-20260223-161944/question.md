@@ -1,1 +1,0 @@
-When FOLLOWLINK resolves a link's source endset to V-addresses via `span2spanset`, and only half the endset's I-address range is currently referenced by any POOM, does it return the reachable half as a partial VSpec or does it discard the entire endset?

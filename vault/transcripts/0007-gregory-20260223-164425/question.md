@@ -1,1 +1,0 @@
-When `link2sporglset` extracts I-addresses from a link orgl's three endsets, does it preserve the endset boundary (source vs target vs type) in the sporgl structures, or are all three endsets flattened into a single sporgl set for spanfilade search?

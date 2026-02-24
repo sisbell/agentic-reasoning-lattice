@@ -1,1 +1,0 @@
-If a document is versioned via CREATENEWVERSION and then a link is created on the original with source content shared by both documents, does find_links from the VERSION discover this after-the-fact link through the shared I-addresses?
