@@ -165,6 +165,8 @@ def main():
                         help="Enable tool access to read Literary Machines page images")
     parser.add_argument("--asn", default=None,
                         help="ASN number for consultation log naming")
+    parser.add_argument("--no-transcript", action="store_true",
+                        help="Skip saving to vault/transcripts/ (used by pipeline)")
     args = parser.parse_args()
 
     if args.stdin:
@@ -177,14 +179,16 @@ def main():
     if not question:
         parser.error("Empty question")
 
-    # Create consultation log directory
-    ts = datetime.now().strftime("%Y%m%d-%H%M%S")
-    prefix = f"ASN-{args.asn}" if args.asn else "adhoc"
-    consult_dir = TRANSCRIPTS_DIR / f"{prefix}-nelson-{ts}"
-    consult_dir.mkdir(parents=True, exist_ok=True)
-
-    # Save the question
-    (consult_dir / "question.md").write_text(question + "\n")
+    # Create transcript directory (unless suppressed by pipeline)
+    consult_dir = None
+    answer_file = None
+    if not args.no_transcript:
+        ts = datetime.now().strftime("%Y%m%d-%H%M%S")
+        prefix = f"ASN-{args.asn}" if args.asn else "adhoc"
+        consult_dir = TRANSCRIPTS_DIR / f"{prefix}-nelson-{ts}"
+        consult_dir.mkdir(parents=True, exist_ok=True)
+        (consult_dir / "question.md").write_text(question + "\n")
+        answer_file = consult_dir / "answer.md"
 
     label = "[NELSON+PNG]" if args.with_png else "[NELSON]"
     print(f"  {label} pre-loading all sources...", file=sys.stderr)
@@ -193,15 +197,16 @@ def main():
     print(f"  Prompt: {prompt_size / 1024:.0f}KB ({prompt_size // 4:.0f} tokens est.)",
           file=sys.stderr)
 
-    answer_file = consult_dir / "answer.md"
     answer = invoke_claude(prompt, args.model, args.effort,
                            allow_tools=args.with_png,
                            output_file=answer_file)
 
-    # Print the output file path (small stdout — avoids Bash capture bug)
-    print(str(answer_file))
-
-    print(f"  [LOG] {consult_dir}", file=sys.stderr)
+    # Print the answer to stdout (when no transcript, pipeline reads this)
+    if answer_file:
+        print(str(answer_file))
+        print(f"  [LOG] {consult_dir}", file=sys.stderr)
+    else:
+        print(answer)
 
 
 if __name__ == "__main__":

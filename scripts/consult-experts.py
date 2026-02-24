@@ -220,6 +220,7 @@ def run_nelson(question, question_num, asn_label, output_dir):
         sys.executable, str(NELSON_SCRIPT),
         "--effort", "max",
         "--asn", asn_label,
+        "--no-transcript",
         question,
     ]
 
@@ -245,15 +246,14 @@ def run_nelson(question, question_num, asn_label, output_dir):
         if line.strip():
             print(f"  [{label}] {line.strip()}", file=sys.stderr)
 
-    # stdout has the output file path
-    answer_path = result.stdout.strip()
-    if answer_path and Path(answer_path).exists():
-        answer = Path(answer_path).read_text()
+    # stdout has the answer text (--no-transcript mode)
+    answer = result.stdout.strip()
+    if answer:
         print(f"  [{label}] Done ({elapsed:.0f}s, {len(answer)} chars)",
               file=sys.stderr)
         return answer
 
-    print(f"  [{label}] No answer file ({elapsed:.0f}s)", file=sys.stderr)
+    print(f"  [{label}] No answer ({elapsed:.0f}s)", file=sys.stderr)
     return "[No answer produced]"
 
 
