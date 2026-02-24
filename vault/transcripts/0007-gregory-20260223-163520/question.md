@@ -1,0 +1,1 @@
+When REARRANGE fragments a link's endset across non-contiguous V-positions within the same document, does subsequent find_links using a VSpec covering only ONE of the fragments still discover the link, or must the query span overlap ALL fragments?

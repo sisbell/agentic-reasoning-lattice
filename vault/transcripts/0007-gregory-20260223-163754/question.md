@@ -1,0 +1,1 @@
+After DELETE removes content that a link's type endset references, making the type endset unresolvable to any V-address, does the link still appear in find_links results when querying by source or target content that IS still referenced?

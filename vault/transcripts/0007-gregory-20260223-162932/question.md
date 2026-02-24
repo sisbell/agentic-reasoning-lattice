@@ -1,0 +1,1 @@
+When a link's source endset content exists in three documents simultaneously (original + two transclusions sharing the same I-addresses), does FOLLOWLINK return V-addresses from all three documents, or only from the document used in the find_links query?

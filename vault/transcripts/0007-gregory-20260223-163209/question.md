@@ -1,0 +1,1 @@
+Are the three endsets (source, target, type) resolved independently during FOLLOWLINK — can the source endset resolve successfully while the target endset returns empty because its content was deleted from all POOMs?

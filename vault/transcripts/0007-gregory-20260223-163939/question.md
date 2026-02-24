@@ -1,0 +1,1 @@
+When `insertendsetsinspanf` indexes a link's endsets in the spanfilade, does it create one spanfilade entry per endset or one entry per I-span within each endset — i.e., if the source endset contains two non-contiguous I-ranges, how many spanfilade entries result?

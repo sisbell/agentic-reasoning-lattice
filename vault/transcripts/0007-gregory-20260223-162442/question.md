@@ -1,0 +1,1 @@
+If INSERT splits a contiguous I-address range that a link's target endset references — say endset covers I:[.0.1.3,.0.1.7] and INSERT at V:1.5 pushes .0.1.5-.0.1.7 to non-contiguous V-positions — does RETRIEVEENDSETS return one VSpec or two VSpecs for that endset?

@@ -1,0 +1,1 @@
+Does the system guarantee that a link created with a multi-span source endset (e.g., two disjoint VSpecs from different parts of the same document) stores those spans in endset-order in the link orgl, and does RETRIEVEENDSETS return them in that same order?
