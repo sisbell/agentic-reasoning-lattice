@@ -101,6 +101,27 @@ ENF0 is not a choice among alternatives; it is forced by the sequential
 traversal algorithm. Any structure that navigates by offset accumulation
 requires exact additive composition.
 
+But ENF0 alone does not suffice for traversal correctness. We need a
+structural guarantee about how the children's ranges relate to each other
+and to the parent.
+
+**ENF0' (Sequential partition).** For a sequential enfilade with internal
+node n having children c₁, ..., cₖ in order, child cᵢ covers the address
+range [Lᵢ, Lᵢ + w(cᵢ)) where Lᵢ = (+ j : 1 ≤ j < i : w(cⱼ)). These
+ranges are pairwise disjoint and their union is [0, w(n)):
+
+    (a) (A i, j : 1 ≤ i < j ≤ k : [Lᵢ, Lᵢ + w(cᵢ)) ∩ [Lⱼ, Lⱼ + w(cⱼ)) = ∅)
+    (b) (A p : 0 ≤ p < w(n) : (E! i : 1 ≤ i ≤ k : Lᵢ ≤ p < Lᵢ + w(cᵢ)))
+
+ENF0' is logically independent of ENF0 — one could have additive widths
+over overlapping ranges, and the sum would still be correct while the
+traversal would miss entries in the overlap. The offset-accumulation
+traversal locates child cᵢ at position [Lᵢ, Lᵢ + w(cᵢ)). If a leaf at
+position p falls within the overlap of two children, only the first child
+encountered (leftmost) would be descended into. The partition property
+guarantees that exactly one child covers each position, so no qualifying
+leaf can be hidden behind a sibling that the traversal has already passed.
+
 **The multi-dimensional case.** The arrangement mapping (virtual positions
 to permanent addresses) is two-dimensional: each entry has both a V-address
 (position in the document) and an I-address (identity of the content). An
@@ -128,27 +149,26 @@ parent's width may exceed the total content of its subtree — the bounding
 box may cover empty regions between children. This is acceptable because
 multi-dimensional traversal does not use offset accumulation. Each child
 carries its own absolute displacement, and the traversal checks each
-child's interval independently against the query. A tight bounding box
-serves only for pruning: if the query does not intersect the parent's
-bounding box, no child can contain a qualifying entry. A loose bounding box
+child's interval independently against the query. A loose bounding box
 would still be *correct* — no qualifying entries would be missed — but
 would degrade pruning efficiency by causing unnecessary descent into empty
-subtrees. The system requires tightness for efficiency, not for
-correctness.
+subtrees.
 
 Gregory's implementation maintains exact tightness. The function
 `setwispnd` computes `mindsp = min(children.cdsp)` componentwise, absorbs
 it into the parent's displacement, normalises all children by subtracting
 it, then computes `cwid = max(child.cdsp + child.cwid)`. This produces the
-minimal bounding box. The bounding-box invariant also underpins the
-emptiness predicate — an enfilade is empty when both displacement and width
-are zero — so a loose box would break the empty-detection contract.
+minimal bounding box.
 
 We observe the critical asymmetry: ENF0 (additive) is a *correctness*
-requirement for sequential enfilades, while ENF1 (bounding-box) is a
-*correctness* requirement for emptiness detection and a *performance*
-requirement for range-query pruning in multi-dimensional enfilades. Any
-reimplementation must respect this distinction.
+requirement for sequential enfilades, while ENF1 (bounding-box) tightness
+is a structural invariant that serves two purposes: it maintains
+ENF4-GLOBAL (root displacement = minimum leaf address), which is needed for
+the normalisation chain to work correctly; and it enables efficient pruning
+of non-qualifying subtrees during range queries. A loose bounding box would
+not cause a qualifying leaf to be missed (the traversal checks every child
+independently), but it would break the ENF4-GLOBAL derivation and degrade
+pruning. Any reimplementation must respect this distinction.
 
 
 ## The displacement algebra
@@ -175,32 +195,50 @@ path n₀, n₁, ..., nₕ = ℓ:
 
     absolute_addr(ℓ) = disp(n₀) ⊕ disp(n₁) ⊕ ... ⊕ disp(nₕ)
 
-where ⊕ is an associative binary operation on displacements. Associativity
-is required so that the order of grouping along the path does not matter —
-we must be able to combine partial sums without affecting the result.
+where (D, ⊕, 0) is a commutative monoid — that is, ⊕ is associative,
+commutative, and has identity element 0. Associativity is required so that
+the order of grouping along the path does not matter. Commutativity is
+required by the normalisation step: when the minimum child displacement min
+is absorbed into the parent, the new path to a leaf through child c
+computes (parent ⊕ min) ⊕ (child ⊖ min). Setting x = child ⊖ min, the
+right-inverse property (ENF3 below) gives x ⊕ min = child, so the new
+address is parent ⊕ (min ⊕ x). The old address is parent ⊕ child =
+parent ⊕ (x ⊕ min). These are equal only if min ⊕ x = x ⊕ min. The same
+requirement arises in re-homing: the round-trip Q.disp ⊕ ((P.disp ⊕
+child.disp) ⊖ Q.disp) must equal P.disp ⊕ child.disp, which again
+demands commutativity. The identity element 0 is required by ENF4: the
+normalisation invariant asserts that at least one child has displacement 0,
+and for this to be well-defined we need 0 ⊕ a = a ⊕ 0 = a for all a ∈ D.
 
-But associativity and a binary operation do not suffice. The structure must
-also *normalise* displacements during rebalancing: when the minimum
-displacement among a node's children is non-zero, that minimum is absorbed
-into the parent's displacement and subtracted from each child's. This
-normalisation preserves absolute addresses while establishing the invariant
-that at least one child has zero displacement.
+But a commutative monoid does not suffice. The structure must also
+*normalise* displacements during rebalancing: when the minimum displacement
+among a node's children is non-zero, that minimum is absorbed into the
+parent's displacement and subtracted from each child's. This normalisation
+preserves absolute addresses while establishing the invariant that at least
+one child has zero displacement.
 
 The normalisation step requires:
 
-    (parent_disp + min_child_disp) ⊕ (child_disp ⊖ min_child_disp) = parent_disp ⊕ child_disp
+    (parent_disp ⊕ min_child_disp) ⊕ (child_disp ⊖ min_child_disp) = parent_disp ⊕ child_disp
 
-which reduces to requiring that ⊖ inverts ⊕:
+which reduces to requiring that ⊖ is a right inverse for ⊕:
 
     (a ⊖ b) ⊕ b = a
 
-This is the *cancellation* property. Without it, the round-trip through
-normalisation would corrupt absolute addresses. We state:
+This is the *right-inverse property*: subtracting b and then adding b
+recovers the original. Without it, the round-trip through normalisation
+would corrupt absolute addresses. We state:
 
-**ENF3 (Displacement cancellation).** The displacement algebra (D, ⊕, ⊖)
-satisfies left cancellation:
+**ENF3 (Displacement right-inverse).** The displacement algebra (D, ⊕, ⊖,
+0) satisfies:
 
     (A a, b ∈ D :: (a ⊖ b) ⊕ b = a)
+
+That is, ⊖ is a right inverse of ⊕. As a consequence, standard
+cancellation follows: from (a ⊖ b) ⊕ b = a and commutativity of ⊕, we
+get b ⊕ (a ⊖ b) = a, and therefore c ⊕ a = c ⊕ b implies a = b (left
+cancellation). But the right-inverse property is the primitive requirement;
+cancellation is derived.
 
 ENF3 is also required when children are re-homed during rebalancing. When a
 child moves from parent P to parent Q, the system computes the child's
@@ -210,34 +248,39 @@ child's absolute address to be preserved, we need:
 
     ((P.disp ⊕ child.disp) ⊖ Q.disp) ⊕ Q.disp = P.disp ⊕ child.disp
 
-which is exactly cancellation again.
+which is exactly the right-inverse property again.
 
 Gregory's implementation reveals a subtlety. The tumbler arithmetic is
-*not universally cancellative*. The subtraction function `strongsub` has a
+*not universal* in this regard. The subtraction function `strongsub` has a
 guarded case: when the subtrahend has a finer hierarchical level (smaller
 exponent) than the minuend, it returns the minuend unchanged. This means
 `a ⊖ b = a` when b's level is finer than a's, so `(a ⊖ b) ⊕ b = a ⊕ b ≠
-a` in general. The cancellation property holds only when the operands are
+a` in general. The right-inverse property holds only when the operands are
 at the same hierarchical level.
 
 This is not a defect — it is the mechanism that enforces subspace isolation.
 Operations within the text subspace produce displacements at one level;
 operations within the link subspace produce displacements at another. The
-non-cancellative cross-level arithmetic prevents a text-space shift from
+non-invertible cross-level arithmetic prevents a text-space shift from
 accidentally affecting link-space addresses. But it means the abstract
 specification must qualify ENF3:
 
-**ENF3' (Restricted cancellation).** Cancellation holds within the
-operational domain: for displacements a, b produced by operations in the
-same subspace (same hierarchical level), (a ⊖ b) ⊕ b = a. The structure
-never forms sums of displacements across subspace boundaries in its
-normalisation or re-homing operations.
+**ENF3' (Restricted right-inverse).** The right-inverse property holds
+within the operational domain: for displacements a, b produced by
+operations in the same subspace (same hierarchical level), (a ⊖ b) ⊕ b =
+a. The structure never forms sums of displacements across subspace
+boundaries in its normalisation or re-homing operations.
 
 This restriction is satisfied by construction — all children of a given
 node cover addresses in the same subspace — rather than by a runtime
 check. Any reimplementation must either use an algebra with universal
-cancellation, or must similarly guarantee that cross-subspace sums never
+right-inverse, or must similarly guarantee that cross-subspace sums never
 arise in structural operations.
+
+To summarise: the full displacement algebra is (D, ⊕, ⊖, 0) where (D, ⊕,
+0) is a commutative monoid with identity 0, and ⊖ satisfies ENF3 (right-
+inverse) within same-subspace operands (ENF3'). Under the ENF3' restriction
+this is a partial commutative group.
 
 
 ## The normalisation invariant
@@ -255,11 +298,7 @@ displacement absorbs the collective minimum of its children.
 
 This invariant is maintained by the composition law ENF1: whenever
 `setwispnd` runs, it subtracts the minimum from all children and adds it
-to the parent. The property holds inductively — if children's displacements
-are already normalised (their own children have the zero-minimum property),
-then the minimum of children's displacements accurately reflects the
-minimum absolute address in each child's subtree. Finding the minimum of
-direct children therefore finds the minimum of the entire subtree.
+to the parent.
 
 **ENF4-GLOBAL (Root displacement is subtree minimum).** For the root r of
 a multi-dimensional enfilade:
@@ -267,18 +306,43 @@ a multi-dimensional enfilade:
     disp(r) = (min ℓ : ℓ is a leaf of r's subtree : absolute_addr(ℓ))
                                                          (componentwise)
 
-*Derivation.* The local invariant ENF4 says that at every internal node,
-one child has displacement 0. The child with displacement 0 at the root
-level is the child whose subtree contains the minimum-addressed leaf. That
-child's own displacement was already the minimum of its subtree's leaves
-(by the inductive application of ENF4 at lower levels). So the root's
-displacement, which absorbed all the successive minima from bottom to top,
-equals the global minimum leaf address.
+*Proof by induction on tree height.* Define min_leaf(n) = (min ℓ : ℓ in
+n's subtree : absolute_addr(ℓ)) for any node n. We show that min_leaf(n) =
+absolute_disp(n) for every internal node n, where absolute_disp(n) is the
+sum of displacements along the path from root to n.
 
-This is not merely a convenience. The root's displacement and width
-together form the bounding box of the entire enfilade, and the emptiness
-check depends on both being zero for an empty structure. ENF4-GLOBAL
-ensures the bounding box is tight.
+*Base case.* Let n be an internal node at the lowest level, so n's children
+c₁, ..., cₖ are leaves. Then:
+
+    min_leaf(n)
+    = (min i : 1 ≤ i ≤ k : absolute_addr(cᵢ))
+    = (min i : 1 ≤ i ≤ k : absolute_disp(n) ⊕ disp(cᵢ))
+
+Since ⊕ is a commutative monoid and displacement components are
+non-negative, the minimum distributes over ⊕:
+
+    = absolute_disp(n) ⊕ (min i : 1 ≤ i ≤ k : disp(cᵢ))
+    = absolute_disp(n) ⊕ 0                                   {by ENF4}
+    = absolute_disp(n)
+
+*Inductive step.* Let n be an internal node at height h > 1, and assume
+the result holds for all internal nodes at height < h. Then:
+
+    min_leaf(n)
+    = (min i : 1 ≤ i ≤ k : min_leaf(cᵢ))
+    = (min i : 1 ≤ i ≤ k : absolute_disp(cᵢ))               {by IH}
+    = (min i : 1 ≤ i ≤ k : absolute_disp(n) ⊕ disp(cᵢ))
+    = absolute_disp(n) ⊕ (min i : 1 ≤ i ≤ k : disp(cᵢ))
+    = absolute_disp(n) ⊕ 0                                   {by ENF4}
+    = absolute_disp(n)
+
+*At the root:* absolute_disp(root) = disp(root), since the root has no
+ancestors. Therefore disp(root) = min_leaf(root). ∎
+
+ENF4-GLOBAL ensures the root's bounding box is tight — it starts at the
+true minimum leaf address. Combined with ENF1 (which gives the extent from
+minimum to maximum), this means the root's displacement and width describe
+the exact bounding box of the entire enfilade.
 
 We note that ENF4 is specific to multi-dimensional enfilades. Sequential
 enfilades do not store child displacements at all — the position of each
@@ -295,7 +359,7 @@ correctly. We now state what "correctly" means.
 **ENF5 (Range query completeness).** For any interval Q = [p, q) in
 address space A and any enfilade E:
 
-    result(E, Q) = { e ∈ leaves(E) : span(e) ∩ Q ≠ ∅ }
+    result(E, Q) ⊇ { e ∈ leaves(E) : span(e) ∩ Q ≠ ∅ }
 
 Every leaf whose address range overlaps Q is included in the result. No
 qualifying leaf is omitted.
@@ -306,26 +370,37 @@ the next property). ENF5 must hold regardless of the tree's shape — after
 any sequence of insertions, splits, rebalances, and deletions.
 
 The composition laws ENF0 and ENF1 are what make ENF5 achievable through
-hierarchical pruning rather than exhaustive search. We can verify ENF5 by
-showing that the pruning criteria are *conservative* — they never discard a
-subtree that contains a qualifying leaf.
+hierarchical pruning rather than exhaustive search. We state ENF5 as an
+axiom that any correct implementation must satisfy, and show that the
+structural invariants make it achievable — that is, that the pruning
+criteria implied by ENF0/ENF0'/ENF1 are conservative.
 
-*For sequential enfilades under ENF0:* The traversal accumulates an offset
-and compares the query address to `[offset, offset + w(child))`. If a leaf
-at absolute position p is within Q, then its parent's width covers p
-(because the parent's width is the sum of children's widths, and the
-children partition the parent's range). By induction upward, every ancestor
-of a qualifying leaf has a range that intersects Q. The traversal descends
-into every such ancestor. Therefore no qualifying leaf is missed.
+*For sequential enfilades:* The structural invariants ENF0 and ENF0'
+guarantee that no qualifying leaf can be hidden behind a pruning decision.
+ENF0' establishes that each leaf has a unique position within exactly one
+child's range. ENF0 ensures that the accumulated offset correctly locates
+each child's range. Therefore a traversal that descends into every child
+whose range [Lᵢ, Lᵢ + w(cᵢ)) intersects Q will reach all qualifying
+leaves. Two obligations fall on any correct traversal algorithm: (i) it
+must visit *all* children whose ranges overlap Q (not just the first), and
+(ii) after descending into a qualifying child and returning, it must
+continue scanning rightward to find subsequent qualifying children. The
+offset-accumulation walk satisfies both by scanning the full sibling
+sequence, but these are obligations on the traversal, not consequences of
+the structural invariants alone. ENF5 constrains the *result*; the
+structural invariants constrain the *representation*; a correct traversal
+is the bridge between them.
 
-*For multi-dimensional enfilades under ENF1:* The traversal checks each
-child's bounding box against Q using `whereoncrum`. If a leaf at address p
-is within Q, then p lies within the child's bounding box (since the
-bounding box is the hull of all descendants' ranges), and the child's
-bounding box lies within the parent's (since the parent's box is the hull
-of children's boxes). By induction, every ancestor's bounding box
-intersects Q. The traversal tests every child at each level and descends
-into all qualifying subtrees. No qualifying leaf is skipped.
+*For multi-dimensional enfilades:* The structural invariant ENF1 guarantees
+that every leaf's address lies within its ancestor's bounding box at every
+level. If a leaf at address p lies within Q, then p lies within its
+parent's bounding box, which lies within the grandparent's, and so on up to
+the root. Therefore a traversal that descends into every child whose
+bounding box intersects Q will reach all qualifying leaves. The obligation
+on a correct traversal is to check *every* child at each internal node
+against Q, not merely the first qualifying one. Since sibling order is
+semantically free (ENF12), there is no shortcut that avoids checking all
+children.
 
 
 ## Traversal uniqueness
@@ -412,18 +487,24 @@ not defensive.
 
 ENF7 ensures that the caller receives results in the order it expects —
 V-sorted for arrangement queries, I-sorted for provenance queries — without
-needing to know or care about the internal tree structure. This is
-the *tree-shape independence* property: the observable result of a range
-query depends only on the logical content of the enfilade, not on how
-splits, merges, and rebalancing have arranged the nodes internally.
+needing to know or care about the internal tree structure.
 
-**ENF7-IND (Tree-shape independence).** For any two enfilades E₁ and E₂
-with identical logical content (same set of leaf entries) but possibly
-different internal structures:
+**Theorem (Tree-shape independence).** For any two enfilades E₁ and E₂
+with identical logical content — that is, leaves(E₁) = leaves(E₂) as sets
+— but possibly different internal structures:
 
     result(E₁, Q) = result(E₂, Q)   for all queries Q
 
-The result is a function of the content and the query alone.
+*Proof.* Let S = { e ∈ leaves(E₁) : span(e) ∩ Q ≠ ∅ }. Since leaves(E₁)
+= leaves(E₂), S is also { e ∈ leaves(E₂) : span(e) ∩ Q ≠ ∅ }. By ENF5,
+result(E₁, Q) ⊇ S and result(E₂, Q) ⊇ S. By ENF6 (uniqueness) and the
+fact that no non-qualifying leaf appears in the result, result(E₁, Q) = S
+and result(E₂, Q) = S as sets. By ENF7, both results are sorted by the
+same dimension, so the sequences are identical. ∎
+
+Tree-shape independence is a consequence of ENF5 + ENF6 + ENF7, not an
+independent property. It confirms that the result is a function of the
+content and the query alone.
 
 
 ## Bounded occupancy
@@ -496,8 +577,10 @@ E':
 
     leaves(E') = leaves(E)
 
-as a multiset. The set of leaf entries is invariant under rebalancing. No
-leaf is created, destroyed, or modified by structural operations.
+as a set. (Since E : A ⇀ V is a partial function, each address maps to at
+most one value, so the leaf set is indeed a set, not a multiset.) The set
+of leaf entries is invariant under rebalancing. No leaf is created,
+destroyed, or modified by structural operations.
 
 Specifically, two leaves that are adjacent in V-space but map to different
 I-addresses must remain distinct entries. Adjacency in one dimension does
@@ -637,7 +720,7 @@ invariants. We state the frame condition:
 **ENF-FRAME.** After any mutation (insertion, deletion, rearrangement) of
 enfilade E producing E':
 
-  (a) ENF0 or ENF1 holds at every internal node of E'
+  (a) ENF0/ENF0' or ENF1 holds at every internal node of E'
   (b) ENF4 holds at every internal node of E' (multi-dimensional case)
   (c) ENF8 and ENF8' hold at every node of E'
   (d) ENF5, ENF6, ENF7 hold for E' — i.e., range queries on the modified
@@ -656,6 +739,128 @@ Nelson expresses this as the "canonical order mandate" — "all changes, once
 made, left the file remaining in canonical order." In our framework,
 "canonical order" is ENF-FRAME: the conjunction of all structural
 invariants, re-established after every operation.
+
+
+## Worked examples
+
+We now verify the properties against concrete enfilade states.
+
+### Sequential enfilade: INSERT with split
+
+Consider a sequential enfilade with maximum occupancy M = 3 and three
+leaves:
+
+    root [w=9]
+    ├── leaf a: addr 0, w=3  (content "abc")
+    ├── leaf b: addr 3, w=3  (content "def")
+    └── leaf c: addr 6, w=3  (content "ghi")
+
+We verify the invariants. ENF0: w(root) = 3 + 3 + 3 = 9. ✓ ENF0': child
+ranges are [0,3), [3,6), [6,9) — disjoint, union is [0,9). ✓ ENF8:
+children(root) = 3 ≤ M = 3. ✓
+
+Now INSERT "XY" at position 4, splitting leaf b into b₁ (addr 3, w=1,
+content "d") and b₂ (addr 5, w=2, content "ef"), with a new leaf x (addr
+4, w=2, content "XY") between them. The root now has 4 children, violating
+ENF8 (4 > M = 3). A split is required.
+
+After splitting root into root₁ and root₂, with a new root above them:
+
+    new_root [w=11]
+    ├── root₁ [w=5]
+    │   ├── leaf a:  addr 0, w=3
+    │   ├── leaf b₁: addr 3, w=1
+    │   └── leaf x:  addr 4, w=2
+    └── root₂ [w=6]
+        ├── leaf b₂: addr 6, w=2
+        └── leaf c:  addr 8, w=3
+
+We verify post-split invariants. ENF0: w(root₁) = 3 + 1 + 2 = 6? No —
+that gives 6, but the true extent is positions [0,6) which has width 6.
+Let us be more careful. After INSERT at position 4, the address space has
+expanded: original positions [0,4) are unchanged, the new content occupies
+[4,6), and original positions [4,9) have shifted to [6,11). So:
+
+    new_root [w=11]
+    ├── root₁ [w=6]
+    │   ├── leaf a:  addr 0, w=3  ("abc")
+    │   ├── leaf b₁: addr 3, w=1  ("d")
+    │   └── leaf x:  addr 4, w=2  ("XY")
+    └── root₂ [w=5]
+        ├── leaf b₂: addr 6, w=2  ("ef")
+        └── leaf c:  addr 8, w=3  ("ghi")
+
+ENF0: w(root₁) = 3 + 1 + 2 = 6. w(root₂) = 2 + 3 = 5. w(new_root) = 6 +
+5 = 11. ✓ ENF0': root₁ children cover [0,3), [3,4), [4,6) — disjoint,
+union [0,6). root₂ children cover [6,8), [8,11) — disjoint, union [6,11).
+new_root children cover [0,6), [6,11) — disjoint, union [0,11). ✓ ENF9:
+leaf set is {a, b₁, x, b₂, c}, representing all original content plus the
+inserted content. No leaf was lost, duplicated, or fused. ✓ ENF10: partition
+(leaves(root₁) ∪ leaves(root₂) = all leaves), occupancy (3 ≤ M, 2 ≤ M),
+and composition law all hold. ✓
+
+**Range query [3, 7) on the result.** The query starts at new_root. Offset
+0, first child root₁ has range [0, 6). Since [0,6) ∩ [3,7) = [3,6) ≠ ∅,
+descend into root₁. Inside root₁: offset 0, leaf a has [0,3), [0,3) ∩
+[3,7) = ∅, skip. Offset 3, leaf b₁ has [3,4), [3,4) ∩ [3,7) = [3,4) ≠ ∅,
+collect b₁. Offset 4, leaf x has [4,6), [4,6) ∩ [3,7) = [4,6) ≠ ∅,
+collect x. Return to new_root. Offset 6, root₂ has [6,11), [6,11) ∩
+[3,7) = [6,7) ≠ ∅, descend into root₂. Inside root₂: offset 6, leaf b₂
+has [6,8), [6,8) ∩ [3,7) = [6,7) ≠ ∅, collect b₂. Offset 8, leaf c has
+[8,11), [8,11) ∩ [3,7) = ∅, skip. Result: {b₁, x, b₂} in address order
+[3,4,6]. ENF5: all qualifying leaves included. ✓ ENF6: each leaf appears
+exactly once. ✓ ENF7: results in ascending address order. ✓
+
+### Multi-dimensional enfilade: normalisation and query
+
+Consider a POOM (V-enfilade) with two entries mapping virtual positions to
+permanent I-addresses. Entry e₁ maps V-position 5 to I-address 10; entry
+e₂ maps V-position 2 to I-address 7. Displacements are 2D vectors
+(V-component, I-component).
+
+After inserting e₁ first, the tree has:
+
+    root [disp=(5,10), w=(1,1)]
+    └── leaf e₁ [disp=(0,0)]
+
+ENF4: leaf e₁ has displacement (0,0) = 0. ✓ The absolute address of e₁ is
+(5,10) ⊕ (0,0) = (5,10). ✓
+
+Now insert e₂ with address (2,7). The new leaf gets displacement (2,7)
+relative to root, but normalisation must ensure ENF4. Before normalisation:
+
+    root [disp=(5,10)]
+    ├── leaf e₁ [disp=(0,0)]   absolute: (5,10) ⊕ (0,0) = (5,10)
+    └── leaf e₂ [disp=(2,7)]   — wrong, not normalised yet
+
+We must re-derive. The new leaf's absolute address must be (2,7). So its
+displacement relative to the current root is (2,7) ⊖ (5,10) = (−3,−3).
+But displacements must be non-negative (they represent offsets in the
+tumbler space). This forces renormalisation: the minimum of children's
+displacements is min((0,0), (−3,−3)) = (−3,−3). Absorb into root:
+
+    new root disp = (5,10) ⊕ (−3,−3) = (2,7)
+    e₁ new disp = (0,0) ⊖ (−3,−3) = (3,3)
+    e₂ new disp = (−3,−3) ⊖ (−3,−3) = (0,0)
+
+After normalisation:
+
+    root [disp=(2,7), w=(4,4)]
+    ├── leaf e₁ [disp=(3,3)]   absolute: (2,7) ⊕ (3,3) = (5,10) ✓
+    └── leaf e₂ [disp=(0,0)]   absolute: (2,7) ⊕ (0,0) = (2,7)  ✓
+
+ENF4: min((3,3), (0,0)) = (0,0). ✓ ENF1: origin = (2,7), far corner =
+max((2+1,7+1), (5+1,10+1)) = max((3,8), (6,11)) = (6,11), extent = (6,11)
+− (2,7) = (4,4). ✓ ENF4-GLOBAL: disp(root) = (2,7) = min((5,10), (2,7))
+componentwise. ✓ ENF2: absolute address of e₁ = (2,7) ⊕ (3,3) = (5,10).
+Commutativity: (3,3) ⊕ (2,7) = (5,10) as well. ✓
+
+**Range query Q = [3,6) × [8,12) on V-dimension.** The root's bounding
+box in V is [2, 6). Q's V-range is [3,6). Intersection: [3,6) ≠ ∅, so
+descend. Check e₁: V-address 5 ∈ [3,6) and I-address 10 ∈ [8,12)? Yes.
+Collect e₁. Check e₂: V-address 2 ∈ [3,6)? No. Skip. Result: {e₁}. Since
+the traversal checks each child independently (no offset accumulation),
+sibling order does not affect the result. ✓
 
 
 ## What the specification does not require
@@ -697,19 +902,19 @@ the abstract invariants.
 | Label | Statement | Status |
 |-------|-----------|--------|
 | ENF0 | Sequential enfilade parent width = exact sum of children widths | introduced |
+| ENF0' | Sequential partition: children's ranges are disjoint, contiguous, and cover [0, w(n)) | introduced |
 | ENF1 | Multi-dimensional enfilade parent extent = tight bounding box (componentwise min/max) of children | introduced |
-| ENF2 | Absolute address = sum of displacements along root-to-leaf path (associative) | introduced |
-| ENF3 | Displacement algebra satisfies cancellation: (a ⊖ b) ⊕ b = a | introduced |
-| ENF3' | Cancellation holds within same-subspace displacements; cross-subspace sums never arise in structural ops | introduced |
+| ENF2 | Absolute address = sum of displacements along root-to-leaf path; (D, ⊕, 0) is a commutative monoid | introduced |
+| ENF3 | Displacement right-inverse: (a ⊖ b) ⊕ b = a | introduced |
+| ENF3' | Right-inverse holds within same-subspace displacements; cross-subspace sums never arise in structural ops | introduced |
 | ENF4 | Zero-minimum normalisation: min child displacement = 0 at every internal node (multi-dimensional) | introduced |
-| ENF4-GLOBAL | Root displacement = componentwise minimum of all leaf addresses | introduced |
+| ENF4-GLOBAL | Root displacement = componentwise minimum of all leaf addresses (theorem from ENF4) | introduced |
 | ENF5 | Range query completeness: every leaf overlapping the query is included | introduced |
 | ENF6 | Range query uniqueness: every qualifying leaf visited exactly once | introduced |
 | ENF7 | Result ordering: range query results sorted by queried dimension | introduced |
-| ENF7-IND | Tree-shape independence: query results depend only on logical content, not internal structure | introduced |
 | ENF8 | Maximum occupancy: children(n) ≤ M for all nodes | introduced |
 | ENF8' | Minimum occupancy: children(n) ≥ 1 for all non-root, non-empty nodes | introduced |
-| ENF9 | Rebalancing preserves the leaf multiset exactly | introduced |
+| ENF9 | Rebalancing preserves the leaf set exactly | introduced |
 | ENF10 | Split post-conditions: partition, occupancy, composition laws re-established | introduced |
 | ENF11 | Merge post-conditions: union, occupancy, composition laws re-established | introduced |
 | ENF12 | Sibling ordering freedom for multi-dimensional enfilades | introduced |
