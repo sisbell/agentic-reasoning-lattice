@@ -80,3 +80,13 @@ inquiries:
     question: "What consistency must the system guarantee when multiple users concurrently modify different documents that share I-space addresses? What coordination do the global indexes (span index, link index) require? How does single-writer ownership interact with shared-read global state?"
     area: concurrency
     source: "ASN-0012 open question: concurrent displacement algebra"
+
+  - id: 14
+    title: "Distributed Replication Consistency"
+    question: "What must a multi-server Xanadu deployment guarantee about the convergence of replicated global state? How do the system's structural properties constrain the replication model?"
+    area: concurrency
+    source: "ASN-0013 open question: BEBE replication convergence guarantees for global indexes"
+    agents:
+      nelson: 10
+      gregory: 5
+
