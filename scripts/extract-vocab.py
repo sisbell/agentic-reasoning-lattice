@@ -119,7 +119,7 @@ def main():
     # Invoke claude
     model_flag = {
         "opus": "claude-opus-4-6",
-        "sonnet": "claude-sonnet-4-5-20250929",
+        "sonnet": "claude-sonnet-4-6",
     }.get(args.model, args.model)
 
     cmd = ["claude", "--print", "--model", model_flag, "--tools", "",

@@ -37,7 +37,7 @@ CONSULT_SCRIPT = WORKSPACE / "scripts" / "consult-experts.py"
 DISCOVER_SCRIPT = WORKSPACE / "scripts" / "discover.py"
 COMMIT_PROMPT = WORKSPACE / "scripts" / "prompts" / "commit.md"
 
-COMMIT_MODEL = "claude-sonnet-4-5-20250929"
+COMMIT_MODEL = "claude-sonnet-4-6"
 
 STEPS = ["questions", "consult", "discover", "commit"]
 

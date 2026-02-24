@@ -85,7 +85,7 @@ def _call_decompose(prompt, label, model="opus"):
     """Call claude --print for question generation. Returns response text."""
     model_flag = {
         "opus": "claude-opus-4-6",
-        "sonnet": "claude-sonnet-4-5-20250929",
+        "sonnet": "claude-sonnet-4-6",
     }.get(model, model)
 
     cmd = [
@@ -263,7 +263,7 @@ def _invoke_claude(prompt, model="sonnet", label="", allow_tools=False,
     """Call claude --print directly. Returns response text."""
     model_flag = {
         "opus": "claude-opus-4-6",
-        "sonnet": "claude-sonnet-4-5-20250929",
+        "sonnet": "claude-sonnet-4-6",
     }.get(model, model)
 
     cmd = ["claude", "--print", "--model", model_flag, "--output-format", "json"]
