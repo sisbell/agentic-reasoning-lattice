@@ -2,38 +2,62 @@
 
 Formal specification of the Xanadu hypertext system (udanax-green), derived from Ted Nelson's design intent (Literary Machines) and Roger Gregory's implementation (udanax-green C source).
 
-## Pipeline
+## Pipelines
 
-ASN production follows a four-step pipeline:
-
-1. **Questions** — Decompose inquiry into focused sub-questions for Nelson and Gregory
-2. **Consult** — Run all expert consultations in parallel
-3. **Discover** — Synthesize consultation answers into a formal ASN
-4. **Commit** — Commit vault changes
+### Discovery — produce a new ASN
 
 ```
 python scripts/run-asn.py --inquiries 4 questions    # preview sub-questions
 python scripts/run-asn.py --inquiries 4 consult      # questions + consultations
 python scripts/run-asn.py --inquiries 4 discover     # consult + discover
-python scripts/run-asn.py --inquiries 4              # full pipeline
+python scripts/run-asn.py --inquiries 4              # full pipeline (through commit)
+```
+
+Steps: questions → consult → discover → commit
+
+### Review/Revise — improve an existing ASN
+
+```
+python scripts/run-review.py 9                # 1 cycle: review → revise → commit
+python scripts/run-review.py 9 --cycles 2     # 2 cycles
+python scripts/run-review.py 9 --review-only  # just review, no revise
+python scripts/run-review.py 9 --resume revise  # skip review, revise from latest
+```
+
+Steps per cycle: review → revise → commit. Stops early if no REVISE items found.
+
+### Standalone scripts
+
+```
+python scripts/review-asn.py 9                # review only → vault/reviews/
+python scripts/revise-asn.py 9                # revise using latest review
+python scripts/revise-asn.py 9 review-1       # revise using specific review
+python scripts/commit.py                      # commit vault/ changes
+python scripts/commit.py "hint about changes" # commit with context hint
 ```
 
 ## Scripts
 
 | Script | Purpose |
 |--------|---------|
-| `run-asn.py` | Pipeline runner — steps up to the specified target |
+| `run-asn.py` | Discovery pipeline — questions → consult → discover → commit |
+| `run-review.py` | Review pipeline — review → revise → commit (repeatable cycles) |
+| `review-asn.py` | Review an ASN for rigor (opus, no tools) |
+| `revise-asn.py` | Revise an ASN based on review feedback (opus, with tools) |
+| `commit.py` | Commit vault changes with descriptive messages (sonnet) |
 | `consult-experts.py` | Decompose inquiry into sub-questions, run all consultations |
 | `discover.py` | Synthesize expert consultation answers into a formal ASN |
 | `consult-nelson.py` | Nelson consultation — design intent from Literary Machines |
-| `consult-gregory.py` | Gregory consultation — KB synthesis + code exploration in parallel |
+| `consult-gregory.py` | Gregory consultation — KB synthesis + code exploration |
 | `extract-vocab.py` | Extract structural conventions from finalized ASNs |
 
 ## Prompt Templates
 
 | Template | Used by | Purpose |
 |----------|---------|---------|
-| `discovery.md` | `discover.py` | Discovery agent — Dijkstra-style ASN writing |
+| `discovery.md` | `discover.py`, `revise-asn.py` | Discovery/revision agent — Dijkstra-style ASN writing |
+| `review.md` | `review-asn.py` | Review agent — rigor checking |
+| `commit.md` | `commit.py`, `run-asn.py` | Commit message generation |
 | `nelson-questions.md` | `consult-experts.py` | Generate Nelson sub-questions from inquiry |
 | `gregory-questions.md` | `consult-experts.py` | Generate Gregory sub-questions from inquiry + KB |
 | `nelson-agent.md` | `consult-nelson.py` | Nelson answering agent |
@@ -47,7 +71,7 @@ vault/
   asns/           — Abstract Specification Notes (ASN-NNNN-title.md)
   consultations/  — Orchestrated consultation output (answers.md per ASN)
   transcripts/    — Individual agent call logs (Nelson/Gregory subagent runs)
-  reviews/        — Review outputs
+  reviews/        — Review outputs (ASN-NNNN-review-N.md)
   inquiries.yaml  — Inquiry definitions driving ASN production
   vocabulary.md   — Shared vocabulary for ASN authors
 
