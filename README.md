@@ -26,6 +26,18 @@ python scripts/run-review.py 9 --resume revise  # skip review, revise from lates
 
 Steps per cycle: review → revise → commit. Stops early if no REVISE items found.
 
+### Triage — promote ASN open questions to new inquiries
+
+```
+python scripts/triage-questions.py 12            # evaluate ASN-0012's open questions
+python scripts/triage-questions.py 13 --dry-run  # show decisions without updating files
+python scripts/triage-questions.py 4 --model sonnet  # faster, less rigorous
+```
+
+Reads the ASN's open questions, checks existing triage (vault/triage/ASN-NNNN.md),
+and decides which questions warrant new inquiries. Writes full evaluation with
+rationale to per-ASN triage file. Updates inquiries.yaml for promoted questions.
+
 ### Standalone scripts
 
 ```
@@ -49,6 +61,7 @@ python scripts/commit.py "hint about changes" # commit with context hint
 | `discover.py` | Synthesize expert consultation answers into a formal ASN |
 | `consult-nelson.py` | Nelson consultation — design intent from Literary Machines |
 | `consult-gregory.py` | Gregory consultation — KB synthesis + code exploration |
+| `triage-questions.py` | Evaluate ASN open questions → new inquiries (opus) |
 | `extract-vocab.py` | Extract structural conventions from finalized ASNs |
 
 ## Prompt Templates
@@ -63,6 +76,7 @@ python scripts/commit.py "hint about changes" # commit with context hint
 | `nelson-agent.md` | `consult-nelson.py` | Nelson answering agent |
 | `gregory-synthesis-agent.md` | `consult-gregory.py` | Gregory KB synthesis agent |
 | `gregory-code-agent.md` | `consult-gregory.py` | Gregory code exploration agent |
+| `triage-questions.md` | `triage-questions.py` | Open question evaluation and inquiry framing |
 
 ## Directory Structure
 
@@ -73,6 +87,7 @@ vault/
   transcripts/    — Individual agent call logs (Nelson/Gregory subagent runs)
   reviews/        — Review outputs (ASN-NNNN-review-N.md)
   inquiries.yaml  — Inquiry definitions driving ASN production
+  triage/          — Per-ASN triage decisions (promoted/declined with rationale)
   vocabulary.md   — Shared vocabulary for ASN authors
 
 scripts/          — Pipeline and consultation scripts
