@@ -20,6 +20,7 @@ Usage:
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -195,9 +196,14 @@ def main():
         parser.error("Empty question")
 
     # Create consultation log directory
-    ts = datetime.now().strftime("%Y%m%d-%H%M%S")
     prefix = f"ASN-{args.asn}" if args.asn else "adhoc"
-    consult_dir = TRANSCRIPTS_DIR / f"{prefix}-gregory-{ts}"
+    existing = sorted(TRANSCRIPTS_DIR.glob(f"{prefix}-gregory-*/"))
+    next_num = 1
+    for d in existing:
+        m = re.search(r"-gregory-(\d+)$", d.name)
+        if m:
+            next_num = max(next_num, int(m.group(1)) + 1)
+    consult_dir = TRANSCRIPTS_DIR / f"{prefix}-gregory-{next_num}"
     consult_dir.mkdir(parents=True, exist_ok=True)
 
     # Save the question

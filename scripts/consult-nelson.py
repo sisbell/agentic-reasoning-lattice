@@ -18,6 +18,7 @@ Usage:
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -183,9 +184,14 @@ def main():
     consult_dir = None
     answer_file = None
     if not args.no_transcript:
-        ts = datetime.now().strftime("%Y%m%d-%H%M%S")
         prefix = f"ASN-{args.asn}" if args.asn else "adhoc"
-        consult_dir = TRANSCRIPTS_DIR / f"{prefix}-nelson-{ts}"
+        existing = sorted(TRANSCRIPTS_DIR.glob(f"{prefix}-nelson-*/"))
+        next_num = 1
+        for d in existing:
+            m = re.search(r"-nelson-(\d+)$", d.name)
+            if m:
+                next_num = max(next_num, int(m.group(1)) + 1)
+        consult_dir = TRANSCRIPTS_DIR / f"{prefix}-nelson-{next_num}"
         consult_dir.mkdir(parents=True, exist_ok=True)
         (consult_dir / "question.md").write_text(question + "\n")
         answer_file = consult_dir / "answer.md"

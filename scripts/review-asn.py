@@ -9,9 +9,9 @@ Results written to vault/reviews/ for traceability.
 Prints the output file path to stdout.
 
 Usage:
-    python scripts/review-asn.py vault/asns/ASN-0004-content-insertion.md
-    python scripts/review-asn.py vault/asns/ASN-0004-content-insertion.md --model sonnet
-    python scripts/review-asn.py vault/asns/ASN-0004-content-insertion.md --effort high
+    python scripts/review-asn.py 4
+    python scripts/review-asn.py 9 --model sonnet
+    python scripts/review-asn.py 9 --effort high
 """
 
 import argparse
@@ -21,12 +21,13 @@ import re
 import subprocess
 import sys
 import time
-from datetime import datetime
+
 from pathlib import Path
 
 WORKSPACE = Path(__file__).resolve().parent.parent
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts"
 REVIEW_TEMPLATE = PROMPTS_DIR / "review.md"
+ASNS_DIR = WORKSPACE / "vault" / "asns"
 VOCABULARY = WORKSPACE / "vault" / "vocabulary.md"
 REVIEWS_DIR = WORKSPACE / "vault" / "reviews"
 USAGE_LOG = WORKSPACE / "vault" / "usage-log.jsonl"
@@ -39,11 +40,23 @@ def read_file(path):
         return ""
 
 
-def extract_asn_label(asn_path):
-    """Extract ASN-NNNN from filename like ASN-0004-content-insertion.md."""
-    name = Path(asn_path).stem
-    match = re.match(r"(ASN-\d+)", name)
-    return match.group(1) if match else name
+def find_asn(asn_id):
+    """Find ASN file by number. Accepts 9, 09, 0009, ASN-0009, or full path."""
+    # If it's an existing file path, use it directly
+    path = Path(asn_id)
+    if path.exists():
+        label = re.match(r"(ASN-\d+)", path.stem)
+        return path, label.group(1) if label else path.stem
+
+    # Normalize to 4-digit number
+    num = re.sub(r"[^0-9]", "", str(asn_id))
+    if not num:
+        return None, None
+    label = f"ASN-{int(num):04d}"
+    matches = sorted(ASNS_DIR.glob(f"{label}-*.md"))
+    if matches:
+        return matches[0], label
+    return None, label
 
 
 def build_prompt(asn_content, vocabulary):
@@ -134,7 +147,7 @@ def log_usage(elapsed, usage):
 
 def main():
     parser = argparse.ArgumentParser(description="Review an ASN for rigor")
-    parser.add_argument("asn", help="Path to the ASN file to review")
+    parser.add_argument("asn", help="ASN number (e.g., 9, 0009, ASN-0009)")
     parser.add_argument("--model", "-m", default="opus",
                         choices=["opus", "sonnet"],
                         help="Model (default: opus — reviews need maximum rigor)")
@@ -142,14 +155,13 @@ def main():
                         help="Thinking effort level (low/medium/high/max)")
     args = parser.parse_args()
 
-    # Read ASN
-    asn_path = Path(args.asn)
-    if not asn_path.exists():
-        print(f"  ASN file not found: {asn_path}", file=sys.stderr)
+    # Find ASN
+    asn_path, asn_label = find_asn(args.asn)
+    if asn_path is None:
+        print(f"  No ASN found for {args.asn} in vault/asns/", file=sys.stderr)
         sys.exit(1)
 
     asn_content = asn_path.read_text()
-    asn_label = extract_asn_label(asn_path)
 
     # Read vocabulary
     vocabulary = read_file(VOCABULARY)
@@ -170,10 +182,15 @@ def main():
         print("  No review produced", file=sys.stderr)
         sys.exit(1)
 
-    # Write output
+    # Write output (sequential numbering: review-1, review-2, ...)
     REVIEWS_DIR.mkdir(parents=True, exist_ok=True)
-    ts = datetime.now().strftime("%Y%m%d-%H%M%S")
-    output_path = REVIEWS_DIR / f"{asn_label}-review-{ts}.md"
+    existing = sorted(REVIEWS_DIR.glob(f"{asn_label}-review-*.md"))
+    next_num = 1
+    for f in existing:
+        m = re.search(r"-review-(\d+)\.md$", f.name)
+        if m:
+            next_num = max(next_num, int(m.group(1)) + 1)
+    output_path = REVIEWS_DIR / f"{asn_label}-review-{next_num}.md"
     output_path.write_text(text)
 
     # Log usage
