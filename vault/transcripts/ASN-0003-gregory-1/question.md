@@ -1,0 +1,1 @@
+What precisely does REARRANGE do to a document's V-space mapping? Is it a swap of two contiguous regions, or a more general permutation? And what does COPY do to the target document — does it insert at a position (shifting subsequent content like INSERT), or does it operate differently? What are the preconditions for COPY — source spans, target position?

@@ -1,0 +1,1 @@
+What precisely does REARRANGE do to a document? Nelson describes it as transposition of two regions. Is it specifically the swap of two contiguous regions, or a more general permutation of content? What must REARRANGE preserve — does the document retain the same length, the same content, just in a different order?
