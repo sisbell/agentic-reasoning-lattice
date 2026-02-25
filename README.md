@@ -38,6 +38,18 @@ Reads the ASN's open questions, checks existing triage (vault/triage/ASN-NNNN.md
 and decides which questions warrant new inquiries. Writes full evaluation with
 rationale to per-ASN triage file. Updates inquiries.yaml for promoted questions.
 
+### Triage Defers — promote review DEFER items to new inquiries
+
+```
+python scripts/triage-defers.py 4                # evaluate ASN-0004's review deferrals
+python scripts/triage-defers.py 14 --dry-run     # show extracted defers without invoking Claude
+python scripts/triage-defers.py 4 --model sonnet # faster, less rigorous
+```
+
+Extracts DEFER sections from an ASN's review files, checks against existing triage
+(vault/triage/ASN-NNNN-defers.md), and decides which deferred topics warrant new
+inquiries. Re-running passes previous triage as context to avoid re-promoting.
+
 ### Standalone scripts
 
 ```
@@ -62,6 +74,7 @@ python scripts/commit.py "hint about changes" # commit with context hint
 | `consult-nelson.py` | Nelson consultation — design intent from Literary Machines |
 | `consult-gregory.py` | Gregory consultation — KB synthesis + code exploration |
 | `triage-questions.py` | Evaluate ASN open questions → new inquiries (opus) |
+| `triage-defers.py` | Evaluate review DEFER items → new inquiries (opus) |
 | `extract-vocab.py` | Extract structural conventions from finalized ASNs |
 
 ## Prompt Templates
@@ -77,6 +90,7 @@ python scripts/commit.py "hint about changes" # commit with context hint
 | `gregory-synthesis-agent.md` | `consult-gregory.py` | Gregory KB synthesis agent |
 | `gregory-code-agent.md` | `consult-gregory.py` | Gregory code exploration agent |
 | `triage-questions.md` | `triage-questions.py` | Open question evaluation and inquiry framing |
+| `triage-defers.md` | `triage-defers.py` | Review deferral evaluation and inquiry framing |
 
 ## Directory Structure
 
