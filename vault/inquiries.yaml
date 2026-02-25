@@ -99,3 +99,21 @@ inquiries:
       nelson: 10
       gregory: 0
 
+  - id: 16
+    title: "Content Provenance"
+    question: "What must the system guarantee about tracing the origin and path of content? Given content at a location, what can be determined about where it came from, how it arrived, and its relationship to the same content appearing elsewhere?"
+    area: content-model
+    source: "v8 EWD-029 gap analysis"
+    agents:
+      nelson: 10
+      gregory: 10
+
+  - id: 17
+    title: "Rearrange Operation"
+    question: "What must REARRANGE (reordering content within a document without insertion or deletion) preserve and establish? How does moving content differ from delete-then-insert, and what address, link, and provenance guarantees must hold across rearrangement?"
+    area: operations
+    source: "v8 EWD gap analysis"
+    agents:
+      nelson: 10
+      gregory: 10
+
