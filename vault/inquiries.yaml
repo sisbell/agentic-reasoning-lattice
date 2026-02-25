@@ -90,3 +90,12 @@ inquiries:
       nelson: 10
       gregory: 5
 
+  - id: 15
+    title: "Permanence and Economic Obligations"
+    question: "What must the system guarantee about its permanence invariants when economic obligations are not met — are address permanence, content immutability, and publication irrevocability unconditional or conditioned on continued payment?"
+    area: economics
+    source: "ASN triage"
+    agents:
+      nelson: 10
+      gregory: 0
+
