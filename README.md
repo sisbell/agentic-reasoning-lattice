@@ -2,6 +2,55 @@
 
 Formal specification of the Xanadu hypertext system (udanax-green), derived from Ted Nelson's design intent (Literary Machines) and Roger Gregory's implementation (udanax-green C source).
 
+## Overview
+
+```
+                          inquiries.yaml
+                               |
+                               v
+                    +---------------------+
+                    |   consult-experts   |  Nelson (Literary Machines)
+                    |   consult-nelson    |  Gregory (KB + udanax-green)
+                    +---------------------+
+                               |
+                          answers.md
+                               |
+                               v
+                    +---------------------+
+                    |      discover       |  Dijkstra-style derivation
+                    +---------------------+
+                               |
+                           ASN draft
+                               |
+          +--------------------+--------------------+
+          |                                         |
+          v                                         v
++-------------------+                    +---------------------+
+|    review-asn     |  rigor check       |   extract-vocab     |  detect conflicts
++-------------------+                    +---------------------+
+          |                                         |
+     review file                             vocabulary.md
+          |                                         |
+          v                                         v
++-------------------+                    +---------------------+
+|    revise-asn     |  targeted fixes    |    align-vocab      |  rewrite notation
++-------------------+                    +---------------------+
+          |                                         |
+          |    +-----------+                        |
+          +--->|  commit   |<-----------------------+
+          |    +-----------+
+          |
+          v
++-------------------+        +-------------------+
+| triage-questions  |        |  triage-defers    |
++-------------------+        +-------------------+
+          |                           |
+          +-------------+-------------+
+                        |
+                        v
+                  inquiries.yaml  (new inquiries fed back to top)
+```
+
 ## Pipelines
 
 ### Discovery — produce a new ASN
