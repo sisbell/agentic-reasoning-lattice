@@ -1,6 +1,6 @@
 # ASN-0004: Content Insertion
 
-*2026-02-23*
+*2026-02-23 (revised 2026-02-24)*
 
 We wish to specify INSERT — the operation that introduces new content into a document. INSERT is the primary way the system acquires content: every byte that enters the permanent store does so through some insertion. The word suggests a simple act — place new text at a position — but the consequences are far-reaching. The system must allocate fresh permanent addresses, splice new content into a mutable arrangement, shift existing positions to make room, record the new content in the domain index, and do all this while preserving the identity of every piece of content that existed before. We develop the preconditions, postconditions, and frame conditions that govern this operation, reasoning backward from the guarantees the system must maintain.
 
@@ -22,15 +22,21 @@ A document's virtual stream has two subspaces: text (positions whose first compo
 
 ## The permanence context
 
-Before we state what INSERT does, we must establish what it cannot undo. The system makes three commitments that hold across every operation:
+Before we state what INSERT does, we must establish what it cannot undo. ASN-0001 establishes the fundamental invariants S0–S3 that every operation must preserve. Three consequences of those invariants are directly relevant to INSERT:
 
 **P0 (Address irrevocability).** `(A a : a ∈ dom.ispace : a ∈ dom.ispace')` — no operation shrinks the set of allocated addresses.
 
+P0 follows from S1 (I-space immutability, ASN-0001) together with the append-only property of I-space established in ASN-0001: addresses can be added to `dom.ispace` but never removed.
+
 **P1 (Content immutability).** `(A a : a ∈ dom.ispace : ispace'.a = ispace.a)` — content at an address never changes.
+
+P1 restates S1 (ASN-0001) directly. We give it a local label for convenient reference within this ASN.
 
 **P2 (Index monotonicity).** `(A (a, d) : (a, d) ∈ spanindex : (a, d) ∈ spanindex')` — the span index never loses an entry.
 
-These are not properties we prove here; they are the context within which INSERT must operate. Any specification of INSERT that violates any of these three is wrong, regardless of what else it achieves. Nelson is explicit: "Instead, suppose we create an append-only storage system. User makes changes, the changes difflessly into the storage system, filed, as it were, chronologically." I-space only grows; content never changes; the index never forgets.
+P2 follows from S3 (span index consistency, ASN-0001) together with the append-only property of the span index: entries are added but never removed.
+
+Any specification of INSERT that violates any of these three is wrong, regardless of what else it achieves. Nelson is explicit: "Instead, suppose we create an append-only storage system. User makes changes, the changes difflessly into the storage system, filed, as it were, chronologically." I-space only grows; content never changes; the index never forgets.
 
 
 ## Preconditions
@@ -94,16 +100,20 @@ The new content must appear at the requested position. This requires two coordin
 
 The mapping from the new virtual positions to the freshly allocated I-addresses preserves order: position p maps to a₀, position p+1 maps to a₀+1, and so on.
 
-**INS4 (Position shift).** Existing content at or beyond the insertion point shifts rightward by the insertion width. Existing content before the insertion point does not move:
+**INS4 (Position shift).** Existing content at or beyond the insertion point shifts rightward by the insertion width, within the same subspace. Existing content before the insertion point does not move:
 
-  `(A q : q < p ∧ q ∈ dom.poom(d) : poom'(d).q = poom(d).q)`
-  `(A q : q ≥ p ∧ q ∈ dom.poom(d) : poom'(d).(q + #c) = poom(d).q)`
+  `(A q : q < p ∧ q ∈ dom.poom(d) ∧ sub(q) = sub(p) : poom'(d).q = poom(d).q)`
+  `(A q : q ≥ p ∧ q ∈ dom.poom(d) ∧ sub(q) = sub(p) : poom'(d).(q + #c) = poom(d).q)`
 
-Nelson describes this directly: "The v-stream addresses of any following characters in the document are increased by the length of the inserted text." The first clause says content before the insertion point is undisturbed. The second says content at or after the insertion point acquires a new virtual position — its old position plus the insertion width — while retaining its I-address mapping.
+Nelson describes this directly: "The v-stream addresses of any following characters in the document are increased by the length of the inserted text." The first clause says content before the insertion point is undisturbed. The second says content at or after the insertion point acquires a new virtual position — its old position plus the insertion width — while retaining its I-address mapping. Both clauses are restricted to positions in the same subspace as the insertion point; positions in other subspaces are governed by INS-F5.
 
-We must be precise about the scope of INS4. The shift applies only within the subspace of the insertion point. When INSERT targets the text subspace (positions 1.x), only text entries shift; link entries (positions 2.x) are unaffected. We formalize this confinement below as INS-F5.
+The combination of INS3 and INS4 specifies a complete V-space transition for the text subspace: the new V-stream is the concatenation of the pre-insertion prefix [1, p), the new content [p, p + #c), and the shifted suffix [p + #c, |poom(d)| + #c + 1). Every position in the new stream maps to exactly one I-address, and no I-address is mapped by two positions within the same document.
 
-The combination of INS3 and INS4 specifies a complete V-space transition for the text subspace: the new V-stream is the concatenation of the pre-insertion prefix [1, p), the new content [p, p + #c), and the shifted suffix [p + #c, |poom(d)| + #c + 1). Every position in the new stream maps to exactly one I-address, and no I-address is mapped by two positions within the same document. The document's text length increases by exactly #c.
+**INS-D1 (Domain size).** The document's text length increases by exactly #c:
+
+  `|poom'(d)| = |poom(d)| + #c`
+
+This follows from INS3 and INS4 together. INS3 introduces #c new positions [p, p + #c). INS4 preserves all pre-existing positions (shifting those at or beyond p). No position is lost — the first clause of INS4 retains all positions below p, and the second clause retains all positions at or above p by mapping them to new (higher) positions. The domain of `poom'(d)` restricted to the text subspace is therefore `{1, ..., |poom(d)| + #c}`.
 
 ### Domain index update
 
@@ -122,11 +132,7 @@ The postcondition tells us what changes. The frame conditions tell us what does 
 
 ### I-space preservation
 
-**INS-F1 (Existing content frame).** All content that existed in I-space before the insertion is unchanged:
-
-  `(A a : a ∈ dom.ispace : ispace'.a = ispace.a)`
-
-This is P1 restated for INSERT specifically, but it deserves emphasis. INSERT creates new I-space entries (INS2); it never modifies existing ones. Nelson designs the entire system around this separation: "Virtually all of computerdom is built around the destructive replacement of successive whole copies of each current version." Xanadu rejects this. I-space is the immutable substrate.
+INSERT creates new I-space entries (INS2); it never modifies existing ones. P1 (= S1) guarantees this directly: `(A a : a ∈ dom.ispace : ispace'.a = ispace.a)`. Nelson designs the entire system around this separation: "Virtually all of computerdom is built around the destructive replacement of successive whole copies of each current version." Xanadu rejects this. I-space is the immutable substrate.
 
 Gregory's implementation reveals an interesting nuance at the concrete level. Pre-existing storage entries may be physically modified during INSERT — a text buffer adjacent to the new content may be extended in place to absorb additional bytes, and tree metadata (widths, sibling pointers) may be updated during rebalancing. But these modifications concern the physical representation of the abstract mapping `ispace : Addr ⇀ Content`, not the mapping itself. The abstract guarantee is: `(A a : a ∈ dom.ispace : ispace'.a = ispace.a)`. The content retrievable at any previously allocated address is unchanged. An alternative implementation might use immutable storage blocks and achieve the same guarantee through different means.
 
@@ -140,28 +146,15 @@ Nelson is explicit about this for the case of transclusion. When Document B tran
 
 This extends to versions. Each version is a separate document with its own V→I mapping. "CREATENEWVERSION creates a new document with the contents of document `<doc id>`." From that point forward the two documents are structurally independent. INSERT into version A shifts V-positions in A alone; version B's V-space is unaffected.
 
-### Correspondence preservation
-
-**INS-F3 (V→I correspondence).** For every position that existed before the insertion, the content at the (possibly shifted) position is the same byte that was at the original position:
-
-  `(A q : q ∈ dom.poom(d) ∧ q < p : ispace'.(poom'(d).q) = ispace.(poom(d).q))`
-  `(A q : q ∈ dom.poom(d) ∧ q ≥ p : ispace'.(poom'(d).(q + #c)) = ispace.(poom(d).q))`
-
-This is the central architectural invariant. V-addresses shift; I-addresses do not. The bijection between content identity and content value is preserved through the shift. Nelson designed the two-space architecture precisely for this: "Note that this order may be continually altered by editorial operations, but since the links are to the bytes themselves, any links to those bytes remain stably attached to them."
-
-Proof. For content before the insertion point: `poom'(d).q = poom(d).q` (by INS4, first clause), so the I-address is unchanged. By P1, the content at that I-address is unchanged. For content at or after the insertion point: `poom'(d).(q + #c) = poom(d).q` (by INS4, second clause), so the I-address is again unchanged. By P1, the content at that I-address is unchanged. In both cases, the content retrievable through the V-space mapping after INSERT is identical to the content retrievable before INSERT, for every pre-existing position. ∎
-
-This is not a derived convenience. It is the property on which link survivability, attribution, version comparison, transclusion integrity, and royalty accounting all depend. If INSERT corrupted the V→I mapping — swapping which I-address a V-position refers to — links would silently attach to wrong content, attribution would identify wrong authors, version comparison would report false correspondences, and royalty payments would go to wrong parties.
-
 ### Link survival
 
 **INS-F4 (Link endpoint invariance).** INSERT does not modify any link structure. All link endsets resolve to the same content after the insertion as before:
 
   `(A L ∈ links : L ∈ links' ∧ endsets'(L) = endsets(L))`
 
-Links reference I-space addresses in their endsets, not V-space positions. INSERT creates new I-space entries but does not modify existing ones (INS-F1), and does not modify any link structure. Therefore every endset that referenced content before the insertion still references the same content. Nelson states this as a design property: "Links between bytes can survive deletions, insertions and rearrangements, if anything is left at each end." For INSERT specifically, the "if anything is left" condition is trivially satisfied — INSERT adds content but removes nothing. Every link endpoint that resolved before continues to resolve afterward.
+Links reference I-space addresses in their endsets, not V-space positions. INSERT creates new I-space entries but does not modify existing ones (P1), and does not modify any link structure. Therefore every endset that referenced content before the insertion still references the same content. Nelson states this as a design property: "Links between bytes can survive deletions, insertions and rearrangements, if anything is left at each end." For INSERT specifically, the "if anything is left" condition is trivially satisfied — INSERT adds content but removes nothing. Every link endpoint that resolved before continues to resolve afterward.
 
-The proof is almost too short to write. Let L be any link, and let E be any endset of L. E is a set of I-space address ranges. By INS-F1, no pre-existing I-space content changes. By INS1, the fresh addresses are disjoint from `dom.ispace`. Therefore E references exactly the same addresses, and those addresses contain exactly the same content. Link resolution is invariant under INSERT. ∎
+The proof is almost too short to write. Let L be any link, and let E be any endset of L. E is a set of I-space address ranges. By P1, no pre-existing I-space content changes. By INS1, the fresh addresses are disjoint from `dom.ispace`. Therefore E references exactly the same addresses, and those addresses contain exactly the same content. Link resolution is invariant under INSERT. ∎
 
 ### Subspace confinement
 
@@ -169,7 +162,7 @@ The proof is almost too short to write. Let L be any link, and let E be any ends
 
   `(A q ∈ other_subspace(d, sub(p)) : poom'(d).q = poom(d).q)`
 
-When INSERT places text at position 1.x, link entries at positions 2.x are completely unaffected — their V-positions do not shift, their I-address mappings do not change. The position shift (INS4) operates only within the subspace of the insertion point.
+When INSERT places text at position 1.x, link entries at positions 2.x are completely unaffected — their V-positions do not shift, their I-address mappings do not change. INS-F5 is a corollary of INS4's subspace restriction: since INS4 quantifies only over positions with `sub(q) = sub(p)`, positions with `sub(q) ≠ sub(p)` are excluded from both the preservation clause and the shift clause, and INS-F5 states that these positions are unchanged.
 
 Gregory's evidence reveals the mechanism by which the existing implementation achieves this — a two-boundary construction that limits the shift region to positions between the insertion point and the start of the next subspace. For an insertion at position N.x, the shift region is bounded above by (N+1).1. Entries at or beyond this boundary are classified into a "no shift" category and left untouched. A concrete example: with text at V:1.1-1.5 and a link at V:2.1, an insertion at V:1.3 shifts text entries in [1.3, 2.1) rightward by the insertion width, while the link entry at V:2.1 remains at V:2.1 with every field — V-displacement, I-displacement, V-width, I-width — byte-identical to its pre-insertion state.
 
@@ -177,16 +170,74 @@ The abstract property is that the two subspaces of a document (text and links) a
 
 ### Span index stability
 
-**INS-F6 (Existing index frame).** INSERT does not modify or remove any pre-existing span index entry:
+INSERT does not modify or remove any pre-existing span index entry. This is P2 applied to INSERT. The only change to the span index is the addition of the new entries specified by INS5. The index grows by exactly the entries for the newly allocated addresses, and all previous entries are preserved.
 
-  `(A (a, d') : (a, d') ∈ spanindex : (a, d') ∈ spanindex')`
 
-This follows from P2. But we state it explicitly for INSERT because it has a useful corollary: the only change to the span index is the addition of the new entries specified by INS5. The index grows by exactly the entries for the newly allocated addresses, and all previous entries are preserved.
+## Derived consequences
+
+Two important properties follow from the postconditions and frame conditions above. They are not frame conditions (they do not state what is unchanged) but rather consequences of how the change and the preserved state interact.
+
+### V→I correspondence
+
+**INS-D2 (V→I correspondence preservation).** For every position that existed before the insertion, the content at the (possibly shifted) position is the same byte that was at the original position:
+
+  `(A q : q ∈ dom.poom(d) ∧ sub(q) = sub(p) ∧ q < p : ispace'.(poom'(d).q) = ispace.(poom(d).q))`
+  `(A q : q ∈ dom.poom(d) ∧ sub(q) = sub(p) ∧ q ≥ p : ispace'.(poom'(d).(q + #c)) = ispace.(poom(d).q))`
+
+This is the central architectural consequence. V-addresses shift; I-addresses do not. The bijection between content identity and content value is preserved through the shift. Nelson designed the two-space architecture precisely for this: "Note that this order may be continually altered by editorial operations, but since the links are to the bytes themselves, any links to those bytes remain stably attached to them."
+
+Proof. For content before the insertion point: `poom'(d).q = poom(d).q` (by INS4, first clause), so the I-address is unchanged. By P1, the content at that I-address is unchanged. For content at or after the insertion point: `poom'(d).(q + #c) = poom(d).q` (by INS4, second clause), so the I-address is again unchanged. By P1, the content at that I-address is unchanged. In both cases, the content retrievable through the V-space mapping after INSERT is identical to the content retrievable before INSERT, for every pre-existing position. ∎
+
+This is not a derived convenience. It is the property on which link survivability, attribution, version comparison, transclusion integrity, and royalty accounting all depend. If INSERT corrupted the V→I mapping — swapping which I-address a V-position refers to — links would silently attach to wrong content, attribution would identify wrong authors, version comparison would report false correspondences, and royalty payments would go to wrong parties.
+
+
+## Invariant preservation
+
+INSERT must preserve the fundamental invariants established by ASN-0001 (S0–S3) and the structural invariants established by ASN-0014 (S4–S5). We verify each.
+
+**S0 (V→I Grounding).** We must show `(A d', q : q ∈ dom.poom'(d') : poom'(d').q ∈ dom.ispace')`.
+
+For documents d' ≠ d: `poom'(d') = poom(d')` by INS-F2, and `dom.ispace ⊆ dom.ispace'` by P0, so S0 for d' follows from S0 pre-INSERT.
+
+For document d, we consider three kinds of positions in `dom.poom'(d)`:
+- Positions q with `sub(q) = sub(p)` and `q < p`: `poom'(d).q = poom(d).q` by INS4 (first clause). This address is in `dom.ispace` by S0 pre-INSERT, hence in `dom.ispace'` by P0. ✓
+- New positions q with `p ≤ q < p + #c`: `poom'(d).q = a₀ + (q - p)` by INS3. This address is in `dom.ispace'` by INS1. ✓
+- Shifted positions q with `q ≥ p + #c` (originally at `q - #c`): `poom'(d).q = poom(d).(q - #c)` by INS4 (second clause). This address is in `dom.ispace` by S0 pre-INSERT, hence in `dom.ispace'` by P0. ✓
+- Positions q with `sub(q) ≠ sub(p)`: `poom'(d).q = poom(d).q` by INS-F5. In `dom.ispace` by S0 pre-INSERT, hence in `dom.ispace'` by P0. ✓
+
+**S1 (I-space Immutability).** P1 guarantees `(A a : a ∈ dom.ispace : ispace'.a = ispace.a)`. INSERT writes only to fresh addresses (INS1: `{a₀, ..., a₀+#c-1} ∩ dom.ispace = ∅`). No pre-existing content is modified. ✓
+
+**S2 (Link Grounding).** Every address in every link endset was in `dom.ispace` by S2 pre-INSERT. By P0, `dom.ispace ⊆ dom.ispace'`. Links are unchanged (INS-F4). Therefore all link endset addresses remain in `dom.ispace'`. ✓
+
+**S3 (Span Index Consistency).** Every pre-existing entry `(a, d') ∈ spanindex` has `a ∈ dom.ispace` by S3 pre-INSERT, hence `a ∈ dom.ispace'` by P0. New entries `(a₀+i, d)` have `a₀+i ∈ dom.ispace'` by INS1. All entries in `spanindex'` reference allocated addresses. ✓
+
+**S4 (Intra-document Injectivity).** We must show `poom'(d)` is injective. Consider two distinct positions q₁, q₂ ∈ dom.poom'(d) with q₁ ≠ q₂. We need `poom'(d).q₁ ≠ poom'(d).q₂`. Three cases arise:
+- Both q₁, q₂ are pre-existing (before or shifted): their I-addresses are the same as their original I-addresses under `poom(d)`, which were distinct by S4 pre-INSERT.
+- Both q₁, q₂ are new (in [p, p + #c)): `poom'(d).q₁ = a₀ + (q₁ - p) ≠ a₀ + (q₂ - p) = poom'(d).q₂` since q₁ ≠ q₂.
+- One is pre-existing (mapping to some address in `dom.ispace`), the other is new (mapping to some address in `{a₀, ..., a₀+#c-1}`). By INS1, the fresh addresses are disjoint from `dom.ispace`, so the two I-addresses are necessarily distinct.
+
+In all cases, `poom'(d).q₁ ≠ poom'(d).q₂`. For d' ≠ d, poom'(d') = poom(d') which was injective by S4 pre-INSERT. ✓
+
+**S5 (Position Density).** We must show that the occupied text positions of d after INSERT form the contiguous range `[1, |poom(d)| + #c]`. Before INSERT, the occupied range is `[1, |poom(d)|]` by S5 pre-INSERT. After INSERT:
+- Positions [1, p) are unchanged (INS4, first clause) — contiguous. ✓
+- Positions [p, p + #c) are newly created (INS3) — contiguous. ✓
+- Positions [p + #c, |poom(d)| + #c] are the shifted versions of [p, |poom(d)|] (INS4, second clause). Shifting by the constant #c preserves contiguity. ✓
+- The three ranges are adjacent: [1, p) ends where [p, p + #c) begins; [p, p + #c) ends where [p + #c, |poom(d)| + #c] begins.
+
+The union is `[1, |poom(d)| + #c]` — contiguous. ✓
 
 
 ## The correspondence theorem
 
-The individual properties above can be assembled into a single characterization of what INSERT means. We state it as a theorem and verify it against the component properties.
+The individual properties above can be assembled into a single characterization of what INSERT means. We first define the shift function used in clause (iv), then state the theorem.
+
+**Definition.** Let `m : Pos ⇀ Addr` be a partial mapping, `p` a position, and `w > 0` a width. The shift of m at p by w is:
+
+  `shift(m, p, w) = {(q, m.q) : q ∈ dom.m ∧ sub(q) = sub(p) ∧ q < p}`
+  `              ∪ {(q + w, m.q) : q ∈ dom.m ∧ sub(q) = sub(p) ∧ q ≥ p}`
+  `              ∪ {(q, m.q) : q ∈ dom.m ∧ sub(q) ≠ sub(p)}`
+
+The first component preserves same-subspace positions below p. The second displaces same-subspace positions at or above p rightward by w. The third passes all other-subspace positions through unchanged.
 
 **INS-CORR (INSERT Correctness).** Let Σ' = INSERT(d, p, c) applied to state Σ satisfying PRE1–PRE4. Then:
 
@@ -196,7 +247,7 @@ The individual properties above can be assembled into a single characterization 
 
 (iii) `(A i : 0 ≤ i < #c : ispace'.(a₀ + i) = c.i)` — new addresses receive the inserted content.
 
-(iv) `poom'(d) = shift(poom(d), p, #c) ∪ {(p+i, a₀+i) : 0 ≤ i < #c}` where `shift` displaces all text-subspace positions ≥ p rightward by #c and leaves all other positions unchanged.
+(iv) `poom'(d) = shift(poom(d), p, #c) ∪ {(p+i, a₀+i) : 0 ≤ i < #c}` — the V-space mapping is the shifted original plus the new content.
 
 (v) `(A d' : d' ≠ d : poom'(d') = poom(d'))` — all other documents are untouched.
 
@@ -204,16 +255,39 @@ The individual properties above can be assembled into a single characterization 
 
 (vii) `links' = links` — no link is created, modified, or destroyed.
 
-(viii) `(A q ∈ link_subspace(d) : poom'(d).q = poom(d).q)` — link positions are unaffected (when the insertion targets the text subspace).
+Clause (i) follows from INS1 and P0. Clause (ii) from P1. Clause (iii) from INS2. Clause (iv) from INS3, INS4, and INS-F5 — the shift definition encodes all three. Clause (v) from INS-F2. Clause (vi) from INS5 and P2. Clause (vii) from INS-F4.
 
-Clause (i) follows from INS1 and P0. Clause (ii) from INS-F1 (= P1). Clause (iii) from INS2. Clause (iv) from INS3, INS4, and INS-F5. Clause (v) from INS-F2. Clause (vi) from INS5 and INS-F6. Clause (vii) from INS-F4. Clause (viii) from INS-F5.
+
+## A concrete example
+
+Let document d have three bytes of content, with `poom(d) = {(1, a), (2, b), (3, c)}` where `ispace.a = 'H'`, `ispace.b = 'i'`, `ispace.c = '!'`. The document reads "Hi!" and `|poom(d)| = 3`.
+
+We apply INSERT(d, 2, "EY"), inserting two bytes at position 2. The preconditions hold: PRE1 (d exists), PRE2 (user owns d), PRE3 (1 ≤ 2 ≤ 4), PRE4 (#"EY" = 2 > 0).
+
+The allocation produces fresh addresses x, y with `{x, y} ∩ dom.ispace = ∅`. After INSERT:
+
+- INS1: `{x, y} ⊆ dom.ispace'` and `{x, y} ∩ dom.ispace = ∅`. ✓
+- INS2: `ispace'.x = 'E'`, `ispace'.y = 'Y'`. ✓
+- INS3: `poom'(d).2 = x`, `poom'(d).3 = y`. The new content occupies positions [2, 4). ✓
+- INS4 (first clause, q < 2): `poom'(d).1 = poom(d).1 = a`. Position 1 unchanged. ✓
+- INS4 (second clause, q ≥ 2): `poom'(d).(2 + 2) = poom(d).2 = b`, so `poom'(d).4 = b`. And `poom'(d).(3 + 2) = poom(d).3 = c`, so `poom'(d).5 = c`. ✓
+- INS5: `(x, d) ∈ spanindex'` and `(y, d) ∈ spanindex'`. ✓
+- INS-D1: `|poom'(d)| = 3 + 2 = 5`. ✓
+
+The resulting mapping is `poom'(d) = {(1, a), (2, x), (3, y), (4, b), (5, c)}`. The document reads "HEYY!" — wait. Let us check: position 1 → a → 'H', position 2 → x → 'E', position 3 → y → 'Y', position 4 → b → 'i', position 5 → c → '!'. The document reads "HEYi!" — the original "Hi!" with "EY" spliced in at position 2.
+
+Invariant verification against this example:
+- S0: every position maps to an address in `dom.ispace'`. Addresses a, b, c were in `dom.ispace` (hence in `dom.ispace'` by P0). Addresses x, y are in `dom.ispace'` by INS1. ✓
+- S4: all five I-addresses (a, x, y, b, c) are distinct — a, b, c were distinct by S4 pre-INSERT; x, y are fresh and mutually distinct. ✓
+- S5: occupied positions are {1, 2, 3, 4, 5} = [1, 5]. ✓
+- INS-D2: content at shifted positions — `ispace'.(poom'(d).4) = ispace'.b = ispace.b = 'i'` = `ispace.(poom(d).2)`. ✓
 
 
 ## Atomicity
 
 Nelson does not use the word "atomic." Literary Machines is silent on whether INSERT must be all-or-nothing. But his specification is only consistent with all-or-nothing semantics, and we state this as a derived requirement.
 
-**INS-ATOM (All-or-nothing execution).** Either INSERT(d, p, c) transitions Σ to a state Σ' satisfying all of INS-CORR(i)–(viii), or the state is unchanged: Σ' = Σ.
+**INS-ATOM (All-or-nothing execution).** Either INSERT(d, p, c) transitions Σ to a state Σ' satisfying all of INS-CORR(i)–(vii), or the state is unchanged: Σ' = Σ.
 
 Three converging requirements force this conclusion.
 
@@ -245,7 +319,7 @@ The abstract implication is that LIFO ordering is a theorem of the specification
 
 Nelson specifies APPEND as a separate operation: "This appends `<text set>` onto the end of the text space of the document `<doc id>`." We observe that APPEND(d, c) is semantically equivalent to INSERT(d, |poom(d)| + 1, c). The position is one past the last occupied position; by INS4, the shift clause is vacuously satisfied (no following characters exist); by INS3, the content is placed at the end. APPEND is a convenience name for a common case of INSERT, not a distinct operation with separate semantics.
 
-The equivalence means every property we have established for INSERT applies to APPEND without modification. In particular, APPEND satisfies INS-CORR(i)–(viii) with `p = |poom(d)| + 1`.
+The equivalence means every property we have established for INSERT applies to APPEND without modification. In particular, APPEND satisfies INS-CORR(i)–(vii) with `p = |poom(d)| + 1`.
 
 
 ## What INSERT does not do
@@ -265,26 +339,25 @@ A front-end may provide a "location-fixed window" that re-resolves the source do
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| P0 | `(A a : a ∈ dom.ispace : a ∈ dom.ispace')` — no operation removes an address | introduced |
-| P1 | `(A a : a ∈ dom.ispace : ispace'.a = ispace.a)` — content at an address never changes | introduced |
-| P2 | `(A (a,d) : (a,d) ∈ spanindex : (a,d) ∈ spanindex')` — span index never loses an entry | introduced |
+| P0 | `(A a : a ∈ dom.ispace : a ∈ dom.ispace')` — address irrevocability (derived from S1, ASN-0001) | derived |
+| P1 | `(A a : a ∈ dom.ispace : ispace'.a = ispace.a)` — content immutability (restates S1, ASN-0001) | derived |
+| P2 | `(A (a,d) : (a,d) ∈ spanindex : (a,d) ∈ spanindex')` — index monotonicity (derived from S3, ASN-0001) | derived |
 | PRE1 | `d ∈ dom.owner` — target document must exist | introduced |
 | PRE2 | `user = owner(d)` — requesting user must be document owner | introduced |
-| PRE3 | `1 ≤ p ≤ |poom(d)| + 1` — position within [1, m+1] | introduced |
+| PRE3 | `1 ≤ p ≤ \|poom(d)\| + 1` — position within [1, m+1] | introduced |
 | PRE4 | `#c > 0` — content to insert is non-empty | introduced |
 | INS1 | INSERT allocates #c fresh addresses disjoint from dom.ispace | introduced |
 | INS1a | Text allocation is subspace-local, independent of link allocations | introduced |
 | INS2 | `(A i : 0 ≤ i < #c : ispace'.(a₀+i) = c.i)` — new addresses receive inserted content | introduced |
 | INS3 | `(A i : 0 ≤ i < #c : poom'(d).(p+i) = a₀+i)` — content placed at insertion position | introduced |
-| INS4 | Positions < p unchanged; positions ≥ p shift rightward by #c (within same subspace) | introduced |
+| INS4 | Positions < p unchanged, positions ≥ p shift by #c (same subspace only) | introduced |
+| INS-D1 | `\|poom'(d)\| = \|poom(d)\| + #c` — text length increases by insertion width | introduced |
 | INS5 | `(A i : 0 ≤ i < #c : (a₀+i, d) ∈ spanindex')` — new range indexed under d | introduced |
-| INS-F1 | `(A a : a ∈ dom.ispace : ispace'.a = ispace.a)` — existing I-space content unchanged | introduced |
 | INS-F2 | `(A d' : d' ≠ d : poom'(d') = poom(d'))` — other documents' V-space unchanged | introduced |
-| INS-F3 | V→I correspondence preserved: same content at shifted positions | introduced |
+| INS-D2 | V→I correspondence preserved: same content at shifted positions | introduced |
 | INS-F4 | `(A L ∈ links : L ∈ links' ∧ endsets'(L) = endsets(L))` — all links unchanged | introduced |
 | INS-F5 | `(A q ∈ other_subspace(d, sub(p)) : poom'(d).q = poom(d).q)` — subspace isolation | introduced |
-| INS-F6 | `(A (a,d') : (a,d') ∈ spanindex : (a,d') ∈ spanindex')` — existing index preserved | introduced |
-| INS-CORR | Complete correctness: clauses (i)–(viii) characterize the full state transition | introduced |
+| INS-CORR | Complete correctness: clauses (i)–(vii) characterize the full state transition | introduced |
 | INS-ATOM | All-or-nothing: either INS-CORR holds or Σ' = Σ | introduced |
 
 
