@@ -3,15 +3,16 @@
 Review an ASN for rigor — Dijkstra-style proof checking.
 
 Loads the ASN content and shared vocabulary, injects them into a review
-prompt template, and invokes claude --print for pure analysis (no tools).
+prompt template, and invokes claude --print with --tools "" (review is
+pure analysis, no file access needed).
 
 Results written to vault/reviews/ for traceability.
-Prints the output file path to stdout.
 
 Usage:
     python scripts/review-asn.py 4
     python scripts/review-asn.py 9 --model sonnet
     python scripts/review-asn.py 9 --effort high
+    python scripts/review-asn.py 4 --dry-run
 """
 
 import argparse
@@ -74,8 +75,16 @@ def build_prompt(asn_content, vocabulary):
     )
 
 
+def strip_preamble(text):
+    """Strip any tool-use preamble before the review header."""
+    marker = re.search(r"^# Review of ASN-\d+", text, re.MULTILINE)
+    if marker:
+        return text[marker.start():]
+    return text
+
+
 def invoke_claude(prompt, model="opus", effort="max"):
-    """Call claude --print. Returns response text."""
+    """Call claude --print with --tools "". Returns plain text response."""
     model_flag = {
         "opus": "claude-opus-4-6",
         "sonnet": "claude-sonnet-4-6",
@@ -84,7 +93,6 @@ def invoke_claude(prompt, model="opus", effort="max"):
     cmd = [
         "claude", "--print",
         "--model", model_flag,
-        "--output-format", "json",
         "--tools", "",
     ]
 
@@ -106,38 +114,20 @@ def invoke_claude(prompt, model="opus", effort="max"):
         if result.stderr:
             for line in result.stderr.strip().split("\n")[:3]:
                 print(f"    {line}", file=sys.stderr)
-        return "", elapsed, {}
+        return "", elapsed
 
-    try:
-        data = json.loads(result.stdout)
-        text = data.get("result", "")
-        usage = data.get("usage", {})
-        cost = data.get("total_cost_usd", 0)
-        inp = (usage.get("input_tokens", 0) +
-               usage.get("cache_read_input_tokens", 0) +
-               usage.get("cache_creation_input_tokens", 0))
-        out = usage.get("output_tokens", 0)
-
-        print(f"  [{elapsed:.0f}s] in:{inp} out:{out} ${cost:.4f}",
-              file=sys.stderr)
-
-        return text, elapsed, {"input_tokens": inp, "output_tokens": out,
-                               "cost_usd": cost}
-    except (json.JSONDecodeError, KeyError):
-        print(f"  [{elapsed:.0f}s] [parse error]", file=sys.stderr)
-        return result.stdout, elapsed, {}
+    print(f"  [{elapsed:.0f}s]", file=sys.stderr)
+    return result.stdout.strip(), elapsed
 
 
-def log_usage(elapsed, usage):
+def log_usage(asn_label, elapsed):
     """Append a usage entry to the log."""
     try:
         entry = {
             "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
             "skill": "review",
+            "asn": asn_label,
             "elapsed_s": round(elapsed, 1),
-            "input_tokens": usage.get("input_tokens", 0),
-            "output_tokens": usage.get("output_tokens", 0),
-            "cost_usd": usage.get("cost_usd", 0),
         }
         with open(USAGE_LOG, "a") as f:
             f.write(json.dumps(entry) + "\n")
@@ -147,12 +137,14 @@ def log_usage(elapsed, usage):
 
 def main():
     parser = argparse.ArgumentParser(description="Review an ASN for rigor")
-    parser.add_argument("asn", help="ASN number (e.g., 9, 0009, ASN-0009)")
+    parser.add_argument("asn", help="ASN number (e.g., 4, 0004, ASN-0004) or path")
     parser.add_argument("--model", "-m", default="opus",
                         choices=["opus", "sonnet"],
-                        help="Model (default: opus — reviews need maximum rigor)")
+                        help="Model (default: opus)")
     parser.add_argument("--effort", default="max",
                         help="Thinking effort level (low/medium/high/max)")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="Show prompt size without invoking Claude")
     args = parser.parse_args()
 
     # Find ASN
@@ -174,13 +166,21 @@ def main():
     print(f"  Prompt: {len(prompt) // 1024}KB (~{len(prompt) // 4} tokens est.)",
           file=sys.stderr)
 
-    # Invoke
-    text, elapsed, usage = invoke_claude(prompt, model=args.model,
-                                         effort=args.effort)
+    if args.dry_run:
+        print(f"  [DRY RUN] Would invoke {args.model} with --tools """,
+              file=sys.stderr)
+        return
+
+    # Invoke Claude
+    text, elapsed = invoke_claude(prompt, model=args.model,
+                                  effort=args.effort)
 
     if not text:
         print("  No review produced", file=sys.stderr)
         sys.exit(1)
+
+    # Strip any preamble before review header
+    text = strip_preamble(text)
 
     # Write output (sequential numbering: review-1, review-2, ...)
     REVIEWS_DIR.mkdir(parents=True, exist_ok=True)
@@ -191,15 +191,15 @@ def main():
         if m:
             next_num = max(next_num, int(m.group(1)) + 1)
     output_path = REVIEWS_DIR / f"{asn_label}-review-{next_num}.md"
-    output_path.write_text(text)
+    output_path.write_text(text + "\n")
 
     # Log usage
-    log_usage(elapsed, usage)
+    log_usage(asn_label, elapsed)
 
-    # Print the output file path to stdout
+    # Print output file path to stdout (for pipeline consumption)
     print(str(output_path))
 
-    print(f"  [LOG] {output_path}", file=sys.stderr)
+    print(f"  [WROTE] {output_path.relative_to(WORKSPACE)}", file=sys.stderr)
 
 
 if __name__ == "__main__":

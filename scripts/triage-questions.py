@@ -101,6 +101,7 @@ def invoke_claude(prompt, model="opus", effort="max"):
     cmd = [
         "claude", "--print",
         "--model", model_flag,
+        "--tools", "",
     ]
 
     env = os.environ.copy()
