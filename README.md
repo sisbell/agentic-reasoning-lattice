@@ -50,6 +50,57 @@ Extracts DEFER sections from an ASN's review files, checks against existing tria
 (vault/triage/ASN-NNNN-defers.md), and decides which deferred topics warrant new
 inquiries. Re-running passes previous triage as context to avoid re-promoting.
 
+### Vocabulary — extract conventions and align ASNs
+
+Two-phase process: **extract** builds the canonical vocabulary, **align** rewrites ASNs to match it.
+
+**Phase 1: Build vocabulary incrementally.** Start with the most canonical ASN and add
+one at a time, reviewing conflicts at each step.
+
+```bash
+# 1. Seed vocabulary from the most well-established ASN
+python scripts/extract-vocab.py 4 --dry-run    # preview conflicts + proposed vocab
+python scripts/extract-vocab.py 4              # write vocabulary.md
+git diff vault/vocabulary.md                   # review
+
+# 2. Add the next ASN — conflicts show where it diverges
+python scripts/extract-vocab.py 4 5 --dry-run  # see what ASN-0005 adds/conflicts
+python scripts/extract-vocab.py 4 5            # update vocabulary
+git diff vault/vocabulary.md                   # review, commit if good
+
+# 3. Continue adding ASNs, reviewing conflicts each time
+python scripts/extract-vocab.py 4 5 6          # add ASN-0006
+# ... repeat until all ASNs are covered
+
+# Or once confident, process everything at once
+python scripts/extract-vocab.py --all
+```
+
+Conflicts print to stderr (term, vocab says, ASN says, recommendation). The majority
+convention wins. Review the diff after each step — vocabulary.md is the single source
+of truth for notation.
+
+**Phase 2: Align ASNs to vocabulary.** Once vocabulary.md is stable, rewrite each ASN
+to match. One ASN at a time — review the diff before moving on.
+
+```bash
+# Align the most divergent ASN first
+python scripts/align-vocab.py 3                # align ASN-0003
+git diff vault/asns/                           # review notation changes
+
+# Verify idempotence — re-running should produce no diff
+python scripts/align-vocab.py 3                # should be a no-op
+
+# Continue with remaining ASNs
+python scripts/align-vocab.py 5
+python scripts/align-vocab.py 7
+# ...
+```
+
+Alignment is notation-only — state component names, property label prefixes, section
+headings, type signatures. Proofs, math, and prose content are preserved. Uses opus
+by default (needs semantic understanding to map property labels by meaning, not number).
+
 ### Standalone scripts
 
 ```
@@ -75,7 +126,8 @@ python scripts/commit.py "hint about changes" # commit with context hint
 | `consult-gregory.py` | Gregory consultation — KB synthesis + code exploration |
 | `triage-questions.py` | Evaluate ASN open questions → new inquiries (opus) |
 | `triage-defers.py` | Evaluate review DEFER items → new inquiries (opus) |
-| `extract-vocab.py` | Extract structural conventions from finalized ASNs |
+| `extract-vocab.py` | Extract vocabulary from ASNs, detect notation conflicts (sonnet) |
+| `align-vocab.py` | Align ASN notation to canonical vocabulary (opus, with tools) |
 
 ## Prompt Templates
 
@@ -91,6 +143,8 @@ python scripts/commit.py "hint about changes" # commit with context hint
 | `gregory-code-agent.md` | `consult-gregory.py` | Gregory code exploration agent |
 | `triage-questions.md` | `triage-questions.py` | Open question evaluation and inquiry framing |
 | `triage-defers.md` | `triage-defers.py` | Review deferral evaluation and inquiry framing |
+| `extract-vocab.md` | `extract-vocab.py` | Vocabulary extraction + conflict detection |
+| `align-vocab.md` | `align-vocab.py` | ASN notation alignment to canonical vocabulary |
 
 ## Directory Structure
 
