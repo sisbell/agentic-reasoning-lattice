@@ -117,3 +117,30 @@ inquiries:
       nelson: 10
       gregory: 10
 
+  - id: 18
+    title: "Concurrent Operation Ordering"
+    question: "What must the system guarantee about the result when multiple operations modify the same or overlapping content simultaneously? What determines the final state and what invariants must the resolution satisfy?"
+    area: concurrency
+    source: "review-defer triage"
+
+  - id: 19
+    title: "Operation Journaling"
+    question: "What must the system guarantee about recording and replaying the history of operations performed on content? What properties must an operation log satisfy for faithful state reconstruction?"
+    area: versioning
+    source: "review-defer triage"
+    agents:
+      nelson: 10
+      gregory: 5
+
+  - id: 20
+    title: "Allocation Order Invariants"
+    question: "What must the system guarantee about the relationship between the temporal order in which content is allocated and its spatial position in V-space? Must allocation order correspond to document order?"
+    area: addressing
+    source: "review-defer triage"
+
+  - id: 21
+    title: "Frame Condition Completeness"
+    question: "What must each operation explicitly guarantee about state it does not intend to modify? What frame conditions must hold across all operations to ensure unaffected properties — ownership, links, addresses — are preserved?"
+    area: operations
+    source: "review-defer triage"
+
