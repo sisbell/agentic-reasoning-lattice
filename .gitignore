@@ -5,3 +5,4 @@ __pycache__/
 vault/usage-log.jsonl
 resources/literary-machines/*.pdf
 resources/literary-machines/raw/
+notes/
