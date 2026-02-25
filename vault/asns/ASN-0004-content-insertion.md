@@ -22,19 +22,19 @@ A document's virtual stream has two subspaces: text (positions whose first compo
 
 ## The permanence context
 
-Before we state what INSERT does, we must establish what it cannot undo. ASN-0001 establishes the fundamental invariants S0–S3 that every operation must preserve. Three consequences of those invariants are directly relevant to INSERT:
+Before we state what INSERT does, we must establish what it cannot undo. The fundamental invariants S0–S3 govern every operation. Three consequences are directly relevant to INSERT:
 
 **P0 (Address irrevocability).** `(A a : a ∈ dom.ispace : a ∈ dom.ispace')` — no operation shrinks the set of allocated addresses.
 
-P0 follows from S1 (I-space immutability, ASN-0001) together with the append-only property of I-space established in ASN-0001: addresses can be added to `dom.ispace` but never removed.
+P0 follows from S1 (I-space immutability) together with the append-only property of I-space: addresses can be added to `dom.ispace` but never removed.
 
 **P1 (Content immutability).** `(A a : a ∈ dom.ispace : ispace'.a = ispace.a)` — content at an address never changes.
 
-P1 restates S1 (ASN-0001) directly. We give it a local label for convenient reference within this ASN.
+P1 restates S1 directly. We give it a local label for convenient reference within this ASN.
 
 **P2 (Index monotonicity).** `(A (a, d) : (a, d) ∈ spanindex : (a, d) ∈ spanindex')` — the span index never loses an entry.
 
-P2 follows from S3 (span index consistency, ASN-0001) together with the append-only property of the span index: entries are added but never removed.
+P2 follows from S3 (span index consistency) together with the append-only property of the span index: entries are added but never removed.
 
 Any specification of INSERT that violates any of these three is wrong, regardless of what else it achieves. Nelson is explicit: "Instead, suppose we create an append-only storage system. User makes changes, the changes difflessly into the storage system, filed, as it were, chronologically." I-space only grows; content never changes; the index never forgets.
 
@@ -193,7 +193,7 @@ This is not a derived convenience. It is the property on which link survivabilit
 
 ## Invariant preservation
 
-INSERT must preserve the fundamental invariants established by ASN-0001 (S0–S3) and the structural invariants established by ASN-0014 (S4–S5). We verify each.
+INSERT must preserve the fundamental invariants S0–S3 and the structural invariants S4–S5. We verify each.
 
 **S0 (V→I Grounding).** We must show `(A d', q : q ∈ dom.poom'(d') : poom'(d').q ∈ dom.ispace')`.
 
@@ -339,9 +339,9 @@ A front-end may provide a "location-fixed window" that re-resolves the source do
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| P0 | `(A a : a ∈ dom.ispace : a ∈ dom.ispace')` — address irrevocability (derived from S1, ASN-0001) | derived |
-| P1 | `(A a : a ∈ dom.ispace : ispace'.a = ispace.a)` — content immutability (restates S1, ASN-0001) | derived |
-| P2 | `(A (a,d) : (a,d) ∈ spanindex : (a,d) ∈ spanindex')` — index monotonicity (derived from S3, ASN-0001) | derived |
+| P0 | `(A a : a ∈ dom.ispace : a ∈ dom.ispace')` — address irrevocability (derived from S1) | derived |
+| P1 | `(A a : a ∈ dom.ispace : ispace'.a = ispace.a)` — content immutability (restates S1) | derived |
+| P2 | `(A (a,d) : (a,d) ∈ spanindex : (a,d) ∈ spanindex')` — index monotonicity (derived from S3) | derived |
 | PRE1 | `d ∈ dom.owner` — target document must exist | introduced |
 | PRE2 | `user = owner(d)` — requesting user must be document owner | introduced |
 | PRE3 | `1 ≤ p ≤ \|poom(d)\| + 1` — position within [1, m+1] | introduced |
