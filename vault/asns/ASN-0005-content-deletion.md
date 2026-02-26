@@ -51,13 +51,13 @@ DEL0 is not a safety net or an optimization opportunity. It is forced by P0 and 
 
 A corollary deserves explicit statement. Because I-space includes the content storage layer (what Gregory's implementation calls the granfilade), and DELETE does not modify I-space, **the allocation high-water mark is unaffected by DELETE**. After DELETE removes all text from a document, a subsequent INSERT still allocates fresh I-addresses continuing monotonically from the previous maximum. The counter advances; it never retreats. This follows directly from DEL0 — the content storage retains every previously allocated entry, and allocation queries this storage for the maximum.
 
-**DEL1 (V-space effect — text subspace).** After DELETE(d, p, w) targeting the text subspace, the V-space mapping of document d loses the positions in [p, p ⊕ w) and surviving text positions beyond the deletion shift leftward by w:
+**DEL1 (V-space effect — text subspace).** After DELETE(d, p, w) targeting the text subspace, the V-space mapping of document d loses the positions in [p, p ⊕ w) and surviving text positions beyond the deletion shift leftward by w. We specify this in two parts — the new domain, and the new mapping:
 
-  `(A q : q < p : poom'(d).q = poom(d).q)`
-  `(A q : q ≥ p ⊕ w : poom'(d).(q ⊖ w) = poom(d).q)`
-  `(A q : p ≤ q < p ⊕ w : q ∉ dom.poom'(d))`
+  *Domain (text subspace):* `dom.poom'(d) ∩ text = {q : q < p, q ∈ dom.poom(d)} ∪ {q ⊖ w : q ≥ p ⊕ w, q ∈ dom.poom(d)}`
 
-where `⊕` and `⊖` denote position arithmetic (tumbler addition and subtraction within a subspace). The first clause says content before the deletion is untouched. The second says content after the deletion shifts left, preserving its I-address mapping. The third says the deleted positions disappear from the mapping.
+  *Mapping:* `(A q : q < p ∧ q ∈ dom.poom(d) : poom'(d).q = poom(d).q)` and `(A q : q ≥ p ⊕ w ∧ q ∈ dom.poom(d) : poom'(d).(q ⊖ w) = poom(d).q)`
+
+where `⊕` and `⊖` denote position arithmetic (tumbler addition and subtraction within a subspace). The first mapping clause says content before the deletion is untouched. The second says content after the deletion shifts left, preserving its I-address mapping. The domain definition captures what was previously a contradictory third clause: deleted positions disappear not by explicit exclusion but implicitly — they are simply absent from the union that defines the new domain. There is no position in [p, p ⊕ w) that appears in either branch of the union, and no shifted position collides with a preserved one, so the domain is well-defined.
 
 Nelson describes this compaction as the inverse of INSERT's expansion: "The v-stream addresses of any following characters in the document are increased by the length of the inserted text" — DELETE decreases them by the length of the deleted text.
 
@@ -117,9 +117,9 @@ When a deletion partially overlaps an entry — removing only part of the conten
 
 **(b) Tail removal** — the deletion covers the end of the entry: `v₁ < p` and `p ⊕ w ≥ v₂`. The last `k = v₂ − p` positions of the entry are deleted. The surviving entry maps V-range [v₁, p) to I-range [i₁, i₁ + (p − v₁)). No V-shift is needed for this fragment (it is entirely before the deletion point). The I-displacement is unchanged; the I-width decreases from (i₂ − i₁) to (p − v₁).
 
-**(c) Middle split** — the deletion is strictly interior to the entry: `v₁ < p` and `p ⊕ w < v₂`. One entry produces two surviving fragments. The left fragment maps [v₁, p) → [i₁, i₁ + (p − v₁)), with I-displacement unchanged and width (p − v₁). The right fragment maps [p ⊕ w, v₂) → [i₁ + (p ⊕ w − v₁), i₂), with I-displacement offset by (p ⊕ w − v₁) and width (v₂ − p ⊕ w). After V-compaction, the right fragment shifts left by w to [p, v₂ ⊖ w). Middle split produces a net increase of one in the POOM entry count: one entry becomes two. The I-displacement for each fragment is computed independently from the original entry's I-displacement plus the appropriate offset.
+**(c) Middle split** — the deletion is strictly interior to the entry: `v₁ < p` and `p ⊕ w < v₂`. One entry produces two surviving fragments. The left fragment maps [v₁, p) → [i₁, i₁ + (p − v₁)), with I-displacement unchanged and width (p − v₁). The right fragment maps [p ⊕ w, v₂) → [i₁ + ((p ⊕ w) ⊖ v₁), i₂), with I-displacement offset by ((p ⊕ w) ⊖ v₁) and width (v₂ ⊖ (p ⊕ w)). After V-compaction, the right fragment shifts left by w to [p, v₂ ⊖ w). Middle split produces a net increase of one in the POOM entry count: one entry becomes two. The I-displacement for each fragment is computed independently from the original entry's I-displacement plus the appropriate offset.
 
-In all three cases the fundamental invariant holds: for every surviving position q with pre-deletion mapping poom(d).q = a, the post-deletion state satisfies poom'(d).q' = a where q' is the compacted V-position. The V↔I bijection is maintained through the split. Gregory confirms that the split function produces new entries whose I-displacements equal the original plus the cut offset, independently for each fragment.
+In all three cases the fundamental invariant holds: for every surviving position q with pre-deletion mapping poom(d).q = a, the post-deletion state satisfies poom'(d).q' = a where q' is the compacted V-position. This is a *correspondence preservation* property — each surviving V-position maps to the same I-address it mapped to before, at a shifted V-coordinate — which is the conjunction of DEL1 (the mapping clauses for positions before and beyond the deletion) and DEL6's invariance of I-displacement fields. We do not claim bijectivity: the POOM is a function from positions to addresses, and two positions may map to the same I-address (as happens with intra-document transclusion). What DELETE preserves is not a bijection but the faithfulness of the mapping — no surviving position's I-address assignment changes. Gregory confirms that the split function produces new entries whose I-displacements equal the original plus the cut offset, independently for each fragment.
 
 This is the formal expression of Nelson's dictum that deletion is rearrangement. The "arrangement" lives in the V-dimension of the POOM entries. The "content identity" lives in the I-dimension. DELETE modifies the former and leaves the latter untouched.
 
@@ -269,9 +269,7 @@ We apply DELETE(d, 3, 2) — deleting 2 positions starting at position 3 (removi
 
 **Checking DEL0 (I-space frame).** `dom.ispace' = dom.ispace` — all five addresses a₁ through a₅ remain allocated. `ispace'.a₃ = c₃` and `ispace'.a₄ = c₄` — the "deleted" content is unchanged. No content is destroyed.
 
-**Checking DEL1 (V-space effect).** Before the deletion point: `poom'(d).1 = a₁` and `poom'(d).2 = a₂` — unchanged, as required. Deleted positions: `3 ∉ dom.poom'(d)` and `4 ∉ dom.poom'(d)` — removed. Shifted positions: `poom'(d).3 = poom(d).5 = a₅` (position 5 shifted left by 2 to position 3) and `poom'(d).4` is undefined (only three positions remain). The virtual stream contracted from 5 to 3 positions: `poom'(d)` has domain {1, 2, 3} mapping to {a₁, a₂, a₅}.
-
-Wait — we must be precise. Position 4 mapped to a₄ (deleted) and position 5 mapped to a₅. After deleting [3, 5), position 5 shifts to 5 ⊖ 2 = 3. So `poom'(d) = {1 ↦ a₁, 2 ↦ a₂, 3 ↦ a₅}`.
+**Checking DEL1 (V-space effect).** The new domain is `{q : q < 3, q ∈ dom.poom(d)} ∪ {q ⊖ 2 : q ≥ 5, q ∈ dom.poom(d)} = {1, 2} ∪ {5 ⊖ 2} = {1, 2, 3}`. The mapping: for positions before the deletion, `poom'(d).1 = a₁` and `poom'(d).2 = a₂` — unchanged. For positions at or beyond p ⊕ w = 5: `poom'(d).(5 ⊖ 2) = poom'(d).3 = poom(d).5 = a₅`. So `poom'(d) = {1 ↦ a₁, 2 ↦ a₂, 3 ↦ a₅}`. Position 3 is in the new domain (via the shift of old position 5), consistent with DEL1 — there is no contradiction because the domain is defined by the union, not by separate exclusion of [p, p ⊕ w).
 
 **Checking DEL6 (I-dimension invariance).** The entries at positions 1 and 2 survived intact — their I-addresses are unchanged (a₁ and a₂ respectively). The entry originally at position 5 survived intact and shifted to position 3 — its I-address a₅ is preserved. No partial overlap occurred in this example (each position is a single-position entry), so no splitting was needed.
 
@@ -329,13 +327,13 @@ Given that DELETE is reversible via COPY, we ask: what must the system retain so
 
 (a) The I-space content at the deleted addresses — guaranteed by P0 and P1. The content was never destroyed.
 
-(b) Some way to name the deleted I-addresses. Two primary sources exist, either of which suffices:
+(b) Some way to name the deleted I-addresses. Two sources are proven sufficient, either of which alone suffices:
 
-  (i) A document whose POOM still maps to the deleted I-addresses — in the common case, a previous version of d (if one was explicitly created before the DELETE, since DELETE does not create versions automatically) or another document that transcludes the same content.
+  (i) A document whose POOM still maps to the deleted I-addresses — in the common case, a previous version of d (if one was explicitly created before the DELETE, since DELETE does not create versions automatically) or another document that transcludes the same content. Sufficiency: COPY from such a document extracts the I-addresses from the source's POOM and deposits them in d's POOM, restoring the original V→I mapping (DEL13).
 
-  (ii) A link whose endset references the deleted I-addresses. Even if no POOM anywhere maps to those addresses (the link is fully ghost), the link's endset provides the I-addresses as an I-span, which COPY can consume directly to re-introduce the content.
+  (ii) A link whose endset references the deleted I-addresses. Even if no POOM anywhere maps to those addresses (the link is fully ghost), the link's endset provides the I-addresses as an I-span, which COPY can consume directly to re-introduce the content. Sufficiency: the endset names exactly the I-addresses needed, and COPY accepts I-spans directly (DEL13).
 
-The operation journal (a declared component of Σ) provides a third source: journal records name the I-addresses affected by each operation, so a sufficiently detailed journal record for the DELETE can supply the deleted I-addresses for re-introduction. The journal's monotonicity (P3) ensures that this record, once written, is never lost. However, the journal's utility for reversal depends on what detail the records contain — a property we do not fully specify here.
+The operation journal is a plausible third source — journal records name operations and affected I-addresses, and P3 guarantees their persistence — but we have not specified the precise content of a DELETE journal record. Whether the record contains enough detail to serve as a COPY source (minimally: the document id, the deleted I-address range, and sufficient information for COPY to consume) remains an open question. We do not list the journal among proven reversal sources.
 
 (c) Nothing about links beyond what (b.ii) describes. Links remember themselves — their endset I-addresses are unchanged (DEL5). The moment the I-addresses re-enter a document's POOM, links are discoverable again through that document. No "link re-attachment" step is needed.
 
@@ -435,7 +433,7 @@ We collect the specification of DELETE. The operation `δ(Σ, DELETE(d, p, w)) =
 
 *Residual effects:* The span index retains entries for the deleted I-addresses associated with document d (DEL9). Queries consulting the span index may return d as a stale result (DEL10). Link discoverability through d is reduced; links whose endsets reference only deleted addresses become ghosts relative to d (DEL7, DEL8). Version comparison reflects the current state — overlap with other versions is reduced (Transclusion independence section).
 
-*Reversibility:* Content persists in I-space (DEL11). Identity-preserving restoration is possible via COPY from any source that can name the deleted I-addresses — a document whose POOM still maps to them, a link whose endset references them, or a journal record naming them (DEL13, DEL14). Re-typing the same text via INSERT does not restore identity — it creates new addresses (DEL12). DELETE does not create versions; the availability of a convenient COPY source depends on explicit user action (DEL15).
+*Reversibility:* Content persists in I-space (DEL11). Identity-preserving restoration is possible via COPY from any source that can name the deleted I-addresses — a document whose POOM still maps to them, or a link whose endset references them (DEL13, DEL14). The journal is a plausible but unproven third source, pending specification of DELETE record contents. Re-typing the same text via INSERT does not restore identity — it creates new addresses (DEL12). DELETE does not create versions; the availability of a convenient COPY source depends on explicit user action (DEL15).
 
 
 ## Properties Introduced
@@ -443,13 +441,13 @@ We collect the specification of DELETE. The operation `δ(Σ, DELETE(d, p, w)) =
 | Label | Statement | Status |
 |-------|-----------|--------|
 | DEL0 | DELETE does not modify ispace: `dom.ispace' = dom.ispace` and `ispace'.a = ispace.a` for all `a ∈ dom.ispace` | introduced |
-| DEL1 | Text subspace DELETE removes V-positions in [p, p⊕w), shifts surviving positions beyond the deletion leftward by w, preserving their I-address mappings | introduced |
+| DEL1 | Text subspace DELETE: new domain is `{q < p} ∪ {q ⊖ w : q ≥ p ⊕ w}` (restricted to pre-state domain); mapping preserves I-addresses for positions before p, shifts positions at/beyond p ⊕ w leftward by w | introduced |
 | DEL1a | Link subspace DELETE removes the targeted V→I mapping but does not shift surviving links; gaps persist permanently | introduced |
 | DEL2 | DELETE on document d does not modify any other document's POOM: `poom'(d') = poom(d')` for all `d' ≠ d` | introduced |
 | DEL3 | DELETE's effect is confined to the subspace of the deletion; the other subspace is unaffected | introduced |
 | DEL4 | DELETE does not remove entries from the span index; follows from P2 | introduced |
 | DEL5 | DELETE does not modify any link structure: all endsets are unchanged | introduced |
-| DEL6 | DELETE's V-compaction modifies only V-displacement of intact entries; partial overlaps produce three cases — head removal (I-offset by k), tail removal (truncated I-width), middle split (two fragments with independent I-offsets) — all preserving V↔I bijection | introduced |
+| DEL6 | DELETE's V-compaction modifies only V-displacement of intact entries; partial overlaps produce three cases — head removal (I-offset by k), tail removal (truncated I-width), middle split (two fragments with independent I-offsets) — all preserving correspondence (each surviving position's I-address is unchanged) | introduced |
 | DEL7 | A link endset has three discoverability states: live (all I-addresses mapped by some POOM), partial (some mapped, some not), ghost (none mapped); DELETE can transition between states | introduced |
 | DEL8 | Endset resolution is a two-step filtering projection: first collect positions `{p ∈ dom.poom(d) : poom(d).p ∈ endset(L)}`, then group maximal contiguous runs into spans | introduced |
 | DEL9 | After DELETE, the span index may contain stale entries `(a, d)` where `a ∉ img(poom(d))` | introduced |
@@ -457,7 +455,7 @@ We collect the specification of DELETE. The operation `δ(Σ, DELETE(d, p, w)) =
 | DEL11 | "Deleted" content persists in I-space; `a ∈ dom.ispace'` for all deleted addresses a | introduced |
 | DEL12 | INSERT after DELETE creates fresh I-addresses, not the original ones; textual identity ≠ structural identity | introduced |
 | DEL13 | COPY from a source naming the original I-addresses restores those addresses in the target's POOM; sources include documents with live POOM mappings or link endset I-spans | introduced |
-| DEL14 | Reversal requires: persistent I-space (P0/P1), a way to name deleted I-addresses (POOM source, link endset I-span, or journal record), and nothing more; no link re-attachment or structure restoration needed | introduced |
+| DEL14 | Reversal requires: persistent I-space (P0/P1), a way to name deleted I-addresses (proven sources: POOM of another document, link endset I-span), and nothing more; no link re-attachment or structure restoration needed; journal is a plausible but unproven third source | introduced |
 | DEL15 | DELETE does not create a version; pre-deletion state preserved by append-only storage and journal, not by automatic versioning | introduced |
 | DEL16 | "Deleted" is distinguishable from "never present": deleted addresses exist in I-space and appear in span index; never-present addresses need not | introduced |
 | DEL17 | Link deletion is V-space surgery on the link subspace; the link's I-space structure is unaffected; unlike text deletion, no V-compaction occurs (DEL1a) | introduced |
@@ -490,3 +488,5 @@ Must the span index accumulation be bounded, or may it grow without limit as doc
 What must the system guarantee about V-position arithmetic when DELETE produces a position less than zero — must the precondition exclude such cases, or must the system handle negative V-positions as unreachable but structurally harmless state?
 
 What must the system guarantee about POOM entry fragmentation after DELETE — may the number of entries in a document's POOM grow without bound through cycles of INSERT and DELETE, even if the document's content size remains constant?
+
+What must a DELETE journal record contain — minimally, the document id, the deleted I-address range, and the original V-positions — for the journal to serve as a sufficient source for identity-preserving reversal via COPY?
