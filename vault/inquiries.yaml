@@ -144,3 +144,24 @@ inquiries:
     area: operations
     source: "review-defer triage"
 
+  - id: 22
+    title: "Ghost Link Discoverability"
+    question: "What must the system guarantee about discovering links whose target content no longer appears in any document's V-space? How does link discoverability interact with content deletion?"
+    area: links
+    source: "review-defer triage"
+
+  - id: 23
+    title: "Deletion Economics"
+    question: "What must the system guarantee about economic obligations — storage costs, royalty flows, ownership accounting — when content is deleted from V-space but persists in I-space?"
+    area: economics
+    source: "review-defer triage"
+    agents:
+      nelson: 10
+      gregory: 0
+
+  - id: 24
+    title: "Operational Fragmentation Bounds"
+    question: "What must the system guarantee about the growth of internal mapping entries as sequences of INSERT, DELETE, and COPY operations are applied? What bounds must hold on state representation size relative to content size?"
+    area: data-structures
+    source: "review-defer triage"
+
