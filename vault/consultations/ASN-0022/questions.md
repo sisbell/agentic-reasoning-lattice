@@ -1,0 +1,24 @@
+# Sub-Questions — Ghost Link Discoverability
+
+**Inquiry:** What must the system guarantee about discovering links whose target content no longer appears in any document's V-space? How does link discoverability interact with content deletion?
+
+1. [nelson] Must a link remain permanently discoverable even after the content it targets has been removed from every document that once included it?
+2. [nelson] Does the system guarantee that link discovery operates on content identity rather than on document membership, so that a link to content persists regardless of which documents currently display that content?
+3. [nelson] When content is removed from a document, must the system distinguish between the content ceasing to appear in that document and the content ceasing to exist in storage?
+4. [nelson] If a user retrieves content that no document currently includes, must the system still return all links whose source or target spans overlap that content?
+5. [nelson] Must the system guarantee that no editing operation on any document can destroy a link, given that links connect content spans rather than document locations?
+6. [nelson] When a user follows a link whose target content appears in no current document, what must the system present — the raw content alone, a prior version of a document that once contained it, or something else?
+7. [nelson] Must the system provide a way to enumerate all links that have become "orphaned" — whose target content exists in permanent storage but appears in no document's current version?
+8. [nelson] If content is later re-included in a new or existing document, must the system guarantee that all original links to that content become discoverable again within the new document context without any re-linking step?
+9. [nelson] Does the permanence guarantee for content imply that there is no true deletion, and therefore that every link always has retrievable target content even if no document chooses to display it?
+10. [nelson] Must the system inform a user viewing a document that linked content exists beyond what the document currently shows — that is, must it reveal links to content the document once contained but no longer includes?
+11. [gregory] When all V→I mappings for a link's target I-addresses are deleted from every document's POOM, does `findlinksfromtothreesp` still return that link when searching the spanfilade directly by those I-addresses?
+12. [gregory] After DELETE removes content referenced by a link endpoint, do the DOCISPAN entries for that content persist unchanged in the spanfilade, and does `find_documents_containing` still report the document as containing that content?
+13. [gregory] When `FOLLOWLINK` retrieves endsets for an orphaned link (no V-space references to endpoint I-addresses), does `span2spanset` return empty specsets, partial specsets, or does it error — and what exact filtering occurs during I→V conversion?
+14. [gregory] If orphaned content at I-address range `[.0.1.3, .0.1.5]` is later transcluded into a new document via COPY, does `find_links` on that new document immediately discover the previously orphaned link without any re-indexing step?
+15. [gregory] In `sporglset2linkset`, given the `TRUE||!homeset` override that makes link search global, does an orphaned link whose endpoint I-addresses match the query spans still appear in the result set even though no POOM currently maps to those I-addresses?
+16. [gregory] When a link has three endsets (source, target, type) and only the target content is deleted from all V-streams while source content remains live, does `find_links` from the source document still discover the link — and if so, what does the returned target endset contain?
+17. [gregory] Does `vspanset2sporglset` ever encounter orphaned I-addresses during its POOM walk, or is it only called on V-spans known to have live POOM entries — meaning orphaned links can only be missed at the V→I conversion stage, not at the spanfilade search stage?
+18. [gregory] If a link's target spans two I-address ranges and only one range is deleted from all POOMs while the other remains live in some document, does `find_links` discover the link through the surviving range, and does `RETRIEVEENDSETS` return just the surviving portion or both ranges?
+19. [gregory] When `deletevspanpm` removes a link orgl's V→I entry from the POOM (reverse orphaning), does the link's discoverability through `find_links` depend solely on whether the endpoint content I-addresses still exist in some document's POOM, completely independent of the link orgl's own V-space presence?
+20. [gregory] After a link becomes orphaned through content deletion and then re-discoverable through transclusion, is there any observable difference in the link's endset resolution compared to before orphaning — specifically, do the returned V-addresses reflect the new document's V-space rather than the original document's?
