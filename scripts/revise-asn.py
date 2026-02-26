@@ -126,7 +126,7 @@ def invoke_claude(prompt, model=None, effort="max"):
         "--model", use_model,
         "--output-format", "json",
         "--max-turns", "30",
-        "--allowedTools", "Bash,Write,Read,Glob,Grep",
+        "--allowedTools", "Edit,Bash,Write,Read,Glob,Grep",
     ]
 
     env = os.environ.copy()
@@ -260,7 +260,15 @@ def main():
     log_usage(asn_label, elapsed, data)
 
     # Verify the ASN was modified
-    print(f"  [OK] {asn_path.name}", file=sys.stderr)
+    check = subprocess.run(
+        ["git", "diff", "--quiet", str(asn_path)],
+        cwd=str(WORKSPACE),
+    )
+    if check.returncode == 0:
+        print(f"  [WARN] {asn_path.name} was NOT modified by the revise agent",
+              file=sys.stderr)
+    else:
+        print(f"  [OK] {asn_path.name}", file=sys.stderr)
     print(str(asn_path))
 
 
