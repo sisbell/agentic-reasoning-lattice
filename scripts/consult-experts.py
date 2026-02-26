@@ -33,10 +33,20 @@ PROMPTS_DIR = WORKSPACE / "scripts" / "prompts"
 INQUIRIES_PATH = WORKSPACE / "vault" / "inquiries.yaml"
 CONSULT_DIR = WORKSPACE / "vault" / "consultations"
 USAGE_LOG = WORKSPACE / "vault" / "usage-log.jsonl"
-NELSON_SCRIPT = WORKSPACE / "scripts" / "consult-nelson.py"
-GREGORY_SCRIPT = WORKSPACE / "scripts" / "consult-gregory.py"
 TEST_HARNESS = WORKSPACE / "udanax-test-harness"
 KB_SYNTHESIS = TEST_HARNESS / "knowledge-base" / "kb-synthesis.md"
+
+# Nelson source paths
+CONCEPTS_DIR = WORKSPACE / "resources" / "xanadu-concepts"
+INTENT_DIR = WORKSPACE / "resources" / "nelson-intent"
+LM_TOC = WORKSPACE / "resources" / "literary-machines" / "table-of-contents.md"
+LM_INVENTORY = WORKSPACE / "resources" / "literary-machines" / "inventory.md"
+NELSON_PROMPT_TEMPLATE = PROMPTS_DIR / "nelson-agent.md"
+
+# Gregory source paths
+KB_FORMAL = TEST_HARNESS / "knowledge-base" / "kb-formal.md"
+GREGORY_KB_TEMPLATE = PROMPTS_DIR / "gregory-synthesis-agent.md"
+GREGORY_CODE_TEMPLATE = PROMPTS_DIR / "gregory-code-agent.md"
 
 _total_usage = {"input_tokens": 0, "output_tokens": 0, "cost_usd": 0.0, "calls": 0}
 _usage_lock = threading.Lock()
@@ -207,80 +217,205 @@ def parse_questions(response, default_authority="gregory"):
     return questions
 
 
-# ─── Step 2: Consult ────────────────────────────────────────────
+# ─── Step 2: Consult (inlined expert logic) ─────────────────────
 
-def _run_subprocess(script, question, question_num, asn_label, label_prefix):
-    """Run a consultation script as subprocess. Returns answer text.
+def _invoke_claude(prompt, model="opus", effort=None, allow_tools=False,
+                   cwd=None, label=""):
+    """Call claude --print, parse JSON, track usage. Returns response text."""
+    model_flag = {
+        "opus": "claude-opus-4-6",
+        "sonnet": "claude-sonnet-4-6",
+    }.get(model, model)
 
-    Both consult-nelson.py and consult-gregory.py follow the same protocol:
-    save transcript to vault/transcripts/, print file path to stdout.
-    """
-    label = f"Q{question_num}:{label_prefix}"
-    print(f"  [{label}] Starting...", file=sys.stderr)
-
-    cmd = [
-        sys.executable, str(script),
-        "--effort", "max",
-        "--asn", asn_label,
-        question,
-    ]
+    cmd = ["claude", "--print", "--model", model_flag, "--output-format", "json"]
+    if not allow_tools:
+        cmd.extend(["--tools", ""])
 
     env = os.environ.copy()
     env.pop("CLAUDECODE", None)
+    if effort:
+        env["CLAUDE_CODE_EFFORT_LEVEL"] = effort
 
     start = time.time()
     result = subprocess.run(
-        cmd, capture_output=True, text=True, env=env,
-        cwd=str(WORKSPACE),
+        cmd, input=prompt, capture_output=True, text=True, env=env,
+        cwd=cwd, timeout=None,
     )
     elapsed = time.time() - start
 
     if result.returncode != 0:
-        print(f"  [{label}] FAILED ({elapsed:.0f}s)", file=sys.stderr)
-        if result.stderr:
-            for line in result.stderr.strip().split("\n")[-3:]:
-                print(f"    {line}", file=sys.stderr)
-        return f"[FAILED: exit {result.returncode}]"
-
-    # stderr has progress info
-    for line in result.stderr.strip().split("\n"):
-        if line.strip():
-            print(f"  [{label}] {line.strip()}", file=sys.stderr)
-
-    # stdout has the output file path
-    answer_path = result.stdout.strip()
-    if answer_path and Path(answer_path).exists():
-        answer = Path(answer_path).read_text()
-        print(f"  [{label}] Done ({elapsed:.0f}s, {len(answer)} chars)",
+        print(f"  [{label}] FAILED (exit {result.returncode}, {elapsed:.0f}s)",
               file=sys.stderr)
-        return answer
+        if result.stderr:
+            for line in result.stderr.strip().split("\n")[:3]:
+                print(f"    {line}", file=sys.stderr)
+        return ""
 
-    print(f"  [{label}] No answer file ({elapsed:.0f}s)", file=sys.stderr)
-    return "[No answer produced]"
+    try:
+        data = json.loads(result.stdout)
+        text = data.get("result", "")
+        usage = data.get("usage", {})
+        cost = data.get("total_cost_usd", 0)
+        inp = (usage.get("input_tokens", 0) +
+               usage.get("cache_read_input_tokens", 0) +
+               usage.get("cache_creation_input_tokens", 0))
+        out = usage.get("output_tokens", 0)
+
+        print(f"  [{label}] {elapsed:.0f}s | in:{inp} out:{out} ${cost:.4f}",
+              file=sys.stderr)
+
+        with _usage_lock:
+            _total_usage["input_tokens"] += inp
+            _total_usage["output_tokens"] += out
+            _total_usage["cost_usd"] += cost
+            _total_usage["calls"] += 1
+
+        log_usage(f"consult:{label}", elapsed, inp, out, cost)
+
+        return text
+    except (json.JSONDecodeError, KeyError):
+        print(f"  [{label}] {elapsed:.0f}s [parse error]", file=sys.stderr)
+        return result.stdout
 
 
-def run_nelson(question, question_num, asn_label, output_dir):
-    """Run nelson consultation via consult-nelson.py. Returns answer text."""
-    return _run_subprocess(NELSON_SCRIPT, question, question_num,
-                           asn_label, "nelson")
+def _all_concepts():
+    """Read all curated concept files."""
+    files = sorted(CONCEPTS_DIR.glob("*.md"))
+    parts = []
+    for f in files:
+        parts.append(f"### {f.stem}\n{f.read_text()}")
+    return "\n\n".join(parts)
 
 
-def run_gregory(question, question_num, asn_label, output_dir):
-    """Run gregory consultation via consult-gregory.py. Returns answer text.
+def _all_intent():
+    """Read all design intent files."""
+    files = sorted(INTENT_DIR.glob("*.md"))
+    parts = []
+    for f in files:
+        parts.append(f"### {f.stem}\n{f.read_text()}")
+    return "\n\n".join(parts)
 
-    consult-gregory.py manages KB + code calls internally and saves
-    transcripts (kb-answer.md, code-answer.md, combined.md).
-    """
-    return _run_subprocess(GREGORY_SCRIPT, question, question_num,
-                           asn_label, "gregory")
+
+def _build_nelson_prompt(question):
+    """Build Nelson prompt from template + curated sources (no --with-png in batch)."""
+    template = read_file(NELSON_PROMPT_TEMPLATE)
+    if not template:
+        print("  [ERROR] nelson-agent.md prompt template not found", file=sys.stderr)
+        sys.exit(1)
+    return template.replace(
+        "{{concepts}}", _all_concepts()
+    ).replace(
+        "{{intent}}", _all_intent()
+    ).replace(
+        "{{toc}}", read_file(LM_TOC)
+    ).replace(
+        "{{inventory}}", read_file(LM_INVENTORY)
+    ).replace(
+        "{{raw_dir}}", ""
+    ).replace(
+        "{{question}}", question
+    )
 
 
-def run_consultations(questions, asn_label, output_dir):
+def _build_gregory_kb_prompt(question):
+    """Build Gregory KB synthesis prompt from template + injected KB."""
+    template = read_file(GREGORY_KB_TEMPLATE)
+    kb = read_file(KB_FORMAL)
+    if not template:
+        print("  [ERROR] gregory-synthesis-agent.md prompt template not found",
+              file=sys.stderr)
+        sys.exit(1)
+    if not kb:
+        print("  [ERROR] kb-formal.md not found", file=sys.stderr)
+        sys.exit(1)
+    return template.replace("{{kb}}", kb).replace("{{question}}", question)
+
+
+def _build_gregory_code_prompt(question):
+    """Build Gregory code exploration prompt from template."""
+    template = read_file(GREGORY_CODE_TEMPLATE)
+    if not template:
+        print("  [ERROR] gregory-code-agent.md prompt template not found",
+              file=sys.stderr)
+        sys.exit(1)
+    return template.replace("{{question}}", question)
+
+
+def _run_nelson(question, question_num, model="opus", effort="max"):
+    """Build prompt, call claude. Returns answer text."""
+    label = f"Q{question_num}:nelson"
+
+    print(f"  [{label}] Building prompt...", file=sys.stderr)
+    prompt = _build_nelson_prompt(question)
+    print(f"  [{label}] Prompt: {len(prompt) // 1024}KB", file=sys.stderr)
+
+    return _invoke_claude(
+        prompt, model=model, effort=effort, allow_tools=False, label=label,
+    )
+
+
+def _run_gregory_kb(question, label, model="sonnet", effort="max"):
+    """KB synthesis call — no tools, pure synthesis from injected KB."""
+    prompt = _build_gregory_kb_prompt(question)
+    print(f"  [{label}:kb] Prompt: {len(prompt) // 1024}KB", file=sys.stderr)
+    return _invoke_claude(
+        prompt, model=model, effort=effort, allow_tools=False,
+        label=f"{label}:kb",
+    )
+
+
+def _run_gregory_code(question, label, model="sonnet", effort="max"):
+    """Code exploration call — tools enabled, cwd=test harness."""
+    prompt = _build_gregory_code_prompt(question)
+    print(f"  [{label}:code] Prompt: {len(prompt) // 1024}KB", file=sys.stderr)
+    return _invoke_claude(
+        prompt, model=model, effort=effort, allow_tools=True,
+        cwd=str(TEST_HARNESS), label=f"{label}:code",
+    )
+
+
+def _run_gregory(question, question_num, model="sonnet", effort="max"):
+    """Run KB + code in parallel. Returns combined text."""
+    label = f"Q{question_num}:gregory"
+
+    print(f"  [{label}] Starting KB + code in parallel...", file=sys.stderr)
+
+    kb_result = [None]
+    code_result = [None]
+
+    def run_kb():
+        kb_result[0] = _run_gregory_kb(question, label, model=model, effort=effort)
+
+    def run_code():
+        code_result[0] = _run_gregory_code(question, label, model=model, effort=effort)
+
+    kb_thread = threading.Thread(target=run_kb)
+    code_thread = threading.Thread(target=run_code)
+
+    kb_thread.start()
+    code_thread.start()
+    kb_thread.join()
+    code_thread.join()
+
+    # Combine KB + code answers
+    parts = []
+    if kb_result[0]:
+        parts.append(f"## KB Synthesis\n\n{kb_result[0]}")
+    if code_result[0]:
+        parts.append(f"## Code Exploration\n\n{code_result[0]}")
+
+    combined = "\n\n---\n\n".join(parts) if parts else "[No answer]"
+    print(f"  [{label}] Done", file=sys.stderr)
+    return combined
+
+
+def run_consultations(questions, nelson_model="opus",
+                      gregory_model="sonnet", effort="max"):
     """Run all consultations. Nelson in parallel, Gregory sequentially.
 
     Nelson: no tools, safe to parallelize.
-    Gregory: each call runs KB + code internally (consult-gregory.py
-    parallelizes them). Run sequentially because code exploration has tools.
+    Gregory: each call runs KB + code in parallel internally.
+    Run Gregory sequentially because code exploration uses tools.
     """
     results = [None] * len(questions)
 
@@ -297,7 +432,8 @@ def run_consultations(questions, asn_label, output_dir):
         for i in nelson_indices:
             authority, question = questions[i]
             def run_n(idx=i, q=question, auth=authority):
-                answer = run_nelson(q, idx + 1, asn_label, output_dir)
+                answer = _run_nelson(q, idx + 1,
+                                     model=nelson_model, effort=effort)
                 results[idx] = (auth, q, answer)
             t = threading.Thread(target=run_n)
             threads.append(t)
@@ -313,7 +449,8 @@ def run_consultations(questions, asn_label, output_dir):
               file=sys.stderr)
         for i in gregory_indices:
             authority, question = questions[i]
-            answer = run_gregory(question, i + 1, asn_label, output_dir)
+            answer = _run_gregory(question, i + 1,
+                                  model=gregory_model, effort=effort)
             results[i] = (authority, question, answer)
 
         print(f"  [GREGORY] All done", file=sys.stderr)
@@ -447,10 +584,10 @@ def main():
         f"{questions_text}\n"
     )
 
-    print(f"  [CONSULT] Firing {len(questions)} consultations in parallel...",
+    print(f"  [CONSULT] Firing {len(questions)} consultations...",
           file=sys.stderr)
     consult_start = time.time()
-    results = run_consultations(questions, asn_label, output_dir)
+    results = run_consultations(questions)
     consult_elapsed = time.time() - consult_start
     print(f"  [CONSULT] All done ({consult_elapsed:.0f}s)", file=sys.stderr)
 
@@ -478,7 +615,8 @@ def main():
 
     with _usage_lock:
         if _total_usage["calls"] > 0:
-            print(f"  Decompose cost: ${_total_usage['cost_usd']:.4f}",
+            print(f"  Total cost: ${_total_usage['cost_usd']:.4f} "
+                  f"({_total_usage['calls']} calls)",
                   file=sys.stderr)
 
     print(f"  Output: {output_path}", file=sys.stderr)

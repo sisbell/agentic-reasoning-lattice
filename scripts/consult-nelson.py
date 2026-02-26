@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """
-Fast nelson consultation — pre-loads all curated sources, answers in one call.
+Nelson ad-hoc consultation — for the discovery agent's follow-up questions.
 
-Pre-loads ~70K tokens of curated content. With --with-png, also enables
-tool access so the model can read individual Literary Machines page images
-for diagrams and details not in the curated text.
+Pre-loads ~70K tokens of curated content (concepts, intent, Literary Machines).
+With --with-png, also enables tool access for reading page images.
 
-Results written to vault/transcripts/ for traceability.
-Prints the output file path to stdout (avoids Bash capture bug in CC 2.1.45+).
+Transcripts written to vault/transcripts/ for traceability.
+Prints the output file path to stdout.
+
+For batch consultations (consult-experts.py pipeline), Nelson logic is
+inlined directly — this script is NOT called as a subprocess.
 
 Usage:
     python scripts/consult-nelson.py "What is Nelson's intent for withdrawal?"
@@ -22,7 +24,6 @@ import re
 import subprocess
 import sys
 import time
-from datetime import datetime
 from pathlib import Path
 
 WORKSPACE = Path(__file__).resolve().parent.parent
@@ -166,8 +167,6 @@ def main():
                         help="Enable tool access to read Literary Machines page images")
     parser.add_argument("--asn", default=None,
                         help="ASN number for consultation log naming")
-    parser.add_argument("--no-transcript", action="store_true",
-                        help="Skip saving to vault/transcripts/ (used by pipeline)")
     args = parser.parse_args()
 
     if args.stdin:
@@ -180,21 +179,18 @@ def main():
     if not question:
         parser.error("Empty question")
 
-    # Create transcript directory (unless suppressed by pipeline)
-    consult_dir = None
-    answer_file = None
-    if not args.no_transcript:
-        prefix = f"ASN-{args.asn}" if args.asn else "adhoc"
-        existing = sorted(TRANSCRIPTS_DIR.glob(f"{prefix}-nelson-*/"))
-        next_num = 1
-        for d in existing:
-            m = re.search(r"-nelson-(\d+)$", d.name)
-            if m:
-                next_num = max(next_num, int(m.group(1)) + 1)
-        consult_dir = TRANSCRIPTS_DIR / f"{prefix}-nelson-{next_num}"
-        consult_dir.mkdir(parents=True, exist_ok=True)
-        (consult_dir / "question.md").write_text(question + "\n")
-        answer_file = consult_dir / "answer.md"
+    # Create transcript directory
+    prefix = f"ASN-{args.asn}" if args.asn else "adhoc"
+    existing = sorted(TRANSCRIPTS_DIR.glob(f"{prefix}-nelson-*/"))
+    next_num = 1
+    for d in existing:
+        m = re.search(r"-nelson-(\d+)$", d.name)
+        if m:
+            next_num = max(next_num, int(m.group(1)) + 1)
+    consult_dir = TRANSCRIPTS_DIR / f"{prefix}-nelson-{next_num}"
+    consult_dir.mkdir(parents=True, exist_ok=True)
+    (consult_dir / "question.md").write_text(question + "\n")
+    answer_file = consult_dir / "answer.md"
 
     label = "[NELSON+PNG]" if args.with_png else "[NELSON]"
     print(f"  {label} pre-loading all sources...", file=sys.stderr)
@@ -207,12 +203,8 @@ def main():
                            allow_tools=args.with_png,
                            output_file=answer_file)
 
-    # Print the answer to stdout (when no transcript, pipeline reads this)
-    if answer_file:
-        print(str(answer_file))
-        print(f"  [LOG] {consult_dir}", file=sys.stderr)
-    else:
-        print(answer)
+    print(str(answer_file))
+    print(f"  [LOG] {consult_dir}", file=sys.stderr)
 
 
 if __name__ == "__main__":

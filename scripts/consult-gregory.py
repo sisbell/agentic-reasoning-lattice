@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 """
-Gregory split consultation — KB synthesis + code exploration.
+Gregory ad-hoc consultation — for the discovery agent's follow-up questions.
 
 Runs two independent claude --print processes with the same question:
   1. KB agent: prompt template + injected KB (no tools, fast)
   2. Code agent: prompt template + tool access (tools, thorough)
 
-Both run in parallel. Results written to vault/transcripts/ for traceability.
-Prints the output file path to stdout (avoids Bash capture bug in CC 2.1.45+).
+Both run in parallel. Transcripts written to vault/transcripts/ for traceability.
+Prints the output file path to stdout.
+
+For batch consultations (consult-experts.py pipeline), Gregory logic is
+inlined directly — this script is NOT called as a subprocess.
 
 Usage:
     python scripts/consult-gregory.py "What happens to I-address allocation after DELETE?"
