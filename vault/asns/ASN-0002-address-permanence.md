@@ -9,11 +9,17 @@ We wish to understand what the system must guarantee about the stability of addr
 
 We need a minimal vocabulary. Let the system state at any moment be Σ, containing at least:
 
-- **ispace**: a partial function from addresses to content, recording what has been stored. `ispace : Addr ⇀ Content`.
-- **vspace(d)**: for each document d, a function from virtual positions to addresses, recording the current arrangement. `vspace(d) : Pos → Addr`. Positions are structured: `Pos = Subspace × Nat`, where `Subspace` distinguishes the text subspace (holding content addresses) from the link subspace (holding link addresses). We write `text_subspace` and `link_subspace` for the two values of `Subspace`, and say that position `p` is "in subspace `s`" when `p.subspace = s`.
+- **ispace**: a partial function from addresses to content, recording what has been stored. `ispace : Addr ⇀ Content`. The domain is partitioned by subspace: addresses in `text_subspace` carry text content; addresses in `link_subspace` carry link structures. A link structure at address `ℓ` contains endset I-addresses — references to other addresses in `dom.ispace`.
+- **vspace(d)**: for each document d, a partial function from virtual positions to addresses, recording the current arrangement. `vspace(d) : Pos ⇀ Addr`. The domain of `vspace(d)` is finite and changes with operations. Positions are structured: `Pos = Subspace × Nat`, where `Subspace` distinguishes the text subspace (holding content addresses) from the link subspace (holding link addresses). We write `text_subspace` and `link_subspace` for the two values of `Subspace`, and say that position `p` is "in subspace `s`" when `p.subspace = s`.
 - **spanindex**: a relation recording which documents have ever contained which address ranges. `spanindex ⊆ Addr × DocId`.
 
-We write `dom.ispace` for the set of addresses at which content is stored, `ispace.a` for the content at address `a`, and `#vspace(d)` for the length of document d's virtual stream. We use primed names (Σ', ispace', etc.) for the state after an operation.
+We write `dom.ispace` for the set of addresses at which content is stored, `ispace.a` for the content at address `a`, `dom.vspace(d)` for the set of positions currently mapped in document d, and `#vspace(d)` for the number of entries in document d's virtual stream (i.e., `|dom.vspace(d)|`). We use primed names (Σ', ispace', etc.) for the state after an operation.
+
+We define two derived sets. The set of **links** is the subset of `dom.ispace` in the link subspace:
+
+  `links = {ℓ ∈ dom.ispace : ℓ ∈ link_subspace}`
+
+For each link `ℓ ∈ links`, the function `endsets(ℓ)` extracts the endset I-address references from `ispace.ℓ` — the link's stored content. These are derived from `ispace`, not independently maintained.
 
 
 ## The permanence axiom
@@ -76,9 +82,21 @@ Not every address in the system has content stored at it. Nelson describes "ghos
 
 Ghost addresses matter for AP because links can point to them: "these elements are virtually present in tumbler-space, since links may be made to them which embrace all the contents below them." A ghost address is not available for reuse. It is a permanent commitment to a position in the address space, even without associated content.
 
-We need not formalize ghost elements as a separate type. They are simply addresses in the range of the address space's total order that are not (yet) in `dom.ispace`. AP0–AP3 already handle them correctly: AP0 does not require that every address in the ordering be in `dom.ispace`, only that addresses which *enter* `dom.ispace` never leave. Ghost addresses are below the allocation frontier — they may eventually receive content (becoming members of `dom.ispace`), or they may remain forever empty. In neither case can they be repurposed.
+Ghost addresses require their own permanence guarantee, distinct from AP0–AP3. AP0 protects addresses in `dom.ispace`; ghost addresses are explicitly *not* in `dom.ispace`. The question is: what prevents a ghost address — an address range assigned to a server, account, or document — from being reassigned to a different entity?
 
-What we do need is a strengthening of AP2:
+Nelson's answer is unequivocal. The tumbler line is "an abstract representation of a particular tree" — the actual historical tree of what was created. Reassigning a range would change the tree's structure retroactively. The word "permanent" in "permanent tumbler address" is unconditional — it does not say "permanent as long as content exists." Ghost elements are "virtually present in tumbler-space, since links may be made to them which embrace all the contents below them." If a range assigned to account `1.3.0.7` were reassigned to a different entity, any link pointing to that ghost element would now resolve to the wrong entity. The baptism of an address range — "successive new digits to the right" — is a one-way act of creation; Nelson describes no mechanism for un-creation or re-baptism.
+
+The structural necessity is severe. Links point to I-space addresses; reassignment would silently redirect them. Origin traceability is structural — the I-address encodes the creator; reassignment would make it lie. For vendor failure, Nelson specifies orderly transition of content to other Xanadu locations, not reassignment of the address range. The content migrates; the addresses do not change.
+
+We formalize this:
+
+**AP4a (Range commitment permanence).** The assignment of an address-space range to an entity (server, account, or document) is permanent and irrevocable. Once a range is committed to an entity, that range cannot be reassigned to a different entity, even if the entity contains no stored content:
+
+  `(A r : r is an assigned range : entity(r)' = entity(r))`
+
+for every operation. AP4a extends permanence beyond content: AP0 protects content-bearing addresses; AP4a protects the structural commitments of the address hierarchy itself. Together they ensure that every address — whether carrying content or merely occupying a position — is a permanent fact about the system's history.
+
+What we also need is a strengthening of AP2:
 
 **AP4 (Monotonic frontier).** The allocation counter within each partition never retreats. If the highest allocated address in partition `p` is `a`, then the next allocation in `p` produces some `a' > a`. Gaps below `a` are permanent.
 
@@ -93,13 +111,19 @@ We now address the apparent paradox: if addresses are permanent and content is i
 
 **I-space** (identity space) is the permanent content store, governed by AP0–AP4. An I-space address is the *identity* of a piece of content — it says "which byte this is, forever."
 
-**V-space** (virtual space) is the mutable arrangement layer. A document's V-space is a mapping from positions to I-space addresses: `vspace(d) : Pos → Addr`. V-space positions are ephemeral — they shift with every edit. Nelson: "The address of a byte in its native document is of no concern to the user or to the front end; indeed, it may be constantly changing."
+**V-space** (virtual space) is the mutable arrangement layer. A document's V-space is a partial mapping from positions to I-space addresses: `vspace(d) : Pos ⇀ Addr`. V-space positions are ephemeral — they shift with every edit. Nelson: "The address of a byte in its native document is of no concern to the user or to the front end; indeed, it may be constantly changing."
 
 The fundamental separation:
 
-**AP5 (Dual-space contract).** Editing operations modify V-space; they do not modify I-space. The permanence axioms (AP0–AP4) govern I-space. V-space has no permanence guarantee.
+**AP5 (Dual-space contract).** Editing operations do not modify or remove existing entries in I-space. They may only extend `dom.ispace` with fresh addresses:
 
-We can now state what "editing" means precisely. An editing operation changes the mapping `vspace(d)` for some document `d`. It does not change `ispace`. The mapping may grow (INSERT adds new I-space addresses and maps V-positions to them), shrink (DELETE removes V-positions), or be permuted (REARRANGE changes which V-positions map to which I-addresses). But through all of this, the I-space side is untouched.
+  `(A a : a ∈ dom.ispace : ispace'.a = ispace.a) ∧ dom.ispace ⊆ dom.ispace'`
+
+for every editing operation. The permanence axioms (AP0–AP4) govern I-space. V-space has no permanence guarantee.
+
+We must be precise about what "modify I-space" means. INSERT extends `dom.ispace` with fresh addresses carrying new content. CREATELINK extends `dom.ispace` with a fresh link address. Both operations *add* to I-space — they perform monotonic extension. Neither operation modifies or removes any existing entry. The distinction is between mutation of existing state (forbidden) and growth of the domain (permitted). DELETE, REARRANGE, and COPY do not touch I-space at all. CREATENEWVERSION allocates a document identity outside I-space (see below).
+
+We can now state what "editing" means precisely. An editing operation changes the mapping `vspace(d)` for some document `d`, and may monotonically extend `dom.ispace` with fresh addresses. The mapping may grow (INSERT adds new I-space addresses and maps V-positions to them), shrink (DELETE removes V-positions), or be permuted (REARRANGE changes which V-positions map to which I-addresses). Through all of this, no existing I-space entry is modified or removed.
 
 The library analogy is apt. I-space is the permanent stacks — books on shelves, each at a fixed location, never moved, never removed. V-space is a reading list — an ordered sequence of references to shelf locations. You can reorder your reading list, add references, remove references. The books on the shelves are indifferent to what your reading list says.
 
@@ -165,13 +189,13 @@ REARRANGE transposes regions within a document's virtual stream.
 
 Gregory provides the implementation evidence in detail: the operation modifies exactly one field of each affected entry — the V-displacement — leaving the I-displacement, V-width, and I-width untouched. The modification adds a computed offset to the V-displacement, and this addition is uniform across all affected entries (same magnitude for all entries in the same region). The I-address components are never read, never written, never passed as arguments to any arithmetic operation.
 
-We state this precisely:
+We state this precisely. REARRANGE permutes V-positions without altering the codomain — every old I-address survives and no new I-address appears:
 
-**AP8 (I-address invariance under rearrangement).** For every address `a` referenced by document `d` before REARRANGE:
+**AP8 (I-address invariance under rearrangement).** The set of I-addresses referenced by document `d` is identical before and after REARRANGE:
 
-  `(A a : (E p : vspace(d).p = a) : (E p' : vspace'(d).p' = a))`
+  `{a : (E p : p ∈ dom.vspace(d) ∧ vspace(d).p = a)} = {a : (E p' : p' ∈ dom.vspace'(d) ∧ vspace'(d).p' = a)}`
 
-The set of I-addresses in the document's mapping is invariant under REARRANGE. What changes is only which V-position maps to each I-address.
+Both directions are required. The left-to-right inclusion — `(A a : (E p : vspace(d).p = a) : (E p' : vspace'(d).p' = a))` — says no I-address reference is lost. The right-to-left inclusion — `(A a : (E p' : vspace'(d).p' = a) : (E p : vspace(d).p = a))` — says no I-address reference is introduced. Together they establish that REARRANGE is a pure permutation of V-positions over a fixed set of I-addresses. Gregory's evidence confirms this: the operation modifies only V-displacements, leaving I-displacements untouched, so no I-address can be created or destroyed.
 
 *Frame conditions.* REARRANGE does not affect ispace. REARRANGE does not affect `vspace(d')` for `d' ≠ d`. REARRANGE does not change which I-addresses the document references — it only changes their V-positions.
 
@@ -197,9 +221,15 @@ The content has one identity — its I-address — regardless of how many docume
 
 Version creation produces a new document whose V-space maps to the same I-addresses as the source.
 
-*Effect on ispace.* CREATENEWVERSION allocates one fresh address — the new document's identity. This address does *not* enter `dom.ispace`. It is a ghost address: it occupies a position in the address space (links may reference it, and it is below the allocation frontier), but no content is stored at it. The document identity is recorded in the system's document registry (a component of Σ outside ispace), not as a content mapping. CREATENEWVERSION does NOT allocate new content addresses. Nelson: "This creates a new document with the contents of document \<doc id\>." The new document's V-space references the same I-addresses as the source. No content duplication occurs.
+*Effect on ispace.* CREATENEWVERSION allocates one fresh address — the new document's identity. This address does *not* enter `dom.ispace`. It is a ghost address: it occupies a position in the address space (links may reference it, and its range is protected by AP4a), but no content is stored at it.
 
-Gregory confirms this emphatically. The implementation converts the source document's V-span to I-addresses, then inserts those I-addresses into the new document's mapping. No content allocation function is invoked. The evidence is empirical: after creating content "ABC" (allocating addresses `α₁, α₂, α₃`), creating a version, then inserting "XYZ", the new content receives addresses `α₄, α₅, α₆` — contiguous with the original allocation. If version creation had consumed content addresses, there would be a gap.
+We must be precise about the distinction. A **content address** is a member of `dom.ispace` — it has stored content. A **document identity address** is a structural position in the address hierarchy, identifying a document (or server, or account) without storing content. CREATENEWVERSION produces a document identity address, not a content address. The document identity is recorded in the system's structural index — the same tree structure that allocates addresses and manages document orgls — rather than as a content mapping in `ispace`.
+
+Gregory's evidence is definitive. The implementation allocates the new document's identity by computing the next available child address under the source document's position in the address hierarchy. The resulting entry is a POOM orgl node (a mapping structure) in the global allocation tree — not a content atom. There is no separate document registry; the allocation tree's structure *is* the document registry. But the POOM orgl is not an `ispace` content entry: it is the document's arrangement layer (its V-space), not content stored at an address. No content allocation function is invoked during version creation.
+
+CREATENEWVERSION does NOT allocate new content addresses. Nelson: "This creates a new document with the contents of document \<doc id\>." The new document's V-space references the same I-addresses as the source. No content duplication occurs.
+
+Gregory provides empirical confirmation: after creating content "ABC" (allocating addresses `α₁, α₂, α₃`), creating a version, then inserting "XYZ", the new content receives addresses `α₄, α₅, α₆` — contiguous with the original allocation. If version creation had consumed content addresses, there would be a gap.
 
 **AP10 (Version identity sharing).** After CREATENEWVERSION creates document `d'` from document `d`, the text content referenced by `d'` is exactly the text content referenced by `d`:
 
@@ -247,17 +277,19 @@ The derivation has three premises:
 
 1. Links reference I-space addresses (they are stored as I-address spans in the link structure).
 2. I-space addresses are permanent (AP0) and content at those addresses is immutable (AP1).
-3. Editing operations modify only V-space (AP5, AP7, AP8).
+3. Editing operations do not modify or remove existing I-space entries (AP5). They may extend I-space monotonically, but monotonic extension adds fresh addresses — it cannot alter the content at addresses that a link already references.
 
-From (1) and (2): the addresses that a link points to never become invalid and never change their content. From (3): editing cannot alter the addresses a link references, because those addresses live in I-space and editing operates in V-space.
+From (1) and (2): the addresses that a link points to never become invalid and never change their content. From (3): editing cannot alter the I-space entries a link references, because AP5 guarantees that existing entries are immutable. The fact that INSERT or CREATELINK may *extend* I-space with fresh addresses is irrelevant to existing link references — a link whose endset references address `a` is unaffected by the creation of a new address `a' ≠ a`.
 
 Therefore: a link continues to reference valid I-space content after any sequence of editing operations. What *may* change is whether the linked content is *reachable* through some document's V-space — if content is deleted from every document's arrangement, the link's endsets have no V-space presence. The link is not broken (its I-address references are still valid); it is merely *unresolvable through V-space* in the current state.
 
+We can now derive the link permanence property from AP1. A link `ℓ ∈ links` has content `ispace.ℓ`, which includes its endset I-address references. By AP1, `ispace'.ℓ = ispace.ℓ` for every operation. Since the endset references are part of `ispace.ℓ`, they are immutable whenever `ispace.ℓ` is immutable — which is always:
+
 **AP12 (Link permanence).** A link's endset I-addresses are not affected by any editing operation:
 
-  `(A link ∈ links, e ∈ endsets(link) : e.iaddrs' = e.iaddrs)`
+  `(A ℓ ∈ links, e ∈ endsets(ℓ) : e.iaddrs' = e.iaddrs)`
 
-for every operation that transforms Σ to Σ'.
+for every operation that transforms Σ to Σ'. This is a corollary of AP1: `ℓ ∈ dom.ispace` (by definition of `links`), so `ispace'.ℓ = ispace.ℓ`, so `endsets(ℓ)` — being derived from `ispace.ℓ` — is unchanged.
 
 And the reconstitution property:
 
@@ -295,13 +327,51 @@ This ASN defines six operations that modify Σ: INSERT, DELETE, REARRANGE, COPY,
 Since every operation preserves AP0 and AP1, and the initial state (empty ispace) satisfies AP trivially, AP holds in every reachable state. ∎
 
 
+## Worked example
+
+We trace a scenario through four operations, verifying the key postconditions at each step. Begin with an empty system: `dom.ispace = ∅`, no documents.
+
+**Step 1: INSERT "AB" into document `d`.** The system allocates fresh addresses `α₁, α₂` (AP2: both `∉ dom.ispace = ∅`). After:
+
+  `dom.ispace = {α₁, α₂}`,  `ispace.α₁ = 'A'`,  `ispace.α₂ = 'B'`
+  `dom.vspace(d) = {(text, 0), (text, 1)}`,  `vspace(d).(text, 0) = α₁`,  `vspace(d).(text, 1) = α₂`
+
+Check: AP0 holds (dom.ispace grew from ∅). AP1 holds vacuously (no prior entries). AP2 holds (α₁, α₂ were not in ∅).
+
+**Step 2: DELETE the first character from `d`.** DELETE removes the V-position mapping to `α₁`.
+
+  `dom.ispace = {α₁, α₂}` — unchanged (AP7)
+  `ispace.α₁ = 'A'`,  `ispace.α₂ = 'B'` — unchanged (AP1)
+  `dom.vspace(d) = {(text, 0)}`,  `vspace(d).(text, 0) = α₂`
+
+Check: AP0 holds (`{α₁, α₂} ⊆ {α₁, α₂}`). AP1 holds (both entries unchanged). The address `α₁` remains in `dom.ispace` — the content 'A' persists — though no V-position maps to it. The "deletion" was a V-space rearrangement, not content destruction.
+
+**Step 3: COPY the surviving character to a new document `d₂`.** COPY reads `vspace(d).(text, 0) = α₂` and creates a V-mapping in `d₂`.
+
+  `dom.ispace = {α₁, α₂}` — unchanged (COPY allocates no content)
+  `dom.vspace(d₂) = {(text, 0)}`,  `vspace(d₂).(text, 0) = α₂`
+
+Check: AP0, AP1 hold (ispace untouched). AP9 holds: both `d` and `d₂` reference the same `α₂`. AP14 holds: `vspace(d)` is unchanged (COPY's target is `d₂`, and `d` is read-only).
+
+**Step 4: CREATELINK referencing `α₁`.** The system allocates fresh link address `ℓ₁` (AP2: `ℓ₁ ∉ {α₁, α₂}`). The link has one endset containing `{α₁}`.
+
+  `dom.ispace = {α₁, α₂, ℓ₁}`,  `ispace.ℓ₁` = link structure with endset `{α₁}`
+  `links = {ℓ₁}`,  `endsets(ℓ₁) = {α₁}`
+
+Check: AP0 holds (`{α₁, α₂} ⊆ {α₁, α₂, ℓ₁}`). AP1 holds (α₁ and α₂ unchanged; ℓ₁ is fresh). AP12 holds: the link references `α₁`, which is in `dom.ispace` with content 'A'. Even though `α₁` was "deleted" from `d`'s V-space in step 2, the link's endset reference is valid — `α₁` persists in I-space (AP0) with unchanged content (AP1). If `α₁` is later re-transcluded into some document via COPY, the link will be resolvable through V-space again.
+
+The scenario confirms: `dom.ispace` only grows (∅ → {α₁, α₂} → {α₁, α₂} → {α₁, α₂} → {α₁, α₂, ℓ₁}); content is immutable throughout; "deletion" is a V-space operation only; links survive editing because they anchor to I-space.
+
+
 ## Cross-document isolation
 
-A property implicit in the per-operation analysis but worth stating explicitly:
+A property implicit in the per-operation analysis but worth stating explicitly. We first need a definition: each operation has a **target document** — the document whose V-space it modifies. For INSERT, DELETE, REARRANGE, and CREATELINK, the target is the single document named by the operation. For COPY, the target is `d₂` (the destination); the source `d₁` is a read-only participant. For CREATENEWVERSION, the target is the newly created document `d'`; the source `d` is read-only.
 
-**AP14 (Cross-document independence).** No operation on document `d₁` modifies the V-space mapping of document `d₂ ≠ d₁`:
+**AP14 (Cross-document independence).** Only the target document's V-space is modified:
 
-  `(A d₂ : d₂ ≠ d₁ : vspace'(d₂) = vspace(d₂))`
+  `(A d₂ : d₂ ≠ target(op) : vspace'(d₂) = vspace(d₂))`
+
+We verify for each operation. INSERT, DELETE, REARRANGE: target is `d`, and the operation's V-space effects are confined to `d` (AP6 for INSERT; analogous confinement for DELETE and REARRANGE). COPY from `d₁` to `d₂`: target is `d₂`; the source `d₁`'s V-space is only read, never written — `vspace'(d₁) = vspace(d₁)`. CREATENEWVERSION from `d` producing `d'`: target is `d'`; the source `d`'s V-space is only read — `vspace'(d) = vspace(d)`. CREATELINK: target is `d`; no other document is affected.
 
 And more specifically for transclusion integrity:
 
@@ -346,20 +416,22 @@ Gregory's implementation takes this further: even the allocation counter for I-a
 | AP2 | Every allocation uses an address not previously in dom.ispace (freshness) | introduced |
 | AP3 | No address may be freed and re-allocated (no reuse); follows from AP0 ∧ AP2 | introduced |
 | AP4 | The allocation frontier within each partition is strictly monotonic; gaps below the frontier are permanent | introduced |
-| AP5 | Editing operations modify V-space; they do not modify I-space (dual-space contract) | introduced |
+| AP4a | The assignment of an address-space range to an entity (server, account, document) is permanent and irrevocable | introduced |
+| AP5 | Editing operations do not modify or remove existing I-space entries; they may only extend dom.ispace with fresh addresses | introduced |
 | AP6 | INSERT shifts only V-positions in the same subspace of the same document | introduced |
 | AP7 | DELETE does not modify ispace; deletion is rearrangement, not destruction | introduced |
-| AP8 | REARRANGE preserves the set of I-addresses referenced by a document; only V-positions change | introduced |
+| AP8 | REARRANGE preserves the set of I-addresses referenced by a document as a set equality; only V-positions change | introduced |
 | AP9 | COPY (transclusion) shares existing I-addresses; target document references the same addresses as source | introduced |
 | AP10 | CREATENEWVERSION shares text I-addresses between source and new version; no content allocation occurs | introduced |
 | AP11 | The span index is append-only; records of content placement persist forever | introduced |
-| AP12 | A link's endset I-addresses are invariant under all editing operations | introduced |
+| AP12 | A link's endset I-addresses are invariant under all editing operations; corollary of AP1 | derived |
 | AP13 | A link's endset references remain valid when its I-addresses are re-introduced to V-space via COPY; discoverability requires a link-discovery mechanism not defined here | introduced |
-| AP14 | No operation on document d₁ modifies the V-space mapping of d₂ ≠ d₁ | introduced |
+| AP14 | Only the target document's V-space is modified; target(op) defined per operation | introduced |
 | AP15 | Deletion of content from its home document does not affect transclusions in other documents | introduced |
-| Σ.ispace | ispace : Addr ⇀ Content — the permanent content store | introduced |
-| Σ.vspace | vspace(d) : Pos → Addr — per-document mutable arrangement | introduced |
+| Σ.ispace | ispace : Addr ⇀ Content — the permanent content store, partitioned into text and link subspaces | introduced |
+| Σ.vspace | vspace(d) : Pos ⇀ Addr — per-document mutable arrangement (partial, finite domain) | introduced |
 | Σ.spanindex | spanindex ⊆ Addr × DocId — the append-only historical index of content placement | introduced |
+| Σ.links | links = {ℓ ∈ dom.ispace : ℓ ∈ link_subspace} — derived from ispace | introduced |
 
 
 ## Open Questions
