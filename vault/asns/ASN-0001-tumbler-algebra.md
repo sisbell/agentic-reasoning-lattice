@@ -77,14 +77,14 @@ where each `Nᵢ, Uⱼ, Dₖ, Eₗ > 0`. The four fields are:
 
 Not every tumbler need have all four fields. A tumbler with zero zeros addresses a node. One zero: a user account. Two zeros: a document. Three zeros: an element. The count of zero-valued components determines the specificity level.
 
-**T4 (Hierarchical parsing).** Every tumbler `t ∈ T` used as an I-space address contains at most three zero-valued components, appearing in order as field separators. The function `fields(t)` that extracts the node, user, document, and element fields is well-defined and computable from `t` alone. Define `zeros(t) = #\{i : 1 ≤ i ≤ #t ∧ tᵢ = 0\}`. The count of zero-valued components uniquely determines the hierarchical level:
+**T4 (Hierarchical parsing).** Every tumbler `t ∈ T` used as an I-space address contains at most three zero-valued components, appearing in order as field separators, and every non-separator component is strictly positive. Formally, if `t = N₁. ... .Nₐ . 0 . U₁. ... .Uᵦ . 0 . D₁. ... .Dᵧ . 0 . E₁. ... .Eδ`, then `(A i : 1 ≤ i ≤ α : Nᵢ > 0)`, `(A j : 1 ≤ j ≤ β : Uⱼ > 0)`, `(A k : 1 ≤ k ≤ γ : Dₖ > 0)`, `(A l : 1 ≤ l ≤ δ : Eₗ > 0)`. We call this the *positive-component constraint*: every component of every field is strictly positive. The function `fields(t)` that extracts the node, user, document, and element fields is well-defined and computable from `t` alone. Define `zeros(t) = #\{i : 1 ≤ i ≤ #t ∧ tᵢ = 0\}`. The count of zero-valued components uniquely determines the hierarchical level:
 
   - `zeros(t) = 0`: `t` is a node address (node field only),
   - `zeros(t) = 1`: `t` is a user address (node and user fields),
   - `zeros(t) = 2`: `t` is a document address (node, user, and document fields),
   - `zeros(t) = 3`: `t` is an element address (all four fields).
 
-This correspondence is injective on levels: each level produces addresses with exactly one zero count, and each zero count corresponds to exactly one level. The correspondence follows from the structure of I-space tumblers — zero components serve exclusively as field separators, and the fields are strictly ordered (node, then user, then document, then element), so the number of separators present determines how many fields the address contains.
+This correspondence is injective on levels: each level produces addresses with exactly one zero count, and each zero count corresponds to exactly one level. The correspondence depends on the positive-component constraint — zero components serve exclusively as field separators *because* no field component is zero. Without the positivity constraint, a tumbler like `[1, 0, 0, 3]` would have two zero-valued components but ambiguous parse: the second zero could be a separator or a zero-valued component within the user field. Since field components are strictly positive, zeros appear only as separators, the number of separators determines the number of fields, and the parse is unique.
 
 T4, combined with the total order T1, gives us the property that makes spans work:
 
@@ -168,7 +168,7 @@ We first establish a lemma that converts ordering of prefixes into ordering of a
 
 *Proof.* Consider a partition with prefix `p`. Every allocated address in this partition has prefix `p`, hence lies in the contiguous interval guaranteed by T5. Within the partition, addresses belong to sub-partitions owned by distinct allocators. These sub-partitions have prefixes that are siblings — they share the parent prefix `p` but diverge at the component that distinguishes one allocator from another.
 
-We claim that sibling prefixes are non-nesting: they have the same length and diverge at the sibling-distinguishing component, so neither can be a prefix of the other. To see this, observe that sub-partition prefixes are produced by a single parent allocator using `inc(t, 0)` (sibling allocation within its sequential stream). By TA5(c), `inc(t, 0)` preserves the length of `t`: `#inc(t, 0) = #t`. The parent allocator starts from some initial tumbler `t₀` extending `p` and produces successive prefixes `t₁ = inc(t₀, 0)`, `t₂ = inc(t₁, 0)`, and so on. Since each application of `inc(·, 0)` preserves length (TA5(c)), all sibling prefixes `t₀, t₁, t₂, ...` have the same length `#t₀`. Two tumblers of the same length cannot stand in a prefix relationship unless they are equal (a proper prefix is strictly shorter). Since they differ at position `sig(t)` (TA5(c) increments that component), they are unequal, hence non-nesting. Their prefixes are therefore disjoint under T10.
+We claim that sibling prefixes are non-nesting: they have the same length and diverge at the sibling-distinguishing component, so neither can be a prefix of the other. To see this, observe that the first sub-partition prefix `t₀` is produced by `inc(parent, k)` with `k > 0` — a deep increment from the parent's address, giving `#t₀ = #parent + k` (by TA5(d)). Subsequent sibling prefixes are produced by shallow increments: `t₁ = inc(t₀, 0)`, `t₂ = inc(t₁, 0)`, and so on. By TA5(c), `inc(t, 0)` preserves the length of `t`: `#inc(t, 0) = #t`. So all sibling prefixes `t₀, t₁, t₂, ...` have the same length `#t₀`. Two tumblers of the same length cannot stand in a prefix relationship unless they are equal (a proper prefix is strictly shorter). Since they differ at position `sig(t)` (TA5(c) increments that component), they are unequal, hence non-nesting. Their prefixes are therefore disjoint under T10.
 
 Each allocator's output is monotonic (T9). The sub-partitions are ordered by their prefixes under T1 — a server allocating user prefixes does so monotonically (T9 applied to the server's own allocation stream), so if sub-partition prefix `p₁` was allocated before `p₂`, then `p₁ < p₂`. Since sibling prefixes are non-nesting and `p₁ < p₂`, the prefix ordering extension lemma gives `a < b` for every address `a` under `p₁` and every address `b` under `p₂`. Within each sub-partition, allocation order matches address order by T9. ∎
 
@@ -203,7 +203,7 @@ From T9 and T10 together:
 
 *Case 4: Different allocators with nesting prefixes and the same zero count.* This arises when a parent and child allocator both produce addresses at the same hierarchical level. The key example: a user allocator producing top-level documents (document field `[D]`, a single component) and a version allocator producing versions under document 2 (document field `[2, V]`, two components). Both outputs have `zeros = 2`. Their ownership prefixes nest — the user's prefix `1.0.3.0` is a prefix of the version allocator's prefix `1.0.3.0.2`. T10 does not apply.
 
-However, the two allocators produce structurally distinct addresses. The parent allocator produces addresses by `inc(t, 0)` at the document level, yielding document fields of some length `γ`. The child allocator produces addresses by `inc(t', k)` with `k > 0` within the parent's partition, yielding document fields of length `γ' > γ` (since child allocation extends the tumbler by TA5(d)). More precisely: the parent's outputs have document fields of a fixed length determined by the parent's allocation protocol, and the child's outputs have strictly longer document fields (each child address extends the parent's document identifier by at least one zero separator and one new component). Since `#a ≠ #b` (the total tumbler lengths differ because the document fields differ in length while the node, user, and element fields are determined by the zero count), T3 gives `a ≠ b`. ∎
+However, the two allocators produce structurally distinct addresses. The parent allocator produces addresses by `inc(t, 0)` at the document level, yielding document fields of some length `γ` (TA5(c) preserves this length across all sibling allocations). The child allocator's *prefix* was established by a single `inc(parent, k)` with `k > 0`, giving the prefix length `#parent + k` (by TA5(d)). Subsequent allocations within the child's stream use `inc(·, 0)`, which preserves this length by TA5(c). So all of the parent's outputs have document fields of length `γ`, and all of the child's outputs have document fields of length `γ + k > γ` (since `k ≥ 1`, TA5(d) extends by `k` positions). Since `#a ≠ #b` (the total tumbler lengths differ because the document fields differ in length while the node, user, and element fields are determined by the zero count), T3 gives `a ≠ b`. ∎
 
 This theorem is the foundation of the entire addressing architecture. Every subsequent guarantee — link stability, transclusion identity, royalty tracing — depends on the uniqueness of addresses. And uniqueness is achieved without any distributed consensus, simply by the structure of the names.
 
@@ -256,6 +256,8 @@ A separate operation, distinct from the shifting arithmetic, handles address all
 
 We define the *last significant position* of a tumbler `t` as `sig(t) = max({i : 1 ≤ i ≤ #t ∧ tᵢ ≠ 0} ∪ {#t})`. That is: the position of the last nonzero component, or if every component is zero, the last position. For `[1, 0, 3, 0]`, `sig = 3` (position of the 3). For `[1, 0, 3]`, `sig = 3` (position of the 3). For `[0, 0]`, `sig = 2` (the last position, since no component is nonzero). Note that T3 makes `[1, 0, 3, 0]` and `[1, 0, 3]` distinct tumblers with the same `sig` value — this is consistent because `sig` identifies where the increment acts, not the identity of the tumbler.
 
+For valid I-space addresses, `sig(t)` falls within the last populated field. This is a consequence of T4's positive-component constraint: every field component is strictly positive, so the last component of the last field is nonzero, and `sig(t) = #t`. In a four-field element address `t = N₁. ... .Nₐ . 0 . U₁. ... .Uᵦ . 0 . D₁. ... .Dᵧ . 0 . E₁. ... .Eδ`, the final component `Eδ > 0` by T4, so `sig(t) = #t` — the position of `Eδ`. Therefore `inc(t, 0)` increments the last component of the element field, modifying only within that field and preserving the hierarchical structure. This closes the gap between TA5 (which is stated for arbitrary tumblers in T) and T4 (which constrains valid addresses): for valid addresses, `inc(t, 0)` is guaranteed to act on a field component, not on a separator.
+
 **TA5 (Hierarchical increment).** For tumbler `t ∈ T` and level `k ≥ 0`, there exists an operation `inc(t, k)` producing tumbler `t'` such that:
 
   (a) `t' > t` (strictly greater under T1),
@@ -267,6 +269,8 @@ We define the *last significant position* of a tumbler `t` as `sig(t) = max({i :
   (d) when `k > 0` (*child*): `#t' = #t + k`, the `k - 1` intermediate positions `#t + 1, ..., #t + k - 1` are set to `0` (field separators), and the final position `#t + k` is set to `1` (the first child).
 
 We verify `inc(t, k) > t` for both cases. For k = 0: `t'` agrees with `t` on positions `1, ..., sig(t) - 1` and exceeds `t` at position `sig(t)` (since `t_{sig(t)} + 1 > t_{sig(t)}`), so `t' > t` by T1 case (i). For k > 0: `t'` agrees with `t` on positions `1, ..., #t`, and `#t' > #t`, so `t` is a proper prefix of `t'`, giving `t < t'` by T1 case (ii).
+
+We verify that TA5 preserves the positive-component constraint of T4. Let `t` be a valid I-space address, so every field component of `t` is strictly positive. For `k = 0`: TA5(c) increments the component at position `sig(t)` from `t_{sig(t)}` to `t_{sig(t)} + 1`. Since `t_{sig(t)} > 0` by T4's positive-component constraint (it is a field component, not a separator), incrementing it yields `t_{sig(t)} + 1 > 0`. All other components are unchanged. So all field components of `t'` are strictly positive. For `k > 0`: TA5(d) appends `k - 1` zero-valued components (field separators) and a final component set to `1`. The original field components of `t` are unchanged (by TA5(b)), so they remain positive. The new final component is `1 > 0`. The intermediate zeros are field separators, not field components. So `t'` satisfies T4's positive-component constraint.
 
 Gregory's implementation reveals the concrete mechanism. `tumblerincrement(t, 0, 1)` advances the last significant digit: `1.1.0.3` becomes `1.1.0.4`. `tumblerincrement(t, 1, 1)` extends one level deeper: `1.1.0.2` becomes `1.1.0.2.1` — one intermediate position is introduced (implicitly zero, as a field separator) and the new component is set to 1. The `rightshift` parameter controls `k`. For a zero tumbler (all components zero), the increment also *sets* the exponent to position the new digit correctly — a special-case behavior that produces the first address in a previously empty partition.
 
@@ -420,15 +424,25 @@ We instantiate the algebra on a concrete scenario. Server 1, user 3, document 2,
 
 **T9 (Forward allocation).** The five addresses were allocated in order by a single allocator (user 3's allocation stream within document 2). Each successive address is strictly greater than its predecessor: `a₁ < a₂ < a₃ < a₄ < a₅`. No gap-filling occurred; if `1.0.3.0.2.0.1.2` had been skipped, it would remain a permanent ghost.
 
-**V-space arithmetic.** The document's V-space maps positions to I-addresses. Initially, V-positions run `v₁ = 1` through `v₅ = 5` (single-component tumblers for simplicity). Now INSERT two characters at position 3 — the width is `w = [2]`. All V-positions at or above 3 shift forward:
+The document also contains a link in subspace 2. The link's I-space address is:
+
+  `ℓ₁ = 1.0.3.0.2.0.2.1`
+
+**T4** on `ℓ₁`: the three zeros at positions 2, 4, 6 are field separators. Node field `[1]`, user field `[3]`, document field `[2]`, element field `[2, 1]`. The first component of the element field is `2`, placing this address in the link subspace. By T7, `ℓ₁ ≠ aᵢ` for all `i` — the subspace identifiers differ (`2 ≠ 1`).
+
+**V-space arithmetic.** The document's V-space maps positions to I-addresses. Initially, V-positions for the text subspace run `v₁ = 1` through `v₅ = 5` (single-component tumblers for simplicity). The link `ℓ₁` has its own V-space position in subspace 2. Now INSERT two characters at position 3 in text subspace 1 — the width is `w = [2]`. All V-positions at or above 3 in subspace 1 shift forward:
 
   `v₃' = [3] ⊕ [2] = [5]`, `v₄' = [4] ⊕ [2] = [6]`, `v₅' = [5] ⊕ [2] = [7]`
+
+**TA7a (Subspace closure).** The displacement `w = [2]` is element-local: it is a single-component tumbler that affects only the trailing component of the element field, not the subspace identifier. We verify that shifted positions remain in subspace 1. Take `a₃`'s V-position `v₃ = [3]` in text subspace 1. After the shift, `v₃' = [3] ⊕ [2] = [5]`, which remains in subspace 1 — the subspace identifier is part of the I-to-V mapping structure, and an element-local displacement does not alter it.
+
+**TA7b (Subspace frame).** The INSERT is within text subspace 1. The link `ℓ₁` is in subspace 2. TA7b requires `post(ℓ₁) = pre(ℓ₁)` — the link's V-space position is unchanged. This holds because the operation applies shifts only to positions in subspace 1; `ℓ₁`'s position in subspace 2 is outside the scope of the shift and is not modified.
 
 **TA1 (Order preservation).** Before: `v₃ = [3] < v₄ = [4]`. After: `v₃' = [5] < v₄' = [6]`. The relative order is preserved.
 
 **TA4 (Inverse).** DELETE the same two characters (width `[2]`): `v₃' ⊖ [2] = [5] ⊖ [2] = [3] = v₃`. Positions restore exactly. By the reverse-inverse corollary, `(v₃ ⊖ [2]) ⊕ [2] = ([3] ⊖ [2]) ⊕ [2] = [1] ⊕ [2] = [3] = v₃` — the symmetry holds.
 
-The I-space addresses `a₁` through `a₅` are unchanged by all of this. T8 guarantees their permanence; T11 confirms that shift arithmetic applies only to V-space. The five characters are the same characters at the same I-addresses — only their arrangement in the document has changed.
+The I-space addresses `a₁` through `a₅` and `ℓ₁` are unchanged by all of this. T8 guarantees their permanence; T11 confirms that shift arithmetic applies only to V-space. The five characters and the link are the same objects at the same I-addresses — only the text arrangement in the document has changed.
 
 
 ## Formal summary
@@ -479,7 +493,7 @@ Removing any independent property breaks a system-level guarantee. T6 and T7 are
 | T1 | Tumblers are totally ordered by lexicographic comparison, with the prefix-less-than convention | introduced |
 | T2 | Tumbler comparison is computable from the two addresses alone, examining at most min(#a, #b) components | introduced |
 | T3 | Each tumbler has exactly one canonical representation; component-wise identity is both necessary and sufficient for equality | introduced |
-| T4 | An I-space tumbler has at most three zero-valued components, partitioning it into four hierarchical fields (node, user, document, element) | introduced |
+| T4 | An I-space tumbler has at most three zero-valued components as field separators, with every field component strictly positive (positive-component constraint), partitioning it into four hierarchical fields | introduced |
 | T5 | The set of tumblers sharing a prefix forms a contiguous interval under T1 | introduced |
 | T6 | Containment (same node, same account, same document family, structural subordination) is decidable from addresses alone | corollary of T4 |
 | T7 | Subspaces (text, links) within a document's element field are permanently disjoint | corollary of T3 + T4 |
