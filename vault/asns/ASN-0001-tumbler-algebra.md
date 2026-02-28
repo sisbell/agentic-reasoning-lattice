@@ -77,7 +77,14 @@ where each `Nᵢ, Uⱼ, Dₖ, Eₗ > 0`. The four fields are:
 
 Not every tumbler need have all four fields. A tumbler with zero zeros addresses a node. One zero: a user account. Two zeros: a document. Three zeros: an element. The count of zero-valued components determines the specificity level.
 
-**T4 (Hierarchical parsing).** Every tumbler `t ∈ T` used as an I-space address contains at most three zero-valued components, appearing in order as field separators. The function `fields(t)` that extracts the node, user, document, and element fields is well-defined and computable from `t` alone.
+**T4 (Hierarchical parsing).** Every tumbler `t ∈ T` used as an I-space address contains at most three zero-valued components, appearing in order as field separators. The function `fields(t)` that extracts the node, user, document, and element fields is well-defined and computable from `t` alone. Define `zeros(t) = #\{i : 1 ≤ i ≤ #t ∧ tᵢ = 0\}`. The count of zero-valued components uniquely determines the hierarchical level:
+
+  - `zeros(t) = 0`: `t` is a node address (node field only),
+  - `zeros(t) = 1`: `t` is a user address (node and user fields),
+  - `zeros(t) = 2`: `t` is a document address (node, user, and document fields),
+  - `zeros(t) = 3`: `t` is an element address (all four fields).
+
+This correspondence is injective on levels: each level produces addresses with exactly one zero count, and each zero count corresponds to exactly one level. The correspondence follows from the structure of I-space tumblers — zero components serve exclusively as field separators, and the fields are strictly ordered (node, then user, then document, then element), so the number of separators present determines how many fields the address contains.
 
 T4, combined with the total order T1, gives us the property that makes spans work:
 
@@ -134,8 +141,6 @@ The most consequential property of the tumbler algebra is that the mapping from 
 
 Nelson: "any address of any document in an ever-growing network may be specified by a permanent tumbler address." And: "those bytes remain in all other documents where they have been included." T8 is what makes links stable — links reference I-space tumblers, and because those tumblers are permanent, links survive all editing. It is what makes transclusion meaningful — transcluded content maintains its identity because its address never changes. It is what makes royalty accounting possible — the address encodes the originating server, user, and document, and this attribution can never be revised.
 
-Even addresses that have no stored content are irrevocably claimed. Nelson calls these "ghost elements": "the docuverse is the occupied tumbler-space — as occupied by conceptually assigned positions, even if nothing represents them in storage." A ghost element cannot be reused for new content; it is a permanent gap. Gaps are features, not defects.
-
 
 ## Monotonic allocation
 
@@ -147,13 +152,23 @@ T8 tells us that addresses, once assigned, are permanent. We now ask: in what or
 
 Nelson's design is explicitly chronological: "suppose we create an append-only storage system. User makes changes, the changes difflessly into the storage system, filed, as it were, chronologically." And the forking mechanism is sequential: "successive new digits to the right ... 2.1, 2.2, 2.3, 2.4 are successive items being placed under 2." The word "successive" carries the weight: 2.2 follows 2.1, never precedes it.
 
-T9 prohibits gap-filling. If address 2.3 was allocated and address 2.5 was allocated, then 2.4 either was allocated between them or is a permanent ghost. The system never goes back to fill 2.4 after allocating 2.5. To reuse a gap would violate T8 (the gap address may have been linked to as a ghost element) and T9 (the allocation counter would retreat).
+T9 prohibits gap-filling. If address 2.3 was allocated and address 2.5 was allocated, then 2.4 either was allocated between them or is a permanent ghost. The system never goes back to fill 2.4 after allocating 2.5. To reuse a gap would violate T9 (the allocation counter would retreat).
+
+Even addresses that have no stored content are irrevocably claimed. Nelson calls these "ghost elements": "the docuverse is the occupied tumbler-space — as occupied by conceptually assigned positions, even if nothing represents them in storage." A ghost element is by definition *unassigned* — no content `c` satisfies T8's precondition for it. Ghost permanence is therefore not a consequence of T8 (which governs assigned addresses) but of T9: the allocator has advanced past the ghost address and will never return to it. Since T9 requires strictly monotonic advancement, the ghost address lies behind the allocation frontier permanently. It cannot be reused for new content; it is a permanent gap. Gaps are features, not defects.
 
 We observe that T9 is scoped to a *single allocator's sequential stream*, not to arbitrary partitions. A server-level subtree spans multiple independent allocators (one per user). Those allocators operate concurrently — T10 below guarantees they need no coordination. If user A (prefix `1.0.1`) allocates at wall-clock time `t₂` and user B (prefix `1.0.2`) allocates at time `t₁ < t₂`, neither T9 nor any other property requires that A's address exceed B's. T9 applies within each user's allocation stream independently.
 
+We first establish a lemma that converts ordering of prefixes into ordering of all addresses under those prefixes.
+
+**Lemma (Prefix ordering extension).** Let `p₁, p₂ ∈ T` be tumblers such that `p₁ < p₂` and neither is a prefix of the other (`p₁ ⋠ p₂ ∧ p₂ ⋠ p₁`). Then for every `a` extending `p₁` (`p₁ ≼ a`) and every `b` extending `p₂` (`p₂ ≼ b`), `a < b`.
+
+*Proof.* Since `p₁ < p₂` and neither is a prefix of the other, T1 case (i) applies: there exists a position `k ≤ min(#p₁, #p₂)` such that `p₁` and `p₂` agree on positions `1, ..., k-1` and `p₁ₖ < p₂ₖ`. (Case (ii) is excluded because `p₁` is not a proper prefix of `p₂`.) Now `a` extends `p₁`, so `aᵢ = p₁ᵢ` for all `i ≤ #p₁`; in particular `aₖ = p₁ₖ`. Similarly `bₖ = p₂ₖ`. On positions `1, ..., k-1`, `aᵢ = p₁ᵢ = p₂ᵢ = bᵢ`. At position `k`, `aₖ = p₁ₖ < p₂ₖ = bₖ`. So `a < b` by T1 case (i). ∎
+
 **Theorem (Partition monotonicity).** Within any prefix-delimited partition of the address space, the set of allocated addresses is totally ordered by T1, and this order is consistent with the allocation order of any single allocator within that partition.
 
-*Proof.* Consider a partition with prefix `p`. Every allocated address in this partition has prefix `p`, hence lies in the contiguous interval guaranteed by T5. Within the partition, addresses belong to sub-partitions owned by distinct allocators, whose prefixes are disjoint (T10). Each allocator's output is monotonic (T9). The sub-partitions are ordered by their prefixes under T1 — a server allocating user prefixes does so monotonically (T9 applied to the server's own allocation stream). So addresses from earlier-allocated sub-partitions precede those from later-allocated sub-partitions, and within each sub-partition, allocation order matches address order. ∎
+*Proof.* Consider a partition with prefix `p`. Every allocated address in this partition has prefix `p`, hence lies in the contiguous interval guaranteed by T5. Within the partition, addresses belong to sub-partitions owned by distinct allocators. These sub-partitions have prefixes that are siblings — they share the parent prefix `p` but diverge at the component that distinguishes one allocator from another. Sibling prefixes are non-nesting: they have the same length (each extends `p` by the same structure) and diverge at the sibling-distinguishing component, so neither can be a prefix of the other. Their prefixes are therefore disjoint under T10.
+
+Each allocator's output is monotonic (T9). The sub-partitions are ordered by their prefixes under T1 — a server allocating user prefixes does so monotonically (T9 applied to the server's own allocation stream), so if sub-partition prefix `p₁` was allocated before `p₂`, then `p₁ < p₂`. Since sibling prefixes are non-nesting and `p₁ < p₂`, the prefix ordering extension lemma gives `a < b` for every address `a` under `p₁` and every address `b` under `p₂`. Within each sub-partition, allocation order matches address order by T9. ∎
 
 The theorem recovers the intuition that "later addresses are larger" at every level of the hierarchy, but it does so as a *consequence* of per-allocator monotonicity (T9), prefix disjointness (T10), and the prefix ordering (T1) — not as a universal axiom that would require coordinating concurrent allocators.
 
@@ -182,7 +197,7 @@ From T9 and T10 together:
 
 *Case 2: Different allocators at the same hierarchical level.* The allocators have prefixes `p₁` and `p₂` that are siblings — neither is a prefix of the other (`p₁ ⋠ p₂ ∧ p₂ ⋠ p₁`). T10 gives `a ≠ b` directly.
 
-*Case 3: Different allocators at different hierarchical levels.* One allocator's prefix nests within another's — say a server (prefix `[1]`) and one of its users (prefix `[1, 0, 3]`). T10 does not apply because the prefixes nest. But addresses produced at different hierarchical levels have different numbers of zero-valued components (T4): a server-level allocation produces an address with zero zeros (a node address) or one zero (a user address), while a user-level allocation produces an address with two zeros (a document address) or three zeros (an element address). Since the zero counts differ, the addresses differ in length or in the value at some component position, so T3 gives `a ≠ b`. ∎
+*Case 3: Different allocators at different hierarchical levels.* One allocator's prefix nests within another's — say a node allocator (prefix `[1]`) and one of its users' document allocator (prefix `[1, 0, 3]`). T10 does not apply because the prefixes nest. But each allocator operates at exactly one hierarchical level: the root allocates nodes (`zeros = 0`), a node allocates users (`zeros = 1`), a user allocates documents (`zeros = 2`), a document allocates elements (`zeros = 3`). Since the two allocators operate at different levels, their outputs have different zero counts. By T4, different zero counts imply different hierarchical levels, hence the addresses differ in either the number of components or the value at some component position. T3 then gives `a ≠ b`. ∎
 
 This theorem is the foundation of the entire addressing architecture. Every subsequent guarantee — link stability, transclusion identity, royalty tracing — depends on the uniqueness of addresses. And uniqueness is achieved without any distributed consensus, simply by the structure of the names.
 
@@ -272,19 +287,25 @@ Zero tumblers serve as *sentinels*: they mark uninitialized values, denote "unbo
 
 When INSERT shifts text positions forward, link positions within the same document must not be affected. Text lives in element subspace 1; links live in element subspace 2. The shift must be *confined* to the subspace it applies to:
 
-**TA7 (Subspace confinement).** Let `S₁` and `S₂` be distinct element subspaces within a document. A shift operation (addition or subtraction of width `w`) applied to a position in `S₁` produces a result in `S₁`, and no position in `S₂` is affected.
+**TA7a (Subspace closure).** Let `S₁` and `S₂` be distinct element subspaces within a document. The shift operations are closed within each subspace:
 
   `(A a ∈ S₁, w : a ⊕ w ∈ S₁)` and symmetrically for `⊖`.
 
-  `(A b ∈ S₂ : b is unchanged by any shift within S₁)`
+No displacement `w` in the range of valid widths can produce a cross-subspace result when applied to any position in `S₁`. This is an algebraic property of `⊕` and `⊖` — it constrains the arithmetic independent of any particular operation.
 
-TA7 is a single abstract property, but Gregory's analysis reveals a striking asymmetry in how the two editing operations achieve it:
+**TA7b (Subspace frame).** An INSERT or DELETE operation within subspace `S₁` does not modify any position in a distinct subspace `S₂`:
+
+  `(A b ∈ S₂ : post(b) = pre(b))`
+
+where `pre(b)` and `post(b)` denote the V-space position of content `b` before and after the operation. TA7b is a frame condition on the operation definitions, not a property of the arithmetic. It requires that the operation restricts its shift to positions within the affected subspace — that is, the operation applies `⊕` or `⊖` only to positions `a ∈ S₁`, and TA7a guarantees those results remain in `S₁`. Together, TA7a (arithmetic stays in-subspace) and TA7b (operations only shift in-subspace positions) constitute subspace confinement.
+
+TA7a and TA7b together form a single system-level guarantee — subspace confinement — but Gregory's analysis reveals a striking asymmetry in how the two editing operations achieve it:
 
 For **INSERT**, the implementation uses an explicit structural guard — a "two-blade knife" that computes the boundary between subspaces. The boundary tumbler is constructed by a four-step arithmetic computation: increment at the parent level, extract the fractional tail via `beheadtumbler`, subtract the tail's leading component, and increment at the next finer level. This produces the precise tumbler at which the next subspace begins (e.g., `2.1` for the link subspace boundary when inserting in text subspace `1.x`). Entries beyond this boundary are never passed to the addition operation. Confinement is achieved by *not calling* the arithmetic on cross-subspace entries.
 
 For **DELETE**, the implementation relies on an incidental property of the subtraction algorithm. The routine `strongsub` contains an exponent guard that returns the minuend unchanged when the subtrahend has a smaller exponent. Since text widths (fractional V-positions, exponent ≤ -1) have smaller exponents than link positions (whole-number subspace identifiers, exponent = 0), subtracting a text width from a link position is a no-op. Confinement is achieved by an *accidental arithmetic property*, not by deliberate structural design.
 
-The abstract specification does not prescribe either mechanism. TA7 states what must hold; how it is achieved is an implementation choice. But the asymmetry teaches us something important: **TA7 is one property, but each operation may require a different proof obligation.** An implementation that "corrects" the subtraction to handle cross-exponent operands would break DELETE's subspace isolation while leaving INSERT's intact. The abstract property is stable; the implementation strategies are fragile in different ways.
+The abstract specification does not prescribe either mechanism. TA7a and TA7b state what must hold; how each is achieved is an implementation choice. But the asymmetry teaches us something important: **subspace confinement is one guarantee, but each operation may require a different proof obligation.** An implementation that "corrects" the subtraction to handle cross-exponent operands would break DELETE's subspace isolation while leaving INSERT's intact. The abstract property is stable; the implementation strategies are fragile in different ways.
 
 
 ## What tumbler arithmetic is NOT
@@ -319,11 +340,11 @@ I-space addresses are compared (T1) and containment-tested (T6), but they are ne
 
   - T1 (total order): positions are ordered by reading sequence
   - TA0–TA4 (arithmetic): positions shift on INSERT and DELETE
-  - TA7 (subspace confinement): shifts respect subspace boundaries
+  - TA7a (subspace closure): shifts stay within their subspace; TA7b (subspace frame): operations do not modify other subspaces
 
 V-space has no permanence guarantee. Nelson is explicit: "The address of a byte in its native document is of no concern to the user or to the front end; indeed, it may be constantly changing." V-positions run contiguously from 1 to the document's current length and are rearranged by every editing operation.
 
-**T11 (Dual-space separation).** The permanence properties (T8, T9, T10) apply exclusively to I-space. The shift-arithmetic properties (TA0–TA4, TA7) apply exclusively to V-space. No operation shifts an I-space address. No operation claims permanence for a V-space position.
+**T11 (Dual-space separation).** The permanence properties (T8, T9, T10) apply exclusively to I-space. The shift-arithmetic properties (TA0–TA4, TA7a) apply exclusively to V-space; the subspace frame condition (TA7b) constrains V-space operations. No operation shifts an I-space address. No operation claims permanence for a V-space position.
 
 T11 is the architectural core. Links attach to I-space addresses and therefore survive editing. Editing operations modify V-space positions and therefore do not violate permanence. The two spaces share the same carrier set T and the same ordering T1, but their operational contracts are disjoint.
 
@@ -410,7 +431,7 @@ We collect the structure. The tumbler algebra is a tuple `(T, <, ⊕, ⊖, inc, 
 - `⊕` and `⊖` are order-preserving shift operations for V-space (TA0–TA3), with strict increase (TA-strict), mutually inverse (TA4)
 - `inc` is hierarchical increment for allocation (TA5)
 - Zero tumblers (all components zero, any length) are sentinels, not valid addresses (TA6); positivity is defined as having at least one nonzero component
-- `TA7` confines shifts to their subspace
+- `TA7a` confines shifts to their subspace (algebraic closure); `TA7b` requires operations not to modify other subspaces (frame condition)
 - `TA8` ensures orthogonality of V and I dimensions in displacement arithmetic
 - Spans are self-describing contiguous ranges (T12)
 
@@ -432,7 +453,7 @@ Each property is required by at least one system guarantee:
 | TA0–TA4, TA-strict | INSERT/DELETE correctness, span non-emptiness (T12) |
 | TA5 | Address allocation |
 | TA6 | Sentinel and lower bound |
-| TA7 | INSERT/DELETE subspace isolation |
+| TA7a, TA7b | INSERT/DELETE subspace isolation |
 | TA8 | 2D enfilade correctness |
 
 Removing any independent property breaks a system-level guarantee. T6 and T7 are derived (corollaries of T4, T3 respectively) and are stated for emphasis, not as independent axioms — removing them from the list does not weaken the algebra, since their content follows from the remaining properties.
@@ -453,7 +474,7 @@ Removing any independent property breaks a system-level guarantee. T6 and T7 are
 | T8 | Once a tumbler is assigned to content, the assignment is permanent and the content is immutable | introduced |
 | T9 | Within a single allocator's sequential stream, new addresses are strictly monotonically increasing; gaps are permanent | introduced |
 | T10 | Allocators with non-nesting prefixes produce distinct addresses without coordination | introduced |
-| T11 | Permanence (T8–T10) applies to I-space; shift arithmetic (TA0–TA4, TA7) applies to V-space; the contracts are disjoint | introduced |
+| T11 | Permanence (T8–T10) applies to I-space; shift arithmetic (TA0–TA4, TA7a) and subspace frame (TA7b) apply to V-space; the contracts are disjoint | introduced |
 | T12 | A span (s, ℓ) with s ∈ T and ℓ ∈ T denotes the contiguous interval {t : s ≤ t < s ⊕ ℓ} | introduced |
 | TA0 | Tumbler addition a ⊕ w is well-defined for positive width w | introduced |
 | TA1 | Addition preserves the total order: a < b ⟹ a ⊕ w < b ⊕ w for w > 0 | introduced |
@@ -463,7 +484,8 @@ Removing any independent property breaks a system-level guarantee. T6 and T7 are
 | TA4 | Addition and subtraction are mutual inverses: (a ⊕ w) ⊖ w = a | introduced |
 | TA5 | Hierarchical increment inc(t, k) produces t' > t: k=0 advances component at sig(t), k>0 extends by k positions with k−1 zero separators and final component 1 | introduced |
 | TA6 | Every all-zero tumbler (any length) is less than every positive tumbler and is not a valid address; positivity means at least one nonzero component | introduced |
-| TA7 | Shift operations applied within one subspace produce results in that subspace and do not affect other subspaces | introduced |
+| TA7a | Shift operations applied within one subspace produce results in that same subspace (algebraic closure) | introduced |
+| TA7b | INSERT/DELETE within one subspace does not modify positions in any other subspace (frame condition) | introduced |
 | TA8 | In 2D displacement arithmetic, V and I dimensions are operated on independently with no cross-dimensional combination | introduced |
 
 
