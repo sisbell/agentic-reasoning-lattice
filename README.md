@@ -33,8 +33,15 @@ Formal specification of the Xanadu hypertext system (udanax-green), derived from
           |                                         |
           v                                         v
 +-------------------+                    +---------------------+
-|    revise-asn     |  targeted fixes    |    align-vocab      |  rewrite notation
+| consult-for-rev.  |  expert evidence   |    align-vocab      |  rewrite notation
 +-------------------+                    +---------------------+
+          |                                         |
+  consultation results                              |
+          |                                         |
+          v                                         |
++-------------------+                               |
+|    revise-asn     |  targeted fixes               |
++-------------------+                               |
           |                                         |
           |    +-----------+                        |
           +--->|  commit   |<-----------------------+
@@ -67,13 +74,14 @@ Steps: questions → consult → discover → commit
 ### Review/Revise — improve an existing ASN
 
 ```
-python scripts/run-review.py 9                # 1 cycle: review → revise → commit
+python scripts/run-review.py 9                # 1 cycle: review → consult → revise → commit
 python scripts/run-review.py 9 --cycles 2     # 2 cycles
-python scripts/run-review.py 9 --review-only  # just review, no revise
-python scripts/run-review.py 9 --resume revise  # skip review, revise from latest
+python scripts/run-review.py 9 --review-only  # just review, no consult or revise
+python scripts/run-review.py 9 --resume consult  # skip review, consult + revise from latest
+python scripts/run-review.py 9 --resume revise   # skip review + consult, revise from latest
 ```
 
-Steps per cycle: review → revise → commit. Stops early if no REVISE items found.
+Steps per cycle: review → consult → revise → commit. Stops early if no REVISE items found.
 
 ### Triage — promote ASN open questions to new inquiries
 
@@ -154,6 +162,8 @@ by default (needs semantic understanding to map property labels by meaning, not 
 
 ```
 python scripts/review-asn.py 9                # review only → vault/reviews/
+python scripts/consult_for_revision.py 9          # consult for latest review
+python scripts/consult_for_revision.py 9 --dry-run  # categorize only, no consultations
 python scripts/revise-asn.py 9                # revise using latest review
 python scripts/revise-asn.py 9 review-1       # revise using specific review
 python scripts/commit.py                      # commit vault/ changes
@@ -165,11 +175,12 @@ python scripts/commit.py "hint about changes" # commit with context hint
 | Script | Purpose |
 |--------|---------|
 | `run-asn.py` | Discovery pipeline — questions → consult → discover → commit |
-| `run-review.py` | Review pipeline — review → revise → commit (repeatable cycles) |
+| `run-review.py` | Review pipeline — review → consult → revise → commit (repeatable cycles) |
 | `review-asn.py` | Review an ASN for rigor (opus, no tools) |
+| `consult_for_revision.py` | Categorize review findings, run targeted expert consultations (opus) |
 | `revise-asn.py` | Revise an ASN based on review feedback (opus, with tools) |
 | `commit.py` | Commit vault changes with descriptive messages (sonnet) |
-| `consult-experts.py` | Decompose inquiry into sub-questions, run all consultations |
+| `consult_experts.py` | Decompose inquiry into sub-questions, run all consultations |
 | `discover.py` | Synthesize expert consultation answers into a formal ASN |
 | `consult-nelson.py` | Nelson consultation — design intent from Literary Machines |
 | `consult-gregory.py` | Gregory consultation — KB synthesis + code exploration |
@@ -185,8 +196,8 @@ python scripts/commit.py "hint about changes" # commit with context hint
 | `discovery.md` | `discover.py`, `revise-asn.py` | Discovery/revision agent — Dijkstra-style ASN writing |
 | `review.md` | `review-asn.py` | Review agent — rigor checking |
 | `commit.md` | `commit.py`, `run-asn.py` | Commit message generation |
-| `nelson-questions.md` | `consult-experts.py` | Generate Nelson sub-questions from inquiry |
-| `gregory-questions.md` | `consult-experts.py` | Generate Gregory sub-questions from inquiry + KB |
+| `nelson-questions.md` | `consult_experts.py` | Generate Nelson sub-questions from inquiry |
+| `gregory-questions.md` | `consult_experts.py` | Generate Gregory sub-questions from inquiry + KB |
 | `nelson-agent.md` | `consult-nelson.py` | Nelson answering agent |
 | `gregory-synthesis-agent.md` | `consult-gregory.py` | Gregory KB synthesis agent |
 | `gregory-code-agent.md` | `consult-gregory.py` | Gregory code exploration agent |

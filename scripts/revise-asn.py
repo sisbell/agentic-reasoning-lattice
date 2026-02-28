@@ -83,7 +83,7 @@ def find_review(asn_label, review_spec=None):
     return None
 
 
-def build_prompt(asn_path, review_content, vocab):
+def build_prompt(asn_path, review_content, vocab, consultation_content=None):
     """Build revise prompt: discovery methodology + vocab + revise assignment + review."""
     skill_body = read_file(DISCOVERY_PROMPT)
     if not skill_body:
@@ -98,7 +98,8 @@ def build_prompt(asn_path, review_content, vocab):
 
     rel_path = asn_path.relative_to(WORKSPACE)
     asn_label = re.match(r"(ASN-\d+)", asn_path.stem).group(1)
-    parts.append(f"""## Your Assignment: REVISE {asn_label}
+
+    assignment = f"""## Your Assignment: REVISE {asn_label}
 
 You are revising an existing ASN based on review feedback. Read the ASN at
 `{rel_path}`, then read the review below.
@@ -109,11 +110,25 @@ Address every REVISE item. DEFER items are noted but do not require changes now.
 specific issues raised. Preserve the existing structure, notation, and reasoning
 where it is not affected by the review.
 
-Write the revised ASN back to `{rel_path}`.
+Write the revised ASN back to `{rel_path}`."""
+
+    if consultation_content:
+        assignment += f"""
+
+## Consultation Results
+
+The following expert consultations were conducted based on this review.
+Use these answers as evidence when addressing the corresponding REVISE items.
+
+{consultation_content}"""
+
+    assignment += f"""
 
 ## Review
 
-{review_content}""")
+{review_content}"""
+
+    parts.append(assignment)
 
     return "\n\n".join(parts)
 
@@ -203,6 +218,8 @@ def main():
     parser.add_argument("--model", "-m", default="opus",
                         choices=["opus", "sonnet"],
                         help="Model (default: opus)")
+    parser.add_argument("--consultation",
+                        help="Path to consultation results file (from consult_for_revision.py)")
     parser.add_argument("--effort", default="max",
                         help="Thinking effort level (low/medium/high/max)")
     args = parser.parse_args()
@@ -237,6 +254,15 @@ def main():
     if not vocab:
         print("  Warning: vault/vocabulary.md not found", file=sys.stderr)
 
+    # Load consultation results if provided
+    consultation_content = None
+    if args.consultation:
+        consultation_content = read_file(args.consultation)
+        if not consultation_content:
+            print(f"  Warning: consultation file not found: {args.consultation}",
+                  file=sys.stderr)
+            consultation_content = None
+
     # Build prompt
     model_flag = {
         "opus": "claude-opus-4-6",
@@ -245,7 +271,9 @@ def main():
 
     print(f"  [REVISE] {asn_label} ({asn_path.name})", file=sys.stderr)
     print(f"  [REVIEW] {review_path.name}", file=sys.stderr)
-    prompt = build_prompt(asn_path, review_content, vocab)
+    if consultation_content:
+        print(f"  [CONSULTATION] {Path(args.consultation).name}", file=sys.stderr)
+    prompt = build_prompt(asn_path, review_content, vocab, consultation_content)
     print(f"  Prompt: {len(prompt) // 1024}KB (~{len(prompt) // 4} tokens)",
           file=sys.stderr)
 

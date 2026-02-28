@@ -1,20 +1,22 @@
 #!/usr/bin/env python3
 """
-Review-revise pipeline — review → revise → commit, optionally repeated.
+Review-revise pipeline — review → consult → revise → commit, optionally repeated.
 
 Orchestrates ASN quality improvement by calling step scripts:
   1. Review: Dijkstra-style rigor check (opus, no tools)
-  2. Revise: targeted fixes addressing review findings (opus, with tools)
-  3. Commit: commit vault changes (sonnet)
+  2. Consult: categorize findings, run targeted expert consultations (opus)
+  3. Revise: targeted fixes addressing review findings (opus, with tools)
+  4. Commit: commit vault changes (sonnet)
 
 Each cycle produces a numbered review in vault/reviews/ and revises the ASN
 in place. Multiple cycles progressively tighten the specification.
 
 Usage:
-    python scripts/run-review.py 9                # 1 cycle: review → revise → commit
+    python scripts/run-review.py 9                # 1 cycle: review → consult → revise → commit
     python scripts/run-review.py 9 --cycles 2     # 2 cycles
     python scripts/run-review.py 9 --review-only  # just review, no revise or commit
-    python scripts/run-review.py 9 --resume revise  # skip review, use latest
+    python scripts/run-review.py 9 --resume consult  # skip review, consult + revise from latest
+    python scripts/run-review.py 9 --resume revise   # skip review + consult, revise from latest
 """
 
 import argparse
@@ -32,10 +34,11 @@ REVIEWS_DIR = WORKSPACE / "vault" / "reviews"
 USAGE_LOG = WORKSPACE / "vault" / "usage-log.jsonl"
 
 REVIEW_SCRIPT = WORKSPACE / "scripts" / "review-asn.py"
+CONSULT_REVISION_SCRIPT = WORKSPACE / "scripts" / "consult_for_revision.py"
 REVISE_SCRIPT = WORKSPACE / "scripts" / "revise-asn.py"
 COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
 
-STEPS = ["review", "revise", "commit"]
+STEPS = ["review", "consult", "revise", "commit"]
 
 
 def find_asn(asn_id):
@@ -83,12 +86,46 @@ def has_revise_items(review_path):
         return False
 
 
-def step_revise(asn_id, review_spec=None):
+def step_consult_revision(asn_id, review_path):
+    """Run consult_for_revision.py. Returns consultation results path or None."""
+    print(f"\n  === CONSULT ===", file=sys.stderr)
+    cmd = [sys.executable, str(CONSULT_REVISION_SCRIPT), str(asn_id)]
+
+    # Pass the review filename (e.g., "review-6") for targeting
+    review_name = Path(review_path).stem  # e.g., ASN-0001-review-6
+    # Extract "review-N" part
+    m = re.search(r"(review-\d+)", review_name)
+    if m:
+        cmd.append(m.group(1))
+
+    result = subprocess.run(
+        cmd, capture_output=True, text=True, cwd=str(WORKSPACE),
+    )
+    if result.returncode != 0:
+        print(f"  [CONSULT] FAILED", file=sys.stderr)
+        if result.stderr:
+            for line in result.stderr.strip().split("\n")[:5]:
+                print(f"    {line}", file=sys.stderr)
+        return None
+
+    if result.stderr:
+        for line in result.stderr.strip().split("\n"):
+            print(f"  {line}", file=sys.stderr)
+
+    consultation_path = result.stdout.strip()
+    if consultation_path and Path(consultation_path).exists():
+        return consultation_path
+    return None
+
+
+def step_revise(asn_id, review_spec=None, consultation_path=None):
     """Run revise-asn.py. Returns ASN path or None."""
     print(f"\n  === REVISE ===", file=sys.stderr)
     cmd = [sys.executable, str(REVISE_SCRIPT), str(asn_id)]
     if review_spec:
         cmd.append(review_spec)
+    if consultation_path:
+        cmd.extend(["--consultation", consultation_path])
 
     result = subprocess.run(
         cmd, capture_output=True, text=True, cwd=str(WORKSPACE),
@@ -156,7 +193,7 @@ def main():
 
     print(f"  [PIPELINE] {asn_label} ({asn_path.name})", file=sys.stderr)
     if not args.review_only:
-        print(f"  [PIPELINE] {args.cycles} cycle(s): review → revise → commit",
+        print(f"  [PIPELINE] {args.cycles} cycle(s): review → consult → revise → commit",
               file=sys.stderr)
 
     start = time.time()
@@ -188,9 +225,30 @@ def main():
             step_commit(f"Review {asn_label} — no revisions needed")
             break
 
+        # Consult
+        consultation_path = None
+        if not args.resume or args.resume == "consult":
+            # Need a review path for consultation
+            if review_path is None:
+                # Resuming from consult — find latest review
+                reviews = sorted(REVIEWS_DIR.glob(f"{asn_label}-review-*.md"))
+                if reviews:
+                    review_path = str(reviews[-1])
+                else:
+                    print(f"  [PIPELINE] No review found for consultation",
+                          file=sys.stderr)
+                    sys.exit(1)
+            consultation_path = step_consult_revision(args.asn, review_path)
+            if consultation_path is None:
+                print(f"  [PIPELINE] Consultation failed, stopping",
+                      file=sys.stderr)
+                sys.exit(1)
+            args.resume = None
+
         # Revise
         if not args.resume or args.resume == "revise":
-            asn_result = step_revise(args.asn)
+            asn_result = step_revise(args.asn,
+                                     consultation_path=consultation_path)
             if asn_result is None:
                 print(f"  [PIPELINE] Revise failed, stopping",
                       file=sys.stderr)

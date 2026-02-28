@@ -33,7 +33,7 @@ WORKSPACE = Path(__file__).resolve().parent.parent
 INQUIRIES_FILE = WORKSPACE / "vault" / "inquiries.yaml"
 ASNS_DIR = WORKSPACE / "vault" / "asns"
 USAGE_LOG = WORKSPACE / "vault" / "usage-log.jsonl"
-CONSULT_SCRIPT = WORKSPACE / "scripts" / "consult-experts.py"
+CONSULT_SCRIPT = WORKSPACE / "scripts" / "consult_experts.py"
 DISCOVER_SCRIPT = WORKSPACE / "scripts" / "discover.py"
 COMMIT_PROMPT = WORKSPACE / "scripts" / "prompts" / "commit.md"
 
