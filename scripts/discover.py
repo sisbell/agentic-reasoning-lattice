@@ -174,14 +174,9 @@ Nelson answered questions about design intent; Gregory answered questions about 
         if consult_end != -1:
             skill_body = skill_body[:consult_start] + """### Expert Answers Available
 
-Consultation answers are provided above. They contain focused answers from Nelson (design intent) and Gregory (implementation evidence) on your topic. **Read them first** — they give you a head start.
+Consultation answers are provided above. They contain focused answers from Nelson (design intent) and Gregory (implementation evidence) on your topic. **Read them first** — they are your primary evidence base.
 
-You may still consult the authorities directly for any questions that arise during your reasoning:
-
-- **Nelson:** `python scripts/consult-nelson.py --with-png --effort max --asn NNNN "your question"`
-- **Gregory:** `python scripts/consult-gregory.py --effort max --asn NNNN "your question"`
-
-The scripts print a file path to stdout. Read that file to get the answer.
+Do not run ad-hoc expert consultations during discovery. All consultation was done upstream. Focus on synthesizing the provided answers into a formal specification.
 
 """ + skill_body[consult_end:]
 
