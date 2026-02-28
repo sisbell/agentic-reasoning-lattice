@@ -260,25 +260,27 @@ Let `⊖` denote tumbler subtraction, used to shift V-positions backward after d
 
 ### Inverse
 
-**TA4 (Inverse).** `(A a, w : w > 0 ∧ k = #a ∧ (A i : 1 ≤ i < k : aᵢ = 0) : (a ⊕ w) ⊖ w = a)`, where `k` is the action point of `w`.
+**TA4 (Inverse).** `(A a, w : w > 0 ∧ k = #a ∧ #w = k ∧ (A i : 1 ≤ i < k : aᵢ = 0) : (a ⊕ w) ⊖ w = a)`, where `k` is the action point of `w`.
 
-The precondition has two parts. First, `k = #a` — the action point falls at the last component of `a`. This is necessary because addition replaces `a`'s trailing structure below the action point with `w`'s trailing structure (tail replacement). When `k < #a`, components `aₖ₊₁, ..., a_{#a}` are discarded by addition and cannot be recovered by subtraction. Concretely: `[1, 5] ⊕ [1, 3] = [2, 3]` (action point 1, position 2 replaced by `w`'s trailing `3`), then `[2, 3] ⊖ [1, 3] = [1, 3] ≠ [1, 5]` — the original trailing `5` is lost.
+The precondition has three parts. First, `k = #a` — the action point falls at the last component of `a`. This is necessary because addition replaces `a`'s trailing structure below the action point with `w`'s trailing structure (tail replacement). When `k < #a`, components `aₖ₊₁, ..., a_{#a}` are discarded by addition and cannot be recovered by subtraction. Concretely: `[1, 5] ⊕ [1, 3] = [2, 3]` (action point 1, position 2 replaced by `w`'s trailing `3`), then `[2, 3] ⊖ [1, 3] = [1, 3] ≠ [1, 5]` — the original trailing `5` is lost.
 
-Second, `(A i : 1 ≤ i < k : aᵢ = 0)` — all components of `a` before the action point are zero. This is necessary because the subtraction `⊖` discovers its action point from the first divergence between the result and `w`. If `a` has a nonzero component at some position `j < k`, then the result `r = a ⊕ w` has `rⱼ = aⱼ ≠ 0 = wⱼ`, and the subtraction's divergence falls at position `j`, not at `k` where the addition acted. The subtraction then produces the wrong recovery. Concretely: let `a = [5, 3]`, `w = [0, 7]`, so `k = 2 = #a` and `a ⊕ w = [5, 10]`. Now `[5, 10] ⊖ [0, 7]`: the first divergence is at position 1 (`5 ≠ 0`), producing `[5 - 0, 10] = [5, 10] ≠ [5, 3]`. The subtraction never reaches position `k` to undo the addition.
+Second, `#w = k` — the displacement has no trailing components beyond the action point. This is necessary because addition copies trailing components from `w` (positions `k + 1, ..., #w`), and subtraction copies the tail from the minuend. When `#w > k`, the result `r = a ⊕ w` acquires trailing components `wₖ₊₁, ...` that were not present in `a`. Subtraction preserves these: `r ⊖ w` has positions `i > k` copied from `r`, giving `wₖ₊₁, ...`, so the result is longer than `a`. Concretely: `a = [0, 5]`, `w = [0, 3, 7]`, `k = 2 = #a`. Then `a ⊕ w = [0, 8, 7]`. Now `[0, 8, 7] ⊖ [0, 3, 7]`: divergence at position 2, result `[0, 5, 7] ≠ [0, 5] = a`. The trailing `7` from `w` persists.
 
-When both conditions hold — `k = #a` and all preceding components of `a` are zero — the subtraction's first divergence is at position `k` (where `rₖ = aₖ + wₖ > wₖ`), and recovery is exact.
+Third, `(A i : 1 ≤ i < k : aᵢ = 0)` — all components of `a` before the action point are zero. This is necessary because the subtraction `⊖` discovers its action point from the first divergence between the result and `w`. If `a` has a nonzero component at some position `j < k`, then the result `r = a ⊕ w` has `rⱼ = aⱼ ≠ 0 = wⱼ`, and the subtraction's divergence falls at position `j`, not at `k` where the addition acted. The subtraction then produces the wrong recovery. Concretely: let `a = [5, 3]`, `w = [0, 7]`, so `k = 2 = #a` and `a ⊕ w = [5, 10]`. Now `[5, 10] ⊖ [0, 7]`: the first divergence is at position 1 (`5 ≠ 0`), producing `[5 - 0, 10] = [5, 10] ≠ [5, 3]`. The subtraction never reaches position `k` to undo the addition.
 
-TA4 ensures that INSERT followed by DELETE at the same point restores the original V-positions. Without it, the system could accumulate drift — repeated insert-delete cycles shifting content progressively. The combined precondition is satisfied by editing operations: element-level shifts use single-component displacements `[n]` with `k = 1 = #a` for single-component V-positions, where the zero-prefix condition is vacuously true (there are no positions before `k = 1`). More generally, the displaced V-positions within a subspace share their document prefix with the displacement's leading zeros, ensuring that the subtraction's divergence aligns with the addition's action point.
+When all three conditions hold — `k = #a`, `#w = k`, and all preceding components of `a` are zero — the subtraction's first divergence is at position `k` (where `rₖ = aₖ + wₖ > wₖ`), there are no trailing components from `w` to corrupt the result, and recovery is exact.
+
+TA4 ensures that INSERT followed by DELETE at the same point restores the original V-positions. Without it, the system could accumulate drift — repeated insert-delete cycles shifting content progressively. All three preconditions are satisfied by editing operations: element-level shifts use single-component displacements `[n]` with `k = 1 = #w = #a` for single-component V-positions, where the zero-prefix condition is vacuously true (there are no positions before `k = 1`) and the length condition `#w = k` holds trivially. More generally, the displaced V-positions within a subspace share their document prefix with the displacement's leading zeros, ensuring that the subtraction's divergence aligns with the addition's action point.
 
 The reverse direction is equally necessary — DELETE followed by INSERT at the same point must also restore positions:
 
-**Corollary (Reverse inverse).** `(A a, w : a ≥ w ∧ w > 0 ∧ k = #a ∧ (A i : 1 ≤ i < k : aᵢ = 0) : (a ⊖ w) ⊕ w = a)`, where `k` is the action point of `w`. The precondition inherits from TA4 — the same restriction (action point at last component, zero prefix) that makes the forward inverse exact is required for the reverse.
+**Corollary (Reverse inverse).** `(A a, w : a ≥ w ∧ w > 0 ∧ k = #a ∧ #w = k ∧ (A i : 1 ≤ i < k : aᵢ = 0) : (a ⊖ w) ⊕ w = a)`, where `k` is the action point of `w`. The precondition inherits from TA4 — the same restriction (action point at last component, no trailing structure in `w`, zero prefix) that makes the forward inverse exact is required for the reverse.
 
 *Proof.* Let `y = a ⊖ w`. We verify the prerequisites for applying TA4 to `y`.
 
 First, `y ⊕ w` must be well-defined: TA0 requires `k ≤ #y`. The subtraction algorithm produces `y` with: positions before `dₐ = divergence(a, w)` set to zero, position `dₐ` set to `a_{dₐ} - w_{dₐ}`, and positions after `dₐ` copied from `a`. Under our precondition `(A i : 1 ≤ i < k : aᵢ = 0)`, we have `aᵢ = wᵢ = 0` for all `i < k`, so `dₐ = k` (the first divergence is at position `k`). The result `y` has: positions `i < k` zero, position `k` equal to `aₖ - wₖ`, and positions `i > k` copied from `a`. Since `k = #a` and `a` has no components beyond `k`, the result is `y = [0, ..., 0, aₖ - wₖ]` with `#y = k`. So `k ≤ #y` holds.
 
-Second, TA4 requires `k = #y` and `(A i : 1 ≤ i < k : yᵢ = 0)`. We have `#y = k` (from above) and `yᵢ = 0` for all `i < k` (the subtraction zeroed these positions). Both conditions hold.
+Second, TA4 requires `k = #y`, `#w = k`, and `(A i : 1 ≤ i < k : yᵢ = 0)`. We have `#y = k` (from above), `#w = k` (by hypothesis), and `yᵢ = 0` for all `i < k` (the subtraction zeroed these positions). All three conditions hold.
 
 By TA4, `(y ⊕ w) ⊖ w = y`. Suppose `y ⊕ w ≠ a`. If `y ⊕ w > a`, then applying `⊖ w` to both sides (order-preserving by TA3 — verified above — with preconditions `a < y ⊕ w`, `a ≥ w` by hypothesis, and `y ⊕ w ≥ w` since `(y ⊕ w) ⊖ w = y` is well-defined) gives `a ⊖ w < (y ⊕ w) ⊖ w = y`, i.e., `y > a ⊖ w = y`, a contradiction. If `y ⊕ w < a`, then TA3 with preconditions `y ⊕ w < a`, `y ⊕ w ≥ w`, and `a ≥ w` gives `(y ⊕ w) ⊖ w < a ⊖ w`, i.e., `y < y`, a contradiction. So `(a ⊖ w) ⊕ w = a`. ∎
 
@@ -339,7 +341,7 @@ Three properties of this definition require explicit statement:
 
 This is correct and intentional: advancing to "the beginning of the next chapter" lands at the same place regardless of where you were within the current chapter. Nelson describes this as "a range of addends gives the same answer."
 
-**Definition (Tumbler subtraction).** The inverse operation. Given an end position `a` and displacement `w`, recover the start position. Let `k` be the first position where `a` and `w` differ:
+**Definition (Tumbler subtraction).** The inverse operation. Given an end position `a` and displacement `w`, recover the start position. When `a = w` (no divergence exists), the result is the zero tumbler of length `#a`: `a ⊖ w = [0, ..., 0]` with `#(a ⊖ w) = #a`. Otherwise, let `k` be the first position where `a` and `w` differ:
 
 ```
          ⎧ 0             if i < k        (these levels matched — zero them)
@@ -347,11 +349,11 @@ rᵢ   =  ⎨ aₖ - wₖ      if i = k        (reverse the advance)
          ⎩ aᵢ           if i > k        (copy from end position)
 ```
 
-**Precondition:** `a ≥ w` — at the divergence point, `aₖ ≥ wₖ`.
+**Precondition:** `a ≥ w` — when `a ≠ w`, at the divergence point `aₖ ≥ wₖ`.
 
 Gregory's implementation confirms this structure. The `strongsub` routine scans for the first position where the mantissa digits differ (`for (i = 0; aptr->mantissa[i] == bptr->mantissa[i]; ++i)`), subtracts at that position, then copies the remainder from the first operand — exactly the algorithm above.
 
-**Verification of TA4 (mutual inverse).** We verify `(a ⊕ w) ⊖ w = a` under the full precondition: `k = #a` and `(A i : 1 ≤ i < k : aᵢ = 0)`. Let `k` be the action point of `w`. Since `k = #a`, the addition `a ⊕ w` produces a result `r` with: `rᵢ = aᵢ = 0` for `i < k` (by the zero-prefix condition), `rₖ = aₖ + wₖ`, and `rᵢ = wᵢ` for `i > k`. Crucially, there are no components of `a` beyond position `k` — the tail replacement discards nothing.
+**Verification of TA4 (mutual inverse).** We verify `(a ⊕ w) ⊖ w = a` under the full precondition: `k = #a`, `#w = k`, and `(A i : 1 ≤ i < k : aᵢ = 0)`. Let `k` be the action point of `w`. Since `k = #a`, the addition `a ⊕ w` produces a result `r` with: `rᵢ = aᵢ = 0` for `i < k` (by the zero-prefix condition), `rₖ = aₖ + wₖ`, and `rᵢ = wᵢ` for `i > k`. Crucially, there are no components of `a` beyond position `k` — the tail replacement discards nothing.
 
 Now subtract `w` from `r`. The subtraction scans for the first divergence between `r` and `w`. For `i < k`: `rᵢ = aᵢ = 0 = wᵢ` (both are zero — `aᵢ` by the zero-prefix precondition, `wᵢ` by definition of action point). So the subtraction finds no divergence before position `k`. At position `k`: `rₖ = aₖ + wₖ` and `wₖ > 0`. Since `aₖ > 0` (by T4's positive-component constraint for valid addresses, or by the precondition `w > 0` when `k = 1 = #a`), we have `rₖ = aₖ + wₖ > wₖ`, and the first divergence is at position `k`.
 
@@ -385,7 +387,7 @@ The subtraction algorithm differs structurally from addition — it zeros positi
 
 **Claim (TA3, strict).** If `a < b`, `a ≥ w`, and `b ≥ w`, then `a ⊖ w < b ⊖ w`.
 
-*Proof.* Let `j = divergence(a, b)` — the first position where `a` and `b` differ (`aⱼ < bⱼ` since `a < b`). Let `dₐ = divergence(a, w)` — the first position where `a` and `w` differ — and `d_b = divergence(b, w)` similarly. Five cases arise from the relationship among `j`, `dₐ`, and `d_b`.
+*Proof.* Let `j = divergence(a, b)` — the first position where `a` and `b` differ (`aⱼ < bⱼ` since `a < b`). Let `dₐ = divergence(a, w)` — the first position where `a` and `w` differ — and `d_b = divergence(b, w)` similarly. Three cases arise from the relationship between `dₐ` and `d_b`; Case 1 splits into two subcases on the relationship between `j` and `d`.
 
 *Case 1: `dₐ = d_b = d` (same divergence point for both).* For `i < d`, `aᵢ = wᵢ = bᵢ`, so both results are zero at these positions. At position `d`, `(a ⊖ w)_d = a_d - w_d` and `(b ⊖ w)_d = b_d - w_d`. Since `a` and `b` agree on positions before `d`, we need `j ≥ d`. At position `j ≥ d`: if `j = d`, then `a_d - w_d < b_d - w_d` (since `aⱼ < bⱼ` and subtraction of the same `w_d` preserves strict inequality), giving `a ⊖ w < b ⊖ w`. If `j > d`, then `a_d = b_d` (since `j > d`), so `a_d - w_d = b_d - w_d`. At positions `d < i < j`, both results copy from their respective minuends: `(a ⊖ w)ᵢ = aᵢ = bᵢ = (b ⊖ w)ᵢ`. At position `j`, `(a ⊖ w)ⱼ = aⱼ < bⱼ = (b ⊖ w)ⱼ`. So `a ⊖ w < b ⊖ w`.
 
@@ -607,7 +609,7 @@ We collect the structure. The tumbler algebra is a tuple `(T, <, ⊕, ⊖, inc, 
 - The hierarchical parsing function `fields` extracts four-level containment (T4), yielding contiguous subtrees (T5); decidable containment (T6, corollary of T4) and element subspace disjointness (T7, corollary of T3 + T4) follow
 - `T8–T10` establish permanence, forward allocation, and partition independence for I-space; `T10a` constrains each allocator to use `inc(·, 0)` for sibling outputs, reserving `k > 0` exclusively for child-spawning
 - `T11` separates the I-space and V-space contracts: `⊕` and `⊖` are defined on T and used for span computation in both spaces, but editing shifts are confined to V-space
-- `⊕` and `⊖` are order-preserving operations on T (TA0–TA3, with TA0 requiring `k ≤ #a`), with weak order preservation (TA1, `≤`) universally and strict preservation (TA1-strict, `<`) when `k ≥ divergence(a,b)`; strict increase (TA-strict); mutually inverse when `k = #a` and all components of `a` before `k` are zero (TA4); used by editing operations in V-space and by span definitions in both spaces
+- `⊕` and `⊖` are order-preserving operations on T (TA0–TA3, with TA0 requiring `k ≤ #a`), with weak order preservation (TA1, `≤`) universally and strict preservation (TA1-strict, `<`) when `k ≥ divergence(a,b)`; strict increase (TA-strict); mutually inverse when `k = #a`, `#w = k`, and all components of `a` before `k` are zero (TA4); used by editing operations in V-space and by span definitions in both spaces
 - `inc` is hierarchical increment for allocation (TA5)
 - Zero tumblers (all components zero, any length) are sentinels, not valid addresses (TA6); positivity is defined as having at least one nonzero component
 - `TA7a` confines element-local shifts to their subspace (algebraic closure); `TA7b` requires operations not to modify other subspaces (frame condition)
@@ -660,7 +662,7 @@ Removing any independent property breaks a system-level guarantee. T6 and T7 are
 | TA-strict | Adding a positive displacement strictly advances: a ⊕ w > a for w > 0 | introduced |
 | TA2 | Tumbler subtraction a ⊖ w is well-defined when a ≥ w | introduced |
 | TA3 | Subtraction preserves the total order: a < b ⟹ a ⊖ w < b ⊖ w when both are defined | introduced |
-| TA4 | Addition and subtraction are mutual inverses: (a ⊕ w) ⊖ w = a when k = #a and all components of a before k are zero | introduced |
+| TA4 | Addition and subtraction are mutual inverses: (a ⊕ w) ⊖ w = a when k = #a, #w = k, and all components of a before k are zero | introduced |
 | TA5 | Hierarchical increment inc(t, k) produces t' > t: k=0 advances component at sig(t), k>0 extends by k positions with k−1 zero separators and final component 1 | introduced |
 | TA6 | Every all-zero tumbler (any length) is less than every positive tumbler and is not a valid address; positivity means at least one nonzero component | introduced |
 | TA7a | For element-local displacements, shift operations applied within one subspace produce results in that same subspace (algebraic closure) | introduced |
