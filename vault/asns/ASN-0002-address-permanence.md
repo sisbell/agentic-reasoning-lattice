@@ -10,7 +10,7 @@ We wish to understand what the system must guarantee about the stability of addr
 We need a minimal vocabulary. Let the system state at any moment be Σ, containing at least:
 
 - **ispace**: a partial function from addresses to content, recording what has been stored. `ispace : Addr ⇀ Content`.
-- **vspace(d)**: for each document d, a function from virtual positions to addresses, recording the current arrangement. `vspace(d) : Pos → Addr`.
+- **vspace(d)**: for each document d, a function from virtual positions to addresses, recording the current arrangement. `vspace(d) : Pos → Addr`. Positions are structured: `Pos = Subspace × Nat`, where `Subspace` distinguishes the text subspace (holding content addresses) from the link subspace (holding link addresses). We write `text_subspace` and `link_subspace` for the two values of `Subspace`, and say that position `p` is "in subspace `s`" when `p.subspace = s`.
 - **spanindex**: a relation recording which documents have ever contained which address ranges. `spanindex ⊆ Addr × DocId`.
 
 We write `dom.ispace` for the set of addresses at which content is stored, `ispace.a` for the content at address `a`, and `#vspace(d)` for the length of document d's virtual stream. We use primed names (Σ', ispace', etc.) for the state after an operation.
@@ -116,11 +116,11 @@ INSERT creates new content and places it in a document.
 
   `(A i : 1 ≤ i ≤ n : aᵢ ∉ dom.ispace ∧ aᵢ ∈ dom.ispace')`
 
-by AP2 (freshness). And for all pre-existing addresses:
+by AP2 (freshness). The fresh addresses `{a₁, ..., aₙ}` are disjoint from `dom.ispace`. INSERT writes content only at these fresh addresses; it contains no instruction that reads or writes any entry of ispace at an address in `dom.ispace`. Therefore no pre-existing entry is modified:
 
   `(A a : a ∈ dom.ispace : ispace'.a = ispace.a)`
 
-by AP1 (content immutability).
+Furthermore, `dom.ispace ⊆ dom.ispace'` because INSERT extends ispace (adding entries at fresh addresses) and contains no removal instruction — no entry of ispace is deleted by the operation.
 
 *Effect on vspace.* INSERT modifies `vspace(d)` for the target document. New V-positions are created mapping to the fresh I-addresses. Existing V-positions at or beyond the insertion point shift forward by the width of the inserted text. Nelson: "The v-stream addresses of any following characters in the document are increased by the length of the inserted text."
 
@@ -191,13 +191,13 @@ Gregory confirms the data flow: COPY converts the source document's V-span to I-
 
 The content has one identity — its I-address — regardless of how many documents reference it.
 
-*Frame conditions.* COPY does not modify ispace. COPY modifies `vspace(d₂)` (the target) but not `vspace(d₁)` (the source). The source document is a read-only participant.
+*Frame conditions.* COPY does not modify ispace. For `d₁ ≠ d₂`, COPY modifies `vspace(d₂)` (the target) but not `vspace(d₁)` (the source) — the source document is a read-only participant. When `d₁ = d₂` (copy within the same document), both the read of source positions and the write of target positions operate on the same document's V-space; the source I-addresses are extracted before the target positions are modified.
 
 ### CREATENEWVERSION
 
 Version creation produces a new document whose V-space maps to the same I-addresses as the source.
 
-*Effect on ispace.* CREATENEWVERSION allocates one fresh address — the new document's identity. It does NOT allocate new content addresses. Nelson: "This creates a new document with the contents of document \<doc id\>." The new document's V-space references the same I-addresses as the source. No content duplication occurs.
+*Effect on ispace.* CREATENEWVERSION allocates one fresh address — the new document's identity. This address does *not* enter `dom.ispace`. It is a ghost address: it occupies a position in the address space (links may reference it, and it is below the allocation frontier), but no content is stored at it. The document identity is recorded in the system's document registry (a component of Σ outside ispace), not as a content mapping. CREATENEWVERSION does NOT allocate new content addresses. Nelson: "This creates a new document with the contents of document \<doc id\>." The new document's V-space references the same I-addresses as the source. No content duplication occurs.
 
 Gregory confirms this emphatically. The implementation converts the source document's V-span to I-addresses, then inserts those I-addresses into the new document's mapping. No content allocation function is invoked. The evidence is empirical: after creating content "ABC" (allocating addresses `α₁, α₂, α₃`), creating a version, then inserting "XYZ", the new content receives addresses `α₄, α₅, α₆` — contiguous with the original allocation. If version creation had consumed content addresses, there would be a gap.
 
@@ -228,11 +228,13 @@ Beyond ispace and vspace, the system maintains a third data structure: the span 
 
 Gregory provides definitive evidence. The span index has insertion functions but no deletion functions — no `deletespan`, no `removespan`, no cleanup mechanism of any kind exists. When DELETE removes content from a document's V-space mapping, the span index entry recording that the document once contained that content is not touched. The index records historical fact: "document `d` once contained I-addresses `R`." This assertion is true at the moment of recording and remains true forever — it is a statement about the past, and the past does not change.
 
-A consequence is that the span index may contain *stale* entries — records asserting that document `d` contains addresses that `d`'s V-space no longer maps to. The forward direction of the correspondence is maintained:
+A consequence is that the span index may contain *stale* entries — records asserting that document `d` contains addresses that `d`'s V-space no longer maps to. The reverse direction of a natural correspondence does not hold: `(a, d) ∈ spanindex` does not imply `(E p : vspace(d).p = a)`. The index is an *over-approximation* of the current state. Queries that consult the span index (such as "find all documents containing these I-addresses") may return documents that no longer reference the content. A second check against the document's V-space mapping is needed to filter stale results.
+
+The forward direction — that every live V-space reference is indexed — is the intended design property:
 
   `(A d, a : (E p : vspace(d).p = a) ⟹ (a, d) ∈ spanindex)`
 
-Every live reference is indexed. But the reverse does not hold: `(a, d) ∈ spanindex` does not imply `(E p : vspace(d).p = a)`. The index is an *over-approximation* of the current state. Queries that consult the span index (such as "find all documents containing these I-addresses") may return documents that no longer reference the content. A second check against the document's V-space mapping is needed to filter stale results.
+We do not verify this invariant here. Verification requires specifying, for each operation that creates V-space entries (INSERT, COPY, CREATENEWVERSION), that it also adds corresponding spanindex records. This ASN establishes only that spanindex records, once written, are never removed (AP11). The maintenance obligation — which operations must write spanindex entries and when — is deferred.
 
 This is not a defect — it is the price of AP11. A mutable index could be kept exact, but would violate monotonicity. An append-only index is monotone but over-approximate. The system chooses monotonicity, which is consistent with the broader design principle: the permanent layer never retracts a claim.
 
@@ -259,22 +261,26 @@ for every operation that transforms Σ to Σ'.
 
 And the reconstitution property:
 
-**AP13 (Link reconstitution).** If a link's endset references I-address `a`, and content at `a` is re-introduced into some document's V-space (by COPY from any source that still references `a`), then the link becomes discoverable again through that document.
+**AP13 (Link endset validity under re-transclusion).** If a link's endset references I-address `a`, and content at `a` is re-introduced into some document's V-space (by COPY from any source that still references `a`), then the link's endset reference to `a` remains valid — the I-address still maps to the same content (by AP1), and the target document now has a V-space mapping to it.
 
-Gregory confirms this cycle: create a link to content; delete the content from all documents; re-transclude the same I-addresses. The link is discoverable after re-transclusion because the span index still records the link's association with those I-addresses, and the re-transclusion restores a V-space mapping to them. Critically, this works only for COPY (which shares existing I-addresses) — not for re-typing the same text (which produces *new* I-addresses that the link does not reference). Identity is structural, not textual.
+What AP13 does *not* establish is the *discoverability* of the link through the target document. Discoverability requires a mechanism that, given an I-address `a` present in a document's V-space, can find all links whose endsets reference `a`. The span index (`spanindex ⊆ Addr × DocId`) records which documents have contained which addresses, but not which links reference which addresses. A link-discovery mechanism (such as an index from content I-addresses to links) is needed but is not defined in this ASN.
+
+Gregory confirms the re-transclusion cycle: create a link to content; delete the content from all documents; re-transclude the same I-addresses. The link's endset references remain valid throughout — the I-addresses persist (AP0) with unchanged content (AP1). Critically, this works only for COPY (which shares existing I-addresses) — not for re-typing the same text (which produces *new* I-addresses that the link does not reference). Identity is structural, not textual.
 
 
 ## Permanence of the address-content pair
 
 We can now state the strongest form of the permanence guarantee, combining all the individual properties:
 
-**Theorem (Address-content invariance).** For every reachable state Σ and every operation transforming Σ to Σ':
+**Theorem (Address-content invariance).** For every reachable state Σ and every operation *defined in this ASN* transforming Σ to Σ':
 
   `(A a ∈ dom.ispace : a ∈ dom.ispace' ∧ ispace'.a = ispace.a)`
 
-*Proof.* By case analysis on each operation:
+This ASN defines six operations that modify Σ: INSERT, DELETE, REARRANGE, COPY, CREATENEWVERSION, and CREATELINK. Other operations may exist in the broader system (document creation as distinct from version creation, account creation, node creation, administrative operations). Any such operation must be shown to preserve AP as a condition of its introduction.
 
-- **INSERT**: Creates fresh addresses (AP2) with new content. Existing addresses are not in the allocated set (AP2), so they are untouched. AP0 and AP1 hold.
+*Proof.* By case analysis on each of the six operations:
+
+- **INSERT**: Creates fresh addresses (AP2) with new content. The fresh addresses are disjoint from `dom.ispace`, and INSERT writes only at those addresses, so no pre-existing ispace entry is read or written — hence `ispace'.a = ispace.a` for all `a ∈ dom.ispace`. INSERT extends ispace and contains no removal instruction, so `dom.ispace ⊆ dom.ispace'`.
 
 - **DELETE**: Does not modify ispace at all (AP7). Both AP0 and AP1 hold trivially.
 
@@ -282,9 +288,9 @@ We can now state the strongest form of the permanence guarantee, combining all t
 
 - **COPY**: Does not modify ispace. Creates V-space mappings to existing I-addresses (AP9). Both AP0 and AP1 hold trivially.
 
-- **CREATENEWVERSION**: Allocates one fresh document address. Does not allocate content addresses. Does not modify existing ispace entries (AP10). Both AP0 and AP1 hold.
+- **CREATENEWVERSION**: The document identity address is not a content address and does not enter `dom.ispace` (as established in the CREATENEWVERSION section above). No content addresses are allocated. The operation creates V-space mappings to existing I-addresses but contains no instruction that modifies or removes any ispace entry — hence `dom.ispace' = dom.ispace` and `ispace'.a = ispace.a` for all `a ∈ dom.ispace`.
 
-- **CREATELINK**: Allocates fresh link address. Does not modify existing ispace entries. Both AP0 and AP1 hold.
+- **CREATELINK**: Allocates one fresh address in the link subspace (disjoint from existing addresses by AP2). Writes the link structure at that fresh address only. Contains no instruction that reads or writes any pre-existing ispace entry — hence `ispace'.a = ispace.a` for all `a ∈ dom.ispace`, and `dom.ispace ⊆ dom.ispace'`.
 
 Since every operation preserves AP0 and AP1, and the initial state (empty ispace) satisfies AP trivially, AP holds in every reachable state. ∎
 
@@ -348,7 +354,7 @@ Gregory's implementation takes this further: even the allocation counter for I-a
 | AP10 | CREATENEWVERSION shares text I-addresses between source and new version; no content allocation occurs | introduced |
 | AP11 | The span index is append-only; records of content placement persist forever | introduced |
 | AP12 | A link's endset I-addresses are invariant under all editing operations | introduced |
-| AP13 | A link becomes discoverable again when its endset I-addresses are re-introduced to V-space via COPY | introduced |
+| AP13 | A link's endset references remain valid when its I-addresses are re-introduced to V-space via COPY; discoverability requires a link-discovery mechanism not defined here | introduced |
 | AP14 | No operation on document d₁ modifies the V-space mapping of d₂ ≠ d₁ | introduced |
 | AP15 | Deletion of content from its home document does not affect transclusions in other documents | introduced |
 | Σ.ispace | ispace : Addr ⇀ Content — the permanent content store | introduced |
@@ -362,7 +368,9 @@ Must the system provide a mechanism to determine, for a given I-address, which d
 
 What must the system guarantee about the retrievability of content at an I-address that is not referenced by any document's current V-space — is direct I-address lookup a required operation?
 
-What invariants connect the span index to V-space mappings, and what filtering obligation falls on queries that use the span index to answer questions about current state?
+Which operations must write spanindex entries, and what is the precise maintenance obligation that preserves the forward correspondence `(A d, a : (E p : vspace(d).p = a) ⟹ (a, d) ∈ spanindex)`?
+
+What mechanism must the system provide for link discovery — given a content I-address, how does the system find all links whose endsets reference that address?
 
 Under what conditions may a system declare content at a valid I-address to be *inaccessible* (e.g., due to hardware failure), and what properties survive such a declaration?
 
@@ -371,3 +379,5 @@ Must the allocation frontier be recoverable after a crash without loss of monoto
 What permanence obligations, if any, apply to the document identity address allocated by CREATENEWVERSION — must the version graph itself be append-only?
 
 What must the system guarantee about the ordering of allocations across different subspaces within the same document — must text and link allocations be totally ordered, or only ordered within their respective subspaces?
+
+What operations beyond the six analyzed here (INSERT, DELETE, REARRANGE, COPY, CREATENEWVERSION, CREATELINK) modify system state, and do they preserve AP?
