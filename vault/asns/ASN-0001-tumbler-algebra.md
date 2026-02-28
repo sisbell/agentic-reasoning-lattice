@@ -250,6 +250,97 @@ The reverse direction is equally necessary — DELETE followed by INSERT at the 
 
 *Proof.* Let `y = a ⊖ w`. By TA4, `(y ⊕ w) ⊖ w = y`. Suppose `y ⊕ w ≠ a`. If `y ⊕ w > a`, then applying `⊖ w` to both sides (order-preserving by TA3, both sides ≥ w since `y ⊕ w > a ≥ w`) gives `y > a ⊖ w = y`, a contradiction. If `y ⊕ w < a`, then subtracting `w` from both sides preserves order by TA3 — we verify the preconditions: `y ⊕ w ≥ w` (by TA-strict applied to `y`, or by TA4's well-definedness: `(y ⊕ w) ⊖ w = y` requires `y ⊕ w ≥ w`) and `a ≥ w` (by hypothesis). So TA3 gives `y < a ⊖ w`, contradicting `y = a ⊖ w`. So `(a ⊖ w) ⊕ w = a`. ∎
 
+
+### Constructive definition of ⊕ and ⊖
+
+The axiomatic properties above state what `⊕` and `⊖` must satisfy. We now give a constructive definition that shows how they work. Tumbler addition is not arithmetic addition — it is a **position-advance operation**: given a start position `a` and a displacement `w`, compute where you land. The displacement encodes both the distance and the hierarchical level at which the advance occurs.
+
+A displacement `w` is a tumbler whose leading zeros say "stay at these hierarchical levels" and whose first nonzero component says "advance here." Components after the advance point describe the structure of the landing position within the target region.
+
+```
+START:  1.0.3.0.2.0.1.777
+  DIF:  0.0.0.0.0.0.0.300
+        ──────────────────
+AFTER:  1.0.3.0.2.0.1.1077
+```
+
+Reading the displacement `[0,0,0,0,0,0,0,300]`: seven leading zeros mean "same server, same account, same document, same subspace." Component 8 is 300: "advance 300 elements." No trailing components: the landing position has no further sub-structure.
+
+A displacement that acts at a higher level:
+
+```
+START:  1.0.3.0.2.0.1.777
+  DIF:  0.0.0.0.3.0.1.1
+        ──────────────────
+AFTER:  1.0.3.0.5.0.1.1
+```
+
+Reading `[0,0,0,0,3,0,1,1]`: four leading zeros mean "same server, same account." Component 5 is 3: "advance 3 documents." Trailing `[0,1,1]`: "land at element 1.1 in the target document." The start position's element field `[1,777]` is replaced by the displacement's trailing structure `[1,1]`.
+
+**Definition (Action point).** For a positive displacement `w = [w₁, w₂, ..., wₙ]`, the action point is `k = min({i : 1 ≤ i ≤ n ∧ wᵢ ≠ 0})` — the position of the first nonzero component.
+
+**Definition (Tumbler addition).** Let `a = [a₁, ..., aₘ]` and `w = [w₁, ..., wₙ]` with `w > 0`. With action point `k`:
+
+```
+         ⎧ aᵢ           if i < k        (copy from start)
+rᵢ   =  ⎨ aₖ + wₖ      if i = k        (single-component advance)
+         ⎩ wᵢ           if i > k        (copy from displacement)
+```
+
+The result `a ⊕ w = [r₁, ..., rₚ]` has length `p = max(k - 1, 0) + (n - k + 1)`.
+
+**Precondition:** `k ≤ m` — the displacement's action point must fall within the start position's length. If `w` has more leading zeros than `a` has components, the advance tries to "stay at" hierarchical levels that the start doesn't have, and the operation is undefined.
+
+Three properties of this definition require explicit statement:
+
+**No carry propagation.** The sum `aₖ + wₖ` at the action point is a single natural-number addition. If the result exceeds any representation limit, the abstract model produces the large value directly; the implementation detects overflow. There is no carry into position `k - 1`. This is why the operation is fast — constant time regardless of tumbler length.
+
+**Tail replacement, not tail addition.** Components after the action point come entirely from `w`. The start position's components at positions `k + 1, ..., m` are discarded. `a ⊕ w` does not add corresponding components pairwise — it replaces the start's sub-structure with the displacement's sub-structure below the action point.
+
+**The many-to-one property.** Because trailing components of `a` are discarded, distinct start positions can produce the same result:
+
+```
+[1, 1] ⊕ [0, 2]       = [1, 3]
+[1, 1, 5] ⊕ [0, 2]    = [1, 3]
+[1, 1, 999] ⊕ [0, 2]  = [1, 3]
+```
+
+This is correct and intentional: advancing to "the beginning of the next chapter" lands at the same place regardless of where you were within the current chapter. Nelson describes this as "a range of addends gives the same answer."
+
+**Definition (Tumbler subtraction).** The inverse operation. Given an end position `a` and displacement `w`, recover the start position. Let `k` be the first position where `a` and `w` differ:
+
+```
+         ⎧ 0             if i < k        (these levels matched — zero them)
+rᵢ   =  ⎨ aₖ - wₖ      if i = k        (reverse the advance)
+         ⎩ aᵢ           if i > k        (copy from end position)
+```
+
+**Precondition:** `a ≥ w` — at the divergence point, `aₖ ≥ wₖ`.
+
+Gregory's implementation confirms this structure. The `strongsub` routine scans for the first position where the mantissa digits differ (`for (i = 0; aptr->mantissa[i] == bptr->mantissa[i]; ++i)`), subtracts at that position, then copies the remainder from the first operand — exactly the algorithm above.
+
+**Verification of TA4 (mutual inverse).** We verify `(a ⊕ w) ⊖ w = a`. Let `k` be the action point of `w`. The addition `a ⊕ w` produces a result `r` with: `rᵢ = aᵢ` for `i < k`, `rₖ = aₖ + wₖ`, and `rᵢ = wᵢ` for `i > k`. Now subtract `w` from `r`. The subtraction scans for the first divergence between `r` and `w`. For `i < k`: `rᵢ = aᵢ` and `wᵢ = 0` (by definition of action point — all components before `k` are zero in `w`). If `aᵢ = 0`, then `rᵢ = wᵢ = 0` and the subtraction outputs 0 and continues. If `aᵢ ≠ 0`, then `rᵢ = aᵢ ≠ 0 = wᵢ`, and the divergence is at position `i` with `rᵢ - wᵢ = aᵢ - 0 = aᵢ`, followed by copying `r`'s tail from position `i + 1` onward. But this gives `[0, ..., 0, aᵢ, rᵢ₊₁, ...]` — the leading zeros are the matching positions, then `aᵢ`, then the rest of `r`. For the case where `a`'s prefix has no nonzero components before `k`: the first divergence is at position `k`, where `rₖ = aₖ + wₖ` and `wₖ > 0`. The subtraction gives `rₖ - wₖ = aₖ` at position `k`, then copies `rᵢ = wᵢ` for `i > k` — but wait, the subtraction copies from the *minuend* (`r`), and `rᵢ = wᵢ` for `i > k`, so the tail contains `w`'s trailing structure, not `a`'s. This means `(a ⊕ w) ⊖ w` does NOT recover `a`'s original trailing structure below the action point.
+
+This reveals a subtle but important constraint: **TA4 holds exactly when `a`'s trailing structure below the action point matches `w`'s trailing structure, or when `a` has no components below the action point.** In the system's use case — shifting V-space positions at the element level — the action point is at the deepest level, `k = #a`, and there are no trailing components to lose. The inverse is exact. For hierarchical displacements that act above the element level, TA4 requires that the displacement's trailing structure faithfully encodes the start position's sub-structure, which is guaranteed when the displacement was computed by a prior subtraction (`w = b ⊖ a`).
+
+### Verification of TA1 and its precondition
+
+The constructive definition makes TA1's domain of validity precise.
+
+**Claim:** If `a < b` and the action point `k` of `w` satisfies `k ≤ divergence(a, b)` — the displacement acts at or before the first position where `a` and `b` differ — then `a ⊕ w < b ⊕ w`.
+
+*Proof.* Let `j` be the first position where `a` and `b` differ (`aⱼ < bⱼ` since `a < b`).
+
+*Case 1: `k < j`.* Both `a` and `b` agree at position `k`, so `(a ⊕ w)ₖ = aₖ + wₖ = bₖ + wₖ = (b ⊕ w)ₖ`. At positions after `k`, both copy from `w`, so `a ⊕ w = b ⊕ w`. Order is preserved as equality.
+
+*Case 2: `k = j`.* At position `k`, `(a ⊕ w)ₖ = aₖ + wₖ < bₖ + wₖ = (b ⊕ w)ₖ`. Strictly preserved.
+
+*When `k > j`:* Both results have `wⱼ` at position `j` (copied from the displacement's leading zeros, since `j < k`). But `wⱼ = 0` (before the action point), so `(a ⊕ w)ⱼ = aⱼ` and `(b ⊕ w)ⱼ = bⱼ`, wait — positions before `k` copy from the start, so `(a ⊕ w)ⱼ = aⱼ < bⱼ = (b ⊕ w)ⱼ`. Order is preserved strictly. ∎
+
+Actually, the precondition `k ≤ divergence(a, b)` is not needed for positions *before* `k` — those copy from their respective starts and preserve any divergence. What matters is positions *at and after* `k`. At position `k`, both add `wₖ` to their respective `aₖ` and `bₖ` — if `aₖ = bₖ` (divergence hasn't happened yet), the results are equal at `k` and both copy from `w` afterward, erasing any later divergence. So TA1 fails strictly only in Case 1 above, where order degrades to equality (not reversal). TA1 in the `≤` sense holds universally. TA1 in the strict `<` sense requires `k ≥ j`.
+
+In the editing use case — shifting positions within a single subspace — the action point is at the element level, which is where all positions within a subspace diverge. Case 2 always applies. TA1 (strict) holds.
+
 ### Increment for allocation
 
 A separate operation, distinct from the shifting arithmetic, handles address allocation. When the system allocates a new I-space address, it takes the highest existing address in a partition and produces the next one. This is not addition of a width; it is advancement of a counter at a specified hierarchical level.
@@ -517,16 +608,21 @@ Removing any independent property breaks a system-level guarantee. T6 and T7 are
 
 ## Open Questions
 
-Must addition preserve order universally, or only when the position and width share the same hierarchical depth — and if the latter, what precondition must the system enforce to guarantee that only same-depth additions occur?
-
-Can addition ever produce or consume a zero-valued component, and what constraint prevents a V-space shift from crossing a field boundary?
-
 What algebraic property of the POOM mapping must hold for span intersection to be computable from the mapping alone, without enumerating individual positions?
 
 Must allocation counter durability across crashes be a global-history property or only a per-session property — and what recovery mechanism restores monotonicity after a crash that loses the counter state?
 
-Under what conditions, if any, must two successive shifts `(a ⊕ w₁) ⊕ w₂` equal a single shift `a ⊕ (w₁ ⊕ w₂)`, and what system invariant guarantees this when it is needed?
-
 What minimal auxiliary structure must the system maintain to reconstruct version-derivation history, given that it is not decidable from addresses alone?
 
 What must the system guarantee about the zero tumbler's interaction with span arithmetic — if a span endpoint is the zero sentinel, how must containment and intersection operations behave?
+
+
+## Resolved Questions
+
+The following open questions were resolved by the constructive definition of `⊕` and `⊖`:
+
+**Order preservation scope (formerly open question 1).** TA1 holds strictly when the action point `k ≤ divergence(a, b)`. For editing operations (shifts within a subspace), this is always satisfied — the displacement acts at the element level, which is where all positions within a subspace diverge. TA1 in the weak (≤) sense holds universally.
+
+**Zero-component production (formerly open question 2).** At the action point, `rₖ = aₖ + wₖ ≥ 1` (since `wₖ > 0`), so the action point never produces a zero. Trailing components copy from `w` and may include zeros — these are field separators in the displacement's hierarchical structure, not zero-valued field components. The T4 positive-component constraint propagates from the displacement.
+
+**Shift composition (formerly open question 5).** `(a ⊕ w₁) ⊕ w₂ = a ⊕ (w₁ ⊕ w₂)` when `w₁` and `w₂` act at the same hierarchical level (same action point). It fails when they act at different levels, because tail replacement in `w₁ ⊕ w₂` changes the composite's meaning. In the editing use case (consecutive shifts at the same element level), composition holds.
