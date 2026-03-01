@@ -6,7 +6,7 @@ Loads the ASN content and shared vocabulary, injects them into a review
 prompt template, and invokes claude --print with --tools "" (review is
 pure analysis, no file access needed).
 
-Results written to vault/reviews/ for traceability.
+Results written to vault/discovery/reviews/ for traceability.
 
 Usage:
     python scripts/review-asn.py 4
@@ -147,7 +147,7 @@ def main():
     # Find ASN
     asn_path, asn_label = find_asn(args.asn)
     if asn_path is None:
-        print(f"  No ASN found for {args.asn} in vault/asns/", file=sys.stderr)
+        print(f"  No ASN found for {args.asn} in vault/modeling/asns/", file=sys.stderr)
         sys.exit(1)
 
     asn_content = asn_path.read_text()
@@ -155,7 +155,7 @@ def main():
     # Read vocabulary
     vocabulary = read_file(VOCABULARY)
     if not vocabulary:
-        print("  Warning: vault/vocabulary.md not found", file=sys.stderr)
+        print("  Warning: vault/modeling/vocabulary.md not found", file=sys.stderr)
 
     # Build prompt
     print(f"  [REVIEW] {asn_label}", file=sys.stderr)

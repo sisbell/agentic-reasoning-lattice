@@ -152,7 +152,7 @@ def main():
     # Find ASN
     asn_path, asn_label = find_asn(args.asn)
     if asn_path is None:
-        print(f"  No ASN found for {args.asn} in vault/asns/", file=sys.stderr)
+        print(f"  No ASN found for {args.asn} in vault/modeling/asns/", file=sys.stderr)
         sys.exit(1)
 
     asn_content = asn_path.read_text()
@@ -160,7 +160,7 @@ def main():
     # Read vocabulary
     vocabulary = read_file(VOCABULARY)
     if not vocabulary:
-        print("  Warning: vault/vocabulary.md not found", file=sys.stderr)
+        print("  Warning: vault/modeling/vocabulary.md not found", file=sys.stderr)
 
     # Read existing contract (if any) for incremental update
     contract_path = CONTRACTS_DIR / f"{asn_label}-contract.md"
@@ -217,7 +217,7 @@ def main():
     else:
         text = text + "\n" + source_line
 
-    # Write output to vault/contracts/
+    # Write output to vault/formalization/contracts/
     CONTRACTS_DIR.mkdir(parents=True, exist_ok=True)
     contract_path.write_text(text + "\n")
 

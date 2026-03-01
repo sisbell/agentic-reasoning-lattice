@@ -102,7 +102,7 @@ Steps per cycle: review → consult → revise → commit. Stops early if no REV
 ### Contract — classify properties for Dafny translation
 
 Run after an ASN has converged through review. Produces a property mapping table
-in `vault/contracts/`.
+in `vault/formalization/contracts/`.
 
 ```
 python scripts/contract-asn.py 4              # generate contract for ASN-0004
@@ -114,7 +114,7 @@ descriptive Dafny identifier. Re-running after an ASN revision preserves
 established names and flags changes. The contract tracks which ASN revision it
 was generated against.
 
-Output: `vault/contracts/ASN-NNNN-contract.md`
+Output: `vault/formalization/contracts/ASN-NNNN-contract.md`
 
 ### Triage — promote ASN open questions to new inquiries
 
@@ -124,7 +124,7 @@ python scripts/triage-questions.py 13 --dry-run  # show decisions without updati
 python scripts/triage-questions.py 4 --model sonnet  # faster, less rigorous
 ```
 
-Reads the ASN's open questions, checks existing triage (vault/triage/ASN-NNNN.md),
+Reads the ASN's open questions, checks existing triage (vault/discovery/triage/ASN-NNNN.md),
 and decides which questions warrant new inquiries. Writes full evaluation with
 rationale to per-ASN triage file. Updates inquiries.yaml for promoted questions.
 
@@ -137,13 +137,13 @@ python scripts/triage-defers.py 4 --model sonnet # faster, less rigorous
 ```
 
 Extracts DEFER sections from an ASN's review files, checks against existing triage
-(vault/triage/ASN-NNNN-defers.md), and decides which deferred topics warrant new
+(vault/discovery/triage/ASN-NNNN-defers.md), and decides which deferred topics warrant new
 inquiries. Re-running passes previous triage as context to avoid re-promoting.
 
 ### Standalone scripts
 
 ```
-python scripts/review-asn.py 9                # review only → vault/reviews/
+python scripts/review-asn.py 9                # review only → vault/discovery/reviews/
 python scripts/consult_for_revision.py 9          # consult for latest review
 python scripts/consult_for_revision.py 9 --dry-run  # categorize only, no consultations
 python scripts/revise-asn.py 9                # revise using latest review
@@ -190,21 +190,31 @@ python scripts/commit.py "hint about changes" # commit with context hint
 
 ```
 vault/
-  asns/           — Abstract Specification Notes (ASN-NNNN-title.md)
-  contracts/      — Property contracts (ASN-NNNN-contract.md) — type + Dafny name mappings
-  consultations/  — Orchestrated consultation output (answers.md per ASN)
-  transcripts/    — Individual agent call logs (Nelson/Gregory subagent runs)
-  reviews/        — Review outputs (ASN-NNNN-review-N.md)
-  inquiries.yaml  — Inquiry definitions driving ASN production
-  triage/         — Per-ASN triage decisions (promoted/declined with rationale)
-  vocabulary.md   — Shared vocabulary for ASN authors
+  modeling/         — The model artifacts
+    asns/           — Abstract Specification Notes (ASN-NNNN-title.md)
+    dafny/          — Verified specification modules (ASN-NNNN.dfy)
+    vocabulary.md   — Shared vocabulary for ASN authors
 
-scripts/          — Pipeline and consultation scripts
-  prompts/        — Prompt templates for all agents
+  discovery/        — Working artifacts of building the model
+    inquiries.yaml  — Inquiry definitions driving ASN production
+    consultations/  — Orchestrated consultation output (answers.md per ASN)
+    transcripts/    — Individual agent call logs (Nelson/Gregory subagent runs)
+    reviews/        — Review outputs (ASN-NNNN-review-N.md)
+    triage/         — Per-ASN triage decisions (promoted/declined with rationale)
 
-notes/            — Design decisions and methodology notes
+  formalization/    — Working artifacts of encoding the model
+    contracts/      — Property contracts (ASN-NNNN-contract.md) — type + Dafny name mappings
+    extracts/       — Extracted formal properties (ASN-NNNN-extract.md)
 
-resources/        — Source materials (Literary Machines, Nelson's notes, concept maps)
+  usage-log.jsonl   — API call tracking
+
+scripts/            — Pipeline and consultation scripts
+  paths.py          — Shared vault path constants
+  prompts/          — Prompt templates for all agents
+
+notes/              — Design decisions and methodology notes
+
+resources/          — Source materials (Literary Machines, Nelson's notes, concept maps)
 
 udanax-test-harness/  — Test harness for udanax-green (golden tests, findings, KB)
 ```

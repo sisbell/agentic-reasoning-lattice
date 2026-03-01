@@ -6,20 +6,20 @@ WORKSPACE = Path(__file__).resolve().parent.parent
 VAULT = WORKSPACE / "vault"
 
 # Modeling — the model artifacts
-ASNS_DIR = VAULT / "asns"
-DAFNY_DIR = VAULT / "dafny"
-VOCABULARY = VAULT / "vocabulary.md"
+ASNS_DIR = VAULT / "modeling" / "asns"
+DAFNY_DIR = VAULT / "modeling" / "dafny"
+VOCABULARY = VAULT / "modeling" / "vocabulary.md"
 
 # Discovery — working artifacts of building the model
-INQUIRIES_FILE = VAULT / "inquiries.yaml"
-CONSULT_DIR = VAULT / "consultations"
-TRANSCRIPTS_DIR = VAULT / "transcripts"
-REVIEWS_DIR = VAULT / "reviews"
-TRIAGE_DIR = VAULT / "triage"
+INQUIRIES_FILE = VAULT / "discovery" / "inquiries.yaml"
+CONSULT_DIR = VAULT / "discovery" / "consultations"
+TRANSCRIPTS_DIR = VAULT / "discovery" / "transcripts"
+REVIEWS_DIR = VAULT / "discovery" / "reviews"
+TRIAGE_DIR = VAULT / "discovery" / "triage"
 
 # Formalization — working artifacts of encoding the model
-CONTRACTS_DIR = VAULT / "contracts"
-EXTRACTS_DIR = VAULT / "extracts"
+CONTRACTS_DIR = VAULT / "formalization" / "contracts"
+EXTRACTS_DIR = VAULT / "formalization" / "extracts"
 
 # Shared
 USAGE_LOG = VAULT / "usage-log.jsonl"

@@ -19,8 +19,7 @@ Commit changes to the vault with meaningful, descriptive commit messages.
    - New ASN added?
    - Existing ASN revised?
    - What was the nature of the revision? (property fix, proof completion, edge case, etc.)
-   - Was a review saved to `vault/reviews/`?
-   - Was an Alloy model added to `vault/alloy/`?
+   - Was a review saved to `vault/discovery/reviews/`?
    - Was a Dafny file added or modified?
 
 4. **Stage the changes:**
@@ -39,7 +38,7 @@ Commit changes to the vault with meaningful, descriptive commit messages.
 
    Types:
    - `discovery` — new ASN
-   - `review` — review saved to vault/reviews/
+   - `review` — review saved to vault/discovery/reviews/
    - `revise` — ASN revised to address review findings
    - `alloy` — Alloy model and check results
    - `dafny` — Dafny formalization added or updated

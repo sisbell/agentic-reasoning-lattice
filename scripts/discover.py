@@ -2,11 +2,11 @@
 """
 Discovery — synthesize expert consultation answers into a formal ASN.
 
-Reads consultation answers from vault/consultations/ASN-NNNN/answers.md,
+Reads consultation answers from vault/discovery/consultations/ASN-NNNN/answers.md,
 loads the discovery prompt template, and calls claude -p to write
 the ASN. Requires consultation answers to exist — run consult-experts.py first.
 
-Output: vault/asns/ASN-NNNN-title.md
+Output: vault/modeling/asns/ASN-NNNN-title.md
 
 Usage:
     python scripts/discover.py --inquiry-id 4
@@ -215,7 +215,7 @@ def run_discovery(inquiry, asn_number, slug, force=False):
 **Question**: {inquiry['question']}
 **Area**: {inquiry['area']}
 
-Write ASN-{asn_number:04d} to `vault/asns/ASN-{asn_number:04d}-{slug}.md`.
+Write ASN-{asn_number:04d} to `vault/modeling/asns/ASN-{asn_number:04d}-{slug}.md`.
 
 Remember:
 1. Read the consultation answers above — they are your primary input.

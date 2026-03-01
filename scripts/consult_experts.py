@@ -509,7 +509,7 @@ def main():
                         choices=["sonnet", "opus"],
                         help="Model for question generation (default: opus)")
     parser.add_argument("--output", "-o",
-                        help="Output file path (default: vault/consultations/ASN-NNNN/answers.md)")
+                        help="Output file path (default: vault/discovery/consultations/ASN-NNNN/answers.md)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Generate questions only, don't run consultations")
     args = parser.parse_args()
