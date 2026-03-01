@@ -35,10 +35,10 @@ TEST_HARNESS = WORKSPACE / "udanax-test-harness"
 KB_SYNTHESIS = TEST_HARNESS / "knowledge-base" / "kb-synthesis.md"
 
 # Nelson source paths
-CONCEPTS_DIR = WORKSPACE / "resources" / "xanadu-concepts"
-INTENT_DIR = WORKSPACE / "resources" / "nelson-intent"
-LM_TOC = WORKSPACE / "resources" / "literary-machines" / "table-of-contents.md"
-LM_INVENTORY = WORKSPACE / "resources" / "literary-machines" / "inventory.md"
+CONCEPTS_DIR = WORKSPACE / "nelson" / "xanadu-concepts"
+INTENT_DIR = WORKSPACE / "nelson" / "nelson-intent"
+LM_TOC = WORKSPACE / "nelson" / "literary-machines" / "table-of-contents.md"
+LM_INVENTORY = WORKSPACE / "nelson" / "literary-machines" / "inventory.md"
 NELSON_PROMPT_TEMPLATE = PROMPTS_DIR / "nelson-agent.md"
 
 # Gregory source paths

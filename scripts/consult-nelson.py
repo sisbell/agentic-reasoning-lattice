@@ -28,11 +28,11 @@ from pathlib import Path
 
 from paths import WORKSPACE, TRANSCRIPTS_DIR, USAGE_LOG
 
-CONCEPTS_DIR = WORKSPACE / "resources" / "xanadu-concepts"
-INTENT_DIR = WORKSPACE / "resources" / "nelson-intent"
-LM_TOC = WORKSPACE / "resources" / "literary-machines" / "table-of-contents.md"
-LM_INVENTORY = WORKSPACE / "resources" / "literary-machines" / "inventory.md"
-LM_RAW_DIR = WORKSPACE / "resources" / "literary-machines" / "raw"
+CONCEPTS_DIR = WORKSPACE / "nelson" / "xanadu-concepts"
+INTENT_DIR = WORKSPACE / "nelson" / "nelson-intent"
+LM_TOC = WORKSPACE / "nelson" / "literary-machines" / "table-of-contents.md"
+LM_INVENTORY = WORKSPACE / "nelson" / "literary-machines" / "inventory.md"
+LM_RAW_DIR = WORKSPACE / "nelson" / "literary-machines" / "raw"
 PROMPT_TEMPLATE = WORKSPACE / "scripts" / "prompts" / "nelson-agent.md"
 
 

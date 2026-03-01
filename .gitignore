@@ -3,6 +3,6 @@
 __pycache__/
 .env
 vault/usage-log.jsonl
-resources/literary-machines/*.pdf
-resources/literary-machines/raw/
+nelson/literary-machines/*.pdf
+nelson/literary-machines/raw/
 notes/

@@ -214,7 +214,7 @@ scripts/            — Pipeline and consultation scripts
 
 notes/              — Design decisions and methodology notes
 
-resources/          — Source materials (Literary Machines, Nelson's notes, concept maps)
+nelson/             — Nelson's source materials (Literary Machines, concepts, design intent)
 
 udanax-test-harness/  — Test harness for udanax-green (golden tests, findings, KB)
 ```
