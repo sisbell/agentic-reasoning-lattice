@@ -23,13 +23,10 @@ import yaml
 
 from pathlib import Path
 
-WORKSPACE = Path(__file__).resolve().parent.parent
+from paths import WORKSPACE, REVIEWS_DIR, INQUIRIES_FILE, TRIAGE_DIR, USAGE_LOG
+
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts"
 TRIAGE_TEMPLATE = PROMPTS_DIR / "triage-defers.md"
-REVIEWS_DIR = WORKSPACE / "vault" / "reviews"
-INQUIRIES_FILE = WORKSPACE / "vault" / "inquiries.yaml"
-TRIAGE_DIR = WORKSPACE / "vault" / "triage"
-USAGE_LOG = WORKSPACE / "vault" / "usage-log.jsonl"
 
 
 def read_file(path):

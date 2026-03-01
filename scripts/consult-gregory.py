@@ -31,12 +31,11 @@ import threading
 from datetime import datetime
 from pathlib import Path
 
-WORKSPACE = Path(__file__).resolve().parent.parent
+from paths import WORKSPACE, TRANSCRIPTS_DIR, USAGE_LOG
+
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts"
 TEST_HARNESS = WORKSPACE / "udanax-test-harness"
 KB_PATH = TEST_HARNESS / "knowledge-base" / "kb-formal.md"
-TRANSCRIPTS_DIR = WORKSPACE / "vault" / "transcripts"
-USAGE_LOG = WORKSPACE / "vault" / "usage-log.jsonl"
 
 _total_usage = {"input_tokens": 0, "output_tokens": 0, "cost_usd": 0.0, "calls": 0}
 _usage_lock = threading.Lock()

@@ -28,11 +28,9 @@ import yaml
 from datetime import datetime
 from pathlib import Path
 
-WORKSPACE = Path(__file__).resolve().parent.parent
+from paths import WORKSPACE, INQUIRIES_FILE, CONSULT_DIR, USAGE_LOG
+
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts"
-INQUIRIES_PATH = WORKSPACE / "vault" / "inquiries.yaml"
-CONSULT_DIR = WORKSPACE / "vault" / "consultations"
-USAGE_LOG = WORKSPACE / "vault" / "usage-log.jsonl"
 TEST_HARNESS = WORKSPACE / "udanax-test-harness"
 KB_SYNTHESIS = TEST_HARNESS / "knowledge-base" / "kb-synthesis.md"
 
@@ -77,7 +75,7 @@ def log_usage(skill, elapsed, inp=0, out=0, cost=0):
 
 def load_inquiry(inquiry_id):
     """Load a specific inquiry from inquiries.yaml."""
-    with open(INQUIRIES_PATH) as f:
+    with open(INQUIRIES_FILE) as f:
         data = yaml.safe_load(f)
     for inq in data["inquiries"]:
         if inq["id"] == inquiry_id:

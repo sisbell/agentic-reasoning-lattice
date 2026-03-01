@@ -21,13 +21,10 @@ import time
 
 from pathlib import Path
 
-WORKSPACE = Path(__file__).resolve().parent.parent
+from paths import WORKSPACE, ASNS_DIR, CONTRACTS_DIR, EXTRACTS_DIR, USAGE_LOG
+
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts"
 TEMPLATE = PROMPTS_DIR / "extract-properties.md"
-ASNS_DIR = WORKSPACE / "vault" / "asns"
-CONTRACTS_DIR = WORKSPACE / "vault" / "contracts"
-EXTRACTS_DIR = WORKSPACE / "vault" / "extracts"
-USAGE_LOG = WORKSPACE / "vault" / "usage-log.jsonl"
 
 
 def read_file(path):

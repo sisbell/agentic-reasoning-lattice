@@ -32,10 +32,7 @@ from consult_experts import (
     log_usage,
 )
 
-WORKSPACE = Path(__file__).resolve().parent.parent
-ASNS_DIR = WORKSPACE / "vault" / "asns"
-REVIEWS_DIR = WORKSPACE / "vault" / "reviews"
-CONSULT_DIR = WORKSPACE / "vault" / "consultations"
+from paths import ASNS_DIR, REVIEWS_DIR, CONSULT_DIR
 
 
 def read_file(path):

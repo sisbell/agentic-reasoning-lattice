@@ -28,10 +28,7 @@ import sys
 import time
 from pathlib import Path
 
-WORKSPACE = Path(__file__).resolve().parent.parent
-ASNS_DIR = WORKSPACE / "vault" / "asns"
-REVIEWS_DIR = WORKSPACE / "vault" / "reviews"
-USAGE_LOG = WORKSPACE / "vault" / "usage-log.jsonl"
+from paths import WORKSPACE, ASNS_DIR, REVIEWS_DIR, USAGE_LOG
 
 REVIEW_SCRIPT = WORKSPACE / "scripts" / "review-asn.py"
 CONSULT_REVISION_SCRIPT = WORKSPACE / "scripts" / "consult_for_revision.py"

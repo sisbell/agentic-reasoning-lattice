@@ -22,13 +22,10 @@ import time
 
 from pathlib import Path
 
-WORKSPACE = Path(__file__).resolve().parent.parent
+from paths import WORKSPACE, EXTRACTS_DIR, DAFNY_DIR, VOCABULARY, USAGE_LOG
+
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts"
 TEMPLATE = PROMPTS_DIR / "generate-dafny.md"
-EXTRACTS_DIR = WORKSPACE / "vault" / "extracts"
-DAFNY_DIR = WORKSPACE / "vault" / "dafny"
-VOCABULARY = WORKSPACE / "vault" / "vocabulary.md"
-USAGE_LOG = WORKSPACE / "vault" / "usage-log.jsonl"
 
 
 def read_file(path):

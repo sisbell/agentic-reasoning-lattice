@@ -19,9 +19,9 @@ import sys
 import time
 from pathlib import Path
 
-WORKSPACE = Path(__file__).resolve().parent.parent
+from paths import WORKSPACE, USAGE_LOG
+
 COMMIT_PROMPT = WORKSPACE / "scripts" / "prompts" / "commit.md"
-USAGE_LOG = WORKSPACE / "vault" / "usage-log.jsonl"
 
 MODEL = "claude-sonnet-4-6"
 

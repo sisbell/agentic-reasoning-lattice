@@ -22,12 +22,8 @@ import time
 import yaml
 from pathlib import Path
 
-WORKSPACE = Path(__file__).resolve().parent.parent
-INQUIRIES_FILE = WORKSPACE / "vault" / "inquiries.yaml"
-ASNS_DIR = WORKSPACE / "vault" / "asns"
-CONSULT_DIR = WORKSPACE / "vault" / "consultations"
-VOCAB_PATH = WORKSPACE / "vault" / "vocabulary.md"
-USAGE_LOG = WORKSPACE / "vault" / "usage-log.jsonl"
+from paths import WORKSPACE, INQUIRIES_FILE, ASNS_DIR, CONSULT_DIR, VOCABULARY, USAGE_LOG
+
 DISCOVERY_PROMPT = WORKSPACE / "scripts" / "prompts" / "discovery.md"
 
 MODEL = "claude-opus-4-6"
@@ -206,7 +202,7 @@ def run_discovery(inquiry, asn_number, slug, force=False):
     print(f"  [DISCOVERY] Using answers from {answers_path.relative_to(WORKSPACE)}",
           file=sys.stderr)
 
-    vocab = read_file(VOCAB_PATH)
+    vocab = read_file(VOCABULARY)
     prompt_parts = [skill_body]
 
     if vocab:

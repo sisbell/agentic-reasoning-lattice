@@ -24,14 +24,11 @@ import time
 
 from pathlib import Path
 
-WORKSPACE = Path(__file__).resolve().parent.parent
+from paths import WORKSPACE, ASNS_DIR, CONTRACTS_DIR, VOCABULARY, USAGE_LOG
+
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts"
 REFINE_TEMPLATE = PROMPTS_DIR / "refine.md"
-ASNS_DIR = WORKSPACE / "vault" / "asns"
-CONTRACTS_DIR = WORKSPACE / "vault" / "contracts"
-VOCABULARY = WORKSPACE / "vault" / "vocabulary.md"
 COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
-USAGE_LOG = WORKSPACE / "vault" / "usage-log.jsonl"
 
 
 def read_file(path):

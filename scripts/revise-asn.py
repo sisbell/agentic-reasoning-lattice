@@ -22,13 +22,10 @@ import sys
 import time
 from pathlib import Path
 
-WORKSPACE = Path(__file__).resolve().parent.parent
+from paths import WORKSPACE, VOCABULARY, ASNS_DIR, REVIEWS_DIR, USAGE_LOG
+
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts"
 DISCOVERY_PROMPT = PROMPTS_DIR / "discovery.md"
-VOCAB_PATH = WORKSPACE / "vault" / "vocabulary.md"
-ASNS_DIR = WORKSPACE / "vault" / "asns"
-REVIEWS_DIR = WORKSPACE / "vault" / "reviews"
-USAGE_LOG = WORKSPACE / "vault" / "usage-log.jsonl"
 
 MODEL = "claude-opus-4-6"
 
@@ -250,7 +247,7 @@ def main():
         sys.exit(0)
 
     # Load vocabulary
-    vocab = read_file(VOCAB_PATH)
+    vocab = read_file(VOCABULARY)
     if not vocab:
         print("  Warning: vault/vocabulary.md not found", file=sys.stderr)
 

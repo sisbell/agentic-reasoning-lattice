@@ -26,15 +26,14 @@ import sys
 import time
 from pathlib import Path
 
-WORKSPACE = Path(__file__).resolve().parent.parent
+from paths import WORKSPACE, TRANSCRIPTS_DIR, USAGE_LOG
+
 CONCEPTS_DIR = WORKSPACE / "resources" / "xanadu-concepts"
 INTENT_DIR = WORKSPACE / "resources" / "nelson-intent"
 LM_TOC = WORKSPACE / "resources" / "literary-machines" / "table-of-contents.md"
 LM_INVENTORY = WORKSPACE / "resources" / "literary-machines" / "inventory.md"
 LM_RAW_DIR = WORKSPACE / "resources" / "literary-machines" / "raw"
 PROMPT_TEMPLATE = WORKSPACE / "scripts" / "prompts" / "nelson-agent.md"
-TRANSCRIPTS_DIR = WORKSPACE / "vault" / "transcripts"
-USAGE_LOG = WORKSPACE / "vault" / "usage-log.jsonl"
 
 
 def read_file(path):
