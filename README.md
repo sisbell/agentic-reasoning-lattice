@@ -22,40 +22,56 @@ Formal specification of the Xanadu hypertext system (udanax-green), derived from
                                |
                            ASN draft
                                |
-          +--------------------+--------------------+
-          |                                         |
-          v                                         v
-+-------------------+                    +---------------------+
-|    review-asn     |  rigor check       |   extract-vocab     |  detect conflicts
-+-------------------+                    +---------------------+
-          |                                         |
-     review file                             vocabulary.md
-          |                                         |
-          v                                         v
-+-------------------+                    +---------------------+
-| consult-for-rev.  |  expert evidence   |    align-vocab      |  rewrite notation
-+-------------------+                    +---------------------+
-          |                                         |
-  consultation results                              |
-          |                                         |
-          v                                         |
-+-------------------+                               |
-|    revise-asn     |  targeted fixes               |
-+-------------------+                               |
-          |                                         |
-          |    +-----------+                        |
-          +--->|  commit   |<-----------------------+
-          |    +-----------+
+          +--------------------+
+          |                    |
+          v                    v
+  +-------------------+  +-------------------+
++-|    review-asn     |  | triage-questions  |
+| +-------------------+  | triage-defers     |
+|         |              +-------------------+
+|    review file               |
+|         |               inquiries.yaml
+|         |               (new inquiries)
+|         v
+| +-------------------+
+| | consult-for-rev.  |  expert evidence
+| +-------------------+
+|         |
+| consultation results
+|         |
+|         v
+| +-------------------+
+| |    revise-asn     |  targeted fixes
+| +-------------------+
+|         |
+|         v
+|     +-----------+
+|     |  commit   |
+|     +-----------+
+|         |
+|  repeat |
+|  until  |
++---------+
+          |
+          v (converged)
++-------------------+
+|   contract-asn    |  classify & name properties
++-------------------+
+          |
+    contract table
           |
           v
-+-------------------+        +-------------------+
-| triage-questions  |        |  triage-defers    |
-+-------------------+        +-------------------+
-          |                           |
-          +-------------+-------------+
-                        |
-                        v
-                  inquiries.yaml  (new inquiries fed back to top)
+    +-----------+
+    |  commit   |
+    +-----------+
+          |
+          v
++-------------------+
+|   Dafny (future)  |  verified specification
++-------------------+
+          |
+          v
+    Go (compiled)     reference implementation / test oracle
 ```
 
 ## Pipelines
@@ -83,6 +99,23 @@ python scripts/run-review.py 9 --resume revise   # skip review + consult, revise
 
 Steps per cycle: review → consult → revise → commit. Stops early if no REVISE items found.
 
+### Contract — classify properties for Dafny translation
+
+Run after an ASN has converged through review. Produces a property mapping table
+in `vault/contracts/`.
+
+```
+python scripts/contract-asn.py 4              # generate contract for ASN-0004
+python scripts/contract-asn.py 4 --dry-run    # show prompt size without invoking
+```
+
+Each property is classified by type (INV/PRE/POST/FRAME/LEMMA) and assigned a
+descriptive Dafny identifier. Re-running after an ASN revision preserves
+established names and flags changes. The contract tracks which ASN revision it
+was generated against.
+
+Output: `vault/contracts/ASN-NNNN-contract.md`
+
 ### Triage — promote ASN open questions to new inquiries
 
 ```
@@ -107,57 +140,6 @@ Extracts DEFER sections from an ASN's review files, checks against existing tria
 (vault/triage/ASN-NNNN-defers.md), and decides which deferred topics warrant new
 inquiries. Re-running passes previous triage as context to avoid re-promoting.
 
-### Vocabulary — extract conventions and align ASNs
-
-Two-phase process: **extract** builds the canonical vocabulary, **align** rewrites ASNs to match it.
-
-**Phase 1: Build vocabulary incrementally.** Start with the most canonical ASN and add
-one at a time, reviewing conflicts at each step.
-
-```bash
-# 1. Seed vocabulary from the most well-established ASN
-python scripts/extract-vocab.py 4 --dry-run    # preview conflicts + proposed vocab
-python scripts/extract-vocab.py 4              # write vocabulary.md
-git diff vault/vocabulary.md                   # review
-
-# 2. Add the next ASN — conflicts show where it diverges
-python scripts/extract-vocab.py 4 5 --dry-run  # see what ASN-0005 adds/conflicts
-python scripts/extract-vocab.py 4 5            # update vocabulary
-git diff vault/vocabulary.md                   # review, commit if good
-
-# 3. Continue adding ASNs, reviewing conflicts each time
-python scripts/extract-vocab.py 4 5 6          # add ASN-0006
-# ... repeat until all ASNs are covered
-
-# Or once confident, process everything at once
-python scripts/extract-vocab.py --all
-```
-
-Conflicts print to stderr (term, vocab says, ASN says, recommendation). The majority
-convention wins. Review the diff after each step — vocabulary.md is the single source
-of truth for notation.
-
-**Phase 2: Align ASNs to vocabulary.** Once vocabulary.md is stable, rewrite each ASN
-to match. One ASN at a time — review the diff before moving on.
-
-```bash
-# Align the most divergent ASN first
-python scripts/align-vocab.py 3                # align ASN-0003
-git diff vault/asns/                           # review notation changes
-
-# Verify idempotence — re-running should produce no diff
-python scripts/align-vocab.py 3                # should be a no-op
-
-# Continue with remaining ASNs
-python scripts/align-vocab.py 5
-python scripts/align-vocab.py 7
-# ...
-```
-
-Alignment is notation-only — state component names, property label prefixes, section
-headings, type signatures. Proofs, math, and prose content are preserved. Uses opus
-by default (needs semantic understanding to map property labels by meaning, not number).
-
 ### Standalone scripts
 
 ```
@@ -179,6 +161,7 @@ python scripts/commit.py "hint about changes" # commit with context hint
 | `review-asn.py` | Review an ASN for rigor (opus, no tools) |
 | `consult_for_revision.py` | Categorize review findings, run targeted expert consultations (opus) |
 | `revise-asn.py` | Revise an ASN based on review feedback (opus, with tools) |
+| `contract-asn.py` | Classify properties and assign Dafny names (opus, post-convergence) |
 | `commit.py` | Commit vault changes with descriptive messages (sonnet) |
 | `consult_experts.py` | Decompose inquiry into sub-questions, run all consultations |
 | `discover.py` | Synthesize expert consultation answers into a formal ASN |
@@ -186,8 +169,6 @@ python scripts/commit.py "hint about changes" # commit with context hint
 | `consult-gregory.py` | Gregory consultation — KB synthesis + code exploration |
 | `triage-questions.py` | Evaluate ASN open questions → new inquiries (opus) |
 | `triage-defers.py` | Evaluate review DEFER items → new inquiries (opus) |
-| `extract-vocab.py` | Extract vocabulary from ASNs, detect notation conflicts (sonnet) |
-| `align-vocab.py` | Align ASN notation to canonical vocabulary (opus, with tools) |
 
 ## Prompt Templates
 
@@ -195,6 +176,7 @@ python scripts/commit.py "hint about changes" # commit with context hint
 |----------|---------|---------|
 | `discovery.md` | `discover.py`, `revise-asn.py` | Discovery/revision agent — Dijkstra-style ASN writing |
 | `review.md` | `review-asn.py` | Review agent — rigor checking |
+| `refine.md` | `contract-asn.py` | Property classification and Dafny naming |
 | `commit.md` | `commit.py`, `run-asn.py` | Commit message generation |
 | `nelson-questions.md` | `consult_experts.py` | Generate Nelson sub-questions from inquiry |
 | `gregory-questions.md` | `consult_experts.py` | Generate Gregory sub-questions from inquiry + KB |
@@ -203,25 +185,42 @@ python scripts/commit.py "hint about changes" # commit with context hint
 | `gregory-code-agent.md` | `consult-gregory.py` | Gregory code exploration agent |
 | `triage-questions.md` | `triage-questions.py` | Open question evaluation and inquiry framing |
 | `triage-defers.md` | `triage-defers.py` | Review deferral evaluation and inquiry framing |
-| `extract-vocab.md` | `extract-vocab.py` | Vocabulary extraction + conflict detection |
-| `align-vocab.md` | `align-vocab.py` | ASN notation alignment to canonical vocabulary |
 
 ## Directory Structure
 
 ```
 vault/
   asns/           — Abstract Specification Notes (ASN-NNNN-title.md)
+  contracts/      — Property contracts (ASN-NNNN-contract.md) — type + Dafny name mappings
   consultations/  — Orchestrated consultation output (answers.md per ASN)
   transcripts/    — Individual agent call logs (Nelson/Gregory subagent runs)
   reviews/        — Review outputs (ASN-NNNN-review-N.md)
   inquiries.yaml  — Inquiry definitions driving ASN production
-  triage/          — Per-ASN triage decisions (promoted/declined with rationale)
+  triage/         — Per-ASN triage decisions (promoted/declined with rationale)
   vocabulary.md   — Shared vocabulary for ASN authors
 
 scripts/          — Pipeline and consultation scripts
   prompts/        — Prompt templates for all agents
 
+notes/            — Design decisions and methodology notes
+
 resources/        — Source materials (Literary Machines, Nelson's notes, concept maps)
 
 udanax-test-harness/  — Test harness for udanax-green (golden tests, findings, KB)
 ```
+
+## Formalization Path
+
+```
+ASN (prose spec) → contract (type + name mapping) → Dafny (verified spec) → Go (compiled)
+```
+
+- **ASN**: Prose specification with formal properties. Neutral labels (S0, PRE1, INS-F2)
+  to avoid anchoring bias during review.
+- **Contract**: Maps each property to a Dafny name, type, and construct. Generated
+  post-convergence. Tracks ASN revision for staleness detection.
+- **Dafny**: Verified specification using datatypes (functional style). State is an
+  immutable value; operations are pure functions. No `modifies`, no heap reasoning.
+  See `notes/dafny-modeling-decision.md`.
+- **Go**: Compiled from Dafny. Serves as verified reference implementation / test oracle.
+  Thin stateful wrapper over pure functional core.
