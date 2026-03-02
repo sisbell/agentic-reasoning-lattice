@@ -1,5 +1,6 @@
 """Shared vault path constants for all pipeline scripts."""
 
+import re
 from pathlib import Path
 
 WORKSPACE = Path(__file__).resolve().parent.parent
@@ -26,3 +27,15 @@ REQUIREMENTS_DIR = VAULT / "requirements"
 
 # Shared
 USAGE_LOG = VAULT / "usage-log.jsonl"
+
+
+def _review_sort_key(path):
+    """Extract numeric review number for sorting. review-9 < review-13."""
+    m = re.search(r"-review-(\d+)\.md$", path.name)
+    return int(m.group(1)) if m else 0
+
+
+def sorted_reviews(asn_label, reviews_dir=None):
+    """Return review files for an ASN, sorted by numeric review number."""
+    d = reviews_dir or REVIEWS_DIR
+    return sorted(d.glob(f"{asn_label}-review-*.md"), key=_review_sort_key)

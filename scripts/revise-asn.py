@@ -22,7 +22,7 @@ import sys
 import time
 from pathlib import Path
 
-from paths import WORKSPACE, VOCABULARY, ASNS_DIR, REVIEWS_DIR, USAGE_LOG
+from paths import WORKSPACE, VOCABULARY, ASNS_DIR, REVIEWS_DIR, USAGE_LOG, sorted_reviews
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
 DISCOVERY_PROMPT = PROMPTS_DIR / "discovery.md"
@@ -54,7 +54,7 @@ def find_review(asn_label, review_spec=None):
     """Find review file. If review_spec is None, use latest."""
     if review_spec is None:
         # Latest review
-        reviews = sorted(REVIEWS_DIR.glob(f"{asn_label}-review-*.md"))
+        reviews = sorted_reviews(asn_label)
         return reviews[-1] if reviews else None
 
     # Try as-is first (full path)

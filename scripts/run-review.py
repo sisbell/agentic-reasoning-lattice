@@ -30,7 +30,7 @@ import sys
 import time
 from pathlib import Path
 
-from paths import WORKSPACE, ASNS_DIR, REVIEWS_DIR, USAGE_LOG
+from paths import WORKSPACE, ASNS_DIR, REVIEWS_DIR, USAGE_LOG, sorted_reviews
 
 REVIEW_SCRIPT = WORKSPACE / "scripts" / "review-asn.py"
 CONSULT_REVISION_SCRIPT = WORKSPACE / "scripts" / "consult_for_revision.py"
@@ -260,7 +260,7 @@ def main():
             # Need a review path for consultation
             if review_path is None:
                 # Resuming from consult — find latest review
-                reviews = sorted(REVIEWS_DIR.glob(f"{asn_label}-review-*.md"))
+                reviews = sorted_reviews(asn_label)
                 if reviews:
                     review_path = str(reviews[-1])
                 else:
@@ -285,8 +285,10 @@ def main():
             args.resume = None
 
             if revise_converged:
-                print(f"  [PIPELINE] Revise made no changes — already addressed",
+                print(f"  [PIPELINE] Revise made no changes — converged",
                       file=sys.stderr)
+                step_commit(f"Review {asn_label} — revise converged (cycle {cycle})")
+                break
 
         # Commit
         if not args.resume or args.resume == "commit":

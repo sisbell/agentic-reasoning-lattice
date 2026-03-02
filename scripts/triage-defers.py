@@ -23,7 +23,7 @@ import yaml
 
 from pathlib import Path
 
-from paths import WORKSPACE, REVIEWS_DIR, INQUIRIES_FILE, TRIAGE_DIR, USAGE_LOG
+from paths import WORKSPACE, REVIEWS_DIR, INQUIRIES_FILE, TRIAGE_DIR, USAGE_LOG, sorted_reviews
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
 TRIAGE_TEMPLATE = PROMPTS_DIR / "triage-defers.md"
@@ -49,7 +49,7 @@ def extract_defers(reviews_dir, asn_label):
 
     Returns a string with each defer block labeled by source review.
     """
-    review_files = sorted(reviews_dir.glob(f"{asn_label}-review-*.md"))
+    review_files = sorted_reviews(asn_label, reviews_dir)
     if not review_files:
         return ""
 

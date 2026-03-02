@@ -25,7 +25,7 @@ import time
 
 from pathlib import Path
 
-from paths import WORKSPACE, ASNS_DIR, VOCABULARY, REVIEWS_DIR, USAGE_LOG
+from paths import WORKSPACE, ASNS_DIR, VOCABULARY, REVIEWS_DIR, USAGE_LOG, sorted_reviews
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
 REVIEW_TEMPLATE = PROMPTS_DIR / "review.md"
@@ -181,7 +181,7 @@ def main():
 
     # Write output (sequential numbering: review-1, review-2, ...)
     REVIEWS_DIR.mkdir(parents=True, exist_ok=True)
-    existing = sorted(REVIEWS_DIR.glob(f"{asn_label}-review-*.md"))
+    existing = sorted_reviews(asn_label)
     next_num = 1
     for f in existing:
         m = re.search(r"-review-(\d+)\.md$", f.name)

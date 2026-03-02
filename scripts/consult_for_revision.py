@@ -32,7 +32,7 @@ from consult_experts import (
     log_usage,
 )
 
-from paths import ASNS_DIR, REVIEWS_DIR, CONSULT_DIR
+from paths import ASNS_DIR, REVIEWS_DIR, CONSULT_DIR, sorted_reviews
 
 
 def read_file(path):
@@ -57,7 +57,7 @@ def find_asn(asn_id):
 def find_review(asn_label, review_spec=None):
     """Find review file. If review_spec is None, use latest."""
     if review_spec is None:
-        reviews = sorted(REVIEWS_DIR.glob(f"{asn_label}-review-*.md"))
+        reviews = sorted_reviews(asn_label)
         return reviews[-1] if reviews else None
 
     path = Path(review_spec)
