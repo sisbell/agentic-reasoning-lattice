@@ -26,7 +26,7 @@ from pathlib import Path
 
 from paths import WORKSPACE, ASNS_DIR, CONTRACTS_DIR, VOCABULARY, USAGE_LOG
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts"
+PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"
 REFINE_TEMPLATE = PROMPTS_DIR / "refine.md"
 COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
 

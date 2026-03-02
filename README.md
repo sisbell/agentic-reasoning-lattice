@@ -172,19 +172,33 @@ python scripts/commit.py "hint about changes" # commit with context hint
 
 ## Prompt Templates
 
+### Discovery prompts (`scripts/prompts/discovery/`)
+
 | Template | Used by | Purpose |
 |----------|---------|---------|
 | `discovery.md` | `discover.py`, `revise-asn.py` | Discovery/revision agent — Dijkstra-style ASN writing |
 | `review.md` | `review-asn.py` | Review agent — rigor checking |
-| `refine.md` | `contract-asn.py` | Property classification and Dafny naming |
-| `commit.md` | `commit.py`, `run-asn.py` | Commit message generation |
+| `nelson-agent.md` | `consult-nelson.py` | Nelson answering agent |
 | `nelson-questions.md` | `consult_experts.py` | Generate Nelson sub-questions from inquiry |
 | `gregory-questions.md` | `consult_experts.py` | Generate Gregory sub-questions from inquiry + KB |
-| `nelson-agent.md` | `consult-nelson.py` | Nelson answering agent |
 | `gregory-synthesis-agent.md` | `consult-gregory.py` | Gregory KB synthesis agent |
 | `gregory-code-agent.md` | `consult-gregory.py` | Gregory code exploration agent |
 | `triage-questions.md` | `triage-questions.py` | Open question evaluation and inquiry framing |
 | `triage-defers.md` | `triage-defers.py` | Review deferral evaluation and inquiry framing |
+
+### Formalization prompts (`scripts/prompts/formalization/`)
+
+| Template | Used by | Purpose |
+|----------|---------|---------|
+| `refine.md` | `contract-asn.py` | Property classification and Dafny naming |
+| `extract-properties.md` | `extract-properties.py` | Extract formal properties from ASN |
+| `generate-dafny.md` | `generate-dafny.py` | Generate Dafny module from extract |
+
+### Shared prompts (`scripts/prompts/`)
+
+| Template | Used by | Purpose |
+|----------|---------|---------|
+| `commit.md` | `commit.py`, `run-asn.py` | Commit message generation |
 
 ## Directory Structure
 
@@ -210,7 +224,10 @@ vault/
 
 scripts/            — Pipeline and consultation scripts
   paths.py          — Shared vault path constants
-  prompts/          — Prompt templates for all agents
+  prompts/
+    discovery/      — Prompt templates for discovery/review/triage agents
+    formalization/  — Prompt templates for contract/extract/dafny agents
+    commit.md       — Shared commit prompt
 
 notes/              — Design decisions and methodology notes
 

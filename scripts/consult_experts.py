@@ -30,7 +30,7 @@ from pathlib import Path
 
 from paths import WORKSPACE, INQUIRIES_FILE, CONSULT_DIR, USAGE_LOG
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts"
+PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
 TEST_HARNESS = WORKSPACE / "udanax-test-harness"
 KB_SYNTHESIS = TEST_HARNESS / "knowledge-base" / "kb-synthesis.md"
 

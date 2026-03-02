@@ -25,7 +25,7 @@ from pathlib import Path
 
 from paths import WORKSPACE, ASNS_DIR, INQUIRIES_FILE, TRIAGE_DIR, USAGE_LOG
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts"
+PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
 TRIAGE_TEMPLATE = PROMPTS_DIR / "triage-questions.md"
 
 

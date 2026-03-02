@@ -23,7 +23,7 @@ from pathlib import Path
 
 from paths import WORKSPACE, ASNS_DIR, CONTRACTS_DIR, EXTRACTS_DIR, USAGE_LOG
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts"
+PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"
 TEMPLATE = PROMPTS_DIR / "extract-properties.md"
 
 

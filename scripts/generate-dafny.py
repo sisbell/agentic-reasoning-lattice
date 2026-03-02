@@ -24,7 +24,7 @@ from pathlib import Path
 
 from paths import WORKSPACE, EXTRACTS_DIR, DAFNY_DIR, VOCABULARY, USAGE_LOG
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts"
+PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"
 TEMPLATE = PROMPTS_DIR / "generate-dafny.md"
 
 

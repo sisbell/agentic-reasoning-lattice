@@ -24,7 +24,7 @@ from pathlib import Path
 
 from paths import WORKSPACE, VOCABULARY, ASNS_DIR, REVIEWS_DIR, USAGE_LOG
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts"
+PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
 DISCOVERY_PROMPT = PROMPTS_DIR / "discovery.md"
 
 MODEL = "claude-opus-4-6"

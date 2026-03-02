@@ -27,7 +27,7 @@ from pathlib import Path
 
 from paths import WORKSPACE, ASNS_DIR, VOCABULARY, REVIEWS_DIR, USAGE_LOG
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts"
+PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
 REVIEW_TEMPLATE = PROMPTS_DIR / "review.md"
 
 
