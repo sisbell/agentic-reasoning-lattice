@@ -290,8 +290,10 @@ def main():
         cwd=str(WORKSPACE),
     )
     if check.returncode == 0:
-        print(f"  [WARN] {asn_path.name} was NOT modified by the revise agent",
-              file=sys.stderr)
+        print(f"  [CONVERGED] {asn_path.name} was not modified — "
+              f"review issues already addressed", file=sys.stderr)
+        print(str(asn_path))
+        sys.exit(2)  # distinct from error (1) — signals convergence
     else:
         print(f"  [OK] {asn_path.name}", file=sys.stderr)
     print(str(asn_path))

@@ -14,6 +14,8 @@ in place. Multiple cycles progressively tighten the specification.
 Usage:
     python scripts/run-review.py 9                # 1 cycle: review → consult → revise → commit
     python scripts/run-review.py 9 --cycles 2     # 2 cycles
+    python scripts/run-review.py 9 --converge     # loop until CONVERGED (max 5)
+    python scripts/run-review.py 9 --converge 8   # loop until CONVERGED (max 8)
     python scripts/run-review.py 9 --review-only  # just review, no revise or commit
     python scripts/run-review.py 9 --resume consult  # skip review, consult + revise from latest
     python scripts/run-review.py 9 --resume revise   # skip review + consult, revise from latest
@@ -51,18 +53,24 @@ def find_asn(asn_id):
 
 
 def step_review(asn_id):
-    """Run review-asn.py. Returns review file path or None."""
+    """Run review-asn.py. Returns (review_path, converged).
+
+    converged is True when the reviewer's VERDICT is CONVERGED (exit 2).
+    """
     print(f"\n  === REVIEW ===", file=sys.stderr)
     result = subprocess.run(
         [sys.executable, str(REVIEW_SCRIPT), str(asn_id)],
         capture_output=True, text=True, cwd=str(WORKSPACE),
     )
-    if result.returncode != 0:
+
+    converged = result.returncode == 2
+
+    if result.returncode not in (0, 2):
         print(f"  [REVIEW] FAILED", file=sys.stderr)
         if result.stderr:
             for line in result.stderr.strip().split("\n")[:5]:
                 print(f"    {line}", file=sys.stderr)
-        return None
+        return None, False
 
     if result.stderr:
         for line in result.stderr.strip().split("\n"):
@@ -70,8 +78,8 @@ def step_review(asn_id):
 
     review_path = result.stdout.strip()
     if review_path and Path(review_path).exists():
-        return review_path
-    return None
+        return review_path, converged
+    return None, False
 
 
 def has_revise_items(review_path):
@@ -116,7 +124,10 @@ def step_consult_revision(asn_id, review_path):
 
 
 def step_revise(asn_id, review_spec=None, consultation_path=None):
-    """Run revise-asn.py. Returns ASN path or None."""
+    """Run revise-asn.py. Returns (asn_path, converged).
+
+    converged is True when the ASN was not modified (exit 2).
+    """
     print(f"\n  === REVISE ===", file=sys.stderr)
     cmd = [sys.executable, str(REVISE_SCRIPT), str(asn_id)]
     if review_spec:
@@ -127,12 +138,15 @@ def step_revise(asn_id, review_spec=None, consultation_path=None):
     result = subprocess.run(
         cmd, capture_output=True, text=True, cwd=str(WORKSPACE),
     )
-    if result.returncode != 0:
+
+    converged = result.returncode == 2
+
+    if result.returncode not in (0, 2):
         print(f"  [REVISE] FAILED", file=sys.stderr)
         if result.stderr:
             for line in result.stderr.strip().split("\n")[:5]:
                 print(f"    {line}", file=sys.stderr)
-        return None
+        return None, False
 
     if result.stderr:
         for line in result.stderr.strip().split("\n"):
@@ -140,8 +154,8 @@ def step_revise(asn_id, review_spec=None, consultation_path=None):
 
     asn_path = result.stdout.strip()
     if asn_path and Path(asn_path).exists():
-        return asn_path
-    return None
+        return asn_path, converged
+    return None, False
 
 
 def step_commit(hint=""):
@@ -176,11 +190,17 @@ def main():
     parser.add_argument("asn", help="ASN number (e.g., 9, 0009, ASN-0009)")
     parser.add_argument("--cycles", "-n", type=int, default=1,
                         help="Number of review-revise cycles (default: 1)")
+    parser.add_argument("--converge", nargs="?", type=int, const=5,
+                        metavar="MAX",
+                        help="Loop until CONVERGED verdict (default max: 5)")
     parser.add_argument("--review-only", action="store_true",
                         help="Run review only, no revise or commit")
     parser.add_argument("--resume", choices=STEPS,
                         help="Resume from this step (skip earlier steps)")
     args = parser.parse_args()
+
+    # --converge overrides --cycles
+    max_cycles = args.converge if args.converge is not None else args.cycles
 
     # Find ASN
     asn_path, asn_label = find_asn(args.asn)
@@ -190,35 +210,47 @@ def main():
 
     print(f"  [PIPELINE] {asn_label} ({asn_path.name})", file=sys.stderr)
     if not args.review_only:
-        print(f"  [PIPELINE] {args.cycles} cycle(s): review → consult → revise → commit",
-              file=sys.stderr)
+        if args.converge is not None:
+            print(f"  [PIPELINE] converge mode (max {max_cycles} cycles)",
+                  file=sys.stderr)
+        else:
+            print(f"  [PIPELINE] {max_cycles} cycle(s): review → consult → revise → commit",
+                  file=sys.stderr)
 
     start = time.time()
+    converged = False
 
-    for cycle in range(1, args.cycles + 1):
-        if args.cycles > 1:
-            print(f"\n  ──── Cycle {cycle}/{args.cycles} ────",
+    for cycle in range(1, max_cycles + 1):
+        if max_cycles > 1:
+            print(f"\n  ──── Cycle {cycle}/{max_cycles} ────",
                   file=sys.stderr)
 
         # Review
+        review_path = None
         if not args.resume or args.resume == "review":
-            review_path = step_review(args.asn)
+            review_path, converged = step_review(args.asn)
             if review_path is None:
                 print(f"  [PIPELINE] Review failed, stopping", file=sys.stderr)
                 sys.exit(1)
             print(f"  [REVIEW] {review_path}", file=sys.stderr)
             args.resume = None  # clear resume after first step
         else:
-            review_path = None
+            converged = False
 
         if args.review_only:
             break
 
-        # Check for REVISE items
+        # Converged — commit the review and stop
+        if converged:
+            print(f"  [PIPELINE] CONVERGED — review found no significant issues",
+                  file=sys.stderr)
+            step_commit(f"Review {asn_label} — converged")
+            break
+
+        # Check for REVISE items (belt-and-suspenders with verdict)
         if review_path and not has_revise_items(review_path):
             print(f"  [PIPELINE] No REVISE items — ASN is clean",
                   file=sys.stderr)
-            # Still commit the review file
             step_commit(f"Review {asn_label} — no revisions needed")
             break
 
@@ -244,18 +276,28 @@ def main():
 
         # Revise
         if not args.resume or args.resume == "revise":
-            asn_result = step_revise(args.asn,
-                                     consultation_path=consultation_path)
+            asn_result, revise_converged = step_revise(
+                args.asn, consultation_path=consultation_path)
             if asn_result is None:
                 print(f"  [PIPELINE] Revise failed, stopping",
                       file=sys.stderr)
                 sys.exit(1)
             args.resume = None
 
+            if revise_converged:
+                print(f"  [PIPELINE] Revise made no changes — already addressed",
+                      file=sys.stderr)
+
         # Commit
         if not args.resume or args.resume == "commit":
             step_commit(f"Review and revise {asn_label} (cycle {cycle})")
             args.resume = None
+
+    else:
+        # Loop exhausted without convergence
+        if args.converge is not None:
+            print(f"\n  [PIPELINE] Max cycles ({max_cycles}) reached without convergence",
+                  file=sys.stderr)
 
     elapsed = time.time() - start
     print(f"\n  [PIPELINE] Done ({elapsed:.0f}s)", file=sys.stderr)

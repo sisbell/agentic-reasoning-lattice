@@ -100,9 +100,13 @@ Use this shared vocabulary when interpreting the ASN:
 **Why defer**: [this is new territory, not an error in this ASN]
 
 META: [one sentence, only if the ASN has left implementation-relevant territory]
+
+VERDICT: CONVERGED | REVISE
 ```
 
-Output the META line as plain text, exactly as shown — no markdown bold, no asterisks.
+Output the META and VERDICT lines as plain text, exactly as shown — no markdown bold, no asterisks.
+
+**VERDICT** is mandatory. Use CONVERGED when all REVISE items are minor (prose clarity, counting errors, formatting) and the formal content is correct. Use REVISE when any issue affects correctness (wrong precondition, missing case in proof, false axiom, unsound derivation). An ASN with zero REVISE items is always CONVERGED. An ASN whose REVISE items are all presentation fixes is CONVERGED.
 
 ## ASN to Review
 

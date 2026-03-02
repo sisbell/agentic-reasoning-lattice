@@ -190,6 +190,11 @@ def main():
     output_path = REVIEWS_DIR / f"{asn_label}-review-{next_num}.md"
     output_path.write_text(text + "\n")
 
+    # Parse verdict
+    verdict_match = re.search(r"^VERDICT:\s*(\w+)", text, re.MULTILINE)
+    verdict = verdict_match.group(1).upper() if verdict_match else "REVISE"
+    print(f"  [VERDICT] {verdict}", file=sys.stderr)
+
     # Log usage
     log_usage(asn_label, elapsed)
 
@@ -197,6 +202,10 @@ def main():
     print(str(output_path))
 
     print(f"  [WROTE] {output_path.relative_to(WORKSPACE)}", file=sys.stderr)
+
+    # Exit 2 if converged (distinct from error=1)
+    if verdict == "CONVERGED":
+        sys.exit(2)
 
 
 if __name__ == "__main__":

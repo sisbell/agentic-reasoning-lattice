@@ -98,13 +98,20 @@ Steps: questions → consult → discover → commit
 
 ```
 python scripts/run-review.py 9                # 1 cycle: review → consult → revise → commit
-python scripts/run-review.py 9 --cycles 2     # 2 cycles
+python scripts/run-review.py 9 --cycles 2     # 2 fixed cycles
+python scripts/run-review.py 9 --converge     # loop until CONVERGED (max 5)
+python scripts/run-review.py 9 --converge 8   # loop until CONVERGED (max 8)
 python scripts/run-review.py 9 --review-only  # just review, no consult or revise
 python scripts/run-review.py 9 --resume consult  # skip review, consult + revise from latest
 python scripts/run-review.py 9 --resume revise   # skip review + consult, revise from latest
 ```
 
-Steps per cycle: review → consult → revise → commit. Stops early if no REVISE items found.
+Steps per cycle: review → consult → revise → commit.
+
+**Convergence:** Each review produces a `VERDICT: CONVERGED | REVISE`. CONVERGED means
+all remaining issues are minor (prose clarity, formatting) and the formal content is
+correct. `--converge` loops until the reviewer returns CONVERGED or the max cycle limit
+is reached. `--cycles N` runs exactly N cycles regardless of verdict.
 
 ### Formalization — contract → extract → dafny
 
@@ -173,8 +180,8 @@ python scripts/commit.py "hint about changes" # commit with context hint
 | Script | Purpose |
 |--------|---------|
 | `run-asn.py` | Discovery pipeline — questions → consult → discover → commit |
-| `run-review.py` | Review pipeline — review → consult → revise → commit (repeatable cycles) |
-| `review-asn.py` | Review an ASN for rigor (opus, no tools) |
+| `run-review.py` | Review pipeline — review → consult → revise → commit (cycles or converge) |
+| `review-asn.py` | Review an ASN for rigor, produce VERDICT (opus, no tools) |
 | `consult_for_revision.py` | Categorize review findings, run targeted expert consultations (opus) |
 | `revise-asn.py` | Revise an ASN based on review feedback (opus, with tools) |
 | `contract-asn.py` | Classify properties and assign Dafny names (opus, post-convergence) |
