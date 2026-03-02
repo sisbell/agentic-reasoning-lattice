@@ -55,6 +55,13 @@ Formal specification of the Xanadu hypertext system (udanax-green), derived from
           |
           v (converged)
 +-------------------+
+| run-alloy-review  |  bounded model checking (counterexample search)
++-------------------+
+          |
+  counterexample? → revise ASN
+          |
+          v (no counterexamples)
++-------------------+
 |   contract-asn    |  classify & name properties
 +-------------------+
           |
@@ -126,6 +133,25 @@ Steps per cycle: review → consult → revise → commit.
 all remaining issues are minor (prose clarity, formatting) and the formal content is
 correct. `--converge` loops until the reviewer returns CONVERGED or the max cycle limit
 is reached. `--cycles N` runs exactly N cycles regardless of verdict.
+
+### Alloy — bounded model checking
+
+Run after an ASN has converged. Per-property Alloy generation, bounded checking with
+tiered repair, then review → consult → revise → commit if failures remain.
+
+```
+python scripts/run-alloy-review.py 1                    # full pipeline (all properties)
+python scripts/run-alloy-review.py 1 --property T1      # single property
+python scripts/run-alloy-review.py 1 --no-revise         # stop after check + review
+python scripts/run-alloy-review.py 1 --skip-check       # generate .als only
+python scripts/run-alloy-review.py 1 --dry-run           # show property list + prompt sizes
+```
+
+Requires Alloy installed at `/Applications/Alloy.app` (macOS) or `ALLOY_JAR` env var.
+
+Output:
+- `vault/modeling/alloy/ASN-NNNN/{label}-{Name}.als` (one per property)
+- `vault/discovery/reviews/ASN-NNNN-alloy-review-N.md` (if failures after repair)
 
 ### Formalization — contract → extract → dafny
 
@@ -221,6 +247,7 @@ python scripts/commit.py "hint about changes" # commit with context hint
 | `review-asn.py` | Review an ASN for rigor, produce VERDICT (opus, no tools) |
 | `consult_for_revision.py` | Categorize review findings, run targeted expert consultations (opus) |
 | `revise-asn.py` | Revise an ASN based on review feedback (opus, with tools) |
+| `run-alloy-review.py` | Alloy review pipeline — generate, check, repair, review → consult → revise (sonnet) |
 | `contract-asn.py` | Classify properties and assign Dafny names (opus, post-convergence) |
 | `extract-properties.py` | Extract formal property statements from ASN prose (sonnet) |
 | `generate-dafny.py` | Generate Dafny specification module from extract (opus) |
@@ -259,6 +286,7 @@ python scripts/commit.py "hint about changes" # commit with context hint
 | `extract-properties.md` | `extract-properties.py` | Extract formal properties from ASN |
 | `generate-dafny.md` | `generate-dafny.py` | Generate Dafny module from extract |
 | `fix-dafny.md` | `fix-dafny.py` | Fix Dafny errors (Tier 1 syntax, Tier 2 proof) |
+| `check-alloy.md` | `run-alloy-review.py` | Generate Alloy model for bounded checking |
 
 ### Shared prompts (`scripts/prompts/`)
 
@@ -273,6 +301,7 @@ vault/
   modeling/         — The model artifacts
     asns/           — Abstract Specification Notes (ASN-NNNN-title.md)
     dafny/          — Verified specification modules (ASN-NNNN.dfy)
+    alloy/          — Alloy models for bounded checking (generated .als files)
     vocabulary.md   — Shared vocabulary for ASN authors
 
   discovery/        — Working artifacts of building the model
@@ -306,7 +335,7 @@ udanax-test-harness/  — Test harness for udanax-green (golden tests, findings,
 ## Formalization Path
 
 ```
-ASN (prose) → contract (name mapping) → extract (formal statements) → Dafny (verified) → Go (compiled)
+ASN (prose) → Alloy (bounded checking) → contract (name mapping) → extract (formal statements) → Dafny (verified) → Go (compiled)
 ```
 
 - **ASN**: Prose specification with formal properties. Neutral labels (S0, PRE1, INS-F2)

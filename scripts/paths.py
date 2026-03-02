@@ -9,6 +9,7 @@ VAULT = WORKSPACE / "vault"
 # Modeling — the model artifacts
 ASNS_DIR = VAULT / "modeling" / "asns"
 DAFNY_DIR = VAULT / "modeling" / "dafny"
+ALLOY_DIR = VAULT / "modeling" / "alloy"
 VOCABULARY = VAULT / "modeling" / "vocabulary.md"
 
 # Discovery — working artifacts of building the model

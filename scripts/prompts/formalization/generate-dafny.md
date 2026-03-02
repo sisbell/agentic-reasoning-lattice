@@ -191,5 +191,6 @@ predicate VIGrounding(s: State) {
 }
 ```
 
-Output ONLY the raw Dafny code. Start directly with `module ASN_NNNN {`.
-No markdown fences, no commentary before or after the code, no explanation.
+Write the complete Dafny module using the Write tool. The output path will
+be provided. Start the file content directly with `module ASN_NNNN {`.
+No markdown fences, no commentary — just the Dafny source code.

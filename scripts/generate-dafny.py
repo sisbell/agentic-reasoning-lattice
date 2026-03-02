@@ -62,31 +62,21 @@ def build_prompt(extract, vocabulary):
     )
 
 
-def extract_module(text):
-    """Extract the Dafny module from the response, stripping fences and commentary."""
-    # Strip ```dafny fences if present
-    text = re.sub(r"^```dafny\s*\n", "", text, flags=re.MULTILINE)
-    text = re.sub(r"\n```\s*$", "", text.rstrip())
 
-    # Find module start
-    module = re.search(r"^module ", text, re.MULTILINE)
-    if module:
-        text = text[module.start():]
-
-    return text.rstrip()
-
-
-def invoke_claude(prompt, model="opus", effort="max"):
-    """Call claude --print with --tools "". Returns plain text response."""
+def invoke_claude(prompt, out_path, model="opus", effort="max"):
+    """Call claude -p with Write tool to generate the .dfy file directly."""
     model_flag = {
         "opus": "claude-opus-4-6",
         "sonnet": "claude-sonnet-4-6",
     }.get(model, model)
 
     cmd = [
-        "claude", "--print",
+        "claude", "-p",
         "--model", model_flag,
-        "--tools", "",
+        "--output-format", "json",
+        "--max-turns", "8",
+        "--tools", "Read,Write",
+        "--allowedTools", "Read,Write",
     ]
 
     env = os.environ.copy()
@@ -94,10 +84,15 @@ def invoke_claude(prompt, model="opus", effort="max"):
     if effort:
         env["CLAUDE_CODE_EFFORT_LEVEL"] = effort
 
+    full_prompt = f"""{prompt}
+
+Write the complete Dafny module to: {out_path}
+"""
+
     start = time.time()
     result = subprocess.run(
-        cmd, input=prompt, capture_output=True, text=True, env=env,
-        timeout=None,
+        cmd, input=full_prompt, capture_output=True, text=True, env=env,
+        cwd=str(WORKSPACE), timeout=None,
     )
     elapsed = time.time() - start
 
@@ -107,10 +102,27 @@ def invoke_claude(prompt, model="opus", effort="max"):
         if result.stderr:
             for line in result.stderr.strip().split("\n")[:3]:
                 print(f"    {line}", file=sys.stderr)
-        return "", elapsed
+        return False, elapsed
 
-    print(f"  [{elapsed:.0f}s]", file=sys.stderr)
-    return result.stdout.strip(), elapsed
+    # Parse JSON for usage stats
+    try:
+        data = json.loads(result.stdout)
+        usage = data.get("usage", {})
+        cost = data.get("total_cost_usd", 0)
+        inp = (usage.get("input_tokens", 0) +
+               usage.get("cache_read_input_tokens", 0) +
+               usage.get("cache_creation_input_tokens", 0))
+        out = usage.get("output_tokens", 0)
+        print(f"  [{elapsed:.0f}s] in:{inp} out:{out} ${cost:.4f}",
+              file=sys.stderr)
+        # Log subtype on failure (e.g., error_max_turns)
+        subtype = data.get("subtype", "")
+        if subtype and subtype != "success":
+            print(f"  [WARN] stop: {subtype}", file=sys.stderr)
+    except (json.JSONDecodeError, KeyError):
+        print(f"  [{elapsed:.0f}s]", file=sys.stderr)
+
+    return True, elapsed
 
 
 def log_usage(asn_label, elapsed):
@@ -164,26 +176,23 @@ def main():
     print(f"  Prompt: {len(prompt) // 1024}KB (~{len(prompt) // 4} tokens est.)",
           file=sys.stderr)
 
-    if args.dry_run:
-        print(f'  [DRY RUN] Would invoke {args.model} with --tools ""',
-              file=sys.stderr)
-        return
-
-    # Invoke Claude
-    text, elapsed = invoke_claude(prompt, model=args.model,
-                                  effort=args.effort)
-
-    if not text:
-        print("  No Dafny code generated", file=sys.stderr)
-        sys.exit(1)
-
-    # Strip preamble/fences
-    text = extract_module(text)
-
-    # Write output
+    # Output path
     DAFNY_DIR.mkdir(parents=True, exist_ok=True)
     out_path = DAFNY_DIR / f"{asn_label}.dfy"
-    out_path.write_text(text + "\n")
+
+    if args.dry_run:
+        print(f"  [DRY RUN] Would invoke {args.model} with -p --allowedTools Write",
+              file=sys.stderr)
+        print(f"  [DRY RUN] Output: {out_path}", file=sys.stderr)
+        return
+
+    # Invoke Claude — writes the .dfy file directly
+    success, elapsed = invoke_claude(prompt, out_path,
+                                     model=args.model, effort=args.effort)
+
+    if not success or not out_path.exists():
+        print("  No Dafny code generated", file=sys.stderr)
+        sys.exit(1)
 
     # Log usage
     log_usage(asn_label, elapsed)
