@@ -207,7 +207,7 @@ From T9, T10, and T10a together:
 
 *Case 2: Different allocators at the same hierarchical level.* The allocators have prefixes `p₁` and `p₂` that are siblings — neither is a prefix of the other (`p₁ ⋠ p₂ ∧ p₂ ⋠ p₁`). T10 gives `a ≠ b` directly.
 
-*Case 3: Different allocators with nesting prefixes and different zero counts.* One allocator's prefix nests within another's — say a node allocator (prefix `[1]`) and one of its users' element allocator (prefix `[1, 0, 3, 0, 2]`). T10 does not apply because the prefixes nest. But these allocators produce addresses with different zero counts: the node allocator produces addresses with `zeros = 1` (user-level), while the element allocator produces addresses with `zeros = 3` (element-level). By T4, different zero counts imply different field structure. By T3, addresses with different numbers of components or different component values are distinct; addresses with different zero counts necessarily differ in at least one component, giving `a ≠ b`.
+*Case 3: Different allocators with nesting prefixes and different zero counts.* One allocator's prefix nests within another's — say a node allocator (prefix `[1]`) and one of its users' element allocator (prefix `[1, 0, 3, 0, 2]`). T10 does not apply because the prefixes nest. But these allocators produce addresses with different zero counts: the node allocator produces addresses with `zeros = 1` (user-level), while the element allocator produces addresses with `zeros = 3` (element-level). By T4, different zero counts imply different field structure. We show `a ≠ b` in two sub-cases. If `#a ≠ #b`, then `a ≠ b` by T3 directly (tumblers of different lengths are distinct). If `#a = #b`, then `zeros(a) ≠ zeros(b)` means the two tumblers have different numbers of zero-valued components; since they have the same length, at least one position must differ (the contrapositive: identical components at every position would give identical zero counts). By T3, differing at any component suffices for `a ≠ b`.
 
 *Case 4: Different allocators with nesting prefixes and the same zero count.* This arises when a parent and child allocator both produce addresses at the same hierarchical level. The key example: a user allocator producing top-level documents (document field `[D]`, a single component) and a version allocator producing versions under document 2 (document field `[2, V]`, two components). Both outputs have `zeros = 2`. Their ownership prefixes nest — the user's prefix `1.0.3.0` is a prefix of the version allocator's prefix `1.0.3.0.2`. T10 does not apply.
 
@@ -228,7 +228,9 @@ V-space positions are themselves tumblers, but they encode "where this byte appe
 
 ### Addition for shifting
 
-Let `⊕` denote tumbler addition, used to shift V-positions forward after insertion:
+Let `⊕` denote tumbler addition, used to shift V-positions forward after insertion.
+
+We require a notion of where a displacement "acts." For a positive displacement `w = [w₁, w₂, ..., wₙ]`, define the *action point* as `k = min({i : 1 ≤ i ≤ n ∧ wᵢ ≠ 0})` — the position of the first nonzero component. The leading zeros say "stay at these hierarchical levels"; the first nonzero component says "advance here."
 
 **TA0 (Well-defined addition).** For tumblers `a, w ∈ T` where `w > 0` and the action point `k` of `w` satisfies `k ≤ #a`, the result `a ⊕ w` is a well-defined tumbler in `T`.
 
@@ -249,6 +251,8 @@ But TA1 alone does not guarantee that addition *advances* a position. It preserv
 **TA-strict (Strict increase).** `(A a ∈ T, w > 0 : a ⊕ w > a)` (where `a ⊕ w` is well-defined, i.e., `k ≤ #a` per TA0).
 
 Without TA-strict, the axioms admit a degenerate model in which `a ⊕ w = a` for all `a, w`. This no-op model satisfies TA0 (result is in T), TA1 (if `a < b` then `a < b` — the consequent is unchanged), and TA4 (`(a ⊕ w) ⊖ w = a ⊖ w = a` if subtraction is equally degenerate). Every axiom is satisfied, yet spans are empty — the interval `[s, s ⊕ ℓ)` collapses to `[s, s)`. TA-strict excludes this model and ensures that adding a positive displacement moves the position forward. T12 (span well-definedness) depends on this directly.
+
+**Verification of TA-strict.** Let `k` be the action point of `w`. By the constructive definition, `(a ⊕ w)ᵢ = aᵢ` for `i < k`, and `(a ⊕ w)ₖ = aₖ + wₖ`. Since `k` is the action point, `wₖ > 0`, so `aₖ + wₖ > aₖ`. Positions `1` through `k - 1` agree; position `k` is strictly larger. By T1 case (i), `a ⊕ w > a`.
 
 ### Subtraction for shifting
 
@@ -311,8 +315,6 @@ AFTER:  1.0.3.0.5.0.1.1
 
 Reading `[0,0,0,0,3,0,1,1]`: four leading zeros mean "same server, same account." Component 5 is 3: "advance 3 documents." Trailing `[0,1,1]`: "land at element 1.1 in the target document." The start position's element field `[1,777]` is replaced by the displacement's trailing structure `[1,1]`.
 
-**Definition (Action point).** For a positive displacement `w = [w₁, w₂, ..., wₙ]`, the action point is `k = min({i : 1 ≤ i ≤ n ∧ wᵢ ≠ 0})` — the position of the first nonzero component.
-
 **Definition (Tumbler addition).** Let `a = [a₁, ..., aₘ]` and `w = [w₁, ..., wₙ]` with `w > 0`. With action point `k`:
 
 ```
@@ -341,7 +343,7 @@ Three properties of this definition require explicit statement:
 
 This is correct and intentional: advancing to "the beginning of the next chapter" lands at the same place regardless of where you were within the current chapter. Nelson describes this as "a range of addends gives the same answer."
 
-**Definition (Tumbler subtraction).** The inverse operation. Given an end position `a` and displacement `w`, recover the start position. When `a = w` (no divergence exists), the result is the zero tumbler of length `#a`: `a ⊖ w = [0, ..., 0]` with `#(a ⊖ w) = #a`. Otherwise, let `k` be the first position where `a` and `w` differ:
+**Definition (Tumbler subtraction).** The inverse operation. Given an end position `a` and displacement `w`, recover the start position. When the operands have different lengths, we conceptually zero-pad the shorter to the length of the longer before scanning for divergence — this mirrors Gregory's `strongsub`, which operates on fixed-length mantissa arrays with implicit zero-padding. When `a = w` (no divergence exists after padding), the result is the zero tumbler of length `max(#a, #w)`: `a ⊖ w = [0, ..., 0]`. Otherwise, let `k` be the first position where `a` and `w` differ (treating missing components as zero):
 
 ```
          ⎧ 0             if i < k        (these levels matched — zero them)
@@ -349,7 +351,9 @@ rᵢ   =  ⎨ aₖ - wₖ      if i = k        (reverse the advance)
          ⎩ aᵢ           if i > k        (copy from end position)
 ```
 
-**Precondition:** `a ≥ w` — when `a ≠ w`, at the divergence point `aₖ ≥ wₖ`.
+The result has length `max(#a, #w)` — positions beyond the shorter operand's length are treated as zero during the scan and copied from the longer operand in the tail. For example, `a = [1, 0, 3, 0]` and `w = [1, 0, 3]`: zero-padding `w` to length 4 gives `[1, 0, 3, 0]`, which agrees with `a` at every position, so the result is `[0, 0, 0, 0]`. And `a = [1, 0, 3, 5]` with `w = [1, 0, 3]`: padded `w` is `[1, 0, 3, 0]`, divergence at position 4, result `[0, 0, 0, 5]`.
+
+**Precondition:** `a ≥ w` — when `a ≠ w`, at the divergence point (after zero-padding) `aₖ ≥ wₖ`.
 
 Gregory's implementation confirms this structure. The `strongsub` routine scans for the first position where the mantissa digits differ (`for (i = 0; aptr->mantissa[i] == bptr->mantissa[i]; ++i)`), subtracts at that position, then copies the remainder from the first operand — exactly the algorithm above.
 
@@ -459,6 +463,8 @@ We can characterize element-local displacements structurally. Since `⊕` acts o
 **TA7a (Subspace closure).** Let `S₁` and `S₂` be distinct element subspaces within a document. For any element-local displacement `w`, the shift operations are closed within each subspace:
 
   `(A a ∈ S₁, w element-local : a ⊕ w ∈ S₁)` and symmetrically for `⊖`.
+
+**Verification of TA7a.** An element address has the form `a = N₁. ... .Nₐ . 0 . U₁. ... .Uᵦ . 0 . D₁. ... .Dᵧ . 0 . E₁ . E₂ . ... . Eδ`, where `E₁` is the subspace identifier at position `α + β + γ + 4` (counting three zero separators). An element-local displacement `w` has its action point `k` strictly after the subspace-identifier position — that is, `k > α + β + γ + 4`. By the constructive definition of `⊕`, for positions `i < k` the result copies from `a`: `(a ⊕ w)ᵢ = aᵢ`. In particular, the subspace identifier at position `α + β + γ + 4` is copied unchanged. The addition at position `k` and tail replacement at positions `i > k` affect only the element field beyond `E₁`. So `a ⊕ w` has the same document prefix and subspace identifier as `a`, hence `a ⊕ w ∈ S₁`. The argument for `⊖` is symmetric: the subtraction algorithm zeros positions before the divergence point and copies the tail from the minuend. Since the divergence point `k` is strictly after the subspace-identifier position (element-local displacements agree with the address at all prior positions), the subspace identifier is zeroed — but this position was `E₁` in both operands (they share the same subspace), so it was part of the agreement prefix, not part of the divergence. The subspace identifier is preserved in the result.
 
 The restriction to element-local displacements is necessary. An unrestricted displacement that interacts with the subspace-identifier component could produce an address in a different subspace — TA7a cannot hold for arbitrary `w`. What TA7a does guarantee is that displacements arising from editing operations (which are always element-local, since INSERT and DELETE widths measure content within a single subspace) cannot cross subspace boundaries. This is an algebraic property of `⊕` and `⊖` for element-local operands — it constrains the arithmetic independent of any particular operation.
 
