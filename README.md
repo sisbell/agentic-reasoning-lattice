@@ -69,10 +69,24 @@ Formal specification of the Xanadu hypertext system (udanax-green), derived from
           |
           v
 +-------------------+
-|   generate-dafny  |  verified specification
+|   generate-dafny  |  Dafny module
 +-------------------+
           |
           v
+  +-------------------+
++-|   verify-dafny    |  dafny verify + tier classify
+| +-------------------+
+|         |
+|    pass | fail
+|         v
+| +-------------------+
+| |    fix-dafny      |  LLM-assisted fix (Tier 1/2)
+| +-------------------+
+|         |
+|  retry  |  Tier 3 → escalation report
++---------+           → re-review ASN
+          |
+          v (verified)
     +-----------+
     |  commit   |
     +-----------+
@@ -139,6 +153,29 @@ Output:
 - `vault/formalization/extracts/ASN-NNNN-extract.md`
 - `vault/modeling/dafny/ASN-NNNN.dfy`
 
+### Verification — verify Dafny module with fix loop
+
+Run after generating a Dafny module. Three-tier failure handling with automatic
+fix attempts and escalation. See [`docs/dafny-verification-loop.md`](docs/dafny-verification-loop.md).
+
+```
+python scripts/run-dafny.py 4                     # verify + fix loop
+python scripts/run-dafny.py 4 --full               # contract → extract → generate → verify loop
+python scripts/run-dafny.py 4 --max-tier1 3        # up to 3 Tier 1 (syntax) fix attempts
+python scripts/run-dafny.py 4 --max-tier2 2        # up to 2 Tier 2 (proof) fix attempts
+python scripts/run-dafny.py 4 --dry-run            # check paths, no execution
+```
+
+**Tiers:** Tier 1 = syntax/type errors (auto-fix). Tier 2 = proof-structural errors
+(fix with extract context). Tier 3 = spec errors (escape to ASN review cycle).
+
+**Escalation:** Tier 1 → 3 attempts → Tier 2. Tier 2 → 2 attempts → Tier 3.
+Tier 3 writes an escalation report to `vault/formalization/verification/`.
+
+Output:
+- `vault/formalization/verification/ASN-NNNN-verify-N.md` (verification reports)
+- `vault/formalization/verification/ASN-NNNN-escalation.md` (Tier 3 escalation)
+
 ### Triage — promote ASN open questions to new inquiries
 
 ```
@@ -187,6 +224,9 @@ python scripts/commit.py "hint about changes" # commit with context hint
 | `contract-asn.py` | Classify properties and assign Dafny names (opus, post-convergence) |
 | `extract-properties.py` | Extract formal property statements from ASN prose (sonnet) |
 | `generate-dafny.py` | Generate Dafny specification module from extract (opus) |
+| `run-dafny.py` | Verification loop — verify → fix → re-verify with tier escalation |
+| `verify-dafny.py` | Run `dafny verify`, parse errors, classify by tier |
+| `fix-dafny.py` | LLM-assisted Dafny fix from verification errors (sonnet) |
 | `commit.py` | Commit vault changes with descriptive messages (sonnet) |
 | `consult_experts.py` | Decompose inquiry into sub-questions, run all consultations |
 | `discover.py` | Synthesize expert consultation answers into a formal ASN |
@@ -218,6 +258,7 @@ python scripts/commit.py "hint about changes" # commit with context hint
 | `refine.md` | `contract-asn.py` | Property classification and Dafny naming |
 | `extract-properties.md` | `extract-properties.py` | Extract formal properties from ASN |
 | `generate-dafny.md` | `generate-dafny.py` | Generate Dafny module from extract |
+| `fix-dafny.md` | `fix-dafny.py` | Fix Dafny errors (Tier 1 syntax, Tier 2 proof) |
 
 ### Shared prompts (`scripts/prompts/`)
 
@@ -244,6 +285,7 @@ vault/
   formalization/    — Working artifacts of encoding the model
     contracts/      — Property contracts (ASN-NNNN-contract.md) — type + Dafny name mappings
     extracts/       — Extracted formal properties (ASN-NNNN-extract.md)
+    verification/   — Verification reports + escalation files
 
   usage-log.jsonl   — API call tracking
 

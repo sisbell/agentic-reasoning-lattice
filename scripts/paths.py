@@ -21,6 +21,7 @@ TRIAGE_DIR = VAULT / "discovery" / "triage"
 # Formalization — working artifacts of encoding the model
 CONTRACTS_DIR = VAULT / "formalization" / "contracts"
 EXTRACTS_DIR = VAULT / "formalization" / "extracts"
+VERIFICATION_DIR = VAULT / "formalization" / "verification"
 
 # Requirements — Nelson's design features
 REQUIREMENTS_DIR = VAULT / "requirements"
