@@ -21,5 +21,8 @@ TRIAGE_DIR = VAULT / "discovery" / "triage"
 CONTRACTS_DIR = VAULT / "formalization" / "contracts"
 EXTRACTS_DIR = VAULT / "formalization" / "extracts"
 
+# Requirements — Nelson's design features
+REQUIREMENTS_DIR = VAULT / "requirements"
+
 # Shared
 USAGE_LOG = VAULT / "usage-log.jsonl"
