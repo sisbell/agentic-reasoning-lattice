@@ -2,6 +2,8 @@
 
 *Source: ASN-0001-tumbler-algebra.md (revised 2026-02-23) — Contract generated: 2026-03-01*
 
+*Source: ASN-0001-tumbler-algebra.md (revised 2026-02-23) — Contract generated: 2026-03-01*
+
 | ASN Label | Dafny Name | Type | Construct | Notes |
 |-----------|------------|------|-----------|-------|
 | T0 | UnboundedComponents | INV | predicate(Tumbler) | axiom on carrier set |
