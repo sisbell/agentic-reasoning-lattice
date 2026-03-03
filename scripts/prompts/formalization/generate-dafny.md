@@ -67,6 +67,18 @@ datatype State = State(
 
 Extend or adjust these types as needed by the properties.
 
+{{#if alloy_models}}
+## Alloy Reference Models (conceptual reference only)
+
+The following Alloy bounded model checking translations were generated for
+each property. They capture one formalization of the property's intent.
+Use them to understand structure and edge cases, but:
+- Do NOT adopt Alloy's relational idioms (sigs, dot join, set comprehensions)
+- Do NOT mirror the Alloy model structure — use Dafny datatypes and pure functions
+- The contract and extract are authoritative; Alloy models are supplementary
+
+{{alloy_models}}
+{{/if}}
 ## Vocabulary
 
 {{vocabulary}}

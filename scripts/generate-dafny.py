@@ -22,7 +22,7 @@ import time
 
 from pathlib import Path
 
-from paths import WORKSPACE, EXTRACTS_DIR, DAFNY_DIR, VOCABULARY, USAGE_LOG
+from paths import WORKSPACE, EXTRACTS_DIR, DAFNY_DIR, ALLOY_DIR, VOCABULARY, USAGE_LOG
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"
 TEMPLATE = PROMPTS_DIR / "generate-dafny.md"
@@ -47,7 +47,35 @@ def find_extract(asn_id):
     return None, label
 
 
-def build_prompt(extract, vocabulary):
+def find_alloy_models(asn_label):
+    """Find Alloy .als files from the latest run directory for an ASN."""
+    asn_dir = ALLOY_DIR / asn_label
+    if not asn_dir.exists():
+        return []
+
+    # Find highest-numbered run-* directory
+    run_dirs = sorted(asn_dir.glob("run-*"), key=lambda p: int(p.name.split("-")[1]))
+    if not run_dirs:
+        return []
+
+    latest = run_dirs[-1]
+    print(f"  Alloy models: {latest.relative_to(WORKSPACE)}", file=sys.stderr)
+
+    models = []
+    for als in sorted(latest.glob("*.als")):
+        models.append((als.name, als.read_text()))
+    return models
+
+
+def format_alloy_section(models):
+    """Format Alloy models as markdown for prompt injection."""
+    parts = []
+    for filename, content in models:
+        parts.append(f"### {filename}\n\n```alloy\n{content}\n```")
+    return "\n\n---\n\n".join(parts)
+
+
+def build_prompt(extract, vocabulary, alloy_content=""):
     """Assemble Dafny generation prompt from template + injected content."""
     template = read_file(TEMPLATE)
     if not template:
@@ -55,7 +83,18 @@ def build_prompt(extract, vocabulary):
               file=sys.stderr)
         sys.exit(1)
 
+    # Handle {{#if alloy_models}} conditional
+    if alloy_content:
+        template = re.sub(r"\{\{#if alloy_models\}\}", "", template)
+        template = re.sub(r"\{\{/if\}\}", "", template, count=1)
+    else:
+        template = re.sub(
+            r"\{\{#if alloy_models\}\}.*?\{\{/if\}\}", "", template,
+            flags=re.DOTALL, count=1)
+
     return template.replace(
+        "{{alloy_models}}", alloy_content
+    ).replace(
         "{{extract}}", extract
     ).replace(
         "{{vocabulary}}", vocabulary
@@ -150,6 +189,8 @@ def main():
                         help="Model (default: opus)")
     parser.add_argument("--effort", default="max",
                         help="Thinking effort level (low/medium/high/max)")
+    parser.add_argument("--with-alloy", action="store_true",
+                        help="Inject Alloy models as conceptual reference")
     parser.add_argument("--dry-run", action="store_true",
                         help="Show prompt size without invoking Claude")
     args = parser.parse_args()
@@ -170,9 +211,21 @@ def main():
     if not vocabulary:
         print("  Warning: vault/modeling/vocabulary.md not found", file=sys.stderr)
 
+    # Alloy reference models (optional)
+    alloy_content = ""
+    if args.with_alloy:
+        models = find_alloy_models(asn_label)
+        if models:
+            alloy_content = format_alloy_section(models)
+            print(f"  Alloy: {len(models)} models ({len(alloy_content) // 1024}KB)",
+                  file=sys.stderr)
+        else:
+            print(f"  Warning: --with-alloy but no models found for {asn_label}",
+                  file=sys.stderr)
+
     # Build prompt
     print(f"  [DAFNY] {asn_label}", file=sys.stderr)
-    prompt = build_prompt(extract, vocabulary)
+    prompt = build_prompt(extract, vocabulary, alloy_content)
     print(f"  Prompt: {len(prompt) // 1024}KB (~{len(prompt) // 4} tokens est.)",
           file=sys.stderr)
 
