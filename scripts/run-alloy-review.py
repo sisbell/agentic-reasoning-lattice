@@ -34,6 +34,7 @@ PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"
 TEMPLATE = PROMPTS_DIR / "check-alloy.md"
 PROPERTY_TEMPLATE = PROMPTS_DIR / "check-alloy-property.md"
 FIX_TEMPLATE = PROMPTS_DIR / "fix-alloy.md"
+REVIEW_TEMPLATE = PROMPTS_DIR / "write-alloy-review.md"
 SYNTAX_REF = PROMPTS_DIR / "alloy-syntax.md"
 
 MAX_TIER1 = 3
@@ -278,8 +279,8 @@ def build_prompt(extract, output_name, with_reference=False):
 
 
 def invoke_claude(prompt, out_path, model="sonnet", effort=None,
-                  is_fix=False):
-    """Call claude -p with Write tool to generate the .als file directly."""
+                  is_fix=False, write_instruction=None):
+    """Call claude -p with Write tool to generate a file directly."""
     model_flag = {
         "opus": "claude-opus-4-6",
         "sonnet": "claude-sonnet-4-6",
@@ -298,7 +299,12 @@ def invoke_claude(prompt, out_path, model="sonnet", effort=None,
     env = os.environ.copy()
     env.pop("CLAUDECODE", None)
 
-    if is_fix:
+    if write_instruction:
+        full_prompt = f"""{prompt}
+
+{write_instruction}: {out_path}
+"""
+    elif is_fix:
         full_prompt = f"""{prompt}
 
 First read the file at: {out_path}
@@ -674,10 +680,76 @@ def next_run_number(asn_label):
     return max(nums, default=0) + 1
 
 
-def generate_review(asn_label, results, properties, run_num=None):
-    """Generate a review markdown from Alloy check results.
+def build_review_evidence(results, properties):
+    """Build the counterexample evidence section for the review prompt.
 
-    Only produces a review if there are counterexamples or syntax errors.
+    Returns (evidence_text, passed_summary).
+    """
+    prop_by_label = {p["label"]: p for p in properties}
+    evidence_parts = []
+    issue_num = 0
+
+    failures = [r for r in results
+                if r["status"] in ("counterexample", "syntax-error")]
+
+    for r in failures:
+        issue_num += 1
+        prop = prop_by_label.get(r["label"], {})
+        try:
+            als_rel = r["als_path"].relative_to(WORKSPACE)
+        except ValueError:
+            als_rel = r["als_path"]
+
+        part = [f"### {r['label']} — {r['name']} ({r['status']})\n"]
+
+        # ASN property statement
+        prop_body = prop.get("body", "")
+        if prop_body:
+            part.append("**ASN property statement**:\n")
+            part.append(prop_body.strip())
+            part.append("")
+
+        # Alloy model source
+        als_path = r.get("als_path")
+        if als_path and als_path.exists():
+            als_source = als_path.read_text()
+            part.append(f"**Alloy model** (`{als_rel}`):\n```alloy")
+            part.append(als_source.strip())
+            part.append("```\n")
+
+        # Checker output
+        alloy_out = r.get("alloy_output", "")
+        if alloy_out:
+            part.append("**Alloy checker output**:\n```")
+            part.append(alloy_out[:2000])
+            part.append("```\n")
+
+        evidence_parts.append("\n".join(part))
+
+    evidence_text = "\n---\n\n".join(evidence_parts) if evidence_parts else "None"
+
+    # Passed summary
+    passed = [r for r in results if r["status"] == "pass"]
+    if passed:
+        labels = ", ".join(r["label"] for r in passed)
+        passed_summary = (
+            f"{len(passed)} properties passed bounded check (no "
+            f"counterexamples within scope): {labels}"
+        )
+    else:
+        passed_summary = "None"
+
+    return evidence_text, passed_summary
+
+
+def generate_review(asn_label, results, properties, run_num=None,
+                    asn_path=None, model="opus", effort=None):
+    """Generate a review by calling an LLM to analyze counterexample evidence.
+
+    Accumulates all counterexample data (ASN property, Alloy model, checker
+    output), injects it alongside the full ASN, and asks Opus to write an
+    intelligent review that classifies each finding.
+
     Returns the review path, or None if all passed.
     """
     failures = [r for r in results
@@ -685,123 +757,52 @@ def generate_review(asn_label, results, properties, run_num=None):
     if not failures:
         return None
 
-    # Build a property lookup for body text
-    prop_by_label = {p["label"]: p for p in properties}
+    # Load review prompt template
+    template = read_file(REVIEW_TEMPLATE)
+    if not template:
+        print("  Review template not found at "
+              "scripts/prompts/formalization/write-alloy-review.md",
+              file=sys.stderr)
+        return None
 
+    # Read the full ASN for context
+    asn_text = ""
+    if asn_path:
+        asn_text = read_file(asn_path)
+    if not asn_text:
+        # Fallback to extract
+        extract_path = EXTRACTS_DIR / f"{asn_label}-extract.md"
+        asn_text = read_file(extract_path)
+
+    # Build evidence from results
+    evidence_text, passed_summary = build_review_evidence(results, properties)
+
+    # Assemble prompt
+    prompt = template.replace(
+        "{{asn_text}}", asn_text
+    ).replace(
+        "{{counterexample_evidence}}", evidence_text
+    ).replace(
+        "{{passed_summary}}", passed_summary
+    )
+
+    # Determine review path
     REVIEWS_DIR.mkdir(parents=True, exist_ok=True)
     review_num = next_review_number(asn_label)
     review_path = REVIEWS_DIR / f"{asn_label}-review-{review_num}.md"
 
-    lines = [f"# Review of {asn_label}\n"]
-    if run_num is not None:
-        lines.append(f"Based on Alloy run-{run_num}\n")
-    lines.append("## REVISE\n")
+    print(f"  [REVIEW] Calling {model} to analyze {len(failures)} "
+          f"counterexample(s)...", file=sys.stderr)
+    print(f"  [REVIEW] Prompt: {len(prompt) // 1024}KB", file=sys.stderr)
 
-    issue_num = 0
-    for r in failures:
-        issue_num += 1
-        prop = prop_by_label.get(r["label"], {})
-        prop_type = prop.get("type", "?")
-        try:
-            als_rel = r["als_path"].relative_to(WORKSPACE)
-        except ValueError:
-            als_rel = r["als_path"]
+    success, elapsed = invoke_claude(prompt, review_path, model=model,
+                                      effort=effort,
+                                      write_instruction="Write the review to")
 
-        if r["status"] == "counterexample":
-            lines.append(
-                f"### Issue {issue_num}: {r['label']} — "
-                f"Alloy counterexample\n"
-            )
-            lines.append(
-                f"**{asn_label}, {r['label']} {r['name']}** ({prop_type}): "
-                f"Alloy bounded model checking found a counterexample.\n"
-            )
-            lines.append(
-                f"**Problem**: The Alloy model at `{als_rel}` produced a "
-                f"counterexample at bounded scope, suggesting the property "
-                f"as stated may be too strong, missing a precondition, or "
-                f"the model may not faithfully represent the ASN's intent.\n"
-            )
-            # Include ASN property statement
-            prop_body = prop.get("body", "")
-            if prop_body:
-                lines.append("**ASN property statement**:\n")
-                lines.append(prop_body.strip())
-                lines.append("")
-            # Include Alloy model source
-            als_path = r.get("als_path")
-            if als_path and als_path.exists():
-                als_source = als_path.read_text()
-                lines.append(f"**Alloy model** (`{als_rel}`):\n```alloy")
-                lines.append(als_source.strip())
-                lines.append("```\n")
-            # Include Alloy checker output
-            alloy_out = r.get("alloy_output", "")
-            if alloy_out:
-                lines.append("**Alloy checker output**:\n```")
-                lines.append(alloy_out[:2000])
-                lines.append("```\n")
-            lines.append(
-                f"**Required**: Investigate whether the counterexample "
-                f"reveals a genuine spec issue (missing precondition, "
-                f"over-strong claim) or a modeling artifact. If the "
-                f"property needs revision, update the formal statement "
-                f"in the ASN.\n"
-            )
-        elif r["status"] == "syntax-error":
-            lines.append(
-                f"### Issue {issue_num}: {r['label']} — "
-                f"Alloy syntax/type error\n"
-            )
-            lines.append(
-                f"**{asn_label}, {r['label']} {r['name']}** ({prop_type}): "
-                f"The generated Alloy model has a syntax or type error.\n"
-            )
-            # Include error details
-            alloy_out = r.get("alloy_output", "")
-            error_lines = [
-                l.strip() for l in alloy_out.split("\n")
-                if "error" in l.lower()
-                and not l.strip().startswith("---")
-            ][:5]
-            if error_lines:
-                lines.append(
-                    f"**Problem**: "
-                    + "; ".join(error_lines) + "\n"
-                )
-            else:
-                lines.append(
-                    f"**Problem**: Alloy could not parse or type-check "
-                    f"the model at `{als_rel}`.\n"
-                )
-            lines.append(
-                f"**Required**: Regenerate the Alloy model. If the error "
-                f"persists across regenerations, the property statement "
-                f"in the ASN may be ambiguous or under-specified.\n"
-            )
+    if not success or not review_path.exists():
+        print(f"  [REVIEW] LLM review generation failed", file=sys.stderr)
+        return None
 
-    # DEFER section for passes (informational)
-    passed = [r for r in results if r["status"] == "pass"]
-    if passed:
-        lines.append("## DEFER\n")
-        lines.append(
-            f"### Topic 1: {len(passed)} properties passed bounded check\n"
-        )
-        labels = ", ".join(r["label"] for r in passed)
-        lines.append(
-            f"Properties {labels} passed Alloy bounded model checking "
-            f"with no counterexamples found. Note: bounded checking is "
-            f"not a proof — it only searches within a finite scope.\n"
-        )
-        lines.append(
-            f"**Why defer**: No action needed. Passing bounded check "
-            f"increases confidence but does not constitute verification.\n"
-        )
-
-    verdict = "CONVERGED" if not failures else "REVISE"
-    lines.append(f"VERDICT: {verdict}\n")
-
-    review_path.write_text("\n".join(lines))
     return review_path
 
 
@@ -1093,7 +1094,8 @@ def main():
     # Phase 3: Generate review → consult → revise → commit
     if not args.skip_check and not args.dry_run:
         review_path = generate_review(asn_label, results, properties,
-                                       run_num=run_num)
+                                       run_num=run_num,
+                                       asn_path=asn_path)
         if review_path:
             print(f"\n  [REVIEW] {review_path.relative_to(WORKSPACE)}",
                   file=sys.stderr)
