@@ -293,11 +293,11 @@ def invoke_claude(prompt, out_path, model="sonnet", effort=None,
         "--max-turns", "16",
         "--tools", "Read,Write",
         "--allowedTools", "Read,Write",
-        "--effort", effort or "high",
     ]
 
     env = os.environ.copy()
     env.pop("CLAUDECODE", None)
+    env["CLAUDE_CODE_EFFORT_LEVEL"] = effort or "high"
 
     if write_instruction:
         full_prompt = f"""{prompt}
