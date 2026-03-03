@@ -648,21 +648,33 @@ def print_summary(asn_label, results):
     print(f"{'='*60}", file=sys.stderr)
 
 
-def next_alloy_review_number(asn_label):
-    """Find the next alloy-review number for this ASN."""
-    existing = sorted(REVIEWS_DIR.glob(f"{asn_label}-alloy-review-*.md"))
+def next_review_number(asn_label):
+    """Find the next review number for this ASN (shared sequence with all reviews)."""
+    existing = sorted(REVIEWS_DIR.glob(f"{asn_label}-review-*.md"))
     if not existing:
         return 1
-    # Extract max number from existing files
     nums = []
     for p in existing:
-        m = re.search(r"-alloy-review-(\d+)\.md$", p.name)
+        m = re.search(r"-review-(\d+)\.md$", p.name)
         if m:
             nums.append(int(m.group(1)))
     return max(nums, default=0) + 1
 
 
-def generate_review(asn_label, results, properties):
+def next_run_number(asn_label):
+    """Find the next Alloy run number for this ASN (independent of review numbers)."""
+    existing = sorted((ALLOY_DIR / asn_label).glob("run-*"))
+    if not existing:
+        return 1
+    nums = []
+    for p in existing:
+        m = re.search(r"run-(\d+)$", p.name)
+        if m:
+            nums.append(int(m.group(1)))
+    return max(nums, default=0) + 1
+
+
+def generate_review(asn_label, results, properties, run_num=None):
     """Generate a review markdown from Alloy check results.
 
     Only produces a review if there are counterexamples or syntax errors.
@@ -677,10 +689,12 @@ def generate_review(asn_label, results, properties):
     prop_by_label = {p["label"]: p for p in properties}
 
     REVIEWS_DIR.mkdir(parents=True, exist_ok=True)
-    review_num = next_alloy_review_number(asn_label)
-    review_path = REVIEWS_DIR / f"{asn_label}-alloy-review-{review_num}.md"
+    review_num = next_review_number(asn_label)
+    review_path = REVIEWS_DIR / f"{asn_label}-review-{review_num}.md"
 
     lines = [f"# Review of {asn_label}\n"]
+    if run_num is not None:
+        lines.append(f"Based on Alloy run-{run_num}\n")
     lines.append("## REVISE\n")
 
     issue_num = 0
@@ -708,10 +722,23 @@ def generate_review(asn_label, results, properties):
                 f"as stated may be too strong, missing a precondition, or "
                 f"the model may not faithfully represent the ASN's intent.\n"
             )
-            # Include Alloy output
+            # Include ASN property statement
+            prop_body = prop.get("body", "")
+            if prop_body:
+                lines.append("**ASN property statement**:\n")
+                lines.append(prop_body.strip())
+                lines.append("")
+            # Include Alloy model source
+            als_path = r.get("als_path")
+            if als_path and als_path.exists():
+                als_source = als_path.read_text()
+                lines.append(f"**Alloy model** (`{als_rel}`):\n```alloy")
+                lines.append(als_source.strip())
+                lines.append("```\n")
+            # Include Alloy checker output
             alloy_out = r.get("alloy_output", "")
             if alloy_out:
-                lines.append("**Alloy output**:\n```")
+                lines.append("**Alloy checker output**:\n```")
                 lines.append(alloy_out[:2000])
                 lines.append("```\n")
             lines.append(
@@ -845,7 +872,7 @@ def step_consult(asn_id, review_path):
     cmd = [sys.executable, str(CONSULT_SCRIPT), str(asn_id)]
 
     review_name = Path(review_path).stem
-    m = re.search(r"(alloy-review-\d+)", review_name)
+    m = re.search(r"(review-\d+)", review_name)
     if m:
         cmd.append(m.group(1))
 
@@ -942,7 +969,7 @@ def main():
     parser.add_argument("--dry-run", action="store_true",
                         help="Show property list and prompt sizes")
     parser.add_argument("--property", "-p", default=None,
-                        help="Check a single property by label (e.g., T1, TA3)")
+                        help="Check specific properties by label, comma-separated (e.g., T1,T3,TA0)")
     parser.add_argument("--all-in-one", action="store_true",
                         help="Monolithic mode: single .als for all properties")
     parser.add_argument("--no-revise", action="store_true",
@@ -989,23 +1016,42 @@ def main():
         print(f"  No properties found in extract", file=sys.stderr)
         sys.exit(1)
 
-    # Filter to single property if requested
+    # Filter to specific properties if requested
     if args.property:
-        target = args.property
-        matches = [p for p in properties if p["label"] == target]
-        if not matches:
-            # Try case-insensitive prefix match
-            matches = [p for p in properties
-                       if p["label"].lower().startswith(target.lower())]
-        if not matches:
-            print(f"  No property matching '{target}'", file=sys.stderr)
-            print(f"  Available: {', '.join(p['label'] for p in properties)}",
-                  file=sys.stderr)
-            sys.exit(1)
+        targets = [t.strip() for t in args.property.split(",")]
+        matches = []
+        for target in targets:
+            found = [p for p in properties if p["label"] == target]
+            if not found:
+                # Try case-insensitive prefix match
+                found = [p for p in properties
+                         if p["label"].lower().startswith(target.lower())]
+            if not found:
+                print(f"  No property matching '{target}'", file=sys.stderr)
+                print(f"  Available: {', '.join(p['label'] for p in properties)}",
+                      file=sys.stderr)
+                sys.exit(1)
+            matches.extend(found)
         properties = matches
 
-    out_dir = ALLOY_DIR / asn_label
-    out_dir.mkdir(parents=True, exist_ok=True)
+    if args.recheck:
+        # Find the latest run directory
+        existing = sorted(
+            (ALLOY_DIR / asn_label).glob("run-*"),
+            key=lambda p: int(re.search(r"run-(\d+)", p.name).group(1))
+                if re.search(r"run-(\d+)", p.name) else 0
+        )
+        if not existing:
+            print("  No existing run directory to recheck", file=sys.stderr)
+            sys.exit(1)
+        out_dir = existing[-1]
+        m = re.search(r"run-(\d+)", out_dir.name)
+        run_num = int(m.group(1)) if m else 1
+        print(f"  [RECHECK] Using {out_dir.name}", file=sys.stderr)
+    else:
+        run_num = next_run_number(asn_label)
+        out_dir = ALLOY_DIR / asn_label / f"run-{run_num}"
+        out_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"  {asn_label} — {len(properties)} properties, "
           f"definitions {len(definitions)}B", file=sys.stderr)
@@ -1046,7 +1092,8 @@ def main():
 
     # Phase 3: Generate review → consult → revise → commit
     if not args.skip_check and not args.dry_run:
-        review_path = generate_review(asn_label, results, properties)
+        review_path = generate_review(asn_label, results, properties,
+                                       run_num=run_num)
         if review_path:
             print(f"\n  [REVIEW] {review_path.relative_to(WORKSPACE)}",
                   file=sys.stderr)
