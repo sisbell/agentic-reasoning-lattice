@@ -30,7 +30,8 @@ import time
 
 from pathlib import Path
 
-from paths import WORKSPACE, ASNS_DIR, ALLOY_DIR, EXTRACTS_DIR, REVIEWS_DIR, USAGE_LOG, sorted_reviews
+from paths import (WORKSPACE, ASNS_DIR, ALLOY_DIR, EXTRACTS_DIR, REVIEWS_DIR,
+                    USAGE_LOG, sorted_reviews, next_review_number)
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"
 TEMPLATE = PROMPTS_DIR / "check-alloy.md"
@@ -580,19 +581,6 @@ def print_summary(asn_label, results):
 
     print(f"\n  {' | '.join(parts)}", file=sys.stderr)
     print(f"{'='*60}", file=sys.stderr)
-
-
-def next_review_number(asn_label):
-    """Find the next review number for this ASN (shared sequence with all reviews)."""
-    existing = sorted(REVIEWS_DIR.glob(f"{asn_label}-review-*.md"))
-    if not existing:
-        return 1
-    nums = []
-    for p in existing:
-        m = re.search(r"-review-(\d+)\.md$", p.name)
-        if m:
-            nums.append(int(m.group(1)))
-    return max(nums, default=0) + 1
 
 
 def next_run_number(asn_label):

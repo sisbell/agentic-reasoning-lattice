@@ -18,6 +18,7 @@ TRANSCRIPTS_DIR = VAULT / "discovery" / "transcripts"
 REVIEWS_DIR = VAULT / "discovery" / "reviews"
 TRIAGE_DIR = VAULT / "discovery" / "triage"
 ALLOY_DIR = VAULT / "discovery" / "alloy"
+DAFNY_DISCOVERY_DIR = VAULT / "discovery" / "dafny"
 
 # Formalization — working artifacts of encoding the model
 CONTRACTS_DIR = VAULT / "formalization" / "contracts"
@@ -41,3 +42,16 @@ def sorted_reviews(asn_label, reviews_dir=None):
     """Return review files for an ASN, sorted by numeric review number."""
     d = reviews_dir or REVIEWS_DIR
     return sorted(d.glob(f"{asn_label}-review-*.md"), key=_review_sort_key)
+
+
+def next_review_number(asn_label):
+    """Find the next review number for this ASN (shared sequence with all reviews)."""
+    existing = sorted(REVIEWS_DIR.glob(f"{asn_label}-review-*.md"))
+    if not existing:
+        return 1
+    nums = []
+    for p in existing:
+        m = re.search(r"-review-(\d+)\.md$", p.name)
+        if m:
+            nums.append(int(m.group(1)))
+    return max(nums, default=0) + 1
