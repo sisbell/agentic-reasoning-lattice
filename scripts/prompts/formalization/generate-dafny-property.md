@@ -37,10 +37,25 @@ output file in that module's directory.
 Use the functions and predicates defined in the stable foundation for
 domain-specific operations (ordering, arithmetic, etc.).
 
+## Dafny reference
+
+Study these verified patterns carefully. Dafny is not Boogie, Why3, or Coq.
+
+```dafny
+{{dafny_reference}}
+```
+
 ## Stable foundation
 
-The verified foundation module. Import it with `import opened`. Do not
-redefine anything already defined here.
+The verified foundation module. Your output file lives in the same
+directory. Start your file with:
+
+```dafny
+include "{{stable_root_filename}}"
+```
+
+Then import it with `import opened`. Do not redefine anything already
+defined here.
 
 ```dafny
 {{stable_root}}
@@ -107,9 +122,11 @@ function SomeOperation(s: State, args: ...): (s': State)
 
 ## Output
 
-Produce a single Dafny file containing one module with one declaration.
-The module imports the foundation, includes the ASN label as a comment for
-traceability, and contains only the declaration being translated (plus any
-helpers it needs that aren't in the foundation).
+Reply with raw Dafny source code only. No markdown fences, no commentary,
+no tool calls, no explanation — just the Dafny code starting with
+`include` or `module`.
 
-Write only Dafny source code — no markdown fences, no commentary.
+The code should contain one module with one declaration. The module imports
+the foundation, includes the ASN label as a comment for traceability, and
+contains only the declaration being translated (plus any helpers it needs
+that aren't in the foundation).
