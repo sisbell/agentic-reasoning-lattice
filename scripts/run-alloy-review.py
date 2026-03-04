@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
-Alloy review pipeline — generate → check → repair → review → consult → revise → commit.
+Alloy review pipeline — generate+check → review → consult → revise → commit.
 
 Per-property: parses the extract into individual properties, generates one .als
-per property, checks each with a tiered repair loop, produces a review if failures
-remain, then feeds the review into the consult → revise → commit cycle.
+per property using an agentic Claude session (with Bash access to run Alloy
+and self-fix syntax errors), produces a review if failures remain, then feeds
+the review into the consult → revise → commit cycle.
 
 Requires: extract file in vault/formalization/extracts/ (run extract-properties.py first)
 Requires: Alloy installed at /Applications/Alloy.app (macOS) or ALLOY_JAR set.
@@ -16,6 +17,7 @@ Usage:
     python scripts/run-alloy-review.py 1 --skip-check       # generate only
     python scripts/run-alloy-review.py 1 --dry-run           # show property list
     python scripts/run-alloy-review.py 1 --all-in-one        # monolithic mode
+    python scripts/run-alloy-review.py 1 --max-turns 16      # more agentic turns
 """
 
 import argparse
@@ -33,12 +35,8 @@ from paths import WORKSPACE, ASNS_DIR, ALLOY_DIR, EXTRACTS_DIR, REVIEWS_DIR, USA
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"
 TEMPLATE = PROMPTS_DIR / "check-alloy.md"
 PROPERTY_TEMPLATE = PROMPTS_DIR / "check-alloy-property.md"
-FIX_TEMPLATE = PROMPTS_DIR / "fix-alloy.md"
 REVIEW_TEMPLATE = PROMPTS_DIR / "write-alloy-review.md"
 SYNTAX_REF = PROMPTS_DIR / "alloy-syntax.md"
-
-MAX_TIER1 = 3
-MAX_TIER2 = 2
 
 ALLOY_JAR_DEFAULT = (
     "/Applications/Alloy.app/Contents/Resources/org.alloytools.alloy.dist.jar"
@@ -50,33 +48,6 @@ def read_file(path):
         return Path(path).read_text()
     except FileNotFoundError:
         return ""
-
-
-def annotate_errors(alloy_output, als_path):
-    """Enrich Alloy error output with the offending source lines.
-
-    Alloy errors say 'at line N column C' but don't show the source.
-    This parses those references and appends the actual line for context.
-    """
-    source_lines = read_file(als_path).split("\n")
-    if not source_lines:
-        return alloy_output
-
-    annotations = []
-    for m in re.finditer(r"at line (\d+) column (\d+)", alloy_output):
-        lineno = int(m.group(1))
-        col = int(m.group(2))
-        if 1 <= lineno <= len(source_lines):
-            src = source_lines[lineno - 1]
-            pointer = " " * (col - 1) + "^"
-            annotations.append(
-                f"Line {lineno}: {src}\n"
-                f"        {pointer}"
-            )
-
-    if annotations:
-        return alloy_output + "\n\nSource context:\n" + "\n".join(annotations)
-    return alloy_output
 
 
 def find_asn(asn_id):
@@ -181,46 +152,6 @@ def build_property_prompt(definitions, prop, syntax_ref=""):
     )
 
 
-def build_fix_prompt(als_path, errors, definitions=None, prop=None,
-                     syntax_ref=""):
-    """Assemble a fix prompt for a failed Alloy model.
-
-    Tier 1 (no definitions/prop): errors + .als code only.
-    Tier 2 (with definitions/prop): adds property context.
-    """
-    template = read_file(FIX_TEMPLATE)
-    if not template:
-        print("  Fix template not found at "
-              "scripts/prompts/formalization/fix-alloy.md",
-              file=sys.stderr)
-        return None
-
-    alloy_code = read_file(als_path)
-
-    # Handle conditional property context section
-    property_context = ""
-    if definitions and prop:
-        property_context = definitions + "\n\n" + prop["body"]
-
-    if property_context:
-        template = re.sub(r"\{\{#if property_context\}\}", "", template)
-        template = re.sub(r"\{\{/if\}\}", "", template, count=1)
-    else:
-        template = re.sub(
-            r"\{\{#if property_context\}\}.*?\{\{/if\}\}", "", template,
-            flags=re.DOTALL, count=1)
-
-    return template.replace(
-        "{{syntax_reference}}", syntax_ref
-    ).replace(
-        "{{alloy_code}}", alloy_code
-    ).replace(
-        "{{errors}}", errors
-    ).replace(
-        "{{property_context}}", property_context
-    )
-
-
 def classify_alloy_error(alloy_output):
     """Classify Alloy output as syntax-error, counterexample, or pass."""
     if not alloy_output:
@@ -278,9 +209,17 @@ def build_prompt(extract, output_name, with_reference=False):
     )
 
 
-def invoke_claude(prompt, out_path, model="sonnet", effort=None,
-                  is_fix=False, write_instruction=None):
-    """Call claude -p with Write tool to generate a file directly."""
+AGENT_TIMEOUT = 900  # 15 minutes
+
+
+def invoke_claude(prompt, out_path, model="opus", effort=None,
+                  max_turns=12, write_instruction=None,
+                  tools="Read,Write,Bash", timeout=AGENT_TIMEOUT):
+    """Call claude -p in agent mode to generate a file.
+
+    Default tools include Bash so the agent can self-check Alloy models.
+    Returns (success, elapsed, cost).  On timeout raises subprocess.TimeoutExpired.
+    """
     model_flag = {
         "opus": "claude-opus-4-6",
         "sonnet": "claude-sonnet-4-6",
@@ -290,9 +229,9 @@ def invoke_claude(prompt, out_path, model="sonnet", effort=None,
         "claude", "-p",
         "--model", model_flag,
         "--output-format", "json",
-        "--max-turns", "16",
-        "--tools", "Read,Write",
-        "--allowedTools", "Read,Write",
+        "--max-turns", str(max_turns),
+        "--tools", tools,
+        "--allowedTools", tools,
     ]
 
     env = os.environ.copy()
@@ -304,12 +243,6 @@ def invoke_claude(prompt, out_path, model="sonnet", effort=None,
 
 {write_instruction}: {out_path}
 """
-    elif is_fix:
-        full_prompt = f"""{prompt}
-
-First read the file at: {out_path}
-Then write the corrected Alloy model to: {out_path}
-"""
     else:
         full_prompt = f"""{prompt}
 
@@ -319,23 +252,24 @@ Write the complete Alloy model to: {out_path}
     start = time.time()
     result = subprocess.run(
         cmd, input=full_prompt, capture_output=True, text=True, env=env,
-        cwd=str(WORKSPACE), timeout=None,
+        cwd=str(WORKSPACE), timeout=timeout,
     )
     elapsed = time.time() - start
 
+    cost = 0.0
     if result.returncode != 0:
         print(f"  FAILED (exit {result.returncode}, {elapsed:.0f}s)",
               file=sys.stderr)
         if result.stderr:
             for line in result.stderr.strip().split("\n")[:3]:
                 print(f"    {line}", file=sys.stderr)
-        return False, elapsed
+        return False, elapsed, cost
 
     # Parse JSON for usage stats
     try:
         data = json.loads(result.stdout)
         usage = data.get("usage", {})
-        cost = data.get("total_cost_usd", 0)
+        cost = data.get("total_cost_usd", 0) or 0.0
         inp = (usage.get("input_tokens", 0) +
                usage.get("cache_read_input_tokens", 0) +
                usage.get("cache_creation_input_tokens", 0))
@@ -349,7 +283,7 @@ Write the complete Alloy model to: {out_path}
     except (json.JSONDecodeError, KeyError):
         print(f"  [{elapsed:.0f}s]", file=sys.stderr)
 
-    return True, elapsed
+    return True, elapsed, cost
 
 
 def run_alloy(als_path):
@@ -428,7 +362,7 @@ def parse_alloy_results(output):
 
 
 def log_usage(asn_label, llm_elapsed, alloy_elapsed, has_counterexample,
-              prop_label=None):
+              prop_label=None, cost=0.0, model=None):
     """Append a usage entry to the log."""
     try:
         entry = {
@@ -441,6 +375,10 @@ def log_usage(asn_label, llm_elapsed, alloy_elapsed, has_counterexample,
         }
         if prop_label:
             entry["property"] = prop_label
+        if cost:
+            entry["cost_usd"] = round(cost, 4)
+        if model:
+            entry["model"] = model
         with open(USAGE_LOG, "a") as f:
             f.write(json.dumps(entry) + "\n")
     except OSError:
@@ -454,22 +392,49 @@ def make_result(prop, out_dir):
         "label": prop["label"],
         "name": prop["name"],
         "status": None,
+        "model": None,
         "checks": 0,
         "llm_elapsed": 0.0,
         "alloy_elapsed": 0.0,
+        "cost": 0.0,
         "als_path": out_dir / f"{filename}.als",
     }
 
 
 def generate_one(result, prop, definitions, asn_label, args,
                   syntax_ref=""):
-    """Generate the .als file for a single property.
+    """Generate and self-check the .als file for a single property.
+
+    The agent writes the model, runs Alloy, and fixes syntax errors
+    autonomously.  The script then runs a final Alloy check to confirm
+    and classify the result (pass / counterexample / syntax-error).
 
     Mutates result in place. Returns result.
     """
     als_path = result["als_path"]
 
     prompt = build_property_prompt(definitions, prop, syntax_ref=syntax_ref)
+
+    # Append agent self-check instructions
+    alloy_jar = os.environ.get("ALLOY_JAR", ALLOY_JAR_DEFAULT)
+    prompt += f"""
+
+## Self-check instructions
+
+After writing the Alloy model to `{als_path}`, verify it by running:
+
+    cd {als_path.parent} && java -jar {alloy_jar} exec -f {als_path.name}
+
+**If you see syntax or type errors**: fix the model and re-run the checker.
+Repeat until the model is syntactically valid.
+
+**If you see counterexamples** (SAT on a check command): this is a valid
+result — it means the property does not hold. Do NOT modify the model to
+avoid counterexamples. Leave the model as-is and stop.
+
+**If all checks show UNSAT**: the property holds within scope. Stop.
+"""
+
     print(f"\n  [{prop['label']}] {prop['name']}  "
           f"({len(prompt) // 1024}KB prompt)", file=sys.stderr)
 
@@ -477,65 +442,68 @@ def generate_one(result, prop, definitions, asn_label, args,
         result["status"] = "dry-run"
         return result
 
-    # Skip generation if file exists and --recheck
-    if args.recheck and als_path.exists():
+    # Skip generation if file already exists (--recheck or --run with prior results)
+    if als_path.exists() and (args.recheck or args.run is not None):
         print(f"    [REUSE] {als_path.name}", file=sys.stderr)
-        result["status"] = "generated"
-        return result
+    else:
+        model_used = args.model
+        print(f"    [LLM] generating ({model_used})...", file=sys.stderr)
+        try:
+            success, llm_elapsed, cost = invoke_claude(
+                prompt, als_path, model_used, args.effort,
+                max_turns=args.max_turns)
+        except subprocess.TimeoutExpired:
+            llm_elapsed = AGENT_TIMEOUT
+            cost = 0.0
+            success = False
+            print(f"    [TIMEOUT] {model_used} timed out after "
+                  f"{AGENT_TIMEOUT // 60}min", file=sys.stderr)
 
-    print(f"    [LLM] generating ({args.model})...", file=sys.stderr)
-    success, llm_elapsed = invoke_claude(prompt, als_path,
-                                          args.model, args.effort)
-    result["llm_elapsed"] = llm_elapsed
+            # Remove any partial file from timed-out agent
+            if als_path.exists():
+                als_path.unlink()
 
-    if not success or not als_path.exists():
-        print(f"    No model generated", file=sys.stderr)
-        result["status"] = "gen-fail"
-        log_usage(asn_label, llm_elapsed, 0, False,
-                  prop_label=prop["label"])
-        return result
+            # Fallback to sonnet
+            if model_used != "sonnet":
+                model_used = "sonnet"
+                print(f"    [FALLBACK] retrying with {model_used}...",
+                      file=sys.stderr)
+                try:
+                    success, fallback_elapsed, cost = invoke_claude(
+                        prompt, als_path, model_used, args.effort,
+                        max_turns=args.max_turns)
+                    llm_elapsed += fallback_elapsed
+                except subprocess.TimeoutExpired:
+                    llm_elapsed += AGENT_TIMEOUT
+                    print(f"    [TIMEOUT] {model_used} also timed out",
+                          file=sys.stderr)
 
-    print(f"    [WROTE] {als_path.relative_to(WORKSPACE)}", file=sys.stderr)
-    result["status"] = "generated"
-    log_usage(asn_label, llm_elapsed, 0, False,
-              prop_label=prop["label"])
-    return result
+                model_used = f"{args.model}\u2192sonnet"
 
+        result["llm_elapsed"] = llm_elapsed
+        result["cost"] = cost
+        result["model"] = model_used
 
-def check_one(result, asn_label, prop=None, definitions=None, args=None,
-              syntax_ref=""):
-    """Run Alloy checker on one generated .als file, with repair loop.
+        if not success or not als_path.exists():
+            print(f"    No model generated", file=sys.stderr)
+            result["status"] = "gen-fail"
+            log_usage(asn_label, llm_elapsed, 0, False,
+                      prop_label=prop["label"], cost=cost,
+                      model=model_used)
+            return result
 
-    Tier 1 (syntax/type, up to MAX_TIER1): fix with error + .als only.
-    Tier 2 (persistent, up to MAX_TIER2): fix with full property context.
-    Counterexamples go straight to result (not fixable by retry).
+        print(f"    [WROTE] {als_path.relative_to(WORKSPACE)}", file=sys.stderr)
 
-    Mutates result in place. Returns result.
-    """
-    als_path = result["als_path"]
-    label = result["label"]
-
-    if not als_path.exists():
-        return result
-
-    tier1_attempts = 0
-    tier2_attempts = 0
-    model = args.model if args else "sonnet"
-    effort = args.effort if args else None
-
-    while True:
-        tier_label = ""
-        if tier1_attempts or tier2_attempts:
-            tier_label = (f" [T1:{tier1_attempts}/{MAX_TIER1}"
-                          f" T2:{tier2_attempts}/{MAX_TIER2}]")
-        print(f"\n  [{label}] checking {als_path.name}...{tier_label}",
-              file=sys.stderr)
-
+    # Final Alloy check to confirm and classify
+    if not args.skip_check:
         alloy_output, alloy_elapsed = run_alloy(als_path)
-        result["alloy_elapsed"] += alloy_elapsed
+        result["alloy_elapsed"] = alloy_elapsed
 
         if alloy_output is None:
             result["status"] = "no-alloy"
+            log_usage(asn_label, result["llm_elapsed"], 0, False,
+                      prop_label=prop["label"], cost=result.get("cost", 0),
+                      model=result.get("model"))
             return result
 
         status, summary = classify_alloy_error(alloy_output)
@@ -547,67 +515,19 @@ def check_one(result, asn_label, prop=None, definitions=None, args=None,
         for line in summary:
             print(f"    {line}", file=sys.stderr)
 
-        # Pass or counterexample — done
-        if status == "pass":
-            result["status"] = "pass"
-            log_usage(asn_label, result["llm_elapsed"], result["alloy_elapsed"],
-                      False, prop_label=label)
-            return result
+        result["status"] = status
+        has_ce = status == "counterexample"
+        log_usage(asn_label, result["llm_elapsed"], alloy_elapsed,
+                  has_ce, prop_label=prop["label"],
+                  cost=result.get("cost", 0),
+                  model=result.get("model"))
+    else:
+        result["status"] = "generated"
+        log_usage(asn_label, result["llm_elapsed"], 0, False,
+                  prop_label=prop["label"], cost=result.get("cost", 0),
+                  model=result.get("model"))
 
-        if status == "counterexample":
-            result["status"] = "counterexample"
-            log_usage(asn_label, result["llm_elapsed"], result["alloy_elapsed"],
-                      True, prop_label=label)
-            return result
-
-        # Syntax/type error — attempt repair
-        # Annotate error output with source lines for the fix agent
-        annotated_errors = annotate_errors(alloy_output, als_path)
-
-        # Print error output
-        for line in alloy_output.split("\n"):
-            line = line.strip()
-            if line and not line.startswith("at "):
-                print(f"    {line}", file=sys.stderr)
-
-        # Tier 1: minimal fix (error + code only)
-        if tier1_attempts < MAX_TIER1:
-            tier1_attempts += 1
-            print(f"    [FIX] Tier 1 attempt {tier1_attempts}/{MAX_TIER1}",
-                  file=sys.stderr)
-            fix_prompt = build_fix_prompt(als_path, annotated_errors,
-                                         syntax_ref=syntax_ref)
-            if fix_prompt:
-                success, fix_elapsed = invoke_claude(
-                    fix_prompt, als_path, model, effort, is_fix=True)
-                result["llm_elapsed"] += fix_elapsed
-                if success and als_path.exists():
-                    continue  # Re-check
-            # Fix failed — fall through to tier 2
-
-        # Tier 2: fix with full context
-        if tier2_attempts < MAX_TIER2 and prop and definitions:
-            tier2_attempts += 1
-            print(f"    [FIX] Tier 2 attempt {tier2_attempts}/{MAX_TIER2}",
-                  file=sys.stderr)
-            fix_prompt = build_fix_prompt(
-                als_path, annotated_errors, definitions, prop,
-                syntax_ref=syntax_ref)
-            if fix_prompt:
-                success, fix_elapsed = invoke_claude(
-                    fix_prompt, als_path, model, effort, is_fix=True)
-                result["llm_elapsed"] += fix_elapsed
-                if success and als_path.exists():
-                    continue  # Re-check
-
-        # Exhausted all retries — escalate
-        print(f"    [ESCALATE] Retries exhausted "
-              f"(T1:{tier1_attempts} T2:{tier2_attempts})",
-              file=sys.stderr)
-        result["status"] = "syntax-error"
-        log_usage(asn_label, result["llm_elapsed"], result["alloy_elapsed"],
-                  False, prop_label=label)
-        return result
+    return result
 
 
 def print_summary(asn_label, results):
@@ -633,7 +553,11 @@ def print_summary(asn_label, results):
                       else "")
         total = r["llm_elapsed"] + r["alloy_elapsed"]
         elapsed_str = f"{total:.0f}s" if total else ""
-        detail = ", ".join(filter(None, [checks_str, elapsed_str]))
+        cost = r.get("cost", 0)
+        cost_str = f"${cost:.4f}" if cost else ""
+        model_str = r.get("model", "") or ""
+        detail = ", ".join(filter(None, [checks_str, elapsed_str, cost_str,
+                                         model_str]))
         detail_str = f"  ({detail})" if detail else ""
         print(f"  {r['label']:<14s} {r['name']:<30s} {status}{detail_str}",
               file=sys.stderr)
@@ -643,12 +567,16 @@ def print_summary(asn_label, results):
     for r in results:
         counts[r["status"]] = counts.get(r["status"], 0) + 1
 
+    total_cost = sum(r.get("cost", 0) for r in results)
+
     parts = []
     for status in ["pass", "syntax-error", "counterexample", "gen-fail",
                     "generated", "dry-run"]:
         if status in counts:
             parts.append(f"{STATUS_DISPLAY[status]}: {counts[status]}")
     parts.append(f"Total: {len(results)}")
+    if total_cost:
+        parts.append(f"${total_cost:.4f}")
 
     print(f"\n  {' | '.join(parts)}", file=sys.stderr)
     print(f"{'='*60}", file=sys.stderr)
@@ -795,9 +723,10 @@ def generate_review(asn_label, results, properties, run_num=None,
           f"counterexample(s)...", file=sys.stderr)
     print(f"  [REVIEW] Prompt: {len(prompt) // 1024}KB", file=sys.stderr)
 
-    success, elapsed = invoke_claude(prompt, review_path, model=model,
-                                      effort=effort,
-                                      write_instruction="Write the review to")
+    success, elapsed, _cost = invoke_claude(
+        prompt, review_path, model=model, effort=effort,
+        write_instruction="Write the review to",
+        tools="Read,Write")
 
     if not success or not review_path.exists():
         print(f"  [REVIEW] LLM review generation failed", file=sys.stderr)
@@ -826,8 +755,8 @@ def run_all_in_one(args, asn_path, asn_label, extract):
 
     ALLOY_DIR.mkdir(parents=True, exist_ok=True)
     print(f"  [LLM] generating model ({args.model})...", file=sys.stderr)
-    success, llm_elapsed = invoke_claude(prompt, als_path,
-                                          args.model, args.effort)
+    success, llm_elapsed, _cost = invoke_claude(prompt, als_path,
+                                                 args.model, args.effort)
 
     if not success or not als_path.exists():
         print("  No Alloy model generated", file=sys.stderr)
@@ -958,9 +887,9 @@ def main():
         description="Generate Alloy models from ASN and run bounded checking")
     parser.add_argument("asn",
                         help="ASN number (e.g., 4, 0004, ASN-0004) or path")
-    parser.add_argument("--model", "-m", default="sonnet",
+    parser.add_argument("--model", "-m", default="opus",
                         choices=["opus", "sonnet"],
-                        help="Model (default: sonnet)")
+                        help="Model (default: opus)")
     parser.add_argument("--effort", default=None,
                         help="Thinking effort level")
     parser.add_argument("--with-reference", action="store_true",
@@ -977,6 +906,10 @@ def main():
                         help="Stop after check + review, skip consult/revise/commit")
     parser.add_argument("--recheck", action="store_true",
                         help="Reuse existing .als files, skip generation")
+    parser.add_argument("--max-turns", type=int, default=12,
+                        help="Max agentic turns for generation (default: 12)")
+    parser.add_argument("--run", type=int, default=None,
+                        help="Use specific run number (for incremental runs)")
     args = parser.parse_args()
 
     # Find ASN
@@ -1035,7 +968,12 @@ def main():
             matches.extend(found)
         properties = matches
 
-    if args.recheck:
+    if args.run is not None:
+        run_num = args.run
+        out_dir = ALLOY_DIR / asn_label / f"run-{run_num}"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        print(f"  [RUN] Using run-{run_num}", file=sys.stderr)
+    elif args.recheck:
         # Find the latest run directory
         existing = sorted(
             (ALLOY_DIR / asn_label).glob("run-*"),
@@ -1057,32 +995,13 @@ def main():
     print(f"  {asn_label} — {len(properties)} properties, "
           f"definitions {len(definitions)}B", file=sys.stderr)
 
-    # Phase 1: Generate all .als files
+    # Generate + self-check all .als files (agent writes, runs Alloy, fixes)
     results = []
     for prop in properties:
         result = make_result(prop, out_dir)
         generate_one(result, prop, definitions, asn_label, args,
                       syntax_ref=syntax_ref)
         results.append(result)
-
-    gen_count = sum(1 for r in results if r["status"] == "generated")
-    if not args.dry_run:
-        print(f"\n  Generated {gen_count}/{len(results)} models",
-              file=sys.stderr)
-
-    # Phase 2: Check all generated .als files (with repair loop)
-    prop_by_label = {p["label"]: p for p in properties}
-    if not args.skip_check and not args.dry_run:
-        checkable = [r for r in results if r["status"] == "generated"]
-        if checkable:
-            print(f"\n  {'='*50}", file=sys.stderr)
-            print(f"  Checking {len(checkable)} models...", file=sys.stderr)
-            print(f"  {'='*50}", file=sys.stderr)
-            for result in checkable:
-                prop = prop_by_label.get(result["label"])
-                check_one(result, asn_label,
-                          prop=prop, definitions=definitions, args=args,
-                          syntax_ref=syntax_ref)
 
     # Summary
     any_counterexample = any(r["status"] == "counterexample"
