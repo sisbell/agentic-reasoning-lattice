@@ -334,16 +334,16 @@ No markdown fences, no commentary — just the JSON array."""
 
 
 def next_dafny_gen_number(asn_label):
-    """Find the next Dafny generation number for this ASN."""
+    """Find the next Dafny divergence number for this ASN."""
     asn_dir = DAFNY_DISCOVERY_DIR / asn_label
     if not asn_dir.exists():
         return 1
-    existing = sorted(asn_dir.glob("gen-*"))
+    existing = sorted(asn_dir.glob("divergence-*"))
     if not existing:
         return 1
     nums = []
     for p in existing:
-        m = re.search(r"gen-(\d+)$", p.name)
+        m = re.search(r"divergence-(\d+)$", p.name)
         if m:
             nums.append(int(m.group(1)))
     return max(nums, default=0) + 1
@@ -681,10 +681,10 @@ def main():
     # --- Generate ---
 
     gen_num = next_dafny_gen_number(asn_label)
-    gen_dir = DAFNY_DISCOVERY_DIR / asn_label / f"gen-{gen_num}"
+    gen_dir = DAFNY_DISCOVERY_DIR / asn_label / f"divergence-{gen_num}"
     # gen_dir created lazily — only when a divergence is found
 
-    print(f"  [DAFNY-PROPERTY] {asn_label} → {module_name}/ (gen-{gen_num})",
+    print(f"  [DAFNY-PROPERTY] {asn_label} → {module_name}/ (divergence-{gen_num})",
           file=sys.stderr)
     print(f"  Properties: {len(contract_rows)}", file=sys.stderr)
 

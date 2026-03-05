@@ -36,7 +36,7 @@ Each ASN is a complete, standalone argument. A reader should be able to understa
 
 Your topic is provided as input. Write one ASN exploring that topic.
 
-Write to `vault/modeling/asns/ASN-NNNN-title.md` where NNNN is the assigned number.
+Write to `vault/asns/ASN-NNNN-title.md` where NNNN is the assigned number.
 
 ---
 
@@ -66,7 +66,7 @@ This order matters. If you consult Gregory first, implementation detail will sha
   ```
   The script prints a file path to stdout. Read that file to get both KB synthesis and code exploration answers. Takes 2-3 minutes. Runs two agents in parallel internally.
 
-**Important:** The scripts write results to `vault/discovery/transcripts/` for traceability. Do NOT try to capture their stdout as the answer — read the file path they print, then use the Read tool on that path.
+**Important:** The scripts write results to `vault/experts/.../sessions/` for traceability. Do NOT try to capture their stdout as the answer — read the file path they print, then use the Read tool on that path.
 
 **When to consult:** Nelson first on every topic — always. Gregory when you need implementation evidence or to check whether the implementation satisfies an abstract property. Never consult to confirm what you already know.
 
@@ -158,7 +158,7 @@ Describe **state**, not execution. Never "the program then goes to..." — inste
 
 **No big blocks of notation without reasoning. Be consistent.**
 
-**Use relative paths** (e.g., `vault/modeling/asns/ASN-0001-*.md`) when referencing files, never absolute paths.
+**Use relative paths** (e.g., `vault/asns/ASN-0001-*.md`) when referencing files, never absolute paths.
 
 ---
 
