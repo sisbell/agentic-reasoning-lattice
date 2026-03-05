@@ -161,7 +161,7 @@ def invoke_claude(prompt, model="opus", effort="max"):
 
 
 def parse_promoted(text):
-    """Extract promoted inquiry metadata from triage markdown."""
+    """Extract promoted inquiry metadata from promotion markdown."""
     inquiries = []
     in_promoted = False
     current = None
@@ -319,7 +319,7 @@ def main():
     if args.dry_run:
         print(f"\n  [DRY RUN] Would invoke {args.model} with --tools \"\"",
               file=sys.stderr)
-        print("\n--- Extracted DEFER items ---\n")
+        print("\n--- Extracted OUT_OF_SCOPE items ---\n")
         print(defer_items)
         return
 

@@ -17,7 +17,7 @@ CONSULT_DIR = VAULT / "discovery" / "consultations"
 TRANSCRIPTS_DIR = VAULT / "discovery" / "transcripts"
 REVIEWS_DIR = VAULT / "discovery" / "reviews"
 PROMOTE_DIR = VAULT / "discovery" / "promotions"
-ALLOY_DIR = VAULT / "discovery" / "alloy"
+ALLOY_DIR = VAULT / "modeling" / "alloy"
 DAFNY_DISCOVERY_DIR = VAULT / "discovery" / "dafny"
 
 # Formalization — working artifacts of encoding the model

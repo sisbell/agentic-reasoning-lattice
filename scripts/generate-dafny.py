@@ -53,8 +53,8 @@ def find_alloy_models(asn_label):
     if not asn_dir.exists():
         return []
 
-    # Find highest-numbered run-* directory
-    run_dirs = sorted(asn_dir.glob("run-*"), key=lambda p: int(p.name.split("-")[1]))
+    # Find highest-numbered modeling-* directory
+    run_dirs = sorted(asn_dir.glob("modeling-*"), key=lambda p: int(p.name.split("-")[1]))
     if not run_dirs:
         return []
 

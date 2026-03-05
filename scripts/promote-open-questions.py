@@ -126,7 +126,7 @@ def invoke_claude(prompt, model="opus", effort="max"):
 
 
 def parse_promoted(text):
-    """Extract promoted inquiry metadata from triage markdown."""
+    """Extract promoted inquiry metadata from promotion markdown."""
     inquiries = []
     in_promoted = False
     current = None

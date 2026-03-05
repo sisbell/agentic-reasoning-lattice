@@ -101,7 +101,7 @@ def find_alloy_model(asn_label, dafny_name, label):
         return ""
 
     run_dirs = sorted(
-        asn_dir.glob("run-*"),
+        asn_dir.glob("modeling-*"),
         key=lambda p: int(p.name.split("-")[1]),
     )
     if not run_dirs:

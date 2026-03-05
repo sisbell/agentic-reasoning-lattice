@@ -8,5 +8,5 @@ nelson/literary-machines/raw/
 notes/
 
 # Alloy checker output (receipt.json, solution files)
-vault/discovery/alloy/**/receipt.json
-vault/discovery/alloy/**/*-solution-*.md
+vault/modeling/alloy/**/receipt.json
+vault/modeling/alloy/**/*-solution-*.md

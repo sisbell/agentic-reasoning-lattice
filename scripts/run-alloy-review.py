@@ -571,13 +571,13 @@ def print_summary(asn_label, results):
 
 
 def next_run_number(asn_label):
-    """Find the next Alloy run number for this ASN (independent of review numbers)."""
-    existing = sorted((ALLOY_DIR / asn_label).glob("run-*"))
+    """Find the next Alloy modeling number for this ASN (independent of review numbers)."""
+    existing = sorted((ALLOY_DIR / asn_label).glob("modeling-*"))
     if not existing:
         return 1
     nums = []
     for p in existing:
-        m = re.search(r"run-(\d+)$", p.name)
+        m = re.search(r"modeling-(\d+)$", p.name)
         if m:
             nums.append(int(m.group(1)))
     return max(nums, default=0) + 1
@@ -945,26 +945,26 @@ def main():
 
     if args.run is not None:
         run_num = args.run
-        out_dir = ALLOY_DIR / asn_label / f"run-{run_num}"
+        out_dir = ALLOY_DIR / asn_label / f"modeling-{run_num}"
         out_dir.mkdir(parents=True, exist_ok=True)
-        print(f"  [RUN] Using run-{run_num}", file=sys.stderr)
+        print(f"  [RUN] Using modeling-{run_num}", file=sys.stderr)
     elif args.recheck:
-        # Find the latest run directory
+        # Find the latest modeling directory
         existing = sorted(
-            (ALLOY_DIR / asn_label).glob("run-*"),
-            key=lambda p: int(re.search(r"run-(\d+)", p.name).group(1))
-                if re.search(r"run-(\d+)", p.name) else 0
+            (ALLOY_DIR / asn_label).glob("modeling-*"),
+            key=lambda p: int(re.search(r"modeling-(\d+)", p.name).group(1))
+                if re.search(r"modeling-(\d+)", p.name) else 0
         )
         if not existing:
-            print("  No existing run directory to recheck", file=sys.stderr)
+            print("  No existing modeling directory to recheck", file=sys.stderr)
             sys.exit(1)
         out_dir = existing[-1]
-        m = re.search(r"run-(\d+)", out_dir.name)
+        m = re.search(r"modeling-(\d+)", out_dir.name)
         run_num = int(m.group(1)) if m else 1
         print(f"  [RECHECK] Using {out_dir.name}", file=sys.stderr)
     else:
         run_num = next_run_number(asn_label)
-        out_dir = ALLOY_DIR / asn_label / f"run-{run_num}"
+        out_dir = ALLOY_DIR / asn_label / f"modeling-{run_num}"
         out_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"  {asn_label} — {len(properties)} properties, "
