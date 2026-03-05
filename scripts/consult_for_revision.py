@@ -64,15 +64,15 @@ def find_review(asn_label, review_spec=None):
     if path.exists():
         return path
 
-    candidate = REVIEWS_DIR / f"{asn_label}-{review_spec}.md"
+    candidate = REVIEWS_DIR / asn_label / f"{review_spec}.md"
     if candidate.exists():
         return candidate
 
-    candidate = REVIEWS_DIR / review_spec
+    candidate = REVIEWS_DIR / asn_label / review_spec
     if candidate.exists():
         return candidate
 
-    candidate = REVIEWS_DIR / f"{review_spec}.md"
+    candidate = REVIEWS_DIR / asn_label / f"{review_spec}.md"
     if candidate.exists():
         return candidate
 

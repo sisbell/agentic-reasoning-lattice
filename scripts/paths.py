@@ -34,14 +34,17 @@ USAGE_LOG = VAULT / "usage-log.jsonl"
 
 def _review_sort_key(path):
     """Extract numeric review number for sorting. review-9 < review-13."""
-    m = re.search(r"-review-(\d+)\.md$", path.name)
+    m = re.search(r"review-(\d+)\.md$", path.name)
     return int(m.group(1)) if m else 0
 
 
 def sorted_reviews(asn_label, reviews_dir=None):
     """Return review files for an ASN, sorted by numeric review number."""
     d = reviews_dir or REVIEWS_DIR
-    return sorted(d.glob(f"{asn_label}-review-*.md"), key=_review_sort_key)
+    asn_dir = d / asn_label
+    if not asn_dir.exists():
+        return []
+    return sorted(asn_dir.glob("review-*.md"), key=_review_sort_key)
 
 
 def sanitize_filename(label, name):
@@ -60,12 +63,15 @@ def sanitize_filename(label, name):
 
 def next_review_number(asn_label):
     """Find the next review number for this ASN (shared sequence with all reviews)."""
-    existing = sorted(REVIEWS_DIR.glob(f"{asn_label}-review-*.md"))
+    asn_dir = REVIEWS_DIR / asn_label
+    if not asn_dir.exists():
+        return 1
+    existing = sorted(asn_dir.glob("review-*.md"))
     if not existing:
         return 1
     nums = []
     for p in existing:
-        m = re.search(r"-review-(\d+)\.md$", p.name)
+        m = re.search(r"review-(\d+)\.md$", p.name)
         if m:
             nums.append(int(m.group(1)))
     return max(nums, default=0) + 1

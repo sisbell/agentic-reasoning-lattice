@@ -180,14 +180,14 @@ def main():
     text = strip_preamble(text)
 
     # Write output (sequential numbering: review-1, review-2, ...)
-    REVIEWS_DIR.mkdir(parents=True, exist_ok=True)
+    (REVIEWS_DIR / asn_label).mkdir(parents=True, exist_ok=True)
     existing = sorted_reviews(asn_label)
     next_num = 1
     for f in existing:
-        m = re.search(r"-review-(\d+)\.md$", f.name)
+        m = re.search(r"review-(\d+)\.md$", f.name)
         if m:
             next_num = max(next_num, int(m.group(1)) + 1)
-    output_path = REVIEWS_DIR / f"{asn_label}-review-{next_num}.md"
+    output_path = REVIEWS_DIR / asn_label / f"review-{next_num}.md"
     output_path.write_text(text + "\n")
 
     # Parse verdict

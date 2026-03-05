@@ -471,9 +471,9 @@ def generate_dafny_review(asn_label, results, extract_text,
         "{{verified_summary}}", verified_summary
     )
 
-    REVIEWS_DIR.mkdir(parents=True, exist_ok=True)
+    (REVIEWS_DIR / asn_label).mkdir(parents=True, exist_ok=True)
     review_num = next_review_number(asn_label)
-    review_path = REVIEWS_DIR / f"{asn_label}-review-{review_num}.md"
+    review_path = REVIEWS_DIR / asn_label / f"review-{review_num}.md"
 
     print(f"\n  [REVIEW] Calling {model} to analyze {len(div_results)} "
           f"divergence(s)...", file=sys.stderr)

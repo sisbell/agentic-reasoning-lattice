@@ -62,18 +62,18 @@ def find_review(asn_label, review_spec=None):
     if path.exists():
         return path
 
-    # Try in reviews dir with ASN prefix
-    candidate = REVIEWS_DIR / f"{asn_label}-{review_spec}.md"
+    # Try in nested ASN dir (new layout)
+    candidate = REVIEWS_DIR / asn_label / f"{review_spec}.md"
     if candidate.exists():
         return candidate
 
-    # Try in reviews dir as-is
-    candidate = REVIEWS_DIR / review_spec
+    # Try in nested ASN dir as-is
+    candidate = REVIEWS_DIR / asn_label / review_spec
     if candidate.exists():
         return candidate
 
-    # Try with .md
-    candidate = REVIEWS_DIR / f"{review_spec}.md"
+    # Try with .md in nested dir
+    candidate = REVIEWS_DIR / asn_label / f"{review_spec}.md"
     if candidate.exists():
         return candidate
 

@@ -690,9 +690,9 @@ def generate_review(asn_label, results, properties, run_num=None,
     )
 
     # Determine review path
-    REVIEWS_DIR.mkdir(parents=True, exist_ok=True)
+    (REVIEWS_DIR / asn_label).mkdir(parents=True, exist_ok=True)
     review_num = next_review_number(asn_label)
-    review_path = REVIEWS_DIR / f"{asn_label}-review-{review_num}.md"
+    review_path = REVIEWS_DIR / asn_label / f"review-{review_num}.md"
 
     print(f"  [REVIEW] Calling {model} to analyze {len(failures)} "
           f"counterexample(s)...", file=sys.stderr)
