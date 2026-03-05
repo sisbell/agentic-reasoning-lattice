@@ -98,7 +98,7 @@ def next_inquiry_id(data):
     return max_id + 1
 
 
-def build_prompt(defer_items, inquiries_text, existing_triage):
+def build_prompt(defer_items, inquiries_text, existing_promotion):
     """Assemble promotion prompt from template + injected content."""
     template = read_file(PROMOTE_TEMPLATE)
     if not template:
@@ -111,13 +111,13 @@ def build_prompt(defer_items, inquiries_text, existing_triage):
     ).replace(
         "{{inquiries}}", inquiries_text
     ).replace(
-        "{{existing_triage}}", existing_triage or "(No previous triage.)"
+        "{{existing_promotion}}", existing_promotion or "(No previous promotion.)"
     )
 
 
 def strip_preamble(text):
     """Strip any preamble before the promotion header."""
-    marker = re.search(r"^# Triage: Review Deferrals", text, re.MULTILINE)
+    marker = re.search(r"^# Promotion:", text, re.MULTILINE)
     if marker:
         return text[marker.start():]
     return text
@@ -309,10 +309,10 @@ def main():
     # Load inquiries and existing promotions for this ASN
     inq_data, inq_text = load_inquiries()
     output_path = PROMOTE_DIR / asn_label / "out-of-scope-issues.md"
-    existing_triage = read_file(output_path)
+    existing_promotion = read_file(output_path)
 
     # Build prompt
-    prompt = build_prompt(defer_items, inq_text, existing_triage)
+    prompt = build_prompt(defer_items, inq_text, existing_promotion)
     print(f"  Prompt: {len(prompt) // 1024}KB (~{len(prompt) // 4} tokens est.)",
           file=sys.stderr)
 

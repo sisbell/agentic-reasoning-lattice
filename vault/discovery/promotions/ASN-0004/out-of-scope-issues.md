@@ -1,4 +1,6 @@
-# Triage: Review Deferrals
+# Promotion: Out-of-Scope Issues
+
+**Source:** ASN-0004
 
 ## Promoted
 

@@ -1,4 +1,6 @@
-# Triage: ASN-0012
+# Promotion: Open Questions
+
+**Source:** ASN-0012
 
 ## Promoted
 
@@ -7,4 +9,4 @@
 
 ## Declined
 
-No other open questions evaluated (manual triage before script existed).
+No other open questions evaluated (manual promotion before script existed).

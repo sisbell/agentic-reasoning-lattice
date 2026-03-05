@@ -71,7 +71,7 @@ def next_inquiry_id(data):
     return max_id + 1
 
 
-def build_prompt(asn_content, inquiries_text, existing_triage):
+def build_prompt(asn_content, inquiries_text, existing_promotion):
     """Assemble promotion prompt from template + injected content."""
     template = read_file(PROMOTE_TEMPLATE)
     if not template:
@@ -84,7 +84,7 @@ def build_prompt(asn_content, inquiries_text, existing_triage):
     ).replace(
         "{{inquiries}}", inquiries_text
     ).replace(
-        "{{existing_triage}}", existing_triage
+        "{{existing_promotion}}", existing_promotion
     )
 
 
@@ -263,11 +263,11 @@ def main():
 
     # Load current state
     inq_data, inq_text = load_inquiries()
-    existing_triage = read_file(PROMOTE_DIR / asn_label / "open-questions.md")
+    existing_promotion = read_file(PROMOTE_DIR / asn_label / "open-questions.md")
 
     # Build prompt
     print(f"  [PROMOTE] {asn_label}", file=sys.stderr)
-    prompt = build_prompt(asn_content, inq_text, existing_triage)
+    prompt = build_prompt(asn_content, inq_text, existing_promotion)
     print(f"  Prompt: {len(prompt) // 1024}KB (~{len(prompt) // 4} tokens est.)",
           file=sys.stderr)
 

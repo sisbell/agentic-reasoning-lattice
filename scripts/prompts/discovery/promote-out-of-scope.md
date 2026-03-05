@@ -24,7 +24,7 @@ These inquiries already exist. Use them to avoid promoting exact duplicates — 
 
 This is the existing promotion output for this ASN. Any topic already listed here (Promoted or Declined) has been handled. Only evaluate out-of-scope items that are NOT already in this list — typically new items from a newer review. If every item is already covered, output the previous promotion unchanged.
 
-{{existing_triage}}
+{{existing_promotion}}
 
 ## Decision Criteria
 
@@ -86,7 +86,9 @@ Write a markdown promotion report. The script parses this, so follow the format 
 ### If topics are promoted
 
 ```
-# Triage: Review Deferrals
+# Promotion: Out-of-Scope Issues
+
+**Source:** ASN-NNNN
 
 ## Promoted
 
@@ -109,7 +111,9 @@ Write a markdown promotion report. The script parses this, so follow the format 
 ### If no topics are promoted
 
 ```
-# Triage: Review Deferrals
+# Promotion: Out-of-Scope Issues
+
+**Source:** ASN-NNNN
 
 ## Declined
 

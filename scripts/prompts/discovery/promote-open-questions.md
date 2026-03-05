@@ -24,7 +24,7 @@ If a previous promotion exists for this ASN, its decisions are shown below. Do n
 
 If this is empty, all open questions need evaluation.
 
-{{existing_triage}}
+{{existing_promotion}}
 
 ## Decision Criteria
 
@@ -91,7 +91,9 @@ Write a markdown promotion report. The script parses this, so follow the format 
 ### If questions are promoted
 
 ```
-# Triage: ASN-NNNN
+# Promotion: Open Questions
+
+**Source:** ASN-NNNN
 
 ## Promoted
 
@@ -112,7 +114,9 @@ Write a markdown promotion report. The script parses this, so follow the format 
 ### If no questions are promoted
 
 ```
-# Triage: ASN-NNNN
+# Promotion: Open Questions
+
+**Source:** ASN-NNNN
 
 ## Declined
 
