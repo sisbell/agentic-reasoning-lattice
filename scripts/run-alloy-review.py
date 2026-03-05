@@ -31,7 +31,8 @@ import time
 from pathlib import Path
 
 from paths import (WORKSPACE, ASNS_DIR, ALLOY_DIR, EXTRACTS_DIR, REVIEWS_DIR,
-                    USAGE_LOG, sorted_reviews, next_review_number)
+                    USAGE_LOG, sorted_reviews, next_review_number,
+                    sanitize_filename)
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"
 TEMPLATE = PROMPTS_DIR / "check-alloy.md"
@@ -119,20 +120,6 @@ def parse_extract(text):
         "definitions": "\n\n".join(definitions),
         "properties": properties,
     }
-
-
-def sanitize_filename(label, name):
-    """Build a filename-safe string from label and name.
-
-    E.g. ('T1', 'LexicographicOrder') -> 'T1-LexicographicOrder'
-         ('TA1-strict', 'StrictOrderPreservation') -> 'TA1-strict-StrictOrderPreservation'
-         ('Prefix ordering extension', 'PrefixOrderingExtension') -> 'PrefixOrderingExtension'
-    """
-    # If label is already a short code (T1, TA3, T10a, TA1-strict, etc.), use it
-    if re.match(r"^[A-Z]+\w*(-\w+)?$", label):
-        return re.sub(r"[^A-Za-z0-9_-]", "", f"{label}-{name}")
-    # Multi-word label (e.g. "Prefix ordering extension") — just use name
-    return re.sub(r"[^A-Za-z0-9_-]", "", name)
 
 
 def build_property_prompt(definitions, prop, syntax_ref=""):

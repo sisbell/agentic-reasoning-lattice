@@ -44,6 +44,20 @@ def sorted_reviews(asn_label, reviews_dir=None):
     return sorted(d.glob(f"{asn_label}-review-*.md"), key=_review_sort_key)
 
 
+def sanitize_filename(label, name):
+    """Build a filename-safe string from label and name.
+
+    E.g. ('T1', 'LexicographicOrder') -> 'T1-LexicographicOrder'
+         ('TA1-strict', 'StrictOrderPreservation') -> 'TA1-strict-StrictOrderPreservation'
+         ('Prefix ordering extension', 'PrefixOrderingExtension') -> 'PrefixOrderingExtension'
+    """
+    # If label is already a short code (T1, TA3, T10a, TA1-strict, etc.), use it
+    if re.match(r"^[A-Z]+\w*(-\w+)?$", label):
+        return re.sub(r"[^A-Za-z0-9_-]", "", f"{label}-{name}")
+    # Multi-word label — just use name
+    return re.sub(r"[^A-Za-z0-9_-]", "", name)
+
+
 def next_review_number(asn_label):
     """Find the next review number for this ASN (shared sequence with all reviews)."""
     existing = sorted(REVIEWS_DIR.glob(f"{asn_label}-review-*.md"))

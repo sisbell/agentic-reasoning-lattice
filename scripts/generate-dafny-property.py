@@ -28,7 +28,7 @@ from pathlib import Path
 
 from paths import (WORKSPACE, ASNS_DIR, CONTRACTS_DIR, EXTRACTS_DIR, DAFNY_DIR,
                     ALLOY_DIR, DAFNY_DISCOVERY_DIR, REVIEWS_DIR, USAGE_LOG,
-                    next_review_number)
+                    next_review_number, sanitize_filename)
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"
 TEMPLATE = PROMPTS_DIR / "generate-dafny-property.md"
@@ -334,29 +334,30 @@ No markdown fences, no commentary — just the JSON array."""
         return []
 
 
-def next_dafny_run_number(asn_label):
-    """Find the next Dafny run number for this ASN."""
+def next_dafny_gen_number(asn_label):
+    """Find the next Dafny generation number for this ASN."""
     asn_dir = DAFNY_DISCOVERY_DIR / asn_label
     if not asn_dir.exists():
         return 1
-    existing = sorted(asn_dir.glob("run-*"))
+    existing = sorted(asn_dir.glob("gen-*"))
     if not existing:
         return 1
     nums = []
     for p in existing:
-        m = re.search(r"run-(\d+)$", p.name)
+        m = re.search(r"gen-(\d+)$", p.name)
         if m:
             nums.append(int(m.group(1)))
     return max(nums, default=0) + 1
 
 
-def write_divergence_file(run_dir, label, dafny_name, divergences):
-    """Write a .divergences.md file to the discovery run directory.
+def write_divergence_file(gen_dir, label, dafny_name, divergences):
+    """Write a .divergences.md file to the discovery generation directory.
 
-    Only called when divergences exist. Creates the run directory on first use.
+    Only called when divergences exist. Creates the directory on first use.
     """
-    run_dir.mkdir(parents=True, exist_ok=True)
-    div_path = run_dir / f"{label}-{dafny_name}.divergences.md"
+    gen_dir.mkdir(parents=True, exist_ok=True)
+    filename = sanitize_filename(label, dafny_name)
+    div_path = gen_dir / f"{filename}.divergences.md"
 
     lines = [f"# Divergences — {label} ({dafny_name})\n"]
     for line_num, text in divergences:
@@ -680,11 +681,11 @@ def main():
 
     # --- Generate ---
 
-    run_num = next_dafny_run_number(asn_label)
-    run_dir = DAFNY_DISCOVERY_DIR / asn_label / f"run-{run_num}"
-    # run_dir created lazily — only when a divergence is found
+    gen_num = next_dafny_gen_number(asn_label)
+    gen_dir = DAFNY_DISCOVERY_DIR / asn_label / f"gen-{gen_num}"
+    # gen_dir created lazily — only when a divergence is found
 
-    print(f"  [DAFNY-PROPERTY] {asn_label} → {module_name}/ (run-{run_num})",
+    print(f"  [DAFNY-PROPERTY] {asn_label} → {module_name}/ (gen-{gen_num})",
           file=sys.stderr)
     print(f"  Properties: {len(contract_rows)}", file=sys.stderr)
 
@@ -744,7 +745,7 @@ def main():
         divergences = extract_divergences(out_path) if ok else []
 
         if divergences:
-            write_divergence_file(run_dir, label, dafny_name, divergences)
+            write_divergence_file(gen_dir, label, dafny_name, divergences)
 
         if ok:
             m = re.search(r"(\d+) verified", vout)
