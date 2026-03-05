@@ -26,7 +26,7 @@ import sys
 import time
 from pathlib import Path
 
-from paths import WORKSPACE, TRANSCRIPTS_DIR, USAGE_LOG
+from paths import WORKSPACE, EXPERTS_DIR, USAGE_LOG
 
 CONCEPTS_DIR = WORKSPACE / "nelson" / "xanadu-concepts"
 INTENT_DIR = WORKSPACE / "nelson" / "nelson-intent"
@@ -180,7 +180,7 @@ def main():
 
     # Create transcript directory
     prefix = f"ASN-{args.asn}" if args.asn else "adhoc"
-    prefix_dir = TRANSCRIPTS_DIR / prefix
+    prefix_dir = EXPERTS_DIR / prefix / "sessions"
     prefix_dir.mkdir(parents=True, exist_ok=True)
     existing = sorted(prefix_dir.glob("nelson-*/"))
     next_num = 1

@@ -32,7 +32,7 @@ from consult_experts import (
     log_usage,
 )
 
-from paths import ASNS_DIR, REVIEWS_DIR, CONSULT_DIR, sorted_reviews
+from paths import ASNS_DIR, REVIEWS_DIR, EXPERTS_DIR, sorted_reviews
 
 
 def read_file(path):
@@ -396,7 +396,7 @@ def main():
         sys.exit(1)
 
     # Save categorization output
-    output_dir = CONSULT_DIR / asn_label
+    output_dir = EXPERTS_DIR / asn_label
     output_dir.mkdir(parents=True, exist_ok=True)
     consult_subdir = output_dir / f"consultation-{review_num}"
     consult_subdir.mkdir(parents=True, exist_ok=True)

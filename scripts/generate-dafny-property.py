@@ -28,13 +28,12 @@ from pathlib import Path
 
 from paths import (WORKSPACE, ASNS_DIR, CONTRACTS_DIR, EXTRACTS_DIR, DAFNY_DIR,
                     ALLOY_DIR, DAFNY_DISCOVERY_DIR, REVIEWS_DIR, USAGE_LOG,
-                    next_review_number, sanitize_filename)
+                    MODULES_REGISTRY, next_review_number, sanitize_filename)
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"
 TEMPLATE = PROMPTS_DIR / "generate-dafny-property.md"
 DAFNY_REFERENCE = PROMPTS_DIR / "dafny-reference.dfy"
 DAFNY_REVIEW_TEMPLATE = PROMPTS_DIR / "write-dafny-review.md"
-MODULES_REGISTRY = WORKSPACE / "vault" / "modeling" / "modules.md"
 
 CONSULT_SCRIPT = WORKSPACE / "scripts" / "consult_for_revision.py"
 REVISE_SCRIPT = WORKSPACE / "scripts" / "revise-asn.py"

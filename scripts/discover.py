@@ -22,7 +22,7 @@ import time
 import yaml
 from pathlib import Path
 
-from paths import WORKSPACE, INQUIRIES_FILE, ASNS_DIR, CONSULT_DIR, VOCABULARY, USAGE_LOG
+from paths import WORKSPACE, INQUIRIES_FILE, ASNS_DIR, EXPERTS_DIR, VOCABULARY, USAGE_LOG
 
 DISCOVERY_PROMPT = WORKSPACE / "scripts" / "prompts" / "discovery" / "discovery.md"
 
@@ -189,7 +189,7 @@ def run_discovery(inquiry, asn_number, slug, force=False):
         return outfile
 
     # Require consultation answers
-    answers_path = CONSULT_DIR / f"ASN-{asn_number:04d}" / "initial-consultation" / "answers.md"
+    answers_path = EXPERTS_DIR / f"ASN-{asn_number:04d}" / "consultation" / "answers.md"
     if not answers_path.exists():
         print(f"  [ERROR] No consultation answers at {answers_path.relative_to(WORKSPACE)}",
               file=sys.stderr)

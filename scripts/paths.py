@@ -6,24 +6,28 @@ from pathlib import Path
 WORKSPACE = Path(__file__).resolve().parent.parent
 VAULT = WORKSPACE / "vault"
 
-# Modeling — the model artifacts
-ASNS_DIR = VAULT / "modeling" / "asns"
-DAFNY_DIR = VAULT / "modeling" / "dafny"
-VOCABULARY = VAULT / "modeling" / "vocabulary.md"
+# Model artifacts (top-level deliverables)
+ASNS_DIR = VAULT / "asns"
+DAFNY_DIR = VAULT / "proofs"
+VOCABULARY = VAULT / "vocabulary.md"
 
-# Discovery — working artifacts of building the model
-INQUIRIES_FILE = VAULT / "discovery" / "inquiries.yaml"
-CONSULT_DIR = VAULT / "discovery" / "consultations"
-TRANSCRIPTS_DIR = VAULT / "discovery" / "transcripts"
-REVIEWS_DIR = VAULT / "discovery" / "reviews"
-PROMOTE_DIR = VAULT / "discovery" / "promotions"
-ALLOY_DIR = VAULT / "modeling" / "alloy"
-DAFNY_DISCOVERY_DIR = VAULT / "discovery" / "dafny"
+# Stage 1: Promote
+INQUIRIES_FILE = VAULT / "1-promote" / "inquiries.yaml"
+PROMOTE_DIR = VAULT / "1-promote"
 
-# Formalization — working artifacts of encoding the model
-CONTRACTS_DIR = VAULT / "formalization" / "contracts"
-EXTRACTS_DIR = VAULT / "formalization" / "extracts"
-VERIFICATION_DIR = VAULT / "formalization" / "verification"
+# Stage 2: Review
+REVIEWS_DIR = VAULT / "2-review"
+
+# Stage 3: Modeling
+ALLOY_DIR = VAULT / "3-modeling" / "alloy"
+DAFNY_DISCOVERY_DIR = VAULT / "3-modeling" / "dafny"
+CONTRACTS_DIR = VAULT / "3-modeling" / "contracts"
+EXTRACTS_DIR = VAULT / "3-modeling" / "extracts"
+VERIFICATION_DIR = VAULT / "3-modeling" / "verification"
+MODULES_REGISTRY = VAULT / "3-modeling" / "modules.md"
+
+# Experts (merged consultations + transcripts)
+EXPERTS_DIR = VAULT / "experts"
 
 # Requirements — Nelson's design features
 REQUIREMENTS_DIR = VAULT / "requirements"

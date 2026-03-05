@@ -28,7 +28,7 @@ import yaml
 from datetime import datetime
 from pathlib import Path
 
-from paths import WORKSPACE, INQUIRIES_FILE, CONSULT_DIR, USAGE_LOG
+from paths import WORKSPACE, INQUIRIES_FILE, EXPERTS_DIR, USAGE_LOG
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
 TEST_HARNESS = WORKSPACE / "udanax-test-harness"
@@ -569,11 +569,11 @@ def main():
         return
 
     # Step 2: Run all consultations in parallel
-    output_dir = CONSULT_DIR / f"ASN-{asn_label}"
+    output_dir = EXPERTS_DIR / f"ASN-{asn_label}"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Save questions for traceability
-    init_dir = output_dir / "initial-consultation"
+    init_dir = output_dir / "consultation"
     init_dir.mkdir(parents=True, exist_ok=True)
     questions_text = "\n".join(
         f"{i}. [{a}] {q}" for i, (a, q) in enumerate(questions, 1)

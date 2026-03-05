@@ -31,7 +31,7 @@ import threading
 from datetime import datetime
 from pathlib import Path
 
-from paths import WORKSPACE, TRANSCRIPTS_DIR, USAGE_LOG
+from paths import WORKSPACE, EXPERTS_DIR, USAGE_LOG
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
 TEST_HARNESS = WORKSPACE / "udanax-test-harness"
@@ -199,7 +199,7 @@ def main():
 
     # Create consultation log directory
     prefix = f"ASN-{args.asn}" if args.asn else "adhoc"
-    prefix_dir = TRANSCRIPTS_DIR / prefix
+    prefix_dir = EXPERTS_DIR / prefix / "sessions"
     prefix_dir.mkdir(parents=True, exist_ok=True)
     existing = sorted(prefix_dir.glob("gregory-*/"))
     next_num = 1
