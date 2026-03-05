@@ -150,8 +150,8 @@ python scripts/run-alloy-review.py 1 --dry-run           # show property list + 
 Requires Alloy installed at `/Applications/Alloy.app` (macOS) or `ALLOY_JAR` env var.
 
 Output:
-- `vault/modeling/alloy/ASN-NNNN/{label}-{Name}.als` (one per property)
-- `vault/discovery/reviews/ASN-NNNN-alloy-review-N.md` (if failures after repair)
+- `vault/3-modeling/alloy/ASN-NNNN/{label}-{Name}.als` (one per property)
+- `vault/2-review/ASN-NNNN/review-N.md` (if failures after repair)
 
 ### Formalization — contract → extract → dafny
 
@@ -175,9 +175,9 @@ generation.
 style). State is an immutable value; operations are pure functions.
 
 Output:
-- `vault/formalization/contracts/ASN-NNNN-contract.md`
-- `vault/formalization/extracts/ASN-NNNN-extract.md`
-- `vault/modeling/dafny/ASN-NNNN.dfy`
+- `vault/3-modeling/contracts/ASN-NNNN-contract.md`
+- `vault/3-modeling/extracts/ASN-NNNN-extract.md`
+- `vault/proofs/ASN-NNNN.dfy`
 
 ### Verification — verify Dafny module with fix loop
 
@@ -196,11 +196,11 @@ python scripts/run-dafny.py 4 --dry-run            # check paths, no execution
 (fix with extract context). Tier 3 = spec errors (escape to ASN review cycle).
 
 **Escalation:** Tier 1 → 3 attempts → Tier 2. Tier 2 → 2 attempts → Tier 3.
-Tier 3 writes an escalation report to `vault/formalization/verification/`.
+Tier 3 writes an escalation report to `vault/3-modeling/verification/`.
 
 Output:
-- `vault/formalization/verification/ASN-NNNN-verify-N.md` (verification reports)
-- `vault/formalization/verification/ASN-NNNN-escalation.md` (Tier 3 escalation)
+- `vault/3-modeling/verification/ASN-NNNN-verify-N.md` (verification reports)
+- `vault/3-modeling/verification/ASN-NNNN-escalation.md` (Tier 3 escalation)
 
 ### Triage — promote ASN open questions to new inquiries
 
@@ -210,9 +210,9 @@ python scripts/triage-questions.py 13 --dry-run  # show decisions without updati
 python scripts/triage-questions.py 4 --model sonnet  # faster, less rigorous
 ```
 
-Reads the ASN's open questions, checks existing triage (vault/discovery/triage/ASN-NNNN.md),
+Reads the ASN's open questions, checks existing promotions (vault/1-promote/ASN-NNNN/),
 and decides which questions warrant new inquiries. Writes full evaluation with
-rationale to per-ASN triage file. Updates inquiries.yaml for promoted questions.
+rationale to per-ASN promotion file. Updates inquiries.yaml for promoted questions.
 
 ### Triage Defers — promote review DEFER items to new inquiries
 
@@ -222,14 +222,14 @@ python scripts/triage-defers.py 14 --dry-run     # show extracted defers without
 python scripts/triage-defers.py 4 --model sonnet # faster, less rigorous
 ```
 
-Extracts DEFER sections from an ASN's review files, checks against existing triage
-(vault/discovery/triage/ASN-NNNN-defers.md), and decides which deferred topics warrant new
-inquiries. Re-running passes previous triage as context to avoid re-promoting.
+Extracts DEFER sections from an ASN's review files, checks against existing promotions
+(vault/1-promote/ASN-NNNN/), and decides which deferred topics warrant new
+inquiries. Re-running passes previous context to avoid re-promoting.
 
 ### Standalone scripts
 
 ```
-python scripts/review-asn.py 9                # review only → vault/discovery/reviews/
+python scripts/review-asn.py 9                # review only → vault/2-review/
 python scripts/consult_for_revision.py 9          # consult for latest review
 python scripts/consult_for_revision.py 9 --dry-run  # categorize only, no consultations
 python scripts/revise-asn.py 9                # revise using latest review
@@ -298,30 +298,38 @@ python scripts/commit.py "hint about changes" # commit with context hint
 
 ```
 vault/
-  modeling/         — The model artifacts
-    asns/           — Abstract Specification Notes (ASN-NNNN-title.md)
-    dafny/          — Verified specification modules (ASN-NNNN.dfy)
-    alloy/          — Alloy models for bounded checking (generated .als files)
-    vocabulary.md   — Shared vocabulary for ASN authors
+  asns/             — Deliverable: Abstract Specification Notes (ASN-NNNN-title.md)
+  proofs/           — Deliverable: Verified Dafny specification modules
+  vocabulary.md     — Shared vocabulary for ASN authors
+  requirements/     — Nelson's design features
 
-  discovery/        — Working artifacts of building the model
-    inquiries.yaml  — Inquiry definitions driving ASN production
-    consultations/  — Orchestrated consultation output (answers.md per ASN)
-    transcripts/    — Individual agent call logs (Nelson/Gregory subagent runs)
-    reviews/        — Review outputs (ASN-NNNN-review-N.md)
-    triage/         — Per-ASN triage decisions (promoted/declined with rationale)
+  1-promote/        — Stage 1: Inquiry definitions + promoted questions
+    inquiries.yaml
+    ASN-NNNN/       — Per-ASN promoted open questions and deferrals
 
-  formalization/    — Working artifacts of encoding the model
-    contracts/      — Property contracts (ASN-NNNN-contract.md) — type + Dafny name mappings
-    extracts/       — Extracted formal properties (ASN-NNNN-extract.md)
+  2-review/         — Stage 2: Review outputs (review-N.md per ASN)
+    ASN-NNNN/
+
+  3-modeling/       — Stage 3: Modeling artifacts
+    modules.md      — Module registry (ASN → Dafny module mapping)
+    alloy/          — Alloy models for bounded checking (.als files)
+    contracts/      — Property contracts (type + Dafny name mappings)
+    extracts/       — Extracted formal properties from ASN prose
     verification/   — Verification reports + escalation files
+    dafny/          — Divergence evidence from Dafny generation
+
+  experts/          — Expert consultation results + session transcripts
+    ASN-NNNN/
+      consultation/ — Initial consultation (answers.md, questions.md)
+      consultation-N/ — Per-review consultations
+      sessions/     — Individual agent call logs (nelson-N/, gregory-N/)
 
   usage-log.jsonl   — API call tracking
 
 scripts/            — Pipeline and consultation scripts
   paths.py          — Shared vault path constants
   prompts/
-    discovery/      — Prompt templates for discovery/review/triage agents
+    discovery/      — Prompt templates for discovery/review agents
     formalization/  — Prompt templates for contract/extract/dafny agents
     commit.md       — Shared commit prompt
 
