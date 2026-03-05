@@ -12,7 +12,7 @@ additional context about intended property semantics.
 Usage:
     python scripts/fix-dafny.py 1
     python scripts/fix-dafny.py ASN-0001 --with-extract
-    python scripts/fix-dafny.py ASN-0001 --report vault/formalization/verification/ASN-0001-verify-3.md
+    python scripts/fix-dafny.py ASN-0001 --report vault/3-modeling/verification/ASN-0001-verify-3.md
     python scripts/fix-dafny.py ASN-0001 --dry-run
 """
 
@@ -207,7 +207,7 @@ def main():
     # Find .dfy file
     dfy_path, asn_label = find_dafny_file(args.asn)
     if dfy_path is None:
-        print(f"  No .dfy file found for {args.asn} in vault/modeling/dafny/",
+        print(f"  No .dfy file found for {args.asn} in vault/proofs/",
               file=sys.stderr)
         sys.exit(1)
 

@@ -7,7 +7,7 @@ per property using an agentic Claude session (with Bash access to run Alloy
 and self-fix syntax errors), produces a review if failures remain, then feeds
 the review into the consult → revise → commit cycle.
 
-Requires: extract file in vault/formalization/extracts/ (run extract-properties.py first)
+Requires: extract file in vault/3-modeling/extracts/ (run extract-properties.py first)
 Requires: Alloy installed at /Applications/Alloy.app (macOS) or ALLOY_JAR set.
 
 Usage:
@@ -906,7 +906,7 @@ def main():
     # Find ASN
     asn_path, asn_label = find_asn(args.asn)
     if asn_path is None:
-        print(f"  No ASN found for {args.asn} in vault/modeling/asns/",
+        print(f"  No ASN found for {args.asn} in vault/asns/",
               file=sys.stderr)
         sys.exit(1)
 

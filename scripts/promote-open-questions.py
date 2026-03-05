@@ -4,7 +4,7 @@ Promote ASN open questions — decide which spawn new inquiries.
 
 Reads an ASN's open questions, checks what's already been promoted,
 invokes Claude to evaluate each question, and updates inquiries.yaml
-and vault/discovery/promotions/ASN-NNNN/open-questions.md for qualifying questions.
+and vault/1-promote/ASN-NNNN/open-questions.md for qualifying questions.
 
 Usage:
     python scripts/promote-open-questions.py 12
@@ -256,7 +256,7 @@ def main():
     # Find ASN
     asn_path, asn_label = find_asn(args.asn)
     if asn_path is None:
-        print(f"  No ASN found for {args.asn} in vault/modeling/asns/", file=sys.stderr)
+        print(f"  No ASN found for {args.asn} in vault/asns/", file=sys.stderr)
         sys.exit(1)
 
     asn_content = asn_path.read_text()

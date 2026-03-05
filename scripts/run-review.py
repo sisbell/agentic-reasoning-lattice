@@ -8,7 +8,7 @@ Orchestrates ASN quality improvement by calling step scripts:
   3. Revise: targeted fixes addressing review findings (opus, with tools)
   4. Commit: commit vault changes (sonnet)
 
-Each cycle produces a numbered review in vault/discovery/reviews/ and revises the ASN
+Each cycle produces a numbered review in vault/2-review/ and revises the ASN
 in place. Multiple cycles progressively tighten the specification.
 
 Usage:
@@ -205,7 +205,7 @@ def main():
     # Find ASN
     asn_path, asn_label = find_asn(args.asn)
     if asn_path is None:
-        print(f"  No ASN found for {args.asn} in vault/modeling/asns/", file=sys.stderr)
+        print(f"  No ASN found for {args.asn} in vault/asns/", file=sys.stderr)
         sys.exit(1)
 
     print(f"  [PIPELINE] {asn_label} ({asn_path.name})", file=sys.stderr)

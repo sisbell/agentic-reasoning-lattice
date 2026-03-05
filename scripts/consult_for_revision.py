@@ -350,7 +350,7 @@ def main():
     # Find ASN
     asn_path, asn_label = find_asn(args.asn)
     if asn_path is None:
-        print(f"  No ASN found for {args.asn} in vault/modeling/asns/", file=sys.stderr)
+        print(f"  No ASN found for {args.asn} in vault/asns/", file=sys.stderr)
         sys.exit(1)
 
     # Find review
@@ -360,7 +360,7 @@ def main():
             print(f"  Review not found: {args.review} for {asn_label}",
                   file=sys.stderr)
         else:
-            print(f"  No reviews found for {asn_label} in vault/discovery/reviews/",
+            print(f"  No reviews found for {asn_label} in vault/2-review/",
                   file=sys.stderr)
         sys.exit(1)
 

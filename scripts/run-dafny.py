@@ -317,7 +317,7 @@ def main():
     # Find ASN
     asn_path, asn_label = find_asn(args.asn)
     if asn_path is None:
-        print(f"  No ASN found for {args.asn} in vault/modeling/asns/",
+        print(f"  No ASN found for {args.asn} in vault/asns/",
               file=sys.stderr)
         sys.exit(1)
 

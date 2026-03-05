@@ -6,7 +6,7 @@ Runs two independent claude --print processes with the same question:
   1. KB agent: prompt template + injected KB (no tools, fast)
   2. Code agent: prompt template + tool access (tools, thorough)
 
-Both run in parallel. Transcripts written to vault/discovery/transcripts/ for traceability.
+Both run in parallel. Transcripts written to vault/experts/.../sessions/ for traceability.
 Prints the output file path to stdout.
 
 For batch consultations (consult-experts.py pipeline), Gregory logic is

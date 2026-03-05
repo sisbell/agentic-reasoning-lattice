@@ -160,7 +160,7 @@ def main():
         asn_files = sorted(ASNS_DIR.glob("ASN-*.md"))
 
     if not asn_files:
-        print("  No ASN files found in vault/modeling/asns/", file=sys.stderr)
+        print("  No ASN files found in vault/asns/", file=sys.stderr)
         sys.exit(1)
 
     labels = [asn_label(p) for p in asn_files]

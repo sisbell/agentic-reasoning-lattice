@@ -643,7 +643,7 @@ def main():
 
     registry_text = read_file(MODULES_REGISTRY)
     if not registry_text:
-        print("  Module registry not found: vault/modeling/modules.md", file=sys.stderr)
+        print("  Module registry not found: vault/3-modeling/modules.md", file=sys.stderr)
         sys.exit(1)
 
     # --- Parse inputs ---
