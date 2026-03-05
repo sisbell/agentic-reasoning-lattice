@@ -7,7 +7,7 @@ per property using an agentic Claude session (with Bash access to run Alloy
 and self-fix syntax errors), produces a review if failures remain, then feeds
 the review into the consult → revise → commit cycle.
 
-Requires: extract file in vault/3-modeling/extracts/ (run extract-properties.py first)
+Requires: extract file in vault/3-modeling/formal-statements/ (run extract-properties.py first)
 Requires: Alloy installed at /Applications/Alloy.app (macOS) or ALLOY_JAR set.
 
 Usage:
@@ -32,7 +32,7 @@ import time
 
 from pathlib import Path
 
-from paths import (WORKSPACE, ASNS_DIR, ALLOY_DIR, EXTRACTS_DIR, REVIEWS_DIR,
+from paths import (WORKSPACE, ASNS_DIR, ALLOY_DIR, STATEMENTS_DIR, REVIEWS_DIR,
                     USAGE_LOG, sorted_reviews, next_review_number,
                     sanitize_filename)
 
@@ -676,7 +676,7 @@ def generate_review(asn_label, results, properties, run_num=None,
         asn_text = read_file(asn_path)
     if not asn_text:
         # Fallback to extract
-        extract_path = EXTRACTS_DIR / f"{asn_label}-extract.md"
+        extract_path = STATEMENTS_DIR / f"{asn_label}-statements.md"
         asn_text = read_file(extract_path)
 
     # Build evidence from results
@@ -911,7 +911,7 @@ def main():
         sys.exit(1)
 
     # Load extract
-    extract_path = EXTRACTS_DIR / f"{asn_label}-extract.md"
+    extract_path = STATEMENTS_DIR / f"{asn_label}-statements.md"
     extract = read_file(extract_path)
     if not extract:
         print(f"  No extract found at {extract_path.relative_to(WORKSPACE)}",

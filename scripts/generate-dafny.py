@@ -5,7 +5,7 @@ Generate a Dafny specification module from an ASN's extracted properties.
 Takes the extract (formal properties + definitions with Dafny metadata)
 and vocabulary, then produces a verified Dafny module.
 
-Requires: extract file in vault/3-modeling/extracts/ (run extract-properties.py first)
+Requires: extract file in vault/3-modeling/formal-statements/ (run extract-properties.py first)
 
 Usage:
     python scripts/generate-dafny.py 4
@@ -22,7 +22,7 @@ import time
 
 from pathlib import Path
 
-from paths import WORKSPACE, EXTRACTS_DIR, DAFNY_DIR, ALLOY_DIR, VOCABULARY, USAGE_LOG
+from paths import WORKSPACE, STATEMENTS_DIR, DAFNY_DIR, ALLOY_DIR, VOCABULARY, USAGE_LOG
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"
 TEMPLATE = PROMPTS_DIR / "generate-dafny.md"
@@ -41,7 +41,7 @@ def find_extract(asn_id):
     if not num:
         return None, None
     label = f"ASN-{int(num):04d}"
-    extract_path = EXTRACTS_DIR / f"{label}-extract.md"
+    extract_path = STATEMENTS_DIR / f"{label}-statements.md"
     if extract_path.exists():
         return extract_path, label
     return None, label
@@ -198,7 +198,7 @@ def main():
     # Find extract
     extract_path, asn_label = find_extract(args.asn)
     if extract_path is None:
-        print(f"  No extract found for {args.asn} in vault/3-modeling/extracts/",
+        print(f"  No extract found for {args.asn} in vault/3-modeling/formal-statements/",
               file=sys.stderr)
         print(f"  Run: python scripts/extract-properties.py {args.asn}",
               file=sys.stderr)

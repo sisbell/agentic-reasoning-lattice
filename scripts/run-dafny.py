@@ -32,7 +32,7 @@ import time
 from pathlib import Path
 
 from paths import (WORKSPACE, ASNS_DIR, DAFNY_DIR, CONTRACTS_DIR,
-                   EXTRACTS_DIR, VERIFICATION_DIR, USAGE_LOG)
+                   STATEMENTS_DIR, VERIFICATION_DIR, USAGE_LOG)
 
 VERIFY_SCRIPT = WORKSPACE / "scripts" / "verify-dafny.py"
 FIX_SCRIPT = WORKSPACE / "scripts" / "fix-dafny.py"
@@ -270,7 +270,7 @@ def run_full_pipeline(asn_id, asn_label):
     asn_path = asn_matches[0]
 
     contract_path = CONTRACTS_DIR / f"{asn_label}-contract.md"
-    extract_path = EXTRACTS_DIR / f"{asn_label}-extract.md"
+    extract_path = STATEMENTS_DIR / f"{asn_label}-statements.md"
 
     # Contract: regenerate if ASN is newer
     if is_stale(asn_path, contract_path):
@@ -332,7 +332,7 @@ def main():
         print(f"  [DRY RUN] Dafny: {dfy_path}", file=sys.stderr)
         if args.full:
             contract = CONTRACTS_DIR / f"{asn_label}-contract.md"
-            extract = EXTRACTS_DIR / f"{asn_label}-extract.md"
+            extract = STATEMENTS_DIR / f"{asn_label}-statements.md"
             print(f"  [DRY RUN] --full: would check staleness of:", file=sys.stderr)
             print(f"    Contract: {contract} (exists: {contract.exists()})",
                   file=sys.stderr)

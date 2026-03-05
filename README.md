@@ -176,7 +176,7 @@ style). State is an immutable value; operations are pure functions.
 
 Output:
 - `vault/3-modeling/contracts/ASN-NNNN-contract.md`
-- `vault/3-modeling/extracts/ASN-NNNN-extract.md`
+- `vault/3-modeling/formal-statements/ASN-NNNN-statements.md`
 - `vault/proofs/ASN-NNNN.dfy`
 
 ### Verification — verify Dafny module with fix loop
@@ -314,7 +314,7 @@ vault/
     modules.md      — Module registry (ASN → Dafny module mapping)
     alloy/          — Alloy models for bounded checking (.als files)
     contracts/      — Property contracts (type + Dafny name mappings)
-    extracts/       — Extracted formal properties from ASN prose
+    formal-statements/ — Formal property statements from ASN prose
     verification/   — Verification reports + escalation files
     dafny/          — Divergence evidence from Dafny generation
 

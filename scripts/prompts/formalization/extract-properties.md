@@ -28,7 +28,7 @@ subtraction). These will become function/predicate bodies in Dafny.
 
 ## Output format
 
-Start directly with `# ASN-NNNN Formal Properties`.
+Start directly with `# ASN-NNNN Formal Statements`.
 
 For each property, use this structure:
 

@@ -1,4 +1,4 @@
-# ASN-0004 Formal Properties
+# ASN-0004 Formal Statements
 
 *Source: ASN-0004-content-insertion.md (revised 2026-02-24) — Contract: 2026-03-01 — Extracted: 2026-03-01*
 

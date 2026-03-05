@@ -26,7 +26,7 @@ import time
 
 from pathlib import Path
 
-from paths import (WORKSPACE, ASNS_DIR, CONTRACTS_DIR, EXTRACTS_DIR, DAFNY_DIR,
+from paths import (WORKSPACE, ASNS_DIR, CONTRACTS_DIR, STATEMENTS_DIR, DAFNY_DIR,
                     ALLOY_DIR, DAFNY_DISCOVERY_DIR, REVIEWS_DIR, USAGE_LOG,
                     MODULES_REGISTRY, next_review_number, sanitize_filename)
 
@@ -54,7 +54,7 @@ def find_asn_files(asn_id):
         return None, None, None
     label = f"ASN-{int(num):04d}"
     contract = CONTRACTS_DIR / f"{label}-contract.md"
-    extract = EXTRACTS_DIR / f"{label}-extract.md"
+    extract = STATEMENTS_DIR / f"{label}-statements.md"
     return (
         contract if contract.exists() else None,
         extract if extract.exists() else None,
@@ -630,7 +630,7 @@ def main():
         print(f"  Run: python scripts/contract-asn.py {args.asn}", file=sys.stderr)
         sys.exit(1)
     if extract_path is None:
-        print(f"  No extract found for {args.asn} in {EXTRACTS_DIR.relative_to(WORKSPACE)}/",
+        print(f"  No extract found for {args.asn} in {STATEMENTS_DIR.relative_to(WORKSPACE)}/",
               file=sys.stderr)
         print(f"  Run: python scripts/extract-properties.py {args.asn}", file=sys.stderr)
         sys.exit(1)

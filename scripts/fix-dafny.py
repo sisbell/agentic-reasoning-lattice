@@ -26,7 +26,7 @@ import time
 
 from pathlib import Path
 
-from paths import (WORKSPACE, DAFNY_DIR, EXTRACTS_DIR, VERIFICATION_DIR,
+from paths import (WORKSPACE, DAFNY_DIR, STATEMENTS_DIR, VERIFICATION_DIR,
                    VOCABULARY, USAGE_LOG)
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"
@@ -240,7 +240,7 @@ def main():
 
     if args.with_extract:
         tier_label = "Tier 2"
-        extract_path = EXTRACTS_DIR / f"{asn_label}-extract.md"
+        extract_path = STATEMENTS_DIR / f"{asn_label}-statements.md"
         extract = read_file(extract_path)
         if not extract:
             print(f"  Warning: no extract found at {extract_path.relative_to(WORKSPACE)}",

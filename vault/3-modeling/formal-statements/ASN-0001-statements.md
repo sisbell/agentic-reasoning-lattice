@@ -1,4 +1,4 @@
-# ASN-0001 Formal Properties
+# ASN-0001 Formal Statements
 
 *Source: ASN-0001-tumbler-algebra.md (revised 2026-02-23) — Contract: 2026-03-01 — Extracted: 2026-03-01*
 

@@ -21,7 +21,7 @@ import time
 
 from pathlib import Path
 
-from paths import WORKSPACE, ASNS_DIR, CONTRACTS_DIR, EXTRACTS_DIR, USAGE_LOG
+from paths import WORKSPACE, ASNS_DIR, CONTRACTS_DIR, STATEMENTS_DIR, USAGE_LOG
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"
 TEMPLATE = PROMPTS_DIR / "extract-properties.md"
@@ -197,8 +197,8 @@ def main():
         text = text + "\n" + source_line
 
     # Write output
-    EXTRACTS_DIR.mkdir(parents=True, exist_ok=True)
-    out_path = EXTRACTS_DIR / f"{asn_label}-extract.md"
+    STATEMENTS_DIR.mkdir(parents=True, exist_ok=True)
+    out_path = STATEMENTS_DIR / f"{asn_label}-statements.md"
     out_path.write_text(text + "\n")
 
     # Log usage
