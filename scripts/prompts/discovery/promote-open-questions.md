@@ -1,4 +1,4 @@
-# Triage ASN Open Questions into New Inquiries
+# Promote ASN Open Questions into New Inquiries
 
 You evaluate open questions from a completed ASN and decide which, if any, should become new inquiries in the research pipeline.
 
@@ -18,9 +18,9 @@ These inquiries already exist. Do not create duplicates or near-duplicates.
 
 {{inquiries}}
 
-### Existing Triage for This ASN
+### Existing Promotion for This ASN
 
-If a previous triage exists for this ASN, its decisions are shown below. Do not re-evaluate questions that already have decisions. Only evaluate questions not yet covered.
+If a previous promotion exists for this ASN, its decisions are shown below. Do not re-evaluate questions that already have decisions. Only evaluate questions not yet covered.
 
 If this is empty, all open questions need evaluation.
 
@@ -86,7 +86,7 @@ Assign one of these areas based on the question's primary concern:
 
 ## Output Format
 
-Write a markdown triage report. The script parses this, so follow the format exactly.
+Write a markdown promotion report. The script parses this, so follow the format exactly.
 
 ### If questions are promoted
 
@@ -122,4 +122,4 @@ Write a markdown triage report. The script parses this, so follow the format exa
 
 This is a valid and common outcome — most ASNs will not spawn new inquiries.
 
-Output ONLY the triage report. No commentary before or after.
+Output ONLY the promotion report. No commentary before or after.

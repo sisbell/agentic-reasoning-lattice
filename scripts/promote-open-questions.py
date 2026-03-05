@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-Triage ASN open questions — decide which spawn new inquiries.
+Promote ASN open questions — decide which spawn new inquiries.
 
-Reads an ASN's open questions, checks what's already been triaged,
+Reads an ASN's open questions, checks what's already been promoted,
 invokes Claude to evaluate each question, and updates inquiries.yaml
-and vault/discovery/triage/ASN-NNNN.md for qualifying questions.
+and vault/discovery/promotions/ASN-NNNN/open-questions.md for qualifying questions.
 
 Usage:
-    python scripts/triage-questions.py 12
-    python scripts/triage-questions.py 13 --dry-run
-    python scripts/triage-questions.py 4 --model sonnet
+    python scripts/promote-open-questions.py 12
+    python scripts/promote-open-questions.py 13 --dry-run
+    python scripts/promote-open-questions.py 4 --model sonnet
 """
 
 import argparse
@@ -23,10 +23,10 @@ import yaml
 
 from pathlib import Path
 
-from paths import WORKSPACE, ASNS_DIR, INQUIRIES_FILE, TRIAGE_DIR, USAGE_LOG
+from paths import WORKSPACE, ASNS_DIR, INQUIRIES_FILE, PROMOTE_DIR, USAGE_LOG
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
-TRIAGE_TEMPLATE = PROMPTS_DIR / "triage-questions.md"
+PROMOTE_TEMPLATE = PROMPTS_DIR / "promote-open-questions.md"
 
 
 def read_file(path):
@@ -72,10 +72,10 @@ def next_inquiry_id(data):
 
 
 def build_prompt(asn_content, inquiries_text, existing_triage):
-    """Assemble triage prompt from template + injected content."""
-    template = read_file(TRIAGE_TEMPLATE)
+    """Assemble promotion prompt from template + injected content."""
+    template = read_file(PROMOTE_TEMPLATE)
     if not template:
-        print("  Triage prompt template not found at scripts/prompts/triage-questions.md",
+        print("  Promotion prompt template not found at scripts/prompts/promote-open-questions.md",
               file=sys.stderr)
         sys.exit(1)
 
@@ -182,7 +182,7 @@ def append_inquiry_yaml(data, inquiry, next_id):
         "title": inquiry["title"],
         "question": inquiry["question"],
         "area": inquiry["area"],
-        "source": f"ASN triage",
+        "source": f"ASN promotion",
     }
     nelson = inquiry.get("nelson", 10)
     gregory = inquiry.get("gregory", 10)
@@ -230,7 +230,7 @@ def log_usage(asn_label, elapsed):
     try:
         entry = {
             "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
-            "skill": "triage-questions",
+            "skill": "promote-open-questions",
             "asn": asn_label,
             "elapsed_s": round(elapsed, 1),
         }
@@ -242,7 +242,7 @@ def log_usage(asn_label, elapsed):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Triage ASN open questions into new inquiries")
+        description="Promote ASN open questions into new inquiries")
     parser.add_argument("asn", help="ASN number (e.g., 12, 0012, ASN-0012)")
     parser.add_argument("--model", "-m", default="opus",
                         choices=["opus", "sonnet"],
@@ -263,10 +263,10 @@ def main():
 
     # Load current state
     inq_data, inq_text = load_inquiries()
-    existing_triage = read_file(TRIAGE_DIR / f"{asn_label}.md")
+    existing_triage = read_file(PROMOTE_DIR / asn_label / "open-questions.md")
 
     # Build prompt
-    print(f"  [TRIAGE] {asn_label}", file=sys.stderr)
+    print(f"  [PROMOTE] {asn_label}", file=sys.stderr)
     prompt = build_prompt(asn_content, inq_text, existing_triage)
     print(f"  Prompt: {len(prompt) // 1024}KB (~{len(prompt) // 4} tokens est.)",
           file=sys.stderr)
@@ -293,16 +293,16 @@ def main():
         print(f"\n  No new inquiries from {asn_label}", file=sys.stderr)
 
     if args.dry_run:
-        print(f"\n  [DRY RUN] Would write triage file", file=sys.stderr)
+        print(f"\n  [DRY RUN] Would write promotion file", file=sys.stderr)
         print(text)
         log_usage(asn_label, elapsed)
         return
 
-    # Write triage file (Claude's output directly)
-    TRIAGE_DIR.mkdir(parents=True, exist_ok=True)
-    triage_path = TRIAGE_DIR / f"{asn_label}.md"
-    triage_path.write_text(text + "\n")
-    print(f"  [UPDATED] {triage_path.relative_to(WORKSPACE)}", file=sys.stderr)
+    # Write promotion file (Claude's output directly)
+    (PROMOTE_DIR / asn_label).mkdir(parents=True, exist_ok=True)
+    output_path = PROMOTE_DIR / asn_label / "open-questions.md"
+    output_path.write_text(text + "\n")
+    print(f"  [UPDATED] {output_path.relative_to(WORKSPACE)}", file=sys.stderr)
 
     # Update inquiries.yaml if promoted
     if promoted:

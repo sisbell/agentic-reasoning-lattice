@@ -16,7 +16,7 @@ INQUIRIES_FILE = VAULT / "discovery" / "inquiries.yaml"
 CONSULT_DIR = VAULT / "discovery" / "consultations"
 TRANSCRIPTS_DIR = VAULT / "discovery" / "transcripts"
 REVIEWS_DIR = VAULT / "discovery" / "reviews"
-TRIAGE_DIR = VAULT / "discovery" / "triage"
+PROMOTE_DIR = VAULT / "discovery" / "promotions"
 ALLOY_DIR = VAULT / "discovery" / "alloy"
 DAFNY_DISCOVERY_DIR = VAULT / "discovery" / "dafny"
 

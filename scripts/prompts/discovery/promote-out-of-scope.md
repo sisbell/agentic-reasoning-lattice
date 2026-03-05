@@ -1,16 +1,16 @@
-# Triage Review Deferrals into New Inquiries
+# Promote Review Out-of-Scope Items into New Inquiries
 
-You evaluate DEFER items from ASN reviews and decide which, if any, should become new inquiries in the research pipeline.
+You evaluate OUT_OF_SCOPE items from ASN reviews and decide which, if any, should become new inquiries in the research pipeline.
 
 ## Context
 
-Each ASN review ends with a DEFER section listing topics that are genuinely new territory — not errors in the current ASN, but questions that belong in a future ASN. Your job is to identify which deferred topics are worth investigating as new inquiries. Err on the side of promoting — duplicate management is handled downstream by the human operator.
+Each ASN review ends with an OUT_OF_SCOPE section listing topics that are genuinely new territory — not errors in the current ASN, but questions that belong in a future ASN. Your job is to identify which out-of-scope topics are worth investigating as new inquiries. Err on the side of promoting — duplicate management is handled downstream by the human operator.
 
 ## Inputs
 
-### Defer Items
+### Out-of-Scope Items
 
-These are the DEFER sections extracted from all reviews. Each is labeled with its source review.
+These are the OUT_OF_SCOPE sections extracted from all reviews. Each is labeled with its source review.
 
 {{defer_items}}
 
@@ -20,15 +20,15 @@ These inquiries already exist. Use them to avoid promoting exact duplicates — 
 
 {{inquiries}}
 
-### Previous Triage
+### Previous Promotion
 
-This is the existing triage output for this ASN. Any topic already listed here (Promoted or Declined) has been handled. Only evaluate defer items that are NOT already in this list — typically new deferrals from a newer review. If every defer item is already covered, output the previous triage unchanged.
+This is the existing promotion output for this ASN. Any topic already listed here (Promoted or Declined) has been handled. Only evaluate out-of-scope items that are NOT already in this list — typically new items from a newer review. If every item is already covered, output the previous promotion unchanged.
 
 {{existing_triage}}
 
 ## Decision Criteria
 
-Promote a defer item unless it hits one of the three narrow rejection criteria below.
+Promote an out-of-scope item unless it hits one of the three narrow rejection criteria below.
 
 **Reject ONLY when:**
 
@@ -36,11 +36,11 @@ Promote a defer item unless it hits one of the three narrow rejection criteria b
 
 2. **Inconsequential.** The answer would not affect the formal specification — naming conventions, editorial concerns, performance optimizations.
 
-3. **Word-for-word duplicate.** An existing inquiry asks the same question in essentially the same words. "Related to" or "overlaps with" is NOT grounds for rejection. A defer about concurrent INSERT semantics is not a duplicate of an inquiry about concurrency and global indexes — those are different questions in the same area.
+3. **Word-for-word duplicate.** An existing inquiry asks the same question in essentially the same words. "Related to" or "overlaps with" is NOT grounds for rejection. An out-of-scope item about concurrent INSERT semantics is not a duplicate of an inquiry about concurrency and global indexes — those are different questions in the same area.
 
 **Everything else is promoted.** When in doubt, promote. The human operator handles dedup and prioritization downstream.
 
-If the same topic appears as a deferral in multiple independent reviews, note this in the rationale — it strengthens the case.
+If the same topic appears as out-of-scope in multiple independent reviews, note this in the rationale — it strengthens the case.
 
 ## Inquiry Framing
 
@@ -81,7 +81,7 @@ Assign one of these areas based on the topic's primary concern:
 
 ## Output Format
 
-Write a markdown triage report. The script parses this, so follow the format exactly.
+Write a markdown promotion report. The script parses this, so follow the format exactly.
 
 ### If topics are promoted
 
@@ -118,4 +118,4 @@ Write a markdown triage report. The script parses this, so follow the format exa
   Rationale: One sentence explaining why it doesn't qualify
 ```
 
-Output ONLY the triage report. No commentary before or after.
+Output ONLY the promotion report. No commentary before or after.

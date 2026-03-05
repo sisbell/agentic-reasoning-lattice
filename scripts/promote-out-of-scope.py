@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-Triage review DEFER items for a single ASN — decide which spawn new inquiries.
+Promote review OUT_OF_SCOPE items for a single ASN — decide which spawn new inquiries.
 
-Extracts DEFER sections from the ASN's review files, checks against existing
-inquiries and previous triage, invokes Claude to evaluate each topic, and
+Extracts OUT_OF_SCOPE sections from the ASN's review files, checks against existing
+inquiries and previous promotions, invokes Claude to evaluate each topic, and
 updates inquiries.yaml for qualifying topics.
 
 Usage:
-    python scripts/triage-defers.py 4
-    python scripts/triage-defers.py 14 --dry-run
-    python scripts/triage-defers.py 4 --model sonnet
+    python scripts/promote-out-of-scope.py 4
+    python scripts/promote-out-of-scope.py 14 --dry-run
+    python scripts/promote-out-of-scope.py 4 --model sonnet
 """
 
 import argparse
@@ -23,10 +23,10 @@ import yaml
 
 from pathlib import Path
 
-from paths import WORKSPACE, REVIEWS_DIR, INQUIRIES_FILE, TRIAGE_DIR, USAGE_LOG, sorted_reviews
+from paths import WORKSPACE, REVIEWS_DIR, INQUIRIES_FILE, PROMOTE_DIR, USAGE_LOG, sorted_reviews
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
-TRIAGE_TEMPLATE = PROMPTS_DIR / "triage-defers.md"
+PROMOTE_TEMPLATE = PROMPTS_DIR / "promote-out-of-scope.md"
 
 
 def read_file(path):
@@ -99,10 +99,10 @@ def next_inquiry_id(data):
 
 
 def build_prompt(defer_items, inquiries_text, existing_triage):
-    """Assemble triage prompt from template + injected content."""
-    template = read_file(TRIAGE_TEMPLATE)
+    """Assemble promotion prompt from template + injected content."""
+    template = read_file(PROMOTE_TEMPLATE)
     if not template:
-        print("  Triage prompt template not found at scripts/prompts/triage-defers.md",
+        print("  Promotion prompt template not found at scripts/prompts/promote-out-of-scope.md",
               file=sys.stderr)
         sys.exit(1)
 
@@ -116,7 +116,7 @@ def build_prompt(defer_items, inquiries_text, existing_triage):
 
 
 def strip_preamble(text):
-    """Strip any preamble before the triage header."""
+    """Strip any preamble before the promotion header."""
     marker = re.search(r"^# Triage: Review Deferrals", text, re.MULTILINE)
     if marker:
         return text[marker.start():]
@@ -217,7 +217,7 @@ def append_inquiry_yaml(data, inquiry, next_id):
         "title": inquiry["title"],
         "question": inquiry["question"],
         "area": inquiry["area"],
-        "source": "review-defer triage",
+        "source": "review-defer promotion",
     }
     nelson = inquiry.get("nelson", 10)
     gregory = inquiry.get("gregory", 10)
@@ -265,7 +265,7 @@ def log_usage(asn_label, elapsed):
     try:
         entry = {
             "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
-            "skill": "triage-defers",
+            "skill": "promote-out-of-scope",
             "asn": asn_label,
             "elapsed_s": round(elapsed, 1),
         }
@@ -277,7 +277,7 @@ def log_usage(asn_label, elapsed):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Triage review DEFER items into new inquiries")
+        description="Promote review OUT_OF_SCOPE items into new inquiries")
     parser.add_argument("asn", help="ASN number (e.g., 4, 0004, ASN-0004)")
     parser.add_argument("--model", "-m", default="opus",
                         choices=["opus", "sonnet"],
@@ -303,13 +303,13 @@ def main():
     # Count defer topics
     topic_count = len(re.findall(r"^### Topic \d+", defer_items, re.MULTILINE))
     review_count = len(re.findall(r"^### From ", defer_items, re.MULTILINE))
-    print(f"  [TRIAGE-DEFERS] {asn_label}: {topic_count} topics from {review_count} reviews",
+    print(f"  [PROMOTE-OOS] {asn_label}: {topic_count} topics from {review_count} reviews",
           file=sys.stderr)
 
-    # Load inquiries and existing triage for this ASN
+    # Load inquiries and existing promotions for this ASN
     inq_data, inq_text = load_inquiries()
-    triage_path = TRIAGE_DIR / f"{asn_label}-defers.md"
-    existing_triage = read_file(triage_path)
+    output_path = PROMOTE_DIR / asn_label / "out-of-scope-issues.md"
+    existing_triage = read_file(output_path)
 
     # Build prompt
     prompt = build_prompt(defer_items, inq_text, existing_triage)
@@ -347,10 +347,10 @@ def main():
     else:
         print(f"\n  No new inquiries from {asn_label} deferrals", file=sys.stderr)
 
-    # Write triage file (one per ASN, updated in place)
-    TRIAGE_DIR.mkdir(parents=True, exist_ok=True)
-    triage_path.write_text(text + "\n")
-    print(f"  [WROTE] {triage_path.relative_to(WORKSPACE)}", file=sys.stderr)
+    # Write promotion file (one per ASN, updated in place)
+    (PROMOTE_DIR / asn_label).mkdir(parents=True, exist_ok=True)
+    output_path.write_text(text + "\n")
+    print(f"  [WROTE] {output_path.relative_to(WORKSPACE)}", file=sys.stderr)
 
     # Update inquiries.yaml if promoted
     if promoted:
@@ -368,7 +368,7 @@ def main():
     # Log usage
     log_usage(asn_label, elapsed)
 
-    # Print full triage report
+    # Print full promotion report
     print(text)
 
 
