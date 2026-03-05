@@ -101,7 +101,7 @@ def build_prompt(asn_path, review_content, vocab, consultation_content=None):
 You are revising an existing ASN based on review feedback. Read the ASN at
 `{rel_path}`, then read the review below.
 
-Address every REVISE item. DEFER items are noted but do not require changes now.
+Address every REVISE item. OUT_OF_SCOPE items are noted but do not require changes now.
 
 **Do not rewrite the ASN from scratch.** Make targeted fixes to address the
 specific issues raised. Preserve the existing structure, notation, and reasoning

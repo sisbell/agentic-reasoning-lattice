@@ -50,7 +50,7 @@ In this case `a ⊖ w` is the zero tumbler (by the subtraction definition), and 
 
 **Required**: Add a preliminary case handling `a = w` before the three-case analysis, or restructure so that `dₐ` undefined is handled. The argument is one sentence: `a ⊖ w` is the zero tumbler, `b ⊖ w` is positive (since `b > w` gives a positive component at the divergence), and zero tumblers are less than positive tumblers under T1.
 
-## DEFER
+## OUT_OF_SCOPE
 
 ### Topic 1: Span intersection and splitting semantics
 **Why defer**: The ASN defines spans (T12) but does not formalize span intersection, splitting, or the conditions under which a span `(s, ℓ)` can be decomposed into sub-spans. These are needed for DELETE (which may partially overlap a span) and for link endset computation, but they belong to the operations ASN, not to the tumbler algebra.

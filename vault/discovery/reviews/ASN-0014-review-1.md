@@ -94,7 +94,7 @@ The gap is real: REP2+REP3 prevent inter-server collisions but within a single s
 
 ---
 
-## DEFER
+## OUT_OF_SCOPE
 
 ### Topic 1: Authority transfer on permanent server loss
 

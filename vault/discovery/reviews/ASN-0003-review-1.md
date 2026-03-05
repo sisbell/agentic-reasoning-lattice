@@ -59,7 +59,7 @@ The reader cannot tell which properties are load-bearing assumptions and which a
 **Problem**: Each clause of SEP is annotated with the properties it follows from (e.g., "by IV1, IV2, IV8"), but no derivation is shown. (a) is just IV1 + IV2 restated in English. (b) says "by IV7, with COPY preserving I-addresses" — IV7 is a non-constraint (V→I is not injective), which does not *derive* transclusion; it *permits* it. (c) depends on a link model not formalized in this ASN. (d) depends on CREATENEWVERSION sharing I-addresses, which is a specification of that operation, not a consequence of IV0-IV14. Labeling this a "theorem" overstates what has been established.
 **Required**: Either provide actual derivations (showing the chain from axioms to each consequence) or relabel SEP as a summary/claim and note which parts depend on operation specifications not formalized in this ASN.
 
-## DEFER
+## OUT_OF_SCOPE
 
 ### Topic 1: Formal link model
 **Why defer**: The ASN discusses link survivability as a consequence but does not model links in its state definition. A future ASN should formalize link structure (endsets, link index, spanfilade) and verify that MAKELINK preserves the I-space/V-space invariants. This is new territory — ASN-0003 correctly identifies links as a motivation for the two-space architecture, but formalizing them is a separate task.

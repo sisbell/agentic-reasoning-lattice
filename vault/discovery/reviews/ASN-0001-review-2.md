@@ -27,7 +27,7 @@
 **Problem**: T6 and T7 are explicitly acknowledged as derived: T6 "follows immediately from T4," and T7 is "a trivial consequence of T3 … and T4." Removing T6 from the property list does not break any guarantee — it remains derivable from T4 and T1. Removing T7 does not break any guarantee — it remains derivable from T3 and T4. The claimed minimality is false for at least these two properties.
 **Required**: Either demote T6 and T7 to corollaries (derived properties stated for emphasis, not independent axioms) and remove them from the minimality claim, or demonstrate that each occupies a genuinely independent position in the axiom set. The "Required by" table conflates "this property guarantees X" with "this property is the only thing guaranteeing X."
 
-## DEFER
+## OUT_OF_SCOPE
 
 ### Topic 1: Concrete computation model for ⊕ and ⊖
 **Why defer**: The ASN deliberately specifies the algebraic contract (order preservation, inverse) without prescribing digit-level computation. The worked example assumes single-component addition reduces to natural-number addition, which is reasonable but unproven. A future ASN should establish at least one concrete model satisfying all axioms (including the strict-increase axiom from Issue 1 once added), verifying that the axioms are satisfiable and not vacuously true over an empty model.

@@ -49,12 +49,12 @@ For each genuine issue:
 - Explain specifically what needs to change (missing precondition, over-strong claim, ambiguous wording)
 - If the fix is obvious, suggest it
 
-## DEFER
+## SKIP
 
 ### Topic N: description
 
 For proof artifacts and clean verifications:
-- Briefly explain why each is deferred
+- Briefly explain why each is skipped
 - Group proof artifacts together with explanation of why the ASN doesn't need to change
 
 VERDICT: REVISE or CONVERGED
@@ -62,7 +62,7 @@ VERDICT: REVISE or CONVERGED
 
 Rules:
 - Only genuine spec problems or ambiguities belong in REVISE
-- Proof artifacts go in DEFER with a clear explanation of why
+- Proof artifacts go in SKIP with a clear explanation of why
 - Be specific and concise — no boilerplate
 - If ALL divergences are proof artifacts, verdict is CONVERGED
 - If ANY divergence reveals a real spec issue, verdict is REVISE

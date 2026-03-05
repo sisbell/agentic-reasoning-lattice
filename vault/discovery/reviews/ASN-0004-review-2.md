@@ -40,7 +40,7 @@
 **Problem**: S0, S4, and S5 are given precise formal statements (quantified expressions with variables). S2 and S3 are given only informal English paraphrases. The proofs of S2 and S3 preservation are short, but they invoke the pre-INSERT state of these invariants; the reader needs the formal statement to verify the proof.
 **Required**: State S2 and S3 formally, in the same style as S0. For example: S2: `(A L ∈ links, a ∈ addrs(endsets(L)) : a ∈ dom.ispace)`. S3: `(A (a, d) ∈ spanindex : a ∈ dom.ispace)`.
 
-## DEFER
+## OUT_OF_SCOPE
 
 ### Topic 1: Atomicity enforcement mechanism
 **Why defer**: INS-ATOM is correctly identified as a derived requirement, and the gap between it and the implementation is correctly framed as a "refinement obligation." The question of *how* to enforce atomicity (WAL, undo log, etc.) belongs in a future ASN on crash recovery and transaction semantics, not in the abstract specification of INSERT.

@@ -47,7 +47,7 @@
 **Problem**: The ASN itself says "CON8 is stronger than CON5" and the derivability section notes CON8 "implies CON5 for single-server." If CON5 is derivable from CON8 in the single-server case, they are not independent. For the multi-server case, they may be independent, but the ASN doesn't make this distinction in the derivability analysis. The claim of three independent axioms contradicts the stated derivability relationship.
 **Required**: Either: (a) state that CON5 is the axiom and CON8 is a strengthening (making CON8 derivable from CON5 + mechanism), or (b) state that CON8 is the axiom and CON5 is a theorem for single-server, promoted to axiom for multi-server, or (c) clarify the exact scope under which both are independent.
 
-## DEFER
+## OUT_OF_SCOPE
 
 ### Topic 1: Information-flow consequences of globally discoverable links
 **Why defer**: CON6 establishes that link queries bypass per-document access control. This means a link created in a private document with endsets referencing shared content becomes discoverable by anyone who transcludes that content. Whether this constitutes an information leak — and whether the specification should constrain it — is a policy question beyond this ASN's scope.

@@ -37,7 +37,7 @@
 **Problem**: The system state defines vspace as a function from positions to addresses, but AP6 refers to "subspace s of document d," AP10 refers to "text_subspace," and the CREATENEWVERSION section says "The link subspace of the source is not copied." These all assume that Pos has internal structure distinguishing subspaces, but the system state definition does not specify this structure. The reader cannot evaluate AP6 or AP10 without knowing what "subspace" means within the domain of vspace(d).
 **Required**: Either (a) define Pos as a structured type (e.g., Pos = Subspace × Nat, or Pos as tumbler addresses with subspace prefixes) so that AP6 and AP10 are well-formed, or (b) introduce the subspace structure explicitly before the properties that rely on it.
 
-## DEFER
+## OUT_OF_SCOPE
 
 ### Topic 1: Operations not yet covered
 **Why defer**: Document creation (as distinct from version creation), account creation, node creation, and administrative operations may exist in the broader system. These would need their own AP-preservation proofs. This is new territory requiring its own operation definitions, not an error in the six operations analyzed here.

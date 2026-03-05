@@ -63,7 +63,7 @@ No axiom establishes this discipline. T9 requires monotonicity. T10 requires pre
 **Required**: Rewrite the `k > j` case cleanly. The argument is straightforward: for `i < k`, `(a ⊕ w)ᵢ = aᵢ` and `(b ⊕ w)ᵢ = bᵢ`. Since `j < k`, the divergence at position `j` is preserved: `(a ⊕ w)ⱼ = aⱼ < bⱼ = (b ⊕ w)ⱼ`. State it once, correctly.
 
 
-## DEFER
+## OUT_OF_SCOPE
 
 ### Topic 1: Formal definition of "allocator"
 

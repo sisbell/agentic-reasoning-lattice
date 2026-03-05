@@ -32,7 +32,7 @@
 **Problem**: TA3 requires `a < b ∧ a ≥ w ∧ b ≥ w` and yields `a ⊖ w < b ⊖ w`. The proof applies TA3 with `a := a` and `b := y ⊕ w`, needing `a < y ⊕ w` and `a ≥ w`. The hypothesis gives `a ≥ w`, but the conclusion `(y ⊕ w) ⊖ w = y` comes from TA4, which — per Issue 1 — requires additional preconditions beyond `k = #a`. The proof inherits TA4's unsound precondition. Additionally, TA3 itself is unverified (Issue 3); the proof chains through two unestablished properties.
 **Required**: Once TA4's precondition is corrected and TA3 is verified, revisit this proof with the corrected statements.
 
-## DEFER
+## OUT_OF_SCOPE
 
 ### Topic 1: Multi-component displacement inverses
 **Why defer**: The ASN identifies that the mutual inverse holds cleanly for single-component displacements at the element level — the case editing operations actually use. The general theory of multi-component displacement inverses (where tail replacement discards structure) is acknowledged as incomplete. This is genuinely new territory: it would require either a different subtraction algorithm (one that takes the action point as a parameter) or a formal characterization of which displacement shapes admit inverses. This belongs in a future ASN on displacement algebra, not as a patch to this one.

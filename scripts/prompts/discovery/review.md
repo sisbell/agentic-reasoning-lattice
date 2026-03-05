@@ -28,9 +28,9 @@ Use this shared vocabulary when interpreting the ASN:
    - Spans partially affected?
    - Applied to empty structure?
 
-4. **Categorize each issue as REVISE or DEFER:**
+4. **Categorize each issue as REVISE or OUT_OF_SCOPE:**
    - **REVISE** — wrong in this ASN, must be fixed before building on it
-   - **DEFER** — valid question but belongs in a future ASN, not a revision
+   - **OUT_OF_SCOPE** — valid question but belongs in a future ASN, not a revision
 
    Not every gap is a revision. If the ASN doesn't cover topic X, that's a future ASN, not an error in this one.
 
@@ -94,10 +94,10 @@ Use this shared vocabulary when interpreting the ASN:
 **Problem**: [what's wrong or missing]
 **Required**: [what would fix it]
 
-## DEFER
+## OUT_OF_SCOPE
 
 ### Topic 1: [what's missing but belongs in a future ASN]
-**Why defer**: [this is new territory, not an error in this ASN]
+**Why out of scope**: [this is new territory, not an error in this ASN]
 
 META: [one sentence, only if the ASN has left implementation-relevant territory]
 

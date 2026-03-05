@@ -50,7 +50,7 @@
 
 **Required**: Replace the parenthetical with an accurate description: "each child address extends the parent's document identifier by `k` positions (TA5(d)), so `#t' = #t + k > #t`."
 
-## DEFER
+## OUT_OF_SCOPE
 
 ### Topic 1: Concrete semantics of ⊕ for multi-component operands
 

@@ -32,7 +32,7 @@
 **Required**: Add a short derivation: identify the subspace-identifier position, confirm element-local displacements have k strictly after that position, conclude from the copy-from-start rule that the subspace identifier is preserved.
 **Resolution**: Revised. The verification now begins with the 2-component V-position perspective: element-local displacement has action point k = 2, strictly after the subspace-identifier position 1; by the copy-from-start rule, (a ⊕ w)₁ = a₁ = N, preserving the subspace identifier. The ordinal-only formulation follows as the operational realization.
 
-## DEFER
+## OUT_OF_SCOPE
 
 ### Topic 1: Crash recovery and allocation counter monotonicity
 **Why defer**: The ASN's fourth open question (allocation counter durability across crashes) is a system-level concern about implementation correctness, not a property of the tumbler algebra. T9 states what must hold; how a crashed implementation restores monotonicity is operational recovery, not algebraic specification.

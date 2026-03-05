@@ -50,7 +50,7 @@
 - **Orphaned I-addresses**: If all documents delete content at I-addresses referenced by L.e, those addresses exist in no POOM. The span index still has entries. A user who somehow queries those exact I-addresses finds L. But no document provides a V-space path to those addresses. Is L "discoverable" or effectively hidden? LD18's DELETE case acknowledges this ("discovery from the system as a whole is not [lost] as long as any POOM anywhere still references the relevant I-addresses") — the parenthetical qualifier is doing heavy lifting. State explicitly what happens when no POOM references the addresses.
 **Required**: Address each boundary. State whether empty endsets are permitted. State the findlinks result for empty Q. State the discovery status of links whose endset I-addresses appear in no POOM.
 
-## DEFER
+## OUT_OF_SCOPE
 
 ### Topic 1: Document unpublishing (published → private transition)
 **Why defer**: The ASN addresses private → published as an open question and assumes access states as given. The reverse transition — what happens to incoming link visibility when a document is unpublished — is a question about state transitions in the access model, which belongs in a future ASN on access control or publication contracts.

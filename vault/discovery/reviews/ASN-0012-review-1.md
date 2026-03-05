@@ -72,7 +72,7 @@ The correct structure is: Define min_leaf(n) = min over all leaves in n's subtre
 **Problem**: A worked example would validate the properties and expose edge cases. For instance: a sequential enfilade with 3 leaves (addresses 0-2, 3-5, 6-8) where INSERT at position 4 causes a split. Walk through: new leaf set (ENF9), recomputed widths (ENF0), split post-conditions (ENF10), and range query [3,7) on the result (ENF5, ENF6, ENF7). For multi-dimensional: a POOM enfilade with 2 entries showing normalisation (ENF4), displacement accumulation (ENF2), and bounding-box computation (ENF1). Without a concrete instance, the properties float free of any grounding.
 **Required**: Add at least one worked example for each enfilade species, exercising the key properties (composition law, split, and range query).
 
-## DEFER
+## OUT_OF_SCOPE
 
 ### Topic 1: Link enfilade classification
 The vocabulary mentions three enfilade types (I-enfilade, V-enfilade, link enfilade) but the ASN only classifies two species (sequential 1D, multi-dimensional 2D). The link enfilade — which indexes from, to, and type endsets — is unclassified. Which species is it? Does it require a third composition law?

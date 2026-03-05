@@ -47,7 +47,7 @@ This says: positions before the deletion are unchanged, positions after the dele
 
 **Required**: Either (a) specify what the journal record for DELETE must contain (minimally: the document id, the deleted I-address range, and the original V-positions) and prove this suffices for COPY-based restoration, or (b) remove the journal from DEL14's list of proven reversal sources and relegate it to an open question about what journal records must contain for reversal to work. Do not claim sufficiency without demonstrating it.
 
-## DEFER
+## OUT_OF_SCOPE
 
 ### Topic 1: Position arithmetic formalization
 

@@ -78,7 +78,7 @@ TA1 is relevant to establishing that `s ⊕ ℓ > s` when `ℓ > 0` (so the inte
 
 **Required**: Add at least one scenario — e.g., "Server 1, user 3, document 2, element subspace 1, positions 1 through 5" — and verify T1 (ordering), T4 (parsing), T5 (contiguity), T6 (containment), and T9 (allocation monotonicity) against concrete tumbler values. Show the tumbler arithmetic TA0–TA4 on a specific V-space shift.
 
-## DEFER
+## OUT_OF_SCOPE
 
 ### Topic 1: Associativity of ⊕ and composition of shifts
 **Why defer**: The ASN acknowledges this as an open question. Whether `(a ⊕ w₁) ⊕ w₂ = a ⊕ (w₁ ⊕ w₂)` matters for operation composition, which is a topic for the ASN that formalizes multi-step editing, not for the tumbler algebra itself.

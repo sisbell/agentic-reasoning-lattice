@@ -47,7 +47,7 @@
 **Problem**: The "document registry" is not defined in Σ. The claim that the document identity address does not enter `dom.ispace` is backed only by implementation evidence ("No content allocation function is invoked"). At the specification level, what constrains CREATENEWVERSION from allocating a content address for the document identity? The main theorem's proof for CREATENEWVERSION relies on this claim ("does not enter `dom.ispace`"), making it load-bearing.
 **Required**: Either (a) add the document registry to Σ and specify that CREATENEWVERSION writes to the registry, not to `ispace`, or (b) state as a precondition/effect of CREATENEWVERSION that it allocates no content addresses, justified by the specification of what a "document identity" is (an address-space position, not a content entry). The distinction between content addresses and identity addresses needs formal standing.
 
-## DEFER
+## OUT_OF_SCOPE
 
 ### Topic 1: Atomicity and concurrency model
 **Why defer**: The ASN implicitly assumes sequential execution of operations. Concurrent operations (e.g., two simultaneous INSERTs into the same document) raise questions about freshness (AP2) and V-space consistency that require a separate treatment. This ASN correctly establishes the sequential invariants that a concurrency model must preserve.

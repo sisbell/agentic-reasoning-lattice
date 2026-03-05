@@ -2,7 +2,7 @@
 
 Based on Alloy run-2
 
-## DEFER
+## OUT_OF_SCOPE
 
 ### Topic 1: T0 UnboundedComponents — bounded scope cannot express unboundedness
 

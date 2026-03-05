@@ -36,7 +36,7 @@
 
 **Required**: Either restrict the domain of `w` in TA7a to displacements that act within the element field (and define what that means formally), or prove that `⊕` as constrained by TA0–TA4 cannot affect the subspace-identifier component regardless of the width's structure.
 
-## DEFER
+## OUT_OF_SCOPE
 
 ### Topic 1: Version allocation and its interplay with document allocation order
 

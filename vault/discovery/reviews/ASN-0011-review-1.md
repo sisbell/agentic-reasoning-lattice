@@ -52,7 +52,7 @@
 **Problem**: The claim that the allocated address d has a as a prefix is asserted but not derived. DΣ5 defines Σ.next(a) as a counter, and DL6 says it advances. But the ASN never states that addresses produced by the allocation mechanism are in the subtree rooted at a. The property "Σ.next(a) produces addresses with prefix(a, _)" needs to be stated — either as a definition of how allocation works or as a requirement on the counter.
 **Required**: State explicitly that the allocation mechanism produces addresses under the account's prefix. E.g., "For all a ∈ Σ.accounts, the address produced by advancing Σ.next(a) satisfies prefix(a, d)."
 
-## DEFER
+## OUT_OF_SCOPE
 
 ### Topic 1: Crash recovery during CREATENEWDOCUMENT
 **Why defer**: Acknowledged as an open question. The ASN correctly identifies the gap (address allocated but POOM not initialized). This is crash recovery territory, not a defect in the lifecycle model.

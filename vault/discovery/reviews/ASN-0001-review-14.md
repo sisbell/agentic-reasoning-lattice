@@ -26,7 +26,7 @@
 
 **Required**: Add a T12 verification to the worked example. For instance: the span `(a₂, ℓ)` covering `a₂, a₃, a₄` has `s = 1.0.3.0.2.0.1.2` and `ℓ = [0,0,0,0,0,0,0,3]` (three elements). Verify `s ⊕ ℓ = 1.0.3.0.2.0.1.5 = a₅`, so the span denotes `{t : a₂ ≤ t < a₅} = \{a₂, a₃, a₄\}`. This simultaneously demonstrates the correct form of an element-level I-space span length.
 
-## DEFER
+## OUT_OF_SCOPE
 
 ### Topic 1: Crash recovery and allocation counter durability
 

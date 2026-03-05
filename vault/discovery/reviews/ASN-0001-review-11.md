@@ -36,7 +36,7 @@ The gap is benign for the editing use case (V-space ordinals are single-componen
 
 ---
 
-## DEFER
+## OUT_OF_SCOPE
 
 ### Topic 1: Crash recovery for allocation monotonicity
 **Why defer**: Already identified as an open question. T9 is a pure-state property; the recovery protocol that restores it after failure is a separate system-level concern, not an error in the algebra.

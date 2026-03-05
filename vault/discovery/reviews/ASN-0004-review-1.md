@@ -123,7 +123,7 @@ INS-F5 then becomes a corollary rather than a patch.
 
 **Required**: Same remedy as Issue 10. Consolidate or differentiate.
 
-## DEFER
+## OUT_OF_SCOPE
 
 ### Topic 1: Tiling invariant preservation under INSERT
 

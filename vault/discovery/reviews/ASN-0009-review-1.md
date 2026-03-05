@@ -59,7 +59,7 @@
 **Problem**: VER-F2 already states "Σ'.alloc = Σ.alloc" as a frame condition. VER15 restates it. The Properties table lists both, inflating the property count. Redundancy in a formal specification invites inconsistency during revision.
 **Required**: Remove VER15 or note it as "= VER-F2" in the Properties table. Do not list the same property twice under different names.
 
-## DEFER
+## OUT_OF_SCOPE
 
 ### Topic 1: Interaction with AUTH/BERT
 PRE-VER says "any user may version any document." The authorization model (AUTH0-AUTH5, BERT modes) specifies when versioning is triggered automatically vs. when modification proceeds. This is protocol-level, not state-transition-level; a future ASN on authorization/versioning interaction would address it.

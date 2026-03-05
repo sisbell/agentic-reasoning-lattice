@@ -12,7 +12,7 @@
 **Problem**: When `a < b` by T1 case (ii) — `a` is a proper prefix of `b` — there is no position `j ≤ #a` where `aⱼ < bⱼ`. The parenthetical assumes componentwise divergence (T1 case (i)) without handling the prefix case. The conclusion is correct — in the prefix case `k ≤ #a < j` forces Case 1, giving `a ⊕ w = b ⊕ w` — but the proof doesn't state this. The same gap affects TA1-strict's precondition `k ≥ divergence(a, b)`: if divergence is undefined (prefix case), the precondition is vacuously unsatisfiable, correctly preventing a strict-inequality claim, but this should be explicit.
 **Required**: Either define `divergence(a, b) = min(#a, #b) + 1` for the prefix case (making Case 1 handle it explicitly), or add a preliminary paragraph handling the prefix case before the three-case split: "When `a` is a proper prefix of `b`, all shared components agree. Since `k ≤ #a` and both operands agree at position `k`, the addition produces identical results: `a ⊕ w = b ⊕ w`. The weak form holds as equality. The strict form is inapplicable — no finite divergence point exists."
 
-## DEFER
+## OUT_OF_SCOPE
 
 ### Topic 1: T4 does not require non-empty fields
 T4's positive-component constraint is vacuously satisfied for empty fields. A tumbler like `[1, 0, 0, 3]` (empty user field) is valid under T4. This may cause ambiguity in T6 ("same user" is undefined when a user field is empty) and in the semantic interpretation of the hierarchy.

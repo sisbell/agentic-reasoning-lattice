@@ -31,7 +31,7 @@ No current use of ⊖ in the ASN exercises this case — V-space shifts use same
 **Problem**: The ASN provides a structural characterization of element-local displacements and a detailed discussion of INSERT/DELETE implementation strategies, but never formally derives TA7a from the constructive definition of ⊕. The argument is: for an element-local displacement w with action point k strictly after the subspace-identifier position, positions i < k are copied from a (preserving the subspace identifier), and the addition at position k and tail replacement at positions > k affect only the element field. This is straightforward from the constructive definition but not shown.
 **Required**: Add a short derivation: identify the subspace-identifier position in the address structure, confirm that element-local displacements have k strictly after that position, and conclude from the constructive definition's "copy from start" rule that the subspace identifier is preserved.
 
-## DEFER
+## OUT_OF_SCOPE
 
 ### Topic 1: Crash recovery and allocation counter monotonicity
 **Why defer**: The ASN's fourth open question (allocation counter durability across crashes) is a system-level concern about implementation correctness, not a property of the tumbler algebra. T9 states what must hold; how a crashed implementation restores monotonicity is operational recovery, not algebraic specification.

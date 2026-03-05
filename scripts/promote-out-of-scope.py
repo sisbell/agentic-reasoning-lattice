@@ -45,9 +45,9 @@ def find_asn_label(asn_id):
 
 
 def extract_defers(reviews_dir, asn_label):
-    """Extract DEFER sections from an ASN's review files.
+    """Extract OUT_OF_SCOPE sections from an ASN's review files.
 
-    Returns a string with each defer block labeled by source review.
+    Returns a string with each block labeled by source review.
     """
     review_files = sorted_reviews(asn_label, reviews_dir)
     if not review_files:
@@ -56,12 +56,12 @@ def extract_defers(reviews_dir, asn_label):
     blocks = []
     for rf in review_files:
         text = rf.read_text()
-        # Find the ## DEFER section
-        defer_match = re.search(r"^## DEFER\b.*$", text, re.MULTILINE)
+        # Find the ## OUT_OF_SCOPE section
+        defer_match = re.search(r"^## OUT_OF_SCOPE\b.*$", text, re.MULTILINE)
         if not defer_match:
             continue
 
-        # Extract from ## DEFER to end of file or next ## section
+        # Extract from ## OUT_OF_SCOPE to end of file or next ## section
         rest = text[defer_match.end():]
         next_section = re.search(r"^## ", rest, re.MULTILINE)
         if next_section:
@@ -294,10 +294,10 @@ def main():
         print(f"  Invalid ASN identifier: {args.asn}", file=sys.stderr)
         sys.exit(1)
 
-    # Extract DEFER sections from this ASN's reviews
+    # Extract OUT_OF_SCOPE sections from this ASN's reviews
     defer_items = extract_defers(REVIEWS_DIR, asn_label)
     if not defer_items:
-        print(f"  No DEFER sections found in {asn_label} reviews", file=sys.stderr)
+        print(f"  No OUT_OF_SCOPE sections found in {asn_label} reviews", file=sys.stderr)
         sys.exit(0)
 
     # Count defer topics

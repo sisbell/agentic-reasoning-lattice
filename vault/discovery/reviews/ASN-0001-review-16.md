@@ -4,7 +4,7 @@ Based on Alloy run-1
 REVISE
 None.
 
-DEFER
+OUT_OF_SCOPE
 Topic 1: T0 — UnboundedComponents (SAT on check) — bounded scope artifact
 T0 asserts that for every tumbler and every component position, a witness tumbler exists with an arbitrarily larger value at that position. This is an inherently infinitary property. The model checks it with exactly 4 Tumbler, 3 seq, 5 Int — four atoms and a 5-bit integer range. The finite Tumbler population cannot supply a distinct witness for every (t, i, M) triple. The model's own comment anticipates this: "a finite Tumbler scope cannot always supply the required witness." The overflow guard (plus[v,1] > v) handles the Int ceiling correctly, but the witness-supply problem is inescapable at any finite scope. Not a spec issue.
 

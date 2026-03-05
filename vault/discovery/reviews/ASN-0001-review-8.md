@@ -22,7 +22,7 @@
 **Problem**: TA2 states that `a ⊖ w` is well-defined when `a ≥ w`, which includes the case `a = w`. When `a = w`, there is no position where they differ — `k` is undefined. The constructive definition does not specify what happens. The natural answer is that the result is the zero tumbler of length `#a` (all positions are "before the divergence" and get zeroed), but this must be stated, since the algorithm as written requires a divergence point to exist.
 **Required**: Add an explicit clause: when `a = w`, `a ⊖ w` is the zero tumbler `[0, ..., 0]` of length `#a`. Alternatively, define `k = #a + 1` when no divergence exists, with all positions falling into the "zeroed before divergence" case.
 
-## DEFER
+## OUT_OF_SCOPE
 
 ### Topic 1: Empty fields in T4
 T4 requires every field component to be strictly positive but does not require every field to be non-empty. A tumbler like `[0, 1]` parses with an empty node field (no components before the first zero separator) and a one-component user field `[1]`. This is likely invalid in practice (every address must identify a server) but is not excluded by T4 as stated. Formalizing minimum field-occupancy constraints belongs in a future ASN on address validity.

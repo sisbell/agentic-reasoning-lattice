@@ -44,7 +44,7 @@
 **Problem**: This inclusion is stated as a fact. The ASN does not prove that DELETE preserves it. The argument is: DELETE removes entries from poom(d) (weakening the antecedent for d) and does not remove entries from spanindex (maintaining the consequent by P2); for d' ≠ d, poom(d') is unchanged by DEL2. The argument is short, but the ASN should state it rather than assert the conclusion.
 **Required**: A two-case proof (d' = d and d' ≠ d) showing that DELETE preserves the forward inclusion. Three lines suffice.
 
-## DEFER
+## OUT_OF_SCOPE
 
 ### Topic 1: Ghost link discovery mechanism
 **Why defer**: DEL7 defines the ghost state (no POOM maps to the endset addresses) and DEL13 claims ghost links can source identity-preserving COPY. But how does the system *find* a ghost link if no document's V-space reaches it? This requires specifying the link index's query capabilities independently of POOM traversal — a link-focused concern that belongs in an ASN on the link enfilade or link resolution.

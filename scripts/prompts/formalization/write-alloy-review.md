@@ -54,12 +54,12 @@ For each genuine issue:
 - Explain specifically what needs to change (missing precondition, over-strong claim, ambiguous wording)
 - If the fix is obvious, suggest it
 
-## DEFER
+## SKIP
 
 ### Topic N: description
 
 For modeling artifacts and passed properties:
-- Briefly explain why each is deferred
+- Briefly explain why each is skipped
 - Group modeling artifacts together with explanation of the Alloy limitation
 
 VERDICT: REVISE or CONVERGED
@@ -67,7 +67,7 @@ VERDICT: REVISE or CONVERGED
 
 Rules:
 - Only genuine spec problems or ambiguities belong in REVISE
-- Modeling artifacts go in DEFER with a clear explanation of why
+- Modeling artifacts go in SKIP with a clear explanation of why
 - Be specific and concise — no boilerplate
 - If ALL counterexamples are modeling artifacts, verdict is CONVERGED
 - If ANY counterexample reveals a real spec issue, verdict is REVISE

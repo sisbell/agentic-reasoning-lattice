@@ -51,7 +51,7 @@
 **Required**: Either (a) split TA7 into an algebraic clause (closure: `a ∈ S₁ ⟹ a ⊕ w ∈ S₁`) and a frame clause stated as a system-level invariant rather than an arithmetic property, or (b) reformulate the second clause algebraically — e.g., state that no `w` in the range of text widths can produce a cross-subspace result when added to any valid position, and that the operation definition restricts shifts to same-subspace positions.
 
 
-## DEFER
+## OUT_OF_SCOPE
 
 ### Topic 1: Span cardinality and the discreteness of T
 

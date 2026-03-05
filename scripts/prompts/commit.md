@@ -46,7 +46,7 @@ Commit changes to the vault with meaningful, descriptive commit messages.
 
    Examples:
    - `discovery(asn): ASN-0004 Content Insertion`
-   - `review(asn): ASN-0004 review 1 — 3 REVISE, 2 DEFER`
+   - `review(asn): ASN-0004 review 1 — 3 REVISE, 2 OUT_OF_SCOPE`
    - `revise(asn): ASN-0004 address review 1 — POST5 proof, empty doc boundary`
    - `alloy(asn): ASN-0004 — D1-D4 pass scope 5+7, F1/A0 skipped`
    - `dafny(asn): ASN-0004 — formalize POST1-POST5, F0-F3`

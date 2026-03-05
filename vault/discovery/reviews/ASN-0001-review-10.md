@@ -43,7 +43,7 @@ The error arises from confusing "part of the agreement prefix" with "preserved."
 
 **Required**: Delete the incorrect argument. Replace with a correct verification that accounts for the actual behavior of `⊖` on the operands (which depends on resolving Issue 2).
 
-## DEFER
+## OUT_OF_SCOPE
 
 ### Topic 1: Span splitting algebra for partial-overlap operations
 **Why defer**: DELETE spanning multiple spans with partial overlap requires splitting a span at an arbitrary point and adjusting endpoints. The ASN defines spans (T12) and arithmetic (TA0–TA4) but does not formalize the splitting operation or prove that split halves tile correctly. This belongs in an ASN on document editing operations.
