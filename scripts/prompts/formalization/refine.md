@@ -175,7 +175,7 @@ content, no commentary, no preamble.
 
 Type/algebra example:
 ```
-# ASN-NNNN Property Mapping
+# ASN-NNNN Property Contract
 
 | ASN Label | Dafny Name | Type | Construct | Notes |
 |-----------|------------|------|-----------|-------|
@@ -189,7 +189,7 @@ Type/algebra example:
 
 State operation example:
 ```
-# ASN-NNNN Property Mapping
+# ASN-NNNN Property Contract
 
 | ASN Label | Dafny Name | Type | Construct | Notes |
 |-----------|------------|------|-----------|-------|
@@ -201,4 +201,4 @@ State operation example:
 | INS-D1 | DomainSize | LEMMA | lemma | derived from INS3, INS4 |
 ```
 
-Start directly with `# ASN-NNNN Property Mapping`.
+Start directly with `# ASN-NNNN Property Contract`.

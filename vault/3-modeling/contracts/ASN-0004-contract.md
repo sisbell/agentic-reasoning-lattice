@@ -1,4 +1,4 @@
-# ASN-0004 Property Mapping
+# ASN-0004 Property Contract
 
 *Source: ASN-0004-content-insertion.md (revised 2026-02-24) — Contract generated: 2026-03-01*
 
