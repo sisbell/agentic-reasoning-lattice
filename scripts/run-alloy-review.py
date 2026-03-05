@@ -18,12 +18,14 @@ Usage:
     python scripts/run-alloy-review.py 1 --dry-run           # show property list
     python scripts/run-alloy-review.py 1 --all-in-one        # monolithic mode
     python scripts/run-alloy-review.py 1 --max-turns 16      # more agentic turns
+    python scripts/run-alloy-review.py 1 --no-cleanup         # keep Alloy artifacts for debugging
 """
 
 import argparse
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -857,6 +859,18 @@ def step_commit(hint=""):
     return True
 
 
+def cleanup_property_artifacts(als_path):
+    """Remove Alloy build artifacts for a single property.
+
+    Alloy creates a subdirectory named after the .als file (without extension)
+    for counterexample output. Remove it after each property check.
+    """
+    artifact_dir = als_path.parent / als_path.stem
+    if artifact_dir.is_dir():
+        shutil.rmtree(artifact_dir)
+        print(f"    [CLEANUP] {artifact_dir.name}/", file=sys.stderr)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Generate Alloy models from ASN and run bounded checking")
@@ -885,6 +899,8 @@ def main():
                         help="Max agentic turns for generation (default: 12)")
     parser.add_argument("--run", type=int, default=None,
                         help="Use specific run number (for incremental runs)")
+    parser.add_argument("--no-cleanup", action="store_true",
+                        help="Keep Alloy build artifacts (removed by default)")
     args = parser.parse_args()
 
     # Find ASN
@@ -976,6 +992,8 @@ def main():
         result = make_result(prop, out_dir)
         generate_one(result, prop, definitions, asn_label, args,
                       syntax_ref=syntax_ref)
+        if not args.no_cleanup:
+            cleanup_property_artifacts(result["als_path"])
         results.append(result)
 
     # Summary
