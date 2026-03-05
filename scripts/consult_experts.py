@@ -573,10 +573,12 @@ def main():
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Save questions for traceability
+    init_dir = output_dir / "initial-consultation"
+    init_dir.mkdir(parents=True, exist_ok=True)
     questions_text = "\n".join(
         f"{i}. [{a}] {q}" for i, (a, q) in enumerate(questions, 1)
     )
-    (output_dir / "questions.md").write_text(
+    (init_dir / "questions.md").write_text(
         f"# Sub-Questions — {inquiry_title}\n\n"
         f"**Inquiry:** {inquiry_text}\n\n"
         f"{questions_text}\n"
@@ -593,7 +595,7 @@ def main():
     combined = build_combined_output(inquiry_text, inquiry_title, questions, results)
 
     output_path = args.output or str(
-        output_dir / "answers.md"
+        init_dir / "answers.md"
     )
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
     Path(output_path).write_text(combined)

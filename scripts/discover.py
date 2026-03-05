@@ -189,7 +189,7 @@ def run_discovery(inquiry, asn_number, slug, force=False):
         return outfile
 
     # Require consultation answers
-    answers_path = CONSULT_DIR / f"ASN-{asn_number:04d}" / "answers.md"
+    answers_path = CONSULT_DIR / f"ASN-{asn_number:04d}" / "initial-consultation" / "answers.md"
     if not answers_path.exists():
         print(f"  [ERROR] No consultation answers at {answers_path.relative_to(WORKSPACE)}",
               file=sys.stderr)

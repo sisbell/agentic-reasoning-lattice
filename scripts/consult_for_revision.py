@@ -398,7 +398,9 @@ def main():
     # Save categorization output
     output_dir = CONSULT_DIR / asn_label
     output_dir.mkdir(parents=True, exist_ok=True)
-    cat_path = output_dir / f"revision-{review_num}-categorization.md"
+    consult_subdir = output_dir / f"consultation-{review_num}"
+    consult_subdir.mkdir(parents=True, exist_ok=True)
+    cat_path = consult_subdir / "assessment.md"
     cat_path.write_text(
         f"# Revision Categorization — {asn_label} review-{review_num}\n\n"
         f"**Date:** {datetime.now().strftime('%Y-%m-%d %H:%M')}\n\n"
@@ -427,7 +429,7 @@ def main():
         print(f"  [DRY RUN] Skipping consultations", file=sys.stderr)
         # Build results without answers
         results = build_results(asn_label, review_path, items)
-        results_path = output_dir / f"revision-{review_num}.md"
+        results_path = consult_subdir / "answers.md"
         results_path.write_text(results)
         print(str(results_path.resolve()))
         return
@@ -442,7 +444,7 @@ def main():
 
     # Step 3: Write results
     results = build_results(asn_label, review_path, items)
-    results_path = output_dir / f"revision-{review_num}.md"
+    results_path = consult_subdir / "answers.md"
     results_path.write_text(results)
 
     total_elapsed = time.time() - total_start
