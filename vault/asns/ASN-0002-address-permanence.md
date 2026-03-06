@@ -185,7 +185,11 @@ The phrase "not currently addressable" is precise — not addressable through th
 
 *Boundary case.* DELETE of zero characters is a no-op on both I-space and V-space — no V-positions are removed and no shifts occur.
 
-*Frame conditions.* DELETE does not affect ispace. DELETE does not affect `vspace(d')` for `d' ≠ d`. DELETE's subspace isolation mirrors INSERT's: the leftward shift is confined to the subspace of the deletion. Gregory confirms that the shift arithmetic contains an exponent guard that makes cross-subspace subtraction a no-op — a different mechanism from INSERT's two-blade boundary, but the same abstract guarantee.
+*Frame conditions.* DELETE does not affect ispace. DELETE does not affect `vspace(d')` for `d' ≠ d`.
+
+**AP6b (Subspace isolation under DELETE).** DELETE at a V-position in subspace `s` of document `d` shifts only V-positions in subspace `s` of `d`. All V-positions in other subspaces of `d`, and all V-positions in all other documents, are unchanged.
+
+The mechanism differs from INSERT's two-blade boundary but achieves the same guarantee. Gregory confirms that the shift arithmetic contains an exponent guard that makes cross-subspace subtraction a no-op: V-positions in a different subspace have a different leading exponent, and the subtraction of the deletion width (which has the exponent of the deletion subspace) produces zero displacement at other exponents. INSERT confines its shift by bounding the region with a second blade; DELETE confines its shift by making the arithmetic structurally inert across subspace boundaries. Different mechanisms, independently justified, same abstract property: subspace isolation.
 
 **AP7 (Deletion is rearrangement, not destruction).** The precondition and postcondition of DELETE satisfy:
 
@@ -237,6 +241,16 @@ This is the architectural foundation of transclusion. Nelson: "Bytes native else
 
 Gregory confirms the data flow: COPY converts the source document's V-span to I-addresses through its mapping, then inserts those I-addresses (unchanged, via direct memory copy) into the target document's mapping at new V-positions. No allocation function for content is called. The I-addresses extracted from the source are the I-addresses deposited in the target — identical values, not copies with new addresses.
 
+*Effect on vspace.* COPY takes a target document and an insertion point — a V-position in the target document's V-space — and inserts the transcluded I-addresses at that position. The V-space effect is structurally identical to INSERT's: existing V-positions at or beyond the insertion point shift forward by the width of the copied content.
+
+This identity is not incidental — INSERT is implemented as "allocate I-addresses, then COPY." Both operations invoke the same underlying POOM insertion primitive (`insertpm`), which shifts existing entries using the same two-blade boundary mechanism that governs INSERT. The first blade is the insertion point; the second blade is the start of the next subspace (`(N+1).1` for an insertion at `N.x`). Entries classified between the blades shift forward by the insertion width; entries outside the blades are untouched.
+
+We state the subspace isolation property:
+
+**AP6a (Subspace isolation under COPY).** COPY at a V-position in subspace `s` of the target document `d₂` shifts only V-positions in subspace `s` of `d₂`. All V-positions in other subspaces of `d₂`, and all V-positions in all other documents, are unchanged.
+
+The justification is identical to AP6: COPY uses the same two-blade boundary construction. The second blade at `(N+1).1` confines shifts to the insertion subspace. A COPY into the text subspace shifts only text V-positions; a COPY into the link subspace (were it to occur) would shift only link V-positions. Gregory confirms: `docopy` and `doinsert` call the same `insertpm` function, which invokes `makegappm` with the same two-blade knife — the case classification (`insertcutsectionnd`) and shift logic are shared code, not parallel implementations.
+
 *Boundary case.* COPY of zero characters creates no V-positions in the target document and is a no-op on both I-space and V-space.
 
 **AP9 (Identity preservation under transclusion).** If content at I-address `a` appears in document `d₁` and is transcluded to document `d₂`, then both documents' V-space mappings reference the same `a`:
@@ -279,7 +293,7 @@ The link subspace of the source is not copied — the new version begins with te
 
 Link creation allocates a fresh I-address for the link structure, records the link's endsets, and places the link in a document's V-space.
 
-CREATELINK takes a **home document** — the document that will own the link — along with the endset specifications (from, to, type). The home document is an explicit parameter of the operation; it is distinct from the documents whose content the endsets reference.
+CREATELINK takes a **home document** — the document that will own the link — along with the endset specifications (from, to, type). The home document is an explicit parameter of the operation. It *may* be one of the documents whose content the endsets reference — the case home = endpoint is valid because the read (resolving endset V-specifications in the text subspace) and the write (inserting a link V-position in the link subspace) operate on different subspaces of the same document. AP16 confines the write to the link subspace; the endset resolution reads from the text subspace; no interference occurs.
 
 *Effect on ispace.* CREATELINK extends `dom.ispace` with a fresh address `ℓ` in the link subspace. The endsets are stored as span descriptors — I-address ranges derived by V→I lookup in the endpoint documents at creation time. At creation, each span covers a contiguous range of allocated I-addresses (the V→I lookup traverses the source document's mapping, which references only allocated content). The stored span is thereafter immutable (AP1); the set `covers(e) ∩ dom.ispace` may grow as new content is allocated within the span's range but can never shrink (AP0). The link's own address occupies a separate subspace from text content.
 
@@ -421,7 +435,19 @@ A property implicit in the per-operation analysis but worth stating explicitly. 
 
   `(A d₂ : d₂ ≠ target(op) : vspace'(d₂) = vspace(d₂))`
 
-We verify for each operation. INSERT, DELETE, REARRANGE: target is `d`, and the operation's V-space effects are confined to `d` (AP6 for INSERT; analogous confinement for DELETE and REARRANGE). COPY from `d₁` to `d₂`: target is `d₂`; the source `d₁`'s V-space is only read, never written — `vspace'(d₁) = vspace(d₁)`. CREATENEWVERSION from `d` producing `d'`: target is `d'`; the source `d`'s V-space is only read — `vspace'(d) = vspace(d)`. CREATELINK: target is the home document; endpoint documents are read-only participants (AP16).
+We verify for each operation independently:
+
+- **INSERT**: Target is `d`. INSERT takes a single document parameter and allocates fresh I-addresses which it maps into `d`'s V-space. The POOM insertion primitive operates on `d`'s enfilade; it has no handle to any other document's enfilade. AP6 confines the shift within `d` to a single subspace; the operation has no mechanism to access or modify `vspace(d')` for `d' ≠ d`.
+
+- **DELETE**: Target is `d`. DELETE takes a single document parameter and removes V-positions from `d`'s mapping. The leftward shift operates on `d`'s enfilade only (AP6b). The operation receives no reference to any other document's V-space — it cannot modify what it cannot address.
+
+- **REARRANGE**: Target is `d`. REARRANGE takes a single document parameter and permutes V-positions within `d`'s mapping (AP8). The cut-and-shift arithmetic operates on entries in `d`'s enfilade; no other document's orgl is passed to or accessed by the operation.
+
+- **COPY** from `d₁` to `d₂`: Target is `d₂`. The source `d₁`'s V-space is read (to resolve V-spans to I-addresses) but never written — the I-addresses are extracted before any modification begins. `vspace'(d₁) = vspace(d₁)`.
+
+- **CREATENEWVERSION** from `d` producing `d'`: Target is `d'`. The source `d`'s V-space is read (to populate `d'`'s initial mapping) but never written — `vspace'(d) = vspace(d)`.
+
+- **CREATELINK**: Target is the home document. Endpoint documents are read-only participants — their V-spaces are consulted to resolve endset specifications but nothing is written into them (AP16).
 
 And more specifically for transclusion integrity:
 
@@ -470,6 +496,8 @@ Gregory's implementation takes this further: even the allocation counter for I-a
 | AP4b | The address ranges of distinct subspace partitions are disjoint: text_subspace ∩ link_subspace = ∅ | introduced |
 | AP5 | Restatement of AP (= AP0 ∧ AP1) in the dual-space vocabulary; editing operations preserve I-space and may only extend it | restatement of AP |
 | AP6 | INSERT shifts only V-positions in the same subspace of the same document | introduced |
+| AP6a | COPY shifts only V-positions in the same subspace of the target document; same two-blade mechanism as AP6 | introduced |
+| AP6b | DELETE shifts only V-positions in the same subspace of the same document; exponent guard mechanism | introduced |
 | AP7 | DELETE does not modify ispace; deletion is rearrangement, not destruction | derived |
 | AP8 | REARRANGE preserves the set of I-addresses referenced by a document as a set equality; only V-positions change | introduced |
 | AP8a | REARRANGE must preserve each affected entry's subspace membership; cross-subspace displacement is rejected | introduced |
