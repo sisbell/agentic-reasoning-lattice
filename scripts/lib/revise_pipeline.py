@@ -31,16 +31,23 @@ from lib.review_pipeline import (
     has_revise_items,
 )
 
-DAFNY_REVIEW_MARKER = "Based on Dafny verification"
+MECHANICAL_REVIEW_MARKERS = [
+    "Based on Dafny verification",
+    "Based on Alloy",
+]
 
 
-def is_dafny_review(review_path):
-    """Detect Dafny-generated reviews by their template marker."""
+def is_mechanical_review(review_path):
+    """Detect reviews from mechanical sources (Dafny, Alloy).
+
+    These reviews are grounded in counterexamples or proof divergences —
+    no expert consultation needed.
+    """
     try:
-        # Marker is on line 2-3 of the review; check the first 5 lines
+        # Markers appear on line 2-3 of the review; check the first 5 lines
         with open(review_path) as f:
             for _, line in zip(range(5), f):
-                if DAFNY_REVIEW_MARKER in line:
+                if any(marker in line for marker in MECHANICAL_REVIEW_MARKERS):
                     return True
         return False
     except (FileNotFoundError, OSError):
@@ -124,11 +131,11 @@ def main():
                 step_commit(f"Review {asn_label} — no revisions needed")
                 break
 
-        # Consult (skip for Dafny reviews — findings are mechanically grounded)
+        # Consult (skip for mechanical reviews — findings are grounded in proofs/counterexamples)
         consultation_path = None
-        skip_consult = (args.resume == "revise") or is_dafny_review(review_path)
-        if skip_consult and is_dafny_review(review_path):
-            print(f"  [REVISE] Dafny review — skipping consultation",
+        skip_consult = (args.resume == "revise") or is_mechanical_review(review_path)
+        if skip_consult and is_mechanical_review(review_path):
+            print(f"  [REVISE] Mechanical review — skipping consultation",
                   file=sys.stderr)
         if not skip_consult:
             consultation_path = step_consult_revision(args.asn, review_path)

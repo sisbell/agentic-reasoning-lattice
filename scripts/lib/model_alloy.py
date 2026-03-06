@@ -769,69 +769,7 @@ def run_all_in_one(args, asn_path, asn_label, extract):
         sys.exit(2)
 
 
-CONSULT_SCRIPT = WORKSPACE / "scripts" / "lib" / "review_consult.py"
-REVISE_SCRIPT = WORKSPACE / "scripts" / "lib" / "review_revise.py"
 COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
-
-
-def step_consult(asn_id, review_path):
-    """Run consult_for_revision.py. Returns consultation path or None."""
-    print(f"\n  === CONSULT ===", file=sys.stderr)
-    cmd = [sys.executable, str(CONSULT_SCRIPT), str(asn_id)]
-
-    review_name = Path(review_path).stem
-    m = re.search(r"(review-\d+)", review_name)
-    if m:
-        cmd.append(m.group(1))
-
-    result = subprocess.run(
-        cmd, capture_output=True, text=True, cwd=str(WORKSPACE),
-    )
-    if result.returncode != 0:
-        print(f"  [CONSULT] FAILED", file=sys.stderr)
-        if result.stderr:
-            for line in result.stderr.strip().split("\n")[:5]:
-                print(f"    {line}", file=sys.stderr)
-        return None
-
-    if result.stderr:
-        for line in result.stderr.strip().split("\n"):
-            print(f"  {line}", file=sys.stderr)
-
-    consultation_path = result.stdout.strip()
-    if consultation_path and Path(consultation_path).exists():
-        return consultation_path
-    return None
-
-
-def step_revise(asn_id, consultation_path=None):
-    """Run revise-asn.py. Returns (asn_path, converged)."""
-    print(f"\n  === REVISE ===", file=sys.stderr)
-    cmd = [sys.executable, str(REVISE_SCRIPT), str(asn_id)]
-    if consultation_path:
-        cmd.extend(["--consultation", consultation_path])
-
-    result = subprocess.run(
-        cmd, capture_output=True, text=True, cwd=str(WORKSPACE),
-    )
-
-    converged = result.returncode == 2
-
-    if result.returncode not in (0, 2):
-        print(f"  [REVISE] FAILED", file=sys.stderr)
-        if result.stderr:
-            for line in result.stderr.strip().split("\n")[:5]:
-                print(f"    {line}", file=sys.stderr)
-        return None, False
-
-    if result.stderr:
-        for line in result.stderr.strip().split("\n"):
-            print(f"  {line}", file=sys.stderr)
-
-    asn_path = result.stdout.strip()
-    if asn_path and Path(asn_path).exists():
-        return asn_path, converged
-    return None, False
 
 
 def step_commit(hint=""):
@@ -893,7 +831,7 @@ def main():
     parser.add_argument("--all-in-one", action="store_true",
                         help="Monolithic mode: single .als for all properties")
     parser.add_argument("--no-revise", action="store_true",
-                        help="Stop after check + review, skip consult/revise/commit")
+                        help="(deprecated — Alloy now always stops after review)")
     parser.add_argument("--recheck", action="store_true",
                         help="Reuse existing .als files, skip generation")
     parser.add_argument("--max-turns", type=int, default=12,
@@ -1004,37 +942,27 @@ def main():
     if len(results) > 1 or args.dry_run:
         print_summary(asn_label, results)
 
-    # Phase 3: Generate review → consult → revise → commit
+    # Phase 3: Generate review + commit
     if not args.skip_check and not args.dry_run:
+        if args.no_revise:
+            print("  Note: --no-revise is deprecated; Alloy now always stops after review.",
+                  file=sys.stderr)
+
         review_path = generate_review(asn_label, results, properties,
                                        run_num=run_num,
                                        asn_path=asn_path)
         if review_path:
             print(f"\n  [REVIEW] {review_path.relative_to(WORKSPACE)}",
                   file=sys.stderr)
-
-            if not args.no_revise:
-                # Consult
-                consultation_path = step_consult(args.asn,
-                                                  str(review_path))
-
-                # Revise
-                asn_result, revise_converged = step_revise(
-                    args.asn, consultation_path=consultation_path)
-
-                if revise_converged:
-                    print(f"  [PIPELINE] Revise made no changes",
-                          file=sys.stderr)
-
-                # Commit
-                step_commit(f"alloy(asn): {asn_label} — "
-                            f"Alloy check + revise")
+            step_commit(f"alloy(asn): {asn_label} — Alloy check + review")
+            if any_counterexample:
+                print(f"  REVISE items found. Run: python scripts/revise.py {args.asn}",
+                      file=sys.stderr)
         else:
             print(f"\n  [REVIEW] All checks passed — no review generated",
                   file=sys.stderr)
-            if not args.no_revise:
-                step_commit(f"alloy(asn): {asn_label} — "
-                            f"all properties pass bounded check")
+            step_commit(f"alloy(asn): {asn_label} — "
+                        f"all properties pass bounded check")
 
     # Output: list of generated .als paths (for scripting)
     for r in results:

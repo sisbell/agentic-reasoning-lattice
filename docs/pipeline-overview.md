@@ -97,7 +97,7 @@ Extracts new work from completed ASNs. Open questions and OUT_OF_SCOPE items fro
 
 ### 4. Alloy Bounded Checking (model alloy)
 
-Per-property Alloy model generation and bounded model checking. Searches for counterexamples before investing in full proof. Failures trigger review → consult → revise cycles on the ASN.
+Per-property Alloy model generation and bounded model checking. Searches for counterexamples before investing in full proof. Counterexamples produce a review; revision is handled separately by `revise.py`.
 
 - **Input:** converged ASN
 - **Output:** `.als` files in `vault/3-modeling/alloy/ASN-NNNN/`

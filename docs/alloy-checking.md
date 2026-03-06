@@ -35,16 +35,10 @@ Alloy checking is sound for counterexamples (if it finds one, the property is wr
        +--- gen-fail ------> skip (logged)
        |
        v (counterexamples found)
-[4] review         generate review from counterexamples
+[4] review         generate review from counterexamples, commit
        |
        v
-[5] consult        targeted expert consultations
-       |
-       v
-[6] revise         fix ASN from counterexample evidence
-       |
-       v
-[7] commit
+     hints: "run revise.py N"
 ```
 
 ## Result Classification
@@ -54,7 +48,7 @@ Each property's Alloy check produces one of four outcomes:
 | Result | Meaning | Action |
 |--------|---------|--------|
 | **pass** | No counterexample found within bounds | Property survives (proceed to Dafny) |
-| **counterexample** | Concrete witness found | Review → revise the ASN property |
+| **counterexample** | Concrete witness found | Review generated → revise the ASN via `revise.py` |
 | **syntax-error** | Generated `.als` has Alloy syntax issues | Repair attempt, then re-check |
 | **gen-fail** | Could not generate a meaningful Alloy model | Logged and skipped |
 
@@ -77,30 +71,33 @@ Each property's Alloy check produces one of four outcomes:
 ## CLI Reference
 
 ```bash
-# Full pipeline: generate → check → review → consult → revise (all properties)
+# Full pipeline: generate → check → review → commit
 python scripts/model.py alloy 1
 
 # Single property
 python scripts/model.py alloy 1 --property T1
 
-# Generate and check only — stop before review/revise
-python scripts/model.py alloy 1 --no-revise
+# Multiple properties
+python scripts/model.py alloy 1 --property T1,T3,TA0
 
 # Generate .als files only — no checking
 python scripts/model.py alloy 1 --skip-check
 
 # Preview: show property list and prompt sizes
 python scripts/model.py alloy 1 --dry-run
+
+# If counterexamples found, revise the ASN
+python scripts/revise.py 1
 ```
 
 ### Flags
 
 | Flag | Description |
 |------|-------------|
-| `--property LABEL` | Process a single property only |
-| `--no-revise` | Stop after check + review (no ASN revision) |
+| `--property LABEL[,LABEL,...]` | Process specific properties, comma-separated |
 | `--skip-check` | Generate `.als` files only, don't run Alloy |
 | `--dry-run` | Show what would run without executing |
+| `--no-revise` | (deprecated — Alloy now always stops after review) |
 
 ### Requirements
 
@@ -110,7 +107,7 @@ Alloy must be installed:
 
 ## Feedback into Review
 
-When counterexamples are found, the pipeline generates a review file with concrete evidence of the property failure. This review file feeds into the standard review → consult → revise cycle (see [Review](review.md)), with the counterexample providing specific evidence for the revision agent to work with.
+When counterexamples are found, the pipeline generates a review file with concrete evidence of the property failure. This review is committed, and the command prints a hint to run `revise.py`. The Alloy review is a mechanical review — `revise.py` auto-detects it and skips expert consultation, going straight to revision with the counterexample evidence.
 
 This is more targeted than a standard review — instead of "this property might be wrong," the review says "this property fails for state X with inputs Y, producing result Z which violates the claimed guarantee."
 
