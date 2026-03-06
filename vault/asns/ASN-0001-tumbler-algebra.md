@@ -264,7 +264,9 @@ Let `⊖` denote tumbler subtraction, used to shift V-positions backward after d
 
 **TA2 (Well-defined subtraction).** For tumblers `a, w ∈ T` where `a ≥ w`, `a ⊖ w` is a well-defined tumbler in `T`.
 
-**TA3 (Order preservation under subtraction).** `(A a, b, w : a < b ∧ a ≥ w ∧ b ≥ w : a ⊖ w < b ⊖ w)`.
+**TA3 (Order preservation under subtraction, weak).** `(A a, b, w : a < b ∧ a ≥ w ∧ b ≥ w : a ⊖ w ≤ b ⊖ w)`.
+
+**TA3-strict (Order preservation under subtraction, strict).** `(A a, b, w : a < b ∧ a ≥ w ∧ b ≥ w ∧ #a = #b : a ⊖ w < b ⊖ w)`.
 
 ### Inverse
 
@@ -290,7 +292,7 @@ First, `y ⊕ w` must be well-defined: TA0 requires `k ≤ #y`. The subtraction 
 
 Second, TA4 requires `k = #y`, `#w = k`, and `(A i : 1 ≤ i < k : yᵢ = 0)`. We have `#y = k` (from above), `#w = k` (by hypothesis), and `yᵢ = 0` for all `i < k` (the subtraction zeroed these positions). All three conditions hold.
 
-By TA4, `(y ⊕ w) ⊖ w = y`. Suppose `y ⊕ w ≠ a`. If `y ⊕ w > a`, then applying `⊖ w` to both sides (order-preserving by TA3 — verified above — with preconditions `a < y ⊕ w`, `a ≥ w` by hypothesis, and `y ⊕ w ≥ w` since `(y ⊕ w) ⊖ w = y` is well-defined) gives `a ⊖ w < (y ⊕ w) ⊖ w = y`, i.e., `y > a ⊖ w = y`, a contradiction. If `y ⊕ w < a`, then TA3 with preconditions `y ⊕ w < a`, `y ⊕ w ≥ w`, and `a ≥ w` gives `(y ⊕ w) ⊖ w < a ⊖ w`, i.e., `y < y`, a contradiction. So `(a ⊖ w) ⊕ w = a`. ∎
+By TA4, `(y ⊕ w) ⊖ w = y`. Suppose `y ⊕ w ≠ a`. We apply TA3-strict — the equal-length precondition holds because `#a = k` and `#(y ⊕ w) = k` (the addition `y ⊕ w` has length `max(#y, #w) = k` since `#y = k` and `#w = k`). If `y ⊕ w > a`, then TA3-strict (with `a < y ⊕ w`, `a ≥ w` by hypothesis, `y ⊕ w ≥ w`, and `#a = #(y ⊕ w) = k`) gives `a ⊖ w < (y ⊕ w) ⊖ w = y`, i.e., `y > a ⊖ w = y`, a contradiction. If `y ⊕ w < a`, then TA3-strict with the same equal-length condition gives `(y ⊕ w) ⊖ w < a ⊖ w`, i.e., `y < y`, a contradiction. So `(a ⊖ w) ⊕ w = a`. ∎
 
 
 ### Constructive definition of ⊕ and ⊖
@@ -395,15 +397,15 @@ In all three cases, `a ⊕ w ≤ b ⊕ w` — the weak form holds universally. S
 
 The subtraction algorithm differs structurally from addition — it zeros positions before the divergence point and copies the tail from the minuend, whereas addition copies the tail from the displacement. We must verify TA3 directly; the proof does not follow "by similar reasoning" from TA1.
 
-**Claim (TA3, strict).** If `a < b`, `a ≥ w`, and `b ≥ w`, then `a ⊖ w < b ⊖ w`.
+**Claim (TA3, weak).** If `a < b`, `a ≥ w`, and `b ≥ w`, then `a ⊖ w ≤ b ⊖ w`.
 
 *Proof.* We first handle the case where `a < b` by the prefix rule (T1 case (ii)), then the component-divergence cases.
 
-*Case 0: `a` is a proper prefix of `b`.* Then `#a < #b` and `aᵢ = bᵢ` for all `i ≤ #a`. Under zero-padding, `a ⊖ w` has length `max(#a, #w)` and `b ⊖ w` has length `max(#b, #w)`. Since `#a < #b`, we have `max(#a, #w) ≤ max(#b, #w)`. We show that `a ⊖ w` is a prefix of `b ⊖ w` (or is componentwise less at some position), giving `a ⊖ w < b ⊖ w`.
+*Case 0: `a` is a proper prefix of `b`.* Then `#a < #b` and `aᵢ = bᵢ` for all `i ≤ #a`. Under zero-padding, `a ⊖ w` has length `max(#a, #w)` and `b ⊖ w` has length `max(#b, #w)`. Since `#a < #b`, we have `max(#a, #w) ≤ max(#b, #w)`. We show `a ⊖ w ≤ b ⊖ w`.
 
 Let `dₐ` be the divergence point of `a` and `w` (under zero-padding). Since `a` agrees with `b` on positions `1, ..., #a`, the divergence of `b` and `w` within these positions matches that of `a` and `w`. For positions `i ≤ #a`, both subtractions produce the same result: zeros before the divergence, the component-wise difference at the divergence, and copies from the respective minuend after the divergence. Since `aᵢ = bᵢ` for all `i ≤ #a`, the results agree on positions `1, ..., max(#a, #w)`.
 
-If `max(#a, #w) < max(#b, #w)`, then `a ⊖ w` is strictly shorter than `b ⊖ w` and is a prefix of it — by T1 case (ii), `a ⊖ w < b ⊖ w`. If `max(#a, #w) = max(#b, #w)`, then `#a < #b ≤ #w`, and zero-padding makes `a` and `b` differ at position `#a + 1` (where `a` pads to 0 and `b_{#a+1}` is a genuine component). This position falls within the component-divergence analysis below, which applies with `j = #a + 1` and `a_{j} = 0 < b_{j}`.
+If `max(#a, #w) < max(#b, #w)`, then `a ⊖ w` is strictly shorter than `b ⊖ w` and is a prefix of it — by T1 case (ii), `a ⊖ w < b ⊖ w`. If `max(#a, #w) = max(#b, #w)`, then `#a < #b ≤ #w`, and both are zero-padded to length `#w`. When `b` has a nonzero component at some position `j` with `#a < j ≤ #b`, the padded tumblers differ at `j` (padded `a` has 0, padded `b` has `bⱼ > 0`), and the component-divergence analysis of Cases 1–3 below applies with `aⱼ = 0 < bⱼ`, giving `a ⊖ w < b ⊖ w`. When all of `b`'s components beyond `#a` are zero, the padded `a` and padded `b` are identical — both match `w` on all positions — so `a ⊖ w = b ⊖ w` (equality). In either subcase, `a ⊖ w ≤ b ⊖ w`.
 
 For the remaining cases, `a < b` by T1 case (i): there exists `j ≤ min(#a, #b)` with `(A i : 1 ≤ i < j : aᵢ = bᵢ)` and `aⱼ < bⱼ`. Let `dₐ = divergence(a, w)` and `d_b = divergence(b, w)` (under zero-padding). Three cases arise from the relationship between `dₐ` and `d_b`; Case 1 splits into two subcases on the relationship between `j` and `d`.
 
@@ -413,9 +415,13 @@ For the remaining cases, `a < b` by T1 case (i): there exists `j ≤ min(#a, #b)
 
 *Case 3: `dₐ > d_b`.* Symmetric to Case 2: at position `d_b`, `b_{d_b} ≠ w_{d_b}` but `a_{d_b} = w_{d_b}`. So `j = d_b` with `a_{d_b} = w_{d_b} < b_{d_b}` (since `a < b`). Since `b ≥ w`, we have `b_{d_b} > w_{d_b}`. The result `(a ⊖ w)_{d_b} = 0` (zeroed) and `(b ⊖ w)_{d_b} = b_{d_b} - w_{d_b} > 0`. So `a ⊖ w < b ⊖ w`.
 
-In every case, `a ⊖ w < b ⊖ w` holds strictly. ∎
+In Cases 1–3, `a ⊖ w < b ⊖ w` holds strictly. In Case 0, the result is either strict or equal depending on whether `b`'s extension beyond `#a` contains a nonzero component. In every case, `a ⊖ w ≤ b ⊖ w`. ∎
 
-The strict form of TA3 holds without additional preconditions — unlike TA1, there is no weak/strict split. The reason is structural: subtraction's zeroing of positions before the divergence point cannot erase the distinction between `a` and `b` in the way that addition's tail replacement can. Addition replaces all components after the action point with `w`'s tail, which is the same for both operands — this is what allows Case 1 of the TA1 verification to produce equality. Subtraction copies the tail from each respective minuend, preserving any divergence that exists after the divergence point with `w`. And Cases 2 and 3 show that when the two operands diverge from `w` at different points, the ordering is preserved or the case is impossible. The subtraction algorithm's structure inherently prevents equality-collapse.
+**Claim (TA3-strict).** If `a < b`, `a ≥ w`, `b ≥ w`, and `#a = #b`, then `a ⊖ w < b ⊖ w`.
+
+*Proof.* The equal-length precondition `#a = #b` eliminates Case 0 entirely — two tumblers of the same length cannot be in a prefix relationship unless equal, and `a < b` rules out equality. Only Cases 1–3 of the TA3 proof apply, all of which produce strict inequality. ∎
+
+Like TA1, subtraction has a weak/strict split. The source of equality-collapse is the prefix case: when `a` is a proper prefix of `b` and `b`'s extension beyond `#a` consists entirely of zeros, zero-padding erases the distinction between `a` and `b`, and both subtractions produce the same result. Concretely: `a = [1, 0]`, `b = [1, 0, 0]`, `w = [1, 0, 0, 0]` — both pad to `[1, 0, 0, 0] = w`, both yield `[0, 0, 0, 0]`, but `a < b` by the prefix rule. The equal-length precondition of TA3-strict eliminates this case. For editing operations — single-component ordinals `[x]` and `[y]` subtracted by `[n]` — `#a = #b = 1` always holds, so TA3-strict applies and editing correctness is unaffected.
 
 ### Increment for allocation
 
@@ -641,7 +647,7 @@ We collect the structure. The tumbler algebra is a tuple `(T, <, ⊕, ⊖, inc, 
 - The hierarchical parsing function `fields` extracts four-level containment (T4), yielding contiguous subtrees (T5); decidable containment (T6, corollary of T4) and element subspace disjointness (T7, corollary of T3 + T4) follow
 - `T8–T10` establish permanence, forward allocation, and partition independence for I-space; `T10a` constrains each allocator to use `inc(·, 0)` for sibling outputs, reserving `k > 0` exclusively for child-spawning
 - `T11` separates the I-space and V-space contracts: `⊕` and `⊖` are defined on T and used for span computation in both spaces, but editing shifts are confined to V-space
-- `⊕` and `⊖` are order-preserving operations on T (TA0–TA3, with TA0 requiring `k ≤ #a`), with weak order preservation (TA1, `≤`) universally and strict preservation (TA1-strict, `<`) when `k ≥ divergence(a,b)`; strict increase (TA-strict); mutually inverse when `k = #a`, `#w = k`, and all components of `a` before `k` are zero (TA4); used by editing operations in V-space and by span definitions in both spaces
+- `⊕` and `⊖` are order-preserving operations on T (TA0–TA3, with TA0 requiring `k ≤ #a`), with weak order preservation universally (TA1 `≤`, TA3 `≤`) and strict preservation under tighter conditions (TA1-strict when `k ≥ divergence(a,b)`, TA3-strict when `#a = #b`); strict increase (TA-strict); mutually inverse when `k = #a`, `#w = k`, and all components of `a` before `k` are zero (TA4); used by editing operations in V-space and by span definitions in both spaces
 - `inc` is hierarchical increment for allocation (TA5)
 - Zero tumblers (all components zero, any length) are sentinels, not valid addresses (TA6); positivity is defined as having at least one nonzero component
 - `TA7a` confines element-local shifts to their subspace (algebraic closure); `TA7b` requires operations not to modify other subspaces (frame condition)
@@ -693,7 +699,8 @@ Removing any independent property breaks a system-level guarantee. T6 and T7 are
 | TA1 | Addition preserves the total order (weak): a < b ⟹ a ⊕ w ≤ b ⊕ w for w > 0 and k ≤ min(#a, #b) | introduced |
 | TA-strict | Adding a positive displacement strictly advances: a ⊕ w > a for w > 0 | introduced |
 | TA2 | Tumbler subtraction a ⊖ w is well-defined when a ≥ w | introduced |
-| TA3 | Subtraction preserves the total order: a < b ⟹ a ⊖ w < b ⊖ w when both are defined | introduced |
+| TA3 | Subtraction preserves the total order (weak): a < b ⟹ a ⊖ w ≤ b ⊖ w when both are defined | introduced |
+| TA3-strict | Subtraction preserves the total order (strict): a < b ∧ #a = #b ⟹ a ⊖ w < b ⊖ w when both are defined | introduced |
 | TA4 | Addition and subtraction are mutual inverses: (a ⊕ w) ⊖ w = a when k = #a, #w = k, and all components of a before k are zero | introduced |
 | TA5 | Hierarchical increment inc(t, k) produces t' > t: k=0 advances component at sig(t), k>0 extends by k positions with k−1 zero separators and final component 1 | introduced |
 | TA6 | Every all-zero tumbler (any length) is less than every positive tumbler and is not a valid address; positivity means at least one nonzero component | introduced |
