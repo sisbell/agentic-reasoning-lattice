@@ -13,7 +13,7 @@ Usage:
     python scripts/generate-dafny-property.py ASN-0001 --property T5
     python scripts/generate-dafny-property.py 1 --modeling 3       # into existing run
     python scripts/generate-dafny-property.py 1 --dry-run
-    python scripts/generate-dafny-property.py 1 --no-revise        # generate + review only
+    python scripts/generate-dafny-property.py 1 --no-alloy          # skip Alloy reference
 """
 
 import argparse
@@ -36,10 +36,6 @@ PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"
 TEMPLATE = PROMPTS_DIR / "generate-dafny-property.md"
 DAFNY_REFERENCE = PROMPTS_DIR / "dafny-reference.dfy"
 DAFNY_REVIEW_TEMPLATE = PROMPTS_DIR / "write-dafny-review.md"
-
-CONSULT_SCRIPT = WORKSPACE / "scripts" / "lib" / "review_consult.py"
-REVISE_SCRIPT = WORKSPACE / "scripts" / "lib" / "review_revise.py"
-COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
 
 
 def read_file(path):
@@ -375,6 +371,62 @@ def write_divergence_file(gen_dir, label, proof_label, divergences):
     div_path.write_text("\n".join(lines))
 
 
+def write_status_file(gen_dir, results, source="generate"):
+    """Write or update STATUS.md in the modeling directory.
+
+    Called by both model_dafny.py (after generation) and model_fix.py (after fixes).
+    Appends fix attempts to an existing file; overwrites the table on generation.
+    """
+    status_path = gen_dir / "STATUS.md"
+    now = time.strftime("%Y-%m-%d %H:%M")
+
+    # Build the table from results
+    verified_count = sum(1 for r in results if r["verified"])
+    total = len(results)
+
+    lines = [
+        f"# Verification Status — {gen_dir.name}",
+        f"",
+        f"Updated: {now}",
+        f"Verified: {verified_count}/{total}",
+        f"",
+        f"| Property | Status | Divergences |",
+        f"|----------|--------|-------------|",
+    ]
+
+    for r in results:
+        status = "verified" if r["verified"] else "**UNVERIFIED**"
+        divs = ""
+        if r["divergences"]:
+            # First divergence text, truncated
+            div_text = r["divergences"][0][1]
+            divs = div_text[:80] + ("..." if len(div_text) > 80 else "")
+        lines.append(f"| {r['proof_label']} | {status} | {divs} |")
+
+    lines.append("")
+
+    if source == "generate":
+        # Fresh write
+        status_path.write_text("\n".join(lines))
+    else:
+        # Fix: preserve existing content, append fix log entry
+        existing = ""
+        if status_path.exists():
+            existing = status_path.read_text()
+
+        # Find or create Fix Attempts section
+        if "## Fix Attempts" not in existing:
+            existing = existing.rstrip() + "\n\n## Fix Attempts\n"
+
+        fix_entries = []
+        for r in results:
+            status = "verified" if r["verified"] else "STILL UNVERIFIED"
+            cost = f"${r.get('cost', 0):.2f}" if r.get("cost") else ""
+            fix_entries.append(f"- {now}: {r['proof_label']} — {status} {cost}")
+
+        status_path.write_text(existing + "\n".join(fix_entries) + "\n")
+
+
 def log_usage(asn_label, proof_label, elapsed, verified, cost):
     """Append a usage entry to the log."""
     try:
@@ -402,7 +454,7 @@ def find_asn_path(asn_label):
 def build_dafny_review_evidence(results, extract_text):
     """Build divergence evidence and verified summary for the review prompt.
 
-    Returns (evidence_text, verified_summary).
+    Only receives verified results. Returns (evidence_text, verified_summary).
     """
     evidence_parts = []
 
@@ -446,9 +498,9 @@ def build_dafny_review_evidence(results, extract_text):
 
 def generate_dafny_review(asn_label, results, extract_text,
                            asn_path=None, model="opus"):
-    """Generate a review analyzing Dafny divergences.
+    """Generate a review analyzing divergences and verification failures.
 
-    Returns the review path, or None if no divergences.
+    Returns the review path, or None if nothing to review.
     """
     div_results = [r for r in results if r["divergences"]]
 
@@ -485,6 +537,7 @@ def generate_dafny_review(asn_label, results, extract_text,
     ).replace(
         "{{divergence_evidence}}", evidence_text
     ).replace(
+    ).replace(
         "{{verified_summary}}", verified_summary
     ).replace(
         "{{dafny_source}}", dafny_source
@@ -496,8 +549,8 @@ def generate_dafny_review(asn_label, results, extract_text,
 
     div_count = len(div_results)
     file_count = len([r for r in results if r["dfy_path"].exists()])
-    print(f"\n  [REVIEW] Calling {model} to analyze {file_count} file(s)"
-          f"{f', {div_count} divergence(s)' if div_count else ''}...",
+    print(f"\n  [REVIEW] Calling {model} to analyze {file_count} verified file(s)"
+          f", {div_count} divergence(s)...",
           file=sys.stderr)
 
     model_flag = {
@@ -534,92 +587,6 @@ Write the review to: {review_path}
     return review_path
 
 
-def step_consult(asn_id, review_path):
-    """Run consult_for_revision.py. Returns consultation path or None."""
-    print(f"\n  === CONSULT ===", file=sys.stderr)
-    cmd = [sys.executable, str(CONSULT_SCRIPT), str(asn_id)]
-
-    review_name = Path(review_path).stem
-    m = re.search(r"(review-\d+)", review_name)
-    if m:
-        cmd.append(m.group(1))
-
-    result = subprocess.run(
-        cmd, capture_output=True, text=True, cwd=str(WORKSPACE),
-    )
-    if result.returncode != 0:
-        print(f"  [CONSULT] FAILED", file=sys.stderr)
-        if result.stderr:
-            for line in result.stderr.strip().split("\n")[:5]:
-                print(f"    {line}", file=sys.stderr)
-        return None
-
-    if result.stderr:
-        for line in result.stderr.strip().split("\n"):
-            print(f"  {line}", file=sys.stderr)
-
-    consultation_path = result.stdout.strip()
-    if consultation_path and Path(consultation_path).exists():
-        return consultation_path
-    return None
-
-
-def step_revise(asn_id, consultation_path=None):
-    """Run revise-asn.py. Returns (asn_path, converged)."""
-    print(f"\n  === REVISE ===", file=sys.stderr)
-    cmd = [sys.executable, str(REVISE_SCRIPT), str(asn_id)]
-    if consultation_path:
-        cmd.extend(["--consultation", consultation_path])
-
-    result = subprocess.run(
-        cmd, capture_output=True, text=True, cwd=str(WORKSPACE),
-    )
-
-    converged = result.returncode == 2
-
-    if result.returncode not in (0, 2):
-        print(f"  [REVISE] FAILED", file=sys.stderr)
-        if result.stderr:
-            for line in result.stderr.strip().split("\n")[:5]:
-                print(f"    {line}", file=sys.stderr)
-        return None, False
-
-    if result.stderr:
-        for line in result.stderr.strip().split("\n"):
-            print(f"  {line}", file=sys.stderr)
-
-    asn_path = result.stdout.strip()
-    if asn_path and Path(asn_path).exists():
-        return asn_path, converged
-    return None, False
-
-
-def step_commit(hint=""):
-    """Run commit.py."""
-    print(f"\n  === COMMIT ===", file=sys.stderr)
-    cmd = [sys.executable, str(COMMIT_SCRIPT)]
-    if hint:
-        cmd.append(hint)
-
-    result = subprocess.run(
-        cmd, capture_output=True, text=True, cwd=str(WORKSPACE),
-    )
-    if result.returncode != 0:
-        print(f"  [COMMIT] FAILED", file=sys.stderr)
-        if result.stderr:
-            for line in result.stderr.strip().split("\n")[:3]:
-                print(f"    {line}", file=sys.stderr)
-        return False
-
-    if result.stderr:
-        for line in result.stderr.strip().split("\n"):
-            print(f"  {line}", file=sys.stderr)
-
-    if result.stdout.strip():
-        print(f"  {result.stdout.strip()}", file=sys.stderr)
-    return True
-
-
 def main():
     parser = argparse.ArgumentParser(
         description="Generate Dafny declarations incrementally per ASN property")
@@ -638,8 +605,6 @@ def main():
                         help="Target existing modeling-N directory")
     parser.add_argument("--no-alloy", action="store_true",
                         help="Skip injecting Alloy model as reference")
-    parser.add_argument("--no-revise", action="store_true",
-                        help="Stop after review, skip consult/revise/commit")
     parser.add_argument("--dry-run", action="store_true",
                         help="Show what would be generated without invoking Claude")
     args = parser.parse_args()
@@ -775,7 +740,7 @@ def main():
 
         # Final verification (agent should have already verified, but confirm)
         ok, vout = verify_dafny(out_path)
-        divergences = extract_divergences(out_path) if ok else []
+        divergences = extract_divergences(out_path)
 
         if divergences:
             write_divergence_file(gen_dir, label, proof_label, divergences)
@@ -816,28 +781,22 @@ def main():
                       file=sys.stderr)
             print(f"  Cost: ${total_cost:.2f}", file=sys.stderr)
 
-    # --- Post-generation review pipeline ---
-    if not args.dry_run and div_count > 0:
+    # Write status file
+    if not args.dry_run and results:
+        write_status_file(gen_dir, results, source="generate")
+        print(f"  Status: {gen_dir.name}/STATUS.md", file=sys.stderr)
+
+    # --- Post-generation review (verified files only) ---
+    verified_results = [r for r in results if r["verified"]]
+    verified_divs = sum(1 for r in verified_results if r["divergences"])
+    if not args.dry_run and verified_divs > 0:
         review_path = generate_dafny_review(
-            asn_label, results, extract_text,
+            asn_label, verified_results, extract_text,
             asn_path=find_asn_path(asn_label), model=args.model,
         )
         if review_path:
             print(f"\n  [REVIEW] {review_path.relative_to(WORKSPACE)}",
                   file=sys.stderr)
-
-            if not args.no_revise:
-                consultation_path = step_consult(args.asn, str(review_path))
-                asn_result, converged = step_revise(
-                    args.asn, consultation_path=consultation_path)
-                if converged:
-                    print(f"  [PIPELINE] Revise made no changes",
-                          file=sys.stderr)
-                step_commit(f"dafny(asn): {asn_label} — "
-                            f"Dafny verify + revise")
-    elif not args.dry_run and generated > 0 and not args.no_revise:
-        step_commit(f"dafny(asn): {asn_label} — "
-                    f"all properties verified clean")
 
 
 if __name__ == "__main__":

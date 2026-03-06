@@ -25,6 +25,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from paths import (WORKSPACE, STATEMENTS_DIR, PROOFS_DIR, DAFNY_DIR,
                    USAGE_LOG, find_latest_modeling_dir)
+from lib.model_dafny import write_status_file, extract_divergences
 
 
 def read_file(path):
@@ -247,6 +248,7 @@ def main():
     # Fix each failure
     total_cost = 0
     fixed = 0
+    fix_results = []
 
     for dfy_path, errors in failures:
         print(f"\n  [{dfy_path.stem}]...", file=sys.stderr, end="", flush=True)
@@ -259,6 +261,7 @@ def main():
 
         # Verify result
         ok, vout = verify_dafny(dfy_path)
+        divergences = extract_divergences(dfy_path)
         if ok:
             m = re.search(r"(\d+) verified", vout)
             n = m.group(1) if m else "?"
@@ -267,10 +270,19 @@ def main():
         else:
             print(f" STILL UNVERIFIED", file=sys.stderr)
 
+        fix_results.append({
+            "proof_label": dfy_path.stem,
+            "verified": ok,
+            "divergences": divergences,
+            "cost": cost,
+        })
         log_usage(asn_label, dfy_path.stem, elapsed, ok, cost)
 
+    # Update STATUS.md with fix results
+    write_status_file(gen_dir, fix_results, source="fix")
     print(f"\n  Done: {fixed}/{len(failures)} fixed, ${total_cost:.2f}",
           file=sys.stderr)
+    print(f"  Status: {gen_dir.name}/STATUS.md", file=sys.stderr)
 
 
 if __name__ == "__main__":

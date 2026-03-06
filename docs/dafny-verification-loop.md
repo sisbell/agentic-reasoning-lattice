@@ -12,7 +12,7 @@ The formalization pipeline runs linearly: `model.py index` → `model.py stateme
 |------|----------|----------|-------------|------------|
 | 1 | Syntax/type | Missing import, type mismatch, wrong arity, undeclared identifier | `.dfy` file | Yes — inner loop |
 | 2 | Proof-structural | Proof timeout, insufficient trigger, missing assert hint, wrong case split | `.dfy` file (with ASN/extract context) | Partially — needs extract context |
-| 3 | Spec error | Property is wrong, precondition too weak, invariant doesn't hold on valid states | ASN → re-review → re-extract → re-generate | No — escape to ASN review cycle |
+| 3 | Spec error | Property is wrong, precondition too weak, invariant doesn't hold on valid states | ASN → human reads review → consult → revise | No — human gate after Dafny review |
 
 ## Loop Architecture
 
@@ -103,7 +103,7 @@ The ASN property T4 may need a precondition requiring non-empty allocation state
 Re-run review-revise cycle with this finding as input.
 ```
 
-This file can be manually fed to `review.py` or (future) automatically injected as a review finding.
+The Dafny generation command (`model.py dafny`) writes `STATUS.md` for all files and a review for verified files with divergences only. Unverified files skip the review entirely — run `model.py fix` on them. If still unverified after fix, read `STATUS.md` and the .dfy source to triage manually.
 
 ## Full Pipeline Mode
 

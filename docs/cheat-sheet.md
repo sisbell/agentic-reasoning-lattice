@@ -6,11 +6,12 @@
 |----------------------|---------------|
 | OUT_OF_SCOPE items | Which gaps matter? What to investigate next? |
 | Promoted inquiry candidates | Worth a new ASN? Priority? |
+| Dafny review (REVISE items) | Is this a real spec issue or a proof limitation? |
 | Tier 3 escalation | Is the ASN property wrong, or the proof approach? |
 | Golden test failure | Is the spec wrong, or the test wrong? |
 | CONVERGED verdict | Ready for formalization, or run more cycles? |
 
-Everything else — review, revise, consult, fix — is delegated.
+Everything else — ASN review, revise, consult, fix — is delegated. Dafny reviews require your sign-off before revising the ASN.
 
 ## Pipeline State Diagram
 
@@ -62,21 +63,20 @@ Everything else — review, revise, consult, fix — is delegated.
   │  model.py index N                            │
   │  model.py statements N                       │
   │  model.py dafny N                            │
+  │  (generates, verifies, STATUS.md + review)   │
   └──────────────────────────────────────────────┘
                            |
-                           v
-  ┌──────────────────────────────────────────────┐
-  │          VERIFICATION (automated)            │
-  │  model.py verify-dafny N                     │
-  │  Tier 1/2 fixes are automatic                │
-  └──────────────────────────────────────────────┘
-                           |
-              verified ────┼──── Tier 3 escalation
-                           |         |
-                           v         v
-                         done   [YOU] read escalation report
-                                     Is the property wrong? → revise ASN
-                                     Is the proof wrong? → adjust Dafny
+              ┌────────────┼────────────┐
+              │ verified   │            │ unverified
+              │ +divs      │            │
+              v            │            v
+       [YOU] read review   │     model.py fix N
+              |            │            |
+     CONVERGED / REVISE    │     [YOU] read STATUS.md
+              |            │     triage remaining failures
+              v            │            |
+     consult → revise      │            v
+     (if spec issues)      └──→ promote to vault/proofs/
 ```
 
 ## Typical Session Workflows
@@ -97,10 +97,22 @@ python scripts/promote.py scope N
 ```bash
 # 1. Alloy pre-check
 python scripts/model.py alloy N
-# 2. Full formalization + verification
-python scripts/model.py verify-dafny N --full
-# 3. If Tier 3 escalation → read the report, decide next step
-# 4. Promote verified files to vault/proofs/ (manual)
+# 2. Generate Dafny (stops at review)
+python scripts/model.py index N
+python scripts/model.py statements N
+python scripts/model.py dafny N
+# 3. Generate STATUS.md (or check existing one)
+python scripts/model.py status N
+#    - All verified? → read review, promote
+#    - Unverified? → run fix, then re-check status
+python scripts/model.py fix N
+python scripts/model.py status N
+# 4. Read review in vault/2-review/ASN-NNNN/ (covers verified files)
+#    - CONVERGED? → promote
+#    - REVISE items? → consult → revise, then re-run dafny
+# 5. Still-unverified files with divergences? → manual triage
+#    Read the .dfy source, decide if it's a spec issue
+# 6. Promote verified files to vault/proofs/ (manual)
 cp vault/3-modeling/dafny/ASN-NNNN/modeling-N/*.dfy vault/proofs/ModuleName/
 ```
 
@@ -110,12 +122,14 @@ python scripts/consult.py nelson "What does Nelson mean by withdrawal?"
 python scripts/consult.py gregory "How does INSERT handle span boundaries?"
 ```
 
-### Fire and forget
+### Fire and forget (up to review gate)
 ```bash
-# Draft + converge + formalize (check back later)
+# Draft + converge + generate Dafny (stops at review — you read it)
 python scripts/draft.py --inquiries N && \
 python scripts/review.py N --converge && \
-python scripts/model.py verify-dafny N --full
+python scripts/model.py index N && \
+python scripts/model.py statements N && \
+python scripts/model.py dafny N
 ```
 
 ## Your Reading List (What to Actually Look At)
@@ -125,7 +139,8 @@ python scripts/model.py verify-dafny N --full
 | `vault/1-promote/inquiries.yaml` | Before drafting | What's queued |
 | OUT_OF_SCOPE items in latest review | After convergence | What's not covered yet |
 | Promotion decisions | After `promote.py` | Which new inquiries were created |
-| Tier 3 escalation reports | After `verify-dafny` | Properties the prover couldn't handle |
+| Dafny review | After `model.py dafny N` | Divergences and quality (verified files only) |
+| STATUS.md | After `dafny` or `fix` | What verified, what didn't, divergences, fix history |
 | Golden test failures | After compiling Go oracle | Spec vs. reality disagreements |
 
-**What you don't need to read:** ASN property details, review REVISE items, consultation transcripts, Dafny source. These are for the machines.
+**What you don't need to read:** ASN property details, consultation transcripts, Dafny source (except when the review flags a spec issue). These are for the machines.

@@ -101,9 +101,14 @@ function Insert(s: State, d: DocId, p: Pos, c: seq<byte>): (s': State)
 
 `vault/3-modeling/modules.md` tracks the mapping from ASN numbers to Dafny module names, dependencies between modules, and generation status.
 
-### Divergence Tracking
+### Divergence and Failure Tracking
 
-When the Dafny generation agent encounters a gap between the ASN property and what can be mechanically translated, it records the divergence. These feed back into review cycles to tighten the ASN's formal content.
+When the Dafny generation agent encounters a gap between the ASN property and what can be mechanically translated, it records a DIVERGENCE comment in the source. After generation, a review agent triages all divergences and verification failures:
+
+- **Divergences** are classified as genuine spec issues (→ REVISE) or proof artifacts (→ SKIP)
+- **Verification failures** are classified as spec issues (mathematical impossibility), proof limitations, or timeouts
+
+Only findings classified as spec issues appear in the REVISE section. The review is written to `vault/2-review/` and the pipeline stops. You read the review and decide whether to run consult → revise manually.
 
 ## Artifacts
 
@@ -122,6 +127,7 @@ When the Dafny generation agent encounters a gap between the ASN property and wh
 | Proof index | `vault/3-modeling/proof-index/ASN-NNNN-proof-index.md` | Property classification table |
 | Statements | `vault/3-modeling/formal-statements/ASN-NNNN-statements.md` | Extracted formal statements |
 | Dafny modeling | `vault/3-modeling/dafny/ASN-NNNN/modeling-N/*.dfy` | Per-run staging output |
+| Status | `vault/3-modeling/dafny/ASN-NNNN/modeling-N/STATUS.md` | Verification status, divergences, fix history |
 | Dafny module (curated) | `vault/proofs/` | Manually promoted after review |
 
 ## CLI Reference
@@ -145,6 +151,14 @@ python scripts/model.py dafny 1 --modeling 3
 # Single property into existing run
 python scripts/model.py dafny 1 --modeling 3 --property TA4
 
+# Generate STATUS.md for an existing modeling directory
+python scripts/model.py status 1
+python scripts/model.py status 1 --modeling 1
+
+# Fix unverified files with baby-steps
+python scripts/model.py fix 1
+python scripts/model.py fix 1 --property TA3
+
 # Full formalization pipeline: index → statements → dafny → verify
 python scripts/model.py verify-dafny 1 --full
 
@@ -160,6 +174,16 @@ cp vault/3-modeling/dafny/ASN-0001/modeling-1/*.dfy vault/proofs/ModuleName/
 | `--modeling N` | Target existing modeling-N directory (skips already-generated properties) |
 | `--no-alloy` | Skip injecting Alloy model as reference (included by default) |
 | `--full` | Run complete pipeline: index → statements → generate → verify |
+
+The `dafny` command generates, verifies, writes `STATUS.md`, and writes a review (for verified files with divergences) — then stops. Consult/revise is a separate manual step after reading the review.
+
+### Additional Commands
+
+| Command | Description |
+|---------|-------------|
+| `model.py status N` | Verify all .dfy files and write `STATUS.md` (no LLM generation) |
+| `model.py fix N` | Fix unverified files with agentic baby-steps |
+| `model.py fix N --property TA3` | Fix a single property |
 
 ## Path to Compiled Go
 
