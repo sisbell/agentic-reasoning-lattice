@@ -190,11 +190,13 @@ Write the Dafny module to: {out_path}
 
 Work in small steps. Each step adds ONE thing, then verifies.
 
-1. Write the module with the predicate/lemma SIGNATURE only — requires,
-   ensures, decreases — and an empty body `{{ }}`. Write to disk, then
-   run `dafny verify {out_path}`.
+1. Write the module with the full declaration — the predicate or lemma
+   with its body, plus any accompanying lemmas the property requires
+   (e.g., a "strict total order" property needs irreflexivity,
+   transitivity, trichotomy, and asymmetry lemmas). Start every lemma
+   body empty `{{ }}`. Write to disk, then run `dafny verify {out_path}`.
 
-2. If verification succeeds, you are done. Move to the divergence check.
+2. If ALL declarations verify, you are done. Move to the divergence check.
 
 3. If verification fails, read the error. It tells you exactly what the
    solver cannot prove. Add the MINIMUM to address that one error:
