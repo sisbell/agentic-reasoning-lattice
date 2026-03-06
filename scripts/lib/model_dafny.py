@@ -186,12 +186,33 @@ def invoke_agent(prompt, out_path, model="sonnet", effort="max", max_turns=12):
 
 Write the Dafny module to: {out_path}
 
-After writing, run `dafny verify {out_path}` to check it. If verification
-fails, read the errors, fix the code, and re-verify. Repeat until it
-verifies with 0 errors.
+## Proof development — build up from nothing
 
-If the property has a constructively provable existential, include a proof
-lemma that provides the witness.
+Work in small steps. Each step adds ONE thing, then verifies.
+
+1. Write the module with the predicate/lemma SIGNATURE only — requires,
+   ensures, decreases — and an empty body `{{ }}`. Write to disk, then
+   run `dafny verify {out_path}`.
+
+2. If verification succeeds, you are done. Move to the divergence check.
+
+3. If verification fails, read the error. It tells you exactly what the
+   solver cannot prove. Add the MINIMUM to address that one error:
+   - A single recursive call
+   - One `assert` of an intermediate fact
+   - One case split (`if ... {{ }} else {{ }}`)
+   - A call to one existing lemma
+   Write the updated file. Verify again.
+
+4. Repeat step 3. Never add more than one proof element between
+   verifications. If you find yourself writing more than 5 lines
+   before verifying, stop — you are guessing instead of listening
+   to the solver.
+
+5. If you are stuck after 3 failed attempts on the same error,
+   step back: try a different decomposition (a helper lemma with
+   its own signature, or restructuring the cases). Do not pile on
+   assertions.
 
 After verification succeeds, compare what you proved against the ASN property
 statement. If you added preconditions, strengthened invariants, or weakened the
