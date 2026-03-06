@@ -159,9 +159,7 @@ Dafny found a genuine spec problem — a property that's too strong, a missing p
 # Revise the ASN from the Dafny review findings
 python scripts/revise.py N
 # Re-run the full modeling pipeline on the revised ASN
-python scripts/model.py index N
-python scripts/model.py statements N
-python scripts/model.py dafny N
+./run/remodel.sh N
 ```
 
 ## Artifacts

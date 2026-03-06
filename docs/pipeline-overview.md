@@ -177,6 +177,17 @@ All commands run from the project root as `python scripts/<dispatcher>.py`.
 
 See individual docs for full flag reference.
 
+## Shortcuts (`run/`)
+
+Shell scripts that chain common multi-step workflows. Run from the project root.
+
+| Shortcut | Equivalent |
+|----------|------------|
+| `./run/remodel.sh N` | `model.py index N` → `statements N` → `dafny N` |
+| `./run/remodel.sh N --property TA3,TA3-strict` | Same, filtered to specific properties |
+
+Use `run/remodel.sh` after revising an ASN to regenerate the proof index, statements, and Dafny in one shot.
+
 ## When to Use Each Command
 
 **Starting new work:**

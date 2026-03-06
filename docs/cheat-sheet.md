@@ -86,7 +86,7 @@ Everything else — ASN review, revise, consult, fix — is delegated. Dafny rev
               ┌────────────┴────────────┐
               v                         v
      CONVERGED / SIMPLIFY          REVISE
-     promote to vault/proofs/      revise.py N → index → statements → dafny
+     promote to vault/proofs/      revise.py N → ./run/remodel.sh N
 ```
 
 ## Typical Session Workflows
@@ -109,9 +109,7 @@ python scripts/promote.py scope N
 # 1. Alloy pre-check
 python scripts/model.py alloy N
 # 2. Generate Dafny (generates, verifies, STATUS.md, commits)
-python scripts/model.py index N
-python scripts/model.py statements N
-python scripts/model.py dafny N
+./run/remodel.sh N
 # 3. Read STATUS.md — any unverified? Fix and re-check
 python scripts/model.py fix N
 python scripts/model.py status N        # re-verify + commit
@@ -119,7 +117,7 @@ python scripts/model.py status N        # re-verify + commit
 python scripts/model.py review N        # review + commit
 # 5. Read review in vault/2-review/ASN-NNNN/
 #    - CONVERGED? → promote
-#    - REVISE items? → consult → revise, then re-run dafny
+#    - REVISE items? → revise.py N, then ./run/remodel.sh N
 # 6. Promote verified files to vault/proofs/ (manual copy + proofs-only commit)
 cp vault/3-modeling/dafny/ASN-NNNN/modeling-N/*.dfy vault/proofs/ModuleName/
 python scripts/commit.py --proofs-only "promote ModuleName from modeling-N"
