@@ -105,6 +105,15 @@ module TumblerAlgebra {
        (k == |a.components| && k < |b.components|))
   }
 
+  // Introduction lemma: provide an explicit witness k to prove LessThan
+  lemma LessThanIntro(a: Tumbler, b: Tumbler, k: nat)
+    requires k <= |a.components| && k <= |b.components|
+    requires forall i :: 0 <= i < k ==> a.components[i] == b.components[i]
+    requires (k < |a.components| && k < |b.components| && a.components[k] < b.components[k]) ||
+             (k == |a.components| && k < |b.components|)
+    ensures LessThan(a, b)
+  {}
+
   // ---------------------------------------------------------------------------
   // Prefix relation — p is a prefix of t
   // ---------------------------------------------------------------------------
