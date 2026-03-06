@@ -630,7 +630,7 @@ def main():
                         help="Model (default: opus)")
     parser.add_argument("--effort", default="max",
                         help="Thinking effort level (low/medium/high/max)")
-    parser.add_argument("--max-turns", type=int, default=16,
+    parser.add_argument("--max-turns", type=int, default=24,
                         help="Max agent turns per property (default: 16)")
     parser.add_argument("--modeling", type=int, default=None,
                         help="Target existing modeling-N directory")
