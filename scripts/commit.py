@@ -10,6 +10,7 @@ Prints the commit hash to stdout.
 Usage:
     python scripts/commit.py
     python scripts/commit.py "ASN-0009 revised to address review 1"
+    python scripts/commit.py --proofs-only "promote LessThanIntro bridge lemma"
 """
 
 import json
@@ -22,6 +23,7 @@ from pathlib import Path
 from paths import WORKSPACE, USAGE_LOG
 
 COMMIT_PROMPT = WORKSPACE / "scripts" / "prompts" / "commit.md"
+PROOFS_COMMIT_PROMPT = WORKSPACE / "scripts" / "prompts" / "commit-proofs.md"
 
 MODEL = "claude-sonnet-4-6"
 
@@ -34,20 +36,28 @@ def read_file(path):
 
 
 def main():
-    hint = " ".join(sys.argv[1:]) if len(sys.argv) > 1 else ""
+    # Parse --proofs-only flag from args
+    args = sys.argv[1:]
+    proofs_mode = "--proofs-only" in args
+    if proofs_mode:
+        args.remove("--proofs-only")
+    hint = " ".join(args)
 
-    # Check for changes
+    # Check for changes in the appropriate directory
+    check_path = "vault/proofs/" if proofs_mode else "vault/"
     result = subprocess.run(
-        ["git", "status", "--porcelain", "vault/"],
+        ["git", "status", "--porcelain", check_path],
         capture_output=True, text=True, cwd=str(WORKSPACE),
     )
     if not result.stdout.strip():
-        print("  nothing to commit", file=sys.stderr)
+        label = "vault/proofs/" if proofs_mode else "vault/"
+        print(f"  nothing to commit in {label}", file=sys.stderr)
         sys.exit(0)
 
-    skill_body = read_file(COMMIT_PROMPT)
+    prompt_path = PROOFS_COMMIT_PROMPT if proofs_mode else COMMIT_PROMPT
+    skill_body = read_file(prompt_path)
     if not skill_body:
-        print("  Commit prompt not found at scripts/prompts/commit.md",
+        print(f"  Commit prompt not found at {prompt_path.relative_to(WORKSPACE)}",
               file=sys.stderr)
         sys.exit(1)
 
@@ -57,7 +67,7 @@ def main():
 
 {hint}
 
-Check for changes in vault/, read the diffs, and commit with a descriptive message.
+Check for changes in {"vault/proofs/" if proofs_mode else "vault/"}, read the diffs, and commit with a descriptive message.
 """
 
     cmd = [

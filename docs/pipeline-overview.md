@@ -161,7 +161,8 @@ All commands run from the project root as `python scripts/<dispatcher>.py`.
 | `model.py verify-dafny N` | Verify + fix loop |
 | `consult.py nelson "question"` | Ad-hoc Nelson consultation |
 | `consult.py gregory "question"` | Ad-hoc Gregory consultation |
-| `commit.py` | Commit vault changes |
+| `commit.py` | Commit vault changes (excludes proofs) |
+| `commit.py --proofs-only` | Commit vault/proofs/ only (manual promotion) |
 
 See individual docs for full flag reference.
 

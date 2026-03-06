@@ -128,7 +128,7 @@ Only findings classified as spec issues appear in the REVISE section. The review
 | Statements | `vault/3-modeling/formal-statements/ASN-NNNN-statements.md` | Extracted formal statements |
 | Dafny modeling | `vault/3-modeling/dafny/ASN-NNNN/modeling-N/*.dfy` | Per-run staging output |
 | Status | `vault/3-modeling/dafny/ASN-NNNN/modeling-N/STATUS.md` | Verification status, divergences, fix history |
-| Dafny module (curated) | `vault/proofs/` | Manually promoted after review |
+| Dafny module (curated) | `vault/proofs/` | Manually promoted and committed (never auto-committed) |
 
 ## CLI Reference
 
@@ -162,8 +162,9 @@ python scripts/model.py fix 1 --property TA3
 # Full formalization pipeline: index → statements → dafny → verify
 python scripts/model.py verify-dafny 1 --full
 
-# After verification, manually promote to vault/proofs/
+# After verification, promote and commit with proofs-only mode
 cp vault/3-modeling/dafny/ASN-0001/modeling-1/*.dfy vault/proofs/ModuleName/
+python scripts/commit.py --proofs-only "promote ModuleName from modeling-1"
 ```
 
 ### Flags

@@ -24,8 +24,12 @@ Commit changes to the vault with meaningful, descriptive commit messages.
 
 4. **Stage the changes:**
    ```bash
-   git add vault/ 2>/dev/null; true
+   git add vault/asns/ vault/requirements/ vault/1-promote/ vault/2-review/ vault/3-modeling/ vault/experts/ 2>/dev/null; true
    ```
+
+   **Important:** Never stage `vault/proofs/`. That directory contains curated,
+   human-reviewed proof files. Changes there are committed manually by the
+   operator using a separate, deliberate process.
 
 5. **Generate commit message:**
 

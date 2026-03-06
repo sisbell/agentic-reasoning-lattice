@@ -112,8 +112,9 @@ python scripts/model.py status N
 #    - REVISE items? → consult → revise, then re-run dafny
 # 5. Still-unverified files with divergences? → manual triage
 #    Read the .dfy source, decide if it's a spec issue
-# 6. Promote verified files to vault/proofs/ (manual)
+# 6. Promote verified files to vault/proofs/ (manual copy + proofs-only commit)
 cp vault/3-modeling/dafny/ASN-NNNN/modeling-N/*.dfy vault/proofs/ModuleName/
+python scripts/commit.py --proofs-only "promote ModuleName from modeling-N"
 ```
 
 ### Investigate something ad-hoc
