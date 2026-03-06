@@ -98,19 +98,25 @@ AP4a is not a formal invariant over Σ — the state model defined in this ASN d
 
 What we also need is a strengthening of AP2:
 
-**AP4 (Monotonic frontier).** The allocation counter within each partition never retreats. If the highest allocated address in partition `p` is `a`, then the next allocation in `p` produces some `a' > a`. Gaps below `a` are permanent.
+**AP4 (Monotonic frontier).** Each document `d` allocates within its own *document allocation range* — the contiguous region of addresses determined by `d`'s tumbler prefix within a subspace. Within this range, the allocation counter never retreats. If the highest allocated address in document `d`'s allocation range within subspace `s` is `a`, then the next allocation by `d` in `s` produces some `a' > a`. Gaps below `a` are permanent.
 
-We must state a structural prerequisite before deriving freshness from AP4. The allocation frontier is maintained *per partition*, but AP2 requires freshness across *all* of `dom.ispace`. The implication holds only because partitions have structurally disjoint address ranges:
+We must state two structural prerequisites before deriving freshness from AP4. The allocation frontier is maintained per document within a subspace, but AP2 requires freshness across *all* of `dom.ispace`. The implication holds because disjointness operates at two levels — between subspaces, and between documents within a subspace:
 
-**AP4b (Partition disjointness).** The address ranges of distinct subspace partitions are disjoint:
+**AP4b (Subspace disjointness).** The address ranges of distinct subspaces are disjoint:
 
   `text_subspace ∩ link_subspace = ∅`
 
-where `text_subspace` and `link_subspace` denote the sets of addresses structurally assigned to each partition — addresses whose subspace identifier places them in one partition cannot fall in the other's range.
+where `text_subspace` and `link_subspace` denote the sets of addresses structurally assigned to each subspace — addresses whose subspace identifier places them in one cannot fall in the other's range.
 
 Gregory confirms: text addresses begin with subspace identifier 1, link addresses with identifier 2. The allocation function computes a different upper bound for each subspace and searches below that bound, ensuring that text allocation never finds a link address and vice versa.
 
-With AP4b in hand, AP4 implies AP2: a fresh address produced by partition `p` is above `p`'s frontier, hence disjoint from all existing addresses in `p`; and by AP4b, it is disjoint from all addresses in every other partition. Therefore the fresh address is not in `dom.ispace`. AP4 is strictly stronger than AP2: it also forbids filling gaps. If addresses `α₃` and `α₅` exist in a partition but `α₄` does not, AP4 guarantees that `α₄` will never be filled by a later allocation — the counter has moved past it.
+**AP4c (Within-subspace document disjointness).** Distinct documents' allocation ranges within any subspace are disjoint, guaranteed by the tumbler prefix structure:
+
+  `(A d₁, d₂ : d₁ ≠ d₂ : alloc_range(d₁, s) ∩ alloc_range(d₂, s) = ∅)`
+
+for every subspace `s`. Each document's tumbler prefix carves out a non-overlapping region of the address line; addresses allocated by different documents cannot collide regardless of their relative frontier positions.
+
+With AP4b and AP4c in hand, AP4 implies AP2. A fresh address allocated by document `d` in subspace `s` is above `d`'s frontier within `alloc_range(d, s)`, hence disjoint from all existing addresses allocated by `d` in `s` (AP4). By AP4c, it is disjoint from all addresses allocated by any other document in the same subspace. By AP4b, it is disjoint from all addresses in every other subspace. Therefore the fresh address is not in `dom.ispace`. AP4 is strictly stronger than AP2: it also forbids filling gaps. If addresses `α₃` and `α₅` exist in a document's allocation range but `α₄` does not, AP4 guarantees that `α₄` will never be filled by a later allocation — the counter has moved past it.
 
 Gregory provides further evidence: when a link operation allocates in one subspace and a subsequent text operation allocates in the text subspace, each subspace maintains its own frontier independently. The link address does not consume text addresses, and text allocation does not fill the gap left by the link's position in the unified address ordering.
 
@@ -414,7 +420,7 @@ Check: AP0 holds (`{α₁, α₂} ⊆ {α₁, α₂}`). AP1 holds (both entries 
   `dom.ispace = {α₁, α₂}` — unchanged (COPY allocates no content)
   `dom.vspace(d₂) = {(text, 0)}`,  `vspace(d₂).(text, 0) = α₂`
 
-Check: AP0, AP1 hold (ispace untouched). AP9 holds: both `d` and `d₂` reference the same `α₂`. AP14 holds: `vspace(d)` is unchanged (COPY's target is `d₂`, and `d` is read-only).
+Check: AP0, AP1 hold (ispace untouched). AP9 holds: both `d` and `d₂` reference the same `α₂`. Cross-document independence holds: `vspace(d)` is unchanged because COPY's target is `d₂` and the source is a read-only participant (as established in COPY's frame conditions above).
 
 **Step 4: CREATELINK with home document `d`, referencing `α₁`.** The system allocates fresh link address `ℓ₁` (AP2: `ℓ₁ ∉ {α₁, α₂}`). The link has one endset containing a span covering `α₁`. The home document `d` gains a V-position in its link subspace.
 
@@ -464,7 +470,7 @@ Nelson states this guarantee directly: "the owner of a document may delete bytes
 
 Let us step back and observe the layered structure. The system maintains three layers with decreasing mutability:
 
-1. **I-space** (fully immutable): governed by AP0, AP1, AP2, AP3, AP4. Content and addresses are permanent. The only allowed modification is monotonic extension.
+1. **I-space** (fully immutable): governed by AP0, AP1, AP2, AP3, AP4, AP4c. Content and addresses are permanent. The only allowed modification is monotonic extension.
 
 2. **Span index** (append-only): governed by AP11. Records are permanent once written. The index grows but never shrinks. Over-approximation is the price of monotonicity.
 
@@ -491,9 +497,10 @@ Gregory's implementation takes this further: even the allocation counter for I-a
 | AP | Address permanence: AP0 ∧ AP1 — irrevocability and immutability combined | introduced |
 | AP2 | Every allocation uses an address not previously in dom.ispace (freshness) | introduced |
 | AP3 | No address may be freed and re-allocated (no reuse); follows from AP0 ∧ AP2 | derived |
-| AP4 | The allocation frontier within each partition is strictly monotonic; gaps below the frontier are permanent | introduced |
+| AP4 | The allocation frontier within each document allocation range (per document, per subspace) is strictly monotonic; gaps below the frontier are permanent | introduced |
 | AP4a | The assignment of an address-space range to an entity (server, account, document) is permanent and irrevocable | introduced |
-| AP4b | The address ranges of distinct subspace partitions are disjoint: text_subspace ∩ link_subspace = ∅ | introduced |
+| AP4b | The address ranges of distinct subspaces are disjoint: text_subspace ∩ link_subspace = ∅ | introduced |
+| AP4c | Distinct documents' allocation ranges within any subspace are disjoint: alloc_range(d₁, s) ∩ alloc_range(d₂, s) = ∅ for d₁ ≠ d₂ | introduced |
 | AP5 | Restatement of AP (= AP0 ∧ AP1) in the dual-space vocabulary; editing operations preserve I-space and may only extend it | restatement of AP |
 | AP6 | INSERT shifts only V-positions in the same subspace of the same document | introduced |
 | AP6a | COPY shifts only V-positions in the same subspace of the target document; same two-blade mechanism as AP6 | introduced |
