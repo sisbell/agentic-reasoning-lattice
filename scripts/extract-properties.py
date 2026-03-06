@@ -2,7 +2,7 @@
 """
 Extract formal properties from an ASN for Dafny translation.
 
-Uses the contract table as an index to locate each property in the ASN,
+Uses the proof index as a roster to locate each property in the ASN,
 then extracts just the formal statement. Produces a compact properties
 file suitable as input to the Dafny generation step.
 
@@ -21,7 +21,7 @@ import time
 
 from pathlib import Path
 
-from paths import WORKSPACE, ASNS_DIR, CONTRACTS_DIR, STATEMENTS_DIR, USAGE_LOG
+from paths import WORKSPACE, ASNS_DIR, PROOF_INDEX_DIR, STATEMENTS_DIR, USAGE_LOG
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"
 TEMPLATE = PROMPTS_DIR / "extract-properties.md"
@@ -51,7 +51,7 @@ def find_asn(asn_id):
     return None, label
 
 
-def build_prompt(asn_content, contract):
+def build_prompt(asn_content, proof_index):
     """Assemble extraction prompt from template + injected content."""
     template = read_file(TEMPLATE)
     if not template:
@@ -62,7 +62,7 @@ def build_prompt(asn_content, contract):
     return template.replace(
         "{{asn_content}}", asn_content
     ).replace(
-        "{{contract}}", contract
+        "{{proof_index}}", proof_index
     )
 
 
@@ -148,18 +148,18 @@ def main():
 
     asn_content = asn_path.read_text()
 
-    # Read contract (required)
-    contract_path = CONTRACTS_DIR / f"{asn_label}-contract.md"
-    contract = read_file(contract_path)
-    if not contract:
-        print(f"  No contract found at {contract_path.relative_to(WORKSPACE)}",
+    # Read proof index (required)
+    index_path = PROOF_INDEX_DIR / f"{asn_label}-proof-index.md"
+    proof_index = read_file(index_path)
+    if not proof_index:
+        print(f"  No proof index found at {index_path.relative_to(WORKSPACE)}",
               file=sys.stderr)
         print(f"  Run: python scripts/contract-asn.py {args.asn}", file=sys.stderr)
         sys.exit(1)
 
     # Build prompt
     print(f"  [EXTRACT] {asn_label}", file=sys.stderr)
-    prompt = build_prompt(asn_content, contract)
+    prompt = build_prompt(asn_content, proof_index)
     print(f"  Prompt: {len(prompt) // 1024}KB (~{len(prompt) // 4} tokens est.)",
           file=sys.stderr)
 
@@ -184,11 +184,11 @@ def main():
     all_dates = re.findall(r"\d{4}-\d{2}-\d{2}", date_match.group(0)) if date_match else []
     asn_date = all_dates[-1] if all_dates else "unknown"
 
-    contract_gen = re.search(r"Contract generated: (\d{4}-\d{2}-\d{2})", contract)
-    contract_date = contract_gen.group(1) if contract_gen else "unknown"
+    index_gen = re.search(r"Index generated: (\d{4}-\d{2}-\d{2})", proof_index)
+    index_date = index_gen.group(1) if index_gen else "unknown"
 
     source_line = (f"\n*Source: {asn_path.name} (revised {asn_date}) — "
-                   f"Contract: {contract_date} — "
+                   f"Index: {index_date} — "
                    f"Extracted: {time.strftime('%Y-%m-%d')}*\n")
     lines = text.split("\n", 1)
     if len(lines) == 2:

@@ -1,13 +1,13 @@
 # Property Extraction
 
 You are extracting formal properties from an ASN for Dafny translation.
-The contract table below is your index — it lists every property by label,
-Dafny name, type, and construct. Your job is to find each one in the ASN
-and extract just the formal statement.
+The proof index below lists every property by label, proof label, type,
+and construct. Your job is to find each one in the ASN and extract just
+the formal statement.
 
-## Contract (property index)
+## Proof Index
 
-{{contract}}
+{{proof_index}}
 
 ## ASN Content
 
@@ -15,7 +15,7 @@ and extract just the formal statement.
 
 ## Task
 
-For each property listed in the contract table, locate it in the ASN and
+For each property listed in the proof index, locate it in the ASN and
 extract:
 1. The formal mathematical statement (quantified expressions, definitions,
    constraints) — exactly as written

@@ -88,7 +88,7 @@ When the loop exhausts fix attempts, it writes an escalation report:
 ```markdown
 # Dafny Escalation — ASN-NNNN
 
-## Property: [Dafny name from contract]
+## Property: [proof label from proof index]
 
 **ASN label:** T4 — Monotonic allocation
 **Error:** A postcondition might not hold on line 47

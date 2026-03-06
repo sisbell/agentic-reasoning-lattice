@@ -17,7 +17,7 @@ Usage:
     python scripts/run-dafny.py 1                     # verify + fix loop
     python scripts/run-dafny.py 1 --max-tier1 3       # up to 3 Tier 1 fix attempts
     python scripts/run-dafny.py 1 --max-tier2 2       # up to 2 Tier 2 fix attempts
-    python scripts/run-dafny.py 1 --full               # contract → extract → generate → verify loop
+    python scripts/run-dafny.py 1 --full               # proof-index → extract → generate → verify loop
     python scripts/run-dafny.py 1 --dry-run            # check paths, no execution
 """
 
@@ -31,12 +31,12 @@ import time
 
 from pathlib import Path
 
-from paths import (WORKSPACE, ASNS_DIR, DAFNY_DIR, CONTRACTS_DIR,
+from paths import (WORKSPACE, ASNS_DIR, DAFNY_DIR, PROOF_INDEX_DIR,
                    STATEMENTS_DIR, VERIFICATION_DIR, USAGE_LOG)
 
 VERIFY_SCRIPT = WORKSPACE / "scripts" / "verify-dafny.py"
 FIX_SCRIPT = WORKSPACE / "scripts" / "fix-dafny.py"
-CONTRACT_SCRIPT = WORKSPACE / "scripts" / "contract-asn.py"
+PROOF_INDEX_SCRIPT = WORKSPACE / "scripts" / "contract-asn.py"
 EXTRACT_SCRIPT = WORKSPACE / "scripts" / "extract-properties.py"
 GENERATE_SCRIPT = WORKSPACE / "scripts" / "generate-dafny.py"
 COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
@@ -140,15 +140,15 @@ def step_commit(hint=""):
     return True
 
 
-def step_contract(asn_id):
-    """Run contract-asn.py. Returns contract path or None."""
-    print(f"\n  === CONTRACT ===", file=sys.stderr)
+def step_proof_index(asn_id):
+    """Run contract-asn.py. Returns proof index path or None."""
+    print(f"\n  === PROOF INDEX ===", file=sys.stderr)
     result = subprocess.run(
-        [sys.executable, str(CONTRACT_SCRIPT), str(asn_id)],
+        [sys.executable, str(PROOF_INDEX_SCRIPT), str(asn_id)],
         capture_output=True, text=True, cwd=str(WORKSPACE),
     )
     if result.returncode != 0:
-        print(f"  [CONTRACT] FAILED", file=sys.stderr)
+        print(f"  [PROOF-INDEX] FAILED", file=sys.stderr)
         if result.stderr:
             for line in result.stderr.strip().split("\n")[:5]:
                 print(f"    {line}", file=sys.stderr)
@@ -259,7 +259,7 @@ python scripts/run-review.py {asn_label.split('-')[1].lstrip('0') or '0'}
 
 
 def run_full_pipeline(asn_id, asn_label):
-    """Run contract → extract → generate if stale or missing.
+    """Run proof-index → extract → generate if stale or missing.
 
     Returns True if all steps succeeded, False otherwise.
     """
@@ -269,20 +269,20 @@ def run_full_pipeline(asn_id, asn_label):
         return False
     asn_path = asn_matches[0]
 
-    contract_path = CONTRACTS_DIR / f"{asn_label}-contract.md"
+    index_path = PROOF_INDEX_DIR / f"{asn_label}-proof-index.md"
     extract_path = STATEMENTS_DIR / f"{asn_label}-statements.md"
 
-    # Contract: regenerate if ASN is newer
-    if is_stale(asn_path, contract_path):
-        print(f"  [PIPELINE] Contract stale or missing — regenerating",
+    # Proof index: regenerate if ASN is newer
+    if is_stale(asn_path, index_path):
+        print(f"  [PIPELINE] Proof index stale or missing — regenerating",
               file=sys.stderr)
-        if step_contract(asn_id) is None:
+        if step_proof_index(asn_id) is None:
             return False
     else:
-        print(f"  [PIPELINE] Contract up to date", file=sys.stderr)
+        print(f"  [PIPELINE] Proof index up to date", file=sys.stderr)
 
-    # Extract: regenerate if contract is newer
-    if is_stale(contract_path, extract_path):
+    # Extract: regenerate if proof index is newer
+    if is_stale(index_path, extract_path):
         print(f"  [PIPELINE] Extract stale or missing — regenerating",
               file=sys.stderr)
         if step_extract(asn_id) is None:
@@ -309,7 +309,7 @@ def main():
     parser.add_argument("--timeout", "-t", type=int, default=300,
                         help="Dafny verification timeout in seconds (default: 300)")
     parser.add_argument("--full", action="store_true",
-                        help="Run full pipeline: contract → extract → generate → verify loop")
+                        help="Run full pipeline: proof-index → extract → generate → verify loop")
     parser.add_argument("--dry-run", action="store_true",
                         help="Check paths and show plan without execution")
     args = parser.parse_args()
@@ -331,10 +331,10 @@ def main():
         print(f"  [DRY RUN] ASN: {asn_path}", file=sys.stderr)
         print(f"  [DRY RUN] Dafny: {dfy_path}", file=sys.stderr)
         if args.full:
-            contract = CONTRACTS_DIR / f"{asn_label}-contract.md"
+            index = PROOF_INDEX_DIR / f"{asn_label}-proof-index.md"
             extract = STATEMENTS_DIR / f"{asn_label}-statements.md"
             print(f"  [DRY RUN] --full: would check staleness of:", file=sys.stderr)
-            print(f"    Contract: {contract} (exists: {contract.exists()})",
+            print(f"    Proof index: {index} (exists: {index.exists()})",
                   file=sys.stderr)
             print(f"    Extract: {extract} (exists: {extract.exists()})",
                   file=sys.stderr)
@@ -345,7 +345,7 @@ def main():
 
     start = time.time()
 
-    # Full pipeline: contract → extract → generate
+    # Full pipeline: proof-index → extract → generate
     if args.full:
         print(f"\n  ──── Full Pipeline ────", file=sys.stderr)
         if not run_full_pipeline(args.asn, asn_label):

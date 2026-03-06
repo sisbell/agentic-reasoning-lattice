@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-Generate a property contract for a converged ASN.
+Generate a proof index for a converged ASN.
 
 Classifies each property by type (INV/PRE/POST/FRAME/LEMMA), assigns
-Dafny-ready identifiers, and produces a property mapping table. Operates
-on ASNs that have reached review maturity.
+proof labels, and produces an index table. Operates on ASNs that have
+reached review maturity.
 
-If a contract already exists for the ASN, it is passed to the prompt so
-the agent can preserve established Dafny names and flag changes.
+If a proof index already exists for the ASN, it is passed to the prompt so
+the agent can preserve established proof labels and flag changes.
 
 Usage:
     python scripts/contract-asn.py 4
@@ -24,7 +24,7 @@ import time
 
 from pathlib import Path
 
-from paths import WORKSPACE, ASNS_DIR, CONTRACTS_DIR, VOCABULARY, USAGE_LOG
+from paths import WORKSPACE, ASNS_DIR, PROOF_INDEX_DIR, VOCABULARY, USAGE_LOG
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"
 REFINE_TEMPLATE = PROMPTS_DIR / "refine.md"
@@ -76,7 +76,7 @@ def build_prompt(asn_content, vocabulary, existing_mapping):
 
 
 def strip_preamble(text):
-    """Strip any preamble before the contract header."""
+    """Strip any preamble before the proof index header."""
     marker = re.search(r"^# ASN-\d+", text, re.MULTILINE)
     if marker:
         return text[marker.start():]
@@ -125,7 +125,7 @@ def log_usage(asn_label, elapsed):
     try:
         entry = {
             "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
-            "skill": "contract",
+            "skill": "proof-index",
             "asn": asn_label,
             "elapsed_s": round(elapsed, 1),
         }
@@ -137,7 +137,7 @@ def log_usage(asn_label, elapsed):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Generate property contract for a converged ASN")
+        description="Generate proof index for a converged ASN")
     parser.add_argument("asn",
                         help="ASN number (e.g., 4, 0004, ASN-0004) or path")
     parser.add_argument("--model", "-m", default="opus",
@@ -162,26 +162,26 @@ def main():
     if not vocabulary:
         print("  Warning: vault/vocabulary.md not found", file=sys.stderr)
 
-    # Read existing contract (if any) for incremental update
-    contract_path = CONTRACTS_DIR / f"{asn_label}-contract.md"
-    existing_mapping = read_file(contract_path)
+    # Read existing proof index (if any) for incremental update
+    index_path = PROOF_INDEX_DIR / f"{asn_label}-proof-index.md"
+    existing_mapping = read_file(index_path)
     if existing_mapping:
-        # Check if contract matches current ASN revision
-        contract_date = re.search(r"revised (\d{4}-\d{2}-\d{2})", existing_mapping)
+        # Check if proof index matches current ASN revision
+        index_date = re.search(r"revised (\d{4}-\d{2}-\d{2})", existing_mapping)
         asn_dates = re.findall(r"\d{4}-\d{2}-\d{2}",
                                re.search(r"\*.*?\*", asn_content).group(0)
                                if re.search(r"\*.*?\*", asn_content) else "")
         asn_date = asn_dates[-1] if asn_dates else None
-        if contract_date and asn_date and contract_date.group(1) == asn_date:
-            print(f"  Existing contract matches ASN revision ({asn_date})",
+        if index_date and asn_date and index_date.group(1) == asn_date:
+            print(f"  Existing proof index matches ASN revision ({asn_date})",
                   file=sys.stderr)
-        elif contract_date and asn_date:
-            print(f"  ASN revised since last contract ({contract_date.group(1)} → {asn_date})",
+        elif index_date and asn_date:
+            print(f"  ASN revised since last proof index ({index_date.group(1)} → {asn_date})",
                   file=sys.stderr)
-        print(f"  Incremental update — preserving Dafny names", file=sys.stderr)
+        print(f"  Incremental update — preserving proof labels", file=sys.stderr)
 
     # Build prompt
-    print(f"  [CONTRACT] {asn_label}", file=sys.stderr)
+    print(f"  [PROOF-INDEX] {asn_label}", file=sys.stderr)
     prompt = build_prompt(asn_content, vocabulary, existing_mapping)
     print(f"  Prompt: {len(prompt) // 1024}KB (~{len(prompt) // 4} tokens est.)",
           file=sys.stderr)
@@ -196,7 +196,7 @@ def main():
                                   effort=args.effort)
 
     if not text:
-        print("  No contract produced", file=sys.stderr)
+        print("  No proof index produced", file=sys.stderr)
         sys.exit(1)
 
     # Strip any preamble
@@ -209,7 +209,7 @@ def main():
     asn_date = all_dates[-1] if all_dates else "unknown"
 
     # Add source metadata line after the title
-    source_line = f"\n*Source: {asn_path.name} (revised {asn_date}) — Contract generated: {time.strftime('%Y-%m-%d')}*\n"
+    source_line = f"\n*Source: {asn_path.name} (revised {asn_date}) — Index generated: {time.strftime('%Y-%m-%d')}*\n"
     # Insert after the first line (the title)
     lines = text.split("\n", 1)
     if len(lines) == 2:
@@ -217,23 +217,23 @@ def main():
     else:
         text = text + "\n" + source_line
 
-    # Write output to vault/3-modeling/contracts/
-    CONTRACTS_DIR.mkdir(parents=True, exist_ok=True)
-    contract_path.write_text(text + "\n")
+    # Write output
+    PROOF_INDEX_DIR.mkdir(parents=True, exist_ok=True)
+    index_path.write_text(text + "\n")
 
     # Log usage
     log_usage(asn_label, elapsed)
 
     # Print output file path to stdout (for pipeline consumption)
-    print(str(contract_path))
+    print(str(index_path))
 
-    print(f"  [WROTE] {contract_path.relative_to(WORKSPACE)}", file=sys.stderr)
+    print(f"  [WROTE] {index_path.relative_to(WORKSPACE)}", file=sys.stderr)
 
     # Commit
     if not args.dry_run:
         print(f"\n  === COMMIT ===", file=sys.stderr)
         cmd = [sys.executable, str(COMMIT_SCRIPT),
-               f"Contract {asn_label}"]
+               f"Proof index {asn_label}"]
         result = subprocess.run(
             cmd, capture_output=True, text=True, cwd=str(WORKSPACE),
         )

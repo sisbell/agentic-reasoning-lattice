@@ -1,7 +1,7 @@
 # Dafny Property Generation
 
 Translate a single formally extracted property into a verified Dafny
-declaration. You receive one property — its extract entry, contract row,
+declaration. You receive one property — its extract entry, proof index row,
 and the stable foundation module it imports.
 
 ## Modeling approach
@@ -63,9 +63,9 @@ defined here.
 
 ## Property to translate
 
-**Contract row (translate this row only):**
+**Proof index row (translate this row only):**
 
-{{contract_row}}
+{{index_row}}
 
 **Full extract (definitions and all properties for context):**
 

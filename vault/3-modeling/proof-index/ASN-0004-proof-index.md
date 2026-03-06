@@ -1,8 +1,8 @@
-# ASN-0004 Property Contract
+# ASN-0004 Proof Index
 
-*Source: ASN-0004-content-insertion.md (revised 2026-02-24) — Contract generated: 2026-03-01*
+*Source: ASN-0004-content-insertion.md (revised 2026-02-24) — Index generated: 2026-03-01*
 
-| ASN Label | Dafny Name | Type | Construct | Notes |
+| ASN Label | Proof Label | Type | Construct | Notes |
 |-----------|------------|------|-----------|-------|
 | S-DISJ | SubspaceDisjoint | INV | predicate(State) | |
 | S0 | VIGrounding | INV | predicate(State) | |

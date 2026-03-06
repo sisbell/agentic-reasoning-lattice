@@ -1,8 +1,8 @@
 # Property Refinement
 
 You are refining an ASN (Abstract Specification Note) that has reached review
-maturity. Your task is to classify each property, assign a Dafny-ready name,
-and produce a property mapping table.
+maturity. Your task is to classify each property, assign a proof label,
+and produce a proof index table.
 
 This is a mechanical structuring task, not an analytical one. The hard reasoning
 was done during review. You are making the structure explicit for Dafny
@@ -90,7 +90,7 @@ lemma InsertDomainSize(s: State, d: DocId, p: Pos, c: seq<byte>)
 
 ## Your Task
 
-Produce a **property mapping table** — one row per formal property in the ASN.
+Produce a **proof index** — one row per formal property in the ASN.
 
 ### Step 1: Identify every formal property
 
@@ -131,9 +131,9 @@ Classification rules:
   same as preconditions on state operations
 - System-level axioms (like append-only storage) are INV
 
-### Step 3: Assign Dafny names
+### Step 3: Assign proof labels
 
-For each property, create a descriptive Dafny identifier from its **name**
+For each property, create a descriptive PascalCase identifier from its **name**
 (not its label). The name is the parenthesized text after the label:
 
 - **S0 (V→I Grounding)** → `VIGrounding`
@@ -155,8 +155,8 @@ Naming conventions:
 - For relational predicates, describe the relation: `LexicographicOrder`,
   `IntrinsicComparison`, `AddressPermanence`
 
-If an existing mapping is provided, preserve Dafny names for properties that
-haven't changed. Only generate new names for new or significantly changed
+If an existing mapping is provided, preserve proof labels for properties that
+haven't changed. Only generate new labels for new or significantly changed
 properties.
 
 ### Step 4: Add notes for special cases
@@ -170,14 +170,14 @@ Use the Notes column to flag:
 
 ## Output format
 
-Produce ONLY a markdown document with a title and the mapping table. No other
+Produce ONLY a markdown document with a title and the index table. No other
 content, no commentary, no preamble.
 
 Type/algebra example:
 ```
-# ASN-NNNN Property Contract
+# ASN-NNNN Proof Index
 
-| ASN Label | Dafny Name | Type | Construct | Notes |
+| ASN Label | Proof Label | Type | Construct | Notes |
 |-----------|------------|------|-----------|-------|
 | T1 | LexicographicOrder | INV | predicate(Tumbler, Tumbler) | defines total order |
 | T4 | HierarchicalParsing | INV | predicate(Tumbler) | structural constraint |
@@ -189,9 +189,9 @@ Type/algebra example:
 
 State operation example:
 ```
-# ASN-NNNN Property Contract
+# ASN-NNNN Proof Index
 
-| ASN Label | Dafny Name | Type | Construct | Notes |
+| ASN Label | Proof Label | Type | Construct | Notes |
 |-----------|------------|------|-----------|-------|
 | S0 | VIGrounding | INV | predicate(State) | |
 | S1 | IspaceImmutable | INV | predicate(State, State) | transition |
@@ -201,4 +201,5 @@ State operation example:
 | INS-D1 | DomainSize | LEMMA | lemma | derived from INS3, INS4 |
 ```
 
-Start directly with `# ASN-NNNN Property Contract`.
+Start directly with `# ASN-NNNN Proof Index`.
+

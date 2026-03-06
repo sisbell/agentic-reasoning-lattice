@@ -2,7 +2,7 @@
 
 You are translating formally extracted properties into a verified Dafny
 specification module. The extract below contains definitions and properties
-from an ASN, each with a Dafny name, type classification, and construct.
+from an ASN, each with a proof label, type classification, and construct.
 Your job is to produce correct, idiomatic Dafny code.
 
 ## Modeling approach
@@ -75,7 +75,7 @@ each property. They capture one formalization of the property's intent.
 Use them to understand structure and edge cases, but:
 - Do NOT adopt Alloy's relational idioms (sigs, dot join, set comprehensions)
 - Do NOT mirror the Alloy model structure — use Dafny datatypes and pure functions
-- The contract and extract are authoritative; Alloy models are supplementary
+- The proof index and extract are authoritative; Alloy models are supplementary
 
 {{alloy_models}}
 {{/if}}

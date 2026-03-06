@@ -62,10 +62,10 @@ Formal specification of the Xanadu hypertext system (udanax-green), derived from
           |
           v (no counterexamples)
 +-------------------+
-|   contract-asn    |  classify & name properties
+|   contract-asn    |  classify & label properties
 +-------------------+
           |
-    contract table
+    proof index
           |
           v
 +-------------------+
@@ -153,21 +153,21 @@ Output:
 - `vault/3-modeling/alloy/ASN-NNNN/{label}-{Name}.als` (one per property)
 - `vault/2-review/ASN-NNNN/review-N.md` (if failures after repair)
 
-### Formalization — contract → extract → dafny
+### Formalization — proof-index → extract → dafny
 
 Run after an ASN has converged through review. Three steps, each building on the previous:
 
 ```
-python scripts/contract-asn.py 4              # classify properties, assign Dafny names
+python scripts/contract-asn.py 4              # classify properties, assign proof labels
 python scripts/extract-properties.py 4        # extract formal statements from ASN prose
 python scripts/generate-dafny.py 4            # generate verified Dafny module
 ```
 
-**Contract** classifies each property by type (INV/PRE/POST/FRAME/LEMMA) and assigns
-a descriptive Dafny identifier. Re-running after an ASN revision preserves
-established names and flags changes.
+**Proof index** classifies each property by type (INV/PRE/POST/FRAME/LEMMA) and assigns
+a descriptive proof label. Re-running after an ASN revision preserves
+established labels and flags changes.
 
-**Extract** uses the contract as an index to locate each property in the ASN,
+**Extract** uses the proof index as a roster to locate each property in the ASN,
 extracting just the formal statement. Produces a compact file suitable for Dafny
 generation.
 
@@ -175,7 +175,7 @@ generation.
 style). State is an immutable value; operations are pure functions.
 
 Output:
-- `vault/3-modeling/contracts/ASN-NNNN-contract.md`
+- `vault/3-modeling/proof-index/ASN-NNNN-proof-index.md`
 - `vault/3-modeling/formal-statements/ASN-NNNN-statements.md`
 - `vault/proofs/ASN-NNNN.dfy`
 
@@ -186,7 +186,7 @@ fix attempts and escalation. See [`docs/dafny-verification-loop.md`](docs/dafny-
 
 ```
 python scripts/run-dafny.py 4                     # verify + fix loop
-python scripts/run-dafny.py 4 --full               # contract → extract → generate → verify loop
+python scripts/run-dafny.py 4 --full               # proof-index → extract → generate → verify loop
 python scripts/run-dafny.py 4 --max-tier1 3        # up to 3 Tier 1 (syntax) fix attempts
 python scripts/run-dafny.py 4 --max-tier2 2        # up to 2 Tier 2 (proof) fix attempts
 python scripts/run-dafny.py 4 --dry-run            # check paths, no execution
@@ -248,7 +248,7 @@ python scripts/commit.py "hint about changes" # commit with context hint
 | `consult_for_revision.py` | Categorize review findings, run targeted expert consultations (opus) |
 | `revise-asn.py` | Revise an ASN based on review feedback (opus, with tools) |
 | `run-alloy-review.py` | Alloy review pipeline — generate, check, repair, review → consult → revise (sonnet) |
-| `contract-asn.py` | Classify properties and assign Dafny names (opus, post-convergence) |
+| `contract-asn.py` | Classify properties and assign proof labels (opus, post-convergence) |
 | `extract-properties.py` | Extract formal property statements from ASN prose (sonnet) |
 | `generate-dafny.py` | Generate Dafny specification module from extract (opus) |
 | `run-dafny.py` | Verification loop — verify → fix → re-verify with tier escalation |
@@ -282,7 +282,7 @@ python scripts/commit.py "hint about changes" # commit with context hint
 
 | Template | Used by | Purpose |
 |----------|---------|---------|
-| `refine.md` | `contract-asn.py` | Property classification and Dafny naming |
+| `refine.md` | `contract-asn.py` | Property classification and proof labeling |
 | `extract-properties.md` | `extract-properties.py` | Extract formal properties from ASN |
 | `generate-dafny.md` | `generate-dafny.py` | Generate Dafny module from extract |
 | `fix-dafny.md` | `fix-dafny.py` | Fix Dafny errors (Tier 1 syntax, Tier 2 proof) |
@@ -313,7 +313,7 @@ vault/
   3-modeling/       — Stage 3: Modeling artifacts
     modules.md      — Module registry (ASN → Dafny module mapping)
     alloy/          — Alloy models for bounded checking (.als files)
-    contracts/      — Property contracts (type + Dafny name mappings)
+    proof-index/    — Proof index (ASN label → proof label mappings)
     formal-statements/ — Formal property statements from ASN prose
     verification/   — Verification reports + escalation files
     dafny/          — Divergence evidence from Dafny generation
@@ -330,7 +330,7 @@ scripts/            — Pipeline and consultation scripts
   paths.py          — Shared vault path constants
   prompts/
     discovery/      — Prompt templates for discovery/review agents
-    formalization/  — Prompt templates for contract/extract/dafny agents
+    formalization/  — Prompt templates for proof-index/extract/dafny agents
     commit.md       — Shared commit prompt
 
 notes/              — Design decisions and methodology notes
@@ -343,14 +343,14 @@ udanax-test-harness/  — Test harness for udanax-green (golden tests, findings,
 ## Formalization Path
 
 ```
-ASN (prose) → Alloy (bounded checking) → contract (name mapping) → extract (formal statements) → Dafny (verified) → Go (compiled)
+ASN (prose) → Alloy (bounded checking) → proof index (label mapping) → extract (formal statements) → Dafny (verified) → Go (compiled)
 ```
 
 - **ASN**: Prose specification with formal properties. Neutral labels (S0, PRE1, INS-F2)
   to avoid anchoring bias during review.
-- **Contract**: Maps each property to a Dafny name, type, and construct. Generated
+- **Proof index**: Maps each ASN label to a proof label, type, and construct. Generated
   post-convergence. Tracks ASN revision for staleness detection.
-- **Extract**: Compact formal statements pulled from ASN prose, indexed by contract.
+- **Extract**: Compact formal statements pulled from ASN prose, indexed by proof index.
   Strips narrative to produce Dafny-ready input.
 - **Dafny**: Verified specification using datatypes (functional style). State is an
   immutable value; operations are pure functions. No `modifies`, no heap reasoning.

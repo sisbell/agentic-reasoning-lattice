@@ -2,11 +2,11 @@
 """
 Generate Dafny declarations incrementally — one agent call per ASN property.
 
-For each property in the ASN contract, builds the prompt, launches a Claude
+For each property in the proof index, builds the prompt, launches a Claude
 agent with Read/Write/Bash tools, and lets it write + verify + fix the .dfy
 file autonomously. Skips properties whose output file already exists.
 
-Requires: contract + extract (run contract-asn.py and extract-properties.py first)
+Requires: proof index + extract (run contract-asn.py and extract-properties.py first)
 
 Usage:
     python scripts/generate-dafny-property.py 1
@@ -26,7 +26,7 @@ import time
 
 from pathlib import Path
 
-from paths import (WORKSPACE, ASNS_DIR, CONTRACTS_DIR, STATEMENTS_DIR, DAFNY_DIR,
+from paths import (WORKSPACE, ASNS_DIR, PROOF_INDEX_DIR, STATEMENTS_DIR, DAFNY_DIR,
                     ALLOY_DIR, DAFNY_DISCOVERY_DIR, REVIEWS_DIR, USAGE_LOG,
                     MODULES_REGISTRY, next_review_number, sanitize_filename)
 
@@ -48,22 +48,22 @@ def read_file(path):
 
 
 def find_asn_files(asn_id):
-    """Find contract and extract for an ASN. Returns (contract_path, extract_path, label)."""
+    """Find proof index and extract for an ASN. Returns (index_path, extract_path, label)."""
     num = re.sub(r"[^0-9]", "", str(asn_id))
     if not num:
         return None, None, None
     label = f"ASN-{int(num):04d}"
-    contract = CONTRACTS_DIR / f"{label}-contract.md"
+    index = PROOF_INDEX_DIR / f"{label}-proof-index.md"
     extract = STATEMENTS_DIR / f"{label}-statements.md"
     return (
-        contract if contract.exists() else None,
+        index if index.exists() else None,
         extract if extract.exists() else None,
         label,
     )
 
 
-def parse_contract(text):
-    """Parse contract markdown table into list of row dicts."""
+def parse_proof_index(text):
+    """Parse proof index markdown table into list of row dicts."""
     rows = []
     for line in text.split("\n"):
         line = line.strip()
@@ -75,7 +75,7 @@ def parse_contract(text):
         if len(cols) >= 4:
             rows.append({
                 "label": cols[0],
-                "dafny_name": cols[1],
+                "proof_label": cols[1],
                 "type": cols[2],
                 "construct": cols[3],
                 "notes": cols[4] if len(cols) > 4 else "",
@@ -93,7 +93,7 @@ def find_module_for_asn(asn_label, registry_text):
     return None
 
 
-def find_alloy_model(asn_label, dafny_name, label):
+def find_alloy_model(asn_label, proof_label, label):
     """Find Alloy .als file for a specific property."""
     asn_dir = ALLOY_DIR / asn_label
     if not asn_dir.exists():
@@ -108,8 +108,8 @@ def find_alloy_model(asn_label, dafny_name, label):
 
     latest = run_dirs[-1]
     candidates = [
-        f"{label}-{dafny_name}.als",
-        f"{dafny_name}.als",
+        f"{label}-{proof_label}.als",
+        f"{proof_label}.als",
         f"{label}.als",
     ]
 
@@ -136,11 +136,11 @@ def build_property_prompt(template, registry, stable_root, stable_root_filename,
             flags=re.DOTALL, count=1,
         )
 
-    # Format contract row as markdown table
-    contract_table = (
-        "| ASN Label | Dafny Name | Type | Construct | Notes |\n"
+    # Format proof index row as markdown table
+    index_table = (
+        "| ASN Label | Proof Label | Type | Construct | Notes |\n"
         "|-----------|------------|------|-----------|-------|\n"
-        f"| {row['label']} | {row['dafny_name']} | {row['type']}"
+        f"| {row['label']} | {row['proof_label']} | {row['type']}"
         f" | {row['construct']} | {row['notes']} |"
     )
 
@@ -152,7 +152,7 @@ def build_property_prompt(template, registry, stable_root, stable_root_filename,
         .replace("{{module_registry}}", registry)
         .replace("{{stable_root_filename}}", stable_root_filename)
         .replace("{{stable_root}}", stable_root)
-        .replace("{{contract_row}}", contract_table)
+        .replace("{{index_row}}", index_table)
         .replace("{{extract_entry}}", extract)
         .replace("{{alloy_model}}", alloy_model)
     )
@@ -349,16 +349,16 @@ def next_dafny_gen_number(asn_label):
     return max(nums, default=0) + 1
 
 
-def write_divergence_file(gen_dir, label, dafny_name, divergences):
+def write_divergence_file(gen_dir, label, proof_label, divergences):
     """Write a .divergences.md file to the discovery generation directory.
 
     Only called when divergences exist. Creates the directory on first use.
     """
     gen_dir.mkdir(parents=True, exist_ok=True)
-    filename = sanitize_filename(label, dafny_name)
+    filename = sanitize_filename(label, proof_label)
     div_path = gen_dir / f"{filename}.divergences.md"
 
-    lines = [f"# Divergences — {label} ({dafny_name})\n"]
+    lines = [f"# Divergences — {label} ({proof_label})\n"]
     for line_num, text in divergences:
         lines.append(f"- **Line {line_num}**: {text}")
     lines.append("")
@@ -366,14 +366,14 @@ def write_divergence_file(gen_dir, label, dafny_name, divergences):
     div_path.write_text("\n".join(lines))
 
 
-def log_usage(asn_label, dafny_name, elapsed, verified, cost):
+def log_usage(asn_label, proof_label, elapsed, verified, cost):
     """Append a usage entry to the log."""
     try:
         entry = {
             "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
             "skill": "generate-dafny-property",
             "asn": asn_label,
-            "property": dafny_name,
+            "property": proof_label,
             "elapsed_s": round(elapsed, 1),
             "verified": verified,
             "cost_usd": cost,
@@ -401,7 +401,7 @@ def build_dafny_review_evidence(results, extract_text):
         if not r["divergences"]:
             continue
 
-        part = [f"### {r['label']} — {r['dafny_name']}\n"]
+        part = [f"### {r['label']} — {r['proof_label']}\n"]
 
         # Include divergence comments with surrounding Dafny code
         dfy_path = r["dfy_path"]
@@ -623,9 +623,9 @@ def main():
 
     # --- Locate inputs ---
 
-    contract_path, extract_path, asn_label = find_asn_files(args.asn)
-    if contract_path is None:
-        print(f"  No contract found for {args.asn} in {CONTRACTS_DIR.relative_to(WORKSPACE)}/",
+    index_path, extract_path, asn_label = find_asn_files(args.asn)
+    if index_path is None:
+        print(f"  No proof index found for {args.asn} in {PROOF_INDEX_DIR.relative_to(WORKSPACE)}/",
               file=sys.stderr)
         print(f"  Run: python scripts/contract-asn.py {args.asn}", file=sys.stderr)
         sys.exit(1)
@@ -648,11 +648,11 @@ def main():
 
     # --- Parse inputs ---
 
-    contract_rows = parse_contract(contract_path.read_text())
+    index_rows = parse_proof_index(index_path.read_text())
     extract_text = extract_path.read_text()
 
-    if not contract_rows:
-        print(f"  No properties found in contract {contract_path.name}", file=sys.stderr)
+    if not index_rows:
+        print(f"  No properties found in proof index {index_path.name}", file=sys.stderr)
         sys.exit(1)
 
     # Target module from registry
@@ -671,11 +671,11 @@ def main():
 
     # Filter to single property if requested
     if args.property:
-        contract_rows = [r for r in contract_rows
-                         if r["label"] == args.property
-                         or r["dafny_name"] == args.property]
-        if not contract_rows:
-            print(f"  Property '{args.property}' not found in contract", file=sys.stderr)
+        index_rows = [r for r in index_rows
+                      if r["label"] == args.property
+                      or r["proof_label"] == args.property]
+        if not index_rows:
+            print(f"  Property '{args.property}' not found in proof index", file=sys.stderr)
             sys.exit(1)
 
     # --- Generate ---
@@ -686,7 +686,7 @@ def main():
 
     print(f"  [DAFNY-PROPERTY] {asn_label} → {module_name}/ (divergence-{gen_num})",
           file=sys.stderr)
-    print(f"  Properties: {len(contract_rows)}", file=sys.stderr)
+    print(f"  Properties: {len(index_rows)}", file=sys.stderr)
 
     generated = 0
     skipped = 0
@@ -695,21 +695,21 @@ def main():
     total_cost = 0
     results = []
 
-    for row in contract_rows:
+    for row in index_rows:
         label = row["label"]
-        dafny_name = row["dafny_name"]
-        out_path = module_dir / f"{dafny_name}.dfy"
+        proof_label = row["proof_label"]
+        out_path = module_dir / f"{proof_label}.dfy"
 
         # Skip existing
         if out_path.exists() and not args.force:
-            print(f"  [SKIP] {label} → {dafny_name} (exists)", file=sys.stderr)
+            print(f"  [SKIP] {label} → {proof_label} (exists)", file=sys.stderr)
             skipped += 1
             continue
 
         # Alloy model (optional)
         alloy_model = ""
         if args.with_alloy:
-            alloy_model = find_alloy_model(asn_label, dafny_name, label)
+            alloy_model = find_alloy_model(asn_label, proof_label, label)
 
         # Build prompt
         prompt = build_property_prompt(
@@ -719,14 +719,14 @@ def main():
 
         if args.dry_run:
             alloy_flag = " +alloy" if alloy_model else ""
-            print(f"  [DRY] {label} → {dafny_name}.dfy"
+            print(f"  [DRY] {label} → {proof_label}.dfy"
                   f" (~{len(prompt) // 4} tokens){alloy_flag}",
                   file=sys.stderr)
             continue
 
         # Launch agent — it writes, verifies, and fixes autonomously
         module_dir.mkdir(parents=True, exist_ok=True)
-        print(f"  [{label}] {dafny_name}...",
+        print(f"  [{label}] {proof_label}...",
               file=sys.stderr, end="", flush=True)
         wrote, elapsed, cost = invoke_agent(
             prompt, out_path,
@@ -744,7 +744,7 @@ def main():
         divergences = extract_divergences(out_path) if ok else []
 
         if divergences:
-            write_divergence_file(gen_dir, label, dafny_name, divergences)
+            write_divergence_file(gen_dir, label, proof_label, divergences)
 
         if ok:
             m = re.search(r"(\d+) verified", vout)
@@ -762,12 +762,12 @@ def main():
         generated += 1
         results.append({
             "label": label,
-            "dafny_name": dafny_name,
+            "proof_label": proof_label,
             "dfy_path": out_path,
             "verified": ok,
             "divergences": divergences,
         })
-        log_usage(asn_label, dafny_name, elapsed, ok, cost)
+        log_usage(asn_label, proof_label, elapsed, ok, cost)
 
     # Summary
     div_count = sum(1 for r in results if r["divergences"])
