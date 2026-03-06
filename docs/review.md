@@ -93,6 +93,8 @@ REVISE findings are categorized by what kind of evidence is needed to resolve th
 
 The categorization agent (opus) reads the review findings and decides which channel to consult for each REVISE item. Consultations run through the same expert channels used in discovery. Results are written to `vault/experts/ASN-NNNN/consultation-N/`.
 
+**Dafny reviews skip consultation automatically.** Dafny review findings are mechanically grounded — the proof found a concrete problem. There is no ambiguity that needs Nelson's design intent or Gregory's implementation evidence to resolve. `revise.py` detects Dafny reviews by their template marker and goes straight to revision.
+
 ### Revise
 
 The revision agent (opus with Read/Write/Bash tools) receives:

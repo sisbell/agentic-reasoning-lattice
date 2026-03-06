@@ -31,6 +31,21 @@ from lib.review_pipeline import (
     has_revise_items,
 )
 
+DAFNY_REVIEW_MARKER = "Based on Dafny verification"
+
+
+def is_dafny_review(review_path):
+    """Detect Dafny-generated reviews by their template marker."""
+    try:
+        # Marker is on line 2-3 of the review; check the first 5 lines
+        with open(review_path) as f:
+            for _, line in zip(range(5), f):
+                if DAFNY_REVIEW_MARKER in line:
+                    return True
+        return False
+    except (FileNotFoundError, OSError):
+        return False
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -109,9 +124,13 @@ def main():
                 step_commit(f"Review {asn_label} — no revisions needed")
                 break
 
-        # Consult
+        # Consult (skip for Dafny reviews — findings are mechanically grounded)
         consultation_path = None
-        if not args.resume or args.resume != "revise":
+        skip_consult = (args.resume == "revise") or is_dafny_review(review_path)
+        if skip_consult and is_dafny_review(review_path):
+            print(f"  [REVISE] Dafny review — skipping consultation",
+                  file=sys.stderr)
+        if not skip_consult:
             consultation_path = step_consult_revision(args.asn, review_path)
             if consultation_path is None:
                 print(f"  [REVISE] Consultation failed, stopping",
