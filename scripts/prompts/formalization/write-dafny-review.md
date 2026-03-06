@@ -1,6 +1,6 @@
-# Dafny Review — Divergence Analysis
+# Dafny Review — Divergence and Quality Analysis
 
-You are reviewing results from Dafny verification against an ASN (Architectural Specification Note). Classify each divergence as a genuine spec issue or a proof artifact.
+You are reviewing Dafny verification results against an ASN (Architectural Specification Note). Two concerns: (1) divergences between proved statements and ASN properties, (2) proof quality.
 
 ## Background
 
@@ -18,6 +18,36 @@ Common proof artifacts:
 - `decreases` clauses for termination proofs
 - `assert` hints to guide the verifier through intermediate steps
 
+## Proof quality criteria
+
+Beyond correctness, a good proof is readable and maintainable. Check for:
+
+**Over-proving.** Explicit `assert` statements that restate what the solver
+already knows. If removing an assertion and re-verifying would succeed, the
+assertion is clutter. Chains of assertions walking through every logical step
+are a sign the proof is fighting the solver rather than structuring the
+argument.
+
+**Missing abstraction.** Repeated patterns that should be a named helper
+function or lemma. A constructive witness function (e.g., `WithComponent`)
+is better than inline sequence construction repeated in multiple places.
+
+**Bloated case analysis.** Branches with identical proof structure that
+could be collapsed into fewer cases. Empty branches that the solver handles
+should stay empty — but branches with redundant explicit assertions should
+be simplified.
+
+**Fighting the solver.** Long proof bodies where a structural change would
+make the proof trivial. Signs: deeply nested assertions, `calc` blocks
+restating obvious arithmetic, manual witness construction when the solver
+can find the witness. The fix is usually a better decomposition, not more
+hints.
+
+**Sparse is better.** In a recursive/inductive proof, only the non-trivial
+case should have a body. Base cases the solver handles should be empty or
+have at most a one-line comment. A 10-line case body where 8 lines are
+assertions the solver doesn't need is worse than an empty body.
+
 ## ASN Under Review
 
 {{asn_text}}
@@ -29,6 +59,10 @@ Common proof artifacts:
 ## Properties That Verified Clean
 
 {{verified_summary}}
+
+## Dafny Source
+
+{{dafny_source}}
 
 ## Instructions
 
@@ -49,6 +83,18 @@ For each genuine issue:
 - Explain specifically what needs to change (missing precondition, over-strong claim, ambiguous wording)
 - If the fix is obvious, suggest it
 
+## QUALITY
+
+### File: PropertyName.dfy — PASS | SIMPLIFY
+
+For each file, assess proof quality. PASS means the proof is clean and
+maintainable. SIMPLIFY means it verifies but should be leaner.
+
+For SIMPLIFY findings:
+- Identify the specific problem (over-proving, missing abstraction, bloat)
+- Quote the problematic section
+- Suggest the simpler form
+
 ## SKIP
 
 ### Topic N: description
@@ -57,14 +103,16 @@ For proof artifacts and clean verifications:
 - Briefly explain why each is skipped
 - Group proof artifacts together with explanation of why the ASN doesn't need to change
 
-VERDICT: REVISE or CONVERGED
+VERDICT: REVISE | SIMPLIFY | CONVERGED
 ```
 
 Rules:
 - Only genuine spec problems or ambiguities belong in REVISE
 - Proof artifacts go in SKIP with a clear explanation of why
+- Quality issues go in QUALITY with specific suggestions
 - Be specific and concise — no boilerplate
-- If ALL divergences are proof artifacts, verdict is CONVERGED
-- If ANY divergence reveals a real spec issue, verdict is REVISE
+- VERDICT is REVISE if any divergence reveals a real spec issue
+- VERDICT is SIMPLIFY if no spec issues but proofs need quality improvement
+- VERDICT is CONVERGED if all divergences are artifacts AND proofs are clean
 
 Write the review using the Write tool to the output path provided below.

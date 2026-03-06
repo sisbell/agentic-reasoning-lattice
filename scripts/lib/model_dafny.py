@@ -428,8 +428,6 @@ def generate_dafny_review(asn_label, results, extract_text,
     Returns the review path, or None if no divergences.
     """
     div_results = [r for r in results if r["divergences"]]
-    if not div_results:
-        return None
 
     template = read_file(DAFNY_REVIEW_TEMPLATE)
     if not template:
@@ -448,20 +446,36 @@ def generate_dafny_review(asn_label, results, extract_text,
     evidence_text, verified_summary = build_dafny_review_evidence(
         results, extract_text)
 
+    # Collect all generated Dafny source for quality review
+    dafny_source_parts = []
+    for r in results:
+        dfy_path = r["dfy_path"]
+        if dfy_path.exists():
+            dafny_source_parts.append(
+                f"### {r['proof_label']} ({dfy_path.name})\n\n"
+                f"```dafny\n{dfy_path.read_text()}\n```"
+            )
+    dafny_source = "\n\n---\n\n".join(dafny_source_parts) if dafny_source_parts else "None"
+
     prompt = template.replace(
         "{{asn_text}}", asn_text
     ).replace(
         "{{divergence_evidence}}", evidence_text
     ).replace(
         "{{verified_summary}}", verified_summary
+    ).replace(
+        "{{dafny_source}}", dafny_source
     )
 
     (REVIEWS_DIR / asn_label).mkdir(parents=True, exist_ok=True)
     review_num = next_review_number(asn_label)
     review_path = REVIEWS_DIR / asn_label / f"review-{review_num}.md"
 
-    print(f"\n  [REVIEW] Calling {model} to analyze {len(div_results)} "
-          f"divergence(s)...", file=sys.stderr)
+    div_count = len(div_results)
+    file_count = len([r for r in results if r["dfy_path"].exists()])
+    print(f"\n  [REVIEW] Calling {model} to analyze {file_count} file(s)"
+          f"{f', {div_count} divergence(s)' if div_count else ''}...",
+          file=sys.stderr)
 
     model_flag = {
         "opus": "claude-opus-4-6",

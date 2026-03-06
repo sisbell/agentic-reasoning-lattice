@@ -84,34 +84,147 @@ and edge cases. The extract is authoritative; do not adopt Alloy idioms.
 ```
 {{/if}}
 
+## Proof strategy
+
+The proof serves the spec. A good proof is one you can read in 30 seconds
+and see WHY the property holds. Apply these principles:
+
+**Trust the solver first.** Write the signature (requires/ensures), leave
+the body empty `{ }`, and verify. Dafny's solver handles most obligations
+automatically. Only add proof body when verification fails. An empty body
+that verifies is the best proof.
+
+**Bridge lemmas over inline assertions.** When the solver needs help,
+factor out a named lemma that states the intermediate fact. Call the lemma
+where needed. Inline `assert` chains that walk the solver through every
+step are a sign of fighting the solver — step back and find the right
+decomposition.
+
+**Compositional structure.** If a proof has two independent parts (e.g.,
+"CompareRec true implies LessThan" and "CompareRec false implies not
+LessThan"), write two separate lemmas. Each should be independently
+readable.
+
+**Constructive helpers.** When a property involves existentials, introduce
+a function that constructs the witness. This makes the proof obvious and
+gives downstream consumers a computable witness.
+
+**Sparse proof bodies.** In recursive/inductive proofs, handle only the
+non-trivial cases. Empty branches (`else if ... { }`) tell the reader
+"the solver handles this case" — which is more informative than explicit
+assertions restating what the solver already knows.
+
+**When verification fails, diagnose before reacting.** If adding an
+assertion fixes it, ask: is there a simpler structural change (a helper
+function, a stronger precondition on the recursive call, a different
+decomposition) that makes the assertion unnecessary?
+
 ## Examples
 
-Match the conventions of the foundation module.
+These are verified examples showing the target quality. Study the proof
+density — most proof bodies are nearly empty because the structure does
+the work.
 
-### Predicate
+### Lemma — trust the solver
 
 ```dafny
-// ASN-label — DafnyName
-ghost predicate SomeInvariant(x: T, y: T) {
-  forall i :: 0 <= i < |x.components| ==> P(x, y, i)
+// Irreflexivity follows directly from LessThan's definition
+lemma Irreflexive(a: Tumbler)
+  ensures !LexicographicOrder(a, a)
+{ }
+
+// Transitivity — the solver handles seq reasoning
+lemma Transitive(a: Tumbler, b: Tumbler, c: Tumbler)
+  requires LexicographicOrder(a, b)
+  requires LexicographicOrder(b, c)
+  ensures LexicographicOrder(a, c)
+{ }
+
+// Asymmetry — one composition, not case analysis
+lemma Asymmetric(a: Tumbler, b: Tumbler)
+  requires LexicographicOrder(a, b)
+  ensures !LexicographicOrder(b, a)
+{
+  if LexicographicOrder(b, a) {
+    Transitive(a, b, a);
+    Irreflexive(a);
+  }
 }
 ```
 
-### Lemma
+### Recursive proof — sparse branches
 
 ```dafny
-// ASN-label — DafnyName
-lemma SomeDerivedProperty(a: T, b: T, c: T)
-  requires Precondition(a)
-  requires Precondition(b)
-  ensures Postcondition(a, b, c)
-{ }
+// Only the non-trivial case needs a body. The solver handles base cases.
+lemma CompareTrue(a: seq<nat>, b: seq<nat>, i: nat)
+  requires i <= |a| && i <= |b|
+  requires CompareRec(a, b, i)
+  requires forall j :: 0 <= j < i ==> a[j] == b[j]
+  ensures LessThan(Tumbler(a), Tumbler(b))
+  decreases |a| + |b| - 2 * i
+{
+  if i == |a| {
+    // witness k = i; solver handles
+  } else if i < |a| && i < |b| && a[i] < b[i] {
+    // witness k = i; solver handles
+  } else {
+    CompareTrue(a, b, i + 1);
+  }
+}
+```
+
+### Constructive witness
+
+```dafny
+// Helper function constructs the witness — proof becomes trivial
+function WithComponent(t: Tumbler, i: nat, v: nat): Tumbler
+  requires 0 <= i < |t.components|
+  ensures |WithComponent(t, i, v).components| == |t.components|
+  ensures WithComponent(t, i, v).components[i] == v
+  ensures forall j :: 0 <= j < |t.components| && j != i ==>
+            WithComponent(t, i, v).components[j] == t.components[j]
+{
+  Tumbler(t.components[..i] + [v] + t.components[i+1..])
+}
+
+// Bridge: existential form for downstream consumers
+lemma UnboundedComponentsExistential(t: Tumbler, i: nat, M: nat)
+  requires 0 <= i < |t.components|
+  ensures exists t': Tumbler ::
+    |t'.components| == |t.components| &&
+    t'.components[i] > M &&
+    (forall j :: 0 <= j < |t.components| && j != i ==>
+       t'.components[j] == t.components[j])
+{
+  var t' := WithComponent(t, i, M + 1);
+}
+```
+
+### Compositional — one lemma call does the work
+
+```dafny
+// Cross-allocator ordering follows from pairwise PrefixOrderingExtension
+lemma PartitionMonotonicity(
+  p1: Tumbler, p2: Tumbler,
+  stream1: seq<Tumbler>, stream2: seq<Tumbler>
+)
+  requires LessThan(p1, p2)
+  requires NonNesting(p1, p2)
+  requires AllExtend(stream1, p1) && AllExtend(stream2, p2)
+  ensures forall i, j :: 0 <= i < |stream1| && 0 <= j < |stream2|
+            ==> LessThan(stream1[i], stream2[j])
+{
+  forall i, j | 0 <= i < |stream1| && 0 <= j < |stream2|
+    ensures LessThan(stream1[i], stream2[j])
+  {
+    PrefixOrderingExtension(p1, p2, stream1[i], stream2[j]);
+  }
+}
 ```
 
 ### Operation function
 
 ```dafny
-// OperationName
 function SomeOperation(s: State, args: ...): (s': State)
   requires ValidState(s)
   requires OperationPrecondition(s, args)
