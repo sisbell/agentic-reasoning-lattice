@@ -86,7 +86,7 @@ Everything else — ASN review, revise, consult, fix — is delegated. Dafny rev
               ┌────────────┴────────────┐
               v                         v
      CONVERGED / SIMPLIFY          REVISE
-     promote to vault/proofs/      revise.py N
+     promote to vault/proofs/      revise.py N → index → statements → dafny
 ```
 
 ## Typical Session Workflows
