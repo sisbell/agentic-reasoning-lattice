@@ -30,8 +30,8 @@ Everything else — ASN review, revise, consult, fix — is delegated. Dafny rev
                            v
   ┌──────────────────────────────────────────────┐
   │              REVIEW (automated)              │
-  │  review.py N --converge                      │
-  │  review → consult → revise → commit (loop)   │
+  │  review.py N         (findings, stop)        │
+  │  revise.py N --converge  (consult→revise loop)│
   └──────────────────────────────────────────────┘
                            |
               CONVERGED ───┼──── OUT_OF_SCOPE items
@@ -86,7 +86,7 @@ Everything else — ASN review, revise, consult, fix — is delegated. Dafny rev
               ┌────────────┴────────────┐
               v                         v
      CONVERGED / SIMPLIFY          REVISE
-     promote to vault/proofs/      consult → revise
+     promote to vault/proofs/      revise.py N
 ```
 
 ## Typical Session Workflows
@@ -96,8 +96,9 @@ Everything else — ASN review, revise, consult, fix — is delegated. Dafny rev
 # 1. Add inquiry to inquiries.yaml (or use promote.py)
 # 2. Run discovery
 python scripts/draft.py --inquiries N
-# 3. Run review until converged
-python scripts/review.py N --converge
+# 3. Review, then revise until converged
+python scripts/review.py N
+python scripts/revise.py N --converge
 # 4. Read OUT_OF_SCOPE items, promote what matters
 python scripts/promote.py questions N
 python scripts/promote.py scope N
@@ -132,9 +133,10 @@ python scripts/consult.py gregory "How does INSERT handle span boundaries?"
 
 ### Fire and forget (up to review gate)
 ```bash
-# Draft + converge + generate Dafny (stops at review — you read it)
+# Draft + review + converge + generate Dafny (stops at review — you read it)
 python scripts/draft.py --inquiries N && \
-python scripts/review.py N --converge && \
+python scripts/review.py N && \
+python scripts/revise.py N --converge && \
 python scripts/model.py index N && \
 python scripts/model.py statements N && \
 python scripts/model.py dafny N

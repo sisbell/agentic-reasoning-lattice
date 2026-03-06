@@ -79,9 +79,9 @@ Turns an inquiry into a new ASN. Decomposes the inquiry into sub-questions for N
 - **Output:** ASN file in `vault/asns/ASN-NNNN-title.md`
 - **Details:** [Discovery](discovery.md)
 
-### 2. Review/Revise (review)
+### 2. Review/Revise (review + revise)
 
-Iterative rigor checking. Each cycle: a Dijkstra-style review checks the ASN for correctness, consistency, completeness, and clarity. REVISE findings trigger targeted expert consultations, then the ASN is revised. Loops until CONVERGED or max cycles reached.
+Two separate commands: `review.py` produces a Dijkstra-style rigor check (correctness, consistency, completeness, clarity) and stops. `revise.py` picks up the findings, runs targeted expert consultations, and revises the ASN. With `--converge`, the revise command loops review → consult → revise until CONVERGED.
 
 - **Input:** ASN in `vault/asns/`
 - **Output:** revised ASN, review files in `vault/2-review/ASN-NNNN/`
@@ -158,7 +158,8 @@ All commands run from the project root as `python scripts/<dispatcher>.py`.
 | Command | Purpose |
 |---------|---------|
 | `draft.py --inquiries N` | Discovery pipeline for inquiry N |
-| `review.py N --converge` | Review/revise ASN-N until converged |
+| `review.py N` | Review ASN-N (produce findings, stop) |
+| `revise.py N --converge` | Revise ASN-N until converged |
 | `promote.py questions N` | Evaluate ASN-N open questions |
 | `promote.py scope N` | Evaluate ASN-N review OUT_OF_SCOPE items |
 | `model.py alloy N` | Alloy bounded checking for ASN-N |
@@ -183,8 +184,9 @@ See individual docs for full flag reference.
 - Need to investigate something ad-hoc? → `consult.py nelson/gregory "question"`
 
 **Improving an ASN:**
-- ASN needs rigor checking? → `review.py N --converge`
-- Want to check one cycle only? → `review.py N`
+- ASN needs rigor checking? → `review.py N` (produces findings, stops)
+- Ready to revise from findings? → `revise.py N`
+- Full loop until converged? → `review.py N` then `revise.py N --converge`
 
 **After convergence:**
 - Search for counterexamples first → `model.py alloy N`

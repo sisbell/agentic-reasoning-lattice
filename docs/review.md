@@ -1,6 +1,8 @@
-# Review — Review and Revision Cycles
+# Review and Revision
 
-The review pipeline checks an ASN for rigor, runs targeted expert consultations on findings, then revises the ASN. It cycles until the ASN converges — all significant formal issues are resolved and only minor prose/formatting items remain.
+The review pipeline checks an ASN for rigor, and the revision pipeline runs targeted expert consultations on findings, then revises the ASN. Together they cycle until the ASN converges — all significant formal issues are resolved and only minor prose/formatting items remain.
+
+Review and revision are separate commands: `review.py` produces findings and stops; `revise.py` takes those findings and acts on them.
 
 ## How It Works
 
@@ -8,26 +10,25 @@ The review pipeline checks an ASN for rigor, runs targeted expert consultations 
      ASN (from vault/asns/)
           |
           v
-  [1] review       Dijkstra-style rigor check (opus, no tools)
+  [1] review.py    Dijkstra-style rigor check (opus, no tools)
           |
      VERDICT: CONVERGED or REVISE
           |
           +--- CONVERGED ---> done (commit "converged" marker)
           |
           v (REVISE)
-  [2] consult      categorize findings, run targeted consultations
+     review committed, hints: "run revise.py N"
           |
           v
-  [3] revise       revise ASN from review + consultation (opus, with tools)
+  [2] revise.py    consult → revise → commit (from latest review)
+          |
+          +--- --converge ---> loop: review → consult → revise → commit
           |
           v
-  [4] commit       commit revised ASN + review file
-          |
-          v
-     loop back to [1] (if --converge or --cycles > 1)
+     revised ASN committed
 ```
 
-## Step 1: Review
+## Step 1: Review (`review.py`)
 
 A Dijkstra-style rigor check examines the ASN against the shared vocabulary (`vault/vocabulary.md`) and prior reviews. The review agent uses opus without tools — pure analysis, no file access. This ensures the review is based solely on the formal content of the ASN.
 
@@ -36,11 +37,11 @@ The review produces structured findings in four categories:
 | Category | Meaning | Action |
 |----------|---------|--------|
 | **OKAY** | Property is correct and well-stated | None |
-| **REVISE** | Formal issue requiring correction | Fix in this cycle |
+| **REVISE** | Formal issue requiring correction | Fix via `revise.py` |
 | **OUT_OF_SCOPE** | Issue belongs to a different ASN | Deferred (see [Promotion](promotion.md)) |
-| **VERDICT** | Overall assessment: CONVERGED or REVISE | Controls loop |
+| **VERDICT** | Overall assessment: CONVERGED or REVISE | Controls next step |
 
-A review file is written to `vault/2-review/ASN-NNNN/review-N.md`, where N increments with each cycle.
+A review file is written to `vault/2-review/ASN-NNNN/review-N.md`, where N increments with each cycle. The review is committed and the command exits — no revision happens.
 
 ### What a Review Checks
 
@@ -67,7 +68,19 @@ A review file is written to `vault/2-review/ASN-NNNN/review-N.md`, where N incre
 [Summary of what needs to change]
 ```
 
-## Step 2: Consultation for Revision
+### Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | Review completed (may have REVISE items) |
+| 1 | Error |
+| 2 | CONVERGED — no significant issues |
+
+## Step 2: Revision (`revise.py`)
+
+The revision pipeline picks up the latest review and runs consultation + revision:
+
+### Consultation
 
 REVISE findings are categorized by what kind of evidence is needed to resolve them:
 
@@ -80,7 +93,7 @@ REVISE findings are categorized by what kind of evidence is needed to resolve th
 
 The categorization agent (opus) reads the review findings and decides which channel to consult for each REVISE item. Consultations run through the same expert channels used in discovery. Results are written to `vault/experts/ASN-NNNN/consultation-N/`.
 
-## Step 3: Revise
+### Revise
 
 The revision agent (opus with Read/Write/Bash tools) receives:
 - The current ASN
@@ -103,9 +116,13 @@ It revises the ASN to address each finding. The revision agent can modify the AS
 
 If the revision produces no material changes (all findings were already addressed or are minor), it returns exit code 2 and the cycle stops.
 
-## Step 4: Commit
+### Commit
 
 The revised ASN and review file are committed. If the verdict was CONVERGED, the commit message notes convergence.
+
+### Multi-cycle mode
+
+With `--converge` or `--cycle N`, cycles 2+ run a fresh review before consulting and revising. This is the full review-revise loop — the same convergence behavior that was previously in `review.py --converge`.
 
 ## Convergence
 
@@ -137,41 +154,53 @@ Most ASNs converge in 3-7 review cycles. Early cycles catch structural issues (c
 
 ## CLI Reference
 
+### `review.py` — Produce findings
+
 ```bash
-# One review cycle: review → consult → revise → commit
+# Review an ASN: analyze, commit review, stop
 python scripts/review.py 9
-
-# Fixed number of cycles
-python scripts/review.py 9 --cycles 2
-
-# Loop until CONVERGED (default max 5 cycles)
-python scripts/review.py 9 --converge
-
-# Loop until CONVERGED (custom max)
-python scripts/review.py 9 --converge 8
-
-# Review only — no consultation or revision
-python scripts/review.py 9 --review-only
-
-# Resume from a specific stage (uses latest review)
-python scripts/review.py 9 --resume consult    # skip review, run consult + revise
-python scripts/review.py 9 --resume revise     # skip review + consult, just revise
 ```
 
-### Flags
+#### Flags
 
 | Flag | Description |
 |------|-------------|
-| `--cycles N` | Run exactly N review cycles |
+| `--review-only` | (deprecated — review-only is now the default) |
+
+### `revise.py` — Act on findings
+
+```bash
+# One cycle: consult → revise → commit (latest review)
+python scripts/revise.py 9
+
+# Fixed number of cycles (first uses latest review, rest re-review)
+python scripts/revise.py 9 --cycle 3
+
+# Loop until CONVERGED (default max 5 cycles)
+python scripts/revise.py 9 --converge
+
+# Loop until CONVERGED (custom max)
+python scripts/revise.py 9 --converge 8
+
+# Skip consult, go straight to revise from latest review
+python scripts/revise.py 9 --resume revise
+```
+
+#### Flags
+
+| Flag | Description |
+|------|-------------|
+| `--cycle N` | Run N revision cycles (default 1) |
 | `--converge [MAX]` | Loop until CONVERGED, max MAX cycles (default 5) |
-| `--review-only` | Run review step only, skip consult and revise |
-| `--resume STAGE` | Resume from consult or revise using latest review |
+| `--resume revise` | Skip consult in first cycle, go straight to revise |
 
 ### ASN numbering
 
 The ASN argument accepts flexible formats: `9`, `09`, `0009`, `ASN-0009`, or a full file path. All are normalized to `ASN-NNNN`.
 
 ## Design Decisions
+
+**Why separate review from revise?** Review is analysis — a pure judgment of the ASN's formal quality. Revision is action — consulting experts and rewriting. Separating them gives you a natural inspection point: read the review, decide whether to revise, and choose how (single cycle, converge, skip consult). It also avoids naming confusion when Dafny produces its own reviews — "review" always means "analyze and produce findings," never "analyze and also rewrite."
 
 **Why opus without tools for review?** The review must be pure analysis — reasoning about the formal content of the ASN without being influenced by external files. Giving the reviewer file access would allow it to check implementation details, breaking the abstraction boundary. The review operates within the model, not outside it.
 

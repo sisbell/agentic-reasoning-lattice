@@ -126,8 +126,43 @@ Only findings classified as spec issues appear in the REVISE section. The review
 | Verdict | Meaning | Action |
 |---------|---------|--------|
 | **CONVERGED** | All divergences are proof artifacts, proofs are clean | Promote `.dfy` files to `vault/proofs/` |
-| **SIMPLIFY** | No spec issues, but proofs need quality cleanup (over-proving, missing abstraction, solver-fighting) | Fix quality issues in `.dfy` files, re-run `model.py review N` |
-| **REVISE** | Dafny exposed a genuine spec issue — missing precondition, over-strong claim, or ambiguity in the ASN | Feed findings back through ASN revision (`review.py` → `revise.py`), then re-run modeling (`index` → `statements` → `dafny`) |
+| **SIMPLIFY** | No spec issues, but proofs need quality cleanup | Fix `.dfy` files, re-run `model.py review N` |
+| **REVISE** | Dafny exposed a genuine spec issue | Fix the ASN via `revise.py N`, then re-run modeling |
+
+A review with verdict REVISE may also contain QUALITY findings. Fix the ASN first (REVISE items change what gets proved), then address quality on the next modeling run.
+
+#### CONVERGED
+
+All divergences are proof artifacts (extra preconditions, helper lemmas, type coercions). The ASN is correct as stated. Promote verified `.dfy` files to `vault/proofs/`:
+
+```bash
+cp vault/3-modeling/dafny/ASN-NNNN/modeling-N/*.dfy vault/proofs/ModuleName/
+python scripts/commit.py --proofs-only "promote ModuleName from modeling-N"
+```
+
+#### SIMPLIFY
+
+No spec issues, but proofs have quality problems: duplicated helpers across files, over-proving (unnecessary assertions), missing abstraction, or fighting the solver. The review lists specific files and what to fix.
+
+```bash
+# Fix the .dfy files (manually or with model.py fix)
+# Re-run review to confirm quality is clean
+python scripts/model.py review N
+# Repeat until CONVERGED, then promote
+```
+
+#### REVISE
+
+Dafny found a genuine spec problem — a property that's too strong, a missing precondition, or an ambiguity the proof exposed. The review describes the issue and proposes a fix.
+
+```bash
+# Revise the ASN from the Dafny review findings
+python scripts/revise.py N
+# Re-run the full modeling pipeline on the revised ASN
+python scripts/model.py index N
+python scripts/model.py statements N
+python scripts/model.py dafny N
+```
 
 ## Artifacts
 
@@ -164,6 +199,9 @@ python scripts/model.py dafny 1
 # Generate single property
 python scripts/model.py dafny 1 --property TA4
 
+# Generate multiple specific properties
+python scripts/model.py dafny 1 --property T1,T3,TA0
+
 # Add missing properties to an existing modeling run
 python scripts/model.py dafny 1 --modeling 3
 
@@ -194,7 +232,7 @@ python scripts/commit.py --proofs-only "promote ModuleName from modeling-1"
 
 | Flag | Description |
 |------|-------------|
-| `--property LABEL` | Process a single property only (dafny command) |
+| `--property LABEL[,LABEL,...]` | Process specific properties, comma-separated (dafny, fix commands) |
 | `--modeling N` | Target existing modeling-N directory (skips already-generated properties) |
 | `--no-alloy` | Skip injecting Alloy model as reference (included by default) |
 | `--full` | Run complete pipeline: index → statements → generate → verify |
@@ -208,6 +246,7 @@ The `dafny` command generates, verifies, writes `STATUS.md`, and commits. Review
 | `model.py status N` | Verify all .dfy files, write `STATUS.md`, commit |
 | `model.py fix N` | Fix unverified files with agentic baby-steps (no commit) |
 | `model.py fix N --property TA3` | Fix a single property |
+| `model.py fix N --property T1,T3,TA0` | Fix multiple specific properties |
 | `model.py review N` | Generate divergence review from verified files, commit |
 | `model.py review N --model sonnet` | Use sonnet instead of opus for review |
 

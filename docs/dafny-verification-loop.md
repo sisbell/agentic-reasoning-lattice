@@ -39,7 +39,7 @@ model.py dafny → .dfy file
   │          │                              │
   │          └─ Tier 3 → ESCAPE             │
   │               generates review finding  │
-  │               → review.py --resume      │
+  │               → revise.py N             │
   │               → re-extract, re-generate │
   └─────────────────────────────────────────┘
 ```
