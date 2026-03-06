@@ -97,8 +97,7 @@ Everything else — ASN review, revise, consult, fix — is delegated. Dafny rev
 # 2. Run discovery
 python scripts/draft.py --inquiries N
 # 3. Review, then revise until converged
-python scripts/review.py N
-python scripts/revise.py N --converge
+./run/asn-converge.sh N
 # 4. Read OUT_OF_SCOPE items, promote what matters
 python scripts/promote.py questions N
 python scripts/promote.py scope N
@@ -131,13 +130,10 @@ python scripts/consult.py gregory "How does INSERT handle span boundaries?"
 
 ### Fire and forget (up to review gate)
 ```bash
-# Draft + review + converge + generate Dafny (stops at review — you read it)
+# Draft + converge + generate Dafny (stops at review — you read it)
 python scripts/draft.py --inquiries N && \
-python scripts/review.py N && \
-python scripts/revise.py N --converge && \
-python scripts/model.py index N && \
-python scripts/model.py statements N && \
-python scripts/model.py dafny N
+./run/asn-converge.sh N && \
+./run/remodel.sh N
 ```
 
 ## Your Reading List (What to Actually Look At)

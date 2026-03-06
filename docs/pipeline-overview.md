@@ -183,10 +183,11 @@ Shell scripts that chain common multi-step workflows. Run from the project root.
 
 | Shortcut | Equivalent |
 |----------|------------|
+| `./run/asn-converge.sh N` | `review.py N` → `revise.py N --converge` |
 | `./run/remodel.sh N` | `model.py index N` → `statements N` → `dafny N` |
 | `./run/remodel.sh N --property TA3,TA3-strict` | Same, filtered to specific properties |
 
-Use `run/remodel.sh` after revising an ASN to regenerate the proof index, statements, and Dafny in one shot.
+Use `run/asn-converge.sh` to review and revise an ASN until converged. Use `run/remodel.sh` after revision to regenerate the proof index, statements, and Dafny in one shot.
 
 ## When to Use Each Command
 
