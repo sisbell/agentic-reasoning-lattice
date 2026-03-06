@@ -1,6 +1,6 @@
 # ASN-0001 Proof Index
 
-*Source: ASN-0001-tumbler-algebra.md (revised 2026-02-23) — Index generated: 2026-03-01*
+*Source: ASN-0001-tumbler-algebra.md (revised 2026-02-23) — Index generated: 2026-03-06*
 
 | ASN Label | Proof Label | Type | Construct | Notes |
 |-----------|------------|------|-----------|-------|
@@ -15,18 +15,19 @@
 | T8 | AddressPermanence | INV | predicate(State, State) | transition |
 | T9 | ForwardAllocation | INV | predicate(State, State) | transition |
 | Prefix ordering extension | PrefixOrderingExtension | LEMMA | lemma | derived from T1 |
-| Partition monotonicity | PartitionMonotonicity | LEMMA | lemma | derived from T9, T10, T1, T5 |
+| Partition monotonicity | PartitionMonotonicity | LEMMA | lemma | derived from T1, T5, T9, T10, T10a, TA5 |
 | T10 | PartitionIndependence | INV | predicate(Tumbler, Tumbler) | |
 | T10a | AllocatorDiscipline | INV | predicate(State, State) | transition |
-| Global uniqueness | GlobalUniqueness | LEMMA | lemma | derived from T9, T10, T10a |
+| Global uniqueness | GlobalUniqueness | LEMMA | lemma | derived from T3, T4, T9, T10, T10a, TA5 |
 | TA0 | WellDefinedAddition | PRE | requires | on Add; k ≤ #a |
 | TA1 | WeakOrderPreservation | POST | ensures | algebraic law; a < b ⟹ a ⊕ w ≤ b ⊕ w |
 | TA1-strict | StrictOrderPreservation | POST | ensures | algebraic law; requires k ≥ divergence(a, b) |
 | TA-strict | StrictIncrease | POST | ensures | on Add; a ⊕ w > a |
 | TA2 | WellDefinedSubtraction | PRE | requires | on Subtract; a ≥ w |
-| TA3 | SubtractionPreservesOrder | POST | ensures | algebraic law; strict (<) unconditionally |
+| TA3 | SubtractionPreservesOrder | POST | ensures | algebraic law; weak (≤) |
+| TA3-strict | StrictSubtractionPreservesOrder | POST | ensures | algebraic law; requires #a = #b |
 | TA4 | MutualInverse | POST | ensures | on Add/Subtract; requires k = #a, #w = k, zero prefix |
-| Reverse inverse | ReverseInverse | LEMMA | lemma | derived from TA4, TA3 |
+| Reverse inverse | ReverseInverse | LEMMA | lemma | derived from TA4, TA3-strict |
 | TA5 | HierarchicalIncrement | POST | ensures | on Inc; sub-properties (a)–(d) |
 | TA6 | ZeroTumblerInvalid | INV | predicate(Tumbler) | |
 | TA7a | SubspaceClosure | POST | ensures | algebraic closure on Add/Subtract; element-local w |
