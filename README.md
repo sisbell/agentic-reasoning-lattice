@@ -102,6 +102,21 @@ Formal specification of the Xanadu hypertext system (udanax-green), derived from
     Go (compiled)     reference implementation / test oracle
 ```
 
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Cheat Sheet](docs/cheat-sheet.md) | When you need to get involved (start here) |
+| [Pipeline Overview](docs/pipeline-overview.md) | End-to-end walkthrough of the full pipeline |
+| [Discovery](docs/discovery.md) | Creating new ASNs from inquiries |
+| [Review](docs/review.md) | Review and revision cycles |
+| [Expert Consultation](docs/expert-consultation.md) | Nelson and Gregory channels |
+| [Formalization](docs/formalization.md) | From ASN to verified Dafny |
+| [Alloy Checking](docs/alloy-checking.md) | Bounded model checking |
+| [Dafny Verification Loop](docs/dafny-verification-loop.md) | Three-tier failure handling |
+| [Promotion](docs/promotion.md) | Feeding the pipeline with new inquiries |
+| [Methodology](docs/methodology.md) | Design principles and formal methods grounding |
+
 ## CLI Reference
 
 All pipeline commands use verb-based dispatchers in `scripts/`:

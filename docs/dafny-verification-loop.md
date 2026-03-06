@@ -1,10 +1,10 @@
 # Dafny Verification Loop — Three-Tier Failure Handling
 
-## Motivation
+## Purpose
 
-The formalization pipeline runs linearly: `contract-asn.py` → `extract-properties.py` → `generate-dafny.py`. When Dafny verification fails, there is no automated way to fix and retry. Dafny errors range from trivial syntax issues to fundamental spec errors requiring revision of the ASN itself.
+The formalization pipeline runs linearly: `model.py index` → `model.py statements` → `model.py dafny`. Dafny errors range from trivial syntax issues to fundamental spec errors requiring revision of the ASN itself. The verification loop automates fix-and-retry for fixable errors and escalates everything else.
 
-**Key constraint:** LLMs cannot truly reason about Dafny proofs — they can pattern-match on error messages and apply known fixes, but they cannot construct novel proof strategies. The loop must be conservative: fix what is obviously fixable, escalate everything else.
+**Key constraint:** LLMs cannot truly reason about Dafny proofs — they can pattern-match on error messages and apply known fixes, but they cannot construct novel proof strategies. The loop is conservative: fix what is obviously fixable, escalate everything else.
 
 ## Three Tiers of Dafny Failure
 
@@ -17,29 +17,29 @@ The formalization pipeline runs linearly: `contract-asn.py` → `extract-propert
 ## Loop Architecture
 
 ```
-generate-dafny.py → .dfy file
+model.py dafny → .dfy file
          │
          ▼
-  ┌─ verify-dafny.py ──────────────────────┐
+  ┌─ model.py verify-dafny ────────────────┐
   │  dafny verify ASN-NNNN.dfy             │
   │     │                                   │
   │     ├─ pass → done                      │
   │     │                                   │
   │     └─ fail → categorize errors         │
   │          │                              │
-  │          ├─ Tier 1 → fix-dafny.py ──┐   │
+  │          ├─ Tier 1 → model_fix.py ──┐   │
   │          │       (syntax/type fix)  │   │
   │          │       re-verify ◄────────┘   │
   │          │       (max 3 inner loops)    │
   │          │                              │
-  │          ├─ Tier 2 → fix-dafny.py ──┐   │
+  │          ├─ Tier 2 → model_fix.py ──┐   │
   │          │  (proof fix w/ context)  │   │
   │          │  re-verify ◄─────────────┘   │
   │          │  (max 2 inner loops)         │
   │          │                              │
   │          └─ Tier 3 → ESCAPE             │
   │               generates review finding  │
-  │               → run-review.py --resume  │
+  │               → review.py --resume      │
   │               → re-extract, re-generate │
   └─────────────────────────────────────────┘
 ```
@@ -77,9 +77,11 @@ generate-dafny.py → .dfy file
 
 | Script | Role |
 |--------|------|
-| `verify-dafny.py` | Run `dafny verify`, parse errors, classify tiers, write verification report |
-| `fix-dafny.py` | LLM-assisted fix — read errors + `.dfy` + context, produce patched `.dfy` |
-| `run-dafny.py` | Orchestrator — full loop with tier escalation (analogous to `run-review.py`) |
+| `lib/model_verify_run.py` | Run `dafny verify`, parse errors, classify tiers, write verification report |
+| `lib/model_fix.py` | LLM-assisted fix — read errors + `.dfy` + context, produce patched `.dfy` |
+| `lib/model_verify.py` | Orchestrator — full loop with tier escalation |
+
+CLI: `python scripts/model.py verify-dafny N` runs the full loop.
 
 ## Tier 3 Escalation Output
 
@@ -101,15 +103,17 @@ The ASN property T4 may need a precondition requiring non-empty allocation state
 Re-run review-revise cycle with this finding as input.
 ```
 
-This file can be manually fed to `run-review.py` or (future) automatically injected as a review finding.
+This file can be manually fed to `review.py` or (future) automatically injected as a review finding.
 
 ## Full Pipeline Mode
 
-`run-dafny.py --full` runs the complete formalization pipeline:
+`model.py verify-dafny N --full` runs the complete formalization pipeline:
 
-1. `contract-asn.py` (if contract stale or missing)
-2. `extract-properties.py` (if extract stale or missing)
-3. `generate-dafny.py` (always — fresh generation)
-4. Verification loop (this plan)
+1. `model.py index N` (if proof index stale or missing)
+2. `model.py statements N` (if statements stale or missing)
+3. `model.py dafny N` (always — fresh generation)
+4. Verification loop (this document)
 
-Staleness check: compare file mtimes. If ASN is newer than contract, regenerate contract. If contract is newer than extract, regenerate extract.
+Staleness check: compare file mtimes. If ASN is newer than proof index, regenerate. If proof index is newer than statements, regenerate.
+
+See also: [Formalization](formalization.md) for the full three-step path.
