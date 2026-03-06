@@ -23,7 +23,7 @@ The formalization pipeline translates a converged ASN into a verified Dafny spec
 [3] dafny         generate Dafny per-property (incremental)
        |
        v
-  vault/proofs/ASN-NNNN.dfy
+  vault/3-modeling/dafny/ASN-NNNN/modeling-N/
        |
        v
 [4] verify-dafny  three-tier verification loop
@@ -65,7 +65,7 @@ The output lists each property with its proof label, type, and the precise forma
 
 ## Step 3: Dafny Generation
 
-Translates the extracted statements into a Dafny module. Generation is per-property and incremental — only new or changed properties are regenerated.
+Translates the extracted statements into a Dafny module. Each run creates a new `modeling-N/` directory under `vault/3-modeling/dafny/ASN-NNNN/`. Verified files are manually promoted to `vault/proofs/` after review.
 
 ### Modeling Style: Functional Datatypes
 
@@ -121,7 +121,8 @@ When the Dafny generation agent encounters a gap between the ASN property and wh
 |----------|----------|-------------|
 | Proof index | `vault/3-modeling/proof-index/ASN-NNNN-proof-index.md` | Property classification table |
 | Statements | `vault/3-modeling/formal-statements/ASN-NNNN-statements.md` | Extracted formal statements |
-| Dafny module | `vault/proofs/ASN-NNNN.dfy` | Verified specification |
+| Dafny modeling | `vault/3-modeling/dafny/ASN-NNNN/modeling-N/*.dfy` | Per-run staging output |
+| Dafny module (curated) | `vault/proofs/` | Manually promoted after review |
 
 ## CLI Reference
 
@@ -132,17 +133,23 @@ python scripts/model.py index 1
 # Extract formal statements from ASN prose
 python scripts/model.py statements 1
 
-# Generate Dafny per-property
+# Generate Dafny per-property (creates new modeling-N/ directory)
 python scripts/model.py dafny 1
 
 # Generate single property
 python scripts/model.py dafny 1 --property TA4
 
-# Regenerate all properties (ignore cache)
-python scripts/model.py dafny 1 --force
+# Add missing properties to an existing modeling run
+python scripts/model.py dafny 1 --modeling 3
+
+# Single property into existing run
+python scripts/model.py dafny 1 --modeling 3 --property TA4
 
 # Full formalization pipeline: index → statements → dafny → verify
 python scripts/model.py verify-dafny 1 --full
+
+# After verification, manually promote to vault/proofs/
+cp vault/3-modeling/dafny/ASN-0001/modeling-1/*.dfy vault/proofs/ModuleName/
 ```
 
 ### Flags
@@ -150,7 +157,8 @@ python scripts/model.py verify-dafny 1 --full
 | Flag | Description |
 |------|-------------|
 | `--property LABEL` | Process a single property only (dafny command) |
-| `--force` | Regenerate all, ignoring existing output |
+| `--modeling N` | Target existing modeling-N directory (skips already-generated properties) |
+| `--no-alloy` | Skip injecting Alloy model as reference (included by default) |
 | `--full` | Run complete pipeline: index → statements → generate → verify |
 
 ## Path to Compiled Go

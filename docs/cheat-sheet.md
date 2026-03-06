@@ -100,6 +100,8 @@ python scripts/model.py alloy N
 # 2. Full formalization + verification
 python scripts/model.py verify-dafny N --full
 # 3. If Tier 3 escalation → read the report, decide next step
+# 4. Promote verified files to vault/proofs/ (manual)
+cp vault/3-modeling/dafny/ASN-NNNN/modeling-N/*.dfy vault/proofs/ModuleName/
 ```
 
 ### Investigate something ad-hoc

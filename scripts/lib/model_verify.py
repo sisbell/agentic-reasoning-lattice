@@ -33,7 +33,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from paths import (WORKSPACE, ASNS_DIR, DAFNY_DIR, PROOF_INDEX_DIR,
-                   STATEMENTS_DIR, VERIFICATION_DIR, USAGE_LOG)
+                   STATEMENTS_DIR, VERIFICATION_DIR, USAGE_LOG,
+                   find_latest_modeling_dir)
 
 VERIFY_SCRIPT = WORKSPACE / "scripts" / "lib" / "model_verify_run.py"
 FIX_SCRIPT = WORKSPACE / "scripts" / "lib" / "model_fix.py"
@@ -322,7 +323,7 @@ def main():
               file=sys.stderr)
         sys.exit(1)
 
-    dfy_path = DAFNY_DIR / f"{asn_label}.dfy"
+    gen_dir = find_latest_modeling_dir(asn_label)
 
     print(f"  [PIPELINE] {asn_label} — Dafny verification loop", file=sys.stderr)
     print(f"  [PIPELINE] Tier 1 max: {args.max_tier1}, "
@@ -330,7 +331,7 @@ def main():
 
     if args.dry_run:
         print(f"  [DRY RUN] ASN: {asn_path}", file=sys.stderr)
-        print(f"  [DRY RUN] Dafny: {dfy_path}", file=sys.stderr)
+        print(f"  [DRY RUN] Dafny: {gen_dir or '(none)'}", file=sys.stderr)
         if args.full:
             index = PROOF_INDEX_DIR / f"{asn_label}-proof-index.md"
             extract = STATEMENTS_DIR / f"{asn_label}-statements.md"
@@ -339,9 +340,9 @@ def main():
                   file=sys.stderr)
             print(f"    Extract: {extract} (exists: {extract.exists()})",
                   file=sys.stderr)
-        if not dfy_path.exists() and not args.full:
-            print(f"  [DRY RUN] .dfy file does not exist — "
-                  f"use --full or run generate-dafny.py first", file=sys.stderr)
+        if gen_dir is None and not args.full:
+            print(f"  [DRY RUN] No modeling directory found — "
+                  f"use --full or run model.py dafny first", file=sys.stderr)
         return
 
     start = time.time()
@@ -353,9 +354,12 @@ def main():
             print(f"  [PIPELINE] Full pipeline failed", file=sys.stderr)
             sys.exit(1)
 
-    # Check .dfy exists
-    if not dfy_path.exists():
-        print(f"  No .dfy file at {dfy_path.relative_to(WORKSPACE)}",
+    # Re-check modeling dir (may have been created by --full pipeline)
+    if gen_dir is None:
+        gen_dir = find_latest_modeling_dir(asn_label)
+    if gen_dir is None or not any(gen_dir.glob("*.dfy")):
+        print(f"  No .dfy files in {DAFNY_DIR.relative_to(WORKSPACE)}"
+              f"/{asn_label}/modeling-*/",
               file=sys.stderr)
         print(f"  Run: python scripts/model.py dafny {args.asn}",
               file=sys.stderr)

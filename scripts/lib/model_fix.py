@@ -27,8 +27,8 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import (WORKSPACE, DAFNY_DIR, STATEMENTS_DIR, VERIFICATION_DIR,
-                   VOCABULARY, USAGE_LOG)
+from paths import (WORKSPACE, STATEMENTS_DIR, VERIFICATION_DIR,
+                   VOCABULARY, USAGE_LOG, find_latest_modeling_dir)
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"
 TEMPLATE = PROMPTS_DIR / "fix-dafny.md"
@@ -41,16 +41,20 @@ def read_file(path):
         return ""
 
 
-def find_dafny_file(asn_id):
-    """Find .dfy file by ASN number."""
+def find_dafny_files(asn_id):
+    """Find .dfy files for an ASN in the latest modeling directory.
+
+    Returns (list_of_dfy_paths, asn_label). Empty list if none found.
+    """
     num = re.sub(r"[^0-9]", "", str(asn_id))
     if not num:
-        return None, None
+        return [], None
     label = f"ASN-{int(num):04d}"
-    dfy_path = DAFNY_DIR / f"{label}.dfy"
-    if dfy_path.exists():
-        return dfy_path, label
-    return None, label
+    gen_dir = find_latest_modeling_dir(label)
+    if gen_dir is None:
+        return [], label
+    files = sorted(gen_dir.glob("*.dfy"))
+    return files, label
 
 
 def find_latest_report(asn_label):
@@ -205,14 +209,17 @@ def main():
                         help="Show prompt size without invoking Claude")
     args = parser.parse_args()
 
-    # Find .dfy file
-    dfy_path, asn_label = find_dafny_file(args.asn)
-    if dfy_path is None:
-        print(f"  No .dfy file found for {args.asn} in vault/proofs/",
+    # Find .dfy files in latest modeling directory
+    dfy_files, asn_label = find_dafny_files(args.asn)
+    if not dfy_files:
+        print(f"  No .dfy files found for {args.asn} in "
+              f"vault/3-modeling/dafny/{asn_label or '?'}/modeling-*/",
               file=sys.stderr)
         sys.exit(1)
 
-    dafny_code = dfy_path.read_text()
+    # Fix operates on all files in the generation; concatenate for context
+    dafny_code = "\n\n".join(f.read_text() for f in dfy_files)
+    dfy_path = dfy_files[0]  # primary file for report paths
 
     # Find verification report
     if args.report:

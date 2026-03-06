@@ -102,7 +102,7 @@ Three-step path from ASN prose to verified Dafny:
 3. **Dafny generation** — translate statements into verified Dafny using functional datatypes
 
 - **Input:** converged ASN
-- **Output:** proof index, formal statements, Dafny module in `vault/proofs/`
+- **Output:** proof index, formal statements, Dafny in `vault/3-modeling/dafny/ASN-NNNN/modeling-N/` (promote to `vault/proofs/` after review)
 - **Details:** [Formalization](formalization.md)
 
 ### 6. Verification (model verify-dafny)
@@ -113,7 +113,7 @@ Three-tier failure handling for Dafny verification:
 - **Tier 2** (proof-structural errors) — fix with extract context, up to 2 attempts
 - **Tier 3** (spec errors) — escalate to ASN review cycle
 
-- **Input:** Dafny module in `vault/proofs/`
+- **Input:** Dafny files in `vault/3-modeling/dafny/ASN-NNNN/modeling-N/`
 - **Output:** verification reports in `vault/3-modeling/verification/`
 - **Details:** [Dafny Verification Loop](dafny-verification-loop.md)
 
@@ -136,8 +136,8 @@ The pipeline is not linear — it has structured feedback loops:
 | Alloy | ASN, proof index | `vault/3-modeling/alloy/ASN-NNNN/*.als` |
 | Index | ASN, existing proof index | `vault/3-modeling/proof-index/ASN-NNNN-proof-index.md` |
 | Statements | ASN, proof index | `vault/3-modeling/formal-statements/ASN-NNNN-statements.md` |
-| Dafny | statements, proof index, module registry | `vault/proofs/ASN-NNNN.dfy` |
-| Verify | Dafny module, statements, ASN | `vault/3-modeling/verification/ASN-NNNN-*.md` |
+| Dafny | statements, proof index, module registry | `vault/3-modeling/dafny/ASN-NNNN/modeling-N/*.dfy` |
+| Verify | Dafny generation dir, statements, ASN | `vault/3-modeling/verification/ASN-NNNN-*.md` |
 
 ## CLI Quick Reference
 

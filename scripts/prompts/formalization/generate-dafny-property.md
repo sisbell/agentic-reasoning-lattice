@@ -47,12 +47,14 @@ Study these verified patterns carefully. Dafny is not Boogie, Why3, or Coq.
 
 ## Stable foundation
 
-The verified foundation module. Your output file lives in the same
-directory. Start your file with:
+The verified foundation module. Start your file with:
 
 ```dafny
 include "{{stable_root_filename}}"
 ```
+
+This relative path resolves from your output file's location to the
+foundation module in `vault/proofs/`.
 
 Then import it with `import opened`. Do not redefine anything already
 defined here.

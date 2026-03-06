@@ -31,7 +31,8 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import WORKSPACE, DAFNY_DIR, VERIFICATION_DIR, USAGE_LOG
+from paths import (WORKSPACE, VERIFICATION_DIR, USAGE_LOG,
+                    find_latest_modeling_dir)
 
 
 # ── Error categorization patterns ──────────────────────────────────────
@@ -73,16 +74,20 @@ TIER_1_RE = re.compile("|".join(TIER_1_PATTERNS), re.IGNORECASE)
 TIER_2_RE = re.compile("|".join(TIER_2_PATTERNS), re.IGNORECASE)
 
 
-def find_dafny_file(asn_id):
-    """Find .dfy file by ASN number."""
+def find_dafny_files(asn_id):
+    """Find .dfy files for an ASN in the latest modeling directory.
+
+    Returns (list_of_dfy_paths, asn_label). Empty list if none found.
+    """
     num = re.sub(r"[^0-9]", "", str(asn_id))
     if not num:
-        return None, None
+        return [], None
     label = f"ASN-{int(num):04d}"
-    dfy_path = DAFNY_DIR / f"{label}.dfy"
-    if dfy_path.exists():
-        return dfy_path, label
-    return None, label
+    gen_dir = find_latest_modeling_dir(label)
+    if gen_dir is None:
+        return [], label
+    files = sorted(gen_dir.glob("*.dfy"))
+    return files, label
 
 
 def classify_error(message):
@@ -255,59 +260,70 @@ def main():
                         help="Check paths and exit without running dafny")
     args = parser.parse_args()
 
-    # Find .dfy file
-    dfy_path, asn_label = find_dafny_file(args.asn)
-    if dfy_path is None:
-        print(f"  No .dfy file found for {args.asn} in vault/proofs/",
+    # Find .dfy files in latest modeling directory
+    dfy_files, asn_label = find_dafny_files(args.asn)
+    if not dfy_files:
+        print(f"  No .dfy files found for {args.asn} in "
+              f"vault/3-modeling/dafny/{asn_label or '?'}/modeling-*/",
               file=sys.stderr)
         print(f"  Run: python scripts/model.py dafny {args.asn}",
               file=sys.stderr)
         sys.exit(1)
 
-    print(f"  [VERIFY] {asn_label} ({dfy_path.name})", file=sys.stderr)
+    names = ", ".join(p.name for p in dfy_files)
+    print(f"  [VERIFY] {asn_label} — {len(dfy_files)} file(s): {names}",
+          file=sys.stderr)
 
     if args.dry_run:
-        print(f"  [DRY RUN] Would run: dafny verify --allow-warnings {dfy_path}",
-              file=sys.stderr)
+        for f in dfy_files:
+            print(f"  [DRY RUN] Would run: dafny verify --allow-warnings {f}",
+                  file=sys.stderr)
         return
 
-    # Run dafny verify
-    returncode, output, elapsed = run_dafny(dfy_path, args.timeout)
+    # Run dafny verify on each file, aggregate results
+    all_errors = []
+    total_elapsed = 0
 
-    if returncode == -2:
-        print(f"  {output}", file=sys.stderr)
-        sys.exit(1)
+    for dfy_path in dfy_files:
+        returncode, output, elapsed = run_dafny(dfy_path, args.timeout)
+        total_elapsed += elapsed
 
-    # Parse errors
-    errors = parse_dafny_output(output, dfy_path)
-    highest = max_tier(errors)
+        if returncode == -2:
+            print(f"  {output}", file=sys.stderr)
+            sys.exit(1)
 
-    # Write report
+        errors = parse_dafny_output(output, dfy_path)
+        all_errors.extend(errors)
+
+    highest = max_tier(all_errors)
+
+    # Write report (use first file for the report header)
     report_num = next_report_number(asn_label)
-    report_path = write_report(asn_label, dfy_path, errors, elapsed, report_num)
+    report_path = write_report(asn_label, dfy_files[0], all_errors,
+                               total_elapsed, report_num)
 
     # Log usage
-    log_usage(asn_label, elapsed, len(errors), highest)
+    log_usage(asn_label, total_elapsed, len(all_errors), highest)
 
     # Print report path to stdout (for pipeline consumption)
     print(str(report_path))
 
     # Status to stderr
-    if not errors:
-        print(f"  [VERIFIED] {asn_label} — all properties pass ({elapsed:.0f}s)",
-              file=sys.stderr)
+    if not all_errors:
+        print(f"  [VERIFIED] {asn_label} — all properties pass "
+              f"({total_elapsed:.0f}s)", file=sys.stderr)
     else:
         tier_summary = ", ".join(
-            f"T{t}:{sum(1 for e in errors if e['tier'] == t)}"
-            for t in (1, 2, 3) if any(e["tier"] == t for e in errors)
+            f"T{t}:{sum(1 for e in all_errors if e['tier'] == t)}"
+            for t in (1, 2, 3) if any(e["tier"] == t for e in all_errors)
         )
-        print(f"  [FAILED] {len(errors)} error(s) [{tier_summary}] ({elapsed:.0f}s)",
-              file=sys.stderr)
+        print(f"  [FAILED] {len(all_errors)} error(s) [{tier_summary}] "
+              f"({total_elapsed:.0f}s)", file=sys.stderr)
 
     print(f"  [WROTE] {report_path.relative_to(WORKSPACE)}", file=sys.stderr)
 
     # Exit code based on tier
-    if not errors:
+    if not all_errors:
         sys.exit(0)
     elif highest == 1:
         sys.exit(2)

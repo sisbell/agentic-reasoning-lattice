@@ -4,16 +4,16 @@ Generate Dafny declarations incrementally — one agent call per ASN property.
 
 For each property in the proof index, builds the prompt, launches a Claude
 agent with Read/Write/Bash tools, and lets it write + verify + fix the .dfy
-file autonomously. Skips properties whose output file already exists.
+file autonomously. Each run creates a new modeling-N/ directory.
 
 Requires: proof index + extract (run contract-asn.py and extract-properties.py first)
 
 Usage:
     python scripts/generate-dafny-property.py 1
     python scripts/generate-dafny-property.py ASN-0001 --property T5
-    python scripts/generate-dafny-property.py 1 --with-alloy --dry-run
-    python scripts/generate-dafny-property.py 1 --force  # regenerate all
-    python scripts/generate-dafny-property.py 1 --force --no-revise  # generate + review only
+    python scripts/generate-dafny-property.py 1 --modeling 3       # into existing run
+    python scripts/generate-dafny-property.py 1 --dry-run
+    python scripts/generate-dafny-property.py 1 --no-revise        # generate + review only
 """
 
 import argparse
@@ -27,9 +27,10 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import (WORKSPACE, ASNS_DIR, PROOF_INDEX_DIR, STATEMENTS_DIR, DAFNY_DIR,
-                    ALLOY_DIR, DAFNY_DISCOVERY_DIR, REVIEWS_DIR, USAGE_LOG,
-                    MODULES_REGISTRY, next_review_number, sanitize_filename)
+from paths import (WORKSPACE, ASNS_DIR, PROOF_INDEX_DIR, STATEMENTS_DIR,
+                    PROOFS_DIR, DAFNY_DIR, ALLOY_DIR, REVIEWS_DIR, USAGE_LOG,
+                    MODULES_REGISTRY, next_review_number, next_modeling_number,
+                    sanitize_filename)
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"
 TEMPLATE = PROMPTS_DIR / "generate-dafny-property.md"
@@ -334,24 +335,8 @@ No markdown fences, no commentary — just the JSON array."""
         return []
 
 
-def next_dafny_gen_number(asn_label):
-    """Find the next Dafny divergence number for this ASN."""
-    asn_dir = DAFNY_DISCOVERY_DIR / asn_label
-    if not asn_dir.exists():
-        return 1
-    existing = sorted(asn_dir.glob("divergence-*"))
-    if not existing:
-        return 1
-    nums = []
-    for p in existing:
-        m = re.search(r"divergence-(\d+)$", p.name)
-        if m:
-            nums.append(int(m.group(1)))
-    return max(nums, default=0) + 1
-
-
 def write_divergence_file(gen_dir, label, proof_label, divergences):
-    """Write a .divergences.md file to the discovery generation directory.
+    """Write a .divergences.md file to the modeling directory.
 
     Only called when divergences exist. Creates the directory on first use.
     """
@@ -610,12 +595,12 @@ def main():
                         help="Model (default: opus)")
     parser.add_argument("--effort", default="max",
                         help="Thinking effort level (low/medium/high/max)")
-    parser.add_argument("--max-turns", type=int, default=12,
-                        help="Max agent turns per property (default: 12)")
-    parser.add_argument("--with-alloy", action="store_true",
-                        help="Inject Alloy model as reference for each property")
-    parser.add_argument("--force", action="store_true",
-                        help="Regenerate even if output file exists")
+    parser.add_argument("--max-turns", type=int, default=16,
+                        help="Max agent turns per property (default: 16)")
+    parser.add_argument("--modeling", type=int, default=None,
+                        help="Target existing modeling-N directory")
+    parser.add_argument("--no-alloy", action="store_true",
+                        help="Skip injecting Alloy model as reference")
     parser.add_argument("--no-revise", action="store_true",
                         help="Stop after review, skip consult/revise/commit")
     parser.add_argument("--dry-run", action="store_true",
@@ -662,7 +647,7 @@ def main():
         print(f"  No module found for {asn_label} in registry", file=sys.stderr)
         sys.exit(1)
 
-    module_dir = DAFNY_DIR / module_name
+    module_dir = PROOFS_DIR / module_name
     stable_root_path = module_dir / f"{module_name}.dfy"
     stable_root = read_file(stable_root_path)
     if not stable_root:
@@ -681,14 +666,25 @@ def main():
 
     # --- Generate ---
 
-    gen_num = next_dafny_gen_number(asn_label)
-    gen_dir = DAFNY_DISCOVERY_DIR / asn_label / f"divergence-{gen_num}"
-    # gen_dir created lazily — only when a divergence is found
+    if args.modeling is not None:
+        gen_num = args.modeling
+        gen_dir = DAFNY_DIR / asn_label / f"modeling-{gen_num}"
+        if not gen_dir.exists():
+            print(f"  modeling-{gen_num} does not exist for {asn_label}",
+                  file=sys.stderr)
+            sys.exit(1)
+    else:
+        gen_num = next_modeling_number(asn_label)
+        gen_dir = DAFNY_DIR / asn_label / f"modeling-{gen_num}"
 
-    print(f"  [DAFNY-PROPERTY] {asn_label} → {module_name}/ (divergence-{gen_num})",
+    # Relative include path from gen_dir back to stable root
+    stable_root_include = os.path.relpath(stable_root_path, gen_dir)
+
+    print(f"  [DAFNY-PROPERTY] {asn_label} → {module_name}/ (modeling-{gen_num})",
           file=sys.stderr)
     print(f"  Properties: {len(index_rows)}", file=sys.stderr)
 
+    resuming = args.modeling is not None
     generated = 0
     skipped = 0
     failed = 0
@@ -699,22 +695,22 @@ def main():
     for row in index_rows:
         label = row["label"]
         proof_label = row["proof_label"]
-        out_path = module_dir / f"{proof_label}.dfy"
+        out_path = gen_dir / f"{proof_label}.dfy"
 
-        # Skip existing
-        if out_path.exists() and not args.force:
+        # Skip existing when resuming into an existing run
+        if resuming and out_path.exists():
             print(f"  [SKIP] {label} → {proof_label} (exists)", file=sys.stderr)
             skipped += 1
             continue
 
         # Alloy model (optional)
         alloy_model = ""
-        if args.with_alloy:
+        if not args.no_alloy:
             alloy_model = find_alloy_model(asn_label, proof_label, label)
 
         # Build prompt
         prompt = build_property_prompt(
-            template_text, registry_text, stable_root, stable_root_path.name,
+            template_text, registry_text, stable_root, stable_root_include,
             row, extract_text, alloy_model,
         )
 
@@ -726,7 +722,7 @@ def main():
             continue
 
         # Launch agent — it writes, verifies, and fixes autonomously
-        module_dir.mkdir(parents=True, exist_ok=True)
+        gen_dir.mkdir(parents=True, exist_ok=True)
         print(f"  [{label}] {proof_label}...",
               file=sys.stderr, end="", flush=True)
         wrote, elapsed, cost = invoke_agent(
@@ -773,7 +769,8 @@ def main():
     # Summary
     div_count = sum(1 for r in results if r["divergences"])
     if not args.dry_run:
-        print(f"\n  Done: {generated} generated, {skipped} skipped, {failed} failed",
+        skip_msg = f", {skipped} skipped" if skipped else ""
+        print(f"\n  Done: {generated} generated{skip_msg}, {failed} failed",
               file=sys.stderr)
         if generated > 0:
             print(f"  Verified: {verified_ok}/{generated}", file=sys.stderr)
