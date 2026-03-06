@@ -10,6 +10,7 @@ CMDS = {
     "alloy":        LIB / "model_alloy.py",
     "dafny":        LIB / "model_dafny.py",
     "verify-dafny": LIB / "model_verify.py",
+    "fix":          LIB / "model_fix.py",
 }
 
 def main():
