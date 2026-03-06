@@ -9,7 +9,7 @@
 | Dafny review (REVISE items) | Is this a real spec issue or a proof limitation? |
 | Tier 3 escalation | Is the ASN property wrong, or the proof approach? |
 | Golden test failure | Is the spec wrong, or the test wrong? |
-| CONVERGED verdict | Ready for formalization, or run more cycles? |
+| CONVERGED verdict | Ready for modeling, or run more cycles? |
 
 Everything else — ASN review, revise, consult, fix — is delegated. Dafny reviews require your sign-off before revising the ASN.
 

@@ -111,7 +111,7 @@ Formal specification of the Xanadu hypertext system (udanax-green), derived from
 | [Discovery](docs/discovery.md) | Creating new ASNs from inquiries |
 | [Review](docs/review.md) | Review and revision cycles |
 | [Expert Consultation](docs/expert-consultation.md) | Nelson and Gregory channels |
-| [Formalization](docs/formalization.md) | From ASN to verified Dafny |
+| [Modeling](docs/modeling.md) | From ASN to verified Dafny |
 | [Alloy Checking](docs/alloy-checking.md) | Bounded model checking |
 | [Dafny Verification Loop](docs/dafny-verification-loop.md) | Three-tier failure handling |
 | [Promotion](docs/promotion.md) | Feeding the pipeline with new inquiries |
@@ -191,7 +191,7 @@ Output:
 - `vault/3-modeling/alloy/ASN-NNNN/{label}-{Name}.als` (one per property)
 - `vault/2-review/ASN-NNNN/review-N.md` (if failures after repair)
 
-### Formalization — proof-index → extract → dafny
+### Modeling — proof-index → extract → dafny
 
 Run after an ASN has converged through review. Three steps, each building on the previous:
 
@@ -328,7 +328,7 @@ python scripts/requirements.py                # extract features from all ASNs
 | `triage-questions.md` | `promote_questions.py` | Open question evaluation and inquiry framing |
 | `triage-defers.md` | `promote_scope.py` | Review deferral evaluation and inquiry framing |
 
-### Formalization prompts (`scripts/prompts/formalization/`)
+### Modeling prompts (`scripts/prompts/formalization/`)
 
 | Template | Used by | Purpose |
 |----------|---------|---------|
@@ -398,7 +398,7 @@ nelson/             — Nelson's source materials (Literary Machines, concepts, 
 udanax-test-harness/  — Test harness for udanax-green (golden tests, findings, KB)
 ```
 
-## Formalization Path
+## Modeling Path
 
 ```
 ASN (prose) → Alloy (bounded checking) → proof index (label mapping) → extract (formal statements) → Dafny (verified) → Go (compiled)

@@ -103,7 +103,7 @@ Per-property Alloy model generation and bounded model checking. Searches for cou
 - **Output:** `.als` files in `vault/3-modeling/alloy/ASN-NNNN/`
 - **Details:** [Alloy Checking](alloy-checking.md)
 
-### 5. Formalization (model index, statements, dafny)
+### 5. Modeling (model index, statements, dafny)
 
 Three-step path from ASN prose to verified Dafny:
 
@@ -117,7 +117,7 @@ Three-step path from ASN prose to verified Dafny:
 - **Input:** converged ASN
 - **Output:** proof index, formal statements, Dafny in `vault/3-modeling/dafny/ASN-NNNN/modeling-N/`, review in `vault/2-review/`
 - **Human gate:** You read STATUS.md after dafny/fix/status. When ready, trigger review. You read the review, then decide whether to run consult → revise or promote verified files to `vault/proofs/`.
-- **Details:** [Formalization](formalization.md)
+- **Details:** [Modeling](modeling.md)
 
 ### 6. Fix (model fix)
 
@@ -188,7 +188,7 @@ See individual docs for full flag reference.
 
 **After convergence:**
 - Search for counterexamples first → `model.py alloy N`
-- Ready for formalization → `model.py index N` then `statements N` then `dafny N`
+- Ready for modeling → `model.py index N` then `statements N` then `dafny N`
 - Fix proof limitations → `model.py fix N`, then `model.py status N`
 - Ready for review → `model.py review N`
 - Full pipeline in one shot → `model.py verify-dafny N --full`
@@ -202,7 +202,7 @@ See individual docs for full flag reference.
 - [Discovery](discovery.md) — creating new ASNs
 - [Review](review.md) — review and revision cycles
 - [Expert Consultation](expert-consultation.md) — Nelson and Gregory channels
-- [Formalization](formalization.md) — from ASN to Dafny
+- [Modeling](modeling.md) — from ASN to Dafny
 - [Alloy Checking](alloy-checking.md) — bounded model checking
 - [Dafny Verification Loop](dafny-verification-loop.md) — three-tier failure handling
 - [Promotion](promotion.md) — feeding the pipeline

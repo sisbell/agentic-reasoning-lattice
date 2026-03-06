@@ -1,6 +1,6 @@
-# Formalization — From ASN to Dafny
+# Modeling — From ASN to Dafny
 
-The formalization pipeline translates a converged ASN into a verified Dafny specification. Three steps, each building on the previous: classify properties into a proof index, extract formal statements, then generate Dafny per-property.
+The modeling pipeline translates a converged ASN into a verified Dafny specification. Three steps, each building on the previous: classify properties into a proof index, extract formal statements, then generate Dafny per-property.
 
 ## How It Works
 
@@ -119,7 +119,15 @@ After fixing verification failures (`model.py fix N`) and updating status (`mode
 - **Divergences** are classified as genuine spec issues (→ REVISE) or proof artifacts (→ SKIP)
 - **Quality issues** are classified as over-proving, missing abstraction, or solver-fighting
 
-Only findings classified as spec issues appear in the REVISE section. The review is written to `vault/2-review/` and committed. You read the review and decide whether to run consult → revise manually.
+Only findings classified as spec issues appear in the REVISE section. The review is written to `vault/2-review/` and committed. You read the review and act on the verdict.
+
+### Review Verdicts
+
+| Verdict | Meaning | Action |
+|---------|---------|--------|
+| **CONVERGED** | All divergences are proof artifacts, proofs are clean | Promote `.dfy` files to `vault/proofs/` |
+| **SIMPLIFY** | No spec issues, but proofs need quality cleanup (over-proving, missing abstraction, solver-fighting) | Fix quality issues in `.dfy` files, re-run `model.py review N` |
+| **REVISE** | Dafny exposed a genuine spec issue — missing precondition, over-strong claim, or ambiguity in the ASN | Feed findings back through ASN revision (`review.py` → `revise.py`), then re-run modeling (`index` → `statements` → `dafny`) |
 
 ## Artifacts
 
@@ -174,7 +182,7 @@ python scripts/model.py fix 1 --property TA3
 python scripts/model.py review 1
 python scripts/model.py review 1 --model sonnet
 
-# Full formalization pipeline: index → statements → dafny → verify
+# Full modeling pipeline: index → statements → dafny → verify
 python scripts/model.py verify-dafny 1 --full
 
 # After verification, promote and commit with proofs-only mode
