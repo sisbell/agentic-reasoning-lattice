@@ -45,20 +45,25 @@ inquiries.yaml
 +-----------+
      |
 +-----------+
-|   dafny   |  generate, verify, write STATUS.md + review
+|   dafny   |  generate, verify, write STATUS.md, commit
 +-----------+
      |
-     ├── verified + divergences → review written
-     │        |
-     │        v
-     │   [YOU] read review
-     │        ├── CONVERGED → promote to vault/proofs/
-     │        └── REVISE → consult → revise → re-run dafny
+     ├── unverified → model.py fix N (iterate)
+     │                    |
+     │                    v
+     │              model.py status N (re-verify, commit)
      │
-     └── unverified → model.py fix N
+     └── [YOU] read STATUS.md, decide if ready
               |
               v
-         [YOU] read STATUS.md, triage remaining failures
++-----------+
+|  review   |  generate divergence review, commit
++-----------+
+     |
+     v
+[YOU] read review
+     ├── CONVERGED → promote to vault/proofs/
+     └── REVISE → consult → revise → re-run dafny
      |
      v (promoted)
   Go (compiled) -- verified reference implementation / test oracle
@@ -104,12 +109,14 @@ Three-step path from ASN prose to verified Dafny:
 
 1. **Proof index** — classify each property by type (INV/PRE/POST/FRAME/LEMMA), assign descriptive proof labels
 2. **Statement extraction** — pull formal statements from ASN prose into compact Dafny-ready format
-3. **Dafny generation** — translate statements into verified Dafny using functional datatypes
-4. **Review** — triage divergences and verification failures, classify as spec issues vs proof limitations
+3. **Dafny generation** — translate statements into verified Dafny, write STATUS.md, commit
+4. **Fix** — fix unverified files iteratively (no commit — iterate freely)
+5. **Status** — re-verify, update STATUS.md, commit
+6. **Review** — triage divergences from verified files, write review, commit
 
 - **Input:** converged ASN
 - **Output:** proof index, formal statements, Dafny in `vault/3-modeling/dafny/ASN-NNNN/modeling-N/`, review in `vault/2-review/`
-- **Human gate:** The pipeline stops after review. You read the review, then decide whether to run consult → revise or promote verified files to `vault/proofs/`.
+- **Human gate:** You read STATUS.md after dafny/fix/status. When ready, trigger review. You read the review, then decide whether to run consult → revise or promote verified files to `vault/proofs/`.
 - **Details:** [Formalization](formalization.md)
 
 ### 6. Fix (model fix)
@@ -139,8 +146,10 @@ The pipeline is not linear — it has structured feedback loops:
 | Alloy | ASN, proof index | `vault/3-modeling/alloy/ASN-NNNN/*.als` |
 | Index | ASN, existing proof index | `vault/3-modeling/proof-index/ASN-NNNN-proof-index.md` |
 | Statements | ASN, proof index | `vault/3-modeling/formal-statements/ASN-NNNN-statements.md` |
-| Dafny | statements, proof index, module registry | `modeling-N/*.dfy`, `modeling-N/STATUS.md`, `vault/2-review/ASN-NNNN/review-N.md` |
-| Fix | unverified `.dfy` files | fixed `.dfy` files (in place) |
+| Dafny | statements, proof index, module registry | `modeling-N/*.dfy`, `modeling-N/STATUS.md` (commits) |
+| Fix | unverified `.dfy` files | fixed `.dfy` files (in place, no commit) |
+| Status | `.dfy` files in modeling dir | `modeling-N/STATUS.md` (commits) |
+| Review | verified `.dfy` files, statements | `vault/2-review/ASN-NNNN/review-N.md` (commits) |
 
 ## CLI Quick Reference
 
@@ -155,9 +164,10 @@ All commands run from the project root as `python scripts/<dispatcher>.py`.
 | `model.py alloy N` | Alloy bounded checking for ASN-N |
 | `model.py index N` | Classify and label properties |
 | `model.py statements N` | Extract formal statements |
-| `model.py dafny N` | Generate Dafny per-property (stops at review) |
-| `model.py status N` | Verify all .dfy files and write STATUS.md |
+| `model.py dafny N` | Generate Dafny per-property, commit |
 | `model.py fix N` | Fix unverified Dafny files with baby-steps |
+| `model.py status N` | Re-verify all .dfy files, write STATUS.md, commit |
+| `model.py review N` | Generate divergence review from verified files, commit |
 | `model.py verify-dafny N` | Verify + fix loop |
 | `consult.py nelson "question"` | Ad-hoc Nelson consultation |
 | `consult.py gregory "question"` | Ad-hoc Gregory consultation |
@@ -179,7 +189,8 @@ See individual docs for full flag reference.
 **After convergence:**
 - Search for counterexamples first → `model.py alloy N`
 - Ready for formalization → `model.py index N` then `statements N` then `dafny N`
-- Read the review, fix proof limitations → `model.py fix N`
+- Fix proof limitations → `model.py fix N`, then `model.py status N`
+- Ready for review → `model.py review N`
 - Full pipeline in one shot → `model.py verify-dafny N --full`
 
 **Growing the specification:**

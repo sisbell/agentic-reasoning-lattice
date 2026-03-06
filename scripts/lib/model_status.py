@@ -15,7 +15,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from paths import (WORKSPACE, DAFNY_DIR, find_latest_modeling_dir)
-from lib.model_dafny import write_status_file, extract_divergences
+from lib.model_dafny import write_status_file, extract_divergences, run_commit
 from lib.model_fix import verify_dafny
 
 
@@ -73,6 +73,8 @@ def main():
     verified = sum(1 for r in results if r["verified"])
     print(f"\n  {verified}/{len(results)} verified", file=sys.stderr)
     print(f"  Written: {gen_dir.name}/STATUS.md", file=sys.stderr)
+
+    run_commit(f"{asn_label} status update")
 
 
 if __name__ == "__main__":

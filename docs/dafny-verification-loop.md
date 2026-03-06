@@ -103,7 +103,7 @@ The ASN property T4 may need a precondition requiring non-empty allocation state
 Re-run review-revise cycle with this finding as input.
 ```
 
-The Dafny generation command (`model.py dafny`) writes `STATUS.md` for all files and a review for verified files with divergences only. Unverified files skip the review entirely — run `model.py fix` on them. If still unverified after fix, read `STATUS.md` and the .dfy source to triage manually.
+The Dafny generation command (`model.py dafny`) writes `STATUS.md` and commits. Review is a separate human-triggered step (`model.py review N`) — run it when you're ready to triage divergences. Unverified files need `model.py fix` first, then `model.py status` to update STATUS.md and commit. If still unverified after fix, read `STATUS.md` and the .dfy source to triage manually.
 
 ## Full Pipeline Mode
 

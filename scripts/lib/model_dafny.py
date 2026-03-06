@@ -354,6 +354,17 @@ No markdown fences, no commentary — just the JSON array."""
         return []
 
 
+def run_commit(hint=""):
+    """Run commit.py to commit vault changes."""
+    cmd = [sys.executable, str(WORKSPACE / "scripts" / "commit.py")]
+    if hint:
+        cmd.append(hint)
+    result = subprocess.run(cmd, cwd=str(WORKSPACE))
+    if result.returncode != 0:
+        print("  [COMMIT] failed — changes left unstaged", file=sys.stderr)
+    return result.returncode == 0
+
+
 def write_divergence_file(gen_dir, label, proof_label, divergences):
     """Write a .divergences.md file to the modeling directory.
 
@@ -536,7 +547,6 @@ def generate_dafny_review(asn_label, results, extract_text,
         "{{asn_text}}", asn_text
     ).replace(
         "{{divergence_evidence}}", evidence_text
-    ).replace(
     ).replace(
         "{{verified_summary}}", verified_summary
     ).replace(
@@ -781,22 +791,11 @@ def main():
                       file=sys.stderr)
             print(f"  Cost: ${total_cost:.2f}", file=sys.stderr)
 
-    # Write status file
+    # Write status file and commit
     if not args.dry_run and results:
         write_status_file(gen_dir, results, source="generate")
         print(f"  Status: {gen_dir.name}/STATUS.md", file=sys.stderr)
-
-    # --- Post-generation review (verified files only) ---
-    verified_results = [r for r in results if r["verified"]]
-    verified_divs = sum(1 for r in verified_results if r["divergences"])
-    if not args.dry_run and verified_divs > 0:
-        review_path = generate_dafny_review(
-            asn_label, verified_results, extract_text,
-            asn_path=find_asn_path(asn_label), model=args.model,
-        )
-        if review_path:
-            print(f"\n  [REVIEW] {review_path.relative_to(WORKSPACE)}",
-                  file=sys.stderr)
+        run_commit(f"{asn_label} dafny modeling-{gen_num}")
 
 
 if __name__ == "__main__":

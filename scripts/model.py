@@ -12,6 +12,7 @@ CMDS = {
     "verify-dafny": LIB / "model_verify.py",
     "fix":          LIB / "model_fix.py",
     "status":       LIB / "model_status.py",
+    "review":       LIB / "model_review.py",
 }
 
 def main():

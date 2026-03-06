@@ -20,13 +20,22 @@ The formalization pipeline translates a converged ASN into a verified Dafny spec
   statements file
        |
        v
-[3] dafny         generate Dafny per-property (incremental)
+[3] dafny         generate Dafny per-property, commit
        |
        v
   vault/3-modeling/dafny/ASN-NNNN/modeling-N/
        |
        v
-[4] verify-dafny  three-tier verification loop
+[4] fix           fix unverified files iteratively
+       |
+       v
+[5] status        re-verify, update STATUS.md, commit
+       |
+       v
+[6] review        generate divergence review, commit
+       |
+       v
+[7] verify-dafny  three-tier verification loop (full pipeline)
 ```
 
 ## Step 1: Proof Index
@@ -103,12 +112,14 @@ function Insert(s: State, d: DocId, p: Pos, c: seq<byte>): (s': State)
 
 ### Divergence and Failure Tracking
 
-When the Dafny generation agent encounters a gap between the ASN property and what can be mechanically translated, it records a DIVERGENCE comment in the source. After generation, a review agent triages all divergences and verification failures:
+When the Dafny generation agent encounters a gap between the ASN property and what can be mechanically translated, it records a DIVERGENCE comment in the source. The `dafny` command writes STATUS.md and commits — it does NOT auto-generate a review.
+
+After fixing verification failures (`model.py fix N`) and updating status (`model.py status N`), you trigger the review manually (`model.py review N`). The review agent triages divergences from verified files:
 
 - **Divergences** are classified as genuine spec issues (→ REVISE) or proof artifacts (→ SKIP)
-- **Verification failures** are classified as spec issues (mathematical impossibility), proof limitations, or timeouts
+- **Quality issues** are classified as over-proving, missing abstraction, or solver-fighting
 
-Only findings classified as spec issues appear in the REVISE section. The review is written to `vault/2-review/` and the pipeline stops. You read the review and decide whether to run consult → revise manually.
+Only findings classified as spec issues appear in the REVISE section. The review is written to `vault/2-review/` and committed. You read the review and decide whether to run consult → revise manually.
 
 ## Artifacts
 
@@ -151,13 +162,17 @@ python scripts/model.py dafny 1 --modeling 3
 # Single property into existing run
 python scripts/model.py dafny 1 --modeling 3 --property TA4
 
-# Generate STATUS.md for an existing modeling directory
+# Generate STATUS.md and commit
 python scripts/model.py status 1
 python scripts/model.py status 1 --modeling 1
 
-# Fix unverified files with baby-steps
+# Fix unverified files with baby-steps (no commit — iterate freely)
 python scripts/model.py fix 1
 python scripts/model.py fix 1 --property TA3
+
+# Generate review of verified divergences and commit
+python scripts/model.py review 1
+python scripts/model.py review 1 --model sonnet
 
 # Full formalization pipeline: index → statements → dafny → verify
 python scripts/model.py verify-dafny 1 --full
@@ -176,15 +191,17 @@ python scripts/commit.py --proofs-only "promote ModuleName from modeling-1"
 | `--no-alloy` | Skip injecting Alloy model as reference (included by default) |
 | `--full` | Run complete pipeline: index → statements → generate → verify |
 
-The `dafny` command generates, verifies, writes `STATUS.md`, and writes a review (for verified files with divergences) — then stops. Consult/revise is a separate manual step after reading the review.
+The `dafny` command generates, verifies, writes `STATUS.md`, and commits. Review is a separate human-triggered step (`model.py review N`) after fixing failures and updating status.
 
 ### Additional Commands
 
 | Command | Description |
 |---------|-------------|
-| `model.py status N` | Verify all .dfy files and write `STATUS.md` (no LLM generation) |
-| `model.py fix N` | Fix unverified files with agentic baby-steps |
+| `model.py status N` | Verify all .dfy files, write `STATUS.md`, commit |
+| `model.py fix N` | Fix unverified files with agentic baby-steps (no commit) |
 | `model.py fix N --property TA3` | Fix a single property |
+| `model.py review N` | Generate divergence review from verified files, commit |
+| `model.py review N --model sonnet` | Use sonnet instead of opus for review |
 
 ## Path to Compiled Go
 
