@@ -358,10 +358,10 @@ def write_divergence_file(gen_dir, label, proof_label, divergences):
     """Write a .divergences.md file to the modeling directory.
 
     Only called when divergences exist. Creates the directory on first use.
+    Uses proof_label for the filename to match the .dfy file naming convention.
     """
     gen_dir.mkdir(parents=True, exist_ok=True)
-    filename = sanitize_filename(label, proof_label)
-    div_path = gen_dir / f"{filename}.divergences.md"
+    div_path = gen_dir / f"{proof_label}.divergences.md"
 
     lines = [f"# Divergences — {label} ({proof_label})\n"]
     for line_num, text in divergences:

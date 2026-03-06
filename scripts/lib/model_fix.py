@@ -25,7 +25,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from paths import (WORKSPACE, STATEMENTS_DIR, PROOFS_DIR, DAFNY_DIR,
                    USAGE_LOG, find_latest_modeling_dir)
-from lib.model_dafny import write_status_file, extract_divergences
+from lib.model_dafny import write_status_file, write_divergence_file, extract_divergences
 
 
 def read_file(path):
@@ -269,6 +269,9 @@ def main():
             fixed += 1
         else:
             print(f" STILL UNVERIFIED", file=sys.stderr)
+
+        if divergences:
+            write_divergence_file(gen_dir, dfy_path.stem, dfy_path.stem, divergences)
 
         fix_results.append({
             "proof_label": dfy_path.stem,
