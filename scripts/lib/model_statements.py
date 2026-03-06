@@ -1,17 +1,14 @@
 #!/usr/bin/env python3
 """
-Generate a proof index for a converged ASN.
+Extract formal properties from an ASN for Dafny translation.
 
-Classifies each property by type (INV/PRE/POST/FRAME/LEMMA), assigns
-proof labels, and produces an index table. Operates on ASNs that have
-reached review maturity.
-
-If a proof index already exists for the ASN, it is passed to the prompt so
-the agent can preserve established proof labels and flag changes.
+Uses the proof index as a roster to locate each property in the ASN,
+then extracts just the formal statement. Produces a compact properties
+file suitable as input to the Dafny generation step.
 
 Usage:
-    python scripts/contract-asn.py 4
-    python scripts/contract-asn.py ASN-0004 --dry-run
+    python scripts/model.py statements 4
+    python scripts/model.py statements ASN-0001 --dry-run
 """
 
 import argparse
@@ -24,11 +21,11 @@ import time
 
 from pathlib import Path
 
-from paths import WORKSPACE, ASNS_DIR, PROOF_INDEX_DIR, VOCABULARY, USAGE_LOG
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from paths import WORKSPACE, ASNS_DIR, PROOF_INDEX_DIR, STATEMENTS_DIR, USAGE_LOG
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"
-REFINE_TEMPLATE = PROMPTS_DIR / "refine.md"
-COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
+TEMPLATE = PROMPTS_DIR / "extract-properties.md"
 
 
 def read_file(path):
@@ -55,35 +52,30 @@ def find_asn(asn_id):
     return None, label
 
 
-def build_prompt(asn_content, vocabulary, existing_mapping):
-    """Assemble refinement prompt from template + injected content."""
-    template = read_file(REFINE_TEMPLATE)
+def build_prompt(asn_content, proof_index):
+    """Assemble extraction prompt from template + injected content."""
+    template = read_file(TEMPLATE)
     if not template:
-        print("  Prompt template not found at scripts/prompts/refine.md",
+        print("  Prompt template not found at scripts/prompts/extract-properties.md",
               file=sys.stderr)
         sys.exit(1)
-
-    if not existing_mapping:
-        existing_mapping = "(No existing mapping — first run.)"
 
     return template.replace(
         "{{asn_content}}", asn_content
     ).replace(
-        "{{vocabulary}}", vocabulary
-    ).replace(
-        "{{existing_mapping}}", existing_mapping
+        "{{proof_index}}", proof_index
     )
 
 
 def strip_preamble(text):
-    """Strip any preamble before the proof index header."""
+    """Strip any preamble before the properties header."""
     marker = re.search(r"^# ASN-\d+", text, re.MULTILINE)
     if marker:
         return text[marker.start():]
     return text
 
 
-def invoke_claude(prompt, model="opus", effort="max"):
+def invoke_claude(prompt, model="sonnet", effort="high"):
     """Call claude --print with --tools "". Returns plain text response."""
     model_flag = {
         "opus": "claude-opus-4-6",
@@ -125,7 +117,7 @@ def log_usage(asn_label, elapsed):
     try:
         entry = {
             "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
-            "skill": "proof-index",
+            "skill": "extract-properties",
             "asn": asn_label,
             "elapsed_s": round(elapsed, 1),
         }
@@ -137,13 +129,13 @@ def log_usage(asn_label, elapsed):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Generate proof index for a converged ASN")
+        description="Extract formal properties from an ASN for Dafny translation")
     parser.add_argument("asn",
                         help="ASN number (e.g., 4, 0004, ASN-0004) or path")
-    parser.add_argument("--model", "-m", default="opus",
+    parser.add_argument("--model", "-m", default="sonnet",
                         choices=["opus", "sonnet"],
-                        help="Model (default: opus)")
-    parser.add_argument("--effort", default="max",
+                        help="Model (default: sonnet)")
+    parser.add_argument("--effort", default="high",
                         help="Thinking effort level (low/medium/high/max)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Show prompt size without invoking Claude")
@@ -157,32 +149,18 @@ def main():
 
     asn_content = asn_path.read_text()
 
-    # Read vocabulary
-    vocabulary = read_file(VOCABULARY)
-    if not vocabulary:
-        print("  Warning: vault/vocabulary.md not found", file=sys.stderr)
-
-    # Read existing proof index (if any) for incremental update
+    # Read proof index (required)
     index_path = PROOF_INDEX_DIR / f"{asn_label}-proof-index.md"
-    existing_mapping = read_file(index_path)
-    if existing_mapping:
-        # Check if proof index matches current ASN revision
-        index_date = re.search(r"revised (\d{4}-\d{2}-\d{2})", existing_mapping)
-        asn_dates = re.findall(r"\d{4}-\d{2}-\d{2}",
-                               re.search(r"\*.*?\*", asn_content).group(0)
-                               if re.search(r"\*.*?\*", asn_content) else "")
-        asn_date = asn_dates[-1] if asn_dates else None
-        if index_date and asn_date and index_date.group(1) == asn_date:
-            print(f"  Existing proof index matches ASN revision ({asn_date})",
-                  file=sys.stderr)
-        elif index_date and asn_date:
-            print(f"  ASN revised since last proof index ({index_date.group(1)} → {asn_date})",
-                  file=sys.stderr)
-        print(f"  Incremental update — preserving proof labels", file=sys.stderr)
+    proof_index = read_file(index_path)
+    if not proof_index:
+        print(f"  No proof index found at {index_path.relative_to(WORKSPACE)}",
+              file=sys.stderr)
+        print(f"  Run: python scripts/model.py index {args.asn}", file=sys.stderr)
+        sys.exit(1)
 
     # Build prompt
-    print(f"  [PROOF-INDEX] {asn_label}", file=sys.stderr)
-    prompt = build_prompt(asn_content, vocabulary, existing_mapping)
+    print(f"  [EXTRACT] {asn_label}", file=sys.stderr)
+    prompt = build_prompt(asn_content, proof_index)
     print(f"  Prompt: {len(prompt) // 1024}KB (~{len(prompt) // 4} tokens est.)",
           file=sys.stderr)
 
@@ -196,21 +174,23 @@ def main():
                                   effort=args.effort)
 
     if not text:
-        print("  No proof index produced", file=sys.stderr)
+        print("  No properties extracted", file=sys.stderr)
         sys.exit(1)
 
     # Strip any preamble
     text = strip_preamble(text)
 
-    # Extract ASN revision date from its header (e.g., "2026-02-23 (revised 2026-02-24)")
+    # Add source metadata after the title
     date_match = re.search(r"\*.*?(\d{4}-\d{2}-\d{2}).*?\*", asn_content)
-    # Find the last date mentioned in the header line (the most recent revision)
     all_dates = re.findall(r"\d{4}-\d{2}-\d{2}", date_match.group(0)) if date_match else []
     asn_date = all_dates[-1] if all_dates else "unknown"
 
-    # Add source metadata line after the title
-    source_line = f"\n*Source: {asn_path.name} (revised {asn_date}) — Index generated: {time.strftime('%Y-%m-%d')}*\n"
-    # Insert after the first line (the title)
+    index_gen = re.search(r"Index generated: (\d{4}-\d{2}-\d{2})", proof_index)
+    index_date = index_gen.group(1) if index_gen else "unknown"
+
+    source_line = (f"\n*Source: {asn_path.name} (revised {asn_date}) — "
+                   f"Index: {index_date} — "
+                   f"Extracted: {time.strftime('%Y-%m-%d')}*\n")
     lines = text.split("\n", 1)
     if len(lines) == 2:
         text = lines[0] + "\n" + source_line + lines[1]
@@ -218,34 +198,17 @@ def main():
         text = text + "\n" + source_line
 
     # Write output
-    PROOF_INDEX_DIR.mkdir(parents=True, exist_ok=True)
-    index_path.write_text(text + "\n")
+    STATEMENTS_DIR.mkdir(parents=True, exist_ok=True)
+    out_path = STATEMENTS_DIR / f"{asn_label}-statements.md"
+    out_path.write_text(text + "\n")
 
     # Log usage
     log_usage(asn_label, elapsed)
 
     # Print output file path to stdout (for pipeline consumption)
-    print(str(index_path))
+    print(str(out_path))
 
-    print(f"  [WROTE] {index_path.relative_to(WORKSPACE)}", file=sys.stderr)
-
-    # Commit
-    if not args.dry_run:
-        print(f"\n  === COMMIT ===", file=sys.stderr)
-        cmd = [sys.executable, str(COMMIT_SCRIPT),
-               f"Proof index {asn_label}"]
-        result = subprocess.run(
-            cmd, capture_output=True, text=True, cwd=str(WORKSPACE),
-        )
-        if result.returncode != 0:
-            print(f"  [COMMIT] FAILED", file=sys.stderr)
-            if result.stderr:
-                for line in result.stderr.strip().split("\n")[:3]:
-                    print(f"    {line}", file=sys.stderr)
-        else:
-            if result.stderr:
-                for line in result.stderr.strip().split("\n"):
-                    print(f"  {line}", file=sys.stderr)
+    print(f"  [WROTE] {out_path.relative_to(WORKSPACE)}", file=sys.stderr)
 
 
 if __name__ == "__main__":

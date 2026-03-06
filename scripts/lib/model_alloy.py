@@ -32,6 +32,7 @@ import time
 
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from paths import (WORKSPACE, ASNS_DIR, ALLOY_DIR, STATEMENTS_DIR, REVIEWS_DIR,
                     USAGE_LOG, sorted_reviews, next_review_number,
                     sanitize_filename)
@@ -768,8 +769,8 @@ def run_all_in_one(args, asn_path, asn_label, extract):
         sys.exit(2)
 
 
-CONSULT_SCRIPT = WORKSPACE / "scripts" / "consult_for_revision.py"
-REVISE_SCRIPT = WORKSPACE / "scripts" / "revise-asn.py"
+CONSULT_SCRIPT = WORKSPACE / "scripts" / "lib" / "review_consult.py"
+REVISE_SCRIPT = WORKSPACE / "scripts" / "lib" / "review_revise.py"
 COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
 
 
@@ -916,7 +917,7 @@ def main():
     if not extract:
         print(f"  No extract found at {extract_path.relative_to(WORKSPACE)}",
               file=sys.stderr)
-        print(f"  Run: python scripts/extract-properties.py {args.asn}",
+        print(f"  Run: python scripts/model.py statements {args.asn}",
               file=sys.stderr)
         sys.exit(1)
 

@@ -10,10 +10,10 @@ For Tier 2 (proof-structural) errors: the extract and vocabulary provide
 additional context about intended property semantics.
 
 Usage:
-    python scripts/fix-dafny.py 1
-    python scripts/fix-dafny.py ASN-0001 --with-extract
-    python scripts/fix-dafny.py ASN-0001 --report vault/3-modeling/verification/ASN-0001-verify-3.md
-    python scripts/fix-dafny.py ASN-0001 --dry-run
+    python scripts/lib/model_fix.py 1
+    python scripts/lib/model_fix.py ASN-0001 --with-extract
+    python scripts/lib/model_fix.py ASN-0001 --report vault/3-modeling/verification/ASN-0001-verify-3.md
+    python scripts/lib/model_fix.py ASN-0001 --dry-run
 """
 
 import argparse
@@ -26,6 +26,7 @@ import time
 
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from paths import (WORKSPACE, DAFNY_DIR, STATEMENTS_DIR, VERIFICATION_DIR,
                    VOCABULARY, USAGE_LOG)
 
@@ -224,7 +225,7 @@ def main():
         if report_path is None:
             print(f"  No verification report found for {asn_label}",
                   file=sys.stderr)
-            print(f"  Run: python scripts/verify-dafny.py {args.asn}",
+            print(f"  Run: python scripts/lib/model_verify_run.py {args.asn}",
                   file=sys.stderr)
             sys.exit(1)
 

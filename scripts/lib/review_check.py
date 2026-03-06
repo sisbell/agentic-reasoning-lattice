@@ -9,10 +9,10 @@ pure analysis, no file access needed).
 Results written to vault/2-review/ for traceability.
 
 Usage:
-    python scripts/review-asn.py 4
-    python scripts/review-asn.py 9 --model sonnet
-    python scripts/review-asn.py 9 --effort high
-    python scripts/review-asn.py 4 --dry-run
+    python scripts/lib/review_check.py 4
+    python scripts/lib/review_check.py 9 --model sonnet
+    python scripts/lib/review_check.py 9 --effort high
+    python scripts/lib/review_check.py 4 --dry-run
 """
 
 import argparse
@@ -25,6 +25,7 @@ import time
 
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from paths import WORKSPACE, ASNS_DIR, VOCABULARY, REVIEWS_DIR, USAGE_LOG, sorted_reviews
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"

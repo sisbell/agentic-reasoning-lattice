@@ -9,15 +9,15 @@ Orchestrates ASN production by calling step scripts:
   4. Commit: commit vault changes
 
 Specify a step to run up to and including that step:
-    python scripts/run-asn.py --inquiries 4 questions    # preview sub-questions
-    python scripts/run-asn.py --inquiries 4 consult      # questions + consultations
-    python scripts/run-asn.py --inquiries 4 discover     # consult + discover
-    python scripts/run-asn.py --inquiries 4              # full pipeline (all steps)
-    python scripts/run-asn.py                            # all inquiries, full pipeline
+    python scripts/draft.py --inquiries 4 questions    # preview sub-questions
+    python scripts/draft.py --inquiries 4 consult      # questions + consultations
+    python scripts/draft.py --inquiries 4 discover     # consult + discover
+    python scripts/draft.py --inquiries 4              # full pipeline (all steps)
+    python scripts/draft.py                            # all inquiries, full pipeline
 
 Resume from a specific step (skip earlier steps):
-    python scripts/run-asn.py --inquiries 4 --resume discover  # skip consult
-    python scripts/run-asn.py --inquiries 4 --resume commit    # just commit
+    python scripts/draft.py --inquiries 4 --resume discover  # skip consult
+    python scripts/draft.py --inquiries 4 --resume commit    # just commit
 """
 
 import argparse
@@ -29,10 +29,11 @@ import time
 import yaml
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from paths import WORKSPACE, INQUIRIES_FILE, ASNS_DIR, USAGE_LOG
 
-CONSULT_SCRIPT = WORKSPACE / "scripts" / "consult_experts.py"
-DISCOVER_SCRIPT = WORKSPACE / "scripts" / "discover.py"
+CONSULT_SCRIPT = WORKSPACE / "scripts" / "lib" / "draft_consult.py"
+DISCOVER_SCRIPT = WORKSPACE / "scripts" / "lib" / "draft_discover.py"
 COMMIT_PROMPT = WORKSPACE / "scripts" / "prompts" / "commit.md"
 
 COMMIT_MODEL = "claude-sonnet-4-6"

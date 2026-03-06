@@ -13,11 +13,11 @@ For batch consultations (consult-experts.py pipeline), Gregory logic is
 inlined directly — this script is NOT called as a subprocess.
 
 Usage:
-    python scripts/consult-gregory.py "What happens to I-address allocation after DELETE?"
-    python scripts/consult-gregory.py --kb-only "question"
-    python scripts/consult-gregory.py --code-only "question"
-    python scripts/consult-gregory.py --effort max "question"
-    echo "question" | python scripts/consult-gregory.py --stdin
+    python scripts/consult.py gregory "What happens to I-address allocation after DELETE?"
+    python scripts/consult.py gregory --kb-only "question"
+    python scripts/consult.py gregory --code-only "question"
+    python scripts/consult.py gregory --effort max "question"
+    echo "question" | python scripts/consult.py gregory --stdin
 """
 
 import argparse
@@ -31,6 +31,7 @@ import threading
 from datetime import datetime
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from paths import WORKSPACE, EXPERTS_DIR, USAGE_LOG
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"

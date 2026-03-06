@@ -14,11 +14,11 @@ Exit codes:
     3 = Tier 3 escalation (spec error — needs ASN revision)
 
 Usage:
-    python scripts/run-dafny.py 1                     # verify + fix loop
-    python scripts/run-dafny.py 1 --max-tier1 3       # up to 3 Tier 1 fix attempts
-    python scripts/run-dafny.py 1 --max-tier2 2       # up to 2 Tier 2 fix attempts
-    python scripts/run-dafny.py 1 --full               # proof-index → extract → generate → verify loop
-    python scripts/run-dafny.py 1 --dry-run            # check paths, no execution
+    python scripts/model.py verify-dafny 1                     # verify + fix loop
+    python scripts/model.py verify-dafny 1 --max-tier1 3       # up to 3 Tier 1 fix attempts
+    python scripts/model.py verify-dafny 1 --max-tier2 2       # up to 2 Tier 2 fix attempts
+    python scripts/model.py verify-dafny 1 --full               # proof-index → extract → generate → verify loop
+    python scripts/model.py verify-dafny 1 --dry-run            # check paths, no execution
 """
 
 import argparse
@@ -31,14 +31,15 @@ import time
 
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from paths import (WORKSPACE, ASNS_DIR, DAFNY_DIR, PROOF_INDEX_DIR,
                    STATEMENTS_DIR, VERIFICATION_DIR, USAGE_LOG)
 
-VERIFY_SCRIPT = WORKSPACE / "scripts" / "verify-dafny.py"
-FIX_SCRIPT = WORKSPACE / "scripts" / "fix-dafny.py"
-PROOF_INDEX_SCRIPT = WORKSPACE / "scripts" / "contract-asn.py"
-EXTRACT_SCRIPT = WORKSPACE / "scripts" / "extract-properties.py"
-GENERATE_SCRIPT = WORKSPACE / "scripts" / "generate-dafny.py"
+VERIFY_SCRIPT = WORKSPACE / "scripts" / "lib" / "model_verify_run.py"
+FIX_SCRIPT = WORKSPACE / "scripts" / "lib" / "model_fix.py"
+PROOF_INDEX_SCRIPT = WORKSPACE / "scripts" / "lib" / "model_index.py"
+EXTRACT_SCRIPT = WORKSPACE / "scripts" / "lib" / "model_statements.py"
+GENERATE_SCRIPT = WORKSPACE / "scripts" / "lib" / "model_dafny.py"  # was generate-dafny.py; now points to per-property generator
 COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
 
 
@@ -250,7 +251,7 @@ or the formal encoding may not match the ASN's intent.
 
 Re-run review-revise cycle with these findings as input:
 ```
-python scripts/run-review.py {asn_label.split('-')[1].lstrip('0') or '0'}
+python scripts/review.py {asn_label.split('-')[1].lstrip('0') or '0'}
 ```
 """
 
@@ -356,7 +357,7 @@ def main():
     if not dfy_path.exists():
         print(f"  No .dfy file at {dfy_path.relative_to(WORKSPACE)}",
               file=sys.stderr)
-        print(f"  Run: python scripts/generate-dafny.py {args.asn}",
+        print(f"  Run: python scripts/model.py dafny {args.asn}",
               file=sys.stderr)
         print(f"  Or use --full to run the complete pipeline", file=sys.stderr)
         sys.exit(1)

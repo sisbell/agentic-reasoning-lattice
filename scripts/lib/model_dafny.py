@@ -26,6 +26,7 @@ import time
 
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from paths import (WORKSPACE, ASNS_DIR, PROOF_INDEX_DIR, STATEMENTS_DIR, DAFNY_DIR,
                     ALLOY_DIR, DAFNY_DISCOVERY_DIR, REVIEWS_DIR, USAGE_LOG,
                     MODULES_REGISTRY, next_review_number, sanitize_filename)
@@ -35,8 +36,8 @@ TEMPLATE = PROMPTS_DIR / "generate-dafny-property.md"
 DAFNY_REFERENCE = PROMPTS_DIR / "dafny-reference.dfy"
 DAFNY_REVIEW_TEMPLATE = PROMPTS_DIR / "write-dafny-review.md"
 
-CONSULT_SCRIPT = WORKSPACE / "scripts" / "consult_for_revision.py"
-REVISE_SCRIPT = WORKSPACE / "scripts" / "revise-asn.py"
+CONSULT_SCRIPT = WORKSPACE / "scripts" / "lib" / "review_consult.py"
+REVISE_SCRIPT = WORKSPACE / "scripts" / "lib" / "review_revise.py"
 COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
 
 
@@ -627,12 +628,12 @@ def main():
     if index_path is None:
         print(f"  No proof index found for {args.asn} in {PROOF_INDEX_DIR.relative_to(WORKSPACE)}/",
               file=sys.stderr)
-        print(f"  Run: python scripts/contract-asn.py {args.asn}", file=sys.stderr)
+        print(f"  Run: python scripts/model.py index {args.asn}", file=sys.stderr)
         sys.exit(1)
     if extract_path is None:
         print(f"  No extract found for {args.asn} in {STATEMENTS_DIR.relative_to(WORKSPACE)}/",
               file=sys.stderr)
-        print(f"  Run: python scripts/extract-properties.py {args.asn}", file=sys.stderr)
+        print(f"  Run: python scripts/model.py statements {args.asn}", file=sys.stderr)
         sys.exit(1)
 
     template_text = read_file(TEMPLATE)

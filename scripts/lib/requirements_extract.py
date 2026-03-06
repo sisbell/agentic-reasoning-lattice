@@ -9,9 +9,9 @@ feature area, assigns feature numbers, and maps features to ASNs.
 Output: vault/requirements/features.md
 
 Usage:
-    python scripts/extract-features.py 4 6 9        # specific ASNs
-    python scripts/extract-features.py               # all ASNs
-    python scripts/extract-features.py 11 --dry-run
+    python scripts/requirements.py 4 6 9        # specific ASNs
+    python scripts/requirements.py               # all ASNs
+    python scripts/requirements.py 11 --dry-run
 """
 
 import argparse
@@ -24,6 +24,7 @@ import time
 
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from paths import WORKSPACE, ASNS_DIR, REQUIREMENTS_DIR, USAGE_LOG
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"

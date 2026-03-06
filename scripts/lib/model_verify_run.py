@@ -16,9 +16,9 @@ Exit codes:
     4 = Tier 3 errors present (spec error — escape)
 
 Usage:
-    python scripts/verify-dafny.py 1
-    python scripts/verify-dafny.py ASN-0001 --dry-run
-    python scripts/verify-dafny.py ASN-0001 --timeout 120
+    python scripts/lib/model_verify_run.py 1
+    python scripts/lib/model_verify_run.py ASN-0001 --dry-run
+    python scripts/lib/model_verify_run.py ASN-0001 --timeout 120
 """
 
 import argparse
@@ -30,6 +30,7 @@ import time
 
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from paths import WORKSPACE, DAFNY_DIR, VERIFICATION_DIR, USAGE_LOG
 
 
@@ -259,7 +260,7 @@ def main():
     if dfy_path is None:
         print(f"  No .dfy file found for {args.asn} in vault/proofs/",
               file=sys.stderr)
-        print(f"  Run: python scripts/generate-dafny.py {args.asn}",
+        print(f"  Run: python scripts/model.py dafny {args.asn}",
               file=sys.stderr)
         sys.exit(1)
 

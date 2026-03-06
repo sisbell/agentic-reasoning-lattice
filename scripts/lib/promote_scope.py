@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-Promote ASN open questions — decide which spawn new inquiries.
+Promote review OUT_OF_SCOPE items for a single ASN — decide which spawn new inquiries.
 
-Reads an ASN's open questions, checks what's already been promoted,
-invokes Claude to evaluate each question, and updates inquiries.yaml
-and vault/1-promote/ASN-NNNN/open-questions.md for qualifying questions.
+Extracts OUT_OF_SCOPE sections from the ASN's review files, checks against existing
+inquiries and previous promotions, invokes Claude to evaluate each topic, and
+updates inquiries.yaml for qualifying topics.
 
 Usage:
-    python scripts/promote-open-questions.py 12
-    python scripts/promote-open-questions.py 13 --dry-run
-    python scripts/promote-open-questions.py 4 --model sonnet
+    python scripts/promote-out-of-scope.py 4
+    python scripts/promote-out-of-scope.py 14 --dry-run
+    python scripts/promote-out-of-scope.py 4 --model sonnet
 """
 
 import argparse
@@ -23,10 +23,11 @@ import yaml
 
 from pathlib import Path
 
-from paths import WORKSPACE, ASNS_DIR, INQUIRIES_FILE, PROMOTE_DIR, USAGE_LOG
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from paths import WORKSPACE, REVIEWS_DIR, INQUIRIES_FILE, PROMOTE_DIR, USAGE_LOG, sorted_reviews
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
-PROMOTE_TEMPLATE = PROMPTS_DIR / "promote-open-questions.md"
+PROMOTE_TEMPLATE = PROMPTS_DIR / "promote-out-of-scope.md"
 
 
 def read_file(path):
@@ -36,21 +37,48 @@ def read_file(path):
         return ""
 
 
-def find_asn(asn_id):
-    """Find ASN file by number."""
-    path = Path(asn_id)
-    if path.exists():
-        label = re.match(r"(ASN-\d+)", path.stem)
-        return path, label.group(1) if label else path.stem
-
+def find_asn_label(asn_id):
+    """Normalize ASN identifier to label like ASN-0004."""
     num = re.sub(r"[^0-9]", "", str(asn_id))
     if not num:
-        return None, None
-    label = f"ASN-{int(num):04d}"
-    matches = sorted(ASNS_DIR.glob(f"{label}-*.md"))
-    if matches:
-        return matches[0], label
-    return None, label
+        return None
+    return f"ASN-{int(num):04d}"
+
+
+def extract_defers(reviews_dir, asn_label):
+    """Extract OUT_OF_SCOPE sections from an ASN's review files.
+
+    Returns a string with each block labeled by source review.
+    """
+    review_files = sorted_reviews(asn_label, reviews_dir)
+    if not review_files:
+        return ""
+
+    blocks = []
+    for rf in review_files:
+        text = rf.read_text()
+        # Find the ## OUT_OF_SCOPE section
+        defer_match = re.search(r"^## OUT_OF_SCOPE\b.*$", text, re.MULTILINE)
+        if not defer_match:
+            continue
+
+        # Extract from ## OUT_OF_SCOPE to end of file or next ## section
+        rest = text[defer_match.end():]
+        next_section = re.search(r"^## ", rest, re.MULTILINE)
+        if next_section:
+            defer_content = rest[:next_section.start()].strip()
+        else:
+            # Strip META line if present at end
+            defer_content = re.sub(r"\nMETA:.*$", "", rest).strip()
+
+        if not defer_content:
+            continue
+
+        # Label with source file
+        label = rf.stem  # e.g. ASN-0004-review-2
+        blocks.append(f"### From {label}\n\n{defer_content}")
+
+    return "\n\n".join(blocks)
 
 
 def load_inquiries():
@@ -71,25 +99,33 @@ def next_inquiry_id(data):
     return max_id + 1
 
 
-def build_prompt(asn_content, inquiries_text, existing_promotion):
+def build_prompt(defer_items, inquiries_text, existing_promotion):
     """Assemble promotion prompt from template + injected content."""
     template = read_file(PROMOTE_TEMPLATE)
     if not template:
-        print("  Promotion prompt template not found at scripts/prompts/promote-open-questions.md",
+        print("  Promotion prompt template not found at scripts/prompts/promote-out-of-scope.md",
               file=sys.stderr)
         sys.exit(1)
 
     return template.replace(
-        "{{asn_content}}", asn_content
+        "{{defer_items}}", defer_items
     ).replace(
         "{{inquiries}}", inquiries_text
     ).replace(
-        "{{existing_promotion}}", existing_promotion
+        "{{existing_promotion}}", existing_promotion or "(No previous promotion.)"
     )
 
 
+def strip_preamble(text):
+    """Strip any preamble before the promotion header."""
+    marker = re.search(r"^# Promotion:", text, re.MULTILINE)
+    if marker:
+        return text[marker.start():]
+    return text
+
+
 def invoke_claude(prompt, model="opus", effort="max"):
-    """Call claude --print. Returns plain text response."""
+    """Call claude --print with --tools "". Returns plain text response."""
     model_flag = {
         "opus": "claude-opus-4-6",
         "sonnet": "claude-sonnet-4-6",
@@ -147,7 +183,7 @@ def parse_promoted(text):
         if not in_promoted:
             continue
 
-        # New promoted question
+        # New promoted topic
         if stripped.startswith("- **"):
             if current:
                 inquiries.append(current)
@@ -182,7 +218,7 @@ def append_inquiry_yaml(data, inquiry, next_id):
         "title": inquiry["title"],
         "question": inquiry["question"],
         "area": inquiry["area"],
-        "source": f"ASN promotion",
+        "source": "review-defer promotion",
     }
     nelson = inquiry.get("nelson", 10)
     gregory = inquiry.get("gregory", 10)
@@ -230,7 +266,7 @@ def log_usage(asn_label, elapsed):
     try:
         entry = {
             "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
-            "skill": "promote-open-questions",
+            "skill": "promote-out-of-scope",
             "asn": asn_label,
             "elapsed_s": round(elapsed, 1),
         }
@@ -242,34 +278,51 @@ def log_usage(asn_label, elapsed):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Promote ASN open questions into new inquiries")
-    parser.add_argument("asn", help="ASN number (e.g., 12, 0012, ASN-0012)")
+        description="Promote review OUT_OF_SCOPE items into new inquiries")
+    parser.add_argument("asn", help="ASN number (e.g., 4, 0004, ASN-0004)")
     parser.add_argument("--model", "-m", default="opus",
                         choices=["opus", "sonnet"],
                         help="Model (default: opus)")
     parser.add_argument("--effort", default="max",
                         help="Thinking effort level (low/medium/high/max)")
     parser.add_argument("--dry-run", action="store_true",
-                        help="Show output without updating files")
+                        help="Show extracted defers and prompt size without invoking Claude")
     args = parser.parse_args()
 
-    # Find ASN
-    asn_path, asn_label = find_asn(args.asn)
-    if asn_path is None:
-        print(f"  No ASN found for {args.asn} in vault/asns/", file=sys.stderr)
+    # Resolve ASN label
+    asn_label = find_asn_label(args.asn)
+    if not asn_label:
+        print(f"  Invalid ASN identifier: {args.asn}", file=sys.stderr)
         sys.exit(1)
 
-    asn_content = asn_path.read_text()
+    # Extract OUT_OF_SCOPE sections from this ASN's reviews
+    defer_items = extract_defers(REVIEWS_DIR, asn_label)
+    if not defer_items:
+        print(f"  No OUT_OF_SCOPE sections found in {asn_label} reviews", file=sys.stderr)
+        sys.exit(0)
 
-    # Load current state
+    # Count defer topics
+    topic_count = len(re.findall(r"^### Topic \d+", defer_items, re.MULTILINE))
+    review_count = len(re.findall(r"^### From ", defer_items, re.MULTILINE))
+    print(f"  [PROMOTE-OOS] {asn_label}: {topic_count} topics from {review_count} reviews",
+          file=sys.stderr)
+
+    # Load inquiries and existing promotions for this ASN
     inq_data, inq_text = load_inquiries()
-    existing_promotion = read_file(PROMOTE_DIR / asn_label / "open-questions.md")
+    output_path = PROMOTE_DIR / asn_label / "out-of-scope-issues.md"
+    existing_promotion = read_file(output_path)
 
     # Build prompt
-    print(f"  [PROMOTE] {asn_label}", file=sys.stderr)
-    prompt = build_prompt(asn_content, inq_text, existing_promotion)
+    prompt = build_prompt(defer_items, inq_text, existing_promotion)
     print(f"  Prompt: {len(prompt) // 1024}KB (~{len(prompt) // 4} tokens est.)",
           file=sys.stderr)
+
+    if args.dry_run:
+        print(f"\n  [DRY RUN] Would invoke {args.model} with --tools \"\"",
+              file=sys.stderr)
+        print("\n--- Extracted OUT_OF_SCOPE items ---\n")
+        print(defer_items)
+        return
 
     # Invoke Claude
     text, elapsed = invoke_claude(prompt, model=args.model, effort=args.effort)
@@ -278,7 +331,10 @@ def main():
         print("  No response produced", file=sys.stderr)
         sys.exit(1)
 
-    # Parse promoted inquiries from markdown
+    # Strip any preamble
+    text = strip_preamble(text)
+
+    # Parse promoted inquiries
     promoted = parse_promoted(text)
 
     # Display summary
@@ -290,19 +346,12 @@ def main():
             print(f"    -> {ni.get('title', '?')} [{ni.get('area', '?')}] "
                   f"(nelson:{n} gregory:{g})", file=sys.stderr)
     else:
-        print(f"\n  No new inquiries from {asn_label}", file=sys.stderr)
+        print(f"\n  No new inquiries from {asn_label} deferrals", file=sys.stderr)
 
-    if args.dry_run:
-        print(f"\n  [DRY RUN] Would write promotion file", file=sys.stderr)
-        print(text)
-        log_usage(asn_label, elapsed)
-        return
-
-    # Write promotion file (Claude's output directly)
+    # Write promotion file (one per ASN, updated in place)
     (PROMOTE_DIR / asn_label).mkdir(parents=True, exist_ok=True)
-    output_path = PROMOTE_DIR / asn_label / "open-questions.md"
     output_path.write_text(text + "\n")
-    print(f"  [UPDATED] {output_path.relative_to(WORKSPACE)}", file=sys.stderr)
+    print(f"  [WROTE] {output_path.relative_to(WORKSPACE)}", file=sys.stderr)
 
     # Update inquiries.yaml if promoted
     if promoted:
@@ -320,7 +369,7 @@ def main():
     # Log usage
     log_usage(asn_label, elapsed)
 
-    # Print full output
+    # Print full promotion report
     print(text)
 
 

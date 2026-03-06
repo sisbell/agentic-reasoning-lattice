@@ -12,9 +12,9 @@ For batch consultations (consult-experts.py pipeline), Nelson logic is
 inlined directly — this script is NOT called as a subprocess.
 
 Usage:
-    python scripts/consult-nelson.py "What is Nelson's intent for withdrawal?"
-    python scripts/consult-nelson.py --with-png "What is Nelson's intent for withdrawal?"
-    echo "question" | python scripts/consult-nelson.py --stdin
+    python scripts/consult.py nelson "What is Nelson's intent for withdrawal?"
+    python scripts/consult.py nelson --with-png "What is Nelson's intent for withdrawal?"
+    echo "question" | python scripts/consult.py nelson --stdin
 """
 
 import argparse
@@ -26,6 +26,7 @@ import sys
 import time
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from paths import WORKSPACE, EXPERTS_DIR, USAGE_LOG
 
 CONCEPTS_DIR = WORKSPACE / "nelson" / "xanadu-concepts"

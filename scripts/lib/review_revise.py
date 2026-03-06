@@ -8,9 +8,9 @@ with tools so the agent can read the ASN, make targeted fixes, and
 consult Nelson/Gregory if needed.
 
 Usage:
-    python scripts/revise-asn.py 9              # ASN-0009 + latest review
-    python scripts/revise-asn.py 9 review-1     # ASN-0009 + specific review
-    python scripts/revise-asn.py 9 -m sonnet    # use sonnet instead of opus
+    python scripts/lib/review_revise.py 9              # ASN-0009 + latest review
+    python scripts/lib/review_revise.py 9 review-1     # ASN-0009 + specific review
+    python scripts/lib/review_revise.py 9 -m sonnet    # use sonnet instead of opus
 """
 
 import argparse
@@ -22,6 +22,7 @@ import sys
 import time
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from paths import WORKSPACE, VOCABULARY, ASNS_DIR, REVIEWS_DIR, USAGE_LOG, sorted_reviews
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"

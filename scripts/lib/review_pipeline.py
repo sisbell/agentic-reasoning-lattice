@@ -12,13 +12,13 @@ Each cycle produces a numbered review in vault/2-review/ and revises the ASN
 in place. Multiple cycles progressively tighten the specification.
 
 Usage:
-    python scripts/run-review.py 9                # 1 cycle: review → consult → revise → commit
-    python scripts/run-review.py 9 --cycles 2     # 2 cycles
-    python scripts/run-review.py 9 --converge     # loop until CONVERGED (max 5)
-    python scripts/run-review.py 9 --converge 8   # loop until CONVERGED (max 8)
-    python scripts/run-review.py 9 --review-only  # just review, no revise or commit
-    python scripts/run-review.py 9 --resume consult  # skip review, consult + revise from latest
-    python scripts/run-review.py 9 --resume revise   # skip review + consult, revise from latest
+    python scripts/review.py 9                # 1 cycle: review → consult → revise → commit
+    python scripts/review.py 9 --cycles 2     # 2 cycles
+    python scripts/review.py 9 --converge     # loop until CONVERGED (max 5)
+    python scripts/review.py 9 --converge 8   # loop until CONVERGED (max 8)
+    python scripts/review.py 9 --review-only  # just review, no revise or commit
+    python scripts/review.py 9 --resume consult  # skip review, consult + revise from latest
+    python scripts/review.py 9 --resume revise   # skip review + consult, revise from latest
 """
 
 import argparse
@@ -30,11 +30,12 @@ import sys
 import time
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from paths import WORKSPACE, ASNS_DIR, REVIEWS_DIR, USAGE_LOG, sorted_reviews
 
-REVIEW_SCRIPT = WORKSPACE / "scripts" / "review-asn.py"
-CONSULT_REVISION_SCRIPT = WORKSPACE / "scripts" / "consult_for_revision.py"
-REVISE_SCRIPT = WORKSPACE / "scripts" / "revise-asn.py"
+REVIEW_SCRIPT = WORKSPACE / "scripts" / "lib" / "review_check.py"
+CONSULT_REVISION_SCRIPT = WORKSPACE / "scripts" / "lib" / "review_consult.py"
+REVISE_SCRIPT = WORKSPACE / "scripts" / "lib" / "review_revise.py"
 COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
 
 STEPS = ["review", "consult", "revise", "commit"]

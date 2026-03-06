@@ -9,8 +9,8 @@ the ASN. Requires consultation answers to exist — run consult-experts.py first
 Output: vault/asns/ASN-NNNN-title.md
 
 Usage:
-    python scripts/discover.py --inquiry-id 4
-    python scripts/discover.py --inquiry-id 4 --force   # overwrite existing ASN
+    python scripts/lib/draft_discover.py --inquiry-id 4
+    python scripts/lib/draft_discover.py --inquiry-id 4 --force   # overwrite existing ASN
 """
 
 import argparse
@@ -22,6 +22,7 @@ import time
 import yaml
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from paths import WORKSPACE, INQUIRIES_FILE, ASNS_DIR, EXPERTS_DIR, VOCABULARY, USAGE_LOG
 
 DISCOVERY_PROMPT = WORKSPACE / "scripts" / "prompts" / "discovery" / "discovery.md"

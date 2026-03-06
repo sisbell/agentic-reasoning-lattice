@@ -8,10 +8,10 @@ consultations for items that need external evidence. Produces a results file for
 revise agent to consume.
 
 Usage:
-    python scripts/consult_for_revision.py 9              # latest review
-    python scripts/consult_for_revision.py 9 review-3     # specific review
-    python scripts/consult_for_revision.py 9 --dry-run    # categorize only, no consultations
-    python scripts/consult_for_revision.py 9 --model sonnet  # override model (default: opus)
+    python scripts/lib/review_consult.py 9              # latest review
+    python scripts/lib/review_consult.py 9 review-3     # specific review
+    python scripts/lib/review_consult.py 9 --dry-run    # categorize only, no consultations
+    python scripts/lib/review_consult.py 9 --model sonnet  # override model (default: opus)
 """
 
 import argparse
@@ -22,8 +22,9 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-# Import expert consultation functions from consult_experts
-from consult_experts import (
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+# Import expert consultation functions from draft_consult
+from lib.draft_consult import (
     _invoke_claude,
     _run_nelson,
     _run_gregory,
