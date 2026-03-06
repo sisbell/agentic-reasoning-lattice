@@ -603,7 +603,7 @@ def main():
     parser.add_argument("asn",
                         help="ASN number (e.g., 1, 0001, ASN-0001)")
     parser.add_argument("--property", "-p",
-                        help="Generate only this property (ASN label, e.g., T5)")
+                        help="Generate specific properties, comma-separated (e.g., T5 or T1,T3,TA0)")
     parser.add_argument("--model", "-m", default="opus",
                         choices=["opus", "sonnet"],
                         help="Model (default: opus)")
@@ -667,14 +667,26 @@ def main():
               file=sys.stderr)
         sys.exit(1)
 
-    # Filter to single property if requested
+    # Filter to specific properties if requested
     if args.property:
-        index_rows = [r for r in index_rows
-                      if r["label"] == args.property
-                      or r["proof_label"] == args.property]
-        if not index_rows:
-            print(f"  Property '{args.property}' not found in proof index", file=sys.stderr)
-            sys.exit(1)
+        targets = [t.strip() for t in args.property.split(",")]
+        matches = []
+        for target in targets:
+            found = [r for r in index_rows
+                     if r["label"] == target or r["proof_label"] == target]
+            if not found:
+                # Try prefix match
+                found = [r for r in index_rows
+                         if r["label"].lower().startswith(target.lower())
+                         or r["proof_label"].lower().startswith(target.lower())]
+            if not found:
+                print(f"  Property '{target}' not found in proof index",
+                      file=sys.stderr)
+                print(f"  Available: {', '.join(r['label'] for r in index_rows)}",
+                      file=sys.stderr)
+                sys.exit(1)
+            matches.extend(found)
+        index_rows = matches
 
     # --- Generate ---
 

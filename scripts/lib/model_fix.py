@@ -180,7 +180,7 @@ def main():
     parser.add_argument("asn",
                         help="ASN number (e.g., 1, 0001, ASN-0001)")
     parser.add_argument("--property", "-p",
-                        help="Fix a single property only")
+                        help="Fix specific properties, comma-separated (e.g., T5 or T1,T3,TA0)")
     parser.add_argument("--modeling", type=int, default=None,
                         help="Target specific modeling-N directory")
     parser.add_argument("--model", "-m", default="opus",
@@ -210,14 +210,21 @@ def main():
               file=sys.stderr)
         sys.exit(1)
 
-    # Filter to single property if requested
+    # Filter to specific properties if requested
     if args.property:
-        dfy_files = [f for f in dfy_files
-                     if args.property.lower() in f.stem.lower()]
-        if not dfy_files:
-            print(f"  No file matching '{args.property}' found",
-                  file=sys.stderr)
-            sys.exit(1)
+        targets = [t.strip() for t in args.property.split(",")]
+        matches = []
+        for target in targets:
+            found = [f for f in dfy_files
+                     if target.lower() in f.stem.lower()]
+            if not found:
+                print(f"  No file matching '{target}' found",
+                      file=sys.stderr)
+                print(f"  Available: {', '.join(f.stem for f in dfy_files)}",
+                      file=sys.stderr)
+                sys.exit(1)
+            matches.extend(found)
+        dfy_files = matches
 
     # Verify each file, collect failures
     failures = []
