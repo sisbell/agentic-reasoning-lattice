@@ -22,7 +22,7 @@ A document's virtual stream has two subspaces: text (positions prefixed by subsp
 
 ## The permanence context
 
-Before stating what DELETE does, we must be precise about what it cannot do. The system makes three permanence commitments that constrain every operation:
+Before stating what DELETE does, we must be precise about what it cannot do. The system makes four permanence commitments that constrain every operation:
 
 **P0 (Address irrevocability).** `(A a : a ∈ dom.ispace : a ∈ dom.ispace')` — no operation shrinks the set of allocated addresses.
 
@@ -111,7 +111,7 @@ The V-space compaction merits closer inspection. When DELETE shifts surviving en
 
 Gregory provides definitive evidence. The shift operation modifies `cdsp.dsas[V]` (V-displacement) and touches no other field. The three untouched fields are: I-displacement (the starting I-address), V-width (the virtual extent), and I-width (the I-address extent). The modification is a single subtraction — the deletion width is subtracted from the V-displacement of every entry beyond the deletion point. The I-address components are never read, never written, never passed as arguments to any arithmetic. DELETE's compaction is a pure V-translation that leaves all I-space information intact in surviving entries.
 
-When a deletion partially overlaps an entry — removing only part of the content it maps — three geometries arise. Let the entry map V-range [v₁, v₂) to I-range [i₁, i₂), and let the deletion target [p, p ⊕ w).
+When a deletion partially overlaps an entry — removing only part of the content it maps — three geometries arise. Let the entry map V-range [v₁, v₂) to I-range [i₁, i₂), and let the deletion target [p, p ⊕ w). We require a structural property of POOM entries: within a single entry, the correspondence is positional — V-position `v₁ + k` maps to I-address `i₁ + k` for `0 ≤ k < v₂ − v₁` — and the widths are equal: `v₂ − v₁ = i₂ − i₁`. This is the span model: each entry represents a contiguous, order-preserving, unit-stride mapping from a V-range to an I-range. All three split formulas below depend on it.
 
 **(a) Head removal** — the deletion covers the beginning of the entry: `p ≤ v₁` and `v₁ < p ⊕ w < v₂`. The first `k = (p ⊕ w) − v₁` positions of the entry are deleted. The surviving entry maps V-range [p ⊕ w, v₂) to I-range [i₁ + k, i₂). After V-compaction (shifting by w), the surviving entry appears at [p ⊕ w ⊖ w, v₂ ⊖ w) = [p, v₂ ⊖ w). The I-displacement is offset by k to skip the deleted head; the I-width decreases from (i₂ − i₁) to (i₂ − i₁ − k).
 
@@ -158,15 +158,21 @@ This leads us to a taxonomy of link discoverability states.
 
 ## Ghost links and partial resolution
 
-We define the discoverability state of a link endset relative to the set of documents that reference its I-addresses:
+Discoverability is fundamentally a per-document property — resolution always proceeds through a specific document's POOM. We define the per-document classification first, then derive the global one.
 
-**DEL7 (Link discoverability classification).** Let L be a link with endset referencing I-addresses A. The link's discoverability state for a given endset is determined by how many documents' POOMs currently reference addresses in A:
+**DEL7 (Link discoverability classification).** Let L be a link with endset referencing I-addresses A. Relative to a specific document d:
 
-- **Live**: `(A a ∈ A : (E d, p : poom(d).p = a))` — every address in A is referenced by some document's POOM. The entire endset is resolvable.
-- **Partial**: `(E a ∈ A : (E d, p : poom(d).p = a)) ∧ (E a' ∈ A : ¬(E d, p : poom(d).p = a'))` — some addresses in A are referenced, others are not. The endset is partially resolvable.
-- **Ghost**: `¬(E a ∈ A, d, p : poom(d).p = a)` — no document's current POOM maps to any address in A. The link exists (its I-space structure is permanent) but is not discoverable through any document's V-space query.
+- **Live in d**: `(A a ∈ A : (E q : poom(d).q = a))` — every address in A is mapped by d's POOM. The entire endset is resolvable through d.
+- **Partial in d**: `(E a ∈ A : (E q : poom(d).q = a)) ∧ (E a' ∈ A : ¬(E q : poom(d).q = a'))` — some addresses in A are mapped by d, others are not. The endset is partially resolvable through d.
+- **Ghost in d**: `¬(E a ∈ A, q : poom(d).q = a)` — no address in A is mapped by d's POOM. The endset is not discoverable through d.
 
-A link can transition through these states as documents delete and re-introduce content. The transition is not a property of the link — which is immutable — but of the surrounding documents' arrangements.
+From the per-document classification we derive the global state:
+
+- **Live (global)**: `(A a ∈ A : (E d, q : poom(d).q = a))` — every address in A is mapped by some document's POOM (not necessarily the same document for each address).
+- **Partial (global)**: `(E a ∈ A : (E d, q : poom(d).q = a)) ∧ (E a' ∈ A : ¬(E d, q : poom(d).q = a'))` — some addresses in A are globally reachable, others are not.
+- **Ghost (global)**: `¬(E a ∈ A, d, q : poom(d).q = a)` — no document's current POOM maps to any address in A. The link exists (its I-space structure is permanent) but is not discoverable through any document's V-space query.
+
+We observe that a link can be globally live yet ghost in every individual document except one. The global classification aggregates over all documents; the per-document classification determines what a specific resolution query returns. A link can transition through these states as documents delete and re-introduce content. The transition is not a property of the link — which is immutable — but of the surrounding documents' arrangements.
 
 **DEL8 (Endset resolution is a two-step filtering projection).** When an endset's I-addresses are resolved through a document's POOM, the resolution proceeds in two stages. First, the set of live positions is computed by filtering: each I-address in the endset is independently checked against the document's POOM, and only positions whose I-address maps to an endset member are retained:
 
@@ -182,7 +188,7 @@ The two-step decomposition makes each part independently verifiable: the filteri
 
 Gregory confirms this precisely. When a deletion removes the middle portion of a contiguous I-range from a document's POOM, endset resolution produces **two disjoint V-spans** for the surviving portions — not one contiguous span, and not an error. The resolution function walks the POOM looking for each I-address in the endset. For addresses that have been deleted, the POOM search returns NULL and the address is silently dropped. For addresses that survive, the POOM search returns V-positions, which are grouped into V-spans in the result. The output is exactly the set of V-spans that currently map to endset addresses.
 
-The distinction between DEL7's three states is now precise. A live endset resolves to a single contiguous V-span set (every I-address maps to a V-position). A partial endset resolves to a fragmented set of V-spans — the surviving portions appear as disjoint ranges with gaps where deleted content would have been. A ghost endset resolves to the empty set. In all three cases the operation succeeds; no error is raised.
+The distinction between DEL7's per-document states is now precise in terms of DEL8's resolution. An endset that is live in d has `resolve_addrs(L, endset, d)` non-empty for every address in the endset — every I-address maps to some V-position in d, though the resulting V-positions may form multiple disjoint spans (editing can scatter originally contiguous I-addresses across non-contiguous V-positions). An endset that is partial in d resolves to a subset — `resolve_addrs` returns positions for some endset addresses but not others, and `resolve` groups the surviving positions into one or more spans. An endset that is ghost in d resolves to the empty set: `resolve_addrs(L, endset, d) = ∅`. In all three cases the operation succeeds; no error is raised.
 
 Nelson acknowledges the partial case: "Links between bytes can survive deletions, insertions and rearrangements, if anything is left at each end." The words "if anything is left at each end" describe the boundary between partial and ghost — the link becomes navigable when at least some bytes at each endset remain arranged in some document's V-space.
 
@@ -236,7 +242,7 @@ We now compute the weakest precondition for DELETE to preserve the span-index fo
 
 Let the postcondition R be the forward inclusion:
 
-  R: `(A d', a : (E p : poom'(d').p = a) ⟹ (a, d') ∈ spanindex')`
+  R: `(A d', a : (E q : poom'(d').q = a) ⟹ (a, d') ∈ spanindex')`
 
 We seek `wp(DELETE(d, p, w), R)` — the weakest condition on the pre-state such that R holds after the deletion.
 
@@ -244,13 +250,13 @@ DELETE modifies two state components: `poom(d)` (removing entries and shifting s
 
 Substituting the post-state expressions into R, we split by whether `d' = d`:
 
-For d' ≠ d: `poom'(d') = poom(d')` and `spanindex' = spanindex`, so the conjunct becomes `(A a : (E p : poom(d').p = a) ⟹ (a, d') ∈ spanindex)` — identical to the pre-state forward inclusion restricted to d'.
+For d' ≠ d: `poom'(d') = poom(d')` and `spanindex' = spanindex`, so the conjunct becomes `(A a : (E q : poom(d').q = a) ⟹ (a, d') ∈ spanindex)` — identical to the pre-state forward inclusion restricted to d'.
 
 For d' = d: `poom'(d)` is obtained from `poom(d)` by removing entries in [p, p ⊕ w) and shifting survivors. Crucially, no new I-addresses enter `poom'(d)` that were not already in `poom(d)` — DELETE only removes and shifts, it does not introduce. Therefore `img(poom'(d)) ⊆ img(poom(d))`. The conjunct for d becomes: `(A a : (E q : poom'(d).q = a) ⟹ (a, d) ∈ spanindex)`. Since `img(poom'(d)) ⊆ img(poom(d))`, any a satisfying the antecedent also satisfies `(E q : poom(d).q = a)`, which by the pre-state forward inclusion gives `(a, d) ∈ spanindex = spanindex'`.
 
 Combining both cases:
 
-  `wp(DELETE(d, p, w), R) = (A d', a : (E p : poom(d').p = a) ⟹ (a, d') ∈ spanindex)`
+  `wp(DELETE(d, p, w), R) = (A d', a : (E q : poom(d').q = a) ⟹ (a, d') ∈ spanindex)`
 
 That is, the weakest precondition is exactly the pre-state forward inclusion. The result is clean but not trivial: it depends on the observation that DELETE's POOM transformation only shrinks the image (removing or narrowing entries, never adding), so the antecedent can only weaken. If the forward inclusion held before, it holds after. No additional precondition is needed.
 
@@ -275,9 +281,9 @@ We apply DELETE(d, 3, 2) — deleting 2 positions starting at position 3 (removi
 
 **Checking DEL9 (Span index over-approximation).** `spanindex' = spanindex` (by DEL4 — no entries removed). So `spanindex'` contains `(a₃, d)` and `(a₄, d)`, even though `a₃ ∉ img(poom'(d))` and `a₄ ∉ img(poom'(d))`. FINDDOCSCONTAINING({a₃}) returns {d}, but resolving a₃ through d's POOM yields no V-position — a stale result.
 
-**Checking link state.** Link L's endset {a₂, a₃, a₄} is unchanged (DEL5). Resolving L through d: `resolve_addrs(L, endset, d) = {p ∈ dom.poom'(d) : poom'(d).p ∈ {a₂, a₃, a₄}} = {2}` (only position 2 maps to a₂; a₃ and a₄ have no V-mapping in d). The link is in the *partial* state — a₂ is live, a₃ and a₄ are unreachable through d.
+**Checking link state.** Link L's endset {a₂, a₃, a₄} is unchanged (DEL5). Resolving L through d: `resolve_addrs(L, endset, d) = {q ∈ dom.poom'(d) : poom'(d).q ∈ {a₂, a₃, a₄}} = {2}` (only position 2 maps to a₂; a₃ and a₄ have no V-mapping in d). The endset is *partial in d* (DEL7) — a₂ is mapped, a₃ and a₄ are not.
 
-**Boundary case: DELETE(d, 1, 5) — deleting all content.** Every position is removed: `dom.poom'(d) = ∅`. Yet `dom.ispace' = dom.ispace` (DEL0 — all five addresses persist), `spanindex'` still contains all five (a, d) pairs (DEL4), and link L's endset is unchanged (DEL5). L is now a ghost link relative to d — `resolve_addrs(L, endset, d) = ∅`. But if another document B transcludes a₂, then L is still discoverable through B, and d appears as a stale result in FINDDOCSCONTAINING queries for any of a₁ through a₅.
+**Boundary case: DELETE(d, 1, 5) — deleting all content.** Every position is removed: `dom.poom'(d) = ∅`. Yet `dom.ispace' = dom.ispace` (DEL0 — all five addresses persist), `spanindex'` still contains all five (a, d) pairs (DEL4), and link L's endset is unchanged (DEL5). L's endset is now *ghost in d* (DEL7) — `resolve_addrs(L, endset, d) = ∅`. But if another document B transcludes a₂, then L's endset is *partial in B* (a₂ is mapped, a₃ and a₄ are not), and globally the endset is partial rather than ghost. Document d appears as a stale result in FINDDOCSCONTAINING queries for any of a₁ through a₅.
 
 
 ## Reversibility
@@ -448,7 +454,7 @@ We collect the specification of DELETE. The operation `δ(Σ, DELETE(d, p, w)) =
 | DEL4 | DELETE does not remove entries from the span index; follows from P2 | introduced |
 | DEL5 | DELETE does not modify any link structure: all endsets are unchanged | introduced |
 | DEL6 | DELETE's V-compaction modifies only V-displacement of intact entries; partial overlaps produce three cases — head removal (I-offset by k), tail removal (truncated I-width), middle split (two fragments with independent I-offsets) — all preserving correspondence (each surviving position's I-address is unchanged) | introduced |
-| DEL7 | A link endset has three discoverability states: live (all I-addresses mapped by some POOM), partial (some mapped, some not), ghost (none mapped); DELETE can transition between states | introduced |
+| DEL7 | Link discoverability is per-document: live/partial/ghost in d depending on how many endset addresses d's POOM maps; global classification derived by existential quantification over all documents | introduced |
 | DEL8 | Endset resolution is a two-step filtering projection: first collect positions `{p ∈ dom.poom(d) : poom(d).p ∈ endset(L)}`, then group maximal contiguous runs into spans | introduced |
 | DEL9 | After DELETE, the span index may contain stale entries `(a, d)` where `a ∉ img(poom(d))` | introduced |
 | DEL10 | FINDDOCSCONTAINING returns a superset of documents currently referencing the queried I-addresses; stale results require POOM validation | introduced |
