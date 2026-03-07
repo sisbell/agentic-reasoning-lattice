@@ -23,7 +23,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import WORKSPACE, VOCABULARY, ASNS_DIR, REVIEWS_DIR, USAGE_LOG, sorted_reviews
+from paths import WORKSPACE, VOCABULARY, ASNS_DIR, REVIEWS_DIR, USAGE_LOG, STATEMENTS_DIR, sorted_reviews
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
 DISCOVERY_PROMPT = PROMPTS_DIR / "discovery.md"
@@ -93,6 +93,14 @@ def build_prompt(asn_path, review_content, vocab, consultation_content=None):
 
     if vocab:
         parts.append(f"## Shared Vocabulary\n\n{vocab}")
+
+    # ASN-0001 (Tumbler Arithmetic) is the verified foundation
+    foundation = read_file(STATEMENTS_DIR / "ASN-0001-statements.md")
+    if foundation:
+        parts.append(f"## Foundation: ASN-0001 (Tumbler Arithmetic)\n\n"
+                     f"ASN-0001 defines the addressing type system. Use its definitions "
+                     f"(tumbler type, `⊕`, `⊖`, `<`, `sub()`, spans) — do not invent "
+                     f"custom notation.\n\n{foundation}")
 
     rel_path = asn_path.relative_to(WORKSPACE)
     asn_label = re.match(r"(ASN-\d+)", asn_path.stem).group(1)

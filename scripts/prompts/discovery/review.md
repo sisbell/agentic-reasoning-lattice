@@ -12,6 +12,12 @@ Use this shared vocabulary when interpreting the ASN:
 
 {{vocabulary}}
 
+## Foundation: ASN-0001 (Tumbler Arithmetic)
+
+ASN-0001 defines the addressing type system that all other ASNs build on. It is verified (30 Dafny properties) and stable. When reviewing any ASN, check that its use of addresses, positions, spans, subspaces, and ordering is consistent with these definitions. If the ASN invents its own position algebra or addressing notation instead of using the foundation, flag it as a REVISE item.
+
+{{foundation_statements}}
+
 ## How to Review
 
 1. **Read the ASN.** Understand what it claims. Each ASN is self-contained — evaluate it on its own terms.
@@ -79,7 +85,7 @@ Use this shared vocabulary when interpreting the ASN:
 4. **Every invariant conjunct addressed** — Don't skip the hard ones
 5. **Be specific** — Cite section, claim, and what's wrong
 6. **Depth is mandatory** — Postconditions without derived consequences, claims without proofs, and no concrete example are all REVISE items
-7. **No cross-ASN references** — Each ASN is self-contained. If the ASN references another ASN by number (e.g., "ASN-0001 establishes..."), flag it as a REVISE item. Properties from the broader system (S0–S5, P0–P2, etc.) should be restated inline, not cited by ASN number. The revision must remove the cross-reference and restate the property independently.
+7. **No cross-ASN references (except ASN-0001)** — Each ASN is self-contained. If the ASN references another ASN by number (e.g., "ASN-0002 establishes..."), flag it as a REVISE item. The one exception is ASN-0001 (Tumbler Arithmetic), which is the verified foundation. ASNs may use ASN-0001's definitions (tumbler type, addition, ordering, subspace extraction, spans) without restating them. If an ASN invents its own addressing notation (e.g., a custom `⊕` operator or `text_subspace()` function) instead of using ASN-0001's definitions, flag it as a REVISE item — the ASN should use the foundation, not reinvent it.
 8. **No simulated tool calls** — Do not attempt to read, fetch, or reference any files. You have everything you need in this prompt. Do not output XML tool-call markup.
 
 ## Output Format
