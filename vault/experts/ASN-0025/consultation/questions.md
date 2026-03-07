@@ -1,0 +1,24 @@
+# Sub-Questions — Address Permanence
+
+**Inquiry:** What guarantees must the system provide about address stability? Once content is assigned an address, what operations may and may not affect that assignment?
+
+1. [nelson] Once content is assigned an address in the system, may any operation — editing, deletion, or reorganization — ever cause that address to refer to different content?
+2. [nelson] When new content is inserted into a document, must the addresses of all previously existing content in that document remain unchanged?
+3. [nelson] If a user deletes a passage from their document, does the address that once referred to that passage become permanently unusable, or may it be reassigned?
+4. [nelson] Must the address of shared content remain identical across every document that includes it, or may each document assign its own address to the same content?
+5. [nelson] When a document undergoes a series of edits across multiple versions, must every piece of surviving content retain the same address it had in the original version?
+6. [nelson] Do links depend on address stability — that is, must a link's endpoint address continue to reach the same content regardless of what editing has occurred around it?
+7. [nelson] If two users independently incorporate the same shared passage, must the system guarantee that both users' references resolve to the same address?
+8. [nelson] Must the system distinguish between "content at this address was removed from this document" and "content at this address no longer exists anywhere in the system"?
+9. [nelson] Does the permanence guarantee extend to the address itself, or only to the content-to-address binding — could the system relocate content so long as the original address still resolves?
+10. [nelson] When content is copied rather than shared, must the copy receive a new and distinct address, or may the system treat the copy as the same content at the same address?
+11. [gregory] Once a byte is stored in the granfilade at a given I-address, is there any operation — including internal maintenance, cache eviction, or disk compaction — that can change the byte value at that I-address, or is the mapping truly write-once-read-forever?
+12. [gregory] When `findisatoinsertmolecule` computes the next I-address as max+1, does the system guarantee that a failed or partially-completed INSERT (e.g., process crash mid-operation) can never leave the granfilade in a state where the same I-address could be allocated twice on restart?
+13. [gregory] After INSERT shifts V-positions rightward via `makegappm`, do the shifted POOM entries retain their exact original I-address values byte-for-byte, or could the tumbler arithmetic in `tumbleradd` introduce any rounding, normalization, or exponent change that alters the I-address representation?
+14. [gregory] When REARRANGE moves content via `makeoffsetsfor3or4cuts`, the KB says I-addresses are preserved — but does the implementation copy POOM bottom crums with their original I-displacement and I-width fields untouched, or does it reconstruct them through arithmetic that could theoretically drift?
+15. [gregory] If CREATELINK advances the I-address allocation counter past the text range, creating a gap, is that gap permanently reserved — meaning no future text INSERT can ever fill those gap I-addresses — or could a different document or session allocate into that gap region?
+16. [gregory] When `strongsub`'s exponent guard fires during DELETE and returns a link V-position unchanged, is this a guaranteed no-op on the POOM entry (the crum is literally not touched), or does the code write back the same value, risking any subtle modification through the write path?
+17. [gregory] For CREATENEWVERSION, the new document's POOM entries point to the same I-addresses as the original — are these entries independent copies in the B-tree, so that subsequent edits to either document's POOM cannot corrupt the other's I-address mappings through shared pointers or aliased crums?
+18. [gregory] When COPY detects I-address contiguity via `isanextensionnd` and extends an existing POOM crum rather than creating a new one, does the extended crum's I-displacement remain identical to the original, with only the width growing — or does the extension recompute the displacement?
+19. [gregory] The spanfilade DOCISPAN entries are never deleted — but can they be modified in place? If a document's content is rearranged so the same I-addresses map to different V-positions, do the existing DOCISPAN entries remain frozen at their original values, or are they updated?
+20. [gregory] When multiple FEBE sessions are active and one session's INSERT allocates new I-addresses, does the run-to-completion scheduling guarantee that no other session can observe the granfilade in a state where the I-address exists but the content bytes are not yet stored?
