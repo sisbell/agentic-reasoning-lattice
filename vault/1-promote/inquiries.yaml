@@ -165,3 +165,11 @@ inquiries:
     area: data-structures
     source: "review-defer triage"
 
+  - id: 25
+    title: "Address Permanence"
+    question: "What guarantees must the system provide about address stability? Once content is assigned an address, what operations may and may not affect that assignment?"
+    area: addressing
+    agents:
+      nelson: 10
+      gregory: 10
+
