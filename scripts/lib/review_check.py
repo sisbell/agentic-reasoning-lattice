@@ -81,6 +81,18 @@ def strip_preamble(text):
     return text
 
 
+def validate_review(text):
+    """Check that review text has required structure. Returns error message or None."""
+    if not re.search(r"^# Review of ASN-\d+", text, re.MULTILINE):
+        return "missing '# Review of ASN-NNNN' header"
+    if not re.search(r"^VERDICT:\s*\w+", text, re.MULTILINE):
+        return "missing VERDICT line"
+    if not (re.search(r"^## REVISE", text, re.MULTILINE) or
+            re.search(r"^## OUT_OF_SCOPE", text, re.MULTILINE)):
+        return "missing ## REVISE or ## OUT_OF_SCOPE section"
+    return None
+
+
 def invoke_claude(prompt, model="opus", effort="max"):
     """Call claude --print with --tools "". Returns plain text response."""
     model_flag = {
@@ -179,6 +191,14 @@ def main():
 
     # Strip any preamble before review header
     text = strip_preamble(text)
+
+    # Validate review structure before writing
+    error = validate_review(text)
+    if error:
+        print(f"  MALFORMED REVIEW: {error}", file=sys.stderr)
+        print(f"  Response length: {len(text)} chars, {len(text.splitlines())} lines",
+              file=sys.stderr)
+        sys.exit(1)
 
     # Write output (sequential numbering: review-1, review-2, ...)
     (REVIEWS_DIR / asn_label).mkdir(parents=True, exist_ok=True)
