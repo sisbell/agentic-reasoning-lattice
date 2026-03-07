@@ -23,11 +23,11 @@ This is not a design preference. It is a logical necessity. Any system that must
 
 We define the system state Σ with three components.
 
-**I-space** (identity space). The I-space content function maps I-addresses to byte values:
+**I-space** (identity space). The I-space content function maps I-addresses to values:
 
-    Σ.ι : IAddr ⇸ Byte
+    Σ.ι : IAddr ⇸ Value
 
-We write Σ.A for dom(Σ.ι) — the set of currently allocated I-addresses. Each I-address is a tumbler satisfying T4 (hierarchical parsing) from ASN-0001; the `fields()` function extracts the originating node, user, and document from any I-address.
+where Value encompasses text bytes, structural entries (document and version orgls), and link data. The permanence arguments require only that Value is a type with decidable equality — no operation inspects or depends on the codomain beyond preserving it. We write Σ.A for dom(Σ.ι) — the set of currently allocated I-addresses. Each I-address is a tumbler satisfying T4 (hierarchical parsing) from ASN-0001; the `fields()` function extracts the originating node, user, and document from any I-address.
 
 **Documents.** Σ.D is the set of existing document identifiers. For each d ∈ Σ.D, the document's *V-space* is a finite mapping from virtual positions to I-addresses:
 
@@ -218,17 +218,21 @@ Gregory provides detailed evidence for structural independence: `docreatenewvers
 
 ### CREATE LINK
 
-Creating a link allocates new I-space content in the link subspace.
+Creating a link allocates new I-space content in the link subspace and places it in a specific document's V-space.
 
-**Preconditions.** The endsets reference valid I-addresses (all endpoint addresses ⊆ Σ.A).
+**Preconditions.** h ∈ Σ.D (the *home document* — where the link resides); the endsets reference valid I-addresses (all endpoint addresses ⊆ Σ.A). Nelson requires the home document to be specified explicitly: "The document must be specified because that determines the actual residence of the link — since a document may contain a link between two other documents" [LM 4/63]. The home document determines ownership, not destination: "A link need not point anywhere in its home document" [LM 4/12].
 
 **I-space effect.** A new I-address `l` is allocated in the link subspace (element field 0.2.x), disjoint from text content (0.1.x) by T7 (subspace disjointness):
 
     Σ'.A = Σ.A ∪ {l}  where  l ∉ Σ.A
 
-P0 ∧ P1 are satisfied: only new addresses appear, and existing content is unchanged.
+**V-space effect on h.** The link is placed at the next available position in h's link subspace (element prefix 2.x). Existing V-entries in h are unchanged — link entries are appended sequentially in creation order and are not subject to the V-position shifts that text editing produces. Per TA7b, this insertion in the link subspace does not affect text positions in h. Per UF-V, no other document's V-space is modified.
 
-**J0 preservation.** If the link is placed in a document's V-space, the new V-entry points to l ∈ Σ'.A. Existing V-entries are unchanged. J0 holds.
+Gregory confirms: `docreatelink` calls `findnextlinkvsa` on the home document to compute the V-position, then `docopy` to insert the link's I-address into that document's POOM at V-address 2.x. The first link goes to 2.1; subsequent links append at the end of the 2.x extent. Endpoint documents receive no POOM modifications — only the home document is written (Q15).
+
+**Verification of P0 ∧ P1.** P0: Σ.A ⊆ Σ.A ∪ {l} = Σ'.A. P1: l ∉ Σ.A, so the extension does not touch Σ.ι at existing addresses. Both hold.
+
+**J0 preservation.** The new V-entry in h maps a position in the 2.x subspace to l ∈ Σ'.A. Existing V-entries in h retain their original I-addresses, all in Σ.A ⊆ Σ'.A. J0 holds unconditionally.
 
 **Frame condition on text I-space.** The link allocation does not affect the text allocator. Gregory confirms: `findisatoinsertmolecule` uses `atomtype` to bound its search — text searches below `docisa.0.2`, links search below `docisa.0.3`. The two subspaces are invisible to each other's allocators (Q15).
 
@@ -309,9 +313,9 @@ The creation-based identity principle means that content equality (Σ.ι(a) = Σ
 
 The invariants P0–P5, P7, and the frame conditions UF/UF-V, composed, provide four system-level guarantees.
 
-**Link survivability.** Links attach to I-space addresses. By P0 ∧ P1, these addresses are permanent and their content immutable. Every editing operation modifies only V-space (or, for INSERT and CREATE LINK, extends I-space without altering existing entries). No editing operation can cause a link's endpoint to refer to different content. Nelson: "links between bytes can survive deletions, insertions and rearrangements, if anything is left at each end" [LM 4/43]. The link "survives" because it points to I-space, and editing changes only V-space.
+**Link survivability.** The state model Σ does not model link internal structure — the representation of endsets and their reference targets belongs to a future link ASN. We observe, however, that Nelson's design requires link endpoints to reference I-space addresses: "links between bytes can survive deletions, insertions and rearrangements, if anything is left at each end" [LM 4/43]. Gregory confirms this: `insertendsetsinspanf` indexes endpoint I-addresses, not V-positions, in the spanfilade. If link endsets reference I-space addresses — as both the design intent and the implementation indicate — then P0 ∧ P1 guarantee survivability: those I-addresses are permanent (P0) and their content immutable (P1), so no editing operation (which modifies only V-space, or extends I-space without altering existing entries) can cause a link's endpoint to refer to different content. The derivation is conditional on the premise that endsets reference I-space; formalizing that premise is the link ASN's responsibility.
 
-**Attribution.** By T4, the I-address structurally encodes the home document. By P1, this encoding is immutable. By P7, only the original creation event produces that I-address. Attribution is therefore permanent, structural, and unforgeable.
+**Attribution.** By T4, the I-address structurally encodes the originating document via `fields()`. By P1, this encoding is immutable — the I-address itself never changes. By P7, only the original creation event produces that I-address. Attribution of content to its originating document is therefore permanent, structural, and unforgeable — it follows from the address type (T4), content immutability (P1), and creation uniqueness (P7), without requiring any additional attribution mechanism in Σ.
 
 **Correspondence.** Versions share I-space content (by CREATE VERSION). The system identifies matching parts across versions by shared I-addresses — not by textual comparison. This requires P0 (shared addresses persist across all subsequent states) and CREATE VERSION's V-space mirroring postcondition (rng(Σ'.v(d')) = rng(Σ.v(d)) at creation). Nelson: "a facility that holds multiple versions of the same material... can show you, word for word, what parts of two versions are the same" [LM 2/20].
 
@@ -324,7 +328,7 @@ The invariants P0–P5, P7, and the frame conditions UF/UF-V, composed, provide 
 
 This is a property of the type definition. The tumbler `1.1.0.1.0.1.0.42` records that the content was created at node 1, by user 1, in document 1, at element position 42. No field records current hosting location. Resolution — mapping an I-address to a physical location — is the system's responsibility, not the address's burden.
 
-Nelson specifies the operational consequence through the BEBE protocol: "The contents can slosh back and forth dynamically" [LM 4/72]. Content migrates between servers "for more rapid access to final material," "for rebalance in keeping with demand," and "for redundancy and backup purposes" [LM 4/71]. In the abstract model, Σ.ι maps I-addresses to byte values with no notion of physical location. A conforming implementation may store content wherever it wishes, so long as the mapping Σ.ι is maintained.
+Nelson specifies the operational consequence through the BEBE protocol: "The contents can slosh back and forth dynamically" [LM 4/72]. Content migrates between servers "for more rapid access to final material," "for rebalance in keeping with demand," and "for redundancy and backup purposes" [LM 4/71]. In the abstract model, Σ.ι maps I-addresses to values with no notion of physical location. A conforming implementation may store content wherever it wishes, so long as the mapping Σ.ι is maintained.
 
 
 ## Implementation Evidence: The Provenance Witness
@@ -353,7 +357,7 @@ Gregory's evidence is precise: `findisatoinsertmolecule` computes addresses from
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| Σ.ι | ι : IAddr ⇸ Byte — I-space content function | introduced |
+| Σ.ι | ι : IAddr ⇸ Value — I-space content function (Value covers bytes, orgls, link data) | introduced |
 | Σ.A | A = dom(ι) — set of allocated I-addresses | introduced |
 | Σ.v | v : DocId → (VPos ⇸ IAddr) — per-document V-space mappings | introduced |
 | J0 | (A d ∈ Σ.D : rng(Σ.v(d)) ⊆ Σ.A) — V-space references only allocated content | introduced |
