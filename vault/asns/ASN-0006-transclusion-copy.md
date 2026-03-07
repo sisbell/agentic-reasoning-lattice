@@ -44,6 +44,14 @@ Nelson states this with precision. Five guarantees depend on shared identity: at
 
 We now define what COPY does. The operation takes a source specification (a set of V-spans in one or more documents) and a target (a document and position), and makes the source content appear at the target position. The critical question is: how does the target document's mapping relate to the source's?
 
+We begin with the precondition. COPY requires that its arguments be well-formed: the source and target documents must exist, the source V-span must resolve to content in the source's current POOM, and the insertion position must be valid in the target:
+
+  `source_doc ∈ dom.documents ∧ target ∈ dom.documents`
+  `iaddrs(source_span) ≠ ∅` — the source V-span maps to at least one I-address in `poom(source_doc)`
+  `0 ≤ p ≤ size(poom(target))` — insertion at any position from the start to one past the end
+
+Without these conditions, the postconditions would be vacuously satisfiable. An operation with precondition `false` satisfies any postcondition — which tells us nothing.
+
 **TC1 (I-address preservation).** COPY creates V→I mappings in the target document that reference the same I-addresses as the source:
 
   `(A a : a ∈ iaddrs(source_span) : (E p : poom'(target).p = a))`
@@ -96,11 +104,11 @@ This is an instance of the broader pattern: the back end provides powerful primi
 
 We are not done until we have stated what COPY does NOT change. The frame conditions are as important as the effects.
 
-**TC4 (Source invariance).** COPY does not modify the source document's POOM:
+**TC4 (Read-before-write).** COPY extracts I-addresses from the source document's pre-state POOM. The addresses to be copied are determined before any modification to the target:
 
-  `poom'(source_doc) = poom(source_doc)`
+  `copied = {poom(source_doc).q : q ∈ source_span}`
 
-The source is a read-only participant. Its V→I mappings are consulted but not altered.
+where `poom` (unprimed) denotes the pre-state. When `source_doc = target` (self-transclusion — a document transcludes content from itself), the target POOM is modified per TC7, but the addresses extracted are those from before the modification. When `source_doc ≠ target`, TC5 implies `poom'(source_doc) = poom(source_doc)` — the source POOM is unchanged as a consequence, not as an axiom.
 
 **TC5 (Cross-document isolation).** COPY does not modify the POOM of any document other than the target:
 
@@ -152,17 +160,61 @@ The granularity of registration is per contiguous I-span, not per byte. If the s
 A consequence: the target document becomes independently discoverable via span index queries immediately after COPY. This independence is structural — the target's span index entries are its own, not references to the source's entries. If the source document subsequently empties itself (deleting all its content), the target's span index entries persist. The span index is append-only; no operation on the source can remove the target's entries.
 
 
+## A concrete trace
+
+We verify the postconditions against a specific scenario. Document A contains "HELLO" at I-addresses `[1.0.1.0.1.1 .. 1.0.1.0.1.5]` — five bytes, contiguous in I-space. Document B contains "XY" at I-addresses `[1.0.2.0.1.1, 1.0.2.0.1.2]`, so `poom(B) = {0 → 1.0.2.0.1.1, 1 → 1.0.2.0.1.2}` and `size(poom(B)) = 2`. We execute COPY of A's V-span `[0,5)` into B at position `p = 1`.
+
+**Precondition check.** A and B exist. A's V-span `[0,5)` maps to five I-addresses via `poom(A)` — non-empty. Insertion position `p = 1` satisfies `0 ≤ 1 ≤ 2 = size(poom(B))`. The precondition holds.
+
+**TC4 (Read-before-write).** The source addresses are extracted from A's pre-state POOM: `copied = {1.0.1.0.1.1, ..., 1.0.1.0.1.5}`.
+
+**TC1 (I-address preservation).** B's new mappings reference A's I-addresses. No fresh addresses are allocated; `dom.ispace' = dom.ispace`.
+
+**TC7 (Target text preservation).** Position 0 in B is unchanged: `poom'(B).0 = poom(B).0 = 1.0.2.0.1.1` ("X"). The five copied bytes occupy positions 1 through 5. The old position 1 ("Y" at `1.0.2.0.1.2`) shifts to position 6: `poom'(B).6 = poom(B).1 = 1.0.2.0.1.2`. The resulting B has 7 positions:
+
+  | pos | I-address | content | origin |
+  |-----|-----------|---------|--------|
+  | 0 | 1.0.2.0.1.1 | X | B (native) |
+  | 1 | 1.0.1.0.1.1 | H | A (transcluded) |
+  | 2 | 1.0.1.0.1.2 | E | A (transcluded) |
+  | 3 | 1.0.1.0.1.3 | L | A (transcluded) |
+  | 4 | 1.0.1.0.1.4 | L | A (transcluded) |
+  | 5 | 1.0.1.0.1.5 | O | A (transcluded) |
+  | 6 | 1.0.2.0.1.2 | Y | B (native) |
+
+**TC9 (Automatic splitting).** The source maps to one contiguous I-address range (k=1), so a single mapping group is created at positions `[1, 6)`.
+
+**TC10 (Index registration).** The span index gains an entry `([1.0.1.0.1.1 .. 1.0.1.0.1.5], B)`. B is now independently discoverable for A's content.
+
+**TC13 (Structural attribution).** `home(1.0.1.0.1.3) = fields(1.0.1.0.1.3).document = A`. The "L" at position 3 in B is attributed to A — determinable from the address alone.
+
+The trace confirms internal consistency: TC7 shifts exactly the positions at or beyond p=1; TC1 deposits exactly A's addresses; TC10 registers exactly those addresses under B. No property contradicts another.
+
+
 ## Independence of transclusions
 
-We now derive the property that makes transclusion a robust sharing mechanism: independence from the source document's future mutations.
+We now derive the property that makes transclusion a robust sharing mechanism: independence from the source document's future mutations. The proof requires two general axioms about the system — properties that hold for all operations, not just COPY. We state them here because the independence theorem is their first application.
+
+**AX1 (POOM isolation).** Every operation modifies the POOM of at most one document:
+
+  `#{d : poom'(d) ≠ poom(d)} ≤ 1`
+
+This is confirmed for each operation individually: INSERT modifies the target document's POOM only; DELETE modifies the deleting document's POOM only; COPY modifies the target's POOM only (TC5); CREATENEWVERSION creates a new document's POOM without modifying the source's. No operation reaches across document boundaries to modify another document's arrangement.
+
+**AX2 (I-space permanence).** No operation removes addresses from `dom.ispace` or modifies existing content:
+
+  `dom.ispace ⊆ dom.ispace'`
+  `(A a : a ∈ dom.ispace : ispace'.a = ispace.a)`
+
+The state definition already asserts this in prose ("once an address enters `dom.ispace`, it remains forever and its content never changes"). We now give it a label because the proofs that follow must cite it precisely. TC6 is the COPY-specific instance; AX2 is the general principle.
 
 **Theorem (Transclusion independence).** If document B transcludes content at I-addresses `A` from document D, and subsequently D deletes that content from its POOM, then B's mapping to `A` is unaffected.
 
-*Proof.* D's DELETE operates on D's POOM alone (by TC5, operations on D do not modify B's POOM). The I-addresses in `A` remain in `dom.ispace` (by I-space permanence — no operation removes addresses from the permanent store). Therefore `poom(B)` still maps V-positions to addresses in `A`, and `ispace.a` is well-defined for every `a ∈ A`. ∎
+*Proof.* D's DELETE modifies at most D's POOM (by AX1). Since B ≠ D, `poom'(B) = poom(B)`. The I-addresses in `A` remain in `dom.ispace'` (by AX2) and `ispace'.a = ispace.a` for every `a ∈ A`. Therefore B's mapping is intact and the content is unchanged. ∎
 
 This is stronger than it first appears. B's transclusion is not merely "safe for now" — it is unconditionally immune to anything D does. D can delete the content, rearrange it, transclude over it, create new versions. None of these operations touches B's POOM. The independence is not temporal ("D has not yet deleted it") but structural ("D's operations cannot reach B's state").
 
-We observe that this guarantee is overdetermined — it follows from multiple independent principles, any one of which would suffice. The proof above uses cross-document isolation (TC5) and I-space permanence. But the same conclusion follows from: (i) transclusion is reference, not copy — no bytes are moved, so there is nothing to "take back"; (ii) DELETE operates on V-space only and cannot touch I-space; (iii) ownership isolation — only a document's owner may modify it; (iv) I-space immutability — content at an I-address never changes. This defense-in-depth means that breaking the independence guarantee would require simultaneous violations of multiple foundational properties.
+We observe that this guarantee is overdetermined — it follows from multiple independent principles, any one of which would suffice. The proof above uses POOM isolation (AX1) and I-space permanence (AX2). But the same conclusion follows from: (i) transclusion is reference, not copy — no bytes are moved, so there is nothing to "take back"; (ii) DELETE operates on V-space only and cannot touch I-space; (iii) ownership isolation — only a document's owner may modify it; (iv) I-space immutability — content at an I-address never changes. This defense-in-depth means that breaking the independence guarantee would require simultaneous violations of multiple foundational properties.
 
 Nelson states the guarantee directly: "the owner of a document may delete bytes from the owner's current version, but those bytes remain in all other documents where they have been included" [LM 4/11]. The formal derivation confirms that this follows from cross-document isolation plus I-space permanence, not from any special-case protection of transclusions.
 
@@ -170,34 +222,44 @@ Similarly, INSERT in the source document is harmless to the target:
 
 **Corollary (INSERT isolation).** If document B transcludes content from document A, and subsequently A inserts new content (shifting A's V-positions), B's POOM is completely unchanged.
 
-INSERT in A modifies only A's POOM. A's V-positions shift; A's I-addresses are unchanged. B's POOM is not consulted, not modified, not notified. The I-addresses that B references — which are A's original I-addresses — persist unchanged in ispace. Gregory confirms that each document's POOM is a separate data structure with no shared nodes; operations on A's POOM physically cannot modify B's POOM.
+INSERT in A modifies at most A's POOM (by AX1). Since B ≠ A, `poom'(B) = poom(B)`. The I-addresses that B references persist unchanged in ispace (by AX2). Gregory confirms that each document's POOM is a separate data structure with no shared nodes; operations on A's POOM physically cannot modify B's POOM.
 
 
 ## Links follow content, not containers
 
 We can now state the fundamental link-following property of transclusion. Links in Xanadu attach to I-space addresses — to the bytes themselves, not to their position in any document. Nelson captures this with the strap-between-bytes metaphor: "A Xanadu link is not between points, but between spans of data" [LM 4/42].
 
-Because links attach to I-addresses, and transclusion preserves I-addresses, links are automatically discoverable through transclusion:
+Because links attach to I-addresses, and transclusion preserves I-addresses, links are automatically discoverable through transclusion. We must first define the terms precisely.
 
-**TC11 (Links follow transclusion).** If link L has an endset referencing I-address `a`, and document B transcludes content at address `a`, then L is discoverable through B:
+A link L has three endsets: `from(L)`, `to(L)`, and `type(L)`, each a set of I-addresses. We write:
 
-  `a ∈ endsets(L) ∧ (E p : poom(B).p = a) ⟹ L ∈ discoverable_links(B)`
+  `endsets(L) = from(L) ∪ to(L)`
+
+for the *discoverable* endsets — from and to only. Gregory's implementation confirms that link discovery operates on these two endsets: the `find_links` function queries the span index for from-endset and to-endset intersections, then takes their intersection when both are specified. The type endset is stored in the same span index (under a separate prefix tag) and is retrievable via `RETRIEVEENDSETS`, but does not participate in `find_links` discovery — the type filter is accepted syntactically but produces no results in the implementation. Link discovery is effectively a two-dimensional operation: from-address and to-address intersection.
+
+For a document B, the set of I-addresses currently referenced is:
+
+  `iaddrs_of(B) = {a : (E p : poom(B).p = a)}`
+
+Link discoverability through B is then:
+
+  `discoverable_links(B) = {L ∈ links : endsets(L) ∩ iaddrs_of(B) ≠ ∅}`
+
+A link is discoverable through B if any I-address in its from or to endsets is currently mapped by B's POOM. This definition depends only on B's current POOM and the link's endset addresses — no other document's state is consulted.
+
+**TC11 (Links follow transclusion).** If link L has a discoverable endset referencing I-address `a`, and document B's POOM maps some position to `a`, then L is discoverable through B:
+
+  `a ∈ endsets(L) ∧ a ∈ iaddrs_of(B) ⟹ L ∈ discoverable_links(B)`
 
 This is not a feature that needs to be implemented on top of transclusion. It is a structural consequence of three design choices: (i) links reference I-addresses; (ii) transclusion preserves I-addresses; (iii) link search operates on I-addresses. No special-case logic is needed to "carry links across" a transclusion. The links were never attached to the source document — they were attached to the content, and the content is now visible in B.
 
 Gregory confirms the mechanism end-to-end. The link search function converts V-spans to I-spans by reading the searching document's POOM, then queries the span index for intersecting link endsets. The searching document's POOM is the only document-specific state consulted. If the searching document still references the I-addresses, the search succeeds — regardless of what has happened to the document that originally created the content.
 
+A crucial observation: TC11's definition of `discoverable_links(B)` depends only on B's POOM and the link's endsets. It does not mention any other document. Therefore, if document D originally created the content and later deletes it from D's POOM, link discovery through B is unaffected — by AX1, D's deletion modifies only D's POOM, leaving B's POOM (and hence `iaddrs_of(B)`) unchanged. The independence is structural, not temporal: it does not matter *when* D deletes, because D's operations cannot reach B's state.
+
 An important clarification: link visibility through transclusion is guaranteed at the discovery level but subject to filtering at the display level. Nelson describes "sieving" — user-controlled filters that select which links to show based on criteria such as origin, recency, or author. The guarantee is that links are *findable*, not that they are *automatically displayed*. A reader viewing transcluded content can always ask for all links and receive a complete answer; what the front end chooses to present is a separate concern.
 
 Nelson: "The reader should be able to ask, for a given document or place in the document, 'What connects here from other documents?' — and be shown all these outside connections without appreciable delay" [LM 2/46]. This applies regardless of whether the reader is viewing the content in its home document or in a transcluding document.
-
-A consequence for link discovery deserves explicit statement:
-
-**TC12 (Transclusion preserves link discoverability under deletion).** If document B transcludes I-addresses `A` and a link `L` has an endset referencing some `a ∈ A`, then `L` is discoverable through B regardless of the state of any other document's POOM:
-
-  `(E p : poom(B).p = a) ∧ a ∈ endsets(L) ⟹ L ∈ discoverable_links(B)`
-
-This holds because B's POOM is intact (by TC5). The span index entry associating `L` with addresses in `A` persists (by index monotonicity). The intersection is non-empty. The link is found.
 
 
 ## Attribution is structural
@@ -389,7 +451,7 @@ Transclusion is not a cache. TC21 establishes that transcluded content is retrie
 
 Transclusion is not a subscription. The FEBE COPY operation captures the I-addresses of the source at the moment of the operation. If the source document subsequently has new content inserted, the transcluding document does not automatically see the new content. The I-addresses captured by COPY were the ones present at copy time; the new content has new I-addresses that the target does not reference. (The location-fixed window mode described in TC20 provides subscription-like behavior through front-end re-resolution, but this is not a back-end COPY property.)
 
-Transclusion does not create bidirectional awareness. The source document has no record that its content was transcluded. The span index records that the target contains those I-addresses, but the source document's POOM is unchanged (TC4). Discovering that content has been transcluded elsewhere requires the FINDDOCSCONTAINING query — it is not implicit in the source document's state.
+Transclusion does not create bidirectional awareness. The source document has no record that its content was transcluded. The span index records that the target contains those I-addresses, but the source document's POOM is unchanged (by TC5, when source ≠ target). Discovering that content has been transcluded elsewhere requires the FINDDOCSCONTAINING query — it is not implicit in the source document's state.
 
 Transclusion does not transfer links. COPY of text content (V ≥ 1.0) does not transfer link POOM entries (V < 1.0) from the source to the target. Links are *discovered* through transclusion (TC11) because link search operates on I-addresses and the target shares I-addresses with the source. But the target's POOM does not contain link entries from the source. The distinction is: link discoverability is automatic (via I-address sharing); link ownership is not transferred.
 
@@ -398,15 +460,17 @@ Transclusion does not transfer links. COPY of text content (V ≥ 1.0) does not 
 
 We collect the structure. The COPY operation is a transformation `δ(Σ, COPY(source, target, p)) = Σ'` where:
 
-*Effect:* The target document's POOM gains new V→I mappings at position `p`, referencing the I-addresses extracted from the source's POOM. No fresh I-addresses are allocated. The span index is extended with entries associating the target document with the copied I-address ranges.
+*Precondition:* Source and target documents exist. The source V-span resolves to a non-empty set of I-addresses in the source's POOM. The insertion position `p` satisfies `0 ≤ p ≤ size(poom(target))`.
 
-*Frame:* I-space is unchanged. The source document's POOM is unchanged. All other documents' POOMs are unchanged. The link subspace of the target document is unchanged (when copying text content).
+*Effect:* The target document's POOM gains new V→I mappings at position `p`, referencing the I-addresses extracted from the source's pre-state POOM (TC4). No fresh I-addresses are allocated. The span index is extended with entries associating the target document with the copied I-address ranges.
+
+*Frame:* I-space is unchanged (TC6). No document's POOM other than the target is modified (TC5). The link subspace of the target document is unchanged (when copying text content, TC8). When `source ≠ target`, this implies the source POOM is unchanged; when `source = target`, the source POOM is the target POOM and reflects the modification.
 
 *Scope:* COPY is specset-driven — it transfers whatever the specset specifies. Subspace filtering is a caller convention, not a back-end enforcement.
 
 *Identity:* The I-addresses in the target after COPY are identical to those in the source — not copies, not translations, not re-allocations. TC0 defines content identity as address identity, and COPY preserves addresses.
 
-*Consequences:* From identity preservation alone (TC1), all of the following are derived rather than axiomatized:
+*Consequences:* From identity preservation alone (TC1), combined with the general axioms (AX1, AX2), all of the following are derived rather than axiomatized:
 
 | Consequence | Derivation |
 |-------------|------------|
@@ -415,7 +479,7 @@ We collect the structure. The COPY operation is a transformation `δ(Σ, COPY(so
 | Correspondence detection works (TC15) | Shared I-addresses = shared content; COPY shares I-addresses |
 | Compensation flows to origin (TC18) | Compensation keys on home(a); home is determined by I-address; COPY preserves I-addresses |
 | Depth is irrelevant (TC16) | Each COPY step preserves I-addresses; induction over depth |
-| Source mutations are harmless (TC12) | Cross-document isolation + I-space permanence |
+| Source mutations are harmless (TC11 + AX1) | POOM isolation + I-space permanence; link discoverability depends only on the searching document's POOM |
 | Derivative documents are transparent (TC17) | Different home documents = different I-addresses; native vs. transcluded is decidable from address |
 
 The power of the design is that all seven consequences flow from a single architectural choice — COPY shares I-addresses rather than allocating new ones — combined with the permanence guarantee. No special-case mechanisms are needed for any of these properties. They are structural consequences of identity preservation.
@@ -429,15 +493,14 @@ The power of the design is that all seven consequences flow from a single archit
 | TC1 | COPY creates V→I mappings in the target referencing the same I-addresses as the source; dom.ispace is unchanged | introduced |
 | TC2 | INSERT allocates fresh I-addresses; COPY shares existing ones — the sole structural distinction between duplication and transclusion | introduced |
 | TC3 | COPY is specset-driven: it transfers whatever the specset specifies, with no content-type filtering | introduced |
-| TC4 | COPY does not modify the source document's POOM | introduced |
+| TC4 | COPY extracts I-addresses from the source's pre-state POOM (read-before-write); source POOM unchanged when source ≠ target (by TC5) | introduced |
 | TC5 | COPY does not modify the POOM of any document other than the target | introduced |
 | TC6 | COPY does not modify ispace — no content is created, modified, or removed | introduced |
 | TC7 | COPY at position p preserves all existing target content; subsequent V-positions shift by the copied width | introduced |
 | TC8 | COPY's V-position shift is confined to the subspace of the insertion point; other subspaces are unaffected | introduced |
 | TC9 | Non-contiguous I-address ranges in the source are automatically split into separate mapping groups with contiguous V-positions in the target | introduced |
 | TC10 | COPY registers the target document in the span index for the copied I-address ranges; the target becomes independently discoverable | introduced |
-| TC11 | Links follow transclusion: a link referencing I-address a is discoverable through any document whose POOM maps to a | introduced |
-| TC12 | Transclusion preserves link discoverability: links to transcluded I-addresses are findable through the transcluding document regardless of the source's state | introduced |
+| TC11 | Links follow transclusion: a link with endsets(L) ∩ iaddrs_of(B) ≠ ∅ is discoverable through B; deletion-independent by AX1 | introduced |
 | TC13 | Attribution is structural: home(a) = fields(a).document is computable from the I-address alone, requiring no index | introduced |
 | TC14 | FINDDOCSCONTAINING returns all documents whose POOMs currently map to a given set of I-addresses (with possible stale over-approximation from span index) | introduced |
 | TC15 | Two documents share content iff they share I-addresses; correspondence is address intersection, not value comparison; works across COPY and VERSION alike | introduced |
@@ -448,8 +511,13 @@ The power of the design is that all seven consequences flow from a single archit
 | TC20 | Two reference modes: time-fixed (COPY captures I-addresses at invocation) and location-fixed (front-end re-resolves through source's current POOM) | introduced |
 | TC21 | Transclusion is reference, not cache: transcluded content is retrieved from the home location, with no local fallback | introduced |
 | TC22 | POOM representation (entry count, coalescing) is semantically transparent: operations over the V→I mapping are invariant under representation changes | introduced |
+| AX1 | Every operation modifies the POOM of at most one document | introduced |
+| AX2 | No operation removes addresses from dom.ispace or modifies existing ispace content | introduced |
 | Σ.poom | poom(d) : Pos → Addr — per-document V→I arrangement mapping | introduced |
 | Σ.spanindex | spanindex ⊆ Addr × DocId — append-only reverse index from I-addresses to documents | introduced |
+| endsets | endsets(L) = from(L) ∪ to(L) — the discoverable endsets of a link (from and to only; type endset does not participate in discovery) | introduced |
+| iaddrs_of | iaddrs_of(B) = {a : (E p : poom(B).p = a)} — I-addresses currently referenced by document B | introduced |
+| discoverable_links | discoverable_links(B) = {L ∈ links : endsets(L) ∩ iaddrs_of(B) ≠ ∅} | introduced |
 | home | home(a) = fields(a).document — the document that created content at address a | introduced |
 | native | native(d, a) ≡ home(a) = d — content was created by document d | introduced |
 | transcluded | transcluded(d, a) ≡ home(a) ≠ d — content was created by another document | introduced |
