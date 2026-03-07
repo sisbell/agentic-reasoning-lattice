@@ -408,9 +408,55 @@ def _run_gregory(question, question_num, model="sonnet", effort="max"):
     return combined
 
 
-def run_consultations(questions, nelson_model="opus",
+def _answer_path(consult_dir, index, authority):
+    """Path for an individual answer file: answer-01-nelson.md"""
+    return consult_dir / f"answer-{index + 1:02d}-{authority}.md"
+
+
+def _save_answer(consult_dir, index, authority, question, answer):
+    """Save a single answer to disk immediately."""
+    path = _answer_path(consult_dir, index, authority)
+    content = (f"## Question {index + 1} [{authority}]\n\n"
+               f"> {question}\n\n"
+               f"{answer.strip() if answer else '[No answer]'}\n")
+    path.write_text(content)
+    print(f"  [SAVED] {path.name}", file=sys.stderr)
+
+
+def _load_existing_answers(consult_dir, questions):
+    """Load answers already on disk. Returns dict of index → (authority, question, answer).
+
+    Extracts the answer body (after the question header) to avoid
+    double-wrapping when build_combined_output adds its own headers.
+    """
+    existing = {}
+    for i, (authority, question) in enumerate(questions):
+        path = _answer_path(consult_dir, i, authority)
+        if path.exists():
+            raw = path.read_text()
+            # Strip the header we added (## Question N, > question, blank lines)
+            # Answer body starts after the first blank line following ">"
+            lines = raw.split("\n")
+            body_start = 0
+            found_quote = False
+            for j, line in enumerate(lines):
+                if line.startswith(">"):
+                    found_quote = True
+                elif found_quote and line.strip() == "":
+                    body_start = j + 1
+                    break
+            answer = "\n".join(lines[body_start:]).strip()
+            existing[i] = (authority, question, answer)
+            print(f"  [CACHED] answer-{i + 1:02d}-{authority}.md", file=sys.stderr)
+    return existing
+
+
+def run_consultations(questions, consult_dir, nelson_model="opus",
                       gregory_model="sonnet", effort="max"):
     """Run all consultations. Nelson in parallel, Gregory sequentially.
+
+    Saves each answer to disk as it completes. Skips questions that
+    already have answer files (resume support).
 
     Nelson: no tools, safe to parallelize.
     Gregory: each call runs KB + code in parallel internally.
@@ -418,9 +464,21 @@ def run_consultations(questions, nelson_model="opus",
     """
     results = [None] * len(questions)
 
-    # Split by authority
-    nelson_indices = [i for i, (a, _) in enumerate(questions) if a == "nelson"]
-    gregory_indices = [i for i, (a, _) in enumerate(questions) if a == "gregory"]
+    # Load existing answers (resume support)
+    existing = _load_existing_answers(consult_dir, questions)
+    for i, cached in existing.items():
+        results[i] = cached
+
+    skipped = len(existing)
+    if skipped:
+        print(f"  [RESUME] Skipping {skipped} already-completed questions",
+              file=sys.stderr)
+
+    # Split by authority, excluding already-completed
+    nelson_indices = [i for i, (a, _) in enumerate(questions)
+                      if a == "nelson" and i not in existing]
+    gregory_indices = [i for i, (a, _) in enumerate(questions)
+                       if a == "gregory" and i not in existing]
 
     # Nelson in parallel
     if nelson_indices:
@@ -434,6 +492,7 @@ def run_consultations(questions, nelson_model="opus",
                 answer = _run_nelson(q, idx + 1,
                                      model=nelson_model, effort=effort)
                 results[idx] = (auth, q, answer)
+                _save_answer(consult_dir, idx, auth, q, answer)
             t = threading.Thread(target=run_n)
             threads.append(t)
             t.start()
@@ -451,6 +510,7 @@ def run_consultations(questions, nelson_model="opus",
             answer = _run_gregory(question, i + 1,
                                   model=gregory_model, effort=effort)
             results[i] = (authority, question, answer)
+            _save_answer(consult_dir, i, authority, question, answer)
 
         print(f"  [GREGORY] All done", file=sys.stderr)
 
@@ -588,7 +648,7 @@ def main():
     print(f"  [CONSULT] Firing {len(questions)} consultations...",
           file=sys.stderr)
     consult_start = time.time()
-    results = run_consultations(questions)
+    results = run_consultations(questions, init_dir)
     consult_elapsed = time.time() - consult_start
     print(f"  [CONSULT] All done ({consult_elapsed:.0f}s)", file=sys.stderr)
 
