@@ -1,6 +1,6 @@
 # ASN-0004: Content Insertion
 
-*2026-02-23 (revised 2026-02-24)*
+*2026-02-23 (revised 2026-03-06)*
 
 We wish to specify INSERT — the operation that introduces new content into a document. INSERT is the primary way the system acquires content: every byte that enters the permanent store does so through some insertion. The word suggests a simple act — place new text at a position — but the consequences are far-reaching. The system must allocate fresh permanent addresses, splice new content into a mutable arrangement, shift existing positions to make room, record the new content in the domain index, and do all this while preserving the identity of every piece of content that existed before. We develop the preconditions, postconditions, and frame conditions that govern this operation, reasoning backward from the guarantees the system must maintain.
 
@@ -23,7 +23,7 @@ A document's virtual stream has two subspaces: text (positions whose first compo
 
   `(A d : (A a₁, a₂ : a₁ ∈ img_text(d) ∧ a₂ ∈ img_link(d) : a₁ ≠ a₂))`
 
-where `img_text(d)` is the set of I-addresses allocated in d's text subspace and `img_link(d)` is the set allocated in d's link subspace. Gregory's evidence grounds this: text I-addresses are allocated in the `.0.0.1.x` range under a document's I-address prefix, while link atoms occupy a separate range (`.0.0.2.x`). These ranges are structurally disjoint — no allocation in one range can produce an address in the other. An alternative implementation may use different ranges, but must preserve the abstract guarantee: text and link I-addresses never collide.
+where `img_text(d)` is the set of I-addresses allocated in d's text subspace and `img_link(d)` is the set allocated in d's link subspace. Gregory's evidence grounds this: text I-addresses are allocated in the `.0.0.1.x` range under a document's I-address prefix, while link atoms occupy a separate range (`.0.0.2.x`). These ranges are structurally disjoint — no allocation in one range can produce an address in the other. S-DISJ is an axiom of the allocation scheme, not a state invariant requiring per-operation verification: the disjointness is guaranteed by the structure of address assignment itself. Any allocation that produces a text I-address produces one in the text range; any allocation that produces a link I-address produces one in the link range. No sequence of operations can violate S-DISJ because no operation can cause an allocation to land in the wrong range. An alternative implementation may use different ranges, but must preserve the abstract guarantee: text and link I-addresses never collide.
 
 
 ## The permanence context
@@ -84,11 +84,11 @@ With the preconditions satisfied, INSERT(d, p, c) transitions state Σ to Σ'. W
 
 ### Fresh address allocation
 
-**INS1 (Address freshness).** INSERT allocates `#c` new addresses, one per byte of content, from a range never previously used:
+**INS1 (Address freshness and contiguity).** INSERT allocates `#c` new addresses, one per byte of content, forming a contiguous range from a fresh starting address a₀:
 
-  `(E S : S ⊆ Addr ∧ #S = #c ∧ S ∩ dom.ispace = ∅ : S ⊆ dom.ispace')`
+  `(E a₀ : a₀ ∈ Addr ∧ {a₀, ..., a₀+#c-1} ∩ dom.ispace = ∅ : {a₀, ..., a₀+#c-1} ⊆ dom.ispace')`
 
-The freshly allocated addresses form a contiguous range in I-space: if a₀ is the starting address, the allocation produces `{a₀, a₀+1, ..., a₀+#c-1}`, where the successor operation respects the tumbler allocation order within the document's text subspace.
+The successor operation `a₀ + i` respects the tumbler allocation order within the document's text subspace. The set of allocated addresses is S = {a₀ + i : 0 ≤ i < #c} — contiguous by construction, with a₀ as its minimum. All subsequent properties that reference `a₀ + i` (INS2, INS3, INS1a, INS-F1, INS5, INS-F6, INS-CORR) are well-defined through this binding.
 
 Nelson justifies this from multiple directions. "New items may be continually inserted in tumbler-space while the other addresses remain valid. This means that any address of any document in an ever-growing network may be specified by a permanent tumbler address." The freshness follows from the append-only storage model: content is "filed, as it were, chronologically" — each new piece receives the next address in sequence. If addresses could be reused, the permanence guarantee ("a permanent tumbler address") would be vacuous: a reference made today might resolve to different content tomorrow. The allocation counter for each document's text subspace advances monotonically and never retreats.
 
@@ -210,6 +210,14 @@ The abstract property is that the two subspaces of a document (text and links) a
 
 This is the upper-bound companion to INS5 (which gives the ⊇ direction for the new entries) and P2 (which gives the ⊇ direction for pre-existing entries). Together, INS5, P2, and INS-F6 yield the exact equality `spanindex' = spanindex ∪ {(a₀ + i, d) : 0 ≤ i < #c}`. INSERT does not modify or remove any pre-existing span index entry (P2), and does not introduce entries beyond those specified by INS5. The index grows by exactly the entries for the newly allocated addresses, and all previous entries are preserved.
 
+### Ownership stability
+
+**INS-F7 (Owner preservation).** INSERT does not modify document ownership:
+
+  `(A d' : owner'(d') = owner(d'))`
+
+PRE2 requires that the requesting user be the document's owner, but INSERT does not alter the ownership relation — neither for the target document d nor for any other document. Ownership is a metadata property established at document creation and modified only by an explicit ownership-transfer operation (if one exists). INSERT's effect is confined to content and arrangement.
+
 
 ## Derived consequences
 
@@ -254,7 +262,7 @@ For document d, we consider four kinds of positions in `dom.poom'(d)`:
 - *Both same-subspace pre-existing (before or shifted)*: their I-addresses are the same as their original I-addresses under `poom(d)`, which were distinct by S4 pre-INSERT. ✓
 - *Both new (in [p, p + #c))*: `poom'(d).q₁ = a₀ + (q₁ - p) ≠ a₀ + (q₂ - p) = poom'(d).q₂` since q₁ ≠ q₂. ✓
 - *One pre-existing same-subspace, one new*: the pre-existing position maps to some address in `dom.ispace`; the new position maps to some address in `{a₀, ..., a₀+#c-1}`. By INS1, the fresh addresses are disjoint from `dom.ispace`, so the two I-addresses are necessarily distinct. ✓
-- *Cross-subspace (one text, one link)*: one position has `sub(q₁) = sub(p)` (text), the other has `sub(q₂) ≠ sub(p)` (link). The text position's I-address is either a pre-existing text I-address or a freshly allocated text I-address (INS1a: `sub_i(a₀ + i) = TEXT`). The link position's I-address is unchanged by INS-F5 and was a link I-address before INSERT. By S-DISJ, text and link I-addresses are drawn from disjoint ranges, so the two I-addresses are necessarily distinct. ✓
+- *Cross-subspace (one text, one link)*: one position has `sub(q₁) = sub(p)` (text), the other has `sub(q₂) ≠ sub(p)` (link). The text position's I-address is either a pre-existing text I-address or a freshly allocated text I-address (INS1a: `sub_i(a₀ + i) = TEXT`). The link position's I-address is unchanged by INS-F5 and was a link I-address before INSERT. By S-DISJ — which holds as an axiom of the allocation scheme, not as an invariant requiring per-operation verification — text and link I-addresses are drawn from disjoint ranges, so the two I-addresses are necessarily distinct. ✓
 
 In all cases, `poom'(d).q₁ ≠ poom'(d).q₂`. For d' ≠ d, poom'(d') = poom(d') which was injective by S4 pre-INSERT. ✓
 
@@ -295,7 +303,9 @@ The first component preserves same-subspace positions below p. The second displa
 
 (vii) `links' = links` — no link is created, modified, or destroyed.
 
-Clause (i) follows from P0, INS1, and INS-F1 — P0 gives `dom.ispace ⊆ dom.ispace'`, INS1 gives `{a₀, ..., a₀+#c-1} ⊆ dom.ispace'`, and INS-F1 gives `dom.ispace' ⊆ dom.ispace ∪ {a₀, ..., a₀+#c-1}`. The three together yield the exact equality. Clause (ii) from P1. Clause (iii) from INS2. Clause (iv) from INS3, INS4, and INS-F5 — the shift definition encodes all three. Clause (v) from INS-F2. Clause (vi) from P2, INS5, and INS-F6 — P2 gives `spanindex ⊆ spanindex'`, INS5 gives `{(a₀+i, d)} ⊆ spanindex'`, and INS-F6 gives `spanindex' ⊆ spanindex ∪ {(a₀+i, d)}`. Clause (vii) from INS-F4 and INS-F4a — INS-F4 gives `links ⊆ links'`, INS-F4a gives `links' ⊆ links`.
+(viii) `(A d' : owner'(d') = owner(d'))` — document ownership is unchanged.
+
+Clause (i) follows from P0, INS1, and INS-F1 — P0 gives `dom.ispace ⊆ dom.ispace'`, INS1 gives `{a₀, ..., a₀+#c-1} ⊆ dom.ispace'`, and INS-F1 gives `dom.ispace' ⊆ dom.ispace ∪ {a₀, ..., a₀+#c-1}`. The three together yield the exact equality. Clause (ii) from P1. Clause (iii) from INS2. Clause (iv) from INS3, INS4, and INS-F5 — the shift definition encodes all three. Clause (v) from INS-F2. Clause (vi) from P2, INS5, and INS-F6 — P2 gives `spanindex ⊆ spanindex'`, INS5 gives `{(a₀+i, d)} ⊆ spanindex'`, and INS-F6 gives `spanindex' ⊆ spanindex ∪ {(a₀+i, d)}`. Clause (vii) from INS-F4 and INS-F4a — INS-F4 gives `links ⊆ links'`, INS-F4a gives `links' ⊆ links`. Clause (viii) from INS-F7.
 
 
 ## Concrete examples
@@ -379,7 +389,7 @@ The append case confirms that APPEND(d, c) = INSERT(d, |poom(d)| + 1, c) satisfi
 
 Nelson does not use the word "atomic." Literary Machines is silent on whether INSERT must be all-or-nothing. But his specification is only consistent with all-or-nothing semantics, and we state this as a derived requirement.
 
-**INS-ATOM (All-or-nothing execution).** Either INSERT(d, p, c) transitions Σ to a state Σ' satisfying all of INS-CORR(i)–(vii), or the state is unchanged: Σ' = Σ.
+**INS-ATOM (All-or-nothing execution).** Either INSERT(d, p, c) transitions Σ to a state Σ' satisfying all of INS-CORR(i)–(viii), or the state is unchanged: Σ' = Σ.
 
 Three converging requirements force this conclusion.
 
@@ -411,7 +421,7 @@ The abstract implication is that LIFO ordering is a theorem of the specification
 
 Nelson specifies APPEND as a separate operation: "This appends `<text set>` onto the end of the text space of the document `<doc id>`." We observe that APPEND(d, c) is semantically equivalent to INSERT(d, |poom(d)| + 1, c). The position is one past the last occupied position; by INS4, the shift clause is vacuously satisfied (no following characters exist); by INS3, the content is placed at the end. APPEND is a convenience name for a common case of INSERT, not a distinct operation with separate semantics.
 
-The equivalence means every property we have established for INSERT applies to APPEND without modification. In particular, APPEND satisfies INS-CORR(i)–(vii) with `p = |poom(d)| + 1`.
+The equivalence means every property we have established for INSERT applies to APPEND without modification. In particular, APPEND satisfies INS-CORR(i)–(viii) with `p = |poom(d)| + 1`.
 
 
 ## What INSERT does not do
@@ -431,7 +441,7 @@ A front-end may provide a "location-fixed window" that re-resolves the source do
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| S-DISJ | `(A d, a₁ ∈ img_text(d), a₂ ∈ img_link(d) : a₁ ≠ a₂)` — text and link I-addresses disjoint | introduced |
+| S-DISJ | `(A d, a₁ ∈ img_text(d), a₂ ∈ img_link(d) : a₁ ≠ a₂)` — text and link I-addresses disjoint | axiom |
 | P0 | `(A a : a ∈ dom.ispace : a ∈ dom.ispace')` — address irrevocability (derived from S1) | derived |
 | P1 | `(A a : a ∈ dom.ispace : ispace'.a = ispace.a)` — content immutability (restates S1) | derived |
 | P2 | `(A (a,d) : (a,d) ∈ spanindex : (a,d) ∈ spanindex')` — index monotonicity (axiom) | axiom |
@@ -439,7 +449,7 @@ A front-end may provide a "location-fixed window" that re-resolves the source do
 | PRE2 | `user = owner(d)` — requesting user must be document owner | introduced |
 | PRE3 | `1 ≤ p ≤ \|poom(d)\| + 1` — position within [1, m+1] | introduced |
 | PRE4 | `#c > 0` — content to insert is non-empty | introduced |
-| INS1 | INSERT allocates #c fresh addresses disjoint from dom.ispace | introduced |
+| INS1 | `(E a₀ : {a₀,...,a₀+#c-1} ∩ dom.ispace = ∅ : {a₀,...,a₀+#c-1} ⊆ dom.ispace')` — #c fresh contiguous addresses | introduced |
 | INS1a | `(A i : 0 ≤ i < #c : sub_i(a₀+i) = TEXT)` — text allocation is subspace-local | introduced |
 | INS2 | `(A i : 0 ≤ i < #c : ispace'.(a₀+i) = c.i)` — new addresses receive inserted content | introduced |
 | INS3 | `(A i : 0 ≤ i < #c : poom'(d).(p+i) = a₀+i)` — content placed at insertion position | introduced |
@@ -453,7 +463,8 @@ A front-end may provide a "location-fixed window" that re-resolves the source do
 | INS-F4a | `links' ⊆ links` — INSERT creates no new links | introduced |
 | INS-F5 | `(A q : q ∈ dom.poom(d) ∧ sub(q) ≠ sub(p) : poom'(d).q = poom(d).q)` — subspace isolation | introduced |
 | INS-F6 | `spanindex' ⊆ spanindex ∪ {(a₀+i, d) : 0 ≤ i < #c}` — span index upper bound | introduced |
-| INS-CORR | Complete correctness: clauses (i)–(vii) characterize the full state transition | introduced |
+| INS-F7 | `(A d' : owner'(d') = owner(d'))` — document ownership unchanged | introduced |
+| INS-CORR | Complete correctness: clauses (i)–(viii) characterize the full state transition | introduced |
 | INS-ATOM | All-or-nothing: either INS-CORR holds or Σ' = Σ | introduced |
 
 
