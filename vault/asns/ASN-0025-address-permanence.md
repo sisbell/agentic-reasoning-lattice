@@ -87,7 +87,7 @@ Indestructibility follows from P0: no operation shrinks I-space, so deletion mod
 
     Σ'.A = Σ.A ∧ Σ'.ι = Σ.ι
 
-INSERT, CREATE LINK, and CREATE VERSION are the only operations that extend Σ.A with fresh addresses; all three satisfy P0 ∧ P1 (they add new entries without modifying existing ones).
+Among the seven operations defined here, INSERT, CREATE LINK, CREATE VERSION, and CREATE DOCUMENT are the ones that extend Σ.A with fresh addresses; all four satisfy P0 ∧ P1 (they add new entries without modifying existing ones).
 
 The state ¬visible(a, Σ) — content allocated but invisible everywhere — is permitted. The state a ∉ Σ'.A for any a that was once in Σ.A is forbidden by P0. Thus "content at this address no longer exists anywhere in the system" is architecturally impossible. Nelson confirms: "the owner of a document may delete bytes from the owner's current version, but those bytes remain in all other documents where they have been included" [LM 4/11]. Even when no other document includes them, the bytes persist in I-space — the only question about content after deletion is not *whether* it exists (always yes) but *where* it is visible (that changes with editing).
 
@@ -233,6 +233,31 @@ P0 ∧ P1 are satisfied: only new addresses appear, and existing content is unch
 **Frame condition on text I-space.** The link allocation does not affect the text allocator. Gregory confirms: `findisatoinsertmolecule` uses `atomtype` to bound its search — text searches below `docisa.0.2`, links search below `docisa.0.3`. The two subspaces are invisible to each other's allocators (Q15).
 
 
+### CREATE DOCUMENT
+
+CREATE DOCUMENT allocates a fresh document with no source.
+
+**Preconditions.** The creating user's account address exists in Σ.
+
+**I-space effect.** A fresh document address `o` is allocated in the creating user's account namespace:
+
+    Σ'.A = Σ.A ∪ {o}  where  o ∉ Σ.A
+
+Gregory confirms: `docreatenewdocument` calls `createorglingranf`, which dispatches to `findisatoinsertnonmolecule`. This allocates exactly one GRANORGL entry — the document's orgl address — computed as max+1 under the user's account prefix (e.g., `account.0.1` for the first document, `account.0.N` for the Nth). No content atoms are allocated; no DOCISPAN entries are created.
+
+**V-space effect.** A new document d appears in Σ'.D with an empty V-space:
+
+    dom(Σ'.v(d)) = ∅
+
+The POOM enfilade is initialized by `createenf(POOM)` with a bare root whose width is zero (`cwid.dsas[V] = 0`). No content exists until a subsequent INSERT.
+
+**Verification of P0 ∧ P1.** P0: Σ.A ⊆ Σ.A ∪ {o} = Σ'.A. P1: o ∉ Σ.A, so the extension does not touch Σ.ι at existing addresses. Both hold.
+
+**J0 preservation.** dom(Σ'.v(d)) = ∅, so rng(Σ'.v(d)) = ∅ ⊆ Σ'.A. J0 holds vacuously.
+
+Note that CREATE DOCUMENT is not a special case of CREATE VERSION. CREATE VERSION requires d ∈ Σ.D — an existing source document whose V-space is mirrored. CREATE DOCUMENT has no source; the new document's V-space is empty.
+
+
 ### Worked Example: INSERT
 
 We verify the invariants against a concrete scenario. Let document d have V-space:
@@ -261,13 +286,19 @@ Content at a₁ ('H') remains at V-position 1. The newly inserted 'X' at b₁ oc
 
 The permanence invariant ensures that an I-address always refers to the same content. But we must also ask: when do two pieces of content share the same I-address?
 
-**P7 (Creation-Based Identity).** Content identity is determined by *creation*, not by *value*. Two byte sequences have the same I-address if and only if they originate from the same creation event.
+**P7 (Creation-Based Identity).** Content identity is determined by *creation*, not by *value*. We derive this from existing machinery rather than assert it independently.
 
-This has two consequences.
+A *creation event* is a single invocation of an I-space-extending operation — INSERT, CREATE LINK, CREATE VERSION, or CREATE DOCUMENT. Each creation event allocates addresses within a single allocator's prefix.
 
-*Independent creation produces distinct addresses.* If two users independently type identical text, the resulting bytes receive different I-addresses — they are different creation events in different documents, yielding different tumbler prefixes through T4. The content is textually identical but structurally unrelated.
+*Distinct creation events produce distinct addresses.* By T9 (forward allocation), successive allocations within one allocator are strictly monotonically increasing. By T10 (partition independence), allocators with distinct ownership prefixes produce non-overlapping addresses. By GlobalUniqueness (ASN-0001), no two distinct allocations anywhere in the system produce the same address. Therefore if two creation events are distinct, their allocated address sets are disjoint.
 
-*Transclusion preserves the original address.* When COPY places content from document d' into document d, the copied bytes retain the I-addresses of their origin in d'. No new I-addresses are created (P5). The `fields()` function applied to any transcluded byte's I-address returns the home document — the document where the byte was originally created, not the document where it is currently viewed.
+*A shared I-address traces to a single creation event.* This is the contrapositive: if addresses coincide, the allocations are not distinct.
+
+Two consequences follow.
+
+*Independent creation produces distinct addresses.* If two users independently type identical text, the resulting bytes receive different I-addresses — the allocations occur under different ownership prefixes (T4 guarantees different document fields), so T10 yields disjoint addresses. The content is textually identical but structurally unrelated.
+
+*Transclusion preserves the original address.* When COPY places content from document d' into document d, no new I-addresses are allocated (P3: COPY leaves I-space unchanged). The copied bytes retain the I-addresses of their origin in d'. The `fields()` function applied to any transcluded byte's I-address returns the home document — the document where the byte was originally created, not the document where it is currently viewed.
 
 Nelson makes attribution a structural consequence: "You always know where you are, and can at once ascertain the home document of any specific word or character" [LM 2/40]. This is not metadata attached to content — it is an intrinsic property of the I-address itself, computable by `fields()` as defined in ASN-0001. By P1, the encoding never changes.
 
@@ -282,18 +313,18 @@ The invariants P0–P5, P7, and the frame conditions UF/UF-V, composed, provide 
 
 **Attribution.** By T4, the I-address structurally encodes the home document. By P1, this encoding is immutable. By P7, only the original creation event produces that I-address. Attribution is therefore permanent, structural, and unforgeable.
 
-**Correspondence.** Versions share I-space content (by CREATE VERSION). The system identifies matching parts across versions by shared I-addresses — not by textual comparison. This requires P0 (shared addresses persist across all subsequent states) and P5 (transclusion preserves identity). Nelson: "a facility that holds multiple versions of the same material... can show you, word for word, what parts of two versions are the same" [LM 2/20].
+**Correspondence.** Versions share I-space content (by CREATE VERSION). The system identifies matching parts across versions by shared I-addresses — not by textual comparison. This requires P0 (shared addresses persist across all subsequent states) and CREATE VERSION's V-space mirroring postcondition (rng(Σ'.v(d')) = rng(Σ.v(d)) at creation). Nelson: "a facility that holds multiple versions of the same material... can show you, word for word, what parts of two versions are the same" [LM 2/20].
 
 **Transclusion integrity.** COPY shares I-addresses across documents. By P1, every document referencing the same I-address sees the same byte value. Divergence is impossible: Σ.ι is a function, so two lookups of the same argument yield the same result. There is no mechanism by which transcluded content could become stale, outdated, or inconsistent with its source.
 
 
 ## Location Transparency
 
-**P8 (Location Transparency).** The I-address is independent of physical storage location. Content may be replicated, cached, migrated, or redistributed across servers without affecting its I-address.
+**P8 (Provenance, Not Location).** No component of the tumbler type IAddr encodes or constrains current physical storage location. The node field, extracted by `fields()` per T4, records the *originating node* — where the content was created — not where it currently resides. By P1, this provenance encoding is immutable: the node field at creation time is the node field for all subsequent states.
 
-Nelson specifies this through the BEBE protocol: "The contents can slosh back and forth dynamically" [LM 4/72]. Content migrates between servers "for more rapid access to final material," "for rebalance in keeping with demand," and "for redundancy and backup purposes" [LM 4/71]. The tumbler's node field records *provenance* (where the content was born), not *current location*. Resolution is the system's responsibility, not the address's burden.
+This is a property of the type definition. The tumbler `1.1.0.1.0.1.0.42` records that the content was created at node 1, by user 1, in document 1, at element position 42. No field records current hosting location. Resolution — mapping an I-address to a physical location — is the system's responsibility, not the address's burden.
 
-In the abstract model, Σ.ι maps I-addresses to byte values with no notion of physical location. A conforming implementation may store content wherever it wishes, so long as the mapping is maintained. The permanence guarantee is: the address continues to resolve to the same content. Where the bits physically reside is outside the scope of the guarantee.
+Nelson specifies the operational consequence through the BEBE protocol: "The contents can slosh back and forth dynamically" [LM 4/72]. Content migrates between servers "for more rapid access to final material," "for rebalance in keeping with demand," and "for redundancy and backup purposes" [LM 4/71]. In the abstract model, Σ.ι maps I-addresses to byte values with no notion of physical location. A conforming implementation may store content wherever it wishes, so long as the mapping Σ.ι is maintained.
 
 
 ## Implementation Evidence: The Provenance Witness
@@ -328,12 +359,12 @@ Gregory's evidence is precise: `findisatoinsertmolecule` computes addresses from
 | J0 | (A d ∈ Σ.D : rng(Σ.v(d)) ⊆ Σ.A) — V-space references only allocated content | introduced |
 | P0 | Σ.A ⊆ Σ'.A — I-space only grows | introduced |
 | P1 | (A a ∈ Σ.A : Σ'.ι(a) = Σ.ι(a)) — existing content immutable | introduced |
-| P2 | No I-address ever reassigned to different content (from P0 ∧ P1) | introduced |
+| P2 | No I-address ever reassigned to different content (from P0 ∧ P1) | derived (from P0 ∧ P1) |
 | P3 | DELETE, REARRANGE, COPY leave I-space unchanged: Σ'.A = Σ.A ∧ Σ'.ι = Σ.ι | introduced |
 | P4 | REARRANGE preserves the multiset of visible I-addresses per document | introduced |
 | P5 | COPY makes source I-addresses visible in target without new allocation | introduced |
-| P7 | Content identity determined by creation event, not byte value | introduced |
-| P8 | I-addresses independent of physical storage location | introduced |
+| P7 | Content identity determined by creation event, not byte value | derived (from T9, T10, GlobalUniqueness, P3) |
+| P8 | No component of IAddr encodes current physical location; node field records originating provenance | introduced |
 | UF | Every operation preserves existing I-space content (= P1 per-operation) | introduced |
 | UF-V | Every operation on document d leaves Σ.v(d') unchanged for d' ≠ d | introduced |
 
