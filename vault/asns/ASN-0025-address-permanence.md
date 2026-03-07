@@ -43,6 +43,15 @@ Each document d ∈ Σ.D has a distinguished I-address orgl(d) ∈ Σ.A — the 
 
 No document may reference an I-address that does not exist in I-space.
 
+**V-space contiguity.** Within each subspace, V-positions form contiguous ordinal ranges starting at 1:
+
+    J1: (A d : d ∈ Σ.D : {ord(q) : q ∈ dom(Σ.v(d)) ∧ q is a text position} = {1, ..., |text positions in d|})
+    J2: (A d : d ∈ Σ.D : {ord(q) : q ∈ dom(Σ.v(d)) ∧ q is a link position} = {1, ..., |link positions in d|})
+
+where `ord(q)` extracts the ordinal component of a V-position (the value operated on by shift arithmetic per TA7a), and the right-hand side is the empty set when the count is zero.
+
+J1 and J2 justify `next(d, Σ)` and `next_link(d, Σ)`: when text positions form {1, ..., k}, the maximum ordinal is k and `max ⊕ [1] = [k+1]` is the first unused position — gap-free by contiguity. Analogously for links. Each operation preserves J1 and J2: INSERT and COPY shift existing text positions forward by the insertion width, maintaining contiguity; DELETE shifts remaining text positions backward, closing the gap; REARRANGE preserves dom(Σ.v(d)); CREATE VERSION copies positions exactly; CREATE DOCUMENT starts with an empty domain; CREATE LINK appends at `next_link`, extending the contiguous link range by one.
+
 
 ## The Permanence Invariant
 
@@ -72,7 +81,9 @@ This is T8 from ASN-0001, now derived operationally. T8 is the historical statem
 
     Σ.D ⊆ Σ'.D
 
-This follows by case analysis over the seven operations. INSERT, DELETE, REARRANGE, COPY, and CREATE LINK each specify Σ'.D = Σ.D. CREATE VERSION and CREATE DOCUMENT each specify Σ'.D = Σ.D ∪ {d'} for a fresh d'. In every case, Σ.D ⊆ Σ'.D.
+P6 is a design constraint, not a theorem about particular operations. Nelson states the requirement explicitly: "it is in the common interest that a thing once published stay published, as in the world of paper. Other readers and users will come to depend on its accessibility" [LM 2/43]. The interconnected structure of literature — links, transclusions, version derivation — depends on the continued existence of documents as addressable entities. Content permanence (P0 ∧ P1) preserves the atoms; document permanence preserves the molecules. Removing either damages the web. Any conforming operation must satisfy P6. The seven operations defined here do so: INSERT, DELETE, REARRANGE, COPY, and CREATE LINK each specify Σ'.D = Σ.D; CREATE VERSION and CREATE DOCUMENT each specify Σ'.D = Σ.D ∪ {d'} for a fresh d'.
+
+Note: Nelson distinguishes published from private documents. Private documents may be withdrawn by their owner. P6 as stated here applies universally — the publication/privacy distinction is a policy refinement that this ASN does not model.
 
 
 ## Visibility and Indestructibility
@@ -195,7 +206,7 @@ REARRANGE permutes content within document d. The operation takes a sequence of 
 
     Σ'.A = Σ.A  ∧  Σ'.ι = Σ.ι
 
-**V-space effect on d.** The displacement arithmetic for each zone follows from the cut geometry; we specify REARRANGE at the constraint level. Three properties hold:
+**V-space effect on d.** We specify REARRANGE at the constraint level: P4, domain preservation, the exterior frame, and the link-subspace frame together suffice to verify P0, P1, J0, and J1 preservation. These constraints do not uniquely determine the permutation — multiple rearrangements of [c₁, cₖ) satisfy all four. The intended semantics (3-cut rotation, 4-cut swap with middle shift) require zone-level postconditions specifying which V-positions map where within the cut range; these belong to an operation semantics ASN, not the permanence argument. Three properties hold:
 
 **P4 (Rearrangement Content Invariance).**
 
@@ -206,11 +217,15 @@ REARRANGE permutes content within document d. The operation takes a sequence of 
 
     dom(Σ'.v(d)) = dom(Σ.v(d))
 
-**Exterior frame.** Content outside the cut range is unmoved:
+**Exterior frame.** Text-subspace content outside the cut range is unmoved:
 
-    (A q : q ∈ dom(Σ.v(d)) ∧ (q < c₁ ∨ q ≥ cₖ) : Σ'.v(d)(q) = Σ.v(d)(q))
+    (A q : q ∈ dom(Σ.v(d)) ∧ q is a text position ∧ (q < c₁ ∨ q ≥ cₖ) : Σ'.v(d)(q) = Σ.v(d)(q))
 
-Since all cut positions are text-subspace and link positions sort after all text positions under T1, the exterior frame subsumes link positions per TA7b. No I-address gains or loses visibility in d through rearrangement; only the V-positions within [c₁, cₖ) change.
+**Link-subspace frame.** All link positions are unchanged:
+
+    (A q : q ∈ dom(Σ.v(d)) ∧ q is a link position : Σ'.v(d)(q) = Σ.v(d)(q))
+
+The exterior frame is restricted to text-subspace positions because V-position ordering under TA7a's ordinal-only formulation operates within a single subspace — cross-subspace comparison between link ordinals and text cut positions is not defined. The explicit link-subspace postcondition, matching INSERT and DELETE, directly guarantees that REARRANGE does not affect links. No I-address gains or loses visibility in d through rearrangement; only the text V-positions within [c₁, cₖ) change.
 
 **Σ'.D = Σ.D.** REARRANGE does not create or remove documents.
 
@@ -450,13 +465,15 @@ Gregory's evidence is precise: `findisatoinsertmolecule` computes addresses from
 | next(d, Σ) | First text-subspace V-position past all existing text content | introduced |
 | next_link(d, Σ) | First link-subspace V-position past all existing links | introduced |
 | J0 | (A d ∈ Σ.D : rng(Σ.v(d)) ⊆ Σ.A) — V-space references only allocated content | introduced |
+| J1 | Text V-positions in each document form contiguous ordinal range {1, ..., k} | introduced |
+| J2 | Link V-positions in each document form contiguous ordinal range {1, ..., m} | introduced |
 | P0 | Σ.A ⊆ Σ'.A — I-space only grows | introduced |
 | P1 | (A a ∈ Σ.A : Σ'.ι(a) = Σ.ι(a)) — existing content immutable | introduced |
 | P2 | No I-address ever reassigned to different content (from P0 ∧ P1) | derived (from P0 ∧ P1) |
 | P3 | DELETE, REARRANGE, COPY leave I-space unchanged: Σ'.A = Σ.A ∧ Σ'.ι = Σ.ι | introduced |
 | P4 | REARRANGE preserves the multiset of visible I-addresses per document | introduced |
 | P5 | COPY makes source I-addresses visible in target without new allocation | introduced |
-| P6 | Σ.D ⊆ Σ'.D — document set only grows | derived (case analysis) |
+| P6 | Σ.D ⊆ Σ'.D — document set only grows (design constraint) | introduced |
 | P7 | Content identity determined by creation event, not byte value | derived (from T9, T10, GlobalUniqueness, P3) |
 | P8 | No component of IAddr encodes current physical location; node field records originating provenance | introduced |
 | UF | Every operation preserves existing I-space content (= P1 per-operation) | introduced |
