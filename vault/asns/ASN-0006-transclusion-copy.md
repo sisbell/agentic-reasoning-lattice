@@ -54,46 +54,44 @@ We begin with the precondition. COPY requires that its arguments be well-formed:
 
 Without these conditions, the postconditions would be vacuously satisfiable. An operation with precondition `false` satisfies any postcondition — which tells us nothing.
 
-**TC1 (I-address preservation).** COPY creates V→I mappings in the target document that reference the same I-addresses as the source:
-
-  `(A a : a ∈ iaddrs(source_span) : (E p : poom'(target).p = a))`
-
-where `iaddrs(source_span)` is the set of I-addresses that the source document's POOM maps the source V-span to. No fresh I-addresses are allocated. The set `dom.ispace` is unchanged:
-
-  `dom.ispace' = dom.ispace`
-
-Nelson states this with precision: "Native bytes of a document are those actually stored under its control and found directly in storage under its control; all other bytes are obtained by front-end or back-end requests to their home locations" [LM 4/11]. The term "virtual copies" is exact — no content is duplicated. The target document gains V-space positions that map to I-addresses belonging to the source.
-
-Gregory confirms the data flow definitively. The implementation converts source V-spans to I-spans by reading the source document's POOM, obtaining the existing I-addresses. These I-addresses are then inserted (as-is, with no transformation) into the target document's POOM at the specified V-position. The allocation function for content — the function that assigns fresh I-addresses — is never called during COPY. The I-addresses extracted from the source POOM are exactly the I-addresses deposited in the target POOM.
-
-We must state the contrast with INSERT to make the distinction sharp:
-
 **TC2 (INSERT creates identity; COPY preserves it).** INSERT at position p in document d allocates fresh addresses `a₁, ..., aₙ` such that:
 
   `(A i : 1 ≤ i ≤ n : aᵢ ∉ dom.ispace)` and `(A i : 1 ≤ i ≤ n : aᵢ ∈ dom.ispace')`
 
-COPY from source to target at position p creates no new addresses:
+COPY from `source_span = [source_start, source_start + w)` in `source_doc` to `target` at position p creates no new addresses:
 
   `dom.ispace' = dom.ispace`
 
-and the addresses at the new positions are drawn from the source:
+and deposits the source's I-addresses at the target positions in order:
 
-  `{a : (E q : q ∈ [p, p + w) : poom'(target).q = a)} = iaddrs(source_span)`
+  `(A i : 0 ≤ i < w : poom'(target).(p ⊕ i) = poom(source_doc).(source_start ⊕ i))`
 
-where `w = |iaddrs(source_span)|`. This is the sole architectural distinction between duplication and transclusion. Every observable behavioral difference — in link discovery, version comparison, attribution, compensation — flows from this single fact: INSERT allocates new I-addresses; COPY shares existing ones.
+where `w = |source_span|`. The mapping is pointwise — the i-th source position maps to the i-th target position. This is the sole architectural distinction between duplication and transclusion. Every observable behavioral difference — in link discovery, version comparison, attribution, compensation — flows from this single fact: INSERT allocates new I-addresses; COPY shares existing ones.
+
+**TC1 (I-address preservation).** Every I-address in the source span appears in the target after COPY:
+
+  `(A a : a ∈ iaddrs(source_span) : (E q : poom'(target).q = a))`
+
+where `iaddrs(source_span) = {poom(source_doc).q : q ∈ source_span}`. TC1 is a corollary of TC2: the pointwise mapping guarantees that each source I-address is deposited at a specific target position, and existential weakening gives the weaker "appears somewhere" claim. No fresh I-addresses are allocated; `dom.ispace' = dom.ispace`.
+
+Nelson states this with precision: "Native bytes of a document are those actually stored under its control and found directly in storage under its control; all other bytes are obtained by front-end or back-end requests to their home locations" [LM 4/11]. The term "virtual copies" is exact — no content is duplicated. The target document gains V-space positions that map to I-addresses belonging to the source.
+
+Gregory confirms the data flow definitively. The implementation converts source V-spans to I-spans by reading the source document's POOM, obtaining the existing I-addresses. These I-addresses are then inserted (as-is, with no transformation) into the target document's POOM at the specified V-position. The POOM insertion function iterates over the source spans sequentially, advancing the target V-position after each span — preserving source order. The allocation function for content — the function that assigns fresh I-addresses — is never called during COPY. The I-addresses extracted from the source POOM are exactly the I-addresses deposited in the target POOM.
 
 
 ## COPY is specset-driven
 
 A crucial property of COPY deserves immediate attention: COPY transfers whatever the source specset specifies. It performs no filtering, no validation of content type, no subspace-aware exclusion.
 
-**TC3 (Specset determines scope).** COPY operates on the I-addresses obtained by converting the source specset's V-spans through the source document's POOM. The content type, subspace, or semantic classification of those I-addresses is not examined:
+**TC3 (No content-type filtering).** COPY operates on the I-addresses obtained by converting the source span through the source document's POOM. The content type, subspace, or semantic classification of those I-addresses is not examined:
 
-  `copied_addresses = iaddrs(source_specset)`
+  `copied_addresses = iaddrs(source_span)`
 
 regardless of whether those addresses fall in the text subspace (V ≥ 1.0), the link subspace (V < 1.0), or any other region.
 
 Gregory confirms this emphatically. The COPY function receives a specset, converts it to I-spans, and passes those I-spans to the POOM insertion function. No filter is applied. If the specset covers link subspace V-spans (0.2.x), the link POOM entries are transferred — their I-addresses (which are link ISAs, not text content) are placed into the target's text subspace, producing semantically invalid content.
+
+*(The implementation natively accepts a multi-document, multi-span specset as the source argument, resolving each component through its own document's POOM in a single atomic operation. The formal properties in this ASN are stated for the single-span, single-document case; the multi-document generalization is deferred.)*
 
 This means the convention that COPY transfers only text content is enforced by the **caller**, not by the back end. The front end must construct specsets that cover only the text subspace (V ≥ 1.0) unless link transfer is specifically intended.
 
@@ -122,18 +120,24 @@ where `poom` (unprimed) denotes the pre-state. When `source_doc = target` (self-
 
 No content is created, modified, or removed from the permanent store.
 
-**TC7 (Target text preservation).** COPY at text position p in the target document preserves all existing text content. Text positions before p are unchanged; text positions at or beyond p shift forward by the width of the copied content:
+**TC7 (Target content preservation).** COPY at text position p in the target document preserves all existing content at positions before p — in any subspace — and shifts text positions at or beyond p forward by the copied width:
 
-  `(A q : q ∈ text_subspace(target) ∧ q < p : poom'(target).q = poom(target).q)`
+  `(A q : q ∈ dom(poom(target)) ∧ q < p : poom'(target).q = poom(target).q)`
   `(A q : q ∈ text_subspace(target) ∧ q ≥ p : poom'(target).(q ⊕ w) = poom(target).q)`
 
-where `w = |iaddrs(source_span)|` is the width of the copied content and `⊕` is the within-subspace shift defined earlier. This is the same shift behavior as INSERT — both operations expand the text subspace at the insertion point and displace subsequent content rightward.
+where `w = |source_span|` is the width of the copied content and `⊕` is the within-subspace shift defined earlier. The first clause quantifies over all of `dom(poom(target))`, not just `text_subspace` — any position in any subspace that precedes p is preserved. The second clause is restricted to `text_subspace` because the shift applies only within the insertion point's subspace. This is the same shift behavior as INSERT — both operations expand the text subspace at the insertion point and displace subsequent content rightward.
 
 **TC8 (Subspace confinement of shifts).** The V-position shift caused by COPY is confined to the insertion point's subspace. Link positions within the target document are not affected by text-subspace insertions, and vice versa:
 
   `(A q ∈ link_subspace(target) : poom'(target).q = poom(target).q)`
 
-TC8 is a corollary of TC7 and the position ordering. Since all link positions `(0, _)` precede all text positions `(1, _)` in the lexicographic order, and the insertion point `p` is a text position, every link position `q` satisfies `q < p`. TC7's first clause then gives `poom'(target).q = poom(target).q` for all such `q`. TC8 constrains the *shift*, not the *scope* — the question of *what content* is copied is governed by TC3 (specset determines scope).
+TC8 is a corollary of TC7's first clause. Since all link positions `(0, _)` precede all text positions `(1, _)` in the lexicographic order, and the insertion point `p` is a text position, every link position `q` satisfies `q ∈ dom(poom(target)) ∧ q < p`. TC7's first clause — which quantifies over `dom(poom(target))`, not just `text_subspace` — directly gives `poom'(target).q = poom(target).q` for all such `q`. TC8 constrains the *shift*, not the *scope* — the question of *what content* is copied is governed by TC3.
+
+**TC12 (Links invariance).** COPY does not create, modify, or remove links:
+
+  `links' = links`
+
+COPY modifies only the target document's POOM and the span index. The links set — the collection of link structures with their endsets — is unaffected. Link *discoverability* through a document changes when its POOM changes (TC11), but the links themselves are invariant under COPY.
 
 
 ## Non-contiguous spans
@@ -163,6 +167,8 @@ A consequence: the target document becomes independently discoverable via span i
 
 
 ## A concrete trace
+
+*(The addresses below use a simplified single-component Element field for readability. In the full address form, Element is multi-component with the first component indicating subspace: e.g., the five text bytes would be `1.0.1.0.1.0.1.1` through `1.0.1.0.1.0.1.5`, where Element = 1.1..1.5 and the leading 1 marks the text subspace. The simplified form elides this nesting.)*
 
 We verify the postconditions against a specific scenario. Document A (identifier `1.0.1.0.1`) contains "HELLO" at I-addresses `[1.0.1.0.1.0.1 .. 1.0.1.0.1.0.5]` — five bytes, contiguous in I-space. Document B (identifier `1.0.1.0.2`) contains "XY" at I-addresses `[1.0.1.0.2.0.1, 1.0.1.0.2.0.2]`, so `poom(B) = {0 → 1.0.1.0.2.0.1, 1 → 1.0.1.0.2.0.2}` and `size(poom(B)) = 2`. We execute COPY of A's V-span `[0,5)` into B at position `p = 1`.
 
@@ -201,7 +207,7 @@ We now derive the property that makes transclusion a robust sharing mechanism: i
 
   `#{d : poom'(d) ≠ poom(d)} ≤ 1`
 
-This is confirmed for each operation individually: INSERT modifies the target document's POOM only; DELETE modifies the deleting document's POOM only; COPY modifies the target's POOM only (TC5); CREATENEWVERSION creates a new document's POOM without modifying the source's. No operation reaches across document boundaries to modify another document's arrangement.
+This is confirmed for each mutating operation individually: INSERT modifies the target document's POOM only; DELETE modifies the deleting document's POOM only; COPY modifies the target's POOM only (TC5); CREATENEWVERSION creates a new document's POOM without modifying the source's; MAKELINK modifies exactly one document's POOM — the home document — registering the link ISA in its link subspace, while documents whose content appears in the link's endsets are accessed read-only for V→I address conversion. Gregory confirms the mechanism: `docreatelink` calls `docopy` on the home document's POOM to place the link ISA, and `specset2sporglset` on each endset document's POOM to resolve V-addresses to I-addresses — the latter is a read-only traversal that never calls `insertpm` or any write operation on those documents' POOMs. Read-only operations (RETRIEVE, FINDDOCSCONTAINING, RETRIEVEENDSETS, find_links) modify no POOM. No operation reaches across document boundaries to modify another document's arrangement.
 
 **AX2 (I-space permanence).** No operation removes addresses from `dom.ispace` or modifies existing content:
 
@@ -249,11 +255,13 @@ Link discoverability through B is then:
 
 A link is discoverable through B if any I-address in its from or to endsets is currently mapped by B's POOM. This definition depends only on B's current POOM and the link's endset addresses — no other document's state is consulted.
 
-**TC11 (Links follow transclusion).** If link L has a discoverable endset referencing I-address `a`, and document B's POOM maps some position to `a`, then L is discoverable through B:
+**TC11 (Links follow transclusion).** After COPY of `source_span` into `target` at position p, every link whose endsets intersect the copied I-addresses becomes discoverable through the target:
 
-  `a ∈ endsets(L) ∧ a ∈ iaddrs_of(B) ⟹ L ∈ discoverable_links(B)`
+  `discoverable_links'(target) ⊇ {L ∈ links : endsets(L) ∩ iaddrs(source_span) ≠ ∅}`
 
-This is not a feature that needs to be implemented on top of transclusion. It is a structural consequence of three design choices: (i) links reference I-addresses; (ii) transclusion preserves I-addresses; (iii) link search operates on I-addresses. No special-case logic is needed to "carry links across" a transclusion. The links were never attached to the source document — they were attached to the content, and the content is now visible in B.
+*Derivation.* TC1 guarantees `iaddrs(source_span) ⊆ iaddrs_of'(target)`. TC12 guarantees `links' = links`. Therefore any link L with `endsets(L) ∩ iaddrs(source_span) ≠ ∅` also satisfies `endsets(L) ∩ iaddrs_of'(target) ≠ ∅`, placing it in `discoverable_links'(target)` by definition.
+
+This is not a feature that needs to be implemented on top of transclusion. It is a structural consequence of three design choices: (i) links reference I-addresses; (ii) transclusion preserves I-addresses (TC1); (iii) link search operates on I-addresses. No special-case logic is needed to "carry links across" a transclusion. The links were never attached to the source document — they were attached to the content, and the content is now visible in the target.
 
 Gregory confirms the mechanism end-to-end. The link search function converts V-spans to I-spans by reading the searching document's POOM, then queries the span index for intersecting link endsets. The searching document's POOM is the only document-specific state consulted. If the searching document still references the I-addresses, the search succeeds — regardless of what has happened to the document that originally created the content.
 
@@ -466,7 +474,7 @@ We collect the structure. The COPY operation is a transformation `δ(Σ, COPY(so
 
 *Effect:* The target document's POOM gains new V→I mappings at position `p`, referencing the I-addresses extracted from the source's pre-state POOM (TC4). No fresh I-addresses are allocated. The span index is extended with entries associating the target document with the copied I-address ranges.
 
-*Frame:* I-space is unchanged (TC6). No document's POOM other than the target is modified (TC5). The link subspace of the target document is unchanged (when copying text content, TC8). When `source ≠ target`, this implies the source POOM is unchanged; when `source = target`, the source POOM is the target POOM and reflects the modification.
+*Frame:* I-space is unchanged (TC6). No document's POOM other than the target is modified (TC5). The link subspace of the target document is unchanged (when copying text content, TC8). The links set is unchanged (TC12). When `source ≠ target`, this implies the source POOM is unchanged; when `source = target`, the source POOM is the target POOM and reflects the modification.
 
 *Scope:* COPY is specset-driven — it transfers whatever the specset specifies. Subspace filtering is a caller convention, not a back-end enforcement.
 
@@ -492,17 +500,18 @@ The power of the design is that all seven consequences flow from a single archit
 | Label | Statement | Status |
 |-------|-----------|--------|
 | TC0 | Content identity is I-address identity: same(r₁, r₂) ≡ iaddr(r₁) = iaddr(r₂) | introduced |
-| TC1 | COPY creates V→I mappings in the target referencing the same I-addresses as the source; dom.ispace is unchanged | introduced |
-| TC2 | INSERT allocates fresh I-addresses; COPY shares existing ones — the sole structural distinction between duplication and transclusion | introduced |
-| TC3 | COPY is specset-driven: it transfers whatever the specset specifies, with no content-type filtering | introduced |
+| TC1 | COPY preserves I-addresses: every source I-address appears in the target (corollary of TC2 by existential weakening); dom.ispace is unchanged | introduced |
+| TC2 | INSERT allocates fresh I-addresses; COPY deposits source I-addresses at target positions pointwise in order: (A i : 0 ≤ i < w : poom'(target).(p ⊕ i) = poom(source_doc).(source_start ⊕ i)) | introduced |
+| TC3 | COPY transfers whatever the source span specifies with no content-type filtering; multi-document specset support is deferred | introduced |
 | TC4 | COPY extracts I-addresses from the source's pre-state POOM (read-before-write); source POOM unchanged when source ≠ target (by TC5) | introduced |
 | TC5 | COPY does not modify the POOM of any document other than the target | introduced |
 | TC6 | COPY does not modify ispace — no content is created, modified, or removed | introduced |
-| TC7 | COPY at position p preserves all existing target content; subsequent V-positions shift by the copied width | introduced |
-| TC8 | COPY's V-position shift is confined to the subspace of the insertion point; other subspaces are unaffected | introduced |
+| TC7 | COPY at position p preserves all existing content at positions before p (any subspace); text positions at or beyond p shift by the copied width | introduced |
+| TC8 | COPY's V-position shift is confined to the subspace of the insertion point; other subspaces are unaffected (corollary of TC7) | introduced |
 | TC9 | Non-contiguous I-address ranges in the source are automatically split into separate mapping groups with contiguous V-positions in the target | introduced |
 | TC10 | COPY registers the target document in the span index for the copied I-address ranges; the target becomes independently discoverable | introduced |
-| TC11 | Links follow transclusion: a link with endsets(L) ∩ iaddrs_of(B) ≠ ∅ is discoverable through B; deletion-independent by AX1 | introduced |
+| TC11 | Links follow transclusion: after COPY, discoverable_links'(target) ⊇ {L ∈ links : endsets(L) ∩ iaddrs(source_span) ≠ ∅} (derived from TC1 + TC12) | introduced |
+| TC12 | COPY does not create, modify, or remove links: links' = links | introduced |
 | TC13 | Attribution is structural: home(a) = a↓doc is computable from the I-address alone, requiring no index | introduced |
 | TC14 | FINDDOCSCONTAINING returns all documents whose POOMs currently map to a given set of I-addresses (with possible stale over-approximation from span index) | introduced |
 | TC15 | Two documents share content iff they share I-addresses; correspondence is address intersection, not value comparison; works across COPY and VERSION alike | introduced |
@@ -513,7 +522,7 @@ The power of the design is that all seven consequences flow from a single archit
 | TC20 | Two reference modes: time-fixed (COPY captures I-addresses at invocation) and location-fixed (front-end re-resolves through source's current POOM) | introduced |
 | TC21 | Transclusion is reference, not cache: transcluded content is retrieved from the home location, with no local fallback | introduced |
 | TC22 | POOM representation (entry count, coalescing) is semantically transparent: operations over the V→I mapping are invariant under representation changes | introduced |
-| AX1 | Every operation modifies the POOM of at most one document | introduced |
+| AX1 | Every operation modifies the POOM of at most one document (verified for INSERT, DELETE, COPY, CREATENEWVERSION, MAKELINK; read-only ops modify none) | introduced |
 | AX2 | No operation removes addresses from dom.ispace or modifies existing ispace content | introduced |
 | Σ.poom | poom(d) : Pos ⇀ Addr — per-document V→I arrangement mapping | introduced |
 | Σ.spanindex | spanindex ⊆ Addr × DocId — append-only reverse index from I-addresses to documents | introduced |
