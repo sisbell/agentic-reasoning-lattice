@@ -35,6 +35,8 @@ where Value encompasses text bytes, structural entries (document and version org
 
 This mapping represents the document's current arrangement — what a user sees, in the order they see it. V-positions are tumblers in the document's virtual subspace; they shift with every editing operation.
 
+Each document d ∈ Σ.D has a distinguished I-address orgl(d) ∈ Σ.A — the document's *orgl*, a structural entry allocated at creation time. We write `next(d, Σ)` for the first V-position past all existing content: `next(d, Σ) = max(dom(Σ.v(d))) ⊕ [1]` when dom(Σ.v(d)) ≠ ∅, and `next(d, Σ) = [1]` when dom(Σ.v(d)) = ∅.
+
 **Well-formedness.** Every V-space entry must refer to allocated content:
 
     J0: (A d : d ∈ Σ.D : rng(Σ.v(d)) ⊆ Σ.A)
@@ -65,6 +67,14 @@ Suppose a ∈ Σᵢ.A with Σᵢ.ι(a) = c. By P0, a ∈ Σᵢ₊₁.A. By P1, �
     (A i, j : 0 ≤ i ≤ j ∧ a ∈ Σᵢ.A : Σⱼ.ι(a) = Σᵢ.ι(a))
 
 This is T8 from ASN-0001, now derived operationally. T8 is the historical statement ("if ever assigned, stays assigned"). P0 ∧ P1 are the step-wise conditions that each operation must satisfy to maintain T8.
+
+From P0 and the orgl relationship we derive:
+
+**P6 (Document Set Growth).** No operation removes a document from Σ.D.
+
+    Σ.D ⊆ Σ'.D
+
+Each d ∈ Σ.D has orgl(d) ∈ Σ.A. By P0, orgl(d) ∈ Σ'.A in every subsequent state. Since d's membership in Σ.D is witnessed by orgl(d) ∈ Σ.A, removing d would require removing orgl(d) from Σ.A — which P0 forbids. Therefore Σ.D can only grow.
 
 
 ## Visibility and Indestructibility
@@ -113,20 +123,27 @@ These two frame conditions, together with the specific postconditions below, cha
 
 INSERT places new content β = β₁...βₙ into document d at V-position p.
 
-**Preconditions.** d ∈ Σ.D; p is a valid insertion position in dom(Σ.v(d)) ∪ {next}; β is a non-empty byte sequence (n ≥ 1).
+**Preconditions.** d ∈ Σ.D; p ∈ dom(Σ.v(d)) ∪ {next(d, Σ)}; β is a non-empty byte sequence (n ≥ 1).
 
 **I-space effect.** Fresh I-addresses are allocated for the new content. Let B = {b₁, ..., bₙ} be these addresses:
 
     Σ'.A = Σ.A ∪ B  where  B ∩ Σ.A = ∅
     (A i : 1 ≤ i ≤ n : Σ'.ι(bᵢ) = βᵢ)
 
-Freshness (B ∩ Σ.A = ∅) is guaranteed by T9 (forward allocation): new addresses are strictly greater than all existing ones under T1. The new addresses are monotonically ordered: i < j ⟹ bᵢ < bⱼ.
+Freshness (B ∩ Σ.A = ∅) follows from GlobalUniqueness (ASN-0001): no two distinct allocations anywhere in the system produce the same address. (GlobalUniqueness is itself derived from T9 — intra-allocator monotonicity — and T10 — inter-allocator partition independence.) Within this single allocation, T9 guarantees the new addresses are monotonically ordered: i < j ⟹ bᵢ < bⱼ.
 
-**V-space effect on d.** The new content maps at positions starting at p. All V-positions at or beyond p shift forward by width n. The I-addresses of the shifted entries are unchanged — only their V-positions move. Per TA7a from ASN-0001, the shift arithmetic operates within the text subspace of V-space. Per TA7b, positions in other subspaces (e.g., links at element prefix 2.x) are unaffected.
+**V-space effect on d.** The new content maps at positions starting at p. Existing V-entries shift forward and preserve their I-address mappings:
+
+    (A q : q ∈ dom(Σ.v(d)) ∧ q ≥ p : Σ'.v(d)(q ⊕ [n]) = Σ.v(d)(q))
+    (A q : q ∈ dom(Σ.v(d)) ∧ q < p : Σ'.v(d)(q) = Σ.v(d)(q))
+
+Positions below p are unchanged; positions at or beyond p shift forward by width n, retaining their original I-addresses. Per TA7a from ASN-0001, the shift arithmetic operates within the text subspace of V-space. Per TA7b, positions in other subspaces (e.g., links at element prefix 2.x) are unaffected.
+
+**Σ'.D = Σ.D.** INSERT does not create or remove documents.
 
 **Verification of P0 ∧ P1.** P0: Σ.A ⊆ Σ.A ∪ B = Σ'.A. P1: for a ∈ Σ.A, since a ∉ B (freshness), the extension to B does not touch Σ.ι(a). Both hold.
 
-**J0 preservation.** The new V-entries map positions to addresses in B. Since B ⊆ Σ'.A, these are allocated. Shifted V-entries retain their original I-addresses, which are in Σ.A ⊆ Σ'.A. J0 holds.
+**J0 preservation.** The new V-entries map positions to addresses in B ⊆ Σ'.A. For shifted entries, the V-space postcondition gives Σ'.v(d)(q ⊕ [n]) = Σ.v(d)(q), so shifted entries map to the same I-addresses as in the pre-state, all in Σ.A ⊆ Σ'.A by J0 for Σ. Entries below p are unchanged by the second postcondition. J0 holds.
 
 Gregory confirms the mechanism: `inserttextgr` calls `findisatoinsertgr` to compute the next available I-address as max+1, then `insertseq` creates a new bottom crum storing the content bytes. The V-space shift in `makegappm` applies `tumbleradd` exclusively to `dsas[V]`; the I-dimension `dsas[I]` is never an operand of any arithmetic in the shift path (Q13). The dimensional isolation is structural per TA8.
 
@@ -141,9 +158,16 @@ DELETE removes a V-span from document d.
 
     Σ'.A = Σ.A  ∧  Σ'.ι = Σ.ι
 
-**V-space effect on d.** The mappings in the deleted span are removed. Subsequent V-positions shift backward to close the gap. The I-addresses of shifted entries remain unchanged.
+**V-space effect on d.** Let the deleted span cover n positions starting at p. The mappings in the span are removed; remaining entries preserve their I-address mappings:
 
-**J0 preservation.** Remaining V-entries retain their original I-addresses, all in Σ.A = Σ'.A. J0 holds.
+    (A q : q ∈ dom(Σ.v(d)) ∧ q ≥ p ⊕ [n] : Σ'.v(d)(q ⊖ [n]) = Σ.v(d)(q))
+    (A q : q ∈ dom(Σ.v(d)) ∧ q < p : Σ'.v(d)(q) = Σ.v(d)(q))
+
+Positions below p are unchanged; positions at or beyond p ⊕ [n] shift backward by width n, retaining their original I-addresses.
+
+**Σ'.D = Σ.D.** DELETE does not create or remove documents.
+
+**J0 preservation.** By the V-space postconditions, every remaining entry's I-address equals some Σ.v(d)(q) for q ∈ dom(Σ.v(d)), which is in Σ.A = Σ'.A by J0 for Σ. J0 holds.
 
 Gregory confirms: `dodeletevspan` calls `deletevspanpm`, which operates solely on the POOM — the V→I mapping tree. No function in the delete path touches the granfilade (Q11). The `strongsub` exponent guard ensures that V-positions in higher subspaces (links at 2.x) are not affected by text deletion — the guard fires and the crum field is literally untouched through pointer aliasing (Q16). This is the implementation mechanism behind TA7b.
 
@@ -167,6 +191,8 @@ REARRANGE permutes content within document d.
 
 No I-address gains or loses visibility in d through rearrangement; only the V-positions change.
 
+**Σ'.D = Σ.D.** REARRANGE does not create or remove documents.
+
 **J0 preservation.** The multiset of I-addresses is unchanged (P4), so rng(Σ'.v(d)) = rng(Σ.v(d)) ⊆ Σ.A = Σ'.A. J0 holds.
 
 Gregory notes a subtlety: when `slicecbcpm` splits a POOM bottom crum that straddles a cut boundary, the I-displacement and I-width of the resulting halves are recomputed through exact integer tumbler arithmetic. The move step (phase 2) does not touch I-fields at all; the reconstruction occurs only at slice boundaries and relies on an unverified assumption that V-width equals I-width in POOM bottom crums (Q14).
@@ -176,7 +202,7 @@ Gregory notes a subtlety: when `slicecbcpm` splits a POOM bottom crum that strad
 
 COPY places content into document d by reference to existing I-space content at V-position p. This is the transclusion primitive.
 
-**Preconditions.** d ∈ Σ.D; the source I-addresses S ⊆ Σ.A; p is a valid insertion position in dom(Σ.v(d)) ∪ {next}. The precondition S ⊆ Σ.A is essential — COPY references existing content, not yet-to-be-allocated content.
+**Preconditions.** d ∈ Σ.D; the source I-addresses S ⊆ Σ.A; p ∈ dom(Σ.v(d)) ∪ {next(d, Σ)}. The precondition S ⊆ Σ.A is essential — COPY references existing content, not yet-to-be-allocated content.
 
 **I-space effect.** None. No new I-addresses are allocated. No content is duplicated.
 
@@ -190,7 +216,9 @@ COPY places content into document d by reference to existing I-space content at 
 
 The "copy" is virtual — a V-space reference to existing I-space content, not a duplication. Nelson: "Bytes native elsewhere have an ordinal position in the byte stream just as if they were native to the document. Non-native byte-spans are called inclusions or virtual copies" [LM 4/11]. Combined with UF-V, the source I-addresses remain visible in d' as well. Both documents see the same content through the same I-addresses.
 
-**J0 preservation.** The new V-entries map to addresses in S ⊆ Σ.A = Σ'.A. Shifted V-entries retain their original I-addresses, also in Σ.A. J0 holds.
+**Σ'.D = Σ.D.** COPY does not create or remove documents.
+
+**J0 preservation.** The new V-entries map to addresses in S ⊆ Σ.A = Σ'.A. The shift for existing entries is structurally parallel to INSERT: the V-space postconditions from INSERT apply (shifted entries preserve their I-address mappings). All I-addresses in the post-state V-space are in Σ.A = Σ'.A. J0 holds.
 
 Gregory confirms: when copied I-addresses are contiguous with an existing POOM entry, `isanextensionnd` extends the entry's width without touching its I-displacement. The displacement is preserved identically; only the width grows (Q18).
 
@@ -205,9 +233,13 @@ Creating a new version produces a new document d' whose V-space initially mirror
 
     Σ'.A = Σ.A ∪ {o}  where  o ∉ Σ.A
 
+Freshness (o ∉ Σ.A) follows from GlobalUniqueness: the orgl allocation is a new creation event, producing an address distinct from all prior allocations.
+
 Gregory confirms: `docreatenewversion` calls `createorglingranf`, which allocates a GRANORGL entry via `findisatoinsertnonmolecule`. For the user's own document, the orgl address is structurally subordinate to the source (e.g., document `1.1.0.1.0.1` yields version address `1.1.0.1.0.1.0.1`). For another user's document, the orgl is allocated in the creating user's account namespace, mirroring `docreatenewdocument`. In both cases, the new version shares the original's *content* I-addresses — `docopyinternal` copies existing I-addresses via `insertpm` without allocating new content entries.
 
-**V-space effect.** A new document d' appears in Σ'.D with initial V-space mapping to the same I-addresses as Σ.v(d). The two V-spaces are thenceforth independent — this follows from UF-V: since every editing operation targets a single document, UF-V guarantees Σ'.v(d') = Σ.v(d') for all d' ≠ d. No separate property is required.
+**V-space effect.** A new document d' appears with initial V-space mapping to the same I-addresses as Σ.v(d). The two V-spaces are thenceforth independent — this follows from UF-V: since every editing operation targets a single document, UF-V guarantees Σ'.v(d') = Σ.v(d') for all d' ≠ d. No separate property is required.
+
+**Σ'.D = Σ.D ∪ {d'}.** The new version's orgl satisfies orgl(d') = o ∈ Σ'.A.
 
 **Verification of P0 ∧ P1.** P0: Σ.A ⊆ Σ.A ∪ {o} = Σ'.A. P1: o ∉ Σ.A, so the extension does not touch Σ.ι at existing addresses. Both hold.
 
@@ -225,6 +257,10 @@ Creating a link allocates new I-space content in the link subspace and places it
 **I-space effect.** A new I-address `l` is allocated in the link subspace (element field 0.2.x), disjoint from text content (0.1.x) by T7 (subspace disjointness):
 
     Σ'.A = Σ.A ∪ {l}  where  l ∉ Σ.A
+
+Freshness (l ∉ Σ.A) follows from GlobalUniqueness: the link allocation is a new creation event, distinct from all prior allocations. T7 (subspace disjointness) additionally guarantees that the link address (element prefix 0.2.x) is disjoint from all text addresses (0.1.x).
+
+**Σ'.D = Σ.D.** CREATE LINK does not create or remove documents.
 
 **V-space effect on h.** The link is placed at the next available position in h's link subspace (element prefix 2.x). Existing V-entries in h are unchanged — link entries are appended sequentially in creation order and are not subject to the V-position shifts that text editing produces. Per TA7b, this insertion in the link subspace does not affect text positions in h. Per UF-V, no other document's V-space is modified.
 
@@ -247,9 +283,13 @@ CREATE DOCUMENT allocates a fresh document with no source.
 
     Σ'.A = Σ.A ∪ {o}  where  o ∉ Σ.A
 
+Freshness (o ∉ Σ.A) follows from GlobalUniqueness: the document orgl allocation is a new creation event, distinct from all prior allocations.
+
 Gregory confirms: `docreatenewdocument` calls `createorglingranf`, which dispatches to `findisatoinsertnonmolecule`. This allocates exactly one GRANORGL entry — the document's orgl address — computed as max+1 under the user's account prefix (e.g., `account.0.1` for the first document, `account.0.N` for the Nth). No content atoms are allocated; no DOCISPAN entries are created.
 
-**V-space effect.** A new document d appears in Σ'.D with an empty V-space:
+**Σ'.D = Σ.D ∪ {d}.** The new document's orgl satisfies orgl(d) = o ∈ Σ'.A.
+
+**V-space effect.** Document d has an empty V-space:
 
     dom(Σ'.v(d)) = ∅
 
@@ -311,7 +351,7 @@ The creation-based identity principle means that content equality (Σ.ι(a) = Σ
 
 ## Structural Consequences
 
-The invariants P0–P5, P7, and the frame conditions UF/UF-V, composed, provide four system-level guarantees.
+The invariants P0–P7 and the frame conditions UF/UF-V, composed, provide four system-level guarantees.
 
 **Link survivability.** The state model Σ does not model link internal structure — the representation of endsets and their reference targets belongs to a future link ASN. We observe, however, that Nelson's design requires link endpoints to reference I-space addresses: "links between bytes can survive deletions, insertions and rearrangements, if anything is left at each end" [LM 4/43]. Gregory confirms this: `insertendsetsinspanf` indexes endpoint I-addresses, not V-positions, in the spanfilade. If link endsets reference I-space addresses — as both the design intent and the implementation indicate — then P0 ∧ P1 guarantee survivability: those I-addresses are permanent (P0) and their content immutable (P1), so no editing operation (which modifies only V-space, or extends I-space without altering existing entries) can cause a link's endpoint to refer to different content. The derivation is conditional on the premise that endsets reference I-space; formalizing that premise is the link ASN's responsibility.
 
@@ -360,6 +400,8 @@ Gregory's evidence is precise: `findisatoinsertmolecule` computes addresses from
 | Σ.ι | ι : IAddr ⇸ Value — I-space content function (Value covers bytes, orgls, link data) | introduced |
 | Σ.A | A = dom(ι) — set of allocated I-addresses | introduced |
 | Σ.v | v : DocId → (VPos ⇸ IAddr) — per-document V-space mappings | introduced |
+| orgl | orgl : DocId → IAddr — each document's distinguished structural I-address | introduced |
+| next(d, Σ) | First V-position past all existing content: max(dom) ⊕ [1] or [1] if empty | introduced |
 | J0 | (A d ∈ Σ.D : rng(Σ.v(d)) ⊆ Σ.A) — V-space references only allocated content | introduced |
 | P0 | Σ.A ⊆ Σ'.A — I-space only grows | introduced |
 | P1 | (A a ∈ Σ.A : Σ'.ι(a) = Σ.ι(a)) — existing content immutable | introduced |
@@ -367,6 +409,7 @@ Gregory's evidence is precise: `findisatoinsertmolecule` computes addresses from
 | P3 | DELETE, REARRANGE, COPY leave I-space unchanged: Σ'.A = Σ.A ∧ Σ'.ι = Σ.ι | introduced |
 | P4 | REARRANGE preserves the multiset of visible I-addresses per document | introduced |
 | P5 | COPY makes source I-addresses visible in target without new allocation | introduced |
+| P6 | Σ.D ⊆ Σ'.D — document set only grows (from P0 + orgl relationship) | derived (from P0) |
 | P7 | Content identity determined by creation event, not byte value | derived (from T9, T10, GlobalUniqueness, P3) |
 | P8 | No component of IAddr encodes current physical location; node field records originating provenance | introduced |
 | UF | Every operation preserves existing I-space content (= P1 per-operation) | introduced |
