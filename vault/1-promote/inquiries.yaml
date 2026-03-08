@@ -173,3 +173,8 @@ inquiries:
       nelson: 10
       gregory: 10
 
+  - id: 26
+    title: "I-Space and V-Space"
+    question: "What is the relationship between permanent content storage (I-space) and mutable document arrangement (V-space)? What invariants connect them?"
+    area: content-model
+
