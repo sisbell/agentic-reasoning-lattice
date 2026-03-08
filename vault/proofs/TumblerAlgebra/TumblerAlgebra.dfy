@@ -97,20 +97,24 @@ module TumblerAlgebra {
   //   (ii) a is a proper prefix of b (a has exactly k components, b has more)
   // ---------------------------------------------------------------------------
 
+  // Witness predicate: the body of the LessThan existential, named so Z3
+  // can use it as a trigger. Without this, the nested forall inside exists
+  // leaves Z3 without a matching pattern, causing proof failures in larger
+  // project contexts.
+  ghost predicate LessThanAt(a: Tumbler, b: Tumbler, k: nat) {
+    k <= |a.components| && k <= |b.components| &&
+    (forall i :: 0 <= i < k ==> a.components[i] == b.components[i]) &&
+    ((k < |a.components| && k < |b.components| && a.components[k] < b.components[k]) ||
+     (k == |a.components| && k < |b.components|))
+  }
+
   ghost predicate LessThan(a: Tumbler, b: Tumbler) {
-    exists k: nat ::
-      k <= |a.components| && k <= |b.components| &&
-      (forall i :: 0 <= i < k ==> a.components[i] == b.components[i]) &&
-      ((k < |a.components| && k < |b.components| && a.components[k] < b.components[k]) ||
-       (k == |a.components| && k < |b.components|))
+    exists k: nat :: LessThanAt(a, b, k)
   }
 
   // Introduction lemma: provide an explicit witness k to prove LessThan
   lemma LessThanIntro(a: Tumbler, b: Tumbler, k: nat)
-    requires k <= |a.components| && k <= |b.components|
-    requires forall i :: 0 <= i < k ==> a.components[i] == b.components[i]
-    requires (k < |a.components| && k < |b.components| && a.components[k] < b.components[k]) ||
-             (k == |a.components| && k < |b.components|)
+    requires LessThanAt(a, b, k)
     ensures LessThan(a, b)
   {}
 

@@ -1,0 +1,6 @@
+includes = ["**/*.dfy"]
+
+[options]
+warn-shadowing = true
+warn-redundant-assumptions = true
+warn-contradictory-assumptions = true
