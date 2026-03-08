@@ -24,11 +24,11 @@ Let `Sigma` denote the system state. We introduce three components.
 
 **Sigma.I** `Sigma.I : Addr rightharpoonup Byte` is a partial function from I-space addresses (tumblers per ASN-0001) to content bytes. The domain `dom(Sigma.I)` is the set of all allocated I-addresses. Each I-address has the hierarchical form `N.0.U.0.D.0.E` where the fields encode node, user, document, and element (T4 from ASN-0001). The element field's first component identifies the subspace: `1` for text content. We restrict attention to text content in this ASN.
 
-**Sigma.V** For each document-version `d`, `Sigma.V(d) : [1..n_d] -> Addr` is a total function from positions (positive naturals) to I-space addresses, where `n_d = |Sigma.V(d)|` is the document-version's current length. The domain is the dense interval `{1, ..., n_d}` with no gaps.
+**Sigma.V** For each document `d`, `Sigma.V(d) : [1..n_d] -> Addr` is a total function from positions (positive naturals) to I-space addresses, where `n_d = |Sigma.V(d)|` is the document's current length. The domain is the dense interval `{1, ..., n_d}` with no gaps. Operations mutate `Sigma.V(d)` in place — INSERT adds mappings, DELETE removes them, REARRANGE reorders them. Nelson: "A document is really an evolving ONGOING BRAID." The braid is re-twisted, not replaced. CREATENEWVERSION is the explicit act that forks a new document `d'` with its own tumbler address and its own V-space, initially identical to `d`'s current state.
 
-**Sigma.D** `Sigma.D` is the set of all document-versions that currently exist.
+**Sigma.D** `Sigma.D` is the set of all documents that currently exist.
 
-The asymmetry is already visible in the definitions. `Sigma.I` is global — one I-space for the entire system. `Sigma.V` is per-document — each document-version has its own arrangement. And the relationship between them — that `Sigma.V(d)` points only into `Sigma.I` — is the central invariant we are after.
+The asymmetry is already visible in the definitions. `Sigma.I` is global — one I-space for the entire system. `Sigma.V` is per-document — each document has its own mutable arrangement. And the relationship between them — that `Sigma.V(d)` points only into `Sigma.I` — is the central invariant we are after.
 
 ---
 
@@ -68,33 +68,33 @@ P2 is not a defensive check — it is the load-bearing property from which retri
 
 ### P3 — Mapping Exactness
 
-The V-to-I mapping delivers content without transformation:
+Let `RETRIEVE(d, p)` denote the byte the system delivers when position `p` of document `d` is requested. This is an operational function — it captures the system's actual delivery behavior, which is conceptually independent of the state model. P3 constrains it:
 
-    [Sigma.V(d)(p) = a  ==>  content delivered at position p is Sigma.I(a)]
+    [d in Sigma.D /\ 1 <= p <= n_d  ==>  RETRIEVE(d, p) = Sigma.I(Sigma.V(d)(p))]
 
-The byte at V-position `p` is *exactly* the byte stored at I-address `a`. There is no function `f` applied between the mapping and the delivery — no summarization, no excerpting within the byte, no encoding transformation. The mapping is identity at the content level.
+The byte delivered is *exactly* the byte stored at the corresponding I-address. No operation in the system interposes a function `f =/= id` between the mapping and the delivery — no summarization, no excerpting within the byte, no encoding transformation.
 
-This is not a vacuous statement. One could imagine a system where a document arranges "transformed views" of content — say, excerpts or summaries computed from I-space. Nelson rejects this categorically. The FEBE protocol defines exactly five editing operations (INSERT, APPEND, COPY, DELETEVSPAN, REARRANGE). None performs transformation. Content is created (INSERT/APPEND), referenced (COPY), hidden (DELETE), or repositioned (REARRANGE). There is no sixth option of "transform."
+This is not a vacuous constraint. One could imagine a system where a document arranges "transformed views" of content — say, excerpts or summaries computed from I-space. Nelson rejects this categorically. The FEBE protocol defines exactly five editing operations (INSERT, APPEND, COPY, DELETEVSPAN, REARRANGE). None performs transformation. Content is created (INSERT/APPEND), referenced (COPY), hidden (DELETE), or repositioned (REARRANGE). There is no sixth option of "transform."
 
 Nelson: "Bytes native elsewhere have an ordinal position in the byte stream just as if they were native to the document." The phrase "just as if" is critical — the bytes appear identically, not in altered form.
 
-Why must this hold? Consider the correspondence operation, which compares two versions to find shared content. Correspondence is defined as `correspond(d_1, p_1, d_2, p_2) == Sigma.V(d_1)(p_1) = Sigma.V(d_2)(p_2)`. This definition assumes that shared I-address means identical content. If transformation were permitted — if document `d_1` showed a transformed version of the content at address `a` — then shared I-addresses would no longer prove correspondence. Two V-positions mapping to the same I-address could show different content. The correspondence guarantee collapses.
+Why must this hold? Consider the correspondence operation, which compares two documents to find shared content. Correspondence is defined as `correspond(d_1, p_1, d_2, p_2) == Sigma.V(d_1)(p_1) = Sigma.V(d_2)(p_2)`. This definition assumes that shared I-address means identical content. If transformation were permitted — if document `d_1` showed a transformed version of the content at address `a` — then shared I-addresses would no longer prove correspondence. Two V-positions mapping to the same I-address could show different content. The correspondence guarantee collapses.
 
 Similarly, attribution requires that the character you see at a V-position IS the character at the corresponding I-position. Nelson: "You always know where you are, and can at once ascertain the home document of any specific word or character." If transformation were allowed, you would trace back to different content than what you are seeing.
 
-*Note.* The front end may *render* the same bytes differently — different fonts, zoom levels, audio playback speeds. This is display-level interpretation, not a change to the V-to-I mapping. The bytes flowing from back end to front end are exact. P3 constrains the mapping, not the presentation.
+*Note.* The front end may *render* the same bytes differently — different fonts, zoom levels, audio playback speeds. This is display-level interpretation, not a change to the V-to-I mapping. The bytes flowing from back end to front end are exact. P3 constrains the delivery path, not the presentation.
 
 ### P4 — Creation-Based Identity
 
-Content identity is determined by the act of creation, not by the value of the content:
+Content identity is determined by the act of creation, not by the value of the content. For any two INSERT operations producing I-addresses `a` and `b` respectively, if the operations are independent (not derived from the same creation act), then `a =/= b` — even when the inserted byte sequences are identical:
 
-    [a =/= b  ==>  the content at a and the content at b are distinct identities]
+    [independent_creation(a, b)  ==>  a =/= b]
 
-regardless of whether `Sigma.I(a) = Sigma.I(b)` (the bytes happen to be the same). Two users who independently type the identical passage receive different I-space addresses. The system does not recognize them as sharing origin — because they don't. They were created independently.
+where `independent_creation(a, b)` holds when `a` and `b` were allocated by distinct creation acts. Two users who independently type the identical passage receive different I-space addresses. The allocator guarantees this: each creation event produces fresh addresses from T9 (forward allocation), and T10 (partition independence) ensures distinct allocators never collide. The system does not recognize independently created identical content as sharing origin — because it doesn't.
 
 This is a fundamental semantic choice. The alternative — value-based identity, where identical byte sequences receive the same address — would make the system a content-addressable store (like a hash table). Nelson explicitly rejects this. Shared origin means "derived from the same act of creation," not "happens to contain the same bytes." The system preserves *provenance*, not *textual coincidence*.
 
-Only transclusion (the COPY operation) produces shared I-space addresses between documents. CREATENEWVERSION also shares I-space addresses (the new version initially maps to the same I-content as the source). Independent creation never does.
+Only transclusion (the COPY operation) produces shared I-space addresses between documents. CREATENEWVERSION also shares I-space addresses (the new document initially maps to the same I-content as the source). Independent creation never does.
 
 We can state this as a table:
 
@@ -128,19 +128,17 @@ Gregory confirms the implementation's behavior: a single traversal of the POOM (
 
 P5 is the formal basis of transclusion. When content at I-address `a` appears at V-positions 5 and 47, both `Sigma.V(d)(5) = a` and `Sigma.V(d)(47) = a` hold simultaneously. The same content is referenced twice without duplication in I-space.
 
-### P6 — V-Operations Preserve I-Space
+### I-Space Extension Classification (from P0, P1)
 
-No operation that modifies V-space alters I-space content:
-
-    [(A a : a in dom(Sigma.I) : Sigma'.I(a) = Sigma.I(a))]
-
-for any V-space operation (DELETE, REARRANGE, COPY) applied to any document. Nelson: "Note that the owner of a document may delete bytes from the owner's current version, but those bytes remain in all other documents where they have been included."
-
-INSERT is the only operation that extends I-space (allocating new addresses for inserted content). But even INSERT satisfies P6 for all *pre-existing* I-addresses. We can state this precisely. For any operation `op`:
+P0 and P1 together constrain every operation: existing I-content is preserved and no I-address is freed. The remaining question is which operations *extend* `dom(Sigma.I)`. We classify. For any operation `op`:
 
     Sigma'.I = Sigma.I +_ext fresh
 
-where `+_ext` denotes extension: `Sigma'.I` agrees with `Sigma.I` on all of `dom(Sigma.I)` and may additionally be defined on new addresses `fresh` where `fresh intersection dom(Sigma.I) = emptyset`. For DELETE, REARRANGE, and COPY, `fresh = emptyset`. For INSERT, `fresh` is the set of newly allocated I-addresses.
+where `+_ext` denotes extension: `Sigma'.I` agrees with `Sigma.I` on all of `dom(Sigma.I)` and may additionally be defined on new addresses `fresh` where `fresh intersection dom(Sigma.I) = emptyset`. The operations partition as follows:
+
+- **DELETE, REARRANGE, COPY**: `fresh = emptyset`. These operations modify only V-space. Nelson: "Note that the owner of a document may delete bytes from the owner's current version, but those bytes remain in all other documents where they have been included."
+- **INSERT**: `fresh` is the set of newly allocated I-addresses for the inserted content.
+- **CREATENEWVERSION**: `fresh = emptyset`. The new document shares the source's I-addresses.
 
 Gregory provides striking confirmation from the implementation. REARRANGE modifies only V-displacements in the POOM — `ptr->cdsp.dsas[V]` is written, while `ptr->cdsp.dsas[I]` is never touched. No function in the REARRANGE code path reads or writes I-displacement fields. The asymmetry is architectural: V-space is the "editable" dimension; I-space represents the permanent provenance record.
 
@@ -160,17 +158,13 @@ Gregory confirms: DELETE operates exclusively on the source document's POOM. The
 
 We have stated the axioms. Now we derive their most striking consequence: I-space has no lifecycle management.
 
-### P8 — No Reference Counting
+### P8 — No Reference Counting (Corollary of P1)
 
-The persistence of content in I-space is unconditional — it does not depend on whether any V-space mapping currently references it:
-
-    [a in dom(Sigma.I)  ==>  a in dom(Sigma'.I)]
-
-regardless of the cardinality of `refs(a)`. Content persists even when `refs(a) = emptyset`.
+The persistence of content in I-space is unconditional — it does not depend on whether any V-space mapping currently references it. This follows directly from P1: `dom(Sigma.I)` never shrinks, regardless of `|refs(a)|`. Content persists even when `refs(a) = emptyset`.
 
 Gregory confirms this emphatically from the implementation: there is no reference-count field in any POOM or granfilade data structure. DELETE frees the POOM crums that *reference* I-addresses but never touches the granfilade entries where I-content lives. There is no garbage-collection pass. There is no liveness predicate. The granfilade is append-only; I-addresses are eternal.
 
-This is a consequence of P0 + P1, but it deserves explicit statement because it is so contrary to the conventions of most systems. In conventional file systems, deleting the last reference to content frees the storage. In this system, content persists independently of reference count. Nelson calls this state "not currently addressable, awaiting historical backtrack functions, may remain included in other versions."
+We state P8 explicitly because it is so contrary to the conventions of most systems. In conventional file systems, deleting the last reference to content frees the storage. In this system, content persists independently of reference count. Nelson calls this state "not currently addressable, awaiting historical backtrack functions, may remain included in other versions."
 
 We observe that `refs(a) = emptyset` can only arise through deletion — because every content-creation operation (INSERT) simultaneously creates a V-space mapping to the new I-content. There is no mechanism to write directly to I-space without placing content in a document. Content is born referenced and may become unreferenced through subsequent deletions, but it never becomes non-existent.
 
@@ -192,7 +186,7 @@ After DELETE(d, p, k) removes positions `p` through `p+k-1` from document `d`:
 3. Their content is unchanged (by P0).
 4. Other documents referencing the same I-addresses are unaffected (by P7).
 
-The content has not been destroyed. It has been made *unreachable from this specific document version*. This is not conventional deletion — it is the removal of a *view* of content, not the destruction of content itself.
+The content has not been destroyed. It has been made *unreachable from this document*. This is not conventional deletion — it is the removal of a *view* of content, not the destruction of content itself.
 
 *Observation.* DELETE is not the inverse of INSERT. If we INSERT content (allocating I-addresses `F`), then DELETE it, then INSERT identical bytes, the second INSERT allocates *fresh* I-addresses `F' =/= F` (by NO-REUSE). The V-space looks the same. The I-space identity is different. All links, transclusions, and correspondence relationships that attached to `F` do not attach to `F'`. The identity has been severed.
 
@@ -202,65 +196,50 @@ This is not a deficiency. It is a consequence of P4 (creation-based identity). T
 
 ## Operations Classification
 
-The five text-content operations are classified by their effect on the two spaces. Full definitions are deferred to their respective ASNs.
+The five text-content operations are classified by their effect on the two spaces. Full definitions are deferred to their respective operation ASNs.
 
-| Operation | I-space effect | V-space effect | Defined in |
-|-----------|---------------|----------------|------------|
-| INSERT | Extends `dom(Sigma.I)` with fresh addresses | Inserts new mappings, shifts positions | ASN-0004 |
-| DELETE | None | Removes mappings, shifts positions | ASN-0005 |
-| REARRANGE | None | Permutes positions within document | ASN-0017 |
-| COPY | None | Inserts mappings to existing I-addresses | ASN-0006 |
-| CREATENEWVERSION | None | Creates new document sharing I-addresses | ASN-0011 |
-
-Each operation ASN must verify preservation of P0 through P11 as a verification obligation.
+| Operation | I-space effect | V-space effect |
+|-----------|---------------|----------------|
+| INSERT | Extends `dom(Sigma.I)` with fresh addresses | Inserts new mappings, shifts positions |
+| DELETE | None | Removes mappings, shifts positions |
+| REARRANGE | None | Permutes positions within document |
+| COPY | None | Inserts mappings to existing I-addresses |
+| CREATENEWVERSION | None | Creates new document sharing I-addresses |
 
 ---
 
-## The Exactness of Partition
+## INSERT Preserves Surviving Mappings
 
-We have stated the operations. Now we derive a property that connects V-space structure to I-space structure: when a mapping entry is split, the split exactly partitions the underlying I-span.
+We have stated the operations. Now we derive a property that connects INSERT's V-space effect to I-space identity: positions that survive an insertion retain their I-space addresses exactly.
 
-### P9 — Partition Exactness
+### P9 — Mapping Preservation Under INSERT
 
-When an INSERT operation splits an existing V-to-I mapping entry at position `p`, producing two entries covering `[v_1, v_1 + w_L)` and `[v_1 + w_L + k, v_1 + w_L + k + w_R)` in V-space, the I-space spans of the two entries satisfy:
+When INSERT introduces `k` new positions at position `p` in document `d`, every surviving position retains its original I-space address:
 
-    (a)  I_L = [i_1, i_1 + w_L)          (left portion)
-    (b)  I_R = [i_1 + w_L, i_1 + w)      (right portion)
-    (c)  w_L + w_R = w                    (total coverage preserved)
-    (d)  I_L intersection I_R = emptyset  (no overlap)
-    (e)  I_L union I_R = [i_1, i_1 + w)  (no gap)
+    (A j : 1 <= j < p : Sigma'.V(d)(j) = Sigma.V(d)(j))                         (left of insertion)
+    (A j : p <= j <= n_d : Sigma'.V(d)(j + k) = Sigma.V(d)(j))                   (right of insertion, shifted)
 
-where `w` is the original entry's width and `i_1` is its I-start.
+The new positions `p, p+1, ..., p+k-1` map to the freshly allocated I-addresses. All positions outside the insertion point map to the same I-addresses as before, shifted rightward by `k`.
 
-Why must this hold? Consider what happens if the split introduced a gap — some I-address `a` that was reachable before the split but is reachable through neither portion afterward. This would mean that a V-position previously mapping to `a` now maps to nothing or to a different I-address. But the bytes at positions below and above the insertion point must retain their original I-addresses (this is the *meaning* of INSERT: new content is placed between existing content; existing content is preserved). A gap in the I-partition would silently destroy a mapping — violating P2.
+Why must this hold? Consider what happens if a surviving position changed its I-address — some position `j < p` that previously mapped to `a` now maps to `a' =/= a`. The content at position `j` would silently change identity. All links, transclusions, and correspondence relationships that attached to `a` at that position would be severed — not by the user's intent (which was to insert content at `p`), but by a side effect of the insertion. This would violate the guarantee that INSERT places new content between existing content without disturbing existing content.
 
-Similarly, an overlap would mean two portions claim the same I-address, creating duplicate mappings where only one existed before — a problem for accounting and consistency.
+Gregory confirms this from the implementation's `slicecbcpm` function. When the insertion point falls within a contiguous span, the split applies the V-space cut offset to both dimensions uniformly. A `1-story` invariant — enforced by a fatal error guard — ensures that V-width and I-width encode the same integer count for every mapping entry. The left portion retains the original I-start; the right portion's I-start is computed as `left_I_start + left_I_width` by element-wise addition. No I-address is lost, no I-address is reassigned.
 
-Gregory confirms the exact partition property from the implementation's `slicecbcpm` function. The split applies the V-space cut offset to both dimensions uniformly. A `1-story` invariant — enforced by a fatal error guard — ensures that V-width and I-width encode the same integer count for every mapping entry. The left portion's width becomes `localcut` in both V and I dimensions; the right portion's width becomes `original_width - localcut` in both. The right portion's I-start is computed as `left_I_start + left_I_width` by element-wise addition. This is algebraically exact: `left.I_width + right.I_width = original_width`, and `right.I_start = left.I_start + left.I_width`. No gap, no overlap, by construction.
-
-### P10 — Coalescing Requires Exact Adjacency
-
-When two mapping entries are candidates for merging (coalescing into a single entry), the system requires that the second entry's I-start equals the first entry's I-end exactly:
-
-    coalesce(entry_1, entry_2)  requires  I_start(entry_2) = I_start(entry_1) + I_width(entry_1)
-
-There is no tolerance for "close but not strictly adjacent." Gregory confirms this from the `isanextensionnd` function, which performs field-by-field bitwise equality of tumbler representations. The check uses `lockeq` across all dimensions — both V and I must be exactly adjacent. An I-address that is `existing_I_end + 2` (a gap of one) causes the check to fail, and a new entry is created instead.
-
-P10 is an abstract property, not an implementation detail: any system that coalesces mappings must preserve the exact I-span coverage. Approximate coalescing would introduce either gaps (lost mappings) or overlaps (duplicate mappings), violating P9.
+*Observation (Representation Coalescing).* In implementations that represent `Sigma.V(d)` as a span table (mapping contiguous V-ranges to contiguous I-ranges), two adjacent entries may be coalesced into one when their I-ranges are exactly adjacent. Gregory confirms from the `isanextensionnd` function that the check uses field-by-field bitwise equality across all dimensions — both V and I must be exactly adjacent. This is a representational optimization: coalescing does not change the abstract function `Sigma.V(d)` and is therefore not a property of the abstract model.
 
 ---
 
 ## The Document as Mapping
 
-We are now in a position to state a central claim: a document-version IS its V-to-I mapping. Two document-versions with the same mapping are, from the system's perspective, the same arrangement.
+We are now in a position to state a central claim: a document IS its V-to-I mapping. Two documents with the same mapping are, from the system's perspective, the same arrangement.
 
 ### P11 — Viewer Independence
 
-The mapping `Sigma.V(d)` is a property of the document-version, not the viewer:
+The mapping `Sigma.V(d)` is a property of the document, not the viewer:
 
     (A viewers u_1, u_2 : Sigma.V(d) as seen by u_1 = Sigma.V(d) as seen by u_2)
 
-The back-end operation RETRIEVEV takes a document-version and V-spans; it returns the corresponding I-space content deterministically. No viewer parameter exists in the protocol. Nelson: "You always know where you are, and can at once ascertain the home document of any specific word or character" — where "you" is universal.
+The back-end operation RETRIEVEV takes a document identifier and V-spans; it returns the corresponding I-space content deterministically. No viewer parameter exists in the protocol. Nelson: "You always know where you are, and can at once ascertain the home document of any specific word or character" — where "you" is universal.
 
 Viewer experience may *diverge* at the front end — different fonts, different link filtering, different version choices. But the V-to-I mapping itself is viewer-invariant. This is architecturally necessary: if the mapping varied by viewer, "the home document of any specific word" would be viewer-dependent — an indeterminacy fatal to attribution and correspondence.
 
@@ -322,9 +301,48 @@ However, the *addressing and linking layers* are more permissive. Link endsets c
 
 ---
 
+## Initial State
+
+The initial state `Sigma_0` is:
+
+- `Sigma_0.I = emptyset` (no content stored)
+- `Sigma_0.D = emptyset` (no documents exist)
+- `Sigma_0.V` is undefined for all arguments (there are no documents)
+
+Verification: P0 and P1 hold vacuously — no I-addresses exist, so the universally quantified implications `[a in dom(Sigma_0.I) ==> ...]` have empty antecedent. P2 holds vacuously — no documents and no positions. P3, P4, P5, P7, P9, P11 hold vacuously. P8 holds vacuously. The state `Sigma_0` satisfies all properties.
+
+---
+
+## Worked Example
+
+Consider document `d` in state `Sigma` with `Sigma.V(d) = {1 -> a, 2 -> b, 3 -> c}` and `Sigma.I = {a -> 'H', b -> 'i', c -> '!'}`.
+
+**INSERT "XY" at position 2.** The system allocates fresh I-addresses `f_1, f_2` with `Sigma'.I(f_1) = 'X'`, `Sigma'.I(f_2) = 'Y'`. The new V-mapping is:
+
+    Sigma'.V(d) = {1 -> a, 2 -> f_1, 3 -> f_2, 4 -> b, 5 -> c}
+
+Verify:
+
+- **P0**: `Sigma'.I(a) = 'H' = Sigma.I(a)`, and similarly for `b`, `c` — all pre-existing content unchanged.
+- **P1**: `{a, b, c} subset {a, b, c, f_1, f_2} = dom(Sigma'.I)` — domain grew, nothing removed.
+- **P2**: Every V-position maps to an allocated I-address: `a, f_1, f_2, b, c in dom(Sigma'.I)`.
+- **P9**: Left of insertion: `Sigma'.V(d)(1) = a = Sigma.V(d)(1)`. Right of insertion, shifted by 2: `Sigma'.V(d)(4) = b = Sigma.V(d)(2)`, `Sigma'.V(d)(5) = c = Sigma.V(d)(3)`.
+
+**DELETE position 3** (removing the 'Y' at `f_2`):
+
+    Sigma''.V(d) = {1 -> a, 2 -> f_1, 3 -> b, 4 -> c}
+
+I-space: `f_2` remains in `dom(Sigma''.I)` with `Sigma''.I(f_2) = 'Y'` — unreferenced but persistent (P1). `refs(f_2) = emptyset`. The content is not destroyed; it is merely no longer arranged in this document.
+
+---
+
 ## Preservation Obligation
 
-Each operation ASN (ASN-0004, ASN-0005, ASN-0006, ASN-0011, ASN-0017) must verify that its defined operation preserves P0 through P11. The structural properties defined here provide the verification targets; the operation ASNs provide the proofs.
+The properties divide into two categories.
+
+**Operation-relevant invariants** — properties that a badly defined operation could violate, requiring per-operation verification: P0, P1, P2, P5, P7, P9. These are the properties that constrain state transitions. The ASN defining each operation must verify preservation of these invariants.
+
+**Architectural constraints** — properties verified once against the state model and operation set, not per-operation: P3 (constrains the retrieval path — no single operation can violate it unless the operation interposes a transformation function), P4 (constrains the allocator — operations like DELETE and REARRANGE that never allocate cannot violate it), P11 (constrains the protocol — no single operation can violate it unless the operation introduces a viewer parameter). These hold by construction of the system architecture.
 
 ---
 
@@ -333,21 +351,21 @@ Each operation ASN (ASN-0004, ASN-0005, ASN-0006, ASN-0011, ASN-0017) must verif
 | Label | Statement | Status |
 |-------|-----------|--------|
 | Sigma.I | `Sigma.I : Addr rightharpoonup Byte` — partial function, I-space content store | introduced |
-| Sigma.V | `Sigma.V(d) : [1..n_d] -> Addr` — total function per document-version, V-space arrangement | introduced |
-| Sigma.D | `Sigma.D` — set of all document-versions | introduced |
+| Sigma.V | `Sigma.V(d) : [1..n_d] -> Addr` — total function per document, mutable V-space arrangement | introduced |
+| Sigma.D | `Sigma.D` — set of all documents | introduced |
+| RETRIEVE | `RETRIEVE(d, p)` — operational delivery function for position `p` of document `d` | introduced |
 | P0 | I-space immutability: content at an I-address never changes | introduced |
 | P1 | I-space monotonicity: `dom(Sigma.I)` never shrinks | introduced |
-| NO-REUSE | Address reuse is impossible (from P0 + P1) | introduced |
+| NO-REUSE | Address reuse is impossible (corollary of P0 + P1) | introduced |
 | P2 | Referential completeness: every V-position maps to an allocated I-address | introduced |
-| P3 | Mapping exactness: V-to-I delivers content without transformation | introduced |
-| P4 | Creation-based identity: identity is by creation event, not by byte value | introduced |
+| P3 | Mapping exactness: `RETRIEVE(d, p) = Sigma.I(Sigma.V(d)(p))` | introduced |
+| P4 | Creation-based identity: `independent_creation(a, b) ==> a =/= b` | introduced |
 | P5 | Non-injectivity: same I-address may appear at multiple V-positions (multimap) | introduced |
 | refs(a) | `{(d, p) : d in Sigma.D, 1 <= p <= n_d, Sigma.V(d)(p) = a}` — referent set of an I-address | introduced |
-| P6 | V-operations preserve I-space: editing never alters existing I-space content | introduced |
+| +_ext | I-space extension classification: `Sigma'.I = Sigma.I +_ext fresh` (derived from P0, P1) | introduced |
 | P7 | Cross-document V-independence: editing `d` does not affect `Sigma.V(d')` for `d' =/= d` | introduced |
-| P8 | No reference counting: I-content persists independently of `|refs(a)|` | introduced |
-| P9 | Partition exactness: splitting a mapping entry exactly partitions the I-span | introduced |
-| P10 | Coalescing exactness: merging entries requires exact I-address adjacency | introduced |
+| P8 | No reference counting: I-content persists regardless of `|refs(a)|` (corollary of P1) | introduced |
+| P9 | INSERT preserves surviving mappings: positions outside insertion retain I-addresses | introduced |
 | P11 | Viewer independence: `Sigma.V(d)` is viewer-invariant | introduced |
 | REF-STABILITY | Cross-document reference stability: source operations cannot invalidate target mappings | introduced |
 
@@ -365,7 +383,7 @@ What must the system guarantee about the ordering of I-addresses within a single
 
 Must the system provide a mechanism to enumerate all documents in `refs(a)` for a given I-address, or only to answer existence queries ("does any document reference this content")?
 
-Under what conditions can `Sigma.V(d)` have length zero — must every document-version contain at least one V-position, or are empty documents well-formed states?
+Under what conditions can `Sigma.V(d)` have length zero — must every document contain at least one V-position, or are empty documents well-formed states?
 
 What must the system guarantee about the atomicity boundary of compound operations — if INSERT requires both I-allocation and V-mapping, must both succeed or neither, and what state does a partial failure leave?
 
