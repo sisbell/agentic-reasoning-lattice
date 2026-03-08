@@ -26,7 +26,9 @@ Let `Sigma` denote the system state. We introduce three components.
 
 **Sigma.V** For each document `d`, `Sigma.V(d) : [1..n_d] -> Addr` is a total function from positions (positive naturals) to I-space addresses, where `n_d = |Sigma.V(d)|` is the document's current length. The domain is the dense interval `{1, ..., n_d}` with no gaps. Operations mutate `Sigma.V(d)` in place — INSERT adds mappings, DELETE removes them, REARRANGE reorders them. Nelson: "A document is really an evolving ONGOING BRAID." The braid is re-twisted, not replaced. CREATENEWVERSION is the explicit act that forks a new document `d'` with its own tumbler address and its own V-space, initially identical to `d`'s current state.
 
-**Sigma.D** `Sigma.D` is the set of all documents that currently exist.
+**Sigma.D** `Sigma.D` is the set of all documents that currently exist. The V-space function is defined exactly on this set: `Sigma.V(d)` is defined if and only if `d in Sigma.D`. Properties that quantify over `Sigma.D` — P2, P5, P7 — presuppose this connection.
+
+*Document permanence (provisional).* We treat `Sigma.D` as monotonically growing: once a document enters `Sigma.D`, it remains. Nelson confirms that published documents are permanent by design — "It is in the common interest that a thing once published stay published" — and that tumbler addresses are never reused even when a document is withdrawn. Private documents may be withdrawn by their owner, and anonymous defamatory content may be removed by peremptory challenge, but in all cases the tumbler address remains permanently occupied and I-space content persists. The full lifecycle (withdrawal, "privashing," peremptory challenge) is deferred to a document lifecycle ASN. For the remainder of this ASN, P7's universal quantifier over `Sigma.D` assumes all documents in the pre-state survive the operation.
 
 The asymmetry is already visible in the definitions. `Sigma.I` is global — one I-space for the entire system. `Sigma.V` is per-document — each document has its own mutable arrangement. And the relationship between them — that `Sigma.V(d)` points only into `Sigma.I` — is the central invariant we are after.
 
@@ -86,13 +88,15 @@ Similarly, attribution requires that the character you see at a V-position IS th
 
 ### P4 — Creation-Based Identity
 
-Content identity is determined by the act of creation, not by the value of the content. For any two INSERT operations producing I-addresses `a` and `b` respectively, if the operations are independent (not derived from the same creation act), then `a =/= b` — even when the inserted byte sequences are identical:
+Content identity is determined by the act of creation, not by the value of the content. We derive this from the allocation discipline established in ASN-0001.
 
-    [independent_creation(a, b)  ==>  a =/= b]
+Two I-addresses `a` and `b` arise from *distinct allocation acts* when they were produced by separate applications of the allocator — whether by the same allocator at different times or by different allocators.
 
-where `independent_creation(a, b)` holds when `a` and `b` were allocated by distinct creation acts. Two users who independently type the identical passage receive different I-space addresses. The allocator guarantees this: each creation event produces fresh addresses from T9 (forward allocation), and T10 (partition independence) ensures distinct allocators never collide. The system does not recognize independently created identical content as sharing origin — because it doesn't.
+*Corollary (P4).* Distinct allocation acts produce distinct I-addresses.
 
-This is a fundamental semantic choice. The alternative — value-based identity, where identical byte sequences receive the same address — would make the system a content-addressable store (like a hash table). Nelson explicitly rejects this. Shared origin means "derived from the same act of creation," not "happens to contain the same bytes." The system preserves *provenance*, not *textual coincidence*.
+*Derivation.* Two cases. If `a` and `b` were produced by the same allocator (same ownership prefix), T9 (forward allocation) gives strict monotonicity: the later allocation is strictly greater, so `a =/= b`. If `a` and `b` were produced by different allocators (distinct, non-nesting prefixes), T10 (partition independence) gives `a =/= b` directly.
+
+The consequence is semantic: two users who independently type the identical passage receive different I-space addresses. The system does not recognize independently created identical content as sharing origin — because it doesn't. This is a fundamental semantic choice. The alternative — value-based identity, where identical byte sequences receive the same address — would make the system a content-addressable store (like a hash table). Nelson explicitly rejects this. Shared origin means "derived from the same act of creation," not "happens to contain the same bytes." The system preserves *provenance*, not *textual coincidence*.
 
 Only transclusion (the COPY operation) produces shared I-space addresses between documents. CREATENEWVERSION also shares I-space addresses (the new document initially maps to the same I-content as the source). Independent creation never does.
 
@@ -134,7 +138,11 @@ P0 and P1 together constrain every operation: existing I-content is preserved an
 
     Sigma'.I = Sigma.I +_ext fresh
 
-where `+_ext` denotes extension: `Sigma'.I` agrees with `Sigma.I` on all of `dom(Sigma.I)` and may additionally be defined on new addresses `fresh` where `fresh intersection dom(Sigma.I) = emptyset`. The operations partition as follows:
+where `+_ext` denotes extension: `Sigma'.I` agrees with `Sigma.I` on all of `dom(Sigma.I)` and may additionally be defined on new addresses `fresh` where `fresh intersection dom(Sigma.I) = emptyset`.
+
+The freshness condition is not assumed — it follows from the allocation discipline. Each new address is produced by a sequence of `inc` operations on an allocator with a unique prefix. T9 (forward allocation) ensures each new address is strictly greater than all previously allocated addresses within that prefix. T10 (partition independence) ensures addresses from distinct prefixes are distinct. Together: no freshly allocated address coincides with any previously allocated address, so `fresh intersection dom(Sigma.I) = emptyset`.
+
+The operations partition as follows:
 
 - **DELETE, REARRANGE, COPY**: `fresh = emptyset`. These operations modify only V-space. Nelson: "Note that the owner of a document may delete bytes from the owner's current version, but those bytes remain in all other documents where they have been included."
 - **INSERT**: `fresh` is the set of newly allocated I-addresses for the inserted content.
@@ -214,12 +222,17 @@ We have stated the operations. Now we derive a property that connects INSERT's V
 
 ### P9 — Mapping Preservation Under INSERT
 
-When INSERT introduces `k` new positions at position `p` in document `d`, every surviving position retains its original I-space address:
+When INSERT introduces `k` new positions at position `p` in document `d`:
+
+*Precondition.* `1 <= p <= n_d + 1` and `k >= 1`. Position `p = 1` inserts before all existing content; `p = n_d + 1` appends after all existing content.
+
+*Postcondition.* Let `fresh` be the set of `k` newly allocated I-addresses, with `fresh intersection dom(Sigma.I) = emptyset` (by the derivation in I-Space Extension Classification above). Then `|Sigma'.V(d)| = n_d + k` and:
 
     (A j : 1 <= j < p : Sigma'.V(d)(j) = Sigma.V(d)(j))                         (left of insertion)
+    (A j : p <= j < p + k : Sigma'.V(d)(j) in fresh)                             (new positions)
     (A j : p <= j <= n_d : Sigma'.V(d)(j + k) = Sigma.V(d)(j))                   (right of insertion, shifted)
 
-The new positions `p, p+1, ..., p+k-1` map to the freshly allocated I-addresses. All positions outside the insertion point map to the same I-addresses as before, shifted rightward by `k`.
+The first clause preserves positions left of the insertion point. The second clause establishes that new positions map to freshly allocated I-addresses — content that did not exist before the operation. The third clause preserves positions at and right of the insertion point, shifted by `k`. Together with the length assertion `|Sigma'.V(d)| = n_d + k`, these three clauses fully specify the post-state of `Sigma'.V(d)`.
 
 Why must this hold? Consider what happens if a surviving position changed its I-address — some position `j < p` that previously mapped to `a` now maps to `a' =/= a`. The content at position `j` would silently change identity. All links, transclusions, and correspondence relationships that attached to `a` at that position would be severed — not by the user's intent (which was to insert content at `p`), but by a side effect of the insertion. This would violate the guarantee that INSERT places new content between existing content without disturbing existing content.
 
@@ -235,11 +248,13 @@ We are now in a position to state a central claim: a document IS its V-to-I mapp
 
 ### P11 — Viewer Independence
 
-The mapping `Sigma.V(d)` is a property of the document, not the viewer:
+The mapping `Sigma.V(d)` is a property of the document, not the viewer. The state model already encodes this by excluding a viewer parameter from the signature of `Sigma.V` — and it is important to recognize that this exclusion is a design constraint, not an accident.
 
-    (A viewers u_1, u_2 : Sigma.V(d) as seen by u_1 = Sigma.V(d) as seen by u_2)
+*Protocol constraint (P11).* RETRIEVE takes a document identifier and a position (or V-span) and returns a deterministic result. No viewer, session, or context parameter exists in the protocol signature:
 
-The back-end operation RETRIEVEV takes a document identifier and V-spans; it returns the corresponding I-space content deterministically. No viewer parameter exists in the protocol. Nelson: "You always know where you are, and can at once ascertain the home document of any specific word or character" — where "you" is universal.
+    RETRIEVE : (DocId, Pos) -> Byte
+
+The back-end operation is a pure function of document and position. Nelson: "You always know where you are, and can at once ascertain the home document of any specific word or character" — where "you" is universal.
 
 Viewer experience may *diverge* at the front end — different fonts, different link filtering, different version choices. But the V-to-I mapping itself is viewer-invariant. This is architecturally necessary: if the mapping varied by viewer, "the home document of any specific word" would be viewer-dependent — an indeterminacy fatal to attribution and correspondence.
 
@@ -338,15 +353,23 @@ I-space: `f_2` remains in `dom(Sigma''.I)` with `Sigma''.I(f_2) = 'Y'` — unref
 
 ## Preservation Obligation
 
-The properties divide into two categories.
+The properties divide into four categories.
 
-**Operation-relevant invariants** — properties that a badly defined operation could violate, requiring per-operation verification: P0, P1, P2, P5, P7, P9. These are the properties that constrain state transitions. The ASN defining each operation must verify preservation of these invariants.
+**State invariants** — must hold in every reachable state; the ASN defining each operation must verify preservation: P0 (I-immutability), P1 (I-monotonicity), P2 (referential completeness), P7 (cross-document V-independence).
 
-**Architectural constraints** — properties verified once against the state model and operation set, not per-operation: P3 (constrains the retrieval path — no single operation can violate it unless the operation interposes a transformation function), P4 (constrains the allocator — operations like DELETE and REARRANGE that never allocate cannot violate it), P11 (constrains the protocol — no single operation can violate it unless the operation introduces a viewer parameter). These hold by construction of the system architecture.
+**Operation postconditions** — constrain specific operations, not all reachable states: P9 (mapping preservation under INSERT). The postcondition binds only the operation it names; operations that do not perform insertion are not subject to P9.
+
+**Structural permissions** — permitted by the model, not obligations to be preserved: P5 (non-injectivity). No operation can "violate" a permission. P5 states that the model allows multiple V-positions to share an I-address; any operation that produces such sharing is exercising a permitted capability.
+
+**Architectural constraints** — verified once against the system architecture, not per-operation: P3 (constrains the retrieval path — no single operation can violate it unless the operation interposes a transformation function), P4 (follows from the allocation discipline T9+T10 — operations that do not allocate cannot violate it), P11 (constrains the RETRIEVE protocol signature — no single operation can violate it unless the operation introduces a viewer parameter).
+
+**Corollaries** inherit preservation from their parent axioms: P8 and NO-REUSE follow from P1 (and P0 for NO-REUSE). If P1 is preserved by an operation, P8 and NO-REUSE are preserved automatically.
 
 ---
 
 ## Properties Introduced
+
+*Note.* Labels P6 and P10 were removed during revision; the numbering gaps are intentional and the labels are not reserved.
 
 | Label | Statement | Status |
 |-------|-----------|--------|
@@ -359,14 +382,14 @@ The properties divide into two categories.
 | NO-REUSE | Address reuse is impossible (corollary of P0 + P1) | introduced |
 | P2 | Referential completeness: every V-position maps to an allocated I-address | introduced |
 | P3 | Mapping exactness: `RETRIEVE(d, p) = Sigma.I(Sigma.V(d)(p))` | introduced |
-| P4 | Creation-based identity: `independent_creation(a, b) ==> a =/= b` | introduced |
+| P4 | Creation-based identity: distinct allocation acts produce distinct I-addresses (corollary of T9+T10) | introduced |
 | P5 | Non-injectivity: same I-address may appear at multiple V-positions (multimap) | introduced |
 | refs(a) | `{(d, p) : d in Sigma.D, 1 <= p <= n_d, Sigma.V(d)(p) = a}` — referent set of an I-address | introduced |
 | +_ext | I-space extension classification: `Sigma'.I = Sigma.I +_ext fresh` (derived from P0, P1) | introduced |
 | P7 | Cross-document V-independence: editing `d` does not affect `Sigma.V(d')` for `d' =/= d` | introduced |
 | P8 | No reference counting: I-content persists regardless of `|refs(a)|` (corollary of P1) | introduced |
 | P9 | INSERT preserves surviving mappings: positions outside insertion retain I-addresses | introduced |
-| P11 | Viewer independence: `Sigma.V(d)` is viewer-invariant | introduced |
+| P11 | Viewer independence: RETRIEVE protocol signature is `(DocId, Pos) -> Byte` with no viewer parameter | introduced |
 | REF-STABILITY | Cross-document reference stability: source operations cannot invalidate target mappings | introduced |
 
 ---
