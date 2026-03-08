@@ -200,121 +200,19 @@ This is not a deficiency. It is a consequence of P4 (creation-based identity). T
 
 ---
 
-## Operations and the Mapping
+## Operations Classification
 
-We now define the five text-content operations in terms of their effect on the V-to-I mapping, and verify that each preserves the axioms.
+The five text-content operations are classified by their effect on the two spaces. Full definitions are deferred to their respective ASNs.
 
-### INSERT(d, p, b_1 ... b_k)
+| Operation | I-space effect | V-space effect | Defined in |
+|-----------|---------------|----------------|------------|
+| INSERT | Extends `dom(Sigma.I)` with fresh addresses | Inserts new mappings, shifts positions | ASN-0004 |
+| DELETE | None | Removes mappings, shifts positions | ASN-0005 |
+| REARRANGE | None | Permutes positions within document | ASN-0017 |
+| COPY | None | Inserts mappings to existing I-addresses | ASN-0006 |
+| CREATENEWVERSION | None | Creates new document sharing I-addresses | ASN-0011 |
 
-Insert `k` bytes at position `p` in document `d`.
-
-*Preconditions.* `d in Sigma.D`, `k >= 1`, `1 <= p <= n_d + 1`.
-
-*Effect on I-space.* Allocates fresh addresses `F = {f_1, ..., f_k}` with `F intersection dom(Sigma.I) = emptyset`, and defines `Sigma'.I(f_i) = b_i` for `1 <= i <= k`. All pre-existing I-content is unchanged (P6).
-
-*Effect on V-space.* The new mapping `Sigma'.V(d)` has domain `{1, ..., n_d + k}`:
-
-    Sigma'.V(d)(q) = Sigma.V(d)(q)       for 1 <= q < p         (unshifted)
-    Sigma'.V(d)(q) = f_{q-p+1}           for p <= q <= p+k-1    (new content)
-    Sigma'.V(d)(q) = Sigma.V(d)(q-k)     for p+k <= q <= n_d+k  (shifted right)
-
-*Frame.* `Sigma'.V(d') = Sigma.V(d')` for all `d' =/= d` (P7).
-
-*P2 verification.* New positions: `Sigma'.V(d)(q) = f_{q-p+1} in F subset dom(Sigma'.I)` by construction. Shifted positions: `Sigma'.V(d)(q) = Sigma.V(d)(q-k) in dom(Sigma.I) subset dom(Sigma'.I)` by P2 on `Sigma` and P1. Unshifted: same reasoning.
-
-Nelson specifies that this is operationally atomic — I-space allocation and V-space mapping happen as one indivisible step. Gregory confirms the ordering: fresh I-addresses are allocated (via `inserttextingranf`) before the POOM mapping is created (via `insertpm`). If the V-space mapping were created first, there would be a transient state violating P2. The logical dependency flows from the definition: V-space is a *mapping into* I-space, so the codomain must be established before the mapping.
-
-### DELETE(d, p, k)
-
-Remove `k` bytes starting at position `p` from document `d`.
-
-*Preconditions.* `d in Sigma.D`, `k >= 1`, `1 <= p`, `p + k - 1 <= n_d`.
-
-*Effect on I-space.* None. `Sigma'.I = Sigma.I`.
-
-*Effect on V-space.* The new mapping `Sigma'.V(d)` has domain `{1, ..., n_d - k}`:
-
-    Sigma'.V(d)(q) = Sigma.V(d)(q)       for 1 <= q < p         (below deletion)
-    Sigma'.V(d)(q) = Sigma.V(d)(q+k)     for p <= q <= n_d - k  (closed gap)
-
-Positions `p` through `p+k-1` are removed; positions above shift down by `k`.
-
-*Frame.* `Sigma'.V(d') = Sigma.V(d')` for all `d' =/= d`. `Sigma'.I = Sigma.I`.
-
-*P2 verification.* Below deletion: unchanged, valid by P2 on `Sigma`. At or above `p`: `Sigma'.V(d)(q) = Sigma.V(d)(q+k)` where `q+k <= n_d`, so `Sigma.V(d)(q+k) in dom(Sigma.I) = dom(Sigma'.I)`.
-
-Gregory reveals an important structural point: when DELETE removes a V-span that covers only part of an existing mapping entry, the entry is split. The split exactly partitions the underlying I-span with no gaps or overlaps. The surviving portions retain their I-addresses — the I-displacement of the left portion is preserved verbatim, while the right portion's I-displacement is recomputed as `original_I_start + split_offset`. This partitioning preserves P2 because every surviving V-position still maps to the same I-address it mapped to before the deletion.
-
-### REARRANGE(d, c_1, c_2, c_3)
-
-Swap two adjacent regions in document `d`. (We present the three-cut form; the four-cut form is analogous.)
-
-*Preconditions.* `d in Sigma.D`, `1 <= c_1 < c_2 < c_3 <= n_d + 1`.
-
-Let `a = c_2 - c_1` (width of region 1), `b = c_3 - c_2` (width of region 2).
-
-*Effect on I-space.* None. `Sigma'.I = Sigma.I`.
-
-*Effect on V-space.* The mapping `Sigma'.V(d)` has domain `{1, ..., n_d}` (length preserved):
-
-    Sigma'.V(d)(q) = Sigma.V(d)(q)              for 1 <= q < c_1           (before)
-    Sigma'.V(d)(q) = Sigma.V(d)(q + a)          for c_1 <= q < c_1 + b    (region 2)
-    Sigma'.V(d)(q) = Sigma.V(d)(q - b)          for c_1 + b <= q < c_3    (region 1)
-    Sigma'.V(d)(q) = Sigma.V(d)(q)              for c_3 <= q <= n_d       (after)
-
-REARRANGE is a permutation of V-positions. It changes the *order* in which I-addresses appear in V-space but does not change *which* I-addresses are in the mapping. The multiset `{Sigma.V(d)(q) : 1 <= q <= n_d}` is preserved.
-
-*Frame.* `Sigma'.V(d') = Sigma.V(d')` for all `d' =/= d`. `Sigma'.I = Sigma.I`.
-
-*P2 verification.* Every position `q` in `Sigma'.V(d)` maps to some position `q'` in `Sigma.V(d)` with `1 <= q' <= n_d`. By P2 on `Sigma`, `Sigma.V(d)(q') in dom(Sigma.I) = dom(Sigma'.I)`.
-
-Gregory's implementation evidence is particularly illuminating here. REARRANGE modifies `cdsp.dsas[V]` (V-displacements) but never touches `cdsp.dsas[I]` (I-displacements). A comprehensive audit of the codebase finds that no function in the REARRANGE path reads or writes I-displacement fields. The I-dimension is structurally invisible to REARRANGE. This is the architectural expression of P6: I-space is inert under V-operations.
-
-### COPY(d_s, p_s, k, d_t, p_t)
-
-Copy `k` bytes from source document `d_s` to target document `d_t`. This is transclusion: no new I-addresses are allocated.
-
-*Preconditions.* `d_s, d_t in Sigma.D`, `k >= 1`, `1 <= p_s`, `p_s + k - 1 <= n_{d_s}`, `1 <= p_t <= n_{d_t} + 1`. Self-transclusion (`d_s = d_t`) is permitted.
-
-*Effect on I-space.* None. `Sigma'.I = Sigma.I`.
-
-*Effect on V-space (target).* Let `m = n_{d_t}`. The new mapping `Sigma'.V(d_t)` has domain `{1, ..., m + k}`:
-
-    Sigma'.V(d_t)(q) = Sigma.V(d_t)(q)                for 1 <= q < p_t           (unshifted)
-    Sigma'.V(d_t)(q) = Sigma.V(d_s)(p_s + q - p_t)    for p_t <= q <= p_t+k-1    (transcluded)
-    Sigma'.V(d_t)(q) = Sigma.V(d_t)(q-k)              for p_t+k <= q <= m+k      (shifted)
-
-*Frame.* Source is unchanged: if `d_s =/= d_t`, `Sigma'.V(d_s) = Sigma.V(d_s)`. If `d_s = d_t`, the copied positions reference the I-addresses that existed in `Sigma.V(d_s)` before the shift — the copy reads from the pre-operation state.
-
-*P2 verification.* Transcluded positions: `Sigma'.V(d_t)(q) = Sigma.V(d_s)(p_s + q - p_t) in dom(Sigma.I) = dom(Sigma'.I)` by P2 on `Sigma`. Shifted and unshifted: same reasoning as INSERT.
-
-COPY is where P5 (non-injectivity) becomes operationally relevant. After COPY, the target document's V-space contains I-addresses that also appear in the source document's V-space. The same I-content is now arranged in two places without duplication. Gregory confirms that no overlap checking occurs during COPY — the system unconditionally accepts the insertion of I-addresses that already exist at other V-positions, because the multimap property is by design.
-
-The contrast with INSERT is precise:
-
-| | INSERT | COPY |
-|---|---|---|
-| I-space effect | Extends `dom(Sigma.I)` | None |
-| Source of I-addresses | Freshly allocated | Existing (from source) |
-| V-space structure | Identical insertion mechanics | Identical insertion mechanics |
-
-Both operations use the identical V-space insertion path. The only difference is the source of I-addresses.
-
-### CREATENEWVERSION(d)
-
-Create a new document-version `d'` from document `d`.
-
-*Preconditions.* `d in Sigma.D`.
-
-*Effect on I-space.* None (for text content). `Sigma'.I = Sigma.I`.
-
-*Effect on V-space.* `Sigma'.V(d')(p) = Sigma.V(d)(p)` for all `1 <= p <= n_d`. The new version initially has the same V-to-I mapping — no content is duplicated.
-
-*Frame.* `Sigma'.V(d) = Sigma.V(d)`. All other document-versions unchanged.
-
-Nelson: "There is thus no 'basic' version of a document set apart from other versions — 'alternative' versions — any more than one arrangement of the same materials is a priori better than other arrangements." All versions reference the same I-space content pool; they differ only in their V-space arrangements.
-
-Gregory reveals that CREATENEWVERSION does not clone the internal tree structure. The source POOM's contents are read as I-spans (via `specset2ispanset`) and re-inserted into a fresh POOM (via `insertpm`). Adjacent entries with contiguous I-addresses may be coalesced into fewer entries. The resulting POOM is *semantically equivalent* (same V-to-I mapping) but may differ structurally (different tree height, different entry count). This confirms that the abstract mapping is the specification; the tree is mechanism.
+Each operation ASN must verify preservation of P0 through P11 as a verification obligation.
 
 ---
 
@@ -424,13 +322,9 @@ However, the *addressing and linking layers* are more permissive. Link endsets c
 
 ---
 
-## Preservation of the Invariant System
+## Preservation Obligation
 
-We have defined five operations and eleven properties. We should verify that the invariant system is jointly satisfiable and preserved.
-
-*Theorem (PRES).* If `Sigma` satisfies P0 through P11, and `Sigma -> Sigma'` is a valid operation, then `Sigma'` satisfies P0 through P11.
-
-The per-operation verification of P2 was given above with each operation definition. P0 and P1 hold because no operation modifies existing I-space content or removes I-addresses (verified by inspecting each operation's I-space effect: INSERT extends, all others leave unchanged). P3 holds because no operation introduces transformation — the mapping at every V-position is either unchanged, freshly allocated (INSERT), or directly copied (COPY/CREATENEWVERSION). P4 holds because INSERT allocates fresh addresses (by NO-REUSE) and COPY shares existing ones — no operation creates false identity between independently created content. P5 is a non-constraint (no injectivity requirement to violate). P6, P7, and P8 hold by the frame conditions stated with each operation. P9 is preserved because the only operation that splits entries (INSERT via gap-making) applies the exact partition arithmetic. P10 is preserved because the adjacency check is applied at every coalescing opportunity. P11 is structural — the back-end protocol has no viewer parameter in any state.
+Each operation ASN (ASN-0004, ASN-0005, ASN-0006, ASN-0011, ASN-0017) must verify that its defined operation preserves P0 through P11. The structural properties defined here provide the verification targets; the operation ASNs provide the proofs.
 
 ---
 
@@ -456,7 +350,6 @@ The per-operation verification of P2 was given above with each operation definit
 | P10 | Coalescing exactness: merging entries requires exact I-address adjacency | introduced |
 | P11 | Viewer independence: `Sigma.V(d)` is viewer-invariant | introduced |
 | REF-STABILITY | Cross-document reference stability: source operations cannot invalidate target mappings | introduced |
-| PRES | All operations preserve P0 through P11 | introduced |
 
 ---
 
