@@ -1,42 +1,39 @@
 # Verification Status — modeling-1
 
-Updated: 2026-03-10 15:22
-Verified: 31/32
+Updated: 2026-03-10 16:02
+Verified: 32/32
 
 | Property | Status | Divergences |
 |----------|--------|-------------|
-| Reachable | verified |  |
-| ReachabilityNonPermanent | verified |  |
-| ISpaceFrame | verified |  |
-| DeletePre | verified |  |
-| DeleteLength | verified |  |
-| DeleteLeftFrame | verified |  |
+| CopyCrossDocFrame | verified |  |
+| CopyISpacePreserved | verified |  |
+| CopyIdentitySharing | verified |  |
+| CopyLeftFrame | verified |  |
+| CopyLength | verified |  |
+| CopyPre | verified |  |
+| CopyRightShift | verified |  |
 | DeleteCompaction | verified |  |
-| DeleteISpacePreserved | verified |  |
 | DeleteCrossDocFrame | verified |  |
-| RearrangePre | verified |  |
+| DeleteISpacePreserved | verified |  |
+| DeleteLeftFrame | verified |  |
+| DeleteLength | verified |  |
+| DeletePre | verified |  |
+| FullRestoration | verified |  |
+| ISpaceFrame | verified |  |
+| IdentityRestoringCopy | verified |  |
+| NonInvertibility | verified |  |
+| PublicationObligation | verified |  |
+| ReachabilityDecay | verified | The ASN requires Σ' to be reachable from Σ via a finite sequence of DELETE opera... |
+| ReachabilityNonPermanent | verified |  |
+| Reachable | verified |  |
+| RearrangeCrossDocFrame | verified |  |
+| RearrangeISpacePreserved | verified |  |
 | RearrangeLength | verified |  |
 | RearrangePermutation | verified |  |
+| RearrangePre | verified |  |
 | RearrangeRangePreservation | verified |  |
-| RearrangeISpacePreserved | verified |  |
-| RearrangeCrossDocFrame | verified |  |
-| CopyPre | verified |  |
-| CopyIdentitySharing | verified |  |
-| CopyLength | verified |  |
-| CopyLeftFrame | verified |  |
-| CopyRightShift | verified |  |
-| CopyISpacePreserved | verified |  |
-| CopyCrossDocFrame | verified |  |
-| VersionNewDoc | verified |  |
-| VersionIdentitySharing | verified |  |
+| ReferencePermanence | verified |  |
 | VersionCrossDocFrame | verified |  |
 | VersionISpacePreserved | verified |  |
-| NonInvertibility | **UNVERIFIED** |  |
-| IdentityRestoringCopy | verified |  |
-| FullRestoration | verified |  |
-| ReferencePermanence | verified |  |
-| ReachabilityDecay | verified | The ASN requires Σ' to be reachable from Σ via a finite sequence of DELETE opera... |
-| PublicationObligation | verified |  |
-
-## Fix Attempts
-- 2026-03-10 15:33: NonInvertibility — verified $0.42
+| VersionIdentitySharing | verified |  |
+| VersionNewDoc | verified |  |
