@@ -144,11 +144,14 @@ python scripts/commit.py --proofs-only "promote ModuleName from modeling-N"
 
 No spec issues, but proofs have quality problems: duplicated helpers across files, over-proving (unnecessary assertions), missing abstraction, or fighting the solver. The review lists specific files and what to fix.
 
+**This is a manual step.** There is no automated simplify command — read the review, make the changes by hand, verify with `dafny verify`, then re-run review to confirm.
+
 ```bash
-# Fix the .dfy files (manually or with model.py fix)
-# Re-run review to confirm quality is clean
+# 1. Read the review findings and fix .dfy files manually
+# 2. Verify each changed file: dafny verify <file>
+# 3. Re-run review to confirm quality is clean
 python scripts/model.py review N
-# Repeat until CONVERGED, then promote
+# 4. Repeat until CONVERGED, then promote
 ```
 
 #### REVISE

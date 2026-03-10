@@ -85,8 +85,9 @@ Everything else — ASN review, revise, consult, fix — is delegated. Dafny rev
                            |
               ┌────────────┴────────────┐
               v                         v
-     CONVERGED / SIMPLIFY          REVISE
-     promote to vault/proofs/      revise.py N → ./run/remodel.sh N
+     CONVERGED       SIMPLIFY              REVISE
+     promote to      fix .dfy manually,   revise.py N →
+     vault/proofs/   re-run review        ./run/remodel.sh N
 ```
 
 ## Typical Session Workflows
