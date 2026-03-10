@@ -26,7 +26,8 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import WORKSPACE, ASNS_DIR, VOCABULARY, REVIEWS_DIR, USAGE_LOG, STATEMENTS_DIR, sorted_reviews
+from paths import WORKSPACE, ASNS_DIR, VOCABULARY, REVIEWS_DIR, USAGE_LOG, STATEMENTS_DIR, FOUNDATION_LIST, sorted_reviews
+from lib.foundation import load_foundation_statements
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
 REVIEW_TEMPLATE = PROMPTS_DIR / "review.md"
@@ -66,8 +67,7 @@ def build_prompt(asn_content, vocabulary):
               file=sys.stderr)
         sys.exit(1)
 
-    # ASN-0001 (Tumbler Arithmetic) is the foundation — always available
-    foundation = read_file(STATEMENTS_DIR / "ASN-0001-statements.md")
+    foundation = load_foundation_statements(FOUNDATION_LIST, STATEMENTS_DIR)
 
     return template.replace(
         "{{asn_content}}", asn_content

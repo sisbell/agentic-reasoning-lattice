@@ -110,6 +110,10 @@ function Insert(s: State, d: DocId, p: Pos, c: seq<byte>): (s': State)
 
 `vault/proofs/imports.md` maps each ASN to the proof modules its generated properties need. The Dafny generator reads all `.dfy` files from each listed module directory and injects their source into the generation prompt. Generated files use `import` statements; dfyconfig.toml handles resolution.
 
+### Foundation ASNs
+
+`vault/asns/foundation.md` lists ASNs whose formal statements are injected into every review, revise, and discovery prompt. Add an ASN to the list after its proofs are promoted to `vault/proofs/`. Foundation statements give downstream ASNs access to verified definitions without restating them.
+
 ### Divergence and Failure Tracking
 
 When the Dafny generation agent encounters a gap between the ASN property and what can be mechanically translated, it records a DIVERGENCE comment in the source. The `dafny` command writes STATUS.md and commits — it does NOT auto-generate a review.

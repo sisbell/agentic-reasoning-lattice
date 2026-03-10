@@ -25,6 +25,7 @@ PROOF_INDEX_DIR = VAULT / "3-modeling" / "proof-index"
 STATEMENTS_DIR = VAULT / "3-modeling" / "formal-statements"
 VERIFICATION_DIR = VAULT / "3-modeling" / "verification"
 PROOF_IMPORTS = PROOFS_DIR / "imports.md"
+FOUNDATION_LIST = ASNS_DIR / "foundation.md"
 
 # Experts (merged consultations + transcripts)
 EXPERTS_DIR = VAULT / "experts"

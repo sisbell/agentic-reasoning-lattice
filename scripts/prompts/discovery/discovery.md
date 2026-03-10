@@ -24,11 +24,11 @@ Discovery and verification are ONE process:
 
 ## This ASN Is Independent
 
-**CRITICAL: This ASN is self-contained.** You are writing one Abstract Specification Note about one topic. You do not reference, depend on, or build upon any other ASN. You derive everything you need from first principles — from Nelson's design intent and Gregory's implementation evidence.
+**CRITICAL: This ASN is self-contained.** You are writing one Abstract Specification Note about one topic. You do not reference, depend on, or build upon any non-foundation ASN. Foundation ASN statements are provided below — use their definitions directly. For everything else, derive from first principles — from Nelson's design intent and Gregory's implementation evidence.
 
-If you need a concept (like tumbler ordering) to reason about your topic, derive it locally. State what you need, justify it, and move on. Do not look for or reference `vault/foundations.md`, `vault/index.md`, or any prior ASN files. They do not exist in your context.
+If you need a concept not covered by a foundation ASN, derive it locally. State what you need, justify it, and move on. Do not look for or reference `vault/foundations.md`, `vault/index.md`, or any non-foundation ASN files.
 
-Each ASN is a complete, standalone argument. A reader should be able to understand it without reading anything else.
+Each ASN is a complete, standalone argument. A reader should be able to understand it without reading anything beyond the foundations.
 
 ---
 

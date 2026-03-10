@@ -23,7 +23,8 @@ import yaml
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import WORKSPACE, INQUIRIES_FILE, ASNS_DIR, EXPERTS_DIR, VOCABULARY, STATEMENTS_DIR, USAGE_LOG
+from paths import WORKSPACE, INQUIRIES_FILE, ASNS_DIR, EXPERTS_DIR, VOCABULARY, STATEMENTS_DIR, FOUNDATION_LIST, USAGE_LOG
+from lib.foundation import load_foundation_statements
 
 DISCOVERY_PROMPT = WORKSPACE / "scripts" / "prompts" / "discovery" / "discovery.md"
 
@@ -209,13 +210,9 @@ def run_discovery(inquiry, asn_number, slug, force=False):
     if vocab:
         prompt_parts.append(f"## Shared Vocabulary\n\n{vocab}")
 
-    # ASN-0001 (Tumbler Arithmetic) is the verified foundation
-    foundation = read_file(STATEMENTS_DIR / "ASN-0001-statements.md")
+    foundation = load_foundation_statements(FOUNDATION_LIST, STATEMENTS_DIR)
     if foundation:
-        prompt_parts.append(f"## Foundation: ASN-0001 (Tumbler Arithmetic)\n\n"
-                           f"ASN-0001 defines the addressing type system. Use its definitions "
-                           f"(tumbler type, `⊕`, `⊖`, `<`, `sub()`, spans) — do not invent "
-                           f"custom notation.\n\n{foundation}")
+        prompt_parts.append(foundation)
 
     assignment = f"""## Your Assignment
 
@@ -229,7 +226,7 @@ Write ASN-{asn_number:04d} to `vault/asns/ASN-{asn_number:04d}-{slug}.md`.
 Remember:
 1. Read the consultation answers above — they are your primary input.
 2. Synthesize Nelson's design intent with Gregory's implementation evidence.
-3. Derive everything locally — do not reference other ASNs except ASN-0001 (the foundation). Use ASN-0001's tumbler definitions for addressing, ordering, subspaces, and spans.
+3. Derive everything locally — do not reference other ASNs except foundation ASNs (provided above). Use foundation definitions for addressing, ordering, subspaces, and spans.
 4. Properties must be abstract — would an alternative implementation need them?
 """
     prompt_parts.append(assignment)
