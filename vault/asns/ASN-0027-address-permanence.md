@@ -86,6 +86,8 @@ Three operations share a structural property: they affect V-space without creati
 
 > **A3** (RearrangeIdentity). REARRANGE reorders a document's V-space without changing which I-addresses it references.
 >
+> *Precondition:* `d ∈ Σ.D ∧ n_d ≥ 0`
+>
 > *Post (length):* `|Σ'.V(d)| = n_d`
 >
 > *Post (permutation):* There exists a bijection `σ` on `{1, ..., n_d}` such that
@@ -104,7 +106,15 @@ Gregory's evidence is definitive: the rearrangement code path modifies only `cds
 
 > **A4** (CopySharing). COPY from source document `d_s`, span `(p_s, k)`, to target document `d_t` at position `p_t` creates V-space mappings to the *same* I-addresses.
 >
+> *Precondition:* `d_s ∈ Σ.D ∧ d_t ∈ Σ.D ∧ k ≥ 1 ∧ 1 ≤ p_s ∧ p_s + k − 1 ≤ n_{d_s} ∧ 1 ≤ p_t ≤ n_{d_t} + 1`
+>
 > *Post (identity):* `(A j : 0 ≤ j < k : Σ'.V(d_t)(p_t + j) = Σ.V(d_s)(p_s + j))`
+>
+> *Post (length):* `|Σ'.V(d_t)| = n_{d_t} + k`
+>
+> *Post (left frame):* `(A j : 1 ≤ j < p_t : Σ'.V(d_t)(j) = Σ.V(d_t)(j))`
+>
+> *Post (right shift):* `(A j : p_t ≤ j ≤ n_{d_t} : Σ'.V(d_t)(j + k) = Σ.V(d_t)(j))`
 >
 > *Frame (I-space):* `Σ'.I = Σ.I`
 >
@@ -142,7 +152,9 @@ We are now in a position to formalize an observation made in ASN-0026: DELETE fo
 
 *Proof.* INSERT allocates fresh I-addresses `a'_j` for the `k` new positions (P9-new from ASN-0026). By `+_ext`, `{a'_j} ∩ dom(Σ_1.I) = ∅`. Since A2 gives `Σ_1.I = Σ_0.I`, we have `dom(Σ_1.I) = dom(Σ_0.I)`. Each `a_j ∈ dom(Σ_0.I)` by P2 applied to the pre-state. Therefore `a'_j ∉ dom(Σ_0.I)`, and in particular `a'_j ≠ a_j`. Since `Σ_2.V(d)(p + j) = a'_j` (by P9-new), we have `Σ_2.V(d)(p + j) ≠ a_j`. ∎
 
-The V-space positions may be numerically restored. The content bytes may even be identical. But the I-space *identity* is different. Every link, transclusion, and correspondence relationship that depended on addresses `a_0, ..., a_{k-1}` does not attach to the newly inserted content. Correspondence between `Σ_0` and `Σ_2` (restricted to positions `p` through `p + k − 1`) is empty — `correspond(d_{Σ_0}, p + j, d_{Σ_2}, p + j) = false` for all `j` in the affected range.
+The V-space positions may be numerically restored. The content bytes may even be identical. But the I-space *identity* is different. Every link, transclusion, and correspondence relationship that depended on addresses `a_0, ..., a_{k-1}` does not attach to the newly inserted content. The I-address at position `p + j` in `Σ_2` differs from the I-address at position `p + j` in `Σ_0`: `Σ_2.V(d)(p + j) ≠ Σ_0.V(d)(p + j)` for all `0 ≤ j < k`.
+
+We trace this through a concrete state. Let `Σ_0.V(d) = [a_1, a_2, a_3, a_4, a_5]` with each `a_i ∈ dom(Σ_0.I)`. DELETE(d, 2, 2) yields `Σ_1.V(d) = [a_1, a_4, a_5]` — A2's left frame preserves position 1, compaction shifts positions 4–5 to positions 2–3, and `|Σ_1.V(d)| = 3`. INSERT(Σ_1, d, 2, 2, "XY") yields `Σ_2.V(d) = [a_1, a'_1, a'_2, a_4, a_5]` where `a'_1, a'_2 ∉ dom(Σ_0.I)` by freshness. Verify: `a'_1 ≠ a_2` and `a'_2 ≠ a_3`, since `a_2, a_3 ∈ dom(Σ_0.I)` by P2 and the fresh addresses are disjoint from `dom(Σ_0.I)`. The bytes at positions 2–3 may be identical to the original, but identity is lost. Now suppose a version `d'` was created before editing, so `Σ_0.V(d') = [a_1, a_2, a_3, a_4, a_5]`. COPY from `d'`, span (2, 2), to `d` at position 2 in a state after the INSERT: the result maps positions 2–3 back to `a_2, a_3`. Identity restored.
 
 This is not a flaw but an architectural commitment. The system distinguishes *identity* (same I-address, same origin, same provenance chain) from *coincidence* (same bytes, different origin). DELETE+INSERT produces coincidence. Only COPY preserves identity.
 
@@ -156,7 +168,7 @@ If DELETE+INSERT cannot restore identity, what can?
 >
 >     (A j : 0 ≤ j < k : Σ_2.V(d)(p + j) = a_j)
 
-*Proof.* By A2 (cross-document frame), DELETE on `d` does not modify `Σ.V(d')`. So `Σ_1.V(d')(q + j) = a_j` holds. By A4 (identity sharing), COPY maps positions `p + j` in `d` to the same I-addresses as positions `q + j` in `d'`. Therefore `Σ_2.V(d)(p + j) = Σ_1.V(d')(q + j) = a_j`. ∎
+*Proof.* By A2 (cross-document frame), DELETE on `d` does not modify `Σ.V(d')`. So `Σ_1.V(d')(q + j) = a_j` holds. We verify the precondition of A4 for COPY in state `Σ_1`: `d' ∈ Σ_1.D` (unchanged by DELETE on `d`), `d ∈ Σ_1.D`, `k ≥ 1` (given), `1 ≤ q` and `q + k − 1 ≤ |Σ_1.V(d')|` (the source span is valid in `d'`). For the target: `|Σ_1.V(d)| = n_d − k` (by A2 length), and `p ≤ n_d − k + 1` since the original precondition of A2 gives `p + k − 1 ≤ n_d`, so `p` is a valid insertion point. By A4 (identity sharing), COPY maps positions `p + j` in `d` to the same I-addresses as positions `q + j` in `d'`. Therefore `Σ_2.V(d)(p + j) = Σ_1.V(d')(q + j) = a_j`. ∎
 
 This gives us the pattern for identity-preserving restoration: **create a version before editing, then COPY from the version to restore.** A5 (VersionIdentitySharing) ensures the version shares all I-addresses with the original. After editing the original, the version retains the pre-edit addresses. COPY from the version restores not merely the same bytes but the *same identity* — with all links, correspondence, and attribution intact.
 
@@ -200,7 +212,7 @@ We return to the distinction between existence and accessibility. A8 guarantees 
 
 > **A9** (ReachabilityDecay). If `reachable(a, Σ)`, then there exists a finite sequence of operations producing `Σ'` with `¬reachable(a, Σ')`.
 
-*Proof.* Let `refs(a) = {(d_1, p_1), ..., (d_m, p_m)}`. For each `(d_i, p_i)`, DELETE on `d_i` at position `p_i` removes that reference. By A2 (cross-document frame), each DELETE affects only its target, so the references in other documents are unchanged until their turn. After `m` deletions, `refs(a) = ∅`. By A1 (ISpaceFrame), `a ∈ dom(Σ'.I)` — the content exists but is unreachable. ∎
+*Proof.* Let `D_a = {d : (E p : 1 ≤ p ≤ n_d : Σ.V(d)(p) = a)}` be the set of documents referencing `a`. We process documents one at a time. For each `d ∈ D_a`, let `r_d = |{p : 1 ≤ p ≤ n_d ∧ Σ.V(d)(p) = a}|` be the count of positions in `d` mapping to `a`. Repeatedly delete the *lowest*-numbered position mapping to `a` in `d`. Each such DELETE reduces `r_d` by exactly one: A2's compaction shifts higher positions leftward, preserving the I-address at each surviving position, so the remaining positions mapping to `a` are renumbered but still present. After `r_d` deletions on `d`, no position in `d` maps to `a`. By A2 (cross-document frame), these deletions on `d` do not modify `Σ.V(d')` for any `d' ≠ d`, so the references in other documents persist until their turn. After processing all documents in `D_a`, `refs(a) = ∅`. By A1 (ISpaceFrame), `a ∈ dom(Σ'.I)` — the content exists but is unreachable. ∎
 
 Note the asymmetry. Each deletion is a separate operation with a specific write target (A2). The sequence of `m` deletions across `m` documents is a *coordinated* effort — it requires access to every document that references `a`. For published content with many transclusions, this coordination is difficult by design.
 
