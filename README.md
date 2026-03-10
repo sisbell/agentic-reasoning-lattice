@@ -361,7 +361,6 @@ vault/
     ASN-NNNN/
 
   3-modeling/       — Stage 3: Modeling artifacts
-    modules.md      — Module registry (ASN → Dafny module mapping)
     alloy/          — Alloy models for bounded checking (.als files)
     proof-index/    — Proof index (ASN label → proof label mappings)
     formal-statements/ — Formal property statements from ASN prose

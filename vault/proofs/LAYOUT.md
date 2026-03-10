@@ -7,6 +7,7 @@ proofs/
 ├── TumblerAlgebra/      Tumbler datatype, LessThan, Add/Subtract, IsPrefix
 ├── Foundation/          State model: IAddr, VPos, State, J0–J2
 ├── AddressProperties/   ASN-0001 address properties: T4, T7, T9, T10, T10a, GlobalUniqueness
+├── imports.md           Maps ASN → proof module dependencies for Dafny generation
 └── dfyconfig.toml       Picks up **/*.dfy — no include directives needed
 ```
 
@@ -39,3 +40,7 @@ AddressProperties depends on TumblerAlgebra only. Foundation depends on TumblerA
 `includes = ["**/*.dfy"]` — all .dfy files under proofs/ are resolved automatically. No `include` directives in individual files. Module imports (`import TumblerAlgebra`, `import ForwardAllocation`, etc.) are the only coupling mechanism.
 
 `warn-redundant-assumptions = false` — disabled because Dafny's checker incorrectly flags requires clauses that are needed for well-formedness of subsequent requires (e.g., `ElementAddress(a)` is needed for `SubspaceId(a)` to be well-formed, but Dafny considers it redundant for the proof body). The other warning flags (shadowing, contradictory assumptions) remain enabled.
+
+## imports.md
+
+Maps each ASN to the proof modules the Dafny generator injects as context. The generator reads all `.dfy` files from each listed module directory and includes their source in the generation prompt. Generated files (which live in `vault/3-modeling/dafny/`) use `include` directives with relative paths back to `vault/proofs/` to access these modules, then `import` to use them. dfyconfig.toml only covers files within `vault/proofs/`.

@@ -146,7 +146,7 @@ The pipeline is not linear — it has structured feedback loops:
 | Alloy | ASN, proof index | `vault/3-modeling/alloy/ASN-NNNN/*.als` |
 | Index | ASN, existing proof index | `vault/3-modeling/proof-index/ASN-NNNN-proof-index.md` |
 | Statements | ASN, proof index | `vault/3-modeling/formal-statements/ASN-NNNN-statements.md` |
-| Dafny | statements, proof index, module registry | `modeling-N/*.dfy`, `modeling-N/STATUS.md` (commits) |
+| Dafny | statements, proof index, proof imports | `modeling-N/*.dfy`, `modeling-N/STATUS.md` (commits) |
 | Fix | unverified `.dfy` files | fixed `.dfy` files (in place, no commit) |
 | Status | `.dfy` files in modeling dir | `modeling-N/STATUS.md` (commits) |
 | Review | verified `.dfy` files, statements | `vault/2-review/ASN-NNNN/review-N.md` (commits) |

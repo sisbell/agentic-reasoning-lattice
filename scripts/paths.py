@@ -24,7 +24,7 @@ DAFNY_DIR = VAULT / "3-modeling" / "dafny"
 PROOF_INDEX_DIR = VAULT / "3-modeling" / "proof-index"
 STATEMENTS_DIR = VAULT / "3-modeling" / "formal-statements"
 VERIFICATION_DIR = VAULT / "3-modeling" / "verification"
-MODULES_REGISTRY = VAULT / "3-modeling" / "modules.md"
+PROOF_IMPORTS = PROOFS_DIR / "imports.md"
 
 # Experts (merged consultations + transcripts)
 EXPERTS_DIR = VAULT / "experts"

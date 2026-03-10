@@ -2,7 +2,7 @@
 
 Translate a single formally extracted property into a verified Dafny
 declaration. You receive one property — its extract entry, proof index row,
-and the stable foundation module it imports.
+and the available proof modules it can import.
 
 ## Modeling approach
 
@@ -13,12 +13,12 @@ Functional throughout — datatypes, pure functions, no heap:
 - Lemmas are ghost — verified but erased from compiled output
 - Use `ghost predicate` when the body has unbounded quantifiers
 
-## Module assignment
+## Proof imports
 
-Decide which module this property belongs in based on its domain. Place the
-output file in that module's directory.
+These are the proof modules available for this ASN. Use `import` or
+`import opened` to access their definitions.
 
-{{module_registry}}
+{{imports_map}}
 
 ## ASN notation → Dafny
 
@@ -34,7 +34,7 @@ output file in that module's directory.
 | `#S` or `\|S\|` | `\|S\|` |
 | `f'` (primed, post-state) | `s'.field` |
 
-Use the functions and predicates defined in the stable foundation for
+Use the functions and predicates defined in the available proof modules for
 domain-specific operations (ordering, arithmetic, etc.).
 
 ## Dafny reference
@@ -45,23 +45,14 @@ Study these verified patterns carefully. Dafny is not Boogie, Why3, or Coq.
 {{dafny_reference}}
 ```
 
-## Stable foundation
+## Available proof modules
 
-The verified foundation module. Start your file with:
+These verified modules live in `vault/proofs/`. Since generated files
+are outside that directory, you must `include` each `.dfy` file you
+need before importing its module. Use relative paths from your output
+file's location.
 
-```dafny
-include "{{stable_root_filename}}"
-```
-
-This relative path resolves from your output file's location to the
-foundation module in `vault/proofs/`.
-
-Then import it with `import opened`. Do not redefine anything already
-defined here.
-
-```dafny
-{{stable_root}}
-```
+{{proof_modules}}
 
 ## Property to translate
 
@@ -238,10 +229,9 @@ function SomeOperation(s: State, args: ...): (s': State)
 ## Output
 
 Reply with raw Dafny source code only. No markdown fences, no commentary,
-no tool calls, no explanation — just the Dafny code starting with
-`include` or `module`.
+no tool calls, no explanation — just the Dafny code starting with `module`.
 
 The code should contain one module with one declaration. The module imports
-the foundation, includes the ASN label as a comment for traceability, and
-contains only the declaration being translated (plus any helpers it needs
-that aren't in the foundation).
+the proof modules it needs, includes the ASN label as a comment for
+traceability, and contains only the declaration being translated (plus any
+helpers it needs that aren't in the available modules).

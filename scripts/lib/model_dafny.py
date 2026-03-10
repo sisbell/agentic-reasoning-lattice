@@ -29,7 +29,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from paths import (WORKSPACE, ASNS_DIR, PROOF_INDEX_DIR, STATEMENTS_DIR,
                     PROOFS_DIR, DAFNY_DIR, ALLOY_DIR, REVIEWS_DIR, USAGE_LOG,
-                    MODULES_REGISTRY, next_review_number, next_modeling_number,
+                    PROOF_IMPORTS, next_review_number, next_modeling_number,
                     sanitize_filename)
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"
@@ -81,14 +81,45 @@ def parse_proof_index(text):
     return rows
 
 
-def find_module_for_asn(asn_label, registry_text):
-    """Find the target Dafny module for an ASN from the registry."""
-    for line in registry_text.split("\n"):
+def find_imports_for_asn(asn_label, imports_text):
+    """Find additional proof module dependencies for an ASN from imports.md.
+
+    Returns list of module names (may be empty if ASN only needs base modules).
+    Returns None if the ASN is not listed at all.
+    """
+    for line in imports_text.split("\n"):
         if asn_label in line and "|" in line:
             cols = [c.strip() for c in line.split("|")[1:-1]]
-            if len(cols) >= 1:
-                return cols[0]
+            if len(cols) >= 2:
+                return [m.strip() for m in cols[1].split(",") if m.strip()]
     return None
+
+
+def read_proof_modules(module_names):
+    """Read all .dfy files from listed proof module directories.
+
+    Returns a dict of {relative_path: source} and a formatted text block
+    for prompt injection. Paths are relative to WORKSPACE.
+    """
+    modules = {}
+    for mod_name in module_names:
+        mod_dir = PROOFS_DIR / mod_name
+        if not mod_dir.exists():
+            print(f"  Warning: proof module directory not found: {mod_dir}",
+                  file=sys.stderr)
+            continue
+        for dfy_file in sorted(mod_dir.glob("*.dfy")):
+            content = read_file(dfy_file)
+            if content.strip():
+                rel_path = str(dfy_file.relative_to(WORKSPACE))
+                modules[rel_path] = content
+
+    # Format as prompt text — show path so LLM can compute includes
+    parts = []
+    for rel_path, source in modules.items():
+        parts.append(f"### `{rel_path}`\n\n```dafny\n{source}\n```")
+
+    return modules, "\n\n".join(parts)
 
 
 def find_alloy_model(asn_label, proof_label, label):
@@ -119,7 +150,7 @@ def find_alloy_model(asn_label, proof_label, label):
     return ""
 
 
-def build_property_prompt(template, registry, stable_root, stable_root_filename,
+def build_property_prompt(template, imports_map, proof_modules_text,
                           row, extract, alloy_model=""):
     """Assemble prompt for a single property."""
     prompt = template
@@ -147,9 +178,8 @@ def build_property_prompt(template, registry, stable_root, stable_root_filename,
     return (
         prompt
         .replace("{{dafny_reference}}", dafny_ref)
-        .replace("{{module_registry}}", registry)
-        .replace("{{stable_root_filename}}", stable_root_filename)
-        .replace("{{stable_root}}", stable_root)
+        .replace("{{imports_map}}", imports_map)
+        .replace("{{proof_modules}}", proof_modules_text)
         .replace("{{index_row}}", index_table)
         .replace("{{extract_entry}}", extract)
         .replace("{{alloy_model}}", alloy_model)
@@ -639,9 +669,9 @@ def main():
               file=sys.stderr)
         sys.exit(1)
 
-    registry_text = read_file(MODULES_REGISTRY)
-    if not registry_text:
-        print("  Module registry not found: vault/3-modeling/modules.md", file=sys.stderr)
+    imports_text = read_file(PROOF_IMPORTS)
+    if not imports_text:
+        print("  Proof imports not found: vault/proofs/imports.md", file=sys.stderr)
         sys.exit(1)
 
     # --- Parse inputs ---
@@ -653,19 +683,18 @@ def main():
         print(f"  No properties found in proof index {index_path.name}", file=sys.stderr)
         sys.exit(1)
 
-    # Target module from registry
-    module_name = find_module_for_asn(asn_label, registry_text)
-    if not module_name:
-        print(f"  No module found for {asn_label} in registry", file=sys.stderr)
-        sys.exit(1)
-
-    module_dir = PROOFS_DIR / module_name
-    stable_root_path = module_dir / f"{module_name}.dfy"
-    stable_root = read_file(stable_root_path)
-    if not stable_root:
-        print(f"  Stable root not found: {stable_root_path.relative_to(WORKSPACE)}",
+    # Proof module dependencies from imports.md
+    module_names = find_imports_for_asn(asn_label, imports_text)
+    if module_names is None:
+        print(f"  {asn_label} not listed in vault/proofs/imports.md",
               file=sys.stderr)
         sys.exit(1)
+
+    # Always include base modules (TumblerAlgebra + Foundation)
+    base_modules = ["TumblerAlgebra", "Foundation"]
+    all_modules = base_modules + [m for m in module_names if m not in base_modules]
+
+    proof_modules, proof_modules_text = read_proof_modules(all_modules)
 
     # Filter to specific properties if requested
     if args.property:
@@ -701,11 +730,9 @@ def main():
         gen_num = next_modeling_number(asn_label)
         gen_dir = DAFNY_DIR / asn_label / f"modeling-{gen_num}"
 
-    # Relative include path from gen_dir back to stable root
-    stable_root_include = os.path.relpath(stable_root_path, gen_dir)
-
-    print(f"  [DAFNY-PROPERTY] {asn_label} → {module_name}/ (modeling-{gen_num})",
+    print(f"  [DAFNY-PROPERTY] {asn_label} (modeling-{gen_num})",
           file=sys.stderr)
+    print(f"  Imports: {', '.join(module_names)}", file=sys.stderr)
     print(f"  Properties: {len(index_rows)}", file=sys.stderr)
 
     resuming = args.modeling is not None
@@ -734,7 +761,7 @@ def main():
 
         # Build prompt
         prompt = build_property_prompt(
-            template_text, registry_text, stable_root, stable_root_include,
+            template_text, imports_text, proof_modules_text,
             row, extract_text, alloy_model,
         )
 

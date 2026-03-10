@@ -106,9 +106,9 @@ function Insert(s: State, d: DocId, p: Pos, c: seq<byte>): (s': State)
   ensures s'.links == s.links  // frame
 ```
 
-### Module Registry
+### Proof Imports
 
-`vault/3-modeling/modules.md` tracks the mapping from ASN numbers to Dafny module names, dependencies between modules, and generation status.
+`vault/proofs/imports.md` maps each ASN to the proof modules its generated properties need. The Dafny generator reads all `.dfy` files from each listed module directory and injects their source into the generation prompt. Generated files use `import` statements; dfyconfig.toml handles resolution.
 
 ### Divergence and Failure Tracking
 
@@ -170,7 +170,7 @@ python scripts/revise.py N
 |----------|----------|-------------|
 | ASN | `vault/asns/ASN-NNNN-*.md` | Converged specification |
 | Existing proof index | `vault/3-modeling/proof-index/ASN-NNNN-proof-index.md` | For re-run stability |
-| Module registry | `vault/3-modeling/modules.md` | Module dependencies |
+| Proof imports | `vault/proofs/imports.md` | Proof module dependencies per ASN |
 
 ### Output
 
