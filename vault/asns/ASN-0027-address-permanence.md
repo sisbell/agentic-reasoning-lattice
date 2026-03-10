@@ -84,15 +84,28 @@ What is absent from the specification matters as much as what is present. There 
 
 Three operations share a structural property: they affect V-space without creating new I-space content. Each preserves or extends the set of reachable I-addresses.
 
-> **A3** (RearrangeIdentity). REARRANGE reorders a document's V-space without changing which I-addresses it references.
+> **A3** (RearrangeIdentity). REARRANGE takes a document `d` and an ordered sequence of `m` cut positions `c_1 < c_2 < ... < c_m` with `m ∈ {3, 4}`. The cuts define segments of V-space; the operation transposes designated segments.
 >
-> *Precondition:* `d ∈ Σ.D ∧ n_d ≥ 0`
+> *Precondition:* `d ∈ Σ.D ∧ m ∈ {3, 4} ∧ 1 ≤ c_1 < c_2 < ... < c_m ≤ n_d + 1`
+>
+> The cuts determine a bijection `σ` on `{1, ..., n_d}`:
+>
+> *Pivot (m = 3):* Segments `[c_1, c_2)` and `[c_2, c_3)` transpose:
+>
+>     σ(j) = j + (c_3 − c_2)      for c_1 ≤ j < c_2
+>     σ(j) = j − (c_2 − c_1)      for c_2 ≤ j < c_3
+>     σ(j) = j                     otherwise
+>
+> *Swap (m = 4):* Segments `[c_1, c_2)` and `[c_3, c_4)` transpose; the middle segment `[c_2, c_3)` shifts by the width difference:
+>
+>     σ(j) = j + (c_4 − c_2)                       for c_1 ≤ j < c_2
+>     σ(j) = j + (c_4 − c_3) − (c_2 − c_1)        for c_2 ≤ j < c_3
+>     σ(j) = j − (c_3 − c_1)                       for c_3 ≤ j < c_4
+>     σ(j) = j                                      otherwise
 >
 > *Post (length):* `|Σ'.V(d)| = n_d`
 >
-> *Post (permutation):* There exists a bijection `σ` on `{1, ..., n_d}` such that
->
->     (A j : 1 ≤ j ≤ n_d : Σ'.V(d)(σ(j)) = Σ.V(d)(j))
+> *Post (permutation):* `(A j : 1 ≤ j ≤ n_d : Σ'.V(d)(σ(j)) = Σ.V(d)(j))`
 >
 > *Post (range preservation):* `range(Σ'.V(d)) = range(Σ.V(d))`
 >
@@ -100,9 +113,9 @@ Three operations share a structural property: they affect V-space without creati
 >
 > *Frame (cross-document):* P7
 
-Range preservation follows from the permutation clause — a bijection preserves the multiset of values. We state it separately because it is the property that matters for permanence: the same I-addresses are reachable through document `d` before and after the operation. REARRANGE is the unique editing operation that changes arrangement without changing content set.
+Range preservation follows from the permutation clause — a bijection preserves the multiset of values. We state it separately because it is the property that matters for permanence: the same I-addresses are reachable through document `d` before and after the operation. Both forms change only the arrangement within the affected range; positions outside `[c_1, c_m)` are identity-mapped. That `σ` is a bijection follows from the segment structure: for pivot, the images of `[c_1, c_2)` and `[c_2, c_3)` are two disjoint intervals covering `[c_1, c_3)` exactly; for swap, the three moving segments' images are three disjoint intervals covering `[c_1, c_4)`.
 
-Gregory's evidence is definitive: the rearrangement code path modifies only `cdsp.dsas[V]` (V-displacement). The I-displacement field `cdsp.dsas[I]` is never written by the displacement-adjustment step. The only path that touches I-displacements is tree restructuring during the cut phase — and there the absolute I-address is preserved, only the relative encoding changes when a crum moves to a new parent.
+Gregory's evidence confirms the cut-based interface: the backend accepts exactly 3 or 4 V-address cut points (`typecutseq`), sorts them via `sortknives`, and computes segment offsets via `makeoffsetsfor3or4cuts`. The rearrangement code path modifies only `cdsp.dsas[V]` (V-displacement). The I-displacement field `cdsp.dsas[I]` is never written by the displacement-adjustment step. The only path that touches I-displacements is tree restructuring during the cut phase — and there the absolute I-address is preserved, only the relative encoding changes when a crum moves to a new parent.
 
 > **A4** (CopySharing). COPY from source document `d_s`, span `(p_s, k)`, to target document `d_t` at position `p_t` creates V-space mappings to the *same* I-addresses.
 >
@@ -154,7 +167,7 @@ We are now in a position to formalize an observation made in ASN-0026: DELETE fo
 
 The V-space positions may be numerically restored. The content bytes may even be identical. But the I-space *identity* is different. Every link, transclusion, and correspondence relationship that depended on addresses `a_0, ..., a_{k-1}` does not attach to the newly inserted content. The I-address at position `p + j` in `Σ_2` differs from the I-address at position `p + j` in `Σ_0`: `Σ_2.V(d)(p + j) ≠ Σ_0.V(d)(p + j)` for all `0 ≤ j < k`.
 
-We trace this through a concrete state. Let `Σ_0.V(d) = [a_1, a_2, a_3, a_4, a_5]` with each `a_i ∈ dom(Σ_0.I)`. DELETE(d, 2, 2) yields `Σ_1.V(d) = [a_1, a_4, a_5]` — A2's left frame preserves position 1, compaction shifts positions 4–5 to positions 2–3, and `|Σ_1.V(d)| = 3`. INSERT(Σ_1, d, 2, 2, "XY") yields `Σ_2.V(d) = [a_1, a'_1, a'_2, a_4, a_5]` where `a'_1, a'_2 ∉ dom(Σ_0.I)` by freshness. Verify: `a'_1 ≠ a_2` and `a'_2 ≠ a_3`, since `a_2, a_3 ∈ dom(Σ_0.I)` by P2 and the fresh addresses are disjoint from `dom(Σ_0.I)`. The bytes at positions 2–3 may be identical to the original, but identity is lost. Now suppose a version `d'` was created before editing, so `Σ_0.V(d') = [a_1, a_2, a_3, a_4, a_5]`. COPY from `d'`, span (2, 2), to `d` at position 2 in a state after the INSERT: the result maps positions 2–3 back to `a_2, a_3`. Identity restored.
+We trace this through a concrete state. Let `Σ_0.V(d) = [a_1, a_2, a_3, a_4, a_5]` with each `a_i ∈ dom(Σ_0.I)`. DELETE(d, 2, 2) yields `Σ_1.V(d) = [a_1, a_4, a_5]` — A2's left frame preserves position 1, compaction shifts positions 4–5 to positions 2–3, and `|Σ_1.V(d)| = 3`. INSERT(Σ_1, d, 2, 2, "XY") yields `Σ_2.V(d) = [a_1, a'_1, a'_2, a_4, a_5]` where `a'_1, a'_2 ∉ dom(Σ_0.I)` by freshness. Verify: `a'_1 ≠ a_2` and `a'_2 ≠ a_3`, since `a_2, a_3 ∈ dom(Σ_0.I)` by P2 and the fresh addresses are disjoint from `dom(Σ_0.I)`. The bytes at positions 2–3 may be identical to the original, but identity is lost.
 
 This is not a flaw but an architectural commitment. The system distinguishes *identity* (same I-address, same origin, same provenance chain) from *coincidence* (same bytes, different origin). DELETE+INSERT produces coincidence. Only COPY preserves identity.
 
@@ -170,6 +183,20 @@ If DELETE+INSERT cannot restore identity, what can?
 
 *Proof.* By A2 (cross-document frame), DELETE on `d` does not modify `Σ.V(d')`. So `Σ_1.V(d')(q + j) = a_j` holds. We verify the precondition of A4 for COPY in state `Σ_1`: `d' ∈ Σ_1.D` (unchanged by DELETE on `d`), `d ∈ Σ_1.D`, `k ≥ 1` (given), `1 ≤ q` and `q + k − 1 ≤ |Σ_1.V(d')|` (the source span is valid in `d'`). For the target: `|Σ_1.V(d)| = n_d − k` (by A2 length), and `p ≤ n_d − k + 1` since the original precondition of A2 gives `p + k − 1 ≤ n_d`, so `p` is a valid insertion point. By A4 (identity sharing), COPY maps positions `p + j` in `d` to the same I-addresses as positions `q + j` in `d'`. Therefore `Σ_2.V(d)(p + j) = Σ_1.V(d')(q + j) = a_j`. ∎
 
+We now derive that A7 yields *full* document restoration — not just the `k` deleted positions but the entire V-space.
+
+> **Corollary** (Full restoration). Under the conditions of A7, `Σ_2.V(d) = Σ_0.V(d)`.
+>
+> *Left frame.* For `1 ≤ j < p`: A4 (left frame) gives `Σ_2.V(d)(j) = Σ_1.V(d)(j)`, and A2 (left frame) gives `Σ_1.V(d)(j) = Σ_0.V(d)(j)`. Therefore `Σ_2.V(d)(j) = Σ_0.V(d)(j)`.
+>
+> *Restored positions.* For `p ≤ j < p + k`: A7 gives `Σ_2.V(d)(j) = a_{j−p} = Σ_0.V(d)(j)`.
+>
+> *Right frame.* For `p + k ≤ m ≤ n_d`: A4 (right shift) gives `Σ_2.V(d)(m) = Σ_1.V(d)(m − k)`, and A2 (compaction) gives `Σ_1.V(d)(m − k) = Σ_0.V(d)(m)`. Therefore `Σ_2.V(d)(m) = Σ_0.V(d)(m)`.
+>
+> *Length.* `|Σ_2.V(d)| = |Σ_1.V(d)| + k = (n_d − k) + k = n_d`.
+>
+> The three ranges `[1, p)`, `[p, p+k)`, `[p+k, n_d]` cover `{1, ..., n_d}`, and on each `Σ_2.V(d)` agrees with `Σ_0.V(d)`. ∎
+
 This gives us the pattern for identity-preserving restoration: **create a version before editing, then COPY from the version to restore.** A5 (VersionIdentitySharing) ensures the version shares all I-addresses with the original. After editing the original, the version retains the pre-edit addresses. COPY from the version restores not merely the same bytes but the *same identity* — with all links, correspondence, and attribution intact.
 
 The pattern is:
@@ -178,7 +205,7 @@ The pattern is:
 2. `DELETE(d, p, k)` — `d` loses positions; `d'` is unchanged (A2 cross-doc frame)
 3. `COPY(d', (p, k), d, p)` — `d` recovers original I-addresses from `d'` (A7)
 
-After step 3, correspondence between `d` in `Σ_0` and `d` in `Σ_3` is restored — the positions map to the same I-addresses. DELETE+COPY-from-version is the identity-preserving undo. DELETE+INSERT is not.
+After step 3, the corollary establishes `Σ_2.V(d) = Σ_0.V(d)` — full correspondence is restored. DELETE+COPY-from-version is the identity-preserving undo. DELETE+INSERT is not.
 
 Nelson designed this deliberately. CREATENEWVERSION is not merely a backup mechanism; it is the architectural prerequisite for non-destructive editing. Nelson: "for corrections and amendments, the author may readily publish a superseding document, but the former version must remain on the network. This is vital because of the links other users may have made to it — which can now reach through from the previous version (to which they were originally attached) into the newer version."
 
@@ -268,7 +295,7 @@ Gregory confirms: the spanfilade is write-only with respect to DOCISPAN entries.
 | A0 | Reachability is not permanent: transitions exist where `reachable(a)` goes from true to false | introduced |
 | A1 | Every primitive operation preserves I-space; only INSERT extends it with fresh addresses; the other four leave `Σ.I` identical | introduced |
 | A2 | DELETE removes `k` positions from V-space, compacts remaining positions leftward, leaves I-space and other documents unchanged | introduced |
-| A3 | REARRANGE is a bijective permutation of V-positions preserving the multiset of I-addresses and leaving I-space unchanged | introduced |
+| A3 | REARRANGE transposes V-space segments defined by 3 or 4 ordered cut positions, preserving the multiset of I-addresses | introduced |
 | A4 | COPY creates V-space mappings in the target to the same I-addresses as the source, without I-space extension | introduced |
 | A5 | CREATENEWVERSION creates a new document with position-by-position identical I-address mapping, no I-space extension | introduced |
 | A6 | DELETE followed by INSERT at the same position does not restore original I-addresses: `Σ_2.V(d)(p+j) ≠ a_j` | introduced |
