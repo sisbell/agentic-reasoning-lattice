@@ -113,7 +113,9 @@ Three operations share a structural property: they affect V-space without creati
 >
 > *Frame (cross-document):* P7
 
-Range preservation follows from the permutation clause — a bijection preserves the multiset of values. We state it separately because it is the property that matters for permanence: the same I-addresses are reachable through document `d` before and after the operation. Both forms change only the arrangement within the affected range; positions outside `[c_1, c_m)` are identity-mapped. That `σ` is a bijection follows from the segment structure: for pivot, the images of `[c_1, c_2)` and `[c_2, c_3)` are two disjoint intervals covering `[c_1, c_3)` exactly; for swap, the three moving segments' images are three disjoint intervals covering `[c_1, c_4)`.
+Range preservation follows from the permutation clause — a bijection preserves the multiset of values. We state it separately because it is the property that matters for permanence: the same I-addresses are reachable through document `d` before and after the operation. Both forms change only the arrangement within the affected range; positions outside `[c_1, c_m)` are identity-mapped. That `σ` is a bijection follows from the segment structure: for pivot, the images of `[c_1, c_2)` and `[c_2, c_3)` are two disjoint intervals covering `[c_1, c_3)` exactly; for swap, we verify by computing image ranges. Let `L_A = c_2 − c_1`, `L_M = c_3 − c_2`, `L_B = c_4 − c_3`. Segment B (`[c_3, c_4)`) shifts by `−(c_3 − c_1)`, landing on `[c_1, c_1 + L_B)`. Segment M (`[c_2, c_3)`) shifts by `L_B − L_A`, landing on `[c_1 + L_B, c_1 + L_B + L_M)`. Segment A (`[c_1, c_2)`) shifts by `L_M + L_B`, landing on `[c_1 + L_B + L_M, c_1 + L_B + L_M + L_A)`. Each image starts where the previous ends, and `L_B + L_M + L_A = c_4 − c_1`, so the three images cover `[c_1, c_4)` exactly.
+
+We verify P2 preservation. Range preservation gives `range(Σ'.V(d)) = range(Σ.V(d))`. Every I-address in the post-state range was in the pre-state range, hence in `dom(Σ.I)` by P2 on the pre-state. The I-space frame gives `dom(Σ'.I) = dom(Σ.I)`. P2 holds.
 
 Gregory's evidence confirms the cut-based interface: the backend accepts exactly 3 or 4 V-address cut points (`typecutseq`), sorts them via `sortknives`, and computes segment offsets via `makeoffsetsfor3or4cuts`. The rearrangement code path modifies only `cdsp.dsas[V]` (V-displacement). The I-displacement field `cdsp.dsas[I]` is never written by the displacement-adjustment step. The only path that touches I-displacements is tree restructuring during the cut phase — and there the absolute I-address is preserved, only the relative encoding changes when a crum moves to a new parent.
 
@@ -131,7 +133,7 @@ Gregory's evidence confirms the cut-based interface: the backend accepts exactly
 >
 > *Frame (I-space):* `Σ'.I = Σ.I`
 >
-> *Frame (source):* `Σ'.V(d_s) = Σ.V(d_s)` (when `d_s ≠ d_t`)
+> *Frame (cross-document):* `(A d' : d' ∈ Σ.D ∧ d' ≠ d_t : Σ'.V(d') = Σ.V(d'))`
 
 The identity clause is the heart of transclusion. The target document's V-space maps to the *same* I-addresses as the source. No new content is created. Two documents now share identity — the bytes in the target are not merely identical to the bytes in the source; they *are* the same bytes, at the same I-address, with the same origin, the same attribution, the same link attachments.
 
@@ -139,17 +141,21 @@ This is sharply distinct from INSERT, which always allocates fresh I-addresses. 
 
 Gregory confirms that COPY stores independent *value copies* of the I-displacement — each document's V→I mapping is independently owned, with no pointer sharing. Mutation of one document's POOM cannot corrupt another's. But the values themselves are the same I-addresses, and this identity is what makes transclusion work.
 
+We verify P2 preservation. The identity clause maps new positions to `Σ.V(d_s)(p_s + j) ∈ dom(Σ.I)` by P2 on `d_s` in the pre-state. The I-space frame gives `dom(Σ'.I) = dom(Σ.I)`. Left-frame and right-shifted positions retain their original I-addresses from `Σ.V(d_t)`, also in `dom(Σ.I)` by P2 on `d_t`. P2 holds on the post-state.
+
 > **A5** (VersionIdentitySharing). CREATENEWVERSION creates a new document whose V-space maps, position by position, to the same I-addresses as the original.
 >
 > *Post (new document):* `d' ∈ Σ'.D ∧ d' ∉ Σ.D`
 >
 > *Post (identity):* `|Σ'.V(d')| = n_d ∧ (A j : 1 ≤ j ≤ n_d : Σ'.V(d')(j) = Σ.V(d)(j))`
 >
-> *Frame (original):* `Σ'.V(d) = Σ.V(d)`
+> *Frame (cross-document):* `(A d' : d' ∈ Σ.D : Σ'.V(d') = Σ.V(d'))`
 >
 > *Frame (I-space):* `Σ'.I = Σ.I`
 
-The new version is a new *view* — a fresh V-space arrangement — over *existing* I-space content. No content is duplicated. The two documents share I-addresses, which means correspondence between them is immediate: every position in the version corresponds to the same position in the original, because both map to the same I-address. Nelson's `correspond` relation (ASN-0026) gives `correspond(d, j, d', j) = true` for all `1 ≤ j ≤ n_d` in the post-state.
+The new version is a new *view* — a fresh V-space arrangement — over *existing* I-space content. No content is duplicated. The two documents share I-addresses, which means correspondence between them is immediate: every position in the version corresponds to the same position in the original, because both map to the same I-address. Nelson's `correspond` relation (ASN-0026) gives `correspond(d, j, d', j) = true` for all `1 ≤ j ≤ n_d` in the post-state. CREATENEWVERSION has no write target among existing documents — `d'` is new — so all of `Σ.D` is unchanged by the cross-document frame.
+
+We verify P2. The new document `d'` maps position `j` to `Σ.V(d)(j) ∈ dom(Σ.I)` by P2 on `d` in the pre-state. The I-space frame gives `dom(Σ'.I) = dom(Σ.I)`. Existing documents are unchanged by the cross-document frame, so P2 carries from the pre-state. P2 holds.
 
 This is the mechanism that makes version comparison work. Nelson: "a facility that holds multiple versions of the same material is not terribly useful unless it can help you intercompare them in detail." If CREATENEWVERSION allocated fresh I-addresses (like INSERT), correspondence would be undetectable — there would be no structural basis for determining which bytes "are the same."
 
@@ -220,10 +226,10 @@ We now state the strongest consequence for external references.
 > (i) `a ∈ dom(Σ_n.I)` — the address remains valid
 >
 > (ii) `Σ_n.I(a) = Σ.I(a)` — the content is unchanged
->
-> (iii) Any reference expressed as I-address `a` resolves to content by evaluating `Σ_n.I(a)`
 
-*Proof.* By induction on the sequence length. Base: `n = 0`, trivial. Step: assume (i)–(iii) hold at `Σ_k`. By A1, either `Σ_{k+1}.I = Σ_k.I` (identity operations) or `Σ_{k+1}.I = Σ_k.I ∪ fresh` (INSERT). In both cases `a ∈ dom(Σ_k.I)` implies `a ∈ dom(Σ_{k+1}.I)` and `Σ_{k+1}.I(a) = Σ_k.I(a) = Σ.I(a)`. ∎
+*Proof.* By induction on the sequence length. Base: `n = 0`, trivial. Step: assume (i)–(ii) hold at `Σ_k`. By A1, either `Σ_{k+1}.I = Σ_k.I` (identity operations) or `Σ_{k+1}.I = Σ_k.I ∪ fresh` (INSERT). In both cases `a ∈ dom(Σ_k.I)` implies `a ∈ dom(Σ_{k+1}.I)` and `Σ_{k+1}.I(a) = Σ_k.I(a) = Σ.I(a)`. ∎
+
+Note the scope: A8 guarantees that `Σ_n.I(a)` is defined and unchanged — I-space resolution always succeeds. It says nothing about V-space retrieval. Reaching the content through the RETRIEVE interface requires `reachable(a, Σ_n)`, which A9 shows is not guaranteed. This is exactly the three-layer separation: validity and immutability are unconditional; accessibility is contingent.
 
 This is the guarantee that makes Nelson's "web of literature" possible. A link created today, referencing I-address `a`, resolves to the same content in every future state. The content may be edited out of every document's current V-space — deleted, rearranged away, superseded by new versions — but the link still resolves. The content is still there, unchanged, at the same address.
 
