@@ -1,12 +1,13 @@
 # ASN Status Register
 
-*Last updated: 2026-03-07*
+*Last updated: 2026-03-08*
 
 | ASN | Title | Layer | Status | Notes |
 |-----|-------|-------|--------|-------|
 | ASN-0001 | Tumbler Algebra | Foundation | **Final** | Dafny proofs promoted to `vault/proofs/TumblerAlgebra/` and `AddressProperties/` |
-| ASN-0026 | I-Space and V-Space | Foundation | **Not started** | Redraft of ASN-0003. Structural only — no operations. |
-| ASN-0025 | Address Permanence | Foundation | **Final** | Supersedes ASN-0002. Dafny modeling-1 complete (17/17). Repair needed after ASN-0026. |
+| ASN-0026 | I-Space and V-Space | Foundation | **Final** | Supersedes ASN-0003. Converged review 4. Structural only — no operations. |
+| ASN-0025 | Address Permanence | Foundation | **Deprecated** | Superseded by ASN-0027. Label collision with ASN-0026. Dafny modeling-1 (17/17) reusable. |
+| ASN-0027 | Address Permanence | Foundation | **Not started** | Supersedes ASN-0025. Builds on ASN-0026 natively. VPos, J1/J2, DocId, visibility, provenance. |
 | ASN-0002 | Address Permanence | Foundation | **Deprecated** | Superseded by ASN-0025. |
 | ASN-0003 | I-Space and V-Space | Foundation | **Deprecated** | Superseded by ASN-0026. Mixes foundation with operations. |
 | ASN-0011 | Document Lifecycle | Document | **Draft** | Needs redraft against foundation types. Accounts, ownership, document creation. |

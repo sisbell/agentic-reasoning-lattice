@@ -396,6 +396,8 @@ The properties divide into four categories.
 | P9 | INSERT preserves surviving mappings: positions outside insertion retain I-addresses | introduced |
 | P11 | Viewer independence: RETRIEVE protocol signature is `(DocId, Pos) -> Byte` with no viewer parameter | introduced |
 | REF-STABILITY | Cross-document reference stability: source operations cannot invalidate target mappings | introduced |
+| correspond | `correspond(d_1, p_1, d_2, p_2) == Sigma.V(d_1)(p_1) = Sigma.V(d_2)(p_2)` — version correspondence | derived |
+| origin | `origin(content at p in d) = fields(Sigma.V(d)(p))` — origin traceability from I-address hierarchy | derived |
 
 ---
 
