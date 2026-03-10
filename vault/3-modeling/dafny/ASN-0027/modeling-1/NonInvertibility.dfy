@@ -63,15 +63,17 @@ module NonInvertibilityModule {
     requires p + k - 1 <= |v0|
     requires |newAddrs| == k
     // Deleted positions were in prior domain (from P2 — referential completeness)
-    requires forall j :: 0 <= j < k ==> v0[p-1+j] in priorDomain
+    // Re-indexed so v0[i] serves as trigger for quantifier instantiation
+    requires forall i :: p-1 <= i < p+k-1 ==> v0[i] in priorDomain
     // Fresh INSERT addresses are disjoint from prior domain (ISpaceExtension)
     requires SetOf(newAddrs) !! priorDomain
-    ensures forall j :: 0 <= j < k ==>
-              DeleteThenInsert(v0, p, k, newAddrs)[p-1+j] != v0[p-1+j]
+    ensures forall i :: p-1 <= i < p+k-1 ==>
+              DeleteThenInsert(v0, p, k, newAddrs)[i] != v0[i]
   {
-    forall j | 0 <= j < k
-      ensures DeleteThenInsert(v0, p, k, newAddrs)[p-1+j] != v0[p-1+j]
+    forall i | p-1 <= i < p+k-1
+      ensures DeleteThenInsert(v0, p, k, newAddrs)[i] != v0[i]
     {
+      var j := i - (p - 1);
       DeleteInsertPositions(v0, p, k, newAddrs, j);
       assert newAddrs[j] in SetOf(newAddrs);
     }

@@ -37,3 +37,6 @@ Verified: 31/32
 | ReferencePermanence | verified |  |
 | ReachabilityDecay | verified | The ASN requires Σ' to be reachable from Σ via a finite sequence of DELETE opera... |
 | PublicationObligation | verified |  |
+
+## Fix Attempts
+- 2026-03-10 15:33: NonInvertibility — verified $0.42
