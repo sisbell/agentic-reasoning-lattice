@@ -178,3 +178,8 @@ inquiries:
     question: "What is the relationship between permanent content storage (I-space) and mutable document arrangement (V-space)? What invariants connect them?"
     area: content-model
 
+  - id: 27
+    title: "Address Permanence"
+    question: "What guarantees must the system provide about address stability? Once content is assigned an address, what operations may and may not affect that assignment?"
+    area: addressing
+
