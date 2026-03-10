@@ -220,4 +220,5 @@ Use `run/asn-converge.sh` to review and revise an ASN until converged. Use `run/
 - [Alloy Checking](alloy-checking.md) — bounded model checking
 - [Dafny Verification Loop](dafny-verification-loop.md) — three-tier failure handling
 - [Promotion](promotion.md) — feeding the pipeline
+- [Foundations](foundations.md) — verified building blocks (Types/State/Invariants)
 - [Methodology](methodology.md) — design principles

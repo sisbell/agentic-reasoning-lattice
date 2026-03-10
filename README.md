@@ -111,6 +111,7 @@ Formal specification of the Xanadu hypertext system (udanax-green), derived from
 | [Discovery](docs/discovery.md) | Creating new ASNs from inquiries |
 | [Review](docs/review.md) | Review and revision cycles |
 | [Expert Consultation](docs/expert-consultation.md) | Nelson and Gregory channels |
+| [Foundations](docs/foundations.md) | Verified building blocks (Types/State/Invariants) |
 | [Modeling](docs/modeling.md) | From ASN to verified Dafny |
 | [Alloy Checking](docs/alloy-checking.md) | Bounded model checking |
 | [Dafny Verification Loop](docs/dafny-verification-loop.md) | Three-tier failure handling |
