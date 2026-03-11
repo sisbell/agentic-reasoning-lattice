@@ -133,6 +133,22 @@ The complementary property at the content level:
 
 The `max≼` is necessary: a versioned document like `1.0.1.0.3.1` has multiple prefixes with `zeros = 2` — both `1.0.1.0.3` and `1.0.1.0.3.1` qualify. The home document is the *longest* such prefix, corresponding to the complete document field in T4's decomposition via `fields()`. Since `fields()` uniquely decomposes any I-address (T4, HierarchicalParsing), the set has a well-defined maximum. No additional metadata, no lookup table — the address IS the provenance record. Nelson: "You always know where you are, and can at once ascertain the home document of any specific word or character."
 
+The semantic force of this claim — that `home(a)` identifies the *home document* — requires not just computability but membership: `home(a) ∈ Σ.D` for every I-address appearing in any V-space. This depends on WHERE INSERT allocates fresh addresses.
+
+**D7a (DocumentScopedAllocation).** INSERT on document `d` allocates fresh I-addresses under `d`'s tumbler prefix:
+
+    (A a ∈ fresh : d ≼ a)
+
+where `fresh` is the set of newly allocated I-addresses per P9 (FreshPositions, ASN-0026). This property is not derivable from ASN-0001 or ASN-0026, which constrain uniqueness (GlobalUniqueness, `fresh ∩ dom(Σ.I) = ∅`) but not placement. Gregory's implementation provides the evidence: the allocation mechanism stamps `d`'s address into the search bounds, verifies `d ∈ Σ.D` before accepting any insertion, and computes fresh addresses by incrementing within `d`'s subtree. Each fresh address has the form `d.0.E₁...Eδ` — extending `d` with the element-field separator and element components. Since only INSERT extends I-space (+_ext, ASN-0026), every address in `dom(Σ.I)` was allocated by some INSERT on a document in Σ.D at allocation time.
+
+From D7a we observe that `home(a) = d` for each `a ∈ fresh`. The element-field separator — the zero at position `#d + 1` in `a` — prevents any structural child of `d` from being a longer document-level prefix: a child `d'` extends `d` with a positive component (T4, non-separator components strictly positive), so at position `#d + 1` the child has a positive value while `a` has zero, giving `d' ⋠ a`. The document `d` is therefore the longest document-level prefix, and `home(a) = d`.
+
+**D7b (HomeDocumentMembership).**
+
+    (A d ∈ Σ.D, p : 1 ≤ p ≤ n_d : home(Σ.V(d)(p)) ∈ Σ.D)
+
+Derivation: let `a = Σ.V(d)(p)`. By P2 (ReferentiallyComplete, ASN-0026), `a ∈ dom(Σ.I)`. The address `a` entered `dom(Σ.I)` through some INSERT(d', ...) as a fresh address. By D7a, `home(a) = d'`. INSERT requires `d' ∈ Σ.D`; by D2 (DocumentPermanence), `d'` persists. So `home(Σ.V(d)(p)) = d' ∈ Σ.D`.
+
 ---
 
 ## Inclusion
@@ -175,9 +191,15 @@ for every state transition Σ → Σ'. This is unconditional. Nelson: "Its autho
 
 Withdrawal is not a protocol operation — it is a **contractual** mechanism operating outside the technical system. Nelson distinguishes editing (technical) from withdrawal (contractual): "Editing is technical. Withdrawal is contractual." The publication contract provides for withdrawal with deliberate friction — one year's notice and a fee — precisely because easy withdrawal would enable historical revision. The preferred resolution is *supersession*: publishing a new version while leaving the old one accessible. The system provides a Document Supersession Link to direct readers from the old version to the new one. If a future ASN formalizes withdrawal, it would introduce a new contractual operation with its own preconditions — it would not weaken D10 over protocol operations.
 
-We must also establish D10 for operations defined in ASN-0026 (INSERT, DELETE, COPY, REARRANGE). Since `Σ.pub` is introduced in this ASN, those operations naturally say nothing about it. We extend their frame conditions: operations defined in ASN-0026 do not modify publication status, i.e., `(A d : d ∈ Σ.D : Σ'.pub(d) = Σ.pub(d))`. This is justified because those operations modify only I-space (append) and V-space (rearrangement) — they have no mechanism to alter the publication status field. With this extension, D10 holds universally: D0 sets `Σ'.pub(d) = private` for the new document and preserves `Σ.pub` for all existing documents (frame); D10a transitions only from `private` and cannot produce a non-published result from `published`; D12 sets `Σ'.pub(d_v) = private` for the new version and preserves `Σ.pub` for all existing documents (frame); ASN-0026 operations preserve `Σ.pub` entirely.
+We must also establish D10 for operations defined in ASN-0026 (INSERT, DELETE, COPY, REARRANGE). Since `Σ.pub` is introduced in this ASN, those operations naturally say nothing about it.
 
-The `privashed` state does not have this monotonicity property — a privashed document can freely revert to private at any time, with the understanding that anyone who linked to it has no recourse.
+**D10-ext (PublicationFrameForASN26).** Operations defined in ASN-0026 do not modify publication status:
+
+    (A d : d ∈ Σ.D : Σ'.pub(d) = Σ.pub(d))
+
+for any ASN-0026 operation. Those operations modify only I-space (append) and V-space (rearrangement) — they have no mechanism to alter the publication status field. With D10-ext, D10 holds universally: D0 sets `Σ'.pub(d) = private` for the new document and preserves `Σ.pub` for all existing documents (frame); D10a transitions only from `private` and cannot produce a non-published result from `published`; D12 sets `Σ'.pub(d_v) = private` for the new version and preserves `Σ.pub` for all existing documents (frame); ASN-0026 operations preserve `Σ.pub` by D10-ext.
+
+Within the current formal model, `privashed` is also permanent — no defined operation transitions a document out of `privashed`. D10a requires `Σ.pub(d) = private`; D0 and D12 set new documents to `private` and preserve existing statuses in their frames; ASN-0026 operations preserve `Σ.pub` by D10-ext; D17 is a pure query. Nelson's design intent, however, is that `privashed` should NOT share this permanence — a privashed document should be freely revertible to `private`, with the understanding that anyone who linked to it has no recourse. Realizing this intent requires a WITHDRAW or UNPRIVASH operation with precondition `Σ.pub(d) = privashed`, which is deferred to a future ASN.
 
 **D10a (PublishOperation).** PUBLISH(d, status) transitions a document's publication state:
 
@@ -351,10 +373,13 @@ The key insight across all properties: the tumbler address does extraordinary wo
 | D5 | owner has exclusive rights: content modification, out-links, visibility, address subdivision (design requirement on correct participants) | introduced |
 | D6 | document identity is tumbler equality; content comparison plays no role | introduced |
 | D7 | `home(a) = max≼ {d' : zeros(d') = 2 ∧ d' ≼ a}` — home document determinable from address alone | introduced |
+| D7a | `(A a ∈ fresh : d ≼ a)` — INSERT allocates I-addresses under the creating document's prefix | introduced |
+| D7b | `(A d ∈ Σ.D, p : 1 ≤ p ≤ n_d : home(Σ.V(d)(p)) ∈ Σ.D)` — home document is always in Σ.D | introduced |
 | D8 | transclusion (COPY) does not modify the source document's V-space | introduced |
 | D9 | editing `d₁` does not affect `Σ.V(d₂)` for `d₂ ≠ d₁` | introduced |
 | Σ.pub | publication status: `DocId → {private, published, privashed}` | introduced |
 | D10 | `[Σ.pub(d) = published ⟹ Σ'.pub(d) = published]` unconditionally for all protocol operations | introduced |
+| D10-ext | `(A d : d ∈ Σ.D : Σ'.pub(d) = Σ.pub(d))` for ASN-0026 operations — publication status frame | introduced |
 | D10a | PUBLISH(d, status): transitions `private → published` or `private → privashed`, owner only | introduced |
 | D11 | publication surrenders control over incoming links, quotation, and easy withdrawal | introduced |
 | D12 | CREATENEWVERSION(d_s, a_req) produces `d_v` sharing all I-addresses, `Σ'.pub(d_v) = private`; monotonicity split: (g₁) own-account — exceeds children of `d_s`; (g₂) cross-account — exceeds all docs under `a_req`; pre: `a_req = actor(op)`, source accessible | introduced |
