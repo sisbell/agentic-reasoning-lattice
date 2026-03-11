@@ -1,20 +1,12 @@
 include "../../../../proofs/TumblerAlgebra/TumblerAlgebra.dfy"
 include "../../../../proofs/Foundation/Foundation.dfy"
+include "DeleteOps.dfy"
 
 module DeleteLength {
   import opened TumblerAlgebra
   import opened Foundation
+  import opened DeleteOps
 
   // ASN-0027 A2.length — DeleteLength (POST, ensures)
   // |Σ'.V(d)| = n_d − k
-
-  // DELETE on seq-based V-space: remove k positions starting at p (1-indexed)
-  function DeleteV(v: seq<IAddr>, p: nat, k: nat): (v': seq<IAddr>)
-    requires 1 <= p
-    requires k >= 1
-    requires p + k - 1 <= |v|
-    ensures |v'| == |v| - k
-  {
-    v[..p-1] + v[p+k-1..]
-  }
 }

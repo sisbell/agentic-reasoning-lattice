@@ -1,22 +1,14 @@
 include "../../../../proofs/TumblerAlgebra/TumblerAlgebra.dfy"
 include "../../../../proofs/Foundation/Foundation.dfy"
+include "DeleteOps.dfy"
 
 module DeleteCompaction {
   import opened TumblerAlgebra
   import opened Foundation
+  import opened DeleteOps
 
   // ASN-0027 A2.compact — DeleteCompaction (POST, ensures)
   // (A j : p + k ≤ j ≤ n_d : Σ'.V(d)(j − k) = Σ.V(d)(j))
-
-  // DELETE on seq-based V-space: remove k positions starting at p (1-indexed)
-  function DeleteV(v: seq<IAddr>, p: nat, k: nat): (v': seq<IAddr>)
-    requires 1 <= p
-    requires k >= 1
-    requires p + k - 1 <= |v|
-    ensures |v'| == |v| - k
-  {
-    v[..p-1] + v[p+k-1..]
-  }
 
   // A2.compact: positions beyond the deleted range compact leftward by k
   lemma DeleteCompactionLemma(v: seq<IAddr>, p: nat, k: nat)

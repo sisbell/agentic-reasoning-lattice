@@ -1,24 +1,16 @@
 include "../../../../proofs/TumblerAlgebra/TumblerAlgebra.dfy"
 include "../../../../proofs/Foundation/Foundation.dfy"
 include "../../../../proofs/IVSpaceProperties/InsertOps.dfy"
+include "DeleteOps.dfy"
 
 module NonInvertibilityModule {
   import opened TumblerAlgebra
   import opened Foundation
   import opened InsertOps
+  import opened DeleteOps
 
   // ASN-0027 A6 — NonInvertibility (LEMMA, lemma)
   // derived from A2, ASN-0026
-
-  // DELETE on seq-based V-space: remove k positions starting at p (1-indexed)
-  function DeleteV(v: seq<IAddr>, p: nat, k: nat): (v': seq<IAddr>)
-    requires 1 <= p
-    requires k >= 1
-    requires p + k - 1 <= |v|
-    ensures |v'| == |v| - k
-  {
-    v[..p-1] + v[p+k-1..]
-  }
 
   // Compose delete then insert
   function DeleteThenInsert(

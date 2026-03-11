@@ -1,9 +1,11 @@
 include "../../../../proofs/TumblerAlgebra/TumblerAlgebra.dfy"
 include "../../../../proofs/Foundation/Foundation.dfy"
+include "RearrangeOps.dfy"
 
 module RearrangeRangePreservation {
   import opened TumblerAlgebra
   import opened Foundation
+  import opened RearrangeOps
 
   // ASN-0027 A3.range — RearrangeRangePreservation (LEMMA, lemma)
   // range(Σ'.V(d)) = range(Σ.V(d))
@@ -12,32 +14,6 @@ module RearrangeRangePreservation {
   // Range of a V-space sequence: set of addresses appearing in it
   function SeqRange(v: seq<IAddr>): set<IAddr> {
     set i | 0 <= i < |v| :: v[i]
-  }
-
-  // --- Cut validity (from RearrangePermutation) ---
-
-  predicate ValidPivotCuts(c1: nat, c2: nat, c3: nat, n: nat) {
-    1 <= c1 && c1 < c2 && c2 < c3 && c3 <= n + 1
-  }
-
-  predicate ValidSwapCuts(c1: nat, c2: nat, c3: nat, c4: nat, n: nat) {
-    1 <= c1 && c1 < c2 && c2 < c3 && c3 < c4 && c4 <= n + 1
-  }
-
-  // --- Concrete rearrange operations (from RearrangePermutation) ---
-
-  function PivotRearrangeV(v: seq<IAddr>, c1: nat, c2: nat, c3: nat): (v': seq<IAddr>)
-    requires ValidPivotCuts(c1, c2, c3, |v|)
-    ensures |v'| == |v|
-  {
-    v[..c1-1] + v[c2-1..c3-1] + v[c1-1..c2-1] + v[c3-1..]
-  }
-
-  function SwapRearrangeV(v: seq<IAddr>, c1: nat, c2: nat, c3: nat, c4: nat): (v': seq<IAddr>)
-    requires ValidSwapCuts(c1, c2, c3, c4, |v|)
-    ensures |v'| == |v|
-  {
-    v[..c1-1] + v[c3-1..c4-1] + v[c2-1..c3-1] + v[c1-1..c2-1] + v[c4-1..]
   }
 
   // --- A3.range: Range preservation ---
