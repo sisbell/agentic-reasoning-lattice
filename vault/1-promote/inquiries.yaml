@@ -183,3 +183,8 @@ inquiries:
     question: "What guarantees must the system provide about address stability? Once content is assigned an address, what operations may and may not affect that assignment?"
     area: addressing
 
+  - id: 28
+    title: "Document Lifecycle"
+    question: "What invariants govern document creation, ownership, and the relationship between documents in the docuverse? What does it mean to open, close, and create documents?"
+    area: documents
+
