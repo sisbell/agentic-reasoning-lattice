@@ -72,7 +72,7 @@ Creation is irrevocable:
 
     [d ∈ Σ.D ⟹ d ∈ Σ'.D]
 
-for every state transition Σ → Σ'. This is an independent invariant — analogous in spirit to P1 (ISpaceMonotone, ASN-0026), but requiring its own verification, since P1 governs `dom(Σ.I)` while D2 governs `Σ.D`. We verify against each operation: D0 (CREATENEWDOCUMENT) adds a fresh document; its frame explicitly preserves all existing members. D10a (PUBLISH) modifies only `Σ.pub(d)`, not `Σ.D` membership. D12 (CREATENEWVERSION) adds a fresh document; its frame preserves all existing members. The ASN-0026 operations — INSERT, DELETE, COPY, REARRANGE — modify V-space within an existing document but never remove a document from `Σ.D`: P7 (CrossDocVIndependent) preserves non-target documents, and the target document retains its V-space (modified but not destroyed). No defined operation removes a document from `Σ.D`.
+for every state transition Σ → Σ'. This is an independent invariant — analogous in spirit to P1 (ISpaceMonotone, ASN-0026), but requiring its own verification, since P1 governs `dom(Σ.I)` while D2 governs `Σ.D`. We verify against each operation: D0 (CREATENEWDOCUMENT) adds a fresh document; its frame explicitly preserves all existing members. D10a (PUBLISH) modifies only `Σ.pub(d)`, not `Σ.D` membership. D12 (CREATENEWVERSION) adds a fresh document; its frame preserves all existing members. The ASN-0026 operations — INSERT, DELETE, COPY, REARRANGE — preserve `Σ.D` membership. For non-target documents: P7 (CrossDocVIndependent) gives `Σ'.V(d') = Σ.V(d')`, so `Σ.V(d')` is defined in the post-state; since `Σ.V(d)` is defined iff `d ∈ Σ.D` (ASN-0026 DocumentSet), `d' ∈ Σ'.D`. For the target document of INSERT, the P9 postconditions (length, positions, shifting) establish that `Σ'.V(d)` is a well-defined total function on `[1..n_d + k]`, so `d ∈ Σ'.D`. For DELETE, COPY, and REARRANGE, which lack formal postconditions in ASN-0026 (appearing only in the +_ext classification), D2 verification for the target depends on a proof obligation: their yet-to-be-formalized specifications must establish that `Σ'.V(d)` remains a defined total function. No defined operation removes a document from `Σ.D`.
 
 Nelson's design has an overwhelming bias toward permanence: even "withdrawal" means removing accessibility, not destroying the address or its I-space content. Nelson: "It is in the common interest that a thing once published stay published, as in the world of paper." The I-space bytes allocated under a document are permanent by P0 and P1 — even when the owner "deletes" them from the document's V-space, they persist and remain available in other documents that transclude them.
 
@@ -135,13 +135,13 @@ The `max≼` is necessary: a versioned document like `1.0.1.0.3.1` has multiple 
 
 The semantic force of this claim — that `home(a)` identifies the *home document* — requires not just computability but membership: `home(a) ∈ Σ.D` for every I-address appearing in any V-space. This depends on WHERE INSERT allocates fresh addresses.
 
-**D7a (DocumentScopedAllocation).** INSERT on document `d` allocates fresh I-addresses under `d`'s tumbler prefix:
+**D7a (DocumentScopedAllocation).** INSERT on document `d` allocates fresh I-addresses under `d`'s tumbler prefix, with the element-field separator immediately following `d`:
 
-    (A a ∈ fresh : d ≼ a)
+    (A a ∈ fresh : d ≼ a ∧ a_{#d+1} = 0 ∧ zeros(a) = 3)
 
-where `fresh` is the set of newly allocated I-addresses per P9 (FreshPositions, ASN-0026). This property is not derivable from ASN-0001 or ASN-0026, which constrain uniqueness (GlobalUniqueness, `fresh ∩ dom(Σ.I) = ∅`) but not placement. Gregory's implementation provides the evidence: the allocation mechanism stamps `d`'s address into the search bounds, verifies `d ∈ Σ.D` before accepting any insertion, and computes fresh addresses by incrementing within `d`'s subtree. Each fresh address has the form `d.0.E₁...Eδ` — extending `d` with the element-field separator and element components. Since only INSERT extends I-space (+_ext, ASN-0026), every address in `dom(Σ.I)` was allocated by some INSERT on a document in Σ.D at allocation time.
+where `fresh` is the set of newly allocated I-addresses per P9 (FreshPositions, ASN-0026). Each fresh address has the form `d.0.E₁...Eδ` with all `Eᵢ > 0` and `δ ≥ 1` — the document prefix `d` (with `zeros(d) = 2`) extended by exactly one zero separator and at least one positive element component, giving `zeros(a) = 3`. This property is not derivable from ASN-0001 or ASN-0026, which constrain uniqueness (GlobalUniqueness, `fresh ∩ dom(Σ.I) = ∅`) but not placement. Gregory's implementation provides the evidence: the allocation mechanism stamps `d`'s address into the search bounds, verifies `d ∈ Σ.D` before accepting any insertion, and computes fresh addresses by incrementing within `d`'s subtree. Since only INSERT extends I-space (+_ext, ASN-0026), every address in `dom(Σ.I)` was allocated by some INSERT on a document in Σ.D at allocation time.
 
-From D7a we observe that `home(a) = d` for each `a ∈ fresh`. The element-field separator — the zero at position `#d + 1` in `a` — prevents any structural child of `d` from being a longer document-level prefix: a child `d'` extends `d` with a positive component (T4, non-separator components strictly positive), so at position `#d + 1` the child has a positive value while `a` has zero, giving `d' ⋠ a`. The document `d` is therefore the longest document-level prefix, and `home(a) = d`.
+From D7a we derive `home(a) = d` for each `a ∈ fresh`. Since `a_{#d+1} = 0` (the element-field separator, guaranteed by D7a), any structural child `d'` of `d` cannot be a prefix of `a`: `d'` extends `d` with a positive component at position `#d + 1` (T4, non-separator components strictly positive), so `d'_{#d+1} > 0 ≠ a_{#d+1}`, giving `d' ⋠ a`. And since `zeros(a) = 3` (D7a) while any document-level tumbler has `zeros = 2`, no tumbler longer than `d` with `zeros = 2` can be a prefix of `a`. The document `d` is therefore the longest document-level prefix, and `home(a) = d`.
 
 **D7b (HomeDocumentMembership).**
 
@@ -261,17 +261,19 @@ In the first case (own document), the version is allocated as an immediate struc
 
 In the second case (someone else's document), the version lives under the versioner's own account — just like any new document. There is no structural record of the ancestry. Nelson: "The Document field of the tumbler may be continually subdivided, with new subfields indicating daughter documents and versions."
 
-**D14 (VersionForest).** Define the *structural parent* of a document `d` as the longest proper document-level prefix of `d`:
+**D14 (VersionForest).** Define the *structural parent* of a document `d` as the longest proper document-level prefix of `d` that is a member of `Σ.D`:
 
-    parent(d) = max≼ {d' : d' ≺ d}    (partial — undefined when {d' : d' ≺ d} = ∅)
+    parent(d) = max≼ {d' ∈ Σ.D : d' ≺ d}    (partial — undefined when {d' ∈ Σ.D : d' ≺ d} = ∅)
 
-where `d_s ≺ d_v` iff `d_s ≼ d_v ∧ d_s ≠ d_v ∧ zeros(d_s) = zeros(d_v) = 2`. The relation ≺ is a partial order (it includes all ancestors, not just the immediate parent). The *covering relation* — the Hasse diagram of ≺ — forms a forest: each document has at most one immediate structural parent, and there are no cycles. A root document (single-component document field, such as `1.0.1.0.3`) has no document-level proper prefix, so `parent` is undefined — these are the roots of the forest. For non-root documents, the tumbler hierarchy gives a unique longest proper prefix at the document level, so `parent(d)` is well-defined.
+where `d_s ≺ d_v` iff `d_s ≼ d_v ∧ d_s ≠ d_v ∧ zeros(d_s) = zeros(d_v) = 2`. The restriction to `Σ.D` is essential: without it, degenerate tumblers such as `N.0.U.0` (which has `zeros = 2` but an empty document field) would qualify as ancestors of every document under account `N.0.U`, undermining the forest structure. By searching within `Σ.D`, `parent` is grounded in the set of actually created documents.
+
+The relation ≺ is a partial order (it includes all ancestors, not just the immediate parent). The *covering relation* — the Hasse diagram of ≺ restricted to `Σ.D` — forms a forest: each document has at most one immediate structural parent, and there are no cycles. A root document (single-component document field, such as `1.0.1.0.3`) has no proper document-level prefix in `Σ.D`, so `parent` is undefined — these are the roots of the forest. For non-root documents, the tumbler hierarchy gives a unique longest proper prefix at the document level within `Σ.D`, so `parent(d)` is well-defined when it exists.
 
 We derive that the forest connects to the document set:
 
     (A d : d ∈ Σ.D ∧ parent(d) defined : parent(d) ∈ Σ.D)
 
-The argument: the only operations that add documents to Σ.D are D0 and D12. D0 produces only root documents (postcondition: `parent(d)` undefined), so non-root documents in Σ.D are created only by D12 Case 1 (own-account versioning), which requires `d_s ∈ Σ.D` as a precondition and produces `d_v` with `parent(d_v) = d_s` (D13). So `parent(d_v) = d_s ∈ Σ.D` at creation time. By D2 (DocumentPermanence), `d_s` persists in all subsequent states. D12 Case 2 uses the requester's root allocator, producing root documents with no structural parent. Thus the parent of every non-root document in Σ.D is itself a member of Σ.D.
+This follows immediately from the definition: `parent(d) ∈ {d' ∈ Σ.D : d' ≺ d}`, so membership is guaranteed by construction. The operational argument confirms: the only operations that add documents to Σ.D are D0 and D12. D0 produces only root documents (postcondition: `parent(d)` undefined), so non-root documents in Σ.D are created only by D12 Case 1 (own-account versioning), which requires `d_s ∈ Σ.D` as a precondition and produces `d_v` with `parent(d_v) = d_s` (D13). So `parent(d_v) = d_s ∈ Σ.D` at creation time. By D2 (DocumentPermanence), `d_s` persists in all subsequent states. D12 Case 2 uses the requester's root allocator, producing root documents with no structural parent. Thus the parent of every non-root document in Σ.D is itself a member of Σ.D.
 
 **Worked example.** Let Σ contain documents `d_s = 1.0.1.0.3` with `Σ.V(d_s) = {1 ↦ a₁, 2 ↦ a₂}`, `Σ.pub(d_s) = published`, and a later root document `d_r = 1.0.1.0.5` (allocated after `d_s` by the root allocator). Both have `account = 1.0.1`.
 
@@ -346,6 +348,12 @@ This connects back to D6 (IdentityByAddress) and D7 (OriginTraceability): identi
 
 ---
 
+## Preservation of ASN-0026 Invariants
+
+The four operations introduced in this ASN — D0, D10a, D12, D17 — must preserve P0 (ISpaceImmutable), P1 (ISpaceMonotone), P2 (ReferentiallyComplete), P3 (MappingExact), and P7 (CrossDocVIndependent). The verifications are straightforward. D0, D10a, and D12 all have `Σ'.I = Σ.I` in their frames, so P0 and P1 hold trivially: `dom(Σ'.I) = dom(Σ.I)` and every address retains its content. D17 is a pure query with `Σ' = Σ`, so all invariants are preserved vacuously. For P2 (ReferentiallyComplete): D0 creates a document with `|Σ'.V(d)| = 0`, so the quantifier `(A p : 1 ≤ p ≤ n_d : ...)` is vacuously satisfied. D10a does not modify any V-space (`Σ'.V(d) = Σ.V(d)` in its frame), so P2 is inherited from the pre-state. D12 creates `d_v` with `Σ'.V(d_v)(p) = Σ.V(d_s)(p)` for all `p` (postcondition (c)); by P2 on Σ, `Σ.V(d_s)(p) ∈ dom(Σ.I) = dom(Σ'.I)`, so P2 holds for `d_v`. For existing documents, all four operations preserve V-space in their frames, so P2, P3, and P7 carry forward from the pre-state.
+
+---
+
 ## Summary of State
 
 Collecting what this ASN establishes. The state Σ from ASN-0026 (Σ.D, Σ.I, Σ.V) is extended with:
@@ -373,7 +381,7 @@ The key insight across all properties: the tumbler address does extraordinary wo
 | D5 | owner has exclusive rights: content modification, out-links, visibility, address subdivision (design requirement on correct participants) | introduced |
 | D6 | document identity is tumbler equality; content comparison plays no role | introduced |
 | D7 | `home(a) = max≼ {d' : zeros(d') = 2 ∧ d' ≼ a}` — home document determinable from address alone | introduced |
-| D7a | `(A a ∈ fresh : d ≼ a)` — INSERT allocates I-addresses under the creating document's prefix | introduced |
+| D7a | `(A a ∈ fresh : d ≼ a ∧ a_{#d+1} = 0 ∧ zeros(a) = 3)` — INSERT allocates I-addresses as elements under the creating document | introduced |
 | D7b | `(A d ∈ Σ.D, p : 1 ≤ p ≤ n_d : home(Σ.V(d)(p)) ∈ Σ.D)` — home document is always in Σ.D | introduced |
 | D8 | transclusion (COPY) does not modify the source document's V-space | introduced |
 | D9 | editing `d₁` does not affect `Σ.V(d₂)` for `d₂ ≠ d₁` | introduced |
@@ -384,7 +392,7 @@ The key insight across all properties: the tumbler address does extraordinary wo
 | D11 | publication surrenders control over incoming links, quotation, and easy withdrawal | introduced |
 | D12 | CREATENEWVERSION(d_s, a_req) produces `d_v` sharing all I-addresses, `Σ'.pub(d_v) = private`; monotonicity split: (g₁) own-account — exceeds children of `d_s`; (g₂) cross-account — exceeds all docs under `a_req`; pre: `a_req = actor(op)`, source accessible | introduced |
 | D13 | own-account: `parent(d_v) = d_s` via `inc(d_s, 1)` (`k' = 1` preserves `zeros = 2`); cross-account: `account(d_v) = a_req` | introduced |
-| D14 | covering relation of `≺` forms a forest; `(A d : d ∈ Σ.D ∧ parent(d) defined : parent(d) ∈ Σ.D)` | introduced |
+| D14 | `parent(d) = max≼ {d' ∈ Σ.D : d' ≺ d}` — covering relation of `≺` restricted to `Σ.D` forms a forest; `(A d : d ∈ Σ.D ∧ parent(d) defined : parent(d) ∈ Σ.D)` | introduced |
 | D15 | only owner may modify document content: `account(d) = actor(op)` (design requirement) | introduced |
 | D16 | non-owner modification requests resolve by creating a new version | introduced |
 | D17 | `FINDDOCSCONTAINING(S)` — content-based discovery via span membership; frame: `Σ' = Σ` | introduced |
