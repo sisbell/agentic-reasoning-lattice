@@ -31,7 +31,7 @@ Let Σ.D denote the set of existing documents, Σ.I the I-space, and Σ.V(d) the
     pre:  a ∈ AccountAddr ∧ actor(op) = a
     post: (E d : d ∉ Σ.D ∧ d ∈ Σ'.D ∧ account(d) = a :
                |Σ'.V(d)| = 0 ∧ Σ'.pub(d) = private)
-    frame: Σ'.I = Σ.I ∧ (A d' : d' ∈ Σ.D : d' ∈ Σ'.D ∧ Σ'.V(d') = Σ.V(d') ∧ Σ'.pub(d') = Σ.pub(d'))
+    frame: Σ'.D = Σ.D ∪ {d} ∧ Σ'.I = Σ.I ∧ (A d' : d' ∈ Σ.D : Σ'.V(d') = Σ.V(d') ∧ Σ'.pub(d') = Σ.pub(d'))
 
 Only the account owner may create documents under that account — matching D5(d) and the pattern of D10a and D15. No I-space content is allocated. No existing document is disturbed. The new document exists but contains nothing — a position claimed, a container awaiting content. It begins as `private`; the owner must explicitly publish it.
 
@@ -88,6 +88,8 @@ What does ownership guarantee? Nelson defines a specific bundle of rights:
     (c) visibility (when private): only the owner and designated associates may access d
     (d) address subdivision: only the owner may allocate new tumblers extending d's prefix
 
+D5(c) records Nelson's design intent for private-document visibility. The mechanism for designating associates — what state tracks the designation, which operations establish it — is not formalized in this ASN. All operations defined here (D0, D10a, D12, D15) require ownership for private-document access; the associate access model remains open.
+
 These are normative rights — design requirements on correct participants, not mechanically enforced invariants. Gregory reveals that the backend's account-validation function unconditionally accepts any account address — the backend trusts its front-ends. Nelson confirms this cooperative model: "Because the conceptual structure expects participants to behave in certain ways, these are embraced in the contract offered to users." Enforcement is contractual, not cryptographic. The property D15 (below) states the formal requirement that correct implementations must satisfy.
 
 ---
@@ -110,9 +112,9 @@ The complementary property at the content level:
 
 **D7 (OriginTraceability).** For any position `p` in any document `d`, the home document of the displayed content is determinable from the I-address alone:
 
-    home(Σ.V(d)(p)) = the unique d' with zeros(d') = 2 and d' ≼ Σ.V(d)(p)
+    home(Σ.V(d)(p)) = max≼ {d' : zeros(d') = 2 ∧ d' ≼ Σ.V(d)(p)}
 
-This follows from T4 (HierarchicalParsing): every I-address encodes its originating document in its tumbler structure. No additional metadata, no lookup table — the address IS the provenance record. Nelson: "You always know where you are, and can at once ascertain the home document of any specific word or character."
+The `max≼` is necessary: a versioned document like `1.0.1.0.3.1` has multiple prefixes with `zeros = 2` — both `1.0.1.0.3` and `1.0.1.0.3.1` qualify. The home document is the *longest* such prefix, corresponding to the complete document field in T4's decomposition via `fields()`. Since `fields()` uniquely decomposes any I-address (T4, HierarchicalParsing), the set has a well-defined maximum. No additional metadata, no lookup table — the address IS the provenance record. Nelson: "You always know where you are, and can at once ascertain the home document of any specific word or character."
 
 ---
 
@@ -164,7 +166,7 @@ The `privashed` state does not have this monotonicity property — a privashed d
 
     pre:  d ∈ Σ.D ∧ account(d) = actor(op) ∧ Σ.pub(d) = private ∧ status ∈ {published, privashed}
     post: Σ'.pub(d) = status
-    frame: Σ'.I = Σ.I ∧ Σ'.V(d) = Σ.V(d) ∧ (A d' : d' ∈ Σ.D ∧ d' ≠ d : Σ'.V(d') = Σ.V(d') ∧ Σ'.pub(d') = Σ.pub(d'))
+    frame: Σ'.D = Σ.D ∧ Σ'.I = Σ.I ∧ Σ'.V(d) = Σ.V(d) ∧ (A d' : d' ∈ Σ.D ∧ d' ≠ d : Σ'.V(d') = Σ.V(d') ∧ Σ'.pub(d') = Σ.pub(d'))
 
 Only the owner may publish. Publication does not alter content — it changes only accessibility and the rights bundle. The transitions from `privashed` to `private` and from `privashed` to `published` are permitted but deferred to open questions; only the `private → published` and `private → privashed` paths are specified here.
 
@@ -193,9 +195,9 @@ A version is not a patch or diff — it is a **new document** created from an ex
 
 The CREATENEWVERSION operation takes a source document `d_s` and produces a fresh document `d_v` whose initial V-space is a complete transclusion of the source. The new document shares I-space addresses with the source but has independent V-space from that point forward.
 
-**D12 (VersionCreation).** CREATENEWVERSION(d_s, a_req) — where `a_req` is the requesting account — produces `d_v` such that:
+**D12 (VersionCreation).** CREATENEWVERSION(d_s, a_req) — where `a_req = actor(op)` is the requesting account — produces `d_v` such that:
 
-    pre:  d_s ∈ Σ.D ∧ a_req ∈ AccountAddr ∧ (Σ.pub(d_s) ∈ {published, privashed} ∨ account(d_s) = a_req)
+    pre:  d_s ∈ Σ.D ∧ a_req = actor(op) ∧ (Σ.pub(d_s) ∈ {published, privashed} ∨ account(d_s) = a_req)
     post:
     (a) d_v ∉ Σ.D ∧ d_v ∈ Σ'.D
     (b) |Σ'.V(d_v)| = |Σ.V(d_s)|
@@ -203,7 +205,7 @@ The CREATENEWVERSION operation takes a source document `d_s` and produces a fres
     (d) Σ'.V(d_s) = Σ.V(d_s)
     (e) Σ'.I = Σ.I
     (f) Σ'.pub(d_v) = private
-    frame: (A d' : d' ∈ Σ.D : Σ'.V(d') = Σ.V(d') ∧ Σ'.pub(d') = Σ.pub(d'))
+    frame: Σ'.D = Σ.D ∪ {d_v} ∧ (A d' : d' ∈ Σ.D : Σ'.V(d') = Σ.V(d') ∧ Σ'.pub(d') = Σ.pub(d'))
 
 Condition (c) is crucial: the version shares I-addresses with the source. This is transclusion, not copying. Both documents display the same bytes, traceable to the same origin, subject to the same royalty accounting. Condition (e) confirms: no new I-space content is allocated. Condition (f) establishes that a version begins as private, regardless of the source's publication status. A version starts as pure reference. From this moment, `d_v` and `d_s` evolve independently — edits to one do not affect the other (D9).
 
@@ -220,9 +222,9 @@ In the second case (someone else's document), the version lives under the versio
 
 **D14 (VersionForest).** Define the *structural parent* of a document `d` as the longest proper document-level prefix of `d`:
 
-    parent(d) = max≼ {d' : d' ≺ d}
+    parent(d) = max≼ {d' : d' ≺ d}    (partial — undefined when {d' : d' ≺ d} = ∅)
 
-where `d_s ≺ d_v` iff `d_s ≼ d_v ∧ d_s ≠ d_v ∧ zeros(d_s) = zeros(d_v) = 2`. The relation ≺ is a partial order (it includes all ancestors, not just the immediate parent). The *covering relation* — the Hasse diagram of ≺ — forms a forest: each document has at most one immediate structural parent, and there are no cycles. This follows from the tumbler hierarchy: each document address has a unique longest proper prefix at the document level, so `parent(d)` is uniquely determined when it exists.
+where `d_s ≺ d_v` iff `d_s ≼ d_v ∧ d_s ≠ d_v ∧ zeros(d_s) = zeros(d_v) = 2`. The relation ≺ is a partial order (it includes all ancestors, not just the immediate parent). The *covering relation* — the Hasse diagram of ≺ — forms a forest: each document has at most one immediate structural parent, and there are no cycles. A root document (single-component document field, such as `1.0.1.0.3`) has no document-level proper prefix, so `parent` is undefined — these are the roots of the forest. For non-root documents, the tumbler hierarchy gives a unique longest proper prefix at the document level, so `parent(d)` is well-defined.
 
 **Worked example.** Let Σ contain document `d_s = 1.0.1.0.3` with `Σ.V(d_s) = {1 ↦ a₁, 2 ↦ a₂}`, `Σ.pub(d_s) = published`, and `account(d_s) = 1.0.1`.
 
@@ -278,7 +280,7 @@ Gregory's implementation reveals additional detail about the single-owner case. 
 
 Finally, how are documents *found*? Nelson provides exactly one mechanism:
 
-**D17 (ContentBasedDiscovery).** The operation FINDDOCSCONTAINING takes a set of I-address spans `S` and returns every document whose V-space maps to any address within those spans. Each span `(s, l)` denotes the contiguous range `{t : s ≤ t < s ⊕ l}` (T12, SpanWellDefined, ASN-0001). The operation returns:
+**D17 (ContentBasedDiscovery).** The operation FINDDOCSCONTAINING takes a set of I-address spans `S`, where each `(s, l) ∈ S` is well-formed per T12 (SpanWellDefined, ASN-0001) — in particular `l > 0`, ensuring `s ⊕ l` is defined by TA0. Each span denotes the contiguous range `{t : s ≤ t < s ⊕ l}`. The operation returns every document whose V-space maps to any address within those spans:
 
     FINDDOCSCONTAINING(S) = {d ∈ Σ.D : (E p : 1 ≤ p ≤ n_d : (E (s,l) ∈ S : s ≤ Σ.V(d)(p) < s ⊕ l))}
 
@@ -317,14 +319,14 @@ The key insight across all properties: the tumbler address does extraordinary wo
 | D4 | `account(d)` is immutable across all state transitions | introduced |
 | D5 | owner has exclusive rights: content modification, out-links, visibility, address subdivision (design requirement on correct participants) | introduced |
 | D6 | document identity is tumbler equality; content comparison plays no role | introduced |
-| D7 | home document of any I-address determinable from the address alone via `fields` | introduced |
+| D7 | `home(a) = max≼ {d' : zeros(d') = 2 ∧ d' ≼ a}` — home document determinable from address alone | introduced |
 | D8 | transclusion (COPY) does not modify the source document's V-space | introduced |
 | D9 | editing `d₁` does not affect `Σ.V(d₂)` for `d₂ ≠ d₁` | introduced |
 | Σ.pub | publication status: `DocId → {private, published, privashed}` | introduced |
 | D10 | `[Σ.pub(d) = published ⟹ Σ'.pub(d) = published]` unconditionally for all protocol operations | introduced |
 | D10a | PUBLISH(d, status): transitions `private → published` or `private → privashed`, owner only | introduced |
 | D11 | publication surrenders control over incoming links, quotation, and easy withdrawal | introduced |
-| D12 | CREATENEWVERSION(d_s, a_req) produces `d_v` sharing all I-addresses, `Σ'.pub(d_v) = private`; pre: `a_req ∈ AccountAddr`, source accessible to requester | introduced |
+| D12 | CREATENEWVERSION(d_s, a_req) produces `d_v` sharing all I-addresses, `Σ'.pub(d_v) = private`; pre: `a_req = actor(op)`, source accessible to requester | introduced |
 | D13 | version placed under source if `account(d_s) = a_req`, under requester's account if not | introduced |
 | D14 | covering relation (Hasse diagram) of structural subordination `≺` forms a forest | introduced |
 | D15 | only owner may modify document content: `account(d) = actor(op)` (design requirement) | introduced |
