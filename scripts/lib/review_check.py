@@ -115,6 +115,7 @@ def invoke_claude(prompt, model="opus", effort="max"):
     env.pop("CLAUDECODE", None)
     if effort:
         env["CLAUDE_CODE_EFFORT_LEVEL"] = effort
+    env.setdefault("CLAUDE_CODE_MAX_OUTPUT_TOKENS", "128000")
 
     start = time.time()
     result = subprocess.run(
