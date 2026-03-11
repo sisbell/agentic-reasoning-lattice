@@ -127,8 +127,17 @@ def invoke_claude(prompt, model="opus", effort="max"):
         print(f"  FAILED (exit {result.returncode}, {elapsed:.0f}s)",
               file=sys.stderr)
         if result.stderr:
-            for line in result.stderr.strip().split("\n")[:3]:
-                print(f"    {line}", file=sys.stderr)
+            for line in result.stderr.strip().split("\n"):
+                print(f"    stderr: {line}", file=sys.stderr)
+        if result.stdout:
+            stdout_len = len(result.stdout)
+            print(f"    stdout: {stdout_len} chars partial output",
+                  file=sys.stderr)
+            # Show last 500 chars to see where it stopped
+            tail = result.stdout[-500:]
+            print(f"    stdout tail: ...{tail}", file=sys.stderr)
+        else:
+            print(f"    stdout: empty", file=sys.stderr)
         return "", elapsed
 
     print(f"  [{elapsed:.0f}s]", file=sys.stderr)
