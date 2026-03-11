@@ -22,9 +22,9 @@ By T4 (HierarchicalParsing), these are precisely the tumblers of the form `N.0.U
 
 **account.** For document `d`, its *account prefix* is:
 
-    account(d) = the unique a ∈ AccountAddr with a ≼ d
+    account(d) = max≼ {a ∈ AccountAddr : a ≼ d}
 
-where `≼` is the prefix relation from ASN-0001. Concretely, `account(d)` is the `N.0.U` portion of `d`'s tumbler — the account under which `d` was created. This is a pure function of the address, computable without consulting any mutable state.
+where `≼` is the prefix relation from ASN-0001. The maximum is well-defined: the set `{a ∈ AccountAddr : a ≼ d}` is a finite chain under ≼ (any two prefixes of the same tumbler are comparable), so it has a unique maximum. Concretely, `account(d)` is the full `N.0.U` from T4's decomposition of `d` — the longest AccountAddr prefix, whose user field matches the complete user field extracted by `fields(d)`. This is a pure function of the address, computable without consulting any mutable state.
 
 A document can be empty. The CREATENEWDOCUMENT operation creates a document with zero bytes and zero links — an empty container at a freshly allocated address. Nelson: "This creates an empty document. It returns the id of the new document." A document of nothing but links is valid; a document of nothing at all is the degenerate case. "A document is really an evolving ONGOING BRAID" — and a braid with zero strands is still a braid.
 
@@ -38,11 +38,12 @@ Let Σ.D denote the set of existing documents, Σ.I the I-space, and Σ.V(d) the
     post ∧ frame:
       (E d : d ∉ Σ.D ∧ d ∈ Σ'.D ∧ account(d) = a :
            |Σ'.V(d)| = 0 ∧ Σ'.pub(d) = private
+         ∧ parent(d) undefined                          (root document; D14)
          ∧ (A d' : d' ∈ Σ.D ∧ account(d') = a : d' < d)
          ∧ Σ'.D = Σ.D ∪ {d} ∧ Σ'.I = Σ.I
          ∧ (A d' : d' ∈ Σ.D : Σ'.V(d') = Σ.V(d') ∧ Σ'.pub(d') = Σ.pub(d')))
 
-The existential scopes over both postcondition and frame — the `d` that is freshly created is the same `d` added to `Σ'.D` and quantified over in the frame. The monotonicity clause `(A d' : d' ∈ Σ.D ∧ account(d') = a : d' < d)` ensures the newly allocated address exceeds all existing documents under `a`, establishing D1 by connecting to the T9/T10a allocation discipline. Only the account owner may create documents under that account — matching D5(d) and the pattern of D10a and D15. No I-space content is allocated. No existing document is disturbed. The new document exists but contains nothing — a position claimed, a container awaiting content. It begins as `private`; the owner must explicitly publish it.
+The existential scopes over both postcondition and frame — the `d` that is freshly created is the same `d` added to `Σ'.D` and quantified over in the frame. The `parent(d) undefined` constraint makes explicit that D0 uses the account's root allocator (T10a sibling stream via `inc(·, 0)`), producing a root document — one whose document field is single-component. This is essential for the monotonicity clause: a root document `a.0.K` with `K` exceeding all existing root document numbers also exceeds all children of lower-numbered roots (since `a.0.K'.x < a.0.K` when `K' < K` by T1), so `(A d' : d' ∈ Σ.D ∧ account(d') = a : d' < d)` holds. A non-root document would not satisfy this — see the discussion of per-allocator monotonicity in D1. Only the account owner may create documents under that account — matching D5(d) and the pattern of D10a and D15. No I-space content is allocated. No existing document is disturbed. The new document exists but contains nothing — a position claimed, a container awaiting content. It begins as `private`; the owner must explicitly publish it.
 
 ---
 
@@ -52,11 +53,18 @@ The address `d` in D0 is not chosen by the creator — it is *allocated* by the 
 
 The abstract property is a specialization of T9 (ForwardAllocation, ASN-0001):
 
-**D1 (DocumentAllocation).** Within any account `a`, documents are allocated with strictly increasing addresses:
+**D1 (DocumentAllocation).** Document allocation is per-allocator monotonic, specializing T9 (ForwardAllocation, ASN-0001). Two kinds of document allocators operate under each account:
 
-    (A d₁, d₂ : account(d₁) = account(d₂) = a ∧ allocated_before(d₁, d₂) : d₁ < d₂)
+- The *root allocator* for account `a` produces root documents (single-component document field) via `inc(·, 0)` (T10a sibling stream). D0 uses this allocator.
+- A *child allocator* for document `d_s` produces children of `d_s` via `inc(d_s, 1)` (T10a child stream). D12 Case 1 uses this allocator. D12 Case 2 uses the root allocator for the requester's account.
 
-under T1 (LexicographicOrder). This follows from D0 and D12, which are the only operations that add documents to Σ.D. D0's postcondition requires `(A d' : d' ∈ Σ.D ∧ account(d') = a : d' < d)` — the new document exceeds all existing documents under `a`. D12 Case 1 inherits this through T10a's allocation discipline applied to the document subtree, and D12 Case 2 falls under D0's pattern for the requester's account. Different accounts allocate in disjoint subtrees. By T10 (PartitionIndependence), no coordination is needed between accounts to guarantee uniqueness. By T5 (ContiguousSubtrees), all documents under an account form a contiguous interval in the tumbler order.
+Within each allocator, successive allocations are strictly increasing:
+
+    (A d₁, d₂ : same_allocator(d₁, d₂) ∧ allocated_before(d₁, d₂) : d₁ < d₂)
+
+where `same_allocator(d₁, d₂)` holds iff both are root documents under the same account, or `parent(d₁) = parent(d₂)` (siblings under the same source document).
+
+Different allocators under the same account are NOT jointly monotonic. If account `1.0.1` creates root documents `1.0.1.0.3`, then `1.0.1.0.5`, then versions `1.0.1.0.3` producing child `1.0.1.0.3.1`, we have `1.0.1.0.3.1 < 1.0.1.0.5` by T1 (diverge at position 5: `3 < 5`), yet `1.0.1.0.3.1` was allocated later. The root allocator and the child allocator for `1.0.1.0.3` are independent — each monotonic in its own stream, but not jointly ordered. Per-account uniqueness is guaranteed by T10 (PartitionIndependence): different allocators operate in non-nesting prefix domains, so their outputs are always distinct. By T5 (ContiguousSubtrees), all documents sharing a prefix form a contiguous interval in the tumbler order.
 
 Creation is irrevocable:
 
@@ -80,7 +88,7 @@ Nelson states this directly: "Ownership is not metadata attached to the document
 
 **D3 (StructuralOwnership).** The function `account(d)` determines the owner of document `d`. It is computable from `d`'s tumbler address alone, without consulting any mutable state. By T6 (DecidableContainment, ASN-0001), whether two documents share the same owner is decidable from their addresses.
 
-**D4 (OwnershipPermanence).** Since a document's tumbler address is permanent (T8, AddressPermanence, ASN-0001), and `account(d)` is derived from that address:
+**D4 (OwnershipPermanence).** The function `account(d)` is a pure function of the value `d`. Since `d` is a mathematical value — a member of `Σ.D` whose membership is permanent by D2 — and `account` consults no mutable state (D3), the result cannot vary across state transitions:
 
     account(d) in Σ = account(d) in Σ'
 
@@ -214,7 +222,8 @@ The CREATENEWVERSION operation takes a source document `d_s` and produces a fres
     (d) Σ'.V(d_s) = Σ.V(d_s)
     (e) Σ'.I = Σ.I
     (f) Σ'.pub(d_v) = private
-    (g) (A d' : d' ∈ Σ.D ∧ account(d') = account(d_v) : d' < d_v)
+    (g₁) account(d_s) = a_req ⟹ (A d' : d' ∈ Σ.D ∧ parent(d') = d_s : d' < d_v)
+    (g₂) account(d_s) ≠ a_req ⟹ (A d' : d' ∈ Σ.D ∧ account(d') = a_req : d' < d_v)
     frame: Σ'.D = Σ.D ∪ {d_v} ∧ (A d' : d' ∈ Σ.D : Σ'.V(d') = Σ.V(d') ∧ Σ'.pub(d') = Σ.pub(d'))
 
 Condition (c) is crucial: the version shares I-addresses with the source. This is transclusion, not copying. Both documents display the same bytes, traceable to the same origin, subject to the same royalty accounting. Condition (e) confirms: no new I-space content is allocated. Condition (f) establishes that a version begins as private, regardless of the source's publication status. A version starts as pure reference. From this moment, `d_v` and `d_s` evolve independently — edits to one do not affect the other (D9).
@@ -226,7 +235,7 @@ The placement of the new version's address depends on ownership. Gregory's code 
     account(d_s) = a_req ⟹ parent(d_v) = d_s
     account(d_s) ≠ a_req ⟹ account(d_v) = a_req
 
-In the first case (own document), the version is allocated as an immediate structural child of the source — `parent(d_v) = d_s` per D14's definition. Its address extends the source's tumbler by exactly one document level — if `d_s = A.0.D₁`, then `d_v = A.0.D₁.D₂`, with no intervening document-level tumbler between them. This follows from T10a (AllocatorDiscipline): the parent allocator spawns a child via `inc(·, k')` with `k' > 0`, producing an immediate child prefix, then the child's first allocation is at that prefix. Nelson: "The new document's id will indicate its ancestry." The ancestry is encoded in the address and permanent by T8.
+In the first case (own document), the version is allocated as an immediate structural child of the source — `parent(d_v) = d_s` per D14's definition. Its address extends the source's tumbler by exactly one document level — if `d_s = A.0.D₁`, then `d_v = A.0.D₁.D₂`. This follows from T10a (AllocatorDiscipline) with `k' = 1`: the parent allocator spawns a child via `inc(d_s, 1)`. By TA5(d), `inc(d_s, 1)` appends a single component (no intermediate zeros, final component 1), so `zeros(d_v) = zeros(d_s) = 2` — the child is a document-level address, satisfying T4. The constraint `k' = 1` is essential: `k' = 2` would introduce a new zero separator, producing `zeros = 3` (element-level); `k' ≥ 3` would exceed T4's maximum of three zeros. Nelson: "The new document's id will indicate its ancestry." The ancestry is encoded in the address and permanent — `account(d_v)` is a pure function of the value `d_v`, which does not change.
 
 In the second case (someone else's document), the version lives under the versioner's own account — just like any new document. There is no structural record of the ancestry. Nelson: "The Document field of the tumbler may be continually subdivided, with new subfields indicating daughter documents and versions."
 
@@ -240,11 +249,11 @@ We derive that the forest connects to the document set:
 
     (A d : d ∈ Σ.D ∧ parent(d) defined : parent(d) ∈ Σ.D)
 
-The argument: non-root documents in Σ.D are created only by D12 Case 1 (own-account versioning), which requires `d_s ∈ Σ.D` as a precondition and produces `d_v` with `parent(d_v) = d_s` (D13, strengthened). So `parent(d_v) = d_s ∈ Σ.D` at creation time. By D2 (DocumentPermanence), `d_s` persists in all subsequent states. D12 Case 2 creates root documents under the requester's account — these have no structural parent and do not affect the derivation. Thus the parent of every non-root document in Σ.D is itself a member of Σ.D.
+The argument: the only operations that add documents to Σ.D are D0 and D12. D0 produces only root documents (postcondition: `parent(d)` undefined), so non-root documents in Σ.D are created only by D12 Case 1 (own-account versioning), which requires `d_s ∈ Σ.D` as a precondition and produces `d_v` with `parent(d_v) = d_s` (D13). So `parent(d_v) = d_s ∈ Σ.D` at creation time. By D2 (DocumentPermanence), `d_s` persists in all subsequent states. D12 Case 2 uses the requester's root allocator, producing root documents with no structural parent. Thus the parent of every non-root document in Σ.D is itself a member of Σ.D.
 
-**Worked example.** Let Σ contain document `d_s = 1.0.1.0.3` with `Σ.V(d_s) = {1 ↦ a₁, 2 ↦ a₂}`, `Σ.pub(d_s) = published`, and `account(d_s) = 1.0.1`.
+**Worked example.** Let Σ contain documents `d_s = 1.0.1.0.3` with `Σ.V(d_s) = {1 ↦ a₁, 2 ↦ a₂}`, `Σ.pub(d_s) = published`, and a later root document `d_r = 1.0.1.0.5` (allocated after `d_s` by the root allocator). Both have `account = 1.0.1`.
 
-*Case 1: own-account version.* CREATENEWVERSION(d_s, 1.0.1) — the owner versions their own document. Since `account(d_s) = 1.0.1 = a_req`, D13 gives `parent(d_v) = d_s`. Gregory's allocation mechanism (depth=1, child of source) produces `d_v = 1.0.1.0.3.1` — the first structural child of `d_s`. We verify the postconditions:
+*Case 1: own-account version.* CREATENEWVERSION(d_s, 1.0.1) — the owner versions their own document. Since `account(d_s) = 1.0.1 = a_req`, D13 gives `parent(d_v) = d_s`. The child allocator for `d_s` (T10a with `k' = 1`) produces `d_v = 1.0.1.0.3.1` — the first structural child of `d_s`. We verify the postconditions:
 
 - (a): `1.0.1.0.3.1 ∉ Σ.D` (fresh) and `1.0.1.0.3.1 ∈ Σ'.D` ✓
 - (b): `|Σ'.V(d_v)| = |Σ.V(d_s)| = 2` ✓
@@ -252,9 +261,12 @@ The argument: non-root documents in Σ.D are created only by D12 Case 1 (own-acc
 - (d): `Σ'.V(d_s) = {1 ↦ a₁, 2 ↦ a₂}` — source unchanged ✓
 - (e): `Σ'.I = Σ.I` — no new I-content allocated ✓
 - (f): `Σ'.pub(d_v) = private` — version starts private despite source being published ✓
-- D13 placement: `parent(1.0.1.0.3.1) = 1.0.1.0.3 = d_s` ✓ (immediate child, no intervening document-level tumbler)
+- (g₁): no existing children of `d_s` in Σ.D (no `d'` with `parent(d') = d_s`), so the quantifier is vacuously satisfied ✓
+- D13 placement: `parent(1.0.1.0.3.1) = 1.0.1.0.3 = d_s` ✓ (immediate child via `inc(d_s, 1)`)
 
-A second own-account version produces `d_v' = 1.0.1.0.3.2` (monotonic allocation), and `parent(d_v') = d_s` as well — both versions are siblings under `d_s`.
+Note the interleaving: `d_v = 1.0.1.0.3.1 < d_r = 1.0.1.0.5` by T1 (diverge at position 5: `3 < 5`). The old per-account monotonicity `d_v > d_r` would fail — this is why D12(g) is split by case: (g₁) requires only that `d_v` exceeds existing children of `d_s`, not all documents under the account.
+
+A second own-account version produces `d_v' = 1.0.1.0.3.2` (monotonic within the child allocator for `d_s`), and `parent(d_v') = d_s` as well — both versions are siblings under `d_s`.
 
 *Case 2: cross-account version.* CREATENEWVERSION(d_s, 2.0.1) — user `2.0.1` versions Alice's document. Since `account(d_s) = 1.0.1 ≠ 2.0.1 = a_req`, D13 gives `account(d_v) = 2.0.1`. The version is allocated under the requester's account, say `d_v = 2.0.1.0.4`. Postconditions (a)–(f) hold identically. But `d_s ⋠ d_v` — there is no structural ancestry in the address. The version relationship exists only through shared I-addresses: both `Σ'.V(d_v)` and `Σ'.V(d_s)` map to `{a₁, a₂}`.
 
@@ -320,7 +332,7 @@ Collecting what this ASN establishes. The state Σ from ASN-0026 (Σ.D, Σ.I, Σ
 
 The function `account : DocId → AccountAddr` is derived from the tumbler structure, not stored as independent state. The structural subordination relation `≺` for version ancestry is likewise determined by the tumbler hierarchy. No new mutable state beyond `Σ.pub` is introduced.
 
-The key insight across all properties: the tumbler address does extraordinary work. It encodes identity (D6), ownership (D3, D4), provenance (D7), and ancestry (D13, D14). Because the address is permanent (T8), all of these encodings are permanent. A single design decision — permanent addresses — gives the entire lifecycle its character: immutable ownership, structural provenance, non-destructive collaboration, and version forests that grow but never reorganize.
+The key insight across all properties: the tumbler address does extraordinary work. It encodes identity (D6), ownership (D3, D4), provenance (D7), and ancestry (D13, D14). Because documents are permanent members of Σ.D (D2) and these encodings are pure functions of the address value, all of them are permanent — no mutable state is consulted, so no state transition can alter them. A single design decision — permanent addresses — gives the entire lifecycle its character: immutable ownership, structural provenance, non-destructive collaboration, and version forests that grow but never reorganize.
 
 ---
 
@@ -329,10 +341,10 @@ The key insight across all properties: the tumbler address does extraordinary wo
 | Label | Statement | Status |
 |-------|-----------|--------|
 | AccountAddr | `{a ∈ T : zeros(a) = 1}` — the set of account-level tumblers | introduced |
-| account(d) | account prefix function: DocId → AccountAddr, the unique `a ∈ AccountAddr` with `a ≼ d` | introduced |
+| account(d) | account prefix function: DocId → AccountAddr, `max≼ {a ∈ AccountAddr : a ≼ d}` — the longest AccountAddr prefix | introduced |
 | actor(op) | the account address on whose behalf operation `op` is performed | introduced |
-| D0 | CREATENEWDOCUMENT produces `d` with `d ∈ Σ'.D`, `\|Σ'.V(d)\| = 0`, `Σ'.pub(d) = private`, `(A d' ∈ Σ.D ∩ account⁻¹(a) : d' < d)`; pre: `actor(op) = a` | introduced |
-| D1 | documents under any account are allocated with strictly increasing addresses | introduced |
+| D0 | CREATENEWDOCUMENT produces root document `d` with `d ∈ Σ'.D`, `\|Σ'.V(d)\| = 0`, `Σ'.pub(d) = private`, `parent(d)` undefined, `(A d' ∈ Σ.D ∩ account⁻¹(a) : d' < d)`; pre: `actor(op) = a` | introduced |
+| D1 | per-allocator monotonicity: `same_allocator(d₁, d₂) ∧ allocated_before(d₁, d₂) ⟹ d₁ < d₂`; root and child allocators are independently monotonic | introduced |
 | D2 | `[d ∈ Σ.D ⟹ d ∈ Σ'.D]` for all transitions — documents are permanent | introduced |
 | D3 | `account(d)` is computable from `d`'s tumbler alone, no mutable state consulted | introduced |
 | D4 | `account(d)` is immutable across all state transitions | introduced |
@@ -345,8 +357,8 @@ The key insight across all properties: the tumbler address does extraordinary wo
 | D10 | `[Σ.pub(d) = published ⟹ Σ'.pub(d) = published]` unconditionally for all protocol operations | introduced |
 | D10a | PUBLISH(d, status): transitions `private → published` or `private → privashed`, owner only | introduced |
 | D11 | publication surrenders control over incoming links, quotation, and easy withdrawal | introduced |
-| D12 | CREATENEWVERSION(d_s, a_req) produces `d_v` sharing all I-addresses, `Σ'.pub(d_v) = private`, `d_v` exceeds all existing docs under `account(d_v)`; pre: `a_req = actor(op)`, source accessible | introduced |
-| D13 | own-account: `parent(d_v) = d_s`; cross-account: `account(d_v) = a_req` | introduced |
+| D12 | CREATENEWVERSION(d_s, a_req) produces `d_v` sharing all I-addresses, `Σ'.pub(d_v) = private`; monotonicity split: (g₁) own-account — exceeds children of `d_s`; (g₂) cross-account — exceeds all docs under `a_req`; pre: `a_req = actor(op)`, source accessible | introduced |
+| D13 | own-account: `parent(d_v) = d_s` via `inc(d_s, 1)` (`k' = 1` preserves `zeros = 2`); cross-account: `account(d_v) = a_req` | introduced |
 | D14 | covering relation of `≺` forms a forest; `(A d : d ∈ Σ.D ∧ parent(d) defined : parent(d) ∈ Σ.D)` | introduced |
 | D15 | only owner may modify document content: `account(d) = actor(op)` (design requirement) | introduced |
 | D16 | non-owner modification requests resolve by creating a new version | introduced |
