@@ -188,3 +188,8 @@ inquiries:
     question: "What invariants govern document creation, ownership, and the relationship between documents in the docuverse? What does it mean to open, close, and create documents?"
     area: documents
 
+  - id: 29
+    title: "Document Lifecycle"
+    question: "What invariants govern document creation, ownership, and the relationship between documents in the docuverse? What does it mean to open, close, and create documents?"
+    area: documents
+
