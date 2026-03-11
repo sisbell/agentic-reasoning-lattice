@@ -28,12 +28,12 @@ Let Σ.D denote the set of existing documents, Σ.I the I-space, and Σ.V(d) the
 
 **D0 (EmptyCreation).** CREATENEWDOCUMENT, given an account address `a`, produces a document `d` not previously in existence, with empty content:
 
-    pre:  a ∈ AccountAddr
+    pre:  a ∈ AccountAddr ∧ actor(op) = a
     post: (E d : d ∉ Σ.D ∧ d ∈ Σ'.D ∧ account(d) = a :
                |Σ'.V(d)| = 0 ∧ Σ'.pub(d) = private)
     frame: Σ'.I = Σ.I ∧ (A d' : d' ∈ Σ.D : d' ∈ Σ'.D ∧ Σ'.V(d') = Σ.V(d') ∧ Σ'.pub(d') = Σ.pub(d'))
 
-No I-space content is allocated. No existing document is disturbed. The new document exists but contains nothing — a position claimed, a container awaiting content. It begins as `private`; the owner must explicitly publish it.
+Only the account owner may create documents under that account — matching D5(d) and the pattern of D10a and D15. No I-space content is allocated. No existing document is disturbed. The new document exists but contains nothing — a position claimed, a container awaiting content. It begins as `private`; the owner must explicitly publish it.
 
 ---
 
@@ -55,7 +55,9 @@ Creation is irrevocable:
 
     [d ∈ Σ.D ⟹ d ∈ Σ'.D]
 
-for every state transition Σ → Σ'. This mirrors P1 (ISpaceMonotone, ASN-0026) at the document level. Nelson's design has an overwhelming bias toward permanence: even "withdrawal" means removing accessibility, not destroying the address or its I-space content. Nelson: "It is in the common interest that a thing once published stay published, as in the world of paper." The I-space bytes allocated under a document are permanent by P0 and P1 — even when the owner "deletes" them from the document's V-space, they persist and remain available in other documents that transclude them.
+for every state transition Σ → Σ'. This is an independent invariant — analogous in spirit to P1 (ISpaceMonotone, ASN-0026), but requiring its own verification, since P1 governs `dom(Σ.I)` while D2 governs `Σ.D`. We verify against each operation: D0 (CREATENEWDOCUMENT) adds a fresh document; its frame explicitly preserves all existing members. D10a (PUBLISH) modifies only `Σ.pub(d)`, not `Σ.D` membership. D12 (CREATENEWVERSION) adds a fresh document; its frame preserves all existing members. The ASN-0026 operations — INSERT, DELETE, COPY, REARRANGE — modify V-space within an existing document but never remove a document from `Σ.D`: P7 (CrossDocVIndependent) preserves non-target documents, and the target document retains its V-space (modified but not destroyed). No defined operation removes a document from `Σ.D`.
+
+Nelson's design has an overwhelming bias toward permanence: even "withdrawal" means removing accessibility, not destroying the address or its I-space content. Nelson: "It is in the common interest that a thing once published stay published, as in the world of paper." The I-space bytes allocated under a document are permanent by P0 and P1 — even when the owner "deletes" them from the document's V-space, they persist and remain available in other documents that transclude them.
 
 We note a subtlety: D2 says the document persists as a member of Σ.D. A separate concept — *accessibility* — governs whether operations on `d` succeed. A withdrawn document has `d ∈ Σ.D` but may reject operations. We return to this distinction in the discussion of publication.
 
@@ -154,6 +156,8 @@ for every state transition Σ → Σ'. This is unconditional. Nelson: "Its autho
 
 Withdrawal is not a protocol operation — it is a **contractual** mechanism operating outside the technical system. Nelson distinguishes editing (technical) from withdrawal (contractual): "Editing is technical. Withdrawal is contractual." The publication contract provides for withdrawal with deliberate friction — one year's notice and a fee — precisely because easy withdrawal would enable historical revision. The preferred resolution is *supersession*: publishing a new version while leaving the old one accessible. The system provides a Document Supersession Link to direct readers from the old version to the new one. If a future ASN formalizes withdrawal, it would introduce a new contractual operation with its own preconditions — it would not weaken D10 over protocol operations.
 
+We must also establish D10 for operations defined in ASN-0026 (INSERT, DELETE, COPY, REARRANGE). Since `Σ.pub` is introduced in this ASN, those operations naturally say nothing about it. We extend their frame conditions: operations defined in ASN-0026 do not modify publication status, i.e., `(A d : d ∈ Σ.D : Σ'.pub(d) = Σ.pub(d))`. This is justified because those operations modify only I-space (append) and V-space (rearrangement) — they have no mechanism to alter the publication status field. With this extension, D10 holds universally: D0 sets `Σ'.pub(d) = private` for the new document and preserves `Σ.pub` for all existing documents (frame); D10a transitions only from `private` and cannot produce a non-published result from `published`; D12 sets `Σ'.pub(d_v) = private` for the new version and preserves `Σ.pub` for all existing documents (frame); ASN-0026 operations preserve `Σ.pub` entirely.
+
 The `privashed` state does not have this monotonicity property — a privashed document can freely revert to private at any time, with the understanding that anyone who linked to it has no recourse.
 
 **D10a (PublishOperation).** PUBLISH(d, status) transitions a document's publication state:
@@ -191,7 +195,7 @@ The CREATENEWVERSION operation takes a source document `d_s` and produces a fres
 
 **D12 (VersionCreation).** CREATENEWVERSION(d_s, a_req) — where `a_req` is the requesting account — produces `d_v` such that:
 
-    pre:  d_s ∈ Σ.D
+    pre:  d_s ∈ Σ.D ∧ a_req ∈ AccountAddr ∧ (Σ.pub(d_s) ∈ {published, privashed} ∨ account(d_s) = a_req)
     post:
     (a) d_v ∉ Σ.D ∧ d_v ∈ Σ'.D
     (b) |Σ'.V(d_v)| = |Σ.V(d_s)|
@@ -306,7 +310,7 @@ The key insight across all properties: the tumbler address does extraordinary wo
 |-------|-----------|--------|
 | account(d) | account prefix function: DocId → AccountAddr, the unique `a` with `zeros(a) = 1` and `a ≼ d` | introduced |
 | actor(op) | the account address on whose behalf operation `op` is performed | introduced |
-| D0 | CREATENEWDOCUMENT produces `d` with `d ∈ Σ'.D`, `\|Σ'.V(d)\| = 0`, `Σ'.pub(d) = private` | introduced |
+| D0 | CREATENEWDOCUMENT produces `d` with `d ∈ Σ'.D`, `\|Σ'.V(d)\| = 0`, `Σ'.pub(d) = private`; pre: `actor(op) = a` | introduced |
 | D1 | documents under any account are allocated with strictly increasing addresses | introduced |
 | D2 | `[d ∈ Σ.D ⟹ d ∈ Σ'.D]` for all transitions — documents are permanent | introduced |
 | D3 | `account(d)` is computable from `d`'s tumbler alone, no mutable state consulted | introduced |
@@ -320,7 +324,7 @@ The key insight across all properties: the tumbler address does extraordinary wo
 | D10 | `[Σ.pub(d) = published ⟹ Σ'.pub(d) = published]` unconditionally for all protocol operations | introduced |
 | D10a | PUBLISH(d, status): transitions `private → published` or `private → privashed`, owner only | introduced |
 | D11 | publication surrenders control over incoming links, quotation, and easy withdrawal | introduced |
-| D12 | CREATENEWVERSION(d_s, a_req) produces `d_v` sharing all I-addresses, `Σ'.pub(d_v) = private` | introduced |
+| D12 | CREATENEWVERSION(d_s, a_req) produces `d_v` sharing all I-addresses, `Σ'.pub(d_v) = private`; pre: `a_req ∈ AccountAddr`, source accessible to requester | introduced |
 | D13 | version placed under source if `account(d_s) = a_req`, under requester's account if not | introduced |
 | D14 | covering relation (Hasse diagram) of structural subordination `≺` forms a forest | introduced |
 | D15 | only owner may modify document content: `account(d) = actor(op)` (design requirement) | introduced |
