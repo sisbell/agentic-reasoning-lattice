@@ -29,10 +29,11 @@ Let Σ.D denote the set of existing documents, Σ.I the I-space, and Σ.V(d) the
 **D0 (EmptyCreation).** CREATENEWDOCUMENT, given an account address `a`, produces a document `d` not previously in existence, with empty content:
 
     pre:  a ∈ AccountAddr
-    post: (E d : d ∉ Σ.D ∧ d ∈ Σ'.D ∧ account(d) = a : |Σ'.V(d)| = 0)
-    frame: Σ'.I = Σ.I ∧ (A d' : d' ∈ Σ.D : d' ∈ Σ'.D ∧ Σ'.V(d') = Σ.V(d'))
+    post: (E d : d ∉ Σ.D ∧ d ∈ Σ'.D ∧ account(d) = a :
+               |Σ'.V(d)| = 0 ∧ Σ'.pub(d) = private)
+    frame: Σ'.I = Σ.I ∧ (A d' : d' ∈ Σ.D : d' ∈ Σ'.D ∧ Σ'.V(d') = Σ.V(d') ∧ Σ'.pub(d') = Σ.pub(d'))
 
-No I-space content is allocated. No existing document is disturbed. The new document exists but contains nothing — a position claimed, a container awaiting content.
+No I-space content is allocated. No existing document is disturbed. The new document exists but contains nothing — a position claimed, a container awaiting content. It begins as `private`; the owner must explicitly publish it.
 
 ---
 
@@ -85,15 +86,7 @@ What does ownership guarantee? Nelson defines a specific bundle of rights:
     (c) visibility (when private): only the owner and designated associates may access d
     (d) address subdivision: only the owner may allocate new tumblers extending d's prefix
 
-These are normative rights. Whether the system enforces them through access control or through front-end compliance is an implementation choice. Gregory reveals that the backend's account-validation function unconditionally accepts any account address — a session can claim any identity. Nelson confirms this cooperative model: "Because the conceptual structure expects participants to behave in certain ways, these are embraced in the contract offered to users."
-
-The specification requires that correct behavior attributes D5 rights exclusively to the owner:
-
-**D5a (OwnerEnforcement).**
-
-    [op modifies Σ.V(d) ∧ system_correct ⟹ account(d) = account(actor(op))]
-
-where `system_correct` requires all system components to comply with the protocol's trust model.
+These are normative rights — design requirements on correct participants, not mechanically enforced invariants. Gregory reveals that the backend's account-validation function unconditionally accepts any account address — the backend trusts its front-ends. Nelson confirms this cooperative model: "Because the conceptual structure expects participants to behave in certain ways, these are embraced in the contract offered to users." Enforcement is contractual, not cryptographic. The property D15 (below) states the formal requirement that correct implementations must satisfy.
 
 ---
 
@@ -153,13 +146,23 @@ Nelson's publication model partitions documents by accessibility and defines a l
 
 Three states. *Private*: accessible only to the owner and designees; the owner retains full control. *Published*: accessible to all; the owner surrenders specific rights in exchange for automatic compensation. *Privashed*: universally accessible but withdrawable at any time — Nelson's escape valve for those who want distribution without binding commitment.
 
-**D10 (PublicationMonotonicity).** The transition from `private` to `published` is effectively permanent:
+**D10 (PublicationMonotonicity).** No protocol operation transitions a document out of the `published` state:
 
     [Σ.pub(d) = published ⟹ Σ'.pub(d) = published]
 
-for all standard operations. Withdrawal of a published document requires extraordinary process. Nelson: "Its author may not withdraw it except by lengthy due process." The reason is structural: other users will have made links to `d` — links at their addresses, constituting their property. Withdrawal would destroy their work. Even superseded documents must remain: "The former version must remain on the network. This is vital because of the links other users may have made to it."
+for every state transition Σ → Σ'. This is unconditional. Nelson: "Its author may not withdraw it except by lengthy due process." The reason is structural: other users will have made links to `d` — links at their addresses, constituting their property. Withdrawal would destroy their work. Even superseded documents must remain: "The former version must remain on the network. This is vital because of the links other users may have made to it."
+
+Withdrawal is not a protocol operation — it is a **contractual** mechanism operating outside the technical system. Nelson distinguishes editing (technical) from withdrawal (contractual): "Editing is technical. Withdrawal is contractual." The publication contract provides for withdrawal with deliberate friction — one year's notice and a fee — precisely because easy withdrawal would enable historical revision. The preferred resolution is *supersession*: publishing a new version while leaving the old one accessible. The system provides a Document Supersession Link to direct readers from the old version to the new one. If a future ASN formalizes withdrawal, it would introduce a new contractual operation with its own preconditions — it would not weaken D10 over protocol operations.
 
 The `privashed` state does not have this monotonicity property — a privashed document can freely revert to private at any time, with the understanding that anyone who linked to it has no recourse.
+
+**D10a (PublishOperation).** PUBLISH(d, status) transitions a document's publication state:
+
+    pre:  d ∈ Σ.D ∧ account(d) = actor(op) ∧ Σ.pub(d) = private ∧ status ∈ {published, privashed}
+    post: Σ'.pub(d) = status
+    frame: Σ'.I = Σ.I ∧ Σ'.V(d) = Σ.V(d) ∧ (A d' : d' ∈ Σ.D ∧ d' ≠ d : Σ'.V(d') = Σ.V(d') ∧ Σ'.pub(d') = Σ.pub(d'))
+
+Only the owner may publish. Publication does not alter content — it changes only accessibility and the rights bundle. The transitions from `privashed` to `private` and from `privashed` to `published` are permitted but deferred to open questions; only the `private → published` and `private → privashed` paths are specified here.
 
 **D11 (PublicationSurrender).** Publication changes the rights bundle. Upon transition to `published`:
 
@@ -171,7 +174,7 @@ The `privashed` state does not have this monotonicity property — a privashed d
 
 Nelson frames (b) and (c) as a deliberate surrender: "Each author of a published work is relinquishing the right to control links into that work. This relinquishment must also be part of the publishing contract." And: "Since the copyright holder gets an automatic royalty, anything may be quoted without further permission."
 
-What publication does NOT surrender: D5(a) — the owner retains exclusive content modification rights. D5(b) — the owner controls outgoing links. You can still edit your published document; you simply cannot prevent the world from quoting, linking to, and annotating it. Nelson splits traditional copyright's goals — compensation and control — and keeps only the first:
+What publication does NOT surrender: D5(a) and D15 — the owner retains exclusive content modification rights. D5(b) — the owner controls outgoing links. You can still edit your published document; you simply cannot prevent the world from quoting, linking to, and annotating it. Nelson splits traditional copyright's goals — compensation and control — and keeps only the first:
 
     ownership guarantees content integrity + economic rights
     ownership does NOT guarantee control over response, connection, or quotation
@@ -186,29 +189,53 @@ A version is not a patch or diff — it is a **new document** created from an ex
 
 The CREATENEWVERSION operation takes a source document `d_s` and produces a fresh document `d_v` whose initial V-space is a complete transclusion of the source. The new document shares I-space addresses with the source but has independent V-space from that point forward.
 
-**D12 (VersionCreation).** CREATENEWVERSION(d_s) produces `d_v` such that:
+**D12 (VersionCreation).** CREATENEWVERSION(d_s, a_req) — where `a_req` is the requesting account — produces `d_v` such that:
 
+    pre:  d_s ∈ Σ.D
+    post:
     (a) d_v ∉ Σ.D ∧ d_v ∈ Σ'.D
     (b) |Σ'.V(d_v)| = |Σ.V(d_s)|
     (c) (A p : 1 ≤ p ≤ |Σ.V(d_s)| : Σ'.V(d_v)(p) = Σ.V(d_s)(p))
     (d) Σ'.V(d_s) = Σ.V(d_s)
     (e) Σ'.I = Σ.I
-    frame: (A d' : d' ∈ Σ.D ∧ d' ≠ d_s : Σ'.V(d') = Σ.V(d'))
+    (f) Σ'.pub(d_v) = private
+    frame: (A d' : d' ∈ Σ.D : Σ'.V(d') = Σ.V(d') ∧ Σ'.pub(d') = Σ.pub(d'))
 
-Condition (c) is crucial: the version shares I-addresses with the source. This is transclusion, not copying. Both documents display the same bytes, traceable to the same origin, subject to the same royalty accounting. Condition (e) confirms: no new I-space content is allocated. A version starts as pure reference. From this moment, `d_v` and `d_s` evolve independently — edits to one do not affect the other (D9).
+Condition (c) is crucial: the version shares I-addresses with the source. This is transclusion, not copying. Both documents display the same bytes, traceable to the same origin, subject to the same royalty accounting. Condition (e) confirms: no new I-space content is allocated. Condition (f) establishes that a version begins as private, regardless of the source's publication status. A version starts as pure reference. From this moment, `d_v` and `d_s` evolve independently — edits to one do not affect the other (D9).
 
-The placement of the new version's address depends on ownership. Gregory's code reveals a conditional: the system tests whether the source document's account matches the current session's account — a tumbler prefix match.
+The placement of the new version's address depends on ownership. Gregory's code reveals a conditional: the system tests whether the source document's account matches the requesting account — a tumbler prefix match.
 
-**D13 (VersionPlacement).** For CREATENEWVERSION(d_s) creating d_v:
+**D13 (VersionPlacement).** For CREATENEWVERSION(d_s, a_req) creating d_v:
 
-    account(d_s) = account(session) ⟹ d_s ≼ d_v ∧ d_s ≠ d_v
-    account(d_s) ≠ account(session) ⟹ account(d_v) = account(session)
+    account(d_s) = a_req ⟹ d_s ≼ d_v ∧ d_s ≠ d_v
+    account(d_s) ≠ a_req ⟹ account(d_v) = a_req
 
 In the first case (own document), the version is allocated as a structural child of the source. Its address extends the source's tumbler — if `d_s = A.0.D₁`, then `d_v = A.0.D₁.D₂`. Nelson: "The new document's id will indicate its ancestry." The ancestry is encoded in the address and permanent by T8.
 
 In the second case (someone else's document), the version lives under the versioner's own account — just like any new document. There is no structural record of the ancestry. Nelson: "The Document field of the tumbler may be continually subdivided, with new subfields indicating daughter documents and versions."
 
-**D14 (VersionForest).** The structural subordination relation `d_s ≺ d_v` (defined as `d_s ≼ d_v ∧ d_s ≠ d_v ∧ zeros(d_s) = zeros(d_v) = 2`) forms a forest: no document has two structural parents, and there are no cycles. This follows from the tumbler hierarchy — each document address has a unique longest proper prefix at the document level.
+**D14 (VersionForest).** Define the *structural parent* of a document `d` as the longest proper document-level prefix of `d`:
+
+    parent(d) = max≼ {d' : d' ≺ d}
+
+where `d_s ≺ d_v` iff `d_s ≼ d_v ∧ d_s ≠ d_v ∧ zeros(d_s) = zeros(d_v) = 2`. The relation ≺ is a partial order (it includes all ancestors, not just the immediate parent). The *covering relation* — the Hasse diagram of ≺ — forms a forest: each document has at most one immediate structural parent, and there are no cycles. This follows from the tumbler hierarchy: each document address has a unique longest proper prefix at the document level, so `parent(d)` is uniquely determined when it exists.
+
+**Worked example.** Let Σ contain document `d_s = 1.0.1.0.3` with `Σ.V(d_s) = {1 ↦ a₁, 2 ↦ a₂}`, `Σ.pub(d_s) = published`, and `account(d_s) = 1.0.1`.
+
+*Case 1: own-account version.* CREATENEWVERSION(d_s, 1.0.1) — the owner versions their own document. Since `account(d_s) = 1.0.1 = a_req`, D13 gives `d_s ≼ d_v`. Gregory's allocation mechanism (depth=1, child of source) produces `d_v = 1.0.1.0.3.1` — the first structural child of `d_s`. We verify the postconditions:
+
+- (a): `1.0.1.0.3.1 ∉ Σ.D` (fresh) and `1.0.1.0.3.1 ∈ Σ'.D` ✓
+- (b): `|Σ'.V(d_v)| = |Σ.V(d_s)| = 2` ✓
+- (c): `Σ'.V(d_v)(1) = a₁`, `Σ'.V(d_v)(2) = a₂` — same I-addresses as source ✓
+- (d): `Σ'.V(d_s) = {1 ↦ a₁, 2 ↦ a₂}` — source unchanged ✓
+- (e): `Σ'.I = Σ.I` — no new I-content allocated ✓
+- (f): `Σ'.pub(d_v) = private` — version starts private despite source being published ✓
+- D13 placement: `1.0.1.0.3 ≼ 1.0.1.0.3.1` and `1.0.1.0.3 ≠ 1.0.1.0.3.1` ✓
+- D14 parent: `parent(1.0.1.0.3.1) = 1.0.1.0.3 = d_s` ✓
+
+A second own-account version produces `d_v' = 1.0.1.0.3.2` (monotonic allocation), and `parent(d_v') = d_s` as well — both versions are siblings under `d_s`.
+
+*Case 2: cross-account version.* CREATENEWVERSION(d_s, 2.0.1) — user `2.0.1` versions Alice's document. Since `account(d_s) = 1.0.1 ≠ 2.0.1 = a_req`, D13 gives `account(d_v) = 2.0.1`. The version is allocated under the requester's account, say `d_v = 2.0.1.0.4`. Postconditions (a)–(f) hold identically. But `d_s ⋠ d_v` — there is no structural ancestry in the address. The version relationship exists only through shared I-addresses: both `Σ'.V(d_v)` and `Σ'.V(d_s)` map to `{a₁, a₂}`.
 
 Note that version numbering carries no semantic weight. Nelson is emphatic: "The version, or subdocument number is only an accidental extension of the document number, and strictly implies no specific relationship of derivation." And: "There is thus no 'basic' version of a document set apart from other versions — 'alternative' versions — any more than one arrangement of the same materials is a priori better than other arrangements." The ordering is a consequence of sequential allocation, not a statement about quality or primacy.
 
@@ -220,16 +247,20 @@ Nelson's FEBE commands are stateless — there is no session concept in the orig
 
 The session mechanism is implementation. The principles it serves are abstract.
 
+Every operation in the system is issued by some account. We write `actor(op)` for the account address on whose behalf operation `op` is performed — the account claiming authorship of the action. In a correct system, this corresponds to the account that initiated the request.
+
 **D15 (OwnerExclusiveModification).** Only the owner may modify a document's content:
 
-    [op modifies Σ.V(d) ⟹ account(d) = account(actor(op))]
+    [op modifies Σ.V(d) ⟹ account(d) = actor(op)]
+
+This is a design requirement on correct participants: any implementation that satisfies the Xanadu protocol must ensure D15 holds. It is not a mechanically enforced invariant — the backend trusts its front-ends to supply truthful account identities. But a front-end that violates D15 is non-conforming.
 
 This is Nelson's fundamental access rule. A non-owner who wishes to modify creates a version (D12) rather than altering the original. The original is protected absolutely: "Only the owner has a right to withdraw a document or change it."
 
 **D16 (NonOwnerForking).** When a non-owner requests modification of document `d`, the resolution is to create a new version under the requester's account:
 
-    account(d) ≠ account(requester) ∧ requester requests modification of d
-    ⟹ system applies CREATENEWVERSION(d) with account(d_v) = account(requester)
+    account(d) ≠ actor(op) ∧ op requests modification of d
+    ⟹ system applies CREATENEWVERSION(d, actor(op)) with account(d_v) = actor(op)
 
 This is Nelson's resolution to the tension between collaboration and ownership. Rather than competing for access to a shared mutable object, users create independent versions. Gregory implements this directly: when write access is requested on a document and the requester is not the owner, the system creates a new version for the requester and opens that instead. The original is never touched.
 
@@ -243,9 +274,9 @@ Gregory's implementation reveals additional detail about the single-owner case. 
 
 Finally, how are documents *found*? Nelson provides exactly one mechanism:
 
-**D17 (ContentBasedDiscovery).** The operation FINDDOCSCONTAINING takes a set of I-address spans `S` and returns every document whose V-space maps to any address in `S`:
+**D17 (ContentBasedDiscovery).** The operation FINDDOCSCONTAINING takes a set of I-address spans `S` and returns every document whose V-space maps to any address within those spans. Each span `(s, l)` denotes the contiguous range `{t : s ≤ t < s ⊕ l}` (T12, SpanWellDefined, ASN-0001). The operation returns:
 
-    FINDDOCSCONTAINING(S) = {d ∈ Σ.D : (E p : 1 ≤ p ≤ n_d : Σ.V(d)(p) ∈ S)}
+    FINDDOCSCONTAINING(S) = {d ∈ Σ.D : (E p : 1 ≤ p ≤ n_d : (E (s,l) ∈ S : s ≤ Σ.V(d)(p) < s ⊕ l))}
 
 There is no enumeration operation — no way to ask "what documents exist?" Gregory confirms: no LISTDOCUMENTS, no ENUMERATEDOCUMENTS, no namespace walk. The system can answer "which documents contain this content?" but not "what is in the docuverse?"
 
@@ -274,26 +305,27 @@ The key insight across all properties: the tumbler address does extraordinary wo
 | Label | Statement | Status |
 |-------|-----------|--------|
 | account(d) | account prefix function: DocId → AccountAddr, the unique `a` with `zeros(a) = 1` and `a ≼ d` | introduced |
-| D0 | CREATENEWDOCUMENT produces `d` with `d ∈ Σ'.D`, `\|Σ'.V(d)\| = 0`, `account(d) = a` | introduced |
+| actor(op) | the account address on whose behalf operation `op` is performed | introduced |
+| D0 | CREATENEWDOCUMENT produces `d` with `d ∈ Σ'.D`, `\|Σ'.V(d)\| = 0`, `Σ'.pub(d) = private` | introduced |
 | D1 | documents under any account are allocated with strictly increasing addresses | introduced |
 | D2 | `[d ∈ Σ.D ⟹ d ∈ Σ'.D]` for all transitions — documents are permanent | introduced |
 | D3 | `account(d)` is computable from `d`'s tumbler alone, no mutable state consulted | introduced |
 | D4 | `account(d)` is immutable across all state transitions | introduced |
-| D5 | owner has exclusive rights: content modification, out-links, visibility, address subdivision | introduced |
-| D5a | correct modification requires `account(d) = account(actor(op))` under `system_correct` | introduced |
+| D5 | owner has exclusive rights: content modification, out-links, visibility, address subdivision (design requirement on correct participants) | introduced |
 | D6 | document identity is tumbler equality; content comparison plays no role | introduced |
 | D7 | home document of any I-address determinable from the address alone via `fields` | introduced |
 | D8 | transclusion (COPY) does not modify the source document's V-space | introduced |
 | D9 | editing `d₁` does not affect `Σ.V(d₂)` for `d₂ ≠ d₁` | introduced |
 | Σ.pub | publication status: `DocId → {private, published, privashed}` | introduced |
-| D10 | `[Σ.pub(d) = published ⟹ Σ'.pub(d) = published]` for standard operations | introduced |
+| D10 | `[Σ.pub(d) = published ⟹ Σ'.pub(d) = published]` unconditionally for all protocol operations | introduced |
+| D10a | PUBLISH(d, status): transitions `private → published` or `private → privashed`, owner only | introduced |
 | D11 | publication surrenders control over incoming links, quotation, and easy withdrawal | introduced |
-| D12 | CREATENEWVERSION(d_s) produces `d_v` sharing all I-addresses with `d_s`, with full frame | introduced |
-| D13 | version placed under source if owned (`d_s ≼ d_v`), under requester's account if not | introduced |
-| D14 | structural subordination `≺` at document level forms a forest | introduced |
-| D15 | only owner may modify document content: `account(d) = account(actor(op))` | introduced |
+| D12 | CREATENEWVERSION(d_s, a_req) produces `d_v` sharing all I-addresses, `Σ'.pub(d_v) = private` | introduced |
+| D13 | version placed under source if `account(d_s) = a_req`, under requester's account if not | introduced |
+| D14 | covering relation (Hasse diagram) of structural subordination `≺` forms a forest | introduced |
+| D15 | only owner may modify document content: `account(d) = actor(op)` (design requirement) | introduced |
 | D16 | non-owner modification requests resolve by creating a new version | introduced |
-| D17 | `FINDDOCSCONTAINING(S) = {d : (E p : Σ.V(d)(p) ∈ S)}` — content-based discovery only | introduced |
+| D17 | `FINDDOCSCONTAINING(S)` — content-based discovery via span membership | introduced |
 
 ## Open Questions
 
