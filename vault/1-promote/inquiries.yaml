@@ -207,3 +207,9 @@ inquiries:
       nelson: 0
       gregory: 0
 
+  - id: 32
+    title: "Link Ontology"
+    question: "What is a link in the Xanadu system? What are links for, what do they connect, and what must be true about them as permanent objects in the docuverse?"
+    area: links
+    source: "Foundation gap: ASN-0030 references endsets, resolvability, ghost links without link datatype defined"
+

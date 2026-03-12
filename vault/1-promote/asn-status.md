@@ -1,6 +1,6 @@
 # ASN Status Register
 
-*Last updated: 2026-03-11*
+*Last updated: 2026-03-12*
 
 | ASN | Title | Layer | Status | Notes |
 |-----|-------|-------|--------|-------|
@@ -32,4 +32,7 @@
 | ASN-0026 | I-Space and V-Space | Foundation | **Final** | Supersedes ASN-0003. Converged review 4. Dafny proofs promoted to `vault/proofs/TwoSpace/`. |
 | ASN-0027 | Address Permanence | — | **Deprecated** | Drafted without ASN-0029 in foundation — silently assumes D2 (DocumentPermanence) without citing it. Dafny 35/35 still valid. Needs redraft with ASN-0029 in foundation stack. |
 | ASN-0028 | Document Lifecycle | — | **Deprecated** | Contaminated — drafted with ASN-0027 in foundations, creating circular dependency. Superseded by ASN-0029. |
-| ASN-0029 | Document Ontology | Foundation | **Converged** | Supersedes ASN-0011 scope. 18 properties (D0-D17). Provides D2 (DocumentPermanence) needed by ASN-0027. |
+| ASN-0029 | Document Ontology | Foundation | **Converged** | Supersedes ASN-0011 scope. 18 properties (D0-D17). Provides D2 (DocumentPermanence). |
+| ASN-0030 | Address Permanence | — | **Deprecated** | References endsets, resolvability, ghost links without link datatype defined. Needs redraft after ASN-0032 (Link Ontology). Alloy 22/22 valid. |
+| ASN-0031 | Account Creation | Foundation | **Draft** | Fills D0 precondition gap from ASN-0029. AC0-AC3. |
+| ASN-0032 | Link Ontology | Foundation | **Not started** | Foundation gap: link datatype, endsets, permanence. Depends on ASN-0001, ASN-0026, ASN-0029. |
