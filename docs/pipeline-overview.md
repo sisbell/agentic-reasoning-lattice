@@ -189,6 +189,8 @@ Shell scripts that chain common multi-step workflows. Run from the project root.
 
 Use `run/asn-converge.sh` to review and revise an ASN until converged. Use `run/remodel.sh` after revision to regenerate the proof index, statements, and Dafny in one shot.
 
+**Note:** When a review returns VERDICT: CONVERGED with minor REVISE items, the converge script stops without applying the revisions. To get a clean exit, run `python scripts/lib/review_revise.py N` manually, then re-run `./run/asn-converge.sh N` for a final clean review.
+
 ## When to Use Each Command
 
 **Starting new work:**
