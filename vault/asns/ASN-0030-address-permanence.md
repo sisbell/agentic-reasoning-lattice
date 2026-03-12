@@ -145,7 +145,7 @@ Part (a) is an instance of +_ext (ASN-0026) with `fresh = ∅`. Part (g) is the 
 
 The wp reasoning makes the necessity transparent. We want to maintain R: "all I-addresses ever allocated remain in dom(Σ.I) with their original content." Then wp(DELETE, R) requires that DELETE not modify dom(Σ.I) or any value in Σ.I. Since DELETE's definition operates exclusively on Σ.V(d) — removing positions from a single document's V-space — the weakest precondition is trivially satisfied. DELETE does not touch I-space. There is nothing to prove because there is nothing to threaten.
 
-DELETE does affect reachability. After DELETE(d, p, k), by (d) and (e), positions below p retain their I-address mappings and positions at and above p+k shift down by k. The I-addresses at positions p through p+k−1 are no longer in range(Σ'.V(d)). They may still be in range(Σ'.V(d')) for other documents d' (which are unchanged by (f)). Whether an address transitions from active to unreferenced depends on whether any other document references it — a global property that DELETE on a single document cannot locally determine.
+DELETE does affect reachability. After DELETE(d, p, k), by (d) and (e), positions below p retain their I-address mappings and positions at and above p+k shift down by k. The V-space positions p through p+k−1 are removed from d. An I-address that appeared at a deleted position leaves range(Σ'.V(d)) only if it does not also appear at a surviving position — possible via self-transclusion (P5, ASN-0026): if `Σ.V(d) = [a, a]` and we delete position 1, the post-state `Σ'.V(d) = [a]` still contains `a`. Whether an address transitions from active to unreferenced depends on whether it appears at any surviving position in any document — including other positions within d itself — a global property that DELETE on a single document cannot locally determine.
 
 ### COPY
 
@@ -209,7 +209,7 @@ and Σ'.I = Σ.I. The version shares all I-addresses with the source. No new con
 
     (A p : 1 ≤ p ≤ |Σ.V(d_s)| : correspond(d_s, p, d_v, p))
 
-where `correspond` is defined in ASN-0026. Every position in both documents corresponds — they share the same I-address mapping. As the documents diverge through subsequent editing, some positions will be deleted or shifted. But the *I-addresses* of the shared content remain permanent. Correspondence between versions is computable as a set intersection over I-address ranges — exact and efficient — because shared I-addresses are permanent.
+where `correspond` is defined in ASN-0026. Every position in both documents corresponds — they share the same I-address mapping. As the documents diverge through subsequent editing, some positions will be deleted or shifted. But the *I-addresses* of the shared content remain permanent. After divergent editing, *shared content identification* — which I-addresses appear in both documents — is computable as a set intersection over I-address ranges, exact and efficient, because shared I-addresses are permanent (A0). *Positional correspondence* — enumerating all pairs `(p₁, p₂)` such that `correspond(d_s, p₁, d_v, p₂)` — additionally requires inverting each document's V-space mapping to find positions for each shared I-address; this inversion is non-trivial when self-transclusion (P5) causes an I-address to appear at multiple positions within the same document. The important insight is that A0 makes both computations *exact*, not approximate: identity comparison replaces byte-level matching.
 
 Nelson: "a facility that holds multiple versions of the same material... is not terribly useful unless it can help you intercompare them in detail — unless it can show you, word for word, what parts of two versions are the same." This facility works precisely because version creation shares I-addresses rather than allocating fresh copies. If CREATENEWVERSION allocated new I-addresses for the version's content, correspondence would require byte-level comparison — expensive and ambiguous. With shared I-addresses, two positions correspond if and only if their V-space mappings point to the same I-address. Identity replaces comparison.
 
@@ -326,7 +326,7 @@ The distinction between "the invariant holds" and "the client can verify the inv
 | A0 | `[a ∈ dom(Σ.I) ⟹ a ∈ dom(Σ'.I) ∧ Σ'.I(a) = Σ.I(a)]` — identity at I-address is permanent | introduced |
 | A1 | `¬[reachable(a, d) ⟹ reachable(a, d) in Σ']` — reachability is non-monotone | introduced |
 | A2 | Every valid address is in exactly one of: active, unreferenced, unallocated | introduced |
-| A3 | Transitions (i)→(iii) and (ii)→(iii) forbidden; all others permitted | introduced |
+| A3 | Transitions to (iii) forbidden; (ii)→(i) permitted by invariants but not achievable by current operations for truly unreferenced content; (iii)→(ii) composite only | introduced |
 | A4 | DELETE: `Σ'.I = Σ.I`, removed I-addresses persist, V-space contracts with left-unchanged and right-shifted, `Σ'.D = Σ.D` | introduced (requirement) |
 | A4a | REARRANGE: `Σ'.I = Σ.I`, V-space is a permutation of pre-state, other documents unchanged, `Σ'.D = Σ.D` | introduced (requirement) |
 | A5 | COPY: target positions share source I-addresses, `Σ'.I = Σ.I`, insert semantics on target V-space, source unchanged when `d_s ≠ d_t`, `Σ'.D = Σ.D` | introduced (requirement) |
