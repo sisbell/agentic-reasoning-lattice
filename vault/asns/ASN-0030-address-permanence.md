@@ -24,13 +24,15 @@ and observe that when `a ∈ dom(Σ.I)`, the value `Σ.I(a)` is fixed forever (P
 
 A0 is the conjunction of P0 and P1. We restate it as a single invariant because the consequences we derive use both parts in concert, and because the combined claim — identity at an I-address is permanent — is the one assertion the rest of this note depends upon.
 
-**Reachability** is a different matter entirely. It is the ability to obtain content through a document's V-space arrangement. Using `refs(a)` from ASN-0026:
+**Reachability** is a different matter entirely. It is the ability to obtain content through a document's V-space arrangement. ASN-0026 defines `refs(a) = {(d, p) : d ∈ Σ.D ∧ 1 ≤ p ≤ n_d ∧ Σ.V(d)(p) = a}`. We introduce a predicate that captures the existential projection of this set:
 
-    reachable(a, d) ≡ (E p : 1 ≤ p ≤ n_d : Σ.V(d)(p) = a)
+    reachable(a, d) ≡ (E p : (d, p) ∈ refs(a))
 
-Address `a` is *reachable through document d* when some position in `d`'s V-space maps to `a`. The global form:
+which is equivalent to `(E p : 1 ≤ p ≤ n_d : Σ.V(d)(p) = a)` by unfolding the definition of `refs`. Address `a` is *reachable through document d* when some position in `d`'s V-space maps to `a`. The global form:
 
-    reachable(a) ≡ (E d : d ∈ Σ.D : reachable(a, d))
+    reachable(a) ≡ refs(a) ≠ ∅
+
+equivalently, `(E d : d ∈ Σ.D : reachable(a, d))`.
 
 Now: is reachability permanent? It is not.
 
@@ -62,7 +64,7 @@ The partition is over the state Σ — an address may transition between states 
 
     (a)  (iii) → (i):   permitted — allocation followed by insertion into a document
     (b)  (i) → (ii):    permitted — DELETE from all referencing documents
-    (c)  (ii) → (i):    permitted — transclusion into any document
+    (c)  (ii) → (i):    permitted — but see qualification below
     (d)  (i) → (iii):   forbidden — would violate P1
     (e)  (ii) → (iii):  forbidden — would violate P1
     (f)  (iii) → (ii):  permitted — allocation without V-space insertion
@@ -71,9 +73,36 @@ The forbidden transitions are the permanence guarantee stated negatively: conten
 
 Transition (b) is the critical one for understanding the system. A user deletes content from their document. The V-space contracts; positions shift (P9-right, ASN-0026, applied in reverse). The I-addresses that were at the deleted positions leave the document's V-space. If those I-addresses appear in other documents (via transclusion), they remain active. If they appear nowhere, they become unreferenced. Either way, the content at those I-addresses is unchanged — A0 applies regardless.
 
-Transition (c) is the recovery mechanism. Nelson lists unreferenced content as "awaiting historical backtrack functions." But transclusion provides a more immediate path: if any operation creates a new V-space mapping to an unreferenced I-address, the content becomes active again. No modification to the content or its address is required. The I-address is a permanent name; V-space is merely the question of who is currently using that name.
+Transition (c) requires careful qualification. Nelson lists unreferenced content as "awaiting historical backtrack functions." We must distinguish two cases. If the I-address remains reachable in some other document or version — i.e., `refs(a) ≠ ∅` in the global state — then the content was never truly unreferenced (it was active, state (i), in another document), and COPY from that document recovers it into the target. This is the normal case: version creation (D12, ASN-0029) preserves all V-space mappings in the source, so content deleted from one version often remains reachable through another.
+
+But if the I-address is in state (ii) — `refs(a) = ∅`, present in no document's V-space — then no currently defined operation recovers it. COPY requires a source position in some document's V-space (it reads through `specset2ispanset`); INSERT allocates only fresh I-addresses (P9-new, ASN-0026). Gregory's implementation confirms the constraint: every code path that writes an I-address into a document's POOM either allocates a fresh address through `inserttextingranf` or reads an existing address from another document's V-space through `specset2ispanset`. No path accepts a raw I-address for direct insertion.
+
+Nelson's intent is clear: "The true storage of text should be in a system that stores each change and fragment individually... keeping the former changes; integrating them all by means of an indexing method that allows any previous instant to be reconstructed." The recovery mechanism is the historical trace enfilade — an index over the append-only I-space that reconstructs any previous arrangement on demand. This mechanism is consistent with our invariants (no operation would need to violate A0 or modify I-space) but is not yet specified. We record transition (c) as *permitted by the invariants* but *not achievable by any currently defined operation* for truly unreferenced addresses. The I-address is a permanent name; V-space is merely the question of who is currently using that name.
 
 Transition (f) arises when content is allocated — INSERT creates fresh I-addresses (P9-new, ASN-0026) — but then immediately deleted from V-space before any other document transcludes it. The content enters state (ii) directly. This is a normal consequence of the separation: allocation is permanent, arrangement is editorial.
+
+---
+
+## A Worked Example
+
+We trace identity and reachability through a concrete scenario to anchor the preceding definitions. Let document `d` have V-space mapping `Σ.V(d) = [a₁, a₂, a₃]` with `n_d = 3`, where `a₁, a₂, a₃ ∈ dom(Σ.I)` are distinct I-addresses. Suppose no other document references `a₂`: formally, `refs(a₂) = {(d, 2)}`. Both `a₁` and `a₃` appear also in some other document `d'`.
+
+**DELETE position 2 from d.** After DELETE(d, 2, 1) producing Σ':
+
+- *Identity (A4):* `Σ'.I = Σ.I`, so `a₂ ∈ dom(Σ'.I)` and `Σ'.I(a₂) = Σ.I(a₂)`. The content is unchanged.
+- *V-space:* `Σ'.V(d) = [a₁, a₃]` with `|Σ'.V(d)| = 2`. Position 2 now maps to `a₃` (P9-right applied in reverse).
+- *Reachability of a₂:* `refs(a₂)` in Σ' is `∅` — `d` no longer maps to `a₂`, and no other document did. The address transitions from active (i) to unreferenced (ii).
+- *Reachability of a₁, a₃:* Both remain in `range(Σ'.V(d))` and in `range(Σ'.V(d'))`, so they stay active (i).
+
+Now suppose a version `d_v` of `d` was created *before* the DELETE (via D12, ASN-0029), so `Σ.V(d_v) = [a₁, a₂, a₃]` and this V-space was not modified by the DELETE (P7, CrossDocVIndependent). Then `refs(a₂)` in Σ' includes `(d_v, 2)` — `a₂` was never truly unreferenced, it remained active through `d_v`.
+
+**COPY from the version.** COPY(d_v, 2, 1, d, 2) in state Σ' produces Σ'':
+
+- `Σ''.V(d) = [a₁, a₂, a₃]` — position 2 of `d` again maps to `a₂`.
+- `Σ''.I = Σ'.I = Σ.I` — no I-space change.
+- `a₂` is active (i) in Σ'' with `refs(a₂) ⊇ {(d, 2), (d_v, 2)}`.
+
+The scenario demonstrates: identity is untouched throughout; reachability fluctuates with V-space editing; recovery through COPY requires a reachable source — the version provided one.
 
 ---
 
@@ -100,6 +129,10 @@ DELETE does affect reachability. After DELETE(d, p, k), the I-addresses at posit
 
 **A5 (TransclusionIdentity).** COPY(d_s, p_s, k, d_t, p_t) — copy k positions from d_s into d_t — satisfies:
 
+    pre:  d_s ∈ Σ.D ∧ d_t ∈ Σ.D ∧ k ≥ 1
+        ∧ 1 ≤ p_s ∧ p_s + k − 1 ≤ n_{d_s}
+        ∧ 1 ≤ p_t ≤ n_{d_t} + 1
+    post:
     (a)  (A j : 0 ≤ j < k : Σ'.V(d_t)(p_t + j) = Σ.V(d_s)(p_s + j))
     (b)  Σ'.I = Σ.I
 
@@ -113,17 +146,21 @@ Gregory confirms the mechanism: `docopyinternal` calls `specset2ispanset` to rea
 
 ### REARRANGE
 
-**A4a (RearrangePreservesIdentity).** REARRANGE(d, cuts) satisfies:
+**A4a (RearrangePreservesIdentity).** We require that REARRANGE(d, cuts) satisfy:
 
+    pre:  d ∈ Σ.D
+    post:
     (a)  Σ'.I = Σ.I
     (b)  |Σ'.V(d)| = |Σ.V(d)|
     (c)  {Σ'.V(d)(p) : 1 ≤ p ≤ n_d} = {Σ.V(d)(p) : 1 ≤ p ≤ n_d}
+
+Note: REARRANGE has no formal specification in any foundation ASN. A4a is a *specification requirement* — what a correct REARRANGE must satisfy — not a derived property. If a future ASN formalizes REARRANGE, A4a becomes a required postcondition to verify.
 
 Part (c) asserts that the *set* of I-addresses in d's V-space is unchanged — the same content, at different positions. REARRANGE permutes the V-space arrangement without adding or removing I-addresses.
 
 This means REARRANGE preserves both identity (trivially, by (a)) and reachability: every I-address that was reachable through d before remains reachable through d after, and conversely. Positions change; the set of referenced I-addresses does not.
 
-Gregory traces the mechanism: `rearrangend` operates exclusively on `cdsp.dsas[V]` — the V-displacement of POOM crums. The I-dimension `cdsp.dsas[I]` is never written. The code applies `tumbleradd(&ptr->cdsp.dsas[V], &diff[i], ...)` for each affected region, shifting V-positions while the I-mappings remain untouched.
+Gregory's implementation is consistent with this requirement: `rearrangend` operates exclusively on `cdsp.dsas[V]` — the V-displacement of POOM crums. The I-dimension `cdsp.dsas[I]` is never written. The code applies `tumbleradd(&ptr->cdsp.dsas[V], &diff[i], ...)` for each affected region, shifting V-positions while the I-mappings remain untouched.
 
 ### CREATENEWVERSION
 
@@ -171,9 +208,9 @@ But link target stability is not the same as link *resolvability*. We must disti
 
 **A7a (EndsetPermanence).**
 
-    (A a ∈ endset(L) : a ∈ dom(Σ'.I))
+    (A a ∈ endset(L) : a ∈ dom(Σ.I) ⟹ a ∈ dom(Σ'.I))
 
-Link endsets permanently reference valid I-addresses. This is monotone — once true, always true.
+Endset addresses that are allocated remain allocated. This is the restriction of P1 to endset members and is monotone — once an endset address is in dom(Σ.I), it stays. Note the conditional: a link may contain ghost endset addresses (A8) that are not in dom(Σ.I); A7a makes no claim about those until they are allocated.
 
 **A7b (EndsetResolvability).**
 
@@ -185,7 +222,9 @@ Gregory's implementation illuminates the distinction precisely. When `retrieveen
 
 The link exists. Its endsets reference valid I-addresses. The content at those addresses is unchanged. But no V-space path reaches its endpoints in the queried document. The link is structurally intact but operationally dormant.
 
-**Transclusion recovers resolvability.** When unreferenced I-addresses are transcluded into a new document, the link becomes discoverable again. The link's I-address endsets were permanently indexed in the spanfilade at creation time. The new document's V→I mapping now includes those I-addresses. Link discovery through I-address matching — `find_links` converts query V-positions to I-addresses via the POOM, then searches the spanfilade for matching link entries — succeeds immediately. No modification to the link or its index entries is required. Gregory confirms: stale DOCISPAN entries from the original (now-empty) document do not interfere, because link discovery searches a structurally independent sub-index (LINKFROMSPAN/LINKTOSPAN/LINKTHREESPAN entries, tags 1-3) that never overlaps with DOCISPAN entries (tag 4).
+**Transclusion can recover resolvability — when a reachable source exists.** If a link's endset I-addresses are reachable in some document or version (i.e., `(E d : d ∈ Σ.D : reachable(a, d))` for `a ∈ endset(L)`), then COPY from that document into a new context restores the link's resolvability there. The link's I-address endsets were permanently indexed in the spanfilade at creation time. The new document's V→I mapping now includes those I-addresses. Link discovery through I-address matching — `find_links` converts query V-positions to I-addresses via the POOM, then searches the spanfilade for matching link entries — succeeds immediately. No modification to the link or its index entries is required. Gregory confirms: stale DOCISPAN entries from the original (now-empty) document do not interfere, because link discovery searches a structurally independent sub-index (LINKFROMSPAN/LINKTOSPAN/LINKTHREESPAN entries, tags 1-3) that never overlaps with DOCISPAN entries (tag 4).
+
+If no document's V-space contains the endset I-addresses — the addresses are truly unreferenced — then no currently defined operation recovers resolvability. The link remains structurally intact (A7 still holds for allocated endsets) but dormant in all documents, awaiting the historical backtrack mechanism noted in the accessibility transitions.
 
 ---
 
@@ -238,19 +277,24 @@ The distinction between "the invariant holds" and "the client can verify the inv
 | A2 | Every valid address is in exactly one of: active, unreferenced, unallocated | introduced |
 | A3 | Transitions (i)→(iii) and (ii)→(iii) forbidden; all others permitted | introduced |
 | A4 | DELETE: `Σ'.I = Σ.I` and removed I-addresses persist with unchanged content | introduced |
-| A4a | REARRANGE: `Σ'.I = Σ.I` and range of V-space I-addresses unchanged | introduced |
+| A4a | REARRANGE: `Σ'.I = Σ.I` and range of V-space I-addresses unchanged | introduced (requirement) |
 | A5 | COPY: `Σ'.V(d_t)(p_t + j) = Σ.V(d_s)(p_s + j)` and `Σ'.I = Σ.I` — shared identity | introduced |
 | A6 | Version correspondence computable from shared I-addresses | introduced |
 | A7 | `(A a ∈ endset(L) : Σ'.I(a) = Σ.I(a))` — link target content is stable | introduced |
-| A7a | `(A a ∈ endset(L) : a ∈ dom(Σ'.I))` — endset addresses are permanent | introduced |
+| A7a | `(A a ∈ endset(L) : a ∈ dom(Σ.I) ⟹ a ∈ dom(Σ'.I))` — allocated endset addresses are permanent | introduced |
 | A7b | `resolvable(L, d)` is non-monotone — DELETE can make links dormant | introduced |
 | A8 | Links may reference ghost addresses; `ghost(a) ≡ a ∉ dom(Σ.I) ∧ T4(a)` | introduced |
-| A9 | Address permanence is coordinate-level, independent of physical storage | introduced |
-| A10 | No client-verifiable mechanism for content authenticity at retrieval | introduced |
-| reachable(a, d) | `(E p : 1 ≤ p ≤ n_d : Σ.V(d)(p) = a)` — V-space reachability | introduced |
-| reachable(a) | `(E d : d ∈ Σ.D : reachable(a, d))` — global reachability | introduced |
+| reachable(a, d) | `(E p : (d, p) ∈ refs(a))` — V-space reachability (equiv. `(E p : 1 ≤ p ≤ n_d : Σ.V(d)(p) = a)`) | introduced |
+| reachable(a) | `refs(a) ≠ ∅` — global reachability | introduced |
 | resolvable(L, d) | `(E a ∈ endset(L) : reachable(a, d))` — link resolvability | introduced |
 | ghost(a) | `a ∉ dom(Σ.I) ∧ T4(a)` — valid address without content | introduced |
+
+**Design Remarks** (not formal invariants):
+
+| Label | Statement | Status |
+|-------|-----------|--------|
+| A9 | Address permanence is coordinate-level, independent of physical storage | remark |
+| A10 | No client-verifiable mechanism for content authenticity at retrieval | remark |
 
 ## Open Questions
 
