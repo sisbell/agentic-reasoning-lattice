@@ -69,7 +69,7 @@ The partition is over the state Σ — an address may transition between states 
     (e)  (ii) → (iii):  forbidden — would violate P1
     (f)  (iii) → (ii):  achievable — via (a) then (b)
 
-Note: A3 classifies which state-pairs are achievable, not single-step transitions. Transitions (a), (b), (d), and (e) are each achievable by a single operation. Transition (c) is permitted by the invariants but not achievable by any currently defined operation for truly unreferenced addresses — see qualification below. Transition (f) is composite: no single operation allocates an I-address without placing it in V-space. INSERT atomically allocates fresh I-addresses *and* inserts them into the target document (P9-new, P9-left, P9-right), so fresh content enters state (i) directly. The path to state (ii) requires a subsequent DELETE — that is, (iii)→(i) via INSERT, then (i)→(ii) via DELETE.
+Note: A3 classifies which state-pairs are achievable, not single-step transitions. Transitions (a) and (b) are each achievable by a single operation (INSERT and DELETE respectively). Transitions (d) and (e) are each forbidden by P1 — no operation can effect them. Transition (c) is permitted by the invariants but not achievable by any currently defined operation for truly unreferenced addresses — see qualification below. Transition (f) is composite: no single operation allocates an I-address without placing it in V-space. INSERT atomically allocates fresh I-addresses *and* inserts them into the target document (P9-new, P9-left, P9-right), so fresh content enters state (i) directly. The path to state (ii) requires a subsequent DELETE — that is, (iii)→(i) via INSERT, then (i)→(ii) via DELETE.
 
 The forbidden transitions are the permanence guarantee stated negatively: content, once allocated, cannot become unallocated. The allocated set only grows; the address space never contracts. Gregory's implementation evidence is definitive on this point. The function `deleteseq` — the only code that could remove a granfilade entry and thereby reduce the I-space — is dead code: defined in `edit.c` but called nowhere in the system. No code path from DELETE reaches the granfilade. DELETE operates exclusively on the POOM (the V→I mapping), removing V-space positions while leaving I-space untouched.
 
@@ -330,7 +330,7 @@ The distinction between "the invariant holds" and "the client can verify the inv
 | A4 | DELETE: `Σ'.I = Σ.I`, removed I-addresses persist, V-space contracts with left-unchanged and right-shifted, `Σ'.D = Σ.D` | introduced (requirement) |
 | A4a | REARRANGE: `Σ'.I = Σ.I`, V-space is a permutation of pre-state, other documents unchanged, `Σ'.D = Σ.D` | introduced (requirement) |
 | A5 | COPY: target positions share source I-addresses, `Σ'.I = Σ.I`, insert semantics on target V-space, source unchanged when `d_s ≠ d_t`, `Σ'.D = Σ.D` | introduced (requirement) |
-| A6 | Version correspondence computable from shared I-addresses | introduced |
+| A6 | `(A p : 1 ≤ p ≤ |Σ.V(d_s)| : correspond(d_s, p, d_v, p))` — at version creation, every position in source and version shares the same I-address | introduced |
 | A7 | `(A a ∈ endset(L) : Σ'.I(a) = Σ.I(a))` — link target content is stable | introduced |
 | A7a | `(A a ∈ endset(L) : a ∈ dom(Σ.I) ⟹ a ∈ dom(Σ'.I))` — allocated endset addresses are permanent | introduced |
 | A7b | `resolvable(L, d)` is non-monotone — DELETE can make links dormant | introduced |
