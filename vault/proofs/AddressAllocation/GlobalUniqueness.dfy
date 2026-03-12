@@ -1,9 +1,9 @@
-module GlobalUniquenessModule {
+module GlobalUniqueness {
 
   import opened TumblerAlgebra
   import ForwardAllocation
-  import PartitionIndependenceModule
-  import AllocatorDisciplineModule
+  import PartitionIndependence
+  import AllocatorDiscipline
 
   // ASN-0001 Global uniqueness — GlobalUniqueness (LEMMA, lemma)
   // No two distinct allocations, anywhere in the system, at any time,

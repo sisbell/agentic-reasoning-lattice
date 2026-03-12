@@ -1,4 +1,4 @@
-module PartitionIndependenceModule {
+module PartitionIndependence {
   import opened TumblerAlgebra
 
   // ASN-0001 T10 — PartitionIndependence

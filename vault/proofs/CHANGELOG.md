@@ -12,14 +12,20 @@
 
 - **Deleted: AccountPrefix.dfy** — its entire content (FirstZeroFrom, HasAccountLevel, AccountPrefix) moved to HierarchicalParsing. The ASN-0029 "account" property (D3) is proven by the function's existence in HierarchicalParsing and by StructuralOwnership's verification that `Account(d)` produces a valid prefix.
 
-- **Updated 14 property files** to import from shared modules instead of defining locally. Files with extended DocState variants (OwnershipRights, PublicationSurrender) use qualified `DocumentOntology.PubStatus` to avoid name collision with their local DocState.
+- **Updated 14 ASN-0029 property files** to import from shared modules instead of defining locally:
+  - Full import (PubStatus + DocState + ValidDocAddr + DocLevelPrefix + address helpers): EmptyCreation, VersionCreation, VersionPlacement
+  - PubStatus only: PublicationStatus, PublicationMonotonicity, PublicationFrame, PublishOperation, NonOwnerForking
+  - PubStatus with qualified import (local extended DocState): OwnershipRights, PublicationSurrender
+  - FirstZeroFrom from HierarchicalParsing: StructuralOwnership, IdentityByAddress
+  - DocLevelPrefix from DocumentOntology: VersionForest
 
-**Result:** 25/25 property files verified. Net -225 lines duplicated, +93 lines shared. Proof module count: 64 verified, 0 errors.
+**Result:** 25/25 property files verified. Proof module count: 64 verified, 0 errors.
 
 ## 2026-03-12: Module renames
 
 - `AddressProperties` → `AddressAllocation` — all files concern the allocation discipline (ForwardAllocation, AllocatorDiscipline, GlobalUniqueness, etc.), not generic "properties."
 - `IVSpaceProperties` → `TwoSpace` — the module models the two-space (I-space/V-space) structure, not generic properties.
+- `GlobalUniquenessModule` → `GlobalUniqueness`, `AllocatorDisciplineModule` → `AllocatorDiscipline`, `PartitionIndependenceModule` → `PartitionIndependence` — dropped redundant "Module" suffix to match convention (module name = filename stem).
 
 ## 2026-03-11: ASN-0029 modeling-1
 

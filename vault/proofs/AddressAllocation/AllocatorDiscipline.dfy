@@ -1,4 +1,4 @@
-module AllocatorDisciplineModule {
+module AllocatorDiscipline {
 
   import opened TumblerAlgebra
 

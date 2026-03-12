@@ -8,6 +8,7 @@ proofs/
 ├── Foundation/          State model: IAddr, VPos, State, J0–J2
 ├── AddressAllocation/   ASN-0001 address properties: T4, T7, T9, T10, T10a, GlobalUniqueness
 ├── DocumentOntology/    ASN-0029 shared types: PubStatus, DocState, ValidDocAddr, DocLevelPrefix
+├── TwoSpace/            ASN-0026 I-space/V-space state properties: P0–P9
 ├── CHANGELOG.md         History of module changes and rationale
 ├── imports.md           Maps ASN → proof module dependencies for Dafny generation
 └── dfyconfig.toml       Picks up **/*.dfy — no include directives needed
@@ -29,16 +30,19 @@ AddressAllocation is a top-level peer of TumblerAlgebra, not a subdirectory of i
 TumblerAlgebra          Foundation
     ↑       ↑               ↑
     |       |               |
-    |   AddressAllocation   |
+    |   AddressAllocation --+
     |   (T4,T7,T9,T10,GU)  |
     |       ↑               |
     |   DocumentOntology ---+
     |   (PubStatus,DocState)|
     |                       |
+    |   TwoSpace -----------+
+    |   (P0–P9)             |
+    |                       |
     +--- ASN-NN proofs -----+
 ```
 
-AddressAllocation depends on TumblerAlgebra only. Foundation depends on TumblerAlgebra only. DocumentOntology depends on TumblerAlgebra, Foundation, and AddressAllocation (for HierarchicalParsing.CountZeros). ASN proof files import the modules they need.
+AddressAllocation depends on TumblerAlgebra only. Foundation depends on TumblerAlgebra only. DocumentOntology depends on TumblerAlgebra, Foundation, and AddressAllocation (HierarchicalParsing.CountZeros). TwoSpace depends on Foundation. ASN proof files import the modules they need.
 
 ## dfyconfig.toml
 
