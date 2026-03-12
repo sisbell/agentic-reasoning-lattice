@@ -67,9 +67,9 @@ The partition is over the state Σ — an address may transition between states 
     (c)  (ii) → (i):    permitted — but see qualification below
     (d)  (i) → (iii):   forbidden — would violate P1
     (e)  (ii) → (iii):  forbidden — would violate P1
-    (f)  (iii) → (ii):  reachable — via (a) then (b)
+    (f)  (iii) → (ii):  achievable — via (a) then (b)
 
-Note: A3 classifies which state-pairs are reachable, not single-step transitions. Transitions (a), (b), (d), and (e) are each achievable by a single operation. Transition (c) is permitted by the invariants but not achievable by any currently defined operation for truly unreferenced addresses — see qualification below. Transition (f) is composite: no single operation allocates an I-address without placing it in V-space. INSERT atomically allocates fresh I-addresses *and* inserts them into the target document (P9-new, P9-left, P9-right), so fresh content enters state (i) directly. The path to state (ii) requires a subsequent DELETE — that is, (iii)→(i) via INSERT, then (i)→(ii) via DELETE.
+Note: A3 classifies which state-pairs are achievable, not single-step transitions. Transitions (a), (b), (d), and (e) are each achievable by a single operation. Transition (c) is permitted by the invariants but not achievable by any currently defined operation for truly unreferenced addresses — see qualification below. Transition (f) is composite: no single operation allocates an I-address without placing it in V-space. INSERT atomically allocates fresh I-addresses *and* inserts them into the target document (P9-new, P9-left, P9-right), so fresh content enters state (i) directly. The path to state (ii) requires a subsequent DELETE — that is, (iii)→(i) via INSERT, then (i)→(ii) via DELETE.
 
 The forbidden transitions are the permanence guarantee stated negatively: content, once allocated, cannot become unallocated. The allocated set only grows; the address space never contracts. Gregory's implementation evidence is definitive on this point. The function `deleteseq` — the only code that could remove a granfilade entry and thereby reduce the I-space — is dead code: defined in `edit.c` but called nowhere in the system. No code path from DELETE reaches the granfilade. DELETE operates exclusively on the POOM (the V→I mapping), removing V-space positions while leaving I-space untouched.
 
@@ -137,10 +137,11 @@ INSERT is the only operation that extends dom(Σ.I). It is the primary witness f
     (e)  (A j : p + k ≤ j ≤ n_d : Σ'.V(d)(j − k) = Σ.V(d)(j))
     frame:
     (f)  (A d' : d' ∈ Σ.D ∧ d' ≠ d : Σ'.V(d') = Σ.V(d'))
+    (g)  Σ'.D = Σ.D
 
 Note: Like A4a and A5, the V-space postcondition is a *specification requirement* — what a correct DELETE must satisfy. No foundation ASN specifies DELETE's V-space behavior (ASN-0026 classifies it only as `fresh = ∅`). Parts (c)–(e) are the symmetric counterpart to INSERT's P9 properties: (c) mirrors P9-length, (d) mirrors P9-left, and (e) mirrors P9-right with the shift reversed. Part (f) is P7 (CrossDocVIndependent, ASN-0026).
 
-Part (a) is an instance of +_ext (ASN-0026) with `fresh = ∅`. Part (b) is the pointed consequence: the specific I-addresses removed from `d`'s V-space persist in I-space with their content unchanged.
+Part (a) is an instance of +_ext (ASN-0026) with `fresh = ∅`. Part (g) is the document-set frame: DELETE neither creates nor removes documents (D2 forbids removal; DELETE has no reason to create). Part (b) is the pointed consequence: the specific I-addresses removed from `d`'s V-space persist in I-space with their content unchanged.
 
 The wp reasoning makes the necessity transparent. We want to maintain R: "all I-addresses ever allocated remain in dom(Σ.I) with their original content." Then wp(DELETE, R) requires that DELETE not modify dom(Σ.I) or any value in Σ.I. Since DELETE's definition operates exclusively on Σ.V(d) — removing positions from a single document's V-space — the weakest precondition is trivially satisfied. DELETE does not touch I-space. There is nothing to prove because there is nothing to threaten.
 
@@ -162,8 +163,9 @@ DELETE does affect reachability. After DELETE(d, p, k), by (d) and (e), position
     frame:
     (f)  d_s ≠ d_t ⟹ Σ'.V(d_s) = Σ.V(d_s)
     (g)  (A d' : d' ∈ Σ.D ∧ d' ≠ d_t : Σ'.V(d') = Σ.V(d'))
+    (h)  Σ'.D = Σ.D
 
-Note: ASN-0026 asserts only that COPY has `fresh = ∅` (+_ext) and writes to the target document (P7). The V-space postconditions — that target positions map to the same I-addresses as source positions (a), that existing content is preserved with insert semantics (c)–(e), and that non-target documents are unchanged (g) — are not derivable from any foundation. A5 is a *specification requirement*, matching A4a's treatment: what a correct COPY must satisfy, not a derived property. Part (f) is conditioned on `d_s ≠ d_t` because self-transclusion is valid (P5, ASN-0026): when the source and target are the same document, the target's V-space changes by (a)–(e). When `d_s ≠ d_t`, (f) is an instance of (g); we state it separately for clarity. If a future ASN formalizes COPY, A5 becomes a required postcondition to verify. Parts (c)–(e) follow INSERT semantics: existing positions below `p_t` are unchanged, existing positions at and above `p_t` shift by k. Gregory's implementation confirms this: `docopyinternal` calls `insertpm` — the same insert-into-POOM routine used by INSERT — to place the copied I-addresses into the target.
+Note: ASN-0026 asserts only that COPY has `fresh = ∅` (+_ext) and writes to the target document (P7). The V-space postconditions — that target positions map to the same I-addresses as source positions (a), that existing content is preserved with insert semantics (c)–(e), and that non-target documents are unchanged (g) — are not derivable from any foundation. A5 is a *specification requirement*, matching A4a's treatment: what a correct COPY must satisfy, not a derived property. Part (h) is the document-set frame: COPY shares existing I-addresses and has no reason to create or remove documents. Part (f) is conditioned on `d_s ≠ d_t` because self-transclusion is valid (P5, ASN-0026): when the source and target are the same document, the target's V-space changes by (a)–(e). When `d_s ≠ d_t`, (f) is an instance of (g); we state it separately for clarity. If a future ASN formalizes COPY, A5 becomes a required postcondition to verify. Parts (c)–(e) follow INSERT semantics: existing positions below `p_t` are unchanged, existing positions at and above `p_t` shift by k. Gregory's implementation confirms this: `docopyinternal` calls `insertpm` — the same insert-into-POOM routine used by INSERT — to place the copied I-addresses into the target.
 
 The target document's new positions map to the *same I-addresses* as the source. No fresh I-space content is allocated. This is what distinguishes transclusion from conventional copying: the operation creates shared references, not duplicate content. Two documents that share an I-address share identity — the system can compute that they contain the same content, because "the same content" means "the same I-address," not "matching bytes."
 
@@ -185,8 +187,9 @@ Gregory confirms the mechanism: `docopyinternal` calls `specset2ispanset` to rea
             (A p : 1 ≤ p ≤ n_d : Σ'.V(d)(p) = Σ.V(d)(π(p))))
     frame:
     (d)  (A d' : d' ∈ Σ.D ∧ d' ≠ d : Σ'.V(d') = Σ.V(d'))
+    (e)  Σ'.D = Σ.D
 
-Note: REARRANGE has no formal specification in any foundation ASN. A4a is a *specification requirement* — what a correct REARRANGE must satisfy — not a derived property. If a future ASN formalizes REARRANGE, A4a becomes a required postcondition to verify. Part (d) is P7 (CrossDocVIndependent, ASN-0026).
+Note: REARRANGE has no formal specification in any foundation ASN. A4a is a *specification requirement* — what a correct REARRANGE must satisfy — not a derived property. If a future ASN formalizes REARRANGE, A4a becomes a required postcondition to verify. Part (d) is P7 (CrossDocVIndependent, ASN-0026). Part (e) is the document-set frame: REARRANGE permutes positions within a single document and has no reason to create or remove documents.
 
 Part (c) asserts that the post-state V-space is a *permutation* of the pre-state — the same content, at different positions. Set equality would be insufficient: a V-space `[a, a, b]` → `[a, b, b]` preserves the set `{a, b}` and the length, but silently duplicates one I-address reference and drops another. Permutation prevents this — every position in the post-state maps to exactly one position in the pre-state, and conversely. REARRANGE permutes the V-space arrangement without adding, removing, or duplicating I-address references.
 
@@ -324,9 +327,9 @@ The distinction between "the invariant holds" and "the client can verify the inv
 | A1 | `¬[reachable(a, d) ⟹ reachable(a, d) in Σ']` — reachability is non-monotone | introduced |
 | A2 | Every valid address is in exactly one of: active, unreferenced, unallocated | introduced |
 | A3 | Transitions (i)→(iii) and (ii)→(iii) forbidden; all others permitted | introduced |
-| A4 | DELETE: `Σ'.I = Σ.I`, removed I-addresses persist, V-space contracts with left-unchanged and right-shifted | introduced (requirement) |
-| A4a | REARRANGE: `Σ'.I = Σ.I`, V-space is a permutation of pre-state, other documents unchanged | introduced (requirement) |
-| A5 | COPY: target positions share source I-addresses, `Σ'.I = Σ.I`, insert semantics on target V-space, source unchanged when `d_s ≠ d_t` | introduced (requirement) |
+| A4 | DELETE: `Σ'.I = Σ.I`, removed I-addresses persist, V-space contracts with left-unchanged and right-shifted, `Σ'.D = Σ.D` | introduced (requirement) |
+| A4a | REARRANGE: `Σ'.I = Σ.I`, V-space is a permutation of pre-state, other documents unchanged, `Σ'.D = Σ.D` | introduced (requirement) |
+| A5 | COPY: target positions share source I-addresses, `Σ'.I = Σ.I`, insert semantics on target V-space, source unchanged when `d_s ≠ d_t`, `Σ'.D = Σ.D` | introduced (requirement) |
 | A6 | Version correspondence computable from shared I-addresses | introduced |
 | A7 | `(A a ∈ endset(L) : Σ'.I(a) = Σ.I(a))` — link target content is stable | introduced |
 | A7a | `(A a ∈ endset(L) : a ∈ dom(Σ.I) ⟹ a ∈ dom(Σ'.I))` — allocated endset addresses are permanent | introduced |
