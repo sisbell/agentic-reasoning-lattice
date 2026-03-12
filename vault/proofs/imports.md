@@ -9,3 +9,4 @@ generator reads all listed modules and injects their source into the prompt.
 | ASN-0001 | |
 | ASN-0026 | AddressAllocation |
 | ASN-0029 | AddressAllocation, TwoSpace, DocumentOntology |
+| ASN-0030 | AddressAllocation, TwoSpace, DocumentOntology |
