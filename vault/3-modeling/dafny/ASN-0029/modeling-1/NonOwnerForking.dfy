@@ -1,11 +1,12 @@
 include "../../../../proofs/TumblerAlgebra/TumblerAlgebra.dfy"
 include "../../../../proofs/Foundation/Foundation.dfy"
+include "../../../../proofs/AddressAllocation/HierarchicalParsing.dfy"
+include "../../../../proofs/DocumentOntology/DocumentOntology.dfy"
 
 module NonOwnerForkingModule {
   import opened TumblerAlgebra
   import opened Foundation
-
-  datatype PubStatus = Private | Published | Privashed
+  import opened DocumentOntology
 
   // D3: account is a pure function of the address (state-independent)
   function Account(d: DocId): Tumbler

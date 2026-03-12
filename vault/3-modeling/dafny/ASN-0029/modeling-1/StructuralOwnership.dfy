@@ -5,24 +5,11 @@ include "../../../../proofs/AddressAllocation/HierarchicalParsing.dfy"
 module StructuralOwnership {
   import opened TumblerAlgebra
   import opened Foundation
-  import HierarchicalParsing
+  import opened HierarchicalParsing
 
   // ASN-0029 D3 — StructuralOwnership (INV, predicate(DocId))
   // account(d) is computable from d's tumbler address alone,
   // without consulting any mutable state.
-
-  // Find first zero at or after position i
-  function FirstZeroFrom(s: seq<nat>, i: nat): nat
-    requires i <= |s|
-    requires exists j :: i <= j < |s| && s[j] == 0
-    ensures i <= FirstZeroFrom(s, i) < |s|
-    ensures s[FirstZeroFrom(s, i)] == 0
-    ensures forall j :: i <= j < FirstZeroFrom(s, i) ==> s[j] != 0
-    decreases |s| - i
-  {
-    if s[i] == 0 then i
-    else FirstZeroFrom(s, i + 1)
-  }
 
   // Precondition: d has at least two zero separators
   predicate HasTwoZeros(s: seq<nat>) {

@@ -1,65 +1,19 @@
 include "../../../../proofs/TumblerAlgebra/TumblerAlgebra.dfy"
 include "../../../../proofs/Foundation/Foundation.dfy"
 include "../../../../proofs/AddressAllocation/HierarchicalParsing.dfy"
+include "../../../../proofs/DocumentOntology/DocumentOntology.dfy"
 
 module EmptyCreationModule {
   import opened TumblerAlgebra
   import opened Foundation
-  import HierarchicalParsing
+  import opened HierarchicalParsing
+  import opened DocumentOntology
 
   // --- Helpers ---
 
-  // Publication status per ASN-0029 Σ.pub
-  datatype PubStatus = Private | Published | Privashed
-
-  // DIVERGENCE: Foundation.State lacks Σ.pub (publication status).
-  // DocState extends Foundation's State with a pub map.
-  datatype DocState = DocState(
-    base: State,
-    pub: map<DocId, PubStatus>
-  )
-
   // AccountAddr = {a ∈ T : zeros(a) = 1}
   predicate ValidAccountAddr(t: Tumbler) {
-    HierarchicalParsing.CountZeros(t.components) == 1
-  }
-
-  // Document address: zeros(d) = 2
-  predicate ValidDocAddr(d: Tumbler) {
-    HierarchicalParsing.CountZeros(d.components) == 2
-  }
-
-  // Find position of first zero starting from index i
-  function FirstZeroFrom(s: seq<nat>, i: nat): nat
-    requires i <= |s|
-    requires exists j :: i <= j < |s| && s[j] == 0
-    ensures i <= FirstZeroFrom(s, i) < |s|
-    ensures s[FirstZeroFrom(s, i)] == 0
-    ensures forall j :: i <= j < FirstZeroFrom(s, i) ==> s[j] != 0
-    decreases |s| - i
-  {
-    if s[i] == 0 then i
-    else FirstZeroFrom(s, i + 1)
-  }
-
-  // d has at least one zero separator with a component after it
-  predicate HasAccountLevel(d: Tumbler) {
-    (exists j :: 0 <= j < |d.components| && d.components[j] == 0) &&
-    FirstZeroFrom(d.components, 0) + 1 < |d.components|
-  }
-
-  // account(d): extract the account prefix (through component after first zero)
-  function AccountPrefix(d: DocId): Tumbler
-    requires HasAccountLevel(d)
-  {
-    var z := FirstZeroFrom(d.components, 0);
-    Tumbler(d.components[..z+2])
-  }
-
-  // Document-level prefix: d_s ≺ d_v
-  ghost predicate DocLevelPrefix(ds: Tumbler, dv: Tumbler) {
-    IsPrefix(ds, dv) && ds != dv &&
-    ValidDocAddr(ds) && ValidDocAddr(dv)
+    CountZeros(t.components) == 1
   }
 
   // parent(d) undefined in the given document set

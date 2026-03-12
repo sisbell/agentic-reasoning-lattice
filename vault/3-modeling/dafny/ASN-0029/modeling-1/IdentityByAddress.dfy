@@ -1,28 +1,17 @@
 include "../../../../proofs/TumblerAlgebra/TumblerAlgebra.dfy"
 include "../../../../proofs/Foundation/Foundation.dfy"
+include "../../../../proofs/AddressAllocation/HierarchicalParsing.dfy"
 
 module IdentityByAddress {
   import opened TumblerAlgebra
   import opened Foundation
+  import opened HierarchicalParsing
 
   // ASN-0029 D6 — IdentityByAddress (INV, predicate(DocId, DocId))
   // d₁ = d₂  ⟺  fields(d₁) = fields(d₂)
 
   // Parsed document address fields
   datatype DocFields = DocFields(node: seq<nat>, user: seq<nat>, doc: seq<nat>)
-
-  // Find first zero at or after index i
-  function FirstZeroFrom(s: seq<nat>, i: nat): nat
-    requires i <= |s|
-    requires exists j :: i <= j < |s| && s[j] == 0
-    ensures i <= FirstZeroFrom(s, i) < |s|
-    ensures s[FirstZeroFrom(s, i)] == 0
-    ensures forall j :: i <= j < FirstZeroFrom(s, i) ==> s[j] != 0
-    decreases |s| - i
-  {
-    if s[i] == 0 then i
-    else FirstZeroFrom(s, i + 1)
-  }
 
   // Document-level address: form [N..., 0, U..., 0, D...] with exactly
   // two zero separators and all field components nonzero

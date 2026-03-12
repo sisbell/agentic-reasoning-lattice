@@ -5,7 +5,7 @@
 | ASN Label | Proof Label | Type | Construct | Notes |
 |-----------|------------|------|-----------|-------|
 | AccountAddr | ValidAccountAddr | INV | predicate(Tumbler) | definition |
-| account | AccountPrefix | INV | function(DocId): Tumbler | definition |
+| account | HierarchicalParsing.AccountPrefix | INV | function(Tumbler): Tumbler | shared; in AddressAllocation |
 | D0 | EmptyCreation | POST | ensures | includes pre and frame |
 | D1 | DocumentAllocation | INV | predicate(DocId, DocId) | per-allocator |
 | D2 | DocumentPermanence | INV | predicate(State, State) | transition |

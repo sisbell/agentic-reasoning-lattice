@@ -1,19 +1,21 @@
 include "../../../../proofs/TumblerAlgebra/TumblerAlgebra.dfy"
 include "../../../../proofs/Foundation/Foundation.dfy"
+include "../../../../proofs/AddressAllocation/HierarchicalParsing.dfy"
+include "../../../../proofs/DocumentOntology/DocumentOntology.dfy"
 
 module PublicationSurrenderModule {
   import opened Foundation
+  import DocumentOntology
 
   // ASN-0029 D11 — PublicationSurrender (INV, predicate(State, DocId))
   // normative
 
-  datatype PubStatus = Private | Published | Privashed
   datatype Session = Session(id: nat)
 
   // Extended state: Foundation.State + publication status + access rights
   datatype DocState = DocState(
     base: State,
-    pub: map<DocId, PubStatus>,
+    pub: map<DocId, DocumentOntology.PubStatus>,
     sessions: set<Session>,
     readers: map<DocId, set<Session>>,
     linkers: map<DocId, set<Session>>,
@@ -36,7 +38,7 @@ module PublicationSurrenderModule {
   ghost predicate PublicationSurrender(ds: DocState, d: DocId) {
     d in ds.base.docs && d in ds.pub &&
     d in ds.readers && d in ds.linkers && d in ds.transcluders &&
-    (ds.pub[d] == Published ==>
+    (ds.pub[d] == DocumentOntology.Published ==>
       // (a) any session may read d
       ds.sessions <= ds.readers[d] &&
       // (b) any session may create links into d

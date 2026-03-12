@@ -1,12 +1,13 @@
 include "../../../../proofs/TumblerAlgebra/TumblerAlgebra.dfy"
 include "../../../../proofs/Foundation/Foundation.dfy"
+include "../../../../proofs/AddressAllocation/HierarchicalParsing.dfy"
+include "../../../../proofs/DocumentOntology/DocumentOntology.dfy"
 
 module PublishOperation {
   import opened Foundation
+  import opened DocumentOntology
 
   // D10a — PublishOperation (POST, ensures)
-
-  datatype PubStatus = Private | Published | Privashed
 
   // DIVERGENCE: account(d) = actor(op) precondition omitted. Authorization
   // is a protocol-layer constraint; the state transformation is independent

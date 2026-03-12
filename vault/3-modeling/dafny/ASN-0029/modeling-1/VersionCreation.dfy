@@ -1,54 +1,16 @@
 include "../../../../proofs/TumblerAlgebra/TumblerAlgebra.dfy"
 include "../../../../proofs/Foundation/Foundation.dfy"
 include "../../../../proofs/AddressAllocation/HierarchicalParsing.dfy"
+include "../../../../proofs/DocumentOntology/DocumentOntology.dfy"
 
 module VersionCreationModule {
   import opened TumblerAlgebra
   import opened Foundation
-  import HierarchicalParsing
+  import opened HierarchicalParsing
+  import opened DocumentOntology
 
   // ASN-0029 D12 — VersionCreation (POST, ensures)
   // CREATENEWVERSION(d_s, a_req) → d_v
-
-  datatype PubStatus = Private | Published | Privashed
-
-  datatype DocState = DocState(
-    base: State,
-    pub: map<DocId, PubStatus>
-  )
-
-  predicate ValidDocAddr(d: Tumbler) {
-    HierarchicalParsing.CountZeros(d.components) == 2
-  }
-
-  function FirstZeroFrom(s: seq<nat>, i: nat): nat
-    requires i <= |s|
-    requires exists j :: i <= j < |s| && s[j] == 0
-    ensures i <= FirstZeroFrom(s, i) < |s|
-    ensures s[FirstZeroFrom(s, i)] == 0
-    ensures forall j :: i <= j < FirstZeroFrom(s, i) ==> s[j] != 0
-    decreases |s| - i
-  {
-    if s[i] == 0 then i
-    else FirstZeroFrom(s, i + 1)
-  }
-
-  predicate HasAccountLevel(d: Tumbler) {
-    (exists j :: 0 <= j < |d.components| && d.components[j] == 0) &&
-    FirstZeroFrom(d.components, 0) + 1 < |d.components|
-  }
-
-  function AccountPrefix(d: DocId): Tumbler
-    requires HasAccountLevel(d)
-  {
-    var z := FirstZeroFrom(d.components, 0);
-    Tumbler(d.components[..z+2])
-  }
-
-  ghost predicate DocLevelPrefix(ds: Tumbler, dv: Tumbler) {
-    IsPrefix(ds, dv) && ds != dv &&
-    ValidDocAddr(ds) && ValidDocAddr(dv)
-  }
 
   // parent(d) = p in document set: p is the maximal doc-level prefix of d
   ghost predicate IsParentIn(p: DocId, c: DocId, docs: set<DocId>) {

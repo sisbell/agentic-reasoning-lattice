@@ -1,11 +1,11 @@
 include "../../../../proofs/TumblerAlgebra/TumblerAlgebra.dfy"
 include "../../../../proofs/Foundation/Foundation.dfy"
+include "../../../../proofs/AddressAllocation/HierarchicalParsing.dfy"
+include "../../../../proofs/DocumentOntology/DocumentOntology.dfy"
 
 module PublicationMonotonicity {
   import opened Foundation
-
-  // Publication status per document
-  datatype PubStatus = Private | Published | Privashed
+  import opened DocumentOntology
 
   // D10 — PublicationMonotonicity (INV, predicate(State, State))
   // [Σ.pub(d) = published ⟹ Σ'.pub(d) = published]

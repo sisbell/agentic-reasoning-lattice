@@ -1,10 +1,11 @@
 include "../../../../proofs/TumblerAlgebra/TumblerAlgebra.dfy"
 include "../../../../proofs/Foundation/Foundation.dfy"
+include "../../../../proofs/AddressAllocation/HierarchicalParsing.dfy"
+include "../../../../proofs/DocumentOntology/DocumentOntology.dfy"
 
 module PublicationFrame {
   import opened Foundation
-
-  datatype PubStatus = Private | Published | Privashed
+  import opened DocumentOntology
 
   // D10-ext — PublicationFrame (FRAME, ensures)
   // For any ASN-0026 operation (INSERT, DELETE, COPY, REARRANGE):

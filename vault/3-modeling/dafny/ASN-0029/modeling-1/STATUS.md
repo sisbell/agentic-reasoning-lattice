@@ -1,12 +1,11 @@
 # Verification Status — modeling-1
 
-Updated: 2026-03-12 01:05
-Verified: 26/26
+Updated: 2026-03-12
+Verified: 25/25 (AccountPrefix absorbed into HierarchicalParsing)
 
 | Property | Status | Divergences |
 |----------|--------|-------------|
 | ValidAccountAddr | verified |  |
-| AccountPrefix | verified |  |
 | EmptyCreation | verified | Foundation.State lacks Σ.pub (publication status). DocState extends Foundation's... |
 | DocumentAllocation | verified | allocated_before(d1, d2) is encoded by parameter ordering convention, not as an ... |
 | DocumentPermanence | verified |  |

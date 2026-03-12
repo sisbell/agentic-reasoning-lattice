@@ -7,6 +7,7 @@ proofs/
 ├── TumblerAlgebra/      Tumbler datatype, LessThan, Add/Subtract, IsPrefix
 ├── Foundation/          State model: IAddr, VPos, State, J0–J2
 ├── AddressAllocation/   ASN-0001 address properties: T4, T7, T9, T10, T10a, GlobalUniqueness
+├── DocumentOntology/    ASN-0029 shared types: PubStatus, DocState, ValidDocAddr, DocLevelPrefix
 ├── imports.md           Maps ASN → proof module dependencies for Dafny generation
 └── dfyconfig.toml       Picks up **/*.dfy — no include directives needed
 ```
@@ -29,11 +30,14 @@ TumblerAlgebra          Foundation
     |       |               |
     |   AddressAllocation   |
     |   (T4,T7,T9,T10,GU)  |
+    |       ↑               |
+    |   DocumentOntology ---+
+    |   (PubStatus,DocState)|
     |                       |
     +--- ASN-NN proofs -----+
 ```
 
-AddressAllocation depends on TumblerAlgebra only. Foundation depends on TumblerAlgebra only. Future ASN proof files import both Foundation and AddressAllocation.
+AddressAllocation depends on TumblerAlgebra only. Foundation depends on TumblerAlgebra only. DocumentOntology depends on TumblerAlgebra, Foundation, and AddressAllocation (for HierarchicalParsing.CountZeros). ASN proof files import the modules they need.
 
 ## dfyconfig.toml
 

@@ -1,21 +1,21 @@
 include "../../../../proofs/TumblerAlgebra/TumblerAlgebra.dfy"
 include "../../../../proofs/Foundation/Foundation.dfy"
+include "../../../../proofs/AddressAllocation/HierarchicalParsing.dfy"
+include "../../../../proofs/DocumentOntology/DocumentOntology.dfy"
 
 module OwnershipRightsModule {
   import opened TumblerAlgebra
   import opened Foundation
+  import DocumentOntology
 
   // D3: Account is a pure function of the address (state-independent)
   function Account(d: DocId): Tumbler
-
-  // ASN-0029 publication status
-  datatype PubStatus = Private | Published | Privashed
 
   // DIVERGENCE: Foundation.State lacks publication status and associate lists
   // introduced by ASN-0029. DocState wraps it with these fields.
   datatype DocState = DocState(
     base: State,
-    pub_status: map<DocId, PubStatus>,
+    pub_status: map<DocId, DocumentOntology.PubStatus>,
     associates: map<DocId, set<Tumbler>>
   )
 
@@ -30,7 +30,7 @@ module OwnershipRightsModule {
     requires d in ds.pub_status
     requires d in ds.associates
   {
-    ds.pub_status[d] == Private ==>
+    ds.pub_status[d] == DocumentOntology.Private ==>
       (accessor == Account(d) || accessor in ds.associates[d])
   }
 
