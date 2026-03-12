@@ -69,7 +69,7 @@ The partition is over the state Σ — an address may transition between states 
     (e)  (ii) → (iii):  forbidden — would violate P1
     (f)  (iii) → (ii):  reachable — via (a) then (b)
 
-Note: A3 classifies which state-pairs are reachable, not single-step transitions. Transitions (a) through (e) are each achievable by a single operation. Transition (f) is composite: no single operation allocates an I-address without placing it in V-space. INSERT atomically allocates fresh I-addresses *and* inserts them into the target document (P9-new, P9-left, P9-right), so fresh content enters state (i) directly. The path to state (ii) requires a subsequent DELETE — that is, (iii)→(i) via INSERT, then (i)→(ii) via DELETE.
+Note: A3 classifies which state-pairs are reachable, not single-step transitions. Transitions (a), (b), (d), and (e) are each achievable by a single operation. Transition (c) is permitted by the invariants but not achievable by any currently defined operation for truly unreferenced addresses — see qualification below. Transition (f) is composite: no single operation allocates an I-address without placing it in V-space. INSERT atomically allocates fresh I-addresses *and* inserts them into the target document (P9-new, P9-left, P9-right), so fresh content enters state (i) directly. The path to state (ii) requires a subsequent DELETE — that is, (iii)→(i) via INSERT, then (i)→(ii) via DELETE.
 
 The forbidden transitions are the permanence guarantee stated negatively: content, once allocated, cannot become unallocated. The allocated set only grows; the address space never contracts. Gregory's implementation evidence is definitive on this point. The function `deleteseq` — the only code that could remove a granfilade entry and thereby reduce the I-space — is dead code: defined in `edit.c` but called nowhere in the system. No code path from DELETE reaches the granfilade. DELETE operates exclusively on the POOM (the V→I mapping), removing V-space positions while leaving I-space untouched.
 
@@ -160,10 +160,10 @@ DELETE does affect reachability. After DELETE(d, p, k), by (d) and (e), position
     (d)  (A j : 1 ≤ j < p_t : Σ'.V(d_t)(j) = Σ.V(d_t)(j))
     (e)  (A j : p_t ≤ j ≤ n_{d_t} : Σ'.V(d_t)(j + k) = Σ.V(d_t)(j))
     frame:
-    (f)  Σ'.V(d_s) = Σ.V(d_s)
+    (f)  d_s ≠ d_t ⟹ Σ'.V(d_s) = Σ.V(d_s)
     (g)  (A d' : d' ∈ Σ.D ∧ d' ≠ d_t : Σ'.V(d') = Σ.V(d'))
 
-Note: ASN-0026 asserts only that COPY has `fresh = ∅` (+_ext) and writes to the target document (P7). The V-space postconditions — that target positions map to the same I-addresses as source positions (a), that existing content is preserved with insert semantics (c)–(e), and that the source and other documents are unchanged (f)–(g) — are not derivable from any foundation. A5 is a *specification requirement*, matching A4a's treatment: what a correct COPY must satisfy, not a derived property. If a future ASN formalizes COPY, A5 becomes a required postcondition to verify. Parts (c)–(e) follow INSERT semantics: existing positions below `p_t` are unchanged, existing positions at and above `p_t` shift by k. Gregory's implementation confirms this: `docopyinternal` calls `insertpm` — the same insert-into-POOM routine used by INSERT — to place the copied I-addresses into the target.
+Note: ASN-0026 asserts only that COPY has `fresh = ∅` (+_ext) and writes to the target document (P7). The V-space postconditions — that target positions map to the same I-addresses as source positions (a), that existing content is preserved with insert semantics (c)–(e), and that non-target documents are unchanged (g) — are not derivable from any foundation. A5 is a *specification requirement*, matching A4a's treatment: what a correct COPY must satisfy, not a derived property. Part (f) is conditioned on `d_s ≠ d_t` because self-transclusion is valid (P5, ASN-0026): when the source and target are the same document, the target's V-space changes by (a)–(e). When `d_s ≠ d_t`, (f) is an instance of (g); we state it separately for clarity. If a future ASN formalizes COPY, A5 becomes a required postcondition to verify. Parts (c)–(e) follow INSERT semantics: existing positions below `p_t` are unchanged, existing positions at and above `p_t` shift by k. Gregory's implementation confirms this: `docopyinternal` calls `insertpm` — the same insert-into-POOM routine used by INSERT — to place the copied I-addresses into the target.
 
 The target document's new positions map to the *same I-addresses* as the source. No fresh I-space content is allocated. This is what distinguishes transclusion from conventional copying: the operation creates shared references, not duplicate content. Two documents that share an I-address share identity — the system can compute that they contain the same content, because "the same content" means "the same I-address," not "matching bytes."
 
@@ -183,8 +183,10 @@ Gregory confirms the mechanism: `docopyinternal` calls `specset2ispanset` to rea
     (b)  |Σ'.V(d)| = |Σ.V(d)|
     (c)  (E π : π is a bijection [1..n_d] → [1..n_d] :
             (A p : 1 ≤ p ≤ n_d : Σ'.V(d)(p) = Σ.V(d)(π(p))))
+    frame:
+    (d)  (A d' : d' ∈ Σ.D ∧ d' ≠ d : Σ'.V(d') = Σ.V(d'))
 
-Note: REARRANGE has no formal specification in any foundation ASN. A4a is a *specification requirement* — what a correct REARRANGE must satisfy — not a derived property. If a future ASN formalizes REARRANGE, A4a becomes a required postcondition to verify.
+Note: REARRANGE has no formal specification in any foundation ASN. A4a is a *specification requirement* — what a correct REARRANGE must satisfy — not a derived property. If a future ASN formalizes REARRANGE, A4a becomes a required postcondition to verify. Part (d) is P7 (CrossDocVIndependent, ASN-0026).
 
 Part (c) asserts that the post-state V-space is a *permutation* of the pre-state — the same content, at different positions. Set equality would be insufficient: a V-space `[a, a, b]` → `[a, b, b]` preserves the set `{a, b}` and the length, but silently duplicates one I-address reference and drops another. Permutation prevents this — every position in the post-state maps to exactly one position in the pre-state, and conversely. REARRANGE permutes the V-space arrangement without adding, removing, or duplicating I-address references.
 
@@ -278,15 +280,13 @@ Nelson's design includes addresses that are valid points in tumbler space but ha
 
 Ghost links enable forward references: a link created to a document or account address that has not yet received content. Nelson: "It is possible to link to a node, or an account, even though there is nothing stored in the docuverse corresponding to them." When content is eventually placed at that address (transition (iii) → (i)), the link becomes resolvable without any modification to the link itself.
 
-Ghost addresses at the *same level* as existing allocations — between siblings — remain ghosts permanently. The argument requires two cases, corresponding to the two allocation modes in T10a (AllocatorDiscipline, ASN-0001).
+We observe that ghosts arise in two structurally distinct situations, and their permanence follows from different arguments.
 
-*Sibling allocations.* An allocator's sibling stream advances by `inc(·, 0)`, which increments the last significant position (TA5(c), ASN-0001). If addresses `t₁` and `t₃` are siblings (`#t₁ = #t₃`) with `t₁ < t₃`, and `t₂` is a ghost between them at the same level (`t₁ < t₂ < t₃`, `#t₂ = #t₁`), then T9 (ForwardAllocation) guarantees all future siblings `t'` satisfy `t' > t₃ > t₂`. Sibling allocation cannot produce `t₂`.
+*Frontier ghosts.* Each allocator's sibling stream advances by `inc(·, 0)` — sequential increment at the last significant position (T10a, AllocatorDiscipline, ASN-0001). If the highest allocated sibling is `t_h`, then every same-level address `t > t_h` is a ghost. These are *frontier ghosts*: they lie beyond the allocation frontier. By T9 (ForwardAllocation), all future sibling allocations produce addresses strictly greater than `t_h`, advancing the frontier monotonically. Frontier ghosts below the current frontier cannot exist — T10a's sequential discipline means the allocator passed through every intermediate value to reach `t_h`. Between any two siblings `t₁ < t₃` produced by the same allocator, every same-level address was necessarily allocated by the sequential stream. Combined with T8/P1, same-level gaps between siblings are impossible.
 
-*Child allocations.* An allocator spawns a child via `inc(·, k')` with `k' > 0`, producing a tumbler strictly longer than the parent (TA5(d): `#t' = #t + k'`). Children of `t₁` extend `t₁`'s prefix: `t₁ ≼ t₁'` for any child `t₁'`. By PrefixOrderingExtension (ASN-0001), since `t₁ < t₃` and neither is a prefix of the other (they are siblings), every extension of `t₁` is less than every extension of `t₃`. So children of `t₁` satisfy `t₁ < t₁' < t₃` — they fall within the interval, but within `t₁`'s prefix subtree specifically. A same-level ghost `t₂` between siblings with `#t₂ = #t₁` is not in any sibling's prefix subtree (it would need to be strictly longer than `t₁` to extend `t₁`'s prefix, since `t₁ ≼ t₂ ∧ t₁ ≠ t₂` requires `#t₂ > #t₁`). So child allocation cannot produce a same-level ghost.
+Frontier ghosts are permanent in a precise sense: any particular frontier ghost `t_g > t_h` either remains a ghost forever (if the allocator never reaches it) or transitions to allocated when the frontier advances past it. Once allocated (transition (iii)→(i)), it can never return to ghost status (A3, transitions (d) and (e) are forbidden). The ghost set at the frontier only shrinks — it never grows.
 
-Together: a ghost `t₂` between siblings `t₁` and `t₃` at the same level (`#t₂ = #t₁ = #t₃`) cannot be filled by any future allocation.
-
-However, ghosts at *different levels* within an existing allocation's prefix subtree *can* be filled. Consider `t₁ = [1]` and `t₃ = [3]`: the ghost `t₂ = [1, 0, 1]` satisfies `t₁ < t₂ < t₃` under T1 and has `t₁ ≼ t₂`. Child allocation `inc([1], 1)` produces exactly `[1, 0, 1]` by TA5(d). This is correct behavior — the ghost is within `t₁`'s prefix subtree and is allocated as a legitimate child. The permanence guarantee applies only to same-level ghosts outside any existing allocation's subtree.
+*Subtree ghosts.* Addresses within an unestablished prefix subtree are ghosts. Consider `t₁ = [1]` and `t₃ = [3]`: the address `[1, 0, 1]` satisfies `t₁ < [1, 0, 1] < t₃` under T1 and has `t₁ ≼ [1, 0, 1]`. These ghosts *can* be filled: child allocation `inc([1], 2)` produces exactly `[1, 0, 1]` by TA5(d). This is correct behavior — the ghost is within `t₁`'s prefix subtree, and child allocation establishes that subtree on demand. Subtree ghosts are fillable precisely because they fall under an existing allocation's prefix, and the parent can spawn child allocators into its own subtree (T10a).
 
 ---
 
@@ -325,8 +325,8 @@ The distinction between "the invariant holds" and "the client can verify the inv
 | A2 | Every valid address is in exactly one of: active, unreferenced, unallocated | introduced |
 | A3 | Transitions (i)→(iii) and (ii)→(iii) forbidden; all others permitted | introduced |
 | A4 | DELETE: `Σ'.I = Σ.I`, removed I-addresses persist, V-space contracts with left-unchanged and right-shifted | introduced (requirement) |
-| A4a | REARRANGE: `Σ'.I = Σ.I` and V-space is a permutation of pre-state | introduced (requirement) |
-| A5 | COPY: target positions share source I-addresses, `Σ'.I = Σ.I`, insert semantics on target V-space | introduced (requirement) |
+| A4a | REARRANGE: `Σ'.I = Σ.I`, V-space is a permutation of pre-state, other documents unchanged | introduced (requirement) |
+| A5 | COPY: target positions share source I-addresses, `Σ'.I = Σ.I`, insert semantics on target V-space, source unchanged when `d_s ≠ d_t` | introduced (requirement) |
 | A6 | Version correspondence computable from shared I-addresses | introduced |
 | A7 | `(A a ∈ endset(L) : Σ'.I(a) = Σ.I(a))` — link target content is stable | introduced |
 | A7a | `(A a ∈ endset(L) : a ∈ dom(Σ.I) ⟹ a ∈ dom(Σ'.I))` — allocated endset addresses are permanent | introduced |
