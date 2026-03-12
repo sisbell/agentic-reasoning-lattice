@@ -1,5 +1,5 @@
 include "../../../../proofs/TumblerAlgebra/TumblerAlgebra.dfy"
-include "../../../../proofs/AddressProperties/HierarchicalParsing.dfy"
+include "../../../../proofs/AddressAllocation/HierarchicalParsing.dfy"
 
 module ValidAccountAddr {
   import opened TumblerAlgebra

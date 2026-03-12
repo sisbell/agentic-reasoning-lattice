@@ -4,7 +4,7 @@
 
 | ASN | Title | Layer | Status | Notes |
 |-----|-------|-------|--------|-------|
-| ASN-0001 | Tumbler Algebra | Foundation | **Final** | Dafny proofs promoted to `vault/proofs/TumblerAlgebra/` and `AddressProperties/` |
+| ASN-0001 | Tumbler Algebra | Foundation | **Final** | Dafny proofs promoted to `vault/proofs/TumblerAlgebra/` and `AddressAllocation/` |
 | ASN-0002 | Address Permanence | — | **Deprecated** | Superseded by ASN-0025. |
 | ASN-0003 | I-Space and V-Space | — | **Deprecated** | Superseded by ASN-0026. Mixes foundation with operations. |
 | ASN-0004 | Content Insertion | Operation | **Draft** | Needs redraft. Has proof index + formal statements (old types). |

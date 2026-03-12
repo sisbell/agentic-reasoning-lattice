@@ -1,6 +1,6 @@
 include "../../../../proofs/TumblerAlgebra/TumblerAlgebra.dfy"
 include "../../../../proofs/Foundation/Foundation.dfy"
-include "../../../../proofs/AddressProperties/SubspaceDisjointness.dfy"
+include "../../../../proofs/AddressAllocation/SubspaceDisjointness.dfy"
 include "../../../../proofs/TwoSpace/ReferentiallyComplete.dfy"
 include "OriginTraceability.dfy"
 

@@ -7,5 +7,5 @@ generator reads all listed modules and injects their source into the prompt.
 | ASN | Additional proof modules |
 |-----|-------------------------|
 | ASN-0001 | |
-| ASN-0026 | AddressProperties |
-| ASN-0029 | AddressProperties, TwoSpace |
+| ASN-0026 | AddressAllocation |
+| ASN-0029 | AddressAllocation, TwoSpace |

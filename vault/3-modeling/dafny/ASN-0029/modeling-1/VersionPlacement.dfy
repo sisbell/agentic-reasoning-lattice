@@ -1,6 +1,6 @@
 include "../../../../proofs/TumblerAlgebra/TumblerAlgebra.dfy"
 include "../../../../proofs/Foundation/Foundation.dfy"
-include "../../../../proofs/AddressProperties/HierarchicalParsing.dfy"
+include "../../../../proofs/AddressAllocation/HierarchicalParsing.dfy"
 
 module VersionPlacement {
   import opened TumblerAlgebra

@@ -1,8 +1,8 @@
 include "../../../../proofs/TumblerAlgebra/TumblerAlgebra.dfy"
-include "../../../../proofs/AddressProperties/ForwardAllocation.dfy"
-include "../../../../proofs/AddressProperties/PartitionIndependence.dfy"
-include "../../../../proofs/AddressProperties/AllocatorDiscipline.dfy"
-include "../../../../proofs/AddressProperties/GlobalUniqueness.dfy"
+include "../../../../proofs/AddressAllocation/ForwardAllocation.dfy"
+include "../../../../proofs/AddressAllocation/PartitionIndependence.dfy"
+include "../../../../proofs/AddressAllocation/AllocatorDiscipline.dfy"
+include "../../../../proofs/AddressAllocation/GlobalUniqueness.dfy"
 
 module CreationBasedIdentity {
   import opened TumblerAlgebra

@@ -6,18 +6,18 @@
 proofs/
 ├── TumblerAlgebra/      Tumbler datatype, LessThan, Add/Subtract, IsPrefix
 ├── Foundation/          State model: IAddr, VPos, State, J0–J2
-├── AddressProperties/   ASN-0001 address properties: T4, T7, T9, T10, T10a, GlobalUniqueness
+├── AddressAllocation/   ASN-0001 address properties: T4, T7, T9, T10, T10a, GlobalUniqueness
 ├── imports.md           Maps ASN → proof module dependencies for Dafny generation
 └── dfyconfig.toml       Picks up **/*.dfy — no include directives needed
 ```
 
 ## Why three peer directories (not nested)
 
-AddressProperties is a top-level peer of TumblerAlgebra, not a subdirectory of it.
+AddressAllocation is a top-level peer of TumblerAlgebra, not a subdirectory of it.
 
-**Import direction, not containment.** AddressProperties imports TumblerAlgebra (it uses Tumbler, LessThan, IsPrefix), but it is not part of the tumbler algebra. It is a collection of ASN-0001 domain properties — hierarchical parsing, subspace disjointness, forward allocation, allocator discipline, partition independence, global uniqueness. These are specification-level properties about how the Xanadu address space behaves, not algebraic operations on tumblers.
+**Import direction, not containment.** AddressAllocation imports TumblerAlgebra (it uses Tumbler, LessThan, IsPrefix), but it is not part of the tumbler algebra. It is a collection of ASN-0001 domain properties — hierarchical parsing, subspace disjointness, forward allocation, allocator discipline, partition independence, global uniqueness. These are specification-level properties about how the Xanadu address space behaves, not algebraic operations on tumblers.
 
-**Separate concerns for downstream consumers.** ASN-25 proofs (and future ASN proofs) import Foundation for types and AddressProperties for lemmas. These are independent concerns: a proof file might need the State model without any address properties, or vice versa. Nesting would conflate them.
+**Separate concerns for downstream consumers.** ASN-25 proofs (and future ASN proofs) import Foundation for types and AddressAllocation for lemmas. These are independent concerns: a proof file might need the State model without any address properties, or vice versa. Nesting would conflate them.
 
 **Promotion origin.** These files were promoted from `vault/3-modeling/dafny/ASN-0001/modeling-1/` into `vault/proofs/` so that downstream ASN proofs can import them as verified building blocks. They were not refactored or restructured — only `include` directives were removed (dfyconfig.toml handles resolution).
 
@@ -27,13 +27,13 @@ AddressProperties is a top-level peer of TumblerAlgebra, not a subdirectory of i
 TumblerAlgebra          Foundation
     ↑       ↑               ↑
     |       |               |
-    |   AddressProperties   |
+    |   AddressAllocation   |
     |   (T4,T7,T9,T10,GU)  |
     |                       |
     +--- ASN-NN proofs -----+
 ```
 
-AddressProperties depends on TumblerAlgebra only. Foundation depends on TumblerAlgebra only. Future ASN proof files import both Foundation and AddressProperties.
+AddressAllocation depends on TumblerAlgebra only. Foundation depends on TumblerAlgebra only. Future ASN proof files import both Foundation and AddressAllocation.
 
 ## dfyconfig.toml
 
