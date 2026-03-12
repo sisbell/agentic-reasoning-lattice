@@ -1,6 +1,6 @@
 include "../../../../proofs/TumblerAlgebra/TumblerAlgebra.dfy"
 include "../../../../proofs/Foundation/Foundation.dfy"
-include "../../../../proofs/IVSpaceProperties/CrossDocVIndependent.dfy"
+include "../../../../proofs/TwoSpace/CrossDocVIndependent.dfy"
 
 module InclusionNonDestruction {
   import opened Foundation

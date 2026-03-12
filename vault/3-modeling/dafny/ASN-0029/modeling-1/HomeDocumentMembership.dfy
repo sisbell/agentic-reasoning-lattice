@@ -1,7 +1,7 @@
 include "../../../../proofs/TumblerAlgebra/TumblerAlgebra.dfy"
 include "../../../../proofs/Foundation/Foundation.dfy"
 include "../../../../proofs/AddressProperties/SubspaceDisjointness.dfy"
-include "../../../../proofs/IVSpaceProperties/ReferentiallyComplete.dfy"
+include "../../../../proofs/TwoSpace/ReferentiallyComplete.dfy"
 include "OriginTraceability.dfy"
 
 module HomeDocumentMembershipModule {
