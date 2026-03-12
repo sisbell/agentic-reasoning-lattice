@@ -8,6 +8,7 @@ proofs/
 ├── Foundation/          State model: IAddr, VPos, State, J0–J2
 ├── AddressAllocation/   ASN-0001 address properties: T4, T7, T9, T10, T10a, GlobalUniqueness
 ├── DocumentOntology/    ASN-0029 shared types: PubStatus, DocState, ValidDocAddr, DocLevelPrefix
+├── CHANGELOG.md         History of module changes and rationale
 ├── imports.md           Maps ASN → proof module dependencies for Dafny generation
 └── dfyconfig.toml       Picks up **/*.dfy — no include directives needed
 ```
