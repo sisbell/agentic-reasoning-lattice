@@ -193,3 +193,8 @@ inquiries:
     question: "What invariants govern document creation, ownership, and the relationship between documents in the docuverse? What does it mean to open, close, and create documents?"
     area: documents
 
+  - id: 30
+    title: "Address Permanence"
+    question: "What guarantees does the system provide about address permanence? Once content is assigned an address, can that assignment ever change? What is the relationship between permanence of content identity and the ability to reach that content?"
+    area: addressing
+

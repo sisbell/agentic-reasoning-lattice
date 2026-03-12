@@ -114,7 +114,7 @@ VERDICT: CONVERGED | REVISE
 
 Output the META and VERDICT lines as plain text, exactly as shown — no markdown bold, no asterisks.
 
-**VERDICT** is mandatory. Use CONVERGED when all REVISE items are minor (prose clarity, counting errors, formatting) and the formal content is correct. Use REVISE when any issue affects correctness (wrong precondition, missing case in proof, false axiom, unsound derivation). An ASN with zero REVISE items is always CONVERGED. An ASN whose REVISE items are all presentation fixes is CONVERGED.
+**VERDICT** is mandatory. Use CONVERGED only when there are zero REVISE items. Use REVISE when any issue remains — correctness, missing cases, prose clarity, all of it. If you have something to say under REVISE, the verdict is REVISE.
 
 ## ASN to Review
 
