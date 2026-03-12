@@ -67,7 +67,9 @@ The partition is over the state Σ — an address may transition between states 
     (c)  (ii) → (i):    permitted — but see qualification below
     (d)  (i) → (iii):   forbidden — would violate P1
     (e)  (ii) → (iii):  forbidden — would violate P1
-    (f)  (iii) → (ii):  permitted — allocation without V-space insertion
+    (f)  (iii) → (ii):  reachable — via (a) then (b)
+
+Note: A3 classifies which state-pairs are reachable, not single-step transitions. Transitions (a) through (e) are each achievable by a single operation. Transition (f) is composite: no single operation allocates an I-address without placing it in V-space. INSERT atomically allocates fresh I-addresses *and* inserts them into the target document (P9-new, P9-left, P9-right), so fresh content enters state (i) directly. The path to state (ii) requires a subsequent DELETE — that is, (iii)→(i) via INSERT, then (i)→(ii) via DELETE.
 
 The forbidden transitions are the permanence guarantee stated negatively: content, once allocated, cannot become unallocated. The allocated set only grows; the address space never contracts. Gregory's implementation evidence is definitive on this point. The function `deleteseq` — the only code that could remove a granfilade entry and thereby reduce the I-space — is dead code: defined in `edit.c` but called nowhere in the system. No code path from DELETE reaches the granfilade. DELETE operates exclusively on the POOM (the V→I mapping), removing V-space positions while leaving I-space untouched.
 
@@ -79,7 +81,7 @@ But if the I-address is in state (ii) — `refs(a) = ∅`, present in no documen
 
 Nelson's intent is clear: "The true storage of text should be in a system that stores each change and fragment individually... keeping the former changes; integrating them all by means of an indexing method that allows any previous instant to be reconstructed." The recovery mechanism is the historical trace enfilade — an index over the append-only I-space that reconstructs any previous arrangement on demand. This mechanism is consistent with our invariants (no operation would need to violate A0 or modify I-space) but is not yet specified. We record transition (c) as *permitted by the invariants* but *not achievable by any currently defined operation* for truly unreferenced addresses. The I-address is a permanent name; V-space is merely the question of who is currently using that name.
 
-Transition (f) arises when content is allocated — INSERT creates fresh I-addresses (P9-new, ASN-0026) — but then immediately deleted from V-space before any other document transcludes it. The content enters state (ii) directly. This is a normal consequence of the separation: allocation is permanent, arrangement is editorial.
+Transition (f) requires two operations: INSERT followed by DELETE. INSERT creates fresh I-addresses (P9-new, ASN-0026) and places them in d's V-space — state (i). A subsequent DELETE removes them from V-space before any other document transcludes them — state (ii). The content never enters state (ii) in a single step. This is a normal consequence of the separation: allocation is permanent, arrangement is editorial.
 
 ---
 
@@ -110,6 +112,16 @@ The scenario demonstrates: identity is untouched throughout; reachability fluctu
 
 We now examine each operation through the lens of identity and reachability. The question for each: does it preserve identity? does it preserve reachability?
 
+### INSERT
+
+INSERT is the only operation that extends dom(Σ.I). It is the primary witness for transition (iii)→(i) and the operation most central to address permanence.
+
+**A0 for existing addresses.** INSERT(d, p, k) allocates k fresh I-addresses and places them in d's V-space. By +_ext (ISpaceExtension, ASN-0026), `Σ'.I = Σ.I +_ext fresh` where `fresh ∩ dom(Σ.I) = ∅`. For all previously allocated addresses, A0 holds: `(A a ∈ dom(Σ.I) : a ∈ dom(Σ'.I) ∧ Σ'.I(a) = Σ.I(a))`.
+
+**Fresh content is immediately reachable.** By P9-new (FreshPositions, ASN-0026), `(A j : p ≤ j < p + k : Σ'.V(d)(j) ∈ fresh)`. Each fresh I-address enters dom(Σ'.I) and appears in d's V-space in the same atomic step. Fresh content is born into state (i) — active — with `refs(a) ⊇ {(d, j)}` for the corresponding position j. There is no intermediate state in which the content is allocated but unreachable.
+
+**Reachability of existing content.** P9-left (LeftUnchanged) preserves positions below p. P9-right (RightShifted) shifts positions at and above p by k, preserving the I-address mappings. P7 (CrossDocVIndependent) preserves all other documents. No existing I-address loses reachability through INSERT.
+
 ### DELETE
 
 **A4 (DeletePreservesIdentity).** DELETE(d, p, k) — remove k positions starting at p from document d — satisfies:
@@ -127,7 +139,7 @@ DELETE does affect reachability. After DELETE(d, p, k), the I-addresses at posit
 
 ### COPY
 
-**A5 (TransclusionIdentity).** COPY(d_s, p_s, k, d_t, p_t) — copy k positions from d_s into d_t — satisfies:
+**A5 (TransclusionIdentity).** We require that COPY(d_s, p_s, k, d_t, p_t) — copy k positions from d_s into d_t — satisfy:
 
     pre:  d_s ∈ Σ.D ∧ d_t ∈ Σ.D ∧ k ≥ 1
         ∧ 1 ≤ p_s ∧ p_s + k − 1 ≤ n_{d_s}
@@ -135,6 +147,8 @@ DELETE does affect reachability. After DELETE(d, p, k), the I-addresses at posit
     post:
     (a)  (A j : 0 ≤ j < k : Σ'.V(d_t)(p_t + j) = Σ.V(d_s)(p_s + j))
     (b)  Σ'.I = Σ.I
+
+Note: ASN-0026 asserts only that COPY has `fresh = ∅` (+_ext) and writes to the target document (P7). The V-space postcondition (a) — that target positions map to the same I-addresses as source positions — is not derivable from any foundation. A5 is a *specification requirement*, matching A4a's treatment: what a correct COPY must satisfy, not a derived property. If a future ASN formalizes COPY, A5(a) becomes a required postcondition to verify.
 
 The target document's new positions map to the *same I-addresses* as the source. No fresh I-space content is allocated. This is what distinguishes transclusion from conventional copying: the operation creates shared references, not duplicate content. Two documents that share an I-address share identity — the system can compute that they contain the same content, because "the same content" means "the same I-address," not "matching bytes."
 
@@ -152,11 +166,12 @@ Gregory confirms the mechanism: `docopyinternal` calls `specset2ispanset` to rea
     post:
     (a)  Σ'.I = Σ.I
     (b)  |Σ'.V(d)| = |Σ.V(d)|
-    (c)  {Σ'.V(d)(p) : 1 ≤ p ≤ n_d} = {Σ.V(d)(p) : 1 ≤ p ≤ n_d}
+    (c)  (E π : π is a bijection [1..n_d] → [1..n_d] :
+            (A p : 1 ≤ p ≤ n_d : Σ'.V(d)(p) = Σ.V(d)(π(p))))
 
 Note: REARRANGE has no formal specification in any foundation ASN. A4a is a *specification requirement* — what a correct REARRANGE must satisfy — not a derived property. If a future ASN formalizes REARRANGE, A4a becomes a required postcondition to verify.
 
-Part (c) asserts that the *set* of I-addresses in d's V-space is unchanged — the same content, at different positions. REARRANGE permutes the V-space arrangement without adding or removing I-addresses.
+Part (c) asserts that the post-state V-space is a *permutation* of the pre-state — the same content, at different positions. Set equality would be insufficient: a V-space `[a, a, b]` → `[a, b, b]` preserves the set `{a, b}` and the length, but silently duplicates one I-address reference and drops another. Permutation prevents this — every position in the post-state maps to exactly one position in the pre-state, and conversely. REARRANGE permutes the V-space arrangement without adding, removing, or duplicating I-address references.
 
 This means REARRANGE preserves both identity (trivially, by (a)) and reachability: every I-address that was reachable through d before remains reachable through d after, and conversely. Positions change; the set of referenced I-addresses does not.
 
@@ -180,11 +195,21 @@ Nelson: "a facility that holds multiple versions of the same material... is not 
 
 Gregory confirms: `docreatenewversion` calls `docopyinternal`, which calls `specset2ispanset` (reading source POOM I-addresses) followed by `insertpm` (writing them verbatim into the version's POOM). At no point is `inserttextingranf` called. Zero fresh I-addresses are allocated — not even for metadata or structural bookkeeping. The version's POOM entries carry the exact same I-address values as the source.
 
+### PUBLISH
+
+PUBLISH(d, status) changes d's publication state (D10a, ASN-0029). Its frame condition leaves Σ.I, Σ.V(d), and all other documents unchanged. Identity and reachability are both trivially preserved — PUBLISH modifies neither I-space nor any V-space.
+
 ---
 
 ## Link Integrity
 
-We are now in a position to derive link integrity from address permanence. A link L connects endsets — each endset is a set of I-address spans. The content at those spans is the link's semantic anchor. Does the content remain stable?
+We are now in a position to derive link integrity from address permanence. A link L has three endsets — from, to, and type — each being a set of I-address spans. The content at those spans is the link's semantic anchor. Does the content remain stable?
+
+We define the set of individual I-addresses covered by a link's endsets. Each endset is a set of spans `(s, l)` with `l > 0`; by T12 (SpanWellDefined, ASN-0001), each span denotes the contiguous set `{t : s ≤ t < s ⊕ l}`. The union across all three endsets gives the complete set of addresses a link references:
+
+    endset(L) = ∪{[s, s ⊕ l) : (s, l) ∈ from(L) ∪ to(L) ∪ type(L)}
+
+When we write `a ∈ endset(L)`, we mean `a` is an individual I-address in this union — not a span.
 
 We work backward from the desired postcondition. We want:
 
@@ -196,7 +221,7 @@ The wp of any operation with respect to R:
     = {by A0: a ∈ dom(Σ.I) suffices for Σ'.I(a) = Σ.I(a)}
       (A a ∈ endset(L) : a ∈ dom(Σ.I))
 
-This precondition holds permanently. At link creation, endset I-addresses were obtained from some document's V-space (the link's source content must exist to be linked). By P2 (ReferentiallyComplete, ASN-0026), those I-addresses are in dom(Σ.I). By P1 (ISpaceMonotone), they remain in dom(Σ.I) in every subsequent state. Therefore:
+We must distinguish two cases. For links whose endset addresses were drawn from a document's V-space — the typical case — the precondition holds permanently. At link creation, P2 (ReferentiallyComplete, ASN-0026) guarantees those I-addresses are in dom(Σ.I). By P1 (ISpaceMonotone), they remain in dom(Σ.I) in every subsequent state. For ghost links (A8 below), the precondition does not hold at creation — the endset contains addresses `a ∉ dom(Σ.I)`. A7 does not apply to those addresses until they are allocated. When content is eventually placed at a ghost address (transition (iii)→(i)), the address enters dom(Σ.I), P1 ensures it stays, and A7 applies from that state onward. Therefore:
 
 **A7 (LinkTargetStability).** For any link L whose endset addresses are in dom(Σ.I), and any operation:
 
@@ -238,7 +263,13 @@ Nelson's design includes addresses that are valid points in tumbler space but ha
 
 Ghost links enable forward references: a link created to a document or account address that has not yet received content. Nelson: "It is possible to link to a node, or an account, even though there is nothing stored in the docuverse corresponding to them." When content is eventually placed at that address (transition (iii) → (i)), the link becomes resolvable without any modification to the link itself.
 
-Ghost addresses at intermediate positions — between existing allocations — remain ghosts permanently. T9 (ForwardAllocation, ASN-0001) guarantees that new allocations occur only at the frontier. No future allocation will "fill in" a ghost address between existing ones.
+Ghost addresses at intermediate positions — between existing allocations — remain ghosts permanently. The argument requires two cases, corresponding to the two allocation modes in T10a (AllocatorDiscipline, ASN-0001).
+
+*Sibling allocations.* An allocator's sibling stream advances by `inc(·, 0)`, which increments the last significant position (TA5(c), ASN-0001). If addresses `t₁` and `t₃` are siblings (`#t₁ = #t₃`) with `t₁ < t₃`, and `t₂` is a ghost between them (`t₁ < t₂ < t₃`, `#t₂ = #t₁`), then T9 (ForwardAllocation) guarantees all future siblings `t'` satisfy `t' > t₃ > t₂`. Sibling allocation cannot produce `t₂`.
+
+*Child allocations.* An allocator spawns a child via `inc(·, k')` with `k' > 0`, producing a tumbler strictly longer than the parent (TA5(d): `#t' = #t + k'`). By T1 (LexicographicOrder), a longer tumbler extending a prefix `p` falls within the contiguous subtree under `p` (T5, ContiguousSubtrees). A child of `t₁` extends `t₁`'s prefix and is therefore `> t₁` but — by PrefixOrderingExtension — `< t₃` only if `t₁ ≼ t₃`, which contradicts `t₁` and `t₃` being distinct siblings (neither is a prefix of the other). So children of `t₁` fall within `t₁`'s subtree, and children of `t₃` fall within `t₃`'s subtree. A ghost address `t₂` between siblings — not in any sibling's prefix subtree — cannot be produced by either allocator's child stream.
+
+Together: no future allocation fills a ghost position between existing allocations.
 
 ---
 
@@ -277,8 +308,8 @@ The distinction between "the invariant holds" and "the client can verify the inv
 | A2 | Every valid address is in exactly one of: active, unreferenced, unallocated | introduced |
 | A3 | Transitions (i)→(iii) and (ii)→(iii) forbidden; all others permitted | introduced |
 | A4 | DELETE: `Σ'.I = Σ.I` and removed I-addresses persist with unchanged content | introduced |
-| A4a | REARRANGE: `Σ'.I = Σ.I` and range of V-space I-addresses unchanged | introduced (requirement) |
-| A5 | COPY: `Σ'.V(d_t)(p_t + j) = Σ.V(d_s)(p_s + j)` and `Σ'.I = Σ.I` — shared identity | introduced |
+| A4a | REARRANGE: `Σ'.I = Σ.I` and V-space is a permutation of pre-state | introduced (requirement) |
+| A5 | COPY: `Σ'.V(d_t)(p_t + j) = Σ.V(d_s)(p_s + j)` and `Σ'.I = Σ.I` — shared identity | introduced (requirement) |
 | A6 | Version correspondence computable from shared I-addresses | introduced |
 | A7 | `(A a ∈ endset(L) : Σ'.I(a) = Σ.I(a))` — link target content is stable | introduced |
 | A7a | `(A a ∈ endset(L) : a ∈ dom(Σ.I) ⟹ a ∈ dom(Σ'.I))` — allocated endset addresses are permanent | introduced |
@@ -286,6 +317,7 @@ The distinction between "the invariant holds" and "the client can verify the inv
 | A8 | Links may reference ghost addresses; `ghost(a) ≡ a ∉ dom(Σ.I) ∧ T4(a)` | introduced |
 | reachable(a, d) | `(E p : (d, p) ∈ refs(a))` — V-space reachability (equiv. `(E p : 1 ≤ p ≤ n_d : Σ.V(d)(p) = a)`) | introduced |
 | reachable(a) | `refs(a) ≠ ∅` — global reachability | introduced |
+| endset(L) | `∪{[s, s ⊕ l) : (s, l) ∈ from(L) ∪ to(L) ∪ type(L)}` — I-addresses covered by a link | introduced |
 | resolvable(L, d) | `(E a ∈ endset(L) : reachable(a, d))` — link resolvability | introduced |
 | ghost(a) | `a ∉ dom(Σ.I) ∧ T4(a)` — valid address without content | introduced |
 
