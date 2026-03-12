@@ -10,3 +10,4 @@ notes/
 # Alloy checker output (receipt.json, solution files)
 vault/3-modeling/alloy/**/receipt.json
 vault/3-modeling/alloy/**/*-solution-*.md
+worktrees/

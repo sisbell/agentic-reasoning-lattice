@@ -12,7 +12,7 @@ fi
 
 name="$1"
 branch="wt/$name"
-wt=".worktrees/$name"
+wt="worktrees/$name"
 
 if [ -d "$wt" ]; then
     echo "Worktree already exists: $wt" >&2
