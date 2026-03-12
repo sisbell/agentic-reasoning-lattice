@@ -198,3 +198,12 @@ inquiries:
     question: "What guarantees does the system provide about address permanence? Once content is assigned an address, can that assignment ever change? What is the relationship between permanence of content identity and the ability to reach that content?"
     area: addressing
 
+  - id: 31
+    title: "Account Creation"
+    question: "How do accounts enter the system? What operation creates them, what invariants govern the account set, and what is the relationship between account existence and document creation preconditions?"
+    area: documents
+    source: "ASN-0029 review-11 OUT_OF_SCOPE: account creation and lifecycle"
+    agents:
+      nelson: 0
+      gregory: 0
+
