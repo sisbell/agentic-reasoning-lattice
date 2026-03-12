@@ -56,6 +56,7 @@ def invoke_claude(prompt, *, model="opus", effort="max", tools=None):
 
     env = os.environ.copy()
     env.pop("CLAUDECODE", None)
+    env.setdefault("CLAUDE_CODE_MAX_OUTPUT_TOKENS", "128000")
     if effort:
         env["CLAUDE_CODE_EFFORT_LEVEL"] = effort
 
@@ -102,6 +103,7 @@ def invoke_claude_agent(prompt, *, model="opus", effort="max",
 
     env = os.environ.copy()
     env.pop("CLAUDECODE", None)
+    env.setdefault("CLAUDE_CODE_MAX_OUTPUT_TOKENS", "128000")
     if effort:
         env["CLAUDE_CODE_EFFORT_LEVEL"] = effort
 
