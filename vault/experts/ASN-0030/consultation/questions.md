@@ -1,0 +1,24 @@
+# Sub-Questions — Address Permanence
+
+**Inquiry:** What guarantees does the system provide about address permanence? Once content is assigned an address, can that assignment ever change? What is the relationship between permanence of content identity and the ability to reach that content?
+
+1. [nelson] Once content is assigned an address in the system, can any operation — editing, deletion, or reorganization — ever cause that address to refer to different content?
+2. [nelson] If a user removes content from their document, does the content's original address continue to exist, and must the system still be able to locate that content through it?
+3. [nelson] What is the distinction between a document no longer displaying certain content and that content's address ceasing to be valid?
+4. [nelson] Must every piece of content that has ever been stored in the system remain permanently reachable by its original address, or are there conditions under which reachability may be lost while identity is preserved?
+5. [nelson] When content is shared across multiple documents, does each document refer to the same address for that content, or does each receive its own address for its own copy?
+6. [nelson] If a new version of a document rearranges its content, must the addresses of the individual content elements remain unchanged across versions?
+7. [nelson] Does the system guarantee that an address assigned today will resolve to the same content a century from now, and what would constitute a violation of that guarantee?
+8. [nelson] Is address permanence a property of the content itself or of the relationship between the content and the storage system — that is, could the system migrate content internally while preserving the address?
+9. [nelson] How does address permanence relate to link integrity — if an address is permanent, does the system guarantee that any link pointing to that address will always connect to the intended content?
+10. [nelson] Must the system distinguish between content that is permanently stored but currently inaccessible and content whose address has been invalidated, or are these the same condition?
+11. [gregory] Once a byte is stored in the granfilade at a given I-address, is there any code path — including error handling or cache eviction via `grimlyreap` — that can overwrite or remove that byte from its I-address slot?
+12. [gregory] When `findisatoinsertmolecule` allocates a fresh I-address by querying the granfilade for `max + 1`, can a DELETE that removed content from a POOM ever cause that max to decrease, leading to I-address reuse in a subsequent INSERT?
+13. [gregory] After DELETE removes a V→I mapping from a document's POOM, does `retrieveendsets` on a link referencing those I-addresses still return the full I-address spans, or does the spanfilade lookup itself degrade when no POOM references the I-addresses?
+14. [gregory] When FOLLOWLINK resolves endset I-addresses back to V-addresses via `span2spanset`, what exactly happens at the I→V conversion step for an I-address that exists in the granfilade but appears in zero POOMs — is the filtering per-span or per-byte?
+15. [gregory] If a deeply orphaned link's endpoint I-addresses are transcluded into a brand-new document years later, does `find_links` rediscover the link immediately, or does the stale DOCISPAN entry for the original (now-deleted) document interfere with the lookup?
+16. [gregory] Does CREATENEWVERSION produce a version whose POOM entries point to the exact same I-address values as the source, or does `docopyinternal` allocate any fresh I-addresses during the copy — even for metadata or structural bookkeeping?
+17. [gregory] When `isanextensionnd` silently merges a COPY's I-span into an adjacent existing POOM entry, does the merged entry preserve the exact original I-address range boundaries, or does the extension alter the stored I-displacement or I-width of the pre-existing crum?
+18. [gregory] For content stored via APPEND (which skips `insertspanf`), the I-address is permanent in the granfilade but has no DOCISPAN entry — can `find_links` ever discover a link whose endset references APPEND-created I-addresses, given that the spanfilade search is the only discovery path?
+19. [gregory] In a multi-session scenario where session A creates content at I-address X and session B immediately copies it, is there any window — given run-to-completion scheduling in `bed.c` — where session B could observe the POOM entry for X but not yet see X in the granfilade?
+20. [gregory] When a link is created with endsets spanning content that is later REARRANGED across a subspace boundary (e.g., text moved from V:1.x to V:2.x), do the link's I-address-based endsets remain fully intact in the spanfilade, and does `find_links` still discover the link from the content's new V-position?
