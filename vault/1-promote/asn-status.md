@@ -32,4 +32,4 @@
 | ASN-0026 | I-Space and V-Space | Foundation | **Final** | Supersedes ASN-0003. Converged review 4. Dafny proofs promoted to `vault/proofs/IVSpaceProperties/`. |
 | ASN-0027 | Address Permanence | — | **Deprecated** | Drafted without ASN-0029 in foundation — silently assumes D2 (DocumentPermanence) without citing it. Dafny 35/35 still valid. Needs redraft with ASN-0029 in foundation stack. |
 | ASN-0028 | Document Lifecycle | — | **Deprecated** | Contaminated — drafted with ASN-0027 in foundations, creating circular dependency. Superseded by ASN-0029. |
-| ASN-0029 | Document Lifecycle | Foundation | **Converging** | Supersedes ASN-0011 scope. 18 properties (D0-D17). Provides D2 (DocumentPermanence) needed by ASN-0027. |
+| ASN-0029 | Document Ontology | Foundation | **Converged** | Supersedes ASN-0011 scope. 18 properties (D0-D17). Provides D2 (DocumentPermanence) needed by ASN-0027. |

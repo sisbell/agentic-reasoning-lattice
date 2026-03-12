@@ -1,4 +1,4 @@
-# ASN-0029: Document Lifecycle
+# ASN-0029: Document Ontology
 
 *2026-03-11*
 
