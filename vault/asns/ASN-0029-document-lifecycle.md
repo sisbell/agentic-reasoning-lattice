@@ -262,17 +262,23 @@ The placement of the new version's address depends on ownership. Gregory's code 
 **D13 (VersionPlacement).** For CREATENEWVERSION(d_s, a_req) creating d_v:
 
     account(d_s) = a_req ⟹ parent(d_v) = d_s
-    account(d_s) ≠ a_req ⟹ account(d_v) = a_req
+    account(d_s) ≠ a_req ⟹ account(d_v) = a_req ∧ parent(d_v) undefined
 
 In the first case (own document), the version is allocated as an immediate structural child of the source — `parent(d_v) = d_s` per D14's definition. Its address extends the source's tumbler by exactly one document level — if `d_s = A.0.D₁`, then `d_v = A.0.D₁.D₂`. This follows from T10a (AllocatorDiscipline) with `k' = 1`: the parent allocator spawns a child via `inc(d_s, 1)`. By TA5(d), `inc(d_s, 1)` appends a single component (no intermediate zeros, final component 1), so `zeros(d_v) = zeros(d_s) = 2` — the child is a document-level address, satisfying T4. The constraint `k' = 1` is essential: `k' = 2` would introduce a new zero separator, producing `zeros = 3` (element-level); `k' ≥ 3` would exceed T4's maximum of three zeros. Nelson: "The new document's id will indicate its ancestry." The ancestry is encoded in the address and permanent — `account(d_v)` is a pure function of the value `d_v`, which does not change.
 
-In the second case (someone else's document), the version lives under the versioner's own account — just like any new document. There is no structural record of the ancestry. Nelson: "The Document field of the tumbler may be continually subdivided, with new subfields indicating daughter documents and versions."
+In the second case (someone else's document), the version lives under the versioner's own account — a root document, just like any document created by D0. Cross-account versions have `parent(d_v)` undefined: the root allocator for `a_req` produces a single-component document field, so no proper document-level prefix of `d_v` exists in Σ.D under `a_req` (the same argument as for D0). There is no structural record of the ancestry in the address. Nelson: "The Document field of the tumbler may be continually subdivided, with new subfields indicating daughter documents and versions."
 
 **D14 (VersionForest).** Define the *structural parent* of a document `d` as the longest proper document-level prefix of `d` that is a member of `Σ.D`:
 
     parent(d) = max≼ {d' ∈ Σ.D : d' ≺ d}    (partial — undefined when {d' ∈ Σ.D : d' ≺ d} = ∅)
 
-where `d_s ≺ d_v` iff `d_s ≼ d_v ∧ d_s ≠ d_v ∧ zeros(d_s) = zeros(d_v) = 2`. The restriction to `Σ.D` is essential: without it, degenerate tumblers such as `N.0.U.0` (which has `zeros = 2` but an empty document field) would qualify as ancestors of every document under account `N.0.U`, undermining the forest structure. By searching within `Σ.D`, `parent` is grounded in the set of actually created documents.
+where `d_s ≺ d_v` iff `d_s ≼ d_v ∧ d_s ≠ d_v ∧ zeros(d_s) = zeros(d_v) = 2`. The restriction to `Σ.D` is essential: without it, degenerate tumblers such as `N.0.U.0` (which has `zeros = 2` but an empty document field) would qualify as ancestors of every document under account `N.0.U`, undermining the forest structure. By searching within `Σ.D`, `parent` is grounded in the set of actually created documents. We make this dependency explicit:
+
+**D14a (DocumentFieldWellFormedness).** Every document in Σ.D has a non-degenerate document field — at least one component, all strictly positive:
+
+    (A d ∈ Σ.D : let (N, U, D) = fields(d) : #D ≥ 1 ∧ (A i : 1 ≤ i ≤ #D : Dᵢ > 0))
+
+Verification against each document-creating operation: D0 allocates via `inc(·, 0)` on the account's root allocator stream, where the current maximum is a root document with single-component positive document field; `inc(·, 0)` increments that component, producing a positive single-component document field (`#D = 1`, `D₁ > 0`). D12 Case 1 allocates via `inc(d_s, 1)`, appending one component to `d_s`'s document field with the new component set to `1` (TA5(d)); since `d_s ∈ Σ.D` satisfies D14a by induction, the result has `#D ≥ 2` with all components positive. D12 Case 2 uses the root allocator for `a_req`, identical to D0. No other operation adds documents to Σ.D.
 
 The relation ≺ is a partial order (it includes all ancestors, not just the immediate parent). The *covering relation* — the Hasse diagram of ≺ restricted to `Σ.D` — forms a forest: each document has at most one immediate structural parent, and there are no cycles. A root document (single-component document field, such as `1.0.1.0.3`) has no proper document-level prefix in `Σ.D`, so `parent` is undefined — these are the roots of the forest. For non-root documents, the tumbler hierarchy gives a unique longest proper prefix at the document level within `Σ.D`, so `parent(d)` is well-defined when it exists.
 
@@ -323,10 +329,10 @@ This is Nelson's fundamental access rule. A non-owner who wishes to modify creat
 
 **D16 (NonOwnerForking).** When a non-owner requests modification of document `d`, the resolution is to create a new version under the requester's account:
 
-    account(d) ≠ actor(op) ∧ op requests modification of d
+    account(d) ≠ actor(op) ∧ op requests modification of d ∧ (Σ.pub(d) ∈ {published, privashed})
     ⟹ system applies CREATENEWVERSION(d, actor(op)) with account(d_v) = actor(op)
 
-This is Nelson's resolution to the tension between collaboration and ownership. Rather than competing for access to a shared mutable object, users create independent versions. Gregory implements this directly: when write access is requested on a document and the requester is not the owner, the system creates a new version for the requester and opens that instead. The original is never touched.
+The accessibility condition `Σ.pub(d) ∈ {published, privashed}` is essential: when `d` is private and `account(d) ≠ actor(op)`, the non-owner cannot access `d` at all (D5(c)), so CREATENEWVERSION's precondition (D12) would fail. D16 applies only when the non-owner can see the document. This is Nelson's resolution to the tension between collaboration and ownership. Rather than competing for access to a shared mutable object, users create independent versions. Gregory implements this directly: when write access is requested on a document and the requester is not the owner, the system creates a new version for the requester and opens that instead. The original is never touched.
 
 The consequence is striking: **there are no write-write conflicts between different users.** If Alice owns document `d` and Bob wants to modify it, Bob gets a new version `d'` under his own account. Alice continues editing `d`; Bob edits `d'`. Both evolve independently (D9). The conflict between "I want to edit this" and "someone else is editing this" evaporates — or rather, it is resolved structurally by the address space.
 
@@ -400,10 +406,11 @@ The key insight across all properties: the tumbler address does extraordinary wo
 | D10a | PUBLISH(d, status): transitions `private → published` or `private → privashed`, owner only | introduced |
 | D11 | publication surrenders control over incoming links, quotation, and easy withdrawal | introduced |
 | D12 | CREATENEWVERSION(d_s, a_req) produces `d_v` sharing all I-addresses, `Σ'.pub(d_v) = private`; monotonicity split: (g₁) own-account — exceeds children of `d_s`; (g₂) cross-account — exceeds all docs under `a_req`; pre: `a_req = actor(op)`, source accessible | introduced |
-| D13 | own-account: `parent(d_v) = d_s` via `inc(d_s, 1)` (`k' = 1` preserves `zeros = 2`); cross-account: `account(d_v) = a_req` | introduced |
+| D13 | own-account: `parent(d_v) = d_s` via `inc(d_s, 1)` (`k' = 1` preserves `zeros = 2`); cross-account: `account(d_v) = a_req ∧ parent(d_v) undefined` (root document) | introduced |
 | D14 | `parent(d) = max≼ {d' ∈ Σ.D : d' ≺ d}` — covering relation of `≺` restricted to `Σ.D` forms a forest; `(A d : d ∈ Σ.D ∧ parent(d) defined : parent(d) ∈ Σ.D)` | introduced |
+| D14a | `(A d ∈ Σ.D : #D ≥ 1 ∧ (A i : 1 ≤ i ≤ #D : Dᵢ > 0))` — no degenerate document tumblers in Σ.D | introduced |
 | D15 | only owner may modify document content: `account(d) = actor(op)` (design requirement) | introduced |
-| D16 | non-owner modification requests resolve by creating a new version | introduced |
+| D16 | non-owner modification of accessible documents (`Σ.pub(d) ∈ {published, privashed}`) resolves by creating a new version | introduced |
 | D17 | `FINDDOCSCONTAINING(S)` — content-based discovery via span membership; frame: `Σ' = Σ` | introduced |
 
 ## Open Questions
