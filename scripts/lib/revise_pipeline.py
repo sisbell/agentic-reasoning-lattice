@@ -9,7 +9,7 @@ Multiple cycles re-review between revisions.
 Usage:
     python scripts/revise.py 9              # 1 cycle: consult → revise → commit (latest review)
     python scripts/revise.py 9 --cycle 3    # 3 cycles (first uses latest review, rest do review → revise)
-    python scripts/revise.py 9 --converge   # loop until CONVERGED (max 5)
+    python scripts/revise.py 9 --converge   # loop until CONVERGED (max 15)
     python scripts/revise.py 9 --converge 8 # loop until CONVERGED (max 8)
     python scripts/revise.py 9 --resume revise  # skip consult, go straight to revise
 """
@@ -60,9 +60,9 @@ def main():
     parser.add_argument("asn", help="ASN number (e.g., 9, 0009, ASN-0009)")
     parser.add_argument("--cycle", "-n", type=int, default=1,
                         help="Number of revise cycles (default: 1)")
-    parser.add_argument("--converge", nargs="?", type=int, const=5,
+    parser.add_argument("--converge", nargs="?", type=int, const=15,
                         metavar="MAX",
-                        help="Loop until CONVERGED verdict (default max: 5)")
+                        help="Loop until CONVERGED verdict (default max: 15)")
     parser.add_argument("--resume", choices=["revise"],
                         help="Resume from revise (skip consult)")
     args = parser.parse_args()
