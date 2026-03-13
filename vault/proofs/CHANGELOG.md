@@ -1,40 +1,7 @@
 # Proof Modules — Changelog
 
-## 2026-03-12: DocumentOntology extraction + ASN-0029 deduplication
+## 2026-03-13: ASN-0034 restart — clean slate
 
-**Problem:** ASN-0029 Dafny review (review-13) flagged pervasive duplication across 26 property files. `PubStatus` defined identically in 9 files. `FirstZeroFrom`, `HasAccountLevel`, `AccountPrefix` duplicated 4–6x each. `DocState` in 4 files with 3 shapes. `ValidDocAddr` and `DocLevelPrefix` each in 4 files.
+ASN-0034 (Tumbler Algebra) converged, replacing ASN-0001 as the foundation. Removed all deprecated modules: AddressAllocation (ASN-0001 property proofs), Foundation (Two-Space state model), DocumentOntology (ASN-0029 types), TwoSpace (ASN-0026 properties). These will be regenerated fresh against ASN-0034 as each downstream ASN is redrafted.
 
-**Changes:**
-
-- **New module: DocumentOntology** — shared types for ASN-0029 document properties: `PubStatus`, `DocState` (core shape: base + pub), `ValidDocAddr`, `DocLevelPrefix`. Depends on TumblerAlgebra, Foundation, HierarchicalParsing.
-
-- **Extended: HierarchicalParsing** — added `FirstZeroFrom`, `HasAccountLevel`, `AccountPrefix`. These are address-parsing helpers that extract account-level structure from tumbler addresses. Placed here (not DocumentOntology) because they parse address hierarchy, not document concepts.
-
-- **Deleted: AccountPrefix.dfy** — its entire content (FirstZeroFrom, HasAccountLevel, AccountPrefix) moved to HierarchicalParsing. The ASN-0029 "account" property (D3) is proven by the function's existence in HierarchicalParsing and by StructuralOwnership's verification that `Account(d)` produces a valid prefix.
-
-- **Updated 14 ASN-0029 property files** to import from shared modules instead of defining locally:
-  - Full import (PubStatus + DocState + ValidDocAddr + DocLevelPrefix + address helpers): EmptyCreation, VersionCreation, VersionPlacement
-  - PubStatus only: PublicationStatus, PublicationMonotonicity, PublicationFrame, PublishOperation, NonOwnerForking
-  - PubStatus with qualified import (local extended DocState): OwnershipRights, PublicationSurrender
-  - FirstZeroFrom from HierarchicalParsing: StructuralOwnership, IdentityByAddress
-  - DocLevelPrefix from DocumentOntology: VersionForest
-
-**Result:** 25/25 property files verified. Proof module count: 64 verified, 0 errors.
-
-## 2026-03-12: Module renames
-
-- `AddressProperties` → `AddressAllocation` — all files concern the allocation discipline (ForwardAllocation, AllocatorDiscipline, GlobalUniqueness, etc.), not generic "properties."
-- `IVSpaceProperties` → `TwoSpace` — the module models the two-space (I-space/V-space) structure, not generic properties.
-- `GlobalUniquenessModule` → `GlobalUniqueness`, `AllocatorDisciplineModule` → `AllocatorDiscipline`, `PartitionIndependenceModule` → `PartitionIndependence` — dropped redundant "Module" suffix to match convention (module name = filename stem).
-
-## 2026-03-11: ASN-0029 modeling-1
-
-Initial Dafny formalization of ASN-0029 document ontology. 26 property files covering D0–D17 plus supporting invariants (PublicationStatus, ValidAccountAddr, AccountPrefix, DocFieldWellFormed). All verified.
-
-## 2026-03-10: AddressAllocation promotion
-
-Promoted ASN-0001 address properties from `vault/3-modeling/dafny/ASN-0001/modeling-1/` into `vault/proofs/AddressAllocation/` as shared building blocks. Removed `include` directives (dfyconfig.toml handles resolution). Files: HierarchicalParsing, SubspaceDisjointness, ForwardAllocation, AllocatorDiscipline, PartitionIndependence, AddressPermanence, GlobalUniqueness.
-
-## 2026-03-09: Foundation + TumblerAlgebra
-
-Initial proof modules. TumblerAlgebra: Tumbler datatype, LessThan, Add/Subtract, IsPrefix. Foundation: State model (IAddr, VPos, State, J0–J2).
+Retained: TumblerAlgebra/TumblerAlgebra.dfy (shared definitions). ASN-0034 property proofs will be generated into TumblerAlgebra/ alongside the definitions module.

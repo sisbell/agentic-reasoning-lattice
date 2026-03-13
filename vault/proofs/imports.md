@@ -1,12 +1,8 @@
 # Proof Imports
 
-Maps each ASN to the additional proof modules its generated properties need.
-TumblerAlgebra and Foundation are always injected automatically. The Dafny
-generator reads all listed modules and injects their source into the prompt.
+Maps each ASN to the proof modules its generated properties need.
+TumblerAlgebra is always injected automatically.
 
 | ASN | Additional proof modules |
 |-----|-------------------------|
-| ASN-0001 | |
-| ASN-0026 | AddressAllocation |
-| ASN-0029 | AddressAllocation, TwoSpace, DocumentOntology |
-| ASN-0030 | AddressAllocation, TwoSpace, DocumentOntology |
+| ASN-0034 | |
