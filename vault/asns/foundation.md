@@ -6,4 +6,3 @@ are promoted to vault/proofs/.
 
 | ASN | Title |
 |-----|-------|
-| ASN-0001 | Tumbler Algebra |
