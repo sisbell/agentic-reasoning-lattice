@@ -219,5 +219,5 @@ inquiries:
     question: "What is a node in the Xanadu system? How do nodes enter the docuverse, what invariants govern the node set, and what is the relationship between a node and the accounts it contains?"
     area: addressing
     source: "Foundation gap: ASN-0031 assumes nodes exist (AC0 precondition zeros(n) = 0) without defining how nodes enter the system"
-    out_of_scope: "inter-node operations (migration, replication, merging), node economics, node shutdown/recovery, distributed coordination"
+    out_of_scope: "inter-node operations (migration, replication, merging), node economics, node shutdown/recovery, distributed coordination, account creation and lifecycle"
 
