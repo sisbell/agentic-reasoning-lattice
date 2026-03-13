@@ -14,6 +14,7 @@ Given the inquiry below, generate exactly {num_questions} focused questions for 
 ## Inquiry
 
 {inquiry}
+{out_of_scope}
 
 ## Output Format
 

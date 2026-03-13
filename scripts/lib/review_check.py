@@ -26,11 +26,25 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import WORKSPACE, ASNS_DIR, VOCABULARY, REVIEWS_DIR, USAGE_LOG, STATEMENTS_DIR, FOUNDATION_LIST, sorted_reviews
+from paths import WORKSPACE, ASNS_DIR, VOCABULARY, REVIEWS_DIR, USAGE_LOG, STATEMENTS_DIR, FOUNDATION_LIST, INQUIRIES_FILE, sorted_reviews
 from lib.foundation import load_foundation_statements
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
 REVIEW_TEMPLATE = PROMPTS_DIR / "review.md"
+
+
+def load_out_of_scope(asn_number):
+    """Look up out_of_scope for an ASN from inquiries.yaml. Returns string or empty."""
+    try:
+        import yaml
+        with open(INQUIRIES_FILE) as f:
+            data = yaml.safe_load(f)
+        for inq in data.get("inquiries", []):
+            if inq["id"] == asn_number:
+                return inq.get("out_of_scope", "")
+    except (FileNotFoundError, KeyError):
+        pass
+    return ""
 
 
 def read_file(path):
@@ -59,7 +73,7 @@ def find_asn(asn_id):
     return None, label
 
 
-def build_prompt(asn_content, vocabulary):
+def build_prompt(asn_content, vocabulary, out_of_scope=""):
     """Assemble review prompt from template + injected content."""
     template = read_file(REVIEW_TEMPLATE)
     if not template:
@@ -69,13 +83,18 @@ def build_prompt(asn_content, vocabulary):
 
     foundation = load_foundation_statements(FOUNDATION_LIST, STATEMENTS_DIR)
 
+    scope_note = (f"\n\n## Scope\n\nThe following topics are OUT OF SCOPE for this ASN. "
+                  f"Do not flag missing coverage for them. If the ASN defines properties "
+                  f"for these topics, flag them as OUT_OF_SCOPE: {out_of_scope}"
+                  if out_of_scope else "")
+
     return template.replace(
         "{{asn_content}}", asn_content
     ).replace(
         "{{vocabulary}}", vocabulary
     ).replace(
         "{{foundation_statements}}", foundation
-    )
+    ) + scope_note
 
 
 def strip_preamble(text):
@@ -187,7 +206,11 @@ def main():
 
     # Build prompt
     print(f"  [REVIEW] {asn_label}", file=sys.stderr)
-    prompt = build_prompt(asn_content, vocabulary)
+    asn_number = int(asn_label.replace("ASN-", ""))
+    out_of_scope = load_out_of_scope(asn_number)
+    if out_of_scope:
+        print(f"  [SCOPE] Out of scope: {out_of_scope}", file=sys.stderr)
+    prompt = build_prompt(asn_content, vocabulary, out_of_scope=out_of_scope)
     print(f"  Prompt: {len(prompt) // 1024}KB (~{len(prompt) // 4} tokens est.)",
           file=sys.stderr)
 

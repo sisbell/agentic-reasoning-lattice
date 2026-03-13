@@ -20,6 +20,7 @@ This KB summarizes what has been discovered about the implementation through tes
 ## Inquiry
 
 {inquiry}
+{out_of_scope}
 
 ## Output Format
 

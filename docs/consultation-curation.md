@@ -6,7 +6,9 @@ This is not part of the automated pipeline. It applies when the ASN's scope boun
 
 ## When It Applies
 
-Foundation ontology ASNs have strict scope boundaries defined by their layer. The decomposition agent doesn't know these boundaries — it explores broadly by design. An inquiry about link foundations will produce questions about link discovery, link versioning, and link operations. These are valid questions about the system, but if they reach the discovery agent, the resulting ASN will define things that belong in higher layers.
+Foundation ontology ASNs have strict scope boundaries defined by their layer. The decomposition agent explores broadly by design. An inquiry about link foundations will produce questions about link discovery, link versioning, and link operations — valid questions, but out of scope for a foundation ontology.
+
+The `out_of_scope` field in `inquiries.yaml` reduces this automatically by telling the decomposition agent what topics to avoid. But exclusions are best-effort — some out-of-scope questions will still get through, and manual inspection remains necessary for foundation ASNs.
 
 For operation ASNs or other work where scope is less critical, the normal pipeline flow (consult → discover) is fine.
 

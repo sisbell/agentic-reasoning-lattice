@@ -143,7 +143,61 @@ def _call_decompose(prompt, label, model="opus"):
         return result.stdout
 
 
-def decompose_inquiry(inquiry_text, num_nelson=10, num_gregory=10, model="opus"):
+def filter_questions(inquiry_text, out_of_scope, questions):
+    """Filter questions for scope using a cheap LLM call. Returns filtered list."""
+    template = read_file(PROMPTS_DIR / "filter-questions.md")
+    if not template:
+        print("  [WARN] filter-questions.md not found, skipping filter",
+              file=sys.stderr)
+        return questions
+
+    questions_text = "\n".join(
+        f"{i}. [{a}] {q}" for i, (a, q) in enumerate(questions, 1)
+    )
+    prompt = template.format(
+        inquiry=inquiry_text,
+        out_of_scope=out_of_scope,
+        questions=questions_text,
+    )
+
+    print(f"  [FILTER] Checking {len(questions)} questions against exclusions...",
+          file=sys.stderr)
+    response = _call_decompose(prompt, "filter", model="opus")
+
+    if not response:
+        print("  [FILTER] No response, keeping all questions", file=sys.stderr)
+        return questions
+
+    # Parse KEEP/DROP lines
+    keep_indices = set()
+    for line in response.strip().split("\n"):
+        line = line.strip()
+        if line.startswith("KEEP"):
+            try:
+                idx = int(line.split()[1])
+                keep_indices.add(idx)
+            except (IndexError, ValueError):
+                pass
+
+    if not keep_indices:
+        print("  [FILTER] No KEEP lines parsed, keeping all questions",
+              file=sys.stderr)
+        return questions
+
+    filtered = [q for i, q in enumerate(questions, 1) if i in keep_indices]
+    dropped = len(questions) - len(filtered)
+    if dropped:
+        print(f"  [FILTER] Dropped {dropped} out-of-scope questions, "
+              f"keeping {len(filtered)}", file=sys.stderr)
+    else:
+        print(f"  [FILTER] All {len(filtered)} questions in scope",
+              file=sys.stderr)
+
+    return filtered
+
+
+def decompose_inquiry(inquiry_text, num_nelson=10, num_gregory=10, model="opus",
+                      out_of_scope=""):
     """Two-pass decompose: Nelson (design vocabulary) then Gregory (with KB context).
 
     Nelson questions use design vocabulary only — no implementation contamination.
@@ -156,9 +210,12 @@ def decompose_inquiry(inquiry_text, num_nelson=10, num_gregory=10, model="opus")
               file=sys.stderr)
         sys.exit(1)
 
+    out_of_scope_block = (f"\n## Scope Exclusions\n\nDO NOT generate questions about: {out_of_scope}\n"
+                     if out_of_scope else "")
     nelson_prompt = nelson_template.format(
         inquiry=inquiry_text,
         num_questions=num_nelson,
+        out_of_scope=out_of_scope_block,
     )
 
     print(f"  [DECOMPOSE:nelson] {num_nelson} questions, "
@@ -181,6 +238,7 @@ def decompose_inquiry(inquiry_text, num_nelson=10, num_gregory=10, model="opus")
         inquiry=inquiry_text,
         kb=kb,
         num_questions=num_gregory,
+        out_of_scope=out_of_scope_block,
     )
 
     print(f"  [DECOMPOSE:gregory] {num_gregory} questions, "
@@ -191,7 +249,13 @@ def decompose_inquiry(inquiry_text, num_nelson=10, num_gregory=10, model="opus")
     nelson_qs = parse_questions(nelson_response, "nelson") if nelson_response else []
     gregory_qs = parse_questions(gregory_response, "gregory") if gregory_response else []
 
-    return nelson_qs + gregory_qs
+    all_qs = nelson_qs + gregory_qs
+
+    # Filter for scope if out_of_scope is set
+    if out_of_scope and all_qs:
+        all_qs = filter_questions(inquiry_text, out_of_scope, all_qs)
+
+    return all_qs
 
 
 def parse_questions(response, default_authority="gregory"):
@@ -580,11 +644,13 @@ def main():
     asn_label = "adhoc"
     num_nelson = 10
     num_gregory = 10
+    out_of_scope = ""
     if args.inquiry_id:
         inquiry = load_inquiry(args.inquiry_id)
         inquiry_text = inquiry["question"]
         inquiry_title = inquiry["title"]
         asn_label = f"{args.inquiry_id:04d}"
+        out_of_scope = inquiry.get("out_of_scope", "")
         # Read per-inquiry agent counts from YAML (agents.nelson, agents.gregory)
         agents = inquiry.get("agents", {})
         num_nelson = agents.get("nelson", 10)
@@ -606,7 +672,8 @@ def main():
     questions = decompose_inquiry(inquiry_text,
                                   num_nelson=num_nelson,
                                   num_gregory=num_gregory,
-                                  model=args.model)
+                                  model=args.model,
+                                  out_of_scope=out_of_scope)
 
     if not questions:
         print("  [ERROR] No questions generated", file=sys.stderr)

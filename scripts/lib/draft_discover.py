@@ -214,6 +214,12 @@ def run_discovery(inquiry, asn_number, slug, force=False):
     if foundation:
         prompt_parts.append(foundation)
 
+    out_of_scope = inquiry.get("out_of_scope", "")
+    scope_note = (f"\n5. The following topics are OUT OF SCOPE for this ASN — "
+                  f"do not define properties or operations for them, even if the "
+                  f"consultation answers discuss them: {out_of_scope}"
+                  if out_of_scope else "")
+
     assignment = f"""## Your Assignment
 
 **ASN Number**: ASN-{asn_number:04d}
@@ -227,7 +233,7 @@ Remember:
 1. Read the consultation answers above — they are your primary input.
 2. Synthesize Nelson's design intent with Gregory's implementation evidence.
 3. Derive everything locally — do not reference other ASNs except foundation ASNs (provided above). Use foundation definitions for addressing, ordering, subspaces, and spans.
-4. Properties must be abstract — would an alternative implementation need them?
+4. Properties must be abstract — would an alternative implementation need them?{scope_note}
 """
     prompt_parts.append(assignment)
 
