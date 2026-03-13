@@ -35,4 +35,5 @@
 | ASN-0029 | Document Ontology | Foundation | **Converged** | Supersedes ASN-0011 scope. 18 properties (D0-D17). Provides D2 (DocumentPermanence). |
 | ASN-0030 | Address Permanence | — | **Deprecated** | References endsets, resolvability, ghost links without link datatype defined. Needs redraft after ASN-0032 (Link Ontology). Alloy 22/22 valid. |
 | ASN-0031 | Account Creation | Foundation | **Draft** | Fills D0 precondition gap from ASN-0029. AC0-AC3. |
-| ASN-0032 | Link Ontology | Foundation | **Not started** | Foundation gap: link datatype, endsets, permanence. Depends on ASN-0001, ASN-0026, ASN-0029. |
+| ASN-0032 | Link Ontology | Foundation | **Draft** | 19 properties (L0-L19). Depends on ASN-0001, ASN-0026, ASN-0029. Needs review against complete stack. |
+| ASN-0033 | Node Ontology | Foundation | **Not started** | Foundation gap: ASN-0031 assumes nodes exist. Layer 2 in foundation stack. |

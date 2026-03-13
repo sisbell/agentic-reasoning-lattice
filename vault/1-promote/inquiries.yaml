@@ -213,3 +213,9 @@ inquiries:
     area: links
     source: "Foundation gap: ASN-0030 references endsets, resolvability, ghost links without link datatype defined"
 
+  - id: 33
+    title: "Node Ontology"
+    question: "What is a node in the Xanadu system? How do nodes enter the docuverse, what invariants govern the node set, and what is the relationship between a node and the accounts it contains?"
+    area: addressing
+    source: "Foundation gap: ASN-0031 assumes nodes exist (AC0 precondition zeros(n) = 0) without defining how nodes enter the system"
+
