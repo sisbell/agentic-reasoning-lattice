@@ -21,3 +21,7 @@
 17. [gregory] When two tumblers have different exponents, `tumblercmp` compares them — is the ordering purely lexicographic on the (exponent, mantissa) pair, or does the exponent shift the mantissa digits before comparison so that `2.1` (exp=0) and `0.21` (exp=-1) compare as equal?
 18. [gregory] What happens when `tumbleradd` or `tumblerincrement` would produce a result requiring more than 16 mantissa digits — is there silent truncation, wraparound, or an error condition, and has this limit ever been hit in practice?
 19. [gregory] `tumblerjustify` normalizes a tumbler before equality comparison — what invariant does it restore (leading-zero removal, trailing-zero trimming, exponent normalization), and can two tumblers that are `tumblercmp`-ordered but not `tumblerjustify`-normalized produce an inconsistent ordering?
+20. [nelson] Must the addressing scheme guarantee that content positions, link positions, and structural positions can never collide — that their regions are permanently disjoint?
+21. [nelson] Must the system support unbounded growth — can new accounts, new documents, and new content be allocated without ever exhausting the address space?
+22. [gregory] Is there any tumbler multiplication, division, or scaling operation in the system, or is the full arithmetic limited to add, subtract, increment, and compare?
+23. [gregory] Is the zero tumbler (sign=0, exp=0, all-zero mantissa) ever used as a valid address or sentinel value, and what does `tumblercmp` return when comparing zero against a positive tumbler with exponent -1?
