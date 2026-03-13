@@ -42,6 +42,8 @@ All consultation results are written to `vault/experts/ASN-NNNN/consultation/`.
 
 See [Expert Consultation](expert-consultation.md) for the full two-channel architecture.
 
+**Foundation ASNs:** When drafting ontology-layer ASNs, stop here and curate the consultation output before proceeding — the decomposition agent explores broadly and will produce questions outside the ASN's layer scope. See [Consultation Curation](consultation-curation.md). After curation, resume with `--resume discover`.
+
 ### Step 3: Discovery
 
 The discovery agent receives all consultation answers and synthesizes them into a formal ASN. This is the hardest step — it constructs a model (not a summary) from which properties are derived.
@@ -132,7 +134,7 @@ python scripts/draft.py --inquiries 4 consult      # questions + consultations
 python scripts/draft.py --inquiries 4 discover     # consult + discover (no commit)
 
 # Resume from a stage (skip earlier stages)
-python scripts/draft.py --inquiries 4 --resume discover  # skip consult, use existing answers
+python scripts/draft.py --inquiries 4 --resume discover  # skip consult, use existing answers (e.g. after curation)
 
 # Overwrite existing ASN
 python scripts/draft.py --inquiries 4 --force

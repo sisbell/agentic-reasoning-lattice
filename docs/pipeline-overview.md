@@ -77,6 +77,7 @@ Turns an inquiry into a new ASN. Decomposes the inquiry into sub-questions for N
 
 - **Input:** inquiry from `vault/1-promote/inquiries.yaml`
 - **Output:** ASN file in `vault/asns/ASN-NNNN-title.md`
+- **Human gate (foundation ASNs only):** After consultation, curate questions and answers for layer scope before discovery. See [Consultation Curation](consultation-curation.md).
 - **Details:** [Discovery](discovery.md)
 
 ### 2. Review/Revise (review + revise)
@@ -222,5 +223,6 @@ Use `run/asn-converge.sh` to review and revise an ASN until converged. Use `run/
 - [Alloy Checking](alloy-checking.md) — bounded model checking
 - [Dafny Verification Loop](dafny-verification-loop.md) — three-tier failure handling
 - [Promotion](promotion.md) — feeding the pipeline
+- [Consultation Curation](consultation-curation.md) — manual scope trimming for foundation ASNs
 - [Foundations](foundations.md) — verified building blocks (Types/State/Invariants)
 - [Methodology](methodology.md) — design principles
