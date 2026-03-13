@@ -1,6 +1,6 @@
 # ASN-0034: Tumbler Algebra
 
-*2026-03-12*
+*2026-03-13*
 
 We wish to understand what algebraic structure the Xanadu addressing system must possess. The system assigns every entity a permanent address — a *tumbler* — and requires these addresses to support comparison, containment testing, arithmetic for span computation and position advancement, and coordination-free allocation across a global network. We seek the minimal set of abstract properties that any correct implementation must provide, deriving each from design requirements rather than from any particular representation.
 
@@ -15,13 +15,17 @@ A tumbler is a finite sequence of non-negative integers. We write `t = d₁.d₂
 
 This gives us our first property:
 
-**T0 (Unbounded components).** `(A t ∈ T, i : 1 ≤ i ≤ #t : (A M ∈ ℕ :: (E t' ∈ T :: t' agrees with t except t'.dᵢ > M)))`.
+**T0(a) (Unbounded component values).** `(A t ∈ T, i : 1 ≤ i ≤ #t : (A M ∈ ℕ :: (E t' ∈ T :: t' agrees with t except t'.dᵢ > M)))`.
 
 In words: for every tumbler and every component position, there exists a tumbler whose value at that position exceeds any given bound. The address space within any subtree is inexhaustible.
 
+**T0(b) (Unbounded length).** `(A n ∈ ℕ : n ≥ 1 : (E t ∈ T :: #t ≥ n))`.
+
+In words: there is no maximum tumbler length — for every bound, a tumbler of at least that length exists in T. The hierarchy has unlimited nesting depth. T0(b) follows from T's definition as the set of all finite sequences over ℕ — for any `n`, the constant sequence `[1, 1, ..., 1]` of length `n` is a member. We state it explicitly because it carries independent architectural weight: T0(a) ensures siblings within a level are inexhaustible, while T0(b) ensures levels themselves are inexhaustible.
+
 T0 is what separates the tumbler design from fixed-width addressing. Nelson: "New items may be continually inserted in tumbler-space while the other addresses remain valid." The word "continually" carries the weight — it means the process of creating new addresses never terminates. Between any two sibling addresses, the forking mechanism can always create children: "One digit can become several by a forking or branching process. This consists of creating successive new digits to the right." Each daughter can have daughters without limit, and each digit is itself unbounded.
 
-T0 is required doubly: each component is unbounded (unlimited siblings at any level) AND the number of components is unbounded (unlimited nesting depth). Together these make the address space infinite in two dimensions, which Nelson calls "finite but unlimited" — at any moment finitely many addresses exist, but there is no bound on how many can be created: "A span that contains nothing today may at a later time contain a million documents."
+The address space is unbounded in two dimensions: T0(a) ensures each component is unbounded (unlimited siblings at any level) and T0(b) ensures the number of components is unbounded (unlimited nesting depth). Together they make the address space infinite in both dimensions, which Nelson calls "finite but unlimited" — at any moment finitely many addresses exist, but there is no bound on how many can be created: "A span that contains nothing today may at a later time contain a million documents."
 
 We observe that Gregory's implementation uses a fixed 16-digit mantissa of 32-bit unsigned integers, giving a large but finite representable range. When the allocation primitive `tumblerincrement` would exceed this range structurally (requiring a 17th digit), it detects the overflow and terminates fatally. The general addition routine `tumbleradd` silently wraps on digit-value overflow. Both behaviors violate T0. The abstract specification demands unbounded components; a correct implementation must either provide them or demonstrate that the reachable state space never exercises the bound. The comment `NPLACES 16 /* increased from 11 to support deeper version chains */` records that the original bound of 11 was concretely hit in practice — version chains deeper than 3–4 levels caused fatal crashes.
 
@@ -230,7 +234,7 @@ Each allocator's output is monotonic (T9). The sub-partitions are ordered by the
 
 *Case 3: Different allocators with nesting prefixes and different zero counts.* One allocator's prefix nests within another's. But these allocators produce addresses with different zero counts: the node allocator produces addresses with `zeros = 1` (user-level), while the element allocator produces addresses with `zeros = 3`. By T4, different zero counts imply different field structure. If `#a ≠ #b`, then `a ≠ b` by T3 directly. If `#a = #b`, then `zeros(a) ≠ zeros(b)` means there exists a position where one is zero and the other nonzero — by T3, `a ≠ b`.
 
-*Case 4: Different allocators with nesting prefixes and the same zero count.* This arises when a parent and child allocator both produce addresses at the same hierarchical level. By T10a, the parent allocator uses `inc(·, 0)` for all its sibling allocations. Its first output has some length `γ₁`; since `inc(·, 0)` preserves length (TA5(c)), all subsequent parent siblings have length `γ₁`. The child allocator's prefix was established by `inc(parent_output, k')` with `k' > 0`, giving prefix length `γ₁ + k'` (by TA5(d)). The child then uses `inc(·, 0)` for its own siblings — all its outputs have the uniform length `γ₁ + k'`. Since `k' ≥ 1`, the child's outputs are strictly longer than the parent's: `γ₁ + k' > γ₁`. By T3, `a ≠ b`.
+*Case 4: Different allocators with nesting prefixes and the same zero count.* This arises when a parent and child allocator both produce addresses at the same hierarchical level. By T10a, the parent allocator uses `inc(·, 0)` for all its sibling allocations. Its first output has some length `γ₁`; since `inc(·, 0)` preserves length (TA5(c)), all subsequent parent siblings have length `γ₁`. The child allocator's prefix was established by `inc(parent_output, k')` with `k' > 0`, giving prefix length `γ₁ + k'` (by TA5(d)). The child then uses `inc(·, 0)` for its own siblings — all its outputs have the uniform length `γ₁ + k'`. Since `k' ≥ 1`, the child's outputs are strictly longer than the parent's: `γ₁ + k' > γ₁`. By T3, `a ≠ b`. The length separation is additive across nesting levels — each `inc(·, k')` with `k' ≥ 1` adds at least one component, so a descendant `d` nesting levels below has output length at least `γ₁ + d > γ₁`. Allocators at different branches that are not ancestors of each other have non-nesting prefixes and are handled by Case 2.
 
 The argument depends critically on T10a's constraint that sibling allocations use `k = 0`. If a parent allocator could use `k > 0` for siblings, its outputs would have increasing lengths, and some parent output could match the length of a child output, collapsing the length separation. ∎
 
@@ -257,9 +261,19 @@ The precondition `k ≤ #a` is essential: the constructive definition copies com
 
 TA1 guarantees weak (`≤`) order preservation universally — if two positions were in order before advancement, they remain in non-reversed order after. The precondition `k ≤ min(#a, #b)` inherits from TA0: both operations must be well-defined.
 
-Strict order preservation holds under a tighter condition:
+Strict order preservation holds under a tighter condition. We first need a precise notion of where two tumblers first differ.
 
-**TA1-strict (Strict order preservation).** `(A a, b, w : a < b ∧ w > 0 ∧ k ≥ divergence(a, b) : a ⊕ w < b ⊕ w)`, where `k` is the action point of `w` and `divergence(a, b)` is the first position at which `a` and `b` differ.
+**Definition (Divergence).** For tumblers `a, b ∈ T` with `a ≠ b`, the *divergence* `divergence(a, b)` is defined by two cases corresponding to the two cases of T1:
+
+  (i) If there exists `k ≤ min(#a, #b)` such that `aₖ ≠ bₖ` and `(A i : 1 ≤ i < k : aᵢ = bᵢ)`, then `divergence(a, b) = k` — component divergence at a shared position.
+
+  (ii) If `(A i : 1 ≤ i ≤ min(#a, #b) : aᵢ = bᵢ)` and `#a ≠ #b`, then `divergence(a, b) = min(#a, #b) + 1` — prefix divergence, where one tumbler is a proper prefix of the other.
+
+Exactly one case applies for any `a ≠ b`. In case (i), `a` and `b` differ at a component both possess. In case (ii), they agree on all shared positions but one is longer — the divergence lies "just past" the shorter tumbler's last component.
+
+For prefix-related pairs, `divergence(a, b) = min(#a, #b) + 1 > min(#a, #b)`. Since TA0 requires `k ≤ min(#a, #b)`, the condition `k ≥ divergence(a, b)` in TA1-strict below is unsatisfiable for prefix-related operands. This is correct: when `a` is a proper prefix of `b` (or vice versa), Case 1 of the verification below shows that addition erases the divergence, producing equality rather than strict inequality. TA1-strict makes no claim about prefix-related pairs — TA1 (weak) covers them, guaranteeing non-reversal.
+
+**TA1-strict (Strict order preservation).** `(A a, b, w : a < b ∧ w > 0 ∧ k ≥ divergence(a, b) : a ⊕ w < b ⊕ w)`, where `k` is the action point of `w`.
 
 When the action point falls before the divergence — `k < divergence(a, b)` — both operands agree at position `k`, both get the same `wₖ` added, and both copy the same tail from `w` afterward. The original divergence is erased and the results are equal. For example, `a = [1, 3]`, `b = [1, 5]` (diverge at position 2), `w = [2]` (action point at position 1): `a ⊕ w = [3] = b ⊕ w`. Order degrades to equality, never reversal.
 
@@ -392,7 +406,13 @@ The subtraction algorithm differs structurally from addition — it zeros positi
 
 *Proof.* We first handle the case where `a < b` by the prefix rule (T1 case (ii)), then the component-divergence cases.
 
-*Case 0: `a` is a proper prefix of `b`.* Then `#a < #b` and `aᵢ = bᵢ` for all `i ≤ #a`. Under zero-padding, both subtractions produce the same result on positions `1, ..., max(#a, #w)` (since `a` and `b` agree on these positions). If `max(#a, #w) < max(#b, #w)`, then `a ⊖ w` is shorter than `b ⊖ w` and is a prefix of it — by T1 case (ii), `a ⊖ w < b ⊖ w`. If `max(#a, #w) = max(#b, #w)` and `b` has a nonzero component beyond `#a`, the component-divergence analysis below gives strict inequality. Otherwise the padded tumblers are identical, giving `a ⊖ w = b ⊖ w`. In either subcase, `a ⊖ w ≤ b ⊖ w`.
+*Case 0: `a` is a proper prefix of `b`.* Then `#a < #b` and `aᵢ = bᵢ` for all `i ≤ #a`.
+
+We first show that the divergence points from `w` coincide. Since `a ≥ w`, the divergence `dₐ` between `a` (zero-padded) and `w` (zero-padded) satisfies `dₐ ≤ #a`. To see this: if `a > w` by T1 case (i), the divergence is at a shared position `≤ min(#a, #w) ≤ #a`. If `a > w` by T1 case (ii), `w` is a proper prefix of `a`, and the divergence falls at `#w + 1 ≤ #a`. Since `bᵢ = aᵢ` for all `i ≤ #a` and `dₐ ≤ #a`, the comparison of `b` (zero-padded) against `w` (zero-padded) agrees with that of `a` at all positions up to `dₐ`. So `d_b = dₐ = d`.
+
+Now apply the subtraction formula to both. At positions `i < d`: both results are zero. At position `d`: both compute `a_d - w_d = b_d - w_d`, since `a_d = b_d` for `d ≤ #a`. At positions `d < i ≤ #a`: both copy from the minuend, giving `aᵢ = bᵢ`. The two results agree on all positions `1, ..., #a`.
+
+Beyond position `#a`, the results may differ. The result `a ⊖ w` has length `max(#a, #w)`. At positions `#a < i ≤ max(#a, #w)` (present only when `#w > #a`): `(a ⊖ w)ᵢ = 0` (from `a`'s zero padding) while `(b ⊖ w)ᵢ = bᵢ ≥ 0` (from `b`'s actual components, copied in the tail phase since `i > d`). The result `b ⊖ w` has length `max(#b, #w) ≥ max(#a, #w)` (since `#b > #a`). If `max(#b, #w) > max(#a, #w)`, the extra positions come from `b`'s components beyond `max(#a, #w)`, also copied from the minuend in the tail phase. Since `a ⊖ w` is no longer than `b ⊖ w` and at every shared position `(a ⊖ w)ᵢ ≤ (b ⊖ w)ᵢ`, we have `a ⊖ w ≤ b ⊖ w`.
 
 For the remaining cases, `a < b` by T1 case (i): there exists `j ≤ min(#a, #b)` with `aⱼ < bⱼ`. Let `dₐ = divergence(a, w)` and `d_b = divergence(b, w)` (under zero-padding).
 
@@ -550,12 +570,16 @@ We instantiate the algebra on a concrete scenario. Server 1, user 3, document 2,
 
 **TA7a (Subspace closure).** Consider advancing text position ordinal `[3]` by displacement `[2]`: `[3] ⊕ [2] = [5]`. The result is a single-component ordinal — it remains within the text subspace. The subspace identifier `1` is held as context, unchanged. Subtracting: `[5] ⊖ [2] = [3]`. Recovery is exact (TA4 applies: `k = 1 = #a = #w`, zero-prefix condition vacuously satisfied).
 
+**TA1 (Order preservation under addition).** We have `a₂ < a₃` (divergence at position 8: `2 < 3`). Apply displacement `ℓ = [0,0,0,0,0,0,0,3]` (action point `k = 8`). Compute: `a₂ ⊕ ℓ`: positions 1–7 copy from `a₂` giving `1.0.3.0.2.0.1`, position 8 advances `2 + 3 = 5`. Result: `1.0.3.0.2.0.1.5`. `a₃ ⊕ ℓ`: positions 1–7 copy from `a₃` giving `1.0.3.0.2.0.1`, position 8 advances `3 + 3 = 6`. Result: `1.0.3.0.2.0.1.6`. Comparing: `1.0.3.0.2.0.1.5 < 1.0.3.0.2.0.1.6` — divergence at position 8, `5 < 6`. TA1 (weak) is confirmed. Since `k = 8 = divergence(a₂, a₃)`, TA1-strict predicts strict inequality — and we see `a₂ ⊕ ℓ < a₃ ⊕ ℓ` strictly, as claimed.
+
+**TA4 (Partial inverse — full addresses).** Does the round-trip `(a₂ ⊕ ℓ) ⊖ ℓ = a₂` hold? We have `a₂ ⊕ ℓ = [1,0,3,0,2,0,1,5]`. Subtracting `ℓ = [0,0,0,0,0,0,0,3]`: scan for divergence — position 1: `1 ≠ 0`. Divergence at `d = 1`. Result: position 1 gets `1 - 0 = 1`, positions 2–8 copy from minuend: `0,3,0,2,0,1,5`. So `(a₂ ⊕ ℓ) ⊖ ℓ = [1,0,3,0,2,0,1,5] = a₂ ⊕ ℓ ≠ a₂`. The subtraction is a no-op — it finds the divergence at the subspace identifier, not at the action point. The round-trip fails. Checking TA4's preconditions: `k = 8`, `#a₂ = 8`, so `k = #a₂` ✓. `#ℓ = 8 = k` ✓. But `(A i : 1 ≤ i < 8 : (a₂)ᵢ = 0)`? Position 1 has `(a₂)₁ = 1 ≠ 0` ✗. The zero-prefix condition fails — `a₂` has nonzero components before the action point, so TA4's preconditions are not met and the theorem makes no claim. Contrast with the ordinal-only case above: `[5] ⊖ [2] = [3]`, `[3] ⊕ [2] = [5]`. Here `k = 1 = #[3] = #[2]` and the zero-prefix condition is vacuous. All preconditions hold and round-trip succeeds. The restrictive preconditions exist precisely to exclude cases like the full-address round-trip where the subtraction algorithm's divergence-discovery mechanism is misled by nonzero prefix components.
+
 
 ## Formal summary
 
 We collect the structure. The tumbler algebra is a tuple `(T, <, ⊕, ⊖, inc, fields, Z)` where `Z = {t ∈ T : (A i : 1 ≤ i ≤ #t : tᵢ = 0)}` is the set of zero tumblers:
 
-- `T` is the carrier set of finite sequences of non-negative integers, with unbounded components (T0)
+- `T` is the carrier set of finite sequences of non-negative integers, with unbounded component values (T0(a)) and unbounded length (T0(b))
 - `<` is the lexicographic total order on `T` (T1), intrinsically computable (T2), with canonical representation (T3)
 - The hierarchical parsing function `fields` extracts four-level containment (T4), yielding contiguous subtrees (T5); decidable containment (T6, corollary of T4) and element subspace disjointness (T7, corollary of T3 + T4) follow
 - `T8` establishes allocation permanence — once allocated, an address is never removed from the set of allocated addresses
@@ -570,7 +594,7 @@ Each property is required by at least one system guarantee:
 
 | Property | Required by |
 |----------|-------------|
-| T0 | Unbounded growth of docuverse |
+| T0(a), T0(b) | Unbounded growth of docuverse |
 | T1, T2 | Span containment, link search, index traversal |
 | T3 | Address identity, uniqueness, total order consistency |
 | T4, T5 | Hierarchical queries, self-describing spans |
@@ -592,7 +616,8 @@ Removing any independent property breaks a system-level guarantee. T6 and T7 are
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| T0 | Every component of a tumbler is unbounded — no maximum value exists | introduced |
+| T0(a) | Every component value of a tumbler is unbounded — no maximum value exists | introduced |
+| T0(b) | Tumblers of arbitrary length exist in T — the hierarchy has unlimited nesting depth | introduced |
 | T1 | Tumblers are totally ordered by lexicographic comparison, with the prefix-less-than convention | introduced |
 | T2 | Tumbler comparison is computable from the two addresses alone, examining at most min(#a, #b) components | introduced |
 | T3 | Each tumbler has exactly one canonical representation; component-wise identity is both necessary and sufficient for equality | introduced |
