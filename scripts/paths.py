@@ -3,6 +3,8 @@
 import re
 from pathlib import Path
 
+import yaml
+
 WORKSPACE = Path(__file__).resolve().parent.parent
 VAULT = WORKSPACE / "vault"
 
@@ -26,6 +28,9 @@ STATEMENTS_DIR = VAULT / "3-modeling" / "formal-statements"
 VERIFICATION_DIR = VAULT / "3-modeling" / "verification"
 PROOF_IMPORTS = PROOFS_DIR / "imports.md"
 FOUNDATION_LIST = ASNS_DIR / "foundation.md"
+
+# Manifests (per-ASN pipeline configuration)
+PROJECT_MODEL_DIR = VAULT / "project-model"
 
 # Experts (merged consultations + transcripts)
 EXPERTS_DIR = VAULT / "experts"
@@ -112,3 +117,37 @@ def find_latest_modeling_dir(asn_label):
         return None
     gen_dirs.sort()
     return gen_dirs[-1][1]
+
+
+def load_manifest(asn_id):
+    """Load a manifest file for an ASN. Returns dict or empty dict."""
+    path = PROJECT_MODEL_DIR / f"ASN-{int(asn_id):04d}.yaml"
+    try:
+        with open(path) as f:
+            return yaml.safe_load(f) or {}
+    except FileNotFoundError:
+        return {}
+
+
+def load_excluded_covers(asn_id):
+    """Load combined covers text for an ASN's depends + excludes.
+
+    Reads the manifest for asn_id, collects all ASN IDs from
+    depends and excludes, then reads each of those manifests'
+    covers field. Returns a combined string for the question filter.
+    """
+    manifest = load_manifest(asn_id)
+    dep_ids = manifest.get("depends", [])
+    exc_ids = manifest.get("excludes", [])
+    all_ids = set(dep_ids + exc_ids)
+
+    if not all_ids:
+        return ""
+
+    covers = []
+    for ref_id in sorted(all_ids):
+        ref = load_manifest(ref_id)
+        c = ref.get("covers", "")
+        if c:
+            covers.append(f"ASN-{int(ref_id):04d}: {c}")
+    return "\n".join(covers)

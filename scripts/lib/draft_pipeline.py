@@ -30,7 +30,7 @@ import yaml
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import WORKSPACE, INQUIRIES_FILE, ASNS_DIR, USAGE_LOG
+from paths import WORKSPACE, ASNS_DIR, USAGE_LOG, PROJECT_MODEL_DIR, load_manifest
 
 CONSULT_SCRIPT = WORKSPACE / "scripts" / "lib" / "draft_consult.py"
 DISCOVER_SCRIPT = WORKSPACE / "scripts" / "lib" / "draft_discover.py"
@@ -58,10 +58,28 @@ def load_prompt(path):
 
 
 def load_inquiries():
-    """Load inquiries from YAML file."""
-    with open(INQUIRIES_FILE) as f:
-        data = yaml.safe_load(f)
-    return data["inquiries"]
+    """Load all ASN definitions from project model directory."""
+    import re
+    inquiries = []
+    for path in sorted(PROJECT_MODEL_DIR.glob("ASN-*.yaml")):
+        m = re.match(r"ASN-(\d+)", path.stem)
+        if not m:
+            continue
+        asn_id = int(m.group(1))
+        manifest = load_manifest(asn_id)
+        if not manifest:
+            continue
+        inquiry = manifest.get("inquiry", {})
+        if not inquiry.get("question"):
+            continue
+        inquiries.append({
+            "id": asn_id,
+            "title": manifest.get("title", ""),
+            "area": "",
+            "question": inquiry.get("question", ""),
+            "out_of_scope": manifest.get("out_of_scope", ""),
+        })
+    return inquiries
 
 
 # ─── Steps ────────────────────────────────────────────────────

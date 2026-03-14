@@ -23,7 +23,7 @@ import yaml
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import WORKSPACE, INQUIRIES_FILE, ASNS_DIR, EXPERTS_DIR, VOCABULARY, STATEMENTS_DIR, FOUNDATION_LIST, USAGE_LOG
+from paths import WORKSPACE, ASNS_DIR, EXPERTS_DIR, VOCABULARY, STATEMENTS_DIR, FOUNDATION_LIST, USAGE_LOG, load_manifest
 from lib.foundation import load_foundation_statements
 
 DISCOVERY_PROMPT = WORKSPACE / "scripts" / "prompts" / "discovery" / "discovery.md"
@@ -48,14 +48,18 @@ def load_prompt(path):
 
 
 def load_inquiry(inquiry_id):
-    """Load a specific inquiry from inquiries.yaml."""
-    with open(INQUIRIES_FILE) as f:
-        data = yaml.safe_load(f)
-    for inq in data["inquiries"]:
-        if inq["id"] == inquiry_id:
-            return inq
-    print(f"  [ERROR] Inquiry {inquiry_id} not found", file=sys.stderr)
-    sys.exit(1)
+    """Load inquiry from project model manifest."""
+    manifest = load_manifest(inquiry_id)
+    if not manifest:
+        print(f"  [ERROR] Manifest not found for ASN-{inquiry_id:04d}", file=sys.stderr)
+        sys.exit(1)
+    inquiry = manifest.get("inquiry", {})
+    return {
+        "id": inquiry_id,
+        "title": manifest.get("title", ""),
+        "question": inquiry.get("question", ""),
+        "out_of_scope": manifest.get("out_of_scope", ""),
+    }
 
 
 def slugify(title):

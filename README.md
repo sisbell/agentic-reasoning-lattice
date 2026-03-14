@@ -354,8 +354,12 @@ vault/
   vocabulary.md     — Shared vocabulary for ASN authors
   requirements/     — Nelson's design features
 
-  1-promote/        — Stage 1: Inquiry definitions + promoted questions
-    inquiries.yaml
+  project-model/    — Per-ASN definitions (scope, dependencies, stage config)
+    ASN-NNNN.yaml   — Definition for each active ASN
+    index.md        — Generated DAG overview
+
+  1-promote/        — Stage 1: Promoted questions and deferrals
+    inquiries.yaml  — Historical record (scripts read from project-model/)
     ASN-NNNN/       — Per-ASN promoted open questions and deferrals
 
   2-review/         — Stage 2: Review outputs (review-N.md per ASN)

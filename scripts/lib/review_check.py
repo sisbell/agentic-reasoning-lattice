@@ -26,7 +26,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import WORKSPACE, ASNS_DIR, VOCABULARY, REVIEWS_DIR, USAGE_LOG, STATEMENTS_DIR, FOUNDATION_LIST, INQUIRIES_FILE, sorted_reviews
+from paths import WORKSPACE, ASNS_DIR, VOCABULARY, REVIEWS_DIR, USAGE_LOG, STATEMENTS_DIR, FOUNDATION_LIST, sorted_reviews, load_manifest
 from lib.foundation import load_foundation_statements
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
@@ -34,17 +34,9 @@ REVIEW_TEMPLATE = PROMPTS_DIR / "review.md"
 
 
 def load_out_of_scope(asn_number):
-    """Look up out_of_scope for an ASN from inquiries.yaml. Returns string or empty."""
-    try:
-        import yaml
-        with open(INQUIRIES_FILE) as f:
-            data = yaml.safe_load(f)
-        for inq in data.get("inquiries", []):
-            if inq["id"] == asn_number:
-                return inq.get("out_of_scope", "")
-    except (FileNotFoundError, KeyError):
-        pass
-    return ""
+    """Look up out_of_scope for an ASN from its project model manifest."""
+    manifest = load_manifest(asn_number)
+    return manifest.get("out_of_scope", "")
 
 
 def read_file(path):

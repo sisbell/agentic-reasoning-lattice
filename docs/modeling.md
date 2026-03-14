@@ -108,11 +108,11 @@ function Insert(s: State, d: DocId, p: Pos, c: seq<byte>): (s': State)
 
 ### Proof Imports
 
-`vault/proofs/imports.md` maps each ASN to the proof modules its generated properties need. The Dafny generator reads all `.dfy` files from each listed module directory and injects their source into the generation prompt. Generated files use `import` statements; dfyconfig.toml handles resolution.
+Each ASN's project model (`vault/project-model/ASN-NNNN.yaml`) has a `proof_imports` field listing the Dafny proof modules it needs. The Dafny generator reads all `.dfy` files from each listed module directory and injects their source into the generation prompt. Generated files use `import` statements; dfyconfig.toml handles resolution.
 
 ### Foundation ASNs
 
-`vault/asns/foundation.md` lists ASNs whose formal statements are injected into every review, revise, and discovery prompt. Add an ASN to the list after its proofs are promoted to `vault/proofs/`. Foundation statements give downstream ASNs access to verified definitions without restating them.
+Foundation ASNs are identified by a `covers` field in their project model definition (`vault/project-model/ASN-NNNN.yaml`). Their formal statements are injected into every review, revise, and discovery prompt. Add a `covers` field after proofs are promoted to `vault/proofs/`. Foundation statements give downstream ASNs access to verified definitions without restating them.
 
 ### Divergence and Failure Tracking
 
@@ -177,7 +177,7 @@ python scripts/revise.py N
 |----------|----------|-------------|
 | ASN | `vault/asns/ASN-NNNN-*.md` | Converged specification |
 | Existing proof index | `vault/3-modeling/proof-index/ASN-NNNN-proof-index.md` | For re-run stability |
-| Proof imports | `vault/proofs/imports.md` | Proof module dependencies per ASN |
+| Proof imports | `vault/project-model/ASN-NNNN.yaml` (proof_imports field) | Proof module dependencies per ASN |
 
 ### Output
 

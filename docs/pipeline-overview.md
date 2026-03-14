@@ -75,7 +75,7 @@ inquiries.yaml
 
 Turns an inquiry into a new ASN. Decomposes the inquiry into sub-questions for Nelson and Gregory, runs parallel consultations, then synthesizes the answers into a formal ASN using Dijkstra-style derivation.
 
-- **Input:** inquiry from `vault/1-promote/inquiries.yaml`
+- **Input:** inquiry from `vault/project-model/ASN-NNNN.yaml`
 - **Output:** ASN file in `vault/asns/ASN-NNNN-title.md`
 - **Human gate (foundation ASNs only):** After consultation, curate questions and answers for layer scope before discovery. See [Consultation Curation](consultation-curation.md).
 - **Details:** [Discovery](discovery.md)
