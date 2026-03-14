@@ -226,13 +226,8 @@ def decompose_inquiry(inquiry_text, num_nelson=10, num_gregory=10, model="opus",
         sys.exit(1)
 
     covers_text = load_excluded_covers(asn_id) if asn_id else ""
-    exclusion_parts = []
-    if out_of_scope:
-        exclusion_parts.append(f"DO NOT generate questions about: {out_of_scope}")
-    if covers_text:
-        exclusion_parts.append(f"The following topics are already established by upstream ASNs — do not re-ask them:\n{covers_text}")
-    out_of_scope_block = (f"\n## Scope Exclusions\n\n" + "\n\n".join(exclusion_parts) + "\n"
-                     if exclusion_parts else "")
+    out_of_scope_block = (f"\n## Scope Exclusions\n\nDO NOT generate questions about: {out_of_scope}\n"
+                     if out_of_scope else "")
     nelson_prompt = nelson_template.format(
         inquiry=inquiry_text,
         num_questions=num_nelson,
