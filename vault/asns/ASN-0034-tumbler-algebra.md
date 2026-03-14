@@ -177,13 +177,13 @@ T8 is required for link stability (links reference addresses, which must remain 
 
 T8 tells us that addresses, once allocated, are permanent. We now ask: in what order are new addresses assigned?
 
-**T9 (Forward allocation).** Each allocator in the system controls a single ownership prefix and allocates sequentially within it. Within that sequential stream, new addresses are strictly monotonically increasing:
+**T9 (Forward allocation) [lemma].** T10a below defines the allocation mechanism: each allocator advances by `inc(·, 0)`, incrementing by exactly 1 at the last significant position. Since `inc` produces a strictly greater tumbler at each step (TA-strict), it follows that within each allocator's sequential stream, new addresses are strictly monotonically increasing:
 
   `(A a, b : same_allocator(a, b) ∧ allocated_before(a, b) : a < b)`
 
-Nelson's design is explicitly sequential: "successive new digits to the right ... 2.1, 2.2, 2.3, 2.4 are successive items being placed under 2." The word "successive" carries the weight: 2.2 follows 2.1, never precedes it.
+Nelson's design is explicitly sequential: "successive new digits to the right ... 2.1, 2.2, 2.3, 2.4 are successive items being placed under 2." The word "successive" carries the weight: 2.2 follows 2.1, never precedes it. Under T10a, no gaps arise within a single allocator's sibling stream — each address is exactly one increment beyond the previous.
 
-T9 prohibits gap-filling within a single allocator's stream. If address 2.3 was allocated and address 2.5 was allocated, then 2.4 either was allocated between them or is a permanent ghost. The system never goes back to fill 2.4 after allocating 2.5. Since T9 requires strictly monotonic advancement, the ghost address lies behind the allocation frontier permanently. It cannot be reused for new content; it is a permanent gap. Gaps are features, not defects.
+Positions on the tumbler line that have been allocated but have no stored content are what Nelson calls "ghost elements" (T8 above). Ghosts are about absent content, not absent addresses — every allocated position is permanently claimed whether or not anything is stored there.
 
 But the tumbler line as a whole does NOT grow monotonically by creation time. Nelson: "Starting from a given tumbler address, it may only be possible arithmetically to get to some places in the Docuverse — those notationally after that address." When a parent address forks a child, the child is *inserted* between the parent and the parent's next sibling on the tumbler line. Address `2.1.1` may be created long after `2.2`, but it sits between them: `2.1 < 2.1.1 < 2.2`. The depth-first linearization means children always precede the parent's next sibling, regardless of creation order. T9 holds per-allocator, not globally.
 
