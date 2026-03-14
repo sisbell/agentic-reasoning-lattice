@@ -113,9 +113,11 @@ Gregory's implementation confirms this directly. The allocation code `docreateno
 
 **Definition (Children).** `children(p) = {n ∈ Σ.nodes : parent(n) = p}` — the set of baptized children of node `p` in the current state.
 
+We introduce an abstract authorization predicate: `authorized(actor, p)` holds when `actor` has the right to create children under node `p`. Nelson establishes the structural law: "The owner of a given item controls the allocation of the numbers under it." The predicate captures this law without committing to concrete mechanisms — who counts as an owner, how ownership is established, and whether delegation is possible are deferred to the account ontology ASN.
+
 **BAPTIZE(p)** — Create a new node as a child of `p`.
 
-*Precondition:* `p ∈ Σ.nodes`
+*Precondition:* `p ∈ Σ.nodes ∧ authorized(actor, p)`
 
 *Postcondition:* Let `C = children(p)` before the operation.
 
@@ -137,9 +139,9 @@ The postcondition is deterministic: the new address is uniquely determined by th
 
 *Concrete trace.* We verify BAPTIZE through a three-step sequence, starting from genesis: `Σ.nodes = {[1]}`.
 
-(1) BAPTIZE(`[1]`). We have `C = children([1]) = ∅`, so `n = inc([1], 1) = [1, 1]` by TA5(d). Check: `[1, 1] ∈ N` (two positive components, no zeros). `parent([1, 1]) = [1] ∈ Σ.nodes`. Result: `Σ.nodes = {[1], [1, 1]}`. N3 holds: root present (a), `parent([1, 1]) = [1] ∈ Σ.nodes` (b), finite (c). N5 holds vacuously (one child).
+(1) BAPTIZE(`[1]`). We have `C = children([1]) = ∅`, so `n = inc([1], 1) = [1, 1]` by TA5(d). Check: `[1, 1] ∈ N` (two positive components, no zeros). `parent([1, 1]) = [1] ∈ Σ.nodes`. Result: `Σ.nodes = {[1], [1, 1]}`. N3 holds: root present (a), `parent([1, 1]) = [1] ∈ Σ.nodes` (b), finite (c). N5 holds: `([1,1])_2 = 1`, confirming the first child has last component 1.
 
-(2) BAPTIZE(`[1]`). Now `C = {[1, 1]}`, so `n = inc([1, 1], 0) = [1, 2]` by TA5(c). Check: `[1, 2] ∈ N`. `parent([1, 2]) = [1] ∈ Σ.nodes`. `[1, 1] < [1, 2]` by T1 (divergence at position 2: `1 < 2`). Last components are 1 and 2, differing by 1 — N5 holds. Result: `Σ.nodes = {[1], [1, 1], [1, 2]}`.
+(2) BAPTIZE(`[1]`). Now `C = {[1, 1]}`, so `n = inc([1, 1], 0) = [1, 2]` by TA5(c). Check: `[1, 2] ∈ N`. `parent([1, 2]) = [1] ∈ Σ.nodes`. `[1, 1] < [1, 2]` by T1 (divergence at position 2: `1 < 2`). Last components are 1 and 2, matching positions `i = 1` and `i = 2` — N5 holds. Result: `Σ.nodes = {[1], [1, 1], [1, 2]}`.
 
 (3) BAPTIZE(`[1, 1]`). Here `C = children([1, 1]) = ∅`, so `n = inc([1, 1], 1) = [1, 1, 1]` by TA5(d). Check: `[1, 1, 1] ∈ N`. `parent([1, 1, 1]) = [1, 1] ∈ Σ.nodes`. Depth increases: `depth([1, 1, 1]) = 3 > depth([1, 1]) = 2`. N3(b) satisfied. Result: `Σ.nodes = {[1], [1, 1], [1, 1, 1], [1, 2]}`. The tumbler ordering is `[1] < [1, 1] < [1, 1, 1] < [1, 2]` — depth-first linearization of the tree (N6).
 
@@ -160,11 +162,11 @@ Why must this be so? Because every address allocated *under* a node — every ac
 
 Nelson acknowledges that physical infrastructure can change: "Upon notice of cancellation, Storage Vendor will arrange for the orderly transition of all customer-stored materials to other Xanadu locations." Content migrates; the address stays. A decommissioned node becomes a ghost element — addressable, linkable, but with no physical representation. Its content lives elsewhere; its address endures. Nelson also accepts that nodes go offline routinely: "It is a truism that 'computer networks are always broken.' Meaning that on the average some nodes are disconnected or not working." Temporary unavailability is not removal from the address space.
 
-**N5 (Sequential Children).** The children of any node form a sequential, gap-free sequence. For `children(p) = {c₁, ..., cₖ}` ordered by T1:
+**N5 (Sequential Children).** The children of any node form a complete initial segment of the positive integers in their last component. For `children(p) = {c₁, ..., cₖ}` ordered by T1:
 
-  `(A i : 1 ≤ i < k : (cᵢ)_{#cᵢ} + 1 = (cᵢ₊₁)_{#cᵢ₊₁})`
+  `(A i : 1 ≤ i ≤ k : (cᵢ)_{#cᵢ} = i)`
 
-Consecutive siblings differ by exactly 1 in their last component. This follows from T10a (AllocatorDiscipline, ASN-0034): `inc(·, 0)` advances the last significant component by 1, and no other mechanism produces siblings. Combined with T9 (ForwardAllocation, ASN-0034), if `[p₁, ..., pₐ, 3]` is baptized, then `[p₁, ..., pₐ, 1]` and `[p₁, ..., pₐ, 2]` were necessarily baptized earlier.
+The first child has last component 1, and each subsequent child increments by exactly 1 — the children are `[p₁, ..., pₐ, 1], [p₁, ..., pₐ, 2], ..., [p₁, ..., pₐ, k]` with no gaps and no offset. This follows from T10a (AllocatorDiscipline, ASN-0034): `inc(·, 0)` advances the last significant component by 1, and no other mechanism produces siblings. Combined with T9 (ForwardAllocation, ASN-0034), if `[p₁, ..., pₐ, 3]` is baptized, then `[p₁, ..., pₐ, 1]` and `[p₁, ..., pₐ, 2]` were necessarily baptized earlier.
 
 N5 means that siblings cannot be sparse in the *baptism* sense. Nelson's discussion of ghost elements — the possibility that baptized nodes may be entirely empty — is about *occupation*, not about gaps in the baptism sequence. A baptized but empty node is a ghost element: it occupies a position in `Σ.nodes` but nothing is stored under it.
 
@@ -227,9 +229,10 @@ The transition between these phases is progressive. No intermediate state is inv
 
 We verify this by enumerating the state-dependent and structural invariants separately. The state-dependent invariants require preservation proofs for BAPTIZE (the sole operation that modifies `Σ.nodes`):
 
+- **N2 (Single Root):** BAPTIZE adds a new node `n` with `parent(n) = p ∈ Σ.nodes`. By the inductive derivation given in the N2 section, if `r ≼ p` in the pre-state (inductive hypothesis), then `r ≼ p ≼ n` in the post-state. The root `r` is not removed (frame). N2 is preserved.
 - **N3 (Node Tree):** Preservation is shown above — BAPTIZE maintains root membership (frame), tree closure (precondition ensures parent is baptized), and finiteness (one element added).
 - **N4 (Baptism Monotonicity):** BAPTIZE only adds to `Σ.nodes` (postcondition: `post(Σ.nodes) = pre(Σ.nodes) ∪ {n}`), and its frame condition prohibits removal. No operation decreases the set.
-- **N5 (Sequential Children):** BAPTIZE produces the new child via `inc(max(C), 0)` when `C ≠ ∅`, advancing the last component by exactly 1 (TA5(c)). When `C = ∅`, the first child `inc(p, 1)` has last component 1, starting the gap-free sequence. In both cases, the gap-free property is maintained. (The initial state `Σ.nodes = {r}` satisfies N5 vacuously — the root has no children.)
+- **N5 (Sequential Children):** BAPTIZE produces the new child via `inc(max(C), 0)` when `C ≠ ∅`, advancing the last component by exactly 1 (TA5(c)). When `C = ∅`, the first child `inc(p, 1)` has last component 1, starting the gap-free sequence. In both cases, the complete initial segment property is maintained. (The initial state `Σ.nodes = {r}` satisfies N5 vacuously — the root has no children.)
 
 The structural properties hold unconditionally from the tumbler algebra, independent of `Σ.nodes`:
 
@@ -309,7 +312,7 @@ The implication is clear: a node is not an object in any conventional sense. It 
 
 The node position confers one fundamental right: the right to create new positions within its subtree.
 
-**N15 (Allocation Authority).** Only an agent authorized by the parent node `p`'s owner can invoke BAPTIZE(p). This authority is established at the moment of baptism and is permanent: once a subtree is delegated, the recipient's authority over it is irrevocable.
+**N15 (Allocation Authority).** BAPTIZE(p) requires `authorized(actor, p)` — the abstract predicate introduced with the operation's specification. The authority is established at the moment of baptism and is permanent: once a subtree is delegated, the recipient's authority over it is irrevocable.
 
 Nelson: "The owner of a given item controls the allocation of the numbers under it." And: "Typically, the user will have no control over the node address he, she or it is assigned; but once assigned a User account, the user will have full control over its subdivision forevermore."
 
@@ -343,7 +346,7 @@ The home node of any address — the node from which it structurally descends �
 | N2 | Single root: `r = [1]` is the unique minimal-depth node; `(A n ∈ Σ.nodes : n ≠ r ⟹ r ≼ n)` | introduced |
 | N3 | `(Σ.nodes, parent)` is a finite tree rooted at `r`, closed under `parent` | introduced |
 | N4 | Baptism monotonicity: `pre(Σ.nodes) ⊆ post(Σ.nodes)` for all operations | introduced |
-| N5 | Sequential children: consecutive siblings differ by 1 in their last component | introduced |
+| N5 | Sequential children: `(A i : 1 ≤ i ≤ k : (cᵢ)_{#cᵢ} = i)` — complete initial segment starting at 1 | introduced |
 | N6 | Structural ordering: tumbler order reflects tree structure, not temporal sequence of creation | introduced |
 | N7 | Forward reference admissibility: references may target any address in `N`, even if unbaptized | introduced |
 | N8 | Always-valid intermediate states: every phase of a node's lifecycle satisfies all invariants | introduced |
@@ -353,7 +356,7 @@ The home node of any address — the node from which it structurally descends �
 | N12 | Local serialization sufficiency: only same-parent allocations require serialization | introduced |
 | N13 | Uniform node type: exactly one type of node; no structural subtyping | introduced |
 | N14 | No node-level mutable state: a node carries no mutable state beyond its permanent address | introduced |
-| N15 | Allocation authority: subtree extension rights are conferred at baptism and are irrevocable | introduced |
+| N15 | Allocation authority: `authorized(actor, p)` — abstract precondition on BAPTIZE; account ontology refines | introduced |
 | N16 | Prefix propagation: every address under node `n` carries `n` as a prefix; `home(a) = fields(a).node` | introduced |
 
 
