@@ -177,11 +177,25 @@ We are looking for the relationship between the ordering of node addresses and t
 
 > "Note that 'time' is not included in the tumbler. Time is kept track of separately."
 
-The tumbler line carries a total ordering (T1), and every node address participates in it. But this ordering reflects the depth-first linearization of the forking tree, not the calendar. Consider: under the root `[1]`, node `[1, 1]` is baptized, then node `[1, 1, 1]` beneath it, then node `[1, 2]` as a second child of the root. On the tumbler line, the ordering is `[1, 1] < [1, 1, 1] < [1, 2]`. But `[1, 2]` was baptized *after* `[1, 1, 1]` and yet follows it on the line — not because `[1, 2]` was created later, but because the depth-first traversal visits all descendants of `[1, 1]` before moving to the next sibling.
+The tumbler line carries a total ordering (T1), and every node address participates in it. But this ordering reflects the depth-first linearization of the forking tree, not the calendar.
 
-Among siblings of a single parent, tumbler order *does* coincide with creation order — N5 (Sequential Children) ensures that children are numbered `1, 2, 3, ...` in the order of baptism. But across different branches, the relationship vanishes entirely.
+**Definition (DFS pre-order).** The *depth-first pre-order* of `(Σ.nodes, parent)` is defined recursively: visit node `p`, then for each child `c₁, c₂, ..., cₖ` of `p` in T1 order, recursively visit the subtree rooted at `cᵢ`. Write `a ≺_dfs b` when `a` precedes `b` in this traversal.
 
-**N6 (Structural, Not Temporal, Ordering).** The total order T1 restricted to `Σ.nodes` reflects the depth-first linearization of the node tree. Among siblings of a single parent, tumbler order coincides with baptism order. Across different branches, tumbler order reflects tree structure only. Time of baptism is metadata maintained separately from the address.
+**N6 (Structural, Not Temporal, Ordering).** For any `a, b ∈ Σ.nodes`:
+
+  `a < b` under T1  ⟺  `a ≺_dfs b`
+
+Among siblings of a single parent, tumbler order coincides with baptism order. Across different branches, tumbler order reflects tree structure only. Time of baptism is metadata maintained separately from the address.
+
+*Derivation.* We proceed by induction on the tree structure. For the base case, a tree with a single node satisfies the claim vacuously. For the inductive step, consider a node `p` with children `c₁ < c₂ < ... < cₖ` under T1, each rooting a subtree `Dᵢ`. By the inductive hypothesis, T1 agrees with DFS pre-order within each `Dᵢ`. We must show the three inter-subtree orderings hold:
+
+(i) `p` precedes all descendants: since `p ≼ d` for every descendant `d`, T1 case (ii) gives `p < d`, and DFS pre-order visits `p` first — the two agree.
+
+(ii) Every node in `Dᵢ` precedes every node in `Dᵢ₊₁`: by N5, `cᵢ = [p₁, ..., pₐ, i]` and `cᵢ₊₁ = [p₁, ..., pₐ, i + 1]`. For any `d ∈ Dᵢ` we have `cᵢ ≼ d`, so `d` has component `i` at position `a + 1`. For any `e ∈ Dᵢ₊₁`, `e` has component `i + 1` at position `a + 1`. The divergence falls at position `a + 1` with `i < i + 1`, so `d < e` by T1 case (i). DFS pre-order visits all of `Dᵢ` before `Dᵢ₊₁` — the two agree.
+
+(iii) Within each `Dᵢ`, T1 and DFS pre-order agree by the inductive hypothesis.
+
+The concrete trace from the BAPTIZE section demonstrates the divergence between temporal and structural ordering. The baptism sequence is: step 1 produces `[1, 1]`, step 2 produces `[1, 2]`, step 3 produces `[1, 1, 1]`. The temporal order is `[1, 1], [1, 2], [1, 1, 1]`. But the tumbler order is `[1, 1] < [1, 1, 1] < [1, 2]` — node `[1, 1, 1]` was baptized *after* `[1, 2]` yet *precedes* it on the tumbler line, because all descendants of `[1, 1]` form a contiguous interval (T5) that precedes sibling `[1, 2]`.
 
 We observe why this must be so. A global temporal ordering would require either a central sequencer (violating the decentralized allocation principle of T10, ASN-0034) or consensus among independent allocators (violating the locality that makes the system practical). Nelson chose tree-structural ordering instead, which requires only local information: the parent assigns the next sibling number.
 
@@ -312,9 +326,15 @@ The implication is clear: a node is not an object in any conventional sense. It 
 
 The node position confers one fundamental right: the right to create new positions within its subtree.
 
-**N15 (Allocation Authority).** BAPTIZE(actor, p) requires `authorized(actor, p)` — the abstract predicate introduced with the operation's specification. The authority is established at the moment of baptism and is permanent: once a subtree is delegated, the recipient's authority over it is irrevocable.
+**N15 (Allocation Authority).** BAPTIZE(actor, p) requires `authorized(actor, p)` — the abstract predicate introduced with the operation's specification. The refinement of `authorized` — who counts as an owner, how ownership is established, and whether delegation is possible — is deferred to the account ontology ASN.
 
 Nelson: "The owner of a given item controls the allocation of the numbers under it." And: "Typically, the user will have no control over the node address he, she or it is assigned; but once assigned a User account, the user will have full control over its subdivision forevermore."
+
+**Design constraint (DC1 — Authority Permanence).** The account ontology must define `authorized` such that authority, once established, is irrevocable:
+
+  `(A actor, p, σ : authorized(actor, p) in σ ⟹ (A σ' : σ precedes σ' : authorized(actor, p) in σ'))`
+
+Nelson's "full control over its subdivision forevermore" is the design intent this constraint captures. We record it here as a requirement on the future specification, not as a derived property of the current one.
 
 The authority flows downward at the point of baptism and does not require ongoing coordination with the parent. This is the architectural complement of N11 (Coordination-Free Disjointness): because each owner's subtree is structurally disjoint, local authority is sufficient for global consistency. No central registry participates.
 
@@ -347,7 +367,7 @@ The home node of any address — the node from which it structurally descends �
 | N3 | `(Σ.nodes, parent)` is a finite tree rooted at `r`, closed under `parent` | introduced |
 | N4 | Baptism monotonicity: `pre(Σ.nodes) ⊆ post(Σ.nodes)` for all operations | introduced |
 | N5 | Sequential children: `(A i : 1 ≤ i ≤ k : (cᵢ)_{#cᵢ} = i)` — complete initial segment starting at 1 | introduced |
-| N6 | Structural ordering: tumbler order reflects tree structure, not temporal sequence of creation | introduced |
+| N6 | Structural ordering: `a < b` under T1 ⟺ `a ≺_dfs b` in depth-first pre-order of `(Σ.nodes, parent)` | introduced |
 | N7 | Forward reference admissibility: references may target any address in `N`, even if unbaptized | introduced |
 | N8 | Always-valid intermediate states: every phase of a node's lifecycle satisfies all invariants | introduced |
 | N9 | Subtree contiguity: `{a ∈ T : n ≼ a}` is contiguous under T1 | introduced |
@@ -356,7 +376,8 @@ The home node of any address — the node from which it structurally descends �
 | N12 | Local serialization sufficiency: only same-parent allocations require serialization | introduced |
 | N13 | Uniform node type: exactly one type of node; no structural subtyping | introduced |
 | N14 | No node-level mutable state: a node carries no mutable state beyond its permanent address | introduced |
-| N15 | Allocation authority: `authorized(actor, p)` — abstract precondition on BAPTIZE; account ontology refines | introduced |
+| N15 | Allocation authority: BAPTIZE requires `authorized(actor, p)` — abstract precondition; account ontology refines | introduced |
+| DC1 | Design constraint: account ontology must define `authorized` so that authority, once established, is irrevocable | introduced |
 | N16 | Prefix propagation: every address under node `n` carries `n` as a prefix; `home(a) = fields(a).node` | introduced |
 
 
