@@ -15,6 +15,23 @@ Added type aliases `Address = Tumbler` and `Displacement = Tumbler` for role cla
 
 Planned rename for Allocation module: `AllocationPermanence` → `AddressPermanence`. ASN-0034 labels T8 "Allocation permanence" but T8's statement is about the address persisting, not the allocation act. The old ASN-0001 proofs used `AddressPermanence` which is more precise.
 
+## 2026-03-13: Consolidated proof modules — 5 modules, 125 verified
+
+Promoted 29 ASN-0034 property proofs from modeling into 5 consolidated modules:
+- **Order.dfy** (6): T0a/b, T1, T2, T3, TA6
+- **Hierarchy.dfy** (5): T4, T5, T6, T7, PrefixOrderingExtension
+- **Addition.dfy** (7): TA0, TA1, TA-strict, TA1-strict, TA1-weak, T12, TA7a
+- **Subtraction.dfy** (5): TA2, TA3-strict, TA3-weak, TA4, ReverseInverse
+- **Allocation.dfy** (6): T8, T10a, T10b, T10c, T10d, T11
+
+Not promoted: T9 ForwardAllocation (lemma of T10a, stays in modeling). TA5 HierarchicalIncrement absorbed into TumblerAlgebra (AllocationInc + AllocationIncMonotone).
+
+Deduplicated: LessEq, FindZero, LastNonzero/AllocationInc, SubtractResultAt from TumblerAlgebra. Subtraction helper lemmas prefixed Strict/Weak to disambiguate. PartitionMonotonicity uses Hierarchy.PrefixOrderingExtension instead of inlined copy. NonNesting defined once in Allocation.
+
+Renames applied: `AllocationPermanence` → `AddressPermanence` (address binding is what persists). `LessEqual` → `LessEq` (from TumblerAlgebra). `SubComponent` → `SubtractResultAt` (from TumblerAlgebra). `LastSig`/`Inc` → `LastNonzero`/`AllocationInc` (from TumblerAlgebra).
+
+Allocation imports Hierarchy for ValidAddress/ZeroCount (IncrementPreservesValidity) and PrefixOrderingExtension (CrossPartitionMonotonicity). All other modules depend only on TumblerAlgebra.
+
 ## 2026-03-13: ASN-0034 restart — clean slate
 
 ASN-0034 (Tumbler Algebra) converged, replacing ASN-0001 as the foundation. Removed all deprecated modules: AddressAllocation (ASN-0001 property proofs), Foundation (Two-Space state model), DocumentOntology (ASN-0029 types), TwoSpace (ASN-0026 properties). These will be regenerated fresh against ASN-0034 as each downstream ASN is redrafted.
