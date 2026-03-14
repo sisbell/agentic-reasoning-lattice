@@ -128,6 +128,9 @@ module TumblerAllocation {
     ZeroCountConcat(s[..|s| - 1], [s[|s| - 1]]);
   }
 
+  // k <= 2 because ValidAddress allows at most 3 zero separators (node, account,
+  // document boundaries). k=1 adds one separator (sibling→child), k=2 adds two
+  // (skipping a level). k>2 would exceed the field structure.
   lemma IncrementPreservesValidity(t: Address, k: nat)
     requires TumblerHierarchy.ValidAddress(t)
     requires k <= 2
