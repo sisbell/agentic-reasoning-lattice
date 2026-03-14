@@ -229,7 +229,6 @@ def run_discovery(inquiry, asn_number, slug, force=False):
 **ASN Number**: ASN-{asn_number:04d}
 **Topic**: {inquiry['title']}
 **Question**: {inquiry['question']}
-**Area**: {inquiry['area']}
 
 Write ASN-{asn_number:04d} to `vault/asns/ASN-{asn_number:04d}-{slug}.md`.
 
@@ -250,7 +249,7 @@ Remember:
         return None
 
     log_usage("discovery", f"ASN-{asn_number:04d}", inquiry["title"],
-              inquiry["area"], elapsed, data)
+              inquiry.get("area", ""), elapsed, data)
 
     # Find the written ASN file
     if outfile.exists():
@@ -291,7 +290,6 @@ def main():
     ASNS_DIR.mkdir(parents=True, exist_ok=True)
 
     print(f"ASN-{asn_number:04d}: {inquiry['title']}", file=sys.stderr)
-    print(f"Area: {inquiry['area']}", file=sys.stderr)
 
     asn_path = run_discovery(inquiry, asn_number, slug, force=args.force)
 
