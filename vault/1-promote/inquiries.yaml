@@ -228,3 +228,11 @@ inquiries:
     source: "Scope audit of ASN-0001: T8/T11/TA7b/TA8 belong in downstream layers. Regenerating with pure algebra scope"
     out_of_scope: "I-space and V-space as named concepts (dual-space model), content immutability (address-to-content mapping), operation-specific frame conditions (INSERT/DELETE/COPY effects on subspaces), enfilade implementation internals (2D displacement arithmetic, POOM structure), document structure and lifecycle, cross-document properties"
 
+  - id: 35
+    title: "Node Ontology"
+    question: "What is a node in the Xanadu system? How do nodes enter the docuverse, and what invariants govern the node set?"
+    area: addressing
+    source: "Regeneration of ASN-0033 on ASN-0034 foundation with tighter scope — ASN-0033 leaked I-Space/V-Space, content mapping, and account ontology through consultation questions"
+    out_of_scope: "I-space and V-space as named concepts (dual-space model), content mapping and content ownership, transclusion and virtual copies, document structure and lifecycle, document visibility and access control, account creation and delegation (account ontology), operation-specific frame conditions, enfilade implementation internals (granfilade, spanfilade, POOM structure), replication and inter-server protocol (BEBE)"
+
+

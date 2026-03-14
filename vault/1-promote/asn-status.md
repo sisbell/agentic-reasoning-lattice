@@ -7,6 +7,7 @@
 | ASN | Title | Status | Notes |
 |-----|-------|--------|-------|
 | ASN-0034 | Tumbler Algebra | **In progress** | Converged review cycle 8. Alloy in progress, Dafny pending. Replaces ASN-0001 as foundation root. |
+| ASN-0035 | Node Ontology | **Inquiry** | Regeneration of ASN-0033 with tighter out_of_scope. Foundation: ASN-0034. |
 
 ## Phase 3.1 (abandoned) — Controlled, dependent
 
