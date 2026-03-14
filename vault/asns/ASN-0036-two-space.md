@@ -105,11 +105,13 @@ Live content shares I-addresses. Dead copies create new ones. The difference is 
 
 The arrangement function `M(d)` need not be injective. This is not a deficiency but a design requirement — it is what makes transclusion work.
 
-**S5 (Unrestricted sharing).** The same I-address may appear in the ranges of multiple arrangements, and at multiple V-positions within a single arrangement. The invariants S0–S3 impose no finite upper bound on sharing multiplicity — S0–S3 do not entail any finite bound on sharing:
+**S5 (Unrestricted sharing).** The same I-address may appear in the ranges of multiple arrangements, and at multiple V-positions within a single arrangement. S0–S3 are consistent with any finite sharing multiplicity — they place no constraint on `|{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}|`:
 
-`¬(E N ∈ ℕ :: S0–S3 ⊢ (A Σ reachable, a ∈ dom(Σ.C) :: |{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}| ≤ N))`
+`(A N ∈ ℕ :: (E Σ :: Σ satisfies S0–S3 ∧ (E a ∈ dom(Σ.C) :: |{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}| > N)))`
 
-We note that in any particular state, the sharing multiplicity of each address is a definite finite number — possibly zero for orphaned content (S6). The property is an architectural anti-constraint: the invariants place no finite cap on how many references may accumulate.
+To see this, fix any `N`. Construct state `Σ_N` with one I-address `a` where `C(a) = w` for some value `w`, and `N + 1` documents `d₁, ..., d_{N+1}`, each with `M(dᵢ) = {vᵢ ↦ a}` for distinct V-positions `vᵢ`. S0 is vacuous — single state, no transition to check. S2 holds: each `M(dᵢ)` is a function with a single entry. S3 holds: `a ∈ dom(C)`. The sharing multiplicity of `a` is `N + 1 > N`. Since `N` was arbitrary, no finite bound is entailed.
+
+In any particular state, the sharing multiplicity of each address is a definite finite number — possibly zero for orphaned content (S6). The property is an architectural anti-constraint: the invariants place no finite cap on how many references may accumulate.
 
 Nelson: "The virtual byte stream of a document may include bytes from any other document." And: "A document may have a window to another document, and that one to yet another, indefinitely. Thus A contains part of B, and so on. One document can be built upon another, and yet another document can be built upon that one, indefinitely." Transclusion is recursive and unlimited.
 
@@ -180,9 +182,9 @@ Before defining correspondence runs, we must establish the structure of `dom(M(d
 
 S8-fin follows from the operational reality: each V-position enters `dom(M(d))` through a specific operation (INSERT, COPY, etc.), and the system has performed only finitely many operations. No operation introduces infinitely many V-positions.
 
-**S8-depth (Fixed-depth V-positions).** Within a given subspace `s` of document `d`, all V-positions share the same tumbler depth. Gregory's evidence is conclusive: V-addresses in the text subspace consistently use the form `s.x` — two tumbler digits, where `s` is the subspace identifier and `x` is the ordinal. The two-blade knife computation (which sets the second blade at `(N+1).1` for any insertion at `N.x`) works only if all positions within a subspace share the same depth.
+**S8-depth (Fixed-depth V-positions).** Within a given subspace `s` of document `d`, all V-positions share the same tumbler depth. This is a design requirement, not a convention — parallel to S7a. Gregory's evidence supports it: V-addresses in the text subspace consistently use the form `s.x` — two tumbler digits, where `s` is the subspace identifier and `x` is the ordinal. The two-blade knife computation (which sets the second blade at `(N+1).1` for any insertion at `N.x`) works only if all positions within a subspace share the same depth. Any correct implementation must satisfy this constraint.
 
-S8-depth allows us to define "consecutive V-positions" precisely. Within a subspace, consecutive positions differ only at the ordinal (last) component: position `s.x` is followed by `s.(x+1)`. Similarly, I-addresses within a single document and subspace share a common prefix and differ only at the element ordinal (the last component of the element field). Per TA7a (ASN-0034), ordinal displacement within a fixed-depth subspace reduces to natural-number addition on the ordinal component, with the structural prefix held as context. We write `v + k` for this operation applied to V-positions, and `a + k` for the same applied to the element ordinal of I-addresses.
+S8-depth allows us to define "consecutive V-positions" precisely. Within a subspace, consecutive positions differ only at the ordinal (last) component: position `s.x` is followed by `s.(x+1)`. A parallel uniformity holds for I-addresses within a correspondence run: all I-addresses in a run share the same tumbler depth and prefix, differing only at the element ordinal. This follows from T9 and TA5(c) (ASN-0034): forward allocation produces consecutive addresses via sibling increment (`k = 0`), which guarantees `#t' = #t` — the successor has the same length as the predecessor. Since a correspondence run arises from a contiguous allocation sequence, each successive I-address inherits the predecessor's depth and prefix, differing only at the last significant position. Per TA7a (ASN-0034), ordinal displacement within a fixed-depth context reduces to natural-number addition on the ordinal component, with the structural prefix held as context. We write `v + k` for this operation applied to V-positions, and `a + k` for the same applied to the element ordinal of I-addresses.
 
 A *correspondence run* is a triple `(v, a, n)` — a V-position, an I-address, and a natural number `n ≥ 1` — such that the arrangement preserves ordinal displacement within the run:
 
@@ -317,8 +319,8 @@ This has a formal consequence: document equality is not decidable by content com
 | S7b | Element-level I-addresses: `(A a ∈ dom(C) :: zeros(a) = 3)` | introduced |
 | S7 | Structural attribution: `origin(a) = (fields(a).node).0.(fields(a).user).0.(fields(a).document)` — full document prefix | from S7a, S7b, T4 (ASN-0034) |
 | S8-fin | Finite arrangement: `dom(M(d))` is finite for every document `d` | introduced |
-| S8-depth | Fixed-depth V-positions: within a subspace, all V-positions share the same tumbler depth | introduced |
-| S8 | Span decomposition: `M(d)` decomposes into finitely many correspondence runs `(vⱼ, aⱼ, nⱼ)` with `M(d)(vⱼ + k) = aⱼ + k` for `0 ≤ k < nⱼ` | introduced |
+| S8-depth | Fixed-depth V-positions: within a subspace, all V-positions share the same tumbler depth | design requirement |
+| S8 | Span decomposition: `M(d)` decomposes into finitely many correspondence runs `(vⱼ, aⱼ, nⱼ)` with `M(d)(vⱼ + k) = aⱼ + k` for `0 ≤ k < nⱼ` | theorem from S8-fin, S2 |
 | S9 | Two-space separation: arrangement changes cannot alter stored content | theorem from S0 |
 
 
@@ -334,4 +336,4 @@ Under what conditions, if any, may the referential integrity invariant S3 be tem
 
 What abstract property distinguishes content that exists but is unreachable from all current arrangements from content that exists and is reachable — and must the system maintain this distinction as queryable state?
 
-Must the arrangement function `M(d)` preserve any relationship between V-space ordering and I-space ordering within a correspondence run, or can the mapping be arbitrarily permuted as long as each V-position maps to exactly one I-address?
+Under what conditions do operations guarantee non-trivial correspondence runs (length > 1) — must sequential content creation produce a single run, or is the singleton decomposition the only structure guaranteed without operation-level constraints?
