@@ -1,12 +1,12 @@
 # ASN Status Register
 
-*Last updated: 2026-03-13*
+*Last updated: 2026-03-14*
 
 ## Phase 3.2 (active) — Constrained, dependent
 
 | ASN | Title | Status | Notes |
 |-----|-------|--------|-------|
-| ASN-0034 | Tumbler Algebra | **In progress** | Converged review cycle 8. Alloy in progress, Dafny pending. Replaces ASN-0001 as foundation root. |
+| ASN-0034 | Tumbler Algebra | **Foundation** | Converged. 124 Dafny verified, proofs promoted to vault/proofs/TumblerAlgebra/. Foundation root. |
 | ASN-0035 | Node Ontology | **Inquiry** | Regeneration of ASN-0033 with tighter out_of_scope. Foundation: ASN-0034. |
 | ASN-0036 | Two Space | **Inquiry** | Regeneration of ASN-0026 with tighter out_of_scope. Foundation: ASN-0034. |
 
