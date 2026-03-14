@@ -1,7 +1,13 @@
+// Shared definitions for tumbler algebra (ASN-0034). Datatypes, ordering,
+// arithmetic, and allocation operations used by all property proof modules.
 module TumblerAlgebra {
 
   // Core datatype
   datatype Tumbler = Tumbler(components: seq<nat>)
+
+  // Role aliases — same datatype, different intent
+  type Address = Tumbler
+  type Displacement = Tumbler
 
   // ---------------------------------------------------------------------------
   // Utility helpers
@@ -41,7 +47,7 @@ module TumblerAlgebra {
   // ActionPoint — index of first nonzero component (0-indexed)
   // ---------------------------------------------------------------------------
 
-  function ActionPoint(w: Tumbler): nat
+  function ActionPoint(w: Displacement): nat
     requires PositiveTumbler(w)
     ensures ActionPoint(w) < |w.components|
     ensures w.components[ActionPoint(w)] != 0
@@ -60,6 +66,59 @@ module TumblerAlgebra {
   {
     if s[i] != 0 then i
     else ActionPointRec(s, i + 1)
+  }
+
+  // ---------------------------------------------------------------------------
+  // LastNonzero — index of last nonzero component (0-indexed)
+  // ---------------------------------------------------------------------------
+
+  function LastNonzeroRec(s: seq<nat>, i: nat): nat
+    requires 0 < i <= |s|
+    requires exists j :: 0 <= j < i && s[j] != 0
+    ensures LastNonzeroRec(s, i) < i
+    ensures s[LastNonzeroRec(s, i)] != 0
+    ensures forall j :: LastNonzeroRec(s, i) < j < i ==> s[j] == 0
+    decreases i
+  {
+    if s[i-1] != 0 then i - 1
+    else LastNonzeroRec(s, i - 1)
+  }
+
+  function LastNonzero(t: Tumbler): nat
+    requires PositiveTumbler(t)
+    requires |t.components| > 0
+    ensures LastNonzero(t) < |t.components|
+    ensures t.components[LastNonzero(t)] != 0
+    ensures forall j :: LastNonzero(t) < j < |t.components| ==> t.components[j] == 0
+  {
+    LastNonzeroRec(t.components, |t.components|)
+  }
+
+  // If position s is the last nonzero, LastNonzero returns s
+  lemma LastNonzeroAt(t: Tumbler, s: nat)
+    requires |t.components| > 0
+    requires s < |t.components|
+    requires t.components[s] != 0
+    requires forall j :: s < j < |t.components| ==> t.components[j] == 0
+    ensures PositiveTumbler(t)
+    ensures LastNonzero(t) == s
+  { }
+
+  // ---------------------------------------------------------------------------
+  // FindZero — index of first zero in sequence from position start onward
+  // Returns |s| if none found.
+  // ---------------------------------------------------------------------------
+
+  function FindZero(s: seq<nat>, start: nat): nat
+    requires start <= |s|
+    ensures start <= FindZero(s, start) <= |s|
+    ensures FindZero(s, start) < |s| ==> s[FindZero(s, start)] == 0
+    ensures forall i :: start <= i < FindZero(s, start) ==> s[i] != 0
+    decreases |s| - start
+  {
+    if start == |s| then |s|
+    else if s[start] == 0 then start
+    else FindZero(s, start + 1)
   }
 
   // ---------------------------------------------------------------------------
@@ -118,6 +177,10 @@ module TumblerAlgebra {
     ensures LessThan(a, b)
   {}
 
+  ghost predicate LessEq(a: Tumbler, b: Tumbler) {
+    a == b || LessThan(a, b)
+  }
+
   // ---------------------------------------------------------------------------
   // Prefix relation — p is a prefix of t
   // ---------------------------------------------------------------------------
@@ -137,7 +200,7 @@ module TumblerAlgebra {
   // Result length = |w.components|
   // ---------------------------------------------------------------------------
 
-  function TumblerAdd(a: Tumbler, w: Tumbler): Tumbler
+  function TumblerAdd(a: Address, w: Displacement): Address
     requires PositiveTumbler(w)
     requires ActionPoint(w) < |a.components|
   {
@@ -147,6 +210,38 @@ module TumblerAlgebra {
       [a.components[k] + w.components[k]] +
       w.components[k+1..]
     )
+  }
+
+  // ---------------------------------------------------------------------------
+  // AllocationInc — hierarchical increment (TA5)
+  //
+  // k=0: sibling — increment at LastNonzero, same length
+  // k>0: child — extend with k-1 zero separators and child value 1
+  // ---------------------------------------------------------------------------
+
+  function AllocationInc(t: Address, k: nat): Address
+    requires PositiveTumbler(t)
+    requires |t.components| > 0
+    ensures |AllocationInc(t, k).components| == (if k == 0 then |t.components| else |t.components| + k)
+  {
+    if k == 0 then
+      var s := LastNonzero(t);
+      Tumbler(t.components[..s] + [t.components[s] + 1] + t.components[s+1..])
+    else
+      Tumbler(t.components + Zeros(k - 1) + [1])
+  }
+
+  // inc(t, k) is strictly greater than t under T1
+  lemma AllocationIncMonotone(t: Address, k: nat)
+    requires PositiveTumbler(t)
+    requires |t.components| > 0
+    ensures LessThan(t, AllocationInc(t, k))
+  {
+    if k == 0 {
+      LessThanIntro(t, AllocationInc(t, 0), LastNonzero(t));
+    } else {
+      LessThanIntro(t, AllocationInc(t, k), |t.components|);
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -189,5 +284,37 @@ module TumblerAlgebra {
     else
       var k := FirstDiff(pa, pw);
       Tumbler(Zeros(k) + [pa[k] - pw[k]] + pa[k+1..])
+  }
+
+  // ---------------------------------------------------------------------------
+  // SubtractResultAt — characterize each component of TumblerSubtract
+  // ---------------------------------------------------------------------------
+
+  lemma SubtractResultAt(x: Tumbler, w: Tumbler, i: nat)
+    requires Subtractable(x, w)
+    requires i < Max(|x.components|, |w.components|)
+    ensures var len := Max(|x.components|, |w.components|);
+            var px := Pad(x.components, len);
+            var pw := Pad(w.components, len);
+            TumblerSubtract(x, w).components[i] ==
+              (if px == pw then 0
+               else if i < FirstDiff(px, pw) then 0
+               else if i == FirstDiff(px, pw) then px[i] - pw[i]
+               else px[i])
+  {
+    var len := Max(|x.components|, |w.components|);
+    var px := Pad(x.components, len);
+    var pw := Pad(w.components, len);
+    if px == pw {
+    } else {
+      var d := FirstDiff(px, pw);
+      var result := Zeros(d) + [px[d] - pw[d]] + px[d+1..];
+      assert TumblerSubtract(x, w) == Tumbler(result);
+      if i < d {
+      } else if i == d {
+      } else {
+        assert result[i] == px[i];
+      }
+    }
   }
 }
