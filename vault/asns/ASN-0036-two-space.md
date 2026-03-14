@@ -200,7 +200,9 @@ At `k = 0` this is the base case `M(d)(v) = a` — no displacement, no arithmeti
 
 Each run represents a contiguous block of content that entered the arrangement as a unit — characters typed sequentially, or a span transcluded whole.
 
-The decomposition always exists. By S8-fin, `dom(M(d))` is finite. For the degenerate case: each V-position `v` with `M(d)(v) = a` forms a singleton run `(v, a, 1)`. At `k = 0`: `M(d)(v + 0) = M(d)(v) = a = a + 0` — the base case holds trivially. The singleton runs partition `dom(M(d))` — each position falls in exactly one run. Since `dom(M(d))` is finite, the set of singleton runs is finite.
+The decomposition always exists. By S8-fin, `dom(M(d))` is finite. For the degenerate case: each V-position `v` with `M(d)(v) = a` forms a singleton run `(v, a, 1)`. At `k = 0`: `M(d)(v + 0) = M(d)(v) = a = a + 0` — the base case holds trivially. Since `dom(M(d))` is finite, the set of singleton runs is finite.
+
+It remains to show uniqueness: each `v ∈ dom(M(d))` falls in exactly one singleton's interval. A singleton `(v, a, 1)` claims the interval `[v, v + 1)` — that is, `{t : v ≤ t < v + 1}` where `v + 1` is the ordinal successor within the subspace. Two cases. *Same subspace*: by S8-depth, all V-positions in a subspace share the same tumbler depth, so positions are of the form `s.x` for varying ordinal `x`. For distinct ordinals `x₁ < x₂`, the intervals `[s.x₁, s.(x₁+1))` and `[s.x₂, s.(x₂+1))` are disjoint because `s.(x₁+1) ≤ s.x₂` (since `x₁ + 1 ≤ x₂`). Without S8-depth this fails: if `dom(M(d))` contained both `s.3` (depth 2) and `s.3.1` (depth 3), then `s.3 < s.3.1 < s.4` by T1 prefix extension, and `s.3.1` would fall in the interval of both singletons. *Different subspaces*: by T7 (ASN-0034), the first component of the element field permanently separates subspaces, so no position in subspace `s₁` falls in any interval of subspace `s₂ ≠ s₁`. The singleton runs therefore partition `dom(M(d))`.
 
 What matters architecturally is that the number of runs `#runs(d)` is typically far smaller than `|dom(M(d))|` — the representation cost is proportional to the number of editing events, not the document size.
 
@@ -317,10 +319,10 @@ This has a formal consequence: document equality is not decidable by content com
 | S6 | Persistence independence: `a ∈ dom(C)` is unconditional — independent of all arrangements | corollary of S0 |
 | S7a | Document-scoped allocation: every I-address is allocated under the originating document's prefix | introduced |
 | S7b | Element-level I-addresses: `(A a ∈ dom(C) :: zeros(a) = 3)` | introduced |
-| S7 | Structural attribution: `origin(a) = (fields(a).node).0.(fields(a).user).0.(fields(a).document)` — full document prefix | from S7a, S7b, T4 (ASN-0034) |
+| S7 | Structural attribution: `origin(a) = (fields(a).node).0.(fields(a).user).0.(fields(a).document)` — full document prefix | from S7a, S7b, T4, GlobalUniqueness (ASN-0034) |
 | S8-fin | Finite arrangement: `dom(M(d))` is finite for every document `d` | introduced |
 | S8-depth | Fixed-depth V-positions: within a subspace, all V-positions share the same tumbler depth | design requirement |
-| S8 | Span decomposition: `M(d)` decomposes into finitely many correspondence runs `(vⱼ, aⱼ, nⱼ)` with `M(d)(vⱼ + k) = aⱼ + k` for `0 ≤ k < nⱼ` | theorem from S8-fin, S2 |
+| S8 | Span decomposition: `M(d)` decomposes into finitely many correspondence runs `(vⱼ, aⱼ, nⱼ)` with `M(d)(vⱼ + k) = aⱼ + k` for `0 ≤ k < nⱼ` | theorem from S8-fin, S2, S8-depth |
 | S9 | Two-space separation: arrangement changes cannot alter stored content | theorem from S0 |
 
 
