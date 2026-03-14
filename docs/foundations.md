@@ -103,44 +103,42 @@ Qualification criteria:
 
 ## How Foundations Are Injected
 
-The injection mechanism is simple and flat:
+Foundation ASNs are identified by their project model definition: any ASN with a `covers` field in `vault/project-model/ASN-NNNN.yaml` is a foundation.
 
-1. `vault/asns/foundation.md` lists foundation ASNs in a markdown table
-2. `scripts/lib/foundation.py` parses the table and reads each ASN's formal statements from `vault/3-modeling/formal-statements/`
+1. `scripts/lib/foundation.py` scans `vault/project-model/` for YAML files with a `covers` field
+2. For each foundation ASN, it loads formal statements from `vault/3-modeling/formal-statements/`
 3. The formatted statements are injected into three prompt entry points:
    - **Review** (`review_check.py`) — via `{{foundation_statements}}` template variable
    - **Revise** (`review_revise.py`) — appended as a foundation section
    - **Discovery** (`draft_discover.py`) — appended as a foundation section
-4. The review prompt (standard #7) allows foundation ASN references and flags reinvention of foundation-defined notation as a REVISE item
+4. The review prompt allows foundation ASN references and flags reinvention of foundation-defined notation as a REVISE item
 
-The injection is all-or-nothing: every foundation ASN's statements go into every prompt. This is deliberate — the token cost is low (~2-4k tokens per foundation ASN as statements), and any ASN might need any foundation definition.
+Additionally, the `covers` text is used by the question filter to prevent downstream ASNs from re-asking what foundations already establish. Each downstream ASN's `depends` and `excludes` fields control which ASNs' coverage is filtered.
 
 ## Adding a Foundation
 
-1. Converge the ASN: `./run/asn-converge.sh N`
-2. Run the modeling pipeline: `./run/remodel.sh N`
-3. Fix and promote proofs to `vault/proofs/`
+1. Converge the ASN through review/revise
+2. Run the modeling pipeline (proof index → statements → Dafny)
+3. Promote proofs to `vault/proofs/`
 4. Verify formal statements exist: `vault/3-modeling/formal-statements/ASN-NNNN-statements.md`
-5. Add a row to `vault/asns/foundation.md`
-6. Verify prompt sizes: `python scripts/lib/review_check.py <any-asn> --dry-run`
+5. Add a `covers` field to `vault/project-model/ASN-NNNN.yaml`
+6. Update `vault/1-promote/asn-status.md` to reflect foundation status
 
 ## Token Budget
 
 | Foundation | Statement size |
 |------------|---------------|
-| ASN-0001 | ~3.4k tokens |
-| ASN-0026 | ~1.4k tokens |
-| ASN-0027 | TBD (not yet extracted) |
+| ASN-0034 | ~3.8k tokens |
 
-Tier 1 total: ~7-8k tokens. Adding Tier 2 would push to ~12k. The flat injection mechanism holds comfortably for 3-5 foundation ASNs. If the foundation list grows beyond that, the mechanism can be extended to support per-ASN dependency mapping without changing the data format — the table in `foundation.md` could gain a "tier" column, and the loader could accept a filter.
+The flat injection mechanism holds comfortably for 3-5 foundation ASNs (~15k tokens total). Beyond that, selective injection via per-ASN `depends` fields becomes worth considering.
 
 ## Design Decisions
 
-**Why flat injection, not per-ASN dependencies?** Simplicity. The token cost of injecting all foundations is small relative to the prompt budget. Per-ASN dependency mapping adds complexity (which ASN needs which foundations?) for minimal savings. If an ASN doesn't use a foundation's definitions, the extra context is harmless.
+**Why flat injection, not per-ASN dependencies?** Simplicity. The token cost of injecting all foundations is small relative to the prompt budget. Per-ASN dependency mapping adds complexity for minimal savings. The `depends` field in project-model already tracks which ASNs need which foundations — selective injection can be added when the foundation set grows.
 
-**Why formal statements, not full ASN text?** Statements are compact — 1-4k tokens each. Full ASNs are 15-50k. The statements contain the formal definitions and properties; the prose reasoning is not needed by downstream ASNs.
+**Why formal statements, not full ASN text?** Statements are compact — 1-4k tokens each. Full ASNs are 15-90k. The statements contain the formal definitions and properties; the prose reasoning is not needed by downstream ASNs.
 
-**Why `vault/asns/foundation.md`, not `vault/proofs/`?** The foundation list is an ASN-level concern — which ASNs are foundations. The proofs directory holds Dafny artifacts. The list lives alongside the ASN files it references.
+**Why project-model, not a central list?** Each ASN's foundation status lives with its definition. No shared mutable file — important when multiple worktrees run concurrent ASNs. The `covers` field doubles as the question filter's exclusion source.
 
 ## Related Documents
 

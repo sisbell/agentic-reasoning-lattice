@@ -232,6 +232,7 @@ inquiries:
     title: "Node Ontology"
     question: "What is a node in the Xanadu system? How do nodes enter the docuverse, and what invariants govern the node set?"
     area: addressing
+    foundation: [34]
     source: "Regeneration of ASN-0033 on ASN-0034 foundation with tighter scope — ASN-0033 leaked I-Space/V-Space, content mapping, and account ontology through consultation questions"
     out_of_scope: "I-space and V-space as named concepts (dual-space model), content mapping and content ownership, transclusion and virtual copies, document structure and lifecycle, document visibility and access control, account creation and delegation (account ontology), operation-specific frame conditions, enfilade implementation internals (granfilade, spanfilade, POOM structure), replication and inter-server protocol (BEBE)"
 
@@ -239,6 +240,7 @@ inquiries:
     title: "Two Space"
     question: "What is the relationship between permanent content storage (I-space) and mutable document arrangement (V-space)? What invariants connect them?"
     area: content-model
+    foundation: [34]
     source: "Regeneration of ASN-0026 on ASN-0034 foundation with tighter scope — ASN-0026 included operation frame conditions (INSERT/DELETE/COPY effects) that belong in operation ASNs"
     out_of_scope: "Node ontology and node tree structure, account creation and delegation, document creation and lifecycle (ownership, withdrawal, versioning), operation-specific effects (INSERT, DELETE, COPY, REARRANGE frame conditions and postconditions), links and endsets, version semantics, enfilade implementation internals (granfilade, spanfilade, POOM structure, 2D displacement arithmetic), replication and inter-server protocol (BEBE)"
 

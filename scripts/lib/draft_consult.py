@@ -29,7 +29,7 @@ from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import WORKSPACE, INQUIRIES_FILE, EXPERTS_DIR, USAGE_LOG
+from paths import WORKSPACE, EXPERTS_DIR, USAGE_LOG, load_manifest, load_excluded_covers
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
 TEST_HARNESS = WORKSPACE / "udanax-test-harness"
@@ -75,14 +75,22 @@ def log_usage(skill, elapsed, inp=0, out=0, cost=0):
 
 
 def load_inquiry(inquiry_id):
-    """Load a specific inquiry from inquiries.yaml."""
-    with open(INQUIRIES_FILE) as f:
-        data = yaml.safe_load(f)
-    for inq in data["inquiries"]:
-        if inq["id"] == inquiry_id:
-            return inq
-    print(f"  [ERROR] Inquiry {inquiry_id} not found", file=sys.stderr)
-    sys.exit(1)
+    """Load inquiry from project model manifest."""
+    manifest = load_manifest(inquiry_id)
+    if not manifest:
+        print(f"  [ERROR] Manifest not found for ASN-{inquiry_id:04d}", file=sys.stderr)
+        sys.exit(1)
+    inquiry = manifest.get("inquiry", {})
+    # Flatten for backward compatibility: callers expect top-level keys
+    return {
+        "id": inquiry_id,
+        "title": manifest.get("title", ""),
+        "question": inquiry.get("question", ""),
+        "out_of_scope": manifest.get("out_of_scope", ""),
+        "agents": inquiry.get("agents", {}),
+    }
+
+
 
 
 # ─── Step 1: Decompose ──────────────────────────────────────────
@@ -143,7 +151,7 @@ def _call_decompose(prompt, label, model="opus"):
         return result.stdout
 
 
-def filter_questions(inquiry_text, out_of_scope, questions):
+def filter_questions(inquiry_text, out_of_scope, questions, covers_text=""):
     """Filter questions for scope using a cheap LLM call. Returns filtered list."""
     template = read_file(PROMPTS_DIR / "filter-questions.md")
     if not template:
@@ -154,9 +162,16 @@ def filter_questions(inquiry_text, out_of_scope, questions):
     questions_text = "\n".join(
         f"{i}. [{a}] {q}" for i, (a, q) in enumerate(questions, 1)
     )
+    foundation_block = (
+        f"## Already Established\n\n"
+        f"The following topics are already covered by upstream ASNs. "
+        f"Drop questions whose answers are already established:\n\n{covers_text}"
+        if covers_text else ""
+    )
     prompt = template.format(
         inquiry=inquiry_text,
         out_of_scope=out_of_scope,
+        foundation_block=foundation_block,
         questions=questions_text,
     )
 
@@ -197,7 +212,7 @@ def filter_questions(inquiry_text, out_of_scope, questions):
 
 
 def decompose_inquiry(inquiry_text, num_nelson=10, num_gregory=10, model="opus",
-                      out_of_scope=""):
+                      out_of_scope="", asn_id=None):
     """Two-pass decompose: Nelson (design vocabulary) then Gregory (with KB context).
 
     Nelson questions use design vocabulary only — no implementation contamination.
@@ -210,8 +225,14 @@ def decompose_inquiry(inquiry_text, num_nelson=10, num_gregory=10, model="opus",
               file=sys.stderr)
         sys.exit(1)
 
-    out_of_scope_block = (f"\n## Scope Exclusions\n\nDO NOT generate questions about: {out_of_scope}\n"
-                     if out_of_scope else "")
+    covers_text = load_excluded_covers(asn_id) if asn_id else ""
+    exclusion_parts = []
+    if out_of_scope:
+        exclusion_parts.append(f"DO NOT generate questions about: {out_of_scope}")
+    if covers_text:
+        exclusion_parts.append(f"The following topics are already established by upstream ASNs — do not re-ask them:\n{covers_text}")
+    out_of_scope_block = (f"\n## Scope Exclusions\n\n" + "\n\n".join(exclusion_parts) + "\n"
+                     if exclusion_parts else "")
     nelson_prompt = nelson_template.format(
         inquiry=inquiry_text,
         num_questions=num_nelson,
@@ -251,9 +272,10 @@ def decompose_inquiry(inquiry_text, num_nelson=10, num_gregory=10, model="opus",
 
     all_qs = nelson_qs + gregory_qs
 
-    # Filter for scope if out_of_scope is set
-    if out_of_scope and all_qs:
-        all_qs = filter_questions(inquiry_text, out_of_scope, all_qs)
+    # Filter for scope and upstream coverage (safety net)
+    if (out_of_scope or covers_text) and all_qs:
+        all_qs = filter_questions(inquiry_text, out_of_scope, all_qs,
+                                  covers_text=covers_text)
 
     return all_qs
 
@@ -636,7 +658,9 @@ def main():
     parser.add_argument("--output", "-o",
                         help="Output file path (default: vault/experts/ASN-NNNN/consultation/answers.md)")
     parser.add_argument("--dry-run", action="store_true",
-                        help="Generate questions only, don't run consultations")
+                        help="Generate and save questions, don't run consultations")
+    parser.add_argument("--regenerate", action="store_true",
+                        help="Regenerate questions even if a saved questions file exists")
     args = parser.parse_args()
 
     # Load inquiry
@@ -645,11 +669,13 @@ def main():
     num_nelson = 10
     num_gregory = 10
     out_of_scope = ""
+    asn_id = None
     if args.inquiry_id:
         inquiry = load_inquiry(args.inquiry_id)
         inquiry_text = inquiry["question"]
         inquiry_title = inquiry["title"]
         asn_label = f"{args.inquiry_id:04d}"
+        asn_id = args.inquiry_id
         out_of_scope = inquiry.get("out_of_scope", "")
         # Read per-inquiry agent counts from YAML (agents.nelson, agents.gregory)
         agents = inquiry.get("agents", {})
@@ -668,12 +694,21 @@ def main():
 
     total_start = time.time()
 
-    # Step 1: Decompose (two-pass: Nelson design vocab, Gregory with KB)
-    questions = decompose_inquiry(inquiry_text,
-                                  num_nelson=num_nelson,
-                                  num_gregory=num_gregory,
-                                  model=args.model,
-                                  out_of_scope=out_of_scope)
+    # Check for existing questions file (editable by user)
+    existing_questions_path = EXPERTS_DIR / f"ASN-{asn_label}" / "consultation" / "questions.md"
+    if not args.dry_run and existing_questions_path.exists() and not args.regenerate:
+        print(f"  [LOAD] Using existing questions from {existing_questions_path.relative_to(WORKSPACE)}",
+              file=sys.stderr)
+        existing_text = existing_questions_path.read_text()
+        questions = parse_questions(existing_text)
+    else:
+        # Step 1: Decompose (two-pass: Nelson design vocab, Gregory with KB)
+        questions = decompose_inquiry(inquiry_text,
+                                      num_nelson=num_nelson,
+                                      num_gregory=num_gregory,
+                                      model=args.model,
+                                      out_of_scope=out_of_scope,
+                                      asn_id=asn_id)
 
     if not questions:
         print("  [ERROR] No questions generated", file=sys.stderr)
@@ -690,27 +725,25 @@ def main():
 
     print(f"", file=sys.stderr)
 
-    if args.dry_run:
-        # Print questions to stdout and exit
-        for i, (authority, q) in enumerate(questions, 1):
-            print(f"{i}. [{authority}] {q}")
-        return
-
-    # Step 2: Run all consultations in parallel
+    # Save questions
     output_dir = EXPERTS_DIR / f"ASN-{asn_label}"
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    # Save questions for traceability
     init_dir = output_dir / "consultation"
     init_dir.mkdir(parents=True, exist_ok=True)
+    questions_path = init_dir / "questions.md"
     questions_text = "\n".join(
         f"{i}. [{a}] {q}" for i, (a, q) in enumerate(questions, 1)
     )
-    (init_dir / "questions.md").write_text(
+    questions_path.write_text(
         f"# Sub-Questions — {inquiry_title}\n\n"
         f"**Inquiry:** {inquiry_text}\n\n"
         f"{questions_text}\n"
     )
+    print(f"  [SAVED] {questions_path.relative_to(WORKSPACE)}", file=sys.stderr)
+
+    if args.dry_run:
+        for i, (authority, q) in enumerate(questions, 1):
+            print(f"{i}. [{authority}] {q}")
+        return
 
     print(f"  [CONSULT] Firing {len(questions)} consultations...",
           file=sys.stderr)

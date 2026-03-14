@@ -72,7 +72,7 @@ The new ASN is written to `vault/asns/ASN-NNNN-title.md` and committed. The comm
 
 | Artifact | Location | Description |
 |----------|----------|-------------|
-| Inquiry | `vault/1-promote/inquiries.yaml` | Topic definition with title and description |
+| Inquiry | `vault/project-model/ASN-NNNN.yaml` | ASN definition with question, scope, and dependencies |
 | Nelson sources | `nelson/literary-machines/`, `nelson/xanadu-concepts/` | Design intent materials |
 | Gregory KB | `udanax-test-harness/knowledge-base/` | Implementation analysis |
 | Gregory code | `udanax-test-harness/` | udanax-green C source |

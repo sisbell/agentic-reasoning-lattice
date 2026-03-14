@@ -3,36 +3,41 @@
 import re
 from pathlib import Path
 
+import yaml
+
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from paths import PROJECT_MODEL_DIR
+
 
 def load_foundation_statements(foundation_path, statements_dir):
-    """Read foundation.md, load each ASN's statements, return formatted text.
+    """Load formal statements for all foundation ASNs.
 
-    Returns a string with one section per foundation ASN:
-        ## Foundation: ASN-0001 (Tumbler Algebra)
-        <statements>
+    Scans vault/project-model/ for ASNs with a 'covers' field (indicating
+    foundation status), then loads their formal statements from statements_dir.
 
-        ## Foundation: ASN-0026 (I-Space and V-Space)
-        <statements>
-
-    Returns empty string if foundation_path doesn't exist or has no entries.
+    foundation_path is ignored — kept for backward compatibility.
     """
-    foundation_path = Path(foundation_path)
     statements_dir = Path(statements_dir)
 
-    if not foundation_path.exists():
+    if not PROJECT_MODEL_DIR.exists():
         return ""
 
-    text = foundation_path.read_text()
-
-    # Parse markdown table rows: | ASN-NNNN | Title |
     entries = []
-    for line in text.splitlines():
-        m = re.match(r"\|\s*(ASN-\d+)\s*\|\s*(.+?)\s*\|", line)
+    for path in sorted(PROJECT_MODEL_DIR.glob("ASN-*.yaml")):
+        try:
+            with open(path) as f:
+                manifest = yaml.safe_load(f) or {}
+        except (FileNotFoundError, yaml.YAMLError):
+            continue
+
+        if not manifest.get("covers"):
+            continue
+
+        m = re.match(r"ASN-(\d+)", path.stem)
         if m:
-            label, title = m.group(1), m.group(2)
-            # Skip table header row
-            if title.startswith("-") or title == "Title":
-                continue
+            label = f"ASN-{int(m.group(1)):04d}"
+            title = manifest.get("title", "")
             entries.append((label, title))
 
     if not entries:
