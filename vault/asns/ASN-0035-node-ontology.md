@@ -34,11 +34,11 @@ This gives us our first property:
 
 **N0 (Ghost Element).** A node address `n ∈ N` is a valid target for spanning and linking regardless of whether any content has been allocated under `n`. The node's identity is its address; no stored representation is required for the address to be meaningful.
 
-The ghost element principle holds because the tumbler algebra is self-contained. The ordering (T1), the prefix relation, and span well-definedness (T12) are all computable from tumblers alone, without consulting any data structure. A span covering `[1, 5]` through `[1, 7]` is well-defined even if no content exists under node `[1, 6]`. Nelson: "A span that contains nothing today may at a later time contain a million documents." The address space pre-exists its population. An implementation that required a stored node record before allowing spans or links to reference the node's address would violate N0.
+The ghost element principle holds because the tumbler algebra is self-contained. The ordering (T1), the prefix relation, and span well-definedness (T12) are all computable from tumblers alone, without consulting any data structure. A span covering `[1, 5]` through `[1, 7]` is well-defined even if no content exists under node `[1, 6]` — T12 requires only that `ℓ > 0` and the action point of `ℓ` falls within `#s`, both arithmetic conditions on the span's start and length. For linking, the reduction is equally direct: a link's endsets are sets of spans (by definition from the shared vocabulary), so link well-formedness reduces to the well-formedness of each constituent span, which is again arithmetic (T12). No stored representation at the target address participates in either check. Nelson: "A span that contains nothing today may at a later time contain a million documents." The address space pre-exists its population. An implementation that required a stored node record before allowing spans or links to reference the node's address would violate N0.
 
 To track which positions in `N` have been deliberately created, we introduce a state component:
 
-**Σ.nodes** — The set of baptized node addresses in the current system state, with `Σ.nodes ⊆ N`. At genesis, `Σ.nodes` contains at least the root node.
+**Σ.nodes** — The set of baptized node addresses in the current system state, with `Σ.nodes ⊆ N`. At genesis, `Σ.nodes = {r}` — exactly the root node, nothing else.
 
 The distinction between `N` (all possible node positions) and `Σ.nodes` (occupied positions) is the ghost element principle made formal. Addresses in `N \ Σ.nodes` are syntactically valid — they can be compared, spanned, targeted by links — but they have not been baptized and cannot serve as parents for further allocation.
 
@@ -72,9 +72,15 @@ We observe that `parent(n) ≼ n` (proper prefix) and `depth(parent(n)) = depth(
 
 Nelson is unambiguous: "The server address always begins with the digit 1, since all other servers are descended from it. This ... permits referring to the entire docuverse by '1' on the first position." A single root is not convention — it is what makes the docuverse a single unified space. Multiple roots would fragment the address space into disconnected components, each unreachable from the others by prefix traversal. The contiguous-subtree property (T5, ASN-0034) would hold within each fragment but not across them; a span starting at one root could never cover content under another.
 
-**N2 (Single Root).** There exists exactly one node of minimal depth, `r = [1]`, and `r ∈ Σ.nodes` in every reachable state. Every node `n ∈ N` with `n ≠ r` satisfies `r ≼ n`.
+**N2 (Single Root).** There exists exactly one node of minimal depth, `r = [1]`, and `r ∈ Σ.nodes` in every reachable state. Every baptized node descends from the root:
 
-The first component of every node address is `1`. Since `r = [1]` is a single-component positive tumbler with no zeros, it is a valid node address. Structural branching begins at position 2: `[1, 1]`, `[1, 2]`, `[1, 3]` are the first-generation children. The root `r` is the address of the entire docuverse — a span starting at `r` covers everything.
+  `(A n ∈ Σ.nodes : n ≠ r ⟹ r ≼ n)`
+
+*Derivation.* We proceed by induction on the reachable states. In the initial state, `Σ.nodes = {r}`, and the claim holds vacuously. For the inductive step, assume the claim holds in state `σ` and consider a BAPTIZE(p) operation producing child `n`. By BAPTIZE's precondition, `p ∈ Σ.nodes`. If `p = r`, then `n = inc(r, 1) = [1, 1]` or `n = inc(max(children(r)), 0) = [1, c + 1]`; in either case `r ≼ n`. If `p ≠ r`, then by the inductive hypothesis `r ≼ p`; since `n` extends `p` by one component (TA5), we have `p ≼ n`, so `r ≼ p ≼ n` gives `r ≼ n`.
+
+We note that the syntactic set `N` is broader than `Σ.nodes` — it includes addresses like `[2]`, `[3, 5]`, `[42]` that satisfy the zero-count condition but have no chain of baptisms from `[1]`. These addresses are syntactically valid node addresses (useful for N7's forward-reference principle) but cannot appear in `Σ.nodes` in any reachable state. The root prefix constraint is a consequence of the allocation discipline, not a syntactic filter.
+
+Since `r = [1]` is a single-component positive tumbler with no zeros, it is a valid node address. Structural branching begins at position 2: `[1, 1]`, `[1, 2]`, `[1, 3]` are the first-generation children. The root `r` is the address of the entire docuverse — a span starting at `r` covers everything.
 
 We now state the invariant on baptized nodes.
 
@@ -129,6 +135,14 @@ In both cases:
 
 The postcondition is deterministic: the new address is uniquely determined by the parent and the current set of children. This follows from T10a (AllocatorDiscipline, ASN-0034), which prescribes `inc(·, 0)` as the exclusive mechanism for sibling production, and T9 (ForwardAllocation, ASN-0034), which requires strict monotonic increase within each allocator's stream.
 
+*Concrete trace.* We verify BAPTIZE through a three-step sequence, starting from genesis: `Σ.nodes = {[1]}`.
+
+(1) BAPTIZE(`[1]`). We have `C = children([1]) = ∅`, so `n = inc([1], 1) = [1, 1]` by TA5(d). Check: `[1, 1] ∈ N` (two positive components, no zeros). `parent([1, 1]) = [1] ∈ Σ.nodes`. Result: `Σ.nodes = {[1], [1, 1]}`. N3 holds: root present (a), `parent([1, 1]) = [1] ∈ Σ.nodes` (b), finite (c). N5 holds vacuously (one child).
+
+(2) BAPTIZE(`[1]`). Now `C = {[1, 1]}`, so `n = inc([1, 1], 0) = [1, 2]` by TA5(c). Check: `[1, 2] ∈ N`. `parent([1, 2]) = [1] ∈ Σ.nodes`. `[1, 1] < [1, 2]` by T1 (divergence at position 2: `1 < 2`). Last components are 1 and 2, differing by 1 — N5 holds. Result: `Σ.nodes = {[1], [1, 1], [1, 2]}`.
+
+(3) BAPTIZE(`[1, 1]`). Here `C = children([1, 1]) = ∅`, so `n = inc([1, 1], 1) = [1, 1, 1]` by TA5(d). Check: `[1, 1, 1] ∈ N`. `parent([1, 1, 1]) = [1, 1] ∈ Σ.nodes`. Depth increases: `depth([1, 1, 1]) = 3 > depth([1, 1]) = 2`. N3(b) satisfied. Result: `Σ.nodes = {[1], [1, 1], [1, 1, 1], [1, 2]}`. The tumbler ordering is `[1] < [1, 1] < [1, 1, 1] < [1, 2]` — depth-first linearization of the tree (N6).
+
 *Verification that BAPTIZE preserves N3.* The root `r` is not removed (frame), so N3(a) holds. The new node `n` has `parent(n) = p ∈ Σ.nodes` (precondition), so N3(b) holds for `n`; all other nodes' parents are unchanged (frame). The set grows by one element, so N3(c) holds. BAPTIZE is well-defined for any baptized parent — by T0 (ASN-0034), there is always room for the next child.
 
 
@@ -182,7 +196,7 @@ A cautious design might require that every reference target an existing entity. 
 
 This is not an edge case or a tolerated anomaly — it is a named, deliberate feature. Nelson goes further: the link type system *depends* on ghost elements as a core pattern. Link types are matched by *address*, not by content: "The search mechanism does not actually look at what is stored under the 'type' it is searching for; it merely considers the type's address." A type address may designate a category even if nothing is ever stored there.
 
-**N7 (Forward Reference Admissibility).** A reference (span, link endset, or type address) may target any address in `N`, regardless of whether that address is in `Σ.nodes`. No precondition on the referenced node's existence is imposed.
+**N7 (Forward Reference Admissibility).** A reference (span, link endset, or type address) may target any address in `N`, regardless of whether that address is in `Σ.nodes`. No precondition on the referenced node's existence is imposed. This includes addresses like `[2, 3]` that no chain of baptisms from `[1]` can produce — such references are syntactically valid (the target is in `N`) and may resolve to empty content permanently, but they are not erroneous.
 
 Formally, the well-definedness of a span `(s, ℓ)` under T12 (SpanWellDefined, ASN-0034) depends only on the arithmetic properties of `s` and `ℓ` — on whether `ℓ > 0` and the action point of `ℓ` falls within `#s`. Whether any content or node exists in the spanned region is irrelevant to well-definedness. A link whose endset includes addresses beneath an unbaptized node is syntactically and semantically valid; it may resolve to empty content, but it is not erroneous.
 
@@ -210,6 +224,18 @@ We identify at least three distinguishable phases in a node's lifecycle:
 The transition between these phases is progressive. No intermediate state is invalid. This is not merely a design aspiration but a structural consequence: BAPTIZE adds exactly one element to `Σ.nodes` while preserving all existing state. The act of address assignment is itself atomic (the address is either in `Σ.nodes` or it is not), but the *population* of the node is an unbounded, ongoing process.
 
 **N8 (Always-Valid Intermediate States).** At every point during a node's lifecycle — from unbaptized address, through empty ghost element, to populated position — the system state satisfies all node invariants. There is no transient invalid state during node admission.
+
+We verify this by enumerating the state-dependent and structural invariants separately. The state-dependent invariants require preservation proofs for BAPTIZE (the sole operation that modifies `Σ.nodes`):
+
+- **N3 (Node Tree):** Preservation is shown above — BAPTIZE maintains root membership (frame), tree closure (precondition ensures parent is baptized), and finiteness (one element added).
+- **N4 (Baptism Monotonicity):** BAPTIZE only adds to `Σ.nodes` (postcondition: `post(Σ.nodes) = pre(Σ.nodes) ∪ {n}`), and its frame condition prohibits removal. No operation decreases the set.
+- **N5 (Sequential Children):** BAPTIZE produces the new child via `inc(max(C), 0)` when `C ≠ ∅`, advancing the last component by exactly 1 (TA5(c)). When `C = ∅`, the first child `inc(p, 1)` has last component 1, starting the gap-free sequence. In both cases, the gap-free property is maintained. (The initial state `Σ.nodes = {r}` satisfies N5 vacuously — the root has no children.)
+
+The structural properties hold unconditionally from the tumbler algebra, independent of `Σ.nodes`:
+
+- **N9 (Subtree Contiguity):** Follows from T5 (ContiguousSubtrees, ASN-0034) applied to the node prefix — no state dependency.
+- **N10 (Subtree Disjointness):** Follows from T10 (PartitionIndependence, ASN-0034) applied to non-nesting node prefixes — no state dependency.
+- **N16 (Prefix Propagation):** Follows from TA5 (HierarchicalIncrement, ASN-0034) — each `inc` operation preserves all components before the action point — no state dependency.
 
 N8 follows from the same principle that makes the docuverse open-ended. Nelson: "A span that contains nothing today may at a later time contain a million documents." The empty state is as canonical as any other. An implementation that required a minimum level of population before declaring a node "valid" would violate both N0 (Ghost Element) and N8.
 
@@ -314,7 +340,7 @@ The home node of any address — the node from which it structurally descends �
 | Σ.nodes | `Σ.nodes ⊆ N` — the set of baptized node addresses in system state | introduced |
 | N0 | Ghost element: a node address is valid for spanning and linking without stored content | introduced |
 | N1 | Identity by assignment: node identity is its tumbler, assigned by baptism, permanent and content-independent | introduced |
-| N2 | Single root: `r = [1]` is the unique minimal-depth node; `(A n ∈ N : r ≼ n)` | introduced |
+| N2 | Single root: `r = [1]` is the unique minimal-depth node; `(A n ∈ Σ.nodes : n ≠ r ⟹ r ≼ n)` | introduced |
 | N3 | `(Σ.nodes, parent)` is a finite tree rooted at `r`, closed under `parent` | introduced |
 | N4 | Baptism monotonicity: `pre(Σ.nodes) ⊆ post(Σ.nodes)` for all operations | introduced |
 | N5 | Sequential children: consecutive siblings differ by 1 in their last component | introduced |
