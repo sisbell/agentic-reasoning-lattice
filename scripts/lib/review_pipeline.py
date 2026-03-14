@@ -55,7 +55,7 @@ def step_review(asn_id):
     if result.returncode not in (0, 2):
         print(f"  [REVIEW] FAILED", file=sys.stderr)
         if result.stderr:
-            for line in result.stderr.strip().split("\n")[:5]:
+            for line in result.stderr.strip().split("\n"):
                 print(f"    {line}", file=sys.stderr)
         return None, False
 
