@@ -105,9 +105,11 @@ Live content shares I-addresses. Dead copies create new ones. The difference is 
 
 The arrangement function `M(d)` need not be injective. This is not a deficiency but a design requirement — it is what makes transclusion work.
 
-**S5 (Unrestricted sharing).** The same I-address may appear in the ranges of multiple arrangements, and at multiple V-positions within a single arrangement. No bound limits the number of V-positions that may reference a given I-address:
+**S5 (Unrestricted sharing).** The same I-address may appear in the ranges of multiple arrangements, and at multiple V-positions within a single arrangement. The model imposes no finite upper bound on sharing multiplicity — for every natural number `N`, there exists a reachable state in which some I-address is referenced more than `N` times:
 
-`(A a ∈ dom(Σ.C) :: |{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}| is unbounded)`
+`(A N ∈ ℕ :: (E Σ reachable, a ∈ dom(Σ.C) :: |{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}| > N))`
+
+We note that in any particular state, the sharing multiplicity of each address is a definite finite number — possibly zero for orphaned content (S6). The property is an architectural anti-constraint: the system places no cap on how many references may accumulate across transitions.
 
 Nelson: "The virtual byte stream of a document may include bytes from any other document." And: "A document may have a window to another document, and that one to yet another, indefinitely. Thus A contains part of B, and so on. One document can be built upon another, and yet another document can be built upon that one, indefinitely." Transclusion is recursive and unlimited.
 
@@ -141,13 +143,27 @@ This is not a deficiency but a structural consequence of the two-space model. Th
 
 Every V-position can be traced to the document that originally created its content.
 
-**S7 (Structural attribution).** For every V-position `v ∈ dom(Σ.M(d))`, the I-address `a = Σ.M(d)(v)` encodes, through T4 field parsing (ASN-0034), the document that originally allocated `a`:
+S7 requires an architectural premise that T4 alone does not supply. T4 tells us HOW to parse a tumbler into fields; it does not tell us that I-space addresses are allocated under the originating document's tumbler prefix. We state this premise explicitly:
+
+**S7a (Document-scoped allocation).** Every I-space address is allocated under the tumbler prefix of the document that created it. That is, for every `a ∈ dom(Σ.C)`, the document field `fields(a).document` identifies the document whose owner performed the allocation that placed `a` into `dom(C)`.
+
+This is a design requirement, not a convention. Nelson's baptism principle establishes it: "The owner of a given item controls the allocation of the numbers under it." A document owner baptises element addresses under that document's prefix — there is no mechanism for allocating I-addresses outside the creating document's subtree. The address IS the provenance: "You always know where you are, and can at once ascertain the home document of any specific word or character." Nelson says the home document can be ascertained directly from the address — not from a separate lookup table. The native/non-native distinction ("Native bytes of a document are those actually stored under its control") is computable only because I-addresses are scoped under their originating documents.
+
+We must also restrict S7's domain. The function `fields(a).document` is well-defined only when `zeros(a) ≥ 2` (per T4's field correspondence: `zeros = 0` is node-only, `zeros = 1` is node+user, `zeros ≥ 2` has a document field). Since I-space addresses designate content elements within documents, we require:
+
+**S7b (Element-level I-addresses).** Every address in `dom(Σ.C)` is an element-level tumbler: `(A a ∈ dom(Σ.C) :: zeros(a) = 3)`.
+
+This follows from T4 and the tumbler hierarchy: content is stored at the element level (the fourth and finest level of the address hierarchy). Node, user, and document-level tumblers identify containers, not content.
+
+With S7a and S7b established, we can state structural attribution:
+
+**S7 (Structural attribution).** For every `a ∈ dom(Σ.C)`:
 
 `origin(a) = fields(a).document`
 
-This is not metadata that can be stripped or forged — it IS the address. To retrieve the content, the system must know its I-address; to know its I-address is to know its origin. Nelson: "You always know where you are, and can at once ascertain the home document of any specific word or character."
+This is not metadata that can be stripped or forged — it IS the address. To retrieve the content, the system must know its I-address; to know its I-address is to know its origin.
 
-S7 follows from T4 (ASN-0034), which parses the four fields of a tumbler address: node, user, document, element. The document field of an I-address identifies the document under which the content was originally allocated. Since I-addresses are permanent (S0) and unique (S4), this attribution is permanent and unseverable.
+S7 follows from S7a (document-scoped allocation ensures the document field identifies the allocating document), S7b (element-level restriction ensures `fields(a).document` is well-defined), and T4 (field parsing, ASN-0034). Since I-addresses are permanent (S0) and unique (S4), this attribution is permanent and unseverable.
 
 We note a subtlety. S7 identifies the document that ALLOCATED the I-address — the document where the content was first created. This is distinct from the document where the content currently appears. When content is transcluded from document B into document A, the reader viewing A sees the content, but S7 traces it to B. The distinction between "where I am reading" (V-space context, document A) and "where this came from" (I-space structure, document B) is precisely the two-space separation made visible.
 
@@ -158,21 +174,35 @@ Gregory's implementation reveals two mechanisms for origin lookup. The I-address
 
 The arrangement `M(d)` maps individual V-positions to I-addresses. But the mapping has internal structure: contiguous V-ranges often correspond to contiguous I-ranges. This is what makes finite representation possible.
 
-We define a *correspondence run* as a pair of spans `((v, ℓ), (a, ℓ))` — a V-span and an I-span of equal length — such that the arrangement preserves displacement within the run:
+Before defining correspondence runs, we must establish the structure of `dom(M(d))` more carefully.
 
-`(A k : 0 ≤ k < ℓ : Σ.M(d)(v ⊕ k) = a ⊕ k)`
+**S8-fin (Finite arrangement).** For each document `d`, `dom(Σ.M(d))` is finite. A document contains finitely many V-positions at any given state.
 
-where `⊕` is tumbler addition (ASN-0034, TA0). Within a correspondence run, each step forward in V-space corresponds to the same step forward in I-space.
+S8-fin follows from the operational reality: each V-position enters `dom(M(d))` through a specific operation (INSERT, COPY, etc.), and the system has performed only finitely many operations. No operation introduces infinitely many V-positions.
+
+**S8-depth (Fixed-depth V-positions).** Within a given subspace `s` of document `d`, all V-positions share the same tumbler depth. Gregory's evidence is conclusive: V-addresses in the text subspace consistently use the form `s.x` — two tumbler digits, where `s` is the subspace identifier and `x` is the ordinal. The two-blade knife computation (which sets the second blade at `(N+1).1` for any insertion at `N.x`) works only if all positions within a subspace share the same depth.
+
+S8-depth allows us to define "consecutive V-positions" precisely. Within a subspace, consecutive positions differ only at the ordinal (last) component: position `s.x` is followed by `s.(x+1)`. We can therefore use natural-number indexing to count positions within a run, with the understanding that position `k` within a run starting at `v` means the V-address obtained by incrementing `v`'s ordinal by `k`. Using the ordinal-only formulation of TA7a (ASN-0034), where positions within a subspace are represented as `[x]` for arithmetic purposes, the displacement `[k]` is a single-component tumbler with `k > 0`.
+
+We define a *correspondence run* as a pair of spans `((v, ℓ), (a, ℓ))` — a V-span and an I-span of equal length — such that the arrangement preserves displacement within the run. The displacement `k` ranges over single-component tumblers `[0], [1], ..., [ℓ-1]` where `ℓ` is the run length as a single-component tumbler (a positive integer encoded as `[n]`):
+
+`(A [k] : [0] ≤ [k] < ℓ : Σ.M(d)(v ⊕ [k]) = a ⊕ [k])`
+
+where `⊕` is tumbler addition (ASN-0034, TA0). By TA7a, `v ⊕ [k]` increments only the ordinal, remaining in the same subspace. Within a correspondence run, each step forward in V-space corresponds to the same step forward in I-space.
 
 **S8 (Finite span decomposition).** For each document `d`, the arrangement `Σ.M(d)` can be decomposed into a finite set of correspondence runs `{((vⱼ, ℓⱼ), (aⱼ, ℓⱼ))}` such that:
 
 (a) The V-spans partition `dom(M(d))`: `(A v ∈ dom(Σ.M(d)) :: (E! j :: vⱼ ≤ v < vⱼ ⊕ ℓⱼ))`
 
-(b) Within each run: `Σ.M(d)(vⱼ ⊕ k) = aⱼ ⊕ k` for all `k` with `0 ≤ k < ℓⱼ`
+(b) Within each run: `Σ.M(d)(vⱼ ⊕ [k]) = aⱼ ⊕ [k]` for all `[k]` with `[0] ≤ [k] < ℓⱼ`
 
-Each run represents a contiguous block of content that entered the arrangement as a unit — characters typed sequentially, or a span transcluded whole. The decomposition always exists: in the degenerate case, each V-position forms a run of length one. What matters architecturally is that the number of runs `#runs(d)` is typically far smaller than `|dom(M(d))|` — the representation cost is proportional to the number of editing events, not the document size.
+Each run represents a contiguous block of content that entered the arrangement as a unit — characters typed sequentially, or a span transcluded whole.
 
-S8 follows from the finiteness of `dom(M(d))` and the structure of tumbler arithmetic. Forward allocation (T9, ASN-0034) ensures that consecutively created content receives consecutive I-addresses, producing natural correspondence runs. Editing can break runs — inserting content in the middle of a run splits it into two — but cannot create runs from nothing. The number of runs is monotonically non-decreasing over the editing history.
+The decomposition always exists. By S8-fin, `dom(M(d))` is finite. By S8-depth, positions within each subspace share a fixed depth. For the degenerate case: each V-position `v` with `M(d)(v) = a` forms a run `((v, [1]), (a, [1]))` of length one. This is a well-formed T12 span: `[1] > 0` and the action point `k = 1 ≤ #v` (since V-addresses have at least one component). The resulting singleton runs trivially partition `dom(M(d))` — each position falls in exactly one run, and the containment check `v ≤ v' < v ⊕ [1]` holds only for `v' = v` by TA-strict. Since `dom(M(d))` is finite, the set of singleton runs is finite.
+
+What matters architecturally is that the number of runs `#runs(d)` is typically far smaller than `|dom(M(d))|` — the representation cost is proportional to the number of editing events, not the document size.
+
+S8 follows from the finiteness of `dom(M(d))` (S8-fin) and the structure of tumbler arithmetic. Forward allocation (T9, ASN-0034) ensures that consecutively created content receives consecutive I-addresses, producing natural correspondence runs. Editing can both split and remove runs — inserting content in the middle of a run splits it into two, while deleting an entire run's V-span removes it. The number of distinct I-space allocation events underlying a document's history is monotonically non-decreasing (by S1), but the current arrangement's run count fluctuates with editing.
 
 Gregory's evidence shows that `#runs(d)` has consequences beyond representation cost. Each correspondence run requires an independent tree traversal during V↔I translation. Gregory identifies the inner loop of this traversal as the documented CPU hotspot, responsible for 40% of processing time. For a document with `N` runs, a full V→I conversion requires `N` independent traversals — the cost is multiplicative in the fragmentation level, not merely additive. A consolidation function to merge adjacent runs was started in the implementation and abandoned mid-expression — the function body stops with an incomplete conditional: `if(`. Any implementation of the two-space architecture must either consolidate runs or accept performance proportional to fragmentation level.
 
@@ -200,6 +230,65 @@ The asymmetry is deliberate and load-bearing. Nelson enumerates the guarantees t
 Gregory's implementation confirms the separation operationally. Every editing command in the FEBE protocol works exclusively on arrangement state. Of the editing commands Nelson specifies, none modifies existing I-space content. Commands that create content (INSERT, APPEND) extend `dom(C)` with fresh addresses and simultaneously update some `M(d)`. Commands that modify arrangement (DELETE, REARRANGE, COPY) touch only `M(d)`, leaving `C` untouched. No command crosses the boundary in the dangerous direction — no arrangement operation can corrupt stored content.
 
 
+## Worked example
+
+We instantiate the state model with specific tumblers to ground the abstractions. Consider two documents: document `d₁` at tumbler `1.0.1.0.1` and document `d₂` at tumbler `1.0.1.0.2`. The user creates `d₁` with the text "hello" (five characters), then creates `d₂` which transcludes three characters ("llo") from `d₁` and appends two new characters ("ws").
+
+**Initial state Σ₀**: empty. `dom(C) = ∅`, `dom(M(d₁)) = dom(M(d₂)) = ∅`.
+
+**After creating d₁ with "hello"** — state Σ₁. Five I-addresses are allocated under `d₁`'s prefix, with element-level tumblers (`zeros = 3`):
+
+| I-address `a` | `C(a)` |
+|---|---|
+| `1.0.1.0.1.0.1.0.1` | 'h' |
+| `1.0.1.0.1.0.1.0.2` | 'e' |
+| `1.0.1.0.1.0.1.0.3` | 'l' |
+| `1.0.1.0.1.0.1.0.4` | 'l' |
+| `1.0.1.0.1.0.1.0.5` | 'o' |
+
+The arrangement `M(d₁)` maps V-positions (in subspace 1, text) to these I-addresses:
+
+| V-position `v` | `M(d₁)(v)` |
+|---|---|
+| `1.1` | `1.0.1.0.1.0.1.0.1` |
+| `1.2` | `1.0.1.0.1.0.1.0.2` |
+| `1.3` | `1.0.1.0.1.0.1.0.3` |
+| `1.4` | `1.0.1.0.1.0.1.0.4` |
+| `1.5` | `1.0.1.0.1.0.1.0.5` |
+
+*Check S0*: no prior content existed, so the implication holds vacuously. *Check S3*: every V-reference resolves — `ran(M(d₁)) ⊆ dom(C)`. *Check S7*: for `a = 1.0.1.0.1.0.1.0.3`, `fields(a).document = 1.0.1.0.1` — confirming `origin(a) = d₁`. *Check S8*: the arrangement decomposes into a single correspondence run `((1.1, [5]), (1.0.1.0.1.0.1.0.1, [5]))`. Verify: `M(d₁)(1.1 ⊕ [k]) = 1.0.1.0.1.0.1.0.1 ⊕ [k]` for `k = 0, 1, 2, 3, 4`. One run — the five characters were typed sequentially, receiving consecutive I-addresses by T9.
+
+**After creating d₂ with transclusion + append** — state Σ₂. The transclusion of "llo" from `d₁` shares the original I-addresses. The append of "ws" allocates two new I-addresses under `d₂`'s prefix:
+
+| I-address `a` | `C(a)` |
+|---|---|
+| `1.0.1.0.2.0.1.0.1` | 'w' |
+| `1.0.1.0.2.0.1.0.2` | 's' |
+
+The content store now has 7 entries (5 from `d₁`, 2 new from `d₂`).
+
+The arrangement `M(d₂)`:
+
+| V-position `v` | `M(d₂)(v)` | origin |
+|---|---|---|
+| `1.1` | `1.0.1.0.1.0.1.0.3` | `d₁` (transcluded 'l') |
+| `1.2` | `1.0.1.0.1.0.1.0.4` | `d₁` (transcluded 'l') |
+| `1.3` | `1.0.1.0.1.0.1.0.5` | `d₁` (transcluded 'o') |
+| `1.4` | `1.0.1.0.2.0.1.0.1` | `d₂` (native 'w') |
+| `1.5` | `1.0.1.0.2.0.1.0.2` | `d₂` (native 's') |
+
+*Check S0*: all 5 prior entries in `dom(C)` remain with unchanged values. The transition added 2 new entries. *Check S3*: every V-reference in `M(d₂)` resolves — positions `1.1`–`1.3` reference I-addresses from `d₁` (which exist by S1), positions `1.4`–`1.5` reference the newly allocated addresses. *Check S7*: for `a = 1.0.1.0.1.0.1.0.4` (the second 'l' in `d₂`), `fields(a).document = 1.0.1.0.1 = d₁` — attribution traces to the originating document, not to `d₂` where the content currently appears. *Check S5*: the I-address `1.0.1.0.1.0.1.0.3` now appears in both `ran(M(d₁))` and `ran(M(d₂))` — sharing multiplicity is 2. *Check S8*: `M(d₂)` decomposes into two correspondence runs: `((1.1, [3]), (1.0.1.0.1.0.1.0.3, [3]))` for the transclusion, and `((1.4, [2]), (1.0.1.0.2.0.1.0.1, [2]))` for the native content. Two runs partition the five V-positions exactly.
+
+**After deleting "llo" from d₁** — state Σ₃. DELETE removes V-positions `1.3`–`1.5` from `M(d₁)`:
+
+| V-position `v` | `M(d₁)(v)` |
+|---|---|
+| `1.1` | `1.0.1.0.1.0.1.0.1` |
+| `1.2` | `1.0.1.0.1.0.1.0.2` |
+
+*Check S0*: all 7 entries in `dom(C)` remain. The I-addresses `1.0.1.0.1.0.1.0.3`–`.5` are no longer in `ran(M(d₁))` but persist in `dom(C)`. *Check S6*: these three addresses are now "orphaned" from `d₁`'s perspective, but still referenced by `M(d₂)` — persistence is unconditional. *Check S9*: the deletion modified `M(d₁)` but `C` is unchanged — separation holds. *Check S8*: `M(d₁)` is now a single run `((1.1, [2]), (1.0.1.0.1.0.1.0.1, [2]))`. The prior 1-run decomposition became a 1-run decomposition (the deletion removed an entire suffix, not a middle segment). `M(d₂)` is unchanged — still two runs.
+
+
 ## The document as arrangement
 
 One consequence of the two-space model deserves explicit statement. A document is not its content — it is its arrangement of content.
@@ -222,10 +311,14 @@ This has a formal consequence: document equality is not decidable by content com
 | S2 | Arrangement functionality: `M(d)` is a function — each V-position maps to exactly one I-address | introduced |
 | S3 | Referential integrity: `(A d, v : v ∈ dom(M(d)) : M(d)(v) ∈ dom(C))` | introduced |
 | S4 | Origin-based identity: distinct allocations produce distinct I-addresses regardless of value equality | from GlobalUniqueness (ASN-0034) |
-| S5 | Unrestricted sharing: no bound on the number of V-positions referencing a given I-address | introduced |
+| S5 | Unrestricted sharing: `(A N ∈ ℕ :: (E Σ reachable, a :: sharing multiplicity > N))` — no finite cap | introduced |
 | S6 | Persistence independence: `a ∈ dom(C)` is unconditional — independent of all arrangements | corollary of S0 |
-| S7 | Structural attribution: `origin(a) = fields(a).document` — I-address encodes originating document | from T4 (ASN-0034) |
-| S8 | Span decomposition: `M(d)` decomposes into finitely many correspondence runs `((vⱼ, ℓⱼ), (aⱼ, ℓⱼ))` with `M(d)(vⱼ ⊕ k) = aⱼ ⊕ k` | introduced |
+| S7a | Document-scoped allocation: every I-address is allocated under the originating document's prefix | introduced |
+| S7b | Element-level I-addresses: `(A a ∈ dom(C) :: zeros(a) = 3)` | introduced |
+| S7 | Structural attribution: `origin(a) = fields(a).document` — I-address encodes originating document | from S7a, S7b, T4 (ASN-0034) |
+| S8-fin | Finite arrangement: `dom(M(d))` is finite for every document `d` | introduced |
+| S8-depth | Fixed-depth V-positions: within a subspace, all V-positions share the same tumbler depth | introduced |
+| S8 | Span decomposition: `M(d)` decomposes into finitely many correspondence runs `((vⱼ, ℓⱼ), (aⱼ, ℓⱼ))` with `M(d)(vⱼ ⊕ [k]) = aⱼ ⊕ [k]` | introduced |
 | S9 | Two-space separation: arrangement changes cannot alter stored content | theorem from S0 |
 
 
