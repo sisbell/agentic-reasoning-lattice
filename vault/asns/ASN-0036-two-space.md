@@ -105,9 +105,9 @@ Live content shares I-addresses. Dead copies create new ones. The difference is 
 
 The arrangement function `M(d)` need not be injective. This is not a deficiency but a design requirement — it is what makes transclusion work.
 
-**S5 (Unrestricted sharing).** The same I-address may appear in the ranges of multiple arrangements, and at multiple V-positions within a single arrangement. The invariants S0–S3 impose no finite upper bound on sharing multiplicity — for every natural number `N`, there exists a state satisfying all invariants of this ASN in which some I-address is referenced more than `N` times:
+**S5 (Unrestricted sharing).** The same I-address may appear in the ranges of multiple arrangements, and at multiple V-positions within a single arrangement. The invariants S0–S3 impose no finite upper bound on sharing multiplicity — S0–S3 do not entail any finite bound on sharing:
 
-`(A N ∈ ℕ :: (E Σ satisfying S0–S3, a ∈ dom(Σ.C) :: |{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}| > N))`
+`¬(E N ∈ ℕ :: S0–S3 ⊢ (A Σ reachable, a ∈ dom(Σ.C) :: |{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}| ≤ N))`
 
 We note that in any particular state, the sharing multiplicity of each address is a definite finite number — possibly zero for orphaned content (S6). The property is an architectural anti-constraint: the invariants place no finite cap on how many references may accumulate.
 
@@ -161,7 +161,7 @@ With S7a and S7b established, we can state structural attribution:
 
 `origin(a) = (fields(a).node).0.(fields(a).user).0.(fields(a).document)`
 
-This is the full document tumbler `N.0.U.0.D` — uniquely identifying the allocating document across the system (by T5 and T10). It is not metadata that can be stripped or forged — it IS the address. To retrieve the content, the system must know its I-address; to know its I-address is to know its origin.
+This is the full document tumbler `N.0.U.0.D` — uniquely identifying the allocating document across the system (by GlobalUniqueness, ASN-0034, which covers all cases: same-allocator monotonicity, non-nesting prefixes, and nesting prefixes distinguished by length). It is not metadata that can be stripped or forged — it IS the address. To retrieve the content, the system must know its I-address; to know its I-address is to know its origin.
 
 S7 follows from S7a (document-scoped allocation ensures the document-level prefix identifies the allocating document), S7b (element-level restriction ensures all three identifying fields are present), and T4 (field parsing, ASN-0034). Since I-addresses are permanent (S0) and unique (S4), this attribution is permanent and unseverable.
 
@@ -182,7 +182,7 @@ S8-fin follows from the operational reality: each V-position enters `dom(M(d))` 
 
 **S8-depth (Fixed-depth V-positions).** Within a given subspace `s` of document `d`, all V-positions share the same tumbler depth. Gregory's evidence is conclusive: V-addresses in the text subspace consistently use the form `s.x` — two tumbler digits, where `s` is the subspace identifier and `x` is the ordinal. The two-blade knife computation (which sets the second blade at `(N+1).1` for any insertion at `N.x`) works only if all positions within a subspace share the same depth.
 
-S8-depth allows us to define "consecutive V-positions" precisely. Within a subspace, consecutive positions differ only at the ordinal (last) component: position `s.x` is followed by `s.(x+1)`. Similarly, I-addresses within a single document and subspace share a common prefix and differ only at the element ordinal (the last component of the element field). We write `v + k` for the V-position obtained from `v` by adding natural number `k` to its ordinal component (all other components unchanged), and `a + k` for the I-address obtained from `a` by adding `k` to its element ordinal (all other components unchanged). These are ordinary natural-number additions on a single component — the structural prefix is held as context, not manipulated.
+S8-depth allows us to define "consecutive V-positions" precisely. Within a subspace, consecutive positions differ only at the ordinal (last) component: position `s.x` is followed by `s.(x+1)`. Similarly, I-addresses within a single document and subspace share a common prefix and differ only at the element ordinal (the last component of the element field). Per TA7a (ASN-0034), ordinal displacement within a fixed-depth subspace reduces to natural-number addition on the ordinal component, with the structural prefix held as context. We write `v + k` for this operation applied to V-positions, and `a + k` for the same applied to the element ordinal of I-addresses.
 
 A *correspondence run* is a triple `(v, a, n)` — a V-position, an I-address, and a natural number `n ≥ 1` — such that the arrangement preserves ordinal displacement within the run:
 
@@ -311,7 +311,7 @@ This has a formal consequence: document equality is not decidable by content com
 | S2 | Arrangement functionality: `M(d)` is a function — each V-position maps to exactly one I-address | introduced |
 | S3 | Referential integrity: `(A d, v : v ∈ dom(M(d)) : M(d)(v) ∈ dom(C))` | introduced |
 | S4 | Origin-based identity: distinct allocations produce distinct I-addresses regardless of value equality | from GlobalUniqueness (ASN-0034) |
-| S5 | Unrestricted sharing: `(A N ∈ ℕ :: (E Σ satisfying S0–S3, a :: sharing multiplicity > N))` — no finite cap | introduced |
+| S5 | Unrestricted sharing: S0–S3 do not entail any finite bound on sharing multiplicity | introduced |
 | S6 | Persistence independence: `a ∈ dom(C)` is unconditional — independent of all arrangements | corollary of S0 |
 | S7a | Document-scoped allocation: every I-address is allocated under the originating document's prefix | introduced |
 | S7b | Element-level I-addresses: `(A a ∈ dom(C) :: zeros(a) = 3)` | introduced |
