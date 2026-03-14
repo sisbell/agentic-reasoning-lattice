@@ -137,6 +137,8 @@ In both cases:
 
 The postcondition is deterministic: the new address is uniquely determined by the parent and the current set of children. This follows from T10a (AllocatorDiscipline, ASN-0034), which prescribes `inc(·, 0)` as the exclusive mechanism for sibling production, and T9 (ForwardAllocation, ASN-0034), which requires strict monotonic increase within each allocator's stream.
 
+*Freshness derivation.* We must show `n ∉ pre(Σ.nodes)`. Two steps suffice. (a) In the `C ≠ ∅` case, `n = inc(max(C), 0)`, so `n > max(C)` by TA-strict (StrictIncrease, ASN-0034). Since `max(C)` is the greatest child of `p`, no existing child of `p` equals `n` — that is, `n ∉ C`. In the `C = ∅` case, `n = inc(p, 1)` has `depth(n) = depth(p) + 1 > depth(p)`, so `n ≠ p`, and `children(p) = ∅` means no child of `p` exists to collide with. (b) It remains to rule out collision with nodes under *other* parents. The new address `n = [p₁, ..., pₐ, c]` has `parent(n) = [p₁, ..., pₐ] = p`. If some `m ∈ Σ.nodes` satisfied `m = n`, then by T3 (CanonicalRepresentation, ASN-0034) `m` and `n` have identical components, so `parent(m) = [p₁, ..., pₐ] = p`, making `m` a child of `p` — hence `m ∈ C`. But step (a) established `n ∉ C`, contradiction. Therefore `n ∉ pre(Σ.nodes)`.
+
 *Concrete trace.* We verify BAPTIZE through a three-step sequence, starting from genesis: `Σ.nodes = {[1]}`.
 
 (1) BAPTIZE(actor, `[1]`). We have `C = children([1]) = ∅`, so `n = inc([1], 1) = [1, 1]` by TA5(d). Check: `[1, 1] ∈ N` (two positive components, no zeros). `parent([1, 1]) = [1] ∈ Σ.nodes`. Result: `Σ.nodes = {[1], [1, 1]}`. N3 holds: root present (a), `parent([1, 1]) = [1] ∈ Σ.nodes` (b), finite (c). N5 holds: `([1,1])_2 = 1`, confirming the first child has last component 1.
@@ -247,6 +249,7 @@ We verify this by enumerating the state-dependent and structural invariants sepa
 - **N3 (Node Tree):** Preservation is shown above — BAPTIZE maintains root membership (frame), tree closure (precondition ensures parent is baptized), and finiteness (one element added).
 - **N4 (Baptism Monotonicity):** BAPTIZE only adds to `Σ.nodes` (postcondition: `post(Σ.nodes) = pre(Σ.nodes) ∪ {n}`), and its frame condition prohibits removal. No operation decreases the set.
 - **N5 (Sequential Children):** BAPTIZE produces the new child via `inc(max(C), 0)` when `C ≠ ∅`, advancing the last component by exactly 1 (TA5(c)). When `C = ∅`, the first child `inc(p, 1)` has last component 1, starting the gap-free sequence. In both cases, the complete initial segment property is maintained. (The initial state `Σ.nodes = {r}` satisfies N5 vacuously — the root has no children.)
+- **N6 (Structural Ordering):** N6 is derived by structural induction on the tree, assuming N3 and N5. Since BAPTIZE preserves both, N6 holds in the post-state without independent verification.
 
 The structural properties hold unconditionally from the tumbler algebra, independent of `Σ.nodes`:
 
