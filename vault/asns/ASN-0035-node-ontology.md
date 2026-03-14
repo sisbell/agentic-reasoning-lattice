@@ -76,7 +76,7 @@ Nelson is unambiguous: "The server address always begins with the digit 1, since
 
   `(A n ∈ Σ.nodes : n ≠ r ⟹ r ≼ n)`
 
-*Derivation.* We proceed by induction on the reachable states. In the initial state, `Σ.nodes = {r}`, and the claim holds vacuously. For the inductive step, assume the claim holds in state `σ` and consider a BAPTIZE(p) operation producing child `n`. By BAPTIZE's precondition, `p ∈ Σ.nodes`. If `p = r`, then `n = inc(r, 1) = [1, 1]` or `n = inc(max(children(r)), 0) = [1, c + 1]`; in either case `r ≼ n`. If `p ≠ r`, then by the inductive hypothesis `r ≼ p`; since `n` extends `p` by one component (TA5), we have `p ≼ n`, so `r ≼ p ≼ n` gives `r ≼ n`.
+*Derivation.* We proceed by induction on the reachable states. In the initial state, `Σ.nodes = {r}`, and the claim holds vacuously. For the inductive step, assume the claim holds in state `σ` and consider a BAPTIZE(actor, p) operation producing child `n`. By BAPTIZE's precondition, `p ∈ Σ.nodes`. If `p = r`, then `n = inc(r, 1) = [1, 1]` or `n = inc(max(children(r)), 0) = [1, c + 1]`; in either case `r ≼ n`. If `p ≠ r`, then by the inductive hypothesis `r ≼ p`; since `n` extends `p` by one component (TA5), we have `p ≼ n`, so `r ≼ p ≼ n` gives `r ≼ n`.
 
 We note that the syntactic set `N` is broader than `Σ.nodes` — it includes addresses like `[2]`, `[3, 5]`, `[42]` that satisfy the zero-count condition but have no chain of baptisms from `[1]`. These addresses are syntactically valid node addresses (useful for N7's forward-reference principle) but cannot appear in `Σ.nodes` in any reachable state. The root prefix constraint is a consequence of the allocation discipline, not a syntactic filter.
 
@@ -115,7 +115,7 @@ Gregory's implementation confirms this directly. The allocation code `docreateno
 
 We introduce an abstract authorization predicate: `authorized(actor, p)` holds when `actor` has the right to create children under node `p`. Nelson establishes the structural law: "The owner of a given item controls the allocation of the numbers under it." The predicate captures this law without committing to concrete mechanisms — who counts as an owner, how ownership is established, and whether delegation is possible are deferred to the account ontology ASN.
 
-**BAPTIZE(p)** — Create a new node as a child of `p`.
+**BAPTIZE(actor, p)** — Create a new node as a child of `p`, invoked by agent `actor`.
 
 *Precondition:* `p ∈ Σ.nodes ∧ authorized(actor, p)`
 
@@ -139,11 +139,11 @@ The postcondition is deterministic: the new address is uniquely determined by th
 
 *Concrete trace.* We verify BAPTIZE through a three-step sequence, starting from genesis: `Σ.nodes = {[1]}`.
 
-(1) BAPTIZE(`[1]`). We have `C = children([1]) = ∅`, so `n = inc([1], 1) = [1, 1]` by TA5(d). Check: `[1, 1] ∈ N` (two positive components, no zeros). `parent([1, 1]) = [1] ∈ Σ.nodes`. Result: `Σ.nodes = {[1], [1, 1]}`. N3 holds: root present (a), `parent([1, 1]) = [1] ∈ Σ.nodes` (b), finite (c). N5 holds: `([1,1])_2 = 1`, confirming the first child has last component 1.
+(1) BAPTIZE(actor, `[1]`). We have `C = children([1]) = ∅`, so `n = inc([1], 1) = [1, 1]` by TA5(d). Check: `[1, 1] ∈ N` (two positive components, no zeros). `parent([1, 1]) = [1] ∈ Σ.nodes`. Result: `Σ.nodes = {[1], [1, 1]}`. N3 holds: root present (a), `parent([1, 1]) = [1] ∈ Σ.nodes` (b), finite (c). N5 holds: `([1,1])_2 = 1`, confirming the first child has last component 1.
 
-(2) BAPTIZE(`[1]`). Now `C = {[1, 1]}`, so `n = inc([1, 1], 0) = [1, 2]` by TA5(c). Check: `[1, 2] ∈ N`. `parent([1, 2]) = [1] ∈ Σ.nodes`. `[1, 1] < [1, 2]` by T1 (divergence at position 2: `1 < 2`). Last components are 1 and 2, matching positions `i = 1` and `i = 2` — N5 holds. Result: `Σ.nodes = {[1], [1, 1], [1, 2]}`.
+(2) BAPTIZE(actor, `[1]`). Now `C = {[1, 1]}`, so `n = inc([1, 1], 0) = [1, 2]` by TA5(c). Check: `[1, 2] ∈ N`. `parent([1, 2]) = [1] ∈ Σ.nodes`. `[1, 1] < [1, 2]` by T1 (divergence at position 2: `1 < 2`). Last components are 1 and 2, matching positions `i = 1` and `i = 2` — N5 holds. Result: `Σ.nodes = {[1], [1, 1], [1, 2]}`.
 
-(3) BAPTIZE(`[1, 1]`). Here `C = children([1, 1]) = ∅`, so `n = inc([1, 1], 1) = [1, 1, 1]` by TA5(d). Check: `[1, 1, 1] ∈ N`. `parent([1, 1, 1]) = [1, 1] ∈ Σ.nodes`. Depth increases: `depth([1, 1, 1]) = 3 > depth([1, 1]) = 2`. N3(b) satisfied. Result: `Σ.nodes = {[1], [1, 1], [1, 1, 1], [1, 2]}`. The tumbler ordering is `[1] < [1, 1] < [1, 1, 1] < [1, 2]` — depth-first linearization of the tree (N6).
+(3) BAPTIZE(actor, `[1, 1]`). Here `C = children([1, 1]) = ∅`, so `n = inc([1, 1], 1) = [1, 1, 1]` by TA5(d). Check: `[1, 1, 1] ∈ N`. `parent([1, 1, 1]) = [1, 1] ∈ Σ.nodes`. Depth increases: `depth([1, 1, 1]) = 3 > depth([1, 1]) = 2`. N3(b) satisfied. Result: `Σ.nodes = {[1], [1, 1], [1, 1, 1], [1, 2]}`. The tumbler ordering is `[1] < [1, 1] < [1, 1, 1] < [1, 2]` — depth-first linearization of the tree (N6).
 
 *Verification that BAPTIZE preserves N3.* The root `r` is not removed (frame), so N3(a) holds. The new node `n` has `parent(n) = p ∈ Σ.nodes` (precondition), so N3(b) holds for `n`; all other nodes' parents are unchanged (frame). The set grows by one element, so N3(c) holds. BAPTIZE is well-defined for any baptized parent — by T0 (ASN-0034), there is always room for the next child.
 
@@ -312,7 +312,7 @@ The implication is clear: a node is not an object in any conventional sense. It 
 
 The node position confers one fundamental right: the right to create new positions within its subtree.
 
-**N15 (Allocation Authority).** BAPTIZE(p) requires `authorized(actor, p)` — the abstract predicate introduced with the operation's specification. The authority is established at the moment of baptism and is permanent: once a subtree is delegated, the recipient's authority over it is irrevocable.
+**N15 (Allocation Authority).** BAPTIZE(actor, p) requires `authorized(actor, p)` — the abstract predicate introduced with the operation's specification. The authority is established at the moment of baptism and is permanent: once a subtree is delegated, the recipient's authority over it is irrevocable.
 
 Nelson: "The owner of a given item controls the allocation of the numbers under it." And: "Typically, the user will have no control over the node address he, she or it is assigned; but once assigned a User account, the user will have full control over its subdivision forevermore."
 
