@@ -1,7 +1,7 @@
 // Allocation properties (ASN-0034): T8, T10a, T10b, T10c, T10d, T11
-module Allocation {
+module TumblerAllocation {
   import opened TumblerAlgebra
-  import Hierarchy
+  import TumblerHierarchy
 
   // ---------------------------------------------------------------------------
   // T8 — AddressPermanence
@@ -99,7 +99,7 @@ module Allocation {
     forall i, j | 0 <= i < |stream1| && 0 <= j < |stream2|
       ensures LessThan(stream1[i], stream2[j])
     {
-      Hierarchy.PrefixOrderingExtension(p1, p2, stream1[i], stream2[j]);
+      TumblerHierarchy.PrefixOrderingExtension(p1, p2, stream1[i], stream2[j]);
     }
   }
 
@@ -108,7 +108,7 @@ module Allocation {
   // ---------------------------------------------------------------------------
 
   lemma ZeroCountConcat(a: seq<nat>, b: seq<nat>)
-    ensures Hierarchy.ZeroCount(a + b) == Hierarchy.ZeroCount(a) + Hierarchy.ZeroCount(b)
+    ensures TumblerHierarchy.ZeroCount(a + b) == TumblerHierarchy.ZeroCount(a) + TumblerHierarchy.ZeroCount(b)
     decreases |a|
   {
     if |a| == 0 {
@@ -122,17 +122,17 @@ module Allocation {
   lemma ZeroCountNonzeroLast(s: seq<nat>)
     requires |s| >= 1
     requires s[|s| - 1] != 0
-    ensures Hierarchy.ZeroCount(s) == Hierarchy.ZeroCount(s[..|s| - 1])
+    ensures TumblerHierarchy.ZeroCount(s) == TumblerHierarchy.ZeroCount(s[..|s| - 1])
   {
     assert s == s[..|s| - 1] + [s[|s| - 1]];
     ZeroCountConcat(s[..|s| - 1], [s[|s| - 1]]);
   }
 
   lemma IncrementPreservesValidity(t: Address, k: nat)
-    requires Hierarchy.ValidAddress(t)
+    requires TumblerHierarchy.ValidAddress(t)
     requires k <= 2
-    requires k >= 1 ==> Hierarchy.ZeroCount(t.components) + k <= 4
-    ensures Hierarchy.ValidAddress(AllocationInc(t, k))
+    requires k >= 1 ==> TumblerHierarchy.ZeroCount(t.components) + k <= 4
+    ensures TumblerHierarchy.ValidAddress(AllocationInc(t, k))
   {
     if k == 0 {
       var s := LastNonzero(t);

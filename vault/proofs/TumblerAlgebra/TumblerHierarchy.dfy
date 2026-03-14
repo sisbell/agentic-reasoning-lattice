@@ -1,5 +1,5 @@
 // Hierarchy properties (ASN-0034): T4, T5, T6, T7, PrefixOrderingExtension
-module Hierarchy {
+module TumblerHierarchy {
   import opened TumblerAlgebra
 
   // ---------------------------------------------------------------------------

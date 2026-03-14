@@ -1,5 +1,5 @@
 // Subtraction properties (ASN-0034): TA2, TA3-strict, TA3-weak, TA4, ReverseInverse
-module Subtraction {
+module TumblerSubtraction {
   import opened TumblerAlgebra
 
   // ---------------------------------------------------------------------------

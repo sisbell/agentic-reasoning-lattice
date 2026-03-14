@@ -1,6 +1,6 @@
 // Addition properties (ASN-0034): TA0, TA1, TA-strict, TA1-strict, TA1-weak,
 // T12, TA7a
-module Addition {
+module TumblerAddition {
   import opened TumblerAlgebra
 
   // ---------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 // Order properties (ASN-0034): T0, T1, T2, T3, TA6
-module Order {
+module TumblerOrder {
   import opened TumblerAlgebra
 
   // ---------------------------------------------------------------------------
