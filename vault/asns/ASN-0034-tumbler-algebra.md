@@ -313,7 +313,7 @@ The reverse direction is equally necessary:
 
 **Corollary (Reverse inverse).** `(A a, w : a ≥ w ∧ w > 0 ∧ k = #a ∧ #w = k ∧ (A i : 1 ≤ i < k : aᵢ = 0) : (a ⊖ w) ⊕ w = a)`, where `k` is the action point of `w`.
 
-*Proof.* Let `y = a ⊖ w`. We verify the prerequisites for applying TA4 to `y`. Under the precondition `(A i : 1 ≤ i < k : aᵢ = 0)`, we have `aᵢ = wᵢ = 0` for all `i < k`, so the divergence falls at position `k`. The result `y` has: positions `i < k` zero, position `k` equal to `aₖ - wₖ`, and no components beyond `k` (since `k = #a`). So `#y = k`, `yᵢ = 0` for `i < k`, and `#w = k`. All preconditions for TA4 hold. By TA4, `(y ⊕ w) ⊖ w = y`. Suppose `y ⊕ w ≠ a`. We wish to apply TA3-strict, which requires three preconditions beyond strict ordering: `y ⊕ w ≥ w`, `a ≥ w`, and `#(y ⊕ w) = #a`. The equal-length condition holds: `#a = k = #(y ⊕ w)`. The condition `a ≥ w` is given. We verify `y ⊕ w ≥ w`: since `y ⊕ w ≠ a` and `yₖ = aₖ - wₖ`, we have `yₖ > 0` (if `yₖ = 0` then `aₖ = wₖ`, and since `yᵢ = wᵢ = 0` for `i < k` and `#y = k = #w`, we would have `y = [0,...,0]` and `y ⊕ w = w`; but `a ≥ w` and `aₖ = wₖ` with agreement on all prior positions gives `a = w` when `#a = #w = k`, so `y ⊕ w = w = a`, contradicting our assumption). So `yₖ > 0`, giving `(y ⊕ w)ₖ = yₖ + wₖ > wₖ` with agreement on positions before `k`, hence `y ⊕ w > w`. Now apply TA3-strict. If `y ⊕ w > a`, then `(y ⊕ w) ⊖ w > a ⊖ w = y`, giving `y > y`, a contradiction. If `y ⊕ w < a`, then `(y ⊕ w) ⊖ w < a ⊖ w`, giving `y < y`, a contradiction. So `(a ⊖ w) ⊕ w = a`. ∎
+*Proof.* Let `y = a ⊖ w`. We verify the prerequisites for applying TA4 to `y`. Under the precondition `(A i : 1 ≤ i < k : aᵢ = 0)`, we have `aᵢ = wᵢ = 0` for all `i < k`, so the divergence falls at position `k`. The result `y` has: positions `i < k` zero, position `k` equal to `aₖ - wₖ`, and no components beyond `k` (since `k = #a`). So `#y = k`, `yᵢ = 0` for `i < k`, and `#w = k`. All preconditions for TA4 hold. By TA4, `(y ⊕ w) ⊖ w = y`. Suppose `y ⊕ w ≠ a`. We wish to apply TA3-strict, which requires three preconditions beyond strict ordering: `y ⊕ w ≥ w`, `a ≥ w`, and `#(y ⊕ w) = #a`. The equal-length condition holds: `#(y ⊕ w) = #w = k = #a` (the first step by the result-length identity; `#w = k` and `k = #a` are given). The condition `a ≥ w` is given. We verify `y ⊕ w ≥ w`: since `y ⊕ w ≠ a` and `yₖ = aₖ - wₖ`, we have `yₖ > 0` (if `yₖ = 0` then `aₖ = wₖ`, and since `yᵢ = wᵢ = 0` for `i < k` and `#y = k = #w`, we would have `y = [0,...,0]` and `y ⊕ w = w`; but `a ≥ w` and `aₖ = wₖ` with agreement on all prior positions gives `a = w` when `#a = #w = k`, so `y ⊕ w = w = a`, contradicting our assumption). So `yₖ > 0`, giving `(y ⊕ w)ₖ = yₖ + wₖ > wₖ` with agreement on positions before `k`, hence `y ⊕ w > w`. Now apply TA3-strict. If `y ⊕ w > a`, then `(y ⊕ w) ⊖ w > a ⊖ w = y`, giving `y > y`, a contradiction. If `y ⊕ w < a`, then `(y ⊕ w) ⊖ w < a ⊖ w`, giving `y < y`, a contradiction. So `(a ⊖ w) ⊕ w = a`. ∎
 
 
 ### Constructive definition of ⊕ and ⊖
@@ -348,7 +348,7 @@ rᵢ   =  ⎨ aₖ + wₖ      if i = k        (single-component advance)
          ⎩ wᵢ           if i > k        (copy from displacement)
 ```
 
-The result `a ⊕ w = [r₁, ..., rₚ]` has length `p = max(k - 1, 0) + (n - k + 1)`.
+The result `a ⊕ w = [r₁, ..., rₚ]` has length `p = max(k - 1, 0) + (n - k + 1)`. Since `w > 0` implies `k ≥ 1`, this simplifies to `p = (k - 1) + (n - k + 1) = n = #w`. We record this as the *result-length identity*: **`#(a ⊕ w) = #w`** — the length of the sum is determined entirely by the displacement, not the start position. This identity is load-bearing: the reverse inverse proof and the TA4 verification both depend on knowing the result length.
 
 **Precondition:** `k ≤ m` — the displacement's action point must fall within the start position's length.
 
@@ -478,7 +478,7 @@ For `k = 2`: one zero separator and one child value `1` are appended, giving `ze
 
 For `k ≥ 3`: the appended sequence `[0, 0, ..., 0, 1]` contains `k - 1 ≥ 2` zeros, of which at least two are adjacent. This violates T4's non-empty field constraint — the adjacent zeros create an empty field. Consider `inc([1], 3)` producing `[1, 0, 0, 1]`: zero count is 2 (≤ 3), but positions 2 and 3 are adjacent zeros, parsing as node `[1]`, separator, *empty user field*, separator, document `[1]`. The empty field violates T4 regardless of the zero count. So T4 is violated for all `k ≥ 3`.
 
-The effective constraints are: `k = 0` (always valid), `k = 1` (when `zeros(t) ≤ 3`), `k = 2` (when `zeros(t) ≤ 2`). The hierarchy enforces this naturally: each `inc(·, k)` with `k > 0` introduces one new hierarchical level, and the address format has exactly four fields with three separators, so at most two new separators can be introduced from a node address.
+The effective constraints are: `k = 0` (always valid), `k = 1` (when `zeros(t) ≤ 3`), `k = 2` (when `zeros(t) ≤ 2`). The hierarchy enforces this naturally: each `inc(·, k)` with `k > 0` introduces one new hierarchical level, and the address format has exactly four fields with three separators, so at most three new separators can be introduced from a node address (the three `inc(·, 2)` steps from node to element level, with `zeros(t) = 0, 1, 2` respectively before each step, each satisfying `zeros(t) ≤ 2`).
 
 
 ## Zero tumblers and positivity
@@ -506,15 +506,21 @@ An element-local position within subspace `S` has two components: the subspace i
 
 Gregory's implementation reveals the resolution. The operands passed to the arithmetic during shifts are not full element-local positions; they are *within-subspace ordinals* — the second component alone. The subspace identifier is not an operand to the shift; it is structural context that determines *which* positions are subject to the shift. The arithmetic receives ordinals, not full positions.
 
-**TA7a (Subspace closure).** The canonical representation for shift arithmetic is the *ordinal-only* formulation: a position in subspace `S` with identifier `N` and ordinal `x` is represented as the single-component tumbler `[x]` for arithmetic purposes, with `N` held as structural context. An element-local displacement is `w = [n]` with `n > 0`. In this formulation:
+**TA7a (Subspace closure).** The canonical representation for shift arithmetic is the *ordinal-only* formulation: a position in subspace `S` with identifier `N` and ordinal `o = [o₁, ..., oₘ]` (where `m ≥ 1`) is represented as the tumbler `o` for arithmetic purposes, with `N` held as structural context. An element-local displacement is a positive tumbler `w` with action point `k` satisfying `1 ≤ k ≤ m`. In this formulation:
 
-  `(A [x] ∈ S₁, n > 0 : [x] ⊕ [n] = [x + n] ∈ S₁)`
+  `(A o ∈ S, w > 0 : k ≤ #o ⟹ o ⊕ w ∈ S)`
 
-  `(A [x] ∈ S₁, n > 0, x ≥ n : [x] ⊖ [n] = [x - n] ∈ S₁ ∪ {[0]})`
+  `(A o ∈ S, w > 0 : o ≥ w ⟹ o ⊖ w ∈ S ∪ Z)`
+
+where `Z` is the set of zero tumblers.
 
 The subspace identifier is context — it determines which positions are subject to the shift — not an operand to the arithmetic. Both operations produce genuine shifts in the ordinal-only view; the 2-component view gives a genuine shift for `⊕` but a vacuous closure for `⊖`. The ordinal-only formulation is adopted because, as the verification shows, applying `⊖` to full 2-component positions finds the divergence at the subspace identifier, producing a no-op rather than a genuine shift.
 
-**Verification of TA7a.** In the ordinal-only formulation, the shift operates on `[x]` by `w = [n]`. The ordinal is a single-component tumbler with `#x = 1`, and the displacement has `#w = 1` with action point `k = 1`. For `⊕`: `([x] ⊕ [n])₁ = x + n`, a positive single-component tumbler. For `⊖`: the divergence is at position 1 (since `x ≥ n`); the result is `[x - n]`. When `x = n`, the result is `[0]`, a sentinel (TA6). In either case the result is a single-component non-negative tumbler — a valid within-subspace ordinal. The subspace identifier is never modified. TA7a holds.
+For single-component ordinals — the common case where element sub-structure is flat — this reduces to `[x] ⊕ [n] = [x + n]` and `[x] ⊖ [n] = [x - n]`, directly by the constructive definition. When the element field has deeper structure (`δ > 1` in T4), the ordinal `o` has multiple components. A displacement with action point `k ≥ 2` preserves all ordinal components before position `k` — the constructive definition copies `o₁, ..., oₖ₋₁` from the start position unchanged. For example, spanning from ordinal `[1, 3, 2]` to `[1, 5, 7]` requires displacement `[0, 2, 7]` (action point `k = 2`); `[1, 3, 2] ⊕ [0, 2, 7] = [1, 5, 7]` — position 1 of the ordinal is copied, preserving the ordinal prefix. The subspace closure holds in all cases because the subspace identifier is never an operand.
+
+**Verification of TA7a.** In the ordinal-only formulation, the shift operates on `o = [o₁, ..., oₘ]` by displacement `w` with action point `k` satisfying `1 ≤ k ≤ m`. For `⊕`: by the constructive definition, `(o ⊕ w)ᵢ = oᵢ` for `i < k`, and `(o ⊕ w)ₖ = oₖ + wₖ`. All components before `k` are preserved. The result has length `#w` (by the result-length identity), remaining a valid ordinal. For `⊖`: the divergence between `o` and `w` falls at position `k` or later (since `wᵢ = 0` for `i < k`, and ordinal components are non-negative — the zero-padded values agree before `k`). Components before the divergence are zeroed; the divergence position is adjusted by subtraction; subsequent positions are copied from `o`. In either case the subspace identifier, held as context, is never modified. TA7a holds.
+
+For the single-component case (`m = 1`, `k = 1`): `([x] ⊕ [n])₁ = x + n`, a positive single-component tumbler. For `⊖`: `[x] ⊖ [n] = [x - n]`. When `x = n`, the result is `[0]`, a sentinel (TA6).
 
 The restriction to element-local displacements is necessary. An unrestricted displacement whose action point falls at the subspace-identifier position could produce an address in a different subspace — TA7a cannot hold for arbitrary `w`.
 
@@ -646,7 +652,7 @@ Removing any independent property breaks a system-level guarantee. T6 and T7 are
 | T6 | Containment (same node, same account, same document family, structural subordination) is decidable from addresses alone | corollary of T4 |
 | T7 | Subspaces (text, links) within a document's element field are permanently disjoint | corollary of T3 + T4 |
 | T8 | Once allocated, an address is never removed from the address space; the set of allocated addresses is monotonically non-decreasing | introduced |
-| T9 | Within a single allocator's sequential stream, new addresses are strictly monotonically increasing; gaps are permanent | introduced |
+| T9 | Within a single allocator's sequential stream, new addresses are strictly monotonically increasing; gaps are permanent | lemma (from T10a + TA5(a)) |
 | T10 | Allocators with non-nesting prefixes produce distinct addresses without coordination | introduced |
 | T10a | Each allocator uses inc(·, 0) for siblings and inc(·, k>0) only for child-spawning; this constrains sibling outputs to uniform length | introduced |
 | T12 | A span (s, ℓ) is well-formed when ℓ > 0 and action point k of ℓ satisfies k ≤ #s; it denotes the contiguous interval {t : s ≤ t < s ⊕ ℓ}, non-empty by TA-strict | introduced |
@@ -660,7 +666,7 @@ Removing any independent property breaks a system-level guarantee. T6 and T7 are
 | TA4 | Addition and subtraction are partial inverses: (a ⊕ w) ⊖ w = a when k = #a, #w = k, and all components of a before k are zero | introduced |
 | TA5 | Hierarchical increment inc(t, k) produces t' > t: k=0 advances at sig(t), k>0 extends by k positions with separators and first child | introduced |
 | TA6 | Every all-zero tumbler (any length) is less than every positive tumbler and is not a valid address | introduced |
-| TA7a | For element-local displacements in ordinal-only formulation, shift operations applied within one subspace produce results in that same subspace | introduced |
+| TA7a | For ordinals `o = [o₁, ..., oₘ]` (`m ≥ 1`) in ordinal-only formulation, shift operations preserve all components before the action point and remain within the same subspace | introduced |
 
 
 ## Open Questions
