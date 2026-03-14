@@ -20,4 +20,7 @@ if [ -d "$wt" ]; then
 fi
 
 git worktree add "$wt" -b "$branch" HEAD --quiet
+git -C "$wt" submodule update --init --quiet
+make -C "$wt/udanax-test-harness" --quiet
+make -C "$wt/udanax-test-harness" golden --quiet
 echo "$wt"
