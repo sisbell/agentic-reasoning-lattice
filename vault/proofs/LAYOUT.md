@@ -15,6 +15,11 @@ proofs/
 │   ├── NodeOntology.dfy            Shared definitions: NodeAddress, Parent, Children, NodeState, Actor
 │   ├── NodeIdentity.dfy            Σ.nodes, N0, N1, N2, N3, N5, N6, N7, N9, N10, N13, N14, N16
 │   └── NodeAllocation.dfy          N4, N8, N11, N12
+├── TwoSpace/
+│   ├── TwoSpace.dfy                Shared definitions: Val, TwoSpaceState, ContentImmutability, ReferentialIntegrity, Origin
+│   ├── TwoSpaceContent.dfy         S0, S1, S4, S6, S7a, S7b, S7
+│   ├── TwoSpaceArrangement.dfy     S2, S3, S5, S8-fin, S8a, S8-depth, S8
+│   └── TwoSpaceSeparation.dfy      S9
 ├── CHANGELOG.md                    History of module changes and rationale
 └── dfyconfig.toml                  Picks up **/*.dfy — no include directives needed
 ```

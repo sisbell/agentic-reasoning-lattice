@@ -1,5 +1,17 @@
 # Proof Modules — Changelog
 
+## 2026-03-15: TwoSpace — ASN-0036 proof promotion, 199 total verified
+
+Promoted 15 ASN-0036 property proofs into TwoSpace/ directory:
+- **TwoSpace.dfy** — shared definitions: Val, TwoSpaceState, ContentImmutability, ReferentialIntegrity, AllPositive, Origin
+- **TwoSpaceContent.dfy** (7): S0, S1, S4, S6, S7a, S7b, S7
+- **TwoSpaceArrangement.dfy** (7): S2, S3, S5, S8-fin, S8a, S8-depth, S8
+- **TwoSpaceSeparation.dfy** (1): S9 — the capstone theorem
+
+Grouping principle: content store invariants vs arrangement invariants vs the separation theorem.
+
+Deduplicated: ContentImmutability (was in 3 files), ReferentialIntegrity (2 files), AllPositive (2 files), Val type (5 files) — all extracted into TwoSpace.dfy.
+
 ## 2026-03-14: NodeOntology — ASN-0035 proof promotion, 165 total verified
 
 Promoted 19 ASN-0035 property proofs into NodeOntology/ directory:
