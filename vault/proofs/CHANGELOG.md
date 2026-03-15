@@ -1,5 +1,18 @@
 # Proof Modules — Changelog
 
+## 2026-03-14: NodeOntology — ASN-0035 proof promotion, 165 total verified
+
+Promoted 19 ASN-0035 property proofs into NodeOntology/ directory:
+- **NodeOntology.dfy** — shared definitions: NodeAddress, Root, Parent, IsChildOf, Children, NodeState, Actor, AuthGrant, authorized, ZeroCount helpers
+- **NodeIdentity.dfy** (12): Σ.nodes, N0, N1, N2, N3, N5, N6, N7, N9, N10, N13, N14, N16
+- **NodeAllocation.dfy** (5): N4, N8, N11, N12. N15 (AllocationAuthority) and DC1 (AuthorityPermanence) deferred to Account Ontology — they introduce Actor/authorized concepts that belong in the account layer.
+
+Grouping principle: NodeIdentity = what nodes ARE, NodeAllocation = how they're CREATED.
+
+ZeroCountAllPositive lemma extracted from duplication (was in AlwaysValidStates and UniformNodeType) into NodeOntology.dfy shared definitions.
+
+NodeAllocation imports NodeIdentity for predicate definitions used in BAPTIZE preservation proofs.
+
 ## 2026-03-13: TumblerAlgebra — extract shared definitions, rename for clarity
 
 Extracted definitions duplicated across ASN-0034 modeling files into TumblerAlgebra.dfy:

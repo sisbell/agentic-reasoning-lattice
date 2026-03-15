@@ -11,8 +11,11 @@ proofs/
 │   ├── TumblerAddition.dfy         TA0, TA1, TA-strict, TA1-strict/weak, T12, TA7a
 │   ├── TumblerSubtraction.dfy      TA2, TA3-strict/weak, TA4, ReverseInverse
 │   └── TumblerAllocation.dfy       T8, T10a-d, T11
+├── NodeOntology/
+│   ├── NodeOntology.dfy            Shared definitions: NodeAddress, Parent, Children, NodeState, Actor
+│   ├── NodeIdentity.dfy            Σ.nodes, N0, N1, N2, N3, N5, N6, N7, N9, N10, N13, N14, N16
+│   └── NodeAllocation.dfy          N4, N8, N11, N12
 ├── CHANGELOG.md                    History of module changes and rationale
-├── imports.md                      Maps ASN → proof module dependencies for Dafny generation
 └── dfyconfig.toml                  Picks up **/*.dfy — no include directives needed
 ```
 
@@ -28,20 +31,35 @@ Five consolidated proof modules live alongside it. Each groups related ASN-0034 
 - **TumblerSubtraction** — well-definedness, order preservation (strict and weak), partial inverse, reverse inverse
 - **TumblerAllocation** — address permanence, allocator discipline, partition independence/monotonicity, increment preserves validity, global uniqueness
 
+## NodeOntology
+
+`NodeOntology.dfy` contains shared definitions for node ontology: NodeAddress predicate, Root constant, Parent/IsChildOf/Children functions, NodeState datatype, Actor type, AuthGrant datatype, authorized predicate, and ZeroCount helper lemmas.
+
+Two consolidated proof modules:
+
+- **NodeIdentity** — what nodes ARE: baptized nodes, ghost element, identity by assignment, single root, node tree, sequential children, structural ordering, forward reference admissibility, subtree contiguity/disjointness, uniform node type, no mutable state, prefix propagation
+- **NodeAllocation** — how nodes are CREATED: baptism monotonicity, allocation authority, authority permanence, coordination-free disjointness, local serialization sufficiency, always-valid states (BAPTIZE preserves all invariants)
+
 ## Dependency graph
 
 ```
 TumblerAlgebra
     ↑
-    |
     +--- TumblerOrder, TumblerHierarchy, TumblerAddition, TumblerSubtraction
     |                       ↑
     |                       |
-    +--- TumblerAllocation (imports TumblerHierarchy for ValidAddress, PrefixOrderingExtension)
+    +--- TumblerAllocation (imports TumblerHierarchy)
+    |
+    +--- NodeOntology (imports TumblerAlgebra, TumblerHierarchy)
+             ↑
+             |
+             +--- NodeIdentity (imports NodeOntology, TumblerHierarchy, TumblerOrder, TumblerAddition)
+             |
+             +--- NodeAllocation (imports NodeOntology, NodeIdentity, TumblerHierarchy, TumblerAllocation)
 ```
 
 ## dfyconfig.toml
 
-`includes = ["**/*.dfy"]` — all .dfy files under proofs/ are resolved automatically. No `include` directives in individual files. Module imports (`import TumblerAlgebra`, `import TumblerHierarchy`, etc.) are the only coupling mechanism.
+`includes = ["**/*.dfy"]` — all .dfy files under proofs/ are resolved automatically. No `include` directives in individual files. Module imports (`import TumblerAlgebra`, `import NodeOntology`, etc.) are the only coupling mechanism.
 
 `warn-redundant-assumptions = false` — disabled because Dafny's checker incorrectly flags requires clauses that are needed for well-formedness of subsequent requires.
