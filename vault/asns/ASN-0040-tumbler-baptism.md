@@ -50,7 +50,7 @@ We call the sequence c₁, c₂, c₃, ... the *sibling stream* of p at depth d,
 
 **(S0)** `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)`.
 
-This follows from repeated application of TA-strict. We also note:
+This follows from repeated application of TA5(a): each inc(cₙ, 0) produces cₙ₊₁ > cₙ directly. We also note:
 
 **(S1)** `(A n : n ≥ 1 : p ≼ cₙ)` — every stream element extends p as a prefix.
 
@@ -102,7 +102,7 @@ The substantive wp question targets the invariants themselves. What must hold be
 
   wp(baptize(p, d), B1) = B1 ∧ B0a
 
-Let B' = B ∪ {a} where a = next(B, p, d) = c_{hwm+1}. B1 for B' requires two things. First, every previously baptized cₙ in B still has predecessors c₁, ..., c_{n−1} in B' — satisfied because B ⊆ B' (by B0). Second, the new element c_{hwm+1} has predecessors c₁, ..., c_{hwm} in B' — satisfied iff children(B, p, d) = {c₁, ..., c_{hwm}}, which is exactly B1 for the current state. The second condition also requires that no non-baptismal mechanism inserted or removed elements from the namespace between read and commit — which is B0a.
+Let B' = B ∪ {a} where a = next(B, p, d) = c_{hwm+1}. B1 for B' requires two things. First, every previously baptized cₙ in B still has predecessors c₁, ..., c_{n−1} in B' — satisfied because B ⊆ B' (by B0). Second, the new element c_{hwm+1} has predecessors c₁, ..., c_{hwm} in B' — satisfied iff children(B, p, d) = {c₁, ..., c_{hwm}}, which is exactly B1 for the current state. The second condition also requires that no non-baptismal mechanism has altered the namespace — which is B0a.
 
 The wp for B8 (global uniqueness) is equally revealing:
 
@@ -110,7 +110,9 @@ The wp for B8 (global uniqueness) is equally revealing:
 
 The new address c_{hwm+1} must not already appear in B. Within namespace (p, d), B1 ensures children is a contiguous prefix of length hwm, so c_{hwm+1} is the first unbaptized sibling — it cannot be in B ∩ S(p, d). In any other namespace (p', d'), B7 ensures S(p, d) ∩ S(p', d') = ∅, so c_{hwm+1} cannot be in B ∩ S(p', d') either. Together, B1 and B7 guarantee freshness.
 
-The simpler observation also holds: wp(baptize(p, d), hwm = N + 1) = (hwm = N). But this merely says "to advance a counter, the counter must be at the previous value" — the definition of counting, not a substantive derivation. The invariant-targeting wp reveals the real dependencies: B1, B0a, and B7 are mutually supporting properties, each required for the others' preservation.
+Both derivations reason about a single baptism acting on a known state B — they assume sequential execution within each namespace. B4 (Namespace Serialization) discharges this assumption: by ensuring that same-namespace baptisms do not interleave, B4 guarantees that each baptism observes the complete state left by the previous one. Without B4, two concurrent baptisms could both read hwm = m, and both wp results would be invalidated.
+
+The simpler observation also holds: wp(baptize(p, d), hwm = N + 1) = (hwm = N). But this merely says "to advance a counter, the counter must be at the previous value" — the definition of counting, not a substantive derivation. The invariant-targeting wp reveals the real dependencies: B1, B0a, B4, and B7 are mutually supporting properties, each required for the others' preservation.
 
 Two systems beginning from the same B₀ and executing the same sequence of baptisms — same parents, same depths, same order — produce identical address spaces. The addresses are not identifiers assigned by fiat; they are the inevitable consequence of the baptism history.
 
@@ -244,6 +246,10 @@ B5: zeros([1, 0, 1, 0, 1]) = 2 = 1 + (2 − 1). B6: d = 2 and zeros([1, 0, 1]) +
 State: B₃ = {[1], [1, 0, 1], [1, 0, 2], [1, 0, 1, 0, 1]}.
 
 Nelson's "Items 2.1, 2.2, 2.3, 2.4" is exactly this mechanism — successive baptisms under parent 2 at depth 1, yielding the sibling stream 2.1, 2.2, 2.3, 2.4 by repeated application of inc(·, 0). The sequence is determined, contiguous, and the ordinals carry no semantics beyond order.
+
+**B7 Case 3 verified.** The steps above exercise only Case 1 of B7 (different stream lengths). We now trace Case 3 — nesting prefixes with equal element lengths. Suppose node [1, 1] has been baptized via inc([1], 1) = [1, 1] (TA5(c)). Consider S([1], 2) and S([1, 1], 1). Both streams have element length 3: #[1] + 2 = #[1, 1] + 1 = 3. The prefixes nest — [1] ≼ [1, 1] — so this is Case 3 with p = [1], d = 2, p' = [1, 1], d' = 1.
+
+At position 2 of each stream: inc([1], 2) = [1, 0, 1] — the value at position 2 is 0, the zero separator produced by TA5(d) with d − 1 = 1 intermediate zero. inc([1, 1], 1) = [1, 1, 1] — the value at position 2 is p'₂ = 1 > 0 (by T4, valid addresses do not end in zero, so the last component of [1, 1] is positive). Sibling increments inc(·, 0) modify only the last component (TA5(c)), so position 2 is invariant across both streams: always 0 in S([1], 2), always 1 in S([1, 1], 1). The streams disagree at a fixed position and are therefore disjoint.
 
 
 ## Global uniqueness
