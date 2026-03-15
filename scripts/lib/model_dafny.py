@@ -29,7 +29,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from paths import (WORKSPACE, ASNS_DIR, PROOF_INDEX_DIR, STATEMENTS_DIR,
                     PROOFS_DIR, DAFNY_DIR, ALLOY_DIR, REVIEWS_DIR, USAGE_LOG,
-                    PROOF_IMPORTS, next_review_number, next_modeling_number,
+                    next_review_number, next_modeling_number, load_manifest,
                     sanitize_filename)
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"
@@ -669,11 +669,6 @@ def main():
               file=sys.stderr)
         sys.exit(1)
 
-    imports_text = read_file(PROOF_IMPORTS)
-    if not imports_text:
-        print("  Proof imports not found: vault/proofs/imports.md", file=sys.stderr)
-        sys.exit(1)
-
     # --- Parse inputs ---
 
     index_rows = parse_proof_index(index_path.read_text())
@@ -683,15 +678,13 @@ def main():
         print(f"  No properties found in proof index {index_path.name}", file=sys.stderr)
         sys.exit(1)
 
-    # Proof module dependencies from imports.md
-    module_names = find_imports_for_asn(asn_label, imports_text)
-    if module_names is None:
-        print(f"  {asn_label} not listed in vault/proofs/imports.md",
-              file=sys.stderr)
-        sys.exit(1)
+    # Proof module dependencies from project model manifest
+    asn_number = int(re.sub(r"[^0-9]", "", asn_label))
+    manifest = load_manifest(asn_number)
+    module_names = manifest.get("modeling", {}).get("proof_imports", [])
 
-    # Always include base modules (TumblerAlgebra + Foundation)
-    base_modules = ["TumblerAlgebra", "Foundation"]
+    # Always include TumblerAlgebra as a base module
+    base_modules = ["TumblerAlgebra"]
     all_modules = base_modules + [m for m in module_names if m not in base_modules]
 
     proof_modules, proof_modules_text = read_proof_modules(all_modules)
