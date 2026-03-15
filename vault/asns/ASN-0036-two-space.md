@@ -77,7 +77,7 @@ The maintenance of S3 across state transitions reveals a temporal ordering const
 
 `wp(add-mapping, S3) ⟹ a ∈ dom(Σ.C)`
 
-The target I-address must already be in `dom(C)` before the arrangement can reference it. S1 then guarantees that once `a` enters `dom(C)`, it remains — so a valid reference cannot become dangling through any subsequent state transition. The temporal order is: content enters `C` first, then `M(d)` may reference it.
+For an operation that only adds a V-mapping without creating content, the target I-address must already be in `dom(C)`. An operation that atomically creates content at `a` and adds the mapping `M(d)(v) = a` satisfies S3 in the post-state without sequential precedence — `a ∈ dom(Σ'.C)` and `Σ'.M(d)(v) = a` are established simultaneously. The dependency is logical, not temporal: a reference presupposes the existence of its target, but existence need not precede reference in a prior transition. What matters for persistence is that S1 guarantees once `a` enters `dom(C)`, it remains — so a valid reference cannot become dangling through any subsequent state transition.
 
 We observe a deliberate asymmetry. S3 says arrangement implies existence: `ran(M(d)) ⊆ dom(C)`. It does NOT say existence implies arrangement. Content can exist in I-space without being arranged in any current document. Nelson calls such content "deleted bytes — not currently addressable, awaiting historical backtrack functions, may remain included in other versions." The asymmetry is the space in which persistence independence lives.
 
@@ -153,9 +153,9 @@ This is a design requirement, not a convention. Nelson's baptism principle estab
 
 We must also restrict S7's domain. The function `fields(a).document` is well-defined only when `zeros(a) ≥ 2` (per T4's field correspondence: `zeros = 0` is node-only, `zeros = 1` is node+user, `zeros ≥ 2` has a document field). Since I-space addresses designate content elements within documents, we require:
 
-**S7b (Element-level I-addresses).** Every address in `dom(Σ.C)` is an element-level tumbler: `(A a ∈ dom(Σ.C) :: zeros(a) = 3)`.
+**S7b (Element-level I-addresses).** We require that every address in `dom(Σ.C)` is an element-level tumbler: `(A a ∈ dom(Σ.C) :: zeros(a) = 3)`.
 
-This follows from T4 and the tumbler hierarchy: content is stored at the element level (the fourth and finest level of the address hierarchy). Node, user, and document-level tumblers identify containers, not content.
+This is a design requirement: content resides at the element level — the finest level of the four-level tumbler hierarchy. Node, user, and document-level tumblers identify containers, not content. By T4's field correspondence, `zeros(a) = 3` means all four identifying fields — node, user, document, element — are present, and the element field contains the content-level address.
 
 With S7a and S7b established, we can state structural attribution:
 
