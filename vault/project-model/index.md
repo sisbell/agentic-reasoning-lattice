@@ -10,3 +10,4 @@ Generated from vault/project-model/ASN-*.yaml
 | ASN-0037 | Tumbler Authorization | 34 | 35, 36 | — |
 | ASN-0038 | Tumbler Baptism | 34 | 35, 36, 37 | — |
 | ASN-0039 | Tumbler Baptism | 34 | 35, 36, 37 | — |
+| ASN-0040 | Tumbler Baptism | 34 | 35, 36, 37, 38, 39 | — |
