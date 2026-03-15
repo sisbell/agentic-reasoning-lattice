@@ -127,7 +127,7 @@ The substantive wp question targets the invariants themselves. What must hold be
 
 Under B4 (serialized execution within the namespace):
 
-  wp(baptize(p, d), B1) — state precondition: B1; environmental: B0a, B4.
+  wp(baptize(p, d), B1) — state precondition: B1; environmental: B0a, B4; lemma: B7.
 
 Let B' = B ∪ {a} where a = next(B, p, d) = c_{hwm+1}. B1 for B' requires two things. First, every previously baptized cₙ in B still has predecessors c₁, ..., c_{n−1} in B' — satisfied because B ⊆ B' (by B0). Second, the new element c_{hwm+1} has predecessors c₁, ..., c_{hwm} in B' — satisfied iff children(B, p, d) = {c₁, ..., c_{hwm}}, which is exactly B1 for the current state. The second condition also requires that no non-baptismal mechanism has altered the namespace — the transition constraint B0a. B4 ensures the baptism observes the complete state left by the previous one.
 
@@ -331,6 +331,7 @@ Nelson reinforces this at every level: "A server node, or station, has ancestors
 | B7 | `(p, d) ≠ (p', d') ⟹ S(p, d) ∩ S(p', d') = ∅` — namespace disjointness | introduced |
 | B8 | Distinct baptisms produce distinct addresses — global uniqueness | introduced |
 | B9 | `(A p, d, M : (E B' reachable : hwm(B', p, d) ≥ M))` — unbounded extent | introduced |
+| B10 | `(A t ∈ Σ.B : t satisfies T4)` — registry-wide T4 validity (from B₀ conf., B6, IncrementPreservesValidity) | derived |
 
 
 ## Open Questions
