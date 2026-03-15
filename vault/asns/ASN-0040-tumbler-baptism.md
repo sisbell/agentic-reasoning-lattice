@@ -33,7 +33,7 @@ B0 tells us baptism cannot be undone; its companion tells us what *can* add to B
 
   `(A Σ, Σ' : Σ → Σ' : (A t : t ∈ Σ'.B \ Σ.B : t was produced by baptism(p, d) for some (p, d) satisfying B6))`
 
-Here "satisfying B6" means d ∈ {1, 2} and zeros(p) + (d − 1) ≤ 3 — depth validity as defined below. Whether p must itself be baptized (p ∈ Σ.B) before children can be baptized beneath it is deliberately deferred to the Open Questions; B0a constrains only the depth arithmetic, not the authorization chain. No mechanism other than baptism — no administrative action, no side effect of content operations, no bulk initialization after genesis — may insert an address into B. B0 says nothing leaves; B0a says nothing enters except through the designated gate. Without B0a, an arbitrary operation could insert c₅ into a namespace lacking c₁ through c₄, and the contiguous prefix property (B1 below) would be violated.
+Here "satisfying B6" means p satisfies T4, d ∈ {1, 2}, and zeros(p) + (d − 1) ≤ 3 — depth validity as defined below. Whether p must itself be baptized (p ∈ Σ.B) before children can be baptized beneath it is deliberately deferred to the Open Questions; B0a constrains only the depth arithmetic, not the authorization chain. No mechanism other than baptism — no administrative action, no side effect of content operations, no bulk initialization after genesis — may insert an address into B. B0 says nothing leaves; B0a says nothing enters except through the designated gate. Without B0a, an arbitrary operation could insert c₅ into a namespace lacking c₁ through c₄, and the contiguous prefix property (B1 below) would be violated.
 
 The binary character of this state is fundamental. Nelson's model has no third status between baptized and unbaptized: "the occupied tumbler-space — as occupied by conceptually assigned positions, even if nothing represents them in storage." A position is either conceptually assigned (in B) or not. Whether anything is *stored* at that position is a separate question, which we address below as the ghost validity property.
 
@@ -79,9 +79,17 @@ B1 is universally quantified over all (p', d'), so the inductive step must also 
 
 The induction also requires a conforming base:
 
-  **(B₀ conformance)**: `(A p, d : children(B₀, p, d) is a contiguous prefix of S(p, d))`
+  **(B₀ conformance)**: `(A p, d : children(B₀, p, d) is a contiguous prefix of S(p, d))` and `(A t ∈ B₀ : t satisfies T4)`.
 
-B₀ must satisfy B1 for every namespace at genesis. Without this, the seed set could contain {c₁, c₃} for some namespace — a gap that the inductive argument cannot repair, since baptism only appends the next sibling. B1 holds for all states reachable from a conforming B₀ under operations satisfying B0a and B7.
+B₀ must satisfy B1 for every namespace at genesis, and every seed element must be a valid address under T4. Without the contiguity requirement, the seed set could contain {c₁, c₃} for some namespace — a gap that the inductive argument cannot repair, since baptism only appends the next sibling. Without the T4 requirement, a seed element could serve as a parent that violates B6(i), undermining B7's disjointness guarantee.
+
+From B₀ conformance (T4 for seeds) and B6(i) (T4 for parents), we derive by induction on the baptism sequence that T4 validity is a registry-wide invariant:
+
+  `(A t ∈ Σ.B : t satisfies T4)`
+
+The base case holds by B₀ conformance. For the inductive step, any baptism(p, d) satisfying B6 has p satisfying T4 (condition (i)), and IncrementPreservesValidity (ASN-0034) gives that inc(p, d) satisfies T4 when d ∈ {1, 2} and zeros(p) + (d − 1) ≤ 3 (conditions (ii) and (iii)). This closes the chain: B7 applies unconditionally to all baptized parents, and B8 holds without proviso.
+
+B1 holds for all states reachable from a conforming B₀ under operations satisfying B0a and B7.
 
 The gap between T9 (ForwardAllocation) and B1 is the *no-skip property*: baptism always selects the immediate successor in the stream, never an arbitrary later value. T9 says addresses increase; B1 says they increase *contiguously*. The difference is the guarantee that every ordinal from 1 through m is represented, which T9 alone does not assert.
 
@@ -112,7 +120,7 @@ The freshness derivation similarly:
 
   wp(baptize(p, d), a ∉ B) — state precondition: B1; environmental: B4; lemma: B7.
 
-The new address c_{hwm+1} must not already appear in B. Within namespace (p, d), B1 ensures children is a contiguous prefix of length hwm, so c_{hwm+1} is the first unbaptized sibling — it cannot be in B ∩ S(p, d). In any other namespace (p', d'), B7 (a mathematical property of the stream structure, not a state predicate) ensures S(p, d) ∩ S(p', d') = ∅, so c_{hwm+1} cannot be in B ∩ S(p', d') either. Together, B1 and B7 guarantee freshness, with B4 ensuring the state observation is current.
+The new address c_{hwm+1} must not already appear in B. We partition B into three cases. Within namespace (p, d), B1 ensures children is a contiguous prefix of length hwm, so c_{hwm+1} is the first unbaptized sibling — it cannot be in B ∩ S(p, d). In any other namespace (p', d'), B7 (a mathematical property of the stream structure, not a state predicate) ensures S(p, d) ∩ S(p', d') = ∅, so c_{hwm+1} cannot be in B ∩ S(p', d') either. For elements of B not in any namespace stream — root seed elements such as [1] that have no standard parent (no tumbler p exists with #p + d = #[1] = 1 for valid d) — c_{hwm+1} ∈ S(p, d) by construction, and these elements ∉ S(p, d), so no collision. Together, B1, B7, and the stream membership of c_{hwm+1} guarantee freshness across the full partition of B, with B4 ensuring the state observation is current.
 
 Both derivations reason about a single baptism acting on a known state B. B4 (Namespace Serialization) discharges the serialization assumption: by ensuring that same-namespace baptisms do not interleave, B4 guarantees that each baptism observes the complete state left by the previous one. Without B4, two concurrent baptisms could both read hwm = m, and both wp results would be invalidated.
 
@@ -184,11 +192,13 @@ Gregory's evidence confirms the structural necessity in three independent ways. 
 
 **(B6 — Valid Depth)** Baptism at depth d from parent p preserves T4 iff:
 
-  (i) d ∈ {1, 2}, and
+  (i) p satisfies T4,
 
-  (ii) zeros(p) + (d − 1) ≤ 3.
+  (ii) d ∈ {1, 2}, and
 
-Condition (i) follows from the ASN-0034 lemma "TA5 preserves T4": for d ≥ 3, the appended sequence contains adjacent zeros, violating T4's non-empty-field constraint. Condition (ii) ensures no address exceeds the four-level hierarchy. Together:
+  (iii) zeros(p) + (d − 1) ≤ 3.
+
+Condition (i) is essential: without it, the parent itself may violate T4 (e.g., a tumbler ending in zero), and the output inherits the defect — or worse, coincides with an output from a different, T4-valid namespace. Condition (ii) follows from the ASN-0034 lemma "TA5 preserves T4": for d ≥ 3, the appended sequence contains adjacent zeros, violating T4's non-empty-field constraint. Condition (iii) ensures no address exceeds the four-level hierarchy. Together:
 
 | Parent level | d = 1 (same level) | d = 2 (level crossing) |
 |---|---|---|
@@ -251,7 +261,7 @@ State: B₃ = {[1], [1, 0, 1], [1, 0, 2], [1, 0, 1, 0, 1]}.
 
 Nelson's "Items 2.1, 2.2, 2.3, 2.4" is exactly this mechanism — successive baptisms under parent 2 at depth 1, yielding the sibling stream 2.1, 2.2, 2.3, 2.4 by repeated application of inc(·, 0). The sequence is determined, contiguous, and the ordinals carry no semantics beyond order.
 
-**B7 Case 3 verified.** The steps above exercise only Case 1 of B7 (different stream lengths). We now trace Case 3 — nesting prefixes with equal element lengths. Suppose node [1, 1] has been baptized via inc([1], 1) = [1, 1] (TA5(c)). Consider S([1], 2) and S([1, 1], 1). Both streams have element length 3: #[1] + 2 = #[1, 1] + 1 = 3. The prefixes nest — [1] ≼ [1, 1] — so this is Case 3 with p = [1], d = 2, p' = [1, 1], d' = 1.
+**B7 Case 3 verified.** The steps above exercise only Case 1 of B7 (different stream lengths). We now trace Case 3 — nesting prefixes with equal element lengths. Suppose node [1, 1] has been baptized via inc([1], 1) = [1, 1] (TA5(d) with k = 1: #t' = 2, zero intermediate zeros, position 2 set to 1). Consider S([1], 2) and S([1, 1], 1). Both streams have element length 3: #[1] + 2 = #[1, 1] + 1 = 3. The prefixes nest — [1] ≼ [1, 1] — so this is Case 3 with p = [1], d = 2, p' = [1, 1], d' = 1.
 
 At position 2 of each stream: inc([1], 2) = [1, 0, 1] — the value at position 2 is 0, the zero separator produced by TA5(d) with d − 1 = 1 intermediate zero. inc([1, 1], 1) = [1, 1, 1] — the value at position 2 is p'₂ = 1 > 0 (by T4, valid addresses do not end in zero, so the last component of [1, 1] is positive). Sibling increments inc(·, 0) modify only the last component (TA5(c)), so position 2 is invariant across both streams: always 0 in S([1], 2), always 1 in S([1, 1], 1). The streams disagree at a fixed position and are therefore disjoint.
 
@@ -294,14 +304,14 @@ Nelson reinforces this at every level: "A server node, or station, has ancestors
 | S1 | `(A n : n ≥ 1 : p ≼ cₙ)` — all stream elements extend parent | introduced |
 | B0 | `Σ.B ⊆ Σ'.B` for all transitions — irrevocability (extends T8) | introduced |
 | B0a | `Σ'.B \ Σ.B ⊆ {baptism(p,d) outputs for (p,d) satisfying B6}` — registry grows only through baptism | introduced |
-| B₀ conf. | `children(B₀, p, d)` is a contiguous prefix for all (p, d) — seed conformance | introduced |
+| B₀ conf. | `children(B₀, p, d)` is a contiguous prefix for all (p, d) and `(A t ∈ B₀ : t satisfies T4)` — seed conformance | introduced |
 | B1 | `cₙ ∈ B ⟹ (A i : 1 ≤ i < n : cᵢ ∈ B)` — contiguous prefix (requires conforming B₀) | introduced |
 | B2 | `next(B, p, d) = c_{hwm+1}` — deterministic allocation | introduced |
 | B3 | `t ∈ Σ.B` does not imply t is occupied — ghost validity | introduced |
 | B4 | Same-namespace baptisms serialized: `commit(β₁) ≺ read(β₂) ∨ commit(β₂) ≺ read(β₁)` | introduced |
 | B5 | `zeros(inc(p, d)) = zeros(p) + (d − 1)` — field advancement | introduced |
 | B5a | `zeros(inc(t, 0)) = zeros(t)` — sibling increment preserves zeros | introduced |
-| B6 | `d ∈ {1, 2}` and `zeros(p) + (d − 1) ≤ 3` — valid depth | introduced |
+| B6 | `p satisfies T4`, `d ∈ {1, 2}`, and `zeros(p) + (d − 1) ≤ 3` — valid depth | introduced |
 | B7 | `(p, d) ≠ (p', d') ⟹ S(p, d) ∩ S(p', d') = ∅` — namespace disjointness | introduced |
 | B8 | Distinct baptisms produce distinct addresses — global uniqueness | introduced |
 | B9 | `(A p, d, M : (E B' reachable : hwm(B', p, d) ≥ M))` — unbounded extent | introduced |
