@@ -59,19 +59,36 @@ S1 holds because inc(p, d) preserves all of p's components (TA5(b)), and inc(·,
 Nelson describes exactly this process: "One digit can become several by a forking or branching process. This consists of creating successive new digits to the right." The word "successive" is precise — positions arrive in order, c₁ before c₂ before c₃. "Items 2.1, 2.2, 2.3, 2.4... are successive items being placed under 2." The stream is traversed monotonically, not sampled.
 
 
-## The contiguous prefix property
+## The baptism operation
 
 We define the *children* of parent p at depth d in state B:
 
   children(B, p, d) = B ∩ S(p, d)
 
-— the baptized addresses that belong to the sibling stream. We claim this set is always a *prefix* of the stream: the first m elements for some m ≥ 0, with no gaps.
+— the baptized addresses that belong to the sibling stream. The next address in a namespace is determined by the current registry state:
+
+  next(B, p, d) = if children(B, p, d) = ∅ then inc(p, d) else inc(max(children(B, p, d)), 0)
+
+— find the greatest baptized sibling and produce its immediate successor; if none exists, produce the first child.
+
+**(Bop — Baptism)** The operation baptize(p, d) is defined by:
+
+  PRE: B6(p, d) — depth validity (defined below); B4 — serialized within namespace (p, d) (defined below); [parent prerequisite deferred to Open Questions]
+  POST: Σ'.B = Σ.B ∪ {next(Σ.B, p, d)}
+  FRAME: only Σ.B is modified; all other state components are unchanged
+
+The frame condition is essential: baptism alters the registry and nothing else. Content storage, link structures, arrangement — all are untouched. The precondition B4 ensures the operation observes a stable state: no concurrent same-namespace baptism may interleave between the read of max(children) and the commitment of the new element.
+
+
+## The contiguous prefix property
+
+We claim that children(B, p, d) is always a *prefix* of the sibling stream: the first m elements for some m ≥ 0, with no gaps.
 
 **(B1 — Contiguous Prefix)** `(A p, d, n : n ≥ 1 ∧ cₙ ∈ B ⟹ (A i : 1 ≤ i < n : cᵢ ∈ B))`.
 
 Equivalently: children(B, p, d) = {c₁, ..., cₘ} for some m ≥ 0.
 
-The argument proceeds by induction on the sequence of baptisms within a namespace. The base case is vacuous: when no child has been baptized, the empty set is trivially a prefix. For the inductive step, suppose children(B, p, d) = {c₁, ..., cₘ} is a contiguous prefix of length m. The next baptism in this namespace queries B for the maximum element of S(p, d) — which is cₘ — and increments by one to produce c_{m+1}. No element is skipped: the allocation mechanism always selects the immediate successor, because it finds the current maximum and adds exactly one ordinal. By B0, existing elements persist, so the prefix only grows. The new set {c₁, ..., c_{m+1}} is a prefix of length m + 1.
+The argument proceeds by induction on the sequence of baptisms within a namespace. The base case is vacuous: when no child has been baptized, the empty set is trivially a prefix. For the inductive step, suppose children(B, p, d) = {c₁, ..., cₘ} is a contiguous prefix of length m. By B4, the next baptism observes the complete state left by the previous one — no concurrent same-namespace baptism has intervened. The operation (Bop) computes next(B, p, d) = inc(cₘ, 0) = c_{m+1}. No element is skipped: the definition of next always selects the immediate successor. By B0, existing elements persist, so the prefix only grows. The new set {c₁, ..., c_{m+1}} is a prefix of length m + 1.
 
 This argument rests on two additional properties. First, no operation outside this namespace inserts an element into S(p, d) — established below as B7 (Namespace Disjointness). Second, no mechanism other than baptism adds elements to B at all — established above as B0a (Baptismal Closure). Without B0a, a non-baptismal operation could insert arbitrary elements into B, and the inductive step would be ungrounded.
 
@@ -96,17 +113,15 @@ The gap between T9 (ForwardAllocation) and B1 is the *no-skip property*: baptism
 
 ## The high water mark
 
-B1 has a powerful consequence: the entire allocation state of a namespace reduces to a single natural number.
+B1 yields a simplification: the entire allocation state of a namespace reduces to a single natural number.
 
   **hwm(B, p, d) = #children(B, p, d)** — the *high water mark*.
 
-This number is everything we need. No counter distinct from the data, no free list, no reservation table. The cardinality of the existing children is a sufficient statistic for the next allocation.
+Because children(B, p, d) = {c₁, ..., cₘ} is a contiguous prefix (B1), the maximum is always cₘ and the next element is always c_{m+1}. The operational definition of next — "find max, increment" — reduces to counting:
 
-**(B2 — Deterministic Allocation)** The next baptism in namespace (p, d) is a pure function of Σ.B:
+**(B2 — High Water Mark Sufficiency)** `next(B, p, d) = c_{hwm(B,p,d) + 1}`.
 
-  next(B, p, d) = c_{hwm(B,p,d) + 1}
-
-Concretely: if hwm = 0, then next = inc(p, d) — the first child; if hwm = m > 0, then next = inc(cₘ, 0) — the next sibling.
+Concretely: if hwm = 0, then next = inc(p, d) — the first child; if hwm = m > 0, then next = inc(cₘ, 0) — the next sibling. No counter distinct from the data, no free list, no reservation table. The cardinality of the existing children is a sufficient statistic for the next allocation.
 
 The substantive wp question targets the invariants themselves. What must hold before a baptism for B1 to hold after? We separate three kinds of condition: the *state precondition* (what must hold of B), the *environmental assumptions* (what the system must enforce around the operation), and the *supporting lemma* (a mathematical property of the stream structure that the wp derivation depends on).
 
@@ -180,7 +195,7 @@ B5 establishes the zeros count for the *first* child c₁ of a stream. The sibli
 
 **(B5a — Sibling Zeros Preservation)** `(A t : t_{sig(t)} > 0 : zeros(inc(t, 0)) = zeros(t))`
 
-This follows from TA5(c): sibling increment preserves the tumbler's length and modifies only position sig(t), advancing a positive value by one — no zero is created or destroyed. Combined with B5, every element of S(p, d) inherits the zeros count established at c₁:
+This follows from TA5(c): sibling increment preserves the tumbler's length and modifies only position sig(t), advancing a positive value by one — no zero is created or destroyed. To apply B5a inductively across the stream, we must discharge its precondition: every cₙ satisfies cₙ_{sig(cₙ)} > 0. For c₁ = inc(p, d), the final component is 1 (from TA5(d)), so sig(c₁) = #c₁ and c₁_{sig(c₁)} = 1 > 0. Each cₙ₊₁ = inc(cₙ, 0) advances the value at sig(cₙ) by 1 (TA5(c)), preserving positivity. By induction, every stream element satisfies the precondition. Combined with B5, every element of S(p, d) inherits the zeros count established at c₁:
 
   `(A n ≥ 1 : zeros(cₙ) = zeros(p) + (d − 1))`
 
@@ -233,7 +248,7 @@ All three cases are exhaustive for distinct (p, d) pairs within the constraints 
 
 ## A baptism traced
 
-We trace a concrete sequence to ground the formal development. Begin with B₀ = {[1]} — a single root node.
+We trace a concrete sequence to ground the formal development. Begin with B₀ = {[1]} — a single root node. We verify B₀ conformance. First, [1] satisfies T4: a single positive component, no zeros. Second, [1] does not belong to any sibling stream — membership in S(p, d) requires element length #p + d, and no valid parent p with d ∈ {1, 2} satisfies #p + d = 1 (since #p ≥ 1). Therefore children(B₀, p, d) = ∅ for all (p, d), which is trivially a contiguous prefix of length 0. The seed is conforming.
 
 **Step 1: first user.** Namespace ([1], 2) — node [1], depth 2 (level crossing to user).
 
@@ -272,7 +287,7 @@ At position 2 of each stream: inc([1], 2) = [1, 0, 1] — the value at position 
 
   `(A a, b : produced by distinct baptismal acts : a ≠ b)`.
 
-Within the same namespace, B1 ensures sequential, gap-free allocation — the n-th and m-th elements of a sibling stream are distinct for n ≠ m (by S0). Across namespaces, B7 ensures non-overlapping ranges. Together, no two baptisms anywhere in the system, at any time, produce the same tumbler.
+Within the same namespace, B4 ensures each baptism observes a distinct hwm value — serialization prevents two baptisms from reading the same maximum — and B1 ensures sequential, gap-free allocation, so distinct baptisms produce distinct stream indices, which S0 maps to distinct addresses. Across namespaces, B7 ensures non-overlapping ranges. Together, no two baptisms anywhere in the system, at any time, produce the same tumbler.
 
 ASN-0034 establishes GlobalUniqueness from the algebraic angle through T3, T9, T10, and T10a. Here we reach the same conclusion through the set-theoretic lens of baptism namespaces and the contiguous prefix property. The two derivations are complementary: the algebraic route proceeds from allocator discipline (per-stream monotonicity), while the set-theoretic route proceeds from namespace partitioning (per-stream contiguity plus cross-stream disjointness). The algebraic route answers "why is each stream collision-free?"; the set-theoretic route answers "why are different streams collision-free with each other?"
 
@@ -299,14 +314,15 @@ Nelson reinforces this at every level: "A server node, or station, has ancestors
 | Σ.B | B ⊆ T — the set of baptized tumblers (baptismal registry) | introduced |
 | S(p,d) | Sibling stream: c₁ = inc(p, d), cₙ₊₁ = inc(cₙ, 0) | introduced |
 | hwm(B,p,d) | High water mark: #children(B, p, d) — sufficient allocation statistic | introduced |
-| next(B,p,d) | Deterministic next address: c_{hwm+1} | introduced |
+| next(B,p,d) | Next address: if children = ∅ then inc(p, d) else inc(max(children), 0) | introduced |
+| Bop | baptize(p, d): PRE B6, B4; POST Σ'.B = Σ.B ∪ {next(Σ.B, p, d)}; FRAME only Σ.B | introduced |
 | S0 | `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)` — stream strictly ordered | introduced |
 | S1 | `(A n : n ≥ 1 : p ≼ cₙ)` — all stream elements extend parent | introduced |
 | B0 | `Σ.B ⊆ Σ'.B` for all transitions — irrevocability (extends T8) | introduced |
 | B0a | `Σ'.B \ Σ.B ⊆ {baptism(p,d) outputs for (p,d) satisfying B6}` — registry grows only through baptism | introduced |
 | B₀ conf. | `children(B₀, p, d)` is a contiguous prefix for all (p, d) and `(A t ∈ B₀ : t satisfies T4)` — seed conformance | introduced |
 | B1 | `cₙ ∈ B ⟹ (A i : 1 ≤ i < n : cᵢ ∈ B)` — contiguous prefix (requires conforming B₀) | introduced |
-| B2 | `next(B, p, d) = c_{hwm+1}` — deterministic allocation | introduced |
+| B2 | `next(B, p, d) = c_{hwm+1}` — high water mark sufficiency (from B1) | introduced |
 | B3 | `t ∈ Σ.B` does not imply t is occupied — ghost validity | introduced |
 | B4 | Same-namespace baptisms serialized: `commit(β₁) ≺ read(β₂) ∨ commit(β₂) ≺ read(β₁)` | introduced |
 | B5 | `zeros(inc(p, d)) = zeros(p) + (d − 1)` — field advancement | introduced |
