@@ -65,7 +65,7 @@ Equivalently: children(B, p, d) = {c₁, ..., cₘ} for some m ≥ 0.
 
 The argument proceeds by induction on the sequence of baptisms within a namespace. The base case is vacuous: when no child has been baptized, the empty set is trivially a prefix. For the inductive step, suppose children(B, p, d) = {c₁, ..., cₘ} is a contiguous prefix of length m. The next baptism in this namespace queries B for the maximum element of S(p, d) — which is cₘ — and increments by one to produce c_{m+1}. No element is skipped: the allocation mechanism always selects the immediate successor, because it finds the current maximum and adds exactly one ordinal. By B0, existing elements persist, so the prefix only grows. The new set {c₁, ..., c_{m+1}} is a prefix of length m + 1.
 
-This argument also requires that no operation *outside* this namespace inserts an element into S(p, d). We establish this below (B8, Namespace Disjointness).
+This argument also requires that no operation *outside* this namespace inserts an element into S(p, d). We establish this below (B7, Namespace Disjointness).
 
 The gap between T9 (ForwardAllocation) and B1 is the *no-skip property*: baptism always selects the immediate successor in the stream, never an arbitrary later value. T9 says addresses increase; B1 says they increase *contiguously*. The difference is the guarantee that every ordinal from 1 through m is represented, which T9 alone does not assert.
 
@@ -156,36 +156,11 @@ Condition (i) follows from the ASN-0034 lemma "TA5 preserves T4": for d ≥ 3, t
 At most three level crossings can occur in a valid address chain: node → user, user → document, document → element. This is the four-field structure of T4, now visible as a consequence of baptism depth arithmetic rather than an independent syntactic constraint.
 
 
-## The asymmetric prerequisite
-
-Must a parent be baptized before its children? The answer is not uniform across levels.
-
-Nelson's design implies a full prerequisite chain: "Whoever owns a specific node, account, document or version may in turn designate new nodes, accounts, documents and versions, by forking their integers." The delegation model presupposes existence at every link. Gregory's implementation reveals a nuance that refines this picture: at structural levels, the allocation function uses the parent address as an arithmetic anchor but does not verify that the parent itself is in B. At element level, the check is present and enforced — inserting content within a document requires explicit verification that the document address exists in the store. Failure to find the parent is immediate rejection.
-
-**(B7 — Asymmetric Prerequisite)** Let a = next(B, p, d).
-
-  - When zeros(a) < 3 (structural levels): the parent p need not be in Σ.B. The parent serves as an arithmetic anchor — it defines the prefix of the sibling stream — but the existence of p as a baptized entity is not required for allocation to succeed.
-
-  - When zeros(a) = 3 (element level): p ∈ Σ.B is required. The parent document must have been previously baptized.
-
-The asymmetry reflects a semantic distinction at the heart of the hierarchy. At structural levels, the parent is a *coordinate*. It defines where in the address space the child will live. The sibling stream S(p, d) is determined by p's digits and d's arithmetic, regardless of whether p names a baptized entity. The function next queries B for existing children under the prefix; it does not query whether the prefix itself is in B.
-
-At element level, the relationship changes. An element address designates content *within* a container. Without the container, the element has no context — no structure to belong to, no namespace to be discovered under. The container's existence is not merely a namespace convenience but a semantic requirement: an element address in a non-existent container is not merely unoccupied but meaningless.
-
-This creates what we may call *phantom parents*: addresses that serve as namespace anchors without themselves being baptized. A user address may organize a family of document addresses even if the user address was never explicitly baptized — the arithmetic creates the organization, not the baptism. The address space is *denser* than the entity space: not every prefix that organizes a namespace need be a baptized position.
-
-The phantom parent pattern terminates at the structural-to-element transition. Below that boundary, every parent must be concrete. Above it, the namespace hierarchy may be sparser than the address hierarchy, with phantom parents anchoring namespaces they never explicitly joined.
-
-We note a subtlety about the element-level prerequisite's durability. The requirement p ∈ B is a check on *baptism*, not on liveness or population. It asks whether p has ever entered B — not whether the entity at p is currently open, active, or populated. By B0, baptism is irrevocable: once p enters B, it remains permanently, and the prerequisite is permanently satisfied. No state exists in which a container's baptism is revoked, leaving its elements orphaned.
-
-For the abstract specification, B7 records a minimum requirement: element-level baptism demands parent existence; structural-level baptism may proceed without it. An implementation that enforces parent existence at all levels satisfies B7 — the stronger condition implies the weaker. The specification permits phantom parents at structural levels; it does not require them.
-
-
 ## Namespace disjointness
 
 Each parent-depth pair defines a namespace. Distinct namespaces must produce non-overlapping address ranges, or global uniqueness collapses.
 
-**(B8 — Namespace Disjointness)** For distinct valid pairs (p, d) ≠ (p', d'):
+**(B7 — Namespace Disjointness)** For distinct valid pairs (p, d) ≠ (p', d'):
 
   S(p, d) ∩ S(p', d') = ∅
 
@@ -204,11 +179,11 @@ All three cases are exhaustive for distinct (p, d) pairs within the constraints 
 
 ## Global uniqueness
 
-**(B9 — Global Uniqueness)** Distinct baptisms produce distinct addresses:
+**(B8 — Global Uniqueness)** Distinct baptisms produce distinct addresses:
 
   `(A a, b : produced by distinct baptismal acts : a ≠ b)`.
 
-Within the same namespace, B1 ensures sequential, gap-free allocation — the n-th and m-th elements of a sibling stream are distinct for n ≠ m (by S0). Across namespaces, B8 ensures non-overlapping ranges. Together, no two baptisms anywhere in the system, at any time, produce the same tumbler.
+Within the same namespace, B1 ensures sequential, gap-free allocation — the n-th and m-th elements of a sibling stream are distinct for n ≠ m (by S0). Across namespaces, B7 ensures non-overlapping ranges. Together, no two baptisms anywhere in the system, at any time, produce the same tumbler.
 
 ASN-0034 establishes GlobalUniqueness from the algebraic angle through T3, T9, T10, and T10a. Here we reach the same conclusion through the set-theoretic lens of baptism namespaces and the contiguous prefix property. The two derivations are complementary: the algebraic route proceeds from allocator discipline (per-stream monotonicity), while the set-theoretic route proceeds from namespace partitioning (per-stream contiguity plus cross-stream disjointness). The algebraic route answers "why is each stream collision-free?"; the set-theoretic route answers "why are different streams collision-free with each other?"
 
@@ -219,7 +194,7 @@ Nelson insists that the address space imposes no capacity limits:
 
 > "A tumbler consists of a series of integers. Each integer has no upper limit."
 
-**(B10 — Unbounded Extent)** `(A p ∈ Σ.B, d valid, M ∈ ℕ :: the system permits hwm(B, p, d) to reach M)`.
+**(B9 — Unbounded Extent)** `(A p ∈ Σ.B, d valid, M ∈ ℕ :: the system permits hwm(B, p, d) to reach M)`.
 
 No architectural limit constrains how many children a position may have. This follows from T0(a) (UnboundedComponents): since each tumbler component is an unbounded natural number and the child ordinal occupies a single component, the ordinal can grow without bound. Combined with B1, the children of any parent can grow to form an arbitrarily long contiguous prefix {c₁, ..., cₘ} for any m.
 
@@ -245,14 +220,14 @@ Nelson reinforces this at every level: "A server node, or station, has ancestors
 | B4 | No observable intermediate state during baptism — atomicity | introduced |
 | B5 | `zeros(inc(p, d)) = zeros(p) + (d − 1)` — field advancement | introduced |
 | B6 | `d ∈ {1, 2}` and `zeros(p) + (d − 1) ≤ 3` — valid depth | introduced |
-| B7 | `zeros(a) = 3 ⟹ p ∈ B` required; structural levels permit phantom parents | introduced |
-| B8 | `(p, d) ≠ (p', d') ⟹ S(p, d) ∩ S(p', d') = ∅` — namespace disjointness | introduced |
-| B9 | Distinct baptisms produce distinct addresses — global uniqueness | introduced |
-| B10 | `(A M :: hwm may reach M)` — unbounded extent | introduced |
+| B7 | `(p, d) ≠ (p', d') ⟹ S(p, d) ∩ S(p', d') = ∅` — namespace disjointness | introduced |
+| B8 | Distinct baptisms produce distinct addresses — global uniqueness | introduced |
+| B9 | `(A M :: hwm may reach M)` — unbounded extent | introduced |
 
 
 ## Open Questions
 
+- Must a parent position be baptized before children can be baptized beneath it? Nelson's ownership model implies yes; Gregory's implementation does not check at structural levels. Resolution depends on the ownership model (Tumbler Ownership).
 - What properties must the seed set B₀ satisfy for the contiguous prefix and namespace disjointness invariants to hold at system genesis?
 - Must the specification distinguish between a ghost element that could hold content and a structural position that cannot — or is this distinction derivable from the field structure alone?
 - Under what conditions may bulk allocation — baptizing a contiguous range of k positions in a single operation — satisfy B4's atomicity and B1's contiguity requirements?
