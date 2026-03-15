@@ -7,5 +7,8 @@ out_of_scope: "Node ontology and node tree structure, account creation and deleg
 inquiry:
   question: "What is the relationship between permanent content storage (I-space) and mutable document arrangement (V-space)? What invariants connect them?"
 
-# modeling:
-#   proof_imports: [TumblerAlgebra]
+draft:
+  asn_imports: [34]
+
+modeling:
+  proof_imports: [TumblerAlgebra, TumblerOrder, TumblerHierarchy, TumblerAddition, TumblerAllocation]
