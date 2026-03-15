@@ -87,7 +87,7 @@ From B₀ conformance (T4 for seeds) and B6(i) (T4 for parents), we derive by in
 
   `(A t ∈ Σ.B : t satisfies T4)`
 
-The base case holds by B₀ conformance. For the inductive step, any baptism(p, d) satisfying B6 has p satisfying T4 (condition (i)), and IncrementPreservesValidity (ASN-0034) gives that inc(p, d) satisfies T4 when d ∈ {1, 2} and zeros(p) + (d − 1) ≤ 3 (conditions (ii) and (iii)). This closes the chain: B7 applies unconditionally to all baptized parents, and B8 holds without proviso.
+The base case holds by B₀ conformance. The inductive step has two cases, corresponding to the two branches of B2. When hwm = 0, the baptized element is c₁ = inc(p, d). Here p satisfies T4 by B6(i), and IncrementPreservesValidity (ASN-0034) gives that inc(p, d) satisfies T4 when d ∈ {1, 2} and zeros(p) + (d − 1) ≤ 3 (conditions (ii) and (iii)). When hwm = m > 0, the baptized element is c_{m+1} = inc(cₘ, 0) — a sibling increment. Here cₘ satisfies T4 by the inductive hypothesis (it was produced by a prior baptism), and IncrementPreservesValidity with k = 0 preserves T4 unconditionally. This closes the chain: B7 applies unconditionally to all baptized parents, and B8 holds without proviso.
 
 B1 holds for all states reachable from a conforming B₀ under operations satisfying B0a and B7.
 
