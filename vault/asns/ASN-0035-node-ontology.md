@@ -147,6 +147,8 @@ The postcondition is deterministic: the new address is uniquely determined by th
 
 *Verification that BAPTIZE preserves N3.* The root `r` is not removed (frame), so N3(a) holds. The new node `n` has `parent(n) = p ∈ Σ.nodes` (precondition), so N3(b) holds for `n`; all other nodes' parents are unchanged (frame). The set grows by one element, so N3(c) holds. BAPTIZE is well-defined for any baptized parent — by T0 (ASN-0034), there is always room for the next child.
 
+*Exactness of the precondition.* We have shown that `p ∈ Σ.nodes` is sufficient — the freshness derivation establishes all postconditions, and the paragraph above establishes invariant preservation. We now show it is also necessary, making the precondition exact. The strongest obligation is N3(b): every non-root node in `Σ.nodes` must have its parent in `Σ.nodes`. BAPTIZE adds `n` with `parent(n) = p` by construction — TA5 extends `p` by one component, so the first `#p` components of `n` equal those of `p`. In the post-state, N3(b) applied to the new node requires `p ∈ post(Σ.nodes)`. Since `p ≠ n` (they differ in length: `#n = #p + 1` in the first-child case, or `#n = #p + 1` again in the sibling case where `n` extends `p` by one component), and the postcondition gives `post(Σ.nodes) = pre(Σ.nodes) ∪ {n}`, we need `p ∈ pre(Σ.nodes)`. That is: `wp(BAPTIZE, postconditions ∧ N3-preservation) = (p ∈ Σ.nodes)`.
+
 
 ## Monotonicity and sequential children
 
