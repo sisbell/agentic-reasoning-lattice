@@ -109,7 +109,7 @@ The arrangement function `M(d)` need not be injective. This is not a deficiency 
 
 `(A N ∈ ℕ :: (E Σ :: Σ satisfies S0–S3 ∧ (E a ∈ dom(Σ.C) :: |{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}| > N)))`
 
-To see this, fix any `N`. Construct state `Σ_N` with one I-address `a` where `C(a) = w` for some value `w`, and `N + 1` documents `d₁, ..., d_{N+1}`, each with `M(dᵢ) = {vᵢ ↦ a}` for distinct V-positions `vᵢ`. S0 is vacuous — single state, no transition to check. S2 holds: each `M(dᵢ)` is a function with a single entry. S3 holds: `a ∈ dom(C)`. The sharing multiplicity of `a` is `N + 1 > N`. Since `N` was arbitrary, no finite bound is entailed. The same holds within a single document: for any `N`, construct `Σ'_N` with one I-address `a` where `C(a) = w`, and one document `d` with `M(d) = {v₁ ↦ a, v₂ ↦ a, ..., v_{N+1} ↦ a}` for `N + 1` distinct V-positions. S2 holds — each `vᵢ` maps to exactly one I-address (namely `a`). S3 holds — `a ∈ dom(C)`. The within-document sharing multiplicity is `N + 1 > N`.
+To see this, fix any `N`. Construct state `Σ_N` with one I-address `a` where `C(a) = w` for some value `w`, and `N + 1` documents `d₁, ..., d_{N+1}`, each with `M(dᵢ) = {vᵢ ↦ a}` for distinct V-positions `vᵢ`. S0 is vacuous — single state, no transition to check. S2 holds: each `M(dᵢ)` is a function with a single entry. S3 holds: `a ∈ dom(C)`. The sharing multiplicity of `a` is `N + 1 > N`. Since `N` was arbitrary, no finite bound is entailed. The same holds within a single document: for any `N`, construct `Σ'_N` with one I-address `a` where `C(a) = w`, and one document `d` with `M(d) = {v₁ ↦ a, v₂ ↦ a, ..., v_{N+1} ↦ a}` for `N + 1` distinct V-positions. S0 and S1 are vacuous as above (single state, no transition to check). S2 holds — each `vᵢ` maps to exactly one I-address (namely `a`). S3 holds — `a ∈ dom(C)`. The within-document sharing multiplicity is `N + 1 > N`.
 
 In any particular state, the sharing multiplicity of each address is a definite finite number — possibly zero for orphaned content (S6). The property is an architectural anti-constraint: the invariants place no finite cap on how many references may accumulate.
 
@@ -182,7 +182,11 @@ Before defining correspondence runs, we must establish the structure of `dom(M(d
 
 S8-fin follows from the operational reality: each V-position enters `dom(M(d))` through a specific operation (INSERT, COPY, etc.), and the system has performed only finitely many operations. No operation introduces infinitely many V-positions.
 
-**S8a (V-position well-formedness).** Every V-position `v ∈ dom(Σ.M(d))` is an element-field tumbler with all components strictly positive: `zeros(v) = 0` and `v > 0`. A V-position represents the element field of a full document-scoped address — the fourth field in the T4 field structure. Its first component `v₁` is the subspace identifier; this ASN treats only the text subspace, where `v₁ = 1`. The domain and range of `M(d)` live in structurally different tumbler subsets: `dom(M(d)) ⊆ {t ∈ T : zeros(t) = 0 ∧ t > 0}` (element-field tumblers), while `ran(M(d)) ⊆ {t ∈ T : zeros(t) = 3}` (full element-level addresses, per S7b). Since all V-positions in subspace `s` extend the single-component prefix `[s]`, T5 (ContiguousSubtrees, ASN-0034) guarantees they form a contiguous interval under T1 — grounding the application of tumbler ordering properties to V-positions and justifying S8-depth's reference to "within a subspace."
+**S8a (V-position well-formedness).** Every text-subspace V-position is an element-field tumbler with all components strictly positive:
+
+`(A v ∈ dom(Σ.M(d)) : v₁ ≥ 1 : zeros(v) = 0 ∧ v > 0)`
+
+A V-position represents the element field of a full document-scoped address — the fourth field in the T4 field structure. Its first component `v₁` is the subspace identifier; this ASN treats only the text subspace, where `v₁ ≥ 1`. The range guard `v₁ ≥ 1` excludes link-subspace V-positions (where `v₁ = 0`), whose encoding is deferred to a future ASN. The domain and range of `M(d)` live in structurally different tumbler subsets: within the text subspace, `{v ∈ dom(M(d)) : v₁ ≥ 1} ⊆ {t ∈ T : zeros(t) = 0 ∧ t > 0}` (element-field tumblers), while `ran(M(d)) ⊆ {t ∈ T : zeros(t) = 3}` (full element-level addresses, per S7b). Since all V-positions in subspace `s` extend the single-component prefix `[s]`, T5 (ContiguousSubtrees, ASN-0034) guarantees they form a contiguous interval under T1 — grounding the application of tumbler ordering properties to V-positions and justifying S8-depth's reference to "within a subspace."
 
 *Remark.* The shared vocabulary identifies a second subspace for links (`v₁ = 0`). Link-subspace V-positions would have `zeros(v) ≥ 1`, falling outside the `zeros(v) = 0` characterisation above. Moreover, a full I-address in the link subspace would place a zero-valued component in the element field, in tension with T4's requirement that all element-field components be strictly positive (ASN-0034). The encoding of link-subspace addresses — and its reconciliation with T4 — is deferred to a future ASN on links.
 
@@ -325,9 +329,9 @@ This has a formal consequence: document equality is not decidable by content com
 | S7b | Element-level I-addresses: `(A a ∈ dom(C) :: zeros(a) = 3)` | introduced |
 | S7 | Structural attribution: `origin(a) = (fields(a).node).0.(fields(a).user).0.(fields(a).document)` — full document prefix | from S7a, S7b, T4, GlobalUniqueness (ASN-0034) |
 | S8-fin | Finite arrangement: `dom(M(d))` is finite for every document `d` | introduced |
-| S8a | V-position well-formedness: `(A v ∈ dom(M(d)) :: zeros(v) = 0 ∧ v > 0)`, text subspace (`v₁ = 1`); link subspace deferred | introduced |
+| S8a | V-position well-formedness: `(A v ∈ dom(M(d)) : v₁ ≥ 1 : zeros(v) = 0 ∧ v > 0)`; link subspace deferred | introduced |
 | S8-depth | Fixed-depth V-positions: within a subspace, all V-positions share the same tumbler depth | design requirement |
-| S8 | Span decomposition: `M(d)` decomposes into finitely many correspondence runs `(vⱼ, aⱼ, nⱼ)` with `M(d)(vⱼ + k) = aⱼ + k` for `0 ≤ k < nⱼ` | theorem from S8-fin, S8a, S2, S8-depth |
+| S8 | Span decomposition: `M(d)` decomposes into finitely many correspondence runs `(vⱼ, aⱼ, nⱼ)` with `M(d)(vⱼ + k) = aⱼ + k` for `0 ≤ k < nⱼ` | theorem from S8-fin, S8a, S2, S8-depth, T5, PrefixOrderingExtension, TA5(c), TA7a (ASN-0034) |
 | S9 | Two-space separation: arrangement changes cannot alter stored content | theorem from S0 |
 
 
