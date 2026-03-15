@@ -1,8 +1,0 @@
-# ASN-0039 — Tumbler Baptism
-title: "Tumbler Baptism"
-depends: [34]
-excludes: [35, 36, 37]
-out_of_scope: "Node-specific tree structure, account identity and lifecycle, document creation and structure, content storage and retrieval, I-space and V-space, operation-specific effects (INSERT, DELETE, COPY, REARRANGE), links and endsets, enfilade implementation internals, replication and inter-server protocol (BEBE), concrete authentication mechanisms (certificates, keys, tokens)"
-
-inquiry:
-  question: "What does it mean to baptize a new position in the tumbler hierarchy? What invariants govern the set of baptized positions across all levels?"
