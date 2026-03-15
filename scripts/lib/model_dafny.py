@@ -96,23 +96,40 @@ def find_imports_for_asn(asn_label, imports_text):
 
 
 def read_proof_modules(module_names):
-    """Read all .dfy files from listed proof module directories.
+    """Read .dfy files for listed proof modules.
+
+    Module names map to files: TumblerAlgebra → TumblerAlgebra.dfy,
+    TumblerOrder → TumblerOrder.dfy, etc. All files live under
+    vault/proofs/TumblerAlgebra/ (the shared directory).
 
     Returns a dict of {relative_path: source} and a formatted text block
     for prompt injection. Paths are relative to WORKSPACE.
     """
     modules = {}
+    seen = set()
     for mod_name in module_names:
+        # Try as a directory first (backward compat)
         mod_dir = PROOFS_DIR / mod_name
-        if not mod_dir.exists():
-            print(f"  Warning: proof module directory not found: {mod_dir}",
-                  file=sys.stderr)
-            continue
-        for dfy_file in sorted(mod_dir.glob("*.dfy")):
-            content = read_file(dfy_file)
-            if content.strip():
-                rel_path = str(dfy_file.relative_to(WORKSPACE))
-                modules[rel_path] = content
+        if mod_dir.is_dir():
+            for dfy_file in sorted(mod_dir.glob("*.dfy")):
+                content = read_file(dfy_file)
+                if content.strip() and dfy_file not in seen:
+                    seen.add(dfy_file)
+                    rel_path = str(dfy_file.relative_to(WORKSPACE))
+                    modules[rel_path] = content
+        else:
+            # Try as a .dfy file under any proofs subdirectory
+            found = False
+            for dfy_file in PROOFS_DIR.rglob(f"{mod_name}.dfy"):
+                found = True
+                content = read_file(dfy_file)
+                if content.strip() and dfy_file not in seen:
+                    seen.add(dfy_file)
+                    rel_path = str(dfy_file.relative_to(WORKSPACE))
+                    modules[rel_path] = content
+            if not found:
+                print(f"  Warning: proof module not found: {mod_name}",
+                      file=sys.stderr)
 
     # Format as prompt text — show path so LLM can compute includes
     parts = []
@@ -686,6 +703,9 @@ def main():
     # Always include TumblerAlgebra as a base module
     base_modules = ["TumblerAlgebra"]
     all_modules = base_modules + [m for m in module_names if m not in base_modules]
+
+    # Build imports map text for the prompt template
+    imports_text = f"| ASN | Proof modules |\n|-----|---------------|\n| {asn_label} | {', '.join(all_modules)} |"
 
     proof_modules, proof_modules_text = read_proof_modules(all_modules)
 
