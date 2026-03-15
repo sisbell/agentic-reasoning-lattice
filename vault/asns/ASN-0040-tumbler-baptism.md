@@ -31,9 +31,9 @@ B0 tells us baptism cannot be undone; its companion tells us what *can* add to B
 
 **(B0a — Baptismal Closure)** The registry grows only through baptism:
 
-  `(A Σ, Σ' : Σ → Σ' : (A t : t ∈ Σ'.B \ Σ.B : t was produced by baptism(p, d) for some valid (p, d)))`
+  `(A Σ, Σ' : Σ → Σ' : (A t : t ∈ Σ'.B \ Σ.B : t was produced by baptism(p, d) for some (p, d) satisfying B6))`
 
-No mechanism other than baptism — no administrative action, no side effect of content operations, no bulk initialization after genesis — may insert an address into B. B0 says nothing leaves; B0a says nothing enters except through the designated gate. Without B0a, an arbitrary operation could insert c₅ into a namespace lacking c₁ through c₄, and the contiguous prefix property (B1 below) would be violated.
+Here "satisfying B6" means d ∈ {1, 2} and zeros(p) + (d − 1) ≤ 3 — depth validity as defined below. Whether p must itself be baptized (p ∈ Σ.B) before children can be baptized beneath it is deliberately deferred to the Open Questions; B0a constrains only the depth arithmetic, not the authorization chain. No mechanism other than baptism — no administrative action, no side effect of content operations, no bulk initialization after genesis — may insert an address into B. B0 says nothing leaves; B0a says nothing enters except through the designated gate. Without B0a, an arbitrary operation could insert c₅ into a namespace lacking c₁ through c₄, and the contiguous prefix property (B1 below) would be violated.
 
 The binary character of this state is fundamental. Nelson's model has no third status between baptized and unbaptized: "the occupied tumbler-space — as occupied by conceptually assigned positions, even if nothing represents them in storage." A position is either conceptually assigned (in B) or not. Whether anything is *stored* at that position is a separate question, which we address below as the ghost validity property.
 
@@ -75,6 +75,8 @@ The argument proceeds by induction on the sequence of baptisms within a namespac
 
 This argument rests on two additional properties. First, no operation outside this namespace inserts an element into S(p, d) — established below as B7 (Namespace Disjointness). Second, no mechanism other than baptism adds elements to B at all — established above as B0a (Baptismal Closure). Without B0a, a non-baptismal operation could insert arbitrary elements into B, and the inductive step would be ungrounded.
 
+B1 is universally quantified over all (p', d'), so the inductive step must also show that c_{hwm+1} does not disrupt any *other* namespace. Since c_{hwm+1} ∈ S(p, d) and S(p, d) ∩ S(p', d') = ∅ for (p', d') ≠ (p, d) by B7, the new element does not enter any other namespace's children set: children(B', p', d') = children(B, p', d'). B1 is therefore preserved for all (p', d'), not just the target namespace.
+
 The induction also requires a conforming base:
 
   **(B₀ conformance)**: `(A p, d : children(B₀, p, d) is a contiguous prefix of S(p, d))`
@@ -98,19 +100,21 @@ This number is everything we need. No counter distinct from the data, no free li
 
 Concretely: if hwm = 0, then next = inc(p, d) — the first child; if hwm = m > 0, then next = inc(cₘ, 0) — the next sibling.
 
-The substantive wp question targets the invariants themselves. What must hold before a baptism for B1 to hold after?
+The substantive wp question targets the invariants themselves. What must hold before a baptism for B1 to hold after? We separate three kinds of condition: the *state precondition* (what must hold of B), the *environmental assumptions* (what the system must enforce around the operation), and the *supporting lemma* (a mathematical property of the stream structure that the wp derivation depends on).
 
-  wp(baptize(p, d), B1) = B1 ∧ B0a
+Under B4 (serialized execution within the namespace):
 
-Let B' = B ∪ {a} where a = next(B, p, d) = c_{hwm+1}. B1 for B' requires two things. First, every previously baptized cₙ in B still has predecessors c₁, ..., c_{n−1} in B' — satisfied because B ⊆ B' (by B0). Second, the new element c_{hwm+1} has predecessors c₁, ..., c_{hwm} in B' — satisfied iff children(B, p, d) = {c₁, ..., c_{hwm}}, which is exactly B1 for the current state. The second condition also requires that no non-baptismal mechanism has altered the namespace — which is B0a.
+  wp(baptize(p, d), B1) — state precondition: B1; environmental: B0a, B4.
 
-The wp for B8 (global uniqueness) is equally revealing:
+Let B' = B ∪ {a} where a = next(B, p, d) = c_{hwm+1}. B1 for B' requires two things. First, every previously baptized cₙ in B still has predecessors c₁, ..., c_{n−1} in B' — satisfied because B ⊆ B' (by B0). Second, the new element c_{hwm+1} has predecessors c₁, ..., c_{hwm} in B' — satisfied iff children(B, p, d) = {c₁, ..., c_{hwm}}, which is exactly B1 for the current state. The second condition also requires that no non-baptismal mechanism has altered the namespace — the transition constraint B0a. B4 ensures the baptism observes the complete state left by the previous one.
 
-  wp(baptize(p, d), a ∉ B) = B1 ∧ B7
+The freshness derivation similarly:
 
-The new address c_{hwm+1} must not already appear in B. Within namespace (p, d), B1 ensures children is a contiguous prefix of length hwm, so c_{hwm+1} is the first unbaptized sibling — it cannot be in B ∩ S(p, d). In any other namespace (p', d'), B7 ensures S(p, d) ∩ S(p', d') = ∅, so c_{hwm+1} cannot be in B ∩ S(p', d') either. Together, B1 and B7 guarantee freshness.
+  wp(baptize(p, d), a ∉ B) — state precondition: B1; environmental: B4; lemma: B7.
 
-Both derivations reason about a single baptism acting on a known state B — they assume sequential execution within each namespace. B4 (Namespace Serialization) discharges this assumption: by ensuring that same-namespace baptisms do not interleave, B4 guarantees that each baptism observes the complete state left by the previous one. Without B4, two concurrent baptisms could both read hwm = m, and both wp results would be invalidated.
+The new address c_{hwm+1} must not already appear in B. Within namespace (p, d), B1 ensures children is a contiguous prefix of length hwm, so c_{hwm+1} is the first unbaptized sibling — it cannot be in B ∩ S(p, d). In any other namespace (p', d'), B7 (a mathematical property of the stream structure, not a state predicate) ensures S(p, d) ∩ S(p', d') = ∅, so c_{hwm+1} cannot be in B ∩ S(p', d') either. Together, B1 and B7 guarantee freshness, with B4 ensuring the state observation is current.
+
+Both derivations reason about a single baptism acting on a known state B. B4 (Namespace Serialization) discharges the serialization assumption: by ensuring that same-namespace baptisms do not interleave, B4 guarantees that each baptism observes the complete state left by the previous one. Without B4, two concurrent baptisms could both read hwm = m, and both wp results would be invalidated.
 
 The simpler observation also holds: wp(baptize(p, d), hwm = N + 1) = (hwm = N). But this merely says "to advance a counter, the counter must be at the previous value" — the definition of counting, not a substantive derivation. The invariant-targeting wp reveals the real dependencies: B1, B0a, B4, and B7 are mutually supporting properties, each required for the others' preservation.
 
@@ -269,7 +273,7 @@ Nelson insists that the address space imposes no capacity limits:
 
 > "A tumbler consists of a series of integers. Each integer has no upper limit."
 
-**(B9 — Unbounded Extent)** `(A p ∈ Σ.B, d valid, M ∈ ℕ :: the system permits hwm(B, p, d) to reach M)`.
+**(B9 — Unbounded Extent)** `(A p ∈ Σ.B, d satisfying B6, M ∈ ℕ : (E B' : B' reachable from B by a finite sequence of baptisms : hwm(B', p, d) ≥ M))`.
 
 No architectural limit constrains how many children a position may have. This follows from T0(a) (UnboundedComponents): since each tumbler component is an unbounded natural number and the child ordinal occupies a single component, the ordinal can grow without bound. Combined with B1, the children of any parent can grow to form an arbitrarily long contiguous prefix {c₁, ..., cₘ} for any m.
 
@@ -289,7 +293,7 @@ Nelson reinforces this at every level: "A server node, or station, has ancestors
 | S0 | `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)` — stream strictly ordered | introduced |
 | S1 | `(A n : n ≥ 1 : p ≼ cₙ)` — all stream elements extend parent | introduced |
 | B0 | `Σ.B ⊆ Σ'.B` for all transitions — irrevocability (extends T8) | introduced |
-| B0a | `Σ'.B \ Σ.B ⊆ {baptism outputs}` — registry grows only through baptism | introduced |
+| B0a | `Σ'.B \ Σ.B ⊆ {baptism(p,d) outputs for (p,d) satisfying B6}` — registry grows only through baptism | introduced |
 | B₀ conf. | `children(B₀, p, d)` is a contiguous prefix for all (p, d) — seed conformance | introduced |
 | B1 | `cₙ ∈ B ⟹ (A i : 1 ≤ i < n : cᵢ ∈ B)` — contiguous prefix (requires conforming B₀) | introduced |
 | B2 | `next(B, p, d) = c_{hwm+1}` — deterministic allocation | introduced |
@@ -300,7 +304,7 @@ Nelson reinforces this at every level: "A server node, or station, has ancestors
 | B6 | `d ∈ {1, 2}` and `zeros(p) + (d − 1) ≤ 3` — valid depth | introduced |
 | B7 | `(p, d) ≠ (p', d') ⟹ S(p, d) ∩ S(p', d') = ∅` — namespace disjointness | introduced |
 | B8 | Distinct baptisms produce distinct addresses — global uniqueness | introduced |
-| B9 | `(A M :: hwm may reach M)` — unbounded extent | introduced |
+| B9 | `(A p, d, M : (E B' reachable : hwm(B', p, d) ≥ M))` — unbounded extent | introduced |
 
 
 ## Open Questions
