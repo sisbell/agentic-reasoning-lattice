@@ -21,11 +21,19 @@ We introduce the central state component:
 
   **Σ.B** ⊆ T — the set of baptized tumblers.
 
-A tumbler t is *baptized* iff t ∈ Σ.B. Initially Σ.B contains some non-empty seed set B₀ ⊆ T of root addresses established at system genesis. Thereafter it grows monotonically:
+A tumbler t is *baptized* iff t ∈ Σ.B. Initially Σ.B contains some non-empty seed set B₀ ⊆ T of root addresses established at system genesis, subject to the conformance requirement stated at B1 below. Thereafter it grows monotonically:
 
 **(B0 — Irrevocability)** `(A Σ, Σ' : Σ → Σ' : Σ.B ⊆ Σ'.B)`.
 
 No operation removes a tumbler from B. This is the state-level reading of T8 (AllocationPermanence). T8 says the allocator never reclaims an address; B0 says the *registry* never shrinks. The distinction matters: B0 forbids any mechanism — not just the allocator — from removing a baptized position. Administrative action, garbage collection, storage failure — none may contract B. Nelson: "New items may be continually inserted in tumbler-space while the other addresses remain valid."
+
+B0 tells us baptism cannot be undone; its companion tells us what *can* add to B:
+
+**(B0a — Baptismal Closure)** The registry grows only through baptism:
+
+  `(A Σ, Σ' : Σ → Σ' : (A t : t ∈ Σ'.B \ Σ.B : t was produced by baptism(p, d) for some valid (p, d)))`
+
+No mechanism other than baptism — no administrative action, no side effect of content operations, no bulk initialization after genesis — may insert an address into B. B0 says nothing leaves; B0a says nothing enters except through the designated gate. Without B0a, an arbitrary operation could insert c₅ into a namespace lacking c₁ through c₄, and the contiguous prefix property (B1 below) would be violated.
 
 The binary character of this state is fundamental. Nelson's model has no third status between baptized and unbaptized: "the occupied tumbler-space — as occupied by conceptually assigned positions, even if nothing represents them in storage." A position is either conceptually assigned (in B) or not. Whether anything is *stored* at that position is a separate question, which we address below as the ghost validity property.
 
@@ -65,7 +73,13 @@ Equivalently: children(B, p, d) = {c₁, ..., cₘ} for some m ≥ 0.
 
 The argument proceeds by induction on the sequence of baptisms within a namespace. The base case is vacuous: when no child has been baptized, the empty set is trivially a prefix. For the inductive step, suppose children(B, p, d) = {c₁, ..., cₘ} is a contiguous prefix of length m. The next baptism in this namespace queries B for the maximum element of S(p, d) — which is cₘ — and increments by one to produce c_{m+1}. No element is skipped: the allocation mechanism always selects the immediate successor, because it finds the current maximum and adds exactly one ordinal. By B0, existing elements persist, so the prefix only grows. The new set {c₁, ..., c_{m+1}} is a prefix of length m + 1.
 
-This argument also requires that no operation *outside* this namespace inserts an element into S(p, d). We establish this below (B7, Namespace Disjointness).
+This argument rests on two additional properties. First, no operation outside this namespace inserts an element into S(p, d) — established below as B7 (Namespace Disjointness). Second, no mechanism other than baptism adds elements to B at all — established above as B0a (Baptismal Closure). Without B0a, a non-baptismal operation could insert arbitrary elements into B, and the inductive step would be ungrounded.
+
+The induction also requires a conforming base:
+
+  **(B₀ conformance)**: `(A p, d : children(B₀, p, d) is a contiguous prefix of S(p, d))`
+
+B₀ must satisfy B1 for every namespace at genesis. Without this, the seed set could contain {c₁, c₃} for some namespace — a gap that the inductive argument cannot repair, since baptism only appends the next sibling. B1 holds for all states reachable from a conforming B₀ under operations satisfying B0a and B7.
 
 The gap between T9 (ForwardAllocation) and B1 is the *no-skip property*: baptism always selects the immediate successor in the stream, never an arbitrary later value. T9 says addresses increase; B1 says they increase *contiguously*. The difference is the guarantee that every ordinal from 1 through m is represented, which T9 alone does not assert.
 
@@ -82,11 +96,23 @@ This number is everything we need. No counter distinct from the data, no free li
 
   next(B, p, d) = c_{hwm(B,p,d) + 1}
 
-Concretely: if hwm = 0, then next = inc(p, d) — the first child; if hwm = m > 0, then next = inc(cₘ, 0) — the next sibling. In wp terms:
+Concretely: if hwm = 0, then next = inc(p, d) — the first child; if hwm = m > 0, then next = inc(cₘ, 0) — the next sibling.
 
-  wp(baptize(p, d), hwm = N + 1) = (hwm = N)
+The substantive wp question targets the invariants themselves. What must hold before a baptism for B1 to hold after?
 
-The weakest precondition for advancing the high water mark to N + 1 is precisely that it stands at N. No other state is consulted; no randomness enters. Two systems beginning from the same B₀ and executing the same sequence of baptisms — same parents, same depths, same order — produce identical address spaces. The addresses are not identifiers assigned by fiat; they are the inevitable consequence of the baptism history.
+  wp(baptize(p, d), B1) = B1 ∧ B0a
+
+Let B' = B ∪ {a} where a = next(B, p, d) = c_{hwm+1}. B1 for B' requires two things. First, every previously baptized cₙ in B still has predecessors c₁, ..., c_{n−1} in B' — satisfied because B ⊆ B' (by B0). Second, the new element c_{hwm+1} has predecessors c₁, ..., c_{hwm} in B' — satisfied iff children(B, p, d) = {c₁, ..., c_{hwm}}, which is exactly B1 for the current state. The second condition also requires that no non-baptismal mechanism inserted or removed elements from the namespace between read and commit — which is B0a.
+
+The wp for B8 (global uniqueness) is equally revealing:
+
+  wp(baptize(p, d), a ∉ B) = B1 ∧ B7
+
+The new address c_{hwm+1} must not already appear in B. Within namespace (p, d), B1 ensures children is a contiguous prefix of length hwm, so c_{hwm+1} is the first unbaptized sibling — it cannot be in B ∩ S(p, d). In any other namespace (p', d'), B7 ensures S(p, d) ∩ S(p', d') = ∅, so c_{hwm+1} cannot be in B ∩ S(p', d') either. Together, B1 and B7 guarantee freshness.
+
+The simpler observation also holds: wp(baptize(p, d), hwm = N + 1) = (hwm = N). But this merely says "to advance a counter, the counter must be at the previous value" — the definition of counting, not a substantive derivation. The invariant-targeting wp reveals the real dependencies: B1, B0a, and B7 are mutually supporting properties, each required for the others' preservation.
+
+Two systems beginning from the same B₀ and executing the same sequence of baptisms — same parents, same depths, same order — produce identical address spaces. The addresses are not identifiers assigned by fiat; they are the inevitable consequence of the baptism history.
 
 We observe that next is *idempotent in its read*: evaluating next(B, p, d) without committing the result leaves B unchanged, and a second evaluation returns the same answer. The address is consumed by commitment, not by computation. If baptism is aborted after determination but before commitment, no harm is done — the namespace is unchanged, the high water mark is unchanged, the next invocation will compute the same address.
 
@@ -108,22 +134,24 @@ A ghost element is "virtually present in tumbler-space, since links may be made 
   - t ∉ Σ.B: an unbaptized position (not addressable)
   - t ∉ Σ.B ∧ t occupied: **forbidden**
 
-The fourth case is excluded by construction: content requires an address, and an address requires baptism. But the second case is explicitly permitted and common. Structural positions — nodes, users, documents — ordinarily function as ghosts. They exist to organize the namespace, not to carry payload. Their value is the subtree they anchor.
+The fourth case is a *requirement on content operations*: any operation that populates a position must have t ∈ Σ.B as a precondition. We do not establish this here — content storage is beyond this ASN's scope. We record the requirement: downstream specifications of content operations must enforce `t ∈ Σ.B` before writing content at t. But the second case is explicitly permitted and common. Structural positions — nodes, users, documents — ordinarily function as ghosts. They exist to organize the namespace, not to carry payload. Their value is the subtree they anchor.
 
 B3 separates two questions that might otherwise be conflated. "Does address t exist?" is answered by Σ.B. "Is there content at t?" is answered by a separate concern (content storage, whose structure is beyond this ASN's scope). The baptismal registry is an existence index, not a content index.
 
 
 ## Atomicity
 
-Baptism admits no intermediate state. The transition from B to B ∪ {a}, where a = next(B, p, d), is a single indivisible step.
+The baptism process — read the high water mark, compute the next address, commit the result — must not be interleaved with another baptism in the same namespace. If two baptisms both read hwm = m before either commits, both compute c_{m+1} and both attempt to commit the same address — violating B8.
 
-**(B4 — Atomicity)** For any baptism producing address a = next(B, p, d), there is no observable state B' such that B ⊂ B' ⊂ B ∪ {a} and a ∉ B' during the transition.
+**(B4 — Namespace Serialization)** For any two baptisms β₁, β₂ targeting the same namespace (p, d), the commitment of one precedes the computation of the other:
 
-B4 interacts critically with B2. The address a is computed from the current high water mark. If another baptism in the same namespace could interleave between computation and commitment, the high water mark might advance, and a would collide with an existing address. Atomicity prevents this: within a namespace, computation and commitment are indivisible.
+  `(A β₁, β₂ : ns(β₁) = ns(β₂) : commit(β₁) ≺ read(β₂) ∨ commit(β₂) ≺ read(β₁))`
 
-We emphasize the scope of the atomicity requirement. It is *per-namespace*: baptisms under different (p, d) pairs need not be serialized with respect to each other, because B8 (below) guarantees their outputs are disjoint. The minimum serialization grain is the namespace, not the entire system. This is precisely what enables decentralized baptism — two agents baptizing under different parents proceed independently, and their addresses are guaranteed distinct by the partition structure of the address space (T10).
+where ≺ denotes temporal precedence.
 
-Gregory's implementation achieves atomicity through single-threaded dispatch — the event loop processes one request to completion before accepting another, and the entire path from query through increment to write runs without yielding control. But B4 is a specification-level requirement, not an implementation prescription. Any mechanism that prevents interleaving within a namespace — locking, transactions, hardware serialization — satisfies B4.
+B4's scope is *per-namespace*: baptisms under different (p, d) pairs need not be serialized with respect to each other, because B7 guarantees their outputs are disjoint. The minimum serialization grain is the namespace, not the entire system. This is precisely what enables decentralized baptism — two agents baptizing under different parents proceed independently, and their addresses are guaranteed distinct by the partition structure of the address space (T10).
+
+Gregory's implementation achieves serialization through single-threaded dispatch — the event loop processes one request to completion before accepting another, and the entire path from query through increment to write runs without yielding control. But B4 is a specification-level requirement, not an implementation prescription. Any mechanism that serializes same-namespace baptisms — locking, transactions, hardware serialization — satisfies B4.
 
 
 ## Depth and field structure
@@ -133,6 +161,16 @@ Baptism interacts with the field hierarchy through the depth parameter. Recall f
 **(B5 — Field Advancement)** `zeros(inc(p, d)) = zeros(p) + (d − 1)`.
 
 For d = 1: zeros is preserved — the child is at the same hierarchical level. For d = 2: zeros advances by 1 — the child descends one level.
+
+B5 establishes the zeros count for the *first* child c₁ of a stream. The sibling stream preserves it:
+
+**(B5a — Sibling Zeros Preservation)** `(A t : t_{sig(t)} > 0 : zeros(inc(t, 0)) = zeros(t))`
+
+This follows from TA5(c): sibling increment preserves the tumbler's length and modifies only position sig(t), advancing a positive value by one — no zero is created or destroyed. Combined with B5, every element of S(p, d) inherits the zeros count established at c₁:
+
+  `(A n ≥ 1 : zeros(cₙ) = zeros(p) + (d − 1))`
+
+The B6 validity table below depends on this uniformity — all elements in a stream share the same hierarchical level.
 
 This deserves attention. The `.0.` that appears in addresses like `1.1.0.1.0.1` is not a syntactic convention imposed by a parser — it is a *consequence* of baptism at depth 2. When inc(p, 2) extends p by two components, the first is zero (the field separator, from TA5(d)'s d − 1 = 1 intermediate zero) and the second is 1 (the first child's ordinal). The field structure of tumblers is *produced* by baptism arithmetic.
 
@@ -177,6 +215,37 @@ Three cases exhaust the possibilities.
 All three cases are exhaustive for distinct (p, d) pairs within the constraints of B6.
 
 
+## A baptism traced
+
+We trace a concrete sequence to ground the formal development. Begin with B₀ = {[1]} — a single root node.
+
+**Step 1: first user.** Namespace ([1], 2) — node [1], depth 2 (level crossing to user).
+
+  next(B₀, [1], 2) = inc([1], 2) = [1, 0, 1]
+
+TA5(d) appends d − 1 = 1 zero separator and child value 1. B5: zeros([1, 0, 1]) = 1 = 0 + (2 − 1). B6: d = 2 and zeros([1]) + 1 = 1 ≤ 3. B1: children = {[1, 0, 1]}, a prefix of length 1.
+
+State: B₁ = {[1], [1, 0, 1]}.
+
+**Step 2: second user.** Same namespace ([1], 2).
+
+  next(B₁, [1], 2) = inc([1, 0, 1], 0) = [1, 0, 2]
+
+TA5(c): sibling increment preserves length, advances position sig([1, 0, 1]) = 3, so the ordinal goes from 1 to 2. B5a: zeros([1, 0, 2]) = 1 = zeros([1, 0, 1]) — sibling preserves zeros. B1: children = {[1, 0, 1], [1, 0, 2]}, a prefix of length 2.
+
+State: B₂ = {[1], [1, 0, 1], [1, 0, 2]}.
+
+**Step 3: document under first user.** Namespace ([1, 0, 1], 2) — user [1, 0, 1], depth 2 (level crossing to document).
+
+  next(B₂, [1, 0, 1], 2) = inc([1, 0, 1], 2) = [1, 0, 1, 0, 1]
+
+B5: zeros([1, 0, 1, 0, 1]) = 2 = 1 + (2 − 1). B6: d = 2 and zeros([1, 0, 1]) + 1 = 2 ≤ 3. B1: children = {[1, 0, 1, 0, 1]}, a prefix of length 1. B7: S([1], 2) elements have length 3; S([1, 0, 1], 2) elements have length 5 — Case 1 disjointness.
+
+State: B₃ = {[1], [1, 0, 1], [1, 0, 2], [1, 0, 1, 0, 1]}.
+
+Nelson's "Items 2.1, 2.2, 2.3, 2.4" is exactly this mechanism — successive baptisms under parent 2 at depth 1, yielding the sibling stream 2.1, 2.2, 2.3, 2.4 by repeated application of inc(·, 0). The sequence is determined, contiguous, and the ordinals carry no semantics beyond order.
+
+
 ## Global uniqueness
 
 **(B8 — Global Uniqueness)** Distinct baptisms produce distinct addresses:
@@ -214,11 +283,14 @@ Nelson reinforces this at every level: "A server node, or station, has ancestors
 | S0 | `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)` — stream strictly ordered | introduced |
 | S1 | `(A n : n ≥ 1 : p ≼ cₙ)` — all stream elements extend parent | introduced |
 | B0 | `Σ.B ⊆ Σ'.B` for all transitions — irrevocability (extends T8) | introduced |
-| B1 | `cₙ ∈ B ⟹ (A i : 1 ≤ i < n : cᵢ ∈ B)` — contiguous prefix | introduced |
+| B0a | `Σ'.B \ Σ.B ⊆ {baptism outputs}` — registry grows only through baptism | introduced |
+| B₀ conf. | `children(B₀, p, d)` is a contiguous prefix for all (p, d) — seed conformance | introduced |
+| B1 | `cₙ ∈ B ⟹ (A i : 1 ≤ i < n : cᵢ ∈ B)` — contiguous prefix (requires conforming B₀) | introduced |
 | B2 | `next(B, p, d) = c_{hwm+1}` — deterministic allocation | introduced |
 | B3 | `t ∈ Σ.B` does not imply t is occupied — ghost validity | introduced |
-| B4 | No observable intermediate state during baptism — atomicity | introduced |
+| B4 | Same-namespace baptisms serialized: `commit(β₁) ≺ read(β₂) ∨ commit(β₂) ≺ read(β₁)` | introduced |
 | B5 | `zeros(inc(p, d)) = zeros(p) + (d − 1)` — field advancement | introduced |
+| B5a | `zeros(inc(t, 0)) = zeros(t)` — sibling increment preserves zeros | introduced |
 | B6 | `d ∈ {1, 2}` and `zeros(p) + (d − 1) ≤ 3` — valid depth | introduced |
 | B7 | `(p, d) ≠ (p', d') ⟹ S(p, d) ∩ S(p', d') = ∅` — namespace disjointness | introduced |
 | B8 | Distinct baptisms produce distinct addresses — global uniqueness | introduced |
@@ -228,7 +300,7 @@ Nelson reinforces this at every level: "A server node, or station, has ancestors
 ## Open Questions
 
 - Must a parent position be baptized before children can be baptized beneath it? Nelson's ownership model implies yes; Gregory's implementation does not check at structural levels. Resolution depends on the ownership model (Tumbler Ownership).
-- What properties must the seed set B₀ satisfy for the contiguous prefix and namespace disjointness invariants to hold at system genesis?
+- What concrete seed sets B₀ are valid — which root configurations satisfy B₀ conformance while providing a viable system genesis?
 - Must the specification distinguish between a ghost element that could hold content and a structural position that cannot — or is this distinction derivable from the field structure alone?
 - Under what conditions may bulk allocation — baptizing a contiguous range of k positions in a single operation — satisfy B4's atomicity and B1's contiguity requirements?
 - What must a distributed system guarantee about cross-replica baptism ordering to maintain global address uniqueness without centralized coordination?
