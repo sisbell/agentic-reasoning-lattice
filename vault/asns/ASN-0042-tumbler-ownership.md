@@ -78,7 +78,7 @@ A principal at a higher hierarchical level (fewer zeros in their prefix, hence a
 
 ## State Axioms
 
-The ownership model rests on three axioms about state evolution that the subsequent derivations assume. We state them explicitly.
+The ownership model rests on four axioms about state evolution that the subsequent derivations assume. We state them explicitly.
 
 **O12 (PrincipalPersistence).** Once a principal joins Π, no operation removes it:
 
@@ -97,6 +97,14 @@ The prefix is a tumbler, and the tumbler algebra provides no operation that muta
   `Π₀ ≠ ∅  ∧  (A a ∈ Σ₀.alloc : (E π ∈ Π₀ : pfx(π) ≼ a))`
 
 In a single-node system, this is the node operator — the principal holding the node-level prefix from which all delegation proceeds. In a multi-node system, `Π₀` contains one initial principal per node (e.g., principals at `[1]` and `[2]`), each independently covering its node's allocatable addresses. The formalization permits both cases: the existential quantifier ranges over all of `Π₀`, not a single distinguished element. Without this base case, the inductive argument for O4 (DomainCoverage) cannot begin.
+
+**O15 (PrincipalClosure).** Principals enter Π exclusively through bootstrap (in Π₀) or delegation (satisfying the `delegated` relation defined below). No other mechanism introduces principals. Each state transition introduces at most one new principal:
+
+  `(A Σ, Σ' : Σ → Σ' ⟹ |Π_{Σ'} ∖ Π_Σ| ≤ 1)`
+
+  `(A π' ∈ Π_{Σ'} ∖ Π_Σ : (E π ∈ Π_Σ : delegated_Σ(π, π')))`
+
+Without this closure, O12 permits arbitrary growth of Π — a mechanism outside the delegation relation could introduce a principal at document level (violating O1a) or within a sub-domain without the effective owner's consent (circumventing the authorization guarantee of delegation condition (ii)). Nelson's design contains no concept of principals appearing outside the delegation hierarchy, and Gregory's codebase provides no mechanism for it. The at-most-one constraint reflects the atomic nature of a delegation act: one delegator, one delegate, one prefix.
 
 
 ## The Exclusivity Invariant
@@ -148,7 +156,7 @@ The argument: `ω(a)` depends on three inputs — the address `a`, the set of pr
 
 Refinement is one-directional: `#pfx(ω_{Σ'}(a)) ≥ #pfx(ω_Σ(a))` in all transitions. Once a principal `π` becomes the effective owner through longest-match, only a *more specific* delegation can supersede it.
 
-**Corollary (Account-level permanence).** Account-level prefixes can nest — `pfx(π₁) = [1, 0, 2]` and `pfx(π₂) = [1, 0, 2, 3]` both satisfy O1a, and delegation from `π₁` to `π₂` changes `ω` for addresses in `dom(π₂)`. But such delegation requires an act of `π₁` itself: by O5 (for allocation) and condition (ii) of the `delegated` relation (for delegation), only the most-specific covering principal may allocate or delegate within its domain. No principal *external* to `dom(π)` — neither the delegating parent nor any sibling — can introduce a principal whose prefix extends `pfx(π)`, because condition (ii) requires the delegator to be the most-specific covering principal for the new prefix, and that principal is `π` itself. Nelson confirms: "User 3 controls allocation of children directly under 3. User 3.2 controls everything under 3.2. User 3 cannot modify User 3.2's documents" (consultation, LM 4/20, 4/29, 2/29). The parent controls baptism; the child controls content. Changes to `ω` within `dom(π)` arise only from `π`'s own delegation choices, or recursively from sub-delegates' choices within their own sub-domains. This is Nelson's "forevermore": not that `ω` is static within `dom(π)`, but that no external act can alter it. The addresses `π` has not sub-delegated remain permanently under `π`'s effective ownership.
+**Corollary (Account-level permanence).** Account-level prefixes can nest — `pfx(π₁) = [1, 0, 2]` and `pfx(π₂) = [1, 0, 2, 3]` both satisfy O1a, and delegation from `π₁` to `π₂` changes `ω` for addresses in `dom(π₂)`. But such delegation requires an act of `π₁` itself: by O5 (for allocation) and condition (ii) of the `delegated` relation (for delegation), only the most-specific covering principal may allocate or delegate within its domain. By O15 (PrincipalClosure), delegation is the exclusive mechanism for introducing principals post-bootstrap. No delegation can introduce a principal whose prefix extends `pfx(π)` without `π`'s involvement: condition (ii) of the `delegated` relation requires the delegator to be the most-specific covering principal for the new prefix. For any prefix extending `pfx(π)`, that most-specific covering principal is `π` itself (or a sub-delegate of `π` within `dom(π)`). Nelson confirms: "User 3 controls allocation of children directly under 3. User 3.2 controls everything under 3.2. User 3 cannot modify User 3.2's documents" (consultation, LM 4/20, 4/29, 2/29). The parent controls baptism; the child controls content. Changes to `ω` within `dom(π)` arise only from `π`'s own delegation choices, or recursively from sub-delegates' choices within their own sub-domains. This is Nelson's "forevermore": not that `ω` is static within `dom(π)`, but that no external act can alter it. The addresses `π` has not sub-delegated remain permanently under `π`'s effective ownership.
 
 This raises a tension that Nelson himself acknowledges. He mentions "someone who has bought the document rights" (LM 2/29), implying ownership can *transfer*. But the address permanently encodes the originating account (by O6 and T8), and Gregory's codebase contains no transfer mechanism whatsoever — no FEBE command, no data structure, no protocol step. We take the conservative reading: O3 describes the refinement regime for the system as specified. Transfer, if it exists, would require machinery that overrides the address-derived ownership — a registry external to the address structure — and Nelson leaves such machinery unspecified. The address is a birth certificate; a transfer would require a separate deed. We record this as an open question.
 
@@ -188,11 +196,11 @@ If `π_A` subsequently delegates `[1, 0, 2, 3]` to `π_B`, then `ω(a₄)` refin
 
 Now consider address `a₃ = [1, 0, 7, 0, 1, 0, 1]` under a different account. `pfx(π_A) = [1, 0, 2] ⋠ a₃` (component 3: `2 ≠ 7`). Only `pfx(π_N) = [1] ≼ a₃`, so `ω(a₃) = π_N`. The node operator retains effective ownership of all addresses not covered by a delegated account.
 
-**Fork (O10).** Suppose `π_A` wishes to modify the content at `a₃ = [1, 0, 7, 0, 1, 0, 1]`. Since `ω(a₃) = π_N ≠ π_A`, the system does not grant modification. Instead, `π_A` creates a fork: a new address `a' = [1, 0, 2, 0, 6, 0, 1]` within `dom(π_A)`. We verify O10's three conditions:
+**Fork (O10).** Suppose `π_A` wishes to modify the content at `a₃ = [1, 0, 7, 0, 1, 0, 1]`. Since `ω(a₃) = π_N ≠ π_A`, the system does not grant modification. Instead, `π_A` creates a fork: a new address `a' = [1, 0, 2, 0, 6, 0, 1]` within `dom(π_A)`. We verify O10's conditions:
 
 - **O10(a)**: `pfx(π_A) = [1, 0, 2] ≼ [1, 0, 2, 0, 6, 0, 1] = a'`, and `π_A` has the longest matching prefix, so `ω(a') = π_A`. ✓
-- **O10(b)**: `zeros(pfx(π_A)) = 1`, so we check `pfx(π_A) ≼ acct(a')`. We have `acct(a') = [1, 0, 2]` and `pfx(π_A) = [1, 0, 2] ≼ [1, 0, 2]`. ✓
-- **O10(c)**: `a₃` is unchanged — `ω(a₃) = π_N` as before, no content modified, no ownership transferred. ✓
+- **O10(a) corollary**: by (a), `pfx(π_A) = [1, 0, 2] ≼ a'`; the O6 biconditional gives `pfx(π_A) ≼ acct(a') = [1, 0, 2]`. ✓
+- **O10(b)**: `a₃` is unchanged — `ω(a₃) = π_N` as before, no content modified, no ownership transferred. ✓
 
 The fork transforms the ownership boundary into a creative act: `π_A` now has a fully owned address `a'` whose content identity may relate to `a₃`'s content (through the content model), but whose ownership is entirely independent.
 
@@ -207,11 +215,13 @@ The ownership prefix is embedded in the permanent address. Because every princip
 
 We first observe a structural property of `acct`: for any valid tumbler `a`, the account field is a prefix of the address itself:
 
-**Lemma (AccountPrefix).** `(A a ∈ T : acct(a) ≼ a)`
+**Lemma (AccountPrefix).** `(A a ∈ T : T4(a) ⟹ acct(a) ≼ a)`
+
+The T4 restriction is essential: `acct` relies on field parsing (FieldParsing from ASN-0034), which requires T4 validity — for a tumbler like `[0, 0, 1]`, the field boundaries are ill-defined and `acct` is not well-defined. All allocated addresses satisfy T4, so the restriction does not limit application.
 
 When `zeros(a) = 0`, `acct(a) = a` and the claim is trivial. When `zeros(a) ≥ 1`, `acct(a)` is the truncation of `a` through its user field — the leading `N₁...Nα.0.U₁...Uβ` components — so `acct(a)` is literally a prefix of `a` by construction.
 
-The proof of O6 proceeds in two directions. *Forward:* for any principal `π` with `zeros(pfx(π)) ≤ 1`, the prefix `pfx(π)` has at most node and user fields — by T4's field structure, a valid tumbler with `zeros ≤ 1` contains at most one zero separator, so its components span at most the node field and user field, with no document or element components. Since `pfx(π) ≼ a`, the components of `pfx(π)` match `a`'s leading components, and these leading components — being confined to node and user fields by the zero count — are exactly the components captured by `acct(a)`. Hence `pfx(π) ≼ a` implies `pfx(π) ≼ acct(a)`. *Reverse:* suppose `pfx(π) ≼ acct(a)`. By AccountPrefix, `acct(a) ≼ a`. By transitivity of the prefix relation, `pfx(π) ≼ a`. We conclude the biconditional:
+The proof of O6 proceeds in two directions. *Forward:* for any principal `π` with `zeros(pfx(π)) ≤ 1`, the prefix `pfx(π)` has at most node and user fields — by T4's field structure, a valid tumbler with `zeros ≤ 1` contains at most one zero separator, so its components span at most the node field and user field, with no document or element components. Since `pfx(π) ≼ a`, the components of `pfx(π)` match `a`'s leading components, and these leading components — being confined to node and user fields by the zero count — form a prefix of the components in `acct(a)`. Hence `pfx(π) ≼ a` implies `pfx(π) ≼ acct(a)`. *Reverse:* suppose `pfx(π) ≼ acct(a)`. By AccountPrefix, `acct(a) ≼ a`. By transitivity of the prefix relation, `pfx(π) ≼ a`. We conclude the biconditional:
 
   `pfx(π) ≼ a  ≡  pfx(π) ≼ acct(a)`
 
@@ -259,7 +269,7 @@ We first define the delegation relation, which the subsequent properties rely up
 
 Condition (ii) is the authorization constraint — delegation requires O5's subdivision authority. A principal cannot delegate within a sub-domain that has already been delegated to someone else. This grounds the distinction between direct delegation (`π → π'`) and transitive delegation (`π → π' → π''`): when `π` delegates to `π'` and `π'` later delegates to `π''`, we have `delegated(π, π')` and `delegated(π', π'')` but not `delegated(π, π'')`.
 
-Delegation preserves O1b (PrefixInjectivity). Suppose for contradiction that `pfx(π') = pfx(π''')` for some existing `π''' ∈ Π_Σ`. Then `pfx(π''') ≼ pfx(π')`, so by condition (ii) of the delegation relation, `#pfx(π''') ≤ #pfx(π)`. But from condition (i), `pfx(π) ≺ pfx(π')`, giving `#pfx(π) < #pfx(π')`. Combining: `#pfx(π''') ≤ #pfx(π) < #pfx(π') = #pfx(π''')` — a contradiction. Hence every delegation introduces a principal with a prefix distinct from all existing prefixes, and O1b is maintained across all state transitions. This closes the proof chain: delegation preserves O1b, which ensures `ω` (O2) yields a unique principal.
+Delegation preserves O1b (PrefixInjectivity). Suppose for contradiction that `pfx(π') = pfx(π''')` for some existing `π''' ∈ Π_Σ`. Then `pfx(π''') ≼ pfx(π')`, so by condition (ii) of the delegation relation, `#pfx(π''') ≤ #pfx(π)`. But from condition (i), `pfx(π) ≺ pfx(π')`, giving `#pfx(π) < #pfx(π')`. Combining: `#pfx(π''') ≤ #pfx(π) < #pfx(π') = #pfx(π''')` — a contradiction. Hence every delegation introduces a principal with a prefix distinct from all existing prefixes. By O15, each transition introduces at most one new principal, so no pairwise collision among newly introduced principals can occur — the proof against existing principals is exhaustive. O1b is maintained across all state transitions. This closes the proof chain: delegation preserves O1b, which ensures `ω` (O2) yields a unique principal.
 
 **O7 (OwnershipDelegation).** A principal `π` may delegate a sub-prefix to a new principal `π'`, provided `zeros(pfx(π')) ≤ 1` (O1a) and `π` holds subdivision authority over `pfx(π')`. Upon delegation:
 
@@ -313,9 +323,9 @@ When a principal seeks to modify content it does not own, the system's response 
 
   (a) `ω(a') = π` — the new address is fully owned by the requesting principal
 
-  (b) when `zeros(pfx(π)) = 1`: `pfx(π) ≼ acct(a')` — the address structure records `a'` as within `π`'s account domain
+  (b) the original address `a` is unchanged — no ownership is transferred, no content is modified
 
-  (c) the original address `a` is unchanged — no ownership is transferred, no content is modified
+Condition (a) entails a structural consequence: since `ω(a') = π` gives `pfx(π) ≼ a'`, and the O6 biconditional (`pfx(π) ≼ a' ≡ pfx(π) ≼ acct(a')`, holding for all principals with `zeros(pfx(π)) ≤ 1` — i.e., all principals by O1a) yields `pfx(π) ≼ acct(a')`. The address structure necessarily records the fork within the requesting principal's account domain. This holds for both `zeros = 0` and `zeros = 1`; no case distinction is needed.
 
 Nelson: "Thus users may create new published documents out of old ones indefinitely, making whatever changes seem appropriate — without damaging the originals. This is done by inclusion links" (LM 2/45). Gregory confirms the structural mechanism: `docreatenewversion`, when invoked on a document belonging to a different account, routes the allocation through `makehint(ACCOUNT, DOCUMENT, 0, wheretoputit, &hint)` — placing the fork under the requesting principal's account, not under the source document.
 
@@ -372,7 +382,7 @@ The design philosophy is clear: minimize the authorization model to the point wh
 | O3 | `ω(a)` changes only through delegation introducing a longer matching prefix — monotonic refinement | introduced |
 | O4 | `(A a ∈ Σ.alloc : (E π ∈ Π : pfx(π) ≼ a))` — every allocated address is covered by some principal | introduced |
 | O5 | Only the principal with the longest matching prefix may allocate within its domain — subdivision authority | introduced |
-| AccountPrefix | `(A a ∈ T : acct(a) ≼ a)` — the account field is a prefix of the address | introduced |
+| AccountPrefix | `(A a ∈ T : T4(a) ⟹ acct(a) ≼ a)` — the account field is a prefix of any valid address | introduced |
 | O6 | `acct(a) = acct(b) ⟹ ω(a) = ω(b)` — effective owner determined entirely by account field | introduced |
 | O7 | Delegation (authorized by `delegated`) confers effective ownership (O2), subdivision authority (O5), and recursive delegation (O7) | introduced |
 | O8 | `delegated_Σ(π, π') ∧ a ∈ dom(π') ∩ Σ'.alloc ∧ Σ →⁺ Σ' ⟹ ω_{Σ'}(a) ≠ π` — delegating parent never regains ownership | introduced |
@@ -382,6 +392,7 @@ The design philosophy is clear: minimize the authorization model to the point wh
 | O12 | `(A Σ, Σ' : Σ → Σ' ⟹ Π_Σ ⊆ Π_{Σ'})` — principal persistence | introduced |
 | O13 | `pfx_{Σ'}(π) = pfx_Σ(π)` for all transitions — prefix immutability | introduced |
 | O14 | `Π₀ ≠ ∅` and initial principals cover all initially allocated addresses — bootstrap | introduced |
+| O15 | Principals enter Π exclusively through bootstrap or delegation; `|Π_{Σ'} ∖ Π_Σ| ≤ 1` per transition | introduced |
 | `ω(a)` | `effectiveOwner : ValidAddress → Principal` — the effective owner function | introduced |
 | `dom(π)` | `{a ∈ T : pfx(π) ≼ a}` — the ownership domain of a principal | introduced |
 | `acct(a)` | When `zeros(a) = 0`: `acct(a) = a`; when `zeros(a) ≥ 1`: truncation through user field | introduced |
