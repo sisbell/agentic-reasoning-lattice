@@ -229,7 +229,7 @@ O5 interacts with O2. Because ownership is exclusive, exactly one principal may 
 
 Ownership is not held at a single level — it flows downward through the hierarchy. Nelson calls this "baptism," but we must separate two concepts: *ownership delegation*, which introduces a new principal into `Π`, and *allocation*, which creates addresses within an existing principal's domain. The allocation mechanism is uniform at all levels (T10a); the ownership consequences differ.
 
-We first define the delegation relation, which the subsequent properties rely upon.
+We first define the delegation relation, which the subsequent properties rely upon. We use the *strict prefix* relation throughout: `p ≺ a  ≡  p ≼ a ∧ p ≠ a` (equivalently, `p ≼ a ∧ #p < #a` — the equivalence holds because `p ≼ a ∧ #p = #a` gives `p = a` by T3).
 
 **Definition (Delegation).** We write `delegated_Σ(π, π')` to mean that principal `π'` was introduced into `Π` by an act of `π` in state transition `Σ → Σ'`, subject to three structural constraints:
 
@@ -265,7 +265,7 @@ The delegation is irrevocable:
 
 The formulation captures irrevocability without overclaiming. It says the *parent* can never recover the addresses, while permitting the delegate `π'` to sub-delegate (via O7(c)): if `π'` delegates to `π''` with `pfx(π') ≺ pfx(π'')`, then `ω(a) = π''` for `a ∈ dom(π'')` — the address leaves `π'`'s effective ownership but does not return to `π`. The domain restriction `dom(π') ∩ Σ'.alloc` ensures `ω` is applied only to addresses where it is defined (grounded by O4).
 
-This is a consequence of O3 and O12: once `π'` holds a longer matching prefix than `π`, only a delegation of a *still-longer* prefix can supersede `π'` — and by O5, only `π'` itself can perform such delegation. The prefix `pfx(π)` is permanently shorter than `pfx(π')` (by O13), so `π` can never regain longest-match status. Nelson: "once assigned a User account, the user will have full control over its subdivision forevermore" (LM 4/29). There is no revocation command, no forced reclamation. Gregory confirms: `validaccount` is a stub that unconditionally returns TRUE — the system has no machinery for checking or revoking delegation. Once the sub-prefix exists, the delegate owns it permanently.
+This is a consequence of O3 and O12: once `π'` holds a longer matching prefix than `π`, only a delegation of a *still-longer* prefix can supersede `π'` — and by condition (ii) of the `delegated` relation, only `π'` itself can perform such delegation. The prefix `pfx(π)` is permanently shorter than `pfx(π')` (by O13), so `π` can never regain longest-match status. Nelson: "once assigned a User account, the user will have full control over its subdivision forevermore" (LM 4/29). There is no revocation command, no forced reclamation. Gregory confirms: `validaccount` is a stub that unconditionally returns TRUE — the system has no machinery for checking or revoking delegation. Once the sub-prefix exists, the delegate owns it permanently.
 
 The combination of O3 (OwnershipRefinement), O8 (IrrevocableDelegation), O12 (PrincipalPersistence), O13 (PrefixImmutability), and T8 (AllocationPermanence) means the ownership structure of the address space is *monotonically growing*. New ownership domains are created through delegation but never destroyed. The tree of ownership deepens but never prunes.
 
@@ -274,11 +274,13 @@ The combination of O3 (OwnershipRefinement), O8 (IrrevocableDelegation), O12 (Pr
 
 Ownership authority does not propagate across node boundaries. A principal's effective ownership is bounded by its node prefix.
 
-**O9 (NodeLocalOwnership).** For a principal `π` whose prefix begins with node field `N`, the ownership predicate `owns(π, a)` can hold only for addresses `a` whose node field equals `N`:
+**O9 (NodeLocalOwnership).** For a principal `π`, the ownership predicate `owns(π, a)` can hold only for addresses `a` whose node field extends the principal's node field:
 
-  `(A π ∈ Π, a ∈ T : owns(π, a)  ⟹  nodeField(a) = nodeField(pfx(π)))`
+  `(A π ∈ Π, a ∈ T : owns(π, a)  ⟹  nodeField(pfx(π)) ≼ nodeField(a))`
 
-This follows directly from O1 and the prefix relation: if `pfx(π) ≼ a`, then the leading components of `a` match those of `pfx(π)`, including the entire node field. An address on node `1.2` cannot have `1.1.0.U` as a prefix. The node digits are not special in the comparison — they are simply the leading components of the prefix, and like all prefix components, they must match exactly.
+Two cases arise from O1a. When `zeros(pfx(π)) = 1` (account-level), the prefix has the form `N.0.U`, and the zero separator forces field-boundary alignment: `pfx(π) ≼ a` requires `a`'s first zero to appear at the same position as the prefix's zero, giving `nodeField(a) = nodeField(pfx(π))` — full equality. When `zeros(pfx(π)) = 0` (node-level), the prefix is entirely within the node field and contains no boundary markers, so `pfx(π) ≼ a` gives only `nodeField(pfx(π)) ≼ nodeField(a)` — the address may have a longer node field. This is structurally permitted: T10a allows `inc([1, 2], 1) = [1, 2, 1]` (still `zeros = 0`), so addresses with node fields strictly extending the principal's exist.
+
+In both cases, the essential constraint holds: ownership cannot cross node boundaries. A principal at node `[1]` cannot own addresses at node `[2]`, because `[1]` is not a prefix of `[2, ...]`. The node field's leading components must match — only the *length* of the node field may differ, and only for node-level principals.
 
 The consequence is that the same human being would hold *separate, independent* ownership roots on each node — distinct principals with distinct prefixes, distinct domains, and no structural relationship between them. Nelson's "docuverse" is a forest of independently owned trees rooted at nodes, not a single tree with a universal authority. The node operator delegates accounts within its node; those accounts have no automatic standing on any other node.
 
@@ -355,7 +357,7 @@ The design philosophy is clear: minimize the authorization model to the point wh
 | O6 | `acct(a) = acct(b) ⟹ ω(a) = ω(b)` — effective owner determined entirely by account field | introduced |
 | O7 | Delegation (authorized by `delegated`) confers effective ownership (O2), subdivision authority (O5), and recursive delegation (O7) | introduced |
 | O8 | `delegated_Σ(π, π') ∧ a ∈ dom(π') ∩ Σ'.alloc ∧ Σ →⁺ Σ' ⟹ ω_{Σ'}(a) ≠ π` — delegating parent never regains ownership | introduced |
-| O9 | Ownership authority is bounded by node prefix — no cross-node ownership | introduced |
+| O9 | `owns(π, a) ⟹ nodeField(pfx(π)) ≼ nodeField(a)` — ownership bounded by node field | introduced |
 | O10 | Non-ownership of target yields a fork: new address under the requesting principal's domain | introduced |
 | O11 | Principal identity is axiomatic to the ownership model — authentication is external | introduced |
 | O12 | `(A Σ, Σ' : Σ → Σ' ⟹ Π_Σ ⊆ Π_{Σ'})` — principal persistence | introduced |
