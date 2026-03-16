@@ -1,8 +1,0 @@
-# ASN-0041 — Tumbler Ownership
-title: "Tumbler Ownership"
-depends: [34, 40]
-excludes: [35, 36]
-out_of_scope: "Baptism mechanism and allocation invariants, phantom parents (resolved — ownership requires parent existence), account identity and lifecycle, document creation and structure, content storage and retrieval, I-space and V-space, operation-specific effects (INSERT, DELETE, COPY, REARRANGE), links and endsets, enfilade implementation internals, replication and inter-server protocol (BEBE), concrete authentication mechanisms (certificates, keys, tokens)"
-
-inquiry:
-  question: "What does it mean to own a tumbler position? How is ownership established, delegated, and what does it confer?"

@@ -1,7 +1,7 @@
 # ASN-0040 — Tumbler Baptism
 title: "Tumbler Baptism"
 depends: [34]
-excludes: [35, 36, 41]
+excludes: [35, 36, 42]
 out_of_scope: "Ownership, authorization, delegation, and agent identity (deferred to Tumbler Ownership), parent prerequisite chain and phantom parents (depends on ownership model), node-specific tree structure, account identity and lifecycle, document creation and structure, content storage and retrieval, I-space and V-space, operation-specific effects (INSERT, DELETE, COPY, REARRANGE), links and endsets, enfilade implementation internals, replication and inter-server protocol (BEBE)"
 
 inquiry:
