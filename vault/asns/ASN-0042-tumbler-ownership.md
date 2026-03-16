@@ -113,7 +113,7 @@ We first state a coverage requirement — every allocated address falls within s
 
   `(A a ∈ Σ.alloc : (E π ∈ Π : pfx(π) ≼ a))`
 
-This follows from O5 (SubdivisionAuthority, stated below) and O14 (BootstrapPrincipal): allocation only occurs within an existing principal's domain, so every allocated address is born under a covering prefix. The derivation: by O14, the initial state has a principal covering all initially allocated addresses. If `a` is newly allocated in a transition Σ → Σ', then by O5 the allocator is a principal `π` with `pfx(π) ≼ a`. By O12, `π` persists in Σ'. By induction on the transition history, O4 holds in every reachable state.
+This follows from O5 (SubdivisionAuthority, stated below) and O14 (BootstrapPrincipal): allocation only occurs within an existing principal's domain, so every allocated address is born under a covering prefix. The derivation: by O14, the initial state has a principal covering all initially allocated addresses. If `a` is newly allocated in a transition Σ → Σ', then by O5 the allocator is a principal `π` with `pfx(π) ≼ a`. By O12, `π` persists in Σ'. For addresses already in `Σ.alloc`, their covering principals persist in `Σ'` (O12) with unchanged prefixes (O13), so coverage is preserved. By induction on the transition history, O4 holds in every reachable state.
 
 We resolve nesting by specificity:
 
@@ -199,7 +199,7 @@ The ownership prefix is embedded in the permanent address. Because every princip
 
 The proof: for any principal `π` with `zeros(pfx(π)) ≤ 1`, the prefix `pfx(π)` sits within the node-and-user portion of the address. If `acct(a) = acct(b)`, then `a` and `b` agree on their entire node and user fields. Hence `pfx(π) ≼ a` iff `pfx(π) ≼ b`, so the set of covering principals — and thus the longest match — is identical.
 
-The effective owner's prefix is always embedded within the account field: `pfx(ω(a)) ≼ acct(a)`. The containment may be strict when the address occupies a sub-account position that the effective owner controls but has not delegated. Nelson permits this: "Numbers are owned by individuals or companies, and subnumbers under them are bestowed on other individuals and companies on whatever basis the owners choose" (LM 4/17). An account-level principal may create sub-account positions as organizational namespaces, ghost elements, or internal partitions without introducing a new ownership principal — the owner decides what sub-numbering means. Equality `pfx(ω(a)) = acct(a)` holds when no intermediate sub-account structure extends beyond the owner's prefix; this is the common case for addresses allocated directly at the principal's own account level.
+The effective owner's prefix is always embedded within the account field: `pfx(ω(a)) ≼ acct(a)`. By definition of `ω`, `pfx(ω(a)) ≼ a`. Since `zeros(pfx(ω(a))) ≤ 1` (O1a), all components of `pfx(ω(a))` fall within the node-and-user portion of `a`, which is `acct(a)`; hence `pfx(ω(a)) ≼ acct(a)`. The containment may be strict when the address occupies a sub-account position that the effective owner controls but has not delegated. Nelson permits this: "Numbers are owned by individuals or companies, and subnumbers under them are bestowed on other individuals and companies on whatever basis the owners choose" (LM 4/17). An account-level principal may create sub-account positions as organizational namespaces, ghost elements, or internal partitions without introducing a new ownership principal — the owner decides what sub-numbering means. Equality `pfx(ω(a)) = acct(a)` holds when no intermediate sub-account structure extends beyond the owner's prefix; this is the common case for addresses allocated directly at the principal's own account level.
 
 Nelson: "You always know where you are, and can at once ascertain the home document of any specific word or character" (LM 2/40).
 
@@ -259,7 +259,7 @@ The delegation is irrevocable:
 
 **O8 (IrrevocableDelegation).** Once principal `π` delegates to `π'`, the delegating parent never regains effective ownership of addresses in the delegate's domain:
 
-  `(A π, π', a, Σ, Σ' : delegated_Σ(π, π') ∧ a ∈ dom(π') ∩ Σ'.alloc ∧ Σ →* Σ' : ω_{Σ'}(a) ≠ π)`
+  `(A π, π', a, Σ, Σ' : delegated_Σ(π, π') ∧ a ∈ dom(π') ∩ Σ'.alloc ∧ Σ →⁺ Σ' : ω_{Σ'}(a) ≠ π)`
 
 The formulation captures irrevocability without overclaiming. It says the *parent* can never recover the addresses, while permitting the delegate `π'` to sub-delegate (via O7(c)): if `π'` delegates to `π''` with `pfx(π') ≺ pfx(π'')`, then `ω(a) = π''` for `a ∈ dom(π'')` — the address leaves `π'`'s effective ownership but does not return to `π`. The domain restriction `dom(π') ∩ Σ'.alloc` ensures `ω` is applied only to addresses where it is defined (grounded by O4).
 
@@ -352,7 +352,7 @@ The design philosophy is clear: minimize the authorization model to the point wh
 | O5 | Only the principal with the longest matching prefix may allocate within its domain — subdivision authority | introduced |
 | O6 | `acct(a) = acct(b) ⟹ ω(a) = ω(b)` — effective owner determined entirely by account field | introduced |
 | O7 | Delegation (authorized by `delegated`) confers effective ownership (O2), subdivision authority (O5), and recursive delegation (O7) | introduced |
-| O8 | `delegated_Σ(π, π') ∧ a ∈ dom(π') ∩ Σ'.alloc ∧ Σ →* Σ' ⟹ ω_{Σ'}(a) ≠ π` — delegating parent never regains ownership | introduced |
+| O8 | `delegated_Σ(π, π') ∧ a ∈ dom(π') ∩ Σ'.alloc ∧ Σ →⁺ Σ' ⟹ ω_{Σ'}(a) ≠ π` — delegating parent never regains ownership | introduced |
 | O9 | Ownership authority is bounded by node prefix — no cross-node ownership | introduced |
 | O10 | Non-ownership of target yields a fork: new address under the requesting principal's domain | introduced |
 | O11 | Principal identity is axiomatic to the ownership model — authentication is external | introduced |
