@@ -158,4 +158,26 @@ module TumblerHierarchy {
     var k :| LessThanAt(p1, p2, k);
     LessThanIntro(a, b, k);
   }
+
+  // ---------------------------------------------------------------------------
+  // Hierarchy level predicates — specializations of ValidAddress by zero count
+  // ---------------------------------------------------------------------------
+
+  predicate NodeAddress(t: Tumbler) {
+    ValidAddress(t) && ZeroCount(t.components) == 0
+  }
+
+  predicate AccountAddress(t: Tumbler) {
+    ValidAddress(t) && ZeroCount(t.components) == 1
+  }
+
+  predicate DocumentAddress(t: Tumbler) {
+    ValidAddress(t) && ZeroCount(t.components) == 2
+  }
+
+  predicate ElementAddress(t: Tumbler) {
+    ValidAddress(t) && ZeroCount(t.components) == 3
+  }
+
+  const Root: Tumbler := Tumbler([1])
 }
