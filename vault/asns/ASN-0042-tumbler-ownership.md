@@ -92,7 +92,7 @@ Nelson's architecture contains no concept of account revocation. Gregory's codeb
 
 The prefix is a tumbler, and the tumbler algebra provides no operation that mutates an existing tumbler in place. Since addresses are permanent (T8) and the prefix is structurally embedded in its domain's addresses, altering it would require rewriting every address in the domain — an operation the system does not support.
 
-**O14 (BootstrapPrincipal).** The initial state contains at least one principal whose domain covers all initially allocatable addresses, and the initial principals satisfy the structural constraints that O1a, O1b, and T4 require of all principals:
+**O14 (BootstrapPrincipal).** The initial state contains at least one principal whose domain covers all initially allocated addresses, and the initial principals satisfy the structural constraints that O1a, O1b, and T4 require of all principals:
 
   `Π₀ ≠ ∅  ∧  (A a ∈ Σ₀.alloc : (E π ∈ Π₀ : pfx(π) ≼ a))`
 
@@ -429,7 +429,7 @@ The design philosophy is clear: minimize the authorization model to the point wh
 | O13 | `pfx_{Σ'}(π) = pfx_Σ(π)` for all transitions — prefix immutability | introduced |
 | O14 | `Π₀ ≠ ∅`, initial principals cover all initially allocated addresses, `(A π ∈ Π₀ : zeros(pfx(π)) ≤ 1)`, `pfx` injective on `Π₀`, and `(A π ∈ Π₀ : T4(pfx(π)))` — bootstrap with O1a/O1b/T4 base cases | introduced |
 | O15 | Principals enter Π exclusively through bootstrap or delegation; `|Π_{Σ'} ∖ Π_Σ| ≤ 1` per transition | introduced |
-| `ω(a)` | `effectiveOwner : ValidAddress → Principal` — the effective owner function | introduced |
+| `ω(a)` | `effectiveOwner : Σ.alloc → Principal` — the effective owner function (defined only for allocated addresses) | introduced |
 | `dom(π)` | `{a ∈ T : pfx(π) ≼ a}` — the ownership domain of a principal | introduced |
 | `acct(a)` | When `zeros(a) = 0`: `acct(a) = a`; when `zeros(a) ≥ 1`: truncation through user field | introduced |
 | `delegated_Σ(π, π')` | `π'` introduced into `Π` by act of `π`, with `pfx(π) ≺ pfx(π')`, `π` most-specific covering principal, `zeros(pfx(π')) ≤ 1`, and `T4(pfx(π'))` | introduced |
