@@ -130,16 +130,16 @@ def load_manifest(asn_id):
 
 
 def load_excluded_covers(asn_id):
-    """Load combined covers text for an ASN's depends + excludes.
+    """Load combined covers text for an ASN's depends + already_covered.
 
     Reads the manifest for asn_id, collects all ASN IDs from
-    depends and excludes, then reads each of those manifests'
+    depends and already_covered, then reads each of those manifests'
     covers field. Returns a combined string for the question filter.
     """
     manifest = load_manifest(asn_id)
     dep_ids = manifest.get("depends", [])
-    exc_ids = manifest.get("excludes", [])
-    all_ids = set(dep_ids + exc_ids)
+    ac_ids = manifest.get("already_covered", [])
+    all_ids = set(dep_ids + ac_ids)
 
     if not all_ids:
         return ""

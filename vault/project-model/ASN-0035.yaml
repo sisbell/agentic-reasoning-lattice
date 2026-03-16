@@ -1,7 +1,7 @@
 # ASN-0035 — Node Ontology
 title: "Node Ontology"
 depends: [34]
-excludes: [36]
+already_covered: [36]
 out_of_scope: "I-space and V-space as named concepts (dual-space model), content mapping and content ownership, transclusion and virtual copies, document structure and lifecycle, document visibility and access control, account creation and delegation (account ontology), operation-specific frame conditions, enfilade implementation internals (granfilade, spanfilade, POOM structure), replication and inter-server protocol (BEBE)"
 
 inquiry:
