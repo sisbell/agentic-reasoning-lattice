@@ -7,8 +7,5 @@ out_of_scope: "I-space and V-space as named concepts (dual-space model), content
 inquiry:
   question: "What is a node in the Xanadu system? How do nodes enter the docuverse, and what invariants govern the node set?"
 
-draft:
-  asn_imports: [34]
-
 modeling:
   proof_imports: [TumblerAlgebra, TumblerOrder, TumblerHierarchy, TumblerAllocation]
