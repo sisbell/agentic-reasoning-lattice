@@ -92,11 +92,17 @@ Nelson's architecture contains no concept of account revocation. Gregory's codeb
 
 The prefix is a tumbler, and the tumbler algebra provides no operation that mutates an existing tumbler in place. Since addresses are permanent (T8) and the prefix is structurally embedded in its domain's addresses, altering it would require rewriting every address in the domain — an operation the system does not support.
 
-**O14 (BootstrapPrincipal).** The initial state contains at least one principal whose domain covers all initially allocatable addresses:
+**O14 (BootstrapPrincipal).** The initial state contains at least one principal whose domain covers all initially allocatable addresses, and the initial principals satisfy the structural constraints that O1a and O1b require of all principals:
 
   `Π₀ ≠ ∅  ∧  (A a ∈ Σ₀.alloc : (E π ∈ Π₀ : pfx(π) ≼ a))`
 
-In a single-node system, this is the node operator — the principal holding the node-level prefix from which all delegation proceeds. In a multi-node system, `Π₀` contains one initial principal per node (e.g., principals at `[1]` and `[2]`), each independently covering its node's allocatable addresses. The formalization permits both cases: the existential quantifier ranges over all of `Π₀`, not a single distinguished element. Without this base case, the inductive argument for O4 (DomainCoverage) cannot begin.
+  `(A π ∈ Π₀ : zeros(pfx(π)) ≤ 1)`
+
+  `(A π₁, π₂ ∈ Π₀ : pfx(π₁) = pfx(π₂) ⟹ π₁ = π₂)`
+
+The second clause is the base case for O1a: every initial principal has a node-level or account-level prefix. The third clause is the base case for O1b: no two initial principals share a prefix. Together with the inductive step — delegation preserves O1a via condition (iv) and O1b via the length contradiction (shown below) — these clauses establish that O1a and O1b hold in every reachable state.
+
+In a single-node system, `Π₀ = {π_N}` where `π_N` is the node operator with a node-level prefix (`zeros = 0 ≤ 1`); both base-case clauses hold trivially. In a multi-node system, `Π₀` contains one initial principal per node (e.g., principals at `[1]` and `[2]`), each independently covering its node's allocatable addresses. These are node-level prefixes (satisfying the second clause), and distinct node addresses are distinct tumblers (satisfying the third clause by T3). The formalization permits both cases: the existential quantifier ranges over all of `Π₀`, not a single distinguished element. Without this base case, the inductive arguments for O1a, O1b, and O4 cannot begin.
 
 **O15 (PrincipalClosure).** Principals enter Π exclusively through bootstrap (in Π₀) or delegation (satisfying the `delegated` relation defined below). No other mechanism introduces principals. Each state transition introduces at most one new principal:
 
@@ -221,7 +227,13 @@ The T4 restriction is essential: `acct` relies on field parsing (FieldParsing fr
 
 When `zeros(a) = 0`, `acct(a) = a` and the claim is trivial. When `zeros(a) ≥ 1`, `acct(a)` is the truncation of `a` through its user field — the leading `N₁...Nα.0.U₁...Uβ` components — so `acct(a)` is literally a prefix of `a` by construction.
 
-The proof of O6 proceeds in two directions. *Forward:* for any principal `π` with `zeros(pfx(π)) ≤ 1`, the prefix `pfx(π)` has at most node and user fields — by T4's field structure, a valid tumbler with `zeros ≤ 1` contains at most one zero separator, so its components span at most the node field and user field, with no document or element components. Since `pfx(π) ≼ a`, the components of `pfx(π)` match `a`'s leading components, and these leading components — being confined to node and user fields by the zero count — form a prefix of the components in `acct(a)`. Hence `pfx(π) ≼ a` implies `pfx(π) ≼ acct(a)`. *Reverse:* suppose `pfx(π) ≼ acct(a)`. By AccountPrefix, `acct(a) ≼ a`. By transitivity of the prefix relation, `pfx(π) ≼ a`. We conclude the biconditional:
+The proof of O6 proceeds in two directions. *Forward:* we must show that for any principal `π` with `zeros(pfx(π)) ≤ 1`, `pfx(π) ≼ a` implies `pfx(π) ≼ acct(a)`. Two cases arise from the zero count.
+
+When `zeros(pfx(π)) = 0`: the prefix contains no zero separators, so every component of `pfx(π)` is nonzero. Since `pfx(π) ≼ a`, the first `#pfx(π)` components of `a` all equal the corresponding components of `pfx(π)`, and are therefore all nonzero. By T4's field structure (FieldParsing), the nonzero components preceding `a`'s first zero separator constitute `a`'s node field. Since `pfx(π)`'s components are all nonzero and match `a`'s leading components, `pfx(π)` lies entirely within `a`'s node field: `pfx(π) ≼ nodeField(a)`. And `nodeField(a) ≼ acct(a)` by the definition of `acct` (which includes the node field and, when present, the user field). Hence `pfx(π) ≼ acct(a)`.
+
+When `zeros(pfx(π)) = 1`: the prefix has the form `N₁...Nα.0.U₁...Uβ`, with a zero separator at position `α + 1`. The prefix relation `pfx(π) ≼ a` forces `a_{α+1} = 0`. By T4 applied to `a`, all components before this zero are positive (they match `N₁...Nα`, which are positive by T4 applied to `pfx(π)`), so this zero cannot be adjacent to another zero or appear at position 1 — it must be `a`'s node-user field separator. This aligns `pfx(π)`'s field structure with `a`'s: the node fields match (`a`'s node field is `N₁...Nα`), and the prefix relation forces `pfx(π)`'s user-field components `U₁...Uβ` to match the first `β` components of `a`'s user field. Since `acct(a)` captures `a` through its full user field, `pfx(π) ≼ acct(a)`.
+
+In both cases, `pfx(π) ≼ a` implies `pfx(π) ≼ acct(a)`. *Reverse:* suppose `pfx(π) ≼ acct(a)`. By AccountPrefix, `acct(a) ≼ a`. By transitivity of the prefix relation, `pfx(π) ≼ a`. We conclude the biconditional:
 
   `pfx(π) ≼ a  ≡  pfx(π) ≼ acct(a)`
 
@@ -335,6 +347,14 @@ Nelson: "Thus users may create new published documents out of old ones indefinit
 
 The forked address lives entirely within `dom(π)`. It satisfies O2 (π is its exclusive owner), O3 corollary (π's account-level ownership is permanent), O5 (π may further subdivide it), and O6 (its provenance records π as the creator). From the ownership model's perspective, the fork is a new independent address that happens to share content identity with the original — a relationship that belongs to the content model, not the ownership model.
 
+We must establish that such an `a'` exists in every reachable state — that `π` can always find an address within `dom(π)` where it remains the effective owner (i.e., `a' ∈ dom(π)` with no sub-delegate's prefix covering `a'`). The argument proceeds in two cases from O1a.
+
+When `zeros(pfx(π)) = 1` (account-level principal): `π`'s prefix has the form `N.0.U`, spanning node and user fields. By O1a, every sub-delegate `π_i` of `π` also satisfies `zeros(pfx(π_i)) ≤ 1`. Since `pfx(π) ≺ pfx(π_i)`, the sub-delegate's prefix strictly extends `π`'s user field — it remains within the node-and-user-field region. Now consider document-level addresses within `dom(π)`: any address `a' = N.0.U.0.D.0.E` has `zeros(a') = 3`, and `pfx(π) ≼ a'`. For a sub-delegate `π_i` to cover `a'`, we would need `pfx(π_i) ≼ a'` with `zeros(pfx(π_i)) ≤ 1`. But `pfx(π_i)` is a proper extension of `pfx(π) = N.0.U` with at most one zero — it has the form `N.0.U.U'...` where all `U'...` are positive. The next component of `a'` after `U` is `0` (the user-document separator). The prefix relation requires `pfx(π_i)`'s next component to equal `0`, but that would give `zeros(pfx(π_i)) ≥ 2`, violating O1a. Hence no sub-delegate can cover any document-level address in `dom(π)`. The allocation mechanism (TA5) can always produce such addresses.
+
+When `zeros(pfx(π)) = 0` (node-level principal): `π`'s prefix is entirely within the node field. Sub-delegates `π_i` with `pfx(π) ≺ pfx(π_i)` and `zeros(pfx(π_i)) = 0` extend the node field. Sub-delegates with `zeros(pfx(π_i)) = 1` have entered the user field. In either case, the set of sub-delegates is finite: by O15, each state transition introduces at most one new principal, and the system has undergone finitely many transitions. By T0a (UnboundedComponents), component values are unbounded. Choose a user-field value `u` exceeding every user-field component of every existing sub-delegate's prefix — such a value exists because a finite set of natural numbers has a maximum. Then the address `a' = pfx(π).0.u.0.1.0.1` satisfies `pfx(π) ≼ a'`, and no sub-delegate's prefix is a prefix of `a'` (the fresh `u` avoids all existing sub-delegate prefixes). Hence `ω(a') = π`.
+
+In both cases, `π` can always produce an address it effectively owns. The fork operation's postcondition `ω(a') = π` is satisfiable in every reachable state.
+
 O10 transforms the ownership boundary from a wall into a fork point. The only "permission" concept the system needs is prefix containment. Everything else — collaboration, annotation, criticism, derivation — is handled by creating new owned addresses and establishing relationships between them. The conventional permission hierarchy (users, groups, roles, ACLs) is replaced by a single structural predicate and an unbounded supply of fresh addresses.
 
 
@@ -395,7 +415,7 @@ The design philosophy is clear: minimize the authorization model to the point wh
 | O11 | Principal identity is axiomatic to the ownership model — authentication is external | introduced |
 | O12 | `(A Σ, Σ' : Σ → Σ' ⟹ Π_Σ ⊆ Π_{Σ'})` — principal persistence | introduced |
 | O13 | `pfx_{Σ'}(π) = pfx_Σ(π)` for all transitions — prefix immutability | introduced |
-| O14 | `Π₀ ≠ ∅` and initial principals cover all initially allocated addresses — bootstrap | introduced |
+| O14 | `Π₀ ≠ ∅`, initial principals cover all initially allocated addresses, `(A π ∈ Π₀ : zeros(pfx(π)) ≤ 1)`, and `pfx` injective on `Π₀` — bootstrap with O1a/O1b base cases | introduced |
 | O15 | Principals enter Π exclusively through bootstrap or delegation; `|Π_{Σ'} ∖ Π_Σ| ≤ 1` per transition | introduced |
 | `ω(a)` | `effectiveOwner : ValidAddress → Principal` — the effective owner function | introduced |
 | `dom(π)` | `{a ∈ T : pfx(π) ≼ a}` — the ownership domain of a principal | introduced |
