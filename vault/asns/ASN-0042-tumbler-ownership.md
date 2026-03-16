@@ -125,7 +125,7 @@ where `ω(a)` — the *effective owner* — is the principal with the longest ma
 
   `ω(a) = π  ≡  pfx(π) ≼ a  ∧  (A π' ∈ Π : π' ≠ π ∧ pfx(π') ≼ a : #pfx(π) > #pfx(π'))`
 
-Well-definedness of `ω` requires three observations: (i) by O4, at least one principal's prefix contains any allocated address; (ii) any two containing prefixes are linearly ordered by the prefix relation — we show this explicitly: suppose `p₁ ≼ a` and `p₂ ≼ a`, and WLOG `#p₁ ≤ #p₂`. For every `i ≤ #p₁`, the prefix relation gives `(p₁)ᵢ = aᵢ` and `(p₂)ᵢ = aᵢ`, hence `(p₁)ᵢ = (p₂)ᵢ`. Since `p₁` agrees with `p₂` on all `#p₁` components and `#p₁ ≤ #p₂`, we have `p₁ ≼ p₂`. Therefore the set of covering prefixes is totally ordered by `≼`, and the longest prefix is unique; and (iii) by O1b, the principal holding that longest prefix is unique. Together these give `(E! π :: ω(a) = π)`.
+Well-definedness of `ω` requires three observations: (i) by O4, at least one principal's prefix contains any allocated address; (ii) any two containing prefixes are linearly ordered by the prefix relation — we show this explicitly: suppose `p₁ ≼ a` and `p₂ ≼ a`, and WLOG `#p₁ ≤ #p₂`. For every `i ≤ #p₁`, the prefix relation gives `(p₁)ᵢ = aᵢ` and `(p₂)ᵢ = aᵢ`, hence `(p₁)ᵢ = (p₂)ᵢ`. Since `p₁` agrees with `p₂` on all `#p₁` components and `#p₁ ≤ #p₂`, we have `p₁ ≼ p₂`. Therefore the set of covering prefixes is totally ordered by `≼`. Moreover, this set is finite: each covering prefix `p ≼ a` is uniquely determined by its length (since `p = [a₁, …, a_{#p}]`), and there are at most `#a` possible lengths, so the covering set has at most `#a` elements. A finite totally ordered set has a maximum; thus the longest prefix exists and is unique; and (iii) by O1b, the principal holding that longest prefix is unique. Together these give `(E! π :: ω(a) = π)`.
 
 The exclusivity of ownership is load-bearing. If two parties owned the same address, the system could not determine who is entitled to subdivide the space beneath it (O5 below), who originated the content (O6 below), or whose delegation created the address. Every downstream property depends on O2.
 
@@ -205,7 +205,17 @@ The ownership prefix is embedded in the permanent address. Because every princip
 
   `(A a, b ∈ Σ.alloc : acct(a) = acct(b) ⟹ ω(a) = ω(b))`
 
-The proof: for any principal `π` with `zeros(pfx(π)) ≤ 1`, the prefix `pfx(π)` has at most node and user fields — by T4's field structure, a valid tumbler with `zeros ≤ 1` contains at most one zero separator, so its components span at most the node field and user field, with no document or element components. Since `pfx(π) ≼ a`, the components of `pfx(π)` match `a`'s leading components, and these leading components — being confined to node and user fields by the zero count — are exactly the components captured by `acct(a)`. Hence `pfx(π) ≼ acct(a)`, and `pfx(π) ≼ a` iff `pfx(π) ≼ b` whenever `acct(a) = acct(b)`. The set of covering principals — and thus the longest match — is identical.
+We first observe a structural property of `acct`: for any valid tumbler `a`, the account field is a prefix of the address itself:
+
+**Lemma (AccountPrefix).** `(A a ∈ T : acct(a) ≼ a)`
+
+When `zeros(a) = 0`, `acct(a) = a` and the claim is trivial. When `zeros(a) ≥ 1`, `acct(a)` is the truncation of `a` through its user field — the leading `N₁...Nα.0.U₁...Uβ` components — so `acct(a)` is literally a prefix of `a` by construction.
+
+The proof of O6 proceeds in two directions. *Forward:* for any principal `π` with `zeros(pfx(π)) ≤ 1`, the prefix `pfx(π)` has at most node and user fields — by T4's field structure, a valid tumbler with `zeros ≤ 1` contains at most one zero separator, so its components span at most the node field and user field, with no document or element components. Since `pfx(π) ≼ a`, the components of `pfx(π)` match `a`'s leading components, and these leading components — being confined to node and user fields by the zero count — are exactly the components captured by `acct(a)`. Hence `pfx(π) ≼ a` implies `pfx(π) ≼ acct(a)`. *Reverse:* suppose `pfx(π) ≼ acct(a)`. By AccountPrefix, `acct(a) ≼ a`. By transitivity of the prefix relation, `pfx(π) ≼ a`. We conclude the biconditional:
+
+  `pfx(π) ≼ a  ≡  pfx(π) ≼ acct(a)`
+
+Now, when `acct(a) = acct(b)`, substitution gives `pfx(π) ≼ acct(a) ≡ pfx(π) ≼ acct(b)`, and hence `pfx(π) ≼ a ≡ pfx(π) ≼ b`. The set of covering principals — and thus the longest match — is identical.
 
 The effective owner's prefix is always embedded within the account field: `pfx(ω(a)) ≼ acct(a)`. We derive this in four steps. (1) By O1a, `zeros(pfx(ω(a))) ≤ 1`. By T4's field structure (FieldParsing), a valid tumbler with at most one zero separator has at most node and user fields — it contains no document-field or element-field components. (2) By definition of `ω`, `pfx(ω(a)) ≼ a`, so the components of `pfx(ω(a))` match `a`'s leading components. (3) Two cases arise from the zero count. When `zeros(pfx(ω(a))) = 0`: the prefix contains no zero separators, so every component is nonzero; since `pfx(ω(a)) ≼ a`, the first `#pfx(ω(a))` components of `a` are all nonzero, which places them entirely within `a`'s node field; hence `pfx(ω(a)) ≼ nodeField(a) ≼ acct(a)`. When `zeros(pfx(ω(a))) = 1`: the prefix has the form `N.0.U`, and the zero separator at position `α + 1` in the prefix forces — via the prefix relation — a zero at the same position in `a`, aligning `a`'s node-user field boundary with the prefix's; the prefix's user-field components then match `a`'s user-field prefix; since `acct(a)` captures `a` through its full user field, `pfx(ω(a)) ≼ acct(a)`. (4) Hence `#pfx(ω(a)) ≤ #acct(a)` and `pfx(ω(a)) ≼ acct(a)`. The containment may be strict when the address occupies a sub-account position that the effective owner controls but has not delegated. Nelson permits this: "Numbers are owned by individuals or companies, and subnumbers under them are bestowed on other individuals and companies on whatever basis the owners choose" (LM 4/17). An account-level principal may create sub-account positions as organizational namespaces, ghost elements, or internal partitions without introducing a new ownership principal — the owner decides what sub-numbering means. Equality `pfx(ω(a)) = acct(a)` holds when no intermediate sub-account structure extends beyond the owner's prefix; this is the common case for addresses allocated directly at the principal's own account level.
 
@@ -299,7 +309,7 @@ Gregory's implementation has no cross-node communication, no remote ownership lo
 
 When a principal seeks to modify content it does not own, the system's response is not an error but a creative act. This is the architectural expression of the ownership boundary.
 
-**O10 (DenialAsFork).** When principal `π` requires modification of content at address `a` but `ω(a) ≠ π`, the system provides an alternative: `π` may create a new address `a'` within `dom(π)` that structurally relates to `a`:
+**O10 (DenialAsFork).** When principal `π` requires modification of content at address `a` but `ω(a) ≠ π`, the system provides an alternative: `π` may create a new address `a'` within `dom(π)`:
 
   (a) `ω(a') = π` — the new address is fully owned by the requesting principal
 
@@ -362,6 +372,7 @@ The design philosophy is clear: minimize the authorization model to the point wh
 | O3 | `ω(a)` changes only through delegation introducing a longer matching prefix — monotonic refinement | introduced |
 | O4 | `(A a ∈ Σ.alloc : (E π ∈ Π : pfx(π) ≼ a))` — every allocated address is covered by some principal | introduced |
 | O5 | Only the principal with the longest matching prefix may allocate within its domain — subdivision authority | introduced |
+| AccountPrefix | `(A a ∈ T : acct(a) ≼ a)` — the account field is a prefix of the address | introduced |
 | O6 | `acct(a) = acct(b) ⟹ ω(a) = ω(b)` — effective owner determined entirely by account field | introduced |
 | O7 | Delegation (authorized by `delegated`) confers effective ownership (O2), subdivision authority (O5), and recursive delegation (O7) | introduced |
 | O8 | `delegated_Σ(π, π') ∧ a ∈ dom(π') ∩ Σ'.alloc ∧ Σ →⁺ Σ' ⟹ ω_{Σ'}(a) ≠ π` — delegating parent never regains ownership | introduced |
