@@ -1,5 +1,9 @@
 # Proof Modules — Changelog
 
+## 2026-03-16: Remove NodeOntology — ASN-0035 deprecated
+
+Removed NodeOntology/ directory (NodeOntology.dfy, NodeIdentity.dfy, NodeAllocation.dfy). ASN-0035 (Node Ontology) deprecated — its properties are fully covered by ASN-0034 (tumbler algebra), ASN-0040 (baptism), and ASN-0042 (ownership). Level-specific predicates (NodeAddress, AccountAddress, etc.) added to TumblerHierarchy.dfy. 159 total verified.
+
 ## 2026-03-15: TwoSpace — ASN-0036 proof promotion, 199 total verified
 
 Promoted 15 ASN-0036 property proofs into TwoSpace/ directory:
