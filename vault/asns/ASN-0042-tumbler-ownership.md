@@ -96,7 +96,7 @@ The prefix is a tumbler, and the tumbler algebra provides no operation that muta
 
   `Π₀ ≠ ∅  ∧  (A a ∈ Σ₀.alloc : (E π ∈ Π₀ : pfx(π) ≼ a))`
 
-This is the node operator — the principal that holds the node-level prefix and from which all delegation proceeds. Without this base case, the inductive argument for O4 (DomainCoverage) cannot begin.
+In a single-node system, this is the node operator — the principal holding the node-level prefix from which all delegation proceeds. In a multi-node system, `Π₀` contains one initial principal per node (e.g., principals at `[1]` and `[2]`), each independently covering its node's allocatable addresses. The formalization permits both cases: the existential quantifier ranges over all of `Π₀`, not a single distinguished element. Without this base case, the inductive argument for O4 (DomainCoverage) cannot begin.
 
 
 ## The Exclusivity Invariant
@@ -188,6 +188,14 @@ If `π_A` subsequently delegates `[1, 0, 2, 3]` to `π_B`, then `ω(a₄)` refin
 
 Now consider address `a₃ = [1, 0, 7, 0, 1, 0, 1]` under a different account. `pfx(π_A) = [1, 0, 2] ⋠ a₃` (component 3: `2 ≠ 7`). Only `pfx(π_N) = [1] ≼ a₃`, so `ω(a₃) = π_N`. The node operator retains effective ownership of all addresses not covered by a delegated account.
 
+**Fork (O10).** Suppose `π_A` wishes to modify the content at `a₃ = [1, 0, 7, 0, 1, 0, 1]`. Since `ω(a₃) = π_N ≠ π_A`, the system does not grant modification. Instead, `π_A` creates a fork: a new address `a' = [1, 0, 2, 0, 6, 0, 1]` within `dom(π_A)`. We verify O10's three conditions:
+
+- **O10(a)**: `pfx(π_A) = [1, 0, 2] ≼ [1, 0, 2, 0, 6, 0, 1] = a'`, and `π_A` has the longest matching prefix, so `ω(a') = π_A`. ✓
+- **O10(b)**: `zeros(pfx(π_A)) = 1`, so we check `pfx(π_A) ≼ acct(a')`. We have `acct(a') = [1, 0, 2]` and `pfx(π_A) = [1, 0, 2] ≼ [1, 0, 2]`. ✓
+- **O10(c)**: `a₃` is unchanged — `ω(a₃) = π_N` as before, no content modified, no ownership transferred. ✓
+
+The fork transforms the ownership boundary into a creative act: `π_A` now has a fully owned address `a'` whose content identity may relate to `a₃`'s content (through the content model), but whose ownership is entirely independent.
+
 
 ## Structural Provenance
 
@@ -199,7 +207,7 @@ The ownership prefix is embedded in the permanent address. Because every princip
 
 The proof: for any principal `π` with `zeros(pfx(π)) ≤ 1`, the prefix `pfx(π)` has at most node and user fields — by T4's field structure, a valid tumbler with `zeros ≤ 1` contains at most one zero separator, so its components span at most the node field and user field, with no document or element components. Since `pfx(π) ≼ a`, the components of `pfx(π)` match `a`'s leading components, and these leading components — being confined to node and user fields by the zero count — are exactly the components captured by `acct(a)`. Hence `pfx(π) ≼ acct(a)`, and `pfx(π) ≼ a` iff `pfx(π) ≼ b` whenever `acct(a) = acct(b)`. The set of covering principals — and thus the longest match — is identical.
 
-The effective owner's prefix is always embedded within the account field: `pfx(ω(a)) ≼ acct(a)`. We derive this in four steps. (1) By O1a, `zeros(pfx(ω(a))) ≤ 1`. By T4's field structure (FieldParsing), a valid tumbler with at most one zero separator has at most node and user fields — it contains no document-field or element-field components. (2) By definition of `ω`, `pfx(ω(a)) ≼ a`, so the components of `pfx(ω(a))` match `a`'s leading components. (3) Those leading components, being confined to at most node and user fields by (1), fall entirely within the portion of `a` captured by `acct(a)`. (4) Hence `#pfx(ω(a)) ≤ #acct(a)` and `pfx(ω(a)) ≼ acct(a)`. The containment may be strict when the address occupies a sub-account position that the effective owner controls but has not delegated. Nelson permits this: "Numbers are owned by individuals or companies, and subnumbers under them are bestowed on other individuals and companies on whatever basis the owners choose" (LM 4/17). An account-level principal may create sub-account positions as organizational namespaces, ghost elements, or internal partitions without introducing a new ownership principal — the owner decides what sub-numbering means. Equality `pfx(ω(a)) = acct(a)` holds when no intermediate sub-account structure extends beyond the owner's prefix; this is the common case for addresses allocated directly at the principal's own account level.
+The effective owner's prefix is always embedded within the account field: `pfx(ω(a)) ≼ acct(a)`. We derive this in four steps. (1) By O1a, `zeros(pfx(ω(a))) ≤ 1`. By T4's field structure (FieldParsing), a valid tumbler with at most one zero separator has at most node and user fields — it contains no document-field or element-field components. (2) By definition of `ω`, `pfx(ω(a)) ≼ a`, so the components of `pfx(ω(a))` match `a`'s leading components. (3) Two cases arise from the zero count. When `zeros(pfx(ω(a))) = 0`: the prefix contains no zero separators, so every component is nonzero; since `pfx(ω(a)) ≼ a`, the first `#pfx(ω(a))` components of `a` are all nonzero, which places them entirely within `a`'s node field; hence `pfx(ω(a)) ≼ nodeField(a) ≼ acct(a)`. When `zeros(pfx(ω(a))) = 1`: the prefix has the form `N.0.U`, and the zero separator at position `α + 1` in the prefix forces — via the prefix relation — a zero at the same position in `a`, aligning `a`'s node-user field boundary with the prefix's; the prefix's user-field components then match `a`'s user-field prefix; since `acct(a)` captures `a` through its full user field, `pfx(ω(a)) ≼ acct(a)`. (4) Hence `#pfx(ω(a)) ≤ #acct(a)` and `pfx(ω(a)) ≼ acct(a)`. The containment may be strict when the address occupies a sub-account position that the effective owner controls but has not delegated. Nelson permits this: "Numbers are owned by individuals or companies, and subnumbers under them are bestowed on other individuals and companies on whatever basis the owners choose" (LM 4/17). An account-level principal may create sub-account positions as organizational namespaces, ghost elements, or internal partitions without introducing a new ownership principal — the owner decides what sub-numbering means. Equality `pfx(ω(a)) = acct(a)` holds when no intermediate sub-account structure extends beyond the owner's prefix; this is the common case for addresses allocated directly at the principal's own account level.
 
 Nelson: "You always know where you are, and can at once ascertain the home document of any specific word or character" (LM 2/40).
 
