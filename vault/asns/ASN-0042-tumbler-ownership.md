@@ -259,7 +259,7 @@ Ownership is not held at a single level — it flows downward through the hierar
 
 We first define the delegation relation, which the subsequent properties rely upon. We use the *strict prefix* relation throughout: `p ≺ a  ≡  p ≼ a ∧ p ≠ a` (equivalently, `p ≼ a ∧ #p < #a` — the equivalence holds because `p ≼ a ∧ #p = #a` gives `p = a` by T3).
 
-**Definition (Delegation).** We write `delegated_Σ(π, π')` to mean that principal `π'` was introduced into `Π` by an act of `π` in state transition `Σ → Σ'`, subject to three structural constraints:
+**Definition (Delegation).** We write `delegated_Σ(π, π')` to mean that principal `π'` was introduced into `Π` by an act of `π` in state transition `Σ → Σ'`, subject to four structural constraints:
 
   (i) `pfx(π) ≺ pfx(π')` — the delegate's prefix strictly extends the delegator's
 
@@ -267,13 +267,17 @@ We first define the delegation relation, which the subsequent properties rely up
 
   (iii) `π' ∈ Π_{Σ'} ∖ Π_Σ` — the delegate is newly introduced
 
+  (iv) `zeros(pfx(π')) ≤ 1` — the delegate's prefix is at node or account level
+
 Condition (ii) is the authorization constraint — delegation requires O5's subdivision authority. A principal cannot delegate within a sub-domain that has already been delegated to someone else. This grounds the distinction between direct delegation (`π → π'`) and transitive delegation (`π → π' → π''`): when `π` delegates to `π'` and `π'` later delegates to `π''`, we have `delegated(π, π')` and `delegated(π', π'')` but not `delegated(π, π'')`.
 
-Delegation preserves O1b (PrefixInjectivity). Suppose for contradiction that `pfx(π') = pfx(π''')` for some existing `π''' ∈ Π_Σ`. Then `pfx(π''') ≼ pfx(π')`, so by condition (ii) of the delegation relation, `#pfx(π''') ≤ #pfx(π)`. But from condition (i), `pfx(π) ≺ pfx(π')`, giving `#pfx(π) < #pfx(π')`. Combining: `#pfx(π''') ≤ #pfx(π) < #pfx(π') = #pfx(π''')` — a contradiction. Hence every delegation introduces a principal with a prefix distinct from all existing prefixes. By O15, each transition introduces at most one new principal, so no pairwise collision among newly introduced principals can occur — the proof against existing principals is exhaustive. O1b is maintained across all state transitions. This closes the proof chain: delegation preserves O1b, which ensures `ω` (O2) yields a unique principal.
+Delegation preserves O1a (AccountPrefix). By condition (iv), any `π'` admitted by the `delegated` relation satisfies `zeros(pfx(π')) ≤ 1`. Since O1a requires exactly this — that every principal's prefix is at node or account level — the new principal satisfies O1a by construction, and the existing principals are unchanged by O12. O1a is maintained.
 
-**O7 (OwnershipDelegation).** A principal `π` may delegate a sub-prefix to a new principal `π'`, provided `zeros(pfx(π')) ≤ 1` (O1a) and `π` holds subdivision authority over `pfx(π')`. Upon delegation:
+Delegation preserves O1b (PrefixInjectivity). Suppose for contradiction that `pfx(π') = pfx(π''')` for some existing `π''' ∈ Π_Σ`. Then `pfx(π''') ≼ pfx(π')`, so by condition (ii) of the delegation relation, `#pfx(π''') ≤ #pfx(π)`. But from condition (i), `pfx(π) ≺ pfx(π')`, giving `#pfx(π) < #pfx(π')`. Combining: `#pfx(π''') ≤ #pfx(π) < #pfx(π') = #pfx(π''')` — a contradiction. Hence every delegation introduces a principal with a prefix distinct from all existing prefixes. By O15, each transition introduces at most one new principal, so no pairwise collision among newly introduced principals can occur — the proof against existing principals is exhaustive. O1b is maintained across all state transitions. This closes the proof chain: delegation preserves both O1a and O1b, which ensures `ω` (O2) yields a unique principal at a valid hierarchy level.
 
-  `(A π, π' : delegated(π, π') ∧ zeros(pfx(π')) ≤ 1 :`
+**O7 (OwnershipDelegation).** A principal `π` may delegate a sub-prefix to a new principal `π'`, provided the `delegated` relation is satisfied (which entails `zeros(pfx(π')) ≤ 1` by condition (iv)) and `π` holds subdivision authority over `pfx(π')`. Upon delegation:
+
+  `(A π, π' : delegated(π, π') :`
 
   (a) `ω(a) = π'` for all `a ∈ dom(π') ∩ Σ.alloc` where `π'` has the longest matching prefix (O2 applies)
 
@@ -396,7 +400,7 @@ The design philosophy is clear: minimize the authorization model to the point wh
 | `ω(a)` | `effectiveOwner : ValidAddress → Principal` — the effective owner function | introduced |
 | `dom(π)` | `{a ∈ T : pfx(π) ≼ a}` — the ownership domain of a principal | introduced |
 | `acct(a)` | When `zeros(a) = 0`: `acct(a) = a`; when `zeros(a) ≥ 1`: truncation through user field | introduced |
-| `delegated_Σ(π, π')` | `π'` introduced into `Π` by act of `π`, with `pfx(π) ≺ pfx(π')` and `π` most-specific covering principal | introduced |
+| `delegated_Σ(π, π')` | `π'` introduced into `Π` by act of `π`, with `pfx(π) ≺ pfx(π')`, `π` most-specific covering principal, and `zeros(pfx(π')) ≤ 1` | introduced |
 | `pfx(π)` | `ownershipPrefix : Principal → Tumbler` — injective, `zeros(pfx(π)) ≤ 1` | introduced |
 
 
