@@ -92,7 +92,7 @@ Nelson's architecture contains no concept of account revocation. Gregory's codeb
 
 The prefix is a tumbler, and the tumbler algebra provides no operation that mutates an existing tumbler in place. Since addresses are permanent (T8) and the prefix is structurally embedded in its domain's addresses, altering it would require rewriting every address in the domain — an operation the system does not support.
 
-**O14 (BootstrapPrincipal).** The initial state contains at least one principal whose domain covers all initially allocatable addresses, and the initial principals satisfy the structural constraints that O1a and O1b require of all principals:
+**O14 (BootstrapPrincipal).** The initial state contains at least one principal whose domain covers all initially allocatable addresses, and the initial principals satisfy the structural constraints that O1a, O1b, and T4 require of all principals:
 
   `Π₀ ≠ ∅  ∧  (A a ∈ Σ₀.alloc : (E π ∈ Π₀ : pfx(π) ≼ a))`
 
@@ -100,9 +100,11 @@ The prefix is a tumbler, and the tumbler algebra provides no operation that muta
 
   `(A π₁, π₂ ∈ Π₀ : pfx(π₁) = pfx(π₂) ⟹ π₁ = π₂)`
 
-The second clause is the base case for O1a: every initial principal has a node-level or account-level prefix. The third clause is the base case for O1b: no two initial principals share a prefix. Together with the inductive step — delegation preserves O1a via condition (iv) and O1b via the length contradiction (shown below) — these clauses establish that O1a and O1b hold in every reachable state.
+  `(A π ∈ Π₀ : T4(pfx(π)))`
 
-In a single-node system, `Π₀ = {π_N}` where `π_N` is the node operator with a node-level prefix (`zeros = 0 ≤ 1`); both base-case clauses hold trivially. In a multi-node system, `Π₀` contains one initial principal per node (e.g., principals at `[1]` and `[2]`), each independently covering its node's allocatable addresses. These are node-level prefixes (satisfying the second clause), and distinct node addresses are distinct tumblers (satisfying the third clause by T3). The formalization permits both cases: the existential quantifier ranges over all of `Π₀`, not a single distinguished element. Without this base case, the inductive arguments for O1a, O1b, and O4 cannot begin.
+The second clause is the base case for O1a: every initial principal has a node-level or account-level prefix. The third clause is the base case for O1b: no two initial principals share a prefix. The fourth clause is the base case for T4: every initial principal's prefix is a valid tumbler address. Together with the inductive steps — delegation preserves O1a via condition (iv), O1b via the length contradiction (shown below), and T4 via condition (v) — these clauses establish that O1a, O1b, and T4 hold in every reachable state.
+
+In a single-node system, `Π₀ = {π_N}` where `π_N` is the node operator with a node-level prefix (`zeros = 0 ≤ 1`); all three base-case clauses hold trivially — a single-component positive tumbler like `[1]` satisfies T4 (no zeros, no adjacency or boundary violations). In a multi-node system, `Π₀` contains one initial principal per node (e.g., principals at `[1]` and `[2]`), each independently covering its node's allocatable addresses. These are node-level prefixes (satisfying the second clause), distinct node addresses are distinct tumblers (satisfying the third clause by T3), and each is a positive single-component tumbler satisfying T4 (satisfying the fourth clause). The formalization permits both cases: the existential quantifier ranges over all of `Π₀`, not a single distinguished element. Without these base cases, the inductive arguments for O1a, O1b, T4, and O4 cannot begin.
 
 **O15 (PrincipalClosure).** Principals enter Π exclusively through bootstrap (in Π₀) or delegation (satisfying the `delegated` relation defined below). No other mechanism introduces principals. Each state transition introduces at most one new principal:
 
@@ -175,7 +177,7 @@ We verify the properties against a concrete scenario. Let principal `π_N` be a 
 
 **Delegation.** `π_N` delegates account prefix `[1, 0, 2]` to new principal `π_A`. Now `Π = {π_N, π_A}`.
 
-**State Σ₁.** Consider address `a₁ = [1, 0, 2, 0, 3, 0, 1]` (a document element under account `[1, 0, 2]`). Both principals' prefixes contain `a₁`: `[1] ≼ a₁` and `[1, 0, 2] ≼ a₁`. The longer match is `[1, 0, 2]`, so `ω(a₁) = π_A`. We verify:
+**State Σ₁.** Suppose `a₁ = [1, 0, 2, 0, 3, 0, 1]` (a document element under account `[1, 0, 2]`) was allocated by `π_N` before delegation, so `a₁ ∈ Σ₀.alloc`. Both principals' prefixes contain `a₁`: `[1] ≼ a₁` and `[1, 0, 2] ≼ a₁`. The longer match is `[1, 0, 2]`, so `ω(a₁) = π_A`. We verify:
 
 - **O0**: `owns(π_A, a₁)` is decidable from `pfx(π_A) = [1, 0, 2]` and `a₁ = [1, 0, 2, 0, 3, 0, 1]` alone. ✓
 - **O1**: `pfx(π_A) ≼ a₁` — the first three components match. ✓
@@ -229,7 +231,13 @@ When `zeros(a) = 0`, `acct(a) = a` and the claim is trivial. When `zeros(a) ≥ 
 
 The proof of O6 proceeds in two directions. *Forward:* we must show that for any principal `π` with `zeros(pfx(π)) ≤ 1`, `pfx(π) ≼ a` implies `pfx(π) ≼ acct(a)`. Two cases arise from the zero count.
 
-When `zeros(pfx(π)) = 0`: the prefix contains no zero separators, so every component of `pfx(π)` is nonzero. Since `pfx(π) ≼ a`, the first `#pfx(π)` components of `a` all equal the corresponding components of `pfx(π)`, and are therefore all nonzero. By T4's field structure (FieldParsing), the nonzero components preceding `a`'s first zero separator constitute `a`'s node field. Since `pfx(π)`'s components are all nonzero and match `a`'s leading components, `pfx(π)` lies entirely within `a`'s node field: `pfx(π) ≼ nodeField(a)`. And `nodeField(a) ≼ acct(a)` by the definition of `acct` (which includes the node field and, when present, the user field). Hence `pfx(π) ≼ acct(a)`.
+When `zeros(pfx(π)) = 0`: the prefix contains no zero separators, so every component of `pfx(π)` is nonzero. Since `pfx(π) ≼ a`, the first `#pfx(π)` components of `a` all equal the corresponding components of `pfx(π)`, and are therefore all nonzero. Two sub-cases arise from the zero count of `a`.
+
+When `zeros(a) = 0`: by FieldParsing, the entire tumbler `a` is its node field, so `acct(a) = a`. Since `pfx(π) ≼ a = acct(a)`, the result is immediate.
+
+When `zeros(a) ≥ 1`: by T4's field structure (FieldParsing), the nonzero components preceding `a`'s first zero separator constitute `a`'s node field. Since `pfx(π)`'s components are all nonzero and match `a`'s leading components, `pfx(π)` lies entirely within `a`'s node field: `pfx(π) ≼ nodeField(a)`. And `nodeField(a) ≼ acct(a)` by the definition of `acct` (which includes the node field and, when present, the user field). Hence `pfx(π) ≼ acct(a)`.
+
+In both sub-cases, `pfx(π) ≼ acct(a)`.
 
 When `zeros(pfx(π)) = 1`: the prefix has the form `N₁...Nα.0.U₁...Uβ`, with a zero separator at position `α + 1`. The prefix relation `pfx(π) ≼ a` forces `a_{α+1} = 0`. By T4 applied to `a`, all components before this zero are positive (they match `N₁...Nα`, which are positive by T4 applied to `pfx(π)`), so this zero cannot be adjacent to another zero or appear at position 1 — it must be `a`'s node-user field separator. This aligns `pfx(π)`'s field structure with `a`'s: the node fields match (`a`'s node field is `N₁...Nα`), and the prefix relation forces `pfx(π)`'s user-field components `U₁...Uβ` to match the first `β` components of `a`'s user field. Since `acct(a)` captures `a` through its full user field, `pfx(π) ≼ acct(a)`.
 
@@ -419,7 +427,7 @@ The design philosophy is clear: minimize the authorization model to the point wh
 | O11 | Principal identity is axiomatic to the ownership model — authentication is external | introduced |
 | O12 | `(A Σ, Σ' : Σ → Σ' ⟹ Π_Σ ⊆ Π_{Σ'})` — principal persistence | introduced |
 | O13 | `pfx_{Σ'}(π) = pfx_Σ(π)` for all transitions — prefix immutability | introduced |
-| O14 | `Π₀ ≠ ∅`, initial principals cover all initially allocated addresses, `(A π ∈ Π₀ : zeros(pfx(π)) ≤ 1)`, and `pfx` injective on `Π₀` — bootstrap with O1a/O1b base cases | introduced |
+| O14 | `Π₀ ≠ ∅`, initial principals cover all initially allocated addresses, `(A π ∈ Π₀ : zeros(pfx(π)) ≤ 1)`, `pfx` injective on `Π₀`, and `(A π ∈ Π₀ : T4(pfx(π)))` — bootstrap with O1a/O1b/T4 base cases | introduced |
 | O15 | Principals enter Π exclusively through bootstrap or delegation; `|Π_{Σ'} ∖ Π_Σ| ≤ 1` per transition | introduced |
 | `ω(a)` | `effectiveOwner : ValidAddress → Principal` — the effective owner function | introduced |
 | `dom(π)` | `{a ∈ T : pfx(π) ≼ a}` — the ownership domain of a principal | introduced |
