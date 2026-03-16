@@ -69,16 +69,18 @@ Each principal's prefix determines a set of addresses — their *domain*:
 
 By T5 (ContiguousSubtrees), every ownership domain is a contiguous interval under the lexicographic order T1. This is a mathematical consequence of prefix containment and the tree-to-line mapping, not a policy choice. If `a, c ∈ dom(π)` and `a ≤ b ≤ c`, then `b ∈ dom(π)`. No address can escape from the interior of someone's domain.
 
-Domains nest. A node operator's domain contains all account domains at that node. An account holder's domain contains all document addresses under that account. The nesting respects the field structure:
+Domains nest whenever prefixes nest:
 
-  `zeros(pfx(π₁)) < zeros(pfx(π₂)) ∧ pfx(π₁) ≼ pfx(π₂)  ⟹  dom(π₂) ⊆ dom(π₁)`
+  `pfx(π₁) ≼ pfx(π₂)  ⟹  dom(π₂) ⊆ dom(π₁)`
 
-A principal at a higher hierarchical level (fewer zeros in their prefix, hence a broader scope) whose prefix is itself a prefix of another's contains that principal's entire domain.
+The proof is one step: if `a ∈ dom(π₂)` then `pfx(π₂) ≼ a`, and since `pfx(π₁) ≼ pfx(π₂)`, transitivity of the prefix relation gives `pfx(π₁) ≼ a`, hence `a ∈ dom(π₁)`. This covers all nesting cases — both cross-level (a node operator's domain containing an account domain) and same-level (an account holder's domain containing a sub-account domain, as when `pfx(π₁) = [1, 0, 2]` and `pfx(π₂) = [1, 0, 2, 3]` both satisfy O1a with `zeros = 1`).
+
+As a corollary, when the nesting is cross-level — `zeros(pfx(π₁)) < zeros(pfx(π₂))` — the containing principal operates at a strictly higher level of the field hierarchy (node containing account, for instance). But the defining condition is prefix containment alone, not the zero count.
 
 
 ## State Axioms
 
-The ownership model rests on four axioms about state evolution that the subsequent derivations assume. We state them explicitly.
+The ownership model rests on five axioms about state evolution that the subsequent derivations assume. We state them explicitly.
 
 **O12 (PrincipalPersistence).** Once a principal joins Π, no operation removes it:
 
@@ -125,6 +127,12 @@ We take `allocated_by_Σ(π, a)` — "address `a` was allocated by principal `π
   `(A Σ, Σ', a : Σ → Σ' ∧ a ∈ Σ'.alloc ∖ Σ.alloc  ⟹  (E π ∈ Π_Σ : allocated_by_{Σ'}(π, a)))`
 
 This is the address-side counterpart of O15: just as principals enter Π exclusively through bootstrap or delegation, addresses enter `Σ.alloc` exclusively through allocation by an existing principal. Without this closure, addresses could appear in `Σ.alloc` through mechanisms outside the ownership model — the derivation of O4 requires that every newly allocated address was allocated by some principal, and O5 alone provides only the conditional form (if `π` allocated `a`, then `pfx(π) ≼ a`), not the existential (some `π` allocated `a`). Gregory confirms: every allocation path in udanax-green originates from a session with an account tumbler — there is no mechanism for addresses to appear without an allocating principal.
+
+**O17 (AllocatedAddressValidity).** Every allocated address is a valid tumbler:
+
+  `(A Σ, a : a ∈ Σ.alloc ⟹ T4(a))`
+
+This axiom is load-bearing: `acct(a)` and `nodeField(a)` depend on FieldParsing (ASN-0034), which requires T4 validity for well-defined field boundaries. Without it, O6's proof (which uses AccountPrefix, requiring `T4(a)`) and O9's proof (which uses `nodeField(a)`, requiring `T4(a)`) have gaps. In the initial state, `(A a ∈ Σ₀.alloc : T4(a))`. For the inductive step, any conforming allocation mechanism must produce addresses satisfying T4 — this is an obligation on the baptism specification (out of scope) that the ownership model requires as an axiom.
 
 
 ## The Exclusivity Invariant
@@ -243,7 +251,7 @@ We first observe a structural property of `acct`: for any valid tumbler `a`, the
 
 **Lemma (AccountPrefix).** `(A a ∈ T : T4(a) ⟹ acct(a) ≼ a)`
 
-The T4 restriction is essential: `acct` relies on field parsing (FieldParsing from ASN-0034), which requires T4 validity — for a tumbler like `[0, 0, 1]`, the field boundaries are ill-defined and `acct` is not well-defined. All allocated addresses satisfy T4, so the restriction does not limit application.
+The T4 restriction is essential: `acct` relies on field parsing (FieldParsing from ASN-0034), which requires T4 validity — for a tumbler like `[0, 0, 1]`, the field boundaries are ill-defined and `acct` is not well-defined. By O17, all allocated addresses satisfy T4, so the restriction does not limit application.
 
 When `zeros(a) = 0`, `acct(a) = a` and the claim is trivial. When `zeros(a) ≥ 1`, `acct(a)` is the truncation of `a` through its user field — the leading `N₁...Nα.0.U₁...Uβ` components — so `acct(a)` is literally a prefix of `a` by construction.
 
@@ -325,11 +333,13 @@ Delegation preserves O1b (PrefixInjectivity). Suppose for contradiction that `pf
 
   `(A π, π' : delegated(π, π') :`
 
-  (a) `ω(a) = π'` for all `a ∈ dom(π') ∩ Σ.alloc` where `π'` has the longest matching prefix (O2 applies)
+  (a) `ω_{Σ'}(a) = π'` for all `a ∈ dom(π') ∩ Σ'.alloc`
 
   (b) `π'` may allocate new addresses within `dom(π')` (O5 applies to `π'`)
 
   (c) `π'` may delegate sub-prefixes `p''` with `pfx(π') ≺ p''` per O7 recursively
+
+Postcondition (a) is categorical, not conditional. By condition (vi) of the `delegated` relation, no principal in `Π_Σ` has a prefix strictly extending `pfx(π')`; by condition (i), `#pfx(π') > #pfx(π)` where `π` is the most-specific principal in `Π_Σ` covering `pfx(π')`. Hence `π'` has the strictly longest matching prefix in `Π_{Σ'}` for every address in `dom(π')`, and O2 yields `ω_{Σ'}(a) = π'` unconditionally.
 
 The authorization constraint is carried by the `delegated` relation — condition (ii) requires `π` to be the most-specific covering principal. This prevents a grandparent from delegating within a sub-domain it has already handed off: if `π₁` delegates `[1, 0, 2, 3]` to `π₂`, then `π₁` cannot subsequently delegate `[1, 0, 2, 3, 5]` to `π₃`, because `π₂` — not `π₁` — is the most-specific covering principal for that prefix.
 
@@ -452,6 +462,7 @@ The design philosophy is clear: minimize the authorization model to the point wh
 | O14 | `Π₀ ≠ ∅`, initial principals cover all initially allocated addresses, `zeros ≤ 1`, `pfx` injective on `Π₀`, `T4(pfx(π))`, and pairwise non-nesting — bootstrap with O1a/O1b/T4/non-nesting base cases | introduced |
 | O15 | Principals enter Π exclusively through bootstrap or delegation; `\|Π_{Σ'} ∖ Π_Σ\| ≤ 1` per transition | introduced |
 | O16 | `(A a ∈ Σ'.alloc ∖ Σ.alloc : (E π ∈ Π_Σ : allocated_by_{Σ'}(π, a)))` — allocation closure | introduced |
+| O17 | `(A Σ, a : a ∈ Σ.alloc ⟹ T4(a))` — every allocated address is a valid tumbler | introduced |
 | `ω(a)` | `effectiveOwner : Σ.alloc → Principal` — the effective owner function (defined only for allocated addresses) | introduced |
 | `dom(π)` | `{a ∈ T : pfx(π) ≼ a}` — the ownership domain of a principal | introduced |
 | `acct(a)` | When `zeros(a) = 0`: `acct(a) = a`; when `zeros(a) ≥ 1`: truncation through user field | introduced |
