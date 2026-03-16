@@ -6,3 +6,9 @@ out_of_scope: "Modification rights and access control (what an owner may do to c
 
 inquiry:
   question: "What does it mean to own a tumbler position? How is ownership established, delegated, and structurally determined?"
+
+draft:
+  asn_imports: [34]
+
+modeling:
+  proof_imports: [TumblerAlgebra, TumblerOrder, TumblerHierarchy, TumblerAllocation]
