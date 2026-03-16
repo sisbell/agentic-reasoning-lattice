@@ -65,7 +65,7 @@ def find_asn(asn_id):
     return None, label
 
 
-def build_prompt(asn_content, vocabulary, out_of_scope=""):
+def build_prompt(asn_content, vocabulary, out_of_scope="", asn_number=None):
     """Assemble review prompt from template + injected content."""
     template = read_file(REVIEW_TEMPLATE)
     if not template:
@@ -73,7 +73,7 @@ def build_prompt(asn_content, vocabulary, out_of_scope=""):
               file=sys.stderr)
         sys.exit(1)
 
-    foundation = load_foundation_statements(FOUNDATION_LIST, STATEMENTS_DIR)
+    foundation = load_foundation_statements(FOUNDATION_LIST, STATEMENTS_DIR, asn_id=asn_number)
 
     scope_note = (f"\n\n## Scope\n\nThe following topics are OUT OF SCOPE for this ASN. "
                   f"Do not flag missing coverage for them. If the ASN defines properties "
@@ -202,7 +202,7 @@ def main():
     out_of_scope = load_out_of_scope(asn_number)
     if out_of_scope:
         print(f"  [SCOPE] Out of scope: {out_of_scope}", file=sys.stderr)
-    prompt = build_prompt(asn_content, vocabulary, out_of_scope=out_of_scope)
+    prompt = build_prompt(asn_content, vocabulary, out_of_scope=out_of_scope, asn_number=asn_number)
     print(f"  Prompt: {len(prompt) // 1024}KB (~{len(prompt) // 4} tokens est.)",
           file=sys.stderr)
 

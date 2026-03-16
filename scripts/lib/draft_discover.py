@@ -214,7 +214,7 @@ def run_discovery(inquiry, asn_number, slug, force=False):
     if vocab:
         prompt_parts.append(f"## Shared Vocabulary\n\n{vocab}")
 
-    foundation = load_foundation_statements(FOUNDATION_LIST, STATEMENTS_DIR)
+    foundation = load_foundation_statements(FOUNDATION_LIST, STATEMENTS_DIR, asn_id=asn_number)
     if foundation:
         prompt_parts.append(foundation)
 

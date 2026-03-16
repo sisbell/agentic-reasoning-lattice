@@ -82,7 +82,7 @@ def find_review(asn_label, review_spec=None):
     return None
 
 
-def build_prompt(asn_path, review_content, vocab, consultation_content=None):
+def build_prompt(asn_path, review_content, vocab, consultation_content=None, asn_number=None):
     """Build revise prompt: discovery methodology + vocab + revise assignment + review."""
     skill_body = read_file(DISCOVERY_PROMPT)
     if not skill_body:
@@ -95,7 +95,7 @@ def build_prompt(asn_path, review_content, vocab, consultation_content=None):
     if vocab:
         parts.append(f"## Shared Vocabulary\n\n{vocab}")
 
-    foundation = load_foundation_statements(FOUNDATION_LIST, STATEMENTS_DIR)
+    foundation = load_foundation_statements(FOUNDATION_LIST, STATEMENTS_DIR, asn_id=asn_number)
     if foundation:
         parts.append(foundation)
 
@@ -276,7 +276,8 @@ def main():
     print(f"  [REVIEW] {review_path.name}", file=sys.stderr)
     if consultation_content:
         print(f"  [CONSULTATION] {Path(args.consultation).name}", file=sys.stderr)
-    prompt = build_prompt(asn_path, review_content, vocab, consultation_content)
+    asn_num = int(re.sub(r"[^0-9]", "", asn_label))
+    prompt = build_prompt(asn_path, review_content, vocab, consultation_content, asn_number=asn_num)
     print(f"  Prompt: {len(prompt) // 1024}KB (~{len(prompt) // 4} tokens)",
           file=sys.stderr)
 
