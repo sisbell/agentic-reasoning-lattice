@@ -152,7 +152,7 @@ Gregory confirms exhaustively. During storage, spans receive sequential V-addres
 
 `coverage(e) = (∪ (s, ℓ) : (s, ℓ) ∈ e : {t ∈ T : s ≤ t < s ⊕ ℓ})`
 
-This is the set of all tumbler addresses referenced by the endset. By L5, coverage is the semantically meaningful content of an endset — the identity of which addresses are referenced, not how the reference is decomposed into spans.
+This is the set of all tumbler addresses referenced by the endset. Note that coverage is a lossy projection: two endsets with different span decompositions may have identical coverage. For instance, `{(1, [3])}` and `{(1, [1]), (2, [2])}` cover the same addresses but are distinct endsets — they contain different spans, and by L5 (which collapses only reorderings of the same span collection, not distinct collections) they are not equal. Coverage tells us *which addresses* an endset references, abstracting away the particular decomposition into spans, but it does not determine endset identity.
 
 
 ## Slot Distinction and Directionality
@@ -198,11 +198,15 @@ Nelson: "Indeed, there is no need for the presence of elements at the addresses 
 
 A consequence of L8 and L9 together: new link types can be defined by choosing a fresh tumbler address and using it as a type endset. No content needs to be created at that address. No registry needs to be updated. No schema needs to change. The type exists as soon as someone uses it. This is what makes the type system "open-ended" — any user can extend it without coordination or system modification.
 
-**L10 — TypeHierarchyByContainment.** When type addresses are chosen with hierarchical structure, the tumbler containment relation (T5, T6, ASN-0034) provides subtype-supertype relationships without any additional mechanism.
+**L10 — TypeHierarchyByContainment.** For type addresses `p, c ∈ T` where `p ≼ c` (p is a prefix of c), define `subtypes(p) = {c ∈ T : p ≼ c}`. By T5 (ContiguousSubtrees, ASN-0034), `subtypes(p)` is a contiguous interval under T1. Therefore there exists a span `(p, ℓ)` such that:
 
-For a parent type at address `p` and a child type at address `c` where `p ≼ c` (p is a prefix of c): any span-based query matching addresses in the interval defined by `p` with appropriate width also matches `c`, because by T5 (ContiguousSubtrees) the address `c` falls within the contiguous interval of addresses extending `p`.
+`(A c : p ≼ c : c ∈ coverage({(p, ℓ)}))`
+
+That is, a single span query rooted at `p` with appropriately chosen width matches every subtype of `p`. Hierarchical type relationships follow from the tumbler ordering without any additional mechanism.
 
 Gregory documents this in the bootstrap document's type registry: `MARGIN` at address `1.0.2.6.2` is hierarchically nested under `FOOTNOTE` at `1.0.2.6`. A query for all footnote-family links, expressed as a span query rooted at `1.0.2.6`, matches both types because `1.0.2.6.2` lies within `[1.0.2.6, 1.0.2.7)`. The subtyping mechanism is the tumbler ordering itself — no separate hierarchy data structure is needed.
+
+We observe that L10 characterizes the structural affordance that the address space provides for type hierarchies. Whether a conforming system must implement subtype-aware query operations, or whether subtype matching is the caller's responsibility, is a question about the query interface — outside this ASN's scope.
 
 
 ## Link Distinctness and Permanence
@@ -217,13 +221,17 @@ The converse does *not* hold as an identity principle: `Σ.L(a₁).from = Σ.L(a
 
 This follows from the allocation mechanism: each link creation event produces a new address by forward allocation (T9, ASN-0034). By GlobalUniqueness (ASN-0034), no two allocation events anywhere in the system, at any time, produce the same address. Therefore every link has a globally unique, permanent identity, and the question "are these the same link?" reduces to tumbler comparison (T2, IntrinsicComparison).
 
-**L12 — LinkPermanence.** Once allocated, a link address remains in `dom(Σ.L)` permanently:
+**L12 — LinkImmutability.** Once created, a link's address persists and its value is permanently fixed:
 
-`(A Σ, Σ' : Σ → Σ' : (A a : a ∈ dom(Σ.L) : a ∈ dom(Σ'.L)))`
+`(A Σ, Σ' : Σ → Σ' : (A a : a ∈ dom(Σ.L) : a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a)))`
 
-for every state transition `Σ → Σ'`. This parallels T8 (AllocationPermanence) for tumblers generally and S0 (ContentImmutability) for content specifically. A link address, once assigned, is never reused or removed from the address space.
+for every state transition `Σ → Σ'`. This parallels S0 (ContentImmutability, ASN-0036) in both halves: the address endures, and the value at that address — the triple of endsets — never changes.
 
-Note what L12 asserts and what it does not. It asserts permanence of the *address* — the link's position on the tumbler line endures. Whether the link remains *discoverable* through indexing, whether its endsets remain *resolvable* to visible content, and what it means for a link to be "removed" while its address persists — these are questions about operations and their effects, outside this ASN's scope.
+The evidence is unambiguous. Nelson's FEBE protocol defines exactly five link operations: MAKELINK (create), FINDLINKSFROMTOTHREE (search), FINDNUMOFLINKSFROMTOTHREE (count), FINDNEXTNLINKSFROMTOTHREE (paginate), and RETRIEVEENDSETS (read). There is no MODIFYLINK, UPDATELINK, or EDITENDSETS. The only write operation is creation; the rest are queries. Gregory confirms at the implementation level: `insertendsetsinorgl` and `insertendsetsinspanf` are called exclusively from `docreatelink`; no other code path writes to the link's orgl or spanfilade entries. The link orgl is written once by `createorglingranf` and never touched again.
+
+Link immutability follows from the same principle that makes content immutable: others may have linked to it. Since links are first-class objects with tumbler addresses, other links can point to them (L13). Modifying a link's endsets after creation would silently change the meaning of every meta-link pointing to it — violating the permanence guarantee. To effectively change a connection, the owner deletes the old link (V-space removal only) and creates a new one via MAKELINK with the desired endsets. The old link persists in I-space and historical versions; the new link gets a fresh address in creation order.
+
+Note what L12 does not address. Whether a link remains *discoverable* through indexing, whether its endsets remain *resolvable* to visible content, and what it means for a link to be "removed" while its address and value persist — these are questions about operations and their effects, outside this ASN's scope.
 
 **L12a — LinkStoreMonotonicity.** The domain of the link store is monotonically non-decreasing:
 
@@ -257,9 +265,7 @@ The three-endset link plays the same role for structured connections that the co
 
 We can now state the architectural consequence that unifies the preceding properties. The docuverse is built from exactly two kinds of stored entity:
 
-**L14 — DualPrimitive.** The set of stored entities is partitioned into content values and links:
-
-`{all stored addresses} = dom(Σ.C) ∪ dom(Σ.L)`
+**L14 — DualPrimitive.** The set of addresses at which entity values reside is `dom(Σ.C) ∪ dom(Σ.L)`. No state component maps an address outside this union to an entity value. Arrangements `Σ.M(d)` are mappings *between* addresses — they relate V-positions to I-addresses — but V-positions are not entities in their own right. The two domains are disjoint:
 
 `dom(Σ.C) ∩ dom(Σ.L) = ∅`
 
@@ -277,7 +283,7 @@ The two primitives are peers. Both have permanent tumbler addresses. Both are st
 | Identity semantics | Shareable via transclusion (S5) | Unique per address (L11) |
 | Address determines | Content origin (S7) | Link home and owner (L2) |
 
-Content identity is *shareable*: the same I-address can appear in the arrangements of multiple documents via transclusion, and this sharing is the mechanism for content reuse (S5, ASN-0036). Link identity is *unique*: each link has exactly one address, and there is no mechanism to make two documents "share" the same link. A link at address `a` is homed in `home(a)` and owned by the principal of `home(a)` — period. It cannot be transcluded into another owner's authority.
+Content identity is *shareable*: the same I-address can appear in the arrangements of multiple documents via transclusion, and this sharing is the mechanism for content reuse (S5, ASN-0036). Link identity is *unique*: each link has exactly one address, and there is no mechanism to make two documents "share" the same link. We can derive this from two properties already established. First, S3 (ReferentialIntegrity, ASN-0036) requires that every V-mapping points to a content address: `(A d, v : v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ dom(Σ.C))`. Second, L0 establishes `dom(Σ.L) ∩ dom(Σ.C) = ∅`. Together these entail that no arrangement can map a V-position to a link address — the transclusion mechanism (multiple arrangements referencing the same I-address) cannot apply to links. A link at address `a` is homed in `home(a)` and owned by the principal of `home(a)` — period. It cannot be transcluded into another owner's authority.
 
 This asymmetry is deliberate. Content wants to be shared — that is the point of transclusion. But a connection is an assertion by a specific principal about specific content, and assertions are not transferable by reference.
 
@@ -312,7 +318,7 @@ A link at address `a ∈ dom(Σ.L)` is characterized by:
 | L9 | TypeGhostPermission — type endsets may reference addresses at which no content exists | introduced |
 | L10 | TypeHierarchyByContainment — tumbler prefix containment provides hierarchical type relationships | introduced |
 | L11 | IdentityByAddress — link identity is its tumbler address; identical endsets do not imply identical links | introduced |
-| L12 | LinkPermanence — `(A Σ, Σ' : a ∈ dom(Σ.L) : a ∈ dom(Σ'.L))` for every state transition | introduced |
+| L12 | LinkImmutability — `(A Σ, Σ' : a ∈ dom(Σ.L) : a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a))` for every state transition | introduced |
 | L12a | LinkStoreMonotonicity — `dom(Σ.L) ⊆ dom(Σ'.L)` for every state transition | introduced |
 | L13 | ReflexiveAddressing — link addresses are valid endset span targets, enabling link-to-link connections | introduced |
 | L14 | DualPrimitive — stored entities partition into content (`dom(Σ.C)`) and links (`dom(Σ.L)`) with no third category | introduced |
@@ -324,12 +330,9 @@ A link at address `a ∈ dom(Σ.L)` is characterized by:
 
 ## Open Questions
 
-- Must the from and to endsets of a well-formed link reference addresses in `dom(Σ.C)`, or is a link well-formed even when its content endsets reference addresses at which no content exists?
 - What invariants must hold between the link store and the content store when the same I-address appears in multiple arrangements via transclusion?
 - What well-formedness constraints, if any, govern compound link structures where links reference other links through endsets?
-- Must every link have a non-empty type endset, or is a link without type classification well-formed?
-- What properties must endset span normalization satisfy — are two endsets with different span decompositions but identical coverage equivalent?
-- When an endset span extends across a subspace boundary, covering addresses in both the content subspace and the link subspace, what properties must hold?
+- Under what conditions should two endsets with different span decompositions but identical coverage be treated as equivalent for query purposes?
 - What constraints govern the allocation ordering of link addresses relative to content addresses within the same document?
 - What must a conforming type address hierarchy satisfy beyond tumbler prefix containment?
 - Must the link store maintain consistency with the arrangements `Σ.M`, or are the two components independently mutable?
