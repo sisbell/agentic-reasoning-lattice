@@ -111,6 +111,8 @@ For every new mapping M'(d)(v) = a, referential integrity requires a ∈ dom(C')
 
 (ii) a ∈ dom(C) — existing content. This is transclusion: "the copy shares I-addresses with the source. No new content is created in I-space."
 
+New V-positions must also satisfy the arrangement structure invariants of ASN-0036: S8a (all components strictly positive), S8-depth (uniform depth within each subspace), and S8-fin (finite domain). These are not consequences of K.μ⁺ — they are preconditions on the V-positions being added.
+
 *Frame:* C' = C; E' = E; (A d' : d' ≠ d : M'(d') = M(d')); R' = R.
 
 **K.μ⁻ (Arrangement contraction).** Existing V→I mappings are removed from some d ∈ E_doc, with surviving mappings unchanged:
@@ -127,7 +129,7 @@ Nelson: "the owner of a document may delete bytes from the owner's current versi
 
 `(A v : v ∈ dom(M(d)) : M'(d)(π(v)) = M(d)(v))`
 
-The multiset of referenced I-addresses is preserved; only V-positions change. Nelson: content "changes V-space positions but touches nothing in I-space. The same bytes appear in a different order." Gregory confirms that reordering is the only transition kind that leaves all persistent structures outside the arrangement unchanged.
+The multiset of referenced I-addresses is preserved; only V-positions change. The bijection π must produce valid V-positions satisfying S8a and S8-depth — it cannot map positions to tumblers with zero components or non-uniform depth. Nelson: content "changes V-space positions but touches nothing in I-space. The same bytes appear in a different order." Gregory confirms that reordering is the only transition kind that leaves all persistent structures outside the arrangement unchanged.
 
 *Frame:* C' = C; E' = E; R' = R; ran(M'(d)) = ran(M(d)); (A d' : d' ≠ d : M'(d') = M(d')).
 
@@ -143,6 +145,8 @@ These six kinds — α, δ, μ⁺, μ⁻, μ~, ρ — are complete. The argument
 
 We also observe that neither split nor merge appears as an elementary transition. Nelson addresses this explicitly: the effect of splitting a document is achieved by creating two new documents and transcluding different portions of the original into each. Merging is creating a new document and transcluding from multiple sources. Both compose from K.δ, K.μ⁺, and K.ρ — the elementary transitions suffice.
 
+A general constraint applies to all transitions that modify arrangements: the ASN-0036 arrangement invariants — S2 (functional), S3 (referential integrity), S8a (V-position well-formedness), S8-depth (uniform depth within subspace), S8-fin (finite domain) — must hold at the final state of every composite transition. These are not postconditions of individual elementary transitions; they are invariants of the reachable state space.
+
 
 ## Coupling and isolation
 
@@ -150,11 +154,13 @@ The elementary transitions do not all occur independently. Some must co-occur to
 
 A clarification on scope. The frame conditions stated above describe individual elementary transitions: K.μ⁺ alone does not modify R, K.α alone does not modify M, and so on. Coupling constraints describe required co-occurrence — when K.μ⁺ occurs, K.ρ must also occur in the same composite transition. A *composite transition* is an ordered sequence of elementary transitions whose intermediate states need not satisfy all system invariants; the invariants are required to hold at the final state. The ordering matters: J0 couples K.α with K.μ⁺, and S3 requires the I-address to exist before the V→I mapping is created, so K.α precedes K.μ⁺. Similarly, J4's fork compounds K.δ + K.μ⁺ + K.ρ, and K.μ⁺ requires d ∈ E_doc, which K.δ establishes — so K.δ precedes K.μ⁺. The net effect of a composite transition is the composition of its elementary effects.
 
+A convention on freshly created documents. When a composite transition creates a new document d via K.δ, the pre-state has no arrangement for d (since d ∉ E_doc). To state the coupling constraints uniformly, we adopt M(d) = ∅ for d ∈ E'_doc \ E_doc — documents that do not yet exist in the pre-state have an empty arrangement. Under this convention, ran(M(d)) = ∅ for freshly created documents, so the set difference ran(M'(d)) \ ran(M(d)) reduces to ran(M'(d)): all content placed in a new document counts as newly introduced. The coupling constraints below quantify over E'_doc, not E_doc, making them applicable to freshly created documents without special cases.
+
 **J0 (Allocation requires placement).** Content allocation K.α always co-occurs with arrangement extension K.μ⁺:
 
-`(A Σ → Σ', a : a ∈ dom(C') \ dom(C) : (E d, v : d ∈ E_doc ∧ v ∈ dom(M'(d)) : M'(d)(v) = a))`
+`(A Σ → Σ', a : a ∈ dom(C') \ dom(C) : (E d, v : d ∈ E'_doc ∧ v ∈ dom(M'(d)) : M'(d)(v) = a))`
 
-Every freshly allocated I-address appears in some arrangement. This is an axiom of the state transition model, not a theorem of ASN-0036. S7a tells us that the prefix of a identifies the creating document, but it does not tell us that the creating document's arrangement must contain a — an address could be allocated into dom(C) with the correct prefix while appearing in no arrangement. The justification for J0 is design intent: in Nelson's model, content enters the docuverse by being placed in a document. There is no mechanism for creating "orphan" content that exists in I-space without any document displaying it. Gregory confirms: allocation always occurs in the context of a document operation that inserts the new content.
+Every freshly allocated I-address appears in some arrangement in the post-state — the containing document may itself have been freshly created by K.δ in the same composite transition. This is an axiom of the state transition model, not a theorem of ASN-0036. S7a tells us that the prefix of a identifies the creating document, but it does not tell us that the creating document's arrangement must contain a — an address could be allocated into dom(C) with the correct prefix while appearing in no arrangement. The justification for J0 is design intent: in Nelson's model, content enters the docuverse by being placed in a document. There is no mechanism for creating "orphan" content that exists in I-space without any document displaying it. Gregory confirms: allocation always occurs in the context of a document operation that inserts the new content.
 
 **J1 (Extension records provenance).** Arrangement extension K.μ⁺ must co-occur with provenance recording K.ρ:
 
@@ -172,11 +178,13 @@ This requires K.ρ to co-occur, adding the new pairs to R.
 
 Gregory identifies one implementation anomaly where provenance recording is skipped for a particular command, "making content invisible to find_documents." The abstract specification treats this as a defect: the coupling is required.
 
+For a freshly created document d ∈ E'_doc \ E_doc, the convention M(d) = ∅ gives ran(M(d)) = ∅, so ran(M'(d)) \ ran(M(d)) = ran(M'(d)): every I-address placed in a new document triggers provenance recording.
+
 **J1' (Provenance requires extension).** Conversely, provenance recording K.ρ for (a, d) occurs only within a composite transition where K.μ⁺ introduces a into ran(M'(d)):
 
 `(A Σ → Σ', a, d : (a, d) ∈ R' \ R : a ∈ ran(M'(d)) \ ran(M(d)))`
 
-J1 ensures every new containment pair is recorded; J1' ensures every new provenance entry corresponds to an actual containment event. Together they give a bidirectional coupling: K.ρ fires for (a, d) if and only if K.μ⁺ introduces a into d's arrangement in the same composite transition. Gregory confirms this tight coupling — the provenance structure "accumulates entries from every content addition" and no mechanism exists to record provenance outside of content placement.
+J1 ensures every new containment pair is recorded; J1' ensures every new provenance entry corresponds to an actual containment event. Together they give a bidirectional coupling: K.ρ fires for (a, d) if and only if K.μ⁺ introduces a into d's arrangement in the same composite transition. The convention M(d) = ∅ for d ∈ E'_doc \ E_doc ensures J1' is well-defined for freshly created documents: ran(M'(d)) \ ran(M(d)) = ran(M'(d)). Gregory confirms this tight coupling — the provenance structure "accumulates entries from every content addition" and no mechanism exists to record provenance outside of content placement.
 
 **J2 (Contraction isolation).** Arrangement contraction K.μ⁻ is isolated from all permanent and historical state:
 
@@ -211,7 +219,7 @@ An immediate consequence of J1 and J2 is that the provenance relation diverges f
 
 - K.α: Does not modify M or R. Contains(Σ') = Contains(Σ) ⊆ R = R'. Preserved.
 - K.δ: Creates entity e with empty arrangement M'(e) = ∅, contributing no new pairs to Contains. Does not modify R. Preserved.
-- K.μ⁺ (composite with K.ρ): K.μ⁺ alone does not preserve the invariant — it adds pairs to Contains while its frame holds R' = R. But K.μ⁺ never occurs alone: J1 requires co-occurring K.ρ. Let Δ = {(a, d) : a ∈ ran(M'(d)) \ ran(M(d))} be the new containment pairs. K.μ⁺ yields Contains(Σ') = Contains(Σ) ∪ Δ. By J1, (a, d) ∈ R' for every (a, d) ∈ Δ. Since Contains(Σ) ⊆ R ⊆ R' (inductive hypothesis and P2), we have Contains(Σ') = Contains(Σ) ∪ Δ ⊆ R'. Preserved by composition.
+- K.μ⁺ (composite with K.ρ): K.μ⁺ alone does not preserve the invariant — it adds pairs to Contains while its frame holds R' = R. But K.μ⁺ never occurs alone: J1 requires co-occurring K.ρ. Let Δ = {(a, d) : d ∈ E'_doc ∧ a ∈ ran(M'(d)) \ ran(M(d))} be the new containment pairs, where the convention M(d) = ∅ for d ∈ E'_doc \ E_doc ensures this is well-defined for freshly created documents. K.μ⁺ yields Contains(Σ') = Contains(Σ) ∪ Δ. By J1, (a, d) ∈ R' for every (a, d) ∈ Δ. Since Contains(Σ) ⊆ R ⊆ R' (inductive hypothesis and P2), we have Contains(Σ') = Contains(Σ) ∪ Δ ⊆ R'. Preserved by composition.
 - K.μ⁻: Can only remove pairs from Contains — ran(M'(d)) ⊆ ran(M(d)), so Contains(Σ') ⊆ Contains(Σ) ⊆ R = R'. Preserved by monotonicity.
 - K.μ~: Preserves ran(M(d)), so Contains(Σ') = Contains(Σ) ⊆ R = R'. Preserved.
 - K.ρ: By J1', does not occur without K.μ⁺ — handled in the composite case above. Were it to occur independently, R grows while Contains is unchanged: Contains(Σ') = Contains(Σ) ⊆ R ⊆ R'. The invariant would be preserved, but the entry would lack historical justification.
@@ -238,6 +246,52 @@ The only component that can lose information is M.
 P5 makes the confinement vivid. Every destructive state change — every removal, every reordering — is confined to the presentational layer. The permanent record (what content exists, which entities have been created, what provenance has been recorded) can only grow.
 
 
+## Worked example: fork with subsequent insertion
+
+We trace a concrete scenario to ground the abstract definitions. Let the starting state Σ₁ contain node 1, account 1.0.1, and document d₁ = 1.0.1.0.1 with two characters:
+
+> C₁ = {1.0.1.0.1.0.1.1 ↦ 'H', 1.0.1.0.1.0.1.2 ↦ 'i'}
+> E₁ = {1, 1.0.1, 1.0.1.0.1}
+> M₁(d₁) = {[1] ↦ 1.0.1.0.1.0.1.1, [2] ↦ 1.0.1.0.1.0.1.2}
+> R₁ = {(1.0.1.0.1.0.1.1, d₁), (1.0.1.0.1.0.1.2, d₁)}
+
+We write a₁ = 1.0.1.0.1.0.1.1 and a₂ = 1.0.1.0.1.0.1.2 for brevity.
+
+**Fork d₁ to d₂ = 1.0.1.0.2.** This is J4's compound K.δ + K.μ⁺ + K.ρ.
+
+*K.δ:* E₂ = E₁ ∪ {1.0.1.0.2}. The address 1.0.1.0.2 is obtained from 1.0.1.0.1 by inc(·, 0) at the document field — a sibling allocation (TA5(c), ASN-0034). M₂(d₂) = ∅.
+
+*K.μ⁺:* M₂(d₂) = {[1] ↦ a₁, [2] ↦ a₂}. The same I-addresses as d₁ — transclusion, case (ii). No new content enters C. The V-positions [1] and [2] satisfy S8a (positive components) and S8-depth (uniform depth 1).
+
+*K.ρ:* R₂ = R₁ ∪ {(a₁, d₂), (a₂, d₂)}.
+
+Verification against the resulting state Σ₂:
+
+- *J0:* No fresh content (dom(C₂) = dom(C₁)), so vacuously satisfied.
+- *J1:* ran(M₂(d₂)) \ ran(M₁(d₂)) = {a₁, a₂} \ ∅ = {a₁, a₂} (convention: M₁(d₂) = ∅). Both (a₁, d₂) and (a₂, d₂) are in R₂. ✓
+- *J4:* d₂ ∈ E₂_doc \ E₁_doc, ran(M₂(d₂)) = {a₁, a₂} ⊆ ran(M₁(d₁)). ✓
+- *P4:* Contains(Σ₂) = {(a₁, d₁), (a₂, d₁), (a₁, d₂), (a₂, d₂)} ⊆ R₂. ✓
+- *P5:* C₂ = C₁; E₂ ⊇ E₁; R₂ ⊇ R₁. Only M changed. ✓
+
+**Insert new content into d₂.** Compound K.α + K.μ⁺ + K.ρ.
+
+*K.α:* Allocate a₃ = 1.0.1.0.2.0.1.1 with C₃(a₃) = '!'. The address falls under d₂'s prefix (S7a): origin(a₃) = 1.0.1.0.2 = d₂. By GlobalUniqueness, a₃ is fresh.
+
+*K.μ⁺:* M₃(d₂) = M₂(d₂) ∪ {[3] ↦ a₃}. V-position [3] has depth 1, matching [1] and [2] (S8-depth). Referential integrity: a₃ ∈ dom(C₃) (S3). ✓
+
+*K.ρ:* R₃ = R₂ ∪ {(a₃, d₂)}.
+
+Verification:
+
+- *J0:* a₃ ∈ dom(C₃) \ dom(C₂), and d₂ ∈ E₃_doc with M₃(d₂)([3]) = a₃. ✓
+- *J1:* ran(M₃(d₂)) \ ran(M₂(d₂)) = {a₃}, and (a₃, d₂) ∈ R₃. ✓
+- *P4:* Contains(Σ₃) adds (a₃, d₂); this pair is in R₃. ✓
+- *P6:* origin(a₃) = d₂ = 1.0.1.0.2 ∈ E₃_doc. ✓
+- *P7:* (a₃, d₂) ∈ R₃ and a₃ ∈ dom(C₃). ✓
+
+The two scenarios exercise J0, J1, J4, P4, P5, P6, and P7, and demonstrate the convention M(d) = ∅ for freshly created documents in the J1 verification of the fork.
+
+
 ## Temporal decomposition
 
 We have arrived at the structural insight underlying the entire design. The state Σ = (C, E, M, R) decomposes into three temporal layers, each answering a different question about the docuverse.
@@ -253,6 +307,20 @@ We have arrived at the structural insight underlying the entire design. The stat
 | Existential | C, E | Append-only, values immutable | K.α, K.δ |
 | Historical | R | Append-only, entries may stale | K.ρ |
 | Presentational | M | Fully mutable | K.μ⁺, K.μ⁻, K.μ~ |
+
+Two cross-layer invariants bridge the existential and historical layers, making the temporal contracts precise.
+
+**P6 (Existential coherence).** For every I-address in the content store, its origin document exists as an entity:
+
+`(A a ∈ dom(C) :: origin(a) ∈ E_doc)`
+
+*Derivation.* K.α allocates a under the creating document's prefix (S7a, ASN-0036), so origin(a) identifies that document. The document must be in E'_doc for its arrangement to receive a (J0); once in E_doc, P1 preserves it. The content persists in dom(C) by P0. Initial state: dom(C₀) = ∅, so the quantifier is vacuously satisfied. Inductive step: each K.α adds a with origin(a) ∈ E'_doc; P0 preserves a; P1 preserves origin(a). ∎
+
+**P7 (Provenance grounding).** Every provenance entry references allocated content:
+
+`(A (a, d) ∈ R :: a ∈ dom(C))`
+
+*Derivation.* K.ρ requires a ∈ dom(C) as a precondition. P0 preserves dom(C). By induction: initially R₀ = ∅ (vacuous). Each K.ρ adds (a, d) with a ∈ dom(C); P0 ensures a remains in dom(C') for all subsequent states; P2 ensures (a, d) remains in R'. ∎
 
 The decomposition constrains the elementary transitions cleanly. No transition modifies all three layers simultaneously. The purely destructive transitions — K.μ⁻ and K.μ~ — are confined to the presentational layer alone, the one layer where impermanence is by design. Cross-layer coupling occurs only in constructive directions: K.α (existential) couples with K.μ⁺ (presentational) via J0; K.μ⁺ (presentational) couples with K.ρ (historical) via J1/J1'. The existential and historical layers never shrink.
 
@@ -285,6 +353,8 @@ Nelson captures the whole architecture in a sentence: "The braid only grows more
 | J2 | Arrangement contraction (K.μ⁻) is isolated: C, E, R unchanged | introduced |
 | J3 | Arrangement reordering (K.μ~) is isolated: C, E, R unchanged | introduced |
 | J4 | Document fork compounds K.δ + K.μ⁺ + K.ρ with no new content in C | introduced |
+| P6 | Existential coherence: origin(a) ∈ E_doc for all a ∈ dom(C) | introduced |
+| P7 | Provenance grounding: a ∈ dom(C) for all (a, d) ∈ R | introduced |
 
 
 ## Open Questions
