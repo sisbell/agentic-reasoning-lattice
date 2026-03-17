@@ -65,16 +65,22 @@ Links and content cannot share an address. They are peers in the tumbler space �
 
 This parallels S7b for content (ASN-0036). A link address carries all four tumbler fields (node, user, document, element), enabling the same structural attribution that content addresses enjoy. Gregory confirms: link addresses are allocated by `findisatoinsertmolecule` with the `LINKATOM` hint, producing full element-level tumblers.
 
+**L1a — LinkScopedAllocation.** Every link address is allocated under the tumbler prefix of the document whose owner created it:
+
+`(A a ∈ dom(Σ.L) :: origin(a) identifies the allocating document)`
+
+This parallels S7a (DocumentScopedAllocation, ASN-0036) for content. Gregory confirms: `docreatelink` allocates the link address within the creating document's address space via `findisatoinsertmolecule`, which extends the document's I-stream. The allocation prefix is determined by the document parameter, not by the endsets — a link whose endsets reference entirely foreign content is still allocated under the creating document's prefix.
+
 
 ## Home and Ownership
 
-Because link addresses are element-level tumblers (L1), the `origin` function from ASN-0036 applies directly.
+Because link addresses are element-level tumblers (L1) allocated under their creating document's prefix (L1a), the `origin` function from ASN-0036 applies directly.
 
 **Definition — LinkHome.** For a link at address `a ∈ dom(Σ.L)`, its *home document* is:
 
 `home(a) = origin(a) = (fields(a).node).0.(fields(a).user).0.(fields(a).document)`
 
-The home document determines the link's owner. This is not metadata attached to the link — it IS the link's address, read through the field structure. A link at address `a` lives under the document prefix `home(a)`, which identifies who created it and where it resides, by the same structural attribution that governs content (S7, ASN-0036).
+The home document determines the link's owner. This is not metadata attached to the link — it IS the link's address, read through the field structure. By L1a, the document-level prefix of `a` identifies the document whose owner created the link; by L1 and T4 (FieldParsing, ASN-0034), the prefix is recoverable from the address alone. Together these yield the link analog of S7 (StructuralAttribution, ASN-0036): `home(a)` uniquely identifies the creating document across the system (by GlobalUniqueness, ASN-0034), and this identification is structural — embedded in the address, not attached as metadata.
 
 The critical property — the one that distinguishes this design from systems where annotations are embedded in the annotated content:
 
@@ -190,11 +196,13 @@ Nelson: "What the 'type' designation points to is completely arbitrary. This is 
 
 This is a profound design choice. It decouples classification from content retrieval entirely. A search for "all links of type X" never fetches the bytes at address X — it only matches the address. This means:
 
-**L9 — TypeGhostPermission.** By L4, no existence constraint governs endset spans; for the type endset specifically, this permits addresses at which no content exists:
+**L9 — TypeGhostPermission.** Ghost types are permitted: for any conforming state `Σ` satisfying L0–L14 and S0–S3, there exists a conforming state `Σ'` extending `Σ` with a link whose type endset references an address outside `dom(Σ'.C) ∪ dom(Σ'.L)`:
 
-`¬ [(A a ∈ dom(Σ.L), (s, ℓ) ∈ Σ.L(a).type :: coverage({(s, ℓ)}) ⊆ dom(Σ.C))]`
+`(E Σ' :: Σ' satisfies L0–L14 ∧ S0–S3 ∧ (E a ∈ dom(Σ'.L), (s, ℓ) ∈ Σ'.L(a).type :: coverage({(s, ℓ)}) ⊄ dom(Σ'.C) ∪ dom(Σ'.L)))`
 
-Nelson: "Indeed, there is no need for the presence of elements at the addresses specified. Link types may be ghost elements." The type address is a pure name — a position chosen by convention, not a pointer to content that must be dereferenced.
+*Witness.* Take any conforming `Σ`. Choose a fresh address `g ∈ T` with `g ∉ dom(Σ.C) ∪ dom(Σ.L)` (such an address exists by T0(b)). Allocate a new link `a` (via T9, forward allocation) with `Σ'.L(a) = (∅, ∅, {(g, ℓ_g)})` where `ℓ_g` is the unit-width displacement at depth `#g`. The type span `(g, ℓ_g)` is well-formed by T12, the endsets satisfy L3–L5, and no property of this ASN requires `coverage(Σ'.L(a).type) ⊆ dom(Σ'.C)`. ∎
+
+No property of L0–L14 constrains type endset targets to content addresses. Nelson: "Indeed, there is no need for the presence of elements at the addresses specified. Link types may be ghost elements." The type address is a pure name — a position chosen by convention, not a pointer to content that must be dereferenced.
 
 A consequence of L8 and L9 together: new link types can be defined by choosing a fresh tumbler address and using it as a type endset. No content needs to be created at that address. No registry needs to be updated. No schema needs to change. The type exists as soon as someone uses it. This is what makes the type system "open-ended" — any user can extend it without coordination or system modification.
 
@@ -215,11 +223,11 @@ We observe that L10 characterizes the structural affordance that the address spa
 
 We now establish the identity semantics of links. The three requirements we began with — distinguishability, ownership, referenceability — crystallize into two properties.
 
-**L11 — IdentityByAddress.** The identity of a link is its tumbler address. Two links at different addresses are distinct objects regardless of whether their endsets are identical:
+**L11 — IdentityByAddress.** Link identity is address identity. For link addresses `a₁, a₂ ∈ dom(Σ.L)` produced by distinct allocation events, `a₁ ≠ a₂` regardless of whether `Σ.L(a₁) = Σ.L(a₂)`:
 
-`(A a₁, a₂ ∈ dom(Σ.L) :: a₁ ≠ a₂ ⟹ Σ.L(a₁) and Σ.L(a₂) are distinct links)`
+`(A a₁, a₂ ∈ dom(Σ.L) :: a₁ ≠ a₂ ⟹ a₁ and a₂ designate separate link entities, even when Σ.L(a₁) = Σ.L(a₂))`
 
-The converse does *not* hold as an identity principle: `Σ.L(a₁).from = Σ.L(a₂).from ∧ Σ.L(a₁).to = Σ.L(a₂).to ∧ Σ.L(a₁).type = Σ.L(a₂).type` does not imply `a₁ = a₂`. Two links with identical endsets — same from, same to, same type — but different addresses are separate objects, independently owned, independently removable, independently targetable by other links.
+The link store is not necessarily injective — multiple addresses may store the same triple of endsets. Two links with identical endsets — same from, same to, same type — but different addresses are separate objects, independently owned, independently removable, independently targetable by other links. The converse does not hold as an identity principle: `Σ.L(a₁) = Σ.L(a₂)` does not imply `a₁ = a₂`.
 
 This follows from the allocation mechanism: each link creation event produces a new address by forward allocation (T9, ASN-0034). By GlobalUniqueness (ASN-0034), no two allocation events anywhere in the system, at any time, produce the same address. Therefore every link has a globally unique, permanent identity, and the question "are these the same link?" reduces to tumbler comparison (T2, IntrinsicComparison).
 
@@ -303,6 +311,64 @@ A link at address `a ∈ dom(Σ.L)` is characterized by:
 - **Type semantics** — the type endset is matched by address, not by content; it may reference ghost addresses; and hierarchical type relationships follow from tumbler containment (L8, L9, L10).
 
 
+## Worked Example
+
+We construct a minimal conforming state to verify that L0–L14 hold simultaneously.
+
+**Setup.** Node 1, user 1, document 1. The content subspace identifier is `s_C = 1` and the link subspace identifier is `s_L = 2`.
+
+Content addresses have element field starting with 1; link addresses have element field starting with 2. The document prefix is `1.0.1.0.1`.
+
+**Content store.** Two content characters at addresses:
+
+- `c₁ = 1.0.1.0.1.0.1.1` — first character, element field `1.1`
+- `c₂ = 1.0.1.0.1.0.1.2` — second character, element field `1.2`
+
+So `Σ.C = {c₁ ↦ v₁, c₂ ↦ v₂}` for some values `v₁, v₂ ∈ Val`.
+
+**Arrangement.** One document `d = 1.0.1.0.1` with `Σ.M(d) = {[1.1] ↦ c₁, [1.2] ↦ c₂}` (V-positions are element-field tumblers within the document).
+
+**Link store.** One link — a citation from `c₁` to `c₂` with a ghost type — at address:
+
+- `a = 1.0.1.0.1.0.2.1` — element field `2.1` (subspace 2, ordinal 1)
+
+Choose a ghost type address `g = 1.0.2.0.1.0.1.1` (a content address in a different document — one at which nothing is stored). Define:
+
+- From-endset: `F = {(c₁, ℓ₁)}` where `ℓ₁ = [0, 0, 0, 0, 0, 0, 0, 1]` (action point `k = 8 = #c₁`, unit width)
+- To-endset: `G = {(c₂, ℓ₂)}` where `ℓ₂ = [0, 0, 0, 0, 0, 0, 0, 1]` (same shape)
+- Type-endset: `Θ = {(g, ℓ_g)}` where `ℓ_g = [0, 0, 0, 0, 0, 0, 0, 1]`
+
+So `Σ.L = {a ↦ (F, G, Θ)}`.
+
+**Verification.**
+
+*L0 (SubspacePartition).* `fields(a).E₁ = 2 = s_L`. `fields(c₁).E₁ = fields(c₂).E₁ = 1 = s_C`. Since `s_L ≠ s_C`, we have `dom(Σ.L) ∩ dom(Σ.C) = {a} ∩ {c₁, c₂} = ∅`. ✓
+
+*L1 (LinkElementLevel).* `zeros(a) = zeros(1.0.1.0.1.0.2.1) = 3`. ✓
+
+*L1a (LinkScopedAllocation).* `origin(a) = 1.0.1.0.1 = d`, the creating document. ✓
+
+*L3 (TripleEndsetStructure).* `Σ.L(a) = (F, G, Θ)`, three endsets, each in `𝒫_fin(Span)`. ✓
+
+*L4 (EndsetGenerality).* Each span is well-formed by T12: for `(c₁, ℓ₁)`, `ℓ₁ > 0` and the action point `k = 8 ≤ #c₁ = 8`. Similarly for the other spans. Start addresses are in `T`. ✓
+
+*L5 (EndsetSetSemantics).* Each endset is a singleton set — set semantics hold trivially. ✓
+
+*L6 (SlotDistinction).* `F ≠ G` (different start addresses in their spans), so `(F, G, Θ) ≠ (G, F, Θ)`. ✓
+
+*L11 (IdentityByAddress).* `dom(Σ.L) = {a}` — only one link, so the property holds vacuously (no pair `a₁ ≠ a₂`). To verify non-vacuously, extend the example: add `a' = 1.0.1.0.1.0.2.2` with `Σ.L(a') = (F, G, Θ)` — same endsets as `a`. Then `a ≠ a'` and both are separate link entities despite `Σ.L(a) = Σ.L(a')`. ✓
+
+*L12 (LinkImmutability).* In any successor state `Σ'`, `a ∈ dom(Σ'.L)` and `Σ'.L(a) = (F, G, Θ)`. ✓
+
+*L14 (DualPrimitive).* `dom(Σ.C) ∪ dom(Σ.L) = {c₁, c₂, a}`. All stored entities. `dom(Σ.C) ∩ dom(Σ.L) = ∅`. ✓
+
+*L10 (TypeHierarchyByContainment).* For the ghost type at `g = 1.0.2.0.1.0.1.1`, define a parent type `p = 1.0.2.0.1.0.1` with displacement `ℓ_p = [0, 0, 0, 0, 0, 0, 1]` (action point `k = 7 = #p`). The coverage of `(p, ℓ_p)` is `{t : p ≤ t < p ⊕ ℓ_p} = {t : 1.0.2.0.1.0.1 ≤ t < 1.0.2.0.1.0.2}`. Since `g = 1.0.2.0.1.0.1.1` and `p ≼ g`, by T1(ii) `g ≥ p`, and `g < 1.0.2.0.1.0.2` because `g` agrees with `p` at position 7 (both have value 1) while `inc(p, 0)` has value 2 there. So `g ∈ coverage({(p, ℓ_p)})` — a single span query at `p` matches the subtype at `g`. ✓
+
+*L9 (TypeGhostPermission).* The type endset references `g = 1.0.2.0.1.0.1.1`, which is not in `dom(Σ.C) ∪ dom(Σ.L) = {c₁, c₂, a}`. This state is conforming — the ghost type is permitted. ✓
+
+*S3 (ReferentialIntegrity, ASN-0036).* `ran(Σ.M(d)) = {c₁, c₂} ⊆ dom(Σ.C)`. ✓
+
+
 ## Properties Introduced
 
 | Label | Statement | Status |
@@ -310,6 +376,7 @@ A link at address `a ∈ dom(Σ.L)` is characterized by:
 | Σ.L | `Σ.L : T ⇀ Link` — the link store, mapping addresses to link values | introduced |
 | L0 | SubspacePartition — link addresses occupy subspace `s_L`, content addresses occupy `s_C`, and `dom(Σ.L) ∩ dom(Σ.C) = ∅` | introduced |
 | L1 | LinkElementLevel — every link address is an element-level tumbler: `(A a ∈ dom(Σ.L) :: zeros(a) = 3)` | introduced |
+| L1a | LinkScopedAllocation — every link address is allocated under the creating document's tumbler prefix | introduced |
 | L2 | OwnershipEndsetIndependence — `home(a)` depends only on `a`, not on the link's endsets | introduced |
 | L3 | TripleEndsetStructure — every link has exactly three endsets: `Σ.L(a) = (F, G, Θ)` | introduced |
 | L4 | EndsetGenerality — endset spans may reference any address in `T`; no single-document, content-only, or existence constraint | introduced |
@@ -317,9 +384,9 @@ A link at address `a ∈ dom(Σ.L)` is characterized by:
 | L6 | SlotDistinction — the three endsets are structurally distinguished positions: `F ≠ G ⟹ (F, G, Θ) ≠ (G, F, Θ)` | introduced |
 | L7 | DirectionalFlexibility — L0–L14 impose no constraint on directional significance of from/to slots | introduced |
 | L8 | TypeByAddress — type matching is by address identity, not by content at the address | introduced |
-| L9 | TypeGhostPermission — type endsets may reference addresses at which no content exists | introduced |
+| L9 | TypeGhostPermission — conforming states exist where type endsets reference addresses outside `dom(Σ.C) ∪ dom(Σ.L)` | introduced |
 | L10 | TypeHierarchyByContainment — tumbler prefix containment provides hierarchical type relationships | introduced |
-| L11 | IdentityByAddress — link identity is its tumbler address; identical endsets do not imply identical links | introduced |
+| L11 | IdentityByAddress — link identity is address identity; `a₁ ≠ a₂` even when `Σ.L(a₁) = Σ.L(a₂)` | introduced |
 | L12 | LinkImmutability — `(A Σ, Σ' : a ∈ dom(Σ.L) : a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a))` for every state transition | introduced |
 | L12a | LinkStoreMonotonicity — `dom(Σ.L) ⊆ dom(Σ'.L)` for every state transition | introduced |
 | L13 | ReflexiveAddressing — link addresses are valid endset span targets, enabling link-to-link connections | introduced |
