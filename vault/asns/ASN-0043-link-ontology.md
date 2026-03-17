@@ -165,9 +165,9 @@ Although the three endsets are structurally identical (all are elements of `Ends
 
 Gregory's implementation encodes this distinction at two independent levels: in the link's own permutation matrix (V-addresses 1.1, 2.1, 3.1 for from, to, and type) and in the spanfilade index (ORGL-range prefixes `LINKFROMSPAN = 1`, `LINKTOSPAN = 2`, `LINKTHREESPAN = 3`). A query for "links from span A" and a query for "links to span A" search different index columns and may return different results.
 
-But the slot distinction is *structural*, not *semantic*. Whether "from" means "source" and "to" means "destination" is determined by the link's type, not by the link structure:
+But the slot distinction is *structural*, not *semantic*. Whether "from" means "source" and "to" means "destination" is not determined by any invariant of the link structure:
 
-**L7 — DirectionalFlexibility.** The semantic interpretation of from-endset versus to-endset is a function of the link type, not a fixed property of the link structure.
+**L7 — DirectionalFlexibility.** The invariants L0–L14 impose no constraint on which of the from/to slots carries directional significance; any directional interpretation is determined by the link type, outside the link structure.
 
 Nelson: "A link is typically directional. Thus it has a from-set, the bytes the link is 'from,' and a to-set, the bytes the link is 'to.' (What 'from' and 'to' mean depend on the specific case.)" The word "typically" is deliberate. A citation link is directional — it goes *from* citing text *to* cited source. A counterpart link marking equivalence has no meaningful direction. A heading link populates only one content endset — Nelson calls it "inane" to label that one endset "from." The structure provides two slots; the type defines whether the distinction carries directional weight.
 
@@ -190,7 +190,7 @@ Nelson: "What the 'type' designation points to is completely arbitrary. This is 
 
 This is a profound design choice. It decouples classification from content retrieval entirely. A search for "all links of type X" never fetches the bytes at address X — it only matches the address. This means:
 
-**L9 — TypeGhostPermission.** The type endset may reference addresses at which no content exists:
+**L9 — TypeGhostPermission.** By L4, no existence constraint governs endset spans; for the type endset specifically, this permits addresses at which no content exists:
 
 `¬ [(A a ∈ dom(Σ.L), (s, ℓ) ∈ Σ.L(a).type :: coverage({(s, ℓ)}) ⊆ dom(Σ.C))]`
 
@@ -198,11 +198,13 @@ Nelson: "Indeed, there is no need for the presence of elements at the addresses 
 
 A consequence of L8 and L9 together: new link types can be defined by choosing a fresh tumbler address and using it as a type endset. No content needs to be created at that address. No registry needs to be updated. No schema needs to change. The type exists as soon as someone uses it. This is what makes the type system "open-ended" — any user can extend it without coordination or system modification.
 
-**L10 — TypeHierarchyByContainment.** For type addresses `p, c ∈ T` where `p ≼ c` (p is a prefix of c), define `subtypes(p) = {c ∈ T : p ≼ c}`. By T5 (ContiguousSubtrees, ASN-0034), `subtypes(p)` is a contiguous interval under T1. Therefore there exists a span `(p, ℓ)` such that:
+**L10 — TypeHierarchyByContainment.** For type addresses `p, c ∈ T` where `p ≼ c` (p is a prefix of c), define `subtypes(p) = {c ∈ T : p ≼ c}`. By T5 (ContiguousSubtrees, ASN-0034), `subtypes(p)` is a contiguous interval under T1. We construct a covering span.
 
-`(A c : p ≼ c : c ∈ coverage({(p, ℓ)}))`
+Define `ℓ_p` with `#ℓ_p = #p`, zero at positions `1` through `#p - 1`, and value 1 at position `#p`. The action point is `k = #p = sig(p)` (by T4, the last component of a valid address is positive, so `sig(p) = #p`). The span `(p, ℓ_p)` is well-formed by T12: `ℓ_p > 0` and `k ≤ #p`. By TA5(c), `p ⊕ ℓ_p = inc(p, 0)`, and the coverage is `{t ∈ T : p ≤ t < inc(p, 0)}`. Every extension `c` with `p ≼ c` lies in this coverage: `c ≥ p` by T1(ii) (the prefix precedes its extensions), and `c < inc(p, 0)` because `c` agrees with `p` at position `sig(p)` (being an extension) while `inc(p, 0)` has `p_{sig(p)} + 1` there. Therefore:
 
-That is, a single span query rooted at `p` with appropriately chosen width matches every subtype of `p`. Hierarchical type relationships follow from the tumbler ordering without any additional mechanism.
+`(A c : p ≼ c : c ∈ coverage({(p, ℓ_p)}))`
+
+A single span query rooted at `p` matches every subtype of `p`. Hierarchical type relationships follow from the tumbler ordering without any additional mechanism.
 
 Gregory documents this in the bootstrap document's type registry: `MARGIN` at address `1.0.2.6.2` is hierarchically nested under `FOOTNOTE` at `1.0.2.6`. A query for all footnote-family links, expressed as a span query rooted at `1.0.2.6`, matches both types because `1.0.2.6.2` lies within `[1.0.2.6, 1.0.2.7)`. The subtyping mechanism is the tumbler ordering itself — no separate hierarchy data structure is needed.
 
@@ -244,13 +246,13 @@ for every state transition `Σ → Σ'`. This is the direct corollary of L12, pa
 
 Because links have tumbler addresses (L0, L1), and endsets can reference any tumbler address (L4), endsets can reference link addresses. This enables *link-to-link* connections — a link whose endset points at another link's address.
 
-**L13 — ReflexiveAddressing.** Link addresses are valid targets for endset spans. For any link at address `b ∈ dom(Σ.L)`:
+**L13 — ReflexiveAddressing.** Link addresses are valid targets for endset spans. For any link at address `b ∈ dom(Σ.L)`, define the displacement `ℓ_b` with `#ℓ_b = #b`, zero at positions `1` through `#b - 1`, and value 1 at position `#b`. The action point of `ℓ_b` is `k = #b`. Since `b` is an element-level tumbler, `k ≤ #b` holds and the span `(b, ℓ_b)` is well-formed by T12.
 
-`(b, [1]) is a well-formed span referencing exactly the link at address b`
-
-where `[1]` is the unit displacement — a single-component tumbler with value 1. The well-formedness of this span follows from T12: the action point of `[1]` is position 1, and since `b` is an element-level tumbler with `#b ≥ 4`, the precondition `k ≤ #b` is satisfied.
+The coverage of this span is `{t ∈ T : b ≤ t < b ⊕ ℓ_b}`. By TA5(c), `b ⊕ ℓ_b = inc(b, 0)` — the next sibling of `b` at the same tumbler depth. The coverage therefore includes `b` and all extensions of `b` — tumblers for which `b` is a proper prefix. This is not a single-point span; the tumbler ordering admits extensions between `b` and `inc(b, 0)`. But it is the tightest span expressible at depth `#b` that includes `b`. More generally, an endset *references* an entity at address `a` when `a ∈ coverage(e)`, and `(b, ℓ_b)` is the canonical span for referencing the entity at `b`.
 
 Nelson: "Because of the universality of tumbler-space, and the fact that links are located there as well as data, it becomes easy for a link to point at another link (or, indeed, to point at several). The to-set of the link need simply point to the actual link address in the tumbler line, with a span of 1 to designate that unit only."
+
+Nelson's "span of 1" is the informal rendering of `ℓ_b`: advance by 1 at the depth of the target address.
 
 Gregory confirms at the implementation level that this is not merely theoretically possible but architecturally unavoidable. The type `typeisa` is `typedef tumbler typeisa` — a bare tumbler with no type discriminant. The endset conversion functions (`specset2sporglset`, `vspanset2sporglset`) accept any tumbler address without checking whether it refers to content or to a link. The insertion functions (`insertspanf`, `insertpm`) store whatever `sporgladdress` they receive, with no type validation. The retrieval function (`findorgl`) resolves any address that maps to a valid granfilade entry, regardless of its atom type. There is no code, at any layer, that draws a boundary between "addressable objects" and "non-addressable objects."
 
@@ -313,7 +315,7 @@ A link at address `a ∈ dom(Σ.L)` is characterized by:
 | L4 | EndsetGenerality — endset spans may reference any address in `T`; no single-document, content-only, or existence constraint | introduced |
 | L5 | EndsetSetSemantics — an endset is an unordered set; only span membership matters | introduced |
 | L6 | SlotDistinction — the three endsets are structurally distinguished positions: `F ≠ G ⟹ (F, G, Θ) ≠ (G, F, Θ)` | introduced |
-| L7 | DirectionalFlexibility — the semantic interpretation of from vs. to is a function of the link type | introduced |
+| L7 | DirectionalFlexibility — L0–L14 impose no constraint on directional significance of from/to slots | introduced |
 | L8 | TypeByAddress — type matching is by address identity, not by content at the address | introduced |
 | L9 | TypeGhostPermission — type endsets may reference addresses at which no content exists | introduced |
 | L10 | TypeHierarchyByContainment — tumbler prefix containment provides hierarchical type relationships | introduced |
