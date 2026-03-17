@@ -142,6 +142,8 @@ In a composite transition, K.α may precede K.μ⁺, extending dom(C) before K.�
 
 *Precondition:* `d ∈ E_doc`.
 
+Contraction trivially preserves the ASN-0036 arrangement invariants: M'(d) is a restriction of M(d), so functionality (S2), referential integrity of survivors (S3, since C' = C), V-position well-formedness (S8a), uniform depth within subspace (S8-depth), and finiteness (S8-fin) all carry over from the pre-state arrangement.
+
 Contraction is pure removal — the domain shrinks, and no surviving value is altered. Without the value-preservation clause, K.μ⁻ could modify values at remaining positions, conflating contraction with rewriting.
 
 Nelson: "the owner of a document may delete bytes from the owner's current version, but those bytes remain in all other documents where they have been included." Contraction changes what a document displays; it does not change what exists.
@@ -352,6 +354,8 @@ We have arrived at the structural insight underlying the entire design. The stat
 | Historical | R | Append-only, entries may stale | K.ρ |
 | Presentational | M | Fully mutable | K.μ⁺, K.μ⁻, K.μ~ |
 
+K.δ for documents also initialises M'(e) = ∅, extending M's domain — a presentational-layer effect. We classify K.δ as existential because its primary purpose is entity creation; the empty arrangement initialisation is a structural consequence (extending the domain with an empty entry, not mutating an existing arrangement). The broader claim holds: no elementary transition touches all three layers.
+
 Two cross-layer invariants bridge the existential and historical layers, making the temporal contracts precise.
 
 **P6 (Existential coherence).** For every I-address in the content store, its origin document exists as an entity:
@@ -366,7 +370,7 @@ Two cross-layer invariants bridge the existential and historical layers, making 
 
 *Derivation.* K.ρ requires a ∈ dom(C) as a precondition. P0 preserves dom(C). By induction: initially R₀ = ∅ (vacuous). Each K.ρ adds (a, d) with a ∈ dom(C); P0 ensures a remains in dom(C') for all subsequent states; P2 ensures (a, d) remains in R'. ∎
 
-The decomposition constrains the elementary transitions cleanly. No transition modifies all three layers simultaneously. The purely destructive transitions — K.μ⁻ and K.μ~ — are confined to the presentational layer alone, the one layer where impermanence is by design. Cross-layer coupling occurs only in constructive directions: K.α (existential) couples with K.μ⁺ (presentational) via J0; K.μ⁺ (presentational) couples with K.ρ (historical) via J1/J1'. The existential and historical layers never shrink.
+The decomposition constrains the elementary transitions cleanly. No *elementary* transition modifies all three layers simultaneously — each touches at most two (K.δ for documents touches the existential and presentational layers; all others touch exactly one). Composite transitions routinely span all three: insertion compounds K.α (existential) + K.μ⁺ (presentational) + K.ρ (historical). The point is that each elementary step has bounded scope. The purely destructive transitions — K.μ⁻ and K.μ~ — are confined to the presentational layer alone, the one layer where impermanence is by design. Cross-layer coupling occurs only in constructive directions: K.α (existential) couples with K.μ⁺ (presentational) via J0; K.μ⁺ (presentational) couples with K.ρ (historical) via J1/J1'. The existential and historical layers never shrink.
 
 The existential and historical layers differ in semantics despite sharing the append-only contract. Existential entries state *current facts*: content value v exists at address a, and this remains true permanently. Historical entries state *past events*: document d once contained address a, and this record persists even when the current arrangement no longer agrees. The distinction matters because existential entries are both permanent and accurate (content *is* at address a), while historical entries are permanent but may be stale (document d *was* associated with address a, but may no longer be).
 
