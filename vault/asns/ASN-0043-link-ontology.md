@@ -198,9 +198,22 @@ This is a profound design choice. It decouples classification from content retri
 
 **L9 — TypeGhostPermission.** Ghost types are permitted: for any conforming state `Σ` satisfying L0–L14 and S0–S3, there exists a conforming state `Σ'` extending `Σ` with a link whose type endset references an address outside `dom(Σ'.C) ∪ dom(Σ'.L)`:
 
-`(E Σ' :: Σ' satisfies L0–L14 ∧ S0–S3 ∧ (E a ∈ dom(Σ'.L), (s, ℓ) ∈ Σ'.L(a).type :: coverage({(s, ℓ)}) ⊄ dom(Σ'.C) ∪ dom(Σ'.L)))`
+`(A Σ : Σ satisfies L0–L14 ∧ S0–S3 : (E Σ' extending Σ, a ∈ dom(Σ'.L), (s, ℓ) ∈ Σ'.L(a).type :: coverage({(s, ℓ)}) ⊄ dom(Σ'.C) ∪ dom(Σ'.L)))`
 
-*Witness.* Take any conforming `Σ`. Choose a fresh address `g ∈ T` with `g ∉ dom(Σ.C) ∪ dom(Σ.L)` (such an address exists by T0(b)). Allocate a new link `a` (via T9, forward allocation) with `Σ'.L(a) = (∅, ∅, {(g, ℓ_g)})` where `ℓ_g` is the unit-width displacement at depth `#g`. The type span `(g, ℓ_g)` is well-formed by T12, the endsets satisfy L3–L5, and no property of this ASN requires `coverage(Σ'.L(a).type) ⊆ dom(Σ'.C)`. ∎
+*Witness.* Take any conforming `Σ`. Let `d` be a document with an allocator for subspace `s_L`. Choose a fresh ghost address `g ∈ T` with `g ∉ dom(Σ.C) ∪ dom(Σ.L)` (such an address exists by T0(b)). Allocate a new link address `a` via forward allocation (T9) within `d`'s link subspace. Define `Σ'` as `Σ` extended with `Σ'.L(a) = (∅, ∅, {(g, ℓ_g)})` where `ℓ_g` is the unit-width displacement at depth `#g`, and `Σ'.C = Σ.C`, `Σ'.M = Σ.M`.
+
+We verify that `Σ'` is conforming:
+
+- *L0 (SubspacePartition).* The address `a` is allocated in `d`'s link subspace, so `fields(a).E₁ = s_L`. Since `s_L ≠ s_C`, `a ∉ dom(Σ'.C) = dom(Σ.C)`, preserving disjointness.
+- *L1 (LinkElementLevel).* The address `a` is an element-level tumbler by construction: allocated under a document prefix with all four fields, giving `zeros(a) = 3`.
+- *L1a (LinkScopedAllocation).* The address `a` is allocated under `d`'s prefix by construction: `origin(a) = d`.
+- *L3–L5.* The type span `(g, ℓ_g)` is well-formed by T12; the three endsets `(∅, ∅, {(g, ℓ_g)})` satisfy L3. Empty endsets are valid by the definition of Endset. L5 holds trivially.
+- *L11 (IdentityByAddress).* By GlobalUniqueness (ASN-0034), the freshly allocated `a` is distinct from every address in `dom(Σ.L)`.
+- *L12 (LinkImmutability).* For every `b ∈ dom(Σ.L)`: `b ∈ dom(Σ'.L)` and `Σ'.L(b) = Σ.L(b)`, since `Σ'` only adds the new entry at `a`.
+- *L14 (DualPrimitive).* `dom(Σ'.C) ∪ dom(Σ'.L) = dom(Σ.C) ∪ (dom(Σ.L) ∪ {a})`. Disjointness holds since `a` is in subspace `s_L` and `dom(Σ'.C) ⊆ s_C`.
+- *S0–S3.* Content store and arrangements are unchanged (`Σ'.C = Σ.C`, `Σ'.M = Σ.M`), so all ASN-0036 invariants carry over from `Σ`.
+
+No property of L0–L14 or S0–S3 constrains `coverage(Σ'.L(a).type) ⊆ dom(Σ'.C)`. Since `g ∉ dom(Σ.C) ∪ dom(Σ.L)` and `g ≠ a` (they occupy different subspaces or different documents), `g ∉ dom(Σ'.C) ∪ dom(Σ'.L)`. ∎
 
 No property of L0–L14 constrains type endset targets to content addresses. Nelson: "Indeed, there is no need for the presence of elements at the addresses specified. Link types may be ghost elements." The type address is a pure name — a position chosen by convention, not a pointer to content that must be dereferenced.
 
@@ -208,7 +221,7 @@ A consequence of L8 and L9 together: new link types can be defined by choosing a
 
 **L10 — TypeHierarchyByContainment.** For type addresses `p, c ∈ T` where `p ≼ c` (p is a prefix of c), define `subtypes(p) = {c ∈ T : p ≼ c}`. By T5 (ContiguousSubtrees, ASN-0034), `subtypes(p)` is a contiguous interval under T1. We construct a covering span.
 
-Define `ℓ_p` with `#ℓ_p = #p`, zero at positions `1` through `#p - 1`, and value 1 at position `#p`. The action point is `k = #p = sig(p)` (by T4, the last component of a valid address is positive, so `sig(p) = #p`). The span `(p, ℓ_p)` is well-formed by T12: `ℓ_p > 0` and `k ≤ #p`. By TA5(c), `p ⊕ ℓ_p = inc(p, 0)`, and the coverage is `{t ∈ T : p ≤ t < inc(p, 0)}`. Every extension `c` with `p ≼ c` lies in this coverage: `c ≥ p` by T1(ii) (the prefix precedes its extensions), and `c < inc(p, 0)` because `c` agrees with `p` at position `sig(p)` (being an extension) while `inc(p, 0)` has `p_{sig(p)} + 1` there. Therefore:
+Define `ℓ_p` with `#ℓ_p = #p`, zero at positions `1` through `#p - 1`, and value 1 at position `#p`. The action point is `k = #p`. The span `(p, ℓ_p)` is well-formed by T12: `ℓ_p > 0` and `k ≤ #p`. By TumblerAdd (ASN-0034), `p ⊕ ℓ_p = [p₁, ..., p_{#p-1}, p_{#p} + 1]` — the result agrees with `p` at all positions before `#p` and advances by 1 at position `#p`. The coverage is `{t ∈ T : p ≤ t < p ⊕ ℓ_p}`. Every extension `c` with `p ≼ c` lies in this coverage: `c ≥ p` by T1(ii) (the prefix precedes its extensions), and since `c` extends `p`, `c_{#p} = p_{#p} < p_{#p} + 1 = (p ⊕ ℓ_p)_{#p}`, giving `c < p ⊕ ℓ_p` by T1(i). Therefore:
 
 `(A c : p ≼ c : c ∈ coverage({(p, ℓ_p)}))`
 
@@ -256,15 +269,19 @@ Because links have tumbler addresses (L0, L1), and endsets can reference any tum
 
 **L13 — ReflexiveAddressing.** Link addresses are valid targets for endset spans. For any link at address `b ∈ dom(Σ.L)`, define the displacement `ℓ_b` with `#ℓ_b = #b`, zero at positions `1` through `#b - 1`, and value 1 at position `#b`. The action point of `ℓ_b` is `k = #b`. Since `b` is an element-level tumbler, `k ≤ #b` holds and the span `(b, ℓ_b)` is well-formed by T12.
 
-The coverage of this span is `{t ∈ T : b ≤ t < b ⊕ ℓ_b}`. By TA5(c), `b ⊕ ℓ_b = inc(b, 0)` — the next sibling of `b` at the same tumbler depth. The coverage therefore equals `{t ∈ T : b ≼ t}` — exactly `b` and its extensions:
+The coverage of this span is `{t ∈ T : b ≤ t < b ⊕ ℓ_b}`. By TumblerAdd (ASN-0034), `b ⊕ ℓ_b = [b₁, ..., b_{#b-1}, b_{#b} + 1]` — the result agrees with `b` at all positions before `#b` and advances by 1 at position `#b`. The coverage therefore equals `{t ∈ T : b ≼ t}` — exactly `b` and its extensions:
 
 `coverage({(b, ℓ_b)}) = {t ∈ T : b ≼ t}`
 
-We verify this by case analysis on tumblers `t ≥ b` with `t ≠ b`:
+We verify both directions of this equality.
 
-- *Same depth* (`#t = #b`): since `t ≠ b`, some `k ≤ #b` has `t_k ≠ b_k`. As `t > b`, we have `t_k > b_k`. Since `inc(b, 0)` agrees with `b` at all positions before `#b`, if `k < #b` then `t_k > b_k = inc(b,0)_k`, giving `t > inc(b, 0)`. If `k = #b`, then `t_{#b} > b_{#b}`, so `t_{#b} ≥ b_{#b} + 1 = inc(b,0)_{#b}`, giving `t ≥ inc(b, 0)`. Only `b` itself survives at this depth.
-- *Greater depth* (`#t > #b`): if `t` does not extend `b`, some `k ≤ #b` has `t_k > b_k = inc(b,0)_k`, giving `t > inc(b, 0)`. Only extensions of `b` remain.
-- *Shorter depth* (`#t < #b`): agreement at positions `1..#t` makes `t` a prefix of `b`, so `t < b` by T1(ii). Excluded.
+*Inclusion* (`{t : b ≼ t} ⊆ coverage`): let `c` be an extension of `b`, so `b ≼ c`. By T1(ii), the prefix precedes its extensions, giving `c ≥ b`. For the upper bound: `c` agrees with `b` at all positions `1` through `#b`, so in particular `c_{#b} = b_{#b} < b_{#b} + 1 = (b ⊕ ℓ_b)_{#b}`. By T1(i), `c < b ⊕ ℓ_b`. Therefore `c ∈ [b, b ⊕ ℓ_b)`.
+
+*Exclusion* (`coverage ⊆ {t : b ≼ t}`): we show that every `t ∈ [b, b ⊕ ℓ_b)` with `t ≠ b` must extend `b`, by case analysis on depth.
+
+- *Same depth* (`#t = #b`): since `t ≠ b`, some `k ≤ #b` has `t_k ≠ b_k`. As `t > b`, we have `t_k > b_k`. Since `b ⊕ ℓ_b` agrees with `b` at all positions before `#b`, if `k < #b` then `t_k > b_k = (b ⊕ ℓ_b)_k`, giving `t > b ⊕ ℓ_b` — outside the interval. If `k = #b`, then `t_{#b} > b_{#b}`, so `t_{#b} ≥ b_{#b} + 1 = (b ⊕ ℓ_b)_{#b}`, giving `t ≥ b ⊕ ℓ_b` — outside the interval. Only `b` itself survives at this depth, and `b ≼ b` holds trivially.
+- *Greater depth* (`#t > #b`): if `t` does not extend `b`, there exists some `k ≤ #b` with `t_k ≠ b_k`. As `t ≥ b`, we have `t_k > b_k = (b ⊕ ℓ_b)_k`, giving `t > b ⊕ ℓ_b` — outside the interval. Only extensions of `b` remain.
+- *Shorter depth* (`#t < #b`): if `t` agrees with `b` at all positions `1..#t`, then `b` extends `t`, so `t < b` by T1(ii) — contradicting `t ≥ b`. If `t` diverges from `b` at some `k ≤ #t`, then since `t ≥ b` we have `t_k > b_k = (b ⊕ ℓ_b)_k` (as `k < #b`), giving `t > b ⊕ ℓ_b` — outside the interval.
 
 The canonical span contains exactly the target entity and its extensions, with no extraneous tumblers. More generally, an endset *references* an entity at address `a` when `a ∈ coverage(e)`, and `(b, ℓ_b)` is the canonical span for referencing the entity at `b`.
 
@@ -300,7 +317,7 @@ The two primitives are peers. Both have permanent tumbler addresses. Both are st
 | State component | `Σ.C : T ⇀ Val` | `Σ.L : T ⇀ Link` |
 | Subspace | `s_C` | `s_L` |
 | Payload | Opaque values (bytes) | Structured triples (three endsets) |
-| Identity semantics | Shareable via transclusion (S5) | Unique per address (L11) |
+| Sharing | Transcludable — same I-address in multiple arrangements (S5) | Non-transcludable — S3 requires `M(d)(v) ∈ dom(Σ.C)`, and L0 gives `dom(Σ.L) ∩ dom(Σ.C) = ∅` |
 | Address determines | Content origin (S7) | Link home and owner (L2) |
 
 Content identity is *shareable*: the same I-address can appear in the arrangements of multiple documents via transclusion, and this sharing is the mechanism for content reuse (S5, ASN-0036). Link identity is *unique*: each link has exactly one address, and there is no mechanism to make two documents "share" the same link. We can derive this from two properties already established. First, S3 (ReferentialIntegrity, ASN-0036) requires that every V-mapping points to a content address: `(A d, v : v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ dom(Σ.C))`. Second, L0 establishes `dom(Σ.L) ∩ dom(Σ.C) = ∅`. Together these entail that no arrangement can map a V-position to a link address — the transclusion mechanism (multiple arrangements referencing the same I-address) cannot apply to links. A link at address `a` is homed in `home(a)` and owned by the principal of `home(a)` — period. It cannot be transcluded into another owner's authority.
@@ -357,6 +374,8 @@ So `Σ.L = {a ↦ (F, G, Θ)}`.
 *L1 (LinkElementLevel).* `zeros(a) = zeros(1.0.1.0.1.0.2.1) = 3`. ✓
 
 *L1a (LinkScopedAllocation).* `origin(a) = 1.0.1.0.1 = d`, the creating document. ✓
+
+*L2 (OwnershipEndsetIndependence).* `home(a) = origin(a) = 1.0.1.0.1`, computed from the field structure of `a` alone. The endsets `(F, G, Θ)` are not consulted. ✓
 
 *L3 (TripleEndsetStructure).* `Σ.L(a) = (F, G, Θ)`, three endsets, each in `𝒫_fin(Span)`. ✓
 
@@ -420,7 +439,7 @@ The extended state is `Σ_2` with `Σ_2.L = {a ↦ (F, G, Θ),\; a' ↦ (F, G, �
 | L6 | INV | SlotDistinction — the three endsets are structurally distinguished positions: `F ≠ G ⟹ (F, G, Θ) ≠ (G, F, Θ)` | introduced |
 | L7 | META | DirectionalFlexibility — L0–L14 impose no constraint on directional significance of from/to slots | introduced |
 | L8 | INV | TypeByAddress — type matching is by address identity, not by content at the address | introduced |
-| L9 | LEMMA | TypeGhostPermission — conforming states exist where type endsets reference addresses outside `dom(Σ.C) ∪ dom(Σ.L)` | introduced |
+| L9 | LEMMA | TypeGhostPermission — any conforming state can be extended with a link whose type endset references addresses outside `dom(Σ.C) ∪ dom(Σ.L)` | introduced |
 | L10 | LEMMA | TypeHierarchyByContainment — tumbler prefix containment provides hierarchical type relationships | introduced |
 | L11 | INV | IdentityByAddress — link identity is address identity; `a₁ ≠ a₂` even when `Σ.L(a₁) = Σ.L(a₂)` | introduced |
 | L12 | INV | LinkImmutability — `(A Σ, Σ' : a ∈ dom(Σ.L) : a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a))` for every state transition | introduced |
