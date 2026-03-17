@@ -261,7 +261,7 @@ Reordering preserves ran(M(d)), so Contains(Σ') = Contains(Σ). All invariants 
 
 **J4 (Fork composite).** Nelson's forking creation mode — when the source arrangement is non-empty — is a composite whose elementary steps are exactly K.δ + K.μ⁺ + K.ρ, all serving the new document d_new:
 
-**Definition (Fork).** A *fork* of d_src to d_new is a composite transition Σ → Σ', with *precondition* d_src ∈ E_doc, consisting of:
+**Definition (Fork).** A *fork* of d_src to d_new is a composite transition Σ → Σ', with *precondition* d_src ∈ E_doc ∧ M(d_src) ≠ ∅, consisting of:
 
 (i) K.δ creating d_new with d_new ∉ E_doc,
 
@@ -273,7 +273,7 @@ and no other elementary steps.
 
 Since none of K.δ, K.μ⁺, K.ρ modify C (each has C' = C in its frame), a fork satisfies dom(C') = dom(C) — no new content is created. The provenance conclusion — that (a, d_new) ∈ R' for every a ∈ ran(M'(d_new)) — follows from J1 applied to the fresh-document case: the convention M(d_new) = ∅ gives ran(M'(d_new)) \ ran(M(d_new)) = ran(M'(d_new)), and J1 directly requires provenance recording for each such address. No additional constraint beyond J1 is needed.
 
-The new document d_new is created empty (K.δ), its arrangement extended with mappings to the source's I-addresses (K.μ⁺), and the new associations recorded (K.ρ). When the source arrangement is empty (ran(M(d_src)) = ∅), K.μ⁺ and K.ρ are vacuous — the fork reduces to K.δ alone, structurally identical to ex nihilo creation. Nelson: "the new document's id will indicate its ancestry."
+The new document d_new is created empty (K.δ), its arrangement extended with mappings to the source's I-addresses (K.μ⁺), and the new associations recorded (K.ρ). The precondition M(d_src) ≠ ∅ ensures K.μ⁺ is well-formed: with at least one I-address to transclude, the strict domain extension dom(M'(d_new)) ⊃ dom(M(d_new)) = ∅ is satisfiable. When the source arrangement is empty, the fork definition does not apply — creation from an empty source is ex nihilo (K.δ alone), not a fork. Nelson: "the new document's id will indicate its ancestry."
 
 An immediate consequence of J1 and J2 is that the provenance relation diverges from current containment over time.
 
@@ -455,7 +455,7 @@ Nelson captures the whole architecture in a sentence: "The braid only grows more
 | J1' | (a, d) ∈ R' \ R only when a ∈ ran(M'(d)) \ ran(M(d)) — new provenance requires new containment | introduced |
 | J2 | K.μ⁻ as elementary transition requires no coupling: C' = C ∧ E' = E ∧ R' = R | introduced |
 | J3 | K.μ~ as distinguished composite requires no coupling: C' = C ∧ E' = E ∧ R' = R | introduced |
-| J4 | Fork composite: K.δ + K.μ⁺ + K.ρ (no other steps); dom(C') = dom(C) follows from frames; provenance from J1; empty source reduces to K.δ alone | introduced |
+| J4 | Fork composite: K.δ + K.μ⁺ + K.ρ (no other steps); precondition M(d_src) ≠ ∅; dom(C') = dom(C) follows from frames; provenance from J1; empty source is ex nihilo (K.δ), not fork | introduced |
 | P6 | Existential coherence: origin(a) ∈ E_doc for all a ∈ dom(C) | introduced |
 | P7 | Provenance grounding: a ∈ dom(C) for all (a, d) ∈ R | introduced |
 
