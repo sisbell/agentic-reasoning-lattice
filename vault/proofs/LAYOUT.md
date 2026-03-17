@@ -16,6 +16,11 @@ proofs/
 │   ├── TwoSpaceContent.dfy         S0, S1, S4, S6, S7a, S7b, S7
 │   ├── TwoSpaceArrangement.dfy     S2, S3, S5, S8-fin, S8a, S8-depth, S8
 │   └── TwoSpaceSeparation.dfy      S9
+├── TumblerBaptism/
+│   ├── TumblerBaptism.dfy          Shared definitions: StreamElement, InStream, Children, ValidBaptism, BaptismState
+│   ├── BaptismBranching.dfy        S0, S1, B5, B5a, B7
+│   ├── BaptismRegistry.dfy         B0, B0a, B₀, B1, B2, B4, B6, B8, B9, B10, Bop
+│   └── BaptismGhost.dfy            B3 (cross-cutting — bridges baptism and content model)
 ├── CHANGELOG.md                    History of module changes and rationale
 └── dfyconfig.toml                  Picks up **/*.dfy — no include directives needed
 ```

@@ -1,5 +1,15 @@
 # Proof Modules — Changelog
 
+## 2026-03-16: TumblerBaptism — ASN-0040 proof promotion, 199 total verified
+
+Promoted 18 ASN-0040 property proofs into TumblerBaptism/ directory:
+- **TumblerBaptism.dfy** — shared definitions: StreamElement, InStream, Children, ValidBaptism, Next, BaptismState, Baptize, StreamMatchesInc
+- **BaptismBranching.dfy** (5): S0, S1, B5, B5a, B7 — structure of the fork
+- **BaptismRegistry.dfy** (12): B0, B0a, B₀, B1, B2, B4, B6, B8, B9, B10, RegistryGrowth, OnlyRegistryModified — the set B and how it grows
+- **BaptismGhost.dfy** (1): B3 — cross-cutting property bridging baptism and content model, isolated pending future bridge specification
+
+StreamElement extracted from 10 duplicated definitions per Dafny review recommendation. InStream, Children, ValidBaptism also deduplicated.
+
 ## 2026-03-16: Remove NodeOntology — ASN-0035 deprecated
 
 Removed NodeOntology/ directory (NodeOntology.dfy, NodeIdentity.dfy, NodeAllocation.dfy). ASN-0035 (Node Ontology) deprecated — its properties are fully covered by ASN-0034 (tumbler algebra), ASN-0040 (baptism), and ASN-0042 (ownership). Level-specific predicates (NodeAddress, AccountAddress, etc.) added to TumblerHierarchy.dfy. 159 total verified.
