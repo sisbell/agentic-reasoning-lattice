@@ -25,6 +25,8 @@ Equivalently, E ⊆ {t : ValidAddress(t) ∧ zeros(t) ≤ 2}. Given this exclusi
 - E_account = {e ∈ E : IsAccount(e)} — user accounts
 - E_doc = {e ∈ E : IsDocument(e)} — documents and links
 
+For a non-node entity e (where ¬IsNode(e)), define **parent(e)** as the tumbler obtained by truncating the last field and its preceding zero separator. If IsAccount(e) with form N.0.U, then parent(e) = N. If IsDocument(e) with form N.0.U.0.D, then parent(e) = N.0.U. In each case parent(e) is a valid address at the next higher level: zeros(parent(e)) = zeros(e) − 1.
+
 Arrangements M(d) are defined iff d ∈ E_doc. We include links in E_doc: Nelson describes them as owned entities with internal structure ("a package of connecting or marking information... owned by a user... thereafter maintained by the back end"), and Gregory confirms link creation uses the same allocation mechanism as document creation. The structural distinction between documents and links — endset semantics, subspace layout — belongs to a separate analysis; here both participate identically in transitions.
 
 Second, removal of content from an arrangement does not erase the historical fact of prior containment. Gregory: the reverse index "accumulates entries from every content addition but is never trimmed." Nelson: "every previous arrangement remains reconstructable." The system must answer "which documents have ever contained content with origin *a*?" — a question about history, not about current state.
@@ -36,6 +38,15 @@ The full system state is:
 > **Σ = (C, E, M, R)**
 
 where C : T ⇀ Val and M : E_doc → (T ⇀ T) are as defined in ASN-0036.
+
+**Definition (Initial state).** The initial state Σ₀ = (C₀, E₀, M₀, R₀) is:
+
+- C₀ = ∅ (no content allocated)
+- E₀ = {n₀} for a designated bootstrap node n₀ with IsNode(n₀)
+- M₀ is the empty function — (E₀)_doc = ∅, so no arrangements exist
+- R₀ = ∅ (no provenance recorded)
+
+The bootstrap node seeds the entity hierarchy. Without at least one node, K.δ cannot create accounts (which require a parent node), and without accounts, no documents, and without documents, no content. The choice of n₀ is a system parameter, not a state transition.
 
 
 ## Permanence
@@ -59,6 +70,14 @@ No transition removes an entity. This specialises T8 (AllocationPermanence, ASN-
 `[e ∈ E ∧ IsDocument(e) ⟹ e ∈ E']`
 
 Nelson: "New items may be continually inserted in tumbler-space while the other addresses remain valid." The address space is a growing tree; entities are born but never die.
+
+**P8 (Entity hierarchy).** Every non-node entity has its parent in E:
+
+`(A e ∈ E : ¬IsNode(e) : parent(e) ∈ E)`
+
+This ensures the entity set is hierarchically well-formed: every account has its node in E, every document has its account in E. Combined with P1, the hierarchy only grows — once an entity's parent chain is established, it persists.
+
+*Derivation.* K.δ for non-root entities requires parent(e) ∈ E as a precondition (below). P1 preserves the parent's membership across subsequent transitions. Base case: E₀ = {n₀} with IsNode(n₀), so the quantifier is vacuously satisfied. Inductive step: K.δ adds e with parent(e) ∈ E ⊆ E' (by precondition and P1); all other transitions have E' ⊇ E, preserving existing parent relationships. ∎
 
 **P2 (Provenance permanence).** The provenance relation admits only extensions:
 
@@ -91,9 +110,11 @@ The address a satisfies IsElement(a) (S7b, ASN-0036) and is allocated under the 
 
 **K.δ (Entity creation).** A fresh entity address enters E with initial state:
 
-`E' = E ∪ {e}` where `e ∉ E`
+`E' = E ∪ {e}` where `e ∉ E ∧ ValidAddress(e) ∧ ¬IsElement(e)`
 
-When IsDocument(e): M'(e) = ∅ (empty arrangement). The address is allocated via inc(·, k) (TA5, ASN-0034) under the parent's prefix. Gregory confirms that document creation and node creation use the same allocation mechanism, differing only in the allocation hint.
+*Precondition:* when ¬IsNode(e), parent(e) ∈ E — the parent entity must already exist. For root nodes (IsNode(e)), no parent is required; node creation is the bootstrap case that seeds new branches of the hierarchy.
+
+When IsDocument(e): M'(e) = ∅ (empty arrangement). For non-root entities, the address is typically allocated via inc(·, k) (TA5, ASN-0034) within the parent's ownership domain. Gregory confirms that document creation and node creation use the same allocation mechanism, differing only in the allocation level.
 
 Nelson identifies two document-creation modes — ex nihilo and forking. At the elementary level, both begin with K.δ producing an empty document. Forking is compound: K.δ followed by arrangement extension and provenance recording (J4 below).
 
@@ -213,7 +234,7 @@ An immediate consequence of J1 and J2 is that the provenance relation diverges f
 
 `Contains(Σ) ⊆ R`
 
-*Base case.* The initial state Σ₀ = (∅, ∅, λd.⊥, ∅) has Contains(Σ₀) = ∅ ⊆ ∅ = R₀. The bound holds vacuously.
+*Base case.* In Σ₀, (E₀)_doc = ∅ (E₀ contains only the bootstrap node), so Contains(Σ₀) = ∅ ⊆ ∅ = R₀. The bound holds vacuously.
 
 *Inductive step.* We verify that each valid composite transition preserves Contains(Σ) ⊆ R, assuming it holds before the transition. Five of the six elementary transitions preserve the invariant individually; the remaining case — K.μ⁺ — requires its coupling with K.ρ.
 
@@ -347,14 +368,17 @@ Nelson captures the whole architecture in a sentence: "The braid only grows more
 |-------|-----------|--------|
 | Σ.E | E ⊆ {t : ValidAddress(t) ∧ zeros(t) ≤ 2} — entity addresses, partitioned by IsNode / IsAccount / IsDocument | introduced |
 | Σ.R | R ⊆ T_elem × E_doc — provenance relation recording historical content associations | introduced |
+| Σ₀ | Initial state: C₀ = ∅, E₀ = {n₀} (bootstrap node), M₀ empty, R₀ = ∅ | introduced |
+| parent(e) | For ¬IsNode(e): tumbler obtained by truncating last field and preceding separator | introduced |
 | P0 | Content store is append-only with immutable values: dom(C) ⊆ dom(C') ∧ C'(a) = C(a) for a ∈ dom(C) | introduced |
 | P1 | Entity set is monotonically growing: E ⊆ E' for every transition, uniformly across levels | introduced |
+| P8 | Entity hierarchy: (A e ∈ E : ¬IsNode(e) : parent(e) ∈ E) — no orphan accounts or documents | introduced |
 | P2 | Provenance relation is monotonically growing: R ⊆ R' for every transition | introduced |
 | P3 | Arrangements are the sole state component admitting destructive change (contraction, reordering) | introduced |
 | P4 | Provenance bounds: Contains(Σ) ⊆ R, with stale entries possible from prior states | introduced |
 | P5 | Destruction confinement: C, E, R are all monotonic across every transition; only M can lose information | introduced |
 | K.α | Content allocation — extend dom(C) with fresh IsElement(a) address and value | introduced |
-| K.δ | Entity creation — extend E with fresh entity, empty arrangement if IsDocument | introduced |
+| K.δ | Entity creation — extend E with fresh entity; precondition: parent(e) ∈ E when ¬IsNode(e); empty arrangement if IsDocument | introduced |
 | K.μ⁺ | Arrangement extension — add V→I mappings to M(d), existing values preserved, referential integrity required (S3) | introduced |
 | K.μ⁻ | Arrangement contraction — remove V→I mappings from M(d), surviving values preserved, no effect on C, E, R | introduced |
 | K.μ~ | Arrangement reordering — bijection on V-positions preserving I-address multiset | introduced |
