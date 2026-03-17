@@ -15,7 +15,11 @@ ASN-0036 gave us C and M(d). Two phenomena require additional state components.
 
 First, entities come into existence. Nelson describes exactly two document creation modes: ex nihilo (a fresh empty document) and forking (a new document derived from an existing one). Gregory confirms both use the same allocation mechanism, differing only in whether the new arrangement starts empty or populated. We need an explicit record of which entities exist.
 
-**Definition (Entity set).** **Σ.E ⊆ T** — the set of allocated entity addresses. Every e ∈ E satisfies ValidAddress(e) (T4, ASN-0034). The level predicates of ASN-0045 partition E into three strata:
+**Definition (Entity set).** **Σ.E ⊆ T** — the set of allocated entity addresses. Every e ∈ E satisfies ValidAddress(e) (T4, ASN-0034). Entities are organisational — nodes, accounts, documents — not content; element-level addresses live in dom(C), not E:
+
+`(A e ∈ E :: ¬IsElement(e))`
+
+Equivalently, E ⊆ {t : ValidAddress(t) ∧ zeros(t) ≤ 2}. Given this exclusion, the level predicates of ASN-0045 partition E into exactly three strata:
 
 - E_node = {e ∈ E : IsNode(e)} — server nodes
 - E_account = {e ∈ E : IsAccount(e)} — user accounts
@@ -95,9 +99,11 @@ Nelson identifies two document-creation modes — ex nihilo and forking. At the 
 
 *Frame:* C' = C; (A d ∈ E_doc : d ≠ e : M'(d) = M(d)); R' = R.
 
-**K.μ⁺ (Arrangement extension).** New V→I mappings are added to some d ∈ E_doc:
+**K.μ⁺ (Arrangement extension).** New V→I mappings are added to some d ∈ E_doc, with existing mappings unchanged:
 
-`dom(M'(d)) ⊃ dom(M(d))`
+`dom(M'(d)) ⊃ dom(M(d)) ∧ (A v : v ∈ dom(M(d)) : M'(d)(v) = M(d)(v))`
+
+Extension is pure addition — the domain grows, and no existing value is altered. Without the value-preservation clause, K.μ⁺ could silently replace values at existing positions, conflating extension with replacement. The decomposition of replacement into K.μ⁻ followed by K.μ⁺ depends on each being a pure operation.
 
 For every new mapping M'(d)(v) = a, referential integrity requires a ∈ dom(C') (S3, ASN-0036). Two cases arise:
 
@@ -107,9 +113,11 @@ For every new mapping M'(d)(v) = a, referential integrity requires a ∈ dom(C')
 
 *Frame:* E' = E; (A d' : d' ≠ d : M'(d') = M(d')); R' = R.
 
-**K.μ⁻ (Arrangement contraction).** Existing V→I mappings are removed from some d ∈ E_doc:
+**K.μ⁻ (Arrangement contraction).** Existing V→I mappings are removed from some d ∈ E_doc, with surviving mappings unchanged:
 
-`dom(M'(d)) ⊂ dom(M(d))`
+`dom(M'(d)) ⊂ dom(M(d)) ∧ (A v : v ∈ dom(M'(d)) : M'(d)(v) = M(d)(v))`
+
+Contraction is pure removal — the domain shrinks, and no surviving value is altered. Without the value-preservation clause, K.μ⁻ could modify values at remaining positions, conflating contraction with rewriting.
 
 Nelson: "the owner of a document may delete bytes from the owner's current version, but those bytes remain in all other documents where they have been included." Contraction changes what a document displays; it does not change what exists.
 
@@ -140,11 +148,13 @@ We also observe that neither split nor merge appears as an elementary transition
 
 The elementary transitions do not all occur independently. Some must co-occur to maintain invariants (coupling); some must leave other components unchanged (isolation). The weakest-precondition calculus makes the coupling constraints visible.
 
+A clarification on scope. The frame conditions stated above describe individual elementary transitions: K.μ⁺ alone does not modify R, K.α alone does not modify M, and so on. Coupling constraints describe required co-occurrence — when K.μ⁺ occurs, K.ρ must also occur in the same composite transition. A *composite transition* is an ordered sequence of elementary transitions whose intermediate states need not satisfy all system invariants; the invariants are required to hold at the final state. The ordering matters: J0 couples K.α with K.μ⁺, and S3 requires the I-address to exist before the V→I mapping is created, so K.α precedes K.μ⁺. Similarly, J4's fork compounds K.δ + K.μ⁺ + K.ρ, and K.μ⁺ requires d ∈ E_doc, which K.δ establishes — so K.δ precedes K.μ⁺. The net effect of a composite transition is the composition of its elementary effects.
+
 **J0 (Allocation requires placement).** Content allocation K.α always co-occurs with arrangement extension K.μ⁺:
 
 `(A Σ → Σ', a : a ∈ dom(C') \ dom(C) : (E d, v : d ∈ E_doc ∧ v ∈ dom(M'(d)) : M'(d)(v) = a))`
 
-Every freshly allocated I-address appears in some arrangement. This follows from S7a (ASN-0036): the address a bears the creating document's prefix, identifying a document d₀ ∈ E_doc whose arrangement must contain the new content.
+Every freshly allocated I-address appears in some arrangement. This is an axiom of the state transition model, not a theorem of ASN-0036. S7a tells us that the prefix of a identifies the creating document, but it does not tell us that the creating document's arrangement must contain a — an address could be allocated into dom(C) with the correct prefix while appearing in no arrangement. The justification for J0 is design intent: in Nelson's model, content enters the docuverse by being placed in a document. There is no mechanism for creating "orphan" content that exists in I-space without any document displaying it. Gregory confirms: allocation always occurs in the context of a document operation that inserts the new content.
 
 **J1 (Extension records provenance).** Arrangement extension K.μ⁺ must co-occur with provenance recording K.ρ:
 
@@ -188,6 +198,17 @@ An immediate consequence of J1 and J2 is that the provenance relation diverges f
 **P4 (Provenance bounds).** In any reachable state where J1 has been satisfied for all prior transitions:
 
 `Contains(Σ) ⊆ R`
+
+*Base case.* The initial state Σ₀ = (∅, ∅, λd.⊥, ∅) has Contains(Σ₀) = ∅ ⊆ ∅ = R₀. The bound holds vacuously.
+
+*Inductive step.* We verify that each elementary transition preserves Contains(Σ) ⊆ R, assuming it holds before the transition:
+
+- K.α: Does not modify M or R. Contains(Σ') = Contains(Σ) ⊆ R = R'. Preserved.
+- K.δ: Creates entity e with empty arrangement M'(e) = ∅, contributing no new pairs to Contains. Does not modify R. Preserved.
+- K.μ⁺: May add new pairs to Contains. J1 requires co-occurring K.ρ to add those pairs to R'. Preserved by J1.
+- K.μ⁻: Can only remove pairs from Contains — ran(M'(d)) ⊆ ran(M(d)), so Contains(Σ') ⊆ Contains(Σ) ⊆ R = R'. Preserved by monotonicity.
+- K.μ~: Preserves ran(M(d)), so Contains(Σ') = Contains(Σ) ⊆ R = R'. Preserved.
+- K.ρ: Extends R; does not modify M. Contains(Σ') = Contains(Σ) ⊆ R ⊆ R'. Preserved.
 
 Every I-address currently in some arrangement is recorded in R. But the converse does not hold: (a, d) ∈ R does not imply a ∈ ran(M(d)). Stale entries persist from earlier states where d contained a before contraction removed it. These entries are not errors — they are the system's historical memory of content associations, monotonically truthful, never retracting a claim once made. Gregory: "find_documents returns historically accurate results, not current state."
 
@@ -238,7 +259,7 @@ Nelson captures the whole architecture in a sentence: "The braid only grows more
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| Σ.E | E ⊆ T — set of allocated entity addresses, partitioned by IsNode / IsAccount / IsDocument | introduced |
+| Σ.E | E ⊆ {t : ValidAddress(t) ∧ zeros(t) ≤ 2} — entity addresses, partitioned by IsNode / IsAccount / IsDocument | introduced |
 | Σ.R | R ⊆ T_elem × E_doc — provenance relation recording historical content associations | introduced |
 | P0 | Content store is append-only with immutable values: dom(C) ⊆ dom(C') ∧ C'(a) = C(a) for a ∈ dom(C) | introduced |
 | P1 | Entity set is monotonically growing: E ⊆ E' for every transition, uniformly across levels | introduced |
@@ -248,8 +269,8 @@ Nelson captures the whole architecture in a sentence: "The braid only grows more
 | P5 | Destruction confinement: C, E, R are all monotonic across every transition; only M can lose information | introduced |
 | K.α | Content allocation — extend dom(C) with fresh IsElement(a) address and value | introduced |
 | K.δ | Entity creation — extend E with fresh entity, empty arrangement if IsDocument | introduced |
-| K.μ⁺ | Arrangement extension — add V→I mappings to M(d), referential integrity required (S3) | introduced |
-| K.μ⁻ | Arrangement contraction — remove V→I mappings from M(d), no effect on C, E, R | introduced |
+| K.μ⁺ | Arrangement extension — add V→I mappings to M(d), existing values preserved, referential integrity required (S3) | introduced |
+| K.μ⁻ | Arrangement contraction — remove V→I mappings from M(d), surviving values preserved, no effect on C, E, R | introduced |
 | K.μ~ | Arrangement reordering — bijection on V-positions preserving I-address multiset | introduced |
 | K.ρ | Provenance recording — extend R with (a, d) pair where IsElement(a) ∧ a ∈ dom(C) | introduced |
 | J0 | Content allocation (K.α) always co-occurs with arrangement extension (K.μ⁺) | introduced |
