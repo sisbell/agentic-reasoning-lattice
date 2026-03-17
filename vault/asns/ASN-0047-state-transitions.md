@@ -112,7 +112,7 @@ We seek the elementary modifications — the state changes from which all system
 
 `E' = E ∪ {e}` where `e ∉ E ∧ ValidAddress(e) ∧ ¬IsElement(e)`
 
-*Precondition:* when ¬IsNode(e), parent(e) ∈ E — the parent entity must already exist. For root nodes (IsNode(e)), no parent is required; node creation is the bootstrap case that seeds new branches of the hierarchy.
+*Precondition:* when ¬IsNode(e), parent(e) ∈ E — the parent entity must already exist. For root nodes (IsNode(e)), no parent is required; node creation is the bootstrap case that seeds new branches of the hierarchy. By GlobalUniqueness (ASN-0034) — the same result that governs K.α — e is distinct from every previously allocated address, so e ∉ E.
 
 When IsDocument(e): M'(e) = ∅ (empty arrangement). For non-root entities, the address is typically allocated via inc(·, k) (TA5, ASN-0034) within the parent's ownership domain. Gregory confirms that document creation and node creation use the same allocation mechanism, differing only in the allocation level.
 
@@ -207,7 +207,7 @@ This is a derived quantity of the state — it captures what each document curre
 
 *Base case.* At Σ₀: dom(C₀) = ∅ makes P6 vacuous (no content, so no origin to check); R₀ = ∅ makes P7 vacuous (no provenance entries to ground); (E₀)_doc = ∅ makes P4 vacuous (no documents, so Contains(Σ₀) = ∅ ⊆ R₀); E₀ = {n₀} with IsNode(n₀) makes P8 vacuous (no non-node entities); (E₀)_doc = ∅ makes S2–S8-fin vacuous (no arrangements exist).
 
-*Inductive step.* For any reachable state Σ satisfying the above, every valid composite Σ → Σ' produces Σ' satisfying the same — as the derivations of P4, P6, P7, P8 and the elementary-transition analysis of S2–S8-fin show below.
+*Inductive step.* For any reachable state Σ satisfying the above, every valid composite Σ → Σ' produces Σ' satisfying the same — as derived above for P8 and S2–S8-fin, and below for P4, P6, and P7.
 
 Intermediate states need not satisfy all system invariants; only the final state is required to. The ordering matters: J0 couples K.α with K.μ⁺, and S3 requires the I-address to exist before the V→I mapping is created, so K.α precedes K.μ⁺. Similarly, J4's fork compounds K.δ + K.μ⁺ + K.ρ, and K.μ⁺ requires d ∈ E_doc, which K.δ establishes — so K.δ precedes K.μ⁺. The net effect of a composite transition is the composition of its elementary effects.
 
@@ -400,9 +400,9 @@ We have arrived at the structural insight underlying the entire design. The stat
 |-------|-----------|------------|----------------------|
 | Existential | C, E | Append-only, values immutable | K.α, K.δ |
 | Historical | R | Append-only, entries may stale | K.ρ |
-| Presentational | M | Fully mutable | K.μ⁺, K.μ⁻, K.μ~ (composite) |
+| Presentational | M | Fully mutable | K.μ⁺, K.μ⁻, K.μ~ (composite), K.δ† |
 
-K.δ for documents also initialises M'(e) = ∅, extending M's domain — a presentational-layer effect. We classify K.δ as existential because its primary purpose is entity creation; the empty arrangement initialisation is a structural consequence (extending the domain with an empty entry, not mutating an existing arrangement). The broader claim holds: no elementary transition touches all three layers.
+†K.δ for documents also initialises M'(e) = ∅, extending M's domain — a presentational-layer effect. We classify K.δ as primarily existential because its defining purpose is entity creation; the empty arrangement initialisation is a structural consequence (extending the domain with an empty entry, not mutating an existing arrangement). The broader claim holds: no elementary transition touches all three layers.
 
 Three invariants bind the layers together, making the temporal contracts precise. P6 is intra-existential — a coherence constraint between C and E, both within the same layer. P7 bridges the existential and historical layers, tying R to C. And P4 (Contains(Σ) ⊆ R, derived in the coupling section) bridges the presentational and historical layers — it is the load-bearing constraint that necessitates J1's coupling.
 
