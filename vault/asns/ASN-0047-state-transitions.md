@@ -126,13 +126,13 @@ Nelson identifies two document-creation modes — ex nihilo and forking. At the 
 
 Extension is pure addition — the domain grows, and no existing value is altered. Without the value-preservation clause, K.μ⁺ could silently replace values at existing positions, conflating extension with replacement. The decomposition of replacement into K.μ⁻ followed by K.μ⁺ depends on each being a pure operation.
 
-*Precondition:* `d ∈ E_doc`; for every new mapping M'(d)(v) = a, `a ∈ dom(C')` (S3, ASN-0036); new V-positions satisfy S8a (all components strictly positive) and S8-depth (uniform depth within subspace); dom(M'(d)) is finite (S8-fin).
+*Precondition:* `d ∈ E_doc`; for every new mapping M'(d)(v) = a, `a ∈ dom(C)` (S3, ASN-0036 — since K.μ⁺'s frame holds C' = C, referential integrity reduces to membership in the pre-state content store); new V-positions satisfy S8a (all components strictly positive), and the resulting arrangement M'(d) satisfies S8-depth (uniform depth within each subspace); dom(M'(d)) is finite (S8-fin).
 
-Referential integrity admits two cases for each new I-address a:
+In a composite transition, K.α may precede K.μ⁺, extending dom(C) before K.μ⁺ executes. At that intermediate state the freshly allocated address is already in the content store, satisfying the precondition. From the composite perspective, the I-address in a new mapping falls into one of two cases:
 
-(i) a ∈ dom(C') \ dom(C) — freshly allocated, co-occurring with K.α. Nelson: "new content enters I-space permanently."
+(i) Freshly allocated — co-occurring K.α places a into dom(C) before K.μ⁺ maps to it. Nelson: "new content enters I-space permanently."
 
-(ii) a ∈ dom(C) — existing content. This is transclusion: "the copy shares I-addresses with the source. No new content is created in I-space."
+(ii) Previously existing — a ∈ dom(C) at the composite's initial state. This is transclusion: "the copy shares I-addresses with the source. No new content is created in I-space."
 
 *Frame:* C' = C; E' = E; (A d' : d' ≠ d : M'(d') = M(d')); R' = R.
 
@@ -152,7 +152,7 @@ Nelson: "the owner of a document may delete bytes from the owner's current versi
 
 `(A v : v ∈ dom(M(d)) : M'(d)(π(v)) = M(d)(v))`
 
-*Precondition:* `d ∈ E_doc`; π produces V-positions satisfying S8a (all components strictly positive) and S8-depth (uniform depth within subspace).
+*Precondition:* `d ∈ E_doc`; π produces V-positions satisfying S8a (all components strictly positive), and the resulting arrangement M'(d) satisfies S8-depth (uniform depth within each subspace).
 
 The multiset of referenced I-addresses is preserved; only V-positions change. Nelson: content "changes V-space positions but touches nothing in I-space. The same bytes appear in a different order." Gregory confirms that reordering is the only transition kind that leaves all persistent structures outside the arrangement unchanged.
 
@@ -195,11 +195,11 @@ We derive this by wp. Define the *current containment*:
 
 `Contains(Σ) = {(a, d) : d ∈ E_doc ∧ a ∈ ran(M(d))}`
 
-The invariant we need — Contains(Σ) ⊆ R — must hold after extension. After K.μ⁺, Contains(Σ') ⊇ Contains(Σ), so new pairs appear. K.μ⁺ alone does not modify R (its frame holds R' = R). Hence:
+The invariant we need — Contains(Σ) ⊆ R — must hold after the composite transition. After K.μ⁺, Contains(Σ') ⊇ Contains(Σ), so new pairs appear. K.μ⁺ alone does not modify R (its frame holds R' = R). Computing the wp of K.μ⁺ alone, substituting R for R':
 
-`wp(K.μ⁺, Contains(Σ') ⊆ R') = (A a : a ∈ ran(M'(d)) \ ran(M(d)) : (a, d) ∈ R')`
+`wp(K.μ⁺, Contains(Σ') ⊆ R) = (A a : a ∈ ran(M'(d)) \ ran(M(d)) : (a, d) ∈ R)`
 
-This requires K.ρ to co-occur, adding the new pairs to R.
+This requires every new containment pair to already be in R — not generally true for fresh content. K.μ⁺ in isolation cannot maintain the invariant; K.ρ must co-occur, extending R so that the composite post-state satisfies `(A a : a ∈ ran(M'(d)) \ ran(M(d)) : (a, d) ∈ R')`.
 
 Gregory identifies one implementation anomaly where provenance recording is skipped for a particular command, "making content invisible to find_documents." The abstract specification treats this as a defect: the coupling is required.
 
@@ -303,6 +303,7 @@ Verification against the resulting state Σ₂:
 - *J4:* d₂ ∈ E₂_doc \ E₁_doc, ran(M₂(d₂)) = {a₁, a₂} ⊆ ran(M₁(d₁)). ✓
 - *P4:* Contains(Σ₂) = {(a₁, d₁), (a₂, d₁), (a₁, d₂), (a₂, d₂)} ⊆ R₂. ✓
 - *P5:* C₂ = C₁; E₂ ⊇ E₁; R₂ ⊇ R₁. Only M changed. ✓
+- *P8:* parent(d₂) = parent(1.0.1.0.2) = 1.0.1 ∈ E₁ ⊆ E₂. The existing non-node entity 1.0.1 (account) retains parent(1.0.1) = 1 ∈ E₂. ✓
 
 **Insert new content into d₂.** Compound K.α + K.μ⁺ + K.ρ.
 
@@ -332,7 +333,7 @@ Verification:
 
 The divergence is now concrete: R₄ records that d₂ once contained a₁, while the current arrangement does not. This is the historical memory that J2 preserves — deletion is purely presentational.
 
-The three steps exercise J0, J1, J2, J4, P4, P5, P6, and P7, and demonstrate both the convention M(d) = ∅ for freshly created documents (J1 verification of the fork) and the divergence between current containment and historical provenance (J2 verification of the deletion).
+The three steps exercise J0, J1, J2, J4, P4, P5, P6, P7, and P8, and demonstrate both the convention M(d) = ∅ for freshly created documents (J1 verification of the fork) and the divergence between current containment and historical provenance (J2 verification of the deletion).
 
 
 ## Temporal decomposition
