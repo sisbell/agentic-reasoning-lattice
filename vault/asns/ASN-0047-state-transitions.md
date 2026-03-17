@@ -156,7 +156,7 @@ Nelson: "the owner of a document may delete bytes from the owner's current versi
 
 *Precondition:* `d ∈ E_doc`; π produces V-positions satisfying S8a (all components strictly positive), and the resulting arrangement M'(d) satisfies S8-depth (uniform depth within each subspace).
 
-The multiset of referenced I-addresses is preserved — formally, ran(M'(d)) = ran(M(d)), immediate from the bijection. This is a defining property of reordering, not a frame condition: it constrains how M(d) is modified, while frame conditions describe what is unchanged in other components. Nelson: content "changes V-space positions but touches nothing in I-space. The same bytes appear in a different order." Gregory confirms that reordering is the only transition kind that leaves all persistent structures outside the arrangement unchanged.
+The bijection preserves the mapping pointwise — each V-position retains its I-address — so the multiset of referenced I-addresses is identical. As a corollary, ran(M'(d)) = ran(M(d)). This is a defining property of reordering, not a frame condition: it constrains how M(d) is modified, while frame conditions describe what is unchanged in other components. Nelson: content "changes V-space positions but touches nothing in I-space. The same bytes appear in a different order." Gregory confirms that reordering is the only transition kind that leaves all persistent structures outside the arrangement unchanged.
 
 *Frame (derived below):* C' = C; E' = E; R' = R; (A d' : d' ≠ d : M'(d') = M(d')).
 
@@ -203,7 +203,7 @@ This is a derived quantity of the state — it captures what each document curre
 
 (3a) *Transition constraints:* the composite Σ → Σ' satisfies P0, P1, P2.
 
-(3b) *State invariants:* the final state Σ' satisfies P6, P7, P8, S2, S3, S8a, S8-depth, S8-fin, and Contains(Σ') ⊆ R'. (Conditions (3b) follow from (1), (2), and (3a) — as the derivations of P4, P6, P7, P8 and the elementary-transition analysis of S2–S8-fin show below. They are included to make the reachable-state invariants explicit.)
+**Theorem (Reachable-state invariants).** Every valid composite transition produces a final state Σ' satisfying P6, P7, P8, S2, S3, S8a, S8-depth, S8-fin, and Contains(Σ') ⊆ R'. This follows from conditions (1), (2), and (3a) — as the derivations of P4, P6, P7, P8 and the elementary-transition analysis of S2–S8-fin show below.
 
 Intermediate states need not satisfy all system invariants; only the final state is required to. The ordering matters: J0 couples K.α with K.μ⁺, and S3 requires the I-address to exist before the V→I mapping is created, so K.α precedes K.μ⁺. Similarly, J4's fork compounds K.δ + K.μ⁺ + K.ρ, and K.μ⁺ requires d ∈ E_doc, which K.δ establishes — so K.δ precedes K.μ⁺. The net effect of a composite transition is the composition of its elementary effects.
 
@@ -283,7 +283,7 @@ An immediate consequence of J1 and J2 is that the provenance relation diverges f
 
 - K.α: Does not modify M or R. Contains(Σ') = Contains(Σ) ⊆ R = R'. Preserved.
 - K.δ: Creates entity e with empty arrangement M'(e) = ∅, contributing no new pairs to Contains. Does not modify R. Preserved.
-- K.μ⁺: Let Δ = {(a, d) : d ∈ E'_doc ∧ a ∈ ran(M'(d)) \ ran(M(d))} be the new containment pairs, where the convention M(d) = ∅ for d ∈ E'_doc \ E_doc ensures this is well-defined for freshly created documents. K.μ⁺ yields Contains(Σ') = Contains(Σ) ∪ Δ. Two subcases for each (a, d) ∈ Δ: (i) (a, d) ∉ R — J1 requires (a, d) ∈ R', so K.ρ must co-occur, adding the pair to R'; (ii) (a, d) ∈ R — the pair is already in R, and P2 gives R ⊆ R', so (a, d) ∈ R' without K.ρ. In both subcases (a, d) ∈ R'. Since Contains(Σ) ⊆ R ⊆ R' (inductive hypothesis and P2), we have Contains(Σ') = Contains(Σ) ∪ Δ ⊆ R'. Preserved.
+- K.μ⁺: Let Δ = {(a, d) : d ∈ E'_doc ∧ a ∈ ran(M'(d)) \ ran(M(d))} be the new containment pairs, where the convention M(d) = ∅ for d ∈ E'_doc \ E_doc ensures this is well-defined for freshly created documents. K.μ⁺ yields Contains(Σ') ⊆ Contains(Σ) ∪ Δ. Two subcases for each (a, d) ∈ Δ: (i) (a, d) ∉ R — J1 requires (a, d) ∈ R', so K.ρ must co-occur, adding the pair to R'; (ii) (a, d) ∈ R — the pair is already in R, and P2 gives R ⊆ R', so (a, d) ∈ R' without K.ρ. In both subcases (a, d) ∈ R'. Since Contains(Σ) ⊆ R ⊆ R' (inductive hypothesis and P2), we have Contains(Σ') ⊆ Contains(Σ) ∪ Δ ⊆ R'. Preserved.
 - K.μ⁻: Can only remove pairs from Contains — ran(M'(d)) ⊆ ran(M(d)), so Contains(Σ') ⊆ Contains(Σ) ⊆ R = R'. Preserved by monotonicity.
 - K.μ~ (composite): Its defining property gives ran(M'(d)) = ran(M(d)), so Contains(Σ') = Contains(Σ). Its derived frame gives R' = R. Hence Contains(Σ') ⊆ R = R'. Preserved.
 - K.ρ: By J1', does not occur without K.μ⁺ — handled in the composite case above. Were it to occur independently, R grows while Contains is unchanged: Contains(Σ') = Contains(Σ) ⊆ R ⊆ R'. The invariant would be preserved, but the entry would lack historical justification.
@@ -429,7 +429,8 @@ Nelson captures the whole architecture in a sentence: "The braid only grows more
 | Σ.R | R ⊆ T_elem × E_doc — provenance relation recording historical content associations | introduced |
 | Σ₀ | Initial state: C₀ = ∅, E₀ = {n₀} (bootstrap node), M₀ empty, R₀ = ∅ | introduced |
 | parent(e) | For ¬IsNode(e): tumbler obtained by truncating last field and preceding separator | introduced |
-| Valid composite | Σ → Σ' valid iff: (1) elementary preconditions at each intermediate state, (2) J0/J1/J1' for the composite, (3a) P0/P1/P2 for the composite, (3b) Σ' satisfies P6–P8, S2, S3, S8a, S8-depth, S8-fin, Contains ⊆ R' | introduced |
+| Valid composite | Σ → Σ' valid iff: (1) elementary preconditions at each intermediate state, (2) J0/J1/J1' for the composite, (3a) P0/P1/P2 for the composite | introduced |
+| Reachable-state invariants | Every valid composite produces Σ' satisfying P6, P7, P8, S2, S3, S8a, S8-depth, S8-fin, Contains(Σ') ⊆ R' — derived from (1)+(2)+(3a) | introduced |
 | P0 | Content store is append-only with immutable values: dom(C) ⊆ dom(C') ∧ C'(a) = C(a) for a ∈ dom(C) | introduced |
 | P1 | Entity set is monotonically growing: E ⊆ E' for every transition, uniformly across levels | introduced |
 | P8 | Entity hierarchy: (A e ∈ E : ¬IsNode(e) : parent(e) ∈ E) — no orphan accounts or documents | introduced |
@@ -448,7 +449,7 @@ Nelson captures the whole architecture in a sentence: "The braid only grows more
 | J1 | Arrangement extension (K.μ⁺) must co-occur with provenance recording (K.ρ), derived by wp | introduced |
 | J1' | (a, d) ∈ R' \ R only when a ∈ ran(M'(d)) \ ran(M(d)) — new provenance requires new containment | introduced |
 | J2 | K.μ⁻ as elementary transition requires no coupling: C' = C ∧ E' = E ∧ R' = R | introduced |
-| J3 | K.μ~ as elementary transition requires no coupling: C' = C ∧ E' = E ∧ R' = R | introduced |
+| J3 | K.μ~ as distinguished composite requires no coupling: C' = C ∧ E' = E ∧ R' = R | introduced |
 | J4 | Fork composite: K.δ + K.μ⁺ + K.ρ (no other steps); dom(C') = dom(C) follows from frames; provenance from J1; empty source reduces to K.δ alone | introduced |
 | P6 | Existential coherence: origin(a) ∈ E_doc for all a ∈ dom(C) | introduced |
 | P7 | Provenance grounding: a ∈ dom(C) for all (a, d) ∈ R | introduced |
