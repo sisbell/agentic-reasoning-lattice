@@ -9,4 +9,4 @@ Generated from vault/project-model/ASN-*.yaml
 | ASN-0040 | Tumbler Baptism | proof | 34 | 36, 42 | — |
 | ASN-0042 | Tumbler Ownership | proof | 34 | 36, 40 | — |
 | ASN-0043 | Link Ontology | draft | 34, 36 | 40, 42 | — |
-| ASN-0044 | State Transitions | draft | 36 | 34, 40, 42, 43 | — |
+| ASN-0044 | State Transitions | draft | 34, 36 | 40, 42, 43 | — |
