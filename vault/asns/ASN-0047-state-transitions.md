@@ -29,7 +29,7 @@ Arrangements M(d) are defined iff d ∈ E_doc. We include links in E_doc: Nelson
 
 Second, removal of content from an arrangement does not erase the historical fact of prior containment. Gregory: the reverse index "accumulates entries from every content addition but is never trimmed." Nelson: "every previous arrangement remains reconstructable." The system must answer "which documents have ever contained content with origin *a*?" — a question about history, not about current state.
 
-**Definition (Provenance relation).** **Σ.R ⊆ T_elem × E_doc** — where T_elem = {a ∈ T : IsElement(a)} (ASN-0045). The pair (a, d) ∈ R records that document d has, at some point in the system's history, contained I-address a in its arrangement.
+**Definition (Provenance relation).** **Σ.R ⊆ T_elem × E_doc** — where T_elem = {a ∈ T : IsElement(a)} (ASN-0045). The pair (a, d) ∈ R records that document d has, at some point in the system's history, contained I-address a in its arrangement. This historical fidelity — that every entry reflects an actual past containment event, not merely eligibility — is not assumed by the definition alone; it is established by the bidirectional coupling J1 + J1' below.
 
 The full system state is:
 
@@ -111,7 +111,7 @@ For every new mapping M'(d)(v) = a, referential integrity requires a ∈ dom(C')
 
 (ii) a ∈ dom(C) — existing content. This is transclusion: "the copy shares I-addresses with the source. No new content is created in I-space."
 
-*Frame:* E' = E; (A d' : d' ≠ d : M'(d') = M(d')); R' = R.
+*Frame:* C' = C; E' = E; (A d' : d' ≠ d : M'(d') = M(d')); R' = R.
 
 **K.μ⁻ (Arrangement contraction).** Existing V→I mappings are removed from some d ∈ E_doc, with surviving mappings unchanged:
 
@@ -172,6 +172,12 @@ This requires K.ρ to co-occur, adding the new pairs to R.
 
 Gregory identifies one implementation anomaly where provenance recording is skipped for a particular command, "making content invisible to find_documents." The abstract specification treats this as a defect: the coupling is required.
 
+**J1' (Provenance requires extension).** Conversely, provenance recording K.ρ for (a, d) occurs only within a composite transition where K.μ⁺ introduces a into ran(M'(d)):
+
+`(A Σ → Σ', a, d : (a, d) ∈ R' \ R : a ∈ ran(M'(d)) \ ran(M(d)))`
+
+J1 ensures every new containment pair is recorded; J1' ensures every new provenance entry corresponds to an actual containment event. Together they give a bidirectional coupling: K.ρ fires for (a, d) if and only if K.μ⁺ introduces a into d's arrangement in the same composite transition. Gregory confirms this tight coupling — the provenance structure "accumulates entries from every content addition" and no mechanism exists to record provenance outside of content placement.
+
 **J2 (Contraction isolation).** Arrangement contraction K.μ⁻ is isolated from all permanent and historical state:
 
 `(A Σ → Σ', d : dom(M'(d)) ⊂ dom(M(d)) : C' = C ∧ E' = E ∧ R' = R)`
@@ -201,14 +207,14 @@ An immediate consequence of J1 and J2 is that the provenance relation diverges f
 
 *Base case.* The initial state Σ₀ = (∅, ∅, λd.⊥, ∅) has Contains(Σ₀) = ∅ ⊆ ∅ = R₀. The bound holds vacuously.
 
-*Inductive step.* We verify that each elementary transition preserves Contains(Σ) ⊆ R, assuming it holds before the transition:
+*Inductive step.* We verify that each valid composite transition preserves Contains(Σ) ⊆ R, assuming it holds before the transition. Five of the six elementary transitions preserve the invariant individually; the remaining case — K.μ⁺ — requires its coupling with K.ρ.
 
 - K.α: Does not modify M or R. Contains(Σ') = Contains(Σ) ⊆ R = R'. Preserved.
 - K.δ: Creates entity e with empty arrangement M'(e) = ∅, contributing no new pairs to Contains. Does not modify R. Preserved.
-- K.μ⁺: May add new pairs to Contains. J1 requires co-occurring K.ρ to add those pairs to R'. Preserved by J1.
+- K.μ⁺ (composite with K.ρ): K.μ⁺ alone does not preserve the invariant — it adds pairs to Contains while its frame holds R' = R. But K.μ⁺ never occurs alone: J1 requires co-occurring K.ρ. Let Δ = {(a, d) : a ∈ ran(M'(d)) \ ran(M(d))} be the new containment pairs. K.μ⁺ yields Contains(Σ') = Contains(Σ) ∪ Δ. By J1, (a, d) ∈ R' for every (a, d) ∈ Δ. Since Contains(Σ) ⊆ R ⊆ R' (inductive hypothesis and P2), we have Contains(Σ') = Contains(Σ) ∪ Δ ⊆ R'. Preserved by composition.
 - K.μ⁻: Can only remove pairs from Contains — ran(M'(d)) ⊆ ran(M(d)), so Contains(Σ') ⊆ Contains(Σ) ⊆ R = R'. Preserved by monotonicity.
 - K.μ~: Preserves ran(M(d)), so Contains(Σ') = Contains(Σ) ⊆ R = R'. Preserved.
-- K.ρ: Extends R; does not modify M. Contains(Σ') = Contains(Σ) ⊆ R ⊆ R'. Preserved.
+- K.ρ: By J1', does not occur without K.μ⁺ — handled in the composite case above. Were it to occur independently, R grows while Contains is unchanged: Contains(Σ') = Contains(Σ) ⊆ R ⊆ R'. The invariant would be preserved, but the entry would lack historical justification.
 
 Every I-address currently in some arrangement is recorded in R. But the converse does not hold: (a, d) ∈ R does not imply a ∈ ran(M(d)). Stale entries persist from earlier states where d contained a before contraction removed it. These entries are not errors — they are the system's historical memory of content associations, monotonically truthful, never retracting a claim once made. Gregory: "find_documents returns historically accurate results, not current state."
 
@@ -248,7 +254,7 @@ We have arrived at the structural insight underlying the entire design. The stat
 | Historical | R | Append-only, entries may stale | K.ρ |
 | Presentational | M | Fully mutable | K.μ⁺, K.μ⁻, K.μ~ |
 
-The decomposition constrains the elementary transitions cleanly. No transition modifies all three layers simultaneously. The purely destructive transitions — K.μ⁻ and K.μ~ — are confined to the presentational layer alone, the one layer where impermanence is by design. Cross-layer coupling occurs only in constructive directions: K.α (existential) couples with K.μ⁺ (presentational) via J0; K.μ⁺ (presentational) couples with K.ρ (historical) via J1. The existential and historical layers never shrink.
+The decomposition constrains the elementary transitions cleanly. No transition modifies all three layers simultaneously. The purely destructive transitions — K.μ⁻ and K.μ~ — are confined to the presentational layer alone, the one layer where impermanence is by design. Cross-layer coupling occurs only in constructive directions: K.α (existential) couples with K.μ⁺ (presentational) via J0; K.μ⁺ (presentational) couples with K.ρ (historical) via J1/J1'. The existential and historical layers never shrink.
 
 The existential and historical layers differ in semantics despite sharing the append-only contract. Existential entries state *current facts*: content value v exists at address a, and this remains true permanently. Historical entries state *past events*: document d once contained address a, and this record persists even when the current arrangement no longer agrees. The distinction matters because existential entries are both permanent and accurate (content *is* at address a), while historical entries are permanent but may be stale (document d *was* associated with address a, but may no longer be).
 
@@ -275,6 +281,7 @@ Nelson captures the whole architecture in a sentence: "The braid only grows more
 | K.ρ | Provenance recording — extend R with (a, d) pair where IsElement(a) ∧ a ∈ dom(C) | introduced |
 | J0 | Content allocation (K.α) always co-occurs with arrangement extension (K.μ⁺) | introduced |
 | J1 | Arrangement extension (K.μ⁺) must co-occur with provenance recording (K.ρ), derived by wp | introduced |
+| J1' | Provenance recording (K.ρ) occurs only when K.μ⁺ introduces the (a, d) pair — bidirectional coupling with J1 | introduced |
 | J2 | Arrangement contraction (K.μ⁻) is isolated: C, E, R unchanged | introduced |
 | J3 | Arrangement reordering (K.μ~) is isolated: C, E, R unchanged | introduced |
 | J4 | Document fork compounds K.δ + K.μ⁺ + K.ρ with no new content in C | introduced |
