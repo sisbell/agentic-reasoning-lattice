@@ -126,7 +126,7 @@ Nelson identifies two document-creation modes — ex nihilo and forking. At the 
 
 Extension is pure addition — the domain grows, and no existing value is altered. Without the value-preservation clause, K.μ⁺ could silently replace values at existing positions, conflating extension with replacement. The decomposition of replacement into K.μ⁻ followed by K.μ⁺ depends on each being a pure operation.
 
-*Precondition:* `d ∈ E_doc`; for every new mapping M'(d)(v) = a, `a ∈ dom(C)` (S3, ASN-0036 — since K.μ⁺'s frame holds C' = C, referential integrity reduces to membership in the pre-state content store); new V-positions satisfy S8a (all components strictly positive), and the resulting arrangement M'(d) satisfies S8-depth (uniform depth within each subspace); dom(M'(d)) is finite (S8-fin).
+*Precondition:* `d ∈ E_doc`; for every new mapping M'(d)(v) = a, `a ∈ dom(C)` (S3, ASN-0036 — since K.μ⁺'s frame holds C' = C, referential integrity reduces to membership in the pre-state content store); new V-positions satisfy S8a (all components strictly positive), and the resulting arrangement M'(d) satisfies S8-depth (uniform depth within each subspace); dom(M'(d)) is finite (S8-fin). Functionality (S2) is preserved: dom(M'(d)) ⊃ dom(M(d)) with value preservation at existing positions means new entries are assigned at positions outside dom(M(d)), so M'(d) remains a function — extending a partial function at disjoint domain elements cannot introduce ambiguity.
 
 In a composite transition, K.α may precede K.μ⁺, extending dom(C) before K.μ⁺ executes. At that intermediate state the freshly allocated address is already in the content store, satisfying the precondition. From the composite perspective, the I-address in a new mapping falls into one of two cases:
 
@@ -150,7 +150,7 @@ Nelson: "the owner of a document may delete bytes from the owner's current versi
 
 *Frame:* C' = C; E' = E; R' = R; (A d' : d' ≠ d : M'(d') = M(d')).
 
-**K.μ~ (Arrangement reordering).** V-positions change without adding or removing mappings. For some d ∈ E_doc, there exists a bijection π : dom(M(d)) → dom(M'(d)) such that:
+**K.μ~ (Arrangement reordering).** V-positions may change without adding or removing mappings. For some d ∈ E_doc, there exists a bijection π : dom(M(d)) → dom(M'(d)) such that:
 
 `(A v : v ∈ dom(M(d)) : M'(d)(π(v)) = M(d)(v))`
 
@@ -172,11 +172,11 @@ Five primitive kinds — K.α, K.δ, K.μ⁺, K.μ⁻, K.ρ — are complete. Th
 
 K.μ~ is a distinguished composite, not a primitive transition. When dom(M(d)) is non-empty, it decomposes into K.μ⁻ (removing all mappings) followed by K.μ⁺ (re-adding them at new positions). We verify the intermediate-state preconditions and derive the frame.
 
-Let Σ_int be the state after K.μ⁻ empties M(d). K.μ⁻'s frame gives C_int = C, E_int = E, R_int = R, and M_int(d') = M(d') for d' ≠ d. The K.μ⁺ step re-adds mappings at the new V-positions π(v), and its preconditions at Σ_int are: (i) d ∈ (E_int)_doc — holds because E_int = E and d ∈ E_doc; (ii) referential integrity (S3) — every re-added I-address a satisfies a ∈ ran(M(d)) ⊆ dom(C) = dom(C_int), where the inclusion follows from S3 at the pre-state and the equality from K.μ⁻'s frame; (iii) S8a and S8-depth — the new V-positions satisfy these by K.μ~'s precondition on π; (iv) S8-fin — dom(M'(d)) is finite because π is a bijection from the finite dom(M(d)) (S8-fin at the pre-state).
+Let Σ_int be the state after K.μ⁻ empties M(d). K.μ⁻'s frame gives C_int = C, E_int = E, R_int = R, and M_int(d') = M(d') for d' ≠ d. The K.μ⁺ step re-adds mappings at the new V-positions π(v), and its preconditions at Σ_int are: (i) d ∈ (E_int)_doc — holds because E_int = E and d ∈ E_doc; (ii) referential integrity (S3) — every re-added I-address a satisfies a ∈ ran(M(d)) ⊆ dom(C) = dom(C_int), where the inclusion follows from S3 at the pre-state and the equality from K.μ⁻'s frame; (iii) S8a and S8-depth — the new V-positions satisfy these by K.μ~'s precondition on π; (iv) S8-fin — dom(M'(d)) is finite because π is a bijection from the finite dom(M(d)) (S8-fin at the pre-state). Functionality (S2) of the result M'(d) follows from the injectivity of π: each target position π(v) receives exactly one value M(d)(v), and since π is a bijection, no two source positions map to the same target.
 
 The frame follows by composition. K.μ⁻ gives C_int = C, E_int = E, R_int = R, and preserves other arrangements. K.μ⁺ gives C' = C_int = C, E' = E_int = E, R' = R_int = R, and preserves other arrangements. Composing: C' = C, E' = E, R' = R, (A d' : d' ≠ d : M'(d') = M(d')) — matching the frame stated above.
 
-When dom(M(d)) = ∅, K.μ~ is the identity — the empty bijection π : ∅ → ∅ satisfies the definition, producing zero elementary steps. The coupling constraint J1 is vacuously satisfied at the composite level: since K.μ~ preserves ran(M(d)), the set difference ran(M'(d)) \ ran(M(d)) is empty — no new containment pairs arise, so no provenance recording is needed. We retain K.μ~ as a named transition because its isolation property (J3) and semantic clarity — reordering as a single atomic concept — justify separate treatment. Gregory's independent analysis of the implementation identifies the same six persistent modification kinds, confirming this classification.
+When dom(M(d)) = ∅, K.μ~ is the identity — the empty bijection π : ∅ → ∅ satisfies the definition, producing zero elementary steps. When dom(M(d)) is non-empty, π = id is also permitted — the identity bijection produces M'(d) = M(d), a degenerate reordering that changes nothing. The decomposition into K.μ⁻ + K.μ⁺ is a vacuous round-trip, and all invariants are trivially preserved. We do not restrict π to non-identity bijections; the formal definition subsumes both degenerate cases cleanly. The coupling constraint J1 is vacuously satisfied at the composite level: since K.μ~ preserves ran(M(d)), the set difference ran(M'(d)) \ ran(M(d)) is empty — no new containment pairs arise, so no provenance recording is needed. We retain K.μ~ as a named transition because its isolation property (J3) and semantic clarity — reordering as a single atomic concept — justify separate treatment. Gregory's independent analysis of the implementation identifies the same six persistent modification kinds, confirming this classification.
 
 We also observe that neither split nor merge appears as an elementary transition. Nelson addresses this explicitly: the effect of splitting a document is achieved by creating two new documents and transcluding different portions of the original into each. Merging is creating a new document and transcluding from multiple sources. Both compose from K.δ, K.μ⁺, and K.ρ — the elementary transitions suffice.
 
@@ -205,7 +205,7 @@ This is a derived quantity of the state — it captures what each document curre
 
 **Theorem (Reachable-state invariants).** Every state reachable from Σ₀ by a finite sequence of valid composite transitions satisfies P4 (Contains(Σ) ⊆ R), P6, P7, P8, S2, S3, S8a, S8-depth, and S8-fin.
 
-*Base case.* At Σ₀, dom(C₀) = ∅ makes P4, P6, P7 vacuous; E₀ = {n₀} with IsNode(n₀) makes P8 vacuous; (E₀)_doc = ∅ makes S2–S8-fin and Contains(Σ₀) ⊆ R₀ vacuous.
+*Base case.* At Σ₀: dom(C₀) = ∅ makes P6 vacuous (no content, so no origin to check); R₀ = ∅ makes P7 vacuous (no provenance entries to ground); (E₀)_doc = ∅ makes P4 vacuous (no documents, so Contains(Σ₀) = ∅ ⊆ R₀); E₀ = {n₀} with IsNode(n₀) makes P8 vacuous (no non-node entities); (E₀)_doc = ∅ makes S2–S8-fin vacuous (no arrangements exist).
 
 *Inductive step.* For any reachable state Σ satisfying the above, every valid composite Σ → Σ' produces Σ' satisfying the same — as the derivations of P4, P6, P7, P8 and the elementary-transition analysis of S2–S8-fin show below.
 
@@ -290,7 +290,7 @@ An immediate consequence of J1 and J2 is that the provenance relation diverges f
 - K.μ⁺: Let Δ = {(a, d) : d ∈ E'_doc ∧ a ∈ ran(M'(d)) \ ran(M(d))} be the new containment pairs, where the convention M(d) = ∅ for d ∈ E'_doc \ E_doc ensures this is well-defined for freshly created documents. K.μ⁺ yields Contains(Σ') ⊆ Contains(Σ) ∪ Δ. Two subcases for each (a, d) ∈ Δ: (i) (a, d) ∉ R — J1 requires (a, d) ∈ R', so K.ρ must co-occur, adding the pair to R'; (ii) (a, d) ∈ R — the pair is already in R, and P2 gives R ⊆ R', so (a, d) ∈ R' without K.ρ. In both subcases (a, d) ∈ R'. Since Contains(Σ) ⊆ R ⊆ R' (inductive hypothesis and P2), we have Contains(Σ') ⊆ Contains(Σ) ∪ Δ ⊆ R'. Preserved.
 - K.μ⁻: Can only remove pairs from Contains — ran(M'(d)) ⊆ ran(M(d)), so Contains(Σ') ⊆ Contains(Σ) ⊆ R = R'. Preserved by monotonicity.
 - K.μ~ (composite): Its defining property gives ran(M'(d)) = ran(M(d)), so Contains(Σ') = Contains(Σ). Its derived frame gives R' = R. Hence Contains(Σ') ⊆ R = R'. Preserved.
-- K.ρ: By J1', does not occur without K.μ⁺ — handled in the composite case above. Were it to occur independently, R grows while Contains is unchanged: Contains(Σ') = Contains(Σ) ⊆ R ⊆ R'. The invariant would be preserved, but the entry would lack historical justification.
+- K.ρ: Does not modify M, so Contains(Σ') = Contains(Σ). Extends R, so R ⊆ R'. Hence Contains(Σ') = Contains(Σ) ⊆ R ⊆ R'. Preserved. (By J1', K.ρ occurs only when K.μ⁺ introduces new containment — a constraint on historical fidelity (P4a), not on the provenance bound itself.)
 
 Every I-address currently in some arrangement is recorded in R. But the converse does not hold: (a, d) ∈ R does not imply a ∈ ran(M(d)). Stale entries persist from earlier states where d contained a before contraction removed it. These entries are not errors — they are the system's historical memory of content associations, monotonically truthful, never retracting a claim once made. Gregory: "find_documents returns historically accurate results, not current state."
 
