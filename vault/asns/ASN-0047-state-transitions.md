@@ -116,7 +116,7 @@ We seek the elementary modifications — the minimal state changes from which al
 
 When IsDocument(e): M'(e) = ∅ (empty arrangement). For non-root entities, the address is typically allocated via inc(·, k) (TA5, ASN-0034) within the parent's ownership domain. Gregory confirms that document creation and node creation use the same allocation mechanism, differing only in the allocation level.
 
-Nelson identifies two document-creation modes — ex nihilo and forking. At the elementary level, both begin with K.δ producing an empty document. Forking is compound: K.δ followed by arrangement extension and provenance recording (J4 below).
+Nelson identifies two document-creation modes — ex nihilo and forking. At the elementary level, both begin with K.δ producing an empty document. When the source arrangement is non-empty, forking is compound: K.δ followed by arrangement extension and provenance recording (J4 below). When the source arrangement is empty, fork reduces to K.δ alone — structurally identical to ex nihilo creation.
 
 *Frame:* C' = C; (A d ∈ E_doc : d ≠ e : M'(d) = M(d)); R' = R.
 
@@ -168,7 +168,7 @@ The multiset of referenced I-addresses is preserved; only V-positions change. Ne
 
 *Frame:* C' = C; E' = E; (A d :: M'(d) = M(d)).
 
-These six kinds — α, δ, μ⁺, μ⁻, μ~, ρ — are complete. The argument is structural: the four-component state (C, E, M, R) admits exactly one growth mode for C (K.α), one for E (K.δ), one for R (K.ρ), and three mutation modes for M. Any modification to a finite partial function decomposes into entry additions (K.μ⁺), entry removals (K.μ⁻), and value-preserving re-indexing (K.μ~); there is no fourth mode. Replacement — changing which I-address a V-position maps to — decomposes into K.μ⁻ followed by K.μ⁺. Gregory's independent analysis of the implementation identifies the same six persistent modification kinds, confirming this classification.
+These six kinds — α, δ, μ⁺, μ⁻, μ~, ρ — are complete. The argument is structural: the four-component state (C, E, M, R) admits exactly one growth mode for C (K.α), one for E (K.δ), one for R (K.ρ), and two independent mutation modes for M — entry addition (K.μ⁺) and entry removal (K.μ⁻). Any modification to a finite partial function decomposes into additions and removals; replacement — changing which I-address a V-position maps to — decomposes into K.μ⁻ followed by K.μ⁺. K.μ~ likewise decomposes into K.μ⁻ (removing all mappings) followed by K.μ⁺ (re-adding them at new positions), with coupling satisfied by existing provenance entries — after K.μ⁻, ran(M_inter(d)) = ∅; K.μ⁺ then reintroduces the same I-addresses; J1 requires (a, d) ∈ R' for each a ∈ ran(M'(d)) \ ran(M_inter(d)) = ran(M(d)), and these pairs are already in R from prior containment (P2 preserves them). We retain K.μ~ as a distinct elementary transition because its isolation property (J3) and semantic clarity — reordering as a single atomic concept — justify separate treatment. Gregory's independent analysis of the implementation identifies the same six persistent modification kinds, confirming this classification.
 
 We also observe that neither split nor merge appears as an elementary transition. Nelson addresses this explicitly: the effect of splitting a document is achieved by creating two new documents and transcluding different portions of the original into each. Merging is creating a new document and transcluding from multiple sources. Both compose from K.δ, K.μ⁺, and K.ρ — the elementary transitions suffice.
 
@@ -179,7 +179,17 @@ A general constraint applies to all transitions that modify arrangements: the AS
 
 The elementary transitions do not all occur independently. Some must co-occur to maintain invariants (coupling); some must leave other components unchanged (isolation). The weakest-precondition calculus makes the coupling constraints visible.
 
-A clarification on scope. The frame conditions stated above describe individual elementary transitions: K.μ⁺ alone does not modify R, K.α alone does not modify M, and so on. Coupling constraints describe required co-occurrence — when K.μ⁺ occurs, K.ρ must also occur in the same composite transition. A *composite transition* is an ordered sequence of elementary transitions whose intermediate states need not satisfy all system invariants; the invariants are required to hold at the final state. The ordering matters: J0 couples K.α with K.μ⁺, and S3 requires the I-address to exist before the V→I mapping is created, so K.α precedes K.μ⁺. Similarly, J4's fork compounds K.δ + K.μ⁺ + K.ρ, and K.μ⁺ requires d ∈ E_doc, which K.δ establishes — so K.δ precedes K.μ⁺. The net effect of a composite transition is the composition of its elementary effects.
+A clarification on scope. The frame conditions stated above describe individual elementary transitions: K.μ⁺ alone does not modify R, K.α alone does not modify M, and so on. Coupling constraints describe required co-occurrence — when K.μ⁺ occurs, K.ρ must also occur in the same composite transition.
+
+**Definition (Valid composite transition).** A composite transition Σ → Σ' is *valid* iff it is a finite sequence of elementary transitions Σ = Σ₀ → Σ₁ → ... → Σₙ = Σ' satisfying three conditions:
+
+(1) *Elementary preconditions:* each step Σᵢ → Σᵢ₊₁ satisfies the precondition of its elementary transition kind, evaluated at the intermediate state Σᵢ.
+
+(2) *Coupling constraints:* J0, J1, and J1' hold for the composite — evaluated between the initial state Σ and the final state Σ'.
+
+(3) *State invariants:* the final state Σ' satisfies all system invariants: P0–P8, S2, S3, S8a, S8-depth, S8-fin, and Contains(Σ') ⊆ R'.
+
+Intermediate states need not satisfy all system invariants; only the final state is required to. The ordering matters: J0 couples K.α with K.μ⁺, and S3 requires the I-address to exist before the V→I mapping is created, so K.α precedes K.μ⁺. Similarly, J4's fork compounds K.δ + K.μ⁺ + K.ρ, and K.μ⁺ requires d ∈ E_doc, which K.δ establishes — so K.δ precedes K.μ⁺. The net effect of a composite transition is the composition of its elementary effects.
 
 A convention on freshly created documents. When a composite transition creates a new document d via K.δ, the pre-state has no arrangement for d (since d ∉ E_doc). To state the coupling constraints uniformly, we adopt M(d) = ∅ for d ∈ E'_doc \ E_doc — documents that do not yet exist in the pre-state have an empty arrangement. Under this convention, ran(M(d)) = ∅ for freshly created documents, so the set difference ran(M'(d)) \ ran(M(d)) reduces to ran(M'(d)): all content placed in a new document counts as newly introduced. The coupling constraints below quantify over E'_doc, not E_doc, making them applicable to freshly created documents without special cases.
 
@@ -233,12 +243,14 @@ This is the deepest consequence of the design. Deletion is purely presentational
 
 Reordering preserves ran(M(d)), so Contains(Σ') = Contains(Σ). All invariants are trivially maintained; no co-occurring transition is needed.
 
-**J4 (Fork is compound).** Nelson's forking creation mode composes K.δ + K.μ⁺ + K.ρ:
+**J4 (Fork is compound).** Nelson's forking creation mode — when the source arrangement is non-empty — is a composite of K.δ + K.μ⁺ + K.ρ with a structural constraint:
 
 `(A Σ → Σ', d_new, d_src : d_new ∈ E'_doc \ E_doc ∧ ran(M'(d_new)) ⊆ ran(M(d_src)) :`
-`  (A a : a ∈ ran(M'(d_new)) : (a, d_new) ∈ R'))`
+`  dom(C') = dom(C))`
 
-The new document d_new is created empty (K.δ), its arrangement extended with mappings to the source's I-addresses (K.μ⁺), and the new associations recorded (K.ρ). The content store C is unchanged — forking shares existing I-addresses, creating no new content. Nelson: "the new document's id will indicate its ancestry."
+The content store is unchanged — forking shares existing I-addresses, creating no new content. The provenance conclusion — that (a, d_new) ∈ R' for every a ∈ ran(M'(d_new)) — follows from J1 applied to the fresh-document case: the convention M(d_new) = ∅ gives ran(M'(d_new)) \ ran(M(d_new)) = ran(M'(d_new)), and J1 directly requires provenance recording for each such address. No additional constraint beyond J1 is needed.
+
+The new document d_new is created empty (K.δ), its arrangement extended with mappings to the source's I-addresses (K.μ⁺), and the new associations recorded (K.ρ). When the source arrangement is empty (ran(M(d_src)) = ∅), K.μ⁺ and K.ρ are vacuous — the fork reduces to K.δ alone, structurally identical to ex nihilo creation. Nelson: "the new document's id will indicate its ancestry."
 
 An immediate consequence of J1 and J2 is that the provenance relation diverges from current containment over time.
 
@@ -385,6 +397,7 @@ Nelson captures the whole architecture in a sentence: "The braid only grows more
 | Σ.R | R ⊆ T_elem × E_doc — provenance relation recording historical content associations | introduced |
 | Σ₀ | Initial state: C₀ = ∅, E₀ = {n₀} (bootstrap node), M₀ empty, R₀ = ∅ | introduced |
 | parent(e) | For ¬IsNode(e): tumbler obtained by truncating last field and preceding separator | introduced |
+| Valid composite | Σ → Σ' valid iff: (1) elementary preconditions at each intermediate state, (2) J0/J1/J1' for the composite, (3) Σ' satisfies all state invariants | introduced |
 | P0 | Content store is append-only with immutable values: dom(C) ⊆ dom(C') ∧ C'(a) = C(a) for a ∈ dom(C) | introduced |
 | P1 | Entity set is monotonically growing: E ⊆ E' for every transition, uniformly across levels | introduced |
 | P8 | Entity hierarchy: (A e ∈ E : ¬IsNode(e) : parent(e) ∈ E) — no orphan accounts or documents | introduced |
@@ -404,7 +417,7 @@ Nelson captures the whole architecture in a sentence: "The braid only grows more
 | J1' | (a, d) ∈ R' \ R only when a ∈ ran(M'(d)) \ ran(M(d)) — new provenance requires new containment | introduced |
 | J2 | K.μ⁻ as elementary transition requires no coupling: C' = C ∧ E' = E ∧ R' = R | introduced |
 | J3 | K.μ~ as elementary transition requires no coupling: C' = C ∧ E' = E ∧ R' = R | introduced |
-| J4 | Document fork compounds K.δ + K.μ⁺ + K.ρ with no new content in C | introduced |
+| J4 | Document fork compounds K.δ + K.μ⁺ + K.ρ with dom(C') = dom(C); provenance follows from J1; empty source reduces to K.δ alone | introduced |
 | P6 | Existential coherence: origin(a) ∈ E_doc for all a ∈ dom(C) | introduced |
 | P7 | Provenance grounding: a ∈ dom(C) for all (a, d) ∈ R | introduced |
 
