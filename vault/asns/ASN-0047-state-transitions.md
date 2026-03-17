@@ -43,7 +43,7 @@ where C : T ⇀ Val is as defined in ASN-0036, and M : T → (T ⇀ T) is total,
 
 - C₀ = ∅ (no content allocated)
 - E₀ = {n₀} for a designated bootstrap node n₀ with IsNode(n₀)
-- M₀ is the empty function — (E₀)_doc = ∅, so no arrangements exist
+- M₀(d) = ∅ for all d — (E₀)_doc = ∅, so every arrangement is the empty partial function
 - R₀ = ∅ (no provenance recorded)
 
 The bootstrap node seeds the entity hierarchy. Without at least one node, K.δ cannot create accounts (which require a parent node), and without accounts, no documents, and without documents, no content. The choice of n₀ is a system parameter, not a state transition. At Σ₀, (E₀)_doc = ∅, so the arrangement invariants S2, S3, S8a, S8-depth, and S8-fin hold vacuously — no arrangements exist.
@@ -432,7 +432,7 @@ Four invariants bind the layers together, making the temporal contracts precise.
 
 *Derivation.* By induction. *Base:* dom(C₀) = ∅; vacuous. *Inductive step:* for a ∈ dom(C) (pre-existing), the inductive hypothesis gives (a, d) ∈ R for some d, and P2 preserves it. For a ∈ dom(C') \ dom(C) (freshly allocated), J0 gives a ∈ ran(M'(d)) for some d; since a is fresh, S3 gives a ∉ ran(M(d)) for all d, so a ∈ ran(M'(d)) \ ran(M(d)); J1 gives (a, d) ∈ R'. ∎
 
-The decomposition constrains the elementary transitions cleanly. Each elementary transition modifies components in exactly one temporal layer. Composite transitions routinely span all three: insertion compounds K.α (existential) + K.μ⁺ (presentational) + K.ρ (historical). The point is that each elementary step has bounded scope. The purely destructive transitions — K.μ⁻ and K.μ~ — are confined to the presentational layer alone, the one layer where impermanence is by design. Cross-layer coupling occurs only in constructive directions: K.α (existential) couples with K.μ⁺ (presentational) via J0; K.μ⁺ (presentational) couples with K.ρ (historical) via J1/J1'. The existential and historical layers never shrink.
+The decomposition constrains the elementary transitions cleanly. Each elementary transition modifies components in exactly one temporal layer. Composite transitions routinely span all three: insertion compounds K.α (existential) + K.μ⁺ (presentational) + K.ρ (historical). The point is that each elementary step has bounded scope. The transitions admitting destructive change — K.μ⁻ (removal) and K.μ~ (rearrangement) — are confined to the presentational layer alone, the one layer where impermanence is by design. Cross-layer coupling occurs only in constructive directions: K.α (existential) couples with K.μ⁺ (presentational) via J0; K.μ⁺ (presentational) couples with K.ρ (historical) via J1/J1'. The existential and historical layers never shrink.
 
 The existential and historical layers differ in semantics despite sharing the append-only contract. Existential entries state *current facts*: content value v exists at address a, and this remains true permanently. Historical entries state *past events*: document d once contained address a, and this record persists even when the current arrangement no longer agrees. The distinction matters because existential entries are both permanent and accurate (content *is* at address a), while historical entries are permanent but may be stale (document d *was* associated with address a, but may no longer be).
 
@@ -445,12 +445,12 @@ Nelson captures the whole architecture in a sentence: "The braid only grows more
 |-------|-----------|--------|
 | Σ.E | E ⊆ {t : ValidAddress(t) ∧ zeros(t) ≤ 2} — entity addresses, partitioned by IsNode / IsAccount / IsDocument | introduced |
 | Σ.R | R ⊆ T_elem × E_doc — provenance relation recording historical content associations | introduced |
-| Σ₀ | Initial state: C₀ = ∅, E₀ = {n₀} (bootstrap node), M₀ empty, R₀ = ∅ | introduced |
+| Σ₀ | Initial state: C₀ = ∅, E₀ = {n₀} (bootstrap node), M₀(d) = ∅ for all d, R₀ = ∅ | introduced |
 | parent(e) | For ¬IsNode(e): tumbler obtained by truncating last field and preceding separator | introduced |
 | Contains(Σ) | {(a, d) : d ∈ E_doc ∧ a ∈ ran(M(d))} — current containment, derived quantity of state | introduced |
 | Valid composite | Σ → Σ' valid iff: (1) elementary preconditions at each intermediate state, (2) J0/J1/J1' for the composite; P0/P1/P2 derived as lemma | introduced |
 | Arrangement invariants lemma | Every valid composite preserves S2/S3/S8a/S8-depth/S8-fin — each elementary transition preserves these per-state properties; composition by transitivity | introduced |
-| Reachable-state invariants | Every state reachable from Σ₀ satisfies P4, P6, P7, P8, S2–S8-fin — by induction: base at Σ₀, permanence lemma + arrangement invariants lemma + per-property derivations | introduced |
+| Reachable-state invariants | Every state reachable from Σ₀ satisfies P4, P6, P7, P7a, P8, S2–S8-fin — by induction: base at Σ₀, permanence lemma + arrangement invariants lemma + per-property derivations | introduced |
 | P0 | Content store is append-only with immutable values: dom(C) ⊆ dom(C') ∧ C'(a) = C(a) for a ∈ dom(C) | introduced |
 | P1 | Entity set is monotonically growing: E ⊆ E' for every transition, uniformly across levels | introduced |
 | P8 | Entity hierarchy: (A e ∈ E : ¬IsNode(e) : parent(e) ∈ E) — no orphan accounts or documents | introduced |
