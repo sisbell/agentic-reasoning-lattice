@@ -180,7 +180,7 @@ When dom(M(d)) = ∅, K.μ~ is the identity — the empty bijection π : ∅ →
 
 We also observe that neither split nor merge appears as an elementary transition. Nelson addresses this explicitly: the effect of splitting a document is achieved by creating two new documents and transcluding different portions of the original into each. Merging is creating a new document and transcluding from multiple sources. Both compose from K.δ, K.μ⁺, and K.ρ — the elementary transitions suffice.
 
-A general constraint applies to all transitions that modify arrangements: the ASN-0036 arrangement invariants — S2 (functional), S3 (referential integrity), S8a (V-position well-formedness), S8-depth (uniform depth within subspace), S8-fin (finite domain) — must hold at the final state of every composite transition. These are not postconditions of individual elementary transitions; they are invariants of the reachable state space.
+**Lemma (Arrangement invariants from elementary preservation).** Every valid composite transition preserves S2, S3, S8a, S8-depth, and S8-fin. Each elementary transition preserves these per-state properties: K.μ⁺ establishes them via its preconditions (disjoint extension for S2, referential integrity for S3, explicit S8a/S8-depth/S8-fin requirements); K.μ⁻ preserves them by restriction of M(d); K.δ for documents produces the empty arrangement (vacuously satisfying all five); all other transitions hold M in frame. Since each step of a valid composite preserves these per-state properties, they hold at every intermediate and final state.
 
 
 ## Coupling and isolation
@@ -207,7 +207,7 @@ This is a derived quantity of the state — it captures what each document curre
 
 *Base case.* At Σ₀: dom(C₀) = ∅ makes P6 vacuous (no content, so no origin to check); R₀ = ∅ makes P7 vacuous (no provenance entries to ground); (E₀)_doc = ∅ makes P4 vacuous (no documents, so Contains(Σ₀) = ∅ ⊆ R₀); E₀ = {n₀} with IsNode(n₀) makes P8 vacuous (no non-node entities); (E₀)_doc = ∅ makes S2–S8-fin vacuous (no arrangements exist).
 
-*Inductive step.* For any reachable state Σ satisfying the above, every valid composite Σ → Σ' produces Σ' satisfying the same — as derived above for P8 and S2–S8-fin, and below for P4, P6, and P7.
+*Inductive step.* For any reachable state Σ satisfying the above, every valid composite Σ → Σ' produces Σ' satisfying the same — P0/P1/P2 by the permanence lemma; S2/S3/S8a/S8-depth/S8-fin by the arrangement invariants lemma; P8 as derived above; P4, P6, and P7 as derived below.
 
 Intermediate states need not satisfy all system invariants; only the final state is required to. The ordering matters: J0 couples K.α with K.μ⁺, and S3 requires the I-address to exist before the V→I mapping is created, so K.α precedes K.μ⁺. Similarly, J4's fork compounds K.δ + K.μ⁺ + K.ρ, and K.μ⁺ requires d ∈ E_doc, which K.δ establishes — so K.δ precedes K.μ⁺. The net effect of a composite transition is the composition of its elementary effects.
 
@@ -283,14 +283,22 @@ An immediate consequence of J1 and J2 is that the provenance relation diverges f
 
 *Base case.* In Σ₀, (E₀)_doc = ∅ (E₀ contains only the bootstrap node), so Contains(Σ₀) = ∅ ⊆ ∅ = R₀. The bound holds vacuously.
 
-*Inductive step.* We verify that each valid composite transition preserves Contains(Σ) ⊆ R, assuming it holds before the transition. We must check all five elementary transitions and the distinguished composite K.μ~. Four elementary transitions preserve the invariant individually; K.μ⁺ requires its coupling with K.ρ.
+*Inductive step.* Assume Contains(Σ) ⊆ R at a reachable state Σ, and let Σ → Σ' be a valid composite transition. Every (a, d) ∈ Contains(Σ') falls into exactly one of two cases:
 
-- K.α: Does not modify M or R. Contains(Σ') = Contains(Σ) ⊆ R = R'. Preserved.
-- K.δ: Creates entity e with empty arrangement M'(e) = ∅, contributing no new pairs to Contains. Does not modify R. Preserved.
-- K.μ⁺: Let Δ = {(a, d) : d ∈ E'_doc ∧ a ∈ ran(M'(d)) \ ran(M(d))} be the new containment pairs, where the convention M(d) = ∅ for d ∈ E'_doc \ E_doc ensures this is well-defined for freshly created documents. K.μ⁺ yields Contains(Σ') ⊆ Contains(Σ) ∪ Δ. Two subcases for each (a, d) ∈ Δ: (i) (a, d) ∉ R — J1 requires (a, d) ∈ R', so K.ρ must co-occur, adding the pair to R'; (ii) (a, d) ∈ R — the pair is already in R, and P2 gives R ⊆ R', so (a, d) ∈ R' without K.ρ. In both subcases (a, d) ∈ R'. Since Contains(Σ) ⊆ R ⊆ R' (inductive hypothesis and P2), we have Contains(Σ') ⊆ Contains(Σ) ∪ Δ ⊆ R'. Preserved.
-- K.μ⁻: Can only remove pairs from Contains — ran(M'(d)) ⊆ ran(M(d)), so Contains(Σ') ⊆ Contains(Σ) ⊆ R = R'. Preserved by monotonicity.
-- K.μ~ (composite): Its defining property gives ran(M'(d)) = ran(M(d)), so Contains(Σ') = Contains(Σ). Its derived frame gives R' = R. Hence Contains(Σ') ⊆ R = R'. Preserved.
-- K.ρ: Does not modify M, so Contains(Σ') = Contains(Σ). Extends R, so R ⊆ R'. Hence Contains(Σ') = Contains(Σ) ⊆ R ⊆ R'. Preserved. (By J1', K.ρ occurs only when K.μ⁺ introduces new containment — a constraint on historical fidelity (P4a), not on the provenance bound itself.)
+(i) *Pre-existing containment:* a ∈ ran(M(d)) — using the convention M(d) = ∅ for d ∈ E'_doc \ E_doc. Then (a, d) ∈ Contains(Σ) ⊆ R (inductive hypothesis), and P2 gives R ⊆ R', so (a, d) ∈ R'.
+
+(ii) *Newly introduced containment:* a ∈ ran(M'(d)) \ ran(M(d)). J1 requires (a, d) ∈ R'. (When (a, d) ∈ R already — from a prior insertion-deletion cycle — the requirement is satisfied by P2 without fresh K.ρ.)
+
+In both cases (a, d) ∈ R', so Contains(Σ') ⊆ R'. ∎
+
+The per-elementary analysis confirms *why* only K.μ⁺ introduces new containment and why other transitions are harmless:
+
+- K.α: Does not modify M or R. Contains(Σ') = Contains(Σ). Preserved.
+- K.δ: Creates entity e with empty arrangement M'(e) = ∅, contributing no new pairs to Contains. Preserved.
+- K.μ⁺: The sole source of new containment pairs — case (ii) above. J1 couples it with K.ρ.
+- K.μ⁻: Can only remove pairs from Contains — ran(M'(d)) ⊆ ran(M(d)). Preserved by monotonicity.
+- K.μ~ (composite): Preserves ran(M(d)), so Contains(Σ') = Contains(Σ). Preserved.
+- K.ρ: Does not modify M, so Contains(Σ') = Contains(Σ). Extends R. Preserved. (By J1', K.ρ occurs only when K.μ⁺ introduces new containment — a constraint on historical fidelity (P4a), not on the provenance bound itself.)
 
 Every I-address currently in some arrangement is recorded in R. But the converse does not hold: (a, d) ∈ R does not imply a ∈ ran(M(d)). Stale entries persist from earlier states where d contained a before contraction removed it. These entries are not errors — they are the system's historical memory of content associations, monotonically truthful, never retracting a claim once made. Gregory: "find_documents returns historically accurate results, not current state."
 
@@ -435,7 +443,8 @@ Nelson captures the whole architecture in a sentence: "The braid only grows more
 | parent(e) | For ¬IsNode(e): tumbler obtained by truncating last field and preceding separator | introduced |
 | Contains(Σ) | {(a, d) : d ∈ E_doc ∧ a ∈ ran(M(d))} — current containment, derived quantity of state | introduced |
 | Valid composite | Σ → Σ' valid iff: (1) elementary preconditions at each intermediate state, (2) J0/J1/J1' for the composite; P0/P1/P2 derived as lemma | introduced |
-| Reachable-state invariants | Every state reachable from Σ₀ satisfies P4, P6, P7, P8, S2–S8-fin — by induction: base at Σ₀, step from (1)+(2) | introduced |
+| Arrangement invariants lemma | Every valid composite preserves S2/S3/S8a/S8-depth/S8-fin — each elementary transition preserves these per-state properties; composition by transitivity | introduced |
+| Reachable-state invariants | Every state reachable from Σ₀ satisfies P4, P6, P7, P8, S2–S8-fin — by induction: base at Σ₀, permanence lemma + arrangement invariants lemma + per-property derivations | introduced |
 | P0 | Content store is append-only with immutable values: dom(C) ⊆ dom(C') ∧ C'(a) = C(a) for a ∈ dom(C) | introduced |
 | P1 | Entity set is monotonically growing: E ⊆ E' for every transition, uniformly across levels | introduced |
 | P8 | Entity hierarchy: (A e ∈ E : ¬IsNode(e) : parent(e) ∈ E) — no orphan accounts or documents | introduced |
