@@ -200,7 +200,7 @@ This is a profound design choice. It decouples classification from content retri
 
 `(A Σ : Σ satisfies L0–L14 ∧ S0–S3 : (E Σ' extending Σ, a ∈ dom(Σ'.L), (s, ℓ) ∈ Σ'.L(a).type :: coverage({(s, ℓ)}) ⊄ dom(Σ'.C) ∪ dom(Σ'.L)))`
 
-*Witness.* Take any conforming `Σ`. Let `d` be a document with an allocator for subspace `s_L`. Choose a fresh ghost address `g ∈ T` with `g ∉ dom(Σ.C) ∪ dom(Σ.L)` (such an address exists by T0(b)). Allocate a new link address `a` via forward allocation (T9) within `d`'s link subspace. Define `Σ'` as `Σ` extended with `Σ'.L(a) = (∅, ∅, {(g, ℓ_g)})` where `ℓ_g` is the unit-width displacement at depth `#g`, and `Σ'.C = Σ.C`, `Σ'.M = Σ.M`.
+*Witness.* Take any conforming `Σ`. Let `d` be a document with an allocator for subspace `s_L`. Choose a fresh ghost address `g ∈ T` with `fields(g).E₁ = s_C` and `g ∉ dom(Σ.C)` (such an address exists: by T0(b), `T` is unbounded, and `dom(Σ.C)` is finite by S8-fin). Allocate a new link address `a` via forward allocation (T9) within `d`'s link subspace. Define `Σ'` as `Σ` extended with `Σ'.L(a) = (∅, ∅, {(g, ℓ_g)})` where `ℓ_g` is the unit-width displacement at depth `#g`, and `Σ'.C = Σ.C`, `Σ'.M = Σ.M`.
 
 We verify that `Σ'` is conforming:
 
@@ -213,7 +213,7 @@ We verify that `Σ'` is conforming:
 - *L14 (DualPrimitive).* `dom(Σ'.C) ∪ dom(Σ'.L) = dom(Σ.C) ∪ (dom(Σ.L) ∪ {a})`. Disjointness holds since `a` is in subspace `s_L` and `dom(Σ'.C) ⊆ s_C`.
 - *S0–S3.* Content store and arrangements are unchanged (`Σ'.C = Σ.C`, `Σ'.M = Σ.M`), so all ASN-0036 invariants carry over from `Σ`.
 
-No property of L0–L14 or S0–S3 constrains `coverage(Σ'.L(a).type) ⊆ dom(Σ'.C)`. Since `g ∉ dom(Σ.C) ∪ dom(Σ.L)` and `g ≠ a` (they occupy different subspaces or different documents), `g ∉ dom(Σ'.C) ∪ dom(Σ'.L)`. ∎
+No property of L0–L14 or S0–S3 constrains `coverage(Σ'.L(a).type) ⊆ dom(Σ'.C)`. Now, `Σ'.C = Σ.C`, so `g ∉ dom(Σ.C) = dom(Σ'.C)`. And `fields(g).E₁ = s_C` while every address in `dom(Σ'.L)` has subspace `s_L` by L0; since `s_C ≠ s_L`, T7 gives `g ∉ dom(Σ'.L)`. Therefore `g ∉ dom(Σ'.C) ∪ dom(Σ'.L)`. ∎
 
 No property of L0–L14 constrains type endset targets to content addresses. Nelson: "Indeed, there is no need for the presence of elements at the addresses specified. Link types may be ghost elements." The type address is a pure name — a position chosen by convention, not a pointer to content that must be dereferenced.
 
@@ -280,7 +280,7 @@ We verify both directions of this equality.
 *Exclusion* (`coverage ⊆ {t : b ≼ t}`): we show that every `t ∈ [b, b ⊕ ℓ_b)` with `t ≠ b` must extend `b`, by case analysis on depth.
 
 - *Same depth* (`#t = #b`): since `t ≠ b`, some `k ≤ #b` has `t_k ≠ b_k`. As `t > b`, we have `t_k > b_k`. Since `b ⊕ ℓ_b` agrees with `b` at all positions before `#b`, if `k < #b` then `t_k > b_k = (b ⊕ ℓ_b)_k`, giving `t > b ⊕ ℓ_b` — outside the interval. If `k = #b`, then `t_{#b} > b_{#b}`, so `t_{#b} ≥ b_{#b} + 1 = (b ⊕ ℓ_b)_{#b}`, giving `t ≥ b ⊕ ℓ_b` — outside the interval. Only `b` itself survives at this depth, and `b ≼ b` holds trivially.
-- *Greater depth* (`#t > #b`): if `t` does not extend `b`, there exists some `k ≤ #b` with `t_k ≠ b_k`. As `t ≥ b`, we have `t_k > b_k = (b ⊕ ℓ_b)_k`, giving `t > b ⊕ ℓ_b` — outside the interval. Only extensions of `b` remain.
+- *Greater depth* (`#t > #b`): if `t` does not extend `b`, there exists some `k ≤ #b` with `t_k ≠ b_k`. As `t ≥ b`, we have `t_k > b_k`. If `k < #b`: since `b ⊕ ℓ_b` agrees with `b` at positions before `#b`, `t_k > b_k = (b ⊕ ℓ_b)_k`, giving `t > b ⊕ ℓ_b` by T1(i). If `k = #b`: `t_{#b} ≥ b_{#b} + 1 = (b ⊕ ℓ_b)_{#b}`. When strict: `t > b ⊕ ℓ_b` by T1(i). When equal: `t` agrees with `b ⊕ ℓ_b` at all `#b` positions and `#t > #b = #(b ⊕ ℓ_b)`, so `b ⊕ ℓ_b` is a proper prefix of `t`, giving `b ⊕ ℓ_b < t` by T1(ii). Either way `t ≥ b ⊕ ℓ_b` — outside the interval. Only extensions of `b` remain.
 - *Shorter depth* (`#t < #b`): if `t` agrees with `b` at all positions `1..#t`, then `b` extends `t`, so `t < b` by T1(ii) — contradicting `t ≥ b`. If `t` diverges from `b` at some `k ≤ #t`, then since `t ≥ b` we have `t_k > b_k = (b ⊕ ℓ_b)_k` (as `k < #b`), giving `t > b ⊕ ℓ_b` — outside the interval.
 
 The canonical span contains exactly the target entity and its extensions, with no extraneous tumblers. More generally, an endset *references* an entity at address `a` when `a ∈ coverage(e)`, and `(b, ℓ_b)` is the canonical span for referencing the entity at `b`.
