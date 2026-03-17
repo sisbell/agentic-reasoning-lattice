@@ -1,5 +1,25 @@
 # Proof Modules — Changelog
 
+## 2026-03-16: TumblerOwnership — ASN-0042 proof promotion, 232 total verified
+
+Promoted 22 ASN-0042 property proofs from 22 modeling files into 6 consolidated modules in TumblerOwnership/:
+- **TumblerOwnership.dfy** — shared definitions: Principal, State, Covers, IsEffectiveOwner, StrictPrefix, PrincipalPersistence, AddressPermanence, DelegationPrecondition, Acct, CoveringPrefixesOrdered, O1 (Owns), O9 (NodeLocalOwnership), O11 (ValidSession), O12
+- **OwnershipProvenance.dfy** (7): O0, O1a (AccountBoundary), O1b (PrefixInjective), O6 (StructuralProvenance), AccountPrefix — plus ZeroAtIndex, TwoZerosCount, CoveringToAccount, AccountToCovering, CoveringBiconditional helpers
+- **OwnershipExclusivity.dfy** (4): O2 — EqualLengthCoveringEqual, EffectiveOwnerUnique, MostSpecificExists (recursive set induction), OwnershipExclusivity (witness construction)
+- **OwnershipPermanence.dfy** (6): O3 (OwnershipRefinement), O8 (IrrevocableDelegation), O13 (structural), AccountPermanence — plus BootstrapDomainsDisjoint, EffectiveOwnerExtends, DelegatorWithinDomain helpers
+- **OwnershipDelegation.dfy** (9): O4 (DomainCoverage), O5 (SubdivisionAuthority), O7 (OwnershipDelegation), O14 (BootstrapPrincipal), O15 (PrincipalClosure), O16 (AllocationClosure), O17 (AllocatedAddressValid) — plus Delegate function, DomainCoveragePreserved
+- **OwnershipFork.dfy** (2): O10 (DenialAsFork) — Fork, OwnershipPreserved, ForkOwnership, ForkAddressExists ({:axiom})
+
+Deduplicated: Covers (was in 10+ files), IsEffectiveOwner (10+ files), StrictPrefix (4 files), PrincipalPersistence (5 files), CoveringPrefixesNest/Ordered (3 files), DelegationValid/Precondition (2 files) — all extracted into TumblerOwnership.dfy.
+
+Rewrites (semantically equivalent, Dafny-verified):
+- **SubdivisionAuthority, AllocationClosure**: Principal(id: nat) + pfx map rewritten to Principal(prefix: Tumbler) with direct field access. Removes map indirection; same logical constraint.
+- **BootstrapDomainsDisjoint**: restructured from `ensures false` (contradictory preconditions) to positive `ensures IsPrefix(...) || IsPrefix(...)` (contrapositive). Avoids warn-contradictory-assumptions.
+- **ForkAddressExists**: `assume {:axiom} false` in body upgraded to bodyless `lemma {:axiom}` (Dafny 4 idiom).
+- **PrefixImmutable (O13)**: dropped as explicit predicate — structural with embedded prefix model. Documented in comments.
+
+Renames: AccountField → Acct, AccountPrefix (lemma) → AccountPrefixLemma, CoveringPrefixesNest → CoveringPrefixesOrdered, DelegationValid → DelegationPrecondition.
+
 ## 2026-03-16: TumblerBaptism — ASN-0040 proof promotion, 199 total verified
 
 Promoted 18 ASN-0040 property proofs into TumblerBaptism/ directory:

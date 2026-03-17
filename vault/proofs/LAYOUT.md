@@ -21,6 +21,13 @@ proofs/
 │   ├── BaptismBranching.dfy        S0, S1, B5, B5a, B7
 │   ├── BaptismRegistry.dfy         B0, B0a, B₀, B1, B2, B4, B6, B8, B9, B10, Bop
 │   └── BaptismGhost.dfy            B3 (cross-cutting — bridges baptism and content model)
+├── TumblerOwnership/
+│   ├── TumblerOwnership.dfy        Shared definitions: Principal, State, Covers, IsEffectiveOwner, Acct, O1, O9, O11, O12
+│   ├── OwnershipProvenance.dfy     O0, O1a, O1b, O6, AccountPrefix
+│   ├── OwnershipExclusivity.dfy    O2
+│   ├── OwnershipPermanence.dfy     O3, O8, O13, AccountPermanence
+│   ├── OwnershipDelegation.dfy     O4, O5, O7, O14, O15, O16, O17
+│   └── OwnershipFork.dfy           O10 (DenialAsFork — ForkAddressExists is {:axiom})
 ├── CHANGELOG.md                    History of module changes and rationale
 └── dfyconfig.toml                  Picks up **/*.dfy — no include directives needed
 ```
@@ -47,6 +54,18 @@ Three consolidated proof modules:
 - **TwoSpaceArrangement** — arrangement functionality, referential integrity, unrestricted sharing, finite arrangement, V-position well-formedness, fixed-depth positions, span decomposition
 - **TwoSpaceSeparation** — the capstone theorem: arrangement changes cannot alter stored content
 
+## TumblerOwnership
+
+`TumblerOwnership.dfy` contains shared definitions for tumbler ownership: Principal datatype (with embedded prefix), State (principals + allocated addresses), Covers/IsEffectiveOwner predicates, StrictPrefix, DelegationPrecondition, Acct (account-field truncation), PrincipalPersistence (O12), AddressPermanence (T8), CoveringPrefixesOrdered utility lemma, O1 (Owns), O9 (NodeLocalOwnership), O11 (ValidSession).
+
+Six consolidated proof modules:
+
+- **OwnershipProvenance** — structural ownership (O0), account boundary (O1a), prefix injectivity (O1b), structural provenance (O6), account prefix corollary. Non-trivial proofs: ZeroAtIndex, TwoZerosCount (recursive), CoveringToAccount (case analysis with FindZero), CoveringBiconditional (dual implication), StructuralProvenance (composition).
+- **OwnershipExclusivity** — the central theorem O2: unique effective owner exists. Non-trivial proofs: MostSpecificExists (recursive set induction, `decreases |candidates|`), OwnershipExclusivity (witness construction + forall).
+- **OwnershipPermanence** — ownership refinement (O3), irrevocable delegation (O8), prefix immutability (O13, structural), account permanence corollary. O13 is structural with the embedded-prefix Principal model (documented in comments).
+- **OwnershipDelegation** — domain coverage (O4), subdivision authority (O5), delegation state transition (O7), bootstrap invariants (O14), principal closure (O15), allocation closure (O16), allocated address validity (O17). Non-trivial proof: DomainCoveragePreserved (forall with witness extraction).
+- **OwnershipFork** — denial as fork (O10). ForkAddressExists declared `{:axiom}` — witness construction requires finite-set reasoning not yet mechanized.
+
 ## Dependency graph
 
 ```
@@ -58,12 +77,18 @@ TumblerAlgebra
     +--- TumblerAllocation (imports TumblerHierarchy)
     |
     +--- TwoSpace (imports TumblerAlgebra, TumblerHierarchy)
+    |        ↑
+    |        +--- TwoSpaceContent (imports TwoSpace, TumblerHierarchy, TumblerAllocation)
+    |        +--- TwoSpaceArrangement (imports TwoSpace)
+    |        +--- TwoSpaceSeparation (imports TwoSpace)
+    |
+    +--- TumblerOwnership (imports TumblerAlgebra, TumblerHierarchy)
              ↑
-             +--- TwoSpaceContent (imports TwoSpace, TumblerHierarchy, TumblerAllocation)
-             |
-             +--- TwoSpaceArrangement (imports TwoSpace)
-             |
-             +--- TwoSpaceSeparation (imports TwoSpace)
+             +--- OwnershipProvenance (imports TumblerOwnership, TumblerHierarchy)
+             +--- OwnershipExclusivity (imports TumblerOwnership)
+             +--- OwnershipPermanence (imports TumblerOwnership, TumblerHierarchy)
+             +--- OwnershipDelegation (imports TumblerOwnership, TumblerHierarchy)
+             +--- OwnershipFork (imports TumblerOwnership, TumblerHierarchy)
 ```
 
 ## dfyconfig.toml
