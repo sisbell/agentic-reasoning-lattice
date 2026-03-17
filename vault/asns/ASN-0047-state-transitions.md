@@ -118,7 +118,7 @@ When IsDocument(e): M'(e) = ∅ (empty arrangement). For non-root entities, the 
 
 Nelson identifies two document-creation modes — ex nihilo and forking. At the elementary level, both begin with K.δ producing an empty document. When the source arrangement is non-empty, forking is compound: K.δ followed by arrangement extension and provenance recording (J4 below). When the source arrangement is empty, fork reduces to K.δ alone — structurally identical to ex nihilo creation.
 
-*Frame:* C' = C; (A d ∈ E_doc : d ≠ e : M'(d) = M(d)); R' = R.
+*Frame:* C' = C; (A d' :: M'(d') = M(d')); R' = R.
 
 **K.μ⁺ (Arrangement extension).** New V→I mappings are added to some d ∈ E_doc, with existing mappings unchanged:
 
@@ -203,11 +203,11 @@ This is a derived quantity of the state — it captures what each document curre
 
 **Lemma (Permanence from elementary frames).** Every valid composite transition satisfies P0, P1, and P2. Each elementary transition's frame ensures: K.α extends dom(C) preserving existing entries (all others hold C' = C), giving P0; K.δ extends E (all others hold E' = E), giving P1; K.ρ extends R (all others hold R' = R), giving P2. By transitivity over any finite sequence satisfying (1), the composite inherits all three permanence properties.
 
-**Theorem (Reachable-state invariants).** Every state reachable from Σ₀ by a finite sequence of valid composite transitions satisfies P4 (Contains(Σ) ⊆ R), P6, P7, P8, S2, S3, S8a, S8-depth, and S8-fin.
+**Theorem (Reachable-state invariants).** Every state reachable from Σ₀ by a finite sequence of valid composite transitions satisfies P4 (Contains(Σ) ⊆ R), P6, P7, P7a, P8, S2, S3, S8a, S8-depth, and S8-fin.
 
-*Base case.* At Σ₀: dom(C₀) = ∅ makes P6 vacuous (no content, so no origin to check); R₀ = ∅ makes P7 vacuous (no provenance entries to ground); (E₀)_doc = ∅ makes P4 vacuous (no documents, so Contains(Σ₀) = ∅ ⊆ R₀); E₀ = {n₀} with IsNode(n₀) makes P8 vacuous (no non-node entities); (E₀)_doc = ∅ makes S2–S8-fin vacuous (no arrangements exist).
+*Base case.* At Σ₀: dom(C₀) = ∅ makes P6 vacuous (no content, so no origin to check); R₀ = ∅ makes P7 vacuous (no provenance entries to ground); dom(C₀) = ∅ makes P7a vacuous (no content to require provenance for); (E₀)_doc = ∅ makes P4 vacuous (no documents, so Contains(Σ₀) = ∅ ⊆ R₀); E₀ = {n₀} with IsNode(n₀) makes P8 vacuous (no non-node entities); (E₀)_doc = ∅ makes S2–S8-fin vacuous (no arrangements exist).
 
-*Inductive step.* For any reachable state Σ satisfying the above, every valid composite Σ → Σ' produces Σ' satisfying the same — P0/P1/P2 by the permanence lemma; S2/S3/S8a/S8-depth/S8-fin by the arrangement invariants lemma; P8 as derived above; P4, P6, and P7 as derived below.
+*Inductive step.* For any reachable state Σ satisfying the above, every valid composite Σ → Σ' produces Σ' satisfying the same — P0/P1/P2 by the permanence lemma; S2/S3/S8a/S8-depth/S8-fin by the arrangement invariants lemma; P8 as derived above; P4, P6, P7, and P7a as derived below.
 
 Intermediate states need not satisfy all system invariants; only the final state is required to. The ordering matters: J0 couples K.α with K.μ⁺, and S3 requires the I-address to exist before the V→I mapping is created, so K.α precedes K.μ⁺. Similarly, J4's fork compounds K.δ + K.μ⁺ + K.ρ, and K.μ⁺ requires d ∈ E_doc, which K.δ establishes — so K.δ precedes K.μ⁺. The net effect of a composite transition is the composition of its elementary effects.
 
@@ -285,7 +285,7 @@ An immediate consequence of J1 and J2 is that the provenance relation diverges f
 
 *Inductive step.* Assume Contains(Σ) ⊆ R at a reachable state Σ, and let Σ → Σ' be a valid composite transition. Every (a, d) ∈ Contains(Σ') falls into exactly one of two cases:
 
-(i) *Pre-existing containment:* a ∈ ran(M(d)) — since d ∈ E'_doc \ E_doc gives M(d) = ∅ by totality. Then (a, d) ∈ Contains(Σ) ⊆ R (inductive hypothesis), and P2 gives R ⊆ R', so (a, d) ∈ R'.
+(i) *Pre-existing containment:* a ∈ ran(M(d)), which requires d ∈ E_doc (since d ∈ E'_doc \ E_doc would give M(d) = ∅ by totality, contradicting a ∈ ran(M(d))). Then (a, d) ∈ Contains(Σ) ⊆ R (inductive hypothesis), and P2 gives R ⊆ R', so (a, d) ∈ R'.
 
 (ii) *Newly introduced containment:* a ∈ ran(M'(d)) \ ran(M(d)). J1 requires (a, d) ∈ R'. (When (a, d) ∈ R already — from a prior insertion-deletion cycle — the requirement is satisfied by P2 without fresh K.ρ.)
 
@@ -410,9 +410,9 @@ We have arrived at the structural insight underlying the entire design. The stat
 | Historical | R | Append-only, entries may stale | K.ρ |
 | Presentational | M | Fully mutable | K.μ⁺, K.μ⁻, K.μ~ (composite), K.δ† |
 
-†K.δ for documents also initialises M'(e) = ∅, extending M's domain — a presentational-layer effect. We classify K.δ as primarily existential because its defining purpose is entity creation; the empty arrangement initialisation is a structural consequence (extending the domain with an empty entry, not mutating an existing arrangement). The broader claim holds: no elementary transition touches all three layers.
+†K.δ for documents initialises the arrangement for a new document entity. Since M is total with M(e) = ∅ for e ∉ E_doc, the post-state satisfies M'(e) = M(e) — K.δ does not modify M. We list it here because entity creation determines which empty arrangements become semantically meaningful. The broader claim holds: no elementary transition touches all three layers.
 
-Three invariants bind the layers together, making the temporal contracts precise. P6 is intra-existential — a coherence constraint between C and E, both within the same layer. P7 bridges the existential and historical layers, tying R to C. And P4 (Contains(Σ) ⊆ R, derived in the coupling section) bridges the presentational and historical layers — it is the load-bearing constraint that necessitates J1's coupling.
+Four invariants bind the layers together, making the temporal contracts precise. P6 is intra-existential — a coherence constraint between C and E, both within the same layer. P7 and P7a bridge the existential and historical layers: P7 ties R to C (every provenance entry references allocated content), and P7a ties C to R (every I-address has provenance — no content exists without a historical trail). And P4 (Contains(Σ) ⊆ R, derived in the coupling section) bridges the presentational and historical layers — it is the load-bearing constraint that necessitates J1's coupling.
 
 **P6 (Existential coherence).** For every I-address in the content store, its origin document exists as an entity:
 
@@ -425,6 +425,12 @@ Three invariants bind the layers together, making the temporal contracts precise
 `(A (a, d) ∈ R :: a ∈ dom(C))`
 
 *Derivation.* K.ρ requires a ∈ dom(C) as a precondition. P0 preserves dom(C). By induction: initially R₀ = ∅ (vacuous). Each K.ρ adds (a, d) with a ∈ dom(C); P0 ensures a remains in dom(C') for all subsequent states; P2 ensures (a, d) remains in R'. ∎
+
+**P7a (Provenance coverage).** Every I-address in the content store has at least one provenance record:
+
+`(A a ∈ dom(C) :: (E d :: (a, d) ∈ R))`
+
+*Derivation.* By induction. *Base:* dom(C₀) = ∅; vacuous. *Inductive step:* for a ∈ dom(C) (pre-existing), the inductive hypothesis gives (a, d) ∈ R for some d, and P2 preserves it. For a ∈ dom(C') \ dom(C) (freshly allocated), J0 gives a ∈ ran(M'(d)) for some d; since a is fresh, S3 gives a ∉ ran(M(d)) for all d, so a ∈ ran(M'(d)) \ ran(M(d)); J1 gives (a, d) ∈ R'. ∎
 
 The decomposition constrains the elementary transitions cleanly. No *elementary* transition modifies all three layers simultaneously — each touches at most two (K.δ for documents touches the existential and presentational layers; all others touch exactly one). Composite transitions routinely span all three: insertion compounds K.α (existential) + K.μ⁺ (presentational) + K.ρ (historical). The point is that each elementary step has bounded scope. The purely destructive transitions — K.μ⁻ and K.μ~ — are confined to the presentational layer alone, the one layer where impermanence is by design. Cross-layer coupling occurs only in constructive directions: K.α (existential) couples with K.μ⁺ (presentational) via J0; K.μ⁺ (presentational) couples with K.ρ (historical) via J1/J1'. The existential and historical layers never shrink.
 
@@ -467,6 +473,7 @@ Nelson captures the whole architecture in a sentence: "The braid only grows more
 | J4 | Fork composite: K.δ + K.μ⁺ + K.ρ (no other steps); precondition M(d_src) ≠ ∅; dom(C') = dom(C) follows from frames; provenance from J1; empty source is ex nihilo (K.δ), not fork | introduced |
 | P6 | Existential coherence: origin(a) ∈ E_doc for all a ∈ dom(C) | introduced |
 | P7 | Provenance grounding: a ∈ dom(C) for all (a, d) ∈ R | introduced |
+| P7a | Provenance coverage: (E d :: (a, d) ∈ R) for all a ∈ dom(C) — every I-address has provenance | introduced |
 
 
 ## Open Questions
