@@ -85,7 +85,7 @@ We seek the elementary modifications — the minimal state changes from which al
 
 `C' = C ∪ {a ↦ v}` where `a ∉ dom(C)`
 
-The address a satisfies IsElement(a) (S7b, ASN-0036) and is allocated under the creating document's prefix (S7a). By GlobalUniqueness (ASN-0034), a is distinct from every previously allocated address.
+The address a satisfies IsElement(a) (S7b, ASN-0036) and is allocated under the creating document's prefix (S7a). The creating document origin(a) must be in E_doc — the allocation mechanism inc(·, k) (TA5, ASN-0034) operates within an ownership domain, requiring the document entity to exist before content can be allocated under its prefix. By GlobalUniqueness (ASN-0034), a is distinct from every previously allocated address.
 
 *Frame:* E' = E; (A d :: M'(d) = M(d)); R' = R.
 
@@ -289,7 +289,19 @@ Verification:
 - *P6:* origin(a₃) = d₂ = 1.0.1.0.2 ∈ E₃_doc. ✓
 - *P7:* (a₃, d₂) ∈ R₃ and a₃ ∈ dom(C₃). ✓
 
-The two scenarios exercise J0, J1, J4, P4, P5, P6, and P7, and demonstrate the convention M(d) = ∅ for freshly created documents in the J1 verification of the fork.
+**Delete a₁ from d₂'s arrangement (K.μ⁻).** Remove the mapping at V-position [1].
+
+*K.μ⁻:* dom(M₄(d₂)) = {[2], [3]} ⊂ dom(M₃(d₂)) = {[1], [2], [3]}. The surviving mappings are unchanged: M₄(d₂)([2]) = a₂, M₄(d₂)([3]) = a₃.
+
+Verification:
+
+- *J2:* C₄ = C₃; E₄ = E₃; R₄ = R₃. All permanent and historical state unchanged. ✓
+- *P4:* Contains(Σ₄) = {(a₁, d₁), (a₂, d₁), (a₂, d₂), (a₃, d₂)}. The pair (a₁, d₂) is no longer in Contains — d₂ no longer displays a₁. Yet (a₁, d₂) ∈ R₄: the stale entry persists. Contains(Σ₄) ⊂ Contains(Σ₃), while R₄ = R₃. ✓
+- *P5:* C₄ = C₃; E₄ = E₃; R₄ = R₃. Only M changed. ✓
+
+The divergence is now concrete: R₄ records that d₂ once contained a₁, while the current arrangement does not. This is the historical memory that J2 preserves — deletion is purely presentational.
+
+The three steps exercise J0, J1, J2, J4, P4, P5, P6, and P7, and demonstrate both the convention M(d) = ∅ for freshly created documents (J1 verification of the fork) and the divergence between current containment and historical provenance (J2 verification of the deletion).
 
 
 ## Temporal decomposition
@@ -314,7 +326,7 @@ Two cross-layer invariants bridge the existential and historical layers, making 
 
 `(A a ∈ dom(C) :: origin(a) ∈ E_doc)`
 
-*Derivation.* K.α allocates a under the creating document's prefix (S7a, ASN-0036), so origin(a) identifies that document. The document must be in E'_doc for its arrangement to receive a (J0); once in E_doc, P1 preserves it. The content persists in dom(C) by P0. Initial state: dom(C₀) = ∅, so the quantifier is vacuously satisfied. Inductive step: each K.α adds a with origin(a) ∈ E'_doc; P0 preserves a; P1 preserves origin(a). ∎
+*Derivation.* K.α allocates a under origin(a)'s prefix (S7a, ASN-0036), and requires origin(a) ∈ E_doc as a precondition — the allocation mechanism inc(·, k) operates on an existing tumbler within the ownership domain. P1 preserves entity membership across subsequent transitions; P0 preserves a ∈ dom(C). Initial state: dom(C₀) = ∅, so the quantifier is vacuously satisfied. Inductive step: each K.α has origin(a) ∈ E_doc by precondition; P0 preserves a; P1 preserves origin(a). ∎
 
 **P7 (Provenance grounding).** Every provenance entry references allocated content:
 
