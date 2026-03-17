@@ -217,19 +217,19 @@ J1 ensures every new containment pair is recorded; J1' ensures every new provena
 
 *Derivation.* By induction on the transition sequence. *Base:* R₀ = ∅; the quantifier is vacuously satisfied. *Inductive step:* for (a, d) ∈ R' \ R, J1' gives a ∈ ran(M'(d)) \ ran(M(d)) — the post-state Σ' is a witnessing state where d's arrangement contains a. For (a, d) ∈ R, the inductive hypothesis provides a prior witnessing state; P2 ensures the entry persists in R'. ∎
 
-**J2 (Contraction isolation).** Arrangement contraction K.μ⁻ is isolated from all permanent and historical state:
-
-`(A Σ → Σ', d : dom(M'(d)) ⊂ dom(M(d)) : C' = C ∧ E' = E ∧ R' = R)`
-
-That this isolation is correct follows by wp. For P0: K.μ⁻ does not touch C. For P1: does not touch E. For P2: does not touch R. For the provenance bound Contains(Σ) ⊆ R: contraction can only remove pairs from Contains, so Contains(Σ') ⊆ Contains(Σ) ⊆ R = R'. No coupling needed.
-
-This is the deepest consequence of the design. Deletion is purely presentational — it changes what appears, not what exists or what has been. Gregory confirms: contraction "never triggers" provenance recording, and the provenance structure "is never pruned."
-
-**J3 (Reordering isolation).** Arrangement reordering K.μ~ is isolated identically:
+**J2 (Contraction isolation).** The elementary transition K.μ⁻ requires no coupling — it is self-sufficient with respect to P0–P2 and Contains(Σ) ⊆ R. As an elementary transition, K.μ⁻ satisfies:
 
 `C' = C ∧ E' = E ∧ R' = R`
 
-Reordering preserves ran(M(d)), so Contains(Σ') = Contains(Σ). All invariants are trivially maintained.
+The wp analysis confirms this. For P0: K.μ⁻ does not touch C. For P1: does not touch E. For P2: does not touch R. For the provenance bound Contains(Σ) ⊆ R: contraction can only remove pairs from Contains, so Contains(Σ') ⊆ Contains(Σ) ⊆ R = R'. No co-occurring transition is needed to maintain any system invariant.
+
+This is the deepest consequence of the design. Deletion is purely presentational — it changes what appears, not what exists or what has been. Gregory confirms: contraction "never triggers" provenance recording, and the provenance structure "is never pruned."
+
+**J3 (Reordering isolation).** The elementary transition K.μ~ is likewise self-sufficient:
+
+`C' = C ∧ E' = E ∧ R' = R`
+
+Reordering preserves ran(M(d)), so Contains(Σ') = Contains(Σ). All invariants are trivially maintained; no co-occurring transition is needed.
 
 **J4 (Fork is compound).** Nelson's forking creation mode composes K.δ + K.μ⁺ + K.ρ:
 
@@ -283,7 +283,7 @@ We trace a concrete scenario to ground the abstract definitions. Let the startin
 
 > C₁ = {1.0.1.0.1.0.1.1 ↦ 'H', 1.0.1.0.1.0.1.2 ↦ 'i'}
 > E₁ = {1, 1.0.1, 1.0.1.0.1}
-> M₁(d₁) = {[1] ↦ 1.0.1.0.1.0.1.1, [2] ↦ 1.0.1.0.1.0.1.2}
+> M₁(d₁) = {[1,1] ↦ 1.0.1.0.1.0.1.1, [1,2] ↦ 1.0.1.0.1.0.1.2}
 > R₁ = {(1.0.1.0.1.0.1.1, d₁), (1.0.1.0.1.0.1.2, d₁)}
 
 We write a₁ = 1.0.1.0.1.0.1.1 and a₂ = 1.0.1.0.1.0.1.2 for brevity.
@@ -292,7 +292,7 @@ We write a₁ = 1.0.1.0.1.0.1.1 and a₂ = 1.0.1.0.1.0.1.2 for brevity.
 
 *K.δ:* E₂ = E₁ ∪ {1.0.1.0.2}. The address 1.0.1.0.2 is obtained from 1.0.1.0.1 by inc(·, 0) at the document field — a sibling allocation (TA5(c), ASN-0034). M₂(d₂) = ∅.
 
-*K.μ⁺:* M₂(d₂) = {[1] ↦ a₁, [2] ↦ a₂}. The same I-addresses as d₁ — transclusion, case (ii). No new content enters C. The V-positions [1] and [2] satisfy S8a (positive components) and S8-depth (uniform depth 1).
+*K.μ⁺:* M₂(d₂) = {[1,1] ↦ a₁, [1,2] ↦ a₂}. The same I-addresses as d₁ — transclusion, case (ii). No new content enters C. The V-positions [1,1] and [1,2] satisfy S8a (all components strictly positive, zeros = 0) and S8-depth (shared first component 1, uniform depth 2).
 
 *K.ρ:* R₂ = R₁ ∪ {(a₁, d₂), (a₂, d₂)}.
 
@@ -308,21 +308,21 @@ Verification against the resulting state Σ₂:
 
 *K.α:* Allocate a₃ = 1.0.1.0.2.0.1.1 with C₃(a₃) = '!'. The address falls under d₂'s prefix (S7a): origin(a₃) = 1.0.1.0.2 = d₂. By GlobalUniqueness, a₃ is fresh.
 
-*K.μ⁺:* M₃(d₂) = M₂(d₂) ∪ {[3] ↦ a₃}. V-position [3] has depth 1, matching [1] and [2] (S8-depth). Referential integrity: a₃ ∈ dom(C₃) (S3). ✓
+*K.μ⁺:* M₃(d₂) = M₂(d₂) ∪ {[1,3] ↦ a₃}. V-position [1,3] has first component 1 and depth 2, matching [1,1] and [1,2] (S8-depth, non-vacuously: shared first component). Referential integrity: a₃ ∈ dom(C₃) (S3). ✓
 
 *K.ρ:* R₃ = R₂ ∪ {(a₃, d₂)}.
 
 Verification:
 
-- *J0:* a₃ ∈ dom(C₃) \ dom(C₂), and d₂ ∈ E₃_doc with M₃(d₂)([3]) = a₃. ✓
+- *J0:* a₃ ∈ dom(C₃) \ dom(C₂), and d₂ ∈ E₃_doc with M₃(d₂)([1,3]) = a₃. ✓
 - *J1:* ran(M₃(d₂)) \ ran(M₂(d₂)) = {a₃}, and (a₃, d₂) ∈ R₃. ✓
 - *P4:* Contains(Σ₃) adds (a₃, d₂); this pair is in R₃. ✓
 - *P6:* origin(a₃) = d₂ = 1.0.1.0.2 ∈ E₃_doc. ✓
 - *P7:* (a₃, d₂) ∈ R₃ and a₃ ∈ dom(C₃). ✓
 
-**Delete a₁ from d₂'s arrangement (K.μ⁻).** Remove the mapping at V-position [1].
+**Delete a₁ from d₂'s arrangement (K.μ⁻).** Remove the mapping at V-position [1,1].
 
-*K.μ⁻:* dom(M₄(d₂)) = {[2], [3]} ⊂ dom(M₃(d₂)) = {[1], [2], [3]}. The surviving mappings are unchanged: M₄(d₂)([2]) = a₂, M₄(d₂)([3]) = a₃.
+*K.μ⁻:* dom(M₄(d₂)) = {[1,2], [1,3]} ⊂ dom(M₃(d₂)) = {[1,1], [1,2], [1,3]}. The surviving mappings are unchanged: M₄(d₂)([1,2]) = a₂, M₄(d₂)([1,3]) = a₃.
 
 Verification:
 
@@ -397,8 +397,8 @@ Nelson captures the whole architecture in a sentence: "The braid only grows more
 | J0 | Content allocation (K.α) always co-occurs with arrangement extension (K.μ⁺) | introduced |
 | J1 | Arrangement extension (K.μ⁺) must co-occur with provenance recording (K.ρ), derived by wp | introduced |
 | J1' | (a, d) ∈ R' \ R only when a ∈ ran(M'(d)) \ ran(M(d)) — new provenance requires new containment | introduced |
-| J2 | Arrangement contraction (K.μ⁻) is isolated: C, E, R unchanged | introduced |
-| J3 | Arrangement reordering (K.μ~) is isolated: C, E, R unchanged | introduced |
+| J2 | K.μ⁻ as elementary transition requires no coupling: C' = C ∧ E' = E ∧ R' = R | introduced |
+| J3 | K.μ~ as elementary transition requires no coupling: C' = C ∧ E' = E ∧ R' = R | introduced |
 | J4 | Document fork compounds K.δ + K.μ⁺ + K.ρ with no new content in C | introduced |
 | P6 | Existential coherence: origin(a) ∈ E_doc for all a ∈ dom(C) | introduced |
 | P7 | Provenance grounding: a ∈ dom(C) for all (a, d) ∈ R | introduced |
