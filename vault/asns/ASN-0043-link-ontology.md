@@ -136,11 +136,13 @@ Each endset is a set of spans — potentially multiple, potentially discontiguou
 
 We now state the properties that endsets must satisfy.
 
-**L4 — EndsetGenerality.** The spans within an endset may reference any addresses in the tumbler space. There is no constraint confining spans to a single document, to content addresses only, or to addresses at which content currently exists:
+**L4 — EndsetGenerality.** The spans within an endset may reference any addresses in the tumbler space. There is no constraint confining spans to a single document, to content addresses only, or to addresses at which content currently exists.
+
+The formal content follows from definitions: by L3, every link value is a triple of endsets of type `Endset = 𝒫_fin(Span)`, where `Span` is the set of well-formed pairs satisfying T12. Therefore:
 
 `(A a ∈ dom(Σ.L), e ∈ {from, to, type}, (s, ℓ) ∈ Σ.L(a).e :: s ∈ T ∧ (s, ℓ) satisfies T12)`
 
-The only structural constraint on an endset span is span well-formedness (T12). In particular:
+The substantive content of L4 is not what the types require, but what they *omit* — the design-significant absence of additional constraints beyond T12. The following sub-items make explicit what the model does NOT restrict:
 
 (a) *Cross-document endsets.* A single endset may contain spans whose start addresses fall under different document-level prefixes. Gregory confirms: the sporglset data structure stores one `sporgladdress` per span entry, and the conversion function `specset2sporglset` iterates over specset elements with different `docisa` values without rejection. A link whose from-endset touches passages in three different documents is a single link with a single multi-span endset, not three separate links.
 
@@ -208,7 +210,7 @@ We verify that `Σ'` is conforming:
 - *L1 (LinkElementLevel).* The address `a` is an element-level tumbler by construction: allocated under a document prefix with all four fields, giving `zeros(a) = 3`.
 - *L1a (LinkScopedAllocation).* The address `a` is allocated under `d`'s prefix by construction: `origin(a) = d`.
 - *L3–L5.* The type span `(g, ℓ_g)` is well-formed by T12; the three endsets `(∅, ∅, {(g, ℓ_g)})` satisfy L3. Empty endsets are valid by the definition of Endset. L5 holds trivially.
-- *L11 (IdentityByAddress).* By GlobalUniqueness (ASN-0034), the freshly allocated `a` is distinct from every address in `dom(Σ.L)`.
+- *L11a (LinkUniqueness).* By GlobalUniqueness (ASN-0034), the freshly allocated `a` is distinct from every address in `dom(Σ.L)`.
 - *L12 (LinkImmutability).* For every `b ∈ dom(Σ.L)`: `b ∈ dom(Σ'.L)` and `Σ'.L(b) = Σ.L(b)`, since `Σ'` only adds the new entry at `a`.
 - *L14 (DualPrimitive).* `dom(Σ'.C) ∪ dom(Σ'.L) = dom(Σ.C) ∪ (dom(Σ.L) ∪ {a})`. Disjointness holds since `a` is in subspace `s_L` and `dom(Σ'.C) ⊆ s_C`.
 - *S0–S3.* Content store and arrangements are unchanged (`Σ'.C = Σ.C`, `Σ'.M = Σ.M`), so all ASN-0036 invariants carry over from `Σ`.
@@ -247,17 +249,15 @@ We observe that L10 characterizes the structural affordance that the address spa
 
 ## Link Distinctness and Permanence
 
-We now establish the identity semantics of links. The three requirements we began with — distinguishability, ownership, referenceability — crystallize into two properties.
+We now establish the identity semantics of links. The three requirements we began with — distinguishability, ownership, referenceability — crystallize into two derived properties.
 
-**L11 — IdentityByAddress.** Link identity is address identity. The property has two halves.
+**L11a — LinkUniqueness.** Link addresses are produced by forward allocation (T9, ASN-0034) within the link subspace. By GlobalUniqueness (ASN-0034), no two allocation events anywhere in the system, at any time, produce the same address. Therefore every link has a globally unique, permanent identity, and the question "are these the same link?" reduces to tumbler comparison (T2, IntrinsicComparison).
 
-*Uniqueness.* Link addresses are produced by forward allocation (T9, ASN-0034) within the link subspace. By GlobalUniqueness (ASN-0034), no two allocation events anywhere in the system, at any time, produce the same address. Therefore every link has a globally unique, permanent identity, and the question "are these the same link?" reduces to tumbler comparison (T2, IntrinsicComparison).
-
-*Non-injectivity.* The link store imposes no injectivity constraint — multiple addresses may store the same triple of endsets:
+**L11b — NonInjectivity.** The link store imposes no injectivity constraint — multiple addresses may store the same triple of endsets:
 
 `(A Σ satisfying L0–L14, a ∈ dom(Σ.L) :: (E Σ' extending Σ, a' ∈ dom(Σ'.L) :: a' ≠ a ∧ Σ'.L(a') = Σ.L(a) ∧ Σ' satisfies L0–L14))`
 
-That is, for any conforming state `Σ` with a link at `a ∈ dom(Σ.L)` where `Σ.L(a) = (F, G, Θ)`, there exists a conforming extension `Σ'` with a fresh address `a' ∈ dom(Σ'.L)`, `a' ≠ a`, and `Σ'.L(a') = (F, G, Θ)`. The invariants *permit* non-injectivity — every state with a link can be extended to a non-injective state — but they do not *require* it. The witness is immediate: allocate `a'` by forward allocation within the same document's link subspace, and set `Σ'.L(a') = (F, G, Θ)` with `Σ'.C = Σ.C` and `Σ'.M = Σ.M`. All invariants L0–L14 are preserved: L0 by subspace (`a'` is in `s_L`); L1/L1a by allocation; L2 structurally (home is field extraction from the address); L3–L5 by construction (same triple as the existing link); L6 because the new entry copies the same triple `(F, G, Θ)`, preserving whatever `F ≠ G` status it has; L11 uniqueness for `a'` by GlobalUniqueness (ASN-0034); L12 because existing entries are unchanged; L12a follows from L12; L14 because `a'` is in subspace `s_L`, preserving disjointness with `dom(Σ'.C)`; L8, L10, L13 are lemmas that do not constrain states; S0–S3 hold trivially since `Σ'.C = Σ.C` and `Σ'.M = Σ.M`.
+That is, for any conforming state `Σ` with a link at `a ∈ dom(Σ.L)` where `Σ.L(a) = (F, G, Θ)`, there exists a conforming extension `Σ'` with a fresh address `a' ∈ dom(Σ'.L)`, `a' ≠ a`, and `Σ'.L(a') = (F, G, Θ)`. The invariants *permit* non-injectivity — every state with a link can be extended to a non-injective state — but they do not *require* it. The witness is immediate: allocate `a'` by forward allocation within the same document's link subspace, and set `Σ'.L(a') = (F, G, Θ)` with `Σ'.C = Σ.C` and `Σ'.M = Σ.M`. All invariants L0–L14 are preserved: L0 by subspace (`a'` is in `s_L`); L1/L1a by allocation; L2 structurally (home is field extraction from the address); L3–L5 by construction (same triple as the existing link); L6 because the new entry copies the same triple `(F, G, Θ)`, preserving whatever `F ≠ G` status it has; L11a uniqueness for `a'` by GlobalUniqueness (ASN-0034); L12 because existing entries are unchanged; L12a follows from L12; L14 because `a'` is in subspace `s_L`, preserving disjointness with `dom(Σ'.C)`; L8, L10, L13 are lemmas that do not constrain states; S0–S3 hold trivially since `Σ'.C = Σ.C` and `Σ'.M = Σ.M`.
 
 Two links with identical endsets — same from, same to, same type — but different addresses are separate objects, independently owned, independently removable, independently targetable by other links.
 
@@ -336,7 +336,7 @@ A link is an addressed, owned, typed, bidirectional connection between arbitrary
 
 A link at address `a ∈ dom(Σ.L)` is characterized by:
 
-- **Address** `a` — a permanent, globally unique element-level tumbler in the link subspace (L0, L1, L11, L12). The address IS the link's identity.
+- **Address** `a` — a permanent, globally unique element-level tumbler in the link subspace (L0, L1, L11a, L12). The address IS the link's identity.
 - **Home** `home(a) = origin(a)` — the document under whose prefix `a` falls, determining the link's owner, independent of what the link connects (L2).
 - **Three endsets** `Σ.L(a) = (F, G, Θ)` — the from-endset `F`, to-endset `G`, and type-endset `Θ`, each a finite set of well-formed spans pointing anywhere in the tumbler space (L3, L4, L5).
 - **Slot structure** — the three endsets are structurally distinguished positions, enabling independent query on each, with directional semantics determined by the type rather than by the slot itself (L6, L7).
@@ -390,7 +390,9 @@ So `Σ.L = {a ↦ (F, G, Θ)}`.
 
 *L6 (SlotDistinction).* `F ≠ G` (different start addresses in their spans), so `(F, G, Θ) ≠ (G, F, Θ)`. ✓
 
-*L11 (IdentityByAddress).* *Uniqueness:* `a` was produced by forward allocation. With `|dom(Σ.L)| = 1`, no collision is possible. *Non-injectivity:* requires `|dom(Σ.L)| ≥ 2`, so the clause does not apply here. Verified non-vacuously below. ✓
+*L11a (LinkUniqueness).* `a` was produced by forward allocation. With `|dom(Σ.L)| = 1`, no collision is possible. ✓
+
+*L11b (NonInjectivity).* The clause applies: `a ∈ dom(Σ.L)` satisfies the universal quantifier's precondition. The extension `Σ'` witnessing the existential is constructed in Step 1 below, where `a'` is allocated with `Σ_1.L(a') = Σ.L(a)`. ✓
 
 *L12 (LinkImmutability).* L12 constrains state transitions, not individual states. In this single-state example, no transition is under consideration, so L12 is vacuously satisfied. Verified non-vacuously below across two transitions. ✓ (vacuous)
 
@@ -404,13 +406,13 @@ So `Σ.L = {a ↦ (F, G, Θ)}`.
 
 *S3 (ReferentialIntegrity, ASN-0036).* `ran(Σ.M(d)) = {c₁, c₂} ⊆ dom(Σ.C)`. ✓
 
-**Extension: L11 non-injectivity, L13, and transition verification.**
+**Extension: L11b non-injectivity, L13, and transition verification.**
 
-We extend the state in two steps, naming each intermediate state, to verify L11, L12, and L13 non-vacuously.
+We extend the state in two steps, naming each intermediate state, to verify L11b, L12, and L13 non-vacuously.
 
 *Step 1: adding `a'`.* Define `a' = 1.0.1.0.1.0.2.2` with `Σ_1.L(a') = (F, G, Θ)` — same endsets as `a`. The intermediate state is `Σ_1` with `Σ_1.L = {a ↦ (F, G, Θ),\; a' ↦ (F, G, Θ)}`, `Σ_1.C = Σ.C`, `Σ_1.M = Σ.M`.
 
-*L11 non-injectivity in `Σ_1`.* `|dom(Σ_1.L)| = 2`, `a ≠ a'`, and `Σ_1.L(a) = Σ_1.L(a') = (F, G, Θ)`. The link store is non-injective — two distinct addresses map to the same triple. ✓
+*L11b non-injectivity in `Σ_1`.* `|dom(Σ_1.L)| = 2`, `a ≠ a'`, and `Σ_1.L(a) = Σ_1.L(a') = (F, G, Θ)`. The link store is non-injective — two distinct addresses map to the same triple. This is the witness for L11b applied to `Σ` with `a`. ✓
 
 *L12 across `Σ → Σ_1`.* `dom(Σ.L) = {a}`. We verify: `a ∈ dom(Σ_1.L)` and `Σ_1.L(a) = (F, G, Θ) = Σ.L(a)`. The sole pre-existing link is preserved. ✓
 
@@ -449,7 +451,7 @@ The final state is `Σ_2` with `Σ_2.L = {a ↦ (F, G, Θ),\; a' ↦ (F, G, Θ),
 | L1a | INV | LinkScopedAllocation — every link address is allocated under the creating document's tumbler prefix | introduced |
 | L2 | LEMMA | OwnershipEndsetIndependence — `home(a)` depends only on `a`, not on the link's endsets | introduced |
 | L3 | INV | TripleEndsetStructure — every link has exactly three endsets: `Σ.L(a) = (F, G, Θ)` | introduced |
-| L4 | INV | EndsetGenerality — endset spans may reference any address in `T`; no single-document, content-only, or existence constraint | introduced |
+| L4 | LEMMA | EndsetGenerality — endset spans satisfy T12 (definitional from L3); the substantive content is the absence of additional constraints: no single-document, content-only, or existence restriction | introduced |
 | L5 | INV | EndsetSetSemantics — an endset is an unordered set; only span membership matters | introduced |
 | L6 | INV | SlotDistinction — the three endsets are structurally distinguished positions: `F ≠ G ⟹ (F, G, Θ) ≠ (G, F, Θ)` | introduced |
 | L7 | META | DirectionalFlexibility — L0–L14 impose no constraint on directional significance of from/to slots | introduced |
@@ -457,7 +459,8 @@ The final state is `Σ_2` with `Σ_2.L = {a ↦ (F, G, Θ),\; a' ↦ (F, G, Θ),
 | L9 | LEMMA | TypeGhostPermission — any conforming state can be extended with a link whose type endset references addresses outside `dom(Σ.C) ∪ dom(Σ.L)` | introduced |
 | PrefixSpanCoverage | LEMMA | For any tumbler `x` with `#x ≥ 1`, the unit-depth span has `coverage({(x, ℓ_x)}) = {t ∈ T : x ≼ t}` | introduced |
 | L10 | LEMMA | TypeHierarchyByContainment — `coverage({(p, ℓ_p)}) = subtypes(p)` by PrefixSpanCoverage | introduced |
-| L11 | INV | IdentityByAddress — (a) link addresses inherit GlobalUniqueness via T9; (b) every conforming state with a link can be extended to a non-injective conforming state | introduced |
+| L11a | LEMMA | LinkUniqueness — link addresses inherit GlobalUniqueness via T9; each link has a globally unique, permanent identity | introduced |
+| L11b | LEMMA | NonInjectivity — every conforming state with a link can be extended to a non-injective conforming state | introduced |
 | L12 | INV | LinkImmutability — `(A Σ, Σ' : a ∈ dom(Σ.L) : a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a))` for every state transition | introduced |
 | L12a | LEMMA | LinkStoreMonotonicity — `dom(Σ.L) ⊆ dom(Σ'.L)` for every state transition | introduced |
 | L13 | LEMMA | ReflexiveAddressing — link addresses are valid endset span targets; canonical span coverage by PrefixSpanCoverage | introduced |
