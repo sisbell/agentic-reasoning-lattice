@@ -200,7 +200,7 @@ This is a profound design choice. It decouples classification from content retri
 
 `(A Σ : Σ satisfies L0–L14 ∧ S0–S3 : (E Σ' extending Σ, a ∈ dom(Σ'.L), (s, ℓ) ∈ Σ'.L(a).type :: coverage({(s, ℓ)}) ⊄ dom(Σ'.C) ∪ dom(Σ'.L)))`
 
-*Witness.* Take any conforming `Σ`. Let `d` be a document with an allocator for subspace `s_L`. Choose a fresh ghost address `g ∈ T` with `fields(g).E₁ = s_C` and `g ∉ dom(Σ.C)` (such an address exists: by T0(b), `T` is unbounded, and `dom(Σ.C)` is finite by S8-fin). Allocate a new link address `a` via forward allocation (T9) within `d`'s link subspace. Define `Σ'` as `Σ` extended with `Σ'.L(a) = (∅, ∅, {(g, ℓ_g)})` where `ℓ_g` is the unit-width displacement at depth `#g`, and `Σ'.C = Σ.C`, `Σ'.M = Σ.M`.
+*Witness.* Take any conforming `Σ`. Let `d` be a document with an allocator for subspace `s_L`. Choose a fresh ghost address `g ∈ T` with `fields(g).E₁ = s_C` and `g ∉ dom(Σ.C)` (such an address exists: by S7a, every address in `dom(Σ.C)` is allocated under some document's prefix; by T9, allocation within each document's content subspace is strictly increasing; by T0(a), components are unbounded — so a content-subspace address beyond the allocation frontier of every document is always available). Allocate a new link address `a` via forward allocation (T9) within `d`'s link subspace. Define `Σ'` as `Σ` extended with `Σ'.L(a) = (∅, ∅, {(g, ℓ_g)})` where `ℓ_g` is the unit-width displacement at depth `#g`, and `Σ'.C = Σ.C`, `Σ'.M = Σ.M`.
 
 We verify that `Σ'` is conforming:
 
@@ -212,6 +212,7 @@ We verify that `Σ'` is conforming:
 - *L12 (LinkImmutability).* For every `b ∈ dom(Σ.L)`: `b ∈ dom(Σ'.L)` and `Σ'.L(b) = Σ.L(b)`, since `Σ'` only adds the new entry at `a`.
 - *L14 (DualPrimitive).* `dom(Σ'.C) ∪ dom(Σ'.L) = dom(Σ.C) ∪ (dom(Σ.L) ∪ {a})`. Disjointness holds since `a` is in subspace `s_L` and `dom(Σ'.C) ⊆ s_C`.
 - *S0–S3.* Content store and arrangements are unchanged (`Σ'.C = Σ.C`, `Σ'.M = Σ.M`), so all ASN-0036 invariants carry over from `Σ`.
+- *Remaining properties.* L2 holds structurally (home is field extraction from the address); L6 vacuously (F = G = ∅ makes the antecedent false); L8, L10, L13 are lemmas that do not constrain states; L12a follows from L12.
 
 No property of L0–L14 or S0–S3 constrains `coverage(Σ'.L(a).type) ⊆ dom(Σ'.C)`. Now, `Σ'.C = Σ.C`, so `g ∉ dom(Σ.C) = dom(Σ'.C)`. And `fields(g).E₁ = s_C` while every address in `dom(Σ'.L)` has subspace `s_L` by L0; since `s_C ≠ s_L`, T7 gives `g ∉ dom(Σ'.L)`. Therefore `g ∉ dom(Σ'.C) ∪ dom(Σ'.L)`. ∎
 
@@ -254,9 +255,9 @@ We now establish the identity semantics of links. The three requirements we bega
 
 *Non-injectivity.* The link store imposes no injectivity constraint — multiple addresses may store the same triple of endsets:
 
-`¬(A a₁, a₂ ∈ dom(Σ.L) :: Σ.L(a₁) = Σ.L(a₂) ⟹ a₁ = a₂)`
+`(A Σ satisfying L0–L14, a ∈ dom(Σ.L) :: (E Σ' extending Σ, a' ∈ dom(Σ'.L) :: a' ≠ a ∧ Σ'.L(a') = Σ.L(a) ∧ Σ' satisfies L0–L14))`
 
-for any state with `|dom(Σ.L)| ≥ 2`. More precisely: for any conforming state `Σ` with a link at `a ∈ dom(Σ.L)` where `Σ.L(a) = (F, G, Θ)`, there exists a conforming extension `Σ'` with a fresh address `a' ∈ dom(Σ'.L)`, `a' ≠ a`, and `Σ'.L(a') = (F, G, Θ)`. The witness is immediate: allocate `a'` by forward allocation within the same document's link subspace, and set `Σ'.L(a') = (F, G, Θ)`. All invariants L0–L14 are preserved (L0 by subspace, L1/L1a by allocation, L3–L5 by construction, L12 because existing entries are unchanged).
+That is, for any conforming state `Σ` with a link at `a ∈ dom(Σ.L)` where `Σ.L(a) = (F, G, Θ)`, there exists a conforming extension `Σ'` with a fresh address `a' ∈ dom(Σ'.L)`, `a' ≠ a`, and `Σ'.L(a') = (F, G, Θ)`. The invariants *permit* non-injectivity — every state with a link can be extended to a non-injective state — but they do not *require* it. The witness is immediate: allocate `a'` by forward allocation within the same document's link subspace, and set `Σ'.L(a') = (F, G, Θ)`. All invariants L0–L14 are preserved (L0 by subspace, L1/L1a by allocation, L3–L5 by construction, L12 because existing entries are unchanged).
 
 Two links with identical endsets — same from, same to, same type — but different addresses are separate objects, independently owned, independently removable, independently targetable by other links.
 
@@ -456,7 +457,7 @@ The final state is `Σ_2` with `Σ_2.L = {a ↦ (F, G, Θ),\; a' ↦ (F, G, Θ),
 | L9 | LEMMA | TypeGhostPermission — any conforming state can be extended with a link whose type endset references addresses outside `dom(Σ.C) ∪ dom(Σ.L)` | introduced |
 | PrefixSpanCoverage | LEMMA | For any tumbler `x` with `#x ≥ 1`, the unit-depth span has `coverage({(x, ℓ_x)}) = {t ∈ T : x ≼ t}` | introduced |
 | L10 | LEMMA | TypeHierarchyByContainment — `coverage({(p, ℓ_p)}) = subtypes(p)` by PrefixSpanCoverage | introduced |
-| L11 | INV | IdentityByAddress — (a) link addresses inherit GlobalUniqueness via T9; (b) `¬(A a₁, a₂ :: Σ.L(a₁) = Σ.L(a₂) ⟹ a₁ = a₂)` for `\|dom(Σ.L)\| ≥ 2` | introduced |
+| L11 | INV | IdentityByAddress — (a) link addresses inherit GlobalUniqueness via T9; (b) every conforming state with a link can be extended to a non-injective conforming state | introduced |
 | L12 | INV | LinkImmutability — `(A Σ, Σ' : a ∈ dom(Σ.L) : a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a))` for every state transition | introduced |
 | L12a | LEMMA | LinkStoreMonotonicity — `dom(Σ.L) ⊆ dom(Σ'.L)` for every state transition | introduced |
 | L13 | LEMMA | ReflexiveAddressing — link addresses are valid endset span targets; canonical span coverage by PrefixSpanCoverage | introduced |
