@@ -251,7 +251,7 @@ Reordering preserves ran(M(d)), so Contains(Σ') = Contains(Σ). All invariants 
 
 **J4 (Fork composite).** Nelson's forking creation mode — when the source arrangement is non-empty — is a composite whose elementary steps are exactly K.δ + K.μ⁺ + K.ρ, all serving the new document d_new:
 
-**Definition (Fork).** A *fork* of d_src to d_new is a composite transition Σ → Σ' consisting of:
+**Definition (Fork).** A *fork* of d_src to d_new is a composite transition Σ → Σ', with *precondition* d_src ∈ E_doc, consisting of:
 
 (i) K.δ creating d_new with d_new ∉ E_doc,
 
@@ -360,7 +360,20 @@ Verification:
 
 The divergence is now concrete: R₄ records that d₂ once contained a₁, while the current arrangement does not. This is the historical memory that J2 preserves — deletion is purely presentational.
 
-The three steps exercise J0, J1, J2, J4, P4, P5, P6, P7, and P8, and demonstrate both the convention M(d) = ∅ for freshly created documents (J1 verification of the fork) and the divergence between current containment and historical provenance (J2 verification of the deletion).
+**Reorder d₂'s arrangement (K.μ~).** Swap V-positions [1,2] and [1,3].
+
+*K.μ~:* The bijection π : {[1,2], [1,3]} → {[1,2], [1,3]} with π([1,2]) = [1,3] and π([1,3]) = [1,2]. The definition requires M₅(d₂)(π(v)) = M₄(d₂)(v) for all v ∈ dom(M₄(d₂)), giving M₅(d₂) = {[1,2] ↦ a₃, [1,3] ↦ a₂}. Both target V-positions satisfy S8a (all components strictly positive) and S8-depth (uniform depth 2, shared first component 1).
+
+Verification:
+
+- *J3:* C₅ = C₄; E₅ = E₄; R₅ = R₄. All permanent and historical state unchanged. ✓
+- *ran preservation:* ran(M₅(d₂)) = {a₂, a₃} = ran(M₄(d₂)). The multiset of referenced I-addresses is identical; only V-positions changed. ✓
+- *P4:* Contains(Σ₅) = Contains(Σ₄) ⊆ R₄ = R₅. Since ran is preserved for d₂ and no other arrangement changed, the current containment set is unchanged. ✓
+- *P5:* C₅ = C₄; E₅ = E₄; R₅ = R₄. Only M changed. ✓
+
+Reordering is the simplest transition to verify: it touches nothing beyond the V-position mapping, and all invariants hold by the frame conditions alone.
+
+The four steps exercise J0, J1, J2, J3, J4, P4, P5, P6, P7, and P8, and demonstrate the convention M(d) = ∅ for freshly created documents (J1 verification of the fork), the divergence between current containment and historical provenance (J2 verification of the deletion), and the presentational isolation of reordering (J3 verification of the swap).
 
 
 ## Temporal decomposition
@@ -381,7 +394,7 @@ We have arrived at the structural insight underlying the entire design. The stat
 
 K.δ for documents also initialises M'(e) = ∅, extending M's domain — a presentational-layer effect. We classify K.δ as existential because its primary purpose is entity creation; the empty arrangement initialisation is a structural consequence (extending the domain with an empty entry, not mutating an existing arrangement). The broader claim holds: no elementary transition touches all three layers.
 
-Two cross-layer invariants bridge the existential and historical layers, making the temporal contracts precise.
+Three invariants bind the layers together, making the temporal contracts precise. P6 is intra-existential — a coherence constraint between C and E, both within the same layer. P7 bridges the existential and historical layers, tying R to C. And P4 (Contains(Σ) ⊆ R, derived in the coupling section) bridges the presentational and historical layers — it is the load-bearing constraint that necessitates J1's coupling.
 
 **P6 (Existential coherence).** For every I-address in the content store, its origin document exists as an entity:
 
