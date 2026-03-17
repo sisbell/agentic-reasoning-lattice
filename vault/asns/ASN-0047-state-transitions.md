@@ -195,15 +195,19 @@ A clarification on scope. The frame conditions stated above describe individual 
 
 This is a derived quantity of the state — it captures what each document currently displays. We will need it both in the valid composite definition (as a state invariant) and in the coupling derivations that follow.
 
-**Definition (Valid composite transition).** A composite transition Σ → Σ' is *valid* iff it is a finite sequence of elementary transitions Σ = Σ₀ → Σ₁ → ... → Σₙ = Σ' satisfying three conditions:
+**Definition (Valid composite transition).** A composite transition Σ → Σ' is *valid* iff it is a finite sequence of elementary transitions Σ = Σ₀ → Σ₁ → ... → Σₙ = Σ' satisfying two conditions:
 
 (1) *Elementary preconditions:* each step Σᵢ → Σᵢ₊₁ satisfies the precondition of its elementary transition kind, evaluated at the intermediate state Σᵢ.
 
 (2) *Coupling constraints:* J0, J1, and J1' hold for the composite — evaluated between the initial state Σ and the final state Σ'.
 
-(3a) *Transition constraints:* the composite Σ → Σ' satisfies P0, P1, P2.
+**Lemma (Permanence from elementary frames).** Every valid composite transition satisfies P0, P1, and P2. Each elementary transition's frame ensures: K.α extends dom(C) preserving existing entries (all others hold C' = C), giving P0; K.δ extends E (all others hold E' = E), giving P1; K.ρ extends R (all others hold R' = R), giving P2. By transitivity over any finite sequence satisfying (1), the composite inherits all three permanence properties.
 
-**Theorem (Reachable-state invariants).** Every valid composite transition produces a final state Σ' satisfying P6, P7, P8, S2, S3, S8a, S8-depth, S8-fin, and Contains(Σ') ⊆ R'. This follows from conditions (1), (2), and (3a) — as the derivations of P4, P6, P7, P8 and the elementary-transition analysis of S2–S8-fin show below.
+**Theorem (Reachable-state invariants).** Every state reachable from Σ₀ by a finite sequence of valid composite transitions satisfies P4 (Contains(Σ) ⊆ R), P6, P7, P8, S2, S3, S8a, S8-depth, and S8-fin.
+
+*Base case.* At Σ₀, dom(C₀) = ∅ makes P4, P6, P7 vacuous; E₀ = {n₀} with IsNode(n₀) makes P8 vacuous; (E₀)_doc = ∅ makes S2–S8-fin and Contains(Σ₀) ⊆ R₀ vacuous.
+
+*Inductive step.* For any reachable state Σ satisfying the above, every valid composite Σ → Σ' produces Σ' satisfying the same — as the derivations of P4, P6, P7, P8 and the elementary-transition analysis of S2–S8-fin show below.
 
 Intermediate states need not satisfy all system invariants; only the final state is required to. The ordering matters: J0 couples K.α with K.μ⁺, and S3 requires the I-address to exist before the V→I mapping is created, so K.α precedes K.μ⁺. Similarly, J4's fork compounds K.δ + K.μ⁺ + K.ρ, and K.μ⁺ requires d ∈ E_doc, which K.δ establishes — so K.δ precedes K.μ⁺. The net effect of a composite transition is the composition of its elementary effects.
 
@@ -429,8 +433,9 @@ Nelson captures the whole architecture in a sentence: "The braid only grows more
 | Σ.R | R ⊆ T_elem × E_doc — provenance relation recording historical content associations | introduced |
 | Σ₀ | Initial state: C₀ = ∅, E₀ = {n₀} (bootstrap node), M₀ empty, R₀ = ∅ | introduced |
 | parent(e) | For ¬IsNode(e): tumbler obtained by truncating last field and preceding separator | introduced |
-| Valid composite | Σ → Σ' valid iff: (1) elementary preconditions at each intermediate state, (2) J0/J1/J1' for the composite, (3a) P0/P1/P2 for the composite | introduced |
-| Reachable-state invariants | Every valid composite produces Σ' satisfying P6, P7, P8, S2, S3, S8a, S8-depth, S8-fin, Contains(Σ') ⊆ R' — derived from (1)+(2)+(3a) | introduced |
+| Contains(Σ) | {(a, d) : d ∈ E_doc ∧ a ∈ ran(M(d))} — current containment, derived quantity of state | introduced |
+| Valid composite | Σ → Σ' valid iff: (1) elementary preconditions at each intermediate state, (2) J0/J1/J1' for the composite; P0/P1/P2 derived as lemma | introduced |
+| Reachable-state invariants | Every state reachable from Σ₀ satisfies P4, P6, P7, P8, S2–S8-fin — by induction: base at Σ₀, step from (1)+(2) | introduced |
 | P0 | Content store is append-only with immutable values: dom(C) ⊆ dom(C') ∧ C'(a) = C(a) for a ∈ dom(C) | introduced |
 | P1 | Entity set is monotonically growing: E ⊆ E' for every transition, uniformly across levels | introduced |
 | P8 | Entity hierarchy: (A e ∈ E : ¬IsNode(e) : parent(e) ∈ E) — no orphan accounts or documents | introduced |
