@@ -273,13 +273,13 @@ An immediate consequence of J1 and J2 is that the provenance relation diverges f
 
 *Base case.* In Σ₀, (E₀)_doc = ∅ (E₀ contains only the bootstrap node), so Contains(Σ₀) = ∅ ⊆ ∅ = R₀. The bound holds vacuously.
 
-*Inductive step.* We verify that each valid composite transition preserves Contains(Σ) ⊆ R, assuming it holds before the transition. Five of the six elementary transitions preserve the invariant individually; the remaining case — K.μ⁺ — requires its coupling with K.ρ.
+*Inductive step.* We verify that each valid composite transition preserves Contains(Σ) ⊆ R, assuming it holds before the transition. We must check all five elementary transitions and the distinguished composite K.μ~. Four elementary transitions preserve the invariant individually; K.μ⁺ requires its coupling with K.ρ.
 
 - K.α: Does not modify M or R. Contains(Σ') = Contains(Σ) ⊆ R = R'. Preserved.
 - K.δ: Creates entity e with empty arrangement M'(e) = ∅, contributing no new pairs to Contains. Does not modify R. Preserved.
 - K.μ⁺: Let Δ = {(a, d) : d ∈ E'_doc ∧ a ∈ ran(M'(d)) \ ran(M(d))} be the new containment pairs, where the convention M(d) = ∅ for d ∈ E'_doc \ E_doc ensures this is well-defined for freshly created documents. K.μ⁺ yields Contains(Σ') = Contains(Σ) ∪ Δ. Two subcases for each (a, d) ∈ Δ: (i) (a, d) ∉ R — J1 requires (a, d) ∈ R', so K.ρ must co-occur, adding the pair to R'; (ii) (a, d) ∈ R — the pair is already in R, and P2 gives R ⊆ R', so (a, d) ∈ R' without K.ρ. In both subcases (a, d) ∈ R'. Since Contains(Σ) ⊆ R ⊆ R' (inductive hypothesis and P2), we have Contains(Σ') = Contains(Σ) ∪ Δ ⊆ R'. Preserved.
 - K.μ⁻: Can only remove pairs from Contains — ran(M'(d)) ⊆ ran(M(d)), so Contains(Σ') ⊆ Contains(Σ) ⊆ R = R'. Preserved by monotonicity.
-- K.μ~: Preserves ran(M(d)), so Contains(Σ') = Contains(Σ) ⊆ R = R'. Preserved.
+- K.μ~ (composite): Preserves ran(M(d)) by definition, so Contains(Σ') = Contains(Σ) ⊆ R = R'. Preserved independently of its decomposition into K.μ⁻ and K.μ⁺.
 - K.ρ: By J1', does not occur without K.μ⁺ — handled in the composite case above. Were it to occur independently, R grows while Contains is unchanged: Contains(Σ') = Contains(Σ) ⊆ R ⊆ R'. The invariant would be preserved, but the entry would lack historical justification.
 
 Every I-address currently in some arrangement is recorded in R. But the converse does not hold: (a, d) ∈ R does not imply a ∈ ran(M(d)). Stale entries persist from earlier states where d contained a before contraction removed it. These entries are not errors — they are the system's historical memory of content associations, monotonically truthful, never retracting a claim once made. Gregory: "find_documents returns historically accurate results, not current state."
@@ -299,7 +299,7 @@ We now state the central structural theorem — a generalisation of S9 (ASN-0036
 
 The only component that can lose information is M.
 
-*Proof.* By case analysis on K.α–K.ρ. Each elementary transition preserves (a) through (c): K.α extends dom(C) preserving existing entries, with E and R in its frame. K.δ extends E, with C and R in its frame. K.μ⁺, K.μ⁻, K.μ~ have C, E, and R in their frames. K.ρ extends R, with C and E in its frame. Composite transitions, being finite sequences of elementary ones, preserve (a)–(c) by transitivity of ⊇ and ∧. ∎
+*Proof.* By case analysis on the five elementary transitions. K.α extends dom(C) preserving existing entries, with E and R in its frame. K.δ extends E, with C and R in its frame. K.μ⁺ and K.μ⁻ have C, E, and R in their frames. K.ρ extends R, with C and E in its frame. Each preserves (a) through (c). The distinguished composite K.μ~ decomposes into K.μ⁻ followed by K.μ⁺, both of which preserve (a)–(c), so K.μ~ does as well. General composite transitions, being finite sequences of elementary ones, preserve (a)–(c) by transitivity of ⊇ and ∧. ∎
 
 P5 makes the confinement vivid. Every destructive state change — every removal, every reordering — is confined to the presentational layer. The permanent record (what content exists, which entities have been created, what provenance has been recorded) can only grow.
 
