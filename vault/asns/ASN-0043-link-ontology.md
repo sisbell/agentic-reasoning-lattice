@@ -256,7 +256,17 @@ Because links have tumbler addresses (L0, L1), and endsets can reference any tum
 
 **L13 — ReflexiveAddressing.** Link addresses are valid targets for endset spans. For any link at address `b ∈ dom(Σ.L)`, define the displacement `ℓ_b` with `#ℓ_b = #b`, zero at positions `1` through `#b - 1`, and value 1 at position `#b`. The action point of `ℓ_b` is `k = #b`. Since `b` is an element-level tumbler, `k ≤ #b` holds and the span `(b, ℓ_b)` is well-formed by T12.
 
-The coverage of this span is `{t ∈ T : b ≤ t < b ⊕ ℓ_b}`. By TA5(c), `b ⊕ ℓ_b = inc(b, 0)` — the next sibling of `b` at the same tumbler depth. The coverage therefore includes `b` and all extensions of `b` — tumblers for which `b` is a proper prefix. This is not a single-point span; the tumbler ordering admits extensions between `b` and `inc(b, 0)`. But it is the tightest span expressible at depth `#b` that includes `b`. More generally, an endset *references* an entity at address `a` when `a ∈ coverage(e)`, and `(b, ℓ_b)` is the canonical span for referencing the entity at `b`.
+The coverage of this span is `{t ∈ T : b ≤ t < b ⊕ ℓ_b}`. By TA5(c), `b ⊕ ℓ_b = inc(b, 0)` — the next sibling of `b` at the same tumbler depth. The coverage therefore equals `{t ∈ T : b ≼ t}` — exactly `b` and its extensions:
+
+`coverage({(b, ℓ_b)}) = {t ∈ T : b ≼ t}`
+
+We verify this by case analysis on tumblers `t ≥ b` with `t ≠ b`:
+
+- *Same depth* (`#t = #b`): since `t ≠ b`, some `k ≤ #b` has `t_k ≠ b_k`. As `t > b`, we have `t_k > b_k`. Since `inc(b, 0)` agrees with `b` at all positions before `#b`, if `k < #b` then `t_k > b_k = inc(b,0)_k`, giving `t > inc(b, 0)`. If `k = #b`, then `t_{#b} > b_{#b}`, so `t_{#b} ≥ b_{#b} + 1 = inc(b,0)_{#b}`, giving `t ≥ inc(b, 0)`. Only `b` itself survives at this depth.
+- *Greater depth* (`#t > #b`): if `t` does not extend `b`, some `k ≤ #b` has `t_k > b_k = inc(b,0)_k`, giving `t > inc(b, 0)`. Only extensions of `b` remain.
+- *Shorter depth* (`#t < #b`): agreement at positions `1..#t` makes `t` a prefix of `b`, so `t < b` by T1(ii). Excluded.
+
+The canonical span contains exactly the target entity and its extensions, with no extraneous tumblers. More generally, an endset *references* an entity at address `a` when `a ∈ coverage(e)`, and `(b, ℓ_b)` is the canonical span for referencing the entity at `b`.
 
 Nelson: "Because of the universality of tumbler-space, and the fact that links are located there as well as data, it becomes easy for a link to point at another link (or, indeed, to point at several). The to-set of the link need simply point to the actual link address in the tumbler line, with a span of 1 to designate that unit only."
 
@@ -358,7 +368,9 @@ So `Σ.L = {a ↦ (F, G, Θ)}`.
 
 *L11 (IdentityByAddress).* `dom(Σ.L) = {a}` — only one link, so the property holds vacuously (no pair `a₁ ≠ a₂`). To verify non-vacuously, extend the example: add `a' = 1.0.1.0.1.0.2.2` with `Σ.L(a') = (F, G, Θ)` — same endsets as `a`. Then `a ≠ a'` and both are separate link entities despite `Σ.L(a) = Σ.L(a')`. ✓
 
-*L12 (LinkImmutability).* In any successor state `Σ'`, `a ∈ dom(Σ'.L)` and `Σ'.L(a) = (F, G, Θ)`. ✓
+*L12 (LinkImmutability).* L12 constrains state transitions, not individual states. In this single-state example, no transition is under consideration, so L12 is vacuously satisfied — there is no successor state `Σ'` to violate it. We exercise L12 non-vacuously below when we extend the state to add a meta-link: the transition from `Σ` to `Σ_2` must preserve `a ∈ dom(Σ_2.L)` with `Σ_2.L(a) = (F, G, Θ)`. ✓ (vacuous; verified non-vacuously below)
+
+*L12a (LinkStoreMonotonicity).* Similarly a transition invariant, vacuously satisfied here. Verified non-vacuously below: `dom(Σ.L) = {a} ⊆ {a, a', a₂} = dom(Σ_2.L)`. ✓ (vacuous; verified non-vacuously below)
 
 *L14 (DualPrimitive).* `dom(Σ.C) ∪ dom(Σ.L) = {c₁, c₂, a}`. All stored entities. `dom(Σ.C) ∩ dom(Σ.L) = ∅`. ✓
 
@@ -368,33 +380,57 @@ So `Σ.L = {a ↦ (F, G, Θ)}`.
 
 *S3 (ReferentialIntegrity, ASN-0036).* `ran(Σ.M(d)) = {c₁, c₂} ⊆ dom(Σ.C)`. ✓
 
+**Extension: meta-link for L13 and transition verification.**
+
+We extend the state to verify L13 non-vacuously and to exercise L12 across a state transition. Add a second link `a₂ = 1.0.1.0.1.0.2.3` — a meta-link whose from-endset references the first link `a`.
+
+Define the span targeting `a`: the displacement `ℓ_a = [0, 0, 0, 0, 0, 0, 0, 1]` has action point `k = 8 = #a`, and `k ≤ #a` holds, so `(a, ℓ_a)` is well-formed by T12. ✓
+
+Define the meta-link:
+
+- From-endset: `F₂ = {(a, ℓ_a)}` — pointing at the first link
+- To-endset: `G₂ = {(c₂, ℓ₂)}` — pointing at content
+- Type-endset: `Θ₂ = {(g, ℓ_g)}` — same ghost type
+
+The extended state is `Σ_2` with `Σ_2.L = {a ↦ (F, G, Θ),\; a' ↦ (F, G, Θ),\; a₂ ↦ (F₂, G₂, Θ₂)}`.
+
+*L13 (ReflexiveAddressing).* The from-endset of `a₂` contains the span `(a, ℓ_a)` where `a ∈ dom(Σ_2.L)`. This is a concrete link-to-link reference — a₂'s from-endset targets the link entity at `a`. ✓
+
+*L0 for `a₂`.* `fields(a₂).E₁ = 2 = s_L`. The from-endset span `(a, ℓ_a)` references `a` with `fields(a).E₁ = 2 = s_L` — a cross-subspace reference from `s_L` to `s_L`, permitted by L4. ✓
+
+*L4 for `a₂`.* The span `(a, ℓ_a)` has `a ∈ T` and satisfies T12 (verified above). No constraint prevents the span from referencing a link-subspace address. ✓
+
+*L12 across the transition `Σ → Σ_2`.* The original link is preserved: `a ∈ dom(Σ_2.L)` and `Σ_2.L(a) = (F, G, Θ) = Σ.L(a)`. Similarly `a' ∈ dom(Σ_2.L)` with `Σ_2.L(a') = (F, G, Θ)`. L12 holds non-vacuously. ✓
+
+*L12a across the transition.* `dom(Σ.L) = {a} ⊆ {a, a', a₂} = dom(Σ_2.L)`. ✓
+
 
 ## Properties Introduced
 
-| Label | Statement | Status |
-|-------|-----------|--------|
-| Σ.L | `Σ.L : T ⇀ Link` — the link store, mapping addresses to link values | introduced |
-| L0 | SubspacePartition — link addresses occupy subspace `s_L`, content addresses occupy `s_C`, and `dom(Σ.L) ∩ dom(Σ.C) = ∅` | introduced |
-| L1 | LinkElementLevel — every link address is an element-level tumbler: `(A a ∈ dom(Σ.L) :: zeros(a) = 3)` | introduced |
-| L1a | LinkScopedAllocation — every link address is allocated under the creating document's tumbler prefix | introduced |
-| L2 | OwnershipEndsetIndependence — `home(a)` depends only on `a`, not on the link's endsets | introduced |
-| L3 | TripleEndsetStructure — every link has exactly three endsets: `Σ.L(a) = (F, G, Θ)` | introduced |
-| L4 | EndsetGenerality — endset spans may reference any address in `T`; no single-document, content-only, or existence constraint | introduced |
-| L5 | EndsetSetSemantics — an endset is an unordered set; only span membership matters | introduced |
-| L6 | SlotDistinction — the three endsets are structurally distinguished positions: `F ≠ G ⟹ (F, G, Θ) ≠ (G, F, Θ)` | introduced |
-| L7 | DirectionalFlexibility — L0–L14 impose no constraint on directional significance of from/to slots | introduced |
-| L8 | TypeByAddress — type matching is by address identity, not by content at the address | introduced |
-| L9 | TypeGhostPermission — conforming states exist where type endsets reference addresses outside `dom(Σ.C) ∪ dom(Σ.L)` | introduced |
-| L10 | TypeHierarchyByContainment — tumbler prefix containment provides hierarchical type relationships | introduced |
-| L11 | IdentityByAddress — link identity is address identity; `a₁ ≠ a₂` even when `Σ.L(a₁) = Σ.L(a₂)` | introduced |
-| L12 | LinkImmutability — `(A Σ, Σ' : a ∈ dom(Σ.L) : a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a))` for every state transition | introduced |
-| L12a | LinkStoreMonotonicity — `dom(Σ.L) ⊆ dom(Σ'.L)` for every state transition | introduced |
-| L13 | ReflexiveAddressing — link addresses are valid endset span targets, enabling link-to-link connections | introduced |
-| L14 | DualPrimitive — stored entities partition into content (`dom(Σ.C)`) and links (`dom(Σ.L)`) with no third category | introduced |
-| coverage(e) | the union of address sets denoted by the spans in endset e | introduced |
-| home(a) | `origin(a)` applied to link addresses — the document under whose prefix the link resides | introduced |
-| Endset | `𝒫_fin(Span)` — a finite set of well-formed spans | introduced |
-| Link | `(from : Endset, to : Endset, type : Endset)` — a triple of endsets | introduced |
+| Label | Type | Statement | Status |
+|-------|------|-----------|--------|
+| Σ.L | DEF | `Σ.L : T ⇀ Link` — the link store, mapping addresses to link values | introduced |
+| L0 | INV | SubspacePartition — link addresses occupy subspace `s_L`, content addresses occupy `s_C`, and `dom(Σ.L) ∩ dom(Σ.C) = ∅` | introduced |
+| L1 | INV | LinkElementLevel — every link address is an element-level tumbler: `(A a ∈ dom(Σ.L) :: zeros(a) = 3)` | introduced |
+| L1a | INV | LinkScopedAllocation — every link address is allocated under the creating document's tumbler prefix | introduced |
+| L2 | LEMMA | OwnershipEndsetIndependence — `home(a)` depends only on `a`, not on the link's endsets | introduced |
+| L3 | INV | TripleEndsetStructure — every link has exactly three endsets: `Σ.L(a) = (F, G, Θ)` | introduced |
+| L4 | INV | EndsetGenerality — endset spans may reference any address in `T`; no single-document, content-only, or existence constraint | introduced |
+| L5 | INV | EndsetSetSemantics — an endset is an unordered set; only span membership matters | introduced |
+| L6 | INV | SlotDistinction — the three endsets are structurally distinguished positions: `F ≠ G ⟹ (F, G, Θ) ≠ (G, F, Θ)` | introduced |
+| L7 | META | DirectionalFlexibility — L0–L14 impose no constraint on directional significance of from/to slots | introduced |
+| L8 | INV | TypeByAddress — type matching is by address identity, not by content at the address | introduced |
+| L9 | LEMMA | TypeGhostPermission — conforming states exist where type endsets reference addresses outside `dom(Σ.C) ∪ dom(Σ.L)` | introduced |
+| L10 | LEMMA | TypeHierarchyByContainment — tumbler prefix containment provides hierarchical type relationships | introduced |
+| L11 | INV | IdentityByAddress — link identity is address identity; `a₁ ≠ a₂` even when `Σ.L(a₁) = Σ.L(a₂)` | introduced |
+| L12 | INV | LinkImmutability — `(A Σ, Σ' : a ∈ dom(Σ.L) : a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a))` for every state transition | introduced |
+| L12a | LEMMA | LinkStoreMonotonicity — `dom(Σ.L) ⊆ dom(Σ'.L)` for every state transition | introduced |
+| L13 | LEMMA | ReflexiveAddressing — link addresses are valid endset span targets, enabling link-to-link connections | introduced |
+| L14 | INV | DualPrimitive — stored entities partition into content (`dom(Σ.C)`) and links (`dom(Σ.L)`) with no third category | introduced |
+| coverage(e) | DEF | the union of address sets denoted by the spans in endset e | introduced |
+| home(a) | DEF | `origin(a)` applied to link addresses — the document under whose prefix the link resides | introduced |
+| Endset | DEF | `𝒫_fin(Span)` — a finite set of well-formed spans | introduced |
+| Link | DEF | `(from : Endset, to : Endset, type : Endset)` — a triple of endsets | introduced |
 
 
 ## Open Questions
