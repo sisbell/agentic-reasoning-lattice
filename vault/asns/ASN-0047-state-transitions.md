@@ -189,7 +189,9 @@ A clarification on scope. The frame conditions stated above describe individual 
 
 (2) *Coupling constraints:* J0, J1, and J1' hold for the composite — evaluated between the initial state Σ and the final state Σ'.
 
-(3) *State invariants:* the final state Σ' satisfies all system invariants: P0–P8, S2, S3, S8a, S8-depth, S8-fin, and Contains(Σ') ⊆ R'.
+(3a) *Transition constraints:* the composite Σ → Σ' satisfies P0, P1, P2.
+
+(3b) *State invariants:* the final state Σ' satisfies P6, P7, P8, S2, S3, S8a, S8-depth, S8-fin, and Contains(Σ') ⊆ R'.
 
 Intermediate states need not satisfy all system invariants; only the final state is required to. The ordering matters: J0 couples K.α with K.μ⁺, and S3 requires the I-address to exist before the V→I mapping is created, so K.α precedes K.μ⁺. Similarly, J4's fork compounds K.δ + K.μ⁺ + K.ρ, and K.μ⁺ requires d ∈ E_doc, which K.δ establishes — so K.δ precedes K.μ⁺. The net effect of a composite transition is the composition of its elementary effects.
 
@@ -239,7 +241,7 @@ The wp analysis confirms this. For P0: K.μ⁻ does not touch C. For P1: does no
 
 This is the deepest consequence of the design. Deletion is purely presentational — it changes what appears, not what exists or what has been. Gregory confirms: contraction "never triggers" provenance recording, and the provenance structure "is never pruned."
 
-**J3 (Reordering isolation).** The elementary transition K.μ~ is likewise self-sufficient:
+**J3 (Reordering isolation).** The distinguished composite K.μ~ is likewise self-sufficient:
 
 `C' = C ∧ E' = E ∧ R' = R`
 
@@ -373,7 +375,7 @@ We have arrived at the structural insight underlying the entire design. The stat
 |-------|-----------|------------|----------------------|
 | Existential | C, E | Append-only, values immutable | K.α, K.δ |
 | Historical | R | Append-only, entries may stale | K.ρ |
-| Presentational | M | Fully mutable | K.μ⁺, K.μ⁻, K.μ~ |
+| Presentational | M | Fully mutable | K.μ⁺, K.μ⁻, K.μ~ (composite) |
 
 K.δ for documents also initialises M'(e) = ∅, extending M's domain — a presentational-layer effect. We classify K.δ as existential because its primary purpose is entity creation; the empty arrangement initialisation is a structural consequence (extending the domain with an empty entry, not mutating an existing arrangement). The broader claim holds: no elementary transition touches all three layers.
 
@@ -406,7 +408,7 @@ Nelson captures the whole architecture in a sentence: "The braid only grows more
 | Σ.R | R ⊆ T_elem × E_doc — provenance relation recording historical content associations | introduced |
 | Σ₀ | Initial state: C₀ = ∅, E₀ = {n₀} (bootstrap node), M₀ empty, R₀ = ∅ | introduced |
 | parent(e) | For ¬IsNode(e): tumbler obtained by truncating last field and preceding separator | introduced |
-| Valid composite | Σ → Σ' valid iff: (1) elementary preconditions at each intermediate state, (2) J0/J1/J1' for the composite, (3) Σ' satisfies all state invariants | introduced |
+| Valid composite | Σ → Σ' valid iff: (1) elementary preconditions at each intermediate state, (2) J0/J1/J1' for the composite, (3a) P0/P1/P2 for the composite, (3b) Σ' satisfies P6–P8, S2, S3, S8a, S8-depth, S8-fin, Contains ⊆ R' | introduced |
 | P0 | Content store is append-only with immutable values: dom(C) ⊆ dom(C') ∧ C'(a) = C(a) for a ∈ dom(C) | introduced |
 | P1 | Entity set is monotonically growing: E ⊆ E' for every transition, uniformly across levels | introduced |
 | P8 | Entity hierarchy: (A e ∈ E : ¬IsNode(e) : parent(e) ∈ E) — no orphan accounts or documents | introduced |
