@@ -31,7 +31,7 @@ Arrangements M(d) are defined iff d ∈ E_doc. We include links in E_doc: Nelson
 
 Second, removal of content from an arrangement does not erase the historical fact of prior containment. Gregory: the reverse index "accumulates entries from every content addition but is never trimmed." Nelson: "every previous arrangement remains reconstructable." The system must answer "which documents have ever contained content with origin *a*?" — a question about history, not about current state.
 
-**Definition (Provenance relation).** **Σ.R ⊆ T_elem × E_doc** — where T_elem = {a ∈ T : IsElement(a)} (ASN-0045). The pair (a, d) ∈ R records that document d has, at some point in the system's history, contained I-address a in its arrangement. This historical fidelity — that every entry reflects an actual past containment event, not merely eligibility — is not assumed by the definition alone; it is established by the bidirectional coupling J1 + J1' below.
+**Definition (Provenance relation).** **Σ.R ⊆ T_elem × E_doc** — where T_elem = {a ∈ T : IsElement(a)} (ASN-0045). The pair (a, d) ∈ R records that document d has, at some point in the system's history, contained I-address a in its arrangement. This historical fidelity — that every entry reflects an actual past containment event, not merely eligibility — is not assumed by the definition alone; it is established as P4a below, by induction over J1', P2, and P0.
 
 The full system state is:
 
@@ -104,7 +104,7 @@ We seek the elementary modifications — the minimal state changes from which al
 
 `C' = C ∪ {a ↦ v}` where `a ∉ dom(C)`
 
-The address a satisfies IsElement(a) (S7b, ASN-0036) and is allocated under the creating document's prefix (S7a). The creating document origin(a) must be in E_doc — the allocation mechanism inc(·, k) (TA5, ASN-0034) operates within an ownership domain, requiring the document entity to exist before content can be allocated under its prefix. By GlobalUniqueness (ASN-0034), a is distinct from every previously allocated address.
+*Precondition:* `IsElement(a)` (S7b, ASN-0036) ∧ `origin(a) ∈ E_doc`. The address is allocated under the creating document's prefix (S7a), and the allocation mechanism inc(·, k) (TA5, ASN-0034) operates within an ownership domain, requiring the document entity to exist before content can be allocated under its prefix. By GlobalUniqueness (ASN-0034), a is distinct from every previously allocated address.
 
 *Frame:* E' = E; (A d :: M'(d) = M(d)); R' = R.
 
@@ -126,19 +126,21 @@ Nelson identifies two document-creation modes — ex nihilo and forking. At the 
 
 Extension is pure addition — the domain grows, and no existing value is altered. Without the value-preservation clause, K.μ⁺ could silently replace values at existing positions, conflating extension with replacement. The decomposition of replacement into K.μ⁻ followed by K.μ⁺ depends on each being a pure operation.
 
-For every new mapping M'(d)(v) = a, referential integrity requires a ∈ dom(C') (S3, ASN-0036). Two cases arise:
+*Precondition:* `d ∈ E_doc`; for every new mapping M'(d)(v) = a, `a ∈ dom(C')` (S3, ASN-0036); new V-positions satisfy S8a (all components strictly positive) and S8-depth (uniform depth within subspace); dom(M'(d)) is finite (S8-fin).
+
+Referential integrity admits two cases for each new I-address a:
 
 (i) a ∈ dom(C') \ dom(C) — freshly allocated, co-occurring with K.α. Nelson: "new content enters I-space permanently."
 
 (ii) a ∈ dom(C) — existing content. This is transclusion: "the copy shares I-addresses with the source. No new content is created in I-space."
-
-New V-positions must also satisfy the arrangement structure invariants of ASN-0036: S8a (all components strictly positive), S8-depth (uniform depth within each subspace), and S8-fin (finite domain). These are not consequences of K.μ⁺ — they are preconditions on the V-positions being added.
 
 *Frame:* C' = C; E' = E; (A d' : d' ≠ d : M'(d') = M(d')); R' = R.
 
 **K.μ⁻ (Arrangement contraction).** Existing V→I mappings are removed from some d ∈ E_doc, with surviving mappings unchanged:
 
 `dom(M'(d)) ⊂ dom(M(d)) ∧ (A v : v ∈ dom(M'(d)) : M'(d)(v) = M(d)(v))`
+
+*Precondition:* `d ∈ E_doc`.
 
 Contraction is pure removal — the domain shrinks, and no surviving value is altered. Without the value-preservation clause, K.μ⁻ could modify values at remaining positions, conflating contraction with rewriting.
 
@@ -150,7 +152,9 @@ Nelson: "the owner of a document may delete bytes from the owner's current versi
 
 `(A v : v ∈ dom(M(d)) : M'(d)(π(v)) = M(d)(v))`
 
-The multiset of referenced I-addresses is preserved; only V-positions change. The bijection π must produce valid V-positions satisfying S8a and S8-depth — it cannot map positions to tumblers with zero components or non-uniform depth. Nelson: content "changes V-space positions but touches nothing in I-space. The same bytes appear in a different order." Gregory confirms that reordering is the only transition kind that leaves all persistent structures outside the arrangement unchanged.
+*Precondition:* `d ∈ E_doc`; π produces V-positions satisfying S8a (all components strictly positive) and S8-depth (uniform depth within subspace).
+
+The multiset of referenced I-addresses is preserved; only V-positions change. Nelson: content "changes V-space positions but touches nothing in I-space. The same bytes appear in a different order." Gregory confirms that reordering is the only transition kind that leaves all persistent structures outside the arrangement unchanged.
 
 *Frame:* C' = C; E' = E; R' = R; ran(M'(d)) = ran(M(d)); (A d' : d' ≠ d : M'(d') = M(d')).
 
@@ -158,7 +162,7 @@ The multiset of referenced I-addresses is preserved; only V-positions change. Th
 
 `R' = R ∪ {(a, d)}` where `a ∈ dom(C) ∧ d ∈ E_doc`
 
-The requirement a ∈ dom(C) ensures only associations with allocated content are recorded. The level constraint IsElement(a) follows from S7b (every a ∈ dom(C) satisfies IsElement(a)).
+*Precondition:* `a ∈ dom(C)` ∧ `d ∈ E_doc`. The level constraint IsElement(a) follows from S7b (every a ∈ dom(C) satisfies IsElement(a)).
 
 *Frame:* C' = C; E' = E; (A d :: M'(d) = M(d)).
 
@@ -205,7 +209,13 @@ For a freshly created document d ∈ E'_doc \ E_doc, the convention M(d) = ∅ g
 
 `(A Σ → Σ', a, d : (a, d) ∈ R' \ R : a ∈ ran(M'(d)) \ ran(M(d)))`
 
-J1 ensures every new containment pair is recorded; J1' ensures every new provenance entry corresponds to an actual containment event. Together they give a bidirectional coupling: K.ρ fires for (a, d) if and only if K.μ⁺ introduces a into d's arrangement in the same composite transition. The convention M(d) = ∅ for d ∈ E'_doc \ E_doc ensures J1' is well-defined for freshly created documents: ran(M'(d)) \ ran(M(d)) = ran(M'(d)). Gregory confirms this tight coupling — the provenance structure "accumulates entries from every content addition" and no mechanism exists to record provenance outside of content placement.
+J1 ensures every new containment pair is recorded; J1' ensures every new provenance entry corresponds to an actual containment event. Together they characterise new provenance entries: (a, d) ∈ R' \ R if and only if K.μ⁺ introduces a into ran(M'(d)) and (a, d) ∉ R. When (a, d) ∈ R already — from a prior insertion-deletion cycle — K.μ⁺ re-introducing a into d's arrangement requires no new K.ρ, because J1's requirement (a, d) ∈ R' is satisfied by existing membership (P2 ensures prior entries persist). The convention M(d) = ∅ for d ∈ E'_doc \ E_doc ensures J1' is well-defined for freshly created documents: ran(M'(d)) \ ran(M(d)) = ran(M'(d)). Gregory confirms this tight coupling — the provenance structure "accumulates entries from every content addition" and no mechanism exists to record provenance outside of content placement.
+
+**P4a (Historical fidelity).** Every entry in R reflects an actual past containment event:
+
+`(A (a, d) ∈ R :: (E Σ_k in the transition history : a ∈ ran(M_k(d))))`
+
+*Derivation.* By induction on the transition sequence. *Base:* R₀ = ∅; the quantifier is vacuously satisfied. *Inductive step:* for (a, d) ∈ R' \ R, J1' gives a ∈ ran(M'(d)) \ ran(M(d)) — the post-state Σ' is a witnessing state where d's arrangement contains a. For (a, d) ∈ R, the inductive hypothesis provides a prior witnessing state; P2 ensures the entry persists in R'. ∎
 
 **J2 (Contraction isolation).** Arrangement contraction K.μ⁻ is isolated from all permanent and historical state:
 
@@ -240,7 +250,7 @@ An immediate consequence of J1 and J2 is that the provenance relation diverges f
 
 - K.α: Does not modify M or R. Contains(Σ') = Contains(Σ) ⊆ R = R'. Preserved.
 - K.δ: Creates entity e with empty arrangement M'(e) = ∅, contributing no new pairs to Contains. Does not modify R. Preserved.
-- K.μ⁺ (composite with K.ρ): K.μ⁺ alone does not preserve the invariant — it adds pairs to Contains while its frame holds R' = R. But K.μ⁺ never occurs alone: J1 requires co-occurring K.ρ. Let Δ = {(a, d) : d ∈ E'_doc ∧ a ∈ ran(M'(d)) \ ran(M(d))} be the new containment pairs, where the convention M(d) = ∅ for d ∈ E'_doc \ E_doc ensures this is well-defined for freshly created documents. K.μ⁺ yields Contains(Σ') = Contains(Σ) ∪ Δ. By J1, (a, d) ∈ R' for every (a, d) ∈ Δ. Since Contains(Σ) ⊆ R ⊆ R' (inductive hypothesis and P2), we have Contains(Σ') = Contains(Σ) ∪ Δ ⊆ R'. Preserved by composition.
+- K.μ⁺: Let Δ = {(a, d) : d ∈ E'_doc ∧ a ∈ ran(M'(d)) \ ran(M(d))} be the new containment pairs, where the convention M(d) = ∅ for d ∈ E'_doc \ E_doc ensures this is well-defined for freshly created documents. K.μ⁺ yields Contains(Σ') = Contains(Σ) ∪ Δ. Two subcases for each (a, d) ∈ Δ: (i) (a, d) ∉ R — J1 requires (a, d) ∈ R', so K.ρ must co-occur, adding the pair to R'; (ii) (a, d) ∈ R — the pair is already in R, and P2 gives R ⊆ R', so (a, d) ∈ R' without K.ρ. In both subcases (a, d) ∈ R'. Since Contains(Σ) ⊆ R ⊆ R' (inductive hypothesis and P2), we have Contains(Σ') = Contains(Σ) ∪ Δ ⊆ R'. Preserved.
 - K.μ⁻: Can only remove pairs from Contains — ran(M'(d)) ⊆ ran(M(d)), so Contains(Σ') ⊆ Contains(Σ) ⊆ R = R'. Preserved by monotonicity.
 - K.μ~: Preserves ran(M(d)), so Contains(Σ') = Contains(Σ) ⊆ R = R'. Preserved.
 - K.ρ: By J1', does not occur without K.μ⁺ — handled in the composite case above. Were it to occur independently, R grows while Contains is unchanged: Contains(Σ') = Contains(Σ) ⊆ R ⊆ R'. The invariant would be preserved, but the entry would lack historical justification.
@@ -376,6 +386,7 @@ Nelson captures the whole architecture in a sentence: "The braid only grows more
 | P2 | Provenance relation is monotonically growing: R ⊆ R' for every transition | introduced |
 | P3 | Arrangements are the sole state component admitting destructive change (contraction, reordering) | introduced |
 | P4 | Provenance bounds: Contains(Σ) ⊆ R, with stale entries possible from prior states | introduced |
+| P4a | Historical fidelity: every (a, d) ∈ R has a witnessing state where a ∈ ran(M(d)) | introduced |
 | P5 | Destruction confinement: C, E, R are all monotonic across every transition; only M can lose information | introduced |
 | K.α | Content allocation — extend dom(C) with fresh IsElement(a) address and value | introduced |
 | K.δ | Entity creation — extend E with fresh entity; precondition: parent(e) ∈ E when ¬IsNode(e); empty arrangement if IsDocument | introduced |
@@ -385,7 +396,7 @@ Nelson captures the whole architecture in a sentence: "The braid only grows more
 | K.ρ | Provenance recording — extend R with (a, d) pair where IsElement(a) ∧ a ∈ dom(C) | introduced |
 | J0 | Content allocation (K.α) always co-occurs with arrangement extension (K.μ⁺) | introduced |
 | J1 | Arrangement extension (K.μ⁺) must co-occur with provenance recording (K.ρ), derived by wp | introduced |
-| J1' | Provenance recording (K.ρ) occurs only when K.μ⁺ introduces the (a, d) pair — bidirectional coupling with J1 | introduced |
+| J1' | (a, d) ∈ R' \ R only when a ∈ ran(M'(d)) \ ran(M(d)) — new provenance requires new containment | introduced |
 | J2 | Arrangement contraction (K.μ⁻) is isolated: C, E, R unchanged | introduced |
 | J3 | Arrangement reordering (K.μ~) is isolated: C, E, R unchanged | introduced |
 | J4 | Document fork compounds K.δ + K.μ⁺ + K.ρ with no new content in C | introduced |
