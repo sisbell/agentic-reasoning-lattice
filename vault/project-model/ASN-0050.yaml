@@ -1,0 +1,9 @@
+# ASN-0050 — DELETE Operation
+title: "DELETE Operation"
+depends: [34, 36, 45, 47]
+
+inquiry:
+  question: "What happens when content is removed from a document's arrangement? What disappears, what survives, and what must the system preserve about content that is no longer visible?"
+
+modeling:
+  proof_imports: [TumblerAlgebra, TumblerOrder, TumblerHierarchy, TumblerAllocation, TwoSpace, StateTransitions]
