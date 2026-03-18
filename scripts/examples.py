@@ -22,7 +22,8 @@ PROMPTS = WORKSPACE / "scripts" / "prompts" / "examples"
 ASNS_DIR = WORKSPACE / "vault" / "asns"
 EXAMPLES_DIR = WORKSPACE / "vault" / "4-examples"
 
-MODEL = "claude-opus-4-6"
+GENERATE_MODEL = "claude-opus-4-6"
+REVIEW_MODELS = ["claude-opus-4-6", "claude-sonnet-4-6"]
 GENERATE_PROMPT = PROMPTS / "generate.md"
 REVIEW_PROMPT = PROMPTS / "review.md"
 
@@ -37,16 +38,15 @@ def find_asn_file(asn_num):
     return matches[0]
 
 
-def call_claude(prompt, model=MODEL):
+def call_claude(prompt, model=GENERATE_MODEL):
     """Call Claude with a prompt, return the response text."""
     env = os.environ.copy()
     env.pop("CLAUDECODE", None)
 
     cmd = [
-        "claude", "-p",
+        "claude", "--print",
         "--model", model,
-        "--output-format", "text",
-        "--max-turns", "1",
+        "--tools", "",
     ]
 
     result = subprocess.run(
@@ -119,9 +119,11 @@ Update the Coverage table and Backlog to reflect your changes.
     return True
 
 
-def review(asn_file, examples_file, review_file):
+def review(asn_file, examples_file, review_file, cycle=1):
     """Review worked examples, return verdict."""
-    print(f"  [REVIEW] Checking worked examples...")
+    model = REVIEW_MODELS[(cycle - 1) % len(REVIEW_MODELS)]
+    model_name = model.split("-")[1]  # "opus" or "sonnet"
+    print(f"  [REVIEW/{model_name}] Checking worked examples...")
 
     template = REVIEW_PROMPT.read_text()
     asn_text = asn_file.read_text()
@@ -142,24 +144,24 @@ def review(asn_file, examples_file, review_file):
 {examples_text}"""
 
     start = time.time()
-    result = call_claude(prompt)
+    result = call_claude(prompt, model=model)
     elapsed = time.time() - start
 
     if result is None:
-        print(f"  [REVIEW] FAILED ({elapsed:.0f}s)")
+        print(f"  [REVIEW/{model_name}] FAILED ({elapsed:.0f}s)")
         return None
 
     review_file.write_text(result)
 
     if "VERDICT: CONVERGED" in result:
-        print(f"  [REVIEW] CONVERGED ({elapsed:.0f}s)")
+        print(f"  [REVIEW/{model_name}] CONVERGED ({elapsed:.0f}s)")
         return "CONVERGED"
     elif "VERDICT: REVISE" in result:
         issue_count = result.count("### Issue") + result.count("### Gap")
-        print(f"  [REVIEW] REVISE — {issue_count} findings ({elapsed:.0f}s)")
+        print(f"  [REVIEW/{model_name}] REVISE — {issue_count} findings ({elapsed:.0f}s)")
         return "REVISE"
     else:
-        print(f"  [REVIEW] Unknown verdict ({elapsed:.0f}s)")
+        print(f"  [REVIEW/{model_name}] Unknown verdict ({elapsed:.0f}s)")
         return None
 
 
@@ -207,7 +209,7 @@ def main():
         print(f"\n  ── Cycle {cycle}/{cycle_start + args.max_cycles - 1} ──")
 
         review_path = review_dir / f"review-{cycle}.md"
-        verdict = review(asn_file, examples_file, review_path)
+        verdict = review(asn_file, examples_file, review_path, cycle=cycle)
 
         if verdict == "CONVERGED":
             total_elapsed = time.time() - total_start
