@@ -16,5 +16,5 @@ Generated from vault/project-model/ASN-*.yaml
 | ASN-0050 | DELETE Operation | inquiry | 34, 36, 45, 47 |
 | ASN-0051 | Link Survivability | inquiry | 34, 36, 43, 45, 47 |
 | ASN-0052 | Transclusion | inquiry | 34, 36, 43, 45, 47 |
-| ASN-0053 | Span Operations | inquiry | 34 |
+| ASN-0053 | Span Algebra | inquiry | 34 |
 | ASN-0054 | Arrangement Structure | inquiry | 34, 36, 45, 47, 53 |

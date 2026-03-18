@@ -1,4 +1,4 @@
-# ASN-0053: Span Operations
+# ASN-0053: Span Algebra
 
 *2026-03-18*
 

@@ -1,4 +1,4 @@
-# Consultation Answers — Span Operations
+# Consultation Answers — Span Algebra
 
 **Inquiry:** What properties do contiguous regions of the tumbler space have? How do spans cover, intersect, split, and compose?
 **Date:** 2026-03-18 16:28
