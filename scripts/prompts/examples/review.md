@@ -12,15 +12,13 @@ You are given an ASN and a set of worked examples. Your review has two parts: **
 
 ### Part 1: Correctness
 
-Work through every scenario, every derivation step:
+Work through every scenario:
 
-1. **Redo the arithmetic.** For each computation, verify it yourself. Check concrete values, set memberships, mappings, and state transitions. If the example says `Σ'.A = {a₁, a₂, a₃, b₁}`, verify that this follows from the operation's definition applied to the given input state. Do not trust the example — check it.
+1. **Redo the arithmetic.** For each computation, verify the result yourself. Check that the expected output follows from the operation's definition applied to the given inputs. Do not trust the example — check it.
 
-2. **Check definition application.** For each property verification, find the formal definition in the ASN. Does the example apply the right clause for the right case? A definition with multiple cases (e.g., different behavior for empty vs. non-empty) demands that the example invoke the correct case for its inputs.
+2. **Check definition application.** For each property check, find the formal definition in the ASN. Does the example apply the right clause for the right case?
 
-3. **Check the reasoning, not just the answer.** Each property verification must show *why* the property holds — which clause applies, what the intermediate values are, how the conclusion follows. "Holds ✓" without reasoning is not a verification. Flag every instance.
-
-4. **Check notation.** The examples must use the ASN's own symbols, state variable names, and conventions. Invented notation is a defect — it disconnects the examples from the specification they claim to verify.
+3. **Check notation.** The examples must use the ASN's own symbols, state variable names, and conventions. Invented notation is a defect.
 
 ### Part 2: Coverage
 

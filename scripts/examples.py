@@ -22,8 +22,8 @@ PROMPTS = WORKSPACE / "scripts" / "prompts" / "examples"
 ASNS_DIR = WORKSPACE / "vault" / "asns"
 EXAMPLES_DIR = WORKSPACE / "vault" / "4-examples"
 
-GENERATE_MODEL = "claude-opus-4-6"
-REVIEW_MODELS = ["claude-opus-4-6", "claude-sonnet-4-6"]
+GENERATE_MODEL = "claude-sonnet-4-6"
+REVIEW_MODELS = ["claude-sonnet-4-6"]
 GENERATE_PROMPT = PROMPTS / "generate.md"
 REVIEW_PROMPT = PROMPTS / "review.md"
 
