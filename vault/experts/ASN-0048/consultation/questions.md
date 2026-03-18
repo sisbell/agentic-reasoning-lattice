@@ -1,0 +1,22 @@
+# Sub-Questions — INSERT Operation
+
+**Inquiry:** What happens when new content is added to a document? What is created, what is preserved, and what changes?
+
+1. [nelson] When new content is added to a document, does the system create a new version of that document, or does the document itself change in place?
+2. [nelson] If a link points to a span of content in the document before the addition, must that link continue to point to exactly the same content afterward?
+3. [nelson] Does the previous arrangement of the document — the content and its ordering before the addition — remain permanently retrievable as a prior version?
+4. [nelson] Can the same content be added to multiple documents simultaneously, and if so, does each addition create separate content or does the system recognize them as the same material?
+5. [nelson] Must the system record who performed the addition, and is that authorship attribution permanent and unalterable?
+6. [nelson] If the added content was originally composed elsewhere, does the system preserve a connection to its origin, or does addition sever that provenance?
+7. [nelson] Does the act of adding content to a document affect any other document that shares or includes spans from the modified document?
+8. [nelson] Is there a guarantee that the sequence of all additions to a document is permanently recoverable — not just the current state, but the full history of how the document grew?
+9. [gregory] When `findisatoinsertmolecule` allocates I-addresses for new text, does it scan the entire granfilade subtree under the document's I-address range, or does it use a cached high-water mark — and if it scans, what happens if a CREATELINK has advanced the allocation past the text subrange?
+10. [gregory] In `makegappm`, the V-shift applies `tumbleradd` to every POOM entry at or after the insertion point — does this shift walk the entire tree rightward from the insertion point, or does it exploit the enfilade's displacement-based addressing to apply the shift at an upper crum level without touching every bottom crum?
+11. [gregory] The `isanextensionnd` coalescing check uses reach-equals-origin adjacency to merge a new insertion into an existing bottom crum — does this coalescing ever fire across a prior DELETE boundary, where two formerly non-adjacent I-spans became adjacent in V-space after intervening content was removed?
+12. [gregory] When INSERT calls `insertspanf` to create the DOCISPAN entry, does it create exactly one entry covering the full contiguous I-span, or can a single INSERT produce multiple DOCISPAN entries if the POOM insertion splits an existing crum?
+13. [gregory] The second blade in `findaddressofsecondcutforinsert` computes the boundary tumbler at the next subspace — is this always `2.0` regardless of document structure, or does it dynamically compute the boundary based on the actual next occupied subspace in the POOM?
+14. [gregory] When multiple characters are inserted one at a time at successive V-positions (simulating typing), does each single-character INSERT trigger a full `splitcrumupwards` cycle, or does the ONMYRIGHTBORDER case in `isanextensionnd` handle the entire sequence without any splits or tree height changes?
+15. [gregory] INSERT at V-position `v` in an empty document creates the first POOM entry — does this initial insertion also trigger `makegappm` (finding nothing to shift), or is there a fast path that skips the gap-making machinery when the POOM has no existing entries?
+16. [gregory] When INSERT adds text immediately adjacent to existing content (e.g., appending at the end of current text), does the granfilade always allocate the next contiguous I-address such that the POOM can coalesce into a single bottom crum, or are there conditions where the I-address is non-contiguous despite the V-position being adjacent?
+17. [gregory] After INSERT creates a new granfilade leaf with `MAXBCINLOAF=1`, what determines whether this triggers a `splitcrumupwards` and `levelpush` in the granfilade tree — is it purely the occupancy exceeding 1 in the parent loaf, and how does this interact with the disabled `levelpull`?
+18. [gregory] When a COPY operation inserts transcluded content into a document (reusing existing I-addresses rather than allocating new ones), does the target POOM's `insertpm` follow the exact same code path as text INSERT — including `makegappm` shifting and `isanextensionnd` coalescing — or is there a separate insertion path for copied content?
