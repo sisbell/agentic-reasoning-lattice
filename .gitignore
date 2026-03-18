@@ -11,3 +11,6 @@ notes/
 vault/3-modeling/alloy/**/receipt.json
 vault/3-modeling/alloy/**/*-solution-*.md
 worktrees/
+
+# Rust build artifacts
+target/

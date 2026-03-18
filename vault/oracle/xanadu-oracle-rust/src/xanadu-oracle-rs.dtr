@@ -1,0 +1,62 @@
+file_format_version = "1.0"
+dafny_version = "4.11.0.0"
+[options_by_module.TumblerAlgebra]
+legacy-module-names = false
+rust-sync = false
+[options_by_module.TumblerAddition]
+legacy-module-names = false
+rust-sync = false
+[options_by_module.TumblerHierarchy]
+legacy-module-names = false
+rust-sync = false
+[options_by_module.TumblerAllocation]
+legacy-module-names = false
+rust-sync = false
+[options_by_module.TumblerOrder]
+legacy-module-names = false
+rust-sync = false
+[options_by_module.TumblerSubtraction]
+legacy-module-names = false
+rust-sync = false
+[options_by_module.TumblerBaptism]
+legacy-module-names = false
+rust-sync = false
+[options_by_module.BaptismBranching]
+legacy-module-names = false
+rust-sync = false
+[options_by_module.BaptismGhost]
+legacy-module-names = false
+rust-sync = false
+[options_by_module.BaptismRegistry]
+legacy-module-names = false
+rust-sync = false
+[options_by_module.TumblerOwnership]
+legacy-module-names = false
+rust-sync = false
+[options_by_module.OwnershipDelegation]
+legacy-module-names = false
+rust-sync = false
+[options_by_module.OwnershipExclusivity]
+legacy-module-names = false
+rust-sync = false
+[options_by_module.OwnershipFork]
+legacy-module-names = false
+rust-sync = false
+[options_by_module.OwnershipPermanence]
+legacy-module-names = false
+rust-sync = false
+[options_by_module.OwnershipProvenance]
+legacy-module-names = false
+rust-sync = false
+[options_by_module.TwoSpace]
+legacy-module-names = false
+rust-sync = false
+[options_by_module.TwoSpaceArrangement]
+legacy-module-names = false
+rust-sync = false
+[options_by_module.TwoSpaceContent]
+legacy-module-names = false
+rust-sync = false
+[options_by_module.TwoSpaceSeparation]
+legacy-module-names = false
+rust-sync = false

@@ -1,0 +1,12 @@
+[package]
+name = "xanadu-oracle"
+version = "0.1.0"
+edition = "2021"
+description = "Dafny-generated oracle from verified Xanadu spec proofs"
+
+[dependencies]
+dafny-runtime = "0.1"
+
+[lib]
+name = "xanadu_oracle"
+path = "src/xanadu_oracle.rs"
