@@ -27,7 +27,11 @@ When we INSERT n content values into document d, we require n allocation events,
 
 (e) `(A i : 1 ≤ i ≤ n : aᵢ = a₁ ⊕ [i − 1])` — contiguous block
 
-Clause (d) is T9 (ForwardAllocation, ASN-0034): d's allocator produces addresses strictly increasing over time. Clause (c) is T9 applied to the n sequential allocations within the same INSERT. Clause (e) — contiguity — follows from T10a (AllocatorDiscipline, ASN-0034): each sibling allocation is `inc(·, 0)`, which by TA5(c) increments at `sig(t)` by exactly 1. In the ordinal-only formulation (TA7a), `a₁ = [x]` and `inc([x], 0) = [x + 1]`, so `a₂ = [x + 1] = a₁ ⊕ [1]`; by induction, `aᵢ = a₁ ⊕ [i − 1]`. Together (c) through (e) yield a contiguous block — n addresses in a row, all fresh, all scoped to d, all beyond anything d has ever allocated.
+Clause (c) follows from T9 (ForwardAllocation, ASN-0034) applied to the n sequential allocations within the same INSERT. Clause (e) — contiguity — follows from T10a (AllocatorDiscipline, ASN-0034): each sibling allocation is `inc(·, 0)`, which by TA5(c) increments at `sig(t)` by exactly 1. Since `inc(·, 0)` on an element-level address operates on the element ordinal — the last significant component — while the document prefix N.0.U.0.D.0 remains unchanged, we adopt an *ordinal-only formulation for I-addresses* analogous to TA7a's V-space formulation: within a single document's allocation stream, an I-address with element ordinal x is represented as `[x]` for arithmetic purposes, with the document prefix held as structural context. Closure follows by the same reasoning as TA7a: `[x] ⊕ [n] = [x + n]`, which under the full address is P.(x + n) for document prefix P — still under the same prefix. Then `a₁ = [x]` and `inc([x], 0) = [x + 1]`, so `a₂ = [x + 1] = a₁ ⊕ [1]`; by induction, `aᵢ = a₁ ⊕ [i − 1]`.
+
+Clause (d) requires that a₁ exceeds every prior allocation under d's prefix. INSERT allocates exclusively via `inc(·, 0)` — sibling increments, no child spawning (T10a permits child spawning only via `inc(·, k')` with `k' > 0`, which INSERT does not use). Therefore d's entire content allocation history is a single sequential stream, and T9 directly orders every prior allocation before a₁.
+
+Together (c) through (e) yield a contiguous block — n addresses in a row, all fresh, all scoped to d, all beyond anything d has ever allocated.
 
 The conjunction of (a) through (d) has an immediate consequence for content identity. Two independent INSERTs of identical text produce distinct addresses. If document d₁ inserts "hello" and document d₂ independently inserts "hello," the resulting I-addresses occupy different ownership prefixes (by S7a and T10, ASN-0034). Even within the same document, if we delete content and later re-insert identical text, the new addresses are fresh — they do not reclaim the old ones. This is S4 (OriginBasedIdentity, ASN-0036) in action: identity is creation, not value. The I-address distinguishes "wrote the same words" from "quoted from the original." Nelson is unambiguous: two documents with identical text created independently have different I-addresses; transcluded content shares the same I-address. The address IS the distinction.
 
@@ -163,6 +167,12 @@ The domain splits into shifted positions σ(dom(M(d))) and new positions {pₖ}.
 
 **P4 (ProvenanceBounds).** We need Contains(Σ') ⊆ R', where Contains(Σ') = {(a, d') : d' ∈ E'_doc ∧ a ∈ ran(M'(d'))}. For (a, d') ∈ Contains(Σ'): if d' ≠ d, then M'(d') = M(d') by I-frame(c), so a ∈ ran(M(d')), giving (a, d') ∈ Contains(Σ) ⊆ R ⊆ R'. If d' = d, then either a ∈ ran(M(d)) (giving (a, d) ∈ Contains(Σ) ⊆ R ⊆ R') or a = aᵢ for some i (giving (aᵢ, d) ∈ R' by Phase 4). ✓
 
+**P6 (ExistentialCoherence).** For fresh aᵢ ∈ dom(C') \ dom(C): origin(aᵢ) = d by I0(b), and d ∈ E_doc by I-pre, and E'_doc = E_doc by I-post(b), so origin(aᵢ) ∈ E'_doc. For existing a ∈ dom(C): pre-state P6 gives origin(a) ∈ E_doc = E'_doc. ✓
+
+**P7 (ProvenanceGrounding).** For (aᵢ, d) ∈ R' \ R: aᵢ ∈ dom(C') by Phase 1. For (a, d') ∈ R: pre-state P7 gives a ∈ dom(C), and S1 gives dom(C) ⊆ dom(C'), so a ∈ dom(C'). ✓
+
+**P7a (ProvenanceCoverage).** For fresh aᵢ ∈ dom(C') \ dom(C): (aᵢ, d) ∈ R' by Phase 4. For existing a ∈ dom(C): pre-state P7a gives (a, d') ∈ R for some d', and P2 gives R ⊆ R'. ✓
+
 
 ## Document isolation
 
@@ -223,13 +233,13 @@ We partition the existing runs into three classes relative to p̂:
 
 At most one run can be split, because the runs partition the V-positions and have disjoint ordinal ranges.
 
-**I7** (*run transformation*). After INSERT of w values at ordinal p̂ with fresh I-addresses starting at a_new, the post-state run decomposition is:
+**I7** (*run transformation*). After INSERT of w values at ordinal p̂ with fresh I-addresses starting at a_new, one valid post-state run decomposition is:
 
 (a) *Before-runs* are unchanged: (vⱼ, aⱼ, nⱼ). They lie entirely below p̂; σ is the identity on them. The I-address mappings are preserved by I-post(e).
 
 (b) *After-runs* are V-shifted: (vⱼ', aⱼ, nⱼ) where ord(vⱼ') = ord(vⱼ) + w. The I-addresses are unchanged; only V-positions move. The correspondence property is preserved: M'(d)(vⱼ' ⊕ [k]) = M(d)(vⱼ ⊕ [k]) = aⱼ ⊕ [k] for 0 ≤ k < nⱼ.
 
-(c) *Split run*: if run (vⱼ, aⱼ, nⱼ) is split at offset δ = p̂ − ord(vⱼ) where 0 < δ < nⱼ, it becomes two runs. The *left fragment* (vⱼ, aⱼ, δ) is unchanged — all its positions have ordinal < p̂. The *right fragment* has V-start at ordinal ord(vⱼ) + δ + w, I-start at aⱼ ⊕ [δ], and width nⱼ − δ. Its correspondence: M'(d)((ord(vⱼ) + δ + w) + k) = M(d)((ord(vⱼ) + δ) + k) = aⱼ ⊕ [δ + k] = (aⱼ ⊕ [δ]) ⊕ [k] for 0 ≤ k < nⱼ − δ. (The last step uses the associativity of tumbler addition, ASN-0034.)
+(c) *Split run*: if run (vⱼ, aⱼ, nⱼ) is split at offset δ = p̂ − ord(vⱼ) where 0 < δ < nⱼ, it becomes two runs. The *left fragment* (vⱼ, aⱼ, δ) is unchanged — all its positions have ordinal < p̂. The *right fragment* has V-start at ordinal ord(vⱼ) + δ + w, I-start at aⱼ ⊕ [δ], and width nⱼ − δ. Its correspondence (using the I-address ordinal-only formulation): M'(d)((ord(vⱼ) + δ + w) + k) = M(d)((ord(vⱼ) + δ) + k) = aⱼ ⊕ [δ + k] = (aⱼ ⊕ [δ]) ⊕ [k] for 0 ≤ k < nⱼ − δ. (The last equality uses associativity of tumbler addition, ASN-0034.)
 
 (d) *New run*: (p, a₁, w) — the freshly inserted content. Its correspondence: M'(d)(p̂ + k) = aₖ₊₁ = a₁ ⊕ [k] for 0 ≤ k < w, by I-post(f) and I0(e) (contiguity: aₖ₊₁ = a₁ ⊕ [k]).
 
@@ -239,7 +249,7 @@ The new content always forms a single correspondence run of width w. This is a d
 
 *Derivation.* Before-runs contribute their original count. After-runs contribute their original count (shifted but not split). At most one run is split into two fragments (contributing +1 to the count). The new run contributes +1. Total: m − 1 (the split run is gone) + 2 (its fragments) + 1 (new run) = m + 2 when a split occurs. When the insertion point falls between runs or at the edge of the arrangement, no split occurs and the count is m + 1. ∎
 
-This bound is abstract — it constrains any implementation. Each INSERT adds bounded complexity to the arrangement's run structure. The implementation exploits this: when the insertion point is at the boundary of an existing run (the common case during sequential typing), the coalescing mechanism extends the existing run in place rather than creating a new one, keeping the run count at m.
+This bound is abstract — it constrains any implementation. Each INSERT adds bounded complexity to the arrangement's run structure. Note that I7 gives one valid decomposition — the canonical non-coalesced form. Since S8 (ASN-0036) guarantees existence of a decomposition but not uniqueness, adjacent runs may be merged when two conditions hold simultaneously: (1) the insertion point falls at a run boundary (V-position adjacency), and (2) the new run's I-start a₁ equals the left neighbor's I-end + 1 (I-address contiguity). Condition (2) requires no intervening allocations under d's prefix since the neighbor's content was allocated — the sequential-typing scenario. When both conditions hold, the coalesced decomposition has fewer runs than I8's bound; I8 bounds the non-coalesced count.
 
 
 ## Worked example
