@@ -1,0 +1,9 @@
+# ASN-0054 — Arrangement Structure
+title: "Arrangement Structure"
+depends: [34, 36, 45, 47, 53]
+
+inquiry:
+  question: "What structural properties does a document's arrangement have? How do contiguous mappings decompose, and what invariants govern the shape of the arrangement domain?"
+
+modeling:
+  proof_imports: [TumblerAlgebra, TumblerOrder, TumblerHierarchy, TumblerAllocation, TwoSpace, StateTransitions, SpanOperations]
