@@ -51,6 +51,8 @@ The same applies to specifications. If you cannot see what a property means in t
 
 Narrative, not tabular (except the coverage summary). Prose with embedded formal expressions. Concrete values throughout — no variables where a specific value would do. Do not write code. This is a math document.
 
+**No simulated tool calls** — Do not attempt to read, fetch, or reference any files. You have everything you need in this prompt. Do not output XML tool-call markup.
+
 ## Input
 
 The ASN text follows below.
