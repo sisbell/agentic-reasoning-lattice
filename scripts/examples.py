@@ -20,7 +20,7 @@ from pathlib import Path
 WORKSPACE = Path(__file__).resolve().parent.parent
 PROMPTS = WORKSPACE / "scripts" / "prompts" / "examples"
 ASNS_DIR = WORKSPACE / "vault" / "asns"
-EXAMPLES_DIR = WORKSPACE / "vault" / "4-examples"
+EXAMPLES_DIR = WORKSPACE / "vault" / "5-examples"
 
 GENERATE_MODEL = "claude-sonnet-4-6"
 REVIEW_MODELS = ["claude-sonnet-4-6"]

@@ -23,7 +23,7 @@ The modeling pipeline translates a converged ASN into a verified Dafny specifica
 [3] dafny         generate Dafny per-property, commit
        |
        v
-  vault/3-modeling/dafny/ASN-NNNN/modeling-N/
+  vault/4-modeling/dafny/ASN-NNNN/modeling-N/
        |
        v
 [4] fix           fix unverified files iteratively
@@ -74,7 +74,7 @@ The output lists each property with its proof label, type, and the precise forma
 
 ## Step 3: Dafny Generation
 
-Translates the extracted statements into a Dafny module. Each run creates a new `modeling-N/` directory under `vault/3-modeling/dafny/ASN-NNNN/`. Verified files are manually promoted to `vault/proofs/` after review.
+Translates the extracted statements into a Dafny module. Each run creates a new `modeling-N/` directory under `vault/4-modeling/dafny/ASN-NNNN/`. Verified files are manually promoted to `vault/proofs/` after review.
 
 ### Modeling Style: Functional Datatypes
 
@@ -140,7 +140,7 @@ A review with verdict REVISE may also contain QUALITY findings. Fix the ASN firs
 All divergences are proof artifacts (extra preconditions, helper lemmas, type coercions). The ASN is correct as stated. Promote verified `.dfy` files to `vault/proofs/`:
 
 ```bash
-cp vault/3-modeling/dafny/ASN-NNNN/modeling-N/*.dfy vault/proofs/ModuleName/
+cp vault/4-modeling/dafny/ASN-NNNN/modeling-N/*.dfy vault/proofs/ModuleName/
 python scripts/commit.py --proofs-only "promote ModuleName from modeling-N"
 ```
 
@@ -176,17 +176,17 @@ python scripts/revise.py N
 | Artifact | Location | Description |
 |----------|----------|-------------|
 | ASN | `vault/asns/ASN-NNNN-*.md` | Converged specification |
-| Existing proof index | `vault/3-modeling/proof-index/ASN-NNNN-proof-index.md` | For re-run stability |
+| Existing proof index | `vault/4-modeling/proof-index/ASN-NNNN-proof-index.md` | For re-run stability |
 | Proof imports | `vault/project-model/ASN-NNNN.yaml` (proof_imports field) | Proof module dependencies per ASN |
 
 ### Output
 
 | Artifact | Location | Description |
 |----------|----------|-------------|
-| Proof index | `vault/3-modeling/proof-index/ASN-NNNN-proof-index.md` | Property classification table |
-| Statements | `vault/3-modeling/formal-statements/ASN-NNNN-statements.md` | Extracted formal statements |
-| Dafny modeling | `vault/3-modeling/dafny/ASN-NNNN/modeling-N/*.dfy` | Per-run staging output |
-| Status | `vault/3-modeling/dafny/ASN-NNNN/modeling-N/STATUS.md` | Verification status, divergences, fix history |
+| Proof index | `vault/4-modeling/proof-index/ASN-NNNN-proof-index.md` | Property classification table |
+| Statements | `vault/3-export/ASN-NNNN-statements.md` | Extracted formal statements |
+| Dafny modeling | `vault/4-modeling/dafny/ASN-NNNN/modeling-N/*.dfy` | Per-run staging output |
+| Status | `vault/4-modeling/dafny/ASN-NNNN/modeling-N/STATUS.md` | Verification status, divergences, fix history |
 | Dafny module (curated) | `vault/proofs/` | Manually promoted and committed (never auto-committed) |
 
 ## CLI Reference
@@ -229,7 +229,7 @@ python scripts/model.py review 1 --model sonnet
 python scripts/model.py verify-dafny 1 --full
 
 # After verification, promote and commit with proofs-only mode
-cp vault/3-modeling/dafny/ASN-0001/modeling-1/*.dfy vault/proofs/ModuleName/
+cp vault/4-modeling/dafny/ASN-0001/modeling-1/*.dfy vault/proofs/ModuleName/
 python scripts/commit.py --proofs-only "promote ModuleName from modeling-1"
 ```
 

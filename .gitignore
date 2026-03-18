@@ -8,8 +8,8 @@ nelson/literary-machines/raw/
 notes/
 
 # Alloy checker output (receipt.json, solution files)
-vault/3-modeling/alloy/**/receipt.json
-vault/3-modeling/alloy/**/*-solution-*.md
+vault/4-modeling/alloy/**/receipt.json
+vault/4-modeling/alloy/**/*-solution-*.md
 worktrees/
 
 # Rust build artifacts

@@ -189,7 +189,7 @@ python scripts/model.py alloy 1 --dry-run           # show property list + promp
 Requires Alloy installed at `/Applications/Alloy.app` (macOS) or `ALLOY_JAR` env var.
 
 Output:
-- `vault/3-modeling/alloy/ASN-NNNN/{label}-{Name}.als` (one per property)
+- `vault/4-modeling/alloy/ASN-NNNN/{label}-{Name}.als` (one per property)
 - `vault/2-review/ASN-NNNN/review-N.md` (if failures after repair)
 
 ### Modeling — proof-index → extract → dafny
@@ -214,8 +214,8 @@ generation.
 style). State is an immutable value; operations are pure functions.
 
 Output:
-- `vault/3-modeling/proof-index/ASN-NNNN-proof-index.md`
-- `vault/3-modeling/formal-statements/ASN-NNNN-statements.md`
+- `vault/4-modeling/proof-index/ASN-NNNN-proof-index.md`
+- `vault/3-export/ASN-NNNN-statements.md`
 - `vault/proofs/ASN-NNNN.dfy`
 
 ### Verification — verify Dafny module with fix loop
@@ -235,11 +235,11 @@ python scripts/model.py verify-dafny 4 --dry-run            # check paths, no ex
 (fix with extract context). Tier 3 = spec errors (escape to ASN review cycle).
 
 **Escalation:** Tier 1 → 3 attempts → Tier 2. Tier 2 → 2 attempts → Tier 3.
-Tier 3 writes an escalation report to `vault/3-modeling/verification/`.
+Tier 3 writes an escalation report to `vault/4-modeling/verification/`.
 
 Output:
-- `vault/3-modeling/verification/ASN-NNNN-verify-N.md` (verification reports)
-- `vault/3-modeling/verification/ASN-NNNN-escalation.md` (Tier 3 escalation)
+- `vault/4-modeling/verification/ASN-NNNN-verify-N.md` (verification reports)
+- `vault/4-modeling/verification/ASN-NNNN-escalation.md` (Tier 3 escalation)
 
 ### Promote — spawn new inquiries from ASN artifacts
 
@@ -365,10 +365,11 @@ vault/
   2-review/         — Stage 2: Review outputs (review-N.md per ASN)
     ASN-NNNN/
 
-  3-modeling/       — Stage 3: Modeling artifacts
+  3-export/        — Stage 3: Formal property statements (dependency mechanism)
+
+  4-modeling/       — Stage 4: Modeling artifacts
     alloy/          — Alloy models for bounded checking (.als files)
     proof-index/    — Proof index (ASN label → proof label mappings)
-    formal-statements/ — Formal property statements from ASN prose
     verification/   — Verification reports + escalation files
     dafny/          — Divergence evidence from Dafny generation
 

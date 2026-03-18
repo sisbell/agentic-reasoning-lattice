@@ -7,7 +7,7 @@ per property using an agentic Claude session (with Bash access to run Alloy
 and self-fix syntax errors), produces a review if failures remain, then feeds
 the review into the consult → revise → commit cycle.
 
-Requires: extract file in vault/3-modeling/formal-statements/ (run extract-properties.py first)
+Requires: extract file in vault/3-export/ (run extract-properties.py first)
 Requires: Alloy installed at /Applications/Alloy.app (macOS) or ALLOY_JAR set.
 
 Usage:

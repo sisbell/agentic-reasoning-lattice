@@ -59,13 +59,13 @@ Each property's Alloy check produces one of four outcomes:
 | Artifact | Location | Description |
 |----------|----------|-------------|
 | ASN | `vault/asns/ASN-NNNN-*.md` | Converged specification |
-| Proof index | `vault/3-modeling/proof-index/ASN-NNNN-proof-index.md` | Property labels and types |
+| Proof index | `vault/4-modeling/proof-index/ASN-NNNN-proof-index.md` | Property labels and types |
 
 ### Output
 
 | Artifact | Location | Description |
 |----------|----------|-------------|
-| Alloy models | `vault/3-modeling/alloy/ASN-NNNN/{label}-{Name}.als` | One per property |
+| Alloy models | `vault/4-modeling/alloy/ASN-NNNN/{label}-{Name}.als` | One per property |
 | Review file | `vault/2-review/ASN-NNNN/review-N.md` | If counterexamples found |
 
 ## CLI Reference

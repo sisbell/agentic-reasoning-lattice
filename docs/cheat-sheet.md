@@ -119,7 +119,7 @@ python scripts/model.py review N        # review + commit
 #    - CONVERGED? → promote
 #    - REVISE items? → revise.py N, then ./run/remodel.sh N
 # 6. Promote verified files to vault/proofs/ (manual copy + proofs-only commit)
-cp vault/3-modeling/dafny/ASN-NNNN/modeling-N/*.dfy vault/proofs/ModuleName/
+cp vault/4-modeling/dafny/ASN-NNNN/modeling-N/*.dfy vault/proofs/ModuleName/
 python scripts/commit.py --proofs-only "promote ModuleName from modeling-N"
 ```
 

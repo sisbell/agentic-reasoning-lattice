@@ -6,7 +6,7 @@ Runs `dafny verify` on the generated .dfy file, parses errors into
 structured format, and classifies each error as Tier 1 (syntax/type),
 Tier 2 (proof-structural), or Tier 3 (spec error).
 
-Writes a verification report to vault/3-modeling/verification/.
+Writes a verification report to vault/4-modeling/verification/.
 
 Exit codes:
     0 = verified (all properties pass)
@@ -166,7 +166,7 @@ def next_report_number(asn_label):
 
 
 def write_report(asn_label, dfy_path, errors, elapsed, report_num):
-    """Write a verification report to vault/3-modeling/verification/."""
+    """Write a verification report to vault/4-modeling/verification/."""
     VERIFICATION_DIR.mkdir(parents=True, exist_ok=True)
     report_path = VERIFICATION_DIR / f"{asn_label}-verify-{report_num}.md"
 
@@ -264,7 +264,7 @@ def main():
     dfy_files, asn_label = find_dafny_files(args.asn)
     if not dfy_files:
         print(f"  No .dfy files found for {args.asn} in "
-              f"vault/3-modeling/dafny/{asn_label or '?'}/modeling-*/",
+              f"vault/4-modeling/dafny/{asn_label or '?'}/modeling-*/",
               file=sys.stderr)
         print(f"  Run: python scripts/model.py dafny {args.asn}",
               file=sys.stderr)

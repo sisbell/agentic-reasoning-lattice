@@ -101,7 +101,7 @@ Extracts new work from completed ASNs. Open questions and OUT_OF_SCOPE items fro
 Per-property Alloy model generation and bounded model checking. Searches for counterexamples before investing in full proof. Counterexamples produce a review; revision is handled separately by `revise.py`.
 
 - **Input:** converged ASN
-- **Output:** `.als` files in `vault/3-modeling/alloy/ASN-NNNN/`
+- **Output:** `.als` files in `vault/4-modeling/alloy/ASN-NNNN/`
 - **Details:** [Alloy Checking](alloy-checking.md)
 
 ### 5. Modeling (model index, statements, dafny)
@@ -116,7 +116,7 @@ Three-step path from ASN prose to verified Dafny:
 6. **Review** — triage divergences from verified files, write review, commit
 
 - **Input:** converged ASN
-- **Output:** proof index, formal statements, Dafny in `vault/3-modeling/dafny/ASN-NNNN/modeling-N/`, review in `vault/2-review/`
+- **Output:** proof index, formal statements, Dafny in `vault/4-modeling/dafny/ASN-NNNN/modeling-N/`, review in `vault/2-review/`
 - **Human gate:** You read STATUS.md after dafny/fix/status. When ready, trigger review. You read the review, then decide whether to run consult → revise or promote verified files to `vault/proofs/`.
 - **Details:** [Modeling](modeling.md)
 
@@ -144,9 +144,9 @@ The pipeline is not linear — it has structured feedback loops:
 | Draft | `inquiries.yaml`, Nelson sources, Gregory KB | `vault/asns/ASN-NNNN-*.md`, `vault/experts/ASN-NNNN/` |
 | Review | ASN, `vocabulary.md`, prior reviews | `vault/2-review/ASN-NNNN/review-N.md`, revised ASN |
 | Promote | ASN open questions, review OUT_OF_SCOPE items | `vault/1-promote/inquiries.yaml`, `vault/1-promote/ASN-NNNN/` |
-| Alloy | ASN, proof index | `vault/3-modeling/alloy/ASN-NNNN/*.als` |
-| Index | ASN, existing proof index | `vault/3-modeling/proof-index/ASN-NNNN-proof-index.md` |
-| Statements | ASN, proof index | `vault/3-modeling/formal-statements/ASN-NNNN-statements.md` |
+| Alloy | ASN, proof index | `vault/4-modeling/alloy/ASN-NNNN/*.als` |
+| Index | ASN, existing proof index | `vault/4-modeling/proof-index/ASN-NNNN-proof-index.md` |
+| Statements | ASN, proof index | `vault/3-export/ASN-NNNN-statements.md` |
 | Dafny | statements, proof index, proof imports | `modeling-N/*.dfy`, `modeling-N/STATUS.md` (commits) |
 | Fix | unverified `.dfy` files | fixed `.dfy` files (in place, no commit) |
 | Status | `.dfy` files in modeling dir | `modeling-N/STATUS.md` (commits) |

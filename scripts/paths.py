@@ -20,12 +20,14 @@ PROMOTE_DIR = VAULT / "1-promote"
 # Stage 2: Review
 REVIEWS_DIR = VAULT / "2-review"
 
-# Stage 3: Modeling
-ALLOY_DIR = VAULT / "3-modeling" / "alloy"
-DAFNY_DIR = VAULT / "3-modeling" / "dafny"
-PROOF_INDEX_DIR = VAULT / "3-modeling" / "proof-index"
-STATEMENTS_DIR = VAULT / "3-modeling" / "formal-statements"
-VERIFICATION_DIR = VAULT / "3-modeling" / "verification"
+# Stage 3: Export (formal statements — dependency mechanism)
+STATEMENTS_DIR = VAULT / "3-export"
+
+# Stage 4: Modeling
+ALLOY_DIR = VAULT / "4-modeling" / "alloy"
+DAFNY_DIR = VAULT / "4-modeling" / "dafny"
+PROOF_INDEX_DIR = VAULT / "4-modeling" / "proof-index"
+VERIFICATION_DIR = VAULT / "4-modeling" / "verification"
 PROOF_IMPORTS = PROOFS_DIR / "imports.md"
 FOUNDATION_LIST = ASNS_DIR / "foundation.md"
 
