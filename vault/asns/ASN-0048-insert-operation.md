@@ -25,7 +25,9 @@ When we INSERT n content values into document d, we require n allocation events,
 
 (d) `(A a ∈ dom(C) : origin(a) = d : a < a₁)` — beyond all prior content of d
 
-Clause (d) is T9 (ForwardAllocation, ASN-0034): d's allocator produces addresses strictly increasing over time. Clause (c) is T9 applied to the n sequential allocations within the same INSERT. Together they yield a contiguous block — n addresses in a row, all fresh, all scoped to d, all beyond anything d has ever allocated.
+(e) `(A i : 1 ≤ i ≤ n : aᵢ = a₁ ⊕ [i − 1])` — contiguous block
+
+Clause (d) is T9 (ForwardAllocation, ASN-0034): d's allocator produces addresses strictly increasing over time. Clause (c) is T9 applied to the n sequential allocations within the same INSERT. Clause (e) — contiguity — follows from T10a (AllocatorDiscipline, ASN-0034): each sibling allocation is `inc(·, 0)`, which by TA5(c) increments at `sig(t)` by exactly 1. In the ordinal-only formulation (TA7a), `a₁ = [x]` and `inc([x], 0) = [x + 1]`, so `a₂ = [x + 1] = a₁ ⊕ [1]`; by induction, `aᵢ = a₁ ⊕ [i − 1]`. Together (c) through (e) yield a contiguous block — n addresses in a row, all fresh, all scoped to d, all beyond anything d has ever allocated.
 
 The conjunction of (a) through (d) has an immediate consequence for content identity. Two independent INSERTs of identical text produce distinct addresses. If document d₁ inserts "hello" and document d₂ independently inserts "hello," the resulting I-addresses occupy different ownership prefixes (by S7a and T10, ASN-0034). Even within the same document, if we delete content and later re-insert identical text, the new addresses are fresh — they do not reclaim the old ones. This is S4 (OriginBasedIdentity, ASN-0036) in action: identity is creation, not value. The I-address distinguishes "wrote the same words" from "quoted from the original." Nelson is unambiguous: two documents with identical text created independently have different I-addresses; transcluded content shares the same I-address. The address IS the distinction.
 
@@ -139,13 +141,17 @@ We verify that INSERT maintains the invariants established by ASN-0036 and ASN-0
 `(A a : a ∈ dom(C) : C(a) = C(a))`
 `= true`
 
-**S2 (ArrangementFunctional)** for M'(d). We must show M'(d) is a function — no V-position has two images. The domain is σ(dom(M(d))) ∪ {pₖ : 0 ≤ k < n}. By I3 (gap creation), these two sets are disjoint: σ maps no position into the gap [p̂, p̂ + n), and the new positions lie exactly in that gap. Within each set, the mapping is functional: σ(dom(M(d))) inherits functionality from M(d) via the bijection σ; the new positions map injectively to a₁, ..., aₙ (which are distinct by I0(c)). ✓
+**S3 (ReferentialIntegrity).** We ask: what must hold before INSERT for every V-position in dom(M'(d)) to map to an address in dom(C')? Working backward:
 
-**S3 (ReferentialIntegrity)** for M'(d). Every value in ran(M'(d)) must be in dom(C'). For shifted positions: M'(d)(σ(v)) = M(d)(v) ∈ dom(C) ⊆ dom(C'), by S3 for the pre-state and S1 (StoreMonotonicity, ASN-0036). For new positions: M'(d)(pₖ) = aₖ₊₁ ∈ dom(C'), by Phase 1. ✓
+`wp(INSERT, (A v : v ∈ dom(M'(d)) : M'(d)(v) ∈ dom(C')))`
+
+The domain splits into shifted positions σ(dom(M(d))) and new positions {pₖ}. For shifted positions, M'(d)(σ(v)) = M(d)(v), and Phases 2–4 hold C in their frame, so dom(C') = dom(C₁) = dom(C) ∪ {a₁, ..., aₙ}. The pre-state S3 gives M(d)(v) ∈ dom(C) ⊆ dom(C'). For new positions, M'(d)(pₖ) = aₖ₊₁, and we need aₖ₊₁ ∈ dom(C'). This holds because Phase 1 allocated aₖ₊₁ into C₁ and the frame conditions of Phases 2–4 preserve C₁ = C'. The phase ordering is load-bearing: Phase 1 (allocation) must precede Phase 3 (extension). If we swapped them — extending M(d) before allocating — then at the point K.μ⁺ executes, aₖ₊₁ ∉ dom(C), violating the K.μ⁺ precondition that each new mapping target an existing I-address.
+
+**S2 (ArrangementFunctional)** for M'(d). We must show M'(d) is a function — no V-position has two images. The domain is σ(dom(M(d))) ∪ {pₖ : 0 ≤ k < n}. By I3 (gap creation), these two sets are disjoint: σ maps no position into the gap [p̂, p̂ + n), and the new positions lie exactly in that gap. Within each set, the mapping is functional: σ(dom(M(d))) inherits functionality from M(d) via the bijection σ; the new positions map injectively to a₁, ..., aₙ (which are distinct by I0(c)). ✓
 
 **S8a (VPositionWellFormed).** Shifted positions σ(v) satisfy S8a because v does and the shift preserves the subspace identifier while adding a positive integer to a positive ordinal. New positions pₖ: the subspace identifier s ≥ 1 and the ordinal p̂ + k ≥ p̂ ≥ 1, so all components are strictly positive; zeros(pₖ) = 0 by construction. ✓
 
-**S8-depth (FixedDepthPositions).** The shift does not change tumbler depth — adding a positive ordinal displacement within a subspace preserves depth (TA7a, ASN-0034). New positions pₖ have the same depth as p, which shares the text subspace's common depth. ✓
+**S8-depth (FixedDepthPositions).** In the ordinal-only formulation per TA7a (ASN-0034), all text-subspace positions are single-component tumblers `[x]` with uniform depth 1. The shift does not change tumbler depth — adding a positive ordinal displacement yields another single-component tumbler. New positions pₖ = [p̂ + k] have the same depth 1. ✓
 
 **S8-fin (FiniteArrangement).** dom(M(d)) is finite (pre-state); σ(dom(M(d))) has the same cardinality (σ is injective); adding n new positions yields |dom(M'(d))| = |dom(M(d))| + n, still finite. ✓
 
@@ -183,7 +189,7 @@ Property I4 confines the shift to the text subspace. We record the arrangement-l
 
 where s is the text subspace identifier. The link endpoints — from-endsets, to-endsets, type-endsets in subspaces distinct from s — remain at their original V-positions with their original I-address mappings.
 
-The implementation achieves this by computing the shift boundary as the first position of the next subspace, `(s+1).1`, purely from the insertion address by tumbler arithmetic, without inspecting any data structure. Abstractly, the guarantee follows from T7 (SubspaceDisjoint, ASN-0034): within the tumbler ordering, all text-subspace positions precede all link-subspace positions (since the subspace identifier, as the leading component, determines the primary sort). The shift, bounded to text-subspace ordinals, cannot reach into the link subspace. Any implementation must ensure this separation — the V-shift operates within a single subspace and does not propagate across subspace boundaries.
+The implementation achieves this by computing the shift boundary as the first position of the next subspace, `(s+1).1`, purely from the insertion address by tumbler arithmetic, without inspecting any data structure. Abstractly, the guarantee follows from I4 and T7 (SubspaceDisjoint, ASN-0034): σ is defined as the identity on every position whose subspace identifier differs from s, so no link-subspace position is moved. The shift, bounded to text-subspace ordinals, cannot reach into the link subspace — T7 ensures disjointness by the leading subspace component. Any implementation must ensure this separation — the V-shift operates within a single subspace and does not propagate across subspace boundaries.
 
 
 ## Link survival
@@ -225,15 +231,43 @@ At most one run can be split, because the runs partition the V-positions and hav
 
 (c) *Split run*: if run (vⱼ, aⱼ, nⱼ) is split at offset δ = p̂ − ord(vⱼ) where 0 < δ < nⱼ, it becomes two runs. The *left fragment* (vⱼ, aⱼ, δ) is unchanged — all its positions have ordinal < p̂. The *right fragment* has V-start at ordinal ord(vⱼ) + δ + w, I-start at aⱼ ⊕ [δ], and width nⱼ − δ. Its correspondence: M'(d)((ord(vⱼ) + δ + w) + k) = M(d)((ord(vⱼ) + δ) + k) = aⱼ ⊕ [δ + k] = (aⱼ ⊕ [δ]) ⊕ [k] for 0 ≤ k < nⱼ − δ. (The last step uses the associativity of tumbler addition, ASN-0034.)
 
-(d) *New run*: (p, a₁, w) — the freshly inserted content. Its correspondence: M'(d)(p̂ + k) = aₖ₊₁ = a₁ ⊕ [k] for 0 ≤ k < w, by I-post(f) and I0(c).
+(d) *New run*: (p, a₁, w) — the freshly inserted content. Its correspondence: M'(d)(p̂ + k) = aₖ₊₁ = a₁ ⊕ [k] for 0 ≤ k < w, by I-post(f) and I0(e) (contiguity: aₖ₊₁ = a₁ ⊕ [k]).
 
-The new content always forms a single correspondence run of width w. This is a direct consequence of I0(c): the w fresh I-addresses are sequential, and the w gap positions are sequential by construction.
+The new content always forms a single correspondence run of width w. This is a direct consequence of I0(e): the w fresh I-addresses are contiguous, and the w gap positions are sequential by construction.
 
 **I8** (*run count bound*). If m is the number of correspondence runs before INSERT, the number after is at most m + 2.
 
 *Derivation.* Before-runs contribute their original count. After-runs contribute their original count (shifted but not split). At most one run is split into two fragments (contributing +1 to the count). The new run contributes +1. Total: m − 1 (the split run is gone) + 2 (its fragments) + 1 (new run) = m + 2 when a split occurs. When the insertion point falls between runs or at the edge of the arrangement, no split occurs and the count is m + 1. ∎
 
 This bound is abstract — it constrains any implementation. Each INSERT adds bounded complexity to the arrangement's run structure. The implementation exploits this: when the insertion point is at the boundary of an existing run (the common case during sequential typing), the coalescing mechanism extends the existing run in place rather than creating a new one, keeping the run count at m.
+
+
+## Worked example
+
+We verify the postconditions against concrete values. Let document d have arrangement M(d) = {[1] ↦ a, [2] ↦ b, [3] ↦ c, [4] ↦ d_addr} where a, b, c, d_addr are consecutive I-addresses with a = [x], b = [x+1], c = [x+2], d_addr = [x+3] for some x. This is a single correspondence run ([1], a, 4). We INSERT w = 2 values (v₁, v₂) at ordinal p̂ = 3.
+
+**Phase 1** (allocation). I0 produces fresh addresses a₅ = [y], a₆ = [y+1] (contiguous by I0(e): a₆ = a₅ ⊕ [1]), with y > x + 3 (by I0(d): beyond all prior content of d).
+
+**Phase 2** (shift). σ is the identity on positions with ordinal < 3, and shifts by 2 for ordinal ≥ 3:
+
+- σ([1]) = [1], σ([2]) = [2] — below p̂, unchanged
+- σ([3]) = [3] ⊕ [2] = [5], σ([4]) = [4] ⊕ [2] = [6] — shifted by w = 2
+
+After Phase 2: M₂(d) = {[1] ↦ a, [2] ↦ b, [5] ↦ c, [6] ↦ d_addr}. Positions [3] and [4] are vacant — this is the gap (I3).
+
+**Phase 3** (extension). Fill the gap: M'(d)([3]) = a₅, M'(d)([4]) = a₆.
+
+Post-state arrangement: M'(d) = {[1] ↦ a, [2] ↦ b, [3] ↦ a₅, [4] ↦ a₆, [5] ↦ c, [6] ↦ d_addr}.
+
+**Verification of I-post.** (d): dom(M'(d)) = {[1],[2],[5],[6]} ∪ {[3],[4]} = σ(dom(M(d))) ∪ {pₖ}. ✓ (e): M'(d)(σ([1])) = M'(d)([1]) = a = M(d)([1]), and similarly for [2], [3]→[5], [4]→[6]. ✓ (f): M'(d)([3]) = a₅ = a₅ ⊕ [0] and M'(d)([4]) = a₆ = a₅ ⊕ [1]. ✓
+
+**Verification of I7 (run decomposition).** The original run ([1], a, 4) is split at δ = p̂ − ord(v₁) = 3 − 1 = 2:
+
+- *Left fragment*: ([1], a, 2). Check: M'(d)([1+k]) = a ⊕ [k] for k = 0, 1 — M'(d)([1]) = a, M'(d)([2]) = b = a ⊕ [1]. ✓
+- *New run*: ([3], a₅, 2). Check: M'(d)([3+k]) = a₅ ⊕ [k] for k = 0, 1 — M'(d)([3]) = a₅, M'(d)([4]) = a₆ = a₅ ⊕ [1]. ✓
+- *Right fragment*: ([5], c, 2) with I-start a ⊕ [2] = c. Check: M'(d)([5+k]) = c ⊕ [k] for k = 0, 1 — M'(d)([5]) = c, M'(d)([6]) = d_addr = c ⊕ [1]. ✓
+
+Pre-state: 1 run. Post-state: 3 runs = 1 + 2, confirming I8. **Phase 4** records (a₅, d) and (a₆, d) in R'.
 
 
 ## Invertibility and history
@@ -254,7 +288,7 @@ where v ⊖ [w] is the position with ordinal ord(v) − w (well-defined by TA7a 
 - E: E = E' by I-post(b).
 - M(d): remove the gap mappings from M'(d) and apply σ⁻¹ to the remaining positions. That is, M(d)(σ⁻¹(v)) = M'(d)(v) for v ∈ dom(M'(d)) with ord(v) ∉ [p̂, p̂ + n).
 - M(d') for d' ≠ d: M(d') = M'(d') by I-frame(c).
-- R: R = R' \ {(aᵢ, d) : 1 ≤ i ≤ n} where each aᵢ = M'(d)(pᵢ₋₁). The subtraction is correct because J1' ensures each (aᵢ, d) is newly introduced: aᵢ ∉ ran(M(d)) (since aᵢ ∉ dom(C)) so (aᵢ, d) ∉ R.
+- R: R = R' \ {(aᵢ, d) : 1 ≤ i ≤ n} where each aᵢ = M'(d)(pᵢ₋₁). The subtraction is correct because aᵢ ∉ dom(C) (by I0(a)), so by the contrapositive of P7 (ProvenanceGrounding, ASN-0047) — `(a, d) ∈ R ⟹ a ∈ dom(C)` — we have (aᵢ, d) ∉ R. Therefore R' \ {(aᵢ, d)} removes exactly what Phase 4 added.
 
 Each component is uniquely determined. ∎
 
@@ -278,7 +312,7 @@ The automatic royalty mechanism depends on this permanence. When any document co
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| I0 | INSERT allocates sequential, document-scoped, fresh I-addresses: `(A i : 1 ≤ i < n : aᵢ < aᵢ₊₁) ∧ (A a ∈ dom(C) : origin(a) = d : a < a₁)` | introduced |
+| I0 | INSERT allocates contiguous, document-scoped, fresh I-addresses: `(A i : 1 ≤ i ≤ n : aᵢ = a₁ ⊕ [i − 1]) ∧ (A a ∈ dom(C) : origin(a) = d : a < a₁)` | introduced |
 | I1 | The V-shift σ is injective on dom(M(d)) | introduced |
 | I2 | σ preserves V-position ordering within the text subspace | introduced |
 | I3 | σ creates a gap: positions with ordinal in [p̂, p̂ + n) are not in σ's image | introduced |
