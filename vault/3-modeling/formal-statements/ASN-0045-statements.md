@@ -1,6 +1,6 @@
 # ASN-0045 Formal Statements
 
-*Source: ASN-0045-tumbler-fields.md (revised 2026-03-17) — Index: 2026-03-17 — Extracted: 2026-03-17*
+*Source: ASN-0045-tumbler-fields.md (revised 2026-03-17) — Index: 2026-03-18 — Extracted: 2026-03-18*
 
 ## E.node — IsNode (INV, predicate(Tumbler))
 
