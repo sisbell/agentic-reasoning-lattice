@@ -1,86 +1,27 @@
 # Review of ASN-0043
 
-Based on Dafny verification — 22/22 verified, no divergences reported.
-
 ## REVISE
 
-No genuine spec issues found.
+### Issue 1: L13 exclusion proof — incorrect equality in greater-depth case
 
-## QUALITY
+**ASN-0043, Reflexive Addressing, exclusion proof, greater-depth case**: "If `t` does not extend `b`, there exists `k ≤ #b` with `t_k ≠ b_k`. As `t ≥ b`, we have `t_k > b_k = (b ⊕ ℓ_b)_k`, giving `t > b ⊕ ℓ_b` — outside the interval."
 
-### File: IdentityByAddress.dfy — SIMPLIFY
+**Problem**: The equality `b_k = (b ⊕ ℓ_b)_k` holds only for `k < #b`. At the action point `k = #b`, TumblerAdd gives `(b ⊕ ℓ_b)_{#b} = b_{#b} + 1`, not `b_{#b}`. The same-depth case immediately above correctly splits `k < #b` and `k = #b` with distinct arguments; the greater-depth case applies the `k < #b` reasoning uniformly across all `k ≤ #b`, which is invalid at the action point.
 
-The `IdentityByAddress` predicate is a tautology:
+The conclusion is correct. At `k = #b`: `t_{#b} > b_{#b}` gives `t_{#b} ≥ b_{#b} + 1 = (b ⊕ ℓ_b)_{#b}`. If strict: `t > b ⊕ ℓ_b` by T1(i). If equal: `t` agrees with `b ⊕ ℓ_b` at all `#b` positions and `#t > #(b ⊕ ℓ_b) = #b`, so `b ⊕ ℓ_b` is a proper prefix of `t`, giving `b ⊕ ℓ_b < t` by T1(ii). Either way `t ≥ b ⊕ ℓ_b`, contradicting the interval bound. But this two-subcase argument is absent from the proof.
 
-```dafny
-ghost predicate IdentityByAddress(store: Store) {
-  forall a1, a2 :: a1 in store && a2 in store && a1 != a2
-    ==> true  // distinct addresses are distinct entities by construction
-}
-```
+**Required**: Split the greater-depth case at `k = #b`, mirroring the same-depth case. The `k = #b` subcase needs both the strict and prefix-equality branches.
 
-`==> true` is vacuously true for every store. The comment acknowledges this ("by construction"), but the predicate and its proof lemma `IdentityByAddressHolds` are dead weight. L11 holds by the map representation — distinct keys are distinct entries. The only substantive content in this file is `NonInjectivityPermitted`, which serves as a useful witness that the store need not be injective.
+### Issue 2: L9 witness — unsupported `g ≠ a` justification
 
-**Suggestion:** Delete the `IdentityByAddress` predicate and `IdentityByAddressHolds` lemma. Keep `NonInjectivityPermitted` as the file's sole content — it captures the non-obvious part of L11 (that duplicate values at distinct keys are permitted).
+**ASN-0043, TypeGhostPermission witness**: "Since `g ∉ dom(Σ.C) ∪ dom(Σ.L)` and `g ≠ a` (they occupy different subspaces or different documents), `g ∉ dom(Σ'.C) ∪ dom(Σ'.L)`."
 
-### File: TypeByAddress.dfy — SIMPLIFY
+**Problem**: The parenthetical asserts that `g` and `a` occupy different subspaces or different documents, but the construction places no constraint on `g`'s subspace or document — only that `g ∉ dom(Σ.C) ∪ dom(Σ.L)`. If `g` happens to fall in subspace `s_L` within document `d`, it could coincide with the freshly allocated `a`.
 
-Same pattern. `SameType` is defined as `l1.typ == l2.typ`, and then `TypeByAddress` asserts the biconditional `SameType(store[a1], store[a2]) <==> store[a1].typ == store[a2].typ` — which unfolds to `X <==> X`. The predicate is a tautology and `TypeByAddressHolds` proves it vacuously.
+**Required**: Constrain the choice of `g` — e.g., require `fields(g).E₁ = s_C` so that T7 gives `g ≠ a` — or note that `g` can always be chosen to differ from the single address `a` since `T` is infinite.
 
-L8's real content — that type matching uses address comparison rather than content dereferencing — is captured by the data model itself: the type endset contains tumbler addresses, not content values. There is no content-lookup function to contrast with.
+## OUT_OF_SCOPE
 
-**Suggestion:** Replace the predicate/lemma pair with a comment explaining that L8 holds by construction of the `Link` datatype (type endsets store address spans, not content references). No executable predicate is needed.
+None beyond the topics the ASN already identifies in its scope section and open questions.
 
-### File: LinkStore.dfy — SIMPLIFY
-
-Duplicates `Span`, `WellFormedSpan`, `Endset`, `WellFormedEndset` from Endset.dfy. Both files define identical types independently. Files downstream import one or the other, creating two incompatible type universes for the same concept:
-
-- Coverage.dfy, SlotDistinction.dfy, DirectionalFlexibility.dfy import `Endset.dfy`
-- EndsetGenerality.dfy, LinkImmutability.dfy, TypeGhostPermission.dfy import `LinkStore.dfy`
-
-**Suggestion:** LinkStore.dfy should import Endset.dfy and Link.dfy, re-exporting their types rather than redefining them. The `Store` type and `WellFormedStore` predicate are LinkStore.dfy's actual contribution.
-
-### File: ReflexiveAddressing.dfy + TypeHierarchyByContainment.dfy — SIMPLIFY
-
-`UnitDisplacement` and `UnitDisplacementPositive` are duplicated verbatim between these two files:
-
-```dafny
-// In both files:
-function UnitDisplacement(n: nat): Tumbler
-  requires n >= 1
-{ Tumbler(Zeros(n - 1) + [1]) }
-
-lemma UnitDisplacementPositive(n: nat)
-  requires n >= 1
-  ensures PositiveTumbler(UnitDisplacement(n))
-  ensures ActionPoint(UnitDisplacement(n)) == n - 1
-{ assert UnitDisplacement(n).components[n - 1] == 1; }
-```
-
-**Suggestion:** Factor into a shared module (e.g., `SpanConstruction.dfy` or add to the existing tumbler algebra). Both files import and use.
-
-### File: Coverage.dfy — PASS
-### File: DirectionalFlexibility.dfy — PASS
-### File: DualPrimitive.dfy — PASS
-### File: Endset.dfy — PASS
-### File: EndsetGenerality.dfy — PASS
-### File: EndsetSetSemantics.dfy — PASS
-### File: Home.dfy — PASS
-### File: Link.dfy — PASS
-### File: LinkElementLevel.dfy — PASS
-### File: LinkImmutability.dfy — PASS
-### File: LinkScopedAllocation.dfy — PASS
-### File: LinkStoreMonotonicity.dfy — PASS
-### File: OwnershipEndsetIndependence.dfy — PASS
-### File: SlotDistinction.dfy — PASS
-### File: SubspacePartition.dfy — PASS
-### File: TripleEndsetStructure.dfy — PASS
-### File: TypeGhostPermission.dfy — PASS
-
-## SKIP
-
-### All 22 properties verified without divergence
-
-No preconditions were added, no conclusions weakened, no invariants strengthened beyond what the ASN states. The Dafny encoding faithfully models the ASN properties. Proof artifacts (empty lemma bodies, `assert` hints for solver guidance in TypeGhostPermission and ReflexiveAddressing) are appropriate mechanical concerns that do not reflect on the spec.
-
-VERDICT: SIMPLIFY
+VERDICT: REVISE
