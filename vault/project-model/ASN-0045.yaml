@@ -1,7 +1,6 @@
 # ASN-0045 — Tumbler Fields
 title: "Tumbler Fields"
 depends: [34, 36]
-already_covered: [42, 43]
 out_of_scope: "Document creation and lifecycle operations, publication and withdrawal, access control and authorization, account creation and delegation, node provisioning, content storage and retrieval operations, link operations, arrangement modifications, enfilade implementation internals, replication and inter-server protocol (BEBE)"
 
 inquiry:

@@ -1,7 +1,6 @@
 # ASN-0048 — INSERT Operation
 title: "INSERT Operation"
 depends: [34, 36, 47]
-already_covered: [40, 42, 43, 45]
 
 inquiry:
   question: "What happens when new content is added to a document? What is created, what is preserved, and what changes?"
