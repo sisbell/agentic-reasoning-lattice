@@ -25,9 +25,9 @@ From TumblerAdd, a ⊕ w acts at the action point k of w: it copies a₁..aₖ�
 
 where k = divergence(a, b). This is exactly the formula for b ⊖ a from ASN-0034's TumblerSubtract. We write w = b ⊖ a and call it the *displacement from a to b*. The displacement is well-defined when:
 
-**D0** (*Displacement well-definedness*). a ≤ b, and the divergence k of a and b satisfies k ≤ #a.
+**D0** (*Displacement well-definedness*). a < b, and the divergence k of a and b satisfies k ≤ #a.
 
-D0 ensures the displacement b ⊖ a is a well-defined tumbler, and that a ⊕ (b ⊖ a) is defined (TA0 satisfied). It does not guarantee round-trip faithfulness — the identity a ⊕ (b ⊖ a) = b additionally requires #a ≤ #b, since TumblerSubtract produces a result of length max(#a, #b), which differs from b ⊖ a when #a > #b. We formalize the sufficient condition as level compatibility in S6.
+D0 ensures the displacement b ⊖ a is a well-defined positive tumbler, and that a ⊕ (b ⊖ a) is defined (TA0 satisfied, since the displacement is positive and its action point k ≤ #a). It does not guarantee round-trip faithfulness — the identity a ⊕ (b ⊖ a) = b additionally requires #a ≤ #b, since TumblerSubtract produces a result of length max(#a, #b), which differs from b ⊖ a when #a > #b. We formalize the sufficient condition as level compatibility in S6.
 
 When a is a proper prefix of b (divergence type (ii) from ASN-0034), the divergence is #a + 1, exceeding #a, and no valid displacement exists.
 
@@ -240,7 +240,7 @@ Condition N2 uses strict inequality. If reach(σᵢ) = start(σᵢ₊₁), the s
 
 **S8** (*NormalizationExistence*). Every span-set Σ whose component spans are level-uniform and mutually level-compatible has a normalized equivalent Σ̂ with Σ̂ ≡ Σ.
 
-*Construction.* Sort the component spans by start position (T1 makes this well-defined). Scan left to right, maintaining a current interval [s, r). For each span σᵢ in sorted order:
+*Construction.* If n = 0, the result is the empty span-set ⟨⟩, which vacuously satisfies N1 and N2. For n ≥ 1, proceed as follows. Sort the component spans by start position (T1 makes this well-defined). Scan left to right, maintaining a current interval [s, r). For each span σᵢ in sorted order:
 
   — If start(σᵢ) ≤ r (overlap or adjacency): extend r to max(r, reach(σᵢ)).
   — If start(σᵢ) > r (separated): emit the current interval as a span (s, r ⊖ s) — level-uniformity and S6 ensure #s = #r, so by D1 the reach is faithful — then start a new current interval at [start(σᵢ), reach(σᵢ)).
@@ -269,7 +269,7 @@ The result is a sequence of spans satisfying N1 (starts are sorted because we em
 
 *Case 1:* start(αᵢ) < start(βᵢ) (or βᵢ does not exist). Then start(αᵢ) ∈ S since start(αᵢ) ∈ ⟦αᵢ⟧. But start(αᵢ) ∉ ⟦βⱼ⟧ for any j: for j < i, reach(βⱼ) = reach(αⱼ) < start(αᵢ) by N2 on Σ̂₁; for j ≥ i, start(βⱼ) ≥ start(βᵢ) > start(αᵢ) by N1 on Σ̂₂. So start(αᵢ) ∉ ⟦Σ̂₂⟧ = S. Contradiction.
 
-*Case 2:* start(αᵢ) = start(βᵢ) but reach(αᵢ) ≠ reach(βᵢ), say reach(αᵢ) < reach(βᵢ). Set p = reach(αᵢ). Then p ∈ ⟦βᵢ⟧ since start(βᵢ) = start(αᵢ) < reach(αᵢ) = p < reach(βᵢ), so p ∈ S. But p ∉ ⟦αᵢ⟧ since p = reach(αᵢ) is the exclusive upper bound. For j < i, p ∉ ⟦αⱼ⟧ since p = reach(αᵢ) > reach(αⱼ) by chaining N2. For j > i, p ∉ ⟦αⱼ⟧ since p = reach(αᵢ) < start(αᵢ₊₁) ≤ start(αⱼ) by N2 and N1. So p ∉ ⟦Σ̂₁⟧, but p ∈ S. Contradiction.
+*Case 2:* start(αᵢ) = start(βᵢ) but reach(αᵢ) ≠ reach(βᵢ), say reach(αᵢ) < reach(βᵢ). Set p = reach(αᵢ). Then p ∈ ⟦βᵢ⟧ since start(βᵢ) = start(αᵢ) < reach(αᵢ) = p < reach(βᵢ), so p ∈ S. But p ∉ ⟦αᵢ⟧ since p = reach(αᵢ) is the exclusive upper bound. For j < i, p ∉ ⟦αⱼ⟧ since p = reach(αᵢ) > reach(αⱼ) by N2 (reach(αⱼ) < start(αⱼ₊₁)), repeated application of N1 (start(αⱼ₊₁) < ... < start(αᵢ)), and non-emptiness (start(αᵢ) < reach(αᵢ)). For j > i, p ∉ ⟦αⱼ⟧ since p = reach(αᵢ) < start(αᵢ₊₁) ≤ start(αⱼ) by N2 and N1. So p ∉ ⟦Σ̂₁⟧, but p ∈ S. Contradiction.
 
 *Case 3:* start(αᵢ) > start(βᵢ). Symmetric to Case 1.
 
@@ -325,7 +325,7 @@ Two findings from Gregory's implementation evidence illuminate the boundary betw
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| D0 | Displacement well-definedness: a ≤ b and divergence(a, b) ≤ #a (necessary for arithmetic, not sufficient for round-trip) | introduced |
+| D0 | Displacement well-definedness: a < b and divergence(a, b) ≤ #a (ensures positive displacement with TA0 satisfied) | introduced |
 | D1 | Displacement round-trip: for a < b with #a = #b, a ⊕ (b ⊖ a) = b | introduced |
 | S0 | Spans are convex: every position between two members is also a member | introduced |
 | SC | Span classification: five exhaustive cases (separated, adjacent, proper overlap, containment, equal) | introduced |
