@@ -9,7 +9,7 @@ This ASN extends the tumbler algebra foundation (ASN-0034) with two properties o
 
 TumblerAdd's constructive definition determines each component of the result from exactly one input. This makes the operation left-cancellative.
 
-**TA-LC** (*LeftCancellation*). If a ⊕ x = a ⊕ y with both sides well-defined (TA0 satisfied for both), then x = y.
+**TA-LC** — *LeftCancellation* (LEMMA, lemma). If a ⊕ x = a ⊕ y with both sides well-defined (TA0 satisfied for both), then x = y.
 
 *Proof.* Let k₁ and k₂ be the action points of x and y. If k₁ < k₂, then (a ⊕ x)_{k₁} = a_{k₁} + x_{k₁} while (a ⊕ y)_{k₁} = a_{k₁} (position k₁ falls in the "copy from start" range of y). Equality gives x_{k₁} = 0, contradicting k₁ being the action point of x. Symmetrically k₂ < k₁ is impossible. So k₁ = k₂ = k.
 
@@ -24,7 +24,7 @@ TumblerAdd is *left-cancellative*: the start position can be "divided out" from 
 
 The converse — right cancellation — does not hold. TumblerAdd's many-to-one property (noted informally in ASN-0034's definition of TumblerAdd) means distinct starts can produce the same result under the same displacement.
 
-**TA-RC** (*RightCancellationFailure*). There exist tumblers a, b, w with a ≠ b and a ⊕ w = b ⊕ w (both sides well-defined).
+**TA-RC** — *RightCancellationFailure* (LEMMA, lemma). There exist tumblers a, b, w with a ≠ b and a ⊕ w = b ⊕ w (both sides well-defined).
 
 *Proof by example.* Let a = [1, 3, 5], b = [1, 3, 7], and w = [0, 2, 4] (action point k = 2). Then:
 
@@ -35,13 +35,11 @@ So a ⊕ w = b ⊕ w = [1, 5, 4] despite a ≠ b — the difference at position 
 
 The mechanism is TumblerAdd's tail replacement: components of the start position after the action point are discarded and replaced by the displacement's tail. Any two starts that agree on components 1..k and differ only on components after k will produce the same result under any displacement with action point k. Formally:
 
-**TA-MTO** (*ManyToOne*). For any displacement w with action point k and any tumblers a, b with #a ≥ k, #b ≥ k, and a_i = b_i for all 1 ≤ i ≤ k: a ⊕ w = b ⊕ w.
+**TA-MTO** — *ManyToOne* (LEMMA, lemma). For any displacement w with action point k and any tumblers a, b with #a ≥ k and #b ≥ k: a ⊕ w = b ⊕ w if and only if a_i = b_i for all 1 ≤ i ≤ k.
 
-*Proof.* From TumblerAdd's definition: for i < k, (a ⊕ w)_i = a_i = b_i = (b ⊕ w)_i. At i = k, (a ⊕ w)_k = a_k + w_k = b_k + w_k = (b ⊕ w)_k. For i > k, (a ⊕ w)_i = w_i = (b ⊕ w)_i. The results have the same length (max(k − 1, 0) + (#w − k + 1) depends only on k and #w). By T3, a ⊕ w = b ⊕ w.  ∎
+*Proof (forward).* Assume a_i = b_i for all 1 ≤ i ≤ k. From TumblerAdd's definition: for i < k, (a ⊕ w)_i = a_i = b_i = (b ⊕ w)_i. At i = k, (a ⊕ w)_k = a_k + w_k = b_k + w_k = (b ⊕ w)_k. For i > k, (a ⊕ w)_i = w_i = (b ⊕ w)_i. The results have the same length (max(k − 1, 0) + (#w − k + 1) depends only on k and #w). By T3, a ⊕ w = b ⊕ w.  ∎
 
-The converse also holds.
-
-*Proof of converse.* Suppose a ⊕ w = b ⊕ w. Let k be the action point of w. We must show a_i = b_i for all 1 ≤ i ≤ k.
+*Proof (converse).* Suppose a ⊕ w = b ⊕ w. Let k be the action point of w. We must show a_i = b_i for all 1 ≤ i ≤ k.
 
 (a) For i < k: position i falls in the "copy from start" region of TumblerAdd, so (a ⊕ w)_i = a_i and (b ⊕ w)_i = b_i. From a ⊕ w = b ⊕ w we get a_i = b_i.
 
@@ -54,11 +52,11 @@ This gives a precise characterization of the equivalence classes: *a and b produ
 
 ## Statement registry
 
-| Label | Statement | Status |
-|-------|-----------|--------|
-| TA-LC | a ⊕ x = a ⊕ y ⟹ x = y (left cancellation) | introduced |
-| TA-RC | Right cancellation fails: ∃ a ≠ b with a ⊕ w = b ⊕ w | introduced |
-| TA-MTO | a agrees with b on components 1..k ⟺ a ⊕ w = b ⊕ w for displacement w with action point k | introduced |
+| Label | Type | Statement | Status |
+|-------|------|-----------|--------|
+| TA-LC | LEMMA, lemma | a ⊕ x = a ⊕ y ⟹ x = y (left cancellation) | introduced |
+| TA-RC | LEMMA, lemma | Right cancellation fails: ∃ a ≠ b with a ⊕ w = b ⊕ w | introduced |
+| TA-MTO | LEMMA, lemma | a agrees with b on components 1..k ⟺ a ⊕ w = b ⊕ w for displacement w with action point k | introduced |
 
 
 ## Open Questions
