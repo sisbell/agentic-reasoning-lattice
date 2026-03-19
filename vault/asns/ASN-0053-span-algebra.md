@@ -269,11 +269,7 @@ The result is a sequence of spans satisfying N1 (starts are sorted because we em
 
 *Case 1:* start(αᵢ) < start(βᵢ) (or βᵢ does not exist). Then start(αᵢ) ∈ S since start(αᵢ) ∈ ⟦αᵢ⟧. But start(αᵢ) ∉ ⟦βⱼ⟧ for any j: for j < i, reach(βⱼ) = reach(αⱼ) < start(αᵢ) by N2 on Σ̂₁; for j ≥ i, start(βⱼ) ≥ start(βᵢ) > start(αᵢ) by N1 on Σ̂₂. So start(αᵢ) ∉ ⟦Σ̂₂⟧ = S. Contradiction.
 
-*Case 2:* start(αᵢ) = start(βᵢ) but reach(αᵢ) ≠ reach(βᵢ), say reach(αᵢ) < reach(βᵢ). Take any position p with reach(αᵢ) ≤ p < reach(βᵢ). Then p ∈ ⟦βᵢ⟧ ⊆ S. But p ∉ ⟦αᵢ⟧ (since p ≥ reach(αᵢ)), and p ∉ ⟦αⱼ⟧ for j < i (since p ≥ reach(αᵢ) > reach(αᵢ₋₁) by N2). For j > i, two sub-cases:
-
-  — *Sub-case 2a:* p < start(αᵢ₊₁). Then p ∉ ⟦αⱼ⟧ for all j > i (since the αⱼ are sorted by N1). So p ∉ ⟦Σ̂₁⟧, but p ∈ S. Contradiction.
-
-  — *Sub-case 2b:* p ≥ start(αᵢ₊₁). Then the gap [reach(αᵢ), start(αᵢ₊₁)) is non-empty (since start(αᵢ₊₁) > reach(αᵢ) by N2) and every position in this gap lies in ⟦βᵢ⟧ ⊆ S but not in ⟦Σ̂₁⟧. Contradiction with ⟦Σ̂₁⟧ = S.
+*Case 2:* start(αᵢ) = start(βᵢ) but reach(αᵢ) ≠ reach(βᵢ), say reach(αᵢ) < reach(βᵢ). Set p = reach(αᵢ). Then p ∈ ⟦βᵢ⟧ since start(βᵢ) = start(αᵢ) < reach(αᵢ) = p < reach(βᵢ), so p ∈ S. But p ∉ ⟦αᵢ⟧ since p = reach(αᵢ) is the exclusive upper bound. For j < i, p ∉ ⟦αⱼ⟧ since p = reach(αᵢ) > reach(αⱼ) by chaining N2. For j > i, p ∉ ⟦αⱼ⟧ since p = reach(αᵢ) < start(αᵢ₊₁) ≤ start(αⱼ) by N2 and N1. So p ∉ ⟦Σ̂₁⟧, but p ∈ S. Contradiction.
 
 *Case 3:* start(αᵢ) > start(βᵢ). Symmetric to Case 1.
 
