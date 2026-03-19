@@ -2,7 +2,7 @@
 # Generate Rust oracle from verified Dafny proofs.
 #
 # Copies proof files to a temp directory, substitutes abstract types
-# with concrete ones, runs dafny translate rs, and outputs to vault/oracle/.
+# with concrete ones, runs dafny translate rs, and outputs to vault/8-translation/.
 #
 # Usage: ./scripts/generate-oracle.sh
 
@@ -10,7 +10,7 @@ set -euo pipefail
 
 WORKSPACE="$(cd "$(dirname "$0")/.." && pwd)"
 PROOFS="$WORKSPACE/vault/5-proofs"
-ORACLE="$WORKSPACE/vault/oracle"
+ORACLE="$WORKSPACE/vault/8-translation"
 TMPDIR="$(mktemp -d)"
 STAGING="$TMPDIR/vault/5-proofs"
 

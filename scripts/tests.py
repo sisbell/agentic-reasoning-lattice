@@ -27,7 +27,7 @@ PROMPTS = WORKSPACE / "scripts" / "prompts" / "test-cases"
 EXAMPLES_DIR = WORKSPACE / "vault" / "6-examples"
 TESTCASES_DIR = WORKSPACE / "vault" / "7-test-cases"
 
-ORACLE_DIR = WORKSPACE / "vault" / "oracle" / "xanadu-oracle-rust"
+ORACLE_DIR = WORKSPACE / "vault" / "8-translation" / "xanadu-oracle-rust"
 TESTS_DIR = ORACLE_DIR / "tests"
 
 EXTRACT_MODEL = "sonnet"
