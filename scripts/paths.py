@@ -31,6 +31,12 @@ VERIFICATION_DIR = VAULT / "4-modeling" / "verification"
 PROOF_IMPORTS = PROOFS_DIR / "imports.md"
 FOUNDATION_LIST = ASNS_DIR / "foundation.md"
 
+# Stage 5: Worked Examples
+EXAMPLES_DIR = VAULT / "5-examples"
+
+# Stage 6: Test Cases
+TESTCASES_DIR = VAULT / "6-test-cases"
+
 # Manifests (per-ASN pipeline configuration)
 PROJECT_MODEL_DIR = VAULT / "project-model"
 
