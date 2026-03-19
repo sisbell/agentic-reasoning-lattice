@@ -290,9 +290,12 @@ Nelson confirms both existence and uniqueness: "The tumbler line is a total orde
 
 ## Union is order-independent
 
-**S10** (*UnionOrderIndependence*). The normalized form of a span-set union is independent of the order in which spans are combined:
+**S10** (*UnionOrderIndependence*). For span-sets Σ₁, Σ₂ whose component spans are level-uniform and mutually level-compatible across both sets, the normalized form of their union is independent of the order in which spans are combined:
 
   normalize(Σ₁ ∪ Σ₂) = normalize(Σ₂ ∪ Σ₁)                  (commutativity)
+
+For span-sets Σ₁, Σ₂, Σ₃ whose component spans are level-uniform and mutually level-compatible across all three sets:
+
   normalize((Σ₁ ∪ Σ₂) ∪ Σ₃) = normalize(Σ₁ ∪ (Σ₂ ∪ Σ₃))    (associativity)
 
 *Proof.* ⟦Σ₁ ∪ Σ₂⟧ = ⟦Σ₁⟧ ∪ ⟦Σ₂⟧ = ⟦Σ₂⟧ ∪ ⟦Σ₁⟧ = ⟦Σ₂ ∪ Σ₁⟧. Since normalization depends only on the denotation (S9), normalize(Σ₁ ∪ Σ₂) = normalize(Σ₂ ∪ Σ₁). Associativity follows identically from the associativity of set union.  ∎
@@ -356,7 +359,7 @@ Two findings from Gregory's implementation evidence illuminate the boundary betw
 | S7 | Every finite set of positions admits a covering span-set | introduced |
 | S8 | Every level-compatible span-set has a normalized equivalent: sorted, non-overlapping, non-adjacent | introduced |
 | S9 | The normalized form of a span-set is unique | introduced |
-| S10 | Span-set union (as normalization) is commutative and associative | introduced |
+| S10 | For level-uniform, mutually level-compatible span-sets, union (as normalization) is commutative and associative | introduced |
 | S11 | For level-uniform, level-compatible spans with containment, the difference is at most 2 spans | introduced |
 | σ.reach | reach(σ) = start(σ) ⊕ width(σ) — the exclusive upper bound | introduced |
 | σ.denotation | ⟦σ⟧ = {t ∈ T : start(σ) ≤ t < reach(σ)} | introduced |
