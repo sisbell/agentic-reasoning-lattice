@@ -19,3 +19,4 @@ Generated from vault/project-model/ASN-*.yaml
 | ASN-0053 | Span Algebra | inquiry | 34, 55 |
 | ASN-0054 | Arrangement Structure | inquiry | 34, 36, 45, 47, 53 |
 | ASN-0055 | Tumbler Algebra 0 | converged | 34 |
+| ASN-0056 | Span Algebra 0 | inquiry | 34, 53 |
