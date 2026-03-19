@@ -39,7 +39,7 @@ from paths import (WORKSPACE, ASNS_DIR, DAFNY_DIR, PROOF_INDEX_DIR,
 VERIFY_SCRIPT = WORKSPACE / "scripts" / "lib" / "model_verify_run.py"
 FIX_SCRIPT = WORKSPACE / "scripts" / "lib" / "model_fix.py"
 PROOF_INDEX_SCRIPT = WORKSPACE / "scripts" / "lib" / "model_index.py"
-EXTRACT_SCRIPT = WORKSPACE / "scripts" / "lib" / "model_statements.py"
+EXTRACT_SCRIPT = WORKSPACE / "scripts" / "lib" / "export_statements.py"
 GENERATE_SCRIPT = WORKSPACE / "scripts" / "lib" / "model_dafny.py"  # was generate-dafny.py; now points to per-property generator
 COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
 

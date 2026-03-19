@@ -6,7 +6,6 @@ from pathlib import Path
 LIB = Path(__file__).resolve().parent / "lib"
 CMDS = {
     "index":        LIB / "model_index.py",
-    "statements":   LIB / "model_statements.py",
     "alloy":        LIB / "model_alloy.py",
     "dafny":        LIB / "model_dafny.py",
     "verify-dafny": LIB / "model_verify.py",

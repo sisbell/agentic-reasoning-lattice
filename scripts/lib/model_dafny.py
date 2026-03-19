@@ -677,7 +677,7 @@ def main():
     if extract_path is None:
         print(f"  No extract found for {args.asn} in {STATEMENTS_DIR.relative_to(WORKSPACE)}/",
               file=sys.stderr)
-        print(f"  Run: python scripts/model.py statements {args.asn}", file=sys.stderr)
+        print(f"  Run: python scripts/export.py {args.asn}", file=sys.stderr)
         sys.exit(1)
 
     template_text = read_file(TEMPLATE)

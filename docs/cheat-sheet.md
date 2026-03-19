@@ -60,8 +60,8 @@ Everything else — ASN review, revise, consult, fix — is delegated. Dafny rev
                            v
   ┌──────────────────────────────────────────────┐
   │          FORMALIZATION (automated)           │
+  │  export.py N                                  │
   │  model.py index N                            │
-  │  model.py statements N                       │
   │  model.py dafny N  (generate, STATUS, commit)│
   └──────────────────────────────────────────────┘
                            |

@@ -193,10 +193,10 @@ python scripts/revise.py N
 
 ```bash
 # Classify properties and assign proof labels
-python scripts/model.py index 1
-
 # Extract formal statements from ASN prose
-python scripts/model.py statements 1
+python scripts/export.py 1
+
+python scripts/model.py index 1
 
 # Generate Dafny per-property (creates new modeling-N/ directory)
 python scripts/model.py dafny 1

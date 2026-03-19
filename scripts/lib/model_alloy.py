@@ -855,7 +855,7 @@ def main():
     if not extract:
         print(f"  No extract found at {extract_path.relative_to(WORKSPACE)}",
               file=sys.stderr)
-        print(f"  Run: python scripts/model.py statements {args.asn}",
+        print(f"  Run: python scripts/export.py {args.asn}",
               file=sys.stderr)
         sys.exit(1)
 

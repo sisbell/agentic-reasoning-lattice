@@ -1,0 +1,222 @@
+#!/usr/bin/env python3
+"""
+Export formal statements from a converged ASN.
+
+Reads the reasoning document directly and extracts formal statements
+using the ASN's own statement registry as the roster. Produces a
+statements file in vault/3-export/ for use as foundation by downstream
+ASNs.
+
+Does NOT depend on the proof index — operates purely on the reasoning doc.
+
+Usage:
+    python scripts/export.py 55
+    python scripts/export.py ASN-0055 --dry-run
+"""
+
+import argparse
+import json
+import os
+import re
+import subprocess
+import sys
+import time
+
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from paths import WORKSPACE, ASNS_DIR, STATEMENTS_DIR, USAGE_LOG
+
+PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
+TEMPLATE = PROMPTS_DIR / "export.md"
+COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
+
+
+def read_file(path):
+    try:
+        return Path(path).read_text()
+    except FileNotFoundError:
+        return ""
+
+
+def find_asn(asn_id):
+    """Find ASN file by number. Accepts 9, 09, 0009, ASN-0009, or full path."""
+    path = Path(asn_id)
+    if path.exists():
+        label = re.match(r"(ASN-\d+)", path.stem)
+        return path, label.group(1) if label else path.stem
+
+    num = re.sub(r"[^0-9]", "", str(asn_id))
+    if not num:
+        return None, None
+    label = f"ASN-{int(num):04d}"
+    matches = sorted(ASNS_DIR.glob(f"{label}-*.md"))
+    if matches:
+        return matches[0], label
+    return None, label
+
+
+def build_prompt(asn_content):
+    """Assemble export prompt from template + ASN content."""
+    template = read_file(TEMPLATE)
+    if not template:
+        print("  Prompt template not found at scripts/prompts/discovery/export.md",
+              file=sys.stderr)
+        sys.exit(1)
+
+    return template.replace("{{asn_content}}", asn_content)
+
+
+def strip_preamble(text):
+    """Strip any preamble before the statements header."""
+    marker = re.search(r"^# ASN-\d+", text, re.MULTILINE)
+    if marker:
+        return text[marker.start():]
+    return text
+
+
+def invoke_claude(prompt, model="sonnet", effort="high"):
+    """Call claude --print with --tools "". Returns plain text response."""
+    model_flag = {
+        "opus": "claude-opus-4-6",
+        "sonnet": "claude-sonnet-4-6",
+    }.get(model, model)
+
+    cmd = [
+        "claude", "--print",
+        "--model", model_flag,
+        "--tools", "",
+    ]
+
+    env = os.environ.copy()
+    env.pop("CLAUDECODE", None)
+    if effort:
+        env["CLAUDE_CODE_EFFORT_LEVEL"] = effort
+
+    start = time.time()
+    result = subprocess.run(
+        cmd, input=prompt, capture_output=True, text=True, env=env,
+        timeout=None,
+    )
+    elapsed = time.time() - start
+
+    if result.returncode != 0:
+        print(f"  FAILED (exit {result.returncode}, {elapsed:.0f}s)",
+              file=sys.stderr)
+        if result.stderr:
+            for line in result.stderr.strip().split("\n")[:3]:
+                print(f"    {line}", file=sys.stderr)
+        return "", elapsed
+
+    print(f"  [{elapsed:.0f}s]", file=sys.stderr)
+    return result.stdout.strip(), elapsed
+
+
+def log_usage(asn_label, elapsed):
+    """Append a usage entry to the log."""
+    try:
+        entry = {
+            "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
+            "skill": "export-statements",
+            "asn": asn_label,
+            "elapsed_s": round(elapsed, 1),
+        }
+        with open(USAGE_LOG, "a") as f:
+            f.write(json.dumps(entry) + "\n")
+    except OSError:
+        pass
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Export formal statements from a converged ASN")
+    parser.add_argument("asn",
+                        help="ASN number (e.g., 55, 0055, ASN-0055) or path")
+    parser.add_argument("--model", "-m", default="sonnet",
+                        choices=["opus", "sonnet"],
+                        help="Model (default: sonnet)")
+    parser.add_argument("--effort", default="high",
+                        help="Thinking effort level (low/medium/high/max)")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="Show prompt size without invoking Claude")
+    args = parser.parse_args()
+
+    # Find ASN
+    asn_path, asn_label = find_asn(args.asn)
+    if asn_path is None:
+        print(f"  No ASN found for {args.asn} in vault/1-reasoning-docs/",
+              file=sys.stderr)
+        sys.exit(1)
+
+    asn_content = asn_path.read_text()
+
+    # Build prompt
+    print(f"  [EXPORT] {asn_label}", file=sys.stderr)
+    prompt = build_prompt(asn_content)
+    print(f"  Prompt: {len(prompt) // 1024}KB (~{len(prompt) // 4} tokens est.)",
+          file=sys.stderr)
+
+    if args.dry_run:
+        print(f'  [DRY RUN] Would invoke {args.model} with --tools ""',
+              file=sys.stderr)
+        return
+
+    # Invoke Claude
+    text, elapsed = invoke_claude(prompt, model=args.model,
+                                  effort=args.effort)
+
+    if not text:
+        print("  No statements extracted", file=sys.stderr)
+        sys.exit(1)
+
+    # Strip any preamble
+    text = strip_preamble(text)
+
+    # Add source metadata after the title
+    date_match = re.search(r"\*.*?(\d{4}-\d{2}-\d{2}).*?\*", asn_content)
+    all_dates = re.findall(r"\d{4}-\d{2}-\d{2}",
+                           date_match.group(0)) if date_match else []
+    asn_date = all_dates[-1] if all_dates else "unknown"
+
+    source_line = (f"\n*Source: {asn_path.name} (revised {asn_date}) — "
+                   f"Extracted: {time.strftime('%Y-%m-%d')}*\n")
+    lines = text.split("\n", 1)
+    if len(lines) == 2:
+        text = lines[0] + "\n" + source_line + lines[1]
+    else:
+        text = text + "\n" + source_line
+
+    # Write output
+    STATEMENTS_DIR.mkdir(parents=True, exist_ok=True)
+    out_path = STATEMENTS_DIR / f"{asn_label}-statements.md"
+    out_path.write_text(text + "\n")
+
+    # Log usage
+    log_usage(asn_label, elapsed)
+
+    # Print output file path to stdout (for pipeline consumption)
+    print(str(out_path))
+
+    print(f"  [WROTE] {out_path.relative_to(WORKSPACE)}", file=sys.stderr)
+
+    # Commit
+    if not args.dry_run:
+        print(f"\n  === COMMIT ===", file=sys.stderr)
+        cmd = [sys.executable, str(COMMIT_SCRIPT),
+               f"Export statements {asn_label}"]
+        result = subprocess.run(
+            cmd, capture_output=True, text=True, cwd=str(WORKSPACE),
+        )
+        if result.returncode != 0:
+            print(f"  [COMMIT] FAILED", file=sys.stderr)
+            if result.stderr:
+                for line in result.stderr.strip().split("\n")[:3]:
+                    print(f"    {line}", file=sys.stderr)
+        else:
+            if result.stderr:
+                for line in result.stderr.strip().split("\n"):
+                    print(f"  {line}", file=sys.stderr)
+
+
+if __name__ == "__main__":
+    main()

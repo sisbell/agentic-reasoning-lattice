@@ -197,8 +197,8 @@ Output:
 Run after an ASN has converged through review. Three steps, each building on the previous:
 
 ```
+python scripts/export.py 4                   # extract formal statements from ASN prose
 python scripts/model.py index 4              # classify properties, assign proof labels
-python scripts/model.py statements 4         # extract formal statements from ASN prose
 python scripts/model.py dafny 4              # generate verified Dafny per property
 ```
 
@@ -301,7 +301,7 @@ python scripts/requirements.py                # extract features from all ASNs
 | `review_consult.py` | Categorize review findings, run targeted expert consultations (opus) |
 | `review_revise.py` | Revise an ASN based on review feedback (opus, with tools) |
 | `model_index.py` | Classify properties and assign proof labels (opus, post-convergence) |
-| `model_statements.py` | Extract formal property statements from ASN prose (sonnet) |
+| `export_statements.py` | Extract formal property statements from ASN prose (sonnet) |
 | `model_alloy.py` | Alloy pipeline — generate, check, repair, review → consult → revise (sonnet) |
 | `model_dafny.py` | Generate Dafny per-property specification (opus) |
 | `model_verify.py` | Verification loop — verify → fix → re-verify with tier escalation |
@@ -334,7 +334,7 @@ python scripts/requirements.py                # extract features from all ASNs
 | Template | Used by | Purpose |
 |----------|---------|---------|
 | `refine.md` | `model_index.py` | Property classification and proof labeling |
-| `extract-properties.md` | `model_statements.py` | Extract formal properties from ASN |
+| `export.md` | `export_statements.py` | Extract formal statements from ASN |
 | `generate-dafny.md` | `model_dafny.py` | Generate Dafny module from extract |
 | `fix-dafny.md` | `model_fix.py` | Fix Dafny errors (Tier 1 syntax, Tier 2 proof) |
 | `check-alloy.md` | `model_alloy.py` | Generate Alloy model for bounded checking |
