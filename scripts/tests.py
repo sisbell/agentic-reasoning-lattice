@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 """
-Extract test cases from worked examples.
+Test case pipeline for worked examples.
 
-Decomposes worked examples into individual examples, then uses an LLM
-to extract concrete Given/Assert test cases from each example.
-Review/revise loop ensures executability, completeness, and correctness.
+Subcommands:
+    extract  — decompose worked examples into Given/Assert test cases
+    codegen  — translate test cases to Rust #[test] functions
 
 Usage:
     python scripts/tests.py extract 34
     python scripts/tests.py extract 34 --example 1
     python scripts/tests.py extract 34 --max-cycles 5
+    python scripts/tests.py codegen 34
+    python scripts/tests.py codegen 34 --case 4
 """
 
 import argparse
@@ -25,10 +27,15 @@ PROMPTS = WORKSPACE / "scripts" / "prompts" / "test-cases"
 EXAMPLES_DIR = WORKSPACE / "vault" / "5-examples"
 TESTCASES_DIR = WORKSPACE / "vault" / "6-test-cases"
 
+ORACLE_DIR = WORKSPACE / "vault" / "oracle" / "xanadu-oracle-rust"
+TESTS_DIR = ORACLE_DIR / "tests"
+
 EXTRACT_MODEL = "sonnet"
 REVIEW_MODEL = "sonnet"
+CODEGEN_MODEL = "sonnet"
 EXTRACT_PROMPT = PROMPTS / "extract.md"
 REVIEW_PROMPT = PROMPTS / "review.md"
+CODEGEN_PROMPT = PROMPTS / "codegen.md"
 
 
 
@@ -213,9 +220,7 @@ def process_example(example_num, example_name, example_text,
             return tc_count
 
         if verdict == "REVISE":
-            issue_count = (review_text.count("### Issue")
-                           + review_text.count("### Gap")
-                           + review_text.count("### Error"))
+            issue_count = review_text.count("### ")
             print(f"  [REVIEW] REVISE — {issue_count} findings ({elapsed:.0f}s)")
 
             print(f"  [REVISE] Addressing findings...")
@@ -237,6 +242,185 @@ def process_example(example_num, example_name, example_text,
     tc_count = len(re.findall(r"^## TC-\d+", tc_text, re.MULTILINE))
     print(f"  [MAX CYCLES] {max_cycles} cycles reached")
     return tc_count
+
+
+def extract_rust_code(response):
+    """Extract Rust code from LLM response.
+
+    Returns the raw response if it looks like bare Rust (no markdown fences).
+    Otherwise extracts content from ```rust ... ``` fences.
+    """
+    # If response starts with mod/use/#, treat as bare Rust
+    stripped = response.lstrip()
+    if stripped.startswith(("mod ", "use ", "#[", "#!", "//", "extern ")):
+        return response
+
+    # Try to extract from markdown fences
+    blocks = re.findall(r"```rust\s*\n(.*?)```", response, re.DOTALL)
+    if blocks:
+        return "\n\n".join(blocks)
+
+    # Fallback: return as-is
+    return response
+
+
+def extract_oracle_api(oracle_src):
+    """Extract public API signatures from oracle source.
+
+    Pulls out module names and pub fn signatures with their doc comments,
+    skipping implementation bodies. Gives the LLM enough to map test case
+    operations to oracle calls without the full 1500-line source.
+    """
+    lines = oracle_src.split("\n")
+    api_lines = []
+    current_module = None
+    in_impl_default = False
+    brace_depth = 0
+
+    for line in lines:
+        # Track modules (top-level pub mod resets state)
+        m = re.match(r"^pub mod (\w+)", line)
+        if m:
+            current_module = m.group(1)
+            in_impl_default = False
+            api_lines.append(f"\n// --- {current_module} ---")
+            continue
+
+        # Track impl _default blocks (static methods)
+        if "impl _default" in line:
+            in_impl_default = True
+            continue
+
+        # Any other impl block ends _default context
+        if re.match(r"\s+impl\b", line) and "_default" not in line:
+            in_impl_default = False
+            continue
+
+        # Collect pub fn signatures inside impl _default
+        if in_impl_default and line.strip().startswith("pub fn "):
+            sig = line.rstrip().rstrip("{").rstrip()
+            api_lines.append(
+                f"  // {current_module}::_default::{sig.strip()}")
+            continue
+
+        # Collect pub enum variants for type context
+        if line.strip().startswith("pub enum "):
+            api_lines.append(f"  {line.strip()}")
+            continue
+
+        # Collect field accessors (on data types, not _default)
+        if (not in_impl_default
+                and line.strip().startswith("pub fn ")
+                and "(&self)" in line):
+            sig = line.rstrip().rstrip("{").rstrip()
+            api_lines.append(f"  {sig.strip()}")
+            continue
+
+    return "\n".join(api_lines)
+
+
+def codegen_case(case_num, case_text, oracle_api, harness_src):
+    """Generate Rust test code from a single test case file."""
+    template = CODEGEN_PROMPT.read_text()
+
+    prompt = template.replace("{{ORACLE_API}}", oracle_api)
+    prompt = prompt.replace("{{HARNESS}}", harness_src)
+    prompt = prompt.replace("{{TEST_CASE}}", case_text)
+
+    start = time.time()
+    result = call_claude(prompt, model=CODEGEN_MODEL)
+    elapsed = time.time() - start
+
+    if result is None:
+        return None, elapsed
+
+    rust_code = extract_rust_code(result)
+    return rust_code, elapsed
+
+
+def cmd_codegen(args):
+    """Generate Rust #[test] files from test cases."""
+    label = f"ASN-{args.asn:04d}"
+    tc_dir = TESTCASES_DIR / label
+
+    if not tc_dir.exists():
+        print(f"[ERROR] No test cases found: {tc_dir}", file=sys.stderr)
+        sys.exit(1)
+
+    # Find case files
+    case_files = sorted(tc_dir.glob("case-*.md"))
+    if not case_files:
+        print(f"[ERROR] No case-*.md files in {tc_dir}", file=sys.stderr)
+        sys.exit(1)
+
+    if args.case:
+        case_files = [f for f in case_files
+                      if f.name == f"case-{args.case}.md"]
+        if not case_files:
+            print(f"[ERROR] case-{args.case}.md not found", file=sys.stderr)
+            sys.exit(1)
+
+    # Ensure tests directory exists
+    TESTS_DIR.mkdir(parents=True, exist_ok=True)
+
+    # Load oracle API and harness (once, shared across all cases)
+    oracle_src_file = ORACLE_DIR / "src" / "xanadu_oracle.rs"
+    harness_file = TESTS_DIR / "harness" / "mod.rs"
+
+    if not oracle_src_file.exists():
+        print(f"[ERROR] Oracle source not found: {oracle_src_file}",
+              file=sys.stderr)
+        sys.exit(1)
+    if not harness_file.exists():
+        print(f"[ERROR] Harness not found: {harness_file}",
+              file=sys.stderr)
+        sys.exit(1)
+
+    oracle_api = extract_oracle_api(oracle_src_file.read_text())
+    harness_src = harness_file.read_text()
+
+    print(f"\n{'='*60}")
+    print(f"Codegen: {label}")
+    print(f"Cases to generate: {len(case_files)}")
+    print(f"Oracle API: {len(oracle_api.splitlines())} lines")
+    print(f"Output: {TESTS_DIR}")
+    print(f"{'='*60}")
+
+    total_start = time.time()
+    generated = 0
+
+    for case_file in case_files:
+        m = re.match(r"case-(\d+)\.md", case_file.name)
+        if not m:
+            continue
+        case_num = int(m.group(1))
+        out_file = TESTS_DIR / f"case_{case_num}.rs"
+
+        print(f"\n  ── Case {case_num}: {case_file.name} ──")
+
+        case_text = case_file.read_text()
+        tc_count = len(re.findall(r"^## TC-\d+", case_text, re.MULTILINE))
+
+        print(f"  [CODEGEN] {tc_count} test cases → Rust...")
+        rust_code, elapsed = codegen_case(case_num, case_text,
+                                          oracle_api, harness_src)
+
+        if rust_code is None:
+            print(f"  [CODEGEN] FAILED ({elapsed:.0f}s)")
+            continue
+
+        out_file.write_text(rust_code)
+        fn_count = len(re.findall(r"#\[test\]", rust_code))
+        print(f"  [CODEGEN] Done — {fn_count} #[test] functions ({elapsed:.0f}s)")
+        generated += 1
+
+    total_elapsed = time.time() - total_start
+
+    print(f"\n{'='*60}")
+    print(f"Generated {generated}/{len(case_files)} case files ({total_elapsed:.0f}s)")
+    print(f"Output: {TESTS_DIR}")
+    print(f"{'='*60}")
+    print(f"\nNext: cd {ORACLE_DIR} && cargo test")
 
 
 def cmd_extract(args):
@@ -310,14 +494,24 @@ def main():
                                 help="ASN number (e.g., 34)")
     extract_parser.add_argument("--example", type=int, default=None,
                                 help="Extract from a specific example only")
-    extract_parser.add_argument("--max-cycles", type=int, default=3,
+    extract_parser.add_argument("--max-cycles", type=int, default=8,
                                 help="Max review/revise cycles per example "
-                                     "(default: 3)")
+                                     "(default: 8)")
+
+    codegen_parser = subparsers.add_parser(
+        "codegen", help="Generate Rust #[test] from test cases"
+    )
+    codegen_parser.add_argument("asn", type=int,
+                                help="ASN number (e.g., 34)")
+    codegen_parser.add_argument("--case", type=int, default=None,
+                                help="Generate for a specific case only")
 
     args = parser.parse_args()
 
     if args.command == "extract":
         cmd_extract(args)
+    elif args.command == "codegen":
+        cmd_codegen(args)
 
 
 if __name__ == "__main__":
