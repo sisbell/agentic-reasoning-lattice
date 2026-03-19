@@ -253,9 +253,9 @@ Condition N2 uses strict inequality. If reach(σᵢ) = start(σᵢ₊₁), the s
 *Construction.* If n = 0, the result is the empty span-set ⟨⟩, which vacuously satisfies N1 and N2. For n ≥ 1, proceed as follows. Sort the component spans by start position (T1 makes this well-defined). Scan left to right, maintaining a current interval [s, r). For each span σᵢ in sorted order:
 
   — If start(σᵢ) ≤ r (overlap or adjacency): extend r to max(r, reach(σᵢ)).
-  — If start(σᵢ) > r (separated): emit the current interval as a span (s, r ⊖ s) — level-uniformity and S6 ensure #s = #r, so by D1 the reach is faithful — then start a new current interval at [start(σᵢ), reach(σᵢ)).
+  — If start(σᵢ) > r (separated): emit the current interval as a span (s, r ⊖ s). Level-uniformity and S6 ensure #s = #r, so by D1 the reach is faithful. We verify T12: since s < r (the current interval was initialized from a non-empty span and is only extended by the merge step), the divergence k satisfies k ≤ #s (type (i), as #s = #r excludes the prefix case), and the width r ⊖ s has a positive component at position k (rₖ − sₖ > 0 at the divergence point). The action point of the width is k ≤ #s, so the emitted span is well-formed. Then start a new current interval at [start(σᵢ), reach(σᵢ)).
 
-After processing all spans, emit the final interval.
+After processing all spans, emit the final interval — the same T12 verification applies (the final interval is non-empty because it was initialized from a non-empty span).
 
 *Loop invariant.* Let E be the set of emitted spans after processing σ₁..σᵢ, and [s, r) the current interval. The invariant J is:
 
