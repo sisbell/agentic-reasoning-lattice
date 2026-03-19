@@ -6,124 +6,154 @@
 
 For a positive displacement `w = [w₁, w₂, ..., wₙ]`, the *action point* is `k = min({i : 1 ≤ i ≤ n ∧ wᵢ ≠ 0})` — the position of the first nonzero component.
 
-## Definition — LastSigPos
+## Definition — ZeroCount
 
-When `t` has at least one nonzero component, `sig(t) = max({i : 1 ≤ i ≤ #t ∧ tᵢ ≠ 0})`. When every component is zero, `sig(t) = #t`.
+`zeros(t) = #{i : 1 ≤ i ≤ #t ∧ tᵢ = 0}` — the count of zero-valued components in tumbler `t`.
+
+## Definition — PositiveTumbler
+
+A tumbler `t ∈ T` is *positive*, written `t > 0`, iff at least one of its components is nonzero: `(E i : 1 ≤ i ≤ #t : tᵢ ≠ 0)`. A tumbler is a *zero tumbler* iff every component is zero: `(A i : 1 ≤ i ≤ #t : tᵢ = 0)`.
+
+## Definition — LastSignificantPosition
+
+`sig(t) = max({i : 1 ≤ i ≤ #t ∧ tᵢ ≠ 0})` when `t` has at least one nonzero component. When every component is zero, `sig(t) = #t`.
+
+## Definition — PrefixRelation
+
+`p ≼ t` iff `#p ≤ #t` and `(A i : 1 ≤ i ≤ #p : pᵢ = tᵢ)`.
 
 ## Definition — Divergence
 
-For tumblers `a, b ∈ T` with `a ≠ b`, `divergence(a, b)` is:
+For tumblers `a, b ∈ T` with `a ≠ b`, the *divergence* `divergence(a, b)` is defined by two cases:
 
-  (i) If there exists `k ≤ min(#a, #b)` such that `aₖ ≠ bₖ` and `(A i : 1 ≤ i < k : aᵢ = bᵢ)`, then `divergence(a, b) = k`.
+(i) If there exists `k ≤ min(#a, #b)` such that `aₖ ≠ bₖ` and `(A i : 1 ≤ i < k : aᵢ = bᵢ)`, then `divergence(a, b) = k` — component divergence at a shared position.
 
-  (ii) If `(A i : 1 ≤ i ≤ min(#a, #b) : aᵢ = bᵢ)` and `#a ≠ #b`, then `divergence(a, b) = min(#a, #b) + 1`.
+(ii) If `(A i : 1 ≤ i ≤ min(#a, #b) : aᵢ = bᵢ)` and `#a ≠ #b`, then `divergence(a, b) = min(#a, #b) + 1` — prefix divergence, where one tumbler is a proper prefix of the other.
 
 Exactly one case applies for any `a ≠ b`.
 
-## Definition — IsPositive
-
-A tumbler `t ∈ T` is *positive*, written `t > 0`, iff `(E i : 1 ≤ i ≤ #t : tᵢ ≠ 0)`. A tumbler is a *zero tumbler* iff `(A i : 1 ≤ i ≤ #t : tᵢ = 0)`.
-
-## Definition — ZeroCount
-
-`zeros(t) = #{i : 1 ≤ i ≤ #t ∧ tᵢ = 0}`
-
-## Definition — IsPrefix
-
-`p ≼ t` holds iff `#t ≥ #p` and `(A i : 1 ≤ i ≤ #p : tᵢ = pᵢ)`.
-
 ## Definition — TumblerAdd
 
-Let `a = [a₁, ..., aₘ]` and `w = [w₁, ..., wₙ]` with `w > 0`. Let `k` be the action point of `w`. Precondition: `k ≤ m`.
+Let `a = [a₁, ..., aₘ]` and `w = [w₁, ..., wₙ]` with `w > 0`. With action point `k`:
 
 ```
-         ⎧ aᵢ           if i < k
-rᵢ   =  ⎨ aₖ + wₖ      if i = k
-         ⎩ wᵢ           if i > k
+         ⎧ aᵢ           if i < k        (copy from start)
+rᵢ   =  ⎨ aₖ + wₖ      if i = k        (single-component advance)
+         ⎩ wᵢ           if i > k        (copy from displacement)
 ```
 
-Result `a ⊕ w = [r₁, ..., rₙ]` has length `#w` (*result-length identity*: `#(a ⊕ w) = #w`).
+The result `a ⊕ w = [r₁, ..., rₚ]` has length `p = #w` (*result-length identity*: `#(a ⊕ w) = #w`).
 
-## Definition — TumblerSub
+Precondition: `k ≤ m` — the action point must fall within the start position's length.
 
-Given `a` and `w` with `a ≥ w`. Zero-pad the shorter to length `max(#a, #w)`. If the zero-padded sequences agree at every position, result is the zero tumbler of length `max(#a, #w)`. Otherwise let `k` be the first position where `a` and `w` differ (treating missing components as zero):
+Properties:
+- **No carry propagation.** The sum `aₖ + wₖ` is a single natural-number addition with no carry into position `k - 1`.
+- **Tail replacement, not tail addition.** Components after the action point come entirely from `w`; start position components at positions `k + 1, ..., m` are discarded.
+- **Many-to-one.** Distinct start positions with the same prefix through position `k` produce the same result.
+
+## Definition — TumblerSubtract
+
+Given end position `a` and displacement `w`, zero-pad the shorter to the length of the longer before scanning. When zero-padded sequences agree at every position (no divergence), the result is the zero tumbler of length `max(#a, #w)`. Otherwise, let `k` be the first position where `a` and `w` differ (treating missing components as zero):
 
 ```
-         ⎧ 0             if i < k
-rᵢ   =  ⎨ aₖ - wₖ      if i = k
-         ⎩ aᵢ           if i > k
+         ⎧ 0             if i < k        (these levels matched — zero them)
+rᵢ   =  ⎨ aₖ - wₖ      if i = k        (reverse the advance)
+         ⎩ aᵢ           if i > k        (copy from end position)
 ```
 
-Result has length `max(#a, #w)`.
+The result has length `max(#a, #w)`.
+
+Precondition: `a ≥ w` — when `a ≠ w`, at the divergence point `aₖ ≥ wₖ`.
+
+## Definition — Fields
+
+The function `fields(t)` extracts four fields from address tumbler `t`. An address tumbler has the form:
+
+`t = N₁. ... .Nₐ . 0 . U₁. ... .Uᵦ . 0 . D₁. ... .Dᵧ . 0 . E₁. ... .Eδ`
+
+- **Node field**: `N₁. ... .Nₐ`
+- **User field**: `U₁. ... .Uᵦ`
+- **Document field**: `D₁. ... .Dᵧ`
+- **Element field**: `E₁. ... .Eδ`
+
+The count `zeros(t)` determines the level:
+- `zeros(t) = 0`: node address (node field only)
+- `zeros(t) = 1`: user address (node and user fields)
+- `zeros(t) = 2`: document address (node, user, and document fields)
+- `zeros(t) = 3`: element address (all four fields)
+
+`fields(t)` is well-defined and computable from `t` alone.
 
 ---
 
-## T0(a) — UnboundedComponents (AX, axiom)
+## T0(a) — UnboundedComponents (AXIOM, predicate)
 
 `(A t ∈ T, i : 1 ≤ i ≤ #t : (A M ∈ ℕ :: (E t' ∈ T :: t' agrees with t except t'.dᵢ > M)))`.
 
-## T0(b) — UnboundedLength (AX, axiom)
+For every tumbler and every component position, there exists a tumbler whose value at that position exceeds any given bound.
+
+## T0(b) — UnboundedLength (AXIOM, predicate)
 
 `(A n ∈ ℕ : n ≥ 1 : (E t ∈ T :: #t ≥ n))`.
 
-## T1 — LexOrder (DEF, predicate)
+For every bound, a tumbler of at least that length exists in T.
+
+## T1 — LexicographicOrder (AXIOM, predicate)
 
 For tumblers `a = a₁. ... .aₘ` and `b = b₁. ... .bₙ`, define `a < b` iff there exists `k ≥ 1` such that `(A i : 1 ≤ i < k : aᵢ = bᵢ)` and either:
 
-  (i) `k ≤ min(m, n)` and `aₖ < bₖ`, or
+(i) `k ≤ min(m, n)` and `aₖ < bₖ`, or
 
-  (ii) `k = m + 1 ≤ n` (that is, `a` is a proper prefix of `b`).
+(ii) `k = m + 1 ≤ n` (that is, `a` is a proper prefix of `b`).
 
-## T2 — IntrinsicComparison (INV, predicate)
+For any `a, b ∈ T`, exactly one of `a < b`, `a = b`, `a > b` holds.
+
+## T2 — IntrinsicComparison (AXIOM, predicate)
 
 The order relation T1 is computable from the two tumblers alone, without consulting any external data structure. The comparison examines at most `min(#a, #b)` component pairs.
 
-## T3 — CanonicalForm (AX, predicate)
+## T3 — CanonicalRepresentation (AXIOM, predicate)
 
 `(A a, b ∈ T : a₁ = b₁ ∧ ... ∧ aₙ = bₙ ∧ #a = #b ≡ a = b)`.
 
-## T4 — HierarchicalParsing (INV, predicate)
+## T4 — HierarchicalParsing (AXIOM, predicate)
 
-Every tumbler `t ∈ T` used as an address contains at most three zero-valued components appearing in order as field separators, every non-separator component is strictly positive, and every present field has at least one component. Formally, if `t = N₁. ... .Nₐ . 0 . U₁. ... .Uᵦ . 0 . D₁. ... .Dᵧ . 0 . E₁. ... .Eδ`, then:
+Every tumbler `t ∈ T` used as an address contains at most three zero-valued components, appearing in order as field separators, every non-separator component is strictly positive, and every field present in the address has at least one component.
 
-  `(A i : 1 ≤ i ≤ α : Nᵢ > 0)`, `(A j : 1 ≤ j ≤ β : Uⱼ > 0)`, `(A k : 1 ≤ k ≤ γ : Dₖ > 0)`, `(A l : 1 ≤ l ≤ δ : Eₗ > 0)`
+Formally, if `t = N₁. ... .Nₐ . 0 . U₁. ... .Uᵦ . 0 . D₁. ... .Dᵧ . 0 . E₁. ... .Eδ`, then:
+- `(A i : 1 ≤ i ≤ α : Nᵢ > 0)`
+- `(A j : 1 ≤ j ≤ β : Uⱼ > 0)`
+- `(A k : 1 ≤ k ≤ γ : Dₖ > 0)`
+- `(A l : 1 ≤ l ≤ δ : Eₗ > 0)`
+- `α ≥ 1`, `β ≥ 1` when present, `γ ≥ 1` when present, `δ ≥ 1` when present
 
-  and `α ≥ 1`, `β ≥ 1` when present, `γ ≥ 1` when present, `δ ≥ 1` when present.
+Syntactic equivalents of the non-empty field constraint: no two zeros are adjacent, the tumbler does not begin with zero, and the tumbler does not end with zero.
 
-Equivalently: no two zeros are adjacent, the tumbler does not begin with zero, and the tumbler does not end with zero.
-
-The zero count uniquely determines the hierarchical level:
-
-  - `zeros(t) = 0`: `t` is a node address
-  - `zeros(t) = 1`: `t` is a user address
-  - `zeros(t) = 2`: `t` is a document address
-  - `zeros(t) = 3`: `t` is an element address
-
-## T5 — ContiguousSubtrees (LEMMA, lemma)
+## T5 — ContiguousSubtrees (AXIOM, lemma)
 
 For any tumbler prefix `p`, the set `{t ∈ T : p ≼ t}` forms a contiguous interval under T1:
 
-  `[p ≼ a ∧ p ≼ c ∧ a ≤ b ≤ c ⟹ p ≼ b]`
+`[p ≼ a ∧ p ≼ c ∧ a ≤ b ≤ c ⟹ p ≼ b]`
 
-## T6 — DecidableContainment (LEMMA, lemma)
+## T6 — DecidableContainment (COROLLARY, lemma)
 
 For any two tumblers `a, b ∈ T`, the following are decidable from the addresses alone:
 
-  (a) Whether `a` and `b` share the same node field.
+(a) Whether `a` and `b` share the same node field.
 
-  (b) Whether `a` and `b` share the same node and user fields.
+(b) Whether `a` and `b` share the same node and user fields.
 
-  (c) Whether `a` and `b` share the same node, user, and document-lineage fields.
+(c) Whether `a` and `b` share the same node, user, and document-lineage fields.
 
-  (d) Whether the document field of `a` is a prefix of the document field of `b` (structural subordination within a document family).
+(d) Whether the document field of `a` is a prefix of the document field of `b` (structural subordination within a document family).
 
-## T7 — SubspaceDisjointness (LEMMA, lemma)
+## T7 — SubspaceDisjointness (COROLLARY, lemma)
 
 `(A a, b ∈ T : a.E₁ ≠ b.E₁ ⟹ a ≠ b)`
 
-where `a.E₁` denotes the first component of the element field of `a`.
+where `E₁` denotes the first component of the element field. Precondition: both `a` and `b` are element addresses (`zeros(a) = 3`, `zeros(b) = 3`).
 
-## T8 — AllocationPermanence (INV, predicate)
+## T8 — AllocationPermanence (AXIOM, predicate)
 
 If tumbler `a ∈ T` has been allocated at any point in the system's history, then for all subsequent states, `a` remains in the set of allocated addresses. No operation removes an allocated address from the address space. The set of allocated addresses is monotonically non-decreasing.
 
@@ -131,88 +161,114 @@ If tumbler `a ∈ T` has been allocated at any point in the system's history, th
 
 `(A a, b : same_allocator(a, b) ∧ allocated_before(a, b) : a < b)`
 
-Within each allocator's sequential stream, new addresses are strictly monotonically increasing.
+Within each allocator's sequential stream, new addresses are strictly monotonically increasing. T9 holds per-allocator, not globally.
 
-## T10 — PartitionIndependence (LEMMA, lemma)
+## T10 — PartitionIndependence (AXIOM, lemma)
 
-Let `p₁` and `p₂` be prefixes such that `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁`. Then for any tumbler `a` with `p₁ ≼ a` and any tumbler `b` with `p₂ ≼ b`, `a ≠ b`.
+Let `p₁` and `p₂` be prefixes such that neither is a prefix of the other (`p₁ ⋠ p₂ ∧ p₂ ⋠ p₁`). Then for any tumbler `a` with prefix `p₁` and any tumbler `b` with prefix `p₂`:
 
-## T10a — AllocatorDiscipline (INV, predicate)
+`a ≠ b`
 
-Each allocator produces its sibling outputs exclusively by repeated application of `inc(·, 0)`. To spawn a child allocator, the parent performs one `inc(·, k')` with `k' > 0` to establish the child's prefix, then delegates further allocation to the child. The parent's own sibling stream resumes with `inc(·, 0)`.
+## T10a — AllocatorDiscipline (AXIOM, predicate)
 
-## T12 — SpanWellDefined (DEF, predicate)
+Each allocator produces its sibling outputs exclusively by repeated application of `inc(·, 0)` — shallow increment at the last significant position. To spawn a child allocator, the parent performs one `inc(·, k')` with `k' > 0` to establish the child's prefix, then delegates further allocation to the child. The parent's own sibling stream resumes with `inc(·, 0)`.
 
-A span `(s, ℓ)` is well-formed when `ℓ > 0` and the action point `k` of `ℓ` satisfies `k ≤ #s`. Equivalently, the number of leading zeros in `ℓ` must be strictly less than `#s`. A well-formed span denotes the set `{t ∈ T : s ≤ t < s ⊕ ℓ}`.
+Consequence: since `inc(·, 0)` preserves length (TA5(c)), all sibling outputs from a single allocator have the same length. The `k > 0` operation is reserved exclusively for child-spawning.
 
-## TA0 — AddWellDefined (PRE, requires)
+## T12 — SpanWellDefined (AXIOM, predicate)
+
+A span `(s, ℓ)` is well-formed when `ℓ > 0` and the action point `k` of `ℓ` satisfies `k ≤ #s`. Equivalently, the number of leading zeros in `ℓ` must be strictly less than `#s`.
+
+A well-formed span denotes the set `{t ∈ T : s ≤ t < s ⊕ ℓ}`.
+
+Non-emptiness: by TA-strict, `s ⊕ ℓ > s`, so the interval `[s, s ⊕ ℓ)` contains at least `s` itself.
+
+## TA0 — AdditionWellDefined (AXIOM, requires)
 
 For tumblers `a, w ∈ T` where `w > 0` and the action point `k` of `w` satisfies `k ≤ #a`, the result `a ⊕ w` is a well-defined tumbler in `T`.
 
-## TA1 — AddOrderPreservation (LEMMA, lemma)
+## TA1 — AdditionOrderPreservationWeak (AXIOM, lemma)
 
 `(A a, b, w : a < b ∧ w > 0 ∧ k ≤ min(#a, #b) : a ⊕ w ≤ b ⊕ w)`, where `k` is the action point of `w`.
 
-## TA1-strict — AddStrictOrderPreservation (LEMMA, lemma)
+## TA1-strict — AdditionOrderPreservationStrict (AXIOM, lemma)
 
 `(A a, b, w : a < b ∧ w > 0 ∧ k ≤ min(#a, #b) ∧ k ≥ divergence(a, b) : a ⊕ w < b ⊕ w)`, where `k` is the action point of `w`.
 
-## TA-strict — AddStrictIncrease (LEMMA, lemma)
+When `k < divergence(a, b)`, both operands agree at position `k`, the original divergence is erased, and the results are equal (order degrades to equality, never reversal).
 
-`(A a ∈ T, w > 0 : a ⊕ w > a)`, where `a ⊕ w` is well-defined (`k ≤ #a` per TA0).
+## TA-strict — StrictIncrease (AXIOM, lemma)
 
-## TA2 — SubWellDefined (PRE, requires)
+`(A a ∈ T, w > 0 : a ⊕ w > a)` where `a ⊕ w` is well-defined (i.e., `k ≤ #a` per TA0).
+
+## TA2 — SubtractionWellDefined (AXIOM, requires)
 
 For tumblers `a, w ∈ T` where `a ≥ w`, `a ⊖ w` is a well-defined tumbler in `T`.
 
-## TA3 — SubOrderPreservation (LEMMA, lemma)
+## TA3 — SubtractionOrderPreservationWeak (AXIOM, lemma)
 
 `(A a, b, w : a < b ∧ a ≥ w ∧ b ≥ w : a ⊖ w ≤ b ⊖ w)`.
 
-## TA3-strict — SubStrictOrderPreservation (LEMMA, lemma)
+## TA3-strict — SubtractionOrderPreservationStrict (AXIOM, lemma)
 
 `(A a, b, w : a < b ∧ a ≥ w ∧ b ≥ w ∧ #a = #b : a ⊖ w < b ⊖ w)`.
 
-## TA4 — PartialInverse (LEMMA, lemma)
+## TA4 — PartialInverse (AXIOM, lemma)
 
 `(A a, w : w > 0 ∧ k = #a ∧ #w = k ∧ (A i : 1 ≤ i < k : aᵢ = 0) : (a ⊕ w) ⊖ w = a)`, where `k` is the action point of `w`.
 
-**Corollary (ReverseInverse).** `(A a, w : a ≥ w ∧ w > 0 ∧ k = #a ∧ #w = k ∧ (A i : 1 ≤ i < k : aᵢ = 0) : (a ⊖ w) ⊕ w = a)`, where `k` is the action point of `w`.
+Precondition has three parts:
+1. `k = #a` — the action point falls at the last component of `a`
+2. `#w = k` — the displacement has no trailing components beyond the action point
+3. `(A i : 1 ≤ i < k : aᵢ = 0)` — all components of `a` before the action point are zero
 
-## TA5 — HierarchicalIncrement (DEF, function)
+**Corollary (Reverse inverse).** `(A a, w : a ≥ w ∧ w > 0 ∧ k = #a ∧ #w = k ∧ (A i : 1 ≤ i < k : aᵢ = 0) : (a ⊖ w) ⊕ w = a)`, where `k` is the action point of `w`.
 
-For tumbler `t ∈ T` and level `k ≥ 0`, `inc(t, k)` produces `t'` such that:
+## TA5 — HierarchicalIncrement (AXIOM, function)
 
-  (a) `t' > t`
+For tumbler `t ∈ T` and level `k ≥ 0`, there exists an operation `inc(t, k)` producing tumbler `t'` such that:
 
-  (b) `t'` agrees with `t` on all components before the increment point
+(a) `t' > t` (strictly greater under T1)
 
-  (c) when `k = 0`: `#t' = #t`, and `t'` differs from `t` only at position `sig(t)`, where `t'_{sig(t)} = t_{sig(t)} + 1`
+(b) `t'` agrees with `t` on all components before the increment point
 
-  (d) when `k > 0`: `#t' = #t + k`, positions `#t + 1, ..., #t + k - 1` are set to `0`, and position `#t + k` is set to `1`
+(c) when `k = 0` (*sibling*): `#t' = #t`, and `t'` differs from `t` only at position `sig(t)`, where `t'_{sig(t)} = t_{sig(t)} + 1`
 
-**T4-preservation constraint.** `inc(t, k)` preserves T4 when:
-  - `k = 0`: unconditionally
-  - `k = 1`: when `zeros(t) ≤ 3`
-  - `k = 2`: when `zeros(t) ≤ 2`
-  - `k ≥ 3`: never (produces adjacent zeros)
+(d) when `k > 0` (*child*): `#t' = #t + k`, the `k - 1` intermediate positions `#t + 1, ..., #t + k - 1` are set to `0` (field separators), and the final position `#t + k` is set to `1` (the first child)
 
-## TA6 — ZeroSentinel (AX, predicate)
+**T4 preservation constraint:** `inc(t, k)` preserves T4 when:
+- `k = 0`: unconditionally
+- `k = 1`: when `zeros(t) ≤ 3`
+- `k = 2`: when `zeros(t) ≤ 2`
+- `k ≥ 3`: never (introduces adjacent zeros)
+
+## TA6 — ZeroTumblers (AXIOM, predicate)
 
 `(A t ∈ T : (A i : 1 ≤ i ≤ #t : tᵢ = 0) ⟹ t is not a valid address)`
 
 `(A s, t ∈ T : (A i : 1 ≤ i ≤ #s : sᵢ = 0) ∧ (E j : 1 ≤ j ≤ #t : tⱼ > 0) ⟹ s < t)`
 
-## TA7a — SubspaceClosure (LEMMA, lemma)
+There is no single "zero tumbler"; there are infinitely many distinct all-zero tumblers of different lengths. Under T1 they form a chain: `[0] < [0, 0] < [0, 0, 0] < ...` by the prefix rule.
 
-A position in subspace `S` with identifier `N` and ordinal `o = [o₁, ..., oₘ]` (`m ≥ 1`) is represented as the tumbler `o` for arithmetic purposes, with `N` held as structural context. An element-local displacement is a positive tumbler `w` with action point `k` satisfying `1 ≤ k ≤ m`. Let `Z` be the set of zero tumblers.
+## TA7a — SubspaceClosure (AXIOM, lemma)
 
-  `(A o ∈ S, w > 0 : k ≤ #o ⟹ o ⊕ w ∈ S)`
+A position in subspace `S` with identifier `N` and ordinal `o = [o₁, ..., oₘ]` (`m ≥ 1`) is represented as the tumbler `o` for arithmetic purposes, with `N` held as structural context. An element-local displacement is a positive tumbler `w` with action point `k` satisfying `1 ≤ k ≤ m`. In this formulation:
 
-  `(A o ∈ S, w > 0 : o ≥ w ⟹ o ⊖ w ∈ S ∪ Z)`
+`(A o ∈ S, w > 0 : k ≤ #o ⟹ o ⊕ w ∈ S)`
 
----
+`(A o ∈ S, w > 0 : o ≥ w ⟹ o ⊖ w ∈ S ∪ Z)`
 
-## PrefixOrderingExtension — PrefixOrderingExtension (LEMMA, lemma)
+where `Z` is the set of zero tumblers.
 
-Let `p₁, p₂ ∈ T` such that `p₁ < p₂` and `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁`. Then for every `a` with `p₁ ≼ a` and every `b` with `p₂ ≼ b`, `a < b`.
+For single-component ordinals: `[x] ⊕ [n] = [x + n]` and `[x] ⊖ [n] = [x - n]`. When `x = n`, the result is `[0]`, a sentinel (TA6).
+
+## TA-assoc — AdditionAssociative (AXIOM, lemma)
+
+`(a ⊕ b) ⊕ c = a ⊕ (b ⊕ c)` whenever both sides are well-defined.
+
+Let `k_b` and `k_c` be the action points of `b` and `c` respectively. Three cases:
+- When `k_b < k_c`: both sides produce `aᵢ` for `i < k_b`, `aₖ_b + bₖ_b` at `k_b`, `bᵢ` for `k_b < i < k_c`, `bₖ_c + cₖ_c` at `k_c`, and `cᵢ` beyond.
+- When `k_b = k_c = k`: both sides produce `aₖ + bₖ + cₖ` at `k` and `cᵢ` beyond.
+- When `k_b > k_c`: both sides produce `aₖ_c + cₖ_c` at `k_c` and `cᵢ` beyond (the deeper displacement `b` is overwritten by the shallower `c` in both cases).
+
+The domain conditions are asymmetric: the left side requires `k_b ≤ #a`, while the right requires only `min(k_b, k_c) ≤ #a`.
