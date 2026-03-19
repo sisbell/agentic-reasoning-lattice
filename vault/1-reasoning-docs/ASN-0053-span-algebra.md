@@ -203,7 +203,7 @@ The composition property below depends on left cancellation of TumblerAdd: if a 
 
   (s ⊕ d) ⊕ d' = reach(σ) = s ⊕ ℓ
 
-To apply the Associativity lemma from ASN-0034, both compositions must be well-defined. The left side (s ⊕ d) ⊕ d' is well-defined: s ⊕ d is established (T12 on λ), and d' > 0 with action point k_{d'} ≤ #d' = #s = #(s ⊕ d) (level-uniformity). For the right side s ⊕ (d ⊕ d'), three conditions need verification:
+To apply TA-assoc (ASN-0034), both compositions must be well-defined. The left side (s ⊕ d) ⊕ d' is well-defined: s ⊕ d is established (T12 on λ), and d' > 0 with action point k_{d'} ≤ #d' = #s = #(s ⊕ d) (level-uniformity). For the right side s ⊕ (d ⊕ d'), three conditions need verification:
 
 (a) *d ⊕ d' is positive.* Let k_d and k_{d'} be the action points of d and d'. If k_d < k_{d'}, position k_d is in the "copy from start" range, so (d ⊕ d')_{k_d} = d_{k_d} > 0. If k_d = k_{d'}, (d ⊕ d')_{k_d} = d_{k_d} + d'_{k_d} > 0. If k_d > k_{d'}, then d_{k_{d'}} = 0 (since k_{d'} < k_d), so (d ⊕ d')_{k_{d'}} = d_{k_{d'}} + d'_{k_{d'}} = d'_{k_{d'}} > 0. In every case d ⊕ d' is positive.
 

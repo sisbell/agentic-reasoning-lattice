@@ -33,5 +33,5 @@
 | (TA5 preserves T4) | IncrementPreservesValidity | LEMMA | lemma | derived from TA5, T4; k ≤ 2 |
 | TA6 | ZeroTumblerSentinel | INV | predicate(Tumbler) | validity + ordering |
 | TA7a | SubspaceClosure | LEMMA | lemma | derived from ⊕, ⊖ definitions |
-| (Associativity) | AdditionAssociative | LEMMA | lemma | design does not depend on this |
+| TA-assoc | AdditionAssociative | LEMMA | lemma | used by ASN-0053 S5 |
 | T12 | SpanWellDefined | INV | predicate(Tumbler, Tumbler) | non-emptiness from TA-strict |
