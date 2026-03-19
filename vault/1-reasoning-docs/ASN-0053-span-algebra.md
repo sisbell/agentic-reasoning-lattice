@@ -195,7 +195,7 @@ We need a small lemma about tumbler addition before stating the composition prop
 
 **Lemma** (*LeftCancellation*). If a ⊕ x = a ⊕ y with both sides well-defined, then x = y.
 
-*Proof.* Let k₁ and k₂ be the action points of x and y. If k₁ < k₂, then (a ⊕ x)ₖ₁ = aₖ₁ + xₖ₁ while (a ⊕ y)ₖ₁ = aₖ₁ (position k₁ falls in the "copy from start" range of y). Equality gives xₖ₁ = 0, contradicting k₁ being the action point of x. Symmetrically k₂ < k₁ is impossible. So k₁ = k₂ = k. At position k: aₖ + xₖ = aₖ + yₖ gives xₖ = yₖ. For i > k: xᵢ = (a ⊕ x)ᵢ = (a ⊕ y)ᵢ = yᵢ. For i < k: xᵢ = 0 = yᵢ. Every component agrees, so x = y.  ∎
+*Proof.* Let k₁ and k₂ be the action points of x and y. If k₁ < k₂, then (a ⊕ x)ₖ₁ = aₖ₁ + xₖ₁ while (a ⊕ y)ₖ₁ = aₖ₁ (position k₁ falls in the "copy from start" range of y). Equality gives xₖ₁ = 0, contradicting k₁ being the action point of x. Symmetrically k₂ < k₁ is impossible. So k₁ = k₂ = k. At position k: aₖ + xₖ = aₖ + yₖ gives xₖ = yₖ. For i > k: xᵢ = (a ⊕ x)ᵢ = (a ⊕ y)ᵢ = yᵢ. For i < k: xᵢ = 0 = yᵢ. It remains to establish #x = #y. By T3, a ⊕ x = a ⊕ y implies #(a ⊕ x) = #(a ⊕ y). From TumblerAdd's result-length formula, #(a ⊕ w) = max(k − 1, 0) + (#w − k + 1) for any w with action point k. Since both x and y share the same action point k, we get #x = #y. By T3 (same length, same components), x = y.  ∎
 
 **S5** (*SplitWidthComposition*). Under the same conditions as S4, the widths of the two parts compose to the original width:
 
@@ -205,7 +205,15 @@ We need a small lemma about tumbler addition before stating the composition prop
 
   (s ⊕ d) ⊕ d' = reach(σ) = s ⊕ ℓ
 
-By the Associativity lemma from ASN-0034 (both compositions are well-defined since all tumblers have length #s):
+To apply the Associativity lemma from ASN-0034, both compositions must be well-defined. The left side (s ⊕ d) ⊕ d' is well-defined: s ⊕ d is established (T12 on λ), and d' > 0 with action point k_{d'} ≤ #d' = #s = #(s ⊕ d) (level-uniformity). For the right side s ⊕ (d ⊕ d'), three conditions need verification:
+
+(a) *d ⊕ d' is positive.* Let k_d and k_{d'} be the action points of d and d'. If k_d < k_{d'}, position k_d is in the "copy from start" range, so (d ⊕ d')_{k_d} = d_{k_d} > 0. If k_d = k_{d'}, (d ⊕ d')_{k_d} = d_{k_d} + d'_{k_d} > 0. If k_d > k_{d'}, then d_{k_{d'}} = 0 (since k_{d'} < k_d), so (d ⊕ d')_{k_{d'}} = d_{k_{d'}} + d'_{k_{d'}} = d'_{k_{d'}} > 0. In every case d ⊕ d' is positive.
+
+(b) *The action point of d ⊕ d' is at most #s.* From (a), the action point is min(k_d, k_{d'}) ≤ k_d ≤ #s (the latter from T12 applied to λ).
+
+(c) *The action point of d' falls within #d.* Since #d = #d' = #s (level-uniformity), k_{d'} ≤ #d' = #d.
+
+Both compositions are well-defined, so associativity gives:
 
   s ⊕ (d ⊕ d') = s ⊕ ℓ
 
