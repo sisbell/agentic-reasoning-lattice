@@ -143,8 +143,12 @@ def step_integrate(ext_num, base_num, ext_path, base_path, model, effort):
 
 def step_integration_review(base_num, base_path, property_labels,
                             model, effort):
-    """Step 2a: Targeted integration review (not generic review)."""
-    from paths import VOCABULARY, FOUNDATION_LIST, STATEMENTS_DIR as SD
+    """Step 2a: Targeted integration review (not generic review).
+
+    Writes review to vault/2-review/ASN-NNNN/ for traceability.
+    """
+    from paths import (VOCABULARY, FOUNDATION_LIST, STATEMENTS_DIR as SD,
+                       REVIEWS_DIR, next_review_number)
     from lib.foundation import load_foundation_statements
 
     base_label = f"ASN-{int(base_num):04d}"
@@ -177,6 +181,15 @@ def step_integration_review(base_num, base_path, property_labels,
         return None
 
     log_usage("absorb-review", elapsed, base=base_num)
+
+    # Write review to file
+    review_dir = REVIEWS_DIR / base_label
+    review_dir.mkdir(parents=True, exist_ok=True)
+    review_num = next_review_number(base_label)
+    review_path = review_dir / f"review-{review_num}.md"
+    review_path.write_text(text + "\n")
+    print(f"  [WROTE] {review_path.relative_to(WORKSPACE)}",
+          file=sys.stderr)
 
     # Check verdict
     if "VERDICT: CONVERGED" in text:
