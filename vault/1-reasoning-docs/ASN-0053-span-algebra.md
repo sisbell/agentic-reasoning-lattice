@@ -227,6 +227,14 @@ By left-cancellation, d ⊕ d' = ℓ.  ∎
 
 Gregory confirms the implementation achieves this by computing the second width as a remainder rather than independently: "The split is exact precisely because the code aborts rather than proceeding when the arithmetic would be approximate" (Q15). The level-uniformity constraint is "load-bearing" — it ensures the arithmetic is exact rather than approximate.
 
+**S3b** (*MergeSplitInverse*). For adjacent level-uniform spans α and β with reach(α) = start(β) and level_compat(start(α), start(β)), merging α and β (S3) and splitting the result at start(β) (S4) recovers α and β exactly.
+
+*Proof.* The merge produces γ = (start(α), r ⊖ start(α)) where r = max(reach(α), reach(β)) = reach(β), since reach(α) = start(β) < reach(β) (β is non-empty). So γ = (start(α), reach(β) ⊖ start(α)) with reach(γ) = reach(β). The point p = start(β) is interior to γ: start(α) < start(β) (since α is non-empty, start(α) < reach(α) = start(β)) and start(β) < reach(β) = reach(γ) (since β is non-empty). Level compatibility holds by assumption.
+
+Splitting γ at p yields λ = (start(α), p ⊖ start(α)) and ρ = (p, reach(γ) ⊖ p). For λ: p ⊖ start(α) = reach(α) ⊖ start(α) = width(α) by D2 (α is level-uniform). So λ = (start(α), width(α)) = α. For ρ: reach(γ) ⊖ p = reach(β) ⊖ start(β) = width(β) by D2 (β is level-uniform). So ρ = (start(β), width(β)) = β.  ∎
+
+Together with S4a, this establishes that split and merge are exact inverses in both directions: split followed by merge recovers the original span (S4a), and merge followed by split at the original boundary recovers the original pair (S3b). The two operations form a bijection between single spans with a marked interior point and pairs of adjacent spans.
+
 
 ## Span-sets
 
@@ -278,6 +286,20 @@ After processing all spans, emit the final interval — the same T12 and level-u
 The result is a sequence of spans satisfying N1 (starts are sorted because we emit left-to-right from a sorted input) and N2 (each emit occurs precisely when start(σᵢ) > r, guaranteeing a gap between the emitted span's reach and the next span's start).
 
 *Termination.* The scan visits each of the n input spans exactly once — bound function t = n − i.  ∎
+
+A concrete instance exercises both branches. Take the span-set Σ = ⟨σ₁, σ₂, σ₃⟩ with σ₁ = ([1, 7], [0, 2]), σ₂ = ([1, 3], [0, 5]), σ₃ = ([1, 10], [0, 3]). The reaches are reach(σ₁) = [1, 9], reach(σ₂) = [1, 8], reach(σ₃) = [1, 13]. All spans are level-uniform with #start = #width = 2.
+
+*Sort by start.* The sorted order is ⟨σ₂, σ₁, σ₃⟩ = ⟨([1, 3], [0, 5]), ([1, 7], [0, 2]), ([1, 10], [0, 3])⟩.
+
+*Initialize.* Set [s, r) = [[1, 3], [1, 8]), E = ∅. J holds: ∅ ∪ {t : [1, 3] ≤ t < [1, 8]} = ⟦σ₂⟧.
+
+*Process σ₁.* start(σ₁) = [1, 7] ≤ r = [1, 8] — merge branch. Update r = max([1, 8], [1, 9]) = [1, 9]. Current interval becomes [[1, 3], [1, 9]). J: ∅ ∪ {t : [1, 3] ≤ t < [1, 9]} = ⟦σ₂⟧ ∪ ⟦σ₁⟧ — the overlap region {t : [1, 7] ≤ t < [1, 8]} is covered by both spans, and [1, 9] extends one position beyond reach(σ₂).
+
+*Process σ₃.* start(σ₃) = [1, 10] > r = [1, 9] — emit branch. Emit (s, r ⊖ s) = ([1, 3], [1, 9] ⊖ [1, 3]) = ([1, 3], [0, 6]). Verify T12: divergence at position 2 gives width component 9 − 3 = 6 > 0, action point k = 2 ≤ #s = 2. Verify reach: [1, 3] ⊕ [0, 6] = [1, 9]. Start new interval [[1, 10], [1, 13]). J: {t : [1, 3] ≤ t < [1, 9]} ∪ {t : [1, 10] ≤ t < [1, 13]} = ⟦σ₂⟧ ∪ ⟦σ₁⟧ ∪ ⟦σ₃⟧.
+
+*Finalize.* Emit ([1, 10], [1, 13] ⊖ [1, 10]) = ([1, 10], [0, 3]). Verify reach: [1, 10] ⊕ [0, 3] = [1, 13].
+
+Result: Σ̂ = ⟨([1, 3], [0, 6]), ([1, 10], [0, 3])⟩. N1: [1, 3] < [1, 10]. N2: reach of first = [1, 9] < [1, 10] = start of second. The three original spans — two overlapping, one separated — reduce to two disjoint spans.
 
 **S9** (*NormalizationUniqueness*). The normalized form is unique: if Σ̂₁ and Σ̂₂ are both normalized and Σ̂₁ ≡ Σ̂₂, then Σ̂₁ = Σ̂₂.
 
@@ -364,6 +386,7 @@ Two findings from Gregory's implementation evidence illuminate the boundary betw
 | LeftCancellation | a ⊕ x = a ⊕ y ⟹ x = y (tumbler arithmetic property, used locally) | introduced |
 | S5 | The widths of two split parts compose under ⊕ to the original width | introduced |
 | S4a | Split-merge inverse: splitting σ at a level-compatible interior point and merging recovers σ exactly | introduced |
+| S3b | Merge-split inverse: merging adjacent level-uniform spans and splitting at the original boundary recovers both spans exactly | introduced |
 | S7 | Every finite set of positions admits a covering span-set | introduced |
 | S8 | Every level-compatible span-set has a normalized equivalent: sorted, non-overlapping, non-adjacent | introduced |
 | S9 | The normalized form of a span-set is unique | introduced |
