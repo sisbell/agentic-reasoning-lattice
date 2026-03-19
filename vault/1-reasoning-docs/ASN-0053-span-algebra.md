@@ -193,11 +193,7 @@ Verify S5: d ⊕ d' = [0, 0, 0, 0, 0, 0, 4] ⊕ [0, 0, 0, 0, 0, 0, 4]. Action po
 
 Each element of ⟦σ⟧ appears in exactly one of ⟦λ⟧ or ⟦ρ⟧ — those before p go left, those from p onward go right. The partition is forced by the total order; there is no ambiguity. Nelson confirms the structural basis: "each element occupies exactly one position on the tumbler line" and spans include "everything between their endpoints with no discretion" (Q2). The REARRANGE operation's three-cut semantics depend on this: "cut 2 is simultaneously the boundary of both regions — the first region ends where the second begins" (Q2).
 
-We need a small lemma about tumbler addition before stating the composition property. (This is properly a tumbler arithmetic fact, belonging with ASN-0034; we state it here because S5 depends on it.)
-
-**Lemma** (*LeftCancellation*). If a ⊕ x = a ⊕ y with both sides well-defined, then x = y.
-
-*Proof.* Let k₁ and k₂ be the action points of x and y. If k₁ < k₂, then (a ⊕ x)ₖ₁ = aₖ₁ + xₖ₁ while (a ⊕ y)ₖ₁ = aₖ₁ (position k₁ falls in the "copy from start" range of y). Equality gives xₖ₁ = 0, contradicting k₁ being the action point of x. Symmetrically k₂ < k₁ is impossible. So k₁ = k₂ = k. At position k: aₖ + xₖ = aₖ + yₖ gives xₖ = yₖ. For i > k: xᵢ = (a ⊕ x)ᵢ = (a ⊕ y)ᵢ = yᵢ. For i < k: xᵢ = 0 = yᵢ. It remains to establish #x = #y. By T3, a ⊕ x = a ⊕ y implies #(a ⊕ x) = #(a ⊕ y). From TumblerAdd's result-length formula, #(a ⊕ w) = max(k − 1, 0) + (#w − k + 1) for any w with action point k. Since both x and y share the same action point k, we get #x = #y. By T3 (same length, same components), x = y.  ∎
+The composition property below depends on left cancellation of TumblerAdd: if a ⊕ x = a ⊕ y with both sides well-defined, then x = y (TA-LC, ASN-0055).
 
 **S5** (*SplitWidthComposition*). Under the same conditions as S4, the widths of the two parts compose to the original width:
 
@@ -383,7 +379,7 @@ Two findings from Gregory's implementation evidence illuminate the boundary betw
 | S3 | Adjacent or overlapping level-uniform, level-compatible spans merge to a single span | introduced |
 | S3a | Span merge is commutative | introduced |
 | S4 | Split at a level-compatible interior point produces an exact partition: nothing lost, nothing duplicated, the two parts adjacent | introduced |
-| LeftCancellation | a ⊕ x = a ⊕ y ⟹ x = y (tumbler arithmetic property, used locally) | introduced |
+| TA-LC | a ⊕ x = a ⊕ y ⟹ x = y (LeftCancellation, ASN-0055) | cited |
 | S5 | The widths of two split parts compose under ⊕ to the original width | introduced |
 | S4a | Split-merge inverse: splitting σ at a level-compatible interior point and merging recovers σ exactly | introduced |
 | S3b | Merge-split inverse: merging adjacent level-uniform spans and splitting at the original boundary recovers both spans exactly | introduced |
