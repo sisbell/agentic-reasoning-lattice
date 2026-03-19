@@ -127,26 +127,13 @@ def log_usage(asn_label, elapsed):
         pass
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="Export formal statements from a converged ASN")
-    parser.add_argument("asn",
-                        help="ASN number (e.g., 55, 0055, ASN-0055) or path")
-    parser.add_argument("--model", "-m", default="sonnet",
-                        choices=["opus", "sonnet"],
-                        help="Model (default: sonnet)")
-    parser.add_argument("--effort", default="high",
-                        help="Thinking effort level (low/medium/high/max)")
-    parser.add_argument("--dry-run", action="store_true",
-                        help="Show prompt size without invoking Claude")
-    args = parser.parse_args()
-
-    # Find ASN
-    asn_path, asn_label = find_asn(args.asn)
+def export_one(asn_id, model, effort, dry_run):
+    """Export statements for a single ASN. Returns (asn_label, True) or (asn_id, False)."""
+    asn_path, asn_label = find_asn(asn_id)
     if asn_path is None:
-        print(f"  No ASN found for {args.asn} in vault/1-reasoning-docs/",
+        print(f"  No ASN found for {asn_id} in vault/1-reasoning-docs/",
               file=sys.stderr)
-        sys.exit(1)
+        return asn_id, False
 
     asn_content = asn_path.read_text()
 
@@ -156,18 +143,17 @@ def main():
     print(f"  Prompt: {len(prompt) // 1024}KB (~{len(prompt) // 4} tokens est.)",
           file=sys.stderr)
 
-    if args.dry_run:
-        print(f'  [DRY RUN] Would invoke {args.model} with --tools ""',
+    if dry_run:
+        print(f'  [DRY RUN] Would invoke {model} with --tools ""',
               file=sys.stderr)
-        return
+        return asn_label, True
 
     # Invoke Claude
-    text, elapsed = invoke_claude(prompt, model=args.model,
-                                  effort=args.effort)
+    text, elapsed = invoke_claude(prompt, model=model, effort=effort)
 
     if not text:
-        print("  No statements extracted", file=sys.stderr)
-        sys.exit(1)
+        print(f"  No statements extracted for {asn_label}", file=sys.stderr)
+        return asn_label, False
 
     # Strip any preamble
     text = strip_preamble(text)
@@ -194,19 +180,66 @@ def main():
     # Log usage
     log_usage(asn_label, elapsed)
 
-    # Print output file path to stdout (for pipeline consumption)
     print(str(out_path))
-
     print(f"  [WROTE] {out_path.relative_to(WORKSPACE)}", file=sys.stderr)
 
-    # Commit
-    if not args.dry_run:
-        print(f"\n  === COMMIT ===", file=sys.stderr)
+    return asn_label, True
+
+
+def main():
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    parser = argparse.ArgumentParser(
+        description="Export formal statements from converged ASNs")
+    parser.add_argument("asns", nargs="+",
+                        help="ASN numbers (e.g., 55 56 34) or paths")
+    parser.add_argument("--model", "-m", default="sonnet",
+                        choices=["opus", "sonnet"],
+                        help="Model (default: sonnet)")
+    parser.add_argument("--effort", default="high",
+                        help="Thinking effort level (low/medium/high/max)")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="Show prompt size without invoking Claude")
+    args = parser.parse_args()
+
+    if len(args.asns) == 1:
+        # Single ASN — run directly, commit immediately
+        label, ok = export_one(args.asns[0], args.model, args.effort,
+                               args.dry_run)
+        if ok and not args.dry_run:
+            print(f"\n  === COMMIT ===", file=sys.stderr)
+            cmd = [sys.executable, str(COMMIT_SCRIPT),
+                   f"Export statements {label}"]
+            subprocess.run(cmd, capture_output=True, text=True,
+                           cwd=str(WORKSPACE))
+        if not ok:
+            sys.exit(1)
+        return
+
+    # Multiple ASNs — run in parallel, commit once at end
+    succeeded = []
+    failed = []
+
+    with ThreadPoolExecutor(max_workers=len(args.asns)) as pool:
+        futures = {
+            pool.submit(export_one, asn_id, args.model, args.effort,
+                        args.dry_run): asn_id
+            for asn_id in args.asns
+        }
+        for future in as_completed(futures):
+            label, ok = future.result()
+            if ok:
+                succeeded.append(label)
+            else:
+                failed.append(label)
+
+    if succeeded and not args.dry_run:
+        labels = ", ".join(sorted(succeeded))
+        print(f"\n  === COMMIT ({labels}) ===", file=sys.stderr)
         cmd = [sys.executable, str(COMMIT_SCRIPT),
-               f"Export statements {asn_label}"]
-        result = subprocess.run(
-            cmd, capture_output=True, text=True, cwd=str(WORKSPACE),
-        )
+               f"Export statements {labels}"]
+        result = subprocess.run(cmd, capture_output=True, text=True,
+                                cwd=str(WORKSPACE))
         if result.returncode != 0:
             print(f"  [COMMIT] FAILED", file=sys.stderr)
             if result.stderr:
@@ -216,6 +249,10 @@ def main():
             if result.stderr:
                 for line in result.stderr.strip().split("\n"):
                     print(f"  {line}", file=sys.stderr)
+
+    if failed:
+        print(f"\n  FAILED: {', '.join(failed)}", file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
