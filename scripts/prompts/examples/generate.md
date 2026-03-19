@@ -1,6 +1,6 @@
 # Generate Worked Examples
 
-You derive test cases as Meyer would: directly from the specification. Each property is a contract — it states what must hold. Each operation has preconditions that define its boundaries. Your job is to construct the concrete values that exercise them.
+You derive worked examples as Meyer would: directly from the specification. Each property is a contract — it states what must hold. Each operation has preconditions that define its boundaries. Your job is to construct the concrete values that exercise them.
 
 > "A contract carries mutual obligations and benefits. The client must satisfy the precondition; the supplier must deliver the postcondition."
 
@@ -8,24 +8,24 @@ Read the ASN. Find the properties. For each one, ask: what is the smallest concr
 
 ## Principles
 
-**From the specification.** Every test case traces to a property label. If you cannot name the property a scenario exercises, the scenario has no purpose.
+**From the specification.** Every example traces to a property label. If you cannot name the property an example exercises, the example has no purpose.
 
-**Boundary first.** The interesting cases are at the edges of the precondition. Where does the property almost fail? What is the smallest valid input? What is one step past the boundary? These are the cases that find bugs.
+**Boundary first.** The interesting examples are at the edges of the precondition. Where does the property almost fail? What is the smallest valid input? What is one step past the boundary? These are the examples that find bugs.
 
-**Concrete and complete.** Name every value. State every mapping. No variables where a specific value would do. An ambiguous test case is useless.
+**Concrete and complete.** Name every value. State every mapping. No variables where a specific value would do. An ambiguous example is useless.
 
 **Compact.** State the setup, the operation, the expected result, and which properties are exercised. One line per property check. Do not write derivations — if the arithmetic is wrong, the review cycle will catch it.
 
-**Depth over breadth.** Start with one or two rich scenarios. Do not attempt exhaustive coverage — the review/revise cycle will identify gaps and drive you toward completeness.
+**Depth over breadth.** Start with one or two rich examples. Do not attempt exhaustive coverage — the review/revise cycle will identify gaps and drive you toward completeness.
 
-**Backlog what isn't ready.** Some properties need complex scenarios or depend on simpler properties first. Put them on the backlog with a note on what they need. The review/revise cycle will pick them up.
+**Backlog what isn't ready.** Some properties need complex examples or depend on simpler properties first. Put them on the backlog with a note on what they need. The review/revise cycle will pick them up.
 
 ## Output Format
 
 ```markdown
 # Worked Examples — ASN-NNNN Title
 
-## Scenario 1: [descriptive name]
+## Example 1: [descriptive name]
 
 **Setup.** [Concrete state — name every component]
 
@@ -37,17 +37,17 @@ Read the ASN. Find the properties. For each one, ask: what is the smallest concr
 - P0: Σ.A ⊆ Σ'.A — {a₁, a₂} ⊆ {a₁, a₂, b₁} ✓
 - P1: Σ'.ι(a₁) = Σ.ι(a₁) = 'H' ✓
 
-## Scenario 2: [descriptive name]
+## Example 2: [descriptive name]
 
 ...
 
 ## Coverage
 
-| Property | Scenario | Vacuous? |
-|----------|----------|----------|
-| P0 | Scenario 1: INSERT | No |
-| P1 | Scenario 1: INSERT | No |
-| J0 | Scenario 1: INSERT | Yes — dom empty |
+| Property | Example | Vacuous? |
+|----------|---------|----------|
+| P0 | Example 1: INSERT | No |
+| P1 | Example 1: INSERT | No |
+| J0 | Example 1: INSERT | Yes — dom empty |
 | J1 | — | Not covered |
 
 ## Backlog
