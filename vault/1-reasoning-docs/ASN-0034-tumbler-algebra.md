@@ -450,7 +450,7 @@ Now subtract `w` from `r`. The subtraction scans for the first divergence betwee
 
 TumblerAdd's constructive definition determines each component of the result from exactly one input. This makes the operation left-cancellative.
 
-**TA-LC** — *LeftCancellation* (LEMMA, lemma). If a ⊕ x = a ⊕ y with both sides well-defined (TA0 satisfied for both), then x = y.
+**TA-LC** (*LeftCancellation*) [lemma]. If a ⊕ x = a ⊕ y with both sides well-defined (TA0 satisfied for both), then x = y.
 
 *Proof.* Let k₁ and k₂ be the action points of x and y. If k₁ < k₂, then (a ⊕ x)_{k₁} = a_{k₁} + x_{k₁} while (a ⊕ y)_{k₁} = a_{k₁} (position k₁ falls in the "copy from start" range of y). Equality gives x_{k₁} = 0, contradicting k₁ being the action point of x. Symmetrically k₂ < k₁ is impossible. So k₁ = k₂ = k.
 
@@ -465,7 +465,7 @@ TumblerAdd is *left-cancellative*: the start position can be "divided out" from 
 
 The converse — right cancellation — does not hold. TumblerAdd's many-to-one property (noted informally in the definition of TumblerAdd above) means distinct starts can produce the same result under the same displacement.
 
-**TA-RC** — *RightCancellationFailure* (LEMMA, lemma). There exist tumblers a, b, w with a ≠ b and a ⊕ w = b ⊕ w (both sides well-defined).
+**TA-RC** (*RightCancellationFailure*) [lemma]. There exist tumblers a, b, w with a ≠ b and a ⊕ w = b ⊕ w (both sides well-defined).
 
 *Proof by example.* Let a = [1, 3, 5], b = [1, 3, 7], and w = [0, 2, 4] (action point k = 2). Then:
 
@@ -476,7 +476,7 @@ So a ⊕ w = b ⊕ w = [1, 5, 4] despite a ≠ b — the difference at position 
 
 The mechanism is TumblerAdd's tail replacement: components of the start position after the action point are discarded and replaced by the displacement's tail. Any two starts that agree on components 1..k and differ only on components after k will produce the same result under any displacement with action point k. Formally:
 
-**TA-MTO** — *ManyToOne* (LEMMA, lemma). For any displacement w with action point k and any tumblers a, b with #a ≥ k and #b ≥ k: a ⊕ w = b ⊕ w if and only if a_i = b_i for all 1 ≤ i ≤ k.
+**TA-MTO** (*ManyToOne*) [lemma]. For any displacement w with action point k and any tumblers a, b with #a ≥ k and #b ≥ k: a ⊕ w = b ⊕ w if and only if a_i = b_i for all 1 ≤ i ≤ k.
 
 *Proof (forward).* Assume a_i = b_i for all 1 ≤ i ≤ k. From TumblerAdd's definition: for i < k, (a ⊕ w)_i = a_i = b_i = (b ⊕ w)_i. At i = k, (a ⊕ w)_k = a_k + w_k = b_k + w_k = (b ⊕ w)_k. For i > k, (a ⊕ w)_i = w_i = (b ⊕ w)_i. The results have the same length (max(k − 1, 0) + (#w − k + 1) depends only on k and #w). By T3, a ⊕ w = b ⊕ w.  ∎
 
@@ -679,8 +679,9 @@ Each property is required by at least one system guarantee:
 | TA5 | Address allocation |
 | TA6 | Sentinel and lower bound |
 | TA7a | Subspace isolation (algebraic closure) |
+| TA-LC, TA-RC, TA-MTO *(lemmas)* | Cancellation characterization of ⊕; TA-MTO equivalence classes constrain span-endpoint recovery |
 
-Removing any independent property breaks a system-level guarantee. T6 and T7 are derived (corollaries of T4, T3 respectively) and are stated for emphasis, not as independent axioms.
+Removing any independent property breaks a system-level guarantee. T6 and T7 are derived (corollaries of T4, T3 respectively) and are stated for emphasis, not as independent axioms. TA-LC, TA-RC, and TA-MTO are structural lemmas derived from TumblerAdd's constructive definition and T3 — they characterize cancellation asymmetry and the many-to-one equivalence classes of `⊕`, but introduce no independent content beyond the definition.
 
 
 ## Properties Introduced
