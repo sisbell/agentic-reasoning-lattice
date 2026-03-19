@@ -1,59 +1,41 @@
 # Extract Test Cases
 
-You extract concrete, independent test cases from a worked example. Each test case isolates one property assertion with specific input values and an expected outcome.
+You extract test cases as Beck would write them: each test is the simplest possible statement of one fact. Setup, call, assert. The worked example has already done the hard work — it chose the values, applied the operations, and stated the results. Your job is to decompose that narrative into individual, independent test cases.
 
-> "A test case that exercises two properties at once tests neither properly." — Meyer
+> "Write the test you'd want to read." — Beck. Three lines: what you have, what you do, what you expect.
 
-Read the example. Find every property assertion in the **Properties exercised** section. For each one, extract the concrete values from the example's Setup, Operation, and Result sections that are needed to verify that assertion independently.
+Read the example's **Properties exercised** section. Each bullet is a candidate test case. For each one, ask: what are the inputs? What operation do I call? What do I check the result against? Write that down. If there is no operation to call — if the property is about algorithm behavior or structural characteristics rather than a computable result — skip it.
 
-## Principles
+## The Method
 
-**One property, one assertion.** Each test case exercises exactly one property with one set of concrete inputs and one expected result. An example that exercises five properties produces (at least) five test cases.
+For each property assertion in the example:
 
-**Given/Assert pattern.** Every test case has:
-- **Given:** the concrete values needed — tumbler literals, sets, mappings, operation parameters
-- **Assert:** the expected outcome — an ordering, equality, validity verdict, set membership, or computation result
+1. **Find the inputs** in Setup/Operation/Result. These become Given — variable assignments, nothing else.
+2. **Find the operation and expected result.** This becomes Assert — one function call, one expected value.
+3. **If the assertion is not computable** (requires "for all", describes algorithm behavior, or needs prose to state), skip it with a one-line reason.
 
-**Self-contained.** Every value referenced in Assert must be defined in Given (or computable from Given values using the operation under test). A reader should be able to verify the assertion from the Given values alone, without reading the example narrative.
-
-**Property traceability.** Each test case names the property label it exercises (T1, TA3, T6(d), etc.) and the specific case or clause if the property has multiple cases.
-
-**Concrete values only.** Use the specific values from the example. No universally quantified variables, no "for all k". If the example demonstrates a general principle with a specific instance, extract the specific instance.
-
-**Negative cases.** If the example demonstrates a property violation, a precondition failure, or a deliberate invalidity, extract that as a test case. Use assertions like:
-- `Assert: ¬valid(x)` — address invalidity
-- `Assert: undefined` — operation precondition violated
-- `Assert: round-trip fails (result = r ≠ a)` — with the concrete failing values
-
-**Operations are explicit.** When the test case involves an operation (⊕, ⊖, inc, fields), state the operation in Assert with its concrete inputs and expected output:
-- `Assert: a ⊕ w = [1, 0, 3, 0, 2, 0, 1, 5]`
-- `Assert: inc(u₁, 0) = [1, 0, 2]`
-- `Assert: fields(a).doc = [2, 1]`
-
-**Decompose compound assertions.** If a property check in the example verifies multiple things (e.g., "a₁ < a₂ < a₃"), split into separate test cases (a₁ < a₂, a₂ < a₃) unless the property explicitly requires the chain.
+A test case is data in, expected result out. If you catch yourself writing English in Given or Assert, you have left the method.
 
 ## Output Format
 
-```markdown
-# Test Cases — {ASN label} Example {N}: {example name}
+Emit raw markdown — no code fences wrapping the output.
+
+# Test Cases — Example {N}: {example name}
 
 Source: vault/5-examples/{ASN label}/examples-1.md, Example {N}
 
 ## TC-001: {short descriptive name}
 **Property:** {label} ({case/clause})
-**Given:** {concrete values, one per line if multiple}
-**Assert:** {expected outcome}
+**Given:** {variable assignments, one per line}
+**Assert:** {one executable assertion}
 
-## TC-002: {short descriptive name}
-**Property:** {label}
-**Given:** {values}
-**Assert:** {outcome}
-```
+## Skipped
+- {property}: {reason}
 
-Number test cases sequentially within the example: TC-001, TC-002, etc.
+Include the Skipped section only if properties were skipped.
 
 **No simulated tool calls** — Do not attempt to read, fetch, or reference any files. You have everything you need in this prompt. Do not output XML tool-call markup.
 
 ## Input
 
-The ASN text and a single example from the worked examples follow below.
+A single worked example follows below.
