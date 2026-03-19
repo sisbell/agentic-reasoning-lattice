@@ -47,7 +47,7 @@ Study these verified patterns carefully. Dafny is not Boogie, Why3, or Coq.
 
 ## Available proof modules
 
-These verified modules live in `vault/proofs/`. Since generated files
+These verified modules live in `vault/5-proofs/`. Since generated files
 are outside that directory, you must `include` each `.dfy` file you
 need before importing its module. Use relative paths from your output
 file's location.

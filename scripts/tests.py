@@ -24,8 +24,8 @@ from pathlib import Path
 
 WORKSPACE = Path(__file__).resolve().parent.parent
 PROMPTS = WORKSPACE / "scripts" / "prompts" / "test-cases"
-EXAMPLES_DIR = WORKSPACE / "vault" / "5-examples"
-TESTCASES_DIR = WORKSPACE / "vault" / "6-test-cases"
+EXAMPLES_DIR = WORKSPACE / "vault" / "6-examples"
+TESTCASES_DIR = WORKSPACE / "vault" / "7-test-cases"
 
 ORACLE_DIR = WORKSPACE / "vault" / "oracle" / "xanadu-oracle-rust"
 TESTS_DIR = ORACLE_DIR / "tests"

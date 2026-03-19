@@ -100,7 +100,7 @@ def read_proof_modules(module_names):
 
     Module names map to files: TumblerAlgebra → TumblerAlgebra.dfy,
     TumblerOrder → TumblerOrder.dfy, etc. All files live under
-    vault/proofs/TumblerAlgebra/ (the shared directory).
+    vault/5-proofs/TumblerAlgebra/ (the shared directory).
 
     Returns a dict of {relative_path: source} and a formatted text block
     for prompt injection. Paths are relative to WORKSPACE.

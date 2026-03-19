@@ -19,8 +19,8 @@ from pathlib import Path
 
 WORKSPACE = Path(__file__).resolve().parent.parent
 PROMPTS = WORKSPACE / "scripts" / "prompts" / "examples"
-ASNS_DIR = WORKSPACE / "vault" / "asns"
-EXAMPLES_DIR = WORKSPACE / "vault" / "5-examples"
+ASNS_DIR = WORKSPACE / "vault" / "1-reasoning-docs"
+EXAMPLES_DIR = WORKSPACE / "vault" / "6-examples"
 
 GENERATE_MODEL = "claude-sonnet-4-6"
 REVIEW_MODELS = ["claude-sonnet-4-6"]

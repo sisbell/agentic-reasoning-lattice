@@ -44,13 +44,13 @@ def main():
     hint = " ".join(args)
 
     # Check for changes in the appropriate directory
-    check_path = "vault/proofs/" if proofs_mode else "vault/"
+    check_path = "vault/5-proofs/" if proofs_mode else "vault/"
     result = subprocess.run(
         ["git", "status", "--porcelain", check_path],
         capture_output=True, text=True, cwd=str(WORKSPACE),
     )
     if not result.stdout.strip():
-        label = "vault/proofs/" if proofs_mode else "vault/"
+        label = "vault/5-proofs/" if proofs_mode else "vault/"
         print(f"  nothing to commit in {label}", file=sys.stderr)
         sys.exit(0)
 
@@ -67,7 +67,7 @@ def main():
 
 {hint}
 
-Check for changes in {"vault/proofs/" if proofs_mode else "vault/"}, read the diffs, and commit with a descriptive message.
+Check for changes in {"vault/5-proofs/" if proofs_mode else "vault/"}, read the diffs, and commit with a descriptive message.
 """
 
     cmd = [

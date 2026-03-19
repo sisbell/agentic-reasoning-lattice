@@ -8,14 +8,12 @@ import yaml
 WORKSPACE = Path(__file__).resolve().parent.parent
 VAULT = WORKSPACE / "vault"
 
-# Model artifacts (top-level deliverables)
-ASNS_DIR = VAULT / "asns"
-PROOFS_DIR = VAULT / "proofs"
-VOCABULARY = VAULT / "vocabulary.md"
+# Stage 0: Consultations (merged transcripts)
+EXPERTS_DIR = VAULT / "0-consultations"
 
-# Stage 1: Promote
-INQUIRIES_FILE = VAULT / "1-promote" / "inquiries.yaml"
-PROMOTE_DIR = VAULT / "1-promote"
+# Stage 1: Reasoning documents (ASNs)
+ASNS_DIR = VAULT / "1-reasoning-docs"
+VOCABULARY = VAULT / "vocabulary.md"
 
 # Stage 2: Review
 REVIEWS_DIR = VAULT / "2-review"
@@ -28,20 +26,20 @@ ALLOY_DIR = VAULT / "4-modeling" / "alloy"
 DAFNY_DIR = VAULT / "4-modeling" / "dafny"
 PROOF_INDEX_DIR = VAULT / "4-modeling" / "proof-index"
 VERIFICATION_DIR = VAULT / "4-modeling" / "verification"
+
+# Stage 5: Proofs (curated, human-reviewed)
+PROOFS_DIR = VAULT / "5-proofs"
 PROOF_IMPORTS = PROOFS_DIR / "imports.md"
 FOUNDATION_LIST = ASNS_DIR / "foundation.md"
 
-# Stage 5: Worked Examples
-EXAMPLES_DIR = VAULT / "5-examples"
+# Stage 6: Worked Examples
+EXAMPLES_DIR = VAULT / "6-examples"
 
-# Stage 6: Test Cases
-TESTCASES_DIR = VAULT / "6-test-cases"
+# Stage 7: Test Cases
+TESTCASES_DIR = VAULT / "7-test-cases"
 
 # Manifests (per-ASN pipeline configuration)
 PROJECT_MODEL_DIR = VAULT / "project-model"
-
-# Experts (merged consultations + transcripts)
-EXPERTS_DIR = VAULT / "experts"
 
 # Requirements — Nelson's design features
 REQUIREMENTS_DIR = VAULT / "requirements"

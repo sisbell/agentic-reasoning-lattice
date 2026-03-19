@@ -24,10 +24,10 @@ Commit changes to the vault with meaningful, descriptive commit messages.
 
 4. **Stage the changes:**
    ```bash
-   git add vault/asns/ vault/requirements/ vault/1-promote/ vault/2-review/ vault/3-export/ vault/4-modeling/ vault/5-examples/ vault/experts/ 2>/dev/null; true
+   git add vault/0-consultations/ vault/1-reasoning-docs/ vault/requirements/ vault/2-review/ vault/3-export/ vault/4-modeling/ vault/6-examples/ vault/7-test-cases/ 2>/dev/null; true
    ```
 
-   **Important:** Never stage `vault/proofs/`. That directory contains curated,
+   **Important:** Never stage `vault/5-proofs/`. That directory contains curated,
    human-reviewed proof files. Changes there are committed manually by the
    operator using a separate, deliberate process.
 

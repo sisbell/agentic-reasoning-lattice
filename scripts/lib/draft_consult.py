@@ -651,7 +651,7 @@ def main():
                         choices=["sonnet", "opus"],
                         help="Model for question generation (default: opus)")
     parser.add_argument("--output", "-o",
-                        help="Output file path (default: vault/experts/ASN-NNNN/consultation/answers.md)")
+                        help="Output file path (default: vault/0-consultations/ASN-NNNN/consultation/answers.md)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Generate and save questions, don't run consultations")
     parser.add_argument("--regenerate", action="store_true",

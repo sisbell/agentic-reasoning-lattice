@@ -9,10 +9,10 @@
 set -euo pipefail
 
 WORKSPACE="$(cd "$(dirname "$0")/.." && pwd)"
-PROOFS="$WORKSPACE/vault/proofs"
+PROOFS="$WORKSPACE/vault/5-proofs"
 ORACLE="$WORKSPACE/vault/oracle"
 TMPDIR="$(mktemp -d)"
-STAGING="$TMPDIR/vault/proofs"
+STAGING="$TMPDIR/vault/5-proofs"
 
 trap 'rm -rf "$TMPDIR"' EXIT
 
@@ -39,8 +39,8 @@ dafny translate rs $SOURCES \
     --allow-warnings
 
 echo "[ORACLE] Cleaning source references..."
-# Replace messy temp/relative paths with clean vault/proofs/ references
-sed -i.bak 's|/// .*/vault/proofs/|/// vault/proofs/|g' "$ORACLE/xanadu-oracle-rust/src/xanadu_oracle.rs"
+# Replace messy temp/relative paths with clean vault/5-proofs/ references
+sed -i.bak 's|/// .*/vault/5-proofs/|/// vault/5-proofs/|g' "$ORACLE/xanadu-oracle-rust/src/xanadu_oracle.rs"
 rm -f "$ORACLE/xanadu-oracle-rust/src/"*.bak
 
 echo "[ORACLE] Generated files:"

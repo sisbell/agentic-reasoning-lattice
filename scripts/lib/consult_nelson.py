@@ -5,7 +5,7 @@ Nelson ad-hoc consultation — for the discovery agent's follow-up questions.
 Pre-loads ~70K tokens of curated content (concepts, intent, Literary Machines).
 With --with-png, also enables tool access for reading page images.
 
-Transcripts written to vault/experts/.../sessions/ for traceability.
+Transcripts written to vault/0-consultations/.../sessions/ for traceability.
 Prints the output file path to stdout.
 
 For batch consultations (consult-experts.py pipeline), Nelson logic is

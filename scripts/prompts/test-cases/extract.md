@@ -22,7 +22,7 @@ Emit raw markdown — no code fences wrapping the output.
 
 # Test Cases — Example {N}: {example name}
 
-Source: vault/5-examples/{ASN label}/examples-1.md, Example {N}
+Source: vault/6-examples/{ASN label}/examples-1.md, Example {N}
 
 ## TC-001: {short descriptive name}
 **Property:** {label} ({case/clause})
