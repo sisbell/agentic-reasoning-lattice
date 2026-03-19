@@ -27,13 +27,17 @@ where k = divergence(a, b). This is exactly the formula for b ⊖ a from ASN-003
 
 **D0** (*Displacement well-definedness*). a ≤ b, and the divergence k of a and b satisfies k ≤ #a.
 
-The second condition is the *level constraint* — we shall return to it. When a is a proper prefix of b (divergence type (ii) from ASN-0034), the divergence is #a + 1, exceeding #a, and no valid displacement exists.
+D0 ensures the displacement b ⊖ a is a well-defined tumbler, and that a ⊕ (b ⊖ a) is defined (TA0 satisfied). It does not guarantee round-trip faithfulness — the identity a ⊕ (b ⊖ a) = b additionally requires #a ≤ #b, since TumblerSubtract produces a result of length max(#a, #b), which differs from b ⊖ a when #a > #b. We formalize the sufficient condition as level compatibility in S6.
 
-We verify the round-trip. Given σ = (s, ℓ) with action point k, reach(σ) = s ⊕ ℓ. Computing reach(σ) ⊖ start(σ): the divergence of s and s ⊕ ℓ is at position k (since sᵢ = (s ⊕ ℓ)ᵢ for i < k and sₖ ≠ (s ⊕ ℓ)ₖ because ℓₖ > 0). Then (reach ⊖ start)ₖ = (sₖ + ℓₖ) − sₖ = ℓₖ, and (reach ⊖ start)ᵢ = (s ⊕ ℓ)ᵢ = ℓᵢ for i > k, and zero for i < k. This is ℓ itself. So:
+When a is a proper prefix of b (divergence type (ii) from ASN-0034), the divergence is #a + 1, exceeding #a, and no valid displacement exists.
 
-  reach(σ) ⊖ start(σ) = width(σ)
+We verify the round-trip for level-uniform spans (see S6). Given a level-uniform span σ = (s, ℓ) with #s = #ℓ and action point k, reach(σ) = s ⊕ ℓ with #reach = #s (since #(s ⊕ ℓ) = max(k − 1, 0) + (#ℓ − k + 1) = #ℓ = #s). Computing reach(σ) ⊖ start(σ): both have length #s, so no zero-padding is needed. The divergence is at position k (since sᵢ = (s ⊕ ℓ)ᵢ for i < k and sₖ ≠ (s ⊕ ℓ)ₖ because ℓₖ > 0). Then (reach ⊖ start)ₖ = (sₖ + ℓₖ) − sₖ = ℓₖ, and (reach ⊖ start)ᵢ = (s ⊕ ℓ)ᵢ = ℓᵢ for i > k, and zero for i < k. The result has length max(#reach, #start) = #s = #ℓ. This is ℓ itself. So:
 
-The width is recoverable from the endpoints. Conversely, start(σ) ⊕ width(σ) = reach(σ) by definition. The three quantities — start, width, reach — are mutually determining (any two fix the third, subject to D0).
+  reach(σ) ⊖ start(σ) = width(σ)       (level-uniform spans)
+
+The width is recoverable from the endpoints. Conversely, start(σ) ⊕ width(σ) = reach(σ) by definition. The three quantities — start, width, reach — are mutually determining: any two fix the third, when the span is level-uniform (#start = #width).
+
+When #start > #width, the round-trip fails: the reach has length #width (shorter than start), so TumblerSubtract zero-pads reach to length #start, producing a result of length #start ≠ #width. For instance, σ = ([1, 3, 5], [0, 2]) has reach [1, 5], but [1, 5] ⊖ [1, 3, 5] = [0, 2, 0] ≠ [0, 2].
 
 
 ## Convexity
@@ -49,7 +53,7 @@ This follows solely from T1 being a total order. Every position between two memb
 
 ## How two spans relate
 
-Given spans α and β, their relationship is determined by comparing starts and reaches under T1. Since T1 is a total order, five mutually exclusive cases arise:
+**SC** (*SpanClassification*). Given spans α and β, their relationship is determined by comparing starts and reaches under T1. Since T1 is a total order, five mutually exclusive cases arise:
 
 (i) *Separated.* reach(α) < start(β) or reach(β) < start(α). The spans share no positions and have space between them.
 
@@ -64,17 +68,34 @@ Given spans α and β, their relationship is determined by comparing starts and 
 Cases (i) and (ii) are the *disjoint* cases — ⟦α⟧ ∩ ⟦β⟧ = ∅. Cases (iii), (iv), and (v) are the *overlapping* cases — ⟦α⟧ ∩ ⟦β⟧ ≠ ∅. This exhaustive classification is forced by the total order; no implementation can introduce a sixth case.
 
 
+## The level constraint
+
+The properties that follow — intersection, merge, split, normalization — require span operands to be *level-compatible*. We formalize this now, since every subsequent operation depends on it.
+
+**S6** (*LevelConstraint*). Two tumblers t₁ and t₂ are *level-compatible*, written level_compat(t₁, t₂), when they have the same length:
+
+  level_compat(t₁, t₂)  ≡  #t₁ = #t₂
+
+A span σ = (s, ℓ) is *level-uniform* when level_compat(s, ℓ), i.e., #s = #ℓ. For a level-uniform span, #reach(σ) = #s: since the action point k satisfies 1 ≤ k ≤ #s = #ℓ, we have #(s ⊕ ℓ) = max(k − 1, 0) + (#ℓ − k + 1) = #ℓ = #s. The start, width, and reach all share the same tumbler length. Level-uniform spans automatically satisfy D0 for all endpoint pairs: since #start = #reach, neither is a proper prefix of the other, so divergence is of type (i) with k ≤ #start.
+
+The constraint is not merely technical — it reflects the tree structure of the tumbler space. A tumbler [1, 3, 0, 5] has four components spanning two hierarchical levels (separated by zero). A span with start [1, 3] and width [0, 2] operates at depth 2 — it varies position 2 while position 1 is fixed. An interior point at a deeper level, such as [1, 3, 0, 1], diverges from [1, 3] at position 3 (after zero-padding), exceeding #[1, 3] = 2. No valid displacement exists. A span defined at one depth can only interact with points at that same depth.
+
+In a flat address space (integers), every interior point would admit a valid split. The tumbler space, being hierarchical, stratifies positions by depth, and arithmetic must respect this stratification. The subspace closure TA7a from ASN-0034 captures the favorable case: within a single subspace using ordinal-only representation, addition and subtraction are fully closed. This is the abstract guarantee that span operations work for the common case of content within a document subspace.
+
+Gregory confirms the implementation enforces this: the split operation checks `tumblerlength(cut) = tumblerlength(width)` and aborts with a fatal error when the invariant is violated (Q14, Q15). The level constraint is load-bearing.
+
+
 ## Intersection
 
-**S1** (*IntersectionClosure*). The intersection of two spans is either empty or a single span. No configuration of two spans produces a fragmented intersection.
+**S1** (*IntersectionClosure*). For level-compatible spans α and β (level_compat(start(α), start(β))), the intersection is either empty or a single span. No configuration of two level-compatible spans produces a fragmented intersection.
 
-Formally: for spans α and β, either ⟦α⟧ ∩ ⟦β⟧ = ∅, or there exists a span γ such that ⟦γ⟧ = ⟦α⟧ ∩ ⟦β⟧.
+Formally: for level-uniform spans α and β with level_compat(start(α), start(β)), either ⟦α⟧ ∩ ⟦β⟧ = ∅, or there exists a span γ such that ⟦γ⟧ = ⟦α⟧ ∩ ⟦β⟧.
 
 *Proof.* Define s' = max(start(α), start(β)) and r' = min(reach(α), reach(β)). If r' ≤ s', the intersection is empty — this covers the separated and adjacent cases. Otherwise r' > s', and:
 
   ⟦α⟧ ∩ ⟦β⟧ = {t : s' ≤ t < r'}
 
-This is a half-open interval. The set is non-empty (s' is a member since s' < r'). The interval is representable as a span γ = (s', r' ⊖ s'), provided D0 holds for the pair (s', r'). The divergence of s' and r' falls within min(#start(α), #start(β)) when all boundary tumblers operate at the same hierarchical level (see S6 below).  ∎
+This is a half-open interval. The set is non-empty (s' is a member since s' < r'). By the level-compatibility precondition, all boundary tumblers — start(α), reach(α), start(β), reach(β) — share the same length (S6). So #s' = #r', D0 holds, and the round-trip is faithful. The interval is representable as a span γ = (s', r' ⊖ s').  ∎
 
 The significance is topological: convex sets in a total order have convex intersection. The tumbler space's hierarchical structure cannot fragment an intersection — there is no configuration where two contiguous regions share a disconnected collection of positions. Gregory confirms this from the implementation: the function `spanintersection` always produces at most one output span (Q10, `correspond.c:210-265`). Nelson confirms it from design intent: the system "knows precisely" what two regions share, "because correspondence is a structural relation derivable from I-addresses" (Q1).
 
@@ -108,7 +129,7 @@ Two spans α and β are *adjacent* when the reach of one equals the start of the
 
 Adjacent spans share no positions (reach is an exclusive upper bound) but their denotations abut — there is no gap between them.
 
-**S3** (*MergeEquivalence*). When α and β overlap or are adjacent, the union ⟦α⟧ ∪ ⟦β⟧ is the denotation of a single span. Moreover, this merged span is identical to one specified directly with the same endpoints.
+**S3** (*MergeEquivalence*). For level-compatible spans α and β (level_compat(start(α), start(β))), when they overlap or are adjacent, the union ⟦α⟧ ∪ ⟦β⟧ is the denotation of a single span. Moreover, this merged span is identical to one specified directly with the same endpoints.
 
 *Proof.* Without loss of generality, assume start(α) ≤ start(β). The overlap-or-adjacency condition means reach(α) ≥ start(β). Define:
 
@@ -117,7 +138,7 @@ Adjacent spans share no positions (reach is an exclusive upper bound) but their 
 
 Then ⟦α⟧ ∪ ⟦β⟧ = {t : s ≤ t < r}. To verify the union: every position in ⟦α⟧ satisfies s ≤ t (since s = start(α)) and t < r (since reach(α) ≤ r). Every position in ⟦β⟧ satisfies s ≤ t (since start(β) ≥ start(α) = s) and t < r (since reach(β) ≤ r). Conversely, any t with s ≤ t < r falls in ⟦α⟧ if t < reach(α), or in ⟦β⟧ if t ≥ start(β) — and the overlap/adjacency condition reach(α) ≥ start(β) ensures no position is missed.
 
-The merged span γ = (s, r ⊖ s) denotes {t : s ≤ t < r}, provided D0 holds. The denotation depends only on the endpoints s and r, not on the history of how they were obtained — confirming Nelson's assertion that "there is no choice as to what lies between" (LM 4/25).  ∎
+The merged span γ = (s, r ⊖ s) denotes {t : s ≤ t < r}. Level compatibility ensures #s = #r (both are starts or reaches of level-uniform spans at the same length), so D0 holds and the round-trip is faithful. The denotation depends only on the endpoints s and r, not on the history of how they were obtained — confirming Nelson's assertion that "there is no choice as to what lies between" (LM 4/25).  ∎
 
 Nelson grounds this in the normalization guarantee: "A spanset may be presented to the back end with any degree of overlap among the spans. This is because the system in effect performs a boolean OR to create a normalized specset, i.e. a non-overlapping coverage of the same portion of tumbler-space" (LM 4/37, Q3). The system treats {[a, b], [b, c]} and {[a, c]} as equivalent representations of the same address range.
 
@@ -130,7 +151,7 @@ Splitting is the reverse of merging: given a span σ and a point interior to it,
 
 **Definition** (*Interior point*). A position p is *interior* to span σ when start(σ) < p < reach(σ). By S0, every interior point is in ⟦σ⟧.
 
-**S4** (*SplitPartition*). For a span σ = (s, ℓ) and an interior point p, if the displacements d = p ⊖ s and d' = reach(σ) ⊖ p are both well-defined (D0), then the left span λ = (s, d) and right span ρ = (p, d') satisfy:
+**S4** (*SplitPartition*). For a level-uniform span σ = (s, ℓ) and an interior point p with level_compat(s, p), the displacements d = p ⊖ s and d' = reach(σ) ⊖ p are well-defined with #d = #s = #d' (all tumblers at the same length). The left span λ = (s, d) and right span ρ = (p, d') satisfy:
 
   (a) ⟦λ⟧ ∪ ⟦ρ⟧ = ⟦σ⟧                  (nothing lost)
   (b) ⟦λ⟧ ∩ ⟦ρ⟧ = ∅                      (nothing duplicated)
@@ -140,7 +161,17 @@ Splitting is the reverse of merging: given a span σ and a point interior to it,
 
 (b): ⟦λ⟧ ∩ ⟦ρ⟧ = {t : s ≤ t < p ∧ p ≤ t} = ∅, since t < p and t ≥ p cannot both hold.
 
-(c): reach(λ) = s ⊕ d = p by definition of d as p ⊖ s (applying the round-trip: s ⊕ (p ⊖ s) = p). And start(ρ) = p.  ∎
+(c): Since #s = #p (level compatibility), the round-trip is faithful: s ⊕ (p ⊖ s) = p. So reach(λ) = s ⊕ d = p. And start(ρ) = p.  ∎
+
+A concrete instance: let σ = ([1, 0, 1, 0, 1, 0, 5], [0, 0, 0, 0, 0, 0, 8]), a level-uniform span with #s = #ℓ = 7. The action point is k = 7, giving reach = [1, 0, 1, 0, 1, 0, 13]. Split at p = [1, 0, 1, 0, 1, 0, 9], which is interior (s < p < reach at position 7) and level-compatible (#p = 7 = #s).
+
+We compute d = p ⊖ s: divergence at position 7 (9 vs 5), so d = [0, 0, 0, 0, 0, 0, 4]. And d' = reach ⊖ p: divergence at position 7 (13 vs 9), so d' = [0, 0, 0, 0, 0, 0, 4]. Both have length 7 = #s.
+
+The split parts: λ = ([1, 0, 1, 0, 1, 0, 5], [0, 0, 0, 0, 0, 0, 4]) and ρ = ([1, 0, 1, 0, 1, 0, 9], [0, 0, 0, 0, 0, 0, 4]).
+
+Verify S4: (a) ⟦λ⟧ ∪ ⟦ρ⟧ = {t : [.., 5] ≤ t < [.., 9]} ∪ {t : [.., 9] ≤ t < [.., 13]} = {t : [.., 5] ≤ t < [.., 13]} = ⟦σ⟧. (b) ⟦λ⟧ ∩ ⟦ρ⟧ = ∅ (t < [.., 9] vs t ≥ [.., 9]). (c) reach(λ) = [.., 5] ⊕ [.., 4] = [.., 9] = p = start(ρ).
+
+Verify S5: d ⊕ d' = [0, 0, 0, 0, 0, 0, 4] ⊕ [0, 0, 0, 0, 0, 0, 4]. Action point k = 7: 4 + 4 = 8. Result = [0, 0, 0, 0, 0, 0, 8] = ℓ.
 
 Each element of ⟦σ⟧ appears in exactly one of ⟦λ⟧ or ⟦ρ⟧ — those before p go left, those from p onward go right. The partition is forced by the total order; there is no ambiguity. Nelson confirms the structural basis: "each element occupies exactly one position on the tumbler line" and spans include "everything between their endpoints with no discretion" (Q2). The REARRANGE operation's three-cut semantics depend on this: "cut 2 is simultaneously the boundary of both regions — the first region ends where the second begins" (Q2).
 
@@ -159,21 +190,6 @@ So d ⊕ d' = ℓ.
 Equivalently, by the Associativity lemma from ASN-0034: reach(σ) = s ⊕ ℓ = s ⊕ (d ⊕ d') = (s ⊕ d) ⊕ d' = p ⊕ d' = reach(ρ). The reach of the right part equals the reach of the original.  ∎
 
 This composition property makes split and merge inverses: merge the two split parts, and the resulting width is d ⊕ d' = ℓ, recovering the original span exactly. Gregory confirms the implementation achieves this by computing the second width as a remainder rather than independently: "The split is exact precisely because the code aborts rather than proceeding when the arithmetic would be approximate" (Q15). The preconditions — matching action points, single-component widths — are "load-bearing constraints on a number system that does not support general multi-story subtraction."
-
-
-## The level constraint
-
-Several operations above required well-defined displacements (condition D0): the divergence of the two endpoint tumblers must fall within the length of the shorter. This is not merely a technical convenience — it reflects a structural property of the tumbler space that any implementation must respect.
-
-**S6** (*LevelConstraint*). Span arithmetic is well-defined within a hierarchical level. For a span σ = (s, ℓ) with action point k, the operations of intersection, merge, and split on σ are guaranteed to produce well-formed results when all operands — start positions, cut points, and reached endpoints — diverge from s at position k or earlier.
-
-The constraint arises from the hierarchical nature of tumbler addresses. A tumbler [1, 3, 0, 5] has four significant components spanning two hierarchical levels (separated by the zero). A span with start [1, 3] and width [0, 2] operates at level 2 — it varies position 2 while position 1 is fixed. An interior point at a deeper level, such as [1, 3, 0, 1], diverges from [1, 3] at position 3 (after zero-padding), which exceeds #[1, 3] = 2. The displacement would require an action point of 3 > #start = 2, violating TA0.
-
-This means: a span defined at a given hierarchical level can only be split at points within that same level. A span covering [1, 3] through [1, 7] can be split at [1, 5] (divergence at level 2) but not at [1, 3, 0, 1] (divergence at level 3). The system enforces this: Gregory reports that the implementation maintains matching depth between start and width for all stored spans, and aborts with a fatal error when the invariant is violated (Q14, Q15).
-
-We observe that this is not a limitation of the algebra but a consequence of the tumbler space being tree-structured. In a flat address space (integers), every interior point would admit a valid split. The tumbler space, being hierarchical, stratifies positions by depth, and arithmetic must respect this stratification. The subspace closure property TA7a from ASN-0034 captures the favorable case: within a single subspace using ordinal-only representation, addition and subtraction are fully closed. This is the abstract guarantee that span operations work for the common case of content within a document subspace.
-
-From the implementation evidence, the level constraint manifests in two ways. First, an explicit structural guard: Gregory reports that the split operation checks `tumblerlength(cut) = tumblerlength(width)` and aborts otherwise (Q14, Q15). Second, an incidental arithmetic guard: when the subtraction operation encounters operands at different depths, it silently returns the minuend unchanged rather than computing the difference — the operation degenerates to the identity (Q12). Both guards serve the same abstract property: span arithmetic is meaningful only within a single hierarchical stratum.
 
 
 ## Span-sets
@@ -200,12 +216,12 @@ A span-set is *normalized* when its components are sorted, non-overlapping, and 
 
 Condition N2 uses strict inequality. If reach(σᵢ) = start(σᵢ₊₁), the spans are adjacent and could be merged — so the form is not yet minimal. If reach(σᵢ) > start(σᵢ₊₁), the spans overlap and must be merged. The normalized form is the irreducible representation: every span is as large as it can be, and no two spans can be combined.
 
-**S8** (*NormalizationExistence*). Every span-set Σ has a normalized equivalent Σ̂ with Σ̂ ≡ Σ.
+**S8** (*NormalizationExistence*). Every span-set Σ whose component spans are level-uniform and mutually level-compatible has a normalized equivalent Σ̂ with Σ̂ ≡ Σ.
 
 *Construction.* Sort the component spans by start position (T1 makes this well-defined). Scan left to right, maintaining a current interval [s, r). For each span σᵢ in sorted order:
 
   — If start(σᵢ) ≤ r (overlap or adjacency): extend r to max(r, reach(σᵢ)).
-  — If start(σᵢ) > r (separated): emit the current interval as a span (s, r ⊖ s), then start a new current interval at [start(σᵢ), reach(σᵢ)).
+  — If start(σᵢ) > r (separated): emit the current interval as a span (s, r ⊖ s) — level compatibility ensures #s = #r, so the displacement is faithful — then start a new current interval at [start(σᵢ), reach(σᵢ)).
 
 After processing all spans, emit the final interval. The result is a sequence of spans satisfying N1 and N2 whose union equals ⟦Σ⟧.
 
@@ -217,7 +233,11 @@ After processing all spans, emit the final interval. The result is a sequence of
 
 *Case 1:* start(αᵢ) < start(βᵢ) (or βᵢ does not exist). Then start(αᵢ) ∈ S since start(αᵢ) ∈ ⟦αᵢ⟧. But start(αᵢ) ∉ ⟦βⱼ⟧ for any j: for j < i, reach(βⱼ) = reach(αⱼ) < start(αᵢ) by N2 on Σ̂₁; for j ≥ i, start(βⱼ) ≥ start(βᵢ) > start(αᵢ) by N1 on Σ̂₂. So start(αᵢ) ∉ ⟦Σ̂₂⟧ = S. Contradiction.
 
-*Case 2:* start(αᵢ) = start(βᵢ) but reach(αᵢ) ≠ reach(βᵢ), say reach(αᵢ) < reach(βᵢ). Take any position p with reach(αᵢ) ≤ p < reach(βᵢ). Then p ∈ ⟦βᵢ⟧ ⊆ S. But p ∉ ⟦αᵢ⟧ (since p ≥ reach(αᵢ)), and p ∉ ⟦αⱼ⟧ for j < i (since p ≥ reach(αᵢ) > reach(αᵢ₋₁) by N2), and p ∉ ⟦αⱼ⟧ for j > i (since start(αᵢ₊₁) > reach(αᵢ) ≤ p would require p ≥ start(αᵢ₊₁), but we need p < reach(βᵢ) and start(αᵢ₊₁) > reach(αᵢ); however if start(αᵢ₊₁) ≤ p < reach(βᵢ), then start(αᵢ₊₁) is in both S and ⟦βᵢ⟧, so start(αᵢ₊₁) < reach(βᵢ), and since start(αᵢ₊₁) > reach(αᵢ), this means there is a gap in Σ̂₁ that βᵢ fills — contradicting ⟦Σ̂₁⟧ = ⟦Σ̂₂⟧). In either sub-case we reach contradiction.
+*Case 2:* start(αᵢ) = start(βᵢ) but reach(αᵢ) ≠ reach(βᵢ), say reach(αᵢ) < reach(βᵢ). Take any position p with reach(αᵢ) ≤ p < reach(βᵢ). Then p ∈ ⟦βᵢ⟧ ⊆ S. But p ∉ ⟦αᵢ⟧ (since p ≥ reach(αᵢ)), and p ∉ ⟦αⱼ⟧ for j < i (since p ≥ reach(αᵢ) > reach(αᵢ₋₁) by N2). For j > i, two sub-cases:
+
+  — *Sub-case 2a:* p < start(αᵢ₊₁). Then p ∉ ⟦αⱼ⟧ for all j > i (since the αⱼ are sorted by N1). So p ∉ ⟦Σ̂₁⟧, but p ∈ S. Contradiction.
+
+  — *Sub-case 2b:* p ≥ start(αᵢ₊₁). Then the gap [reach(αᵢ), start(αᵢ₊₁)) is non-empty (since start(αᵢ₊₁) > reach(αᵢ) by N2) and every position in this gap lies in ⟦βᵢ⟧ ⊆ S but not in ⟦Σ̂₁⟧. Contradiction with ⟦Σ̂₁⟧ = S.
 
 *Case 3:* start(αᵢ) > start(βᵢ). Symmetric to Case 1.
 
@@ -273,17 +293,18 @@ Two findings from Gregory's implementation evidence illuminate the boundary betw
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| D0 | Displacement well-definedness: a ≤ b and divergence(a, b) ≤ #a | introduced |
+| D0 | Displacement well-definedness: a ≤ b and divergence(a, b) ≤ #a (necessary for arithmetic, not sufficient for round-trip) | introduced |
 | S0 | Spans are convex: every position between two members is also a member | introduced |
-| S1 | Intersection of two spans is either empty or a single span | introduced |
+| SC | Span classification: five exhaustive cases (separated, adjacent, proper overlap, containment, equal) | introduced |
+| S6 | Level constraint: level_compat(t₁, t₂) ≡ #t₁ = #t₂; a span is level-uniform when #start = #width | introduced |
+| S1 | Intersection of two level-compatible spans is either empty or a single span | introduced |
 | S2 | The empty set is not the denotation of any span — every span is non-empty | introduced |
-| S3 | Adjacent or overlapping spans merge to a single span identical to one specified directly with the same endpoints | introduced |
+| S3 | Adjacent or overlapping level-compatible spans merge to a single span | introduced |
 | S3a | Span merge is commutative | introduced |
-| S4 | Split at an interior point produces an exact partition: nothing lost, nothing duplicated, the two parts adjacent | introduced |
+| S4 | Split at a level-compatible interior point produces an exact partition: nothing lost, nothing duplicated, the two parts adjacent | introduced |
 | S5 | The widths of two split parts compose under ⊕ to the original width, when action points agree | introduced |
-| S6 | Span arithmetic requires level compatibility: operand divergences must fall within the start position's length | introduced |
 | S7 | Every finite set of positions admits a covering span-set | introduced |
-| S8 | Every span-set has a normalized equivalent: sorted, non-overlapping, non-adjacent | introduced |
+| S8 | Every level-compatible span-set has a normalized equivalent: sorted, non-overlapping, non-adjacent | introduced |
 | S9 | The normalized form of a span-set is unique | introduced |
 | S10 | Span-set union (as normalization) is commutative and associative | introduced |
 | S11 | Removing a contained span from a containing span produces at most 2 spans | introduced |
