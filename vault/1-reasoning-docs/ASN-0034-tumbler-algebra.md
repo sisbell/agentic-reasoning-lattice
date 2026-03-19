@@ -714,9 +714,9 @@ Removing any independent property breaks a system-level guarantee. T6 and T7 are
 | TA6 | Every all-zero tumbler (any length) is less than every positive tumbler and is not a valid address | introduced |
 | TA7a | For ordinals `o = [o₁, ..., oₘ]` (`m ≥ 1`) in ordinal-only formulation, shift operations preserve all components before the action point and remain within the same subspace | introduced |
 | TA-assoc | Addition is associative where both compositions are defined: (a ⊕ b) ⊕ c = a ⊕ (b ⊕ c) | introduced |
-| TA-LC | a ⊕ x = a ⊕ y ⟹ x = y (left cancellation) | introduced |
-| TA-RC | Right cancellation fails: ∃ a ≠ b with a ⊕ w = b ⊕ w | introduced |
-| TA-MTO | a agrees with b on components 1..k ⟺ a ⊕ w = b ⊕ w for displacement w with action point k | introduced |
+| TA-LC | a ⊕ x = a ⊕ y ⟹ x = y (left cancellation) | lemma (from ⊕ defn + T3) |
+| TA-RC | Right cancellation fails: ∃ a ≠ b with a ⊕ w = b ⊕ w | lemma (from ⊕ defn + T3) |
+| TA-MTO | a agrees with b on components 1..k ⟺ a ⊕ w = b ⊕ w for displacement w with action point k | lemma (from ⊕ defn + T3) |
 
 
 ## Open Questions
