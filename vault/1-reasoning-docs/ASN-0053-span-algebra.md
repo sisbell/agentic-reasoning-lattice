@@ -33,9 +33,11 @@ When a is a proper prefix of b (divergence type (ii) from ASN-0034), the diverge
 
 We verify the round-trip for level-uniform spans (see S6). Given a level-uniform span σ = (s, ℓ) with #s = #ℓ and action point k, reach(σ) = s ⊕ ℓ with #reach = #s (since #(s ⊕ ℓ) = max(k − 1, 0) + (#ℓ − k + 1) = #ℓ = #s). Computing reach(σ) ⊖ start(σ): both have length #s, so no zero-padding is needed. The divergence is at position k (since sᵢ = (s ⊕ ℓ)ᵢ for i < k and sₖ ≠ (s ⊕ ℓ)ₖ because ℓₖ > 0). Then (reach ⊖ start)ₖ = (sₖ + ℓₖ) − sₖ = ℓₖ, and (reach ⊖ start)ᵢ = (s ⊕ ℓ)ᵢ = ℓᵢ for i > k, and zero for i < k. The result has length max(#reach, #start) = #s = #ℓ. This is ℓ itself. So:
 
-  reach(σ) ⊖ start(σ) = width(σ)       (level-uniform spans)
+**D2** (*WidthRecovery*). For a level-uniform span σ = (s, ℓ): reach(σ) ⊖ start(σ) = width(σ).
 
-The width is recoverable from the endpoints. Conversely, start(σ) ⊕ width(σ) = reach(σ) by definition. Of the three quantities — start, width, reach — two of the three pairings determine the third: start and width determine reach (by definition of ⊕); start and reach determine width (by the calculation above, via ⊖). But width and reach do not determine start. The many-to-one property of TumblerAdd (noted in ASN-0034) means distinct starts can produce the same reach under the same width: when the action point k falls before the last component of s, positions k+1..#s are replaced by the width's tail and are unrecoverable from the reach. For instance, s₁ = [1, 3, 5] and s₂ = [1, 3, 7] with width [0, 2, 4] (action point k = 2) both yield reach [1, 5, 4]. Same width, same reach, different starts — and different denotations.
+The proof is the component-by-component verification above.  ∎
+
+The width is recoverable from the endpoints. Conversely, start(σ) ⊕ width(σ) = reach(σ) by definition. Of the three quantities — start, width, reach — two of the three pairings determine the third: start and width determine reach (by definition of ⊕); start and reach determine width (by D2). But width and reach do not determine start. The many-to-one property of TumblerAdd (noted in ASN-0034) means distinct starts can produce the same reach under the same width: when the action point k falls before the last component of s, positions k+1..#s are replaced by the width's tail and are unrecoverable from the reach. For instance, s₁ = [1, 3, 5] and s₂ = [1, 3, 7] with width [0, 2, 4] (action point k = 2) both yield reach [1, 5, 4]. Same width, same reach, different starts — and different denotations.
 
 We promote this to a general identity:
 
@@ -219,7 +221,11 @@ Both compositions are well-defined, so associativity gives:
 
 By left-cancellation, d ⊕ d' = ℓ.  ∎
 
-This composition property, together with S4's partition and S3's merge, establishes that split and merge are inverses. The split produces λ = (s, d) with reach(λ) = p, and ρ = (p, d') with reach(ρ) = reach(σ). Since reach(λ) = start(ρ), the two parts are adjacent, and S3 applies. The merge constructs γ = (s_m, r_m ⊖ s_m) where s_m = min(s, p) = s (since s < p) and r_m = max(p, reach(σ)) = reach(σ) (since p < reach(σ)). The merged width is reach(σ) ⊖ s = ℓ, by D1 applied to σ (level-uniformity gives #s = #reach(σ)). So γ = (s, ℓ) = σ — the original span is recovered exactly. Gregory confirms the implementation achieves this by computing the second width as a remainder rather than independently: "The split is exact precisely because the code aborts rather than proceeding when the arithmetic would be approximate" (Q15). The level-uniformity constraint is "load-bearing" — it ensures the arithmetic is exact rather than approximate.
+**S4a** (*SplitMergeInverse*). For a level-uniform span σ = (s, ℓ) and an interior point p with level_compat(s, p), splitting σ at p (S4) and merging the two parts (S3) recovers σ exactly.
+
+*Proof.* The split produces λ = (s, d) with reach(λ) = p, and ρ = (p, d') with reach(ρ) = reach(σ). Since reach(λ) = start(ρ), the two parts are adjacent, and S3 applies. The merge constructs γ = (s_m, r_m ⊖ s_m) where s_m = min(s, p) = s (since s < p) and r_m = max(p, reach(σ)) = reach(σ) (since p < reach(σ)). The merged width is reach(σ) ⊖ s = ℓ, by D2 (level-uniformity gives #s = #reach(σ)). So γ = (s, ℓ) = σ — the original span is recovered exactly.  ∎
+
+Gregory confirms the implementation achieves this by computing the second width as a remainder rather than independently: "The split is exact precisely because the code aborts rather than proceeding when the arithmetic would be approximate" (Q15). The level-uniformity constraint is "load-bearing" — it ensures the arithmetic is exact rather than approximate.
 
 
 ## Span-sets
@@ -346,6 +352,7 @@ Two findings from Gregory's implementation evidence illuminate the boundary betw
 |-------|-----------|--------|
 | D0 | Displacement well-definedness: a < b and divergence(a, b) ≤ #a (ensures positive displacement with TA0 satisfied) | introduced |
 | D1 | Displacement round-trip: for a < b with #a = #b, a ⊕ (b ⊖ a) = b | introduced |
+| D2 | Width recovery: for level-uniform σ, reach(σ) ⊖ start(σ) = width(σ) | introduced |
 | S0 | Spans are convex: every position between two members is also a member | introduced |
 | SC | Span classification: five exhaustive cases (separated, adjacent, proper overlap, containment, equal) | introduced |
 | S6 | Level constraint: level_compat(t₁, t₂) ≡ #t₁ = #t₂; a span is level-uniform when #start = #width | introduced |
@@ -356,6 +363,7 @@ Two findings from Gregory's implementation evidence illuminate the boundary betw
 | S4 | Split at a level-compatible interior point produces an exact partition: nothing lost, nothing duplicated, the two parts adjacent | introduced |
 | LeftCancellation | a ⊕ x = a ⊕ y ⟹ x = y (tumbler arithmetic property, used locally) | introduced |
 | S5 | The widths of two split parts compose under ⊕ to the original width | introduced |
+| S4a | Split-merge inverse: splitting σ at a level-compatible interior point and merging recovers σ exactly | introduced |
 | S7 | Every finite set of positions admits a covering span-set | introduced |
 | S8 | Every level-compatible span-set has a normalized equivalent: sorted, non-overlapping, non-adjacent | introduced |
 | S9 | The normalized form of a span-set is unique | introduced |
