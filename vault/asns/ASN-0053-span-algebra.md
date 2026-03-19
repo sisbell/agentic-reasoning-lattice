@@ -37,6 +37,16 @@ We verify the round-trip for level-uniform spans (see S6). Given a level-uniform
 
 The width is recoverable from the endpoints. Conversely, start(σ) ⊕ width(σ) = reach(σ) by definition. The three quantities — start, width, reach — are mutually determining: any two fix the third, when the span is level-uniform (#start = #width).
 
+We promote this to a general identity:
+
+**D1** (*DisplacementRoundTrip*). For tumblers a, b ∈ T with a < b and #a = #b:
+
+  a ⊕ (b ⊖ a) = b
+
+*Proof.* Let k = divergence(a, b). Since #a = #b, this is type (i) divergence with k ≤ #a and aₖ < bₖ. Define w = b ⊖ a by TumblerSubtract: wᵢ = 0 for i < k, wₖ = bₖ − aₖ, wᵢ = bᵢ for i > k. The result has length #a. Now w > 0 since wₖ > 0, and the action point of w is k ≤ #a, so TA0 is satisfied. Applying TumblerAdd: (a ⊕ w)ᵢ = aᵢ = bᵢ for i < k (before divergence), (a ⊕ w)ₖ = aₖ + (bₖ − aₖ) = bₖ, and (a ⊕ w)ᵢ = wᵢ = bᵢ for i > k. Every component matches: a ⊕ w = b.  ∎
+
+The identity holds trivially when a = b (no displacement needed). D0 ensures the displacement is well-defined; D1 ensures the round-trip is faithful. Every proof below that constructs a span γ = (s, r ⊖ s) and asserts ⟦γ⟧ = {t : s ≤ t < r} depends on D1: the span's reach is s ⊕ (r ⊖ s) = r.
+
 When #start > #width, the round-trip fails: the reach has length #width (shorter than start), so TumblerSubtract zero-pads reach to length #start, producing a result of length #start ≠ #width. For instance, σ = ([1, 3, 5], [0, 2]) has reach [1, 5], but [1, 5] ⊖ [1, 3, 5] = [0, 2, 0] ≠ [0, 2].
 
 
@@ -87,7 +97,7 @@ Gregory confirms the implementation enforces this: the split operation checks `t
 
 ## Intersection
 
-**S1** (*IntersectionClosure*). For level-compatible spans α and β (level_compat(start(α), start(β))), the intersection is either empty or a single span. No configuration of two level-compatible spans produces a fragmented intersection.
+**S1** (*IntersectionClosure*). For level-uniform spans α and β with level_compat(start(α), start(β)), the intersection is either empty or a single span. No configuration of two such spans produces a fragmented intersection.
 
 Formally: for level-uniform spans α and β with level_compat(start(α), start(β)), either ⟦α⟧ ∩ ⟦β⟧ = ∅, or there exists a span γ such that ⟦γ⟧ = ⟦α⟧ ∩ ⟦β⟧.
 
@@ -95,7 +105,7 @@ Formally: for level-uniform spans α and β with level_compat(start(α), start(�
 
   ⟦α⟧ ∩ ⟦β⟧ = {t : s' ≤ t < r'}
 
-This is a half-open interval. The set is non-empty (s' is a member since s' < r'). By the level-compatibility precondition, all boundary tumblers — start(α), reach(α), start(β), reach(β) — share the same length (S6). So #s' = #r', D0 holds, and the round-trip is faithful. The interval is representable as a span γ = (s', r' ⊖ s').  ∎
+This is a half-open interval. The set is non-empty (s' is a member since s' < r'). By level-uniformity and S6, all boundary tumblers — start(α), reach(α), start(β), reach(β) — share the same length. So #s' = #r', and by D1 the interval is representable as a span γ = (s', r' ⊖ s') with reach(γ) = s' ⊕ (r' ⊖ s') = r'.  ∎
 
 The significance is topological: convex sets in a total order have convex intersection. The tumbler space's hierarchical structure cannot fragment an intersection — there is no configuration where two contiguous regions share a disconnected collection of positions. Gregory confirms this from the implementation: the function `spanintersection` always produces at most one output span (Q10, `correspond.c:210-265`). Nelson confirms it from design intent: the system "knows precisely" what two regions share, "because correspondence is a structural relation derivable from I-addresses" (Q1).
 
@@ -129,7 +139,7 @@ Two spans α and β are *adjacent* when the reach of one equals the start of the
 
 Adjacent spans share no positions (reach is an exclusive upper bound) but their denotations abut — there is no gap between them.
 
-**S3** (*MergeEquivalence*). For level-compatible spans α and β (level_compat(start(α), start(β))), when they overlap or are adjacent, the union ⟦α⟧ ∪ ⟦β⟧ is the denotation of a single span. Moreover, this merged span is identical to one specified directly with the same endpoints.
+**S3** (*MergeEquivalence*). For level-uniform spans α and β with level_compat(start(α), start(β)), when they overlap or are adjacent, the union ⟦α⟧ ∪ ⟦β⟧ is the denotation of a single span. Moreover, this merged span is identical to one specified directly with the same endpoints.
 
 *Proof.* Without loss of generality, assume start(α) ≤ start(β). The overlap-or-adjacency condition means reach(α) ≥ start(β). Define:
 
@@ -138,7 +148,7 @@ Adjacent spans share no positions (reach is an exclusive upper bound) but their 
 
 Then ⟦α⟧ ∪ ⟦β⟧ = {t : s ≤ t < r}. To verify the union: every position in ⟦α⟧ satisfies s ≤ t (since s = start(α)) and t < r (since reach(α) ≤ r). Every position in ⟦β⟧ satisfies s ≤ t (since start(β) ≥ start(α) = s) and t < r (since reach(β) ≤ r). Conversely, any t with s ≤ t < r falls in ⟦α⟧ if t < reach(α), or in ⟦β⟧ if t ≥ start(β) — and the overlap/adjacency condition reach(α) ≥ start(β) ensures no position is missed.
 
-The merged span γ = (s, r ⊖ s) denotes {t : s ≤ t < r}. Level compatibility ensures #s = #r (both are starts or reaches of level-uniform spans at the same length), so D0 holds and the round-trip is faithful. The denotation depends only on the endpoints s and r, not on the history of how they were obtained — confirming Nelson's assertion that "there is no choice as to what lies between" (LM 4/25).  ∎
+The merged span γ = (s, r ⊖ s) denotes {t : s ≤ t < r}. Level-uniformity and S6 ensure #s = #r (both are starts or reaches of level-uniform spans at the same length), so by D1 the reach is s ⊕ (r ⊖ s) = r. The denotation depends only on the endpoints s and r, not on the history of how they were obtained — confirming Nelson's assertion that "there is no choice as to what lies between" (LM 4/25).  ∎
 
 Nelson grounds this in the normalization guarantee: "A spanset may be presented to the back end with any degree of overlap among the spans. This is because the system in effect performs a boolean OR to create a normalized specset, i.e. a non-overlapping coverage of the same portion of tumbler-space" (LM 4/37, Q3). The system treats {[a, b], [b, c]} and {[a, c]} as equivalent representations of the same address range.
 
@@ -161,7 +171,7 @@ Splitting is the reverse of merging: given a span σ and a point interior to it,
 
 (b): ⟦λ⟧ ∩ ⟦ρ⟧ = {t : s ≤ t < p ∧ p ≤ t} = ∅, since t < p and t ≥ p cannot both hold.
 
-(c): Since #s = #p (level compatibility), the round-trip is faithful: s ⊕ (p ⊖ s) = p. So reach(λ) = s ⊕ d = p. And start(ρ) = p.  ∎
+(c): Since #s = #p (level compatibility) and s < p, D1 gives s ⊕ (p ⊖ s) = p. So reach(λ) = s ⊕ d = p = start(ρ).  ∎
 
 A concrete instance: let σ = ([1, 0, 1, 0, 1, 0, 5], [0, 0, 0, 0, 0, 0, 8]), a level-uniform span with #s = #ℓ = 7. The action point is k = 7, giving reach = [1, 0, 1, 0, 1, 0, 13]. Split at p = [1, 0, 1, 0, 1, 0, 9], which is interior (s < p < reach at position 7) and level-compatible (#p = 7 = #s).
 
@@ -175,21 +185,27 @@ Verify S5: d ⊕ d' = [0, 0, 0, 0, 0, 0, 4] ⊕ [0, 0, 0, 0, 0, 0, 4]. Action po
 
 Each element of ⟦σ⟧ appears in exactly one of ⟦λ⟧ or ⟦ρ⟧ — those before p go left, those from p onward go right. The partition is forced by the total order; there is no ambiguity. Nelson confirms the structural basis: "each element occupies exactly one position on the tumbler line" and spans include "everything between their endpoints with no discretion" (Q2). The REARRANGE operation's three-cut semantics depend on this: "cut 2 is simultaneously the boundary of both regions — the first region ends where the second begins" (Q2).
 
-**S5** (*SplitWidthComposition*). Under the same conditions as S4, with the additional assumption that d and ℓ have the same action point k, the widths of the two parts compose to the original width:
+We need a small lemma about tumbler addition before stating the composition property. (This is properly a tumbler arithmetic fact, belonging with ASN-0034; we state it here because S5 depends on it.)
+
+**Lemma** (*LeftCancellation*). If a ⊕ x = a ⊕ y with both sides well-defined, then x = y.
+
+*Proof.* Let k₁ and k₂ be the action points of x and y. If k₁ < k₂, then (a ⊕ x)ₖ₁ = aₖ₁ + xₖ₁ while (a ⊕ y)ₖ₁ = aₖ₁ (position k₁ falls in the "copy from start" range of y). Equality gives xₖ₁ = 0, contradicting k₁ being the action point of x. Symmetrically k₂ < k₁ is impossible. So k₁ = k₂ = k. At position k: aₖ + xₖ = aₖ + yₖ gives xₖ = yₖ. For i > k: xᵢ = (a ⊕ x)ᵢ = (a ⊕ y)ᵢ = yᵢ. For i < k: xᵢ = 0 = yᵢ. Every component agrees, so x = y.  ∎
+
+**S5** (*SplitWidthComposition*). Under the same conditions as S4, the widths of the two parts compose to the original width:
 
   d ⊕ d' = ℓ
 
-*Proof.* Since d = p ⊖ s and ℓ = reach(σ) ⊖ s share the same action point k, and d' = ℓ ⊖ d (the remainder after removing d from ℓ), we compute component by component:
+*Proof.* By D1, s ⊕ d = p (since s < p and #s = #d = #p). By D1 again, p ⊕ d' = reach(σ) (since p < reach(σ) and #p = #d' = #reach). Chaining:
 
-  (d ⊕ d')ᵢ = dᵢ = 0 = ℓᵢ                                              for i < k
-  (d ⊕ d')ₖ = dₖ + d'ₖ = (pₖ − sₖ) + (reachₖ − pₖ) = reachₖ − sₖ = ℓₖ    at i = k
-  (d ⊕ d')ᵢ = d'ᵢ = ℓᵢ                                                  for i > k
+  (s ⊕ d) ⊕ d' = reach(σ) = s ⊕ ℓ
 
-So d ⊕ d' = ℓ.
+By the Associativity lemma from ASN-0034 (both compositions are well-defined since all tumblers have length #s):
 
-Equivalently, by the Associativity lemma from ASN-0034: reach(σ) = s ⊕ ℓ = s ⊕ (d ⊕ d') = (s ⊕ d) ⊕ d' = p ⊕ d' = reach(ρ). The reach of the right part equals the reach of the original.  ∎
+  s ⊕ (d ⊕ d') = s ⊕ ℓ
 
-This composition property makes split and merge inverses: merge the two split parts, and the resulting width is d ⊕ d' = ℓ, recovering the original span exactly. Gregory confirms the implementation achieves this by computing the second width as a remainder rather than independently: "The split is exact precisely because the code aborts rather than proceeding when the arithmetic would be approximate" (Q15). The preconditions — matching action points, single-component widths — are "load-bearing constraints on a number system that does not support general multi-story subtraction."
+By left-cancellation, d ⊕ d' = ℓ.  ∎
+
+This composition property makes split and merge inverses: merge the two split parts, and the resulting width is d ⊕ d' = ℓ, recovering the original span exactly. Gregory confirms the implementation achieves this by computing the second width as a remainder rather than independently: "The split is exact precisely because the code aborts rather than proceeding when the arithmetic would be approximate" (Q15). The level-uniformity constraint is "load-bearing" — it ensures the arithmetic is exact rather than approximate.
 
 
 ## Span-sets
@@ -221,7 +237,7 @@ Condition N2 uses strict inequality. If reach(σᵢ) = start(σᵢ₊₁), the s
 *Construction.* Sort the component spans by start position (T1 makes this well-defined). Scan left to right, maintaining a current interval [s, r). For each span σᵢ in sorted order:
 
   — If start(σᵢ) ≤ r (overlap or adjacency): extend r to max(r, reach(σᵢ)).
-  — If start(σᵢ) > r (separated): emit the current interval as a span (s, r ⊖ s) — level compatibility ensures #s = #r, so the displacement is faithful — then start a new current interval at [start(σᵢ), reach(σᵢ)).
+  — If start(σᵢ) > r (separated): emit the current interval as a span (s, r ⊖ s) — level-uniformity and S6 ensure #s = #r, so by D1 the reach is faithful — then start a new current interval at [start(σᵢ), reach(σᵢ)).
 
 After processing all spans, emit the final interval. The result is a sequence of spans satisfying N1 and N2 whose union equals ⟦Σ⟧.
 
@@ -269,7 +285,7 @@ When one span contains another, the remainder is always bounded:
   Left:   {t : start(α) ≤ t < start(β)}      (empty when start(α) = start(β))
   Right:  {t : reach(β) ≤ t < reach(α)}       (empty when reach(β) = reach(α))
 
-Each non-empty interval is a half-open interval on the tumbler line, representable as a span (subject to D0). The result is a span-set of 0, 1, or 2 components:
+Each non-empty interval is a half-open interval on the tumbler line, representable as a span when α and β are level-uniform (ensuring D0 and D1 hold for the boundary tumblers). The result is a span-set of 0, 1, or 2 components:
 
   (a) Both boundaries coincide (α = β): difference is empty — 0 spans.
   (b) One boundary coincides: difference is one span.
@@ -294,22 +310,24 @@ Two findings from Gregory's implementation evidence illuminate the boundary betw
 | Label | Statement | Status |
 |-------|-----------|--------|
 | D0 | Displacement well-definedness: a ≤ b and divergence(a, b) ≤ #a (necessary for arithmetic, not sufficient for round-trip) | introduced |
+| D1 | Displacement round-trip: for a < b with #a = #b, a ⊕ (b ⊖ a) = b | introduced |
 | S0 | Spans are convex: every position between two members is also a member | introduced |
 | SC | Span classification: five exhaustive cases (separated, adjacent, proper overlap, containment, equal) | introduced |
 | S6 | Level constraint: level_compat(t₁, t₂) ≡ #t₁ = #t₂; a span is level-uniform when #start = #width | introduced |
-| S1 | Intersection of two level-compatible spans is either empty or a single span | introduced |
+| S1 | Intersection of two level-uniform, level-compatible spans is either empty or a single span | introduced |
 | S2 | The empty set is not the denotation of any span — every span is non-empty | introduced |
-| S3 | Adjacent or overlapping level-compatible spans merge to a single span | introduced |
+| S3 | Adjacent or overlapping level-uniform, level-compatible spans merge to a single span | introduced |
 | S3a | Span merge is commutative | introduced |
 | S4 | Split at a level-compatible interior point produces an exact partition: nothing lost, nothing duplicated, the two parts adjacent | introduced |
-| S5 | The widths of two split parts compose under ⊕ to the original width, when action points agree | introduced |
+| LeftCancellation | a ⊕ x = a ⊕ y ⟹ x = y (tumbler arithmetic property, used locally) | introduced |
+| S5 | The widths of two split parts compose under ⊕ to the original width | introduced |
 | S7 | Every finite set of positions admits a covering span-set | introduced |
 | S8 | Every level-compatible span-set has a normalized equivalent: sorted, non-overlapping, non-adjacent | introduced |
 | S9 | The normalized form of a span-set is unique | introduced |
 | S10 | Span-set union (as normalization) is commutative and associative | introduced |
 | S11 | Removing a contained span from a containing span produces at most 2 spans | introduced |
-| Σ.reach | reach(σ) = start(σ) ⊕ width(σ) — the exclusive upper bound | introduced |
-| Σ.denotation | ⟦σ⟧ = {t ∈ T : start(σ) ≤ t < reach(σ)} | introduced |
+| σ.reach | reach(σ) = start(σ) ⊕ width(σ) — the exclusive upper bound | introduced |
+| σ.denotation | ⟦σ⟧ = {t ∈ T : start(σ) ≤ t < reach(σ)} | introduced |
 | Σ.setdenotation | ⟦Σ⟧ = union of component span denotations | introduced |
 | N1, N2 | Normalized form conditions: sorted starts, separated reaches | introduced |
 
