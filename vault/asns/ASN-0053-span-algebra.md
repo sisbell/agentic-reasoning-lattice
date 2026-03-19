@@ -35,7 +35,7 @@ We verify the round-trip for level-uniform spans (see S6). Given a level-uniform
 
   reach(σ) ⊖ start(σ) = width(σ)       (level-uniform spans)
 
-The width is recoverable from the endpoints. Conversely, start(σ) ⊕ width(σ) = reach(σ) by definition. The three quantities — start, width, reach — are mutually determining: any two fix the third, when the span is level-uniform (#start = #width).
+The width is recoverable from the endpoints. Conversely, start(σ) ⊕ width(σ) = reach(σ) by definition. Of the three quantities — start, width, reach — two of the three pairings determine the third: start and width determine reach (by definition of ⊕); start and reach determine width (by the calculation above, via ⊖). But width and reach do not determine start. The many-to-one property of TumblerAdd (noted in ASN-0034) means distinct starts can produce the same reach under the same width: when the action point k falls before the last component of s, positions k+1..#s are replaced by the width's tail and are unrecoverable from the reach. For instance, s₁ = [1, 3, 5] and s₂ = [1, 3, 7] with width [0, 2, 4] (action point k = 2) both yield reach [1, 5, 4]. Same width, same reach, different starts — and different denotations.
 
 We promote this to a general identity:
 
@@ -45,7 +45,7 @@ We promote this to a general identity:
 
 *Proof.* Let k = divergence(a, b). Since #a = #b, this is type (i) divergence with k ≤ #a and aₖ < bₖ. Define w = b ⊖ a by TumblerSubtract: wᵢ = 0 for i < k, wₖ = bₖ − aₖ, wᵢ = bᵢ for i > k. The result has length #a. Now w > 0 since wₖ > 0, and the action point of w is k ≤ #a, so TA0 is satisfied. Applying TumblerAdd: (a ⊕ w)ᵢ = aᵢ = bᵢ for i < k (before divergence), (a ⊕ w)ₖ = aₖ + (bₖ − aₖ) = bₖ, and (a ⊕ w)ᵢ = wᵢ = bᵢ for i > k. Every component matches: a ⊕ w = b.  ∎
 
-The identity holds trivially when a = b (no displacement needed). D0 ensures the displacement is well-defined; D1 ensures the round-trip is faithful. Every proof below that constructs a span γ = (s, r ⊖ s) and asserts ⟦γ⟧ = {t : s ≤ t < r} depends on D1: the span's reach is s ⊕ (r ⊖ s) = r.
+When a = b, no displacement is needed; the degenerate case is handled separately since b ⊖ a produces the zero tumbler and a ⊕ (b ⊖ a) is not well-formed (TA0 requires w > 0). D0 ensures the displacement is well-defined; D1 ensures the round-trip is faithful for a < b. Every proof below that constructs a span γ = (s, r ⊖ s) and asserts ⟦γ⟧ = {t : s ≤ t < r} depends on D1: the span's reach is s ⊕ (r ⊖ s) = r.
 
 When #start > #width, the round-trip fails: the reach has length #width (shorter than start), so TumblerSubtract zero-pads reach to length #start, producing a result of length #start ≠ #width. For instance, σ = ([1, 3, 5], [0, 2]) has reach [1, 5], but [1, 5] ⊖ [1, 3, 5] = [0, 2, 0] ≠ [0, 2].
 
@@ -75,7 +75,9 @@ This follows solely from T1 being a total order. Every position between two memb
 
 (v) *Equal.* start(α) = start(β) and reach(α) = reach(β).
 
-Cases (i) and (ii) are the *disjoint* cases — ⟦α⟧ ∩ ⟦β⟧ = ∅. Cases (iii), (iv), and (v) are the *overlapping* cases — ⟦α⟧ ∩ ⟦β⟧ ≠ ∅. This exhaustive classification is forced by the total order; no implementation can introduce a sixth case.
+Cases (i) and (ii) are the *disjoint* cases — ⟦α⟧ ∩ ⟦β⟧ = ∅. Cases (iii), (iv), and (v) are the *overlapping* cases — ⟦α⟧ ∩ ⟦β⟧ ≠ ∅.
+
+*Exhaustiveness.* Assume without loss of generality that start(α) ≤ start(β) (the symmetric cases are covered by the "or symmetrically" clauses). Compare reach(α) with start(β): if reach(α) < start(β), case (i); if reach(α) = start(β), case (ii); if reach(α) > start(β), the spans share positions. In the sharing case, compare start(α) with start(β): if start(α) < start(β), compare reach(α) with reach(β) — reach(α) < reach(β) gives case (iii), reach(α) ≥ reach(β) gives case (iv). If start(α) = start(β), compare reaches — reach(α) = reach(β) gives case (v), otherwise case (iv). Every ordering of the four boundary points {start(α), reach(α), start(β), reach(β)}, subject to start < reach for each span, falls into exactly one case. No sixth case exists.
 
 
 ## The level constraint
@@ -105,7 +107,7 @@ Formally: for level-uniform spans α and β with level_compat(start(α), start(�
 
   ⟦α⟧ ∩ ⟦β⟧ = {t : s' ≤ t < r'}
 
-This is a half-open interval. The set is non-empty (s' is a member since s' < r'). By level-uniformity and S6, all boundary tumblers — start(α), reach(α), start(β), reach(β) — share the same length. So #s' = #r', and by D1 the interval is representable as a span γ = (s', r' ⊖ s') with reach(γ) = s' ⊕ (r' ⊖ s') = r'.  ∎
+This is a half-open interval. The set is non-empty (s' is a member since s' < r'). By level-uniformity and S6, all boundary tumblers — start(α), reach(α), start(β), reach(β) — share the same length. So #s' = #r', and by D1 the interval is representable as a span γ = (s', r' ⊖ s') with reach(γ) = s' ⊕ (r' ⊖ s') = r'. We verify T12 for γ: since s' < r', the divergence k satisfies k ≤ #s' (type (i) divergence, as #s' = #r' excludes the prefix case), and the width r' ⊖ s' has a positive component at position k (namely r'ₖ − s'ₖ > 0), so the width is positive and its action point k ≤ #s'. The constructed span is well-formed.  ∎
 
 The significance is topological: convex sets in a total order have convex intersection. The tumbler space's hierarchical structure cannot fragment an intersection — there is no configuration where two contiguous regions share a disconnected collection of positions. Gregory confirms this from the implementation: the function `spanintersection` always produces at most one output span (Q10, `correspond.c:210-265`). Nelson confirms it from design intent: the system "knows precisely" what two regions share, "because correspondence is a structural relation derivable from I-addresses" (Q1).
 
@@ -148,7 +150,7 @@ Adjacent spans share no positions (reach is an exclusive upper bound) but their 
 
 Then ⟦α⟧ ∪ ⟦β⟧ = {t : s ≤ t < r}. To verify the union: every position in ⟦α⟧ satisfies s ≤ t (since s = start(α)) and t < r (since reach(α) ≤ r). Every position in ⟦β⟧ satisfies s ≤ t (since start(β) ≥ start(α) = s) and t < r (since reach(β) ≤ r). Conversely, any t with s ≤ t < r falls in ⟦α⟧ if t < reach(α), or in ⟦β⟧ if t ≥ start(β) — and the overlap/adjacency condition reach(α) ≥ start(β) ensures no position is missed.
 
-The merged span γ = (s, r ⊖ s) denotes {t : s ≤ t < r}. Level-uniformity and S6 ensure #s = #r (both are starts or reaches of level-uniform spans at the same length), so by D1 the reach is s ⊕ (r ⊖ s) = r. The denotation depends only on the endpoints s and r, not on the history of how they were obtained — confirming Nelson's assertion that "there is no choice as to what lies between" (LM 4/25).  ∎
+The merged span γ = (s, r ⊖ s) denotes {t : s ≤ t < r}. Level-uniformity and S6 ensure #s = #r (both are starts or reaches of level-uniform spans at the same length), so by D1 the reach is s ⊕ (r ⊖ s) = r. We verify T12 for γ: since s < r (the union is non-empty), the divergence k satisfies k ≤ #s (type (i), as #s = #r), and the width r ⊖ s has a positive component at position k (rₖ − sₖ > 0 at the divergence point). The action point of the width is k ≤ #s, so γ is well-formed. The denotation depends only on the endpoints s and r, not on the history of how they were obtained — confirming Nelson's assertion that "there is no choice as to what lies between" (LM 4/25).  ∎
 
 Nelson grounds this in the normalization guarantee: "A spanset may be presented to the back end with any degree of overlap among the spans. This is because the system in effect performs a boolean OR to create a normalized specset, i.e. a non-overlapping coverage of the same portion of tumbler-space" (LM 4/37, Q3). The system treats {[a, b], [b, c]} and {[a, c]} as equivalent representations of the same address range.
 
@@ -167,7 +169,9 @@ Splitting is the reverse of merging: given a span σ and a point interior to it,
   (b) ⟦λ⟧ ∩ ⟦ρ⟧ = ∅                      (nothing duplicated)
   (c) reach(λ) = start(ρ) = p             (the parts are adjacent)
 
-*Proof.* (a): ⟦λ⟧ ∪ ⟦ρ⟧ = {t : s ≤ t < p} ∪ {t : p ≤ t < reach(σ)} = {t : s ≤ t < reach(σ)} = ⟦σ⟧.
+*Proof.* First we verify T12 for both constructed spans. For λ = (s, d) where d = p ⊖ s: since s < p and #s = #p, the divergence k is of type (i) with k ≤ #s, and dₖ = pₖ − sₖ > 0, so d is positive with action point k ≤ #s. For ρ = (p, d') where d' = reach(σ) ⊖ p: since p < reach(σ) and #p = #reach(σ) (level-uniformity gives #reach = #s = #p), the divergence k' is of type (i) with k' ≤ #p, and d'ₖ' > 0. Both spans are well-formed.
+
+(a): ⟦λ⟧ ∪ ⟦ρ⟧ = {t : s ≤ t < p} ∪ {t : p ≤ t < reach(σ)} = {t : s ≤ t < reach(σ)} = ⟦σ⟧.
 
 (b): ⟦λ⟧ ∩ ⟦ρ⟧ = {t : s ≤ t < p ∧ p ≤ t} = ∅, since t < p and t ≥ p cannot both hold.
 
@@ -218,7 +222,9 @@ Two span-sets are *equivalent* when they denote the same set of positions: Σ₁
 
 **S7** (*FiniteRepresentability*). Every finite set of positions P ⊂ T admits a span-set Σ with ⟦Σ⟧ ⊇ P.
 
-In the degenerate case, each position can be covered by a unit span. For any tumbler t, a span (t, ℓ) exists with ℓ having action point at #t and value 1, covering the sub-tree rooted at t's last significant position. Nelson confirms: "a tumbler-span may range in possible size from one byte to the whole docuverse" (LM 4/24, Q4).
+*Proof.* For any tumbler t, define ℓ = [0, ..., 0, 1] with #ℓ = #t (all components zero except the last, which is 1). Then ℓ > 0 (the last component is nonzero) and the action point k = #t ≤ #t, so (t, ℓ) satisfies T12. By TA-strict, t ⊕ ℓ > t, so t ∈ [t, t ⊕ ℓ) = ⟦(t, ℓ)⟧ — the span covers t. Taking one such span per position in P gives Σ with ⟦Σ⟧ ⊇ P.
+
+Nelson confirms: "a tumbler-span may range in possible size from one byte to the whole docuverse" (LM 4/24, Q4).
 
 
 ## Normalization
@@ -239,7 +245,21 @@ Condition N2 uses strict inequality. If reach(σᵢ) = start(σᵢ₊₁), the s
   — If start(σᵢ) ≤ r (overlap or adjacency): extend r to max(r, reach(σᵢ)).
   — If start(σᵢ) > r (separated): emit the current interval as a span (s, r ⊖ s) — level-uniformity and S6 ensure #s = #r, so by D1 the reach is faithful — then start a new current interval at [start(σᵢ), reach(σᵢ)).
 
-After processing all spans, emit the final interval. The result is a sequence of spans satisfying N1 and N2 whose union equals ⟦Σ⟧.
+After processing all spans, emit the final interval.
+
+*Loop invariant.* Let E be the set of emitted spans after processing σ₁..σᵢ, and [s, r) the current interval. The invariant J is:
+
+  J: ⟦E⟧ ∪ [s, r) = ⟦σ₁⟧ ∪ ... ∪ ⟦σᵢ⟧
+
+*Initialization.* After the first span σ₁, E = ∅ and [s, r) = [start(σ₁), reach(σ₁)) = ⟦σ₁⟧. J holds.
+
+*Merge step.* When start(σᵢ) ≤ r, the new interval [s, max(r, reach(σᵢ))) covers [s, r) ∪ [start(σᵢ), reach(σᵢ)). The first term is the old current interval; the second is ⟦σᵢ⟧. Since start(σᵢ) ≤ r ensures no gap, the union is [s, max(r, reach(σᵢ))). E is unchanged, so ⟦E⟧ ∪ [s, max(r, reach(σᵢ))) = ⟦E⟧ ∪ [s, r) ∪ ⟦σᵢ⟧. By the inductive hypothesis, this equals ⟦σ₁⟧ ∪ ... ∪ ⟦σᵢ⟧. J is preserved.
+
+*Emit step.* When start(σᵢ) > r, the current interval [s, r) is emitted and a new interval [start(σᵢ), reach(σᵢ)) begins. The emitted span covers exactly [s, r), so ⟦E'⟧ = ⟦E⟧ ∪ [s, r). The new current interval is ⟦σᵢ⟧. Then ⟦E'⟧ ∪ ⟦σᵢ⟧ = ⟦E⟧ ∪ [s, r) ∪ ⟦σᵢ⟧ = ⟦σ₁⟧ ∪ ... ∪ ⟦σᵢ⟧. J is preserved.
+
+*Finalization.* After all n spans, emit the final [s, r). The total output satisfies ⟦Σ̂⟧ = ⟦σ₁⟧ ∪ ... ∪ ⟦σₙ⟧ = ⟦Σ⟧.
+
+The result is a sequence of spans satisfying N1 (starts are sorted because we emit left-to-right from a sorted input) and N2 (each emit occurs precisely when start(σᵢ) > r, guaranteeing a gap between the emitted span's reach and the next span's start).
 
 *Termination.* The scan visits each of the n input spans exactly once — bound function t = n − i.  ∎
 
@@ -278,7 +298,7 @@ Nelson argues this is structurally guaranteed: "spans are intervals on a total o
 
 When one span contains another, the remainder is always bounded:
 
-**S11** (*DifferenceBound*). For spans α and β with ⟦β⟧ ⊆ ⟦α⟧, the set difference ⟦α⟧ \ ⟦β⟧ is expressible as a span-set of at most two spans.
+**S11** (*DifferenceBound*). For level-uniform spans α and β with level_compat(start(α), start(β)) and ⟦β⟧ ⊆ ⟦α⟧, the set difference ⟦α⟧ \ ⟦β⟧ is expressible as a span-set of at most two spans.
 
 *Proof.* Containment means start(α) ≤ start(β) and reach(β) ≤ reach(α). The difference decomposes into two intervals:
 
@@ -325,7 +345,7 @@ Two findings from Gregory's implementation evidence illuminate the boundary betw
 | S8 | Every level-compatible span-set has a normalized equivalent: sorted, non-overlapping, non-adjacent | introduced |
 | S9 | The normalized form of a span-set is unique | introduced |
 | S10 | Span-set union (as normalization) is commutative and associative | introduced |
-| S11 | Removing a contained span from a containing span produces at most 2 spans | introduced |
+| S11 | For level-uniform, level-compatible spans with containment, the difference is at most 2 spans | introduced |
 | σ.reach | reach(σ) = start(σ) ⊕ width(σ) — the exclusive upper bound | introduced |
 | σ.denotation | ⟦σ⟧ = {t ∈ T : start(σ) ≤ t < reach(σ)} | introduced |
 | Σ.setdenotation | ⟦Σ⟧ = union of component span denotations | introduced |
