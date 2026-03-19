@@ -2,12 +2,12 @@
 """
 Extract test cases from worked examples.
 
-Decomposes worked examples into individual scenarios, then uses an LLM
-to extract concrete Given/Assert test cases from each scenario.
+Decomposes worked examples into individual examples, then uses an LLM
+to extract concrete Given/Assert test cases from each example.
 
 Usage:
     python scripts/tests.py extract 34
-    python scripts/tests.py extract 34 --scenario 1
+    python scripts/tests.py extract 34 --example 1
 """
 
 import argparse
@@ -38,14 +38,15 @@ def find_asn_file(asn_num):
     return matches[0]
 
 
-def split_scenarios(examples_text):
-    """Split worked examples into individual scenarios.
+def split_examples(examples_text):
+    """Split worked examples into individual examples.
 
-    Returns list of (scenario_num, scenario_name, scenario_text) tuples.
+    Returns list of (example_num, example_name, example_text) tuples.
+    Handles both '## Example N:' and legacy '## Scenario N:' headers.
     Excludes Coverage and Backlog sections.
     """
-    pattern = r"^## Scenario (\d+): (.+)$"
-    scenarios = []
+    pattern = r"^## (?:Example|Scenario) (\d+): (.+)$"
+    examples = []
     lines = examples_text.split("\n")
     current_num = None
     current_name = None
@@ -55,16 +56,15 @@ def split_scenarios(examples_text):
         match = re.match(pattern, line)
         if match:
             if current_num is not None:
-                scenarios.append(
+                examples.append(
                     (current_num, current_name, "\n".join(current_lines).strip())
                 )
             current_num = int(match.group(1))
             current_name = match.group(2)
             current_lines = [line]
         elif re.match(r"^## (Coverage|Backlog)", line):
-            # Metadata sections — not scenarios
             if current_num is not None:
-                scenarios.append(
+                examples.append(
                     (current_num, current_name, "\n".join(current_lines).strip())
                 )
             current_num = None
@@ -74,11 +74,11 @@ def split_scenarios(examples_text):
             current_lines.append(line)
 
     if current_num is not None:
-        scenarios.append(
+        examples.append(
             (current_num, current_name, "\n".join(current_lines).strip())
         )
 
-    return scenarios
+    return examples
 
 
 def call_claude(prompt, model=EXTRACT_MODEL):
@@ -107,10 +107,10 @@ def call_claude(prompt, model=EXTRACT_MODEL):
     return result.stdout.strip()
 
 
-def extract_test_cases(asn_file, scenario_num, scenario_name, scenario_text,
+def extract_test_cases(asn_file, example_num, example_name, example_text,
                        label):
-    """Extract test cases from a single scenario."""
-    print(f"  [EXTRACT] Scenario {scenario_num}: {scenario_name}")
+    """Extract test cases from a single example."""
+    print(f"  [EXTRACT] Example {example_num}: {example_name}")
 
     template = EXTRACT_PROMPT.read_text()
     asn_text = asn_file.read_text()
@@ -125,9 +125,9 @@ def extract_test_cases(asn_file, scenario_num, scenario_name, scenario_text,
 
 ---
 
-## Scenario
+## Example
 
-{scenario_text}"""
+{example_text}"""
 
     start = time.time()
     result = call_claude(prompt)
@@ -154,20 +154,20 @@ def cmd_extract(args):
         sys.exit(1)
 
     examples_text = examples_file.read_text()
-    scenarios = split_scenarios(examples_text)
+    examples = split_examples(examples_text)
 
-    if not scenarios:
-        print(f"[ERROR] No scenarios found in {examples_file}",
+    if not examples:
+        print(f"[ERROR] No examples found in {examples_file}",
               file=sys.stderr)
         sys.exit(1)
 
-    if args.scenario:
-        scenarios = [
-            (n, name, text) for n, name, text in scenarios
-            if n == args.scenario
+    if args.example:
+        examples = [
+            (n, name, text) for n, name, text in examples
+            if n == args.example
         ]
-        if not scenarios:
-            print(f"[ERROR] Scenario {args.scenario} not found",
+        if not examples:
+            print(f"[ERROR] Example {args.example} not found",
                   file=sys.stderr)
             sys.exit(1)
 
@@ -178,22 +178,22 @@ def cmd_extract(args):
     print(f"Test Case Extraction: {label}")
     print(f"ASN: {asn_file.name}")
     print(f"Examples: {examples_file.name}")
-    print(f"Scenarios: {len(scenarios)}")
+    print(f"Examples to extract: {len(examples)}")
     print(f"{'='*60}")
 
     total_start = time.time()
     total_tcs = 0
 
-    for scenario_num, scenario_name, scenario_text in scenarios:
+    for example_num, example_name, example_text in examples:
         result = extract_test_cases(
-            asn_file, scenario_num, scenario_name, scenario_text, label
+            asn_file, example_num, example_name, example_text, label
         )
 
         if result is None:
-            print(f"  [SKIP] Scenario {scenario_num} failed")
+            print(f"  [SKIP] Example {example_num} failed")
             continue
 
-        out_file = out_dir / f"scenario-{scenario_num}.md"
+        out_file = out_dir / f"example-{example_num}.md"
         out_file.write_text(result)
 
         tc_count = len(re.findall(r"^## TC-\d+", result, re.MULTILINE))
@@ -202,7 +202,7 @@ def cmd_extract(args):
     total_elapsed = time.time() - total_start
 
     print(f"\n{'='*60}")
-    print(f"Extracted {total_tcs} test cases from {len(scenarios)} scenarios "
+    print(f"Extracted {total_tcs} test cases from {len(examples)} examples "
           f"({total_elapsed:.0f}s)")
     print(f"Output: {out_dir}")
     print(f"{'='*60}")
@@ -219,8 +219,8 @@ def main():
     )
     extract_parser.add_argument("asn", type=int,
                                 help="ASN number (e.g., 34)")
-    extract_parser.add_argument("--scenario", type=int, default=None,
-                                help="Extract from a specific scenario only")
+    extract_parser.add_argument("--example", type=int, default=None,
+                                help="Extract from a specific example only")
 
     args = parser.parse_args()
 
