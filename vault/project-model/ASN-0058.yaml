@@ -1,7 +1,7 @@
 # ASN-0058 — Permutation Model
 title: "Permutation Model"
 depends: [34, 36, 53]
-out_of_scope: "Arrangement canonical decomposition and contiguity invariants, operation effects on arrangements (INSERT/DELETE/COPY/REARRANGE), link endset semantics, document creation and lifecycle, publication and access control, enfilade implementation internals, version semantics and comparison, replication and inter-server protocol (BEBE)"
+out_of_scope: "Arrangement canonical decomposition and contiguity invariants, operation effects on arrangements (INSERT/DELETE/COPY/REARRANGE), link endset semantics, document creation and lifecycle, publication and access control, version semantics and comparison, replication and inter-server protocol (BEBE)"
 
 inquiry:
   question: "What properties must a contiguous Vstream-to-Istream mapping block preserve? How do paired spans split, merge, and maintain width coupling across the permutation?"
