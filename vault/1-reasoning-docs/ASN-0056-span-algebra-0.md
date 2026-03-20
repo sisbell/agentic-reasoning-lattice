@@ -27,7 +27,9 @@ This ASN extends the span algebra (ASN-0053) with the set difference bound for a
 
 **S11c** — *DifferenceOverlap* (LEMMA, lemma). For level-uniform spans α and β with level_compat(start(α), start(β)) in SC case (iii) (proper overlap): ⟦α⟧ \ ⟦β⟧ is expressible as a span-set of exactly 1 span.
 
-*Proof.* Assume without loss of generality start(α) < start(β) < reach(α) < reach(β) (the symmetric case swaps α and β). The positions in ⟦α⟧ but not in ⟦β⟧ are those in α that precede the start of β:
+*Proof.* SC case (iii) has two sub-cases. We first handle start(α) < start(β) < reach(α) < reach(β), then start(β) < start(α) < reach(β) < reach(α).
+
+**Case 1:** start(α) < start(β) < reach(α) < reach(β). The positions in ⟦α⟧ but not in ⟦β⟧ are those in α that precede the start of β:
 
   ⟦α⟧ \ ⟦β⟧ = {t : start(α) ≤ t < start(β)}
 
@@ -35,13 +37,15 @@ This is non-empty (start(α) < start(β) and start(α) ∈ ⟦α⟧ \ ⟦β⟧) 
 
 Define γ = (start(α), start(β) ⊖ start(α)). Since start(α) < start(β) and #start(α) = #start(β) (level-compatibility), the divergence k is of type (i) with k ≤ #start(α). The width start(β) ⊖ start(α) has a positive component at position k, so it is positive with action point k ≤ #start(α) — T12 is satisfied. By D1 (DisplacementRoundTrip, ASN-0053), reach(γ) = start(α) ⊕ (start(β) ⊖ start(α)) = start(β). The span is level-uniform: #width(γ) = max(#start(β), #start(α)) = #start(α) = #start(γ).
 
-The denotation ⟦γ⟧ = {t : start(α) ≤ t < start(β)} = ⟦α⟧ \ ⟦β⟧. The result is exactly 1 span.  ∎
+The denotation ⟦γ⟧ = {t : start(α) ≤ t < start(β)} = ⟦α⟧ \ ⟦β⟧. The result is exactly 1 span.
 
 *Worked example.* Let α = ([1, 3], [0, 7]) and β = ([1, 6], [0, 8]). Then reach(α) = [1, 10] and reach(β) = [1, 14]. Verify proper overlap: start(α) = [1, 3] < start(β) = [1, 6] < reach(α) = [1, 10] < reach(β) = [1, 14]. The difference ⟦α⟧ \ ⟦β⟧ = {t : [1, 3] ≤ t < [1, 6]}. Construct γ = ([1, 3], [1, 6] ⊖ [1, 3]) = ([1, 3], [0, 3]). Verify: reach(γ) = [1, 3] ⊕ [0, 3] = [1, 6] = start(β). Verify denotation: ⟦γ⟧ = {t : [1, 3] ≤ t < [1, 6]} = ⟦α⟧ \ ⟦β⟧.
 
-For the symmetric case (start(β) < start(α) < reach(β) < reach(α)), we derive the difference by element-chasing. For t ∈ ⟦α⟧ (i.e., start(α) ≤ t < reach(α)): if t < reach(β), then start(β) < start(α) ≤ t and t < reach(β), so t ∈ ⟦β⟧; if t ≥ reach(β), then t ∉ ⟦β⟧ (since reach(β) is the exclusive upper bound of β). Therefore ⟦α⟧ \ ⟦β⟧ = {t : reach(β) ≤ t < reach(α)}.
+**Case 2:** start(β) < start(α) < reach(β) < reach(α). We derive the difference by element-chasing. For t ∈ ⟦α⟧ (i.e., start(α) ≤ t < reach(α)): if t < reach(β), then start(β) < start(α) ≤ t and t < reach(β), so t ∈ ⟦β⟧; if t ≥ reach(β), then t ∉ ⟦β⟧ (since reach(β) is the exclusive upper bound of β). Therefore ⟦α⟧ \ ⟦β⟧ = {t : reach(β) ≤ t < reach(α)}.
 
-Define γ' = (reach(β), reach(α) ⊖ reach(β)). We verify D1 preconditions for the pair (reach(β), reach(α)): reach(β) < reach(α) is given; level-uniformity of α gives #reach(α) = #start(α), level-uniformity of β gives #reach(β) = #start(β), and level_compat(start(α), start(β)) gives #start(α) = #start(β), so #reach(β) = #reach(α) — neither is a proper prefix of the other, so divergence is of type (i) with k ≤ #reach(β). By D1, reach(γ') = reach(β) ⊕ (reach(α) ⊖ reach(β)) = reach(α). The span is level-uniform: #width(γ') = max(#reach(α), #reach(β)) = #reach(β) = #start(γ'). This is non-empty: reach(β) ∈ ⟦α⟧ (since start(α) < reach(β) < reach(α)) and reach(β) ∉ ⟦β⟧ (since reach is the exclusive upper bound), so reach(β) ∈ ⟦α⟧ \ ⟦β⟧. The result is exactly 1 span.
+Define γ' = (reach(β), reach(α) ⊖ reach(β)). We verify D1 preconditions for the pair (reach(β), reach(α)): reach(β) < reach(α) is given; level-uniformity of α gives #reach(α) = #start(α), level-uniformity of β gives #reach(β) = #start(β), and level_compat(start(α), start(β)) gives #start(α) = #start(β), so #reach(β) = #reach(α) — neither is a proper prefix of the other, so divergence is of type (i) with k ≤ #reach(β). The width reach(α) ⊖ reach(β) has a positive component at position k, so it is positive with action point k ≤ #reach(β) = #start(γ') — T12 is satisfied. By D1, reach(γ') = reach(β) ⊕ (reach(α) ⊖ reach(β)) = reach(α). The span is level-uniform: #width(γ') = max(#reach(α), #reach(β)) = #reach(β) = #start(γ').
+
+The denotation ⟦γ'⟧ = {t : reach(β) ≤ t < reach(α)} = ⟦α⟧ \ ⟦β⟧. The result is exactly 1 span.  ∎
 
 
 ## Unified difference bound
