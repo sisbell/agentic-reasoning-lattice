@@ -39,6 +39,15 @@ def load_out_of_scope(asn_number):
     return manifest.get("out_of_scope", "")
 
 
+def load_hints(asn_number):
+    """Look up hints for an ASN from its project model manifest."""
+    manifest = load_manifest(asn_number)
+    hints = manifest.get("hints", [])
+    if not hints:
+        return ""
+    return "\n".join(f"- {h}" for h in hints)
+
+
 def read_file(path):
     try:
         return Path(path).read_text()
@@ -65,7 +74,8 @@ def find_asn(asn_id):
     return None, label
 
 
-def build_prompt(asn_content, vocabulary, out_of_scope="", asn_number=None):
+def build_prompt(asn_content, vocabulary, out_of_scope="", hints="",
+                 asn_number=None):
     """Assemble review prompt from template + injected content."""
     template = read_file(REVIEW_TEMPLATE)
     if not template:
@@ -80,13 +90,18 @@ def build_prompt(asn_content, vocabulary, out_of_scope="", asn_number=None):
                   f"for these topics, flag them as OUT_OF_SCOPE: {out_of_scope}"
                   if out_of_scope else "")
 
+    hints_note = (f"\n\n## Hints\n\nThe following observations were noted during "
+                  f"exploration. Check whether the ASN addresses them — if not, "
+                  f"flag as REVISE:\n\n{hints}"
+                  if hints else "")
+
     return template.replace(
         "{{asn_content}}", asn_content
     ).replace(
         "{{vocabulary}}", vocabulary
     ).replace(
         "{{foundation_statements}}", foundation
-    ) + scope_note
+    ) + scope_note + hints_note
 
 
 def strip_preamble(text):
@@ -202,7 +217,11 @@ def main():
     out_of_scope = load_out_of_scope(asn_number)
     if out_of_scope:
         print(f"  [SCOPE] Out of scope: {out_of_scope}", file=sys.stderr)
-    prompt = build_prompt(asn_content, vocabulary, out_of_scope=out_of_scope, asn_number=asn_number)
+    hints = load_hints(asn_number)
+    if hints:
+        print(f"  [HINTS] {hints}", file=sys.stderr)
+    prompt = build_prompt(asn_content, vocabulary, out_of_scope=out_of_scope,
+                          hints=hints, asn_number=asn_number)
     print(f"  Prompt: {len(prompt) // 1024}KB (~{len(prompt) // 4} tokens est.)",
           file=sys.stderr)
 
