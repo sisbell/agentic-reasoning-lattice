@@ -20,7 +20,7 @@ The implementation evidence corroborates: `deletend` shifts all crums past the d
 
 **A0 (V-Domain Contiguity).** For every document d, V(d) is convex at depth L(d):
 
-`(A v, v₁, v₂ : v₁ ∈ V(d) ∧ v₂ ∈ V(d) ∧ v₁ ≤ v ≤ v₂ ∧ #v = L(d) ∧ v₁ ≥ 1 : v ∈ V(d))`
+`(A v, u, w : u ∈ V(d) ∧ w ∈ V(d) ∧ u ≤ v ≤ w ∧ #v = L(d) : v ∈ V(d))`
 
 The empty set is convex vacuously. This is the fundamental structural property of arrangements. Everything that follows depends on it.
 
@@ -72,17 +72,17 @@ By TumblerAdd, I-succession preserves all components except the last: (a ⊕ u_I
 
 **Definition (Break).** For j with 0 < j < n, position v_j is a *break* when M_{j-1} →_I M_j does not hold — that is, M_j ≠ M_{j-1} ⊕ u_I(M_{j-1}).
 
-A break occurs in exactly two circumstances: the I-addresses at consecutive V-positions have different origins (different allocating documents, hence structurally non-adjacent), or they have the same origin but skip at least one element-field ordinal. The set of breaks B ⊆ {v₁, ..., v_{n-1}} is determined entirely by the arrangement function M(d).
+The formal predicate M_j ≠ M_{j-1} ⊕ u_I(M_{j-1}) is the exhaustive definition. Common circumstances that produce breaks include: the I-addresses at consecutive V-positions have different origins (different allocating documents, hence structurally non-adjacent); they have the same origin but different tumbler depths (#M_{j-1} ≠ #M_j, as when a document allocates through child allocators per T10a — by the result-length identity, the successor a ⊕ u_I(a) has length #a, so a length mismatch forces the break); or they share origin and depth but skip at least one element-field ordinal. The set of breaks B ⊆ {v₁, ..., v_{n-1}} is determined entirely by the arrangement function M(d).
 
 ## The Canonical Decomposition
 
 **Definition (Maximal Correspondence Run).** A *maximal correspondence run* in V(d) is a maximal contiguous subsequence v_s, v_{s+1}, ..., v_{s+r-1} (with r ≥ 1) such that no position v_{s+1}, ..., v_{s+r-1} is a break. We write each run as R = (v_s, a_s, r) where a_s = M_s and r is the length.
 
-Within a run, for 0 ≤ i < r:
+Within a run, M_s = a_s (by definition), and for 1 ≤ i < r:
 
 `M_{s+i} = a_s ⊕ [0, ..., 0, i]`
 
-where [0, ..., 0, i] has length #a_s. This follows by induction on i: the base i = 0 is immediate; the inductive step uses absence of a break to conclude M_{s+i} = M_{s+i-1} ⊕ u_I = (a_s ⊕ [0,...,0,i-1]) ⊕ u_I = a_s ⊕ [0,...,0,i] by TA-assoc (the action points coincide at position #a_s, and i − 1 + 1 = i).
+where [0, ..., 0, i] has length #a_s. (At i = 0 no displacement arithmetic is needed — the base case is the definition of a_s. We restrict to i ≥ 1 because TumblerAdd requires a positive displacement.) The inductive step uses absence of a break to conclude M_{s+i} = M_{s+i-1} ⊕ u_I = (a_s ⊕ [0,...,0,i-1]) ⊕ u_I = a_s ⊕ [0,...,0,i] by TA-assoc (the action points coincide at position #a_s, and i − 1 + 1 = i).
 
 The length #a_s is invariant within a run: by the result-length identity (#(a ⊕ w) = #w), each I-successor has the same length as its predecessor. So u_I is uniform within a run.
 
@@ -173,9 +173,9 @@ We verify that the FEBE operations preserve A0. Each operation is a valid compos
 
 INSERT at ordinal position j (with 0 ≤ j ≤ n) of width w > 0 adds w new V-positions and shifts existing positions at or past j rightward by w. We reason backward from the postcondition.
 
-`wp(INSERT(d, j, w), A0) ⟹ A0 ∧ 0 ≤ j ≤ n`
+`A0 ∧ 0 ≤ j ≤ n ⟹ wp(INSERT(d, j, w), A0)`
 
-The precondition is: A0 holds in the pre-state, and the insertion index is within or at the boundary of the existing domain. Inserting at j > n would leave a gap between v_{n-1} and the new content, violating A0. Inserting at j = n is an append; j = 0 is a prepend; 0 < j < n is a mid-stream insertion.
+That is: A0 in the pre-state together with a valid insertion index suffices to guarantee A0 in the post-state. Inserting at j > n would leave a gap between v_{n-1} and the new content, violating A0. Inserting at j = n is an append; j = 0 is a prepend; 0 < j < n is a mid-stream insertion.
 
 **Post-state.** V'(d) has n + w positions: the first j positions retain their I-addresses, the next w positions carry new content, and the remaining n − j positions retain the I-addresses of the pre-state's positions j through n − 1. The enumeration is v'₀ = v₀, ..., v'_{j-1} = v_{j-1}, then w new positions, then v'_{j+w} corresponding to the old v_j, and so on. The domain is contiguous by construction. A0 is preserved. ∎
 
@@ -185,7 +185,7 @@ The precondition is: A0 holds in the pre-state, and the insertion index is withi
 
 DELETE of w positions starting at ordinal position j (with 0 ≤ j and j + w ≤ n) removes w V-positions and shifts surviving positions at or past j + w leftward by w, closing the gap.
 
-`wp(DELETE(d, j, w), A0) ⟹ A0 ∧ 0 ≤ j ∧ j + w ≤ n`
+`A0 ∧ 0 ≤ j ∧ j + w ≤ n ⟹ wp(DELETE(d, j, w), A0)`
 
 **Post-state.** V'(d) has n − w positions (or is empty if w = n). The first j positions retain their I-addresses. Positions j through j + w − 1 are removed. Positions j + w through n − 1 shift to positions j through n − w − 1, retaining their I-addresses. The domain is contiguous. A0 is preserved. ∎
 
@@ -198,6 +198,10 @@ REARRANGE with cuts c₁ < c₂ < c₃ transposes two regions: positions [c₁, 
 **Post-state.** dom(M'(d)) = dom(M(d)) — the V-domain is unchanged. The bijection permutes V-positions: region [c₁, c₂) (of size c₂ − c₁) moves to [c₁, c₁ + (c₃ − c₂)), and region [c₂, c₃) (of size c₃ − c₂) moves to [c₁ + (c₃ − c₂), c₃). The combined interval [c₁, c₃) is still fully covered, and positions outside it are unchanged. A0 is preserved trivially.
 
 The multiset of I-addresses is preserved: ran(M'(d)) = ran(M(d)).
+
+### COPY
+
+COPY (transclusion) places content from a source document into V(d) at a specified position, shifting subsequent positions rightward — the same V-space mechanics as INSERT. The only difference is I-address provenance: INSERT allocates fresh I-addresses via K.α, while COPY references existing I-addresses from the source. Since A0 concerns only the V-domain structure and is indifferent to I-address provenance, INSERT's preservation argument subsumes COPY.
 
 **Effect on the canonical decomposition.** A run whose V-positions lie entirely within one region moves as a unit — its V-span shifts but its I-span is unchanged. A run straddling a cut boundary splits at the cut point: the two halves receive different V-displacements and become separate runs. With three cuts, at most three runs split. No structural coalescing pass follows the rearrangement, though the canonical decomposition of the post-state may merge runs that become I-adjacent by coincidence. The implementation confirms: `slicecbcpm` produces exactly two positive-width pieces when cutting at an interior point, and no coalescing pass follows `rearrangend`.
 
