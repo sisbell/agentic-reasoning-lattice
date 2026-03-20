@@ -5,7 +5,7 @@ Generated from vault/project-model/ASN-*.yaml
 | ASN | Title | Status | Depends |
 |-----|-------|--------|---------|
 | ASN-0034 | Tumbler Algebra | proof | — |
-| ASN-0036 | Istream and Vstream | proof | 34 |
+| ASN-0036 | Streams | proof | 34 |
 | ASN-0040 | Tumbler Baptism | proof | 34 |
 | ASN-0042 | Tumbler Ownership | proof | 34 |
 | ASN-0043 | Link Ontology | converged | 34, 36 |
