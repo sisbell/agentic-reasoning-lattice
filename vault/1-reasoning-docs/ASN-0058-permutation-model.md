@@ -40,7 +40,7 @@ The first property is the structural keystone on which the entire algebra rests.
 
 `|V(β)| = |I(β)| = n`
 
-Both projections have equal cardinality, both equal to the block's width.
+Both projections have equal cardinality, both equal to the block's width. By TA5(a) (ASN-0034), each ordinal increment is strictly increasing: `v + j < v + k` for all `0 ≤ j < k < n`, so the `n` values in `V(β)` are distinct and `|V(β)| = n`. Likewise for `I(β)`.
 
 This is not a convenience of representation. The Vstream is an *arrangement* of Istream content — each V-position references exactly one I-byte, and each reference is to exactly one byte. There is no compression, expansion, or transformation between the spaces. The mapping is positional and unit-ratio.
 
@@ -235,20 +235,22 @@ We must now establish that the result is independent of merge order.
 
 *Proof.* We show that every maximally merged decomposition equals the set of *maximal runs* of `f = M(d)`, and that this set is uniquely determined by `f`.
 
+We write `v − 1` for the ordinal decrement `v ⊖ w₁` where `w₁ = [0, ..., 0, 1]` has length `#v`. This is well-defined when the last component of `v` exceeds 1; when the last component equals 1, `v ⊖ w₁` has a zero in the element field and falls outside `dom(M(d))` by S8a (ASN-0036).
+
 Define a *maximal run* of `f` as a triple `(v, a, n)` such that:
 1. `(A k : 0 ≤ k < n : f(v + k) = a + k)` — it is a correspondence run
 2. `v − 1 ∉ dom(f)  ∨  f(v − 1) ≠ a − 1` — it cannot be extended left
 3. `v + n ∉ dom(f)  ∨  f(v + n) ≠ a + n` — it cannot be extended right
 
-(Condition 2 is vacuously satisfied whenever `v − 1 ∉ dom(f)` — in particular when `v` is the minimum of `dom(f)`, or when the last component of `v` equals 1, so that `v − 1` has a zero element-field component and falls outside `dom(f)` by S8a, ASN-0036.)
+(Condition 2 is vacuously satisfied whenever `v − 1 ∉ dom(f)` — in particular when `v` is the minimum of `dom(f)`, or when the last component of `v` equals 1, so that `v − 1` falls outside `dom(f)` as noted above.)
 
-The maximal runs partition `dom(f)`: every `v ∈ dom(f)` belongs to exactly one maximal run, obtained by extending the correspondence containing `v` in both directions until it breaks. The maximal runs are therefore uniquely determined by `f`.
+The maximal runs partition `dom(f)`: every `v ∈ dom(f)` belongs to at least one maximal run (start with the trivial run `(v, f(v), 1)` and extend in both directions until conditions 2 and 3 are met). To see that `v` belongs to *exactly* one maximal run, suppose `v ∈ R₁ ∩ R₂` where `R₁ = (v₁, a₁, n₁)` and `R₂ = (v₂, a₂, n₂)` with `v₁ ≤ v₂`. Both runs map `v₂` to the same I-address (by B3 via `M(d)`), so `a₂ = a₁ + (v₂ − v₁)`. If `v₁ < v₂`, then `R₂`'s leftward extension reaches `v₂ − 1` with I-address `a₂ − 1 = a₁ + (v₂ − v₁ − 1)`, which `R₁` also maps correctly — so `R₂` can be extended left, contradicting its maximality. Hence `v₁ = v₂`; by the symmetric rightward argument, `n₁ = n₂`. The maximal runs are therefore uniquely determined by `f`.
 
 We show: a decomposition `B` is maximally merged iff it equals the set of maximal runs of `f`.
 
-(⟹) Let `B` be maximally merged. Take `β = (v, a, n) ∈ B` and suppose `β` is not a maximal run — say condition 3 fails: `v + n ∈ dom(f)` and `f(v + n) = a + n`. Some block `β' ∈ B` covers `v + n`. We claim `β'` starts at `v + n`. If `β'` starts at `v' < v + n`, then `V(β') = {v' + k : 0 ≤ k < n'}` is a contiguous set containing `v + n` and starting before it; since `v + n − 1 ∈ V(β)`, we would have `v + n − 1 ∈ V(β')` when `v' ≤ v + n − 1`, contradicting B2 (disjointness). So `v' > v + n − 1`, forcing `v' = v + n` (consecutive ordinals admit no gap). Then `β' = (v + n, a', n')` with `a' + 0 = f(v + n) = a + n`, so `a' = a + n`. Now `β` and `β'` are V-adjacent (`v + n = v + n`) and I-adjacent (`a + n = a + n`) — contradicting `B` being maximally merged.
+(⟹) Let `B` be maximally merged. Take `β = (v, a, n) ∈ B` and suppose `β` is not a maximal run — say condition 3 fails: `v + n ∈ dom(f)` and `f(v + n) = a + n`. Some block `β' ∈ B` covers `v + n`. We claim `β'` starts at `v + n`. If `β'` starts at `v' < v + n`, then `V(β') = {v' + k : 0 ≤ k < n'}` is a contiguous set containing `v + n` and starting before it; since `v + n − 1 ∈ V(β)`, we would have `v + n − 1 ∈ V(β')` when `v' ≤ v + n − 1`, contradicting B2 (disjointness). So `v' > v + n − 1`. Since all text-subspace V-positions in `dom(M(d))` share the same depth (S8-depth, ASN-0036), no V-position falls between `v + (n − 1)` and `v + n`, forcing `v' = v + n`. Then `β' = (v + n, a', n')` with `a' + 0 = f(v + n) = a + n`, so `a' = a + n`. Now `β` and `β'` are V-adjacent (`v + n = v + n`) and I-adjacent (`a + n = a + n`) — contradicting `B` being maximally merged.
 
-By symmetric argument on condition 2, `β` cannot fail to be maximal on the left either. So every block in `B` is a maximal run. Since the maximal runs partition `dom(f)` and `B` covers `dom(f)` (by B1) with disjoint blocks (by B2), `B` is exactly the set of maximal runs.
+Now suppose condition 2 fails: `v − 1 ∈ dom(f)` and `f(v − 1) = a − 1`. Some block `β'' ∈ B` covers `v − 1`. If `β''` extends to `v`, then `v ∈ V(β'') ∩ V(β)`, contradicting B2. So `β''` ends at `v − 1`, giving `v'' + n'' = v` (V-adjacent) and `a'' + n'' = a` (I-adjacent) — contradicting `B` being maximally merged. So every block in `B` is a maximal run. Since the maximal runs partition `dom(f)` and `B` covers `dom(f)` (by B1) with disjoint blocks (by B2), `B` is exactly the set of maximal runs.
 
 (⟸) The set of maximal runs is trivially maximally merged: any two V-adjacent maximal runs have a correspondence discontinuity at their boundary (by condition 3 of the left run), so they are not I-adjacent and cannot be merged.
 
@@ -307,7 +309,7 @@ The same content can be included at multiple positions. Each occurrence is a sep
 
 **M14 (IndependentOccurrences).** When two mapping blocks `β₁ = (v₁, a, n)` and `β₂ = (v₂, a, n)` in a decomposition share their I-start and width (with `v₁ ≠ v₂`), they are independent entries that cannot be merged.
 
-*Verification.* The merge condition (M7) requires `a₂ = a₁ + n₁`. Here `a₂ = a₁ = a`, so the condition becomes `a = a + n`, which requires `n = 0`, violating the minimum-width constraint `n ≥ 1`. The blocks cannot merge and are permanently distinct. ∎
+*Verification.* The merge condition (M7) requires `a₂ = a₁ + n₁`. Here `a₂ = a₁ = a`, so the condition requires `a = a + n`. Since `n ≥ 1`, `a + n > a` by TA-strict (ASN-0034), so `a + n ≠ a`. The I-adjacency condition is unsatisfiable; the blocks cannot merge and are permanently distinct. ∎
 
 More generally, any two blocks with partially overlapping I-extents at distinct V-positions are independently tracked. The mapping block algebra does not conflate shared content — it preserves each occurrence as a separate representational entity.
 
