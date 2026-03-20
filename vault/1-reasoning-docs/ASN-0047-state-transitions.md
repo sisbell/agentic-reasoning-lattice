@@ -481,7 +481,7 @@ Nelson captures the whole architecture in a sentence: "The braid only grows more
 ## Open Questions
 
 - What invariants must a forked document's initial arrangement satisfy with respect to its source's current arrangement — must it be identical, or may it be a proper subset?
-- Must arrangement reordering respect subspace boundaries within a document (text content at element subspace ≥ 1, link references at subspace 0)?
+- Must arrangement reordering respect subspace boundaries within a document (text content at element subspace 1, link references at element subspace 2)?
 - What guarantees must the system provide about provenance when content is transitively shared through chains of transclusion?
 - Can arrangement contraction on one document affect the discoverability of links attached to the same I-addresses from another document?
 - What relationship must hold between a document's version lineage and its sequence of arrangement transitions?
