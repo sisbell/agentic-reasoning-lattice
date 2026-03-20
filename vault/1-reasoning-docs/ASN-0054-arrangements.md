@@ -42,7 +42,7 @@ So all positions in V(d) share the same prefix at the first L − 1 components. 
 
 This result is strong: V(d) is completely characterized by a fixed tumbler prefix and a range of ordinals at the last component. The arrangement, restricted to V(d), becomes a function from the interval [k_min, k_max] to I-addresses.
 
-**A1a (Depth Fixity).** While V(d) ≠ ∅, the depth L(d) is fixed: no valid composite transition can change it. This follows directly from S8-depth, which requires all V-positions in a subspace to share the same tumbler depth. Any operation that adds new V-positions to a non-empty V(d) must match the existing depth — otherwise S8-depth is violated in the post-state. Only after complete deletion (V(d) = ∅, L(d) undefined) and subsequent re-insertion can a different depth be established.
+**A1a (Depth Fixity).** For any valid composite transition Σ = Σ₀ → Σ₁ → ··· → Σₙ = Σ′, if V(d) ≠ ∅ at every intermediate state Σᵢ (0 ≤ i ≤ n), then L(Σ′, d) = L(Σ, d). This follows from S8-depth by induction over the elementary steps: K.μ⁺ into a non-empty V(d) must match the existing depth — otherwise S8-depth is violated in the post-state; K.μ⁻ of a proper subset preserves the remaining positions' depth; K.μ~ preserves the domain. *Corollary:* depth can only change by passing through V(d) = ∅. A composite that empties V(d) via K.μ⁻ and repopulates via K.μ⁺ at a different depth is valid — each intermediate state satisfies S8-depth (the empty arrangement vacuously, the new positions uniformly) — but the continuous-non-emptiness condition of A1a does not hold, so the depth may differ.
 
 ## Ordinal Enumeration
 
@@ -271,7 +271,7 @@ This observation has a converse: the canonical decomposition is the *coarsest* v
 |-------|-----------|--------|
 | A0 | V(d) is convex at depth L(d) — no gaps in the text V-domain | introduced |
 | A1 | If V(d) ≠ ∅, then V(d) = {[p, k] : k_min ≤ k ≤ k_max} for a fixed prefix p | introduced |
-| A1a | While V(d) ≠ ∅, L(d) is fixed — only re-settable after total deletion | introduced |
+| A1a | If V(d) ≠ ∅ at every intermediate state of a composite, L(d) is unchanged | introduced |
 | A2 | V(d) admits ordinal enumeration via unit V-displacement: v_{j+1} = v_j ⊕ u_V | introduced |
 | A3 | The canonical decomposition into maximal correspondence runs exists | introduced |
 | A4 | The canonical decomposition is unique | introduced |
