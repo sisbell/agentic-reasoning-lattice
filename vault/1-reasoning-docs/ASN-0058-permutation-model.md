@@ -64,15 +64,21 @@ M0 and M1 together characterize the mapping block: it is a *width-preserving mon
 
 **Remark (Span Algebra Connection).** A mapping block `β = (v, a, n)` induces two spans in the sense of ASN-0053: a V-span over `V(β)` and an I-span over `I(β)`. The block's split (M4 below) corresponds to simultaneous application of S4 (SplitPartition, ASN-0053) to both spans at corresponding positions. The merge (M7 below) corresponds to S3 (MergeEquivalence, ASN-0053) applied to both span pairs, subject to both being adjacent. Width coupling (M0) ensures that the two span operations remain synchronized — the cut point in V-space determines the cut point in I-space.
 
+**M-aux (OrdinalIncrementAssociativity).** For any tumbler `v` and natural numbers `c, j`:
+
+`(v + c) + j = v + (c + j)`
+
+*Derivation.* Recall that `v + k` denotes `v ⊕ w_k` where `w_k = [0, ..., 0, k]` has length `#v` and action point at position `#v`. By TA-assoc (ASN-0034), `(v ⊕ w_c) ⊕ w_j = v ⊕ (w_c ⊕ w_j)`. By TumblerAdd, `w_c` and `w_j` share their action point at position `#v`, so `(w_c ⊕ w_j)` has value `c + j` at that position and zero elsewhere — that is, `w_c ⊕ w_j = w_{c+j}`. Therefore `(v + c) + j = v ⊕ w_{c+j} = v + (c + j)`. ∎
+
 ## The Arrangement as a Set of Blocks
 
 A document's full arrangement is a collection of mapping blocks that together describe `M(d)`.
 
-**Definition (Block Decomposition).** A *block decomposition* of arrangement `M(d)` is a finite set `B = {β₁, ..., βₘ}` of mapping blocks satisfying:
+**Definition (Block Decomposition).** A *block decomposition* of the text-subspace arrangement of document `d` is a finite set `B = {β₁, ..., βₘ}` of mapping blocks satisfying:
 
-(B1) *Coverage.* Every V-position in `dom(M(d))` appears in exactly one block:
+(B1) *Coverage.* Every text-subspace V-position in `dom(M(d))` appears in exactly one block:
 
-`(A v ∈ dom(M(d)) : (E! j : 1 ≤ j ≤ m : v ∈ V(βⱼ)))`
+`(A v ∈ dom(M(d)) : v₁ ≥ 1 : (E! j : 1 ≤ j ≤ m : v ∈ V(βⱼ)))`
 
 (B2) *Disjointness.* No two blocks share a V-position:
 
@@ -82,11 +88,11 @@ A document's full arrangement is a collection of mapping blocks that together de
 
 `(A j : 1 ≤ j ≤ m : (A k : 0 ≤ k < nⱼ : M(d)(vⱼ + k) = aⱼ + k))`
 
-B1 and B2 together assert that the V-extents partition `dom(M(d))`. B3 asserts that the mapping within each block agrees with the global arrangement. The empty arrangement `M(d) = ∅` has `B = ∅` as its unique decomposition.
+B1 and B2 together assert that the V-extents partition the text-subspace portion of `dom(M(d))`. B3 asserts that the mapping within each block agrees with the global arrangement. The empty arrangement `M(d) = ∅` has `B = ∅` as its unique decomposition.
 
-**M2 (DecompositionExistence).** Every arrangement `M(d)` admits a block decomposition.
+**M2 (DecompositionExistence).** Every arrangement `M(d)` admits a block decomposition of its text subspace.
 
-This is S8 (SpanDecomposition, ASN-0036) restated in our vocabulary. The question that S8 leaves open is: given that at least one decomposition exists, how many are there, and what relates them?
+This is S8 (SpanDecomposition, ASN-0036) restated in our vocabulary — both are explicitly scoped to text-subspace V-positions (`v₁ ≥ 1`). The question that S8 leaves open is: given that at least one decomposition exists, how many are there, and what relates them?
 
 Nelson tells us:
 
@@ -121,7 +127,7 @@ Both are well-formed mapping blocks: `c ≥ 1` and `n − c ≥ 1` (since `0 < c
 
 (b) `⟦β_L⟧ ∩ ⟦β_R⟧ = ∅`
 
-*Verification of (a).* `⟦β_L⟧ = {(v + k, a + k) : 0 ≤ k < c}` and `⟦β_R⟧ = {(v + c + j, a + c + j) : 0 ≤ j < n − c}`. Setting `k = c + j` in the second, the union covers `{(v + k, a + k) : 0 ≤ k < n} = ⟦β⟧`. ∎
+*Verification of (a).* `⟦β_L⟧ = {(v + k, a + k) : 0 ≤ k < c}` and `⟦β_R⟧ = {((v + c) + j, (a + c) + j) : 0 ≤ j < n − c}`. Setting `k = c + j` — so that `(v + c) + j = v + (c + j) = v + k` by M-aux — the union covers `{(v + k, a + k) : 0 ≤ k < n} = ⟦β⟧`. ∎
 
 *Verification of (b).* `V(β_L) = {v + k : 0 ≤ k < c}` and `V(β_R) = {v + k : c ≤ k < n}`. The ranges `[0, c)` and `[c, n)` are disjoint, so the V-extents are disjoint, and by the functionality of the mapping within each block, the full denotations are disjoint. ∎
 
@@ -169,19 +175,21 @@ We formalize both conditions.
 
 When both conditions hold, the merged block is:
 
-`β₁ ⊕ β₂ = (v₁, a₁, n₁ + n₂)`
+`β₁ ⊞ β₂ = (v₁, a₁, n₁ + n₂)`
+
+(We write `⊞` for block merge to distinguish it from tumbler addition `⊕` of ASN-0034.)
 
 Both conditions are necessary. V-adjacency alone is insufficient: if the I-extents are not contiguous, the merged range would map consecutive V-positions to non-consecutive I-addresses, violating M1. I-adjacency alone is insufficient: if the V-extents are not adjacent, there is no contiguous V-range for the merged block to cover.
 
-*Verification.* `⟦β₁ ⊕ β₂⟧ = {(v₁ + k, a₁ + k) : 0 ≤ k < n₁ + n₂}`. For `k < n₁`, this gives `⟦β₁⟧`. For `k ≥ n₁`, set `j = k − n₁`: then `v₁ + k = v₁ + n₁ + j = v₂ + j` and `a₁ + k = a₁ + n₁ + j = a₂ + j`, giving `⟦β₂⟧`. So `⟦β₁ ⊕ β₂⟧ = ⟦β₁⟧ ∪ ⟦β₂⟧`. ∎
+*Verification.* `⟦β₁ ⊞ β₂⟧ = {(v₁ + k, a₁ + k) : 0 ≤ k < n₁ + n₂}`. For `k < n₁`, this gives `⟦β₁⟧`. For `k ≥ n₁`, set `j = k − n₁`: then `v₁ + k = (v₁ + n₁) + j = v₂ + j` and similarly `a₁ + k = a₂ + j` (by M-aux), giving `⟦β₂⟧`. So `⟦β₁ ⊞ β₂⟧ = ⟦β₁⟧ ∪ ⟦β₂⟧`. ∎
 
 Gregory's implementation confirms the bidimensional requirement. The `isanextensionnd` function checks `lockeq(reach.dsas, originptr->dsas, dspsize(POOM))` with `dspsize(POOM) = 2`, requiring exact tumbler equality in both I and V dimensions simultaneously. Neither dimension alone suffices.
 
-**M7f (MergeFrame).** If `B` is a decomposition of `M(d)` containing both `β₁` and `β₂`, then `(B \ {β₁, β₂}) ∪ {β₁ ⊕ β₂}` is an equivalent decomposition. All blocks in `B \ {β₁, β₂}` are unchanged.
+**M7f (MergeFrame).** If `B` is a decomposition of `M(d)` containing both `β₁` and `β₂`, then `(B \ {β₁, β₂}) ∪ {β₁ ⊞ β₂}` is an equivalent decomposition. All blocks in `B \ {β₁, β₂}` are unchanged.
 
 *Verification.* Analogous to M6f: the merged block occupies exactly `V(β₁) ∪ V(β₂)` and maps each position to the same I-address as before. ∎
 
-**M8 (MergeInformationLoss).** The merge is information-destroying with respect to the boundary. Given only `β₁ ⊕ β₂ = (v₁, a₁, n₁ + n₂)`, the individual widths `n₁` and `n₂` cannot be recovered. The merged block is indistinguishable from one that was never split.
+**M8 (MergeInformationLoss).** The merge is information-destroying with respect to the boundary. Given only `β₁ ⊞ β₂ = (v₁, a₁, n₁ + n₂)`, the individual widths `n₁` and `n₂` cannot be recovered. The merged block is indistinguishable from one that was never split.
 
 This follows from the definition — the merged block is a triple `(v, a, n)` with no record of internal boundaries. Gregory confirms: a POOM bottom crum stores only `{displacement, width, homedoc}`, with no operation count, sub-span list, or boundary history. The merge at `insertnd.c:251` reduces to `dspadd` — scalar addition on the width, not annotated, not logged, not reversible. Even the spanfilade coalesces adjacent I-spans from the same source document, erasing the boundary there as well.
 
@@ -198,13 +206,13 @@ split(β, c) = (β_L, β_R)
 V-adjacency: v + c = v + c  ✓
 I-adjacency: a + c = a + c  ✓
 
-β_L ⊕ β_R = (v, a, c + (n − c)) = (v, a, n) = β  ∎
+β_L ⊞ β_R = (v, a, c + (n − c)) = (v, a, n) = β  ∎
 ```
 
 **M10 (MergeSplitInverse).** For any blocks `β₁ = (v₁, a₁, n₁)` and `β₂ = (v₂, a₂, n₂)` satisfying the merge condition (`v₂ = v₁ + n₁`, `a₂ = a₁ + n₁`), splitting the merged block at the original boundary recovers both:
 
 ```
-split(β₁ ⊕ β₂, n₁)
+split(β₁ ⊞ β₂, n₁)
   = ((v₁, a₁, n₁), (v₁ + n₁, a₁ + n₁, n₂))
   = (β₁, β₂)  ∎
 ```
@@ -219,7 +227,7 @@ Among all equivalent decompositions of a given arrangement, there is a distingui
 
 **M11 (CanonicalExistence).** Every arrangement `M(d)` admits a maximally merged block decomposition.
 
-*Construction.* Start with any decomposition `B` (which exists by M2). While there exist `βᵢ, βⱼ ∈ B` satisfying the merge condition: replace them with `βᵢ ⊕ βⱼ` (by M7f, the result is an equivalent decomposition). Each merge reduces `|B|` by exactly 1 and preserves equivalence. The process terminates because `|B|` is finite and bounded below by 1 for non-empty `M(d)`. ∎
+*Construction.* Start with any decomposition `B` (which exists by M2). While there exist `βᵢ, βⱼ ∈ B` satisfying the merge condition: replace them with `βᵢ ⊞ βⱼ` (by M7f, the result is an equivalent decomposition). Each merge reduces `|B|` by exactly 1 and preserves equivalence. The process terminates because `|B|` is finite and bounded below by 1 for non-empty `M(d)`. ∎
 
 We must now establish that the result is independent of merge order.
 
@@ -232,7 +240,7 @@ Define a *maximal run* of `f` as a triple `(v, a, n)` such that:
 2. `v − 1 ∉ dom(f)  ∨  f(v − 1) ≠ a − 1` — it cannot be extended left
 3. `v + n ∉ dom(f)  ∨  f(v + n) ≠ a + n` — it cannot be extended right
 
-(When `v` is the minimum of `dom(f)`, condition 2 is vacuously satisfied; the predecessor either does not exist as a valid address or is not in `dom(f)` by S8a, ASN-0036.)
+(Condition 2 is vacuously satisfied whenever `v − 1 ∉ dom(f)` — in particular when `v` is the minimum of `dom(f)`, or when the last component of `v` equals 1, so that `v − 1` has a zero element-field component and falls outside `dom(f)` by S8a, ASN-0036.)
 
 The maximal runs partition `dom(f)`: every `v ∈ dom(f)` belongs to exactly one maximal run, obtained by extending the correspondence containing `v` in both directions until it breaks. The maximal runs are therefore uniquely determined by `f`.
 
@@ -247,6 +255,41 @@ By symmetric argument on condition 2, `β` cannot fail to be maximal on the left
 Since the maximal runs are uniquely determined by `f`, and every maximally merged decomposition equals the set of maximal runs, the maximally merged decomposition is unique. ∎
 
 Nelson observes: "The representation with the fewest I-spans is the most compact." [LM 4/37] The maximally merged decomposition is this most compact representation — uniquely determined by the arrangement `M(d)`, independent of any choice of representation or any history of how the arrangement was constructed.
+
+### A Worked Example
+
+Consider a document `d` with eight text-subspace V-positions, `[1, k]` for `k = 1, ..., 8`, arranged as follows (tumblers shown are element-field ordinals; the full document prefix `N.0.U.0.D.0.` is elided):
+
+| V-position | I-address |
+|------------|-----------|
+| `[1, 1]` | `[1, 10]` |
+| `[1, 2]` | `[1, 11]` |
+| `[1, 3]` | `[1, 12]` |
+| `[1, 4]` | `[1, 13]` |
+| `[1, 5]` | `[1, 14]` |
+| `[1, 6]` | `[1, 40]` |
+| `[1, 7]` | `[1, 41]` |
+| `[1, 8]` | `[1, 42]` |
+
+We start with a three-block decomposition `B = {β₁, β₂, β₃}`:
+
+- `β₁ = ([1, 1], [1, 10], 3)` — V: `[1, 1]..[1, 3]`, I: `[1, 10]..[1, 12]`
+- `β₂ = ([1, 4], [1, 13], 2)` — V: `[1, 4]..[1, 5]`, I: `[1, 13]..[1, 14]`
+- `β₃ = ([1, 6], [1, 40], 3)` — V: `[1, 6]..[1, 8]`, I: `[1, 40]..[1, 42]`
+
+The V-extents partition `{[1, k] : 1 ≤ k ≤ 8}`, and each block correctly describes `M(d)` — B1–B3 are satisfied.
+
+**Merge check.** We test the merge condition (M7) on each V-adjacent pair:
+
+- `β₁` and `β₂`: V-adjacent? `v₂ = [1, 4] = [1, 1] + 3` ✓. I-adjacent? `a₂ = [1, 13] = [1, 10] + 3` ✓. Both conditions hold — the blocks merge to `β₁ ⊞ β₂ = ([1, 1], [1, 10], 5)`.
+
+- `β₂` and `β₃`: V-adjacent? `v₃ = [1, 6] = [1, 4] + 2` ✓. I-adjacent? `a₃ = [1, 40] ≠ [1, 13] + 2 = [1, 15]` ✗. The I-extents are not contiguous — cannot merge.
+
+After merging, the decomposition is `B' = {([1, 1], [1, 10], 5),\; ([1, 6], [1, 40], 3)}`.
+
+**Canonicality check.** The surviving pair: V-adjacent? `[1, 6] = [1, 1] + 5` ✓. I-adjacent? `[1, 40] ≠ [1, 10] + 5 = [1, 15]` ✗. No mergeable pair remains, so `B'` is maximally merged. By M12, this is the unique canonical decomposition.
+
+The boundary at V-position `[1, 6]` persists because V-adjacency holds but I-adjacency does not — confirming M7's necessity. The I-addresses jump from `[1, 14]` to `[1, 40]`, indicating that content at `[1, 6]..[1, 8]` was allocated at a different point in the Istream than content at `[1, 1]..[1, 5]`.
 
 ## Shared Content
 
@@ -274,7 +317,7 @@ Each document's arrangement is independently represented. This is a direct conse
 
 **M15 (MappingIndependence).** For any two documents `d₁ ≠ d₂`:
 
-(a) No block appears in both a decomposition of `M(d₁)` and a decomposition of `M(d₂)`.
+(a) Block decompositions are per-document objects; membership of a triple `(v, a, n)` in a decomposition of `M(d₁)` entails no relationship to any decomposition of `M(d₂)`.
 
 (b) Splitting or merging blocks in a decomposition of `M(d₁)` does not alter any block in any decomposition of `M(d₂)`.
 
@@ -304,7 +347,8 @@ The consequence is that the canonical decomposition naturally preserves origin b
 |-------|-----------|--------|
 | M0 | WidthCoupling: `\|V(β)\| = \|I(β)\| = n` for mapping block `β = (v, a, n)` | introduced |
 | M1 | OrderPreservation: within a block, the `k`-th V-position maps to the `k`-th I-address; both orderings agree | introduced |
-| M2 | DecompositionExistence: every arrangement `M(d)` admits a block decomposition | introduced |
+| M-aux | OrdinalIncrementAssociativity: `(v + c) + j = v + (c + j)` for ordinal increments | introduced |
+| M2 | DecompositionExistence: every text-subspace arrangement admits a block decomposition | introduced |
 | M3 | RepresentationInvariance: equivalent decompositions determine the same arrangement function | introduced |
 | M4 | SplitDefinition: split at interior `c` produces `β_L = (v, a, c)` and `β_R = (v+c, a+c, n−c)` | introduced |
 | M5 | SplitPartition: `⟦β_L⟧ ∪ ⟦β_R⟧ = ⟦β⟧` and `⟦β_L⟧ ∩ ⟦β_R⟧ = ∅` | introduced |
@@ -321,7 +365,7 @@ The consequence is that the canonical decomposition naturally preserves origin b
 | M14 | IndependentOccurrences: blocks sharing I-extent at distinct V-positions are independent and unmergeable | introduced |
 | M15 | MappingIndependence: each document's block decomposition is independent of every other document's | introduced |
 | M16 | CrossOriginMergeImpossibility: blocks whose I-addresses originate from different documents cannot satisfy I-adjacency | introduced |
-| B1 | Coverage: blocks in a decomposition partition `dom(M(d))` | introduced |
+| B1 | Coverage: blocks in a decomposition partition the text-subspace V-positions of `dom(M(d))` | introduced |
 | B2 | Disjointness: no two blocks share a V-position | introduced |
 | B3 | Consistency: each block correctly describes `M(d)` | introduced |
 
@@ -329,12 +373,8 @@ The consequence is that the canonical decomposition naturally preserves origin b
 
 When two V-adjacent blocks in the canonical decomposition fail the merge condition, what is the precise structure of the I-space discontinuity at their boundary — must it be a forward gap, or can it be an arbitrary jump to an unrelated I-region?
 
-Can two blocks in a canonical decomposition have overlapping I-extents, and if so, must both occurrences trace to an explicit sharing operation, or can they arise from independent allocation?
-
 Is the set of equivalent decompositions of a given arrangement a lattice under the refinement ordering, with the canonical decomposition as the coarsest element?
 
 What constraints govern the relationship between the total V-extent of an arrangement and the number of blocks in its canonical decomposition?
-
-What is the maximum multiplicity with which a single I-address can appear across all blocks in a canonical decomposition — is it bounded by any structural property of the arrangement?
 
 Does width coupling (M0) entail constraints on the tumbler depth relationship between V-starts and I-starts within a single block?
