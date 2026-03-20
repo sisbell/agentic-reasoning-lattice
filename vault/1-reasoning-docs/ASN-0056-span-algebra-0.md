@@ -39,7 +39,7 @@ The denotation ⟦γ⟧ = {t : start(α) ≤ t < start(β)} = ⟦α⟧ \ ⟦β�
 
 *Worked example.* Let α = ([1, 3], [0, 7]) and β = ([1, 6], [0, 8]). Then reach(α) = [1, 10] and reach(β) = [1, 14]. Verify proper overlap: start(α) = [1, 3] < start(β) = [1, 6] < reach(α) = [1, 10] < reach(β) = [1, 14]. The difference ⟦α⟧ \ ⟦β⟧ = {t : [1, 3] ≤ t < [1, 6]}. Construct γ = ([1, 3], [1, 6] ⊖ [1, 3]) = ([1, 3], [0, 3]). Verify: reach(γ) = [1, 3] ⊕ [0, 3] = [1, 6] = start(β). Verify denotation: ⟦γ⟧ = {t : [1, 3] ≤ t < [1, 6]} = ⟦α⟧ \ ⟦β⟧.
 
-For the symmetric case (start(β) < start(α) < reach(β) < reach(α)), the difference ⟦α⟧ \ ⟦β⟧ = {t : reach(β) ≤ t < reach(α)}, constructed as (reach(β), reach(α) ⊖ reach(β)) — also exactly 1 span.
+For the symmetric case (start(β) < start(α) < reach(β) < reach(α)), the difference ⟦α⟧ \ ⟦β⟧ = {t : reach(β) ≤ t < reach(α)}. Define γ' = (reach(β), reach(α) ⊖ reach(β)). We verify D1 preconditions for the pair (reach(β), reach(α)): reach(β) < reach(α) is given; level-uniformity of α gives #reach(α) = #start(α), level-uniformity of β gives #reach(β) = #start(β), and level_compat(start(α), start(β)) gives #start(α) = #start(β), so #reach(β) = #reach(α) — neither is a proper prefix of the other, so divergence is of type (i) with k ≤ #reach(β). By D1, reach(γ') = reach(β) ⊕ (reach(α) ⊖ reach(β)) = reach(α). The span is level-uniform: #width(γ') = max(#reach(α), #reach(β)) = #reach(β) = #start(γ'). The result is exactly 1 span.
 
 
 ## Unified difference bound
@@ -55,7 +55,8 @@ The four results combine into a single statement covering all SC cases:
 | (i) Separated | ⟦α⟧ | 1 span | S11a |
 | (ii) Adjacent | ⟦α⟧ | 1 span | S11a |
 | (iii) Proper overlap | 1 span | 1 span | S11c |
-| (iv) Containment | at most 2 spans | 2 spans | S11 (ASN-0053) |
+| (iv) Containment (⟦β⟧ ⊂ ⟦α⟧) | at most 2 spans | 2 spans | S11 (ASN-0053) |
+| (iv) Containment (⟦α⟧ ⊂ ⟦β⟧) | ∅ | 0 spans | ⟦α⟧ ⊆ ⟦β⟧ ⟹ difference empty |
 | (v) Equal | ∅ | 0 spans | S11b |
 
 The maximum across all cases is 2, achieved only in the containment case.  ∎
@@ -72,7 +73,7 @@ The bound of 2 is tight: S11 (ASN-0053) shows containment achieves it. No SC cas
 | S11c | LEMMA, lemma | Proper overlap: ⟦α⟧ \ ⟦β⟧ is exactly 1 span | introduced |
 | S11d | LEMMA, lemma | General difference bound: ⟦α⟧ \ ⟦β⟧ is at most 2 spans for any SC case | introduced |
 | S11 | LEMMA, lemma | Containment difference bound (DifferenceBound, ASN-0053) | cited |
-| SC | INV, predicate | SpanClassification (ASN-0053) | cited |
+| SC | LEMMA, lemma | SpanClassification (ASN-0053) | cited |
 | D1 | LEMMA, lemma | DisplacementRoundTrip (ASN-0053) | cited |
 
 
