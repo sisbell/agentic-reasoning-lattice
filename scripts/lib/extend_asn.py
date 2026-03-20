@@ -61,7 +61,7 @@ def validate(source_num, target_num, base_num, property_labels):
         sys.exit(1)
 
     # Source ASN exists
-    source_path, source_label = find_asn(source_num)
+    source_path, source_label = find_asn(str(source_num))
     if source_path is None:
         print(f"  [ERROR] Source ASN-{source_num:04d} not found in "
               f"vault/1-reasoning-docs/", file=sys.stderr)
