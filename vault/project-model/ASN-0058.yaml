@@ -1,0 +1,9 @@
+# ASN-0058 — Content Mapping
+title: "Content Mapping"
+depends: [34, 36, 53]
+
+inquiry:
+  question: "What are the algebraic properties of a contiguous V→I mapping unit? How do paired spans split, merge, and preserve width coupling?"
+
+modeling:
+  proof_imports: [TumblerAlgebra, TumblerOrder, SpanOperations]

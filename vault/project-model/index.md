@@ -20,3 +20,4 @@ Generated from vault/project-model/ASN-*.yaml
 | ASN-0054 | Arrangements | inquiry | 34, 36, 45, 47, 53 |
 | ~~ASN-0055~~ | ~~Tumbler Algebra 0~~ | absorbed into 34 | — |
 | ~~ASN-0056~~ | ~~Span Algebra 0~~ | absorbed into 53 | — |
+| ASN-0058 | Content Mapping | inquiry | 34, 36, 53 |
