@@ -1,0 +1,23 @@
+# Sub-Questions — Permutation Model
+
+**Inquiry:** What properties must a contiguous Vstream-to-Istream mapping block preserve? How do paired spans split, merge, and maintain width coupling across the permutation?
+
+1. [nelson] When a document presents content in a different order than it was originally created, must each contiguous run of consecutively-created content be represented as a single indivisible mapping unit?
+2. [nelson] If a mapping unit pairs a region of a document with its original content, must both sides of that pairing always describe the same number of characters?
+3. [nelson] When an editing action breaks a contiguous mapping unit into two pieces, what properties must each resulting piece independently preserve about its relationship to the original content?
+4. [nelson] Under what conditions may two adjacent mapping units in a document be recognized as a single larger unit, and what must be true about their original content positions for this to be valid?
+5. [nelson] Must every character position in a document map to exactly one position in the permanent content record, or can a document position exist without such a mapping?
+6. [nelson] Can the same region of permanent content appear in more than one mapping unit within the same document, and if so, must each mapping be independently tracked?
+7. [nelson] Within a single contiguous mapping unit, must the document order of characters match the original creation order, or can a mapping unit represent a reversal or other reordering?
+8. [nelson] If a document contains content from multiple original creation events, must the boundaries between mapping units align exactly with the boundaries between those distinct creation events?
+9. [nelson] When content is shared across documents, must each document's mapping to that content be independent, so that rearranging content in one document cannot alter the mapping in another?
+10. [gregory] In a POOM bottom crum, must V-width and I-width always represent the same logical span length, or can they diverge — and if they must match, what mechanism enforces this coupling when `tumblerlength` computes V-width from V-address exponent while I-width is copied directly from I-space?
+11. [gregory] When `isanextensionnd` detects that a new mapping's I-displacement equals the reach (origin + width) of an existing crum, does it extend the existing crum's V-width and I-width in lockstep, or does it only grow one dimension and recompute the other?
+12. [gregory] When `slicecbcpm` cuts a bottom crum at an interior point (THRUME case), how are the two resulting crums' I-displacements computed — does the second piece's I-displacement advance by exactly the V-offset of the cut within the original span?
+13. [gregory] Can a single POOM bottom crum map a V-span to a non-contiguous I-span, or is there a strict invariant that each bottom crum represents a contiguous-to-contiguous mapping where both V and I ranges are unbroken?
+14. [gregory] When two logically distinct COPY operations produce I-address-adjacent mappings in a target POOM and `isanextensionnd` silently merges them into one crum, is there any residual record that the crum originated from two separate operations, or is the merge information-destroying?
+15. [gregory] In the 2D POOM enfilade, the root displacement tracks the minimum child address via `setwispnd` — does this minimum track independently in V and I dimensions, or is there a single combined displacement that couples the two?
+16. [gregory] What is the precise boundary condition for the ONMYRIGHTBORDER case in `whereoncrum` — does it require exact equality between the query point and the crum's reach (displacement + width), and does it use `tumblereq` with full 16-digit comparison?
+17. [gregory] When `recombinend` merges POOM bottom crums during rebalancing, under what conditions can two adjacent crums with contiguous V-ranges but non-contiguous I-ranges be merged — or does the merge only redistribute crums between siblings without combining their V→I mappings?
+18. [gregory] If a bottom crum's V-displacement is stored as a relative offset from its parent, how is the absolute V-position reconstructed during retrieval — does the traversal accumulate displacements additively down the tree path, and does the same accumulation apply independently to the I-dimension?
+19. [gregory] When a DELETE operation slices a bottom crum that maps a contiguous V-span to a contiguous I-span, does the surviving fragment preserve the exact I-displacement and I-width corresponding to the surviving V-range, or is there any rounding or alignment to tumbler boundaries?
