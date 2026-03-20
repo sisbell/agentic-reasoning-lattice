@@ -22,7 +22,7 @@ The implementation evidence corroborates: `deletend` shifts all crums past the d
 
 `(A v, u, w : u ∈ V(d) ∧ w ∈ V(d) ∧ u ≤ v ≤ w ∧ #v = L(d) : v ∈ V(d))`
 
-The empty set is convex vacuously. A0 is a *composite-boundary invariant*: it holds in every state reachable by valid composite transitions, but may be temporarily violated at intermediate states within a composite. This distinguishes it from S2, S3, S8a, S8-depth, and S8-fin, which hold at every elementary transition (the arrangement invariants lemma preserves them by restriction for K.μ⁻, by precondition for K.μ⁺ and K.μ~, and by frame for the rest). Contiguity is not preserved by arbitrary restriction — a raw K.μ⁻ removing an interior V-position from a contiguous domain produces a non-contiguous domain. The formal mechanism: K.μ⁺ and K.μ~ preconditions must be extended to require that the resulting arrangement satisfies A0, and every valid composite that includes K.μ⁻ steps must restore A0 by the composite's completion. INSERT, for instance, first shifts positions rightward via K.μ~ (creating no gap in V(d)) and fills the opened positions via K.μ⁺; DELETE removes positions via K.μ⁻ and immediately closes the gap via K.μ~ in the same composite. In each case, the completed composite restores A0 — analogous to J0, where allocation and placement co-occur.
+The empty set is convex vacuously. A0 is a *composite-boundary invariant*: it holds in every state reachable by valid composite transitions, but may be temporarily violated at intermediate states within a composite. This distinguishes it from S2, S3, S8a, S8-depth, and S8-fin, which hold at every elementary transition (the arrangement invariants lemma preserves them by restriction for K.μ⁻, by precondition for K.μ⁺ and K.μ~, and by frame for the rest). Contiguity is not preserved by arbitrary restriction — a raw K.μ⁻ removing an interior V-position from a contiguous domain produces a non-contiguous domain. The formal mechanism: A0 is a *coupling constraint* on valid composite transitions, alongside J0, J1, and J1' (ASN-0047). Every valid composite must produce a post-state satisfying A0 for all documents. This resolves enforcement cleanly: A0 holds for all valid composites by definition — including Fork (J4) and any future composite operations — without requiring exhaustive per-operation preservation proofs. INSERT, for instance, first shifts positions rightward via K.μ~ (opening a gap in V(d)), then fills the gap via K.μ⁺; DELETE removes positions via K.μ⁻ and closes the gap via K.μ~ in the same composite. Intermediate states may violate A0, but the completed composite must restore it. The per-operation arguments in the sequel demonstrate that each specific operation *can* produce a post-state satisfying A0 — they are existence arguments showing the constraint is achievable, not the source of A0's authority.
 
 This is the fundamental structural property of arrangements. Everything that follows depends on it.
 
@@ -41,6 +41,8 @@ and |V(d)| = k_max − k_min + 1.
 So all positions in V(d) share the same prefix at the first L − 1 components. Among same-prefix depth-L tumblers [p, k], the T1 ordering reduces to the natural ordering on k. By A0, the set of k-values is convex among the naturals — an interval. By S8a, every component is strictly positive, so k_min ≥ 1. ∎
 
 This result is strong: V(d) is completely characterized by a fixed tumbler prefix and a range of ordinals at the last component. The arrangement, restricted to V(d), becomes a function from the interval [k_min, k_max] to I-addresses.
+
+**A1a (Depth Fixity).** While V(d) ≠ ∅, the depth L(d) is fixed: no valid composite transition can change it. This follows directly from S8-depth, which requires all V-positions in a subspace to share the same tumbler depth. Any operation that adds new V-positions to a non-empty V(d) must match the existing depth — otherwise S8-depth is violated in the post-state. Only after complete deletion (V(d) = ∅, L(d) undefined) and subsequent re-insertion can a different depth be established.
 
 ## Ordinal Enumeration
 
@@ -173,49 +175,49 @@ We verify the canonical decomposition concretely. Let document d have V-depth L(
 
 | V-position | I-address |
 |------------|-----------|
-| [1, 1] | [3, 0, 1, 0, 5] |
-| [1, 2] | [3, 0, 1, 0, 6] |
-| [1, 3] | [3, 0, 1, 0, 8] |
-| [1, 4] | [3, 0, 1, 0, 9] |
-| [1, 5] | [3, 0, 1, 0, 10] |
+| [1, 1] | [3, 0, 1, 0, 1, 0, 5] |
+| [1, 2] | [3, 0, 1, 0, 1, 0, 6] |
+| [1, 3] | [3, 0, 1, 0, 1, 0, 8] |
+| [1, 4] | [3, 0, 1, 0, 1, 0, 9] |
+| [1, 5] | [3, 0, 1, 0, 1, 0, 10] |
 
 **A0 check.** The prefix is p = [1], and the ordinals are {1, 2, 3, 4, 5} — a contiguous interval. A0 is satisfied.
 
-**Break set.** The unit I-displacement is u_I = [0, 0, 0, 0, 1] (length 5). We check I-succession at each consecutive pair:
+**Break set.** The unit I-displacement is u_I = [0, 0, 0, 0, 0, 0, 1] (length 7). We check I-succession at each consecutive pair:
 
-- v₁ to v₂: M₀ ⊕ u_I = [3, 0, 1, 0, 5] ⊕ [0, 0, 0, 0, 1] = [3, 0, 1, 0, 6] = M₁. Not a break.
-- v₂ to v₃: M₁ ⊕ u_I = [3, 0, 1, 0, 6] ⊕ [0, 0, 0, 0, 1] = [3, 0, 1, 0, 7] ≠ [3, 0, 1, 0, 8] = M₂. **Break at v₂** (ordinal index 2).
-- v₃ to v₄: M₂ ⊕ u_I = [3, 0, 1, 0, 8] ⊕ [0, 0, 0, 0, 1] = [3, 0, 1, 0, 9] = M₃. Not a break.
-- v₄ to v₅: M₃ ⊕ u_I = [3, 0, 1, 0, 9] ⊕ [0, 0, 0, 0, 1] = [3, 0, 1, 0, 10] = M₄. Not a break.
+- v₁ to v₂: M₀ ⊕ u_I = [3, 0, 1, 0, 1, 0, 5] ⊕ [0, 0, 0, 0, 0, 0, 1] = [3, 0, 1, 0, 1, 0, 6] = M₁. Not a break.
+- v₂ to v₃: M₁ ⊕ u_I = [3, 0, 1, 0, 1, 0, 6] ⊕ [0, 0, 0, 0, 0, 0, 1] = [3, 0, 1, 0, 1, 0, 7] ≠ [3, 0, 1, 0, 1, 0, 8] = M₂. **Break at v₂** (ordinal index 2).
+- v₃ to v₄: M₂ ⊕ u_I = [3, 0, 1, 0, 1, 0, 8] ⊕ [0, 0, 0, 0, 0, 0, 1] = [3, 0, 1, 0, 1, 0, 9] = M₃. Not a break.
+- v₄ to v₅: M₃ ⊕ u_I = [3, 0, 1, 0, 1, 0, 9] ⊕ [0, 0, 0, 0, 0, 0, 1] = [3, 0, 1, 0, 1, 0, 10] = M₄. Not a break.
 
 B = {v₂}. One break yields p = 2 runs.
 
 **Canonical decomposition.**
 
-R₁ = ([1, 1], [3, 0, 1, 0, 5], 2). Verify A7: M(d)([1, 1]) = [3, 0, 1, 0, 5] = a₁ (base case); M(d)([1, 2]) = [3, 0, 1, 0, 6] = [3, 0, 1, 0, 5] ⊕ [0, 0, 0, 0, 1] = a₁ ⊕ [0, 0, 0, 0, 1]. ✓
+R₁ = ([1, 1], [3, 0, 1, 0, 1, 0, 5], 2). Verify A7: M(d)([1, 1]) = [3, 0, 1, 0, 1, 0, 5] = a₁ (base case); M(d)([1, 2]) = [3, 0, 1, 0, 1, 0, 6] = [3, 0, 1, 0, 1, 0, 5] ⊕ [0, 0, 0, 0, 0, 0, 1] = a₁ ⊕ [0, 0, 0, 0, 0, 0, 1]. ✓
 
-R₂ = ([1, 3], [3, 0, 1, 0, 8], 3). Verify A7: M(d)([1, 3]) = [3, 0, 1, 0, 8] (base); M(d)([1, 4]) = [3, 0, 1, 0, 9] = a₂ ⊕ [0, 0, 0, 0, 1]; M(d)([1, 5]) = [3, 0, 1, 0, 10] = a₂ ⊕ [0, 0, 0, 0, 2]. ✓
+R₂ = ([1, 3], [3, 0, 1, 0, 1, 0, 8], 3). Verify A7: M(d)([1, 3]) = [3, 0, 1, 0, 1, 0, 8] (base); M(d)([1, 4]) = [3, 0, 1, 0, 1, 0, 9] = a₂ ⊕ [0, 0, 0, 0, 0, 0, 1]; M(d)([1, 5]) = [3, 0, 1, 0, 1, 0, 10] = a₂ ⊕ [0, 0, 0, 0, 0, 0, 2]. ✓
 
 **A6 check.** s₁ = 0 (first run starts at beginning). s₂ = s₁ + r₁ = 0 + 2 = 2 (contiguous). s₂ + r₂ = 2 + 3 = 5 = n (last run extends to end). ✓
 
-**Span representation.** σ_V(R₁) = ([1, 1], [0, 2]), σ_I(R₁) = ([3, 0, 1, 0, 5], [0, 0, 0, 0, 2]). σ_V(R₂) = ([1, 3], [0, 3]), σ_I(R₂) = ([3, 0, 1, 0, 8], [0, 0, 0, 0, 3]). Reach: reach(σ_V(R₁)) = [1, 1] ⊕ [0, 2] = [1, 3] = start(σ_V(R₂)). V-spans are adjacent. ✓
+**Span representation.** σ_V(R₁) = ([1, 1], [0, 2]), σ_I(R₁) = ([3, 0, 1, 0, 1, 0, 5], [0, 0, 0, 0, 0, 0, 2]). σ_V(R₂) = ([1, 3], [0, 3]), σ_I(R₂) = ([3, 0, 1, 0, 1, 0, 8], [0, 0, 0, 0, 0, 0, 3]). Reach: reach(σ_V(R₁)) = [1, 1] ⊕ [0, 2] = [1, 3] = start(σ_V(R₂)). V-spans are adjacent. ✓
 
-**DELETE applied.** Delete w = 1 position at ordinal j = 1 (removing v₁ = [1, 2], which maps to I-address [3, 0, 1, 0, 6]). The deletion falls in the interior of R₁, which spans ordinals 0–1. The right portion of R₁ (ordinal 1, the sole element) is removed, leaving a left survivor of length 1. R₂ is unaffected except its V-positions shift left by 1.
+**DELETE applied.** Delete w = 1 position at ordinal j = 1 (removing v₁ = [1, 2], which maps to I-address [3, 0, 1, 0, 1, 0, 6]). The deletion falls in the interior of R₁, which spans ordinals 0–1. The right portion of R₁ (ordinal 1, the sole element) is removed, leaving a left survivor of length 1. R₂ is unaffected except its V-positions shift left by 1.
 
 Post-state:
 
 | V-position | I-address |
 |------------|-----------|
-| [1, 1] | [3, 0, 1, 0, 5] |
-| [1, 2] | [3, 0, 1, 0, 8] |
-| [1, 3] | [3, 0, 1, 0, 9] |
-| [1, 4] | [3, 0, 1, 0, 10] |
+| [1, 1] | [3, 0, 1, 0, 1, 0, 5] |
+| [1, 2] | [3, 0, 1, 0, 1, 0, 8] |
+| [1, 3] | [3, 0, 1, 0, 1, 0, 9] |
+| [1, 4] | [3, 0, 1, 0, 1, 0, 10] |
 
-Break set: M₀ ⊕ u_I = [3, 0, 1, 0, 6] ≠ [3, 0, 1, 0, 8] = M₁. Break at v₁. No other breaks. Still p = 2 runs: R'₁ = ([1, 1], [3, 0, 1, 0, 5], 1), R'₂ = ([1, 2], [3, 0, 1, 0, 8], 3). A6: s₁ = 0, s₂ = 1, s₂ + r₂ = 4 = n. ✓
+Break set: M₀ ⊕ u_I = [3, 0, 1, 0, 1, 0, 6] ≠ [3, 0, 1, 0, 1, 0, 8] = M₁. Break at v₁. No other breaks. Still p = 2 runs: R'₁ = ([1, 1], [3, 0, 1, 0, 1, 0, 5], 1), R'₂ = ([1, 2], [3, 0, 1, 0, 1, 0, 8], 3). A6: s₁ = 0, s₂ = 1, s₂ + r₂ = 4 = n. ✓
 
 ## Preservation Under Operations
 
-We verify that the four arrangement-modifying operations — INSERT, DELETE, REARRANGE, and COPY — preserve A0. Each operation is a valid composite transition (ASN-0047) whose net effect on the arrangement maintains V-domain contiguity. As established above, A0 is a composite-boundary invariant: intermediate elementary steps may temporarily violate it, but the completed composite restores it.
+A0, as a coupling constraint, holds by definition for every valid composite transition. The following arguments demonstrate that each of the four arrangement-modifying operations — INSERT, DELETE, REARRANGE, and COPY — *can* produce a post-state satisfying A0, given A0 in the pre-state. These are existence arguments: they show each operation is compatible with the constraint, not vacuously excluded by it.
 
 ### INSERT
 
@@ -241,7 +243,7 @@ DELETE of w positions starting at ordinal position j (with 0 ≤ j and j + w ≤
 
 ### REARRANGE
 
-REARRANGE with cuts c₁ < c₂ < c₃ transposes two regions: positions [c₁, c₂) and [c₂, c₃) swap, while positions outside [c₁, c₃) are unaffected. This is a K.μ~ reordering.
+REARRANGE with cuts 0 ≤ c₁ < c₂ < c₃ ≤ n transposes two regions: positions [c₁, c₂) and [c₂, c₃) swap, while positions outside [c₁, c₃) are unaffected. This is a K.μ~ reordering.
 
 **Post-state.** dom(M'(d)) = dom(M(d)) — the V-domain is unchanged. The bijection permutes V-positions: region [c₁, c₂) (of size c₂ − c₁) moves to [c₁, c₁ + (c₃ − c₂)), and region [c₂, c₃) (of size c₃ − c₂) moves to [c₁ + (c₃ − c₂), c₃). The combined interval [c₁, c₃) is still fully covered, and positions outside it are unchanged. A0 is preserved trivially.
 
@@ -269,6 +271,7 @@ This observation has a converse: the canonical decomposition is the *coarsest* v
 |-------|-----------|--------|
 | A0 | V(d) is convex at depth L(d) — no gaps in the text V-domain | introduced |
 | A1 | If V(d) ≠ ∅, then V(d) = {[p, k] : k_min ≤ k ≤ k_max} for a fixed prefix p | introduced |
+| A1a | While V(d) ≠ ∅, L(d) is fixed — only re-settable after total deletion | introduced |
 | A2 | V(d) admits ordinal enumeration via unit V-displacement: v_{j+1} = v_j ⊕ u_V | introduced |
 | A3 | The canonical decomposition into maximal correspondence runs exists | introduced |
 | A4 | The canonical decomposition is unique | introduced |
@@ -284,7 +287,6 @@ This observation has a converse: the canonical decomposition is the *coarsest* v
 ## Open Questions
 
 - What invariants govern the link subspace (v₁ < 1) of a document's arrangement, given that link addresses are permanent and deletion leaves gaps?
-- Must the text-subspace depth L(d) remain fixed across the lifetime of a document, or can operations change it?
 - What is the maximum number of runs in the canonical decomposition as a function of the number of editing operations performed?
 - Under what conditions does DELETE cause two formerly-separate runs to merge in the canonical decomposition of the post-state?
 - What structural invariant must a version fork preserve about the source document's canonical decomposition?
