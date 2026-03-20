@@ -116,6 +116,7 @@ Formal specification of the Xanadu hypertext system (udanax-green), derived from
 | [Alloy Checking](docs/alloy-checking.md) | Bounded model checking |
 | [Dafny Verification Loop](docs/dafny-verification-loop.md) | Three-tier failure handling |
 | [Promotion](docs/promotion.md) | Feeding the pipeline with new inquiries |
+| [Extend / Absorb / Rebase](docs/extend-absorb-rebase.md) | Moving properties between ASN layers |
 | [Methodology](docs/methodology.md) | Design principles and formal methods grounding |
 
 ## CLI Reference
