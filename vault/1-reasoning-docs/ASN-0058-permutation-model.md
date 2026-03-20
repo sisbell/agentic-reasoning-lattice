@@ -40,7 +40,7 @@ The first property is the structural keystone on which the entire algebra rests.
 
 `|V(β)| = |I(β)| = n`
 
-Both projections have equal cardinality, both equal to the block's width. By TA5(a) (ASN-0034), each ordinal increment is strictly increasing: `v + j < v + k` for all `0 ≤ j < k < n`, so the `n` values in `V(β)` are distinct and `|V(β)| = n`. Likewise for `I(β)`.
+Both projections have equal cardinality, both equal to the block's width. By TumblerAdd (ASN-0034), `v + j = [v₁, ..., v_m + j]` and `v + k = [v₁, ..., v_m + k]`; when `j ≠ k`, these differ at component `m`, so `v + j ≠ v + k` by T3 (CanonicalRepresentation, ASN-0034). Strict ordering follows from T1 at the last component: `v + j < v + k` for all `0 ≤ j < k < n`. The `n` values in `V(β)` are therefore distinct and `|V(β)| = n`. Likewise for `I(β)`.
 
 This is not a convenience of representation. The Vstream is an *arrangement* of Istream content — each V-position references exactly one I-byte, and each reference is to exactly one byte. There is no compression, expansion, or transformation between the spaces. The mapping is positional and unit-ratio.
 
@@ -68,7 +68,9 @@ M0 and M1 together characterize the mapping block: it is a *width-preserving mon
 
 `(v + c) + j = v + (c + j)`
 
-*Derivation.* Recall that `v + k` denotes `v ⊕ w_k` where `w_k = [0, ..., 0, k]` has length `#v` and action point at position `#v`. By TA-assoc (ASN-0034), `(v ⊕ w_c) ⊕ w_j = v ⊕ (w_c ⊕ w_j)`. By TumblerAdd, `w_c` and `w_j` share their action point at position `#v`, so `(w_c ⊕ w_j)` has value `c + j` at that position and zero elsewhere — that is, `w_c ⊕ w_j = w_{c+j}`. Therefore `(v + c) + j = v ⊕ w_{c+j} = v + (c + j)`. ∎
+*Convention.* We define `v + 0 = v` — the identity of ordinal shift. At `k = 0` this is the base case of the correspondence run: `M(d)(v) = a`, no displacement, no arithmetic (cf. S8, ASN-0036). The cases `c = 0` or `j = 0` in the identity above follow immediately from this convention.
+
+*Derivation (c, j ≥ 1).* Recall that `v + k` for `k ≥ 1` denotes `v ⊕ w_k` where `w_k = [0, ..., 0, k]` has length `#v` and action point at position `#v`. By TA-assoc (ASN-0034), `(v ⊕ w_c) ⊕ w_j = v ⊕ (w_c ⊕ w_j)`. By TumblerAdd, `w_c` and `w_j` share their action point at position `#v`, so `(w_c ⊕ w_j)` has value `c + j` at that position and zero elsewhere — that is, `w_c ⊕ w_j = w_{c+j}`. Therefore `(v + c) + j = v ⊕ w_{c+j} = v + (c + j)`. ∎
 
 ## The Arrangement as a Set of Blocks
 
@@ -235,22 +237,20 @@ We must now establish that the result is independent of merge order.
 
 *Proof.* We show that every maximally merged decomposition equals the set of *maximal runs* of `f = M(d)`, and that this set is uniquely determined by `f`.
 
-We write `v − 1` for the ordinal decrement `v ⊖ w₁` where `w₁ = [0, ..., 0, 1]` has length `#v`. This is well-defined when the last component of `v` exceeds 1; when the last component equals 1, `v ⊖ w₁` has a zero in the element field and falls outside `dom(M(d))` by S8a (ASN-0036).
-
 Define a *maximal run* of `f` as a triple `(v, a, n)` such that:
 1. `(A k : 0 ≤ k < n : f(v + k) = a + k)` — it is a correspondence run
-2. `v − 1 ∉ dom(f)  ∨  f(v − 1) ≠ a − 1` — it cannot be extended left
+2. `¬(E v' :: v' + 1 = v ∧ v' ∈ dom(f) ∧ f(v') + 1 = a)` — it cannot be extended left
 3. `v + n ∉ dom(f)  ∨  f(v + n) ≠ a + n` — it cannot be extended right
 
-(Condition 2 is vacuously satisfied whenever `v − 1 ∉ dom(f)` — in particular when `v` is the minimum of `dom(f)`, or when the last component of `v` equals 1, so that `v − 1` falls outside `dom(f)` as noted above.)
+(Condition 2 uses only TumblerAdd, avoiding TumblerSub which is not well-defined for ordinal decrement at arbitrary tumbler depth. The condition is vacuously satisfied when the last component of `v` equals 1: the only candidate `v'` would require a zero last component, placing it outside `dom(f)` by S8a, ASN-0036.)
 
-The maximal runs partition `dom(f)`: every `v ∈ dom(f)` belongs to at least one maximal run (start with the trivial run `(v, f(v), 1)` and extend in both directions until conditions 2 and 3 are met). To see that `v` belongs to *exactly* one maximal run, suppose `v ∈ R₁ ∩ R₂` where `R₁ = (v₁, a₁, n₁)` and `R₂ = (v₂, a₂, n₂)` with `v₁ ≤ v₂`. Both runs map `v₂` to the same I-address (by B3 via `M(d)`), so `a₂ = a₁ + (v₂ − v₁)`. If `v₁ < v₂`, then `R₂`'s leftward extension reaches `v₂ − 1` with I-address `a₂ − 1 = a₁ + (v₂ − v₁ − 1)`, which `R₁` also maps correctly — so `R₂` can be extended left, contradicting its maximality. Hence `v₁ = v₂`; by the symmetric rightward argument, `n₁ = n₂`. The maximal runs are therefore uniquely determined by `f`.
+The maximal runs partition `dom(f)`: every `v ∈ dom(f)` belongs to at least one maximal run (start with the trivial run `(v, f(v), 1)` and extend in both directions until conditions 2 and 3 are met). To see that `v` belongs to *exactly* one maximal run, suppose `v ∈ R₁ ∩ R₂` where `R₁ = (v₁, a₁, n₁)` and `R₂ = (v₂, a₂, n₂)` with `v₁ ≤ v₂`. Since V-extents are contiguous ranges at fixed depth (S8-depth), `v₁ ≤ v₂ ≤ v` and `v ∈ V(R₁)` imply `v₂ ∈ V(R₁)`, so `v₂ = v₁ + k₂` for some `0 ≤ k₂ < n₁`. Both runs map `v₂` through `f`, giving `a₂ = a₁ + k₂`. If `v₁ < v₂` — i.e., `k₂ ≥ 1` — set `v' = v₁ + (k₂ − 1)`, which is in `V(R₁)`. By M-aux, `v' + 1 = v₁ + k₂ = v₂`, and `f(v') + 1 = (a₁ + (k₂ − 1)) + 1 = a₁ + k₂ = a₂`. So `R₂` can be extended left, contradicting condition 2. Hence `v₁ = v₂`; by the symmetric rightward argument, `n₁ = n₂`. The maximal runs are therefore uniquely determined by `f`.
 
 We show: a decomposition `B` is maximally merged iff it equals the set of maximal runs of `f`.
 
 (⟹) Let `B` be maximally merged. Take `β = (v, a, n) ∈ B` and suppose `β` is not a maximal run — say condition 3 fails: `v + n ∈ dom(f)` and `f(v + n) = a + n`. Some block `β' ∈ B` covers `v + n`. We claim `β'` starts at `v + n`. If `β'` starts at `v' < v + n`, then `V(β') = {v' + k : 0 ≤ k < n'}` is a contiguous set containing `v + n` and starting before it; since `v + n − 1 ∈ V(β)`, we would have `v + n − 1 ∈ V(β')` when `v' ≤ v + n − 1`, contradicting B2 (disjointness). So `v' > v + n − 1`. Since all text-subspace V-positions in `dom(M(d))` share the same depth (S8-depth, ASN-0036), no V-position falls between `v + (n − 1)` and `v + n`, forcing `v' = v + n`. Then `β' = (v + n, a', n')` with `a' + 0 = f(v + n) = a + n`, so `a' = a + n`. Now `β` and `β'` are V-adjacent (`v + n = v + n`) and I-adjacent (`a + n = a + n`) — contradicting `B` being maximally merged.
 
-Now suppose condition 2 fails: `v − 1 ∈ dom(f)` and `f(v − 1) = a − 1`. Some block `β'' ∈ B` covers `v − 1`. If `β''` extends to `v`, then `v ∈ V(β'') ∩ V(β)`, contradicting B2. So `β''` ends at `v − 1`, giving `v'' + n'' = v` (V-adjacent) and `a'' + n'' = a` (I-adjacent) — contradicting `B` being maximally merged. So every block in `B` is a maximal run. Since the maximal runs partition `dom(f)` and `B` covers `dom(f)` (by B1) with disjoint blocks (by B2), `B` is exactly the set of maximal runs.
+Now suppose condition 2 fails: there exists `v'` with `v' + 1 = v`, `v' ∈ dom(f)`, and `f(v') + 1 = a`. Some block `β'' = (v'', a'', n'') ∈ B` covers `v'`. Since `v' + 1 = v ∈ V(β)`, if `v ∈ V(β'')` then `v ∈ V(β'') ∩ V(β)`, contradicting B2. So `v'` is the last position of `β''`: `v' = v'' + (n'' − 1)`. By M-aux, `v'' + n'' = v' + 1 = v` (V-adjacent). And `a'' + n'' = (a'' + (n'' − 1)) + 1 = f(v') + 1 = a` (I-adjacent, since `f(v') = a'' + (n'' − 1)` by B3). So `β''` and `β` satisfy the merge condition — contradicting `B` being maximally merged. Hence every block in `B` is a maximal run. Since the maximal runs partition `dom(f)` and `B` covers `dom(f)` (by B1) with disjoint blocks (by B2), `B` is exactly the set of maximal runs.
 
 (⟸) The set of maximal runs is trivially maximally merged: any two V-adjacent maximal runs have a correspondence discontinuity at their boundary (by condition 3 of the left run), so they are not I-adjacent and cannot be merged.
 
@@ -337,9 +337,9 @@ The merge condition (M7) interacts naturally with the tumbler address structure.
 
 `(A β₁, β₂ : origin(a₁) ≠ origin(a₂) : ¬(a₂ = a₁ + n₁))`
 
-*Proof.* Ordinal increment via TA5(c) (ASN-0034) changes only the last significant component of a tumbler, which for element-level addresses falls in the element field. The document prefix — the `N.0.U.0.D` portion — is invariant under ordinal increment. Therefore `origin(a₁ + n₁) = origin(a₁)`. If `origin(a₂) ≠ origin(a₁)`, then `a₂ ≠ a₁ + n₁`, since they have different document prefixes. By T10 (PartitionIndependence, ASN-0034), addresses under disjoint document prefixes occupy disjoint subtrees of the tumbler space, confirming the impossibility. ∎
+*Proof.* Ordinal increment via TA5(c) (ASN-0034) changes only the last significant component of a tumbler, which for element-level addresses falls in the element field. The document prefix — the `N.0.U.0.D` portion — is invariant under ordinal increment. Therefore `origin(a₁ + n₁) = origin(a₁)`. If `origin(a₂) ≠ origin(a₁)`, then `origin(a₂) ≠ origin(a₁ + n₁)`. Since `origin` is a function on tumblers, equal tumblers have equal origins; by contrapositive, different origins imply different tumblers: `a₂ ≠ a₁ + n₁`. ∎
 
-This is not an additional constraint imposed on the merge — it is a consequence of I-adjacency and the tumbler partition structure. Gregory's implementation includes an explicit `homedoc` guard as the first check in `isanextensionnd` — a cheap discriminant that avoids full I-address comparison. At the abstract level, the guard is redundant: T10 already prevents cross-origin I-adjacency. But its presence in the implementation reflects the abstract property and provides an efficient short-circuit.
+This is not an additional constraint imposed on the merge — it is a consequence of I-adjacency and the invariance of document origin under ordinal increment. Gregory's implementation includes an explicit `homedoc` guard as the first check in `isanextensionnd` — a cheap discriminant that avoids full I-address comparison. At the abstract level, the guard is redundant: the contrapositive of origin equality already prevents cross-origin I-adjacency. But its presence in the implementation reflects the abstract property and provides an efficient short-circuit.
 
 The consequence is that the canonical decomposition naturally preserves origin boundaries. In a maximally merged decomposition, every block maps to a contiguous I-range under a single document prefix. Blocks spanning multiple origins cannot arise, because the I-addresses of distinct origins are never adjacent on the tumbler line.
 
