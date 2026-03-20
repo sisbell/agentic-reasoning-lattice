@@ -17,6 +17,6 @@ Generated from vault/project-model/ASN-*.yaml
 | ASN-0051 | Link Survivability | inquiry | 34, 36, 43, 45, 47 |
 | ASN-0052 | Transclusion | inquiry | 34, 36, 43, 45, 47 |
 | ASN-0053 | Span Algebra | inquiry | 34 |
-| ASN-0054 | Arrangement Structure | inquiry | 34, 36, 45, 47, 53 |
-| ASN-0055 | Tumbler Algebra 0 | converged | 34 |
-| ASN-0056 | Span Algebra 0 | inquiry | 34, 53 |
+| ASN-0054 | Arrangements | inquiry | 34, 36, 45, 47, 53 |
+| ~~ASN-0055~~ | ~~Tumbler Algebra 0~~ | absorbed into 34 | — |
+| ~~ASN-0056~~ | ~~Span Algebra 0~~ | absorbed into 53 | — |
