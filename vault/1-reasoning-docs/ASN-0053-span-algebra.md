@@ -373,7 +373,7 @@ Nelson confirms the bound and the mechanism: "Removing a contained span from a c
 
 This is non-empty (start(α) < start(β) and start(α) ∈ ⟦α⟧ \ ⟦β⟧) and forms a single contiguous interval. We construct the span explicitly.
 
-Define γ = (start(α), start(β) ⊖ start(α)). Since start(α) < start(β) and #start(α) = #start(β) (level-compatibility), the divergence k is of type (i) with k ≤ #start(α). The width start(β) ⊖ start(α) has a positive component at position k, so it is positive with action point k ≤ #start(α) — T12 is satisfied. By D1 (DisplacementRoundTrip, ASN-0053), reach(γ) = start(α) ⊕ (start(β) ⊖ start(α)) = start(β). The span is level-uniform: #width(γ) = max(#start(β), #start(α)) = #start(α) = #start(γ).
+Define γ = (start(α), start(β) ⊖ start(α)). Since start(α) < start(β) and #start(α) = #start(β) (level-compatibility), the divergence k is of type (i) with k ≤ #start(α). The width start(β) ⊖ start(α) has a positive component at position k, so it is positive with action point k ≤ #start(α) — T12 is satisfied. By D1 (DisplacementRoundTrip, ASN-0034), reach(γ) = start(α) ⊕ (start(β) ⊖ start(α)) = start(β). The span is level-uniform: #width(γ) = max(#start(β), #start(α)) = #start(α) = #start(γ).
 
 The denotation ⟦γ⟧ = {t : start(α) ≤ t < start(β)} = ⟦α⟧ \ ⟦β⟧. The result is exactly 1 span.
 
