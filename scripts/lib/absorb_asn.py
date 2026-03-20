@@ -392,15 +392,13 @@ def main():
 
     print(f"  [ABSORB] {ext_label} → {base_label}", file=sys.stderr)
     if source_num:
-        print(f"  [SOURCE] ASN-{int(source_num):04d} will be updated",
-              file=sys.stderr)
-    else:
-        print(f"  [SOURCE] No source field — skipping source update",
+        print(f"  [SOURCE] ASN-{int(source_num):04d} — run rebase.py "
+              f"{source_num} after absorb to update citations",
               file=sys.stderr)
 
     if args.dry_run:
         print(f"  [DRY RUN] Steps: integrate → review/revise → "
-              f"export → update source → cleanup", file=sys.stderr)
+              f"export → cleanup", file=sys.stderr)
         return
 
     # Step 1: Integrate extension into base reasoning doc
@@ -421,20 +419,16 @@ def main():
     # Step 3: Re-export the base
     step_export(base_num)
 
-    # Step 4: Update source ASN (if source field set)
-    if source_num:
-        step_update_source(args.asn, source_num, base_num, ext_path,
-                           args.model, args.effort)
-        step_commit(f"absorb(asn): update ASN-{int(source_num):04d} "
-                    f"citations for {ext_label}")
-
-    # Step 5: Clean up
+    # Step 4: Clean up extension artifacts
     step_cleanup(args.asn)
     step_commit(f"absorb(asn): cleanup {ext_label}")
 
-    log_usage("absorb", 0, ext=args.asn, base=base_num, source=source_num)
+    log_usage("absorb", 0, ext=args.asn, base=base_num)
     print(f"\n  [DONE] {ext_label} absorbed into {base_label}",
           file=sys.stderr)
+    if source_num:
+        print(f"  [NEXT] Run: python scripts/rebase.py {source_num}",
+              file=sys.stderr)
 
 
 if __name__ == "__main__":
