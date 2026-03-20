@@ -163,11 +163,11 @@ The canonical decomposition of M(d) is the sequence ⟨(σ_V(R₁), σ_I(R₁)),
 
 (iii) The I-spans have no ordering constraint (A8) and may overlap (A9).
 
-This list is the *arrangement descriptor*: a finite sequence of span pairs that completely determines the V→I mapping.
+This list is the *arrangement descriptor*: a finite sequence of span pairs that completely determines the text-domain V→I mapping (that is, M(d) restricted to V(d)).
 
-**A12 (Arrangement Equality).** M(d₁) = M(d₂) as partial functions iff their canonical decompositions agree: same number of runs p, and for each j, start(σ_V(R_j^{d₁})) = start(σ_V(R_j^{d₂})) and σ_I(R_j^{d₁}) = σ_I(R_j^{d₂}). (V-span width need not be checked separately: I-span equality gives equal run lengths r_j, and V-span width is [0,...,0,r_j] at the shared depth L(d), so V-spans are fully determined by V-start and I-span.)
+**A12 (Text-Domain Equality).** M(d₁)|_{V(d₁)} = M(d₂)|_{V(d₂)} as partial functions iff their canonical decompositions agree: same number of runs p, and for each j, start(σ_V(R_j^{d₁})) = start(σ_V(R_j^{d₂})) and σ_I(R_j^{d₁}) = σ_I(R_j^{d₂}). (V-span width need not be checked separately: I-span equality gives equal run lengths r_j, and V-span width is [0,...,0,r_j] at the shared depth L(d), so V-spans are fully determined by V-start and I-span.) A12 does not extend to the full arrangement — the canonical decomposition is silent on the link subspace (v₁ < 1), so two documents with identical text-domain mappings but different link-subspace mappings have equal decompositions yet unequal full arrangements.
 
-*Proof.* Forward: identical functions produce identical break sets and hence identical maximal runs. Reverse: identical span-pair sequences reconstruct identical functions, since each V-position's I-address is determined by the run that contains it and the ordinal offset within that run. V-start equality forces L(d₁) = L(d₂) (the starts are depth-L tumblers), and I-span equality gives matching run lengths, so the V-spans match. ∎
+*Proof.* Forward: identical text-domain restrictions produce identical break sets and hence identical maximal runs. Reverse: identical span-pair sequences reconstruct identical text-domain restrictions, since each V-position's I-address is determined by the run that contains it and the ordinal offset within that run. V-start equality forces L(d₁) = L(d₂) (the starts are depth-L tumblers), and I-span equality gives matching run lengths, so the V-spans match. ∎
 
 ## Worked Example
 
@@ -282,7 +282,7 @@ This observation has a converse: the canonical decomposition is the *coarsest* v
 | A9 | I-spans of distinct runs within a single document may overlap | introduced |
 | A10 | Each document's canonical decomposition is independent of all others | introduced |
 | A11 | The empty arrangement (V(d) = ∅) has zero runs | introduced |
-| A12 | Two arrangements are equal iff their canonical decompositions are equal | introduced |
+| A12 | Two text-domain restrictions are equal iff their canonical decompositions are equal | introduced |
 
 ## Open Questions
 
