@@ -10,9 +10,9 @@ They matter because the arrangement is the only mutable component of document st
 
 We restrict attention to the text subspace — the portion of the arrangement carrying content as opposed to link references.
 
-**Definition.** The *text domain* of document d is V(d) = {v ∈ dom(Σ.M(d)) : v₁ ≥ 1}, where v₁ denotes the first component of v.
+**Definition.** The *text domain* of document d is V(d) = {v ∈ dom(Σ.M(d)) : v₁ = 1}, where v₁ denotes the first component of v. We restrict to the single subspace v₁ = 1 — the primary text subspace.
 
-By S8a, every element of V(d) is a zero-free positive tumbler. By S8-depth, all elements share a common tumbler depth we call L(d). By S8-fin, V(d) is finite. These three constraints leave the shape of V(d) underdetermined — a finite set of depth-L tumblers with positive components could be scattered across the text subspace. Can a document have positions at [1, 3] and [1, 7] but not [1, 5]?
+By S8a, every element of V(d) is a zero-free positive tumbler. Since all elements share v₁ = 1, S8-depth (which guarantees depth uniformity within a single subspace) gives a common tumbler depth we call L(d). By S8-fin, V(d) is finite. These three constraints leave the shape of V(d) underdetermined — a finite set of depth-L tumblers with positive components could be scattered across the text subspace. Can a document have positions at [1, 3] and [1, 7] but not [1, 5]?
 
 Nelson's answer is unequivocal: no. The virtual byte stream is a *stream* — "logical addressing of the byte stream is in the form of virtual spans, or vspans" — with ordinal positions that run consecutively. INSERT shifts subsequent addresses forward; DELETE closes gaps. The V-stream is always dense and contiguous. There is no "deleted slot" in V-space; deletion removes positions and the remainder renumber.
 
@@ -22,7 +22,7 @@ The implementation evidence corroborates: `deletend` shifts all crums past the d
 
 `(A v, u, w : u ∈ V(d) ∧ w ∈ V(d) ∧ u ≤ v ≤ w ∧ #v = L(d) : v ∈ V(d))`
 
-The empty set is convex vacuously. A0 is a per-state invariant of all reachable states, in the same category as S2, S3, S8a, S8-depth, and S8-fin. The formal mechanism: K.μ⁺ and K.μ~ preconditions must be extended to require that the resulting arrangement satisfies A0. Without this extension, a raw K.μ⁺ adding a non-contiguous V-position would satisfy ASN-0047's existing preconditions (S8a, S8-depth, S8-fin, referential integrity) while violating A0. With the extension, every elementary transition that modifies V(d) preserves contiguity, and since composite transitions are sequences of elementary ones, A0 holds at every reachable state.
+The empty set is convex vacuously. A0 is a *composite-boundary invariant*: it holds in every state reachable by valid composite transitions, but may be temporarily violated at intermediate states within a composite. This distinguishes it from S2, S3, S8a, S8-depth, and S8-fin, which hold at every elementary transition (the arrangement invariants lemma preserves them by restriction for K.μ⁻, by precondition for K.μ⁺ and K.μ~, and by frame for the rest). Contiguity is not preserved by arbitrary restriction — a raw K.μ⁻ removing an interior V-position from a contiguous domain produces a non-contiguous domain. The formal mechanism: K.μ⁺ and K.μ~ preconditions must be extended to require that the resulting arrangement satisfies A0, and every valid composite that includes K.μ⁻ steps must restore A0 by the composite's completion. INSERT, for instance, first shifts positions rightward via K.μ~ (creating no gap in V(d)) and fills the opened positions via K.μ⁺; DELETE removes positions via K.μ⁻ and immediately closes the gap via K.μ~ in the same composite. In each case, the completed composite restores A0 — analogous to J0, where allocation and placement co-occur.
 
 This is the fundamental structural property of arrangements. Everything that follows depends on it.
 
@@ -114,7 +114,7 @@ We write each run as R_j = (v_{s_j}, a_j, r_j) for 1 ≤ j ≤ p.
 
 (c) s_p + r_p = n — the last run extends to the end.
 
-Parts (a)–(c) follow from A0 (no gaps in V(d)) and the construction (runs are maximal contiguous break-free intervals). Every V-position in V(d) belongs to exactly one run (S2: M(d) is a function, so each V-position has a unique I-address and hence a unique run assignment).
+Parts (a)–(c) follow from A0 (no gaps in V(d)) and the construction (runs are maximal contiguous break-free intervals). Every V-position in V(d) belongs to exactly one run: maximal break-free intervals of a contiguous index set partition it by construction — the break points divide {v₀, ..., v_{n-1}} into non-overlapping, exhaustive segments.
 
 **A7 (Width Preservation).** Within each run R = (v_s, a, r), the V-extent and I-extent cover the same count of positions. The arrangement restricted to a single run is a bijection between r consecutive V-positions and r consecutive I-addresses:
 
@@ -163,9 +163,9 @@ The canonical decomposition of M(d) is the sequence ⟨(σ_V(R₁), σ_I(R₁)),
 
 This list is the *arrangement descriptor*: a finite sequence of span pairs that completely determines the V→I mapping.
 
-**A12 (Arrangement Equality).** M(d₁) = M(d₂) as partial functions iff their canonical decompositions agree: same number of runs p, and for each j, start(σ_V(R_j^{d₁})) = start(σ_V(R_j^{d₂})) and σ_I(R_j^{d₁}) = σ_I(R_j^{d₂}).
+**A12 (Arrangement Equality).** M(d₁) = M(d₂) as partial functions iff their canonical decompositions agree: same number of runs p, and for each j, start(σ_V(R_j^{d₁})) = start(σ_V(R_j^{d₂})) and σ_I(R_j^{d₁}) = σ_I(R_j^{d₂}). (V-span width need not be checked separately: I-span equality gives equal run lengths r_j, and V-span width is [0,...,0,r_j] at the shared depth L(d), so V-spans are fully determined by V-start and I-span.)
 
-*Proof.* Forward: identical functions produce identical break sets and hence identical maximal runs. Reverse: identical span-pair sequences reconstruct identical functions, since each V-position's I-address is determined by the run that contains it and the ordinal offset within that run. ∎
+*Proof.* Forward: identical functions produce identical break sets and hence identical maximal runs. Reverse: identical span-pair sequences reconstruct identical functions, since each V-position's I-address is determined by the run that contains it and the ordinal offset within that run. V-start equality forces L(d₁) = L(d₂) (the starts are depth-L tumblers), and I-span equality gives matching run lengths, so the V-spans match. ∎
 
 ## Worked Example
 
@@ -192,7 +192,7 @@ B = {v₂}. One break yields p = 2 runs.
 
 **Canonical decomposition.**
 
-R₁ = ([1, 1], [3, 0, 1, 0, 5], 2). Verify A7: M(d)([1, 1]) = [3, 0, 1, 0, 5] = a₁ ⊕ [0, 0, 0, 0, 0] (base case); M(d)([1, 2]) = [3, 0, 1, 0, 6] = [3, 0, 1, 0, 5] ⊕ [0, 0, 0, 0, 1] = a₁ ⊕ [0, 0, 0, 0, 1]. ✓
+R₁ = ([1, 1], [3, 0, 1, 0, 5], 2). Verify A7: M(d)([1, 1]) = [3, 0, 1, 0, 5] = a₁ (base case); M(d)([1, 2]) = [3, 0, 1, 0, 6] = [3, 0, 1, 0, 5] ⊕ [0, 0, 0, 0, 1] = a₁ ⊕ [0, 0, 0, 0, 1]. ✓
 
 R₂ = ([1, 3], [3, 0, 1, 0, 8], 3). Verify A7: M(d)([1, 3]) = [3, 0, 1, 0, 8] (base); M(d)([1, 4]) = [3, 0, 1, 0, 9] = a₂ ⊕ [0, 0, 0, 0, 1]; M(d)([1, 5]) = [3, 0, 1, 0, 10] = a₂ ⊕ [0, 0, 0, 0, 2]. ✓
 
@@ -215,7 +215,7 @@ Break set: M₀ ⊕ u_I = [3, 0, 1, 0, 6] ≠ [3, 0, 1, 0, 8] = M₁. Break at v
 
 ## Preservation Under Operations
 
-We verify that the four arrangement-modifying operations — INSERT, DELETE, REARRANGE, and COPY — preserve A0. Each operation is a valid composite transition (ASN-0047) whose net effect on the arrangement maintains V-domain contiguity. Intermediate states within a composite may temporarily violate A0 (as when INSERT first shifts positions rightward, creating a gap, before filling it), but the completed composite restores it — analogous to J0, where allocation and placement co-occur in the same composite.
+We verify that the four arrangement-modifying operations — INSERT, DELETE, REARRANGE, and COPY — preserve A0. Each operation is a valid composite transition (ASN-0047) whose net effect on the arrangement maintains V-domain contiguity. As established above, A0 is a composite-boundary invariant: intermediate elementary steps may temporarily violate it, but the completed composite restores it.
 
 ### INSERT
 
