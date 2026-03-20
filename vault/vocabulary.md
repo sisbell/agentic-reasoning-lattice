@@ -6,13 +6,13 @@ Common language for ASN authors. NOT normative — use these terms consistently 
 
 **Tumbler**: A finite sequence of non-negative integers used as an address. Tumblers are hierarchically structured (node.user.document.version.element) and totally ordered. Every piece of content in the system has exactly one permanent tumbler address.
 
-**Address Space**: The set of all tumblers, with a total ordering. Partitioned into subspaces by prefix (e.g., `1.x` for text content, `0.x` for links within a document).
+**Address Space**: The set of all tumblers, with a total ordering. Partitioned into subspaces by the first component of the element field (e.g., `1` for text content, `2` for links within a document).
 
 **I-Space (Identity Space)**: The permanent, append-only content store. Content in I-space is addressed by I-stream tumblers and is never modified or deleted. I-space is the ground truth for what content exists.
 
 **V-Space (Virtual Space)**: The mutable arrangement layer. A document's V-space maps virtual positions to I-space content. Editing operations (insert, delete, rearrange) modify V-space while I-space remains unchanged.
 
-**Document**: A named, owned, versioned container. A document has an owner, a version history (DAG), and two subspaces: text content (1.x) and links (0.x).
+**Document**: A named, owned, versioned container. A document has an owner, a version history (DAG), and two element subspaces: text content (subspace 1) and links (subspace 2).
 
 **Version**: An immutable snapshot of a document's V-space arrangement. Versions form a DAG via forking — creating a new version from an existing one. All versions share the same I-space content pool.
 
