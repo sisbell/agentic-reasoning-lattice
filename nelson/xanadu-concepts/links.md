@@ -152,7 +152,7 @@ Breaking down the address:
 
 ### Permanent Order of Arrival
 
-Unlike bytes (which can be rearranged in V-space), **links keep their creation-order addresses permanently**:
+Unlike bytes (which can be rearranged in Vstream), **links keep their creation-order addresses permanently**:
 
 > "The links designated by a tumbler address are in their permanent order of arrival. A document includes only the links of which it is the home document." (4/31)
 
@@ -259,7 +259,7 @@ Clever users can ask for the moon and stars simultaneously. While early versions
 | [spans](spans.md) | Each endset is a span-set (can be discontiguous) |
 | [documents](documents.md) | Link home document determines ownership |
 | [tumblers](tumblers.md) | Links have their own tumbler addresses |
-| [i-space-v-space](i-space-v-space.md) | Links point to I-space content (survive V-space editing) |
+| [i-space-v-space](i-space-v-space.md) | Links point to Istream content (survive Vstream editing) |
 | [ghost-elements](ghost-elements.md) | Link types can point to addresses with no content |
 
 ### Link Type Concepts

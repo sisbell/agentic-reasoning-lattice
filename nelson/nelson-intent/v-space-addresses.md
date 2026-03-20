@@ -1,17 +1,17 @@
-# V-Space (Version Space / Virtual Space)
+# Vstream (Version Space / Virtual Space)
 
 Source: Literary Machines, 4/10-4/11, 4/30, 4/66-4/67
 
 ## What It Means
 
-V-Space is the document's current arrangement of content. V-addresses specify positions in the "virtual byte stream" — the logical sequence as the user sees it now.
+Vstream is the document's current arrangement of content. V-addresses specify positions in the "virtual byte stream" — the logical sequence as the user sees it now.
 
 - **Ephemeral**: V-addresses change during editing
 - **Dense**: V-addresses always form a contiguous sequence starting at 1
-- **View-based**: V-space is a view over permanent I-space content
+- **View-based**: Vstream is a view over permanent Istream content
 - **Per-version**: Each version has its own V-stream arrangement
 
-The mapping V -> I is the essence of document structure. The document IS the mapping from V-addresses to I-addresses. Each version defines a different mapping. Edits change the mapping, not the I-space content.
+The mapping V -> I is the essence of document structure. The document IS the mapping from V-addresses to I-addresses. Each version defines a different mapping. Edits change the mapping, not the Istream content.
 
 ## User Guarantee
 
@@ -23,7 +23,7 @@ The mapping V -> I is the essence of document structure. The document IS the map
 
 ## Principle Served
 
-Separation of identity from arrangement. V-space lets users edit freely while I-space preserves identity. Links point to I-addresses (survive editing), users work with V-addresses (intuitive positions), versions are different V-arrangements over shared I-content.
+Separation of identity from arrangement. Vstream lets users edit freely while Istream preserves identity. Links point to I-addresses (survive editing), users work with V-addresses (intuitive positions), versions are different V-arrangements over shared I-content.
 
 ## Nelson's Words
 

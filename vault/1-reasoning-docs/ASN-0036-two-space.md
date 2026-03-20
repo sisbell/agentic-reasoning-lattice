@@ -1,12 +1,12 @@
-# ASN-0036: Two Space
+# ASN-0036: Istream and Vstream
 
 *2026-03-14*
 
-We wish to understand what formal invariants govern the relationship between permanent content storage and mutable document arrangement in Xanadu. Nelson separated these concerns into two address spaces — I-space for content identity and V-space for document positions — and asserted this separation as the architectural foundation on which permanence, transclusion, and attribution all rest. We seek the abstract properties that define this separation: what must hold in any correct implementation, regardless of the underlying data structures.
+We wish to understand what formal invariants govern the relationship between permanent content storage and mutable document arrangement in Xanadu. Nelson separated these concerns into two address spaces — Istream for content identity and Vstream for document positions — and asserted this separation as the architectural foundation on which permanence, transclusion, and attribution all rest. We seek the abstract properties that define this separation: what must hold in any correct implementation, regardless of the underlying data structures.
 
 The approach is: model the system as two state components, derive what each must guarantee independently, then identify the invariants connecting them. Nelson provides architectural intent; Gregory's implementation reveals which properties are load-bearing.
 
-Nelson conceived the two spaces as inseparable aspects of a single architecture. Gregory implemented them as distinct enfilade types with different stability characteristics. Between these two accounts we find the abstract structure: a content store that grows but never changes, and a family of arrangement functions that change freely but may reference only what the store contains.
+Nelson conceived the two streams as inseparable aspects of a single architecture. Gregory implemented them as distinct enfilade types with different stability characteristics. Between these two accounts we find the abstract structure: a content store that grows but never changes, and a family of arrangement functions that change freely but may reference only what the store contains.
 
 
 ## Two components of state
@@ -17,9 +17,9 @@ The observation that motivates the entire design is that content EXISTS independ
 
 This observation forces the state into two components:
 
-**Σ.C : T ⇀ Val** — the *content store*. A partial function mapping I-space addresses to content values. `T` is the set of tumblers (ASN-0034); `Val` is an unspecified set of content values, opaque at this level of abstraction. The domain `dom(Σ.C)` is the set of I-addresses at which content has been stored.
+**Σ.C : T ⇀ Val** — the *content store*. A partial function mapping Istream addresses to content values. `T` is the set of tumblers (ASN-0034); `Val` is an unspecified set of content values, opaque at this level of abstraction. The domain `dom(Σ.C)` is the set of I-addresses at which content has been stored.
 
-**Σ.M(d) : T ⇀ T** — the *arrangement* of document `d`. A partial function mapping V-space positions to I-space addresses. The domain `dom(Σ.M(d))` is the set of V-positions currently active in `d`; the range `ran(Σ.M(d))` is the set of I-addresses that `d` currently references.
+**Σ.M(d) : T ⇀ T** — the *arrangement* of document `d`. A partial function mapping Vstream positions to Istream addresses. The domain `dom(Σ.M(d))` is the set of V-positions currently active in `d`; the range `ran(Σ.M(d))` is the set of I-addresses that `d` currently references.
 
 A conventional system merges these — "the file" IS the content IS the arrangement. Editing overwrites. Saving destroys the prior state. Nelson rejected this explicitly: "Virtually all of computerdom is built around the destructive replacement of successive whole copies of each current version." The two-component model is his alternative: editing modifies `M(d)` while `C` remains invariant. The separation is the premise; what follows are the invariants it must satisfy.
 
@@ -28,7 +28,7 @@ A conventional system merges these — "the file" IS the content IS the arrangem
 
 We ask: what must `C` guarantee? Nelson requires that any historical version be reconstructable, that content transcluded across documents maintain its meaning, and that attribution be permanent. Working backward from these guarantees — what must `C` satisfy for them to hold?
 
-Suppose `C(a)` could change from value `w` to `w'` in some state transition. Then every document whose arrangement maps a V-position to `a` would silently show different content — with no editing operation having touched any arrangement. Historical versions, which reconstruct their state by reassembling I-space fragments, would silently present altered text. Content transcluded from one document into another would mutate without the including document's knowledge or consent. Nelson: "Users may create new published documents out of old ones indefinitely, making whatever changes seem appropriate — without damaging the originals." Mutation of `C(a)` damages every original that contains `a`.
+Suppose `C(a)` could change from value `w` to `w'` in some state transition. Then every document whose arrangement maps a V-position to `a` would silently show different content — with no editing operation having touched any arrangement. Historical versions, which reconstruct their state by reassembling Istream fragments, would silently present altered text. Content transcluded from one document into another would mutate without the including document's knowledge or consent. Nelson: "Users may create new published documents out of old ones indefinitely, making whatever changes seem appropriate — without damaging the originals." Mutation of `C(a)` damages every original that contains `a`.
 
 We therefore require:
 
@@ -36,7 +36,7 @@ We therefore require:
 
 `[a ∈ dom(Σ.C) ⟹ a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a)]`
 
-Once content is stored at address `a`, both the address and its value are fixed for all future states. This is the central invariant of the two-space architecture.
+Once content is stored at address `a`, both the address and its value are fixed for all future states. This is the central invariant of the two-stream architecture.
 
 S0 is a strong property. It asserts two things simultaneously: that `a` remains in the domain (the address persists), and that the value at `a` is unchanged (the content is immutable). In weakest-precondition terms, for any operation producing successor state `Σ'`:
 
@@ -50,14 +50,14 @@ S1 is a corollary of S0, stated separately for emphasis. It is the content-store
 
 S0 and S1 together establish `C` as an *append-only log*. New entries may be added — each at a fresh address guaranteed unique by GlobalUniqueness (ASN-0034) — but no existing entry may be modified or removed.
 
-Nelson states this as an explicit design commitment: "The true storage of text should be in a system that stores each change and fragment individually, assimilating each change as it arrives, but keeping the former changes." Gregory's implementation confirms the commitment. Of the seventeen FEBE commands Nelson specifies, none modifies existing I-space content. There is no MODIFY, UPDATE, or REPLACE operation. The absence is structural — the protocol provides no mechanism for mutating stored content.
+Nelson states this as an explicit design commitment: "The true storage of text should be in a system that stores each change and fragment individually, assimilating each change as it arrives, but keeping the former changes." Gregory's implementation confirms the commitment. Of the seventeen FEBE commands Nelson specifies, none modifies existing Istream content. There is no MODIFY, UPDATE, or REPLACE operation. The absence is structural — the protocol provides no mechanism for mutating stored content.
 
 Gregory's evidence reveals an instructive footnote. The implementation carries a `refcount` field annotated "for subtree sharing, disk garbage collecting." Functions for reference-counted deletion exist: `deletefullcrumandgarbageddescendents()` and `deletewithgarbageddescendents()`. But the actual reclamation call was commented out on a specific date: `/*subtreefree(ptr);*/ /*12/04/86*/`. The machinery was built, dated December 4, 1986, and deliberately deactivated. S0 and S1 are upheld not by architectural impossibility but by a design choice so consistent that four decades of continuous operation have never violated it.
 
 
 ## The arrangement and referential integrity
 
-V-space is where mutability lives. Each document's arrangement `M(d)` maps V-positions to I-addresses, presenting stored content as a readable sequence. Unlike `C`, arrangements change freely — content can be added, removed, and reordered.
+Vstream is where mutability lives. Each document's arrangement `M(d)` maps V-positions to I-addresses, presenting stored content as a readable sequence. Unlike `C`, arrangements change freely — content can be added, removed, and reordered.
 
 **S2 (Arrangement functionality).** For each document `d`, `Σ.M(d)` is a function — each V-position maps to exactly one I-address:
 
@@ -65,7 +65,7 @@ V-space is where mutability lives. Each document's arrangement `M(d)` maps V-pos
 
 This is inherent in the concept of a "virtual byte stream." Nelson: "Logical addressing of the byte stream is in the form of virtual spans, or vspans. These are sequences of bytes in the document's virtual byte stream, regardless of their native origin." Each position in the stream shows exactly one piece of content. A V-position cannot simultaneously contain two different things.
 
-We note the phrase "regardless of their native origin." A document's V-space presents content as a seamless sequence even when the I-addresses are scattered across multiple documents' I-spaces. The arrangement function is what makes heterogeneous I-space origins appear as a uniform V-space stream.
+We note the phrase "regardless of their native origin." A document's Vstream presents content as a seamless sequence even when the I-addresses are scattered across multiple documents' Istreams. The arrangement function is what makes heterogeneous Istream origins appear as a uniform Vstream stream.
 
 The bridge between the two state components is a well-formedness condition:
 
@@ -79,7 +79,7 @@ The maintenance of S3 across state transitions reveals a temporal ordering const
 
 For an operation that only adds a V-mapping without creating content, the target I-address must already be in `dom(C)`. An operation that atomically creates content at `a` and adds the mapping `M(d)(v) = a` satisfies S3 in the post-state without sequential precedence — `a ∈ dom(Σ'.C)` and `Σ'.M(d)(v) = a` are established simultaneously. The dependency is logical, not temporal: a reference presupposes the existence of its target, but existence need not precede reference in a prior transition. What matters for persistence is that S1 guarantees once `a` enters `dom(C)`, it remains — so a valid reference cannot become dangling through any subsequent state transition.
 
-We observe a deliberate asymmetry. S3 says arrangement implies existence: `ran(M(d)) ⊆ dom(C)`. It does NOT say existence implies arrangement. Content can exist in I-space without being arranged in any current document. Nelson calls such content "deleted bytes — not currently addressable, awaiting historical backtrack functions, may remain included in other versions." The asymmetry is the space in which persistence independence lives.
+We observe a deliberate asymmetry. S3 says arrangement implies existence: `ran(M(d)) ⊆ dom(C)`. It does NOT say existence implies arrangement. Content can exist in Istream without being arranged in any current document. Nelson calls such content "deleted bytes — not currently addressable, awaiting historical backtrack functions, may remain included in other versions." The asymmetry is the space in which persistence independence lives.
 
 
 ## Content identity
@@ -92,7 +92,7 @@ What distinguishes transclusion from coincidence? In conventional systems, ident
 
 regardless of whether `Σ.C(a₁) = Σ.C(a₂)`. Two independent writings of the word "hello" produce distinct I-addresses. A transclusion of existing content shares the original I-address.
 
-S4 follows from GlobalUniqueness (ASN-0034), which guarantees that no two distinct allocations — whether from the same allocator or different allocators, whether simultaneous or separated by years — produce the same address. The two-space architecture exploits this guarantee: when `Σ.M(d₁)(v₁) = Σ.M(d₂)(v₂)` for documents `d₁ ≠ d₂`, the system knows this is transclusion — shared content with a common origin — not coincidental value equality. The structural test for shared identity is address equality, decidable from the addresses alone (T2, ASN-0034) without value comparison.
+S4 follows from GlobalUniqueness (ASN-0034), which guarantees that no two distinct allocations — whether from the same allocator or different allocators, whether simultaneous or separated by years — produce the same address. The two-stream architecture exploits this guarantee: when `Σ.M(d₁)(v₁) = Σ.M(d₂)(v₂)` for documents `d₁ ≠ d₂`, the system knows this is transclusion — shared content with a common origin — not coincidental value equality. The structural test for shared identity is address equality, decidable from the addresses alone (T2, ASN-0034) without value comparison.
 
 S4 creates a fundamental asymmetry in the system. The content store `C` is oblivious to values — it does not care whether `C(a₁) = C(a₂)`. But the arrangement family `M` is sensitive to addresses — two arrangements that map to the same I-address share content structurally, while two arrangements that map to different I-addresses with equal values do not. Nelson captures the distinction:
 
@@ -124,7 +124,7 @@ We observe that the state `Σ = (C, M)` makes the sharing relation computable: g
 
 ## Persistence independence
 
-Content persists in I-space regardless of whether any arrangement references it.
+Content persists in Istream regardless of whether any arrangement references it.
 
 **S6 (Persistence independence).** The membership of `a` in `dom(Σ.C)` is independent of all arrangements:
 
@@ -134,24 +134,24 @@ regardless of any changes to any `Σ.M(d)`.
 
 S6 is a consequence of S0, which guarantees domain persistence unconditionally — it does not condition on whether any arrangement references `a`. But we state S6 separately because it names a design commitment that S0's formulation does not emphasise: the decision NOT to garbage-collect unreferenced content.
 
-A system could satisfy a weakened form of S0 that permits removal when `(A d :: a ∉ ran(M(d)))` — when no arrangement references the content. Nelson explicitly rejects this. "Deleted bytes" are described as "not currently addressable, awaiting historical backtrack functions." The content remains because history requires it. Version reconstruction depends on the availability of I-space fragments from prior arrangements. If content were reclaimed when its last current reference vanished, the system could not fulfill: "When you ask for a given part of a given version at a given time, it comes to your screen."
+A system could satisfy a weakened form of S0 that permits removal when `(A d :: a ∉ ran(M(d)))` — when no arrangement references the content. Nelson explicitly rejects this. "Deleted bytes" are described as "not currently addressable, awaiting historical backtrack functions." The content remains because history requires it. Version reconstruction depends on the availability of Istream fragments from prior arrangements. If content were reclaimed when its last current reference vanished, the system could not fulfill: "When you ask for a given part of a given version at a given time, it comes to your screen."
 
-S6 creates what Gregory calls an "orphan" phenomenon. Content in `dom(C)` that is not in `ran(M(d))` for any current document `d` is *unreachable through any query that starts from V-space*. Gregory's evidence is definitive: "There is no mechanism to discover them, and the architecture makes no provision for it." The system provides no I-space iterator, no allocation registry queryable for "all content ever stored." To retrieve orphaned content, you must already know its I-address.
+S6 creates what Gregory calls an "orphan" phenomenon. Content in `dom(C)` that is not in `ran(M(d))` for any current document `d` is *unreachable through any query that starts from Vstream*. Gregory's evidence is definitive: "There is no mechanism to discover them, and the architecture makes no provision for it." The system provides no Istream iterator, no allocation registry queryable for "all content ever stored." To retrieve orphaned content, you must already know its I-address.
 
-This is not a deficiency but a structural consequence of the two-space model. The system's query interface is V-space-primary: you start from a document (a V-space entity), look up content (through the arrangement), and follow references (through I-space addresses). There is no path that begins in I-space and discovers content without a V-space entry point. Orphaned content is permanent but practically invisible — a kind of information-theoretic dark matter, present by guarantee but unobservable through the system's own instruments.
+This is not a deficiency but a structural consequence of the two-stream model. The system's query interface is Vstream-primary: you start from a document (a Vstream entity), look up content (through the arrangement), and follow references (through Istream addresses). There is no path that begins in Istream and discovers content without a Vstream entry point. Orphaned content is permanent but practically invisible — a kind of information-theoretic dark matter, present by guarantee but unobservable through the system's own instruments.
 
 
 ## Structural attribution
 
 Every V-position can be traced to the document that originally created its content.
 
-S7 requires an architectural premise that T4 alone does not supply. T4 tells us HOW to parse a tumbler into fields; it does not tell us that I-space addresses are allocated under the originating document's tumbler prefix. We state this premise explicitly:
+S7 requires an architectural premise that T4 alone does not supply. T4 tells us HOW to parse a tumbler into fields; it does not tell us that Istream addresses are allocated under the originating document's tumbler prefix. We state this premise explicitly:
 
-**S7a (Document-scoped allocation).** Every I-space address is allocated under the tumbler prefix of the document that created it. That is, for every `a ∈ dom(Σ.C)`, the document-level prefix of `a` — the tumbler `N.0.U.0.D` obtained by truncating the element field — identifies the document whose owner performed the allocation that placed `a` into `dom(C)`.
+**S7a (Document-scoped allocation).** Every Istream address is allocated under the tumbler prefix of the document that created it. That is, for every `a ∈ dom(Σ.C)`, the document-level prefix of `a` — the tumbler `N.0.U.0.D` obtained by truncating the element field — identifies the document whose owner performed the allocation that placed `a` into `dom(C)`.
 
 This is a design requirement, not a convention. Nelson's baptism principle establishes it: "The owner of a given item controls the allocation of the numbers under it." A document owner baptises element addresses under that document's prefix — there is no mechanism for allocating I-addresses outside the creating document's subtree. The address IS the provenance: "You always know where you are, and can at once ascertain the home document of any specific word or character." Nelson says the home document can be ascertained directly from the address — not from a separate lookup table. The native/non-native distinction ("Native bytes of a document are those actually stored under its control") is computable only because I-addresses are scoped under their originating documents.
 
-We must also restrict S7's domain. The function `fields(a).document` is well-defined only when `zeros(a) ≥ 2` (per T4's field correspondence: `zeros = 0` is node-only, `zeros = 1` is node+user, `zeros ≥ 2` has a document field). Since I-space addresses designate content elements within documents, we require:
+We must also restrict S7's domain. The function `fields(a).document` is well-defined only when `zeros(a) ≥ 2` (per T4's field correspondence: `zeros = 0` is node-only, `zeros = 1` is node+user, `zeros ≥ 2` has a document field). Since Istream addresses designate content elements within documents, we require:
 
 **S7b (Element-level I-addresses).** We require that every address in `dom(Σ.C)` is an element-level tumbler: `(A a ∈ dom(Σ.C) :: zeros(a) = 3)`.
 
@@ -167,7 +167,7 @@ This is the full document tumbler `N.0.U.0.D` — uniquely identifying the alloc
 
 S7 follows from S7a (document-scoped allocation ensures the document-level prefix identifies the allocating document), S7b (element-level restriction ensures all three identifying fields are present), and T4 (field parsing, ASN-0034). Since I-addresses are permanent (S0) and unique (S4), this attribution is permanent and unseverable.
 
-We note a subtlety. S7 identifies the document that ALLOCATED the I-address — the document where the content was first created. This is distinct from the document where the content currently appears. When content is transcluded from document B into document A, the reader viewing A sees the content, but S7 traces it to B. The distinction between "where I am reading" (V-space context, document A) and "where this came from" (I-space structure, document B) is precisely the two-space separation made visible.
+We note a subtlety. S7 identifies the document that ALLOCATED the I-address — the document where the content was first created. This is distinct from the document where the content currently appears. When content is transcluded from document B into document A, the reader viewing A sees the content, but S7 traces it to B. The distinction between "where I am reading" (Vstream context, document A) and "where this came from" (Istream structure, document B) is precisely the two-stream separation made visible.
 
 Gregory's implementation reveals two mechanisms for origin lookup. The I-address prefix itself encodes the originating document (used during address allocation to scope the search range). Separately, each arrangement entry carries an explicit `homedoc` field recording the allocating document (used during retrieval). At the abstract level, S7 says only that the information is present in the address — it does not prescribe how an implementation extracts it.
 
@@ -204,7 +204,7 @@ A *correspondence run* is a triple `(v, a, n)` — a V-position, an I-address, a
 
 `(A k : 0 ≤ k < n : Σ.M(d)(v + k) = a + k)`
 
-At `k = 0` this is the base case `M(d)(v) = a` — no displacement, no arithmetic. Each subsequent `k` increments both the V-ordinal and the I-ordinal by the same amount. Within a correspondence run, each step forward in V-space corresponds to the same step forward in I-space.
+At `k = 0` this is the base case `M(d)(v) = a` — no displacement, no arithmetic. Each subsequent `k` increments both the V-ordinal and the I-ordinal by the same amount. Within a correspondence run, each step forward in Vstream corresponds to the same step forward in Istream.
 
 **S8 (Finite span decomposition).** For each document `d`, the text-subspace portion of the arrangement — `{(v, Σ.M(d)(v)) : v ∈ dom(Σ.M(d)) ∧ v₁ ≥ 1}` — can be decomposed into a finite set of correspondence runs `{(vⱼ, aⱼ, nⱼ)}` such that:
 
@@ -220,16 +220,16 @@ It remains to show uniqueness: each text-subspace `v ∈ dom(M(d))` (with `v₁ 
 
 What matters architecturally is that the number of runs `#runs(d)` is typically far smaller than `|dom(M(d))|` — the representation cost is proportional to the number of editing events, not the document size.
 
-S8 follows from the finiteness of the text-subspace portion of `dom(M(d))` (S8-fin) and the structure of tumbler arithmetic — S8-depth and TA7a ensure ordinal displacement preserves depth within each subspace, T5 and PrefixOrderingExtension guarantee cross-subspace disjointness, and TA5(c) ensures ordinal successors preserve tumbler length. The singleton decomposition always exists; non-trivial runs arise when consecutive allocations produce consecutive I-addresses (as T10a and TA5(c) ensure operationally). Editing can both split and remove runs — inserting content in the middle of a run splits it into two, while deleting an entire run's V-span removes it. The number of distinct I-space allocation events underlying a document's history is monotonically non-decreasing (by S1), but the current arrangement's run count fluctuates with editing.
+S8 follows from the finiteness of the text-subspace portion of `dom(M(d))` (S8-fin) and the structure of tumbler arithmetic — S8-depth and TA7a ensure ordinal displacement preserves depth within each subspace, T5 and PrefixOrderingExtension guarantee cross-subspace disjointness, and TA5(c) ensures ordinal successors preserve tumbler length. The singleton decomposition always exists; non-trivial runs arise when consecutive allocations produce consecutive I-addresses (as T10a and TA5(c) ensure operationally). Editing can both split and remove runs — inserting content in the middle of a run splits it into two, while deleting an entire run's V-span removes it. The number of distinct Istream allocation events underlying a document's history is monotonically non-decreasing (by S1), but the current arrangement's run count fluctuates with editing.
 
-Gregory's evidence shows that `#runs(d)` has consequences beyond representation cost. Each correspondence run requires an independent tree traversal during V↔I translation. Gregory identifies the inner loop of this traversal as the documented CPU hotspot, responsible for 40% of processing time. For a document with `N` runs, a full V→I conversion requires `N` independent traversals — the cost is multiplicative in the fragmentation level, not merely additive. A consolidation function to merge adjacent runs was started in the implementation and abandoned mid-expression — the function body stops with an incomplete conditional: `if(`. Any implementation of the two-space architecture must either consolidate runs or accept performance proportional to fragmentation level.
+Gregory's evidence shows that `#runs(d)` has consequences beyond representation cost. Each correspondence run requires an independent tree traversal during V↔I translation. Gregory identifies the inner loop of this traversal as the documented CPU hotspot, responsible for 40% of processing time. For a document with `N` runs, a full V→I conversion requires `N` independent traversals — the cost is multiplicative in the fragmentation level, not merely additive. A consolidation function to merge adjacent runs was started in the implementation and abandoned mid-expression — the function body stops with an incomplete conditional: `if(`. Any implementation of the two-stream architecture must either consolidate runs or accept performance proportional to fragmentation level.
 
 
 ## The separation theorem
 
 We can now state the property that Nelson calls "the architectural foundation of everything" as a theorem rather than an axiom.
 
-**S9 (Two-space separation).** No modification to any arrangement `Σ.M(d)` can alter the content store `Σ.C`:
+**S9 (Two-stream separation).** No modification to any arrangement `Σ.M(d)` can alter the content store `Σ.C`:
 
 `[Σ'.M(d) ≠ Σ.M(d) ⟹ (A a ∈ dom(Σ.C) :: a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a))]`
 
@@ -241,11 +241,11 @@ S9 is the formal statement of Nelson's claim: "The integrity of each document is
 C ← M(d₁), M(d₂), M(d₃), ...
 ```
 
-Changes to any `M(d)` cannot break `C`. But changes to `C` could break `M` — which is precisely why `C` is immutable. S0 (content immutability) is the mechanism; S9 (two-space separation) is the consequence.
+Changes to any `M(d)` cannot break `C`. But changes to `C` could break `M` — which is precisely why `C` is immutable. S0 (content immutability) is the mechanism; S9 (two-stream separation) is the consequence.
 
-The asymmetry is deliberate and load-bearing. Nelson enumerates the guarantees that depend on it: link survivability (links point to I-addresses, which S0 preserves), version reconstruction (historical states are assembled from I-space fragments, which S0 preserves), transclusion integrity (transcluded content maintains its value because S0 prevents mutation), and origin traceability (I-addresses encode provenance permanently because S0 prevents reassignment).
+The asymmetry is deliberate and load-bearing. Nelson enumerates the guarantees that depend on it: link survivability (links point to I-addresses, which S0 preserves), version reconstruction (historical states are assembled from Istream fragments, which S0 preserves), transclusion integrity (transcluded content maintains its value because S0 prevents mutation), and origin traceability (I-addresses encode provenance permanently because S0 prevents reassignment).
 
-Gregory's implementation confirms the separation operationally. Every editing command in the FEBE protocol works exclusively on arrangement state. Of the editing commands Nelson specifies, none modifies existing I-space content. Commands that create content (INSERT, APPEND) extend `dom(C)` with fresh addresses and simultaneously update some `M(d)`. Commands that modify arrangement (DELETE, REARRANGE, COPY) touch only `M(d)`, leaving `C` untouched. No command crosses the boundary in the dangerous direction — no arrangement operation can corrupt stored content.
+Gregory's implementation confirms the separation operationally. Every editing command in the FEBE protocol works exclusively on arrangement state. Of the editing commands Nelson specifies, none modifies existing Istream content. Commands that create content (INSERT, APPEND) extend `dom(C)` with fresh addresses and simultaneously update some `M(d)`. Commands that modify arrangement (DELETE, REARRANGE, COPY) touch only `M(d)`, leaving `C` untouched. No command crosses the boundary in the dangerous direction — no arrangement operation can corrupt stored content.
 
 
 ## Worked example
@@ -309,11 +309,11 @@ The arrangement `M(d₂)`:
 
 ## The document as arrangement
 
-One consequence of the two-space model deserves explicit statement. A document is not its content — it is its arrangement of content.
+One consequence of the two-stream model deserves explicit statement. A document is not its content — it is its arrangement of content.
 
-Two documents `d₁ ≠ d₂` may render identically — displaying the same text in the same order — because their arrangements happen to map to the same I-addresses in the same sequence: `(A v ∈ dom(M(d₁)) :: M(d₁)(v) = M(d₂)(v))`. Yet they remain distinct documents with independent arrangements, independent ownership, and independent edit histories. Conversely, a single document's arrangement changes across versions while the underlying I-space content is unchanged — different mappings over the same stored material.
+Two documents `d₁ ≠ d₂` may render identically — displaying the same text in the same order — because their arrangements happen to map to the same I-addresses in the same sequence: `(A v ∈ dom(M(d₁)) :: M(d₁)(v) = M(d₂)(v))`. Yet they remain distinct documents with independent arrangements, independent ownership, and independent edit histories. Conversely, a single document's arrangement changes across versions while the underlying Istream content is unchanged — different mappings over the same stored material.
 
-Nelson: "There is thus no 'basic' version of a document set apart from other versions — 'alternative' versions — any more than one arrangement of the same materials is a priori better than other arrangements." The document is, in his metaphor, "an evolving ongoing braid." The braid is the arrangement; the strands are the I-space content. The braid is re-twisted when parts are rearranged, added, or subtracted — but the strands remain intact.
+Nelson: "There is thus no 'basic' version of a document set apart from other versions — 'alternative' versions — any more than one arrangement of the same materials is a priori better than other arrangements." The document is, in his metaphor, "an evolving ongoing braid." The braid is the arrangement; the strands are the Istream content. The braid is re-twisted when parts are rearranged, added, or subtracted — but the strands remain intact.
 
 This has a formal consequence: document equality is not decidable by content comparison. You cannot determine whether two documents are "the same" by comparing their rendered output — the same output can arise from different arrangements of different I-addresses that happen to carry identical values. Identity requires comparing document identifiers (tumblers, per T3) or arrangement functions, not rendered content.
 
@@ -338,7 +338,7 @@ This has a formal consequence: document equality is not decidable by content com
 | S8a | V-position well-formedness: `(A v ∈ dom(M(d)) : v₁ ≥ 1 : zeros(v) = 0 ∧ v > 0)`; link subspace deferred | introduced |
 | S8-depth | Fixed-depth V-positions: `(A d, v₁, v₂ : v₁ ∈ dom(M(d)) ∧ v₂ ∈ dom(M(d)) ∧ (v₁)₁ = (v₂)₁ : #v₁ = #v₂)` | design requirement |
 | S8 | Span decomposition (text subspace): `{(v, M(d)(v)) : v₁ ≥ 1}` decomposes into finitely many correspondence runs `(vⱼ, aⱼ, nⱼ)` with `M(d)(vⱼ + k) = aⱼ + k` for `0 ≤ k < nⱼ` | theorem from S8-fin, S8a, S2, S8-depth, T5, PrefixOrderingExtension, TA5(c), TA7a (ASN-0034) |
-| S9 | Two-space separation: arrangement changes cannot alter stored content | theorem from S0 |
+| S9 | Two-stream separation: arrangement changes cannot alter stored content | theorem from S0 |
 
 
 ## Open Questions

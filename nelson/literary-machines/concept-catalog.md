@@ -16,7 +16,7 @@ Use `/xanadu-extract <concept> <pages>` to create concept files.
 | Links | concepts/links.md | 4/41-4/60 |
 | Transclusion | concepts/transclusion.md | 2/32-2/40 |
 | Tumblers | concepts/tumblers.md | 4/15-4/19 |
-| I-Space/V-Space | concepts/i-space-v-space.md | (derived) |
+| Istream/Vstream | concepts/i-space-v-space.md | (derived) |
 | Spans | concepts/spans.md | 4/37-4/42 |
 | Endsets | concepts/endsets.md | 4/43-4/47 |
 | Enfilades | concepts/enfilades.md | 4/62 |

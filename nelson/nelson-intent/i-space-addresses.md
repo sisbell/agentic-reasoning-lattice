@@ -1,12 +1,12 @@
-# I-Space Addresses (Identity Space)
+# Istream Addresses (Identity Space)
 
 Source: Literary Machines, 4/10-4/11, 4/26-4/30
 
 ## What It Means
 
-I-Space is the permanent address space where content resides. Every byte ever stored in Xanadu has a permanent I-Space address that never changes.
+Istream is the permanent address space where content resides. Every byte ever stored in Xanadu has a permanent Istream address that never changes.
 
-An I-Space address is a tumbler with four major fields separated by zeros:
+An Istream address is a tumbler with four major fields separated by zeros:
 
 ```
 Node.0.User.0.Document.0.Element
@@ -22,7 +22,7 @@ Node.0.User.0.Document.0.Element
 - Bytes: sequential positions in the content stream
 - Links: "The digit after the '3' is a link-address designating the link's serial position" — links are currently not rearrangeable
 
-## How I-Space Differs from V-Space
+## How Istream Differs from Vstream
 
 I-addresses are permanent; V-addresses are ephemeral:
 - I-address: "where this byte lives forever"
@@ -40,7 +40,7 @@ I-addresses are permanent; V-addresses are ephemeral:
 
 ## Principle Served
 
-I-Space addresses enable permanent citation. Because I-addresses are permanent, citations never break, links survive edits, transclusions always resolve, and history is preserved.
+Istream addresses enable permanent citation. Because I-addresses are permanent, citations never break, links survive edits, transclusions always resolve, and history is preserved.
 
 ## Nelson's Words
 

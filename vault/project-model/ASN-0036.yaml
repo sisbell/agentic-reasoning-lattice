@@ -1,10 +1,10 @@
-# ASN-0036 — Two Space
-title: "Two Space"
+# ASN-0036 — Istream and Vstream
+title: "Istream and Vstream"
 depends: [34]
 out_of_scope: "Node ontology and node tree structure, account creation and delegation, document creation and lifecycle (ownership, withdrawal, versioning), operation-specific effects (INSERT, DELETE, COPY, REARRANGE frame conditions and postconditions), links and endsets, version semantics, enfilade implementation internals (granfilade, spanfilade, POOM structure, 2D displacement arithmetic), replication and inter-server protocol (BEBE)"
 
 inquiry:
-  question: "What is the relationship between permanent content storage (I-space) and mutable document arrangement (V-space)? What invariants connect them?"
+  question: "What is the relationship between permanent content storage (Istream) and mutable document arrangement (Vstream)? What invariants connect them?"
 
 modeling:
   proof_imports: [TumblerAlgebra, TumblerOrder, TumblerHierarchy, TumblerAddition, TumblerAllocation]

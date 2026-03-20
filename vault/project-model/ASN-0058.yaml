@@ -1,9 +1,10 @@
-# ASN-0058 — Content Mapping
-title: "Content Mapping"
+# ASN-0058 — Permutation Model
+title: "Permutation Model"
 depends: [34, 36, 53]
+out_of_scope: "Arrangement canonical decomposition and contiguity invariants, operation effects on arrangements (INSERT/DELETE/COPY/REARRANGE), document creation and lifecycle, publication and access control, enfilade implementation internals, version semantics and comparison, replication and inter-server protocol (BEBE)"
 
 inquiry:
-  question: "What are the algebraic properties of a contiguous V→I mapping unit? How do paired spans split, merge, and preserve width coupling?"
+  question: "How do spans map between Istream and Vstream? What properties must hold when a Vstream span is paired with an Istream span? How does the permutation of order decompose into contiguous blocks?"
 
 modeling:
-  proof_imports: [TumblerAlgebra, TumblerOrder, SpanOperations]
+  proof_imports: [TumblerAlgebra, TumblerOrder, TwoSpace, SpanOperations]

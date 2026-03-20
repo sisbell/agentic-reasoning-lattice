@@ -6,7 +6,7 @@ Source: Literary Machines, 2/40, 4/11, 4/26-4/30
 
 Origin traceability is the guarantee that you can always determine where any piece of content came from. This is not metadata that can be stripped - it is structural, encoded in the address itself.
 
-Every byte in Xanadu has a permanent I-Space address - a tumbler with the form:
+Every byte in Xanadu has a permanent Istream address - a tumbler with the form:
 
 ```
 Node.0.User.0.Document.0.Element

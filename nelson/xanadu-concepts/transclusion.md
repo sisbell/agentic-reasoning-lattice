@@ -65,7 +65,7 @@ On the window metaphor:
 
 | Concept | Relationship |
 |---------|--------------|
-| [i-space-v-space](i-space-v-space.md) | Transclusion creates V-space mapping to existing I-space content |
+| [i-space-v-space](i-space-v-space.md) | Transclusion creates Vstream mapping to existing Istream content |
 | [windowing](windowing.md) | The visual metaphor for transclusion |
 | [correspondence](correspondence.md) | Transcluded content corresponds to original |
 | [documents](documents.md) | Original owner retains ownership; compound docs have their own owner |

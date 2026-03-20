@@ -99,7 +99,7 @@ Attribution is structural, not metadata:
 
 > "This world nevertheless remains simple in design. The virtuality is simple in structure and repeats in layers. You always know where you are, and can at once ascertain the home document of any specific word or character." (2/40)
 
-Every byte traces back to its I-space origin. The connection cannot be severed within the system.
+Every byte traces back to its Istream origin. The connection cannot be severed within the system.
 
 ---
 

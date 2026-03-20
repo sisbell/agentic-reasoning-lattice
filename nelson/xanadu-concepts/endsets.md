@@ -94,7 +94,7 @@ This visualization emphasizes that links are concrete objects with their own add
 | [spans](spans.md) | Each endset is an arbitrary span-set |
 | [tumblers](tumblers.md) | Endsets map to positions on the tumbler line |
 | [ghost-elements](ghost-elements.md) | Type endsets can point to addresses with no content |
-| [i-space-v-space](i-space-v-space.md) | Endsets point to I-space (enables survivability) |
+| [i-space-v-space](i-space-v-space.md) | Endsets point to Istream (enables survivability) |
 
 ## FEBE Operations
 

@@ -103,7 +103,7 @@ On publishing modified versions:
 
 | Concept | Relationship |
 |---------|--------------|
-| [i-space-v-space](i-space-v-space.md) | Each version is a V-space arrangement over shared I-space |
+| [i-space-v-space](i-space-v-space.md) | Each version is a Vstream arrangement over shared Istream |
 | [documents](documents.md) | Versions are the "ongoing braid" of document evolution |
 | [correspondence](correspondence.md) | Matching parts across versions enables comparison |
 | [transclusion](transclusion.md) | New versions effectively transclude content from source |
@@ -114,7 +114,7 @@ On publishing modified versions:
 
 | Operation | How versions apply |
 |-----------|-------------------|
-| **CREATENEWVERSION** | Creates new version (new V-space, same I-space) |
+| **CREATENEWVERSION** | Creates new version (new Vstream, same Istream) |
 | **SHOWRELATIONOF2VERSIONS** | Compares versions, returns corresponding spans |
 | **INSERT, DELETE, REARRANGE** | Modify current version; old versions unaffected |
 | **RETRIEVEV** | Can retrieve from specific version |

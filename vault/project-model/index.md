@@ -5,7 +5,7 @@ Generated from vault/project-model/ASN-*.yaml
 | ASN | Title | Status | Depends |
 |-----|-------|--------|---------|
 | ASN-0034 | Tumbler Algebra | proof | — |
-| ASN-0036 | Two Space | proof | 34 |
+| ASN-0036 | Istream and Vstream | proof | 34 |
 | ASN-0040 | Tumbler Baptism | proof | 34 |
 | ASN-0042 | Tumbler Ownership | proof | 34 |
 | ASN-0043 | Link Ontology | converged | 34, 36 |
@@ -20,4 +20,4 @@ Generated from vault/project-model/ASN-*.yaml
 | ASN-0054 | Arrangements | inquiry | 34, 36, 45, 47, 53 |
 | ~~ASN-0055~~ | ~~Tumbler Algebra 0~~ | absorbed into 34 | — |
 | ~~ASN-0056~~ | ~~Span Algebra 0~~ | absorbed into 53 | — |
-| ASN-0058 | Content Mapping | inquiry | 34, 36, 53 |
+| ASN-0058 | Permutation Model | inquiry | 34, 36, 53 |

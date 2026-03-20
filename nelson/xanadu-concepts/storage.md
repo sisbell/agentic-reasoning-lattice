@@ -64,5 +64,5 @@ On what this system is:
 ### Related Concepts
 
 - **Versions** - The user-facing manifestation of this storage approach
-- **I-Space/V-Space** - The address space separation that enables this model
+- **Istream/Vstream** - The address space separation that enables this model
 - **Docuverse** - The global space where all this content lives

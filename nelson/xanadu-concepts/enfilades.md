@@ -49,27 +49,27 @@ Nelson mentions multiple enfilade types (1/36). The implementation defines three
 
 | Type | Nelson's term | Purpose | Address space |
 |------|---------------|---------|---------------|
-| **GRAN** (Granfilade) | "Model T" enfilade | Stores actual content | I-space (native bytes) |
-| **POOM** (Positional) | "eye in the pyramid" | Maps V→I addresses | V-space → I-space mapping |
+| **GRAN** (Granfilade) | "Model T" enfilade | Stores actual content | Istream (native bytes) |
+| **POOM** (Positional) | "eye in the pyramid" | Maps V→I addresses | Vstream → Istream mapping |
 | **SPAN** | - | Stores span ranges | Used by both |
 
 Additionally mentioned by Nelson:
 - **Linking enfilade** - Barus's design for links that track with changes
 - **Historical trace enfilade** - for version history
 
-### Relationship to I-Space/V-Space
+### Relationship to Istream/Vstream
 
-Enfilades implement the I-space/V-space separation:
+Enfilades implement the Istream/Vstream separation:
 
 ```
-User requests V-space position 5
+User requests Vstream position 5
         │
         ▼
    POOM enfilade
    (V→I mapping)
         │
         ▼
-   "Position 5 = I-space address X"
+   "Position 5 = Istream address X"
         │
         ▼
    GRAN enfilade
@@ -79,4 +79,4 @@ User requests V-space position 5
    Returns actual bytes from X
 ```
 
-The "eye in the pyramid" insight (Barus) was making the POOM enfilade efficiently update when content is edited - so V-space addresses don't break when the underlying I-space is reorganized.
+The "eye in the pyramid" insight (Barus) was making the POOM enfilade efficiently update when content is edited - so Vstream addresses don't break when the underlying Istream is reorganized.

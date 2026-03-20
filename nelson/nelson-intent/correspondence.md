@@ -4,7 +4,7 @@ Source: Literary Machines, 2/20-2/22, 2/26, 3/13, 4/53, 4/70
 
 ## What It Means
 
-**Correspondence is a RELATION** - the relationship between V-space positions that share the same I-space origin.
+**Correspondence is a RELATION** - the relationship between Vstream positions that share the same Istream origin.
 
 It is NOT:
 - An operation (though SHOWRELATIONOF2VERSIONS computes it)
@@ -35,12 +35,12 @@ Without correspondence, you can only place two versions side by side as disconne
 
 ## Two Forms of Correspondence
 
-**Implicit Correspondence:** Shared I-space origin (automatic, structural)
+**Implicit Correspondence:** Shared Istream origin (automatic, structural)
 - Automatic for any content that shares I-addresses
 - Basis for version comparison
 
 **Explicit Correspondence:** Counterpart link (user-asserted)
-- For content WITHOUT shared I-space origin
+- For content WITHOUT shared Istream origin
 - Translations, parallel passages in different authors, equivalent formulations
 - User creates a link to assert "these correspond"
 

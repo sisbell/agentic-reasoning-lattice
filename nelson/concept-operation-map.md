@@ -29,7 +29,7 @@ Maps concept files from `resources/xanadu-concepts/` to FEBE operations.
 
 | Concept | Relevance |
 |---------|-----------|
-| **i-space-v-space** | INSERT adds to I-space (permanent) and updates V-space (arrangement) |
+| **i-space-v-space** | INSERT adds to Istream (permanent) and updates Vstream (arrangement) |
 | **tumblers** | New content gets fresh tumbler addresses; existing addresses unchanged |
 | **spans** | Insertion point specified as address; content becomes a span |
 | **documents** | Only owner can INSERT; document evolves |
@@ -46,13 +46,13 @@ Maps concept files from `resources/xanadu-concepts/` to FEBE operations.
 
 | Concept | Relevance |
 |---------|-----------|
-| **i-space-v-space** | DELETE only affects V-space; I-space content survives |
+| **i-space-v-space** | DELETE only affects Vstream; Istream content survives |
 | **versions** | Deleted content still exists in old versions |
 | **spans** | Deletion target is a span |
-| **links** | Links to deleted content still point to I-space addresses |
+| **links** | Links to deleted content still point to Istream addresses |
 
 **Key insight from concepts:**
-> "Content you 'delete' still exists in I-space, recoverable from old version" (i-space-v-space)
+> "Content you 'delete' still exists in Istream, recoverable from old version" (i-space-v-space)
 > "Every version you ever created still exists" (versions)
 
 ---
@@ -63,7 +63,7 @@ Maps concept files from `resources/xanadu-concepts/` to FEBE operations.
 | Concept | Relevance |
 |---------|-----------|
 | **transclusion** | COPY IS transclusion - reference not copy |
-| **i-space-v-space** | Creates new V-space mapping to existing I-space content |
+| **i-space-v-space** | Creates new Vstream mapping to existing Istream content |
 | **spans** | Source specified as span-set |
 | **correspondence** | Transcluded content corresponds to original |
 
@@ -79,7 +79,7 @@ Maps concept files from `resources/xanadu-concepts/` to FEBE operations.
 
 | Concept | Relevance |
 |---------|-----------|
-| **i-space-v-space** | Pure V-space operation; I-space unchanged |
+| **i-space-v-space** | Pure Vstream operation; Istream unchanged |
 | **spans** | Regions specified by cut addresses |
 | **documents** | Document evolves through rearrangement |
 
@@ -93,7 +93,7 @@ Maps concept files from `resources/xanadu-concepts/` to FEBE operations.
 
 | Concept | Relevance |
 |---------|-----------|
-| **i-space-v-space** | Adds to I-space at new addresses |
+| **i-space-v-space** | Adds to Istream at new addresses |
 | **tumblers** | New addresses allocated |
 | **documents** | Simple document evolution |
 
@@ -179,7 +179,7 @@ Same concepts as FINDLINKSFROMTOTHREE plus pagination.
 | Concept | Relevance |
 |---------|-----------|
 | **versions** | Core version creation |
-| **i-space-v-space** | New V-space arrangement, same I-space content |
+| **i-space-v-space** | New Vstream arrangement, same Istream content |
 | **transclusion** | Version effectively transcludes all content from source |
 | **correspondence** | New version corresponds to source |
 | **tumblers** | New version ID indicates ancestry |
@@ -198,7 +198,7 @@ Same concepts as FINDLINKSFROMTOTHREE plus pagination.
 | **correspondence** | Core operation for finding what matches |
 | **versions** | Compares two version arrangements |
 | **spans** | Returns corresponding span pairs |
-| **i-space-v-space** | Correspondence comes from shared I-space origin |
+| **i-space-v-space** | Correspondence comes from shared Istream origin |
 
 **Key insight from concepts:**
 > "A facility that holds multiple versions is not terribly useful unless it can help you intercompare them in detail" (correspondence)
@@ -241,7 +241,7 @@ Same as RETRIEVEDOCVSPAN but returns span-set for text and links separately.
 | Concept | Relevance |
 |---------|-----------|
 | **transclusion** | Multiple docs can contain same content via transclusion |
-| **i-space-v-space** | Search by I-space content, find all V-space appearances |
+| **i-space-v-space** | Search by Istream content, find all Vstream appearances |
 | **correspondence** | Shared origin enables reverse lookup |
 
 **Key insight from concepts:**
@@ -253,12 +253,12 @@ Same as RETRIEVEDOCVSPAN but returns span-set for text and links separately.
 
 ### i-space-v-space
 The foundational concept. Affects nearly every operation.
-- **INSERT, APPEND** - Add to I-space, update V-space
-- **DELETE** - V-space only; I-space unchanged
-- **COPY** - New V-space mapping to existing I-space
-- **REARRANGE** - Pure V-space
-- **CREATENEWVERSION** - New V-space, same I-space
-- **FINDDOCSCONTAINING** - Search I-space, find V-space appearances
+- **INSERT, APPEND** - Add to Istream, update Vstream
+- **DELETE** - Vstream only; Istream unchanged
+- **COPY** - New Vstream mapping to existing Istream
+- **REARRANGE** - Pure Vstream
+- **CREATENEWVERSION** - New Vstream, same Istream
+- **FINDDOCSCONTAINING** - Search Istream, find Vstream appearances
 
 ### tumblers
 Addressing underlies everything.
@@ -317,21 +317,21 @@ Matching across versions.
 
 When INSERT executes, these concept guarantees apply:
 
-1. **i-space-v-space**: New content stored in I-space; V-space arrangement updated
+1. **i-space-v-space**: New content stored in Istream; Vstream arrangement updated
 2. **tumblers**: Fresh addresses allocated; no existing addresses change
 3. **spans**: Inserted content becomes addressable as a span
 4. **documents**: Must be owner; document history grows
 5. **versions**: Current version changes; old versions unaffected
-6. **links**: Any links to surrounding content still valid (point to I-space)
+6. **links**: Any links to surrounding content still valid (point to Istream)
 
 ---
 
 ## Open Questions
 
-1. **How do links "survive editing"?** If V-space addresses shift after INSERT, how do link endpoints stay valid? Do links point to I-space or V-space?
+1. **How do links "survive editing"?** If Vstream addresses shift after INSERT, how do link endpoints stay valid? Do links point to Istream or Vstream?
 
 2. **What exactly is in a vspec vs a span?** The FEBE protocol uses both - what's the difference semantically?
 
-3. **How does correspondence get established?** Is it automatic (shared I-space origin) or explicit (counterpart links)?
+3. **How does correspondence get established?** Is it automatic (shared Istream origin) or explicit (counterpart links)?
 
 4. **What happens to links when content is deleted?** The concepts say links survive "if anything is left at each end" - what defines "left"?

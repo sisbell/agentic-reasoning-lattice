@@ -11,18 +11,18 @@ Links survive editing operations because they attach to **spans of bytes**, not 
 **Span-based:** Links attach to sets of bytes identified by their permanent content addresses.
 
 When you insert content:
-1. The V-space arrangement changes (visual positions shift)
-2. But I-space addresses remain stable (content identity unchanged)
-3. Links point to I-space addresses
+1. The Vstream arrangement changes (visual positions shift)
+2. But Istream addresses remain stable (content identity unchanged)
+3. Links point to Istream addresses
 4. Therefore links are unaffected by insertion
 
-The link doesn't care where the bytes appear in V-space. It only cares that the bytes it references still exist somewhere in I-space.
+The link doesn't care where the bytes appear in Vstream. It only cares that the bytes it references still exist somewhere in Istream.
 
 ## User Guarantee
 
 **Links can survive:**
 - Deletions (if any referenced bytes remain)
-- Insertions (V-space positions shift but I-space addresses don't)
+- Insertions (Vstream positions shift but Istream addresses don't)
 - Rearrangements (order changes don't affect content identity)
 - Alternative versions (where part of each end has survived)
 

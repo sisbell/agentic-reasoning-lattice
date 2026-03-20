@@ -55,7 +55,7 @@ The protocol treats the docuverse as a unified information space. Users can crea
 - CREATENEWDOCUMENT - Create empty document, receive its ID
 - CREATENEWVERSION - Fork a document as new version (ancestry preserved)
 - INSERT - Add content at a position
-- DELETEVSPAN - Remove a span (content preserved in I-space)
+- DELETEVSPAN - Remove a span (content preserved in Istream)
 - COPY - Duplicate content between documents
 - APPEND - Add to end of document
 - RETRIEVEV - Get material at specified positions

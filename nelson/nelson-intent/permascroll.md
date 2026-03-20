@@ -11,14 +11,14 @@ Source: Literary Machines 2/13-2/16, 4/10-4/11
 
 ## What It Means
 
-The permascroll is global append-only storage where all content permanently resides. It is the physical manifestation of I-space.
+The permascroll is global append-only storage where all content permanently resides. It is the physical manifestation of Istream.
 
 - **Append-only**: Content is added, never overwritten or removed
 - **Chronological**: Content is "filed, as it were, chronologically" (2/14)
 - **Global**: Spans the entire docuverse
 - **Permanent**: Every byte ever created has an eternal address here
 
-The permascroll is NOT a document. Documents are views (V-space arrangements) that reference content stored here.
+The permascroll is NOT a document. Documents are views (Vstream arrangements) that reference content stored here.
 
 ## User Guarantee
 
@@ -31,14 +31,14 @@ The permascroll is NOT a document. Documents are views (V-space arrangements) th
 ## Principle Served
 
 Nelson rejects "destructive replacement" — the conventional model where saving overwrites the previous version. Instead:
-- The permascroll stores content permanently (I-space)
-- Documents arrange references to that content (V-space)
+- The permascroll stores content permanently (Istream)
+- Documents arrange references to that content (Vstream)
 - "Editing" changes the arrangement, not the content
 - "Deleting" removes content from the view, not from existence
 
 ## What "Deletion" Means
 
-DELETE does NOT remove content from the permascroll. The V-space mapping is removed (content disappears from current view), but I-space content remains. Previous versions still show the content, and links to that I-address still resolve.
+DELETE does NOT remove content from the permascroll. The Vstream mapping is removed (content disappears from current view), but Istream content remains. Previous versions still show the content, and links to that I-address still resolve.
 
 > "Safety and backtrack are not separate problems." (2/13)
 

@@ -41,7 +41,7 @@ A link pointing FROM your document TO another document is YOUR link. The author 
 
 **Ownership integrity:** Your annotations, comments, and connections are YOUR property. The link freedom principle ("each user is free to link to anything") includes the freedom to un-link.
 
-**Non-destruction:** Even deletion doesn't destroy - it makes "not currently addressable" pending historical backtrack. The link still exists in I-space.
+**Non-destruction:** Even deletion doesn't destroy - it makes "not currently addressable" pending historical backtrack. The link still exists in Istream.
 
 ## Nelson's Words
 

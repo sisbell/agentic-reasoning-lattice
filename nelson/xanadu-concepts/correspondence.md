@@ -57,7 +57,7 @@ On the SHOWRELATIONOF2VERSIONS protocol command:
 | Concept | Relationship |
 |---------|--------------|
 | [versions](versions.md) | Correspondence tracks matching parts across versions |
-| [i-space-v-space](i-space-v-space.md) | Shared I-space origin is the basis for correspondence |
+| [i-space-v-space](i-space-v-space.md) | Shared Istream origin is the basis for correspondence |
 | [transclusion](transclusion.md) | Transcluded content corresponds to original |
 | [counterpart-link](counterpart-link.md) | Explicit link to mark correspondence between passages |
 | [spans](spans.md) | Correspondence returns pairs of corresponding spans |

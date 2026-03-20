@@ -85,7 +85,7 @@ A link's home document indicates who owns it—not what it points to. Links conn
 
 | Concept | Relationship |
 |---------|--------------|
-| [i-space-v-space](i-space-v-space.md) | Documents own I-space content and have V-space arrangements |
+| [i-space-v-space](i-space-v-space.md) | Documents own Istream content and have Vstream arrangements |
 | [versions](versions.md) | Documents evolve through versions (the "ongoing braid") |
 | [tumblers](tumblers.md) | Documents have permanent tumbler addresses |
 | [links](links.md) | Documents contain out-links; in-links point to them from elsewhere |

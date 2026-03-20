@@ -1,14 +1,14 @@
-# DELETE Semantics: V-Space Removal, Not I-Space Destruction
+# DELETE Semantics: Vstream Removal, Not Istream Destruction
 
 Source: Literary Machines, 4/9 (page 176), 4/11 (page 178), 2/14-2/15 (pages 94-95), 2/45 (page 125)
 
 ## What "DELETE" Means in Xanadu
 
-DELETE in Xanadu does NOT mean what it means in conventional systems. It removes content from a document's V-space (current arrangement) but does NOT remove it from I-space (permanent storage).
+DELETE in Xanadu does NOT mean what it means in conventional systems. It removes content from a document's Vstream (current arrangement) but does NOT remove it from Istream (permanent storage).
 
 Nelson explicitly distinguishes between:
-- **V-space deletion:** Content becomes "not currently addressable" in that document
-- **I-space permanence:** Content remains in I-space forever
+- **Vstream deletion:** Content becomes "not currently addressable" in that document
+- **Istream permanence:** Content remains in Istream forever
 
 The diagram on 4/9 shows "DELETED BYTES" as a valid system state, with the annotation:
 > "(not currently addressable, awaiting historical backtrack functions, may remain included in other versions.)"
@@ -16,29 +16,29 @@ The diagram on 4/9 shows "DELETED BYTES" as a valid system state, with the annot
 ## User Guarantee
 
 1. **Nothing is ever truly deleted from Xanadu**
-   - Deleted bytes remain in I-space
+   - Deleted bytes remain in Istream
    - Previous versions still contain the deleted content
    - Other documents that transclude the content still show it
-   - Links to deleted content still resolve (to I-space)
+   - Links to deleted content still resolve (to Istream)
 
 2. **Historical backtrack is always possible**
    - Any previous arrangement can be reconstructed
    - "The user may go back in time to any previous version"
 
 3. **Modifications never damage originals**
-   - Deletion is a modification to V-space arrangement
-   - The I-space content is untouched
+   - Deletion is a modification to Vstream arrangement
+   - The Istream content is untouched
    - Other documents' views are unaffected
 
 ## What DELETE Affects
 
 | Aspect | Affected by DELETE? |
 |--------|---------------------|
-| V-space arrangement | YES - content removed from current view |
-| I-space content | NO - bytes remain forever |
+| Vstream arrangement | YES - content removed from current view |
+| Istream content | NO - bytes remain forever |
 | Previous versions | NO - still contain the content |
 | Transclusions | NO - other documents still show it |
-| Links to content | NO - still resolve to I-space |
+| Links to content | NO - still resolve to Istream |
 | Home document traceability | NO - I-address encodes origin |
 
 ## Principle Served

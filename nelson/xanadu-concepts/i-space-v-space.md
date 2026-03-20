@@ -1,4 +1,4 @@
-# I-Space and V-Space
+# Istream and Vstream
 
 Source: Literary Machines, 4/10-4/11 (pages 177-178)
 
@@ -8,26 +8,26 @@ Source: Literary Machines, 4/10-4/11 (pages 177-178)
 
 Xanadu has **two address spaces** that serve different purposes:
 
-**I-Space (Invariant Space)**
+**Istream (Invariant Space)**
 - Where content **permanently lives**
 - Addresses are **absolute and immutable**
-- Content at an I-space address **never changes**
+- Content at an Istream address **never changes**
 - Think: "the library stacks" - books have permanent shelf locations
 
-**V-Space (Virtual Space / Version Space)**
+**Vstream (Virtual Space / Version Space)**
 - The **document's arrangement** of content
-- A **view** that references I-space content
+- A **view** that references Istream content
 - Can be **rearranged** across versions
 - Think: "a reading list" - references books but can be reordered
 
 ### User Guarantee
 
-**I-Space guarantee:**
-- Content you create gets a permanent I-space address
+**Istream guarantee:**
+- Content you create gets a permanent Istream address
 - That address will always return that exact content
 - Content is immutable - it never changes after creation
 
-**V-Space guarantee:**
+**Vstream guarantee:**
 - Your document's arrangement (V-stream) can evolve
 - Each version has its own V-stream arrangement
 - You can always access any previous arrangement (version)
@@ -35,23 +35,23 @@ Xanadu has **two address spaces** that serve different purposes:
 ### Principle Served
 
 **Separation of content from arrangement.** This is the key to Xanadu's model:
-- Content is permanent (I-space) → enables permanent citations, links
-- Arrangement is flexible (V-space) → enables editing, versions
-- Links point to I-space → survive editing
-- Edits change V-space → don't destroy content
+- Content is permanent (Istream) → enables permanent citations, links
+- Arrangement is flexible (Vstream) → enables editing, versions
+- Links point to Istream → survive editing
+- Edits change Vstream → don't destroy content
 
 ### How Users Experience It
 
-Users don't see I-space vs V-space directly. They experience the effects:
-- Edit a document → you're changing V-space arrangement
-- Content you "delete" → still exists in I-space, recoverable from old version
-- Links to content → work even after content is "deleted" (point to I-space)
-- Create new version → new V-space arrangement, same I-space content
+Users don't see Istream vs Vstream directly. They experience the effects:
+- Edit a document → you're changing Vstream arrangement
+- Content you "delete" → still exists in Istream, recoverable from old version
+- Links to content → work even after content is "deleted" (point to Istream)
+- Create new version → new Vstream arrangement, same Istream content
 
 ### Analogy
 
 ```
-I-Space (Library)              V-Space (Reading Lists)
+Istream (Library)              Vstream (Reading Lists)
 ┌─────────────────────┐        ┌─────────────────────┐
 │ Shelf A: "hello"    │        │ My Essay v1:        │
 │ Shelf B: " world"   │   ──►  │   [ref A, ref B]    │  → "hello world"
@@ -61,7 +61,7 @@ I-Space (Library)              V-Space (Reading Lists)
 └─────────────────────┘        └─────────────────────┘
 ```
 
-The library stacks (I-space) never change. Reading lists (V-space) can be rearranged.
+The library stacks (Istream) never change. Reading lists (Vstream) can be rearranged.
 
 ### Nelson's Words
 
@@ -79,8 +79,8 @@ The library stacks (I-space) never change. Reading lists (V-space) can be rearra
 
 | Nelson's Term | Implementation Term | Meaning |
 |--------------|---------------------|---------|
-| Native bytes, "home location" | I-space, I-stream | Where content permanently lives |
-| Virtual byte stream, vspan | V-space, V-stream | Document's arrangement of content |
+| Native bytes, "home location" | Istream, I-stream | Where content permanently lives |
+| Virtual byte stream, vspan | Vstream, V-stream | Document's arrangement of content |
 | Inclusions, virtual copies | Transclusions | References to non-native bytes |
 
 ---
@@ -89,27 +89,27 @@ The library stacks (I-space) never change. Reading lists (V-space) can be rearra
 
 | Concept | Relationship |
 |---------|--------------|
-| [tumblers](tumblers.md) | Addressing scheme for both I-space and V-space |
-| [transclusion](transclusion.md) | V-space can reference I-space content from other documents |
-| [versions](versions.md) | Each version is a different V-space arrangement over same I-space |
-| [correspondence](correspondence.md) | Shared I-space origin enables matching across versions |
-| [documents](documents.md) | Documents own I-space content and have V-space arrangements |
-| [enfilades](enfilades.md) | Implementation: GRAN stores I-space, POOM maps V→I |
+| [tumblers](tumblers.md) | Addressing scheme for both Istream and Vstream |
+| [transclusion](transclusion.md) | Vstream can reference Istream content from other documents |
+| [versions](versions.md) | Each version is a different Vstream arrangement over same Istream |
+| [correspondence](correspondence.md) | Shared Istream origin enables matching across versions |
+| [documents](documents.md) | Documents own Istream content and have Vstream arrangements |
+| [enfilades](enfilades.md) | Implementation: GRAN stores Istream, POOM maps V→I |
 
 ## FEBE Operations
 
-This concept is foundational - nearly every operation involves I-space or V-space:
+This concept is foundational - nearly every operation involves Istream or Vstream:
 
-| Operation | How I-space/V-space applies |
+| Operation | How Istream/Vstream applies |
 |-----------|----------------------------|
-| **INSERT** | Adds to I-space; updates V-space arrangement |
-| **APPEND** | Adds to I-space at document end |
-| **DELETE** | Removes from V-space only; I-space unchanged |
-| **COPY** | Creates V-space mapping to existing I-space (transclusion) |
-| **REARRANGE** | Pure V-space operation |
-| **CREATENEWVERSION** | New V-space arrangement, same I-space content |
-| **FINDDOCSCONTAINING** | Searches I-space origin, returns V-space locations |
-| **SHOWRELATIONOF2VERSIONS** | Correspondence via shared I-space |
+| **INSERT** | Adds to Istream; updates Vstream arrangement |
+| **APPEND** | Adds to Istream at document end |
+| **DELETE** | Removes from Vstream only; Istream unchanged |
+| **COPY** | Creates Vstream mapping to existing Istream (transclusion) |
+| **REARRANGE** | Pure Vstream operation |
+| **CREATENEWVERSION** | New Vstream arrangement, same Istream content |
+| **FINDDOCSCONTAINING** | Searches Istream origin, returns Vstream locations |
+| **SHOWRELATIONOF2VERSIONS** | Correspondence via shared Istream |
 
 See [FEBE Protocol](../febe-protocol.md) for operation details.
 See [Concept-Operation Map](../concept-operation-map.md) for full mapping.
