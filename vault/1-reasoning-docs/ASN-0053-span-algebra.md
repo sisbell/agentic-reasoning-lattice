@@ -23,29 +23,17 @@ From TumblerAdd, a ⊕ w acts at the action point k of w: it copies a₁..aₖ�
 
   wᵢ = 0  for i < k,    wₖ = bₖ − aₖ,    wᵢ = bᵢ  for i > k
 
-where k = divergence(a, b). This is exactly the formula for b ⊖ a from ASN-0034's TumblerSubtract. We write w = b ⊖ a and call it the *displacement from a to b*. The displacement is well-defined when:
+where k = divergence(a, b). This is exactly the formula for b ⊖ a from ASN-0034's TumblerSubtract. We write w = b ⊖ a and call it the *displacement from a to b*. The displacement is well-defined when a < b and divergence(a, b) ≤ #a (D0, ASN-0034).
 
-**D0** (*Displacement well-definedness*). a < b, and the divergence k of a and b satisfies k ≤ #a.
-
-D0 ensures the displacement b ⊖ a is a well-defined positive tumbler, and that a ⊕ (b ⊖ a) is defined (TA0 satisfied, since the displacement is positive and its action point k ≤ #a). It does not guarantee round-trip faithfulness — the identity a ⊕ (b ⊖ a) = b additionally requires #a = #b. When #a > #b, TumblerSubtract produces a displacement of length max(#a, #b) = #a, and the round-trip a ⊕ (b ⊖ a) yields a tumbler of length #a; since #a > #b, this result cannot equal b (by T3). (The case #a < #b with type (i) divergence — where a and b differ at a shared position, so k ≤ #a — also admits a faithful round-trip, since the D1 proof depends only on k ≤ #a, not on #a = #b. But when #a < #b and a is a proper prefix of b, the divergence is k = #a + 1 > #a, violating TA0 — no valid displacement exists. Since every span operation below uses level-uniform spans with #start = #reach, the equal-length case is all we need.) We formalize the sufficient condition as level compatibility in S6.
+D0 ensures the displacement b ⊖ a is a well-defined positive tumbler, and that a ⊕ (b ⊖ a) is defined (TA0 satisfied, since the displacement is positive and its action point k ≤ #a). It does not guarantee round-trip faithfulness — the identity a ⊕ (b ⊖ a) = b additionally requires #a ≤ #b (D1, ASN-0034). When #a > #b, TumblerSubtract produces a displacement of length max(#a, #b) = #a, and the round-trip a ⊕ (b ⊖ a) yields a tumbler of length #a; since #a > #b, this result cannot equal b (by T3). When #a < #b and a is a proper prefix of b, the divergence is k = #a + 1 > #a, violating D0 — no valid displacement exists. Since every span operation below uses level-uniform spans with #start = #reach, the equal-length case is all we need. We formalize the sufficient condition as level compatibility in S6.
 
 When a is a proper prefix of b (divergence type (ii) from ASN-0034), the divergence is #a + 1, exceeding #a, and no valid displacement exists.
 
-We verify the round-trip for level-uniform spans (see S6). Given a level-uniform span σ = (s, ℓ) with #s = #ℓ and action point k, reach(σ) = s ⊕ ℓ with #reach = #s (since #(s ⊕ ℓ) = max(k − 1, 0) + (#ℓ − k + 1) = #ℓ = #s). Computing reach(σ) ⊖ start(σ): both have length #s, so no zero-padding is needed. The divergence is at position k (since sᵢ = (s ⊕ ℓ)ᵢ for i < k and sₖ ≠ (s ⊕ ℓ)ₖ because ℓₖ > 0). Then (reach ⊖ start)ₖ = (sₖ + ℓₖ) − sₖ = ℓₖ, and (reach ⊖ start)ᵢ = (s ⊕ ℓ)ᵢ = ℓᵢ for i > k, and zero for i < k. The result has length max(#reach, #start) = #s = #ℓ. This is ℓ itself. So:
-
-**D2** (*WidthRecovery*). For a level-uniform span σ = (s, ℓ): reach(σ) ⊖ start(σ) = width(σ).
-
-The proof is the component-by-component verification above.  ∎
+For a level-uniform span σ = (s, ℓ) with #s = #ℓ, the reach has #reach(σ) = #s (since #(s ⊕ ℓ) = #ℓ = #s by the result-length identity). Width recovery follows from displacement uniqueness in the foundation: since s ⊕ ℓ = reach(σ), for a level-uniform span σ, reach(σ) ⊖ start(σ) = width(σ) (D2, ASN-0034).
 
 The width is recoverable from the endpoints. Conversely, start(σ) ⊕ width(σ) = reach(σ) by definition. Of the three quantities — start, width, reach — two of the three pairings determine the third: start and width determine reach (by definition of ⊕); start and reach determine width (by D2). But width and reach do not determine start. The many-to-one property of TumblerAdd (noted in ASN-0034) means distinct starts can produce the same reach under the same width: when the action point k falls before the last component of s, positions k+1..#s are replaced by the width's tail and are unrecoverable from the reach. For instance, s₁ = [1, 3, 5] and s₂ = [1, 3, 7] with width [0, 2, 4] (action point k = 2) both yield reach [1, 5, 4]. Same width, same reach, different starts — and different denotations.
 
-We promote this to a general identity:
-
-**D1** (*DisplacementRoundTrip*). For tumblers a, b ∈ T with a < b and #a = #b:
-
-  a ⊕ (b ⊖ a) = b
-
-*Proof.* Let k = divergence(a, b). Since #a = #b, this is type (i) divergence with k ≤ #a and aₖ < bₖ. Define w = b ⊖ a by TumblerSubtract: wᵢ = 0 for i < k, wₖ = bₖ − aₖ, wᵢ = bᵢ for i > k. The result has length #a. Now w > 0 since wₖ > 0, and the action point of w is k ≤ #a, so TA0 is satisfied. Applying TumblerAdd: (a ⊕ w)ᵢ = aᵢ = bᵢ for i < k (before divergence), (a ⊕ w)ₖ = aₖ + (bₖ − aₖ) = bₖ, and (a ⊕ w)ᵢ = wᵢ = bᵢ for i > k. Every component matches: a ⊕ w = b.  ∎
+The displacement round-trip is guaranteed by the foundation: for tumblers a, b ∈ T with a < b, divergence(a, b) ≤ #a, and #a ≤ #b, a ⊕ (b ⊖ a) = b (D1, ASN-0034).
 
 When a = b, no displacement is needed; the degenerate case is handled separately since b ⊖ a produces the zero tumbler and a ⊕ (b ⊖ a) is not well-formed (TA0 requires w > 0). D0 ensures the displacement is well-defined; D1 ensures the round-trip is faithful for a < b. Every proof below that constructs a span γ = (s, r ⊖ s) and asserts ⟦γ⟧ = {t : s ≤ t < r} depends on D1: the span's reach is s ⊕ (r ⊖ s) = r.
 
@@ -368,9 +356,9 @@ Two findings from Gregory's implementation evidence illuminate the boundary betw
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| D0 | Displacement well-definedness: a < b and divergence(a, b) ≤ #a (ensures positive displacement with TA0 satisfied) | introduced |
-| D1 | Displacement round-trip: for a < b with #a = #b, a ⊕ (b ⊖ a) = b | introduced |
-| D2 | Width recovery: for level-uniform σ, reach(σ) ⊖ start(σ) = width(σ) | introduced |
+| D0 | Displacement well-definedness: a < b and divergence(a, b) ≤ #a (DisplacementWellDefined, ASN-0034) | cited |
+| D1 | Displacement round-trip: for a < b with divergence(a, b) ≤ #a and #a ≤ #b, a ⊕ (b ⊖ a) = b (DisplacementRoundTrip, ASN-0034) | cited |
+| D2 | Width recovery: for level-uniform σ, reach(σ) ⊖ start(σ) = width(σ) — follows from DisplacementUnique (D2, ASN-0034) | cited |
 | S0 | Spans are convex: every position between two members is also a member | introduced |
 | SC | Span classification: five exhaustive cases (separated, adjacent, proper overlap, containment, equal) | introduced |
 | S6 | Level constraint: level_compat(t₁, t₂) ≡ #t₁ = #t₂; a span is level-uniform when #start = #width | introduced |
