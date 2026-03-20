@@ -22,7 +22,9 @@ The implementation evidence corroborates: `deletend` shifts all crums past the d
 
 `(A v, u, w : u ∈ V(d) ∧ w ∈ V(d) ∧ u ≤ v ≤ w ∧ #v = L(d) : v ∈ V(d))`
 
-The empty set is convex vacuously. This is the fundamental structural property of arrangements. Everything that follows depends on it.
+The empty set is convex vacuously. A0 is a per-state invariant of all reachable states, in the same category as S2, S3, S8a, S8-depth, and S8-fin. The formal mechanism: K.μ⁺ and K.μ~ preconditions must be extended to require that the resulting arrangement satisfies A0. Without this extension, a raw K.μ⁺ adding a non-contiguous V-position would satisfy ASN-0047's existing preconditions (S8a, S8-depth, S8-fin, referential integrity) while violating A0. With the extension, every elementary transition that modifies V(d) preserves contiguity, and since composite transitions are sequences of elementary ones, A0 holds at every reachable state.
+
+This is the fundamental structural property of arrangements. Everything that follows depends on it.
 
 ## Fixed-Prefix Form
 
@@ -165,9 +167,55 @@ This list is the *arrangement descriptor*: a finite sequence of span pairs that 
 
 *Proof.* Forward: identical functions produce identical break sets and hence identical maximal runs. Reverse: identical span-pair sequences reconstruct identical functions, since each V-position's I-address is determined by the run that contains it and the ordinal offset within that run. ∎
 
+## Worked Example
+
+We verify the canonical decomposition concretely. Let document d have V-depth L(d) = 2 and I-addresses at element depth (zeros = 3). Define an arrangement with five V-positions:
+
+| V-position | I-address |
+|------------|-----------|
+| [1, 1] | [3, 0, 1, 0, 5] |
+| [1, 2] | [3, 0, 1, 0, 6] |
+| [1, 3] | [3, 0, 1, 0, 8] |
+| [1, 4] | [3, 0, 1, 0, 9] |
+| [1, 5] | [3, 0, 1, 0, 10] |
+
+**A0 check.** The prefix is p = [1], and the ordinals are {1, 2, 3, 4, 5} — a contiguous interval. A0 is satisfied.
+
+**Break set.** The unit I-displacement is u_I = [0, 0, 0, 0, 1] (length 5). We check I-succession at each consecutive pair:
+
+- v₁ to v₂: M₀ ⊕ u_I = [3, 0, 1, 0, 5] ⊕ [0, 0, 0, 0, 1] = [3, 0, 1, 0, 6] = M₁. Not a break.
+- v₂ to v₃: M₁ ⊕ u_I = [3, 0, 1, 0, 6] ⊕ [0, 0, 0, 0, 1] = [3, 0, 1, 0, 7] ≠ [3, 0, 1, 0, 8] = M₂. **Break at v₂** (ordinal index 2).
+- v₃ to v₄: M₂ ⊕ u_I = [3, 0, 1, 0, 8] ⊕ [0, 0, 0, 0, 1] = [3, 0, 1, 0, 9] = M₃. Not a break.
+- v₄ to v₅: M₃ ⊕ u_I = [3, 0, 1, 0, 9] ⊕ [0, 0, 0, 0, 1] = [3, 0, 1, 0, 10] = M₄. Not a break.
+
+B = {v₂}. One break yields p = 2 runs.
+
+**Canonical decomposition.**
+
+R₁ = ([1, 1], [3, 0, 1, 0, 5], 2). Verify A7: M(d)([1, 1]) = [3, 0, 1, 0, 5] = a₁ ⊕ [0, 0, 0, 0, 0] (base case); M(d)([1, 2]) = [3, 0, 1, 0, 6] = [3, 0, 1, 0, 5] ⊕ [0, 0, 0, 0, 1] = a₁ ⊕ [0, 0, 0, 0, 1]. ✓
+
+R₂ = ([1, 3], [3, 0, 1, 0, 8], 3). Verify A7: M(d)([1, 3]) = [3, 0, 1, 0, 8] (base); M(d)([1, 4]) = [3, 0, 1, 0, 9] = a₂ ⊕ [0, 0, 0, 0, 1]; M(d)([1, 5]) = [3, 0, 1, 0, 10] = a₂ ⊕ [0, 0, 0, 0, 2]. ✓
+
+**A6 check.** s₁ = 0 (first run starts at beginning). s₂ = s₁ + r₁ = 0 + 2 = 2 (contiguous). s₂ + r₂ = 2 + 3 = 5 = n (last run extends to end). ✓
+
+**Span representation.** σ_V(R₁) = ([1, 1], [0, 2]), σ_I(R₁) = ([3, 0, 1, 0, 5], [0, 0, 0, 0, 2]). σ_V(R₂) = ([1, 3], [0, 3]), σ_I(R₂) = ([3, 0, 1, 0, 8], [0, 0, 0, 0, 3]). Reach: reach(σ_V(R₁)) = [1, 1] ⊕ [0, 2] = [1, 3] = start(σ_V(R₂)). V-spans are adjacent. ✓
+
+**DELETE applied.** Delete w = 1 position at ordinal j = 1 (removing v₁ = [1, 2], which maps to I-address [3, 0, 1, 0, 6]). The deletion falls in the interior of R₁, which spans ordinals 0–1. The right portion of R₁ (ordinal 1, the sole element) is removed, leaving a left survivor of length 1. R₂ is unaffected except its V-positions shift left by 1.
+
+Post-state:
+
+| V-position | I-address |
+|------------|-----------|
+| [1, 1] | [3, 0, 1, 0, 5] |
+| [1, 2] | [3, 0, 1, 0, 8] |
+| [1, 3] | [3, 0, 1, 0, 9] |
+| [1, 4] | [3, 0, 1, 0, 10] |
+
+Break set: M₀ ⊕ u_I = [3, 0, 1, 0, 6] ≠ [3, 0, 1, 0, 8] = M₁. Break at v₁. No other breaks. Still p = 2 runs: R'₁ = ([1, 1], [3, 0, 1, 0, 5], 1), R'₂ = ([1, 2], [3, 0, 1, 0, 8], 3). A6: s₁ = 0, s₂ = 1, s₂ + r₂ = 4 = n. ✓
+
 ## Preservation Under Operations
 
-We verify that the FEBE operations preserve A0. Each operation is a valid composite transition (ASN-0047) whose net effect on the arrangement maintains V-domain contiguity. Intermediate states within a composite may temporarily violate A0 (as when INSERT first shifts positions rightward, creating a gap, before filling it), but the completed composite restores it — analogous to J0, where allocation and placement co-occur in the same composite.
+We verify that the four arrangement-modifying operations — INSERT, DELETE, REARRANGE, and COPY — preserve A0. Each operation is a valid composite transition (ASN-0047) whose net effect on the arrangement maintains V-domain contiguity. Intermediate states within a composite may temporarily violate A0 (as when INSERT first shifts positions rightward, creating a gap, before filling it), but the completed composite restores it — analogous to J0, where allocation and placement co-occur in the same composite.
 
 ### INSERT
 
@@ -189,7 +237,7 @@ DELETE of w positions starting at ordinal position j (with 0 ≤ j and j + w ≤
 
 **Post-state.** V'(d) has n − w positions (or is empty if w = n). The first j positions retain their I-addresses. Positions j through j + w − 1 are removed. Positions j + w through n − 1 shift to positions j through n − w − 1, retaining their I-addresses. The domain is contiguous. A0 is preserved. ∎
 
-**Effect on the canonical decomposition.** Runs entirely within the deleted range disappear. A run straddling the left boundary of the deletion is truncated (its right portion is removed). A run straddling the right boundary is truncated (its left portion is removed). At most two runs are truncated — one at each boundary. After the gap closes, the left survivor (if any) and right survivor (if any) become V-adjacent. If they happen to be I-adjacent as well (an uncommon coincidence), the canonical decomposition of the post-state merges them into a single run, since maximality demands it. The number of runs in the post-state is at most p and at least 1 (when surviving content forms a single run) or 0 (when all content is deleted).
+**Effect on the canonical decomposition.** Runs entirely within the deleted range disappear. A run straddling the left boundary of the deletion is truncated (its right portion is removed). A run straddling the right boundary is truncated (its left portion is removed). A single run may span both deletion boundaries — when R = (v_s, a, r) contains the entire deleted range (s < j and s + r > j + w), that one run splits into a left survivor [s, j) and a right survivor [j + w, s + r). These two survivors are never I-adjacent: the w deleted I-positions create an I-gap of width w between them (the left survivor ends at a ⊕ [0,...,0, j − s] and the right survivor starts at a ⊕ [0,...,0, j − s + w], separated by w I-addresses), so they remain distinct runs in the post-state. After the gap closes, the left survivor of one run and right survivor of another (or the same run) become V-adjacent. If they happen to be I-adjacent as well (an uncommon coincidence), the canonical decomposition of the post-state merges them into a single run, since maximality demands it. The number of runs in the post-state is at most p + 1 (when one run splits into two survivors) and at least 1 (when surviving content forms a single run) or 0 (when all content is deleted).
 
 ### REARRANGE
 
@@ -199,11 +247,13 @@ REARRANGE with cuts c₁ < c₂ < c₃ transposes two regions: positions [c₁, 
 
 The multiset of I-addresses is preserved: ran(M'(d)) = ran(M(d)).
 
+**Effect on the canonical decomposition.** A run whose V-positions lie entirely within one region moves as a unit — its V-span shifts but its I-span is unchanged. A run straddling a cut boundary splits at the cut point: the two halves receive different V-displacements and become separate runs. With three cuts, at most three runs split. No structural coalescing pass follows the rearrangement, though the canonical decomposition of the post-state may merge runs that become I-adjacent by coincidence. The implementation confirms: `slicecbcpm` produces exactly two positive-width pieces when cutting at an interior point, and no coalescing pass follows `rearrangend`.
+
 ### COPY
 
 COPY (transclusion) places content from a source document into V(d) at a specified position, shifting subsequent positions rightward — the same V-space mechanics as INSERT. The only difference is I-address provenance: INSERT allocates fresh I-addresses via K.α, while COPY references existing I-addresses from the source. Since A0 concerns only the V-domain structure and is indifferent to I-address provenance, INSERT's preservation argument subsumes COPY.
 
-**Effect on the canonical decomposition.** A run whose V-positions lie entirely within one region moves as a unit — its V-span shifts but its I-span is unchanged. A run straddling a cut boundary splits at the cut point: the two halves receive different V-displacements and become separate runs. With three cuts, at most three runs split. No structural coalescing pass follows the rearrangement, though the canonical decomposition of the post-state may merge runs that become I-adjacent by coincidence. The implementation confirms: `slicecbcpm` produces exactly two positive-width pieces when cutting at an interior point, and no coalescing pass follows `rearrangend`.
+**Effect on the canonical decomposition.** COPY has the same V-space mechanics as INSERT — it opens a gap of width w at position j and fills it. If j falls in the interior of an existing run, that run splits (at most one split, as with INSERT). The transcluded content introduces one or more new runs, whose I-addresses reference existing I-space content from the source document rather than freshly allocated addresses. The resulting decomposition effects are identical to INSERT's; only I-address provenance differs.
 
 ## Merging Is Not Required
 
