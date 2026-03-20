@@ -1,243 +1,375 @@
 # ASN-0053 Formal Statements
 
-*Source: ASN-0053-span-algebra.md (revised 2026-03-18) — Extracted: 2026-03-19*
+*Source: ASN-0053-span-algebra.md (revised 2026-03-19) — Extracted: 2026-03-19*
 
-## Definition — SpanProjections
+## Definition — SpanReach
 
-For a span σ = (s, ℓ):
+```
+reach(σ) = start(σ) ⊕ width(σ)
+```
+The exclusive upper bound of span σ = (s, ℓ).
 
-  start(σ) = s,    width(σ) = ℓ
+## Definition — SpanDenotation
 
-## σ.reach — SpanReach (DEF, function)
+```
+⟦σ⟧ = {t ∈ T : start(σ) ≤ t < reach(σ)}
+```
 
-  reach(σ) = start(σ) ⊕ width(σ)
+## Definition — SpanSetDenotation
 
-The reach is the first position beyond σ — the exclusive upper bound. It is well-defined by TA0 and satisfies reach(σ) > start(σ) by TA-strict.
-
-## σ.denotation — SpanDenotation (DEF, function)
-
-  ⟦σ⟧ = {t ∈ T : start(σ) ≤ t < reach(σ)}
-
-## Σ.setdenotation — SpanSetDenotation (DEF, function)
-
-For a span-set Σ = ⟨σ₁, σ₂, ..., σₙ⟩:
-
-  ⟦Σ⟧ = ⟦σ₁⟧ ∪ ⟦σ₂⟧ ∪ ... ∪ ⟦σₙ⟧
-
-The empty span-set ⟨⟩ denotes ∅. The singleton span-set ⟨σ⟩ denotes ⟦σ⟧.
+```
+⟦Σ⟧ = ⟦σ₁⟧ ∪ ⟦σ₂⟧ ∪ ... ∪ ⟦σₙ⟧
+```
+For span-set Σ = ⟨σ₁, σ₂, ..., σₙ⟩. The empty span-set ⟨⟩ denotes ∅.
 
 ## Definition — SpanSetEquivalence
 
-Two span-sets are equivalent when they denote the same set of positions:
+```
+Σ₁ ≡ Σ₂  ⟺  ⟦Σ₁⟧ = ⟦Σ₂⟧
+```
 
-  Σ₁ ≡ Σ₂  ⟺  ⟦Σ₁⟧ = ⟦Σ₂⟧
+## Definition — LevelCompat
+
+```
+level_compat(t₁, t₂)  ≡  #t₁ = #t₂
+```
+
+## Definition — LevelUniform
+
+```
+A span σ = (s, ℓ) is level-uniform when level_compat(s, ℓ), i.e., #s = #ℓ.
+```
 
 ## Definition — Adjacent
 
-  adjacent(α, β)  ≡  reach(α) = start(β)  ∨  reach(β) = start(α)
-
-Adjacent spans share no positions (reach is an exclusive upper bound) but their denotations abut — there is no gap between them.
+```
+adjacent(α, β)  ≡  reach(α) = start(β)  ∨  reach(β) = start(α)
+```
 
 ## Definition — InteriorPoint
 
-A position p is interior to span σ when:
+```
+A position p is interior to span σ when start(σ) < p < reach(σ).
+```
 
-  start(σ) < p < reach(σ)
+## Definition — NormalizedSpanSet
 
-## N1, N2 — IsNormalized (PRED, predicate)
-
+```
 A span-set Σ = ⟨σ₁, ..., σₙ⟩ is normalized iff:
 
-  (N1) Sorted:    (A i : 1 ≤ i < n : start(σᵢ) < start(σᵢ₊₁))
-  (N2) Separated: (A i : 1 ≤ i < n : reach(σᵢ) < start(σᵢ₊₁))
+  (N1)  (A i : 1 ≤ i < n : start(σᵢ) < start(σᵢ₊₁))
+  (N2)  (A i : 1 ≤ i < n : reach(σᵢ) < start(σᵢ₊₁))
+```
 
 ---
 
-## D0 — DisplacementWellDefined (LEMMA, cited from ASN-0034)
+## D0 — DisplacementWellDefined (AXIOM, cited)
 
-For tumblers a, b ∈ T with a < b and divergence(a, b) ≤ #a: the displacement b ⊖ a is a well-defined positive tumbler, and a ⊕ (b ⊖ a) is defined (TA0 satisfied, since the displacement is positive and its action point k ≤ #a).
+```
+For tumblers a, b ∈ T with a < b and divergence(a, b) ≤ #a:
+the displacement b ⊖ a is a well-defined positive tumbler,
+and a ⊕ (b ⊖ a) is defined (TA0 satisfied).
+```
 
-## D1 — DisplacementRoundTrip (LEMMA, cited from ASN-0034)
+## D1 — DisplacementRoundTrip (AXIOM, cited)
 
+```
 For tumblers a, b ∈ T with a < b, divergence(a, b) ≤ #a, and #a ≤ #b:
-
   a ⊕ (b ⊖ a) = b
+```
 
-## D2 — WidthRecovery (LEMMA, cited from ASN-0034)
+## D2 — WidthRecovery (AXIOM, cited)
 
-For a level-uniform span σ with #start(σ) = #reach(σ):
-
+```
+For a level-uniform span σ = (s, ℓ) with #s = #ℓ:
   reach(σ) ⊖ start(σ) = width(σ)
+```
 
-Follows from DisplacementUnique (D2, ASN-0034).
+## TA-LC — LeftCancellation (AXIOM, cited)
 
-## TA-LC — LeftCancellation (LEMMA, cited from ASN-0055)
-
+```
+For tumblers a, x, y with both a ⊕ x and a ⊕ y defined:
   a ⊕ x = a ⊕ y  ⟹  x = y
+```
 
 ---
-
-## S6 — LevelConstraint (PRED, predicate)
-
-  level_compat(t₁, t₂)  ≡  #t₁ = #t₂
-
-A span σ = (s, ℓ) is level-uniform when level_compat(s, ℓ), i.e., #s = #ℓ.
-
-For a level-uniform span, #reach(σ) = #s: since the action point k satisfies 1 ≤ k ≤ #s = #ℓ, we have #(s ⊕ ℓ) = max(k − 1, 0) + (#ℓ − k + 1) = #ℓ = #s. The start, width, and reach all share the same tumbler length.
-
-Level-uniform spans automatically satisfy D0 for all endpoint pairs: since #start = #reach, neither is a proper prefix of the other, so divergence is of type (i) with k ≤ #start.
 
 ## S0 — Convexity (LEMMA, lemma)
 
-  (A p, q, r : p ∈ ⟦σ⟧ ∧ r ∈ ⟦σ⟧ ∧ p ≤ q ≤ r : q ∈ ⟦σ⟧)
+```
+(A p, q, r : p ∈ ⟦σ⟧ ∧ r ∈ ⟦σ⟧ ∧ p ≤ q ≤ r : q ∈ ⟦σ⟧)
+```
 
-## SC — SpanClassification (LEMMA, lemma)
+## SC — SpanClassification (DEF, definition)
 
-Given spans α and β, five mutually exclusive cases arise:
+```
+Given spans α and β, exactly one of five mutually exclusive cases holds:
 
-  (i)   Separated:      reach(α) < start(β)  ∨  reach(β) < start(α)
-  (ii)  Adjacent:       reach(α) = start(β)  ∨  reach(β) = start(α)
-  (iii) Proper overlap: start(α) < start(β) < reach(α) < reach(β),  or symmetrically
-  (iv)  Containment:    start(α) ≤ start(β) ∧ reach(β) ≤ reach(α) with at least one inequality strict,  or symmetrically
-  (v)   Equal:          start(α) = start(β) ∧ reach(α) = reach(β)
+(i)   Separated.   reach(α) < start(β)  ∨  reach(β) < start(α)
+(ii)  Adjacent.    reach(α) = start(β)  ∨  reach(β) = start(α)
+(iii) Proper overlap.
+        start(α) < start(β) < reach(α) < reach(β),  or symmetrically.
+(iv)  Containment.
+        start(α) ≤ start(β) ∧ reach(β) ≤ reach(α) with at least one strict,
+        or symmetrically.
+(v)   Equal.       start(α) = start(β)  ∧  reach(α) = reach(β)
 
 Cases (i) and (ii) are the disjoint cases: ⟦α⟧ ∩ ⟦β⟧ = ∅.
 Cases (iii), (iv), and (v) are the overlapping cases: ⟦α⟧ ∩ ⟦β⟧ ≠ ∅.
+```
+
+## S6 — LevelConstraint (LEMMA, lemma)
+
+```
+For a level-uniform span σ = (s, ℓ) with #s = #ℓ:
+  #reach(σ) = #s
+
+Corollary: level_compat(start(σ), reach(σ)) holds for every level-uniform span.
+Level-uniform spans automatically satisfy D0 for all endpoint pairs: since
+#start = #reach, neither is a proper prefix of the other, so divergence is of
+type (i) with k ≤ #start.
+```
 
 ## S1 — IntersectionClosure (LEMMA, lemma)
 
-Preconditions: α and β are level-uniform spans; level_compat(start(α), start(β)).
+```
+Precondition: α and β are level-uniform with level_compat(start(α), start(β)).
 
 Either ⟦α⟧ ∩ ⟦β⟧ = ∅, or there exists a span γ such that ⟦γ⟧ = ⟦α⟧ ∩ ⟦β⟧.
 
-Witness construction: let s' = max(start(α), start(β)) and r' = min(reach(α), reach(β)).
-- If r' ≤ s': intersection is empty.
-- If r' > s': γ = (s', r' ⊖ s') with reach(γ) = s' ⊕ (r' ⊖ s') = r', and ⟦γ⟧ = {t : s' ≤ t < r'} = ⟦α⟧ ∩ ⟦β⟧. γ is level-uniform: #width(γ) = #(r' ⊖ s') = max(#r', #s') = #s' = #start(γ).
+Construction: let s' = max(start(α), start(β)) and r' = min(reach(α), reach(β)).
+  — If r' ≤ s': intersection is empty.
+  — If r' > s': γ = (s', r' ⊖ s'), with reach(γ) = r'. γ is level-uniform.
+```
 
 ## S2 — EmptyDistinction (LEMMA, lemma)
 
-The empty set of positions is not the denotation of any span. Every well-formed span denotes a non-empty set.
-
-Follows from T12 and TA-strict: ℓ > 0 and k ≤ #s imply s ⊕ ℓ > s, so the half-open interval [s, s ⊕ ℓ) contains at least s itself.
+```
+The empty set of positions is not the denotation of any span.
+Every well-formed span denotes a non-empty set.
+```
 
 ## S3 — MergeEquivalence (LEMMA, lemma)
 
-Preconditions: α and β are level-uniform spans; level_compat(start(α), start(β)); they overlap or are adjacent (reach(α) ≥ start(β), assuming start(α) ≤ start(β)).
+```
+Precondition: α and β are level-uniform with level_compat(start(α), start(β)),
+and they overlap or are adjacent (reach(α) ≥ start(β), assuming start(α) ≤ start(β)).
 
-The union ⟦α⟧ ∪ ⟦β⟧ is the denotation of a single span. Moreover, this merged span is identical to one specified directly with the same endpoints.
-
-Witness construction (assuming start(α) ≤ start(β)):
-
-  s = start(α)
+The union ⟦α⟧ ∪ ⟦β⟧ is the denotation of a single span γ, where:
+  s = min(start(α), start(β))
   r = max(reach(α), reach(β))
-  γ = (s, r ⊖ s)   with reach(γ) = r   and   ⟦γ⟧ = ⟦α⟧ ∪ ⟦β⟧
+  γ = (s, r ⊖ s)
 
-γ is level-uniform: #start(γ) = #s = max(#r, #s) = #(r ⊖ s) = #width(γ), since #s = #r by level-compatibility.
+with reach(γ) = r. γ is level-uniform.
+```
 
 ## S3a — MergeCommutativity (LEMMA, lemma)
 
-  ⟦α⟧ ∪ ⟦β⟧ = ⟦β⟧ ∪ ⟦α⟧
-
-The merge of α and β yields the same span as the merge of β and α.
+```
+⟦α⟧ ∪ ⟦β⟧ = ⟦β⟧ ∪ ⟦α⟧
+```
 
 ## S4 — SplitPartition (LEMMA, lemma)
 
-Preconditions: σ = (s, ℓ) is a level-uniform span; p is interior to σ (start(σ) < p < reach(σ)); level_compat(s, p).
+```
+Precondition: σ = (s, ℓ) is level-uniform, p is interior to σ,
+and level_compat(s, p).
 
-Let d = p ⊖ s and d' = reach(σ) ⊖ p, with #d = #s = #d'. Let λ = (s, d) and ρ = (p, d'). Then:
+The displacements d = p ⊖ s and d' = reach(σ) ⊖ p are well-defined
+with #d = #s = #d'. The left span λ = (s, d) and right span ρ = (p, d') satisfy:
 
-  (a) ⟦λ⟧ ∪ ⟦ρ⟧ = ⟦σ⟧                  (nothing lost)
-  (b) ⟦λ⟧ ∩ ⟦ρ⟧ = ∅                      (nothing duplicated)
-  (c) reach(λ) = start(ρ) = p             (the parts are adjacent)
+  (a)  ⟦λ⟧ ∪ ⟦ρ⟧ = ⟦σ⟧                  (nothing lost)
+  (b)  ⟦λ⟧ ∩ ⟦ρ⟧ = ∅                      (nothing duplicated)
+  (c)  reach(λ) = start(ρ) = p             (the parts are adjacent)
 
-Both λ and ρ are level-uniform: #start(λ) = #s = #d = #width(λ); #start(ρ) = #p = #s = #d' = #width(ρ).
+Both λ and ρ are level-uniform.
+```
 
 ## S5 — SplitWidthComposition (LEMMA, lemma)
 
-Preconditions: same as S4 (σ = (s, ℓ) level-uniform; p interior to σ; level_compat(s, p); d = p ⊖ s; d' = reach(σ) ⊖ p).
+```
+Under the same preconditions as S4 (σ = (s, ℓ) level-uniform, p interior,
+level_compat(s, p)), with d = p ⊖ s and d' = reach(σ) ⊖ p:
 
   d ⊕ d' = ℓ
+```
 
 ## S4a — SplitMergeInverse (LEMMA, lemma)
 
-Preconditions: σ = (s, ℓ) is a level-uniform span; p is interior to σ; level_compat(s, p).
+```
+Precondition: σ = (s, ℓ) is level-uniform, p is interior to σ,
+and level_compat(s, p).
 
-Splitting σ at p by S4 yields λ = (s, d) with reach(λ) = p, and ρ = (p, d') with reach(ρ) = reach(σ). Since reach(λ) = start(ρ), S3 applies. The merged span is γ = (s_m, r_m ⊖ s_m) where s_m = min(s, p) = s and r_m = max(p, reach(σ)) = reach(σ). The merged width is reach(σ) ⊖ s = ℓ by D2. Therefore:
-
-  merge(split(σ, p)) = (s, ℓ) = σ
+Splitting σ at p (S4) yields λ = (s, d) and ρ = (p, d').
+Merging λ and ρ (S3) yields γ = (s, ℓ) = σ.
+```
 
 ## S3b — MergeSplitInverse (LEMMA, lemma)
 
-Preconditions: α and β are adjacent level-uniform spans with reach(α) = start(β); level_compat(start(α), start(β)).
+```
+Precondition: α and β are adjacent level-uniform spans with reach(α) = start(β)
+and level_compat(start(α), start(β)).
 
-Merging α and β by S3 yields γ = (start(α), reach(β) ⊖ start(α)) with reach(γ) = reach(β). The point p = start(β) is interior to γ: start(α) < start(β) (since α is non-empty) and start(β) < reach(β) = reach(γ) (since β is non-empty). Splitting γ at p by S4 yields λ and ρ where:
-
-  λ = (start(α), p ⊖ start(α)) = (start(α), reach(α) ⊖ start(α)) = (start(α), width(α)) = α
-  ρ = (p, reach(γ) ⊖ p) = (start(β), reach(β) ⊖ start(β)) = (start(β), width(β)) = β
-
-Therefore:
-
-  split(merge(α, β), start(β)) = (α, β)
+Merging α and β (S3) yields γ with start(γ) = start(α) and reach(γ) = reach(β).
+Splitting γ at p = start(β) (S4) recovers:
+  left part  = α  (i.e., (start(α), width(α)))
+  right part = β  (i.e., (start(β), width(β)))
+```
 
 ## S7 — FiniteRepresentability (LEMMA, lemma)
 
+```
 Every finite set of positions P ⊂ T admits a span-set Σ with ⟦Σ⟧ ⊇ P.
-
-Witness construction: for each t ∈ P, define ℓ = [0, ..., 0, 1] with #ℓ = #t (all components zero except the last, which is 1). Then ℓ > 0 (last component nonzero) and action point k = #t ≤ #t, so (t, ℓ) satisfies T12. By TA-strict, t ⊕ ℓ > t, so t ∈ ⟦(t, ℓ)⟧. Taking one such span per position in P gives Σ with ⟦Σ⟧ ⊇ P.
+```
 
 ## S8 — NormalizationExistence (LEMMA, lemma)
 
-Precondition: Σ is a span-set whose component spans are level-uniform and mutually level-compatible.
+```
+Precondition: Σ is a span-set whose component spans are level-uniform and
+mutually level-compatible.
 
-There exists a normalized span-set Σ̂ such that Σ̂ ≡ Σ.
+There exists a normalized span-set Σ̂ with Σ̂ ≡ Σ.
 
-Construction: sort component spans by start position. Scan left to right, maintaining a current interval [s, r):
-- If start(σᵢ) ≤ r (overlap or adjacency): extend r ← max(r, reach(σᵢ)).
-- If start(σᵢ) > r (separated): emit span (s, r ⊖ s); begin new interval [start(σᵢ), reach(σᵢ)).
+Construction (sweep):
+  — Sort component spans by start position.
+  — Maintain current interval [s, r). For each span σᵢ in sorted order:
+      • If start(σᵢ) ≤ r: update r := max(r, reach(σᵢ)).
+      • If start(σᵢ) > r: emit (s, r ⊖ s); set [s, r) := [start(σᵢ), reach(σᵢ)).
+  — Emit final (s, r ⊖ s).
 
-After all spans, emit the final interval.
-
-Loop invariant J: let E be the set of emitted spans after processing σ₁..σᵢ and [s, r) the current interval:
-
-  J: ⟦E⟧ ∪ [s, r) = ⟦σ₁⟧ ∪ ... ∪ ⟦σᵢ⟧
-
-Termination bound: n − i (each iteration advances i by 1).
-
-The result satisfies N1 (starts sorted, emitting left-to-right from sorted input) and N2 (each emit occurs precisely when start(σᵢ) > r, guaranteeing reach of emitted span < start of next span).
+Loop invariant J (after processing σ₁..σᵢ, with E = emitted spans, [s,r) = current):
+  ⟦E⟧ ∪ [s, r) = ⟦σ₁⟧ ∪ ... ∪ ⟦σᵢ⟧
+```
 
 ## S9 — NormalizationUniqueness (LEMMA, lemma)
 
-If Σ̂₁ and Σ̂₂ are both normalized and Σ̂₁ ≡ Σ̂₂, then Σ̂₁ = Σ̂₂.
+```
+Precondition: Σ̂₁ and Σ̂₂ are both normalized and Σ̂₁ ≡ Σ̂₂.
 
-Let Σ̂₁ = ⟨α₁, ..., αₘ⟩ and Σ̂₂ = ⟨β₁, ..., βₙ⟩, both normalized, with ⟦Σ̂₁⟧ = ⟦Σ̂₂⟧ = S. Suppose Σ̂₁ ≠ Σ̂₂. Let i be the smallest index where αᵢ ≠ βᵢ.
-
-- Case 1: start(αᵢ) < start(βᵢ). Then start(αᵢ) ∈ ⟦αᵢ⟧ ⊆ S, but start(αᵢ) ∉ ⟦βⱼ⟧ for any j (for j < i by N2 on Σ̂₁; for j ≥ i by N1 on Σ̂₂), so start(αᵢ) ∉ ⟦Σ̂₂⟧ = S. Contradiction.
-- Case 2: start(αᵢ) = start(βᵢ) but reach(αᵢ) < reach(βᵢ). Set p = reach(αᵢ). Then p ∈ ⟦βᵢ⟧ ⊆ S, but p ∉ ⟦αⱼ⟧ for any j, so p ∉ ⟦Σ̂₁⟧ = S. Contradiction.
-- Case 3: start(αᵢ) > start(βᵢ). Symmetric to Case 1.
+  Σ̂₁ = Σ̂₂
+```
 
 ## S10 — UnionOrderIndependence (LEMMA, lemma)
 
-Precondition: component spans of all operands are level-uniform and mutually level-compatible across operands.
+```
+Precondition: component spans of all span-sets are level-uniform and
+mutually level-compatible across operand sets.
 
 Commutativity:
-
   normalize(Σ₁ ∪ Σ₂) = normalize(Σ₂ ∪ Σ₁)
 
 Associativity:
-
   normalize((Σ₁ ∪ Σ₂) ∪ Σ₃) = normalize(Σ₁ ∪ (Σ₂ ∪ Σ₃))
+```
 
 ## S11 — DifferenceBound (LEMMA, lemma)
 
-Preconditions: α and β are level-uniform spans; level_compat(start(α), start(β)); ⟦β⟧ ⊆ ⟦α⟧, i.e., start(α) ≤ start(β) and reach(β) ≤ reach(α).
+```
+Precondition: α and β are level-uniform with level_compat(start(α), start(β))
+and ⟦β⟧ ⊆ ⟦α⟧ (i.e., start(α) ≤ start(β) and reach(β) ≤ reach(α)).
 
-The set difference ⟦α⟧ \ ⟦β⟧ is expressible as a span-set of at most two spans.
+⟦α⟧ \ ⟦β⟧ is expressible as a span-set of at most two spans.
 
-Construction:
-- Left interval: when start(α) < start(β), define λ = (start(α), start(β) ⊖ start(α)) with reach(λ) = start(β).
-- Right interval: when reach(β) < reach(α), define ρ = (reach(β), reach(α) ⊖ reach(β)) with reach(ρ) = reach(α).
+Decomposition:
+  Left:   {t : start(α) ≤ t < start(β)}   — empty when start(α) = start(β)
+  Right:  {t : reach(β) ≤ t < reach(α)}   — empty when reach(β) = reach(α)
+
+Left span (when start(α) < start(β)):
+  λ = (start(α), start(β) ⊖ start(α)),  reach(λ) = start(β)
+
+Right span (when reach(β) < reach(α)):
+  ρ = (reach(β), reach(α) ⊖ reach(β)),  reach(ρ) = reach(α)
 
 Cases:
-  (a) start(α) = start(β) and reach(β) = reach(α): difference is empty — 0 spans.
-  (b) Exactly one boundary coincides: difference is 1 span.
-  (c) Neither coincides: difference is 2 spans.
+  (a) start(α) = start(β) and reach(β) = reach(α): 0 spans.
+  (b) Exactly one boundary coincides: 1 span.
+  (c) Neither coincides: 2 spans.
+```
+
+## S11a — DifferenceSeparated (LEMMA, lemma)
+
+```
+Precondition: α and β are level-uniform with level_compat(start(α), start(β)),
+in SC case (i) (separated) or (ii) (adjacent).
+
+  ⟦α⟧ \ ⟦β⟧ = ⟦α⟧
+```
+
+## S11b — DifferenceEqual (LEMMA, lemma)
+
+```
+Precondition: α and β are level-uniform with level_compat(start(α), start(β)),
+in SC case (v) (equal).
+
+  ⟦α⟧ \ ⟦β⟧ = ∅
+```
+
+## S11c — DifferenceOverlap (LEMMA, lemma)
+
+```
+Precondition: α and β are level-uniform with level_compat(start(α), start(β)),
+in SC case (iii) (proper overlap).
+
+⟦α⟧ \ ⟦β⟧ is expressible as a span-set of exactly 1 span.
+
+Case 1: start(α) < start(β) < reach(α) < reach(β).
+  ⟦α⟧ \ ⟦β⟧ = {t : start(α) ≤ t < start(β)}
+  γ = (start(α), start(β) ⊖ start(α))
+  reach(γ) = start(β)   [by D1]
+  ⟦γ⟧ = ⟦α⟧ \ ⟦β⟧
+
+Case 2: start(β) < start(α) < reach(β) < reach(α).
+  ⟦α⟧ \ ⟦β⟧ = {t : reach(β) ≤ t < reach(α)}
+  γ' = (reach(β), reach(α) ⊖ reach(β))
+  reach(γ') = reach(α)   [by D1]
+  ⟦γ'⟧ = ⟦α⟧ \ ⟦β⟧
+```
+
+## S11d — GeneralDifferenceBound (LEMMA, lemma)
+
+```
+Precondition: α and β are level-uniform with level_compat(start(α), start(β)).
+
+⟦α⟧ \ ⟦β⟧ is expressible as a span-set of at most 2 spans.
+
+| SC case                          | Difference   | Bound  | By   |
+|----------------------------------|--------------|--------|------|
+| (i) Separated                    | ⟦α⟧          | 1 span | S11a |
+| (ii) Adjacent                    | ⟦α⟧          | 1 span | S11a |
+| (iii) Proper overlap             | 1 span       | 1 span | S11c |
+| (iv) Containment (⟦β⟧ ⊂ ⟦α⟧)   | at most 2    | 2 span | S11  |
+| (iv) Containment (⟦α⟧ ⊆ ⟦β⟧)   | ∅            | 0 span | (*)  |
+| (v) Equal                        | ∅            | 0 span | S11b |
+
+(*) Reverse containment: start(β) ≤ start(α) and reach(α) ≤ reach(β) with at
+least one strict implies ⟦α⟧ ⊆ ⟦β⟧, so ⟦α⟧ \ ⟦β⟧ = ∅.
+```
+
+## σ.reach — SpanReach (DEF, definition)
+
+```
+reach(σ) = start(σ) ⊕ width(σ)
+```
+*(See Definition — SpanReach above.)*
+
+## σ.denotation — SpanDenotation (DEF, definition)
+
+```
+⟦σ⟧ = {t ∈ T : start(σ) ≤ t < reach(σ)}
+```
+*(See Definition — SpanDenotation above.)*
+
+## Σ.setdenotation — SpanSetDenotation (DEF, definition)
+
+```
+⟦Σ⟧ = ⟦σ₁⟧ ∪ ⟦σ₂⟧ ∪ ... ∪ ⟦σₙ⟧
+```
+*(See Definition — SpanSetDenotation above.)*
+
+## N1, N2 — NormalizedSpanSet (DEF, definition)
+
+```
+(N1)  (A i : 1 ≤ i < n : start(σᵢ) < start(σᵢ₊₁))
+(N2)  (A i : 1 ≤ i < n : reach(σᵢ) < start(σᵢ₊₁))
+```
+*(See Definition — NormalizedSpanSet above.)*
