@@ -39,7 +39,9 @@ The denotation ⟦γ⟧ = {t : start(α) ≤ t < start(β)} = ⟦α⟧ \ ⟦β�
 
 *Worked example.* Let α = ([1, 3], [0, 7]) and β = ([1, 6], [0, 8]). Then reach(α) = [1, 10] and reach(β) = [1, 14]. Verify proper overlap: start(α) = [1, 3] < start(β) = [1, 6] < reach(α) = [1, 10] < reach(β) = [1, 14]. The difference ⟦α⟧ \ ⟦β⟧ = {t : [1, 3] ≤ t < [1, 6]}. Construct γ = ([1, 3], [1, 6] ⊖ [1, 3]) = ([1, 3], [0, 3]). Verify: reach(γ) = [1, 3] ⊕ [0, 3] = [1, 6] = start(β). Verify denotation: ⟦γ⟧ = {t : [1, 3] ≤ t < [1, 6]} = ⟦α⟧ \ ⟦β⟧.
 
-For the symmetric case (start(β) < start(α) < reach(β) < reach(α)), the difference ⟦α⟧ \ ⟦β⟧ = {t : reach(β) ≤ t < reach(α)}. Define γ' = (reach(β), reach(α) ⊖ reach(β)). We verify D1 preconditions for the pair (reach(β), reach(α)): reach(β) < reach(α) is given; level-uniformity of α gives #reach(α) = #start(α), level-uniformity of β gives #reach(β) = #start(β), and level_compat(start(α), start(β)) gives #start(α) = #start(β), so #reach(β) = #reach(α) — neither is a proper prefix of the other, so divergence is of type (i) with k ≤ #reach(β). By D1, reach(γ') = reach(β) ⊕ (reach(α) ⊖ reach(β)) = reach(α). The span is level-uniform: #width(γ') = max(#reach(α), #reach(β)) = #reach(β) = #start(γ'). The result is exactly 1 span.
+For the symmetric case (start(β) < start(α) < reach(β) < reach(α)), we derive the difference by element-chasing. For t ∈ ⟦α⟧ (i.e., start(α) ≤ t < reach(α)): if t < reach(β), then start(β) < start(α) ≤ t and t < reach(β), so t ∈ ⟦β⟧; if t ≥ reach(β), then t ∉ ⟦β⟧ (since reach(β) is the exclusive upper bound of β). Therefore ⟦α⟧ \ ⟦β⟧ = {t : reach(β) ≤ t < reach(α)}.
+
+Define γ' = (reach(β), reach(α) ⊖ reach(β)). We verify D1 preconditions for the pair (reach(β), reach(α)): reach(β) < reach(α) is given; level-uniformity of α gives #reach(α) = #start(α), level-uniformity of β gives #reach(β) = #start(β), and level_compat(start(α), start(β)) gives #start(α) = #start(β), so #reach(β) = #reach(α) — neither is a proper prefix of the other, so divergence is of type (i) with k ≤ #reach(β). By D1, reach(γ') = reach(β) ⊕ (reach(α) ⊖ reach(β)) = reach(α). The span is level-uniform: #width(γ') = max(#reach(α), #reach(β)) = #reach(β) = #start(γ'). This is non-empty: reach(β) ∈ ⟦α⟧ (since start(α) < reach(β) < reach(α)) and reach(β) ∉ ⟦β⟧ (since reach is the exclusive upper bound), so reach(β) ∈ ⟦α⟧ \ ⟦β⟧. The result is exactly 1 span.
 
 
 ## Unified difference bound
@@ -48,7 +50,7 @@ The four results combine into a single statement covering all SC cases:
 
 **S11d** — *GeneralDifferenceBound* (LEMMA, lemma). For level-uniform spans α and β with level_compat(start(α), start(β)), the set difference ⟦α⟧ \ ⟦β⟧ is expressible as a span-set of at most 2 spans.
 
-*Proof.* By SC (SpanClassification, ASN-0053), exactly one of five cases holds:
+*Proof.* By SC (SpanClassification, ASN-0053), exactly one of five cases holds. For the reverse containment sub-case of SC(iv) — start(β) ≤ start(α) and reach(α) ≤ reach(β) with at least one strict — we derive ⟦α⟧ ⊆ ⟦β⟧: for t ∈ ⟦α⟧, start(β) ≤ start(α) ≤ t and t < reach(α) ≤ reach(β), so t ∈ ⟦β⟧. Hence the difference is empty.
 
 | SC case | Difference | Bound | By |
 |---------|-----------|-------|----|
@@ -56,7 +58,7 @@ The four results combine into a single statement covering all SC cases:
 | (ii) Adjacent | ⟦α⟧ | 1 span | S11a |
 | (iii) Proper overlap | 1 span | 1 span | S11c |
 | (iv) Containment (⟦β⟧ ⊂ ⟦α⟧) | at most 2 spans | 2 spans | S11 (ASN-0053) |
-| (iv) Containment (⟦α⟧ ⊂ ⟦β⟧) | ∅ | 0 spans | ⟦α⟧ ⊆ ⟦β⟧ ⟹ difference empty |
+| (iv) Containment (⟦α⟧ ⊂ ⟦β⟧) | ∅ | 0 spans | ⟦α⟧ ⊆ ⟦β⟧ (derived above) |
 | (v) Equal | ∅ | 0 spans | S11b |
 
 The maximum across all cases is 2, achieved only in the containment case.  ∎
@@ -75,6 +77,7 @@ The bound of 2 is tight: S11 (ASN-0053) shows containment achieves it. No SC cas
 | S11 | LEMMA, lemma | Containment difference bound (DifferenceBound, ASN-0053) | cited |
 | SC | LEMMA, lemma | SpanClassification (ASN-0053) | cited |
 | D1 | LEMMA, lemma | DisplacementRoundTrip (ASN-0053) | cited |
+| T12 | AXIOM, predicate | SpanWellDefined (ASN-0034) | cited |
 
 
 ## Open Questions
