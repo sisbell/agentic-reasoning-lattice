@@ -1,8 +1,0 @@
-# ASN-0057 — Tumbler Algebra 0
-title: "Tumbler Algebra 0"
-extends: 34
-source: 53
-depends: [34]
-
-inquiry:
-  question: "Extension of ASN-0034: properties D0, D1 from ASN-0053."
