@@ -105,6 +105,8 @@ which requires: `(A a : a ∈ coverage(e) ∩ ran(M(d)) : a ∉ ran(M'(d)))` —
 
 Nelson's survivability condition — "if anything is left at each end" — is precisely the negation of this: as long as at least one I-address from the endset remains in d's arrangement, the endset survives in d.
 
+*For resolution:* resolve_{Σ'}(e, d) ⊆ resolve_Σ(e, d). Let v ∈ resolve_{Σ'}(e, d). Then v ∈ dom(M'(d)) and M'(d)(v) ∈ coverage(e). Since K.μ⁻ restricts the domain (dom(M'(d)) ⊂ dom(M(d))) while preserving values (M'(d)(v) = M(d)(v) for all v ∈ dom(M'(d))), we have v ∈ dom(M(d)) and M(d)(v) = M'(d)(v) ∈ coverage(e), giving v ∈ resolve_Σ(e, d). ∎
+
 
 ### Contraction Is Document-Local
 
@@ -140,9 +142,11 @@ The deeper question is: could a newly allocated I-address fall within the covera
 
 The answer depends on the allocation regime and the address hierarchy. We establish what is provable and identify where the answer is level-dependent.
 
-**SV6 (CrossOriginExclusion).** For a span (s, ℓ) in an existing endset and a newly allocated address b with origin(b) ≠ origin(s), when the action point of ℓ falls within the element field (i.e., beyond the three field separators):
+**SV6 (CrossOriginExclusion).** For a span (s, ℓ) in an existing endset where s is element-level (zeros(s) = 3), and a newly allocated address b with zeros(b) = 3 and origin(b) ≠ origin(s), when the action point of ℓ falls within the element field (i.e., beyond the three field separators):
 
 `b ∉ ⟦(s, ℓ)⟧`
+
+*Precondition:* s and b are element-level tumblers (zeros(s) = 3, zeros(b) = 3), so origin(s) and origin(b) are well-defined (per the origin definition in ASN-0036, which requires element-level arguments). L4 (EndsetGenerality) permits non-element-level span starts, but the origin-based exclusion applies only when the start is element-level.
 
 *Proof.* Let k be the action point of ℓ. By TumblerAdd, components before k are copied from s, and (s ⊕ ℓ)ₖ = sₖ + ℓₖ, so s and s ⊕ ℓ agree on positions 1 through k−1. Now consider any t with s ≤ t < s ⊕ ℓ. We claim t agrees with s on all positions 1 through k−1. For suppose t diverges from s at position j < k. Then tⱼ ≠ sⱼ. Since t ≥ s, we have tⱼ > sⱼ (T1 case (i) at the first point of disagreement). But sⱼ = (s ⊕ ℓ)ⱼ (both copy from s at positions before k), so tⱼ > (s ⊕ ℓ)ⱼ, giving t > s ⊕ ℓ by T1 — contradicting t < s ⊕ ℓ. Hence t agrees with s on all positions 1 through k−1.
 
@@ -179,15 +183,15 @@ This is the set of links whose endset at slot s shares at least one I-address wi
 
 In practice, the query set A is derived from a document's arrangement: a reader examines some V-region of document d, the system converts those V-positions to I-addresses via M(d), and then searches for links whose endsets intersect those I-addresses. But the discovery function itself is defined purely in I-space, independent of any particular document.
 
-**SV7 (DiscoveryByContentIdentity).** Discovery depends only on the I-address intersection, not on document identity:
+We observe that discover_s is defined purely as a function of an I-address set — it is parameterised by I-addresses, not by document-V-region pairs. So identical I-address sets trivially yield identical discovery results. The interesting consequence is not this definitional fact but the *transclusion discovery guarantee* it entails:
 
-`(A d₁, d₂, V₁, V₂ : {M(d₁)(v) : v ∈ V₁} = {M(d₂)(v) : v ∈ V₂} :: discover_s({M(d₁)(v) : v ∈ V₁}) = discover_s({M(d₂)(v) : v ∈ V₂}))`
+**SV7 (TransclusionDiscovery).** If K.μ⁺ extends M(d₂) with a mapping v ↦ a where a ∈ ran(M(d₁)), then every link discoverable through a in d₁ is immediately discoverable through a in d₂, with no additional coupling step:
 
-If two documents (or two regions of the same document) contain the same I-addresses, they discover the same links. Discovery is a property of content identity, not of document identity or arrangement.
+`(A Σ →_{K.μ⁺} Σ', a ∈ ran(M(d₁)) ∩ ran(M'(d₂)), s :: discover_s({a}) in Σ ⊆ discover_s({a}) in Σ')`
 
-This has a powerful consequence: when a document is versioned (J4, Fork), the new version shares I-addresses with the source (by the fork's K.μ⁺ step, which copies V→I mappings from the source). Therefore the version discovers the same links as the source, for any content that both share. No explicit "link copying" is needed; discovery follows automatically from shared content identity.
+*Proof.* Let b ∈ discover_s({a}) in Σ. Then coverage(Σ.L(b).s) ∩ {a} ≠ ∅. By L12, Σ'.L(b) = Σ.L(b), so coverage(Σ'.L(b).s) ∩ {a} ≠ ∅. Since a ∈ ran(M'(d₂)), a query through d₂ in Σ' includes a in its I-address set, and the intersection with b's endset coverage remains non-empty. ∎
 
-Similarly, when content is transcluded (K.μ⁺ mapping a V-position to an existing I-address), the target document immediately discovers all links that reference that I-address — without any action by the link creator.
+The non-trivial content: no "link copying" step is required. When content is transcluded into d₂ by mapping a V-position to an existing I-address a, the link infrastructure does not need to be updated — d₂ inherits all of a's link associations automatically, because discovery operates on I-addresses and L12 preserves the link store. This applies equally to forking (J4): the new version shares I-addresses with the source by the fork's K.μ⁺ step, so it discovers the same links for all shared content without explicit link propagation.
 
 **SV8 (DiscoveryPermanence).** For any fixed set of I-addresses A:
 
@@ -325,10 +329,10 @@ We can now synthesize the survivability guarantee into a single coherent stateme
 (e) *Resolution is arrangement-dependent:*
 - Extension of M(d) can only enlarge resolve(e, d). [SV2]
 - Contraction of M(d) can only shrink resolve(e, d). [SV3]
-- Reordering of M(d) preserves π(e, d) but changes resolve(e, d). [SV5]
+- Reordering of M(d) preserves π(e, d) but may change resolve(e, d). [SV5]
 - Changes to M(d) cannot affect resolve(e, d') for d' ≠ d. [SV4]
 
-(f) *Coverage stability is level-dependent:* new allocations from a different origin cannot enter existing endset spans when the action point is within the element field (SV6). Same-origin coverage growth depends on the allocation regime — closed at the byte level by sequential sibling allocation, open at broader address levels by design. [SV6]
+(f) *Coverage stability is level-dependent:* new allocations from a different origin cannot enter existing endset spans when the span start is element-level and the action point is within the element field — this is formally proved from the foundations (SV6). Same-origin coverage growth depends on the allocation regime — closed at the byte level by sequential sibling allocation, open at broader address levels by design (the byte-level closure follows from allocation discipline assumptions not formalised in this ASN; see the architectural analysis in the "Content Allocation and Coverage Stability" section).
 
 (g) *Partial survival is well-structured:* the surviving projection in any document decomposes into finitely many ordinal-contiguous fragments within mapping blocks. [SV11]
 
@@ -353,7 +357,7 @@ Nelson's "strap between bytes" is exactly right. The strap (the link's endsets) 
 | SV4 | ArrangementIsolation: arrangement changes to M(d) do not affect π(e, d') for d' ≠ d | introduced |
 | SV5 | ReorderingProjectionInvariance: K.μ~ preserves π(e, d) exactly | introduced |
 | SV6 | CrossOriginExclusion: allocations from a different document prefix cannot enter existing endset spans (within element field) | introduced |
-| SV7 | DiscoveryByContentIdentity: discovery depends on I-address intersection, not document identity | introduced |
+| SV7 | TransclusionDiscovery: K.μ⁺ mapping v ↦ a in d₂ where a ∈ ran(M(d₁)) immediately inherits all link discoverability through a, with no coupling step | introduced |
 | SV8 | DiscoveryPermanence: once discoverable through A, always discoverable | introduced |
 | SV9 | DiscoveryMonotonicity: the discoverable set is non-decreasing as links are created | introduced |
 | SV10 | DiscoveryResolutionIndependence: discovery and resolution answer different questions with different filters | introduced |
