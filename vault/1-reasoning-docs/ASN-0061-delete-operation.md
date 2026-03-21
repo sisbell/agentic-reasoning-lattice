@@ -15,7 +15,7 @@ Before we can specify DELETE, we must name the invariant DELETE must preserve. N
 
 We formalize this as a contiguity predicate on V-positions within a subspace. Write S = subspace(v) = v₁ for the subspace identifier (the first component of the element-field V-position), and V_S(d) = {v ∈ dom(M(d)) : subspace(v) = S} for the set of V-positions in subspace S of document d. All V-positions in a given subspace share the same tumbler depth (S8-depth, ASN-0036).
 
-**D-CTG — VContiguity (DESIGN).** For each document d and subspace S, V_S(d) is either empty or occupies every intermediate position between its extremes:
+V-position contiguity is established by the foundation. **D-CTG** (*VContiguity*, ASN-0036): for each document d and subspace S, V_S(d) is either empty or occupies every intermediate position between its extremes:
 
 `(A d, S, u, q : u ∈ V_S(d) ∧ q ∈ V_S(d) ∧ u < q : (A v : subspace(v) = S ∧ #v = #u ∧ u < v < q : v ∈ V_S(d)))`
 
@@ -392,7 +392,7 @@ Several aspects of Gregory's implementation illuminate the abstract specificatio
 | ord(v) | Ordinal extraction: ord(v) = [v₂, ..., vₘ] strips the subspace identifier | introduced |
 | vpos(S, o) | V-position reconstruction: vpos(S, o) = [S, o₁, ..., oₖ]; inverse of ord | introduced |
 | w_ord | Ordinal displacement projection: w_ord = [w₂, ..., wₘ] for V-depth w with w₁ = 0 | introduced |
-| D-CTG | V-positions within each subspace form a contiguous ordinal range — design constraint (DESIGN, not a reachable-state invariant) assumed and preserved by DELETE | introduced |
+| D-CTG | V-positions within each subspace form a contiguous ordinal range — design constraint assumed and preserved by DELETE | cited (ASN-0036) |
 | D-PRE | DELETE requires d ∈ E_doc, w > 0, subspace(p) ≥ 1, #p = 2, span ⊆ current extent, #w = #p, w₁ = 0 | introduced |
 | D-LEFT | (A v ∈ L : M'(d)(v) = M(d)(v)) — left region unchanged | introduced |
 | D-DOM | dom(M'(d)) ∩ V_S = L ∪ Q₃ — post-state domain fully determined by D-LEFT and D-SHIFT | introduced |
