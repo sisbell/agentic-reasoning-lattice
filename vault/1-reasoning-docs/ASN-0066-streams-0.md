@@ -2,7 +2,7 @@
 
 *2026-03-21*
 
-This ASN extends the two-space model (ASN-0036) with a contiguity design constraint on document arrangements. Nelson states that the Vstream is always a "dense, contiguous sequence" — after removal, "the v-stream addresses of any following characters in the document are [decreased] by the length of the [deleted] text" [LM 4/66]. The Vstream has no concept of empty positions: "if you have 100 bytes, you have addresses 1 through 100." We formalize this structural property as a constraint on V-position sets within each subspace, extending the arrangement invariants established in ASN-0036.
+This ASN extends the two-space model (ASN-0036) with a contiguity design constraint on document arrangements. Nelson states that the Vstream is always a "dense, contiguous sequence" — after removal, "the v-stream addresses of any following characters in the document are [decreased] by the length of the [deleted] text" [LM 4/66]. The Vstream has no concept of empty positions: "if you have 100 bytes, you have addresses 1 through 100." We formalize these structural properties as constraints on V-position sets within each subspace, extending the arrangement invariants established in ASN-0036.
 
 
 ## Subspace Position Sets
@@ -20,18 +20,49 @@ In words: within each subspace, V-positions form a contiguous ordinal range with
 
 For the standard text subspace at depth m = 2, this is a finite condition: the intermediates between [S, a] and [S, b] are the finitely many [S, i] with a < i < b. Combined with S8-fin (dom(M(d)) is finite), contiguity at depth 2 says V_S(d) occupies a single unbroken block of ordinals.
 
-D-CTG is a design constraint on well-formed document states, not a reachable-state invariant in the ASN-0047 sense (it does not appear in the ReachableStateInvariants theorem). It further restricts which composite transitions constitute well-formed editing operations, beyond ASN-0047's validity predicate. We verify the base case: in Σ₀, V_S(d) = ∅ for all d and S (since M₀(d) = ∅ by InitialState, ASN-0047), so D-CTG holds vacuously. Note that bare K.μ⁻ — a valid elementary transition under ASN-0047 — can violate D-CTG by removing a single interior V-position; D-CTG is therefore not preserved by all valid composites, only by those that constitute well-formed editing operations.
+At depth m ≥ 3, D-CTG combined with S8-fin and S8a forces a stronger restriction. Suppose V_S(d) contained two positions differing before the last component — say [S, 1, 5] and [S, 2, 1]. Every intermediate [S, v₂, v₃] with [S, 1, 5] < [S, v₂, v₃] < [S, 2, 1] must belong to V_S(d) by D-CTG. But these intermediates include [S, 1, 6], [S, 1, 7], ... — infinitely many positions with v₂ = 1, contradicting S8-fin. Furthermore, the intermediate [S, 2, 0] (which satisfies [S, 1, 5] < [S, 2, 0] < [S, 2, 1] under T1) would require a zero component in a text-subspace V-position, violating S8a. We conclude: at depth m ≥ 3, all positions in a non-empty V_S(d) must share components 2 through m − 1, and contiguity reduces to contiguity of the last component alone — structurally identical to the depth 2 case.
 
-We treat D-CTG as a precondition that DELETE both assumes and preserves. Whether INSERT, COPY, and REARRANGE also preserve D-CTG is a separate verification obligation for each operation's ASN.
+D-CTG is a design constraint on well-formed document states. It constrains which arrangement modifications constitute well-formed editing operations. We verify the base case: before any operations, dom(M(d)) = ∅ for all d (ASN-0036 introduces the arrangement as a partial function; no content has been allocated, so no V-mapping exists), so V_S(d) = ∅ for every subspace S, and D-CTG holds vacuously. Observe that not all arrangement modifications preserve D-CTG: removing a single interior V-position from dom(M(d)) leaves the positions on either side no longer contiguous. D-CTG is therefore preserved only by those modifications that constitute well-formed editing operations — operations that restore contiguity after structural changes (e.g., by shifting subsequent positions).
+
+Whether DELETE, INSERT, COPY, and REARRANGE preserve D-CTG is a verification obligation for each operation's ASN.
+
+
+## Starting Position
+
+Nelson's statement specifies not just contiguity but also the starting ordinal: "addresses 1 through 100," not "42 through 141." All ordinal numbering in the tumbler system starts at 1: the first child is always .1 (LM 4/20), link positions within a document begin at 1 (LM 4/31), and position 0 is structurally unavailable since zero serves as a field separator (T4, ASN-0034). V-positions follow the same convention.
+
+**D-MIN — VMinimumPosition (DESIGN).** For each document d and subspace S with V_S(d) non-empty:
+
+`min(V_S(d)) = [S, 1, ..., 1]`
+
+where the tuple has length m (the common depth of V-positions in subspace S per S8-depth, ASN-0036), and every component after the first is 1.
+
+At depth 2 this gives min(V_S(d)) = [S, 1]. Combined with D-CTG and S8-fin, a document with n elements in subspace S occupies V-positions [S, 1] through [S, n] — matching Nelson's "addresses 1 through 100."
+
+
+## Concrete Example
+
+Consider document d at depth 2 in the text subspace (S = 1), with arrangement:
+
+M(d) = {[1,1] ↦ a₁,  [1,2] ↦ a₂,  [1,3] ↦ a₃}
+
+Then V₁(d) = {[1,1], [1,2], [1,3]}.
+
+**D-CTG check.** The extremes are [1,1] and [1,3]. The only intermediate with subspace 1 and depth 2 between them is [1,2], which is in V₁(d). For the adjacent pairs — ([1,1],[1,2]) and ([1,2],[1,3]) — there are no intermediates. D-CTG is satisfied. ✓
+
+**D-MIN check.** min(V₁(d)) = [1,1], whose last component is 1. ✓
+
+**Violation.** Suppose we removed [1,2], yielding V₁(d) = {[1,1], [1,3]}. Now [1,2] is an intermediate between [1,1] and [1,3] that is absent from V₁(d) — D-CTG is violated. This illustrates why removing a single interior V-position is not a well-formed editing operation on its own; a well-formed deletion must also shift subsequent positions to restore contiguity.
 
 
 ## Statement Registry
 
 | Label | Type | Statement | Status |
 |-------|------|-----------|--------|
-| D-CTG | DESIGN | V-positions within each subspace form a contiguous ordinal range — design constraint assumed and preserved by well-formed editing operations | introduced |
+| D-CTG | DESIGN | V-positions within each subspace form a contiguous ordinal range — design constraint on well-formed document states | introduced |
+| D-MIN | DESIGN | The minimum V-position in each non-empty subspace has all post-subspace components equal to 1 | introduced |
 
 
 ## Open Questions
 
-Does every well-formed editing operation (INSERT, COPY, REARRANGE) preserve D-CTG, or are there operations that legitimately produce non-contiguous V-position sets?
+Does each well-formed editing operation (DELETE, INSERT, COPY, REARRANGE) preserve D-CTG and D-MIN?
