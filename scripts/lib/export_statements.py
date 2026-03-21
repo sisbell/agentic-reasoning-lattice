@@ -212,6 +212,14 @@ def main():
                    f"Export statements {label}"]
             subprocess.run(cmd, capture_output=True, text=True,
                            cwd=str(WORKSPACE))
+            # Hint: check if this is an extension
+            from paths import load_manifest
+            asn_num = int(re.sub(r"[^0-9]", "", str(args.asns[0])))
+            manifest = load_manifest(asn_num)
+            if manifest.get("extends"):
+                print(f"\n  [NEXT] Absorb into base: "
+                      f"python scripts/absorb.py {asn_num}",
+                      file=sys.stderr)
         if not ok:
             sys.exit(1)
         return

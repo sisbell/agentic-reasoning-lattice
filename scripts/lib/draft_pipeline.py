@@ -263,7 +263,11 @@ def run_pipeline(inquiry, target_step, resume_from=None, force=False, dry_run=Fa
 
     # Step: questions (preview only — if this is the target, stop here)
     if "questions" in run_steps and target_step == "questions":
-        return step_questions(inquiry)
+        result = step_questions(inquiry)
+        print(f"\n  [NEXT] Run consultation + draft: "
+              f"python scripts/draft.py --inquiries {asn_number} --resume consult",
+              file=sys.stderr)
+        return result
 
     # Step: consult (includes question generation)
     if "consult" in run_steps:
@@ -281,6 +285,14 @@ def run_pipeline(inquiry, target_step, resume_from=None, force=False, dry_run=Fa
     # Step: commit
     if "commit" in run_steps:
         step_commit(f"ASN-{asn_number:04d} {title}")
+
+    # Hint for next step
+    if target_step in ("discover", "commit"):
+        print(f"\n  [NEXT] Run review: python scripts/review.py {asn_number}",
+              file=sys.stderr)
+        print(f"  [NEXT] Or review/revise loop: "
+              f"python scripts/revise.py {asn_number} --converge",
+              file=sys.stderr)
 
     return True
 
