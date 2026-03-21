@@ -131,13 +131,13 @@ Arrangement reordering (K.μ~, ArrangementReordering) is a bijection on V-positi
 
 `(A Σ →_{K.μ~} Σ', e, d :: π_{Σ'}(e, d) = π_Σ(e, d))`
 
-Rearrangement cannot change which I-addresses are in the projection. The endset references exactly the same content before and after. What changes is *where* that content appears. Let π be the reordering bijection from K.μ~ (so that M'(d)(π(v)) = M(d)(v) for all v ∈ dom(M(d))). The formal relationship is:
+Rearrangement cannot change which I-addresses are in the projection. The endset references exactly the same content before and after. What changes is *where* that content appears. Let ψ be the reordering bijection from K.μ~ (so that M'(d)(ψ(v)) = M(d)(v) for all v ∈ dom(M(d))). The formal relationship is:
 
-`resolve_{Σ'}(e, d) = {π(v) : v ∈ resolve_Σ(e, d)}`
+`resolve_{Σ'}(e, d) = {ψ(v) : v ∈ resolve_Σ(e, d)}`
 
-*Proof.* v' ∈ resolve_{Σ'}(e, d) iff M'(d)(v') ∈ coverage(e). Since π is a bijection on dom(M(d)) = dom(M'(d)), v' = π(v) for a unique v, and M'(d)(π(v)) = M(d)(v). So M'(d)(v') ∈ coverage(e) iff M(d)(v) ∈ coverage(e) iff v ∈ resolve_Σ(e, d). ∎
+*Proof.* v' ∈ resolve_{Σ'}(e, d) iff M'(d)(v') ∈ coverage(e). Since ψ is a bijection from dom(M(d)) to dom(M'(d)), v' = ψ(v) for a unique v, and M'(d)(ψ(v)) = M(d)(v). So M'(d)(v') ∈ coverage(e) iff M(d)(v) ∈ coverage(e) iff v ∈ resolve_Σ(e, d). ∎
 
-In general, resolve_{Σ'}(e, d) ≠ resolve_Σ(e, d) as sets. *Witness:* let dom(M(d)) = {v₁, v₂} with M(d) = {v₁ ↦ a₁, v₂ ↦ a₂}, and let coverage(e) = {a₁} (so resolve_Σ(e, d) = {v₁}). The swap π(v₁) = v₂, π(v₂) = v₁ gives M'(d) = {v₁ ↦ a₂, v₂ ↦ a₁}, so resolve_{Σ'}(e, d) = {v₂} ≠ {v₁}. The resolve set changes whenever π maps a V-position inside the resolve set to one outside it, or vice versa.
+In general, resolve_{Σ'}(e, d) ≠ resolve_Σ(e, d) as sets. *Witness:* let dom(M(d)) = {v₁, v₂} with M(d) = {v₁ ↦ a₁, v₂ ↦ a₂}, and let coverage(e) = {a₁} (so resolve_Σ(e, d) = {v₁}). The swap ψ(v₁) = v₂, ψ(v₂) = v₁ gives M'(d) = {v₁ ↦ a₂, v₂ ↦ a₁}, so resolve_{Σ'}(e, d) = {v₂} ≠ {v₁}. The resolve set changes whenever ψ maps a V-position inside the resolve set to one outside it, or vice versa.
 
 This is the precise sense in which links "track content, not location." The strap-between-bytes metaphor (Nelson: "A Xanadu link is not between points, but between spans of data. Thus we may visualize it as a strap between bytes" [LM 4/42]) expresses this property: rearranging the beads on the string doesn't alter which beads the strap holds, only where they sit.
 
@@ -296,9 +296,9 @@ Discovery through d still works for queries including a₂ or a₄. But discover
 - π(F, d) = {a₂, a₄} — unchanged (SV5)
 - resolve(F, d) = {v₂, v₄} — the V-positions happen to be the same set, because π permutes within the resolve set (both v₂ and v₄ map to I-addresses in coverage(F) before and after the swap)
 
-Note: this worked example illustrates a special case where the resolve *set* is preserved because the swap exchanges two V-positions that both belong to the resolve set. In the general case, the resolve set changes — see the witness in the SV5 discussion. The formal relationship resolve_{Σ'}(F, d) = {π(v) : v ∈ resolve_Σ(F, d)} holds here: π(v₂) = v₄ and π(v₄) = v₂, so {π(v₂), π(v₄)} = {v₂, v₄} = resolve_Σ(F, d).
+Note: this worked example illustrates a special case where the resolve *set* is preserved because the swap exchanges two V-positions that both belong to the resolve set. In the general case, the resolve set changes — see the witness in the SV5 discussion. The formal relationship resolve_{Σ'}(F, d) = {ψ(v) : v ∈ resolve_Σ(F, d)} holds here: ψ(v₂) = v₄ and ψ(v₄) = v₂, so {ψ(v₂), ψ(v₄)} = {v₂, v₄} = resolve_Σ(F, d).
 
-The projection is invariant under reordering; the resolution set transforms by the reordering bijection.
+The projection is invariant under reordering; the resolution set transforms by the reordering bijection ψ.
 
 
 ## Content Fidelity
@@ -335,7 +335,7 @@ We can now synthesize the survivability guarantee into a single coherent stateme
 (e) *Resolution is arrangement-dependent:*
 - Extension of M(d) can only enlarge resolve(e, d). [SV2]
 - Contraction of M(d) can only shrink resolve(e, d). [SV3]
-- Reordering of M(d) preserves π(e, d); resolve_{Σ'}(e, d) = {π(v) : v ∈ resolve_Σ(e, d)} where π is the reordering bijection. The resolve *set* may change. [SV5]
+- Reordering of M(d) preserves π(e, d); resolve_{Σ'}(e, d) = {ψ(v) : v ∈ resolve_Σ(e, d)} where ψ is the reordering bijection from K.μ~. The resolve *set* may change. [SV5]
 - Changes to M(d) cannot affect resolve(e, d') for d' ≠ d. [SV4]
 - All other elementary transitions (K.α, K.δ, K.ρ) preserve M in their frame, so resolve(e, d) is unchanged.
 
