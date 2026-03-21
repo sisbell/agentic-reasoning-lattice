@@ -120,6 +120,8 @@ Nelson's survivability condition — "if anything is left at each end" — is pr
 
 Arrangement operations on document d do not alter any other document's arrangement (frame conditions of K.μ⁺, K.μ⁻, K.μ~: `(A d' : d' ≠ d : M'(d') = M(d'))`). Therefore π_{Σ'}(e, d') = coverage(e) ∩ ran(M'(d')) = coverage(e) ∩ ran(M(d')) = π_Σ(e, d').
 
+*For resolution:* `resolve_{Σ'}(e, d') = resolve_Σ(e, d')`. Since M'(d') = M(d') (frame), resolve_{Σ'}(e, d') = {v ∈ dom(M'(d')) : M'(d')(v) ∈ coverage(e)} = {v ∈ dom(M(d')) : M(d')(v) ∈ coverage(e)} = resolve_Σ(e, d'). ∎
+
 This is a crucial survivability guarantee: one user's editing of their document cannot affect the projection of any endset in any other user's document. If Alice links to a passage in Bob's document, and Bob deletes that passage, the link's projection in *Alice's* document is unaffected. Only the projection in *Bob's* document changes.
 
 The link itself, being in Σ.L, is untouched by either party's edits. What changes is only the observable view through a specific document's arrangement.
@@ -315,7 +317,7 @@ for every endset slot s.
 
 This follows immediately from S0 (ContentImmutability): content at an I-address never changes. But the survivability implication merits emphasis: whatever portion of the endset remains visible in a document's arrangement, the content at those I-addresses is *exactly* what was there when the link was created. No edit, no revision, no amount of rearrangement can alter the content the link references. The surviving fragment may be smaller than the original endset, but each byte in the fragment is identical to the original.
 
-Nelson: "The link holder can rely on the strongest possible content guarantee short of cryptographic verification: the system's fundamental architecture makes it impossible to change content at an I-address through any defined operation."
+The guarantee is the strongest possible short of cryptographic verification: the system's fundamental architecture makes it impossible to change content at an I-address through any defined operation.
 
 The guarantee is architectural rather than cryptographic — there is no hash or signature that a client can verify independently. The guarantee rests on the structural property that the content store is append-only (S1, StoreMonotonicity) and values are frozen at allocation (S0). Nelson explicitly acknowledges this is contractual trust, not mathematical proof of non-tampering [LM 5/17–18].
 
@@ -363,7 +365,7 @@ Nelson's "strap between bytes" is exactly right. The strap (the link's endsets) 
 | SV1 | ArrangementLinkFrame: arrangement changes preserve L entirely | introduced |
 | SV2 | ExtensionMonotonicity: K.μ⁺ can only enlarge π(e, d) | introduced |
 | SV3 | ContractionReduction: K.μ⁻ can only shrink π(e, d) | introduced |
-| SV4 | ArrangementIsolation: arrangement changes to M(d) do not affect π(e, d') for d' ≠ d | introduced |
+| SV4 | ArrangementIsolation: arrangement changes to M(d) do not affect π(e, d') or resolve(e, d') for d' ≠ d | introduced |
 | SV5 | ReorderingProjectionInvariance: K.μ~ preserves π(e, d) exactly | introduced |
 | SV6 | CrossOriginExclusion: allocations from a different document prefix cannot enter existing endset spans (within element field) | introduced |
 | SV7 | TransclusionCouplingAbsence: K.μ⁺ alone suffices for d₂ to inherit link discoverability — no K.ρ or link-store coupling required (corollary of SV8) | introduced |
