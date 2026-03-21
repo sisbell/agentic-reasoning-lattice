@@ -1,6 +1,6 @@
 # ASN-0034: Tumbler Algebra
 
-*2026-03-13, revised 2026-03-19*
+*2026-03-13, revised 2026-03-19, 2026-03-21*
 
 We wish to understand what algebraic structure the Xanadu addressing system must possess. The system assigns every entity a permanent address — a *tumbler* — and requires these addresses to support comparison, containment testing, arithmetic for span computation and position advancement, and coordination-free allocation across a global network. We seek the minimal set of abstract properties that any correct implementation must provide, deriving each from design requirements rather than from any particular representation.
 
@@ -532,6 +532,57 @@ When a = b, no displacement is needed; the degenerate case is handled separately
 The generalization to #a < #b can be seen with a' = [1, 2] and the same b = [1, 5, 1]. Here #a' = 2 < 3 = #b, the divergence is still 2 (a'₂ = 2 ≠ 5 = b₂), and k = 2 ≤ #a' = 2 satisfies D0. TumblerSub (zero-padding a' to length 3) gives the same w = [0, 3, 1] of length 3. The round-trip a' ⊕ [0, 3, 1] produces [1, 5, 1] = b — the result has length #w = 3 = #b, matching the target.
 
 
+### Ordinal displacement and shift
+
+**Definition — OrdinalDisplacement.** For natural number n ≥ 1 and depth m ≥ 1, the *ordinal displacement* δ(n, m) is the tumbler [0, 0, ..., 0, n] of length m — zero at positions 1 through m − 1, and n at position m. Its action point is m.
+
+When the depth is determined by context (typically m = #v for the tumbler being shifted), we write δₙ.
+
+**Definition — OrdinalShift.** For a tumbler v of length m and natural number n ≥ 1:
+
+`shift(v, n) = v ⊕ δ(n, m)`
+
+TA0 is satisfied: the action point of δ(n, m) is m = #v, so k ≤ #v holds trivially. By TumblerAdd: shift(v, n)ᵢ = vᵢ for i < m, and shift(v, n)ₘ = vₘ + n. The shift advances the deepest component by exactly n, leaving all higher-level components unchanged.
+
+Additionally, shift preserves structural properties. When m ≥ 2, the action point of δₙ leaves position 1 unchanged — shift(v, n)₁ = v₁. When m = 1, shift([S], n) = [S + n] changes the first component. Furthermore, #shift(v, n) = #δₙ = m = #v by the result-length identity of TumblerAdd. The shift preserves tumbler depth, and — since n ≥ 1 — component positivity: shift(v, n)ₘ = vₘ + n ≥ 1 unconditionally for all vₘ ≥ 0.
+
+**I6 — ShiftOrderPreservation.**
+
+`(A v₁, v₂, n : n ≥ 1 ∧ #v₁ = #v₂ = m ∧ v₁ < v₂ : shift(v₁, n) < shift(v₂, n))`
+
+*Derivation.* Fix n ≥ 1. Since #v₁ = #v₂ = m and v₁ ≠ v₂, the divergence point satisfies divergence(v₁, v₂) ≤ m. The action point of δₙ is m ≥ divergence(v₁, v₂). By TA1-strict: v₁ ⊕ δₙ < v₂ ⊕ δₙ. ∎
+
+**I7 — ShiftInjectivity.**
+
+`(A v₁, v₂, n : n ≥ 1 ∧ #v₁ = #v₂ = m : shift(v₁, n) = shift(v₂, n) ⟹ v₁ = v₂)`
+
+*Derivation.* Fix n ≥ 1. By TA-MTO: v₁ ⊕ δₙ = v₂ ⊕ δₙ iff (A i : 1 ≤ i ≤ m : v₁ᵢ = v₂ᵢ). The action point of δₙ is m, and agreement at positions 1..m for tumblers of length m means v₁ = v₂ by T3 (CanonicalRepresentation). ∎
+
+**I8 — ShiftComposition.**
+
+`(A v, n₁, n₂ : n₁ ≥ 1 ∧ n₂ ≥ 1 ∧ #v = m : shift(shift(v, n₁), n₂) = shift(v, n₁ + n₂))`
+
+*Derivation.* Expanding: shift(shift(v, n₁), n₂) = (v ⊕ δ(n₁, m)) ⊕ δ(n₂, m). By TA-assoc: (v ⊕ δ(n₁, m)) ⊕ δ(n₂, m) = v ⊕ (δ(n₁, m) ⊕ δ(n₂, m)). The action point of both displacements is m. By TumblerAdd, δ(n₁, m) ⊕ δ(n₂, m) has components 0 at positions 1..m−1 and n₁ + n₂ at position m — that is, δ(n₁ + n₂, m). So the expression equals v ⊕ δ(n₁ + n₂, m) = shift(v, n₁ + n₂). ∎
+
+**I9 — ShiftStrictIncrease.**
+
+`(A v, n : n ≥ 1 ∧ #v = m : shift(v, n) > v)`
+
+*Derivation.* δ(n, m) > 0 since its m-th component is n ≥ 1. By TA-strict: v ⊕ δ(n, m) > v. ∎
+
+**I10 — ShiftAmountMonotonicity.**
+
+`(A v, n₁, n₂ : n₁ ≥ 1 ∧ n₂ > n₁ ∧ #v = m : shift(v, n₁) < shift(v, n₂))`
+
+*Derivation.* Write n₂ = n₁ + (n₂ − n₁) where n₂ − n₁ ≥ 1. By I8: shift(v, n₂) = shift(shift(v, n₁), n₂ − n₁). By I9: shift(shift(v, n₁), n₂ − n₁) > shift(v, n₁). ∎
+
+*Worked example.* Let v = [2, 3, 7] (m = 3) and n = 4. Then δ(4, 3) = [0, 0, 4] with action point 3. TA0: k = 3 ≤ 3 = #v. By TumblerAdd: shift(v, 4) = [2, 3, 7 + 4] = [2, 3, 11].
+
+For I6: take v₁ = [2, 3, 5] < v₂ = [2, 3, 9] with n = 4. Then shift(v₁, 4) = [2, 3, 9] < [2, 3, 13] = shift(v₂, 4). ✓
+
+For I8: shift(shift([2, 3, 7], 4), 3) = shift([2, 3, 11], 3) = [2, 3, 14] = shift([2, 3, 7], 7). ✓
+
+
 ## Increment for allocation
 
 A separate operation, distinct from the shifting arithmetic, handles address allocation. When the system allocates a new address, it takes the highest existing address in a partition and produces the next one. This is not addition of a width; it is advancement of a counter at a specified hierarchical level.
@@ -765,6 +816,13 @@ Removing any independent property breaks a system-level guarantee. T6 and T7 are
 | D0 | Displacement well-definedness: a < b and divergence(a, b) ≤ #a ensures positive displacement with TA0 satisfied | introduced |
 | D1 | Displacement round-trip: for a < b with divergence(a, b) ≤ #a and #a ≤ #b, a ⊕ (b ⊖ a) = b | lemma (from ⊕/⊖ defn + T3) |
 | D2 | Displacement uniqueness: under D1's preconditions, if a ⊕ w = b then w = b ⊖ a | corollary of D1 + TA-LC |
+| OrdinalDisplacement | δ(n, m) = [0, ..., 0, n] of length m, action point m | introduced |
+| OrdinalShift | shift(v, n) = v ⊕ δ(n, #v) | introduced |
+| I6 | shift preserves strict order: v₁ < v₂ ⟹ shift(v₁, n) < shift(v₂, n) | lemma (from TA1-strict) |
+| I7 | shift is injective: shift(v₁, n) = shift(v₂, n) ⟹ v₁ = v₂ | lemma (from TA-MTO + T3) |
+| I8 | shift composes additively: shift(shift(v, n₁), n₂) = shift(v, n₁ + n₂) | lemma (from TA-assoc + ⊕ defn) |
+| I9 | shift strictly increases: shift(v, n) > v | corollary (from TA-strict) |
+| I10 | shift is monotone in amount: n₁ < n₂ ⟹ shift(v, n₁) < shift(v, n₂) | corollary (from I8 + I9) |
 
 
 ## Open Questions
