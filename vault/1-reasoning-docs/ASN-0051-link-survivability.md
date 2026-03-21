@@ -144,7 +144,7 @@ The answer depends on the allocation regime and the address hierarchy. We establ
 
 `b ∉ ⟦(s, ℓ)⟧`
 
-*Proof.* By TumblerAdd, components before the action point are copied from s. When the action point is within the element field, the full document prefix (node, user, document fields and their separators) is copied, so every tumbler in ⟦(s, ℓ)⟧ shares origin(s). Since origin(b) ≠ origin(s), b cannot be equal to any such tumbler (T10, PartitionIndependence). ∎
+*Proof.* By TumblerAdd, components before the action point are copied from s. When the action point is within the element field, the full document prefix (node, user, document fields and their separators) is copied, so the reach s ⊕ ℓ shares origin(s). Since origin(s) is a prefix of both s and s ⊕ ℓ, by T5 (ContiguousSubtrees) every tumbler t with s ≤ t ≤ s ⊕ ℓ satisfies origin(s) ≼ t, hence origin(t) = origin(s). In particular, every t ∈ ⟦(s, ℓ)⟧ = {t : s ≤ t < s ⊕ ℓ} shares origin(s). Since origin(b) ≠ origin(s), b cannot be equal to any such tumbler (T10, PartitionIndependence). ∎
 
 This property is robust — it depends only on the structural separation of document-level prefixes, not on any allocation discipline.
 
@@ -210,7 +210,7 @@ We have now defined two independent operations — discovery and resolution — 
 
 - **Resolution** asks: "where in document d are this link's endpoints visible?" It operates on I-to-V conversion through d's current arrangement, depends entirely on M(d), and changes as M(d) changes.
 
-**SV10 (DiscoveryResolutionIndependence).** A link may be discoverable through a set of I-addresses A yet have empty resolution in a particular document:
+**SV10 (DiscoveryResolutionIndependence).** A link may be discoverable through a set of I-addresses A yet have only partial resolution in a particular document — the projection covers a proper subset of the endset's full coverage:
 
 `(E Σ, a, d, s :: a ∈ discover_s({M(d)(v) : v ∈ V}) ∧ resolve(Σ.L(a).s, d) ≠ ∅ ∧ π(Σ.L(a).s, d) ⊊ coverage(Σ.L(a).s))`
 
@@ -225,15 +225,15 @@ This asymmetry is not a deficiency. It reflects a genuine conceptual distinction
 
 When contraction removes some but not all of an endset's I-addresses from a document's arrangement, the endset survives with reduced projection. We now characterize the structure of this partial survival.
 
-**Definition — Endset Fragment.** For an endset e and document d, a *fragment* of e in d is a maximal contiguous subsequence of I-addresses in π(e, d). That is, a maximal set F ⊆ π(e, d) such that F = ⟦σ⟧ for some span σ, and F cannot be extended to a larger contiguous set within π(e, d).
+**Definition — Endset Fragment.** For an endset e and document d with block decomposition B = {β₁, ..., β_p} of M(d), a *fragment* of e in d is a maximal contiguous subsequence of I-addresses within a single mapping block's ordinal sequence. Formally, F = {a_k + j : j₁ ≤ j ≤ j₂} ⊆ π(e, d) ∩ I(β_k) for some block β_k = (v_k, a_k, n_k), where F is maximal with respect to extending j₁ downward or j₂ upward within π(e, d) ∩ I(β_k). That is, either j₁ = 0 or a_k + (j₁ - 1) ∉ π(e, d), and either j₂ = n_k - 1 or a_k + (j₂ + 1) ∉ π(e, d).
 
 **SV11 (PartialSurvivalDecomposition).** Let e = {(s₁, ℓ₁), ..., (s_m, ℓ_m)} be an endset, and let B = {β₁, ..., β_p} be a block decomposition of M(d) (ASN-0058, BlockDecomposition). The projection π(e, d) can be decomposed as:
 
 `π(e, d) = (∪ j, k : 1 ≤ j ≤ m ∧ 1 ≤ k ≤ p : ⟦(sⱼ, ℓⱼ)⟧ ∩ I(β_k))`
 
-Each term ⟦(sⱼ, ℓⱼ)⟧ ∩ I(β_k) is the intersection of two convex sets under the total order T1 — ⟦(sⱼ, ℓⱼ)⟧ is convex by S0 (Convexity), and I(β_k) = {a_k + j : 0 ≤ j < n_k} is convex because ordinal increment (TA5(c)) is strictly monotonic (TA-strict). The intersection of two convex sets under a total order is convex, so each non-empty term is a contiguous subsequence of I(β_k). Since ordinal increment preserves tumbler length (TA5(c)), all elements of I(β_k) share the same length, and the contiguous subsequence is expressible as a level-uniform span.
+Consider each term ⟦(sⱼ, ℓⱼ)⟧ ∩ I(β_k). The span ⟦(sⱼ, ℓⱼ)⟧ is convex by S0 (Convexity). The set I(β_k) = {a_k + j : 0 ≤ j < n_k} is not itself convex in T — child-depth tumblers create gaps between consecutive ordinal increments — but we do not need it to be. For ordinal indices j₁ < j₂ < j₃ with a_k + j₁ and a_k + j₃ both in ⟦(sⱼ, ℓⱼ)⟧, we have a_k + j₁ < a_k + j₂ < a_k + j₃ (by TA-strict), so by the convexity of the span (S0), a_k + j₂ ∈ ⟦(sⱼ, ℓⱼ)⟧. Hence the intersection is contiguous within the ordinal sequence of I(β_k): if the first and last elements of the intersection have ordinal offsets j₁ and j₂ respectively, then every intermediate element a_k + j with j₁ ≤ j ≤ j₂ also lies in the intersection. Since ordinal increment preserves tumbler length (TA5(c)), all elements of I(β_k) share the same length, and each contiguous subsequence is expressible as a level-uniform span.
 
-Therefore π(e, d) is a finite union of spans, expressible as a span-set. By S8 (NormalizationExistence), this span-set can be normalized: sorted by start position with no overlaps or adjacencies.
+Therefore π(e, d) is a finite union of level-uniform spans. However, S8 (NormalizationExistence) requires mutual level-compatibility among spans: all component spans must have starts of the same tumbler length. Each covering span's start has length #a_k, the I-start length of its mapping block. When a document transcludes content from sources at different allocation depths, mapping blocks may have I-starts of different lengths. In that case, normalization applies within each tumbler-depth group independently: the spans can be partitioned by start length, and S8 applies within each partition.
 
 The significance: **partial survival is well-structured.** The surviving portion of an endset in a given document is always representable as a finite, normalizable span-set. It does not degenerate into an arbitrary subset of I-addresses that defies compact representation.
 
