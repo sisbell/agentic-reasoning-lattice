@@ -272,6 +272,17 @@ def main():
                 f"{', '.join(property_labels)} from {source_label} "
                 f"into {base_label} extension")
 
+    # Hints
+    print(f"\n  [NEXT] Review: python scripts/review.py {args.target}",
+          file=sys.stderr)
+    print(f"  [NEXT] Or review/revise loop: "
+          f"python scripts/revise.py {args.target} --converge",
+          file=sys.stderr)
+    print(f"  [NEXT] Then export: python scripts/export.py {args.target}",
+          file=sys.stderr)
+    print(f"  [NEXT] Then absorb: python scripts/absorb.py {args.target}",
+          file=sys.stderr)
+
 
 if __name__ == "__main__":
     main()
