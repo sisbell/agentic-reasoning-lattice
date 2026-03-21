@@ -1,20 +1,24 @@
 # ASN-0059 Formal Statements
 
-*Source: ASN-0059-insert-operation.md (revised 2026-03-20) — Extracted: 2026-03-20*
+*Source: ASN-0059-insert-operation.md (revised 2026-03-20) — Extracted: 2026-03-21*
 
 ## Definition — OrdinalDisplacement
 
-For natural number n ≥ 1 and depth m ≥ 1, the *ordinal displacement* δ(n, m) is the tumbler [0, 0, ..., 0, n] of length m — zero at positions 1 through m − 1, and n at position m. Its action point is m.
-
-When the depth is determined by context (typically m = #p for insertion position p), we write δₙ.
+For n ≥ 1 and m ≥ 1, δ(n, m) = [0, 0, ..., 0, n] of length m — zero at positions 1 through m − 1, and n at position m, with action point m.
 
 ## Definition — OrdinalShift
 
-For a V-position v of depth m and natural number n ≥ 1:
+For a V-position v of depth m and n ≥ 1, shift(v, n) = v ⊕ δ(n, m).
 
-`shift(v, n) = v ⊕ δ(n, m)`
+By TumblerAdd: shift(v, n)ᵢ = vᵢ for i < m, and shift(v, n)ₘ = vₘ + n.
 
-By TumblerAdd (ASN-0034): shift(v, n)ᵢ = vᵢ for i < m, and shift(v, n)ₘ = vₘ + n.
+## Definition — ShiftBlock
+
+For β = (v, a, k) ∈ B_right and n ≥ 1:
+
+`shift_block(β, n) = (shift(v, n), a, k)`
+
+The V-start shifts but the I-start and width are unchanged.
 
 ## Definition — VContiguity
 
@@ -22,19 +26,11 @@ The text-subspace V-positions of document d in subspace S are *contiguous* when,
 
 `(A u, w : u ∈ V_S ∧ w ∈ V_S ∧ u < w : (A v : subspace(v) = S ∧ #v = #u ∧ u < v < w : v ∈ V_S))`
 
-## Definition — ShiftBlock
-
-For block β = (v, a, k) and natural number n ≥ 1:
-
-`shift_block(β, n) = (shift(v, n), a, k)`
-
-The V-start shifts by n; the I-start and width are unchanged.
-
 ---
 
-## I0 — FreshContiguousAllocation (INV, predicate)
+## I0 — FreshContiguousAllocation (POST, ensures)
 
-Variables: d document, p V-position, vals = (val₁, ..., valₙ) with n ≥ 1, C content store, C' post-state content store, a₁..aₙ ∈ T allocated addresses.
+Parameters: document d, V-position p, values (val₁, ..., valₙ) with n ≥ 1. Allocates addresses a₁, ..., aₙ:
 
 (i) aᵢ ∉ dom(C) for 1 ≤ i ≤ n.
 
@@ -44,45 +40,31 @@ Variables: d document, p V-position, vals = (val₁, ..., valₙ) with n ≥ 1, 
 
 (iv) C' = C ∪ {aᵢ ↦ valᵢ : 1 ≤ i ≤ n}.
 
-## I1 — PreInsertionStability (INV, predicate)
+## I1 — PreInsertionStability (POST, ensures)
 
-Variables: S = subspace(p), M(d) pre-state arrangement, M'(d) post-state arrangement.
+S = subspace(p) = p₁:
 
 `(A v : v ∈ dom(M(d)) ∧ subspace(v) = S ∧ v < p : v ∈ dom(M'(d)) ∧ M'(d)(v) = M(d)(v))`
 
-## I2 — ContentPlacement (INV, predicate)
+## I2 — ContentPlacement (POST, ensures)
 
-Variables: a₁ first allocated I-address from I0, p + k and a₁ + k are k ordinal increments via TA5(c).
+a₁ is the first allocated I-address from I0:
 
 `(A k : 0 ≤ k < n : p + k ∈ dom(M'(d)) ∧ M'(d)(p + k) = a₁ + k)`
 
-## I3 — PostInsertionShift (INV, predicate)
+where p + k and a₁ + k are k ordinal increments via TA5(c).
 
-Variables: S = subspace(p), shift as defined in OrdinalShift.
+## I3 — PostInsertionShift (POST, ensures)
 
 `(A v : v ∈ dom(M(d)) ∧ subspace(v) = S ∧ v ≥ p : shift(v, n) ∈ dom(M'(d)) ∧ M'(d)(shift(v, n)) = M(d)(v))`
 
-## I4 — SubspaceStability (INV, predicate)
-
-Variables: S = subspace(p).
+## I4 — SubspaceStability (POST, ensures)
 
 `(A v : v ∈ dom(M(d)) ∧ subspace(v) ≠ S : v ∈ dom(M'(d)) ∧ M'(d)(v) = M(d)(v))`
 
-## I5 — DocumentIsolation (INV, predicate)
+## I5 — DocumentIsolation (POST, ensures)
 
 `(A d' : d' ≠ d : M'(d') = M(d'))`
-
-## I6 — ShiftOrderPreservation (LEMMA, lemma)
-
-Variables: m = #v₁ = #v₂, n ≥ 1.
-
-`(A v₁, v₂ : #v₁ = #v₂ = m ∧ v₁ < v₂ : shift(v₁, n) < shift(v₂, n))`
-
-## I7 — ShiftInjectivity (LEMMA, lemma)
-
-Variables: m = #v₁ = #v₂, n ≥ 1.
-
-`(A v₁, v₂ : #v₁ = #v₂ = m : shift(v₁, n) = shift(v₂, n) ⟹ v₁ = v₂)`
 
 ## I8 — InsertionPrecondition (PRE, requires)
 
@@ -102,20 +84,33 @@ INSERT(d, p, vals) requires:
 
 ## I9 — ContiguityPreservation (LEMMA, lemma)
 
-Variables: V_S = {v ∈ dom(M(d)) : subspace(v) = S}, v_min = min(V_S), v_max = max(V_S).
+If V_S is contiguous before INSERT, and p satisfies v_min ≤ p ≤ v_max + 1 (where v_min, v_max are the minimum and maximum of V_S; for V_S = ∅ any p is valid), then V_S is contiguous after INSERT.
 
-Requires: VContiguity holds for V_S before INSERT, and either V_S = ∅ or v_min ≤ p ≤ v_max + 1.
+## I10 — BlockDecompositionEffect (POST, ensures)
 
-Ensures: VContiguity holds for V_S' = {v ∈ dom(M'(d)) : subspace(v) = S} after INSERT.
+Let B be the block decomposition of M(d). Let B_S = {β = (v, a, k) ∈ B : subspace(v) = S} and B_other = B \ B_S.
 
-## I10 — BlockDecompositionEffect (LEMMA, lemma)
+Partition B_S relative to insertion point p:
 
-Variables:
-- B current block decomposition of M(d).
-- B_S = {β = (v, a, k) ∈ B : subspace(v) = S}, B_other = B \ B_S.
-- B_left: blocks from B_S with V-extent entirely before p (case a: v + k ≤ p), plus β_L if a straddling block exists.
-- B_right: blocks from B_S with V-extent starting at or beyond p (case b: v ≥ p), plus β_R if a straddling block exists.
-- Straddling block split: for β = (v, a, k) with v < p and v + k > p, offset c = pₘ − vₘ, β_L = (v, a, c), β_R = (p, a + c, k − c).
-- a₁ first allocated I-address from I0.
+(a) *Entirely before:* v + k ≤ p.
+
+(b) *Entirely at or after:* v ≥ p.
+
+(c) *Straddling:* v < p and v + k > p. Split β at offset c = pₘ − vₘ into β_L = (v, a, c) and β_R = (p, a + c, k − c).
+
+Let B_left = {blocks from case (a)} ∪ {β_L if case (c) applies}.
+Let B_right = {blocks from case (b)} ∪ {β_R if case (c) applies}.
 
 `B' = B_other ∪ B_left ∪ {(p, a₁, n)} ∪ {shift_block(β, n) : β ∈ B_right}`
+
+## TS1 — ShiftPreservesOrder (LEMMA, lemma) [cited ASN-0034]
+
+For v₁, v₂ with #v₁ = #v₂ = m and v₁ < v₂:
+
+`shift(v₁, n) < shift(v₂, n)`
+
+## TS2 — ShiftInjective (LEMMA, lemma) [cited ASN-0034]
+
+For v₁, v₂ with #v₁ = #v₂ = m:
+
+`shift(v₁, n) = shift(v₂, n) ⟹ v₁ = v₂`
