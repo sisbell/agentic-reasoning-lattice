@@ -311,6 +311,8 @@ We verify that DELETE preserves each foundation invariant.
 
 **P2 (ProvenancePermanence).** R' = R by D-CF. R' ⊇ R. ✓
 
+**P3 (ArrangementMutabilityOnly).** The composite uses only contraction (K.μ⁻) and extension (K.μ⁺) — the two arrangement-change modes permitted by P3(a–b). No other component admits change: C' = C, E' = E, R' = R by D-CF. ✓
+
 **S0 (ContentImmutability, ASN-0036).** C' = C; no content entry is modified.
 
 **S2 (ArrangementFunctionality, ASN-0036).** M'(d) is a function — each V-position maps to exactly one I-address. The three groups Q₁, Q₂, Q₃ are pairwise disjoint (verified in Domain Completeness above). Within each group: Q₁ inherits functionality from M(d) via D-XS; Q₂ inherits from M(d) via D-LEFT; Q₃ inherits from M(d) via D-SHIFT plus injectivity of σ (D-BJ).
@@ -324,6 +326,10 @@ We verify that DELETE preserves each foundation invariant.
 **S8-fin (FiniteArrangement, ASN-0036).** |dom(M'(d))| = |dom(M(d))| − |X| < |dom(M(d))|, finite since the original is finite.
 
 **P4 (ProvenanceBounds, ASN-0047).** Contains(Σ') ⊆ R'. Since ran(M'(d)) ⊆ ran(M(d)) — the right-region I-addresses are preserved and the deleted I-addresses are removed, while no new I-addresses are introduced — and no other arrangement changes (D-XD), we have Contains(Σ') ⊆ Contains(Σ) ⊆ R = R'. ✓
+
+**P4a (HistoricalFidelity).** R' = R by D-CF; no new provenance entries are introduced, so no new historical justification is required. All existing entries retain their witnesses from prior states. ✓
+
+**P5 (DestructionConfinement).** C' = C ⊇ C (a); E' = E ⊇ E (b); R' = R ⊇ R (c) — all by D-CF. Only M admits loss, via K.μ⁻. ✓
 
 **P6 (ExistentialCoherence, ASN-0047).** For all a ∈ dom(C'): origin(a) ∈ E'_doc. Unchanged: C' = C and E' = E, so P6 in Σ implies P6 in Σ'.
 
