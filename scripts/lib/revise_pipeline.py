@@ -115,8 +115,13 @@ def main():
             # Cycles 2+: run review first
             review_path, converged = step_review(args.asn)
             if review_path is None:
-                print(f"  [REVISE] Review failed, stopping", file=sys.stderr)
-                sys.exit(1)
+                print(f"  [REVISE] Review failed, retrying once...",
+                      file=sys.stderr)
+                review_path, converged = step_review(args.asn)
+                if review_path is None:
+                    print(f"  [REVISE] Review failed again, stopping",
+                          file=sys.stderr)
+                    sys.exit(1)
             print(f"  [REVIEW] {review_path}", file=sys.stderr)
 
             if converged:

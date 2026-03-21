@@ -196,8 +196,11 @@ def main():
     # Review
     review_path, converged = step_review(args.asn)
     if review_path is None:
-        print(f"  [REVIEW] Review failed", file=sys.stderr)
-        sys.exit(1)
+        print(f"  [REVIEW] Review failed, retrying once...", file=sys.stderr)
+        review_path, converged = step_review(args.asn)
+        if review_path is None:
+            print(f"  [REVIEW] Review failed again", file=sys.stderr)
+            sys.exit(1)
     print(f"  [REVIEW] {review_path}", file=sys.stderr)
 
     # Converged — commit and exit 2
