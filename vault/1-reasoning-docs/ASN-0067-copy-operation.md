@@ -40,13 +40,17 @@ We observe an immediate consequence. Since C' = C and the I-address allocation m
 
 COPY reads content from one or more source documents. The source is specified as an ordered sequence of content references, each naming a V-span in some document's current arrangement.
 
-**Definition — ContentReference.** A *content reference* is a pair (d_s, σ) where d_s ∈ E_doc and σ = (u, ℓ) is a well-formed V-span (T12, ASN-0034) with ⟦σ⟧ ⊆ dom(M(d_s)). The V-positions named must lie entirely within the source document's current arrangement.
+**Definition — ContentReference.** A *content reference* is a pair (d_s, σ) where d_s ∈ E_doc and σ = (u, ℓ) is a well-formed V-span (T12, ASN-0034). Let m be the common V-position depth in d_s's text subspace (S8-depth, ASN-0036). The content reference is well-formed when every depth-m position in the span's range belongs to d_s's arrangement:
+
+`{v ∈ T : u ≤ v < reach(σ) ∧ #v = m} ⊆ dom(M(d_s))`
+
+The span denotation ⟦σ⟧ (ASN-0053) ranges over tumblers of all depths, but dom(M(d_s)) contains only depth-m V-positions (S8-depth). The restriction M(d_s)|⟦σ⟧ used in the resolution definition naturally filters to this depth stratum; the precondition ensures the depth-m positions are fully covered.
 
 **Definition — ContentReferenceSequence.** A *content reference sequence* is an ordered list R = ⟨r₁, ..., rₘ⟩ of content references with m ≥ 1. Different references may name different source documents.
 
 To resolve a content reference, we extract the I-address runs corresponding to the named V-span. The source document's mapping may not be ordinal-contiguous across the full span — prior editing may have interleaved content from multiple allocations, fragmenting the V→I mapping into several contiguous I-address runs.
 
-**Definition — Resolution.** Given content reference (d_s, σ) with σ = (u, ℓ), let f = M(d_s)|⟦σ⟧ be the restriction of M(d_s) to positions in ⟦σ⟧. By M11 and M12 (ASN-0058), f admits a unique maximally merged block decomposition ⟨β₁, ..., βₖ⟩ ordered by V-start. The *I-address sequence* is:
+**Definition — Resolution.** Given content reference (d_s, σ) with σ = (u, ℓ), let f = M(d_s)|⟦σ⟧ be the restriction of M(d_s) to positions in ⟦σ⟧. Since f is a restriction of M(d_s) to a contiguous V-range, it inherits the properties on which M11 and M12 depend: injectivity per V-position (S2), finite domain (S8-fin), and fixed depth (S8-depth) — all hold for any restriction of a function satisfying them. By M11 and M12 (ASN-0058), f therefore admits a unique maximally merged block decomposition ⟨β₁, ..., βₖ⟩ ordered by V-start. The *I-address sequence* is:
 
 `resolve(d_s, σ) = ⟨(a₁, n₁), ..., (aₖ, nₖ)⟩`
 
@@ -79,7 +83,7 @@ Nelson states that V-stream addresses run contiguously: "The digit after the one
 
 When V_S(d) is contiguous with |V_S(d)| = N positions, we write its elements as v₀, v₁, ..., v_{N−1} where v₀ is the minimum (D-MIN, ASN-0036) and v_{j+1} = shift(v_j, 1) for 0 ≤ j < N − 1 (D-SEQ, ASN-0036).
 
-**Definition — ValidInsertionPosition.** Given document d satisfying D-CTG with text-subspace positions {v₀, ..., v_{N−1}}, a V-position v is a *valid insertion position* when v = v₀ + j for some j with 0 ≤ j ≤ N. When N = 0, any v satisfying S8a and S8-depth for d's text subspace is valid.
+**Definition — ValidInsertionPosition.** Given document d satisfying D-CTG with text-subspace positions {v₀, ..., v_{N−1}}, a V-position v is a *valid insertion position* when v = v₀ + j for some j with 0 ≤ j ≤ N. When N = 0, v = [S, 1, ..., 1] of depth m ≥ 2 — the canonical minimum position required by D-MIN (ASN-0036) — where S is the text subspace identifier and m is the chosen V-position depth.
 
 There are N + 1 valid insertion positions: N positions targeting existing content (which will be displaced), plus one append position past the end.
 
@@ -159,6 +163,16 @@ R' = R ∪ {(a, d) : a ∈ ran(M'(d)) \ ran(M(d))}
 
 The provenance extension records that d now contains certain I-addresses. By J1 (ASN-0047), this is required for every I-address newly appearing in d's arrangement. By J1', this is the only permitted extension.
 
+**Elementary Decomposition.** ValidComposite (ASN-0047) requires a finite sequence of elementary transitions where each step satisfies its precondition at the intermediate state. The COPY composite decomposes as Σ = Σ₀ →^{K.μ~} Σ₁ →^{K.μ⁺} Σ₂ →^{K.ρ} Σ₃ = Σ':
+
+*Step 1 (K.μ~).* Shift B_post entries by w positions. The bijection π : dom(M(d)) → dom(M₁(d)) maps p ↦ p for p < v and p ↦ p + w for p ≥ v. Precondition at Σ₀: d ∈ E_doc (P.1); π produces V-positions satisfying S8a (ordinal shift preserves positivity and zero-count) and S8-depth (ordinal shift preserves depth). Frame: C₁ = C, E₁ = E, R₁ = R. The intermediate arrangement has domain {v₀, ..., v − 1} ∪ {v + w, ..., v₀ + N + w − 1} — a gap at [v, v + w) that temporarily violates D-CTG. This is permissible: D-CTG is a design constraint on reachable states, not a precondition of any elementary transition.
+
+*Step 2 (K.μ⁺).* Fill the gap with placed blocks γ₁, ..., γₖ, extending dom(M₁(d)) by positions [v, v + w). Precondition at Σ₁: d ∈ E_doc; every new I-address aⱼ + i ∈ dom(C₁) = dom(C) (by C1); new V-positions satisfy S8a (same depth and positivity as existing positions); M₂(d) satisfies S8-depth (placed blocks share depth m); dom(M₂(d)) is finite (N + w). Frame: C₂ = C, E₂ = E, R₂ = R.
+
+*Step 3 (K.ρ, repeated).* For each a ∈ ran(M₂(d)) \ ran(M(d)), record (a, d) ∈ R. Precondition at Σ₂: a ∈ dom(C₂) = dom(C) (by C1) and d ∈ E_doc (P.1). Frame: C₃ = C, E₃ = E, M₃ = M₂.
+
+Coupling constraints at (Σ₀, Σ₃): J0 holds vacuously (dom(C₃) \ dom(C₀) = ∅). J1 holds by step 3 construction. J1' holds because every (a, d) ∈ R₃ \ R₀ was added in step 3 for some a ∈ ran(M₃(d)) \ ran(M₀(d)).
+
 
 ## Well-Formedness of B'
 
@@ -173,6 +187,10 @@ We verify that B' is a valid block decomposition.
 **C2 — ContiguityPreservation (LEMMA).** COPY preserves D-CTG. If dom_text(M(d)) = {v₀ + j : 0 ≤ j < N}, then dom_text(M'(d)) = {v₀ + j : 0 ≤ j < N + w}.
 
 *Derivation.* The pre-range contributes positions v₀ through v − 1 (contiguous by assumption). The placed range contributes positions v through v + w − 1 (contiguous by construction of the γⱼ — each begins where the previous ends). The post-range contributes positions v + w through v₀ + N + w − 1 (contiguous because shifting a contiguous range by a constant preserves contiguity, by TS1). The three ranges are adjacent: v immediately follows v − 1, and v + w immediately follows v + w − 1. The union is contiguous with N + w elements. ∎
+
+**C2a — MinimumPreservation (LEMMA).** COPY preserves D-MIN. After COPY, min(V_S(d)) = [S, 1, ..., 1].
+
+*Derivation.* When N > 0: the pre-state has min(V_S(d)) = v₀ = [S, 1, ..., 1] by D-MIN. If v > v₀, then v₀ ∈ B_pre — unchanged by COPY — so the minimum is preserved. If v = v₀, the first placed block γ₁ starts at v = v₀ = [S, 1, ..., 1], which remains the minimum. When N = 0: by ValidInsertionPosition, v = [S, 1, ..., 1], so the first placed block starts at the canonical minimum. ∎
 
 
 ## Invariant Preservation
@@ -204,6 +222,20 @@ P4 (ProvenanceBounds): Contains(Σ') ⊆ R'. For d: every a ∈ ran(M'(d)) is ei
 J0 (AllocationRequiresPlacement): no new content allocated (dom(C') \ dom(C) = ∅), so the condition is vacuously satisfied. ∎
 
 J1 (ExtensionRecordsProvenance): every I-address in ran(M'(d)) \ ran(M(d)) has (a, d) ∈ R' by the provenance extension. ∎
+
+J1' (ProvenanceRequiresExtension): every (a, d) ∈ R' \ R was added by the provenance extension for some a ∈ ran(M'(d)) \ ran(M(d)) — the construction adds no other provenance pairs. ∎
+
+P6 (ExistentialCoherence): dom(C') = dom(C) and E' = E, so (A a ∈ dom(C') :: origin(a) ∈ E'_doc) is unchanged. ∎
+
+P7 (ProvenanceGrounding): every new pair (a, d) ∈ R' \ R has a ∈ ran(M'(d)); by S3 on the post-state, a ∈ dom(C') = dom(C). ∎
+
+P7a (ProvenanceCoverage): dom(C') = dom(C) and R' ⊇ R, so every a ∈ dom(C') retains its pre-existing provenance witness. ∎
+
+P8 (EntityHierarchy): E' = E, so the hierarchy is unchanged. ∎
+
+D-CTG: preserved by C2. ∎
+
+D-MIN: preserved by C2a. ∎
 
 
 ## Displacement
@@ -396,35 +428,38 @@ Provenance recording is monotonic: R' ⊇ R, and once (a, d) ∈ R, it remains i
 
 Nelson never uses the terms "atomic" or "transaction." But the architecture mandates all-or-nothing through the canonical order mandate: "All changes, once made, left the file remaining in canonical order, which was an internal mandate of the system" [LM 1/34].
 
-**C13 — Atomicity (INV).** The COPY composite either completes with all coupling constraints (J0, J1, J1') holding at the final state, or does not occur. There is no intermediate state visible to other operations where the arrangement is partially modified.
+**C13 — SequentialCorrectness (INV).** The COPY composite either completes with all coupling constraints (J0, J1, J1') holding at the final state, or does not occur.
 
-*Derivation.* By the ValidComposite definition (ASN-0047), a composite transition must satisfy coupling constraints between initial and final states. The internal elementary steps (K.μ~ for shift, K.μ⁺ for placement, K.ρ for provenance) are coupled by these constraints. If any step cannot complete, the composite does not occur.
+*Derivation.* By the ValidComposite definition (ASN-0047), a composite transition must satisfy coupling constraints between initial and final states. The internal elementary steps (K.μ~ for shift, K.μ⁺ for placement, K.ρ for provenance) are coupled by these constraints. If any step cannot satisfy its precondition at the intermediate state, the composite does not occur. The elementary decomposition above verifies each intermediate precondition.
 
-The consequences of partial application would violate the architecture:
+The consequences of partial application would violate foundational invariants:
 
-(a) *Vstream density violation.* V-addresses are always dense and contiguous (D-CTG). A partial shift — content placed but V-addresses not yet updated, or V-addresses shifted but content not yet placed — would create gaps or overlaps, neither of which is a valid Vstream state.
+(a) *Contiguity violation.* V-addresses are dense and contiguous (D-CTG) in every reachable state. A partial shift — V-addresses shifted but content not yet placed — creates a gap. A partial placement — content placed at positions still occupied — creates an overlap.
 
-(b) *Referential integrity.* If placement occurred without the corresponding provenance recording, J1 would be violated. If provenance were recorded without placement, J1' would be violated.
+(b) *Coupling violation.* If placement occurred without the corresponding provenance recording, J1 would be violated. If provenance were recorded without placement, J1' would be violated.
 
-Nelson reinforces this at the network level: "A server's network model, from the null case on up, is at all times unified and operational; whatever information moves between servers is assimilated at once to its overall structure, leaving each server in canonical operating condition" [LM 4/72]. "At all times" and "canonical operating condition" leave no room for partial states. ∎
+Nelson reinforces this at the system level: "A server's network model, from the null case on up, is at all times unified and operational; whatever information moves between servers is assimilated at once to its overall structure, leaving each server in canonical operating condition" [LM 4/72].
+
+**Observation — Concurrency.** Nelson's "at all times" and "canonical operating condition" suggest that no intermediate state should be visible to concurrent operations. The ValidComposite framework (ASN-0047) defines sequential correctness only — it provides no semantics for concurrent access or visibility. Formalizing the requirement that intermediate states are invisible to other operations requires a concurrency model not yet present in the foundation. ∎
 
 
 ## Properties Introduced
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| ContentReference | (d_s, σ) with d_s ∈ E_doc, ⟦σ⟧ ⊆ dom(M(d_s)) | introduced |
+| ContentReference | (d_s, σ) with d_s ∈ E_doc; depth-m V-positions in span range ⊆ dom(M(d_s)) | introduced |
 | ContentReferenceSequence | ordered list ⟨r₁, ..., rₘ⟩ with m ≥ 1 | introduced |
 | resolve(d_s, σ) | maximally merged I-address runs from M(d_s)\|⟦σ⟧, V-ordered | introduced |
 | NativeContent | V-position v where origin(M(d)(v)) = d | introduced |
 | IncludedContent | V-position v where origin(M(d)(v)) ≠ d | introduced |
-| ValidInsertionPosition | v = v₀ + j with 0 ≤ j ≤ N | introduced |
+| ValidInsertionPosition | v = v₀ + j with 0 ≤ j ≤ N; when N = 0, v = [S, 1, ..., 1] (D-MIN) | introduced |
 | COPY | composite transition: resolve in pre-state, then split-shift-place | introduced |
 | C0 | C' = C — no content allocation | introduced |
 | C0a | set of I-addresses allocated under any document is unchanged by COPY | introduced |
 | C1 | every resolved I-address is in dom(C) | introduced |
 | C2 | COPY preserves D-CTG: N + w positions after, N before | introduced |
-| C3 | COPY preserves all foundational invariants (P0, P1, P2, S0, S2, S3, S8a, S8-depth, S8-fin, P4, J0, J1) | introduced |
+| C2a | COPY preserves D-MIN: min(V_S(d)) = [S, 1, ..., 1] after COPY | introduced |
+| C3 | COPY preserves all foundational invariants (P0–P2, P4, P6–P8, S0, S2, S3, S8a, S8-depth, S8-fin, J0, J1, J1', D-CTG, D-MIN) | introduced |
 | C4 | positions ≥ v shift by w; positions < v unchanged | introduced |
 | C5 | no existing V→I mapping is removed; content displaced, never overwritten | introduced |
 | C6 | placed I-addresses are the same addresses as in the source | introduced |
@@ -438,7 +473,7 @@ Nelson reinforces this at the network level: "A server's network model, from the
 | C11 | self-transclusion resolves source in pre-state before mutation | introduced |
 | C12 | provenance recorded for every newly-arranged I-address | introduced |
 | C12a | provenance entries bounded by number of I-address runs | introduced |
-| C13 | COPY is all-or-nothing — no partial states | introduced |
+| C13 | COPY is sequentially correct: completes fully or not at all (ValidComposite) | introduced |
 
 
 ## Open Questions
