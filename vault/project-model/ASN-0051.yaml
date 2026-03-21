@@ -1,9 +1,10 @@
 # ASN-0051 — Link Survivability
 title: "Link Survivability"
-depends: [34, 36, 43, 45, 47]
+depends: [34, 36, 43, 47, 53, 58]
+out_of_scope: "Link type semantics and interpretation, replication and inter-server protocol (BEBE)"
 
 inquiry:
   question: "What guarantees does the system provide about links across state changes? What survives, what changes, and what can a link holder rely on?"
 
 modeling:
-  proof_imports: [TumblerAlgebra, TumblerOrder, TumblerHierarchy, TumblerAllocation, TwoSpace, StateTransitions, LinkOntology]
+  proof_imports: [TumblerAlgebra, TumblerOrder, TumblerHierarchy, TumblerAllocation, Streams, StateTransitions, LinkOntology, SpanOperations, PermutationModel]
