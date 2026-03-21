@@ -130,7 +130,9 @@ Since R₁ ∪ R₂ ∪ R₃ ∪ R₄ ⊆ dom(M'(d)), the four sets are pairwise
 
 We express INSERT's effect on the block decomposition of M(d) (ASN-0058). Let B be the current decomposition of the text-subspace arrangement. Each block β = (v, a, k) satisfies (A j : 0 ≤ j < k : M(d)(v + j) = a + j).
 
-Partition B relative to the insertion point p. For each β = (v, a, k) ∈ B, exactly one of three conditions holds:
+Since INSERT in subspace S leaves all other subspaces unchanged (I4), we separate B by subspace: B_S = {β = (v, a, k) ∈ B : subspace(v) = S} and B_other = B \ B_S. Only B_S is affected by the insertion; B_other passes through unchanged.
+
+Partition B_S relative to the insertion point p. For each β = (v, a, k) ∈ B_S, exactly one of three conditions holds:
 
 (a) *Entirely before:* v + k ≤ p. The block's V-extent lies entirely before p.
 
@@ -144,9 +146,11 @@ Define B_left = {blocks from case (a)} ∪ {β_L if case (c) applies}, and B_rig
 
 **I10 — BlockDecompositionEffect.** The post-INSERT decomposition is:
 
-`B' = B_left ∪ {(p, a₁, n)} ∪ {shift_block(β, n) : β ∈ B_right}`
+`B' = B_other ∪ B_left ∪ {(p, a₁, n)} ∪ {shift_block(β, n) : β ∈ B_right}`
 
-*Verification of B1–B3.* Coverage (B1): pre-insertion positions are in B_left, new positions are in (p, a₁, n), shifted positions are in the shifted blocks. Disjointness (B2): B_left blocks have V-extents ending before p; the new block occupies [p, p + n − 1]; shifted blocks start at or beyond p + n. No overlap. Consistency (B3): for B_left, M'(d)(v + j) = M(d)(v + j) = a + j by I1 and original B3. For the new block, M'(d)(p + j) = a₁ + j by I2. For shifted blocks, we need M'(d)(shift(v, n) + j) = a + j. We verify shift(v, n) + j = shift(v + j, n). By M-aux (OrdinalIncrementAssociativity, ASN-0058), v + j = [v₁, ..., v_{m−1}, vₘ + j], so shift(v + j, n) = [v₁, ..., v_{m−1}, vₘ + j + n]. Meanwhile shift(v, n) = [v₁, ..., v_{m−1}, vₘ + n], so shift(v, n) + j = [v₁, ..., v_{m−1}, vₘ + n + j]. These are equal by commutativity of ℕ addition. Therefore M'(d)(shift(v, n) + j) = M'(d)(shift(v + j, n)) = M(d)(v + j) = a + j by I3. ∎
+where B_left and B_right are drawn from B_S, and B_other contributes its blocks unchanged.
+
+*Verification of B1–B3.* Coverage (B1): B_other covers V-positions in subspaces S' ≠ S, unchanged by I4. Within subspace S: B_left covers pre-insertion positions (I1), (p, a₁, n) covers the n new positions (I2), and shifted blocks cover the shifted positions (I3). Disjointness (B2): B_other is disjoint from the subspace-S blocks by subspace. Within subspace S: B_left blocks have V-extents ending before p; the new block occupies [p, p + n − 1]; shifted blocks start at or beyond p + n. No overlap. Consistency (B3): for B_other, M'(d)(v + j) = M(d)(v + j) = a + j by I4 and original B3. For B_left, M'(d)(v + j) = M(d)(v + j) = a + j by I1 and original B3. For the new block, M'(d)(p + j) = a₁ + j by I2. For shifted blocks, we need M'(d)(shift(v, n) + j) = a + j. We verify shift(v, n) + j = shift(v + j, n). By M-aux (OrdinalIncrementAssociativity, ASN-0058), v + j = [v₁, ..., v_{m−1}, vₘ + j], so shift(v + j, n) = [v₁, ..., v_{m−1}, vₘ + j + n]. Meanwhile shift(v, n) = [v₁, ..., v_{m−1}, vₘ + n], so shift(v, n) + j = [v₁, ..., v_{m−1}, vₘ + n + j]. These are equal by commutativity of ℕ addition. Therefore M'(d)(shift(v, n) + j) = M'(d)(shift(v + j, n)) = M(d)(v + j) = a + j by I3. ∎
 
 Gregory's implementation evidence illuminates one optimization over this abstract model. When the newly allocated I-address a₁ is contiguous with the preceding block's I-range (a₁ = a_prev + k_prev) and both share the same home document, the implementation coalesces the new content into the existing block by extending its width in place (Q11, Q13). `isanextensionnd` checks the ONMYRIGHTBORDER condition — the new content begins exactly where the existing crum ends — and if it matches, `dspadd` widens both the I and V components of the crum without allocating any new node.
 
@@ -225,7 +229,7 @@ We verify that INSERT decomposes into the elementary transitions of ASN-0047 and
 
 The composite Σ → Σ' consists of:
 
-(i) *Content allocation* — n applications of K.α: each allocates one I-address aᵢ with C' = C ∪ {aᵢ ↦ valᵢ}. Precondition: IsElement(aᵢ) ∧ origin(aᵢ) ∈ E_doc. By I0(iii), origin(aᵢ) = d, so origin is well-defined on aᵢ, which requires fields(aᵢ) to have all four fields — hence zeros(aᵢ) = 3 by T4 (ASN-0034), giving IsElement(aᵢ). And origin(aᵢ) = d ∈ E_doc by I8(i).
+(i) *Content allocation* — n applications of K.α: each allocates one I-address aᵢ with C' = C ∪ {aᵢ ↦ valᵢ}. Precondition: IsElement(aᵢ) ∧ origin(aᵢ) ∈ E_doc. By S7a (DocumentScopedAllocation), each aᵢ is allocated under d's prefix. Since d is a document address with zeros(d) = 2, and aᵢ extends d's prefix with one zero separator and an element field, zeros(aᵢ) = 3 — hence IsElement(aᵢ) by T4 (ASN-0034), and S7b is satisfied. The document prefix of aᵢ is then d itself, giving origin(aᵢ) = d ∈ E_doc by I8(i).
 
 (ii) *Arrangement reordering* — K.μ~ on document d: for V-positions ≥ p in subspace S, the bijection π : v ↦ shift(v, n) reindexes the existing mappings. By I6 (order preservation) and I7 (injectivity), π is well-behaved. It produces V-positions satisfying S8a (shift preserves positivity), S8-depth (shift preserves depth), and the multiset of I-addresses is preserved (only V-positions change). Precondition: d ∈ E_doc. Satisfied by I8(i).
 
@@ -296,7 +300,7 @@ The architectural consequence is that every downstream guarantee — attribution
 | I7 | shift is injective: shift(v₁, n) = shift(v₂, n) ⟹ v₁ = v₂ | introduced |
 | I8 | INSERT precondition: d ∈ E_doc, p satisfies S8a, subspace(p) ≥ 1, depth compatibility, #p ≥ 2, n ≥ 1 | introduced |
 | I9 | INSERT preserves V-space contiguity when v_min ≤ p ≤ v_max + 1 | introduced |
-| I10 | Block decomposition: B' = B_left ∪ {(p, a₁, n)} ∪ {shift_block(β, n) : β ∈ B_right} | introduced |
+| I10 | Block decomposition: B' = B_other ∪ B_left ∪ {(p, a₁, n)} ∪ {shift_block(β, n) : β ∈ B_right}, where B_left/B_right partition B_S (same subspace) and B_other is unchanged | introduced |
 | OrdinalDisplacement | δ(n, m) = [0, ..., 0, n] of length m, action point m | introduced |
 | OrdinalShift | shift(v, n) = v ⊕ δ(n, #v) | introduced |
 | VContiguity | All intermediate positions of same depth and subspace between two occupied positions are occupied | introduced |
