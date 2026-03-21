@@ -46,11 +46,11 @@ COPY reads content from one or more source documents. The source is specified as
 
 Since `#u = #ℓ = m`, dom(M(d_s)) contains only depth-m V-positions (S8-depth), and reach(σ) has depth m (S6), the depth-m restriction is structurally guaranteed.
 
-**Definition — ContentReferenceSequence.** A *content reference sequence* is an ordered list R = ⟨r₁, ..., rₘ⟩ of content references with m ≥ 1. Different references may name different source documents.
+**Definition — ContentReferenceSequence.** A *content reference sequence* is an ordered list R = ⟨r₁, ..., rₚ⟩ of content references with p ≥ 1. Different references may name different source documents.
 
 To resolve a content reference, we extract the I-address runs corresponding to the named V-span. The source document's mapping may not be ordinal-contiguous across the full span — prior editing may have interleaved content from multiple allocations, fragmenting the V→I mapping into several contiguous I-address runs.
 
-**Definition — Resolution.** Given content reference (d_s, σ) with σ = (u, ℓ), let f = M(d_s)|⟦σ⟧ be the restriction of M(d_s) to positions in ⟦σ⟧. Since f is a restriction of M(d_s) to a contiguous V-range, it inherits the properties on which M11 and M12 depend: injectivity per V-position (S2), finite domain (S8-fin), and fixed depth (S8-depth) — all hold for any restriction of a function satisfying them. By M11 and M12 (ASN-0058), f therefore admits a unique maximally merged block decomposition ⟨β₁, ..., βₖ⟩ ordered by V-start. The *I-address sequence* is:
+**Definition — Resolution.** Given content reference (d_s, σ) with σ = (u, ℓ), let f = M(d_s)|⟦σ⟧ be the restriction of M(d_s) to positions in ⟦σ⟧. Since f is a restriction of M(d_s) to a contiguous V-range, it inherits the properties on which M11 and M12 depend: functionality per V-position (S2, each V-position maps to exactly one I-address), finite domain (S8-fin), and fixed depth (S8-depth) — all hold for any restriction of a function satisfying them. By M11 and M12 (ASN-0058), f therefore admits a unique maximally merged block decomposition ⟨β₁, ..., βₖ⟩ ordered by V-start. The *I-address sequence* is:
 
 `resolve(d_s, σ) = ⟨(a₁, n₁), ..., (aₖ, nₖ)⟩`
 
@@ -58,9 +58,9 @@ where βⱼ = (vⱼ, aⱼ, nⱼ). The V-coordinates are discarded; only I-starts
 
 The ordering of runs within each resolution preserves the source document's V-ordering: if V-position p precedes V-position q in the source, the I-address at p precedes the I-address at q in the resolved sequence. This is a consequence of the block decomposition being V-ordered (B1, ASN-0058). Gregory's implementation confirms: `incontextlistnd` (the POOM traversal function) performs insertion-sort by V-address during tree traversal, regardless of the internal sibling order that rebalancing may produce. The resulting I-span list is always V-sorted before reaching the mutation phase.
 
-For a content reference sequence R = ⟨r₁, ..., rₘ⟩, the *composite resolution* concatenates:
+For a content reference sequence R = ⟨r₁, ..., rₚ⟩, the *composite resolution* concatenates:
 
-`resolve(R) = resolve(r₁) ⌢ ... ⌢ resolve(rₘ)`
+`resolve(R) = resolve(r₁) ⌢ ... ⌢ resolve(rₚ)`
 
 Each reference is resolved independently against its own source document's POOM. The total width is:
 
@@ -166,17 +166,29 @@ The non-text frame condition ensures that link-subspace V-positions (v₁ = 0) a
 
 The provenance extension records that d now contains certain I-addresses. By J1 (ASN-0047), this is required for every I-address newly appearing in d's arrangement. By J1', this is the only permitted extension.
 
-**Elementary Decomposition.** ValidComposite (ASN-0047) requires a finite sequence of elementary transitions where each step satisfies its precondition at the intermediate state. K.μ~ is defined in ASN-0047 as a distinguished composite of K.μ⁻ and K.μ⁺, not an elementary transition. Unfolding it, the COPY composite decomposes into four elementary steps: Σ = Σ₀ →^{K.μ⁻} Σ₁ →^{K.μ⁺} Σ₂ →^{K.μ⁺} Σ₃ →^{K.ρ} Σ₄ = Σ':
+**Elementary Decomposition.** ValidComposite (ASN-0047) requires a finite sequence of elementary transitions where each step satisfies its precondition at the intermediate state. The decomposition depends on whether B_post is empty.
 
-*Step 1 (K.μ⁻).* Remove B_post entries from M(d), yielding an arrangement over positions [v₀, v) only. Precondition at Σ₀: d ∈ E_doc (P.1). Frame: C₁ = C, E₁ = E, R₁ = R.
+*Case 1: B_post ≠ ∅.* K.μ~ is defined in ASN-0047 as a distinguished composite of K.μ⁻ and K.μ⁺, not an elementary transition. Unfolding it, the COPY composite decomposes into four elementary steps: Σ = Σ₀ →^{K.μ⁻} Σ₁ →^{K.μ⁺} Σ₂ →^{K.μ⁺} Σ₃ →^{K.ρ} Σ₄ = Σ':
 
-*Step 2 (K.μ⁺).* Add the shifted B_post entries {β↑w : β ∈ B_post}, placing them at V-positions [v + w, v₀ + N + w). Precondition at Σ₁: d ∈ E_doc; every I-address in the shifted blocks is in dom(C₁) = dom(C) (these are the same I-addresses as in B_post, which satisfy S3); shifted V-positions satisfy S8a (ordinal shift preserves positivity and zero-count) and S8-depth (ordinal shift preserves depth); dom(M₂(d)) is finite. Frame: C₂ = C, E₂ = E, R₂ = R. Steps 1–2 together effect the K.μ~ reordering. The intermediate arrangement has domain {v₀, ..., v − 1} ∪ {v + w, ..., v₀ + N + w − 1} — a gap at [v, v + w) that temporarily violates D-CTG. This is permissible: D-CTG is a design constraint on reachable states, not a precondition of any elementary transition.
+*Step 1 (K.μ⁻).* Remove B_post entries from M(d), yielding an arrangement over positions [v₀, v) only. Precondition at Σ₀: d ∈ E_doc (P.1); B_post ≠ ∅ ensures dom(M₁(d)) ⊂ dom(M₀(d)) (strict contraction). Frame: C₁ = C, E₁ = E, R₁ = R.
+
+*Step 2 (K.μ⁺).* Add the shifted B_post entries {β↑w : β ∈ B_post}, placing them at V-positions [v + w, v₀ + N + w). Precondition at Σ₁: d ∈ E_doc; every I-address in the shifted blocks is in dom(C₁) = dom(C) (these are the same I-addresses as in B_post, which satisfy S3); shifted V-positions satisfy S8a (ordinal shift preserves positivity and zero-count) and S8-depth (ordinal shift preserves depth); dom(M₂(d)) is finite; B_post ≠ ∅ ensures dom(M₂(d)) ⊃ dom(M₁(d)) (strict extension). Frame: C₂ = C, E₂ = E, R₂ = R. Steps 1–2 together effect the K.μ~ reordering. The intermediate arrangement after step 1 has domain {v₀, ..., v − 1} only; after step 2 the domain is {v₀, ..., v − 1} ∪ {v + w, ..., v₀ + N + w − 1} — a gap at [v, v + w). This intermediate state is reachable by a valid composite (J0, J1, J1' all hold since ran(M) is preserved and R is unchanged), yet it violates D-CTG. D-CTG is thus not an invariant of all reachable states — it is a design constraint that complete operations are expected to preserve at their endpoints. COPY restores D-CTG by the end of step 3.
 
 *Step 3 (K.μ⁺).* Fill the gap with placed blocks γ₁, ..., γₖ, extending dom(M₂(d)) by positions [v, v + w). Precondition at Σ₂: d ∈ E_doc; every new I-address aⱼ + i ∈ dom(C₂) = dom(C) (by C1); new V-positions satisfy S8a (same depth and positivity as existing positions); M₃(d) satisfies S8-depth (placed blocks share depth m); dom(M₃(d)) is finite (N + w). Frame: C₃ = C, E₃ = E, R₃ = R.
 
 *Step 4 (K.ρ, repeated).* For each a ∈ ran(M₃(d)) \ ran(M(d)), record (a, d) ∈ R. Precondition at Σ₃: a ∈ dom(C₃) = dom(C) (by C1) and d ∈ E_doc (P.1). Frame: C₄ = C, E₄ = E, M₄ = M₃.
 
 Coupling constraints at (Σ₀, Σ₄): J0 holds vacuously (dom(C₄) \ dom(C₀) = ∅). J1 holds by step 4 construction. J1' holds because every (a, d) ∈ R₄ \ R₀ was added in step 4 for some a ∈ ran(M₄(d)) \ ran(M₀(d)).
+
+*Case 2: B_post = ∅.* This occurs when v = v₀ + N (append position) or when N = 0 (empty text subspace). No content exists at or after v, so no reordering is needed. The composite reduces to two steps: Σ = Σ₀ →^{K.μ⁺} Σ₁ →^{K.ρ} Σ₂ = Σ':
+
+*Step 1 (K.μ⁺).* Add placed blocks γ₁, ..., γₖ at V-positions [v, v + w). Precondition at Σ₀: d ∈ E_doc (P.1); every I-address aⱼ + i ∈ dom(C) (by C1); new V-positions satisfy S8a (depth m, all components positive); M₁(d) satisfies S8-depth; dom(M₁(d)) = dom(M₀(d)) ∪ [v, v + w) is finite (N + w); strict extension holds since w ≥ 1 (P.6). Frame: C₁ = C, E₁ = E, R₁ = R.
+
+*Step 2 (K.ρ, repeated).* For each a ∈ ran(M₁(d)) \ ran(M(d)), record (a, d) ∈ R. Precondition at Σ₁: a ∈ dom(C₁) = dom(C) (by C1) and d ∈ E_doc (P.1). Frame: C₂ = C, E₂ = E, M₂ = M₁.
+
+Coupling constraints at (Σ₀, Σ₂): J0 holds vacuously (dom(C₂) \ dom(C₀) = ∅). J1 holds by step 2 construction. J1' holds because every (a, d) ∈ R₂ \ R₀ was added in step 2 for some a ∈ ran(M₂(d)) \ ran(M₀(d)).
+
+In both cases, the high-level COPY definition (Phase 2, steps i–v) produces the same B' = B_pre ∪ {γ₁, ..., γₖ} ∪ {β↑w : β ∈ B_post} — the distinction is only in how the composite is decomposed into elementary transitions for the ValidComposite verification.
 
 
 ## Well-Formedness of B'
@@ -222,7 +234,7 @@ S2 (ArrangementFunctionality): M'(d) is a function because B' satisfies B2 — e
 
 S3 (ReferentialIntegrity): we must show ran(M'(d)) ⊆ dom(C'). Pre-blocks and shifted post-blocks reference the same I-addresses as B, which satisfy S3 by assumption. Placed blocks γⱼ reference I-addresses satisfying C1 (ResolutionIntegrity). Since C' = C, all references are valid. ∎
 
-S8a (VPositionWellFormedness): new V-positions in the γⱼ blocks have the form v + offset, where v satisfies S8a and offset is an ordinal increment. Shift preserves zeros(v) = 0 and positivity (TS4, ASN-0034). Shifted post-block V-positions satisfy S8a by the same argument. ∎
+S8a (VPositionWellFormedness): new V-positions in the γⱼ blocks have the form v + offset, where v satisfies S8a and offset is an ordinal increment. By the OrdinalShift definition (ASN-0034), shift(v, n) changes only the last component of v (adding n to it); all other components are unchanged. Since v has all positive components (zeros(v) = 0), the shifted position also has all positive components. Shifted post-block V-positions satisfy S8a by the same component-preservation argument. ∎
 
 S8-depth (FixedDepthVPositions): ordinal shift preserves depth: #shift(v, n) = #v (OrdinalShift definition, ASN-0034). All new and shifted V-positions share the depth of the existing ones. ∎
 
@@ -377,7 +389,7 @@ The origin is a function of the I-address alone. All N documents agree on the ho
 
 When a content reference sequence names multiple source documents, each source is resolved independently and the results are concatenated.
 
-**C10 — MultiSourceContiguity (LEMMA).** Let R = ⟨r₁, ..., rₘ⟩ with resolve(R) = ⟨(a₁, n₁), ..., (aₖ, nₖ)⟩ and total width w. The placed blocks γ₁, ..., γₖ occupy a single contiguous V-range [v, v + w) in the target.
+**C10 — MultiSourceContiguity (LEMMA).** Let R = ⟨r₁, ..., rₚ⟩ with resolve(R) = ⟨(a₁, n₁), ..., (aₖ, nₖ)⟩ and total width w. The placed blocks γ₁, ..., γₖ occupy a single contiguous V-range [v, v + w) in the target.
 
 *Derivation.* By step (iv) of the COPY definition, each γⱼ starts immediately where the previous one ends: γⱼ starts at v + (n₁ + ... + nⱼ₋₁) and has width nⱼ, so it ends at v + (n₁ + ... + nⱼ). The last block γₖ ends at v + w. The placed blocks partition [v, v + w) into consecutive sub-ranges with no gaps. ∎
 
@@ -410,6 +422,58 @@ Consider a concrete scenario: document d with content at V-positions [v₀, v₀
 The copy contains the complete source span as captured before the shift. The original source span is split at v with the copy interleaved.
 
 After self-transclusion, the document may contain the same I-addresses at multiple V-positions. This is within-document sharing, consistent with S5 (UnrestrictedSharing, ASN-0036). The duplicate occurrences cannot merge: the merge condition (M7, ASN-0058) requires I-adjacency — a₂ = a₁ + n₁. When two blocks share the same I-start (a₂ = a₁), the condition requires a₁ = a₁ + n₁, which fails for n₁ ≥ 1 by TA-strict (ASN-0034). The distinct occurrences remain permanently distinguishable in the block decomposition (M14, ASN-0058).
+
+
+## Worked Example
+
+We ground the construction in specific arithmetic. Let document d have text-subspace V-position depth m = 2, with the canonical block decomposition:
+
+`B = {([1,1], 1.0.1.0.1.0.1, 3), ([1,4], 1.0.1.0.1.0.7, 2)}`
+
+Five text positions: V-range [1,1] through [1,5], N = 5. Let source document d_s have a block whose I-addresses we wish to place. Suppose resolve(R) = ⟨(1.0.2.0.1.0.4, 2)⟩ — two positions from d_s, with total width w = 2. We COPY at target position v = [1,3].
+
+**Phase 1 — Resolution.** The I-address sequence ⟨(1.0.2.0.1.0.4, 2)⟩ is computed from d_s's arrangement in pre-state Σ and held fixed.
+
+**Phase 2 — Mutation.**
+
+*(i) Split.* v = [1,3] is interior to β₁ = ([1,1], 1.0.1.0.1.0.1, 3) since [1,1] < [1,3] < [1,1] + 3 = [1,4]. The split point is c = 2 (since [1,3] = [1,1] + 2). By M4:
+
+`β_L = ([1,1], 1.0.1.0.1.0.1, 2)`
+`β_R = ([1,3], 1.0.1.0.1.0.3, 1)`
+
+After split: B = {β_L, β_R, ([1,4], 1.0.1.0.1.0.7, 2)}.
+
+*(ii) Classify.*
+
+`B_pre  = {([1,1], 1.0.1.0.1.0.1, 2)}      — V-reach [1,3] ≤ v = [1,3] ✓`
+`B_post = {([1,3], 1.0.1.0.1.0.3, 1), ([1,4], 1.0.1.0.1.0.7, 2)}  — V-start ≥ [1,3] ✓`
+
+*(iii) Shift.* w = 2. Each B_post block's V-start advances by 2:
+
+`([1,3], 1.0.1.0.1.0.3, 1)↑2 = ([1,5], 1.0.1.0.1.0.3, 1)`
+`([1,4], 1.0.1.0.1.0.7, 2)↑2 = ([1,6], 1.0.1.0.1.0.7, 2)`
+
+I-starts unchanged.
+
+*(iv) Place.* One placed block at v = [1,3]:
+
+`γ₁ = ([1,3], 1.0.2.0.1.0.4, 2)`
+
+*(v) Compose.*
+
+`B' = {([1,1], 1.0.1.0.1.0.1, 2), ([1,3], 1.0.2.0.1.0.4, 2), ([1,5], 1.0.1.0.1.0.3, 1), ([1,6], 1.0.1.0.1.0.7, 2)}`
+
+**Verification.**
+
+C0: C' = C — no K.α step. ✓
+
+C2 (D-CTG): dom_text(M'(d)) = {[1,1], [1,2], [1,3], [1,4], [1,5], [1,6], [1,7]}. Contiguous range of N + w = 7 positions. ✓
+
+C4 (Displacement): M'(d)([1,1]) = 1.0.1.0.1.0.1 = M(d)([1,1]) (p < v, unchanged). M'(d)([1,5]) = 1.0.1.0.1.0.3 = M(d)([1,3]) (p = [1,3] ≥ v, shifted by 2). ✓
+
+C6 (IdentityPreservation): M'(d)([1,3]) = 1.0.2.0.1.0.4 and M'(d)([1,4]) = 1.0.2.0.1.0.5 — these are the same I-addresses as in d_s's arrangement. origin(1.0.2.0.1.0.4) = 1.0.2.0.1 ≠ d, confirming placed content is included (not native). ✓
+
+The placed block γ₁ cannot merge with its neighbors: origin(1.0.2.0.1.0.4) = 1.0.2.0.1 differs from origin(1.0.1.0.1.0.1) = 1.0.1.0.1, so M16 (CrossOriginMergeImpossibility) applies at both boundaries. B' is maximally merged.
 
 
 ## Provenance Completeness
@@ -459,7 +523,7 @@ Nelson reinforces this at the system level: "A server's network model, from the 
 | Label | Statement | Status |
 |-------|-----------|--------|
 | ContentReference | (d_s, σ) with d_s ∈ E_doc; σ level-uniform with #u = #ℓ = m; depth-m V-positions in span range ⊆ dom(M(d_s)) | introduced |
-| ContentReferenceSequence | ordered list ⟨r₁, ..., rₘ⟩ with m ≥ 1 | introduced |
+| ContentReferenceSequence | ordered list ⟨r₁, ..., rₚ⟩ with p ≥ 1 | introduced |
 | resolve(d_s, σ) | maximally merged I-address runs from M(d_s)\|⟦σ⟧, V-ordered | introduced |
 | NativeContent | V-position v where origin(M(d)(v)) = d | introduced |
 | IncludedContent | V-position v where origin(M(d)(v)) ≠ d | introduced |
