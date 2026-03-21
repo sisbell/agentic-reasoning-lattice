@@ -1,7 +1,7 @@
 # Consultation Answers — COPY Operation
 
 **Inquiry:** What is the precise effect of placing existing Istream content at a position in a Vstream? What is preserved about the content's identity, what shifts, and what invariants must the completed operation maintain?
-**Date:** 2026-03-21 10:57
+**Date:** 2026-03-21 15:28
 **Questions:** 19 (10 nelson, 9 gregory)
 
 ---
