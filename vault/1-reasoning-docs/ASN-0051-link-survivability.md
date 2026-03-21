@@ -43,7 +43,9 @@ A link at address a with Σ.L(a) = (F, G, Θ) is *bilaterally vital in d* when e
 
 (We exclude the type endset from the vitality condition because type endsets may reference addresses outside dom(Σ.C), per L9, TypeGhostPermission.)
 
-Nelson states the vitality condition as: "Links between bytes can survive deletions, insertions and rearrangements, **if anything is left at each end**" [LM 4/43]. Our bilateral vitality captures this — the link is useful when something remains at each content endset. The permanent existence of the endset spans in Σ.L is not in question; what is in question is whether those spans project to anything visible.
+When both F = ∅ and G = ∅, both disjunctions are satisfied by the left branch, making the link bilaterally vital in every document — vacuously. Such a link (∅, ∅, Θ) is a pure type annotation with no content endpoints. This is intentional: the link has no content associations to lose, so the vitality condition is trivially satisfied. The interesting cases arise when at least one content endset is non-empty.
+
+Nelson states the vitality condition as: "Links between bytes can survive deletions, insertions and rearrangements, **if anything is left at each end**" [LM 4/43]. Nelson's formulation presupposes something at each end to begin with — "if anything is left" implies there was something to leave. Our bilateral vitality captures this for the non-vacuous case — the link is useful when something remains at each content endset. The permanent existence of the endset spans in Σ.L is not in question; what is in question is whether those spans project to anything visible.
 
 
 ## The Frame of Link Permanence
@@ -129,7 +131,13 @@ Arrangement reordering (K.μ~, ArrangementReordering) is a bijection on V-positi
 
 `(A Σ →_{K.μ~} Σ', e, d :: π_{Σ'}(e, d) = π_Σ(e, d))`
 
-Rearrangement cannot change which I-addresses are in the projection. The endset references exactly the same content before and after. What changes is *where* that content appears: resolve_{Σ'}(e, d) ≠ resolve_Σ(e, d) in general, because the V-positions have been remapped.
+Rearrangement cannot change which I-addresses are in the projection. The endset references exactly the same content before and after. What changes is *where* that content appears. Let π be the reordering bijection from K.μ~ (so that M'(d)(π(v)) = M(d)(v) for all v ∈ dom(M(d))). The formal relationship is:
+
+`resolve_{Σ'}(e, d) = {π(v) : v ∈ resolve_Σ(e, d)}`
+
+*Proof.* v' ∈ resolve_{Σ'}(e, d) iff M'(d)(v') ∈ coverage(e). Since π is a bijection on dom(M(d)) = dom(M'(d)), v' = π(v) for a unique v, and M'(d)(π(v)) = M(d)(v). So M'(d)(v') ∈ coverage(e) iff M(d)(v) ∈ coverage(e) iff v ∈ resolve_Σ(e, d). ∎
+
+In general, resolve_{Σ'}(e, d) ≠ resolve_Σ(e, d) as sets. *Witness:* let dom(M(d)) = {v₁, v₂} with M(d) = {v₁ ↦ a₁, v₂ ↦ a₂}, and let coverage(e) = {a₁} (so resolve_Σ(e, d) = {v₁}). The swap π(v₁) = v₂, π(v₂) = v₁ gives M'(d) = {v₁ ↦ a₂, v₂ ↦ a₁}, so resolve_{Σ'}(e, d) = {v₂} ≠ {v₁}. The resolve set changes whenever π maps a V-position inside the resolve set to one outside it, or vice versa.
 
 This is the precise sense in which links "track content, not location." The strap-between-bytes metaphor (Nelson: "A Xanadu link is not between points, but between spans of data. Thus we may visualize it as a strap between bytes" [LM 4/42]) expresses this property: rearranging the beads on the string doesn't alter which beads the strap holds, only where they sit.
 
@@ -142,15 +150,15 @@ The deeper question is: could a newly allocated I-address fall within the covera
 
 The answer depends on the allocation regime and the address hierarchy. We establish what is provable and identify where the answer is level-dependent.
 
-**SV6 (CrossOriginExclusion).** For a span (s, ℓ) in an existing endset where s is element-level (zeros(s) = 3), and a newly allocated address b with zeros(b) = 3 and origin(b) ≠ origin(s), when the action point of ℓ falls within the element field (i.e., beyond the three field separators):
+**SV6 (CrossOriginExclusion).** For a span (s, ℓ) in an existing endset where s is element-level (zeros(s) = 3), and a newly allocated address b with zeros(b) = 3 and origin(b) ≠ origin(s):
 
 `b ∉ ⟦(s, ℓ)⟧`
 
-*Precondition:* s and b are element-level tumblers (zeros(s) = 3, zeros(b) = 3), so origin(s) and origin(b) are well-defined (per the origin definition in ASN-0036, which requires element-level arguments). L4 (EndsetGenerality) permits non-element-level span starts, but the origin-based exclusion applies only when the start is element-level.
+*Precondition:* s and b are element-level tumblers (zeros(s) = 3, zeros(b) = 3), so origin(s) and origin(b) are well-defined (per the origin definition in ASN-0036, which requires element-level arguments). L4 (EndsetGenerality) permits non-element-level span starts, but the origin-based exclusion applies only when the start is element-level. The action point k of ℓ must satisfy: for s with zeros(s) = 3, let p₃ denote the position of the third zero component in s; the precondition is k > p₃. Equivalently, the leading k − 1 components of s contain all three field separators: `|{i : 1 ≤ i ≤ k−1 ∧ sᵢ = 0}| = 3`. This ensures the action point falls within the element field — beyond all three field separators.
 
-*Proof.* Let k be the action point of ℓ. By TumblerAdd, components before k are copied from s, and (s ⊕ ℓ)ₖ = sₖ + ℓₖ, so s and s ⊕ ℓ agree on positions 1 through k−1. Now consider any t with s ≤ t < s ⊕ ℓ. We claim t agrees with s on all positions 1 through k−1. For suppose t diverges from s at position j < k. Then tⱼ ≠ sⱼ. Since t ≥ s, we have tⱼ > sⱼ (T1 case (i) at the first point of disagreement). But sⱼ = (s ⊕ ℓ)ⱼ (both copy from s at positions before k), so tⱼ > (s ⊕ ℓ)ⱼ, giving t > s ⊕ ℓ by T1 — contradicting t < s ⊕ ℓ. Hence t agrees with s on all positions 1 through k−1.
+*Proof.* Let k be the action point of ℓ, with k > p₃ as stated. By TumblerAdd, components before k are copied from s, and (s ⊕ ℓ)ₖ = sₖ + ℓₖ, so s and s ⊕ ℓ agree on positions 1 through k−1. Now consider any t with s ≤ t < s ⊕ ℓ. We claim t agrees with s on all positions 1 through k−1. For suppose t diverges from s at position j < k. Then tⱼ ≠ sⱼ. Since t ≥ s, we have tⱼ > sⱼ (T1 case (i) at the first point of disagreement). But sⱼ = (s ⊕ ℓ)ⱼ (both copy from s at positions before k), so tⱼ > (s ⊕ ℓ)ⱼ, giving t > s ⊕ ℓ by T1 — contradicting t < s ⊕ ℓ. Hence t agrees with s on all positions 1 through k−1.
 
-Since the action point k is within the element field (beyond the three field separators), k−1 is at or past the position of the third separator. Therefore t shares the same three separator positions as s — the zero components that delimit the node, user, document, and element fields occur at identical positions in t and s. For any element-level t with zeros(t) = 3, this means t has exactly three field separators at the same positions as s, so the field decomposition of t matches that of s, giving origin(t) = origin(s). (T5 provides supporting context: since origin(s) is a prefix of both s and s ⊕ ℓ, every t in the interval satisfies origin(s) ≼ t — but the prefix property alone does not force the separator positions to align, which is what the sandwich argument above establishes.)
+Since k > p₃, the first k−1 positions of t include all three field-separator positions of s (at the positions where sᵢ = 0). Because t agrees with s on positions 1 through k−1, the three zero components occur at the same positions in t as in s. For any element-level t with zeros(t) = 3, this means t has exactly three field separators at the same positions as s, so the field decomposition of t matches that of s, giving origin(t) = origin(s). (T5 provides supporting context: since origin(s) is a prefix of both s and s ⊕ ℓ, every t in the interval satisfies origin(s) ≼ t — but the prefix property alone does not force the separator positions to align, which is what the sandwich argument above establishes.)
 
 Since b is element-level (S7b), and every element-level t ∈ ⟦(s, ℓ)⟧ has origin(t) = origin(s), the contrapositive gives: any element-level b with origin(b) ≠ origin(s) satisfies b ∉ ⟦(s, ℓ)⟧. ∎
 
@@ -183,15 +191,11 @@ This is the set of links whose endset at slot s shares at least one I-address wi
 
 In practice, the query set A is derived from a document's arrangement: a reader examines some V-region of document d, the system converts those V-positions to I-addresses via M(d), and then searches for links whose endsets intersect those I-addresses. But the discovery function itself is defined purely in I-space, independent of any particular document.
 
-We observe that discover_s is defined purely as a function of an I-address set — it is parameterised by I-addresses, not by document-V-region pairs. So identical I-address sets trivially yield identical discovery results. The interesting consequence is not this definitional fact but the *transclusion discovery guarantee* it entails:
+We observe that discover_s is defined purely as a function of an I-address set — it is parameterised by I-addresses, not by document-V-region pairs. So identical I-address sets trivially yield identical discovery results. The interesting consequence is not this definitional fact but the *transclusion discovery guarantee* it entails.
 
-**SV7 (TransclusionDiscovery).** If K.μ⁺ extends M(d₂) with a mapping v ↦ a where a ∈ ran(M(d₁)), then every link discoverable through a in d₁ is immediately discoverable through a in d₂, with no additional coupling step:
+**SV7 (TransclusionCouplingAbsence).** When K.μ⁺ extends M(d₂) with a mapping v ↦ a where a ∈ ran(M(d₁)), the link discoverability through a in d₂ requires no coupling step beyond K.μ⁺ itself. Formally, the monotonicity result discover_s({a}) in Σ ⊆ discover_s({a}) in Σ' is a direct corollary of SV8 (DiscoveryPermanence) instantiated with A = {a}. What SV7 captures is the *absence of coupling constraints*: no K.ρ (provenance recording), no link-store operation, and no additional elementary transition is required for d₂ to inherit all of a's link associations. K.μ⁺ alone suffices, because discovery operates on I-addresses (which K.μ⁺ shares) and L12 preserves the link store across the transition.
 
-`(A Σ →_{K.μ⁺} Σ', a ∈ ran(M(d₁)) ∩ ran(M'(d₂)), s :: discover_s({a}) in Σ ⊆ discover_s({a}) in Σ')`
-
-*Proof.* Let b ∈ discover_s({a}) in Σ. Then coverage(Σ.L(b).s) ∩ {a} ≠ ∅. By L12, Σ'.L(b) = Σ.L(b), so coverage(Σ'.L(b).s) ∩ {a} ≠ ∅. Since a ∈ ran(M'(d₂)), a query through d₂ in Σ' includes a in its I-address set, and the intersection with b's endset coverage remains non-empty. ∎
-
-The non-trivial content: no "link copying" step is required. When content is transcluded into d₂ by mapping a V-position to an existing I-address a, the link infrastructure does not need to be updated — d₂ inherits all of a's link associations automatically, because discovery operates on I-addresses and L12 preserves the link store. This applies equally to forking (J4): the new version shares I-addresses with the source by the fork's K.μ⁺ step, so it discovers the same links for all shared content without explicit link propagation.
+This architectural property — that transclusion inherits link discoverability without coupling — is not formally stronger than SV8, but it is the mechanism by which shared content propagates link relationships. It applies equally to forking (J4): the new version shares I-addresses with the source by the fork's K.μ⁺ step, so it discovers the same links for all shared content without explicit link propagation.
 
 **SV8 (DiscoveryPermanence).** For any fixed set of I-addresses A:
 
@@ -290,9 +294,11 @@ Discovery through d still works for queries including a₂ or a₄. But discover
 *After reordering.* From the post-contraction state, a K.μ~ step swaps v₂ and v₄: M''(d)(v₂) = a₄, M''(d)(v₄) = a₂ (with v₁ and v₅ unchanged). Since ran(M''(d)) = ran(M'(d)):
 
 - π(F, d) = {a₂, a₄} — unchanged (SV5)
-- resolve(F, d) = {v₂, v₄} — same V-positions, but v₂ now shows a₄ and v₄ shows a₂
+- resolve(F, d) = {v₂, v₄} — the V-positions happen to be the same set, because π permutes within the resolve set (both v₂ and v₄ map to I-addresses in coverage(F) before and after the swap)
 
-The projection is invariant under reordering; only the V-position ↦ I-address mapping within the resolution set has changed.
+Note: this worked example illustrates a special case where the resolve *set* is preserved because the swap exchanges two V-positions that both belong to the resolve set. In the general case, the resolve set changes — see the witness in the SV5 discussion. The formal relationship resolve_{Σ'}(F, d) = {π(v) : v ∈ resolve_Σ(F, d)} holds here: π(v₂) = v₄ and π(v₄) = v₂, so {π(v₂), π(v₄)} = {v₂, v₄} = resolve_Σ(F, d).
+
+The projection is invariant under reordering; the resolution set transforms by the reordering bijection.
 
 
 ## Content Fidelity
@@ -329,8 +335,9 @@ We can now synthesize the survivability guarantee into a single coherent stateme
 (e) *Resolution is arrangement-dependent:*
 - Extension of M(d) can only enlarge resolve(e, d). [SV2]
 - Contraction of M(d) can only shrink resolve(e, d). [SV3]
-- Reordering of M(d) preserves π(e, d) but may change resolve(e, d). [SV5]
+- Reordering of M(d) preserves π(e, d); resolve_{Σ'}(e, d) = {π(v) : v ∈ resolve_Σ(e, d)} where π is the reordering bijection. The resolve *set* may change. [SV5]
 - Changes to M(d) cannot affect resolve(e, d') for d' ≠ d. [SV4]
+- All other elementary transitions (K.α, K.δ, K.ρ) preserve M in their frame, so resolve(e, d) is unchanged.
 
 (f) *Coverage stability is level-dependent:* new allocations from a different origin cannot enter existing endset spans when the span start is element-level and the action point is within the element field — this is formally proved from the foundations (SV6). Same-origin coverage growth depends on the allocation regime — closed at the byte level by sequential sibling allocation, open at broader address levels by design (the byte-level closure follows from allocation discipline assumptions not formalised in this ASN; see the architectural analysis in the "Content Allocation and Coverage Stability" section).
 
@@ -357,7 +364,7 @@ Nelson's "strap between bytes" is exactly right. The strap (the link's endsets) 
 | SV4 | ArrangementIsolation: arrangement changes to M(d) do not affect π(e, d') for d' ≠ d | introduced |
 | SV5 | ReorderingProjectionInvariance: K.μ~ preserves π(e, d) exactly | introduced |
 | SV6 | CrossOriginExclusion: allocations from a different document prefix cannot enter existing endset spans (within element field) | introduced |
-| SV7 | TransclusionDiscovery: K.μ⁺ mapping v ↦ a in d₂ where a ∈ ran(M(d₁)) immediately inherits all link discoverability through a, with no coupling step | introduced |
+| SV7 | TransclusionCouplingAbsence: K.μ⁺ alone suffices for d₂ to inherit link discoverability — no K.ρ or link-store coupling required (corollary of SV8) | introduced |
 | SV8 | DiscoveryPermanence: once discoverable through A, always discoverable | introduced |
 | SV9 | DiscoveryMonotonicity: the discoverable set is non-decreasing as links are created | introduced |
 | SV10 | DiscoveryResolutionIndependence: discovery and resolution answer different questions with different filters | introduced |
