@@ -239,7 +239,22 @@ In words: within each subspace, V-positions form a contiguous ordinal range with
 
 For the standard text subspace at depth m = 2, this is a finite condition: the intermediates between [S, a] and [S, b] are the finitely many [S, i] with a < i < b. Combined with S8-fin (dom(M(d)) is finite), contiguity at depth 2 says V_S(d) occupies a single unbroken block of ordinals.
 
-At depth m ≥ 3, D-CTG combined with S8-fin forces a stronger restriction. Suppose V_S(d) contained two positions differing before the last component — say [S, 1, 5] and [S, 2, 1]. Every intermediate [S, v₂, v₃] with [S, 1, 5] < [S, v₂, v₃] < [S, 2, 1] must belong to V_S(d) by D-CTG. But these intermediates include [S, 1, 6], [S, 1, 7], ... — infinitely many positions with v₂ = 1, contradicting S8-fin. (Note: in the text subspace, the intermediate [S, 2, 0] would additionally violate S8a, but S8-fin alone suffices — the argument applies to all subspaces regardless of S8a's range guard.)
+At depth m ≥ 3, D-CTG combined with S8-fin forces a stronger restriction: all positions in V_S(d) must share components 2 through m − 1.
+
+*Proof.* Suppose for contradiction that V_S(d) contains two positions v₁ < v₂ (both depth m by S8-depth) whose first point of disagreement is at component j with 2 ≤ j ≤ m − 1 — that is, (v₁)ᵢ = (v₂)ᵢ for all i < j, and (v₁)ⱼ < (v₂)ⱼ (since v₁ < v₂ by T1(i)). For any natural number n > (v₁)ⱼ₊₁, define w of length m by:
+
+- wᵢ = (v₁)ᵢ for 1 ≤ i ≤ j (agreeing with v₁ on the first j components),
+- wⱼ₊₁ = n,
+- wᵢ = 1 for j + 2 ≤ i ≤ m (if any such positions exist).
+
+Then w has subspace S (since w₁ = (v₁)₁ = S) and depth m. We verify v₁ < w < v₂:
+
+- **w > v₁**: w agrees with v₁ on components 1 through j. At component j + 1, n > (v₁)ⱼ₊₁. By T1(i), w > v₁.
+- **w < v₂**: w agrees with v₂ on components 1 through j − 1 (since v₁ and v₂ agree there). At component j, wⱼ = (v₁)ⱼ < (v₂)ⱼ. By T1(i), w < v₂.
+
+By D-CTG, every such w belongs to V_S(d). By T0(a), unboundedly many values of n exist, yielding infinitely many distinct positions in V_S(d) — contradicting S8-fin. ∎
+
+This applies uniformly to all depths m ≥ 3 and all divergence points j ∈ {2, …, m − 1}. At depth m = 3, the only possible pre-last divergence is j = 2. For illustration: suppose V_S(d) contained [S, 1, 5] and [S, 2, 1]. Setting j = 2, for any n > 5, w = [S, 1, n] satisfies [S, 1, 5] < [S, 1, n] < [S, 2, 1], so D-CTG forces [S, 1, 6], [S, 1, 7], ... into V_S(d) — infinitely many, contradicting S8-fin. At depth m = 4, divergence could occur at j = 2 or j = 3; the same construction applies in each case.
 
 **D-CTG-depth — SharedPrefixReduction (COROLLARY; from D-CTG, S8-fin, S8-depth).** For depth m ≥ 3, all positions in a non-empty V_S(d) share components 2 through m − 1. Contiguity reduces to contiguity of the last component alone — structurally identical to the depth 2 case.
 
