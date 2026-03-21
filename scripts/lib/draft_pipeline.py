@@ -192,10 +192,39 @@ def step_discover(inquiry, force=False):
     return None
 
 
-def step_commit(hint=""):
-    """Commit vault changes. Returns True if committed."""
+def step_commit(hint="", asn_id=None):
+    """Commit vault changes. If asn_id given, scope to that ASN's files."""
+    import glob
+
+    if asn_id is not None:
+        label = f"ASN-{int(asn_id):04d}"
+        patterns = [
+            f"vault/1-reasoning-docs/{label}-*",
+            f"vault/2-review/{label}",
+            f"vault/0-consultations/{label}",
+            f"vault/3-export/{label}-*",
+            f"vault/project-model/{label}.yaml",
+            f"vault/6-examples/{label}",
+        ]
+        # Stage only this ASN's files
+        for pattern in patterns:
+            full = str(WORKSPACE / pattern)
+            matches = glob.glob(full)
+            if matches:
+                subprocess.run(
+                    ["git", "add"] + matches,
+                    capture_output=True, text=True, cwd=str(WORKSPACE),
+                )
+            dirpath = WORKSPACE / pattern
+            if dirpath.is_dir():
+                subprocess.run(
+                    ["git", "add", str(dirpath)],
+                    capture_output=True, text=True, cwd=str(WORKSPACE),
+                )
+
     result = subprocess.run(
-        ["git", "status", "--porcelain", "vault/"],
+        ["git", "status", "--porcelain", "vault/"] if asn_id is None else
+        ["git", "diff", "--cached", "--stat"],
         capture_output=True, text=True, cwd=str(WORKSPACE),
     )
     if not result.stdout.strip():
@@ -203,13 +232,14 @@ def step_commit(hint=""):
         return True
 
     skill_body = load_prompt(COMMIT_PROMPT)
+    scope = f"Only changes for {f'ASN-{int(asn_id):04d}' if asn_id else 'vault/'}"
     prompt = f"""{skill_body}
 
 ## Context
 
 {hint}
 
-Check for changes in vault/, read the diffs, and commit with a descriptive message.
+{scope}. Read the diffs and commit with a descriptive message.
 """
 
     cmd = [
@@ -284,7 +314,7 @@ def run_pipeline(inquiry, target_step, resume_from=None, force=False, dry_run=Fa
 
     # Step: commit
     if "commit" in run_steps:
-        step_commit(f"ASN-{asn_number:04d} {title}")
+        step_commit(f"ASN-{asn_number:04d} {title}", asn_id=asn_number)
 
     # Hint for next step
     if target_step in ("discover", "commit"):
