@@ -132,7 +132,7 @@ The specification is incomplete without stating what DELETE does *not* change. T
 
 `C' = C  ∧  E' = E  ∧  R' = R`
 
-DELETE does not allocate or modify content (C' = C follows from P0, ASN-0047). DELETE does not create or destroy entities (E' = E). DELETE does not record new provenance (R' = R). The provenance frame follows from J2 (ContractionIsolation, ASN-0047): arrangement contraction requires no coupling to other state components.
+DELETE does not allocate or modify content (C' = C). DELETE does not create or destroy entities (E' = E). DELETE does not record new provenance (R' = R). These equalities are verified in the composite transition decomposition below: both K.μ⁻ and K.μ⁺ have C' = C and E' = E as elementary frame conditions (ASN-0047), and the provenance frame R' = R follows from the K.μ⁻ frame together with the K.μ⁺ frame, with J1 shown vacuous since ran(M'(d)) ⊆ ran(M(d)).
 
 This is the sharpest distinction from INSERT, which modifies C (allocation), extends R (provenance recording), and extends M (placement). DELETE modifies M alone.
 
@@ -222,15 +222,17 @@ Since |L| + |X| + |R| = |V_S(d)| and |V_S'(d)| = |L| + |R| (positions in L survi
 
 We verify that DELETE decomposes into the elementary transitions of ASN-0047 and satisfies the coupling constraints.
 
-The composite Σ → Σ' consists of two steps:
+The composite Σ → Σ' consists of one or two elementary steps, depending on whether the right region R is empty.
 
-(i) *Arrangement contraction* — K.μ⁻ on document d: remove all V-positions in X ∪ R from M_S(d), leaving only the positions in L (and all positions in other subspaces). Precondition: d ∈ E_doc. Satisfied by D-PRE(i). By J2 (ContractionIsolation): C' = C, E' = E, R' = R.
+(i) *Arrangement contraction* — K.μ⁻ on document d: remove all V-positions in X ∪ R from M_S(d), leaving only the positions in L (and all positions in other subspaces). Precondition: d ∈ E_doc. Satisfied by D-PRE(i). Frame: C' = C, E' = E, R' = R (K.μ⁻ frame, ASN-0047).
 
-(ii) *Arrangement extension* — K.μ⁺ on document d: reintroduce the right-region content at shifted positions. For each v ∈ R, add the mapping M'(d)(σ(v)) = M(d)(v). Precondition: each M(d)(v) ∈ dom(C') (yes — these I-addresses were already in ran(M(d)) ⊆ dom(C) by S3, and C' = C by step (i)). The new V-positions σ(v) satisfy S8a (ordinals positive, as established under D-SHIFT). The depth #σ(v) = #v (TumblerSub preserves depth at the ordinal level), satisfying S8-depth. The domain remains finite (S8-fin): |L| + |R| < |V_S(d)| which is finite.
+(ii) *Arrangement extension* — K.μ⁺ on document d, **only when R ≠ ∅**: reintroduce the right-region content at shifted positions. K.μ⁺ requires strict domain extension (dom(M'(d)) ⊃ dom(M(d)) at the intermediate state). When R = ∅ — Cases 1 and 4 of D-DP, where the deletion extends through the last position — there are no right-region positions to reintroduce, so the strict-superset precondition cannot be met; the composite reduces to K.μ⁻ alone. When R ≠ ∅, |Q₃| ≥ 1 provides at least one new V-position. For each v ∈ R, add the mapping M'(d)(σ(v)) = M(d)(v). Precondition: each M(d)(v) ∈ dom(C') (yes — these I-addresses were already in ran(M(d)) ⊆ dom(C) by S3, and C' = C by step (i)). The new V-positions σ(v) satisfy S8a (ordinals positive, as established under D-SHIFT). The depth #σ(v) = #v (TumblerSub preserves depth at the ordinal level), satisfying S8-depth. The domain remains finite (S8-fin): |L| + |R| < |V_S(d)| which is finite. Frame: C' = C, E' = E, R' = R (K.μ⁺ frame, ASN-0047).
 
-**Elementary preconditions at intermediate states.** Step (i) removes positions; the precondition d ∈ E_doc holds. Step (ii) adds positions; the V-positions σ(v) must not already be in dom(M) at the intermediate state. After step (i), dom includes L (with ordinals < p) and non-S positions. The shifted positions σ(v) have ordinals ≥ ord(p) (by D-SEP). Since L has ordinals < ord(p), and σ(v) have subspace S (distinct from non-S positions), no collision occurs. ✓
+**Elementary preconditions at intermediate states.** Step (i) removes positions; the precondition d ∈ E_doc holds. When R ≠ ∅, step (ii) adds positions; the V-positions σ(v) must not already be in dom(M) at the intermediate state. After step (i), dom includes L (with ordinals < p) and non-S positions. The shifted positions σ(v) have ordinals ≥ ord(p) (by D-SEP). Since L has ordinals < ord(p), and σ(v) have subspace S (distinct from non-S positions), no collision occurs. ✓
 
-**Coupling constraints.** J0 (AllocationRequiresPlacement): no new content is allocated (dom(C') = dom(C)), so J0 is vacuously satisfied. J1 (ExtensionRecordsProvenance): the I-addresses reintroduced in step (ii) are not *new* to ran(M'(d)) relative to ran(M(d)) — they were already present before step (i) — but more precisely, they are new relative to the intermediate state. However, since these I-addresses already have provenance records (a, d) ∈ R from a prior transition (by P4), and R' = R, the condition J1 requires only that new I-addresses in ran(M'(d)) \ ran(M(d)) (where M(d) is the composite's initial arrangement) be covered. Since ran(M'(d)) ⊆ ran(M(d)) — the right-region I-addresses were already there, and the deleted I-addresses are gone — ran(M'(d)) \ ran(M(d)) = ∅. J1 is vacuous. J1' (ProvenanceRequiresExtension): R' \ R = ∅. Vacuous.
+**Coupling constraints (R = ∅).** The composite is K.μ⁻ alone. J0 (AllocationRequiresPlacement): dom(C') = dom(C), no new content allocated, vacuous. J1 (ExtensionRecordsProvenance): ran(M'(d)) ⊆ ran(M(d)) (contraction only removes mappings), so ran(M'(d)) \ ran(M(d)) = ∅, vacuous. J1' (ProvenanceRequiresExtension): R' = R, so R' \ R = ∅, vacuous. The composite is valid.
+
+**Coupling constraints (R ≠ ∅).** J0 (AllocationRequiresPlacement): no new content is allocated (dom(C') = dom(C)), vacuously satisfied. J1 (ExtensionRecordsProvenance): the I-addresses reintroduced in step (ii) are new relative to the intermediate state but not new relative to the composite's initial state. J1 requires that new I-addresses in ran(M'(d)) \ ran(M(d)) — where M(d) is the composite's initial arrangement — be covered by provenance. Since ran(M'(d)) ⊆ ran(M(d)) — the right-region I-addresses were already present in the initial arrangement, and the deleted I-addresses are removed — ran(M'(d)) \ ran(M(d)) = ∅. J1 is vacuous. J1' (ProvenanceRequiresExtension): R' \ R = ∅. Vacuous.
 
 The composite is a valid transition: DELETE preserves all coupling constraints.
 
@@ -321,7 +323,7 @@ We verify that DELETE preserves each foundation invariant.
 
 **S8-fin (FiniteArrangement, ASN-0036).** |dom(M'(d))| = |dom(M(d))| − |X| < |dom(M(d))|, finite since the original is finite.
 
-**P4 (ProvenanceBounds, ASN-0047).** Contains(Σ') ⊆ R'. We have Contains(Σ') ⊆ Contains(Σ) (since M'(d) lost mappings and no other arrangement changed) and Contains(Σ) ⊆ R = R'. ✓
+**P4 (ProvenanceBounds, ASN-0047).** Contains(Σ') ⊆ R'. Since ran(M'(d)) ⊆ ran(M(d)) — the right-region I-addresses are preserved and the deleted I-addresses are removed, while no new I-addresses are introduced — and no other arrangement changes (D-XD), we have Contains(Σ') ⊆ Contains(Σ) ⊆ R = R'. ✓
 
 **P6 (ExistentialCoherence, ASN-0047).** For all a ∈ dom(C'): origin(a) ∈ E'_doc. Unchanged: C' = C and E' = E, so P6 in Σ implies P6 in Σ'.
 
