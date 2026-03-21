@@ -86,7 +86,7 @@ Vitality is monotonically preserved: if an endset was vital in d before extensio
 
 Proof: π_{Σ'}(e, d) = coverage(e) ∩ ran(M'(d)). Since coverage(e) is invariant (SV1) and ran(M'(d)) ⊇ ran(M(d)) (K.μ⁺ frame), we have coverage(e) ∩ ran(M'(d)) ⊇ coverage(e) ∩ ran(M(d)) = π_Σ(e, d). ∎
 
-*For resolution:* resolve_Σ(e, d) ⊆ resolve_{Σ'}(e, d), because every old V-position is preserved (K.μ⁺ preserves existing mappings), and new V-positions may be added.
+*For resolution:* resolve_Σ(e, d) ⊆ resolve_{Σ'}(e, d). Let v ∈ resolve_Σ(e, d). Then v ∈ dom(M(d)) and M(d)(v) ∈ coverage(e). Since K.μ⁺ preserves existing mappings (dom(M(d)) ⊆ dom(M'(d)) with M'(d)(v) = M(d)(v) for all v ∈ dom(M(d))), we have v ∈ dom(M'(d)) and M'(d)(v) = M(d)(v) ∈ coverage(e), giving v ∈ resolve_{Σ'}(e, d). New V-positions in dom(M'(d)) \ dom(M(d)) may additionally enter the resolve set when their I-addresses lie in coverage(e). ∎
 
 
 ### Contraction May Reduce
@@ -96,6 +96,8 @@ Arrangement contraction (K.μ⁻, ArrangementContraction) removes V→I mappings
 **SV3 (ContractionReduction).**
 
 `(A Σ →_{K.μ⁻} Σ', e, d :: π_{Σ'}(e, d) ⊆ π_Σ(e, d))`
+
+Proof: π_{Σ'}(e, d) = coverage(e) ∩ ran(M'(d)). Since coverage(e) is invariant (SV1) and ran(M'(d)) ⊆ ran(M(d)) (K.μ⁻ restricts the domain while preserving values), we have coverage(e) ∩ ran(M'(d)) ⊆ coverage(e) ∩ ran(M(d)) = π_Σ(e, d). ∎
 
 Contraction can only *shrink* the projection. If the contraction removes all V-positions whose I-addresses are in coverage(e), then π_{Σ'}(e, d) = ∅ and the endset loses vitality in d. This is the mechanism by which editing can degrade a link's utility in a specific document.
 
@@ -135,7 +137,7 @@ Rearrangement cannot change which I-addresses are in the projection. The endset 
 
 `resolve_{Σ'}(e, d) = {ψ(v) : v ∈ resolve_Σ(e, d)}`
 
-*Proof.* v' ∈ resolve_{Σ'}(e, d) iff M'(d)(v') ∈ coverage(e). Since ψ is a bijection from dom(M(d)) to dom(M'(d)), v' = ψ(v) for a unique v, and M'(d)(ψ(v)) = M(d)(v). So M'(d)(v') ∈ coverage(e) iff M(d)(v) ∈ coverage(e) iff v ∈ resolve_Σ(e, d). ∎
+*Proof.* v' ∈ resolve_{Σ'}(e, d) iff v' ∈ dom(M'(d)) and M'(d)(v') ∈ coverage(e). Since ψ is a bijection from dom(M(d)) to dom(M'(d)), every v' ∈ dom(M'(d)) equals ψ(v) for a unique v ∈ dom(M(d)), and M'(d)(ψ(v)) = M(d)(v). So M'(d)(v') ∈ coverage(e) iff M(d)(v) ∈ coverage(e) iff v ∈ resolve_Σ(e, d). ∎
 
 In general, resolve_{Σ'}(e, d) ≠ resolve_Σ(e, d) as sets. *Witness:* let dom(M(d)) = {v₁, v₂} with M(d) = {v₁ ↦ a₁, v₂ ↦ a₂}, and let coverage(e) = {a₁} (so resolve_Σ(e, d) = {v₁}). The swap ψ(v₁) = v₂, ψ(v₂) = v₁ gives M'(d) = {v₁ ↦ a₂, v₂ ↦ a₁}, so resolve_{Σ'}(e, d) = {v₂} ≠ {v₁}. The resolve set changes whenever ψ maps a V-position inside the resolve set to one outside it, or vice versa.
 
