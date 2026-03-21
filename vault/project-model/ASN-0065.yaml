@@ -1,0 +1,10 @@
+# ASN-0065 — REARRANGE Operation
+title: "REARRANGE Operation"
+depends: [34, 36, 47, 53, 58]
+out_of_scope: "INSERT, DELETE, COPY operation mechanics, version creation, replication and inter-server protocol (BEBE)"
+
+inquiry:
+  question: "What is the precise effect of reordering segments of Vstream content by cut points? What is preserved about content identity, what changes about position, and what invariants must the completed operation maintain?"
+
+modeling:
+  proof_imports: [TumblerAlgebra, TumblerOrder, Streams, StateTransitions, SpanOperations, PermutationModel]
