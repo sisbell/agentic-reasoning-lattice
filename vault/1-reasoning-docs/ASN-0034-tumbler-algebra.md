@@ -546,41 +546,47 @@ TA0 is satisfied: the action point of δ(n, m) is m = #v, so k ≤ #v holds triv
 
 Additionally, shift preserves structural properties. When m ≥ 2, the action point of δₙ leaves position 1 unchanged — shift(v, n)₁ = v₁. When m = 1, shift([S], n) = [S + n] changes the first component. Furthermore, #shift(v, n) = #δₙ = m = #v by the result-length identity of TumblerAdd. The shift preserves tumbler depth, and — since n ≥ 1 — component positivity: shift(v, n)ₘ = vₘ + n ≥ 1 unconditionally for all vₘ ≥ 0.
 
-**I6 — ShiftOrderPreservation.**
+**TS1 — ShiftOrderPreservation.**
 
 `(A v₁, v₂, n : n ≥ 1 ∧ #v₁ = #v₂ = m ∧ v₁ < v₂ : shift(v₁, n) < shift(v₂, n))`
 
 *Derivation.* Fix n ≥ 1. Since #v₁ = #v₂ = m and v₁ ≠ v₂, the divergence point satisfies divergence(v₁, v₂) ≤ m. The action point of δₙ is m ≥ divergence(v₁, v₂). By TA1-strict: v₁ ⊕ δₙ < v₂ ⊕ δₙ. ∎
 
-**I7 — ShiftInjectivity.**
+**TS2 — ShiftInjectivity.**
 
 `(A v₁, v₂, n : n ≥ 1 ∧ #v₁ = #v₂ = m : shift(v₁, n) = shift(v₂, n) ⟹ v₁ = v₂)`
 
 *Derivation.* Fix n ≥ 1. By TA-MTO: v₁ ⊕ δₙ = v₂ ⊕ δₙ iff (A i : 1 ≤ i ≤ m : v₁ᵢ = v₂ᵢ). The action point of δₙ is m, and agreement at positions 1..m for tumblers of length m means v₁ = v₂ by T3 (CanonicalRepresentation). ∎
 
-**I8 — ShiftComposition.**
+**TS3 — ShiftComposition.**
 
 `(A v, n₁, n₂ : n₁ ≥ 1 ∧ n₂ ≥ 1 ∧ #v = m : shift(shift(v, n₁), n₂) = shift(v, n₁ + n₂))`
 
-*Derivation.* Expanding: shift(shift(v, n₁), n₂) = (v ⊕ δ(n₁, m)) ⊕ δ(n₂, m). By TA-assoc: (v ⊕ δ(n₁, m)) ⊕ δ(n₂, m) = v ⊕ (δ(n₁, m) ⊕ δ(n₂, m)). The action point of both displacements is m. By TumblerAdd, δ(n₁, m) ⊕ δ(n₂, m) has components 0 at positions 1..m−1 and n₁ + n₂ at position m — that is, δ(n₁ + n₂, m). So the expression equals v ⊕ δ(n₁ + n₂, m) = shift(v, n₁ + n₂). ∎
+*Derivation.* We expand both sides component-wise using TumblerAdd's constructive definition.
 
-**I9 — ShiftStrictIncrease.**
+Left side: let u = shift(v, n₁) = v ⊕ δ(n₁, m). By TumblerAdd, uᵢ = vᵢ for i < m, uₘ = vₘ + n₁, and #u = m. Now shift(u, n₂) = u ⊕ δ(n₂, m). By TumblerAdd, the result has components uᵢ = vᵢ for i < m, and uₘ + n₂ = vₘ + n₁ + n₂ at position m. Length is m.
+
+Right side: shift(v, n₁ + n₂) = v ⊕ δ(n₁ + n₂, m). By TumblerAdd, components are vᵢ for i < m, and vₘ + (n₁ + n₂) at position m. Length is m.
+
+Both sides have length m and agree at every component (natural-number addition is associative: vₘ + n₁ + n₂ = vₘ + (n₁ + n₂)). By T3: they are equal. ∎
+
+**TS4 — ShiftStrictIncrease.**
 
 `(A v, n : n ≥ 1 ∧ #v = m : shift(v, n) > v)`
 
 *Derivation.* δ(n, m) > 0 since its m-th component is n ≥ 1. By TA-strict: v ⊕ δ(n, m) > v. ∎
 
-**I10 — ShiftAmountMonotonicity.**
+**TS5 — ShiftAmountMonotonicity.**
 
 `(A v, n₁, n₂ : n₁ ≥ 1 ∧ n₂ > n₁ ∧ #v = m : shift(v, n₁) < shift(v, n₂))`
 
-*Derivation.* Write n₂ = n₁ + (n₂ − n₁) where n₂ − n₁ ≥ 1. By I8: shift(v, n₂) = shift(shift(v, n₁), n₂ − n₁). By I9: shift(shift(v, n₁), n₂ − n₁) > shift(v, n₁). ∎
+*Derivation.* Write n₂ = n₁ + (n₂ − n₁) where n₂ − n₁ ≥ 1. By TS3: shift(v, n₂) = shift(shift(v, n₁), n₂ − n₁). By TS4: shift(shift(v, n₁), n₂ − n₁) > shift(v, n₁). ∎
 
 *Worked example.* Let v = [2, 3, 7] (m = 3) and n = 4. Then δ(4, 3) = [0, 0, 4] with action point 3. TA0: k = 3 ≤ 3 = #v. By TumblerAdd: shift(v, 4) = [2, 3, 7 + 4] = [2, 3, 11].
 
-For I6: take v₁ = [2, 3, 5] < v₂ = [2, 3, 9] with n = 4. Then shift(v₁, 4) = [2, 3, 9] < [2, 3, 13] = shift(v₂, 4). ✓
+For TS1: take v₁ = [2, 3, 5] < v₂ = [2, 3, 9] with n = 4. Then shift(v₁, 4) = [2, 3, 9] < [2, 3, 13] = shift(v₂, 4). ✓
 
-For I8: shift(shift([2, 3, 7], 4), 3) = shift([2, 3, 11], 3) = [2, 3, 14] = shift([2, 3, 7], 7). ✓
+For TS3: shift(shift([2, 3, 7], 4), 3) = shift([2, 3, 11], 3) = [2, 3, 14] = shift([2, 3, 7], 7). ✓
 
 
 ## Increment for allocation
@@ -753,6 +759,7 @@ We collect the structure. The tumbler algebra is a tuple `(T, <, ⊕, ⊖, inc, 
 - `TA7a` confines element-local shifts to their subspace (algebraic closure)
 - Spans are self-describing contiguous ranges (T12)
 - D0–D2 characterize displacement recovery: D0 is the well-definedness precondition, D1 is the round-trip identity a ⊕ (b ⊖ a) = b, D2 is uniqueness (corollary of D1 + TA-LC)
+- OrdinalDisplacement and OrdinalShift define the shift apparatus — ordinal displacement δ(n, m) and shift(v, n) = v ⊕ δ(n, #v); TS1–TS5 establish that shift preserves order (TS1), is injective (TS2), composes additively (TS3), strictly increases (TS4), and is monotone in amount (TS5)
 
 Each property is required by at least one system guarantee:
 
@@ -776,6 +783,8 @@ Each property is required by at least one system guarantee:
 | D0 | Displacement recovery precondition |
 | D1 | Displacement round-trip: span-endpoint recovery from start + displacement |
 | D2 *(corollary of D1 + TA-LC)* | Displacement uniqueness |
+| OrdinalDisplacement, OrdinalShift | Element-level position advancement (Istream allocation, V-enfilade traversal) |
+| TS1–TS5 *(lemmas/corollaries)* | Order-safe shifting: TS1 order preservation for sorted-sequence maintenance, TS2 injectivity for address uniqueness under shift, TS3 composition for multi-step allocation, TS4–TS5 monotonicity for forward progress |
 
 Removing any independent property breaks a system-level guarantee. T6 and T7 are derived (corollaries of T4, T3 respectively) and are stated for emphasis, not as independent axioms. TA-LC, TA-RC, and TA-MTO are structural lemmas derived from TumblerAdd's constructive definition and T3 — they characterize cancellation asymmetry and the many-to-one equivalence classes of `⊕`, but introduce no independent content beyond the definition.
 
@@ -818,11 +827,11 @@ Removing any independent property breaks a system-level guarantee. T6 and T7 are
 | D2 | Displacement uniqueness: under D1's preconditions, if a ⊕ w = b then w = b ⊖ a | corollary of D1 + TA-LC |
 | OrdinalDisplacement | δ(n, m) = [0, ..., 0, n] of length m, action point m | introduced |
 | OrdinalShift | shift(v, n) = v ⊕ δ(n, #v) | introduced |
-| I6 | shift preserves strict order: v₁ < v₂ ⟹ shift(v₁, n) < shift(v₂, n) | lemma (from TA1-strict) |
-| I7 | shift is injective: shift(v₁, n) = shift(v₂, n) ⟹ v₁ = v₂ | lemma (from TA-MTO + T3) |
-| I8 | shift composes additively: shift(shift(v, n₁), n₂) = shift(v, n₁ + n₂) | lemma (from TA-assoc + ⊕ defn) |
-| I9 | shift strictly increases: shift(v, n) > v | corollary (from TA-strict) |
-| I10 | shift is monotone in amount: n₁ < n₂ ⟹ shift(v, n₁) < shift(v, n₂) | corollary (from I8 + I9) |
+| TS1 | shift preserves strict order: v₁ < v₂ ⟹ shift(v₁, n) < shift(v₂, n) | lemma (from TA1-strict) |
+| TS2 | shift is injective: shift(v₁, n) = shift(v₂, n) ⟹ v₁ = v₂ | lemma (from TA-MTO + T3) |
+| TS3 | shift composes additively: shift(shift(v, n₁), n₂) = shift(v, n₁ + n₂) | lemma (from ⊕ defn + T3) |
+| TS4 | shift strictly increases: shift(v, n) > v | corollary (from TA-strict) |
+| TS5 | shift is monotone in amount: n₁ < n₂ ⟹ shift(v, n₁) < shift(v, n₂) | corollary (from TS3 + TS4) |
 
 
 ## Open Questions
