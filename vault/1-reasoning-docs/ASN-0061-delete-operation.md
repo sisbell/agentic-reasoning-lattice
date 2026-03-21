@@ -23,12 +23,37 @@ In words: within each subspace, V-positions form a contiguous ordinal range with
 
 For the standard text subspace at depth m = 2, this is a finite condition: the intermediates between [S, a] and [S, b] are the finitely many [S, i] with a < i < b. Combined with S8-fin (dom(M(d)) is finite), contiguity at depth 2 says V_S(d) occupies a single unbroken block of ordinals.
 
-We take D-CTG as an invariant of every reachable state. We prove below that DELETE preserves it.
+D-CTG is a design constraint on well-formed document states that further restricts which composite transitions constitute well-formed editing operations, beyond ASN-0047's validity predicate. We verify the base case: in Σ₀, V_S(d) = ∅ for all d and S (since M₀(d) = ∅ by InitialState, ASN-0047), so D-CTG holds vacuously. Note that bare K.μ⁻ — a valid elementary transition under ASN-0047 — can violate D-CTG by removing a single interior V-position; D-CTG is therefore not preserved by all valid composites, only by those that constitute well-formed editing operations.
+
+We treat D-CTG as a precondition that DELETE both assumes and preserves. Whether INSERT, COPY, and REARRANGE also preserve D-CTG is a separate verification obligation for each operation's ASN.
+
+
+## Ordinal Extraction
+
+We frequently need to separate a V-position into its subspace identifier and its ordinal within that subspace. Per the ordinal-only formulation of TA7a (ASN-0034), we define the extraction and reconstruction functions.
+
+**Definition — OrdinalExtraction.** For a V-position v with #v = m and subspace(v) = v₁, the *ordinal* is:
+
+`ord(v) = [v₂, ..., vₘ]`
+
+— the tumbler of length m − 1 obtained by stripping the subspace identifier.
+
+**Definition — VPositionReconstruction.** For subspace identifier S and ordinal o = [o₁, ..., oₖ]:
+
+`vpos(S, o) = [S, o₁, ..., oₖ]`
+
+with #vpos(S, o) = k + 1. These are inverses: ord(vpos(S, o)) = o and vpos(subspace(v), ord(v)) = v.
+
+**Definition — OrdinalDisplacementProjection.** For a V-depth displacement w with w₁ = 0 and #w = m, the *ordinal displacement* is:
+
+`w_ord = [w₂, ..., wₘ]`
+
+of depth m − 1. At the restricted depth m = 2 (see D-PRE(iv) below), w = [0, c] for positive integer c, and w_ord = [c].
 
 
 ## Precondition
 
-DELETE takes three arguments: a document d, a subspace S, and a deletion span (p, w) specifying the contiguous range of V-positions to remove. Here p is a V-position in subspace S, and w is a positive ordinal displacement (an element-local displacement of the same depth as the V-positions, per TA7a, ASN-0034) encoding the count of positions to delete.
+DELETE takes three arguments: a document d, a subspace S, and a deletion span (p, w) specifying the contiguous range of V-positions to remove. Here p is a V-position in subspace S, and w is a positive displacement of the same depth as p (per TA7a, ASN-0034) with w₁ = 0 (preserving the subspace identifier under addition). The ordinal displacement w_ord = [w₂, ..., w_{#w}] encodes the count of positions to delete.
 
 The span is arbitrary — it need not align with any boundaries of how content was originally contributed. Nelson is explicit: V-positions are addressed "regardless of their native origin" [LM 4/11]; a deletion can excise the middle of a correspondence run, split a mapping block, or remove the entire document's content in one operation.
 
@@ -40,13 +65,13 @@ The span is arbitrary — it need not align with any boundaries of how content w
 
 (iii) subspace(p) = S where S ≥ 1 (text subspace; link-subspace deletion follows the same structure but we derive text-subspace first).
 
-(iv) #p ≥ 2 (same depth constraint as insertion — ordinal shift modifies position m = #p, so m ≥ 2 preserves the subspace identifier at position 1).
+(iv) #p = 2 (depth-2 V-positions, ordinal depth 1). All proofs in this ASN — including the round-trip property D-SEP and the contiguity preservation D-DP — rely on properties of depth-1 ordinals (single natural numbers). Generalization to deeper ordinals is noted as an open question.
 
 (v) The deletion span lies entirely within the current arrangement:
 
-`⟦(p, w)⟧ ⊆ V_S(d)`
+`(A v : subspace(v) = S ∧ #v = #p ∧ p ≤ v < p ⊕ w : v ∈ V_S(d))`
 
-where ⟦·⟧ is span denotation (ASN-0053). Every position in the span must currently exist in d's subspace-S arrangement. Attempting to delete non-existent positions is undefined.
+Every V-position of the correct depth within the deletion range must currently exist in d's subspace-S arrangement. We use a depth-restricted membership predicate rather than span denotation (ASN-0053), because ⟦(p, w)⟧ includes tumblers at all depths between p and p ⊕ w (by T0(b) and T5, ASN-0034), while V_S(d) contains only tumblers of fixed depth #p (by S8-depth, ASN-0036). Attempting to delete non-existent positions is undefined.
 
 When V_S(d) is contiguous (D-CTG), the precondition (v) reduces to a bound on the span endpoints. Let v_min and v_max be the minimum and maximum of V_S(d). Then (v) requires p ≥ v_min and p ⊕ w ≤ shift(v_max, 1) — the deletion starts within the extent and ends at or before the first position past the extent.
 
@@ -65,7 +90,7 @@ R = {v ∈ V_S(d) : v ≥ r}            — right of deletion
 
 By trichotomy of the total order (T1, ASN-0034), every v ∈ V_S(d) falls in exactly one region. These are pairwise disjoint: L ∩ X = ∅ because v < p ∧ v ≥ p is impossible; X ∩ R = ∅ because v < r ∧ v ≥ r is impossible; L ∩ R = ∅ because v < p ∧ v ≥ r with p < r (from w > 0 and TA-strict, ASN-0034) yields v < p ≤ v, a contradiction. Exhaustiveness: L ∪ X ∪ R = V_S(d).
 
-By D-PRE(v), X = ⟦(p, w)⟧ ∩ V_S(d) = ⟦(p, w)⟧ since the span is contained within V_S(d). So |X| ≥ 1 (every well-formed span denotes a non-empty set, S2, ASN-0053).
+By D-PRE(v), every V-position of depth #p in the range [p, r) belongs to V_S(d), so X includes at least p itself (since p < r by TA-strict, ASN-0034, and p ∈ V_S(d) by D-PRE(v)). Thus |X| ≥ 1.
 
 L or R may be empty. L = ∅ when p = v_min (deletion starts at the first position). R = ∅ when r = shift(v_max, 1) (deletion extends through the last position). Both empty simultaneously means the entire subspace content is deleted: X = V_S(d).
 
@@ -86,13 +111,11 @@ Neither the V-position nor the I-address changes. Content before the deletion po
 
 The V-positions within [p, r) are no longer in the domain of M(d). The I-addresses they referenced are not destroyed — they remain in dom(C) by P0 (ContentPermanence, ASN-0047) — but the arrangement no longer points to them from these V-positions. Nelson's diagram on page 4/9 explicitly names this state: "DELETED BYTES (not currently addressable, awaiting historical backtrack functions, may remain included in other versions)."
 
-**D-SHIFT — RightShift (POST).** Every position in the right region survives with its I-address mapping intact, but its V-position shifts left by w. Define the shift function: for v ∈ R, let σ(v) be the V-position in subspace S with ordinal ord(v) ⊖ w (TumblerSub applied to the ordinal component). Then:
+**D-SHIFT — RightShift (POST).** Every position in the right region survives with its I-address mapping intact, but its V-position shifts left by w_ord. Define the shift function: for v ∈ R, let σ(v) = vpos(S, ord(v) ⊖ w_ord) — TumblerSub applied to the ordinal component, then reconstructed as a V-position. Then:
 
 `(A v : v ∈ R : σ(v) ∈ dom(M'(d)) ∧ M'(d)(σ(v)) = M(d)(v))`
 
-where `σ(v) = (S, ord(v) ⊖ w)` — the V-position reconstructed from subspace S and the shifted ordinal.
-
-The shift is well-defined. For any v ∈ R, ord(v) ≥ ord(r) = ord(p) ⊕ w (since v ≥ r). The subtraction ord(v) ⊖ w is well-defined by TA2 (SubtractionWellDefined, ASN-0034) because ord(v) ≥ w (from v ≥ r ≥ w in the ordinal ordering, given that ord(p) > 0 by S8a, ASN-0036). The shifted ordinal is positive: ord(v) ⊖ w ≥ ord(r) ⊖ w, and the minimum shifted ordinal is ord(r) ⊖ w = ord(p) (verified in D-SEP below), which is positive by S8a. So the shifted V-position satisfies S8a.
+The shift is well-defined. For any v ∈ R, ord(v) ≥ ord(r) = ord(p) ⊕ w_ord (since v ≥ r). The subtraction ord(v) ⊖ w_ord is well-defined by TA2 (SubtractionWellDefined, ASN-0034). At our restricted depth #p = 2: ord(v) = [vₘ] and w_ord = [c] for positive integer c, so [vₘ] ⊖ [c] = [vₘ − c] is well-defined when vₘ ≥ c, which holds since vₘ ≥ ord(r)₁ = pₘ + c. The shifted ordinal is positive: the minimum shifted ordinal is ord(r) ⊖ w_ord = ord(p) (verified in D-SEP below), which is positive by S8a (ASN-0036). So the shifted V-position satisfies S8a.
 
 What the shift preserves and changes: D-SHIFT changes the V-ordinal of each right-region position but preserves the I-address. The position in the permanent content store is unchanged; the position in the document's arrangement shifts to close the gap. This is the two-space separation in action: the arrangement (Vstream) is modified while the content (Istream) remains invariant. Nelson: "The address of a byte in its native document is of no concern to the user or to the front end; indeed, it may be constantly changing" [LM 4/11].
 
@@ -153,19 +176,19 @@ We verify that the shift σ defined by D-SHIFT is well-behaved: order-preserving
 
 `(A v₁, v₂ ∈ R : v₁ < v₂ ⟹ σ(v₁) < σ(v₂))`
 
-*Proof.* All ordinals in R share the same depth (S8-depth). For any v₁ < v₂ in R, we have ord(v₁) < ord(v₂) (since they share the subspace identifier, the ordering depends only on the ordinal). Both ordinals satisfy ord(v) ≥ w (established above). By TA3-strict (OrderPreservationSubtractionStrict, ASN-0034) — a < b ∧ a ≥ w ∧ b ≥ w ∧ #a = #b ⟹ a ⊖ w < b ⊖ w — we conclude ord(v₁) ⊖ w < ord(v₂) ⊖ w, hence σ(v₁) < σ(v₂). ∎
+*Proof.* All ordinals in R share the same depth (S8-depth). For any v₁ < v₂ in R, we have ord(v₁) < ord(v₂) (since they share the subspace identifier, the ordering depends only on the ordinal). Both ordinals satisfy ord(v) ≥ w_ord (established above). By TA3-strict (OrderPreservationSubtractionStrict, ASN-0034) — a < b ∧ a ≥ w ∧ b ≥ w ∧ #a = #b ⟹ a ⊖ w < b ⊖ w — we conclude ord(v₁) ⊖ w_ord < ord(v₂) ⊖ w_ord, hence σ(v₁) < σ(v₂). ∎
 
 Order preservation implies injectivity: v₁ ≠ v₂ ⟹ σ(v₁) ≠ σ(v₂). The shift creates no collisions.
 
 **D-SEP — GapClosure (LEMMA).** The shifted right-region positions abut the left-region positions with no gap and no overlap. Specifically, the minimum shifted ordinal equals ord(p):
 
-`σ(r) has ordinal ord(r) ⊖ w = ord(p)`
+`σ(r) has ordinal ord(r) ⊖ w_ord = ord(p)`
 
-*Proof.* We need (ord(p) ⊕ w) ⊖ w = ord(p). At depth m = 2 (the standard text-subspace case): ord(p) = [p₂], w = [w_c] for some positive integer w_c. Then ord(p) ⊕ w = [p₂ + w_c] by TumblerAdd. And [p₂ + w_c] ⊖ [w_c]: the two sequences have equal length 1, divergence at position 1 where (p₂ + w_c) > w_c, giving r₁ = (p₂ + w_c) − w_c = p₂. Result: [p₂] = ord(p). ✓
+*Proof.* We need (ord(p) ⊕ w_ord) ⊖ w_ord = ord(p). At our restricted depth #p = 2: ord(p) = [p₂] and w_ord = [c] for positive integer c. Then ord(p) ⊕ w_ord = [p₂ + c] by TumblerAdd. And [p₂ + c] ⊖ [c]: the two sequences have equal length 1, divergence at position 1 where (p₂ + c) > c, giving r₁ = (p₂ + c) − c = p₂. Result: [p₂] = ord(p). ✓
 
-More generally, TA4 (PartialInverse, ASN-0034) gives (a ⊕ w) ⊖ w = a when the action point k = #a, #w = k, and (A i : 1 ≤ i < k : aᵢ = 0). For depth-1 ordinals (k = 1), the condition on leading zeros is vacuously satisfied. ∎
+This applies TA4 (PartialInverse, ASN-0034): (a ⊕ w) ⊖ w = a when the action point k = #a, #w = k, and (A i : 1 ≤ i < k : aᵢ = 0). For depth-1 ordinals (k = 1), the zero-prefix condition is vacuously satisfied. ∎
 
-**Consequence.** The left region L has V-positions with ordinals less than ord(p). The shifted right region Q₃ has V-positions with ordinals from ord(p) onward (by D-SEP) through ord(v_max) ⊖ w. The gap closes exactly at p: the left region ends just before ord(p), and the shifted right region begins at ord(p). No overlap (since L < p ≤ Q₃) and no residual gap.
+**Consequence.** The left region L has V-positions with ordinals less than ord(p). The shifted right region Q₃ has V-positions with ordinals from ord(p) onward (by D-SEP) through ord(v_max) ⊖ w_ord. The gap closes exactly at p: the left region ends just before ord(p), and the shifted right region begins at ord(p). No overlap (since L < p ≤ Q₃) and no residual gap.
 
 
 ## Contiguity Preservation
@@ -178,9 +201,9 @@ The central correctness property: DELETE preserves the contiguity invariant.
 
 **Case 1: L = ∅ and R = ∅.** Then X = V_S(d) — the entire content is deleted. After DELETE, V_S'(d) = ∅. D-CTG holds vacuously.
 
-**Case 2: L = ∅ and R ≠ ∅.** The deletion starts at v_min. After DELETE, V_S'(d) = Q₃ = {σ(v) : v ∈ R}. The shift σ is order-preserving (D-BJ), so it maps the contiguous set R (contiguous by D-CTG on the pre-state) to a contiguous set Q₃. In detail: suppose u', w' ∈ Q₃ with u' < w', and consider v with subspace(v) = S, #v = #u', u' < v < w'. There exist u, w ∈ R with σ(u) = u' and σ(w) = w'. Since σ is order-preserving and surjects onto Q₃, v is between σ(u) and σ(w). We need v ∈ Q₃. The preimage σ⁻¹ is also order-preserving (since σ is a strictly monotone bijection), so σ⁻¹(v) exists in the range [u, w] — provided v is in the range of σ. But σ maps the contiguous set R to positions from σ(r) onward contiguously, so every intermediate position is covered. ✓
+**Case 2: L = ∅ and R ≠ ∅.** The deletion starts at v_min. After DELETE, V_S'(d) = Q₃ = {σ(v) : v ∈ R}. At our restricted depth #p = 2, R occupies ordinals {a, a+1, ..., b} for some a, b (contiguous by D-CTG on the pre-state; depth-1 ordinals are natural numbers). The shift σ subtracts the constant c = w_ord₁ from each ordinal, yielding {a − c, a − c + 1, ..., b − c}. Integer subtraction by a constant preserves the unit gap between consecutive ordinals, so Q₃ is contiguous. ✓
 
-**Case 3: L ≠ ∅ and R ≠ ∅.** The left region L is contiguous (D-CTG on the pre-state, restricted to positions below p). The shifted right region Q₃ is contiguous (argument as in Case 2). The two are adjacent: max(L) is the immediate predecessor of p in V_S(d), and min(Q₃) has ordinal ord(p) (by D-SEP), so min(Q₃) is the immediate successor of max(L) in the ordinal sequence. The union L ∪ Q₃ is therefore contiguous.
+**Case 3: L ≠ ∅ and R ≠ ∅.** The left region L is contiguous (D-CTG on the pre-state, restricted to positions below p). The shifted right region Q₃ is contiguous (same depth-1 argument as Case 2). The two are adjacent: max(L) has ordinal ord(p) − 1 (the immediate predecessor of p in V_S(d), which exists because L ≠ ∅ and D-CTG ensures contiguity), and min(Q₃) has ordinal ord(p) (by D-SEP). Since ord(p) − 1 and ord(p) are consecutive natural numbers, L and Q₃ are adjacent with no gap and no overlap. The union L ∪ Q₃ is therefore contiguous.
 
 **Case 4: L ≠ ∅ and R = ∅.** V_S'(d) = L, which is contiguous by D-CTG restricted to positions below p. ∎
 
@@ -216,15 +239,15 @@ Partition B_S relative to the two cut points p and r = p ⊕ w. For each block �
 
 (a) *Entirely in L*: v_end ≤ p. Block is untouched.
 
-(b) *Straddles the left cut only*: v < p < v_end ≤ r. Split at c₁ = p − v (interior point, well-defined by M4, ASN-0058): left piece β_L = (v, a, c₁) survives in L; right piece is in X and is removed.
+(b) *Straddles the left cut only*: v < p < v_end ≤ r. Split at interior point c₁ satisfying v + c₁ = p (at ordinal depth 1, c₁ = ord(p)₁ − ord(v)₁; well-defined by M4, ASN-0058): left piece β_L = (v, a, c₁) survives in L; right piece is in X and is removed.
 
 (c) *Entirely in X*: p ≤ v and v_end ≤ r. Block is removed.
 
-(d) *Straddles the right cut only*: p ≤ v < r < v_end. Split at c₂ = r − v: left piece is in X (removed); right piece β_R = (r, a + c₂, n − c₂) survives, with V-start shifted to σ(r).
+(d) *Straddles the right cut only*: p ≤ v < r < v_end. Split at interior point c₂ satisfying v + c₂ = r (at ordinal depth 1, c₂ = ord(r)₁ − ord(v)₁): left piece is in X (removed); right piece β_R = (r, a + c₂, n − c₂) survives, with V-start shifted to σ(r).
 
 (e) *Entirely in R*: v ≥ r. Block survives with V-start shifted: β' = (σ(v), a, n).
 
-A block may straddle both cuts (v < p and v_end > r) when it spans the entire deletion interval. Two splits produce three pieces: the left survivor β_L = (v, a, p − v), the removed middle, and the right survivor which shifts.
+A block may straddle both cuts (v < p and v_end > r) when it spans the entire deletion interval. Two splits produce three pieces: the left survivor β_L = (v, a, c₁) where v + c₁ = p, the removed middle, and the right survivor which shifts.
 
 **D-BLK — BlockTransformation (LEMMA).** The post-DELETE decomposition is:
 
@@ -232,7 +255,7 @@ A block may straddle both cuts (v < p and v_end > r) when it spans the entire de
 
 where B_left collects surviving pieces from cases (a) and (b), and B_right collects surviving pieces from cases (d) and (e).
 
-*Verification of B1–B3.* Coverage (B1): B_other covers V-positions in other subspaces (D-XS). Within subspace S: B_left covers the left region (D-LEFT), shifted B_right covers the shifted right region (D-SHIFT). Disjointness (B2): B_other is disjoint from the S blocks by subspace. Within S: B_left has V-extents ending before p; shifted B_right has V-extents starting at or beyond p (by D-SEP); no overlap. Consistency (B3): for B_left, M'(d)(v + j) = M(d)(v + j) = a + j by D-LEFT and the original B3. For shifted B_right, we need M'(d)(σ(v) + j) = a + j. By D-SHIFT, M'(d)(σ(v + j)) = M(d)(v + j) = a + j. And σ(v) + j = σ(v + j): the ordinal of σ(v) + j is (ord(v) ⊖ w) + j, and the ordinal of σ(v + j) is (ord(v) + j) ⊖ w. At depth 1 (standard case): [(vₘ − w_c) + j] = [(vₘ + j) − w_c] by commutativity and associativity of ℕ arithmetic. ∎
+*Verification of B1–B3.* Coverage (B1): B_other covers V-positions in other subspaces (D-XS). Within subspace S: B_left covers the left region (D-LEFT), shifted B_right covers the shifted right region (D-SHIFT). Disjointness (B2): B_other is disjoint from the S blocks by subspace. Within S: B_left has V-extents ending before p; shifted B_right has V-extents starting at or beyond p (by D-SEP); no overlap. Consistency (B3): for B_left, M'(d)(v + j) = M(d)(v + j) = a + j by D-LEFT and the original B3. For shifted B_right, we need M'(d)(σ(v) + j) = a + j. By D-SHIFT, M'(d)(σ(v + j)) = M(d)(v + j) = a + j. And σ(v) + j = σ(v + j): the ordinal of σ(v) + j is (ord(v) ⊖ w_ord) + j, and the ordinal of σ(v + j) is (ord(v) + j) ⊖ w_ord. At our restricted ordinal depth 1: [(vₘ − c) + j] = [(vₘ + j) − c] where c = w_ord₁, by commutativity and associativity of natural-number arithmetic. ∎
 
 The key observation: **I-addresses are never modified.** Every I-address in ran(M_S(d)) either survives in M'_S(d) at a shifted V-position or is removed from the arrangement entirely. No I-address is altered, and no new I-address is introduced. The mapping blocks in B' differ from those in B only in their V-starts (shifted for the right region) and their presence (absent for the deleted region).
 
@@ -259,7 +282,7 @@ DELETE two positions starting at p = [1, 2]. Parameters: w = [0, 2] (ordinal wid
 | [1, 4] | b + 3 | R | [1, 2] | b + 3 |
 | [1, 5] | b + 4 | R | [1, 3] | b + 4 |
 
-Shift: σ([1, 4]) has ordinal [4] ⊖ [2] = [2], giving V-position [1, 2]. σ([1, 5]) has ordinal [5] ⊖ [2] = [3], giving [1, 3]. Each shifted position preserves its I-address.
+Shift uses w_ord = [2] (the ordinal projection of w = [0, 2]): σ([1, 4]) = vpos(1, [4] ⊖ [2]) = vpos(1, [2]) = [1, 2]. σ([1, 5]) = vpos(1, [5] ⊖ [2]) = vpos(1, [3]) = [1, 3]. Each shifted position preserves its I-address.
 
 **D-BLK (block decomposition).** B' = {([1, 1], b, 1), ([1, 2], b + 3, 2)}.
 
@@ -354,11 +377,14 @@ Several aspects of Gregory's implementation illuminate the abstract specificatio
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| D-CTG | V-positions within each subspace form a contiguous ordinal range (no gaps) | introduced |
-| D-PRE | DELETE requires d ∈ E_doc, w > 0, subspace(p) ≥ 1, #p ≥ 2, span ⊆ current extent | introduced |
+| ord(v) | Ordinal extraction: ord(v) = [v₂, ..., vₘ] strips the subspace identifier | introduced |
+| vpos(S, o) | V-position reconstruction: vpos(S, o) = [S, o₁, ..., oₖ]; inverse of ord | introduced |
+| w_ord | Ordinal displacement projection: w_ord = [w₂, ..., wₘ] for V-depth w with w₁ = 0 | introduced |
+| D-CTG | V-positions within each subspace form a contiguous ordinal range — design constraint assumed and preserved by DELETE | introduced |
+| D-PRE | DELETE requires d ∈ E_doc, w > 0, subspace(p) ≥ 1, #p = 2, depth-restricted span ⊆ current extent | introduced |
 | D-LEFT | (A v ∈ L : M'(d)(v) = M(d)(v)) — left region unchanged | introduced |
 | D-DEL | (A v ∈ X : v ∉ dom(M'(d))) — deleted interval removed | introduced |
-| D-SHIFT | (A v ∈ R : M'(d)(σ(v)) = M(d)(v)) where σ shifts ordinal left by w | introduced |
+| D-SHIFT | (A v ∈ R : M'(d)(σ(v)) = M(d)(v)) where σ(v) = vpos(S, ord(v) ⊖ w_ord) | introduced |
 | D-CF | C' = C, E' = E, R' = R — DELETE modifies only M(d) in subspace S | introduced |
 | D-XD | (A d' ≠ d : M'(d') = M(d')) — cross-document isolation | introduced |
 | D-XS | (A v : subspace(v) ≠ S : M'(d)(v) = M(d)(v)) — subspace confinement | introduced |
@@ -374,7 +400,7 @@ Several aspects of Gregory's implementation illuminate the abstract specificatio
 
 ## Open Questions
 
-Must the contiguity invariant D-CTG hold as a system-wide invariant across all operations, or is it a precondition that individual operations must independently establish?
+Does every well-formed editing operation (INSERT, COPY, REARRANGE) preserve D-CTG, or are there operations that legitimately produce non-contiguous V-position sets?
 
 What conditions must a version-reconstruction mechanism satisfy to guarantee that any prior arrangement — including the pre-deletion state — is recoverable from the post-deletion state and system history?
 
@@ -382,7 +408,7 @@ Under what conditions can a sequence of deletions and insertions cause the numbe
 
 What must a document-discovery index guarantee after deletion — is superset reporting (D-PSTALE) an acceptable contract, or must exact containment queries be supported?
 
-Can the gap-closure formula (D-SEP) be generalized to ordinals of depth greater than one while preserving the round-trip property (p ⊕ w) ⊖ w = p?
+Can the gap-closure formula (D-SEP) and contiguity preservation (D-DP) be generalized to ordinals of depth greater than one while preserving the round-trip property (ord(p) ⊕ w_ord) ⊖ w_ord = ord(p) and the commutativity of shift with ordinal increment?
 
 If a single I-address is referenced by two V-positions in the same document (within-document sharing per S5, ASN-0036), and DELETE removes one of those positions, what must the surviving mapping and provenance relation satisfy?
 
