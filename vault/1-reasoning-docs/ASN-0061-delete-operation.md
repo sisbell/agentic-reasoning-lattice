@@ -15,15 +15,15 @@ Before we can specify DELETE, we must name the invariant DELETE must preserve. N
 
 We formalize this as a contiguity predicate on V-positions within a subspace. Write S = subspace(v) = v₁ for the subspace identifier (the first component of the element-field V-position), and V_S(d) = {v ∈ dom(M(d)) : subspace(v) = S} for the set of V-positions in subspace S of document d. All V-positions in a given subspace share the same tumbler depth (S8-depth, ASN-0036).
 
-**D-CTG — VContiguity (INV).** For each document d and subspace S, V_S(d) is either empty or occupies every intermediate position between its extremes:
+**D-CTG — VContiguity (DESIGN).** For each document d and subspace S, V_S(d) is either empty or occupies every intermediate position between its extremes:
 
-`(A d, S, u, w : u ∈ V_S(d) ∧ w ∈ V_S(d) ∧ u < w : (A v : subspace(v) = S ∧ #v = #u ∧ u < v < w : v ∈ V_S(d)))`
+`(A d, S, u, q : u ∈ V_S(d) ∧ q ∈ V_S(d) ∧ u < q : (A v : subspace(v) = S ∧ #v = #u ∧ u < v < q : v ∈ V_S(d)))`
 
 In words: within each subspace, V-positions form a contiguous ordinal range with no gaps. If positions [1, 3] and [1, 7] are occupied, then every position [1, k] with 3 < k < 7 must also be occupied.
 
 For the standard text subspace at depth m = 2, this is a finite condition: the intermediates between [S, a] and [S, b] are the finitely many [S, i] with a < i < b. Combined with S8-fin (dom(M(d)) is finite), contiguity at depth 2 says V_S(d) occupies a single unbroken block of ordinals.
 
-D-CTG is a design constraint on well-formed document states that further restricts which composite transitions constitute well-formed editing operations, beyond ASN-0047's validity predicate. We verify the base case: in Σ₀, V_S(d) = ∅ for all d and S (since M₀(d) = ∅ by InitialState, ASN-0047), so D-CTG holds vacuously. Note that bare K.μ⁻ — a valid elementary transition under ASN-0047 — can violate D-CTG by removing a single interior V-position; D-CTG is therefore not preserved by all valid composites, only by those that constitute well-formed editing operations.
+D-CTG is a design constraint on well-formed document states, not a reachable-state invariant in the ASN-0047 sense (it does not appear in the ReachableStateInvariants theorem). It further restricts which composite transitions constitute well-formed editing operations, beyond ASN-0047's validity predicate. We verify the base case: in Σ₀, V_S(d) = ∅ for all d and S (since M₀(d) = ∅ by InitialState, ASN-0047), so D-CTG holds vacuously. Note that bare K.μ⁻ — a valid elementary transition under ASN-0047 — can violate D-CTG by removing a single interior V-position; D-CTG is therefore not preserved by all valid composites, only by those that constitute well-formed editing operations.
 
 We treat D-CTG as a precondition that DELETE both assumes and preserves. Whether INSERT, COPY, and REARRANGE also preserve D-CTG is a separate verification obligation for each operation's ASN.
 
@@ -261,7 +261,7 @@ Partition B_S relative to the two cut points p and r = p ⊕ w. For each block �
 
 where B_left collects surviving left pieces from cases (a), (b), and (f), and B_right collects surviving right pieces from cases (d), (e), and (f).
 
-*Verification of B1–B3.* Coverage (B1): B_other covers V-positions in other subspaces (D-XS). Within subspace S: B_left covers the left region (D-LEFT), shifted B_right covers the shifted right region (D-SHIFT). Disjointness (B2): B_other is disjoint from the S blocks by subspace. Within S: B_left has V-extents ending before p; shifted B_right has V-extents starting at or beyond p (by D-SEP); no overlap. Consistency (B3): for B_left, M'(d)(v + j) = M(d)(v + j) = a + j by D-LEFT and the original B3. For shifted B_right, we need M'(d)(σ(v) + j) = a + j. By D-SHIFT, M'(d)(σ(v + j)) = M(d)(v + j) = a + j. And σ(v) + j = σ(v + j): the ordinal of σ(v) + j is (ord(v) ⊖ w_ord) + j, and the ordinal of σ(v + j) is (ord(v) + j) ⊖ w_ord. At our restricted ordinal depth 1: [(vₘ − c) + j] = [(vₘ + j) − c] where c = w_ord₁, by commutativity and associativity of natural-number arithmetic. ∎
+*Verification of B1–B3.* Coverage (B1): B_other covers V-positions in other subspaces (D-XS). Within subspace S: B_left covers the left region (D-LEFT), shifted B_right covers the shifted right region (D-SHIFT). Disjointness (B2): B_other is disjoint from the S blocks by subspace. Within S: B_left has V-extents ending before p; shifted B_right has V-extents starting at or beyond p (by D-SEP); no overlap between B_left and shifted B_right. Within B_left: each block is a subset of an originally disjoint block from B_S, and splitting preserves disjointness (M5, ASN-0058), so B_left blocks remain pairwise disjoint. Within shifted B_right: the original right-region blocks were pairwise disjoint (B2 on the pre-state decomposition), and σ is order-preserving (D-BJ), so their shifted V-extents remain pairwise disjoint. Consistency (B3): for B_left, M'(d)(v + j) = M(d)(v + j) = a + j by D-LEFT and the original B3. For shifted B_right, we need M'(d)(σ(v) + j) = a + j. By D-SHIFT, M'(d)(σ(v + j)) = M(d)(v + j) = a + j. And σ(v) + j = σ(v + j): the ordinal of σ(v) + j is (ord(v) ⊖ w_ord) + j, and the ordinal of σ(v + j) is (ord(v) + j) ⊖ w_ord. At our restricted ordinal depth 1: [(vₘ − c) + j] = [(vₘ + j) − c] where c = w_ord₁, by commutativity and associativity of natural-number arithmetic. ∎
 
 The key observation: **I-addresses are never modified.** Every I-address in ran(M_S(d)) either survives in M'_S(d) at a shifted V-position or is removed from the arrangement entirely. No I-address is altered, and no new I-address is introduced. The mapping blocks in B' differ from those in B only in their V-starts (shifted for the right region) and their presence (absent for the deleted region).
 
@@ -296,7 +296,7 @@ B1 (coverage): 3 V-positions [1, 1], [1, 2], [1, 3] partitioned among two blocks
 
 **Contiguity preserved.** Pre-state: [1, 1]..[1, 5] contiguous. Post-state: [1, 1]..[1, 3] contiguous. D-WR: 5 − 2 = 3 positions. ✓
 
-Note the resulting decomposition is not maximally merged — the two blocks are V-adjacent but not I-adjacent (b ≠ b + 3 − 1), so the merge condition M7 (ASN-0058) is not satisfied. This is correct: deletion can fragment what was once a single correspondence run into multiple disjoint runs, and no subsequent recombination is required.
+Note the resulting decomposition is not maximally merged — the two blocks are V-adjacent but not I-adjacent (b + 1 ≠ b + 3), so the merge condition M7 (ASN-0058) is not satisfied. This is correct: deletion can fragment what was once a single correspondence run into multiple disjoint runs, and no subsequent recombination is required.
 
 
 ## Invariant Preservation
@@ -392,7 +392,7 @@ Several aspects of Gregory's implementation illuminate the abstract specificatio
 | ord(v) | Ordinal extraction: ord(v) = [v₂, ..., vₘ] strips the subspace identifier | introduced |
 | vpos(S, o) | V-position reconstruction: vpos(S, o) = [S, o₁, ..., oₖ]; inverse of ord | introduced |
 | w_ord | Ordinal displacement projection: w_ord = [w₂, ..., wₘ] for V-depth w with w₁ = 0 | introduced |
-| D-CTG | V-positions within each subspace form a contiguous ordinal range — design constraint assumed and preserved by DELETE | introduced |
+| D-CTG | V-positions within each subspace form a contiguous ordinal range — design constraint (DESIGN, not a reachable-state invariant) assumed and preserved by DELETE | introduced |
 | D-PRE | DELETE requires d ∈ E_doc, w > 0, subspace(p) ≥ 1, #p = 2, span ⊆ current extent, #w = #p, w₁ = 0 | introduced |
 | D-LEFT | (A v ∈ L : M'(d)(v) = M(d)(v)) — left region unchanged | introduced |
 | D-DOM | dom(M'(d)) ∩ V_S = L ∪ Q₃ — post-state domain fully determined by D-LEFT and D-SHIFT | introduced |
