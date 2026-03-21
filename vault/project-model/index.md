@@ -22,3 +22,5 @@ Generated from vault/project-model/ASN-*.yaml
 | ~~ASN-0056~~ | ~~Span Algebra 0~~ | absorbed into 53 | — |
 | ASN-0058 | Permutation Model | inquiry | 34, 36, 53 |
 | ASN-0059 | INSERT Operation | inquiry | 34, 36, 47, 53, 58 |
+| ~~ASN-0060~~ | ~~Tumbler Algebra 0~~ | absorbed into 34 | — |
+| ASN-0061 | DELETE Operation | inquiry | 34, 36, 47, 53, 58 |

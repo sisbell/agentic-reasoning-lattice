@@ -1,0 +1,10 @@
+# ASN-0061 — DELETE Operation
+title: "DELETE Operation"
+depends: [34, 36, 47, 53, 58]
+out_of_scope: "INSERT, COPY, REARRANGE operation mechanics, link semantics, version creation, replication and inter-server protocol (BEBE)"
+
+inquiry:
+  question: "What is the precise effect of removing content from a position in the Vstream? What is preserved, what shifts, and what invariants must the completed operation maintain?"
+
+modeling:
+  proof_imports: [TumblerAlgebra, TumblerOrder, Streams, StateTransitions, SpanOperations, PermutationModel]
