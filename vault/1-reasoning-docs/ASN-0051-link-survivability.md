@@ -132,33 +132,35 @@ Rearrangement cannot change which I-addresses are in the projection. The endset 
 This is the precise sense in which links "track content, not location." The strap-between-bytes metaphor (Nelson: "A Xanadu link is not between points, but between spans of data. Thus we may visualize it as a strap between bytes" [LM 4/42]) expresses this property: rearranging the beads on the string doesn't alter which beads the strap holds, only where they sit.
 
 
-### Content Allocation and the Boundary Theorem
+### Content Allocation and Coverage Stability
 
-Content allocation (K.α, ContentAllocation) creates a new I-address a ∉ dom(Σ.C) with content value v. Its frame holds M constant: `(A d :: M'(d) = M(d))`. So π and resolve are trivially unchanged.
+Content allocation (K.α, ContentAllocation) creates a new I-address a ∉ dom(Σ.C). Its frame holds M constant: `(A d :: M'(d) = M(d))`. So π and resolve are trivially unchanged by K.α itself.
 
-But the deeper question is: could the new I-address *coincidentally* fall within the coverage of an existing endset? If so, then a subsequent K.μ⁺ adding a V→I mapping to this new address would enlarge the projection of that endset — the endset would appear to "absorb" new content that was never part of the original link.
+The deeper question is: could a newly allocated I-address fall within the coverage of an existing endset? If so, a subsequent K.μ⁺ mapping a V-position to this address would enlarge the endset's projection — the endset would appear to absorb new content never part of the original link.
 
-We show this cannot happen.
+The answer depends on the allocation regime and the address hierarchy. We establish what is provable and identify where the answer is level-dependent.
 
-**SV6 (BoundaryExclusion).** Let (s, ℓ) be a span in the endset of some link a ∈ dom(Σ_k.L) at state Σ_k. Let b be any I-address allocated at a later state Σ_j with j > k. Then:
+**SV6 (CrossOriginExclusion).** For a span (s, ℓ) in an existing endset and a newly allocated address b with origin(b) ≠ origin(s), when the action point of ℓ falls within the element field (i.e., beyond the three field separators):
 
 `b ∉ ⟦(s, ℓ)⟧`
 
-*Proof.* The denotation ⟦(s, ℓ)⟧ = {t ∈ T : s ≤ t < s ⊕ ℓ} is a half-open interval under the tumbler ordering T1. We must show that no future I-address allocation can produce a tumbler in this interval. Every I-address in dom(Σ_k.C) is an element-level tumbler (S7b, ElementLevelIAddresses), so zeros(a) = 3 for every content address. The span's start s is such an address.
+*Proof.* By TumblerAdd, components before the action point are copied from s. When the action point is within the element field, the full document prefix (node, user, document fields and their separators) is copied, so every tumbler in ⟦(s, ℓ)⟧ shares origin(s). Since origin(b) ≠ origin(s), b cannot be equal to any such tumbler (T10, PartitionIndependence). ∎
 
-We reason by cases on the relationship between b and s.
+This property is robust — it depends only on the structural separation of document-level prefixes, not on any allocation discipline.
 
-*Case 1: same origin.* Suppose origin(b) = origin(s) — the new address is allocated under the same document prefix. By T9 (ForwardAllocation), allocations within a single allocator's stream are strictly monotonically increasing. Every I-address in ⟦(s, ℓ)⟧ ∩ dom(Σ_k.C) was allocated at or before state k. The maximum such address, call it s_max, satisfies s_max < s ⊕ ℓ (it is the last allocated address within the span). Since b is allocated after state k, T9 gives b > s_max. We need b ≥ s ⊕ ℓ.
+**Same-origin coverage growth.** Under the same document prefix, two mechanisms can place a new I-address within an existing endset span's denotation.
 
-Now, I-addresses are element-level tumblers, and the allocator produces them by sibling increment — TA5(c), which increments only the last significant component. By T4 (HierarchicalParsing), an element-level tumbler has exactly three zero separators, so no further child-spawning (TA5 with k > 0) can produce a valid element-level address — it would exceed the three-separator limit. The allocator therefore produces a sequence s, s+1, s+2, ... of ordinal successors, each of the same tumbler length (TA5(c) preserves length). If the span covers n ordinal positions, the last is s+(n−1), and the next allocation produces s+n.
+*Sequential overshoot.* If a span's reach extends beyond the current allocation maximum — i.e., the span references addresses not yet allocated — future sibling allocations (TA5(c)) will enter the span as they advance through the ordinal sequence. This is the mechanism by which type endsets referencing ghost addresses (L9, TypeGhostPermission) acquire content: a link whose type endset spans a range in the type hierarchy will match future type addresses as they are allocated within that range.
 
-We claim s+n = s ⊕ ℓ when the span (s, ℓ) was constructed from n consecutively allocated I-addresses. In this case ℓ has action point k = #s (the last component), ℓ_k = n, and all earlier components of ℓ are zero. By TumblerAdd: (s ⊕ ℓ)_i = s_i for i < k, (s ⊕ ℓ)_k = s_k + n. This is precisely s+n (n ordinal increments at the last component). So b ≥ s+n = s ⊕ ℓ, meaning b ∉ [s, s ⊕ ℓ).
+*Child-depth entry.* The allocator discipline (T10a) permits child-spawning — inc(t, k') with k' > 0 — to create addresses at greater tumbler depth. By the prefix rule (T1 case (ii)), a child-depth address c produced by inc(t, 1) satisfies t < c < t+1, because t is a proper prefix of c (case (ii) gives t < c) and c and t+1 diverge at the position where c has a value less than (t+1)'s (case (i) gives c < t+1). If an endset span contains t and has reach ≥ t+1, the child-depth address c falls within the span. Crucially, when k' = 1, the result has zeros(c) = zeros(t) — the appended component is nonzero (set to 1 by TA5(d)), so no new field separator is introduced, and c remains a valid element-level tumbler (T4 preserved).
 
-*Case 2: different origin.* Suppose origin(b) ≠ origin(s). By TA7a (SubspaceClosure), the span (s, ℓ) — when its action point is within the element field — has ⟦(s, ℓ)⟧ contained entirely within the partition of tumblers sharing origin(s). By T10 (PartitionIndependence), b, having a different document prefix, cannot equal any tumbler with origin(s)'s prefix. So b ∉ ⟦(s, ℓ)⟧. ∎
+*Counterexample to a universal exclusion claim.* Suppose a document D allocates element-level content at ordinals a₁ < a₂ < ... < aₙ, all of the same tumbler length. A link is created with an endset span (a₁, ℓ) where the reach a₁ ⊕ ℓ = aₙ + 1 (one ordinal step beyond the last allocation). If the allocator later spawns a child via inc(aₙ, 1) = c, then c is element-level (zeros(c) = 3), has origin(c) = origin(a₁) = D, and satisfies aₙ < c < aₙ + 1 = a₁ ⊕ ℓ. So c ∈ ⟦(a₁, ℓ)⟧ — the newly allocated address falls within the existing endset's coverage.
 
-This result has a striking consequence: **endset coverage is intrinsically closed to future allocations.** New content cannot accidentally enter an existing endset. The link's coverage at creation time is its coverage for all time — not merely because the endset data structure is immutable (L12), but because the address space itself is structured so that new allocations cannot fall within existing span intervals.
+**The architectural resolution.** Nelson's design distinguishes these levels explicitly. At the byte level within a document, content allocation is sequential and append-only — new bytes get the next ordinal position in the Istream: "Instead, suppose we create an append-only storage system. User makes changes, the changes difflessly into the storage system, filed, as it were, chronologically" [LM 2/14]. The "strap between bytes" is effectively closed to future allocations as an architectural consequence of this sequential discipline. Gregory's implementation confirms this for text content: the green allocator uses sibling increment exclusively (`tumblerincrement(&lowerbound, rightshift=0, 1, isaptr)`) for text I-address allocation, producing strictly monotonic same-length addresses that cannot enter a tight span over previously allocated content.
 
-Nelson's "strap between bytes" metaphor gains formal force: new beads threaded onto the string after the strap was fastened cannot end up under the strap. The geometry of the address space forbids it.
+At broader address levels — documents, accounts, servers — Nelson explicitly designs for coverage growth: "A span that contains nothing today may at a later time contain a million documents" [LM 4/25]. Links to accounts and nodes find "any of the documents under it" [LM 4/23], including documents not yet created. This is not a deficiency but a feature: ghost elements and hierarchical spanning are fundamental to the design.
+
+The survivability implication: **endset coverage stability is architectural, not definitional.** The coverage *set* is fixed forever (SV1, from L12). What varies is whether that fixed set intersects the growing set of allocated I-addresses — and this intersection can only grow (S1, StoreMonotonicity), never shrink. At the byte level, the intersection is typically closed at creation because sequential allocation ensures new addresses fall beyond existing spans; at broader levels, the intersection is open by design, enabling links that discover future content.
 
 
 ## Link Discovery
@@ -195,7 +197,7 @@ Proof: a ∈ discover_s(A) means coverage(Σ.L(a).s) ∩ A ≠ ∅. By L12, a �
 
 **SV9 (DiscoveryMonotonicity).**
 
-`(A Σ → Σ' :: dom(discover_s(A) in Σ) ⊆ dom(discover_s(A) in Σ'))`
+`(A Σ → Σ' :: discover_s(A) in Σ ⊆ discover_s(A) in Σ')`
 
 for any fixed A. New links may be created (L12a, LinkStoreMonotonicity: dom(Σ'.L) ⊇ dom(Σ.L)), so the discoverable set can only grow. Discovery is monotonically non-decreasing in the link population.
 
@@ -210,7 +212,7 @@ We have now defined two independent operations — discovery and resolution — 
 
 **SV10 (DiscoveryResolutionIndependence).** A link may be discoverable through a set of I-addresses A yet have empty resolution in a particular document:
 
-`(E Σ, a, d, s :: a ∈ discover_s({M(d)(v) : v ∈ V}) ∧ resolve(Σ.L(a).s, d) yields only partial coverage)`
+`(E Σ, a, d, s :: a ∈ discover_s({M(d)(v) : v ∈ V}) ∧ resolve(Σ.L(a).s, d) ≠ ∅ ∧ π(Σ.L(a).s, d) ⊊ coverage(Σ.L(a).s))`
 
 This arises naturally. Suppose a link's from-endset covers I-addresses {i₁, i₂, i₃}. Document d's arrangement contains only i₂. Discovery succeeds (non-empty intersection). But resolution of the from-endset in d returns only the V-positions corresponding to i₂ — the other two I-addresses have no V-positions in d.
 
@@ -229,13 +231,56 @@ When contraction removes some but not all of an endset's I-addresses from a docu
 
 `π(e, d) = (∪ j, k : 1 ≤ j ≤ m ∧ 1 ≤ k ≤ p : ⟦(sⱼ, ℓⱼ)⟧ ∩ I(β_k))`
 
-Each term ⟦(sⱼ, ℓⱼ)⟧ ∩ I(β_k) is the intersection of two contiguous intervals under the tumbler ordering — a contiguous interval in ⟦(sⱼ, ℓⱼ)⟧ is convex (S0, Convexity), and I(β_k) is contiguous by the definition of mapping blocks (ASN-0058, MappingBlock). The intersection of two convex sets under a total order is convex, so each non-empty term is itself a contiguous set expressible as a span (S1, IntersectionClosure, under level-compatibility).
+Each term ⟦(sⱼ, ℓⱼ)⟧ ∩ I(β_k) is the intersection of two convex sets under the total order T1 — ⟦(sⱼ, ℓⱼ)⟧ is convex by S0 (Convexity), and I(β_k) = {a_k + j : 0 ≤ j < n_k} is convex because ordinal increment (TA5(c)) is strictly monotonic (TA-strict). The intersection of two convex sets under a total order is convex, so each non-empty term is a contiguous subsequence of I(β_k). Since ordinal increment preserves tumbler length (TA5(c)), all elements of I(β_k) share the same length, and the contiguous subsequence is expressible as a level-uniform span.
 
 Therefore π(e, d) is a finite union of spans, expressible as a span-set. By S8 (NormalizationExistence), this span-set can be normalized: sorted by start position with no overlaps or adjacencies.
 
 The significance: **partial survival is well-structured.** The surviving portion of an endset in a given document is always representable as a finite, normalizable span-set. It does not degenerate into an arbitrary subset of I-addresses that defies compact representation.
 
 The number of fragments can grow through repeated contractions: a single contraction that removes I-addresses from the interior of a contiguous endset span splits one fragment into two. But the fragments remain spans, and their union remains a span-set. The original endset's spans provide an upper bound: the number of fragments cannot exceed the number of mapping blocks that overlap the endset's coverage.
+
+
+## Worked Example
+
+We verify the key definitions against a specific scenario with explicit tumbler values.
+
+*Setup.* Consider a document d with five I-addresses a₁ < a₂ < a₃ < a₄ < a₅ in the text subspace, allocated sequentially by sibling increment. All five share the same origin and tumbler length. The document's initial arrangement maps five V-positions in order:
+
+`M(d) = {v₁ ↦ a₁, v₂ ↦ a₂, v₃ ↦ a₃, v₄ ↦ a₄, v₅ ↦ a₅}`
+
+where v₁ < v₂ < v₃ < v₄ < v₅. This is a single mapping block β = (v₁, a₁, 5) in ASN-0058's notation.
+
+A link at address b is created with from-endset F = {(a₂, ℓ)}, where ℓ = a₅ ⊖ a₂ (well-defined by D0, since a₂ < a₅ and both have the same length). The reach is a₂ ⊕ ℓ = a₅ (by D1). So coverage(F) = {t : a₂ ≤ t < a₅}. Among the allocated I-addresses, this interval contains exactly a₂, a₃, a₄.
+
+*Initial state — projection, resolution, discovery.*
+
+- π(F, d) = coverage(F) ∩ ran(M(d)) = {a₂, a₃, a₄}
+- resolve(F, d) = {v ∈ dom(M(d)) : M(d)(v) ∈ coverage(F)} = {v₂, v₃, v₄}
+- discover_from({a₃}) = {b}, since coverage(F) ∩ {a₃} = {a₃} ≠ ∅
+
+The from-endset is vital in d: π(F, d) ≠ ∅. Both π and resolve are determined entirely by coverage(F) and the current M(d) (SV0).
+
+*After contraction.* A K.μ⁻ step removes the mapping at v₃, producing M'(d) with dom(M'(d)) = {v₁, v₂, v₄, v₅} and ran(M'(d)) = {a₁, a₂, a₄, a₅}:
+
+- π(F, d) = coverage(F) ∩ ran(M'(d)) = {a₂, a₄} — reduced (SV3)
+- resolve(F, d) = {v₂, v₄}
+- discover_from({a₃}) = {b} — unchanged, because coverage(F) is invariant (SV1) and a₃ ∈ coverage(F) regardless of M(d) (SV8)
+
+The endset remains vital but with reduced projection. The removal of a₃ from M(d) has split the endset's visible region into two fragments. To see the decomposition of SV11: the post-contraction arrangement has two mapping blocks — β₁ = (v₁, a₁, 2) covering {v₁, v₂} with I-extent {a₁, a₂}, and β₂ = (v₄, a₄, 2) covering {v₄, v₅} with I-extent {a₄, a₅}. The SV11 terms are:
+
+- ⟦(a₂, ℓ)⟧ ∩ I(β₁) = {t : a₂ ≤ t < a₅} ∩ {a₁, a₂} = {a₂}
+- ⟦(a₂, ℓ)⟧ ∩ I(β₂) = {t : a₂ ≤ t < a₅} ∩ {a₄, a₅} = {a₄}
+
+Each non-empty term is a single-element contiguous subsequence of its mapping block's I-extent — trivially a level-uniform span. Together: π(F, d) = {a₂} ∪ {a₄} = {a₂, a₄}. ✓
+
+Discovery through d still works for queries including a₂ or a₄. But discovery through the specific I-address set {a₃} — while still returning b (SV8) — no longer corresponds to anything visible in d, since a₃ ∉ ran(M'(d)). This illustrates the discovery-resolution distinction (SV10): the link is discoverable through a₃, but resolution of the from-endset in d yields no V-position for a₃.
+
+*After reordering.* From the post-contraction state, a K.μ~ step swaps v₂ and v₄: M''(d)(v₂) = a₄, M''(d)(v₄) = a₂ (with v₁ and v₅ unchanged). Since ran(M''(d)) = ran(M'(d)):
+
+- π(F, d) = {a₂, a₄} — unchanged (SV5)
+- resolve(F, d) = {v₂, v₄} — same V-positions, but v₂ now shows a₄ and v₄ shows a₂
+
+The projection is invariant under reordering; only the V-position ↦ I-address mapping within the resolution set has changed.
 
 
 ## Content Fidelity
@@ -275,7 +320,7 @@ We can now synthesize the survivability guarantee into a single coherent stateme
 - Reordering of M(d) preserves π(e, d) but changes resolve(e, d). [SV5]
 - Changes to M(d) cannot affect resolve(e, d') for d' ≠ d. [SV4]
 
-(f) *New content cannot enter existing endsets:* for any I-address b allocated after the link's creation, b ∉ coverage(F) ∪ coverage(G) ∪ coverage(Θ). [SV6]
+(f) *Coverage stability is level-dependent:* new allocations from a different origin cannot enter existing endset spans when the action point is within the element field (SV6). Same-origin coverage growth depends on the allocation regime — closed at the byte level by sequential sibling allocation, open at broader address levels by design. [SV6]
 
 (g) *Partial survival is well-structured:* the surviving projection in any document is a finite span-set. [SV11]
 
@@ -299,7 +344,7 @@ Nelson's "strap between bytes" is exactly right. The strap (the link's endsets) 
 | SV3 | ContractionReduction: K.μ⁻ can only shrink π(e, d) | introduced |
 | SV4 | ContractionIsolation: changes to M(d) do not affect π(e, d') for d' ≠ d | introduced |
 | SV5 | ReorderingProjectionInvariance: K.μ~ preserves π(e, d) exactly | introduced |
-| SV6 | BoundaryExclusion: new I-address allocations cannot enter existing endset coverage | introduced |
+| SV6 | CrossOriginExclusion: allocations from a different document prefix cannot enter existing endset spans (within element field) | introduced |
 | SV7 | DiscoveryByContentIdentity: discovery depends on I-address intersection, not document identity | introduced |
 | SV8 | DiscoveryPermanence: once discoverable through A, always discoverable | introduced |
 | SV9 | DiscoveryMonotonicity: the discoverable set is non-decreasing as links are created | introduced |
