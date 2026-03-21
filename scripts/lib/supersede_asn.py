@@ -75,7 +75,7 @@ def copy_project_model(source_num, target_num, source_label, target_label):
 
 
 def copy_consultations(source_num, target_num, source_label, target_label):
-    """Copy consultation questions if they exist."""
+    """Copy entire consultation directory (questions + answers) if it exists."""
     source_consult = CONSULTATIONS_DIR / source_label / "consultation"
     target_consult = CONSULTATIONS_DIR / target_label / "consultation"
 
@@ -84,24 +84,22 @@ def copy_consultations(source_num, target_num, source_label, target_label):
               file=sys.stderr)
         return False
 
-    questions_file = source_consult / "questions.md"
-    if not questions_file.exists():
-        print(f"  [SKIP] No questions file for {source_label}",
-              file=sys.stderr)
-        return False
+    # Copy entire consultation directory
+    if target_consult.exists():
+        shutil.rmtree(target_consult)
+    shutil.copytree(source_consult, target_consult)
 
-    # Create target directory and copy questions
-    target_consult.mkdir(parents=True, exist_ok=True)
-    target_questions = target_consult / "questions.md"
+    # Update ASN references in all copied files
+    copied_count = 0
+    for filepath in target_consult.rglob("*.md"):
+        content = filepath.read_text()
+        if source_label in content:
+            content = content.replace(source_label, target_label)
+            filepath.write_text(content)
+        copied_count += 1
 
-    content = questions_file.read_text()
-
-    # Update ASN references in the questions header
-    content = content.replace(source_label, target_label)
-
-    target_questions.write_text(content)
-    print(f"  [COPIED] questions → {target_questions.relative_to(WORKSPACE)}",
-          file=sys.stderr)
+    print(f"  [COPIED] consultation ({copied_count} files) → "
+          f"{target_consult.relative_to(WORKSPACE)}", file=sys.stderr)
 
     return True
 
