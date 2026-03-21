@@ -22,9 +22,9 @@ For the standard text subspace at depth m = 2, this is a finite condition: the i
 
 At depth m ≥ 3, D-CTG combined with S8-fin forces a stronger restriction. Suppose V_S(d) contained two positions differing before the last component — say [S, 1, 5] and [S, 2, 1]. Every intermediate [S, v₂, v₃] with [S, 1, 5] < [S, v₂, v₃] < [S, 2, 1] must belong to V_S(d) by D-CTG. But these intermediates include [S, 1, 6], [S, 1, 7], ... — infinitely many positions with v₂ = 1, contradicting S8-fin. (Note: in the text subspace, the intermediate [S, 2, 0] would additionally violate S8a, but S8-fin alone suffices — the argument applies to all subspaces regardless of S8a's range guard.)
 
-**D-CTG-depth — SharedPrefixReduction (COROLLARY; from D-CTG, S8-fin).** For depth m ≥ 3, all positions in a non-empty V_S(d) share components 2 through m − 1. Contiguity reduces to contiguity of the last component alone — structurally identical to the depth 2 case.
+**D-CTG-depth — SharedPrefixReduction (COROLLARY; from D-CTG, S8-fin, S8-depth).** For depth m ≥ 3, all positions in a non-empty V_S(d) share components 2 through m − 1. Contiguity reduces to contiguity of the last component alone — structurally identical to the depth 2 case.
 
-Combining D-CTG-depth with D-MIN and S8-fin, we obtain the general form:
+We now derive the general form. By D-CTG-depth (when m ≥ 3) or trivially (when m = 2, there is only one post-subspace component), all positions in V_S(d) share components 2 through m − 1. By D-MIN, min(V_S(d)) = [S, 1, …, 1], so those shared components have value 1. Every position is therefore [S, 1, …, 1, k] for varying k. D-CTG restricted to the last component forbids gaps among the k values; D-MIN gives the minimum k = 1; S8-fin bounds the maximum at some finite n. Thus:
 
 **D-SEQ — SequentialPositions (COROLLARY; from D-CTG, D-MIN, S8-fin, S8-depth).** For each document d and subspace S, if V_S(d) is non-empty then there exists n ≥ 1 such that:
 
@@ -83,7 +83,7 @@ Then V₁(d') = {[1,1,1], [1,1,2], [1,1,3]}.
 |-------|------|-----------|--------|
 | D-CTG | DESIGN | V-positions within each subspace form a contiguous ordinal range — design constraint on well-formed document states | introduced |
 | D-MIN | DESIGN | The minimum V-position in each non-empty subspace has all post-subspace components equal to 1 | introduced |
-| D-CTG-depth | COROLLARY | At depth m ≥ 3, all positions in non-empty V_S(d) share components 2 through m − 1; contiguity reduces to the last component (from D-CTG, S8-fin) | introduced |
+| D-CTG-depth | COROLLARY | At depth m ≥ 3, all positions in non-empty V_S(d) share components 2 through m − 1; contiguity reduces to the last component (from D-CTG, S8-fin, S8-depth) | introduced |
 | D-SEQ | COROLLARY | Non-empty V_S(d) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n} for some n ≥ 1 (from D-CTG, D-MIN, S8-fin, S8-depth) | introduced |
 
 
