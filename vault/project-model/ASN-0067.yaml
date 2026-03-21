@@ -1,0 +1,10 @@
+# ASN-0067 — COPY Operation
+title: "COPY Operation"
+depends: [34, 36, 47, 53, 58]
+out_of_scope: "INSERT, DELETE, REARRANGE operation mechanics, link semantics, version creation, replication and inter-server protocol (BEBE)"
+
+inquiry:
+  question: "What is the precise effect of placing existing Istream content at a position in a Vstream? What is preserved about the content's identity, what shifts, and what invariants must the completed operation maintain?"
+
+modeling:
+  proof_imports: [TumblerAlgebra, TumblerOrder, Streams, StateTransitions, SpanOperations, PermutationModel]
