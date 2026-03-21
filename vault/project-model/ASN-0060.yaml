@@ -1,0 +1,8 @@
+# ASN-0060 — Tumbler Algebra 0
+title: "Tumbler Algebra 0"
+extends: 34
+source: 59
+depends: [34]
+
+inquiry:
+  question: "Extension of ASN-0034: properties OrdinalDisplacement, OrdinalShift, I6, I7 from ASN-0059."
