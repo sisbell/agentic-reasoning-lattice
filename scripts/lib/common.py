@@ -145,8 +145,82 @@ def log_usage(skill, elapsed, **extra):
         pass
 
 
+def step_commit_asn(asn_id, hint=""):
+    """Stage and commit only files belonging to a specific ASN.
+
+    Stages files matching the ASN's known directory patterns, then
+    runs commit.py for the commit message. For concurrent safety —
+    two ASN pipelines won't include each other's changes.
+    """
+    label = f"ASN-{int(asn_id):04d}"
+    patterns = [
+        f"vault/1-reasoning-docs/{label}-*",
+        f"vault/2-review/{label}/",
+        f"vault/0-consultations/{label}/",
+        f"vault/3-export/{label}-*",
+        f"vault/project-model/{label}.yaml",
+        f"vault/6-examples/{label}/",
+    ]
+
+    # Stage only this ASN's files
+    import glob
+    staged = False
+    for pattern in patterns:
+        matches = glob.glob(str(WORKSPACE / pattern), recursive=True)
+        if matches:
+            result = subprocess.run(
+                ["git", "add"] + matches,
+                capture_output=True, text=True, cwd=str(WORKSPACE),
+            )
+            if result.returncode == 0 and matches:
+                staged = True
+
+    # Also stage any directories (git add needs trailing / for dirs)
+    for pattern in patterns:
+        if pattern.endswith("/"):
+            dirpath = WORKSPACE / pattern.rstrip("/")
+            if dirpath.exists():
+                subprocess.run(
+                    ["git", "add", str(dirpath)],
+                    capture_output=True, text=True, cwd=str(WORKSPACE),
+                )
+                staged = True
+
+    if not staged:
+        print(f"  [COMMIT] No changes for {label}", file=sys.stderr)
+        return False
+
+    # Run commit.py for the message
+    commit_script = WORKSPACE / "scripts" / "commit.py"
+    cmd = [sys.executable, str(commit_script)]
+    if hint:
+        cmd.append(hint)
+
+    result = subprocess.run(
+        cmd, capture_output=True, text=True, cwd=str(WORKSPACE),
+    )
+    if result.returncode != 0:
+        print(f"  [COMMIT] FAILED", file=sys.stderr)
+        if result.stderr:
+            for line in result.stderr.strip().split("\n")[:3]:
+                print(f"    {line}", file=sys.stderr)
+        return False
+
+    if result.stderr:
+        for line in result.stderr.strip().split("\n"):
+            print(f"  {line}", file=sys.stderr)
+
+    if result.stdout.strip():
+        print(f"  {result.stdout.strip()}", file=sys.stderr)
+    return True
+
+
 def step_commit(hint=""):
-    """Run commit.py via subprocess. Returns True if committed."""
+    """Run commit.py via subprocess. Returns True if committed.
+
+    Stages all vault/ changes. For ASN-scoped commits, use
+    step_commit_asn() instead.
+    """
     commit_script = WORKSPACE / "scripts" / "commit.py"
     cmd = [sys.executable, str(commit_script)]
     if hint:

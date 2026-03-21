@@ -76,6 +76,7 @@ def main():
         print(f"  No ASN found for {args.asn} in vault/1-reasoning-docs/", file=sys.stderr)
         sys.exit(1)
 
+    asn_number = int(asn_label.replace("ASN-", ""))
     print(f"  [REVISE] {asn_label} ({asn_path.name})", file=sys.stderr)
     if args.converge is not None:
         print(f"  [REVISE] converge mode (max {max_cycles} cycles)",
@@ -127,7 +128,7 @@ def main():
             if converged:
                 print(f"  [REVISE] CONVERGED — review found no significant issues",
                       file=sys.stderr)
-                step_commit(f"Review {asn_label} — converged")
+                step_commit(f"Review {asn_label} — converged", asn_id=asn_number)
                 asn_num = asn_label.replace("ASN-", "").lstrip("0") or "0"
                 print(f"\n  [NEXT] Export statements: python scripts/export.py {asn_num}",
                       file=sys.stderr)
@@ -136,7 +137,7 @@ def main():
             if not has_revise_items(review_path):
                 print(f"  [REVISE] No REVISE items — ASN is clean",
                       file=sys.stderr)
-                step_commit(f"Review {asn_label} — no revisions needed")
+                step_commit(f"Review {asn_label} — no revisions needed", asn_id=asn_number)
                 break
 
         # Consult (skip for mechanical reviews — findings are grounded in proofs/counterexamples)
@@ -164,11 +165,11 @@ def main():
         if revise_converged:
             print(f"  [REVISE] Revise made no changes — converged",
                   file=sys.stderr)
-            step_commit(f"Revise {asn_label} — converged (cycle {cycle})")
+            step_commit(f"Revise {asn_label} — converged (cycle {cycle})", asn_id=asn_number)
             break
 
         # Commit
-        step_commit(f"Revise {asn_label} (cycle {cycle})")
+        step_commit(f"Revise {asn_label} (cycle {cycle})", asn_id=asn_number)
 
     else:
         # Loop exhausted without convergence

@@ -145,9 +145,42 @@ def step_revise(asn_id, review_spec=None, consultation_path=None):
     return None, False
 
 
-def step_commit(hint=""):
-    """Run commit.py. Returns True if committed."""
+def step_commit(hint="", asn_id=None):
+    """Run commit.py. If asn_id is provided, stage only that ASN's files.
+
+    For concurrent safety — two ASN pipelines won't include each
+    other's changes when asn_id is specified.
+    """
     print(f"\n  === COMMIT ===", file=sys.stderr)
+
+    # Stage only this ASN's files if scoped
+    if asn_id is not None:
+        import glob
+        label = f"ASN-{int(asn_id):04d}"
+        patterns = [
+            f"vault/1-reasoning-docs/{label}-*",
+            f"vault/2-review/{label}",
+            f"vault/0-consultations/{label}",
+            f"vault/3-export/{label}-*",
+            f"vault/project-model/{label}.yaml",
+            f"vault/6-examples/{label}",
+        ]
+        for pattern in patterns:
+            full = str(WORKSPACE / pattern)
+            matches = glob.glob(full)
+            if matches:
+                subprocess.run(
+                    ["git", "add"] + matches,
+                    capture_output=True, text=True, cwd=str(WORKSPACE),
+                )
+            # Also handle directories
+            dirpath = WORKSPACE / pattern
+            if dirpath.is_dir():
+                subprocess.run(
+                    ["git", "add", str(dirpath)],
+                    capture_output=True, text=True, cwd=str(WORKSPACE),
+                )
+
     cmd = [sys.executable, str(COMMIT_SCRIPT)]
     if hint:
         cmd.append(hint)
@@ -190,6 +223,7 @@ def main():
         sys.exit(1)
 
     print(f"  [REVIEW] {asn_label} ({asn_path.name})", file=sys.stderr)
+    asn_number = int(asn_label.replace("ASN-", ""))
 
     start = time.time()
 
@@ -207,7 +241,7 @@ def main():
     if converged:
         print(f"  [REVIEW] CONVERGED — no significant issues",
               file=sys.stderr)
-        step_commit(f"Review {asn_label} — converged")
+        step_commit(f"Review {asn_label} — converged", asn_id=asn_number)
         elapsed = time.time() - start
         print(f"\n  [REVIEW] Done ({elapsed:.0f}s)", file=sys.stderr)
         asn_num = asn_label.replace("ASN-", "").lstrip("0") or "0"
@@ -217,7 +251,7 @@ def main():
 
     # Check for REVISE items
     if has_revise_items(review_path):
-        step_commit(f"Review {asn_label}")
+        step_commit(f"Review {asn_label}", asn_id=asn_number)
         elapsed = time.time() - start
         print(f"\n  [REVIEW] Done ({elapsed:.0f}s)", file=sys.stderr)
         print(f"  REVISE items found. Run: python scripts/revise.py {args.asn}",
@@ -225,7 +259,7 @@ def main():
         sys.exit(0)
 
     # No REVISE items — commit and exit
-    step_commit(f"Review {asn_label} — no revisions needed")
+    step_commit(f"Review {asn_label} — no revisions needed", asn_id=asn_number)
     elapsed = time.time() - start
     print(f"\n  [REVIEW] Done ({elapsed:.0f}s)", file=sys.stderr)
 
