@@ -22,3 +22,5 @@ Generated from vault/project-model/ASN-*.yaml
 | ~~ASN-0060~~ | ~~Tumbler Algebra 0~~ | absorbed into 34 | — |
 | ASN-0061 | DELETE Operation | inquiry | 34, 36, 47, 53, 58 |
 | ASN-0062 | COPY Operation | inquiry | 34, 36, 47, 53, 58 |
+| ASN-0063 | CREATELINK Operation | inquiry | 34, 36, 43, 47, 53, 58 |
+| ASN-0064 | FINDLINKS Operation | inquiry | 34, 36, 43, 47, 53, 58 |
