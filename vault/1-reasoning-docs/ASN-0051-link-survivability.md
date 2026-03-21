@@ -76,15 +76,15 @@ Since coverage(e) is invariant, the question is entirely about ran(M(d)) — the
 
 Arrangement extension (K.μ⁺, ArrangementExtension) adds new V→I mappings to M(d) while preserving all existing ones. Therefore ran(M'(d)) ⊇ ran(M(d)), and:
 
-**SV2 (ExtensionMonotonicity).**
+**SV2 (ExtensionMonotonicity).** (We write π_Σ(e, d) when the state at which projection is evaluated matters; the subscript selects the state whose arrangement M(d) is used.)
 
-`(A Σ →_{K.μ⁺} Σ', e, d :: π(e, d) ⊆ π(e, d'))`
+`(A Σ →_{K.μ⁺} Σ', e, d :: π_Σ(e, d) ⊆ π_{Σ'}(e, d))`
 
-where π(e, d') denotes π in the successor state. Vitality is monotonically preserved: if an endset was vital in d before extension, it remains vital afterward. Extension can only *enlarge* the projection — introducing I-addresses that were in coverage(e) but not previously in ran(M(d)). It cannot remove any.
+Vitality is monotonically preserved: if an endset was vital in d before extension, it remains vital afterward. Extension can only *enlarge* the projection — introducing I-addresses that were in coverage(e) but not previously in ran(M(d)). It cannot remove any.
 
-Proof: π(e, d') = coverage(e) ∩ ran(M'(d)). Since coverage(e) is invariant (SV1) and ran(M'(d)) ⊇ ran(M(d)) (K.μ⁺ frame), we have coverage(e) ∩ ran(M'(d)) ⊇ coverage(e) ∩ ran(M(d)) = π(e, d). ∎
+Proof: π_{Σ'}(e, d) = coverage(e) ∩ ran(M'(d)). Since coverage(e) is invariant (SV1) and ran(M'(d)) ⊇ ran(M(d)) (K.μ⁺ frame), we have coverage(e) ∩ ran(M'(d)) ⊇ coverage(e) ∩ ran(M(d)) = π_Σ(e, d). ∎
 
-*For resolution:* resolve(e, d) ⊆ resolve(e, d'), because every old V-position is preserved (K.μ⁺ preserves existing mappings), and new V-positions may be added.
+*For resolution:* resolve_Σ(e, d) ⊆ resolve_{Σ'}(e, d), because every old V-position is preserved (K.μ⁺ preserves existing mappings), and new V-positions may be added.
 
 
 ### Contraction May Reduce
@@ -93,13 +93,13 @@ Arrangement contraction (K.μ⁻, ArrangementContraction) removes V→I mappings
 
 **SV3 (ContractionReduction).**
 
-`(A Σ →_{K.μ⁻} Σ', e, d :: π(e, d') ⊆ π(e, d))`
+`(A Σ →_{K.μ⁻} Σ', e, d :: π_{Σ'}(e, d) ⊆ π_Σ(e, d))`
 
-Contraction can only *shrink* the projection. If the contraction removes all V-positions whose I-addresses are in coverage(e), then π(e, d') = ∅ and the endset loses vitality in d. This is the mechanism by which editing can degrade a link's utility in a specific document.
+Contraction can only *shrink* the projection. If the contraction removes all V-positions whose I-addresses are in coverage(e), then π_{Σ'}(e, d) = ∅ and the endset loses vitality in d. This is the mechanism by which editing can degrade a link's utility in a specific document.
 
 The vitality loss condition is:
 
-`π(e, d) ≠ ∅ ∧ π(e, d') = ∅`
+`π_Σ(e, d) ≠ ∅ ∧ π_{Σ'}(e, d) = ∅`
 
 which requires: `(A a : a ∈ coverage(e) ∩ ran(M(d)) : a ∉ ran(M'(d)))` — every I-address that the endset shared with d's arrangement must be removed by the contraction.
 
@@ -108,11 +108,11 @@ Nelson's survivability condition — "if anything is left at each end" — is pr
 
 ### Contraction Is Document-Local
 
-**SV4 (ContractionIsolation).**
+**SV4 (ArrangementIsolation).**
 
-`(A Σ →_{K.μ⁺/K.μ⁻/K.μ~} Σ', e, d, d' : d ≠ d' :: π(e, d') is unchanged)`
+`(A Σ →_{K.μ⁺/K.μ⁻/K.μ~} Σ', e, d, d' : d ≠ d' :: π_{Σ'}(e, d') = π_Σ(e, d'))`
 
-Arrangement operations on document d do not alter any other document's arrangement (frame conditions of K.μ⁺, K.μ⁻, K.μ~: `(A d' : d' ≠ d : M'(d') = M(d'))`). Therefore π(e, d') = coverage(e) ∩ ran(M(d')) = coverage(e) ∩ ran(M'(d')) is unchanged.
+Arrangement operations on document d do not alter any other document's arrangement (frame conditions of K.μ⁺, K.μ⁻, K.μ~: `(A d' : d' ≠ d : M'(d') = M(d'))`). Therefore π_{Σ'}(e, d') = coverage(e) ∩ ran(M'(d')) = coverage(e) ∩ ran(M(d')) = π_Σ(e, d').
 
 This is a crucial survivability guarantee: one user's editing of their document cannot affect the projection of any endset in any other user's document. If Alice links to a passage in Bob's document, and Bob deletes that passage, the link's projection in *Alice's* document is unaffected. Only the projection in *Bob's* document changes.
 
@@ -125,9 +125,9 @@ Arrangement reordering (K.μ~, ArrangementReordering) is a bijection on V-positi
 
 **SV5 (ReorderingProjectionInvariance).**
 
-`(A Σ →_{K.μ~} Σ', e, d :: π(e, d') = π(e, d))`
+`(A Σ →_{K.μ~} Σ', e, d :: π_{Σ'}(e, d) = π_Σ(e, d))`
 
-Rearrangement cannot change which I-addresses are in the projection. The endset references exactly the same content before and after. What changes is *where* that content appears: resolve(e, d') ≠ resolve(e, d) in general, because the V-positions have been remapped.
+Rearrangement cannot change which I-addresses are in the projection. The endset references exactly the same content before and after. What changes is *where* that content appears: resolve_{Σ'}(e, d) ≠ resolve_Σ(e, d) in general, because the V-positions have been remapped.
 
 This is the precise sense in which links "track content, not location." The strap-between-bytes metaphor (Nelson: "A Xanadu link is not between points, but between spans of data. Thus we may visualize it as a strap between bytes" [LM 4/42]) expresses this property: rearranging the beads on the string doesn't alter which beads the strap holds, only where they sit.
 
@@ -144,7 +144,7 @@ The answer depends on the allocation regime and the address hierarchy. We establ
 
 `b ∉ ⟦(s, ℓ)⟧`
 
-*Proof.* By TumblerAdd, components before the action point are copied from s. When the action point is within the element field, the full document prefix (node, user, document fields and their separators) is copied, so the reach s ⊕ ℓ shares origin(s). Since origin(s) is a prefix of both s and s ⊕ ℓ, by T5 (ContiguousSubtrees) every tumbler t with s ≤ t ≤ s ⊕ ℓ satisfies origin(s) ≼ t, hence origin(t) = origin(s). In particular, every t ∈ ⟦(s, ℓ)⟧ = {t : s ≤ t < s ⊕ ℓ} shares origin(s). Since origin(b) ≠ origin(s), b cannot be equal to any such tumbler (T10, PartitionIndependence). ∎
+*Proof.* By TumblerAdd, components before the action point are copied from s. When the action point is within the element field, the full document prefix (node, user, document fields and their separators) is copied, so the reach s ⊕ ℓ shares origin(s). Since origin(s) is a prefix of both s and s ⊕ ℓ, by T5 (ContiguousSubtrees) every tumbler t with s ≤ t < s ⊕ ℓ satisfies origin(s) ≼ t. Now restrict to element-level tumblers: if zeros(t) = 3, then t has the same field structure as s — three zero separators at the same positions. Any element-level t in the interval must agree with s on all components through the third separator, since disagreement at an earlier position would place t outside the interval by T1 (the divergence would occur before the element field, producing either t < s or t ≥ s ⊕ ℓ). Therefore the field decomposition of t matches that of s, giving origin(t) = origin(s). Since b is element-level (S7b), and every element-level t ∈ ⟦(s, ℓ)⟧ has origin(t) = origin(s), the contrapositive gives: any element-level b with origin(b) ≠ origin(s) satisfies b ∉ ⟦(s, ℓ)⟧. ∎
 
 This property is robust — it depends only on the structural separation of document-level prefixes, not on any allocation discipline.
 
@@ -212,7 +212,7 @@ We have now defined two independent operations — discovery and resolution — 
 
 **SV10 (DiscoveryResolutionIndependence).** A link may be discoverable through a set of I-addresses A yet have only partial resolution in a particular document — the projection covers a proper subset of the endset's full coverage:
 
-`(E Σ, a, d, s :: a ∈ discover_s({M(d)(v) : v ∈ V}) ∧ resolve(Σ.L(a).s, d) ≠ ∅ ∧ π(Σ.L(a).s, d) ⊊ coverage(Σ.L(a).s))`
+`(E Σ, a, d, s, V ⊆ dom(M(d)) :: a ∈ discover_s({M(d)(v) : v ∈ V}) ∧ resolve(Σ.L(a).s, d) ≠ ∅ ∧ π(Σ.L(a).s, d) ⊊ coverage(Σ.L(a).s))`
 
 This arises naturally. Suppose a link's from-endset covers I-addresses {i₁, i₂, i₃}. Document d's arrangement contains only i₂. Discovery succeeds (non-empty intersection). But resolution of the from-endset in d returns only the V-positions corresponding to i₂ — the other two I-addresses have no V-positions in d.
 
@@ -231,13 +231,13 @@ When contraction removes some but not all of an endset's I-addresses from a docu
 
 `π(e, d) = (∪ j, k : 1 ≤ j ≤ m ∧ 1 ≤ k ≤ p : ⟦(sⱼ, ℓⱼ)⟧ ∩ I(β_k))`
 
-Consider each term ⟦(sⱼ, ℓⱼ)⟧ ∩ I(β_k). The span ⟦(sⱼ, ℓⱼ)⟧ is convex by S0 (Convexity). The set I(β_k) = {a_k + j : 0 ≤ j < n_k} is not itself convex in T — child-depth tumblers create gaps between consecutive ordinal increments — but we do not need it to be. For ordinal indices j₁ < j₂ < j₃ with a_k + j₁ and a_k + j₃ both in ⟦(sⱼ, ℓⱼ)⟧, we have a_k + j₁ < a_k + j₂ < a_k + j₃ (by TA-strict), so by the convexity of the span (S0), a_k + j₂ ∈ ⟦(sⱼ, ℓⱼ)⟧. Hence the intersection is contiguous within the ordinal sequence of I(β_k): if the first and last elements of the intersection have ordinal offsets j₁ and j₂ respectively, then every intermediate element a_k + j with j₁ ≤ j ≤ j₂ also lies in the intersection. Since ordinal increment preserves tumbler length (TA5(c)), all elements of I(β_k) share the same length, and each contiguous subsequence is expressible as a level-uniform span.
+Consider each term ⟦(sⱼ, ℓⱼ)⟧ ∩ I(β_k). The span ⟦(sⱼ, ℓⱼ)⟧ is convex by S0 (Convexity). The set I(β_k) = {a_k + j : 0 ≤ j < n_k} is not itself convex in T — child-depth tumblers create gaps between consecutive ordinal increments — but we do not need it to be. For ordinal indices j₁ < j₂ < j₃ with a_k + j₁ and a_k + j₃ both in ⟦(sⱼ, ℓⱼ)⟧, we have a_k + j₁ < a_k + j₂ < a_k + j₃ (by TA-strict), so by the convexity of the span (S0), a_k + j₂ ∈ ⟦(sⱼ, ℓⱼ)⟧. Hence the intersection is contiguous within the ordinal sequence of I(β_k): if the first and last elements of the intersection have ordinal offsets j₁ and j₂ respectively, then every intermediate element a_k + j with j₁ ≤ j ≤ j₂ also lies in the intersection. Therefore π(e, d) decomposes into finitely many *fragments*, each a contiguous ordinal subsequence within some mapping block's I-extent, compactly described by its first element and count: (a_k + j₁, j₂ − j₁ + 1). The number of fragments is bounded by m · p.
 
-Therefore π(e, d) is a finite union of level-uniform spans. However, S8 (NormalizationExistence) requires mutual level-compatibility among spans: all component spans must have starts of the same tumbler length. Each covering span's start has length #a_k, the I-start length of its mapping block. When a document transcludes content from sources at different allocation depths, mapping blocks may have I-starts of different lengths. In that case, normalization applies within each tumbler-depth group independently: the spans can be partitioned by start length, and S8 applies within each partition.
+We note a distinction between fragments and span denotations. A fragment is a finite set of I-addresses {a_k + j₁, ..., a_k + j₂} produced by ordinal increment. The span denotation ⟦(s, ℓ)⟧ = {t ∈ T : s ≤ t < s ⊕ ℓ} includes all tumblers in the half-open interval, including child-depth tumblers between consecutive ordinal increments — a child c produced by inc(a, 1) satisfies a < c < a + 1, so c ∈ ⟦(a, ℓ_a)⟧ but c is not necessarily in ran(M(d)). The exact characterisation of π(e, d) is the union of its fragments, not a union of span denotations. If one needs to connect projections to the span algebra of ASN-0053, the correct relationship is *covering*: for each fragment with first element a_k + j₁ and last element a_k + j₂, a level-uniform span (a_k + j₁, ℓ') with reach a_k + (j₂ + 1) satisfies ⟦(a_k + j₁, ℓ')⟧ ⊇ fragment (since ordinal increment preserves tumbler length by TA5(c)). Such covering span-sets are normalizable within each tumbler-depth group (S8, NormalizationExistence).
 
-The significance: **partial survival is well-structured.** The surviving portion of an endset in a given document is always representable as a finite, normalizable span-set. It does not degenerate into an arbitrary subset of I-addresses that defies compact representation.
+The significance: **partial survival is well-structured.** The surviving portion of an endset in a given document decomposes into finitely many fragments, each compactly described by a start address and count within a mapping block's ordinal sequence. Convexity (S0) ensures contiguity within each block, preventing degeneration into arbitrary subsets of I-addresses.
 
-The number of fragments can grow through repeated contractions: a single contraction that removes I-addresses from the interior of a contiguous endset span splits one fragment into two. But the fragments remain spans, and their union remains a span-set. The original endset's spans provide an upper bound: the number of fragments cannot exceed the number of mapping blocks that overlap the endset's coverage.
+The number of fragments can grow through repeated contractions: a single contraction that removes I-addresses from the interior of a contiguous endset region splits one fragment into two. But the fragments remain ordinal-contiguous subsequences, compactly described by start and count. The original endset's span count and the number of mapping blocks provide an upper bound: the total number of fragments cannot exceed m · p.
 
 
 ## Worked Example
@@ -271,7 +271,7 @@ The endset remains vital but with reduced projection. The removal of a₃ from M
 - ⟦(a₂, ℓ)⟧ ∩ I(β₁) = {t : a₂ ≤ t < a₅} ∩ {a₁, a₂} = {a₂}
 - ⟦(a₂, ℓ)⟧ ∩ I(β₂) = {t : a₂ ≤ t < a₅} ∩ {a₄, a₅} = {a₄}
 
-Each non-empty term is a single-element contiguous subsequence of its mapping block's I-extent — trivially a level-uniform span. Together: π(F, d) = {a₂} ∪ {a₄} = {a₂, a₄}. ✓
+Each non-empty term is a single-element fragment — a contiguous ordinal subsequence of count 1 within its mapping block's I-extent. Together: π(F, d) = {a₂} ∪ {a₄} = {a₂, a₄}. ✓
 
 Discovery through d still works for queries including a₂ or a₄. But discovery through the specific I-address set {a₃} — while still returning b (SV8) — no longer corresponds to anything visible in d, since a₃ ∉ ran(M'(d)). This illustrates the discovery-resolution distinction (SV10): the link is discoverable through a₃, but resolution of the from-endset in d yields no V-position for a₃.
 
@@ -322,7 +322,7 @@ We can now synthesize the survivability guarantee into a single coherent stateme
 
 (f) *Coverage stability is level-dependent:* new allocations from a different origin cannot enter existing endset spans when the action point is within the element field (SV6). Same-origin coverage growth depends on the allocation regime — closed at the byte level by sequential sibling allocation, open at broader address levels by design. [SV6]
 
-(g) *Partial survival is well-structured:* the surviving projection in any document is a finite span-set. [SV11]
+(g) *Partial survival is well-structured:* the surviving projection in any document decomposes into finitely many ordinal-contiguous fragments within mapping blocks. [SV11]
 
 The survivability guarantee is therefore: the link, its endsets, and the content at its endset addresses are all permanent. What varies is the *visibility* of the endset content through each document's arrangement — and this variation is precisely characterised by the projection and resolution functions, which respond only to the arrangement of the specific document being queried and are immune to changes elsewhere.
 
@@ -342,14 +342,14 @@ Nelson's "strap between bytes" is exactly right. The strap (the link's endsets) 
 | SV1 | ArrangementLinkFrame: arrangement changes preserve L entirely | introduced |
 | SV2 | ExtensionMonotonicity: K.μ⁺ can only enlarge π(e, d) | introduced |
 | SV3 | ContractionReduction: K.μ⁻ can only shrink π(e, d) | introduced |
-| SV4 | ContractionIsolation: changes to M(d) do not affect π(e, d') for d' ≠ d | introduced |
+| SV4 | ArrangementIsolation: arrangement changes to M(d) do not affect π(e, d') for d' ≠ d | introduced |
 | SV5 | ReorderingProjectionInvariance: K.μ~ preserves π(e, d) exactly | introduced |
 | SV6 | CrossOriginExclusion: allocations from a different document prefix cannot enter existing endset spans (within element field) | introduced |
 | SV7 | DiscoveryByContentIdentity: discovery depends on I-address intersection, not document identity | introduced |
 | SV8 | DiscoveryPermanence: once discoverable through A, always discoverable | introduced |
 | SV9 | DiscoveryMonotonicity: the discoverable set is non-decreasing as links are created | introduced |
 | SV10 | DiscoveryResolutionIndependence: discovery and resolution answer different questions with different filters | introduced |
-| SV11 | PartialSurvivalDecomposition: the surviving projection is a finite span-set | introduced |
+| SV11 | PartialSurvivalDecomposition: the surviving projection decomposes into finitely many ordinal-contiguous fragments within mapping blocks | introduced |
 | SV12 | ContentFidelity: content at endset I-addresses is immutable | introduced |
 | SV13 | SurvivabilityTheorem: synthesis of the complete guarantee | introduced |
 
