@@ -50,6 +50,24 @@ Additionally, shift preserves structural properties. When m ≥ 2, the action po
 *Derivation.* Expanding: shift(shift(v, n₁), n₂) = (v ⊕ δ(n₁, m)) ⊕ δ(n₂, m). By TA-assoc (ASN-0034): (v ⊕ δ(n₁, m)) ⊕ δ(n₂, m) = v ⊕ (δ(n₁, m) ⊕ δ(n₂, m)). The action point of both displacements is m. By TumblerAdd, δ(n₁, m) ⊕ δ(n₂, m) has components 0 at positions 1..m−1 and n₁ + n₂ at position m — that is, δ(n₁ + n₂, m). So the expression equals v ⊕ δ(n₁ + n₂, m) = shift(v, n₁ + n₂). ∎
 
 
+## Shift Strict Increase
+
+**I9 — ShiftStrictIncrease.**
+
+`(A v, n : n ≥ 1 ∧ #v = m : shift(v, n) > v)`
+
+*Derivation.* δ(n, m) > 0 since its m-th component is n ≥ 1. By TA-strict (ASN-0034): v ⊕ δ(n, m) > v. ∎
+
+
+## Shift Amount Monotonicity
+
+**I10 — ShiftAmountMonotonicity.**
+
+`(A v, n₁, n₂ : n₁ ≥ 1 ∧ n₂ > n₁ ∧ #v = m : shift(v, n₁) < shift(v, n₂))`
+
+*Derivation.* Write n₂ = n₁ + (n₂ − n₁) where n₂ − n₁ ≥ 1. By I8: shift(v, n₂) = shift(shift(v, n₁), n₂ − n₁). By I9: shift(shift(v, n₁), n₂ − n₁) > shift(v, n₁). ∎
+
+
 ## Worked Example
 
 Let v = [2, 3, 7] (m = 3) and n = 4. Then δ(4, 3) = [0, 0, 4] with action point 3. TA0: k = 3 ≤ 3 = #v. By TumblerAdd: shift(v, 4) = [2, 3, 7 + 4] = [2, 3, 11].
@@ -68,3 +86,5 @@ For I8: shift(shift([2, 3, 7], 4), 3) = shift([2, 3, 11], 3) = [2, 3, 14] = shif
 | I6 | lemma | shift preserves strict order: v₁ < v₂ ⟹ shift(v₁, n) < shift(v₂, n) | introduced |
 | I7 | lemma | shift is injective: shift(v₁, n) = shift(v₂, n) ⟹ v₁ = v₂ | introduced |
 | I8 | lemma | shift composes additively: shift(shift(v, n₁), n₂) = shift(v, n₁ + n₂) | introduced |
+| I9 | corollary | shift strictly increases: shift(v, n) > v | introduced |
+| I10 | corollary | shift is monotone in amount: n₁ < n₂ ⟹ shift(v, n₁) < shift(v, n₂) | introduced |
