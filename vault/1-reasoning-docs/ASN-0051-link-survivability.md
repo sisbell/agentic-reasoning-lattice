@@ -37,7 +37,7 @@ There is no mechanism by which stale arrangement information could participate, 
 
 **Definition — Endset Vitality.** An endset e is *vital in document d* when π(e, d) ≠ ∅ — at least one I-address that the endset references appears in d's current arrangement. Equivalently, resolve(e, d) ≠ ∅.
 
-A link at address a with Σ.L(a) = (F, G, Θ) is *bilaterally vital in d* when both its from-endset and to-endset are vital in d:
+A link at address a with Σ.L(a) = (F, G, Θ) is *bilaterally vital in d* when each non-empty content endset is vital in d — that is, every non-empty endset projects to at least one I-address in d's arrangement:
 
 `F = ∅ ∨ π(F, d) ≠ ∅`  and  `G = ∅ ∨ π(G, d) ≠ ∅`
 
@@ -144,7 +144,11 @@ The answer depends on the allocation regime and the address hierarchy. We establ
 
 `b ∉ ⟦(s, ℓ)⟧`
 
-*Proof.* By TumblerAdd, components before the action point are copied from s. When the action point is within the element field, the full document prefix (node, user, document fields and their separators) is copied, so the reach s ⊕ ℓ shares origin(s). Since origin(s) is a prefix of both s and s ⊕ ℓ, by T5 (ContiguousSubtrees) every tumbler t with s ≤ t < s ⊕ ℓ satisfies origin(s) ≼ t. Now restrict to element-level tumblers: if zeros(t) = 3, then t has the same field structure as s — three zero separators at the same positions. Any element-level t in the interval must agree with s on all components through the third separator, since disagreement at an earlier position would place t outside the interval by T1 (the divergence would occur before the element field, producing either t < s or t ≥ s ⊕ ℓ). Therefore the field decomposition of t matches that of s, giving origin(t) = origin(s). Since b is element-level (S7b), and every element-level t ∈ ⟦(s, ℓ)⟧ has origin(t) = origin(s), the contrapositive gives: any element-level b with origin(b) ≠ origin(s) satisfies b ∉ ⟦(s, ℓ)⟧. ∎
+*Proof.* Let k be the action point of ℓ. By TumblerAdd, components before k are copied from s, and (s ⊕ ℓ)ₖ = sₖ + ℓₖ, so s and s ⊕ ℓ agree on positions 1 through k−1. Now consider any t with s ≤ t < s ⊕ ℓ. We claim t agrees with s on all positions 1 through k−1. For suppose t diverges from s at position j < k. Then tⱼ ≠ sⱼ. Since t ≥ s, we have tⱼ > sⱼ (T1 case (i) at the first point of disagreement). But sⱼ = (s ⊕ ℓ)ⱼ (both copy from s at positions before k), so tⱼ > (s ⊕ ℓ)ⱼ, giving t > s ⊕ ℓ by T1 — contradicting t < s ⊕ ℓ. Hence t agrees with s on all positions 1 through k−1.
+
+Since the action point k is within the element field (beyond the three field separators), k−1 is at or past the position of the third separator. Therefore t shares the same three separator positions as s — the zero components that delimit the node, user, document, and element fields occur at identical positions in t and s. For any element-level t with zeros(t) = 3, this means t has exactly three field separators at the same positions as s, so the field decomposition of t matches that of s, giving origin(t) = origin(s). (T5 provides supporting context: since origin(s) is a prefix of both s and s ⊕ ℓ, every t in the interval satisfies origin(s) ≼ t — but the prefix property alone does not force the separator positions to align, which is what the sandwich argument above establishes.)
+
+Since b is element-level (S7b), and every element-level t ∈ ⟦(s, ℓ)⟧ has origin(t) = origin(s), the contrapositive gives: any element-level b with origin(b) ≠ origin(s) satisfies b ∉ ⟦(s, ℓ)⟧. ∎
 
 This property is robust — it depends only on the structural separation of document-level prefixes, not on any allocation discipline.
 
@@ -212,11 +216,13 @@ We have now defined two independent operations — discovery and resolution — 
 
 **SV10 (DiscoveryResolutionIndependence).** A link may be discoverable through a set of I-addresses A yet have only partial resolution in a particular document — the projection covers a proper subset of the endset's full coverage:
 
-`(E Σ, a, d, s, V ⊆ dom(M(d)) :: a ∈ discover_s({M(d)(v) : v ∈ V}) ∧ resolve(Σ.L(a).s, d) ≠ ∅ ∧ π(Σ.L(a).s, d) ⊊ coverage(Σ.L(a).s))`
+`(E Σ, a, d, s, V ⊆ dom(M(d)) :: a ∈ discover_s({M(d)(v) : v ∈ V}) ∧ π(Σ.L(a).s, d) ⊊ coverage(Σ.L(a).s))`
+
+Note that discovery through d entails non-empty projection in d: if a ∈ discover_s({M(d)(v) : v ∈ V}), then coverage(Σ.L(a).s) ∩ {M(d)(v) : v ∈ V} ≠ ∅, and since {M(d)(v) : v ∈ V} ⊆ ran(M(d)), we have π(Σ.L(a).s, d) ⊇ coverage(Σ.L(a).s) ∩ {M(d)(v) : v ∈ V} ≠ ∅. So within the discovering document, resolution is guaranteed non-empty.
 
 This arises naturally. Suppose a link's from-endset covers I-addresses {i₁, i₂, i₃}. Document d's arrangement contains only i₂. Discovery succeeds (non-empty intersection). But resolution of the from-endset in d returns only the V-positions corresponding to i₂ — the other two I-addresses have no V-positions in d.
 
-Concretely: a link might be discovered from a version or transclusion that shares only a subset of the endset's I-addresses. The link is found, but resolution (in any given document) may return a partial or even empty result, depending on which document's arrangement is used.
+The cross-document case is starker: a link discovered through document d₁ (which shares I-addresses with the endset) may have empty resolution in a different document d₂ whose arrangement contains none of the endset's I-addresses. Discovery and resolution operate through independent documents; discovery through one does not entail resolution in another.
 
 This asymmetry is not a deficiency. It reflects a genuine conceptual distinction: the link *exists* and *relates to* certain content (discovery); the *visibility* of that relationship depends on which document you are looking through (resolution).
 
@@ -227,13 +233,15 @@ When contraction removes some but not all of an endset's I-addresses from a docu
 
 **Definition — Endset Fragment.** For an endset e and document d with block decomposition B = {β₁, ..., β_p} of M(d), a *fragment* of e in d is a maximal contiguous subsequence of I-addresses within a single mapping block's ordinal sequence. Formally, F = {a_k + j : j₁ ≤ j ≤ j₂} ⊆ π(e, d) ∩ I(β_k) for some block β_k = (v_k, a_k, n_k), where F is maximal with respect to extending j₁ downward or j₂ upward within π(e, d) ∩ I(β_k). That is, either j₁ = 0 or a_k + (j₁ - 1) ∉ π(e, d), and either j₂ = n_k - 1 or a_k + (j₂ + 1) ∉ π(e, d).
 
-**SV11 (PartialSurvivalDecomposition).** Let e = {(s₁, ℓ₁), ..., (s_m, ℓ_m)} be an endset, and let B = {β₁, ..., β_p} be a block decomposition of M(d) (ASN-0058, BlockDecomposition). The projection π(e, d) can be decomposed as:
+**SV11 (PartialSurvivalDecomposition).** Let e = {(s₁, ℓ₁), ..., (s_m, ℓ_m)} be an endset, and let B = {β₁, ..., β_p} be a block decomposition of M(d) (ASN-0058, BlockDecomposition). Since B covers only text-subspace V-positions (B1 guards v₁ ≥ 1), define the *text-subspace projection* π_text(e, d) = coverage(e) ∩ ran_text(M(d)), where ran_text(M(d)) = {M(d)(v) : v ∈ dom(M(d)) ∧ v₁ ≥ 1} = ⋃_k I(β_k). Then:
 
-`π(e, d) = (∪ j, k : 1 ≤ j ≤ m ∧ 1 ≤ k ≤ p : ⟦(sⱼ, ℓⱼ)⟧ ∩ I(β_k))`
+`π_text(e, d) = (∪ j, k : 1 ≤ j ≤ m ∧ 1 ≤ k ≤ p : ⟦(sⱼ, ℓⱼ)⟧ ∩ I(β_k))`
 
-Consider each term ⟦(sⱼ, ℓⱼ)⟧ ∩ I(β_k). The span ⟦(sⱼ, ℓⱼ)⟧ is convex by S0 (Convexity). The set I(β_k) = {a_k + j : 0 ≤ j < n_k} is not itself convex in T — child-depth tumblers create gaps between consecutive ordinal increments — but we do not need it to be. For ordinal indices j₁ < j₂ < j₃ with a_k + j₁ and a_k + j₃ both in ⟦(sⱼ, ℓⱼ)⟧, we have a_k + j₁ < a_k + j₂ < a_k + j₃ (by TA-strict), so by the convexity of the span (S0), a_k + j₂ ∈ ⟦(sⱼ, ℓⱼ)⟧. Hence the intersection is contiguous within the ordinal sequence of I(β_k): if the first and last elements of the intersection have ordinal offsets j₁ and j₂ respectively, then every intermediate element a_k + j with j₁ ≤ j ≤ j₂ also lies in the intersection. Therefore π(e, d) decomposes into finitely many *fragments*, each a contiguous ordinal subsequence within some mapping block's I-extent, compactly described by its first element and count: (a_k + j₁, j₂ − j₁ + 1). The number of fragments is bounded by m · p.
+(The full projection π(e, d) = coverage(e) ∩ ran(M(d)) may additionally include I-addresses reached through non-text-subspace V-positions, if any exist in M(d). The link-subspace contribution is deferred to the Link Subspace ASN. In the current foundation model, no defined operation creates non-text V-positions, so π_text(e, d) = π(e, d) for all reachable states.)
 
-We note a distinction between fragments and span denotations. A fragment is a finite set of I-addresses {a_k + j₁, ..., a_k + j₂} produced by ordinal increment. The span denotation ⟦(s, ℓ)⟧ = {t ∈ T : s ≤ t < s ⊕ ℓ} includes all tumblers in the half-open interval, including child-depth tumblers between consecutive ordinal increments — a child c produced by inc(a, 1) satisfies a < c < a + 1, so c ∈ ⟦(a, ℓ_a)⟧ but c is not necessarily in ran(M(d)). The exact characterisation of π(e, d) is the union of its fragments, not a union of span denotations. If one needs to connect projections to the span algebra of ASN-0053, the correct relationship is *covering*: for each fragment with first element a_k + j₁ and last element a_k + j₂, a level-uniform span (a_k + j₁, ℓ') with reach a_k + (j₂ + 1) satisfies ⟦(a_k + j₁, ℓ')⟧ ⊇ fragment (since ordinal increment preserves tumbler length by TA5(c)). Such covering span-sets are normalizable within each tumbler-depth group (S8, NormalizationExistence).
+Consider each term ⟦(sⱼ, ℓⱼ)⟧ ∩ I(β_k). The span ⟦(sⱼ, ℓⱼ)⟧ is convex by S0 (Convexity). The set I(β_k) = {a_k + j : 0 ≤ j < n_k} is not itself convex in T — child-depth tumblers create gaps between consecutive ordinal increments — but we do not need it to be. For ordinal indices j₁ < j₂ < j₃ with a_k + j₁ and a_k + j₃ both in ⟦(sⱼ, ℓⱼ)⟧, we have a_k + j₁ < a_k + j₂ < a_k + j₃ (by TA-strict), so by the convexity of the span (S0), a_k + j₂ ∈ ⟦(sⱼ, ℓⱼ)⟧. Hence the intersection is contiguous within the ordinal sequence of I(β_k): if the first and last elements of the intersection have ordinal offsets j₁ and j₂ respectively, then every intermediate element a_k + j with j₁ ≤ j ≤ j₂ also lies in the intersection. Therefore π_text(e, d) decomposes into finitely many *fragments*, each a contiguous ordinal subsequence within some mapping block's I-extent, compactly described by its first element and count: (a_k + j₁, j₂ − j₁ + 1). The number of fragments is bounded by m · p.
+
+We note a distinction between fragments and span denotations. A fragment is a finite set of I-addresses {a_k + j₁, ..., a_k + j₂} produced by ordinal increment. The span denotation ⟦(s, ℓ)⟧ = {t ∈ T : s ≤ t < s ⊕ ℓ} includes all tumblers in the half-open interval, including child-depth tumblers between consecutive ordinal increments — a child c produced by inc(a, 1) satisfies a < c < a + 1, so c ∈ ⟦(a, ℓ_a)⟧ but c is not necessarily in ran(M(d)). The exact characterisation of π_text(e, d) is the union of its fragments, not a union of span denotations. If one needs to connect projections to the span algebra of ASN-0053, the correct relationship is *covering*: for each fragment with first element a_k + j₁ and last element a_k + j₂, a level-uniform span (a_k + j₁, ℓ') with reach a_k + (j₂ + 1) satisfies ⟦(a_k + j₁, ℓ')⟧ ⊇ fragment (since ordinal increment preserves tumbler length by TA5(c)). Such covering span-sets are normalizable within each tumbler-depth group (S8, NormalizationExistence).
 
 The significance: **partial survival is well-structured.** The surviving portion of an endset in a given document decomposes into finitely many fragments, each compactly described by a start address and count within a mapping block's ordinal sequence. Convexity (S0) ensures contiguity within each block, preventing degeneration into arbitrary subsets of I-addresses.
 
@@ -336,7 +344,7 @@ Nelson's "strap between bytes" is exactly right. The strap (the link's endsets) 
 | π(e, d) | Endset projection: `coverage(e) ∩ ran(M(d))` | introduced |
 | resolve(e, d) | Endset resolution: `{v ∈ dom(M(d)) : M(d)(v) ∈ coverage(e)}` | introduced |
 | Vitality | Endset e is vital in d when `π(e, d) ≠ ∅` | introduced |
-| BilateralVitality | Link is bilaterally vital in d when both content endsets are vital or empty | introduced |
+| BilateralVitality | Link is bilaterally vital in d when each non-empty content endset is vital in d | introduced |
 | discover_s(A) | Link discovery: `{a ∈ dom(L) : coverage(L(a).s) ∩ A ≠ ∅}` | introduced |
 | SV0 | ResolutionCurrentness: resolve(e, d) is determined by coverage(e) and current M(d) | introduced |
 | SV1 | ArrangementLinkFrame: arrangement changes preserve L entirely | introduced |
@@ -349,7 +357,7 @@ Nelson's "strap between bytes" is exactly right. The strap (the link's endsets) 
 | SV8 | DiscoveryPermanence: once discoverable through A, always discoverable | introduced |
 | SV9 | DiscoveryMonotonicity: the discoverable set is non-decreasing as links are created | introduced |
 | SV10 | DiscoveryResolutionIndependence: discovery and resolution answer different questions with different filters | introduced |
-| SV11 | PartialSurvivalDecomposition: the surviving projection decomposes into finitely many ordinal-contiguous fragments within mapping blocks | introduced |
+| SV11 | PartialSurvivalDecomposition: the text-subspace projection decomposes into finitely many ordinal-contiguous fragments within mapping blocks | introduced |
 | SV12 | ContentFidelity: content at endset I-addresses is immutable | introduced |
 | SV13 | SurvivabilityTheorem: synthesis of the complete guarantee | introduced |
 
