@@ -73,6 +73,10 @@ The span is arbitrary — it need not align with any boundaries of how content w
 
 Every V-position of the correct depth within the deletion range must currently exist in d's subspace-S arrangement. We use a depth-restricted membership predicate rather than span denotation (ASN-0053), because ⟦(p, w)⟧ includes tumblers at all depths between p and p ⊕ w (by T0(b) and T5, ASN-0034), while V_S(d) contains only tumblers of fixed depth #p (by S8-depth, ASN-0036). Attempting to delete non-existent positions is undefined.
 
+(vi) #w = #p (the displacement has the same depth as the V-position). This ensures the action point of w satisfies TA0 (AdditionWellDefined, ASN-0034) for p ⊕ w.
+
+(vii) w₁ = 0 (the displacement preserves the subspace identifier). Under TumblerAdd, r₁ = p₁ + w₁; without w₁ = 0, the result p ⊕ w would have subspace identifier p₁ + w₁ ≠ S, violating subspace confinement.
+
 When V_S(d) is contiguous (D-CTG), the precondition (v) reduces to a bound on the span endpoints. Let v_min and v_max be the minimum and maximum of V_S(d). Then (v) requires p ≥ v_min and p ⊕ w ≤ shift(v_max, 1) — the deletion starts within the extent and ends at or before the first position past the extent.
 
 
@@ -105,11 +109,11 @@ We can now state what DELETE does. The specification has three components corres
 
 Neither the V-position nor the I-address changes. Content before the deletion point reads exactly as before, at exactly the same V-position. Nelson says the Vstream "closes the gap" — content before the gap is untouched.
 
-**D-DEL — InteriorRemoval (POST).** Every position in the deleted interval is removed from the arrangement:
+**D-DOM — PostStateDomain (POST).** The post-state domain of M'(d) in subspace S is exactly L ∪ Q₃:
 
-`(A v : v ∈ X : v ∉ dom(M'(d)))`
+`dom(M'(d)) ∩ {v : subspace(v) = S} = L ∪ {σ(v) : v ∈ R}`
 
-The V-positions within [p, r) are no longer in the domain of M(d). The I-addresses they referenced are not destroyed — they remain in dom(C) by P0 (ContentPermanence, ASN-0047) — but the arrangement no longer points to them from these V-positions. Nelson's diagram on page 4/9 explicitly names this state: "DELETED BYTES (not currently addressable, awaiting historical backtrack functions, may remain included in other versions)."
+where Q₃ = {σ(v) : v ∈ R} is the set of shifted right-region positions (defined in D-SHIFT below). The original mappings at positions in X are discarded: no position in X retains its pre-state mapping. When R ≠ ∅, the shifted right-region positions begin at ordinal ord(p) (by D-SEP below), so some V-positions in X are reoccupied by shifted content — but the I-address at each reoccupied position comes from D-SHIFT, not from the pre-state mapping at that position. The I-addresses formerly referenced from X are not destroyed — they remain in dom(C) by P0 (ContentPermanence, ASN-0047) — but the arrangement no longer points to them from these V-positions. Nelson's diagram on page 4/9 explicitly names this state: "DELETED BYTES (not currently addressable, awaiting historical backtrack functions, may remain included in other versions)."
 
 **D-SHIFT — RightShift (POST).** Every position in the right region survives with its I-address mapping intact, but its V-position shifts left by w_ord. Define the shift function: for v ∈ R, let σ(v) = vpos(S, ord(v) ⊖ w_ord) — TumblerSub applied to the ordinal component, then reconstructed as a V-position. Then:
 
@@ -155,7 +159,7 @@ The document d continues to exist after DELETE. Removal modifies the arrangement
 
 ### Domain Completeness
 
-D-LEFT, D-DEL, D-SHIFT, and D-XS together establish that certain V-positions belong to dom(M'(d)). Let:
+D-LEFT, D-DOM, D-SHIFT, and D-XS together determine dom(M'(d)). Let:
 
 ```
 Q₁ = {v ∈ dom(M(d)) : subspace(v) ≠ S}                        (by D-XS)
@@ -163,7 +167,7 @@ Q₂ = L                                                          (by D-LEFT)
 Q₃ = {σ(v) : v ∈ R}                                            (by D-SHIFT)
 ```
 
-This gives Q₁ ∪ Q₂ ∪ Q₃ ⊆ dom(M'(d)) — the ⊇ direction. The ⊆ direction — that dom(M'(d)) contains no other positions — follows from the composite transition structure established below: step (i) removes the deleted and right-region positions, step (ii) reintroduces the right-region positions at shifted locations. No other step modifies M(d). Therefore |dom(M'(d))| = |dom(M(d))| − |X|.
+D-DOM gives dom(M'(d)) ∩ V_S = Q₂ ∪ Q₃, and D-XS gives the non-S portion Q₁, so dom(M'(d)) = Q₁ ∪ Q₂ ∪ Q₃. The ⊆ direction — that dom(M'(d)) contains no other positions — follows from the composite transition structure established below: step (i) removes the deleted and right-region positions, step (ii) reintroduces the right-region positions at shifted locations. No other step modifies M(d). Therefore |dom(M'(d))| = |dom(M(d))| − |X|.
 
 We verify that Q₁ through Q₃ are pairwise disjoint. Q₁ is disjoint from Q₂ and Q₃ by subspace. Q₂ has positions < p. Q₃ has positions σ(v) with ord(σ(v)) ≥ ord(p) (by D-SEP below). Since Q₂ ⊂ V_S(d) with ordinals < ord(p), and Q₃ ⊂ V_S with ordinals ≥ ord(p), they are disjoint.
 
@@ -235,7 +239,7 @@ The composite is a valid transition: DELETE preserves all coupling constraints.
 
 We express DELETE's effect on the block decomposition of M(d) (ASN-0058). Let B be the current decomposition of the text-subspace arrangement. Since DELETE in subspace S leaves all other subspaces unchanged (D-XS), we separate B by subspace: B_S = {β ∈ B : subspace(v(β)) = S} and B_other = B \ B_S. Only B_S is affected; B_other passes through unchanged.
 
-Partition B_S relative to the two cut points p and r = p ⊕ w. For each block β = (v, a, n) ∈ B_S, let v_end = shift(v, n). Exactly one of five conditions holds:
+Partition B_S relative to the two cut points p and r = p ⊕ w. For each block β = (v, a, n) ∈ B_S, let v_end = shift(v, n). Exactly one of six conditions holds:
 
 (a) *Entirely in L*: v_end ≤ p. Block is untouched.
 
@@ -247,13 +251,13 @@ Partition B_S relative to the two cut points p and r = p ⊕ w. For each block �
 
 (e) *Entirely in R*: v ≥ r. Block survives with V-start shifted: β' = (σ(v), a, n).
 
-A block may straddle both cuts (v < p and v_end > r) when it spans the entire deletion interval. Two splits produce three pieces: the left survivor β_L = (v, a, c₁) where v + c₁ = p, the removed middle, and the right survivor which shifts.
+(f) *Straddles both cuts*: v < p and v_end > r. Two splits produce three pieces: the left survivor β_L = (v, a, c₁) where v + c₁ = p, the removed middle of width c₂ − c₁ where v + c₂ = r, and the right survivor β_R = (r, a + c₂, n − c₂) which shifts to (σ(r), a + c₂, n − c₂). This case arises when a single block spans the entire deletion interval.
 
 **D-BLK — BlockTransformation (LEMMA).** The post-DELETE decomposition is:
 
 `B' = B_other ∪ B_left ∪ {(σ(v_R), a_R, n_R) : (v_R, a_R, n_R) ∈ B_right}`
 
-where B_left collects surviving pieces from cases (a) and (b), and B_right collects surviving pieces from cases (d) and (e).
+where B_left collects surviving left pieces from cases (a), (b), and (f), and B_right collects surviving right pieces from cases (d), (e), and (f).
 
 *Verification of B1–B3.* Coverage (B1): B_other covers V-positions in other subspaces (D-XS). Within subspace S: B_left covers the left region (D-LEFT), shifted B_right covers the shifted right region (D-SHIFT). Disjointness (B2): B_other is disjoint from the S blocks by subspace. Within S: B_left has V-extents ending before p; shifted B_right has V-extents starting at or beyond p (by D-SEP); no overlap. Consistency (B3): for B_left, M'(d)(v + j) = M(d)(v + j) = a + j by D-LEFT and the original B3. For shifted B_right, we need M'(d)(σ(v) + j) = a + j. By D-SHIFT, M'(d)(σ(v + j)) = M(d)(v + j) = a + j. And σ(v) + j = σ(v + j): the ordinal of σ(v) + j is (ord(v) ⊖ w_ord) + j, and the ordinal of σ(v + j) is (ord(v) + j) ⊖ w_ord. At our restricted ordinal depth 1: [(vₘ − c) + j] = [(vₘ + j) − c] where c = w_ord₁, by commutativity and associativity of natural-number arithmetic. ∎
 
@@ -334,9 +338,9 @@ DELETE creates a gap between content existence and content reachability.
 
 Content at an orphaned address exists permanently (S0) but is not referenced by any document's current arrangement. V-space queries — which traverse M(d) to locate content — cannot reach it.
 
-**D-ORPH — OrphanCreation (LEMMA).** DELETE can increase the set of orphaned I-addresses. Specifically: if a ∈ ran(M_S(d)), a maps from a position v ∈ X (the deleted interval), a ∉ ran(M_{S'}(d)) for all S' ≠ S, and a ∉ ran(M(d')) for all d' ≠ d, then after DELETE, a is orphaned.
+**D-ORPH — OrphanCreation (LEMMA).** DELETE can increase the set of orphaned I-addresses. Specifically: if a ∈ ran(M_S(d)), every V-position in subspace S of document d mapping to a lies within the deleted interval — `(A v' : v' ∈ V_S(d) ∧ M(d)(v') = a : v' ∈ X)` — and a ∉ ran(M_{S'}(d)) for all S' ≠ S, and a ∉ ran(M(d')) for all d' ≠ d, then after DELETE, a is orphaned.
 
-*Proof.* By D-DEL, v is removed from dom(M'(d)), so a ∉ ran(M'_S(d)). By D-XS, M'_{S'}(d) = M_{S'}(d) for S' ≠ S; by hypothesis, a ∉ ran(M_{S'}(d)). By D-XD, M'(d') = M(d') for d' ≠ d; by hypothesis, a ∉ ran(M(d')). Therefore a ∉ ⋃{ran(M'(d')) : d' ∈ E_doc}. Since a ∈ dom(C) = dom(C') by P0, a is orphaned in Σ'. ∎
+*Proof.* By D-DOM, the post-state domain in subspace S is L ∪ Q₃. For a to appear in ran(M'_S(d)), some position in L ∪ Q₃ must map to a. No position in L maps to a: L ⊂ V_S(d) \ X, so any v' ∈ L with M(d)(v') = a would contradict the hypothesis that all such v' lie in X. No position in Q₃ maps to a: each σ(v) ∈ Q₃ has M'(d)(σ(v)) = M(d)(v) for v ∈ R by D-SHIFT, and v ∈ R ⊂ V_S(d) \ X, so again M(d)(v) = a would contradict the hypothesis. Therefore a ∉ ran(M'_S(d)). By D-XS, M'_{S'}(d) = M_{S'}(d) for S' ≠ S; by hypothesis, a ∉ ran(M_{S'}(d)). By D-XD, M'(d') = M(d') for d' ≠ d; by hypothesis, a ∉ ran(M(d')). Therefore a ∉ ⋃{ran(M'(d')) : d' ∈ E_doc}. Since a ∈ dom(C) = dom(C') by P0, a is orphaned in Σ'. ∎
 
 Orphaning is a deliberate architectural consequence, not a defect. Nelson's diagram on 4/9 names the state explicitly: "DELETED BYTES (not currently addressable, awaiting historical backtrack functions, may remain included in other versions)." The content persists at its permanent I-address. Its structural attribution (S7, ASN-0036) — encoding the creator's identity in the tumbler address itself — is unseverable. The address can be recovered through any prior arrangement that referenced it (historical backtrack), and through any other document that independently references it via transclusion. Nelson: "You always know where you are, and can at once ascertain the home document of any specific word or character" [LM 2/40].
 
@@ -351,7 +355,7 @@ The provenance relation R records which documents have ever contained which I-ad
 
 `(E Σ, (d, S, p, w) satisfying D-PRE, Σ' = DELETE(Σ, d, S, p, w) :: Contains(Σ') ⊂ R')`
 
-*Proof.* Before DELETE, let a = M(d)(v) for some v ∈ X. Then (a, d) ∈ Contains(Σ) ⊆ R by P4. After DELETE, v ∉ dom(M'(d)) by D-DEL, so a is no longer witnessed in d's arrangement. If a appears nowhere else in M'(d), then (a, d) ∉ Contains(Σ'). But (a, d) ∈ R' since R' = R. Hence (a, d) ∈ R' \ Contains(Σ'). ∎
+*Proof.* Before DELETE, let a = M(d)(v) for some v ∈ X such that a is referenced only from positions in X within document d — that is, `(A v' : v' ∈ dom(M(d)) ∧ M(d)(v') = a : v' ∈ X)` — and a ∉ ran(M(d')) for all d' ≠ d. Then (a, d) ∈ Contains(Σ) ⊆ R by P4. After DELETE, the conditions of D-ORPH are satisfied (every within-document mapping to a lies in X, and no cross-document mapping exists), so a is orphaned: a ∉ ⋃{ran(M'(d')) : d' ∈ E_doc}. In particular, (a, d) ∉ Contains(Σ'). But (a, d) ∈ R' since R' = R. Hence (a, d) ∈ R' \ Contains(Σ'). ∎
 
 The stale provenance entries are the system's historical memory. They record that document d once contained I-address a, even though it no longer does. This is what P4a (HistoricalFidelity, ASN-0047) captures: every entry in R has a historical justification.
 
@@ -381,9 +385,9 @@ Several aspects of Gregory's implementation illuminate the abstract specificatio
 | vpos(S, o) | V-position reconstruction: vpos(S, o) = [S, o₁, ..., oₖ]; inverse of ord | introduced |
 | w_ord | Ordinal displacement projection: w_ord = [w₂, ..., wₘ] for V-depth w with w₁ = 0 | introduced |
 | D-CTG | V-positions within each subspace form a contiguous ordinal range — design constraint assumed and preserved by DELETE | introduced |
-| D-PRE | DELETE requires d ∈ E_doc, w > 0, subspace(p) ≥ 1, #p = 2, depth-restricted span ⊆ current extent | introduced |
+| D-PRE | DELETE requires d ∈ E_doc, w > 0, subspace(p) ≥ 1, #p = 2, span ⊆ current extent, #w = #p, w₁ = 0 | introduced |
 | D-LEFT | (A v ∈ L : M'(d)(v) = M(d)(v)) — left region unchanged | introduced |
-| D-DEL | (A v ∈ X : v ∉ dom(M'(d))) — deleted interval removed | introduced |
+| D-DOM | dom(M'(d)) ∩ V_S = L ∪ Q₃ — post-state domain fully determined by D-LEFT and D-SHIFT | introduced |
 | D-SHIFT | (A v ∈ R : M'(d)(σ(v)) = M(d)(v)) where σ(v) = vpos(S, ord(v) ⊖ w_ord) | introduced |
 | D-CF | C' = C, E' = E, R' = R — DELETE modifies only M(d) in subspace S | introduced |
 | D-XD | (A d' ≠ d : M'(d') = M(d')) — cross-document isolation | introduced |
@@ -394,7 +398,7 @@ Several aspects of Gregory's implementation illuminate the abstract specificatio
 | D-DP | DELETE preserves D-CTG | introduced |
 | D-WR | \|V_S'(d)\| = \|V_S(d)\| − \|X\| — extent decreases by deletion width | introduced |
 | D-BLK | Block decomposition transforms by split/remove/shift, preserving B1–B3 | introduced |
-| D-ORPH | DELETE can orphan I-addresses (in dom(C) but unreachable via any M) | introduced |
+| D-ORPH | DELETE orphans I-address a when all within-document mappings to a lie in X and no cross-document references exist | introduced |
 | D-PSTALE | After DELETE, R can properly contain Contains(Σ') — stale provenance | introduced |
 
 
