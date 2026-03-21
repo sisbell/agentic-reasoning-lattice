@@ -64,7 +64,7 @@ The relative ordering of content is preserved through the shift. What was before
 
 Injectivity ensures the shift creates no collisions: distinct V-positions remain distinct after shifting.
 
-Additionally, shift preserves structural properties: subspace(shift(v, n)) = v₁ = subspace(v) since the shift modifies only position m ≥ 2. And #shift(v, n) = #δₙ = m = #v by the result-length identity of TumblerAdd. So the shift preserves subspace membership, tumbler depth, and — since vₘ + n > 0 whenever vₘ ≥ 1 — the positivity required by S8a.
+Additionally, shift preserves structural properties. Subspace preservation requires m ≥ 2: ordinal increment via TA5(c) modifies position m = #v, so when m ≥ 2 the action point of δₙ leaves position 1 unchanged — shift(v, n)₁ = v₁ — giving subspace(shift(v, n)) = subspace(v). When m = 1, shift([S], n) = [S + n] changes the subspace identifier; we exclude this by requiring #p ≥ 2 in I8(vi) below. By S8-depth, all V-positions in the subspace share p's depth, so m ≥ 2 holds throughout. Furthermore, #shift(v, n) = #δₙ = m = #v by the result-length identity of TumblerAdd. So the shift preserves subspace membership, tumbler depth, and — since vₘ + n > 0 whenever vₘ ≥ 1 — the positivity required by S8a.
 
 
 ## The Arrangement Postcondition
@@ -106,18 +106,24 @@ This follows from the Istream/Vstream separation: each document has its own inde
 
 ### Domain Completeness
 
-The four regions account for every V-position in dom(M'(d)):
+I1–I4 each establish that certain V-positions belong to dom(M'(d)). Let:
 
 ```
-dom(M'(d)) = {v ∈ dom(M(d)) : subspace(v) ≠ S}                          (by I4)
-           ∪ {v ∈ dom(M(d)) : subspace(v) = S ∧ v < p}                   (by I1)
-           ∪ {p + k : 0 ≤ k < n}                                          (by I2)
-           ∪ {shift(v, n) : v ∈ dom(M(d)) ∧ subspace(v) = S ∧ v ≥ p}    (by I3)
+R₁ = {v ∈ dom(M(d)) : subspace(v) ≠ S}                          (by I4)
+R₂ = {v ∈ dom(M(d)) : subspace(v) = S ∧ v < p}                   (by I1)
+R₃ = {p + k : 0 ≤ k < n}                                          (by I2)
+R₄ = {shift(v, n) : v ∈ dom(M(d)) ∧ subspace(v) = S ∧ v ≥ p}    (by I3)
 ```
 
-We verify that these four sets are pairwise disjoint. The I4 set is disjoint from the others by subspace. The I1 set has V-positions < p. The I2 set occupies the interval [p, p + (n − 1)]. The I3 set has V-positions ≥ shift(p, n) = p ⊕ δₙ: since δₙ > 0, by TA-strict (ASN-0034) we have p ⊕ δₙ > p, and more precisely shift(p, n) = p + n which is the V-position immediately after the I2 interval. So the I2 set ends at p + (n − 1) and the I3 set begins at p + n — adjacent but not overlapping.
+This gives R₁ ∪ R₂ ∪ R₃ ∪ R₄ ⊆ dom(M'(d)) — the ⊇ direction.
 
-The arrangement size satisfies |dom(M'(d))| = |dom(M(d))| + n: the operation adds n new V-positions (I2) and bijects existing same-subspace positions at or above p to new positions (I3, using I7 for injectivity). Pre-insertion positions (I1) and cross-subspace positions (I4) are unchanged in both position and count.
+The ⊆ direction — that dom(M'(d)) contains no positions outside these four regions — follows from the composite transition structure. Step (ii) applies K.μ~ with bijection π mapping each same-subspace position v ≥ p to shift(v, n) and fixing all others; since π is a bijection, |dom| is preserved. Step (iii) applies K.μ⁺ adding exactly the n new mappings at p, p + 1, ..., p + (n − 1). No other step modifies M(d). Therefore |dom(M'(d))| = |dom(M(d))| + n.
+
+We verify that R₁ through R₄ are pairwise disjoint. R₁ is disjoint from the others by subspace. R₂ has V-positions < p. R₃ occupies the interval [p, p + (n − 1)]. R₄ has V-positions ≥ shift(p, n) = p ⊕ δₙ: since δₙ > 0, by TA-strict (ASN-0034) we have p ⊕ δₙ > p, and more precisely shift(p, n) = p + n which is the V-position immediately after the R₃ interval. So R₃ ends at p + (n − 1) and R₄ begins at p + n — adjacent but not overlapping.
+
+Since R₁ ∪ R₂ ∪ R₃ ∪ R₄ ⊆ dom(M'(d)), the four sets are pairwise disjoint, and |R₁| + |R₂| + |R₃| + |R₄| = |dom(M(d))| + n = |dom(M'(d))|, the inclusion is an equality:
+
+`dom(M'(d)) = R₁ ∪ R₂ ∪ R₃ ∪ R₄`
 
 
 ## Block Decomposition Effect
@@ -132,7 +138,7 @@ Partition B relative to the insertion point p. For each β = (v, a, k) ∈ B, ex
 
 (c) *Straddling:* v < p and v + k > p. The insertion point falls interior to the block. By B2 (Disjointness, ASN-0058), at most one block straddles p.
 
-For case (c), let c = pₘ − vₘ be the offset of p within the block (where m is the common depth). Since v < p < v + k and all positions share the same depth, we have 0 < c < k. Split β at c into β_L = (v, a, c) and β_R = (p, a + c, k − c), per M4 (SplitDefinition, ASN-0058). By M5 (SplitPartition), ⟦β_L⟧ ∪ ⟦β_R⟧ = ⟦β⟧ with ⟦β_L⟧ ∩ ⟦β_R⟧ = ∅.
+For case (c), we first establish that p agrees with v at positions 1..m−1. Ordinal increment via TA5(c) modifies only position m, so v + k agrees with v at positions 1..m−1. Suppose p diverges from v at some position j < m (the first such position). If pⱼ < vⱼ, then p < v by T1 — contradicting v < p. If pⱼ > vⱼ, then since (v + k)ⱼ = vⱼ < pⱼ and p agrees with v + k at positions 1..j−1, we get p > v + k by T1 — contradicting v + k > p. Therefore pᵢ = vᵢ for 1 ≤ i < m. The offset c = pₘ − vₘ satisfies 0 < c < k (from vₘ < pₘ < vₘ + k), and v + c = [v₁, ..., v_{m−1}, vₘ + c] = [p₁, ..., p_{m−1}, pₘ] = p. Split β at c into β_L = (v, a, c) and β_R = (p, a + c, k − c), per M4 (SplitDefinition, ASN-0058). By M5 (SplitPartition), ⟦β_L⟧ ∪ ⟦β_R⟧ = ⟦β⟧ with ⟦β_L⟧ ∩ ⟦β_R⟧ = ∅.
 
 Define B_left = {blocks from case (a)} ∪ {β_L if case (c) applies}, and B_right = {blocks from case (b)} ∪ {β_R if case (c) applies}. Define the shifted block: for β = (v, a, k) ∈ B_right, let shift_block(β, n) = (shift(v, n), a, k) — the V-start shifts but the I-start and width are unchanged.
 
@@ -140,11 +146,40 @@ Define B_left = {blocks from case (a)} ∪ {β_L if case (c) applies}, and B_rig
 
 `B' = B_left ∪ {(p, a₁, n)} ∪ {shift_block(β, n) : β ∈ B_right}`
 
-*Verification of B1–B3.* Coverage (B1): pre-insertion positions are in B_left, new positions are in (p, a₁, n), shifted positions are in the shifted blocks. Disjointness (B2): B_left blocks have V-extents ending before p; the new block occupies [p, p + n − 1]; shifted blocks start at or beyond p + n. No overlap. Consistency (B3): for B_left, M'(d)(v + j) = M(d)(v + j) = a + j by I1 and original B3. For the new block, M'(d)(p + j) = a₁ + j by I2. For shifted blocks, we need M'(d)(shift(v, n) + j) = a + j. Since shift(v, n) + j = shift(v + j, n) — both operations add to the last component, and integer addition commutes — we have M'(d)(shift(v + j, n)) = M(d)(v + j) = a + j by I3. ∎
+*Verification of B1–B3.* Coverage (B1): pre-insertion positions are in B_left, new positions are in (p, a₁, n), shifted positions are in the shifted blocks. Disjointness (B2): B_left blocks have V-extents ending before p; the new block occupies [p, p + n − 1]; shifted blocks start at or beyond p + n. No overlap. Consistency (B3): for B_left, M'(d)(v + j) = M(d)(v + j) = a + j by I1 and original B3. For the new block, M'(d)(p + j) = a₁ + j by I2. For shifted blocks, we need M'(d)(shift(v, n) + j) = a + j. We verify shift(v, n) + j = shift(v + j, n). By M-aux (OrdinalIncrementAssociativity, ASN-0058), v + j = [v₁, ..., v_{m−1}, vₘ + j], so shift(v + j, n) = [v₁, ..., v_{m−1}, vₘ + j + n]. Meanwhile shift(v, n) = [v₁, ..., v_{m−1}, vₘ + n], so shift(v, n) + j = [v₁, ..., v_{m−1}, vₘ + n + j]. These are equal by commutativity of ℕ addition. Therefore M'(d)(shift(v, n) + j) = M'(d)(shift(v + j, n)) = M(d)(v + j) = a + j by I3. ∎
 
 Gregory's implementation evidence illuminates one optimization over this abstract model. When the newly allocated I-address a₁ is contiguous with the preceding block's I-range (a₁ = a_prev + k_prev) and both share the same home document, the implementation coalesces the new content into the existing block by extending its width in place (Q11, Q13). `isanextensionnd` checks the ONMYRIGHTBORDER condition — the new content begins exactly where the existing crum ends — and if it matches, `dspadd` widens both the I and V components of the crum without allocating any new node.
 
 At the abstract level, this is the observation that (p, a₁, n) and a V-adjacent, I-adjacent predecessor satisfy the merge condition M7 (ASN-0058), so the maximally merged decomposition combines them. The abstract specification does not prescribe whether coalescing occurs — it specifies only the mapping M'(d), which is the same either way (M3, RepresentationInvariance, ASN-0058).
+
+
+### Worked Example
+
+Consider document d with five characters at V-positions [1, 1] through [1, 5], mapped to contiguous I-addresses b, b + 1, ..., b + 4. The block decomposition is B = {([1, 1], b, 5)}.
+
+INSERT two characters (val₁, val₂) at p = [1, 3]. Parameters: n = 2, S = 1, m = 2, δ₂ = [0, 2].
+
+**I0:** Allocate a₁, a₂ with a₂ = a₁ + 1, origin(aᵢ) = d. Set C' = C ∪ {a₁ ↦ val₁, a₂ ↦ val₂}.
+
+**Block split.** β = ([1, 1], b, 5) straddles p: [1, 1] < [1, 3] < [1, 6]. Both v and p agree at position 1 (v₁ = p₁ = 1), so c = p₂ − v₂ = 3 − 1 = 2. Split: β_L = ([1, 1], b, 2), β_R = ([1, 3], b + 2, 3).
+
+**Arrangement effect:**
+
+| V (before) | I (before) | Region | V (after) | I (after) |
+|---|---|---|---|---|
+| [1, 1] | b | I1 | [1, 1] | b |
+| [1, 2] | b + 1 | I1 | [1, 2] | b + 1 |
+| — | — | I2 | [1, 3] | a₁ |
+| — | — | I2 | [1, 4] | a₁ + 1 |
+| [1, 3] | b + 2 | I3 | [1, 5] | b + 2 |
+| [1, 4] | b + 3 | I3 | [1, 6] | b + 3 |
+| [1, 5] | b + 4 | I3 | [1, 7] | b + 4 |
+
+I3 shifts: shift([1, 3], 2) = [1, 3] ⊕ [0, 2] = [1, 5], shift([1, 4], 2) = [1, 6], shift([1, 5], 2) = [1, 7]. Each shifted position preserves its I-address.
+
+**I10 (block decomposition).** B' = {([1, 1], b, 2), ([1, 3], a₁, 2), ([1, 5], b + 2, 3)}.
+
+B1 (coverage): 7 V-positions [1, 1]..[1, 7] partitioned among three blocks. B2 (disjointness): V-extents [1, 1]..[1, 2], [1, 3]..[1, 4], [1, 5]..[1, 7] are pairwise disjoint. B3 (consistency): first block by I1, second by I2, third by I3 with shift([1, 3 + j], 2) = [1, 5 + j]. Domain: |dom(M'(d))| = 5 + 2 = 7. ∎
 
 
 ## Insertion Position
@@ -162,6 +197,8 @@ We must state what insertion positions are valid.
 (iv) When V_S = {v ∈ dom(M(d)) : subspace(v) = S} is non-empty, #p equals the common depth of V_S (S8-depth). When V_S = ∅, #p establishes the depth for the subspace.
 
 (v) n ≥ 1 (non-empty content).
+
+(vi) #p ≥ 2. Ordinal increment via TA5(c) modifies position sig(v) = #v = m. Subspace preservation requires the modified position to differ from the subspace identifier at position 1, hence m ≥ 2.
 
 Nelson specifies no restriction on p's ordinal range (Q6): INSERT is permitted "at any position, including the very beginning and the very end." APPEND [LM 4/67] is the convenience specialization where p = v_max + 1 — insertion at one past the current maximum V-position. For an empty document (M(d) = ∅), any valid text-subspace V-position serves as p.
 
@@ -188,7 +225,7 @@ We verify that INSERT decomposes into the elementary transitions of ASN-0047 and
 
 The composite Σ → Σ' consists of:
 
-(i) *Content allocation* — n applications of K.α: each allocates one I-address aᵢ with C' = C ∪ {aᵢ ↦ valᵢ}. Precondition: IsElement(aᵢ) ∧ origin(aᵢ) ∈ E_doc. Satisfied by I0(iii) and S7b.
+(i) *Content allocation* — n applications of K.α: each allocates one I-address aᵢ with C' = C ∪ {aᵢ ↦ valᵢ}. Precondition: IsElement(aᵢ) ∧ origin(aᵢ) ∈ E_doc. By I0(iii), origin(aᵢ) = d, so origin is well-defined on aᵢ, which requires fields(aᵢ) to have all four fields — hence zeros(aᵢ) = 3 by T4 (ASN-0034), giving IsElement(aᵢ). And origin(aᵢ) = d ∈ E_doc by I8(i).
 
 (ii) *Arrangement reordering* — K.μ~ on document d: for V-positions ≥ p in subspace S, the bijection π : v ↦ shift(v, n) reindexes the existing mappings. By I6 (order preservation) and I7 (injectivity), π is well-behaved. It produces V-positions satisfying S8a (shift preserves positivity), S8-depth (shift preserves depth), and the multiset of I-addresses is preserved (only V-positions change). Precondition: d ∈ E_doc. Satisfied by I8(i).
 
@@ -255,7 +292,7 @@ The architectural consequence is that every downstream guarantee — attribution
 | I5 | (A d' : d' ≠ d : M'(d') = M(d')) | introduced |
 | I6 | shift preserves strict order: v₁ < v₂ ⟹ shift(v₁, n) < shift(v₂, n) | introduced |
 | I7 | shift is injective: shift(v₁, n) = shift(v₂, n) ⟹ v₁ = v₂ | introduced |
-| I8 | INSERT precondition: d ∈ E_doc, p satisfies S8a, subspace(p) ≥ 1, depth compatibility, n ≥ 1 | introduced |
+| I8 | INSERT precondition: d ∈ E_doc, p satisfies S8a, subspace(p) ≥ 1, depth compatibility, #p ≥ 2, n ≥ 1 | introduced |
 | I9 | INSERT preserves V-space contiguity when v_min ≤ p ≤ v_max + 1 | introduced |
 | I10 | Block decomposition: B' = B_left ∪ {(p, a₁, n)} ∪ {shift_block(β, n) : β ∈ B_right} | introduced |
 | OrdinalDisplacement | δ(n, m) = [0, ..., 0, n] of length m, action point m | introduced |
