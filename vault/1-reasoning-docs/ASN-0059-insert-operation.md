@@ -214,7 +214,7 @@ Every intermediate tumbler of the same depth and subspace between two occupied p
 
 **I9 — ContiguityPreservation.** If V_S is contiguous before INSERT, and p satisfies v_min ≤ p ≤ v_max + 1 (where v_min, v_max are the minimum and maximum of V_S; for V_S = ∅ any p is valid), then V_S is contiguous after INSERT.
 
-*Argument.* Before INSERT, V_S covers every text-subspace V-position between v_min and v_max. After INSERT: the pre-insertion region covers [v_min, p − 1] by I1. The new content covers [p, p + (n − 1)] by I2. The shifted region covers [p + n, v_max + n] by I3, since the shift is order-preserving (I6) and injective (I7), and the minimum shifted position is shift(v_min, n) or shift(p, n) depending on whether v_min ≥ p. These three intervals are adjacent: (p − 1) + 1 = p and (p + n − 1) + 1 = p + n. So V_S' = [v_min, v_max + n] with no gaps. ∎
+*Argument.* Before INSERT, V_S covers every text-subspace V-position between v_min and v_max. After INSERT: the pre-insertion region covers [v_min, p − 1] by I1. The new content covers [p, p + (n − 1)] by I2. The shifted region covers [p + n, v_max + n] by I3. Contiguity of the shifted positions follows from the identity shift(v + j, n) = shift(v, n) + j (proven in I10 below from commutativity of ℕ addition at position m): if the pre-shift positions are {p, p + 1, ..., v_max}, then the shifted positions are {shift(p, n), shift(p, n) + 1, ..., shift(p, n) + (v_max − p)} = {p + n, p + n + 1, ..., v_max + n} — contiguous with no gaps. These three intervals are adjacent: (p − 1) + 1 = p and (p + n − 1) + 1 = p + n. So V_S' = [v_min, v_max + n] with no gaps. ∎
 
 When p > v_max + 1, the shift is vacuous — no V-positions satisfy v ≥ p — and a gap opens between v_max and p. Gregory's implementation permits this (Q12): `makegappm` detects the out-of-range origin at its guard clause (`tumblercmp(origin, reach) != LESS`) and returns immediately, performing no shifts. At the abstract level, this is well-defined by the postcondition — I3 applies to the empty set of positions ≥ p, so the effect is simply I2 (place new content) with I1 and I4 holding vacuously. But contiguity is lost. Whether the system should enforce contiguity as an invariant or permit callers to violate it remains an open question.
 
@@ -247,6 +247,8 @@ We verify that INSERT preserves each foundation invariant.
 **P0 (ContentPermanence).** C' ⊇ C and C'(a) = C(a) for a ∈ dom(C). Guaranteed by K.α's frame: each allocation extends C without modifying existing entries.
 
 **P1 (EntityPermanence).** E' = E. INSERT does not create or destroy entities.
+
+**P8 (EntityHierarchy).** E' = E, so the predicate is unchanged.
 
 **P2 (ProvenancePermanence).** R' = R ∪ {(aᵢ, d) : 1 ≤ i ≤ n} ⊇ R.
 
