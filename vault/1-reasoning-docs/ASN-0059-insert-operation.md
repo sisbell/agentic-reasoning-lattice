@@ -198,13 +198,11 @@ Nelson specifies no restriction on p's ordinal range (Q6): INSERT is permitted "
 
 Nelson describes the Vstream as "a dense, contiguous sequence" [LM 4/30]. We capture this as a structural property.
 
-**Definition — VContiguity.** The text-subspace V-positions of document d in subspace S are *contiguous* when, letting V_S = {v ∈ dom(M(d)) : subspace(v) = S}, either V_S = ∅ or:
+V-space contiguity is established in the foundation (D-CTG, ASN-0036): for each document d and subspace S, V_S(d) is either empty or occupies every intermediate position between its extremes:
 
-`(A u, w : u ∈ V_S ∧ w ∈ V_S ∧ u < w : (A v : subspace(v) = S ∧ #v = #u ∧ u < v < w : v ∈ V_S))`
+`(A d, S, u, q : u ∈ V_S(d) ∧ q ∈ V_S(d) ∧ u < q : (A v : subspace(v) = S ∧ #v = #u ∧ u < v < q : v ∈ V_S(d)))`
 
-Every intermediate tumbler of the same depth and subspace between two occupied positions is also occupied.
-
-*Scope note.* At depth m ≥ 3, the lexicographic interval between two tumblers that differ at any position j < m contains infinitely many depth-m tumblers — for example, between [1, 2, 1] and [1, 3, 1], every [1, 2, k] for k ≥ 2 is an intermediate. Combined with S8-fin (dom(M(d)) is finite), VContiguity is unsatisfiable for any V_S spanning multiple ordinal groups (i.e., positions differing at a non-final component). In practice, VContiguity at depth m ≥ 3 constrains V_S to positions sharing a common prefix at positions 1..m−1 — a single ordinal group. For the typical text-subspace case (m = 2), the intermediates between [S, a] and [S, b] are the finitely many [S, i] with a < i < b, and VContiguity behaves as expected.
+At depth m ≥ 3, contiguity reduces to the last component alone: D-CTG-depth (SharedPrefixReduction, ASN-0036) shows all positions in a non-empty V_S(d) share components 2 through m − 1, so the structure is identical to the depth 2 case. For the typical text-subspace case (m = 2), the intermediates between [S, a] and [S, b] are the finitely many [S, i] with a < i < b.
 
 **I9 — ContiguityPreservation.** If V_S is contiguous before INSERT, and p satisfies v_min ≤ p ≤ v_max + 1 (where v_min, v_max are the minimum and maximum of V_S; for V_S = ∅ any p is valid), then V_S is contiguous after INSERT.
 
@@ -295,7 +293,7 @@ The architectural consequence is that every downstream guarantee — attribution
 | I10 | Block decomposition: B' = B_other ∪ B_left ∪ {(p, a₁, n)} ∪ {shift_block(β, n) : β ∈ B_right}, where B_left/B_right partition B_S (same subspace) and B_other is unchanged | introduced |
 | OrdinalDisplacement | δ(n, m) = [0, ..., 0, n] of length m, action point m | cited (ASN-0034) |
 | OrdinalShift | shift(v, n) = v ⊕ δ(n, #v) | cited (ASN-0034) |
-| VContiguity | All intermediate positions of same depth and subspace between two occupied positions are occupied | introduced |
+| D-CTG | All intermediate positions of same depth and subspace between two occupied positions are occupied | cited (ASN-0036) |
 
 
 ## Open Questions
