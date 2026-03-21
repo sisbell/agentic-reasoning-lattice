@@ -11,7 +11,6 @@ Generated from vault/project-model/ASN-*.yaml
 | ASN-0043 | Link Ontology | converged | 34, 36 |
 | ASN-0045 | Tumbler Fields | converged | 34, 36 |
 | ASN-0047 | State Transitions | converged | 34, 36, 45 |
-| ASN-0049 | COPY Operation (Transclusion) | inquiry | 34, 36, 47 |
 | ASN-0051 | Link Survivability | converged | 34, 36, 43, 47, 53, 58 |
 | ASN-0052 | Transclusion | dormant | 34, 36, 43, 45, 47 |
 | ASN-0053 | Span Algebra | converged | 34 |
