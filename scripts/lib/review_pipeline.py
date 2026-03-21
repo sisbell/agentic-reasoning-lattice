@@ -207,6 +207,9 @@ def main():
         step_commit(f"Review {asn_label} — converged")
         elapsed = time.time() - start
         print(f"\n  [REVIEW] Done ({elapsed:.0f}s)", file=sys.stderr)
+        asn_num = asn_label.replace("ASN-", "").lstrip("0") or "0"
+        print(f"\n  [NEXT] Export statements: python scripts/export.py {asn_num}",
+              file=sys.stderr)
         sys.exit(2)
 
     # Check for REVISE items

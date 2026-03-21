@@ -123,6 +123,9 @@ def main():
                 print(f"  [REVISE] CONVERGED — review found no significant issues",
                       file=sys.stderr)
                 step_commit(f"Review {asn_label} — converged")
+                asn_num = asn_label.replace("ASN-", "").lstrip("0") or "0"
+                print(f"\n  [NEXT] Export statements: python scripts/export.py {asn_num}",
+                      file=sys.stderr)
                 break
 
             if not has_revise_items(review_path):
