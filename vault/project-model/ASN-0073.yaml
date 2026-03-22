@@ -1,8 +1,0 @@
-# ASN-0073 — Streams 0
-title: "Streams 0"
-extends: 36
-source: 67
-depends: [34, 36]
-
-inquiry:
-  question: "Extension of ASN-0036: properties ValidInsertionPosition from ASN-0067."
