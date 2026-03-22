@@ -39,7 +39,7 @@ We observe that a single contiguous V-span may resolve to multiple disjoint I-ad
 
 **F1 — ResolutionFragmentation (LEMMA).** For document d with canonical block decomposition B = {β₁, ..., βₘ} (ASN-0058, M11) and a V-span σ_V, the set resolve(d, {σ_V}) admits representation as a span-set of at most m spans.
 
-*Proof.* Each block βⱼ = (vⱼ, aⱼ, nⱼ) contributes at most one I-span to the result. Within a single block, M(d)(vⱼ + k) = aⱼ + k (B3, Consistency), so a contiguous set of V-positions maps to a contiguous set of I-addresses. We must show that V(βⱼ) ∩ ⟦σ_V⟧ is contiguous. This requires three steps: (1) ⟦σ_V⟧ is convex by S0 (Convexity, ASN-0053); (2) V(βⱼ) = {vⱼ + k : 0 ≤ k < nⱼ} is convex, since it consists of consecutive ordinal increments from vⱼ (D-SEQ, ASN-0036 establishes that V-positions within a subspace form a contiguous ordinal range); (3) the intersection of two convex sets in a total order is convex — if p, r ∈ A ∩ B and p ≤ q ≤ r, then q ∈ A by convexity of A and q ∈ B by convexity of B, so q ∈ A ∩ B. If this intersection contains positions vⱼ + c through vⱼ + c + w − 1 (for some c, w with 0 ≤ c and 1 ≤ w ≤ nⱼ − c), the corresponding I-addresses are aⱼ + c through aⱼ + c + w − 1: a single I-span. Blocks with empty intersection contribute nothing. ∎
+*Proof.* Each block βⱼ = (vⱼ, aⱼ, nⱼ) contributes at most one I-span to the result. Within a single block, M(d)(vⱼ + k) = aⱼ + k (B3, Consistency), so a contiguous set of V-positions maps to a contiguous set of I-addresses. We must show that V(βⱼ) ∩ ⟦σ_V⟧ is contiguous. Suppose vⱼ + c ∈ V(βⱼ) ∩ ⟦σ_V⟧ and vⱼ + c' ∈ V(βⱼ) ∩ ⟦σ_V⟧ with c < c'. For any integer k with c ≤ k ≤ c': first, vⱼ + k ∈ V(βⱼ) since 0 ≤ k < nⱼ; second, ordinal increments preserve order (TA-strict, ASN-0034), giving vⱼ + c ≤ vⱼ + k ≤ vⱼ + c' in T1, so vⱼ + k ∈ ⟦σ_V⟧ by S0 (Convexity, ASN-0053). Therefore vⱼ + k ∈ V(βⱼ) ∩ ⟦σ_V⟧. (Note: V(βⱼ) itself is not convex in unrestricted T1 — extension tumblers of depth greater than m lie between consecutive ordinal increments — but the argument requires only the T1-convexity of ⟦σ_V⟧, applied to the depth-m positions in V(βⱼ).) If this intersection contains positions vⱼ + c through vⱼ + c + w − 1 (for some c, w with 0 ≤ c and 1 ≤ w ≤ nⱼ − c), the corresponding I-addresses are aⱼ + c through aⱼ + c + w − 1. This run is representable as the I-span (aⱼ + c, δ(w, d_I)) where d_I = #(aⱼ + c); the span is well-formed by T12 since w ≥ 1 (non-empty intersection) and the action point of δ(w, d_I) is d_I, satisfying d_I ≤ d_I (TA0). Blocks with empty intersection contribute nothing. ∎
 
 Nelson acknowledges this multiplicity explicitly: the FEBE commands "have been generalized for the interconnection of broken lists of spans" (LM 4/61). A single user selection over a compound document — one built from transcluded fragments — may reference content scattered across the Istream. The search must handle this disjoint query set as a single operation.
 
@@ -70,7 +70,7 @@ where reach(σ) = start(σ) ⊕ width(σ) (ASN-0053, SpanReach). This follows fr
 
 *Adjacent spans do not overlap.* If reach(σ₁) = start(σ₂), then s₂ < reach(σ₁) becomes s₂ < s₂, which is false. The half-open interval convention means the boundary point belongs to σ₂ but not σ₁; they share no element.
 
-**F2 — OverlapSufficiency (INV).**
+**F2 — OverlapSufficiency (LEMMA).**
 
 `(A ℓ ∈ dom(Σ.L), e ∈ {from, to, type}, Q ⊆ T :`
 `  coverage(Σ.L(ℓ).e) ∩ Q ≠ ∅ ⟹ ℓ satisfies the e-constraint of Q)`
@@ -236,9 +236,13 @@ The three endsets are structurally interchangeable in the search mechanism. Nels
 
 > "The from-set may be an arbitrary collection of spans, pointing anywhere in the docuverse. Similarly, the to-set may be an arbitrary collection of spans pointing anywhere in the docuverse. We adopt the same convention for link types." [LM 4/43]
 
-**F6 — EndsetSymmetry (INV).**
+**F6a — EndsetUniformity (LEMMA).**
 
-All three endsets — from, to, type — are searchable with the same completeness and performance guarantees. The overlap predicate `overlaps(e, Q)` is defined uniformly on `(Endset, Set)` and applies identically regardless of which slot the endset occupies — this follows from the type signature alone. The substantive commitment is stronger: F4 (Completeness) applies independently to each endset constraint, and Nelson's performance guarantee — "THE QUANTITY OF LINKS NOT SATISFYING A REQUEST DOES NOT IN PRINCIPLE IMPEDE SEARCH ON OTHERS" (LM 4/60) — applies equally to from-constrained, to-constrained, and type-constrained queries. No endset slot is privileged or degraded in discovery.
+The overlap predicate `overlaps(e, Q)` is defined uniformly on `(Endset, Set)` and applies identically regardless of which slot the endset occupies. This follows from the type signature alone: all three endsets have type Endset (L3, ASN-0043), and the overlap test makes no reference to slot identity. F4 (Completeness) applies independently to each endset constraint.
+
+**F6b — PerEndsetIndexing (DESIGN).**
+
+Nelson's performance guarantee — "THE QUANTITY OF LINKS NOT SATISFYING A REQUEST DOES NOT IN PRINCIPLE IMPEDE SEARCH ON OTHERS" (LM 4/60) — applies equally to from-constrained, to-constrained, and type-constrained queries. Per-endset indexing must support sub-linear search: the cost of finding links matching a given endset constraint must not grow with the total number of non-matching links. No endset slot is privileged or degraded in discovery.
 
 This symmetry is what makes backlinks a first-class operation. Nelson distinguishes a document's *out-links* (links it owns) from its *in-links* (links elsewhere that point to it):
 
@@ -308,7 +312,7 @@ The result set has a defined total order. Every link has a unique tumbler addres
 
 > "The links designated by a tumbler address are in their permanent order of arrival." [LM 4/31]
 
-**F8 — ResultTotalOrder (INV).**
+**F8 — ResultTotalOrder (LEMMA).**
 
 `findlinks(Q)` is totally ordered by the tumbler ordering (T1) on link addresses:
 
@@ -373,19 +377,13 @@ The asymmetry follows from the architecture. Discovery operates on I-addresses, 
 
 Link discovery is a pure observation — it reads the current state but does not modify it.
 
-**F11 — QueryPurity (INV).**
+**F11 — QueryPurity (LEMMA).**
 
-For every state Σ and every query Q, the FINDLINKS operation produces a result without altering any state component:
+FINDLINKS is not a state transition — it is a pure function from (Σ, Q) to a set:
 
-```
-C' = C
-L' = L
-(A d :: M'(d) = M(d))
-E' = E
-R' = R
-```
+`findlinks : Σ × Query → 𝒫(T)`
 
-The system state before and after FINDLINKS is identical. This follows from the nature of the operation: it evaluates the satisfaction predicate over existing links and returns addresses. No content is allocated, no arrangement is modified, no link is created. The only effect is the communication of the result to the querier.
+No elementary transition (K.α, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.ρ from ASN-0047) is invoked. The function evaluates the satisfaction predicate over existing links and returns addresses. No content is allocated, no arrangement is modified, no link is created. The only effect is the communication of the result to the querier. (Note: the link store Σ.L, defined in ASN-0043, is not yet integrated into the formal system state Σ = (C, E, M, R) of ASN-0047. The purity claim — that FINDLINKS invokes no transition — does not depend on this integration; it follows from the function's definition as a set comprehension over existing state.)
 
 
 ## Implementation Observations
@@ -409,12 +407,13 @@ Gregory's implementation grounds several abstract properties in concrete mechani
 | F3 | satisfies(ℓ, Q) is decidable from ℓ, Q (with finite span-set constraints), and Σ.L(ℓ) | introduced |
 | F4 | findlinks(Q) returns exactly the set of satisfying links (complete and sound) | introduced |
 | F5 | Transclusion identity: resolve(d₁, {v₁}) = resolve(d₂, {v₂}) when M(d₁)(v₁) = M(d₂)(v₂) | introduced |
-| F6 | All three endsets (from, to, type) are searchable with identical completeness and performance guarantees | introduced |
+| F6a | Overlap predicate is uniform across endset slots (from, to, type) — follows from type signature | introduced |
+| F6b | Per-endset indexing must support sub-linear search; no slot privileged or degraded | introduced (design) |
 | F7 | visible(Q, u) filters findlinks(Q) by home document accessibility; inaccessible links excluded from result set | introduced (design) |
 | F8 | findlinks(Q) is totally ordered by tumbler order on link addresses | introduced |
 | F9 | Reverse resolution (I→V) may yield multiple V-positions per I-address | introduced |
 | F10 | reverse(d, e) depends only on coverage(e) ∩ ran(M(d)); unarranged I-addresses invisible | introduced |
-| F11 | FINDLINKS is a pure query; all state components are in the frame | introduced |
+| F11 | FINDLINKS is a pure function from (Σ, Q) to a set; no transition invoked | introduced |
 | LinkEntityCoherence | origin(ℓ) ∈ E_doc for all ℓ ∈ dom(Σ.L) — assumed pending link-creation ASN | assumed |
 | Σ.resolve | resolve(d, Q_V) = {M(d)(v) : v ∈ Q_V ∩ dom(M(d))} | introduced |
 | Σ.satisfies | AND-of-ORs: home-set ∧ (from-overlap) ∧ (to-overlap) ∧ (type-overlap) | introduced |
