@@ -172,7 +172,7 @@ The provenance extension records that d now contains certain I-addresses. By J1 
 
 *Step 1 (K.μ⁻).* Remove B_post entries from M(d), yielding an arrangement over positions [v₀, v) only. Precondition at Σ₀: d ∈ E_doc (P.1); B_post ≠ ∅ ensures dom(M₁(d)) ⊂ dom(M₀(d)) (strict contraction). Frame: C₁ = C, E₁ = E, R₁ = R.
 
-*Step 2 (K.μ⁺).* Add the shifted B_post entries {β↑w : β ∈ B_post}, placing them at V-positions [v + w, v₀ + N + w). Precondition at Σ₁: d ∈ E_doc; every I-address in the shifted blocks is in dom(C₁) = dom(C) (these are the same I-addresses as in B_post, which satisfy S3); shifted V-positions satisfy S8a (ordinal shift preserves positivity and zero-count) and S8-depth (ordinal shift preserves depth); dom(M₂(d)) is finite; B_post ≠ ∅ ensures dom(M₂(d)) ⊃ dom(M₁(d)) (strict extension). Frame: C₂ = C, E₂ = E, R₂ = R. Steps 1–2 together effect the K.μ~ reordering. The intermediate arrangement after step 1 has domain {v₀, ..., v − 1} only; after step 2 the domain is {v₀, ..., v − 1} ∪ {v + w, ..., v₀ + N + w − 1} — a gap at [v, v + w). This intermediate state is reachable by a valid composite (J0, J1, J1' all hold since ran(M) is preserved and R is unchanged), yet it violates D-CTG. D-CTG is thus not an invariant of all reachable states — it is a design constraint that complete operations are expected to preserve at their endpoints. COPY restores D-CTG by the end of step 3.
+*Step 2 (K.μ⁺).* Add the shifted B_post entries {β↑w : β ∈ B_post}, placing them at V-positions [v + w, v₀ + N + w). Precondition at Σ₁: d ∈ E_doc; every I-address in the shifted blocks is in dom(C₁) = dom(C) (these are the same I-addresses as in B_post, which satisfy S3); shifted V-positions satisfy S8a (ordinal shift preserves positivity and zero-count) and S8-depth (ordinal shift preserves depth); dom(M₂(d)) is finite; B_post ≠ ∅ ensures dom(M₂(d)) ⊃ dom(M₁(d)) (strict extension). Frame: C₂ = C, E₂ = E, R₂ = R. Steps 1–2 together effect the K.μ~ reordering. The intermediate arrangement after step 1 has domain {v₀, ..., v − 1} only; after step 2 the domain is {v₀, ..., v − 1} ∪ {v + w, ..., v₀ + N + w − 1} — a gap at [v, v + w). This intermediate state is reachable by a valid composite (J0, J1, and J1' all hold vacuously: no content is allocated (dom(C) unchanged), no I-address is newly introduced into any arrangement (K.μ⁻ can only reduce the range), and no provenance pair is added (R unchanged)), yet it violates D-CTG. D-CTG is thus not an invariant of all reachable states — it is a design constraint that complete operations are expected to preserve at their endpoints. COPY restores D-CTG by the end of step 3.
 
 *Step 3 (K.μ⁺).* Fill the gap with placed blocks γ₁, ..., γₖ, extending dom(M₂(d)) by positions [v, v + w). Precondition at Σ₂: d ∈ E_doc; every new I-address aⱼ + i ∈ dom(C₂) = dom(C) (by C1); new V-positions satisfy S8a (same depth and positivity as existing positions); M₃(d) satisfies S8-depth (placed blocks share depth m); dom(M₃(d)) is finite (N + w). Frame: C₃ = C, E₃ = E, R₃ = R.
 
@@ -273,7 +273,7 @@ The construction makes displacement explicit, but we state it as a named propert
 
 Every position at or after v shifts forward by w; every position before v is unchanged. Content is displaced, never overwritten.
 
-**C5 — NoOverwrite (LEMMA).** COPY removes no existing V→I mapping from M(d):
+**C5 — NoOverwrite (LEMMA).** Every I-address in the pre-state arrangement is preserved in the post-state arrangement — no content is lost, only relocated:
 
 `(A p ∈ dom(M(d)) :: (E q ∈ dom(M'(d)) : M'(d)(q) = M(d)(p)))`
 
@@ -492,7 +492,7 @@ Content discovery — finding all documents that share a given I-address — imm
 
 `|{(a, d) : a ∈ ran(M'(d)) \ ran(M(d))}| ≤ (+ j : 1 ≤ j ≤ k : nⱼ)`
 
-with equality when no resolved I-address already appeared in ran(M(d)).
+with equality when no resolved I-address already appeared in ran(M(d)) and no I-address appears in more than one resolved block.
 
 **Observation — Provenance Records the Target, Not the Source.** The pair (a, d) records that document d contains I-address a. It does *not* record where d obtained a from. The chain of custody (A transcluded to B, B to C) is not stored in R; it is reconstructable from the I-addresses themselves, because all documents in the chain share the same addresses (C9) and origin(a) identifies the creating document (C7). The provenance relation tells you *who has it*; the I-address tells you *who made it*.
 
