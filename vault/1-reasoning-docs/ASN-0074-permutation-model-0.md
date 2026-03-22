@@ -30,7 +30,7 @@ To resolve a content reference, we extract the I-address runs corresponding to t
 
 *Verification that f satisfies the conditions.* (i) S2 (functionality): f is a restriction of M(d_s), which is functional by S2; a restriction of a function is a function. (ii) S8-fin (finite domain): dom(f) ⊆ dom(M(d_s)), which is finite by S8-fin; a subset of a finite set is finite. (iii) S8-depth (fixed depth): every position in dom(f) belongs to dom(M(d_s)), so all share the common depth m of subspace u₁ in d_s.
 
-*Extension of M11/M12.* M11 (CanonicalExistence) constructs a maximally merged decomposition by iterating: while any two blocks satisfy the merge condition (M7), merge them. The initial singleton-block decomposition — one block (v, f(v), 1) per v ∈ dom(f) — satisfies B3 directly from S2 (f is a function, so each singleton block's I-address is uniquely determined). Termination follows from S8-fin since the block count is at most |dom(f)|. Each merge step preserves B3: if β₁ = (v₁, a₁, n₁) and β₂ = (v₂, a₂, n₂) each satisfy B3 and M7 holds (v₂ = v₁ + n₁, a₂ = a₁ + n₁), then β₁ ⊞ β₂ = (v₁, a₁, n₁ + n₂) satisfies B3 by case split — for 0 ≤ i < n₁, f(v₁ + i) = a₁ + i by B3 for β₁; for n₁ ≤ i < n₁ + n₂, f(v₁ + i) = f(v₂ + (i − n₁)) = a₂ + (i − n₁) = (a₁ + n₁) + (i − n₁) = a₁ + i, using B3 for β₂ and M-aux (ASN-0058). M12 (CanonicalUniqueness) identifies the maximally merged decomposition with the set of maximal runs of f, using only pointwise evaluation of f — independent of whether f is a full arrangement or a restriction. Both proofs require no property of M(d) beyond S2, S8-fin, and S8-depth; they apply to f verbatim. ∎
+*Extension of M11/M12.* M11 (CanonicalExistence) constructs a maximally merged decomposition by iterating: while any two blocks satisfy the merge condition (M7), merge them. The initial singleton-block decomposition — one block (v, f(v), 1) per v ∈ dom(f) — satisfies B1, B2, and B3: B1 (coverage) holds because every v ∈ dom(f) has its own singleton block; B2 (disjointness) holds because singleton V-extents are pairwise disjoint; B3 (consistency) holds directly from S2 (f is a function, so each singleton block's I-address is uniquely determined). Termination follows from S8-fin since the block count is at most |dom(f)|. Each merge step preserves all three conditions by M7f (MergeFrame, ASN-0058): M7f establishes that replacing β₁ and β₂ with β₁ ⊞ β₂ yields an equivalent decomposition, preserving B1 and B2 via V(β₁ ⊞ β₂) = V(β₁) ∪ V(β₂) (no V-position is gained or lost, and all blocks in B \ {β₁, β₂} are unchanged). For B3 specifically: if β₁ = (v₁, a₁, n₁) and β₂ = (v₂, a₂, n₂) each satisfy B3 and M7 holds (v₂ = v₁ + n₁, a₂ = a₁ + n₁), then β₁ ⊞ β₂ = (v₁, a₁, n₁ + n₂) satisfies B3 by case split — for 0 ≤ i < n₁, f(v₁ + i) = a₁ + i by B3 for β₁; for n₁ ≤ i < n₁ + n₂, f(v₁ + i) = f(v₂ + (i − n₁)) = a₂ + (i − n₁) = (a₁ + n₁) + (i − n₁) = a₁ + i, using B3 for β₂ and M-aux (ASN-0058). M12 (CanonicalUniqueness) identifies the maximally merged decomposition with the set of maximal runs of f, using only pointwise evaluation of f — independent of whether f is a full arrangement or a restriction. Both proofs require no property of M(d) beyond S2, S8-fin, and S8-depth; they apply to f verbatim. ∎
 
 The decomposition yields ⟨β₁, ..., βₖ⟩ ordered by V-start. The *I-address sequence* is:
 
@@ -57,13 +57,20 @@ where ⟨(a₁, n₁), ..., (aₖ, nₖ)⟩ = resolve(R).
 *Derivation.* Fix any run (aⱼ, nⱼ) in the resolution and any i with 0 ≤ i < nⱼ. The corresponding block βⱼ = (vⱼ, aⱼ, nⱼ) satisfies B3 (ASN-0058): M(d_s)(vⱼ + i) = aⱼ + i. Since vⱼ + i ∈ dom(M(d_s)), S3 (ReferentialIntegrity, ASN-0036) gives M(d_s)(vⱼ + i) ∈ dom(C), hence aⱼ + i ∈ dom(C). ∎
 
 
+**C2 — ResolutionWidthPreservation (LEMMA).** For a well-formed content reference (d_s, σ) with σ = (u, δ(ℓₘ, m)), the total resolved width equals ℓₘ:
+
+`w(resolve(d_s, σ)) = (+ j : 1 ≤ j ≤ k : nⱼ) = ℓₘ`
+
+*Derivation.* By C0, ℓ = δ(ℓₘ, m), so reach(σ) = u ⊕ δ(ℓₘ, m) = [u₁, ..., u_{m−1}, uₘ + ℓₘ]. The depth-m tumblers in [u, reach(σ)) are exactly {[u₁, ..., u_{m−1}, j] : uₘ ≤ j < uₘ + ℓₘ}: any depth-m tumbler diverging from u before component m falls outside the range by T1(i) (ASN-0034). There are ℓₘ such positions, so |dom(f)| = ℓₘ where f = M(d_s)|⟦σ⟧. By B1 (coverage) and B2 (disjointness), the V-extents of the blocks partition dom(f). By M0 (width coupling), |V(βⱼ)| = nⱼ for each block. Therefore (+ j : 1 ≤ j ≤ k : nⱼ) = |dom(f)| = ℓₘ. ∎
+
+
 ## Worked Example
 
 We verify the definitions against a concrete scenario. Let document d have depth-2 V-positions in subspace 1 (m = 2) with canonical decomposition:
 
 `B = {β₁ = ([1,1], a, 3),  β₂ = ([1,4], b, 2),  β₃ = ([1,6], c, 1)}`
 
-where a, b, c are distinct I-addresses from separate allocations. The arrangement maps six V-positions: M(d)([1,1]) = a, M(d)([1,2]) = a+1, M(d)([1,3]) = a+2, M(d)([1,4]) = b, M(d)([1,5]) = b+1, M(d)([1,6]) = c.
+where a, b, c are distinct I-addresses with `origin(a) ≠ origin(b) ≠ origin(c)` — three runs of content transcluded from three distinct source documents. The arrangement maps six V-positions: M(d)([1,1]) = a, M(d)([1,2]) = a+1, M(d)([1,3]) = a+2, M(d)([1,4]) = b, M(d)([1,5]) = b+1, M(d)([1,6]) = c.
 
 **Content reference.** Take σ = ([1,2], δ(4, 2)) — start at V-position [1,2] with ordinal displacement [0,4]. Then reach(σ) = [1,2] ⊕ [0,4] = [1,6]. The span range is {v : [1,2] ≤ v < [1,6] ∧ #v = 2} = {[1,2], [1,3], [1,4], [1,5]}. Each is in dom(M(d)), so the reference is well-formed. The displacement is ordinal (action point 2 = m), consistent with C0.
 
@@ -74,13 +81,13 @@ where a, b, c are distinct I-addresses from separate allocations. The arrangemen
 - [1,2] and [1,3]: V-adjacent ([1,3] = [1,2]+1) and I-adjacent (a+2 = (a+1)+1). Merge → ([1,2], a+1, 2).
 - [1,4] and [1,5]: V-adjacent ([1,5] = [1,4]+1) and I-adjacent (b+1 = b+1). Merge → ([1,4], b, 2).
 
-No further merges: ([1,2], a+1, 2) and ([1,4], b, 2) are V-adjacent ([1,4] = [1,2]+2) but not I-adjacent (b ≠ (a+1)+2 since a and b are from distinct allocations — M16, ASN-0058). The decomposition is maximally merged.
+No further merges: ([1,2], a+1, 2) and ([1,4], b, 2) are V-adjacent ([1,4] = [1,2]+2) but not I-adjacent. M16 (ASN-0058) gives b ≠ (a+1)+2: ordinal increment preserves the document prefix, so origin((a+1)+2) = origin(a), while origin(b) ≠ origin(a) by construction. The decomposition is maximally merged.
 
 **Resolution.** resolve(d, σ) = ⟨(a+1, 2), (b, 2)⟩, ordered by V-start.
 
 **C1 verification.** For run (a+1, 2): B3 gives M(d)([1,2]) = a+1 and M(d)([1,3]) = a+2; S3 gives a+1 ∈ dom(C) and a+2 ∈ dom(C). For run (b, 2): B3 gives M(d)([1,4]) = b and M(d)([1,5]) = b+1; S3 gives b ∈ dom(C) and b+1 ∈ dom(C). ✓
 
-Total width: 2 + 2 = 4, matching the span width ℓₘ = 4 of the original content reference.
+Total width: 2 + 2 = 4 = ℓₘ, confirming C2.
 
 
 ## Properties Introduced
@@ -93,6 +100,7 @@ Total width: 2 + 2 = 4, matching the span width ℓₘ = 4 of the original conte
 | resolve(d_s, σ) | maximally merged I-address runs from M(d_s)\|⟦σ⟧, V-ordered | introduced |
 | C1a | M11/M12 hold for any finite partial function f : T ⇀ T satisfying S2, S8-fin, S8-depth; in particular M(d_s)\|⟦σ⟧ | introduced |
 | C1 | every resolved I-address is in dom(C) | introduced |
+| C2 | total resolved width equals ordinal displacement: w(resolve(d_s, σ)) = ℓₘ | introduced |
 
 
 ## Open Questions
