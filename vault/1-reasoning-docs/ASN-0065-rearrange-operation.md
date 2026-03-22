@@ -280,6 +280,92 @@ M'(d)([1,5]) = E     (exterior, unchanged)
 **Block decomposition after rearrangement.** The new canonical decomposition has three blocks: ([1,1], A, 1), ([1,2], D, 1), ([1,3], B, 2). Block ([1,3], B, 2) is valid because B = 3.0.1.0.1.2 and C = 3.0.1.0.1.3 = B + 1. Note that D = 5.0.2.0.1.1 cannot merge with A = 3.0.1.0.1.1 (different origins, per M16) nor with B = 3.0.1.0.1.2 (not I-adjacent: D + 1 ≠ B). The cut at [1,4] split the original block β₁ into ([1,1], A, 1) and ([1,2], B, 2), and the rearrangement inserted the single-element block for D between them.
 
 
+## Worked Example: 4-Cut Swap on an 8-Position Document
+
+We trace a 4-cut swap with unequal region widths. Let document d have subspace S = 1 with V_S(d) = {[1,1], ..., [1,8]}, and let the arrangement be:
+
+```
+M(d)([1,1]) = 3.0.1.0.1.1    (I-address A)
+M(d)([1,2]) = 3.0.1.0.1.2    (I-address B)
+M(d)([1,3]) = 3.0.1.0.1.3    (I-address C)
+M(d)([1,4]) = 7.0.1.0.1.1    (I-address D)
+M(d)([1,5]) = 5.0.2.0.1.1    (I-address E)
+M(d)([1,6]) = 5.0.2.0.1.2    (I-address F)
+M(d)([1,7]) = 5.0.2.0.1.3    (I-address G)
+M(d)([1,8]) = 3.0.1.0.1.4    (I-address H)
+```
+
+Content A–C originates from document 3.0.1; D from document 7.0.1; E–G from document 5.0.2; H from document 3.0.1. The canonical decomposition has four blocks: β₁ = ([1,1], A, 3), β₂ = ([1,4], D, 1), β₃ = ([1,5], E, 3), β₄ = ([1,8], H, 1).
+
+We apply a 4-cut swap with C = ([1,2], [1,4], [1,5], [1,8]): c₀ = [1,2], c₁ = [1,4], c₂ = [1,5], c₃ = [1,8]. The affected range is [c₀, c₃) = {[1,2], ..., [1,7]}. Region α = {[1,2], [1,3]} (w_α = 2), middle μ = {[1,4]} (w_μ = 1), region β = {[1,5], [1,6], [1,7]} (w_β = 3). Since w_α = 2 ≠ w_β = 3, the middle displacement w_β − w_α = 1 is nonzero.
+
+**R-PRE verification.** (i) d ∈ E_doc. (ii) V_S(d) ≠ ∅. (iii) CS1: n = 4; CS2: [1,2] < [1,4] < [1,5] < [1,8]; CS3: all subspace 1; CS4: all depth 2. (iv) All positions in [[1,2], [1,8]) are in V_S(d). (v) w_α = 2 ≥ 1, w_β = 3 ≥ 1. (vi) All ordinals positive. ✓
+
+**Applying the postconditions.** We compute M'(d) position by position:
+
+R-EXT: M'(d)([1,1]) = M(d)([1,1]) = A. M'(d)([1,8]) = M(d)([1,8]) = H.
+
+R-S1 (j = 0): M'(d)(c₀ + 0) = M'(d)([1,2]) = M(d)(c₂ + 0) = M(d)([1,5]) = E.
+
+R-S1 (j = 1): M'(d)(c₀ + 1) = M'(d)([1,3]) = M(d)(c₂ + 1) = M(d)([1,6]) = F.
+
+R-S1 (j = 2): M'(d)(c₀ + 2) = M'(d)([1,4]) = M(d)(c₂ + 2) = M(d)([1,7]) = G.
+
+R-S2 (j = 0): M'(d)(c₀ + 3 + 0) = M'(d)([1,5]) = M(d)(c₁ + 0) = M(d)([1,4]) = D.
+
+R-S3 (j = 0): M'(d)(c₀ + 3 + 1 + 0) = M'(d)([1,6]) = M(d)(c₀ + 0) = M(d)([1,2]) = B.
+
+R-S3 (j = 1): M'(d)(c₀ + 3 + 1 + 1) = M'(d)([1,7]) = M(d)(c₀ + 1) = M(d)([1,3]) = C.
+
+**Result:**
+
+```
+M'(d)([1,1]) = A     (exterior, unchanged)
+M'(d)([1,2]) = E     (from β via R-S1)
+M'(d)([1,3]) = F     (from β via R-S1)
+M'(d)([1,4]) = G     (from β via R-S1)
+M'(d)([1,5]) = D     (from μ via R-S2)
+M'(d)([1,6]) = B     (from α via R-S3)
+M'(d)([1,7]) = C     (from α via R-S3)
+M'(d)([1,8]) = H     (exterior, unchanged)
+```
+
+The three swap clauses tile [c₀, c₃) = [[1,2], [1,8]) exactly: R-S1 covers ordinals 2–4 (w_β = 3 positions), R-S2 covers ordinal 5 (w_μ = 1 position), R-S3 covers ordinals 6–7 (w_α = 2 positions). Total: 3 + 1 + 2 = 6 = |[c₀, c₃)|. ✓
+
+**R-CP verification.** The multiset of I-addresses is {A, B, C, D, E, F, G, H} before and after. ✓
+
+**R-SPERM verification.** The permutation π:
+
+- π([1,1]) = [1,1] (exterior).
+- π([1,2]) = c₀ + w_β + w_μ + 0 = [1,6] (α: j = 0). Check: M'(d)([1,6]) = B = M(d)([1,2]) ✓.
+- π([1,3]) = c₀ + w_β + w_μ + 1 = [1,7] (α: j = 1). Check: M'(d)([1,7]) = C = M(d)([1,3]) ✓.
+- π([1,4]) = c₀ + w_β + 0 = [1,5] (μ: j = 0). Check: M'(d)([1,5]) = D = M(d)([1,4]) ✓.
+- π([1,5]) = c₀ + 0 = [1,2] (β: j = 0). Check: M'(d)([1,2]) = E = M(d)([1,5]) ✓.
+- π([1,6]) = c₀ + 1 = [1,3] (β: j = 1). Check: M'(d)([1,3]) = F = M(d)([1,6]) ✓.
+- π([1,7]) = c₀ + 2 = [1,4] (β: j = 2). Check: M'(d)([1,4]) = G = M(d)([1,7]) ✓.
+- π([1,8]) = [1,8] (exterior).
+
+**Displacement verification.** Δ([1,2]) = 6 − 2 = +4 = w_β + w_μ ✓. Δ([1,3]) = 7 − 3 = +4 ✓. Δ([1,4]) = 5 − 4 = +1 = w_β − w_α ✓. Δ([1,5]) = 2 − 5 = −3 = −(w_α + w_μ) ✓. Δ([1,6]) = 3 − 6 = −3 ✓. Δ([1,7]) = 4 − 7 = −3 ✓. The middle-region displacement is +1, confirming the asymmetric structure when w_α ≠ w_β.
+
+**Block decomposition via R-BLK.** *Phase 1 (Split):* c₀ = [1,2] is interior to β₁ = ([1,1], A, 3) at offset 1. Split: ([1,1], A, 1) and ([1,2], B, 2). The remaining cuts c₁ = [1,4], c₂ = [1,5], c₃ = [1,8] coincide with block starts, so no further splits. Post-split decomposition: {([1,1], A, 1), ([1,2], B, 2), ([1,4], D, 1), ([1,5], E, 3), ([1,8], H, 1)}.
+
+*Phase 2 (Classify):* ([1,1], A, 1) → exterior left. ([1,2], B, 2) → α. ([1,4], D, 1) → μ. ([1,5], E, 3) → β. ([1,8], H, 1) → exterior right.
+
+*Phase 3 (Reassemble):* Apply region displacements:
+
+- ([1,1], A, 1) → ([1,1], A, 1) (exterior, Δ = 0)
+- ([1,2], B, 2) → ([1,6], B, 2) (α, Δ = +4)
+- ([1,4], D, 1) → ([1,5], D, 1) (μ, Δ = +1)
+- ([1,5], E, 3) → ([1,2], E, 3) (β, Δ = −3)
+- ([1,8], H, 1) → ([1,8], H, 1) (exterior, Δ = 0)
+
+Sorted by V-start: {([1,1], A, 1), ([1,2], E, 3), ([1,5], D, 1), ([1,6], B, 2), ([1,8], H, 1)}. Checking B3: for block ([1,2], E, 3), M'(d)([1,2]) = E, M'(d)([1,3]) = F = E + 1, M'(d)([1,4]) = G = E + 2 ✓.
+
+*Merge check:* ([1,6], B, 2) and ([1,8], H, 1) are V-adjacent (6 + 2 = 8) and I-adjacent (B + 2 = 3.0.1.0.1.4 = H). Merge: ([1,6], B, 3). No other pair satisfies both conditions — ([1,1], A, 1) and ([1,2], E, 3) differ in origin; ([1,2], E, 3) and ([1,5], D, 1) differ in origin; ([1,5], D, 1) and ([1,6], B, 2) differ in origin.
+
+**Canonical decomposition:** {([1,1], A, 1), ([1,2], E, 3), ([1,5], D, 1), ([1,6], B, 3)}. The rearrangement brought B, C (formerly at [1,2]–[1,3]) adjacent to H (at [1,8]), and since B + 2 = H, they merge into a single block of width 3. Meanwhile A, formerly part of a width-3 block with B and C, is now isolated.
+
+
 ## Content Preservation
 
 The central invariant of REARRANGE is that the multiset of I-addresses in the arrangement is unchanged.
@@ -336,6 +422,27 @@ Within the target document, only the affected subspace changes. Link-subspace po
 `d ∈ E'_doc`
 
 The document remains a valid entity after rearrangement. This follows from E' = E (R-CF(b)).
+
+
+## K.μ~ Preconditions and Arrangement Invariants
+
+We verify that REARRANGE satisfies the K.μ~ preconditions (ASN-0047) and preserves the arrangement invariants required by the ReachableStateInvariants theorem.
+
+**R-KMU — K.μ~ Precondition Verification (LEMMA).** REARRANGE satisfies the K.μ~ preconditions.
+
+*Proof.* K.μ~ requires: (i) d ∈ E_doc, (ii) the bijection π produces V-positions satisfying S8a, and (iii) M'(d) satisfies S8-depth. Clause (i) is R-PRE(i). For clause (ii): π maps dom(M(d)) to itself — dom(M'(d)) = dom(M(d)), established in R-PIV and R-SWP. Since every v ∈ dom(M(d)) satisfies S8a in the pre-state, and π(v) ∈ dom(M(d)), every image under π satisfies S8a. For clause (iii): S8-depth requires all V-positions in a subspace to share the same depth. Since dom(M'(d)) = dom(M(d)), the depth profile is unchanged. ∎
+
+**R-S2P — FunctionalityPreservation (LEMMA).** REARRANGE preserves S2 (ArrangementFunctionality).
+
+*Proof.* R-PIV and R-SWP establish that the postcondition defines a total function on V_S(d) — each V-position is assigned exactly one I-address. For positions outside subspace S, M'(d)(v) = M(d)(v) by R-XS, which is uniquely determined by S2 in the pre-state. ∎
+
+**R-S3P — ReferentialIntegrityPreservation (LEMMA).** REARRANGE preserves S3 (ReferentialIntegrity).
+
+*Proof.* By R-CP, ran(M'(d)) = ran(M(d)). By S3 in the pre-state, ran(M(d)) ⊆ dom(C). By R-CF(a), C' = C, so dom(C') = dom(C). Therefore ran(M'(d)) = ran(M(d)) ⊆ dom(C) = dom(C'). ∎
+
+**R-S8P — StructuralPreservation (LEMMA).** REARRANGE preserves S8a, S8-depth, and S8-fin.
+
+*Proof.* All three properties are predicates on dom(M(d)). Since dom(M'(d)) = dom(M(d)), each is inherited from the pre-state. S8a (VPositionWellFormedness): every v ∈ dom(M'(d)) = dom(M(d)) satisfies zeros(v) = 0 ∧ v > 0. S8-depth (FixedDepthVPositions): all V-positions in each subspace share depth, unchanged by domain equality. S8-fin (FiniteArrangement): |dom(M'(d))| = |dom(M(d))| < ∞. ∎
 
 
 ## Contiguity Preservation
@@ -501,6 +608,10 @@ The discrepancy arises because the code computes diff[3] = −diff[1] (negating 
 | R-XD | (A d' ≠ d : M'(d') = M(d')) — cross-document isolation | introduced |
 | R-XS | (A v : subspace(v) ≠ S : M'(d)(v) = M(d)(v)) — subspace confinement | introduced |
 | R-IID | d ∈ E'_doc — document identity preserved | introduced |
+| R-KMU | K.μ~ preconditions satisfied: π maps dom(M(d)) to itself, S8a and S8-depth inherited | introduced |
+| R-S2P | S2 preserved: postcondition defines a total function on V_S(d) | introduced |
+| R-S3P | S3 preserved: ran(M'(d)) = ran(M(d)) ⊆ dom(C) = dom(C') | introduced |
+| R-S8P | S8a, S8-depth, S8-fin preserved: dom(M'(d)) = dom(M(d)) | introduced |
 | R-DP | REARRANGE preserves D-CTG (V-position contiguity) | introduced |
 | R-WR | \|V_S'(d)\| = \|V_S(d)\| — extent size preserved | introduced |
 | R-BLK | Block decomposition transforms by split-at-cuts then displace-per-region, preserving B1–B3 | introduced |
