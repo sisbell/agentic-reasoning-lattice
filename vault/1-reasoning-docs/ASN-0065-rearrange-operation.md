@@ -444,6 +444,12 @@ We verify that REARRANGE satisfies the K.μ~ preconditions (ASN-0047) and preser
 
 *Proof.* All three properties are predicates on dom(M(d)). Since dom(M'(d)) = dom(M(d)), each is inherited from the pre-state. S8a (VPositionWellFormedness): every v ∈ dom(M'(d)) = dom(M(d)) satisfies zeros(v) = 0 ∧ v > 0. S8-depth (FixedDepthVPositions): all V-positions in each subspace share depth, unchanged by domain equality. S8-fin (FiniteArrangement): |dom(M'(d))| = |dom(M(d))| < ∞. ∎
 
+**R-P4P — ProvenanceBoundsPreservation (LEMMA).** REARRANGE preserves P4 (ProvenanceBounds: Contains(Σ) ⊆ R).
+
+*Proof.* Contains(Σ') = {(a, d') : d' ∈ E'_doc ∧ a ∈ ran(M'(d'))}. For the target document d: ran(M'(d)) = ran(M(d)) by R-CP. For all other d' ≠ d: M'(d') = M(d') by R-XD, so ran(M'(d')) = ran(M(d')). Therefore Contains(Σ') = Contains(Σ). By P4 in the pre-state, Contains(Σ) ⊆ R. By J3 (ReorderingIsolation, ASN-0047), R' = R. Hence Contains(Σ') = Contains(Σ) ⊆ R = R'. ∎
+
+The remaining reachable-state invariants — P6 (ExistentialCoherence), P7 (ProvenanceGrounding), P7a (ProvenanceCoverage), P8 (EntityHierarchy) — follow directly from the frame conditions R-CF(a–c): C' = C, E' = E, R' = R ensure that no premise of these invariants is disturbed.
+
 
 ## Contiguity Preservation
 
@@ -537,7 +543,7 @@ In the formal model, version creation (J4, Fork, ASN-0047) captures the relevant
 
 We observe that the 4-cut swap can be expressed as a specific pattern of two 3-cut pivots. Given a 4-cut sequence (c₀, c₁, c₂, c₃), one could achieve the same result by:
 
-1. Pivot with cuts (c₀, c₁, c₂): swaps [c₀, c₁) and [c₁, c₂). After this, α is at [c₁, c₂) and μ is at [c₀, c₁), and β is at its original position.
+1. Pivot with cuts (c₀, c₁, c₂): swaps [c₀, c₁) and [c₁, c₂). After this, μ is at [c₀, c₀ + w_μ) and α is at [c₀ + w_μ, c₂), and β is at its original position.
 
 But this is not the same as the 4-cut swap — the content layout after this single pivot is [μ, α, β], while the swap target is [β, μ, α]. Achieving the swap would require a second pivot with adjusted cut points to account for the changed positions.
 
@@ -612,6 +618,7 @@ The discrepancy arises because the code computes diff[3] = −diff[1] (negating 
 | R-S2P | S2 preserved: postcondition defines a total function on V_S(d) | introduced |
 | R-S3P | S3 preserved: ran(M'(d)) = ran(M(d)) ⊆ dom(C) = dom(C') | introduced |
 | R-S8P | S8a, S8-depth, S8-fin preserved: dom(M'(d)) = dom(M(d)) | introduced |
+| R-P4P | P4 preserved: Contains(Σ') = Contains(Σ) ⊆ R = R' via R-CP, R-XD, J3 | introduced |
 | R-DP | REARRANGE preserves D-CTG (V-position contiguity) | introduced |
 | R-WR | \|V_S'(d)\| = \|V_S(d)\| — extent size preserved | introduced |
 | R-BLK | Block decomposition transforms by split-at-cuts then displace-per-region, preserving B1–B3 | introduced |
