@@ -71,7 +71,11 @@ The identity: no arrangement is consulted, no validation against dom(C) is perfo
 
 ASN-0047 defines the system state as Σ = (C, E, M, R) with elementary transitions K.α (content), K.δ (entity), K.μ⁺/K.μ⁻/K.μ~ (arrangement), and K.ρ (provenance). ASN-0043 introduces the link store Σ.L but does not define transitions for it. We now integrate links into the transition framework.
 
-The extended system state is **Σ = (C, L, E, M, R)**, where L : T ⇀ Link is the link store (ASN-0043). All existing elementary transitions from ASN-0047 hold L in their frame: L' = L. We introduce a new elementary transition for link creation.
+The extended system state is **Σ = (C, L, E, M, R)**, where L : T ⇀ Link is the link store (ASN-0043).
+
+**Extended initial state.** Σ₀ = (C₀, L₀, E₀, M₀, R₀) with L₀ = ∅. The extended invariants hold vacuously at Σ₀: L0, L1, L1a, L12, L14 are satisfied by empty L; S3★'s link-subspace clause is vacuous (no link-subspace V-positions exist in M₀); P4★ reduces to P4 (which holds at Σ₀ per ASN-0047). This closes the inductive base for CL11.
+
+All existing elementary transitions from ASN-0047 hold L in their frame: L' = L. In the extended state, **K.μ⁺ is amended with a content-subspace restriction**: new V-positions must satisfy `subspace(v) = s_C`. This complements K.μ⁺_L (defined below), which handles link-subspace extensions exclusively. The restriction is necessary — without it, K.μ⁺ could create a link-subspace V-position mapping to dom(C), violating S3★. With this amendment, the two transitions partition arrangement extensions by subspace. We introduce two new elementary transitions for link creation.
 
 **K.λ — LinkAllocation.** Creates a new entry in the link store.
 
@@ -93,7 +97,7 @@ The address ℓ is produced by the same forward-allocation discipline as content
 
   `(A d, v : v ∈ dom(Σ.M(d)) : (subspace(v) = s_C ⟹ Σ.M(d)(v) ∈ dom(Σ.C)) ∧ (subspace(v) = s_L ⟹ Σ.M(d)(v) ∈ dom(Σ.L)))`
 
-where `subspace(v)` denotes the first component of the V-position. S3★ supersedes S3 (ASN-0036) for the extended state Σ = (C, L, E, M, R): S3 requires every V-position to map into dom(C), which is violated by link-subspace mappings targeting dom(L). S3 remains valid when restricted to states with no link-subspace mappings — the pre-extension states of ASN-0047 have only content-subspace V-positions, for which S3★ reduces to S3. Existing transitions (K.α, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.ρ) trivially preserve S3★ because none creates link-subspace mappings: each either holds M in frame or extends/contracts only content-subspace positions, and the link-subspace clause is vacuously satisfied when no link-subspace V-positions exist.
+where `subspace(v)` denotes the first component of the V-position. S3★ supersedes S3 (ASN-0036) for the extended state Σ = (C, L, E, M, R): S3 requires every V-position to map into dom(C), which is violated by link-subspace mappings targeting dom(L). S3 remains valid when restricted to states with no link-subspace mappings — the pre-extension states of ASN-0047 have only content-subspace V-positions, for which S3★ reduces to S3. Existing transitions preserve S3★: K.α, K.δ, K.ρ hold M in frame; K.μ⁺ creates only content-subspace V-positions (by its amended precondition `subspace(v) = s_C`), so new mappings target dom(C) and the link-subspace clause is unaffected; K.μ⁻ contracts dom(M(d)), preserving both clauses; K.μ~ reorders within a fixed multiset of I-addresses, preserving both target stores.
 
 **K.μ⁺_L — LinkSubspaceExtension.** Extends a document's arrangement in the link subspace.
 
@@ -102,8 +106,8 @@ where `subspace(v)` denotes the first component of the V-position. S3★ superse
 - ℓ ∈ dom(L')  (the target link must already exist — K.λ must precede this step)
 - V-position v_ℓ satisfies:
   - subspace(v_ℓ) = s_L
-  - m_L ≥ 2 — ordinal shift at depth 1 alters the subspace identifier (`shift([s_L], 1) = [s_L + 1]`, violating subspace closure TA7a), so the link subspace requires depth at least 2
-  - If V_{s_L}(d) = ∅: v_ℓ is the minimum position `[s_L, 1, ..., 1]` of depth m_L (D-MIN), where m_L is the link-subspace V-depth for d
+  - m_L ≥ 2, where: if V_{s_L}(d) ≠ ∅, m_L is the common depth of existing link-subspace V-positions (determined by S8-depth); if V_{s_L}(d) = ∅, m_L is a parameter of the transition, subject only to m_L ≥ 2. The lower bound is structural: ordinal shift at depth 1 alters the subspace identifier (`shift([s_L], 1) = [s_L + 1]`, violating subspace closure TA7a), so the link subspace requires depth at least 2
+  - If V_{s_L}(d) = ∅: v_ℓ is the minimum position `[s_L, 1, ..., 1]` of depth m_L (D-MIN)
   - If V_{s_L}(d) ≠ ∅: v_ℓ = shift(max(V_{s_L}(d)), 1), extending the contiguous range (D-CTG)
   - #v_ℓ = m_L (S8-depth within the link subspace)
 
@@ -121,7 +125,7 @@ The preconditions ensure that after the extension, D-CTG (contiguity), D-MIN (mi
 
 **P4★ — ProvenanceBounds (content-subspace).** `Contains_C(Σ) ⊆ R`
 
-P4★ supersedes P4 for the extended state. In pre-extension states (no link-subspace mappings), `Contains_C(Σ) = Contains(Σ)`, so P4★ reduces to P4. Existing transitions trivially preserve P4★: K.α, K.δ, K.ρ hold M in frame; K.μ⁺ extends only content-subspace positions and is coupled with K.ρ by J1★; K.μ⁻ contracts dom(M(d)), which can only shrink Contains_C.
+P4★ supersedes P4 for the extended state. In pre-extension states (no link-subspace mappings), `Contains_C(Σ) = Contains(Σ)`, so P4★ reduces to P4. Existing transitions preserve P4★: K.α, K.δ, K.ρ hold M in frame; K.μ⁺ extends only content-subspace positions (by its amended precondition) and is coupled with K.ρ by J1★; K.μ⁻ contracts dom(M(d)), which can only shrink Contains_C.
 
 **Coupling constraint scoping.** The coupling constraints J1, J1' (ASN-0047) were formulated before link-subspace mappings existed. They must be scoped to content-subspace arrangement extensions; otherwise J1 and P7 are mutually unsatisfiable — J1 would require provenance recording for the link address ℓ entering ran(M'(d)), but P7 requires every provenance entry to reference dom(C), and ℓ ∈ dom(L) with dom(L) ∩ dom(C) = ∅ (L14).
 
@@ -147,6 +151,7 @@ Let F = resolve(S_F), G = resolve(S_G), Θ = resolve(S_Θ), where each resolve d
 *Precondition:*
 - d ∈ E_doc
 - A fresh link address ℓ is available satisfying K.λ's preconditions
+- m_L ≥ 2, chosen by the operation when V_{s_L}(d) = ∅, determined by S8-depth when V_{s_L}(d) ≠ ∅
 - Every V-span in each endset specification satisfies T12 (SpanWellDefined, ASN-0034): width > 0 and action point k ≤ #start — ensuring ⟦σ⟧ is well-defined for each input span
 
 *Composite steps:*
