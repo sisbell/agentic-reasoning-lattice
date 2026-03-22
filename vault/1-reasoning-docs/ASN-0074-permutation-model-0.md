@@ -11,15 +11,15 @@ The permutation model (ASN-0058) defines block decompositions for document arran
 
 `{v ∈ T : u ≤ v < reach(σ) ∧ #v = m} ⊆ dom(M(d_s))`
 
-By C0a (below), subspace confinement guarantees every t ∈ ⟦σ⟧ has t₁ = u₁, so dom(M(d_s)) ∩ ⟦σ⟧ ⊆ V_{u₁}(d_s). By S8-depth, all V-positions in V_{u₁}(d_s) have depth m, and reach(σ) has depth m (S6), so the depth-m restriction is structurally guaranteed.
+By C0a (below), prefix confinement gives tⱼ = uⱼ for all j < m for every t ∈ ⟦σ⟧; in particular t₁ = u₁, so dom(M(d_s)) ∩ ⟦σ⟧ ⊆ V_{u₁}(d_s). By S8-depth, all V-positions in V_{u₁}(d_s) have depth m, and reach(σ) has depth m (S6), so the depth-m restriction is structurally guaranteed.
 
 **C0 — OrdinalDisplacementNecessity (LEMMA).** For a well-formed content reference (d_s, σ) with σ = (u, ℓ), common depth m, and action point k of ℓ: k = m. Equivalently, ℓ = δ(ℓₘ, m) — an ordinal displacement.
 
 *Derivation.* Suppose for contradiction that k < m. Consider the family of depth-m tumblers wⱼ = [u₁, ..., uₖ, uₖ₊₁, ..., u_{m−1}, j] for j > uₘ. Each wⱼ satisfies u < wⱼ: the two agree on components 1 through m − 1 and j > uₘ at component m, so wⱼ > u by T1(i) (ASN-0034). Each wⱼ satisfies wⱼ < reach(σ): at component k, uₖ < uₖ + ℓₖ (since ℓₖ ≥ 1, k being the action point), so wⱼ < reach(σ) by T1(i). Thus wⱼ ∈ ⟦σ⟧ for every j > uₘ. By T0(a) (ASN-0034), j ranges over unboundedly many values, yielding infinitely many depth-m tumblers in ⟦σ⟧. Well-formedness requires each to be in dom(M(d_s)), contradicting S8-fin (ASN-0036). Therefore k = m, and ℓ = [0, ..., 0, ℓₘ] = δ(ℓₘ, m). ∎
 
-**C0a — SubspaceConfinement (COROLLARY).** For a well-formed content reference (d_s, σ) with σ = (u, ℓ) and m ≥ 2: every t ∈ ⟦σ⟧ satisfies t₁ = u₁.
+**C0a — PrefixConfinement (LEMMA).** For a well-formed content reference (d_s, σ) with σ = (u, ℓ) and m ≥ 2: every t ∈ ⟦σ⟧ satisfies tⱼ = uⱼ for all 1 ≤ j < m.
 
-*Derivation.* By C0, the action point of ℓ is m. Since m ≥ 2, TumblerAdd gives reach(σ)ᵢ = uᵢ for all i < m; in particular reach(σ)₁ = u₁. For any t ∈ ⟦σ⟧ we have u ≤ t < reach(σ). If t₁ < u₁, then t < u by T1(i) at k = 1 (ASN-0034), contradicting t ≥ u. If t₁ > u₁ = reach(σ)₁, then reach(σ) < t by T1(i) at k = 1, contradicting t < reach(σ). Therefore t₁ = u₁. (At m = 1, the action point is 1, so reach(σ)₁ = u₁ + ℓ₁ ≠ u₁, and ⟦σ⟧ would span multiple subspaces.) ∎
+*Derivation.* By C0, the action point of ℓ is m. Since m ≥ 2, TumblerAdd gives reach(σ)ⱼ = uⱼ for all j < m. Fix any j with 1 ≤ j < m and any t ∈ ⟦σ⟧, so u ≤ t < reach(σ). If tⱼ < uⱼ, then t < u by T1(i) at divergence point j (ASN-0034), contradicting t ≥ u. If tⱼ > uⱼ = reach(σ)ⱼ, then t > reach(σ) by T1(i) at divergence point j, contradicting t < reach(σ). Therefore tⱼ = uⱼ. The argument is uniform in j, applying identically at each component from 1 through m − 1. In particular, t₁ = u₁ (subspace confinement). (At m = 1, the vacuous range 1 ≤ j < 1 yields no confinement; indeed the action point would be 1, giving reach(σ)₁ = u₁ + ℓ₁ ≠ u₁, and ⟦σ⟧ would span multiple subspaces.) ∎
 
 **Definition — ContentReferenceSequence.** A *content reference sequence* is an ordered list R = ⟨r₁, ..., rₚ⟩ of content references with p ≥ 1. Different references may name different source documents.
 
@@ -65,7 +65,7 @@ where ⟨(a₁, n₁), ..., (aₖ, nₖ)⟩ = resolve(R).
 
 `w(resolve(d_s, σ)) = (+ j : 1 ≤ j ≤ k : nⱼ) = ℓₘ`
 
-*Derivation.* By C0, ℓ = δ(ℓₘ, m), so reach(σ) = u ⊕ δ(ℓₘ, m) = [u₁, ..., u_{m−1}, uₘ + ℓₘ]. The depth-m tumblers in [u, reach(σ)) are exactly {[u₁, ..., u_{m−1}, j] : uₘ ≤ j < uₘ + ℓₘ}: any depth-m tumbler diverging from u before component m falls outside the range by T1(i) (ASN-0034). There are ℓₘ such tumblers; well-formedness places each in dom(f). Conversely, dom(f) contains no other elements: by C0a, every t ∈ ⟦σ⟧ has t₁ = u₁, so dom(f) ⊆ V_{u₁}(d_s); by S8-depth, all positions in V_{u₁}(d_s) have depth m, so the enumeration is exhaustive. Therefore |dom(f)| = ℓₘ. By B1 (coverage) and B2 (disjointness), the V-extents of the blocks partition dom(f). By M0 (width coupling), |V(βⱼ)| = nⱼ for each block. Therefore (+ j : 1 ≤ j ≤ k : nⱼ) = |dom(f)| = ℓₘ. ∎
+*Derivation.* By C0, ℓ = δ(ℓₘ, m), so reach(σ) = u ⊕ δ(ℓₘ, m) = [u₁, ..., u_{m−1}, uₘ + ℓₘ]. The depth-m tumblers in [u, reach(σ)) are exactly {[u₁, ..., u_{m−1}, j] : uₘ ≤ j < uₘ + ℓₘ}: by C0a (PrefixConfinement), every t ∈ ⟦σ⟧ satisfies tⱼ = uⱼ for all 1 ≤ j < m, fixing the first m − 1 components; the m-th component then ranges over uₘ ≤ tₘ < uₘ + ℓₘ (from u ≤ t < reach(σ) at divergence point m). There are ℓₘ such tumblers; well-formedness places each in dom(f). Conversely, dom(f) contains no other elements: C0a fixes all components before m, and S8-depth ensures every position in V_{u₁}(d_s) has depth m, so the enumeration is exhaustive. Therefore |dom(f)| = ℓₘ. By B1 (coverage) and B2 (disjointness), the V-extents of the blocks partition dom(f). By M0 (width coupling), |V(βⱼ)| = nⱼ for each block. Therefore (+ j : 1 ≤ j ≤ k : nⱼ) = |dom(f)| = ℓₘ. ∎
 
 
 ## Worked Example
@@ -100,7 +100,7 @@ Total width: 2 + 2 = 4 = ℓₘ, confirming C2.
 |-------|-----------|--------|
 | ContentReference | (d_s, σ) with d_s ∈ D, V_{u₁}(d_s) ≠ ∅, m ≥ 2; σ level-uniform with #u = #ℓ = m; depth-m V-positions in span range ⊆ dom(M(d_s)) | introduced |
 | C0 | well-formed content references have ordinal displacements: action point of ℓ equals m | introduced |
-| C0a | subspace confinement: every t ∈ ⟦σ⟧ satisfies t₁ = u₁ when m ≥ 2 | introduced |
+| C0a | prefix confinement: every t ∈ ⟦σ⟧ satisfies tⱼ = uⱼ for all 1 ≤ j < m when m ≥ 2 (subspace confinement t₁ = u₁ is the j = 1 case) | introduced |
 | ContentReferenceSequence | ordered list ⟨r₁, ..., rₚ⟩ with p ≥ 1 | introduced |
 | resolve(d_s, σ) | maximally merged I-address runs from M(d_s)\|⟦σ⟧, V-ordered | introduced |
 | C1a | M11/M12 hold for any finite partial function f : T ⇀ T satisfying S2, S8-fin, S8-depth; in particular M(d_s)\|⟦σ⟧ | introduced |
