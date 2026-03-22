@@ -1,19 +1,19 @@
 # ASN-0045 Formal Statements
 
-*Source: ASN-0045-tumbler-fields.md (revised 2026-03-17) — Index: 2026-03-18 — Extracted: 2026-03-18*
+*Source: ASN-0045-tumbler-fields.md (revised 2026-03-17) — Extracted: 2026-03-22*
 
-## E.node — IsNode (INV, predicate(Tumbler))
+## E.node — IsNode (DEF, predicate)
 
 ValidAddress(t) ∧ zeros(t) = 0
 
-## E.account — IsAccount (INV, predicate(Tumbler))
+## E.account — IsAccount (DEF, predicate)
 
 ValidAddress(t) ∧ zeros(t) = 1
 
-## E.document — IsDocument (INV, predicate(Tumbler))
+## E.document — IsDocument (DEF, predicate)
 
 ValidAddress(t) ∧ zeros(t) = 2
 
-## E.element — IsElement (INV, predicate(Tumbler))
+## E.element — IsElement (DEF, predicate)
 
 ValidAddress(t) ∧ zeros(t) = 3
