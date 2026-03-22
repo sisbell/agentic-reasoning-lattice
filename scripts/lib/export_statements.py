@@ -208,6 +208,10 @@ def main():
                                args.dry_run)
         if ok and not args.dry_run:
             print(f"\n  === COMMIT ===", file=sys.stderr)
+            export_file = STATEMENTS_DIR / f"{label}-statements.md"
+            subprocess.run(
+                ["git", "add", str(export_file)],
+                capture_output=True, text=True, cwd=str(WORKSPACE))
             cmd = [sys.executable, str(COMMIT_SCRIPT),
                    f"Export statements {label}"]
             subprocess.run(cmd, capture_output=True, text=True,
@@ -244,6 +248,12 @@ def main():
     if succeeded and not args.dry_run:
         labels = ", ".join(sorted(succeeded))
         print(f"\n  === COMMIT ({labels}) ===", file=sys.stderr)
+        # Stage only export files
+        for lbl in sorted(succeeded):
+            export_file = STATEMENTS_DIR / f"{lbl}-statements.md"
+            subprocess.run(
+                ["git", "add", str(export_file)],
+                capture_output=True, text=True, cwd=str(WORKSPACE))
         cmd = [sys.executable, str(COMMIT_SCRIPT),
                f"Export statements {labels}"]
         result = subprocess.run(cmd, capture_output=True, text=True,
