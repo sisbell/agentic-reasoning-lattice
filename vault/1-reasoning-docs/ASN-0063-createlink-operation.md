@@ -171,6 +171,7 @@ Let F = resolve(S_F), G = resolve(S_G), Θ = resolve(S_Θ), where each resolve d
 - A fresh link address ℓ is available satisfying K.λ's preconditions
 - m_L ≥ 2, chosen by the operation when V_{s_L}(d) = ∅, determined by S8-depth when V_{s_L}(d) ≠ ∅
 - Every V-span in each endset specification satisfies T12 (SpanWellDefined, ASN-0034): width > 0 and action point k ≤ #start — ensuring ⟦σ⟧ is well-defined for each input span. Additionally, every V-span is confined to the text subspace: `subspace(start(σ)) = s_C ∧ width(σ)₁ = 0`. The start constraint places the span in the text subspace; the width constraint (action point k ≥ 2) prevents the span from crossing into the link subspace (CL1). No practical use case is excluded: content selections use ordinal displacements at depth m ≥ 2, which already satisfy `width(σ)₁ = 0`. V-space resolution operates through the text-subspace block decomposition (CL0, CL1); link-subspace addresses must be referenced via the direct I-span-set form
+- For the direct I-span-set form, each span must satisfy T12 (SpanWellDefined, ASN-0034): width > 0 and action point k ≤ #start. This ensures that the resolved endsets (F, G, Θ) are well-formed regardless of which input form produced them, satisfying K.λ's precondition `(F, G, Θ) ∈ Link`
 
 *Composite steps:*
 1. K.λ: allocate ℓ in dom(L) with value (F, G, Θ)
@@ -191,6 +192,10 @@ Let F = resolve(S_F), G = resolve(S_G), Θ = resolve(S_Θ), where each resolve d
   (f) `v_ℓ ∈ dom(M'(d)) ∧ M'(d)(v_ℓ) = ℓ` — the new link is placed in d's link subspace, where `v_ℓ = [s_L, 1, ..., 1]` (depth m_L, by D-MIN) when V_{s_L}(d) was empty, or `v_ℓ = shift(max(V_{s_L}(d)), 1)` (by D-CTG) otherwise
 
   (g) `(A v : v ∈ dom(M(d)) : M'(d)(v) = M(d)(v))` — the existing arrangement of d is unchanged
+
+  (h) `E' = E` — entities unchanged
+
+  (i) `R' = R` — provenance unchanged
 
 Step 2 places ℓ into d's arrangement, making the link an *out-link* of d. Nelson draws a sharp distinction: "a document consists of its contents (including history and alternatives) and its out-links, the links it contains that point to other documents. By contrast, a document's in-links are those stored elsewhere which point to it. These out-links are under control of its owner, whereas its in-links are not" (LM 2/31). An out-link lives in its home document's arrangement; an in-link is merely discoverable from the referenced document. CREATELINK produces one out-link (in d) and zero or more in-link relationships (one for each document whose content the endsets reference).
 
@@ -308,6 +313,8 @@ The system also permits CREATELINK with endsets that reference I-addresses in do
 
 *Transition invariants (ASN-0047).* P0 (ContentPermanence): C' = C. P1 (EntityPermanence): E' = E. P2 (ProvenancePermanence): R' = R. P3★ (ArrangementMutabilityOnly, extended): M(d) is extended by one link-subspace mapping (permitted by P3★'s extension clause); L is extended by one entry (permitted, since P3★ enumerates L as admitting only extension, per L12). P4a (HistoricalFidelity): R' = R and dom(C') = dom(C), so all existing provenance entries `(a, d) ∈ R` retain their historical witnesses unchanged. P4★ (ProvenanceBounds, content-subspace): K.μ⁺_L adds ℓ to ran(M'(d)), but `subspace(v_ℓ) = s_L ≠ s_C`, so ℓ does not appear in Contains_C(Σ'). Text-subspace mappings are unchanged, so Contains_C(Σ') = Contains_C(Σ) ⊆ R = R'. P5★ (DestructionConfinement, extended): dom(C') = dom(C) (clause a), dom(L') ⊃ dom(L) with existing entries unchanged (clause b, by L12), E' = E (clause c), R' = R (clause d); only M admits information loss, and the only M change is extension. P6 (ExistentialCoherence): unchanged since dom(C) is unchanged. J1★, J1'★ (Provenance coupling): K.μ⁺_L adds ℓ to ran(M'(d)), but `subspace(v_ℓ) = s_L ≠ s_C`, so J1★ does not require provenance recording; R' = R. P7 (ProvenanceGrounding): `(A (a, d) ∈ R' :: a ∈ dom(C'))` holds since R' = R and dom(C') = dom(C). P7a (ProvenanceCoverage): unchanged since dom(C) is unchanged. P8 (EntityHierarchy): E is unchanged. ✓
 
+*Trivially preserved invariants.* Content-store invariants S4 (OriginBasedIdentity), S5 (UnrestrictedSharing), S6 (PersistenceIndependence), S7/S7a/S7b (StructuralAttribution), S8 (SpanDecomposition), S9 (TwoStreamSeparation) hold since C' = C — no content is allocated or modified, so all properties of the content store are preserved identically. Link-structural invariants L3 (TripleEndsetStructure), L5 (EndsetSetSemantics), L6 (SlotDistinction), L8 (TypeByAddress) hold for the new link by K.λ's well-formedness precondition `(F, G, Θ) ∈ Link`, which establishes that the triple has three endset components with set semantics, and for existing links by L12 (LinkImmutability). Coupling constraints J0 (AllocationRequiresPlacement), J2 (ContractionIsolation), J3 (ReorderingIsolation) are vacuous: no content is allocated (CREATELINK performs no K.α), no arrangement is contracted (no K.μ⁻), and no reordering occurs (no K.μ~). D-CTG-depth (SharedPrefixReduction) is derived from D-CTG, S8-fin, and S8-depth, all of which are verified above. ✓
+
 
 ## Worked Example
 
@@ -372,6 +379,7 @@ CL3(e): C' = C. ✓ — neither K.λ nor K.μ⁺_L modify C.
 | Contains_C(Σ) | `{(a, d) : d ∈ E_doc ∧ (E v : subspace(v) = s_C ∧ M(d)(v) = a)}` — content-scoped containment | introduced |
 | P4★ | `Contains_C(Σ) ⊆ R` — provenance bounds scoped to content subspace; supersedes P4 | introduced |
 | K.λ | Elementary transition: L' = L ∪ {ℓ ↦ (F, G, Θ)}, frame C' = C, E' = E, M' = M, R' = R | introduced |
+| K.μ⁺ amendment | Content-subspace restriction: new V-positions must satisfy `subspace(v) = s_C`; partitions arrangement extension by subspace with K.μ⁺_L | amended |
 | K.μ⁺_L | Elementary transition: link-subspace arrangement extension, M'(d) = M(d) ∪ {v_ℓ ↦ ℓ} | introduced |
 | J1★ | Content-subspace scoping of J1: provenance recording only for subspace(v) = s_C | introduced |
 | J1'★ | Content-subspace scoping of J1': provenance entries only from subspace(v) = s_C | introduced |
