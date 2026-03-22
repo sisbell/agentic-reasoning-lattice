@@ -214,6 +214,8 @@ def main():
                         help="Thinking effort level")
     parser.add_argument("--max-cycles", type=int, default=10,
                         help="Max review/revise cycles (default: 10)")
+    parser.add_argument("--report", action="store_true",
+                        help="Show impact report without applying")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
@@ -224,6 +226,24 @@ def main():
     patch_content = patch_path.read_text()
 
     print(f"  [PATCH] {asn_label} ← {patch_path.name}", file=sys.stderr)
+
+    if args.report:
+        report_template = read_file(PROMPTS_DIR / "patch-report.md")
+        if not report_template:
+            print("  [ERROR] Patch report prompt not found", file=sys.stderr)
+            sys.exit(1)
+        asn_content = asn_path.read_text()
+        prompt = (report_template
+                  .replace("{{patch_content}}", patch_content)
+                  .replace("{{asn_content}}", asn_content))
+        print(f"  [REPORT] Analyzing impact...", file=sys.stderr)
+        text, elapsed = invoke_claude(prompt, model=args.model,
+                                      effort=args.effort)
+        if text:
+            print(f"\n{text}\n", file=sys.stderr)
+        else:
+            print("  [ERROR] No report produced", file=sys.stderr)
+        return
 
     if args.dry_run:
         print(f"  [DRY RUN] Steps: apply → scoped review/revise",
