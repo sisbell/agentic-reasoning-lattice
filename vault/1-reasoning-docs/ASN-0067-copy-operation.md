@@ -15,7 +15,7 @@ We work with system state Σ = (C, E, M, R) per ASN-0047. C is the content store
 
 The Istream/Vstream separation (ASN-0036) distinguishes permanent content storage from mutable arrangement. An operation that modifies arrangement without creating content is, in the framework of ASN-0047, a composite of K.μ⁺ (arrangement extension), K.μ~ (arrangement reordering), and K.ρ (provenance recording) — with no K.α (content allocation) step. COPY is exactly such an operation.
 
-**C0 — ArrangementOnly (INV).** A COPY transition Σ → Σ' satisfies:
+**C0 — ArrangementOnly (FRAME).** A COPY transition Σ → Σ' satisfies:
 
 `C' = C`
 
@@ -50,7 +50,7 @@ Since `#u = #ℓ = m`, dom(M(d_s)) contains only depth-m V-positions (S8-depth),
 
 To resolve a content reference, we extract the I-address runs corresponding to the named V-span. The source document's mapping may not be ordinal-contiguous across the full span — prior editing may have interleaved content from multiple allocations, fragmenting the V→I mapping into several contiguous I-address runs.
 
-**Definition — Resolution.** Given content reference (d_s, σ) with σ = (u, ℓ), let f = M(d_s)|⟦σ⟧ be the restriction of M(d_s) to positions in ⟦σ⟧. Since f is a restriction of M(d_s) to a contiguous V-range, it inherits the properties on which M11 and M12 depend: functionality per V-position (S2, each V-position maps to exactly one I-address), finite domain (S8-fin), and fixed depth (S8-depth) — all hold for any restriction of a function satisfying them. By M11 and M12 (ASN-0058), f therefore admits a unique maximally merged block decomposition ⟨β₁, ..., βₖ⟩ ordered by V-start. The *I-address sequence* is:
+**Definition — Resolution.** Given content reference (d_s, σ) with σ = (u, ℓ), let f = M(d_s)|⟦σ⟧ be the restriction of M(d_s) to positions in ⟦σ⟧. Since f is a restriction of M(d_s) to a contiguous V-range, it inherits: functionality per V-position (S2), finite domain (S8-fin), and fixed depth (S8-depth) — all hold for any restriction of a function satisfying them. M11's proof proceeds by iteratively merging adjacent blocks in any decomposition; it requires only finiteness (to terminate) and functionality (for B3). M12's proof that maximal runs partition the domain uses only the function's values. Both extend to any finite partial function T ⇀ T satisfying S2, S8-fin, and S8-depth. The restriction f = M(d_s)|⟦σ⟧ is such a function. By M11 and M12 (ASN-0058), f therefore admits a unique maximally merged block decomposition ⟨β₁, ..., βₖ⟩ ordered by V-start. The *I-address sequence* is:
 
 `resolve(d_s, σ) = ⟨(a₁, n₁), ..., (aₖ, nₖ)⟩`
 
@@ -83,7 +83,13 @@ Nelson states that V-stream addresses run contiguously: "The digit after the one
 
 When V_S(d) is contiguous with |V_S(d)| = N positions, we write its elements as v₀, v₁, ..., v_{N−1} where v₀ is the minimum (D-MIN, ASN-0036) and v_{j+1} = shift(v_j, 1) for 0 ≤ j < N − 1 (D-SEQ, ASN-0036).
 
-**Definition — ValidInsertionPosition.** Given document d satisfying D-CTG with text-subspace positions {v₀, ..., v_{N−1}}, a V-position v is a *valid insertion position* when v = v₀ + j for some j with 0 ≤ j ≤ N. The V-position depth m = #v. When N > 0, m must equal the existing text-subspace depth (S8-depth). When N = 0, v = [S, 1, ..., 1] of depth m ≥ 2 — the canonical minimum position required by D-MIN (ASN-0036) — where S is the text subspace identifier. In this case, the choice of v permanently establishes the text subspace's V-position depth at m (since S8-depth requires all subsequent V-positions to match).
+**Definition — ValidInsertionPosition.** A V-position v is a *valid insertion position* in subspace S of document d satisfying D-CTG when one of two cases holds:
+
+- *Non-empty subspace.* V_S(d) ≠ ∅ with |V_S(d)| = N. Then v = min(V_S(d)) + j for some j with 0 ≤ j ≤ N, and #v equals the existing subspace depth (S8-depth).
+
+- *Empty subspace.* V_S(d) = ∅. Then v = [S, 1, ..., 1] of depth m ≥ 2, establishing the subspace's V-position depth at m. This is the canonical minimum position required by D-MIN (ASN-0036).
+
+In both cases, S = v₁ is the subspace identifier.
 
 There are N + 1 valid insertion positions: N positions targeting existing content (which will be displaced), plus one append position past the end.
 
@@ -163,13 +169,13 @@ with the convention that the empty sum is 0, so γ₁ = (v, a₁, n₁).
 ```
 C' = C                                              (C0)
 E' = E
-M'(d) is the arrangement defined by B' for text-subspace positions
-(A p : p ∈ dom(M(d)) ∧ p₁ < 1 : M'(d)(p) = M(d)(p))   (non-text frame)
+M'(d) is the arrangement defined by B'
+(A p : p ∈ dom(M(d)) ∧ subspace(p) ≠ S : M'(d)(p) = M(d)(p))   (non-target frame)
 (A d' : d' ≠ d : M'(d') = M(d'))
 R' = R ∪ {(a, d) : a ∈ ran(M'(d)) \ ran(M(d))}
 ```
 
-The non-text frame condition ensures that link-subspace V-positions (v₁ = 0) and any other non-text V-positions are preserved unchanged.
+The non-target frame condition ensures that all subspaces other than S — including the link subspace (v₁ = 0) and any other text subspaces — are preserved unchanged. This is consistent with B_other = {β ∈ B : (v_β)₁ ≠ S} being unchanged in the composition.
 
 The provenance extension records that d now contains certain I-addresses. By J1 (ASN-0047), this is required for every I-address newly appearing in d's arrangement. By J1', this is the only permitted extension.
 
@@ -272,19 +278,21 @@ D-MIN: preserved by C2a. ∎
 
 The construction makes displacement explicit, but we state it as a named property for reference.
 
-**C4 — Displacement (POST).** After COPY at position v with total width w:
+**C4 — Displacement (POST).** After COPY at position v in subspace S with total width w:
 
-`(A p ∈ dom(M(d)) : p ≥ v : M'(d)(p + w) = M(d)(p))`
+`(A p ∈ dom(M(d)) : subspace(p) = S ∧ p ≥ v : M'(d)(p + w) = M(d)(p))`
 
-`(A p ∈ dom(M(d)) : p < v : M'(d)(p) = M(d)(p))`
+`(A p ∈ dom(M(d)) : subspace(p) = S ∧ p < v : M'(d)(p) = M(d)(p))`
 
-Every position at or after v shifts forward by w; every position before v is unchanged. Content is displaced, never overwritten.
+`(A p ∈ dom(M(d)) : subspace(p) ≠ S : M'(d)(p) = M(d)(p))`
+
+Within the target subspace S, every position at or after v shifts forward by w; every position before v is unchanged. Positions in all other subspaces are unchanged (B_other is in the frame). Content is displaced, never overwritten.
 
 **C5 — NoOverwrite (LEMMA).** Every I-address in the pre-state arrangement is preserved in the post-state arrangement — no content is lost, only relocated:
 
 `(A p ∈ dom(M(d)) :: (E q ∈ dom(M'(d)) : M'(d)(q) = M(d)(p)))`
 
-*Derivation.* If p < v, take q = p; M'(d)(p) = M(d)(p) by C4. If p ≥ v, take q = p + w; M'(d)(p + w) = M(d)(p) by C4. In both cases the witness q exists in dom(M'(d)). ∎
+*Derivation.* Three cases. If subspace(p) ≠ S, take q = p; M'(d)(p) = M(d)(p) by C4 (non-target frame). If subspace(p) = S and p < v, take q = p; M'(d)(p) = M(d)(p) by C4 (target-subspace, before v). If subspace(p) = S and p ≥ v, take q = p + w; M'(d)(p + w) = M(d)(p) by C4 (target-subspace, at/after v). In all cases the witness q exists in dom(M'(d)). ∎
 
 C5 captures Nelson's prohibition on overwrite. There is no OVERWRITE, REPLACE, or PUT operation. To "replace" content, one must DELETE the old span and INSERT or COPY new content — two separate operations, preserving the old content in Istream for historical backtrack. Nelson: "Note that the owner of a document may delete bytes from the owner's current version, but those bytes remain in all other documents where they have been included" [LM 4/11].
 
@@ -293,7 +301,7 @@ C5 captures Nelson's prohibition on overwrite. There is no OVERWRITE, REPLACE, o
 
 We arrive at the property that distinguishes COPY from all content-creating operations. The I-addresses placed in the target are *the same addresses* as in the source. This is not a runtime property the system must enforce — it is a structural consequence of how COPY is defined.
 
-**C6 — IdentityPreservation (INV).** Let resolve(R) = ⟨(a₁, n₁), ..., (aₖ, nₖ)⟩. For each placed block γⱼ = (v + offset_j, aⱼ, nⱼ):
+**C6 — IdentityPreservation (POST).** Let resolve(R) = ⟨(a₁, n₁), ..., (aₖ, nₖ)⟩. For each placed block γⱼ = (v + offset_j, aⱼ, nⱼ):
 
 `(A i : 0 ≤ i < nⱼ : M'(d)(v + offset_j + i) = aⱼ + i)`
 
@@ -413,7 +421,7 @@ The number of blocks in the canonical decomposition of M'(d) is bounded below by
 
 When a source document equals the target (d_s = d), the resolution reads M(d) while the mutation modifies M(d). The COPY definition resolves this by construction.
 
-**C11 — SnapshotResolution (INV).** When d_s = d in a content reference, resolve(d, σ) is evaluated on M(d) in the pre-state Σ. The mutation phase may shift V-positions within M(d) that overlap with ⟦σ⟧, but the resolved I-address sequence is immutable once computed.
+**C11 — SnapshotResolution (POST).** When d_s = d in a content reference, resolve(d, σ) is evaluated on M(d) in the pre-state Σ. The mutation phase may shift V-positions within M(d) that overlap with ⟦σ⟧, but the resolved I-address sequence is immutable once computed.
 
 This is not an additional constraint — it follows from COPY being defined as a composite transition whose resolution is a function of the pre-state. Phase 1 reads; Phase 2 writes. The two phases are sequentially ordered.
 
@@ -510,7 +518,7 @@ Provenance recording is monotonic: R' ⊇ R, and once (a, d) ∈ R, it remains i
 
 Nelson never uses the terms "atomic" or "transaction." But the architecture mandates all-or-nothing through the canonical order mandate: "All changes, once made, left the file remaining in canonical order, which was an internal mandate of the system" [LM 1/34].
 
-**C13 — SequentialCorrectness (INV).** The COPY composite either completes with all coupling constraints (J0, J1, J1') holding at the final state, or does not occur.
+**C13 — SequentialCorrectness (POST).** The COPY composite either completes with all coupling constraints (J0, J1, J1') holding at the final state, or does not occur.
 
 *Derivation.* By the ValidComposite definition (ASN-0047), a composite transition must satisfy coupling constraints between initial and final states. The internal elementary steps (K.μ~ for shift, K.μ⁺ for placement, K.ρ for provenance) are coupled by these constraints. If any step cannot satisfy its precondition at the intermediate state, the composite does not occur. The elementary decomposition above verifies each intermediate precondition.
 
