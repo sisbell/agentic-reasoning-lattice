@@ -1,0 +1,8 @@
+# ASN-0074 — Permutation Model 0
+title: "Permutation Model 0"
+extends: 58
+source: 67
+depends: [34, 36, 53, 58]
+
+inquiry:
+  question: "Extension of ASN-0058: properties ContentReference, ContentReferenceSequence, resolve(d_s, σ), C1, C1a from ASN-0067."
