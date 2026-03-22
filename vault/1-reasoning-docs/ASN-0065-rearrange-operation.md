@@ -209,7 +209,7 @@ We observe the structural relationship between the two forms: the 4-cut postcond
 
 The permutations R-PPERM and R-SPERM can be characterized by ordinal displacements — how far each position moves within its subspace. These displacements illuminate the structure and connect to the implementation.
 
-**Definition — OrdinalDisplacement.** For a position v in the affected range, define Δ(v) = ord(π(v)) − ord(v) (an integer, possibly negative).
+**Definition — PermutationDisplacement.** For a position v in the affected range, define Δ(v) = ord(π(v)) − ord(v) (an integer, possibly negative).
 
 For the 3-cut pivot, from R-PPERM:
 
