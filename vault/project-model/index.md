@@ -28,3 +28,4 @@ Generated from vault/project-model/ASN-*.yaml
 | ASN-0068 | COMPAREVERSIONS Operation | inquiry | 34, 36, 47, 53, 58 |
 | ASN-0069 | CREATENEWVERSION Operation | inquiry | 34, 36, 47, 53, 58 |
 | ASN-0070 | FOLLOWLINK Operation | inquiry | 34, 36, 43, 47, 53, 58 |
+| ASN-0071 | FINDDOCSCONTAINING Operation | inquiry | 34, 36, 47, 53, 58 |
