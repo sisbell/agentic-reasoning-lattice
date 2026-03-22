@@ -40,7 +40,7 @@ We observe an immediate consequence. Since C' = C and the I-address allocation m
 
 COPY reads content from one or more source documents. The source is specified as an ordered sequence of content references, each naming a V-span in some document's current arrangement.
 
-**Definition — ContentReference.** A *content reference* is a pair (d_s, σ) where d_s ∈ E_doc and σ = (u, ℓ) is a level-uniform V-span — that is, T12 (ASN-0034) holds and `#ℓ = #u = m`, where m is the common V-position depth in d_s's text subspace (S8-depth, ASN-0036). The level-uniformity requirement ensures reach(σ) has depth m (S6, ASN-0053), so the position range is well-bounded and the span algebra (S1–S11, ASN-0053) applies. The content reference is well-formed when every depth-m position in the span's range belongs to d_s's arrangement:
+**Definition — ContentReference.** A *content reference* is a pair (d_s, σ) where d_s ∈ E_doc and σ = (u, ℓ) is a level-uniform V-span — that is, T12 (ASN-0034) holds and `#ℓ = #u = m`, where m is the common V-position depth in subspace u₁ of d_s (S8-depth, ASN-0036). The level-uniformity requirement ensures reach(σ) has depth m (S6, ASN-0053), so the position range is well-bounded and the span algebra (S1–S11, ASN-0053) applies. The content reference is well-formed when every depth-m position in the span's range belongs to d_s's arrangement:
 
 `{v ∈ T : u ≤ v < reach(σ) ∧ #v = m} ⊆ dom(M(d_s))`
 
@@ -489,7 +489,7 @@ C4 (Displacement): M'(d)([1,1]) = 1.0.1.0.1.0.1 = M(d)([1,1]) (p < v, unchanged)
 
 C6 (IdentityPreservation): M'(d)([1,3]) = 1.0.2.0.1.0.4 and M'(d)([1,4]) = 1.0.2.0.1.0.5 — these are the same I-addresses as in d_s's arrangement. origin(1.0.2.0.1.0.4) = 1.0.2.0.1 ≠ d, confirming placed content is included (not native). ✓
 
-The placed block γ₁ cannot merge with its neighbors: origin(1.0.2.0.1.0.4) = 1.0.2.0.1 differs from origin(1.0.1.0.1.0.1) = 1.0.1.0.1, so M16 (CrossOriginMergeImpossibility) applies at both boundaries. B' is maximally merged.
+We verify B' is maximally merged by checking all V-adjacent pairs. Blocks 1 and 2 — ([1,1], 1.0.1.0.1.0.1, 2) and ([1,3], 1.0.2.0.1.0.4, 2) — have origin(1.0.1.0.1.0.1) = 1.0.1.0.1 ≠ 1.0.2.0.1 = origin(1.0.2.0.1.0.4), so M16 applies. Blocks 2 and 3 — ([1,3], 1.0.2.0.1.0.4, 2) and ([1,5], 1.0.1.0.1.0.3, 1) — similarly have distinct origins, so M16 applies. Blocks 3 and 4 — ([1,5], 1.0.1.0.1.0.3, 1) and ([1,6], 1.0.1.0.1.0.7, 2) — share origin 1.0.1.0.1 and are V-adjacent ([1,5] + 1 = [1,6]), so M16 does not apply; we check I-adjacency directly. The I-reach of block 3 is 1.0.1.0.1.0.3 + 1 = 1.0.1.0.1.0.4, while block 4's I-start is 1.0.1.0.1.0.7. Since 1.0.1.0.1.0.4 ≠ 1.0.1.0.1.0.7, the merge condition (M7) is unsatisfied. B' is maximally merged.
 
 
 ## Provenance Completeness
@@ -525,7 +525,7 @@ Nelson never uses the terms "atomic" or "transaction." But the architecture mand
 
 The consequences of partial application would violate foundational invariants:
 
-(a) *Contiguity violation.* V-addresses are dense and contiguous (D-CTG) in every reachable state. A partial shift — V-addresses shifted but content not yet placed — creates a gap. A partial placement — content placed at positions still occupied — creates an overlap.
+(a) *Contiguity violation.* D-CTG is a design constraint that complete operations preserve at their endpoints. A partial shift — V-addresses shifted but content not yet placed — creates a gap, violating D-CTG at the intermediate state. A partial placement — content placed at positions still occupied — creates an overlap.
 
 (b) *Coupling violation.* If placement occurred without the corresponding provenance recording, J1 would be violated. If provenance were recorded without placement, J1' would be violated.
 
