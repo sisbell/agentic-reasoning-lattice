@@ -132,6 +132,8 @@ We now define COPY as a composite state transition. The definition proceeds in t
 
 (P.6) w = w(R) ≥ 1.
 
+(P.7) v₁ ≥ 1 (text subspace). COPY places content — it does not create links. Link creation is a distinct operation with its own semantics. This restriction ensures the block decomposition B (which covers text-subspace V-positions per ASN-0058 B1) includes all positions in the target subspace, and that the non-target frame `subspace(p) ≠ S` correctly covers the link subspace.
+
 *Phase 1 — Resolution.* The resolution is computed from the pre-state Σ. Specifically, resolve(R) reads M(d_sⱼ) from Σ for each source document d_sⱼ. The resulting I-address sequence is immutable for the remainder of the transition. No state modification occurs in this phase.
 
 This is not an additional constraint bolted on for safety — it is a structural consequence of the operation being defined as a function of the pre-state. The resolution reads; the mutation writes. Gregory's implementation confirms the ordering: `specset2ispanset` (resolution) runs to completion before `insertpm` (mutation) begins. The I-address sequence is computed and held in task-local memory; subsequent POOM shifts cannot affect it.
@@ -255,7 +257,7 @@ S2 (ArrangementFunctionality): M'(d) is a function because B' satisfies B2 — e
 
 S3 (ReferentialIntegrity): we must show ran(M'(d)) ⊆ dom(C'). Pre-blocks and shifted post-blocks reference the same I-addresses as B, which satisfy S3 by assumption. Placed blocks γⱼ reference I-addresses satisfying C1 (ResolutionIntegrity). Since C' = C, all references are valid. ∎
 
-S8a (VPositionWellFormedness): new V-positions in the γⱼ blocks have the form v + offset, where v satisfies S8a and offset is an ordinal increment. By the OrdinalShift definition (ASN-0034), shift(v, n) changes only the last component of v (adding n to it); all other components are unchanged. Since v has all positive components (zeros(v) = 0), the shifted position also has all positive components. Shifted post-block V-positions satisfy S8a by the same component-preservation argument. ∎
+S8a (VPositionWellFormedness): by P.7, v₁ ≥ 1, so the insertion position is in the text subspace and S8a's guard applies. New V-positions in the γⱼ blocks have the form v + offset, where v satisfies S8a and offset is an ordinal increment. By the OrdinalShift definition (ASN-0034), shift(v, n) changes only the last component of v (adding n to it); all other components are unchanged. Since v has all positive components (zeros(v) = 0, guaranteed by v₁ ≥ 1 and S8a), the shifted position also has all positive components. Shifted post-block V-positions satisfy S8a by the same component-preservation argument. ∎
 
 S8-depth (FixedDepthVPositions): ordinal shift preserves depth: #shift(v, n) = #v (OrdinalShift definition, ASN-0034). All new and shifted V-positions share the depth of the existing ones. ∎
 
@@ -552,6 +554,7 @@ Nelson reinforces this at the system level: "A server's network model, from the 
 | NativeContent | V-position v where origin(M(d)(v)) = d | introduced |
 | IncludedContent | V-position v where origin(M(d)(v)) ≠ d | introduced |
 | ValidInsertionPosition | if V_S(d) ≠ ∅: v = min(V_S(d)) + j with 0 ≤ j ≤ N; if V_S(d) = ∅: v = [S, 1, ..., 1] of depth m ≥ 2 | introduced |
+| P.7 | v₁ ≥ 1 — COPY targets text subspace only (PRE) | introduced |
 | COPY | composite transition: resolve in pre-state, then split-shift-place | introduced |
 | C0 | C' = C — no content allocation (FRAME) | introduced |
 | C0a | set of I-addresses allocated under any document is unchanged by COPY | introduced |
