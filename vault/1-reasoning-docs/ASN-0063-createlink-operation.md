@@ -64,7 +64,7 @@ We extend `resolve` to handle both input forms uniformly. An *endset specificati
 
   `resolve(E_I) = E_I`
 
-The identity: no arrangement is consulted, no validation against dom(C) is performed. The link is created with whatever I-spans are provided. CL2 (ResolutionContainment) holds trivially for the direct form: `coverage(E_I) ⊆ coverage(resolve(E_I)) = coverage(E_I)`. CL1 likewise: the endset itself witnesses existence. This ensures that the CREATELINK composite and its postconditions CL3, CL11 cover both input paths without case splitting.
+The identity: no arrangement is consulted, no validation against dom(C) is performed. The link is created with whatever I-spans are provided. CL1 and CL2 apply only to the V-space form — they are stated in terms of a document d and V-span-set Ψ, which the direct form does not have. The direct form needs no resolution guarantee: the user provides the endset directly, so no V-to-I translation occurs and no containment claim arises. The CREATELINK postconditions CL3 and CL11 cover both input paths without case splitting because they are stated in terms of the resolved endsets (F, G, Θ), which are well-formed endsets regardless of which input form produced them.
 
 
 ## Extending the Transition Framework
@@ -97,13 +97,13 @@ The address ℓ is produced by the same forward-allocation discipline as content
 
   `(A d, v : v ∈ dom(Σ.M(d)) : (subspace(v) = s_C ⟹ Σ.M(d)(v) ∈ dom(Σ.C)) ∧ (subspace(v) = s_L ⟹ Σ.M(d)(v) ∈ dom(Σ.L)))`
 
-where `subspace(v)` denotes the first component of the V-position. S3★ supersedes S3 (ASN-0036) for the extended state Σ = (C, L, E, M, R): S3 requires every V-position to map into dom(C), which is violated by link-subspace mappings targeting dom(L). S3 remains valid when restricted to states with no link-subspace mappings — the pre-extension states of ASN-0047 have only content-subspace V-positions, for which S3★ reduces to S3. Existing transitions preserve S3★: K.α, K.δ, K.ρ hold M in frame; K.μ⁺ creates only content-subspace V-positions (by its amended precondition `subspace(v) = s_C`), so new mappings target dom(C) and the link-subspace clause is unaffected; K.μ⁻ contracts dom(M(d)), preserving both clauses; K.μ~ reorders within a fixed multiset of I-addresses, preserving both target stores.
+where `subspace(v)` denotes the first component of the V-position. S3★ supersedes S3 (ASN-0036) for the extended state Σ = (C, L, E, M, R): S3 requires every V-position to map into dom(C), which is violated by link-subspace mappings targeting dom(L). S3 remains valid when restricted to states with no link-subspace mappings — the pre-extension states of ASN-0047 have only content-subspace V-positions, for which S3★ reduces to S3. Existing transitions preserve S3★: K.α, K.δ, K.ρ hold M in frame; K.μ⁺ creates only content-subspace V-positions (by its amended precondition `subspace(v) = s_C`), so new mappings target dom(C) and the link-subspace clause is unaffected; K.μ⁻ contracts dom(M(d)), preserving both clauses; K.μ~ is a distinguished composite K.μ⁻ + K.μ⁺ (ASN-0047) with a bijection `π : dom(M(d)) → dom(M'(d))` satisfying `M'(d)(π(v)) = M(d)(v)`. Since K.μ⁺ (amended) requires `subspace(v) = s_C` for new V-positions, K.μ⁺ cannot create link-subspace V-positions. Therefore K.μ⁻ cannot remove any link-subspace V-position without breaking the bijection — the removed position's I-address (in dom(L)) would need placement under a content-subspace V-position, violating S3★. K.μ~ thus fixes all link-subspace mappings; content-subspace mappings are reordered within dom(C), preserving S3★'s content clause.
 
 **K.μ⁺_L — LinkSubspaceExtension.** Extends a document's arrangement in the link subspace.
 
 *Precondition:*
 - d ∈ E_doc
-- ℓ ∈ dom(L')  (the target link must already exist — K.λ must precede this step)
+- ℓ ∈ dom(L)  (the target link must already exist — K.λ must precede this step)
 - V-position v_ℓ satisfies:
   - subspace(v_ℓ) = s_L
   - m_L ≥ 2, where: if V_{s_L}(d) ≠ ∅, m_L is the common depth of existing link-subspace V-positions (determined by S8-depth); if V_{s_L}(d) = ∅, m_L is a parameter of the transition, subject only to m_L ≥ 2. The lower bound is structural: ordinal shift at depth 1 alters the subspace identifier (`shift([s_L], 1) = [s_L + 1]`, violating subspace closure TA7a), so the link subspace requires depth at least 2
@@ -169,6 +169,10 @@ Let F = resolve(S_F), G = resolve(S_G), Θ = resolve(S_Θ), where each resolve d
   (d) `(A ℓ' : ℓ' ∈ dom(L) : L'(ℓ') = L(ℓ'))` — existing links unchanged (L12)
 
   (e) `C' = C` — content unchanged
+
+  (f) `v_ℓ ∈ dom(M'(d)) ∧ M'(d)(v_ℓ) = ℓ` — the new link is placed in d's link subspace, where `v_ℓ = [s_L, 1, ..., 1]` (depth m_L, by D-MIN) when V_{s_L}(d) was empty, or `v_ℓ = shift(max(V_{s_L}(d)), 1)` (by D-CTG) otherwise
+
+  (g) `(A v : v ∈ dom(M(d)) : M'(d)(v) = M(d)(v))` — the existing arrangement of d is unchanged
 
 Step 2 places ℓ into d's arrangement, making the link an *out-link* of d. Nelson draws a sharp distinction: "a document consists of its contents (including history and alternatives) and its out-links, the links it contains that point to other documents. By contrast, a document's in-links are those stored elsewhere which point to it. These out-links are under control of its owner, whereas its in-links are not" (LM 2/31). An out-link lives in its home document's arrangement; an in-link is merely discoverable from the referenced document. CREATELINK produces one out-link (in d) and zero or more in-link relationships (one for each document whose content the endsets reference).
 
