@@ -126,14 +126,21 @@ This is not an additional constraint bolted on for safety — it is a structural
 
 (i) *Split.* If v is interior to some block β = (v_β, a_β, n_β) ∈ B — meaning v_β < v < v_β + n_β — let c be the natural number with v = v_β + c. Split β at c (M4, ASN-0058) into β_L = (v_β, a_β, c) and β_R = (v, a_β + c, n_β − c). Replace β with β_L, β_R in B. If v is not interior to any block, no split occurs.
 
-(ii) *Classify.* Partition B (after step i) into:
+(ii) *Classify.* Let S = v₁ (the subspace identifier of the insertion position). First partition B (after step i) by subspace:
 
 ```
-B_pre  = {β ∈ B : v_β + n_β ≤ v}     (blocks entirely before v)
-B_post = {β ∈ B : v_β ≥ v}            (blocks at or after v)
+B_S     = {β ∈ B : (v_β)₁ = S}        (blocks in the target subspace)
+B_other = {β ∈ B : (v_β)₁ ≠ S}        (blocks in other subspaces)
 ```
 
-After the split, these are disjoint and exhaustive. The split in step (i) ensures no block straddles the insertion point.
+B_other is entirely in the frame — these blocks are not shifted or modified. Then partition B_S into:
+
+```
+B_pre  = {β ∈ B_S : v_β + n_β ≤ v}    (blocks before v in subspace S)
+B_post = {β ∈ B_S : v_β ≥ v}           (blocks at or after v in subspace S)
+```
+
+After the split, B_pre and B_post are disjoint and exhaustive within B_S. The split in step (i) ensures no block in B_S straddles the insertion point. B_other is disjoint from both by T7 (SubspaceDisjointness, ASN-0034).
 
 (iii) *Shift.* For each β = (v_β, a_β, n_β) ∈ B_post, define the displaced block:
 
@@ -149,7 +156,7 @@ with the convention that the empty sum is 0, so γ₁ = (v, a₁, n₁).
 
 (v) *Compose.*
 
-`B' = B_pre ∪ {γ₁, ..., γₖ} ∪ {β↑w : β ∈ B_post}`
+`B' = B_pre ∪ {γ₁, ..., γₖ} ∪ {β↑w : β ∈ B_post} ∪ B_other`
 
 *Effects.*
 
@@ -170,9 +177,9 @@ The provenance extension records that d now contains certain I-addresses. By J1 
 
 *Case 1: B_post ≠ ∅.* K.μ~ is defined in ASN-0047 as a distinguished composite of K.μ⁻ and K.μ⁺, not an elementary transition. Unfolding it, the COPY composite decomposes into four elementary steps: Σ = Σ₀ →^{K.μ⁻} Σ₁ →^{K.μ⁺} Σ₂ →^{K.μ⁺} Σ₃ →^{K.ρ} Σ₄ = Σ':
 
-*Step 1 (K.μ⁻).* Remove B_post entries from M(d), yielding an arrangement over positions [v₀, v) only. Precondition at Σ₀: d ∈ E_doc (P.1); B_post ≠ ∅ ensures dom(M₁(d)) ⊂ dom(M₀(d)) (strict contraction). Frame: C₁ = C, E₁ = E, R₁ = R.
+*Step 1 (K.μ⁻).* Remove B_post entries from M(d). Within subspace S, the remaining text positions are [v₀, v) only; non-target subspace positions are unchanged. Precondition at Σ₀: d ∈ E_doc (P.1); B_post ≠ ∅ ensures dom(M₁(d)) ⊂ dom(M₀(d)) (strict contraction). Frame: C₁ = C, E₁ = E, R₁ = R.
 
-*Step 2 (K.μ⁺).* Add the shifted B_post entries {β↑w : β ∈ B_post}, placing them at V-positions [v + w, v₀ + N + w). Precondition at Σ₁: d ∈ E_doc; every I-address in the shifted blocks is in dom(C₁) = dom(C) (these are the same I-addresses as in B_post, which satisfy S3); shifted V-positions satisfy S8a (ordinal shift preserves positivity and zero-count) and S8-depth (ordinal shift preserves depth); dom(M₂(d)) is finite; B_post ≠ ∅ ensures dom(M₂(d)) ⊃ dom(M₁(d)) (strict extension). Frame: C₂ = C, E₂ = E, R₂ = R. Steps 1–2 together effect the K.μ~ reordering. The intermediate arrangement after step 1 has domain {v₀, ..., v − 1} only; after step 2 the domain is {v₀, ..., v − 1} ∪ {v + w, ..., v₀ + N + w − 1} — a gap at [v, v + w). This intermediate state is reachable by a valid composite (J0, J1, and J1' all hold vacuously: no content is allocated (dom(C) unchanged), no I-address is newly introduced into any arrangement (K.μ⁻ can only reduce the range), and no provenance pair is added (R unchanged)), yet it violates D-CTG. D-CTG is thus not an invariant of all reachable states — it is a design constraint that complete operations are expected to preserve at their endpoints. COPY restores D-CTG by the end of step 3.
+*Step 2 (K.μ⁺).* Add the shifted B_post entries {β↑w : β ∈ B_post}, placing them at V-positions [v + w, v₀ + N + w). Precondition at Σ₁: d ∈ E_doc; every I-address in the shifted blocks is in dom(C₁) = dom(C) (these are the same I-addresses as in B_post, which satisfy S3); shifted V-positions satisfy S8a (ordinal shift preserves positivity and zero-count) and S8-depth (ordinal shift preserves depth); dom(M₂(d)) is finite; B_post ≠ ∅ ensures dom(M₂(d)) ⊃ dom(M₁(d)) (strict extension). Frame: C₂ = C, E₂ = E, R₂ = R. Steps 1–2 together effect the K.μ~ reordering. Within subspace S, the intermediate arrangement after step 1 has domain {v₀, ..., v − 1}; after step 2 it is {v₀, ..., v − 1} ∪ {v + w, ..., v₀ + N + w − 1} — a gap at [v, v + w). Non-target subspaces retain their original positions throughout. This intermediate state is reachable by a valid composite (J0, J1, and J1' all hold vacuously: no content is allocated (dom(C) unchanged), no I-address is newly introduced into any arrangement (K.μ⁻ can only reduce the range), and no provenance pair is added (R unchanged)), yet it violates D-CTG. D-CTG is thus not an invariant of all reachable states — it is a design constraint that complete operations are expected to preserve at their endpoints. COPY restores D-CTG by the end of step 3.
 
 *Step 3 (K.μ⁺).* Fill the gap with placed blocks γ₁, ..., γₖ, extending dom(M₂(d)) by positions [v, v + w). Precondition at Σ₂: d ∈ E_doc; every new I-address aⱼ + i ∈ dom(C₂) = dom(C) (by C1); new V-positions satisfy S8a (same depth and positivity as existing positions); M₃(d) satisfies S8-depth (placed blocks share depth m); dom(M₃(d)) is finite (N + w). Frame: C₃ = C, E₃ = E, R₃ = R.
 
@@ -188,26 +195,26 @@ Coupling constraints at (Σ₀, Σ₄): J0 holds vacuously (dom(C₄) \ dom(C₀
 
 Coupling constraints at (Σ₀, Σ₂): J0 holds vacuously (dom(C₂) \ dom(C₀) = ∅). J1 holds by step 2 construction. J1' holds because every (a, d) ∈ R₂ \ R₀ was added in step 2 for some a ∈ ran(M₂(d)) \ ran(M₀(d)).
 
-In both cases, the high-level COPY definition (Phase 2, steps i–v) produces the same B' = B_pre ∪ {γ₁, ..., γₖ} ∪ {β↑w : β ∈ B_post} — the distinction is only in how the composite is decomposed into elementary transitions for the ValidComposite verification.
+In both cases, the high-level COPY definition (Phase 2, steps i–v) produces the same B' = B_pre ∪ {γ₁, ..., γₖ} ∪ {β↑w : β ∈ B_post} ∪ B_other — the distinction is only in how the composite is decomposed into elementary transitions for the ValidComposite verification.
 
 
 ## Well-Formedness of B'
 
 We verify that B' is a valid block decomposition.
 
-**B2 (Disjointness).** The three groups occupy non-overlapping V-ranges. B_pre blocks have V-reaches ≤ v (every v_β + n_β ≤ v by classification). Placed blocks γⱼ have V-positions in [v, v + w) — the first starts at v and the last ends at v + w by width summation. Shifted B_post blocks have V-starts ≥ v + w (each had v_β ≥ v, so v_β + w ≥ v + w). Within each group, pairwise disjointness is inherited: B_pre and B_post retain pairwise disjointness from B (M5, ASN-0058 for the split); the shift is an order-preserving injection on V-starts (TS1, ASN-0034); the γⱼ are pairwise disjoint by construction (consecutive, non-overlapping ranges).
+**B2 (Disjointness).** The four groups occupy non-overlapping V-ranges. B_pre blocks have V-reaches ≤ v (every v_β + n_β ≤ v by classification). Placed blocks γⱼ have V-positions in [v, v + w) — the first starts at v and the last ends at v + w by width summation. Shifted B_post blocks have V-starts ≥ v + w (each had v_β ≥ v, so v_β + w ≥ v + w). B_other blocks have (v_β)₁ ≠ S, while B_pre, placed blocks, and shifted B_post all have first component S — disjoint by T7 (SubspaceDisjointness, ASN-0034). Within each group, pairwise disjointness is inherited: B_pre and B_post retain pairwise disjointness from B (M5, ASN-0058 for the split); the shift is an order-preserving injection on V-starts (TS1, ASN-0034); the γⱼ are pairwise disjoint by construction (consecutive, non-overlapping ranges); B_other retains pairwise disjointness from B.
 
-**B1 (Coverage).** Let N = |dom_text(M(d))| and v₀ be the base. The pre-range [v₀, v) is covered by B_pre. The placed range [v, v + w) is partitioned by γ₁, ..., γₖ. The post-range [v + w, v₀ + N + w) is covered by B_post↑w. Together they cover all N + w positions.
+**B1 (Coverage).** Within subspace S, let N = |V_S(d)| and v₀ be the base. The pre-range [v₀, v) is covered by B_pre. The placed range [v, v + w) is partitioned by γ₁, ..., γₖ. The post-range [v + w, v₀ + N + w) is covered by B_post↑w. Together they cover all N + w subspace-S positions. B_other covers all text positions in subspaces S' ≠ S, unchanged.
 
-**B3 (Consistency).** Pre-blocks: M'(d)(p) = M(d)(p) for p < v (unchanged). Placed blocks: M'(d)(v + offset) = aⱼ + (offset − offsetⱼ) for the appropriate j (by construction). Shifted post-blocks: for β = (v_β, a_β, n_β) ∈ B_post, M'(d)(v_β + w + i) = a_β + i = M(d)(v_β + i) for 0 ≤ i < n_β (same I-addresses at shifted V-positions).
+**B3 (Consistency).** Pre-blocks: M'(d)(p) = M(d)(p) for p < v (unchanged). Placed blocks: M'(d)(v + offset) = aⱼ + (offset − offsetⱼ) for the appropriate j (by construction). Shifted post-blocks: for β = (v_β, a_β, n_β) ∈ B_post, M'(d)(v_β + w + i) = a_β + i = M(d)(v_β + i) for 0 ≤ i < n_β (same I-addresses at shifted V-positions). Other-subspace blocks: M'(d)(p) = M(d)(p) for all p in B_other (unchanged).
 
-**C2 — ContiguityPreservation (LEMMA).** COPY preserves D-CTG. If dom_text(M(d)) = {v₀ + j : 0 ≤ j < N}, then dom_text(M'(d)) = {v₀ + j : 0 ≤ j < N + w}.
+**C2 — ContiguityPreservation (LEMMA).** COPY preserves D-CTG. Within subspace S, if V_S(d) = {v₀ + j : 0 ≤ j < N}, then after COPY V_S(d) = {v₀ + j : 0 ≤ j < N + w}. For non-target subspaces S' ≠ S, V_{S'}(d) is unchanged (B_other is in the frame).
 
 *Derivation.* The pre-range contributes positions v₀ through v − 1 (contiguous by assumption). The placed range contributes positions v through v + w − 1 (contiguous by construction of the γⱼ — each begins where the previous ends). The post-range contributes positions v + w through v₀ + N + w − 1 (contiguous because shifting a contiguous range by a constant preserves contiguity, by TS1). The three ranges are adjacent: v immediately follows v − 1, and v + w immediately follows v + w − 1. The union is contiguous with N + w elements. ∎
 
-**C2a — MinimumPreservation (LEMMA).** COPY preserves D-MIN. After COPY, min(V_S(d)) = [S, 1, ..., 1].
+**C2a — MinimumPreservation (LEMMA).** COPY preserves D-MIN for every subspace.
 
-*Derivation.* When N > 0: the pre-state has min(V_S(d)) = v₀ = [S, 1, ..., 1] by D-MIN. If v > v₀, then v₀ ∈ B_pre — unchanged by COPY — so the minimum is preserved. If v = v₀, the first placed block γ₁ starts at v = v₀ = [S, 1, ..., 1], which remains the minimum. When N = 0: by ValidInsertionPosition, v = [S, 1, ..., 1], so the first placed block starts at the canonical minimum. ∎
+*Derivation.* For the target subspace S: when N > 0, the pre-state has min(V_S(d)) = v₀ = [S, 1, ..., 1] by D-MIN. If v > v₀, then v₀ ∈ B_pre — unchanged by COPY — so the minimum is preserved. If v = v₀, the first placed block γ₁ starts at v = v₀ = [S, 1, ..., 1], which remains the minimum. When N = 0: by ValidInsertionPosition, v = [S, 1, ..., 1], so the first placed block starts at the canonical minimum. For non-target subspaces S' ≠ S: B_other is unmodified, so V_{S'}(d) is unchanged and D-MIN is preserved trivially. ∎
 
 
 ## Invariant Preservation
@@ -536,7 +543,7 @@ Nelson reinforces this at the system level: "A server's network model, from the 
 | C2a | COPY preserves D-MIN: min(V_S(d)) = [S, 1, ..., 1] after COPY | introduced |
 | C3 | COPY preserves all foundational invariants (P0–P5, P4a, P6–P8, S0, S2, S3, S8a, S8-depth, S8-fin, J0, J1, J1', D-CTG, D-MIN) | introduced |
 | C4 | positions ≥ v shift by w; positions < v unchanged | introduced |
-| C5 | no existing V→I mapping is removed; content displaced, never overwritten | introduced |
+| C5 | every pre-state I-address appears in the post-state arrangement; content displaced, never overwritten | introduced |
 | C6 | placed I-addresses are the same addresses as in the source | introduced |
 | C7 | origin(a) is unchanged — determined solely by the I-address | introduced |
 | C7a | COPY does not alter native/included classification of pre-existing positions | introduced |
