@@ -50,7 +50,15 @@ Since `#u = #ℓ = m`, dom(M(d_s)) contains only depth-m V-positions (S8-depth),
 
 To resolve a content reference, we extract the I-address runs corresponding to the named V-span. The source document's mapping may not be ordinal-contiguous across the full span — prior editing may have interleaved content from multiple allocations, fragmenting the V→I mapping into several contiguous I-address runs.
 
-**Definition — Resolution.** Given content reference (d_s, σ) with σ = (u, ℓ), let f = M(d_s)|⟦σ⟧ be the restriction of M(d_s) to positions in ⟦σ⟧. Since f is a restriction of M(d_s) to a contiguous V-range, it inherits: functionality per V-position (S2), finite domain (S8-fin), and fixed depth (S8-depth) — all hold for any restriction of a function satisfying them. M11's proof proceeds by iteratively merging adjacent blocks in any decomposition; it requires only finiteness (to terminate) and functionality (for B3). M12's proof that maximal runs partition the domain uses only the function's values. Both extend to any finite partial function T ⇀ T satisfying S2, S8-fin, and S8-depth. The restriction f = M(d_s)|⟦σ⟧ is such a function. By M11 and M12 (ASN-0058), f therefore admits a unique maximally merged block decomposition ⟨β₁, ..., βₖ⟩ ordered by V-start. The *I-address sequence* is:
+**Definition — Resolution.** Given content reference (d_s, σ) with σ = (u, ℓ), let f = M(d_s)|⟦σ⟧ be the restriction of M(d_s) to positions in ⟦σ⟧.
+
+**C1a — RestrictionDecomposition (COROLLARY).** M11 and M12 (ASN-0058) hold for any finite partial function f : T ⇀ T satisfying S2, S8-fin, and S8-depth. In particular, the restriction f = M(d_s)|⟦σ⟧ admits a unique maximally merged block decomposition.
+
+*Verification that f satisfies the conditions.* (i) S2 (functionality): f is a restriction of M(d_s), which is functional by S2; a restriction of a function is a function. (ii) S8-fin (finite domain): dom(f) ⊆ dom(M(d_s)), which is finite by S8-fin; a subset of a finite set is finite. (iii) S8-depth (fixed depth): every position in dom(f) belongs to dom(M(d_s)), so all share the common depth m of subspace u₁ in d_s.
+
+*Extension of M11/M12.* M11 (CanonicalExistence) constructs a maximally merged decomposition by iterating: while any two blocks satisfy the merge condition (M7), merge them. Termination requires finiteness of the decomposition — guaranteed by S8-fin since the initial block count is at most |dom(f)|. Each merge step requires only B3 (consistency with f's values) — guaranteed by S2. M12 (CanonicalUniqueness) identifies the maximally merged decomposition with the set of maximal runs of f, using only pointwise evaluation of f — independent of whether f is a full arrangement or a restriction. Both proofs require no property of M(d) beyond S2, S8-fin, and S8-depth; they apply to f verbatim. ∎
+
+The decomposition yields ⟨β₁, ..., βₖ⟩ ordered by V-start. The *I-address sequence* is:
 
 `resolve(d_s, σ) = ⟨(a₁, n₁), ..., (aₖ, nₖ)⟩`
 
@@ -208,7 +216,7 @@ In both cases, the high-level COPY definition (Phase 2, steps i–v) produces th
 
 We verify that B' is a valid block decomposition.
 
-**B2 (Disjointness).** The four groups occupy non-overlapping V-ranges. B_pre blocks have V-reaches ≤ v (every v_β + n_β ≤ v by classification). Placed blocks γⱼ have V-positions in [v, v + w) — the first starts at v and the last ends at v + w by width summation. Shifted B_post blocks have V-starts ≥ v + w (each had v_β ≥ v, so v_β + w ≥ v + w). B_other blocks have (v_β)₁ ≠ S, while B_pre, placed blocks, and shifted B_post all have first component S — disjoint by T7 (SubspaceDisjointness, ASN-0034). Within each group, pairwise disjointness is inherited: B_pre and B_post retain pairwise disjointness from B (M5, ASN-0058 for the split); the shift is an order-preserving injection on V-starts (TS1, ASN-0034); the γⱼ are pairwise disjoint by construction (consecutive, non-overlapping ranges); B_other retains pairwise disjointness from B.
+**B2 (Disjointness).** The four groups occupy non-overlapping V-ranges. B_pre blocks have V-reaches ≤ v (every v_β + n_β ≤ v by classification). Placed blocks γⱼ have V-positions in [v, v + w) — the first starts at v and the last ends at v + w by width summation. Shifted B_post blocks have V-starts ≥ v + w (each had v_β ≥ v, so v_β + w ≥ v + w). B_other blocks have (v_β)₁ ≠ S, while B_pre, placed blocks, and shifted B_post all have first component S — disjoint by T7 (SubspaceDisjointness, ASN-0034). Within each group, pairwise disjointness is inherited: B_pre and B_post retain pairwise disjointness from B (M6f, ASN-0058 — the split preserves decomposition-level B2); the shift is an order-preserving injection on V-starts (TS1, ASN-0034); the γⱼ are pairwise disjoint by construction (consecutive, non-overlapping ranges); B_other retains pairwise disjointness from B.
 
 **B1 (Coverage).** Within subspace S, let N = |V_S(d)| and v₀ be the base. The pre-range [v₀, v) is covered by B_pre. The placed range [v, v + w) is partitioned by γ₁, ..., γₖ. The post-range [v + w, v₀ + N + w) is covered by B_post↑w. Together they cover all N + w subspace-S positions. B_other covers all text positions in subspaces S' ≠ S, unchanged.
 
@@ -216,7 +224,7 @@ We verify that B' is a valid block decomposition.
 
 **C2 — ContiguityPreservation (LEMMA).** COPY preserves D-CTG. Within subspace S, if V_S(d) = {v₀ + j : 0 ≤ j < N}, then after COPY V_S(d) = {v₀ + j : 0 ≤ j < N + w}. For non-target subspaces S' ≠ S, V_{S'}(d) is unchanged (B_other is in the frame).
 
-*Derivation.* The pre-range contributes positions v₀ through v − 1 (contiguous by assumption). The placed range contributes positions v through v + w − 1 (contiguous by construction of the γⱼ — each begins where the previous ends). The post-range contributes positions v + w through v₀ + N + w − 1 (contiguous because shifting a contiguous range by a constant preserves contiguity, by TS1). The three ranges are adjacent: v immediately follows v − 1, and v + w immediately follows v + w − 1. The union is contiguous with N + w elements. ∎
+*Derivation.* The pre-range contributes positions v₀ through v − 1 (contiguous by assumption). The placed range contributes positions v through v + w − 1 (contiguous by construction of the γⱼ — each begins where the previous ends). The post-range contributes positions v + w through v₀ + N + w − 1 (contiguous because shifting preserves consecutiveness: for any position p in the pre-shift range, shift(shift(p, 1), w) = shift(p, 1 + w) = shift(shift(p, w), 1) by TS3 (ShiftComposition, ASN-0034), so consecutive positions remain consecutive after the shift; TS1 (ShiftOrderPreservation) then ensures the shifted range maintains its ordering). The three ranges are adjacent: v immediately follows v − 1, and v + w immediately follows v + w − 1. The union is contiguous with N + w elements. ∎
 
 **C2a — MinimumPreservation (LEMMA).** COPY preserves D-MIN for every subspace.
 
@@ -548,6 +556,7 @@ Nelson reinforces this at the system level: "A server's network model, from the 
 | C0 | C' = C — no content allocation (FRAME) | introduced |
 | C0a | set of I-addresses allocated under any document is unchanged by COPY | introduced |
 | C1 | every resolved I-address is in dom(C) | introduced |
+| C1a | M11/M12 hold for any finite partial function f : T ⇀ T satisfying S2, S8-fin, S8-depth; in particular M(d_s)\|⟦σ⟧ | introduced |
 | C2 | COPY preserves D-CTG: N + w positions after, N before | introduced |
 | C2a | COPY preserves D-MIN: min(V_S(d)) = [S, 1, ..., 1] after COPY | introduced |
 | C3 | COPY preserves all foundational invariants (P0–P5, P4a, P6–P8, S0, S2, S3, S8a, S8-depth, S8-fin, J0, J1, J1', D-CTG, D-MIN) | introduced |
