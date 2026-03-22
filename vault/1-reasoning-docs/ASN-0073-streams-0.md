@@ -2,7 +2,7 @@
 
 *2026-03-22*
 
-ASN-0036 defines the arrangement M(d) and the contiguity constraint D-CTG but does not characterize which V-positions are valid targets for content placement. This extension introduces the valid insertion position predicate — the characterization of V-positions at which content may be placed in a document's arrangement while preserving D-CTG and D-MIN. The predicate belongs in the streams domain because it depends solely on the arrangement structure (V_S(d), D-CTG, D-MIN, S8-depth) and constrains all operations that extend an arrangement.
+ASN-0036 defines the arrangement M(d) and the contiguity constraint D-CTG but does not identify which V-positions are valid targets for content placement. This note introduces the valid insertion position predicate — a definition of the V-positions at which a new entry may be added to a document's arrangement. The predicate depends solely on the arrangement structure (V_S(d), D-CTG, D-MIN, S8-depth). Whether inserting at such a position actually preserves these invariants is a proof obligation that falls to each operation that extends an arrangement; that verification is deferred to operation-level ASNs.
 
 
 ## Valid Insertion Position
@@ -13,17 +13,38 @@ When V_S(d) is contiguous with |V_S(d)| = N positions, we write its elements as 
 
 **ValidInsertionPosition** — *ValidInsertionPosition* (DEF, predicate). A V-position v is a *valid insertion position* in subspace S of document d satisfying D-CTG when one of two cases holds:
 
-- *Non-empty subspace.* V_S(d) ≠ ∅ with |V_S(d)| = N. Then v = min(V_S(d)) + j for some j with 0 ≤ j ≤ N, and #v equals the existing subspace depth (S8-depth).
+- *Non-empty subspace.* V_S(d) ≠ ∅ with |V_S(d)| = N. Then either v = min(V_S(d)) (the j = 0 case) or v = shift(min(V_S(d)), j) for some j with 1 ≤ j ≤ N. In both cases, #v equals the common V-position depth in subspace S (S8-depth).
 
-- *Empty subspace.* V_S(d) = ∅. Then v = [S, 1, ..., 1] of depth m ≥ 2, establishing the subspace's V-position depth at m. This is the canonical minimum position required by D-MIN (ASN-0036).
+- *Empty subspace.* V_S(d) = ∅. Then v = [S, 1, ..., 1] of depth m ≥ 2, establishing the subspace's V-position depth at m. This is the canonical minimum position required by D-MIN (ASN-0036). The choice of m is a one-time structural commitment: once any position is placed, S8-depth fixes the depth for all subsequent positions in the subspace.
 
 In both cases, S = v₁ is the subspace identifier.
 
-There are N + 1 valid insertion positions: N positions targeting existing content (which will be displaced), plus one append position past the end.
+In the non-empty case, there are exactly N + 1 valid insertion positions: the N positions coinciding with existing V-positions v₀ through v_{N−1}, plus the append position shift(min(V_S(d)), N). In the empty case, there is one valid position per choice of depth m — but since m is chosen once and then held fixed by S8-depth, exactly one position is valid for any given depth.
 
 
-## Statement Registry
+## Worked Examples
 
-| Label | Type | Statement | Status |
-|-------|------|-----------|--------|
-| ValidInsertionPosition | DEF | if V_S(d) ≠ ∅: v = min(V_S(d)) + j with 0 ≤ j ≤ N, #v = subspace depth; if V_S(d) = ∅: v = [S, 1, ..., 1] of depth m ≥ 2 | introduced |
+**Non-empty case.** Let subspace S = 1 and suppose V₁(d) = {[1, 1], [1, 2], [1, 3]}, so N = 3 and min(V₁(d)) = [1, 1]. The valid insertion positions are:
+
+- j = 0: v = min(V₁(d)) = [1, 1]
+- j = 1: v = shift([1, 1], 1) = [1, 2]
+- j = 2: v = shift([1, 1], 2) = [1, 3]
+- j = 3: v = shift([1, 1], 3) = [1, 4]
+
+That gives N + 1 = 4 positions. After an operation places new content at, say, [1, 2] — with whatever displacement mechanism the operation defines — the resulting V₁(d) must satisfy D-CTG and D-MIN. Verifying this is the operation's obligation, not the predicate's.
+
+**Empty case.** V₁(d) = ∅. Choosing depth m = 2, the valid insertion position is [1, 1]. D-MIN requires min(V₁(d)) = [1, 1] once the subspace becomes non-empty, so the position is exactly the one D-MIN demands. Choosing m = 3 instead would give [1, 1, 1]; by T3, this is a different tumbler — once chosen, S8-depth locks the subspace to depth 3 for all future positions.
+
+
+## Properties Introduced
+
+| Label | Statement | Status |
+|-------|-----------|--------|
+| ValidInsertionPosition | if V_S(d) ≠ ∅: v = min(V_S(d)) or v = shift(min(V_S(d)), j) with 1 ≤ j ≤ N, #v = subspace depth; if V_S(d) = ∅: v = [S, 1, ..., 1] of depth m ≥ 2 | introduced |
+
+
+## Open Questions
+
+- What invariants must the displacement mechanism satisfy so that insertion at a ValidInsertionPosition preserves D-CTG, D-MIN, and S2?
+- Under what conditions does the choice of initial depth m for an empty subspace affect the expressiveness of subsequent arrangements?
+- What must an operation guarantee about existing V-to-I mappings when it inserts at a position that coincides with an occupied V-position?
