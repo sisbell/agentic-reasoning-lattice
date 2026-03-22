@@ -39,7 +39,7 @@ We observe that a single contiguous V-span may resolve to multiple disjoint I-ad
 
 **F1 — ResolutionFragmentation (LEMMA).** For document d with canonical block decomposition B = {β₁, ..., βₘ} (ASN-0058, M11) and a V-span σ_V, the set resolve(d, {σ_V}) admits representation as a span-set of at most m spans.
 
-*Proof.* Each block βⱼ = (vⱼ, aⱼ, nⱼ) contributes at most one I-span to the result. Within a single block, M(d)(vⱼ + k) = aⱼ + k (B3, Consistency), so a contiguous set of V-positions maps to a contiguous set of I-addresses. The intersection V(βⱼ) ∩ ⟦σ_V⟧ is contiguous by S0 (Convexity, ASN-0053). If this intersection contains positions vⱼ + c through vⱼ + c + w − 1 (for some c, w with 0 ≤ c and 1 ≤ w ≤ nⱼ − c), the corresponding I-addresses are aⱼ + c through aⱼ + c + w − 1: a single I-span. Blocks with empty intersection contribute nothing. ∎
+*Proof.* Each block βⱼ = (vⱼ, aⱼ, nⱼ) contributes at most one I-span to the result. Within a single block, M(d)(vⱼ + k) = aⱼ + k (B3, Consistency), so a contiguous set of V-positions maps to a contiguous set of I-addresses. We must show that V(βⱼ) ∩ ⟦σ_V⟧ is contiguous. This requires three steps: (1) ⟦σ_V⟧ is convex by S0 (Convexity, ASN-0053); (2) V(βⱼ) = {vⱼ + k : 0 ≤ k < nⱼ} is convex, since it consists of consecutive ordinal increments from vⱼ (D-SEQ, ASN-0036 establishes that V-positions within a subspace form a contiguous ordinal range); (3) the intersection of two convex sets in a total order is convex — if p, r ∈ A ∩ B and p ≤ q ≤ r, then q ∈ A by convexity of A and q ∈ B by convexity of B, so q ∈ A ∩ B. If this intersection contains positions vⱼ + c through vⱼ + c + w − 1 (for some c, w with 0 ≤ c and 1 ≤ w ≤ nⱼ − c), the corresponding I-addresses are aⱼ + c through aⱼ + c + w − 1: a single I-span. Blocks with empty intersection contribute nothing. ∎
 
 Nelson acknowledges this multiplicity explicitly: the FEBE commands "have been generalized for the interconnection of broken lists of spans" (LM 4/61). A single user selection over a compound document — one built from transcluded fragments — may reference content scattered across the Istream. The search must handle this disjoint query set as a single operation.
 
@@ -147,16 +147,14 @@ The word "all" is the guarantee. The operation does not return "some links," a s
 
 **F4 — Completeness (INV).**
 
-The FINDLINKS operation must return exactly findlinks(Q):
-
-`result(Q) = findlinks(Q)`
-
-This is both *complete* (no satisfying link omitted) and *sound* (no non-satisfying link included):
+The FINDLINKS operation takes a query Q and returns findlinks(Q). It is both *complete* (no satisfying link omitted) and *sound* (no non-satisfying link included):
 
 ```
-(A ℓ ∈ dom(Σ.L) : satisfies(ℓ, Q) : ℓ ∈ result(Q))       — completeness
-(A ℓ ∈ result(Q) : satisfies(ℓ, Q))                        — soundness
+(A ℓ ∈ dom(Σ.L) : satisfies(ℓ, Q) : ℓ ∈ findlinks(Q))       — completeness
+(A ℓ ∈ findlinks(Q) : satisfies(ℓ, Q))                        — soundness
 ```
+
+Both follow directly from the definition of findlinks(Q) = {ℓ ∈ dom(Σ.L) : satisfies(ℓ, Q)}.
 
 The count operation (FINDNUMOFLINKSFROMTOTHREE) confirms complete knowledge — you cannot count what you have not found. The performance guarantee reinforces that completeness is practical at scale:
 
@@ -215,7 +213,9 @@ When the same I-address appears in two documents through transclusion, resolving
 
 *Derivation.* Let a = M(d₁)(v₁) = M(d₂)(v₂). Then resolve(d₁, {v₁}) = {M(d₁)(v₁)} = {a} = {M(d₂)(v₂)} = resolve(d₂, {v₂}). ∎
 
-This is not a feature to be designed in. It is a structural consequence of three properties: links reference I-addresses (L3, ASN-0043), transclusion preserves I-addresses (COPY creates no new content — ASN-0067, C0), and search matches on I-addresses (F2). Remove any one and the property vanishes.
+This is not a feature to be designed in. It is a structural consequence of three properties: links reference I-addresses (L3, ASN-0043), transclusion preserves I-addresses, and search matches on I-addresses (F2). Remove any one and the property vanishes.
+
+The second property — that transclusion preserves I-address identity — follows from the foundations alone. When content is transcluded into a document, the operation adds V→I mappings via K.μ⁺ (ArrangementExtension, ASN-0047). The frame of K.μ⁺ holds C' = C: no content is allocated, no I-addresses are created. The new V-positions map to I-addresses already in dom(C), as required by K.μ⁺'s precondition and S3 (ReferentialIntegrity, ASN-0036). The I-addresses in the target document are the *same* I-addresses as in the source — not copies, not new allocations.
 
 The consequence extends to the full scope of the docuverse. Link discovery is not bounded to the document containing the queried content:
 
@@ -238,13 +238,7 @@ The three endsets are structurally interchangeable in the search mechanism. Nels
 
 **F6 — EndsetSymmetry (INV).**
 
-All three endsets — from, to, type — are searchable with the same overlap predicate, the same performance guarantee, and the same completeness requirement.
-
-```
-(A e₁, e₂ ∈ {from, to, type}, Q ⊆ T :
-  the mechanism for testing overlaps(Σ.L(ℓ).e₁, Q)
-  is identical to that for overlaps(Σ.L(ℓ).e₂, Q))
-```
+All three endsets — from, to, type — are searchable with the same completeness and performance guarantees. The overlap predicate `overlaps(e, Q)` is defined uniformly on `(Endset, Set)` and applies identically regardless of which slot the endset occupies — this follows from the type signature alone. The substantive commitment is stronger: F4 (Completeness) applies independently to each endset constraint, and Nelson's performance guarantee — "THE QUANTITY OF LINKS NOT SATISFYING A REQUEST DOES NOT IN PRINCIPLE IMPEDE SEARCH ON OTHERS" (LM 4/60) — applies equally to from-constrained, to-constrained, and type-constrained queries. No endset slot is privileged or degraded in discovery.
 
 This symmetry is what makes backlinks a first-class operation. Nelson distinguishes a document's *out-links* (links it owns) from its *in-links* (links elsewhere that point to it):
 
@@ -273,7 +267,7 @@ where published(d) indicates the document is publicly available, and authorized(
 
 **F7 — VisibilityFiltering (DESIGN).**
 
-The user-visible result is the intersection of the full result with the set of accessible links:
+Visibility filtering is a separate, explicitly defined post-processing step applied to the complete findlinks(Q) result. The user-visible result is:
 
 ```
 visible(Q, u) = {ℓ ∈ findlinks(Q) : accessible(home(ℓ), u)}
@@ -281,21 +275,25 @@ visible(Q, u) = {ℓ ∈ findlinks(Q) : accessible(home(ℓ), u)}
 
 Two sub-properties hold:
 
-(a) *No omission of accessible links.* Every link that satisfies Q and whose home document the user can access appears in the result:
+(a) *No omission of accessible links.* Every link that satisfies Q and whose home document the user can access appears in the visible result:
 
 `(A ℓ : satisfies(ℓ, Q) ∧ accessible(home(ℓ), u) : ℓ ∈ visible(Q, u))`
 
-(b) *No leakage of inaccessible links.* No link whose home document is inaccessible appears in the result, nor is any information about such links revealed:
+*Derivation.* If satisfies(ℓ, Q) holds, then ℓ ∈ findlinks(Q) by F4 (completeness). If additionally accessible(home(ℓ), u) holds, then ℓ ∈ visible(Q, u) by the definition of visible. ∎
+
+(b) *No inclusion of inaccessible links.* No link whose home document is inaccessible appears in the visible result:
 
 `(A ℓ : ¬accessible(home(ℓ), u) : ℓ ∉ visible(Q, u))`
+
+*Derivation.* By the definition of visible(Q, u), membership requires accessible(home(ℓ), u). When this predicate is false, ℓ is excluded. ∎
 
 Nelson reinforces the non-leakage requirement:
 
 > "The network will not, may not monitor what is read or what is written in private documents." [LM 2/59]
 
-Revealing the existence of a link in a private document would leak information about what the owner wrote. The system must not disclose the count, the content, or even the existence of private links to unauthorized users.
+Revealing the existence of a link in a private document would leak information about what the owner wrote. The set-membership exclusion in F7(b) ensures that inaccessible links do not appear in the result set. The stronger property — that no *information* about inaccessible links is revealed (count, existence, timing) — is an information-flow guarantee that exceeds what the set-membership formalization captures. An implementation satisfying F7(b) must additionally ensure that inaccessible links are not observable through side channels (e.g., constant-time filtering, no count disclosure of the unfiltered set).
 
-We note that this interacts with F4 (Completeness): the completeness guarantee applies to the visible result. The system returns all *accessible* matching links. Private links are not "missing" from the result — they are filtered by a separate, well-defined predicate.
+The FINDLINKS operation itself (F4) is defined at the system level over the full link store. Visibility filtering is applied after discovery: the system returns all *accessible* matching links. Private links are not "missing" from the findlinks(Q) result — they are removed by a separate, well-defined predicate before presentation to the user.
 
 Nelson acknowledged that the interaction between link search and document privacy was never fully resolved in the specification:
 
@@ -411,8 +409,8 @@ Gregory's implementation grounds several abstract properties in concrete mechani
 | F3 | satisfies(ℓ, Q) is decidable from ℓ, Q (with finite span-set constraints), and Σ.L(ℓ) | introduced |
 | F4 | findlinks(Q) returns exactly the set of satisfying links (complete and sound) | introduced |
 | F5 | Transclusion identity: resolve(d₁, {v₁}) = resolve(d₂, {v₂}) when M(d₁)(v₁) = M(d₂)(v₂) | introduced |
-| F6 | All three endsets (from, to, type) are searchable with identical mechanism | introduced |
-| F7 | Result filtered by home document accessibility; no leakage of inaccessible links | introduced (design) |
+| F6 | All three endsets (from, to, type) are searchable with identical completeness and performance guarantees | introduced |
+| F7 | visible(Q, u) filters findlinks(Q) by home document accessibility; inaccessible links excluded from result set | introduced (design) |
 | F8 | findlinks(Q) is totally ordered by tumbler order on link addresses | introduced |
 | F9 | Reverse resolution (I→V) may yield multiple V-positions per I-address | introduced |
 | F10 | reverse(d, e) depends only on coverage(e) ∩ ran(M(d)); unarranged I-addresses invisible | introduced |
