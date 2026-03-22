@@ -37,9 +37,9 @@ Nelson specifies two variants:
 
 > "With three cuts, the two regions are from cut 1 to cut 2, and from cut 2 to cut 3... With four cuts, the regions are from cut 1 to cut 2, and from cut 3 to cut 4." [LM 4/67]
 
-A *cut sequence* specifies the boundaries. We formalize this as a tuple of V-positions within a single subspace.
+A *cut sequence* specifies the boundaries. We formalize this as a tuple of tumblers within a single subspace. The cut positions are tumblers satisfying CS1–CS4 below; the last cut c_{n−1} serves as an exclusive upper bound and need not belong to V_S(d).
 
-**Definition — CutSequence.** A *cut sequence* for document d in subspace S is a tuple C = (c₀, c₁, ..., c_{n−1}) of V-positions satisfying:
+**Definition — CutSequence.** A *cut sequence* for document d in subspace S is a tuple C = (c₀, c₁, ..., c_{n−1}) of tumblers satisfying:
 
 (CS1) n ∈ {3, 4} — exactly three or four cuts.
 
