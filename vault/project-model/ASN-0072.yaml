@@ -1,0 +1,8 @@
+# ASN-0072 — State Transitions 0
+title: "State Transitions 0"
+extends: 47
+source: 63
+depends: [34, 36, 45, 47]
+
+inquiry:
+  question: "Extension of ASN-0047: properties K.λ, K.μ⁺_L, S3★, S3★-aux, Contains_C(Σ), P4★, J1★, J1'★, P3★, P5★, CL-OWN, ExtendedReachableStateInvariants from ASN-0063."
