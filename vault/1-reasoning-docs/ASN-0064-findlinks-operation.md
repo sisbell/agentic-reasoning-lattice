@@ -37,9 +37,9 @@ This grounding is what connects the user's view to the link store: the resolved 
 
 We observe that a single contiguous V-span may resolve to multiple disjoint I-address ranges. This happens whenever the V-span crosses a block boundary in the document's block decomposition (ASN-0058). Consider a document whose text-subspace arrangement contains two mapping blocks β₁ = (v₁, a₁, n₁) and β₂ = (v₂, a₂, n₂) with v₂ = v₁ + n₁ (V-adjacent) but a₂ ≠ a₁ + n₁ (not I-adjacent). A V-span covering both blocks resolves to two separate I-runs: one under a₁ and one under a₂. The content was originally created in — or transcluded from — different sources; the arrangement remembers.
 
-**F1 — ResolutionFragmentation (LEMMA).** For document d with canonical block decomposition B = {β₁, ..., βₘ} (ASN-0058, M11) and a V-span σ_V, the set resolve(d, {σ_V}) admits representation as a span-set of at most m spans.
+**F1 — ResolutionFragmentation (LEMMA).** For document d with canonical block decomposition B = {β₁, ..., βₘ} (ASN-0058, M11) and a V-span σ_V, the set resolve(d, ⟦σ_V⟧) partitions into at most m contiguous I-address runs, one per block whose V-extent intersects ⟦σ_V⟧.
 
-*Proof.* Each block βⱼ = (vⱼ, aⱼ, nⱼ) contributes at most one I-span to the result. Within a single block, M(d)(vⱼ + k) = aⱼ + k (B3, Consistency), so a contiguous set of V-positions maps to a contiguous set of I-addresses. We must show that V(βⱼ) ∩ ⟦σ_V⟧ is contiguous. Suppose vⱼ + c ∈ V(βⱼ) ∩ ⟦σ_V⟧ and vⱼ + c' ∈ V(βⱼ) ∩ ⟦σ_V⟧ with c < c'. For any integer k with c ≤ k ≤ c': first, vⱼ + k ∈ V(βⱼ) since 0 ≤ k < nⱼ; second, ordinal increments preserve order (TA-strict, ASN-0034), giving vⱼ + c ≤ vⱼ + k ≤ vⱼ + c' in T1, so vⱼ + k ∈ ⟦σ_V⟧ by S0 (Convexity, ASN-0053). Therefore vⱼ + k ∈ V(βⱼ) ∩ ⟦σ_V⟧. (Note: V(βⱼ) itself is not convex in unrestricted T1 — extension tumblers of depth greater than m lie between consecutive ordinal increments — but the argument requires only the T1-convexity of ⟦σ_V⟧, applied to the depth-m positions in V(βⱼ).) If this intersection contains positions vⱼ + c through vⱼ + c + w − 1 (for some c, w with 0 ≤ c and 1 ≤ w ≤ nⱼ − c), the corresponding I-addresses are aⱼ + c through aⱼ + c + w − 1. This run is representable as the I-span (aⱼ + c, δ(w, d_I)) where d_I = #(aⱼ + c); the span is well-formed by T12 since w ≥ 1 (non-empty intersection) and the action point of δ(w, d_I) is d_I, satisfying d_I ≤ d_I (TA0). Blocks with empty intersection contribute nothing. ∎
+*Proof.* Each block βⱼ = (vⱼ, aⱼ, nⱼ) contributes at most one I-span to the result. Within a single block, M(d)(vⱼ + k) = aⱼ + k (B3, Consistency), so a contiguous set of V-positions maps to a contiguous set of I-addresses. We must show that V(βⱼ) ∩ ⟦σ_V⟧ is contiguous. Suppose vⱼ + c ∈ V(βⱼ) ∩ ⟦σ_V⟧ and vⱼ + c' ∈ V(βⱼ) ∩ ⟦σ_V⟧ with c < c'. For any integer k with c ≤ k ≤ c': first, vⱼ + k ∈ V(βⱼ) since 0 ≤ k < nⱼ; second, ordinal increments preserve order (TA-strict, ASN-0034), giving vⱼ + c ≤ vⱼ + k ≤ vⱼ + c' in T1, so vⱼ + k ∈ ⟦σ_V⟧ by S0 (Convexity, ASN-0053). Therefore vⱼ + k ∈ V(βⱼ) ∩ ⟦σ_V⟧. (Note: V(βⱼ) itself is not convex in unrestricted T1 — extension tumblers of depth greater than m lie between consecutive ordinal increments — but the argument requires only the T1-convexity of ⟦σ_V⟧, applied to the depth-m positions in V(βⱼ).) If this intersection contains positions vⱼ + c through vⱼ + c + w − 1 (for some c, w with 0 ≤ c and 1 ≤ w ≤ nⱼ − c), the corresponding I-addresses are aⱼ + c through aⱼ + c + w − 1. The I-addresses in this run — aⱼ + c through aⱼ + c + w − 1 — are all element-level (S7b, ASN-0036). When compact representation is needed, the run is described by the I-span (aⱼ + c, δ(w, d_I)) where d_I = #(aⱼ + c); note that the span denotation ⟦(aⱼ + c, δ(w, d_I))⟧ is a superset of the run (it includes extension tumblers of greater depth), but the element-level members are exactly the run's I-addresses. Blocks with empty intersection contribute nothing. ∎
 
 Nelson acknowledges this multiplicity explicitly: the FEBE commands "have been generalized for the interconnection of broken lists of spans" (LM 4/61). A single user selection over a compound document — one built from transcluded fragments — may reference content scattered across the Istream. The search must handle this disjoint query set as a single operation.
 
@@ -62,7 +62,7 @@ By the definition of coverage (ASN-0043):
 
 A single span in the endset achieving non-empty intersection suffices. When e = ∅ (the empty endset), overlaps(e, Q) is false for all Q — there is no span to provide the intersection. This is the disjunctive half: OR across the spans within an endset.
 
-When both the endset and the query are expressed as span-sets, the overlap test reduces to pairwise span intersection. Two spans σ₁ = (s₁, ℓ₁) and σ₂ = (s₂, ℓ₂) have non-empty intersection exactly when:
+Span-level overlap admits an efficient endpoint test. Two spans σ₁ = (s₁, ℓ₁) and σ₂ = (s₂, ℓ₂) have non-empty denotation intersection exactly when:
 
 `⟦σ₁⟧ ∩ ⟦σ₂⟧ ≠ ∅ ⟺ s₁ < reach(σ₂) ∧ s₂ < reach(σ₁)`
 
@@ -93,36 +93,36 @@ The outer level is conjunction: all specified constraints must be satisfied simu
 **Definition — DiscoveryQuery.** A discovery query is a tuple Q = (H, F_Q, G_Q, Θ_Q) where:
 
 - H ⊆ E_doc is the *home-set*: the set of documents whose links to search
-- F_Q is the *from-constraint*: either T (unrestricted) or a finite span-set
-- G_Q is the *to-constraint*: either T (unrestricted) or a finite span-set
-- Θ_Q is the *type-constraint*: either T (unrestricted) or a finite span-set
+- F_Q is the *from-constraint*: either T (unrestricted) or a finite set of I-addresses F_Q ⊂ T
+- G_Q is the *to-constraint*: either T (unrestricted) or a finite set of I-addresses G_Q ⊂ T
+- Θ_Q is the *type-constraint*: either T (unrestricted) or a finite set of I-addresses Θ_Q ⊂ T
 
-When a constraint is a finite span-set Σ, it denotes the I-address set ⟦Σ⟧ (ASN-0053, SpanSetDenotation). A constraint equal to T imposes no filtering on the corresponding endset. The home-set defaults to E_doc (all documents) when unrestricted.
+A constraint equal to T imposes no filtering on the corresponding endset. The home-set defaults to E_doc (all documents) when unrestricted. The from- and to-constraints are produced by resolution and are subsets of dom(Σ.C) (by F0); the type-constraint may reference addresses outside dom(Σ.C) (by L9, TypeGhostPermission, ASN-0043).
 
 At the user-facing level, constraints are specified as V-span-sets in specific documents. The front end resolves each constraint independently through its respective document's arrangement, producing I-address sets. A single constraint may reference content across multiple documents:
 
 `resolve_spec({(d₁, Σ₁), ..., (dₖ, Σₖ)}) = ⋃_{i=1}^{k} resolve(dᵢ, Σᵢ)`
 
-The from-constraint might say "content at V-positions 50–100 in document A and V-positions 200–250 in document B." After resolution, this becomes a single I-address set against which from-endsets are tested. By F1, each per-document resolution is representable as a finite I-span-set; the union across documents is also a finite span-set, satisfying the DiscoveryQuery type constraint.
+The from-constraint might say "content at V-positions 50–100 in document A and V-positions 200–250 in document B." After resolution, this becomes a single finite I-address set against which from-endsets are tested. Each per-document resolution produces a finite set (subset of the finite dom(M(dᵢ)) by S8-fin, ASN-0036); by F1, each decomposes into at most m contiguous runs.
 
 **Definition — Satisfaction.** A link at address ℓ ∈ dom(Σ.L), with Σ.L(ℓ) = (F, G, Θ), *satisfies* query Q = (H, F_Q, G_Q, Θ_Q) when:
 
 ```
 satisfies(ℓ, Q)  ≡  home(ℓ) ∈ H
-                   ∧ (F_Q = T  ∨  overlaps(F, ⟦F_Q⟧))
-                   ∧ (G_Q = T  ∨  overlaps(G, ⟦G_Q⟧))
-                   ∧ (Θ_Q = T  ∨  overlaps(Θ, ⟦Θ_Q⟧))
+                   ∧ (F_Q = T  ∨  overlaps(F, F_Q))
+                   ∧ (G_Q = T  ∨  overlaps(G, G_Q))
+                   ∧ (Θ_Q = T  ∨  overlaps(Θ, Θ_Q))
 ```
 
 where home(ℓ) = origin(ℓ) is the document-level prefix of the link's tumbler address (ASN-0043, LinkHome).
 
-The predicate is deterministic: given a link ℓ and query Q, satisfaction is decidable from Σ.L(ℓ), the link's endsets, and Q alone (no external oracle or probabilistic test).
+The predicate is deterministic: given a link ℓ and query Q, satisfaction is decidable from Σ.L(ℓ), the link's endsets, and Q alone (no external oracle or probabilistic test). Each overlap test evaluates `coverage(e) ∩ Q_e` for a finite I-address set Q_e — the intersection is well-defined and exact, without the ambiguity that would arise from testing against span denotations (which include non-element-level tumblers between element-level addresses).
 
 **F3 — SatisfactionDeterminism (LEMMA).**
 
 `satisfies(ℓ, Q)` is decidable from `ℓ`, `Q`, and `Σ.L(ℓ)` alone.
 
-*Proof.* home(ℓ) is computable from ℓ by T4 (HierarchicalParsing, ASN-0034). Membership in H is decidable. Each overlap test `overlaps(e, ⟦Σ_Q⟧)` reduces to pairwise span intersection (the biconditional above), decidable by T2 (IntrinsicComparison) applied to four endpoint tumblers per pair. The endset e is finite (ASN-0043, Endset) and the constraint Σ_Q is a finite span-set (by DiscoveryQuery), so finitely many pairs are tested. ∎
+*Proof.* home(ℓ) is computable from ℓ by T4 (HierarchicalParsing, ASN-0034). Membership in H is decidable. Each overlap test `overlaps(e, Q_e)` checks whether `coverage(e) ∩ Q_e ≠ ∅` for a finite I-address set Q_e. Expanding: `(E (s, ℓ) ∈ e, a ∈ Q_e : s ≤ a < s ⊕ ℓ)`. Each comparison is decidable by T2 (IntrinsicComparison). The endset e is finite (ASN-0043, Endset) and Q_e is finite (by DiscoveryQuery), so finitely many tests are required. ∎
 
 **Definition — FINDLINKS Result.** The result of a discovery query Q is:
 
@@ -176,27 +176,27 @@ The blocks are V-adjacent ([1,4] = [1,1] + 3) but not I-adjacent — β₂'s con
 
 **A link that matches.** Let ℓ reside at address p.2.1 (link subspace of document 1.0.1.0.1), with from-endset F = {(p.1.2, δ(2, 8))}. The reach is p.1.2 ⊕ δ(2, 8) = p.1.4 (TumblerAdd at action point 8 increments the last component: 2 + 2 = 4). So coverage(F) = {t : p.1.2 ≤ t < p.1.4}. The to- and type-endsets are irrelevant to this query.
 
-The user selects V-positions [1,2] through [1,5], given as V-span σ_V = ([1,2], δ(4, 2)). Since reach(σ_V) = [1,2] ⊕ [0,4] = [1,6], the selection is ⟦σ_V⟧ = {[1,k] : 2 ≤ k < 6}. This crosses the block boundary between β₁ and β₂ — the F1 fragmentation scenario.
+The user selects V-positions [1,2] through [1,5], given as V-span σ_V = ([1,2], δ(4, 2)). Since reach(σ_V) = [1,2] ⊕ [0,4] = [1,6], the V-positions in dom(M(d)) ∩ ⟦σ_V⟧ are {[1,2], [1,3], [1,4], [1,5]} — by S8-depth, all V-positions have depth 2, so extension tumblers in ⟦σ_V⟧ (e.g. [1,2,1], [1,3,5]) do not intersect dom(M(d)). This selection crosses the block boundary between β₁ and β₂ — the F1 fragmentation scenario.
 
 *Resolution.* resolve(d, ⟦σ_V⟧) produces two I-runs:
 
 - From β₁: V [1,2], [1,3] → I p.1.2, p.1.3
 - From β₂: V [1,4], [1,5] → I q.1.1, q.1.2
 
-Representable as span-set F_Q = {(p.1.2, δ(2, 8)), (q.1.1, δ(2, 8))}.
+The from-constraint is the finite I-address set F_Q = {p.1.2, p.1.3, q.1.1, q.1.2}, compactly representable as the span-set {(p.1.2, δ(2, 8)), (q.1.1, δ(2, 8))}.
 
-*Overlap test.* The from-endset span (p.1.2, δ(2, 8)) and the first resolved I-span (p.1.2, δ(2, 8)) share start p.1.2 and reach p.1.4. By the biconditional: p.1.2 < p.1.4 and p.1.2 < p.1.4 — both hold (SC case (v), equal spans). overlaps(F, ⟦F_Q⟧) = true.
+*Overlap test.* coverage(F) = {t : p.1.2 ≤ t < p.1.4}. The I-address p.1.2 is in both coverage(F) and F_Q, so coverage(F) ∩ F_Q ≠ ∅. overlaps(F, F_Q) = true.
 
 *Satisfaction.* Query Q = (E_doc, F_Q, T, T):
 
 - home(ℓ) = origin(p.2.1) = 1.0.1.0.1 ∈ E_doc ✓ (by LinkEntityCoherence)
-- F_Q ≠ T and overlaps(F, ⟦F_Q⟧) = true ✓
+- F_Q ≠ T and overlaps(F, F_Q) = true ✓
 - G_Q = T ✓
 - Θ_Q = T ✓
 
 Therefore ℓ ∈ findlinks(Q).
 
-**A link that does not match.** Let ℓ' reside at q.2.1 with from-endset F' = {(q.1.5, δ(1, 8))}. Its coverage: {t : q.1.5 ≤ t < q.1.6}. The resolved I-addresses from β₂ reach only up to q.1.2 — the second resolved span (q.1.1, δ(2, 8)) has reach q.1.3. Since q.1.5 > q.1.3 by T1, the from-endset span is separated from the second resolved span (SC case (i)). The first resolved span has prefix p, strictly less than prefix q by T1, so it too is separated. overlaps(F', ⟦F_Q⟧) = false. Link ℓ' does not satisfy Q.
+**A link that does not match.** Let ℓ' reside at q.2.1 with from-endset F' = {(q.1.5, δ(1, 8))}. Its coverage: {t : q.1.5 ≤ t < q.1.6}. The I-addresses in F_Q under prefix q are q.1.1 and q.1.2; since q.1.5 > q.1.2, no element of F_Q falls in coverage(F'). The I-addresses under prefix p are below all q-prefixed addresses by T1, so they too lie outside coverage(F'). coverage(F') ∩ F_Q = ∅, so overlaps(F', F_Q) = false. Link ℓ' does not satisfy Q.
 
 
 ## Cross-Document Discovery
@@ -240,9 +240,9 @@ The three endsets are structurally interchangeable in the search mechanism. Nels
 
 The overlap predicate `overlaps(e, Q)` is defined uniformly on `(Endset, Set)` and applies identically regardless of which slot the endset occupies. This follows from the type signature alone: all three endsets have type Endset (L3, ASN-0043), and the overlap test makes no reference to slot identity. F4 (Completeness) applies independently to each endset constraint.
 
-**F6b — PerEndsetIndexing (DESIGN).**
+**F6b — DiscoveryIndependence (DESIGN).**
 
-Nelson's performance guarantee — "THE QUANTITY OF LINKS NOT SATISFYING A REQUEST DOES NOT IN PRINCIPLE IMPEDE SEARCH ON OTHERS" (LM 4/60) — applies equally to from-constrained, to-constrained, and type-constrained queries. Per-endset indexing must support sub-linear search: the cost of finding links matching a given endset constraint must not grow with the total number of non-matching links. No endset slot is privileged or degraded in discovery.
+Nelson's performance guarantee — "THE QUANTITY OF LINKS NOT SATISFYING A REQUEST DOES NOT IN PRINCIPLE IMPEDE SEARCH ON OTHERS" (LM 4/60) — applies equally to from-constrained, to-constrained, and type-constrained queries. The cost of evaluating a query constrained on endset slot e must not grow with the number of links whose slot e does not satisfy the constraint. No endset slot is privileged or degraded in discovery.
 
 This symmetry is what makes backlinks a first-class operation. Nelson distinguishes a document's *out-links* (links it owns) from its *in-links* (links elsewhere that point to it):
 
@@ -402,13 +402,13 @@ Gregory's implementation grounds several abstract properties in concrete mechani
 | Label | Statement | Status |
 |-------|-----------|--------|
 | F0 | resolve(d, Q_V) ⊆ dom(Σ.C) — resolved I-addresses are grounded in the content store | introduced |
-| F1 | A single V-span resolves to at most m I-spans, where m is the block count | introduced |
+| F1 | A single V-span resolves to at most m contiguous I-address runs, where m is the block count | introduced |
 | F2 | Partial overlap between endset coverage and query set suffices for matching | introduced |
-| F3 | satisfies(ℓ, Q) is decidable from ℓ, Q (with finite span-set constraints), and Σ.L(ℓ) | introduced |
+| F3 | satisfies(ℓ, Q) is decidable from ℓ, Q (with finite I-address set constraints), and Σ.L(ℓ) | introduced |
 | F4 | findlinks(Q) returns exactly the set of satisfying links (complete and sound) | introduced |
 | F5 | Transclusion identity: resolve(d₁, {v₁}) = resolve(d₂, {v₂}) when M(d₁)(v₁) = M(d₂)(v₂) | introduced |
 | F6a | Overlap predicate is uniform across endset slots (from, to, type) — follows from type signature | introduced |
-| F6b | Per-endset indexing must support sub-linear search; no slot privileged or degraded | introduced (design) |
+| F6b | Discovery cost for endset slot e is independent of non-matching links; no slot privileged or degraded | introduced (design) |
 | F7 | visible(Q, u) filters findlinks(Q) by home document accessibility; inaccessible links excluded from result set | introduced (design) |
 | F8 | findlinks(Q) is totally ordered by tumbler order on link addresses | introduced |
 | F9 | Reverse resolution (I→V) may yield multiple V-positions per I-address | introduced |
