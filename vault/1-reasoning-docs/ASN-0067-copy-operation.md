@@ -349,11 +349,12 @@ After COPY from a foreign source, the placed content is included in the sense of
 **C7a — NativeStability (LEMMA).** COPY does not alter the native/included classification of any pre-existing V-position in d. For every p ∈ dom(M(d)):
 
 ```
-p < v  ⟹  origin(M'(d)(p)) = origin(M(d)(p))
-p ≥ v  ⟹  origin(M'(d)(p + w)) = origin(M(d)(p))
+subspace(p) = S ∧ p < v   ⟹  origin(M'(d)(p)) = origin(M(d)(p))
+subspace(p) = S ∧ p ≥ v   ⟹  origin(M'(d)(p + w)) = origin(M(d)(p))
+subspace(p) ≠ S            ⟹  origin(M'(d)(p)) = origin(M(d)(p))
 ```
 
-*Derivation.* By C4, M'(d)(p) = M(d)(p) for p < v, and M'(d)(p + w) = M(d)(p) for p ≥ v. The origin function acts on the I-address, which is preserved in both cases. ∎
+*Derivation.* By C4: for target-subspace positions before v, M'(d)(p) = M(d)(p); for target-subspace positions at or after v, M'(d)(p + w) = M(d)(p); for non-target-subspace positions, M'(d)(p) = M(d)(p). In all three cases the I-address is preserved, so the origin function yields the same result. ∎
 
 
 ## Source Isolation
@@ -542,17 +543,17 @@ Nelson reinforces this at the system level: "A server's network model, from the 
 | resolve(d_s, σ) | maximally merged I-address runs from M(d_s)\|⟦σ⟧, V-ordered | introduced |
 | NativeContent | V-position v where origin(M(d)(v)) = d | introduced |
 | IncludedContent | V-position v where origin(M(d)(v)) ≠ d | introduced |
-| ValidInsertionPosition | v = v₀ + j with 0 ≤ j ≤ N, m = #v; when N = 0, v = [S, 1, ..., 1] establishes depth m | introduced |
+| ValidInsertionPosition | if V_S(d) ≠ ∅: v = min(V_S(d)) + j with 0 ≤ j ≤ N; if V_S(d) = ∅: v = [S, 1, ..., 1] of depth m ≥ 2 | introduced |
 | COPY | composite transition: resolve in pre-state, then split-shift-place | introduced |
-| C0 | C' = C — no content allocation | introduced |
+| C0 | C' = C — no content allocation (FRAME) | introduced |
 | C0a | set of I-addresses allocated under any document is unchanged by COPY | introduced |
 | C1 | every resolved I-address is in dom(C) | introduced |
 | C2 | COPY preserves D-CTG: N + w positions after, N before | introduced |
 | C2a | COPY preserves D-MIN: min(V_S(d)) = [S, 1, ..., 1] after COPY | introduced |
 | C3 | COPY preserves all foundational invariants (P0–P5, P4a, P6–P8, S0, S2, S3, S8a, S8-depth, S8-fin, J0, J1, J1', D-CTG, D-MIN) | introduced |
-| C4 | positions ≥ v shift by w; positions < v unchanged | introduced |
+| C4 | within target subspace S: positions ≥ v shift by w, positions < v unchanged; non-target subspaces unchanged | introduced |
 | C5 | every pre-state I-address appears in the post-state arrangement; content displaced, never overwritten | introduced |
-| C6 | placed I-addresses are the same addresses as in the source | introduced |
+| C6 | placed I-addresses are the same addresses as in the source (POST) | introduced |
 | C7 | origin(a) is unchanged — determined solely by the I-address | introduced |
 | C7a | COPY does not alter native/included classification of pre-existing positions | introduced |
 | C8 | source documents' arrangements are unmodified | introduced |
@@ -560,10 +561,10 @@ Nelson reinforces this at the system level: "A server's network model, from the 
 | C9 | I-address identity propagates transitively through arbitrary copy chains | introduced |
 | C10 | multiple source references produce one contiguous V-range in target | introduced |
 | C10a | blocks from different origin documents cannot merge | introduced |
-| C11 | self-transclusion resolves source in pre-state before mutation | introduced |
+| C11 | self-transclusion resolves source in pre-state before mutation (POST) | introduced |
 | C12 | provenance recorded for every newly-arranged I-address | introduced |
 | C12a | provenance entries bounded by total width of resolved content | introduced |
-| C13 | COPY is sequentially correct: completes fully or not at all (ValidComposite) | introduced |
+| C13 | COPY is sequentially correct: completes fully or not at all (ValidComposite, POST) | introduced |
 
 
 ## Open Questions
