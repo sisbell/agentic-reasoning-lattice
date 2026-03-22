@@ -7,15 +7,19 @@ The permutation model (ASN-0058) defines block decompositions for document arran
 
 ## Content References
 
-**Definition — ContentReference.** A *content reference* is a pair (d_s, σ) where d_s ∈ D and σ = (u, ℓ) is a level-uniform V-span satisfying: (i) V_{u₁}(d_s) ≠ ∅ — the subspace contains at least one V-position; (ii) T12 (ASN-0034) holds; and (iii) `#ℓ = #u = m`, where m is the common V-position depth in subspace u₁ of d_s (S8-depth, ASN-0036). Precondition (i) is necessary: S8-depth is vacuously true for an empty subspace and does not determine a common depth, so m is well-defined only when at least one V-position exists. The level-uniformity requirement ensures reach(σ) has depth m (S6, ASN-0053), so the position range is well-bounded and the span algebra (S1–S11, ASN-0053) applies. The content reference is well-formed when every depth-m position in the span's range belongs to d_s's arrangement:
+**Definition — ContentReference.** A *content reference* is a pair (d_s, σ) where d_s ∈ D and σ = (u, ℓ) is a level-uniform V-span satisfying: (i) V_{u₁}(d_s) ≠ ∅ — the subspace contains at least one V-position; (ii) T12 (ASN-0034) holds; (iii) `#ℓ = #u = m`, where m is the common V-position depth in subspace u₁ of d_s (S8-depth, ASN-0036); and (iv) m ≥ 2. Precondition (i) is necessary: S8-depth is vacuously true for an empty subspace and does not determine a common depth, so m is well-defined only when at least one V-position exists. Precondition (iv) ensures subspace confinement — that ⟦σ⟧ does not cross subspace boundaries; the derivation follows from C0 below. The level-uniformity requirement ensures reach(σ) has depth m (S6, ASN-0053), so the position range is well-bounded and the span algebra (S1–S11, ASN-0053) applies. The content reference is well-formed when every depth-m position in the span's range belongs to d_s's arrangement:
 
 `{v ∈ T : u ≤ v < reach(σ) ∧ #v = m} ⊆ dom(M(d_s))`
 
-Since `#u = #ℓ = m`, dom(M(d_s)) contains only depth-m V-positions in subspace u₁ (S8-depth), and reach(σ) has depth m (S6), the depth-m restriction is structurally guaranteed.
+By C0a (below), subspace confinement guarantees every t ∈ ⟦σ⟧ has t₁ = u₁, so dom(M(d_s)) ∩ ⟦σ⟧ ⊆ V_{u₁}(d_s). By S8-depth, all V-positions in V_{u₁}(d_s) have depth m, and reach(σ) has depth m (S6), so the depth-m restriction is structurally guaranteed.
 
 **C0 — OrdinalDisplacementNecessity (LEMMA).** For a well-formed content reference (d_s, σ) with σ = (u, ℓ), common depth m, and action point k of ℓ: k = m. Equivalently, ℓ = δ(ℓₘ, m) — an ordinal displacement.
 
 *Derivation.* Suppose for contradiction that k < m. Consider the family of depth-m tumblers wⱼ = [u₁, ..., uₖ, uₖ₊₁, ..., u_{m−1}, j] for j > uₘ. Each wⱼ satisfies u < wⱼ: the two agree on components 1 through m − 1 and j > uₘ at component m, so wⱼ > u by T1(i) (ASN-0034). Each wⱼ satisfies wⱼ < reach(σ): at component k, uₖ < uₖ + ℓₖ (since ℓₖ ≥ 1, k being the action point), so wⱼ < reach(σ) by T1(i). Thus wⱼ ∈ ⟦σ⟧ for every j > uₘ. By T0(a) (ASN-0034), j ranges over unboundedly many values, yielding infinitely many depth-m tumblers in ⟦σ⟧. Well-formedness requires each to be in dom(M(d_s)), contradicting S8-fin (ASN-0036). Therefore k = m, and ℓ = [0, ..., 0, ℓₘ] = δ(ℓₘ, m). ∎
+
+**C0a — SubspaceConfinement (COROLLARY).** For a well-formed content reference (d_s, σ) with σ = (u, ℓ) and m ≥ 2: every t ∈ ⟦σ⟧ satisfies t₁ = u₁.
+
+*Derivation.* By C0, the action point of ℓ is m. Since m ≥ 2, TumblerAdd gives reach(σ)ᵢ = uᵢ for all i < m; in particular reach(σ)₁ = u₁. For any t ∈ ⟦σ⟧ we have u ≤ t < reach(σ). If t₁ < u₁, then t < u by T1(i) at k = 1 (ASN-0034), contradicting t ≥ u. If t₁ > u₁ = reach(σ)₁, then reach(σ) < t by T1(i) at k = 1, contradicting t < reach(σ). Therefore t₁ = u₁. (At m = 1, the action point is 1, so reach(σ)₁ = u₁ + ℓ₁ ≠ u₁, and ⟦σ⟧ would span multiple subspaces.) ∎
 
 **Definition — ContentReferenceSequence.** A *content reference sequence* is an ordered list R = ⟨r₁, ..., rₚ⟩ of content references with p ≥ 1. Different references may name different source documents.
 
@@ -28,7 +32,7 @@ To resolve a content reference, we extract the I-address runs corresponding to t
 
 **C1a — RestrictionDecomposition (COROLLARY).** M11 and M12 (ASN-0058) hold for any finite partial function f : T ⇀ T satisfying S2, S8-fin, and S8-depth. In particular, the restriction f = M(d_s)|⟦σ⟧ admits a unique maximally merged block decomposition.
 
-*Verification that f satisfies the conditions.* (i) S2 (functionality): f is a restriction of M(d_s), which is functional by S2; a restriction of a function is a function. (ii) S8-fin (finite domain): dom(f) ⊆ dom(M(d_s)), which is finite by S8-fin; a subset of a finite set is finite. (iii) S8-depth (fixed depth): every position in dom(f) belongs to dom(M(d_s)), so all share the common depth m of subspace u₁ in d_s.
+*Verification that f satisfies the conditions.* (i) S2 (functionality): f is a restriction of M(d_s), which is functional by S2; a restriction of a function is a function. (ii) S8-fin (finite domain): dom(f) ⊆ dom(M(d_s)), which is finite by S8-fin; a subset of a finite set is finite. (iii) S8-depth (fixed depth): by C0a, every position in dom(f) has first component u₁, so dom(f) ⊆ V_{u₁}(d_s); by S8-depth, all positions in V_{u₁}(d_s) share the common depth m.
 
 *Extension of M11/M12.* M11 (CanonicalExistence) constructs a maximally merged decomposition by iterating: while any two blocks satisfy the merge condition (M7), merge them. The initial singleton-block decomposition — one block (v, f(v), 1) per v ∈ dom(f) — satisfies B1, B2, and B3: B1 (coverage) holds because every v ∈ dom(f) has its own singleton block; B2 (disjointness) holds because singleton V-extents are pairwise disjoint; B3 (consistency) holds directly from S2 (f is a function, so each singleton block's I-address is uniquely determined). Termination follows from S8-fin since the block count is at most |dom(f)|. Each merge step preserves all three conditions by M7f (MergeFrame, ASN-0058): M7f establishes that replacing β₁ and β₂ with β₁ ⊞ β₂ yields an equivalent decomposition, preserving B1 and B2 via V(β₁ ⊞ β₂) = V(β₁) ∪ V(β₂) (no V-position is gained or lost, and all blocks in B \ {β₁, β₂} are unchanged). For B3 specifically: if β₁ = (v₁, a₁, n₁) and β₂ = (v₂, a₂, n₂) each satisfy B3 and M7 holds (v₂ = v₁ + n₁, a₂ = a₁ + n₁), then β₁ ⊞ β₂ = (v₁, a₁, n₁ + n₂) satisfies B3 by case split — for 0 ≤ i < n₁, f(v₁ + i) = a₁ + i by B3 for β₁; for n₁ ≤ i < n₁ + n₂, f(v₁ + i) = f(v₂ + (i − n₁)) = a₂ + (i − n₁) = (a₁ + n₁) + (i − n₁) = a₁ + i, using B3 for β₂ and M-aux (ASN-0058). M12 (CanonicalUniqueness) identifies the maximally merged decomposition with the set of maximal runs of f, using only pointwise evaluation of f — independent of whether f is a full arrangement or a restriction. Both proofs require no property of M(d) beyond S2, S8-fin, and S8-depth; they apply to f verbatim. ∎
 
@@ -61,7 +65,7 @@ where ⟨(a₁, n₁), ..., (aₖ, nₖ)⟩ = resolve(R).
 
 `w(resolve(d_s, σ)) = (+ j : 1 ≤ j ≤ k : nⱼ) = ℓₘ`
 
-*Derivation.* By C0, ℓ = δ(ℓₘ, m), so reach(σ) = u ⊕ δ(ℓₘ, m) = [u₁, ..., u_{m−1}, uₘ + ℓₘ]. The depth-m tumblers in [u, reach(σ)) are exactly {[u₁, ..., u_{m−1}, j] : uₘ ≤ j < uₘ + ℓₘ}: any depth-m tumbler diverging from u before component m falls outside the range by T1(i) (ASN-0034). There are ℓₘ such positions, so |dom(f)| = ℓₘ where f = M(d_s)|⟦σ⟧. By B1 (coverage) and B2 (disjointness), the V-extents of the blocks partition dom(f). By M0 (width coupling), |V(βⱼ)| = nⱼ for each block. Therefore (+ j : 1 ≤ j ≤ k : nⱼ) = |dom(f)| = ℓₘ. ∎
+*Derivation.* By C0, ℓ = δ(ℓₘ, m), so reach(σ) = u ⊕ δ(ℓₘ, m) = [u₁, ..., u_{m−1}, uₘ + ℓₘ]. The depth-m tumblers in [u, reach(σ)) are exactly {[u₁, ..., u_{m−1}, j] : uₘ ≤ j < uₘ + ℓₘ}: any depth-m tumbler diverging from u before component m falls outside the range by T1(i) (ASN-0034). There are ℓₘ such tumblers; well-formedness places each in dom(f). Conversely, dom(f) contains no other elements: by C0a, every t ∈ ⟦σ⟧ has t₁ = u₁, so dom(f) ⊆ V_{u₁}(d_s); by S8-depth, all positions in V_{u₁}(d_s) have depth m, so the enumeration is exhaustive. Therefore |dom(f)| = ℓₘ. By B1 (coverage) and B2 (disjointness), the V-extents of the blocks partition dom(f). By M0 (width coupling), |V(βⱼ)| = nⱼ for each block. Therefore (+ j : 1 ≤ j ≤ k : nⱼ) = |dom(f)| = ℓₘ. ∎
 
 
 ## Worked Example
@@ -94,8 +98,9 @@ Total width: 2 + 2 = 4 = ℓₘ, confirming C2.
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| ContentReference | (d_s, σ) with d_s ∈ D, V_{u₁}(d_s) ≠ ∅; σ level-uniform with #u = #ℓ = m; depth-m V-positions in span range ⊆ dom(M(d_s)) | introduced |
+| ContentReference | (d_s, σ) with d_s ∈ D, V_{u₁}(d_s) ≠ ∅, m ≥ 2; σ level-uniform with #u = #ℓ = m; depth-m V-positions in span range ⊆ dom(M(d_s)) | introduced |
 | C0 | well-formed content references have ordinal displacements: action point of ℓ equals m | introduced |
+| C0a | subspace confinement: every t ∈ ⟦σ⟧ satisfies t₁ = u₁ when m ≥ 2 | introduced |
 | ContentReferenceSequence | ordered list ⟨r₁, ..., rₚ⟩ with p ≥ 1 | introduced |
 | resolve(d_s, σ) | maximally merged I-address runs from M(d_s)\|⟦σ⟧, V-ordered | introduced |
 | C1a | M11/M12 hold for any finite partial function f : T ⇀ T satisfying S2, S8-fin, S8-depth; in particular M(d_s)\|⟦σ⟧ | introduced |
