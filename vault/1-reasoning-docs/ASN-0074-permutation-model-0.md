@@ -19,7 +19,7 @@ By C0a (below), prefix confinement gives tⱼ = uⱼ for all j < m for every t �
 
 **C0a — PrefixConfinement (LEMMA).** For a well-formed content reference (d_s, σ) with σ = (u, ℓ) and m ≥ 2: every t ∈ ⟦σ⟧ satisfies tⱼ = uⱼ for all 1 ≤ j < m.
 
-*Derivation.* By C0, the action point of ℓ is m. Since m ≥ 2, TumblerAdd gives reach(σ)ⱼ = uⱼ for all j < m. Fix any j with 1 ≤ j < m and any t ∈ ⟦σ⟧, so u ≤ t < reach(σ). If tⱼ < uⱼ, then t < u by T1(i) at divergence point j (ASN-0034), contradicting t ≥ u. If tⱼ > uⱼ = reach(σ)ⱼ, then t > reach(σ) by T1(i) at divergence point j, contradicting t < reach(σ). Therefore tⱼ = uⱼ. The argument is uniform in j, applying identically at each component from 1 through m − 1. In particular, t₁ = u₁ (subspace confinement). (At m = 1, the vacuous range 1 ≤ j < 1 yields no confinement; indeed the action point would be 1, giving reach(σ)₁ = u₁ + ℓ₁ ≠ u₁, and ⟦σ⟧ would span multiple subspaces.) ∎
+*Derivation.* By C0, the action point of ℓ is m. Since m ≥ 2, TumblerAdd gives reach(σ)ⱼ = uⱼ for all j < m. Fix any t ∈ ⟦σ⟧, so u ≤ t < reach(σ). Suppose for contradiction that J = {j : 1 ≤ j < m ∧ tⱼ ≠ uⱼ} is non-empty, and let j₀ = min(J). Then tᵢ = uᵢ for all 1 ≤ i < j₀, so the divergence of t and u is at position j₀. Since u ≤ t, T1(i) (ASN-0034) gives t_{j₀} > u_{j₀}. Since reach(σ)_{j₀} = u_{j₀} and tᵢ = uᵢ = reach(σ)ᵢ for all i < j₀, the divergence of t and reach(σ) is also at j₀ with t_{j₀} > reach(σ)_{j₀}. By T1(i), t > reach(σ), contradicting t < reach(σ). Therefore J = ∅, i.e., tⱼ = uⱼ for all 1 ≤ j < m. In particular, t₁ = u₁ (subspace confinement). (At m = 1, the vacuous range 1 ≤ j < 1 yields no confinement; indeed the action point would be 1, giving reach(σ)₁ = u₁ + ℓ₁ ≠ u₁, and ⟦σ⟧ would span multiple subspaces.) ∎
 
 **Definition — ContentReferenceSequence.** A *content reference sequence* is an ordered list R = ⟨r₁, ..., rₚ⟩ of content references with p ≥ 1. Different references may name different source documents.
 
@@ -48,11 +48,11 @@ For a content reference sequence R = ⟨r₁, ..., rₚ⟩, the *composite resol
 
 `resolve(R) = resolve(r₁) ⌢ ... ⌢ resolve(rₚ)`
 
-Each reference is resolved independently against its own source document's POOM. The total width is:
+Each reference is resolved independently against its own source document's POOM. The *total width* of an I-address sequence ⟨(a₁, n₁), ..., (aₖ, nₖ)⟩ is:
 
-`w(R) = (+ j : 1 ≤ j ≤ k : nⱼ)`
+`w(⟨(a₁, n₁), ..., (aₖ, nₖ)⟩) = (+ j : 1 ≤ j ≤ k : nⱼ)`
 
-where ⟨(a₁, n₁), ..., (aₖ, nₖ)⟩ = resolve(R).
+For a content reference sequence R, the total width is w(resolve(R)).
 
 **C1 — ResolutionIntegrity (LEMMA).** Every resolved I-address is in dom(C):
 
