@@ -1,0 +1,10 @@
+# ASN-0070 — FOLLOWLINK Operation
+title: "FOLLOWLINK Operation"
+depends: [34, 36, 43, 47, 53, 58]
+out_of_scope: "INSERT, DELETE, COPY, REARRANGE operation mechanics, link creation, version creation, replication and inter-server protocol (BEBE)"
+
+inquiry:
+  question: "Given a link and a document, how does the system resolve the link's endsets to visible Vstream positions? What determines which content is reachable and what is the form of the result?"
+
+modeling:
+  proof_imports: [TumblerAlgebra, TumblerOrder, Streams, StateTransitions, LinkOntology, SpanOperations, PermutationModel]

@@ -1,0 +1,10 @@
+# ASN-0069 — CREATENEWVERSION Operation
+title: "CREATENEWVERSION Operation"
+depends: [34, 36, 47, 53, 58]
+out_of_scope: "INSERT, DELETE, COPY, REARRANGE operation mechanics, link semantics, version DAG structure, replication and inter-server protocol (BEBE)"
+
+inquiry:
+  question: "What is the precise effect of forking a document into a new version? What is copied, what is shared, and what relationship exists between the source and the new version?"
+
+modeling:
+  proof_imports: [TumblerAlgebra, TumblerOrder, Streams, StateTransitions, SpanOperations, PermutationModel]

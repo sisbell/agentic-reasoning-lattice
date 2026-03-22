@@ -24,3 +24,7 @@ Generated from vault/project-model/ASN-*.yaml
 | ASN-0063 | CREATELINK Operation | inquiry | 34, 36, 43, 47, 53, 58 |
 | ASN-0064 | FINDLINKS Operation | inquiry | 34, 36, 43, 47, 53, 58 |
 | ASN-0065 | REARRANGE Operation | inquiry | 34, 36, 47, 53, 58 |
+| ASN-0067 | COPY Operation | inquiry | 34, 36, 47, 53, 58 |
+| ASN-0068 | COMPAREVERSIONS Operation | inquiry | 34, 36, 47, 53, 58 |
+| ASN-0069 | CREATENEWVERSION Operation | inquiry | 34, 36, 47, 53, 58 |
+| ASN-0070 | FOLLOWLINK Operation | inquiry | 34, 36, 43, 47, 53, 58 |
