@@ -17,13 +17,13 @@ This translation is not incidental. It is the mechanism by which links survive e
 
 The question that opens our investigation is: given a V-span in a document, what I-spans correspond to it?
 
-**Definition — VSpanImage.** For document d with arrangement M(d) and V-span σ_v = (v_s, w_v):
+**Definition — VSpanImage.** For document d with arrangement M(d) and V-span σ_v = (v_s, w_v) satisfying T12 (SpanWellDefined, ASN-0034):
 
   `image(d, σ_v) = {M(d)(v) : v ∈ ⟦σ_v⟧ ∩ dom(M(d))}`
 
-For a V-span-set Ψ = {σ₁, ..., σₖ}: `image(d, Ψ) = (∪ i : 1 ≤ i ≤ k : image(d, σᵢ))`.
+For a V-span-set Ψ = {σ₁, ..., σₖ} where each σᵢ satisfies T12: `image(d, Ψ) = (∪ i : 1 ≤ i ≤ k : image(d, σᵢ))`.
 
-The image is well-defined: M(d) is a function (S2, ASN-0036), ⟦σ_v⟧ is determined by the span's start and width (SpanDenotation, ASN-0053), and the intersection with dom(M(d)) is finite (S8-fin, ASN-0036). V-positions outside dom(M(d)) — gaps from prior content removal — contribute nothing to the image.
+The image is well-defined: each σ_v satisfies T12 — `w_v > 0` and action point `k ≤ #v_s` — so `reach(σ_v) = v_s ⊕ w_v` exists (TA0, ASN-0034) and ⟦σ_v⟧ is determined by the span's start and width (SpanDenotation, ASN-0053). M(d) is a function (S2, ASN-0036), and the intersection with dom(M(d)) is finite (S8-fin, ASN-0036). V-positions outside dom(M(d)) — gaps from prior content removal — contribute nothing to the image.
 
 We need this set expressible as an endset: a finite set of well-formed I-spans. The block decomposition (ASN-0058) provides the structure.
 
@@ -32,7 +32,7 @@ We need this set expressible as an endset: a finite set of well-formed I-spans. 
 
 **Lemma CL0 — BlockProjection.** Let β = (v_β, a_β, n) be a mapping block (ASN-0058) and σ_v a V-span in the same subspace. If `V(β) ∩ ⟦σ_v⟧ ≠ ∅`, then the image of their overlap through β is representable by a single well-formed I-span — that is, it is contained in the denotation of a span whose element-level members are exactly the image.
 
-*Proof.* The V-extent V(β) is contiguous by M1 (ASN-0058), and ⟦σ_v⟧ is convex by S0 (ASN-0053). Their non-empty intersection is convex, hence of the form `{v_β + k : c ≤ k < c'}` for some `0 ≤ c < c' ≤ n`. By B3 (Consistency, ASN-0058), `M(d)(v_β + k) = a_β + k`, so the image is `{a_β + k : c ≤ k < c'}`. Define the I-span `ρ = (a_β + c, δ(c' − c, #a_β))`, where `a_β + c` follows the M-aux convention (ASN-0058): when `c = 0`, `a_β + 0 = a_β`; when `c ≥ 1`, `a_β + c` is the `c`-th ordinal increment. The reach is `(a_β + c) ⊕ δ(c' − c, #a_β) = a_β + c'` by M-aux associativity and the definition of ordinal displacement. The displacement `δ(c' − c, #a_β)` is positive since `c' − c ≥ 1`, and its action point equals `#a_β = #(a_β + c)` (ordinal increment preserves depth), satisfying T12 (SpanWellDefined, ASN-0034). The image `{a_β + k : c ≤ k < c'} ⊆ ⟦ρ⟧`, with equality at element level (depth `#a_β`). ∎
+*Proof.* The V-extent `V(β) = {v_β + k : 0 ≤ k < n}` is a sequence of ordinal increments at fixed depth (S8-depth, ASN-0036), with consecutive last components (D-SEQ, ASN-0036). Convex subsets of such sequences correspond to contiguous index sub-ranges, since the only depth-`#v_β` tumbler between `v_β + k` and `v_β + (k + 1)` is `v_β + k` itself. The span denotation ⟦σ_v⟧ is convex by S0 (ASN-0053). Their non-empty intersection is therefore convex and of the form `{v_β + k : c ≤ k < c'}` for some `0 ≤ c < c' ≤ n`. By B3 (Consistency, ASN-0058), `M(d)(v_β + k) = a_β + k`, so the image is `{a_β + k : c ≤ k < c'}`. Define the I-span `ρ = (a_β + c, δ(c' − c, #a_β))`, where `a_β + c` follows the M-aux convention (ASN-0058): when `c = 0`, `a_β + 0 = a_β`; when `c ≥ 1`, `a_β + c` is the `c`-th ordinal increment. The reach is `(a_β + c) ⊕ δ(c' − c, #a_β) = a_β + c'` by M-aux associativity and the definition of ordinal displacement. The displacement `δ(c' − c, #a_β)` is positive since `c' − c ≥ 1`, and its action point equals `#a_β = #(a_β + c)` (ordinal increment preserves depth), satisfying T12 (SpanWellDefined, ASN-0034). The image `{a_β + k : c ≤ k < c'} ⊆ ⟦ρ⟧`, with equality at element level (depth `#a_β`). ∎
 
 A single V-span crossing multiple mapping blocks produces multiple I-spans — one per overlapping block. This is not a degenerate case; it is the *normal* case when the selected content was assembled from multiple sources through transclusion. Each transcluded portion retains its original I-address — that is the definition of transclusion — so a contiguous V-selection may cover a discontiguous set of I-addresses. A selection of "AABB" where "AA" was transcluded from document X and "BB" from document Y produces two I-spans: one addressing the "AA" bytes in X's I-space, another addressing "BB" in Y's I-space.
 
@@ -102,6 +102,7 @@ where `subspace(v)` denotes the first component of the V-position. S3★ superse
 - ℓ ∈ dom(L')  (the target link must already exist — K.λ must precede this step)
 - V-position v_ℓ satisfies:
   - subspace(v_ℓ) = s_L
+  - m_L ≥ 2 — ordinal shift at depth 1 alters the subspace identifier (`shift([s_L], 1) = [s_L + 1]`, violating subspace closure TA7a), so the link subspace requires depth at least 2
   - If V_{s_L}(d) = ∅: v_ℓ is the minimum position `[s_L, 1, ..., 1]` of depth m_L (D-MIN), where m_L is the link-subspace V-depth for d
   - If V_{s_L}(d) ≠ ∅: v_ℓ = shift(max(V_{s_L}(d)), 1), extending the contiguous range (D-CTG)
   - #v_ℓ = m_L (S8-depth within the link subspace)
@@ -132,6 +133,8 @@ Link-subspace extensions (K.μ⁺_L) do not trigger provenance recording: the li
 
 The coupling constraints for valid composites in the extended state Σ = (C, L, E, M, R) are J0, J1★, J1'★. J1★ and J1'★ replace J1 and J1' (ASN-0047) by scoping provenance coupling to content-subspace arrangement changes. J0 (AllocationRequiresPlacement) is unchanged — it constrains content allocation (K.α), which remains content-subspace only.
 
+We observe that these coupling constraints do not require K.λ to be paired with K.μ⁺_L. A composite consisting of K.λ alone is valid: J0 is vacuous (no content allocated), J1★ is vacuous (no content-subspace extension), and J1'★ is vacuous (no provenance change). The result is a link in dom(L) with no placement in any document's arrangement — an *orphan link*. This is a valid system state, not an error condition. Nelson explicitly diagrams "deleted links" as a category of document content (LM 4/9): links that exist in permanent storage but are "not currently addressable, awaiting historical backtrack functions." Link withdrawal via K.μ⁻ applied to the link subspace would produce the same state — a link present in L but absent from all current arrangements. The disc function still includes orphan links: `disc(a, r)` queries dom(L) directly, not arrangements. An orphan link is discoverable by I-address but unreachable through any document's current structure, paralleling deleted bytes that persist in the Istream after Vstream removal. We do not add a J0 analog for links — the orphan state is architecturally intentional, satisfying both the permanence guarantee (L12: links are immutable once created) and the owner's right to withdraw (Nelson, LM 2/29).
+
 
 ## The CREATELINK Composite
 
@@ -144,6 +147,7 @@ Let F = resolve(S_F), G = resolve(S_G), Θ = resolve(S_Θ), where each resolve d
 *Precondition:*
 - d ∈ E_doc
 - A fresh link address ℓ is available satisfying K.λ's preconditions
+- Every V-span in each endset specification satisfies T12 (SpanWellDefined, ASN-0034): width > 0 and action point k ≤ #start — ensuring ⟦σ⟧ is well-defined for each input span
 
 *Composite steps:*
 1. K.λ: allocate ℓ in dom(L) with value (F, G, Θ)
@@ -182,7 +186,7 @@ We arrive at this guarantee from five independent architectural principles, any 
 
 *Istream immutability.* Content at I-addresses is permanent (S0, ASN-0036). No operation can modify existing content values. CREATELINK is not special; it inherits this guarantee.
 
-*Owner-only modification.* Only the document owner can modify their content (Nelson, LM 2/29). Creating a link to someone else's published content is a non-owner action on the target, which cannot alter the target.
+*Owner-only modification (design intent).* The system is designed so that only the document owner can modify their content (Nelson, LM 2/29: "Only the owner has a right to withdraw a document or change it"). This principle is not yet formalized in the transition framework — K.α, K.μ⁺, and other transitions constrain structural validity but do not gate operations on ownership. Nevertheless, creating a link to someone else's published content is architecturally a non-owner action on the target, reinforcing the expectation that the target is unaffected.
 
 *K.λ isolation.* K.λ writes to L; its frame explicitly leaves C, E, M, R unchanged. There is no mechanism in K.λ for altering C.
 
@@ -202,7 +206,7 @@ Immediate from K.λ's effect: L' = L ∪ {ℓ ↦ (F, G, Θ)} with ℓ ∉ dom(L
 
 *Proof.* K.λ has M in frame. Step 2 modifies only M(d). ∎
 
-Moreover, step 2 modifies only the *link subspace* of M(d). The text-subspace mappings — `{(v, M(d)(v)) : v ∈ dom(M(d)) ∧ subspace(v) = s_C^V}` — are invariant.
+Moreover, step 2 modifies only the *link subspace* of M(d). The text-subspace mappings — `{(v, M(d)(v)) : v ∈ dom(M(d)) ∧ subspace(v) = s_C}` — are invariant.
 
 The conjunction of CL4, CL5, and CL6 gives the full frame of CREATELINK: content unchanged, existing links unchanged, other documents' arrangements unchanged, and the home document's text-subspace arrangement unchanged. The only new state is one entry in L and one link-subspace mapping in M(d).
 
@@ -271,7 +275,7 @@ The system also permits CREATELINK with endsets that reference I-addresses in do
 
 *Content invariants (ASN-0036).* S0 (ContentImmutability): C' = C by CL4. S1 (StoreMonotonicity): dom(C) ⊆ dom(C') since C' = C. S2 (ArrangementFunctionality): M'(d') = M(d') for d' ≠ d by CL6; M'(d) extends M(d) with one V-position in the link subspace, preserving functionality for both subspaces. S3★ (GeneralizedReferentialIntegrity): text-subspace mappings are unchanged, so `M(d)(v) ∈ dom(C)` holds for all `subspace(v) = s_C`; the new link-subspace mapping satisfies `M'(d)(v_ℓ) = ℓ ∈ dom(L')` with `subspace(v_ℓ) = s_L`. ✓
 
-*Per-subspace arrangement invariants.* S8a (VPositionWellFormedness): guarded by `v₁ ≥ 1`, applies to text-subspace positions, which are unchanged. S8-fin: adding one position to a finite set preserves finiteness. For the link subspace specifically: S8-depth is satisfied by K.μ⁺_L's precondition (`#v_ℓ = m_L`). D-CTG (VContiguity) and D-MIN (VMinimumPosition) are quantified over *all* subspaces S. For the text subspace (S = s_C): V_{s_C}(d) is unchanged. For the link subspace (S = s_L): K.μ⁺_L's precondition places v_ℓ at the minimum position if V_{s_L}(d) was empty, or at the next contiguous position if non-empty, satisfying both D-CTG and D-MIN. D-SEQ follows from D-CTG, D-MIN, S8-fin, and S8-depth (as derived in ASN-0036). ✓
+*Per-subspace arrangement invariants.* S8a (VPositionWellFormedness): the quantifier `(A v ∈ dom(M(d)) : v₁ ≥ 1 : zeros(v) = 0 ∧ v > 0)` covers *all* V-positions with `v₁ ≥ 1`, including link-subspace positions. We must establish that `s_L ≥ 1`: by L1 (ASN-0043), every link address is element-level (`zeros(ℓ) = 3`), so by T4 (ASN-0034), every element-field component is strictly positive — in particular `fields(ℓ).E₁ = s_L > 0`. Since K.μ⁺_L uses the same identifier s_L for V-positions, link-subspace V-positions have `v₁ = s_L ≥ 1` and fall under S8a's quantifier. For text-subspace positions: unchanged. For the new link-subspace position v_ℓ: K.μ⁺_L places `v_ℓ = [s_L, 1, ..., 1]` (D-MIN) or `shift(max(V_{s_L}(d)), 1)` (D-CTG). In either case, every component of v_ℓ is strictly positive — s_L > 0 by the above, and the remaining components are 1 or incremented from positive values — so `zeros(v_ℓ) = 0 ∧ v_ℓ > 0`. ✓ S8-fin: adding one position to a finite set preserves finiteness. For the link subspace specifically: S8-depth is satisfied by K.μ⁺_L's precondition (`#v_ℓ = m_L`). D-CTG (VContiguity) and D-MIN (VMinimumPosition) are quantified over *all* subspaces S. For the text subspace (S = s_C): V_{s_C}(d) is unchanged. For the link subspace (S = s_L): K.μ⁺_L's precondition places v_ℓ at the minimum position if V_{s_L}(d) was empty, or at the next contiguous position if non-empty, satisfying both D-CTG and D-MIN. D-SEQ follows from D-CTG, D-MIN, S8-fin, and S8-depth (as derived in ASN-0036). ✓
 
 *Link invariants (ASN-0043).* L0 (SubspacePartition): ℓ has fields(ℓ).E₁ = s_L by K.λ precondition. dom(L') ∩ dom(C') = (dom(L) ∪ {ℓ}) ∩ dom(C). Since ℓ ∉ dom(C) and dom(L) ∩ dom(C) = ∅ (L0 pre-state), the intersection is empty. L1 (LinkElementLevel): zeros(ℓ) = 3 by K.λ precondition. L1a (LinkScopedAllocation): origin(ℓ) = d by K.λ precondition. L12 (LinkImmutability): existing entries are unchanged; the transition adds ℓ without modifying any existing L entry. L12a (LinkStoreMonotonicity): dom(L) ⊂ dom(L'). L14 (DualPrimitive): dom(C') ∪ dom(L') = dom(C) ∪ dom(L) ∪ {ℓ}; disjointness holds since ℓ ∉ dom(C). ✓
 
