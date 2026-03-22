@@ -1,0 +1,24 @@
+# Sub-Questions — FINDLINKS Operation
+
+**Inquiry:** Given a region of Vstream content, how does the system discover all links whose endsets reference the same Istream addresses? What determines the result set and what guarantees govern completeness?
+
+1. [nelson] When content from the permanent storage layer appears in a document's arranged sequence, does link discovery match against the content's original permanent identity or its position in the current arrangement?
+2. [nelson] Must the system guarantee that every link whose endsets reference the queried content is returned, or may it return a partial result?
+3. [nelson] Must link discovery span all documents in the system, or is it bounded to links defined within the same document as the queried content?
+4. [nelson] If the same content appears in multiple documents through sharing, must a query against one appearance discover links attached to every other appearance of that identical content?
+5. [nelson] When a link's endset partially overlaps the queried region — covering some but not all of the specified content — must that link appear in the discovery result?
+6. [nelson] Can the existence of a link be concealed from a user who has permission to view the referenced content but not the document that defines the link?
+7. [nelson] Does the design treat links originating from the content and links pointing to the content as equally discoverable, or does directionality affect what the query returns?
+8. [nelson] Is the set of discovered links guaranteed to have a defined order, and if so, what property determines that order?
+9. [nelson] If a new link referencing the content is created after the content already exists, must the system make that link immediately discoverable or is eventual appearance acceptable?
+10. [nelson] When the queried region spans content drawn from multiple distinct original sources, must the system independently discover links to each source and merge the results into a single complete set?
+11. [gregory] When `vspanset2sporglset` walks the POOM to convert a V-span query into I-spans, how does it handle a single V-span that maps to multiple non-contiguous I-address ranges — does it emit one sporgl per contiguous I-run, and is the splitting purely driven by POOM crum boundaries?
+12. [gregory] In `findlinksfromtothreesp`, what is the exact overlap predicate between the query I-spans and a link's endset I-spans — must there be any byte-level intersection, or does the spanfilade store coarser granularity entries that could miss partial-span overlaps?
+13. [gregory] The `sporglset2linkset` function has `TRUE||!homeset` hardcoded, making link search always global — was there ever a working document-scoped mode, and is the hardcoded width of 100 in that path sufficient to cover all possible link I-address ranges, or can it silently truncate results?
+14. [gregory] When `find_links` is called with the three-way filter (from/to/three), how does the spanfilade search combine the three endset constraints — does it intersect candidate sets from each endset type independently, or does it search one endset and then filter by the others?
+15. [gregory] After candidate links are found via the spanfilade, `link2sporglset` extracts I-addresses from the link orgl in the granfilade — does this extraction read the link's actual endset spans, or does it rely on the spanfilade's indexed copy, and can these ever diverge?
+16. [gregory] When resolving a discovered link's endsets back to V-addresses via `linksporglset2specset`, how does the I→V conversion handle an I-address that maps to multiple V-positions within the same document (e.g., after self-transclusion) — does it return all V-positions or just the first found?
+17. [gregory] For a link whose source endset spans a range of I-addresses and only a subset of those I-addresses appear in the querying document's POOM, does `find_links` still return that link, or must the entire endset I-range be present for the link to match?
+18. [gregory] The spanfilade indexes one DOCISPAN entry per contiguous I-span at creation time — if a link's endset references I-addresses that were inserted as separate operations (producing multiple I-spans), does the spanfilade store multiple entries per endset, and does the search correctly aggregate them?
+19. [gregory] When `FOLLOWLINK` / `RETRIEVEENDSETS` returns a link's endsets and some referenced I-addresses exist in no current POOM, what exactly does `span2spanset` do during I→V conversion — does it silently drop the unreachable portions and return a truncated specset, or does it signal incompleteness?
+20. [gregory] Is there any mechanism that guarantees spanfilade completeness — that every link's endset I-spans are fully indexed — or can races, crashes, or partial `insertendsetsinspanf` failures leave a link permanently undiscoverable even though its orgl exists in the granfilade?
