@@ -37,9 +37,11 @@ This grounding is what connects the user's view to the link store: the resolved 
 
 We observe that a single contiguous V-span may resolve to multiple disjoint I-address ranges. This happens whenever the V-span crosses a block boundary in the document's block decomposition (ASN-0058). Consider a document whose text-subspace arrangement contains two mapping blocks β₁ = (v₁, a₁, n₁) and β₂ = (v₂, a₂, n₂) with v₂ = v₁ + n₁ (V-adjacent) but a₂ ≠ a₁ + n₁ (not I-adjacent). A V-span covering both blocks resolves to two separate I-runs: one under a₁ and one under a₂. The content was originally created in — or transcluded from — different sources; the arrangement remembers.
 
-**F1 — ResolutionFragmentation (LEMMA).** For document d with canonical block decomposition B = {β₁, ..., βₘ} (ASN-0058, M11) and a V-span σ_V, the set resolve(d, ⟦σ_V⟧) partitions into at most m contiguous I-address runs, one per block whose V-extent intersects ⟦σ_V⟧.
+**F1 — ResolutionFragmentation (LEMMA).** For document d with canonical block decomposition B = {β₁, ..., βₘ} (ASN-0058, M11) and a V-span σ_V, the set resolve(d, ⟦σ_V⟧) is the union of at most m contiguous I-address runs — at most one contributed by each block whose V-extent intersects ⟦σ_V⟧.
 
 *Proof.* Each block βⱼ = (vⱼ, aⱼ, nⱼ) contributes at most one I-span to the result. Within a single block, M(d)(vⱼ + k) = aⱼ + k (B3, Consistency), so a contiguous set of V-positions maps to a contiguous set of I-addresses. We must show that V(βⱼ) ∩ ⟦σ_V⟧ is contiguous. Suppose vⱼ + c ∈ V(βⱼ) ∩ ⟦σ_V⟧ and vⱼ + c' ∈ V(βⱼ) ∩ ⟦σ_V⟧ with c < c'. For any integer k with c ≤ k ≤ c': first, vⱼ + k ∈ V(βⱼ) since 0 ≤ k < nⱼ; second, ordinal increments preserve order (TA-strict, ASN-0034), giving vⱼ + c ≤ vⱼ + k ≤ vⱼ + c' in T1, so vⱼ + k ∈ ⟦σ_V⟧ by S0 (Convexity, ASN-0053). Therefore vⱼ + k ∈ V(βⱼ) ∩ ⟦σ_V⟧. (Note: V(βⱼ) itself is not convex in unrestricted T1 — extension tumblers of depth greater than m lie between consecutive ordinal increments — but the argument requires only the T1-convexity of ⟦σ_V⟧, applied to the depth-m positions in V(βⱼ).) If this intersection contains positions vⱼ + c through vⱼ + c + w − 1 (for some c, w with 0 ≤ c and 1 ≤ w ≤ nⱼ − c), the corresponding I-addresses are aⱼ + c through aⱼ + c + w − 1. The I-addresses in this run — aⱼ + c through aⱼ + c + w − 1 — are all element-level (S7b, ASN-0036). When compact representation is needed, the run is described by the I-span (aⱼ + c, δ(w, d_I)) where d_I = #(aⱼ + c); note that the span denotation ⟦(aⱼ + c, δ(w, d_I))⟧ is a superset of the run (it includes extension tumblers of greater depth), but the element-level members are exactly the run's I-addresses. Blocks with empty intersection contribute nothing. ∎
+
+The bound of m runs is not always tight. Self-transclusion (S5, ASN-0036) allows distinct blocks to share I-extents — e.g., β₁ = ([1,1], a, 2) and β₂ = ([1,3], a, 2) coexist in the canonical decomposition (M14, ASN-0058: the merge condition a = a + 2 fails by TA-strict), but both contribute {a, a+1}, yielding one I-run from two blocks. Similarly, I-adjacent blocks that are not V-adjacent remain unmerged (M7 requires both conditions), yet their I-contributions form a single contiguous run. In both cases the number of maximal contiguous I-runs in the result is strictly less than the number of contributing blocks.
 
 Nelson acknowledges this multiplicity explicitly: the FEBE commands "have been generalized for the interconnection of broken lists of spans" (LM 4/61). A single user selection over a compound document — one built from transcluded fragments — may reference content scattered across the Istream. The search must handle this disjoint query set as a single operation.
 
@@ -72,8 +74,8 @@ where reach(σ) = start(σ) ⊕ width(σ) (ASN-0053, SpanReach). This follows fr
 
 **F2 — OverlapSufficiency (LEMMA).**
 
-`(A ℓ ∈ dom(Σ.L), e ∈ {from, to, type}, Q ⊆ T :`
-`  coverage(Σ.L(ℓ).e) ∩ Q ≠ ∅ ⟹ ℓ satisfies the e-constraint of Q)`
+`(A a ∈ dom(Σ.L), e ∈ {from, to, type}, Q ⊆ T :`
+`  coverage(Σ.L(a).e) ∩ Q ≠ ∅ ⟹ a satisfies the e-constraint of Q)`
 
 Partial overlap is sufficient. A link whose from-endset spans I-addresses [a, a + 100) matches a query for I-addresses [a + 50, a + 200). The shared I-addresses [a + 50, a + 100) are enough. Full containment is not required in either direction.
 
@@ -101,36 +103,36 @@ A constraint equal to T imposes no filtering on the corresponding endset. The ho
 
 At the user-facing level, constraints are specified as V-span-sets in specific documents. The front end resolves each constraint independently through its respective document's arrangement, producing I-address sets. A single constraint may reference content across multiple documents:
 
-`resolve_spec({(d₁, Σ₁), ..., (dₖ, Σₖ)}) = ⋃_{i=1}^{k} resolve(dᵢ, Σᵢ)`
+`resolve_spec({(d₁, Σ_{V₁}), ..., (dₖ, Σ_{Vₖ})}) = ⋃_{i=1}^{k} resolve(dᵢ, Σ_{Vᵢ})`
 
 The from-constraint might say "content at V-positions 50–100 in document A and V-positions 200–250 in document B." After resolution, this becomes a single finite I-address set against which from-endsets are tested. Each per-document resolution produces a finite set (subset of the finite dom(M(dᵢ)) by S8-fin, ASN-0036); by F1, each decomposes into at most m contiguous runs.
 
-**Definition — Satisfaction.** A link at address ℓ ∈ dom(Σ.L), with Σ.L(ℓ) = (F, G, Θ), *satisfies* query Q = (H, F_Q, G_Q, Θ_Q) when:
+**Definition — Satisfaction.** A link at address a ∈ dom(Σ.L), with Σ.L(a) = (F, G, Θ), *satisfies* query Q = (H, F_Q, G_Q, Θ_Q) when:
 
 ```
-satisfies(ℓ, Q)  ≡  home(ℓ) ∈ H
+satisfies(a, Q)  ≡  home(a) ∈ H
                    ∧ (F_Q = T  ∨  overlaps(F, F_Q))
                    ∧ (G_Q = T  ∨  overlaps(G, G_Q))
                    ∧ (Θ_Q = T  ∨  overlaps(Θ, Θ_Q))
 ```
 
-where home(ℓ) = origin(ℓ) is the document-level prefix of the link's tumbler address (ASN-0043, LinkHome).
+where home(a) = origin(a) is the document-level prefix of the link's tumbler address (ASN-0043, LinkHome).
 
-The predicate is deterministic: given a link ℓ and query Q, satisfaction is decidable from Σ.L(ℓ), the link's endsets, and Q alone (no external oracle or probabilistic test). Each overlap test evaluates `coverage(e) ∩ Q_e` for a finite I-address set Q_e — the intersection is well-defined and exact, without the ambiguity that would arise from testing against span denotations (which include non-element-level tumblers between element-level addresses).
+The predicate is deterministic: given a link a and query Q, satisfaction is decidable from Σ.L(a), the link's endsets, and Q alone (no external oracle or probabilistic test). Each overlap test evaluates `coverage(e) ∩ Q_e` for a finite I-address set Q_e — the intersection is well-defined and exact, without the ambiguity that would arise from testing against span denotations (which include non-element-level tumblers between element-level addresses).
 
 **F3 — SatisfactionDeterminism (LEMMA).**
 
-`satisfies(ℓ, Q)` is decidable from `ℓ`, `Q`, and `Σ.L(ℓ)` alone.
+`satisfies(a, Q)` is decidable from `a`, `Q`, and `Σ.L(a)` alone.
 
-*Proof.* home(ℓ) is computable from ℓ by T4 (HierarchicalParsing, ASN-0034). Membership in H is decidable. Each overlap test `overlaps(e, Q_e)` checks whether `coverage(e) ∩ Q_e ≠ ∅` for a finite I-address set Q_e. Expanding: `(E (s, ℓ) ∈ e, a ∈ Q_e : s ≤ a < s ⊕ ℓ)`. Each comparison is decidable by T2 (IntrinsicComparison). The endset e is finite (ASN-0043, Endset) and Q_e is finite (by DiscoveryQuery), so finitely many tests are required. ∎
+*Proof.* home(a) is computable from a by T4 (HierarchicalParsing, ASN-0034). Membership in H is decidable. Each overlap test `overlaps(e, Q_e)` checks whether `coverage(e) ∩ Q_e ≠ ∅` for a finite I-address set Q_e. Expanding: `(E (s, ℓ) ∈ e, t ∈ Q_e : s ≤ t < s ⊕ ℓ)`. Each comparison is decidable by T2 (IntrinsicComparison). The endset e is finite (ASN-0043, Endset) and Q_e is finite (by DiscoveryQuery), so finitely many tests are required. ∎
 
 **Definition — FINDLINKS Result.** The result of a discovery query Q is:
 
-`findlinks(Q) = {ℓ ∈ dom(Σ.L) : satisfies(ℓ, Q)}`
+`findlinks(Q) = {a ∈ dom(Σ.L) : satisfies(a, Q)}`
 
-**Assumption — LinkEntityCoherence.** For every ℓ ∈ dom(Σ.L):
+**Assumption — LinkEntityCoherence.** For every a ∈ dom(Σ.L):
 
-`origin(ℓ) ∈ E_doc`
+`origin(a) ∈ E_doc`
 
 This parallels P6 (ExistentialCoherence, ASN-0047), which establishes `origin(a) ∈ E_doc` for content addresses a ∈ dom(C). The analogous property for link addresses depends on a link-creation transition (analogous to K.α for content) whose postcondition must include this guarantee. No foundation currently defines this transition; we assume the property here.
 
@@ -150,11 +152,11 @@ The word "all" is the guarantee. The operation does not return "some links," a s
 The FINDLINKS operation takes a query Q and returns findlinks(Q). It is both *complete* (no satisfying link omitted) and *sound* (no non-satisfying link included):
 
 ```
-(A ℓ ∈ dom(Σ.L) : satisfies(ℓ, Q) : ℓ ∈ findlinks(Q))       — completeness
-(A ℓ ∈ findlinks(Q) : satisfies(ℓ, Q))                        — soundness
+(A a ∈ dom(Σ.L) : satisfies(a, Q) : a ∈ findlinks(Q))       — completeness
+(A a ∈ findlinks(Q) : satisfies(a, Q))                        — soundness
 ```
 
-Both follow directly from the definition of findlinks(Q) = {ℓ ∈ dom(Σ.L) : satisfies(ℓ, Q)}.
+Both follow directly from the definition of findlinks(Q) = {a ∈ dom(Σ.L) : satisfies(a, Q)}.
 
 The count operation (FINDNUMOFLINKSFROMTOTHREE) confirms complete knowledge — you cannot count what you have not found. The performance guarantee reinforces that completeness is practical at scale:
 
@@ -174,7 +176,7 @@ Document d (at address 1.0.1.0.1) has V-position depth 2 and two mapping blocks 
 
 The blocks are V-adjacent ([1,4] = [1,1] + 3) but not I-adjacent — β₂'s content originates from document 1.0.1.0.2, transcluded into d.
 
-**A link that matches.** Let ℓ reside at address p.2.1 (link subspace of document 1.0.1.0.1), with from-endset F = {(p.1.2, δ(2, 8))}. The reach is p.1.2 ⊕ δ(2, 8) = p.1.4 (TumblerAdd at action point 8 increments the last component: 2 + 2 = 4). So coverage(F) = {t : p.1.2 ≤ t < p.1.4}. The to- and type-endsets are irrelevant to this query.
+**A link that matches.** Consider a link at address a = p.2.1 (link subspace of document 1.0.1.0.1), with from-endset F = {(p.1.2, δ(2, 8))}. The reach is p.1.2 ⊕ δ(2, 8) = p.1.4 (TumblerAdd at action point 8 increments the last component: 2 + 2 = 4). So coverage(F) = {t : p.1.2 ≤ t < p.1.4}. The to- and type-endsets are irrelevant to this query.
 
 The user selects V-positions [1,2] through [1,5], given as V-span σ_V = ([1,2], δ(4, 2)). Since reach(σ_V) = [1,2] ⊕ [0,4] = [1,6], the V-positions in dom(M(d)) ∩ ⟦σ_V⟧ are {[1,2], [1,3], [1,4], [1,5]} — by S8-depth, all V-positions have depth 2, so extension tumblers in ⟦σ_V⟧ (e.g. [1,2,1], [1,3,5]) do not intersect dom(M(d)). This selection crosses the block boundary between β₁ and β₂ — the F1 fragmentation scenario.
 
@@ -189,14 +191,14 @@ The from-constraint is the finite I-address set F_Q = {p.1.2, p.1.3, q.1.1, q.1.
 
 *Satisfaction.* Query Q = (E_doc, F_Q, T, T):
 
-- home(ℓ) = origin(p.2.1) = 1.0.1.0.1 ∈ E_doc ✓ (by LinkEntityCoherence)
+- home(a) = origin(p.2.1) = 1.0.1.0.1 ∈ E_doc ✓ (by LinkEntityCoherence)
 - F_Q ≠ T and overlaps(F, F_Q) = true ✓
 - G_Q = T ✓
 - Θ_Q = T ✓
 
-Therefore ℓ ∈ findlinks(Q).
+Therefore a ∈ findlinks(Q).
 
-**A link that does not match.** Let ℓ' reside at q.2.1 with from-endset F' = {(q.1.5, δ(1, 8))}. Its coverage: {t : q.1.5 ≤ t < q.1.6}. The I-addresses in F_Q under prefix q are q.1.1 and q.1.2; since q.1.5 > q.1.2, no element of F_Q falls in coverage(F'). The I-addresses under prefix p are below all q-prefixed addresses by T1, so they too lie outside coverage(F'). coverage(F') ∩ F_Q = ∅, so overlaps(F', F_Q) = false. Link ℓ' does not satisfy Q.
+**A link that does not match.** Consider a link at address a' = q.2.1 with from-endset F' = {(q.1.5, δ(1, 8))}. Its coverage: {t : q.1.5 ≤ t < q.1.6}. The I-addresses in F_Q under prefix q are q.1.1 and q.1.2; since q.1.5 > q.1.2, no element of F_Q falls in coverage(F'). The I-addresses under prefix p are below all q-prefixed addresses by T1, so they too lie outside coverage(F'). coverage(F') ∩ F_Q = ∅, so overlaps(F', F_Q) = false. Link a' does not satisfy Q.
 
 
 ## Cross-Document Discovery
@@ -209,7 +211,7 @@ We now derive a consequence that Nelson considers fundamental. Because link disc
 `  v₁ ∈ dom(M(d₁)) ∧ v₂ ∈ dom(M(d₂)) ∧ M(d₁)(v₁) = M(d₂)(v₂)`
 `  ⟹ resolve(d₁, {v₁}) = resolve(d₂, {v₂}))`
 
-When the same I-address appears in two documents through transclusion, resolving through either document produces the same I-address set. Since satisfies(ℓ, Q) depends only on the I-address sets in Q and the link's endsets — not on which document or V-positions produced them — identical resolved sets yield identical findlinks results for any choice of H, G_Q, Θ_Q.
+When the same I-address appears in two documents through transclusion, resolving through either document produces the same I-address set. Since satisfies(a, Q) depends only on the I-address sets in Q and the link's endsets — not on which document or V-positions produced them — identical resolved sets yield identical findlinks results for any choice of H, G_Q, Θ_Q.
 
 *Derivation.* Let a = M(d₁)(v₁) = M(d₂)(v₂). Then resolve(d₁, {v₁}) = {M(d₁)(v₁)} = {a} = {M(d₂)(v₂)} = resolve(d₂, {v₂}). ∎
 
@@ -274,22 +276,22 @@ where published(d) indicates the document is publicly available, and authorized(
 Visibility filtering is a separate, explicitly defined post-processing step applied to the complete findlinks(Q) result. The user-visible result is:
 
 ```
-visible(Q, u) = {ℓ ∈ findlinks(Q) : accessible(home(ℓ), u)}
+visible(Q, u) = {a ∈ findlinks(Q) : accessible(home(a), u)}
 ```
 
 Two sub-properties hold:
 
 (a) *No omission of accessible links.* Every link that satisfies Q and whose home document the user can access appears in the visible result:
 
-`(A ℓ : satisfies(ℓ, Q) ∧ accessible(home(ℓ), u) : ℓ ∈ visible(Q, u))`
+`(A a : satisfies(a, Q) ∧ accessible(home(a), u) : a ∈ visible(Q, u))`
 
-*Derivation.* If satisfies(ℓ, Q) holds, then ℓ ∈ findlinks(Q) by F4 (completeness). If additionally accessible(home(ℓ), u) holds, then ℓ ∈ visible(Q, u) by the definition of visible. ∎
+*Derivation.* If satisfies(a, Q) holds, then a ∈ findlinks(Q) by F4 (completeness). If additionally accessible(home(a), u) holds, then a ∈ visible(Q, u) by the definition of visible. ∎
 
 (b) *No inclusion of inaccessible links.* No link whose home document is inaccessible appears in the visible result:
 
-`(A ℓ : ¬accessible(home(ℓ), u) : ℓ ∉ visible(Q, u))`
+`(A a : ¬accessible(home(a), u) : a ∉ visible(Q, u))`
 
-*Derivation.* By the definition of visible(Q, u), membership requires accessible(home(ℓ), u). When this predicate is false, ℓ is excluded. ∎
+*Derivation.* By the definition of visible(Q, u), membership requires accessible(home(a), u). When this predicate is false, a is excluded. ∎
 
 Nelson reinforces the non-leakage requirement:
 
@@ -316,7 +318,7 @@ The result set has a defined total order. Every link has a unique tumbler addres
 
 `findlinks(Q)` is totally ordered by the tumbler ordering (T1) on link addresses:
 
-`(A ℓ₁, ℓ₂ ∈ findlinks(Q) : ℓ₁ ≠ ℓ₂ : ℓ₁ < ℓ₂ ∨ ℓ₂ < ℓ₁)`
+`(A a₁, a₂ ∈ findlinks(Q) : a₁ ≠ a₂ : a₁ < a₂ ∨ a₂ < a₁)`
 
 The order is permanent — link addresses never change (T8, AllocationPermanence) — so the position of a link in any result set is fixed for all time.
 
@@ -328,7 +330,7 @@ The phrase "past that link on that list" requires a stable, deterministic orderi
 
 **Definition — Pagination.** For a result set R = findlinks(Q), a cursor c ∈ T, and a count n ≥ 1:
 
-`page(R, c, n) = {ℓ ∈ R : ℓ > c, and ℓ is among the first n elements of R greater than c under T1}`
+`page(R, c, n) = {a ∈ R : a > c, and a is among the first n elements of R greater than c under T1}`
 
 The cursor c is the address of the last link returned in the previous page. The first page uses a cursor below all possible link addresses (such as the zero tumbler). By F8, the ordering is total and stable, so consecutive pages partition R without gaps or repetition.
 
@@ -402,9 +404,9 @@ Gregory's implementation grounds several abstract properties in concrete mechani
 | Label | Statement | Status |
 |-------|-----------|--------|
 | F0 | resolve(d, Q_V) ⊆ dom(Σ.C) — resolved I-addresses are grounded in the content store | introduced |
-| F1 | A single V-span resolves to at most m contiguous I-address runs, where m is the block count | introduced |
+| F1 | A single V-span resolves to the union of at most m contiguous I-address runs; self-transclusion or I-adjacency may reduce the count | introduced |
 | F2 | Partial overlap between endset coverage and query set suffices for matching | introduced |
-| F3 | satisfies(ℓ, Q) is decidable from ℓ, Q (with finite I-address set constraints), and Σ.L(ℓ) | introduced |
+| F3 | satisfies(a, Q) is decidable from a, Q (with finite I-address set constraints), and Σ.L(a) | introduced |
 | F4 | findlinks(Q) returns exactly the set of satisfying links (complete and sound) | introduced |
 | F5 | Transclusion identity: resolve(d₁, {v₁}) = resolve(d₂, {v₂}) when M(d₁)(v₁) = M(d₂)(v₂) | introduced |
 | F6a | Overlap predicate is uniform across endset slots (from, to, type) — follows from type signature | introduced |
@@ -414,12 +416,12 @@ Gregory's implementation grounds several abstract properties in concrete mechani
 | F9 | Reverse resolution (I→V) may yield multiple V-positions per I-address | introduced |
 | F10 | reverse(d, e) depends only on coverage(e) ∩ ran(M(d)); unarranged I-addresses invisible | introduced |
 | F11 | FINDLINKS is a pure function from (Σ, Q) to a set; no transition invoked | introduced |
-| LinkEntityCoherence | origin(ℓ) ∈ E_doc for all ℓ ∈ dom(Σ.L) — assumed pending link-creation ASN | assumed |
+| LinkEntityCoherence | origin(a) ∈ E_doc for all a ∈ dom(Σ.L) — assumed pending link-creation ASN | assumed |
 | Σ.resolve | resolve(d, Q_V) = {M(d)(v) : v ∈ Q_V ∩ dom(M(d))} | introduced |
 | Σ.satisfies | AND-of-ORs: home-set ∧ (from-overlap) ∧ (to-overlap) ∧ (type-overlap) | introduced |
-| Σ.findlinks | findlinks(Q) = {ℓ ∈ dom(Σ.L) : satisfies(ℓ, Q)} | introduced |
+| Σ.findlinks | findlinks(Q) = {a ∈ dom(Σ.L) : satisfies(a, Q)} | introduced |
 | Σ.reverse | reverse(d, a) = {v ∈ dom(M(d)) : M(d)(v) = a} | introduced |
-| Σ.visible | visible(Q, u) = {ℓ ∈ findlinks(Q) : accessible(home(ℓ), u)} | introduced (design) |
+| Σ.visible | visible(Q, u) = {a ∈ findlinks(Q) : accessible(home(a), u)} | introduced (design) |
 
 
 ## Open Questions
