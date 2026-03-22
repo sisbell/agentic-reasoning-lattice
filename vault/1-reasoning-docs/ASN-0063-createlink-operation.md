@@ -30,9 +30,9 @@ We need this set expressible as an endset: a finite set of well-formed I-spans. 
 
 ## Endset Resolution
 
-**Lemma CL0 — BlockProjection.** Let β = (v_β, a_β, n) be a mapping block (ASN-0058) and σ_v a V-span in the same subspace. If `V(β) ∩ ⟦σ_v⟧ ≠ ∅`, then the image of their overlap through β is a single well-formed I-span.
+**Lemma CL0 — BlockProjection.** Let β = (v_β, a_β, n) be a mapping block (ASN-0058) and σ_v a V-span in the same subspace. If `V(β) ∩ ⟦σ_v⟧ ≠ ∅`, then the image of their overlap through β is representable by a single well-formed I-span — that is, it is contained in the denotation of a span whose element-level members are exactly the image.
 
-*Proof.* The V-extent V(β) is contiguous by M1 (ASN-0058), and ⟦σ_v⟧ is convex by S0 (ASN-0053). Their non-empty intersection is convex, hence of the form `{v_β + k : c ≤ k < c'}` for some `0 ≤ c < c' ≤ n`. By B3 (Consistency, ASN-0058), `M(d)(v_β + k) = a_β + k`, so the image is `{a_β + k : c ≤ k < c'}`. Define the I-span `ρ = (shift(a_β, c), δ(c' − c, #a_β))`. Its reach is `shift(a_β, c) ⊕ δ(c' − c, #a_β) = shift(a_β, c')` by TS3 (ShiftComposition, ASN-0034). The displacement `δ(c' − c, #a_β)` is positive since `c' − c ≥ 1`, and its action point equals `#a_β = #shift(a_β, c)` (ordinal shift preserves depth), satisfying T12 (SpanWellDefined, ASN-0034). ∎
+*Proof.* The V-extent V(β) is contiguous by M1 (ASN-0058), and ⟦σ_v⟧ is convex by S0 (ASN-0053). Their non-empty intersection is convex, hence of the form `{v_β + k : c ≤ k < c'}` for some `0 ≤ c < c' ≤ n`. By B3 (Consistency, ASN-0058), `M(d)(v_β + k) = a_β + k`, so the image is `{a_β + k : c ≤ k < c'}`. Define the I-span `ρ = (a_β + c, δ(c' − c, #a_β))`, where `a_β + c` follows the M-aux convention (ASN-0058): when `c = 0`, `a_β + 0 = a_β`; when `c ≥ 1`, `a_β + c` is the `c`-th ordinal increment. The reach is `(a_β + c) ⊕ δ(c' − c, #a_β) = a_β + c'` by M-aux associativity and the definition of ordinal displacement. The displacement `δ(c' − c, #a_β)` is positive since `c' − c ≥ 1`, and its action point equals `#a_β = #(a_β + c)` (ordinal increment preserves depth), satisfying T12 (SpanWellDefined, ASN-0034). The image `{a_β + k : c ≤ k < c'} ⊆ ⟦ρ⟧`, with equality at element level (depth `#a_β`). ∎
 
 A single V-span crossing multiple mapping blocks produces multiple I-spans — one per overlapping block. This is not a degenerate case; it is the *normal* case when the selected content was assembled from multiple sources through transclusion. Each transcluded portion retains its original I-address — that is the definition of transclusion — so a contiguous V-selection may cover a discontiguous set of I-addresses. A selection of "AABB" where "AA" was transcluded from document X and "BB" from document Y produces two I-spans: one addressing the "AA" bytes in X's I-space, another addressing "BB" in Y's I-space.
 
@@ -56,9 +56,15 @@ where each `ρ_{β,σ}` is the I-span produced by CL0 for block β and V-span σ
 
 Immediate from CL1: each element of `image(d, Ψ)` is an I-address `M(d)(v)` for some `v ∈ ⟦Ψ⟧ ∩ dom(M(d))`, which falls in exactly one CL0 I-span by B1 and B2.
 
-Endset specifications may reference content across multiple documents — the from-endset might address content in document X, the to-endset content in document Y, while the link itself lives in document Z. For a cross-document specification S = {(d₁, Ψ₁), ..., (dₘ, Ψₘ)}, define `resolve(S) = resolve(d₁, Ψ₁) ∪ ... ∪ resolve(dₘ, Ψₘ)`. Each (document, V-spans) pair resolves independently; the union captures the cross-document endsets permitted by L4(a) (ASN-0043).
+Endset specifications may reference content across multiple documents — the from-endset might address content in document X, the to-endset content in document Y, while the link itself lives in document Z. For a V-space specification S = {(d₁, Ψ₁), ..., (dₘ, Ψₘ)}, define `resolve(S) = resolve(d₁, Ψ₁) ∪ ... ∪ resolve(dₘ, Ψₘ)`. Each (document, V-spans) pair resolves independently; the union captures the cross-document endsets permitted by L4(a) (ASN-0043).
 
-One final observation on resolution. When a V-span-set covers V-positions outside dom(M(d)) — content that was removed from the arrangement but persists in the Istream (by S0) — those positions contribute nothing to the image. The resolved endset captures only content *currently arranged* in the source documents. Content that exists in the Istream but has no current arrangement mapping is unreachable through V-space resolution. It can, however, be referenced directly by I-address: the system supports raw I-span endsets that bypass resolution entirely. In that case the endsets are taken as-is — no arrangement is consulted, no validation against dom(C) is performed. The link is created with whatever I-addresses are provided.
+One final observation on resolution. When a V-span-set covers V-positions outside dom(M(d)) — content that was removed from the arrangement but persists in the Istream (by S0) — those positions contribute nothing to the image. The resolved endset captures only content *currently arranged* in the source documents. Content that exists in the Istream but has no current arrangement mapping is unreachable through V-space resolution. It can, however, be referenced directly by I-address.
+
+We extend `resolve` to handle both input forms uniformly. An *endset specification* is either a set of (document, V-spans) pairs `{(d₁, Ψ₁), ..., (dₘ, Ψₘ)}` or a direct I-span-set `E_I ∈ Endset`. For the V-space form, `resolve` operates as defined above. For the direct form:
+
+  `resolve(E_I) = E_I`
+
+The identity: no arrangement is consulted, no validation against dom(C) is performed. The link is created with whatever I-spans are provided. CL2 (ResolutionContainment) holds trivially for the direct form: `coverage(E_I) ⊆ coverage(resolve(E_I)) = coverage(E_I)`. CL1 likewise: the endset itself witnesses existence. This ensures that the CREATELINK composite and its postconditions CL3, CL11 cover both input paths without case splitting.
 
 
 ## Extending the Transition Framework
@@ -87,7 +93,7 @@ The address ℓ is produced by the same forward-allocation discipline as content
 
   `(A d, v : v ∈ dom(Σ.M(d)) : (subspace(v) = s_C ⟹ Σ.M(d)(v) ∈ dom(Σ.C)) ∧ (subspace(v) = s_L ⟹ Σ.M(d)(v) ∈ dom(Σ.L)))`
 
-where `subspace(v)` denotes the first component of the V-position. For the text subspace alone, S3★ reduces to S3 (ASN-0036). S3★ extends the referential integrity guarantee to the link subspace, where the referent is a link in dom(L) rather than content in dom(C).
+where `subspace(v)` denotes the first component of the V-position. S3★ supersedes S3 (ASN-0036) for the extended state Σ = (C, L, E, M, R): S3 requires every V-position to map into dom(C), which is violated by link-subspace mappings targeting dom(L). S3 remains valid when restricted to states with no link-subspace mappings — the pre-extension states of ASN-0047 have only content-subspace V-positions, for which S3★ reduces to S3. Existing transitions (K.α, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.ρ) trivially preserve S3★ because none creates link-subspace mappings: each either holds M in frame or extends/contracts only content-subspace positions, and the link-subspace clause is vacuously satisfied when no link-subspace V-positions exist.
 
 **K.μ⁺_L — LinkSubspaceExtension.** Extends a document's arrangement in the link subspace.
 
@@ -104,7 +110,17 @@ where `subspace(v)` denotes the first component of the V-position. For the text 
 
 *Frame:* `C' = C; L' = L; E' = E; (A d' : d' ≠ d : M'(d') = M(d')); R' = R`
 
+We verify `v_ℓ ∉ dom(M(d))`, as required for M'(d) to be a proper extension preserving S2 (ArrangementFunctionality). When `V_{s_L}(d) = ∅`: no link-subspace V-position exists in dom(M(d)), and `subspace(v_ℓ) = s_L`, so `v_ℓ ∉ dom(M(d))`. When `V_{s_L}(d) ≠ ∅`: `v_ℓ = shift(max(V_{s_L}(d)), 1) > max(V_{s_L}(d))` by TS4 (ShiftStrictIncrease, ASN-0034), placing v_ℓ beyond all existing link-subspace positions. In both cases, `subspace(v_ℓ) = s_L ≠ s_C` ensures no collision with text-subspace positions (T7, SubspaceDisjointness). Therefore `v_ℓ ∉ dom(M(d))`.
+
 The preconditions ensure that after the extension, D-CTG (contiguity), D-MIN (minimum position), and S8-depth (uniform depth) hold for the link subspace of d. S3★ is satisfied: `subspace(v_ℓ) = s_L` and `M'(d)(v_ℓ) = ℓ ∈ dom(L')`.
+
+**Containment scoping.** The containment relation `Contains(Σ)` (ASN-0047) is defined as `{(a, d) : d ∈ E_doc ∧ a ∈ ran(M(d))}` — unscoped across all subspaces. With link-subspace mappings, `Contains(Σ')` includes `(ℓ, d)` for every link ℓ mapped in d's arrangement. P4 requires `Contains(Σ) ⊆ R`, but provenance entries satisfy P7: `(A (a, d) ∈ R :: a ∈ dom(C))`. Since `ℓ ∈ dom(L)` and `dom(L) ∩ dom(C) = ∅` (L14), `(ℓ, d) ∉ R` — P4 is unsatisfiable for the unscoped relation once link-subspace mappings exist. We define the content-scoped containment:
+
+**Definition — ContentContainment.** `Contains_C(Σ) = {(a, d) : d ∈ E_doc ∧ (E v : v ∈ dom(M(d)) ∧ subspace(v) = s_C : M(d)(v) = a)}`
+
+**P4★ — ProvenanceBounds (content-subspace).** `Contains_C(Σ) ⊆ R`
+
+P4★ supersedes P4 for the extended state. In pre-extension states (no link-subspace mappings), `Contains_C(Σ) = Contains(Σ)`, so P4★ reduces to P4. Existing transitions trivially preserve P4★: K.α, K.δ, K.ρ hold M in frame; K.μ⁺ extends only content-subspace positions and is coupled with K.ρ by J1★; K.μ⁻ contracts dom(M(d)), which can only shrink Contains_C.
 
 **Coupling constraint scoping.** The coupling constraints J1, J1' (ASN-0047) were formulated before link-subspace mappings existed. They must be scoped to content-subspace arrangement extensions; otherwise J1 and P7 are mutually unsatisfiable — J1 would require provenance recording for the link address ℓ entering ran(M'(d)), but P7 requires every provenance entry to reference dom(C), and ℓ ∈ dom(L) with dom(L) ∩ dom(C) = ∅ (L14).
 
@@ -114,14 +130,16 @@ The preconditions ensure that after the extension, D-CTG (contiguity), D-MIN (mi
 
 Link-subspace extensions (K.μ⁺_L) do not trigger provenance recording: the link address ℓ enters ran(M'(d)) but `subspace(v_ℓ) = s_L ≠ s_C`, so J1★ does not apply. P7 (ProvenanceGrounding) — `(A (a, d) ∈ R :: a ∈ dom(C))` — is preserved because R is unchanged (K.μ⁺_L holds R in frame).
 
+The coupling constraints for valid composites in the extended state Σ = (C, L, E, M, R) are J0, J1★, J1'★. J1★ and J1'★ replace J1 and J1' (ASN-0047) by scoping provenance coupling to content-subspace arrangement changes. J0 (AllocationRequiresPlacement) is unchanged — it constrains content allocation (K.α), which remains content-subspace only.
+
 
 ## The CREATELINK Composite
 
-CREATELINK combines resolution and allocation. The user provides a home document d and endset specifications for three roles: from, to, and type. Each specification is either a set of (document, V-spans) pairs or a set of direct I-spans. The system resolves V-references, allocates a fresh link, and stores the result.
+CREATELINK combines resolution and allocation. The user provides a home document d and endset specifications for three roles: from, to, and type. Each specification is an endset specification — either a set of (document, V-spans) pairs or a direct I-span-set. The system resolves each specification (V-space resolution or identity for direct I-spans), allocates a fresh link, and stores the result.
 
 **CREATELINK(d, S_F, S_G, S_Θ):**
 
-Let F = resolve(S_F), G = resolve(S_G), Θ = resolve(S_Θ).
+Let F = resolve(S_F), G = resolve(S_G), Θ = resolve(S_Θ), where each resolve dispatches according to the specification form.
 
 *Precondition:*
 - d ∈ E_doc
@@ -257,7 +275,7 @@ The system also permits CREATELINK with endsets that reference I-addresses in do
 
 *Link invariants (ASN-0043).* L0 (SubspacePartition): ℓ has fields(ℓ).E₁ = s_L by K.λ precondition. dom(L') ∩ dom(C') = (dom(L) ∪ {ℓ}) ∩ dom(C). Since ℓ ∉ dom(C) and dom(L) ∩ dom(C) = ∅ (L0 pre-state), the intersection is empty. L1 (LinkElementLevel): zeros(ℓ) = 3 by K.λ precondition. L1a (LinkScopedAllocation): origin(ℓ) = d by K.λ precondition. L12 (LinkImmutability): existing entries are unchanged; the transition adds ℓ without modifying any existing L entry. L12a (LinkStoreMonotonicity): dom(L) ⊂ dom(L'). L14 (DualPrimitive): dom(C') ∪ dom(L') = dom(C) ∪ dom(L) ∪ {ℓ}; disjointness holds since ℓ ∉ dom(C). ✓
 
-*Transition invariants (ASN-0047).* P0 (ContentPermanence): C' = C. P1 (EntityPermanence): E' = E. P2 (ProvenancePermanence): R' = R. P5 (DestructionConfinement): only M and L change, both by extension — no information is lost. P6 (ExistentialCoherence): unchanged since dom(C) is unchanged. J1★, J1'★ (Provenance coupling): K.μ⁺_L adds ℓ to ran(M'(d)), but `subspace(v_ℓ) = s_L ≠ s_C`, so J1★ does not require provenance recording; R' = R. P7 (ProvenanceGrounding): `(A (a, d) ∈ R' :: a ∈ dom(C'))` holds since R' = R and dom(C') = dom(C). P7a (ProvenanceCoverage): unchanged since dom(C) is unchanged. P8 (EntityHierarchy): E is unchanged. ✓
+*Transition invariants (ASN-0047).* P0 (ContentPermanence): C' = C. P1 (EntityPermanence): E' = E. P2 (ProvenancePermanence): R' = R. P4★ (ProvenanceBounds, content-subspace): K.μ⁺_L adds ℓ to ran(M'(d)), but `subspace(v_ℓ) = s_L ≠ s_C`, so ℓ does not appear in Contains_C(Σ'). Text-subspace mappings are unchanged, so Contains_C(Σ') = Contains_C(Σ) ⊆ R = R'. P5 (DestructionConfinement): only M and L change, both by extension — no information is lost. P6 (ExistentialCoherence): unchanged since dom(C) is unchanged. J1★, J1'★ (Provenance coupling): K.μ⁺_L adds ℓ to ran(M'(d)), but `subspace(v_ℓ) = s_L ≠ s_C`, so J1★ does not require provenance recording; R' = R. P7 (ProvenanceGrounding): `(A (a, d) ∈ R' :: a ∈ dom(C'))` holds since R' = R and dom(C') = dom(C). P7a (ProvenanceCoverage): unchanged since dom(C) is unchanged. P8 (EntityHierarchy): E is unchanged. ✓
 
 
 ## Worked Example
@@ -306,7 +324,7 @@ CL3(e): C' = C. ✓ — neither K.λ nor K.μ⁺_L modify C.
 
 **Discovery verification (CL8).** For a_X = `2.0.1.0.1.0.1.1`: a_X ∈ coverage(F), since `2.0.1.0.1.0.1.1 ∈ ⟦ρ₁⟧ = {t : 2.0.1.0.1.0.1.1 ≤ t < 2.0.1.0.1.0.1.3}`. So ℓ ∈ disc(a_X, from). ✓ Similarly for `2.0.1.0.1.0.1.2` (in ⟦ρ₁⟧), `3.0.1.0.1.0.1.1` and `3.0.1.0.1.0.1.2` (in ⟦ρ₂⟧). ✓
 
-**Invariant verification.** S3★: text-subspace mappings unchanged (target dom(C)); link-subspace mapping [s_L, 1] ↦ ℓ satisfies ℓ ∈ dom(L'). D-CTG for s_L: V_{s_L}(d_Z) = {[s_L, 1]}, a singleton — trivially contiguous. D-MIN for s_L: min = [s_L, 1]. S8-depth for s_L: one position — trivially uniform. J1★: subspace(v_ℓ) = s_L ≠ s_C, so no provenance recording required; R' = R. P7: R unchanged, dom(C) unchanged. ✓
+**Invariant verification.** S3★: text-subspace mappings unchanged (target dom(C)); link-subspace mapping [s_L, 1] ↦ ℓ satisfies ℓ ∈ dom(L'). D-CTG for s_L: V_{s_L}(d_Z) = {[s_L, 1]}, a singleton — trivially contiguous. D-MIN for s_L: min = [s_L, 1]. S8-depth for s_L: one position — trivially uniform. P4★: subspace(v_ℓ) = s_L ≠ s_C, so ℓ ∉ Contains_C(Σ'); text-subspace unchanged, so Contains_C(Σ') = Contains_C(Σ) ⊆ R = R'. J1★: subspace(v_ℓ) = s_L ≠ s_C, so no provenance recording required; R' = R. P7: R unchanged, dom(C) unchanged. ✓
 
 
 ## Properties Introduced
@@ -314,11 +332,13 @@ CL3(e): C' = C. ✓ — neither K.λ nor K.μ⁺_L modify C.
 | Label | Statement | Status |
 |-------|-----------|--------|
 | image(d, Ψ) | `{M(d)(v) : v ∈ ⟦Ψ⟧ ∩ dom(M(d))}` — V-span image through arrangement | introduced |
-| CL0 | Each mapping block / V-span overlap produces a single well-formed I-span | introduced |
+| CL0 | Each mapping block / V-span overlap is representable by a single well-formed I-span | introduced |
 | CL1 | For any d and Ψ, there exists E ∈ Endset with image(d, Ψ) ⊆ coverage(E) | introduced |
 | resolve(d, Ψ) | Finite endset of CL0 I-spans from canonical block decomposition | introduced |
 | CL2 | image(d, Ψ) ⊆ coverage(resolve(d, Ψ)) — resolution containment | introduced |
-| S3★ | Subspace-conditional referential integrity: text → dom(C), link → dom(L) | introduced |
+| S3★ | Subspace-conditional referential integrity: text → dom(C), link → dom(L); supersedes S3 | introduced |
+| Contains_C(Σ) | `{(a, d) : d ∈ E_doc ∧ (E v : subspace(v) = s_C ∧ M(d)(v) = a)}` — content-scoped containment | introduced |
+| P4★ | `Contains_C(Σ) ⊆ R` — provenance bounds scoped to content subspace; supersedes P4 | introduced |
 | K.λ | Elementary transition: L' = L ∪ {ℓ ↦ (F, G, Θ)}, frame C' = C, E' = E, M' = M, R' = R | introduced |
 | K.μ⁺_L | Elementary transition: link-subspace arrangement extension, M'(d) = M(d) ∪ {v_ℓ ↦ ℓ} | introduced |
 | J1★ | Content-subspace scoping of J1: provenance recording only for subspace(v) = s_C | introduced |
