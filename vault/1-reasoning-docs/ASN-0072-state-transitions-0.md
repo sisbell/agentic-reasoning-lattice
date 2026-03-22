@@ -17,7 +17,7 @@ This ASN uses properties of the link store. For self-containment, we restate the
 
 **SC-NEQ** — *SubspaceDistinctness* (AX, axiom). `s_C ≠ s_L`.
 
-This is the structural precondition for every disjointness argument in this ASN. By T7 (SubspaceDisjointness, ASN-0034), `s_C ≠ s_L` implies that no tumbler can be both a content address and a link address. Without SC-NEQ, L0 and L14 would be vacuous. We note that `s_C ≥ 1` follows from S8a (all V-position components strictly positive) and `s_L ≥ 1` follows from T4 (element-field components strictly positive) combined with L1 below.
+This is the structural precondition for every disjointness argument in this ASN. By T7 (SubspaceDisjointness, ASN-0034), `s_C ≠ s_L` implies that no tumbler can be both a content address and a link address. Without SC-NEQ, L0 and L14 would be vacuous. We note that `s_C ≥ 1` follows from S7b and T4: content I-addresses are element-level by S7b (`zeros(a) = 3`), and T4 requires every element-field component to be strictly positive, so `fields(a).E₁ = s_C > 0`. The same derivation gives `s_L ≥ 1`: link I-addresses are element-level by L1 below (`zeros(ℓ) = 3`), so by T4, `fields(ℓ).E₁ = s_L > 0`.
 
 **L0** — *SubspacePartition* (INV, predicate).
 
@@ -186,7 +186,12 @@ The coupling constraints J1, J1' (ASN-0047) were formulated before link-subspace
 
 Link-subspace extensions (K.μ⁺_L) do not trigger provenance recording: the link address ℓ enters ran(M'(d)) but `subspace(v_ℓ) = s_L ≠ s_C` (SC-NEQ), so J1★ does not apply. P7 (ProvenanceGrounding) — `(A (a, d) ∈ R :: a ∈ dom(C))` — is preserved because R is unchanged (K.μ⁺_L holds R in frame).
 
-The coupling constraints for valid composites in the extended state Σ = (C, L, E, M, R) are J0, J1★, J1'★. J1★ and J1'★ replace J1 and J1' (ASN-0047) by scoping provenance coupling to content-subspace arrangement changes. J0 (AllocationRequiresPlacement) is unchanged — it constrains content allocation (K.α), which remains content-subspace only.
+**ValidComposite★** — *ValidComposite, amended* (DEF, predicate). A composite transition Σ → Σ' in the extended state Σ = (C, L, E, M, R) is *valid* iff it is a finite sequence of elementary transitions `Σ = Σ₀ → Σ₁ → ... → Σₙ = Σ'` — drawn from K.α (amended), K.δ, K.λ, K.μ⁺ (amended), K.μ⁺_L, K.μ⁻ (amended), K.μ~, and K.ρ — satisfying:
+
+1. *Elementary preconditions:* each step `Σᵢ → Σᵢ₊₁` satisfies the precondition of its elementary transition kind, evaluated at the intermediate state `Σᵢ`.
+2. *Coupling constraints:* J0, J1★, and J1'★ hold for the composite — evaluated between the initial state Σ and the final state Σ'.
+
+This supersedes ValidComposite (ASN-0047) by extending the elementary transition set with K.λ and K.μ⁺_L, and replacing J1/J1' with J1★/J1'★ — scoping provenance coupling to content-subspace arrangement changes. J0 (AllocationRequiresPlacement) is unchanged — it constrains content allocation (K.α), which remains content-subspace only.
 
 
 ## Extended Monotonicity Invariants
@@ -317,6 +322,7 @@ Coupling constraints J0, J1★, J1'★ hold for all valid composites by the anal
 | P4★ | INV | `Contains_C(Σ) ⊆ R` — provenance bounds scoped to content subspace; supersedes P4 | introduced |
 | J1★ | AX | Content-subspace scoping of J1: provenance recording only for subspace(v) = s_C | introduced |
 | J1'★ | AX | Content-subspace scoping of J1': provenance entries only from subspace(v) = s_C | introduced |
+| ValidComposite★ | DEF | Valid composite in extended state: elementary preconditions at each step + J0, J1★, J1'★ at composite boundary; supersedes ValidComposite (ASN-0047) | introduced |
 | P3★ | INV | No component other than M — specifically C, L, E, R — admits contraction or reordering; supersedes P3 | introduced |
 | P5★ | INV | dom(C), dom(L), E, R can only grow; only M can lose information; supersedes P5 | introduced |
 | CL-OWN | INV | LinkSubspaceOwnership: `(A d, v : v ∈ dom(M(d)) ∧ subspace(v) = s_L : origin(M(d)(v)) = d)` — every document's link subspace contains only its own links | introduced |
