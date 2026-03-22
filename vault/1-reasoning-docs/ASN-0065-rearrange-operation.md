@@ -430,7 +430,7 @@ We verify that REARRANGE satisfies the K.μ~ preconditions (ASN-0047) and preser
 
 **R-KMU — K.μ~ Precondition Verification (LEMMA).** REARRANGE satisfies the K.μ~ preconditions.
 
-*Proof.* K.μ~ requires: (i) d ∈ E_doc, (ii) the bijection π produces V-positions satisfying S8a, and (iii) M'(d) satisfies S8-depth. Clause (i) is R-PRE(i). For clause (ii): π maps dom(M(d)) to itself — dom(M'(d)) = dom(M(d)), established in R-PIV and R-SWP. Since every v ∈ dom(M(d)) satisfies S8a in the pre-state, and π(v) ∈ dom(M(d)), every image under π satisfies S8a. For clause (iii): S8-depth requires all V-positions in a subspace to share the same depth. Since dom(M'(d)) = dom(M(d)), the depth profile is unchanged. ∎
+*Proof.* K.μ~ requires: (i) d ∈ E_doc, (ii) the bijection π produces V-positions satisfying S8a, and (iii) M'(d) satisfies S8-depth. Clause (i) is R-PRE(i). For clause (ii): π maps dom(M(d)) to itself — dom(M'(d)) = dom(M(d)). For the text-subspace portion (v₁ ≥ 1), this is established by R-PIV and R-SWP; for positions outside subspace S, R-XS gives M'(d)(v) = M(d)(v), so those positions are fixed by π. Since every v ∈ dom(M(d)) satisfies S8a in the pre-state, and π(v) ∈ dom(M(d)), every image under π satisfies S8a. For clause (iii): S8-depth requires all V-positions in a subspace to share the same depth. Since dom(M'(d)) = dom(M(d)), the depth profile is unchanged. ∎
 
 **R-S2P — FunctionalityPreservation (LEMMA).** REARRANGE preserves S2 (ArrangementFunctionality).
 
@@ -477,9 +477,9 @@ We now examine how REARRANGE transforms the block decomposition of M(d) (ASN-005
 - β blocks: similarly, V-start shifts by the β displacement.
 - μ blocks (4-cut only): V-start shifts by the μ displacement.
 
-The I-start and width of each block are preserved because REARRANGE modifies no I-addresses and the displacement is uniform within each region (all positions in a region shift by the same amount). The resulting blocks satisfy B3 (Consistency): for each block (π(vₖ), aₖ, nₖ) and each k with 0 ≤ k < nₖ, M'(d)(π(vₖ) + k) = M'(d)(π(vₖ + k)) = M(d)(vₖ + k) = aₖ + k. The second equality holds because π(vₖ + k) = π(vₖ) + k — the uniform displacement means ordinal increment commutes with the permutation within each region.
+The I-start and width of each block are preserved because REARRANGE modifies no I-addresses and the displacement is uniform within each region (all positions in a region shift by the same amount). The resulting blocks satisfy B3 (Consistency): for each block j, the reassembled block is (π(vⱼ), aⱼ, nⱼ), and for each offset k with 0 ≤ k < nⱼ: M'(d)(π(vⱼ) + k) = M'(d)(π(vⱼ + k)) = M(d)(vⱼ + k) = aⱼ + k. The second equality holds because π(vⱼ + k) = π(vⱼ) + k — the uniform displacement means ordinal increment commutes with the permutation within each region.
 
-*Proof (commutativity).* For v = vₖ + k in region α (3-cut case): π(v) = v + w_β (adding w_β ordinal positions). And π(vₖ) + k = (vₖ + w_β) + k = vₖ + (w_β + k) = (vₖ + k) + w_β = v + w_β = π(v), using M-aux and commutativity of natural-number addition at the ordinal level. The argument is identical for β, μ, and exterior regions. ∎
+*Proof (commutativity).* For v = vⱼ + k in region α (3-cut case): π(v) = v + w_β (adding w_β ordinal positions). And π(vⱼ) + k = (vⱼ + w_β) + k = vⱼ + (w_β + k) = (vⱼ + k) + w_β = v + w_β = π(v), using M-aux and commutativity of natural-number addition at the ordinal level. The argument is identical for β, μ, and exterior regions. ∎
 
 Coverage (B1) and disjointness (B2) follow from π being a bijection: π maps the V-extents of the original blocks to pairwise-disjoint sets covering dom(M'(d)).
 
