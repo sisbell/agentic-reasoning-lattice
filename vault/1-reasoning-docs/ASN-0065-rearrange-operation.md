@@ -202,7 +202,7 @@ For v = c₂ + j in β (0 ≤ j < w_β): π(v) = c₀ + j, and M'(d)(c₀ + j) =
 
 Injectivity: within each case, the mapping is injective (the exterior is the identity; the α case maps distinct j to distinct c₀ + w_β + w_μ + j; the μ case maps distinct j to distinct c₀ + w_β + j; the β case maps distinct j to distinct c₀ + j). Across cases: the four image sets — V_S(d) \ [c₀, c₃), {c₀ + w_β + w_μ + j : 0 ≤ j < w_α}, {c₀ + w_β + j : 0 ≤ j < w_μ}, {c₀ + j : 0 ≤ j < w_β} — are pairwise disjoint (shown in R-SWP). Surjectivity: every position in dom(M'(d)) = dom(M(d)) is the image of some position under π (the four image sets cover V_S(d), also shown in R-SWP). ∎
 
-We observe the relationship between the two forms: when a 3-cut sequence (c₀, c₁, c₂) and a 4-cut sequence (c₀, c₁, c₁', c₂) with w_μ = c₁' − c₁ produce the same overall partition — two non-adjacent regions with no middle content — their postconditions coincide. In the 4-cut case, reducing w_μ to its minimum value (w_μ = 1 under CS2) makes the middle region as small as possible, but it cannot vanish entirely: CS2 requires c₁ < c₂, so w_μ ≥ 1.
+We observe the structural relationship between the two forms: the 4-cut postcondition formulas (R-S1, R-S2, R-S3) reduce to the 3-cut formulas (R-P1, R-P2) when w_μ is set to zero in the expressions — R-S2 vanishes, and R-S3 becomes R-P2. However, the preconditions prevent this degenerate case from arising: CS2 requires c₁ < c₂, so w_μ ≥ 1. The two forms are distinct primitives. The 3-cut pivot transposes two *adjacent* regions; the 4-cut swap transposes two regions separated by at least one middle position.
 
 
 ## Displacement Analysis
@@ -277,7 +277,7 @@ M'(d)([1,5]) = E     (exterior, unchanged)
 
 **R-PPERM verification.** The permutation π: π([1,1]) = [1,1] (exterior), π([1,2]) = [1,3] (α: c₀ + 0 → c₀ + w_β + 0 = [1,3]), π([1,3]) = [1,4] (α: c₀ + 1 → c₀ + w_β + 1 = [1,4]), π([1,4]) = [1,2] (β: c₁ + 0 → c₀ + 0 = [1,2]), π([1,5]) = [1,5] (exterior). We check: M'(d)(π([1,2])) = M'(d)([1,3]) = B = M(d)([1,2]) ✓. M'(d)(π([1,4])) = M'(d)([1,2]) = D = M(d)([1,4]) ✓.
 
-**Block decomposition after rearrangement.** The new canonical decomposition has three blocks: ([1,1], A, 1), ([1,2], D, 1), ([1,3], B, 2). Block ([1,3], B, 2) is valid because B = 3.0.1.0.1.2 and C = 3.0.1.0.1.3 = B + 1. Note that D = 5.0.2.0.1.1 cannot merge with A = 3.0.1.0.1.1 (different origins, per M16) nor with B = 3.0.1.0.1.2 (not I-adjacent: D + 1 ≠ B). The cut at [1,4] split the original block β₁ into ([1,1], A, 1) and ([1,2], B, 2), and the rearrangement inserted the single-element block for D between them.
+**Block decomposition after rearrangement.** The new canonical decomposition has four blocks: ([1,1], A, 1), ([1,2], D, 1), ([1,3], B, 2), ([1,5], E, 1). Block ([1,3], B, 2) is valid because B = 3.0.1.0.1.2 and C = 3.0.1.0.1.3 = B + 1. Block ([1,5], E, 1) is exterior, unchanged by R-EXT. Note that D = 5.0.2.0.1.1 cannot merge with A = 3.0.1.0.1.1 (different origins, per M16) nor with B = 3.0.1.0.1.2 (not I-adjacent: D + 1 ≠ B). Block ([1,3], B, 2) cannot merge with ([1,5], E, 1): C + 1 = 3.0.1.0.1.4 ≠ E = 5.0.2.0.1.2 (different origins). The cut at [1,2] (c₀, interior to β₁ at offset 1) split the original block β₁ into ([1,1], A, 1) and ([1,2], B, 2), and the rearrangement inserted the single-element block for D between them.
 
 
 ## Worked Example: 4-Cut Swap on an 8-Position Document
@@ -390,7 +390,7 @@ The word "transposes" is precise — a transposition is a permutation, not a tra
 
 **Corollary (R-CP-set).** As a set equality: `{a : (E v :: M'(d)(v) = a)} = {a : (E v :: M(d)(v) = a)}`.
 
-REARRANGE cannot orphan content. Unlike DELETE, which can remove all V-references to an I-address (causing orphaning per ASN-0061 D-ORPH), rearrangement preserves every reference. Content that was reachable through the arrangement before remains reachable after.
+REARRANGE cannot orphan content. Unlike DELETE, which can remove all V-references to an I-address, leaving content unreachable through any arrangement, rearrangement preserves every reference. Content that was reachable through the arrangement before remains reachable after.
 
 
 ## Frame Conditions
@@ -403,7 +403,7 @@ REARRANGE modifies only the arrangement of the target document in the target sub
 
 (b) E' = E — the entity set is unchanged. No documents, accounts, or nodes are created or destroyed.
 
-(c) R' = R — the provenance relation is unchanged. Since ran(M'(d)) = ran(M(d)) (R-CP), no new I-address enters the arrangement, and no I-address leaves it. There is nothing to record: J1 (ExtensionRecordsProvenance, ASN-0047) is vacuously satisfied (ran(M'(d)) \ ran(M(d)) = ∅). J2 (ContractionIsolation) is vacuously satisfied (no contraction occurs). J3 (ReorderingIsolation) mandates exactly this: R' = R.
+(c) R' = R — the provenance relation is unchanged. Since ran(M'(d)) = ran(M(d)) (R-CP), no new I-address enters the arrangement, and no I-address leaves it. J3 (ReorderingIsolation, ASN-0047) mandates exactly this: R' = R. The remaining coupling constraints of ValidComposite are vacuously satisfied: J0 (AllocationRequiresPlacement) is vacuous because dom(C') \ dom(C) = ∅ by R-CF(a). J1 (ExtensionRecordsProvenance) is vacuous because ran(M'(d)) \ ran(M(d)) = ∅ by R-CP. J1' (ProvenanceRequiresExtension) is vacuous because R' \ R = ∅ by J3. (J2, ContractionIsolation, does not apply — REARRANGE is K.μ~, not elementary K.μ⁻.)
 
 **R-XD — CrossDocumentIsolation (INV).** For all d' ≠ d:
 
@@ -626,7 +626,7 @@ What must a well-formed editing sequence guarantee about the composition of mult
 
 Under what conditions can a rearrangement cause the number of mapping blocks in the canonical decomposition to increase, and is there an upper bound on the increase relative to the number of cut points?
 
-Can the depth-2 restriction (R-PRE clause iv, #v = 2) be relaxed to arbitrary V-position depths while preserving the commutativity of ordinal increment with the rearrangement permutation?
+The depth-2 restriction (R-PRE clause iv, #v = 2) is a presentational simplification, not a technical limitation: D-CTG-depth (ASN-0036) proves that for depth m ≥ 3, all positions in V_S(d) share components 2 through m − 1, and D-SEQ gives V_S(d) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n}. The displacement arithmetic depends only on the last component, so generalization to arbitrary depth is immediate.
 
 What must a front-end guarantee when rendering a link endset that has been split across non-adjacent V-regions by rearrangement — must both regions be presented as a single logical selection, or may they be rendered independently?
 
