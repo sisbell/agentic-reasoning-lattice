@@ -13,9 +13,9 @@ The question is: what exactly does this permutation look like, what must it pres
 
 We work with system state Σ = (C, E, M, R) per ASN-0047. C is the content store (T ⇀ Val), E the entity set, M the arrangement function with M(d) : T ⇀ T for each document d, and R the provenance relation. The content store is append-only (S0, P0). The arrangement M(d) is the mutable layer. REARRANGE must specify exactly how it reorders M(d) while respecting C's immutability and, indeed, leaving M(d)'s range untouched.
 
-We adopt the ordinal extraction machinery from ASN-0061. For a V-position v with subspace(v) = v₁ and #v = m, the *ordinal* is ord(v) = [v₂, ..., vₘ] — the tumbler obtained by stripping the subspace identifier. The reconstruction vpos(S, o) = [S, o₁, ..., oₖ] is its inverse.
+For a V-position v with subspace(v) = v₁ and #v = m, the *ordinal* is ord(v) = [v₂, ..., vₘ] — the tumbler obtained by stripping the subspace identifier. The reconstruction vpos(S, o) = [S, o₁, ..., oₖ] is its inverse.
 
-As in ASN-0061, we restrict to depth-2 V-positions (#v = 2, ordinal depth 1) throughout this ASN. At depth 2, D-SEQ (ASN-0036) gives V_S(d) = {[S, k] : 1 ≤ k ≤ n}, and ordinals are single natural numbers. This restriction simplifies the displacement arithmetic considerably; generalization to deeper ordinals is an open question.
+We restrict to depth-2 V-positions (#v = 2, ordinal depth 1) throughout this ASN. At depth 2, D-SEQ (ASN-0036) gives V_S(d) = {[S, k] : 1 ≤ k ≤ n}, and ordinals are single natural numbers. This restriction simplifies the displacement arithmetic considerably; generalization to deeper ordinals is an open question.
 
 We recall D-CTG (VContiguity, ASN-0036): within each subspace, V-positions form a contiguous ordinal range with no gaps. REARRANGE must preserve this invariant.
 
@@ -190,9 +190,19 @@ The permutation for the swap is:
          ⎩ c₀ + j                   if v = c₂ + j, 0 ≤ j < w_β        (β → start)
 ```
 
-*Proof.* By case verification against R-S1, R-S2, R-S3, R-EXT — each case is a direct substitution. Injectivity and surjectivity follow from the range partition. ∎
+*Proof.* We verify M'(d)(π(v)) = M(d)(v) in each case.
 
-When μ is empty (c₁ = c₂, so w_μ = 0), the swap reduces to: β moves to [c₀, c₀ + w_β), α moves to [c₀ + w_β, c₃). This is structurally identical to a pivot where the two regions happen to be non-adjacent in the pre-state (separated by an empty gap). The middle's contribution to the offset arithmetic vanishes.
+For exterior v: π(v) = v, and M'(d)(v) = M(d)(v) by R-EXT.
+
+For v = c₀ + j in α (0 ≤ j < w_α): π(v) = c₀ + w_β + w_μ + j, and M'(d)(c₀ + w_β + w_μ + j) = M(d)(c₀ + j) = M(d)(v) by R-S3.
+
+For v = c₁ + j in μ (0 ≤ j < w_μ): π(v) = c₀ + w_β + j, and M'(d)(c₀ + w_β + j) = M(d)(c₁ + j) = M(d)(v) by R-S2.
+
+For v = c₂ + j in β (0 ≤ j < w_β): π(v) = c₀ + j, and M'(d)(c₀ + j) = M(d)(c₂ + j) = M(d)(v) by R-S1.
+
+Injectivity: within each case, the mapping is injective (the exterior is the identity; the α case maps distinct j to distinct c₀ + w_β + w_μ + j; the μ case maps distinct j to distinct c₀ + w_β + j; the β case maps distinct j to distinct c₀ + j). Across cases: the four image sets — V_S(d) \ [c₀, c₃), {c₀ + w_β + w_μ + j : 0 ≤ j < w_α}, {c₀ + w_β + j : 0 ≤ j < w_μ}, {c₀ + j : 0 ≤ j < w_β} — are pairwise disjoint (shown in R-SWP). Surjectivity: every position in dom(M'(d)) = dom(M(d)) is the image of some position under π (the four image sets cover V_S(d), also shown in R-SWP). ∎
+
+We observe the relationship between the two forms: when a 3-cut sequence (c₀, c₁, c₂) and a 4-cut sequence (c₀, c₁, c₁', c₂) with w_μ = c₁' − c₁ produce the same overall partition — two non-adjacent regions with no middle content — their postconditions coincide. In the 4-cut case, reducing w_μ to its minimum value (w_μ = 1 under CS2) makes the middle region as small as possible, but it cannot vanish entirely: CS2 requires c₁ < c₂, so w_μ ≥ 1.
 
 
 ## Displacement Analysis
@@ -223,6 +233,51 @@ We observe a symmetry in the 3-cut case: the forward displacement of α equals t
 In the 4-cut case, the symmetry is more subtle. The forward displacement of α is w_β + w_μ, while the backward displacement of β is w_α + w_μ. These are equal only when w_α = w_β. The middle compensates: w_μ · (w_β − w_α) absorbs the imbalance. The total displacement over the affected range is w_α · (w_β + w_μ) + w_μ · (w_β − w_α) + w_β · (−(w_α + w_μ)) = w_α · w_β + w_α · w_μ + w_μ · w_β − w_μ · w_α − w_β · w_α − w_β · w_μ = 0.
 
 The displacement formulation makes it clear that every position in the affected range shifts by a value determined solely by the region widths — the displacement does not depend on the position's location within its region. All positions in α shift by the same amount; all positions in β shift by the same amount.
+
+
+## Worked Example: 3-Cut Pivot on a 5-Position Document
+
+We trace a concrete 3-cut pivot to verify the postconditions against explicit values. Let document d have subspace S = 1 with V_S(d) = {[1,1], [1,2], [1,3], [1,4], [1,5]}, and let the arrangement be:
+
+```
+M(d)([1,1]) = 3.0.1.0.1.1    (I-address A)
+M(d)([1,2]) = 3.0.1.0.1.2    (I-address B)
+M(d)([1,3]) = 3.0.1.0.1.3    (I-address C)
+M(d)([1,4]) = 5.0.2.0.1.1    (I-address D)
+M(d)([1,5]) = 5.0.2.0.1.2    (I-address E)
+```
+
+Content A–C originates from document 3.0.1 (origin 3.0.1); D–E from document 5.0.2 (origin 5.0.2). The canonical decomposition has two blocks: β₁ = ([1,1], 3.0.1.0.1.1, 3) and β₂ = ([1,4], 5.0.2.0.1.1, 2).
+
+We apply a 3-cut pivot with C = ([1,2], [1,4], [1,5]): c₀ = [1,2], c₁ = [1,4], c₂ = [1,5]. The affected range is [c₀, c₂) = {[1,2], [1,3], [1,4]}. Region α = {[1,2], [1,3]} (w_α = 2), region β = {[1,4]} (w_β = 1).
+
+**R-PRE verification.** (i) d ∈ E_doc. (ii) V_S(d) ≠ ∅. (iii) CS1: n = 3; CS2: [1,2] < [1,4] < [1,5]; CS3: all subspace 1; CS4: all depth 2. (iv) All positions in [[1,2], [1,5]) are in V_S(d). (v) w_α = 2 ≥ 1, w_β = 1 ≥ 1. (vi) All ordinals positive. ✓
+
+**Applying the postconditions.** We compute M'(d) position by position:
+
+R-EXT: M'(d)([1,1]) = M(d)([1,1]) = A. M'(d)([1,5]) = M(d)([1,5]) = E.
+
+R-P1 (j = 0): M'(d)(c₀ + 0) = M'(d)([1,2]) = M(d)(c₁ + 0) = M(d)([1,4]) = D.
+
+R-P2 (j = 0): M'(d)(c₀ + 1 + 0) = M'(d)([1,3]) = M(d)(c₀ + 0) = M(d)([1,2]) = B.
+
+R-P2 (j = 1): M'(d)(c₀ + 1 + 1) = M'(d)([1,4]) = M(d)(c₀ + 1) = M(d)([1,3]) = C.
+
+**Result:**
+
+```
+M'(d)([1,1]) = A     (exterior, unchanged)
+M'(d)([1,2]) = D     (was β, now at start of affected range)
+M'(d)([1,3]) = B     (was α position 1, shifted forward by w_β = 1)
+M'(d)([1,4]) = C     (was α position 2, shifted forward by w_β = 1)
+M'(d)([1,5]) = E     (exterior, unchanged)
+```
+
+**R-CP verification.** The multiset of I-addresses is {A, B, C, D, E} before and after. ✓
+
+**R-PPERM verification.** The permutation π: π([1,1]) = [1,1] (exterior), π([1,2]) = [1,3] (α: c₀ + 0 → c₀ + w_β + 0 = [1,3]), π([1,3]) = [1,4] (α: c₀ + 1 → c₀ + w_β + 1 = [1,4]), π([1,4]) = [1,2] (β: c₁ + 0 → c₀ + 0 = [1,2]), π([1,5]) = [1,5] (exterior). We check: M'(d)(π([1,2])) = M'(d)([1,3]) = B = M(d)([1,2]) ✓. M'(d)(π([1,4])) = M'(d)([1,2]) = D = M(d)([1,4]) ✓.
+
+**Block decomposition after rearrangement.** The new canonical decomposition has three blocks: ([1,1], A, 1), ([1,2], D, 1), ([1,3], B, 2). Block ([1,3], B, 2) is valid because B = 3.0.1.0.1.2 and C = 3.0.1.0.1.3 = B + 1. Note that D = 5.0.2.0.1.1 cannot merge with A = 3.0.1.0.1.1 (different origins, per M16) nor with B = 3.0.1.0.1.2 (not I-adjacent: D + 1 ≠ B). The cut at [1,4] split the original block β₁ into ([1,1], A, 1) and ([1,2], B, 2), and the rearrangement inserted the single-element block for D between them.
 
 
 ## Content Preservation
