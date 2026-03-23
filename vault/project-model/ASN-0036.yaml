@@ -10,5 +10,5 @@ inquiry:
 
 modeling:
   proof_imports: [TumblerAlgebra, TumblerOrder, TumblerHierarchy, TumblerAddition, TumblerAllocation]
-last_consistency_check: "2026-03-23T14:08:32"
+last_consistency_check: "2026-03-23T15:52:12"
 last_consistency_result: "FINDINGS"
