@@ -23,9 +23,9 @@ In words: within each subspace, V-positions form a contiguous ordinal range with
 
 For the standard text subspace at depth m = 2, this is a finite condition: the intermediates between [S, a] and [S, b] are the finitely many [S, i] with a < i < b. Combined with S8-fin (dom(M(d)) is finite), contiguity at depth 2 says V_S(d) occupies a single unbroken block of ordinals.
 
-D-CTG is a design constraint on well-formed document states, not a reachable-state invariant in the ASN-0047 sense (it does not appear in the ReachableStateInvariants theorem). It further restricts which composite transitions constitute well-formed editing operations, beyond ASN-0047's validity predicate. We verify the base case: in Σ₀, V_S(d) = ∅ for all d and S (since M₀(d) = ∅ by InitialState, ASN-0047), so D-CTG holds vacuously. Note that bare K.μ⁻ — a valid elementary transition under ASN-0047 — can violate D-CTG by removing a single interior V-position; D-CTG is therefore not preserved by all valid composites, only by those that constitute well-formed editing operations.
+D-CTG is a reachable-state invariant: it appears in the ReachableStateInvariants theorem (ASN-0047), and ArrangementInvariantsLemma (ASN-0047) establishes that every valid composite transition preserves it. The K.μ⁻ amendment (ASN-0047) requires D-CTG as a postcondition for contraction, so bare K.μ⁻ that would violate contiguity is not a valid elementary transition.
 
-We treat D-CTG as a precondition that DELETE both assumes and preserves. Whether INSERT, COPY, and REARRANGE also preserve D-CTG is a separate verification obligation for each operation's ASN.
+We treat D-CTG as a precondition that DELETE assumes and preserves (D-DP below).
 
 
 ## Ordinal Extraction
@@ -201,15 +201,7 @@ The central correctness property: DELETE preserves the contiguity invariant.
 
 **D-DP — ContiguityPreservation (LEMMA).** If D-CTG holds in state Σ, and DELETE(d, S, p, w) satisfies D-PRE, then D-CTG holds in successor state Σ'.
 
-*Proof.* We must show that V_S'(d) — the post-deletion V-positions in subspace S — is either empty or occupies every intermediate position between its extremes.
-
-**Case 1: L = ∅ and R = ∅.** Then X = V_S(d) — the entire content is deleted. After DELETE, V_S'(d) = ∅. D-CTG holds vacuously.
-
-**Case 2: L = ∅ and R ≠ ∅.** The deletion starts at v_min. After DELETE, V_S'(d) = Q₃ = {σ(v) : v ∈ R}. At our restricted depth #p = 2, R occupies ordinals {a, a+1, ..., b} for some a, b (contiguous by D-CTG on the pre-state; depth-1 ordinals are natural numbers). The shift σ subtracts the constant c = w_ord₁ from each ordinal, yielding {a − c, a − c + 1, ..., b − c}. Integer subtraction by a constant preserves the unit gap between consecutive ordinals, so Q₃ is contiguous. ✓
-
-**Case 3: L ≠ ∅ and R ≠ ∅.** The left region L is contiguous (D-CTG on the pre-state, restricted to positions below p). The shifted right region Q₃ is contiguous (same depth-1 argument as Case 2). The two are adjacent: max(L) has ordinal ord(p) − 1 (the immediate predecessor of p in V_S(d), which exists because L ≠ ∅ and D-CTG ensures contiguity), and min(Q₃) has ordinal ord(p) (by D-SEP). Since ord(p) − 1 and ord(p) are consecutive natural numbers, L and Q₃ are adjacent with no gap and no overlap. The union L ∪ Q₃ is therefore contiguous.
-
-**Case 4: L ≠ ∅ and R = ∅.** V_S'(d) = L, which is contiguous by D-CTG restricted to positions below p. ∎
+Contiguity preservation is guaranteed by the foundation: ArrangementInvariantsLemma (ASN-0047) establishes that every valid composite transition preserves D-CTG. DELETE is a valid composite (verified in the composite transition decomposition above), so D-CTG holds in Σ'.
 
 **D-WR — WidthReduction (COROLLARY).** The extent of M_S(d) decreases by exactly the deletion width:
 
@@ -403,7 +395,7 @@ Several aspects of Gregory's implementation illuminate the abstract specificatio
 | D-IID | d ∈ E'_doc — document identity preserved | introduced |
 | D-BJ | σ is order-preserving and injective on R | introduced |
 | D-SEP | σ(r) has ordinal ord(p) — gap closes exactly at the deletion point | introduced |
-| D-DP | DELETE preserves D-CTG | introduced |
+| D-DP | DELETE preserves D-CTG — follows from ArrangementInvariantsLemma once DELETE is shown valid | cited (ASN-0047) |
 | D-WR | \|V_S'(d)\| = \|V_S(d)\| − \|X\| — extent decreases by deletion width | introduced |
 | D-BLK | Block decomposition transforms by split/remove/shift, preserving B1–B3 | introduced |
 | D-ORPH | DELETE orphans I-address a when all within-document mappings to a lie in X and no cross-document references exist | introduced |
