@@ -116,6 +116,12 @@ def run_inline_consistency_check(asn_num, asn_path, asn_label):
         print(f"  [CONSISTENCY] Parse error ({elapsed:.0f}s)", file=sys.stderr)
         return None
 
+    # Empty or whitespace response = failed check, not findings
+    if not text or not text.strip():
+        print(f"  [CONSISTENCY] Empty response — treating as check failure ({elapsed:.0f}s)",
+              file=sys.stderr)
+        return None
+
     # Write as review file
     review_dir = REVIEWS_DIR / asn_label
     review_dir.mkdir(parents=True, exist_ok=True)

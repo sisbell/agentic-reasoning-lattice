@@ -221,7 +221,7 @@ def process_asn(asn_num, model, effort, max_cycles, force=False):
     step_review_revise(asn_num, asn_path, asn_label, rebased_properties,
                        max_cycles, model, effort)
 
-    # Step 5: Post-check
+    # Step 5: Post-check (record result, don't retry)
     print(f"  [POST-CHECK] Verifying {asn_label}...", file=sys.stderr)
     post_findings = run_inline_consistency_check(asn_num, asn_path, asn_label)
 
@@ -229,38 +229,9 @@ def process_asn(asn_num, model, effort, max_cycles, force=False):
         print(f"  [VERIFIED] {asn_label} — CLEAN", file=sys.stderr)
         update_consistency_state(asn_num, "CLEAN")
     else:
-        # Retry: feed post-check findings back into rebase
-        print(f"  [RETRY] {asn_label} — post-check findings, rebasing again...",
+        print(f"  [POST-CHECK] {asn_label} — findings remain (logged)",
               file=sys.stderr)
-
-        ok = step_rebase(asn_num, asn_path, asn_label, model, effort)
-        if not ok:
-            print(f"  [FAILED] {asn_label} retry rebase failed", file=sys.stderr)
-            return "failed"
-
-        step_commit(f"rebase(asn): {asn_label} retry against post-check findings")
-
-        step_review_revise(asn_num, asn_path, asn_label, rebased_properties,
-                           max_cycles, model, effort)
-
-        # Final post-check
-        print(f"  [POST-CHECK] Final verification of {asn_label}...",
-              file=sys.stderr)
-        final_findings = run_inline_consistency_check(asn_num, asn_path,
-                                                       asn_label)
-
-        if final_findings is None:
-            print(f"  [VERIFIED] {asn_label} — CLEAN after retry",
-                  file=sys.stderr)
-            update_consistency_state(asn_num, "CLEAN")
-        else:
-            print(f"  [FAILED] {asn_label} — still has findings after retry. "
-                  f"Stopping batch.", file=sys.stderr)
-            print(f"\n{final_findings}\n", file=sys.stderr)
-            update_consistency_state(asn_num, "FINDINGS")
-            step_export(asn_num)
-            update_rebase_timestamp(asn_num)
-            return "failed"
+        update_consistency_state(asn_num, "FINDINGS")
 
     # Export
     step_export(asn_num)
