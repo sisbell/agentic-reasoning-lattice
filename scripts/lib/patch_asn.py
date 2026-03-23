@@ -22,7 +22,7 @@ from paths import (WORKSPACE, ASNS_DIR, STATEMENTS_DIR, REVIEWS_DIR,
                    VOCABULARY, FOUNDATION_LIST, load_manifest,
                    next_review_number)
 from lib.common import (read_file, find_asn, invoke_claude, invoke_claude_agent,
-                         log_usage, step_commit)
+                         log_usage, step_commit_asn)
 from lib.foundation import load_foundation_statements
 
 
@@ -193,8 +193,8 @@ def step_review_revise(asn_num, asn_path, asn_label, patch_content,
                   file=sys.stderr)
             return False
 
-        step_commit(f"patch(asn): {asn_label} patch revise cycle {cycle}",
-                    asn_id=asn_num)
+        step_commit_asn(asn_num,
+                    f"patch(asn): {asn_label} patch revise cycle {cycle}")
 
     print(f"  [WARN] Did not converge after {max_cycles} cycles",
           file=sys.stderr)
@@ -258,8 +258,8 @@ def main():
         print(f"  [ABORT] Patch application failed", file=sys.stderr)
         sys.exit(1)
 
-    step_commit(f"patch(asn): {asn_label} apply {patch_path.name}",
-                asn_id=args.asn)
+    step_commit_asn(args.asn,
+                f"patch(asn): {asn_label} apply {patch_path.name}")
 
     # Step 2: Scoped review/revise
     step_review_revise(args.asn, asn_path, asn_label, patch_content,
