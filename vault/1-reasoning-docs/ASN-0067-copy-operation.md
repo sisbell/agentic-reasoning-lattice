@@ -445,42 +445,42 @@ After self-transclusion, the document may contain the same I-addresses at multip
 
 ## Worked Example
 
-We ground the construction in specific arithmetic. Let document d have text-subspace V-position depth m = 2, with the canonical block decomposition:
+We ground the construction in specific arithmetic. Let document d have text-subspace V-position depth m = 2, with the canonical block decomposition. I-addresses are 8-component tumblers with 2-component element fields `[s_C, ordinal]`, so ordinal shift advances the final component while preserving the subspace identifier E₁ = s_C = 1 (satisfying L0, ASN-0047).
 
-`B = {([1,1], 1.0.1.0.1.0.1, 3), ([1,4], 1.0.1.0.1.0.7, 2)}`
+`B = {([1,1], 1.0.1.0.1.0.1.1, 3), ([1,4], 1.0.1.0.1.0.1.7, 2)}`
 
-Five text positions: V-range [1,1] through [1,5], N = 5. Let source document d_s have a block whose I-addresses we wish to place. Suppose resolve(R) = ⟨(1.0.2.0.1.0.4, 2)⟩ — two positions from d_s, with total width w = 2. We COPY at target position v = [1,3].
+Five text positions: V-range [1,1] through [1,5], N = 5. Let source document d_s have a block whose I-addresses we wish to place. Suppose resolve(R) = ⟨(1.0.2.0.1.0.1.4, 2)⟩ — two positions from d_s, with total width w = 2. We COPY at target position v = [1,3].
 
-**Phase 1 — Resolution.** The I-address sequence ⟨(1.0.2.0.1.0.4, 2)⟩ is computed from d_s's arrangement in pre-state Σ and held fixed.
+**Phase 1 — Resolution.** The I-address sequence ⟨(1.0.2.0.1.0.1.4, 2)⟩ is computed from d_s's arrangement in pre-state Σ and held fixed.
 
 **Phase 2 — Mutation.**
 
-*(i) Split.* v = [1,3] is interior to β₁ = ([1,1], 1.0.1.0.1.0.1, 3) since [1,1] < [1,3] < [1,1] + 3 = [1,4]. The split point is c = 2 (since [1,3] = [1,1] + 2). By M4:
+*(i) Split.* v = [1,3] is interior to β₁ = ([1,1], 1.0.1.0.1.0.1.1, 3) since [1,1] < [1,3] < [1,1] + 3 = [1,4]. The split point is c = 2 (since [1,3] = [1,1] + 2). By M4:
 
-`β_L = ([1,1], 1.0.1.0.1.0.1, 2)`
-`β_R = ([1,3], 1.0.1.0.1.0.3, 1)`
+`β_L = ([1,1], 1.0.1.0.1.0.1.1, 2)`
+`β_R = ([1,3], 1.0.1.0.1.0.1.3, 1)`
 
-After split: B = {β_L, β_R, ([1,4], 1.0.1.0.1.0.7, 2)}.
+After split: B = {β_L, β_R, ([1,4], 1.0.1.0.1.0.1.7, 2)}.
 
 *(ii) Classify.*
 
-`B_pre  = {([1,1], 1.0.1.0.1.0.1, 2)}      — V-reach [1,3] ≤ v = [1,3] ✓`
-`B_post = {([1,3], 1.0.1.0.1.0.3, 1), ([1,4], 1.0.1.0.1.0.7, 2)}  — V-start ≥ [1,3] ✓`
+`B_pre  = {([1,1], 1.0.1.0.1.0.1.1, 2)}      — V-reach [1,3] ≤ v = [1,3] ✓`
+`B_post = {([1,3], 1.0.1.0.1.0.1.3, 1), ([1,4], 1.0.1.0.1.0.1.7, 2)}  — V-start ≥ [1,3] ✓`
 
 *(iii) Shift.* w = 2. Each B_post block's V-start advances by 2:
 
-`([1,3], 1.0.1.0.1.0.3, 1)↑2 = ([1,5], 1.0.1.0.1.0.3, 1)`
-`([1,4], 1.0.1.0.1.0.7, 2)↑2 = ([1,6], 1.0.1.0.1.0.7, 2)`
+`([1,3], 1.0.1.0.1.0.1.3, 1)↑2 = ([1,5], 1.0.1.0.1.0.1.3, 1)`
+`([1,4], 1.0.1.0.1.0.1.7, 2)↑2 = ([1,6], 1.0.1.0.1.0.1.7, 2)`
 
 I-starts unchanged.
 
 *(iv) Place.* One placed block at v = [1,3]:
 
-`γ₁ = ([1,3], 1.0.2.0.1.0.4, 2)`
+`γ₁ = ([1,3], 1.0.2.0.1.0.1.4, 2)`
 
 *(v) Compose.*
 
-`B' = {([1,1], 1.0.1.0.1.0.1, 2), ([1,3], 1.0.2.0.1.0.4, 2), ([1,5], 1.0.1.0.1.0.3, 1), ([1,6], 1.0.1.0.1.0.7, 2)}`
+`B' = {([1,1], 1.0.1.0.1.0.1.1, 2), ([1,3], 1.0.2.0.1.0.1.4, 2), ([1,5], 1.0.1.0.1.0.1.3, 1), ([1,6], 1.0.1.0.1.0.1.7, 2)}`
 
 **Verification.**
 
@@ -488,11 +488,11 @@ C0: C' = C — no K.α step. ✓
 
 C2 (D-CTG): dom_text(M'(d)) = {[1,1], [1,2], [1,3], [1,4], [1,5], [1,6], [1,7]}. Contiguous range of N + w = 7 positions. ✓
 
-C4 (Displacement): M'(d)([1,1]) = 1.0.1.0.1.0.1 = M(d)([1,1]) (p < v, unchanged). M'(d)([1,5]) = 1.0.1.0.1.0.3 = M(d)([1,3]) (p = [1,3] ≥ v, shifted by 2). ✓
+C4 (Displacement): M'(d)([1,1]) = 1.0.1.0.1.0.1.1 = M(d)([1,1]) (p < v, unchanged). M'(d)([1,5]) = 1.0.1.0.1.0.1.3 = M(d)([1,3]) (p = [1,3] ≥ v, shifted by 2). ✓
 
-C6 (IdentityPreservation): M'(d)([1,3]) = 1.0.2.0.1.0.4 and M'(d)([1,4]) = 1.0.2.0.1.0.5 — these are the same I-addresses as in d_s's arrangement. origin(1.0.2.0.1.0.4) = 1.0.2.0.1 ≠ d, confirming placed content is included (not native). ✓
+C6 (IdentityPreservation): M'(d)([1,3]) = 1.0.2.0.1.0.1.4 and M'(d)([1,4]) = 1.0.2.0.1.0.1.5 — these are the same I-addresses as in d_s's arrangement. origin(1.0.2.0.1.0.1.4) = 1.0.2.0.1 ≠ d, confirming placed content is included (not native). ✓
 
-We verify B' is maximally merged by checking all V-adjacent pairs. Blocks 1 and 2 — ([1,1], 1.0.1.0.1.0.1, 2) and ([1,3], 1.0.2.0.1.0.4, 2) — have origin(1.0.1.0.1.0.1) = 1.0.1.0.1 ≠ 1.0.2.0.1 = origin(1.0.2.0.1.0.4), so M16 applies. Blocks 2 and 3 — ([1,3], 1.0.2.0.1.0.4, 2) and ([1,5], 1.0.1.0.1.0.3, 1) — similarly have distinct origins, so M16 applies. Blocks 3 and 4 — ([1,5], 1.0.1.0.1.0.3, 1) and ([1,6], 1.0.1.0.1.0.7, 2) — share origin 1.0.1.0.1 and are V-adjacent ([1,5] + 1 = [1,6]), so M16 does not apply; we check I-adjacency directly. The I-reach of block 3 is 1.0.1.0.1.0.3 + 1 = 1.0.1.0.1.0.4, while block 4's I-start is 1.0.1.0.1.0.7. Since 1.0.1.0.1.0.4 ≠ 1.0.1.0.1.0.7, the merge condition (M7) is unsatisfied. B' is maximally merged.
+We verify B' is maximally merged by checking all V-adjacent pairs. Blocks 1 and 2 — ([1,1], 1.0.1.0.1.0.1.1, 2) and ([1,3], 1.0.2.0.1.0.1.4, 2) — have origin(1.0.1.0.1.0.1.1) = 1.0.1.0.1 ≠ 1.0.2.0.1 = origin(1.0.2.0.1.0.1.4), so M16 applies. Blocks 2 and 3 — ([1,3], 1.0.2.0.1.0.1.4, 2) and ([1,5], 1.0.1.0.1.0.1.3, 1) — similarly have distinct origins, so M16 applies. Blocks 3 and 4 — ([1,5], 1.0.1.0.1.0.1.3, 1) and ([1,6], 1.0.1.0.1.0.1.7, 2) — share origin 1.0.1.0.1 and are V-adjacent ([1,5] + 1 = [1,6]), so M16 does not apply; we check I-adjacency directly. The I-reach of block 3 is 1.0.1.0.1.0.1.3 + 1 = 1.0.1.0.1.0.1.4, while block 4's I-start is 1.0.1.0.1.0.1.7. Since 1.0.1.0.1.0.1.4 ≠ 1.0.1.0.1.0.1.7, the merge condition (M7) is unsatisfied. B' is maximally merged.
 
 
 ## Provenance Completeness
