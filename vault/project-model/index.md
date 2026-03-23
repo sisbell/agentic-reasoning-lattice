@@ -30,13 +30,15 @@ Generated from vault/project-model/ASN-*.yaml
 
 | ASN | Title | Status | Replacement |
 |-----|-------|--------|-------------|
-| ~~ASN-0063~~ | ~~CREATELINK Operation~~ | deprecate | thin replacement TBD |
-| ~~ASN-0064~~ | ~~FINDLINKS Operation~~ | deprecate | thin replacement TBD |
+| ~~ASN-0063~~ | ~~CREATELINK Operation~~ | deprecate | ASN-0078 |
+| ~~ASN-0064~~ | ~~FINDLINKS Operation~~ | deprecate | ASN-0079 |
 
 ## Operations — Consultation Ready
 
 | ASN | Title | Status | Depends |
 |-----|-------|--------|---------|
+| ASN-0078 | CREATELINK Operation | inquiry | 34, 36, 43, 47, 53, 58 |
+| ASN-0079 | FINDLINKS Operation | inquiry | 34, 36, 43, 47, 53, 58 |
 | ASN-0068 | COMPAREVERSIONS Operation | inquiry | 34, 36, 47, 53, 58 |
 | ASN-0069 | CREATENEWVERSION Operation | inquiry | 34, 36, 47, 53, 58 |
 | ASN-0070 | FOLLOWLINK Operation | inquiry | 34, 36, 43, 47, 53, 58 |
