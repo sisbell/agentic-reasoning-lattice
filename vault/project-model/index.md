@@ -15,7 +15,6 @@ Regenerate with: `./run/generate-index.sh`
 | ASN-0045 | Tumbler Fields | exported | 34,36 |
 | ASN-0047 | State Transitions | exported | 34,36,43,45 |
 | ASN-0051 | Link Survivability | exported | 34,36,43,47,53,58 |
-| ASN-0052 | Transclusion | defined | 34,36,43,45,47 |
 | ASN-0053 | Span Algebra | exported | 34 |
 | ASN-0058 | Permutation Model | exported | 34,36,53 |
 
