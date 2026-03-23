@@ -157,12 +157,17 @@ def needs_rebase(asn_num, force=False):
       "check" — needs consistency check to determine
       "rebase" — known to need rebase (force mode)
     """
-    if force:
-        return "rebase"
-
     manifest = load_manifest(asn_num)
     if not manifest or not manifest.get("depends"):
         return "skip"
+
+    # No reasoning doc — nothing to rebase
+    asn_path, _ = find_asn(str(asn_num))
+    if asn_path is None:
+        return "skip"
+
+    if force:
+        return "rebase"
 
     newest_dep = get_dep_export_timestamps(asn_num)
     if newest_dep == 0:

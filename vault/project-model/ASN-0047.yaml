@@ -1,6 +1,6 @@
 # ASN-0047 — State Transitions
 title: "State Transitions"
-depends: [34, 36, 45]
+depends: [34, 36, 43, 45]
 supersedes: 46
 out_of_scope: "Named operations and their specifications (INSERT, DELETE, COPY, REARRANGE, MAKELINK, CREATENEWVERSION, DELETEVSPAN), operation preconditions and postconditions, authority and authorization model (BERT, ownership checks), publication and access control state transitions (private/published classification, withdrawal), operation atomicity and concurrency, POOM structure and V-stream mechanics, enfilade implementation internals, span index and indexing implementation, error model and failure modes, session management, replication and inter-server protocol (BEBE)"
 
