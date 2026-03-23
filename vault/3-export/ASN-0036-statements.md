@@ -4,19 +4,27 @@
 
 ## Definition — ContentStore
 
-`Σ.C : T ⇀ Val` — a partial function mapping Istream addresses to content values. `T` is the set of tumblers (ASN-0034); `Val` is an unspecified set of content values, opaque at this level of abstraction. `dom(Σ.C)` is the set of I-addresses at which content has been stored.
+**Σ.C : T ⇀ Val** — A partial function mapping Istream addresses to content values. `T` is the set of tumblers (ASN-0034); `Val` is an unspecified set of content values, opaque at this level of abstraction. The domain `dom(Σ.C)` is the set of I-addresses at which content has been stored.
 
 ## Definition — Arrangement
 
-`Σ.M(d) : T ⇀ T` — a partial function mapping Vstream positions to Istream addresses for document `d`. `dom(Σ.M(d))` is the set of V-positions currently active in `d`; `ran(Σ.M(d))` is the set of I-addresses that `d` currently references.
+**Σ.M(d) : T ⇀ T** — A partial function mapping Vstream positions to Istream addresses, for document `d`. The domain `dom(Σ.M(d))` is the set of V-positions currently active in `d`; the range `ran(Σ.M(d))` is the set of I-addresses that `d` currently references.
 
-## Definition — SubspaceOf
+## Definition — Subspace
 
-`subspace(v) = v₁` — the subspace identifier: the first component of the element-field V-position `v`.
+`S = subspace(v) = v₁` — the subspace identifier is the first component of the element-field V-position `v`.
 
-## Definition — SubspacePositions
+## Definition — VSubspacePositions
 
 `V_S(d) = {v ∈ dom(M(d)) : subspace(v) = S}` — the set of V-positions in subspace `S` of document `d`.
+
+## Definition — Origin
+
+For `a ∈ dom(Σ.C)`:
+
+`origin(a) = (fields(a).node).0.(fields(a).user).0.(fields(a).document)`
+
+This is the full document tumbler `N.0.U.0.D` — the document-level prefix obtained by truncating the element field. Precondition: `zeros(a) = 3` (S7b).
 
 ## Definition — CorrespondenceRun
 
@@ -24,25 +32,9 @@ A *correspondence run* is a triple `(v, a, n)` — a V-position, an I-address, a
 
 `(A k : 0 ≤ k < n : Σ.M(d)(v + k) = a + k)`
 
-At `k = 0` this is the base case `M(d)(v) = a`. Each subsequent `k` increments both the V-ordinal and the I-ordinal by the same amount.
-
-## Definition — Origin
-
-For every `a ∈ dom(Σ.C)`, the *origin* is the document-level prefix obtained by truncating the element field:
-
-`origin(a) = (fields(a).node).0.(fields(a).user).0.(fields(a).document)`
-
-This is the full document tumbler `N.0.U.0.D`.
+At `k = 0` this is the base case `M(d)(v) = a`. Each subsequent `k` increments both the V-ordinal and the I-ordinal by the same amount. `v + k` denotes ordinal displacement applied to V-positions; `a + k` denotes ordinal displacement applied to the element ordinal of I-addresses.
 
 ---
-
-## Σ.C — ContentStoreType (DEF, type)
-
-`Σ.C : T ⇀ Val`, mapping I-addresses to content values. `dom(Σ.C)` is the set of I-addresses at which content has been stored.
-
-## Σ.M(d) — ArrangementType (DEF, type)
-
-`Σ.M(d) : T ⇀ T`, mapping V-positions to I-addresses for document `d`. `dom(Σ.M(d))` is the set of V-positions currently active in `d`; `ran(Σ.M(d))` is the set of I-addresses that `d` currently references.
 
 ## S0 — ContentImmutability (INV, predicate)
 
@@ -50,17 +42,13 @@ For every state transition `Σ → Σ'`:
 
 `[a ∈ dom(Σ.C) ⟹ a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a)]`
 
-In weakest-precondition terms, for any operation producing successor state `Σ'`:
+Equivalently, in wp terms: `wp(op, (A a : a ∈ dom(C) : a ∈ dom(C') ∧ C'(a) = C(a)))` must hold in every reachable state.
 
-`wp(op, (A a : a ∈ dom(C) : a ∈ dom(C') ∧ C'(a) = C(a)))`
+## S1 — StoreMonotonicity (INV, corollary of S0)
 
-must hold in every reachable state.
-
-## S1 — StoreMonotonicity (LEMMA, predicate)
+For every state transition `Σ → Σ'`:
 
 `[dom(Σ.C) ⊆ dom(Σ'.C)]`
-
-for all state transitions `Σ → Σ'`. Corollary of S0.
 
 ## S2 — ArrangementFunctionality (INV, predicate)
 
@@ -72,53 +60,43 @@ For each document `d`, `Σ.M(d)` is a function — each V-position maps to exact
 
 `(A d, v : v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ dom(Σ.C))`
 
-The weakest precondition for S3 under an operation that adds a V-mapping `M(d)(v) = a` is:
+Maintenance under transitions: `wp(add-mapping, S3) ⟹ a ∈ dom(Σ.C)` for any operation that adds a V-mapping `M(d)(v) = a` without simultaneously creating content at `a`.
 
-`wp(add-mapping, S3) ⟹ a ∈ dom(Σ.C)`
-
-## S4 — OriginBasedIdentity (LEMMA, predicate)
+## S4 — OriginBasedIdentity (LEMMA, from T9, T10 ASN-0034)
 
 For I-addresses `a₁`, `a₂` produced by distinct allocation events:
 
 `a₁ ≠ a₂`
 
-regardless of whether `Σ.C(a₁) = Σ.C(a₂)`. From GlobalUniqueness (ASN-0034).
+regardless of whether `Σ.C(a₁) = Σ.C(a₂)`.
 
-## S5 — UnrestrictedSharing (LEMMA, predicate)
-
-S0–S3 do not entail any finite bound on sharing multiplicity:
+## S5 — UnrestrictedSharing (LEMMA, consistency witness for S0–S3)
 
 `(A N ∈ ℕ :: (E Σ :: Σ satisfies S0–S3 ∧ (E a ∈ dom(Σ.C) :: |{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}| > N)))`
 
-Witness for cross-document sharing: fix any `N`. Construct state `Σ_N` with one I-address `a` where `C(a) = w` for some value `w`, and `N + 1` documents `d₁, ..., d_{N+1}`, each with `M(dᵢ) = {vᵢ ↦ a}` for distinct V-positions `vᵢ`. Sharing multiplicity of `a` is `N + 1 > N`.
+The within-document variant: `(A N ∈ ℕ :: (E Σ :: Σ satisfies S0–S3 ∧ (E a ∈ dom(Σ.C) :: (E d :: |{v : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}| > N))))`
 
-Witness for within-document sharing: construct `Σ'_N` with one I-address `a` where `C(a) = w`, and one document `d` with `M(d) = {v₁ ↦ a, v₂ ↦ a, ..., v_{N+1} ↦ a}` for `N + 1` distinct V-positions. Within-document sharing multiplicity is `N + 1 > N`.
-
-## S6 — PersistenceIndependence (LEMMA, predicate)
+## S6 — PersistenceIndependence (INV, corollary of S0)
 
 `[a ∈ dom(Σ.C) ⟹ a ∈ dom(Σ'.C)]`
 
-regardless of any changes to any `Σ.M(d)`. Corollary of S0.
+regardless of any changes to any `Σ.M(d)`. The membership of `a` in `dom(Σ.C)` is independent of all arrangements.
 
-## S7a — DocumentScopedAllocation (INV, predicate)
+## S7a — DocumentScopedAllocation (INV, design requirement)
 
-Every Istream address is allocated under the tumbler prefix of the document that created it. For every `a ∈ dom(Σ.C)`, the document-level prefix of `a` — the tumbler `N.0.U.0.D` obtained by truncating the element field — identifies the document whose owner performed the allocation that placed `a` into `dom(C)`.
+For every `a ∈ dom(Σ.C)`, the document-level prefix of `a` — the tumbler `N.0.U.0.D` obtained by truncating the element field — identifies the document whose owner performed the allocation that placed `a` into `dom(C)`.
 
-## S7b — ElementLevelAddresses (INV, predicate)
+## S7b — ElementLevelIAddresses (INV, design requirement)
 
 `(A a ∈ dom(Σ.C) :: zeros(a) = 3)`
 
-Every address in `dom(Σ.C)` is an element-level tumbler: all four identifying fields — node, user, document, element — are present.
-
-## S7 — StructuralAttribution (LEMMA, predicate)
-
-Preconditions: S7a, S7b, T4 (ASN-0034), GlobalUniqueness (ASN-0034).
+## S7 — StructuralAttribution (LEMMA, from S7a, S7b, T4, T9, T10 ASN-0034)
 
 For every `a ∈ dom(Σ.C)`:
 
 `origin(a) = (fields(a).node).0.(fields(a).user).0.(fields(a).document)`
 
-This is the full document tumbler `N.0.U.0.D` — uniquely identifying the allocating document across the system. Since I-addresses are permanent (S0) and unique (S4), this attribution is permanent and unseverable.
+This is the full document tumbler `N.0.U.0.D` — uniquely identifying the allocating document across the system. Preconditions: S7b (`zeros(a) = 3`) and S7a (document-scoped allocation). Since I-addresses are permanent (S0) and unique (S4), this attribution is permanent and unseverable.
 
 ## S8-fin — FiniteArrangement (INV, predicate)
 
@@ -128,61 +106,45 @@ For each document `d`, `dom(Σ.M(d))` is finite.
 
 `(A v ∈ dom(Σ.M(d)) : v₁ ≥ 1 : zeros(v) = 0 ∧ v > 0)`
 
-The range guard `v₁ ≥ 1` captures both text-subspace (`v₁ = 1`) and link-subspace (`v₁ = 2`) V-positions. Link subspace semantics deferred to a future ASN.
+`v₁` is the subspace identifier; this ASN treats only the text subspace (`v₁ = 1`) and link subspace (`v₁ = 2`); link subspace semantics are deferred. The domain and range of `M(d)` live in structurally different tumbler subsets: within the text subspace, `{v ∈ dom(M(d)) : v₁ ≥ 1} ⊆ {t ∈ T : zeros(t) = 0 ∧ t > 0}` (element-field tumblers), while `ran(M(d)) ⊆ {t ∈ T : zeros(t) = 3}` (full element-level addresses, per S7b).
 
-## S8-depth — FixedDepthVPositions (INV, predicate)
+## S8-depth — FixedDepthVPositions (INV, design requirement)
+
+Within a given subspace `s` of document `d`, all V-positions share the same tumbler depth:
 
 `(A d, v₁, v₂ : v₁ ∈ dom(Σ.M(d)) ∧ v₂ ∈ dom(Σ.M(d)) ∧ (v₁)₁ = (v₂)₁ : #v₁ = #v₂)`
 
-Within a given subspace of document `d`, all V-positions share the same tumbler depth.
-
-## S8 — SpanDecomposition (THEOREM, lemma)
-
-Preconditions: S8-fin, S8a, S2, S8-depth, T5, PrefixOrderingExtension, TA5(c), TA7a (ASN-0034).
+## S8 — FiniteSpanDecomposition (LEMMA, from S8-fin, S8a, S2, S8-depth, T5, T10, TA5(c), TA7a ASN-0034)
 
 For each document `d`, the text-subspace portion of the arrangement — `{(v, Σ.M(d)(v)) : v ∈ dom(Σ.M(d)) ∧ v₁ ≥ 1}` — can be decomposed into a finite set of correspondence runs `{(vⱼ, aⱼ, nⱼ)}` such that:
 
-(a) The runs partition the text-subspace V-positions:
+(a) The runs partition the text-subspace V-positions: `(A v ∈ dom(Σ.M(d)) : v₁ ≥ 1 : (E! j :: vⱼ ≤ v < vⱼ + nⱼ))`
 
-`(A v ∈ dom(Σ.M(d)) : v₁ ≥ 1 : (E! j :: vⱼ ≤ v < vⱼ + nⱼ))`
+(b) Within each run: `Σ.M(d)(vⱼ + k) = aⱼ + k` for all `k` with `0 ≤ k < nⱼ`
 
-(b) Within each run:
+## D-CTG — VContiguity (INV, design constraint)
 
-`Σ.M(d)(vⱼ + k) = aⱼ + k` for all `k` with `0 ≤ k < nⱼ`
-
-## D-CTG — VContiguity (INV, predicate)
-
-**Design constraint.** For each document `d` and subspace `S`, `V_S(d)` is either empty or occupies every intermediate position between its extremes:
+For each document `d` and subspace `S`, `V_S(d)` is either empty or occupies every intermediate position between its extremes:
 
 `(A d, S, u, q : u ∈ V_S(d) ∧ q ∈ V_S(d) ∧ u < q : (A v : subspace(v) = S ∧ #v = #u ∧ u < v < q : v ∈ V_S(d)))`
 
 Within each subspace, V-positions form a contiguous ordinal range with no gaps.
 
-## D-MIN — VMinimumPosition (INV, predicate)
+## D-MIN — VMinimumPosition (INV, design constraint)
 
-**Design constraint.** For each document `d` and subspace `S` with `V_S(d)` non-empty:
+For each document `d` and subspace `S` with `V_S(d)` non-empty:
 
 `min(V_S(d)) = [S, 1, ..., 1]`
 
 where the tuple has length `m` (the common depth of V-positions in subspace `S` per S8-depth), and every component after the first is 1.
 
-## D-CTG-depth — SharedPrefixReduction (LEMMA, lemma)
-
-Preconditions: D-CTG, S8-fin, S8-depth.
+## D-CTG-depth — SharedPrefixReduction (LEMMA, corollary from D-CTG, S8-fin, S8-depth)
 
 For depth `m ≥ 3`, all positions in a non-empty `V_S(d)` share components 2 through `m − 1`. Contiguity reduces to contiguity of the last component alone — structurally identical to the depth 2 case.
 
-*Proof sketch.* Suppose for contradiction that `V_S(d)` contains two positions `v₁ < v₂` (both depth `m` by S8-depth) whose first point of disagreement is at component `j` with `2 ≤ j ≤ m − 1` — that is, `(v₁)ᵢ = (v₂)ᵢ` for all `i < j`, and `(v₁)ⱼ < (v₂)ⱼ`. For any natural number `n > (v₁)ⱼ₊₁`, define `w` of length `m` by:
+*Proof sketch.* Suppose for contradiction that `V_S(d)` contains two positions `v₁ < v₂` (both depth `m` by S8-depth) whose first point of disagreement is at component `j` with `2 ≤ j ≤ m − 1` — that is, `(v₁)ᵢ = (v₂)ᵢ` for all `i < j`, and `(v₁)ⱼ < (v₂)ⱼ`. For any natural number `n > (v₁)ⱼ₊₁`, define `w` of length `m` by `wᵢ = (v₁)ᵢ` for `1 ≤ i ≤ j`, `wⱼ₊₁ = n`, `wᵢ = 1` for `j + 2 ≤ i ≤ m`. Then `v₁ < w < v₂`, so by D-CTG `w ∈ V_S(d)`. By T0(a), unboundedly many values of `n` exist, yielding infinitely many distinct positions — contradicting S8-fin. ∎
 
-- `wᵢ = (v₁)ᵢ` for `1 ≤ i ≤ j`
-- `wⱼ₊₁ = n`
-- `wᵢ = 1` for `j + 2 ≤ i ≤ m`
-
-Then `w` has subspace `S` and depth `m`, and `v₁ < w < v₂`. By D-CTG, every such `w` belongs to `V_S(d)`. By T0(a), unboundedly many values of `n` exist, yielding infinitely many distinct positions in `V_S(d)` — contradicting S8-fin. ∎
-
-## D-SEQ — SequentialPositions (LEMMA, lemma)
-
-Preconditions: D-CTG, D-MIN, S8-fin, S8-depth.
+## D-SEQ — SequentialPositions (LEMMA, corollary from D-CTG, D-MIN, S8-fin, S8-depth)
 
 For each document `d` and subspace `S`, if `V_S(d)` is non-empty then there exists `n ≥ 1` such that:
 
@@ -194,25 +156,15 @@ where the tuple has length `m` (the common V-position depth in subspace `S`). At
 
 A V-position `v` is a *valid insertion position* in subspace `S` of document `d` satisfying D-CTG when one of two cases holds:
 
-**Non-empty subspace.** `V_S(d) ≠ ∅` with `|V_S(d)| = N`. Write `m` for the common V-position depth in subspace `S` (S8-depth); `m ≥ 2`. Then either:
-- `v = min(V_S(d))` (the `j = 0` case), or
-- `v = shift(min(V_S(d)), j)` for some `j` with `1 ≤ j ≤ N`
+**Non-empty subspace.** `V_S(d) ≠ ∅` with `|V_S(d)| = N`. Write `m` for the common V-position depth in subspace `S` (S8-depth); `m ≥ 2`. Then either `v = min(V_S(d))` (the `j = 0` case) or `v = shift(min(V_S(d)), j)` for some `j` with `1 ≤ j ≤ N`. In both cases, `#v = m`.
 
-In both cases, `#v = m`. This gives exactly `N + 1` valid insertion positions. The explicit form: `shift(min(V_S(d)), j) = [S, 1, ..., 1 + j]`.
-
-**Empty subspace.** `V_S(d) = ∅`. Then `v = [S, 1, ..., 1]` of depth `m ≥ 2`, establishing the subspace's V-position depth at `m`. The lower bound `m ≥ 2` is required: at `m = 1`, `shift([S], 1) = [S] ⊕ [1]` produces `[S + 1]` — a position in subspace `S + 1`, not `S`. For `m ≥ 2`, OrdinalShift preserves the subspace identifier.
+**Empty subspace.** `V_S(d) = ∅`. Then `v = [S, 1, ..., 1]` of depth `m ≥ 2`, establishing the subspace's V-position depth at `m`. The lower bound `m ≥ 2` is necessary: at `m = 1`, `v = [S]` and `shift([S], 1) = [S] ⊕ δ(1, 1) = [S] ⊕ [1]`; the action point of `[1]` is `k = 1`, so TumblerAdd gives `r₁ = S + 1`, producing `[S + 1]` — a position in subspace `S + 1`, not `S`.
 
 In both cases, `S = v₁` is the subspace identifier.
 
-Structural properties of valid positions:
-- *Depth preservation*: `#shift(v, j) = #v = m` for all `j ≥ 0` (OrdinalShift result-length identity, ASN-0034).
-- *Subspace identity*: `shift(min, j)₁ = min₁ = S` for all `j` (since `δ(j, m)` has action point `m ≥ 2`, TumblerAdd copies component 1 unchanged).
-- *Distinctness*: the `N + 1` positions have last components `1, 2, ..., N + 1` — pairwise distinct by T3 (ASN-0034).
-- *S8a consistency*: every valid position `[S, 1, ..., 1 + j]` has all components strictly positive, so `zeros(v) = 0` and `v > 0`.
+Structural properties of valid positions: by D-MIN, `min(V_S(d)) = [S, 1, ..., 1]` of depth `m`. By OrdinalShift and TumblerAdd, `shift([S, 1, ..., 1], j) = [S, 1, ..., 1 + j]`. The `N + 1` positions (non-empty case) have last components `1, 2, ..., N + 1` — pairwise distinct by T3 (ASN-0034). For text-subspace positions (`S ≥ 1`), every valid position `[S, 1, ..., 1 + j]` satisfies `zeros(v) = 0` and `v > 0` (S8a).
 
-## S9 — TwoStreamSeparation (THEOREM, lemma)
-
-Precondition: S0.
+## S9 — TwoStreamSeparation (LEMMA, theorem from S0)
 
 No modification to any arrangement `Σ.M(d)` can alter the content store `Σ.C`:
 
