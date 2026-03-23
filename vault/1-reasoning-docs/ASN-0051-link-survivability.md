@@ -1,6 +1,6 @@
 # ASN-0051: Link Survivability
 
-*2026-03-20*
+*2026-03-23*
 
 We are looking for the invariants that govern what a link holder can rely on across state changes. A link has been created — its endsets are fixed (L12, LinkImmutability), its address is permanent (T8, AllocationPermanence). The endsets reference I-addresses in the content store, which is itself immutable (S0, ContentImmutability). So the link, structurally, is as permanent as anything in the system.
 
@@ -253,7 +253,7 @@ We note a distinction between fragments and span denotations. A fragment is a fi
 
 The significance: **partial survival is well-structured.** The surviving portion of an endset in a given document decomposes into finitely many fragments, each compactly described by a start address and count within a mapping block's ordinal sequence. Convexity (S0) ensures contiguity within each block, preventing degeneration into arbitrary subsets of I-addresses.
 
-The number of fragments can grow through repeated contractions: a single contraction that removes I-addresses from the interior of a contiguous endset region splits one fragment into two. But the fragments remain ordinal-contiguous subsequences, compactly described by start and count. The original endset's span count and the number of mapping blocks provide an upper bound: the total number of fragments cannot exceed m · p.
+The number of fragments can grow through repeated edits: a composite operation (K.μ~ followed by K.μ⁻) that rearranges interior content to the maximum V-position and then removes it has the net effect of excising I-addresses from the interior of a contiguous endset region, splitting one fragment into two. But the fragments remain ordinal-contiguous subsequences, compactly described by start and count. The original endset's span count and the number of mapping blocks provide an upper bound: the total number of fragments cannot exceed m · p.
 
 
 ## Worked Example
@@ -276,13 +276,13 @@ A link at address b is created with from-endset F = {(a₂, ℓ)}, where ℓ = a
 
 The from-endset is vital in d: π(F, d) ≠ ∅. Both π and locate are determined entirely by coverage(F) and the current M(d) (SV0).
 
-*After contraction.* A K.μ⁻ step removes the mapping at v₃, producing M'(d) with dom(M'(d)) = {v₁, v₂, v₄, v₅} and ran(M'(d)) = {a₁, a₂, a₄, a₅}:
+*After removing a₃.* The net effect of removing a₃ from ran(M(d)) while satisfying D-CTG requires a composite: first a K.μ~ step rearranges d so that a₃ occupies the maximum V-position v₅, then a K.μ⁻ step removes v₅. (K.μ⁻ alone cannot remove an interior V-position — by D-SEQ, valid contractions remove from the maximum end of V_S(d) only.) The composite produces M'(d) with dom(M'(d)) = {v₁, v₂, v₃, v₄} and ran(M'(d)) = {a₁, a₂, a₄, a₅}. The specific mapping: M'(d) = {v₁ ↦ a₁, v₂ ↦ a₂, v₃ ↦ a₄, v₄ ↦ a₅}:
 
 - π(F, d) = coverage(F) ∩ ran(M'(d)) = {a₂, a₄} — reduced (SV3)
-- locate(F, d) = {v₂, v₄}
+- locate(F, d) = {v₂, v₃} — since M'(d)(v₂) = a₂ and M'(d)(v₃) = a₄, both in coverage(F)
 - discover_from({a₃}) = {b} — unchanged, because coverage(F) is invariant (L12, ASN-0043) and a₃ ∈ coverage(F) regardless of M(d) (SV8)
 
-The endset remains vital but with reduced projection. The removal of a₃ from M(d) has split the endset's visible region into two fragments. To see the decomposition of SV11: the post-contraction arrangement has two mapping blocks — β₁ = (v₁, a₁, 2) covering {v₁, v₂} with I-extent {a₁, a₂}, and β₂ = (v₄, a₄, 2) covering {v₄, v₅} with I-extent {a₄, a₅}. The SV11 terms are:
+The endset remains vital but with reduced projection. The removal of a₃ from ran(M(d)) has split the endset's visible region into two fragments. To see the decomposition of SV11: the post-removal arrangement has two mapping blocks — β₁ = (v₁, a₁, 2) covering {v₁, v₂} with I-extent {a₁, a₂}, and β₂ = (v₃, a₄, 2) covering {v₃, v₄} with I-extent {a₄, a₅}. The SV11 terms are:
 
 - ⟦(a₂, ℓ)⟧ ∩ I(β₁) = {t : a₂ ≤ t < a₅} ∩ {a₁, a₂} = {a₂}
 - ⟦(a₂, ℓ)⟧ ∩ I(β₂) = {t : a₂ ≤ t < a₅} ∩ {a₄, a₅} = {a₄}
@@ -291,12 +291,12 @@ Each non-empty term is a single-element fragment — a contiguous ordinal subseq
 
 Discovery through d still works for queries including a₂ or a₄. But discovery through the specific I-address set {a₃} — while still returning b (SV8) — no longer corresponds to anything visible in d, since a₃ ∉ ran(M'(d)). This illustrates the discovery-resolution distinction (SV10): the link is discoverable through a₃, but resolution of the from-endset in d yields no V-position for a₃.
 
-*After reordering.* From the post-contraction state, a K.μ~ step swaps v₂ and v₄: M''(d)(v₂) = a₄, M''(d)(v₄) = a₂ (with v₁ and v₅ unchanged). Since ran(M''(d)) = ran(M'(d)):
+*After reordering.* From the post-removal state, a K.μ~ step swaps v₂ and v₃: M''(d)(v₂) = a₄, M''(d)(v₃) = a₂ (with v₁ and v₄ unchanged). Since ran(M''(d)) = ran(M'(d)):
 
 - π(F, d) = {a₂, a₄} — unchanged (SV5)
-- locate(F, d) = {v₂, v₄} — the V-positions happen to be the same set, because π permutes within the locate set (both v₂ and v₄ map to I-addresses in coverage(F) before and after the swap)
+- locate(F, d) = {v₂, v₃} — the V-positions happen to be the same set, because the swap exchanges two V-positions that both belong to the locate set (both v₂ and v₃ map to I-addresses in coverage(F) before and after the swap)
 
-Note: this worked example illustrates a special case where the locate *set* is preserved because the swap exchanges two V-positions that both belong to the locate set. In the general case, the locate set changes — see the witness in the SV5 discussion. The formal relationship locate_{Σ'}(F, d) = {ψ(v) : v ∈ locate_Σ(F, d)} holds here: ψ(v₂) = v₄ and ψ(v₄) = v₂, so {ψ(v₂), ψ(v₄)} = {v₂, v₄} = locate_Σ(F, d).
+Note: this worked example illustrates a special case where the locate *set* is preserved because the swap exchanges two V-positions that both belong to the locate set. In the general case, the locate set changes — see the witness in the SV5 discussion. The formal relationship locate_{Σ'}(F, d) = {ψ(v) : v ∈ locate_Σ(F, d)} holds here: ψ(v₂) = v₃ and ψ(v₃) = v₂, so {ψ(v₂), ψ(v₃)} = {v₂, v₃} = locate_Σ(F, d).
 
 The projection is invariant under reordering; the resolution set transforms by the reordering bijection ψ.
 
@@ -333,7 +333,9 @@ We can now synthesize the survivability guarantee into a single coherent stateme
 - Changes to M(d) cannot affect locate(e, d') for d' ≠ d. [SV4]
 - All other elementary transitions (K.α, K.δ, K.λ, K.ρ) preserve M in their frame, so locate(e, d) is unchanged.
 
-(f) *Coverage stability is level-dependent:* new allocations from a different origin cannot enter existing endset spans when the span start is element-level and the action point is within the element field — this is formally proved from the foundations (SV6). Same-origin coverage growth depends on the allocation regime — closed at the byte level by sequential sibling allocation, open at broader address levels by design (the byte-level closure follows from allocation discipline assumptions not formalised in this ASN; see the architectural analysis in the "Content Allocation and Coverage Stability" section).
+(f) *Cross-origin coverage exclusion:* new allocations from a different origin cannot enter existing endset spans when the span start is element-level and the action point is within the element field. [SV6]
+
+*Remark (same-origin coverage growth).* Same-origin coverage growth depends on the allocation regime. At the byte level, sequential sibling allocation closes existing spans to future allocations; at broader address levels, coverage growth is open by design. The byte-level closure follows from allocation discipline assumptions not formalised in this ASN; see the architectural analysis in the "Content Allocation and Coverage Stability" section.
 
 (g) *Partial survival is well-structured:* the surviving projection in any document decomposes into finitely many ordinal-contiguous fragments within mapping blocks. [SV11]
 
