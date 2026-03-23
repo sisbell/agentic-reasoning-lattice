@@ -48,7 +48,7 @@ We are looking for the predicate that determines whether a link matches a query.
 
   sat(e, P) ≡ coverage(e) ∩ P ≠ ∅          when P ≠ ⊤
 
-The unconstrained case is trivially satisfied. The constrained case requires at least one I-address in the endset's coverage to belong to the query set. Expanding coverage in terms of spans:
+The unconstrained case is trivially satisfied. The constrained case requires at least one I-address in the endset's coverage to belong to the query set. When e = ∅, coverage(e) = ∅, so sat(∅, P) = false for every P ≠ ⊤: a link with an empty endset in slot i is invisible to any constrained query on that slot, though it remains discoverable by the fully unconstrained query (⊤, ⊤, ⊤, ⊤). Expanding coverage in terms of spans:
 
   coverage(e) ∩ P ≠ ∅  ≡  (E (s, ℓ) ∈ e : ⟦(s, ℓ)⟧ ∩ P ≠ ∅)
 
@@ -67,7 +67,7 @@ Well-definedness: home(a) is defined for all a ∈ dom(L) (by L1a, ASN-0047, and
 
 We verify the compound-query case. When a V-region spans content from multiple sources, the resolution produces a disjoint union P = P₁ ∪ ... ∪ Pₘ. The satisfaction predicate handles this naturally:
 
-**F1a — CompoundQueryDecomposition.** For disjoint sets P₁, ..., Pₘ and endset e:
+**F1a — CompoundQueryDecomposition.** For sets P₁, ..., Pₘ and endset e:
 
   sat(e, P₁ ∪ ... ∪ Pₘ)  ⟺  sat(e, P₁) ∨ ... ∨ sat(e, Pₘ)
 
@@ -274,11 +274,11 @@ The set of satisfying links can only grow over time — new links may be created
 
 The abstract specification includes one performance-class design constraint. Nelson states: "THE QUANTITY OF LINKS NOT SATISFYING A REQUEST DOES NOT IN PRINCIPLE IMPEDE SEARCH ON OTHERS." We record this as a requirement on any conforming implementation.
 
-**F19 — ScaleIndependence (design constraint).** The cost of evaluating FindLinks(Q) must not grow with |dom(Σ.L)| — the total number of links in the system — but rather with the query size and the result size.
+**F19 — ScaleIndependence (design constraint).** The cost of locating candidate links for FindLinks(Q) must be sublinear in |dom(Σ.L)| — the total number of links in the system. Nelson states that the quantity of non-satisfying links must not "in principle impede" search on satisfying ones. The phrase admits logarithmic dependence on total link count — the overhead inherent in tree-based indexing — while excluding linear scans through the non-matching population.
 
-This constraint is architecturally necessary. Without it, the universal scope guarantee (F7) — searching the entire link store — would become impractical as the link population grows. The constraint mandates that any conforming implementation maintain index structures enabling sublinear retrieval.
+This constraint is architecturally necessary. Without it, the universal scope guarantee (F7) — searching the entire link store — would become impractical as the link population grows. Any conforming implementation must maintain index structures enabling sublinear candidate location — at minimum O(log |dom(Σ.L)|) to reach the matching region.
 
-The implementation achieves this through a spanfilade — a 2D enfilade indexing link endsets by I-address range. Three independent index traversals (one per endset type, partitioned by ORGLRANGE prefix) are intersected to produce the final result. This architecture scales with the intersection sizes, not with the total link count. The abstract property F19 demands that *any* implementation — not just the enfilade-based one — achieve comparable scaling behavior.
+The implementation achieves this through a spanfilade — a 2D enfilade (branching factor 4–6) indexing link endsets by I-address range. Tree traversal to the matching region is O(log n), where n is the number of spanfilade entries. Three independent index traversals (one per endset type) are intersected to produce the final result. The dominant cost beyond tree traversal is result-set processing, which scales with the number of candidate matches rather than the total link population. The abstract property F19 demands that *any* implementation achieve comparable sublinear index traversal — the result-set processing cost is necessarily at least linear in |FindLinks(Q)|.
 
 ## Worked Example
 
@@ -292,7 +292,7 @@ where v₁ < v₂ < v₃ are text-subspace V-positions. Document d₂ transclude
 
 where w₁ is a text-subspace V-position in d₂. The I-address a₂ is the *same* address in both arrangements — a₂ ∈ ran(M(d₁)) ∩ ran(M(d₂)).
 
-Now let link ℓ ∈ dom(L) have value L(ℓ) = (F, G, Θ) where the from-endset F contains a single span covering all three addresses: coverage(F) ⊇ {a₁, a₂, a₃}. (Concretely, F = {(a₁, a₃ ⊖ a₁)} when a₁, a₂, a₃ are contiguous at the same depth.) The to-endset and type-endset are arbitrary.
+Now let link ℓ ∈ dom(L) have value L(ℓ) = (F, G, Θ) where the from-endset F contains a single span covering all three addresses: coverage(F) ⊇ {a₁, a₂, a₃}. (Concretely, F = {(a₁, δ(3, m))} when a₁, a₂, a₃ are contiguous at common depth m — three addresses require width 3, since ⟦(a₁, δ(2, m))⟧ = [a₁, a₃) would exclude a₃ by half-open interval semantics.) The to-endset and type-endset are arbitrary.
 
 **Verifying F1 (satisfaction).** Consider the query Q = (⊤, {a₂}, ⊤, ⊤) — "find links whose from-endset touches a₂." We evaluate:
 
@@ -344,7 +344,7 @@ Since M(d₂)(w₁) = a₂ ∈ coverage(F), and no other V-position exists in M(
 | F16 | Access monotonicity: broader access ⟹ superset of visible links | introduced |
 | F17 | FINDLINKS is a pure query: Σ' = Σ | introduced |
 | F18 | Monotonic discoverability: once satisfied, always satisfied | introduced |
-| F19 | Scale independence: cost must not grow with total link count (design constraint) | introduced |
+| F19 | Scale independence: candidate location must be sublinear in total link count (design constraint) | introduced |
 
 ## Open Questions
 
