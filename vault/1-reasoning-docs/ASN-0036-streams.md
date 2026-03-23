@@ -450,7 +450,7 @@ This has a formal consequence: document equality is not decidable by content com
 | S1 | Store monotonicity: `dom(C) ⊆ dom(C')` for all transitions | corollary of S0 |
 | S2 | Arrangement functionality: `M(d)` is a function — each V-position maps to exactly one I-address | introduced |
 | S3 | Referential integrity: `(A d, v : v ∈ dom(M(d)) : M(d)(v) ∈ dom(C))` | introduced |
-| S4 | Origin-based identity: distinct allocations produce distinct I-addresses regardless of value equality | from T9, T10, T10a, T3 (ASN-0034) |
+| S4 | Origin-based identity: distinct allocations produce distinct I-addresses regardless of value equality | from T9, T10, T10a, TA5, T3 (ASN-0034) |
 | S5 | Unrestricted sharing: S0–S3 do not entail any finite bound on sharing multiplicity | consistent with S0–S3 (witness construction) |
 | S6 | Persistence independence: `a ∈ dom(C)` is unconditional — independent of all arrangements | corollary of S0 |
 | S7a | Document-scoped allocation: every I-address is allocated under the originating document's prefix | introduced |
