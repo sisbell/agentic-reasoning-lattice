@@ -92,6 +92,8 @@ We now define COPY as a composite state transition. The definition proceeds in t
 
 (P.4) Each rⱼ = (d_sⱼ, σⱼ) in R is a well-formed content reference.
 
+(P.4a) Each source reference targets the content subspace: for rⱼ = (d_sⱼ, σⱼ) with σⱼ = (uⱼ, ℓⱼ), subspace(uⱼ) = s_C. In the extended state, S3★ distinguishes subspaces: content-subspace V-positions map to dom(C), link-subspace V-positions map to dom(L). C1 (ResolutionIntegrity, ASN-0058) invokes S3 to conclude resolved I-addresses are in dom(C); this holds under S3★ only when the source V-span lies in the content subspace. Without P.4a, a link-subspace source would resolve to dom(L), violating both S3★ at the target (content-subspace V-positions mapping to dom(L) addresses) and the K.ρ precondition (a ∈ dom(C)), since dom(C) ∩ dom(L) = ∅ by L14.
+
 (P.5) resolve(R) = ⟨(a₁, n₁), ..., (aₖ, nₖ)⟩ is evaluated in state Σ.
 
 (P.6) w = w(R) ≥ 1.
@@ -120,7 +122,7 @@ B_pre  = {β ∈ B_S : v_β + n_β ≤ v}    (blocks before v in subspace S)
 B_post = {β ∈ B_S : v_β ≥ v}           (blocks at or after v in subspace S)
 ```
 
-After the split, B_pre and B_post are disjoint and exhaustive within B_S. The split in step (i) ensures no block in B_S straddles the insertion point. B_other is disjoint from both by T7 (SubspaceDisjointness, ASN-0034).
+After the split, B_pre and B_post are disjoint and exhaustive within B_S. The split in step (i) ensures no block in B_S straddles the insertion point. B_other is disjoint from both: every block in B_other has (v_β)₁ ≠ S, while every block in B_S has (v_β)₁ = S, so they differ at component 1 and are distinct tumblers by T3 (CanonicalRepresentation, ASN-0034).
 
 (iii) *Shift.* For each β = (v_β, a_β, n_β) ∈ B_post, define the displaced block:
 
@@ -180,7 +182,7 @@ In both cases, the high-level COPY definition (Phase 2, steps i–v) produces th
 
 We verify that B' is a valid block decomposition.
 
-**B2 (Disjointness).** The four groups occupy non-overlapping V-ranges. B_pre blocks have V-reaches ≤ v (every v_β + n_β ≤ v by classification). Placed blocks γⱼ have V-positions in [v, v + w) — the first starts at v and the last ends at v + w by width summation. Shifted B_post blocks have V-starts ≥ v + w (each had v_β ≥ v, so v_β + w ≥ v + w). B_other blocks have (v_β)₁ ≠ S, while B_pre, placed blocks, and shifted B_post all have first component S — disjoint by T7 (SubspaceDisjointness, ASN-0034). Within each group, pairwise disjointness is inherited: B_pre and B_post retain pairwise disjointness from B (M6f, ASN-0058 — the split preserves decomposition-level B2); the shift is an order-preserving injection on V-starts (TS1, ASN-0034); the γⱼ are pairwise disjoint by construction (consecutive, non-overlapping ranges); B_other retains pairwise disjointness from B.
+**B2 (Disjointness).** The four groups occupy non-overlapping V-ranges. B_pre blocks have V-reaches ≤ v (every v_β + n_β ≤ v by classification). Placed blocks γⱼ have V-positions in [v, v + w) — the first starts at v and the last ends at v + w by width summation. Shifted B_post blocks have V-starts ≥ v + w (each had v_β ≥ v, so v_β + w ≥ v + w). B_other blocks have (v_β)₁ ≠ S, while B_pre, placed blocks, and shifted B_post all have first component S — they differ at component 1, hence are distinct by T3 (CanonicalRepresentation, ASN-0034). Within each group, pairwise disjointness is inherited: B_pre and B_post retain pairwise disjointness from B (M6f, ASN-0058 — the split preserves decomposition-level B2); the shift is an order-preserving injection on V-starts (TS1, ASN-0034); the γⱼ are pairwise disjoint by construction (consecutive, non-overlapping ranges); B_other retains pairwise disjointness from B.
 
 **B1 (Coverage).** Within subspace S, let N = |V_S(d)| and v₀ be the base. The pre-range [v₀, v) is covered by B_pre. The placed range [v, v + w) is partitioned by γ₁, ..., γₖ. The post-range [v + w, v₀ + N + w) is covered by B_post↑w. Together they cover all N + w subspace-S positions. B_other covers all text positions in subspaces S' ≠ S, unchanged.
 
@@ -217,7 +219,7 @@ S0 (ContentImmutability): immediate from C' = C. ∎
 
 S2 (ArrangementFunctionality): M'(d) is a function because B' satisfies B2 — each V-position maps to exactly one I-address. ∎
 
-S3 (ReferentialIntegrity): we must show ran(M'(d)) ⊆ dom(C'). Pre-blocks and shifted post-blocks reference the same I-addresses as B, which satisfy S3 by assumption. Placed blocks γⱼ reference I-addresses satisfying C1 (ResolutionIntegrity, ASN-0058). Since C' = C, all references are valid. ∎
+S3 (ReferentialIntegrity): we must show ran(M'(d)) ⊆ dom(C'). Pre-blocks and shifted post-blocks reference the same I-addresses as B, which satisfy S3 by assumption. Placed blocks γⱼ reference I-addresses satisfying C1 (ResolutionIntegrity, ASN-0058) — C1's derivation invokes S3 on the source arrangement; under S3★, this requires the source V-span to lie in the content subspace, which P.4a guarantees. Since C' = C, all references are valid. ∎
 
 S8a (VPositionWellFormedness): by P.7, subspace(v) = s_C, and s_C ≥ 1 (ASN-0047), so v₁ ≥ 1 and S8a's guard applies. New V-positions in the γⱼ blocks have the form v + offset, where v satisfies S8a and offset is an ordinal increment. By the OrdinalShift definition (ASN-0034), shift(v, n) changes only the last component of v (adding n to it); all other components are unchanged. Since v has all positive components (zeros(v) = 0, guaranteed by v₁ = s_C ≥ 1 and S8a), the shifted position also has all positive components. Shifted post-block V-positions satisfy S8a by the same component-preservation argument. ∎
 
@@ -540,6 +542,7 @@ Nelson reinforces this at the system level: "A server's network model, from the 
 | NativeContent | V-position v where origin(M(d)(v)) = d | introduced |
 | IncludedContent | V-position v where origin(M(d)(v)) ≠ d | introduced |
 | ValidInsertionPosition | if V_S(d) ≠ ∅: v = min(V_S(d)) + j with 0 ≤ j ≤ N; if V_S(d) = ∅: v = [S, 1, ..., 1] of depth m ≥ 2 | cited (ASN-0036) |
+| P.4a | subspace(uⱼ) = s_C — source content references must target content subspace (PRE) | introduced |
 | P.7 | subspace(v) = s_C — COPY targets content subspace only (PRE) | introduced |
 | COPY | composite transition: resolve in pre-state, then split-shift-place | introduced |
 | C0 | C' = C — no content allocation (FRAME) | introduced |
