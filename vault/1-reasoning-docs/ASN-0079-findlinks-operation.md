@@ -14,9 +14,9 @@ This translation is the *resolution* of ASN-0058. Given a well-formed content re
 
   addresses(d, σ) = (∪ j : 1 ≤ j ≤ k : {aⱼ + i : 0 ≤ i < nⱼ})
 
-By C1 (ResolutionIntegrity, ASN-0058), every address in this set belongs to dom(C). By C2 (ResolutionWidthPreservation, ASN-0058), the total count equals the span width ℓₘ. The resolution captures the *content identity* of the selected region — the permanent I-addresses underlying the ephemeral V-positions.
+By C1 (ResolutionIntegrity, ASN-0058), every address in this set belongs to dom(C). By C2 (ResolutionWidthPreservation, ASN-0058), the sum of run widths equals the span width ℓₘ, so |addresses(d, σ)| ≤ ℓₘ, with equality when M(d) is injective on the span's V-positions. When M(d) is not injective — self-transclusion places the same I-address at multiple V-positions — distinct runs may reference the same I-address, and the set cardinality is strictly less than ℓₘ. The resolution captures the *content identity* of the selected region — the permanent I-addresses underlying the ephemeral V-positions.
 
-When the V-span covers content drawn from multiple original sources — a compound region assembled by transclusion — the resolution produces k > 1 runs with disjoint I-address ranges. Each run corresponds to one mapping block in the maximally merged decomposition (M11, M12, ASN-0058). The link search must handle this disjoint set as a single query.
+When the V-span covers content drawn from multiple original sources — a compound region assembled by transclusion — the resolution produces k > 1 runs. Runs originating from different documents have disjoint I-address ranges (by S4, OriginBasedIdentity, ASN-0036, and M16, CrossOriginMergeImpossibility, ASN-0058). However, same-origin self-transclusion — where the same I-address appears at multiple V-positions within one document — can produce runs with overlapping I-extents. Each run corresponds to one mapping block in the maximally merged decomposition (M11, M12, ASN-0058). The link search must handle the resulting address set as a single query.
 
 We observe a fundamental property of the resolution step.
 
@@ -65,7 +65,7 @@ This is the *conjunctive composition* — the "AND" across endsets. Every constr
 
 Well-definedness: home(a) is defined for all a ∈ dom(L) (by L1a, ASN-0047, and the definition of origin). coverage(eᵢ) is defined for every endset (over the span algebra, ASN-0053). The intersection coverage(eᵢ) ∩ P is a set operation over T. No external state is consulted — the predicate depends only on the link's stored value and the query specification.
 
-We verify the compound-query case. When a V-region spans content from multiple sources, the resolution produces a disjoint union P = P₁ ∪ ... ∪ Pₘ. The satisfaction predicate handles this naturally:
+We verify the compound-query case. When a V-region spans content from multiple sources, the resolution produces a union P = P₁ ∪ ... ∪ Pₘ (the Pⱼ need not be disjoint — same-origin self-transclusion may produce overlapping I-extent runs). The satisfaction predicate handles this naturally:
 
 **F1a — CompoundQueryDecomposition.** For non-empty finite sets P₁, ..., Pₘ ⊂ T and endset e:
 
@@ -274,9 +274,9 @@ The set of satisfying links can only grow over time — new links may be created
 
 The abstract specification includes one performance-class design constraint. Nelson states: "THE QUANTITY OF LINKS NOT SATISFYING A REQUEST DOES NOT IN PRINCIPLE IMPEDE SEARCH ON OTHERS." We record this as a requirement on any conforming implementation.
 
-**F19 — ScaleIndependence (design constraint).** The cost of locating candidate links for FindLinks(Q) must be sublinear in |dom(Σ.L)| — the total number of links in the system. Nelson states that the quantity of non-satisfying links must not "in principle impede" search on satisfying ones. The phrase excludes linear scans through the non-matching population while admitting logarithmic or other sublinear dependence on total link count.
+**F19 — ScaleIndependence (design constraint).** The cost attributable to links *not* in FindLinks(Q) must be sublinear in the non-matching population. Nelson states that the quantity of non-satisfying links must not "in principle impede" search on satisfying ones. The phrase separates two cost components: the unavoidable output-enumeration cost, proportional to |FindLinks(Q)|, and the overhead from the non-matching population, which must not grow linearly with |dom(Σ.L)| − |FindLinks(Q)|. Formally, the total cost is O(f(|FindLinks(Q)|) + g(|dom(Σ.L)|)) where g is o(n). This correctly captures Nelson's constraint: non-matching links contribute sublinearly, while the output cost is necessarily at least proportional to the result size.
 
-This constraint is architecturally necessary. Without it, the universal scope guarantee (F7) — searching the entire link store — would become impractical as the link population grows. Any conforming implementation must maintain index structures enabling sublinear candidate location — o(|dom(Σ.L)|). The specification requires only sublinearity; the choice of index structure (tree-based, hash-based, or otherwise) is an implementation decision.
+This constraint is architecturally necessary. Without it, the universal scope guarantee (F7) — searching the entire link store — would become impractical as the link population grows. Any conforming implementation must maintain index structures ensuring that the overhead from non-matching links is sublinear. The specification requires only sublinearity of the non-matching overhead; the choice of index structure (tree-based, hash-based, or otherwise) is an implementation decision.
 
 ## Worked Example
 
@@ -342,7 +342,7 @@ Since M(d₂)(w₁) = a₂ ∈ coverage(F), and no other V-position exists in M(
 | F16 | Access monotonicity: broader access ⟹ superset of visible links | introduced |
 | F17 | FINDLINKS is a pure query: Σ' = Σ | introduced |
 | F18 | Monotonic discoverability: once satisfied, always satisfied | introduced |
-| F19 | Scale independence: candidate location must be sublinear in total link count (design constraint) | introduced |
+| F19 | Scale independence: cost from non-matching links must be sublinear in their count (design constraint) | introduced |
 
 ## Open Questions
 
