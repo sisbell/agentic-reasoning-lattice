@@ -202,15 +202,15 @@ The arrangement enters at two points *outside* the satisfaction predicate: the r
 
 Link discovery yields link addresses. The reader wants to see where the link *points* — which V-positions in her current document correspond to the link's endsets. This requires an operation inverse to resolution: given a link's endset (a set of I-address spans), find the V-positions in a given document's arrangement that map to those I-addresses.
 
-**Definition — EndsetProjection.** For link at address a ∈ dom(Σ.L), endset slot i ∈ {1, 2, 3}, and document d ∈ E_doc:
+**Definition — EndsetProjection.** For link at address ℓ ∈ dom(Σ.L), endset slot i ∈ {1, 2, 3}, and document d ∈ E_doc:
 
-  project(a, i, d) = {v ∈ dom(M(d)) : M(d)(v) ∈ coverage(Σ.L(a).eᵢ)}
+  project(ℓ, i, d) = {v ∈ dom(M(d)) : M(d)(v) ∈ coverage(Σ.L(ℓ).eᵢ)}
 
 This is the preimage of the endset's coverage under M(d) — the set of V-positions in d whose I-addresses fall within the endset.
 
 **F11 — ProjectionSubset.** The projection recovers at most the endset's coverage:
 
-  {M(d)(v) : v ∈ project(a, i, d)} ⊆ coverage(Σ.L(a).eᵢ)
+  {M(d)(v) : v ∈ project(ℓ, i, d)} ⊆ coverage(Σ.L(ℓ).eᵢ)
 
 Equality holds only when every I-address in the coverage has at least one V-position in d's arrangement. The gap reflects content not currently arranged in d — content that has been removed from d's Vstream, or content that was never in d.
 
@@ -222,13 +222,13 @@ The projection reports every V-occurrence of the referenced content. This is the
 
 **F13 — ProjectionMayBeEmpty.** The projection may return the empty set:
 
-  project(a, i, d) = ∅  when  coverage(Σ.L(a).eᵢ) ∩ ran(M(d)) = ∅
+  project(ℓ, i, d) = ∅  when  coverage(Σ.L(ℓ).eᵢ) ∩ ran(M(d)) = ∅
 
 This occurs when none of the endset's referenced content is currently arranged in d. The link persists (L12, ASN-0043) and remains discoverable via FINDLINKS, but its endset has no V-manifestation in d. This is a structural possibility, not an error: the two-stream separation (S9, ASN-0036) permits arrangements to contract (P3, ASN-0047) without affecting the link store.
 
-**F14 — ProjectionOpacity.** From the projection alone, a partial result — where some endset I-addresses are present in d and others are absent — is indistinguishable from a projection of a genuinely smaller endset. The system provides no completeness signal. Determining whether the projection represents the full endset requires independent knowledge of coverage(Σ.L(a).eᵢ), which is accessible by reading the link's stored value directly.
+**F14 — ProjectionOpacity.** From the projection alone, a partial result — where some endset I-addresses are present in d and others are absent — is indistinguishable from a projection of a genuinely smaller endset. The system provides no completeness signal. Determining whether the projection represents the full endset requires independent knowledge of coverage(Σ.L(ℓ).eᵢ), which is accessible by reading the link's stored value directly.
 
-This opacity is a consequence of the preimage definition: project(a, i, d) is defined entirely by what M(d) maps, not by what the endset claims. No additional metadata is produced.
+This opacity is a consequence of the preimage definition: project(ℓ, i, d) is defined entirely by what M(d) maps, not by what the endset claims. No additional metadata is produced.
 
 ## Access Filtering
 
@@ -322,7 +322,7 @@ Since M(d₂)(w₁) = a₂ ∈ coverage(F), and no other V-position exists in M(
 | HomeConstraint | ⊤ or non-empty H ⊆ E_doc | introduced |
 | EndsetSatisfaction | sat(e, P) ≡ coverage(e) ∩ P ≠ ∅ | introduced |
 | FindLinksResult | FindLinks(Q) = {a ∈ dom(L) : satisfies(a, Q)} | introduced |
-| EndsetProjection | project(a, i, d) = {v ∈ dom(M(d)) : M(d)(v) ∈ coverage(L(a).eᵢ)} | introduced |
+| EndsetProjection | project(ℓ, i, d) = {v ∈ dom(M(d)) : M(d)(v) ∈ coverage(L(ℓ).eᵢ)} | introduced |
 | FindLinksCount | \|FindLinks(Q)\| — cardinality of result set | introduced |
 | F0 | Resolution is transparent to the viewing document — identical content produces identical I-addresses | introduced |
 | F1 | satisfies(a, Q) ≡ home-constraint ∧ sat(F, S₁) ∧ sat(G, S₂) ∧ sat(Θ, S₃) | introduced |
