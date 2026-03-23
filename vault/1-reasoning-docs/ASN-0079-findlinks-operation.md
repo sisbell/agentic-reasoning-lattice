@@ -95,7 +95,7 @@ For two well-formed level-uniform spans α = (s_α, ℓ_α) and β = (s_β, ℓ_
 
   ⟦α⟧ ∩ ⟦β⟧ ≠ ∅  ⟺  s_α < reach(β) ∧ s_β < reach(α)
 
-where reach(σ) = start(σ) ⊕ width(σ) (ASN-0053). This is strict half-open interval intersection. The implementation confirms this predicate at the byte level: the udanax-green spanfilade uses exactly `query_start < entry_end ∧ entry_start < query_end`, excluding the adjacent case.
+where reach(σ) = start(σ) ⊕ width(σ) (ASN-0053). This is the standard characterization of non-empty intersection between half-open intervals, following directly from the span denotation definition (⟦σ⟧ = {t : start(σ) ≤ t < reach(σ)}).
 
 ## Completeness and Soundness
 
@@ -274,11 +274,9 @@ The set of satisfying links can only grow over time — new links may be created
 
 The abstract specification includes one performance-class design constraint. Nelson states: "THE QUANTITY OF LINKS NOT SATISFYING A REQUEST DOES NOT IN PRINCIPLE IMPEDE SEARCH ON OTHERS." We record this as a requirement on any conforming implementation.
 
-**F19 — ScaleIndependence (design constraint).** The cost of locating candidate links for FindLinks(Q) must be sublinear in |dom(Σ.L)| — the total number of links in the system. Nelson states that the quantity of non-satisfying links must not "in principle impede" search on satisfying ones. The phrase admits logarithmic dependence on total link count — the overhead inherent in tree-based indexing — while excluding linear scans through the non-matching population.
+**F19 — ScaleIndependence (design constraint).** The cost of locating candidate links for FindLinks(Q) must be sublinear in |dom(Σ.L)| — the total number of links in the system. Nelson states that the quantity of non-satisfying links must not "in principle impede" search on satisfying ones. The phrase excludes linear scans through the non-matching population while admitting logarithmic or other sublinear dependence on total link count.
 
-This constraint is architecturally necessary. Without it, the universal scope guarantee (F7) — searching the entire link store — would become impractical as the link population grows. Any conforming implementation must maintain index structures enabling sublinear candidate location — o(|dom(Σ.L)|). Tree-based indexing achieves Θ(log |dom(Σ.L)|) traversal cost to reach the matching region; Ω(log |dom(Σ.L)|) is a comparison-based lower bound for key lookup. The specification requires only sublinearity; the logarithmic bound is a consequence of the implementation strategy, not a normative floor.
-
-The implementation achieves this through a spanfilade — a 2D enfilade (branching factor 4–6) indexing link endsets by I-address range. Tree traversal to the matching region is O(log n), where n is the number of spanfilade entries. Three independent index traversals (one per endset type) are intersected to produce the final result. The dominant cost beyond tree traversal is result-set processing, which scales with the number of candidate matches rather than the total link population. The abstract property F19 demands that *any* implementation achieve comparable sublinear index traversal — the result-set processing cost is necessarily at least linear in |FindLinks(Q)|.
+This constraint is architecturally necessary. Without it, the universal scope guarantee (F7) — searching the entire link store — would become impractical as the link population grows. Any conforming implementation must maintain index structures enabling sublinear candidate location — o(|dom(Σ.L)|). The specification requires only sublinearity; the choice of index structure (tree-based, hash-based, or otherwise) is an implementation decision.
 
 ## Worked Example
 
