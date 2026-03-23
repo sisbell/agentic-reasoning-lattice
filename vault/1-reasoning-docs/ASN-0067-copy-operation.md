@@ -1,6 +1,6 @@
 # ASN-0067: COPY Operation
 
-*2026-03-21*
+*2026-03-22*
 
 We are looking for the precise effect of placing existing Istream content at a position in a document's Vstream. The key word is *existing*: the content already holds permanent addresses in C; we are not creating new content but establishing a new arrangement over what is already there. Nelson variously calls this "inclusion," "virtual copy," or "transclusion" — the mechanism by which documents share content through reference rather than duplication. The word "copy" misleads; nothing is duplicated.
 
@@ -13,7 +13,7 @@ We work with system state Σ = (C, E, M, R) per ASN-0047. C is the content store
 
 ## The Fundamental Constraint
 
-The Istream/Vstream separation (ASN-0036) distinguishes permanent content storage from mutable arrangement. An operation that modifies arrangement without creating content is, in the framework of ASN-0047, a composite of K.μ⁺ (arrangement extension), K.μ~ (arrangement reordering), and K.ρ (provenance recording) — with no K.α (content allocation) step. COPY is exactly such an operation.
+The Istream/Vstream separation (ASN-0036) distinguishes permanent content storage from mutable arrangement. An operation that modifies arrangement without creating content is, in the framework of ASN-0047, a composite of K.μ⁻ (arrangement contraction), K.μ⁺ (arrangement extension), and K.ρ (provenance recording) — with no K.α (content allocation) step. COPY is exactly such an operation.
 
 **C0 — ArrangementOnly (FRAME).** A COPY transition Σ → Σ' satisfies:
 
@@ -96,7 +96,7 @@ We now define COPY as a composite state transition. The definition proceeds in t
 
 (P.6) w = w(R) ≥ 1.
 
-(P.7) v₁ ≥ 1 (text subspace). COPY places content — it does not create links. Link creation is a distinct operation with its own semantics. This restriction ensures the block decomposition B (which covers text-subspace V-positions per ASN-0058 B1) includes all positions in the target subspace, and that the non-target frame `subspace(p) ≠ S` correctly covers the link subspace.
+(P.7) subspace(v) = s_C (content subspace). COPY places content — it does not create links. Link creation is a distinct operation with its own semantics (K.λ + K.μ⁺_L, ASN-0047). This restriction ensures placed V-positions satisfy the K.μ⁺ amendment (ASN-0047), and that the non-target frame `subspace(p) ≠ S` correctly covers the link subspace.
 
 *Phase 1 — Resolution.* The resolution is computed from the pre-state Σ. Specifically, resolve(R) reads M(d_sⱼ) from Σ for each source document d_sⱼ. The resulting I-address sequence is immutable for the remainder of the transition. No state modification occurs in this phase.
 
@@ -149,23 +149,21 @@ M'(d) is the arrangement defined by B'
 R' = R ∪ {(a, d) : a ∈ ran(M'(d)) \ ran(M(d))}
 ```
 
-The non-target frame condition ensures that all subspaces other than S — including the link subspace (v₁ = 0) and any other text subspaces — are preserved unchanged. This is consistent with B_other = {β ∈ B : (v_β)₁ ≠ S} being unchanged in the composition.
+The non-target frame condition ensures that all subspaces other than S — including the link subspace (v₁ = s_L) and any other text subspaces — are preserved unchanged. This is consistent with B_other = {β ∈ B : (v_β)₁ ≠ S} being unchanged in the composition.
 
 The provenance extension records that d now contains certain I-addresses. By J1 (ASN-0047), this is required for every I-address newly appearing in d's arrangement. By J1', this is the only permitted extension.
 
 **Elementary Decomposition.** ValidComposite (ASN-0047) requires a finite sequence of elementary transitions where each step satisfies its precondition at the intermediate state. The decomposition depends on whether B_post is empty.
 
-*Case 1: B_post ≠ ∅.* K.μ~ is defined in ASN-0047 as a distinguished composite of K.μ⁻ and K.μ⁺, not an elementary transition. Unfolding it, the COPY composite decomposes into four elementary steps: Σ = Σ₀ →^{K.μ⁻} Σ₁ →^{K.μ⁺} Σ₂ →^{K.μ⁺} Σ₃ →^{K.ρ} Σ₄ = Σ':
+*Case 1: B_post ≠ ∅.* The COPY composite decomposes into three elementary steps: Σ = Σ₀ →^{K.μ⁻} Σ₁ →^{K.μ⁺} Σ₂ →^{K.ρ} Σ₃ = Σ':
 
-*Step 1 (K.μ⁻).* Remove B_post entries from M(d). Within subspace S, the remaining text positions are [v₀, v) only; non-target subspace positions are unchanged. Precondition at Σ₀: d ∈ E_doc (P.1); B_post ≠ ∅ ensures dom(M₁(d)) ⊂ dom(M₀(d)) (strict contraction). Frame: C₁ = C, E₁ = E, R₁ = R.
+*Step 1 (K.μ⁻).* Remove B_post entries from M(d). Within subspace S, the remaining text positions are [v₀, v); non-target subspace positions are unchanged. Precondition at Σ₀: d ∈ E_doc (P.1); B_post ≠ ∅ ensures dom(M₁(d)) ⊂ dom(M₀(d)) (strict contraction). Postcondition: M₁(d) satisfies D-CTG — by D-SEQ, the remaining positions form a contiguous range [v₀, v), and D-MIN holds since min(V_S(d₁)) = v₀ = [S, 1, ..., 1] is unchanged. Frame: C₁ = C, E₁ = E, R₁ = R.
 
-*Step 2 (K.μ⁺).* Add the shifted B_post entries {β↑w : β ∈ B_post}, placing them at V-positions [v + w, v₀ + N + w). Precondition at Σ₁: d ∈ E_doc; every I-address in the shifted blocks is in dom(C₁) = dom(C) (these are the same I-addresses as in B_post, which satisfy S3); shifted V-positions satisfy S8a (ordinal shift preserves positivity and zero-count) and S8-depth (ordinal shift preserves depth); dom(M₂(d)) is finite; B_post ≠ ∅ ensures dom(M₂(d)) ⊃ dom(M₁(d)) (strict extension). Frame: C₂ = C, E₂ = E, R₂ = R. Steps 1–2 together effect the K.μ~ reordering. Within subspace S, the intermediate arrangement after step 1 has domain {v₀, ..., v − 1}; after step 2 it is {v₀, ..., v − 1} ∪ {v + w, ..., v₀ + N + w − 1} — a gap at [v, v + w). Non-target subspaces retain their original positions throughout. This intermediate state is reachable by a valid composite. Steps 1–2 form K.μ~ whose corollary (ASN-0047) gives ran(M₂(d)) = ran(M₀(d)); J0 holds because dom(C) is unchanged; J1 holds vacuously because ran(M₂(d)) \ ran(M₀(d)) = ∅; J1' holds because R₂ = R₀. Yet the intermediate state violates D-CTG. D-CTG is thus not an invariant of all reachable states — it is a design constraint that complete operations are expected to preserve at their endpoints. COPY restores D-CTG by the end of step 3.
+*Step 2 (K.μ⁺).* Add both the placed blocks γ₁, ..., γₖ and the shifted B_post blocks {β↑w : β ∈ B_post} simultaneously. The placed blocks occupy V-positions [v, v + w); the shifted blocks occupy [v + w, v₀ + N + w). Together with the surviving [v₀, v) from step 1, this yields the complete contiguous range [v₀, v₀ + N + w). Precondition at Σ₁: d ∈ E_doc; every I-address in the placed blocks is in dom(C₁) = dom(C) (by C1, ASN-0058); every I-address in the shifted blocks is in dom(C₁) = dom(C) (these are the same I-addresses as in B_post, which satisfy S3); all new V-positions satisfy S8a (ordinal shift preserves positivity and zero-count) and S8-depth (ordinal shift preserves depth); all new V-positions satisfy the K.μ⁺ amendment — subspace(v) = s_C by P.7, and ordinal shift preserves the first component; dom(M₂(d)) is finite (N + w positions); M₂(d) satisfies D-CTG (the full range [v₀, v₀ + N + w) is contiguous) and D-MIN (minimum is v₀ = [S, 1, ..., 1], unchanged). B_post ≠ ∅ and w ≥ 1 ensure dom(M₂(d)) ⊃ dom(M₁(d)) (strict extension). Frame: C₂ = C, E₂ = E, R₂ = R.
 
-*Step 3 (K.μ⁺).* Fill the gap with placed blocks γ₁, ..., γₖ, extending dom(M₂(d)) by positions [v, v + w). Precondition at Σ₂: d ∈ E_doc; every new I-address aⱼ + i ∈ dom(C₂) = dom(C) (by C1, ASN-0058); new V-positions satisfy S8a (same depth and positivity as existing positions); M₃(d) satisfies S8-depth (placed blocks share depth m); dom(M₃(d)) is finite (N + w). Frame: C₃ = C, E₃ = E, R₃ = R.
+*Step 3 (K.ρ, repeated).* For each a ∈ ran(M₂(d)) \ ran(M(d)), record (a, d) ∈ R. Precondition at Σ₂: a ∈ dom(C₂) = dom(C) (by C1, ASN-0058) and d ∈ E_doc (P.1). Frame: C₃ = C, E₃ = E, M₃ = M₂.
 
-*Step 4 (K.ρ, repeated).* For each a ∈ ran(M₃(d)) \ ran(M(d)), record (a, d) ∈ R. Precondition at Σ₃: a ∈ dom(C₃) = dom(C) (by C1, ASN-0058) and d ∈ E_doc (P.1). Frame: C₄ = C, E₄ = E, M₄ = M₃.
-
-Coupling constraints at (Σ₀, Σ₄): J0 holds vacuously (dom(C₄) \ dom(C₀) = ∅). J1 holds by step 4 construction. J1' holds because every (a, d) ∈ R₄ \ R₀ was added in step 4 for some a ∈ ran(M₄(d)) \ ran(M₀(d)).
+Coupling constraints at (Σ₀, Σ₃): J0 holds vacuously (dom(C₃) \ dom(C₀) = ∅). J1 holds by step 3 construction. J1' holds because every (a, d) ∈ R₃ \ R₀ was added in step 3 for some a ∈ ran(M₃(d)) \ ran(M₀(d)). Every intermediate state satisfies D-CTG and D-MIN.
 
 *Case 2: B_post = ∅.* This occurs when v = v₀ + N (append position) or when N = 0 (empty text subspace). No content exists at or after v, so no reordering is needed. The composite reduces to two steps: Σ = Σ₀ →^{K.μ⁺} Σ₁ →^{K.ρ} Σ₂ = Σ':
 
@@ -221,7 +219,7 @@ S2 (ArrangementFunctionality): M'(d) is a function because B' satisfies B2 — e
 
 S3 (ReferentialIntegrity): we must show ran(M'(d)) ⊆ dom(C'). Pre-blocks and shifted post-blocks reference the same I-addresses as B, which satisfy S3 by assumption. Placed blocks γⱼ reference I-addresses satisfying C1 (ResolutionIntegrity, ASN-0058). Since C' = C, all references are valid. ∎
 
-S8a (VPositionWellFormedness): by P.7, v₁ ≥ 1, so the insertion position is in the text subspace and S8a's guard applies. New V-positions in the γⱼ blocks have the form v + offset, where v satisfies S8a and offset is an ordinal increment. By the OrdinalShift definition (ASN-0034), shift(v, n) changes only the last component of v (adding n to it); all other components are unchanged. Since v has all positive components (zeros(v) = 0, guaranteed by v₁ ≥ 1 and S8a), the shifted position also has all positive components. Shifted post-block V-positions satisfy S8a by the same component-preservation argument. ∎
+S8a (VPositionWellFormedness): by P.7, subspace(v) = s_C, and s_C ≥ 1 (ASN-0047), so v₁ ≥ 1 and S8a's guard applies. New V-positions in the γⱼ blocks have the form v + offset, where v satisfies S8a and offset is an ordinal increment. By the OrdinalShift definition (ASN-0034), shift(v, n) changes only the last component of v (adding n to it); all other components are unchanged. Since v has all positive components (zeros(v) = 0, guaranteed by v₁ = s_C ≥ 1 and S8a), the shifted position also has all positive components. Shifted post-block V-positions satisfy S8a by the same component-preservation argument. ∎
 
 S8-depth (FixedDepthVPositions): ordinal shift preserves depth: #shift(v, n) = #v (OrdinalShift definition, ASN-0034). All new and shifted V-positions share the depth of the existing ones. ∎
 
@@ -246,6 +244,30 @@ P8 (EntityHierarchy): E' = E, so the hierarchy is unchanged. ∎
 D-CTG: preserved by C2. ∎
 
 D-MIN: preserved by C2a. ∎
+
+**Extended-state invariants.** The COPY composite uses no K.λ or K.μ⁺_L steps, and C' = C, E' = E. By the frame conditions of K.μ⁻, K.μ⁺, and K.ρ (each holds L in its frame): L' = L. The invariants from ExtendedReachableStateInvariants (ASN-0047) follow:
+
+L0 (SubspacePartition): dom(L') = dom(L) and dom(C') = dom(C); partition unchanged. ∎
+
+L1 (LinkElementLevel), L1a (LinkScopedAllocation), L3 (TripleEndsetStructure): dom(L') = dom(L) and E' = E. ∎
+
+L12 (LinkImmutability): L' = L. ∎
+
+L14 (StoreDisjointness): dom(C') ∩ dom(L') = dom(C) ∩ dom(L) = ∅. ∎
+
+S3★ (GeneralizedReferentialIntegrity): for content-subspace V-positions, S3 (verified above) gives M'(d)(v) ∈ dom(C'). For link-subspace V-positions, these are in B_other (unchanged), so M'(d)(v) = M(d)(v) ∈ dom(L) = dom(L'). ∎
+
+S3★-aux (SubspaceExhaustiveness): no new V-positions are created outside subspace s_C (P.7 restricts placed blocks; shifted blocks preserve subspace). Pre-existing positions retain their subspace identifiers. ∎
+
+P3★ (ArrangementMutabilityOnlyExtended): dom(C) ⊆ dom(C'), dom(L) ⊆ dom(L') (both equalities), E ⊆ E', R ⊆ R'. ∎
+
+P4★ (ProvenanceBoundsContent): Contains_C(Σ') ⊆ R'. Content-subspace positions in M'(d): pre-existing ones have (a, d) ∈ R by P4★ in the pre-state; newly placed ones have (a, d) ∈ R' by the provenance extension. For d' ≠ d: unchanged. ∎
+
+P5★ (DestructionConfinementExtended): follows from P5 plus L' = L. ∎
+
+CL-OWN (LinkSubspaceOwnership): link-subspace V-positions are in B_other (unchanged), so for any v with subspace(v) = s_L: M'(d)(v) = M(d)(v), and origin(M(d)(v)) = d by CL-OWN in the pre-state. ∎
+
+The coupling constraints J1★ and J1'★ (ASN-0047) are equivalent to J1 and J1' for COPY, since COPY creates only content-subspace V-positions (P.7).
 
 
 ## Displacement
@@ -339,7 +361,7 @@ COPY reads the source arrangement but must not modify it. This is perhaps the mo
 
 `M'(d') = M(d')`
 
-*Derivation.* The COPY composite modifies only M(d). By the frame conditions of K.μ⁺ and K.μ~ (ASN-0047): M'(d') = M(d') for all d' ≠ d. ∎
+*Derivation.* The COPY composite modifies only M(d). By the frame conditions of K.μ⁻ and K.μ⁺ (ASN-0047): M'(d') = M(d') for all d' ≠ d. ∎
 
 Nelson: "Thus users may create new published documents out of old ones indefinitely, making whatever changes seem appropriate — without damaging the originals" [LM 2/45]. The source document's content, arrangement, version history, and ownership are unaffected. Even ownership rules would prohibit modification: "Only the owner has a right to withdraw a document or change it" [LM 2/29]. If Bob transcludes from Alice's document, Bob has no authority to modify Alice's arrangement, and COPY provides no mechanism for doing so.
 
@@ -351,7 +373,7 @@ The reverse also holds. The source owner may subsequently modify their own arran
 
 (b) The shared I-addresses persist in dom(C) regardless of what either document does to its arrangement.
 
-*Derivation.* (a) follows from the frame conditions of K.μ⁺, K.μ⁻, K.μ~ — each modifies M(d) for exactly one d. (b) follows from S0 (ContentImmutability) and S6 (PersistenceIndependence): a ∈ dom(C) implies a ∈ dom(C') for every subsequent state, unconditionally. ∎
+*Derivation.* (a) follows from the frame conditions of K.μ⁻ and K.μ⁺ — each modifies M(d) for exactly one d. (b) follows from S0 (ContentImmutability) and S6 (PersistenceIndependence): a ∈ dom(C) implies a ∈ dom(C') for every subsequent state, unconditionally. ∎
 
 
 ## Transitive Identity
@@ -495,11 +517,11 @@ Nelson never uses the terms "atomic" or "transaction." But the architecture mand
 
 **C13 — SequentialCorrectness (POST).** The COPY composite either completes with all coupling constraints (J0, J1, J1') holding at the final state, or does not occur.
 
-*Derivation.* By the ValidComposite definition (ASN-0047), a composite transition must satisfy coupling constraints between initial and final states. The internal elementary steps (K.μ~ for shift, K.μ⁺ for placement, K.ρ for provenance) are coupled by these constraints. If any step cannot satisfy its precondition at the intermediate state, the composite does not occur. The elementary decomposition above verifies each intermediate precondition.
+*Derivation.* By the ValidComposite definition (ASN-0047), a composite transition must satisfy coupling constraints between initial and final states. The internal elementary steps (K.μ⁻ for contraction, K.μ⁺ for extension, K.ρ for provenance) are coupled by these constraints. If any step cannot satisfy its precondition at the intermediate state, the composite does not occur. The elementary decomposition above verifies each intermediate precondition.
 
 The consequences of partial application would violate foundational invariants:
 
-(a) *Contiguity violation.* D-CTG is a design constraint that complete operations preserve at their endpoints. A partial shift — V-addresses shifted but content not yet placed — creates a gap, violating D-CTG at the intermediate state. A partial placement — content placed at positions still occupied — creates an overlap.
+(a) *Content loss.* If the K.μ⁻ contraction completes but the K.μ⁺ extension does not, B_post content is removed from d's arrangement without being restored at displaced positions. The content persists in C (by S0) but is absent from the Vstream. D-CTG holds at the intermediate state (the surviving range [v₀, v) is contiguous), yet the arrangement is incomplete — the operation's semantic intent is only half realized.
 
 (b) *Coupling violation.* If placement occurred without the corresponding provenance recording, J1 would be violated. If provenance were recorded without placement, J1' would be violated.
 
@@ -518,7 +540,7 @@ Nelson reinforces this at the system level: "A server's network model, from the 
 | NativeContent | V-position v where origin(M(d)(v)) = d | introduced |
 | IncludedContent | V-position v where origin(M(d)(v)) ≠ d | introduced |
 | ValidInsertionPosition | if V_S(d) ≠ ∅: v = min(V_S(d)) + j with 0 ≤ j ≤ N; if V_S(d) = ∅: v = [S, 1, ..., 1] of depth m ≥ 2 | cited (ASN-0036) |
-| P.7 | v₁ ≥ 1 — COPY targets text subspace only (PRE) | introduced |
+| P.7 | subspace(v) = s_C — COPY targets content subspace only (PRE) | introduced |
 | COPY | composite transition: resolve in pre-state, then split-shift-place | introduced |
 | C0 | C' = C — no content allocation (FRAME) | introduced |
 | C0a | set of I-addresses allocated under any document is unchanged by COPY | introduced |
@@ -526,7 +548,7 @@ Nelson reinforces this at the system level: "A server's network model, from the 
 | C1a | M11/M12 hold for any finite partial function f : T ⇀ T satisfying S2, S8-fin, S8-depth; in particular M(d_s)\|⟦σ⟧ | cited (ASN-0058) |
 | C2 | COPY preserves D-CTG: N + w positions after, N before | introduced |
 | C2a | COPY preserves D-MIN: min(V_S(d)) = [S, 1, ..., 1] after COPY | introduced |
-| C3 | COPY preserves all foundational invariants (P0–P5, P4a, P6–P8, S0, S2, S3, S8a, S8-depth, S8-fin, J0, J1, J1', D-CTG, D-MIN) | introduced |
+| C3 | COPY preserves all foundational invariants: non-extended (P0–P5, P4a, P6–P8, S0, S2, S3, S8a, S8-depth, S8-fin, J0, J1, J1', D-CTG, D-MIN) and extended (S3★, S3★-aux, P3★, P4★, P5★, L0, L1, L1a, L3, L12, L14, CL-OWN, J1★, J1'★) | introduced |
 | C4 | within target subspace S: positions ≥ v shift by w, positions < v unchanged; non-target subspaces unchanged | introduced |
 | C5 | every pre-state I-address appears in the post-state arrangement; content displaced, never overwritten | introduced |
 | C6 | placed I-addresses are the same addresses as in the source (POST) | introduced |
