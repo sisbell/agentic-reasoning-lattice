@@ -121,7 +121,7 @@ We now develop the operations that transform one decomposition into another. The
 β_R = (v + c, a + c, n − c)
 ```
 
-Both are well-formed mapping blocks: `c ≥ 1` and `n − c ≥ 1` (since `0 < c < n`), and both starts are valid tumblers (by TA5, ASN-0034).
+Both are well-formed mapping blocks: `c ≥ 1` and `n − c ≥ 1` (since `0 < c < n`), and both starts are valid tumblers (by TA0, ASN-0034: the action point of `δ(c, #v)` is `#v`, satisfying the precondition `k ≤ #v`; similarly for `δ(c, #a)` and `#a`).
 
 **M5 (SplitPartition).** The split is exact — nothing lost, nothing duplicated:
 
@@ -181,7 +181,7 @@ When both conditions hold, the merged block is:
 
 (We write `⊞` for block merge to distinguish it from tumbler addition `⊕` of ASN-0034.)
 
-Both conditions are necessary. V-adjacency alone is insufficient: if the I-extents are not contiguous, the merged range would map consecutive V-positions to non-consecutive I-addresses, violating M1. I-adjacency alone is insufficient: if the V-extents are not adjacent, there is no contiguous V-range for the merged block to cover.
+Both conditions are necessary. V-adjacency alone is insufficient: if the I-extents are not contiguous, the merged block `(v₁, a₁, n₁ + n₂)` would predict `M(d)(v₁ + n₁) = a₁ + n₁`, but the arrangement maps that position to `a₂ ≠ a₁ + n₁`, violating B3. I-adjacency alone is insufficient: if the V-extents are not adjacent, there is no contiguous V-range for the merged block to cover.
 
 *Verification.* `⟦β₁ ⊞ β₂⟧ = {(v₁ + k, a₁ + k) : 0 ≤ k < n₁ + n₂}`. For `k < n₁`, this gives `⟦β₁⟧`. For `k ≥ n₁`, set `j = k − n₁`: then `v₁ + k = (v₁ + n₁) + j = v₂ + j` and similarly `a₁ + k = a₂ + j` (by M-aux), giving `⟦β₂⟧`. So `⟦β₁ ⊞ β₂⟧ = ⟦β₁⟧ ∪ ⟦β₂⟧`. ∎
 
