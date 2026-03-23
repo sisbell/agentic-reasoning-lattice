@@ -22,7 +22,7 @@ We observe a fundamental property of the resolution step.
 
 **F0 — ResolutionIdentityInvariance.** Let I-address a satisfy a ∈ ran(M(d₁)) ∩ ran(M(d₂)) — the same content appears in two documents (via transclusion). If v₁ ∈ dom(M(d₁)) with M(d₁)(v₁) = a, and σ₁ is any well-formed content reference spanning v₁, then a ∈ addresses(d₁, σ₁). Identically for d₂. The resolution is transparent to the viewing document — identical content produces identical I-addresses regardless of which arrangement it is viewed through.
 
-This transparency is not a special rule for transclusion. It is a direct consequence of the two-stream separation (S9, ASN-0036): content identity lives in the Istream, arrangement lives in the Vstream, and the two are independent. The resolution step merely reveals the identity that was always there.
+This transparency is not a special rule for transclusion. It follows directly from the resolution definition (ASN-0058). Fix any v₁ ∈ dom(M(d₁)) with M(d₁)(v₁) = a, and let σ₁ be a well-formed content reference spanning v₁ — that is, v₁ ∈ ⟦σ₁⟧. Well-formedness places v₁ ∈ dom(f) where f = M(d₁)|⟦σ₁⟧. By C1a (RestrictionDecomposition, ASN-0058), f admits a maximally merged block decomposition; v₁ belongs to some block βⱼ = (vⱼ, aⱼ, nⱼ) with v₁ = vⱼ + k for some 0 ≤ k < nⱼ. By B3 (Consistency, ASN-0058), M(d₁)(v₁) = aⱼ + k. Therefore a = aⱼ + k ∈ addresses(d₁, σ₁). The derivation for d₂ is identical — the same I-address a appears in the resolution of any document whose arrangement maps some V-position to a. The viewing document contributes only the V-position; the I-address is determined by M(d) at that position, and the resolution faithfully extracts it.
 
 ## The Search Specification
 
@@ -156,13 +156,13 @@ The home constraint is a filter, never an extension. Nelson provides this for ma
 
 We derive the property that makes link discovery meaningful across shared content.
 
-**F8 — TransclusionTransparency.** Let I-address a satisfy a ∈ ran(M(d₁)) ∩ ran(M(d₂)) — the same content appears in documents d₁ and d₂. Let link ℓ satisfy coverage(Σ.L(ℓ).eᵢ) ∋ a for some endset slot i. Then for any query Q constraining slot i with a set P ∋ a (and all other slots unconstrained):
+**F8 — TransclusionTransparency.** Let I-address a satisfy a ∈ ran(M(d₁)) ∩ ran(M(d₂)) — the same content appears in documents d₁ and d₂. Let link ℓ satisfy coverage(Σ.L(ℓ).eᵢ) ∋ a for some endset slot i. Then for the query Q = (⊤, S'₁, S'₂, S'₃) where S'ᵢ = P with a ∈ P, and S'ⱼ = ⊤ for j ≠ i, and H = ⊤:
 
   ℓ ∈ FindLinks(Q)
 
 regardless of whether the query's P was derived from d₁ or d₂.
 
-*Proof.* The satisfaction predicate tests coverage(Σ.L(ℓ).eᵢ) ∩ P ≠ ∅. Since a ∈ coverage(Σ.L(ℓ).eᵢ) and a ∈ P, the intersection contains at least {a}. The predicate holds independently of which document contributed a to P. The link is equally discoverable from either viewing context. ∎
+*Proof.* We verify all four conjuncts of F1. With H = ⊤, the home constraint is trivially satisfied. With S'ⱼ = ⊤ for j ≠ i, sat(eⱼ, ⊤) = true by definition. The remaining condition is sat(eᵢ, P): we need coverage(Σ.L(ℓ).eᵢ) ∩ P ≠ ∅. Since a ∈ coverage(Σ.L(ℓ).eᵢ) and a ∈ P, the intersection contains at least {a}. All four conjuncts hold, so satisfies(ℓ, Q) holds. The predicate depends only on a ∈ P, not on which document contributed a to P. The link is equally discoverable from either viewing context. ∎
 
 This property does *not* hold for content that is semantically identical but structurally distinct. Two authors who independently type "to be or not to be" create content at different I-addresses (S4, OriginBasedIdentity, ASN-0036). Links to one are invisible from the other. Identity is structural — determined by origin — not semantic. This distinction is by design: it is what makes content identity permanent, unseverable, and independent of value.
 
@@ -266,7 +266,7 @@ No transition kind (K.α, K.δ, K.λ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.μ~, K.ρ f
 
   [a ∈ FindLinks_Σ(Q) ⟹ a ∈ FindLinks_{Σ'}(Q)]  for all Σ' reachable from Σ
 
-*Proof.* L12 (LinkImmutability, ASN-0043) preserves Σ'.L(a) = Σ.L(a). T8 (AllocationPermanence, ASN-0034) preserves a ∈ dom(Σ'.L). The function home(a) = origin(a) is determined by a alone and a is permanent. The satisfaction predicate evaluated at Σ' uses the same L(a), the same home(a), and the same Q. Therefore satisfies(a, Q) holds at Σ' whenever it held at Σ. ∎
+*Proof.* L12 (LinkImmutability, ASN-0043) provides both membership preservation and value preservation: a ∈ dom(Σ.L) ⟹ a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a). The function home(a) = origin(a) is determined by a alone and is permanent. The satisfaction predicate evaluated at Σ' uses the same L(a), the same home(a), and the same Q. Therefore satisfies(a, Q) holds at Σ' whenever it held at Σ. ∎
 
 The set of satisfying links can only grow over time — new links may be created that satisfy Q, but existing matches are never lost. This is the link-discovery analogue of content permanence (S0, ASN-0036).
 
@@ -276,7 +276,7 @@ The abstract specification includes one performance-class design constraint. Nel
 
 **F19 — ScaleIndependence (design constraint).** The cost of locating candidate links for FindLinks(Q) must be sublinear in |dom(Σ.L)| — the total number of links in the system. Nelson states that the quantity of non-satisfying links must not "in principle impede" search on satisfying ones. The phrase admits logarithmic dependence on total link count — the overhead inherent in tree-based indexing — while excluding linear scans through the non-matching population.
 
-This constraint is architecturally necessary. Without it, the universal scope guarantee (F7) — searching the entire link store — would become impractical as the link population grows. Any conforming implementation must maintain index structures enabling sublinear candidate location — at minimum O(log |dom(Σ.L)|) to reach the matching region.
+This constraint is architecturally necessary. Without it, the universal scope guarantee (F7) — searching the entire link store — would become impractical as the link population grows. Any conforming implementation must maintain index structures enabling sublinear candidate location — o(|dom(Σ.L)|). Tree-based indexing achieves Θ(log |dom(Σ.L)|) traversal cost to reach the matching region; Ω(log |dom(Σ.L)|) is a comparison-based lower bound for key lookup. The specification requires only sublinearity; the logarithmic bound is a consequence of the implementation strategy, not a normative floor.
 
 The implementation achieves this through a spanfilade — a 2D enfilade (branching factor 4–6) indexing link endsets by I-address range. Tree traversal to the matching region is O(log n), where n is the number of spanfilade entries. Three independent index traversals (one per endset type) are intersected to produce the final result. The dominant cost beyond tree traversal is result-set processing, which scales with the number of candidate matches rather than the total link population. The abstract property F19 demands that *any* implementation achieve comparable sublinear index traversal — the result-set processing cost is necessarily at least linear in |FindLinks(Q)|.
 
