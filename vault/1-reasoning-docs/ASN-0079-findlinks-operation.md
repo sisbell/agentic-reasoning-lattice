@@ -22,7 +22,7 @@ We observe a fundamental property of the resolution step.
 
 **F0 — ResolutionIdentityInvariance.** Let I-address a satisfy a ∈ ran(M(d₁)) ∩ ran(M(d₂)) — the same content appears in two documents (via transclusion). If v₁ ∈ dom(M(d₁)) with M(d₁)(v₁) = a, and σ₁ is any well-formed content reference spanning v₁, then a ∈ addresses(d₁, σ₁). Identically for d₂. The resolution is transparent to the viewing document — identical content produces identical I-addresses regardless of which arrangement it is viewed through.
 
-This transparency is not a special rule for transclusion. It follows directly from the resolution definition (ASN-0058). Fix any v₁ ∈ dom(M(d₁)) with M(d₁)(v₁) = a, and let σ₁ be a well-formed content reference spanning v₁ — that is, v₁ ∈ ⟦σ₁⟧. Well-formedness places v₁ ∈ dom(f) where f = M(d₁)|⟦σ₁⟧. By C1a (RestrictionDecomposition, ASN-0058), f admits a maximally merged block decomposition; v₁ belongs to some block βⱼ = (vⱼ, aⱼ, nⱼ) with v₁ = vⱼ + k for some 0 ≤ k < nⱼ. By B3 (Consistency, ASN-0058), M(d₁)(v₁) = aⱼ + k. Therefore a = aⱼ + k ∈ addresses(d₁, σ₁). The derivation for d₂ is identical — the same I-address a appears in the resolution of any document whose arrangement maps some V-position to a. The viewing document contributes only the V-position; the I-address is determined by M(d) at that position, and the resolution faithfully extracts it.
+This transparency is not a special rule for transclusion. It follows directly from the resolution definition (ASN-0058). Fix any v₁ ∈ dom(M(d₁)) with M(d₁)(v₁) = a, and let σ₁ be a well-formed content reference spanning v₁ — that is, v₁ ∈ ⟦σ₁⟧. Well-formedness places v₁ ∈ dom(f) where f = M(d₁)|⟦σ₁⟧. By C1a (RestrictionDecomposition, ASN-0058), f admits a maximally merged block decomposition; v₁ belongs to some block βⱼ = (vⱼ, aⱼ, nⱼ) with v₁ = vⱼ + p for some 0 ≤ p < nⱼ. By B3 (Consistency, ASN-0058), M(d₁)(v₁) = aⱼ + p. Therefore a = aⱼ + p ∈ addresses(d₁, σ₁). The derivation for d₂ is identical — the same I-address a appears in the resolution of any document whose arrangement maps some V-position to a. The viewing document contributes only the V-position; the I-address is determined by M(d) at that position, and the resolution faithfully extracts it.
 
 ## The Search Specification
 
@@ -67,7 +67,7 @@ Well-definedness: home(a) is defined for all a ∈ dom(L) (by L1a, ASN-0047, and
 
 We verify the compound-query case. When a V-region spans content from multiple sources, the resolution produces a disjoint union P = P₁ ∪ ... ∪ Pₘ. The satisfaction predicate handles this naturally:
 
-**F1a — CompoundQueryDecomposition.** For sets P₁, ..., Pₘ and endset e:
+**F1a — CompoundQueryDecomposition.** For non-empty finite sets P₁, ..., Pₘ ⊂ T and endset e:
 
   sat(e, P₁ ∪ ... ∪ Pₘ)  ⟺  sat(e, P₁) ∨ ... ∨ sat(e, Pₘ)
 
@@ -266,7 +266,7 @@ No transition kind (K.α, K.δ, K.λ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.μ~, K.ρ f
 
   [a ∈ FindLinks_Σ(Q) ⟹ a ∈ FindLinks_{Σ'}(Q)]  for all Σ' reachable from Σ
 
-*Proof.* L12 (LinkImmutability, ASN-0043) provides both membership preservation and value preservation: a ∈ dom(Σ.L) ⟹ a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a). The function home(a) = origin(a) is determined by a alone and is permanent. The satisfaction predicate evaluated at Σ' uses the same L(a), the same home(a), and the same Q. Therefore satisfies(a, Q) holds at Σ' whenever it held at Σ. ∎
+*Proof.* L12 (LinkImmutability, ASN-0043) provides both membership preservation and value preservation for a single transition: a ∈ dom(Σ.L) ⟹ a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a). By induction on the number of transitions in the chain from Σ to Σ', applying L12 at each step, the same holds for all reachable states. The function home(a) = origin(a) is determined by a alone and is permanent. The satisfaction predicate evaluated at Σ' uses the same L(a), the same home(a), and the same Q. Therefore satisfies(a, Q) holds at Σ' whenever it held at Σ. ∎
 
 The set of satisfying links can only grow over time — new links may be created that satisfy Q, but existing matches are never lost. This is the link-discovery analogue of content permanence (S0, ASN-0036).
 
