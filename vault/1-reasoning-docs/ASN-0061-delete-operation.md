@@ -6,7 +6,7 @@ We are looking for the precise postcondition of DELETE — the operation that re
 
 The task before us is to say exactly what "closing the gap" requires, what the operation preserves, and what the system looks like after the gap has closed.
 
-We work with system state Σ = (C, E, M, R) per ASN-0047. C is the content store (T ⇀ Val), E the entity set, M the arrangement function with M(d) : T ⇀ T for each document d, and R the provenance relation. The content store is append-only (S0, P0). The arrangement M(d) is the mutable layer. DELETE must specify exactly how it contracts M(d) while respecting C's immutability.
+We work with the extended system state Σ = (C, L, E, M, R) per ASN-0047: C is the content store (T ⇀ Val), L the link store (T ⇀ Link), E the entity set, M the arrangement function with M(d) : T ⇀ T for each document d, and R the provenance relation. The governing framework is ValidComposite★ with ExtendedReachableStateInvariants (ASN-0047). The content store is append-only (S0, P0). The link store is immutable (L12). The arrangement M(d) is the mutable layer. DELETE must specify exactly how it contracts M(d) while respecting C's and L's immutability.
 
 
 ## Arrangement Contiguity
@@ -23,7 +23,7 @@ In words: within each subspace, V-positions form a contiguous ordinal range with
 
 For the standard text subspace at depth m = 2, this is a finite condition: the intermediates between [S, a] and [S, b] are the finitely many [S, i] with a < i < b. Combined with S8-fin (dom(M(d)) is finite), contiguity at depth 2 says V_S(d) occupies a single unbroken block of ordinals.
 
-D-CTG is a reachable-state invariant: it appears in the ReachableStateInvariants theorem (ASN-0047), and ArrangementInvariantsLemma (ASN-0047) establishes that every valid composite transition preserves it. The K.μ⁻ amendment (ASN-0047) requires D-CTG as a postcondition for contraction, so bare K.μ⁻ that would violate contiguity is not a valid elementary transition. The companion invariant **D-MIN** (*VMinimumPosition*, ASN-0036) requires that the minimum V-position in each non-empty subspace is [S, 1, ..., 1]. D-CTG and D-MIN are independent: an arrangement can be contiguous but start at the wrong position.
+D-CTG is a reachable-state invariant: it appears in ExtendedReachableStateInvariants (ASN-0047), and ArrangementInvariantsLemma (ASN-0047) establishes that every valid composite transition preserves it. K.μ⁻ requires D-CTG and D-MIN as postconditions, so bare K.μ⁻ that would violate contiguity is not a valid elementary transition. The companion invariant **D-MIN** (*VMinimumPosition*, ASN-0036) requires that the minimum V-position in each non-empty subspace is [S, 1, ..., 1]. D-CTG and D-MIN are independent: an arrangement can be contiguous but start at the wrong position.
 
 We treat D-CTG and D-MIN as preconditions that DELETE assumes and preserves (D-DP below).
 
@@ -63,7 +63,7 @@ The span is arbitrary — it need not align with any boundaries of how content w
 
 (ii) w > 0 (positive deletion width — one cannot delete nothing).
 
-(iii) subspace(p) = S where S ≥ 1 (text subspace; link-subspace deletion follows the same structure but we derive text-subspace first).
+(iii) subspace(p) = S where S = s_C (text subspace). Link-subspace deletion requires K.μ⁺_L rather than K.μ⁺ for the re-addition step, with different preconditions (monotonic link address ordering, CL-OWN preservation); its specification is deferred.
 
 (iv) #p = 2 (depth-2 V-positions, ordinal depth 1). All proofs in this ASN — including the round-trip property D-SEP and the contiguity preservation D-DP — rely on properties of depth-1 ordinals (single natural numbers). Generalization to deeper ordinals is noted as an open question.
 
@@ -130,9 +130,9 @@ The specification is incomplete without stating what DELETE does *not* change. T
 
 **D-CF — ContentFrame (FRAME).**
 
-`C' = C  ∧  E' = E  ∧  R' = R`
+`C' = C  ∧  L' = L  ∧  E' = E  ∧  R' = R`
 
-DELETE does not allocate or modify content (C' = C). DELETE does not create or destroy entities (E' = E). DELETE does not record new provenance (R' = R). These equalities are verified in the composite transition decomposition below: both K.μ⁻ and K.μ⁺ have C' = C and E' = E as elementary frame conditions (ASN-0047), and the provenance frame R' = R follows from the K.μ⁻ frame together with the K.μ⁺ frame, with J1 shown vacuous since ran(M'(d)) ⊆ ran(M(d)).
+DELETE does not allocate or modify content (C' = C). DELETE does not allocate or modify links (L' = L). DELETE does not create or destroy entities (E' = E). DELETE does not record new provenance (R' = R). These equalities are verified in the composite transition decomposition below: both K.μ⁻ and K.μ⁺ have C' = C, L' = L, and E' = E as elementary frame conditions (ASN-0047), and the provenance frame R' = R follows from the K.μ⁻ frame together with the K.μ⁺ frame, with J1★ shown vacuous since ran(M'(d)) ⊆ ran(M(d)).
 
 This is the sharpest distinction from INSERT, which modifies C (allocation), extends R (provenance recording), and extends M (placement). DELETE modifies M alone.
 
@@ -201,7 +201,7 @@ The central correctness property: DELETE preserves both arrangement structure in
 
 **D-DP — ArrangementStructurePreservation (LEMMA).** If D-CTG and D-MIN hold in state Σ, and DELETE(d, S, p, w) satisfies D-PRE, then D-CTG and D-MIN hold in successor state Σ'.
 
-Both properties are guaranteed by the foundation: ArrangementInvariantsLemma (ASN-0047) establishes that every valid composite transition preserves D-CTG and D-MIN. DELETE is a valid composite (verified in the composite transition decomposition below), so both hold in Σ'. The concrete argument is direct: the post-state domain L ∪ Q₃ forms a contiguous ordinal range (D-CTG) starting at [S, 1, ..., 1] (D-MIN), as verified in the composite transition's step (i) and step (ii) postconditions.
+Both properties are guaranteed by the foundation: ArrangementInvariantsLemma (ASN-0047) establishes that every valid composite transition preserves D-CTG and D-MIN. DELETE is a valid composite under ValidComposite★ (verified in the composite transition decomposition below), so both hold in Σ'. The concrete argument is direct: the post-state domain L ∪ Q₃ forms a contiguous ordinal range (D-CTG) starting at [S, 1, ..., 1] (D-MIN), as verified in the composite transition's step (i) and step (ii) postconditions.
 
 **D-WR — WidthReduction (COROLLARY).** The extent of M_S(d) decreases by exactly the deletion width:
 
@@ -216,17 +216,17 @@ We verify that DELETE decomposes into the elementary transitions of ASN-0047 and
 
 The composite Σ → Σ' consists of one or two elementary steps, depending on whether the right region R is empty.
 
-(i) *Arrangement contraction* — K.μ⁻ on document d: remove all V-positions in X ∪ R from M_S(d), leaving only the positions in L (and all positions in other subspaces). Precondition: d ∈ E_doc. Satisfied by D-PRE(i). Postcondition D-CTG and D-MIN: L is a prefix of the original contiguous range — the ordinals below ord(p). If L ≠ ∅, it satisfies D-CTG (a prefix of a contiguous range is contiguous) and D-MIN (min(L) = min(V_S(d)) = [S, 1, ..., 1], preserved from the pre-state). If L = ∅, both hold vacuously. Frame: C' = C, E' = E, R' = R (K.μ⁻ frame, ASN-0047).
+(i) *Arrangement contraction* — K.μ⁻ on document d: remove all V-positions in X ∪ R from M_S(d), leaving only the positions in L (and all positions in other subspaces). Precondition: d ∈ E_doc. Satisfied by D-PRE(i). Postcondition D-CTG and D-MIN: L is a prefix of the original contiguous range — the ordinals below ord(p). If L ≠ ∅, it satisfies D-CTG (a prefix of a contiguous range is contiguous) and D-MIN (min(L) = min(V_S(d)) = [S, 1, ..., 1], preserved from the pre-state). If L = ∅, both hold vacuously. Frame: C' = C, L' = L, E' = E, R' = R (K.μ⁻ frame, ASN-0047).
 
-(ii) *Arrangement extension* — K.μ⁺ on document d, **only when R ≠ ∅**: reintroduce the right-region content at shifted positions. K.μ⁺ requires strict domain extension (dom(M'(d)) ⊃ dom(M(d)) at the intermediate state). When R = ∅ — Cases 1 and 4 of D-DP, where the deletion extends through the last position — there are no right-region positions to reintroduce, so the strict-superset precondition cannot be met; the composite reduces to K.μ⁻ alone. When R ≠ ∅, |Q₃| ≥ 1 provides at least one new V-position. For each v ∈ R, add the mapping M'(d)(σ(v)) = M(d)(v). Precondition: each M(d)(v) ∈ dom(C') (yes — these I-addresses were already in ran(M(d)) ⊆ dom(C) by S3, and C' = C by step (i)). The new V-positions σ(v) satisfy S8a (ordinals positive, as established under D-SHIFT). The depth #σ(v) = #v (TumblerSub preserves depth at the ordinal level), satisfying S8-depth. The domain remains finite (S8-fin): |L| + |R| < |V_S(d)| which is finite. D-CTG: L occupies ordinals below ord(p); Q₃ occupies ordinals from ord(p) onward (by D-SEP). At depth 2, these are consecutive natural-number ranges that abut with no gap and no overlap (D-BJ), so L ∪ Q₃ is a single contiguous ordinal range. D-MIN: when L ≠ ∅, min(L ∪ Q₃) = min(L) = min(V_S(d)) = [S, 1, ..., 1] by D-MIN on the pre-state; when L = ∅, p = v_min = [S, 1, ..., 1] (D-MIN on pre-state), so σ(r) has ordinal ord(p) = [1, ..., 1], giving min(Q₃) = [S, 1, ..., 1]. Frame: C' = C, E' = E, R' = R (K.μ⁺ frame, ASN-0047).
+(ii) *Arrangement extension* — K.μ⁺ on document d, **only when R ≠ ∅**: reintroduce the right-region content at shifted positions. K.μ⁺ requires strict domain extension (dom(M'(d)) ⊃ dom(M(d)) at the intermediate state). When R = ∅ — Cases 1 and 4 of D-DP, where the deletion extends through the last position — there are no right-region positions to reintroduce, so the strict-superset precondition cannot be met; the composite reduces to K.μ⁻ alone. When R ≠ ∅, |Q₃| ≥ 1 provides at least one new V-position. For each v ∈ R, add the mapping M'(d)(σ(v)) = M(d)(v). Precondition: each M(d)(v) ∈ dom(C') (yes — these I-addresses were already in ran(M(d)) ⊆ dom(C) by S3★, and C' = C by step (i)). The new V-positions σ(v) satisfy S8a (ordinals positive, as established under D-SHIFT). The depth #σ(v) = #v (TumblerSub preserves depth at the ordinal level), satisfying S8-depth. The domain remains finite (S8-fin): |L| + |R| < |V_S(d)| which is finite. D-CTG: L occupies ordinals below ord(p); Q₃ occupies ordinals from ord(p) onward (by D-SEP). At depth 2, these are consecutive natural-number ranges that abut with no gap and no overlap (D-BJ), so L ∪ Q₃ is a single contiguous ordinal range. D-MIN: when L ≠ ∅, min(L ∪ Q₃) = min(L) = min(V_S(d)) = [S, 1, ..., 1] by D-MIN on the pre-state; when L = ∅, p = v_min = [S, 1, ..., 1] (D-MIN on pre-state), so σ(r) has ordinal ord(p) = [1, ..., 1], giving min(Q₃) = [S, 1, ..., 1]. Frame: C' = C, L' = L, E' = E, R' = R (K.μ⁺ frame, ASN-0047).
 
 **Elementary preconditions at intermediate states.** Step (i) removes positions; the precondition d ∈ E_doc holds. When R ≠ ∅, step (ii) adds positions; the V-positions σ(v) must not already be in dom(M) at the intermediate state. After step (i), dom includes L (with ordinals < p) and non-S positions. The shifted positions σ(v) have ordinals ≥ ord(p) (by D-SEP). Since L has ordinals < ord(p), and σ(v) have subspace S (distinct from non-S positions), no collision occurs. ✓
 
-**Coupling constraints (R = ∅).** The composite is K.μ⁻ alone. J0 (AllocationRequiresPlacement): dom(C') = dom(C), no new content allocated, vacuous. J1 (ExtensionRecordsProvenance): ran(M'(d)) ⊆ ran(M(d)) (contraction only removes mappings), so ran(M'(d)) \ ran(M(d)) = ∅, vacuous. J1' (ProvenanceRequiresExtension): R' = R, so R' \ R = ∅, vacuous. The composite is valid.
+**Coupling constraints (R = ∅).** The composite is K.μ⁻ alone. J0 (AllocationRequiresPlacement): dom(C') = dom(C), no new content allocated, vacuous. J1★ (ExtensionRecordsProvenanceContent): ran at content-subspace positions of M'(d) ⊆ ran of M(d) (contraction only removes mappings), so no new content-subspace I-addresses appear, vacuous. J1'★ (ProvenanceRequiresExtensionContent): R' = R, so R' \ R = ∅, vacuous. The composite is valid.
 
-**Coupling constraints (R ≠ ∅).** J0 (AllocationRequiresPlacement): no new content is allocated (dom(C') = dom(C)), vacuously satisfied. J1 (ExtensionRecordsProvenance): the I-addresses reintroduced in step (ii) are new relative to the intermediate state but not new relative to the composite's initial state. J1 requires that new I-addresses in ran(M'(d)) \ ran(M(d)) — where M(d) is the composite's initial arrangement — be covered by provenance. Since ran(M'(d)) ⊆ ran(M(d)) — the right-region I-addresses were already present in the initial arrangement, and the deleted I-addresses are removed — ran(M'(d)) \ ran(M(d)) = ∅. J1 is vacuous. J1' (ProvenanceRequiresExtension): R' \ R = ∅. Vacuous.
+**Coupling constraints (R ≠ ∅).** J0 (AllocationRequiresPlacement): no new content is allocated (dom(C') = dom(C)), vacuously satisfied. J1★ (ExtensionRecordsProvenanceContent): the I-addresses reintroduced in step (ii) are new relative to the intermediate state but not new relative to the composite's initial state. J1★ requires that new content-subspace I-addresses in ran(M'(d)) — absent from content-subspace ran(M(d)) — be covered by provenance. Since the content-subspace ran(M'(d)) ⊆ content-subspace ran(M(d)) — the right-region I-addresses were already present in the initial arrangement, and the deleted I-addresses are removed — no new entries appear. J1★ is vacuous. J1'★ (ProvenanceRequiresExtensionContent): R' \ R = ∅. Vacuous.
 
-The composite is a valid transition: DELETE preserves all coupling constraints.
+The composite is a valid transition under ValidComposite★: DELETE preserves all coupling constraints.
 
 
 ## Block Decomposition Effect
@@ -293,7 +293,7 @@ Note the resulting decomposition is not maximally merged — the two blocks are 
 
 ## Invariant Preservation
 
-We verify that DELETE preserves each foundation invariant.
+We verify that DELETE preserves each invariant in ExtendedReachableStateInvariants (ASN-0047).
 
 **P0 (ContentPermanence, ASN-0047).** C' = C by D-CF. All prior content preserved.
 
@@ -303,13 +303,15 @@ We verify that DELETE preserves each foundation invariant.
 
 **P2 (ProvenancePermanence).** R' = R by D-CF. R' ⊇ R. ✓
 
-**P3 (ArrangementMutabilityOnly).** The composite uses only contraction (K.μ⁻) and extension (K.μ⁺) — the two arrangement-change modes permitted by P3(a–b). No other component admits change: C' = C, E' = E, R' = R by D-CF. ✓
+**P3★ (ArrangementMutabilityOnlyExtended).** The composite uses only contraction (K.μ⁻) and extension (K.μ⁺) — the two arrangement-change modes permitted by P3(a–b). All other components are monotonic: C' = C, L' = L, E' = E, R' = R by D-CF. ✓
 
 **S0 (ContentImmutability, ASN-0036).** C' = C; no content entry is modified.
 
 **S2 (ArrangementFunctionality, ASN-0036).** M'(d) is a function — each V-position maps to exactly one I-address. The three groups Q₁, Q₂, Q₃ are pairwise disjoint (verified in Domain Completeness above). Within each group: Q₁ inherits functionality from M(d) via D-XS; Q₂ inherits from M(d) via D-LEFT; Q₃ inherits from M(d) via D-SHIFT plus injectivity of σ (D-BJ).
 
-**S3 (ReferentialIntegrity, ASN-0036).** Every I-address in ran(M'(d)) is in dom(C'). For Q₁ and Q₂: I-addresses unchanged from ran(M(d)) ⊆ dom(C) = dom(C'). For Q₃: same argument — σ changes V-positions, not I-addresses.
+**S3★ (GeneralizedReferentialIntegrity, ASN-0047).** For the content subspace: every I-address in ran(M'(d)) at content-subspace V-positions is in dom(C'). For Q₁ and Q₂: I-addresses unchanged from ran(M(d)) ⊆ dom(C) = dom(C'). For Q₃: same argument — σ changes V-positions, not I-addresses. For the link subspace: D-XS preserves all link-subspace V-positions and their I-address mappings, so ran at link-subspace positions is unchanged and remains in dom(L) = dom(L'). ✓
+
+**S3★-aux (SubspaceExhaustiveness, ASN-0047).** Every V-position is in either the content or link subspace. For Q₁: unchanged. For Q₂ and Q₃: all positions have subspace(v) = s_C by D-PRE(iii). ✓
 
 **S8a (VPositionWellFormedness, ASN-0036).** For Q₁ and Q₂: unchanged V-positions, already satisfying S8a. For Q₃: shifted V-positions have positive ordinals (established under D-SHIFT), and the subspace identifier is preserved by σ.
 
@@ -321,11 +323,15 @@ We verify that DELETE preserves each foundation invariant.
 
 **D-MIN (VMinimumPosition, ASN-0036).** Preserved by D-DP.
 
-**P4 (ProvenanceBounds, ASN-0047).** Contains(Σ') ⊆ R'. Since ran(M'(d)) ⊆ ran(M(d)) — the right-region I-addresses are preserved and the deleted I-addresses are removed, while no new I-addresses are introduced — and no other arrangement changes (D-XD), we have Contains(Σ') ⊆ Contains(Σ) ⊆ R = R'. ✓
+**L0 (SubspacePartition), L1 (LinkElementLevel), L1a (LinkScopedAllocation), L3 (TripleEndsetStructure), L12 (LinkImmutability), L14 (StoreDisjointness).** All L-series invariants hold by L' = L (D-CF). The predicates are universally quantified over dom(L); since dom(L') = dom(L) and L'(ℓ) = L(ℓ) for all ℓ ∈ dom(L), each predicate is inherited from Σ.
+
+**CL-OWN (LinkSubspaceOwnership, ASN-0047).** D-XS preserves all link-subspace V-positions and their I-address mappings unchanged. Since CL-OWN quantifies over link-subspace positions of M(d), and these are identical in M'(d), CL-OWN in Σ implies CL-OWN in Σ'.
+
+**P4★ (ProvenanceBoundsContent, ASN-0047).** Contains_C(Σ') ⊆ R'. Since ran(M'(d)) at content-subspace positions is a subset of ran(M(d)) at content-subspace positions — the right-region I-addresses are preserved and the deleted I-addresses are removed, while no new I-addresses are introduced — and no other arrangement changes (D-XD), we have Contains_C(Σ') ⊆ Contains_C(Σ) ⊆ R = R'. ✓
+
+**P5★ (DestructionConfinementExtended).** C' = C ⊇ C (a); L' = L ⊇ L (b); E' = E ⊇ E (c); R' = R ⊇ R (d) — all by D-CF. Only M admits loss, via K.μ⁻. ✓
 
 **P4a (HistoricalFidelity).** R' = R by D-CF; no new provenance entries are introduced, so no new historical justification is required. All existing entries retain their witnesses from prior states. ✓
-
-**P5 (DestructionConfinement).** C' = C ⊇ C (a); E' = E ⊇ E (b); R' = R ⊇ R (c) — all by D-CF. Only M admits loss, via K.μ⁻. ✓
 
 **P6 (ExistentialCoherence, ASN-0047).** For all a ∈ dom(C'): origin(a) ∈ E'_doc. Unchanged: C' = C and E' = E, so P6 in Σ implies P6 in Σ'.
 
@@ -390,11 +396,11 @@ Several aspects of Gregory's implementation illuminate the abstract specificatio
 | w_ord | Ordinal displacement projection: w_ord = [w₂, ..., wₘ] for V-depth w with w₁ = 0 | introduced |
 | D-CTG | V-positions within each subspace form a contiguous ordinal range — design constraint assumed and preserved by DELETE | cited (ASN-0036) |
 | D-MIN | V-positions start at [S, 1, ..., 1] — design constraint assumed and preserved by DELETE | cited (ASN-0036) |
-| D-PRE | DELETE requires d ∈ E_doc, w > 0, subspace(p) ≥ 1, #p = 2, span ⊆ current extent, #w = #p, w₁ = 0 | introduced |
+| D-PRE | DELETE requires d ∈ E_doc, w > 0, subspace(p) = s_C, #p = 2, span ⊆ current extent, #w = #p, w₁ = 0 | introduced |
 | D-LEFT | (A v ∈ L : M'(d)(v) = M(d)(v)) — left region unchanged | introduced |
 | D-DOM | dom(M'(d)) ∩ V_S = L ∪ Q₃ — post-state domain fully determined by D-LEFT and D-SHIFT | introduced |
 | D-SHIFT | (A v ∈ R : M'(d)(σ(v)) = M(d)(v)) where σ(v) = vpos(S, ord(v) ⊖ w_ord) | introduced |
-| D-CF | C' = C, E' = E, R' = R — DELETE modifies only M(d) in subspace S | introduced |
+| D-CF | C' = C, L' = L, E' = E, R' = R — DELETE modifies only M(d) in subspace S | introduced |
 | D-XD | (A d' ≠ d : M'(d') = M(d')) — cross-document isolation | introduced |
 | D-XS | (A v : subspace(v) ≠ S : M'(d)(v) = M(d)(v)) — subspace confinement | introduced |
 | D-IID | d ∈ E'_doc — document identity preserved | introduced |

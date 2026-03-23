@@ -8,7 +8,7 @@ We are looking for the precise effect of placing existing Istream content at a p
 
 The question decomposes: how is the source content identified, what happens to content already at the target position, what is preserved about the placed content's identity, and what invariants must the completed operation maintain?
 
-We work with system state Σ = (C, E, M, R) per ASN-0047. C is the content store (T ⇀ Val), E the entity set, M the arrangement function with M(d) : T ⇀ T for each document d, and R the provenance relation. The content store is append-only (S0, P0). The arrangement M(d) is the mutable layer. COPY must specify exactly how it extends M(d) while leaving C untouched.
+We work with the extended system state Σ = (C, L, E, M, R) per ASN-0047. C is the content store (T ⇀ Val), L the link store (T ⇀ Link), E the entity set, M the arrangement function with M(d) : T ⇀ T for each document d, and R the provenance relation. The content store is append-only (S0, P0). The arrangement M(d) is the mutable layer. COPY must specify exactly how it extends M(d) while leaving C untouched.
 
 
 ## The Fundamental Constraint
@@ -46,7 +46,7 @@ To resolve a content reference, we extract the I-address runs corresponding to t
 
 The restriction `f = M(d_s)|⟦σ⟧` admits a unique maximally merged block decomposition — M11 and M12 hold for any finite partial function satisfying S2, S8-fin, and S8-depth (C1a, ASN-0058). The decomposition yields `⟨β₁, ..., βₖ⟩` ordered by V-start, and the *I-address sequence* is `resolve(d_s, σ) = ⟨(a₁, n₁), ..., (aₖ, nₖ)⟩` where `βⱼ = (vⱼ, aⱼ, nⱼ)` (Resolution, ASN-0058). The V-coordinates are discarded; only I-starts and widths are carried forward.
 
-The ordering of runs within each resolution preserves the source document's V-ordering: if V-position p precedes V-position q in the source, the I-address at p precedes the I-address at q in the resolved sequence. This is a consequence of the block decomposition being V-ordered (B1, ASN-0058). Gregory's implementation confirms: `incontextlistnd` (the POOM traversal function) performs insertion-sort by V-address during tree traversal, regardless of the internal sibling order that rebalancing may produce. The resulting I-span list is always V-sorted before reaching the mutation phase.
+The ordering of runs within each resolution preserves the source document's V-ordering: if V-position p precedes V-position q in the source, the I-address at p precedes the I-address at q in the resolved sequence. This is a consequence of the resolution definition specifying the decomposition "ordered by V-start" (Resolution, ASN-0058). Gregory's implementation confirms: `incontextlistnd` (the POOM traversal function) performs insertion-sort by V-address during tree traversal, regardless of the internal sibling order that rebalancing may produce. The resulting I-span list is always V-sorted before reaching the mutation phase.
 
 For a content reference sequence, the composite resolution concatenates `resolve(R) = resolve(r₁) ⌢ ... ⌢ resolve(rₚ)`. Each reference is resolved independently against its own source document's POOM. The total width is `w(R) = (+ j : 1 ≤ j ≤ k : nⱼ)` where `⟨(a₁, n₁), ..., (aₖ, nₖ)⟩ = resolve(R)` (Resolution, ASN-0058).
 
@@ -144,6 +144,7 @@ with the convention that the empty sum is 0, so γ₁ = (v, a₁, n₁).
 
 ```
 C' = C                                              (C0)
+L' = L                                              (no K.λ or K.μ⁺_L steps)
 E' = E
 M'(d) is the arrangement defined by B'
 (A p : p ∈ dom(M(d)) ∧ subspace(p) ≠ S : M'(d)(p) = M(d)(p))   (non-target frame)
@@ -159,9 +160,9 @@ The provenance extension records that d now contains certain I-addresses. By J1 
 
 *Case 1: B_post ≠ ∅.* The COPY composite decomposes into three elementary steps: Σ = Σ₀ →^{K.μ⁻} Σ₁ →^{K.μ⁺} Σ₂ →^{K.ρ} Σ₃ = Σ':
 
-*Step 1 (K.μ⁻).* Remove B_post entries from M(d). Within subspace S, the remaining text positions are [v₀, v); non-target subspace positions are unchanged. Precondition at Σ₀: d ∈ E_doc (P.1); B_post ≠ ∅ ensures dom(M₁(d)) ⊂ dom(M₀(d)) (strict contraction). Postcondition: M₁(d) satisfies D-CTG — by D-SEQ, the remaining positions form a contiguous range [v₀, v), and D-MIN holds since min(V_S(d₁)) = v₀ = [S, 1, ..., 1] is unchanged. Frame: C₁ = C, E₁ = E, R₁ = R.
+*Step 1 (K.μ⁻).* Remove B_post entries from M(d). Within subspace S, the remaining text positions are [v₀, v); non-target subspace positions are unchanged. Precondition at Σ₀: d ∈ E_doc (P.1); B_post ≠ ∅ ensures dom(M₁(d)) ⊂ dom(M₀(d)) (strict contraction). Postcondition: M₁(d) satisfies D-CTG — by D-SEQ, the remaining positions form a contiguous range [v₀, v), and D-MIN holds since min(V_S(d₁)) = v₀ = [S, 1, ..., 1] is unchanged. Non-target subspaces (including the link subspace s_L) are unchanged by this contraction — only B_post ⊆ B_S entries are removed — so D-CTG and D-MIN hold for each non-target subspace by inheritance from the pre-state, satisfying the K.μ⁻ amendment's per-subspace requirement. Frame: C₁ = C, E₁ = E, R₁ = R.
 
-*Step 2 (K.μ⁺).* Add both the placed blocks γ₁, ..., γₖ and the shifted B_post blocks {β↑w : β ∈ B_post} simultaneously. The placed blocks occupy V-positions [v, v + w); the shifted blocks occupy [v + w, v₀ + N + w). Together with the surviving [v₀, v) from step 1, this yields the complete contiguous range [v₀, v₀ + N + w). Precondition at Σ₁: d ∈ E_doc; every I-address in the placed blocks is in dom(C₁) = dom(C) (by C1, ASN-0058); every I-address in the shifted blocks is in dom(C₁) = dom(C) (these are the same I-addresses as in B_post, which satisfy S3); all new V-positions satisfy S8a (ordinal shift preserves positivity and zero-count) and S8-depth (ordinal shift preserves depth); all new V-positions satisfy the K.μ⁺ amendment — subspace(v) = s_C by P.7, and ordinal shift preserves the first component; dom(M₂(d)) is finite (N + w positions); M₂(d) satisfies D-CTG (the full range [v₀, v₀ + N + w) is contiguous) and D-MIN (minimum is v₀ = [S, 1, ..., 1], unchanged). B_post ≠ ∅ and w ≥ 1 ensure dom(M₂(d)) ⊃ dom(M₁(d)) (strict extension). Frame: C₂ = C, E₂ = E, R₂ = R.
+*Step 2 (K.μ⁺).* Add both the placed blocks γ₁, ..., γₖ and the shifted B_post blocks {β↑w : β ∈ B_post} simultaneously. The placed blocks occupy V-positions [v, v + w); the shifted blocks occupy [v + w, v₀ + N + w). Together with the surviving [v₀, v) from step 1, this yields the complete contiguous range [v₀, v₀ + N + w). Precondition at Σ₁: d ∈ E_doc; every I-address in the placed blocks is in dom(C₁) = dom(C) (by C1, ASN-0058); every I-address in the shifted blocks is in dom(C₁) = dom(C) (these are the same I-addresses as in B_post, which satisfy S3); all new V-positions satisfy S8a (ordinal shift preserves positivity and zero-count) and S8-depth (ordinal shift preserves depth); all new V-positions satisfy the K.μ⁺ amendment — subspace(v) = s_C by P.7, and ordinal shift preserves the first component; dom(M₂(d)) is finite (N + w positions); M₂(d) satisfies D-CTG (the full range [v₀, v₀ + N + w) is contiguous) and D-MIN (minimum is v₀ = [S, 1, ..., 1], unchanged). Non-target subspaces are unchanged by this extension — all new V-positions have subspace(v) = s_C by P.7 — so D-CTG and D-MIN hold for each non-target subspace by inheritance from Σ₁. B_post ≠ ∅ and w ≥ 1 ensure dom(M₂(d)) ⊃ dom(M₁(d)) (strict extension). Frame: C₂ = C, E₂ = E, R₂ = R.
 
 *Step 3 (K.ρ, repeated).* For each a ∈ ran(M₂(d)) \ ran(M(d)), record (a, d) ∈ R. Precondition at Σ₂: a ∈ dom(C₂) = dom(C) (by C1, ASN-0058) and d ∈ E_doc (P.1). Frame: C₃ = C, E₃ = E, M₃ = M₂.
 
@@ -217,6 +218,8 @@ P5 (DestructionConfinement): dom(C') ⊇ dom(C) with unchanged values (C0); E' =
 
 S0 (ContentImmutability): immediate from C' = C. ∎
 
+S1 (StoreMonotonicity): dom(C') = dom(C) ⊇ dom(C). ∎
+
 S2 (ArrangementFunctionality): M'(d) is a function because B' satisfies B2 — each V-position maps to exactly one I-address. ∎
 
 S3 (ReferentialIntegrity): we must show ran(M'(d)) ⊆ dom(C'). Pre-blocks and shifted post-blocks reference the same I-addresses as B, which satisfy S3 by assumption. Placed blocks γⱼ reference I-addresses satisfying C1 (ResolutionIntegrity, ASN-0058) — C1's derivation invokes S3 on the source arrangement; under S3★, this requires the source V-span to lie in the content subspace, which P.4a guarantees. Since C' = C, all references are valid. ∎
@@ -226,6 +229,8 @@ S8a (VPositionWellFormedness): by P.7, subspace(v) = s_C, and s_C ≥ 1 (ASN-004
 S8-depth (FixedDepthVPositions): ordinal shift preserves depth: #shift(v, n) = #v (OrdinalShift definition, ASN-0034). All new and shifted V-positions share the depth of the existing ones. ∎
 
 S8-fin (FiniteArrangement): |dom(M'(d))| = N + w, which is finite. ∎
+
+S8 (FiniteSpanDecomposition): follows from S8-fin, S8a, S2, S8-depth, D-CTG, and D-MIN, all verified above. ∎
 
 P4 (ProvenanceBounds): Contains(Σ') ⊆ R'. For d: every a ∈ ran(M'(d)) is either in ran(M(d)) — hence (a, d) ∈ R by P4 in the pre-state, hence in R' — or in ran(M'(d)) \ ran(M(d)) — hence (a, d) ∈ R' by the provenance extension. For d' ≠ d: M'(d') = M(d'), so Contains entries are unchanged, and R' ⊇ R covers them. ∎
 
@@ -247,7 +252,7 @@ D-CTG: preserved by C2. ∎
 
 D-MIN: preserved by C2a. ∎
 
-**Extended-state invariants.** The COPY composite uses no K.λ or K.μ⁺_L steps, and C' = C, E' = E. By the frame conditions of K.μ⁻, K.μ⁺, and K.ρ (each holds L in its frame): L' = L. The invariants from ExtendedReachableStateInvariants (ASN-0047) follow:
+**Extended-state invariants.** The COPY composite uses no K.λ or K.μ⁺_L steps, and C' = C, E' = E. The only transitions that modify L are K.λ (link allocation); since COPY's elementary decomposition contains only K.μ⁻, K.μ⁺, and K.ρ — none of which have any effect on L — we have L' = L. The invariants from ExtendedReachableStateInvariants (ASN-0047) follow:
 
 L0 (SubspacePartition): dom(L') = dom(L) and dom(C') = dom(C); partition unchanged. ∎
 
@@ -269,7 +274,7 @@ P5★ (DestructionConfinementExtended): follows from P5 plus L' = L. ∎
 
 CL-OWN (LinkSubspaceOwnership): link-subspace V-positions are in B_other (unchanged), so for any v with subspace(v) = s_L: M'(d)(v) = M(d)(v), and origin(M(d)(v)) = d by CL-OWN in the pre-state. ∎
 
-The coupling constraints J1★ and J1'★ (ASN-0047) are equivalent to J1 and J1' for COPY, since COPY creates only content-subspace V-positions (P.7).
+The coupling constraints J1★ and J1'★ (ASN-0047) are equivalent to J1 and J1' for COPY. COPY creates only content-subspace V-positions (P.7), and no content I-address can reside in a link-subspace position: by S3★, link-subspace V-positions map to dom(L), and by L14, dom(C) ∩ dom(L) = ∅. Therefore the content-subspace restriction in J1★/J1'★ coincides with the unrestricted ran(M'(d)) \ ran(M(d)) in J1/J1'.
 
 
 ## Displacement
@@ -551,7 +556,7 @@ Nelson reinforces this at the system level: "A server's network model, from the 
 | C1a | M11/M12 hold for any finite partial function f : T ⇀ T satisfying S2, S8-fin, S8-depth; in particular M(d_s)\|⟦σ⟧ | cited (ASN-0058) |
 | C2 | COPY preserves D-CTG: N + w positions after, N before | introduced |
 | C2a | COPY preserves D-MIN: min(V_S(d)) = [S, 1, ..., 1] after COPY | introduced |
-| C3 | COPY preserves all foundational invariants: non-extended (P0–P5, P4a, P6–P8, S0, S2, S3, S8a, S8-depth, S8-fin, J0, J1, J1', D-CTG, D-MIN) and extended (S3★, S3★-aux, P3★, P4★, P5★, L0, L1, L1a, L3, L12, L14, CL-OWN, J1★, J1'★) | introduced |
+| C3 | COPY preserves all foundational invariants: non-extended (P0–P5, P4a, P6–P8, S0, S1, S2, S3, S8, S8a, S8-depth, S8-fin, J0, J1, J1', D-CTG, D-MIN) and extended (S3★, S3★-aux, P3★, P4★, P5★, L0, L1, L1a, L3, L12, L14, CL-OWN, J1★, J1'★) | introduced |
 | C4 | within target subspace S: positions ≥ v shift by w, positions < v unchanged; non-target subspaces unchanged | introduced |
 | C5 | every pre-state I-address appears in the post-state arrangement; content displaced, never overwritten | introduced |
 | C6 | placed I-addresses are the same addresses as in the source (POST) | introduced |
