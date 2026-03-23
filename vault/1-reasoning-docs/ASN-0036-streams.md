@@ -163,7 +163,7 @@ With S7a and S7b established, we can state structural attribution:
 
 `origin(a) = (fields(a).node).0.(fields(a).user).0.(fields(a).document)`
 
-This is the full document tumbler `N.0.U.0.D` — uniquely identifying the allocating document across the system (by T9 and T10, ASN-0034: T9 gives same-allocator monotonicity ensuring distinct documents within an allocator have distinct prefixes; T10 gives cross-allocator disjointness ensuring documents from different allocators cannot share a prefix). It is not metadata that can be stripped or forged — it IS the address. To retrieve the content, the system must know its I-address; to know its I-address is to know its origin.
+This is the full document tumbler `N.0.U.0.D` — uniquely identifying the allocating document across the system. Three cases establish that distinct documents produce distinct prefixes. T9 (ForwardAllocation, ASN-0034) covers same-allocator distinctness: later allocations are strictly greater, so distinct documents within an allocator have distinct prefixes. T10 (PartitionIndependence, ASN-0034) covers cross-allocator distinctness for non-nesting prefixes: disjoint subtree populations mean documents from independent allocators cannot share a prefix. For allocators with nesting prefixes (parent-child, where a parent spawns a child via `inc(·, k')` per T10a), AllocatorDiscipline (T10a, ASN-0034) guarantees the child's outputs are deeper than the parent's — by TA5(d), `#inc(t, k') = #t + k'` — so T3 (CanonicalRepresentation, ASN-0034) ensures their document prefixes are distinct. It is not metadata that can be stripped or forged — it IS the address. To retrieve the content, the system must know its I-address; to know its I-address is to know its origin.
 
 S7 follows from S7a (document-scoped allocation ensures the document-level prefix identifies the allocating document), S7b (element-level restriction ensures all three identifying fields are present), and T4 (HierarchicalParsing, ASN-0034). Since I-addresses are permanent (S0) and unique (S4), this attribution is permanent and unseverable.
 
@@ -455,7 +455,7 @@ This has a formal consequence: document equality is not decidable by content com
 | S6 | Persistence independence: `a ∈ dom(C)` is unconditional — independent of all arrangements | corollary of S0 |
 | S7a | Document-scoped allocation: every I-address is allocated under the originating document's prefix | introduced |
 | S7b | Element-level I-addresses: `(A a ∈ dom(C) :: zeros(a) = 3)` | introduced |
-| S7 | Structural attribution: `origin(a) = (fields(a).node).0.(fields(a).user).0.(fields(a).document)` — full document prefix | from S7a, S7b, T4, T9, T10 (ASN-0034) |
+| S7 | Structural attribution: `origin(a) = (fields(a).node).0.(fields(a).user).0.(fields(a).document)` — full document prefix | from S7a, S7b, T4, T9, T10, T10a, TA5, T3 (ASN-0034) |
 | S8-fin | Finite arrangement: `dom(M(d))` is finite for every document `d` | introduced |
 | S8a | V-position well-formedness: `(A v ∈ dom(M(d)) : v₁ ≥ 1 : zeros(v) = 0 ∧ v > 0)`; link subspace deferred | introduced |
 | S8-depth | Fixed-depth V-positions: `(A d, v₁, v₂ : v₁ ∈ dom(M(d)) ∧ v₂ ∈ dom(M(d)) ∧ (v₁)₁ = (v₂)₁ : #v₁ = #v₂)` | design requirement |
