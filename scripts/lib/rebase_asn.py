@@ -145,8 +145,12 @@ def get_consistency_findings(asn_num, asn_path, asn_label):
     return run_inline_consistency_check(asn_num, asn_path, asn_label)
 
 
-def step_rebase(asn_num, asn_path, asn_label, model, effort):
-    """Step 1: Claude agent replaces local derivations with citations."""
+def step_rebase(asn_num, asn_path, asn_label, model, effort,
+                precheck_findings=None):
+    """Step 1: Claude agent replaces local derivations with citations.
+
+    If precheck_findings is provided, inject them into the rebase prompt.
+    """
     foundation = load_foundation_statements(FOUNDATION_LIST, STATEMENTS_DIR,
                                             asn_id=asn_num)
     if not foundation:
@@ -159,9 +163,7 @@ def step_rebase(asn_num, asn_path, asn_label, model, effort):
         print("  [ERROR] Rebase prompt template not found", file=sys.stderr)
         return False
 
-    # Get consistency findings (cached or fresh)
-    findings = get_consistency_findings(asn_num, asn_path, asn_label)
-    if findings:
+    if precheck_findings:
         findings_section = (
             "## Pre-Check Findings\n\n"
             "A consistency check identified the following issues. "

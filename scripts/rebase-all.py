@@ -210,7 +210,8 @@ def process_asn(asn_num, model, effort, max_cycles, force=False):
 
     # Step 3: Rebase (one pass, then scoped review/revise up to 5 cycles)
     print(f"  [REBASE] {asn_label}...", file=sys.stderr)
-    ok = step_rebase(asn_num, asn_path, asn_label, model, effort)
+    ok = step_rebase(asn_num, asn_path, asn_label, model, effort,
+                     precheck_findings=findings)
     if not ok:
         print(f"  [FAILED] {asn_label} rebase failed", file=sys.stderr)
         return "failed"
@@ -224,7 +225,15 @@ def process_asn(asn_num, model, effort, max_cycles, force=False):
     step_review_revise(asn_num, asn_path, asn_label, rebased_properties,
                        5, model, effort)
 
-    # Step 5: Standard convergence via revise.py (up to 30 cycles)
+    # Step 5: Fresh full-scope review, then standard convergence
+    print(f"  [REVIEW] Running fresh full-scope review...", file=sys.stderr)
+    review_cmd = [sys.executable,
+                  str(WORKSPACE / "scripts" / "review.py"),
+                  str(asn_num)]
+    subprocess.run(review_cmd, capture_output=False, text=True,
+                   cwd=str(WORKSPACE))
+
+    # Standard convergence via revise.py (up to 30 cycles)
     print(f"  [CONVERGE] Running standard convergence...", file=sys.stderr)
     converge_cmd = [sys.executable,
                     str(WORKSPACE / "scripts" / "revise.py"),
@@ -250,7 +259,8 @@ def process_asn(asn_num, model, effort, max_cycles, force=False):
         print(f"  [POST-CHECK] Findings detected — one more rebase + convergence...",
               file=sys.stderr)
 
-        ok = step_rebase(asn_num, asn_path, asn_label, model, effort)
+        ok = step_rebase(asn_num, asn_path, asn_label, model, effort,
+                         precheck_findings=post_findings)
         if not ok:
             print(f"  [FAILED] {asn_label} post-check rebase failed",
                   file=sys.stderr)
