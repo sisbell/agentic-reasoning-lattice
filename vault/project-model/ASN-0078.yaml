@@ -1,5 +1,7 @@
 # ASN-0078 — CREATELINK Operation
 title: "CREATELINK Operation"
+status: "consulted"
+topic: "operation"
 depends: [34, 36, 43, 47, 51, 53, 58]
 out_of_scope: "INSERT, DELETE, COPY, REARRANGE operation mechanics, version creation, replication and inter-server protocol (BEBE)"
 

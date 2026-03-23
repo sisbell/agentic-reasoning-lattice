@@ -14,12 +14,6 @@ set -euo pipefail
 
 WORKSPACE="$(cd "$(dirname "$0")/.." && pwd)"
 MODEL_DIR="$WORKSPACE/vault/project-model"
-INDEX="$WORKSPACE/vault/project-model/index.md"
-
-# Build set of deprecated/absorbed/dormant ASNs from index
-deprecated=$(grep -E '~~ASN-|dormant' "$INDEX" 2>/dev/null \
-    | sed -E 's/.*\| ~~?(ASN-[0-9]+)~~?.*/\1/' \
-    | sort || true)
 
 # Format unix timestamp to "Mar 22, 18:30"
 fmt_date() {
@@ -43,11 +37,6 @@ for yaml in "$MODEL_DIR"/ASN-*.yaml; do
     [ -f "$yaml" ] || continue
 
     label=$(basename "$yaml" .yaml)
-
-    # Skip deprecated/absorbed/dormant
-    if echo "$deprecated" | grep -q "^${label}$" 2>/dev/null; then
-        continue
-    fi
 
     # Find reasoning doc
     asn_file=$(find "$WORKSPACE/vault/1-reasoning-docs" -name "${label}-*.md" -maxdepth 1 2>/dev/null | head -1 || true)

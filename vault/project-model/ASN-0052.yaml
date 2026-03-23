@@ -1,5 +1,7 @@
 # ASN-0052 — Transclusion
 title: "Transclusion"
+status: "defined"
+topic: "foundation"
 depends: [34, 36, 43, 45, 47]
 
 inquiry:

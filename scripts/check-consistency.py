@@ -38,18 +38,12 @@ CHECK_DIR = WORKSPACE / "vault" / "consistency-check"
 
 
 def get_active_asns():
-    """Get active ASN numbers from project model index."""
-    index_path = PROJECT_MODEL_DIR / "index.md"
-    if not index_path.exists():
-        return []
-
-    text = index_path.read_text()
+    """Get active ASN numbers from project model yamls. Yaml exists = active."""
     active = []
-    for line in text.split("\n"):
-        if line.startswith("| ASN-") and "~~" not in line and "dormant" not in line:
-            m = re.match(r"\| (ASN-(\d+))", line)
-            if m:
-                active.append(int(m.group(2)))
+    for path in PROJECT_MODEL_DIR.glob("ASN-*.yaml"):
+        m = re.match(r"ASN-(\d+)", path.stem)
+        if m:
+            active.append(int(m.group(1)))
     return sorted(active)
 
 

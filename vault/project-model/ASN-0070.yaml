@@ -1,5 +1,7 @@
 # ASN-0070 — FOLLOWLINK Operation
 title: "FOLLOWLINK Operation"
+status: "defined"
+topic: "operation"
 depends: [34, 36, 43, 47, 53, 58]
 out_of_scope: "INSERT, DELETE, COPY, REARRANGE operation mechanics, link creation, version creation, replication and inter-server protocol (BEBE)"
 

@@ -1,5 +1,7 @@
 # ASN-0042 — Tumbler Ownership
 title: "Tumbler Ownership"
+status: "exported"
+topic: "foundation"
 depends: [34]
 out_of_scope: "Modification rights and access control (what an owner may do to content), publication contract and royalties (obligations upon publishing), custodial relationships (storage vendor obligations), document creation and lifecycle, content storage and retrieval, I-space and V-space, operation-specific effects (INSERT, DELETE, COPY, REARRANGE), links and endsets, baptism mechanism and allocation invariants, enfilade implementation internals, replication and inter-server protocol (BEBE), concrete authentication mechanisms (certificates, keys, tokens)"
 

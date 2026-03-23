@@ -1,5 +1,7 @@
 # ASN-0071 — FINDDOCSCONTAINING Operation
 title: "FINDDOCSCONTAINING Operation"
+status: "defined"
+topic: "operation"
 depends: [34, 36, 47, 53, 58]
 out_of_scope: "INSERT, DELETE, COPY, REARRANGE operation mechanics, link semantics, version creation, replication and inter-server protocol (BEBE)"
 

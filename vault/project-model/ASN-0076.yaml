@@ -1,5 +1,7 @@
 # ASN-0076 — EDITLINK Operation
 title: "EDITLINK Operation"
+status: "defined"
+topic: "operation"
 depends: [34, 36, 43, 47, 53, 58]
 out_of_scope: "INSERT, DELETE, COPY, REARRANGE operation mechanics, document forking, version DAG structure, replication and inter-server protocol (BEBE)"
 
