@@ -52,11 +52,7 @@ Nelson states the vitality condition as: "Links between bytes can survive deleti
 
 Before analysing what arrangement changes do to projection, we establish what they *cannot* do to the link itself.
 
-**SV1 (ArrangementLinkFrame).** For every state transition Σ → Σ':
-
-`(A a ∈ dom(Σ.L) :: a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a))`
-
-This is L12 (LinkImmutability) restated. But the survivability implication is worth making explicit: no arrangement change — no insertion, deletion, rearrangement, or version creation — can alter a link's endsets, its address, or its existence. The link store Σ.L is entirely outside the reach of arrangement operations.
+**SV1 (ArrangementLinkFrame).** Link immutability is guaranteed by the foundation: for every state transition Σ → Σ', `(A a ∈ dom(Σ.L) :: a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a))` (L12, ASN-0043). The survivability implication is worth making explicit: no arrangement change — no insertion, deletion, rearrangement, or version creation — can alter a link's endsets, its address, or its existence. The link store Σ.L is entirely outside the reach of arrangement operations.
 
 *Consequence for coverage:*
 
@@ -84,7 +80,7 @@ Arrangement extension (K.μ⁺, ArrangementExtension) adds new V→I mappings to
 
 Vitality is monotonically preserved: if an endset was vital in d before extension, it remains vital afterward. Extension can only *enlarge* the projection — introducing I-addresses that were in coverage(e) but not previously in ran(M(d)). It cannot remove any.
 
-Proof: π_{Σ'}(e, d) = coverage(e) ∩ ran(M'(d)). Since coverage(e) is invariant (SV1) and ran(M'(d)) ⊇ ran(M(d)) (K.μ⁺ frame), we have coverage(e) ∩ ran(M'(d)) ⊇ coverage(e) ∩ ran(M(d)) = π_Σ(e, d). ∎
+Proof: π_{Σ'}(e, d) = coverage(e) ∩ ran(M'(d)). Since coverage(e) is invariant (L12, ASN-0043) and ran(M'(d)) ⊇ ran(M(d)) (K.μ⁺ frame), we have coverage(e) ∩ ran(M'(d)) ⊇ coverage(e) ∩ ran(M(d)) = π_Σ(e, d). ∎
 
 *For resolution:* resolve_Σ(e, d) ⊆ resolve_{Σ'}(e, d). Let v ∈ resolve_Σ(e, d). Then v ∈ dom(M(d)) and M(d)(v) ∈ coverage(e). Since K.μ⁺ preserves existing mappings (dom(M(d)) ⊆ dom(M'(d)) with M'(d)(v) = M(d)(v) for all v ∈ dom(M(d))), we have v ∈ dom(M'(d)) and M'(d)(v) = M(d)(v) ∈ coverage(e), giving v ∈ resolve_{Σ'}(e, d). New V-positions in dom(M'(d)) \ dom(M(d)) may additionally enter the resolve set when their I-addresses lie in coverage(e). ∎
 
@@ -97,7 +93,7 @@ Arrangement contraction (K.μ⁻, ArrangementContraction) removes V→I mappings
 
 `(A Σ →_{K.μ⁻} Σ', e, d :: π_{Σ'}(e, d) ⊆ π_Σ(e, d))`
 
-Proof: π_{Σ'}(e, d) = coverage(e) ∩ ran(M'(d)). Since coverage(e) is invariant (SV1) and ran(M'(d)) ⊆ ran(M(d)) (K.μ⁻ restricts the domain while preserving values), we have coverage(e) ∩ ran(M'(d)) ⊆ coverage(e) ∩ ran(M(d)) = π_Σ(e, d). ∎
+Proof: π_{Σ'}(e, d) = coverage(e) ∩ ran(M'(d)). Since coverage(e) is invariant (L12, ASN-0043) and ran(M'(d)) ⊆ ran(M(d)) (K.μ⁻ restricts the domain while preserving values), we have coverage(e) ∩ ran(M'(d)) ⊆ coverage(e) ∩ ran(M(d)) = π_Σ(e, d). ∎
 
 Contraction can only *shrink* the projection. If the contraction removes all V-positions whose I-addresses are in coverage(e), then π_{Σ'}(e, d) = ∅ and the endset loses vitality in d. This is the mechanism by which editing can degrade a link's utility in a specific document.
 
@@ -180,7 +176,7 @@ This property is robust — it depends only on the structural separation of docu
 
 At broader address levels — documents, accounts, servers — Nelson explicitly designs for coverage growth: "A span that contains nothing today may at a later time contain a million documents" [LM 4/25]. Links to accounts and nodes find "any of the documents under it" [LM 4/23], including documents not yet created. This is not a deficiency but a feature: ghost elements and hierarchical spanning are fundamental to the design.
 
-The survivability implication: **endset coverage stability is architectural, not definitional.** The coverage *set* is fixed forever (SV1, from L12). What varies is whether that fixed set intersects the growing set of allocated I-addresses — and this intersection can only grow (S1, StoreMonotonicity), never shrink. At the byte level, the intersection is typically closed at creation because sequential allocation ensures new addresses fall beyond existing spans; at broader levels, the intersection is open by design, enabling links that discover future content.
+The survivability implication: **endset coverage stability is architectural, not definitional.** The coverage *set* is fixed forever (L12, ASN-0043). What varies is whether that fixed set intersects the growing set of allocated I-addresses — and this intersection can only grow (S1, StoreMonotonicity), never shrink. At the byte level, the intersection is typically closed at creation because sequential allocation ensures new addresses fall beyond existing spans; at broader levels, the intersection is open by design, enabling links that discover future content.
 
 
 ## Link Discovery
@@ -284,7 +280,7 @@ The from-endset is vital in d: π(F, d) ≠ ∅. Both π and resolve are determi
 
 - π(F, d) = coverage(F) ∩ ran(M'(d)) = {a₂, a₄} — reduced (SV3)
 - resolve(F, d) = {v₂, v₄}
-- discover_from({a₃}) = {b} — unchanged, because coverage(F) is invariant (SV1) and a₃ ∈ coverage(F) regardless of M(d) (SV8)
+- discover_from({a₃}) = {b} — unchanged, because coverage(F) is invariant (L12, ASN-0043) and a₃ ∈ coverage(F) regardless of M(d) (SV8)
 
 The endset remains vital but with reduced projection. The removal of a₃ from M(d) has split the endset's visible region into two fragments. To see the decomposition of SV11: the post-contraction arrangement has two mapping blocks — β₁ = (v₁, a₁, 2) covering {v₁, v₂} with I-extent {a₁, a₂}, and β₂ = (v₄, a₄, 2) covering {v₄, v₅} with I-extent {a₄, a₅}. The SV11 terms are:
 
@@ -309,13 +305,7 @@ The projection is invariant under reordering; the resolution set transforms by t
 
 The preceding analysis addresses the *extent* of what survives — how many I-addresses remain in the projection. We now address the *identity* of what survives: is the content at those addresses the same as when the link was created?
 
-**SV12 (ContentFidelity).** For any link a ∈ dom(Σ.L) created at state Σ_k, and any later state Σ_j with j ≥ k:
-
-`(A i : i ∈ coverage(Σ.L(a).s) ∩ dom(Σ_k.C) : Σ_j.C(i) = Σ_k.C(i))`
-
-for every endset slot s.
-
-This follows immediately from S0 (ContentImmutability): content at an I-address never changes. But the survivability implication merits emphasis: whatever portion of the endset remains visible in a document's arrangement, the content at those I-addresses is *exactly* what was there when the link was created. No edit, no revision, no amount of rearrangement can alter the content the link references. The surviving fragment may be smaller than the original endset, but each byte in the fragment is identical to the original.
+**SV12 (ContentFidelity).** Content fidelity is guaranteed by the foundation: for every a ∈ dom(Σ.C) and every state transition Σ → Σ', a ∈ dom(Σ'.C) and Σ'.C(a) = Σ.C(a) (S0, ASN-0036). Applied to endset I-addresses: for any link a ∈ dom(Σ.L) created at state Σ_k, and any later state Σ_j with j ≥ k, `(A i : i ∈ coverage(Σ.L(a).s) ∩ dom(Σ_k.C) : Σ_j.C(i) = Σ_k.C(i))` for every endset slot s. The survivability implication merits emphasis: whatever portion of the endset remains visible in a document's arrangement, the content at those I-addresses is *exactly* what was there when the link was created. No edit, no revision, no amount of rearrangement can alter the content the link references. The surviving fragment may be smaller than the original endset, but each byte in the fragment is identical to the original.
 
 The guarantee is the strongest possible short of cryptographic verification: the system's fundamental architecture makes it impossible to change content at an I-address through any defined operation.
 
@@ -330,9 +320,9 @@ We can now synthesize the survivability guarantee into a single coherent stateme
 
 (a) *The link persists:* a ∈ dom(Σ'.L) and Σ'.L(a) = (F, G, Θ). [L12]
 
-(b) *Endset coverage is invariant:* coverage(F), coverage(G), coverage(Θ) are the same in Σ' as in Σ. [SV1, from L12]
+(b) *Endset coverage is invariant:* coverage(F), coverage(G), coverage(Θ) are the same in Σ' as in Σ. [L12, ASN-0043]
 
-(c) *Content at endset addresses is unchanged:* for every I-address i in any endset's coverage, Σ'.C(i) = Σ.C(i) when i ∈ dom(Σ.C). [SV12, from S0]
+(c) *Content at endset addresses is unchanged:* for every I-address i in any endset's coverage, Σ'.C(i) = Σ.C(i) when i ∈ dom(Σ.C). [S0, ASN-0036]
 
 (d) *Discovery is permanent:* if a ∈ discover_s(A) in Σ for some fixed A, then a ∈ discover_s(A) in Σ'. [SV8]
 
@@ -362,7 +352,7 @@ Nelson's "strap between bytes" is exactly right. The strap (the link's endsets) 
 | BilateralVitality | Link is bilaterally vital in d when each non-empty content endset is vital in d | introduced |
 | discover_s(A) | Link discovery: `{a ∈ dom(L) : coverage(L(a).s) ∩ A ≠ ∅}` | introduced |
 | SV0 | ResolutionCurrentness: resolve(e, d) is determined by coverage(e) and current M(d) | introduced |
-| SV1 | ArrangementLinkFrame: arrangement changes preserve L entirely | introduced |
+| SV1 | ArrangementLinkFrame: arrangement changes preserve L entirely (= L12, ASN-0043) | cited |
 | SV2 | ExtensionMonotonicity: K.μ⁺ can only enlarge π(e, d) | introduced |
 | SV3 | ContractionReduction: K.μ⁻ can only shrink π(e, d) | introduced |
 | SV4 | ArrangementIsolation: arrangement changes to M(d) do not affect π(e, d') or resolve(e, d') for d' ≠ d | introduced |
@@ -373,7 +363,7 @@ Nelson's "strap between bytes" is exactly right. The strap (the link's endsets) 
 | SV9 | DiscoveryMonotonicity: the discoverable set is non-decreasing as links are created | introduced |
 | SV10 | DiscoveryResolutionIndependence: discovery and resolution answer different questions with different filters | introduced |
 | SV11 | PartialSurvivalDecomposition: the text-subspace projection decomposes into finitely many ordinal-contiguous fragments within mapping blocks | introduced |
-| SV12 | ContentFidelity: content at endset I-addresses is immutable | introduced |
+| SV12 | ContentFidelity: content at endset I-addresses is immutable (= S0, ASN-0036) | cited |
 | SV13 | SurvivabilityTheorem: synthesis of the complete guarantee | introduced |
 
 
