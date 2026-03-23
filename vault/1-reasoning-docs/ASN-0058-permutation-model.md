@@ -143,7 +143,7 @@ What does each piece preserve? Nelson states the principle directly: "splitting 
 
 (c) *I-address fidelity.* For every pair `(v + k, a + k)` in `⟦β⟧`, the same pair appears in exactly one of `⟦β_L⟧` or `⟦β_R⟧`. No I-address is altered, dropped, or duplicated. This is M5 restated.
 
-(d) *Origin traceability.* Each I-address `a + k` carries its origin permanently in its tumbler structure — `origin(a + k) = origin(a)`, since ordinal increment via TA5(c) changes only the element field, preserving the document prefix (S7, ASN-0036). Since the split alters no I-address, each piece independently identifies the home document of its content.
+(d) *Origin traceability.* Each I-address `a + k` carries its origin permanently in its tumbler structure — `origin(a + k) = origin(a)`, since `a + k = a ⊕ δ(k, #a)` and TumblerAdd with action point `#a` copies `aᵢ` for all `i < #a`, preserving the document prefix `N.0.U.0.D` (S7, ASN-0036). Since the split alters no I-address, each piece independently identifies the home document of its content.
 
 (e) *Structural independence.* Each piece is a self-contained mapping block whose well-formedness depends only on its own `(v, a, n)` triple — not on external state, not on the existence of the other piece.
 
@@ -337,7 +337,7 @@ The merge condition (M7) interacts naturally with the tumbler address structure.
 
 `(A β₁, β₂ : origin(a₁) ≠ origin(a₂) : ¬(a₂ = a₁ + n₁))`
 
-*Proof.* Ordinal increment via TA5(c) (ASN-0034) changes only the last significant component of a tumbler, which for element-level addresses falls in the element field. The document prefix — the `N.0.U.0.D` portion — is invariant under ordinal increment. Therefore `origin(a₁ + n₁) = origin(a₁)`. If `origin(a₂) ≠ origin(a₁)`, then `origin(a₂) ≠ origin(a₁ + n₁)`. Since `origin` is a function on tumblers, equal tumblers have equal origins; by contrapositive, different origins imply different tumblers: `a₂ ≠ a₁ + n₁`. ∎
+*Proof.* The ordinal shift `a₁ + n₁ = a₁ ⊕ δ(n₁, #a₁)` has action point `#a₁`. By TumblerAdd (ASN-0034), `rᵢ = (a₁)ᵢ` for all `i < #a₁` — every component before the action point is copied unchanged. For element-level I-addresses, the document prefix `N.0.U.0.D` occupies positions strictly before `#a₁`, so it is preserved. Therefore `origin(a₁ + n₁) = origin(a₁)`. If `origin(a₂) ≠ origin(a₁)`, then `origin(a₂) ≠ origin(a₁ + n₁)`. Since `origin` is a function on tumblers, equal tumblers have equal origins; by contrapositive, different origins imply different tumblers: `a₂ ≠ a₁ + n₁`. ∎
 
 This is not an additional constraint imposed on the merge — it is a consequence of I-adjacency and the invariance of document origin under ordinal increment. Gregory's implementation includes an explicit `homedoc` guard as the first check in `isanextensionnd` — a cheap discriminant that avoids full I-address comparison. At the abstract level, the guard is redundant: the contrapositive of origin equality already prevents cross-origin I-adjacency. But its presence in the implementation reflects the abstract property and provides an efficient short-circuit.
 
