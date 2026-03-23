@@ -28,9 +28,9 @@ This transparency is not a special rule for transclusion. It is a direct consequ
 
 We now formalize the query that FINDLINKS accepts.
 
-**Definition — SearchConstraint.** A *search constraint* is either ⊤ (unconstrained — matches any endset) or a non-empty finite set P ⊂ T of I-addresses.
+**Definition — SearchConstraint.** A *search constraint* is either ⊤ (unconstrained — matches any endset) or a non-empty finite set P ⊂ T.
 
-Operationally, P is derived from a content reference via resolution, from a type identifier, or from any other source of I-addresses. The specification does not constrain how P is obtained — only how it is evaluated against endsets.
+The addresses in P need not belong to dom(C). For from-endset and to-endset queries, P is typically derived from a content reference via resolution, yielding I-addresses in dom(C). For type-endset queries, P may contain type addresses that fall outside dom(C) ∪ dom(L) entirely — L9 (TypeGhostPermission, ASN-0043) permits type endsets to reference such addresses, and L10 (TypeHierarchyByContainment, ASN-0043) uses prefix spans over the type-address space. The specification does not constrain how P is obtained — only how it is evaluated against endsets.
 
 **Definition — HomeConstraint.** A *home constraint* is either ⊤ (the entire link store) or a non-empty set H ⊆ E_doc of document identifiers.
 
@@ -131,9 +131,10 @@ This order is permanent: link addresses are allocated by T9 (ForwardAllocation, 
 
 **F6 — PaginationDeterminism.** For fixed state Σ and query Q, let FindLinks(Q) = {a₁, a₂, ..., aₙ} with a₁ < a₂ < ... < aₙ by T1. For any cursor c ∈ T and bound N ≥ 1:
 
-  page(Q, c, N) = ⟨aᵢ, aᵢ₊₁, ..., aⱼ⟩  where i = min{k : aₖ > c} and j = min(i + N − 1, n)
+  page(Q, c, N) = ⟨⟩                       when {k : aₖ > c} = ∅
+  page(Q, c, N) = ⟨aᵢ, aᵢ₊₁, ..., aⱼ⟩    when i = min{k : aₖ > c} and j = min(i + N − 1, n)
 
-Pagination produces a deterministic, repeatable subsequence. The cursor identifies a position in a fixed ordering; advancing the cursor does not re-evaluate the query.
+The first case covers both FindLinks(Q) = ∅ (n = 0, the set is vacuously empty) and cursor exhaustion (c ≥ aₙ, all results have been consumed). Pagination produces a deterministic, repeatable subsequence. The cursor identifies a position in a fixed ordering; advancing the cursor does not re-evaluate the query.
 
 ## Scope of Discovery
 
@@ -279,13 +280,45 @@ This constraint is architecturally necessary. Without it, the universal scope gu
 
 The implementation achieves this through a spanfilade — a 2D enfilade indexing link endsets by I-address range. Three independent index traversals (one per endset type, partitioned by ORGLRANGE prefix) are intersected to produce the final result. This architecture scales with the intersection sizes, not with the total link count. The abstract property F19 demands that *any* implementation — not just the enfilade-based one — achieve comparable scaling behavior.
 
+## Worked Example
+
+We construct a concrete scenario and verify the key properties against it. Let documents d₁ and d₂ inhabit the system, with content addresses a₁ < a₂ < a₃ satisfying aᵢ ∈ dom(C) and origin(aᵢ) = d₁ for each i. Document d₁ arranges all three:
+
+  M(d₁) = {v₁ ↦ a₁, v₂ ↦ a₂, v₃ ↦ a₃}
+
+where v₁ < v₂ < v₃ are text-subspace V-positions. Document d₂ transcludes only the middle piece:
+
+  M(d₂) = {w₁ ↦ a₂}
+
+where w₁ is a text-subspace V-position in d₂. The I-address a₂ is the *same* address in both arrangements — a₂ ∈ ran(M(d₁)) ∩ ran(M(d₂)).
+
+Now let link ℓ ∈ dom(L) have value L(ℓ) = (F, G, Θ) where the from-endset F contains a single span covering all three addresses: coverage(F) ⊇ {a₁, a₂, a₃}. (Concretely, F = {(a₁, a₃ ⊖ a₁)} when a₁, a₂, a₃ are contiguous at the same depth.) The to-endset and type-endset are arbitrary.
+
+**Verifying F1 (satisfaction).** Consider the query Q = (⊤, {a₂}, ⊤, ⊤) — "find links whose from-endset touches a₂." We evaluate:
+
+  satisfies(ℓ, Q) ≡ (⊤ = ⊤) ∧ sat(F, {a₂}) ∧ sat(G, ⊤) ∧ sat(Θ, ⊤)
+
+The home constraint is trivially satisfied. sat(G, ⊤) = true and sat(Θ, ⊤) = true by definition. For the from-endset: sat(F, {a₂}) ≡ coverage(F) ∩ {a₂} ≠ ∅. Since a₂ ∈ coverage(F), the intersection is {a₂} ≠ ∅. Therefore satisfies(ℓ, Q) holds. The link is found despite the query naming only one of the three covered addresses.
+
+**Verifying F8 (transclusion transparency).** The query set {a₂} can be derived from either document. From d₁: the reader selects the V-span covering v₂, and resolution yields addresses(d₁, σ₁) ∋ a₂. From d₂: the reader selects the V-span covering w₁, and resolution yields addresses(d₂, σ₂) ∋ a₂. In both cases the resulting query set contains a₂, and the satisfaction predicate produces the same outcome — ℓ ∈ FindLinks(Q). The link is equally discoverable from d₁ and d₂. The viewing document is irrelevant to discovery.
+
+**Verifying F11 and F13 (projection).** We project the from-endset of ℓ onto each document:
+
+  project(ℓ, 1, d₁) = {v ∈ dom(M(d₁)) : M(d₁)(v) ∈ coverage(F)}
+
+Since M(d₁)(v₁) = a₁, M(d₁)(v₂) = a₂, M(d₁)(v₃) = a₃, and all three belong to coverage(F), we get project(ℓ, 1, d₁) = {v₁, v₂, v₃}. The full endset is visible in d₁.
+
+  project(ℓ, 1, d₂) = {v ∈ dom(M(d₂)) : M(d₂)(v) ∈ coverage(F)}
+
+Since M(d₂)(w₁) = a₂ ∈ coverage(F), and no other V-position exists in M(d₂), we get project(ℓ, 1, d₂) = {w₁}. Only the transcluded fragment is visible. The I-addresses a₁ and a₃ belong to coverage(F) but have no preimage in M(d₂), confirming F11 (projection is a subset) and illustrating the partial-coverage case. The projection is not empty (F13's condition does not hold here, since coverage(F) ∩ ran(M(d₂)) = {a₂} ≠ ∅), but it is strictly smaller than the full endset — confirming F14 (no completeness signal from the projection alone).
+
 ## Properties Introduced
 
 | Label | Statement | Status |
 |-------|-----------|--------|
 | Σ.L | L : T ⇀ Link — link store (from ASN-0047) | cited |
 | QuerySpecification | Q = (H, S₁, S₂, S₃) — home constraint and three endset constraints | introduced |
-| SearchConstraint | ⊤ or non-empty P ⊂ T | introduced |
+| SearchConstraint | ⊤ or non-empty P ⊂ T (addresses need not belong to dom(C)) | introduced |
 | HomeConstraint | ⊤ or non-empty H ⊆ E_doc | introduced |
 | EndsetSatisfaction | sat(e, P) ≡ coverage(e) ∩ P ≠ ∅ | introduced |
 | FindLinksResult | FindLinks(Q) = {a ∈ dom(L) : satisfies(a, Q)} | introduced |
@@ -326,5 +359,3 @@ Must endset projection signal whether the returned V-positions represent the com
 What guarantees must pagination provide when the link store grows — links are created — between successive page requests against the same query cursor?
 
 Must the cardinality |FindLinks(Q)| be computable without materializing the full result set, and if so, what index properties does this require?
-
-What properties must the query I-address set satisfy beyond non-emptiness — must every address in the query belong to dom(C), or may a query reference unallocated regions of the tumbler space?
