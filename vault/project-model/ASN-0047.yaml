@@ -1,6 +1,6 @@
 # ASN-0047 — State Transitions
 title: "State Transitions"
-status: "exported"
+status: "converged"
 topic: "foundation"
 depends: [34, 36, 43, 45]
 supersedes: 46

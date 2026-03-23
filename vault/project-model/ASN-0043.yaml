@@ -1,6 +1,6 @@
 # ASN-0043 — Link Ontology
 title: "Link Ontology"
-status: "exported"
+status: "converged"
 topic: "foundation"
 depends: [34, 36]
 out_of_scope: "Operations and their effects (MAKELINK, FOLLOWLINK, REMOVELINK, INSERT, DELETE, COPY, REARRANGE, CREATENEWVERSION), survivability as a case analysis over operations, V-space effects of editing (fragmentation, visibility changes), resolution and partial resolution (I-to-V conversion, document-relative following), POOM structure and V-stream mechanics, span index and indexing implementation, scale-independence and performance guarantees, sieving and filtering of discovery results, publication and access control policy (who may link, suppression of incoming links), version creation and version-spanning discovery (consequence of address sharing not link property), three-layer deletion model (identity/index/presentation), document lifecycle and document ontology, economic obligations (royalties, storage costs), enfilade implementation internals, replication and inter-server protocol (BEBE)"

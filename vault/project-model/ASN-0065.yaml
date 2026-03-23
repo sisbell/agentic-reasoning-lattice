@@ -1,6 +1,6 @@
 # ASN-0065 — REARRANGE Operation
 title: "REARRANGE Operation"
-status: "exported"
+status: "converged"
 topic: "operation"
 depends: [34, 36, 47, 53, 58]
 out_of_scope: "INSERT, DELETE, COPY operation mechanics, version creation, replication and inter-server protocol (BEBE)"
