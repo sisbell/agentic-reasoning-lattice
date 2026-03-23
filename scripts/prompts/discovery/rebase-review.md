@@ -55,11 +55,21 @@ of the document.
 4. **Registry consistency** — Labels and status must match between body and registry
 5. **No simulated tool calls** — You have everything you need in this prompt
 
-## What NOT to Review
+## What NOT to Review — CRITICAL
 
-- Pre-existing properties that were NOT rebased
+**Do NOT review anything outside the rebase scope.** This is a rebase review,
+not a general audit. The following are explicitly out of bounds:
+
+- Pre-existing properties that were NOT rebased — even if you notice issues
+- Citation bookkeeping in the properties table for non-rebased properties
+- Missing foundation label references in proofs that were not changed by the rebase
+- Prose style, naming conventions, or structural suggestions for unchanged sections
 - Scope questions (no OUT_OF_SCOPE section)
 - Correctness of the foundation properties themselves (already verified)
+
+If you find an issue outside the rebase scope, **ignore it**. It will be
+caught by a separate convergence cycle. Your job is to verify the rebase
+changes only — nothing more.
 
 ## Output Format
 

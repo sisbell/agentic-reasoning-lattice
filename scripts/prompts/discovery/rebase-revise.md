@@ -28,9 +28,8 @@ Apply these standards when fixing issues:
 A rebase review found issues with citation replacements in this ASN.
 Read the ASN at `{{asn_path}}`, then read the review below.
 
-**Scope:** Address every REVISE item. These issues concern ONLY the rebased
-properties and their downstream references. Do not modify content unrelated
-to the review findings.
+**Scope:** Address every REVISE item. Do not modify content unrelated to
+the review findings.
 
 **Targeted edits only.** Do not rewrite the ASN from scratch. Make precise
 fixes to address the specific issues raised.

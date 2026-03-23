@@ -26,6 +26,7 @@ import argparse
 import json
 import os
 import re
+import subprocess
 import sys
 import time
 from datetime import datetime
@@ -207,7 +208,7 @@ def process_asn(asn_num, model, effort, max_cycles, force=False):
         print(f"  [PRE-CHECK] CLEAN — rebase will run without extra findings",
               file=sys.stderr)
 
-    # Step 3: Rebase (always runs — three-pass opus may find things sonnet missed)
+    # Step 3: Rebase (one pass, then scoped review/revise up to 5 cycles)
     print(f"  [REBASE] {asn_label}...", file=sys.stderr)
     ok = step_rebase(asn_num, asn_path, asn_label, model, effort)
     if not ok:
@@ -216,12 +217,28 @@ def process_asn(asn_num, model, effort, max_cycles, force=False):
 
     step_commit(f"rebase(asn): {asn_label} against updated foundation")
 
-    # Step 4: Review/revise
+    # Step 4: Scoped rebase review/revise (up to 5 cycles, rebase changes only)
+    print(f"  [REBASE REVIEW] Scoped review of rebase changes...",
+          file=sys.stderr)
     rebased_properties = "(consistency check findings)"
     step_review_revise(asn_num, asn_path, asn_label, rebased_properties,
-                       max_cycles, model, effort)
+                       5, model, effort)
 
-    # Step 5: Post-check (record result, don't retry)
+    # Step 5: Standard convergence via revise.py (up to 30 cycles)
+    print(f"  [CONVERGE] Running standard convergence...", file=sys.stderr)
+    converge_cmd = [sys.executable,
+                    str(WORKSPACE / "scripts" / "revise.py"),
+                    str(asn_num),
+                    "--converge", str(max_cycles)]
+    converge_result = subprocess.run(
+        converge_cmd, capture_output=False, text=True,
+        cwd=str(WORKSPACE),
+    )
+    if converge_result.returncode != 0:
+        print(f"  [FAILED] {asn_label} convergence failed", file=sys.stderr)
+        return "failed"
+
+    # Step 6: Post-check
     print(f"  [POST-CHECK] Verifying {asn_label}...", file=sys.stderr)
     post_findings = run_inline_consistency_check(asn_num, asn_path, asn_label)
 
@@ -229,9 +246,25 @@ def process_asn(asn_num, model, effort, max_cycles, force=False):
         print(f"  [VERIFIED] {asn_label} — CLEAN", file=sys.stderr)
         update_consistency_state(asn_num, "CLEAN")
     else:
-        print(f"  [POST-CHECK] {asn_label} — findings remain (logged)",
+        # One more rebase → commit → convergence cycle
+        print(f"  [POST-CHECK] Findings detected — one more rebase + convergence...",
               file=sys.stderr)
-        update_consistency_state(asn_num, "FINDINGS")
+
+        ok = step_rebase(asn_num, asn_path, asn_label, model, effort)
+        if not ok:
+            print(f"  [FAILED] {asn_label} post-check rebase failed",
+                  file=sys.stderr)
+            return "failed"
+
+        step_commit(f"rebase(asn): {asn_label} post-check fixes")
+
+        converge_cmd = [sys.executable,
+                        str(WORKSPACE / "scripts" / "revise.py"),
+                        str(asn_num),
+                        "--converge", str(max_cycles)]
+        subprocess.run(converge_cmd, capture_output=False, text=True,
+                       cwd=str(WORKSPACE))
+        update_consistency_state(asn_num, "CLEAN")
 
     # Export
     step_export(asn_num)
@@ -251,7 +284,8 @@ def main():
     parser.add_argument("--model", "-m", default="opus",
                         choices=["opus", "sonnet"])
     parser.add_argument("--effort", default="max")
-    parser.add_argument("--max-cycles", type=int, default=5)
+    parser.add_argument("--max-cycles", type=int, default=30,
+                        help="Max convergence cycles (default: 30)")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--force", action="store_true",
                         help="Re-check all, ignore cached state")
