@@ -92,7 +92,7 @@ What distinguishes transclusion from coincidence? In conventional systems, ident
 
 regardless of whether `Σ.C(a₁) = Σ.C(a₂)`. Two independent writings of the word "hello" produce distinct I-addresses. A transclusion of existing content shares the original I-address.
 
-S4 follows from two foundation properties. T9 (ForwardAllocation, ASN-0034) covers same-allocator distinctness: later allocations are strictly greater, hence distinct from all earlier ones. T10 (PartitionIndependence, ASN-0034) covers cross-allocator distinctness: non-nesting prefixes yield disjoint subtree populations, so allocations from different allocators cannot collide. Together they guarantee that no two distinct allocations — whether from the same allocator or different allocators, whether simultaneous or separated by years — produce the same address. The two-stream architecture exploits this guarantee: when `Σ.M(d₁)(v₁) = Σ.M(d₂)(v₂)` for documents `d₁ ≠ d₂`, the system knows this is transclusion — shared content with a common origin — not coincidental value equality. The structural test for shared identity is address equality, decidable from the addresses alone (T2, ASN-0034) without value comparison.
+S4 follows from two foundation properties. T9 (ForwardAllocation, ASN-0034) covers same-allocator distinctness: later allocations are strictly greater, hence distinct from all earlier ones. T10 (PartitionIndependence, ASN-0034) covers cross-allocator distinctness: non-nesting prefixes yield disjoint subtree populations, so allocations from different allocators cannot collide. Together they guarantee that no two distinct allocations — whether from the same allocator or different allocators, whether simultaneous or separated by years — produce the same address. The two-stream architecture exploits this guarantee: when `Σ.M(d₁)(v₁) = Σ.M(d₂)(v₂)` for documents `d₁ ≠ d₂`, the system knows this is transclusion — shared content with a common origin — not coincidental value equality. The structural test for shared identity is address equality, decidable from the addresses alone (T3, ASN-0034) without value comparison.
 
 S4 creates a fundamental asymmetry in the system. The content store `C` is oblivious to values — it does not care whether `C(a₁) = C(a₂)`. But the arrangement family `M` is sensitive to addresses — two arrangements that map to the same I-address share content structurally, while two arrangements that map to different I-addresses with equal values do not. Nelson captures the distinction:
 
@@ -270,7 +270,7 @@ At depth 2 this gives min(V_S(d)) = [S, 1]. Combined with D-CTG and S8-fin, a do
 
 We now derive the general form. By D-CTG-depth (when m ≥ 3) or trivially (when m = 2, there is only one post-subspace component), all positions in V_S(d) share components 2 through m − 1. By D-MIN, min(V_S(d)) = [S, 1, …, 1], so those shared components have value 1. Every position is therefore [S, 1, …, 1, k] for varying k. D-CTG restricted to the last component forbids gaps among the k values; D-MIN gives the minimum k = 1; S8-fin bounds the maximum at some finite n. Thus:
 
-**D-SEQ — SequentialPositions (COROLLARY; from D-CTG, D-MIN, S8-fin, S8-depth).** For each document d and subspace S, if V_S(d) is non-empty then there exists n ≥ 1 such that:
+**D-SEQ — SequentialPositions (COROLLARY; from D-CTG, D-CTG-depth, D-MIN, S8-fin, S8-depth).** For each document d and subspace S, if V_S(d) is non-empty then there exists n ≥ 1 such that:
 
 `V_S(d) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n}`
 
@@ -459,11 +459,11 @@ This has a formal consequence: document equality is not decidable by content com
 | S8-fin | Finite arrangement: `dom(M(d))` is finite for every document `d` | introduced |
 | S8a | V-position well-formedness: `(A v ∈ dom(M(d)) : v₁ ≥ 1 : zeros(v) = 0 ∧ v > 0)`; link subspace deferred | introduced |
 | S8-depth | Fixed-depth V-positions: `(A d, v₁, v₂ : v₁ ∈ dom(M(d)) ∧ v₂ ∈ dom(M(d)) ∧ (v₁)₁ = (v₂)₁ : #v₁ = #v₂)` | design requirement |
-| S8 | Span decomposition (text subspace): `{(v, M(d)(v)) : v₁ ≥ 1}` decomposes into finitely many correspondence runs `(vⱼ, aⱼ, nⱼ)` with `M(d)(vⱼ + k) = aⱼ + k` for `0 ≤ k < nⱼ` | theorem from S8-fin, S8a, S2, S8-depth, T5, T10, TA5(c), TA7a (ASN-0034) |
+| S8 | Span decomposition (text subspace): `{(v, M(d)(v)) : v₁ ≥ 1}` decomposes into finitely many correspondence runs `(vⱼ, aⱼ, nⱼ)` with `M(d)(vⱼ + k) = aⱼ + k` for `0 ≤ k < nⱼ` | theorem from S8-fin, S8a, S2, S8-depth, T1, T5, T10, TA5(c), TA7a (ASN-0034) |
 | D-CTG | V-position contiguity: within each subspace, V-positions form a contiguous ordinal range with no gaps — design constraint on well-formed document states | introduced |
 | D-MIN | V-position minimum: minimum V-position in each non-empty subspace has all post-subspace components equal to 1 — design constraint | introduced |
 | D-CTG-depth | Shared prefix reduction: at depth m ≥ 3, contiguity reduces to the last component (all positions share components 2 through m − 1) | corollary from D-CTG, S8-fin, S8-depth, T0(a), T1 (ASN-0034) |
-| D-SEQ | Sequential positions: non-empty V_S(d) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n} for some n ≥ 1 | corollary from D-CTG, D-MIN, S8-fin, S8-depth |
+| D-SEQ | Sequential positions: non-empty V_S(d) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n} for some n ≥ 1 | corollary from D-CTG, D-CTG-depth, D-MIN, S8-fin, S8-depth |
 | ValidInsertionPosition | if V_S(d) ≠ ∅: v = min(V_S(d)) or v = shift(min(V_S(d)), j) with 1 ≤ j ≤ N, common depth m ≥ 2; if V_S(d) = ∅: v = [S, 1, ..., 1] of depth m ≥ 2 | introduced |
 | S9 | Two-stream separation: arrangement changes cannot alter stored content | theorem from S0 |
 
