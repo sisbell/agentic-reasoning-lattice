@@ -2,7 +2,7 @@
 title: "DELETE Operation"
 status: "converged"
 topic: "operation"
-depends: [34, 36, 47, 53, 58]
+depends: [34, 36, 43, 47, 53, 58]
 out_of_scope: "INSERT, COPY, REARRANGE operation mechanics, link semantics, version creation, replication and inter-server protocol (BEBE)"
 
 inquiry:

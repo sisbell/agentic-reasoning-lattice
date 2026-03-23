@@ -23,9 +23,9 @@ Regenerate with: `./run/generate-index.sh`
 | ASN | Title | Status | Export | Depends |
 |-----|-------|--------|--------|---------|
 | ASN-0059 | INSERT Operation | converged | current | 34,36,47,53,58 |
-| ASN-0061 | DELETE Operation | converged | current | 34,36,47,53,58 |
+| ASN-0061 | DELETE Operation | converged | current | 34,36,43,47,53,58 |
 | ASN-0065 | REARRANGE Operation | converged | current | 34,36,47,53,58 |
-| ASN-0067 | COPY Operation | converged | current | 34,36,47,53,58 |
+| ASN-0067 | COPY Operation | converged | current | 34,36,43,47,53,58 |
 | ASN-0068 | COMPAREVERSIONS Operation | defined | — | 34,36,47,53,58 |
 | ASN-0069 | CREATENEWVERSION Operation | defined | — | 34,36,47,53,58 |
 | ASN-0070 | FOLLOWLINK Operation | defined | — | 34,36,43,47,53,58 |
