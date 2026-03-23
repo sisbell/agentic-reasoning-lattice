@@ -19,23 +19,23 @@ To reason about survivability we need to formalize how a link's endsets relate t
 
 This is the set of I-addresses that the endset references and that d currently contains in its arrangement. Two boundary cases: when d's arrangement shares no I-addresses with the endset, π(e, d) = ∅; when d's arrangement contains every I-address the endset references, π(e, d) = coverage(e).
 
-**Definition — Endset Resolution.** For an endset e and document d, the *resolution* of e in d is:
+**Definition — Endset Location.** For an endset e and document d, the *location* of e in d is:
 
-`resolve(e, d) = {v ∈ dom(M(d)) : M(d)(v) ∈ coverage(e)}`
+`locate(e, d) = {v ∈ dom(M(d)) : M(d)(v) ∈ coverage(e)}`
 
 These are the V-positions in d whose content is part of the endset. Resolution gives the positions a reader would see; projection gives the underlying content identities.
 
-The two are related by M(d)'s function property (S2, ArrangementFunctionality): v ∈ resolve(e, d) iff M(d)(v) ∈ π(e, d). Since M(d) need not be injective — within-document sharing is permitted (S5, UnrestrictedSharing) — we may have |resolve(e, d)| ≥ |π(e, d)|. Multiple V-positions in d can show the same I-address, and a reader sees each occurrence.
+The two are related by M(d)'s function property (S2, ArrangementFunctionality): v ∈ locate(e, d) iff M(d)(v) ∈ π(e, d). Since M(d) need not be injective — within-document sharing is permitted (S5, UnrestrictedSharing) — we may have |locate(e, d)| ≥ |π(e, d)|. Multiple V-positions in d can show the same I-address, and a reader sees each occurrence.
 
-We observe that resolve(e, d) is fully determined by two quantities: coverage(e), which is fixed at link creation by L12 (LinkImmutability), and M(d), which is the document's current arrangement at the moment of evaluation. No prior V-position is retained; no creation-time arrangement participates. The resolution is always *fresh* — computed from the current state.
+We observe that locate(e, d) is fully determined by two quantities: coverage(e), which is fixed at link creation by L12 (LinkImmutability), and M(d), which is the document's current arrangement at the moment of evaluation. No prior V-position is retained; no creation-time arrangement participates. The resolution is always *fresh* — computed from the current state.
 
 **SV0 (ResolutionCurrentness).** For any endset e and document d:
 
-`resolve(e, d) is determined entirely by coverage(e) and the current M(d)`
+`locate(e, d) is determined entirely by coverage(e) and the current M(d)`
 
 There is no mechanism by which stale arrangement information could participate, because the link stores only I-addresses (via its endset spans), and V-addresses are derived from them through the current arrangement. This is a structural consequence, not an implementation choice — the link's data simply does not contain V-addresses to cache.
 
-**Definition — Endset Vitality.** An endset e is *vital in document d* when π(e, d) ≠ ∅ — at least one I-address that the endset references appears in d's current arrangement. Equivalently, resolve(e, d) ≠ ∅.
+**Definition — Endset Vitality.** An endset e is *vital in document d* when π(e, d) ≠ ∅ — at least one I-address that the endset references appears in d's current arrangement. Equivalently, locate(e, d) ≠ ∅.
 
 A link at address a with Σ.L(a) = (F, G, Θ) is *bilaterally vital in d* when each non-empty content endset is vital in d — that is, every non-empty endset projects to at least one I-address in d's arrangement:
 
@@ -72,17 +72,17 @@ Since coverage(e) is invariant, the question is entirely about ran(M(d)) — the
 
 ### Extension Preserves and May Enlarge
 
-Arrangement extension (K.μ⁺, ArrangementExtension) adds new V→I mappings to M(d) while preserving all existing ones. Therefore ran(M'(d)) ⊇ ran(M(d)), and:
+Arrangement extension (K.μ⁺, ArrangementExtension) adds new V→I mappings to M(d) while preserving all existing ones. Therefore ran(M'(d)) ⊇ ran(M(d)). Link-subspace extension (K.μ⁺_L, LinkSubspaceExtension) has the same monotonicity structure — it adds one new mapping `v_ℓ ↦ ℓ` to M(d) while preserving all existing mappings. Both transitions satisfy:
 
 **SV2 (ExtensionMonotonicity).** (We write π_Σ(e, d) when the state at which projection is evaluated matters; the subscript selects the state whose arrangement M(d) is used.)
 
-`(A Σ →_{K.μ⁺} Σ', e, d :: π_Σ(e, d) ⊆ π_{Σ'}(e, d))`
+`(A Σ →_{K.μ⁺/K.μ⁺_L} Σ', e, d :: π_Σ(e, d) ⊆ π_{Σ'}(e, d))`
 
 Vitality is monotonically preserved: if an endset was vital in d before extension, it remains vital afterward. Extension can only *enlarge* the projection — introducing I-addresses that were in coverage(e) but not previously in ran(M(d)). It cannot remove any.
 
 Proof: π_{Σ'}(e, d) = coverage(e) ∩ ran(M'(d)). Since coverage(e) is invariant (L12, ASN-0043) and ran(M'(d)) ⊇ ran(M(d)) (K.μ⁺ frame), we have coverage(e) ∩ ran(M'(d)) ⊇ coverage(e) ∩ ran(M(d)) = π_Σ(e, d). ∎
 
-*For resolution:* resolve_Σ(e, d) ⊆ resolve_{Σ'}(e, d). Let v ∈ resolve_Σ(e, d). Then v ∈ dom(M(d)) and M(d)(v) ∈ coverage(e). Since K.μ⁺ preserves existing mappings (dom(M(d)) ⊆ dom(M'(d)) with M'(d)(v) = M(d)(v) for all v ∈ dom(M(d))), we have v ∈ dom(M'(d)) and M'(d)(v) = M(d)(v) ∈ coverage(e), giving v ∈ resolve_{Σ'}(e, d). New V-positions in dom(M'(d)) \ dom(M(d)) may additionally enter the resolve set when their I-addresses lie in coverage(e). ∎
+*For resolution:* locate_Σ(e, d) ⊆ locate_{Σ'}(e, d). Let v ∈ locate_Σ(e, d). Then v ∈ dom(M(d)) and M(d)(v) ∈ coverage(e). Since K.μ⁺ preserves existing mappings (dom(M(d)) ⊆ dom(M'(d)) with M'(d)(v) = M(d)(v) for all v ∈ dom(M(d))), we have v ∈ dom(M'(d)) and M'(d)(v) = M(d)(v) ∈ coverage(e), giving v ∈ locate_{Σ'}(e, d). New V-positions in dom(M'(d)) \ dom(M(d)) may additionally enter the locate set when their I-addresses lie in coverage(e). ∎
 
 
 ### Contraction May Reduce
@@ -105,18 +105,18 @@ which requires: `(A a : a ∈ coverage(e) ∩ ran(M(d)) : a ∉ ran(M'(d)))` —
 
 Nelson's survivability condition — "if anything is left at each end" — is precisely the negation of this: as long as at least one I-address from the endset remains in d's arrangement, the endset survives in d.
 
-*For resolution:* resolve_{Σ'}(e, d) ⊆ resolve_Σ(e, d). Let v ∈ resolve_{Σ'}(e, d). Then v ∈ dom(M'(d)) and M'(d)(v) ∈ coverage(e). Since K.μ⁻ restricts the domain (dom(M'(d)) ⊂ dom(M(d))) while preserving values (M'(d)(v) = M(d)(v) for all v ∈ dom(M'(d))), we have v ∈ dom(M(d)) and M(d)(v) = M'(d)(v) ∈ coverage(e), giving v ∈ resolve_Σ(e, d). ∎
+*For resolution:* locate_{Σ'}(e, d) ⊆ locate_Σ(e, d). Let v ∈ locate_{Σ'}(e, d). Then v ∈ dom(M'(d)) and M'(d)(v) ∈ coverage(e). Since K.μ⁻ restricts the domain (dom(M'(d)) ⊂ dom(M(d))) while preserving values (M'(d)(v) = M(d)(v) for all v ∈ dom(M'(d))), we have v ∈ dom(M(d)) and M(d)(v) = M'(d)(v) ∈ coverage(e), giving v ∈ locate_Σ(e, d). ∎
 
 
 ### Contraction Is Document-Local
 
 **SV4 (ArrangementIsolation).**
 
-`(A Σ →_{K.μ⁺/K.μ⁻/K.μ~} Σ', e, d, d' : d ≠ d' :: π_{Σ'}(e, d') = π_Σ(e, d'))`
+`(A Σ →_{K.μ⁺/K.μ⁺_L/K.μ⁻/K.μ~} Σ', e, d, d' : d ≠ d' :: π_{Σ'}(e, d') = π_Σ(e, d'))`
 
-Arrangement operations on document d do not alter any other document's arrangement (frame conditions of K.μ⁺, K.μ⁻, K.μ~: `(A d' : d' ≠ d : M'(d') = M(d'))`). Therefore π_{Σ'}(e, d') = coverage(e) ∩ ran(M'(d')) = coverage(e) ∩ ran(M(d')) = π_Σ(e, d').
+Arrangement operations on document d do not alter any other document's arrangement (frame conditions of K.μ⁺, K.μ⁺_L, K.μ⁻, K.μ~: `(A d' : d' ≠ d : M'(d') = M(d'))`). Therefore π_{Σ'}(e, d') = coverage(e) ∩ ran(M'(d')) = coverage(e) ∩ ran(M(d')) = π_Σ(e, d').
 
-*For resolution:* `resolve_{Σ'}(e, d') = resolve_Σ(e, d')`. Since M'(d') = M(d') (frame), resolve_{Σ'}(e, d') = {v ∈ dom(M'(d')) : M'(d')(v) ∈ coverage(e)} = {v ∈ dom(M(d')) : M(d')(v) ∈ coverage(e)} = resolve_Σ(e, d'). ∎
+*For resolution:* `locate_{Σ'}(e, d') = locate_Σ(e, d')`. Since M'(d') = M(d') (frame), locate_{Σ'}(e, d') = {v ∈ dom(M'(d')) : M'(d')(v) ∈ coverage(e)} = {v ∈ dom(M(d')) : M(d')(v) ∈ coverage(e)} = locate_Σ(e, d'). ∎
 
 This is a crucial survivability guarantee: one user's editing of their document cannot affect the projection of any endset in any other user's document. If Alice links to a passage in Bob's document, and Bob deletes that passage, the link's projection in *Alice's* document is unaffected. Only the projection in *Bob's* document changes.
 
@@ -133,18 +133,18 @@ Arrangement reordering (K.μ~, ArrangementReordering) is a bijection on V-positi
 
 Rearrangement cannot change which I-addresses are in the projection. The endset references exactly the same content before and after. What changes is *where* that content appears. Let ψ be the reordering bijection from K.μ~ (so that M'(d)(ψ(v)) = M(d)(v) for all v ∈ dom(M(d))). The formal relationship is:
 
-`resolve_{Σ'}(e, d) = {ψ(v) : v ∈ resolve_Σ(e, d)}`
+`locate_{Σ'}(e, d) = {ψ(v) : v ∈ locate_Σ(e, d)}`
 
-*Proof.* v' ∈ resolve_{Σ'}(e, d) iff v' ∈ dom(M'(d)) and M'(d)(v') ∈ coverage(e). Since ψ is a bijection from dom(M(d)) to dom(M'(d)), every v' ∈ dom(M'(d)) equals ψ(v) for a unique v ∈ dom(M(d)), and M'(d)(ψ(v)) = M(d)(v). So M'(d)(v') ∈ coverage(e) iff M(d)(v) ∈ coverage(e) iff v ∈ resolve_Σ(e, d). ∎
+*Proof.* v' ∈ locate_{Σ'}(e, d) iff v' ∈ dom(M'(d)) and M'(d)(v') ∈ coverage(e). Since ψ is a bijection from dom(M(d)) to dom(M'(d)), every v' ∈ dom(M'(d)) equals ψ(v) for a unique v ∈ dom(M(d)), and M'(d)(ψ(v)) = M(d)(v). So M'(d)(v') ∈ coverage(e) iff M(d)(v) ∈ coverage(e) iff v ∈ locate_Σ(e, d). ∎
 
-In general, resolve_{Σ'}(e, d) ≠ resolve_Σ(e, d) as sets. *Witness:* let dom(M(d)) = {v₁, v₂} with M(d) = {v₁ ↦ a₁, v₂ ↦ a₂}, and let coverage(e) = {a₁} (so resolve_Σ(e, d) = {v₁}). The swap ψ(v₁) = v₂, ψ(v₂) = v₁ gives M'(d) = {v₁ ↦ a₂, v₂ ↦ a₁}, so resolve_{Σ'}(e, d) = {v₂} ≠ {v₁}. The resolve set changes whenever ψ maps a V-position inside the resolve set to one outside it, or vice versa.
+In general, locate_{Σ'}(e, d) ≠ locate_Σ(e, d) as sets. *Witness:* let dom(M(d)) = {v₁, v₂} with M(d) = {v₁ ↦ a₁, v₂ ↦ a₂}, and let coverage(e) = {a₁} (so locate_Σ(e, d) = {v₁}). The swap ψ(v₁) = v₂, ψ(v₂) = v₁ gives M'(d) = {v₁ ↦ a₂, v₂ ↦ a₁}, so locate_{Σ'}(e, d) = {v₂} ≠ {v₁}. The locate set changes whenever ψ maps a V-position inside the locate set to one outside it, or vice versa.
 
 This is the precise sense in which links "track content, not location." The strap-between-bytes metaphor (Nelson: "A Xanadu link is not between points, but between spans of data. Thus we may visualize it as a strap between bytes" [LM 4/42]) expresses this property: rearranging the beads on the string doesn't alter which beads the strap holds, only where they sit.
 
 
 ### Content Allocation and Coverage Stability
 
-Content allocation (K.α, ContentAllocation) creates a new I-address a ∉ dom(Σ.C). Its frame holds M constant: `(A d :: M'(d) = M(d))`. So π and resolve are trivially unchanged by K.α itself.
+Content allocation (K.α, ContentAllocation) creates a new I-address a ∉ dom(Σ.C). Its frame holds M constant: `(A d :: M'(d) = M(d))`. So π and locate are trivially unchanged by K.α itself.
 
 The deeper question is: could a newly allocated I-address fall within the coverage of an existing endset? If so, a subsequent K.μ⁺ mapping a V-position to this address would enlarge the endset's projection — the endset would appear to absorb new content never part of the original link.
 
@@ -245,7 +245,7 @@ When contraction removes some but not all of an endset's I-addresses from a docu
 
 `π_text(e, d) = (∪ j, k : 1 ≤ j ≤ m ∧ 1 ≤ k ≤ p : ⟦(sⱼ, ℓⱼ)⟧ ∩ I(β_k))`
 
-(The full projection π(e, d) = coverage(e) ∩ ran(M(d)) may additionally include I-addresses reached through non-text-subspace V-positions, if any exist in M(d). The link-subspace contribution is deferred to the Link Subspace ASN. In the current foundation model, no defined operation creates non-text V-positions, so π_text(e, d) = π(e, d) for all reachable states.)
+(The full projection π(e, d) = coverage(e) ∩ ran(M(d)) may additionally include I-addresses reached through link-subspace V-positions. K.μ⁺_L (LinkSubspaceExtension, ASN-0047) creates link-subspace V-positions `v_ℓ ↦ ℓ` where `subspace(v_ℓ) = s_L`, so π_text(e, d) ⊆ π(e, d) in general. The link-subspace contribution to projection — including links whose endsets reference other link addresses (L13, ReflexiveAddressing) — is deferred to the Link Subspace ASN.)
 
 Consider each term ⟦(sⱼ, ℓⱼ)⟧ ∩ I(β_k). The span ⟦(sⱼ, ℓⱼ)⟧ is convex by S0 (Convexity). The set I(β_k) = {a_k + j : 0 ≤ j < n_k} is not itself convex in T — child-depth tumblers create gaps between consecutive ordinal increments — but we do not need it to be. For ordinal indices j₁ < j₂ < j₃ with a_k + j₁ and a_k + j₃ both in ⟦(sⱼ, ℓⱼ)⟧, we have a_k + j₁ < a_k + j₂ < a_k + j₃ (by TA-strict), so by the convexity of the span (S0), a_k + j₂ ∈ ⟦(sⱼ, ℓⱼ)⟧. Hence the intersection is contiguous within the ordinal sequence of I(β_k): if the first and last elements of the intersection have ordinal offsets j₁ and j₂ respectively, then every intermediate element a_k + j with j₁ ≤ j ≤ j₂ also lies in the intersection. Therefore π_text(e, d) decomposes into finitely many *fragments*, each a contiguous ordinal subsequence within some mapping block's I-extent, compactly described by its first element and count: (a_k + j₁, j₂ − j₁ + 1). The number of fragments is bounded by m · p.
 
@@ -271,15 +271,15 @@ A link at address b is created with from-endset F = {(a₂, ℓ)}, where ℓ = a
 *Initial state — projection, resolution, discovery.*
 
 - π(F, d) = coverage(F) ∩ ran(M(d)) = {a₂, a₃, a₄}
-- resolve(F, d) = {v ∈ dom(M(d)) : M(d)(v) ∈ coverage(F)} = {v₂, v₃, v₄}
+- locate(F, d) = {v ∈ dom(M(d)) : M(d)(v) ∈ coverage(F)} = {v₂, v₃, v₄}
 - discover_from({a₃}) = {b}, since coverage(F) ∩ {a₃} = {a₃} ≠ ∅
 
-The from-endset is vital in d: π(F, d) ≠ ∅. Both π and resolve are determined entirely by coverage(F) and the current M(d) (SV0).
+The from-endset is vital in d: π(F, d) ≠ ∅. Both π and locate are determined entirely by coverage(F) and the current M(d) (SV0).
 
 *After contraction.* A K.μ⁻ step removes the mapping at v₃, producing M'(d) with dom(M'(d)) = {v₁, v₂, v₄, v₅} and ran(M'(d)) = {a₁, a₂, a₄, a₅}:
 
 - π(F, d) = coverage(F) ∩ ran(M'(d)) = {a₂, a₄} — reduced (SV3)
-- resolve(F, d) = {v₂, v₄}
+- locate(F, d) = {v₂, v₄}
 - discover_from({a₃}) = {b} — unchanged, because coverage(F) is invariant (L12, ASN-0043) and a₃ ∈ coverage(F) regardless of M(d) (SV8)
 
 The endset remains vital but with reduced projection. The removal of a₃ from M(d) has split the endset's visible region into two fragments. To see the decomposition of SV11: the post-contraction arrangement has two mapping blocks — β₁ = (v₁, a₁, 2) covering {v₁, v₂} with I-extent {a₁, a₂}, and β₂ = (v₄, a₄, 2) covering {v₄, v₅} with I-extent {a₄, a₅}. The SV11 terms are:
@@ -294,9 +294,9 @@ Discovery through d still works for queries including a₂ or a₄. But discover
 *After reordering.* From the post-contraction state, a K.μ~ step swaps v₂ and v₄: M''(d)(v₂) = a₄, M''(d)(v₄) = a₂ (with v₁ and v₅ unchanged). Since ran(M''(d)) = ran(M'(d)):
 
 - π(F, d) = {a₂, a₄} — unchanged (SV5)
-- resolve(F, d) = {v₂, v₄} — the V-positions happen to be the same set, because π permutes within the resolve set (both v₂ and v₄ map to I-addresses in coverage(F) before and after the swap)
+- locate(F, d) = {v₂, v₄} — the V-positions happen to be the same set, because π permutes within the locate set (both v₂ and v₄ map to I-addresses in coverage(F) before and after the swap)
 
-Note: this worked example illustrates a special case where the resolve *set* is preserved because the swap exchanges two V-positions that both belong to the resolve set. In the general case, the resolve set changes — see the witness in the SV5 discussion. The formal relationship resolve_{Σ'}(F, d) = {ψ(v) : v ∈ resolve_Σ(F, d)} holds here: ψ(v₂) = v₄ and ψ(v₄) = v₂, so {ψ(v₂), ψ(v₄)} = {v₂, v₄} = resolve_Σ(F, d).
+Note: this worked example illustrates a special case where the locate *set* is preserved because the swap exchanges two V-positions that both belong to the locate set. In the general case, the locate set changes — see the witness in the SV5 discussion. The formal relationship locate_{Σ'}(F, d) = {ψ(v) : v ∈ locate_Σ(F, d)} holds here: ψ(v₂) = v₄ and ψ(v₄) = v₂, so {ψ(v₂), ψ(v₄)} = {v₂, v₄} = locate_Σ(F, d).
 
 The projection is invariant under reordering; the resolution set transforms by the reordering bijection ψ.
 
@@ -327,11 +327,11 @@ We can now synthesize the survivability guarantee into a single coherent stateme
 (d) *Discovery is permanent:* if a ∈ discover_s(A) in Σ for some fixed A, then a ∈ discover_s(A) in Σ'. [SV8]
 
 (e) *Resolution is arrangement-dependent:*
-- Extension of M(d) can only enlarge resolve(e, d). [SV2]
-- Contraction of M(d) can only shrink resolve(e, d). [SV3]
-- Reordering of M(d) preserves π(e, d); resolve_{Σ'}(e, d) = {ψ(v) : v ∈ resolve_Σ(e, d)} where ψ is the reordering bijection from K.μ~. The resolve *set* may change. [SV5]
-- Changes to M(d) cannot affect resolve(e, d') for d' ≠ d. [SV4]
-- All other elementary transitions (K.α, K.δ, K.ρ) preserve M in their frame, so resolve(e, d) is unchanged.
+- Extension of M(d) — whether K.μ⁺ (content subspace) or K.μ⁺_L (link subspace) — can only enlarge locate(e, d). [SV2]
+- Contraction of M(d) can only shrink locate(e, d). [SV3]
+- Reordering of M(d) preserves π(e, d); locate_{Σ'}(e, d) = {ψ(v) : v ∈ locate_Σ(e, d)} where ψ is the reordering bijection from K.μ~. The locate *set* may change. [SV5]
+- Changes to M(d) cannot affect locate(e, d') for d' ≠ d. [SV4]
+- All other elementary transitions (K.α, K.δ, K.λ, K.ρ) preserve M in their frame, so locate(e, d) is unchanged.
 
 (f) *Coverage stability is level-dependent:* new allocations from a different origin cannot enter existing endset spans when the span start is element-level and the action point is within the element field — this is formally proved from the foundations (SV6). Same-origin coverage growth depends on the allocation regime — closed at the byte level by sequential sibling allocation, open at broader address levels by design (the byte-level closure follows from allocation discipline assumptions not formalised in this ASN; see the architectural analysis in the "Content Allocation and Coverage Stability" section).
 
@@ -347,15 +347,15 @@ Nelson's "strap between bytes" is exactly right. The strap (the link's endsets) 
 | Label | Statement | Status |
 |-------|-----------|--------|
 | π(e, d) | Endset projection: `coverage(e) ∩ ran(M(d))` | introduced |
-| resolve(e, d) | Endset resolution: `{v ∈ dom(M(d)) : M(d)(v) ∈ coverage(e)}` | introduced |
+| locate(e, d) | Endset location: `{v ∈ dom(M(d)) : M(d)(v) ∈ coverage(e)}` | introduced |
 | Vitality | Endset e is vital in d when `π(e, d) ≠ ∅` | introduced |
 | BilateralVitality | Link is bilaterally vital in d when each non-empty content endset is vital in d | introduced |
 | discover_s(A) | Link discovery: `{a ∈ dom(L) : coverage(L(a).s) ∩ A ≠ ∅}` | introduced |
-| SV0 | ResolutionCurrentness: resolve(e, d) is determined by coverage(e) and current M(d) | introduced |
+| SV0 | ResolutionCurrentness: locate(e, d) is determined by coverage(e) and current M(d) | introduced |
 | SV1 | ArrangementLinkFrame: arrangement changes preserve L entirely (= L12, ASN-0043) | cited |
-| SV2 | ExtensionMonotonicity: K.μ⁺ can only enlarge π(e, d) | introduced |
+| SV2 | ExtensionMonotonicity: K.μ⁺/K.μ⁺_L can only enlarge π(e, d) | introduced |
 | SV3 | ContractionReduction: K.μ⁻ can only shrink π(e, d) | introduced |
-| SV4 | ArrangementIsolation: arrangement changes to M(d) do not affect π(e, d') or resolve(e, d') for d' ≠ d | introduced |
+| SV4 | ArrangementIsolation: arrangement changes to M(d) do not affect π(e, d') or locate(e, d') for d' ≠ d | introduced |
 | SV5 | ReorderingProjectionInvariance: K.μ~ preserves π(e, d) exactly | introduced |
 | SV6 | CrossOriginExclusion: allocations from a different document prefix cannot enter existing endset spans (within element field) | introduced |
 | SV7 | TransclusionCouplingAbsence: K.μ⁺ alone suffices for d₂ to inherit link discoverability — no K.ρ or link-store coupling required (corollary of SV8) | introduced |
