@@ -275,6 +275,8 @@ def main():
         description="Batch rebase — check and rebase all ASNs in dependency order")
     parser.add_argument("--exclude", "-x", nargs="+", type=int, default=[],
                         help="ASN numbers to exclude")
+    parser.add_argument("--topic", "-t",
+                        help="Only process ASNs with this topic")
     parser.add_argument("--model", "-m", default="opus",
                         choices=["opus", "sonnet"])
     parser.add_argument("--effort", default="max")
@@ -286,6 +288,17 @@ def main():
 
     all_active = get_active_asns()
     asn_nums = [n for n in all_active if n not in args.exclude]
+
+    if args.topic:
+        filtered = [n for n in asn_nums
+                    if (load_manifest(n) or {}).get("topic") == args.topic]
+        if not filtered:
+            known = sorted(set((load_manifest(n) or {}).get("topic", "")
+                               for n in asn_nums) - {""})
+            print(f"  [ERROR] No ASNs with topic '{args.topic}'. "
+                  f"Known topics: {', '.join(known)}", file=sys.stderr)
+            sys.exit(1)
+        asn_nums = filtered
 
     graph = build_dep_graph(asn_nums)
     ordered = topological_sort(graph)
