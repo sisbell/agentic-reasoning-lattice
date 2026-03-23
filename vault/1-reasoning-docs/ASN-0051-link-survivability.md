@@ -195,7 +195,7 @@ In practice, the query set A is derived from a document's arrangement: a reader 
 
 We observe that discover_s is defined purely as a function of an I-address set — it is parameterised by I-addresses, not by document-V-region pairs. So identical I-address sets trivially yield identical discovery results. The interesting consequence is not this definitional fact but the *transclusion discovery guarantee* it entails.
 
-**SV7 (TransclusionCouplingAbsence).** When K.μ⁺ extends M(d₂) with a mapping v ↦ a where a ∈ ran(M(d₁)), the link discoverability through a in d₂ requires no coupling step beyond K.μ⁺ itself. Formally, for any K.μ⁺ or K.μ⁺_L transition Σ → Σ' and any set of I-addresses A:
+**SV7 (TransclusionCouplingAbsence).** When K.μ⁺ extends M(d₂) with a mapping v ↦ a where a ∈ ran(M(d₁)), the link discoverability through a in d₂ requires no coupling step beyond K.μ⁺ itself. Formally, for any transition Σ → Σ' that holds L in frame and any set of I-addresses A:
 
 `discover_s(A) in Σ' = discover_s(A) in Σ`
 
@@ -349,7 +349,7 @@ We can now synthesize the survivability guarantee into a single coherent stateme
 
 (f) *Cross-origin coverage exclusion:* new allocations from a different origin cannot enter existing endset spans when the span start is element-level and the action point is within the element field. [SV6]
 
-*Remark (same-origin coverage growth).* Same-origin coverage growth depends on the allocation regime. At the byte level, sequential sibling allocation closes existing spans to future allocations; at broader address levels, coverage growth is open by design. The byte-level closure follows from allocation discipline assumptions not formalised in this ASN; see the architectural analysis in the "Content Allocation and Coverage Stability" section.
+*Remark (same-origin coverage growth).* Same-origin coverage growth depends on the allocation regime. At the byte level, sequential sibling allocation closes existing spans whose coverage is fully allocated (tight spans) to future sibling allocations; spans whose reach extends beyond the current allocation maximum remain open to sequential overshoot, and child-depth allocation (TA5(d) with k' > 0) can enter any span containing the parent address. At broader address levels, coverage growth is open by design. See the detailed analysis in the "Content Allocation and Coverage Stability" section.
 
 (g) *Partial survival is well-structured:* the surviving text-subspace projection in any document is covered by finitely many ordinal-contiguous fragments within mapping blocks (a cover, not necessarily a partition, due to non-injective arrangements). [SV11]
 
