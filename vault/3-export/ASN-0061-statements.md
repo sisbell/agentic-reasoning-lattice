@@ -1,6 +1,6 @@
 # ASN-0061 Formal Statements
 
-*Source: ASN-0061-delete-operation.md (revised 2026-03-21) — Extracted: 2026-03-22*
+*Source: ASN-0061-delete-operation.md (revised 2026-03-21) — Extracted: 2026-03-23*
 
 ## Definition — OrdinalExtraction
 
@@ -24,19 +24,17 @@ For a V-depth displacement w with w₁ = 0 and #w = m, the *ordinal displacement
 
 `w_ord = [w₂, ..., wₘ]`
 
-of depth m − 1. At the restricted depth m = 2, w = [0, c] for positive integer c, and w_ord = [c].
+of depth m − 1. At the restricted depth m = 2: w = [0, c] for positive integer c, and w_ord = [c].
 
 ## Definition — ThreeRegions
 
-Let r = p ⊕ w (the right cut point — exclusive upper bound of the deletion).
+Let r = p ⊕ w denote the right cut point.
 
 ```
 L = {v ∈ V_S(d) : v < p}            — left of deletion
 X = {v ∈ V_S(d) : p ≤ v < r}        — the deleted interval
 R = {v ∈ V_S(d) : v ≥ r}            — right of deletion
 ```
-
-Q₃ = {σ(v) : v ∈ R} denotes the set of shifted right-region positions.
 
 ## Definition — ContentOrphan
 
@@ -54,23 +52,27 @@ For each document d and subspace S, V_S(d) is either empty or occupies every int
 
 Where V_S(d) = {v ∈ dom(M(d)) : subspace(v) = S}.
 
+## D-MIN — VMinimumPosition (INV, predicate)
+
+The minimum V-position in each non-empty subspace S of document d is [S, 1, ..., 1].
+
 ## D-PRE — DeletePrecondition (PRE, requires)
 
-DELETE(d, S, p, w) requires all of:
+DELETE(d, S, p, w) requires:
 
-(i) `d ∈ E_doc`
+(i) d ∈ E_doc
 
-(ii) `w > 0`
+(ii) w > 0
 
-(iii) `subspace(p) = S` where `S ≥ 1`
+(iii) subspace(p) = S where S = s_C
 
-(iv) `#p = 2`
+(iv) #p = 2
 
 (v) `(A v : subspace(v) = S ∧ #v = #p ∧ p ≤ v < p ⊕ w : v ∈ V_S(d))`
 
-(vi) `#w = #p`
+(vi) #w = #p
 
-(vii) `w₁ = 0`
+(vii) w₁ = 0
 
 ## D-LEFT — LeftInvariance (POST, ensures)
 
@@ -80,23 +82,23 @@ DELETE(d, S, p, w) requires all of:
 
 `dom(M'(d)) ∩ {v : subspace(v) = S} = L ∪ {σ(v) : v ∈ R}`
 
-where Q₃ = {σ(v) : v ∈ R} is the set of shifted right-region positions.
+where Q₃ = {σ(v) : v ∈ R} and σ is defined by D-SHIFT.
 
 ## D-SHIFT — RightShift (POST, ensures)
 
+For v ∈ R, define σ(v) = vpos(S, ord(v) ⊖ w_ord). Then:
+
 `(A v : v ∈ R : σ(v) ∈ dom(M'(d)) ∧ M'(d)(σ(v)) = M(d)(v))`
 
-where σ(v) = vpos(S, ord(v) ⊖ w_ord).
+## D-CF — ContentFrame (FRAME, ensures)
 
-## D-CF — ContentFrame (FRAME, frame)
+`C' = C  ∧  L' = L  ∧  E' = E  ∧  R' = R`
 
-`C' = C  ∧  E' = E  ∧  R' = R`
-
-## D-XD — CrossDocumentFrame (FRAME, frame)
+## D-XD — CrossDocumentFrame (FRAME, ensures)
 
 `(A d' : d' ≠ d : M'(d') = M(d'))`
 
-## D-XS — SubspaceConfinement (FRAME, frame)
+## D-XS — SubspaceConfinement (FRAME, ensures)
 
 `(A v : v ∈ dom(M(d)) ∧ subspace(v) ≠ S : v ∈ dom(M'(d)) ∧ M'(d)(v) = M(d)(v))`
 
@@ -110,31 +112,25 @@ The map σ : R → Q₃ is an order-preserving bijection:
 
 `(A v₁, v₂ ∈ R : v₁ < v₂ ⟹ σ(v₁) < σ(v₂))`
 
-Order preservation implies injectivity: v₁ ≠ v₂ ⟹ σ(v₁) ≠ σ(v₂).
-
-Preconditions used: all ordinals in R share the same depth (S8-depth); for any v ∈ R, ord(v) ≥ ord(r) = ord(p) ⊕ w_ord; TA3-strict: a < b ∧ a ≥ w ∧ b ≥ w ∧ #a = #b ⟹ a ⊖ w < b ⊖ w.
+Preconditions: all ordinals in R share the same depth (S8-depth); for any v ∈ R, ord(v) ≥ w_ord.
 
 ## D-SEP — GapClosure (LEMMA, lemma)
 
 The minimum shifted ordinal equals ord(p):
 
-`ord(r) ⊖ w_ord = ord(p)`
+`σ(r) has ordinal ord(r) ⊖ w_ord = ord(p)`
 
-where r = p ⊕ w. Equivalently:
+Specifically: (ord(p) ⊕ w_ord) ⊖ w_ord = ord(p). At restricted depth #p = 2: ord(p) = [p₂], w_ord = [c], so [p₂ + c] ⊖ [c] = [p₂] = ord(p).
 
-`(ord(p) ⊕ w_ord) ⊖ w_ord = ord(p)`
+## D-DP — ArrangementStructurePreservation (LEMMA, lemma)
 
-At restricted depth #p = 2: ord(p) = [p₂], w_ord = [c], so [p₂ + c] ⊖ [c] = [p₂] by TA4 (PartialInverse) with k = 1 and the zero-prefix condition vacuously satisfied.
-
-## D-DP — ContiguityPreservation (LEMMA, lemma)
-
-If D-CTG holds in state Σ, and DELETE(d, S, p, w) satisfies D-PRE, then D-CTG holds in successor state Σ'.
+If D-CTG and D-MIN hold in state Σ, and DELETE(d, S, p, w) satisfies D-PRE, then D-CTG and D-MIN hold in successor state Σ'.
 
 ## D-WR — WidthReduction (COROLLARY, lemma)
 
 `|V_S'(d)| = |V_S(d)| − |X|`
 
-Since |L| + |X| + |R| = |V_S(d)| and |V_S'(d)| = |L| + |R| (positions in L survive unchanged, positions in R are shifted bijectively by D-BJ).
+Where |L| + |X| + |R| = |V_S(d)| and |V_S'(d)| = |L| + |R| (D-BJ establishes σ is a bijection on R).
 
 ## D-BLK — BlockTransformation (LEMMA, lemma)
 
@@ -142,41 +138,31 @@ The post-DELETE block decomposition is:
 
 `B' = B_other ∪ B_left ∪ {(σ(v_R), a_R, n_R) : (v_R, a_R, n_R) ∈ B_right}`
 
-where:
-- `B_other = {β ∈ B : subspace(v(β)) ≠ S}` — non-S blocks, unchanged
-- `B_left` — surviving left pieces from block cases (a), (b), (f)
-- `B_right` — surviving right pieces from block cases (d), (e), (f)
+where B_other = {β ∈ B : subspace(v(β)) ≠ S}, B_left collects surviving left pieces from cases (a), (b), (f), and B_right collects surviving right pieces from cases (d), (e), (f).
 
-Block partition cases for β = (v, a, n) ∈ B_S with v_end = shift(v, n) and r = p ⊕ w:
+The six block cases for β = (v, a, n) ∈ B_S with v_end = shift(v, n):
 
-(a) v_end ≤ p — entirely in L; block untouched
+- (a) v_end ≤ p: block untouched → B_left
+- (b) v < p < v_end ≤ r: split at c₁ where ord(v) + c₁ = ord(p); left piece (v, a, c₁) → B_left
+- (c) p ≤ v and v_end ≤ r: block removed
+- (d) p ≤ v < r < v_end: split at c₂ where ord(v) + c₂ = ord(r); right piece (r, a + c₂, n − c₂) shifted to (σ(r), a + c₂, n − c₂) → B_right
+- (e) v ≥ r: block shifted; β' = (σ(v), a, n) → B_right
+- (f) v < p and v_end > r: two splits; left piece (v, a, c₁) → B_left; right piece (r, a + c₂, n − c₂) shifted to (σ(r), a + c₂, n − c₂) → B_right
 
-(b) v < p < v_end ≤ r — straddles left cut only; split at c₁ where v + c₁ = p; β_L = (v, a, c₁) survives; right piece removed
-
-(c) p ≤ v and v_end ≤ r — entirely in X; removed
-
-(d) p ≤ v < r < v_end — straddles right cut only; split at c₂ where v + c₂ = r; β_R = (r, a + c₂, n − c₂) survives, shifted to (σ(r), a + c₂, n − c₂)
-
-(e) v ≥ r — entirely in R; β' = (σ(v), a, n)
-
-(f) v < p and v_end > r — straddles both cuts; left survivor β_L = (v, a, c₁) where v + c₁ = p; middle removed; right survivor (σ(r), a + c₂, n − c₂) where v + c₂ = r
+B' satisfies B1 (coverage), B2 (disjointness), B3 (consistency).
 
 ## D-ORPH — OrphanCreation (LEMMA, lemma)
 
-If:
-- `a ∈ ran(M_S(d))`
-- `(A v' : v' ∈ V_S(d) ∧ M(d)(v') = a : v' ∈ X)`
+If a ∈ ran(M_S(d)) and:
+
+- `(A v' : v' ∈ V_S(d) ∧ M(d)(v') = a : v' ∈ X)` (all within-document S-mappings to a lie in X)
 - `a ∉ ran(M_{S'}(d))` for all S' ≠ S
 - `a ∉ ran(M(d'))` for all d' ≠ d
 
-Then after DELETE, a is orphaned:
-
-`a ∈ dom(C') ∧ (A d'' ∈ E'_doc : a ∉ ran(M'(d'')))`
+then after DELETE, a is orphaned: `a ∈ dom(C') ∧ (A d'' ∈ E_doc : a ∉ ran(M'(d''))`.
 
 ## D-PSTALE — ProvenanceStaleness (LEMMA, lemma)
 
 `(E Σ, (d, S, p, w) satisfying D-PRE, Σ' = DELETE(Σ, d, S, p, w) :: Contains(Σ') ⊂ R')`
 
-where Contains(Σ) = {(a, d) : a ∈ ran(M(d)) ∧ d ∈ E_doc}.
-
-Witness: take a = M(d)(v) for some v ∈ X such that `(A v' : v' ∈ dom(M(d)) ∧ M(d)(v') = a : v' ∈ X)` and `a ∉ ran(M(d'))` for all d' ≠ d. Then (a, d) ∈ R' (since R' = R and (a, d) ∈ Contains(Σ) ⊆ R) but (a, d) ∉ Contains(Σ') by D-ORPH.
+Where Contains(Σ) = {(a, d) : a ∈ ran(M(d))}. After DELETE, R' = R but Contains(Σ') ⊊ Contains(Σ) ⊆ R = R' whenever conditions of D-ORPH are satisfied.
