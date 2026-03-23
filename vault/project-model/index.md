@@ -37,7 +37,7 @@ Generated from vault/project-model/ASN-*.yaml
 
 | ASN | Title | Status | Depends |
 |-----|-------|--------|---------|
-| ASN-0078 | CREATELINK Operation | inquiry | 34, 36, 43, 47, 53, 58 |
+| ASN-0078 | CREATELINK Operation | inquiry | 34, 36, 43, 47, 51, 53, 58 |
 | ASN-0079 | FINDLINKS Operation | inquiry | 34, 36, 43, 47, 53, 58 |
 | ASN-0068 | COMPAREVERSIONS Operation | inquiry | 34, 36, 47, 53, 58 |
 | ASN-0069 | CREATENEWVERSION Operation | inquiry | 34, 36, 47, 53, 58 |
