@@ -91,7 +91,7 @@ The critical property — the one that distinguishes this design from systems wh
 Nelson makes this a first principle: "A link need not point anywhere in its home document. Its home document indicates who owns it, and not what it points to. Conversely, links connecting parts of a document need not reside in that document." This separation of residence from reference is what permits annotation without modification. Your link lives in your document, under your authority, even though its endsets reach into someone else's content. The annotated document is untouched — no byte added, no structure modified, no permission required.
 
 
-## The Three-Endset Structure
+## The Endset Structure
 
 What internal structure must a link have? We seek the minimal structure sufficient for typed, directional connections between arbitrary spans.
 
@@ -103,9 +103,11 @@ Nelson's design resolves this not by adding a metadata field — a type tag bolt
 
 1. **Extensibility.** Any user can define new types by choosing new addresses, without schema changes. Nelson: "The set of link types is open-ended, and indeed any user may define his or her link types for a particular purpose."
 
-2. **Uniformity.** All three endsets have the same representation — a set of spans in the tumbler space. The link is a homogeneous triple, not a pair-plus-metadata.
+2. **Uniformity.** All endsets have the same representation — a set of spans in the tumbler space. The link is a homogeneous sequence, not a pair-plus-metadata.
 
 3. **Hierarchical classification.** Because tumbler containment is decidable (T6, ASN-0034), type addresses support hierarchical relationships: a type at address `p` and a subtype at an address extending `p` are related by prefix ordering. A query matching `p` matches both (by T5, ContiguousSubtrees).
+
+But Nelson's design does not stop at three. He explicitly lists support for higher-arity links as a desired feature: "4-sets, 5-sets ... n-sets supported in link storage and search" [LM 4/79]. The three-endset case — from, to, type — is the standard convention, not a structural ceiling. A faceted link relating content across more than three roles need not be decomposed into chains of ternary links; it can be expressed directly as a single link with the required number of endsets.
 
 We now define the components.
 
@@ -115,17 +117,19 @@ We now define the components.
 
 where `Span` is the set of well-formed span pairs `(s, ℓ)` satisfying T12 (SpanWellDefined, ASN-0034): `ℓ > 0` and the action point `k` of `ℓ` satisfies `k ≤ #s`. The empty set `∅` is a valid endset — a link may have an endset that references nothing.
 
-**Definition — Link.** A *link value* is a triple of endsets:
+**Definition — Link.** A *link value* is a finite sequence of N ≥ 2 endsets:
 
-`Link = (from : Endset, to : Endset, type : Endset)`
+`Link = {(e₁, e₂, ..., eₙ) : N ≥ 2, each eᵢ ∈ Endset}`
 
-The three components are called the *from-endset*, the *to-endset*, and the *type-endset* respectively.
+We write `|L|` for the *arity* of a link — the number of endsets in the sequence.
 
-**L3 — TripleEndsetStructure.** Every link in the link store has exactly three endsets:
+**Convention — StandardTriple.** The standard link form has arity 3, with slot 1 as the *from-endset*, slot 2 as the *to-endset*, and slot 3 as the *type-endset*. We write `(F, G, Θ)` for a link following this convention. Nelson's MAKELINK operation takes these three endsets plus a home document, and Gregory's implementation hardcodes three V-addresses (1.1, 2.1, 3.1) and three spanfilade index constants (`LINKFROMSPAN = 1`, `LINKTOSPAN = 2`, `LINKTHREESPAN = 3`). The standard triple is the dominant case — but it is a convention, not a structural limit.
 
-`(A a ∈ dom(Σ.L) :: Σ.L(a) = (F, G, Θ) where F, G, Θ ∈ Endset)`
+**L3 — NEndsetStructure.** Every link in the link store is a sequence of at least two endsets:
 
-Nelson's MAKELINK operation takes four parameters — home document, from-set, to-set, and three-set — and nothing else. Gregory's code confirms that three is not a soft convention but a hard structural constraint. The V-subspace assignment function `setlinkvsas` hardcodes three V-addresses (1.1, 2.1, 3.1). The spanfilade index uses three integer constants (`LINKFROMSPAN = 1`, `LINKTOSPAN = 2`, `LINKTHREESPAN = 3`). The query function `intersectlinksets` takes exactly three input lists. The wire protocol (`FINDLINKSFROMTOTHREE`) encodes three endset parameters. And the integer namespace for a fourth endset type is already consumed — `DOCISPAN = 4` — blocking extension without renumbering the entire storage layer. Three is the design commitment.
+`(A a ∈ dom(Σ.L) :: |Σ.L(a)| ≥ 2 ∧ (A i : 1 ≤ i ≤ |Σ.L(a)| : Σ.L(a).eᵢ ∈ Endset))`
+
+Nelson [LM 4/79] explicitly calls for N-endset support: "4-sets, 5-sets ... n-sets supported in link storage and search." Gregory's implementation fixes N = 3 — the V-subspace assignment function `setlinkvsas` hardcodes three V-addresses, the query function `intersectlinksets` takes exactly three input lists, and the wire protocol (`FINDLINKSFROMTOTHREE`) encodes three endset parameters. The integer namespace for a fourth endset type is already consumed (`DOCISPAN = 4`), blocking extension without renumbering. This reflects the implementation convention (StandardTriple), not a principled design boundary. The design commitment is to the sequence structure itself — a link carries as many endsets as its relational role requires, with three as the standard convention.
 
 
 ## Endset Properties
@@ -138,9 +142,9 @@ We now state the properties that endsets must satisfy.
 
 **L4 — EndsetGenerality.** The spans within an endset may reference any addresses in the tumbler space. There is no constraint confining spans to a single document, to content addresses only, or to addresses at which content currently exists.
 
-The formal content follows from definitions: by L3, every link value is a triple of endsets of type `Endset = 𝒫_fin(Span)`, where `Span` is the set of well-formed pairs satisfying T12. Therefore:
+The formal content follows from definitions: by L3, every link value is a sequence of endsets of type `Endset = 𝒫_fin(Span)`, where `Span` is the set of well-formed pairs satisfying T12. Therefore:
 
-`(A a ∈ dom(Σ.L), e ∈ {from, to, type}, (s, ℓ) ∈ Σ.L(a).e :: s ∈ T ∧ (s, ℓ) satisfies T12)`
+`(A a ∈ dom(Σ.L), i : 1 ≤ i ≤ |Σ.L(a)|, (s, ℓ) ∈ Σ.L(a).eᵢ :: s ∈ T ∧ (s, ℓ) satisfies T12)`
 
 The substantive content of L4 is not what the types require, but what they *omit* — the design-significant absence of additional constraints beyond T12. The following sub-items make explicit what the model does NOT restrict:
 
@@ -165,9 +169,9 @@ This is the set of all tumbler addresses referenced by the endset. Note that cov
 
 ## Slot Distinction and Directionality
 
-Although the three endsets are structurally identical (all are elements of `Endset`), they are not interchangeable. The from-endset and to-endset are distinguished positions — the system records which is "first" and which is "second," and search can constrain on each independently.
+Although all endsets within a link are structurally identical (all are elements of `Endset`), they are not interchangeable. Each endset occupies a distinguished position — its slot index — and search can constrain on each slot independently.
 
-**L6 — SlotDistinction.** The three endsets occupy structurally distinguished positions within the link. A link `(F, G, Θ)` is a different value from `(G, F, Θ)` when `F ≠ G`:
+**L6 — SlotDistinction.** The endsets within a link occupy structurally distinguished positions. A link is a sequence — permuting endset slots produces a different link value when the permuted entries differ. For the standard triple:
 
 `(A F, G, Θ :: F ≠ G ⟹ (F, G, Θ) ≠ (G, F, Θ))`
 
@@ -181,7 +185,7 @@ Nelson: "A link is typically directional. Thus it has a from-set, the bytes the 
 
 The consequence: any system that determines a link's directionality from slot position alone — treating "from" as inherently "source" and "to" as inherently "target" without consulting the type — is misinterpreting the design. The slots provide structural asymmetry sufficient for indexing and query; the type provides semantic interpretation.
 
-Despite the slot distinction, access is symmetric. The system must support retrieving any endset of any link with equal facility. Gregory confirms: the `followlink` operation takes a `whichend` parameter (1, 2, or 3) and calls `link2sporglset` with a V-range query parameterized by that integer. The retrieval path is identical for all three slots — no endset is privileged or hidden.
+Despite the slot distinction, access is symmetric. The system must support retrieving any endset of any link with equal facility. Gregory confirms: the `followlink` operation takes a `whichend` parameter (1, 2, or 3) and calls `link2sporglset` with a V-range query parameterized by that integer. The retrieval path is identical for all slots — no endset is privileged or hidden.
 
 
 ## The Type Endset
@@ -209,7 +213,7 @@ We verify that `Σ'` is conforming:
 - *L0 (SubspacePartition).* The address `a` is allocated in `d`'s link subspace, so `fields(a).E₁ = s_L`. Since `s_L ≠ s_C`, `a ∉ dom(Σ'.C) = dom(Σ.C)`, preserving disjointness.
 - *L1 (LinkElementLevel).* The address `a` is an element-level tumbler by construction: allocated under a document prefix with all four fields, giving `zeros(a) = 3`.
 - *L1a (LinkScopedAllocation).* The address `a` is allocated under `d`'s prefix by construction: `origin(a) = d`.
-- *L3–L5.* The type span `(g, ℓ_g)` is well-formed by T12; the three endsets `(∅, ∅, {(g, ℓ_g)})` satisfy L3. Empty endsets are valid by the definition of Endset. L5 holds trivially.
+- *L3–L5.* The type span `(g, ℓ_g)` is well-formed by T12; the endset sequence `(∅, ∅, {(g, ℓ_g)})` has arity 3 ≥ 2, satisfying L3. Empty endsets are valid by the definition of Endset. L5 holds trivially.
 - *L11a (LinkUniqueness).* By GlobalUniqueness (ASN-0034), the freshly allocated `a` is distinct from every address in `dom(Σ.L)`.
 - *L12 (LinkImmutability).* For every `b ∈ dom(Σ.L)`: `b ∈ dom(Σ'.L)` and `Σ'.L(b) = Σ.L(b)`, since `Σ'` only adds the new entry at `a`.
 - *L14 (DualPrimitive).* `dom(Σ'.C) ∪ dom(Σ'.L) = dom(Σ.C) ∪ (dom(Σ.L) ∪ {a})`. Disjointness holds since `a` is in subspace `s_L` and `dom(Σ'.C) ⊆ s_C`.
@@ -253,11 +257,11 @@ We now establish the identity semantics of links. The three requirements we bega
 
 **L11a — LinkUniqueness.** Link addresses are produced by forward allocation (T9, ASN-0034) within the link subspace. By GlobalUniqueness (ASN-0034), no two allocation events anywhere in the system, at any time, produce the same address. Therefore every link has a globally unique, permanent identity, and the question "are these the same link?" reduces to tumbler comparison (T2, IntrinsicComparison).
 
-**L11b — NonInjectivity.** The link store imposes no injectivity constraint — multiple addresses may store the same triple of endsets:
+**L11b — NonInjectivity.** The link store imposes no injectivity constraint — multiple addresses may store the same endset sequence:
 
 `(A Σ satisfying L0–L14, a ∈ dom(Σ.L) :: (E Σ' extending Σ, a' ∈ dom(Σ'.L) :: a' ≠ a ∧ Σ'.L(a') = Σ.L(a) ∧ Σ' satisfies L0–L14))`
 
-That is, for any conforming state `Σ` with a link at `a ∈ dom(Σ.L)` where `Σ.L(a) = (F, G, Θ)`, there exists a conforming extension `Σ'` with a fresh address `a' ∈ dom(Σ'.L)`, `a' ≠ a`, and `Σ'.L(a') = (F, G, Θ)`. The invariants *permit* non-injectivity — every state with a link can be extended to a non-injective state — but they do not *require* it. The witness is immediate: allocate `a'` by forward allocation within the same document's link subspace, and set `Σ'.L(a') = (F, G, Θ)` with `Σ'.C = Σ.C` and `Σ'.M = Σ.M`. All invariants L0–L14 are preserved: L0 by subspace (`a'` is in `s_L`); L1/L1a by allocation; L2 structurally (home is field extraction from the address); L3–L5 by construction (same triple as the existing link); L6 because the new entry copies the same triple `(F, G, Θ)`, preserving whatever `F ≠ G` status it has; L11a uniqueness for `a'` by GlobalUniqueness (ASN-0034); L12 because existing entries are unchanged; L12a follows from L12; L14 because `a'` is in subspace `s_L`, preserving disjointness with `dom(Σ'.C)`; L8, L10, L13 are lemmas that do not constrain states; S0–S3 hold trivially since `Σ'.C = Σ.C` and `Σ'.M = Σ.M`.
+That is, for any conforming state `Σ` with a link at `a ∈ dom(Σ.L)` where `Σ.L(a) = (F, G, Θ)`, there exists a conforming extension `Σ'` with a fresh address `a' ∈ dom(Σ'.L)`, `a' ≠ a`, and `Σ'.L(a') = (F, G, Θ)`. The invariants *permit* non-injectivity — every state with a link can be extended to a non-injective state — but they do not *require* it. The witness is immediate: allocate `a'` by forward allocation within the same document's link subspace, and set `Σ'.L(a') = (F, G, Θ)` with `Σ'.C = Σ.C` and `Σ'.M = Σ.M`. All invariants L0–L14 are preserved: L0 by subspace (`a'` is in `s_L`); L1/L1a by allocation; L2 structurally (home is field extraction from the address); L3–L5 by construction (same endset sequence as the existing link); L6 because the new entry copies the same sequence, preserving slot distinction; L11a uniqueness for `a'` by GlobalUniqueness (ASN-0034); L12 because existing entries are unchanged; L12a follows from L12; L14 because `a'` is in subspace `s_L`, preserving disjointness with `dom(Σ'.C)`; L8, L10, L13 are lemmas that do not constrain states; S0–S3 hold trivially since `Σ'.C = Σ.C` and `Σ'.M = Σ.M`.
 
 Two links with identical endsets — same from, same to, same type — but different addresses are separate objects, independently owned, independently removable, independently targetable by other links.
 
