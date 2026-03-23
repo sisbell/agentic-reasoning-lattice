@@ -26,7 +26,7 @@ It denotes the set of position-address pairs:
 
 `⟦β⟧ = {(v + k, a + k) : 0 ≤ k < n}`
 
-where `v + k` and `a + k` denote `k` ordinal increments via TA5(c) (ASN-0034). The *V-extent* is `V(β) = {v + k : 0 ≤ k < n}`; the *I-extent* is `I(β) = {a + k : 0 ≤ k < n}`.
+where `v + k` is shorthand for `shift(v, k)` (OrdinalShift, ASN-0034) extended to `k = 0` as the identity, and likewise `a + k` for `shift(a, k)` — both denoting ordinal displacement at the tumbler's own depth. The *V-extent* is `V(β) = {v + k : 0 ≤ k < n}`; the *I-extent* is `I(β) = {a + k : 0 ≤ k < n}`.
 
 This is the correspondence run of ASN-0036 S8, elevated to a first-class algebraic object. We now establish its properties.
 
@@ -68,9 +68,9 @@ M0 and M1 together characterize the mapping block: it is a *width-preserving mon
 
 `(v + c) + j = v + (c + j)`
 
-*Convention.* We define `v + 0 = v` — the identity of ordinal shift. At `k = 0` this is the base case of the correspondence run: `M(d)(v) = a`, no displacement, no arithmetic (cf. S8, ASN-0036). The cases `c = 0` or `j = 0` in the identity above follow immediately from this convention.
+*Convention.* We define `v + 0 = v` — the identity of ordinal shift. At `k = 0` this is the base case of the correspondence run: `M(d)(v) = a`, no displacement, no arithmetic (cf. S8, ASN-0036).
 
-*Derivation (c, j ≥ 1).* Recall that `v + k` for `k ≥ 1` denotes `v ⊕ w_k` where `w_k = [0, ..., 0, k]` has length `#v` and action point at position `#v`. By TA-assoc (ASN-0034), `(v ⊕ w_c) ⊕ w_j = v ⊕ (w_c ⊕ w_j)`. By TumblerAdd, `w_c` and `w_j` share their action point at position `#v`, so `(w_c ⊕ w_j)` has value `c + j` at that position and zero elsewhere — that is, `w_c ⊕ w_j = w_{c+j}`. Therefore `(v + c) + j = v ⊕ w_{c+j} = v + (c + j)`. ∎
+For `c, j ≥ 1`, this is TS3 (ShiftComposition, ASN-0034): `shift(shift(v, c), j) = shift(v, c + j)`. The cases `c = 0` or `j = 0` follow from the convention. ∎
 
 ## The Arrangement as a Set of Blocks
 
@@ -242,7 +242,7 @@ Define a *maximal run* of `f` as a triple `(v, a, n)` such that:
 2. `¬(E v' :: v' + 1 = v ∧ v' ∈ dom(f) ∧ f(v') + 1 = a)` — it cannot be extended left
 3. `v + n ∉ dom(f)  ∨  f(v + n) ≠ a + n` — it cannot be extended right
 
-(Condition 2 uses only TumblerAdd, avoiding TumblerSub which is not well-defined for ordinal decrement at arbitrary tumbler depth. The condition is vacuously satisfied when the last component of `v` equals 1: the only candidate `v'` would require a zero last component, placing it outside `dom(f)` by S8a, ASN-0036.)
+(Condition 2 uses only TumblerAdd, avoiding TumblerSub which is not well-defined for ordinal decrement at arbitrary tumbler depth. Leftward extension terminates because `dom(f)` is finite — the run cannot be extended beyond the leftmost position in `dom(f)`.)
 
 The maximal runs partition `dom(f)`: every `v ∈ dom(f)` belongs to at least one maximal run (start with the trivial run `(v, f(v), 1)` and extend in both directions until conditions 2 and 3 are met). To see that `v` belongs to *exactly* one maximal run, suppose `v ∈ R₁ ∩ R₂` where `R₁ = (v₁, a₁, n₁)` and `R₂ = (v₂, a₂, n₂)` with `v₁ ≤ v₂`. Since V-extents are contiguous ranges at fixed depth (S8-depth), `v₁ ≤ v₂ ≤ v` and `v ∈ V(R₁)` imply `v₂ ∈ V(R₁)`, so `v₂ = v₁ + k₂` for some `0 ≤ k₂ < n₁`. Both runs map `v₂` through `f`, giving `a₂ = a₁ + k₂`. If `v₁ < v₂` — i.e., `k₂ ≥ 1` — set `v' = v₁ + (k₂ − 1)`, which is in `V(R₁)`. By M-aux, `v' + 1 = v₁ + k₂ = v₂`, and `f(v') + 1 = (a₁ + (k₂ − 1)) + 1 = a₁ + k₂ = a₂`. So `R₂` can be extended left, contradicting condition 2. Hence `v₁ = v₂` (and so `a₂ = a₁ + 0 = a₁`). For the lengths, suppose WLOG `n₁ < n₂`. Then `v₁ + n₁ ∈ V(R₂)` (at offset `n₁ < n₂` from `v₂ = v₁`), so `v₁ + n₁ ∈ dom(f)` and `f(v₁ + n₁) = a₂ + n₁ = a₁ + n₁` by condition 1 of `R₂`. But condition 3 of `R₁` requires `v₁ + n₁ ∉ dom(f) ∨ f(v₁ + n₁) ≠ a₁ + n₁` — contradiction. The symmetric case `n₂ < n₁` contradicts condition 3 of `R₂` by the same reasoning (with `R₁` supplying the witness). So `n₁ = n₂`. The maximal runs are therefore uniquely determined by `f`.
 
@@ -438,7 +438,7 @@ Total width: 2 + 2 = 4 = ℓₘ, confirming C2.
 |-------|-----------|--------|
 | M0 | WidthCoupling: `\|V(β)\| = \|I(β)\| = n` for mapping block `β = (v, a, n)` | introduced |
 | M1 | OrderPreservation: within a block, the `k`-th V-position maps to the `k`-th I-address; both orderings agree | introduced |
-| M-aux | OrdinalIncrementAssociativity: `(v + c) + j = v + (c + j)` for ordinal increments | introduced |
+| M-aux | OrdinalIncrementAssociativity: `(v + c) + j = v + (c + j)` — from TS3 (ShiftComposition, ASN-0034) extended with `v + 0 = v` | introduced |
 | M2 | DecompositionExistence: every text-subspace arrangement admits a block decomposition | introduced |
 | M3 | RepresentationInvariance: equivalent decompositions determine the same arrangement function | introduced |
 | M4 | SplitDefinition: split at interior `c` produces `β_L = (v, a, c)` and `β_R = (v+c, a+c, n−c)` | introduced |
