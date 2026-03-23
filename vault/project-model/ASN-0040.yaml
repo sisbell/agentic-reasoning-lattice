@@ -8,3 +8,4 @@ inquiry:
 
 modeling:
   proof_imports: [TumblerAlgebra, TumblerOrder, TumblerHierarchy, TumblerAllocation]
+last_rebase_check: "2026-03-23T09:54:21"

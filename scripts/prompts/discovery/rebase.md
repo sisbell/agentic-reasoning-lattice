@@ -83,6 +83,8 @@ Read through the ASN one final time and check that:
   foundation (pass 1 may have missed near-matches).
 - The statement registry is consistent with the body text.
 
+{{consistency_findings}}
+
 **Targeted edits only.** Do not rewrite the ASN. Do not modify properties that
 are not affected by foundation changes. Do not add or remove sections beyond
 what is needed for the three passes above.

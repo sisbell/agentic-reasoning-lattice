@@ -8,3 +8,4 @@ inquiry:
 
 modeling:
   proof_imports: [TumblerAlgebra, TumblerOrder, Streams, StateTransitions, SpanOperations, PermutationModel]
+last_rebase_check: "2026-03-23T09:54:21"

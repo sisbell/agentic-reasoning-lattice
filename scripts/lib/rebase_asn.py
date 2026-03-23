@@ -12,10 +12,13 @@ Usage:
 """
 
 import argparse
+import json
+import os
 import re
 import subprocess
 import sys
 import time
+import yaml
 
 from pathlib import Path
 
@@ -56,6 +59,86 @@ def validate(asn_num):
     return asn_path, asn_label, manifest
 
 
+def run_inline_consistency_check(asn_num, asn_path, asn_label):
+    """Run a consistency check via sonnet.
+
+    Writes result as a review file. Returns findings text or None (CLEAN).
+    """
+    foundation = load_foundation_statements(FOUNDATION_LIST, STATEMENTS_DIR,
+                                            asn_id=asn_num)
+    if not foundation:
+        return None
+
+    template_path = PROMPTS_DIR / "consistency-check.md"
+    if not template_path.exists():
+        return None
+
+    manifest = load_manifest(asn_num)
+    depends = manifest.get("depends", []) if manifest else []
+    depends_str = ", ".join(f"ASN-{d:04d}" for d in depends)
+
+    template = template_path.read_text()
+    prompt = (template
+              .replace("{{foundation_statements}}", foundation)
+              .replace("{{asn_content}}", asn_path.read_text())
+              .replace("{{asn_label}}", asn_label)
+              .replace("{{depends}}", depends_str))
+
+    print(f"  [CONSISTENCY] Running fresh check on {asn_label}...",
+          file=sys.stderr)
+
+    cmd = [
+        "claude", "-p",
+        "--model", "claude-sonnet-4-6",
+        "--output-format", "json",
+        "--max-turns", "1",
+        "--allowedTools", "",
+    ]
+
+    env = os.environ.copy()
+    env.pop("CLAUDECODE", None)
+
+    start = time.time()
+    result = subprocess.run(
+        cmd, input=prompt, capture_output=True, text=True, env=env,
+        cwd=str(WORKSPACE),
+    )
+    elapsed = time.time() - start
+
+    if result.returncode != 0:
+        print(f"  [CONSISTENCY] Failed ({elapsed:.0f}s)", file=sys.stderr)
+        return None
+
+    try:
+        data = json.loads(result.stdout)
+        text = data.get("result", "")
+    except (json.JSONDecodeError, KeyError):
+        print(f"  [CONSISTENCY] Parse error ({elapsed:.0f}s)", file=sys.stderr)
+        return None
+
+    # Write as review file
+    review_dir = REVIEWS_DIR / asn_label
+    review_dir.mkdir(parents=True, exist_ok=True)
+    review_num = next_review_number(asn_label)
+    review_path = review_dir / f"review-{review_num}.md"
+    review_path.write_text(text + "\n")
+    print(f"  [WROTE] {review_path.relative_to(WORKSPACE)}", file=sys.stderr)
+
+    clean = "RESULT: CLEAN" in text
+    if clean:
+        print(f"  [CONSISTENCY] CLEAN ({elapsed:.0f}s)", file=sys.stderr)
+        return None
+
+    print(f"  [CONSISTENCY] Findings detected ({elapsed:.0f}s)",
+          file=sys.stderr)
+    return text
+
+
+def get_consistency_findings(asn_num, asn_path, asn_label):
+    """Run consistency check and return findings, or None if CLEAN."""
+    return run_inline_consistency_check(asn_num, asn_path, asn_label)
+
+
 def step_rebase(asn_num, asn_path, asn_label, model, effort):
     """Step 1: Claude agent replaces local derivations with citations."""
     foundation = load_foundation_statements(FOUNDATION_LIST, STATEMENTS_DIR,
@@ -70,9 +153,22 @@ def step_rebase(asn_num, asn_path, asn_label, model, effort):
         print("  [ERROR] Rebase prompt template not found", file=sys.stderr)
         return False
 
+    # Get consistency findings (cached or fresh)
+    findings = get_consistency_findings(asn_num, asn_path, asn_label)
+    if findings:
+        findings_section = (
+            "## Pre-Check Findings\n\n"
+            "A consistency check identified the following issues. "
+            "Address these in addition to the three passes above:\n\n"
+            f"{findings}\n"
+        )
+    else:
+        findings_section = ""
+
     prompt = (template
               .replace("{{foundation_statements}}", foundation)
-              .replace("{{asn_path}}", str(asn_path)))
+              .replace("{{asn_path}}", str(asn_path))
+              .replace("{{consistency_findings}}", findings_section))
 
     print(f"  [REBASE] {asn_label} against updated foundation...",
           file=sys.stderr)
@@ -224,6 +320,26 @@ def step_export(asn_num):
     return True
 
 
+def update_rebase_timestamp(asn_num):
+    """Write last_rebase_check to the project model yaml."""
+    yaml_path = PROJECT_MODEL_DIR / f"ASN-{asn_num:04d}.yaml"
+    if not yaml_path.exists():
+        return
+
+    content = yaml_path.read_text()
+    ts = time.strftime("%Y-%m-%dT%H:%M:%S")
+
+    # Update existing or append
+    if "last_rebase_check:" in content:
+        content = re.sub(r'last_rebase_check:.*',
+                         f'last_rebase_check: "{ts}"', content)
+    else:
+        content = content.rstrip() + f'\nlast_rebase_check: "{ts}"\n'
+
+    yaml_path.write_text(content)
+    print(f"  [TIMESTAMP] last_rebase_check: {ts}", file=sys.stderr)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Rebase an ASN against its updated foundation")
@@ -278,6 +394,9 @@ def main():
 
     # Step 3: Re-export
     step_export(args.asn)
+
+    # Record rebase check timestamp in project model
+    update_rebase_timestamp(args.asn)
 
     log_usage("rebase-complete", 0, asn=args.asn)
     print(f"\n  [DONE] {asn_label} rebased", file=sys.stderr)

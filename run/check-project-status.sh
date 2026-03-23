@@ -80,7 +80,16 @@ for yaml in "$MODEL_DIR"/ASN-*.yaml; do
         fi
     fi
 
-    # Dep status
+    # Dep status — use last_rebase_check from yaml if available, else reasoning doc timestamp
+    rebase_check_ts=$(grep '^last_rebase_check:' "$yaml" 2>/dev/null \
+        | sed 's/last_rebase_check: *"//;s/"//' | xargs || true)
+    if [ -n "$rebase_check_ts" ]; then
+        # Convert ISO timestamp to unix
+        check_ts=$(date -j -f "%Y-%m-%dT%H:%M:%S" "$rebase_check_ts" "+%s" 2>/dev/null || echo "$asn_ts")
+    else
+        check_ts=$asn_ts
+    fi
+
     deps=$(grep '^depends:' "$yaml" 2>/dev/null | sed 's/depends: *\[//;s/\]//;s/,/ /g' | xargs || true)
     dep_status="no"
 
@@ -92,7 +101,7 @@ for yaml in "$MODEL_DIR"/ASN-*.yaml; do
             [ -f "$dep_export" ] || continue
 
             dep_ts=$(git -C "$WORKSPACE" log -1 --format="%ct" -- "$dep_export" 2>/dev/null || echo "0")
-            if [ "$dep_ts" -gt "$asn_ts" ]; then
+            if [ "$dep_ts" -gt "$check_ts" ]; then
                 stale_dep="$dep_label"
             fi
         done
@@ -119,10 +128,8 @@ if [ $dep_issues -gt 0 ]; then
 fi
 echo ""
 if [ $dep_issues -gt 0 ]; then
-    echo "  Note: Needs Rebase is based on timestamps only — a dependency's export"
-    echo "  was regenerated after this ASN was last updated. This does NOT always"
-    echo "  mean real changes are needed. False positives occur when:"
-    echo "    - The ASN was already rebased but the rebase was a no-op"
+    echo "  Note: Needs Rebase compares dependency export timestamps against the"
+    echo "  ASN's last rebase check (or last update if never rebased). False positives:"
     echo "    - The dependency export changed in ways that don't affect this ASN"
     echo "    - The ASN predates the current pipeline (pre-Mar 20 foundations)"
     echo ""
