@@ -116,6 +116,23 @@ Output the META and VERDICT lines as plain text, exactly as shown — no markdow
 
 **VERDICT** is mandatory. Use CONVERGED only when there are zero REVISE items. Use REVISE when any issue remains — correctness, missing cases, prose clarity, all of it. If you have something to say under REVISE, the verdict is REVISE.
 
+## Open Issues
+
+The following open issues were identified by foundation audits or manually. Each open issue is a **mandatory REVISE finding** — the ASN cannot converge while open issues remain. Do not attempt to address all open issues at once. Pick the most impactful issue (or a small related group) and write REVISE items for those.
+
+When you are satisfied that an open issue has been fully resolved in the ASN body, include a `## RESOLVED` section listing the issues to remove from the open issues file, with a brief justification for each:
+
+```
+## RESOLVED
+
+### [issue title from open issues file]
+**Justification**: [why this issue is now resolved — cite the specific ASN text that addresses it]
+```
+
+If there are no open issues, or the file does not exist, skip this section.
+
+{{open_issues}}
+
 ## ASN to Review
 
 {{asn_content}}
