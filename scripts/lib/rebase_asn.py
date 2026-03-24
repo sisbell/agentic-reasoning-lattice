@@ -116,28 +116,40 @@ def run_inline_consistency_check(asn_num, asn_path, asn_label):
         print(f"  [CONSISTENCY] Parse error ({elapsed:.0f}s)", file=sys.stderr)
         return None
 
-    # Empty or whitespace response = failed check, not findings
+    # Empty or whitespace response = CLEAN (no findings)
     if not text or not text.strip():
-        print(f"  [CONSISTENCY] Empty response — treating as check failure ({elapsed:.0f}s)",
+        print(f"  [CONSISTENCY] Empty response — treating as CLEAN ({elapsed:.0f}s)",
               file=sys.stderr)
         return None
 
-    # Write as review file
-    review_dir = REVIEWS_DIR / asn_label
-    review_dir.mkdir(parents=True, exist_ok=True)
-    review_num = next_review_number(asn_label)
-    review_path = review_dir / f"review-{review_num}.md"
-    review_path.write_text(text + "\n")
-    print(f"  [WROTE] {review_path.relative_to(WORKSPACE)}", file=sys.stderr)
-
-    clean = "RESULT: CLEAN" in text
-    if clean:
+    # RESULT: CLEAN — no findings
+    if "RESULT: CLEAN" in text:
+        # Write review file for the record
+        review_dir = REVIEWS_DIR / asn_label
+        review_dir.mkdir(parents=True, exist_ok=True)
+        review_num = next_review_number(asn_label)
+        review_path = review_dir / f"review-{review_num}.md"
+        review_path.write_text(text + "\n")
+        print(f"  [WROTE] {review_path.relative_to(WORKSPACE)}", file=sys.stderr)
         print(f"  [CONSISTENCY] CLEAN ({elapsed:.0f}s)", file=sys.stderr)
         return None
 
-    print(f"  [CONSISTENCY] Findings detected ({elapsed:.0f}s)",
+    # RESULT: marker present but not CLEAN — real findings
+    if "RESULT:" in text:
+        review_dir = REVIEWS_DIR / asn_label
+        review_dir.mkdir(parents=True, exist_ok=True)
+        review_num = next_review_number(asn_label)
+        review_path = review_dir / f"review-{review_num}.md"
+        review_path.write_text(text + "\n")
+        print(f"  [WROTE] {review_path.relative_to(WORKSPACE)}", file=sys.stderr)
+        print(f"  [CONSISTENCY] Findings detected ({elapsed:.0f}s)",
+              file=sys.stderr)
+        return text
+
+    # No RESULT: marker at all — format issue, treat as CLEAN
+    print(f"  [CONSISTENCY] No RESULT: marker — treating as CLEAN ({elapsed:.0f}s)",
           file=sys.stderr)
-    return text
+    return None
 
 
 def get_consistency_findings(asn_num, asn_path, asn_label):
@@ -339,8 +351,9 @@ def update_rebase_timestamp(asn_num):
 
     # Update existing or append
     if "last_rebase_check:" in content:
-        content = re.sub(r'last_rebase_check:.*',
-                         f'last_rebase_check: "{ts}"', content)
+        content = re.sub(r'^last_rebase_check:.*$',
+                         f'last_rebase_check: "{ts}"', content,
+                         flags=re.MULTILINE)
     else:
         content = content.rstrip() + f'\nlast_rebase_check: "{ts}"\n'
 

@@ -35,7 +35,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from paths import (WORKSPACE, ASNS_DIR, STATEMENTS_DIR, FOUNDATION_LIST,
                    PROJECT_MODEL_DIR, load_manifest)
-from lib.common import find_asn, step_commit
+from lib.common import find_asn
 from lib.rebase_asn import (
     step_rebase, step_review_revise, step_export,
     update_rebase_timestamp, run_inline_consistency_check,
@@ -108,14 +108,14 @@ def get_dep_export_timestamps(asn_num):
 
 
 def parse_iso_timestamp(ts_str):
-    """Parse ISO timestamp string to unix timestamp."""
+    """Parse ISO timestamp string to unix timestamp. Returns None on failure."""
     if not ts_str:
-        return 0
+        return None
     try:
         dt = datetime.fromisoformat(ts_str.strip('"'))
         return dt.timestamp()
     except (ValueError, TypeError):
-        return 0
+        return None
 
 
 def update_consistency_state(asn_num, result):
@@ -129,15 +129,17 @@ def update_consistency_state(asn_num, result):
 
     # Update or append last_consistency_check
     if "last_consistency_check:" in content:
-        content = re.sub(r'last_consistency_check:.*',
-                         f'last_consistency_check: "{ts}"', content)
+        content = re.sub(r'^last_consistency_check:.*$',
+                         f'last_consistency_check: "{ts}"', content,
+                         flags=re.MULTILINE)
     else:
         content = content.rstrip() + f'\nlast_consistency_check: "{ts}"\n'
 
     # Update or append last_consistency_result
     if "last_consistency_result:" in content:
-        content = re.sub(r'last_consistency_result:.*',
-                         f'last_consistency_result: "{result}"', content)
+        content = re.sub(r'^last_consistency_result:.*$',
+                         f'last_consistency_result: "{result}"', content,
+                         flags=re.MULTILINE)
     else:
         content = content.rstrip() + f'\nlast_consistency_result: "{result}"\n'
 
@@ -170,14 +172,69 @@ def needs_rebase(asn_num, force=False):
 
     # Check last_rebase_check
     rebase_ts = parse_iso_timestamp(manifest.get("last_rebase_check", ""))
-    if rebase_ts > newest_dep:
+    if rebase_ts is not None and rebase_ts > newest_dep:
         return "skip"  # Rebase is newer than all deps
 
     return "rebase"
 
 
+def run_convergence(asn_num, max_cycles):
+    """Run revise.py --converge. Returns True on success, False on failure."""
+    cmd = [sys.executable,
+           str(WORKSPACE / "scripts" / "revise.py"),
+           str(asn_num),
+           "--converge", str(max_cycles)]
+    result = subprocess.run(cmd, capture_output=False, text=True,
+                            cwd=str(WORKSPACE))
+    return result.returncode == 0
+
+
+def step_commit_asn(asn_num, message):
+    """Commit ASN-scoped changes (reasoning doc + review artifacts)."""
+    asn_label = f"ASN-{asn_num:04d}"
+
+    # Stage reasoning doc
+    asn_path, _ = find_asn(str(asn_num))
+    if asn_path:
+        subprocess.run(["git", "add", str(asn_path)],
+                       capture_output=True, cwd=str(WORKSPACE))
+
+    # Stage review artifacts
+    review_dir = WORKSPACE / "vault" / "2-review" / asn_label
+    if review_dir.exists():
+        subprocess.run(["git", "add", str(review_dir)],
+                       capture_output=True, cwd=str(WORKSPACE))
+
+    # Stage consultation artifacts
+    consult_dir = WORKSPACE / "vault" / "0-consultations" / asn_label
+    if consult_dir.exists():
+        subprocess.run(["git", "add", str(consult_dir)],
+                       capture_output=True, cwd=str(WORKSPACE))
+
+    # Stage project model
+    yaml_path = PROJECT_MODEL_DIR / f"{asn_label}.yaml"
+    if yaml_path.exists():
+        subprocess.run(["git", "add", str(yaml_path)],
+                       capture_output=True, cwd=str(WORKSPACE))
+
+    # Stage export
+    export_path = WORKSPACE / "vault" / "3-export" / f"{asn_label}-statements.md"
+    if export_path.exists():
+        subprocess.run(["git", "add", str(export_path)],
+                       capture_output=True, cwd=str(WORKSPACE))
+
+    # Check if there's anything to commit
+    diff = subprocess.run(["git", "diff", "--cached", "--quiet"],
+                          capture_output=True, cwd=str(WORKSPACE))
+    if diff.returncode == 0:
+        return  # nothing staged
+
+    subprocess.run(["git", "commit", "-m", message],
+                   capture_output=True, cwd=str(WORKSPACE))
+
+
 def process_asn(asn_num, model, effort, max_cycles, force=False):
-    """Process one ASN: check → rebase → post-check → export."""
+    """Process one ASN: pre-check → rebase → review → converge → post-check → export."""
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
         return "skipped"
@@ -190,13 +247,13 @@ def process_asn(asn_num, model, effort, max_cycles, force=False):
     print(f"  {asn_label}", file=sys.stderr)
     print(f"  {'='*50}", file=sys.stderr)
 
-    # Step 1: Check if work needed
+    # ── Check if work needed ──
     status = needs_rebase(asn_num, force=force)
     if status == "skip":
         print(f"  [SKIP] {asn_label} — up to date", file=sys.stderr)
         return "skipped"
 
-    # Step 2: Pre-check (sonnet fast eyes — supplements the rebase, doesn't gate it)
+    # ── PRE-CHECK (sonnet, once) ──
     print(f"  [PRE-CHECK] Running consistency check...", file=sys.stderr)
     findings = run_inline_consistency_check(asn_num, asn_path, asn_label)
 
@@ -208,7 +265,10 @@ def process_asn(asn_num, model, effort, max_cycles, force=False):
         print(f"  [PRE-CHECK] CLEAN — rebase will run without extra findings",
               file=sys.stderr)
 
-    # Step 3: Rebase (one pass)
+    # Commit pre-check review artifacts
+    step_commit_asn(asn_num, f"review(asn): {asn_label} pre-check")
+
+    # ── REBASE (opus, one pass, with pre-check findings injected) ──
     print(f"  [REBASE] {asn_label}...", file=sys.stderr)
     ok = step_rebase(asn_num, asn_path, asn_label, model, effort,
                      precheck_findings=findings)
@@ -228,52 +288,59 @@ def process_asn(asn_num, model, effort, max_cycles, force=False):
               file=sys.stderr)
         update_rebase_timestamp(asn_num)
         update_consistency_state(asn_num, "CLEAN")
+        step_commit_asn(asn_num, f"rebase(asn): {asn_label} — no changes, timestamps updated")
         step_export(asn_num)
+        step_commit_asn(asn_num, f"export(asn): {asn_label}")
         print(f"  [DONE] {asn_label}", file=sys.stderr)
         return "completed"
 
-    step_commit(f"rebase(asn): {asn_label} against updated foundation")
+    # Commit rebase changes
+    step_commit_asn(asn_num, f"rebase(asn): {asn_label} against updated foundation")
 
-    # Step 4: Scoped rebase review/revise (up to 5 cycles, rebase changes only)
+    # ── SCOPED REVIEW/REVISE (up to 5 cycles, rebase changes only) ──
     print(f"  [REBASE REVIEW] Scoped review of rebase changes...",
           file=sys.stderr)
     rebased_properties = "(consistency check findings)"
     step_review_revise(asn_num, asn_path, asn_label, rebased_properties,
                        5, model, effort)
+    # Scoped review doesn't converge → continue anyway (not a failure)
 
-    # Step 5: Fresh full-scope review, then standard convergence
+    # ── FRESH REVIEW (review.py — handles its own commits) ──
     print(f"  [REVIEW] Running fresh full-scope review...", file=sys.stderr)
     review_cmd = [sys.executable,
                   str(WORKSPACE / "scripts" / "review.py"),
                   str(asn_num)]
-    subprocess.run(review_cmd, capture_output=False, text=True,
-                   cwd=str(WORKSPACE))
+    review_result = subprocess.run(review_cmd, capture_output=False, text=True,
+                                   cwd=str(WORKSPACE))
 
-    # Standard convergence via revise.py (up to 30 cycles)
-    print(f"  [CONVERGE] Running standard convergence...", file=sys.stderr)
-    converge_cmd = [sys.executable,
-                    str(WORKSPACE / "scripts" / "revise.py"),
-                    str(asn_num),
-                    "--converge", str(max_cycles)]
-    converge_result = subprocess.run(
-        converge_cmd, capture_output=False, text=True,
-        cwd=str(WORKSPACE),
-    )
-    if converge_result.returncode != 0:
-        print(f"  [FAILED] {asn_label} convergence failed", file=sys.stderr)
+    if review_result.returncode == 2:
+        # CONVERGED — skip convergence
+        print(f"  [REVIEW] CONVERGED — skipping convergence", file=sys.stderr)
+    elif review_result.returncode == 1:
+        # Failure — stop batch
+        print(f"  [FAILED] {asn_label} review failed", file=sys.stderr)
         return "failed"
+    else:
+        # Exit 0 — findings exist, run convergence
+        print(f"  [CONVERGE] Running standard convergence...", file=sys.stderr)
+        if not run_convergence(asn_num, max_cycles):
+            print(f"  [FAILED] {asn_label} convergence failed", file=sys.stderr)
+            return "failed"
 
-    # Step 6: Post-check
+    # ── POST-CHECK (sonnet) ──
     print(f"  [POST-CHECK] Verifying {asn_label}...", file=sys.stderr)
     post_findings = run_inline_consistency_check(asn_num, asn_path, asn_label)
 
     if post_findings is None:
         print(f"  [VERIFIED] {asn_label} — CLEAN", file=sys.stderr)
         update_consistency_state(asn_num, "CLEAN")
+        step_commit_asn(asn_num, f"review(asn): {asn_label} post-check CLEAN")
     else:
-        # One more rebase → commit → convergence cycle
+        # One more rebase → check for changes → commit → convergence
         print(f"  [POST-CHECK] Findings detected — one more rebase + convergence...",
               file=sys.stderr)
+        update_consistency_state(asn_num, "FINDINGS")
+        step_commit_asn(asn_num, f"review(asn): {asn_label} post-check findings")
 
         ok = step_rebase(asn_num, asn_path, asn_label, model, effort,
                          precheck_findings=post_findings)
@@ -282,19 +349,28 @@ def process_asn(asn_num, model, effort, max_cycles, force=False):
                   file=sys.stderr)
             return "failed"
 
-        step_commit(f"rebase(asn): {asn_label} post-check fixes")
+        # Check if post-check rebase changed anything
+        diff_result = subprocess.run(
+            ["git", "diff", "--name-only", str(asn_path)],
+            capture_output=True, text=True, cwd=str(WORKSPACE),
+        )
+        if diff_result.stdout.strip():
+            step_commit_asn(asn_num, f"rebase(asn): {asn_label} post-check fixes")
 
-        converge_cmd = [sys.executable,
-                        str(WORKSPACE / "scripts" / "revise.py"),
-                        str(asn_num),
-                        "--converge", str(max_cycles)]
-        subprocess.run(converge_cmd, capture_output=False, text=True,
-                       cwd=str(WORKSPACE))
+            if not run_convergence(asn_num, max_cycles):
+                print(f"  [FAILED] {asn_label} post-check convergence failed",
+                      file=sys.stderr)
+                return "failed"
+
         update_consistency_state(asn_num, "CLEAN")
 
-    # Export
+    # ── EXPORT ──
     step_export(asn_num)
+    step_commit_asn(asn_num, f"export(asn): {asn_label}")
+
+    # ── UPDATE TIMESTAMPS ──
     update_rebase_timestamp(asn_num)
+    step_commit_asn(asn_num, f"rebase(asn): {asn_label} timestamps updated")
 
     print(f"  [DONE] {asn_label}", file=sys.stderr)
     return "completed"
