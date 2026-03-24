@@ -65,22 +65,24 @@ Links and content cannot share an address. They are peers in the tumbler space �
 
 This parallels S7b for content (ASN-0036). A link address carries all four tumbler fields (node, user, document, element), enabling the same structural attribution that content addresses enjoy. Gregory confirms: link addresses are allocated by `findisatoinsertmolecule` with the `LINKATOM` hint, producing full element-level tumblers.
 
-**L1a — LinkScopedAllocation.** Every link address is allocated under the tumbler prefix of the document whose owner created it:
+**L1a — LinkScopedAllocation.** Every link address is allocated under the tumbler prefix of the document whose owner created it. By L1 and T4 (HierarchicalParsing, ASN-0034) — which defines `fields` for all tumblers in `T`, not only content addresses — the document-level prefix is extractable from any link address:
 
-`(A a ∈ dom(Σ.L) :: origin(a) identifies the allocating document)`
+`(A a ∈ dom(Σ.L) :: (fields(a).node).0.(fields(a).user).0.(fields(a).document) identifies the allocating document)`
 
 This parallels S7a (DocumentScopedAllocation, ASN-0036) for content. Gregory confirms: `docreatelink` allocates the link address within the creating document's address space via `findisatoinsertmolecule`, which extends the document's I-stream. The allocation prefix is determined by the document parameter, not by the endsets — a link whose endsets reference entirely foreign content is still allocated under the creating document's prefix.
 
 
 ## Home and Ownership
 
-Because link addresses are element-level tumblers (L1) allocated under their creating document's prefix (L1a), the `origin` function from ASN-0036 applies directly.
+Because link addresses are element-level tumblers (L1) allocated under their creating document's prefix (L1a), the same field-extraction formula that ASN-0036 uses to define `origin` on `dom(Σ.C)` is well-defined for link addresses. T4 (HierarchicalParsing, ASN-0034) defines `fields` for all tumblers in `T` — the field structure is a property of the tumbler, not of what the tumbler addresses. We define the link analog directly.
 
 **Definition — LinkHome.** For a link at address `a ∈ dom(Σ.L)`, its *home document* is:
 
-`home(a) = origin(a) = (fields(a).node).0.(fields(a).user).0.(fields(a).document)`
+`home(a) = (fields(a).node).0.(fields(a).user).0.(fields(a).document)`
 
-**GlobalUniqueness.** No two allocation events anywhere in the system produce the same address. S4 (OriginBasedIdentity, ASN-0036) establishes this for I-addresses (content store addresses). The underlying derivation — from T9 (ForwardAllocation), T10 (PartitionIndependence), and T10a + TA5(d) + T3 (ASN-0034) — depends only on tumbler algebra, not on any property specific to the content store. The same three cases (same-allocator distinctness via T9, non-nesting cross-allocator distinctness via T10, nesting-prefix cross-allocator distinctness via T10a + TA5(d) + T3) apply to any element-level tumbler produced by the allocation discipline, including link-subspace allocations.
+This is the same formula as `origin` (ASN-0036), applied here to link addresses rather than content addresses. The domain extension is justified: `origin`'s formula relies only on `fields`, which T4 defines for all tumblers, and on `zeros(a) = 3` (L1), which guarantees all four fields are present.
+
+**GlobalUniqueness.** No two allocation events anywhere in the system produce the same address. S4 (OriginBasedIdentity, ASN-0036) establishes this for I-addresses (content store addresses). We observe that the three foundation axioms underlying S4's derivation are properties of the tumbler allocation mechanism itself, not of any particular subspace or store: T9 (ForwardAllocation, ASN-0034) is quantified over all tumblers sharing an allocator — its antecedent `same_allocator(a, b) ∧ allocated_before(a, b)` carries no subspace restriction; T10 (PartitionIndependence, ASN-0034) is quantified over all prefix pairs with `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁` — again, no subspace restriction; T10a (AllocatorDiscipline, ASN-0034) describes how any allocator produces outputs via `inc(·, 0)` and spawns children via `inc(·, k')` — a structural discipline on tumbler arithmetic that applies uniformly regardless of which subspace the allocated addresses occupy. None of these axioms reference `Σ.C`, `Σ.L`, or any store-specific property. Therefore the same three cases that S4 uses for content-subspace uniqueness — same-allocator distinctness via T9, non-nesting cross-allocator distinctness via T10, nesting-prefix cross-allocator distinctness via T10a + TA5(d) + T3 — apply identically to link-subspace allocations. Any element-level tumbler produced by the allocation discipline receives a globally unique address.
 
 The home document determines the link's owner. This is not metadata attached to the link — it IS the link's address, read through the field structure. By L1a, the document-level prefix of `a` identifies the document whose owner created the link; by L1 and T4 (HierarchicalParsing, ASN-0034), the prefix is recoverable from the address alone. Together these yield the link analog of S7 (StructuralAttribution, ASN-0036): `home(a)` uniquely identifies the creating document across the system (by the same three cases as S7's derivation — T9, T10, and T10a + TA5(d) + T3, ASN-0034 — with L1a replacing S7a and L1 replacing S7b), and this identification is structural — embedded in the address, not attached as metadata.
 
@@ -214,7 +216,7 @@ We verify that `Σ'` is conforming:
 
 - *L0 (SubspacePartition).* The address `a` is allocated in `d`'s link subspace, so `fields(a).E₁ = s_L`. Since `s_L ≠ s_C`, `a ∉ dom(Σ'.C) = dom(Σ.C)`, preserving disjointness.
 - *L1 (LinkElementLevel).* The address `a` is an element-level tumbler by construction: allocated under a document prefix with all four fields, giving `zeros(a) = 3`.
-- *L1a (LinkScopedAllocation).* The address `a` is allocated under `d`'s prefix by construction: `origin(a) = d`.
+- *L1a (LinkScopedAllocation).* The address `a` is allocated under `d`'s prefix by construction: `home(a) = d`.
 - *L3–L5.* The type span `(g, δ(1, #g))` is well-formed by T12; the endset sequence `(∅, ∅, {(g, δ(1, #g))})` has arity 3 ≥ 2, satisfying L3. Empty endsets are valid by the definition of Endset. L5 holds trivially.
 - *L11a (LinkUniqueness).* By GlobalUniqueness, the freshly allocated `a` is distinct from every address in `dom(Σ.L)`.
 - *L12 (LinkImmutability).* For every `b ∈ dom(Σ.L)`: `b ∈ dom(Σ'.L)` and `Σ'.L(b) = Σ.L(b)`, since `Σ'` only adds the new entry at `a`.
@@ -343,7 +345,7 @@ A link is an addressed, owned, typed, bidirectional connection between arbitrary
 A link at address `a ∈ dom(Σ.L)` is characterized by:
 
 - **Address** `a` — a permanent, globally unique element-level tumbler in the link subspace (L0, L1, L11a, L12). The address IS the link's identity.
-- **Home** `home(a) = origin(a)` — the document under whose prefix `a` falls, determining the link's owner, independent of what the link connects (L2).
+- **Home** `home(a)` — the document-level prefix extracted from `a` via T4 field parsing, determining the link's owner, independent of what the link connects (L2).
 - **N ≥ 2 endsets** — each link carries at least two endsets (L3). The standard triple convention `Σ.L(a) = (F, G, Θ)` — from-endset `F`, to-endset `G`, and type-endset `Θ` — is the dominant form; each endset is a finite set of well-formed spans pointing anywhere in the tumbler space (L4, L5).
 - **Slot structure** — endsets occupy structurally distinguished positions, enabling independent query on each, with directional semantics determined by the type rather than by the slot itself (L6, L7).
 - **Type semantics** — the type endset is matched by address, not by content; it may reference ghost addresses; and hierarchical type relationships follow from tumbler containment (L8, L9, L10).
@@ -386,9 +388,9 @@ So `Σ.L = {a ↦ (F, G, Θ)}`.
 
 *L1 (LinkElementLevel).* `zeros(a) = zeros(1.0.1.0.1.0.2.1) = 3`. ✓
 
-*L1a (LinkScopedAllocation).* `origin(a) = 1.0.1.0.1 = d`, the creating document. ✓
+*L1a (LinkScopedAllocation).* `home(a) = 1.0.1.0.1 = d`, the creating document. ✓
 
-*L2 (OwnershipEndsetIndependence).* `home(a) = origin(a) = 1.0.1.0.1`, computed from the field structure of `a` alone. The endsets `(F, G, Θ)` are not consulted. ✓
+*L2 (OwnershipEndsetIndependence).* `home(a) = 1.0.1.0.1`, computed from the field structure of `a` alone. The endsets `(F, G, Θ)` are not consulted. ✓
 
 *L3 (NEndsetStructure).* `|Σ.L(a)| = 3 ≥ 2`, and each endset is in `𝒫_fin(Span)`. ✓
 
@@ -475,7 +477,7 @@ The final state is `Σ_2` with `Σ_2.L = {a ↦ (F, G, Θ),\; a' ↦ (F, G, Θ),
 | L13 | LEMMA | ReflexiveAddressing — link addresses are valid endset span targets; canonical span coverage by PrefixSpanCoverage | introduced |
 | L14 | INV | DualPrimitive — stored entities partition into content (`dom(Σ.C)`) and links (`dom(Σ.L)`) with no third category | introduced |
 | coverage(e) | DEF | the union of address sets denoted by the spans in endset e | introduced |
-| home(a) | DEF | `origin(a)` applied to link addresses — the document under whose prefix the link resides | introduced |
+| home(a) | DEF | document-level prefix extracted from a link address via T4 field parsing — the document under whose prefix the link resides | introduced |
 | Endset | DEF | `𝒫_fin(Span)` — a finite set of well-formed spans | introduced |
 | Link | DEF | `{(e₁, ..., eₙ) : N ≥ 2, each eᵢ ∈ Endset}`; standard triple `(F, G, Θ)` by convention | introduced |
 
