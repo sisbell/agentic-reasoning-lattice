@@ -28,9 +28,6 @@ The ASN defines a property locally (status `introduced`) that already exists in 
 ### 2a. Unjustified Domain Extensions
 The ASN introduces a function or property that reuses a foundation function's name or formula but applies it to a domain the foundation does not cover. This is a finding even if the registry correctly says `introduced`. Example: foundation defines `origin(a)` for `a ∈ dom(Σ.C)`; the ASN writes `home(a) = origin(a)` for `a ∈ dom(Σ.L)` without formally justifying why `origin` extends to the new domain.
 
-### 2b. Incomplete Precondition Transfer
-When the ASN extends a foundation result to a new domain, check whether all preconditions of the foundation result have been accounted for. Foundation statements include "Follows from" lists — each prerequisite must either (a) apply unchanged in the new domain, or (b) have an explicit analog established by the ASN. A finding occurs when the ASN claims the extension holds but does not address one or more prerequisites. Example: S4 (OriginBasedIdentity) follows from S7a, S7b, T4, T9, T10, T10a, TA5, T3. An ASN extending S4 to link addresses argues that T9/T10/T10a are subspace-independent but does not address S7a (document-scoped allocation) and S7b (element-level addresses) — both are content-specific and require link-space analogs (e.g., L1a, L1) to complete the transfer.
-
 ### 3. Structural Drift
 The ASN uses or restates a foundation definition but with outdated content. Example: defining Link as "a triple (F, G, Θ)" when the foundation defines it as "a sequence of N ≥ 2 endsets."
 
