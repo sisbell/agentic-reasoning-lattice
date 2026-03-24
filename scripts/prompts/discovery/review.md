@@ -120,6 +120,8 @@ Output the META and VERDICT lines as plain text, exactly as shown — no markdow
 
 The following open issues were identified by foundation audits or manually. Each open issue is a **mandatory REVISE finding** — the ASN cannot converge while open issues remain. Do not attempt to address all open issues at once. Pick the most impactful issue (or a small related group) and write REVISE items for those.
 
+When an open issue flags an incomplete domain extension, the fix is to complete the argument — establish analogs of missing prerequisites so the extension is fully grounded. Do not remove the extension or bypass it by citing the original foundation result directly. The extension serves as a bridge property that downstream properties can cite without re-arguing the foundation prerequisites each time.
+
 When you are satisfied that an open issue has been fully resolved in the ASN body, include a `## RESOLVED` section listing the issues to remove from the open issues file, with a brief justification for each:
 
 ```
