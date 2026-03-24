@@ -109,7 +109,7 @@ Nelson's design resolves this not by adding a metadata field — a type tag bolt
 
 2. **Uniformity.** All endsets have the same representation — a set of spans in the tumbler space. The link is a homogeneous sequence, not a pair-plus-metadata.
 
-3. **Hierarchical classification.** Because tumbler containment is decidable (T6, ASN-0034), type addresses support hierarchical relationships: a type at address `p` and a subtype at an address extending `p` are related by prefix ordering. A query matching `p` matches both (by T5, ContiguousSubtrees).
+3. **Hierarchical classification.** Because tumbler prefix containment is decidable — `p ≼ t` requires only finite component-wise equality (PrefixRelation, ASN-0034), computable from the tumblers alone (T2, IntrinsicComparison) — type addresses support hierarchical relationships: a type at address `p` and a subtype at an address extending `p` are related by prefix ordering. A query matching `p` matches both (by T5, ContiguousSubtrees).
 
 But Nelson's design does not stop at three. He explicitly lists support for higher-arity links as a desired feature: "4-sets, 5-sets ... n-sets supported in link storage and search" [LM 4/79]. The three-endset case — from, to, type — is the standard convention, not a structural ceiling. A faceted link relating content across more than three roles need not be decomposed into chains of ternary links; it can be expressed directly as a single link with the required number of endsets.
 
