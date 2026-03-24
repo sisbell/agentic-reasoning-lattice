@@ -360,6 +360,8 @@ def process_asn(asn_num, model, effort, max_cycles, force=False):
 def main():
     parser = argparse.ArgumentParser(
         description="Batch rebase — check and rebase all ASNs in dependency order")
+    parser.add_argument("--only", nargs="+", type=int, default=[],
+                        help="Only process these ASN numbers")
     parser.add_argument("--exclude", "-x", nargs="+", type=int, default=[],
                         help="ASN numbers to exclude")
     parser.add_argument("--topic", "-t",
@@ -375,7 +377,10 @@ def main():
     args = parser.parse_args()
 
     all_active = get_active_asns()
-    asn_nums = [n for n in all_active if n not in args.exclude]
+    if args.only:
+        asn_nums = [n for n in args.only if n in all_active]
+    else:
+        asn_nums = [n for n in all_active if n not in args.exclude]
 
     if args.topic:
         filtered = [n for n in asn_nums
