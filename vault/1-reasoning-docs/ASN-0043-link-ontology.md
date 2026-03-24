@@ -210,21 +210,21 @@ This is a profound design choice. It decouples classification from content retri
 
 `(A Σ : Σ satisfies L0–L14 ∧ S0–S3 : (E Σ' extending Σ, a ∈ dom(Σ'.L), (s, ℓ) ∈ Σ'.L(a).type :: coverage({(s, ℓ)}) ⊄ dom(Σ'.C) ∪ dom(Σ'.L)))`
 
-*Witness.* Take any conforming `Σ`. Let `d` be a document with an allocator for subspace `s_L`. Choose a fresh ghost address `g ∈ T` with `fields(g).E₁ = s_C` and `g ∉ dom(Σ.C)` (such an address exists: by S7a, every address in `dom(Σ.C)` is allocated under some document's prefix; by T9, allocation within each document's content subspace is strictly increasing; by T0(a), components are unbounded — so a content-subspace address beyond the allocation frontier of every document is always available). Allocate a new link address `a` via forward allocation (T9) within `d`'s link subspace. Define `Σ'` as `Σ` extended with `Σ'.L(a) = (∅, ∅, {(g, δ(1, #g))})`, and `Σ'.C = Σ.C`, `Σ'.M = Σ.M`.
+*Witness.* Take any conforming `Σ`. Choose a subspace identifier `s_X` with `s_X ≠ s_C` and `s_X ≠ s_L` (by T0(a), element-field first components range over all naturals, so values beyond `s_C` and `s_L` exist). Let `g` be any element-level tumbler with `fields(g).E₁ = s_X`. By L0, `dom(Σ.C) ⊆ {t : fields(t).E₁ = s_C}` and `dom(Σ.L) ⊆ {t : fields(t).E₁ = s_L}`. Since `s_X ≠ s_C` and `s_X ≠ s_L`, T7 gives `g ∉ dom(Σ.C) ∪ dom(Σ.L)` — unconditionally, regardless of the size of these domains. Choose a document prefix `d'` under which no address has been allocated — that is, no `b ∈ dom(Σ.C) ∪ dom(Σ.L)` has `home(b) = d'` (by T0(a), node-field components are unbounded, providing prefixes beyond any finite allocation history). Allocate a link address `a` under `d'`'s link subspace with `fields(a).E₁ = s_L` and `zeros(a) = 3`; since `d'` is fresh, `a ∉ dom(Σ.L)`. Define `Σ'` as `Σ` extended with `Σ'.L(a) = (∅, ∅, {(g, δ(1, #g))})`, and `Σ'.C = Σ.C`, `Σ'.M = Σ.M`.
 
 We verify that `Σ'` is conforming:
 
-- *L0 (SubspacePartition).* The address `a` is allocated in `d`'s link subspace, so `fields(a).E₁ = s_L`. Since `s_L ≠ s_C`, `a ∉ dom(Σ'.C) = dom(Σ.C)`, preserving disjointness.
+- *L0 (SubspacePartition).* The address `a` is constructed with `fields(a).E₁ = s_L`. Since `s_L ≠ s_C`, `a ∉ dom(Σ'.C) = dom(Σ.C)`, preserving disjointness.
 - *L1 (LinkElementLevel).* The address `a` is an element-level tumbler by construction: allocated under a document prefix with all four fields, giving `zeros(a) = 3`.
-- *L1a (LinkScopedAllocation).* The address `a` is allocated under `d`'s prefix by construction: `home(a) = d`.
+- *L1a (LinkScopedAllocation).* The address `a` is allocated under `d'`'s prefix by construction: `home(a) = d'`.
 - *L3–L5.* The type span `(g, δ(1, #g))` is well-formed by T12; the endset sequence `(∅, ∅, {(g, δ(1, #g))})` has arity 3 ≥ 2, satisfying L3. Empty endsets are valid by the definition of Endset. L5 holds trivially.
-- *L11a (LinkUniqueness).* By GlobalUniqueness, the freshly allocated `a` is distinct from every address in `dom(Σ.L)`.
+- *L11a (LinkUniqueness).* No address in `dom(Σ.L)` has prefix `d'`, so `a ∉ dom(Σ.L)`, and `a` is distinct from every existing link address.
 - *L12 (LinkImmutability).* For every `b ∈ dom(Σ.L)`: `b ∈ dom(Σ'.L)` and `Σ'.L(b) = Σ.L(b)`, since `Σ'` only adds the new entry at `a`.
 - *L14 (DualPrimitive).* `dom(Σ'.C) ∪ dom(Σ'.L) = dom(Σ.C) ∪ (dom(Σ.L) ∪ {a})`. Disjointness holds since `a` is in subspace `s_L` and `dom(Σ'.C) ⊆ s_C`.
 - *S0–S3.* Content store and arrangements are unchanged (`Σ'.C = Σ.C`, `Σ'.M = Σ.M`), so all ASN-0036 invariants carry over from `Σ`.
 - *Remaining properties.* L2 holds structurally (home is field extraction from the address); L6 vacuously (F = G = ∅ makes the antecedent false); L8, L10, L13 are lemmas that do not constrain states; L12a follows from L12.
 
-No property of L0–L14 or S0–S3 constrains `coverage(Σ'.L(a).type) ⊆ dom(Σ'.C)`. Now, `Σ'.C = Σ.C`, so `g ∉ dom(Σ.C) = dom(Σ'.C)`. And `fields(g).E₁ = s_C` while every address in `dom(Σ'.L)` has subspace `s_L` by L0; since `s_C ≠ s_L`, T7 gives `g ∉ dom(Σ'.L)`. Therefore `g ∉ dom(Σ'.C) ∪ dom(Σ'.L)`. ∎
+No property of L0–L14 or S0–S3 constrains `coverage(Σ'.L(a).type) ⊆ dom(Σ'.C)`. The ghost address `g` has `fields(g).E₁ = s_X`. Since `s_X ≠ s_C`, L0 gives `g ∉ dom(Σ'.C)`. Since `s_X ≠ s_L`, L0 gives `g ∉ dom(Σ'.L)`. Therefore `g ∉ dom(Σ'.C) ∪ dom(Σ'.L)` — unconditionally, by subspace separation alone. ∎
 
 No property of L0–L14 constrains type endset targets to content addresses. Nelson: "Indeed, there is no need for the presence of elements at the addresses specified. Link types may be ghost elements." The type address is a pure name — a position chosen by convention, not a pointer to content that must be dereferenced.
 
