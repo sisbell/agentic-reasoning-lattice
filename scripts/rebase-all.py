@@ -208,13 +208,29 @@ def process_asn(asn_num, model, effort, max_cycles, force=False):
         print(f"  [PRE-CHECK] CLEAN — rebase will run without extra findings",
               file=sys.stderr)
 
-    # Step 3: Rebase (one pass, then scoped review/revise up to 5 cycles)
+    # Step 3: Rebase (one pass)
     print(f"  [REBASE] {asn_label}...", file=sys.stderr)
     ok = step_rebase(asn_num, asn_path, asn_label, model, effort,
                      precheck_findings=findings)
     if not ok:
         print(f"  [FAILED] {asn_label} rebase failed", file=sys.stderr)
         return "failed"
+
+    # Check if the rebase actually changed the reasoning doc
+    diff_result = subprocess.run(
+        ["git", "diff", "--name-only", str(asn_path)],
+        capture_output=True, text=True, cwd=str(WORKSPACE),
+    )
+    rebase_changed = bool(diff_result.stdout.strip())
+
+    if not rebase_changed:
+        print(f"  [REBASE] No changes to {asn_label} — skipping review/convergence",
+              file=sys.stderr)
+        update_rebase_timestamp(asn_num)
+        update_consistency_state(asn_num, "CLEAN")
+        step_export(asn_num)
+        print(f"  [DONE] {asn_label}", file=sys.stderr)
+        return "completed"
 
     step_commit(f"rebase(asn): {asn_label} against updated foundation")
 
