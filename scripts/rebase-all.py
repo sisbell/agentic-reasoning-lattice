@@ -39,6 +39,7 @@ from lib.common import find_asn
 from lib.rebase_asn import (
     step_audit, step_export,
     update_rebase_timestamp, run_inline_consistency_check,
+    clear_open_issues,
 )
 
 
@@ -258,6 +259,9 @@ def process_asn(asn_num, model, effort, max_cycles, force=False):
     if status == "skip":
         print(f"  [SKIP] {asn_label} — up to date", file=sys.stderr)
         return "skipped"
+
+    # ── Clear stale open issues from previous runs ──
+    clear_open_issues(asn_num)
 
     # ── AUDIT: 4 alternating passes (sonnet, opus, sonnet, opus) ──
     # Each reads existing open issues and only adds new findings.

@@ -84,29 +84,12 @@ def _append_open_issues(asn_num, new_issues):
     print(f"  [WROTE] {path.relative_to(WORKSPACE)}", file=sys.stderr)
 
 
-def _extract_findings_as_issues(text, source_label):
-    """Extract findings from a consistency check and format as open issues.
-
-    Parses the structured findings (### N. Category ... Finding N.) and
-    converts them to ### titled open issues.
-    """
-    # Find all "**Finding N.**" blocks
-    findings = re.findall(
-        r"\*\*Finding \d+\.?\*\*\s*(.+?)(?=\*\*Finding \d+\.?\*\*|---|\Z)",
-        text, re.DOTALL)
-
-    if not findings:
-        return ""
-
-    issues = []
-    for i, finding in enumerate(findings, 1):
-        # Use first sentence as title
-        first_line = finding.strip().split("\n")[0]
-        # Truncate to something reasonable for a title
-        title = first_line[:120].rstrip(".")
-        issues.append(f"### {title}\n**Source**: {source_label}\n\n{finding.strip()}")
-
-    return "\n\n".join(issues)
+def clear_open_issues(asn_num):
+    """Clear the open issues file at the start of a rebase."""
+    path = PROJECT_MODEL_DIR / f"ASN-{asn_num:04d}-open-issues.md"
+    if path.exists():
+        path.unlink()
+        print(f"  [CLEARED] {path.relative_to(WORKSPACE)}", file=sys.stderr)
 
 
 def run_inline_consistency_check(asn_num, asn_path, asn_label):
@@ -188,11 +171,9 @@ def run_inline_consistency_check(asn_num, asn_path, asn_label):
         print(f"  [CONSISTENCY] CLEAN ({elapsed:.0f}s)", file=sys.stderr)
         return False
 
-    # RESULT: marker present but not CLEAN — extract and append to open issues
+    # RESULT: marker present but not CLEAN — append raw findings to open issues
     if "RESULT:" in text:
-        issues_text = _extract_findings_as_issues(text, f"consistency check ({asn_label})")
-        if issues_text:
-            _append_open_issues(asn_num, issues_text)
+        _append_open_issues(asn_num, text)
         print(f"  [CONSISTENCY] Findings appended to open issues ({elapsed:.0f}s)",
               file=sys.stderr)
         return True
