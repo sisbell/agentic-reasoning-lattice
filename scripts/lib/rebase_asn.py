@@ -148,6 +148,8 @@ def run_inline_consistency_check(asn_num, asn_path, asn_label):
 
     env = os.environ.copy()
     env.pop("CLAUDECODE", None)
+    env["CLAUDE_CODE_EFFORT_LEVEL"] = "medium"
+    env.setdefault("CLAUDE_CODE_MAX_OUTPUT_TOKENS", "128000")
 
     start = time.time()
     result = subprocess.run(
@@ -237,7 +239,7 @@ def step_audit(asn_num, asn_path, asn_label, model, effort):
     print(f"  [AUDIT] Deep foundation audit of {asn_label}...",
           file=sys.stderr)
 
-    text, elapsed = invoke_claude(prompt, model=model, effort=effort)
+    text, elapsed = invoke_claude(prompt, model=model, effort="medium")
 
     if not text:
         print(f"  [AUDIT] No output ({elapsed:.0f}s)", file=sys.stderr)
