@@ -168,7 +168,7 @@ def step_rebase(asn_num, asn_path, asn_label, model, effort,
             "## Pre-Check Findings\n\n"
             "A consistency check identified the following issues. "
             "Address these in addition to the three passes above:\n\n"
-            f"{findings}\n"
+            f"{precheck_findings}\n"
         )
     else:
         findings_section = ""
