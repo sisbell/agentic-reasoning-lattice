@@ -70,10 +70,18 @@ def step_review(asn_id):
 
 
 def has_revise_items(review_path):
-    """Check if review has REVISE items."""
+    """Check if review has REVISE items.
+
+    Recognizes both standard review format (## REVISE) and
+    consistency check format (RESULT: n FINDINGS).
+    """
     try:
         content = Path(review_path).read_text()
-        return "## REVISE" in content
+        if "## REVISE" in content:
+            return True
+        if "RESULT:" in content and "FINDINGS" in content:
+            return True
+        return False
     except (FileNotFoundError, OSError):
         return False
 
