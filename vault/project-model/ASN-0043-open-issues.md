@@ -36,3 +36,18 @@ L14 (DualPrimitive) claims only two categories of stored entity. The state is de
 All properties in the table verified against body text: `introduced` entries contain new content; none listed as `cited` (so the converse does not apply). L4 (LEMMA) follows from L3 by definitional unpacking — the body explains this explicitly. L7 (META) is a meta-statement with no formal proof; the type META is non-standard but internally consistent. PrefixSpanCoverage (LEMMA) has a complete formal proof. No mismatch between registry status and body treatment.
 
 (none)
+
+### `home(a)` applies the `origin` formula outside `origin`'s stated domain
+**Source**: consistency check (ASN-0043)
+
+`home(a)` applies the `origin` formula outside `origin`'s stated domain.
+
+The foundation (ASN-0036, Definition — Origin) defines:
+
+> `origin(a) = (fields(a).node).0.(fields(a).user).0.(fields(a).document)` for every `a ∈ dom(Σ.C)`.
+
+ASN-0043 introduces `home(a)` using the identical formula for `a ∈ dom(Σ.L)`:
+
+> "This is the same formula as `origin` (ASN-0036), applied here to link addresses rather than content addresses."
+
+This applies the `origin` formula to a domain (`dom(Σ.L)`) outside `origin`'s stated domain (`dom(Σ.C)`). The registry correctly says `introduced`, and the ASN provides justification (T4, L1, L1a). Per Category 2a this is a finding regardless.
