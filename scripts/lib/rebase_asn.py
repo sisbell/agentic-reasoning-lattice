@@ -35,6 +35,7 @@ PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
 REBASE_TEMPLATE = PROMPTS_DIR / "rebase.md"
 REBASE_REVIEW_TEMPLATE = PROMPTS_DIR / "rebase-review.md"
 REBASE_REVISE_TEMPLATE = PROMPTS_DIR / "rebase-revise.md"
+AUDIT_TEMPLATE = PROMPTS_DIR / "rebase-audit.md"
 
 
 def validate(asn_num):
@@ -59,19 +60,69 @@ def validate(asn_num):
     return asn_path, asn_label, manifest
 
 
+def _load_open_issues(asn_num):
+    """Load existing open issues for an ASN. Returns content or empty string."""
+    path = PROJECT_MODEL_DIR / f"ASN-{asn_num:04d}-open-issues.md"
+    if path.exists():
+        return path.read_text().strip()
+    return ""
+
+
+def _append_open_issues(asn_num, new_issues):
+    """Append new issues to the open issues file."""
+    path = PROJECT_MODEL_DIR / f"ASN-{asn_num:04d}-open-issues.md"
+    existing = ""
+    if path.exists():
+        existing = path.read_text().strip()
+
+    if existing:
+        content = existing + "\n\n" + new_issues.strip() + "\n"
+    else:
+        content = new_issues.strip() + "\n"
+
+    path.write_text(content)
+    print(f"  [WROTE] {path.relative_to(WORKSPACE)}", file=sys.stderr)
+
+
+def _extract_findings_as_issues(text, source_label):
+    """Extract findings from a consistency check and format as open issues.
+
+    Parses the structured findings (### N. Category ... Finding N.) and
+    converts them to ### titled open issues.
+    """
+    # Find all "**Finding N.**" blocks
+    findings = re.findall(
+        r"\*\*Finding \d+\.?\*\*\s*(.+?)(?=\*\*Finding \d+\.?\*\*|---|\Z)",
+        text, re.DOTALL)
+
+    if not findings:
+        return ""
+
+    issues = []
+    for i, finding in enumerate(findings, 1):
+        # Use first sentence as title
+        first_line = finding.strip().split("\n")[0]
+        # Truncate to something reasonable for a title
+        title = first_line[:120].rstrip(".")
+        issues.append(f"### {title}\n**Source**: {source_label}\n\n{finding.strip()}")
+
+    return "\n\n".join(issues)
+
+
 def run_inline_consistency_check(asn_num, asn_path, asn_label):
     """Run a consistency check via sonnet.
 
-    Writes result as a review file. Returns findings text or None (CLEAN).
+    Writes findings to the open issues file. Returns True if findings
+    were found, False if CLEAN.
     """
     foundation = load_foundation_statements(FOUNDATION_LIST, STATEMENTS_DIR,
                                             asn_id=asn_num)
     if not foundation:
-        return None
+        return False
 
     template_path = PROMPTS_DIR / "consistency-check.md"
     if not template_path.exists():
-        return None
+        return False
 
     manifest = load_manifest(asn_num)
     depends = manifest.get("depends", []) if manifest else []
@@ -107,54 +158,102 @@ def run_inline_consistency_check(asn_num, asn_path, asn_label):
 
     if result.returncode != 0:
         print(f"  [CONSISTENCY] Failed ({elapsed:.0f}s)", file=sys.stderr)
-        return None
+        return False
 
     try:
         data = json.loads(result.stdout)
         text = data.get("result", "")
     except (json.JSONDecodeError, KeyError):
         print(f"  [CONSISTENCY] Parse error ({elapsed:.0f}s)", file=sys.stderr)
-        return None
+        return False
 
-    # Empty or whitespace response = CLEAN (no findings)
+    # Empty or whitespace response = CLEAN
     if not text or not text.strip():
         print(f"  [CONSISTENCY] Empty response — treating as CLEAN ({elapsed:.0f}s)",
               file=sys.stderr)
-        return None
+        return False
+
+    # Write as review file for the record
+    review_dir = REVIEWS_DIR / asn_label
+    review_dir.mkdir(parents=True, exist_ok=True)
+    review_num = next_review_number(asn_label)
+    review_path = review_dir / f"review-{review_num}.md"
+    review_path.write_text(text + "\n")
+    print(f"  [WROTE] {review_path.relative_to(WORKSPACE)}", file=sys.stderr)
 
     # RESULT: CLEAN — no findings
     if "RESULT: CLEAN" in text:
-        # Write review file for the record
-        review_dir = REVIEWS_DIR / asn_label
-        review_dir.mkdir(parents=True, exist_ok=True)
-        review_num = next_review_number(asn_label)
-        review_path = review_dir / f"review-{review_num}.md"
-        review_path.write_text(text + "\n")
-        print(f"  [WROTE] {review_path.relative_to(WORKSPACE)}", file=sys.stderr)
         print(f"  [CONSISTENCY] CLEAN ({elapsed:.0f}s)", file=sys.stderr)
-        return None
+        return False
 
-    # RESULT: marker present but not CLEAN — real findings
+    # RESULT: marker present but not CLEAN — extract and append to open issues
     if "RESULT:" in text:
-        review_dir = REVIEWS_DIR / asn_label
-        review_dir.mkdir(parents=True, exist_ok=True)
-        review_num = next_review_number(asn_label)
-        review_path = review_dir / f"review-{review_num}.md"
-        review_path.write_text(text + "\n")
-        print(f"  [WROTE] {review_path.relative_to(WORKSPACE)}", file=sys.stderr)
-        print(f"  [CONSISTENCY] Findings detected ({elapsed:.0f}s)",
+        issues_text = _extract_findings_as_issues(text, f"consistency check ({asn_label})")
+        if issues_text:
+            _append_open_issues(asn_num, issues_text)
+        print(f"  [CONSISTENCY] Findings appended to open issues ({elapsed:.0f}s)",
               file=sys.stderr)
-        return text
+        return True
 
     # No RESULT: marker at all — format issue, treat as CLEAN
     print(f"  [CONSISTENCY] No RESULT: marker — treating as CLEAN ({elapsed:.0f}s)",
           file=sys.stderr)
-    return None
+    return False
 
 
-def get_consistency_findings(asn_num, asn_path, asn_label):
-    """Run consistency check and return findings, or None if CLEAN."""
-    return run_inline_consistency_check(asn_num, asn_path, asn_label)
+def step_audit(asn_num, asn_path, asn_label, model, effort):
+    """Run a deep foundation audit via opus.
+
+    Reads the ASN and foundation, finds cross-boundary issues,
+    appends new findings to the open issues file. Does not edit the ASN.
+    """
+    foundation = load_foundation_statements(FOUNDATION_LIST, STATEMENTS_DIR,
+                                            asn_id=asn_num)
+    if not foundation:
+        print(f"  [ERROR] No foundation statements loaded for {asn_label}",
+              file=sys.stderr)
+        return False
+
+    template = read_file(AUDIT_TEMPLATE)
+    if not template:
+        print("  [ERROR] Audit prompt template not found", file=sys.stderr)
+        return False
+
+    manifest = load_manifest(asn_num)
+    depends = manifest.get("depends", []) if manifest else []
+    depends_str = ", ".join(f"ASN-{d:04d}" for d in depends)
+
+    open_issues = _load_open_issues(asn_num)
+    if not open_issues:
+        open_issues = "(none)"
+
+    prompt = (template
+              .replace("{{foundation_statements}}", foundation)
+              .replace("{{asn_content}}", asn_path.read_text())
+              .replace("{{asn_label}}", asn_label)
+              .replace("{{depends}}", depends_str)
+              .replace("{{open_issues}}", open_issues))
+
+    print(f"  [AUDIT] Deep foundation audit of {asn_label}...",
+          file=sys.stderr)
+
+    text, elapsed = invoke_claude(prompt, model=model, effort=effort)
+
+    if not text:
+        print(f"  [AUDIT] No output ({elapsed:.0f}s)", file=sys.stderr)
+        return False
+
+    log_usage("rebase-audit", elapsed, asn=asn_num)
+
+    if "NO NEW ISSUES" in text:
+        print(f"  [AUDIT] No new issues found ({elapsed:.0f}s)",
+              file=sys.stderr)
+        return True
+
+    # Append new issues to open issues file
+    _append_open_issues(asn_num, text)
+    print(f"  [AUDIT] New issues appended ({elapsed:.0f}s)", file=sys.stderr)
+    return True
 
 
 def step_rebase(asn_num, asn_path, asn_label, model, effort,

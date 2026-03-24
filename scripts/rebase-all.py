@@ -37,7 +37,7 @@ from paths import (WORKSPACE, ASNS_DIR, STATEMENTS_DIR, FOUNDATION_LIST,
                    PROJECT_MODEL_DIR, load_manifest)
 from lib.common import find_asn
 from lib.rebase_asn import (
-    step_rebase, step_review_revise, step_export,
+    step_audit, step_export,
     update_rebase_timestamp, run_inline_consistency_check,
 )
 
@@ -233,8 +233,14 @@ def step_commit_asn(asn_num, message):
                    capture_output=True, cwd=str(WORKSPACE))
 
 
+def has_open_issues(asn_num):
+    """Check if an ASN has open issues."""
+    path = PROJECT_MODEL_DIR / f"ASN-{asn_num:04d}-open-issues.md"
+    return path.exists() and path.read_text().strip()
+
+
 def process_asn(asn_num, model, effort, max_cycles, force=False):
-    """Process one ASN: pre-check → rebase → review → converge → post-check → export."""
+    """Process one ASN: audit → review/converge → post-check → export."""
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
         return "skipped"
@@ -253,60 +259,50 @@ def process_asn(asn_num, model, effort, max_cycles, force=False):
         print(f"  [SKIP] {asn_label} — up to date", file=sys.stderr)
         return "skipped"
 
-    # ── PRE-CHECK (sonnet, once) ──
-    print(f"  [PRE-CHECK] Running consistency check...", file=sys.stderr)
-    findings = run_inline_consistency_check(asn_num, asn_path, asn_label)
+    # ── AUDIT: 4 alternating passes (sonnet, opus, sonnet, opus) ──
+    # Each reads existing open issues and only adds new findings.
+    # Later passes benefit from seeing what earlier passes found.
+    audit_passes = [
+        ("sonnet", "Consistency check"),
+        ("opus", "Deep foundation audit"),
+        ("sonnet", "Consistency re-check"),
+        ("opus", "Deep audit (gap fill)"),
+    ]
 
-    if findings:
-        update_consistency_state(asn_num, "FINDINGS")
-        print(f"  [PRE-CHECK] Findings will be fed to rebase", file=sys.stderr)
-    else:
-        update_consistency_state(asn_num, "CLEAN")
-        print(f"  [PRE-CHECK] CLEAN — rebase will run without extra findings",
-              file=sys.stderr)
+    for i, (audit_model, desc) in enumerate(audit_passes, 1):
+        print(f"  [AUDIT {i}/4] {desc} ({audit_model})...", file=sys.stderr)
+        if audit_model == "sonnet":
+            found = run_inline_consistency_check(asn_num, asn_path, asn_label)
+            if found:
+                update_consistency_state(asn_num, "FINDINGS")
+        else:
+            ok = step_audit(asn_num, asn_path, asn_label, model, effort)
+            if not ok:
+                print(f"  [WARN] {asn_label} audit pass {i} failed — continuing",
+                      file=sys.stderr)
 
-    # Commit pre-check review artifacts
-    step_commit_asn(asn_num, f"review(asn): {asn_label} pre-check")
+    # Commit audit artifacts (open issues file, review files)
+    step_commit_asn(asn_num, f"audit(asn): {asn_label} foundation audit")
 
-    # ── REBASE (opus, one pass, with pre-check findings injected) ──
-    print(f"  [REBASE] {asn_label}...", file=sys.stderr)
-    ok = step_rebase(asn_num, asn_path, asn_label, model, effort,
-                     precheck_findings=findings)
-    if not ok:
-        print(f"  [FAILED] {asn_label} rebase failed", file=sys.stderr)
-        return "failed"
-
-    # Check if the rebase actually changed the reasoning doc
-    diff_result = subprocess.run(
-        ["git", "diff", "--name-only", str(asn_path)],
-        capture_output=True, text=True, cwd=str(WORKSPACE),
-    )
-    rebase_changed = bool(diff_result.stdout.strip())
-
-    if not rebase_changed:
-        print(f"  [REBASE] No changes to {asn_label} — skipping review/convergence",
+    # ── Check if any open issues exist ──
+    if not has_open_issues(asn_num):
+        print(f"  [AUDIT] No open issues — updating timestamps",
               file=sys.stderr)
         update_rebase_timestamp(asn_num)
         update_consistency_state(asn_num, "CLEAN")
-        step_commit_asn(asn_num, f"rebase(asn): {asn_label} — no changes, timestamps updated")
+        step_commit_asn(asn_num, f"rebase(asn): {asn_label} — clean, timestamps updated")
         step_export(asn_num)
         step_commit_asn(asn_num, f"export(asn): {asn_label}")
         print(f"  [DONE] {asn_label}", file=sys.stderr)
         return "completed"
 
-    # Commit rebase changes
-    step_commit_asn(asn_num, f"rebase(asn): {asn_label} against updated foundation")
-
-    # ── SCOPED REVIEW/REVISE (up to 5 cycles, rebase changes only) ──
-    print(f"  [REBASE REVIEW] Scoped review of rebase changes...",
+    print(f"  [AUDIT] Open issues found — starting review/revise convergence",
           file=sys.stderr)
-    rebased_properties = "(consistency check findings)"
-    step_review_revise(asn_num, asn_path, asn_label, rebased_properties,
-                       5, model, effort)
-    # Scoped review doesn't converge → continue anyway (not a failure)
 
-    # ── FRESH REVIEW (review.py — handles its own commits) ──
-    print(f"  [REVIEW] Running fresh full-scope review...", file=sys.stderr)
+    # ── REVIEW/REVISE CONVERGENCE ──
+    # review.py reads open issues and promotes them to REVISE items.
+    # revise.py fixes them. The loop continues until converged.
+    print(f"  [REVIEW] Running fresh review...", file=sys.stderr)
     review_cmd = [sys.executable,
                   str(WORKSPACE / "scripts" / "review.py"),
                   str(asn_num)]
@@ -329,38 +325,23 @@ def process_asn(asn_num, model, effort, max_cycles, force=False):
 
     # ── POST-CHECK (sonnet) ──
     print(f"  [POST-CHECK] Verifying {asn_label}...", file=sys.stderr)
-    post_findings = run_inline_consistency_check(asn_num, asn_path, asn_label)
+    post_found = run_inline_consistency_check(asn_num, asn_path, asn_label)
 
-    if post_findings is None:
+    if not post_found:
         print(f"  [VERIFIED] {asn_label} — CLEAN", file=sys.stderr)
         update_consistency_state(asn_num, "CLEAN")
-        step_commit_asn(asn_num, f"review(asn): {asn_label} post-check CLEAN")
     else:
-        # One more rebase → check for changes → commit → convergence
-        print(f"  [POST-CHECK] Findings detected — one more rebase + convergence...",
+        # Post-check found new issues — they're already in open issues file.
+        # Run one more convergence cycle.
+        print(f"  [POST-CHECK] New issues found — one more convergence...",
               file=sys.stderr)
         update_consistency_state(asn_num, "FINDINGS")
-        step_commit_asn(asn_num, f"review(asn): {asn_label} post-check findings")
+        step_commit_asn(asn_num, f"audit(asn): {asn_label} post-check issues")
 
-        ok = step_rebase(asn_num, asn_path, asn_label, model, effort,
-                         precheck_findings=post_findings)
-        if not ok:
-            print(f"  [FAILED] {asn_label} post-check rebase failed",
+        if not run_convergence(asn_num, max_cycles):
+            print(f"  [FAILED] {asn_label} post-check convergence failed",
                   file=sys.stderr)
             return "failed"
-
-        # Check if post-check rebase changed anything
-        diff_result = subprocess.run(
-            ["git", "diff", "--name-only", str(asn_path)],
-            capture_output=True, text=True, cwd=str(WORKSPACE),
-        )
-        if diff_result.stdout.strip():
-            step_commit_asn(asn_num, f"rebase(asn): {asn_label} post-check fixes")
-
-            if not run_convergence(asn_num, max_cycles):
-                print(f"  [FAILED] {asn_label} post-check convergence failed",
-                      file=sys.stderr)
-                return "failed"
 
         update_consistency_state(asn_num, "CLEAN")
 

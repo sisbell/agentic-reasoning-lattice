@@ -26,7 +26,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import WORKSPACE, ASNS_DIR, VOCABULARY, REVIEWS_DIR, USAGE_LOG, STATEMENTS_DIR, FOUNDATION_LIST, sorted_reviews, load_manifest
+from paths import WORKSPACE, ASNS_DIR, VOCABULARY, REVIEWS_DIR, USAGE_LOG, STATEMENTS_DIR, FOUNDATION_LIST, PROJECT_MODEL_DIR, sorted_reviews, load_manifest
 from lib.foundation import load_foundation_statements
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
@@ -74,6 +74,58 @@ def find_asn(asn_id):
     return None, label
 
 
+def load_open_issues(asn_number):
+    """Load open issues file for an ASN. Returns content or empty string."""
+    path = PROJECT_MODEL_DIR / f"ASN-{asn_number:04d}-open-issues.md"
+    if path.exists():
+        content = path.read_text().strip()
+        if content:
+            return content
+    return "(none)"
+
+
+def process_resolved_issues(asn_number, review_text):
+    """Remove resolved issues from the open issues file.
+
+    Parses the ## RESOLVED section of a review. For each resolved issue,
+    removes the matching ### heading and its content from the open issues file.
+    """
+    # Find ## RESOLVED section
+    resolved_match = re.search(r"^## RESOLVED\s*\n(.*?)(?=^## |\Z)",
+                               review_text, re.MULTILINE | re.DOTALL)
+    if not resolved_match:
+        return
+
+    # Extract resolved issue titles
+    resolved_titles = re.findall(r"^### (.+)$", resolved_match.group(1),
+                                 re.MULTILINE)
+    if not resolved_titles:
+        return
+
+    issues_path = PROJECT_MODEL_DIR / f"ASN-{asn_number:04d}-open-issues.md"
+    if not issues_path.exists():
+        return
+
+    content = issues_path.read_text()
+    original = content
+
+    for title in resolved_titles:
+        # Remove the ### heading and everything until the next ### or end
+        pattern = rf"^### {re.escape(title)}\s*\n.*?(?=^### |\Z)"
+        content = re.sub(pattern, "", content, flags=re.MULTILINE | re.DOTALL)
+        print(f"  [RESOLVED] Removed: {title}", file=sys.stderr)
+
+    content = content.strip()
+    if content != original.strip():
+        if content:
+            issues_path.write_text(content + "\n")
+        else:
+            # All issues resolved — remove the file
+            issues_path.unlink()
+            print(f"  [RESOLVED] All open issues resolved — file removed",
+                  file=sys.stderr)
+
+
 def build_prompt(asn_content, vocabulary, out_of_scope="", hints="",
                  asn_number=None):
     """Assemble review prompt from template + injected content."""
@@ -84,6 +136,7 @@ def build_prompt(asn_content, vocabulary, out_of_scope="", hints="",
         sys.exit(1)
 
     foundation = load_foundation_statements(FOUNDATION_LIST, STATEMENTS_DIR, asn_id=asn_number)
+    open_issues = load_open_issues(asn_number) if asn_number else "(none)"
 
     scope_note = (f"\n\n## Scope\n\nThe following topics are OUT OF SCOPE for this ASN. "
                   f"Do not flag missing coverage for them. If the ASN defines properties "
@@ -101,6 +154,8 @@ def build_prompt(asn_content, vocabulary, out_of_scope="", hints="",
         "{{vocabulary}}", vocabulary
     ).replace(
         "{{foundation_statements}}", foundation
+    ).replace(
+        "{{open_issues}}", open_issues
     ) + scope_note + hints_note
 
 
@@ -259,6 +314,9 @@ def main():
             next_num = max(next_num, int(m.group(1)) + 1)
     output_path = REVIEWS_DIR / asn_label / f"review-{next_num}.md"
     output_path.write_text(text + "\n")
+
+    # Process resolved open issues
+    process_resolved_issues(asn_number, text)
 
     # Parse verdict
     verdict_match = re.search(r"^VERDICT:\s*(\w+)", text, re.MULTILINE)
