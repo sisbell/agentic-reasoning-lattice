@@ -176,6 +176,9 @@ def main():
         if args.converge is not None:
             print(f"\n  [REVISE] Max cycles ({max_cycles}) reached without convergence",
                   file=sys.stderr)
+            elapsed = time.time() - start
+            print(f"\n  [REVISE] Done ({elapsed:.0f}s)", file=sys.stderr)
+            sys.exit(1)
 
     elapsed = time.time() - start
     print(f"\n  [REVISE] Done ({elapsed:.0f}s)", file=sys.stderr)
