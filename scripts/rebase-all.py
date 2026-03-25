@@ -37,9 +37,8 @@ from paths import (WORKSPACE, ASNS_DIR, STATEMENTS_DIR, FOUNDATION_LIST,
                    PROJECT_MODEL_DIR, load_manifest)
 from lib.common import find_asn
 from lib.rebase_asn import (
-    step_audit, step_export,
-    update_rebase_timestamp, run_inline_consistency_check,
-    clear_open_issues,
+    step_surface_check, step_find_extensions, step_verify_transfer,
+    step_audit, step_export, update_rebase_timestamp, clear_open_issues,
 )
 
 
@@ -263,27 +262,23 @@ def process_asn(asn_num, model, effort, max_cycles, force=False):
     # ── Clear stale open issues from previous runs ──
     clear_open_issues(asn_num)
 
-    # ── AUDIT: 4 alternating passes (sonnet, opus, sonnet, opus) ──
-    # Each reads existing open issues and only adds new findings.
-    # Later passes benefit from seeing what earlier passes found.
-    audit_passes = [
-        ("sonnet", "Consistency check"),
-        ("opus", "Deep foundation audit"),
-        ("sonnet", "Consistency re-check"),
-        ("opus", "Deep audit (gap fill)"),
+    # ── AUDIT: 4 focused passes ──
+    # Pass 1-3: sonnet (prescriptive). Pass 4: opus (open-ended).
+    # Each reads foundation + ASN directly. No dependency between passes.
+    # All append raw findings to the same open issues file.
+    audit_steps = [
+        ("Surface check",        lambda: step_surface_check(asn_num, asn_path, asn_label)),
+        ("Domain extensions",    lambda: step_find_extensions(asn_num, asn_path, asn_label)),
+        ("Transfer verification", lambda: step_verify_transfer(asn_num, asn_path, asn_label)),
+        ("Open-ended audit",     lambda: step_audit(asn_num, asn_path, asn_label)),
     ]
 
-    for i, (audit_model, desc) in enumerate(audit_passes, 1):
-        print(f"  [AUDIT {i}/4] {desc} ({audit_model})...", file=sys.stderr)
-        if audit_model == "sonnet":
-            found = run_inline_consistency_check(asn_num, asn_path, asn_label)
-            if found:
-                update_consistency_state(asn_num, "FINDINGS")
-        else:
-            ok = step_audit(asn_num, asn_path, asn_label, model, effort)
-            if not ok:
-                print(f"  [WARN] {asn_label} audit pass {i} failed — continuing",
-                      file=sys.stderr)
+    for i, (desc, run_step) in enumerate(audit_steps, 1):
+        print(f"  [AUDIT {i}/4] {desc}...", file=sys.stderr)
+        ok = run_step()
+        if ok is False and i == 4:
+            print(f"  [WARN] {asn_label} audit pass {i} failed — continuing",
+                  file=sys.stderr)
 
     # Commit audit artifacts (open issues file, review files)
     step_commit_asn(asn_num, f"audit(asn): {asn_label} foundation audit")
@@ -327,27 +322,7 @@ def process_asn(asn_num, model, effort, max_cycles, force=False):
             print(f"  [FAILED] {asn_label} convergence failed", file=sys.stderr)
             return "failed"
 
-    # ── POST-CHECK (sonnet) ──
-    print(f"  [POST-CHECK] Verifying {asn_label}...", file=sys.stderr)
-    post_found = run_inline_consistency_check(asn_num, asn_path, asn_label)
-
-    if not post_found:
-        print(f"  [VERIFIED] {asn_label} — CLEAN", file=sys.stderr)
-        update_consistency_state(asn_num, "CLEAN")
-    else:
-        # Post-check found new issues — they're already in open issues file.
-        # Run one more convergence cycle.
-        print(f"  [POST-CHECK] New issues found — one more convergence...",
-              file=sys.stderr)
-        update_consistency_state(asn_num, "FINDINGS")
-        step_commit_asn(asn_num, f"audit(asn): {asn_label} post-check issues")
-
-        if not run_convergence(asn_num, max_cycles):
-            print(f"  [FAILED] {asn_label} post-check convergence failed",
-                  file=sys.stderr)
-            return "failed"
-
-        update_consistency_state(asn_num, "CLEAN")
+    update_consistency_state(asn_num, "CLEAN")
 
     # ── EXPORT ──
     step_export(asn_num)

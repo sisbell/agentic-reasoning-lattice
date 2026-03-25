@@ -12,8 +12,6 @@ Usage:
 """
 
 import argparse
-import json
-import os
 import re
 import subprocess
 import sys
@@ -36,6 +34,9 @@ REBASE_TEMPLATE = PROMPTS_DIR / "rebase.md"
 REBASE_REVIEW_TEMPLATE = PROMPTS_DIR / "rebase-review.md"
 REBASE_REVISE_TEMPLATE = PROMPTS_DIR / "rebase-revise.md"
 AUDIT_TEMPLATE = PROMPTS_DIR / "rebase-audit.md"
+SURFACE_CHECK_TEMPLATE = PROMPTS_DIR / "surface-check.md"
+DOMAIN_EXTENSIONS_TEMPLATE = PROMPTS_DIR / "domain-extensions.md"
+TRANSFER_VERIFICATION_TEMPLATE = PROMPTS_DIR / "transfer-verification.md"
 
 
 def validate(asn_num):
@@ -92,19 +93,21 @@ def clear_open_issues(asn_num):
         print(f"  [CLEARED] {path.relative_to(WORKSPACE)}", file=sys.stderr)
 
 
-def run_inline_consistency_check(asn_num, asn_path, asn_label):
-    """Run a consistency check via sonnet.
+def _run_sonnet_check(asn_num, asn_path, asn_label, template_path,
+                      step_name, clean_marker, effort="high",
+                      has_open_issues=False):
+    """Run a sonnet check from a template. Returns True if findings found.
 
-    Writes findings to the open issues file. Returns True if findings
-    were found, False if CLEAN.
+    Common logic for surface-check, domain-extensions, and transfer-verification.
     """
     foundation = load_foundation_statements(FOUNDATION_LIST, STATEMENTS_DIR,
                                             asn_id=asn_num)
     if not foundation:
         return False
 
-    template_path = PROMPTS_DIR / "consistency-check.md"
     if not template_path.exists():
+        print(f"  [{step_name}] Template not found: {template_path}",
+              file=sys.stderr)
         return False
 
     manifest = load_manifest(asn_num)
@@ -118,45 +121,19 @@ def run_inline_consistency_check(asn_num, asn_path, asn_label):
               .replace("{{asn_label}}", asn_label)
               .replace("{{depends}}", depends_str))
 
-    print(f"  [CONSISTENCY] Running fresh check on {asn_label}...",
-          file=sys.stderr)
+    if has_open_issues:
+        open_issues = _load_open_issues(asn_num)
+        prompt = prompt.replace("{{open_issues}}", open_issues or "(none)")
 
-    cmd = [
-        "claude", "-p",
-        "--model", "claude-sonnet-4-6",
-        "--output-format", "json",
-        "--max-turns", "1",
-        "--allowedTools", "",
-    ]
+    print(f"  [{step_name}] Running on {asn_label}...", file=sys.stderr)
 
-    env = os.environ.copy()
-    env.pop("CLAUDECODE", None)
-    env["CLAUDE_CODE_EFFORT_LEVEL"] = "medium"
-    env.setdefault("CLAUDE_CODE_MAX_OUTPUT_TOKENS", "128000")
+    text, elapsed = invoke_claude(prompt, model="sonnet", effort=effort)
 
-    start = time.time()
-    result = subprocess.run(
-        cmd, input=prompt, capture_output=True, text=True, env=env,
-        cwd=str(WORKSPACE),
-    )
-    elapsed = time.time() - start
-
-    if result.returncode != 0:
-        print(f"  [CONSISTENCY] Failed ({elapsed:.0f}s)", file=sys.stderr)
+    if not text:
+        print(f"  [{step_name}] No output ({elapsed:.0f}s)", file=sys.stderr)
         return False
 
-    try:
-        data = json.loads(result.stdout)
-        text = data.get("result", "")
-    except (json.JSONDecodeError, KeyError):
-        print(f"  [CONSISTENCY] Parse error ({elapsed:.0f}s)", file=sys.stderr)
-        return False
-
-    # Empty or whitespace response = CLEAN
-    if not text or not text.strip():
-        print(f"  [CONSISTENCY] Empty response — treating as CLEAN ({elapsed:.0f}s)",
-              file=sys.stderr)
-        return False
+    log_usage(f"rebase-{step_name.lower()}", elapsed, asn=asn_num)
 
     # Write as review file for the record
     review_dir = REVIEWS_DIR / asn_label
@@ -166,29 +143,64 @@ def run_inline_consistency_check(asn_num, asn_path, asn_label):
     review_path.write_text(text + "\n")
     print(f"  [WROTE] {review_path.relative_to(WORKSPACE)}", file=sys.stderr)
 
-    # RESULT: CLEAN — no findings
-    if "RESULT: CLEAN" in text:
-        print(f"  [CONSISTENCY] CLEAN ({elapsed:.0f}s)", file=sys.stderr)
+    # Check for clean marker
+    if clean_marker and clean_marker in text:
+        print(f"  [{step_name}] Clean ({elapsed:.0f}s)", file=sys.stderr)
         return False
 
-    # RESULT: marker present but not CLEAN — append raw findings to open issues
-    if "RESULT:" in text:
-        _append_open_issues(asn_num, text)
-        print(f"  [CONSISTENCY] Findings appended to open issues ({elapsed:.0f}s)",
-              file=sys.stderr)
-        return True
-
-    # No RESULT: marker at all — format issue, treat as CLEAN
-    print(f"  [CONSISTENCY] No RESULT: marker — treating as CLEAN ({elapsed:.0f}s)",
+    # Append raw output to open issues
+    _append_open_issues(asn_num, text)
+    print(f"  [{step_name}] Findings appended ({elapsed:.0f}s)",
           file=sys.stderr)
-    return False
+    return True
 
 
-def step_audit(asn_num, asn_path, asn_label, model, effort):
-    """Run a deep foundation audit via opus.
+def step_surface_check(asn_num, asn_path, asn_label):
+    """Surface check (sonnet): stale labels, drift, registry, deps, exhaustiveness.
 
-    Reads the ASN and foundation, finds cross-boundary issues,
-    appends new findings to the open issues file. Does not edit the ASN.
+    Returns True if findings were found, False if CLEAN.
+    """
+    return _run_sonnet_check(
+        asn_num, asn_path, asn_label,
+        SURFACE_CHECK_TEMPLATE,
+        step_name="SURFACE",
+        clean_marker="RESULT: CLEAN",
+    )
+
+
+def step_find_extensions(asn_num, asn_path, asn_label):
+    """Domain extension finder (sonnet): list all extensions and claimed analogs.
+
+    Returns True if extensions were found, False if none.
+    """
+    return _run_sonnet_check(
+        asn_num, asn_path, asn_label,
+        DOMAIN_EXTENSIONS_TEMPLATE,
+        step_name="EXTENSIONS",
+        clean_marker="NO EXTENSIONS FOUND",
+    )
+
+
+def step_verify_transfer(asn_num, asn_path, asn_label):
+    """Transfer verification (sonnet, CoT): verify each domain extension is sound.
+
+    Returns True if gaps were found, False if all verified or no extensions.
+    """
+    return _run_sonnet_check(
+        asn_num, asn_path, asn_label,
+        TRANSFER_VERIFICATION_TEMPLATE,
+        step_name="TRANSFER",
+        clean_marker="ALL VERIFIED",
+        effort="max",
+    )
+
+
+def step_audit(asn_num, asn_path, asn_label):
+    """Run an open-ended foundation audit via opus.
+
+    Reads the ASN, foundation, and accumulated open issues.
+    Finds cross-boundary issues the structured checks missed.
+    Appends new findings to the open issues file.
     """
     foundation = load_foundation_statements(FOUNDATION_LIST, STATEMENTS_DIR,
                                             asn_id=asn_num)
@@ -217,10 +229,10 @@ def step_audit(asn_num, asn_path, asn_label, model, effort):
               .replace("{{depends}}", depends_str)
               .replace("{{open_issues}}", open_issues))
 
-    print(f"  [AUDIT] Deep foundation audit of {asn_label}...",
+    print(f"  [AUDIT] Open-ended audit of {asn_label}...",
           file=sys.stderr)
 
-    text, elapsed = invoke_claude(prompt, model=model, effort="medium")
+    text, elapsed = invoke_claude(prompt, model="opus", effort="high")
 
     if not text:
         print(f"  [AUDIT] No output ({elapsed:.0f}s)", file=sys.stderr)
