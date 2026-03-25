@@ -240,7 +240,7 @@ def has_open_issues(asn_num):
     return path.exists() and path.read_text().strip()
 
 
-def refresh_export_if_stale(asn_num):
+def refresh_export_if_stale(asn_num, force=False):
     """Re-export an ASN if its reasoning doc is newer than its export.
 
     Returns True if export was refreshed.
@@ -250,13 +250,22 @@ def refresh_export_if_stale(asn_num):
         return False
 
     export_path = STATEMENTS_DIR / f"ASN-{asn_num:04d}-statements.md"
-    if export_path.exists() and export_path.stat().st_mtime >= asn_path.stat().st_mtime:
+    deps_path = STATEMENTS_DIR / f"ASN-{asn_num:04d}-deps.yaml"
+
+    needs_refresh = force
+    if not needs_refresh and not export_path.exists():
+        needs_refresh = True
+    if not needs_refresh and not deps_path.exists():
+        needs_refresh = True
+    if not needs_refresh and asn_path.stat().st_mtime > export_path.stat().st_mtime:
+        needs_refresh = True
+
+    if not needs_refresh:
         return False
 
-    print(f"  [EXPORT] {asn_label} — reasoning doc newer than export, refreshing...",
-          file=sys.stderr)
+    print(f"  [EXPORT] {asn_label} — refreshing export...", file=sys.stderr)
     step_export(asn_num)
-    step_commit_asn(asn_num, f"export(asn): {asn_label} — stale export refreshed")
+    step_commit_asn(asn_num, f"export(asn): {asn_label} — export refreshed")
     return True
 
 
@@ -272,7 +281,7 @@ def process_asn_hybrid(asn_num, model, effort, max_cycles, force=False):
 
     # Foundation ASNs (no deps): just ensure export is fresh
     if not manifest.get("depends"):
-        refreshed = refresh_export_if_stale(asn_num)
+        refreshed = refresh_export_if_stale(asn_num, force=force)
         if refreshed:
             print(f"  [{asn_label}] Export refreshed", file=sys.stderr)
         else:
@@ -412,7 +421,7 @@ def process_asn(asn_num, model, effort, max_cycles, force=False):
 
     # Foundation ASNs (no deps): just ensure export is fresh
     if not manifest.get("depends"):
-        refreshed = refresh_export_if_stale(asn_num)
+        refreshed = refresh_export_if_stale(asn_num, force=force)
         if refreshed:
             print(f"  [{asn_label}] Export refreshed", file=sys.stderr)
         else:
