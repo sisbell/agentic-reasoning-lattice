@@ -193,6 +193,113 @@ def scan_property(label, property_text, asn_label, depends, available_labels,
 
 
 # ---------------------------------------------------------------------------
+# ASN property table fixer
+# ---------------------------------------------------------------------------
+
+def _build_table_fixes(updated_deps, original_deps):
+    """Compare updated vs original deps to find properties needing Status fixes.
+
+    Returns dict of label → new_status_text for properties that gained
+    new foundation dependencies.
+    """
+    fixes = {}
+
+    for label, prop in updated_deps["properties"].items():
+        orig = original_deps["properties"].get(label, {})
+        orig_labels = set(orig.get("follows_from", []))
+        new_labels = set(prop.get("follows_from", []))
+        added = new_labels - orig_labels
+
+        if not added:
+            continue
+
+        # Build the new status text
+        # Group added labels by ASN
+        asn_groups = {}
+        for lbl in sorted(added):
+            # Find which ASN this label belongs to
+            asn_ref = None
+            for a in prop.get("follows_from_asns", []):
+                asn_groups.setdefault(a, []).append(lbl)
+                break
+            else:
+                asn_groups.setdefault(None, []).append(lbl)
+
+        parts = []
+        for asn_id, labels in sorted(asn_groups.items(), key=lambda x: x[0] or 0):
+            label_str = ", ".join(labels)
+            if asn_id:
+                parts.append(f"{label_str} (ASN-{asn_id:04d})")
+            else:
+                parts.append(label_str)
+
+        deps_text = "; ".join(parts)
+
+        # Determine new status based on original status
+        orig_status = orig.get("status", "introduced")
+        if orig_status == "introduced":
+            new_status = f"introduced; uses {deps_text}"
+        elif orig_status in ("corollary", "from", "theorem"):
+            # Already has deps — append the new ones
+            new_status = None  # Keep original, will be handled by mechanical re-extract
+        else:
+            new_status = f"{orig_status}; uses {deps_text}"
+
+        if new_status:
+            fixes[label] = new_status
+
+    return fixes
+
+
+def _fix_asn_table(asn_path, fixes):
+    """Update the ASN file's property table Status column.
+
+    For each label in fixes, find the table row and replace the Status cell.
+    """
+    text = asn_path.read_text()
+    lines = text.split("\n")
+
+    # Find the property table
+    table_start = None
+    for i, line in enumerate(lines):
+        if re.match(r"\|\s*Label\s*\|", line):
+            table_start = i
+            break
+
+    if table_start is None:
+        print(f"  [FIX-ASN] WARNING: property table not found", file=sys.stderr)
+        return
+
+    fixed_count = 0
+    for i in range(table_start + 2, len(lines)):  # Skip header + separator
+        line = lines[i]
+        if not line.strip().startswith("|"):
+            break
+
+        # Parse the row to get the label (first cell)
+        parts = line.split("|")
+        if len(parts) < 3:
+            continue
+
+        row_label = parts[1].strip().strip("`").strip("*").strip()
+
+        if row_label in fixes:
+            # Replace the last cell (Status) with the new text
+            # Reconstruct the row with the new status
+            new_status = fixes[row_label]
+            parts[-2] = f" {new_status} "
+            lines[i] = "|".join(parts)
+            fixed_count += 1
+
+    if fixed_count > 0:
+        asn_path.write_text("\n".join(lines))
+        print(f"  [FIX-ASN] Updated {fixed_count} property table entries in "
+              f"{asn_path.name}", file=sys.stderr)
+    else:
+        print(f"  [FIX-ASN] No table fixes needed", file=sys.stderr)
+
+
+# ---------------------------------------------------------------------------
 # Main: scan all properties and merge into deps YAML
 # ---------------------------------------------------------------------------
 
@@ -221,6 +328,10 @@ def scan_asn(asn_num, model="sonnet", effort="high", dry_run=False):
     available_labels = build_available_labels(asn_num)
     manifest = load_manifest(asn_num)
     depends = manifest.get("depends", [])
+
+    # Snapshot original deps for diff after scan
+    import copy
+    original_deps = copy.deepcopy(deps)
 
     print(f"  [DEP-SCAN] ASN-{asn_num:04d}: {len(sections)} property sections, "
           f"scanning with {model}...", file=sys.stderr)
@@ -270,10 +381,16 @@ def scan_asn(asn_num, model="sonnet", effort="high", dry_run=False):
           file=sys.stderr)
 
     if not dry_run and new_deps_found > 0:
+        # Write updated deps YAML
         with open(deps_path, "w") as f:
             yaml.dump(deps, f, default_flow_style=False, sort_keys=False,
                       allow_unicode=True, width=120)
         print(f"  [WROTE] {deps_path.relative_to(WORKSPACE)}", file=sys.stderr)
+
+        # Fix the ASN property table
+        fixes = _build_table_fixes(deps, original_deps)
+        if fixes:
+            _fix_asn_table(asn_path, fixes)
 
     return deps
 
@@ -286,9 +403,9 @@ def main():
                         choices=["opus", "sonnet"])
     parser.add_argument("--effort", default="high")
     parser.add_argument("--dry-run", action="store_true",
-                        help="Scan and print, don't update deps YAML")
-    parser.add_argument("--fix-asn", action="store_true",
-                        help="Also update the ASN property table (not yet implemented)")
+                        help="Scan and print, don't update deps YAML or ASN")
+    parser.add_argument("--no-fix", action="store_true",
+                        help="Update deps YAML but don't fix ASN property table")
     args = parser.parse_args()
 
     asn_num = int(re.sub(r"[^0-9]", "", args.asn))

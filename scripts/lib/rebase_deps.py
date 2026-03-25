@@ -109,6 +109,17 @@ def parse_status(status_text):
     if not status or status == "introduced":
         return result
 
+    # "introduced; uses LABEL1, LABEL2 (ASN-NNNN)" — introduced with discovered deps
+    if status.startswith("introduced;"):
+        result["kind"] = "introduced"
+        uses_part = status[len("introduced;"):].strip()
+        if uses_part.startswith("uses "):
+            uses_part = uses_part[len("uses "):]
+        labels, asns = _extract_labels_and_asns(uses_part)
+        result["labels"] = labels
+        result["asn_refs"] = asns
+        return result
+
     # "design requirement"
     if status.startswith("design"):
         result["kind"] = "design"
