@@ -187,20 +187,37 @@ def export_one(asn_id, model, effort, dry_run):
 
 
 def _generate_deps(asn_id, label):
-    """Generate deps YAML alongside the statements export."""
+    """Generate deps YAML alongside the statements export.
+
+    Two phases:
+    1. Mechanical extract from property table Status column (fast, no LLM)
+    2. LLM scan of derivation sections for undeclared dependencies (sonnet)
+    """
+    asn_num = int(re.sub(r"[^0-9]", "", str(asn_id)))
+
+    # Phase 1: Mechanical extract
     try:
         from lib.rebase_deps import generate_deps, write_deps_yaml
-        asn_num = int(re.sub(r"[^0-9]", "", str(asn_id)))
         deps = generate_deps(asn_num)
         if deps:
             path = write_deps_yaml(asn_num, deps)
-            print(f"  [DEPS] {path.relative_to(WORKSPACE)} "
+            print(f"  [DEPS] mechanical: {path.relative_to(WORKSPACE)} "
                   f"({len(deps['properties'])} properties)", file=sys.stderr)
         else:
-            print(f"  [DEPS] WARNING: could not generate deps for {label}",
+            print(f"  [DEPS] WARNING: mechanical extract failed for {label}",
                   file=sys.stderr)
+            return
     except Exception as e:
-        print(f"  [DEPS] WARNING: deps generation failed for {label}: {e}",
+        print(f"  [DEPS] WARNING: mechanical extract failed for {label}: {e}",
+              file=sys.stderr)
+        return
+
+    # Phase 2: LLM scan for undeclared dependencies
+    try:
+        from lib.rebase_dep_scan import scan_asn
+        scan_asn(asn_num, model="sonnet", effort="high")
+    except Exception as e:
+        print(f"  [DEPS] WARNING: LLM dep scan failed for {label}: {e}",
               file=sys.stderr)
 
 
