@@ -116,6 +116,20 @@ Output the META and VERDICT lines as plain text, exactly as shown — no markdow
 
 **VERDICT** is mandatory. Use CONVERGED only when there are zero REVISE items. Use REVISE when any issue remains — correctness, missing cases, prose clarity, all of it. If you have something to say under REVISE, the verdict is REVISE.
 
+## Dependency Graph
+
+The following YAML is the current mechanically-extracted dependency graph for
+this ASN. It may contain errors — false positives from prose scanning or missing
+dependencies. Treat it as the current understanding, not ground truth.
+
+- If a derivation depends on a label NOT listed in its `follows_from`, flag as REVISE: "undeclared dependency on X"
+- If a `follows_from` entry is NOT actually used in the derivation (only mentioned in passing), flag as REVISE: "spurious dependency on X — remove from property table"
+- If the `name` field doesn't match the property's actual name, flag as REVISE
+
+```yaml
+{{deps_yaml}}
+```
+
 ## Open Issues
 
 The following open issues were identified by foundation audits or manually. Each open issue is a **mandatory REVISE finding** — the ASN cannot converge while open issues remain. Do not attempt to address all open issues at once. Pick the most impactful issue (or a small related group) and write REVISE items for those.

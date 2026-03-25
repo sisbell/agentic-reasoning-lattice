@@ -126,6 +126,16 @@ def process_resolved_issues(asn_number, review_text):
                   file=sys.stderr)
 
 
+def load_deps_yaml(asn_number):
+    """Load deps YAML for an ASN. Returns formatted string or empty."""
+    if not asn_number:
+        return ""
+    deps_path = STATEMENTS_DIR / f"ASN-{asn_number:04d}-deps.yaml"
+    if not deps_path.exists():
+        return ""
+    return deps_path.read_text().strip()
+
+
 def build_prompt(asn_content, vocabulary, out_of_scope="", hints="",
                  asn_number=None):
     """Assemble review prompt from template + injected content."""
@@ -137,6 +147,7 @@ def build_prompt(asn_content, vocabulary, out_of_scope="", hints="",
 
     foundation = load_foundation_statements(FOUNDATION_LIST, STATEMENTS_DIR, asn_id=asn_number)
     open_issues = load_open_issues(asn_number) if asn_number else "(none)"
+    deps_yaml = load_deps_yaml(asn_number)
 
     scope_note = (f"\n\n## Scope\n\nThe following topics are OUT OF SCOPE for this ASN. "
                   f"Do not flag missing coverage for them. If the ASN defines properties "
@@ -154,6 +165,8 @@ def build_prompt(asn_content, vocabulary, out_of_scope="", hints="",
         "{{vocabulary}}", vocabulary
     ).replace(
         "{{foundation_statements}}", foundation
+    ).replace(
+        "{{deps_yaml}}", deps_yaml if deps_yaml else "(no dependency graph available)"
     ).replace(
         "{{open_issues}}", open_issues
     ) + scope_note + hints_note

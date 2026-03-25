@@ -240,6 +240,26 @@ def has_open_issues(asn_num):
     return path.exists() and path.read_text().strip()
 
 
+def refresh_export_if_stale(asn_num):
+    """Re-export an ASN if its reasoning doc is newer than its export.
+
+    Returns True if export was refreshed.
+    """
+    asn_path, asn_label = find_asn(str(asn_num))
+    if asn_path is None:
+        return False
+
+    export_path = STATEMENTS_DIR / f"ASN-{asn_num:04d}-statements.md"
+    if export_path.exists() and export_path.stat().st_mtime >= asn_path.stat().st_mtime:
+        return False
+
+    print(f"  [EXPORT] {asn_label} — reasoning doc newer than export, refreshing...",
+          file=sys.stderr)
+    step_export(asn_num)
+    step_commit_asn(asn_num, f"export(asn): {asn_label} — stale export refreshed")
+    return True
+
+
 def process_asn_hybrid(asn_num, model, effort, max_cycles, force=False):
     """Hybrid rebase: mechanical + focused LLM + surface check + opus."""
     asn_path, asn_label = find_asn(str(asn_num))
@@ -247,7 +267,12 @@ def process_asn_hybrid(asn_num, model, effort, max_cycles, force=False):
         return "skipped"
 
     manifest = load_manifest(asn_num)
-    if not manifest or not manifest.get("depends"):
+    if not manifest:
+        return "skipped"
+
+    # Foundation ASNs (no deps): just ensure export is fresh
+    if not manifest.get("depends"):
+        refresh_export_if_stale(asn_num)
         return "skipped"
 
     print(f"\n  {'='*50}", file=sys.stderr)
@@ -378,7 +403,12 @@ def process_asn(asn_num, model, effort, max_cycles, force=False):
         return "skipped"
 
     manifest = load_manifest(asn_num)
-    if not manifest or not manifest.get("depends"):
+    if not manifest:
+        return "skipped"
+
+    # Foundation ASNs (no deps): just ensure export is fresh
+    if not manifest.get("depends"):
+        refresh_export_if_stale(asn_num)
         return "skipped"
 
     print(f"\n  {'='*50}", file=sys.stderr)

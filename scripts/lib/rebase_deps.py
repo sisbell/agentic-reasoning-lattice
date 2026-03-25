@@ -20,7 +20,7 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from paths import WORKSPACE, STATEMENTS_DIR, load_manifest
-from lib.common import find_asn
+from lib.common import find_asn, extract_property_sections
 
 
 # ---------------------------------------------------------------------------
@@ -260,6 +260,68 @@ def parse_statement_for_relations(statement_text):
 
 
 # ---------------------------------------------------------------------------
+# Property name extraction
+# ---------------------------------------------------------------------------
+
+def _extract_property_name(section_text):
+    """Extract property name from derivation header like **L0 — SubspacePartition.**"""
+    m = re.match(r'\*\*\S+\s*(?:—|–|-)\s*(.+?)\.?\*\*', section_text)
+    if m:
+        name = m.group(1).strip().rstrip('.')
+        return name if len(name) < 80 else name[:77] + "..."
+    return ""
+
+
+# ---------------------------------------------------------------------------
+# Prose citation scanning
+# ---------------------------------------------------------------------------
+
+def _build_foundation_labels(depends):
+    """Build map of label → asn_num from foundation ASN exports."""
+    labels = {}
+    for dep_id in depends:
+        stmt_path = STATEMENTS_DIR / f"ASN-{dep_id:04d}-statements.md"
+        if not stmt_path.exists():
+            continue
+        text = stmt_path.read_text()
+        for m in re.finditer(r'^## (\S+) — ', text, re.MULTILINE):
+            labels[m.group(1)] = dep_id
+    return labels
+
+
+def _scan_prose_citations(sections, own_labels, foundation_labels):
+    """Scan derivation prose for label citations.
+
+    Returns dict of property_label → {
+        'local': [labels within this ASN],
+        'foundation': [(label, asn_num) from foundation],
+    }
+    """
+    all_known = set(own_labels) | set(foundation_labels.keys())
+    results = {}
+
+    for label, text in sections.items():
+        cited_labels, _ = _extract_labels_and_asns(text)
+
+        local = []
+        foundation = []
+        for cited in cited_labels:
+            if cited == label:  # skip self-reference
+                continue
+            if cited not in all_known:
+                continue
+            if cited in foundation_labels:
+                foundation.append((cited, foundation_labels[cited]))
+            elif cited in own_labels:
+                local.append(cited)
+
+        if local or foundation:
+            results[label] = {'local': local, 'foundation': foundation}
+
+    return results
+
+
+# ---------------------------------------------------------------------------
 # Main: generate deps YAML
 # ---------------------------------------------------------------------------
 
@@ -352,6 +414,45 @@ def generate_deps(asn_num):
             prop["follows_from_asns"] = sorted(set(existing + stmt_relations["via_asns"]))
 
         properties[label] = prop
+
+    # Enrich with property names and prose citations
+    sections = extract_property_sections(text)
+    foundation_labels = _build_foundation_labels(depends)
+    prose_citations = _scan_prose_citations(sections, set(properties.keys()),
+                                            foundation_labels)
+
+    prose_count = 0
+    for label, prop in properties.items():
+        # Add property name from derivation header
+        if label in sections:
+            name = _extract_property_name(sections[label])
+            if name:
+                prop["name"] = name
+
+        # Merge prose citations into follows_from
+        if label in prose_citations:
+            existing = set(prop.get("follows_from", []))
+            existing_asns = set(prop.get("follows_from_asns", []))
+
+            for cited in prose_citations[label]['local']:
+                if cited not in existing:
+                    prose_count += 1
+                existing.add(cited)
+
+            for cited, asn_num_ref in prose_citations[label]['foundation']:
+                if cited not in existing:
+                    prose_count += 1
+                existing.add(cited)
+                existing_asns.add(asn_num_ref)
+
+            if existing:
+                prop["follows_from"] = sorted(existing)
+            if existing_asns:
+                prop["follows_from_asns"] = sorted(existing_asns)
+
+    if prose_count:
+        print(f"  [PROSE] {prose_count} additional citations from derivation text",
+              file=sys.stderr)
 
     return {
         "asn": asn_num,

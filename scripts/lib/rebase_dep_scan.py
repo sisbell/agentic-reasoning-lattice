@@ -25,62 +25,9 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from paths import WORKSPACE, STATEMENTS_DIR, load_manifest
-from lib.common import find_asn
+from lib.common import find_asn, read_file, extract_property_sections
 
 PROMPT_TEMPLATE = WORKSPACE / "scripts" / "prompts" / "discovery" / "rebase-dep-scan.md"
-
-
-def read_file(path):
-    try:
-        return Path(path).read_text()
-    except FileNotFoundError:
-        return ""
-
-
-# ---------------------------------------------------------------------------
-# Extract per-property derivation sections from ASN
-# ---------------------------------------------------------------------------
-
-def extract_property_sections(asn_text):
-    """Extract the derivation text for each property.
-
-    Finds bold property definitions like **L0 — Name.** and captures
-    text up to the next property definition or section header.
-
-    Returns dict of label → derivation text.
-    """
-    sections = {}
-
-    # Pattern matches: **LABEL — Name.**  or  **LABEL (Name).**
-    prop_pattern = re.compile(
-        r'^\*\*([A-Z][A-Za-z0-9_()]*(?:-[A-Za-z0-9]+)*)\s*(?:—|–|-)\s*',
-        re.MULTILINE
-    )
-
-    # Find all property starts
-    matches = list(prop_pattern.finditer(asn_text))
-
-    for i, m in enumerate(matches):
-        label = m.group(1).strip("*").strip()
-        start = m.start()
-
-        # End is either next property or next ## section header
-        if i + 1 < len(matches):
-            end = matches[i + 1].start()
-        else:
-            # Find next section header
-            next_section = re.search(r'^## ', asn_text[start + 1:], re.MULTILINE)
-            end = start + 1 + next_section.start() if next_section else len(asn_text)
-
-        text = asn_text[start:end].strip()
-
-        # Limit to reasonable size (skip very long worked examples)
-        if len(text) > 3000:
-            text = text[:3000] + "\n[...truncated...]"
-
-        sections[label] = text
-
-    return sections
 
 
 # ---------------------------------------------------------------------------
