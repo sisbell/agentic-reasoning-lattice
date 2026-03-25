@@ -515,8 +515,8 @@ def main():
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--force", action="store_true",
                         help="Re-check all, ignore cached state")
-    parser.add_argument("--hybrid", action="store_true",
-                        help="Use hybrid pipeline (mechanical + focused LLM)")
+    parser.add_argument("--legacy", action="store_true",
+                        help="Use legacy 4-pass LLM pipeline instead of hybrid")
     parser.add_argument("--clear-issues", type=int, metavar="N",
                         help="Clear open-issues for ASN-N before processing")
     args = parser.parse_args()
@@ -564,7 +564,7 @@ def main():
     skipped = 0
     failed = 0
 
-    process_fn = process_asn_hybrid if args.hybrid else process_asn
+    process_fn = process_asn if args.legacy else process_asn_hybrid
 
     for num in ordered:
         result = process_fn(num, args.model, args.effort,
