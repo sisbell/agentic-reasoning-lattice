@@ -264,11 +264,29 @@ def parse_statement_for_relations(statement_text):
 # ---------------------------------------------------------------------------
 
 def _extract_property_name(section_text):
-    """Extract property name from derivation header like **L0 — SubspacePartition.**"""
+    """Extract property name from derivation header.
+
+    Handles both formats:
+      **L0 — SubspacePartition.**
+      **S0 (Content immutability).**
+    """
+    # Format 1: **LABEL — Name.**
     m = re.match(r'\*\*\S+\s*(?:—|–|-)\s*(.+?)\.?\*\*', section_text)
     if m:
         name = m.group(1).strip().rstrip('.')
+        # Don't capture status text in parentheses as the name
+        paren = name.find('(')
+        if paren > 0 and any(kw in name[paren:].lower()
+                             for kw in ('corollary', 'from ', 'design', 'theorem')):
+            name = name[:paren].strip()
         return name if len(name) < 80 else name[:77] + "..."
+
+    # Format 2: **LABEL (Name).**
+    m = re.match(r'\*\*\S+\s*\(([^)]+)\)', section_text)
+    if m:
+        name = m.group(1).strip().rstrip('.')
+        return name if len(name) < 80 else name[:77] + "..."
+
     return ""
 
 

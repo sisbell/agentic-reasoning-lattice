@@ -155,9 +155,9 @@ def extract_property_sections(asn_text):
     """
     sections = {}
 
-    # Pattern matches: **LABEL — Name.**  or  **LABEL (Name).**
+    # Pattern matches: **LABEL — Name.**  or  **LABEL (Name).**  or **LABEL —**
     prop_pattern = re.compile(
-        r'^\*\*([A-Z][A-Za-z0-9_()]*(?:-[A-Za-z0-9]+)*)\s*(?:—|–|-)\s*',
+        r'^\*\*([A-Z][A-Za-z0-9_]*(?:-[A-Za-z0-9]+)*)\s*(?:(?:—|–|-)\s*|\()',
         re.MULTILINE
     )
 
