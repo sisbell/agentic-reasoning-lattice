@@ -186,6 +186,24 @@ def export_one(asn_id, model, effort, dry_run):
     return asn_label, True
 
 
+def _generate_deps(asn_id, label):
+    """Generate deps YAML alongside the statements export."""
+    try:
+        from lib.rebase_deps import generate_deps, write_deps_yaml
+        asn_num = int(re.sub(r"[^0-9]", "", str(asn_id)))
+        deps = generate_deps(asn_num)
+        if deps:
+            path = write_deps_yaml(asn_num, deps)
+            print(f"  [DEPS] {path.relative_to(WORKSPACE)} "
+                  f"({len(deps['properties'])} properties)", file=sys.stderr)
+        else:
+            print(f"  [DEPS] WARNING: could not generate deps for {label}",
+                  file=sys.stderr)
+    except Exception as e:
+        print(f"  [DEPS] WARNING: deps generation failed for {label}: {e}",
+              file=sys.stderr)
+
+
 def main():
     from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -207,10 +225,14 @@ def main():
         label, ok = export_one(args.asns[0], args.model, args.effort,
                                args.dry_run)
         if ok and not args.dry_run:
+            # Generate deps YAML (mechanical, no LLM)
+            _generate_deps(args.asns[0], label)
+
             print(f"\n  === COMMIT ===", file=sys.stderr)
             export_file = STATEMENTS_DIR / f"{label}-statements.md"
+            deps_file = STATEMENTS_DIR / f"{label}-deps.yaml"
             subprocess.run(
-                ["git", "add", str(export_file)],
+                ["git", "add", str(export_file), str(deps_file)],
                 capture_output=True, text=True, cwd=str(WORKSPACE))
             cmd = [sys.executable, str(COMMIT_SCRIPT),
                    f"Export statements {label}"]
@@ -246,13 +268,21 @@ def main():
                 failed.append(label)
 
     if succeeded and not args.dry_run:
+        # Generate deps YAML for each succeeded ASN
+        for asn_id in args.asns:
+            asn_num = int(re.sub(r"[^0-9]", "", str(asn_id)))
+            lbl = f"ASN-{asn_num:04d}"
+            if lbl in succeeded:
+                _generate_deps(asn_id, lbl)
+
         labels = ", ".join(sorted(succeeded))
         print(f"\n  === COMMIT ({labels}) ===", file=sys.stderr)
-        # Stage only export files
+        # Stage export files + deps YAML
         for lbl in sorted(succeeded):
             export_file = STATEMENTS_DIR / f"{lbl}-statements.md"
+            deps_file = STATEMENTS_DIR / f"{lbl}-deps.yaml"
             subprocess.run(
-                ["git", "add", str(export_file)],
+                ["git", "add", str(export_file), str(deps_file)],
                 capture_output=True, text=True, cwd=str(WORKSPACE))
         cmd = [sys.executable, str(COMMIT_SCRIPT),
                f"Export statements {labels}"]
