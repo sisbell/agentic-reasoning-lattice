@@ -272,7 +272,11 @@ def process_asn_hybrid(asn_num, model, effort, max_cycles, force=False):
 
     # Foundation ASNs (no deps): just ensure export is fresh
     if not manifest.get("depends"):
-        refresh_export_if_stale(asn_num)
+        refreshed = refresh_export_if_stale(asn_num)
+        if refreshed:
+            print(f"  [{asn_label}] Export refreshed", file=sys.stderr)
+        else:
+            print(f"  [{asn_label}] Export up to date", file=sys.stderr)
         return "skipped"
 
     print(f"\n  {'='*50}", file=sys.stderr)
@@ -408,7 +412,11 @@ def process_asn(asn_num, model, effort, max_cycles, force=False):
 
     # Foundation ASNs (no deps): just ensure export is fresh
     if not manifest.get("depends"):
-        refresh_export_if_stale(asn_num)
+        refreshed = refresh_export_if_stale(asn_num)
+        if refreshed:
+            print(f"  [{asn_label}] Export refreshed", file=sys.stderr)
+        else:
+            print(f"  [{asn_label}] Export up to date", file=sys.stderr)
         return "skipped"
 
     print(f"\n  {'='*50}", file=sys.stderr)
