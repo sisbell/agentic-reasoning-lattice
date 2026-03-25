@@ -39,6 +39,7 @@ from lib.common import find_asn
 from lib.rebase_asn import (
     step_surface_check, step_find_extensions, step_verify_transfer,
     step_audit, step_export, update_rebase_timestamp, clear_open_issues,
+    _append_open_issues, _load_open_issues,
 )
 
 
@@ -239,6 +240,137 @@ def has_open_issues(asn_num):
     return path.exists() and path.read_text().strip()
 
 
+def process_asn_hybrid(asn_num, model, effort, max_cycles, force=False):
+    """Hybrid rebase: mechanical + focused LLM + surface check + opus."""
+    asn_path, asn_label = find_asn(str(asn_num))
+    if asn_path is None:
+        return "skipped"
+
+    manifest = load_manifest(asn_num)
+    if not manifest or not manifest.get("depends"):
+        return "skipped"
+
+    print(f"\n  {'='*50}", file=sys.stderr)
+    print(f"  {asn_label} (hybrid)", file=sys.stderr)
+    print(f"  {'='*50}", file=sys.stderr)
+
+    # ── Check if work needed ──
+    status = needs_rebase(asn_num, force=force)
+    if status == "skip":
+        print(f"  [SKIP] {asn_label} — up to date", file=sys.stderr)
+        return "skipped"
+
+    # ── Step 0: Export (if needed — ensures deps YAML exists) ──
+    deps_path = STATEMENTS_DIR / f"ASN-{asn_num:04d}-deps.yaml"
+    if not deps_path.exists():
+        print(f"  [EXPORT] Generating deps YAML (first time)...", file=sys.stderr)
+        step_export(asn_num)
+        step_commit_asn(asn_num, f"export(asn): {asn_label} — deps YAML generated")
+
+    # ── Do NOT clear open issues — accumulate across runs ──
+
+    # ── Step 1: Mechanical checker (no LLM) ──
+    print(f"  [AUDIT 1/4] Mechanical checker...", file=sys.stderr)
+    try:
+        from lib.rebase_mechanical import check_asn, format_findings
+        findings = check_asn(asn_num)
+        if findings:
+            _append_open_issues(asn_num, format_findings(findings))
+            print(f"  [MECHANICAL] {len(findings)} findings", file=sys.stderr)
+        else:
+            print(f"  [MECHANICAL] Clean", file=sys.stderr)
+    except Exception as e:
+        print(f"  [MECHANICAL] WARNING: {e}", file=sys.stderr)
+
+    # ── Step 2: Extension extractor + focused LLM (sonnet) ──
+    print(f"  [AUDIT 2/4] Extension verification...", file=sys.stderr)
+    try:
+        from lib.rebase_extensions import extract_claims, verify_claims, format_findings as fmt_ext
+        claims = extract_claims(asn_num)
+        if claims:
+            results = verify_claims(claims, model="sonnet", effort="high")
+            ext_findings = fmt_ext(results)
+            if ext_findings:
+                _append_open_issues(asn_num, ext_findings)
+                print(f"  [EXTENSIONS] Gaps found", file=sys.stderr)
+            else:
+                print(f"  [EXTENSIONS] All verified", file=sys.stderr)
+        else:
+            print(f"  [EXTENSIONS] No claims", file=sys.stderr)
+    except Exception as e:
+        print(f"  [EXTENSIONS] WARNING: {e}", file=sys.stderr)
+
+    # ── Step 3: Surface check (sonnet) ──
+    print(f"  [AUDIT 3/4] Surface check...", file=sys.stderr)
+    step_surface_check(asn_num, asn_path, asn_label)
+
+    # ── Step 4: Open-ended audit (opus) ──
+    print(f"  [AUDIT 4/4] Open-ended audit...", file=sys.stderr)
+    step_audit(asn_num, asn_path, asn_label)
+
+    # ── Commit audit artifacts ──
+    # Create 2a-audit directory
+    audit_dir = WORKSPACE / "vault" / "2a-audit" / asn_label
+    audit_dir.mkdir(parents=True, exist_ok=True)
+    step_commit_asn(asn_num, f"audit(asn): {asn_label} hybrid audit")
+
+    # ── Check if any open issues exist ──
+    if not has_open_issues(asn_num):
+        print(f"  [AUDIT] No open issues — updating timestamps",
+              file=sys.stderr)
+        update_rebase_timestamp(asn_num)
+        update_consistency_state(asn_num, "CLEAN")
+        step_commit_asn(asn_num, f"rebase(asn): {asn_label} — clean, timestamps updated")
+        step_export(asn_num)
+        step_commit_asn(asn_num, f"export(asn): {asn_label}")
+        print(f"  [DONE] {asn_label}", file=sys.stderr)
+        return "completed"
+
+    print(f"  [AUDIT] Open issues found — starting review/revise convergence",
+          file=sys.stderr)
+
+    # ── REVIEW/REVISE CONVERGENCE ──
+    print(f"  [REVIEW] Running fresh review...", file=sys.stderr)
+    review_cmd = [sys.executable,
+                  str(WORKSPACE / "scripts" / "review.py"),
+                  str(asn_num)]
+    review_result = subprocess.run(review_cmd, capture_output=False, text=True,
+                                   cwd=str(WORKSPACE))
+
+    if review_result.returncode == 2:
+        print(f"  [REVIEW] CONVERGED — skipping convergence", file=sys.stderr)
+    elif review_result.returncode == 1:
+        print(f"  [FAILED] {asn_label} review failed", file=sys.stderr)
+        return "failed"
+    else:
+        print(f"  [CONVERGE] Running standard convergence...", file=sys.stderr)
+        if not run_convergence(asn_num, max_cycles):
+            print(f"  [FAILED] {asn_label} convergence failed", file=sys.stderr)
+            return "failed"
+
+    update_consistency_state(asn_num, "CLEAN")
+
+    # ── RE-EXPORT (if ASN changed) ──
+    step_export(asn_num)
+    step_commit_asn(asn_num, f"export(asn): {asn_label}")
+
+    # ── Check if re-export found new dep issues (stop, don't loop) ──
+    # The export runs the dep scan which may find new issues.
+    # If open-issues grew, flag it but don't re-enter review/revise.
+    if has_open_issues(asn_num):
+        current_issues = _load_open_issues(asn_num)
+        if current_issues:
+            print(f"  [WARN] Re-export found additional issues — flagged in open-issues.md",
+                  file=sys.stderr)
+
+    # ── UPDATE TIMESTAMPS ──
+    update_rebase_timestamp(asn_num)
+    step_commit_asn(asn_num, f"rebase(asn): {asn_label} timestamps updated")
+
+    print(f"  [DONE] {asn_label}", file=sys.stderr)
+    return "completed"
+
+
 def process_asn(asn_num, model, effort, max_cycles, force=False):
     """Process one ASN: audit → review/converge → post-check → export."""
     asn_path, asn_label = find_asn(str(asn_num))
@@ -353,7 +485,16 @@ def main():
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--force", action="store_true",
                         help="Re-check all, ignore cached state")
+    parser.add_argument("--hybrid", action="store_true",
+                        help="Use hybrid pipeline (mechanical + focused LLM)")
+    parser.add_argument("--clear-issues", type=int, metavar="N",
+                        help="Clear open-issues for ASN-N before processing")
     args = parser.parse_args()
+
+    if args.clear_issues:
+        clear_open_issues(args.clear_issues)
+        print(f"  [CLEARED] ASN-{args.clear_issues:04d} open-issues",
+              file=sys.stderr)
 
     all_active = get_active_asns()
     if args.only:
@@ -393,9 +534,11 @@ def main():
     skipped = 0
     failed = 0
 
+    process_fn = process_asn_hybrid if args.hybrid else process_asn
+
     for num in ordered:
-        result = process_asn(num, args.model, args.effort,
-                             args.max_cycles, force=args.force)
+        result = process_fn(num, args.model, args.effort,
+                            args.max_cycles, force=args.force)
 
         if result == "completed":
             completed += 1
