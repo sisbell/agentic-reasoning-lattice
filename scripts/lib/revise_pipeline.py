@@ -190,6 +190,12 @@ def main():
         # Commit
         step_commit(f"Revise {asn_label} (cycle {cycle})", asn_id=asn_number)
 
+        # Regenerate deps YAML so next review sees updated graph
+        from lib.rebase_deps import generate_deps, write_deps_yaml
+        deps = generate_deps(asn_number)
+        if deps:
+            write_deps_yaml(asn_number, deps)
+
     else:
         # Loop exhausted without convergence
         if args.converge is not None:
