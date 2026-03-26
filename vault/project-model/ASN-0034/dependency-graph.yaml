@@ -7,6 +7,8 @@ properties:
   T0(b):
     status: introduced
     name: Tumblers of arbitrary length exist in T
+    follows_from:
+    - T0(a)
   T1:
     status: introduced
     name: Lexicographic order
@@ -34,6 +36,7 @@ properties:
   T7:
     status: corollary
     follows_from:
+    - T1
     - T3
     - T4
     name: Subspace disjointness
@@ -43,7 +46,9 @@ properties:
   T9:
     status: other
     follows_from:
+    - T10
     - T10a
+    - T8
     - TA5
     name: Forward allocation
   T10:
@@ -82,6 +87,7 @@ properties:
     status: from
     follows_from:
     - T1
+    - T5
     - TA-strict
     - TA0
     name: Span well-definedness
@@ -97,6 +103,9 @@ properties:
     status: from
     follows_from:
     - T1
+    - TA0
+    - TA1
+    - TA1-strict
     name: Divergence point of two unequal tumblers
   TA1-strict:
     status: from
@@ -104,11 +113,15 @@ properties:
     - Divergence
     - TA1
     - TumblerAdd
-    name: Addition preserves the total order (strict)
+    name: strict (Strict order preservation)
   TA-strict:
     status: from
     follows_from:
     - T1
+    - T12
+    - TA0
+    - TA1
+    - TA4
     - TumblerAdd
     name: Adding a positive displacement strictly advances
   TA2:
@@ -137,11 +150,16 @@ properties:
   TumblerAdd:
     status: introduced
     name: TumblerAdd
+    follows_from:
+    - TA4
   TumblerSub:
     status: from
     follows_from:
     - Divergence
     - T1
+    - TA1
+    - TA1-strict
+    - TA3
     name: TumblerSub
   TA5:
     status: introduced
@@ -157,6 +175,10 @@ properties:
   PositiveTumbler:
     status: introduced
     name: PositiveTumbler
+    follows_from:
+    - T1
+    - TA0
+    - TA4
   TA7a:
     status: introduced
     name: Ordinal-only shift arithmetic
@@ -189,6 +211,7 @@ properties:
   D0:
     status: from
     follows_from:
+    - D1
     - T3
     - TA0
     - TumblerAdd
@@ -247,6 +270,10 @@ properties:
   TS5:
     status: corollary
     follows_from:
+    - T4
+    - TA0
+    - TS1
     - TS3
     - TS4
+    - TumblerAdd
     name: ShiftAmountMonotonicity
