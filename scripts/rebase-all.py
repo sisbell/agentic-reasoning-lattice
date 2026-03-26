@@ -294,14 +294,45 @@ def process_asn_hybrid(asn_num, model, effort, max_cycles, force=False):
     if not manifest:
         return "skipped"
 
-    # Foundation ASNs (no deps): just ensure export is fresh
+    # Foundation ASNs (no deps): normalize + review/revise
     if not manifest.get("depends"):
         refreshed = refresh_export_if_stale(asn_num, force=force)
         if refreshed:
-            print(f"  [{asn_label}] Export refreshed", file=sys.stderr)
+            print(f"  [{asn_label}] Normalized", file=sys.stderr)
+
+            # Standard review/revise cycle
+            print(f"  [{asn_label}] Running review...", file=sys.stderr)
+            review_cmd = [sys.executable,
+                          str(WORKSPACE / "scripts" / "review.py"),
+                          str(asn_num)]
+            review_result = subprocess.run(review_cmd, capture_output=False,
+                                           text=True, cwd=str(WORKSPACE))
+
+            if review_result.returncode == 2:
+                print(f"  [{asn_label}] CONVERGED", file=sys.stderr)
+            elif review_result.returncode == 1:
+                print(f"  [{asn_label}] Review failed", file=sys.stderr)
+                return "failed"
+            else:
+                print(f"  [{asn_label}] Running convergence...",
+                      file=sys.stderr)
+                if not run_convergence(asn_num, max_cycles):
+                    print(f"  [{asn_label}] Convergence failed",
+                          file=sys.stderr)
+                    return "failed"
+
+            # Re-assemble after review/revise may have changed the ASN
+            from lib.normalize_format import assemble_formal_statements
+            from lib.rebase_deps import generate_deps, write_deps_yaml
+            assemble_formal_statements(asn_num)
+            deps = generate_deps(asn_num)
+            if deps:
+                write_deps_yaml(asn_num, deps)
+            step_commit_asn(asn_num,
+                            f"normalize(asn): {asn_label} — post-review")
         else:
-            print(f"  [{asn_label}] Export up to date", file=sys.stderr)
-        return "skipped"
+            print(f"  [{asn_label}] Up to date", file=sys.stderr)
+        return "completed" if refreshed else "skipped"
 
     print(f"\n  {'='*50}", file=sys.stderr)
     print(f"  {asn_label} (hybrid)", file=sys.stderr)
