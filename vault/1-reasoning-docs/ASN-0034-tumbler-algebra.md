@@ -257,6 +257,8 @@ We require a notion of where a displacement "acts." For a positive displacement 
 
 The precondition `k ≤ #a` is essential: the constructive definition copies components `a₁, ..., aₖ₋₁` from the start position and adds `wₖ` to `aₖ`, so position `k` must exist within `a`. A displacement whose action point exceeds `#a` — one with more leading zeros than `a` has components — would attempt to "stay at" hierarchical levels that the start position does not have, and the operation is undefined.
 
+**Verification of TA0.** By the constructive definition (below), `a ⊕ w = [r₁, ..., r_{#w}]` where: `rᵢ = aᵢ` for `i < k`, `rₖ = aₖ + wₖ`, and `rᵢ = wᵢ` for `i > k`. The result has length `#w`, which is finite and at least 1 since `w ∈ T`. Each prefix component `rᵢ = aᵢ ∈ ℕ` (inherited from `a ∈ T`); the action-point component `rₖ = aₖ + wₖ ∈ ℕ` (ℕ is closed under addition); each tail component `rᵢ = wᵢ ∈ ℕ` (inherited from `w ∈ T`). The result is a finite sequence of non-negative integers with at least one component — a member of `T`.
+
 **TA1 (Order preservation under addition).** `(A a, b, w : a < b ∧ w > 0 ∧ k ≤ min(#a, #b) : a ⊕ w ≤ b ⊕ w)`, where `k` is the action point of `w`.
 
 TA1 guarantees weak (`≤`) order preservation universally — if two positions were in order before advancement, they remain in non-reversed order after. The precondition `k ≤ min(#a, #b)` inherits from TA0: both operations must be well-defined.
