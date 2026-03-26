@@ -296,3 +296,19 @@ TA6 had no formal proof. The informal paragraph before the statement sketched th
 ### [REVIEW-32] [VERIFIED] TA6
 
 ### [REVIEW-32] [RESOLVED] TA6
+
+### [REVIEW-32] [VERIFIED] TA6
+
+### [REVIEW-32] [RESOLVED] TA6
+
+### [REVIEW-32] [VERIFIED] TA7a
+
+### [REVIEW-32] [VERIFIED] TS1
+
+### [REVIEW-32] [VERIFIED] TS2
+
+### [REVIEW-32] [VERIFIED] TS3
+
+### [REVIEW-32] [VERIFIED] TS4
+
+### [REVIEW-32] [VERIFIED] TS5
