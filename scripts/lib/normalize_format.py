@@ -39,6 +39,7 @@ TYPE_TO_CONSTRUCT = {
     "PRE": "requires",
     "POST": "ensures",
     "DEF": "function",
+    "DEFINITION": "function",
     "FRAME": "predicate",
     "META": "predicate",
 }

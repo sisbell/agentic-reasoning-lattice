@@ -18,12 +18,15 @@ The ASN must contain a table with these exact columns:
 | Label | Type | Statement | Status |
 ```
 
-- **Label**: short identifier (e.g., `T1`, `S0`, `D-CTG`, `PrefixSpanCoverage`)
-- **Type**: property classification (INV, LEMMA, PRE, POST, DEF, FRAME, META, THEOREM)
+- **Label**: short identifier (e.g., `T1`, `S0`, `D-CTG`, `PrefixSpanCoverage`, `Endset`)
+- **Type**: property classification (INV, LEMMA, PRE, POST, DEFINITION, FRAME, META, THEOREM)
 - **Statement**: one-line summary of what the property says
 - **Status**: one of the standard vocabulary terms (see below)
 
 If the table has only 3 columns (missing Type), that is a finding.
+
+Definitions must be in the table with type `DEFINITION`. The label is the
+definition name (e.g., `Endset`, `Link`, `Divergence`).
 
 ### Status Vocabulary
 
@@ -37,32 +40,45 @@ The Status column must use one of these patterns:
 - `consistent with LABEL1, LABEL2` — consistent with listed properties
 - `design requirement` — imposed by design, not derived
 - `cited` or `cited (ASN-NNNN)` — imported from a foundation ASN
+- `lemma (from LABEL1, LABEL2)` — lemma derived from listed properties
 
 Anything else in the Status column is a finding.
 
 ### Prose Headers
 
-Each property with a derivation section must have a bold header in this format:
+Two header conventions are used:
 
+**Properties** have a bold header with the label first:
 ```
-**LABEL — Name.**
+**LABEL (Name).**
 ```
-
 Where LABEL matches the property table and Name is a short descriptive name.
-The em-dash (—) is required, not a hyphen. The trailing period and bold closure
-are required.
 
-Alternative formats that are findings:
-- `**LABEL (Name).**` — parenthesized name instead of em-dash
-- `**LABEL —**` — missing name
-- `**LABEL**` — missing separator and name
-- `**LABEL — Name (COROLLARY).**` — status text in the name
-- Missing header entirely for a property that has derivation prose
+**Definitions** have a bold header with "Definition" first:
+```
+**Definition (Name).**
+```
+Where Name matches a DEFINITION label in the property table.
 
-### Label Consistency
+Both formats are valid. The trailing period and bold closure are required.
 
-Every label in the property table must appear at most once. Every prose header
-label must have a corresponding entry in the property table.
+### Label Consistency (bidirectional)
+
+1. Every label in the property table must have a corresponding prose section.
+2. Every bold property header (`**LABEL (...).**`) in the prose must have a
+   corresponding entry in the property table.
+3. Every definition header (`**Definition (Name).**`) in the prose must have
+   a corresponding DEFINITION entry in the property table.
+
+If a definition exists in prose but not in the table, flag it:
+"Definition (Name) in prose but no table entry — add as DEFINITION row"
+
+If a property header exists in prose but not in the table, flag it:
+"LABEL has prose section but no table entry"
+
+### Duplicate Labels
+
+The same label must not appear more than once in the property table.
 
 ## Check
 
@@ -75,13 +91,15 @@ Missing columns, wrong column order, or non-standard column names.
 Status values that don't match any standard pattern.
 
 ### 3. Header Format
-Prose headers that don't use the `**LABEL — Name.**` format.
+Prose headers that are malformed (missing bold closure, missing period, etc.).
 
-### 4. Label Mismatches
-Labels in prose headers that aren't in the property table, or properties
-in the table that have derivation text but no header.
+### 4. Missing Table Entries
+Properties or definitions that have prose sections but no table entry.
 
-### 5. Duplicate Labels
+### 5. Missing Prose Sections
+Table entries that have no corresponding prose section.
+
+### 6. Duplicate Labels
 The same label appearing more than once in the property table.
 
 ## Output Format

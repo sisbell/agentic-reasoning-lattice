@@ -194,12 +194,17 @@ def _extract_sections_by_labels(asn_text, labels):
     # Build label-specific patterns and find their positions
     label_positions = []
     for label in labels:
-        # Match **LABEL followed by space, (, or * — handles any header format
-        pattern = re.compile(
+        # Pattern 1: **LABEL followed by space, (, or * — standard property header
+        pattern1 = re.compile(
             r'^\*\*' + re.escape(label) + r'(?:\s|\(|\*)',
             re.MULTILINE
         )
-        m = pattern.search(asn_text)
+        # Pattern 2: **Definition (LABEL) — definition header
+        pattern2 = re.compile(
+            r'^\*\*Definition\s*\(' + re.escape(label) + r'\)',
+            re.MULTILINE
+        )
+        m = pattern1.search(asn_text) or pattern2.search(asn_text)
         if m:
             label_positions.append((m.start(), label))
 

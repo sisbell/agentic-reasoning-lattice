@@ -23,7 +23,7 @@ and usage in the ASN body.
 | THEOREM | Theorem | Major derived result. Key conclusion of a proof chain. |
 | PRE | Precondition | Must hold before an operation. "Requires...", "Given..." |
 | POST | Postcondition | Guaranteed after an operation. "Ensures...", "After..." |
-| DEF | Definition | Defines a concept, function, or structure. Not a claim — a construction. |
+| DEFINITION | Definition | Defines a concept, function, or structure. Not a claim — a construction. |
 | FRAME | Frame condition | What does NOT change. "...is unchanged", "...is preserved" |
 | META | Meta-property | About the specification itself, not the system. |
 
@@ -39,7 +39,7 @@ Example:
 ```
 S0: INV
 S1: LEMMA
-ValidInsertionPosition: DEF
+ValidInsertionPosition: DEFINITION
 ```
 
 Output ONLY the label-type lines. No explanations, no commentary.
