@@ -103,6 +103,7 @@ properties:
     status: from
     follows_from:
     - Divergence
+    - TumblerAdd
     name: Strict order preservation
   TA-strict:
     status: from
@@ -123,12 +124,15 @@ properties:
     status: from
     follows_from:
     - TumblerAdd
+    - TumblerSub
     name: Addition and subtraction are partial inverses
   ReverseInverse:
     status: corollary
     follows_from:
     - TA3-strict
     - TA4
+    - TumblerAdd
+    - TumblerSub
     name: Reverse inverse
   TumblerAdd:
     status: introduced
@@ -153,10 +157,6 @@ properties:
   PositiveTumbler:
     status: introduced
     name: PositiveTumbler
-    follows_from:
-    - T1
-    - TA0
-    - TA4
   TA7a:
     status: introduced
     name: Ordinal-only shift arithmetic
@@ -184,19 +184,19 @@ properties:
     follows_from:
     - T3
     - TumblerAdd
-    - TumblerSub
     name: ManyToOne
   D0:
     status: from
     follows_from:
-    - D1
     - T3
     - TA0
     - TumblerAdd
+    - TumblerSub
     name: Displacement well-definedness
   D1:
     status: other
     follows_from:
+    - Divergence
     - T3
     - TA0
     - TumblerAdd
