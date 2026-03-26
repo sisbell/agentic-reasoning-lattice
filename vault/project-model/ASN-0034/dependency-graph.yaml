@@ -7,8 +7,6 @@ properties:
   T0(b):
     status: introduced
     name: Tumblers of arbitrary length exist in T
-    follows_from:
-    - T0(a)
   T1:
     status: introduced
     name: Lexicographic order
@@ -46,9 +44,7 @@ properties:
   T9:
     status: other
     follows_from:
-    - T10
     - T10a
-    - T8
     - TA5
     name: Forward allocation
   T10:
@@ -87,9 +83,8 @@ properties:
     status: from
     follows_from:
     - T1
-    - T5
-    - TA-strict
     - TA0
+    - TA-strict
     name: Span well-definedness
   TA0:
     status: introduced
@@ -103,24 +98,16 @@ properties:
     status: from
     follows_from:
     - T1
-    - TA0
-    - TA1
-    - TA1-strict
     name: Divergence point of two unequal tumblers
   TA1-strict:
     status: from
     follows_from:
     - Divergence
-    - TA1
-    name: strict (Strict order preservation)
+    name: Strict order preservation
   TA-strict:
     status: from
     follows_from:
     - T1
-    - T12
-    - TA0
-    - TA1
-    - TA4
     - TumblerAdd
     name: Adding a positive displacement strictly advances
   TA2:
@@ -146,16 +133,11 @@ properties:
   TumblerAdd:
     status: introduced
     name: TumblerAdd
-    follows_from:
-    - TA4
   TumblerSub:
     status: from
     follows_from:
     - Divergence
     - T1
-    - TA1
-    - TA1-strict
-    - TA3
     name: TumblerSub
   TA5:
     status: introduced
@@ -190,20 +172,20 @@ properties:
     - T3
     - TA0
     - TumblerAdd
-    name: LC (LeftCancellation)
+    name: LeftCancellation
   TA-RC:
     status: other
     follows_from:
     - T3
     - TumblerAdd
-    name: Right cancellation fails
+    name: RightCancellationFailure
   TA-MTO:
     status: other
     follows_from:
     - T3
     - TumblerAdd
     - TumblerSub
-    name: MTO (ManyToOne)
+    name: ManyToOne
   D0:
     status: from
     follows_from:
@@ -223,12 +205,8 @@ properties:
   D2:
     status: corollary
     follows_from:
-    - D0
     - D1
     - TA-LC
-    - TA0
-    - TumblerAdd
-    - TumblerSub
     name: Displacement uniqueness
   OrdinalDisplacement:
     status: introduced
@@ -264,10 +242,6 @@ properties:
   TS5:
     status: corollary
     follows_from:
-    - T4
-    - TA0
-    - TS1
     - TS3
     - TS4
-    - TumblerAdd
     name: ShiftAmountMonotonicity
