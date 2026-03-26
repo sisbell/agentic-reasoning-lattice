@@ -33,8 +33,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from paths import (WORKSPACE, ASNS_DIR, DAFNY_DIR, PROOF_INDEX_DIR,
-                   STATEMENTS_DIR, VERIFICATION_DIR, USAGE_LOG,
-                   find_latest_modeling_dir)
+                   VERIFICATION_DIR, USAGE_LOG,
+                   find_latest_modeling_dir, formal_stmts)
 
 VERIFY_SCRIPT = WORKSPACE / "scripts" / "lib" / "model_verify_run.py"
 FIX_SCRIPT = WORKSPACE / "scripts" / "lib" / "model_fix.py"
@@ -272,7 +272,8 @@ def run_full_pipeline(asn_id, asn_label):
     asn_path = asn_matches[0]
 
     index_path = PROOF_INDEX_DIR / f"{asn_label}-proof-index.md"
-    extract_path = STATEMENTS_DIR / f"{asn_label}-statements.md"
+    asn_num = int(re.search(r'\d+', asn_label).group())
+    extract_path = formal_stmts(asn_num)
 
     # Proof index: regenerate if ASN is newer
     if is_stale(asn_path, index_path):
@@ -334,7 +335,8 @@ def main():
         print(f"  [DRY RUN] Dafny: {gen_dir or '(none)'}", file=sys.stderr)
         if args.full:
             index = PROOF_INDEX_DIR / f"{asn_label}-proof-index.md"
-            extract = STATEMENTS_DIR / f"{asn_label}-statements.md"
+            asn_num = int(re.search(r'\d+', asn_label).group())
+            extract = formal_stmts(asn_num)
             print(f"  [DRY RUN] --full: would check staleness of:", file=sys.stderr)
             print(f"    Proof index: {index} (exists: {index.exists()})",
                   file=sys.stderr)

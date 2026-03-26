@@ -33,10 +33,11 @@ printf "  %-12s %-24s %-16s %-16s %-14s %-18s\n" \
 export_issues=0
 dep_issues=0
 
-for yaml in "$MODEL_DIR"/ASN-*.yaml; do
+for yaml in "$MODEL_DIR"/ASN-*/project.yaml; do
     [ -f "$yaml" ] || continue
 
-    label=$(basename "$yaml" .yaml)
+    asn_dir=$(dirname "$yaml")
+    label=$(basename "$asn_dir")
 
     # Find reasoning doc
     asn_file=$(find "$WORKSPACE/vault/1-reasoning-docs" -name "${label}-*.md" -maxdepth 1 2>/dev/null | head -1 || true)
@@ -52,7 +53,7 @@ for yaml in "$MODEL_DIR"/ASN-*.yaml; do
     asn_date=$(fmt_date "$asn_ts")
 
     # Export status
-    export_file="$WORKSPACE/vault/3-export/${label}-statements.md"
+    export_file="$asn_dir/formal-statements.md"
     export_date="—"
     export_status=""
     if [ ! -f "$export_file" ]; then
@@ -86,7 +87,7 @@ for yaml in "$MODEL_DIR"/ASN-*.yaml; do
         stale_dep=""
         for dep in $deps; do
             dep_label=$(printf "ASN-%04d" "$dep")
-            dep_export="$WORKSPACE/vault/3-export/${dep_label}-statements.md"
+            dep_export="$MODEL_DIR/${dep_label}/formal-statements.md"
             [ -f "$dep_export" ] || continue
 
             dep_ts=$(git -C "$WORKSPACE" log -1 --format="%ct" -- "$dep_export" 2>/dev/null || echo "0")

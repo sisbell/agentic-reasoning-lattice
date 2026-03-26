@@ -24,7 +24,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import WORKSPACE, STATEMENTS_DIR, load_manifest
+from paths import WORKSPACE, load_manifest, formal_stmts, dep_graph
 from lib.common import find_asn, read_file, extract_property_sections
 
 PROMPT_TEMPLATE = WORKSPACE / "scripts" / "prompts" / "discovery" / "rebase-dep-scan.md"
@@ -45,7 +45,7 @@ def build_available_labels(asn_num):
         title = dep_manifest.get("title", "")
         label = f"ASN-{dep_id:04d}"
 
-        stmt_path = STATEMENTS_DIR / f"{label}-statements.md"
+        stmt_path = formal_stmts(dep_id)
         if not stmt_path.exists():
             continue
 
@@ -261,7 +261,7 @@ def scan_asn(asn_num, model="sonnet", effort="high", dry_run=False):
         return None
 
     # Load existing deps YAML
-    deps_path = STATEMENTS_DIR / f"ASN-{asn_num:04d}-deps.yaml"
+    deps_path = dep_graph(asn_num)
     if not deps_path.exists():
         print(f"  [ERROR] No deps YAML — run: python scripts/lib/rebase_deps.py {asn_num}",
               file=sys.stderr)

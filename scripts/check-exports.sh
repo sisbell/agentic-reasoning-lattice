@@ -42,7 +42,7 @@ for label in $active_asns; do
     asn_date=$(git -C "$WORKSPACE" log -1 --format="%ci" -- "$asn_file" 2>/dev/null | cut -d' ' -f1,2 | cut -c1-16 || echo "none")
 
     # Find export file
-    export_file="$WORKSPACE/vault/3-export/${label}-statements.md"
+    export_file="$WORKSPACE/vault/project-model/${label}/formal-statements.md"
 
     if [ ! -f "$export_file" ]; then
         printf "  %-12s %-30s %-20s %-20s %s\n" "$label" "$title" "$asn_date" "—" "MISSING"

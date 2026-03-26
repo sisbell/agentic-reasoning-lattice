@@ -23,7 +23,7 @@ import yaml
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import WORKSPACE, ASNS_DIR, EXPERTS_DIR, VOCABULARY, STATEMENTS_DIR, FOUNDATION_LIST, USAGE_LOG, load_manifest
+from paths import WORKSPACE, ASNS_DIR, EXPERTS_DIR, VOCABULARY, USAGE_LOG, load_manifest
 from lib.foundation import load_foundation_statements
 
 DISCOVERY_PROMPT = WORKSPACE / "scripts" / "prompts" / "discovery" / "discovery.md"
@@ -214,7 +214,7 @@ def run_discovery(inquiry, asn_number, slug, force=False):
     if vocab:
         prompt_parts.append(f"## Shared Vocabulary\n\n{vocab}")
 
-    foundation = load_foundation_statements(FOUNDATION_LIST, STATEMENTS_DIR, asn_id=asn_number)
+    foundation = load_foundation_statements(asn_number)
     if foundation:
         prompt_parts.append(foundation)
 

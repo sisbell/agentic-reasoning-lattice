@@ -15,8 +15,8 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import (WORKSPACE, ASNS_DIR, PROJECT_MODEL_DIR, STATEMENTS_DIR,
-                   load_manifest)
+from paths import (WORKSPACE, ASNS_DIR, PROJECT_MODEL_DIR,
+                   load_manifest, project_yaml, formal_stmts)
 from lib.common import read_file, find_asn, invoke_claude, log_usage, step_commit
 from lib.foundation import find_extensions, load_foundation_statements
 
@@ -76,7 +76,7 @@ def validate(source_num, target_num, base_num, property_labels):
 
     # Target does not exist
     target_label = f"ASN-{target_num:04d}"
-    target_yaml = PROJECT_MODEL_DIR / f"{target_label}.yaml"
+    target_yaml = project_yaml(target_num)
     target_asns = list(ASNS_DIR.glob(f"{target_label}-*.md"))
     if target_yaml.exists():
         print(f"  [ERROR] {target_label} already exists in project model",
@@ -174,7 +174,8 @@ def write_manifest(target_num, title, base_num, source_num, depends,
         f'properties {", ".join(properties)} from {source_label}."\n'
     )
 
-    path = PROJECT_MODEL_DIR / f"{target_label}.yaml"
+    path = project_yaml(target_num)
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content)
     return path
 
@@ -210,14 +211,11 @@ def main():
 
     # Load foundation context
     base_label = f"ASN-{args.base:04d}"
-    base_stmt_path = STATEMENTS_DIR / f"{base_label}-statements.md"
+    base_stmt_path = formal_stmts(args.base)
     base_statements = read_file(base_stmt_path) or "(No base export available)"
 
     # Load foundation for the base's dependencies
-    from paths import FOUNDATION_LIST
-    foundation_stmts = load_foundation_statements(
-        FOUNDATION_LIST, STATEMENTS_DIR, asn_id=args.base
-    ) if depends else ""
+    foundation_stmts = load_foundation_statements(args.base) if depends else ""
 
     # Build prompt
     target_label = f"ASN-{args.target:04d}"

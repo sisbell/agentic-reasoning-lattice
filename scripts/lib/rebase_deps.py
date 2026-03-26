@@ -19,7 +19,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import WORKSPACE, STATEMENTS_DIR, load_manifest
+from paths import WORKSPACE, load_manifest, formal_stmts, dep_graph
 from lib.common import find_asn, extract_property_sections
 
 
@@ -298,7 +298,7 @@ def _build_foundation_labels(depends):
     """Build map of label → asn_num from foundation ASN exports."""
     labels = {}
     for dep_id in depends:
-        stmt_path = STATEMENTS_DIR / f"ASN-{dep_id:04d}-statements.md"
+        stmt_path = formal_stmts(dep_id)
         if not stmt_path.exists():
             continue
         text = stmt_path.read_text()
@@ -481,7 +481,7 @@ def generate_deps(asn_num):
 
 def write_deps_yaml(asn_num, deps_data):
     """Write deps YAML to the export directory."""
-    output_path = STATEMENTS_DIR / f"ASN-{asn_num:04d}-deps.yaml"
+    output_path = dep_graph(asn_num)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     with open(output_path, "w") as f:

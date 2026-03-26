@@ -27,10 +27,10 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import (WORKSPACE, ASNS_DIR, PROOF_INDEX_DIR, STATEMENTS_DIR,
+from paths import (WORKSPACE, ASNS_DIR, PROOF_INDEX_DIR,
                     PROOFS_DIR, DAFNY_DIR, ALLOY_DIR, REVIEWS_DIR, USAGE_LOG,
                     next_review_number, next_modeling_number, load_manifest,
-                    sanitize_filename)
+                    sanitize_filename, formal_stmts)
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"
 TEMPLATE = PROMPTS_DIR / "generate-dafny-property.md"
@@ -52,7 +52,8 @@ def find_asn_files(asn_id):
         return None, None, None
     label = f"ASN-{int(num):04d}"
     index = PROOF_INDEX_DIR / f"{label}-proof-index.md"
-    extract = STATEMENTS_DIR / f"{label}-statements.md"
+    num = int(num)
+    extract = formal_stmts(num)
     return (
         index if index.exists() else None,
         extract if extract.exists() else None,
@@ -675,7 +676,8 @@ def main():
         print(f"  Run: python scripts/model.py index {args.asn}", file=sys.stderr)
         sys.exit(1)
     if extract_path is None:
-        print(f"  No extract found for {args.asn} in {STATEMENTS_DIR.relative_to(WORKSPACE)}/",
+        asn_num_for_msg = int(re.sub(r"[^0-9]", "", str(args.asn)))
+        print(f"  No formal statements found for {args.asn} at {formal_stmts(asn_num_for_msg)}",
               file=sys.stderr)
         print(f"  Run: python scripts/export.py {args.asn}", file=sys.stderr)
         sys.exit(1)

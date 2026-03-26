@@ -199,8 +199,7 @@ def step_commit_asn(asn_id, hint=""):
         f"vault/1-reasoning-docs/{label}-*",
         f"vault/2-review/{label}/",
         f"vault/0-consultations/{label}/",
-        f"vault/3-export/{label}-*",
-        f"vault/project-model/{label}.yaml",
+        f"vault/project-model/{label}/",
         f"vault/6-examples/{label}/",
     ]
 

@@ -98,15 +98,15 @@ Qualification criteria:
 
 1. Converged through the review cycle (VERDICT: CONVERGED)
 2. Dafny proofs verified and promoted to `vault/proofs/`
-3. Formal statements extracted to `vault/3-export/`
+3. Formal statements extracted to `vault/project-model/ASN-NNNN/formal-statements.md`
 4. Defines types, state, or invariants that multiple downstream ASNs reference
 
 ## How Foundations Are Injected
 
-Foundation ASNs are identified by their project model definition: any ASN with a `covers` field in `vault/project-model/ASN-NNNN.yaml` is a foundation.
+Foundation ASNs are identified by their project model definition: any ASN with a `covers` field in `vault/project-model/ASN-NNNN/project.yaml` is a foundation.
 
-1. `scripts/lib/foundation.py` scans `vault/project-model/` for YAML files with a `covers` field
-2. For each foundation ASN, it loads formal statements from `vault/3-export/`
+1. `scripts/lib/foundation.py` scans `vault/project-model/` for directories with a `project.yaml` containing a `covers` field
+2. For each foundation ASN, it loads formal statements from `vault/project-model/ASN-NNNN/formal-statements.md`
 3. The formatted statements are injected into three prompt entry points:
    - **Review** (`review_check.py`) — via `{{foundation_statements}}` template variable
    - **Revise** (`review_revise.py`) — appended as a foundation section
@@ -120,8 +120,8 @@ Additionally, the `covers` text is used by the question filter to prevent downst
 1. Converge the ASN through review/revise
 2. Run the modeling pipeline (proof index → statements → Dafny)
 3. Promote proofs to `vault/proofs/`
-4. Verify formal statements exist: `vault/3-export/ASN-NNNN-statements.md`
-5. Add a `covers` field to `vault/project-model/ASN-NNNN.yaml`
+4. Verify formal statements exist: `vault/project-model/ASN-NNNN/formal-statements.md`
+5. Add a `covers` field to `vault/project-model/ASN-NNNN/project.yaml`
 6. Update `vault/1-promote/asn-status.md` to reflect foundation status
 
 ## Token Budget

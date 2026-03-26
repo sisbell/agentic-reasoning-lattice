@@ -26,7 +26,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import WORKSPACE, ASNS_DIR, VOCABULARY, REVIEWS_DIR, USAGE_LOG, STATEMENTS_DIR, FOUNDATION_LIST, PROJECT_MODEL_DIR, sorted_reviews, load_manifest
+from paths import WORKSPACE, ASNS_DIR, VOCABULARY, REVIEWS_DIR, USAGE_LOG, PROJECT_MODEL_DIR, sorted_reviews, load_manifest, dep_graph, open_issues_path
 from lib.foundation import load_foundation_statements
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
@@ -76,7 +76,7 @@ def find_asn(asn_id):
 
 def load_open_issues(asn_number):
     """Load open issues file for an ASN. Returns content or empty string."""
-    path = PROJECT_MODEL_DIR / f"ASN-{asn_number:04d}-open-issues.md"
+    path = open_issues_path(asn_number)
     if path.exists():
         content = path.read_text().strip()
         if content:
@@ -102,7 +102,7 @@ def process_resolved_issues(asn_number, review_text):
     if not resolved_titles:
         return
 
-    issues_path = PROJECT_MODEL_DIR / f"ASN-{asn_number:04d}-open-issues.md"
+    issues_path = open_issues_path(asn_number)
     if not issues_path.exists():
         return
 
@@ -130,7 +130,7 @@ def load_deps_yaml(asn_number):
     """Load deps YAML for an ASN. Returns formatted string or empty."""
     if not asn_number:
         return ""
-    deps_path = STATEMENTS_DIR / f"ASN-{asn_number:04d}-deps.yaml"
+    deps_path = dep_graph(asn_number)
     if not deps_path.exists():
         return ""
     return deps_path.read_text().strip()
@@ -145,7 +145,7 @@ def build_prompt(asn_content, vocabulary, out_of_scope="", hints="",
               file=sys.stderr)
         sys.exit(1)
 
-    foundation = load_foundation_statements(FOUNDATION_LIST, STATEMENTS_DIR, asn_id=asn_number)
+    foundation = load_foundation_statements(asn_number)
     open_issues = load_open_issues(asn_number) if asn_number else "(none)"
     deps_yaml = load_deps_yaml(asn_number)
 

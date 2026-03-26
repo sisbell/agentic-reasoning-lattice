@@ -18,8 +18,7 @@ VOCABULARY = VAULT / "vocabulary.md"
 # Stage 2: Review
 REVIEWS_DIR = VAULT / "2-review"
 
-# Stage 3: Export (formal statements — dependency mechanism)
-STATEMENTS_DIR = VAULT / "3-export"
+# Stage 3: (removed — artifacts moved to per-ASN project-model directories)
 
 # Stage 4: Modeling
 ALLOY_DIR = VAULT / "4-modeling" / "alloy"
@@ -30,7 +29,6 @@ VERIFICATION_DIR = VAULT / "4-modeling" / "verification"
 # Stage 5: Proofs (curated, human-reviewed)
 PROOFS_DIR = VAULT / "5-proofs"
 PROOF_IMPORTS = PROOFS_DIR / "imports.md"
-FOUNDATION_LIST = ASNS_DIR / "foundation.md"
 
 # Stage 6: Worked Examples
 EXAMPLES_DIR = VAULT / "6-examples"
@@ -38,8 +36,33 @@ EXAMPLES_DIR = VAULT / "6-examples"
 # Stage 7: Test Cases
 TESTCASES_DIR = VAULT / "7-test-cases"
 
-# Manifests (per-ASN pipeline configuration)
+# Per-ASN project model (manifests, statements, deps, issues)
 PROJECT_MODEL_DIR = VAULT / "project-model"
+
+
+def asn_dir(asn_num):
+    """Per-ASN project model directory."""
+    return PROJECT_MODEL_DIR / f"ASN-{int(asn_num):04d}"
+
+
+def project_yaml(asn_num):
+    """Path to ASN project manifest."""
+    return asn_dir(asn_num) / "project.yaml"
+
+
+def dep_graph(asn_num):
+    """Path to ASN dependency graph YAML."""
+    return asn_dir(asn_num) / "dependency-graph.yaml"
+
+
+def formal_stmts(asn_num):
+    """Path to ASN formal statements export."""
+    return asn_dir(asn_num) / "formal-statements.md"
+
+
+def open_issues_path(asn_num):
+    """Path to ASN open issues file."""
+    return asn_dir(asn_num) / "open-issues.md"
 
 # Requirements — Nelson's design features
 REQUIREMENTS_DIR = VAULT / "requirements"
@@ -127,7 +150,7 @@ def find_latest_modeling_dir(asn_label):
 
 def load_manifest(asn_id):
     """Load a manifest file for an ASN. Returns dict or empty dict."""
-    path = PROJECT_MODEL_DIR / f"ASN-{int(asn_id):04d}.yaml"
+    path = project_yaml(asn_id)
     try:
         with open(path) as f:
             return yaml.safe_load(f) or {}

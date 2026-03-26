@@ -61,8 +61,8 @@ def load_inquiries():
     """Load all ASN definitions from project model directory."""
     import re
     inquiries = []
-    for path in sorted(PROJECT_MODEL_DIR.glob("ASN-*.yaml")):
-        m = re.match(r"ASN-(\d+)", path.stem)
+    for path in sorted(PROJECT_MODEL_DIR.glob("ASN-*/project.yaml")):
+        m = re.match(r"ASN-(\d+)", path.parent.name)
         if not m:
             continue
         asn_id = int(m.group(1))
@@ -202,8 +202,7 @@ def step_commit(hint="", asn_id=None):
             f"vault/1-reasoning-docs/{label}-*",
             f"vault/2-review/{label}",
             f"vault/0-consultations/{label}",
-            f"vault/3-export/{label}-*",
-            f"vault/project-model/{label}.yaml",
+            f"vault/project-model/{label}/",
             f"vault/6-examples/{label}",
         ]
         # Stage only this ASN's files

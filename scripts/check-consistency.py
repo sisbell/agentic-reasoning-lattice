@@ -27,7 +27,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from paths import (WORKSPACE, ASNS_DIR, STATEMENTS_DIR, FOUNDATION_LIST,
+from paths import (WORKSPACE, ASNS_DIR,
                    PROJECT_MODEL_DIR, load_manifest)
 from lib.common import find_asn
 from lib.foundation import load_foundation_statements
@@ -40,8 +40,8 @@ CHECK_DIR = WORKSPACE / "vault" / "consistency-check"
 def get_active_asns():
     """Get active ASN numbers from project model yamls. Yaml exists = active."""
     active = []
-    for path in PROJECT_MODEL_DIR.glob("ASN-*.yaml"):
-        m = re.match(r"ASN-(\d+)", path.stem)
+    for path in PROJECT_MODEL_DIR.glob("ASN-*/project.yaml"):
+        m = re.match(r"ASN-(\d+)", path.parent.name)
         if m:
             active.append(int(m.group(1)))
     return sorted(active)
@@ -91,8 +91,7 @@ def check_asn(asn_num, dry_run=False):
     if not depends:
         return {"asn": asn_label, "skipped": "no dependencies"}
 
-    foundation = load_foundation_statements(FOUNDATION_LIST, STATEMENTS_DIR,
-                                            asn_id=asn_num)
+    foundation = load_foundation_statements(asn_num)
     if not foundation:
         return {"asn": asn_label, "skipped": "no foundation statements"}
 

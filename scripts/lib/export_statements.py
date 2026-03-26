@@ -4,7 +4,7 @@ Export formal statements from a converged ASN.
 
 Reads the reasoning document directly and extracts formal statements
 using the ASN's own statement registry as the roster. Produces a
-statements file in vault/3-export/ for use as foundation by downstream
+statements file in vault/project-model/ASN-NNNN/ for use as foundation by downstream
 ASNs.
 
 Does NOT depend on the proof index — operates purely on the reasoning doc.
@@ -25,7 +25,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import WORKSPACE, ASNS_DIR, STATEMENTS_DIR, USAGE_LOG
+from paths import WORKSPACE, ASNS_DIR, USAGE_LOG, formal_stmts, dep_graph, asn_dir
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
 TEMPLATE = PROMPTS_DIR / "export.md"
@@ -173,8 +173,9 @@ def export_one(asn_id, model, effort, dry_run):
         text = text + "\n" + source_line
 
     # Write output
-    STATEMENTS_DIR.mkdir(parents=True, exist_ok=True)
-    out_path = STATEMENTS_DIR / f"{asn_label}-statements.md"
+    asn_num = int(re.sub(r"[^0-9]", "", asn_label))
+    asn_dir(asn_num).mkdir(parents=True, exist_ok=True)
+    out_path = formal_stmts(asn_num)
     out_path.write_text(text + "\n")
 
     # Log usage
@@ -246,8 +247,9 @@ def main():
             _generate_deps(args.asns[0], label)
 
             print(f"\n  === COMMIT ===", file=sys.stderr)
-            export_file = STATEMENTS_DIR / f"{label}-statements.md"
-            deps_file = STATEMENTS_DIR / f"{label}-deps.yaml"
+            asn_num = int(re.sub(r"[^0-9]", "", str(args.asns[0])))
+            export_file = formal_stmts(asn_num)
+            deps_file = dep_graph(asn_num)
             subprocess.run(
                 ["git", "add", str(export_file), str(deps_file)],
                 capture_output=True, text=True, cwd=str(WORKSPACE))
@@ -296,8 +298,9 @@ def main():
         print(f"\n  === COMMIT ({labels}) ===", file=sys.stderr)
         # Stage export files + deps YAML
         for lbl in sorted(succeeded):
-            export_file = STATEMENTS_DIR / f"{lbl}-statements.md"
-            deps_file = STATEMENTS_DIR / f"{lbl}-deps.yaml"
+            lbl_num = int(re.sub(r"[^0-9]", "", lbl))
+            export_file = formal_stmts(lbl_num)
+            deps_file = dep_graph(lbl_num)
             subprocess.run(
                 ["git", "add", str(export_file), str(deps_file)],
                 capture_output=True, text=True, cwd=str(WORKSPACE))

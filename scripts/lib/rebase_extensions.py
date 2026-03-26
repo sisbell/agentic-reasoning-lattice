@@ -24,7 +24,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import WORKSPACE, STATEMENTS_DIR, load_manifest
+from paths import WORKSPACE, load_manifest, formal_stmts, dep_graph
 from lib.common import find_asn, read_file
 
 PROMPT_TEMPLATE = WORKSPACE / "scripts" / "prompts" / "discovery" / "rebase-focused-judgment.md"
@@ -42,7 +42,7 @@ class ExtensionClaim:
 
 def load_deps_yaml(asn_num):
     """Load deps YAML. Returns dict or None."""
-    path = STATEMENTS_DIR / f"ASN-{asn_num:04d}-deps.yaml"
+    path = dep_graph(asn_num)
     if not path.exists():
         return None
     with open(path) as f:
@@ -138,7 +138,7 @@ def extract_claims(asn_num):
     # Build label→asn map from dependency exports
     label_to_asn = {}
     for dep_id in depends:
-        stmt_path = STATEMENTS_DIR / f"ASN-{dep_id:04d}-statements.md"
+        stmt_path = formal_stmts(dep_id)
         if not stmt_path.exists():
             continue
         text = stmt_path.read_text()
@@ -184,7 +184,7 @@ def extract_claims(asn_num):
 
 def load_foundation_statement(foundation_label, foundation_asn):
     """Load a specific foundation property's statement from its export."""
-    stmt_path = STATEMENTS_DIR / f"ASN-{foundation_asn:04d}-statements.md"
+    stmt_path = formal_stmts(foundation_asn)
     if not stmt_path.exists():
         return f"[export not found for ASN-{foundation_asn:04d}]"
 

@@ -75,7 +75,7 @@ inquiries.yaml
 
 Turns an inquiry into a new ASN. Decomposes the inquiry into sub-questions for Nelson and Gregory, runs parallel consultations, then synthesizes the answers into a formal ASN using Dijkstra-style derivation.
 
-- **Input:** inquiry from `vault/project-model/ASN-NNNN.yaml`
+- **Input:** inquiry from `vault/project-model/ASN-NNNN/project.yaml`
 - **Output:** ASN file in `vault/asns/ASN-NNNN-title.md`
 - **Human gate (foundation ASNs only):** After consultation, curate questions and answers for layer scope before discovery. See [Consultation Curation](consultation-curation.md).
 - **Details:** [Discovery](discovery.md)
@@ -146,7 +146,7 @@ The pipeline is not linear — it has structured feedback loops:
 | Promote | ASN open questions, review OUT_OF_SCOPE items | `vault/1-promote/inquiries.yaml`, `vault/1-promote/ASN-NNNN/` |
 | Alloy | ASN, proof index | `vault/4-modeling/alloy/ASN-NNNN/*.als` |
 | Index | ASN, existing proof index | `vault/4-modeling/proof-index/ASN-NNNN-proof-index.md` |
-| Statements | ASN, proof index | `vault/3-export/ASN-NNNN-statements.md` |
+| Statements | ASN, proof index | `vault/project-model/ASN-NNNN/formal-statements.md` |
 | Dafny | statements, proof index, proof imports | `modeling-N/*.dfy`, `modeling-N/STATUS.md` (commits) |
 | Fix | unverified `.dfy` files | fixed `.dfy` files (in place, no commit) |
 | Status | `.dfy` files in modeling dir | `modeling-N/STATUS.md` (commits) |

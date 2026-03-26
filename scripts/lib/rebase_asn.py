@@ -21,9 +21,10 @@ import yaml
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import (WORKSPACE, ASNS_DIR, PROJECT_MODEL_DIR, STATEMENTS_DIR,
-                   REVIEWS_DIR, VOCABULARY, FOUNDATION_LIST,
-                   load_manifest, next_review_number)
+from paths import (WORKSPACE, ASNS_DIR, PROJECT_MODEL_DIR,
+                   REVIEWS_DIR, VOCABULARY,
+                   load_manifest, next_review_number,
+                   formal_stmts, dep_graph, open_issues_path, project_yaml)
 from lib.common import (read_file, find_asn, invoke_claude, invoke_claude_agent,
                          log_usage, step_commit)
 from lib.foundation import load_foundation_statements
@@ -63,7 +64,7 @@ def validate(asn_num):
 
 def _load_open_issues(asn_num):
     """Load existing open issues for an ASN. Returns content or empty string."""
-    path = PROJECT_MODEL_DIR / f"ASN-{asn_num:04d}-open-issues.md"
+    path = open_issues_path(asn_num)
     if path.exists():
         return path.read_text().strip()
     return ""
@@ -71,7 +72,8 @@ def _load_open_issues(asn_num):
 
 def _append_open_issues(asn_num, new_issues):
     """Append new issues to the open issues file."""
-    path = PROJECT_MODEL_DIR / f"ASN-{asn_num:04d}-open-issues.md"
+    path = open_issues_path(asn_num)
+    path.parent.mkdir(parents=True, exist_ok=True)
     existing = ""
     if path.exists():
         existing = path.read_text().strip()
@@ -87,7 +89,7 @@ def _append_open_issues(asn_num, new_issues):
 
 def clear_open_issues(asn_num):
     """Clear the open issues file at the start of a rebase."""
-    path = PROJECT_MODEL_DIR / f"ASN-{asn_num:04d}-open-issues.md"
+    path = open_issues_path(asn_num)
     if path.exists():
         path.unlink()
         print(f"  [CLEARED] {path.relative_to(WORKSPACE)}", file=sys.stderr)
@@ -100,8 +102,7 @@ def _run_sonnet_check(asn_num, asn_path, asn_label, template_path,
 
     Common logic for surface-check, domain-extensions, and transfer-verification.
     """
-    foundation = load_foundation_statements(FOUNDATION_LIST, STATEMENTS_DIR,
-                                            asn_id=asn_num)
+    foundation = load_foundation_statements(asn_num)
     if not foundation:
         return False
 
@@ -202,8 +203,7 @@ def step_audit(asn_num, asn_path, asn_label):
     Finds cross-boundary issues the structured checks missed.
     Appends new findings to the open issues file.
     """
-    foundation = load_foundation_statements(FOUNDATION_LIST, STATEMENTS_DIR,
-                                            asn_id=asn_num)
+    foundation = load_foundation_statements(asn_num)
     if not foundation:
         print(f"  [ERROR] No foundation statements loaded for {asn_label}",
               file=sys.stderr)
@@ -257,8 +257,7 @@ def step_rebase(asn_num, asn_path, asn_label, model, effort,
 
     If precheck_findings is provided, inject them into the rebase prompt.
     """
-    foundation = load_foundation_statements(FOUNDATION_LIST, STATEMENTS_DIR,
-                                            asn_id=asn_num)
+    foundation = load_foundation_statements(asn_num)
     if not foundation:
         print(f"  [ERROR] No foundation statements loaded for {asn_label}",
               file=sys.stderr)
@@ -309,8 +308,7 @@ def step_rebase_review(asn_num, asn_path, asn_label, rebased_properties,
     """Step 2a: Targeted review of rebase changes."""
     asn_content = asn_path.read_text()
     vocabulary = read_file(VOCABULARY)
-    foundation = load_foundation_statements(FOUNDATION_LIST, STATEMENTS_DIR,
-                                            asn_id=asn_num)
+    foundation = load_foundation_statements(asn_num)
 
     template = read_file(REBASE_REVIEW_TEMPLATE)
     if not template:
@@ -353,8 +351,7 @@ def step_rebase_revise(asn_num, asn_path, asn_label, rebased_properties,
                        review_text, model, effort):
     """Step 2b: Fix rebase issues."""
     vocabulary = read_file(VOCABULARY)
-    foundation = load_foundation_statements(FOUNDATION_LIST, STATEMENTS_DIR,
-                                            asn_id=asn_num)
+    foundation = load_foundation_statements(asn_num)
 
     template = read_file(REBASE_REVISE_TEMPLATE)
     if not template:
@@ -436,7 +433,7 @@ def step_export(asn_num):
 
 def update_rebase_timestamp(asn_num):
     """Write last_rebase_check to the project model yaml."""
-    yaml_path = PROJECT_MODEL_DIR / f"ASN-{asn_num:04d}.yaml"
+    yaml_path = project_yaml(asn_num)
     if not yaml_path.exists():
         return
 

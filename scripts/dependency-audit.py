@@ -25,7 +25,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from paths import WORKSPACE, ASNS_DIR, STATEMENTS_DIR, PROJECT_MODEL_DIR, load_manifest
+from paths import WORKSPACE, ASNS_DIR, PROJECT_MODEL_DIR, load_manifest, formal_stmts
 from lib.common import find_asn
 
 PROMPT_TEMPLATE = WORKSPACE / "scripts" / "prompts" / "discovery" / "dependency-audit.md"
@@ -43,15 +43,15 @@ def build_label_map():
     label_sources = {}   # label -> set of asn_nums
 
     active_asns = set()
-    for path in PROJECT_MODEL_DIR.glob("ASN-*.yaml"):
-        m_num = re.match(r"ASN-(\d+)", path.stem)
+    for path in PROJECT_MODEL_DIR.glob("ASN-*/project.yaml"):
+        m_num = re.match(r"ASN-(\d+)", path.parent.name)
         if m_num:
             active_asns.add(int(m_num.group(1)))
 
     prop_pattern = re.compile(r'^[A-Z]{1,3}[0-9]+[a-z]?[★\']*(?:-\w+)?$')
 
-    for export_path in sorted(STATEMENTS_DIR.glob("ASN-*-statements.md")):
-        m = re.match(r"ASN-(\d+)", export_path.stem)
+    for export_path in sorted(PROJECT_MODEL_DIR.glob("ASN-*/formal-statements.md")):
+        m = re.match(r"ASN-(\d+)", export_path.parent.name)
         if not m:
             continue
         asn_num = int(m.group(1))
@@ -93,8 +93,8 @@ def scan_reasoning_doc(asn_path, label_map):
 def get_active_asns():
     """Get active ASN numbers from project model yamls."""
     active = []
-    for path in PROJECT_MODEL_DIR.glob("ASN-*.yaml"):
-        m = re.match(r"ASN-(\d+)", path.stem)
+    for path in PROJECT_MODEL_DIR.glob("ASN-*/project.yaml"):
+        m = re.match(r"ASN-(\d+)", path.parent.name)
         if m:
             active.append(int(m.group(1)))
     return sorted(active)
@@ -178,7 +178,7 @@ def load_declared_exports(depends):
     parts = []
     for dep in sorted(depends):
         dep_label = f"ASN-{dep:04d}"
-        export_path = STATEMENTS_DIR / f"{dep_label}-statements.md"
+        export_path = formal_stmts(dep)
         if export_path.exists():
             parts.append(f"### {dep_label}\n\n{export_path.read_text()}")
     return "\n\n---\n\n".join(parts) if parts else "(no exports found)"

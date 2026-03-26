@@ -23,7 +23,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from paths import (WORKSPACE, ASNS_DIR, PROJECT_MODEL_DIR,
-                   load_manifest)
+                   load_manifest, project_yaml)
 from lib.common import step_commit
 
 CONSULTATIONS_DIR = WORKSPACE / "vault" / "0-consultations"
@@ -35,14 +35,14 @@ def validate(source_num, target_num):
     target_label = f"ASN-{target_num:04d}"
 
     # Source project model must exist
-    source_yaml = PROJECT_MODEL_DIR / f"{source_label}.yaml"
+    source_yaml = project_yaml(source_num)
     if not source_yaml.exists():
         print(f"  [ERROR] {source_label} has no project model",
               file=sys.stderr)
         sys.exit(1)
 
     # Target must not exist
-    target_yaml = PROJECT_MODEL_DIR / f"{target_label}.yaml"
+    target_yaml = project_yaml(target_num)
     if target_yaml.exists():
         print(f"  [ERROR] {target_label} already exists in project model",
               file=sys.stderr)
@@ -59,14 +59,15 @@ def validate(source_num, target_num):
 
 def copy_project_model(source_num, target_num, source_label, target_label):
     """Copy project model YAML with updated ASN number."""
-    source_yaml = PROJECT_MODEL_DIR / f"{source_label}.yaml"
-    target_yaml = PROJECT_MODEL_DIR / f"{target_label}.yaml"
+    source_yaml = project_yaml(source_num)
+    target_yaml = project_yaml(target_num)
 
     content = source_yaml.read_text()
 
     # Update ASN number in the header comment
     content = content.replace(f"# {source_label}", f"# {target_label}")
 
+    target_yaml.parent.mkdir(parents=True, exist_ok=True)
     target_yaml.write_text(content)
     print(f"  [COPIED] {source_yaml.relative_to(WORKSPACE)} → "
           f"{target_yaml.relative_to(WORKSPACE)}", file=sys.stderr)
@@ -104,9 +105,9 @@ def copy_consultations(source_num, target_num, source_label, target_label):
     return True
 
 
-def remove_source(source_label):
+def remove_source(source_num, source_label):
     """Remove the source project model."""
-    source_yaml = PROJECT_MODEL_DIR / f"{source_label}.yaml"
+    source_yaml = project_yaml(source_num)
     if source_yaml.exists():
         source_yaml.unlink()
         print(f"  [REMOVED] {source_yaml.relative_to(WORKSPACE)}",
@@ -148,7 +149,7 @@ def main():
 
     # Remove source project model (unless --keep)
     if not args.keep:
-        remove_source(source_label)
+        remove_source(args.source, source_label)
 
     # Commit
     print(f"\n  === COMMIT ===", file=sys.stderr)

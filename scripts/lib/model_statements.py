@@ -22,7 +22,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import WORKSPACE, ASNS_DIR, PROOF_INDEX_DIR, STATEMENTS_DIR, USAGE_LOG
+from paths import WORKSPACE, ASNS_DIR, PROOF_INDEX_DIR, USAGE_LOG, formal_stmts, asn_dir
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"
 TEMPLATE = PROMPTS_DIR / "extract-properties.md"
@@ -198,8 +198,9 @@ def main():
         text = text + "\n" + source_line
 
     # Write output
-    STATEMENTS_DIR.mkdir(parents=True, exist_ok=True)
-    out_path = STATEMENTS_DIR / f"{asn_label}-statements.md"
+    asn_num = int(re.search(r'\d+', asn_label).group())
+    asn_dir(asn_num).mkdir(parents=True, exist_ok=True)
+    out_path = formal_stmts(asn_num)
     out_path.write_text(text + "\n")
 
     # Log usage

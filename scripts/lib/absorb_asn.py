@@ -27,8 +27,8 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import (WORKSPACE, ASNS_DIR, PROJECT_MODEL_DIR, STATEMENTS_DIR,
-                   REVIEWS_DIR, load_manifest)
+from paths import (WORKSPACE, ASNS_DIR, PROJECT_MODEL_DIR,
+                   REVIEWS_DIR, load_manifest, project_yaml, formal_stmts)
 from lib.common import (read_file, find_asn, invoke_claude, invoke_claude_agent,
                          log_usage, step_commit)
 
@@ -147,15 +147,13 @@ def step_integration_review(base_num, base_path, property_labels,
 
     Writes review to vault/2-review/ASN-NNNN/ for traceability.
     """
-    from paths import (VOCABULARY, FOUNDATION_LIST, STATEMENTS_DIR as SD,
-                       REVIEWS_DIR, next_review_number)
+    from paths import VOCABULARY, REVIEWS_DIR, next_review_number
     from lib.foundation import load_foundation_statements
 
     base_label = f"ASN-{int(base_num):04d}"
     base_content = base_path.read_text()
     vocabulary = read_file(VOCABULARY)
-    foundation = load_foundation_statements(FOUNDATION_LIST, SD,
-                                            asn_id=base_num)
+    foundation = load_foundation_statements(base_num)
 
     template = read_file(ABSORB_REVIEW_TEMPLATE)
     if not template:
@@ -203,13 +201,12 @@ def step_integration_review(base_num, base_path, property_labels,
 def step_integration_revise(base_num, base_path, property_labels,
                             review_text, model, effort):
     """Step 2b: Fix integration issues found by review."""
-    from paths import VOCABULARY, FOUNDATION_LIST, STATEMENTS_DIR as SD
+    from paths import VOCABULARY
     from lib.foundation import load_foundation_statements
 
     base_label = f"ASN-{int(base_num):04d}"
     vocabulary = read_file(VOCABULARY)
-    foundation = load_foundation_statements(FOUNDATION_LIST, SD,
-                                            asn_id=base_num)
+    foundation = load_foundation_statements(base_num)
 
     template = read_file(ABSORB_REVISE_TEMPLATE)
     if not template:
@@ -353,13 +350,13 @@ def step_cleanup(ext_num):
     """Step 5: Remove extension's project model and export file."""
     ext_label = f"ASN-{ext_num:04d}"
 
-    yaml_path = PROJECT_MODEL_DIR / f"{ext_label}.yaml"
+    yaml_path = project_yaml(ext_num)
     if yaml_path.exists():
         yaml_path.unlink()
         print(f"  [REMOVED] {yaml_path.relative_to(WORKSPACE)}",
               file=sys.stderr)
 
-    export_path = STATEMENTS_DIR / f"{ext_label}-statements.md"
+    export_path = formal_stmts(ext_num)
     if export_path.exists():
         export_path.unlink()
         print(f"  [REMOVED] {export_path.relative_to(WORKSPACE)}",

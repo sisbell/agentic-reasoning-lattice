@@ -23,7 +23,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import WORKSPACE, VOCABULARY, ASNS_DIR, REVIEWS_DIR, USAGE_LOG, STATEMENTS_DIR, FOUNDATION_LIST, sorted_reviews
+from paths import WORKSPACE, VOCABULARY, ASNS_DIR, REVIEWS_DIR, USAGE_LOG, sorted_reviews
 from lib.foundation import load_foundation_statements
 from lib.review_check import load_deps_yaml
 
@@ -96,7 +96,7 @@ def build_prompt(asn_path, review_content, vocab, consultation_content=None, asn
     if vocab:
         parts.append(f"## Shared Vocabulary\n\n{vocab}")
 
-    foundation = load_foundation_statements(FOUNDATION_LIST, STATEMENTS_DIR, asn_id=asn_number)
+    foundation = load_foundation_statements(asn_number)
     if foundation:
         parts.append(foundation)
 

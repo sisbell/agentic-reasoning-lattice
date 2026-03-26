@@ -216,7 +216,7 @@ style). State is an immutable value; operations are pure functions.
 
 Output:
 - `vault/4-modeling/proof-index/ASN-NNNN-proof-index.md`
-- `vault/3-export/ASN-NNNN-statements.md`
+- `vault/project-model/ASN-NNNN/formal-statements.md`
 - `vault/proofs/ASN-NNNN.dfy`
 
 ### Verification — verify Dafny module with fix loop
@@ -356,7 +356,11 @@ vault/
   requirements/     — Nelson's design features
 
   project-model/    — Per-ASN definitions (scope, dependencies, stage config)
-    ASN-NNNN.yaml   — Definition for each active ASN
+    ASN-NNNN/       — Per-ASN directory
+      project.yaml  — Definition for each active ASN
+      formal-statements.md — Extracted formal statements
+      dependency-graph.yaml — ASN dependency graph
+      open-issues.md — Open issues
     index.md        — Generated DAG overview
 
   1-promote/        — Stage 1: Promoted questions and deferrals
@@ -366,7 +370,7 @@ vault/
   2-review/         — Stage 2: Review outputs (review-N.md per ASN)
     ASN-NNNN/
 
-  3-export/        — Stage 3: Formal property statements (dependency mechanism)
+  3-export/        — Stage 3: (deprecated — statements moved to project-model/ASN-NNNN/)
 
   4-modeling/       — Stage 4: Modeling artifacts
     alloy/          — Alloy models for bounded checking (.als files)

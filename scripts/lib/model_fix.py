@@ -23,7 +23,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import (WORKSPACE, STATEMENTS_DIR, PROOFS_DIR, DAFNY_DIR,
+from paths import (WORKSPACE, PROOFS_DIR, DAFNY_DIR,
                    USAGE_LOG, find_latest_modeling_dir)
 from lib.model_dafny import write_status_file, write_divergence_file, extract_divergences
 

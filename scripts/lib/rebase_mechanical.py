@@ -24,7 +24,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import WORKSPACE, STATEMENTS_DIR, PROJECT_MODEL_DIR, load_manifest
+from paths import WORKSPACE, PROJECT_MODEL_DIR, load_manifest, dep_graph
 from lib.common import find_asn
 
 # Import label scanning from dependency-audit.py (hyphenated filename)
@@ -49,7 +49,7 @@ class Finding:
 
 def load_deps_yaml(asn_num):
     """Load the deps YAML for an ASN. Returns dict or None."""
-    path = STATEMENTS_DIR / f"ASN-{asn_num:04d}-deps.yaml"
+    path = dep_graph(asn_num)
     if not path.exists():
         return None
     with open(path) as f:

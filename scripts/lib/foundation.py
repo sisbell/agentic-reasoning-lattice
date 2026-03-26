@@ -7,7 +7,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import PROJECT_MODEL_DIR, load_manifest
+from paths import PROJECT_MODEL_DIR, asn_dir, formal_stmts, load_manifest
 
 
 def find_extensions(base_id):
@@ -20,7 +20,7 @@ def find_extensions(base_id):
         return []
 
     extensions = []
-    for path in sorted(PROJECT_MODEL_DIR.glob("ASN-*.yaml")):
+    for path in sorted(PROJECT_MODEL_DIR.glob("ASN-*/project.yaml")):
         try:
             with open(path) as f:
                 m_data = yaml.safe_load(f) or {}
@@ -28,90 +28,56 @@ def find_extensions(base_id):
             continue
 
         if m_data.get("extends") == base_id:
-            m = re.match(r"ASN-(\d+)", path.stem)
+            m = re.match(r"ASN-(\d+)", path.parent.name)
             if m:
                 extensions.append(int(m.group(1)))
 
     return sorted(extensions)
 
 
-def load_foundation_statements(foundation_path, statements_dir, asn_id=None):
+def load_foundation_statements(asn_id):
     """Load formal statements for an ASN's dependencies.
 
     Reads the ASN's depends field from its manifest, then loads formal
     statements for each dependency. Extensions (ASNs with extends: <dep>)
     are automatically bundled with their base ASN.
-
-    If asn_id is None, falls back to loading statements for all ASNs
-    that have statements files (backward compatibility).
-
-    foundation_path is ignored — kept for backward compatibility.
     """
-    statements_dir = Path(statements_dir)
-
-    if asn_id is not None:
-        manifest = load_manifest(asn_id)
-        dep_ids = manifest.get("depends", [])
-        if not dep_ids:
-            return ""
-
-        sections = []
-        for dep_id in dep_ids:
-            # Load base dependency
-            dep_manifest = load_manifest(dep_id)
-            title = dep_manifest.get("title", "")
-            label = f"ASN-{int(dep_id):04d}"
-            stmt_path = statements_dir / f"{label}-statements.md"
-            if stmt_path.exists():
-                content = stmt_path.read_text().strip()
-                sections.append(
-                    f"## Foundation: {label} ({title})\n\n{content}"
-                )
-            else:
-                print(f"  [ERROR] Dependency {label} has no formal statements — "
-                      f"run: python scripts/export.py {dep_id}",
-                      file=sys.stderr)
-                sys.exit(1)
-
-            # Load extensions of this dependency
-            for ext_id in find_extensions(dep_id):
-                # Don't include self as own extension
-                if ext_id == asn_id:
-                    continue
-                ext_manifest = load_manifest(ext_id)
-                ext_title = ext_manifest.get("title", "")
-                ext_label = f"ASN-{int(ext_id):04d}"
-                ext_path = statements_dir / f"{ext_label}-statements.md"
-                if ext_path.exists():
-                    ext_content = ext_path.read_text().strip()
-                    sections.append(
-                        f"## Foundation: {ext_label} ({ext_title}, extends {label})\n\n{ext_content}"
-                    )
-
-        return "\n\n".join(sections)
-
-    # Fallback: load all ASNs that have statements files
-    if not PROJECT_MODEL_DIR.exists():
+    manifest = load_manifest(asn_id)
+    dep_ids = manifest.get("depends", [])
+    if not dep_ids:
         return ""
 
     sections = []
-    for path in sorted(PROJECT_MODEL_DIR.glob("ASN-*.yaml")):
-        try:
-            with open(path) as f:
-                m_data = yaml.safe_load(f) or {}
-        except (FileNotFoundError, yaml.YAMLError):
-            continue
-
-        m = re.match(r"ASN-(\d+)", path.stem)
-        if not m:
-            continue
-
-        label = f"ASN-{int(m.group(1)):04d}"
-        title = m_data.get("title", "")
-        stmt_path = statements_dir / f"{label}-statements.md"
+    for dep_id in dep_ids:
+        # Load base dependency
+        dep_manifest = load_manifest(dep_id)
+        title = dep_manifest.get("title", "")
+        label = f"ASN-{int(dep_id):04d}"
+        stmt_path = formal_stmts(dep_id)
         if stmt_path.exists():
+            content = stmt_path.read_text().strip()
             sections.append(
-                f"## Foundation: {label} ({title})\n\n{stmt_path.read_text().strip()}"
+                f"## Foundation: {label} ({title})\n\n{content}"
             )
+        else:
+            print(f"  [ERROR] Dependency {label} has no formal statements — "
+                  f"run: python scripts/export.py {dep_id}",
+                  file=sys.stderr)
+            sys.exit(1)
+
+        # Load extensions of this dependency
+        for ext_id in find_extensions(dep_id):
+            # Don't include self as own extension
+            if ext_id == asn_id:
+                continue
+            ext_manifest = load_manifest(ext_id)
+            ext_title = ext_manifest.get("title", "")
+            ext_label = f"ASN-{int(ext_id):04d}"
+            ext_path = formal_stmts(ext_id)
+            if ext_path.exists():
+                ext_content = ext_path.read_text().strip()
+                sections.append(
+                    f"## Foundation: {ext_label} ({ext_title}, extends {label})\n\n{ext_content}"
+                )
 
     return "\n\n".join(sections)

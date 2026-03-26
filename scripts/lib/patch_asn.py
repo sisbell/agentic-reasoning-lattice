@@ -18,8 +18,8 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import (WORKSPACE, ASNS_DIR, STATEMENTS_DIR, REVIEWS_DIR,
-                   VOCABULARY, FOUNDATION_LIST, load_manifest,
+from paths import (WORKSPACE, ASNS_DIR, REVIEWS_DIR,
+                   VOCABULARY, load_manifest,
                    next_review_number)
 from lib.common import (read_file, find_asn, invoke_claude, invoke_claude_agent,
                          log_usage, step_commit_asn)
@@ -85,8 +85,7 @@ def step_patch_review(asn_num, asn_path, asn_label, patch_content,
     """Step 2a: Scoped review of the patch."""
     asn_content = asn_path.read_text()
     vocabulary = read_file(VOCABULARY)
-    foundation = load_foundation_statements(FOUNDATION_LIST, STATEMENTS_DIR,
-                                            asn_id=asn_num)
+    foundation = load_foundation_statements(asn_num)
 
     template = read_file(PATCH_REVIEW_TEMPLATE)
     if not template:
@@ -129,8 +128,7 @@ def step_patch_revise(asn_num, asn_path, asn_label, patch_content,
                       review_text, model, effort):
     """Step 2b: Fix patch issues."""
     vocabulary = read_file(VOCABULARY)
-    foundation = load_foundation_statements(FOUNDATION_LIST, STATEMENTS_DIR,
-                                            asn_id=asn_num)
+    foundation = load_foundation_statements(asn_num)
 
     template = read_file(PATCH_REVISE_TEMPLATE)
     if not template:

@@ -7,7 +7,7 @@ per property using an agentic Claude session (with Bash access to run Alloy
 and self-fix syntax errors), produces a review if failures remain, then feeds
 the review into the consult → revise → commit cycle.
 
-Requires: extract file in vault/3-export/ (run extract-properties.py first)
+Requires: formal statements in vault/project-model/ASN-NNNN/ (run export.py first)
 Requires: Alloy installed at /Applications/Alloy.app (macOS) or ALLOY_JAR set.
 
 Usage:
@@ -33,9 +33,9 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import (WORKSPACE, ASNS_DIR, ALLOY_DIR, STATEMENTS_DIR, REVIEWS_DIR,
+from paths import (WORKSPACE, ASNS_DIR, ALLOY_DIR, REVIEWS_DIR,
                     USAGE_LOG, sorted_reviews, next_review_number,
-                    sanitize_filename)
+                    sanitize_filename, formal_stmts)
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"
 TEMPLATE = PROMPTS_DIR / "check-alloy.md"
@@ -677,8 +677,8 @@ def generate_review(asn_label, results, properties, run_num=None,
         asn_text = read_file(asn_path)
     if not asn_text:
         # Fallback to extract
-        extract_path = STATEMENTS_DIR / f"{asn_label}-statements.md"
-        asn_text = read_file(extract_path)
+        asn_num = int(re.search(r'\d+', asn_label).group())
+        asn_text = read_file(formal_stmts(asn_num))
 
     # Build evidence from results
     evidence_text, passed_summary = build_review_evidence(results, properties)
@@ -850,7 +850,8 @@ def main():
         sys.exit(1)
 
     # Load extract
-    extract_path = STATEMENTS_DIR / f"{asn_label}-statements.md"
+    asn_num = int(re.search(r'\d+', asn_label).group())
+    extract_path = formal_stmts(asn_num)
     extract = read_file(extract_path)
     if not extract:
         print(f"  No extract found at {extract_path.relative_to(WORKSPACE)}",

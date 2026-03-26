@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Regenerate vault/project-model/index.md from ASN yaml files.
+# Regenerate vault/project-model/index.md from ASN project yamls.
 #
 # Groups by topic, sorts by ASN number within each group.
 # Reads status, title, depends from each yaml.
@@ -18,10 +18,11 @@ INDEX="$MODEL_DIR/index.md"
 declare -a foundations=()
 declare -a operations=()
 
-for yaml in "$MODEL_DIR"/ASN-*.yaml; do
+for yaml in "$MODEL_DIR"/ASN-*/project.yaml; do
     [ -f "$yaml" ] || continue
 
-    label=$(basename "$yaml" .yaml)
+    asn_dir=$(dirname "$yaml")
+    label=$(basename "$asn_dir")
     title=$(grep '^title:' "$yaml" | sed 's/title: *"//;s/"//' || true)
     status=$(grep '^status:' "$yaml" | sed 's/status: *"//;s/"//' || true)
     topic=$(grep '^topic:' "$yaml" | sed 's/topic: *"//;s/"//' || true)
@@ -32,7 +33,7 @@ for yaml in "$MODEL_DIR"/ASN-*.yaml; do
 
     # Compute export freshness from file timestamps
     asn_file=$(find "$WORKSPACE/vault/1-reasoning-docs" -name "${label}-*.md" -maxdepth 1 2>/dev/null | head -1 || true)
-    export_file="$WORKSPACE/vault/3-export/${label}-statements.md"
+    export_file="$asn_dir/formal-statements.md"
 
     if [ -z "$asn_file" ]; then
         export_status="—"
@@ -61,7 +62,7 @@ done
 cat > "$INDEX" << 'HEADER'
 # ASN Index
 
-Generated from vault/project-model/ASN-*.yaml — do not edit manually.
+Generated from vault/project-model/ASN-*/project.yaml — do not edit manually.
 Regenerate with: `./run/generate-index.sh`
 
 ## Foundation

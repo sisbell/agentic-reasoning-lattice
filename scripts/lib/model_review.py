@@ -19,7 +19,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import (WORKSPACE, DAFNY_DIR, STATEMENTS_DIR,
+from paths import (WORKSPACE, DAFNY_DIR, formal_stmts,
                     find_latest_modeling_dir)
 from lib.model_dafny import (extract_divergences, find_asn_path,
                                generate_dafny_review, run_commit)
@@ -60,7 +60,8 @@ def main():
           file=sys.stderr)
 
     # Find extract for context
-    extract_path = STATEMENTS_DIR / f"{asn_label}-statements.md"
+    asn_num = int(re.search(r'\d+', asn_label).group())
+    extract_path = formal_stmts(asn_num)
     if not extract_path.exists():
         print(f"  No statements extract found for {asn_label}", file=sys.stderr)
         print(f"  Run: python scripts/export.py {args.asn}",

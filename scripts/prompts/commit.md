@@ -24,7 +24,7 @@ Commit changes to the vault with meaningful, descriptive commit messages.
 
 4. **Stage the changes:**
    ```bash
-   git add vault/0-consultations/ vault/1-reasoning-docs/ vault/requirements/ vault/2-review/ vault/3-export/ vault/4-modeling/ vault/6-examples/ vault/7-test-cases/ 2>/dev/null; true
+   git add vault/0-consultations/ vault/1-reasoning-docs/ vault/requirements/ vault/2-review/ vault/project-model/ vault/4-modeling/ vault/6-examples/ vault/7-test-cases/ 2>/dev/null; true
    ```
 
    **Important:** Never stage `vault/5-proofs/`. That directory contains curated,

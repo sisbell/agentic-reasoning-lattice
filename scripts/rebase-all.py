@@ -33,8 +33,8 @@ from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from paths import (WORKSPACE, ASNS_DIR, STATEMENTS_DIR, FOUNDATION_LIST,
-                   PROJECT_MODEL_DIR, load_manifest)
+from paths import (WORKSPACE, ASNS_DIR, PROJECT_MODEL_DIR, load_manifest,
+                   formal_stmts, dep_graph, open_issues_path, project_yaml)
 from lib.common import find_asn
 from lib.rebase_asn import (
     step_surface_check, step_find_extensions, step_verify_transfer,
@@ -46,8 +46,8 @@ from lib.rebase_asn import (
 def get_active_asns():
     """Get active ASN numbers from project model yamls. Yaml exists = active."""
     active = []
-    for path in PROJECT_MODEL_DIR.glob("ASN-*.yaml"):
-        m = re.match(r"ASN-(\d+)", path.stem)
+    for path in PROJECT_MODEL_DIR.glob("ASN-*/project.yaml"):
+        m = re.match(r"ASN-(\d+)", path.parent.name)
         if m:
             active.append(int(m.group(1)))
     return sorted(active)
@@ -100,7 +100,7 @@ def get_dep_export_timestamps(asn_num):
 
     newest = 0
     for dep in manifest.get("depends", []):
-        dep_export = WORKSPACE / "vault" / "3-export" / f"ASN-{dep:04d}-statements.md"
+        dep_export = formal_stmts(dep)
         if dep_export.exists():
             ts = dep_export.stat().st_mtime
             if ts > newest:
@@ -121,7 +121,7 @@ def parse_iso_timestamp(ts_str):
 
 def update_consistency_state(asn_num, result):
     """Write last_consistency_check and last_consistency_result to yaml."""
-    yaml_path = PROJECT_MODEL_DIR / f"ASN-{asn_num:04d}.yaml"
+    yaml_path = project_yaml(asn_num)
     if not yaml_path.exists():
         return
 
@@ -212,16 +212,20 @@ def step_commit_asn(asn_num, message):
         subprocess.run(["git", "add", str(consult_dir)],
                        capture_output=True, cwd=str(WORKSPACE))
 
-    # Stage project model
-    yaml_path = PROJECT_MODEL_DIR / f"{asn_label}.yaml"
-    if yaml_path.exists():
-        subprocess.run(["git", "add", str(yaml_path)],
+    # Stage project model directory
+    asn_project_dir = PROJECT_MODEL_DIR / asn_label
+    if asn_project_dir.exists():
+        subprocess.run(["git", "add", str(asn_project_dir)],
                        capture_output=True, cwd=str(WORKSPACE))
 
-    # Stage export
-    export_path = WORKSPACE / "vault" / "3-export" / f"{asn_label}-statements.md"
-    if export_path.exists():
-        subprocess.run(["git", "add", str(export_path)],
+    # Stage export (formal statements + deps in per-ASN dir)
+    stmts_path = formal_stmts(asn_num)
+    if stmts_path.exists():
+        subprocess.run(["git", "add", str(stmts_path)],
+                       capture_output=True, cwd=str(WORKSPACE))
+    deps_path = dep_graph(asn_num)
+    if deps_path.exists():
+        subprocess.run(["git", "add", str(deps_path)],
                        capture_output=True, cwd=str(WORKSPACE))
 
     # Check if there's anything to commit
@@ -236,7 +240,7 @@ def step_commit_asn(asn_num, message):
 
 def has_open_issues(asn_num):
     """Check if an ASN has open issues."""
-    path = PROJECT_MODEL_DIR / f"ASN-{asn_num:04d}-open-issues.md"
+    path = open_issues_path(asn_num)
     return path.exists() and path.read_text().strip()
 
 
@@ -249,8 +253,8 @@ def refresh_export_if_stale(asn_num, force=False):
     if asn_path is None:
         return False
 
-    export_path = STATEMENTS_DIR / f"ASN-{asn_num:04d}-statements.md"
-    deps_path = STATEMENTS_DIR / f"ASN-{asn_num:04d}-deps.yaml"
+    export_path = formal_stmts(asn_num)
+    deps_path = dep_graph(asn_num)
 
     needs_refresh = force
     if not needs_refresh and not export_path.exists():
@@ -299,7 +303,7 @@ def process_asn_hybrid(asn_num, model, effort, max_cycles, force=False):
         return "skipped"
 
     # ── Step 0: Export (if needed — ensures deps YAML exists) ──
-    deps_path = STATEMENTS_DIR / f"ASN-{asn_num:04d}-deps.yaml"
+    deps_path = dep_graph(asn_num)
     if not deps_path.exists():
         print(f"  [EXPORT] Generating deps YAML (first time)...", file=sys.stderr)
         step_export(asn_num)
@@ -347,9 +351,6 @@ def process_asn_hybrid(asn_num, model, effort, max_cycles, force=False):
     step_audit(asn_num, asn_path, asn_label)
 
     # ── Commit audit artifacts ──
-    # Create 2a-audit directory
-    audit_dir = WORKSPACE / "vault" / "2a-audit" / asn_label
-    audit_dir.mkdir(parents=True, exist_ok=True)
     step_commit_asn(asn_num, f"audit(asn): {asn_label} hybrid audit")
 
     # ── Check if any open issues exist ──
