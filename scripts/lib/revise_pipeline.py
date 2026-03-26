@@ -126,13 +126,32 @@ def main():
             print(f"  [REVIEW] {review_path}", file=sys.stderr)
 
             if converged:
-                print(f"  [REVISE] CONVERGED — review found no significant issues",
-                      file=sys.stderr)
-                step_commit(f"Review {asn_label} — converged", asn_id=asn_number)
-                asn_num = asn_label.replace("ASN-", "").lstrip("0") or "0"
-                print(f"\n  [NEXT] Export statements: python scripts/normalize.py {asn_num}",
-                      file=sys.stderr)
-                break
+                # Cycle gate — check dependency graph before accepting
+                from lib.rebase_mechanical import check_cycles, format_cycle_findings
+                from lib.rebase_deps import generate_deps
+                from lib.rebase_asn import _append_open_issues
+
+                # Regenerate deps from current ASN state
+                deps = generate_deps(asn_number)
+
+                cycles = check_cycles(asn_number)
+                if cycles:
+                    print(f"  [CYCLES] {len(cycles)} cycles — "
+                          f"rejecting convergence", file=sys.stderr)
+                    _append_open_issues(asn_number,
+                                        format_cycle_findings(cycles))
+                    converged = False
+                    # Continue loop — next review picks up cycle findings
+                else:
+                    print(f"  [CYCLES] Clean", file=sys.stderr)
+                    print(f"  [REVISE] CONVERGED", file=sys.stderr)
+                    step_commit(f"Review {asn_label} — converged",
+                                asn_id=asn_number)
+                    asn_num = asn_label.replace("ASN-", "").lstrip("0") or "0"
+                    print(f"\n  [NEXT] Export statements: "
+                          f"python scripts/normalize.py {asn_num}",
+                          file=sys.stderr)
+                    break
 
             if not has_revise_items(review_path):
                 print(f"  [REVISE] No REVISE items — ASN is clean",

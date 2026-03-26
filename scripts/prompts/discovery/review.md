@@ -136,6 +136,8 @@ The following open issues were identified by foundation audits or manually. Each
 
 When an open issue flags an incomplete domain extension, the fix is to complete the argument — establish analogs of missing prerequisites so the extension is fully grounded. Do not remove the extension or bypass it by citing the original foundation result directly. The extension serves as a bridge property that downstream properties can cite without re-arguing the foundation prerequisites each time.
 
+When an open issue reports a circular dependency (e.g., `[cycle] A → B → A`), determine which direction is correct by reading the actual derivations. One edge is wrong — a property's Status column claims a dependency that doesn't exist in the proof. Flag the incorrect entry as REVISE: "Remove X from Y's follows_from — Y's derivation does not use X."
+
 When you are satisfied that an open issue has been fully resolved in the ASN body, include a `## RESOLVED` section listing the issues to remove from the open issues file, with a brief justification for each:
 
 ```

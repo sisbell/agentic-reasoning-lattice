@@ -211,6 +211,71 @@ def check_asn(asn_num, verbose=False):
     return findings
 
 
+def check_cycles(asn_num):
+    """Detect circular dependencies in the property graph.
+
+    Returns list of cycle strings, e.g. ['A → B → A', 'C → D → C'].
+    Returns empty list if no cycles.
+    """
+    from lib.rebase_deps import generate_deps
+
+    deps = generate_deps(asn_num)
+    if deps is None:
+        return []
+
+    props = deps.get("properties", {})
+    all_labels = set(props.keys())
+
+    # Build adjacency graph (internal labels only)
+    graph = {}
+    for label, prop in props.items():
+        graph[label] = set(prop.get("follows_from", [])) & all_labels
+
+    # DFS cycle detection
+    visited = set()
+    in_stack = set()
+    cycles = []
+
+    def dfs(node, path):
+        if node in in_stack:
+            cycle_start = path.index(node)
+            cycles.append(path[cycle_start:] + [node])
+            return
+        if node in visited:
+            return
+        visited.add(node)
+        in_stack.add(node)
+        path.append(node)
+        for dep in graph.get(node, set()):
+            dfs(dep, path)
+        path.pop()
+        in_stack.remove(node)
+
+    for label in sorted(graph.keys()):
+        if label not in visited:
+            dfs(label, [])
+
+    return [" → ".join(c) for c in cycles]
+
+
+def format_cycle_findings(cycles):
+    """Format cycle findings as markdown for open-issues.md."""
+    if not cycles:
+        return ""
+
+    lines = []
+    for i, cycle in enumerate(cycles, 1):
+        lines.append(f"### Finding: [cycle] {cycle}")
+        lines.append(f"**Location**: dependency graph")
+        lines.append(f"**Detail**: Circular dependency detected. One edge "
+                     f"is wrong — determine which property's Status column "
+                     f"claims a dependency that doesn't exist in the proof, "
+                     f"and remove it.")
+        lines.append("")
+
+    return "\n".join(lines)
+
+
 def format_findings(findings):
     """Format findings as markdown for open-issues.md."""
     if not findings:
