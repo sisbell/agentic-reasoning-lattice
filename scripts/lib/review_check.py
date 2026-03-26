@@ -31,6 +31,7 @@ from lib.foundation import load_foundation_statements
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
 REVIEW_TEMPLATE = PROMPTS_DIR / "review.md"
+REVIEW_GENERAL_TEMPLATE = PROMPTS_DIR / "review-general.md"
 
 
 def load_out_of_scope(asn_number):
@@ -137,9 +138,10 @@ def load_deps_yaml(asn_number):
 
 
 def build_prompt(asn_content, vocabulary, out_of_scope="", hints="",
-                 asn_number=None):
+                 asn_number=None, general=False):
     """Assemble review prompt from template + injected content."""
-    template = read_file(REVIEW_TEMPLATE)
+    template_path = REVIEW_GENERAL_TEMPLATE if general else REVIEW_TEMPLATE
+    template = read_file(template_path)
     if not template:
         print("  Review prompt template not found at scripts/prompts/review.md",
               file=sys.stderr)
@@ -264,6 +266,8 @@ def main():
                         help="Thinking effort level (low/medium/high/max)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Show prompt size without invoking Claude")
+    parser.add_argument("--general", action="store_true",
+                        help="General review mode — cross-cutting only, no per-proof verification")
     args = parser.parse_args()
 
     # Find ASN
@@ -289,7 +293,8 @@ def main():
     if hints:
         print(f"  [HINTS] {hints}", file=sys.stderr)
     prompt = build_prompt(asn_content, vocabulary, out_of_scope=out_of_scope,
-                          hints=hints, asn_number=asn_number)
+                          hints=hints, asn_number=asn_number,
+                          general=args.general)
     print(f"  Prompt: {len(prompt) // 1024}KB (~{len(prompt) // 4} tokens est.)",
           file=sys.stderr)
 

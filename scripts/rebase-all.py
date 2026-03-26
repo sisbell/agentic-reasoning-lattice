@@ -299,11 +299,18 @@ def process_asn_hybrid(asn_num, model, effort, max_cycles, force=False):
         if refreshed:
             print(f"  [{asn_label}] Normalized", file=sys.stderr)
 
-            # Standard review/revise cycle
-            print(f"  [{asn_label}] Running review...", file=sys.stderr)
+            # Phase 1: Per-proof verification
+            from lib.verify_proofs import step_verify_proofs
+            v, f, e = step_verify_proofs(asn_num)
+            step_commit_asn(asn_num,
+                            f"verify(asn): {asn_label} — proof verification")
+
+            # Phase 2: General review/revise cycle (cross-cutting)
+            print(f"  [{asn_label}] Running general review...",
+                  file=sys.stderr)
             review_cmd = [sys.executable,
                           str(WORKSPACE / "scripts" / "review.py"),
-                          str(asn_num)]
+                          str(asn_num), "--general"]
             review_result = subprocess.run(review_cmd, capture_output=False,
                                            text=True, cwd=str(WORKSPACE))
 
@@ -420,14 +427,19 @@ def process_asn_hybrid(asn_num, model, effort, max_cycles, force=False):
         print(f"  [DONE] {asn_label}", file=sys.stderr)
         return "completed"
 
-    print(f"  [AUDIT] Open issues found — starting review/revise convergence",
+    print(f"  [AUDIT] Open issues found — starting review/revise",
           file=sys.stderr)
 
-    # ── REVIEW/REVISE CONVERGENCE ──
-    print(f"  [REVIEW] Running fresh review...", file=sys.stderr)
+    # ── Phase 1: Per-proof verification ──
+    from lib.verify_proofs import step_verify_proofs
+    v, f, e = step_verify_proofs(asn_num)
+    step_commit_asn(asn_num, f"verify(asn): {asn_label} — proof verification")
+
+    # ── Phase 2: General review/revise (cross-cutting) ──
+    print(f"  [REVIEW] Running general review...", file=sys.stderr)
     review_cmd = [sys.executable,
                   str(WORKSPACE / "scripts" / "review.py"),
-                  str(asn_num)]
+                  str(asn_num), "--general"]
     review_result = subprocess.run(review_cmd, capture_output=False, text=True,
                                    cwd=str(WORKSPACE))
 
