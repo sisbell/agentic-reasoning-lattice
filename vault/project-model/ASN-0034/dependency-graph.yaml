@@ -1,0 +1,314 @@
+asn: 34
+depends: []
+properties:
+  T0(a):
+    status: introduced
+    type: INV
+    name: Every component value of a tumbler is unbounded
+  T0(b):
+    status: introduced
+    type: INV
+    name: Tumblers of arbitrary length exist in T
+    follows_from:
+    - T0(a)
+  T1:
+    status: introduced
+    type: INV
+    name: Lexicographic order
+  T2:
+    status: introduced
+    type: INV
+    name: Intrinsic comparison
+    follows_from:
+    - T1
+  T3:
+    status: introduced
+    type: INV
+    name: Canonical representation
+  T4:
+    status: introduced
+    type: INV
+    name: Hierarchical parsing
+  T5:
+    status: introduced
+    type: THEOREM
+    name: The set of tumblers sharing a prefix forms a contiguous interval under T1
+    follows_from:
+    - T1
+  T6:
+    status: corollary
+    type: LEMMA
+    follows_from:
+    - T4
+    name: Decidable containment
+  T7:
+    status: corollary
+    type: LEMMA
+    follows_from:
+    - T1
+    - T3
+    - T4
+    name: Subspace disjointness
+  T8:
+    status: introduced
+    type: INV
+    name: Allocation permanence
+  T9:
+    status: other
+    type: LEMMA
+    follows_from:
+    - T10
+    - T10a
+    - T8
+    - TA5(a)
+    name: Forward allocation
+  T10:
+    status: introduced
+    type: INV
+    name: Partition independence
+  T10a:
+    status: introduced
+    type: INV
+    name: Allocator discipline
+  PrefixOrderingExtension:
+    status: other
+    type: LEMMA
+    follows_from:
+    - T1
+    name: Prefix ordering extension
+  PartitionMonotonicity:
+    status: theorem
+    type: THEOREM
+    follows_from:
+    - PrefixOrderingExtension
+    - T1
+    - T10a
+    - T5
+    - T9
+    name: Partition monotonicity
+  GlobalUniqueness:
+    status: theorem
+    type: THEOREM
+    follows_from:
+    - T10
+    - T10a
+    - T3
+    - T4
+    - T9
+    - TA5
+    name: Global uniqueness
+  T12:
+    status: introduced
+    type: INV
+    name: Span well-definedness
+    follows_from:
+    - T1
+    - T5
+    - TA-strict
+    - TA0
+  TA0:
+    status: introduced
+    type: PRE
+    name: Well-defined addition
+  TA1:
+    status: introduced
+    type: POST
+    name: Addition preserves the total order (weak)
+    follows_from:
+    - TA0
+  Divergence:
+    status: introduced
+    type: DEFINITION
+    name: For a ≠ b
+    follows_from:
+    - T1
+    - TA0
+    - TA1
+    - TA1-strict
+  TA1-strict:
+    status: introduced
+    type: POST
+    name: strict (Strict order preservation)
+    follows_from:
+    - TA1
+  TA-strict:
+    status: introduced
+    type: POST
+    name: Adding a positive displacement strictly advances
+    follows_from:
+    - T1
+    - T12
+    - TA0
+    - TA1
+    - TA4
+  TA2:
+    status: introduced
+    type: PRE
+    name: Tumbler subtraction a ⊖ w is well-defined when a ≥ w
+  TA3:
+    status: introduced
+    type: POST
+    name: Subtraction preserves the total order (weak)
+  TA3-strict:
+    status: introduced
+    type: POST
+    name: 'Subtraction preserves the total order (strict) when additionally #a = #b'
+  TA4:
+    status: introduced
+    type: LEMMA
+    name: Addition and subtraction are partial inverses
+  ReverseInverse:
+    status: corollary
+    type: LEMMA
+    follows_from:
+    - TA3-strict
+    - TA4
+    name: Reverse inverse
+  TumblerAdd:
+    status: introduced
+    type: DEFINITION
+    name: TumblerAdd
+    follows_from:
+    - TA4
+  TumblerSub:
+    status: introduced
+    type: DEFINITION
+    name: TumblerSub
+    follows_from:
+    - Divergence
+    - T1
+    - TA1
+    - TA1-strict
+    - TA3
+  TA5:
+    status: introduced
+    type: POST
+    name: Hierarchical increment inc(t, k) produces t' > t
+    follows_from:
+    - T1
+    - T4
+  TA6:
+    status: introduced
+    type: INV
+    name: Zero tumblers
+    follows_from:
+    - T1
+  PositiveTumbler:
+    status: introduced
+    type: DEFINITION
+    name: PositiveTumbler
+    follows_from:
+    - T1
+    - TA0
+    - TA4
+  TA7a:
+    status: introduced
+    type: POST
+    name: For ordinals `o = [o₁,
+    follows_from:
+    - T4
+    - TA6
+  TA-assoc:
+    status: introduced
+    type: LEMMA
+    name: Addition is associative where both compositions are defined
+  TA-LC:
+    status: other
+    type: LEMMA
+    follows_from:
+    - T3
+    - TA0
+    - TumblerAdd
+    name: LC (LeftCancellation)
+  TA-RC:
+    status: other
+    type: LEMMA
+    follows_from:
+    - T3
+    - TumblerAdd
+    name: Right cancellation fails
+  TA-MTO:
+    status: other
+    type: LEMMA
+    follows_from:
+    - T3
+    - TumblerAdd
+    - TumblerSub
+    name: MTO (ManyToOne)
+  D0:
+    status: introduced
+    type: PRE
+    name: Displacement well-definedness
+    follows_from:
+    - D1
+    - T3
+    - TA0
+    - TumblerAdd
+  D1:
+    status: other
+    type: LEMMA
+    follows_from:
+    - T3
+    - TA0
+    - TumblerAdd
+    - TumblerSub
+    name: Displacement round-trip
+  D2:
+    status: corollary
+    type: LEMMA
+    follows_from:
+    - D0
+    - D1
+    - TA-LC
+    - TA0
+    - TumblerAdd
+    - TumblerSub
+    name: Displacement uniqueness
+  OrdinalDisplacement:
+    status: introduced
+    type: DEFINITION
+    name: OrdinalDisplacement
+  OrdinalShift:
+    status: introduced
+    type: DEFINITION
+    name: OrdinalShift
+    follows_from:
+    - TA0
+    - TumblerAdd
+  TS1:
+    status: other
+    type: LEMMA
+    follows_from:
+    - TA1-strict
+    name: ShiftOrderPreservation
+  TS2:
+    status: other
+    type: LEMMA
+    follows_from:
+    - T3
+    - TA-MTO
+    name: ShiftInjectivity
+  TS3:
+    status: other
+    type: LEMMA
+    follows_from:
+    - T3
+    - TumblerAdd
+    name: ShiftComposition
+  TS4:
+    status: corollary
+    type: LEMMA
+    follows_from:
+    - TA-strict
+    name: ShiftStrictIncrease
+  TS5:
+    status: corollary
+    type: LEMMA
+    follows_from:
+    - T4
+    - TA0
+    - TS1
+    - TS3
+    - TS4
+    - TumblerAdd
+    name: ShiftAmountMonotonicity
