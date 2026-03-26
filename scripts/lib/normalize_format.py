@@ -251,7 +251,7 @@ def step_format_review(asn_num):
 
 
 def step_format_revise(asn_num, findings):
-    """Run format revise with tool access. Returns True on success."""
+    """Run format revise with agentic tool access. Returns True on success."""
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
         return False
@@ -263,12 +263,29 @@ def step_format_revise(asn_num, findings):
               .replace("{{findings}}", findings))
 
     print(f"  [FORMAT] Revising {asn_label}...", file=sys.stderr)
-    text, elapsed = _invoke_claude(prompt, model="sonnet", effort="high",
-                                   tools=True)
+
+    cmd = [
+        "claude", "-p",
+        "--model", "claude-sonnet-4-6",
+        "--output-format", "json",
+        "--max-turns", "30",
+        "--allowedTools", "Edit,Read,Glob,Grep",
+    ]
+
+    env = os.environ.copy()
+    env.pop("CLAUDECODE", None)
+    env["CLAUDE_CODE_EFFORT_LEVEL"] = "high"
+
+    start = time.time()
+    result = subprocess.run(
+        cmd, input=prompt, capture_output=True, text=True, env=env,
+        cwd=str(WORKSPACE),
+    )
+    elapsed = time.time() - start
     _log_usage("revise", elapsed, asn_num)
 
-    if not text:
-        print(f"  [FORMAT] Revise produced no output ({elapsed:.0f}s)",
+    if result.returncode != 0:
+        print(f"  [FORMAT] Revise FAILED (exit {result.returncode}, {elapsed:.0f}s)",
               file=sys.stderr)
         return False
 
