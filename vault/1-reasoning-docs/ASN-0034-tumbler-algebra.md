@@ -50,6 +50,8 @@ Nelson requires that comparison be self-contained — no index consultation need
 
 **T2 (Intrinsic comparison).** The order relation T1 is computable from the two tumblers alone, without consulting any external data structure. The comparison examines at most `min(#a, #b)` component pairs.
 
+*Proof.* The definition of T1 determines `a < b` by scanning component pairs `(aᵢ, bᵢ)` at successive positions `i = 1, 2, ...` until either (i) a divergence `aₖ ≠ bₖ` is found at some `k ≤ min(m, n)`, or (ii) all `min(m, n)` positions are exhausted without divergence, in which case the shorter tumbler is a proper prefix of the longer. In case (i), exactly `k ≤ min(m, n)` component pairs are examined. In case (ii), exactly `min(m, n)` component pairs are examined, and the result is then determined by comparing the lengths `m` and `n`. In both cases, at most `min(m, n)` component pairs are compared, and the only values consulted are the components `aᵢ`, `bᵢ` and the lengths `m`, `n` — all intrinsic to the two tumblers. No external data structure participates in the decision. ∎
+
 The importance of T2 is operational: span containment tests, link search, and index traversal all reduce to tumbler comparison. If comparison required a lookup, these operations would depend on auxiliary state, and the system's decentralization guarantee would collapse — one could not determine whether an address falls within a span without access to the index that manages that span.
 
 Gregory's implementation confirms T2. The comparison function `tumblercmp` delegates to `abscmp`, which performs a purely positional comparison: exponent first (a proxy for the number of leading zeros), then lexicographic mantissa slot-by-slot. No tree structure, no index, no external state is consulted.

@@ -111,3 +111,57 @@ operations that mutate allocation state, showing each preserves the invariant
 `allocated(s) ⊆ allocated(s')` for any successor state s'. This would require 
 listing the operations as dependencies and checking each one individually.
 ```
+
+### [REVIEW-28] [VERIFIED] T8
+
+### [REVIEW-28] [RESOLVED] T8
+
+### [REVIEW-28] [VERIFIED] T9
+
+### [REVIEW-28] [VERIFIED] GlobalUniqueness
+
+### [REVIEW-28] [VERIFIED] OrdinalDisplacement
+
+### [REVIEW-28] [VERIFIED] OrdinalShift
+
+### [REVIEW-28] [VERIFIED] T5
+
+### [REVIEW-28] [VERIFIED] PrefixOrderingExtension
+
+### [REVIEW-28] [VERIFIED] PartitionMonotonicity
+
+### [REVIEW-28] [VERIFIED] PositiveTumbler
+
+### [REVIEW-28] [VERIFIED] TA3-strict
+
+### [REVIEW-28] [VERIFIED] ReverseInverse
+
+### [REVIEW-28] [VERIFIED] T0(a)
+
+### [REVIEW-28] [VERIFIED] T0(b)
+
+### [REVIEW-28] [VERIFIED] TA-strict
+
+### [REVIEW-28] [VERIFIED] T12
+
+### [REVIEW-28] [FOUND] T2
+I need to find and read the actual proof for T2 before I can verify it. Let me locate it.
+
+<tool_call>
+{"name": "Grep", "arguments": {"pattern": "T2.*[Ii]ntrinsic", "path": "/Users/shane/Documents/github/claude/xanadu-spec/vault/5-proofs", "include": "*.md"}}
+</tool_call>
+<tool_call>
+{"name": "Glob", "arguments": {"pattern": "vault/5-proofs/**/tumbler*"}}
+</tool_call>
+
+<tool_call>
+{"name": "Glob", "arguments": {"pattern": "vault/5-proofs/**/*034*"}}
+</tool_call>
+
+<tool_call>
+{"name": "Grep", "arguments": {"pattern": "## T2", "path": "/Users/shane/Documents/github/claude/xanadu-spec/vault/5-proofs", "include": "*.md"}}
+</tool_call>
+
+<tool_call>
+{"name": "Glob", "arguments": {"pattern": "vault/5-proofs/**/*.md"}}
+</tool_call>
