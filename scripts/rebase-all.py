@@ -302,7 +302,19 @@ def process_asn_hybrid(asn_num, model, effort, max_cycles, force=False):
         print(f"  [SKIP] {asn_label} — up to date", file=sys.stderr)
         return "skipped"
 
-    # ── Step 0: Export (if needed — ensures deps YAML exists) ──
+    # ── Step 0a: Format normalization gate ──
+    try:
+        from lib.normalize_format import normalize_format
+        fmt_ok = normalize_format(asn_num, max_cycles=3)
+        if not fmt_ok:
+            print(f"  [FORMAT] {asn_label} has format issues — continuing",
+                  file=sys.stderr)
+        elif fmt_ok:
+            step_commit_asn(asn_num, f"normalize(asn): {asn_label} format normalized")
+    except Exception as e:
+        print(f"  [FORMAT] WARNING: {e}", file=sys.stderr)
+
+    # ── Step 0b: Export (if needed — ensures deps YAML exists) ──
     deps_path = dep_graph(asn_num)
     if not deps_path.exists():
         print(f"  [EXPORT] Generating deps YAML (first time)...", file=sys.stderr)

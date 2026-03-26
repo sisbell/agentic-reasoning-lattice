@@ -236,9 +236,23 @@ def main():
                         help="Thinking effort level (low/medium/high/max)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Show prompt size without invoking Claude")
+    parser.add_argument("--normalize", action="store_true",
+                        help="Run format normalization gate before export")
+    parser.add_argument("--max-format-cycles", type=int, default=5,
+                        help="Max format review/revise cycles (default: 5)")
     args = parser.parse_args()
 
     if len(args.asns) == 1:
+        # Format normalization gate (if requested)
+        if args.normalize and not args.dry_run:
+            from lib.normalize_format import normalize_format
+            asn_num = int(re.sub(r"[^0-9]", "", str(args.asns[0])))
+            ok = normalize_format(asn_num, max_cycles=args.max_format_cycles)
+            if not ok:
+                print(f"  [ERROR] Format normalization failed — fix manually",
+                      file=sys.stderr)
+                sys.exit(1)
+
         # Single ASN — run directly, commit immediately
         label, ok = export_one(args.asns[0], args.model, args.effort,
                                args.dry_run)
