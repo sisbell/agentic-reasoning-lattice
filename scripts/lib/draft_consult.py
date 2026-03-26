@@ -115,7 +115,7 @@ def _call_decompose(prompt, label, model="opus"):
     start = time.time()
     result = subprocess.run(
         cmd, input=prompt, capture_output=True, text=True, env=env,
-        timeout=180,
+        timeout=None,
     )
     elapsed = time.time() - start
 

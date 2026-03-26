@@ -63,7 +63,7 @@ def _invoke_claude(prompt, model="sonnet", effort="high", tools=False):
     start = time.time()
     result = subprocess.run(
         cmd, input=prompt, capture_output=True, text=True, env=env,
-        timeout=300,
+        timeout=None,
     )
     elapsed = time.time() - start
 

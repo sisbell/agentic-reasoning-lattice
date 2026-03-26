@@ -99,7 +99,7 @@ def scan_property(label, property_text, asn_label, depends, available_labels,
     start = time.time()
     result = __import__("subprocess").run(
         cmd, input=prompt, capture_output=True, text=True, env=env,
-        timeout=120,
+        timeout=None,
     )
     elapsed = time.time() - start
 
