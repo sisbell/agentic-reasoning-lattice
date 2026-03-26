@@ -30,6 +30,7 @@ from lib.rebase_asn import _append_open_issues
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
 VERIFY_TEMPLATE = PROMPTS_DIR / "verify-proof.md"
+REVISE_TEMPLATE = PROMPTS_DIR / "revise-proof.md"
 
 
 def _invoke_opus(prompt, effort="high"):
@@ -327,12 +328,15 @@ def step_verify_proofs(asn_num, max_revise_cycles=10):
                     "--allowedTools", "Edit,Read,Glob,Grep",
                 ]
 
-                revise_prompt = (
-                    f"Fix the proof of {label} in the ASN at "
-                    f"{asn_path.relative_to(WORKSPACE)}.\n\n"
-                    f"The issue found during verification:\n\n"
-                    f"{open_issues_path(asn_num).read_text().split(f'[FOUND] {label}')[-1].split('###')[0].strip()}\n\n"
-                    f"Fix only this proof. Do not change anything else."
+                # Extract the finding text for this label
+                oi_text = open_issues_path(asn_num).read_text()
+                finding_text = oi_text.split(f'[FOUND] {label}')[-1].split('###')[0].strip()
+
+                template = REVISE_TEMPLATE.read_text()
+                revise_prompt = (template
+                    .replace("{{asn_path}}", str(asn_path.relative_to(WORKSPACE)))
+                    .replace("{{label}}", label)
+                    .replace("{{finding}}", finding_text)
                 )
 
                 env = os.environ.copy()

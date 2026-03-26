@@ -37,6 +37,28 @@ Use them as ground truth when checking the proof's reasoning.
 5. **Dependency correctness** — Does the proof use the dependencies it claims?
    Are there dependencies used but not declared, or declared but not used?
 
+6. **Formal contract** — Does the property section end with a `*Formal Contract:*`
+   section listing the applicable fields? Example:
+
+   ```
+   *Formal Contract:*
+   - *Preconditions:* w > 0, actionPoint(w) ≤ #a
+   - *Postconditions:* a ⊕ w ∈ T, #(a ⊕ w) = #w
+   ```
+
+   The fields are:
+   - **Preconditions**: what must hold before (requires)
+   - **Postconditions**: what is guaranteed after (ensures)
+   - **Invariant**: what holds across all state transitions
+   - **Frame**: what is preserved / not changed
+   Only include fields that apply. Skip this check for definitions
+   (`**Definition (Name).**` headers).
+   If the formal contract is missing or incomplete, flag as FOUND.
+
+7. **Missing guarantees** — Does the proof assume a guarantee that no existing
+   property in the provided dependencies establishes? If so, flag as FOUND and
+   describe the missing property that should be created.
+
 ## Output
 
 If the proof is sound and complete:
@@ -56,3 +78,6 @@ RESULT: FOUND
 
 Be specific. Cite the exact text that is wrong or missing. Construct a
 counterexample if the proof misses a case.
+
+Work only with the property section and dependencies provided above.
+Do not search for additional files or attempt tool calls.
