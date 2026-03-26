@@ -269,12 +269,11 @@ def refresh_export_if_stale(asn_num, force=False):
 
     print(f"  [NORMALIZE] {asn_label} — refreshing...", file=sys.stderr)
 
-    # Format normalization (type extraction + table fix + review/revise)
-    from lib.normalize_format import normalize_format, assemble_formal_statements
+    # Format normalization
+    from lib.normalize_format import normalize_format
     normalize_format(asn_num)
 
-    # Mechanical assembly + deps
-    assemble_formal_statements(asn_num)
+    # Generate deps YAML (needed for reviewer)
     from lib.rebase_deps import generate_deps, write_deps_yaml
     deps = generate_deps(asn_num)
     if deps:
@@ -358,14 +357,12 @@ def process_asn_hybrid(asn_num, model, effort, max_cycles, force=False):
         print(f"  [FORMAT] ERROR: {e}", file=sys.stderr)
         return "failed"
 
-    # ── Step 0b: Normalize — assemble formal statements + generate deps ──
-    from lib.normalize_format import assemble_formal_statements
+    # ── Step 0b: Generate deps YAML (needed for reviewer) ──
     from lib.rebase_deps import generate_deps, write_deps_yaml
-    assemble_formal_statements(asn_num)
     deps = generate_deps(asn_num)
     if deps:
         write_deps_yaml(asn_num, deps)
-    step_commit_asn(asn_num, f"normalize(asn): {asn_label} statements + deps")
+    step_commit_asn(asn_num, f"normalize(asn): {asn_label} deps generated")
 
     # ── Do NOT clear open issues — accumulate across runs ──
 
@@ -447,9 +444,13 @@ def process_asn_hybrid(asn_num, model, effort, max_cycles, force=False):
 
     update_consistency_state(asn_num, "CLEAN")
 
-    # ── RE-EXPORT (if ASN changed) ──
-    step_export(asn_num)
-    step_commit_asn(asn_num, f"export(asn): {asn_label}")
+    # ── POST-CONVERGENCE: assemble formal statements + deps ──
+    from lib.normalize_format import assemble_formal_statements
+    assemble_formal_statements(asn_num)
+    deps = generate_deps(asn_num)
+    if deps:
+        write_deps_yaml(asn_num, deps)
+    step_commit_asn(asn_num, f"normalize(asn): {asn_label} — post-review")
 
     # ── Check if re-export found new dep issues (stop, don't loop) ──
     # The export runs the dep scan which may find new issues.
