@@ -3,7 +3,7 @@ depends: []
 properties:
   T0(a):
     status: introduced
-    name: Every component value of a tumbler is unbounded
+    name: Unbounded component values
   T0(b):
     status: introduced
     name: Tumblers of arbitrary length exist in T
@@ -23,7 +23,7 @@ properties:
     name: Hierarchical parsing
   T5:
     status: introduced
-    name: The set of tumblers sharing a prefix forms a contiguous interval under T1
+    name: Contiguous subtrees
     follows_from:
     - T1
   T6:
@@ -34,7 +34,6 @@ properties:
   T7:
     status: corollary
     follows_from:
-    - T1
     - T3
     - T4
     name: Subspace disjointness
@@ -91,7 +90,7 @@ properties:
     name: Well-defined addition
   TA1:
     status: introduced
-    name: Addition preserves the total order (weak)
+    name: Order preservation under addition
     follows_from:
     - TA0
   Divergence:
@@ -110,16 +109,26 @@ properties:
     follows_from:
     - T1
     - TumblerAdd
-    name: Adding a positive displacement strictly advances
+    name: Strict increase
   TA2:
     status: introduced
     name: Tumbler subtraction a ⊖ w is well-defined when a ≥ w
   TA3:
     status: introduced
-    name: Subtraction preserves the total order (weak)
+    name: 'Order preservation under subtraction, weak'
+    follows_from:
+    - T1
+    - T3
+    - TA6
+    - TumblerSub
   TA3-strict:
     status: introduced
-    name: 'Subtraction preserves the total order (strict) when additionally #a = #b'
+    name: 'Order preservation under subtraction, strict'
+    follows_from:
+    - T1
+    - T3
+    - TA6
+    - TumblerSub
   TA4:
     status: from
     follows_from:
@@ -145,7 +154,7 @@ properties:
     name: TumblerSub
   TA5:
     status: introduced
-    name: Hierarchical increment inc(t, k) produces t' > t
+    name: Hierarchical increment
     follows_from:
     - T1
     - T4
@@ -159,13 +168,15 @@ properties:
     name: PositiveTumbler
   TA7a:
     status: introduced
-    name: Ordinal-only shift arithmetic
+    name: Subspace closure
     follows_from:
     - T4
     - TA6
   TA-assoc:
     status: introduced
-    name: Addition is associative where both compositions are defined
+    name: AdditionAssociative
+    follows_from:
+    - TumblerAdd
   TA-LC:
     status: other
     follows_from:
@@ -188,6 +199,7 @@ properties:
   D0:
     status: from
     follows_from:
+    - Divergence
     - T3
     - TA0
     - TumblerAdd
