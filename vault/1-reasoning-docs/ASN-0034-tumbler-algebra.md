@@ -303,6 +303,8 @@ Let `⊖` denote tumbler subtraction: given two positions, compute the displacem
 
 **TA2 (Well-defined subtraction).** For tumblers `a, w ∈ T` where `a ≥ w`, `a ⊖ w` is a well-defined tumbler in `T`.
 
+**Verification of TA2.** By TumblerSub, two cases arise. If the zero-padded sequences of `a` and `w` agree at every position, the result is the zero tumbler of length `max(#a, #w)` — a member of `T`. Otherwise, let `k` be the first divergence position (after zero-padding). The result `a ⊖ w = [r₁, ..., r_p]` has length `p = max(#a, #w)`, which is finite and at least 1. Each pre-divergence component `rᵢ = 0 ∈ ℕ`. At the divergence point: `a ≥ w` ensures `aₖ > wₖ` — if `a > w` by T1 case (i), the divergence falls at `k ≤ min(#a, #w)` with `aₖ > wₖ` directly; if `a > w` by T1 case (ii), `w` is a proper prefix of `a`, so `k > #w` and `wₖ = 0` (zero-padded), with `aₖ > 0` (otherwise no divergence at `k`). In either case, `rₖ = aₖ - wₖ ∈ ℕ`. Each tail component `rᵢ = aᵢ ∈ ℕ` (inherited from `a ∈ T`, or `0` when `i > #a`). The result is a finite sequence of non-negative integers with at least one component — a member of `T`.
+
 **TA3 (Order preservation under subtraction, weak).** `(A a, b, w : a < b ∧ a ≥ w ∧ b ≥ w : a ⊖ w ≤ b ⊖ w)`.
 
 **TA3-strict (Order preservation under subtraction, strict).** `(A a, b, w : a < b ∧ a ≥ w ∧ b ≥ w ∧ #a = #b : a ⊖ w < b ⊖ w)`.
@@ -839,7 +841,7 @@ Removing any independent property breaks a system-level guarantee. T6 and T7 are
 | Divergence | Divergence point of two unequal tumblers: first position k where aₖ ≠ bₖ (component), or min(#a, #b) + 1 (prefix) | from T1 |
 | TA1-strict | Addition preserves the total order (strict) when k ≤ min(#a, #b) ∧ k ≥ divergence(a, b) | from Divergence, TumblerAdd |
 | TA-strict | Adding a positive displacement strictly advances: a ⊕ w > a | from TumblerAdd, T1 |
-| TA2 | Tumbler subtraction a ⊖ w is well-defined when a ≥ w | introduced |
+| TA2 | Tumbler subtraction a ⊖ w is well-defined when a ≥ w | from TumblerSub, T1 |
 | TA3 | Subtraction preserves the total order (weak): a < b ⟹ a ⊖ w ≤ b ⊖ w when both are defined | from TA2, T1, TA6, TumblerSub |
 | TA3-strict | Subtraction preserves the total order (strict) when additionally #a = #b | introduced |
 | TA4 | Addition and subtraction are partial inverses: (a ⊕ w) ⊖ w = a when k = #a, #w = k, and all components of a before k are zero | from TumblerAdd, TumblerSub |

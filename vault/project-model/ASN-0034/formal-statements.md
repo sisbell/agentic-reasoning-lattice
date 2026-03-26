@@ -228,6 +228,8 @@ When the action point falls before the divergence — `k < divergence(a, b)` —
 
 For tumblers `a, w ∈ T` where `a ≥ w`, `a ⊖ w` is a well-defined tumbler in `T`.
 
+**Verification of TA2.** By TumblerSub, two cases arise. If the zero-padded sequences of `a` and `w` agree at every position, the result is the zero tumbler of length `max(#a, #w)` — a member of `T`. Otherwise, let `k` be the first divergence position (after zero-padding). The result `a ⊖ w = [r₁, ..., r_p]` has length `p = max(#a, #w)`, which is finite and at least 1. Each pre-divergence component `rᵢ = 0 ∈ ℕ`. At the divergence point: `a ≥ w` ensures `aₖ > wₖ` — if `a > w` by T1 case (i), the divergence falls at `k ≤ min(#a, #w)` with `aₖ > wₖ` directly; if `a > w` by T1 case (ii), `w` is a proper prefix of `a`, so `k > #w` and `wₖ = 0` (zero-padded), with `aₖ > 0` (otherwise no divergence at `k`). In either case, `rₖ = aₖ - wₖ ∈ ℕ`. Each tail component `rᵢ = aᵢ ∈ ℕ` (inherited from `a ∈ T`, or `0` when `i > #a`). The result is a finite sequence of non-negative integers with at least one component — a member of `T`.
+
 
 ## TA3 — Subtraction preserves the total order (weak)
 
