@@ -145,17 +145,20 @@ def log_usage(skill, elapsed, **extra):
         pass
 
 
-def extract_property_sections(asn_text, known_labels=None):
+def extract_property_sections(asn_text, known_labels=None, truncate=True):
     """Extract the derivation text for each property.
 
     If known_labels is provided, uses label-anchored search (table-driven):
     searches for each label as a bold header start, handling any format.
     Otherwise falls back to generic bold-pattern regex.
 
+    If truncate=False, returns full section text (for assembly).
+    If truncate=True (default), caps at 3000 chars (for prose scanning).
+
     Returns dict of label → derivation text.
     """
     if known_labels:
-        return _extract_sections_by_labels(asn_text, known_labels)
+        return _extract_sections_by_labels(asn_text, known_labels, truncate=truncate)
 
     sections = {}
 
@@ -178,14 +181,14 @@ def extract_property_sections(asn_text, known_labels=None):
             end = start + 1 + next_section.start() if next_section else len(asn_text)
 
         text = asn_text[start:end].strip()
-        if len(text) > 3000:
+        if truncate and len(text) > 3000:
             text = text[:3000] + "\n[...truncated...]"
         sections[label] = text
 
     return sections
 
 
-def _extract_sections_by_labels(asn_text, labels):
+def _extract_sections_by_labels(asn_text, labels, truncate=True):
     """Table-driven section extraction using known property labels.
 
     For each label, finds the bold header line (any format) and captures
@@ -220,7 +223,7 @@ def _extract_sections_by_labels(asn_text, labels):
             end = start + 1 + next_section.start() if next_section else len(asn_text)
 
         text = asn_text[start:end].strip()
-        if len(text) > 3000:
+        if truncate and len(text) > 3000:
             text = text[:3000] + "\n[...truncated...]"
         sections[label] = text
 

@@ -230,8 +230,8 @@ def assemble_formal_statements(asn_num):
         })
         labels.append(label)
 
-    # Extract derivation sections
-    sections = extract_property_sections(text, known_labels=labels)
+    # Extract derivation sections (full text, no truncation)
+    sections = extract_property_sections(text, known_labels=labels, truncate=False)
 
     # Get source metadata
     date_match = re.search(r"\*.*?(\d{4}-\d{2}-\d{2}).*?\*", text)
@@ -258,15 +258,17 @@ def assemble_formal_statements(asn_num):
         if label in sections:
             section = sections[label]
             section_lines = section.split("\n")
-            # Skip the bold header line
-            body_start = 0
-            for i, line in enumerate(section_lines):
-                if line.strip().startswith("**") and (label in line):
-                    body_start = i + 1
-                    break
-            # Strip ## sub-headers from body (they'd conflict with property headers)
+            # Extract content from the bold header line (formal statement is often there)
+            # then include the rest of the section
             body_lines = []
-            for line in section_lines[body_start:]:
+            for i, line in enumerate(section_lines):
+                if i == 0 and line.strip().startswith("**") and (label in line):
+                    # Strip bold markers, extract content after the header
+                    # e.g., **T1 (Name).** formal statement here...
+                    stripped = re.sub(r'^\*\*.*?\.\*\*\s*', '', line.strip())
+                    if stripped:
+                        body_lines.append(stripped)
+                    continue
                 if line.startswith("## "):
                     body_lines.append("### " + line[3:])  # demote to ###
                 else:
@@ -278,7 +280,50 @@ def assemble_formal_statements(asn_num):
             # No prose section — use statement column text
             parts.append(prop["statement"] + "\n")
 
-    output = "\n".join(parts) + "\n"
+    raw_output = "\n".join(parts) + "\n"
+
+    # Trim narrative via LLM in chunks
+    # Split raw output into batches by ## headers
+    raw_sections = re.split(r'(?=^## )', raw_output, flags=re.MULTILINE)
+    raw_sections = [s for s in raw_sections if s.strip()]
+
+    BATCH_SIZE = 5
+    trim_template = (PROMPTS_DIR / "trim-statements.md").read_text()
+    trimmed_parts = []
+    total_elapsed = 0
+
+    for batch_start in range(0, len(raw_sections), BATCH_SIZE):
+        batch = raw_sections[batch_start:batch_start + BATCH_SIZE]
+        batch_text = "\n".join(batch)
+        batch_num = batch_start // BATCH_SIZE + 1
+        total_batches = (len(raw_sections) + BATCH_SIZE - 1) // BATCH_SIZE
+
+        prompt = (trim_template
+                  .replace("{{sections}}", batch_text)
+                  .replace("{{output_path}}", ""))  # not used in --print mode
+
+        print(f"  [TRIM] Batch {batch_num}/{total_batches} "
+              f"({len(batch)} sections, {len(batch_text) // 1024}KB)...",
+              file=sys.stderr)
+
+        trimmed, elapsed = _invoke_claude(prompt, model="sonnet", effort="high")
+        total_elapsed += elapsed
+
+        if trimmed:
+            trimmed_parts.append(trimmed)
+        else:
+            # Fallback: use raw batch
+            print(f"  [TRIM] Batch {batch_num} failed — using raw",
+                  file=sys.stderr)
+            trimmed_parts.append(batch_text)
+
+    _log_usage("trim", total_elapsed, asn_num)
+
+    # Assemble final output
+    source_line = (f"*Source: {asn_path.name} (revised {asn_date}) — "
+                   f"Extracted: {time.strftime('%Y-%m-%d')}*\n")
+    trimmed_body = "\n\n".join(trimmed_parts)
+    output = f"# {asn_label} Formal Statements\n\n{source_line}\n{trimmed_body}\n"
 
     # Write
     out_dir = asn_dir(asn_num)
@@ -286,10 +331,11 @@ def assemble_formal_statements(asn_num):
     out_path = formal_stmts(asn_num)
     out_path.write_text(output)
     print(f"  [ASSEMBLE] {out_path.relative_to(WORKSPACE)} "
-          f"({len(properties)} properties)", file=sys.stderr)
+          f"({len(properties)} properties, "
+          f"{len(raw_output) // 1024}KB → {len(output) // 1024}KB)",
+          file=sys.stderr)
 
     # Post-verification: count property headers vs table labels
-    # Match only property headers (## LABEL — Name), not prose sub-headers
     written = out_path.read_text()
     header_count = len(re.findall(r'^## \S+.*? — ', written, re.MULTILINE))
     if header_count != len(properties):
