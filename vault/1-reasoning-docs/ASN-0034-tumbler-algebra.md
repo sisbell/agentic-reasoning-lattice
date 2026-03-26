@@ -654,6 +654,14 @@ Every positive tumbler is greater than every zero tumbler under T1 — if `t` ha
 
   `(A s, t ∈ T : (A i : 1 ≤ i ≤ #s : sᵢ = 0) ∧ (E j : 1 ≤ j ≤ #t : tⱼ > 0) ⟹ s < t)`
 
+*Proof (from T1, T4).* **Conjunct 1** (invalidity): Let `t` be a zero tumbler. Then `t₁ = 0`. T4 requires that a valid address does not begin with zero — the first component must be a positive node-field component. Since `t₁ = 0`, `t` fails T4 and is not a valid address.
+
+**Conjunct 2** (ordering): Let `s` be a zero tumbler of length `m` and `t` a positive tumbler of length `n`. Since `t` is positive, there exists a first nonzero component; let `k = min({i : 1 ≤ i ≤ n : tᵢ > 0})`. For all `i < k`, `tᵢ = 0` (by minimality of `k`).
+
+*Case 1* (`m ≥ k`): At positions `1, ..., k − 1`, `sᵢ = 0 = tᵢ` — no disagreement. At position `k`, `sₖ = 0 < tₖ`. By T1 case (i), `s < t`.
+
+*Case 2* (`m < k`): For all `i ≤ m`, `sᵢ = 0 = tᵢ` (since `i ≤ m < k` and `tᵢ = 0` for `i < k`). The tumblers agree on every position of `s`, and `#s = m < k ≤ n = #t`, so `s` is a proper prefix of `t`. By T1 case (ii), `s < t`. ∎
+
 Zero tumblers serve as *sentinels*: they mark uninitialized values, denote "unbounded" when used as span endpoints, and act as lower bounds.
 
 
@@ -849,7 +857,7 @@ Removing any independent property breaks a system-level guarantee. T6 and T7 are
 | TumblerAdd | a ⊕ w: copy aᵢ for i < k, advance aₖ by wₖ at action point k, replace tail with wᵢ for i > k; result length = #w | introduced |
 | TumblerSub | a ⊖ w: zero positions before divergence k, compute aₖ − wₖ at divergence point, copy aᵢ for i > k; result length = max(#a, #w) | from Divergence, T1 |
 | TA5 | Hierarchical increment inc(t, k) produces t' > t: k=0 advances at sig(t), k>0 extends by k positions with separators and first child | introduced |
-| TA6 | Every all-zero tumbler (any length) is less than every positive tumbler and is not a valid address | introduced |
+| TA6 | Every all-zero tumbler (any length) is less than every positive tumbler and is not a valid address | from T1, T4 |
 | PositiveTumbler | t > 0 iff at least one component is nonzero; zero tumbler iff all components are zero | introduced |
 | TA7a | Ordinal-only shift arithmetic: both ⊕ and ⊖ on ordinals produce results in T with the subspace identifier (held as context) unchanged | introduced |
 | TA-assoc | Addition is associative where both compositions are defined: (a ⊕ b) ⊕ c = a ⊕ (b ⊕ c) | introduced |

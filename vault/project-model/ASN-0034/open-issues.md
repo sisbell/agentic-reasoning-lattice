@@ -285,3 +285,14 @@ Let me find and read the proof for TA2.
 <pattern>/Users/shane/Documents/github/claude/xanadu-spec/vault/5-proofs/**/*.md</pattern>
 </parameters>
 </tool_call>
+
+### [REVIEW-31] [VERIFIED] TA2
+
+### [REVIEW-31] [RESOLVED] TA2
+
+### [REVIEW-31] [FOUND] TA6
+TA6 had no formal proof. The informal paragraph before the statement sketched the ordering argument without citing T1 or splitting into cases, and never addressed the validity conjunct (which derives from T4).
+
+### [REVIEW-32] [VERIFIED] TA6
+
+### [REVIEW-32] [RESOLVED] TA6
