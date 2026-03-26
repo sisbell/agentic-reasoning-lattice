@@ -480,10 +480,13 @@ def generate_deps(asn_num):
 
     prose_count = 0
     for label, prop in properties.items():
-        # Add property name — prefer Statement column, fall back to header
+        # Add property name — prefer Statement column, fall back to header,
+        # then to label itself if it's a PascalCase multi-word name
         name = _statement_names.get(label) or ""
         if not name and label in sections:
             name = _extract_property_name(sections[label])
+        if not name and re.match(r'^[A-Z][a-z].*[A-Z]', label):
+            name = label
         if name:
             prop["name"] = name
 
