@@ -1,6 +1,6 @@
 # ASN-0034: Tumbler Algebra
 
-*2026-03-13, revised 2026-03-19, 2026-03-21*
+*2026-03-13, revised 2026-03-19, 2026-03-21, 2026-03-25*
 
 We wish to understand what algebraic structure the Xanadu addressing system must possess. The system assigns every entity a permanent address — a *tumbler* — and requires these addresses to support comparison, containment testing, arithmetic for span computation and position advancement, and coordination-free allocation across a global network. We seek the minimal set of abstract properties that any correct implementation must provide, deriving each from design requirements rather than from any particular representation.
 
@@ -649,21 +649,31 @@ An element-local position within subspace `S` has two components: the subspace i
 
 Gregory's implementation reveals the resolution. The operands passed to the arithmetic during shifts are not full element-local positions; they are *within-subspace ordinals* — the second component alone. The subspace identifier is not an operand to the shift; it is structural context that determines *which* positions are subject to the shift. The arithmetic receives ordinals, not full positions.
 
-**TA7a (Subspace closure).** The canonical representation for shift arithmetic is the *ordinal-only* formulation: a position in subspace `S` with identifier `N` and ordinal `o = [o₁, ..., oₘ]` (where `m ≥ 1`) is represented as the tumbler `o` for arithmetic purposes, with `N` held as structural context. An element-local displacement is a positive tumbler `w` with action point `k` satisfying `1 ≤ k ≤ m`. In this formulation:
+**TA7a (Subspace closure).** The canonical representation for shift arithmetic is the *ordinal-only* formulation: a position in a subspace with identifier `N` and ordinal `o = [o₁, ..., oₘ]` (where `m ≥ 1`) is represented as the tumbler `o` for arithmetic purposes, with `N` held as structural context. Define **S** = {o ∈ T : #o ≥ 1 ∧ (A i : 1 ≤ i ≤ #o : oᵢ > 0)} — ordinals with all positive components, matching T4's positive-component constraint on element fields. An element-local displacement is a positive tumbler `w` with action point `k` satisfying `1 ≤ k ≤ m`. In this formulation:
 
-  `(A o ∈ S, w > 0 : k ≤ #o ⟹ o ⊕ w ∈ S)`
+  `(A o ∈ S, w > 0 : k ≤ #o ⟹ o ⊕ w ∈ T)`
 
-  `(A o ∈ S, w > 0 : o ≥ w ⟹ o ⊖ w ∈ S ∪ Z)`
+  `(A o ∈ S, w > 0 : o ≥ w ⟹ o ⊖ w ∈ T)`
 
-where `Z` is the set of zero tumblers.
+Both operations produce results in T, and the subspace identifier — held as context — is never modified. The core guarantee is subspace closure: arithmetic on ordinals cannot escape the subspace.
 
-The subspace identifier is context — it determines which positions are subject to the shift — not an operand to the arithmetic. Both operations produce genuine shifts in the ordinal-only view; the 2-component view gives a genuine shift for `⊕` but a vacuous closure for `⊖`. The ordinal-only formulation is adopted because, as the verification shows, applying `⊖` to full 2-component positions finds the divergence at the subspace identifier, producing a no-op rather than a genuine shift.
+For `⊕`, a stronger result holds: components before the action point are preserved positive from `o ∈ S`, and `oₖ + wₖ > 0` since both are positive. When all components of `w` after `k` are also positive, the result is in S. For single-component ordinals (the common case), `[x] ⊕ [n] = [x + n] ∈ S` unconditionally.
 
-For single-component ordinals — the common case where element sub-structure is flat — this reduces to `[x] ⊕ [n] = [x + n]` and `[x] ⊖ [n] = [x - n]`, directly by the constructive definition. When the element field has deeper structure (`δ > 1` in T4), the ordinal `o` has multiple components. A displacement with action point `k ≥ 2` preserves all ordinal components before position `k` — the constructive definition copies `o₁, ..., oₖ₋₁` from the start position unchanged. For example, spanning from ordinal `[1, 3, 2]` to `[1, 5, 7]` requires displacement `[0, 2, 7]` (action point `k = 2`); `[1, 3, 2] ⊕ [0, 2, 7] = [1, 5, 7]` — position 1 of the ordinal is copied, preserving the ordinal prefix. The subspace closure holds in all cases because the subspace identifier is never an operand.
+The subspace identifier is context — it determines which positions are subject to the shift — not an operand to the arithmetic. Both operations produce genuine shifts in the ordinal-only view; the 2-component view gives a genuine shift for `⊕` but a vacuous closure for `⊖`. The ordinal-only formulation is adopted because applying `⊖` to full 2-component positions finds the divergence at the subspace identifier, producing a no-op rather than a genuine shift.
 
-**Verification of TA7a.** In the ordinal-only formulation, the shift operates on `o = [o₁, ..., oₘ]` by displacement `w` with action point `k` satisfying `1 ≤ k ≤ m`. For `⊕`: by the constructive definition, `(o ⊕ w)ᵢ = oᵢ` for `i < k`, and `(o ⊕ w)ₖ = oₖ + wₖ`. All components before `k` are preserved. The result has length `#w` (by the result-length identity), remaining a valid ordinal. For `⊖`: the divergence between `o` and `w` falls at position `k` or later (since `wᵢ = 0` for `i < k`, and ordinal components are non-negative — the zero-padded values agree before `k`). Components before the divergence are zeroed; the divergence position is adjusted by subtraction; subsequent positions are copied from `o`. In either case the subspace identifier, held as context, is never modified. TA7a holds.
+For single-component ordinals, `⊖` gives closure in S ∪ Z: `[x] ⊖ [n]` is `[x - n] ∈ S` when `x > n`, or `[0] ∈ Z` when `x = n` (a sentinel, TA6). When the element field has deeper structure (`δ > 1` in T4), the ordinal `o` has multiple components. A displacement with action point `k ≥ 2` preserves all ordinal components before position `k` — the constructive definition copies `o₁, ..., oₖ₋₁` from the start position unchanged. For example, spanning from ordinal `[1, 3, 2]` to `[1, 5, 7]` requires displacement `[0, 2, 7]` (action point `k = 2`); `[1, 3, 2] ⊕ [0, 2, 7] = [1, 5, 7]` — position 1 of the ordinal is copied, preserving the ordinal prefix. The subspace closure holds in all cases because the subspace identifier is never an operand.
 
-For the single-component case (`m = 1`, `k = 1`): `([x] ⊕ [n])₁ = x + n`, a positive single-component tumbler. For `⊖`: `[x] ⊖ [n] = [x - n]`. When `x = n`, the result is `[0]`, a sentinel (TA6).
+**Verification of TA7a.** In the ordinal-only formulation, the shift operates on `o = [o₁, ..., oₘ]` with all `oᵢ > 0` (since `o ∈ S`), by displacement `w` with action point `k` satisfying `1 ≤ k ≤ m`.
+
+*For `⊕`:* By the constructive definition, `(o ⊕ w)ᵢ = oᵢ` for `i < k` (positive, preserved from `o`), and `(o ⊕ w)ₖ = oₖ + wₖ > 0` (both positive). Components after `k` come from `w`. The result has length `#w` (by the result-length identity). The result is in T; it is in S when additionally all components of `w` after `k` are positive. The subspace identifier, held as context, is unchanged.
+
+*For `⊖`:* We analyze by action point.
+
+*Case `k ≥ 2`:* The displacement has `wᵢ = 0` for `i < k`. Since `o ∈ S`, `o₁ > 0`. The divergence falls at position 1 (where `o₁ > 0 = w₁`). TumblerSub produces: `r₁ = o₁ - 0 = o₁`, and `rᵢ = oᵢ` for `i > 1` (copied from the minuend since `i > d = 1`). The result is `o` itself — a no-op. The subtraction finds the mismatch at the ordinal's first positive component rather than at the displacement's intended action point. The result is trivially in S.
+
+*Case `k = 1`:* The displacement has `w₁ > 0`. Let `d = divergence(o, w)`. If `d = 1` (i.e., `o₁ ≠ w₁`): since `o ≥ w`, `o₁ > w₁`. TumblerSub yields `r₁ = o₁ - w₁ > 0` and `rᵢ = oᵢ > 0` for `i > 1`. All components positive; the result is in S. If `d > 1` (i.e., `o₁ = w₁`, divergence later): TumblerSub zeros positions before `d`, giving `r₁ = 0`. The result has a zero first component and is not in S. Counterexample: `o = [5, 3]`, `w = [5, 1]` (action point `k = 1`, divergence `d = 2`). Result: `[0, 2] ∈ T` but `[0, 2] ∉ S ∪ Z`. This sub-case arises when `o` and `w` share a leading prefix — the subtraction produces a displacement with leading zeros rather than a valid ordinal position.
+
+In all cases the subspace identifier, held as context, is never modified. TA7a holds. ∎
 
 The restriction to element-local displacements is necessary. An unrestricted displacement whose action point falls at the subspace-identifier position could produce an address in a different subspace — TA7a cannot hold for arbitrary `w`.
 
@@ -803,34 +813,34 @@ Removing any independent property breaks a system-level guarantee. T6 and T7 are
 | T6 | LEMMA | Containment (same node, same account, same document family, structural subordination) is decidable from addresses alone | corollary of T4 |
 | T7 | LEMMA | Subspaces (text, links) within a document's element field are permanently disjoint | corollary of T3 + T4 |
 | T8 | INV | Once allocated, an address is never removed from the address space; the set of allocated addresses is monotonically non-decreasing | introduced |
-| T9 | LEMMA | Within a single allocator's sequential stream, new addresses are strictly monotonically increasing; gaps are permanent | lemma (from T10a + TA5(a)) |
+| T9 | LEMMA | Within a single allocator's sequential stream, new addresses are strictly monotonically increasing; gaps are permanent | lemma (from T10a + TA5) |
 | T10 | INV | Allocators with non-nesting prefixes produce distinct addresses without coordination | introduced |
 | T10a | INV | Each allocator uses inc(·, 0) for siblings and inc(·, k>0) only for child-spawning; this constrains sibling outputs to uniform length | introduced |
 | PrefixOrderingExtension | LEMMA | p₁ < p₂ with neither a prefix of the other implies a < b for every a with p₁ ≼ a and every b with p₂ ≼ b | lemma (from T1) |
-| PartitionMonotonicity | THEOREM | Per-allocator ordering extends cross-allocator; for non-nesting sibling prefixes p₁ < p₂, every address extending p₁ precedes every address extending p₂ | theorem from T5, T9, T10a, PrefixOrderingExtension |
+| PartitionMonotonicity | THEOREM | Per-allocator ordering extends cross-allocator; for non-nesting sibling prefixes p₁ < p₂, every address extending p₁ precedes every address extending p₂ | theorem from PrefixOrderingExtension, T1, T3, T5, T9, T10a, TA5 |
 | GlobalUniqueness | THEOREM | No two distinct allocation events anywhere in the system at any time produce the same address | theorem from T9, T10, T3, T4, TA5 |
-| T12 | INV | A span (s, ℓ) is well-formed when ℓ > 0 and action point k of ℓ satisfies k ≤ #s; it denotes the contiguous interval {t : s ≤ t < s ⊕ ℓ}, non-empty by TA-strict | introduced |
+| T12 | INV | A span (s, ℓ) is well-formed when ℓ > 0 and action point k of ℓ satisfies k ≤ #s; it denotes the contiguous interval {t : s ≤ t < s ⊕ ℓ}, non-empty by TA-strict | from T1 + TA0 + TA-strict |
 | TA0 | PRE | Tumbler addition a ⊕ w is well-defined when w > 0 and the action point k satisfies k ≤ #a | introduced |
 | TA1 | POST | Addition preserves the total order (weak): a < b ⟹ a ⊕ w ≤ b ⊕ w | introduced |
-| Divergence | DEFINITION | For a ≠ b: first position k where aₖ ≠ bₖ (component divergence), or min(#a, #b) + 1 if one is a proper prefix of the other (prefix divergence) | introduced |
-| TA1-strict | POST | Addition preserves the total order (strict) when k ≤ min(#a, #b) ∧ k ≥ divergence(a, b) | introduced |
-| TA-strict | POST | Adding a positive displacement strictly advances: a ⊕ w > a | introduced |
+| Divergence | DEFINITION | Divergence point of two unequal tumblers: first position k where aₖ ≠ bₖ (component), or min(#a, #b) + 1 (prefix) | from T1 |
+| TA1-strict | POST | Addition preserves the total order (strict) when k ≤ min(#a, #b) ∧ k ≥ divergence(a, b) | from Divergence |
+| TA-strict | POST | Adding a positive displacement strictly advances: a ⊕ w > a | from TumblerAdd + T1 |
 | TA2 | PRE | Tumbler subtraction a ⊖ w is well-defined when a ≥ w | introduced |
 | TA3 | POST | Subtraction preserves the total order (weak): a < b ⟹ a ⊖ w ≤ b ⊖ w when both are defined | introduced |
 | TA3-strict | POST | Subtraction preserves the total order (strict) when additionally #a = #b | introduced |
-| TA4 | LEMMA | Addition and subtraction are partial inverses: (a ⊕ w) ⊖ w = a when k = #a, #w = k, and all components of a before k are zero | introduced |
+| TA4 | LEMMA | Addition and subtraction are partial inverses: (a ⊕ w) ⊖ w = a when k = #a, #w = k, and all components of a before k are zero | from TumblerAdd |
 | ReverseInverse | LEMMA | (a ⊖ w) ⊕ w = a when k = #a, #w = k, a ≥ w > 0, and all components of a before k are zero | corollary of TA4 |
 | TumblerAdd | DEFINITION | a ⊕ w: copy aᵢ for i < k, advance aₖ by wₖ at action point k, replace tail with wᵢ for i > k; result length = #w | introduced |
-| TumblerSub | DEFINITION | a ⊖ w: zero positions before divergence k, compute aₖ − wₖ at divergence point, copy aᵢ for i > k; result length = max(#a, #w) | introduced |
+| TumblerSub | DEFINITION | a ⊖ w: zero positions before divergence k, compute aₖ − wₖ at divergence point, copy aᵢ for i > k; result length = max(#a, #w) | from Divergence + T1 |
 | TA5 | POST | Hierarchical increment inc(t, k) produces t' > t: k=0 advances at sig(t), k>0 extends by k positions with separators and first child | introduced |
 | TA6 | INV | Every all-zero tumbler (any length) is less than every positive tumbler and is not a valid address | introduced |
 | PositiveTumbler | DEFINITION | t > 0 iff at least one component is nonzero; zero tumbler iff all components are zero | introduced |
-| TA7a | POST | For ordinals `o = [o₁, ..., oₘ]` (`m ≥ 1`) in ordinal-only formulation, shift operations preserve all components before the action point and remain within the same subspace | introduced |
+| TA7a | POST | Ordinal-only shift arithmetic: both ⊕ and ⊖ on ordinals produce results in T with the subspace identifier (held as context) unchanged | introduced |
 | TA-assoc | LEMMA | Addition is associative where both compositions are defined: (a ⊕ b) ⊕ c = a ⊕ (b ⊕ c) | introduced |
 | TA-LC | LEMMA | a ⊕ x = a ⊕ y ⟹ x = y (left cancellation) | lemma (from TumblerAdd, T3) |
 | TA-RC | LEMMA | Right cancellation fails: ∃ a ≠ b with a ⊕ w = b ⊕ w | lemma (from TumblerAdd, T3) |
 | TA-MTO | LEMMA | a agrees with b on components 1..k ⟺ a ⊕ w = b ⊕ w for displacement w with action point k | lemma (from TumblerAdd, T3) |
-| D0 | PRE | Displacement well-definedness: a < b and divergence(a, b) ≤ #a ensures positive displacement with TA0 satisfied | introduced |
+| D0 | PRE | Displacement well-definedness: a < b and divergence(a, b) ≤ #a ensures positive displacement with TA0 satisfied | from T3 + TA0 + TumblerAdd |
 | D1 | LEMMA | Displacement round-trip: for a < b with divergence(a, b) ≤ #a and #a ≤ #b, a ⊕ (b ⊖ a) = b | lemma (from TumblerAdd, TumblerSub, T3) |
 | D2 | LEMMA | Displacement uniqueness: under D1's preconditions, if a ⊕ w = b then w = b ⊖ a | corollary of D1 + TA-LC |
 | OrdinalDisplacement | DEFINITION | δ(n, m) = [0, ..., 0, n] of length m, action point m | introduced |
