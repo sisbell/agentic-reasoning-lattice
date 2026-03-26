@@ -222,58 +222,74 @@ def _generate_deps(asn_id, label):
               file=sys.stderr)
 
 
-def main():
-    from concurrent.futures import ThreadPoolExecutor, as_completed
+def _normalize_one(asn_id, do_format_gate=False):
+    """Normalize a single ASN: format gate + mechanical assembly + deps.
 
+    Returns (asn_label, True) on success, (asn_id, False) on failure.
+    """
+    from lib.normalize_format import normalize_format, assemble_formal_statements
+
+    asn_path, asn_label = find_asn(asn_id)
+    if asn_path is None:
+        print(f"  No ASN found for {asn_id}", file=sys.stderr)
+        return asn_id, False
+
+    asn_num = int(re.sub(r"[^0-9]", "", str(asn_id)))
+
+    # Format gate (if requested)
+    if do_format_gate:
+        ok = normalize_format(asn_num)
+        if not ok:
+            print(f"  [ERROR] Format normalization failed for {asn_label}",
+                  file=sys.stderr)
+            return asn_label, False
+
+    # Mechanical assembly
+    path = assemble_formal_statements(asn_num)
+    if path is None:
+        print(f"  [ERROR] Assembly failed for {asn_label}", file=sys.stderr)
+        return asn_label, False
+
+    print(str(path))
+
+    # Deps generation
+    _generate_deps(asn_id, asn_label)
+
+    return asn_label, True
+
+
+def main():
     parser = argparse.ArgumentParser(
-        description="Export formal statements from converged ASNs")
+        description="Normalize ASNs — format gate + mechanical assembly + deps")
     parser.add_argument("asns", nargs="+",
                         help="ASN numbers (e.g., 55 56 34) or paths")
-    parser.add_argument("--model", "-m", default="sonnet",
-                        choices=["opus", "sonnet"],
-                        help="Model (default: sonnet)")
-    parser.add_argument("--effort", default="high",
-                        help="Thinking effort level (low/medium/high/max)")
-    parser.add_argument("--dry-run", action="store_true",
-                        help="Show prompt size without invoking Claude")
     parser.add_argument("--normalize", action="store_true",
-                        help="Run format normalization gate before export")
-    parser.add_argument("--max-format-cycles", type=int, default=5,
-                        help="Max format review/revise cycles (default: 5)")
+                        help="Run format normalization gate before assembly")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="Show what would be done without doing it")
     args = parser.parse_args()
 
     if len(args.asns) == 1:
-        # Format normalization gate (if requested)
-        if args.normalize and not args.dry_run:
-            from lib.normalize_format import normalize_format
-            asn_num = int(re.sub(r"[^0-9]", "", str(args.asns[0])))
-            ok = normalize_format(asn_num, max_cycles=args.max_format_cycles)
-            if not ok:
-                print(f"  [ERROR] Format normalization failed — fix manually",
-                      file=sys.stderr)
-                sys.exit(1)
+        asn_num = int(re.sub(r"[^0-9]", "", str(args.asns[0])))
 
-        # Single ASN — run directly, commit immediately
-        label, ok = export_one(args.asns[0], args.model, args.effort,
-                               args.dry_run)
-        if ok and not args.dry_run:
-            # Generate deps YAML (mechanical, no LLM)
-            _generate_deps(args.asns[0], label)
+        if args.dry_run:
+            asn_path, asn_label = find_asn(args.asns[0])
+            print(f"  [DRY RUN] Would normalize {asn_label}", file=sys.stderr)
+            return
 
+        label, ok = _normalize_one(args.asns[0], do_format_gate=args.normalize)
+        if ok:
             print(f"\n  === COMMIT ===", file=sys.stderr)
-            asn_num = int(re.sub(r"[^0-9]", "", str(args.asns[0])))
             export_file = formal_stmts(asn_num)
             deps_file = dep_graph(asn_num)
             subprocess.run(
                 ["git", "add", str(export_file), str(deps_file)],
                 capture_output=True, text=True, cwd=str(WORKSPACE))
             cmd = [sys.executable, str(COMMIT_SCRIPT),
-                   f"Export statements {label}"]
+                   f"Normalize {label}"]
             subprocess.run(cmd, capture_output=True, text=True,
                            cwd=str(WORKSPACE))
-            # Hint: check if this is an extension
             from paths import load_manifest
-            asn_num = int(re.sub(r"[^0-9]", "", str(args.asns[0])))
             manifest = load_manifest(asn_num)
             if manifest.get("extends"):
                 print(f"\n  [NEXT] Absorb into base: "
@@ -283,30 +299,16 @@ def main():
             sys.exit(1)
         return
 
-    # Multiple ASNs — run in parallel, commit once at end
+    # Multiple ASNs
     succeeded = []
     failed = []
 
-    with ThreadPoolExecutor(max_workers=len(args.asns)) as pool:
-        futures = {
-            pool.submit(export_one, asn_id, args.model, args.effort,
-                        args.dry_run): asn_id
-            for asn_id in args.asns
-        }
-        for future in as_completed(futures):
-            label, ok = future.result()
-            if ok:
-                succeeded.append(label)
-            else:
-                failed.append(label)
-
-    if succeeded and not args.dry_run:
-        # Generate deps YAML for each succeeded ASN
-        for asn_id in args.asns:
-            asn_num = int(re.sub(r"[^0-9]", "", str(asn_id)))
-            lbl = f"ASN-{asn_num:04d}"
-            if lbl in succeeded:
-                _generate_deps(asn_id, lbl)
+    for asn_id in args.asns:
+        label, ok = _normalize_one(asn_id, do_format_gate=args.normalize)
+        if ok:
+            succeeded.append(label)
+        else:
+            failed.append(label)
 
         labels = ", ".join(sorted(succeeded))
         print(f"\n  === COMMIT ({labels}) ===", file=sys.stderr)

@@ -267,9 +267,20 @@ def refresh_export_if_stale(asn_num, force=False):
     if not needs_refresh:
         return False
 
-    print(f"  [EXPORT] {asn_label} — refreshing export...", file=sys.stderr)
-    step_export(asn_num)
-    step_commit_asn(asn_num, f"export(asn): {asn_label} — export refreshed")
+    print(f"  [NORMALIZE] {asn_label} — refreshing...", file=sys.stderr)
+
+    # Format normalization (type extraction + table fix + review/revise)
+    from lib.normalize_format import normalize_format, assemble_formal_statements
+    normalize_format(asn_num)
+
+    # Mechanical assembly + deps
+    assemble_formal_statements(asn_num)
+    from lib.rebase_deps import generate_deps, write_deps_yaml
+    deps = generate_deps(asn_num)
+    if deps:
+        write_deps_yaml(asn_num, deps)
+
+    step_commit_asn(asn_num, f"normalize(asn): {asn_label} — refreshed")
     return True
 
 
@@ -305,21 +316,25 @@ def process_asn_hybrid(asn_num, model, effort, max_cycles, force=False):
     # ── Step 0a: Format normalization gate ──
     try:
         from lib.normalize_format import normalize_format
-        fmt_ok = normalize_format(asn_num, max_cycles=3)
-        if not fmt_ok:
-            print(f"  [FORMAT] {asn_label} has format issues — continuing",
-                  file=sys.stderr)
-        elif fmt_ok:
+        fmt_ok = normalize_format(asn_num)
+        if fmt_ok:
             step_commit_asn(asn_num, f"normalize(asn): {asn_label} format normalized")
+        else:
+            print(f"  [FORMAT] {asn_label} failed to converge — stopping",
+                  file=sys.stderr)
+            return "failed"
     except Exception as e:
-        print(f"  [FORMAT] WARNING: {e}", file=sys.stderr)
+        print(f"  [FORMAT] ERROR: {e}", file=sys.stderr)
+        return "failed"
 
-    # ── Step 0b: Export (if needed — ensures deps YAML exists) ──
-    deps_path = dep_graph(asn_num)
-    if not deps_path.exists():
-        print(f"  [EXPORT] Generating deps YAML (first time)...", file=sys.stderr)
-        step_export(asn_num)
-        step_commit_asn(asn_num, f"export(asn): {asn_label} — deps YAML generated")
+    # ── Step 0b: Normalize — assemble formal statements + generate deps ──
+    from lib.normalize_format import assemble_formal_statements
+    from lib.rebase_deps import generate_deps, write_deps_yaml
+    assemble_formal_statements(asn_num)
+    deps = generate_deps(asn_num)
+    if deps:
+        write_deps_yaml(asn_num, deps)
+    step_commit_asn(asn_num, f"normalize(asn): {asn_label} statements + deps")
 
     # ── Do NOT clear open issues — accumulate across runs ──
 
