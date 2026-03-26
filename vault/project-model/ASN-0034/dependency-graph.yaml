@@ -3,10 +3,12 @@ depends: []
 properties:
   T0(a):
     status: introduced
-    name: Unbounded component values
+    name: Every component value of a tumbler is unbounded
   T0(b):
     status: introduced
-    name: Unbounded length
+    name: Tumblers of arbitrary length exist in T
+    follows_from:
+    - T0(a)
   T1:
     status: introduced
     name: Lexicographic order
@@ -23,7 +25,7 @@ properties:
     name: Hierarchical parsing
   T5:
     status: introduced
-    name: Contiguous subtrees
+    name: The set of tumblers sharing a prefix forms a contiguous interval under T1
     follows_from:
     - T1
   T6:
@@ -34,6 +36,7 @@ properties:
   T7:
     status: corollary
     follows_from:
+    - T1
     - T3
     - T4
     name: Subspace disjointness
@@ -43,7 +46,9 @@ properties:
   T9:
     status: other
     follows_from:
+    - T10
     - T10a
+    - T8
     - TA5
     name: Forward allocation
   T10:
@@ -82,51 +87,52 @@ properties:
     status: from
     follows_from:
     - T1
-    - TA0
+    - T5
     - TA-strict
+    - TA0
     name: Span well-definedness
   TA0:
     status: introduced
     name: Well-defined addition
   TA1:
     status: introduced
-    name: Order preservation under addition
+    name: Addition preserves the total order (weak)
     follows_from:
     - TA0
   Divergence:
     status: from
     follows_from:
     - T1
-    name: Divergence
+    - TA0
+    - TA1
+    - TA1-strict
+    name: Divergence point of two unequal tumblers
   TA1-strict:
     status: from
     follows_from:
     - Divergence
+    - TA1
     - TumblerAdd
-    name: Strict order preservation
+    name: strict (Strict order preservation)
   TA-strict:
     status: from
     follows_from:
     - T1
+    - T12
+    - TA0
+    - TA1
+    - TA4
     - TumblerAdd
-    name: Strict increase
+    name: Adding a positive displacement strictly advances
   TA2:
     status: introduced
     name: Tumbler subtraction a ⊖ w is well-defined when a ≥ w
   TA3:
     status: introduced
-    name: 'Order preservation under subtraction, weak'
-    follows_from:
-    - T1
-    - T3
-    - TA6
-    - TumblerSub
+    name: Subtraction preserves the total order (weak)
   TA3-strict:
     status: introduced
-    name: 'Order preservation under subtraction, strict'
-    follows_from:
-    - T1
-    - TumblerSub
+    name: 'Subtraction preserves the total order (strict) when additionally #a = #b'
   TA4:
     status: from
     follows_from:
@@ -144,15 +150,20 @@ properties:
   TumblerAdd:
     status: introduced
     name: TumblerAdd
+    follows_from:
+    - TA4
   TumblerSub:
     status: from
     follows_from:
     - Divergence
     - T1
+    - TA1
+    - TA1-strict
+    - TA3
     name: TumblerSub
   TA5:
     status: introduced
-    name: Hierarchical increment
+    name: Hierarchical increment inc(t, k) produces t' > t
     follows_from:
     - T1
     - T4
@@ -164,45 +175,48 @@ properties:
   PositiveTumbler:
     status: introduced
     name: PositiveTumbler
+    follows_from:
+    - T1
+    - TA0
+    - TA4
   TA7a:
     status: introduced
-    name: Subspace closure
+    name: Ordinal-only shift arithmetic
     follows_from:
     - T4
     - TA6
   TA-assoc:
     status: introduced
-    name: AdditionAssociative
-    follows_from:
-    - TumblerAdd
+    name: Addition is associative where both compositions are defined
   TA-LC:
     status: other
     follows_from:
     - T3
     - TA0
     - TumblerAdd
-    name: LeftCancellation
+    name: LC (LeftCancellation)
   TA-RC:
     status: other
     follows_from:
     - T3
     - TumblerAdd
-    name: RightCancellationFailure
+    name: Right cancellation fails
   TA-MTO:
     status: other
     follows_from:
     - T3
     - TumblerAdd
-    name: ManyToOne
+    - TumblerSub
+    name: MTO (ManyToOne)
   D0:
     status: from
     follows_from:
-    - Divergence
+    - D1
     - T3
     - TA0
     - TumblerAdd
     - TumblerSub
-    name: DisplacementWellDefined
+    name: Displacement well-definedness
   D1:
     status: other
     follows_from:
@@ -211,13 +225,17 @@ properties:
     - TA0
     - TumblerAdd
     - TumblerSub
-    name: DisplacementRoundTrip
+    name: Displacement round-trip
   D2:
     status: corollary
     follows_from:
+    - D0
     - D1
     - TA-LC
-    name: DisplacementUnique
+    - TA0
+    - TumblerAdd
+    - TumblerSub
+    name: Displacement uniqueness
   OrdinalDisplacement:
     status: introduced
     name: OrdinalDisplacement
@@ -252,6 +270,10 @@ properties:
   TS5:
     status: corollary
     follows_from:
+    - T4
+    - TA0
+    - TS1
     - TS3
     - TS4
+    - TumblerAdd
     name: ShiftAmountMonotonicity

@@ -1,20 +1,18 @@
 # ASN-0034 Formal Statements
 
-*Source: ASN-0034-tumbler-algebra.md (revised 2026-03-25) — Extracted: 2026-03-26*
+*Source: ASN-0034-tumbler-algebra.md (revised 2026-03-26) — Extracted: 2026-03-26*
 
-## T0(a) — Every component value of a tumbler is unbounded
+## T0(a) — UnboundedComponentValues
 
 `(A t ∈ T, i : 1 ≤ i ≤ #t : (A M ∈ ℕ :: (E t' ∈ T :: t' agrees with t except t'.dᵢ > M)))`.
 
-
-## T0(b) — Tumblers of arbitrary length exist in T
+## T0(b) — UnboundedDepth
 
 `(A n ∈ ℕ : n ≥ 1 : (E t ∈ T :: #t ≥ n))`.
 
 T0(b) follows from T's definition as the set of all finite sequences over ℕ — for any `n`, the constant sequence `[1, 1, ..., 1]` of length `n` is a member.
 
-
-## T1 — TotalLexicographicOrder
+## T1 — LexicographicTotalOrder
 
 For tumblers `a = a₁. ... .aₘ` and `b = b₁. ... .bₙ`, define `a < b` iff there exists `k ≥ 1` such that `(A i : 1 ≤ i < k : aᵢ = bᵢ)` and either:
 
@@ -22,16 +20,15 @@ For tumblers `a = a₁. ... .aₘ` and `b = b₁. ... .bₙ`, define `a < b` iff
 
   (ii) `k = m + 1 ≤ n` (that is, `a` is a proper prefix of `b`).
 
-T1 gives a total order: for any `a, b ∈ T`, exactly one of `a < b`, `a = b`, `a > b` holds. This is a standard mathematical fact about lexicographic orderings on well-ordered alphabets — ℕ is well-ordered, so the lexicographic extension to finite sequences is total.
+T1 gives a total order: for any `a, b ∈ T`, exactly one of `a < b`, `a = b`, `a > b` holds. ℕ is well-ordered, so the lexicographic extension to finite sequences is total.
 
-
-## T2 — SelfContainedComparison
+## T2 — ComputableComparison
 
 The order relation T1 is computable from the two tumblers alone, without consulting any external data structure. The comparison examines at most `min(#a, #b)` component pairs.
 
 ## T3 — Each tumbler has exactly one canonical representation; component-wise identit...
 
-`(A a, b ∈ T : a₁ = b₁ ∧ ... ∧ aₙ = bₙ ∧ #a = #b ≡ a = b)`.
+`(A a, b ∈ T : a₁ = b₁ ∧ ... ∧ aₙ = bₙ ∧ #a = #b ≡ a = b)`
 
 ### Hierarchical structure
 
@@ -41,9 +38,9 @@ Define a *field separator* as a component with value zero. An address tumbler ha
 
 where each `Nᵢ, Uⱼ, Dₖ, Eₗ > 0`. The four fields are:
 
-- **Node field** `N₁. ... .Nₐ`: identifies the server. The server address always begins with the digit 1.
+- **Node field** `N₁. ... .Nₐ`: identifies the server.
 - **User field** `U₁. ... .Uᵦ`: identifies the account.
-- **Document field** `D₁. ... .Dᵧ`: identifies the document and version. The boundary between base document and version is not syntactically marked.
+- **Document field** `D₁. ... .Dᵧ`: identifies the document and version.
 - **Element field** `E₁. ... .Eδ`: identifies the content element. The first component distinguishes the *subspace*: 1 for text content, 2 for links.
 
 Not every tumbler need have all four fields. A tumbler with zero zeros addresses a node. One zero: a user account. Two zeros: a document. Three zeros: an element. The count of zero-valued components determines the specificity level.
@@ -59,8 +56,6 @@ Every tumbler `t ∈ T` used as an address contains at most three zero-valued co
   - `zeros(t) = 3`: `t` is an element address (all four fields).
 
 This correspondence is injective on levels: each level produces addresses with exactly one zero count, and each zero count corresponds to exactly one level. The correspondence depends on the positive-component constraint — zero components serve exclusively as field separators *because* no field component is zero. Without the positivity constraint, a tumbler like `[1, 0, 0, 3]` would have two zero-valued components but ambiguous parse: the second zero could be a separator or a zero-valued component within the user field. Since field components are strictly positive, zeros appear only as separators, the number of separators determines the number of fields, and the parse is unique.
-
-There is no `isparent`, `isancestor`, or `ischild` primitive in the arithmetic layer. The algebra operates on flat sequences of non-negative integers; the hierarchical interpretation is projected onto those sequences by the allocation machinery and the field-parsing function `fields(t)`.
 
 
 ## T5 — The set of tumblers sharing a prefix forms a contiguous interval under T1
@@ -88,66 +83,56 @@ For any two tumblers `a, b ∈ T`, the following are decidable from the addresse
 
   (d) Whether the document field of `a` is a prefix of the document field of `b` (structural subordination within a document family).
 
-T6 is a corollary: it follows immediately from T4 — we extract the relevant fields and compare. We state it separately because the decidability claim is load-bearing for decentralized operation, but it introduces no independent content beyond T4.
+T6 is a corollary: it follows immediately from T4 — we extract the relevant fields and compare.
 
-T6(d) does NOT capture derivation history. The document field records the allocation hierarchy, not the derivation history. Formal version-derivation requires the version graph, not just the address.
+T6(d) does not capture derivation history. The document field records the *allocation hierarchy* — who baptised which sub-number — not the *derivation history*. Version `5.3` was allocated under document `5`, but this tells us nothing about which version's content was copied to create `5.3`. Formal version-derivation requires the version graph, not just the address.
 
 
 ## T7 — Subspaces (text, links) within a document's element field are permanently dis...
 
-`(A a, b ∈ T : a.E₁ ≠ b.E₁ ⟹ a ≠ b)`
+The subspace identifier (the first component of the element field) permanently separates the address space into disjoint regions. No tumbler in subspace `s₁` can equal or be confused with a tumbler in subspace `s₂ ≠ s₁`.
+
+  `(A a, b ∈ T : a.E₁ ≠ b.E₁ ⟹ a ≠ b)`
 
 T7 is a corollary of T3 (canonical representation) and T4 (hierarchical parsing): if two tumblers differ in their first element-field component, they are distinct. Arithmetic within subspace 1 cannot produce addresses in subspace 2, because the subspace identifier is part of the address, not metadata.
 
-The ordering T1 places all text addresses (subspace 1) before all link addresses (subspace 2) within the same document, because `1 < 2` at the subspace position. This is a consequence, not an assumption — it falls out of the lexicographic order.
+The ordering T1 places all text addresses (subspace 1) before all link addresses (subspace 2) within the same document, because `1 < 2` at the subspace position. This is a consequence of T1, not an assumption.
 
-## T8 — Once allocated, an address is never removed from the address space; the set o...
+## T8 — PermanentAddressAllocation
 
 If tumbler `a ∈ T` has been allocated at any point in the system's history, then for all subsequent states, `a` remains in the set of allocated addresses. No operation removes an allocated address from the address space. The set of allocated addresses is monotonically non-decreasing.
 
-Addresses that have no stored content are irrevocably claimed. These are *ghost elements*: positions on the tumbler line that are permanently occupied whether or not any content is stored there.
 
+## T9 — MonotonicAllocationStream
 
-### Monotonic allocation
+Within a single allocator's sequential stream, new addresses are strictly monotonically increasing:
 
-T8 tells us that addresses, once allocated, are permanent. We now ask: in what order are new addresses assigned?
+  `(A a, b : same_allocator(a, b) ∧ allocated_before(a, b) : a < b)`
 
+This follows from T10a: each allocator advances by `inc(·, 0)`, and since `inc` produces a strictly greater tumbler at each step (TA5(a)), no gaps arise within a single allocator's sibling stream — each address is exactly one increment beyond the previous.
 
-## T9 — Within a single allocator's sequential stream, new addresses are strictly mon...
+T9 is scoped to a *single allocator's sequential stream*, not to arbitrary partitions. A server-level subtree spans multiple independent allocators (one per user). Those allocators operate concurrently — T10 guarantees they need no coordination. T9 applies within each user's allocation stream independently.
 
-`(A a, b : same_allocator(a, b) ∧ allocated_before(a, b) : a < b)`
-
-T10a defines the allocation mechanism: each allocator advances by `inc(·, 0)`, incrementing by exactly 1 at the last significant position. Since `inc` produces a strictly greater tumbler at each step (TA5(a)), within each allocator's sequential stream, new addresses are strictly monotonically increasing.
-
-T9 is scoped to a *single allocator's sequential stream*, not to arbitrary partitions. A server-level subtree spans multiple independent allocators (one per user), operating concurrently — T10 below guarantees they need no coordination. T9 applies within each user's allocation stream independently.
+The global tumbler line does NOT grow monotonically by creation time. A child address `p.1` is inserted between the parent `p` and the parent's next sibling `q`: `p < p.1 < q`, regardless of creation order.
 
 A consequence of T8 and T9 together: the set of allocated addresses is a *growing set* in the lattice-theoretic sense — it can only increase, and new elements always appear at the frontier of each allocator's domain.
 
 
-### Coordination-free uniqueness
-
-The tumbler hierarchy exists so that independent actors can allocate addresses without communicating:
-
-
-## T10 — Allocators with non-nesting prefixes produce distinct addresses without coord...
+## T10 — CoordinationFreeUniqueness
 
 Let `p₁` and `p₂` be prefixes such that neither is a prefix of the other (`p₁ ⋠ p₂ ∧ p₂ ⋠ p₁`). Then for any tumbler `a` with prefix `p₁` and any tumbler `b` with prefix `p₂`, `a ≠ b`.
 
-*Proof.* If `a` has prefix `p₁` and `b` has prefix `p₂`, and the prefixes diverge at some position `k` with `p₁ₖ ≠ p₂ₖ`, then `aₖ = p₁ₖ ≠ p₂ₖ = bₖ`, so `a ≠ b`. ∎
+*Proof.* If `a` has prefix `p₁` and `b` has prefix `p₂`, and the prefixes diverge at position `k` with `p₁ₖ ≠ p₂ₖ`, then `aₖ = p₁ₖ ≠ p₂ₖ = bₖ`, so `a ≠ b`. ∎
 
 
-## T10a — Each allocator uses inc(·, 0) for siblings and inc(·, k>0) only for child-spa...
+## T10a — SiblingIncrementRule
 
 Each allocator produces its sibling outputs exclusively by repeated application of `inc(·, 0)` — shallow increment at the last significant position. To spawn a child allocator, the parent performs one `inc(·, k')` with `k' > 0` to establish the child's prefix, then delegates further allocation to the child. The parent's own sibling stream resumes with `inc(·, 0)`.
 
-The constraint to `k = 0` for siblings is essential: since `inc(·, 0)` preserves length (TA5(c)), all sibling outputs from a single allocator have the same length. If an allocator used `k > 0` for siblings, successive outputs would have increasing lengths and each output would extend the previous — making successive siblings nest rather than stand disjoint. This nesting would break the non-nesting premise required by the Prefix Ordering Extension lemma below.
-
-The `k > 0` operation is reserved exclusively for child-spawning: a single deep increment that establishes a new prefix at a deeper level, from which a new allocator continues with its own `inc(·, 0)` stream.
-
-We first establish a lemma that converts ordering of prefixes into ordering of all addresses under those prefixes.
+Since `inc(·, 0)` preserves length (TA5(c)), all sibling outputs from a single allocator have the same length. The `k > 0` operation is reserved exclusively for child-spawning: a single deep increment establishing a new prefix at a deeper level, from which a new allocator continues with its own `inc(·, 0)` stream.
 
 
-## PrefixOrderingExtension — DisjointPrefixOrdering
+## PrefixOrderingExtension — DisjointPrefixOrderExtension
 
 Let `p₁, p₂ ∈ T` be tumblers such that `p₁ < p₂` and neither is a prefix of the other (`p₁ ⋠ p₂ ∧ p₂ ⋠ p₁`). Then for every `a` extending `p₁` (`p₁ ≼ a`) and every `b` extending `p₂` (`p₂ ≼ b`), `a < b`.
 
@@ -155,16 +140,16 @@ Let `p₁, p₂ ∈ T` be tumblers such that `p₁ < p₂` and neither is a pref
 
 ## PartitionMonotonicity — CrossAllocatorPrefixOrdering
 
-Within any prefix-delimited partition of the address space, the set of allocated addresses is totally ordered by T1, and this order is consistent with the allocation order of any single allocator within that partition. Moreover, for any two sibling sub-partitions with non-nesting prefixes `p₁ < p₂`, every address extending `p₁` precedes every address extending `p₂` under T1 — the per-allocator ordering extends to a cross-allocator ordering determined by the prefix structure.
+Within any prefix-delimited partition, the set of allocated addresses is totally ordered by T1, consistently with the allocation order of any single allocator within that partition. For any two sibling sub-partitions with non-nesting prefixes `p₁ < p₂`, every address extending `p₁` precedes every address extending `p₂` under T1.
 
 *Proof.* Consider a partition with prefix `p`. Every allocated address in this partition has prefix `p`, hence lies in the contiguous interval guaranteed by T5. Within the partition, addresses belong to sub-partitions owned by distinct allocators. These sub-partitions have prefixes that are siblings — they share the parent prefix `p` but diverge at the component that distinguishes one allocator from another.
 
-We claim that sibling prefixes are non-nesting. The first sub-partition prefix `t₀` is produced by `inc(parent, k)` with `k > 0`, giving `#t₀ = #parent + k` (by TA5(d)). By T10a, subsequent sibling prefixes are produced by `inc(·, 0)`: `t₁ = inc(t₀, 0)`, `t₂ = inc(t₁, 0)`, and so on. By TA5(c), `inc(t, 0)` preserves the length of `t`: `#inc(t, 0) = #t`. So all sibling prefixes have the same length `#t₀`. Two tumblers of the same length cannot stand in a prefix relationship unless they are equal (a proper prefix is strictly shorter). Since they differ at position `sig(t)` (TA5(c) increments that component), they are unequal, hence non-nesting.
+Sibling prefixes are non-nesting. The first sub-partition prefix `t₀` is produced by `inc(parent, k)` with `k > 0`, giving `#t₀ = #parent + k` (by TA5(d)). By T10a, subsequent sibling prefixes are produced by `inc(·, 0)`: `t₁ = inc(t₀, 0)`, `t₂ = inc(t₁, 0)`, and so on. By TA5(c), `inc(t, 0)` preserves the length of `t`: `#inc(t, 0) = #t`. So all sibling prefixes have the same length `#t₀`. Two tumblers of the same length cannot stand in a prefix relationship unless they are equal (a proper prefix is strictly shorter). Since they differ at position `sig(t)` (TA5(c) increments that component), they are unequal, hence non-nesting.
 
 Each allocator's output is monotonic (T9). The sub-partitions are ordered by their prefixes under T1. The prefix ordering extension lemma gives `a < b` for every address `a` under an earlier prefix and every address `b` under a later prefix. Within each sub-partition, allocation order matches address order by T9. ∎
 
 
-## GlobalUniqueness — NoTwoAllocationsProduceSameAddress
+## GlobalUniqueness — SystemWideAllocationUniqueness
 
 No two distinct allocations, anywhere in the system, at any time, produce the same address.
 
@@ -174,34 +159,43 @@ No two distinct allocations, anywhere in the system, at any time, produce the sa
 
 *Case 2: Different allocators at the same hierarchical level.* The allocators have prefixes `p₁` and `p₂` that are siblings — neither is a prefix of the other. T10 gives `a ≠ b` directly.
 
-*Case 3: Different allocators with nesting prefixes and different zero counts.* One allocator's prefix nests within another's. But these allocators produce addresses with different zero counts: the node allocator produces addresses with `zeros = 1` (user-level), while the element allocator produces addresses with `zeros = 3`. By T4, different zero counts imply different field structure. If `#a ≠ #b`, then `a ≠ b` by T3 directly. If `#a = #b`, then `zeros(a) ≠ zeros(b)` means there exists a position where one is zero and the other nonzero — by T3, `a ≠ b`.
+*Case 3: Different allocators with nesting prefixes and different zero counts.* One allocator's prefix nests within another's. These allocators produce addresses with different zero counts: the node allocator produces addresses with `zeros = 1` (user-level), while the element allocator produces addresses with `zeros = 3`. By T4, different zero counts imply different field structure. If `#a ≠ #b`, then `a ≠ b` by T3 directly. If `#a = #b`, then `zeros(a) ≠ zeros(b)` means there exists a position where one is zero and the other nonzero — by T3, `a ≠ b`.
 
-*Case 4: Different allocators with nesting prefixes and the same zero count.* This arises when a parent and child allocator both produce addresses at the same hierarchical level. By T10a, the parent allocator uses `inc(·, 0)` for all its sibling allocations. Its first output has some length `γ₁`; since `inc(·, 0)` preserves length (TA5(c)), all subsequent parent siblings have length `γ₁`. The child allocator's prefix was established by `inc(parent_output, k')` with `k' > 0`, giving prefix length `γ₁ + k'` (by TA5(d)). The child then uses `inc(·, 0)` for its own siblings — all its outputs have the uniform length `γ₁ + k'`. Since `k' ≥ 1`, the child's outputs are strictly longer than the parent's: `γ₁ + k' > γ₁`. By T3, `a ≠ b`. One pair requires separate treatment: the parent's child-spawning output that established the child's prefix has the same length as the child's sibling outputs (both `γ₁ + k'`). However, this output IS the child's base address, and every child sibling output is strictly greater than its base (by TA5(a)), hence distinct. The length separation is additive across nesting levels — each `inc(·, k')` with `k' ≥ 1` adds at least one component, so a descendant `d` nesting levels below has output length at least `γ₁ + d > γ₁`. Allocators at different branches that are not ancestors of each other have non-nesting prefixes and are handled by Case 2.
+*Case 4: Different allocators with nesting prefixes and the same zero count.* By T10a, the parent allocator uses `inc(·, 0)` for all its sibling allocations. Its first output has some length `γ₁`; since `inc(·, 0)` preserves length (TA5(c)), all subsequent parent siblings have length `γ₁`. The child allocator's prefix was established by `inc(parent_output, k')` with `k' > 0`, giving prefix length `γ₁ + k'` (by TA5(d)). The child then uses `inc(·, 0)` for its own siblings — all its outputs have the uniform length `γ₁ + k'`. Since `k' ≥ 1`, the child's outputs are strictly longer than the parent's: `γ₁ + k' > γ₁`. By T3, `a ≠ b`. One pair requires separate treatment: the parent's child-spawning output that established the child's prefix has the same length as the child's sibling outputs (both `γ₁ + k'`). However, this output IS the child's base address, and every child sibling output is strictly greater than its base (by TA5(a)), hence distinct. The length separation is additive across nesting levels — each `inc(·, k')` with `k' ≥ 1` adds at least one component, so a descendant `d` nesting levels below has output length at least `γ₁ + d > γ₁`. Allocators at different branches that are not ancestors of each other have non-nesting prefixes and are handled by Case 2.
 
 The argument depends critically on T10a's constraint that sibling allocations use `k = 0`. If a parent allocator could use `k > 0` for siblings, its outputs would have increasing lengths, and some parent output could match the length of a child output, collapsing the length separation. ∎
 
 
-## T12 — WellFormedSpanIsNonEmptyInterval
+### Addition for position advancement
 
-A span `(s, ℓ)` is well-formed when `ℓ > 0` and the action point `k` of `ℓ` satisfies `k ≤ #s` (the TA0 precondition for `s ⊕ ℓ`). Equivalently, the number of leading zeros in `ℓ` must be strictly less than `#s`. A well-formed span denotes the set `{t ∈ T : s ≤ t < s ⊕ ℓ}`. This set is contiguous under T1 — there is no tumbler between two members that is not itself a member.
+Let `⊕` denote tumbler addition: given a start position `a` and a displacement `w`, compute the advanced position.
+
+For a positive displacement `w = [w₁, w₂, ..., wₙ]`, the *action point* is `k = min({i : 1 ≤ i ≤ n ∧ wᵢ ≠ 0})` — the index of the first nonzero component.
+
+
+## T12 — SpanWellFormedness
+
+A span `(s, ℓ)` is well-formed when `ℓ > 0` and the action point `k` of `ℓ` satisfies `k ≤ #s` (the TA0 precondition for `s ⊕ ℓ`). Equivalently, the number of leading zeros in `ℓ` is strictly less than `#s`. A well-formed span denotes `{t ∈ T : s ≤ t < s ⊕ ℓ}`. This set is contiguous under T1.
 
 Contiguity is definitional: the span is an interval `[s, s ⊕ ℓ)` in a totally ordered set, and intervals in total orders are contiguous. Non-emptiness follows from TA-strict: since `ℓ > 0` and `k ≤ #s`, TA0 gives `s ⊕ ℓ ∈ T`, and TA-strict gives `s ⊕ ℓ > s` directly. The interval `[s, s ⊕ ℓ)` is therefore non-empty — it contains at least `s` itself.
 
 We reserve T5 for the distinct claim that *prefix-defined* sets are contiguous — a non-trivial property of the lexicographic order.
 
 
-## TA0 — TumblerAdditionPrecondition
+## TA0 — AdditionWellDefinedness
 
 For tumblers `a, w ∈ T` where `w > 0` and the action point `k` of `w` satisfies `k ≤ #a`, the result `a ⊕ w` is a well-defined tumbler in `T`.
 
-The precondition `k ≤ #a` is essential: the constructive definition copies components `a₁, ..., aₖ₋₁` from the start position and adds `wₖ` to `aₖ`, so position `k` must exist within `a`. A displacement whose action point exceeds `#a` — one with more leading zeros than `a` has components — would attempt to "stay at" hierarchical levels that the start position does not have, and the operation is undefined.
+The precondition `k ≤ #a` is essential: the constructive definition copies components `a₁, ..., aₖ₋₁` from the start position and adds `wₖ` to `aₖ`, so position `k` must exist within `a`.
 
 
-## TA1 — AdditionPreservesWeakOrder
+## TA1 — WeakOrderPreservation
 
 `(A a, b, w : a < b ∧ w > 0 ∧ k ≤ min(#a, #b) : a ⊕ w ≤ b ⊕ w)`, where `k` is the action point of `w`.
 
 The precondition `k ≤ min(#a, #b)` inherits from TA0: both operations must be well-defined.
+
+Strict order preservation holds under a tighter condition.
 
 ## Divergence — Divergence point of two unequal tumblers (DEFINITION, function)
 
@@ -211,21 +205,29 @@ For tumblers `a, b ∈ T` with `a ≠ b`, the *divergence* `divergence(a, b)` is
 
   (ii) If `(A i : 1 ≤ i ≤ min(#a, #b) : aᵢ = bᵢ)` and `#a ≠ #b`, then `divergence(a, b) = min(#a, #b) + 1` — prefix divergence, where one tumbler is a proper prefix of the other.
 
-Exactly one case applies for any `a ≠ b`. In case (i), `a` and `b` differ at a component both possess. In case (ii), they agree on all shared positions but one is longer — the divergence lies "just past" the shorter tumbler's last component.
+Exactly one case applies for any `a ≠ b`.
 
-## TA1-strict — StrictOrderPreservation
+For prefix-related pairs, `divergence(a, b) = min(#a, #b) + 1 > min(#a, #b)`. Since TA0 requires `k ≤ min(#a, #b)`, the condition `k ≥ divergence(a, b)` in TA1-strict is unsatisfiable for prefix-related operands. TA1-strict makes no claim about prefix-related pairs — TA1 (weak) covers them, guaranteeing non-reversal.
+
+
+## TA1-strict — Addition preserves the total order (strict) when k ≤ min(#a, #b) ∧ k ≥ divergence(a, b)
 
 `(A a, b, w : a < b ∧ w > 0 ∧ k ≤ min(#a, #b) ∧ k ≥ divergence(a, b) : a ⊕ w < b ⊕ w)`, where `k` is the action point of `w`.
+
+When the action point falls before the divergence — `k < divergence(a, b)` — both operands agree at position `k`, both get the same `wₖ` added, and both copy the same tail from `w` afterward. The original divergence is erased and the results are equal. Order degrades to equality, never reversal.
+
 
 ## TA-strict — Adding a positive displacement strictly advances
 
 `(A a ∈ T, w > 0 : a ⊕ w > a)` (where `a ⊕ w` is well-defined, i.e., `k ≤ #a` per TA0).
 
-**Verification of TA-strict.** Let `k` be the action point of `w`. By the constructive definition (below), `(a ⊕ w)ᵢ = aᵢ` for `i < k`, and `(a ⊕ w)ₖ = aₖ + wₖ`. Since `k` is the action point, `wₖ > 0`, so `aₖ + wₖ > aₖ`. Positions `1` through `k - 1` agree; position `k` is strictly larger. By T1 case (i), `a ⊕ w > a`.
+**Verification.** Let `k` be the action point of `w`. By the constructive definition, `(a ⊕ w)ᵢ = aᵢ` for `i < k`, and `(a ⊕ w)ₖ = aₖ + wₖ`. Since `k` is the action point, `wₖ > 0`, so `aₖ + wₖ > aₖ`. Positions `1` through `k - 1` agree; position `k` is strictly larger. By T1 case (i), `a ⊕ w > a`.
+
 
 ## TA2 — Tumbler subtraction a ⊖ w is well-defined when a ≥ w
 
 For tumblers `a, w ∈ T` where `a ≥ w`, `a ⊖ w` is a well-defined tumbler in `T`.
+
 
 ## TA3 — Subtraction preserves the total order (weak)
 
@@ -243,12 +245,11 @@ For tumblers `a, w ∈ T` where `a ≥ w`, `a ⊖ w` is a well-defined tumbler i
 `(A a, w : w > 0 ∧ k = #a ∧ #w = k ∧ (A i : 1 ≤ i < k : aᵢ = 0) : (a ⊕ w) ⊖ w = a)`, where `k` is the action point of `w`.
 
 
-## ReverseInverse — SubtractionAdditionInverse
+## ReverseInverse — ReversePartialInverse
 
 `(A a, w : a ≥ w ∧ w > 0 ∧ k = #a ∧ #w = k ∧ (A i : 1 ≤ i < k : aᵢ = 0) : (a ⊖ w) ⊕ w = a)`, where `k` is the action point of `w`.
 
 *Proof.* Let `y = a ⊖ w`. We verify the prerequisites for applying TA4 to `y`. Under the precondition `(A i : 1 ≤ i < k : aᵢ = 0)`, we have `aᵢ = wᵢ = 0` for all `i < k`, so the divergence falls at position `k`. The result `y` has: positions `i < k` zero, position `k` equal to `aₖ - wₖ`, and no components beyond `k` (since `k = #a`). So `#y = k`, `yᵢ = 0` for `i < k`, and `#w = k`. All preconditions for TA4 hold. By TA4, `(y ⊕ w) ⊖ w = y`. Suppose `y ⊕ w ≠ a`. We wish to apply TA3-strict, which requires three preconditions beyond strict ordering: `y ⊕ w ≥ w`, `a ≥ w`, and `#(y ⊕ w) = #a`. The equal-length condition holds: `#(y ⊕ w) = #w = k = #a` (the first step by the result-length identity; `#w = k` and `k = #a` are given). The condition `a ≥ w` is given. We verify `y ⊕ w ≥ w`: since `y ⊕ w ≠ a` and `yₖ = aₖ - wₖ`, we have `yₖ > 0` (if `yₖ = 0` then `aₖ = wₖ`, and since `yᵢ = wᵢ = 0` for `i < k` and `#y = k = #w`, we would have `y = [0,...,0]` and `y ⊕ w = w`; but `a ≥ w` and `aₖ = wₖ` with agreement on all prior positions gives `a = w` when `#a = #w = k`, so `y ⊕ w = w = a`, contradicting our assumption). So `yₖ > 0`, giving `(y ⊕ w)ₖ = yₖ + wₖ > wₖ` with agreement on positions before `k`, hence `y ⊕ w > w`. Now apply TA3-strict. If `y ⊕ w > a`, then `(y ⊕ w) ⊖ w > a ⊖ w = y`, giving `y > y`, a contradiction. If `y ⊕ w < a`, then `(y ⊕ w) ⊖ w < a ⊖ w`, giving `y < y`, a contradiction. So `(a ⊖ w) ⊕ w = a`. ∎
-
 
 ### Constructive definition of ⊕ and ⊖
 
@@ -271,12 +272,12 @@ The result `a ⊕ w = [r₁, ..., rₚ]` has length `p = max(k - 1, 0) + (n - k 
 
 **Tail replacement, not tail addition:** Components after the action point come entirely from `w`. The start position's components at positions `k + 1, ..., m` are discarded. `a ⊕ w` does not add corresponding components pairwise.
 
-**The many-to-one property:** Distinct start positions can produce the same result. The result depends on `a` only through components `a₁, ..., aₖ`: if `aᵢ = bᵢ` for all `i ≤ k`, then `a ⊕ w = b ⊕ w`.
+**The many-to-one property:** `aᵢ = bᵢ` for all `i ≤ k` implies `a ⊕ w = b ⊕ w`.
 
 
 ## TumblerSub — SubtractionDefinition
 
-Given an end position `a` and a displacement `w`, recover the start position. When the operands have different lengths, zero-pad the shorter to the length of the longer before scanning for divergence. When the zero-padded sequences agree at every position (no divergence exists), the result is the zero tumbler of length `max(#a, #w)`: `a ⊖ w = [0, ..., 0]`. Otherwise, let `k` be the first position where `a` and `w` differ (treating missing components as zero):
+Given end position `a` and displacement `w`, recover the start position. When the zero-padded sequences agree at every position (no divergence exists), the result is the zero tumbler of length `max(#a, #w)`. Otherwise, let `k` be the first position where `a` and `w` differ (treating missing components as zero):
 
 ```
          ⎧ 0             if i < k        (these levels matched — zero them)
@@ -368,6 +369,8 @@ For tumbler `t ∈ T` and level `k ≥ 0`, there exists an operation `inc(t, k)`
 
 We verify `inc(t, k) > t` for both cases. For `k = 0`: `t'` agrees with `t` on positions `1, ..., sig(t) - 1` and exceeds `t` at position `sig(t)`, so `t' > t` by T1 case (i). For `k > 0`: `t'` agrees with `t` on positions `1, ..., #t`, and `#t' > #t`, so `t` is a proper prefix of `t'`, giving `t < t'` by T1 case (ii).
 
+`inc(t, 0)` does NOT produce the immediate successor of `t` in the total order. It produces the next peer at the same hierarchical depth — the smallest tumbler with the same length that is strictly greater than `t`. The gap between `t` and `inc(t, 0)` contains the entire subtree of `t`: all tumblers of the form `t.x₁. ... .xₘ` for any `m ≥ 1` and any `x₁ ≥ 0`. The true immediate successor in the total order is `t.0` by T1 case (ii). For `k = 1` the result is `t.1`; for `k = 2` the result is `t.0.1`. In both cases, `t.0` lies strictly between `t` and the result.
+
 **TA5 preserves T4 when `k ≤ 2` and `zeros(t) + k - 1 ≤ 3`.** Two constraints must hold simultaneously: the zero-count bound and a structural constraint against adjacent zeros.
 
 For `k = 0`: no zeros are added — `zeros(t') = zeros(t)`, and no new adjacencies are introduced. T4 is preserved unconditionally.
@@ -376,7 +379,7 @@ For `k = 1`: one component is appended (the child value `1`), with no new zero s
 
 For `k = 2`: one zero separator and one child value `1` are appended, giving `zeros(t') = zeros(t) + 1`. The appended sequence is `[0, 1]` — the zero is flanked by the last component of `t` (positive, by T4's non-empty field constraint) and the new child `1`, so no adjacent zeros are created. T4 is preserved when `zeros(t) ≤ 2`.
 
-For `k ≥ 3`: the appended sequence `[0, 0, ..., 0, 1]` contains `k - 1 ≥ 2` zeros, of which at least two are adjacent. This violates T4's non-empty field constraint — the adjacent zeros create an empty field. Consider `inc([1], 3)` producing `[1, 0, 0, 1]`: zero count is 2 (≤ 3), but positions 2 and 3 are adjacent zeros, parsing as node `[1]`, separator, *empty user field*, separator, document `[1]`. The empty field violates T4 regardless of the zero count. So T4 is violated for all `k ≥ 3`.
+For `k ≥ 3`: the appended sequence `[0, 0, ..., 0, 1]` contains `k - 1 ≥ 2` zeros, of which at least two are adjacent. This violates T4's non-empty field constraint. T4 is violated for all `k ≥ 3`.
 
 The effective constraints are: `k = 0` (always valid), `k = 1` (when `zeros(t) ≤ 3`), `k = 2` (when `zeros(t) ≤ 2`).
 
@@ -386,7 +389,7 @@ The effective constraints are: `k = 0` (always valid), `k = 1` (when `zeros(t) �
 Under T3, the tumblers `[0]`, `[0, 0]`, `[0, 0, 0]`, etc., are *distinct* elements of T — they have different lengths. Under T1, they form a chain: `[0] < [0, 0] < [0, 0, 0] < ...` by the prefix rule. There is no single "zero tumbler"; there are infinitely many all-zero tumblers.
 
 
-## TA6 — Every all-zero tumbler (any length) is less than every positive tumbler and i...
+## TA6 — Every all-zero tumbler (any length) is less than every positive tumbler and is not a valid address
 
 No zero tumbler is a valid address — no all-zero tumbler designates content. Every zero tumbler is less than every positive tumbler under T1.
 
@@ -397,14 +400,14 @@ No zero tumbler is a valid address — no all-zero tumbler designates content. E
 
 ### Subspace closure
 
-When arithmetic advances a position within one element subspace, the result must remain in that subspace. Text positions must not cross into link space, and vice versa.
+When arithmetic advances a position within one element subspace, the result must remain in that subspace.
 
-An element-local position within subspace `S` has two components: the subspace identifier `N` and the ordinal `x`. A natural first attempt at an element-local displacement is `w = [0, n]` — action point `k = 2`, preserving the subspace identifier and advancing the ordinal. Addition works: `[N, x] ⊕ [0, n] = [N, x + n]`, preserving the subspace. But subtraction exposes a subtlety: `[N, x] ⊖ [0, n]` finds the first divergence at position 1 (where `N ≠ 0`), not at position 2 where the intended action lies. The subtraction produces `[N - 0, x] = [N, x]` — a no-op. The abstract `⊖` cannot shift a position backward by a displacement that disagrees with the position at the subspace identifier.
+An element-local position within subspace `S` has two components: the subspace identifier `N` and the ordinal `x`. A natural first attempt at an element-local displacement is `w = [0, n]` — action point `k = 2`, preserving the subspace identifier and advancing the ordinal. Addition works: `[N, x] ⊕ [0, n] = [N, x + n]`, preserving the subspace. Subtraction: `[N, x] ⊖ [0, n]` finds the first divergence at position 1 (where `N ≠ 0`), not at position 2 where the intended action lies. The subtraction produces `[N - 0, x] = [N, x]` — a no-op.
 
-The operands passed to the arithmetic during shifts are *within-subspace ordinals* — the second component alone. The subspace identifier is not an operand to the shift; it is structural context that determines *which* positions are subject to the shift. The arithmetic receives ordinals, not full positions.
+The operands passed to the arithmetic during shifts are not full element-local positions; they are *within-subspace ordinals* — the second component alone. The subspace identifier is not an operand to the shift; it is structural context that determines which positions are subject to the shift. The arithmetic receives ordinals, not full positions.
 
 
-## PositiveTumbler — PositiveTumblerDefinition
+## PositiveTumbler — TumblerPositivity
 
 A tumbler `t ∈ T` is *positive*, written `t > 0`, iff at least one of its components is nonzero: `(E i : 1 ≤ i ≤ #t : tᵢ ≠ 0)`. A tumbler is a *zero tumbler* iff every component is zero: `(A i : 1 ≤ i ≤ #t : tᵢ = 0)`.
 
@@ -421,21 +424,21 @@ The canonical representation for shift arithmetic is the *ordinal-only* formulat
 
 Both operations produce results in T, and the subspace identifier — held as context — is never modified.
 
-For `⊕`, a stronger result holds: components before the action point are preserved positive from `o ∈ S`, and `oₖ + wₖ > 0` since both are positive. When all components of `w` after `k` are also positive, the result is in S. For single-component ordinals, `[x] ⊕ [n] = [x + n] ∈ S` unconditionally.
+For `⊕`, a stronger result holds: components before the action point are preserved positive from `o ∈ S`, and `oₖ + wₖ > 0` since both are positive. When all components of `w` after `k` are also positive, the result is in S. For single-component ordinals (the common case), `[x] ⊕ [n] = [x + n] ∈ S` unconditionally.
 
-For single-component ordinals, `⊖` gives closure in S ∪ Z: `[x] ⊖ [n]` is `[x - n] ∈ S` when `x > n`, or `[0] ∈ Z` when `x = n` (a sentinel, TA6).
+The subspace identifier is context — it determines which positions are subject to the shift — not an operand to the arithmetic. Both operations produce genuine shifts in the ordinal-only view; the 2-component view gives a genuine shift for `⊕` but a vacuous closure for `⊖`.
 
-When the element field has deeper structure (`δ > 1` in T4), the ordinal `o` has multiple components. A displacement with action point `k ≥ 2` preserves all ordinal components before position `k` — the constructive definition copies `o₁, ..., oₖ₋₁` from the start position unchanged.
+For single-component ordinals, `⊖` gives closure in S ∪ Z: `[x] ⊖ [n]` is `[x - n] ∈ S` when `x > n`, or `[0] ∈ Z` when `x = n` (a sentinel, TA6). When the element field has deeper structure (`δ > 1` in T4), the ordinal `o` has multiple components. A displacement with action point `k ≥ 2` preserves all ordinal components before position `k` — the constructive definition copies `o₁, ..., oₖ₋₁` from the start position unchanged. The subspace closure holds in all cases because the subspace identifier is never an operand.
 
 **Verification of TA7a.** In the ordinal-only formulation, the shift operates on `o = [o₁, ..., oₘ]` with all `oᵢ > 0` (since `o ∈ S`), by displacement `w` with action point `k` satisfying `1 ≤ k ≤ m`.
 
 *For `⊕`:* By the constructive definition, `(o ⊕ w)ᵢ = oᵢ` for `i < k` (positive, preserved from `o`), and `(o ⊕ w)ₖ = oₖ + wₖ > 0` (both positive). Components after `k` come from `w`. The result has length `#w` (by the result-length identity). The result is in T; it is in S when additionally all components of `w` after `k` are positive. The subspace identifier, held as context, is unchanged.
 
-*For `⊖`:* We analyze by action point.
+*For `⊖`:* We analyze by action point. When `#w > m`, TumblerSub produces a result of length `max(m, #w) = #w > m` with trailing zeros at positions `m + 1` through `#w` (from the zero-padded minuend); this result lies in T \ S. The S-membership claims below assume the typical case `#w ≤ m`.
 
-*Case `k ≥ 2`:* The displacement has `wᵢ = 0` for `i < k`. Since `o ∈ S`, `o₁ > 0`. The divergence falls at position 1 (where `o₁ > 0 = w₁`). TumblerSub produces: `r₁ = o₁ - 0 = o₁`, and `rᵢ = oᵢ` for `i > 1` (copied from the minuend since `i > d = 1`). The result is `o` itself — a no-op. The result is trivially in S.
+*Case `k ≥ 2`:* The displacement has `wᵢ = 0` for `i < k`. Since `o ∈ S`, `o₁ > 0`. The divergence falls at position 1 (where `o₁ > 0 = w₁`). TumblerSub produces: `r₁ = o₁ - 0 = o₁`, and `rᵢ = oᵢ` for `1 < i ≤ m` (copied from the minuend since `i > d = 1`). When `#w ≤ m`, the result has length `m` and equals `o` itself — a no-op; the result is trivially in S.
 
-*Case `k = 1`:* The displacement has `w₁ > 0`. Let `d = divergence(o, w)`. If `d = 1` (i.e., `o₁ ≠ w₁`): since `o ≥ w`, `o₁ > w₁`. TumblerSub yields `r₁ = o₁ - w₁ > 0` and `rᵢ = oᵢ > 0` for `i > 1`. All components positive; the result is in S. If `d > 1` (i.e., `o₁ = w₁`, divergence later): TumblerSub zeros positions before `d`, giving `r₁ = 0`. The result has a zero first component and is not in S. Counterexample: `o = [5, 3]`, `w = [5, 1]` (action point `k = 1`, divergence `d = 2`). Result: `[0, 2] ∈ T` but `[0, 2] ∉ S ∪ Z`.
+*Case `k = 1`:* The displacement has `w₁ > 0`. Let `d = divergence(o, w)`. If `d = 1` (i.e., `o₁ ≠ w₁`): since `o ≥ w`, `o₁ > w₁`. TumblerSub yields `r₁ = o₁ - w₁ > 0` and `rᵢ = oᵢ > 0` for `1 < i ≤ m`. When `#w ≤ m`, all components are positive and the result is in S. If `d > 1` (i.e., `o₁ = w₁`, divergence later): TumblerSub zeros positions before `d`, giving `r₁ = 0`. The result has a zero first component and is not in S. Counterexample: `o = [5, 3]`, `w = [5, 1]` (action point `k = 1`, divergence `d = 2`). Result: `[0, 2] ∈ T` but `[0, 2] ∉ S ∪ Z`.
 
 In all cases the subspace identifier, held as context, is never modified. TA7a holds. ∎
 
@@ -449,20 +452,23 @@ The restriction to element-local displacements is necessary. An unrestricted dis
 
 ## TA-assoc — Addition is associative where both compositions are defined
 
-Addition is associative where both compositions are defined: `(a ⊕ b) ⊕ c = a ⊕ (b ⊕ c)` whenever both sides are well-defined. Three cases exhaust the possibilities. Let `k_b` and `k_c` be the action points of `b` and `c` respectively. When `k_b < k_c`: both sides produce `aᵢ` for `i < k_b`, `aₖ_b + bₖ_b` at `k_b`, `bᵢ` for `k_b < i < k_c`, `bₖ_c + cₖ_c` at `k_c`, and `cᵢ` beyond — identical. When `k_b = k_c = k`: both sides produce `aₖ + bₖ + cₖ` at `k` (natural-number addition is associative) and `cᵢ` beyond — identical. When `k_b > k_c`: both sides produce `aₖ_c + cₖ_c` at `k_c` and `cᵢ` beyond — identical (the deeper displacement `b` is overwritten by the shallower `c` in both cases). The domain conditions are asymmetric — the left side requires `k_b ≤ #a`, while the right requires only `min(k_b, k_c) ≤ #a` — but on the intersection, the values agree.
+`(a ⊕ b) ⊕ c = a ⊕ (b ⊕ c)` whenever both sides are well-defined. Three cases exhaust the possibilities. Let `k_b` and `k_c` be the action points of `b` and `c` respectively. When `k_b < k_c`: both sides produce `aᵢ` for `i < k_b`, `aₖ_b + bₖ_b` at `k_b`, `bᵢ` for `k_b < i < k_c`, `bₖ_c + cₖ_c` at `k_c`, and `cᵢ` beyond — identical. When `k_b = k_c = k`: both sides produce `aₖ + bₖ + cₖ` at `k` (natural-number addition is associative) and `cᵢ` beyond — identical. When `k_b > k_c`: both sides produce `aₖ_c + cₖ_c` at `k_c` and `cᵢ` beyond — identical (the deeper displacement `b` is overwritten by the shallower `c` in both cases). The domain conditions are asymmetric — the left side requires `k_b ≤ #a`, while the right requires only `min(k_b, k_c) ≤ #a` — but on the intersection, the values agree.
 
-**Addition is not commutative.** We do NOT require `a ⊕ b = b ⊕ a`. The operands play asymmetric roles: the first is a *position*, the second is a *displacement*. The first argument supplies the prefix, the second the suffix.
+**Addition is not commutative.** `a ⊕ b = b ⊕ a` does NOT hold in general. The operands play asymmetric roles: the first is a *position*, the second is a *displacement*. The first argument supplies the prefix, the second the suffix — the reverse call gives a different result.
 
-**There is no multiplication or division.** No scaling operation of any kind exists. The arithmetic repertoire is: add, subtract, increment, compare.
+**There is no multiplication or division.** No `tumblermult`, no `tumblerdiv`, no scaling operation of any kind. The arithmetic repertoire is: add, subtract, increment, compare.
 
-**Tumbler differences are not counts.** The difference between two addresses specifies *boundaries*, not *cardinality*. What lies between those boundaries depends on the actual population of the tree, which is dynamic and unpredictable.
+
+### What tumbler arithmetic is NOT
+
+**The algebra is not a group.** There is no additive identity — the zero tumbler is a sentinel, not a neutral element for addition. There is no additive inverse for every element — subtraction is only defined when `a ≥ w`. The algebra is not closed under subtraction in general.
 
 
 ### Spans
 
 A span is a pair `(s, ℓ)` where `s ∈ T` is a start address and `ℓ ∈ T` is a length (a positive tumbler used as a displacement), denoting the contiguous range from `s` up to but not including `s ⊕ ℓ`. The form of `ℓ` depends on the hierarchical level at which the span operates, because the action point of `ℓ` must match the level of the start address `s`.
 
-A span may be empty — populated by nothing at present — yet valid. The range is determined by the endpoints; what is actually stored within that range is a question about the current state of the system, not about the tumbler algebra.
+A span whose start is a high-level prefix and whose length reaches to the next sibling captures exactly that subtree's content. A span may be empty — populated by nothing at present — yet valid. The range is determined by the endpoints; what is actually stored within that range is a question about the current state of the system, not about the tumbler algebra.
 
 ## TA-LC — LeftCancellation
 
@@ -472,7 +478,8 @@ If a ⊕ x = a ⊕ y with both sides well-defined (TA0 satisfied for both), then
 
 At position k: a_k + x_k = a_k + y_k gives x_k = y_k. For i > k: x_i = (a ⊕ x)_i = (a ⊕ y)_i = y_i. For i < k: x_i = 0 = y_i. It remains to establish #x = #y. By T3, a ⊕ x = a ⊕ y implies #(a ⊕ x) = #(a ⊕ y). From TumblerAdd's result-length formula, #(a ⊕ w) = max(k − 1, 0) + (#w − k + 1) for any w with action point k. Since both x and y share the same action point k, we get #x = #y. By T3 (same length, same components), x = y.  ∎
 
-## TA-RC — RightCancellationFails
+
+## TA-RC — Right cancellation fails
 
 There exist tumblers a, b, w with a ≠ b and a ⊕ w = b ⊕ w (both sides well-defined).
 
@@ -481,7 +488,8 @@ There exist tumblers a, b, w with a ≠ b and a ⊕ w = b ⊕ w (both sides well
   a ⊕ w = [1, 3 + 2, 4] = [1, 5, 4]
   b ⊕ w = [1, 3 + 2, 4] = [1, 5, 4]  (component 3 of b is discarded — tail replacement)
 
-So a ⊕ w = b ⊕ w = [1, 5, 4] despite a ≠ b.  ∎
+So a ⊕ w = b ⊕ w = [1, 5, 4] despite a ≠ b — the difference at position 3 is erased by tail replacement.  ∎
+
 
 ## TA-MTO — ManyToOneEquivalence
 
@@ -497,21 +505,17 @@ For any displacement w with action point k and any tumblers a, b with #a ≥ k a
 
 Components after k are unconstrained: for i > k, (a ⊕ w)_i = w_i = (b ⊕ w)_i regardless of a_i and b_i.  ∎
 
-If a ⊕ w = b, then a and b agree on components 1..k−1 and diverge at k, with bₖ = aₖ + wₖ and bᵢ = wᵢ for i > k. The displacement w = b ⊖ a satisfies:
 
-  wᵢ = 0  for i < k,    wₖ = bₖ − aₖ,    wᵢ = bᵢ  for i > k
+## D0 — Displacement well-definedness
 
-where k = divergence(a, b).
+b ⊖ a is well-defined when: a < b and divergence(a, b) ≤ #a.
 
-## D0 — DisplacementWellDefinedness
+These conditions ensure the displacement is a positive tumbler with action point k ≤ #a, so TA0 is satisfied for a ⊕ (b ⊖ a). Round-trip faithfulness (D1) additionally requires #a ≤ #b: the displacement w = b ⊖ a has length max(#a, #b), and the result a ⊕ w has length #w; when #a > #b, #w = #a > #b, so the result cannot equal b by T3.
 
-a < b, and the divergence k of a and b satisfies k ≤ #a.
+When divergence(a, b) = #a + 1 (a is a proper prefix of b), D0 is not satisfied — no valid displacement exists.
 
-D0 ensures the displacement b ⊖ a is a well-defined positive tumbler, and that a ⊕ (b ⊖ a) is defined (TA0 satisfied, since the displacement is positive and its action point k ≤ #a). Round-trip faithfulness additionally requires #a ≤ #b. The displacement w = b ⊖ a has length max(#a, #b), and the result a ⊕ w has length #w (by the result-length identity from TumblerAdd). When #a > #b, #w = #a > #b, so the result cannot equal b (by T3). When #a ≤ #b, #w = #b, giving the correct result length; combined with the component-by-component argument at the action point (k ≤ #a for arithmetic, #w = #b for length), this establishes a ⊕ w = b (D1 below).
 
-When a is a proper prefix of b (divergence type (ii)), the divergence is #a + 1, exceeding #a, and D0 is not satisfied — no valid displacement exists.
-
-## D1 — DisplacementRoundTrip
+## D1 — Displacement round-trip
 
 For tumblers a, b ∈ T with a < b, divergence(a, b) ≤ #a, and #a ≤ #b:
 
@@ -525,18 +529,17 @@ Under D1's preconditions (a < b, divergence(a, b) ≤ #a, #a ≤ #b), if a ⊕ w
 
 *Proof.* By D1, a ⊕ (b ⊖ a) = b. So a ⊕ w = a ⊕ (b ⊖ a), and by TA-LC, w = b ⊖ a.  ∎
 
-
 ### Ordinal displacement and shift
 
 
-## OrdinalDisplacement — LeadingZeroShiftVector (DEFINITION, function)
+## OrdinalDisplacement — ActionPointDisplacementTumbler (DEFINITION, function)
 
 For natural number n ≥ 1 and depth m ≥ 1, the *ordinal displacement* δ(n, m) is the tumbler [0, 0, ..., 0, n] of length m — zero at positions 1 through m − 1, and n at position m. Its action point is m.
 
 When the depth is determined by context (typically m = #v for the tumbler being shifted), we write δₙ.
 
 
-## OrdinalShift — TerminalComponentAdvance (DEFINITION, function)
+## OrdinalShift — TumblerDepthShift (DEFINITION, function)
 
 For a tumbler v of length m and natural number n ≥ 1:
 
@@ -544,10 +547,10 @@ For a tumbler v of length m and natural number n ≥ 1:
 
 TA0 is satisfied: the action point of δ(n, m) is m = #v, so k ≤ #v holds trivially. By TumblerAdd: shift(v, n)ᵢ = vᵢ for i < m, and shift(v, n)ₘ = vₘ + n.
 
-When m ≥ 2, the action point of δₙ leaves position 1 unchanged — shift(v, n)₁ = v₁. When m = 1, shift([S], n) = [S + n] changes the first component. Furthermore, #shift(v, n) = #δₙ = m = #v by the result-length identity of TumblerAdd. Since n ≥ 1, component positivity: shift(v, n)ₘ = vₘ + n ≥ 1 unconditionally for all vₘ ≥ 0.
+#shift(v, n) = #δₙ = m = #v by the result-length identity of TumblerAdd. When m ≥ 2: shift(v, n)₁ = v₁. When m = 1: shift([S], n) = [S + n]. Since n ≥ 1: shift(v, n)ₘ = vₘ + n ≥ 1 for all vₘ ≥ 0.
 
 
-## TS1 — ShiftPreservesOrder
+## TS1 — ShiftStrictMonotonicity
 
 `(A v₁, v₂, n : n ≥ 1 ∧ #v₁ = #v₂ = m ∧ v₁ < v₂ : shift(v₁, n) < shift(v₂, n))`
 
@@ -560,7 +563,7 @@ When m ≥ 2, the action point of δₙ leaves position 1 unchanged — shift(v,
 
 *Derivation.* Fix n ≥ 1. By TA-MTO: v₁ ⊕ δₙ = v₂ ⊕ δₙ iff (A i : 1 ≤ i ≤ m : v₁ᵢ = v₂ᵢ). The action point of δₙ is m, and agreement at positions 1..m for tumblers of length m means v₁ = v₂ by T3 (CanonicalRepresentation). ∎
 
-## TS3 — ShiftComposition
+## TS3 — ShiftAdditivity
 
 `(A v, n₁, n₂ : n₁ ≥ 1 ∧ n₂ ≥ 1 ∧ #v = m : shift(shift(v, n₁), n₂) = shift(v, n₁ + n₂))`
 
@@ -580,15 +583,14 @@ Both sides have length m and agree at every component (natural-number addition i
 *Derivation.* δ(n, m) > 0 since its m-th component is n ≥ 1. By TA-strict: v ⊕ δ(n, m) > v. ∎
 
 
-## TS5 — ShiftOrderPreserving
+## TS5 — ShiftStrictMonotonicity
 
 `(A v, n₁, n₂ : n₁ ≥ 1 ∧ n₂ > n₁ ∧ #v = m : shift(v, n₁) < shift(v, n₂))`
 
 *Derivation.* Write n₂ = n₁ + (n₂ − n₁) where n₂ − n₁ ≥ 1. By TS3: shift(v, n₂) = shift(shift(v, n₁), n₂ − n₁). By TS4: shift(shift(v, n₁), n₂ − n₁) > shift(v, n₁). ∎
 
-
 ### Increment for allocation
 
-`sig(t) = max({i : 1 ≤ i ≤ #t ∧ tᵢ ≠ 0})` when t has at least one nonzero component; `sig(t) = #t` when every component is zero.
+We define the *last significant position* of a tumbler `t`. When `t` has at least one nonzero component, `sig(t) = max({i : 1 ≤ i ≤ #t ∧ tᵢ ≠ 0})` — the position of the last nonzero component. When every component is zero, `sig(t) = #t`.
 
-For valid addresses, `sig(t) = #t`. By T4's positive-component constraint, every field component is strictly positive, so the last component of the last field is nonzero. Therefore `inc(t, 0)` on a valid address increments the last component of the last field, modifying only within that field and preserving the hierarchical structure.
+For valid addresses, `sig(t)` falls within the last populated field. This is a consequence of T4's positive-component constraint: every field component is strictly positive, so the last component of the last field is nonzero, and `sig(t) = #t`. Therefore `inc(t, 0)` on a valid address increments the last component of the last field, modifying only within that field and preserving the hierarchical structure.
