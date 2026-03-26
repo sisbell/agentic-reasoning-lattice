@@ -32,7 +32,7 @@ PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
 VERIFY_TEMPLATE = PROMPTS_DIR / "verify-proof.md"
 
 
-def _invoke_opus(prompt, effort="max"):
+def _invoke_opus(prompt, effort="high"):
     """Call claude --print with opus."""
     cmd = [
         "claude", "--print",
