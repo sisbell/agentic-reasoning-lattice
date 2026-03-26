@@ -276,7 +276,7 @@ def main():
     print(f"  [NEXT] Or review/revise loop: "
           f"python scripts/revise.py {args.target} --converge",
           file=sys.stderr)
-    print(f"  [NEXT] Then export: python scripts/export.py {args.target}",
+    print(f"  [NEXT] Then export: python scripts/normalize.py {args.target}",
           file=sys.stderr)
     print(f"  [NEXT] Then absorb: python scripts/absorb.py {args.target}",
           file=sys.stderr)

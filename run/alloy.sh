@@ -14,6 +14,6 @@ fi
 ASN="$1"
 shift
 
-python scripts/export.py "$ASN" && \
+python scripts/normalize.py "$ASN" && \
 python scripts/model.py index "$ASN" && \
 python scripts/model.py alloy "$ASN" "$@"

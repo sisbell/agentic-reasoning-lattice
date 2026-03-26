@@ -679,7 +679,7 @@ def main():
         asn_num_for_msg = int(re.sub(r"[^0-9]", "", str(args.asn)))
         print(f"  No formal statements found for {args.asn} at {formal_stmts(asn_num_for_msg)}",
               file=sys.stderr)
-        print(f"  Run: python scripts/export.py {args.asn}", file=sys.stderr)
+        print(f"  Run: python scripts/normalize.py {args.asn}", file=sys.stderr)
         sys.exit(1)
 
     template_text = read_file(TEMPLATE)

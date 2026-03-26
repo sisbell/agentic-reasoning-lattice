@@ -198,7 +198,7 @@ Output:
 Run after an ASN has converged through review. Three steps, each building on the previous:
 
 ```
-python scripts/export.py 4                   # extract formal statements from ASN prose
+python scripts/normalize.py 4                   # extract formal statements from ASN prose
 python scripts/model.py index 4              # classify properties, assign proof labels
 python scripts/model.py dafny 4              # generate verified Dafny per property
 ```

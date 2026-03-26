@@ -12,7 +12,7 @@ A higher-level spec (e.g., ASN-0053 Span Algebra) derives a property that belong
 |---------|---------|
 | `extend.py` | Extract properties into a new small extension ASN |
 | `review.py` / `revise.py` | Review/revise the extension (standard cycle) |
-| `export.py` | Export the extension's statements |
+| `normalize.py` | Export the extension's statements |
 | `absorb.py` | Integrate extension into base reasoning doc |
 | `rebase.py` | Update source ASN to cite from updated foundation |
 
@@ -29,7 +29,7 @@ python scripts/review.py 57
 python scripts/revise.py 57 --converge
 
 # 3. Export the extension
-python scripts/export.py 57
+python scripts/normalize.py 57
 
 # 4. Absorb into base (integrates into ASN-0034 reasoning doc,
 #    runs targeted integration review/revise, re-exports ASN-0034,

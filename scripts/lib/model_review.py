@@ -64,7 +64,7 @@ def main():
     extract_path = formal_stmts(asn_num)
     if not extract_path.exists():
         print(f"  No statements extract found for {asn_label}", file=sys.stderr)
-        print(f"  Run: python scripts/export.py {args.asn}",
+        print(f"  Run: python scripts/normalize.py {args.asn}",
               file=sys.stderr)
         sys.exit(1)
     extract_text = extract_path.read_text()

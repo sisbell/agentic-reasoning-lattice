@@ -267,7 +267,7 @@ def main():
     print(f"  [EXPORT] Re-exporting {asn_label}...", file=sys.stderr)
     import subprocess
     cmd = [sys.executable,
-           str(WORKSPACE / "scripts" / "export.py"),
+           str(WORKSPACE / "scripts" / "normalize.py"),
            str(args.asn)]
     subprocess.run(cmd, capture_output=False, text=True,
                    cwd=str(WORKSPACE))

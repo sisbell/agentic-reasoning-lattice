@@ -279,7 +279,7 @@ def step_export(base_num):
           file=sys.stderr)
 
     cmd = [sys.executable,
-           str(WORKSPACE / "scripts" / "export.py"),
+           str(WORKSPACE / "scripts" / "normalize.py"),
            str(base_num)]
     result = subprocess.run(cmd, capture_output=False, text=True,
                             cwd=str(WORKSPACE))

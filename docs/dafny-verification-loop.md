@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The modeling pipeline runs linearly: `export.py` → `model.py index` → `model.py dafny`. Dafny errors range from trivial syntax issues to fundamental spec errors requiring revision of the ASN itself. The verification loop automates fix-and-retry for fixable errors and escalates everything else.
+The modeling pipeline runs linearly: `normalize.py` → `model.py index` → `model.py dafny`. Dafny errors range from trivial syntax issues to fundamental spec errors requiring revision of the ASN itself. The verification loop automates fix-and-retry for fixable errors and escalates everything else.
 
 **Key constraint:** LLMs cannot truly reason about Dafny proofs — they can pattern-match on error messages and apply known fixes, but they cannot construct novel proof strategies. The loop is conservative: fix what is obviously fixable, escalate everything else.
 
@@ -109,7 +109,7 @@ The Dafny generation command (`model.py dafny`) writes `STATUS.md` and commits. 
 
 `model.py verify-dafny N --full` runs the complete modeling pipeline:
 
-1. `export.py N` (if statements stale or missing)
+1. `normalize.py N` (if statements stale or missing)
 2. `model.py index N` (if proof index stale or missing)
 3. `model.py dafny N` (always — fresh generation)
 4. Verification loop (this document)

@@ -130,7 +130,7 @@ def main():
                       file=sys.stderr)
                 step_commit(f"Review {asn_label} — converged", asn_id=asn_number)
                 asn_num = asn_label.replace("ASN-", "").lstrip("0") or "0"
-                print(f"\n  [NEXT] Export statements: python scripts/export.py {asn_num}",
+                print(f"\n  [NEXT] Export statements: python scripts/normalize.py {asn_num}",
                       file=sys.stderr)
                 break
 

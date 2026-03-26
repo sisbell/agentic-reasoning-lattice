@@ -194,7 +194,7 @@ python scripts/revise.py N
 ```bash
 # Classify properties and assign proof labels
 # Extract formal statements from ASN prose
-python scripts/export.py 1
+python scripts/normalize.py 1
 
 python scripts/model.py index 1
 

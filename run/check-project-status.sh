@@ -111,7 +111,7 @@ done
 printf "\n  Export issues: %d    Dep issues: %d\n" "$export_issues" "$dep_issues"
 
 if [ $export_issues -gt 0 ]; then
-    echo "  Fix exports: python scripts/export.py <N>"
+    echo "  Fix exports: python scripts/normalize.py <N>"
 fi
 if [ $dep_issues -gt 0 ]; then
     echo "  Fix deps:    python scripts/rebase.py <N>"

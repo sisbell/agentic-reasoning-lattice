@@ -64,3 +64,11 @@ to determine TYPE and CONSTRUCT (e.g., LEMMA/lemma, INV/predicate, PRE/requires)
 - The "Resolved questions" section
 
 Keep it minimal. The Dafny translator needs math, not explanation.
+
+## Critical constraint
+
+Do not rename, reclassify, or modify the properties. Use the label, type,
+and statement text exactly as they appear in the ASN's statement registry.
+If a property is labeled T7 in the registry, it must be T7 in your output.
+If the registry says INV, your output says INV — not LEMMA, not THEOREM.
+Extract verbatim; do not improve, correct, or editorialize.

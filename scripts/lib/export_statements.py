@@ -10,8 +10,8 @@ ASNs.
 Does NOT depend on the proof index — operates purely on the reasoning doc.
 
 Usage:
-    python scripts/export.py 55
-    python scripts/export.py ASN-0055 --dry-run
+    python scripts/normalize.py 55
+    python scripts/normalize.py ASN-0055 --dry-run
 """
 
 import argparse

@@ -7,7 +7,7 @@ per property using an agentic Claude session (with Bash access to run Alloy
 and self-fix syntax errors), produces a review if failures remain, then feeds
 the review into the consult → revise → commit cycle.
 
-Requires: formal statements in vault/project-model/ASN-NNNN/ (run export.py first)
+Requires: formal statements in vault/project-model/ASN-NNNN/ (run normalize.py first)
 Requires: Alloy installed at /Applications/Alloy.app (macOS) or ALLOY_JAR set.
 
 Usage:
@@ -856,7 +856,7 @@ def main():
     if not extract:
         print(f"  No extract found at {extract_path.relative_to(WORKSPACE)}",
               file=sys.stderr)
-        print(f"  Run: python scripts/export.py {args.asn}",
+        print(f"  Run: python scripts/normalize.py {args.asn}",
               file=sys.stderr)
         sys.exit(1)
 

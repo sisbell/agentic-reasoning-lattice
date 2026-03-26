@@ -420,7 +420,7 @@ def step_export(asn_num):
     print(f"  [EXPORT] Re-exporting ASN-{asn_num:04d}...", file=sys.stderr)
 
     cmd = [sys.executable,
-           str(WORKSPACE / "scripts" / "export.py"),
+           str(WORKSPACE / "scripts" / "normalize.py"),
            str(asn_num)]
     result = subprocess.run(cmd, capture_output=False, text=True,
                             cwd=str(WORKSPACE))

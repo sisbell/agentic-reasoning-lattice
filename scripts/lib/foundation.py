@@ -61,7 +61,7 @@ def load_foundation_statements(asn_id):
             )
         else:
             print(f"  [ERROR] Dependency {label} has no formal statements — "
-                  f"run: python scripts/export.py {dep_id}",
+                  f"run: python scripts/normalize.py {dep_id}",
                   file=sys.stderr)
             sys.exit(1)
 

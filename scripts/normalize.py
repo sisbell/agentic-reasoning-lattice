@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export — extract formal statements from a converged ASN."""
+"""Normalize — format gate + deps extraction + formal statement export."""
 import subprocess, sys
 from pathlib import Path
 

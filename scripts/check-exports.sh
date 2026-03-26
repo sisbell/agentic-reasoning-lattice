@@ -67,6 +67,6 @@ printf "\n  Summary: %d OK, %d STALE, %d MISSING\n\n" "$ok" "$stale" "$missing"
 
 if [ $stale -gt 0 ] || [ $missing -gt 0 ]; then
     echo "  To fix stale/missing exports:"
-    echo "  python scripts/export.py <ASN_NUMBER> [<ASN_NUMBER> ...]"
+    echo "  python scripts/normalize.py <ASN_NUMBER> [<ASN_NUMBER> ...]"
     echo ""
 fi

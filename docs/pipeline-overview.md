@@ -165,7 +165,7 @@ All commands run from the project root as `python scripts/<dispatcher>.py`.
 | `promote.py scope N` | Evaluate ASN-N review OUT_OF_SCOPE items |
 | `model.py alloy N` | Alloy bounded checking for ASN-N |
 | `model.py index N` | Classify and label properties |
-| `export.py N` | Extract formal statements |
+| `normalize.py N` | Extract formal statements |
 | `model.py dafny N` | Generate Dafny per-property, commit |
 | `model.py fix N` | Fix unverified Dafny files with baby-steps |
 | `model.py status N` | Re-verify all .dfy files, write STATUS.md, commit |
