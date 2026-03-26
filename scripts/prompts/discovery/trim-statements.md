@@ -33,7 +33,11 @@ a agrees with b on components 1..k ⟺ a ⊕ w = b ⊕ w for displacement w with
 ```
 
 The statement should be the formal claim — quantified expressions, equations,
-definitions. Not a narrative description.
+definitions. Follow it with a one-line plain English summary of what the
+property means (e.g., "In words: for every tumbler and every component
+position, there exists a tumbler whose value at that position exceeds any
+given bound."). This helps downstream consumers understand the formal
+notation without re-deriving it.
 
 ### 3. Trim to formal content
 
