@@ -406,7 +406,7 @@ The subtraction algorithm differs structurally from addition — it zeros positi
 
 **Claim:** (TA3, weak form). If `a < b`, `a ≥ w`, and `b ≥ w`, then `a ⊖ w ≤ b ⊖ w`.
 
-*Proof.* We first handle the case where `a < b` by the prefix rule (T1 case (ii)), then the component-divergence cases.
+*Proof.* By TA2, since `a ≥ w` and `b ≥ w`, both `a ⊖ w` and `b ⊖ w` are well-formed tumblers in `T`, making the order comparisons below well-defined. We first handle the case where `a < b` by the prefix rule (T1 case (ii)), then the component-divergence cases.
 
 *Case 0: `a` is a proper prefix of `b`.* Then `#a < #b` and `aᵢ = bᵢ` for all `i ≤ #a`.
 
@@ -830,7 +830,7 @@ Removing any independent property breaks a system-level guarantee. T6 and T7 are
 | TA1-strict | Addition preserves the total order (strict) when k ≤ min(#a, #b) ∧ k ≥ divergence(a, b) | from Divergence, TumblerAdd |
 | TA-strict | Adding a positive displacement strictly advances: a ⊕ w > a | from TumblerAdd, T1 |
 | TA2 | Tumbler subtraction a ⊖ w is well-defined when a ≥ w | introduced |
-| TA3 | Subtraction preserves the total order (weak): a < b ⟹ a ⊖ w ≤ b ⊖ w when both are defined | introduced |
+| TA3 | Subtraction preserves the total order (weak): a < b ⟹ a ⊖ w ≤ b ⊖ w when both are defined | from TA2, T1, TA6, TumblerSub |
 | TA3-strict | Subtraction preserves the total order (strict) when additionally #a = #b | introduced |
 | TA4 | Addition and subtraction are partial inverses: (a ⊕ w) ⊖ w = a when k = #a, #w = k, and all components of a before k are zero | from TumblerAdd, TumblerSub |
 | ReverseInverse | (a ⊖ w) ⊕ w = a when k = #a, #w = k, a ≥ w > 0, and all components of a before k are zero | corollary of TA3-strict, TA4, TumblerAdd, TumblerSub |
