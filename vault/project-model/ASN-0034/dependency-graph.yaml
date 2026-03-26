@@ -6,7 +6,7 @@ properties:
     name: Unbounded component values
   T0(b):
     status: introduced
-    name: Tumblers of arbitrary length exist in T
+    name: Unbounded length
   T1:
     status: introduced
     name: Lexicographic order
@@ -97,7 +97,7 @@ properties:
     status: from
     follows_from:
     - T1
-    name: Divergence point of two unequal tumblers
+    name: Divergence
   TA1-strict:
     status: from
     follows_from:
@@ -126,8 +126,6 @@ properties:
     name: 'Order preservation under subtraction, strict'
     follows_from:
     - T1
-    - T3
-    - TA6
     - TumblerSub
   TA4:
     status: from
@@ -204,7 +202,7 @@ properties:
     - TA0
     - TumblerAdd
     - TumblerSub
-    name: Displacement well-definedness
+    name: DisplacementWellDefined
   D1:
     status: other
     follows_from:
@@ -213,13 +211,13 @@ properties:
     - TA0
     - TumblerAdd
     - TumblerSub
-    name: Displacement round-trip
+    name: DisplacementRoundTrip
   D2:
     status: corollary
     follows_from:
     - D1
     - TA-LC
-    name: Displacement uniqueness
+    name: DisplacementUnique
   OrdinalDisplacement:
     status: introduced
     name: OrdinalDisplacement
