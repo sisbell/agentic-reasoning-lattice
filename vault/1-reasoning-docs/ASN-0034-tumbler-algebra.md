@@ -157,7 +157,13 @@ Within a document's element space, the first component after the third zero deli
 
   `(A a, b ∈ T : a.E₁ ≠ b.E₁ ⟹ a ≠ b)`
 
-T7 is a corollary of T3 (canonical representation) and T4 (hierarchical parsing): if two tumblers differ in their first element-field component, they are distinct. We state it explicitly because it is load-bearing for the guarantee that operations within one content type do not interfere with another. T7 is the structural basis — arithmetic within subspace 1 cannot produce addresses in subspace 2, because the subspace identifier is part of the address, not metadata.
+*Proof (corollary of T3, T4).* Both `a` and `b` have element fields, so `zeros(a) = zeros(b) = 3` (T4). Write their field lengths as `(α, β, γ, δ)` and `(α', β', γ', δ')`, so that `E₁` sits at position `pₐ = α + β + γ + 4` in `a` and `pᵦ = α' + β' + γ' + 4` in `b`.
+
+*Case 1* (`pₐ = pᵦ`): The tumblers have `a[pₐ] = Eₐ₁ ≠ Eᵦ₁ = b[pₐ]`, so `a ≠ b` by T3.
+
+*Case 2* (`pₐ ≠ pᵦ`): If `#a ≠ #b`, then `a ≠ b` by T3 (distinct lengths). If `#a = #b`, the zero-position sets of `a` — at `α + 1`, `α + β + 2`, `α + β + γ + 3` — and of `b` — at `α' + 1`, `α' + β' + 2`, `α' + β' + γ' + 3` — cannot all coincide: matching the first gives `α = α'`, then the second gives `β = β'`, then the third gives `γ = γ'`, whence `pₐ = pᵦ`, contradicting the case hypothesis. So there exists a position `j` that is a separator in one tumbler but not the other. At `j`, one tumbler has value 0 and the other has a field component, which is strictly positive by T4's positive-component constraint. They differ at `j`, giving `a ≠ b` by T3. ∎
+
+We state T7 explicitly because it is load-bearing for the guarantee that operations within one content type do not interfere with another. T7 is the structural basis — arithmetic within subspace 1 cannot produce addresses in subspace 2, because the subspace identifier is part of the address, not metadata.
 
 The ordering T1 places all text addresses (subspace 1) before all link addresses (subspace 2) within the same document, because `1 < 2` at the subspace position. This is a consequence, not an assumption — it falls out of the lexicographic order.
 
