@@ -263,6 +263,38 @@ def parse_statement_for_relations(statement_text):
 # Property name extraction
 # ---------------------------------------------------------------------------
 
+def _extract_name_from_statement(statement_text):
+    """Extract a property name from the Statement column text.
+
+    Looks for a name before the first colon, period, or em-dash.
+    E.g., "Content immutability: for every state..." → "Content immutability"
+          "SubspacePartition" → "SubspacePartition"
+
+    Returns the name string, or "" if not extractable.
+    """
+    if not statement_text:
+        return ""
+    # Strip markdown formatting
+    text = statement_text.strip().strip("*").strip()
+    if not text:
+        return ""
+    # Extract text before first : or . or — (the name/title part)
+    m = re.match(r'^([^:.—–]+)', text)
+    if not m:
+        return ""
+    name = m.group(1).strip()
+    # Skip if it looks like a formula or is too short/long
+    if len(name) < 2 or len(name) > 80:
+        return ""
+    # Skip if it starts with lowercase (likely a sentence fragment, not a name)
+    if name[0].islower():
+        return ""
+    # Truncate if still long
+    if len(name) > 77:
+        name = name[:77] + "..."
+    return name
+
+
 def _extract_property_name(section_text):
     """Extract property name from derivation header.
 
@@ -373,6 +405,7 @@ def generate_deps(asn_num):
     # Parse each property row
     has_type = "type" in cols
     properties = {}
+    _statement_names = {}  # label → name extracted from Statement column
     for row in data_rows:
         cells = parse_table_row(row)
         if len(cells) < 2:
@@ -395,6 +428,11 @@ def generate_deps(asn_num):
         stmt_start = 2 if has_type else 1
         stmt_end = -1  # exclude status
         statement_text = "|".join(cells[stmt_start:stmt_end]).strip() if len(cells) > 2 else ""
+
+        # Extract property name from Statement column
+        stmt_name = _extract_name_from_statement(statement_text)
+        if stmt_name:
+            _statement_names[label] = stmt_name
 
         # Parse status for dependencies
         status_info = parse_status(status_text)
@@ -434,18 +472,20 @@ def generate_deps(asn_num):
         properties[label] = prop
 
     # Enrich with property names and prose citations
-    sections = extract_property_sections(text)
+    # Table-driven: pass known labels for anchored section finding
+    sections = extract_property_sections(text, known_labels=list(properties.keys()))
     foundation_labels = _build_foundation_labels(depends)
     prose_citations = _scan_prose_citations(sections, set(properties.keys()),
                                             foundation_labels)
 
     prose_count = 0
     for label, prop in properties.items():
-        # Add property name from derivation header
-        if label in sections:
+        # Add property name — prefer Statement column, fall back to header
+        name = _statement_names.get(label) or ""
+        if not name and label in sections:
             name = _extract_property_name(sections[label])
-            if name:
-                prop["name"] = name
+        if name:
+            prop["name"] = name
 
         # Merge prose citations into follows_from
         if label in prose_citations:

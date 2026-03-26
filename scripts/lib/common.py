@@ -145,43 +145,78 @@ def log_usage(skill, elapsed, **extra):
         pass
 
 
-def extract_property_sections(asn_text):
+def extract_property_sections(asn_text, known_labels=None):
     """Extract the derivation text for each property.
 
-    Finds bold property definitions like **L0 — Name.** and captures
-    text up to the next property definition or section header.
+    If known_labels is provided, uses label-anchored search (table-driven):
+    searches for each label as a bold header start, handling any format.
+    Otherwise falls back to generic bold-pattern regex.
 
     Returns dict of label → derivation text.
     """
+    if known_labels:
+        return _extract_sections_by_labels(asn_text, known_labels)
+
     sections = {}
 
-    # Pattern matches: **LABEL — Name.**  or  **LABEL (Name).**  or **LABEL —**
+    # Fallback: generic pattern matches **LABEL — Name.** or **LABEL (Name).**
     prop_pattern = re.compile(
         r'^\*\*([A-Z][A-Za-z0-9_]*(?:-[A-Za-z0-9]+)*)\s*(?:(?:—|–|-)\s*|\()',
         re.MULTILINE
     )
 
-    # Find all property starts
     matches = list(prop_pattern.finditer(asn_text))
 
     for i, m in enumerate(matches):
         label = m.group(1).strip("*").strip()
         start = m.start()
 
-        # End is either next property or next ## section header
         if i + 1 < len(matches):
             end = matches[i + 1].start()
         else:
-            # Find next section header
             next_section = re.search(r'^## ', asn_text[start + 1:], re.MULTILINE)
             end = start + 1 + next_section.start() if next_section else len(asn_text)
 
         text = asn_text[start:end].strip()
-
-        # Limit to reasonable size (skip very long worked examples)
         if len(text) > 3000:
             text = text[:3000] + "\n[...truncated...]"
+        sections[label] = text
 
+    return sections
+
+
+def _extract_sections_by_labels(asn_text, labels):
+    """Table-driven section extraction using known property labels.
+
+    For each label, finds the bold header line (any format) and captures
+    text up to the next known label or section header.
+    """
+    # Build label-specific patterns and find their positions
+    label_positions = []
+    for label in labels:
+        # Match **LABEL followed by space, (, or * — handles any header format
+        pattern = re.compile(
+            r'^\*\*' + re.escape(label) + r'(?:\s|\(|\*)',
+            re.MULTILINE
+        )
+        m = pattern.search(asn_text)
+        if m:
+            label_positions.append((m.start(), label))
+
+    # Sort by position in document
+    label_positions.sort()
+
+    sections = {}
+    for i, (start, label) in enumerate(label_positions):
+        if i + 1 < len(label_positions):
+            end = label_positions[i + 1][0]
+        else:
+            next_section = re.search(r'^## ', asn_text[start + 1:], re.MULTILINE)
+            end = start + 1 + next_section.start() if next_section else len(asn_text)
+
+        text = asn_text[start:end].strip()
+        if len(text) > 3000:
+            text = text[:3000] + "\n[...truncated...]"
         sections[label] = text
 
     return sections
