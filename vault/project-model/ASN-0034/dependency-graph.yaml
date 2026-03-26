@@ -43,6 +43,12 @@ properties:
   T8:
     status: introduced
     name: Allocation permanence
+    follows_from:
+    - T1
+    - T10a
+    - T2
+    - T4
+    - TA5
   T9:
     status: other
     follows_from:
@@ -125,10 +131,18 @@ properties:
     - TumblerAdd
     name: Adding a positive displacement strictly advances
   TA2:
-    status: introduced
+    status: from
+    follows_from:
+    - T1
+    - TumblerSub
     name: Tumbler subtraction a ⊖ w is well-defined when a ≥ w
   TA3:
-    status: introduced
+    status: from
+    follows_from:
+    - TA2
+    - T1
+    - TA6
+    - TumblerSub
     name: Subtraction preserves the total order (weak)
   TA3-strict:
     status: introduced
@@ -159,6 +173,7 @@ properties:
     - T1
     - TA1
     - TA1-strict
+    - TA2
     - TA3
     name: TumblerSub
   TA5:
@@ -168,10 +183,11 @@ properties:
     - T1
     - T4
   TA6:
-    status: introduced
-    name: Zero tumblers
+    status: from
     follows_from:
     - T1
+    - T4
+    name: Zero tumblers
   PositiveTumbler:
     status: introduced
     name: PositiveTumbler
