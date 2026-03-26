@@ -354,11 +354,11 @@ The result `a ⊕ w = [r₁, ..., rₚ]` has length `p = max(k - 1, 0) + (n - k 
 
 Three properties of this definition require explicit statement:
 
-**No carry propagation.** The sum `aₖ + wₖ` at the action point is a single natural-number addition. There is no carry into position `k - 1`. This is why the operation is fast — constant time regardless of tumbler length.
+**No carry propagation:** The sum `aₖ + wₖ` at the action point is a single natural-number addition. There is no carry into position `k - 1`. This is why the operation is fast — constant time regardless of tumbler length.
 
-**Tail replacement, not tail addition.** Components after the action point come entirely from `w`. The start position's components at positions `k + 1, ..., m` are discarded. `a ⊕ w` does not add corresponding components pairwise — it replaces the start's sub-structure with the displacement's sub-structure below the action point.
+**Tail replacement, not tail addition:** Components after the action point come entirely from `w`. The start position's components at positions `k + 1, ..., m` are discarded. `a ⊕ w` does not add corresponding components pairwise — it replaces the start's sub-structure with the displacement's sub-structure below the action point.
 
-**The many-to-one property.** Because trailing components of `a` are discarded, distinct start positions can produce the same result:
+**The many-to-one property:** Because trailing components of `a` are discarded, distinct start positions can produce the same result:
 
 ```
 [1, 1] ⊕ [0, 2]       = [1, 3]
@@ -760,7 +760,7 @@ We collect the structure. The tumbler algebra is a tuple `(T, <, ⊕, ⊖, inc, 
 
 - `T` is the carrier set of finite sequences of non-negative integers, with unbounded component values (T0(a)) and unbounded length (T0(b))
 - `<` is the lexicographic total order on `T` (T1), intrinsically computable (T2), with canonical representation (T3)
-- The hierarchical parsing function `fields` extracts four-level containment (T4), yielding contiguous subtrees (T5); decidable containment (T6, corollary of T4) and element subspace disjointness (T7, corollary of T3 + T4) follow
+- The hierarchical parsing function `fields` extracts four-level containment (T4), yielding contiguous subtrees (T5); decidable containment (T6, corollary of T4) and element subspace disjointness (T7, corollary of T3, T4) follow
 - `T8` establishes allocation permanence — once allocated, an address is never removed from the set of allocated addresses
 - `T9–T10` establish forward allocation and partition independence; `T10a` constrains each allocator to use `inc(·, 0)` for sibling outputs, reserving `k > 0` exclusively for child-spawning
 - `⊕` and `⊖` are order-preserving operations on T (TA0–TA3, with TA0 requiring `k ≤ #a`), with weak order preservation universally (TA1 `≤`, TA3 `≤`) and strict preservation under tighter conditions (TA1-strict when `k ≤ min(#a, #b) ∧ k ≥ divergence(a,b)`, TA3-strict when `#a = #b`); strict increase (TA-strict); partially inverse when `k = #a`, `#w = k`, and all components of `a` before `k` are zero (TA4)
@@ -768,7 +768,7 @@ We collect the structure. The tumbler algebra is a tuple `(T, <, ⊕, ⊖, inc, 
 - Zero tumblers (all components zero, any length) are sentinels, not valid addresses (TA6); positivity is defined as having at least one nonzero component
 - `TA7a` confines element-local shifts to their subspace (algebraic closure)
 - Spans are self-describing contiguous ranges (T12)
-- D0–D2 characterize displacement recovery: D0 is the well-definedness precondition, D1 is the round-trip identity a ⊕ (b ⊖ a) = b, D2 is uniqueness (corollary of D1 + TA-LC)
+- D0–D2 characterize displacement recovery: D0 is the well-definedness precondition, D1 is the round-trip identity a ⊕ (b ⊖ a) = b, D2 is uniqueness (corollary of D1, TA-LC)
 - OrdinalDisplacement and OrdinalShift define the shift apparatus — ordinal displacement δ(n, m) and shift(v, n) = v ⊕ δ(n, #v); TS1–TS5 establish that shift preserves order (TS1), is injective (TS2), composes additively (TS3), strictly increases (TS4), and is monotone in amount (TS5)
 
 Each property is required by at least one system guarantee:
@@ -780,7 +780,7 @@ Each property is required by at least one system guarantee:
 | T3 | Address identity, uniqueness, total order consistency |
 | T4, T5 | Hierarchical queries, self-describing spans |
 | T6 *(corollary of T4)* | Decidable containment |
-| T7 *(corollary of T3 + T4)* | Subspace isolation |
+| T7 *(corollary of T3, T4)* | Subspace isolation |
 | T8 | Link stability, transclusion identity, attribution |
 | T9 | Per-allocator monotonicity; partition monotonicity derived from T9 + T10 + T1 |
 | T10, T10a | Decentralized allocation, global uniqueness |
@@ -792,7 +792,7 @@ Each property is required by at least one system guarantee:
 | TA-LC, TA-RC, TA-MTO *(lemmas)* | Cancellation characterization of ⊕; TA-MTO equivalence classes constrain span-endpoint recovery |
 | D0 | Displacement recovery precondition |
 | D1 | Displacement round-trip: span-endpoint recovery from start + displacement |
-| D2 *(corollary of D1 + TA-LC)* | Displacement uniqueness |
+| D2 *(corollary of D1, TA-LC)* | Displacement uniqueness |
 | OrdinalDisplacement, OrdinalShift | Element-level position advancement (Istream allocation, V-enfilade traversal) |
 | TS1–TS5 *(lemmas/corollaries)* | Order-safe shifting: TS1 order preservation for sorted-sequence maintenance, TS2 injectivity for address uniqueness under shift, TS3 composition for multi-step allocation, TS4–TS5 monotonicity for forward progress |
 
@@ -811,27 +811,27 @@ Removing any independent property breaks a system-level guarantee. T6 and T7 are
 | T4 | An address tumbler has at most three zero-valued components as field separators, every field component is strictly positive, and every present field has at least one component (no adjacent zeros, no leading/trailing zero) | introduced |
 | T5 | The set of tumblers sharing a prefix forms a contiguous interval under T1 | introduced |
 | T6 | Containment (same node, same account, same document family, structural subordination) is decidable from addresses alone | corollary of T4 |
-| T7 | Subspaces (text, links) within a document's element field are permanently disjoint | corollary of T3 + T4 |
+| T7 | Subspaces (text, links) within a document's element field are permanently disjoint | corollary of T3, T4 |
 | T8 | Once allocated, an address is never removed from the address space; the set of allocated addresses is monotonically non-decreasing | introduced |
-| T9 | Within a single allocator's sequential stream, new addresses are strictly monotonically increasing; gaps are permanent | lemma (from T10a + TA5) |
+| T9 | Within a single allocator's sequential stream, new addresses are strictly monotonically increasing; gaps are permanent | lemma (from T10a, TA5) |
 | T10 | Allocators with non-nesting prefixes produce distinct addresses without coordination | introduced |
 | T10a | Each allocator uses inc(·, 0) for siblings and inc(·, k>0) only for child-spawning; this constrains sibling outputs to uniform length | introduced |
 | PrefixOrderingExtension | p₁ < p₂ with neither a prefix of the other implies a < b for every a with p₁ ≼ a and every b with p₂ ≼ b | lemma (from T1) |
 | PartitionMonotonicity | Per-allocator ordering extends cross-allocator; for non-nesting sibling prefixes p₁ < p₂, every address extending p₁ precedes every address extending p₂ | theorem from PrefixOrderingExtension, T1, T3, T5, T9, T10a, TA5 |
 | GlobalUniqueness | No two distinct allocation events anywhere in the system at any time produce the same address | theorem from T9, T10, T3, T4, TA5 |
-| T12 | A span (s, ℓ) is well-formed when ℓ > 0 and action point k of ℓ satisfies k ≤ #s; it denotes the contiguous interval {t : s ≤ t < s ⊕ ℓ}, non-empty by TA-strict | from T1 + TA0 + TA-strict |
+| T12 | A span (s, ℓ) is well-formed when ℓ > 0 and action point k of ℓ satisfies k ≤ #s; it denotes the contiguous interval {t : s ≤ t < s ⊕ ℓ}, non-empty by TA-strict | from T1, TA0, TA-strict |
 | TA0 | Tumbler addition a ⊕ w is well-defined when w > 0 and the action point k satisfies k ≤ #a | introduced |
 | TA1 | Addition preserves the total order (weak): a < b ⟹ a ⊕ w ≤ b ⊕ w | introduced |
 | Divergence | Divergence point of two unequal tumblers: first position k where aₖ ≠ bₖ (component), or min(#a, #b) + 1 (prefix) | from T1 |
 | TA1-strict | Addition preserves the total order (strict) when k ≤ min(#a, #b) ∧ k ≥ divergence(a, b) | from Divergence |
-| TA-strict | Adding a positive displacement strictly advances: a ⊕ w > a | from TumblerAdd + T1 |
+| TA-strict | Adding a positive displacement strictly advances: a ⊕ w > a | from TumblerAdd, T1 |
 | TA2 | Tumbler subtraction a ⊖ w is well-defined when a ≥ w | introduced |
 | TA3 | Subtraction preserves the total order (weak): a < b ⟹ a ⊖ w ≤ b ⊖ w when both are defined | introduced |
 | TA3-strict | Subtraction preserves the total order (strict) when additionally #a = #b | introduced |
 | TA4 | Addition and subtraction are partial inverses: (a ⊕ w) ⊖ w = a when k = #a, #w = k, and all components of a before k are zero | from TumblerAdd |
 | ReverseInverse | (a ⊖ w) ⊕ w = a when k = #a, #w = k, a ≥ w > 0, and all components of a before k are zero | corollary of TA4 |
 | TumblerAdd | a ⊕ w: copy aᵢ for i < k, advance aₖ by wₖ at action point k, replace tail with wᵢ for i > k; result length = #w | introduced |
-| TumblerSub | a ⊖ w: zero positions before divergence k, compute aₖ − wₖ at divergence point, copy aᵢ for i > k; result length = max(#a, #w) | from Divergence + T1 |
+| TumblerSub | a ⊖ w: zero positions before divergence k, compute aₖ − wₖ at divergence point, copy aᵢ for i > k; result length = max(#a, #w) | from Divergence, T1 |
 | TA5 | Hierarchical increment inc(t, k) produces t' > t: k=0 advances at sig(t), k>0 extends by k positions with separators and first child | introduced |
 | TA6 | Every all-zero tumbler (any length) is less than every positive tumbler and is not a valid address | introduced |
 | PositiveTumbler | t > 0 iff at least one component is nonzero; zero tumbler iff all components are zero | introduced |
@@ -840,13 +840,13 @@ Removing any independent property breaks a system-level guarantee. T6 and T7 are
 | TA-LC | a ⊕ x = a ⊕ y ⟹ x = y (left cancellation) | lemma (from TumblerAdd, T3) |
 | TA-RC | Right cancellation fails: ∃ a ≠ b with a ⊕ w = b ⊕ w | lemma (from TumblerAdd, T3) |
 | TA-MTO | a agrees with b on components 1..k ⟺ a ⊕ w = b ⊕ w for displacement w with action point k | lemma (from TumblerAdd, T3) |
-| D0 | Displacement well-definedness: a < b and divergence(a, b) ≤ #a ensures positive displacement with TA0 satisfied | from T3 + TA0 + TumblerAdd |
+| D0 | Displacement well-definedness: a < b and divergence(a, b) ≤ #a ensures positive displacement with TA0 satisfied | from T3, TA0, TumblerAdd |
 | D1 | Displacement round-trip: for a < b with divergence(a, b) ≤ #a and #a ≤ #b, a ⊕ (b ⊖ a) = b | lemma (from TumblerAdd, TumblerSub, T3) |
-| D2 | Displacement uniqueness: under D1's preconditions, if a ⊕ w = b then w = b ⊖ a | corollary of D1 + TA-LC |
+| D2 | Displacement uniqueness: under D1's preconditions, if a ⊕ w = b then w = b ⊖ a | corollary of D1, TA-LC |
 | OrdinalDisplacement | δ(n, m) = [0, ..., 0, n] of length m, action point m | introduced |
 | OrdinalShift | shift(v, n) = v ⊕ δ(n, #v) | introduced |
 | TS1 | shift preserves strict order: v₁ < v₂ ⟹ shift(v₁, n) < shift(v₂, n) | lemma (from TA1-strict) |
-| TS2 | shift is injective: shift(v₁, n) = shift(v₂, n) ⟹ v₁ = v₂ | lemma (from TA-MTO + T3) |
+| TS2 | shift is injective: shift(v₁, n) = shift(v₂, n) ⟹ v₁ = v₂ | lemma (from TA-MTO, T3) |
 | TS3 | shift composes additively: shift(shift(v, n₁), n₂) = shift(v, n₁ + n₂) | lemma (from TumblerAdd, T3) |
 | TS4 | shift strictly increases: shift(v, n) > v | corollary of TA-strict |
 | TS5 | shift is monotone in amount: n₁ < n₂ ⟹ shift(v, n₁) < shift(v, n₂) | corollary of TS3, TS4 |
