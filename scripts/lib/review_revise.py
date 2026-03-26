@@ -153,7 +153,6 @@ def invoke_claude(prompt, model=None, effort="max"):
         "claude", "-p",
         "--model", use_model,
         "--output-format", "json",
-        "--max-turns", "30",
         "--allowedTools", "Edit,Bash,Write,Read,Glob,Grep",
     ]
 

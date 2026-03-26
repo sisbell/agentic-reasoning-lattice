@@ -268,7 +268,6 @@ def step_format_revise(asn_num, findings):
         "claude", "-p",
         "--model", "claude-sonnet-4-6",
         "--output-format", "json",
-        "--max-turns", "30",
         "--allowedTools", "Edit,Read,Glob,Grep",
     ]
 
