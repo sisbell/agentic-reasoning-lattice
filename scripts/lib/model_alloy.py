@@ -79,9 +79,15 @@ def derive_output_name(asn_path):
     return "".join(w.capitalize() for w in name.split("-"))
 
 
-# Header pattern: ## LABEL — Name (TYPE, construct)
-_PROP_RE = re.compile(
+# Header patterns:
+#   ## LABEL — Name (TYPE, construct)    — with type
+#   ## LABEL — Name                      — without type
+#   ## LABEL — Name (DEFINITION, function) — definition
+_PROP_WITH_TYPE_RE = re.compile(
     r"^##\s+(.+?)\s+—\s+(\w+)\s+\((\w+),\s+(.+?)\)\s*$"
+)
+_PROP_NO_TYPE_RE = re.compile(
+    r"^##\s+(.+?)\s+—\s+(.+?)\s*$"
 )
 
 
@@ -89,7 +95,7 @@ def parse_extract(text):
     """Parse an extract into definitions and properties.
 
     Returns dict with:
-      definitions: str — all '## Definition — *' sections concatenated
+      definitions: str — all definition sections concatenated
       properties: list[dict] — each with label, name, type, construct, body
     """
     sections = re.split(r"(?=^## )", text, flags=re.MULTILINE)
@@ -102,20 +108,38 @@ def parse_extract(text):
         if not section:
             continue
 
-        # Check for definition sections
+        first_line = section.split("\n", 1)[0]
+
+        # Check for definition (DEFINITION in type tag)
+        m = _PROP_WITH_TYPE_RE.match(first_line)
+        if m and m.group(3) == "DEFINITION":
+            definitions.append(section)
+            continue
+
+        # Legacy: ## Definition — Name
         if section.startswith("## Definition"):
             definitions.append(section)
             continue
 
-        # Check for property header
-        first_line = section.split("\n", 1)[0]
-        m = _PROP_RE.match(first_line)
+        # Property with type tag
         if m:
             properties.append({
                 "label": m.group(1),
                 "name": m.group(2),
                 "type": m.group(3),
                 "construct": m.group(4),
+                "body": section,
+            })
+            continue
+
+        # Property without type tag
+        m2 = _PROP_NO_TYPE_RE.match(first_line)
+        if m2:
+            properties.append({
+                "label": m2.group(1),
+                "name": m2.group(2),
+                "type": "",
+                "construct": "",
                 "body": section,
             })
 

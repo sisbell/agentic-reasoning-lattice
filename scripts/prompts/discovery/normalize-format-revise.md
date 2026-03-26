@@ -6,17 +6,14 @@ reviewer found the issues listed below. Fix each one in the ASN file.
 ## Rules
 
 1. **Only fix format issues.** Do not change content, proofs, or derivations.
-2. **Property table** must have 4 columns: `| Label | Type | Statement | Status |`
-   - If Type column is missing, add it with appropriate types (INV, LEMMA, DEFINITION, etc.)
+2. **Property table** must have at least 3 columns: `| Label | Statement | Status |`
 3. **Property headers** use: `**LABEL (Name).**`
 4. **Definition headers** use: `**Definition (PascalCaseName).**`
    - The name must be PascalCase: `**Definition (TumblerAddition).**` not `**Definition (Tumbler addition).**`
-   - Convert multi-word names to PascalCase in both the header and the table label
 5. **Status vocabulary** must use standard terms:
    - introduced, corollary of, from, theorem from, extends, design requirement, cited, lemma
 6. **Missing table entries**: if a definition or property exists in prose but not
-   in the table, add a row. Definitions get type `DEFINITION` and a PascalCase label
-   matching the header name.
+   in the table, add a row. Use the PascalCase name as the label for definitions.
 7. Do not add, remove, or reorder properties. Only fix formatting and add
    missing table entries.
 

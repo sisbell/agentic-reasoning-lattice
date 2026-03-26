@@ -12,21 +12,20 @@ the standard format. Do not evaluate correctness, completeness, or domain conten
 
 ### Property Table
 
-The ASN must contain a table with these exact columns:
+The ASN must contain a table with these columns:
 
 ```
-| Label | Type | Statement | Status |
+| Label | Statement | Status |
 ```
 
 - **Label**: short identifier (e.g., `T1`, `S0`, `D-CTG`, `PrefixSpanCoverage`, `Endset`)
-- **Type**: property classification (INV, LEMMA, PRE, POST, DEFINITION, FRAME, META, THEOREM)
 - **Statement**: one-line summary of what the property says
 - **Status**: one of the standard vocabulary terms (see below)
 
-If the table has only 3 columns (missing Type), that is a finding.
+A 4-column table with an additional Type column is also valid — do not flag it.
 
-Definitions must be in the table with type `DEFINITION`. The label is the
-definition name (e.g., `Endset`, `Link`, `Divergence`).
+Definitions must be in the table. The label is the PascalCase definition
+name (e.g., `Endset`, `Link`, `Divergence`, `TumblerAddition`).
 
 ### Status Vocabulary
 
@@ -58,7 +57,7 @@ Where LABEL matches the property table and Name is a short descriptive name.
 ```
 **Definition (Name).**
 ```
-Where Name matches a DEFINITION label in the property table.
+Where Name is the PascalCase label that must appear in the property table.
 
 Both formats are valid. The trailing period and bold closure are required.
 
@@ -68,10 +67,11 @@ Both formats are valid. The trailing period and bold closure are required.
 2. Every bold property header (`**LABEL (...).**`) in the prose must have a
    corresponding entry in the property table.
 3. Every definition header (`**Definition (Name).**`) in the prose must have
-   a corresponding DEFINITION entry in the property table.
+   a corresponding entry in the property table, with the PascalCase Name as
+   the label.
 
 If a definition exists in prose but not in the table, flag it:
-"Definition (Name) in prose but no table entry — add as DEFINITION row"
+"Definition (Name) in prose but no table entry — add row with label Name"
 
 If a property header exists in prose but not in the table, flag it:
 "LABEL has prose section but no table entry"

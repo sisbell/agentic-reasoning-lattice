@@ -1,14 +1,14 @@
 """
-Format normalization gate — type extraction, table fix, review/revise cycle.
+Format normalization gate — review/revise cycle + mechanical assembly.
 
 Pipeline:
-1. Type extraction (sonnet) — classify property types if table is 3-column
-2. Table fix (mechanical) — insert Type column
-3. Format review/revise (sonnet) — fix headers + status vocab, up to 30 cycles
+1. Format review/revise (sonnet) — fix headers, status vocab, add missing entries
+2. Formal statements assembly (mechanical) — table + sections → formal-statements.md
 
 Usage (standalone):
     python scripts/lib/normalize_format.py 43
     python scripts/lib/normalize_format.py 43 --review-only
+    python scripts/lib/normalize_format.py 43 --assemble-only
 """
 
 import argparse
@@ -27,22 +27,8 @@ from lib.common import find_asn, extract_property_sections
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
 REVIEW_TEMPLATE = PROMPTS_DIR / "normalize-format.md"
 REVISE_TEMPLATE = PROMPTS_DIR / "normalize-format-revise.md"
-TYPES_TEMPLATE = PROMPTS_DIR / "normalize-types.md"
 
 MAX_CYCLES = 30
-
-# TYPE → Dafny construct mapping
-TYPE_TO_CONSTRUCT = {
-    "INV": "predicate",
-    "LEMMA": "lemma",
-    "THEOREM": "lemma",
-    "PRE": "requires",
-    "POST": "ensures",
-    "DEF": "function",
-    "DEFINITION": "function",
-    "FRAME": "predicate",
-    "META": "predicate",
-}
 
 
 def _invoke_claude(prompt, model="sonnet", effort="high", tools=False):
@@ -92,135 +78,7 @@ def _log_usage(step, elapsed, asn_num):
 
 
 # ---------------------------------------------------------------------------
-# Step 1: Type extraction (LLM, sonnet)
-# ---------------------------------------------------------------------------
-
-def step_extract_types(asn_num):
-    """Extract property types via sonnet if table is missing Type column.
-
-    Returns a label→type dict, or None if table already has types.
-    """
-    from lib.rebase_deps import find_property_table, parse_table_row, detect_columns
-
-    asn_path, asn_label = find_asn(str(asn_num))
-    if asn_path is None:
-        return None
-
-    text = asn_path.read_text()
-    rows = find_property_table(text)
-    if rows is None:
-        return None
-
-    header = parse_table_row(rows[0])
-    cols = detect_columns(header)
-    if "type" in cols:
-        print(f"  [TYPES] {asn_label} table already has Type column — skipping",
-              file=sys.stderr)
-        return None
-
-    # Build prompt
-    template = TYPES_TEMPLATE.read_text()
-    prompt = template.replace("{{asn_content}}", text)
-
-    print(f"  [TYPES] Classifying {asn_label} properties...", file=sys.stderr)
-    response, elapsed = _invoke_claude(prompt, model="sonnet", effort="high")
-    _log_usage("types", elapsed, asn_num)
-
-    if not response:
-        print(f"  [TYPES] No response ({elapsed:.0f}s)", file=sys.stderr)
-        return None
-
-    # Parse LABEL: TYPE lines
-    type_map = {}
-    for line in response.split("\n"):
-        line = line.strip()
-        if not line or line.startswith("#") or line.startswith("```"):
-            continue
-        m = re.match(r'^([^:]+):\s*(\w+)', line)
-        if m:
-            label = m.group(1).strip()
-            ptype = m.group(2).strip().upper()
-            type_map[label] = ptype
-
-    print(f"  [TYPES] {len(type_map)} types extracted ({elapsed:.0f}s)",
-          file=sys.stderr)
-    return type_map
-
-
-# ---------------------------------------------------------------------------
-# Step 2: Table column insertion (mechanical)
-# ---------------------------------------------------------------------------
-
-def _insert_type_column(asn_text, type_map):
-    """Insert Type column into a 3-column property table.
-
-    Transforms:
-      | Label | Statement | Status |
-    to:
-      | Label | Type | Statement | Status |
-
-    Returns modified ASN text.
-    """
-    from lib.rebase_deps import find_property_table, parse_table_row
-
-    rows = find_property_table(asn_text)
-    if rows is None:
-        return asn_text
-
-    # Build replacement rows
-    new_rows = []
-
-    # Header: insert Type after Label
-    new_rows.append("| Label | Type | Statement | Status |")
-
-    # Separator
-    new_rows.append("|-------|------|-----------|--------|")
-
-    # Data rows
-    for row in rows[2:]:
-        cells = parse_table_row(row)
-        if len(cells) < 3:
-            new_rows.append(row)
-            continue
-
-        label = cells[0].strip().strip("`*")
-        ptype = type_map.get(label, "")
-        # Rebuild: | label | type | statement... | status |
-        # Status is always last cell, statement is everything between
-        new_rows.append(
-            f"| {cells[0].strip()} | {ptype} | "
-            f"{'|'.join(cells[1:-1]).strip()} | {cells[-1].strip()} |"
-        )
-
-    # Replace the old table in the text
-    # Find the exact span of the old table
-    lines = asn_text.split("\n")
-    table_start = None
-    table_end = None
-
-    for i, line in enumerate(lines):
-        if re.match(r"\|\s*Label\s*\|", line):
-            table_start = i
-            break
-
-    if table_start is None:
-        return asn_text
-
-    # Find end of table
-    for i in range(table_start, len(lines)):
-        if not lines[i].strip().startswith("|"):
-            table_end = i
-            break
-    else:
-        table_end = len(lines)
-
-    # Replace
-    result_lines = lines[:table_start] + new_rows + lines[table_end:]
-    return "\n".join(result_lines)
-
-
-# ---------------------------------------------------------------------------
-# Step 3: Format review/revise cycle (LLM, sonnet)
+# Format review/revise cycle (LLM, sonnet)
 # ---------------------------------------------------------------------------
 
 def step_format_review(asn_num):
@@ -294,14 +152,24 @@ def step_format_revise(asn_num, findings):
 
 
 # ---------------------------------------------------------------------------
-# Step 5: Formal statements assembly (mechanical)
+# Formal statements assembly (mechanical)
 # ---------------------------------------------------------------------------
+
+def _is_definition(label, asn_text):
+    """Check if a label has a **Definition (Label).** header in the prose."""
+    pattern = re.compile(
+        r'^\*\*Definition\s*\(' + re.escape(label) + r'\)',
+        re.MULTILINE
+    )
+    return bool(pattern.search(asn_text))
+
 
 def assemble_formal_statements(asn_num):
     """Mechanically assemble formal-statements.md from table + sections.
 
     Iterates the property table, extracts derivation sections, assembles
-    output. No LLM involved — every table label gets a section.
+    output. Definitions identified by **Definition (Name).** prose headers.
+    No LLM involved — every table label gets a section.
 
     Returns the output path, or None on failure.
     """
@@ -336,7 +204,6 @@ def assemble_formal_statements(asn_num):
         if not label:
             continue
 
-        ptype = cells[1].strip() if has_type and len(cells) > 2 else ""
         stmt_start = 2 if has_type else 1
         statement = "|".join(cells[stmt_start:-1]).strip() if len(cells) > 2 else ""
 
@@ -352,14 +219,14 @@ def assemble_formal_statements(asn_num):
         if not name and re.match(r'^[A-Z][a-z].*[A-Z]', label):
             name = label
 
-        construct = TYPE_TO_CONSTRUCT.get(ptype.upper(), "predicate") if ptype else "predicate"
+        # Check if this is a definition (from prose header)
+        is_def = _is_definition(label, text)
 
         properties.append({
             "label": label,
-            "type": ptype,
             "name": name or label,
-            "construct": construct,
             "statement": statement,
+            "is_definition": is_def,
         })
         labels.append(label)
 
@@ -382,14 +249,13 @@ def assemble_formal_statements(asn_num):
     for prop in properties:
         label = prop["label"]
         name = prop["name"]
-        ptype = prop["type"]
-        construct = prop["construct"]
 
-        type_suffix = f" ({ptype}, {construct})" if ptype else ""
-        parts.append(f"## {label} — {name}{type_suffix}\n")
+        if prop["is_definition"]:
+            parts.append(f"## {label} — {name} (DEFINITION, function)\n")
+        else:
+            parts.append(f"## {label} — {name}\n")
 
         if label in sections:
-            # Use the derivation text, but strip the header line (already emitted)
             section = sections[label]
             section_lines = section.split("\n")
             # Skip the bold header line
@@ -439,27 +305,14 @@ def assemble_formal_statements(asn_num):
 # ---------------------------------------------------------------------------
 
 def normalize_format(asn_num):
-    """Run full format normalization. Returns True if clean.
+    """Run format normalization. Returns True if clean.
 
-    1. Type extraction (if table is 3-column)
-    2. Table fix (mechanical)
-    3. Format review/revise cycle (up to 30 cycles)
+    Format review/revise cycle (up to 30 cycles).
     """
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
         return True  # nothing to normalize
 
-    # Step 1-2: Type extraction + table fix
-    type_map = step_extract_types(asn_num)
-    if type_map:
-        text = asn_path.read_text()
-        new_text = _insert_type_column(text, type_map)
-        if new_text != text:
-            asn_path.write_text(new_text)
-            print(f"  [TYPES] Inserted Type column into {asn_label}",
-                  file=sys.stderr)
-
-    # Step 3: Format review/revise cycle
     print(f"  [FORMAT] Checking {asn_label}...", file=sys.stderr)
 
     for cycle in range(1, MAX_CYCLES + 1):
@@ -484,12 +337,10 @@ def normalize_format(asn_num):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Format normalization — type extraction + review/revise")
+        description="Format normalization — review/revise + mechanical assembly")
     parser.add_argument("asn", help="ASN number (e.g., 43)")
     parser.add_argument("--review-only", action="store_true",
                         help="Run review only, don't revise")
-    parser.add_argument("--types-only", action="store_true",
-                        help="Run type extraction only")
     parser.add_argument("--assemble-only", action="store_true",
                         help="Run formal statements assembly only")
     args = parser.parse_args()
@@ -501,13 +352,6 @@ def main():
         if findings:
             print(findings)
         sys.exit(0 if is_clean else 1)
-
-    if args.types_only:
-        type_map = step_extract_types(asn_num)
-        if type_map:
-            for label, ptype in type_map.items():
-                print(f"  {label}: {ptype}")
-        sys.exit(0 if type_map else 1)
 
     if args.assemble_only:
         path = assemble_formal_statements(asn_num)
