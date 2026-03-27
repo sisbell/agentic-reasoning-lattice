@@ -13,6 +13,7 @@ properties:
     status: introduced
     name: Lexicographic order
     follows_from:
+    - T0(a)
     - T3
   T2:
     status: introduced
@@ -23,7 +24,6 @@ properties:
   T3:
     status: from
     follows_from:
-    - T0
     - T0(a)
     name: Canonical representation
   T4:
@@ -38,6 +38,7 @@ properties:
   T6:
     status: corollary
     follows_from:
+    - T3
     - T4
     name: Decidable containment
   T7:
@@ -68,6 +69,7 @@ properties:
     status: introduced
     name: Partition independence
     follows_from:
+    - T1
     - T3
   T10a:
     status: introduced
@@ -75,6 +77,8 @@ properties:
     follows_from:
     - T1
     - T10
+    - T3
+    - TA5
   PrefixOrderingExtension:
     status: other
     follows_from:
@@ -114,6 +118,7 @@ properties:
     status: introduced
     name: Well-defined addition
     follows_from:
+    - T0(a)
     - TumblerAdd
   TA1:
     status: introduced
@@ -137,12 +142,12 @@ properties:
     - Divergence
     - T1
     - TA0
-    - TA1
     - TumblerAdd
     name: strict (Strict order preservation)
   TA-strict:
     status: from
     follows_from:
+    - T0(a)
     - T1
     - T12
     - TA0
@@ -154,6 +159,7 @@ properties:
     status: from
     follows_from:
     - Divergence
+    - T0(a)
     - T1
     - T3
     - TumblerSub
@@ -177,7 +183,10 @@ properties:
   TA4:
     status: from
     follows_from:
+    - T1
+    - T3
     - TA0
+    - TA2
     - TumblerAdd
     - TumblerSub
     name: Addition and subtraction are partial inverses
@@ -186,6 +195,7 @@ properties:
     follows_from:
     - T1
     - T3
+    - TA2
     - TA3-strict
     - TA4
     - TumblerAdd
@@ -228,10 +238,13 @@ properties:
     status: introduced
     name: Ordinal-only shift arithmetic
     follows_from:
+    - T1
     - T4
     - TA0
     - TA2
+    - TA6
     - TumblerAdd
+    - TumblerSub
   TA-assoc:
     status: theorem
     follows_from:
@@ -275,10 +288,10 @@ properties:
   D1:
     status: other
     follows_from:
+    - D0
     - Divergence
     - T1
     - T3
-    - TA0
     - TumblerAdd
     - TumblerSub
     name: Displacement round-trip
@@ -287,7 +300,6 @@ properties:
     follows_from:
     - D0
     - D1
-    - T1
     - TA-LC
     - TA0
     - TumblerAdd
@@ -321,6 +333,7 @@ properties:
   TS3:
     status: other
     follows_from:
+    - OrdinalDisplacement
     - OrdinalShift
     - T3
     - TA0
@@ -336,11 +349,8 @@ properties:
   TS5:
     status: corollary
     follows_from:
-    - OrdinalShift
     - T4
     - TA0
-    - TS1
     - TS3
     - TS4
-    - TumblerAdd
     name: ShiftAmountMonotonicity
