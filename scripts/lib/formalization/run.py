@@ -223,13 +223,14 @@ def step_cleanup(asn_num):
 # Orchestrator
 # ---------------------------------------------------------------------------
 
-def run_pipeline(asn_num, force=False, start_step=None):
+def run_pipeline(asn_num, force=False, start_step=None, cycles=1):
     """Run the formalization pipeline.
 
     Args:
         asn_num: ASN number
         force: ignore cached state, run all steps
         start_step: start from this step (skip earlier steps)
+        cycles: number of core loop iterations before assembly (default: 1)
 
     Returns:
         "completed" — pipeline converged
@@ -247,22 +248,14 @@ def run_pipeline(asn_num, force=False, start_step=None):
         print(f"  [CLEARED] open-issues", file=sys.stderr)
 
     print(f"\n  {'='*50}", file=sys.stderr)
-    print(f"  {asn_label} — formalization", file=sys.stderr)
+    print(f"  {asn_label} — formalization ({cycles} cycle{'s' if cycles > 1 else ''})",
+          file=sys.stderr)
     print(f"  {'='*50}", file=sys.stderr)
 
     start_time = time.time()
 
-    # Determine which steps to run
-    start_idx = 0
-    if start_step:
-        if start_step in STEPS:
-            start_idx = STEPS.index(start_step)
-        else:
-            print(f"  Unknown step: {start_step}. "
-                  f"Valid: {', '.join(STEPS)}", file=sys.stderr)
-            return "failed"
-
-    steps = [
+    # Core loop: stabilize → repair → quality → stabilize → audit → verify
+    core_steps = [
         ("stabilize", step_stabilize),
         ("repair",    step_repair),
         ("stabilize", step_stabilize),
@@ -270,22 +263,60 @@ def run_pipeline(asn_num, force=False, start_step=None):
         ("stabilize", step_stabilize),
         ("audit",     step_audit),
         ("verify",    step_verify),
+    ]
+
+    # Final steps: stabilize → assembly → cleanup (run once)
+    final_steps = [
         ("stabilize", step_stabilize),
         ("assembly",  step_assembly),
         ("cleanup",   step_cleanup),
     ]
 
-    for i, (name, fn) in enumerate(steps):
-        if i < start_idx:
+    # Determine where to start
+    start_idx = 0
+    skip_core = False
+    final_start = 0
+
+    if start_step:
+        if start_step not in STEPS:
+            print(f"  Unknown step: {start_step}. "
+                  f"Valid: {', '.join(STEPS)}", file=sys.stderr)
+            return "failed"
+        final_names = [n for n, _ in final_steps]
+        if start_step in final_names:
+            skip_core = True
+            final_start = final_names.index(start_step)
+        else:
+            core_names = [n for n, _ in core_steps]
+            if start_step in core_names:
+                start_idx = core_names.index(start_step)
+
+    # Core loop
+    if not skip_core:
+        for cycle in range(1, cycles + 1):
+            if cycles > 1:
+                print(f"\n  --- Cycle {cycle}/{cycles} ---", file=sys.stderr)
+
+            for i, (name, fn) in enumerate(core_steps):
+                if cycle == 1 and i < start_idx:
+                    continue
+
+                ok = fn(asn_num)
+                if not ok and name == "stabilize":
+                    print(f"\n  [FAILED] {asn_label} — stabilize step failed",
+                          file=sys.stderr)
+                    return "failed"
+
+    # Final: stabilize → assembly → cleanup (run once)
+    for i, (name, fn) in enumerate(final_steps):
+        if i < final_start:
             continue
 
         ok = fn(asn_num)
         if not ok and name == "stabilize":
-            # Critical step — can't continue without clean format + deps
             print(f"\n  [FAILED] {asn_label} — stabilize step failed",
                   file=sys.stderr)
             return "failed"
-        # verify and audit can have findings without blocking the pipeline
 
     elapsed = time.time() - start_time
     print(f"\n  {'='*50}", file=sys.stderr)
@@ -307,10 +338,13 @@ def main():
                         choices=["repair", "quality", "audit", "verify",
                                  "assembly", "cleanup"],
                         help="Start from this step (skip earlier)")
+    parser.add_argument("--cycles", type=int, default=1,
+                        help="Core loop iterations before assembly (default: 1)")
     args = parser.parse_args()
 
     asn_num = int(re.sub(r"[^0-9]", "", args.asn))
-    result = run_pipeline(asn_num, force=args.force, start_step=args.step)
+    result = run_pipeline(asn_num, force=args.force, start_step=args.step,
+                          cycles=args.cycles)
     sys.exit(0 if result == "completed" else 1)
 
 
