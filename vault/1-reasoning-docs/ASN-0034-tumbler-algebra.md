@@ -112,11 +112,28 @@ Nelson requires that comparison be self-contained — no index consultation need
 
 **T2 (Intrinsic comparison).** The order relation T1 is computable from the two tumblers alone, without consulting any external data structure. The comparison examines at most `min(#a, #b)` component pairs.
 
-*Proof.* The definition of T1 determines `a < b` by scanning component pairs `(aᵢ, bᵢ)` at successive positions `i = 1, 2, ...` until either (i) a divergence `aₖ ≠ bₖ` is found at some `k ≤ min(m, n)`, or (ii) all `min(m, n)` positions are exhausted without divergence, in which case the shorter tumbler is a proper prefix of the longer. In case (i), exactly `k ≤ min(m, n)` component pairs are examined. In case (ii), exactly `min(m, n)` component pairs are examined, and the result is then determined by comparing the lengths `m` and `n`. In both cases, at most `min(m, n)` component pairs are compared, and the only values consulted are the components `aᵢ`, `bᵢ` and the lengths `m`, `n` — all intrinsic to the two tumblers. No external data structure participates in the decision. ∎
+*Proof.* We must establish two claims: (1) the comparison requires no data beyond the components and lengths of the two tumblers, and (2) the number of component pairs examined is at most `min(#a, #b)`.
+
+Let `a = a₁. ... .aₘ` and `b = b₁. ... .bₙ`. The definition of `<` in T1 asks for the existence of a witness position `k ≥ 1` satisfying two conditions: agreement at all positions before `k`, and either a component divergence at `k` or prefix exhaustion at `k`. We trace exactly what data this examination consults and how many comparisons it performs.
+
+The comparison proceeds by scanning positions `i = 1, 2, ...` and comparing the pair `(aᵢ, bᵢ)` at each position. Two outcomes are possible.
+
+*Case 1: divergence at some position `k ≤ min(m, n)`.* The scan finds `aₖ ≠ bₖ` after verifying `aᵢ = bᵢ` for all `1 ≤ i < k`. Exactly `k` component pairs are examined. Since `k ≤ min(m, n)`, the bound holds. The ordering is decided by whether `aₖ < bₖ` or `bₖ < aₖ` — a comparison of two natural numbers, both intrinsic to the tumblers.
+
+*Case 2: no divergence within the shared range.* The scan exhausts all `min(m, n)` positions without finding `aᵢ ≠ bᵢ`. Exactly `min(m, n)` component pairs are examined. The result is then determined by comparing the lengths `m` and `n`: if `m < n`, then `a` is a proper prefix of `b` and T1 case (ii) gives `a < b`; if `n < m`, the symmetric argument gives `b < a`; if `m = n`, then T3 gives `a = b`.
+
+In both cases, the number of component pairs examined is at most `min(m, n) = min(#a, #b)`, establishing claim (2).
+
+For claim (1), we observe that every value consulted — the components `aᵢ` and `bᵢ` at each position, and the lengths `m` and `n` — belongs to the two tumblers themselves. The definition of T1 is expressed entirely in terms of these values. No tree structure, no index, no auxiliary mapping, and no external state participates in the decision. ∎
 
 The importance of T2 is operational: span containment tests, link search, and index traversal all reduce to tumbler comparison. If comparison required a lookup, these operations would depend on auxiliary state, and the system's decentralization guarantee would collapse — one could not determine whether an address falls within a span without access to the index that manages that span.
 
 Gregory's implementation confirms T2. The comparison function `tumblercmp` delegates to `abscmp`, which performs a purely positional comparison: exponent first (a proxy for the number of leading zeros), then lexicographic mantissa slot-by-slot. No tree structure, no index, no external state is consulted.
+
+*Formal Contract:*
+- *Preconditions:* `a, b ∈ T` — two well-formed tumblers (finite sequences over ℕ with `#a ≥ 1` and `#b ≥ 1`, per T0).
+- *Postconditions:* (a) The ordering among `a` and `b` under T1 is determined. (b) At most `min(#a, #b)` component pairs are examined. (c) The only values consulted are `{aᵢ : 1 ≤ i ≤ #a}`, `{bᵢ : 1 ≤ i ≤ #b}`, `#a`, and `#b`.
+- *Frame:* No external data structure is read or modified — the comparison is a pure function of the two tumblers.
 
 
 ## Canonical form
