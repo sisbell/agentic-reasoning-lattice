@@ -1649,23 +1649,24 @@ Both preconditions are satisfied. TA-strict yields `v ⊕ δ(n, m) > v`, that is
 
 `(A v, n₁, n₂ : n₁ ≥ 1 ∧ n₂ > n₁ ∧ #v = m : shift(v, n₁) < shift(v, n₂))`
 
-*Proof.* We show that shifting a tumbler by a larger amount produces a strictly greater result: if n₂ exceeds n₁, then the shift by n₂ overshoots the shift by n₁.
+*Dependencies:*
+- **TS3 (ShiftComposition):** `shift(shift(v, n₁), n₂) = shift(v, n₁ + n₂)` for `n₁ ≥ 1`, `n₂ ≥ 1`, `#v = m`. Decomposes a larger shift into a composition of two smaller shifts.
+- **TS4 (ShiftStrictIncrease):** `shift(v, n) > v` for `n ≥ 1`, `#v = m`. Guarantees that any positive shift advances a tumbler strictly forward.
+- **TA0 (Well-defined addition):** For `a, w ∈ T` with `w > 0` and action point `k ≤ #a`, `a ⊕ w ∈ T` with `#(a ⊕ w) = #w`. Supplies the result-length identity needed to confirm that shift preserves tumbler length.
 
-Fix v ∈ T with #v = m, and fix n₁ ≥ 1 and n₂ > n₁. We must prove shift(v, n₁) < shift(v, n₂).
+*Proof.* We show that shifting a tumbler by a larger amount produces a strictly greater result. The argument decomposes the larger shift into the smaller shift followed by an additional positive shift, then applies strict increase to the remainder.
 
-Define d = n₂ − n₁. Since n₂ > n₁ and both are natural numbers, d ≥ 1. And since n₁ ≥ 1, we have n₂ = n₁ + d with both n₁ ≥ 1 and d ≥ 1.
+Fix `v ∈ T` with `#v = m`, and fix `n₁ ≥ 1` and `n₂ > n₁`. We must prove `shift(v, n₁) < shift(v, n₂)`.
 
-We invoke TS3 (ShiftComposition), which states that for any tumbler u with #u = m and any pair of positive shifts a ≥ 1, b ≥ 1: shift(shift(u, a), b) = shift(u, a + b). Here u = v, a = n₁, b = d. The preconditions are n₁ ≥ 1 (given) and d ≥ 1 (established above), both satisfied. Therefore shift(shift(v, n₁), d) = shift(v, n₁ + d) = shift(v, n₂). This expresses the larger shift as a composition: first shift by n₁, then shift the result by d.
+Define `d = n₂ − n₁`. Since `n₂ > n₁` and both are natural numbers, `d ≥ 1`. Since `n₁ ≥ 1`, the decomposition `n₂ = n₁ + d` holds with both summands positive.
 
-Let u = shift(v, n₁). By OrdinalShift, u is a tumbler with #u = m (shift preserves length). Then shift(v, n₂) = shift(u, d). We invoke TS4 (ShiftStrictIncrease), which states that for any tumbler u with #u = m and any n ≥ 1: shift(u, n) > u. Here u = shift(v, n₁) and n = d. The preconditions are d ≥ 1 (established above) and #u = m (just noted), both satisfied. Therefore shift(u, d) > u.
+We invoke TS3 (ShiftComposition) with tumbler `v`, first shift `n₁`, second shift `d`. The preconditions are `n₁ ≥ 1` (given), `d ≥ 1` (established above), and `#v = m` (given), all satisfied. Therefore `shift(shift(v, n₁), d) = shift(v, n₁ + d) = shift(v, n₂)`. This expresses the larger shift as a composition: first shift by `n₁`, then shift the result by `d`.
 
-Substituting back: shift(v, n₂) = shift(u, d) > u = shift(v, n₁), that is, shift(v, n₁) < shift(v, n₂). ∎
+Let `u = shift(v, n₁)`. We need `#u = m` to invoke TS4 on `u`. By the definition of shift, `u = v ⊕ δ(n₁, m)`, and by TA0 (result-length identity), `#u = #δ(n₁, m) = m`. So `u ∈ T` with `#u = m`. The composition identity gives `shift(v, n₂) = shift(u, d)`.
 
-*Worked example.* Let v = [2, 3, 7] (m = 3) and n = 4. Then δ(4, 3) = [0, 0, 4] with action point 3. TA0: k = 3 ≤ 3 = #v. By TumblerAdd: shift(v, 4) = [2, 3, 7 + 4] = [2, 3, 11].
+We invoke TS4 (ShiftStrictIncrease) with tumbler `u` and shift amount `d`. The preconditions are `d ≥ 1` (established above) and `#u = m` (just confirmed), both satisfied. Therefore `shift(u, d) > u`.
 
-For TS1: take v₁ = [2, 3, 5] < v₂ = [2, 3, 9] with n = 4. Then shift(v₁, 4) = [2, 3, 9] < [2, 3, 13] = shift(v₂, 4). ✓
-
-For TS3: shift(shift([2, 3, 7], 4), 3) = shift([2, 3, 11], 3) = [2, 3, 14] = shift([2, 3, 7], 7). ✓
+Substituting: `shift(v, n₂) = shift(u, d) > u = shift(v, n₁)`, that is, `shift(v, n₁) < shift(v, n₂)`. ∎
 
 *Formal Contract:*
 - *Preconditions:* v ∈ T, n₁ ≥ 1, n₂ > n₁, #v = m
