@@ -829,17 +829,25 @@ But TA1 alone does not guarantee that addition *advances* a position. It preserv
 
 Without TA-strict, the axioms admit a degenerate model in which `a ⊕ w = a` for all `a, w`. This no-op model satisfies TA0 (result is in T), TA1 (if `a < b` then `a < b` — the consequent is unchanged), and TA4 (`(a ⊕ w) ⊖ w = a ⊖ w = a` if subtraction is equally degenerate). Every axiom is satisfied, yet spans are empty — the interval `[s, s ⊕ ℓ)` collapses to `[s, s)`. TA-strict excludes this model and ensures that advancing by a positive displacement moves forward. T12 (span well-definedness) depends on this directly.
 
-*Proof.* We show that for all `a ∈ T` and `w > 0` with action point `k ≤ #a`, the advanced position `a ⊕ w` is strictly greater than `a` under T1.
+*Dependencies:*
+- **T0(a) (Carrier-set definition):** T is the set of all finite sequences over ℕ with length ≥ 1.
+- **T1 (Lexicographic order):** `a < b` iff there exists `k ≥ 1` with `aᵢ = bᵢ` for all `i < k` and either (i) `k ≤ min(#a, #b)` and `aₖ < bₖ`, or (ii) `k = #a + 1 ≤ #b`.
+- **TA0 (Well-defined addition):** For `a, w ∈ T` with `w > 0` and action point `k ≤ #a`, `a ⊕ w ∈ T` with `#(a ⊕ w) = #w`.
+- **TumblerAdd (Constructive definition):** `(a ⊕ w)ᵢ = aᵢ` for `i < k`, `(a ⊕ w)ₖ = aₖ + wₖ`, `(a ⊕ w)ᵢ = wᵢ` for `i > k`; result length `#(a ⊕ w) = #w`.
 
-Let `a = [a₁, ..., aₘ]` and `w = [w₁, ..., wₙ]` with `w > 0`. The action point `k = min({i : 1 ≤ i ≤ n ∧ wᵢ ≠ 0})` exists because `w > 0`, and the TA0 precondition gives `k ≤ m`. Let `r = a ⊕ w`. By TA0, `r ∈ T` with `#r = n`, so the T1 comparison between `r` and `a` is well-defined.
+*Proof.* We show that for all `a ∈ T` and `w > 0` with action point `k ≤ #a`, the result `r = a ⊕ w` satisfies `r > a` under the lexicographic order T1.
 
-We establish a witness for `r > a` under T1's definition. The TumblerAdd construction defines `r` in three regions: `rᵢ = aᵢ` for `1 ≤ i < k`, `rₖ = aₖ + wₖ`, and `rᵢ = wᵢ` for `k < i ≤ n`.
+Let `a = [a₁, ..., aₘ]` and `w = [w₁, ..., wₙ]` with `w > 0`. The action point `k = min({i : 1 ≤ i ≤ n ∧ wᵢ ≠ 0})` exists because `w > 0` ensures at least one nonzero component, and the TA0 precondition gives `k ≤ m`. Write `r = a ⊕ w`. By TA0, `r ∈ T` with `#r = n`, so both `a` and `r` are members of T and the T1 comparison is well-defined.
 
-*Agreement before position `k`.* For every `i` with `1 ≤ i < k`, `rᵢ = aᵢ` — the prefix-copy rule of TumblerAdd reproduces the start position exactly. So `rᵢ = aᵢ` for all `i < k`.
+The TumblerAdd construction defines `r` in three regions: `rᵢ = aᵢ` for `1 ≤ i < k` (prefix copy), `rₖ = aₖ + wₖ` (single-component advance), and `rᵢ = wᵢ` for `k < i ≤ n` (tail copy). We produce a witness for `a < r` under T1 case (i) at position `k`.
 
-*Strict increase at position `k`.* By definition of action point, `wₖ > 0`. Therefore `rₖ = aₖ + wₖ > aₖ`, since adding a positive natural number to a non-negative one yields a strictly larger result. Position `k` satisfies `k ≤ m = #a` (the TA0 precondition) and `k ≤ n = #r` (since `k` is a valid index into `w` and `#r = #w = n`). Thus `k ≤ min(#a, #r)`.
+*Agreement before position `k`.* For every `i` with `1 ≤ i < k`, `rᵢ = aᵢ` by TumblerAdd's prefix-copy rule — the construction reproduces the start position exactly through position `k − 1`. This establishes the T1 prefix-agreement condition `(A i : 1 ≤ i < k : aᵢ = rᵢ)`.
 
-We now have a witness for `a < r` via T1 case (i): position `k` satisfies `k ≤ min(#a, #r)`, with `aᵢ = rᵢ` for all `i < k` and `aₖ < rₖ`. By T1, `a < r`, i.e., `a < a ⊕ w`, which is equivalently `a ⊕ w > a`. ∎
+*Strict increase at position `k`.* By definition of action point, `wₖ > 0`. Since `aₖ ∈ ℕ` (because `k ≤ m` and `a ∈ T`) and `wₖ ∈ ℕ` with `wₖ > 0`, the sum `aₖ + wₖ > aₖ` — adding a positive natural number to a non-negative one yields a strictly larger result. Therefore `rₖ = aₖ + wₖ > aₖ`, i.e., `aₖ < rₖ`.
+
+*Applicability of T1 case (i).* Position `k` must satisfy `k ≤ min(#a, #r)`. We have `k ≤ m = #a` by the TA0 precondition, and `k ≤ n = #r` because `k` is a valid index into `w` and `#r = #w = n` by TA0. So `k ≤ min(#a, #r)`.
+
+We now have a witness for T1 case (i) at position `k`: `aᵢ = rᵢ` for all `i < k`, and `aₖ < rₖ`, with `k ≤ min(#a, #r)`. By T1, `a < r`, i.e., `a < a ⊕ w`, which is equivalently `a ⊕ w > a`. ∎
 
 *Formal Contract:*
 - *Preconditions:* `a ∈ T`, `w ∈ T`, `w > 0`, `k ≤ #a` where `k` is the action point of `w`
