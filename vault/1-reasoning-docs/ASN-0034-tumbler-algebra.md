@@ -219,6 +219,24 @@ The total order T1 determines *sequence* (which address comes first). But the sy
 
   (d) Whether the document field of `a` is a prefix of the document field of `b` (structural subordination within a document family).
 
+*Proof.* We must show that each of (a)–(d) can be decided by a terminating procedure that examines only the tumbler representations of `a` and `b`, with no external information.
+
+By T4(b), the function `fields(t)` — which decomposes a tumbler into its node, user, document, and element fields by locating the zero-valued separators — is well-defined and uniquely determined by `t` alone. Since `t` is a finite sequence, the extraction terminates: scan `t` once, record the positions of zero-valued components (at most three, by T4), and partition the remaining components into the corresponding fields. Write `N(t)`, `U(t)`, `D(t)`, `E(t)` for the node, user, document, and element fields of `t` respectively, each being a finite (possibly absent) sequence of strictly positive natural numbers. Two finite sequences of natural numbers are equal iff they have the same length and agree at every position — a check requiring finitely many comparisons, each decidable. We use this observation in every case below.
+
+*(a) Same node field.* Extract `N(a)` and `N(b)` via `fields` (T4(b)). Every tumbler has a node field (T4 requires at least one component with `α ≥ 1`), so `N(a)` and `N(b)` are both present. Check `#N(a) = #N(b)` and, if so, `(A i : 1 ≤ i ≤ #N(a) : N(a)ᵢ = N(b)ᵢ)`. This requires at most `#N(a) + 1` comparisons, each decidable. The procedure terminates and reports whether the node fields are identical.
+
+*(b) Same node and user fields.* Extract `N(a), U(a)` and `N(b), U(b)` via `fields` (T4(b)). Both `a` and `b` must possess user fields — that is, `zeros(a) ≥ 1` and `zeros(b) ≥ 1`. By T4(c), the zero count is computable from the tumbler alone, so the presence of user fields is itself decidable. If either tumbler lacks a user field, the answer is *no* (they cannot share a field that one does not possess). When both fields are present, compare `N(a) = N(b)` as in (a), then compare `U(a) = U(b)` componentwise: check `#U(a) = #U(b)` and `(A j : 1 ≤ j ≤ #U(a) : U(a)ⱼ = U(b)ⱼ)`. Both checks are finite and decidable.
+
+*(c) Same node, user, and document-lineage fields.* Extract `N(a), U(a), D(a)` and `N(b), U(b), D(b)` via `fields` (T4(b)). Both must possess document fields (`zeros(a) ≥ 2`, `zeros(b) ≥ 2`), which is decidable by T4(c). If either lacks a document field, the answer is *no*. When both are present, compare all three field pairs componentwise — `N(a) = N(b)`, `U(a) = U(b)`, `D(a) = D(b)` — each as in (a). The total number of comparisons is bounded by the sum of the field lengths plus three length checks, all finite.
+
+*(d) Document-field prefix.* Extract `D(a) = (D₁ᵃ, ..., Dᵧₐᵃ)` and `D(b) = (D₁ᵇ, ..., Dᵧᵦᵇ)` via `fields` (T4(b)). Both must possess document fields; decidable as in (c). `D(a)` is a prefix of `D(b)` iff `γₐ ≤ γᵦ` and `(A k : 1 ≤ k ≤ γₐ : Dₖᵃ = Dₖᵇ)`. Check the length condition (one comparison of natural numbers), then verify componentwise agreement up to position `γₐ` (at most `γₐ` comparisons). The procedure terminates in at most `γₐ + 1` steps.
+
+In every case the procedure examines only the finite sequence of components in `a` and `b`, performs finitely many equality or comparison tests on natural numbers, and terminates. No mapping tables, version graphs, or system state are required — the tumbler representation alone suffices. ∎
+
+*Formal Contract:*
+- *Preconditions:* `a, b ∈ T` are valid tumblers satisfying T4 (positive-component constraint, at most three zeros, no adjacent zeros, no leading or trailing zero).
+- *Postconditions:* (a)–(c) Each field-equality query terminates and returns a boolean. (d) The prefix query on document fields terminates and returns a boolean. All decisions are computed from the tumbler representations alone via `fields(t)` (T4(b)).
+
 T6 is a corollary: it follows immediately from T4 — we extract the relevant fields and compare. We state it separately because the decidability claim is load-bearing for decentralized operation, but it introduces no independent content beyond T4.
 
 We must note what T6(d) does NOT capture. The document field records the *allocation hierarchy* — who baptised which sub-number — not the *derivation history*. Version `5.3` was allocated under document `5`, but this tells us nothing about which version's content was copied to create `5.3`. Nelson: "the version, or subdocument number is only an accidental extension of the document number, and strictly implies no specific relationship of derivation." Formal version-derivation requires the version graph, not just the address.
