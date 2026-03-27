@@ -2073,14 +2073,14 @@ Removing any independent property breaks a system-level guarantee. T6 and T7 are
 | T1 | Tumblers are totally ordered by lexicographic comparison, with the prefix-less-than convention | introduced |
 | T2 | Tumbler comparison is computable from the two addresses alone, examining at most min(#a, #b) components | introduced |
 | T3 | Each tumbler has exactly one canonical representation; component-wise identity is both necessary and sufficient for equality | from T0(a) |
-| T4 | An address tumbler has at most three zero-valued components as field separators, every field component is strictly positive, and every present field has at least one component (no adjacent zeros, no leading/trailing zero) | introduced |
+| T4 | An address tumbler has at most three zero-valued components as field separators, every field component is strictly positive, and every present field has at least one component (no adjacent zeros, no leading/trailing zero) | axiom |
 | T5 | The set of tumblers sharing a prefix forms a contiguous interval under T1 | introduced |
 | T6 | Containment (same node, same account, same document family, structural subordination) is decidable from addresses alone | corollary of T4 |
 | T7 | Subspaces (text, links) within a document's element field are permanently disjoint | corollary of T3, T4 |
-| T8 | Once allocated, an address is never removed from the address space; the set of allocated addresses is monotonically non-decreasing | introduced |
+| T8 | Once allocated, an address is never removed from the address space; the set of allocated addresses is monotonically non-decreasing | design requirement |
 | T9 | Within a single allocator's sequential stream, new addresses are strictly monotonically increasing; gaps are permanent | lemma (from T10a, TA5) |
 | T10 | Allocators with non-nesting prefixes produce distinct addresses without coordination | introduced |
-| T10a | Each allocator uses inc(·, 0) for siblings and inc(·, k>0) only for child-spawning; this constrains sibling outputs to uniform length | introduced |
+| T10a | Each allocator uses inc(·, 0) for siblings and inc(·, k>0) only for child-spawning; this constrains sibling outputs to uniform length | design requirement |
 | PrefixOrderingExtension | p₁ < p₂ with neither a prefix of the other implies a < b for every a with p₁ ≼ a and every b with p₂ ≼ b | lemma (from T1) |
 | PartitionMonotonicity | Per-allocator ordering extends cross-allocator; for non-nesting sibling prefixes p₁ < p₂, every address extending p₁ precedes every address extending p₂ | theorem from PrefixOrderingExtension, T1, T3, T5, T9, T10a, TA5 |
 | GlobalUniqueness | No two distinct allocation events anywhere in the system at any time produce the same address | theorem from T3, T4, T9, T10, T10a, TA5 |
