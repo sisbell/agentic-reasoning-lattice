@@ -1677,6 +1677,8 @@ Both preconditions are satisfied. TA-strict yields `v ⊕ δ(n, m) > v`, that is
 - **TS3 (ShiftComposition):** `shift(shift(v, n₁), n₂) = shift(v, n₁ + n₂)` for `n₁ ≥ 1`, `n₂ ≥ 1`, `#v = m`. Decomposes a larger shift into a composition of two smaller shifts.
 - **TS4 (ShiftStrictIncrease):** `shift(v, n) > v` for `n ≥ 1`, `#v = m`. Guarantees that any positive shift advances a tumbler strictly forward.
 - **TA0 (Well-defined addition):** For `a, w ∈ T` with `w > 0` and action point `k ≤ #a`, `a ⊕ w ∈ T` with `#(a ⊕ w) = #w`. Supplies the result-length identity needed to confirm that shift preserves tumbler length.
+- **OrdinalShift (Definition):** `shift(v, n) = v ⊕ δ(n, #v)`. Expands shift to tumbler addition for length verification.
+- **OrdinalDisplacement (Definition):** `δ(n, m) = [0, ..., 0, n]` of length `m`, with action point `m`. Supplies `#δ(n, m) = m` for the length argument.
 
 *Proof.* We show that shifting a tumbler by a larger amount produces a strictly greater result. The argument decomposes the larger shift into the smaller shift followed by an additional positive shift, then applies strict increase to the remainder.
 
@@ -2112,7 +2114,7 @@ Removing any independent property breaks a system-level guarantee. T6 and T7 are
 | TS2 | shift is injective: shift(v₁, n) = shift(v₂, n) ⟹ v₁ = v₂ | lemma (from TA-MTO, T3) |
 | TS3 | shift composes additively: shift(shift(v, n₁), n₂) = shift(v, n₁ + n₂) | lemma (from TumblerAdd, T3) |
 | TS4 | shift strictly increases: shift(v, n) > v | corollary of TA-strict |
-| TS5 | shift is monotone in amount: n₁ < n₂ ⟹ shift(v, n₁) < shift(v, n₂) | corollary of TS3, TS4 |
+| TS5 | shift is monotone in amount: n₁ < n₂ ⟹ shift(v, n₁) < shift(v, n₂) | corollary of TS3, TS4, TA0, OrdinalShift, OrdinalDisplacement |
 
 
 ## Open Questions
