@@ -461,6 +461,11 @@ We observe that T9 is scoped to a *single allocator's sequential stream*, not to
 
 A consequence of T8 and T9 together: the set of allocated addresses is a *growing set* in the lattice-theoretic sense — it can only increase, and new elements always appear at the frontier of each allocator's domain.
 
+*Dependencies:*
+- **T10a (Allocator discipline):** Each allocator produces its sibling outputs exclusively by repeated application of `inc(·, 0)`. This is the mechanism under proof: the sequence `t₀, t₁, t₂, ...` with `tₙ₊₁ = inc(tₙ, 0)` is the allocator's entire sibling stream.
+- **TA5 (Hierarchical increment):** (a) `inc(t, 0)` produces `t' > t` under T1. Supplies the strict increase at each step that drives the induction.
+- **T1 (Lexicographic order):** (c) Transitivity: `a < b ∧ b < c ⟹ a < c`. Chains consecutive strict increases across multiple steps.
+
 *Proof.* We must show that within a single allocator's sequential stream, if address `a` was allocated before address `b`, then `a < b` under the tumbler order T1.
 
 By T10a, each allocator produces its sibling outputs exclusively by repeated application of `inc(·, 0)`. Let the allocator's base address be `t₀` and its successive outputs be `t₁, t₂, t₃, ...` where `tₙ₊₁ = inc(tₙ, 0)` for all `n ≥ 0`. The predicate `same_allocator(a, b)` holds exactly when both `a` and `b` appear in this sequence, and `allocated_before(a, b)` holds exactly when `a = tᵢ` and `b = tⱼ` with `i < j`. We must show `tᵢ < tⱼ`.
