@@ -29,38 +29,32 @@ from paths import (WORKSPACE, ASNS_DIR, REVIEWS_DIR, load_manifest,
 from lib.common import find_asn, step_commit_asn
 
 
-STEPS = ["format", "deps", "repair", "quality", "audit", "verify", "review", "assembly", "cleanup"]
+STEPS = ["stabilize", "repair", "stabilize", "quality", "stabilize", "audit", "verify", "review", "stabilize", "assembly", "cleanup"]
 
 
 # ---------------------------------------------------------------------------
-# Step 1: Format Gate
+# Stabilize: Format Gate + Deps Generation
 # ---------------------------------------------------------------------------
 
-def step_format(asn_num):
-    """Run format normalization. Returns True if clean."""
+def step_stabilize(asn_num):
+    """Run format gate + deps generation. Returns True on success."""
     from lib.normalize_format import normalize_format
-    print(f"\n  [1/9 FORMAT]", file=sys.stderr)
-    ok = normalize_format(asn_num)
-    if ok:
-        step_commit_asn(asn_num, hint="format normalized")
-    return ok
-
-
-# ---------------------------------------------------------------------------
-# Step 2: Deps Generation
-# ---------------------------------------------------------------------------
-
-def step_deps(asn_num):
-    """Generate dependency YAML. Returns True on success."""
     from lib.rebase_deps import generate_deps, write_deps_yaml
-    print(f"\n  [2/9 DEPS]", file=sys.stderr)
+
+    print(f"\n  [STABILIZE] Format + Deps", file=sys.stderr)
+
+    # Format gate
+    ok = normalize_format(asn_num)
+    if not ok:
+        return False
+
+    # Deps generation
     deps = generate_deps(asn_num)
     if deps:
         write_deps_yaml(asn_num, deps)
-        step_commit_asn(asn_num, hint="deps generated")
-        return True
-    print(f"  [DEPS] No property table found", file=sys.stderr)
-    return False
+
+    step_commit_asn(asn_num, hint="stabilize")
+    return True
 
 
 # ---------------------------------------------------------------------------
@@ -309,15 +303,17 @@ def run_pipeline(asn_num, force=False, start_step=None, max_review_cycles=30):
             return "failed"
 
     steps = [
-        ("format",   step_format),
-        ("deps",     step_deps),
-        ("repair",   step_repair),
-        ("quality",  step_quality),
-        ("audit",    step_audit),
-        ("verify",   step_verify),
-        ("review",   lambda n: step_review(n, max_review_cycles)),
-        ("assembly", step_assembly),
-        ("cleanup",  step_cleanup),
+        ("stabilize", step_stabilize),
+        ("repair",    step_repair),
+        ("stabilize", step_stabilize),
+        ("quality",   step_quality),
+        ("stabilize", step_stabilize),
+        ("audit",     step_audit),
+        ("verify",    step_verify),
+        ("review",    lambda n: step_review(n, max_review_cycles)),
+        ("stabilize", step_stabilize),
+        ("assembly",  step_assembly),
+        ("cleanup",   step_cleanup),
     ]
 
     for i, (name, fn) in enumerate(steps):
@@ -325,9 +321,9 @@ def run_pipeline(asn_num, force=False, start_step=None, max_review_cycles=30):
             continue
 
         ok = fn(asn_num)
-        if not ok and name in ("format", "deps"):
-            # Critical steps — can't continue without them
-            print(f"\n  [FAILED] {asn_label} — {name} step failed",
+        if not ok and name == "stabilize":
+            # Critical step — can't continue without clean format + deps
+            print(f"\n  [FAILED] {asn_label} — stabilize step failed",
                   file=sys.stderr)
             return "failed"
         elif not ok and name == "review":
@@ -354,7 +350,9 @@ def main():
     parser.add_argument("asn", help="ASN number (e.g., 34)")
     parser.add_argument("--force", action="store_true",
                         help="Ignore cached state, run all steps")
-    parser.add_argument("--step", choices=STEPS,
+    parser.add_argument("--step",
+                        choices=["repair", "quality", "audit", "verify",
+                                 "review", "assembly", "cleanup"],
                         help="Start from this step (skip earlier)")
     parser.add_argument("--max-review-cycles", type=int, default=30,
                         help="Max general review/revise cycles")
