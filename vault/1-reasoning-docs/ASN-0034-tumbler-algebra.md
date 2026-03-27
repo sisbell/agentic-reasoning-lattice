@@ -576,17 +576,33 @@ We first establish a lemma that converts ordering of prefixes into ordering of a
 
 **PrefixOrderingExtension (Prefix ordering extension).** Let `p₁, p₂ ∈ T` be tumblers such that `p₁ < p₂` and neither is a prefix of the other (`p₁ ⋠ p₂ ∧ p₂ ⋠ p₁`). Then for every `a` extending `p₁` (`p₁ ≼ a`) and every `b` extending `p₂` (`p₂ ≼ b`), `a < b`.
 
+*Dependencies:*
+- **T1 (Lexicographic order):** `a < b` iff there exists least `k ≥ 1` with `(A i : 1 ≤ i < k : aᵢ = bᵢ)` and either (i) `k ≤ min(#a, #b)` with `aₖ < bₖ`, or (ii) `k = #a + 1 ≤ #b` (proper prefix).
+- **Prefix relation (from T1):** `p ≼ a` means `#p ≤ #a` and `aᵢ = pᵢ` for all `1 ≤ i ≤ #p`.
+
 *Proof.* We must show: `(A a, b ∈ T : p₁ ≼ a ∧ p₂ ≼ b : a < b)`, given that `p₁ < p₂` and `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁`.
 
-Let `p₁ = p₁₁. ... .p₁ₘ` and `p₂ = p₂₁. ... .p₂ₙ`. The hypothesis `p₁ < p₂` means, by T1 (lexicographic order), that there exists a least position `k ≥ 1` such that `(A i : 1 ≤ i < k : p₁ᵢ = p₂ᵢ)` and one of two cases holds. Case (ii) of T1 requires `p₁` to be a proper prefix of `p₂`, i.e., `k = m + 1 ≤ n`, which would give `p₁ ≼ p₂` — contradicting the hypothesis `p₁ ⋠ p₂`. Therefore case (i) of T1 applies: `k ≤ min(m, n)` and `p₁ₖ < p₂ₖ`. We record:
+**Extracting the divergence point.** Let `p₁ = p₁₁. ... .p₁ₘ` and `p₂ = p₂₁. ... .p₂ₙ`. The hypothesis `p₁ < p₂` means, by T1, that there exists a least position `k ≥ 1` such that `(A i : 1 ≤ i < k : p₁ᵢ = p₂ᵢ)` and one of two cases holds. Case (ii) requires `p₁` to be a proper prefix of `p₂`, i.e., `k = m + 1 ≤ n`, which gives `#p₁ ≤ #p₂` and `p₂ᵢ = p₁ᵢ` for all `1 ≤ i ≤ m` — that is, `p₁ ≼ p₂`, contradicting the hypothesis `p₁ ⋠ p₂`. Therefore case (i) applies: `k ≤ min(m, n)` and `p₁ₖ < p₂ₖ`. We record:
 
   (H1) `(A i : 1 ≤ i < k : p₁ᵢ = p₂ᵢ)` — the prefixes agree before position `k`.
 
   (H2) `k ≤ min(m, n)` and `p₁ₖ < p₂ₖ` — the prefixes diverge at position `k`.
 
-Now let `a` and `b` be arbitrary tumblers with `p₁ ≼ a` and `p₂ ≼ b`. The prefix relation `p₁ ≼ a` means `#a ≥ m` and `aᵢ = p₁ᵢ` for all `1 ≤ i ≤ m`. Since `k ≤ m` (from H2, as `k ≤ min(m, n) ≤ m`), position `k` falls within the prefix, so `aₖ = p₁ₖ`. By the same reasoning, `p₂ ≼ b` gives `#b ≥ n` and `bᵢ = p₂ᵢ` for all `1 ≤ i ≤ n`; since `k ≤ n`, we have `bₖ = p₂ₖ`.
+**Transferring the divergence to extensions.** Let `a` and `b` be arbitrary tumblers with `p₁ ≼ a` and `p₂ ≼ b`.
 
-We now verify the two conditions required by T1 case (i) for `a < b`. First, agreement before position `k`: for each `i` with `1 ≤ i < k`, we have `aᵢ = p₁ᵢ` (from `p₁ ≼ a`, since `i < k ≤ m`) and `p₁ᵢ = p₂ᵢ` (from H1) and `p₂ᵢ = bᵢ` (from `p₂ ≼ b`, since `i < k ≤ n`), giving `aᵢ = bᵢ`. Second, strict inequality at position `k`: `aₖ = p₁ₖ < p₂ₖ = bₖ` (combining the prefix transfers with H2). Since `k ≤ min(#a, #b)` (as `k ≤ m ≤ #a` and `k ≤ n ≤ #b`), T1 case (i) applies, giving `a < b`.
+From `p₁ ≼ a`: by the prefix relation, `#a ≥ m` and `aᵢ = p₁ᵢ` for all `1 ≤ i ≤ m`. Since `k ≤ m` (from H2, as `k ≤ min(m, n) ≤ m`), position `k` falls within the prefix, so `aₖ = p₁ₖ`.
+
+From `p₂ ≼ b`: by the prefix relation, `#b ≥ n` and `bᵢ = p₂ᵢ` for all `1 ≤ i ≤ n`. Since `k ≤ n` (from H2, as `k ≤ min(m, n) ≤ n`), position `k` falls within the prefix, so `bₖ = p₂ₖ`.
+
+**Establishing `a < b` via T1 case (i).** We verify the two conditions required by T1 case (i).
+
+*Agreement before position `k`:* for each `i` with `1 ≤ i < k`, we have `aᵢ = p₁ᵢ` (from `p₁ ≼ a`, since `i < k ≤ m`) and `p₁ᵢ = p₂ᵢ` (from H1) and `p₂ᵢ = bᵢ` (from `p₂ ≼ b`, since `i < k ≤ n`), giving `aᵢ = bᵢ`.
+
+*Strict inequality at position `k`:* `aₖ = p₁ₖ < p₂ₖ = bₖ`, combining the prefix transfers with H2.
+
+*Witness validity:* `k ≤ min(#a, #b)`, since `k ≤ m ≤ #a` and `k ≤ n ≤ #b`.
+
+These three facts together satisfy T1 case (i), giving `a < b`.
 
 Since `a` and `b` were arbitrary tumblers extending `p₁` and `p₂` respectively, the result holds universally: `(A a, b ∈ T : p₁ ≼ a ∧ p₂ ≼ b : a < b)`. ∎
 
