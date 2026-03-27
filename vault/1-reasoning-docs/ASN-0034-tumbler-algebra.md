@@ -1444,20 +1444,26 @@ And a span may be empty — populated by nothing at present — yet valid: "A sp
 
 **T12 (Span well-definedness).** A span `(s, ℓ)` is well-formed when `ℓ > 0` and the action point `k` of `ℓ` satisfies `k ≤ #s` (the TA0 precondition for `s ⊕ ℓ`). Equivalently, the number of leading zeros in `ℓ` must be strictly less than `#s`. A well-formed span denotes the set `{t ∈ T : s ≤ t < s ⊕ ℓ}`. This set is contiguous under T1 — there is no tumbler between two members that is not itself a member.
 
-*Proof.* We establish three properties of the set `S = {t ∈ T : s ≤ t < s ⊕ ℓ}`: that the endpoint `s ⊕ ℓ` exists, that `S` is non-empty, and that `S` is contiguous.
+*Proof.* We show that for `s ∈ T` and `ℓ ∈ T` with `ℓ > 0` and action point `k` of `ℓ` satisfying `k ≤ #s`, the set `S = {t ∈ T : s ≤ t < s ⊕ ℓ}` has three properties: its upper bound `s ⊕ ℓ` exists in `T`, it is non-empty, and it is order-convex (contiguous) under T1. We note that `k ≤ #s` is equivalent to requiring that the number of leading zeros in `ℓ` — which is `k − 1`, since the action point is the first nonzero position — be strictly less than `#s`: the two are restatements of the same arithmetic condition.
 
-*(a) Endpoint existence.* The well-formedness conditions require `ℓ > 0` and that the action point `k` of `ℓ` satisfies `k ≤ #s`. These are precisely the preconditions of TA0, which gives `s ⊕ ℓ ∈ T`. The set `S` is therefore well-defined — its upper bound exists in `T`.
+*(a) Endpoint existence.* The well-formedness conditions give `ℓ > 0` and `k ≤ #s`, where `k` is the action point of `ℓ`. These are precisely the preconditions of TA0 (the displacement `ℓ` is positive and its action point does not exceed the length of the base `s`), so TA0 guarantees `s ⊕ ℓ ∈ T`. The set `S` is therefore well-defined — its upper bound exists in `T`.
 
-*(b) Non-emptiness.* Since `ℓ > 0` and `k ≤ #s`, TA-strict gives `s ⊕ ℓ > s`. Therefore `s` satisfies both `s ≤ s` (reflexivity of `≤`) and `s < s ⊕ ℓ`, so `s ∈ S`. The set contains at least one element.
+*(b) Non-emptiness.* We show `s ∈ S` by verifying both defining conditions. First, `s ≤ s` holds by reflexivity of `≤` (from T1: `a ≤ b` iff `a < b ∨ a = b`, and `s = s`). Second, since `ℓ > 0` and `k ≤ #s`, TA-strict gives `s ⊕ ℓ > s`, i.e., `s < s ⊕ ℓ`. Both conditions hold, so `s ∈ S` and the set contains at least one element.
 
-*(c) Contiguity.* By T1, `<` is a strict total order on `T`. The set `S = {t ∈ T : s ≤ t < s ⊕ ℓ}` is a half-open interval in this total order. Suppose `a, c ∈ S` and `a ≤ b ≤ c` for some `b ∈ T`. From `a ∈ S` we have `s ≤ a`; combined with `a ≤ b`, transitivity (T1(c)) gives `s ≤ b`. From `c ∈ S` we have `c < s ⊕ ℓ`; combined with `b ≤ c`, transitivity gives `b < s ⊕ ℓ`. Together, `s ≤ b < s ⊕ ℓ`, so `b ∈ S`. No tumbler lying between two members of `S` can fall outside `S`. ∎
+*(c) Contiguity.* We show that `S` is order-convex: for any `a, c ∈ S` and `b ∈ T` with `a ≤ b ≤ c`, we have `b ∈ S`. By T1, `<` is a strict total order on `T`, and transitivity of `<` is established by T1(c). Transitivity of `≤` follows: if `x ≤ y` and `y ≤ z`, then by case analysis on the disjunctions (`x < y ∨ x = y` and `y < z ∨ y = z`), each combination yields `x ≤ z` — the two strict cases compose via T1(c), and the equality cases are immediate by substitution.
+
+From `a ∈ S` we have `s ≤ a`. Combined with `a ≤ b`, transitivity of `≤` gives `s ≤ b` — the first defining condition of membership in `S`.
+
+From `c ∈ S` we have `c < s ⊕ ℓ`. Since `b ≤ c`, either `b = c` — in which case `b < s ⊕ ℓ` immediately — or `b < c`, in which case transitivity of `<` (T1(c)) with `c < s ⊕ ℓ` gives `b < s ⊕ ℓ`. In either case, `b < s ⊕ ℓ` — the second defining condition of membership in `S`.
+
+Together, `s ≤ b` and `b < s ⊕ ℓ`, so `b ∈ S`. No tumbler lying between two members of `S` falls outside `S`. ∎
 
 We reserve T5 for the distinct claim that *prefix-defined* sets are contiguous — a non-trivial property of the lexicographic order.
 
 *Formal Contract:*
-- *Preconditions:* s ∈ T, ℓ ∈ T, ℓ > 0, actionPoint(ℓ) ≤ #s
-- *Definition:* span(s, ℓ) = {t ∈ T : s ≤ t < s ⊕ ℓ}
-- *Postconditions:* (a) s ⊕ ℓ ∈ T (endpoint exists, by TA0). (b) s ∈ span(s, ℓ) (non-empty, by TA-strict). (c) span(s, ℓ) is contiguous under T1.
+- *Preconditions:* `s ∈ T`, `ℓ ∈ T`, `ℓ > 0`, `actionPoint(ℓ) ≤ #s`
+- *Definition:* `span(s, ℓ) = {t ∈ T : s ≤ t < s ⊕ ℓ}`
+- *Postconditions:* (a) `s ⊕ ℓ ∈ T` (endpoint exists, by TA0). (b) `s ∈ span(s, ℓ)` (non-empty, by TA-strict). (c) `span(s, ℓ)` is order-convex under T1 (for all `a, c ∈ span(s, ℓ)` and `b ∈ T`, `a ≤ b ≤ c` implies `b ∈ span(s, ℓ)`).
 
 
 ## Order structure: adjacency and interpolation
