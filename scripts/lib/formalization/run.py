@@ -31,22 +31,42 @@ from lib.shared.common import find_asn, step_commit_asn
 
 STEPS = ["stabilize", "repair", "stabilize", "quality", "stabilize", "audit", "verify", "stabilize", "assembly", "cleanup"]
 
+# Track ASN mtime after format CLEAN to skip redundant stabilize calls
+_last_clean_mtime = {}
+
 
 # ---------------------------------------------------------------------------
 # Stabilize: Format Gate + Deps Generation
 # ---------------------------------------------------------------------------
 
 def step_stabilize(asn_num):
-    """Run format gate + deps generation. Returns True on success."""
+    """Run format gate + deps generation. Returns True on success.
+
+    Skips entirely if the ASN file hasn't been modified since the last
+    CLEAN result.
+    """
     from lib.formalization.format import normalize_format
     from lib.formalization.deps import generate_deps, write_deps_yaml
 
     print(f"\n  [STABILIZE] Format + Deps", file=sys.stderr)
 
+    # Skip entirely if ASN unchanged since last CLEAN
+    asn_path, _ = find_asn(str(asn_num))
+    if asn_path:
+        current_mtime = asn_path.stat().st_mtime
+        last_mtime = _last_clean_mtime.get(asn_num)
+        if last_mtime is not None and current_mtime == last_mtime:
+            print(f"  [STABILIZE] Unchanged — skipping", file=sys.stderr)
+            return True
+
     # Format gate
     ok = normalize_format(asn_num)
     if not ok:
         return False
+
+    # Record mtime after CLEAN
+    if asn_path:
+        _last_clean_mtime[asn_num] = asn_path.stat().st_mtime
 
     # Deps generation
     deps = generate_deps(asn_num)

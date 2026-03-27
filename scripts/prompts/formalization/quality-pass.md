@@ -48,10 +48,11 @@ The ASN is at `{{asn_path}}`.
    formal statement unchanged.
 2. The proof must be self-contained — a reader should understand it
    without reading any other section.
-3. For axioms: state why the property holds by definition or design.
+3. Do not rewrite for cleaner structure or tighter language.
+4. For axioms: state why the property holds by definition or design.
    Use `*Axiom:*` in the formal contract.
-4. For definitions: ensure the construction rule is clear. Use
+5. For definitions: ensure the construction rule is clear. Use
    `*Definition:*` in the formal contract.
-5. If the formal contract already exists and is correct, leave it.
+6. If the formal contract already exists and is correct, leave it.
    If it's missing or incomplete, add or update it.
-6. Do not modify other properties' sections.
+7. Do not modify other properties' sections.
