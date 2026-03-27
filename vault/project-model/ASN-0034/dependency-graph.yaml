@@ -19,11 +19,13 @@ properties:
     name: Intrinsic comparison
     follows_from:
     - T1
+    - T3
   T3:
     status: from
-    name: Canonical representation
     follows_from:
+    - T0
     - T0(a)
+    name: Canonical representation
   T4:
     status: introduced
     name: Hierarchical parsing
@@ -32,6 +34,7 @@ properties:
     name: The set of tumblers sharing a prefix forms a contiguous interval under T1
     follows_from:
     - T1
+    - T3
   T6:
     status: corollary
     follows_from:
@@ -40,7 +43,6 @@ properties:
   T7:
     status: corollary
     follows_from:
-    - T1
     - T3
     - T4
     name: Subspace disjointness
@@ -92,6 +94,7 @@ properties:
   GlobalUniqueness:
     status: theorem
     follows_from:
+    - T1
     - T10
     - T10a
     - T3
@@ -110,12 +113,16 @@ properties:
   TA0:
     status: introduced
     name: Well-defined addition
+    follows_from:
+    - TumblerAdd
   TA1:
     status: introduced
     name: Addition preserves the total order (weak)
     follows_from:
     - T1
+    - T3
     - TA0
+    - TumblerAdd
   Divergence:
     status: from
     follows_from:
@@ -129,6 +136,7 @@ properties:
     follows_from:
     - Divergence
     - T1
+    - TA0
     - TA1
     - TumblerAdd
     name: strict (Strict order preservation)
@@ -145,7 +153,9 @@ properties:
   TA2:
     status: from
     follows_from:
+    - Divergence
     - T1
+    - T3
     - TumblerSub
     name: Tumbler subtraction a ⊖ w is well-defined when a ≥ w
   TA3:
@@ -167,12 +177,15 @@ properties:
   TA4:
     status: from
     follows_from:
+    - TA0
     - TumblerAdd
     - TumblerSub
     name: Addition and subtraction are partial inverses
   ReverseInverse:
     status: corollary
     follows_from:
+    - T1
+    - T3
     - TA3-strict
     - TA4
     - TumblerAdd
@@ -216,11 +229,14 @@ properties:
     name: Ordinal-only shift arithmetic
     follows_from:
     - T4
-    - TA6
+    - TA0
+    - TA2
+    - TumblerAdd
   TA-assoc:
     status: theorem
     follows_from:
     - T3
+    - TA0
     - TumblerAdd
     name: Addition is associative where both compositions are defined
   TA-LC:
@@ -234,20 +250,22 @@ properties:
     status: other
     follows_from:
     - T3
+    - TA0
     - TumblerAdd
     name: Right cancellation fails
   TA-MTO:
     status: other
     follows_from:
     - T3
+    - TA0
     - TumblerAdd
-    - TumblerSub
     name: MTO (ManyToOne)
   D0:
     status: from
     follows_from:
     - D1
     - Divergence
+    - T1
     - T3
     - TA0
     - TA2
@@ -258,6 +276,7 @@ properties:
     status: other
     follows_from:
     - Divergence
+    - T1
     - T3
     - TA0
     - TumblerAdd
@@ -268,6 +287,7 @@ properties:
     follows_from:
     - D0
     - D1
+    - T1
     - TA-LC
     - TA0
     - TumblerAdd
@@ -285,28 +305,38 @@ properties:
   TS1:
     status: other
     follows_from:
+    - Divergence
+    - OrdinalDisplacement
+    - OrdinalShift
     - TA1-strict
     name: ShiftOrderPreservation
   TS2:
     status: other
     follows_from:
+    - OrdinalDisplacement
+    - OrdinalShift
     - T3
     - TA-MTO
     name: ShiftInjectivity
   TS3:
     status: other
     follows_from:
+    - OrdinalShift
     - T3
+    - TA0
     - TumblerAdd
     name: ShiftComposition
   TS4:
     status: corollary
     follows_from:
+    - OrdinalDisplacement
+    - OrdinalShift
     - TA-strict
     name: ShiftStrictIncrease
   TS5:
     status: corollary
     follows_from:
+    - OrdinalShift
     - T4
     - TA0
     - TS1
