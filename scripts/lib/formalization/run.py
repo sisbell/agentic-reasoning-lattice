@@ -1,13 +1,13 @@
 """
-Unified ASN pipeline — one flow for discovery, review, and rebase.
+Formalization pipeline — stabilize, repair, quality, verify, assemble.
 
 Steps:
-1. Format gate — normalize table + headers
-2. Deps generation — mechanical property graph
-3. Audit — mechanical + LLM checks (if ASN has dependencies)
-4. Proof verification — per-proof, dependency-ordered (opus)
-5. General review/revise — cross-cutting analysis (opus)
-6. Assembly — formal-statements.md + deps YAML (post-convergence)
+1. Stabilize — format gate + deps generation
+2. Repair — standalone proofs for every property
+3. Quality — Dijkstra rewrite + formal contracts
+4. Audit — mechanical + LLM checks (if ASN has dependencies)
+5. Verify — per-proof verification, dependency-ordered (opus)
+6. Assembly — formal-statements.md + deps YAML
 7. Cleanup — clear open-issues, update timestamps
 
 Usage:
@@ -29,7 +29,7 @@ from lib.shared.paths import (WORKSPACE, ASNS_DIR, REVIEWS_DIR, load_manifest,
 from lib.shared.common import find_asn, step_commit_asn
 
 
-STEPS = ["stabilize", "repair", "stabilize", "quality", "stabilize", "audit", "verify", "review", "stabilize", "assembly", "cleanup"]
+STEPS = ["stabilize", "repair", "stabilize", "quality", "stabilize", "audit", "verify", "stabilize", "assembly", "cleanup"]
 
 
 # ---------------------------------------------------------------------------
@@ -164,45 +164,6 @@ def step_verify(asn_num):
     return found == 0 and errors == 0
 
 
-# ---------------------------------------------------------------------------
-# Step 5: General Review/Revise
-# ---------------------------------------------------------------------------
-
-def step_review(asn_num, max_cycles=30):
-    """General review/revise cycle. Returns True if converged."""
-    # Clear open-issues before general review — verification tracking is done
-    path = open_issues_path(asn_num)
-    if path.exists():
-        path.unlink()
-        print(f"  [CLEARED] open-issues before general review",
-              file=sys.stderr)
-
-    print(f"\n  [7/9 REVIEW]", file=sys.stderr)
-
-    # Run initial review
-    review_cmd = [sys.executable,
-                  str(WORKSPACE / "scripts" / "review.py"),
-                  str(asn_num), "--general"]
-    review_result = subprocess.run(review_cmd, capture_output=False,
-                                   text=True, cwd=str(WORKSPACE))
-
-    if review_result.returncode == 2:
-        print(f"  [REVIEW] CONVERGED", file=sys.stderr)
-        return True
-    elif review_result.returncode == 1:
-        print(f"  [REVIEW] Failed", file=sys.stderr)
-        return False
-
-    # Has findings — run convergence
-    print(f"  [REVIEW] Running convergence...", file=sys.stderr)
-    converge_cmd = [sys.executable,
-                    str(WORKSPACE / "scripts" / "revise.py"),
-                    str(asn_num),
-                    "--converge", str(max_cycles)]
-    converge_result = subprocess.run(converge_cmd, capture_output=False,
-                                     text=True, cwd=str(WORKSPACE))
-    return converge_result.returncode == 0
-
 
 # ---------------------------------------------------------------------------
 # Step 6: Assembly
@@ -262,16 +223,13 @@ def step_cleanup(asn_num):
 # Orchestrator
 # ---------------------------------------------------------------------------
 
-def run_pipeline(asn_num, force=False, start_step=None, max_review_cycles=30,
-                 discovery=False):
-    """Run the unified ASN pipeline.
+def run_pipeline(asn_num, force=False, start_step=None):
+    """Run the formalization pipeline.
 
     Args:
         asn_num: ASN number
         force: ignore cached state, run all steps
         start_step: start from this step (skip earlier steps)
-        max_review_cycles: max cycles for general review convergence
-        discovery: if True, run only review/revise (no formalization)
 
     Returns:
         "completed" — pipeline converged
@@ -288,23 +246,11 @@ def run_pipeline(asn_num, force=False, start_step=None, max_review_cycles=30,
         path.unlink()
         print(f"  [CLEARED] open-issues", file=sys.stderr)
 
-    mode = "discovery" if discovery else "formalization"
     print(f"\n  {'='*50}", file=sys.stderr)
-    print(f"  {asn_label} — {mode}", file=sys.stderr)
+    print(f"  {asn_label} — formalization", file=sys.stderr)
     print(f"  {'='*50}", file=sys.stderr)
 
     start_time = time.time()
-
-    # Discovery mode: review/revise only
-    if discovery:
-        ok = step_review(asn_num, max_review_cycles)
-        elapsed = time.time() - start_time
-        print(f"\n  {'='*50}", file=sys.stderr)
-        status = "completed" if ok else "failed"
-        print(f"  {asn_label} — {status} ({elapsed:.0f}s)",
-              file=sys.stderr)
-        print(f"  {'='*50}", file=sys.stderr)
-        return status
 
     # Determine which steps to run
     start_idx = 0
@@ -324,7 +270,6 @@ def run_pipeline(asn_num, force=False, start_step=None, max_review_cycles=30,
         ("stabilize", step_stabilize),
         ("audit",     step_audit),
         ("verify",    step_verify),
-        ("review",    lambda n: step_review(n, max_review_cycles)),
         ("stabilize", step_stabilize),
         ("assembly",  step_assembly),
         ("cleanup",   step_cleanup),
@@ -340,13 +285,7 @@ def run_pipeline(asn_num, force=False, start_step=None, max_review_cycles=30,
             print(f"\n  [FAILED] {asn_label} — stabilize step failed",
                   file=sys.stderr)
             return "failed"
-        elif not ok and name == "review":
-            # Review didn't converge
-            print(f"\n  [FAILED] {asn_label} — review did not converge",
-                  file=sys.stderr)
-            return "failed"
         # verify and audit can have findings without blocking the pipeline
-        # — the review step picks them up from open-issues
 
     elapsed = time.time() - start_time
     print(f"\n  {'='*50}", file=sys.stderr)
@@ -360,24 +299,18 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="Unified ASN pipeline — format, verify, review, assemble")
+        description="Formalization pipeline — stabilize, repair, quality, verify, assemble")
     parser.add_argument("asn", help="ASN number (e.g., 34)")
     parser.add_argument("--force", action="store_true",
                         help="Ignore cached state, run all steps")
-    parser.add_argument("--discovery", action="store_true",
-                        help="Discovery mode — review/revise only")
     parser.add_argument("--step",
                         choices=["repair", "quality", "audit", "verify",
-                                 "review", "assembly", "cleanup"],
+                                 "assembly", "cleanup"],
                         help="Start from this step (skip earlier)")
-    parser.add_argument("--max-review-cycles", type=int, default=30,
-                        help="Max general review/revise cycles")
     args = parser.parse_args()
 
     asn_num = int(re.sub(r"[^0-9]", "", args.asn))
-    result = run_pipeline(asn_num, force=args.force, start_step=args.step,
-                          max_review_cycles=args.max_review_cycles,
-                          discovery=args.discovery)
+    result = run_pipeline(asn_num, force=args.force, start_step=args.step)
     sys.exit(0 if result == "completed" else 1)
 
 

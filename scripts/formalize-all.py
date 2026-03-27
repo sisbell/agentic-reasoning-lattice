@@ -134,8 +134,6 @@ def main():
                         help="ASN numbers to exclude")
     parser.add_argument("--topic", "-t",
                         help="Only process ASNs with this topic")
-    parser.add_argument("--max-review-cycles", type=int, default=30,
-                        help="Max review/revise cycles (default: 30)")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--force", action="store_true",
                         help="Ignore cached state, run all")
@@ -186,8 +184,7 @@ def main():
             skipped += 1
             continue
 
-        result = run_pipeline(num, force=args.force,
-                              max_review_cycles=args.max_review_cycles)
+        result = run_pipeline(num, force=args.force)
 
         if result == "completed":
             completed += 1

@@ -65,8 +65,6 @@ def main():
                         help="Loop until CONVERGED verdict (default max: 15)")
     parser.add_argument("--resume", choices=["revise"],
                         help="Resume from revise (skip consult)")
-    parser.add_argument("--general", action="store_true",
-                        help="Use general review mode (cross-cutting only)")
     args = parser.parse_args()
 
     # --converge overrides --cycle
@@ -116,11 +114,11 @@ def main():
                 sys.exit(0)
         else:
             # Cycles 2+: run review first
-            review_path, converged = step_review(args.asn, general=args.general)
+            review_path, converged = step_review(args.asn)
             if review_path is None:
                 print(f"  [REVISE] Review failed, retrying once...",
                       file=sys.stderr)
-                review_path, converged = step_review(args.asn, general=args.general)
+                review_path, converged = step_review(args.asn)
                 if review_path is None:
                     print(f"  [REVISE] Review failed again, stopping",
                           file=sys.stderr)
@@ -184,10 +182,25 @@ def main():
         args.resume = None  # clear resume after first cycle
 
         if revise_converged:
-            print(f"  [REVISE] Revise made no changes — converged",
-                  file=sys.stderr)
-            step_commit(f"Revise {asn_label} — converged (cycle {cycle})", asn_id=asn_number)
-            break
+            # Cycle gate — check before accepting convergence
+            from lib.formalization.mechanical import check_cycles, format_cycle_findings
+            from lib.formalization.deps import generate_deps
+            from lib.discovery.rebase import _append_open_issues
+
+            deps = generate_deps(asn_number)
+            cycles = check_cycles(asn_number)
+            if cycles:
+                print(f"  [CYCLES] {len(cycles)} cycles — "
+                      f"rejecting convergence", file=sys.stderr)
+                _append_open_issues(asn_number,
+                                    format_cycle_findings(cycles))
+                # Continue loop — next review picks up cycle findings
+            else:
+                print(f"  [CYCLES] Clean", file=sys.stderr)
+                print(f"  [REVISE] Revise made no changes — converged",
+                      file=sys.stderr)
+                step_commit(f"Revise {asn_label} — converged (cycle {cycle})", asn_id=asn_number)
+                break
 
         # Commit
         step_commit(f"Revise {asn_label} (cycle {cycle})", asn_id=asn_number)
