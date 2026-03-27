@@ -29,7 +29,7 @@ from paths import (WORKSPACE, ASNS_DIR, REVIEWS_DIR, load_manifest,
 from lib.common import find_asn, step_commit_asn
 
 
-STEPS = ["format", "deps", "audit", "verify", "review", "assembly", "cleanup"]
+STEPS = ["format", "deps", "repair", "audit", "verify", "review", "assembly", "cleanup"]
 
 
 # ---------------------------------------------------------------------------
@@ -39,7 +39,7 @@ STEPS = ["format", "deps", "audit", "verify", "review", "assembly", "cleanup"]
 def step_format(asn_num):
     """Run format normalization. Returns True if clean."""
     from lib.normalize_format import normalize_format
-    print(f"\n  [1/7 FORMAT]", file=sys.stderr)
+    print(f"\n  [1/8 FORMAT]", file=sys.stderr)
     ok = normalize_format(asn_num)
     if ok:
         step_commit_asn(asn_num, hint="format normalized")
@@ -53,7 +53,7 @@ def step_format(asn_num):
 def step_deps(asn_num):
     """Generate dependency YAML. Returns True on success."""
     from lib.rebase_deps import generate_deps, write_deps_yaml
-    print(f"\n  [2/7 DEPS]", file=sys.stderr)
+    print(f"\n  [2/8 DEPS]", file=sys.stderr)
     deps = generate_deps(asn_num)
     if deps:
         write_deps_yaml(asn_num, deps)
@@ -64,14 +64,28 @@ def step_deps(asn_num):
 
 
 # ---------------------------------------------------------------------------
-# Step 3: Audit (if ASN has dependencies)
+# Step 3: Section Repair
+# ---------------------------------------------------------------------------
+
+def step_repair(asn_num):
+    """Repair incomplete sections. Returns True on success."""
+    from lib.repair_sections import step_repair_sections
+    print(f"\n  [3/8 REPAIR]", file=sys.stderr)
+    repaired, skipped, failed = step_repair_sections(asn_num)
+    if repaired > 0:
+        step_commit_asn(asn_num, hint="section repair")
+    return failed == 0
+
+
+# ---------------------------------------------------------------------------
+# Step 4: Audit (if ASN has dependencies)
 # ---------------------------------------------------------------------------
 
 def step_audit(asn_num):
     """Run audit checks — mechanical + LLM. Returns True on success."""
     manifest = load_manifest(asn_num)
     if not manifest.get("depends"):
-        print(f"\n  [3/7 AUDIT] Skipped (no dependencies)", file=sys.stderr)
+        print(f"\n  [4/8 AUDIT] Skipped (no dependencies)", file=sys.stderr)
         return True
 
     asn_path, asn_label = find_asn(str(asn_num))
@@ -83,7 +97,7 @@ def step_audit(asn_num):
         step_audit as step_open_audit, _append_open_issues,
     )
 
-    print(f"\n  [3/7 AUDIT]", file=sys.stderr)
+    print(f"\n  [4/8 AUDIT]", file=sys.stderr)
 
     # 3a: Mechanical checker
     print(f"  [AUDIT 1/4] Mechanical checker...", file=sys.stderr)
@@ -136,7 +150,7 @@ def step_audit(asn_num):
 def step_verify(asn_num):
     """Per-proof verification. Returns True if all verified."""
     from lib.verify_proofs import step_verify_proofs
-    print(f"\n  [4/7 VERIFY]", file=sys.stderr)
+    print(f"\n  [5/8 VERIFY]", file=sys.stderr)
     verified, found, errors = step_verify_proofs(asn_num)
     step_commit_asn(asn_num, hint="proof verification")
     return found == 0 and errors == 0
@@ -148,7 +162,7 @@ def step_verify(asn_num):
 
 def step_review(asn_num, max_cycles=30):
     """General review/revise cycle. Returns True if converged."""
-    print(f"\n  [5/7 REVIEW]", file=sys.stderr)
+    print(f"\n  [6/8 REVIEW]", file=sys.stderr)
 
     # Run initial review
     review_cmd = [sys.executable,
@@ -183,7 +197,7 @@ def step_assembly(asn_num):
     """Assemble formal-statements.md + final deps YAML. Returns True."""
     from lib.normalize_format import assemble_formal_statements
     from lib.rebase_deps import generate_deps, write_deps_yaml
-    print(f"\n  [6/7 ASSEMBLY]", file=sys.stderr)
+    print(f"\n  [7/8 ASSEMBLY]", file=sys.stderr)
 
     assemble_formal_statements(asn_num)
 
@@ -201,7 +215,7 @@ def step_assembly(asn_num):
 
 def step_cleanup(asn_num):
     """Clear open-issues, update timestamps. Returns True."""
-    print(f"\n  [7/7 CLEANUP]", file=sys.stderr)
+    print(f"\n  [8/8 CLEANUP]", file=sys.stderr)
 
     # Clear open-issues (converged — all resolved)
     path = open_issues_path(asn_num)
@@ -278,6 +292,7 @@ def run_pipeline(asn_num, force=False, start_step=None, max_review_cycles=30,
     steps = [
         ("format",   step_format),
         ("deps",     step_deps),
+        ("repair",   step_repair),
         ("audit",    step_audit),
         ("verify",   step_verify),
         ("review",   lambda n: step_review(n, max_review_cycles)),
