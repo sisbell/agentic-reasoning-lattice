@@ -1318,21 +1318,30 @@ with #w = max(#b, #a) = #b.
 
 **D2 (DisplacementUnique).** Under D1's preconditions (a < b, divergence(a, b) ≤ #a, #a ≤ #b), if a ⊕ w = b then w = b ⊖ a.
 
-*Proof.* We show that any displacement w carrying a to b must equal the canonical displacement b ⊖ a. The argument has two steps: we produce a second witness for the same equation, then apply left cancellation to conclude the two witnesses are identical.
+*Dependencies:*
+- **D0 (DisplacementWellDefined):** Under `a < b` and `divergence(a, b) ≤ #a`: the displacement `b ⊖ a` is a well-defined positive tumbler with `actionPoint(b ⊖ a) = divergence(a, b)`, and `a ⊕ (b ⊖ a) ∈ T`.
+- **D1 (DisplacementRoundTrip):** Under `a < b`, `divergence(a, b) ≤ #a`, `#a ≤ #b`: `a ⊕ (b ⊖ a) = b`.
+- **TA0 (Well-defined addition):** For tumblers `a, w ∈ T` where `w > 0` and `actionPoint(w) ≤ #a`, the result `a ⊕ w` is a well-defined tumbler in `T`.
+- **TA-LC (LeftCancellation):** If `a ⊕ x = a ⊕ y` with both sides well-defined (TA0 satisfied for both), then `x = y`.
 
-**Step 1: a second witness.** By D1 (DisplacementRoundTrip), the preconditions a < b, divergence(a, b) ≤ #a, and #a ≤ #b guarantee that a ⊕ (b ⊖ a) = b. So both w and b ⊖ a, when added to a, yield b.
+*Proof.* We show that any displacement w satisfying a ⊕ w = b must equal the canonical displacement b ⊖ a. The argument proceeds in three steps: construct a second witness for the same equation, verify that both additions satisfy TA0, and apply left cancellation.
 
-**Step 2: establishing TA-LC's preconditions.** To apply left cancellation (TA-LC), we must verify that both additions satisfy TA0 — that is, both displacements are positive and their action points fall within #a.
+**Step 1 (a second witness).** The preconditions a < b, divergence(a, b) ≤ #a, and #a ≤ #b are exactly those of D1 (DisplacementRoundTrip), which gives a ⊕ (b ⊖ a) = b. Combined with the hypothesis a ⊕ w = b, we have two equations sharing the same base and result:
 
-For w: the hypothesis states a ⊕ w = b, so the addition is well-defined. TA0 requires w > 0 (satisfied since the addition produces a result) and actionPoint(w) ≤ #a.
+  a ⊕ w = b
+  a ⊕ (b ⊖ a) = b
 
-For b ⊖ a: let k = divergence(a, b). By hypothesis k ≤ #a. Since a < b, the divergence occurs at a position where bₖ > aₖ (by T1), so (b ⊖ a)ₖ = bₖ − aₖ ≥ 1. Every component before position k is zero (TumblerSub copies the agreement prefix as zeros). Therefore b ⊖ a > 0 with action point k, and k ≤ #a satisfies TA0.
+**Step 2 (TA0 verification).** To apply TA-LC, both additions must satisfy TA0 — that is, both displacements must be positive with action points at most #a. We verify each in turn.
 
-**Step 3: cancellation.** From the hypothesis a ⊕ w = b and Step 1's a ⊕ (b ⊖ a) = b, we obtain:
+*For w:* The hypothesis asserts a ⊕ w = b. TumblerAdd is a partial operation, defined only when TA0 holds: w > 0 and actionPoint(w) ≤ #a. The well-definedness of a ⊕ w therefore entails both conditions. TA0 is satisfied for w.
+
+*For b ⊖ a:* By D0 (DisplacementWellDefined), under a < b and divergence(a, b) ≤ #a, the displacement b ⊖ a is a well-defined positive tumbler with actionPoint(b ⊖ a) = divergence(a, b). The precondition divergence(a, b) ≤ #a gives actionPoint(b ⊖ a) ≤ #a directly. Both conditions of TA0 — positivity and the action-point bound — are satisfied for b ⊖ a.
+
+**Step 3 (cancellation).** From the hypothesis and Step 1:
 
   a ⊕ w = a ⊕ (b ⊖ a)
 
-Both sides are well-defined (Step 2). By TA-LC (LeftCancellation) — which states that a ⊕ x = a ⊕ y implies x = y when both additions satisfy TA0 — we conclude w = b ⊖ a.  ∎
+Both additions satisfy TA0 (Step 2). TA-LC (LeftCancellation) states that a ⊕ x = a ⊕ y, with both sides well-defined, implies x = y. We conclude w = b ⊖ a.  ∎
 
 D1 and D2 together characterize the displacement completely: D1 says b ⊖ a recovers b, D2 says nothing else does.
 
