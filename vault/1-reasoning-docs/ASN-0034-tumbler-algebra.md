@@ -321,7 +321,24 @@ The most consequential property of the address system is that once an address is
 
 **T8 (Allocation permanence).** If tumbler `a ∈ T` has been allocated at any point in the system's history, then for all subsequent states, `a` remains in the set of allocated addresses. No operation removes an allocated address from the address space. The set of allocated addresses is monotonically non-decreasing.
 
-*Proof.* T8 holds by construction from the system's state-transition design. We must show that for every state transition s → s', `allocated(s) ⊆ allocated(s')`. The system defines three classes of operation on tumblers: comparison and parsing (T1, T2, T4), which are read-only; arithmetic (⊕, ⊖, inc), which are pure functions on T that compute new tumbler values without mutating allocation state; and allocation, which is the sole operation that modifies the allocated set. T10a below constrains allocation to a single mechanism: each allocator advances its frontier via `inc` (TA5), producing a new address strictly greater than the previous, and adds it to the allocated set. Allocation is strictly additive — it inserts a new element and removes nothing. The system specification defines no inverse operation: no "deallocate", "free", or "reclaim" that would remove an address from the allocated set. Since every state transition either leaves the allocated set unchanged (read-only and arithmetic operations) or strictly grows it (allocation), `allocated(s) ⊆ allocated(s')` holds for every transition. By induction over transition sequences, the invariant holds for all reachable states. ∎
+*Proof.* We must show that the set of allocated addresses grows monotonically: for every state transition s → s', `allocated(s) ⊆ allocated(s')`.
+
+Every operation the system defines falls into exactly one of three classes; we treat each in turn.
+
+*Case 1: Read-only operations.* Comparison and parsing (T1, T2, T4) inspect tumbler values without modifying any state. These transitions satisfy `allocated(s') = allocated(s)`, so `allocated(s) ⊆ allocated(s')` holds trivially.
+
+*Case 2: Pure arithmetic.* The operations ⊕, ⊖, and inc are pure functions on T — they compute new tumbler values and return them without mutating allocation state. These transitions also satisfy `allocated(s') = allocated(s)`.
+
+*Case 3: Allocation.* T10a constrains allocation to a single mechanism: each allocator advances its frontier by repeated application of `inc(·, 0)` (TA5), producing an address strictly greater than the previous, and inserts it into the allocated set. The transition satisfies `allocated(s') = allocated(s) ∪ {a_new}` for some fresh address `a_new`. Since `allocated(s) ⊆ allocated(s) ∪ {a_new} = allocated(s')`, the inclusion holds.
+
+These three cases are exhaustive. The system specification defines no inverse operation — no "deallocate", "free", or "reclaim" that would remove an address from the allocated set. The absence of any removal operation is a deliberate design axiom, not a derived property.
+
+Since every individual transition preserves the inclusion, an immediate induction on the length of any transition sequence s₀ → s₁ → ··· → sₙ yields `allocated(s₀) ⊆ allocated(sₙ)` for all reachable states. ∎
+
+*Formal Contract:*
+- *Invariant:* For every state transition s → s', `allocated(s) ⊆ allocated(s')`.
+- *Axiom:* The system defines no operation that removes an element from the allocated set. This is a design constraint, not a derived property.
+- *Frame:* Read-only operations (T1, T2, T4) and pure arithmetic (⊕, ⊖, inc) preserve the allocated set exactly: `allocated(s') = allocated(s)`.
 
 Nelson: "any address of any document in an ever-growing network may be specified by a permanent tumbler address." The guarantee is about the address itself — its persistence, its permanent occupancy of its position on the tumbler line.
 
