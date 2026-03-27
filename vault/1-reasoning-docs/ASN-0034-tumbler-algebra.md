@@ -396,7 +396,7 @@ Within a document's element space, the first component after the third zero deli
 
 *Dependencies:*
 - **T3 (Canonical representation):** `a = b ⟺ #a = #b ∧ (A i : 1 ≤ i ≤ #a : aᵢ = bᵢ)`. Contrapositively: tumblers that differ in length or at any component are distinct. Used in every case to conclude `a ≠ b`.
-- **T4 (Hierarchical parsing):** (b) `fields(t)` is well-defined and uniquely determined by `t` alone. (c) `zeros(t) = 3` iff `t` is an element-level address. The positive-component constraint: every non-separator component is strictly positive, so every zero in `t` is unambiguously a field separator. Used to locate `E₁` and to distinguish separators from field components.
+- **T4 (Hierarchical parsing):** (b) `fields(t)` is well-defined and uniquely determined by `t` alone. (c) `zeros(t) = 3` iff `t` is an element-level address. The positive-component constraint: every non-separator component is strictly positive, so every zero in `t` is unambiguously a field separator. The non-empty field constraint: every present field has at least one component (`α, β, γ, δ ≥ 1` for element-level addresses). Used to locate `E₁`, to distinguish separators from field components, and to establish that the three separator positions are strictly increasing.
 
 *Proof.* We must show that two element-level tumblers whose first element-field components differ are distinct tumblers: given `a, b ∈ T` with `a.E₁ ≠ b.E₁`, we establish `a ≠ b`.
 
