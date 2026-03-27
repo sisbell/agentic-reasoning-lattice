@@ -1,7 +1,9 @@
 # Trim Formal Statements
 
-You are trimming property sections to their formal content and ensuring
-each section is a well-formed formal statement.
+You are producing an interface specification — the formal contract of each
+property for downstream consumers (modeling, dependent ASNs). Proofs stay
+in the ASN source; this file is what the property *guarantees*, not how
+it was proven.
 
 ## Sections
 
@@ -9,55 +11,53 @@ each section is a well-formed formal statement.
 
 ## Task
 
-For each section:
+For each section, produce exactly three parts:
 
-### 1. Fix the header
+### 1. Header
 
 If the name repeats the label (e.g., `## TA-MTO — TA-MTO`), replace the
-name with a descriptive PascalCase name derived from the property's content
-(e.g., `## TA-MTO — ManyToOneEquivalence`). Keep both the label and the name.
+name with a descriptive PascalCase identifier derived from the content
+(e.g., `## TA-MTO — ManyToOneEquivalence`). Keep both label and name.
 
-### 2. Ensure a formal statement comes first
+### 2. Formal statement + summary
 
-Each section must begin with a clear statement of what the property claims
-or defines. If the statement is only embedded in the original bold header
-line (which was stripped), reconstruct it as the first line of the body.
-For example:
+Start with the precise formal claim — quantified expressions, equations,
+definitions, algorithm rules. Use backtick-fenced notation where present
+in the source.
 
-```
-## TA-MTO — ManyToOneEquivalence
+Follow immediately with a clear plain-English summary (1-3 sentences)
+that explains what the property means to someone who hasn't read the ASN.
+The summary should be self-contained — a reader should understand the
+property's role and guarantees from the summary alone, without needing
+to parse the formal notation.
 
-a agrees with b on components 1..k ⟺ a ⊕ w = b ⊕ w for displacement w with action point k.
+Good summary: "In words: tumbler comparison requires only the two
+addresses themselves — no external index, allocator state, or global
+registry participates in the decision. The comparison examines at most
+min(#a, #b) component pairs."
 
-*Proof (forward).* ...
-```
+Bad summary: "See T1 for details." / "This follows from the definition."
 
-The statement should be the formal claim — quantified expressions, equations,
-definitions. Follow it with a one-line plain English summary of what the
-property means (e.g., "In words: for every tumbler and every component
-position, there exists a tumbler whose value at that position exceeds any
-given bound."). This helps downstream consumers understand the formal
-notation without re-deriving it.
+For sub-properties listed as (a), (b), (c), keep them — they are part
+of the statement, not the proof.
 
-### 3. Trim to formal content
+### 3. Formal contracts
 
-Keep:
-- The formal statement
-- Every proof step and case analysis
-- Every sub-property listed as (a), (b), (c), etc.
-- Definition algorithms and computation rules
-- Preconditions and postconditions
-- `*Formal Contract:*` sections (preserve exactly as written)
+Preserve exactly as written:
+- `*Preconditions:*`
+- `*Postconditions:*`
+- `*Invariant:*`
+- `*Axiom:*`
+- `*Frame:*`
+- `*Definition:*`
 
-Remove:
-- Narrative prose explaining why a property exists or what it means
-- Historical context and design rationale
-- Implementation commentary ("Gregory's implementation confirms...")
-- Worked examples and verification exercises
-- Open questions and discussion
-- Resolved questions
+### What to remove
 
-If in doubt, keep it. Completeness is more important than brevity.
+- **Proofs** — everything after "*Proof.*", "∎", proof steps, case analysis
+- **Narrative** — why the property exists, design rationale, history
+- **Commentary** — "Gregory's implementation confirms...", "Nelson intended..."
+- **Examples** — worked examples, verification exercises
+- **Questions** — open questions, resolved questions, discussion
 
 ## Output
 
