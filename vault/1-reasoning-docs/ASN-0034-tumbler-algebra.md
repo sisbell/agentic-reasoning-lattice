@@ -1553,19 +1553,25 @@ All four preconditions hold. TA1-strict yields `v₁ ⊕ δ(n, m) < v₂ ⊕ δ(
 
 `(A v₁, v₂, n : n ≥ 1 ∧ #v₁ = #v₂ = m : shift(v₁, n) = shift(v₂, n) ⟹ v₁ = v₂)`
 
-*Proof.* We show that the ordinal shift is injective: if two equal-length tumblers produce the same result when shifted by the same amount, they must be equal.
+*Dependencies:*
+- **OrdinalShift (Definition):** `shift(v, n) = v ⊕ δ(n, #v)`. Reduces the shift to tumbler addition with an ordinal displacement.
+- **OrdinalDisplacement (Definition):** `δ(n, m) = [0, ..., 0, n]` of length `m`, with action point `m`. Supplies the displacement structure and its action point.
+- **TA-MTO (ManyToOne):** For `w > 0` with action point `k`, and `#a ≥ k`, `#b ≥ k`: `a ⊕ w = b ⊕ w ⟺ aᵢ = bᵢ` for all `1 ≤ i ≤ k`. The forward direction extracts componentwise agreement from equal sums.
+- **T3 (Canonical representation):** `a = b ⟺ #a = #b ∧ (A i : 1 ≤ i ≤ #a : aᵢ = bᵢ)`. Assembles componentwise agreement into tumbler equality.
 
-Fix v₁, v₂ ∈ T with #v₁ = #v₂ = m, and fix n ≥ 1. Assume shift(v₁, n) = shift(v₂, n). By OrdinalShift, this assumption is v₁ ⊕ δ(n, m) = v₂ ⊕ δ(n, m).
+*Proof.* We show that the ordinal shift is injective: if two equal-length tumblers produce the same result under the same shift, they must be identical. The argument reduces the shift to tumbler addition, applies the cancellation property of TA-MTO, and recovers full equality from componentwise agreement.
 
-We apply TA-MTO (ManyToOne) with w = δ(n, m), a = v₁, b = v₂. We first verify its preconditions:
+Fix `v₁, v₂ ∈ T` with `#v₁ = #v₂ = m`, and fix `n ≥ 1`. Assume `shift(v₁, n) = shift(v₂, n)`. By OrdinalShift, `shift(v₁, n) = v₁ ⊕ δ(n, m)` and `shift(v₂, n) = v₂ ⊕ δ(n, m)`, so the assumption becomes `v₁ ⊕ δ(n, m) = v₂ ⊕ δ(n, m)`.
 
-(i) δ(n, m) ∈ T and δ(n, m) > 0 — by OrdinalDisplacement, δ(n, m) = [0, ..., 0, n] with n ≥ 1, so its m-th component is positive.
+We apply TA-MTO with `w = δ(n, m)`, `a = v₁`, `b = v₂`, and verify its preconditions:
 
-(ii) #v₁ ≥ actionPoint(δ(n, m)) and #v₂ ≥ actionPoint(δ(n, m)) — the action point of δ(n, m) is m (OrdinalDisplacement), and #v₁ = #v₂ = m, so m ≥ m holds for both.
+(i) `δ(n, m) > 0` — by OrdinalDisplacement, `δ(n, m) = [0, ..., 0, n]` with `n ≥ 1`, so its `m`-th component is positive and the displacement exceeds the zero tumbler of length `m`.
 
-All preconditions are satisfied. TA-MTO's converse direction states: v₁ ⊕ δ(n, m) = v₂ ⊕ δ(n, m) implies v₁ᵢ = v₂ᵢ for all 1 ≤ i ≤ actionPoint(δ(n, m)) = m. We therefore have v₁ᵢ = v₂ᵢ for all 1 ≤ i ≤ m.
+(ii) `#v₁ ≥ actionPoint(δ(n, m))` and `#v₂ ≥ actionPoint(δ(n, m))` — the action point of `δ(n, m)` is `m` (OrdinalDisplacement), and `#v₁ = #v₂ = m`, so `m ≥ m` holds for both.
 
-Since #v₁ = #v₂ = m and v₁ᵢ = v₂ᵢ at every position 1 ≤ i ≤ m, T3 (CanonicalRepresentation) gives v₁ = v₂. ∎
+All preconditions are satisfied. TA-MTO's forward direction yields: `v₁ ⊕ δ(n, m) = v₂ ⊕ δ(n, m)` implies `v₁ᵢ = v₂ᵢ` for all `1 ≤ i ≤ actionPoint(δ(n, m)) = m`. We therefore have `v₁ᵢ = v₂ᵢ` for every position `1 ≤ i ≤ m`.
+
+Since `#v₁ = #v₂ = m` and `v₁ᵢ = v₂ᵢ` at every position `1 ≤ i ≤ m`, T3 (CanonicalRepresentation) gives `v₁ = v₂`. ∎
 
 *Formal Contract:*
 - *Preconditions:* v₁ ∈ T, v₂ ∈ T, n ≥ 1, #v₁ = #v₂ = m
