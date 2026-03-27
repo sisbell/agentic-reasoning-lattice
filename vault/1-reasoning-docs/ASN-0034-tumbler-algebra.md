@@ -164,7 +164,7 @@ Gregory's analysis reveals precisely what happens when T3 is violated. The compa
 
 T3 matters because address identity is load-bearing. If two representations could denote the same tumbler, equality tests might give false negatives, span containment checks might fail for addresses that should match, and the system might allocate a "new" address that is actually an alias for an existing one.
 
-*Proof.* T3 is not derived from other properties; it holds by the definition of the carrier set. By T0, T is the set of all finite sequences over ℕ. A tumbler *is* its component sequence — there is no separate abstract value that a sequence "represents," no quotient by an equivalence relation, no normalization map whose image is the "true" tumbler. The biconditional `#a = #b ∧ (A i : 1 ≤ i ≤ #a : aᵢ = bᵢ) ≡ a = b` restates the extensional definition of sequence equality. We verify both directions.
+*Proof.* T3 is derived from T0's characterisation of the carrier set. By T0, T is the set of all finite sequences over ℕ. A tumbler *is* its component sequence — there is no separate abstract value that a sequence "represents," no quotient by an equivalence relation, no normalization map whose image is the "true" tumbler. The biconditional `#a = #b ∧ (A i : 1 ≤ i ≤ #a : aᵢ = bᵢ) ≡ a = b` is the extensional definition of sequence equality applied to this carrier set. We verify both directions.
 
 *Forward direction.* Let `a, b ∈ T` and suppose `#a = #b = n` and `aᵢ = bᵢ` for all `1 ≤ i ≤ n`. We must show `a = b`. Since `a` and `b` are finite sequences of the same length `n`, and they agree at every position `i` in `{1, ..., n}`, they are identical as sequences. This is precisely the extensional definition of sequence equality: two sequences are equal when they have the same length and the same value at every index. Therefore `a = b`.
 
@@ -173,7 +173,7 @@ T3 matters because address identity is load-bearing. If two representations coul
 Both directions are immediate consequences of what it means for two finite sequences to be equal. The force of T3 as a design commitment is the decision that no additional identification is imposed on T — the algebra does not quotient by trailing zeros (so `[1, 2]` and `[1, 2, 0]` are distinct tumblers), does not identify sequences that differ only in exponent representation (an implementation concern, not an abstract one), and does not collapse addresses that happen to denote the same logical entity under some external interpretation. The abstract tumbler *is* the sequence, nothing more and nothing less. ∎
 
 *Formal Contract:*
-- *Axiom:* Tumbler equality is sequence equality: `a = b ⟺ #a = #b ∧ (A i : 1 ≤ i ≤ #a : aᵢ = bᵢ)`. No quotient, normalization, or external identification is imposed on T.
+- *Postconditions:* Tumbler equality is sequence equality: `a = b ⟺ #a = #b ∧ (A i : 1 ≤ i ≤ #a : aᵢ = bᵢ)`. No quotient, normalization, or external identification is imposed on T.
 
 
 ## Hierarchical structure
