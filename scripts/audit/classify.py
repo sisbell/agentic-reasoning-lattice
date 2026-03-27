@@ -29,19 +29,58 @@ from lib.formalization.deps import find_property_table, parse_table_row, detect_
 
 AUDIT_DIR = WORKSPACE / "vault" / "audit" / "classify"
 
-CLASSIFY_PROMPT = """You are auditing the Status column of a property in a formal specification.
+CLASSIFY_PROMPT = """You are a Dijkstra-school formal methods reviewer. Your task is to
+verify whether a property's Status column correctly reflects its proof obligation.
 
-Determine whether the Status is correct given the section content.
+Work through these steps in order:
 
-## Classification Criteria
+## Step 1: Does this property need a proof?
 
-1. **axiom** — The section explicitly states this is definitional or posited. It introduces a mathematical foundation (carrier set, ordering rule, type definition). No proof is needed or possible — it IS the starting point. The section may have a justification explaining *why* this definition was chosen, but no derivation from other properties.
+Read the section content and determine:
 
-2. **design requirement** — The section asserts a system behavior guarantee (permanence, monotonicity, isolation, allocation rules) but has no proof and no derivation from other properties in this ASN. The guarantee depends on operations or mechanisms not defined in this ASN. It may have informal justification but cannot be formally derived here.
+- **Does it have a proof?** Look for: *Proof.*, ∎, step-by-step derivation,
+  case analysis, "we show that", "it follows that". A proof derives the
+  property from other properties, axioms, or definitions.
 
-3. **OK** — The current Status is correct. The property has a proof or derivation, or its Status already cites dependencies (e.g., "from T1, T3", "corollary of T4"), or its Status is already "axiom" or "design requirement" and that matches the content.
+- **Is it a definition?** Look for: computation rules, algorithms, formulas
+  that say "define X as..." or specify how something is computed. Definitions
+  introduce notation or name a construction. They have no truth value — they
+  assign meaning, not assert truth. Definitions do NOT need proofs.
 
-4. **flag** — Ambiguous. The classification is unclear — the property might be an axiom, a design requirement, or a derivable property, but the section doesn't make it obvious. Needs author review.
+- **Is it a postulate (axiom)?** Look for: "this is an axiom", "we posit",
+  "by definition, not by derivation", "accepted without proof". An axiom
+  asserts a foundational truth that the rest of the system builds on.
+  Axioms do NOT need proofs.
+
+- **Is it a system constraint?** Look for: assertions about system behavior
+  (permanence, monotonicity, isolation, allocation rules) with NO proof and
+  NO derivation from other properties in this ASN. The constraint may have
+  informal justification but cannot be formally derived from the mathematics
+  available in this document. These are design requirements.
+
+## Step 2: Is the Status correct?
+
+Based on Step 1:
+
+- If **no proof needed** (definition): Status should be `introduced` or similar.
+  Definitions are not axioms. Status is OK if it doesn't say `axiom`.
+
+- If **no proof needed** (axiom/postulate): Status should be `axiom`.
+  If Status says `introduced`, recommend `axiom`.
+
+- If **no proof needed** (system constraint): Status should be `design requirement`.
+  If Status says `introduced`, recommend `design requirement`.
+
+- If **proof present**: Status is correct as long as it reflects the property
+  has been established (e.g., `introduced`, `from X`, `corollary of X`,
+  `lemma (from X)`, `theorem from X`). Do not change dependency citations —
+  that is a separate concern.
+
+- If **proof needed but missing**: recommend `flag` — the property claims to be
+  derived but has no proof. Repair should handle it.
+
+- If **Status says `axiom` but section has a proof**: recommend `introduced` —
+  the property is derived, not a postulate.
 
 ## Property
 
@@ -60,7 +99,7 @@ Respond with exactly one line:
 RECOMMENDATION | REASON
 ```
 
-Where RECOMMENDATION is one of: axiom, design requirement, OK, flag
+Where RECOMMENDATION is one of: axiom, design requirement, OK, flag, introduced
 And REASON is a brief explanation (one sentence).
 """
 
@@ -73,7 +112,7 @@ def classify_one(label, status, section):
               .replace("{{section}}", section))
 
     cmd = [
-        "claude", "--print", "--model", "claude-sonnet-4-6",
+        "claude", "--print", "--model", "claude-opus-4-6",
     ]
     env = os.environ.copy()
     env.pop("CLAUDECODE", None)
@@ -138,9 +177,9 @@ def classify_properties(asn_num, dry_run=False):
         labels.append(label)
         properties.append({"label": label, "status": status})
 
-    # Extract sections (truncated for prompt size)
+    # Extract full sections — classification needs complete text
     sections = extract_property_sections(text, known_labels=labels,
-                                          truncate=True)
+                                          truncate=False)
 
     print(f"  [CLASSIFY] {asn_label}: {len(properties)} properties",
           file=sys.stderr)
@@ -173,8 +212,6 @@ def classify_properties(asn_num, dry_run=False):
         label = prop["label"]
         status = prop["status"]
         section = sections.get(label, "(no section found)")
-        if len(section) > 3000:
-            section = section[:3000] + "\n... (truncated)"
 
         print(f"  [{i}/{len(properties)}] {label}...",
               end="", file=sys.stderr, flush=True)
