@@ -1812,6 +1812,11 @@ We must state explicitly what the tumbler algebra does not guarantee. These nega
 
 The design does not depend on associativity. Shifts are applied as single operations in practice, never composed from multiple smaller shifts. An implementation with finite representations may break associativity through overflow at the action-point component, but the abstract algebra carries no such limitation.
 
+*Dependencies:*
+- **TA0 (Well-defined addition):** For `a, w ∈ T` with `w > 0` and action point `k ≤ #a`, `a ⊕ w ∈ T` with `#(a ⊕ w) = #w`. Supplies the result-length identity and domain conditions.
+- **TumblerAdd (Constructive definition):** `(x ⊕ w)ᵢ = xᵢ` for `i < k`, `(x ⊕ w)ₖ = xₖ + wₖ`, `(x ⊕ w)ᵢ = wᵢ` for `i > k`, where `k = actionPoint(w)`. The three-region rule expanded throughout.
+- **T3 (Canonical representation):** `a = b ⟺ #a = #b ∧ (A i : 1 ≤ i ≤ #a : aᵢ = bᵢ)`. Used in the forward direction to conclude equality from length agreement and componentwise agreement.
+
 *Proof.* We show that for all `a, b, c ∈ T` with `b > 0`, `c > 0`, whenever both `(a ⊕ b) ⊕ c` and `a ⊕ (b ⊕ c)` are well-defined, every component of the left side equals the corresponding component of the right side.
 
 Throughout, write `k_b` for the action point of `b` and `k_c` for the action point of `c`. Recall TumblerAdd's constructive definition: for `x ⊕ w` with `w` having action point `k`, the result has `(x ⊕ w)ᵢ = xᵢ` for `i < k` (prefix copy), `(x ⊕ w)ₖ = xₖ + wₖ` (advance), and `(x ⊕ w)ᵢ = wᵢ` for `i > k` (tail copy), with `#(x ⊕ w) = #w` (the result-length identity from TA0).
@@ -1826,7 +1831,7 @@ Throughout, write `k_b` for the action point of `b` and `k_c` for the action poi
 
 Let `r = a ⊕ b`. By TumblerAdd: `rᵢ = aᵢ` for `i < k_b`, `r_{k_b} = a_{k_b} + b_{k_b}`, and `rᵢ = bᵢ` for `i > k_b`.
 
-*Left side* `(r ⊕ c)` with action point `k_c`: for `i < k_b` we have `i < k_c`, so `(r ⊕ c)ᵢ = rᵢ = aᵢ`. At `i = k_b < k_c`: position `k_b` falls in the prefix-copy region of `r ⊕ c`, so `(r ⊕ c)_{k_b} = r_{k_b} = a_{k_b} + b_{k_b}`. For `k_b < i < k_c`: `(r ⊕ c)ᵢ = rᵢ = bᵢ` (prefix-copy from `r`, and `i > k_b` puts `rᵢ` in the tail-copy region of `a ⊕ b`). At `i = k_c`: `(r ⊕ c)_{k_c} = r_{k_c} + c_{k_c} = b_{k_c} + c_{k_c}`, since `k_c > k_b` gives `r_{k_c} = b_{k_c}` by the tail-copy rule of `a ⊕ b`. For `i > k_c`: `(r ⊕ c)ᵢ = cᵢ`.
+*Left side* `(r ⊕ c)` with action point `k_c`: for `i < k_b` we have `i < k_c`, so `(r ⊕ c)ᵢ = rᵢ = aᵢ`. At `i = k_b < k_c`: position `k_b` falls in the prefix-copy region of `r ⊕ c`, so `(r ⊕ c)_{k_b} = r_{k_b} = a_{k_b} + b_{k_b}`. For `k_b < i < k_c`: `(r ⊕ c)ᵢ = rᵢ = bᵢ` (prefix-copy from `r ⊕ c` since `i < k_c`, and tail-copy from `a ⊕ b` since `i > k_b`). At `i = k_c`: `(r ⊕ c)_{k_c} = r_{k_c} + c_{k_c} = b_{k_c} + c_{k_c}`, since `k_c > k_b` gives `r_{k_c} = b_{k_c}` by the tail-copy rule of `a ⊕ b`. For `i > k_c`: `(r ⊕ c)ᵢ = cᵢ`.
 
 *Right side* `(a ⊕ s)` with action point `k_b`: for `i < k_b`, `(a ⊕ s)ᵢ = aᵢ`. At `i = k_b`: `(a ⊕ s)_{k_b} = a_{k_b} + s_{k_b} = a_{k_b} + b_{k_b}`. For `i > k_b`: `(a ⊕ s)ᵢ = sᵢ` by the tail-copy rule. Expanding `sᵢ` via TumblerAdd on `b ⊕ c`: for `k_b < i < k_c`, `sᵢ = bᵢ` (prefix-copy, since `i < k_c`); at `i = k_c`, `s_{k_c} = b_{k_c} + c_{k_c}` (advance); for `i > k_c`, `sᵢ = cᵢ` (tail-copy).
 
