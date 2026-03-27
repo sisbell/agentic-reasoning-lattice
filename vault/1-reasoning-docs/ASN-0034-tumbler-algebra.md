@@ -1536,9 +1536,14 @@ When the depth is determined by context (typically m = #v for the tumbler being 
 
 `shift(v, n) = v ⊕ δ(n, m)`
 
-TA0 is satisfied: the action point of δ(n, m) is m = #v, so k ≤ #v holds trivially. By TumblerAdd: shift(v, n)ᵢ = vᵢ for i < m, and shift(v, n)ₘ = vₘ + n. The shift advances the deepest component by exactly n, leaving all higher-level components unchanged.
+By OrdinalDisplacement, δ(n, m) = [0, ..., 0, n] of length m with action point m; since n ≥ 1, the m-th component is nonzero, so δ(n, m) > 0. The preconditions of TA0 are therefore satisfied: δ(n, m) > 0, and the action point k = m = #v gives k ≤ #v. By TumblerAdd: shift(v, n)ᵢ = vᵢ for i < m, and shift(v, n)ₘ = vₘ + n. The shift advances the deepest component by exactly n, leaving all higher-level components unchanged.
 
 Additionally, shift preserves structural properties. When m ≥ 2, the action point of δₙ leaves position 1 unchanged — shift(v, n)₁ = v₁. When m = 1, shift([S], n) = [S + n] changes the first component. Furthermore, #shift(v, n) = #δₙ = m = #v by the result-length identity of TumblerAdd. The shift preserves tumbler depth, and — since n ≥ 1 — component positivity: shift(v, n)ₘ = vₘ + n ≥ 1 unconditionally for all vₘ ≥ 0.
+
+*Formal Contract:*
+- *Preconditions:* v ∈ T, n ≥ 1
+- *Definition:* shift(v, n) = v ⊕ δ(n, #v)
+- *Postconditions:* shift(v, n)ᵢ = vᵢ for i < #v, shift(v, n) at position #v = v at position #v + n, #shift(v, n) = #v, shift(v, n) at position #v ≥ 1
 
 **TS1 (ShiftOrderPreservation).**
 
