@@ -1254,6 +1254,10 @@ Now subtract `w` from `r`. The subtraction scans for the first divergence betwee
 
 *Sub-case (ii): `aₖ = 0`.* Then `a` is a zero tumbler. The addition gives `rₖ = wₖ`. Since `#r = #w` (result-length identity) and `#w = k` (precondition), we have `r = w`. The subtraction `w ⊖ w` yields the zero tumbler of length `k`, which is `a`. ∎
 
+*Formal Contract:*
+- *Preconditions:* `a ∈ T`, `w ∈ T`, `w > 0`, `k = #a`, `#w = k`, `(A i : 1 ≤ i < k : aᵢ = 0)`, where `k` is the action point of `w`
+- *Postconditions:* `(a ⊕ w) ⊖ w = a`
+
 
 ### Cancellation properties of ⊕
 
