@@ -1766,7 +1766,20 @@ Under T3, the tumblers `[0]`, `[0, 0]`, `[0, 0, 0]`, etc., are *distinct* elemen
 
 **Definition (PositiveTumbler).** A tumbler `t ∈ T` is *positive*, written `t > 0`, iff at least one of its components is nonzero: `(E i : 1 ≤ i ≤ #t : tᵢ ≠ 0)`. A tumbler is a *zero tumbler* iff every component is zero: `(A i : 1 ≤ i ≤ #t : tᵢ = 0)`.
 
-Every positive tumbler is greater than every zero tumbler under T1 — if `t` has a nonzero component at position `k`, then at position `k` either the zero tumbler has a smaller component (0 < tₖ) or has run out of components, either way placing it below `t`. The condition `w > 0` in TA0 and TA4 excludes all all-zero displacements regardless of length.
+Every positive tumbler is greater than every zero tumbler under T1. The condition `w > 0` in TA0 and TA4 excludes all all-zero displacements regardless of length.
+
+*Dependencies:*
+- **T1 (Lexicographic order):** `a < b` iff there exists `k ≥ 1` with `aᵢ = bᵢ` for all `i < k`, and either (i) `k ≤ min(#a, #b)` and `aₖ < bₖ`, or (ii) `k = #a + 1 ≤ #b` (proper prefix).
+
+*Proof.* Let `t ∈ T` be a positive tumbler of length `n`, so `(E j : 1 ≤ j ≤ n : tⱼ ≠ 0)`. Let `z ∈ T` be a zero tumbler of length `m`, so `zᵢ = 0` for all `1 ≤ i ≤ m`. We must show `z < t`.
+
+Define `k = min({i : 1 ≤ i ≤ n : tᵢ ≠ 0})` — the position of the first nonzero component of `t`. This minimum exists because `t` has at least one nonzero component. By minimality of `k`, `tᵢ = 0` for all `1 ≤ i < k`, and `tₖ ≠ 0`; since components are natural numbers, `tₖ > 0`.
+
+For the T1 agreement condition: at every position `1 ≤ i < k`, we have `zᵢ = 0` (since `z` is a zero tumbler) and `tᵢ = 0` (by minimality of `k`), so `zᵢ = tᵢ`. The prefix before position `k` agrees.
+
+*Case 1* (`k ≤ m`): At position `k`, `zₖ = 0 < tₖ` (since `tₖ > 0`). Since `k ≤ m` and `k ≤ n`, we have `k ≤ min(m, n)`, so this divergence falls within the shared length. T1 case (i) applies with witness `k`, giving `z < t`.
+
+*Case 2* (`k > m`): For all positions `1 ≤ i ≤ m`, we have `i ≤ m < k`, so `tᵢ = 0` (by minimality of `k`) and `zᵢ = 0` (since `z` is a zero tumbler), giving `zᵢ = tᵢ`. The tumblers agree at every position of `z`. Since `m < k ≤ n`, we have `m < n`, so `m + 1 ≤ n`. T1 case (ii) applies: the first `m` components agree and `m + 1 ≤ n`, so `z` is a proper prefix of `t`. Hence `z < t`. ∎
 
 *Formal Contract:*
 - *Definition:* `t > 0` iff `(E i : 1 ≤ i ≤ #t : tᵢ ≠ 0)`; zero tumbler iff `(A i : 1 ≤ i ≤ #t : tᵢ = 0)`.
