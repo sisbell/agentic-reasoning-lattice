@@ -21,7 +21,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, USAGE_LOG, formal_stmts, asn_dir
+from lib.shared.paths import WORKSPACE, USAGE_LOG, REVIEWS_DIR, formal_stmts, asn_dir
 from lib.shared.common import find_asn, extract_property_sections
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"
@@ -81,8 +81,16 @@ def _log_usage(step, elapsed, asn_num):
 # Format review/revise cycle (LLM, sonnet)
 # ---------------------------------------------------------------------------
 
+def _format_review_path(asn_label):
+    """Path to format review findings file."""
+    return REVIEWS_DIR / asn_label / "format-review.md"
+
+
 def step_format_review(asn_num):
-    """Run format review. Returns (is_clean, findings_text)."""
+    """Run format review. Returns (is_clean, findings_text).
+
+    Saves findings to vault/2-review/ASN-NNNN/format-review.md.
+    """
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
         print(f"  [FORMAT] ASN-{asn_num:04d} not found", file=sys.stderr)
@@ -97,6 +105,11 @@ def step_format_review(asn_num):
 
     if not text:
         return True, ""
+
+    # Save findings to disk
+    review_path = _format_review_path(asn_label)
+    review_path.parent.mkdir(parents=True, exist_ok=True)
+    review_path.write_text(text)
 
     if "RESULT: CLEAN" in text:
         print(f"  [FORMAT] Clean ({elapsed:.0f}s)", file=sys.stderr)
@@ -354,10 +367,16 @@ def normalize_format(asn_num):
     """Run format normalization. Returns True if clean.
 
     Format review/revise cycle (up to 30 cycles).
+    Findings saved to vault/2-review/ASN-NNNN/format-review.md.
     """
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
         return True  # nothing to normalize
+
+    # Clean prior format review
+    review_path = _format_review_path(asn_label)
+    if review_path.exists():
+        review_path.unlink()
 
     print(f"  [FORMAT] Checking {asn_label}...", file=sys.stderr)
 
