@@ -1847,19 +1847,23 @@ And a span may be empty — populated by nothing at present — yet valid: "A sp
 
 **T12 (Span well-definedness).** A span `(s, ℓ)` is well-formed when `ℓ > 0` and the action point `k` of `ℓ` satisfies `k ≤ #s` (the TA0 precondition for `s ⊕ ℓ`). Equivalently, the number of leading zeros in `ℓ` must be strictly less than `#s`. A well-formed span denotes the set `{t ∈ T : s ≤ t < s ⊕ ℓ}`. This set is contiguous under T1 — there is no tumbler between two members that is not itself a member.
 
-*Proof.* We show that for `s ∈ T` and `ℓ ∈ T` with `ℓ > 0` and action point `k` of `ℓ` satisfying `k ≤ #s`, the set `S = {t ∈ T : s ≤ t < s ⊕ ℓ}` has three properties: its upper bound `s ⊕ ℓ` exists in `T`, it is non-empty, and it is order-convex (contiguous) under T1. We note that `k ≤ #s` is equivalent to requiring that the number of leading zeros in `ℓ` — which is `k − 1`, since the action point is the first nonzero position — be strictly less than `#s`: the two are restatements of the same arithmetic condition.
+*Proof.* We establish three properties of the set `S = {t ∈ T : s ≤ t < s ⊕ ℓ}`, given `s ∈ T`, `ℓ ∈ T`, `ℓ > 0`, and action point `k` of `ℓ` satisfying `k ≤ #s`.
 
-*(a) Endpoint existence.* The well-formedness conditions give `ℓ > 0` and `k ≤ #s`, where `k` is the action point of `ℓ`. These are precisely the preconditions of TA0 (the displacement `ℓ` is positive and its action point does not exceed the length of the base `s`), so TA0 guarantees `s ⊕ ℓ ∈ T`. The set `S` is therefore well-defined — its upper bound exists in `T`.
+We first record an equivalence stated in the theorem. The action point `k` is the position of the first nonzero component of `ℓ`, so `ℓ` has exactly `k − 1` leading zeros. The condition `k ≤ #s` therefore holds precisely when the number of leading zeros in `ℓ` is strictly less than `#s`; the two formulations express the same arithmetic constraint.
 
-*(b) Non-emptiness.* We show `s ∈ S` by verifying both defining conditions. First, `s ≤ s` holds by reflexivity of `≤` (from T1: `a ≤ b` iff `a < b ∨ a = b`, and `s = s`). Second, since `ℓ > 0` and `k ≤ #s`, TA-strict gives `s ⊕ ℓ > s`, i.e., `s < s ⊕ ℓ`. Both conditions hold, so `s ∈ S` and the set contains at least one element.
+*(a) Endpoint existence.* The preconditions give `ℓ > 0` and `k ≤ #s`. These are exactly the preconditions of TA0 (positive displacement whose action point does not exceed the base length), so TA0 guarantees `s ⊕ ℓ ∈ T`. The set `S` is well-defined — its upper bound exists in `T`.
 
-*(c) Contiguity.* We show that `S` is order-convex: for any `a, c ∈ S` and `b ∈ T` with `a ≤ b ≤ c`, we have `b ∈ S`. By T1, `<` is a strict total order on `T`, and transitivity of `<` is established by T1(c). Transitivity of `≤` follows: if `x ≤ y` and `y ≤ z`, then by case analysis on the disjunctions (`x < y ∨ x = y` and `y < z ∨ y = z`), each combination yields `x ≤ z` — the two strict cases compose via T1(c), and the equality cases are immediate by substitution.
+*(b) Non-emptiness.* We show `s ∈ S` by verifying both defining conditions. First, `s ≤ s` holds by the definition of `≤` from T1: `a ≤ b` iff `a < b ∨ a = b`, and the second disjunct is satisfied. Second, TA-strict — whose preconditions `ℓ > 0` and `k ≤ #s` are given — yields `s ⊕ ℓ > s`, i.e., `s < s ⊕ ℓ`. Both conditions hold, so `s ∈ S`.
 
-From `a ∈ S` we have `s ≤ a`. Combined with `a ≤ b`, transitivity of `≤` gives `s ≤ b` — the first defining condition of membership in `S`.
+*(c) Contiguity.* We show `S` is order-convex: for any `a, c ∈ S` and `b ∈ T` with `a ≤ b ≤ c`, the tumbler `b` belongs to `S`.
 
-From `c ∈ S` we have `c < s ⊕ ℓ`. Since `b ≤ c`, either `b = c` — in which case `b < s ⊕ ℓ` immediately — or `b < c`, in which case transitivity of `<` (T1(c)) with `c < s ⊕ ℓ` gives `b < s ⊕ ℓ`. In either case, `b < s ⊕ ℓ` — the second defining condition of membership in `S`.
+The argument requires transitivity of `≤`, which we derive from T1. By T1, `<` is a strict total order on `T`; in particular, T1(c) gives transitivity of `<`. Since `≤` is defined as `x ≤ y` iff `x < y ∨ x = y`, suppose `x ≤ y` and `y ≤ z`. Expanding both disjunctions yields four cases: (i) `x < y` and `y < z` — T1(c) gives `x < z`, hence `x ≤ z`; (ii) `x < y` and `y = z` — substitution gives `x < z`, hence `x ≤ z`; (iii) `x = y` and `y < z` — substitution gives `x < z`, hence `x ≤ z`; (iv) `x = y` and `y = z` — then `x = z`, hence `x ≤ z`. In every case, `x ≤ z`.
 
-Together, `s ≤ b` and `b < s ⊕ ℓ`, so `b ∈ S`. No tumbler lying between two members of `S` falls outside `S`. ∎
+Now we verify the two membership conditions for `b`. From `a ∈ S` we have `s ≤ a`. Combined with `a ≤ b`, transitivity of `≤` gives `s ≤ b` — the first defining condition of `S`.
+
+From `c ∈ S` we have `c < s ⊕ ℓ`. Since `b ≤ c`, either `b = c` — in which case `b < s ⊕ ℓ` by substitution — or `b < c`, in which case transitivity of `<` (T1(c)) with `c < s ⊕ ℓ` gives `b < s ⊕ ℓ`. Either way, `b < s ⊕ ℓ` — the second defining condition of `S`.
+
+Both conditions hold, so `b ∈ S`. The set `S` is order-convex: no tumbler lying between two members falls outside it. ∎
 
 We reserve T5 for the distinct claim that *prefix-defined* sets are contiguous — a non-trivial property of the lexicographic order.
 
