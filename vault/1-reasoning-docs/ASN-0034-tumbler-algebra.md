@@ -287,6 +287,10 @@ T4, combined with the total order T1, gives us the property that makes spans wor
 
   `[p ≼ a ∧ p ≼ c ∧ a ≤ b ≤ c ⟹ p ≼ b]`
 
+*Dependencies:*
+- **T1 (Lexicographic order):** Defines `<` on T. Case (i): first divergence `k ≤ min(#a, #b)` with `aₖ < bₖ`. Case (ii): `a` is a proper prefix of `b`. Used to derive contradictions from ordering violations.
+- **T3 (Canonical representation):** `a = b ⟺ #a = #b ∧ (A i : 1 ≤ i ≤ #a : aᵢ = bᵢ)`. Distinct lengths entail distinct tumblers. Used in Case 2 to force strict inequality.
+
 *Proof.* We must show that the set of all tumblers sharing a common prefix is contiguous under the lexicographic order T1 — no tumbler from outside the subtree can interleave between two members.
 
 Let `p` be a tumbler prefix with `#p ≥ 1`, let `a, b, c ∈ T` with `p ≼ a`, `p ≼ c`, and `a ≤ b ≤ c` under T1. We must show `p ≼ b`.
@@ -295,7 +299,7 @@ Since `p ≼ a`, the tumbler `a` agrees with `p` on its first `#p` components: `
 
 *Case 1: `#b ≥ #p`.* We show that `b` agrees with `p` at every position `1 ≤ i ≤ #p`, which is exactly `p ≼ b`.
 
-Suppose, for contradiction, that `b` diverges from `p` at some position. Let `k` be the first such position: `k` is the least index in `{1, ..., #p}` with `bₖ ≠ pₖ`, so `bᵢ = pᵢ` for all `1 ≤ i < k`. Since `bₖ ≠ pₖ`, exactly one of `bₖ < pₖ` or `bₖ > pₖ` holds.
+Suppose, for contradiction, that `b` diverges from `p` at some position. Let `k` be the least index in `{1, ..., #p}` with `bₖ ≠ pₖ`, so `bᵢ = pᵢ` for all `1 ≤ i < k`. Since `bₖ ≠ pₖ`, exactly one of `bₖ < pₖ` or `bₖ > pₖ` holds.
 
 *Subcase 1a: `bₖ < pₖ`.* Since `p ≼ a`, we have `aₖ = pₖ`, so `bₖ < aₖ`. For all `i < k`, we established `bᵢ = pᵢ`, and since `p ≼ a` gives `aᵢ = pᵢ`, we have `aᵢ = bᵢ` for all `i < k`. Position `k` is therefore the first divergence between `a` and `b`, with `bₖ < aₖ`, and `k ≤ #p ≤ min(#a, #b)`. By T1 case (i), `b < a`. This contradicts `a ≤ b`.
 
@@ -305,7 +309,7 @@ Both subcases yield contradictions, so no divergence position `k` exists. Theref
 
 *Case 2: `#b < #p`.* We derive a contradiction, showing this case is impossible — no tumbler shorter than `p` can lie between two tumblers that extend `p`.
 
-From `p ≼ a` we have `#a ≥ #p > #b`, so `a` is strictly longer than `b`. We now examine the hypothesis `a ≤ b`. Since `#a > #b`, `a` cannot equal `b` (by T3, distinct lengths imply distinct tumblers) and `a` cannot be a proper prefix of `b` (since `#a > #b`). Thus `a ≤ b` means `a < b`, which by T1 requires a witness `k ≥ 1` with `aᵢ = bᵢ` for all `i < k` and either: (i) `k ≤ min(#a, #b) = #b` and `aₖ < bₖ`, or (ii) `k = #a + 1 ≤ #b`. Case (ii) requires `#a + 1 ≤ #b`, that is `#a ≤ #b - 1 < #b`, contradicting `#a > #b`. So case (i) must hold: there exists `k ≤ #b` with `aᵢ = bᵢ` for all `1 ≤ i < k` and `aₖ < bₖ`.
+From `p ≼ a` we have `#a ≥ #p > #b`, so `a` is strictly longer than `b`. We examine the hypothesis `a ≤ b`. Since `#a > #b`, `a` cannot equal `b` (by T3, distinct lengths imply distinct tumblers), and `a` cannot be a proper prefix of `b` (since `#a > #b`). Therefore `a ≤ b` requires `a < b`, which by T1 requires a witness `k ≥ 1` with `aᵢ = bᵢ` for all `i < k` and either: (i) `k ≤ min(#a, #b) = #b` and `aₖ < bₖ`, or (ii) `k = #a + 1 ≤ #b`. Case (ii) requires `#a + 1 ≤ #b`, that is `#a < #b`, contradicting `#a > #b`. So case (i) must hold: there exists `k ≤ #b` with `aᵢ = bᵢ` for all `1 ≤ i < k` and `aₖ < bₖ`.
 
 Since `k ≤ #b < #p ≤ #a`, position `k` lies within the prefix `p`, so `aₖ = pₖ` (from `p ≼ a`). Therefore `bₖ > aₖ = pₖ`. Likewise, since `k < #p ≤ #c`, we have `cₖ = pₖ` (from `p ≼ c`), so `bₖ > pₖ = cₖ`.
 
@@ -314,6 +318,7 @@ Now we compare `b` and `c` at position `k`. For all `i < k`: the witness conditi
 Since Case 2 is impossible, Case 1 is the only possibility, and we have established `p ≼ b` in all cases. ∎
 
 *Formal Contract:*
+- *Definition:* `p ≼ t ⟺ #t ≥ #p ∧ (A i : 1 ≤ i ≤ #p : tᵢ = pᵢ)` — the tumbler `t` extends the prefix `p`.
 - *Preconditions:* `a, b, c ∈ T`; `p` is a tumbler prefix with `#p ≥ 1`; `p ≼ a`; `p ≼ c`; `a ≤ b ≤ c` under the lexicographic order T1.
 - *Postconditions:* `p ≼ b` — the tumbler `b` extends the prefix `p`, and therefore belongs to the same subtree as `a` and `c`.
 
