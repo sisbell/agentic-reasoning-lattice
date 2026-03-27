@@ -1069,13 +1069,15 @@ For valid addresses, `sig(t)` falls within the last populated field. This is a c
 
   (d) when `k > 0` (*child*): `#t' = #t + k`, the `k - 1` intermediate positions `#t + 1, ..., #t + k - 1` are set to `0` (field separators), and the final position `#t + k` is set to `1` (the first child).
 
-*Proof.* We construct `inc(t, k)` explicitly and verify all four postconditions — in particular (a), the strict ordering claim.
+*Proof.* We must show that for every `t ∈ T` and `k ≥ 0`, the construction below produces a tumbler `t' = inc(t, k)` satisfying all four postconditions. Recall that `sig(t)` denotes the last significant position of `t`: when `t` has at least one nonzero component, `sig(t) = max({i : 1 ≤ i ≤ #t ∧ tᵢ ≠ 0})`; when every component of `t` is zero, `sig(t) = #t`.
 
 **Construction.** Let `t = t₁. ... .tₘ` where `m = #t`, and let `k ≥ 0`. Define `t' = inc(t, k)` by cases.
 
 When `k = 0` (*sibling increment*): set `t'ᵢ = tᵢ` for all `i ≠ sig(t)`, and `t'_{sig(t)} = t_{sig(t)} + 1`. The result has the same length: `#t' = m`.
 
 When `k > 0` (*child creation*): set `t'ᵢ = tᵢ` for `1 ≤ i ≤ m`, set `t'ᵢ = 0` for `m + 1 ≤ i ≤ m + k - 1` (the `k - 1` field separators), and set `t'_{m+k} = 1` (the first child). The result has length `#t' = m + k`.
+
+In both cases `t'` is a finite sequence of natural numbers with length ≥ 1, so `t' ∈ T`.
 
 **Verification of (b)** (agreement before the increment point). For `k = 0`: by construction `t'ᵢ = tᵢ` for all `i` with `1 ≤ i < sig(t)`, since only position `sig(t)` is modified. For `k > 0`: by construction `t'ᵢ = tᵢ` for all `1 ≤ i ≤ m`, so `t'` agrees with `t` on every original position.
 
@@ -1085,9 +1087,9 @@ When `k > 0` (*child creation*): set `t'ᵢ = tᵢ` for `1 ≤ i ≤ m`, set `t'
 
 **Verification of (a)** (`t' > t`). We establish `t < t'` under the lexicographic order T1, treating each case separately.
 
-*Case `k = 0`.* Let `j = sig(t)`. For all `i` with `1 ≤ i < j`, `t'ᵢ = tᵢ` by part (b) — the tumblers agree on positions before `j`. At position `j`: since `t_j ≥ 1` (because `j = sig(t)` is the last nonzero component, so `t_j > 0`), we have `t'_j = t_j + 1 > t_j ≥ 1`, so `t'_j > t_j`. Since `j = sig(t) ≤ m = #t` and `#t' = m`, we have `j ≤ min(#t, #t')`, so both tumblers have a component at position `j`. By T1 case (i) with divergence position `j`, the agreement on `1, ..., j - 1` and the strict inequality `t_j < t'_j` yield `t < t'`.
+*Case `k = 0`.* Let `j = sig(t)`. By construction, `t'ᵢ = tᵢ` for all `i ≠ j`, so in particular the tumblers agree at every position `1 ≤ i < j` — this is part (b). At position `j`: `t'_j = t_j + 1 > t_j`, since `n + 1 > n` for every `n ∈ ℕ`. Since `j = sig(t) ≤ m` and `#t' = m`, we have `j ≤ min(#t, #t') = m`, so both tumblers have a component at position `j`. By T1 case (i) with divergence position `j`, the agreement on positions `1, ..., j - 1` and the strict inequality `t_j < t'_j` yield `t < t'`.
 
-*Case `k > 0`.* For all `i` with `1 ≤ i ≤ m`, `t'ᵢ = tᵢ` by part (b) — the tumblers agree on every position of `t`. Since `#t' = m + k > m = #t`, the tumbler `t` is exhausted at position `m + 1` while `t'` continues. Setting the divergence witness at `m + 1 = #t + 1 ≤ #t' = m + k`, T1 case (ii) applies: `t` is a proper prefix of `t'`, giving `t < t'`. ∎
+*Case `k > 0`.* By part (b), `t'ᵢ = tᵢ` for all `1 ≤ i ≤ m` — the tumblers agree on every position of `t`. Since `#t' = m + k > m = #t`, the tumblers agree at every position up to `#t`, and `t'` has further components beyond position `m`. T1 case (ii) applies with witness `m + 1 = #t + 1 ≤ #t' = m + k`: `t` is a proper prefix of `t'`, giving `t < t'`. ∎
 
 *Formal Contract:*
 - *Definition:* `inc(t, k)` for `t ∈ T`, `k ≥ 0`: when `k = 0`, modify position `sig(t)` to `t_{sig(t)} + 1`; when `k > 0`, extend by `k` positions with `k - 1` zeros and final `1`.
