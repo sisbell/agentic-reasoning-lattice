@@ -1253,6 +1253,11 @@ TumblerAdd's constructive definition determines each component of the result fro
 
 **TA-LC (LeftCancellation).** If a ⊕ x = a ⊕ y with both sides well-defined (TA0 satisfied for both), then x = y.
 
+*Dependencies:*
+- **TA0 (Well-defined addition):** For `a, w ∈ T` with `w > 0` and action point `k ≤ #a`, `a ⊕ w ∈ T` with `#(a ⊕ w) = #w`.
+- **TumblerAdd (Constructive definition):** `(a ⊕ w)ᵢ = aᵢ` for `i < k`, `(a ⊕ w)ₖ = aₖ + wₖ`, `(a ⊕ w)ᵢ = wᵢ` for `i > k`; result length `#(a ⊕ w) = #w`.
+- **T3 (Canonical representation):** `a = b ⟺ #a = #b ∧ (A i : 1 ≤ i ≤ #a : aᵢ = bᵢ)`.
+
 *Proof.* We shall derive `x = y` from the hypothesis `a ⊕ x = a ⊕ y`, where both additions satisfy TA0. The argument has two stages: first we prove that `x` and `y` share the same action point, then we establish component-wise and length equality.
 
 Let `k₁ = actionPoint(x)` and `k₂ = actionPoint(y)`. Both are well-defined: TA0 requires `x > 0` and `y > 0`, so each displacement has at least one nonzero component, and the action point — defined as the index of the first such component — exists. We must show `k₁ = k₂`. We do so by eliminating both strict orderings.
@@ -1283,7 +1288,7 @@ We have established `xᵢ = yᵢ` for every position `i` from `1` to `max(#x, #y
 
 TumblerAdd is *left-cancellative*: the start position can be "divided out" from equal results, recovering the displacement uniquely. This follows from TumblerAdd's constructive definition — each component of the result is determined by exactly one input, so equality of results propagates back to equality of inputs.
 
-*Worked example.* Let `a = [2, 5]` and suppose `a ⊕ x = a ⊕ y = [2, 8]`. We recover `x` and `y` uniquely. First, the action points must agree. Suppose `k_x = 1`: TumblerAdd's advance rule gives `(a ⊕ x)₁ = a₁ + x₁ = 2 + x₁ = 2`, so `x₁ = 0`, contradicting `k_x = 1` being the first nonzero component. So `k_x ≠ 1`. The result-length identity gives `#x = #(a ⊕ x) = 2`, so `k_x = 2`. By the same argument applied to `y`, `k_y = 2`. At position `k = 2`: `a₂ + x₂ = 5 + x₂ = 8` gives `x₂ = 3`, and `a₂ + y₂ = 5 + y₂ = 8` gives `y₂ = 3`. For `i < k`: `x₁ = 0 = y₁` (both zero before the action point). Since `#x = 2 = #y`, T3 gives `x = y = [0, 3]`.
+*Worked example.* Let `a = [2, 5]` and suppose `a ⊕ x = a ⊕ y = [2, 8]`. We recover `x` and `y` uniquely. First, the action points must agree. Suppose `k_x = 1`: TumblerAdd's advance rule gives `(a ⊕ x)₁ = a₁ + x₁ = 2 + x₁ = 2`, so `x₁ = 0`, contradicting `k_x = 1` being the first nonzero component. So `k_x ≠ 1`. The result-length identity gives `#x = #(a ⊕ x) = 2`, so `k_x = 2`. Suppose `k_y = 1`: TumblerAdd's advance rule gives `(a ⊕ y)₁ = a₁ + y₁ = 2 + y₁ = 2`, so `y₁ = 0`, contradicting `k_y = 1` being the first nonzero component. So `k_y ≠ 1`. The result-length identity gives `#y = #(a ⊕ y) = 2`, so `k_y = 2`. At position `k = 2`: `a₂ + x₂ = 5 + x₂ = 8` gives `x₂ = 3`, and `a₂ + y₂ = 5 + y₂ = 8` gives `y₂ = 3`. For `i < k`: `x₁ = 0 = y₁` (both zero before the action point). Since `#x = 2 = #y`, T3 gives `x = y = [0, 3]`.
 
 *Formal Contract:*
 - *Preconditions:* a, x, y ∈ T; x > 0; y > 0; actionPoint(x) ≤ #a; actionPoint(y) ≤ #a; a ⊕ x = a ⊕ y
