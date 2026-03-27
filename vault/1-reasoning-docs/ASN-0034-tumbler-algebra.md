@@ -814,7 +814,29 @@ For valid addresses, `sig(t)` falls within the last populated field. This is a c
 
   (d) when `k > 0` (*child*): `#t' = #t + k`, the `k - 1` intermediate positions `#t + 1, ..., #t + k - 1` are set to `0` (field separators), and the final position `#t + k` is set to `1` (the first child).
 
-We verify `inc(t, k) > t` for both cases. For `k = 0`: `t'` agrees with `t` on positions `1, ..., sig(t) - 1` and exceeds `t` at position `sig(t)`, so `t' > t` by T1 case (i). For `k > 0`: `t'` agrees with `t` on positions `1, ..., #t`, and `#t' > #t`, so `t` is a proper prefix of `t'`, giving `t < t'` by T1 case (ii).
+*Proof.* We construct `inc(t, k)` explicitly and verify all four postconditions — in particular (a), the strict ordering claim.
+
+**Construction.** Let `t = t₁. ... .tₘ` where `m = #t`, and let `k ≥ 0`. Define `t' = inc(t, k)` by cases.
+
+When `k = 0` (*sibling increment*): set `t'ᵢ = tᵢ` for all `i ≠ sig(t)`, and `t'_{sig(t)} = t_{sig(t)} + 1`. The result has the same length: `#t' = m`.
+
+When `k > 0` (*child creation*): set `t'ᵢ = tᵢ` for `1 ≤ i ≤ m`, set `t'ᵢ = 0` for `m + 1 ≤ i ≤ m + k - 1` (the `k - 1` field separators), and set `t'_{m+k} = 1` (the first child). The result has length `#t' = m + k`.
+
+**Verification of (b)** (agreement before the increment point). For `k = 0`: by construction `t'ᵢ = tᵢ` for all `i` with `1 ≤ i < sig(t)`, since only position `sig(t)` is modified. For `k > 0`: by construction `t'ᵢ = tᵢ` for all `1 ≤ i ≤ m`, so `t'` agrees with `t` on every original position.
+
+**Verification of (c)** (sibling structure). When `k = 0`: `#t' = m = #t` by construction. The only modified position is `sig(t)`, where `t'_{sig(t)} = t_{sig(t)} + 1`. Every other position retains its original value.
+
+**Verification of (d)** (child structure). When `k > 0`: `#t' = m + k = #t + k` by construction. Positions `m + 1` through `m + k - 1` are `0` (field separators) — when `k = 1` this range is empty, so no separators are introduced. Position `m + k` is `1` (the first child).
+
+**Verification of (a)** (`t' > t`). We establish `t < t'` under the lexicographic order T1, treating each case separately.
+
+*Case `k = 0`.* Let `j = sig(t)`. For all `i` with `1 ≤ i < j`, `t'ᵢ = tᵢ` by part (b) — the tumblers agree on positions before `j`. At position `j`: since `t_j ≥ 1` (because `j = sig(t)` is the last nonzero component, so `t_j > 0`), we have `t'_j = t_j + 1 > t_j ≥ 1`, so `t'_j > t_j`. Since `j = sig(t) ≤ m = #t` and `#t' = m`, we have `j ≤ min(#t, #t')`, so both tumblers have a component at position `j`. By T1 case (i) with divergence position `j`, the agreement on `1, ..., j - 1` and the strict inequality `t_j < t'_j` yield `t < t'`.
+
+*Case `k > 0`.* For all `i` with `1 ≤ i ≤ m`, `t'ᵢ = tᵢ` by part (b) — the tumblers agree on every position of `t`. Since `#t' = m + k > m = #t`, the tumbler `t` is exhausted at position `m + 1` while `t'` continues. Setting the divergence witness at `m + 1 = #t + 1 ≤ #t' = m + k`, T1 case (ii) applies: `t` is a proper prefix of `t'`, giving `t < t'`. ∎
+
+*Formal Contract:*
+- *Definition:* `inc(t, k)` for `t ∈ T`, `k ≥ 0`: when `k = 0`, modify position `sig(t)` to `t_{sig(t)} + 1`; when `k > 0`, extend by `k` positions with `k - 1` zeros and final `1`.
+- *Postconditions:* (a) `t' > t` under T1. (b) `(A i : 1 ≤ i < increment point : t'ᵢ = tᵢ)`. (c) When `k = 0`: `#t' = #t`, modification only at `sig(t)`. (d) When `k > 0`: `#t' = #t + k`, positions `#t + 1 ... #t + k - 1` are `0`, position `#t + k` is `1`.
 
 Gregory's analysis reveals a critical distinction: `inc(t, 0)` does NOT produce the immediate successor of `t` in the total order. It produces the *next peer* at the same hierarchical depth — the smallest tumbler with the same length that is strictly greater than `t`. The gap between `t` and `inc(t, 0)` contains the entire subtree of `t`: all tumblers of the form `t.x₁. ... .xₘ` for any `m ≥ 1` and any `x₁ ≥ 0`. The true immediate successor in the total order is `t.0` — the zero-extension — by the prefix convention (T1 case (ii)). For any `k > 0`, `inc(t, k)` does NOT produce the immediate successor of `t` in the total order. For `k = 1` the result is `t.1`; for `k = 2` the result is `t.0.1`. In both cases, `t.0` (the true immediate successor) lies strictly between `t` and the result. The gap between `t` and `inc(t, k)` contains `t`'s entire subtree of zero-extensions. For address allocation, the distinction is harmless: allocation cares about advancing the counter past all existing addresses, not about visiting every point in the total order.
 
