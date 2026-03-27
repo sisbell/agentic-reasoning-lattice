@@ -478,7 +478,31 @@ In every case, `a ⊖ w ≤ b ⊖ w`. ∎
 
 **TA3-strict (Order preservation under subtraction, strict).** `(A a, b, w : a < b ∧ a ≥ w ∧ b ≥ w ∧ #a = #b : a ⊖ w < b ⊖ w)`.
 
-**Verification of TA3-strict.** The equal-length precondition eliminates Case 0 of the TA3 proof entirely — two tumblers of the same length cannot be in a prefix relationship unless equal, and `a < b` rules out equality. Cases 0a and 1–3 remain, all of which produce strict inequality (`a ⊖ w < b ⊖ w`). ∎
+We prove that subtracting a common lower bound from two equal-length tumblers preserves strict order.
+
+*Proof.* We are given `a, b, w ∈ T` with `a < b`, `a ≥ w`, `b ≥ w`, and `#a = #b`. We must show `a ⊖ w < b ⊖ w`.
+
+Since `#a = #b`, `a < b` cannot hold by T1 case (ii) — that case requires `a` to be a proper prefix of `b`, which demands `#a < #b`. Therefore `a < b` holds by T1 case (i): there exists a first position `j ≤ #a` such that `aᵢ = bᵢ` for all `i < j` and `aⱼ < bⱼ`.
+
+By TA2, both `a ⊖ w` and `b ⊖ w` are well-formed members of `T`. By TumblerSub, the subtraction `x ⊖ w` (for `x ∈ {a, b}`) depends on the divergence between `x` and `w` under zero-padding. We write `dₓ` for the first position where the zero-padded sequences of `x` and `w` differ, if such a position exists. We proceed by cases on the divergence structure.
+
+*Case A: `a` is zero-padded-equal to `w`.* The zero-padded sequences of `a` and `w` agree at every position, so by TumblerSub `a ⊖ w` is the zero tumbler of length `max(#a, #w)`. At position `j`, zero-padded equality gives `wⱼ = aⱼ`, so `bⱼ > aⱼ = wⱼ`. The pair `(b, w)` therefore diverges at or before position `j`, making `b ⊖ w` a tumbler with at least one positive component. By TA6, every zero tumbler is strictly less than every positive tumbler, so `a ⊖ w < b ⊖ w`.
+
+For the remaining cases, `a` is not zero-padded-equal to `w`, so `dₐ = divergence(a, w)` under zero-padding is well-defined. Let `d_b = divergence(b, w)` under zero-padding.
+
+*Case 1: `dₐ = d_b = d`.* Both operands diverge from `w` at the same position `d`. By TumblerSub, for `i < d` both `(a ⊖ w)ᵢ = 0` and `(b ⊖ w)ᵢ = 0`. Since `a` and `b` agree with `w` at all positions before `d`, they agree with each other before `d`, so the first disagreement between `a` and `b` satisfies `j ≥ d`.
+
+If `j = d`: at position `d`, `(a ⊖ w)_d = a_d - w_d` and `(b ⊖ w)_d = b_d - w_d`. Since `a_d < b_d` (from `j = d`) and both `a_d ≥ w_d`, `b_d ≥ w_d` (from `a ≥ w`, `b ≥ w` at the divergence), we have `a_d - w_d < b_d - w_d`. The results agree at all positions before `d` (both zero) and disagree strictly at `d`. By T1 case (i), `a ⊖ w < b ⊖ w`.
+
+If `j > d`: at position `d`, `a_d = b_d` (since `j > d`), so `(a ⊖ w)_d = a_d - w_d = b_d - w_d = (b ⊖ w)_d`. At positions `d < i < j`, both results copy from their respective minuends (the tail-copy phase of TumblerSub), and `aᵢ = bᵢ` (since `i < j`), so the results agree. At position `j`, `(a ⊖ w)ⱼ = aⱼ` and `(b ⊖ w)ⱼ = bⱼ` (both in the tail-copy phase since `j > d`), and `aⱼ < bⱼ`. By T1 case (i), `a ⊖ w < b ⊖ w`.
+
+*Case 2: `dₐ < d_b`.* At position `dₐ`, we have `a_{dₐ} ≠ w_{dₐ}` (divergence for `a`) but `b_{dₐ} = w_{dₐ}` (no divergence yet for `b`). Since both `a` and `b` agree with `w` at all positions before `dₐ`, they agree with each other before `dₐ`, so the first `a`-vs-`b` disagreement is at `dₐ`: `j = dₐ`, with `a_{dₐ} < b_{dₐ} = w_{dₐ}` (from `a < b`). But the divergence of `a` from `w` at position `dₐ` with `a ≥ w` requires `a_{dₐ} ≥ w_{dₐ}` — a contradiction. This case is impossible under the preconditions.
+
+*Case 3: `dₐ > d_b`.* At position `d_b`, we have `b_{d_b} ≠ w_{d_b}` (divergence for `b`) but `a_{d_b} = w_{d_b}` (no divergence yet for `a`). Both `a` and `b` agree with `w` at all positions before `d_b`, so the first `a`-vs-`b` disagreement is at `d_b`: `j = d_b`, with `a_{d_b} = w_{d_b} < b_{d_b}`. The inequality `b_{d_b} > w_{d_b}` follows from `b ≥ w` at the divergence point.
+
+For `a ⊖ w`: position `d_b` falls strictly before `dₐ`, so it lies in the pre-divergence zero phase of TumblerSub, giving `(a ⊖ w)_{d_b} = 0`. For `b ⊖ w`: position `d_b` is the divergence point, so `(b ⊖ w)_{d_b} = b_{d_b} - w_{d_b} > 0`. At all positions `i < d_b`, both results are zero (both operands are in their pre-divergence phases). The first disagreement between the results is at `d_b` with `0 < b_{d_b} - w_{d_b}`. By T1 case (i), `a ⊖ w < b ⊖ w`.
+
+In every case, strict inequality `a ⊖ w < b ⊖ w` is established. The equal-length precondition `#a = #b` is what forces `a < b` into T1 case (i), eliminating the prefix relationship that would permit weak-but-not-strict outcomes in the general TA3 setting. ∎
 
 *Formal Contract:*
 - *Preconditions:* a ∈ T, b ∈ T, w ∈ T, a < b, a ≥ w, b ≥ w, #a = #b
