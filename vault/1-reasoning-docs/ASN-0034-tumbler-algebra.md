@@ -267,7 +267,17 @@ The tumbler hierarchy exists so that independent actors can allocate addresses w
 
 Formally: let `p₁` and `p₂` be prefixes such that neither is a prefix of the other (`p₁ ⋠ p₂ ∧ p₂ ⋠ p₁`). Then for any tumbler `a` with prefix `p₁` and any tumbler `b` with prefix `p₂`, `a ≠ b`.
 
-This follows from the definition: if `a` has prefix `p₁` and `b` has prefix `p₂`, and the prefixes diverge at some position `k` with `p₁ₖ ≠ p₂ₖ`, then `aₖ = p₁ₖ ≠ p₂ₖ = bₖ`, so `a ≠ b`. The proof is elementary, but the property is architecturally profound. Nelson: "The owner of a given item controls the allocation of the numbers under it." No central allocator is needed. No coordination protocol is needed. The address structure itself makes collision impossible.
+*Proof.* We are given prefixes `p₁ = p₁₁. ... .p₁ₘ` and `p₂ = p₂₁. ... .p₂ₙ` with `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁`, and tumblers `a` with `p₁ ≼ a` and `b` with `p₂ ≼ b`. We must show `a ≠ b`.
+
+Since `p₁` and `p₂` are non-nesting, neither is a prefix of the other. We claim they must diverge at some component position. If `m ≤ n`, then `p₁ ⋠ p₂` means it is not the case that `p₁` is a prefix of `p₂` — so either `m > n` (impossible since we assumed `m ≤ n`) or there exists `k ≤ m` with `p₁ₖ ≠ p₂ₖ`. Symmetrically, if `m > n`, then `p₂ ⋠ p₁` forces a divergence at some `k ≤ n`. In both cases, there exists a position `k ≤ min(m, n)` such that `p₁ᵢ = p₂ᵢ` for all `i < k` and `p₁ₖ ≠ p₂ₖ`.
+
+Now, `p₁ ≼ a` means `aᵢ = p₁ᵢ` for all `1 ≤ i ≤ m`. Since `k ≤ m`, we have `aₖ = p₁ₖ`. Similarly, `p₂ ≼ b` means `bᵢ = p₂ᵢ` for all `1 ≤ i ≤ n`. Since `k ≤ n`, we have `bₖ = p₂ₖ`. Therefore `aₖ = p₁ₖ ≠ p₂ₖ = bₖ` — the tumblers `a` and `b` differ at position `k`. By T3, `a ≠ b`. ∎
+
+*Formal Contract:*
+- *Preconditions:* `p₁, p₂ ∈ T` with `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁`; `a, b ∈ T` with `p₁ ≼ a` and `p₂ ≼ b`.
+- *Postconditions:* `a ≠ b`.
+
+The proof is elementary, but the property is architecturally profound. Nelson: "The owner of a given item controls the allocation of the numbers under it." No central allocator is needed. No coordination protocol is needed. The address structure itself makes collision impossible.
 
 Nelson: "Whoever owns a specific node, account, document or version may in turn designate (respectively) new nodes, accounts, documents and versions, by forking their integers. We often call this the 'baptism' of new numbers." Baptism is the mechanism by which ownership domains are established — the owner of a number creates sub-numbers beneath it, and those sub-numbers belong exclusively to the owner.
 
