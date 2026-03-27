@@ -81,7 +81,11 @@ We require a total order on T. Nelson describes the "tumbler line" as a single l
 
 The prefix convention — a prefix is less than any proper extension — is what makes depth-first traversal work. The server address `2` is less than every address within server `2`'s subtree, because every such address extends the prefix `2` with further components. This means server `2`'s subtree begins immediately after `2` in the order and extends until some address whose first component exceeds `2`.
 
-*Proof.* We show that `<` as defined is a strict total order on T by establishing irreflexivity, trichotomy, and transitivity. The argument relies on the corresponding properties of `<` on ℕ and on T3 (canonical representation: tumblers with the same length and identical components at every position are equal).
+*Dependencies:*
+- **T0(a) (Carrier-set definition):** T is the set of all finite sequences over ℕ with length ≥ 1.
+- **T3 (Canonical representation):** `a = b ⟺ #a = #b ∧ (A i : 1 ≤ i ≤ #a : aᵢ = bᵢ)`.
+
+*Proof.* We show that `<` as defined is a strict total order on T by establishing irreflexivity, trichotomy, and transitivity. The argument relies on the corresponding properties of `<` on ℕ and on T3 (canonical representation).
 
 *(a) Irreflexivity.* We must show: `(A a ∈ T :: ¬(a < a))`.
 
@@ -95,7 +99,7 @@ Let `a, b ∈ T` with `#a = m` and `#b = n`. Define the *first divergence positi
 
 *Case 2: `k ≤ min(m, n)` and `aₖ ≠ bₖ`.* Since `aᵢ = bᵢ` for all `i < k` but `aₖ ≠ bₖ`, we have `a ≠ b`. By trichotomy on ℕ, exactly one of `aₖ < bₖ` or `bₖ < aₖ` holds. If `aₖ < bₖ`, then `k` witnesses `a < b` via T1 case (i); if `bₖ < aₖ`, then `k` witnesses `b < a` via T1 case (i). We confirm that no witness establishes the reverse. Any witness `k'` for the opposite ordering requires `aᵢ = bᵢ` for all `i < k'`. If `k' > k`, this fails at position `k` where `aₖ ≠ bₖ`. If `k' = k`, case (i) requires the opposite inequality at position `k`, contradicting ℕ-trichotomy, and case (ii) requires `k = n + 1` (or `k = m + 1`), contradicting `k ≤ min(m, n) ≤ n` (respectively `≤ m`). If `k' < k`, the minimality of `k` gives `a_{k'} = b_{k'}`, so case (i) fails on equal components and case (ii) requires `k' = n + 1` (or `m + 1`), but `k' < k ≤ min(m, n)` gives `k' < n` and `k' < m`, contradicting both. No witness exists; exactly one ordering holds.
 
-*Case 3: `k = min(m, n) + 1` — all shared positions agree but `m ≠ n`.* Since `aᵢ = bᵢ` for all `1 ≤ i ≤ min(m, n)` but `m ≠ n`, we have `a ≠ b` by T3 (distinct lengths). If `m < n`, then `k = m + 1 ≤ n`, so `a` is a proper prefix of `b` and `k` witnesses `a < b` via T1 case (ii). No witness for `b < a` exists: case (i) would require `bⱼ < aⱼ` at some position `j ≤ min(m, n)`, but all such positions have equal components; case (ii) would require `b` to be a proper prefix of `a`, i.e., `n < m`, contradicting `m < n`. If `m > n`, the symmetric argument gives `b < a` as the unique outcome.
+*Case 3: `k = min(m, n) + 1` — all shared positions agree but `m ≠ n`.* Since `aᵢ = bᵢ` for all `1 ≤ i ≤ min(m, n)` but `m ≠ n`, we have `a ≠ b` by T3 (distinct lengths). If `m < n`, then `k = m + 1 ≤ n`, so `a` is a proper prefix of `b` and `k` witnesses `a < b` via T1 case (ii). No witness for `b < a` exists: case (i) would require `bⱼ < aⱼ` at some position `j ≤ min(m, n)`, but all such positions have equal components; case (ii) would require `b` to be a proper prefix of `a`, i.e., `n < m`, contradicting `m < n`. If `m > n`, then `k = n + 1 ≤ m`, so `b` is a proper prefix of `a` and `k` witnesses `b < a` via T1 case (ii). No witness for `a < b` exists: case (i) would require `aⱼ < bⱼ` at some position `j ≤ min(m, n)`, but all such positions have equal components; case (ii) would require `m + 1 ≤ n`, contradicting `m > n`.
 
 These three cases partition all pairs in `T × T`, and in each case exactly one of the three relations holds.
 
