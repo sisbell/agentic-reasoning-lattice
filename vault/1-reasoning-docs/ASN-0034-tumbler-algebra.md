@@ -483,17 +483,21 @@ The tumbler hierarchy exists so that independent actors can allocate addresses w
 
 Formally: let `p₁` and `p₂` be prefixes such that neither is a prefix of the other (`p₁ ⋠ p₂ ∧ p₂ ⋠ p₁`). Then for any tumbler `a` with prefix `p₁` and any tumbler `b` with prefix `p₂`, `a ≠ b`.
 
+*Dependencies:*
+- **T3 (Canonical representation):** `a = b ⟺ #a = #b ∧ (A i : 1 ≤ i ≤ #a : aᵢ = bᵢ)`. Used contrapositively: tumblers that differ at any component are distinct.
+- **Prefix relation (from T1):** `p ≼ a` means `#p ≤ #a` and `aᵢ = pᵢ` for all `1 ≤ i ≤ #p`. Negation `p ⋠ a` means it is not the case that `p ≼ a`.
+
 *Proof.* We must show: given prefixes `p₁ = p₁₁. ... .p₁ₘ` and `p₂ = p₂₁. ... .p₂ₙ` satisfying `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁`, and tumblers `a` with `p₁ ≼ a` and `b` with `p₂ ≼ b`, that `a ≠ b`.
 
-We first establish that the non-nesting prefixes must diverge at some component position. Let `ℓ = min(m, n)`. The proof splits into two cases on the relative lengths of the prefixes.
+We first establish that the non-nesting prefixes must diverge at some component position within their common range `ℓ = min(m, n)`. The proof splits into two cases on the relative lengths of the prefixes.
 
-*Case 1: `m ≤ n`.* Since `p₁ ⋠ p₂` — it is not the case that `p₁` is a prefix of `p₂` — and `p₁` has length `m ≤ n`, the definition of prefix requires `p₂ᵢ = p₁ᵢ` for all `1 ≤ i ≤ m`. The failure of this condition means there exists some `j` with `1 ≤ j ≤ m` such that `p₁ⱼ ≠ p₂ⱼ`. (If no such `j` existed, then `p₂` would agree with `p₁` on all `m` positions, making `p₁` a prefix of `p₂` — contradicting `p₁ ⋠ p₂`.) Since `m ≤ n`, we have `j ≤ m = ℓ`, so the divergence occurs within the common range.
+*Case 1: `m ≤ n`.* The prefix relation `p₁ ≼ p₂` requires `#p₁ ≤ #p₂` and `p₂ᵢ = p₁ᵢ` for all `1 ≤ i ≤ m`. Since `m ≤ n`, the length condition holds; the hypothesis `p₁ ⋠ p₂` therefore means the componentwise condition fails. There exists some `j` with `1 ≤ j ≤ m` such that `p₁ⱼ ≠ p₂ⱼ`. (If no such `j` existed, `p₂` would agree with `p₁` on all `m` positions, making `p₁ ≼ p₂` — contradicting `p₁ ⋠ p₂`.) Since `m ≤ n`, we have `j ≤ m = ℓ`, so the divergence occurs within the common range.
 
-*Case 2: `m > n`.* By the symmetric argument applied to `p₂ ⋠ p₁`: since `p₂` has the shorter length `n < m`, and it is not a prefix of `p₁`, there exists some `j` with `1 ≤ j ≤ n` such that `p₂ⱼ ≠ p₁ⱼ`. Since `n < m`, we have `j ≤ n = ℓ`.
+*Case 2: `m > n`.* The prefix relation `p₂ ≼ p₁` requires `#p₂ ≤ #p₁` and `p₁ᵢ = p₂ᵢ` for all `1 ≤ i ≤ n`. Since `n < m`, the length condition holds; the hypothesis `p₂ ⋠ p₁` therefore means the componentwise condition fails. There exists some `j` with `1 ≤ j ≤ n` such that `p₂ⱼ ≠ p₁ⱼ`. (If no such `j` existed, `p₁` would agree with `p₂` on all `n` positions, making `p₂ ≼ p₁` — contradicting `p₂ ⋠ p₁`.) Since `n < m`, we have `j ≤ n = ℓ`, so the divergence occurs within the common range.
 
-In both cases, let `k` be the *least* such divergence position: `k = min{j : 1 ≤ j ≤ ℓ ∧ p₁ⱼ ≠ p₂ⱼ}`. By construction, `p₁ᵢ = p₂ᵢ` for all `1 ≤ i < k`, and `p₁ₖ ≠ p₂ₖ`, with `k ≤ ℓ ≤ min(m, n)`.
+In both cases, let `k` be the *least* such divergence position: `k = min{j : 1 ≤ j ≤ ℓ ∧ p₁ⱼ ≠ p₂ⱼ}`. By construction, `p₁ᵢ = p₂ᵢ` for all `1 ≤ i < k`, and `p₁ₖ ≠ p₂ₖ`, with `k ≤ ℓ = min(m, n)`.
 
-We now transfer this divergence to `a` and `b`. Since `p₁ ≼ a`, the definition of prefix gives `aᵢ = p₁ᵢ` for all `1 ≤ i ≤ m`. Since `k ≤ m`, this yields `aₖ = p₁ₖ`. Since `p₂ ≼ b`, similarly `bᵢ = p₂ᵢ` for all `1 ≤ i ≤ n`. Since `k ≤ n`, this yields `bₖ = p₂ₖ`. Combining: `aₖ = p₁ₖ ≠ p₂ₖ = bₖ`. The tumblers `a` and `b` differ at position `k`, so by the reverse direction of T3 (tumblers that differ in any component are distinct), `a ≠ b`. ∎
+We now transfer this divergence to `a` and `b`. Since `p₁ ≼ a`, the prefix relation gives `aᵢ = p₁ᵢ` for all `1 ≤ i ≤ m`. Since `k ≤ m` (from `k ≤ min(m, n) ≤ m`), this yields `aₖ = p₁ₖ`. Since `p₂ ≼ b`, the prefix relation gives `bᵢ = p₂ᵢ` for all `1 ≤ i ≤ n`. Since `k ≤ n` (from `k ≤ min(m, n) ≤ n`), this yields `bₖ = p₂ₖ`. Combining: `aₖ = p₁ₖ ≠ p₂ₖ = bₖ`. The tumblers `a` and `b` differ at position `k`, so by the contrapositive of T3 — tumblers that differ at any component are distinct — `a ≠ b`. ∎
 
 *Formal Contract:*
 - *Preconditions:* `p₁, p₂ ∈ T` with `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁`; `a, b ∈ T` with `p₁ ≼ a` and `p₂ ≼ b`.
