@@ -375,7 +375,49 @@ Let `⊖` denote tumbler subtraction: given two positions, compute the displacem
 
 **TA3 (Order preservation under subtraction, weak).** `(A a, b, w : a < b ∧ a ≥ w ∧ b ≥ w : a ⊖ w ≤ b ⊖ w)`.
 
+The subtraction algorithm differs structurally from addition — it zeros positions before the divergence point and copies the tail from the minuend, whereas addition copies the tail from the displacement. We verify TA3 directly by case analysis.
+
+**Verification of TA3.** By TA2, since `a ≥ w` and `b ≥ w`, both `a ⊖ w` and `b ⊖ w` are well-formed tumblers in `T`, making the order comparison well-defined. By TumblerSub, for any `x ≥ w`: if the zero-padded sequences of `x` and `w` agree everywhere, `x ⊖ w` is the zero tumbler of length `max(#x, #w)`; otherwise, let `d_x` be the first divergence position (under zero-padding), and the result has zeros at positions before `d_x`, value `x_{d_x} - w_{d_x}` at position `d_x`, and `xᵢ` copied for positions after `d_x`, with length `max(#x, #w)`. We say `x` is *zero-padded-equal* to `w` when no such divergence exists.
+
+Since `a < b`, by T1 either (i) there exists a first position `j ≤ min(#a, #b)` where `aⱼ < bⱼ`, or (ii) `j = #a + 1 ≤ #b` — `a` is a proper prefix of `b`. We organize the case analysis around these two forms of `a < b` and the divergence structure of the operands against `w`.
+
+*Case 0: `a` is a proper prefix of `b`* (T1 case (ii)). Then `#a < #b` and `aᵢ = bᵢ` for all `i ≤ #a`.
+
+*Sub-case `a = w`.* Then `a ⊖ w = [0, ..., 0]` (the zero tumbler of length `max(#a, #w) = #a`). Since `b > a = w` and `a` is a proper prefix of `b`, we have `bᵢ = wᵢ` for all `i ≤ #w = #a`. If some component of `b` beyond `#w` is nonzero, then `b ⊖ w` is a positive tumbler, and by TA6 the zero tumbler `a ⊖ w` is strictly less. If all components of `b` beyond `#w` are zero (so zero-padded `w` equals `b`), then `b ⊖ w = [0, ..., 0]` of length `max(#b, #w) = #b`. Both results are zero tumblers, but `#(a ⊖ w) = #a < #b = #(b ⊖ w)`, so `a ⊖ w` is a proper prefix of `b ⊖ w`, giving `a ⊖ w < b ⊖ w` by T1 case (ii).
+
+*Sub-case `a > w` with divergence.* Let `dₐ = divergence(a, w)` under zero-padding. If `a > w` by T1 case (i), `dₐ ≤ min(#a, #w) ≤ #a`. If `a > w` by T1 case (ii), `w` is a proper prefix of `a` and `dₐ` falls at the smallest `i > #w` with `aᵢ > 0`, so `dₐ ≤ #a`. Since `bᵢ = aᵢ` for all `i ≤ #a` and `dₐ ≤ #a`, the comparison of `b` against `w` (under zero-padding) agrees with that of `a` at all positions up to `dₐ`. So `d_b = dₐ = d`.
+
+Apply the subtraction formula to both. At positions `i < d`: both results are zero. At position `d`: both compute `a_d - w_d = b_d - w_d` (since `a_d = b_d` for `d ≤ #a`). At positions `d < i ≤ #a`: both copy from their respective minuends, giving `aᵢ = bᵢ`. The two results agree on positions `1, ..., #a`.
+
+Beyond position `#a`, the results may differ. The result `a ⊖ w` has length `max(#a, #w)`. At positions `#a < i ≤ max(#a, #w)` (present only when `#w > #a`): `(a ⊖ w)ᵢ = 0` (from `a`'s zero-padding). For `(b ⊖ w)ᵢ`: when `i ≤ #b`, the value is `bᵢ` (copied from the minuend since `i > d`); when `i > #b`, the value is `0` (from `b`'s zero-padding). In either case `(a ⊖ w)ᵢ ≤ (b ⊖ w)ᵢ`. The result `b ⊖ w` has length `max(#b, #w) ≥ max(#a, #w)` (since `#b > #a`). Now `a ⊖ w` is no longer than `b ⊖ w`, and they agree on positions `1, ..., #a`. If no disagreement exists on positions `1, ..., max(#a, #w)`, then `a ⊖ w` is a prefix of `b ⊖ w`, giving `a ⊖ w ≤ b ⊖ w` by T1 case (ii). If a first disagreement exists at position `p > #a`, then `(a ⊖ w)_p = 0 ≤ (b ⊖ w)_p`. If the disagreement is strict, `a ⊖ w < b ⊖ w` by T1 case (i). If `(b ⊖ w)_p = 0` at all such positions, then `a ⊖ w` is a prefix of `b ⊖ w`, giving `a ⊖ w ≤ b ⊖ w` by T1 case (ii).
+
+*Sub-case `a > w` without divergence (zero-padded equality).* If `a > w` by T1 case (ii) and `aᵢ = 0` for all `i > #w`, then after zero-padding, the sequences are identical. The subtraction `a ⊖ w` yields the zero tumbler of length `#a`. Since `b > a > w` and `#b > #a ≥ #w`, `b` agrees with `w` (hence with `a`) on positions `1, ..., #a`. The result `b ⊖ w` has length `max(#b, #w) = #b > #a`. If `b ⊖ w` has any positive component, then `a ⊖ w` (all zeros) is less by TA6. If `b ⊖ w` is also a zero tumbler, its length `#b > #a = #(a ⊖ w)`, so the shorter is a proper prefix of the longer, giving `a ⊖ w < b ⊖ w` by T1 case (ii).
+
+In all sub-cases of Case 0, `a ⊖ w ≤ b ⊖ w`.
+
+*Case 0a: Component divergence with `a` zero-padded-equal to `w`.* Here `a < b` by T1 case (i): there exists `j ≤ min(#a, #b)` with `aⱼ < bⱼ`. Since the zero-padded sequences of `a` and `w` agree everywhere, `a ⊖ w` is the zero tumbler of length `max(#a, #w)`. At position `j`, `wⱼ = aⱼ` (from zero-padded equality), so `bⱼ > aⱼ = wⱼ`. The pair `(b, w)` diverges at or before `j`, making `b ⊖ w` positive. By TA6, `a ⊖ w < b ⊖ w`.
+
+For the remaining cases, `a < b` by T1 case (i) and `a` is not zero-padded-equal to `w`, so `dₐ = divergence(a, w)` under zero-padding is well-defined. Let `d_b = divergence(b, w)` under zero-padding, and let `j` be the first position where `aⱼ < bⱼ`.
+
+*Case 1: `dₐ = d_b = d`.* Both operands diverge from `w` at the same position. For `i < d`, both results are zero. Since `a` and `b` agree with `w` before `d`, and `aⱼ < bⱼ`, we have `j ≥ d`. If `j = d`: `a_d - w_d < b_d - w_d` (since `a_d < b_d`), so `a ⊖ w < b ⊖ w` by T1 case (i). If `j > d`: `a_d = b_d`, so both results agree at position `d`; at positions `d < i < j`, both copy from their respective minuends which agree (`aᵢ = bᵢ`); at position `j`, `(a ⊖ w)ⱼ = aⱼ < bⱼ = (b ⊖ w)ⱼ` (both in the tail-copy phase since `j > d`). By T1 case (i), `a ⊖ w < b ⊖ w`.
+
+*Case 2: `dₐ < d_b`.* At position `dₐ`, `a_{dₐ} ≠ w_{dₐ}` but `b_{dₐ} = w_{dₐ}`. Since `a` and `b` agree with `w` at all positions before `dₐ`, the first disagreement between `a` and `b` is at `dₐ`, giving `j = dₐ` with `a_{dₐ} < b_{dₐ} = w_{dₐ}`. But `a ≥ w` requires `a_{dₐ} ≥ w_{dₐ}` at the divergence — contradiction. This case is impossible under the preconditions.
+
+*Case 3: `dₐ > d_b`.* At position `d_b`, `b_{d_b} ≠ w_{d_b}` but `a_{d_b} = w_{d_b}`. So `j = d_b` with `a_{d_b} = w_{d_b} < b_{d_b}` (since `a < b` and the first disagreement is at `d_b`; `b ≥ w` ensures `b_{d_b} > w_{d_b}` at this divergence). The result `(a ⊖ w)_{d_b} = 0` (position `d_b < dₐ` falls in the pre-divergence zero phase for `a ⊖ w`). The result `(b ⊖ w)_{d_b} = b_{d_b} - w_{d_b} > 0`. At all positions `i < d_b`, both results are zero. By T1 case (i), `a ⊖ w < b ⊖ w`.
+
+In every case, `a ⊖ w ≤ b ⊖ w`. ∎
+
+*Formal Contract:*
+- *Preconditions:* a ∈ T, b ∈ T, w ∈ T, a < b, a ≥ w, b ≥ w
+- *Postconditions:* a ⊖ w ≤ b ⊖ w
+
 **TA3-strict (Order preservation under subtraction, strict).** `(A a, b, w : a < b ∧ a ≥ w ∧ b ≥ w ∧ #a = #b : a ⊖ w < b ⊖ w)`.
+
+**Verification of TA3-strict.** The equal-length precondition eliminates Case 0 of the TA3 proof entirely — two tumblers of the same length cannot be in a prefix relationship unless equal, and `a < b` rules out equality. Cases 0a and 1–3 remain, all of which produce strict inequality (`a ⊖ w < b ⊖ w`). ∎
+
+*Formal Contract:*
+- *Preconditions:* a ∈ T, b ∈ T, w ∈ T, a < b, a ≥ w, b ≥ w, #a = #b
+- *Postconditions:* a ⊖ w < b ⊖ w
 
 ### Partial inverse
 
