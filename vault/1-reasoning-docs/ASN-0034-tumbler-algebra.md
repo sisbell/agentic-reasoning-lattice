@@ -737,33 +737,37 @@ Let `⊖` denote tumbler subtraction: given two positions, compute the displacem
 
 **TA2 (Well-defined subtraction).** For tumblers `a, w ∈ T` where `a ≥ w`, `a ⊖ w` is a well-defined tumbler in `T`.
 
-*Proof.* We show that for all `a, w ∈ T` with `a ≥ w`, the operation `a ⊖ w` as defined by TumblerSub produces a member of `T` — a finite sequence of non-negative integers with at least one component.
+*Dependencies:*
+- **T0(a) (Carrier-set definition):** T is the set of all finite sequences over ℕ with length ≥ 1.
+- **T1 (Lexicographic order):** The total order on T, defining `a < b` by first divergence position.
+- **T3 (Canonical representation):** `a = b ⟺ #a = #b ∧ (A i : 1 ≤ i ≤ #a : aᵢ = bᵢ)`.
+- **TumblerSub (Constructive definition):** Zero-pad both operands to length `p = max(#a, #w)`. If the padded sequences agree everywhere, the result is the zero tumbler of length `p`. Otherwise, let `k` be the first position where they disagree; then `rᵢ = 0` for `i < k`, `rₖ = aₖ - wₖ`, `rᵢ = aᵢ` for `i > k` (all under zero-padding), with `#r = p`.
 
-By TumblerSub, subtraction zero-pads both operands to length `p = max(#a, #w)` and scans for the first position at which the padded sequences disagree. Two cases arise.
+*Proof.* We show that for all `a, w ∈ T` with `a ≥ w`, the construction TumblerSub produces a member of T — a finite sequence of non-negative integers with at least one component — and that `#(a ⊖ w) = max(#a, #w)`.
 
-*Case 1: no divergence (zero-padded equality).* The padded sequences of `a` and `w` agree at every position. TumblerSub produces the zero tumbler `[0, ..., 0]` of length `p`. Since `#a ≥ 1` and `#w ≥ 1` (both are tumblers in T), `p ≥ 1`. Each component is `0 ∈ ℕ`. The result is a finite sequence of non-negative integers with length at least 1 — a member of T.
+Let `a ∈ T` and `w ∈ T` with `a ≥ w`. Write `p = max(#a, #w)`. TumblerSub zero-pads both operands to length `p` and scans for the first position at which the padded sequences disagree. Two cases exhaust the possibilities.
 
-*Case 2: divergence at position `k`.* The padded sequences agree at all positions `i < k` and disagree at `k`. TumblerSub defines the result `r = a ⊖ w` componentwise: `rᵢ = 0` for `i < k`, `rₖ = aₖ - wₖ`, and `rᵢ = aᵢ` for `i > k` (where all component references use zero-padded values), with `#r = p`.
+*Case 1: no divergence (zero-padded equality).* The padded sequences of `a` and `w` agree at every position. TumblerSub produces the zero tumbler `r = [0, ..., 0]` of length `p`. Since `#a ≥ 1` and `#w ≥ 1` (both are members of T by T0(a)), `p ≥ 1`. Each component is `0 ∈ ℕ`. The result is a finite sequence over ℕ with length ≥ 1 — a member of T by T0(a), with `#r = p = max(#a, #w)`.
 
-We verify that each region produces non-negative integer components.
+*Case 2: divergence at position `k`.* The padded sequences agree at all positions `i < k` and first disagree at `k`. TumblerSub defines the result `r = a ⊖ w` componentwise: `rᵢ = 0` for `i < k`, `rₖ = aₖ - wₖ`, and `rᵢ = aᵢ` for `i > k` (all under zero-padding), with `#r = p`. We verify that every component belongs to ℕ, treating the three regions in turn.
 
-*Pre-divergence* (`i < k`): `rᵢ = 0 ∈ ℕ`.
+*Pre-divergence* (`i < k`): `rᵢ = 0 ∈ ℕ` by construction.
 
-*Divergence point* (`i = k`): We must show `aₖ ≥ wₖ` (zero-padded values) so that `rₖ = aₖ - wₖ ∈ ℕ`. Since the divergence exists, the padded sequences differ, so `a` and `w` are not zero-padded-equal. If `a = w` as tumblers (by T3: same length and components), then their padded sequences are trivially identical — no divergence exists, contradicting the case hypothesis. Therefore `a ≠ w`, and combined with `a ≥ w` this gives `a > w` under T1. Two sub-cases arise from T1's definition of strict ordering.
+*Divergence point* (`i = k`): We must show `aₖ ≥ wₖ` (zero-padded values) so that `rₖ = aₖ - wₖ` is a well-defined member of ℕ. The padded sequences disagree at `k`, so the operands are not zero-padded-equal. We claim `a ≠ w` as tumblers: if `a = w`, then T3 gives `#a = #w` and `aᵢ = wᵢ` for all `1 ≤ i ≤ #a`, so the padded sequences — identical to the originals through position `#a = #w` and both zero beyond — agree everywhere, contradicting the divergence at `k`. Therefore `a ≠ w`, and since `a ≥ w` by hypothesis, `a > w` under T1. We show the T1 witness for `a > w` coincides with the padded divergence `k` and yields `aₖ > wₖ`.
 
-*Sub-case (i): T1 case (i) — component divergence.* There exists a first position `j ≤ min(#a, #w)` with `aⱼ > wⱼ` and `aᵢ = wᵢ` for all `i < j`. These positions lie within both original sequences, so the zero-padded values agree with the originals. The padded sequences therefore agree before `j` and disagree at `j`, making `j` the first padded divergence: `k = j`. At position `k`, `aₖ > wₖ`, so `rₖ = aₖ - wₖ ∈ ℕ`.
+*Sub-case (i): T1 case (i) — component divergence.* There exists a least `j ≤ min(#a, #w)` with `aⱼ > wⱼ` and `aᵢ = wᵢ` for all `i < j`. Since `j ≤ min(#a, #w)`, both values are original components, so zero-padding does not alter them. The padded sequences agree before `j` and disagree at `j`, making `j` the first padded divergence: `k = j`. At position `k`, `aₖ > wₖ`, so `rₖ = aₖ - wₖ ∈ ℕ`.
 
-*Sub-case (ii): T1 case (ii) — prefix relationship.* Here `w` is a proper prefix of `a`: `#w < #a` and `aᵢ = wᵢ` for all `i ≤ #w`. Zero-padding extends `w` with zeros at positions `#w + 1` through `p = #a`. The padded sequences agree at all positions `i ≤ #w`. The divergence `k` falls at the first position `i > #w` where `aᵢ > 0` — such a position must exist, for if `aᵢ = 0` at every `i > #w` the padded sequences would agree everywhere, contradicting the case hypothesis. At position `k`, `aₖ > 0 = wₖ` (zero-padded), so `rₖ = aₖ - 0 = aₖ ∈ ℕ`.
+*Sub-case (ii): T1 case (ii) — prefix relationship.* Here `w` is a proper prefix of `a`: `#w < #a` and `aᵢ = wᵢ` for all `i ≤ #w`. Zero-padding extends `w` with zeros at positions `#w + 1` through `p = #a`. The padded sequences agree at all positions `i ≤ #w`. The divergence `k` falls at the first position `i > #w` where `aᵢ > 0` — such a position must exist, for if `aᵢ = 0` at every `i > #w`, the padded sequences would agree everywhere, contradicting the case hypothesis. At position `k`, `aₖ > 0 = wₖ` (the zero-padded value), so `rₖ = aₖ - 0 = aₖ ∈ ℕ`.
 
-*Tail* (`i > k`): `rᵢ = aᵢ` (zero-padded). If `i ≤ #a`, then `aᵢ` is a component of `a ∈ T`, hence `aᵢ ∈ ℕ`. If `i > #a`, then `aᵢ = 0 ∈ ℕ` (zero-padded).
+*Tail* (`i > k`): `rᵢ = aᵢ` (zero-padded). If `i ≤ #a`, then `aᵢ` is a component of `a ∈ T`, hence `aᵢ ∈ ℕ` by T0(a). If `i > #a`, then the zero-padded value is `0 ∈ ℕ`.
 
-The result `r` has length `p = max(#a, #w) ≥ 1` with every component in ℕ — a member of T.
+The result `r` has length `p = max(#a, #w) ≥ 1` with every component in ℕ — a member of T by T0(a), with `#r = p = max(#a, #w)`.
 
-In both cases, `a ⊖ w ∈ T`. ∎
+In both cases, `a ⊖ w ∈ T` with `#(a ⊖ w) = max(#a, #w)`. ∎
 
 *Formal Contract:*
-- *Preconditions:* a ∈ T, w ∈ T, a ≥ w
-- *Postconditions:* a ⊖ w ∈ T
+- *Preconditions:* `a ∈ T`, `w ∈ T`, `a ≥ w`
+- *Postconditions:* `a ⊖ w ∈ T`, `#(a ⊖ w) = max(#a, #w)`
 
 **TA3 (Order preservation under subtraction, weak).** `(A a, b, w : a < b ∧ a ≥ w ∧ b ≥ w : a ⊖ w ≤ b ⊖ w)`.
 
