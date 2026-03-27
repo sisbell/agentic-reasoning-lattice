@@ -28,8 +28,8 @@ import yaml
 from datetime import datetime
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import WORKSPACE, EXPERTS_DIR, USAGE_LOG, load_manifest, load_excluded_covers
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+from lib.shared.paths import WORKSPACE, EXPERTS_DIR, USAGE_LOG, load_manifest, load_excluded_covers
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
 TEST_HARNESS = WORKSPACE / "udanax-test-harness"

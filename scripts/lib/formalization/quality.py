@@ -20,13 +20,13 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import WORKSPACE, USAGE_LOG
-from lib.common import find_asn, extract_property_sections, step_commit_asn
-from lib.rebase_deps import (find_property_table, parse_table_row,
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+from lib.shared.paths import WORKSPACE, USAGE_LOG
+from lib.shared.common import find_asn, extract_property_sections, step_commit_asn
+from lib.formalization.deps import (find_property_table, parse_table_row,
                               detect_columns, generate_deps)
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
+PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"
 QUALITY_TEMPLATE = PROMPTS_DIR / "quality-pass.md"
 
 

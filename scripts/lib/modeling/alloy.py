@@ -33,7 +33,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import (WORKSPACE, ASNS_DIR, ALLOY_DIR, REVIEWS_DIR,
+from lib.shared.paths import (WORKSPACE, ASNS_DIR, ALLOY_DIR, REVIEWS_DIR,
                     USAGE_LOG, sorted_reviews, next_review_number,
                     sanitize_filename, formal_stmts)
 

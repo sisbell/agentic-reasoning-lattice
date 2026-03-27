@@ -11,7 +11,7 @@ Steps:
 7. Cleanup — clear open-issues, update timestamps
 
 Usage:
-    from lib.asn_pipeline import run_pipeline
+    from lib.formalization.run import run_pipeline
     run_pipeline(34)                    # full pipeline
     run_pipeline(34, force=True)        # ignore cached state
     run_pipeline(34, start_step="verify")  # start from proof verification
@@ -23,10 +23,10 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import (WORKSPACE, ASNS_DIR, REVIEWS_DIR, load_manifest,
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+from lib.shared.paths import (WORKSPACE, ASNS_DIR, REVIEWS_DIR, load_manifest,
                    formal_stmts, dep_graph, open_issues_path, project_yaml)
-from lib.common import find_asn, step_commit_asn
+from lib.shared.common import find_asn, step_commit_asn
 
 
 STEPS = ["stabilize", "repair", "stabilize", "quality", "stabilize", "audit", "verify", "review", "stabilize", "assembly", "cleanup"]
@@ -38,8 +38,8 @@ STEPS = ["stabilize", "repair", "stabilize", "quality", "stabilize", "audit", "v
 
 def step_stabilize(asn_num):
     """Run format gate + deps generation. Returns True on success."""
-    from lib.normalize_format import normalize_format
-    from lib.rebase_deps import generate_deps, write_deps_yaml
+    from lib.formalization.format import normalize_format
+    from lib.formalization.deps import generate_deps, write_deps_yaml
 
     print(f"\n  [STABILIZE] Format + Deps", file=sys.stderr)
 
@@ -63,7 +63,7 @@ def step_stabilize(asn_num):
 
 def step_repair(asn_num):
     """Repair incomplete sections. Returns True on success."""
-    from lib.repair_sections import step_repair_sections
+    from lib.formalization.repair import step_repair_sections
     print(f"\n  [3/9 REPAIR]", file=sys.stderr)
     repaired, skipped, failed = step_repair_sections(asn_num)
     if repaired > 0:
@@ -77,7 +77,7 @@ def step_repair(asn_num):
 
 def step_quality(asn_num):
     """Dijkstra rewrite + formal contracts. Returns True on success."""
-    from lib.quality_pass import step_quality_pass
+    from lib.formalization.quality import step_quality_pass
     print(f"\n  [4/9 QUALITY]", file=sys.stderr)
     rewritten, failed = step_quality_pass(asn_num)
     if rewritten > 0:
@@ -100,7 +100,7 @@ def step_audit(asn_num):
     if asn_path is None:
         return False
 
-    from lib.rebase_asn import (
+    from lib.discovery.rebase import (
         step_surface_check, step_find_extensions, step_verify_transfer,
         step_audit as step_open_audit, _append_open_issues,
     )
@@ -110,7 +110,7 @@ def step_audit(asn_num):
     # 3a: Mechanical checker
     print(f"  [AUDIT 1/4] Mechanical checker...", file=sys.stderr)
     try:
-        from lib.rebase_mechanical import check_asn, format_findings
+        from lib.formalization.mechanical import check_asn, format_findings
         findings = check_asn(asn_num)
         if findings:
             _append_open_issues(asn_num, format_findings(findings))
@@ -123,8 +123,8 @@ def step_audit(asn_num):
     # 3b: Extension verification
     print(f"  [AUDIT 2/4] Extension verification...", file=sys.stderr)
     try:
-        from lib.rebase_extensions import extract_claims, verify_claims
-        from lib.rebase_extensions import format_findings as fmt_ext
+        from lib.formalization.extensions import extract_claims, verify_claims
+        from lib.formalization.extensions import format_findings as fmt_ext
         claims = extract_claims(asn_num)
         if claims:
             results = verify_claims(claims, model="sonnet", effort="high")
@@ -157,7 +157,7 @@ def step_audit(asn_num):
 
 def step_verify(asn_num):
     """Per-proof verification. Returns True if all verified."""
-    from lib.verify_proofs import step_verify_proofs
+    from lib.formalization.verify import step_verify_proofs
     print(f"\n  [6/9 VERIFY]", file=sys.stderr)
     verified, found, errors = step_verify_proofs(asn_num)
     step_commit_asn(asn_num, hint="proof verification")
@@ -210,8 +210,8 @@ def step_review(asn_num, max_cycles=30):
 
 def step_assembly(asn_num):
     """Assemble formal-statements.md + final deps YAML. Returns True."""
-    from lib.normalize_format import assemble_formal_statements
-    from lib.rebase_deps import generate_deps, write_deps_yaml
+    from lib.formalization.format import assemble_formal_statements
+    from lib.formalization.deps import generate_deps, write_deps_yaml
     print(f"\n  [8/9 ASSEMBLY]", file=sys.stderr)
 
     assemble_formal_statements(asn_num)

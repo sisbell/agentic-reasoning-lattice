@@ -14,9 +14,9 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import (WORKSPACE, DAFNY_DIR, find_latest_modeling_dir)
-from lib.model_dafny import write_status_file, extract_divergences, run_commit
-from lib.model_fix import verify_dafny
+from lib.shared.paths import (WORKSPACE, DAFNY_DIR, find_latest_modeling_dir)
+from lib.modeling.dafny import write_status_file, extract_divergences, run_commit
+from lib.modeling.fix import verify_dafny
 
 
 def find_modeling_dir(asn_id, modeling_num=None):

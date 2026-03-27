@@ -23,10 +23,10 @@ from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from paths import (WORKSPACE, PROJECT_MODEL_DIR, load_manifest,
+from lib.shared.paths import (WORKSPACE, PROJECT_MODEL_DIR, load_manifest,
                    formal_stmts, project_yaml)
-from lib.common import find_asn
-from lib.asn_pipeline import run_pipeline
+from lib.shared.common import find_asn
+from lib.formalization.run import run_pipeline
 
 
 def get_active_asns():

@@ -22,7 +22,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import WORKSPACE, ASNS_DIR, PROOF_INDEX_DIR, USAGE_LOG, formal_stmts, asn_dir
+from lib.shared.paths import WORKSPACE, ASNS_DIR, PROOF_INDEX_DIR, USAGE_LOG, formal_stmts, asn_dir
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"
 TEMPLATE = PROMPTS_DIR / "extract-properties.md"

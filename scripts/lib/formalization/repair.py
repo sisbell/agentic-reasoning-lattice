@@ -20,15 +20,15 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import (WORKSPACE, USAGE_LOG, REVIEWS_DIR,
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+from lib.shared.paths import (WORKSPACE, USAGE_LOG, REVIEWS_DIR,
                    formal_stmts, open_issues_path, load_manifest,
                    next_review_number)
-from lib.common import find_asn, extract_property_sections, step_commit_asn
-from lib.rebase_deps import (find_property_table, parse_table_row,
+from lib.shared.common import find_asn, extract_property_sections, step_commit_asn
+from lib.formalization.deps import (find_property_table, parse_table_row,
                               detect_columns, generate_deps)
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
+PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"
 REPAIR_TEMPLATE = PROMPTS_DIR / "repair-section.md"
 
 

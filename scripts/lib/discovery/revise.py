@@ -19,10 +19,10 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import sorted_reviews
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+from lib.shared.paths import sorted_reviews
 
-from lib.review_pipeline import (
+from lib.discovery.review import (
     find_asn,
     step_review,
     step_consult_revision,
@@ -129,9 +129,9 @@ def main():
 
             if converged:
                 # Cycle gate — check dependency graph before accepting
-                from lib.rebase_mechanical import check_cycles, format_cycle_findings
-                from lib.rebase_deps import generate_deps
-                from lib.rebase_asn import _append_open_issues
+                from lib.formalization.mechanical import check_cycles, format_cycle_findings
+                from lib.formalization.deps import generate_deps
+                from lib.discovery.rebase import _append_open_issues
 
                 # Regenerate deps from current ASN state
                 deps = generate_deps(asn_number)
@@ -193,7 +193,7 @@ def main():
         step_commit(f"Revise {asn_label} (cycle {cycle})", asn_id=asn_number)
 
         # Regenerate deps YAML so next review sees updated graph
-        from lib.rebase_deps import generate_deps, write_deps_yaml
+        from lib.formalization.deps import generate_deps, write_deps_yaml
         deps = generate_deps(asn_number)
         if deps:
             write_deps_yaml(asn_number, deps)

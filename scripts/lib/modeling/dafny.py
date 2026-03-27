@@ -27,7 +27,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import (WORKSPACE, ASNS_DIR, PROOF_INDEX_DIR,
+from lib.shared.paths import (WORKSPACE, ASNS_DIR, PROOF_INDEX_DIR,
                     PROOFS_DIR, DAFNY_DIR, ALLOY_DIR, REVIEWS_DIR, USAGE_LOG,
                     next_review_number, next_modeling_number, load_manifest,
                     sanitize_filename, formal_stmts)

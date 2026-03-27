@@ -20,10 +20,10 @@ import sys
 import time
 from pathlib import Path
 
-from paths import WORKSPACE, USAGE_LOG
+from lib.shared.paths import WORKSPACE, USAGE_LOG
 
-COMMIT_PROMPT = WORKSPACE / "scripts" / "prompts" / "commit.md"
-PROOFS_COMMIT_PROMPT = WORKSPACE / "scripts" / "prompts" / "commit-proofs.md"
+COMMIT_PROMPT = WORKSPACE / "scripts" / "prompts" / "shared" / "commit.md"
+PROOFS_COMMIT_PROMPT = WORKSPACE / "scripts" / "prompts" / "shared" / "commit-proofs.md"
 
 MODEL = "claude-sonnet-4-6"
 

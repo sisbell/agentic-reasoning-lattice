@@ -26,8 +26,8 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import WORKSPACE, EXPERTS_DIR, USAGE_LOG
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+from lib.shared.paths import WORKSPACE, EXPERTS_DIR, USAGE_LOG
 
 CONCEPTS_DIR = WORKSPACE / "nelson" / "xanadu-concepts"
 INTENT_DIR = WORKSPACE / "nelson" / "nelson-intent"

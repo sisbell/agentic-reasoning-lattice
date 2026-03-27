@@ -6,8 +6,8 @@ from pathlib import Path
 
 import yaml
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import PROJECT_MODEL_DIR, asn_dir, formal_stmts, load_manifest
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+from lib.shared.paths import PROJECT_MODEL_DIR, asn_dir, formal_stmts, load_manifest
 
 
 def find_extensions(base_id):

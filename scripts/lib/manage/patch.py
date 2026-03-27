@@ -17,13 +17,13 @@ import time
 
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import (WORKSPACE, ASNS_DIR, REVIEWS_DIR,
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+from lib.shared.paths import (WORKSPACE, ASNS_DIR, REVIEWS_DIR,
                    VOCABULARY, load_manifest,
                    next_review_number)
-from lib.common import (read_file, find_asn, invoke_claude, invoke_claude_agent,
+from lib.shared.common import (read_file, find_asn, invoke_claude, invoke_claude_agent,
                          log_usage, step_commit_asn)
-from lib.foundation import load_foundation_statements
+from lib.shared.foundation import load_foundation_statements
 
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"

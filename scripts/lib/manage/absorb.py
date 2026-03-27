@@ -26,10 +26,10 @@ import time
 
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import (WORKSPACE, ASNS_DIR, PROJECT_MODEL_DIR,
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+from lib.shared.paths import (WORKSPACE, ASNS_DIR, PROJECT_MODEL_DIR,
                    REVIEWS_DIR, load_manifest, project_yaml, formal_stmts)
-from lib.common import (read_file, find_asn, invoke_claude, invoke_claude_agent,
+from lib.shared.common import (read_file, find_asn, invoke_claude, invoke_claude_agent,
                          log_usage, step_commit)
 
 
@@ -147,8 +147,8 @@ def step_integration_review(base_num, base_path, property_labels,
 
     Writes review to vault/2-review/ASN-NNNN/ for traceability.
     """
-    from paths import VOCABULARY, REVIEWS_DIR, next_review_number
-    from lib.foundation import load_foundation_statements
+    from lib.shared.paths import VOCABULARY, REVIEWS_DIR, next_review_number
+    from lib.shared.foundation import load_foundation_statements
 
     base_label = f"ASN-{int(base_num):04d}"
     base_content = base_path.read_text()
@@ -201,8 +201,8 @@ def step_integration_review(base_num, base_path, property_labels,
 def step_integration_revise(base_num, base_path, property_labels,
                             review_text, model, effort):
     """Step 2b: Fix integration issues found by review."""
-    from paths import VOCABULARY
-    from lib.foundation import load_foundation_statements
+    from lib.shared.paths import VOCABULARY
+    from lib.shared.foundation import load_foundation_statements
 
     base_label = f"ASN-{int(base_num):04d}"
     vocabulary = read_file(VOCABULARY)

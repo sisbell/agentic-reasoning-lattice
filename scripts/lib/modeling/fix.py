@@ -23,9 +23,9 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import (WORKSPACE, PROOFS_DIR, DAFNY_DIR,
+from lib.shared.paths import (WORKSPACE, PROOFS_DIR, DAFNY_DIR,
                    USAGE_LOG, find_latest_modeling_dir)
-from lib.model_dafny import write_status_file, write_divergence_file, extract_divergences
+from lib.modeling.dafny import write_status_file, write_divergence_file, extract_divergences
 
 
 def read_file(path):

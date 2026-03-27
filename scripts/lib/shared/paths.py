@@ -5,7 +5,7 @@ from pathlib import Path
 
 import yaml
 
-WORKSPACE = Path(__file__).resolve().parent.parent
+WORKSPACE = Path(__file__).resolve().parent.parent.parent.parent
 VAULT = WORKSPACE / "vault"
 
 # Stage 0: Consultations (merged transcripts)

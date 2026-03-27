@@ -18,9 +18,9 @@ from pathlib import Path
 
 import yaml
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import WORKSPACE, load_manifest, formal_stmts, dep_graph
-from lib.common import find_asn, extract_property_sections
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+from lib.shared.paths import WORKSPACE, load_manifest, formal_stmts, dep_graph
+from lib.shared.common import find_asn, extract_property_sections
 
 
 # ---------------------------------------------------------------------------

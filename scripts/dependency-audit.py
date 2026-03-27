@@ -25,8 +25,8 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from paths import WORKSPACE, ASNS_DIR, PROJECT_MODEL_DIR, load_manifest, formal_stmts
-from lib.common import find_asn
+from lib.shared.paths import WORKSPACE, ASNS_DIR, PROJECT_MODEL_DIR, load_manifest, formal_stmts
+from lib.shared.common import find_asn
 
 PROMPT_TEMPLATE = WORKSPACE / "scripts" / "prompts" / "discovery" / "dependency-audit.md"
 AUDIT_DIR = WORKSPACE / "vault" / "dependency-audit"

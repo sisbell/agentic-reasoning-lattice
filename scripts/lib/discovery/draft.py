@@ -29,12 +29,12 @@ import time
 import yaml
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import WORKSPACE, ASNS_DIR, USAGE_LOG, PROJECT_MODEL_DIR, load_manifest
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+from lib.shared.paths import WORKSPACE, ASNS_DIR, USAGE_LOG, PROJECT_MODEL_DIR, load_manifest
 
-CONSULT_SCRIPT = WORKSPACE / "scripts" / "lib" / "draft_consult.py"
-DISCOVER_SCRIPT = WORKSPACE / "scripts" / "lib" / "draft_discover.py"
-COMMIT_PROMPT = WORKSPACE / "scripts" / "prompts" / "commit.md"
+CONSULT_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "consult.py"
+DISCOVER_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "discover.py"
+COMMIT_PROMPT = WORKSPACE / "scripts" / "prompts" / "shared" / "commit.md"
 
 COMMIT_MODEL = "claude-sonnet-4-6"
 

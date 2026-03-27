@@ -23,9 +23,9 @@ from pathlib import Path
 
 import yaml
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import WORKSPACE, PROJECT_MODEL_DIR, load_manifest, dep_graph
-from lib.common import find_asn
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+from lib.shared.paths import WORKSPACE, PROJECT_MODEL_DIR, load_manifest, dep_graph
+from lib.shared.common import find_asn
 
 # Import label scanning from dependency-audit.py (hyphenated filename)
 import importlib
@@ -217,7 +217,7 @@ def check_cycles(asn_num):
     Returns list of cycle strings, e.g. ['A → B → A', 'C → D → C'].
     Returns empty list if no cycles.
     """
-    from lib.rebase_deps import generate_deps
+    from lib.formalization.deps import generate_deps
 
     deps = generate_deps(asn_num)
     if deps is None:

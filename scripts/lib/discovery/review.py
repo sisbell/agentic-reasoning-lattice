@@ -18,12 +18,12 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import WORKSPACE, ASNS_DIR
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+from lib.shared.paths import WORKSPACE, ASNS_DIR
 
-REVIEW_SCRIPT = WORKSPACE / "scripts" / "lib" / "review_check.py"
-CONSULT_REVISION_SCRIPT = WORKSPACE / "scripts" / "lib" / "review_consult.py"
-REVISE_SCRIPT = WORKSPACE / "scripts" / "lib" / "review_revise.py"
+REVIEW_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "review_check.py"
+CONSULT_REVISION_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "review_consult.py"
+REVISE_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "review_revise.py"
 COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
 
 

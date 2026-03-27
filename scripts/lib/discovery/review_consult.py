@@ -22,9 +22,9 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-# Import expert consultation functions from draft_consult
-from lib.draft_consult import (
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+# Import expert consultation functions from consult
+from lib.discovery.consult import (
     _invoke_claude,
     _run_nelson,
     _run_gregory,
@@ -33,7 +33,7 @@ from lib.draft_consult import (
     log_usage,
 )
 
-from paths import ASNS_DIR, REVIEWS_DIR, EXPERTS_DIR, sorted_reviews
+from lib.shared.paths import ASNS_DIR, REVIEWS_DIR, EXPERTS_DIR, sorted_reviews
 
 
 def read_file(path):

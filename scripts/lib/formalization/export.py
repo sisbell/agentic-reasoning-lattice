@@ -24,10 +24,10 @@ import time
 
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import WORKSPACE, ASNS_DIR, USAGE_LOG, formal_stmts, dep_graph, asn_dir
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+from lib.shared.paths import WORKSPACE, ASNS_DIR, USAGE_LOG, formal_stmts, dep_graph, asn_dir
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
+PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"
 TEMPLATE = PROMPTS_DIR / "export.md"
 COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
 
@@ -60,7 +60,7 @@ def build_prompt(asn_content):
     """Assemble export prompt from template + ASN content."""
     template = read_file(TEMPLATE)
     if not template:
-        print("  Prompt template not found at scripts/prompts/discovery/export.md",
+        print("  Prompt template not found at scripts/prompts/formalization/export.md",
               file=sys.stderr)
         sys.exit(1)
 
@@ -198,7 +198,7 @@ def _generate_deps(asn_id, label):
 
     # Phase 1: Mechanical extract
     try:
-        from lib.rebase_deps import generate_deps, write_deps_yaml
+        from lib.formalization.deps import generate_deps, write_deps_yaml
         deps = generate_deps(asn_num)
         if deps:
             path = write_deps_yaml(asn_num, deps)
@@ -215,7 +215,7 @@ def _generate_deps(asn_id, label):
 
     # Phase 2: LLM scan for undeclared dependencies
     try:
-        from lib.rebase_dep_scan import scan_asn
+        from lib.formalization.dep_scan import scan_asn
         scan_asn(asn_num, model="sonnet", effort="high")
     except Exception as e:
         print(f"  [DEPS] WARNING: LLM dep scan failed for {label}: {e}",
@@ -227,7 +227,7 @@ def _normalize_one(asn_id, do_format_gate=False):
 
     Returns (asn_label, True) on success, (asn_id, False) on failure.
     """
-    from lib.normalize_format import normalize_format, assemble_formal_statements
+    from lib.formalization.format import normalize_format, assemble_formal_statements
 
     asn_path, asn_label = find_asn(asn_id)
     if asn_path is None:
@@ -289,7 +289,7 @@ def main():
                    f"Normalize {label}"]
             subprocess.run(cmd, capture_output=True, text=True,
                            cwd=str(WORKSPACE))
-            from paths import load_manifest
+            from lib.shared.paths import load_manifest
             manifest = load_manifest(asn_num)
             if manifest.get("extends"):
                 print(f"\n  [NEXT] Absorb into base: "

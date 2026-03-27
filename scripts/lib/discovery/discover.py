@@ -22,9 +22,9 @@ import time
 import yaml
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import WORKSPACE, ASNS_DIR, EXPERTS_DIR, VOCABULARY, USAGE_LOG, load_manifest
-from lib.foundation import load_foundation_statements
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+from lib.shared.paths import WORKSPACE, ASNS_DIR, EXPERTS_DIR, VOCABULARY, USAGE_LOG, load_manifest
+from lib.shared.foundation import load_foundation_statements
 
 DISCOVERY_PROMPT = WORKSPACE / "scripts" / "prompts" / "discovery" / "discovery.md"
 

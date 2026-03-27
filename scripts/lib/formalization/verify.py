@@ -19,16 +19,16 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import (WORKSPACE, USAGE_LOG, REVIEWS_DIR, ASNS_DIR,
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+from lib.shared.paths import (WORKSPACE, USAGE_LOG, REVIEWS_DIR, ASNS_DIR,
                    formal_stmts, open_issues_path, load_manifest,
                    next_review_number)
-from lib.common import find_asn, extract_property_sections
-from lib.rebase_deps import (find_property_table, parse_table_row,
+from lib.shared.common import find_asn, extract_property_sections
+from lib.formalization.deps import (find_property_table, parse_table_row,
                               detect_columns, generate_deps)
-from lib.rebase_asn import _append_open_issues
+from lib.discovery.rebase import _append_open_issues
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
+PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"
 VERIFY_TEMPLATE = PROMPTS_DIR / "verify-proof.md"
 REVISE_TEMPLATE = PROMPTS_DIR / "revise-proof.md"
 
@@ -355,7 +355,7 @@ def step_verify_proofs(asn_num, max_revise_cycles=10):
                     break
 
                 # Commit the fix
-                from lib.common import step_commit_asn
+                from lib.shared.common import step_commit_asn
                 step_commit_asn(asn_num,
                                 f"fix(asn): {asn_label} — {label} proof fix")
 

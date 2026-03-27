@@ -16,9 +16,9 @@ Exit codes:
     4 = Tier 3 errors present (spec error — escape)
 
 Usage:
-    python scripts/lib/model_verify_run.py 1
-    python scripts/lib/model_verify_run.py ASN-0001 --dry-run
-    python scripts/lib/model_verify_run.py ASN-0001 --timeout 120
+    python scripts/lib/modeling/verify_run.py 1
+    python scripts/lib/modeling/verify_run.py ASN-0001 --dry-run
+    python scripts/lib/modeling/verify_run.py ASN-0001 --timeout 120
 """
 
 import argparse
@@ -31,7 +31,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import (WORKSPACE, VERIFICATION_DIR, USAGE_LOG,
+from lib.shared.paths import (WORKSPACE, VERIFICATION_DIR, USAGE_LOG,
                     find_latest_modeling_dir)
 
 

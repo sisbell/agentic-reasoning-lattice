@@ -27,10 +27,10 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from paths import (WORKSPACE, ASNS_DIR,
+from lib.shared.paths import (WORKSPACE, ASNS_DIR,
                    PROJECT_MODEL_DIR, load_manifest)
-from lib.common import find_asn
-from lib.foundation import load_foundation_statements
+from lib.shared.common import find_asn
+from lib.shared.foundation import load_foundation_statements
 
 PROMPT_TEMPLATE = WORKSPACE / "scripts" / "prompts" / "discovery" / "consistency-check.md"
 MODEL = "claude-sonnet-4-6"

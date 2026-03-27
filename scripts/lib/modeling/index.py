@@ -25,7 +25,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import WORKSPACE, ASNS_DIR, PROOF_INDEX_DIR, VOCABULARY, USAGE_LOG
+from lib.shared.paths import WORKSPACE, ASNS_DIR, PROOF_INDEX_DIR, VOCABULARY, USAGE_LOG
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"
 REFINE_TEMPLATE = PROMPTS_DIR / "refine.md"

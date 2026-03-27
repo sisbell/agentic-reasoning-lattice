@@ -20,11 +20,11 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import WORKSPACE, USAGE_LOG, formal_stmts, asn_dir
-from lib.common import find_asn, extract_property_sections
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+from lib.shared.paths import WORKSPACE, USAGE_LOG, formal_stmts, asn_dir
+from lib.shared.common import find_asn, extract_property_sections
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
+PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"
 REVIEW_TEMPLATE = PROMPTS_DIR / "normalize-format.md"
 REVISE_TEMPLATE = PROMPTS_DIR / "normalize-format-revise.md"
 
@@ -173,7 +173,7 @@ def assemble_formal_statements(asn_num):
 
     Returns the output path, or None on failure.
     """
-    from lib.rebase_deps import find_property_table, parse_table_row, detect_columns
+    from lib.formalization.deps import find_property_table, parse_table_row, detect_columns
 
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:

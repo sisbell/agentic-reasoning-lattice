@@ -23,11 +23,11 @@ from pathlib import Path
 
 import yaml
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import WORKSPACE, load_manifest, formal_stmts, dep_graph
-from lib.common import find_asn, read_file
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+from lib.shared.paths import WORKSPACE, load_manifest, formal_stmts, dep_graph
+from lib.shared.common import find_asn, read_file
 
-PROMPT_TEMPLATE = WORKSPACE / "scripts" / "prompts" / "discovery" / "rebase-focused-judgment.md"
+PROMPT_TEMPLATE = WORKSPACE / "scripts" / "prompts" / "formalization" / "focused-judgment.md"
 
 
 @dataclass

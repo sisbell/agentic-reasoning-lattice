@@ -32,15 +32,15 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from paths import (WORKSPACE, ASNS_DIR, DAFNY_DIR, PROOF_INDEX_DIR,
+from lib.shared.paths import (WORKSPACE, ASNS_DIR, DAFNY_DIR, PROOF_INDEX_DIR,
                    VERIFICATION_DIR, USAGE_LOG,
                    find_latest_modeling_dir, formal_stmts)
 
-VERIFY_SCRIPT = WORKSPACE / "scripts" / "lib" / "model_verify_run.py"
-FIX_SCRIPT = WORKSPACE / "scripts" / "lib" / "model_fix.py"
-PROOF_INDEX_SCRIPT = WORKSPACE / "scripts" / "lib" / "model_index.py"
-EXTRACT_SCRIPT = WORKSPACE / "scripts" / "lib" / "export_statements.py"
-GENERATE_SCRIPT = WORKSPACE / "scripts" / "lib" / "model_dafny.py"  # was generate-dafny.py; now points to per-property generator
+VERIFY_SCRIPT = WORKSPACE / "scripts" / "lib" / "modeling" / "verify_run.py"
+FIX_SCRIPT = WORKSPACE / "scripts" / "lib" / "modeling" / "fix.py"
+PROOF_INDEX_SCRIPT = WORKSPACE / "scripts" / "lib" / "modeling" / "index.py"
+EXTRACT_SCRIPT = WORKSPACE / "scripts" / "lib" / "modeling" / "statements.py"
+GENERATE_SCRIPT = WORKSPACE / "scripts" / "lib" / "modeling" / "dafny.py"
 COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
 
 
