@@ -621,27 +621,31 @@ We require a notion of where a displacement "acts." For a positive displacement 
 
 The precondition `k ≤ #a` is essential: the constructive definition copies components `a₁, ..., aₖ₋₁` from the start position and adds `wₖ` to `aₖ`, so position `k` must exist within `a`. A displacement whose action point exceeds `#a` — one with more leading zeros than `a` has components — would attempt to "stay at" hierarchical levels that the start position does not have, and the operation is undefined.
 
-*Proof.* We show that under the stated preconditions, the constructive rule for `⊕` produces a member of `T` with length `#w`.
+*Dependencies:*
+- **T0(a) (Carrier-set definition):** T is the set of all finite sequences over ℕ with length ≥ 1.
+- **TumblerAdd (Constructive definition):** `(a ⊕ w)ᵢ = aᵢ` for `i < k`, `(a ⊕ w)ₖ = aₖ + wₖ`, `(a ⊕ w)ᵢ = wᵢ` for `i > k`; result length `#(a ⊕ w) = #w`.
 
-Let `a = [a₁, ..., aₘ]` and `w = [w₁, ..., wₙ]`. The action point `k = min({i : 1 ≤ i ≤ n ∧ wᵢ ≠ 0})` — the position of the first nonzero component of `w` — exists because `w > 0`. The precondition requires `k ≤ m`.
+*Proof.* We show that under the stated preconditions, the constructive rule for `⊕` produces a member of `T` — a finite sequence of natural numbers with length ≥ 1 — and that its length equals `#w`.
+
+Let `a = [a₁, ..., aₘ]` and `w = [w₁, ..., wₙ]`. The action point `k = min({i : 1 ≤ i ≤ n ∧ wᵢ ≠ 0})` — the position of the first nonzero component of `w` — exists because `w > 0` guarantees at least one nonzero component. The precondition requires `k ≤ m`.
 
 The constructive definition (TumblerAdd) builds `r = a ⊕ w = [r₁, ..., rₙ]` by three rules: `rᵢ = aᵢ` for `1 ≤ i < k` (copy from start), `rₖ = aₖ + wₖ` (single-component advance), and `rᵢ = wᵢ` for `k < i ≤ n` (copy from displacement). We must establish two things: that `r ∈ T`, and that `#r = n = #w`.
 
-**Length.** The result has `(k − 1)` prefix components, one action-point component, and `(n − k)` tail components, for a total of `(k − 1) + 1 + (n − k) = n`. Since `w ∈ T` requires `n ≥ 1`, the result has at least one component. So `#r = n = #w`.
+**Length.** The result has `(k − 1)` prefix components, one action-point component, and `(n − k)` tail components, for a total of `(k − 1) + 1 + (n − k) = n`. Since `w ∈ T` requires `n ≥ 1` by the carrier-set definition, the result has at least one component. So `#r = n = #w`.
 
 **Components.** We verify `rᵢ ∈ ℕ` for each of the three regions.
 
-*(i) Prefix, `1 ≤ i < k`.* Each `rᵢ = aᵢ`. The precondition `k ≤ m` ensures position `i < k ≤ m` exists within `a`, and since `a ∈ T`, each `aᵢ ∈ ℕ`. So `rᵢ ∈ ℕ`.
+*(i) Prefix, `1 ≤ i < k`.* Each `rᵢ = aᵢ` by TumblerAdd's prefix-copy rule. The precondition `k ≤ m` ensures position `i < k ≤ m` exists within `a`, and since `a ∈ T`, each `aᵢ ∈ ℕ` by the carrier-set definition. So `rᵢ ∈ ℕ`.
 
-*(ii) Action point, `i = k`.* `rₖ = aₖ + wₖ`. We have `aₖ ∈ ℕ` (since `k ≤ m` and `a ∈ T`) and `wₖ ∈ ℕ` (since `k ≤ n` and `w ∈ T`). The natural numbers are closed under addition, so `aₖ + wₖ ∈ ℕ`.
+*(ii) Action point, `i = k`.* `rₖ = aₖ + wₖ` by TumblerAdd's advance rule. We have `aₖ ∈ ℕ` (since `k ≤ m` and `a ∈ T`) and `wₖ ∈ ℕ` (since `k ≤ n` and `w ∈ T`). The natural numbers are closed under addition, so `aₖ + wₖ ∈ ℕ`.
 
-*(iii) Tail, `k < i ≤ n`.* Each `rᵢ = wᵢ`. Since `w ∈ T`, each `wᵢ ∈ ℕ`. So `rᵢ ∈ ℕ`.
+*(iii) Tail, `k < i ≤ n`.* Each `rᵢ = wᵢ` by TumblerAdd's tail-copy rule. Since `w ∈ T`, each `wᵢ ∈ ℕ` by the carrier-set definition. So `rᵢ ∈ ℕ`.
 
-The result `r` is a finite sequence of natural numbers with length `n ≥ 1` — a member of `T`, with `#r = #w`. ∎
+The result `r` is a finite sequence of natural numbers with length `n ≥ 1` — a member of `T` by the carrier-set definition, with `#r = #w`. ∎
 
 *Formal Contract:*
-- *Preconditions:* a ∈ T, w ∈ T, w > 0, actionPoint(w) ≤ #a
-- *Postconditions:* a ⊕ w ∈ T, #(a ⊕ w) = #w
+- *Preconditions:* `a ∈ T`, `w ∈ T`, `w > 0`, `actionPoint(w) ≤ #a`
+- *Postconditions:* `a ⊕ w ∈ T`, `#(a ⊕ w) = #w`
 
 **TA1 (Order preservation under addition).** `(A a, b, w : a < b ∧ w > 0 ∧ k ≤ min(#a, #b) : a ⊕ w ≤ b ⊕ w)`, where `k` is the action point of `w`.
 
