@@ -258,6 +258,24 @@ We observe that T9 is scoped to a *single allocator's sequential stream*, not to
 
 A consequence of T8 and T9 together: the set of allocated addresses is a *growing set* in the lattice-theoretic sense — it can only increase, and new elements always appear at the frontier of each allocator's domain.
 
+*Proof.* We must show that within a single allocator's sequential stream, if address `a` was allocated before address `b`, then `a < b` under the tumbler order T1.
+
+By T10a, each allocator produces its sibling outputs exclusively by repeated application of `inc(·, 0)`. Let the allocator's base address be `t₀` and its successive outputs be `t₁, t₂, t₃, ...` where `tₙ₊₁ = inc(tₙ, 0)` for all `n ≥ 0`. The predicate `same_allocator(a, b)` holds exactly when both `a` and `b` appear in this sequence, and `allocated_before(a, b)` holds exactly when `a = tᵢ` and `b = tⱼ` with `i < j`. We must show `tᵢ < tⱼ`.
+
+We proceed by induction on the gap `j - i`.
+
+*Base case* (`j - i = 1`). Here `tⱼ = inc(tᵢ, 0)`. By TA5(a), `inc(tᵢ, 0) > tᵢ`, so `tᵢ < tⱼ`.
+
+*Inductive step* (`j - i = n + 1` for `n ≥ 1`, assuming the result for all gaps up to `n`). By the inductive hypothesis applied to the pair `(tᵢ, tⱼ₋₁)` with gap `j - 1 - i = n`, we have `tᵢ < tⱼ₋₁`. By the base case applied to the pair `(tⱼ₋₁, tⱼ)`, we have `tⱼ₋₁ < tⱼ`. By transitivity of the strict order (T1(c)), `tᵢ < tⱼ`.
+
+This completes the induction. For any addresses `a, b` with `same_allocator(a, b) ∧ allocated_before(a, b)`, we have `a < b`.
+
+We note what T9 does *not* claim. The tumbler line as a whole does not grow monotonically by creation time. When a parent address forks a child via `inc(·, k')` with `k' > 0` (T10a), the child address is inserted between the parent and the parent's next sibling on the tumbler line — address `2.1.1` may be created long after `2.2`, yet `2.1 < 2.1.1 < 2.2`. The depth-first linearization (T1 case (ii)) means children always precede the parent's next sibling regardless of creation order. T9 holds per-allocator, not globally. ∎
+
+*Formal Contract:*
+- *Preconditions:* `a, b ∈ T` with `same_allocator(a, b) ∧ allocated_before(a, b)` — both addresses produced by the same allocator's sibling stream, `a` allocated before `b`.
+- *Postconditions:* `a < b` under the tumbler order T1.
+
 
 ## Coordination-free uniqueness
 
