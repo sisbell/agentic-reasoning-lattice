@@ -34,6 +34,17 @@ Since `t`, `i`, and `M` were arbitrary, the universal claim holds. ∎
 
 In words: there is no maximum tumbler length — for every bound, a tumbler of at least that length exists in T. The hierarchy has unlimited nesting depth. T0(b) follows from T's definition as the set of all finite sequences over ℕ — for any `n`, the constant sequence `[1, 1, ..., 1]` of length `n` is a member. We state it explicitly because it carries independent architectural weight: T0(a) ensures siblings within a level are inexhaustible, while T0(b) ensures levels themselves are inexhaustible.
 
+*Proof.* We must show that for every `n ∈ ℕ` with `n ≥ 1`, there exists a tumbler `t ∈ T` with `#t ≥ n`.
+
+Let `n ≥ 1` be arbitrary. Construct `t = 1.1. ... .1` — the constant sequence of `n` ones, that is, `t = d₁.d₂. ... .dₙ` with `dᵢ = 1` for all `1 ≤ i ≤ n`.
+
+We verify that `t` satisfies all requirements. First, `t ∈ T`: each component `dᵢ = 1 ∈ ℕ`, and `t` is a finite sequence of length `n ≥ 1`, so `t` belongs to the carrier set T. Second, `#t = n ≥ n`, satisfying the length bound. (A stronger witness — a sequence of length `n + 1`, say — would also work, but the minimal construction suffices and makes the bound tight.)
+
+Since `n` was arbitrary, the universal claim holds. ∎
+
+*Formal Contract:*
+- *Axiom:* T is the set of all finite sequences over ℕ with length ≥ 1. Since there is no upper bound on the length of finite sequences, for any `n ≥ 1`, the constant sequence of `n` ones is a member of T with `#t = n ≥ n`.
+
 T0 is what separates the tumbler design from fixed-width addressing. Nelson: "New items may be continually inserted in tumbler-space while the other addresses remain valid." The word "continually" carries the weight — it means the process of creating new addresses never terminates. Between any two sibling addresses, the forking mechanism can always create children: "One digit can become several by a forking or branching process. This consists of creating successive new digits to the right." Each daughter can have daughters without limit, and each digit is itself unbounded.
 
 The address space is unbounded in two dimensions: T0(a) ensures each component is unbounded (unlimited siblings at any level) and T0(b) ensures the number of components is unbounded (unlimited nesting depth). Together they make the address space infinite in both dimensions, which Nelson calls "finite but unlimited" — at any moment finitely many addresses exist, but there is no bound on how many can be created: "A span that contains nothing today may at a later time contain a million documents."
