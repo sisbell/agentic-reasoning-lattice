@@ -3,7 +3,7 @@
 import subprocess, sys
 from pathlib import Path
 
-SCRIPT = Path(__file__).resolve().parent / "lib" / "absorb_asn.py"
+SCRIPT = Path(__file__).resolve().parent / "lib" / "manage" / "absorb.py"
 
 if __name__ == "__main__":
     sys.exit(subprocess.run([sys.executable, str(SCRIPT)] + sys.argv[1:]).returncode)

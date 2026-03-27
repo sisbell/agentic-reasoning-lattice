@@ -3,15 +3,15 @@
 import subprocess, sys
 from pathlib import Path
 
-LIB = Path(__file__).resolve().parent / "lib"
+LIB = Path(__file__).resolve().parent / "lib" / "modeling"
 CMDS = {
-    "index":        LIB / "model_index.py",
-    "alloy":        LIB / "model_alloy.py",
-    "dafny":        LIB / "model_dafny.py",
-    "verify-dafny": LIB / "model_verify.py",
-    "fix":          LIB / "model_fix.py",
-    "status":       LIB / "model_status.py",
-    "review":       LIB / "model_review.py",
+    "index":        LIB / "index.py",
+    "alloy":        LIB / "alloy.py",
+    "dafny":        LIB / "dafny.py",
+    "verify-dafny": LIB / "verify.py",
+    "fix":          LIB / "fix.py",
+    "status":       LIB / "status.py",
+    "review":       LIB / "review.py",
 }
 
 def main():
