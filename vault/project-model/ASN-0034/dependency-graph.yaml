@@ -20,8 +20,10 @@ properties:
     follows_from:
     - T1
   T3:
-    status: introduced
+    status: from
     name: Canonical representation
+    follows_from:
+    - T0(a)
   T4:
     status: introduced
     name: Hierarchical parsing
