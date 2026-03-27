@@ -438,6 +438,7 @@ The most consequential property of the address system is that once an address is
 *Dependencies:*
 - **T10a (Allocation mechanism):** Each allocator advances its frontier by `inc(·, 0)`, producing an address strictly greater than the previous, and inserts it into the allocated set. This is the sole mechanism by which the allocated set grows.
 - **TA5 (Hierarchical increment):** (a) `inc(t, 0)` produces `t' > t` under T1. Used to establish that each newly allocated address is fresh.
+- **TumblerAdd (Constructive definition of ⊕), TumblerSub (Constructive definition of ⊖):** Pure functions on component sequences: each accepts tumbler arguments, computes a new component sequence, and returns a tumbler value. Neither operation consults or modifies the allocated set.
 - **T1 (Lexicographic order), T2 (Decidable comparison), T4 (Hierarchical parsing):** Read-only operations that inspect tumbler values without modifying any system state.
 
 *Proof.* We must show that the set of allocated addresses grows monotonically — that for every state transition `s → s'`, `allocated(s) ⊆ allocated(s')`. The strategy is exhaustive case analysis over the operations the system defines, followed by induction on transition sequences.
@@ -446,7 +447,7 @@ Let `s` be any reachable state and `s'` the state after one operation. Every ope
 
 *Case 1: Read-only operations.* The ordering test (T1), the decidable comparison procedure (T2), and hierarchical parsing (T4) each inspect the component values of one or two tumblers and return a result. None of these operations consults or modifies the allocated set — they are pure queries on tumbler values. Therefore `allocated(s') = allocated(s)`, and the inclusion `allocated(s) ⊆ allocated(s')` holds as an equality.
 
-*Case 2: Pure arithmetic.* The operations `⊕` (tumbler addition), `⊖` (tumbler subtraction), and `inc` (hierarchical increment) are pure functions on `T`: each accepts tumbler arguments and returns a tumbler value. They compute on the component sequences of their arguments and produce a new component sequence as output; they neither read from nor write to the allocated set. Therefore `allocated(s') = allocated(s)`, and the inclusion holds as an equality.
+*Case 2: Pure arithmetic.* The operations `⊕` (tumbler addition), `⊖` (tumbler subtraction), and `inc` (hierarchical increment) are pure functions on `T`. Their constructive definitions (TumblerAdd, TumblerSub, TA5 respectively) each accept tumbler arguments, compute on the component sequences of their operands, and return a tumbler value; none of these constructions consults or modifies the allocated set. Therefore `allocated(s') = allocated(s)`, and the inclusion holds as an equality.
 
 *Case 3: Allocation.* T10a defines the sole allocation mechanism. An allocator with current frontier address `t` computes `t' = inc(t, 0)`. By TA5(a), `t' > t` — the new address is strictly greater than the frontier, so in particular `t' ∉ allocated(s)` (since `t` was the frontier, all previously allocated addresses in this allocator's stream satisfy `a ≤ t < t'`). The allocator then inserts `t'` into the allocated set: `allocated(s') = allocated(s) ∪ {t'}`. Since `allocated(s) ⊆ allocated(s) ∪ {t'} = allocated(s')`, the inclusion holds.
 
