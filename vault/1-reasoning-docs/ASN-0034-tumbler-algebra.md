@@ -42,7 +42,19 @@ We require a total order on T. Nelson describes the "tumbler line" as a single l
 
 The prefix convention — a prefix is less than any proper extension — is what makes depth-first traversal work. The server address `2` is less than every address within server `2`'s subtree, because every such address extends the prefix `2` with further components. This means server `2`'s subtree begins immediately after `2` in the order and extends until some address whose first component exceeds `2`.
 
-T1 gives a total order: for any `a, b ∈ T`, exactly one of `a < b`, `a = b`, `a > b` holds. This is a standard mathematical fact about lexicographic orderings on well-ordered alphabets — ℕ is well-ordered, so the lexicographic extension to finite sequences is total.
+T1 gives a total order on T. We verify the three required properties:
+
+*(a) Trichotomy.* For any `a, b ∈ T`, exactly one of `a < b`, `a = b`, `a > b` holds. If `a = b` (component-wise and same length), no divergence position `k` exists, so neither `a < b` nor `a > b`. If `a ≠ b`, let `k` be the first position where they differ (either a component divergence or one being a proper prefix of the other). Exactly one of the two cases of T1 applies in each direction, giving exactly one of `a < b` or `a > b`.
+
+*(b) Irreflexivity.* For any `a ∈ T`, `¬(a < a)`. The definition requires a position `k` where either `aₖ < aₖ` (impossible since `<` on ℕ is irreflexive) or `a` is a proper prefix of itself (impossible since `#a = #a`). So no such `k` exists.
+
+*(c) Transitivity.* For `a, b, c ∈ T` with `a < b` and `b < c`, we show `a < c`. Let `k₁` be the divergence position witnessing `a < b` and `k₂` the divergence position witnessing `b < c`. Set `k = min(k₁, k₂)`. For all `i < k`, we have `aᵢ = bᵢ` (from `a < b`, since `i < k ≤ k₁`) and `bᵢ = cᵢ` (from `b < c`, since `i < k ≤ k₂`), so `aᵢ = cᵢ`. At position `k`, case analysis: if `k < k₁` then `k = k₂` and `aₖ = bₖ`, so `aₖ` vs `cₖ` inherits the `b < c` witness; if `k < k₂` then `k = k₁` and `bₖ = cₖ`, so `aₖ` vs `cₖ` inherits the `a < b` witness; if `k = k₁ = k₂`, both divergences occur at the same position — in each combination of component-divergence and prefix cases, transitivity of `<` on ℕ or the prefix-extension relationship yields `aₖ < cₖ` or `a` is a proper prefix of `c`. In all cases, position `k` witnesses `a < c` under T1.
+
+These are standard properties of lexicographic orderings on well-ordered alphabets — ℕ is well-ordered, so the lexicographic extension to finite sequences is total. The explicit arguments above confirm that T1's two-case definition (component divergence and proper prefix) correctly instantiates the standard construction.
+
+*Formal Contract:*
+- *Definition:* `a < b` iff `∃ k ≥ 1` with `(A i : 1 ≤ i < k : aᵢ = bᵢ)` and either (i) `k ≤ min(m,n) ∧ aₖ < bₖ`, or (ii) `k = m+1 ≤ n`.
+- *Postconditions:* (a) Trichotomy — `(A a,b ∈ T :: exactly one of a < b, a = b, a > b)`. (b) Transitivity — `(A a,b,c ∈ T : a < b ∧ b < c : a < c)`. (c) Irreflexivity — `(A a ∈ T :: ¬(a < a))`.
 
 Nelson's assertion that the tumbler line is total — that two addresses are never incomparable — is architecturally load-bearing. Spans are defined as contiguous regions on the tumbler line: "A span in the tumbler line, represented by two tumblers, refers to a subtree of the entire docuverse." If two addresses were incomparable, the interval between them would be undefined, and the entire machinery of span-sets, link endsets, and content reference would collapse.
 
@@ -105,6 +117,18 @@ This correspondence is injective on levels: each level produces addresses with e
 A subtlety deserves emphasis: the hierarchy is *convention layered over flat arithmetic*, not enforcement by the algebra. Gregory's analysis reveals that the comparison, addition, subtraction, and increment operations treat every mantissa slot identically. There is no `isparent`, `isancestor`, or `ischild` primitive in the arithmetic layer. The algebra operates on flat sequences of non-negative integers; the hierarchical interpretation is projected onto those sequences by the allocation machinery and the field-parsing function `fields(t)`. This is a deliberate design choice. The arithmetic layer is kept flat so that comparison and span computation are simple, uniform operations with no parsing of semantic structure.
 
 Hierarchy is constructed by the allocation machinery, not by the algebra. The `.0.` separator is produced when the allocation `depth` parameter equals 2 — creating a child at a *different hierarchical type* than its parent (e.g., an ACCOUNT creating a DOCUMENT). When creating a same-type child (DOCUMENT creating DOCUMENT = versioning), `depth = 1`, and no zero separator is introduced. Gregory confirms: there was even a bug where the first document under an account failed to receive its `.0.` separator — the convention had to be explicitly constructed by the allocator, not enforced by any algebraic invariant.
+
+**Verification of T4.** We verify three consequences of the T4 constraints.
+
+*(a) Syntactic equivalence of the non-empty field constraint.* The non-empty field constraint — each present field has at least one component — is equivalent to three syntactic conditions on the raw tumbler: (i) no two zeros are adjacent, (ii) `t₁ ≠ 0`, (iii) `t_{#t} ≠ 0`. Forward: if every field has at least one positive component, then between any two separator zeros there is at least one positive component (ruling out adjacent zeros), the first component belongs to the node field which is non-empty (ruling out a leading zero), and the last component belongs to the last present field which is non-empty (ruling out a trailing zero). Reverse: if (i)–(iii) hold, then every zero is flanked on both sides by non-zero components, so every inter-separator segment is non-empty.
+
+*(b) Unique parse.* Under the positive-component constraint, a position `i` satisfies `tᵢ = 0` if and only if `i` is a field separator — no field component can be zero, so zeros appear exclusively as separators. The separator positions are therefore uniquely determined by `t`. The fields are the maximal contiguous sub-sequences between consecutive separators (or between the endpoints of `t` and the nearest separator). By part (a), each such sub-sequence is non-empty. Therefore `fields(t)` — the decomposition into node, user, document, and element fields — is well-defined and uniquely determined by `t` alone.
+
+*(c) Level determination.* Define `zeros(t) = #{i : 1 ≤ i ≤ #t ∧ tᵢ = 0}`. T4 constrains `zeros(t) ∈ {0, 1, 2, 3}`. By part (b), every zero is a separator and every separator is a zero, so `zeros(t)` equals the number of field boundaries. The number of fields present is `zeros(t) + 1`. The mapping from zero count to hierarchical level — 0 ↦ node, 1 ↦ user, 2 ↦ document, 3 ↦ element — is injective: distinct zero counts yield distinct levels, and the four levels exhaust the range `{0, 1, 2, 3}`. Without the positive-component constraint this fails: a tumbler `[1, 0, 0, 3]` would have `zeros(t) = 2` but an ambiguous parse, since the second zero could be a separator or a field component. T4 eliminates this ambiguity. ∎
+
+*Formal Contract:*
+- *Axiom:* Valid address tumblers satisfy `zeros(t) ≤ 3`, `(A i : 1 ≤ i ≤ #t ∧ tᵢ ≠ 0 : tᵢ > 0)`, no adjacent zeros, `t₁ ≠ 0`, `t_{#t} ≠ 0`.
+- *Postconditions:* (a) `fields(t)` is well-defined and unique. (b) `zeros(t)` determines the hierarchical level bijectively on `{0, 1, 2, 3}`.
 
 
 ## Contiguous subtrees
@@ -269,9 +293,27 @@ The precondition `k ≤ #a` is essential: the constructive definition copies com
 
 **Verification of TA0.** By the constructive definition (below), `a ⊕ w = [r₁, ..., r_{#w}]` where: `rᵢ = aᵢ` for `i < k`, `rₖ = aₖ + wₖ`, and `rᵢ = wᵢ` for `i > k`. The result has length `#w`, which is finite and at least 1 since `w ∈ T`. Each prefix component `rᵢ = aᵢ ∈ ℕ` (inherited from `a ∈ T`); the action-point component `rₖ = aₖ + wₖ ∈ ℕ` (ℕ is closed under addition); each tail component `rᵢ = wᵢ ∈ ℕ` (inherited from `w ∈ T`). The result is a finite sequence of non-negative integers with at least one component — a member of `T`.
 
+*Formal Contract:*
+- *Preconditions:* a ∈ T, w ∈ T, w > 0, actionPoint(w) ≤ #a
+- *Postconditions:* a ⊕ w ∈ T, #(a ⊕ w) = #w
+
 **TA1 (Order preservation under addition).** `(A a, b, w : a < b ∧ w > 0 ∧ k ≤ min(#a, #b) : a ⊕ w ≤ b ⊕ w)`, where `k` is the action point of `w`.
 
 TA1 guarantees weak (`≤`) order preservation universally — if two positions were in order before advancement, they remain in non-reversed order after. The precondition `k ≤ min(#a, #b)` inherits from TA0: both operations must be well-defined.
+
+**Verification of TA1.** Let `k` be the action point of `w`. By the constructive definition (below), for both `a ⊕ w` and `b ⊕ w`: positions before `k` copy from the start, position `k` adds `wₖ`, and positions after `k` copy from `w`. Since `a < b`, by T1 either (i) there exists a first position `j ≤ min(#a, #b)` where `aⱼ < bⱼ`, or (ii) `a` is a proper prefix of `b`. In case (ii), `aᵢ = bᵢ` for all `i ≤ #a`, and since `k ≤ min(#a, #b) = #a`, both additions agree on every position: `a ⊕ w = b ⊕ w`, satisfying `≤`. In case (i), three sub-cases arise based on the relationship between `j` and `k`:
+
+*Sub-case j < k:* Position `j` falls in the prefix-copy phase. `(a ⊕ w)ⱼ = aⱼ < bⱼ = (b ⊕ w)ⱼ`, with agreement on all prior positions. By T1 case (i), `a ⊕ w < b ⊕ w`.
+
+*Sub-case j = k:* At position `k`, `(a ⊕ w)ₖ = aₖ + wₖ < bₖ + wₖ = (b ⊕ w)ₖ` since `aₖ < bₖ` and natural-number addition preserves strict inequality. Positions before `k` agree. By T1 case (i), `a ⊕ w < b ⊕ w`.
+
+*Sub-case j > k:* Since `k < j`, `aₖ = bₖ`, so `(a ⊕ w)ₖ = aₖ + wₖ = bₖ + wₖ = (b ⊕ w)ₖ`. For `i < k`, `(a ⊕ w)ᵢ = aᵢ = bᵢ = (b ⊕ w)ᵢ`. For `i > k`, both results copy from `w`: `(a ⊕ w)ᵢ = wᵢ = (b ⊕ w)ᵢ`. The results are identical: `a ⊕ w = b ⊕ w`, satisfying `≤`.
+
+In all cases, `a ⊕ w ≤ b ⊕ w`. ∎
+
+*Formal Contract:*
+- *Preconditions:* a ∈ T, b ∈ T, w ∈ T, a < b, w > 0, actionPoint(w) ≤ min(#a, #b)
+- *Postconditions:* a ⊕ w ≤ b ⊕ w
 
 Strict order preservation holds under a tighter condition. We first need a precise notion of where two tumblers first differ.
 
@@ -304,6 +346,10 @@ Let `⊖` denote tumbler subtraction: given two positions, compute the displacem
 **TA2 (Well-defined subtraction).** For tumblers `a, w ∈ T` where `a ≥ w`, `a ⊖ w` is a well-defined tumbler in `T`.
 
 **Verification of TA2.** By TumblerSub, two cases arise. If the zero-padded sequences of `a` and `w` agree at every position, the result is the zero tumbler of length `max(#a, #w)` — a member of `T`. Otherwise, let `k` be the first divergence position (after zero-padding). The result `a ⊖ w = [r₁, ..., r_p]` has length `p = max(#a, #w)`, which is finite and at least 1. Each pre-divergence component `rᵢ = 0 ∈ ℕ`. At the divergence point: `a ≥ w` ensures `aₖ > wₖ` — if `a > w` by T1 case (i), the divergence falls at `k ≤ min(#a, #w)` with `aₖ > wₖ` directly; if `a > w` by T1 case (ii), `w` is a proper prefix of `a`, so `k > #w` and `wₖ = 0` (zero-padded), with `aₖ > 0` (otherwise no divergence at `k`). In either case, `rₖ = aₖ - wₖ ∈ ℕ`. Each tail component `rᵢ = aᵢ ∈ ℕ` (inherited from `a ∈ T`, or `0` when `i > #a`). The result is a finite sequence of non-negative integers with at least one component — a member of `T`.
+
+*Formal Contract:*
+- *Preconditions:* a ∈ T, w ∈ T, a ≥ w
+- *Postconditions:* a ⊖ w ∈ T
 
 **TA3 (Order preservation under subtraction, weak).** `(A a, b, w : a < b ∧ a ≥ w ∧ b ≥ w : a ⊖ w ≤ b ⊖ w)`.
 
@@ -447,6 +493,10 @@ For the remaining cases, `a < b` by T1 case (i) and `a` is not zero-padded-equal
 **Claim:** (TA3-strict). If `a < b`, `a ≥ w`, `b ≥ w`, and `#a = #b`, then `a ⊖ w < b ⊖ w`.
 
 *Proof.* The equal-length precondition eliminates Case 0 entirely — two tumblers of the same length cannot be in a prefix relationship unless equal, and `a < b` rules out equality. Cases 0a and 1–3 remain, all of which produce strict inequality. ∎
+
+*Formal Contract:*
+- *Preconditions:* a ∈ T, b ∈ T, w ∈ T, a < b, a ≥ w, b ≥ w
+- *Postconditions:* a ⊖ w ≤ b ⊖ w
 
 
 ### Verification of TA4
@@ -661,6 +711,9 @@ Every positive tumbler is greater than every zero tumbler under T1 — if `t` ha
 *Case 1* (`m ≥ k`): At positions `1, ..., k − 1`, `sᵢ = 0 = tᵢ` — no disagreement. At position `k`, `sₖ = 0 < tₖ`. By T1 case (i), `s < t`.
 
 *Case 2* (`m < k`): For all `i ≤ m`, `sᵢ = 0 = tᵢ` (since `i ≤ m < k` and `tᵢ = 0` for `i < k`). The tumblers agree on every position of `s`, and `#s = m < k ≤ n = #t`, so `s` is a proper prefix of `t`. By T1 case (ii), `s < t`. ∎
+
+*Formal Contract:*
+- *Postconditions:* (a) `(A t ∈ T : (A i : 1 ≤ i ≤ #t : tᵢ = 0) ⟹ t is not a valid address)`. (b) `(A s, t ∈ T : (A i : 1 ≤ i ≤ #s : sᵢ = 0) ∧ (E j : 1 ≤ j ≤ #t : tⱼ > 0) ⟹ s < t)`.
 
 Zero tumblers serve as *sentinels*: they mark uninitialized values, denote "unbounded" when used as span endpoints, and act as lower bounds.
 
