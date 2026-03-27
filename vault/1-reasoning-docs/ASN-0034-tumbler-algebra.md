@@ -678,6 +678,18 @@ D0 ensures the displacement b ⊖ a is a well-defined positive tumbler, and that
 
 When a is a proper prefix of b (divergence type (ii)), the divergence is #a + 1, exceeding #a, and D0 is not satisfied — no valid displacement exists.
 
+*Proof.* Let `k = divergence(a, b)`. Since `a < b` with `k ≤ #a`, the Divergence definition places us in case (i): `k ≤ min(#a, #b)`, `aₖ < bₖ`, and `aᵢ = bᵢ` for all `i < k`. (Case (ii) — `a` a proper prefix of `b` — gives `k = #a + 1 > #a`, violating D0's hypothesis, so it does not arise.)
+
+Since `a < b` entails `b ≥ a`, the subtraction `w = b ⊖ a` is a well-defined tumbler in `T` by TA2. By TumblerSub, the first divergence between `b` and `a` (minuend and subtrahend) is at position `k` — they agree at all prior positions since `bᵢ = aᵢ` for `i < k`, and `bₖ ≠ aₖ` by definition of `k`. The subtraction yields: `wᵢ = 0` for `i < k`, `wₖ = bₖ − aₖ`, and `wᵢ = bᵢ` for `i > k`, with `#w = max(#b, #a)`.
+
+The displacement is positive: `wₖ = bₖ − aₖ > 0` since `aₖ < bₖ`. The action point of `w` is `k`, since every component before position `k` is zero and `wₖ > 0`. The hypothesis `k ≤ #a` satisfies TA0's precondition, so the addition `a ⊕ w` is a well-defined tumbler in `T`.
+
+Finally, the displacement length `#w = max(#a, #b)` determines the result length: by the result-length identity (TumblerAdd), `#(a ⊕ w) = #w`. When `#a > #b`, this gives `#(a ⊕ w) = #a > #b`, so `a ⊕ w ≠ b` by T3 — the round-trip fails on length alone. Round-trip faithfulness requires the additional condition `#a ≤ #b`, under which `#w = #b` and the component-by-component recovery succeeds (D1).  ∎
+
+*Formal Contract:*
+- *Preconditions:* a ∈ T, b ∈ T, a < b, divergence(a, b) ≤ #a
+- *Postconditions:* b ⊖ a ∈ T, b ⊖ a > 0, actionPoint(b ⊖ a) = divergence(a, b), a ⊕ (b ⊖ a) ∈ T
+
 **D1 (DisplacementRoundTrip).** For tumblers a, b ∈ T with a < b, divergence(a, b) ≤ #a, and #a ≤ #b:
 
   a ⊕ (b ⊖ a) = b
