@@ -82,6 +82,21 @@ Based on Step 1:
 - If **Status says `axiom` but section has a proof**: recommend `introduced` —
   the property is derived, not a postulate.
 
+## Step 3: Check for conflicting evidence
+
+Before giving your final answer, check whether the evidence is consistent:
+
+- Does the proof text contradict the formal contract? (e.g., proof present
+  but `*Axiom:*` in the contract says "this is a design constraint")
+- Does the prose contradict the Status? (e.g., section says "this is an axiom"
+  but Status says `introduced`)
+- Does the proof assume what it's trying to prove? (circular — the conclusion
+  is stated as a premise or as a "design axiom" within the proof itself)
+
+If evidence conflicts, recommend `flag` and explain all the conflicting signals.
+A convincing-looking proof that admits its own conclusion is a design constraint
+is not a real proof — it is circular.
+
 ## Property
 
 **Label:** {{label}}
@@ -100,7 +115,7 @@ RECOMMENDATION | REASON
 ```
 
 Where RECOMMENDATION is one of: axiom, design requirement, OK, flag, introduced
-And REASON is a brief explanation (one sentence).
+And REASON is a brief explanation. For `flag`, explain the conflicting evidence.
 """
 
 
