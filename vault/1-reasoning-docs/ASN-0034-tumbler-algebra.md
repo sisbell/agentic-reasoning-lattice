@@ -15,6 +15,11 @@ A tumbler is a finite sequence of non-negative integers. We write `t = d₁.d₂
 
 This gives us our first property:
 
+**T0 (Carrier-set definition).** `T = {d₁.d₂. ... .dₙ : each dᵢ ∈ ℕ, n ≥ 1}`. This is an axiom: we posit the carrier set by definition, not by derivation. The natural numbers ℕ are taken with their standard properties, including closure under successor and addition.
+
+*Formal Contract:*
+- *Axiom:* T is the set of all finite sequences over ℕ with length ≥ 1; ℕ is closed under successor and addition.
+
 **T0(a) (Unbounded component values).** `(A t ∈ T, i : 1 ≤ i ≤ #t : (A M ∈ ℕ :: (E t' ∈ T :: t' agrees with t except t'.dᵢ > M)))`.
 
 In words: for every tumbler and every component position, there exists a tumbler whose value at that position exceeds any given bound. The address space within any subtree is inexhaustible.
@@ -735,7 +740,7 @@ We require a notion of where a displacement "acts." For a positive displacement 
 The precondition `k ≤ #a` is essential: the constructive definition copies components `a₁, ..., aₖ₋₁` from the start position and adds `wₖ` to `aₖ`, so position `k` must exist within `a`. A displacement whose action point exceeds `#a` — one with more leading zeros than `a` has components — would attempt to "stay at" hierarchical levels that the start position does not have, and the operation is undefined.
 
 *Dependencies:*
-- **T0(a) (Carrier-set definition):** T is the set of all finite sequences over ℕ with length ≥ 1.
+- **T0 (Carrier-set definition):** T is the set of all finite sequences over ℕ with length ≥ 1; ℕ is closed under addition.
 - **TumblerAdd (Constructive definition):** `(a ⊕ w)ᵢ = aᵢ` for `i < k`, `(a ⊕ w)ₖ = aₖ + wₖ`, `(a ⊕ w)ᵢ = wᵢ` for `i > k`; result length `#(a ⊕ w) = #w`.
 
 *Proof.* We show that under the stated preconditions, the constructive rule for `⊕` produces a member of `T` — a finite sequence of natural numbers with length ≥ 1 — and that its length equals `#w`.
@@ -2024,6 +2029,7 @@ Removing any independent property breaks a system-level guarantee. T6 and T7 are
 
 | Label | Statement | Status |
 |-------|-----------|--------|
+| T0 | Carrier-set definition: T is the set of all finite sequences over ℕ with length ≥ 1 | axiom |
 | T0(a) | Every component value of a tumbler is unbounded — no maximum value exists | introduced |
 | T0(b) | Tumblers of arbitrary length exist in T — the hierarchy has unlimited nesting depth | introduced |
 | T1 | Tumblers are totally ordered by lexicographic comparison, with the prefix-less-than convention | introduced |
