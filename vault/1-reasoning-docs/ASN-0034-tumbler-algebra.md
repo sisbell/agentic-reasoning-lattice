@@ -353,6 +353,18 @@ For prefix-related pairs, `divergence(a, b) = min(#a, #b) + 1 > min(#a, #b)`. Si
 
 When the action point falls before the divergence — `k < divergence(a, b)` — both operands agree at position `k`, both get the same `wₖ` added, and both copy the same tail from `w` afterward. The original divergence is erased and the results are equal. For example, `a = [1, 3]`, `b = [1, 5]` (diverge at position 2), `w = [2]` (action point at position 1): `a ⊕ w = [3] = b ⊕ w`. Order degrades to equality, never reversal.
 
+*Proof.* Let `j = divergence(a, b)` and let `k` be the action point of `w`. The preconditions give `k ≤ min(#a, #b)` and `k ≥ j`. Since `j ≤ k ≤ min(#a, #b)`, the Divergence definition places us in case (i): `j` is a shared position with `aⱼ < bⱼ` (from `a < b`) and `aᵢ = bᵢ` for all `i < j`. The condition `k ≥ j` excludes the divergence-erasing regime — the action point acts at or beyond the first disagreement. Two cases arise.
+
+*Case 1: `k = j`.* By TumblerAdd, for `i < k`: `(a ⊕ w)ᵢ = aᵢ = bᵢ = (b ⊕ w)ᵢ`, since `i < j = k` implies `aᵢ = bᵢ` (agreement before the divergence). At position `k`: `(a ⊕ w)ₖ = aₖ + wₖ` and `(b ⊕ w)ₖ = bₖ + wₖ`. Since `aₖ < bₖ` (divergence at `j = k`) and natural-number addition preserves strict inequality, `aₖ + wₖ < bₖ + wₖ`. The results agree on all positions before `k` and diverge strictly at `k`. By T1 case (i), `a ⊕ w < b ⊕ w`.
+
+*Case 2: `k > j`.* By TumblerAdd, for `i < k`: `(a ⊕ w)ᵢ = aᵢ` and `(b ⊕ w)ᵢ = bᵢ` (prefix-copy phase). Since `j < k`, position `j` falls in this phase: `(a ⊕ w)ⱼ = aⱼ < bⱼ = (b ⊕ w)ⱼ`. For `i < j`: `(a ⊕ w)ᵢ = aᵢ = bᵢ = (b ⊕ w)ᵢ` (agreement before the divergence). The original divergence at position `j` is preserved intact in the results. By T1 case (i), `a ⊕ w < b ⊕ w`.
+
+In both cases, `a ⊕ w < b ⊕ w`. ∎
+
+*Formal Contract:*
+- *Preconditions:* a ∈ T, b ∈ T, w ∈ T, a < b, w > 0, actionPoint(w) ≤ min(#a, #b), actionPoint(w) ≥ divergence(a, b)
+- *Postconditions:* a ⊕ w < b ⊕ w
+
 But TA1 alone does not guarantee that addition *advances* a position. It preserves relative order between two positions but is silent about the relationship between `a` and `a ⊕ w`. We need:
 
 **TA-strict (Strict increase).** `(A a ∈ T, w > 0 : a ⊕ w > a)` (where `a ⊕ w` is well-defined, i.e., `k ≤ #a` per TA0).
