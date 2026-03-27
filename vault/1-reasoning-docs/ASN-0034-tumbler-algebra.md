@@ -348,11 +348,29 @@ Within a document's element space, the first component after the third zero deli
 
   `(A a, b ∈ T : a.E₁ ≠ b.E₁ ⟹ a ≠ b)`
 
-*Proof (corollary of T3, T4).* Both `a` and `b` have element fields, so `zeros(a) = zeros(b) = 3` (T4). Write their field lengths as `(α, β, γ, δ)` and `(α', β', γ', δ')`, so that `E₁` sits at position `pₐ = α + β + γ + 4` in `a` and `pᵦ = α' + β' + γ' + 4` in `b`.
+*Proof.* We are given two tumblers `a` and `b` whose first element-field components differ: `a.E₁ ≠ b.E₁`. We must show `a ≠ b`.
 
-*Case 1* (`pₐ = pᵦ`): The tumblers have `a[pₐ] = Eₐ₁ ≠ Eᵦ₁ = b[pₐ]`, so `a ≠ b` by T3.
+The hypothesis that `a` and `b` possess element fields means each has exactly three zero-valued separator components (T4, level determination): `zeros(a) = zeros(b) = 3`. By T4's positive-component constraint, every non-separator component is strictly positive, and every zero in the tumbler is unambiguously a field separator.
 
-*Case 2* (`pₐ ≠ pᵦ`): If `#a ≠ #b`, then `a ≠ b` by T3 (distinct lengths). If `#a = #b`, the zero-position sets of `a` — at `α + 1`, `α + β + 2`, `α + β + γ + 3` — and of `b` — at `α' + 1`, `α' + β' + 2`, `α' + β' + γ' + 3` — cannot all coincide: matching the first gives `α = α'`, then the second gives `β = β'`, then the third gives `γ = γ'`, whence `pₐ = pᵦ`, contradicting the case hypothesis. So there exists a position `j` that is a separator in one tumbler but not the other. At `j`, one tumbler has value 0 and the other has a field component, which is strictly positive by T4's positive-component constraint. They differ at `j`, giving `a ≠ b` by T3. ∎
+We establish notation. Write the field lengths of `a` as `(α, β, γ, δ)` — the node field has `α` components, the user field `β`, the document field `γ`, and the element field `δ`. The three separators sit at positions `α + 1`, `α + β + 2`, and `α + β + γ + 3` in the raw component sequence. The first element-field component `E₁` therefore occupies position `pₐ = α + β + γ + 4`. Analogously, write the field lengths of `b` as `(α', β', γ', δ')`, so that `b.E₁` sits at position `p_b = α' + β' + γ' + 4`.
+
+We proceed by case analysis on whether `pₐ = p_b`.
+
+*Case 1* (`pₐ = p_b`). Both tumblers have their first element-field component at the same position `p = pₐ = p_b`. By hypothesis, `a[p] = a.E₁ ≠ b.E₁ = b[p]`. The tumblers differ at position `p`. By T3 (canonical representation — two tumblers are equal if and only if they have the same length and agree at every position), `a ≠ b`.
+
+*Case 2* (`pₐ ≠ p_b`). The first element-field components sit at different positions, so the field-length triples `(α, β, γ)` and `(α', β', γ')` are not all equal. We consider two sub-cases.
+
+*Sub-case 2a* (`#a ≠ #b`). The tumblers have different lengths. By T3 (distinct lengths entail distinct tumblers), `a ≠ b`.
+
+*Sub-case 2b* (`#a = #b`). The tumblers have equal length but their separator positions differ. The separator positions of `a` are `{α + 1, α + β + 2, α + β + γ + 3}` and those of `b` are `{α' + 1, α' + β' + 2, α' + β' + γ' + 3}`. We show these sets cannot coincide. Suppose for contradiction they are identical. Matching the first elements: `α + 1 = α' + 1`, so `α = α'`. Substituting into the second: `α + β + 2 = α + β' + 2`, so `β = β'`. Substituting into the third: `α + β + γ + 3 = α + β + γ' + 3`, so `γ = γ'`. But then `pₐ = α + β + γ + 4 = α' + β' + γ' + 4 = p_b`, contradicting the case hypothesis `pₐ ≠ p_b`.
+
+Therefore the separator-position sets differ: there exists a position `j` that is a separator in one tumbler but not the other. At position `j`, one tumbler has value `0` (it is a separator). The other tumbler has a field component at position `j`, which is strictly positive by T4's positive-component constraint. Hence `a[j] ≠ b[j]`, and by T3, `a ≠ b`.
+
+All cases yield `a ≠ b`. ∎
+
+*Formal Contract:*
+- *Preconditions:* `a, b ∈ T` with `zeros(a) = zeros(b) = 3` (both are element-level addresses with well-formed field structure per T4).
+- *Postconditions:* `a.E₁ ≠ b.E₁ ⟹ a ≠ b`.
 
 We state T7 explicitly because it is load-bearing for the guarantee that operations within one content type do not interfere with another. T7 is the structural basis — arithmetic within subspace 1 cannot produce addresses in subspace 2, because the subspace identifier is part of the address, not metadata.
 
