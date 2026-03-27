@@ -42,11 +42,17 @@ Since `t`, `i`, and `M` were arbitrary, the universal claim holds. ∎
 
 In words: there is no maximum tumbler length — for every bound, a tumbler of at least that length exists in T. The hierarchy has unlimited nesting depth. T0(b) follows from T's definition as the set of all finite sequences over ℕ — for any `n`, the constant sequence `[1, 1, ..., 1]` of length `n` is a member. We state it explicitly because it carries independent architectural weight: T0(a) ensures siblings within a level are inexhaustible, while T0(b) ensures levels themselves are inexhaustible.
 
-*Proof.* We must show that for every `n ∈ ℕ` with `n ≥ 1`, there exists a tumbler `t ∈ T` with `#t ≥ n`.
+*Proof.* We establish the universal claim by exhibiting, for arbitrary `n ≥ 1`, a witness `t ∈ T` with `#t ≥ n`.
 
-Let `n ≥ 1` be arbitrary. Construct `t = 1.1. ... .1` — the constant sequence of `n` ones, that is, `t = d₁.d₂. ... .dₙ` with `dᵢ = 1` for all `1 ≤ i ≤ n`.
+Let `n ∈ ℕ` with `n ≥ 1` be arbitrary. Define
 
-We verify that `t` satisfies all requirements. First, `t ∈ T`: each component `dᵢ = 1 ∈ ℕ`, and `t` is a finite sequence of length `n ≥ 1`, so `t` belongs to the carrier set T. Second, `#t = n ≥ n`, satisfying the length bound. (A stronger witness — a sequence of length `n + 1`, say — would also work, but the minimal construction suffices and makes the bound tight.)
+> `t = 1.1. ... .1` (n components)
+
+— the constant sequence of `n` ones, that is, `t = d₁.d₂. ... .dₙ` with `dᵢ = 1` for all `1 ≤ i ≤ n`. We must verify two things.
+
+*(i)* `t ∈ T`. The sequence `t` has length `n ≥ 1`, and each of its components is a natural number: `dᵢ = 1 ∈ ℕ` for all `1 ≤ i ≤ n`. Since T is the set of all finite sequences over ℕ with length ≥ 1, we have `t ∈ T`.
+
+*(ii)* `#t ≥ n`. By construction `t` has exactly `n` components, so `#t = n`, and `n ≥ n` holds.
 
 Since `n` was arbitrary, the universal claim holds. ∎
 
