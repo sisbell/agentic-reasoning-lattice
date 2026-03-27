@@ -223,14 +223,14 @@ def step_cleanup(asn_num):
 # Orchestrator
 # ---------------------------------------------------------------------------
 
-def run_pipeline(asn_num, force=False, start_step=None, cycles=1):
+def run_pipeline(asn_num, force=False, start_step=None, cycles=None):
     """Run the formalization pipeline.
 
     Args:
         asn_num: ASN number
         force: ignore cached state, run all steps
         start_step: start from this step (skip earlier steps)
-        cycles: number of core loop iterations before assembly (default: 1)
+        cycles: if set, run core loop N times without assembly/cleanup
 
     Returns:
         "completed" — pipeline converged
@@ -247,9 +247,12 @@ def run_pipeline(asn_num, force=False, start_step=None, cycles=1):
         path.unlink()
         print(f"  [CLEARED] open-issues", file=sys.stderr)
 
+    if cycles is not None:
+        mode = f"formalization ({cycles} cycle{'s' if cycles > 1 else ''})"
+    else:
+        mode = "formalization"
     print(f"\n  {'='*50}", file=sys.stderr)
-    print(f"  {asn_label} — formalization ({cycles} cycle{'s' if cycles > 1 else ''})",
-          file=sys.stderr)
+    print(f"  {asn_label} — {mode}", file=sys.stderr)
     print(f"  {'='*50}", file=sys.stderr)
 
     start_time = time.time()
@@ -292,10 +295,11 @@ def run_pipeline(asn_num, force=False, start_step=None, cycles=1):
                 start_idx = core_names.index(start_step)
 
     # Core loop
+    num_cycles = cycles if cycles is not None else 1
     if not skip_core:
-        for cycle in range(1, cycles + 1):
-            if cycles > 1:
-                print(f"\n  --- Cycle {cycle}/{cycles} ---", file=sys.stderr)
+        for cycle in range(1, num_cycles + 1):
+            if num_cycles > 1:
+                print(f"\n  --- Cycle {cycle}/{num_cycles} ---", file=sys.stderr)
 
             for i, (name, fn) in enumerate(core_steps):
                 if cycle == 1 and i < start_idx:
@@ -307,22 +311,31 @@ def run_pipeline(asn_num, force=False, start_step=None, cycles=1):
                           file=sys.stderr)
                     return "failed"
 
-    # Final: stabilize → assembly → cleanup (run once)
-    for i, (name, fn) in enumerate(final_steps):
-        if i < final_start:
-            continue
+    # Final: stabilize → assembly → cleanup
+    # Run when: no --cycles flag (full flow) OR --step targets a final step
+    if cycles is None or skip_core:
+        for i, (name, fn) in enumerate(final_steps):
+            if i < final_start:
+                continue
 
-        ok = fn(asn_num)
-        if not ok and name == "stabilize":
-            print(f"\n  [FAILED] {asn_label} — stabilize step failed",
-                  file=sys.stderr)
-            return "failed"
+            ok = fn(asn_num)
+            if not ok and name == "stabilize":
+                print(f"\n  [FAILED] {asn_label} — stabilize step failed",
+                      file=sys.stderr)
+                return "failed"
 
     elapsed = time.time() - start_time
     print(f"\n  {'='*50}", file=sys.stderr)
     print(f"  {asn_label} — completed ({elapsed:.0f}s)",
           file=sys.stderr)
     print(f"  {'='*50}", file=sys.stderr)
+
+    # Hint for cycles-only runs
+    if cycles is not None and not skip_core:
+        asn_short = str(asn_num).lstrip("0") or "0"
+        print(f"\n  [NEXT] Assembly: python scripts/formalize.py {asn_short} --step assembly",
+              file=sys.stderr)
+
     return "completed"
 
 
@@ -338,8 +351,8 @@ def main():
                         choices=["repair", "quality", "audit", "verify",
                                  "assembly", "cleanup"],
                         help="Start from this step (skip earlier)")
-    parser.add_argument("--cycles", type=int, default=1,
-                        help="Core loop iterations before assembly (default: 1)")
+    parser.add_argument("--cycles", type=int, default=None,
+                        help="Run core loop N times without assembly/cleanup")
     args = parser.parse_args()
 
     asn_num = int(re.sub(r"[^0-9]", "", args.asn))
