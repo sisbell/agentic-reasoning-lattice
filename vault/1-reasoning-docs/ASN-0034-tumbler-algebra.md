@@ -412,22 +412,27 @@ The most consequential property of the address system is that once an address is
 
 **T8 (Allocation permanence).** If tumbler `a ∈ T` has been allocated at any point in the system's history, then for all subsequent states, `a` remains in the set of allocated addresses. No operation removes an allocated address from the address space. The set of allocated addresses is monotonically non-decreasing.
 
-*Proof.* We must show that the set of allocated addresses grows monotonically: for every state transition s → s', `allocated(s) ⊆ allocated(s')`.
+*Dependencies:*
+- **T10a (Allocation mechanism):** Each allocator advances its frontier by `inc(·, 0)`, producing an address strictly greater than the previous, and inserts it into the allocated set. This is the sole mechanism by which the allocated set grows.
+- **TA5 (Hierarchical increment):** (a) `inc(t, 0)` produces `t' > t` under T1. Used to establish that each newly allocated address is fresh.
+- **T1 (Lexicographic order), T2 (Decidable comparison), T4 (Hierarchical parsing):** Read-only operations that inspect tumbler values without modifying any system state.
 
-Every operation the system defines falls into exactly one of three classes; we treat each in turn.
+*Proof.* We must show that the set of allocated addresses grows monotonically — that for every state transition `s → s'`, `allocated(s) ⊆ allocated(s')`. The strategy is exhaustive case analysis over the operations the system defines, followed by induction on transition sequences.
 
-*Case 1: Read-only operations.* Comparison and parsing (T1, T2, T4) inspect tumbler values without modifying any state. These transitions satisfy `allocated(s') = allocated(s)`, so `allocated(s) ⊆ allocated(s')` holds trivially.
+Let `s` be any reachable state and `s'` the state after one operation. Every operation the system defines falls into exactly one of three classes; we treat each in turn.
 
-*Case 2: Pure arithmetic.* The operations ⊕, ⊖, and inc are pure functions on T — they compute new tumbler values and return them without mutating allocation state. These transitions also satisfy `allocated(s') = allocated(s)`.
+*Case 1: Read-only operations.* The ordering test (T1), the decidable comparison procedure (T2), and hierarchical parsing (T4) each inspect the component values of one or two tumblers and return a result. None of these operations consults or modifies the allocated set — they are pure queries on tumbler values. Therefore `allocated(s') = allocated(s)`, and the inclusion `allocated(s) ⊆ allocated(s')` holds as an equality.
 
-*Case 3: Allocation.* T10a constrains allocation to a single mechanism: each allocator advances its frontier by repeated application of `inc(·, 0)` (TA5), producing an address strictly greater than the previous, and inserts it into the allocated set. The transition satisfies `allocated(s') = allocated(s) ∪ {a_new}` for some fresh address `a_new`. Since `allocated(s) ⊆ allocated(s) ∪ {a_new} = allocated(s')`, the inclusion holds.
+*Case 2: Pure arithmetic.* The operations `⊕` (tumbler addition), `⊖` (tumbler subtraction), and `inc` (hierarchical increment) are pure functions on `T`: each accepts tumbler arguments and returns a tumbler value. They compute on the component sequences of their arguments and produce a new component sequence as output; they neither read from nor write to the allocated set. Therefore `allocated(s') = allocated(s)`, and the inclusion holds as an equality.
 
-These three cases are exhaustive. The system specification defines no inverse operation — no "deallocate", "free", or "reclaim" that would remove an address from the allocated set. The absence of any removal operation is a deliberate design axiom, not a derived property.
+*Case 3: Allocation.* T10a defines the sole allocation mechanism. An allocator with current frontier address `t` computes `t' = inc(t, 0)`. By TA5(a), `t' > t` — the new address is strictly greater than the frontier, so in particular `t' ∉ allocated(s)` (since `t` was the frontier, all previously allocated addresses in this allocator's stream satisfy `a ≤ t < t'`). The allocator then inserts `t'` into the allocated set: `allocated(s') = allocated(s) ∪ {t'}`. Since `allocated(s) ⊆ allocated(s) ∪ {t'} = allocated(s')`, the inclusion holds.
 
-Since every individual transition preserves the inclusion, an immediate induction on the length of any transition sequence s₀ → s₁ → ··· → sₙ yields `allocated(s₀) ⊆ allocated(sₙ)` for all reachable states. ∎
+These three cases are exhaustive — every operation the system defines belongs to one of them. Critically, the system specification defines no inverse operation: no "deallocate", "free", or "reclaim" that would remove an address from the allocated set. The absence of any removal operation is a deliberate design axiom, not a derived property.
+
+We have established that every single-step transition satisfies `allocated(s) ⊆ allocated(s')`. The extension to arbitrary transition sequences follows by induction on the number of transitions `n`. For `n = 0` the claim is trivial (`allocated(s₀) ⊆ allocated(s₀)`). Given `allocated(s₀) ⊆ allocated(sₙ)` for some `n ≥ 0`, and the single-step inclusion `allocated(sₙ) ⊆ allocated(sₙ₊₁)`, transitivity of `⊆` yields `allocated(s₀) ⊆ allocated(sₙ₊₁)`. Therefore `allocated(s₀) ⊆ allocated(sₙ)` for all reachable states `sₙ`. ∎
 
 *Formal Contract:*
-- *Invariant:* For every state transition s → s', `allocated(s) ⊆ allocated(s')`.
+- *Invariant:* For every state transition `s → s'`, `allocated(s) ⊆ allocated(s')`.
 - *Axiom:* The system defines no operation that removes an element from the allocated set. This is a design constraint, not a derived property.
 - *Frame:* Read-only operations (T1, T2, T4) and pure arithmetic (⊕, ⊖, inc) preserve the allocated set exactly: `allocated(s') = allocated(s)`.
 
