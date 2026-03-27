@@ -12,6 +12,8 @@ properties:
   T1:
     status: introduced
     name: Lexicographic order
+    follows_from:
+    - T3
   T2:
     status: introduced
     name: Intrinsic comparison
@@ -52,6 +54,7 @@ properties:
   T9:
     status: other
     follows_from:
+    - T1
     - T10
     - T10a
     - T8
@@ -60,9 +63,14 @@ properties:
   T10:
     status: introduced
     name: Partition independence
+    follows_from:
+    - T3
   T10a:
     status: introduced
     name: Allocator discipline
+    follows_from:
+    - T1
+    - T10
   PrefixOrderingExtension:
     status: other
     follows_from:
@@ -118,6 +126,7 @@ properties:
     status: from
     follows_from:
     - Divergence
+    - T1
     - TA1
     - TumblerAdd
     name: strict (Strict order preservation)
@@ -140,14 +149,19 @@ properties:
   TA3:
     status: from
     follows_from:
-    - TA2
     - T1
+    - TA2
     - TA6
     - TumblerSub
     name: Subtraction preserves the total order (weak)
   TA3-strict:
     status: introduced
     name: 'Subtraction preserves the total order (strict) when additionally #a = #b'
+    follows_from:
+    - T1
+    - TA2
+    - TA6
+    - TumblerSub
   TA4:
     status: from
     follows_from:
@@ -182,7 +196,6 @@ properties:
     name: Hierarchical increment inc(t, k) produces t' > t
     follows_from:
     - T1
-    - T4
   TA6:
     status: from
     follows_from:
@@ -203,7 +216,10 @@ properties:
     - T4
     - TA6
   TA-assoc:
-    status: introduced
+    status: theorem
+    follows_from:
+    - T3
+    - TumblerAdd
     name: Addition is associative where both compositions are defined
   TA-LC:
     status: other
@@ -229,8 +245,10 @@ properties:
     status: from
     follows_from:
     - D1
+    - Divergence
     - T3
     - TA0
+    - TA2
     - TumblerAdd
     - TumblerSub
     name: Displacement well-definedness
