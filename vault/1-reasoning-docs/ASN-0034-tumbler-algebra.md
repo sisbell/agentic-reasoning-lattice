@@ -96,7 +96,7 @@ The prefix convention — a prefix is less than any proper extension — is what
 
 *(a) Irreflexivity.* We must show: `(A a ∈ T :: ¬(a < a))`.
 
-Suppose `a < a` for some `a ∈ T` with `#a = m`. Then there exists `k ≥ 1` with `aᵢ = aᵢ` for all `1 ≤ i < k` (vacuously satisfied) and either (i) `k ≤ m` and `aₖ < aₖ`, or (ii) `k = m + 1 ≤ m`. Case (i) requires `aₖ < aₖ`, violating irreflexivity of `<` on ℕ. Case (ii) requires `m + 1 ≤ m`, which is false. Both cases produce contradictions, so no witness `k` exists and `¬(a < a)`.
+Suppose `a < a` for some `a ∈ T` with `#a = m`. Then there exists `k ≥ 1` with `aᵢ = aᵢ` for all `1 ≤ i < k` (trivially satisfied by reflexivity of equality) and either (i) `k ≤ m` and `aₖ < aₖ`, or (ii) `k = m + 1 ≤ m`. Case (i) requires `aₖ < aₖ`, violating irreflexivity of `<` on ℕ. Case (ii) requires `m + 1 ≤ m`, which is false. Both cases produce contradictions, so no witness `k` exists and `¬(a < a)`.
 
 *(b) Trichotomy.* We must show: `(A a, b ∈ T :: exactly one of a < b, a = b, b < a)`.
 
