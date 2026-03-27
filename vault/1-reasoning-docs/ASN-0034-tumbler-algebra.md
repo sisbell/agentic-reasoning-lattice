@@ -389,23 +389,29 @@ Within a document's element space, the first component after the third zero deli
 
   `(A a, b ∈ T : a.E₁ ≠ b.E₁ ⟹ a ≠ b)`
 
-*Proof.* We are given two tumblers `a` and `b` whose first element-field components differ: `a.E₁ ≠ b.E₁`. We must show `a ≠ b`.
+*Dependencies:*
+- **T3 (Canonical representation):** `a = b ⟺ #a = #b ∧ (A i : 1 ≤ i ≤ #a : aᵢ = bᵢ)`. Contrapositively: tumblers that differ in length or at any component are distinct. Used in every case to conclude `a ≠ b`.
+- **T4 (Hierarchical parsing):** (b) `fields(t)` is well-defined and uniquely determined by `t` alone. (c) `zeros(t) = 3` iff `t` is an element-level address. The positive-component constraint: every non-separator component is strictly positive, so every zero in `t` is unambiguously a field separator. Used to locate `E₁` and to distinguish separators from field components.
 
-The hypothesis that `a` and `b` possess element fields means each has exactly three zero-valued separator components (T4, level determination): `zeros(a) = zeros(b) = 3`. By T4's positive-component constraint, every non-separator component is strictly positive, and every zero in the tumbler is unambiguously a field separator.
+*Proof.* We must show that two element-level tumblers whose first element-field components differ are distinct tumblers: given `a, b ∈ T` with `a.E₁ ≠ b.E₁`, we establish `a ≠ b`.
 
-We establish notation. Write the field lengths of `a` as `(α, β, γ, δ)` — the node field has `α` components, the user field `β`, the document field `γ`, and the element field `δ`. The three separators sit at positions `α + 1`, `α + β + 2`, and `α + β + γ + 3` in the raw component sequence. The first element-field component `E₁` therefore occupies position `pₐ = α + β + γ + 4`. Analogously, write the field lengths of `b` as `(α', β', γ', δ')`, so that `b.E₁` sits at position `p_b = α' + β' + γ' + 4`.
+The hypothesis that `a` and `b` each possess an element field means each has exactly three zero-valued separator components — by T4(c), `zeros(a) = zeros(b) = 3`. By T4's positive-component constraint, every non-separator component is strictly positive, so every zero in either tumbler is unambiguously a field separator. By T4(b), the field decomposition of each tumbler is uniquely determined.
 
-We proceed by case analysis on whether `pₐ = p_b`.
+Write the field lengths of `a` as `(α, β, γ, δ)`: the node field has `α` components, the user field `β`, the document field `γ`, the element field `δ`, with each field length at least 1 by T4's non-empty field constraint. The three separators occupy positions `α + 1`, `α + β + 2`, and `α + β + γ + 3` in the raw component sequence. The first element-field component `a.E₁` therefore sits at position `pₐ = α + β + γ + 4`. Analogously, write the field lengths of `b` as `(α', β', γ', δ')`, so `b.E₁` sits at position `p_b = α' + β' + γ' + 4`.
 
-*Case 1* (`pₐ = p_b`). Both tumblers have their first element-field component at the same position `p = pₐ = p_b`. By hypothesis, `a[p] = a.E₁ ≠ b.E₁ = b[p]`. The tumblers differ at position `p`. By T3 (canonical representation — two tumblers are equal if and only if they have the same length and agree at every position), `a ≠ b`.
+We proceed by case analysis on whether the element fields begin at the same position.
 
-*Case 2* (`pₐ ≠ p_b`). The first element-field components sit at different positions, so the field-length triples `(α, β, γ)` and `(α', β', γ')` are not all equal. We consider two sub-cases.
+*Case 1* (`pₐ = p_b`). Both tumblers have their first element-field component at the same position `p = pₐ = p_b`. By hypothesis `a[p] = a.E₁ ≠ b.E₁ = b[p]`, so the tumblers differ at position `p`. By T3 (contrapositively: tumblers that disagree at any position are distinct), `a ≠ b`.
 
-*Sub-case 2a* (`#a ≠ #b`). The tumblers have different lengths. By T3 (distinct lengths entail distinct tumblers), `a ≠ b`.
+*Case 2* (`pₐ ≠ p_b`). The element fields begin at different positions, so the prefix-length triples `(α, β, γ)` and `(α', β', γ')` differ in at least one coordinate. We consider two sub-cases.
 
-*Sub-case 2b* (`#a = #b`). The tumblers have equal length but their separator positions differ. The separator positions of `a` are `{α + 1, α + β + 2, α + β + γ + 3}` and those of `b` are `{α' + 1, α' + β' + 2, α' + β' + γ' + 3}`. We show these sets cannot coincide. Suppose for contradiction they are identical. Matching the first elements: `α + 1 = α' + 1`, so `α = α'`. Substituting into the second: `α + β + 2 = α + β' + 2`, so `β = β'`. Substituting into the third: `α + β + γ + 3 = α + β + γ' + 3`, so `γ = γ'`. But then `pₐ = α + β + γ + 4 = α' + β' + γ' + 4 = p_b`, contradicting the case hypothesis `pₐ ≠ p_b`.
+*Sub-case 2a* (`#a ≠ #b`). The tumblers have different total lengths. By T3 (contrapositively: distinct lengths entail distinct tumblers), `a ≠ b`.
 
-Therefore the separator-position sets differ: there exists a position `j` that is a separator in one tumbler but not the other. At position `j`, one tumbler has value `0` (it is a separator). The other tumbler has a field component at position `j`, which is strictly positive by T4's positive-component constraint. Hence `a[j] ≠ b[j]`, and by T3, `a ≠ b`.
+*Sub-case 2b* (`#a = #b`). The tumblers have equal total length, call it `n`, but their element fields begin at different positions. We show the separator positions of `a` and `b` must disagree.
+
+The separator positions of `a` are `Sₐ = {α + 1,  α + β + 2,  α + β + γ + 3}` and those of `b` are `S_b = {α' + 1,  α' + β' + 2,  α' + β' + γ' + 3}`. Suppose for contradiction that `Sₐ = S_b`. Since the elements of each set are strictly increasing (each field length is at least 1), matching them in order gives three equations. From the first: `α + 1 = α' + 1`, so `α = α'`. Substituting into the second: `α + β + 2 = α + β' + 2`, so `β = β'`. Substituting into the third: `α + β + γ + 3 = α + β + γ' + 3`, so `γ = γ'`. But then `pₐ = α + β + γ + 4 = α' + β' + γ' + 4 = p_b`, contradicting the case hypothesis `pₐ ≠ p_b`. Therefore `Sₐ ≠ S_b`.
+
+Since `Sₐ ≠ S_b`, there exists a position `j` with `1 ≤ j ≤ n` that is a separator in one tumbler but not the other. In the tumbler where `j` is a separator, the value at position `j` is `0`. In the other tumbler, position `j` falls within a field, so its value is strictly positive by T4's positive-component constraint. Hence `a[j] = 0 ≠ b[j] > 0` (or vice versa), and by T3, `a ≠ b`.
 
 All cases yield `a ≠ b`. ∎
 
