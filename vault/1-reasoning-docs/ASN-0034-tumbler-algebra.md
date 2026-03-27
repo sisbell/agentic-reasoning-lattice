@@ -1010,6 +1010,47 @@ We must state explicitly what the tumbler algebra does not guarantee. These nega
 
 The design does not depend on associativity. Shifts are applied as single operations in practice, never composed from multiple smaller shifts. An implementation with finite representations may break associativity through overflow at the action-point component, but the abstract algebra carries no such limitation.
 
+*Proof.* We must show that for all `a, b, c ∈ T` with `b > 0`, `c > 0`, whenever both `(a ⊕ b) ⊕ c` and `a ⊕ (b ⊕ c)` are well-defined, they are equal component-wise.
+
+Let `k_b` be the action point of `b` and `k_c` the action point of `c`. By the result-length identity, `#(a ⊕ b) = #b` and `#((a ⊕ b) ⊕ c) = #c`. For the right side, `#(b ⊕ c) = #c` and `#(a ⊕ (b ⊕ c)) = #(b ⊕ c) = #c`. Both sides have length `#c`.
+
+We first establish the action point of the intermediate result `s = b ⊕ c`. By TumblerAdd, `sᵢ = bᵢ` for `i < k_c`, `s_{k_c} = b_{k_c} + c_{k_c}`, and `sᵢ = cᵢ` for `i > k_c`. For `i < min(k_b, k_c)`, we have `i < k_b`, so `bᵢ = 0`; and `i < k_c`, so `sᵢ = bᵢ = 0`. At position `min(k_b, k_c)`: if `k_b < k_c`, then `s_{k_b} = b_{k_b} > 0` (since `k_b` is the action point of `b`); if `k_b = k_c`, then `s_{k_b} = b_{k_b} + c_{k_b} > 0` (both summands are positive action-point values); if `k_b > k_c`, then `s_{k_c} = b_{k_c} + c_{k_c} = 0 + c_{k_c} = c_{k_c} > 0` (since `k_c < k_b` gives `b_{k_c} = 0`). In every case the first nonzero component of `s` occurs at position `min(k_b, k_c)`, so `actionPoint(s) = min(k_b, k_c)`.
+
+The domain conditions for the two sides are: the left side requires `k_b ≤ #a` (for `a ⊕ b`) and `k_c ≤ #b` (for `(a ⊕ b) ⊕ c`, since `#(a ⊕ b) = #b`); the right side requires `k_c ≤ #b` (for `b ⊕ c`) and `min(k_b, k_c) ≤ #a` (for `a ⊕ s`). We assume both sides are well-defined — all four conditions hold — and show the values agree. Three cases exhaust the relationship between `k_b` and `k_c`.
+
+*Case 1: `k_b < k_c`.* The action point of `s` is `k_b`, with `s_{k_b} = b_{k_b}`. We expand both sides at each position `i` (where `1 ≤ i ≤ #c`).
+
+Let `r = a ⊕ b`. By TumblerAdd: `rᵢ = aᵢ` for `i < k_b`, `r_{k_b} = a_{k_b} + b_{k_b}`, `rᵢ = bᵢ` for `i > k_b`.
+
+*Left side* `(r ⊕ c)`: since `k_c > k_b`, for `i < k_b` we have `i < k_c`, so `(r ⊕ c)ᵢ = rᵢ = aᵢ`. At `i = k_b < k_c`: `(r ⊕ c)_{k_b} = r_{k_b} = a_{k_b} + b_{k_b}`. For `k_b < i < k_c`: `(r ⊕ c)ᵢ = rᵢ = bᵢ`. At `i = k_c`: `(r ⊕ c)_{k_c} = r_{k_c} + c_{k_c} = b_{k_c} + c_{k_c}` (since `k_c > k_b` gives `r_{k_c} = b_{k_c}`). For `i > k_c`: `(r ⊕ c)ᵢ = cᵢ`.
+
+*Right side* `(a ⊕ s)` with action point `k_b`: for `i < k_b`: `(a ⊕ s)ᵢ = aᵢ`. At `i = k_b`: `(a ⊕ s)_{k_b} = a_{k_b} + s_{k_b} = a_{k_b} + b_{k_b}`. For `i > k_b`: `(a ⊕ s)ᵢ = sᵢ`. At `k_b < i < k_c`: `sᵢ = bᵢ`. At `i = k_c`: `s_{k_c} = b_{k_c} + c_{k_c}`. For `i > k_c`: `sᵢ = cᵢ`.
+
+Comparing position by position: `aᵢ = aᵢ` for `i < k_b`; `a_{k_b} + b_{k_b} = a_{k_b} + b_{k_b}` at `k_b`; `bᵢ = bᵢ` for `k_b < i < k_c`; `b_{k_c} + c_{k_c} = b_{k_c} + c_{k_c}` at `k_c`; `cᵢ = cᵢ` for `i > k_c`. Every component agrees.
+
+*Case 2: `k_b = k_c = k`.* The action point of `s` is `k`, with `s_k = b_k + c_k`.
+
+*Left side:* `rᵢ = aᵢ` for `i < k`, `r_k = a_k + b_k`, `rᵢ = bᵢ` for `i > k`. Then `(r ⊕ c)ᵢ = rᵢ = aᵢ` for `i < k`; `(r ⊕ c)_k = r_k + c_k = (a_k + b_k) + c_k`; `(r ⊕ c)ᵢ = cᵢ` for `i > k`.
+
+*Right side:* `(a ⊕ s)ᵢ = aᵢ` for `i < k`; `(a ⊕ s)_k = a_k + s_k = a_k + (b_k + c_k)`; `(a ⊕ s)ᵢ = sᵢ = cᵢ` for `i > k`.
+
+At position `k`, the left gives `(a_k + b_k) + c_k` and the right gives `a_k + (b_k + c_k)`. These are equal by associativity of addition on ℕ. All other positions agree trivially.
+
+*Case 3: `k_b > k_c`.* The action point of `s` is `k_c`, with `s_{k_c} = c_{k_c}` (since `b_{k_c} = 0`).
+
+*Left side:* `rᵢ = aᵢ` for `i < k_b`, `r_{k_b} = a_{k_b} + b_{k_b}`, `rᵢ = bᵢ` for `i > k_b`. Then since `k_c < k_b`: for `i < k_c` we have `i < k_b`, so `(r ⊕ c)ᵢ = rᵢ = aᵢ`. At `i = k_c < k_b`: `(r ⊕ c)_{k_c} = r_{k_c} + c_{k_c} = a_{k_c} + c_{k_c}` (since `k_c < k_b` gives `r_{k_c} = a_{k_c}`). For `i > k_c`: `(r ⊕ c)ᵢ = cᵢ`.
+
+*Right side:* `(a ⊕ s)ᵢ = aᵢ` for `i < k_c`; `(a ⊕ s)_{k_c} = a_{k_c} + s_{k_c} = a_{k_c} + c_{k_c}`; `(a ⊕ s)ᵢ = sᵢ = cᵢ` for `i > k_c`.
+
+Comparing: `aᵢ = aᵢ` for `i < k_c`; `a_{k_c} + c_{k_c} = a_{k_c} + c_{k_c}` at `k_c`; `cᵢ = cᵢ` for `i > k_c`. Every component agrees. The displacement `b` is entirely overwritten — TumblerAdd's tail-replacement semantics means the shallower displacement `c` discards everything below its action point on both sides, and the deeper displacement `b` contributes nothing to the final result.
+
+In all three cases, both sides produce the same sequence of length `#c`, so `(a ⊕ b) ⊕ c = a ⊕ (b ⊕ c)` by T3. ∎
+
+*Formal Contract:*
+- *Preconditions:* `a ∈ T`, `b ∈ T`, `c ∈ T`, `b > 0`, `c > 0`, `k_b ≤ #a`, `k_c ≤ #b` (left-side domain); or `k_c ≤ #b`, `min(k_b, k_c) ≤ #a` (right-side domain)
+- *Postconditions:* On the intersection of both domains: `(a ⊕ b) ⊕ c = a ⊕ (b ⊕ c)`
+- *Invariant:* `#((a ⊕ b) ⊕ c) = #(a ⊕ (b ⊕ c)) = #c`; `actionPoint(b ⊕ c) = min(k_b, k_c)`
+
 **Addition is not commutative.** We do NOT require `a ⊕ b = b ⊕ a`. The operands play asymmetric roles: the first is a *position*, the second is a *displacement*. Swapping them is semantically meaningless. Gregory's `absadd` confirms: the first argument supplies the prefix, the second the suffix — the reverse call gives a different (and typically wrong) result.
 
 **There is no multiplication or division.** Gregory's analysis of the complete codebase confirms: no `tumblermult`, no `tumblerdiv`, no scaling operation of any kind. The arithmetic repertoire is: add, subtract, increment, compare. Tumblers are *addresses*, not quantities. You don't multiply two file paths or divide an address by three.
@@ -1169,7 +1210,7 @@ Removing any independent property breaks a system-level guarantee. T6 and T7 are
 | TA6 | Every all-zero tumbler (any length) is less than every positive tumbler and is not a valid address | from T1, T4 |
 | PositiveTumbler | t > 0 iff at least one component is nonzero; zero tumbler iff all components are zero | introduced |
 | TA7a | Ordinal-only shift arithmetic: both ⊕ and ⊖ on ordinals produce results in T with the subspace identifier (held as context) unchanged | introduced |
-| TA-assoc | Addition is associative where both compositions are defined: (a ⊕ b) ⊕ c = a ⊕ (b ⊕ c) | introduced |
+| TA-assoc | Addition is associative where both compositions are defined: (a ⊕ b) ⊕ c = a ⊕ (b ⊕ c) | verified |
 | TA-LC | a ⊕ x = a ⊕ y ⟹ x = y (left cancellation) | lemma (from TumblerAdd, T3) |
 | TA-RC | Right cancellation fails: ∃ a ≠ b with a ⊕ w = b ⊕ w | lemma (from TumblerAdd, T3) |
 | TA-MTO | a agrees with b on components 1..k ⟺ a ⊕ w = b ⊕ w for displacement w with action point k | lemma (from TumblerAdd, T3) |
