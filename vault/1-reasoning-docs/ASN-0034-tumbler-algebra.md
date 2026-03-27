@@ -600,7 +600,7 @@ From `p₁ ≼ a`: by the prefix relation, `#a ≥ m` and `aᵢ = p₁ᵢ` for a
 
 From `p₂ ≼ b`: by the prefix relation, `#b ≥ n` and `bᵢ = p₂ᵢ` for all `1 ≤ i ≤ n`. Since `k ≤ n` (from H2, as `k ≤ min(m, n) ≤ n`), position `k` falls within the prefix, so `bₖ = p₂ₖ`.
 
-**Establishing `a < b` via T1 case (i).** We verify the two conditions required by T1 case (i).
+**Establishing `a < b` via T1 case (i).** We verify the three conditions required by T1 at position `k`: agreement before `k`, strict inequality at `k`, and that `k` falls within both sequences.
 
 *Agreement before position `k`:* for each `i` with `1 ≤ i < k`, we have `aᵢ = p₁ᵢ` (from `p₁ ≼ a`, since `i < k ≤ m`) and `p₁ᵢ = p₂ᵢ` (from H1) and `p₂ᵢ = bᵢ` (from `p₂ ≼ b`, since `i < k ≤ n`), giving `aᵢ = bᵢ`.
 
