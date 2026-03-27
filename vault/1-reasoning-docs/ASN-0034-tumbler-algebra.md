@@ -893,7 +893,33 @@ Finally, the displacement length `#w = max(#a, #b)` determines the result length
 
   a ⊕ (b ⊖ a) = b
 
-*Proof.* Let k = divergence(a, b). By hypothesis k ≤ #a ≤ #b, so this is type (i) divergence with aₖ < bₖ. Define w = b ⊖ a by TumblerSub: wᵢ = 0 for i < k, wₖ = bₖ − aₖ, wᵢ = bᵢ for i > k. The result has length max(#a, #b) = #b. Now w > 0 since wₖ > 0, and the action point of w is k ≤ #a, so TA0 is satisfied. Applying TumblerAdd: (a ⊕ w)ᵢ = aᵢ = bᵢ for i < k (before divergence), (a ⊕ w)ₖ = aₖ + (bₖ − aₖ) = bₖ, and (a ⊕ w)ᵢ = wᵢ = bᵢ for i > k. The result has length #w = #b; every component matches b, so a ⊕ w = b by T3.  ∎
+*Proof.* We must show that the displacement from a to b, when added back to a, recovers b exactly.
+
+Let k = divergence(a, b). The preconditions give k ≤ #a and #a ≤ #b, so in particular k ≤ #a ≤ #b, whence k ≤ min(#a, #b). This rules out Divergence case (ii) — which would require k = min(#a, #b) + 1 > #a — and places us in case (i): aᵢ = bᵢ for all i < k, and aₖ < bₖ (the strict inequality follows from a < b at the divergence point, by T1).
+
+Define w = b ⊖ a. By TumblerSub, the divergence between b and a (minuend and subtrahend) occurs at position k — they agree at all prior positions since bᵢ = aᵢ for i < k, and bₖ ≠ aₖ. The subtraction yields:
+
+  wᵢ = 0           for i < k
+  wₖ = bₖ − aₖ     (well-defined since bₖ > aₖ)
+  wᵢ = bᵢ          for i > k
+
+The result has length #w = max(#b, #a) = #b, since #a ≤ #b by hypothesis.
+
+We establish two properties of w needed for TumblerAdd. First, w > 0: the component wₖ = bₖ − aₖ ≥ 1 since aₖ < bₖ, so w is not the zero tumbler. Second, the action point of w is k: every component before position k is zero, and wₖ > 0, so k is the first positive component. Since k ≤ #a by hypothesis, the precondition of TumblerAdd (TA0) is satisfied — the action point falls within the start position's length.
+
+Now we compute a ⊕ w by TumblerAdd's constructive definition, which builds the result component by component in three regions determined by the action point k:
+
+*Positions i < k (prefix copy):* (a ⊕ w)ᵢ = aᵢ. By the Divergence agreement property, aᵢ = bᵢ for all i < k. So (a ⊕ w)ᵢ = bᵢ.
+
+*Position i = k (single-component advance):* (a ⊕ w)ₖ = aₖ + wₖ = aₖ + (bₖ − aₖ) = bₖ. The cancellation is exact since all quantities are natural numbers with bₖ > aₖ.
+
+*Positions i > k (tail from displacement):* (a ⊕ w)ᵢ = wᵢ = bᵢ. These components were copied from b into w by TumblerSub, and TumblerAdd copies them from w into the result.
+
+It remains to verify that the lengths match. By the result-length identity of TumblerAdd, #(a ⊕ w) = #w = #b. Every component of a ⊕ w equals the corresponding component of b, and both tumblers have length #b. By T3 (CanonicalRepresentation), a ⊕ w = b.  ∎
+
+*Formal Contract:*
+- *Preconditions:* a ∈ T, b ∈ T, a < b, divergence(a, b) ≤ #a, #a ≤ #b
+- *Postconditions:* a ⊕ (b ⊖ a) = b
 
 **D2 (DisplacementUnique).** Under D1's preconditions (a < b, divergence(a, b) ≤ #a, #a ≤ #b), if a ⊕ w = b then w = b ⊖ a.
 
