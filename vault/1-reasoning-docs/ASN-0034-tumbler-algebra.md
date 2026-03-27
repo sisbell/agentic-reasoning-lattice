@@ -1525,19 +1525,25 @@ Additionally, shift preserves structural properties. When m ≥ 2, the action po
 
 `(A v₁, v₂, n : n ≥ 1 ∧ #v₁ = #v₂ = m ∧ v₁ < v₂ : shift(v₁, n) < shift(v₂, n))`
 
-*Proof.* We show that shifting two equal-length tumblers by the same amount preserves their strict ordering.
+*Dependencies:*
+- **OrdinalShift (Definition):** `shift(v, n) = v ⊕ δ(n, #v)`. Reduces the shift to tumbler addition with an ordinal displacement.
+- **OrdinalDisplacement (Definition):** `δ(n, m) = [0, ..., 0, n]` of length `m`, with action point `m`. Supplies the displacement structure and its action point.
+- **TA1-strict (Strict order preservation):** For `a < b`, `w > 0`, action point `k ≤ min(#a, #b)`, `k ≥ divergence(a, b)`: `a ⊕ w < b ⊕ w`. The workhorse — once its four preconditions are verified, the conclusion follows.
+- **Divergence (Definition):** For `a ≠ b` with `#a = #b = m`, `divergence(a, b) = min({j : 1 ≤ j ≤ m ∧ aⱼ ≠ bⱼ})`. Supplies the bound `divergence(v₁, v₂) ≤ m` needed in precondition (iv).
 
-Fix v₁, v₂ ∈ T with #v₁ = #v₂ = m, v₁ < v₂, and n ≥ 1. By OrdinalShift, shift(v₁, n) = v₁ ⊕ δ(n, m) and shift(v₂, n) = v₂ ⊕ δ(n, m), so we must show v₁ ⊕ δ(n, m) < v₂ ⊕ δ(n, m). We verify the four preconditions of TA1-strict with w = δ(n, m):
+*Proof.* We show that shifting two equal-length tumblers by the same positive amount preserves their strict ordering. The shift advances the deepest component of each operand by the same value, so the relative difference at the divergence point is untouched.
 
-(i) v₁ < v₂ — given.
+Fix `v₁, v₂ ∈ T` with `#v₁ = #v₂ = m` and `v₁ < v₂`, and fix `n ≥ 1`. By OrdinalShift, `shift(v₁, n) = v₁ ⊕ δ(n, m)` and `shift(v₂, n) = v₂ ⊕ δ(n, m)`, so the obligation reduces to showing `v₁ ⊕ δ(n, m) < v₂ ⊕ δ(n, m)`. We discharge this by verifying the four preconditions of TA1-strict with `a = v₁`, `b = v₂`, `w = δ(n, m)`, and `k = actionPoint(δ(n, m)) = m`:
 
-(ii) δ(n, m) > 0 — by OrdinalDisplacement, δ(n, m) = [0, ..., 0, n] with n ≥ 1, so its m-th component is positive.
+(i) `v₁ < v₂` — given directly.
 
-(iii) actionPoint(δ(n, m)) ≤ min(#v₁, #v₂) — the action point of δ(n, m) is m (OrdinalDisplacement), and min(#v₁, #v₂) = min(m, m) = m, so m ≤ m holds.
+(ii) `δ(n, m) > 0` — by OrdinalDisplacement, `δ(n, m) = [0, ..., 0, n]` with `n ≥ 1`, so its `m`-th component is positive and the displacement exceeds the zero tumbler of length `m`.
 
-(iv) actionPoint(δ(n, m)) ≥ divergence(v₁, v₂) — since #v₁ = #v₂ = m, Divergence case (ii) (prefix divergence) is excluded: it requires #v₁ ≠ #v₂. Since v₁ < v₂ implies v₁ ≠ v₂, case (i) applies: divergence(v₁, v₂) = min({j : 1 ≤ j ≤ m ∧ v₁ⱼ ≠ v₂ⱼ}), which satisfies divergence(v₁, v₂) ≤ m. The action point m ≥ divergence(v₁, v₂) follows.
+(iii) `k ≤ min(#v₁, #v₂)` — the action point `k = m` (OrdinalDisplacement), and `min(#v₁, #v₂) = min(m, m) = m`, so `m ≤ m` holds.
 
-All four preconditions hold. By TA1-strict: v₁ ⊕ δ(n, m) < v₂ ⊕ δ(n, m), that is, shift(v₁, n) < shift(v₂, n). ∎
+(iv) `k ≥ divergence(v₁, v₂)` — since `#v₁ = #v₂ = m`, Divergence case (ii) (prefix divergence) is excluded: it requires `#v₁ ≠ #v₂`. Since `v₁ < v₂` implies `v₁ ≠ v₂`, case (i) applies: `divergence(v₁, v₂) = min({j : 1 ≤ j ≤ m ∧ v₁ⱼ ≠ v₂ⱼ})`, which satisfies `divergence(v₁, v₂) ≤ m`. The required `k = m ≥ divergence(v₁, v₂)` follows.
+
+All four preconditions hold. TA1-strict yields `v₁ ⊕ δ(n, m) < v₂ ⊕ δ(n, m)`, that is, `shift(v₁, n) < shift(v₂, n)`. ∎
 
 *Formal Contract:*
 - *Preconditions:* v₁ ∈ T, v₂ ∈ T, n ≥ 1, #v₁ = #v₂ = m, v₁ < v₂
