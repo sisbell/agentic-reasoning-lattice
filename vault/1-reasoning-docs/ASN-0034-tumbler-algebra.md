@@ -1321,7 +1321,7 @@ Let `a = [1, 3, 5]`, `b = [1, 3, 7]`, and `w = [0, 2, 4]`.
 
 **Distinctness.** The third components differ: `a₃ = 5` and `b₃ = 7`, so `a₃ ≠ b₃`. Since `#a = 3 = #b` but not all components agree, the contrapositive of T3 gives `a ≠ b`.
 
-**Well-definedness.** The displacement `w = [0, 2, 4]` has action point `k = 2`, since `w₁ = 0` and `w₂ = 2 > 0` — position 2 is the first nonzero component. For `a ⊕ w`, TA0 requires `actionPoint(w) ≤ #a`, i.e. `2 ≤ 3`, which holds. For `b ⊕ w`, TA0 requires `actionPoint(w) ≤ #b`, i.e. `2 ≤ 3`, which likewise holds. Both additions are well-defined.
+**Well-definedness.** The displacement `w = [0, 2, 4]` has action point `k = 2`, since `w₁ = 0` and `w₂ = 2 > 0` — position 2 is the first nonzero component. The nonzero component establishes `w > 0`. TA0 requires two preconditions: `w > 0` and `actionPoint(w) ≤ #a`. For `a ⊕ w`: `w > 0` holds as just shown, and `actionPoint(w) ≤ #a` is `2 ≤ 3`. For `b ⊕ w`: `w > 0` holds (same displacement), and `actionPoint(w) ≤ #b` is `2 ≤ 3`. Both additions are well-defined.
 
 **Computation of a ⊕ w.** We expand by TumblerAdd's constructive definition with action point `k = 2`:
 
