@@ -32,10 +32,14 @@ The ASN is at `{{asn_path}}`. Read it, fix the issue, write it back.
    Fields:
    - *Preconditions:* — what must hold before
    - *Postconditions:* — what is guaranteed after
-   - *Invariant:* — what holds across all state transitions
+   - *Invariant:* — what holds across all state transitions (for every s → s')
    - *Frame:* — what is preserved / not changed
+   - *Axiom:* — fundamental assertion by definition or design, not derived
+   - *Definition:* — the construction or computation rule (for definitions only)
 
-   Skip for definitions (`**Definition (Name).**` headers).
+   When writing the formal contract, preserve the exact conditions from the
+   property's narrative — do not simplify, expand, or add implicit type
+   constraints.
 
 3. If the proof needs a property that doesn't exist anywhere in the ASN
    or its foundations, add the new property:

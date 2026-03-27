@@ -39,15 +39,17 @@ def find_asn(asn_id):
     return None, label
 
 
-def step_review(asn_id):
+def step_review(asn_id, general=False):
     """Run review-asn.py. Returns (review_path, converged).
 
     converged is True when the reviewer's VERDICT is CONVERGED (exit 2).
     """
     print(f"\n  === REVIEW ===", file=sys.stderr)
+    cmd = [sys.executable, str(REVIEW_SCRIPT), str(asn_id)]
+    if general:
+        cmd.append("--general")
     result = subprocess.run(
-        [sys.executable, str(REVIEW_SCRIPT), str(asn_id)],
-        capture_output=True, text=True, cwd=str(WORKSPACE),
+        cmd, capture_output=True, text=True, cwd=str(WORKSPACE),
     )
 
     converged = result.returncode == 2
@@ -217,6 +219,8 @@ def main():
     parser.add_argument("asn", help="ASN number (e.g., 9, 0009, ASN-0009)")
     parser.add_argument("--review-only", action="store_true",
                         help="(deprecated — review-only is now the default)")
+    parser.add_argument("--general", action="store_true",
+                        help="General review mode — cross-cutting only")
     args = parser.parse_args()
 
     if args.review_only:
@@ -235,10 +239,10 @@ def main():
     start = time.time()
 
     # Review
-    review_path, converged = step_review(args.asn)
+    review_path, converged = step_review(args.asn, general=args.general)
     if review_path is None:
         print(f"  [REVIEW] Review failed, retrying once...", file=sys.stderr)
-        review_path, converged = step_review(args.asn)
+        review_path, converged = step_review(args.asn, general=args.general)
         if review_path is None:
             print(f"  [REVIEW] Review failed again", file=sys.stderr)
             sys.exit(1)

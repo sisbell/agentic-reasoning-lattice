@@ -233,7 +233,8 @@ def step_cleanup(asn_num):
 # Orchestrator
 # ---------------------------------------------------------------------------
 
-def run_pipeline(asn_num, force=False, start_step=None, max_review_cycles=30):
+def run_pipeline(asn_num, force=False, start_step=None, max_review_cycles=30,
+                 clear_issues=False):
     """Run the unified ASN pipeline.
 
     Args:
@@ -241,6 +242,7 @@ def run_pipeline(asn_num, force=False, start_step=None, max_review_cycles=30):
         force: ignore cached state, run all steps
         start_step: start from this step (skip earlier steps)
         max_review_cycles: max cycles for general review convergence
+        clear_issues: clear open-issues before running
 
     Returns:
         "completed" — pipeline converged
@@ -250,6 +252,12 @@ def run_pipeline(asn_num, force=False, start_step=None, max_review_cycles=30):
     if asn_path is None:
         print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
         return "failed"
+
+    if clear_issues:
+        path = open_issues_path(asn_num)
+        if path.exists():
+            path.unlink()
+            print(f"  [CLEARED] open-issues", file=sys.stderr)
 
     print(f"\n  {'='*50}", file=sys.stderr)
     print(f"  {asn_label} — pipeline", file=sys.stderr)
@@ -315,10 +323,13 @@ def main():
                         help="Start from this step (skip earlier)")
     parser.add_argument("--max-review-cycles", type=int, default=30,
                         help="Max general review/revise cycles")
+    parser.add_argument("--clear-issues", action="store_true",
+                        help="Clear open-issues before running")
     args = parser.parse_args()
 
     asn_num = int(re.sub(r"[^0-9]", "", args.asn))
     result = run_pipeline(asn_num, force=args.force, start_step=args.step,
+                          clear_issues=args.clear_issues,
                           max_review_cycles=args.max_review_cycles)
     sys.exit(0 if result == "completed" else 1)
 

@@ -63,7 +63,10 @@ Both formats are valid. The trailing period and bold closure are required.
 
 ### Label Consistency (bidirectional)
 
-1. Every label in the property table must have a corresponding prose section.
+1. Every label in the property table must have its own `**LABEL (Name).**`
+   bold header line. A mention within another property's section (e.g.,
+   "Verification of TA4" or "Claim (TA3)") does not count — the label
+   needs its own top-level bold header.
 2. Every bold property header (`**LABEL (...).**`) in the prose must have a
    corresponding entry in the property table.
 3. Every definition header (`**Definition (Name).**`) in the prose must have

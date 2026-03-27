@@ -65,6 +65,8 @@ def main():
                         help="Loop until CONVERGED verdict (default max: 15)")
     parser.add_argument("--resume", choices=["revise"],
                         help="Resume from revise (skip consult)")
+    parser.add_argument("--general", action="store_true",
+                        help="Use general review mode (cross-cutting only)")
     args = parser.parse_args()
 
     # --converge overrides --cycle
@@ -114,11 +116,11 @@ def main():
                 sys.exit(0)
         else:
             # Cycles 2+: run review first
-            review_path, converged = step_review(args.asn)
+            review_path, converged = step_review(args.asn, general=args.general)
             if review_path is None:
                 print(f"  [REVISE] Review failed, retrying once...",
                       file=sys.stderr)
-                review_path, converged = step_review(args.asn)
+                review_path, converged = step_review(args.asn, general=args.general)
                 if review_path is None:
                     print(f"  [REVISE] Review failed again, stopping",
                           file=sys.stderr)

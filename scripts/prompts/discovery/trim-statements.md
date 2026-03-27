@@ -47,6 +47,7 @@ Keep:
 - Every sub-property listed as (a), (b), (c), etc.
 - Definition algorithms and computation rules
 - Preconditions and postconditions
+- `*Formal Contract:*` sections (preserve exactly as written)
 
 Remove:
 - Narrative prose explaining why a property exists or what it means
