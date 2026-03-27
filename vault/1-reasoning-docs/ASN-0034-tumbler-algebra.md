@@ -617,25 +617,42 @@ Since `a` and `b` were arbitrary tumblers extending `p₁` and `p₂` respective
 
 **PartitionMonotonicity (Partition monotonicity).** Within any prefix-delimited partition of the address space, the set of allocated addresses is totally ordered by T1, and this order is consistent with the allocation order of any single allocator within that partition. Moreover, for any two sibling sub-partitions with non-nesting prefixes `p₁ < p₂`, every address extending `p₁` precedes every address extending `p₂` under T1 — the per-allocator ordering extends to a cross-allocator ordering determined by the prefix structure.
 
-*Proof.* We must show that within a prefix-delimited partition, allocated addresses are totally ordered by T1 consistently with allocation order, and that for sibling sub-partition prefixes `p₁ < p₂` satisfying the non-nesting condition, every address extending `p₁` precedes every address extending `p₂`.
+*Dependencies:*
+- **T1 (Lexicographic order):** `a < b` iff there exists least `k ≥ 1` with `(A i : 1 ≤ i < k : aᵢ = bᵢ)` and either (i) `k ≤ min(#a, #b)` with `aₖ < bₖ`, or (ii) `k = #a + 1 ≤ #b` (proper prefix). The relation is a strict total order on `T`.
+- **T5 (Contiguous subtrees):** For any tumbler prefix `p`, the set `{t ∈ T : p ≼ t}` forms a contiguous interval under T1: `[p ≼ a ∧ p ≼ c ∧ a ≤ b ≤ c ⟹ p ≼ b]`.
+- **T9 (Forward allocation):** `(A a, b : same_allocator(a, b) ∧ allocated_before(a, b) : a < b)`.
+- **T10a (Allocator discipline):** Each allocator produces sibling outputs exclusively by `inc(·, 0)`. To spawn a child, it performs one `inc(·, k')` with `k' > 0`.
+- **TA5 (Hierarchical increment):** (a) `inc(t, k) > t`; (c) when `k = 0`: `#inc(t, 0) = #t`, differing from `t` only at position `sig(t)` where the component increases by 1; (d) when `k > 0`: `#inc(t, k) = #t + k`.
+- **PrefixOrderingExtension:** For `p₁, p₂ ∈ T` with `p₁ < p₂` and `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁`, every `a` extending `p₁` and every `b` extending `p₂` satisfy `a < b`.
+- **Prefix relation (from T1):** `p ≼ a` means `#p ≤ #a` and `aᵢ = pᵢ` for all `1 ≤ i ≤ #p`. A proper prefix `p ≺ a` requires `p ≼ a` with `p ≠ a`, entailing `#p < #a`.
 
-**Partition structure.** Consider a partition with prefix `p`. Every allocated address `a` in this partition satisfies `p ≼ a`, placing it in the set `{t ∈ T : p ≼ t}`. By T5 (prefix convexity), this set forms a contiguous interval under T1: if `p ≼ a`, `p ≼ c`, and `a ≤ b ≤ c`, then `p ≼ b`. No address from outside the partition can interleave between two addresses inside it.
+*Proof.* We must show two things: (i) for sibling sub-partition prefixes `tᵢ < tⱼ` produced by a single allocator within a prefix-delimited partition, every address extending `tᵢ` precedes every address extending `tⱼ` under T1; and (ii) within each sub-partition, allocation order coincides with address order. Together these yield a total ordering on all allocated addresses in the partition, consistent with both per-allocator allocation order and the prefix structure.
 
-Within the partition, the parent allocator spawns child allocators according to T10a (allocator discipline). The first child prefix `t₀` is produced by `inc(s, k)` with `k > 0`, where `s` is a parent sibling extending `p`; by TA5(d), `#t₀ = #s + k`. The parent's output stream then resumes with `inc(·, 0)` (T10a): `t₁ = inc(t₀, 0)`, `t₂ = inc(t₁, 0)`, and so on, each serving as the prefix for a distinct sub-partition.
+**Partition structure.** Consider a partition with prefix `p`. Every allocated address `a` in this partition satisfies `p ≼ a`, placing it in the set `{t ∈ T : p ≼ t}`. By T5, this set forms a contiguous interval under T1: if `p ≼ a`, `p ≼ c`, and `a ≤ b ≤ c`, then `p ≼ b`. No address from outside the partition can interleave between two addresses inside it.
 
-**Sibling prefixes are non-nesting.** We establish that for distinct sibling prefixes `tᵢ` and `tⱼ` with `i ≠ j`: `tᵢ ⋠ tⱼ ∧ tⱼ ⋠ tᵢ`.
+**Sub-partition construction.** Within the partition, the parent allocator spawns a child allocator according to T10a. The child's base address `t₀` is produced by `inc(s, k)` with `k > 0`, where `s` is a parent sibling extending `p`; by TA5(d), `#t₀ = #s + k`. The child allocator then produces its sibling outputs by repeated application of `inc(·, 0)` (T10a): `t₁ = inc(t₀, 0)`, `t₂ = inc(t₁, 0)`, and so on. Each `tᵢ` serves as the prefix for a distinct sub-partition within the parent partition.
+
+**Sibling prefixes are non-nesting.** We establish that for distinct indices `i ≠ j`: `tᵢ ⋠ tⱼ ∧ tⱼ ⋠ tᵢ`. The argument proceeds through three facts.
 
 *Uniform length.* By TA5(c), `inc(t, 0)` preserves length: `#inc(t, 0) = #t`. Applying this inductively from `t₀` — `#t₁ = #inc(t₀, 0) = #t₀`, and for each `n ≥ 0`, `#tₙ₊₁ = #inc(tₙ, 0) = #tₙ` — we obtain `#tₙ = #t₀` for all `n ≥ 0`. Every sibling prefix has the same length.
 
 *Distinctness.* By TA5(a), each application of `inc(·, 0)` produces a strictly greater tumbler under T1, so the sibling prefix sequence is strictly increasing: `t₀ < t₁ < t₂ < ...`. In particular, `tᵢ ≠ tⱼ` for all `i ≠ j`.
 
-*Non-nesting.* A proper prefix relationship `q ≺ r` requires `#q < #r`, since T1 case (ii) defines `q < r` when `q` is a proper prefix of `r`, which demands `#q = m < n = #r`. Since `#tᵢ = #tⱼ` (uniform length), neither can be a proper prefix of the other. The prefix relation `tᵢ ≼ tⱼ` means either `tᵢ = tⱼ` or `tᵢ ≺ tⱼ`; we have excluded both (`tᵢ ≠ tⱼ` from distinctness, `tᵢ ≺ tⱼ` from equal length). So `tᵢ ⋠ tⱼ`, and by the symmetric argument `tⱼ ⋠ tᵢ`.
+*Non-nesting.* A proper prefix relationship `q ≺ r` requires `#q < #r`, since T1 case (ii) defines `q < r` when `q` is a proper prefix of `r`, which demands `k = #q + 1 ≤ #r`, hence `#q < #r`. Since `#tᵢ = #tⱼ` (uniform length), we have `¬(#tᵢ < #tⱼ)` and `¬(#tⱼ < #tᵢ)`, so neither can be a proper prefix of the other: `tᵢ ⊀ tⱼ` and `tⱼ ⊀ tᵢ`. The prefix relation `tᵢ ≼ tⱼ` means either `tᵢ = tⱼ` or `tᵢ ≺ tⱼ`; we have excluded `tᵢ = tⱼ` (distinctness) and `tᵢ ≺ tⱼ` (equal length precludes proper prefix), so `tᵢ ⋠ tⱼ`. For the reverse: `tⱼ ≼ tᵢ` means either `tⱼ = tᵢ` or `tⱼ ≺ tᵢ`; we have excluded `tⱼ = tᵢ` (distinctness, since `tᵢ ≠ tⱼ` entails `tⱼ ≠ tᵢ`) and `tⱼ ≺ tᵢ` (equal length, since `#tⱼ = #tᵢ` precludes `#tⱼ < #tᵢ`), so `tⱼ ⋠ tᵢ`.
 
 **Cross-partition ordering.** Take two sibling sub-partition prefixes `tᵢ` and `tⱼ` with `i < j`. From the strict monotonicity of the sibling sequence we have `tᵢ < tⱼ`, and we have just established `tᵢ ⋠ tⱼ ∧ tⱼ ⋠ tᵢ`. These are precisely the preconditions of PrefixOrderingExtension: for every address `a` with `tᵢ ≼ a` and every address `b` with `tⱼ ≼ b`, we conclude `a < b`. The prefix ordering of sub-partitions determines the address ordering across them.
 
-**Intra-partition ordering.** Within any single sub-partition, all addresses are produced by one allocator's sequential stream of `inc(·, 0)` applications (T10a). By TA5(a), each step produces a strictly greater tumbler, so by T9 (forward allocation), `allocated_before(a, b)` implies `a < b`. Allocation order within each sub-partition coincides with address order.
+**Intra-partition ordering.** Within any single sub-partition, all addresses are produced by one allocator's sequential stream of `inc(·, 0)` applications (T10a). By TA5(a), each step produces a strictly greater tumbler, so by T9, `allocated_before(a, b)` implies `a < b`. Allocation order within each sub-partition coincides with address order.
 
-**Total ordering.** Every address in the partition belongs to exactly one sub-partition — the sub-partition whose prefix it extends. For any two distinct allocated addresses `a` and `b` within the partition: if both belong to the same sub-partition with prefix `tᵢ`, they are ordered by T9; if `a` belongs to sub-partition `tᵢ` and `b` to sub-partition `tⱼ` with `i < j`, then `a < b` by PrefixOrderingExtension; if `i > j`, then `b < a` by PrefixOrderingExtension. In every case, `a` and `b` are comparable under T1. The ordering is consistent with allocation order within each allocator (T9) and with prefix structure across allocators (PrefixOrderingExtension). ∎
+**Total ordering.** Every address in the partition belongs to exactly one sub-partition — the sub-partition whose prefix it extends. For any two distinct allocated addresses `a` and `b` within the partition, exactly one of three cases holds.
+
+*Case 1: Same sub-partition.* Both `a` and `b` extend the same prefix `tᵢ`. Since they are produced by the same allocator's sequential stream, one was allocated before the other. By T9, `allocated_before(a, b) ⟹ a < b` (or `allocated_before(b, a) ⟹ b < a`). In either case, `a` and `b` are comparable under T1, and the ordering is consistent with allocation order.
+
+*Case 2: `a` in earlier sub-partition.* Address `a` extends `tᵢ` and `b` extends `tⱼ` with `i < j`. Since the sibling sequence is strictly increasing, `tᵢ < tⱼ`, and since sibling prefixes are non-nesting, PrefixOrderingExtension gives `a < b`.
+
+*Case 3: `a` in later sub-partition.* Address `a` extends `tᵢ` and `b` extends `tⱼ` with `i > j`. Since `j < i`, the sibling sequence gives `tⱼ < tᵢ`, and since sibling prefixes are non-nesting, PrefixOrderingExtension gives `b < a`.
+
+In every case, `a` and `b` are comparable under T1. The ordering is consistent with allocation order within each allocator (Case 1, via T9) and with prefix structure across allocators (Cases 2–3, via PrefixOrderingExtension). ∎
 
 *Formal Contract:*
 - *Preconditions:* A system conforming to T10a (allocator discipline); a partition with prefix `p ∈ T`; sub-partition prefixes `t₀, t₁, ...` produced by `inc(·, 0)` from an initial child prefix `t₀ = inc(s, k)` with `k > 0` and `p ≼ s`.
@@ -1010,33 +1027,54 @@ The reverse direction is equally necessary:
 
 **ReverseInverse (Reverse inverse).** `(A a, w : a ≥ w ∧ w > 0 ∧ k = #a ∧ #w = k ∧ (A i : 1 ≤ i < k : aᵢ = 0) : (a ⊖ w) ⊕ w = a)`, where `k` is the action point of `w`.
 
-*Proof.* We show that subtracting `w` from `a` and then adding `w` back recovers `a` exactly, under conditions that make the two operations mutually inverse. Throughout, `k` denotes the action point of `w` — the least position with `wₖ > 0` — so by definition `wᵢ = 0` for all `i < k`.
+We prove that subtraction followed by addition recovers the original tumbler, the reverse direction of TA4. Where TA4 shows `(a ⊕ w) ⊖ w = a`, this property shows `(a ⊖ w) ⊕ w = a` — together they establish that `⊕` and `⊖` are mutual inverses under the stated constraints.
 
-**Step 1: the structure of `y = a ⊖ w`.** By TumblerSub, subtraction scans `a` and `w` for the first position where they differ, zero-padding the shorter to length `max(#a, #w)`. Since `#a = k = #w` (given), no padding is needed. At each position `i < k`, both `aᵢ = 0` (by the zero-prefix precondition) and `wᵢ = 0` (by definition of action point), so the operands agree before position `k`.
+*Dependencies:*
+- **TA2 (Well-defined subtraction):** For `a ≥ w`, `a ⊖ w ∈ T` with `#(a ⊖ w) = max(#a, #w)`.
+- **TA3-strict (Order preservation, strict):** `(A a, b, w : a < b ∧ a ≥ w ∧ b ≥ w ∧ #a = #b : a ⊖ w < b ⊖ w)`.
+- **TA4 (Partial inverse):** `(A a, w : w > 0 ∧ k = #a ∧ #w = k ∧ (A i : 1 ≤ i < k : aᵢ = 0) : (a ⊕ w) ⊖ w = a)`.
+- **TumblerAdd (Constructive definition):** `(a ⊕ w)ᵢ = aᵢ` for `i < k`, `(a ⊕ w)ₖ = aₖ + wₖ`, `(a ⊕ w)ᵢ = wᵢ` for `i > k`; result length `#(a ⊕ w) = #w`.
+- **TumblerSub (Constructive definition):** Zero-pad to `max(#a, #w)`, scan for first divergence `d`; `rᵢ = 0` for `i < d`, `r_d = a_d - w_d`, `rᵢ = aᵢ` for `i > d`. If no divergence, result is zero tumbler of length `max(#a, #w)`.
+- **T1 (Lexicographic order):** Strict total order; irreflexivity (`¬(a < a)`), trichotomy (`a < b ∨ a = b ∨ b < a`).
+- **T3 (Canonical representation):** `a = b ⟺ #a = #b ∧ (A i : 1 ≤ i ≤ #a : aᵢ = bᵢ)`.
 
-Two cases arise at position `k`. If `aₖ = wₖ`, then `a` and `w` agree at every position — there are no positions beyond `k` since both have length `k` — and TumblerSub produces the zero tumbler of length `k`. If `aₖ > wₖ` (the only alternative, since `a ≥ w` excludes `aₖ < wₖ`), then `k` is the first divergence, and TumblerSub produces `yᵢ = 0` for `i < k`, `yₖ = aₖ - wₖ > 0`, and no components beyond `k` (since `max(#a, #w) = k`). In either case, `y` has three properties we record for later use:
+*Proof.* We show that `(a ⊖ w) ⊕ w = a`. Throughout, `k` denotes the action point of `w` — the least position with `wₖ > 0` — so by definition `wᵢ = 0` for all `i < k` and `wₖ > 0`.
+
+**Step 1: the structure of `y = a ⊖ w`.** Since `a ≥ w` (given), the difference `y = a ⊖ w` is well-defined by TA2 with `#y = max(#a, #w)`. Since `#a = k = #w` (given), `#y = k` and no zero-padding is needed. TumblerSub scans for the first divergence between `a` and `w`. At each position `i < k`: `aᵢ = 0` (by the zero-prefix precondition) and `wᵢ = 0` (by definition of action point), so the operands agree before position `k`.
+
+Two cases arise at position `k`, exhausting all possibilities since `a ≥ w`.
+
+*Case `aₖ = wₖ`:* The operands agree at every position — there are no positions beyond `k` since both have length `k` — and TumblerSub finds no divergence, producing the zero tumbler of length `k`.
+
+*Case `aₖ > wₖ`:* This is the only alternative, since `a ≥ w` with equal-length tumblers that agree before `k` requires `aₖ ≥ wₖ` by T1. Position `k` is the first divergence, and TumblerSub produces `yᵢ = 0` for `i < k`, `yₖ = aₖ - wₖ > 0`, and no components beyond `k` (since `max(#a, #w) = k`).
+
+In either case, `y` has three properties:
 
 - (Y1) `#y = k`
 - (Y2) `yᵢ = 0` for all `1 ≤ i < k`
 - (Y3) `yₖ = aₖ - wₖ`
 
-**Step 2: TA4 applies to `y` and `w`.** TA4 (Partial inverse) requires four preconditions: `w > 0` (given), `k = #y` (by Y1), `#w = k` (given), and `(A i : 1 ≤ i < k : yᵢ = 0)` (by Y2). All four hold, so TA4 yields:
+**Step 2: TA4 applies to `y` and `w`.** TA4 requires four preconditions: `w > 0` (given), `k = #y` (by Y1), `#w = k` (given), and `(A i : 1 ≤ i < k : yᵢ = 0)` (by Y2). All four hold, so TA4 yields:
 
 `(y ⊕ w) ⊖ w = y`  — (†)
 
-**Step 3: `y ⊕ w = a` by contradiction via TA3-strict.** Assume for contradiction that `y ⊕ w ≠ a`. We verify the preconditions of TA3-strict (Order preservation under subtraction, strict), which requires strict ordering between two tumblers, both `≥ w`, and equal length.
+This is the key fact: whatever `y ⊕ w` turns out to be, subtracting `w` from it recovers `y`.
 
-*Equal length.* By the result-length identity (TumblerAdd), `#(y ⊕ w) = #w`. The preconditions give `#w = k` and `k = #a`, so `#(y ⊕ w) = #a`.
+**Step 3: `y ⊕ w = a`.** We prove this by contradiction. Assume `y ⊕ w ≠ a`. We will show that both `y ⊕ w > a` and `y ⊕ w < a` lead to `y < y`, contradicting irreflexivity (T1). This requires establishing the preconditions of TA3-strict for each case.
 
-*`a ≥ w`.* Given as a precondition of ReverseInverse.
+*Equal length.* By the result-length identity (TumblerAdd), `#(y ⊕ w) = #w = k = #a`.
 
-*`y ⊕ w > w`.* By TumblerAdd, for `i < k`: `(y ⊕ w)ᵢ = yᵢ = 0 = wᵢ` (using Y2 and the definition of action point). At position `k`: `(y ⊕ w)ₖ = yₖ + wₖ`. Since `#(y ⊕ w) = k = #w`, there are no positions beyond `k`, so the two tumblers `y ⊕ w` and `w` agree at all positions except possibly `k`. We show `yₖ > 0`. If `yₖ = 0`, then by Y3, `aₖ = wₖ`. Combined with `aᵢ = wᵢ = 0` for all `i < k` and `#a = #w = k`, this gives `a = w` by T3 (CanonicalRepresentation). Then `y = a ⊖ w = w ⊖ w`, which is the zero tumbler of length `k`, and `y ⊕ w` has `(y ⊕ w)ₖ = 0 + wₖ = wₖ` with zeros before `k`, so `y ⊕ w = w = a` — contradicting our assumption. Therefore `yₖ > 0`, giving `(y ⊕ w)ₖ = yₖ + wₖ > wₖ`. The two tumblers agree before `k` and first differ at `k` with `(y ⊕ w)ₖ > wₖ`, so by T1, `y ⊕ w > w`.
+*`a ≥ w`.* Given as a precondition.
 
-*Strict ordering between `y ⊕ w` and `a`.* By T1 (trichotomy), since `y ⊕ w ≠ a`, exactly one of `y ⊕ w < a` or `y ⊕ w > a` holds. We derive a contradiction from each.
+*`y ⊕ w ≥ w`.* By TumblerAdd, for `i < k`: `(y ⊕ w)ᵢ = yᵢ = 0 = wᵢ` (using Y2 and the definition of action point). At position `k`: `(y ⊕ w)ₖ = yₖ + wₖ`. Since `#(y ⊕ w) = k = #w`, there are no positions beyond `k`, so the two tumblers agree at all positions except possibly `k`.
 
-*Case `y ⊕ w > a`:* We have `a < y ⊕ w`, `a ≥ w`, `y ⊕ w ≥ w` (established above, in fact strict), and `#a = #(y ⊕ w)`. TA3-strict gives `a ⊖ w < (y ⊕ w) ⊖ w`. The left side is `y` by definition; the right side is `y` by (†). This yields `y < y`, contradicting the irreflexivity of `<` (T1).
+We show `y ⊕ w > w` or `y ⊕ w = w = a`. If `yₖ = 0`, then by Y3, `aₖ = wₖ`. Combined with `aᵢ = wᵢ = 0` for all `i < k` and `#a = #w = k`, this gives `a = w` by T3. Then `y = a ⊖ w = w ⊖ w`, which is the zero tumbler of length `k`, and `(y ⊕ w)ₖ = 0 + wₖ = wₖ` with zeros before `k`, so `y ⊕ w = w = a` by T3 — contradicting our assumption. Therefore `yₖ > 0`, giving `(y ⊕ w)ₖ = yₖ + wₖ > wₖ`. The two tumblers agree before `k` and first differ at `k` with `(y ⊕ w)ₖ > wₖ`, so `y ⊕ w > w` by T1.
 
-*Case `y ⊕ w < a`:* We have `y ⊕ w < a`, `y ⊕ w ≥ w` (strict), `a ≥ w`, and `#(y ⊕ w) = #a`. TA3-strict gives `(y ⊕ w) ⊖ w < a ⊖ w`. The left side is `y` by (†); the right side is `y` by definition. This yields `y < y`, again contradicting irreflexivity.
+*Deriving the contradiction.* By T1 (trichotomy), since `y ⊕ w ≠ a`, exactly one of `y ⊕ w > a` or `y ⊕ w < a` holds.
+
+*Case `y ⊕ w > a`:* We have `a < y ⊕ w`, both `a ≥ w` and `y ⊕ w > w` (hence `y ⊕ w ≥ w`), and `#a = #(y ⊕ w)`. These are precisely the preconditions of TA3-strict, which gives `a ⊖ w < (y ⊕ w) ⊖ w`. The left side is `y` by definition of `y`. The right side is `y` by (†). This yields `y < y`, contradicting irreflexivity of `<` (T1).
+
+*Case `y ⊕ w < a`:* We have `y ⊕ w < a`, both `y ⊕ w > w` (hence `y ⊕ w ≥ w`) and `a ≥ w`, and `#(y ⊕ w) = #a`. TA3-strict gives `(y ⊕ w) ⊖ w < a ⊖ w`. The left side is `y` by (†). The right side is `y` by definition. This yields `y < y`, again contradicting irreflexivity.
 
 Both cases are impossible, so the assumption `y ⊕ w ≠ a` is false. Therefore `(a ⊖ w) ⊕ w = a`. ∎
 
