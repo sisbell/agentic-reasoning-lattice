@@ -1733,7 +1733,7 @@ Removing any independent property breaks a system-level guarantee. T6 and T7 are
 | T0(b) | Tumblers of arbitrary length exist in T — the hierarchy has unlimited nesting depth | introduced |
 | T1 | Tumblers are totally ordered by lexicographic comparison, with the prefix-less-than convention | introduced |
 | T2 | Tumbler comparison is computable from the two addresses alone, examining at most min(#a, #b) components | introduced |
-| T3 | Each tumbler has exactly one canonical representation; component-wise identity is both necessary and sufficient for equality | introduced |
+| T3 | Each tumbler has exactly one canonical representation; component-wise identity is both necessary and sufficient for equality | from T0 |
 | T4 | An address tumbler has at most three zero-valued components as field separators, every field component is strictly positive, and every present field has at least one component (no adjacent zeros, no leading/trailing zero) | introduced |
 | T5 | The set of tumblers sharing a prefix forms a contiguous interval under T1 | introduced |
 | T6 | Containment (same node, same account, same document family, structural subordination) is decidable from addresses alone | corollary of T4 |
