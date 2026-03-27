@@ -14,6 +14,12 @@ The ASN is at `{{asn_path}}`. Read it, fix the issue, write it back.
 
 {{finding}}
 
+## Style
+
+Write in Dijkstra's style: prose with embedded formalism. Each formal
+statement must be justified in the sentence that introduces it. Each case
+must be explicit — no "by similar reasoning." End proofs with ∎.
+
 ## Rules
 
 1. Fix the proof to address the issue above.
