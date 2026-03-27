@@ -677,6 +677,10 @@ Exactly one case applies for any `a ≠ b`. In case (i), `a` and `b` differ at a
 
 For prefix-related pairs, `divergence(a, b) = min(#a, #b) + 1 > min(#a, #b)`. Since TA0 requires `k ≤ min(#a, #b)`, the condition `k ≥ divergence(a, b)` in TA1-strict below is unsatisfiable for prefix-related operands. This is correct: when `a` is a proper prefix of `b` (or vice versa), Case 1 of the verification below shows that addition erases the divergence, producing equality rather than strict inequality. TA1-strict makes no claim about prefix-related pairs — TA1 (weak) covers them, guaranteeing non-reversal.
 
+*Formal Contract:*
+- *Preconditions:* a ∈ T, b ∈ T, a ≠ b
+- *Definition:* divergence(a, b) = k, where (i) if ∃ i with 1 ≤ i ≤ min(#a, #b) and aᵢ ≠ bᵢ, then k = min({i : 1 ≤ i ≤ min(#a, #b) ∧ aᵢ ≠ bᵢ}); (ii) if (A i : 1 ≤ i ≤ min(#a, #b) : aᵢ = bᵢ) and #a ≠ #b, then k = min(#a, #b) + 1
+
 **TA1-strict (Strict order preservation).** `(A a, b, w : a < b ∧ w > 0 ∧ k ≤ min(#a, #b) ∧ k ≥ divergence(a, b) : a ⊕ w < b ⊕ w)`, where `k` is the action point of `w`.
 
 When the action point falls before the divergence — `k < divergence(a, b)` — both operands agree at position `k`, both get the same `wₖ` added, and both copy the same tail from `w` afterward. The original divergence is erased and the results are equal. For example, `a = [1, 3]`, `b = [1, 5]` (diverge at position 2), `w = [2]` (action point at position 1): `a ⊕ w = [3] = b ⊕ w`. Order degrades to equality, never reversal.
