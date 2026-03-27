@@ -27,9 +27,10 @@ Commit changes to the vault with meaningful, descriptive commit messages.
    git add vault/0-consultations/ vault/1-reasoning-docs/ vault/requirements/ vault/2-review/ vault/project-model/ vault/4-modeling/ vault/6-examples/ vault/7-test-cases/ 2>/dev/null; true
    ```
 
-   **Important:** Never stage `vault/5-proofs/`. That directory contains curated,
-   human-reviewed proof files. Changes there are committed manually by the
-   operator using a separate, deliberate process.
+   **Important:** Only stage vault/ directories listed above. Never stage:
+   - `vault/5-proofs/` — curated, human-reviewed proof files (committed separately)
+   - `scripts/` — script changes are committed separately from vault changes
+   - Any files outside `vault/`
 
 5. **Generate commit message:**
 
