@@ -36,7 +36,10 @@ Let `t = d₁.d₂. ... .dₙ` be an arbitrary member of T, let `i` satisfy `1 �
 Since `t`, `i`, and `M` were arbitrary, the universal claim holds. ∎
 
 *Formal Contract:*
-- *Axiom:* T is the set of all finite sequences over ℕ with length ≥ 1. Since ℕ is unbounded, for any `t ∈ T`, position `i`, and bound `M`, the sequence obtained by replacing `dᵢ` with `M + 1` is a member of T with the required properties.
+- *Preconditions:* `t ∈ T`, `1 ≤ i ≤ #t`, `M ∈ ℕ`.
+- *Postconditions:* There exists `t' ∈ T` such that `t'.dⱼ = t.dⱼ` for all `j ≠ i` and `t'.dᵢ > M`.
+- *Frame:* `#t' = #t`; all components at positions `j ≠ i` are identical to those of `t`.
+- *Axiom:* T is the set of all finite sequences over ℕ with length ≥ 1; ℕ is closed under successor.
 
 **T0(b) (Unbounded length).** `(A n ∈ ℕ : n ≥ 1 : (E t ∈ T :: #t ≥ n))`.
 
