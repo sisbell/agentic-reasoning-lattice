@@ -262,7 +262,8 @@ def step_cleanup(asn_num):
 # Orchestrator
 # ---------------------------------------------------------------------------
 
-def run_pipeline(asn_num, force=False, start_step=None, max_review_cycles=30):
+def run_pipeline(asn_num, force=False, start_step=None, max_review_cycles=30,
+                 discovery=False):
     """Run the unified ASN pipeline.
 
     Args:
@@ -270,6 +271,7 @@ def run_pipeline(asn_num, force=False, start_step=None, max_review_cycles=30):
         force: ignore cached state, run all steps
         start_step: start from this step (skip earlier steps)
         max_review_cycles: max cycles for general review convergence
+        discovery: if True, run only review/revise (no formalization)
 
     Returns:
         "completed" — pipeline converged
@@ -286,11 +288,23 @@ def run_pipeline(asn_num, force=False, start_step=None, max_review_cycles=30):
         path.unlink()
         print(f"  [CLEARED] open-issues", file=sys.stderr)
 
+    mode = "discovery" if discovery else "formalization"
     print(f"\n  {'='*50}", file=sys.stderr)
-    print(f"  {asn_label} — pipeline", file=sys.stderr)
+    print(f"  {asn_label} — {mode}", file=sys.stderr)
     print(f"  {'='*50}", file=sys.stderr)
 
     start_time = time.time()
+
+    # Discovery mode: review/revise only
+    if discovery:
+        ok = step_review(asn_num, max_review_cycles)
+        elapsed = time.time() - start_time
+        print(f"\n  {'='*50}", file=sys.stderr)
+        status = "completed" if ok else "failed"
+        print(f"  {asn_label} — {status} ({elapsed:.0f}s)",
+              file=sys.stderr)
+        print(f"  {'='*50}", file=sys.stderr)
+        return status
 
     # Determine which steps to run
     start_idx = 0
@@ -350,6 +364,8 @@ def main():
     parser.add_argument("asn", help="ASN number (e.g., 34)")
     parser.add_argument("--force", action="store_true",
                         help="Ignore cached state, run all steps")
+    parser.add_argument("--discovery", action="store_true",
+                        help="Discovery mode — review/revise only")
     parser.add_argument("--step",
                         choices=["repair", "quality", "audit", "verify",
                                  "review", "assembly", "cleanup"],
@@ -360,7 +376,8 @@ def main():
 
     asn_num = int(re.sub(r"[^0-9]", "", args.asn))
     result = run_pipeline(asn_num, force=args.force, start_step=args.step,
-                          max_review_cycles=args.max_review_cycles)
+                          max_review_cycles=args.max_review_cycles,
+                          discovery=args.discovery)
     sys.exit(0 if result == "completed" else 1)
 
 

@@ -135,6 +135,71 @@ def find_incomplete_sections(asn_num):
     return incomplete
 
 
+def find_oversized_sections(asn_num):
+    """Find sections containing proofs for OTHER properties.
+
+    Returns list of dicts:
+        label: the embedded property label (needs its own section)
+        thin_section: the embedded property's own section (if it exists)
+        host_label: the property whose section contains the embedded proof
+        host_section: the host section text
+    """
+    asn_path, asn_label = find_asn(str(asn_num))
+    if asn_path is None:
+        return []
+
+    text = asn_path.read_text()
+    rows = find_property_table(text)
+    if rows is None:
+        return []
+
+    labels = []
+    for row in rows[2:]:
+        cells = parse_table_row(row)
+        if cells and cells[0].strip():
+            labels.append(cells[0].strip().strip("`*"))
+
+    label_set = set(labels)
+    sections = extract_property_sections(text, known_labels=labels,
+                                          truncate=False)
+
+    # For each section, check if it contains proofs for other properties
+    oversized = []
+    seen = set()
+
+    for host_label in labels:
+        host_section = sections.get(host_label, "")
+        if not host_section:
+            continue
+
+        for other_label in labels:
+            if other_label == host_label:
+                continue
+            if other_label in seen:
+                continue
+
+            patterns = [
+                re.compile(r'Verification of.*\b' + re.escape(other_label) + r'\b'),
+                re.compile(r'Claim[:\s]*\(?' + re.escape(other_label) + r'\)?'),
+            ]
+
+            for pattern in patterns:
+                if pattern.search(host_section):
+                    # Check if other_label already has its own proof
+                    other_section = sections.get(other_label, "")
+                    if not _has_proof(other_section) and not _is_definition(other_section):
+                        oversized.append({
+                            "label": other_label,
+                            "thin_section": other_section,
+                            "host_label": host_label,
+                            "host_section": host_section,
+                        })
+                        seen.add(other_label)
+                    break
+
+    return oversized
+
+
 def build_repair_context(asn_num, label, deps_data, sections):
     """Build dependency context for a section repair."""
     prop_data = deps_data.get("properties", {}).get(label, {})
@@ -277,15 +342,25 @@ def step_repair_sections(asn_num):
     if asn_path is None:
         return 0, 0, 0
 
-    # Find incomplete sections
+    # Find sections needing repair: incomplete + oversized
     incomplete = find_incomplete_sections(asn_num)
-    if not incomplete:
+    oversized = find_oversized_sections(asn_num)
+
+    # Merge, dedup by label (incomplete takes priority if both detect same label)
+    needs_repair_map = {}
+    for item in incomplete:
+        needs_repair_map[item["label"]] = item
+    for item in oversized:
+        if item["label"] not in needs_repair_map:
+            needs_repair_map[item["label"]] = item
+
+    if not needs_repair_map:
         print(f"\n  [REPAIR] {asn_label}: all sections complete",
               file=sys.stderr)
         return 0, 0, 0
 
-    incomplete_labels = {item["label"] for item in incomplete}
-    incomplete_map = {item["label"]: item for item in incomplete}
+    incomplete_labels = set(needs_repair_map.keys())
+    incomplete_map = needs_repair_map
 
     # Generate deps for context building
     deps_data = generate_deps(asn_num)
