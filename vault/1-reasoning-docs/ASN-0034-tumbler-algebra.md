@@ -1455,46 +1455,45 @@ We must state explicitly what the tumbler algebra does not guarantee. These nega
 
 The design does not depend on associativity. Shifts are applied as single operations in practice, never composed from multiple smaller shifts. An implementation with finite representations may break associativity through overflow at the action-point component, but the abstract algebra carries no such limitation.
 
-*Proof.* We must show that for all `a, b, c ∈ T` with `b > 0`, `c > 0`, whenever both `(a ⊕ b) ⊕ c` and `a ⊕ (b ⊕ c)` are well-defined, they are equal component-wise.
+*Proof.* We show that for all `a, b, c ∈ T` with `b > 0`, `c > 0`, whenever both `(a ⊕ b) ⊕ c` and `a ⊕ (b ⊕ c)` are well-defined, every component of the left side equals the corresponding component of the right side.
 
-Let `k_b` be the action point of `b` and `k_c` the action point of `c`. By the result-length identity, `#(a ⊕ b) = #b` and `#((a ⊕ b) ⊕ c) = #c`. For the right side, `#(b ⊕ c) = #c` and `#(a ⊕ (b ⊕ c)) = #(b ⊕ c) = #c`. Both sides have length `#c`.
+Throughout, write `k_b` for the action point of `b` and `k_c` for the action point of `c`. Recall TumblerAdd's constructive definition: for `x ⊕ w` with `w` having action point `k`, the result has `(x ⊕ w)ᵢ = xᵢ` for `i < k` (prefix copy), `(x ⊕ w)ₖ = xₖ + wₖ` (advance), and `(x ⊕ w)ᵢ = wᵢ` for `i > k` (tail copy), with `#(x ⊕ w) = #w` (the result-length identity from TA0).
 
-We first establish the action point of the intermediate result `s = b ⊕ c`. By TumblerAdd, `sᵢ = bᵢ` for `i < k_c`, `s_{k_c} = b_{k_c} + c_{k_c}`, and `sᵢ = cᵢ` for `i > k_c`. For `i < min(k_b, k_c)`, we have `i < k_b`, so `bᵢ = 0`; and `i < k_c`, so `sᵢ = bᵢ = 0`. At position `min(k_b, k_c)`: if `k_b < k_c`, then `s_{k_b} = b_{k_b} > 0` (since `k_b` is the action point of `b`); if `k_b = k_c`, then `s_{k_b} = b_{k_b} + c_{k_b} > 0` (both summands are positive action-point values); if `k_b > k_c`, then `s_{k_c} = b_{k_c} + c_{k_c} = 0 + c_{k_c} = c_{k_c} > 0` (since `k_c < k_b` gives `b_{k_c} = 0`). In every case the first nonzero component of `s` occurs at position `min(k_b, k_c)`, so `actionPoint(s) = min(k_b, k_c)`.
+*Lengths.* By the result-length identity, `#(a ⊕ b) = #b`. Applying it again: `#((a ⊕ b) ⊕ c) = #c`. For the right side, `#(b ⊕ c) = #c`, and `#(a ⊕ (b ⊕ c)) = #(b ⊕ c) = #c`. Both sides have length `#c`.
 
-The domain conditions for the two sides are: the left side requires `k_b ≤ #a` (for `a ⊕ b`) and `k_c ≤ #b` (for `(a ⊕ b) ⊕ c`, since `#(a ⊕ b) = #b`); the right side requires `k_c ≤ #b` (for `b ⊕ c`) and `min(k_b, k_c) ≤ #a` (for `a ⊕ s`). We assume both sides are well-defined — all four conditions hold — and show the values agree. Three cases exhaust the relationship between `k_b` and `k_c`.
+*Action point of `s = b ⊕ c`.* We must determine `actionPoint(s)` to expand the right side `a ⊕ s`. By TumblerAdd on `b ⊕ c`: `sᵢ = bᵢ` for `i < k_c`, `s_{k_c} = b_{k_c} + c_{k_c}`, and `sᵢ = cᵢ` for `i > k_c`. The action point of `s` is the first position with a nonzero component. For `i < min(k_b, k_c)`, we have `i < k_b` (so `bᵢ = 0` by definition of action point) and `i < k_c` (so `sᵢ = bᵢ = 0` by the prefix-copy rule). At position `min(k_b, k_c)` three sub-cases arise. If `k_b < k_c`: `s_{k_b} = b_{k_b} > 0`, since `k_b` is the action point of `b` and `k_b < k_c` places it in the prefix-copy region. If `k_b = k_c`: `s_{k_b} = b_{k_b} + c_{k_b} > 0`, since both summands are positive action-point values. If `k_b > k_c`: `s_{k_c} = b_{k_c} + c_{k_c} = 0 + c_{k_c} = c_{k_c} > 0`, since `k_c < k_b` gives `b_{k_c} = 0`. In every sub-case the first nonzero component of `s` occurs at position `min(k_b, k_c)`, establishing `actionPoint(s) = min(k_b, k_c)`.
 
-*Case 1: `k_b < k_c`.* The action point of `s` is `k_b`, with `s_{k_b} = b_{k_b}`. We expand both sides at each position `i` (where `1 ≤ i ≤ #c`).
+*Domain conditions.* The left side `(a ⊕ b) ⊕ c` requires two well-defined additions: `a ⊕ b` requires `k_b ≤ #a` (TA0), and `(a ⊕ b) ⊕ c` requires `k_c ≤ #(a ⊕ b) = #b` (TA0 applied to the intermediate result). The right side `a ⊕ (b ⊕ c)` requires `b ⊕ c` with `k_c ≤ #b` (TA0), and `a ⊕ s` with `actionPoint(s) = min(k_b, k_c) ≤ #a` (TA0). The domains are asymmetric: the left requires `k_b ≤ #a`, the right requires only `min(k_b, k_c) ≤ #a`. But since `k_b ≤ #a` implies `min(k_b, k_c) ≤ #a`, the left-side conditions subsume the right-side conditions. The intersection of both domains is therefore `k_b ≤ #a` and `k_c ≤ #b`. We assume these hold and show the values agree by exhaustive case analysis on the relationship between `k_b` and `k_c`.
 
-Let `r = a ⊕ b`. By TumblerAdd: `rᵢ = aᵢ` for `i < k_b`, `r_{k_b} = a_{k_b} + b_{k_b}`, `rᵢ = bᵢ` for `i > k_b`.
+*Case 1: `k_b < k_c`.* The action point of `s` is `k_b`, with `s_{k_b} = b_{k_b}` (from the prefix-copy region of `b ⊕ c`, since `k_b < k_c`).
 
-*Left side* `(r ⊕ c)`: since `k_c > k_b`, for `i < k_b` we have `i < k_c`, so `(r ⊕ c)ᵢ = rᵢ = aᵢ`. At `i = k_b < k_c`: `(r ⊕ c)_{k_b} = r_{k_b} = a_{k_b} + b_{k_b}`. For `k_b < i < k_c`: `(r ⊕ c)ᵢ = rᵢ = bᵢ`. At `i = k_c`: `(r ⊕ c)_{k_c} = r_{k_c} + c_{k_c} = b_{k_c} + c_{k_c}` (since `k_c > k_b` gives `r_{k_c} = b_{k_c}`). For `i > k_c`: `(r ⊕ c)ᵢ = cᵢ`.
+Let `r = a ⊕ b`. By TumblerAdd: `rᵢ = aᵢ` for `i < k_b`, `r_{k_b} = a_{k_b} + b_{k_b}`, and `rᵢ = bᵢ` for `i > k_b`.
 
-*Right side* `(a ⊕ s)` with action point `k_b`: for `i < k_b`: `(a ⊕ s)ᵢ = aᵢ`. At `i = k_b`: `(a ⊕ s)_{k_b} = a_{k_b} + s_{k_b} = a_{k_b} + b_{k_b}`. For `i > k_b`: `(a ⊕ s)ᵢ = sᵢ`. At `k_b < i < k_c`: `sᵢ = bᵢ`. At `i = k_c`: `s_{k_c} = b_{k_c} + c_{k_c}`. For `i > k_c`: `sᵢ = cᵢ`.
+*Left side* `(r ⊕ c)` with action point `k_c`: for `i < k_b` we have `i < k_c`, so `(r ⊕ c)ᵢ = rᵢ = aᵢ`. At `i = k_b < k_c`: position `k_b` falls in the prefix-copy region of `r ⊕ c`, so `(r ⊕ c)_{k_b} = r_{k_b} = a_{k_b} + b_{k_b}`. For `k_b < i < k_c`: `(r ⊕ c)ᵢ = rᵢ = bᵢ` (prefix-copy from `r`, and `i > k_b` puts `rᵢ` in the tail-copy region of `a ⊕ b`). At `i = k_c`: `(r ⊕ c)_{k_c} = r_{k_c} + c_{k_c} = b_{k_c} + c_{k_c}`, since `k_c > k_b` gives `r_{k_c} = b_{k_c}` by the tail-copy rule of `a ⊕ b`. For `i > k_c`: `(r ⊕ c)ᵢ = cᵢ`.
+
+*Right side* `(a ⊕ s)` with action point `k_b`: for `i < k_b`, `(a ⊕ s)ᵢ = aᵢ`. At `i = k_b`: `(a ⊕ s)_{k_b} = a_{k_b} + s_{k_b} = a_{k_b} + b_{k_b}`. For `i > k_b`: `(a ⊕ s)ᵢ = sᵢ` by the tail-copy rule. Expanding `sᵢ` via TumblerAdd on `b ⊕ c`: for `k_b < i < k_c`, `sᵢ = bᵢ` (prefix-copy, since `i < k_c`); at `i = k_c`, `s_{k_c} = b_{k_c} + c_{k_c}` (advance); for `i > k_c`, `sᵢ = cᵢ` (tail-copy).
 
 Comparing position by position: `aᵢ = aᵢ` for `i < k_b`; `a_{k_b} + b_{k_b} = a_{k_b} + b_{k_b}` at `k_b`; `bᵢ = bᵢ` for `k_b < i < k_c`; `b_{k_c} + c_{k_c} = b_{k_c} + c_{k_c}` at `k_c`; `cᵢ = cᵢ` for `i > k_c`. Every component agrees.
 
 *Case 2: `k_b = k_c = k`.* The action point of `s` is `k`, with `s_k = b_k + c_k`.
 
-*Left side:* `rᵢ = aᵢ` for `i < k`, `r_k = a_k + b_k`, `rᵢ = bᵢ` for `i > k`. Then `(r ⊕ c)ᵢ = rᵢ = aᵢ` for `i < k`; `(r ⊕ c)_k = r_k + c_k = (a_k + b_k) + c_k`; `(r ⊕ c)ᵢ = cᵢ` for `i > k`.
+Let `r = a ⊕ b`: `rᵢ = aᵢ` for `i < k`, `r_k = a_k + b_k`, `rᵢ = bᵢ` for `i > k`. The left side `(r ⊕ c)` has action point `k`: for `i < k`, `(r ⊕ c)ᵢ = rᵢ = aᵢ`; at `k`, `(r ⊕ c)_k = r_k + c_k = (a_k + b_k) + c_k`; for `i > k`, `(r ⊕ c)ᵢ = cᵢ`. The right side `(a ⊕ s)` has action point `k`: for `i < k`, `(a ⊕ s)ᵢ = aᵢ`; at `k`, `(a ⊕ s)_k = a_k + s_k = a_k + (b_k + c_k)`; for `i > k`, `(a ⊕ s)ᵢ = sᵢ = cᵢ`.
 
-*Right side:* `(a ⊕ s)ᵢ = aᵢ` for `i < k`; `(a ⊕ s)_k = a_k + s_k = a_k + (b_k + c_k)`; `(a ⊕ s)ᵢ = sᵢ = cᵢ` for `i > k`.
+At position `k`, the left gives `(a_k + b_k) + c_k` and the right gives `a_k + (b_k + c_k)`. These are equal by associativity of addition on ℕ. All other positions agree by direct comparison.
 
-At position `k`, the left gives `(a_k + b_k) + c_k` and the right gives `a_k + (b_k + c_k)`. These are equal by associativity of addition on ℕ. All other positions agree trivially.
+*Case 3: `k_b > k_c`.* The action point of `s` is `k_c`, with `s_{k_c} = b_{k_c} + c_{k_c} = 0 + c_{k_c} = c_{k_c}` (since `k_c < k_b` gives `b_{k_c} = 0`).
 
-*Case 3: `k_b > k_c`.* The action point of `s` is `k_c`, with `s_{k_c} = c_{k_c}` (since `b_{k_c} = 0`).
+Let `r = a ⊕ b`: `rᵢ = aᵢ` for `i < k_b`, `r_{k_b} = a_{k_b} + b_{k_b}`, `rᵢ = bᵢ` for `i > k_b`. The left side `(r ⊕ c)` has action point `k_c`. Since `k_c < k_b`: for `i < k_c` we have `i < k_b`, so `(r ⊕ c)ᵢ = rᵢ = aᵢ` (both prefix-copy rules apply). At `i = k_c < k_b`: `r_{k_c} = a_{k_c}` (position `k_c` falls in the prefix-copy region of `a ⊕ b`), so `(r ⊕ c)_{k_c} = r_{k_c} + c_{k_c} = a_{k_c} + c_{k_c}`. For `i > k_c`: `(r ⊕ c)ᵢ = cᵢ`. The components of `r` at and beyond `k_b` — where `b`'s contribution appears — are entirely overwritten by `c`'s tail, since `k_c < k_b`.
 
-*Left side:* `rᵢ = aᵢ` for `i < k_b`, `r_{k_b} = a_{k_b} + b_{k_b}`, `rᵢ = bᵢ` for `i > k_b`. Then since `k_c < k_b`: for `i < k_c` we have `i < k_b`, so `(r ⊕ c)ᵢ = rᵢ = aᵢ`. At `i = k_c < k_b`: `(r ⊕ c)_{k_c} = r_{k_c} + c_{k_c} = a_{k_c} + c_{k_c}` (since `k_c < k_b` gives `r_{k_c} = a_{k_c}`). For `i > k_c`: `(r ⊕ c)ᵢ = cᵢ`.
+The right side `(a ⊕ s)` has action point `k_c`: for `i < k_c`, `(a ⊕ s)ᵢ = aᵢ`; at `k_c`, `(a ⊕ s)_{k_c} = a_{k_c} + s_{k_c} = a_{k_c} + c_{k_c}`; for `i > k_c`, `(a ⊕ s)ᵢ = sᵢ = cᵢ` (since `sᵢ = cᵢ` for `i > k_c` by the tail-copy rule of `b ⊕ c`).
 
-*Right side:* `(a ⊕ s)ᵢ = aᵢ` for `i < k_c`; `(a ⊕ s)_{k_c} = a_{k_c} + s_{k_c} = a_{k_c} + c_{k_c}`; `(a ⊕ s)ᵢ = sᵢ = cᵢ` for `i > k_c`.
+Comparing: `aᵢ = aᵢ` for `i < k_c`; `a_{k_c} + c_{k_c} = a_{k_c} + c_{k_c}` at `k_c`; `cᵢ = cᵢ` for `i > k_c`. Every component agrees. The displacement `b` is entirely overwritten — TumblerAdd's tail-replacement semantics means the shallower displacement `c` discards everything below its action point on both sides, rendering `b`'s deeper contribution invisible in the final result.
 
-Comparing: `aᵢ = aᵢ` for `i < k_c`; `a_{k_c} + c_{k_c} = a_{k_c} + c_{k_c}` at `k_c`; `cᵢ = cᵢ` for `i > k_c`. Every component agrees. The displacement `b` is entirely overwritten — TumblerAdd's tail-replacement semantics means the shallower displacement `c` discards everything below its action point on both sides, and the deeper displacement `b` contributes nothing to the final result.
-
-In all three cases, both sides produce the same sequence of length `#c`, so `(a ⊕ b) ⊕ c = a ⊕ (b ⊕ c)` by T3. ∎
+In all three cases, both sides produce the same sequence of length `#c`, so `(a ⊕ b) ⊕ c = a ⊕ (b ⊕ c)` by T3 (CanonicalRepresentation). ∎
 
 *Formal Contract:*
-- *Preconditions:* `a ∈ T`, `b ∈ T`, `c ∈ T`, `b > 0`, `c > 0`, `k_b ≤ #a`, `k_c ≤ #b` (left-side domain); or `k_c ≤ #b`, `min(k_b, k_c) ≤ #a` (right-side domain)
-- *Postconditions:* On the intersection of both domains: `(a ⊕ b) ⊕ c = a ⊕ (b ⊕ c)`
-- *Invariant:* `#((a ⊕ b) ⊕ c) = #(a ⊕ (b ⊕ c)) = #c`; `actionPoint(b ⊕ c) = min(k_b, k_c)`
+- *Preconditions:* `a ∈ T`, `b ∈ T`, `c ∈ T`, `b > 0`, `c > 0`, `k_b ≤ #a`, `k_c ≤ #b` (where `k_b = actionPoint(b)`, `k_c = actionPoint(c)`; these left-side conditions subsume the right-side conditions since `k_b ≤ #a` implies `min(k_b, k_c) ≤ #a`)
+- *Postconditions:* `(a ⊕ b) ⊕ c = a ⊕ (b ⊕ c)`; `#((a ⊕ b) ⊕ c) = #(a ⊕ (b ⊕ c)) = #c`; `actionPoint(b ⊕ c) = min(k_b, k_c)`
 
 **Addition is not commutative.** We do NOT require `a ⊕ b = b ⊕ a`. The operands play asymmetric roles: the first is a *position*, the second is a *displacement*. Swapping them is semantically meaningless. Gregory's `absadd` confirms: the first argument supplies the prefix, the second the suffix — the reverse call gives a different (and typically wrong) result.
 
