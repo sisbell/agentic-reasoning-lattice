@@ -1047,6 +1047,7 @@ The reverse direction is equally necessary:
 We prove that subtraction followed by addition recovers the original tumbler, the reverse direction of TA4. Where TA4 shows `(a ⊕ w) ⊖ w = a`, this property shows `(a ⊖ w) ⊕ w = a` — together they establish that `⊕` and `⊖` are mutual inverses under the stated constraints.
 
 *Dependencies:*
+- **TA0 (Well-defined addition):** `a ⊕ w ∈ T` when `w > 0` and `actionPoint(w) ≤ #a`; result length `#(a ⊕ w) = #w`.
 - **TA2 (Well-defined subtraction):** For `a ≥ w`, `a ⊖ w ∈ T` with `#(a ⊖ w) = max(#a, #w)`.
 - **TA3-strict (Order preservation, strict):** `(A a, b, w : a < b ∧ a ≥ w ∧ b ≥ w ∧ #a = #b : a ⊖ w < b ⊖ w)`.
 - **TA4 (Partial inverse):** `(A a, w : w > 0 ∧ k = #a ∧ #w = k ∧ (A i : 1 ≤ i < k : aᵢ = 0) : (a ⊕ w) ⊖ w = a)`.
@@ -1059,11 +1060,11 @@ We prove that subtraction followed by addition recovers the original tumbler, th
 
 **Step 1: the structure of `y = a ⊖ w`.** Since `a ≥ w` (given), the difference `y = a ⊖ w` is well-defined by TA2 with `#y = max(#a, #w)`. Since `#a = k = #w` (given), `#y = k` and no zero-padding is needed. TumblerSub scans for the first divergence between `a` and `w`. At each position `i < k`: `aᵢ = 0` (by the zero-prefix precondition) and `wᵢ = 0` (by definition of action point), so the operands agree before position `k`.
 
-Two cases arise at position `k`, exhausting all possibilities since `a ≥ w`.
+At position `k` — the only remaining position, since both tumblers have length `k` — the constraint `a ≥ w` with agreement at all prior positions requires `aₖ ≥ wₖ` by T1: if `aₖ < wₖ`, the first disagreement at `k` with `aₖ < wₖ` would give `a < w`, contradicting `a ≥ w`. Two cases exhaust all possibilities.
 
-*Case `aₖ = wₖ`:* The operands agree at every position — there are no positions beyond `k` since both have length `k` — and TumblerSub finds no divergence, producing the zero tumbler of length `k`.
+*Case `aₖ = wₖ`:* The operands agree at every position and TumblerSub finds no divergence, producing the zero tumbler of length `k`.
 
-*Case `aₖ > wₖ`:* This is the only alternative, since `a ≥ w` with equal-length tumblers that agree before `k` requires `aₖ ≥ wₖ` by T1. Position `k` is the first divergence, and TumblerSub produces `yᵢ = 0` for `i < k`, `yₖ = aₖ - wₖ > 0`, and no components beyond `k` (since `max(#a, #w) = k`).
+*Case `aₖ > wₖ`:* Position `k` is the first divergence, and TumblerSub produces `yᵢ = 0` for `i < k`, `yₖ = aₖ - wₖ > 0`, and no components beyond `k` (since `max(#a, #w) = k`).
 
 In either case, `y` has three properties:
 
@@ -1077,9 +1078,9 @@ In either case, `y` has three properties:
 
 This is the key fact: whatever `y ⊕ w` turns out to be, subtracting `w` from it recovers `y`.
 
-**Step 3: `y ⊕ w = a`.** We prove this by contradiction. Assume `y ⊕ w ≠ a`. We will show that both `y ⊕ w > a` and `y ⊕ w < a` lead to `y < y`, contradicting irreflexivity (T1). This requires establishing the preconditions of TA3-strict for each case.
+**Step 3: `y ⊕ w = a`.** The sum `y ⊕ w` is well-defined: `w > 0` (given) and the action point `k` satisfies `k ≤ #y = k` (by Y1), so TA0 gives `y ⊕ w ∈ T` with `#(y ⊕ w) = #w = k`. We prove `y ⊕ w = a` by contradiction. Assume `y ⊕ w ≠ a`. We will show that both `y ⊕ w > a` and `y ⊕ w < a` lead to `y < y`, contradicting irreflexivity (T1). This requires establishing the preconditions of TA3-strict for each case.
 
-*Equal length.* By the result-length identity (TumblerAdd), `#(y ⊕ w) = #w = k = #a`.
+*Equal length.* `#(y ⊕ w) = k = #a` (by TA0 and given).
 
 *`a ≥ w`.* Given as a precondition.
 
