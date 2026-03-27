@@ -19,11 +19,19 @@ This gives us our first property:
 
 In words: for every tumbler and every component position, there exists a tumbler whose value at that position exceeds any given bound. The address space within any subtree is inexhaustible.
 
-*Proof.* We must show that for every `t ∈ T`, every position `i` with `1 ≤ i ≤ #t`, and every bound `M ∈ ℕ`, there exists `t' ∈ T` that agrees with `t` at all positions except `i`, where `t'.dᵢ > M`.
+*Proof.* We establish the universal claim by exhibiting, for arbitrary `t`, `i`, and `M`, a witness `t'` with the required properties.
 
-Let `t = d₁.d₂. ... .dₙ` be an arbitrary tumbler and let `i` satisfy `1 ≤ i ≤ n`. Let `M ∈ ℕ` be an arbitrary bound. Construct `t' = d₁. ... .dᵢ₋₁.(M + 1).dᵢ₊₁. ... .dₙ` — that is, the sequence identical to `t` except that the `i`-th component is replaced by `M + 1`.
+Let `t = d₁.d₂. ... .dₙ` be an arbitrary member of T, let `i` satisfy `1 ≤ i ≤ n`, and let `M ∈ ℕ` be an arbitrary bound. Define
 
-We verify that `t'` satisfies all requirements. First, `t' ∈ T`: each component of `t'` is a natural number (the unchanged components `dⱼ` are in ℕ by hypothesis, and `M + 1 ∈ ℕ` since ℕ is closed under successor), and `t'` is a finite sequence of length `n ≥ 1`, so `t'` belongs to the carrier set T. Second, `t'` agrees with `t` at every position `j ≠ i`, since those components are unchanged by construction. Third, `t'.dᵢ = M + 1 > M`, satisfying the bound requirement.
+> `t' = d₁. ... .dᵢ₋₁.(M + 1).dᵢ₊₁. ... .dₙ`
+
+— the sequence obtained from `t` by replacing its `i`-th component with `M + 1` and leaving all other components unchanged. We must verify three things.
+
+*(i)* `t' ∈ T`. The sequence `t'` has length `n ≥ 1`, and each of its components is a natural number: for `j ≠ i`, the component `dⱼ ∈ ℕ` by hypothesis on `t`; for `j = i`, the component is `M + 1`, which belongs to ℕ since ℕ is closed under successor. Since T is the set of all finite sequences over ℕ with length ≥ 1, we have `t' ∈ T`.
+
+*(ii)* `t'` agrees with `t` at every position `j ≠ i`. This holds by construction: the components at positions `j ≠ i` are identical to those of `t`.
+
+*(iii)* `t'.dᵢ > M`. By construction `t'.dᵢ = M + 1`, and `M + 1 > M` for all `M ∈ ℕ`.
 
 Since `t`, `i`, and `M` were arbitrary, the universal claim holds. ∎
 
