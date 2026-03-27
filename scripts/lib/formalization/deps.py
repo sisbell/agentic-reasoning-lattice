@@ -120,6 +120,11 @@ def parse_status(status_text):
         result["asn_refs"] = asns
         return result
 
+    # "axiom"
+    if status == "axiom":
+        result["kind"] = "axiom"
+        return result
+
     # "design requirement"
     if status.startswith("design"):
         result["kind"] = "design"

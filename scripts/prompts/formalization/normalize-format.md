@@ -37,6 +37,7 @@ The Status column must use one of these patterns:
 - `theorem from LABEL1, LABEL2` — theorem derived from listed properties
 - `extends LABEL (Name, ASN-NNNN)` — extends a foundation property
 - `consistent with LABEL1, LABEL2` — consistent with listed properties
+- `axiom` — fundamental assertion, posited by definition, not derived
 - `design requirement` — imposed by design, not derived
 - `cited` or `cited (ASN-NNNN)` — imported from a foundation ASN
 - `lemma (from LABEL1, LABEL2)` — lemma derived from listed properties

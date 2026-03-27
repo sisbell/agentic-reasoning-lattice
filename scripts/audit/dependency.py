@@ -8,11 +8,11 @@ Two passes:
   2. LLM classification (sonnet) — resolves uncertain as MISSING/COLLISION/LOCAL/CLEAN
 
 Produces an action report: dependencies to add, label collisions to resolve.
-Results stored in vault/dependency-audit/<timestamp>/
+Results stored in vault/audit/dependency/<timestamp>/
 
 Usage:
-    python scripts/dependency-audit.py              # all active ASNs
-    python scripts/dependency-audit.py 47 51 79     # specific ASNs
+    python scripts/audit/dependency.py              # all active ASNs
+    python scripts/audit/dependency.py 47 51 79     # specific ASNs
 """
 
 import argparse
@@ -24,12 +24,12 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from lib.shared.paths import WORKSPACE, ASNS_DIR, PROJECT_MODEL_DIR, load_manifest, formal_stmts
 from lib.shared.common import find_asn
 
 PROMPT_TEMPLATE = WORKSPACE / "scripts" / "prompts" / "discovery" / "dependency-audit.md"
-AUDIT_DIR = WORKSPACE / "vault" / "dependency-audit"
+AUDIT_DIR = WORKSPACE / "vault" / "audit" / "dependency"
 
 
 def build_label_map():

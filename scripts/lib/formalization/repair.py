@@ -79,12 +79,15 @@ def find_incomplete_sections(asn_num):
     if rows is None:
         return []
 
-    # Get all labels
+    # Get all labels and statuses
     labels = []
+    statuses = {}
     for row in rows[2:]:
         cells = parse_table_row(row)
         if cells and cells[0].strip():
-            labels.append(cells[0].strip().strip("`*"))
+            label = cells[0].strip().strip("`*")
+            labels.append(label)
+            statuses[label] = cells[-1].strip().lower()
 
     # Extract sections
     sections = extract_property_sections(text, known_labels=labels,
@@ -97,6 +100,8 @@ def find_incomplete_sections(asn_num):
         if not section:
             continue
         if _is_definition(section):
+            continue
+        if statuses.get(label, "") in ("axiom", "design requirement"):
             continue
         if _has_proof(section):
             continue
