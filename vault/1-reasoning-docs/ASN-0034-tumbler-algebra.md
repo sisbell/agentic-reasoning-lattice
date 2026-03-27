@@ -42,15 +42,37 @@ We require a total order on T. Nelson describes the "tumbler line" as a single l
 
 The prefix convention — a prefix is less than any proper extension — is what makes depth-first traversal work. The server address `2` is less than every address within server `2`'s subtree, because every such address extends the prefix `2` with further components. This means server `2`'s subtree begins immediately after `2` in the order and extends until some address whose first component exceeds `2`.
 
-T1 gives a total order on T. We verify the three required properties:
+*Proof.* We show that `<` as defined above is a strict total order on T by establishing irreflexivity, trichotomy, and transitivity.
 
-*(a) Trichotomy.* For any `a, b ∈ T`, exactly one of `a < b`, `a = b`, `a > b` holds. If `a = b` (component-wise and same length), no divergence position `k` exists, so neither `a < b` nor `a > b`. If `a ≠ b`, let `k` be the first position where they differ (either a component divergence or one being a proper prefix of the other). Exactly one of the two cases of T1 applies in each direction, giving exactly one of `a < b` or `a > b`.
+*(a) Irreflexivity.* For any `a ∈ T`, we show `¬(a < a)`. Suppose `a < a`. Then there exists `k ≥ 1` with `aᵢ = aᵢ` for all `i < k` and either (i) `aₖ < aₖ`, contradicting irreflexivity of `<` on ℕ, or (ii) `k = #a + 1 ≤ #a`, which is impossible. No such `k` exists.
 
-*(b) Irreflexivity.* For any `a ∈ T`, `¬(a < a)`. The definition requires a position `k` where either `aₖ < aₖ` (impossible since `<` on ℕ is irreflexive) or `a` is a proper prefix of itself (impossible since `#a = #a`). So no such `k` exists.
+*(b) Trichotomy.* For any `a, b ∈ T`, exactly one of `a < b`, `a = b`, `a > b` holds. Let `k` be the smallest positive integer at which `a` and `b` first disagree — either because `aₖ ≠ bₖ` at some `k ≤ min(#a, #b)`, or because one tumbler is exhausted at `k = min(#a, #b) + 1` while the other continues.
 
-*(c) Transitivity.* For `a, b, c ∈ T` with `a < b` and `b < c`, we show `a < c`. Let `k₁` be the divergence position witnessing `a < b` and `k₂` the divergence position witnessing `b < c`. Set `k = min(k₁, k₂)`. For all `i < k`, we have `aᵢ = bᵢ` (from `a < b`, since `i < k ≤ k₁`) and `bᵢ = cᵢ` (from `b < c`, since `i < k ≤ k₂`), so `aᵢ = cᵢ`. At position `k`, case analysis: if `k < k₁` then `k = k₂` and `aₖ = bₖ`, so `aₖ` vs `cₖ` inherits the `b < c` witness; if `k < k₂` then `k = k₁` and `bₖ = cₖ`, so `aₖ` vs `cₖ` inherits the `a < b` witness; if `k = k₁ = k₂`, both divergences occur at the same position — in each combination of component-divergence and prefix cases, transitivity of `<` on ℕ or the prefix-extension relationship yields `aₖ < cₖ` or `a` is a proper prefix of `c`. In all cases, position `k` witnesses `a < c` under T1.
+If no such `k` exists — `#a = #b` and `aᵢ = bᵢ` for all `1 ≤ i ≤ #a` — then `a = b` by T3, and neither `a < b` nor `a > b` by part (a).
 
-These are standard properties of lexicographic orderings on well-ordered alphabets — ℕ is well-ordered, so the lexicographic extension to finite sequences is total. The explicit arguments above confirm that T1's two-case definition (component divergence and proper prefix) correctly instantiates the standard construction.
+If `k ≤ min(#a, #b)` and `aₖ ≠ bₖ`, then by trichotomy on ℕ exactly one of `aₖ < bₖ` or `bₖ < aₖ` holds. The first gives `a < b` via T1 case (i) with witness `k`; the second gives `b < a` via T1 case (i) with witness `k`.
+
+If `k = min(#a, #b) + 1` — all shared positions agree but `#a ≠ #b` — then: if `#a < #b`, we have `k = #a + 1 ≤ #b`, so `a` is a proper prefix of `b`, giving `a < b` via T1 case (ii); if `#a > #b`, we have `k = #b + 1 ≤ #a`, so `b` is a proper prefix of `a`, giving `b < a` via T1 case (ii).
+
+These cases are exhaustive and mutually exclusive. In each, the first divergence position determines a unique outcome, and no alternative witness can override it — any valid witness `k'` for the reverse relation would satisfy `k' ≥ k`, and at position `k` the comparison is already determined.
+
+*(c) Transitivity.* For `a, b, c ∈ T` with `a < b` and `b < c`, we show `a < c`. Let `k₁` be the divergence position witnessing `a < b` and `k₂` the divergence position witnessing `b < c`. For all `i < min(k₁, k₂)`, we have `aᵢ = bᵢ` (from `a < b`, since `i < k₁`) and `bᵢ = cᵢ` (from `b < c`, since `i < k₂`), so `aᵢ = cᵢ`. Three cases arise.
+
+*Case k₁ < k₂.* Position `k₁` falls in the agreement range of `b < c`, so `bₖ₁ = cₖ₁`. If `a < b` via case (i): `aₖ₁ < bₖ₁ = cₖ₁`, and since `k₁ ≤ #a` and `k₁ ≤ #c` (the latter because `cₖ₁` exists), position `k₁` witnesses `a < c` via T1 case (i). If `a < b` via case (ii): `k₁ = #a + 1 ≤ #b`, and since `bₖ₁ = cₖ₁` implies `#c ≥ k₁ = #a + 1`, `a` is a proper prefix of `c`, so `k₁` witnesses `a < c` via T1 case (ii).
+
+*Case k₂ < k₁.* Position `k₂` falls in the agreement range of `a < b`, so `aₖ₂ = bₖ₂`. We observe that `b < c` via case (ii) would give `k₂ = #b + 1`, but `a < b` requires `k₁ ≤ #b` (in case (i), `k₁ ≤ min(#a, #b) ≤ #b`; in case (ii), `k₁ = #a + 1 ≤ #b`), so `k₂ = #b + 1 > #b ≥ k₁`, contradicting `k₂ < k₁`. Therefore `b < c` is via case (i): `bₖ₂ < cₖ₂` with `k₂ ≤ min(#b, #c)`. Since `k₂ < k₁` and `a` has a component at every position below `k₁`, we have `k₂ ≤ #a`, giving `aₖ₂ = bₖ₂ < cₖ₂` with `k₂ ≤ min(#a, #c)`. Position `k₂` witnesses `a < c` via T1 case (i).
+
+*Case k₁ = k₂ = k.* Both divergences occur at the same position. We have `aᵢ = cᵢ` for all `i < k`. Three sub-cases arise from the two-case structure of T1.
+
+*Sub-case (i, i):* `aₖ < bₖ` and `bₖ < cₖ`, both with `k ≤ min(#a, #b)` and `k ≤ min(#b, #c)`. By transitivity of `<` on ℕ, `aₖ < cₖ`, and `k ≤ min(#a, #c)`. Position `k` witnesses `a < c` via T1 case (i).
+
+*Sub-case (ii, i):* `k = #a + 1 ≤ #b` and `bₖ < cₖ` with `k ≤ min(#b, #c)`. Since `k ≤ #c`, we have `#a + 1 = k ≤ #c`, so `a` is a proper prefix of `c`. Position `k` witnesses `a < c` via T1 case (ii).
+
+*Sub-case (i, ii):* `aₖ < bₖ` with `k ≤ min(#a, #b)` and `k = #b + 1 ≤ #c`. But case (i) requires `k ≤ #b` while case (ii) gives `k = #b + 1`, a contradiction. This sub-case cannot arise.
+
+(The remaining combination — both via case (ii) — requires `k = #a + 1 ≤ #b` and `k = #b + 1 ≤ #c`, giving `#a + 1 = #b + 1`, hence `#a = #b`. But case (ii) for `a < b` requires `#a + 1 ≤ #b`, i.e., `#a < #b`. Contradiction. This sub-case also cannot arise.)
+
+In every realizable case, a witness for `a < c` under T1 is produced. ∎
 
 *Formal Contract:*
 - *Definition:* `a < b` iff `∃ k ≥ 1` with `(A i : 1 ≤ i < k : aᵢ = bᵢ)` and either (i) `k ≤ min(m,n) ∧ aₖ < bₖ`, or (ii) `k = m+1 ≤ n`.
