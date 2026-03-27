@@ -217,25 +217,36 @@ A subtlety deserves emphasis: the hierarchy is *convention layered over flat ari
 
 Hierarchy is constructed by the allocation machinery, not by the algebra. The `.0.` separator is produced when the allocation `depth` parameter equals 2 — creating a child at a *different hierarchical type* than its parent (e.g., an ACCOUNT creating a DOCUMENT). When creating a same-type child (DOCUMENT creating DOCUMENT = versioning), `depth = 1`, and no zero separator is introduced. Gregory confirms: there was even a bug where the first document under an account failed to receive its `.0.` separator — the convention had to be explicitly constructed by the allocator, not enforced by any algebraic invariant.
 
+*Dependencies:*
+- **T3 (Canonical representation):** `a = b ⟺ #a = #b ∧ (A i : 1 ≤ i ≤ #a : aᵢ = bᵢ)`. Used to establish that the component values of `t` are determinate — `tᵢ` is well-defined for each position — so that scanning for zeros is unambiguous.
+
 **Verification of T4.** T4 is an axiom: it constrains which tumblers the system admits as valid addresses. We verify three consequences that follow from these constraints. The argument uses only T3 (canonical representation) and the T4 constraints themselves; no other properties are required.
 
 *(a) Syntactic equivalence of the non-empty field constraint.* We prove that the non-empty field constraint — each present field has at least one component — is equivalent to three syntactic conditions on the raw tumbler: (i) no two zeros are adjacent, (ii) `t₁ ≠ 0`, (iii) `t_{#t} ≠ 0`.
 
 *Forward.* Assume every present field has at least one component, and that the positive-component constraint holds (every field component is strictly positive). We derive each syntactic condition separately.
 
-*Condition (ii): `t₁ ≠ 0`.* The first component `t₁` belongs to the node field. The node field is always present and has `α ≥ 1` components, so `t₁ = N₁`. By the positive-component constraint, `N₁ > 0`, hence `t₁ ≠ 0`.
+*Condition (ii): `t₁ ≠ 0`.* The first component `t₁` belongs to the node field. The node field is always present with `α ≥ 1` components, so `t₁ = N₁`. By the positive-component constraint, `N₁ > 0`, hence `t₁ ≠ 0`.
 
 *Condition (iii): `t_{#t} ≠ 0`.* The last component `t_{#t}` belongs to the last present field — the node field if `zeros(t) = 0`, the user field if `zeros(t) = 1`, the document field if `zeros(t) = 2`, or the element field if `zeros(t) = 3`. In each case, that field has at least one component by the non-empty field constraint, and its last component is strictly positive by the positive-component constraint. Hence `t_{#t} > 0`, so `t_{#t} ≠ 0`.
 
 *Condition (i): no adjacent zeros.* Suppose for contradiction that `tᵢ = 0` and `tᵢ₊₁ = 0` for some position `i` with `1 ≤ i < #t`. Under T4, every zero-valued component is a field separator. Two consecutive separators at positions `i` and `i + 1` would bound a field segment containing zero components — an empty field. This contradicts the non-empty field constraint. Hence no two zeros are adjacent.
 
-*Reverse.* Assume (i), (ii), and (iii) hold. We must show that every field has at least one component. The field segments of `t` are the maximal contiguous sub-sequences between consecutive separator zeros (with the first segment running from position 1 to the first zero minus one, and the last from the last zero plus one to position `#t`). By (ii), position 1 precedes any separator — if `t₁ ≠ 0`, the first segment begins with a non-zero component, so the node field is non-empty. By (iii), position `#t` follows any separator — if `t_{#t} ≠ 0`, the last segment ends with a non-zero component, so the last field is non-empty. By (i), between any two consecutive separator zeros at positions `j` and `j'` with `j' > j + 1` guaranteed, there is at least one position `j + 1 ≤ p < j'` with `tₚ ≠ 0` — actually, stronger: since `j' - j ≥ 2` (no adjacent zeros), the segment from `j + 1` to `j' - 1` contains at least one position, and that position is non-zero (it is a field component, not a separator). So every interior field is non-empty. All fields have at least one component.
+*Reverse.* Assume (i), (ii), and (iii) hold. We must show that every present field has at least one component. The fields of `t` are the maximal contiguous sub-sequences between consecutive separator zeros — the first field runs from position 1 to the first zero minus one, interior fields run between consecutive zeros, and the last field runs from the last zero plus one to position `#t`. We verify non-emptiness for each kind of field.
+
+*First field (node).* By (ii), `t₁ ≠ 0`, so position 1 is not a separator. If `zeros(t) = 0`, the node field spans all of `t` and has `#t ≥ 1` components. If `zeros(t) ≥ 1`, let `j₁` be the position of the first zero. Then `j₁ ≥ 2` (since `t₁ ≠ 0`), and the node field occupies positions `1` through `j₁ - 1` — a segment of `j₁ - 1 ≥ 1` components.
+
+*Last field.* By (iii), `t_{#t} ≠ 0`, so position `#t` is not a separator. If `zeros(t) = 0`, this is the node field, already handled. If `zeros(t) ≥ 1`, let `j_s` be the position of the last zero. Then `j_s ≤ #t - 1` (since `t_{#t} ≠ 0`), and the last field occupies positions `j_s + 1` through `#t` — a segment of `#t - j_s ≥ 1` components.
+
+*Interior fields.* Consider two consecutive separator zeros at positions `j` and `j'` with `j < j'` and no separator between them. By (i), no two zeros are adjacent, so `j' ≥ j + 2`. The segment from position `j + 1` to position `j' - 1` therefore contains at least one position: `j' - 1 ≥ j + 1`. Every position in this segment lies strictly between consecutive separators and is therefore a field component, not a separator. The interior field has at least one component.
+
+All fields have at least one component.
 
 *(b) Unique parse.* We prove that under the T4 constraints, `fields(t)` — the decomposition of `t` into node, user, document, and element fields — is well-defined and uniquely determined by `t` alone.
 
 The argument turns on a single observation: the positive-component constraint makes the separator positions exactly recoverable. A position `i` satisfies `tᵢ = 0` if and only if `i` is a field separator. The forward direction: every separator has value 0 by the definition of the field decomposition — separators are the zero-valued components that delimit fields. The reverse direction: if `tᵢ = 0`, then `i` must be a separator, because no field component can be zero (every field component is strictly positive by the positive-component constraint). Therefore `{i : 1 ≤ i ≤ #t ∧ tᵢ = 0}` is exactly the set of separator positions — computable by a single scan of `t`.
 
-Given the separator positions, the fields are the maximal contiguous sub-sequences between them: the node field runs from position 1 to the first separator minus one, the user field from the first separator plus one to the second separator minus one, and so on. By part (a), each sub-sequence is non-empty. The separator positions are uniquely determined by `t`, so the field boundaries are uniquely determined. Two distinct decompositions would require two distinct sets of separator positions, but there is only one such set. Therefore `fields(t)` is well-defined and unique.
+Given the separator positions, the fields are the maximal contiguous sub-sequences between them: the node field runs from position 1 to the first separator minus one, the user field from the first separator plus one to the second separator minus one, and so on. By part (a), each sub-sequence is non-empty. The separator positions are uniquely determined by `t` — by T3, the component values are determinate, so the set `{i : tᵢ = 0}` is determinate — and the field boundaries follow uniquely. Two distinct decompositions would require two distinct sets of separator positions, but there is only one such set. Therefore `fields(t)` is well-defined and unique.
 
 *(c) Level determination.* We prove that `zeros(t)` uniquely determines the hierarchical level, and the mapping is a bijection on `{0, 1, 2, 3}`.
 
@@ -248,13 +259,14 @@ The mapping from zero count to hierarchical level is defined by the number of fi
   - `zeros(t) = 2` → 3 fields (node, user, document) → document address,
   - `zeros(t) = 3` → 4 fields (node, user, document, element) → element address.
 
-Injectivity: distinct zero counts produce distinct field counts (`zeros(t) + 1`), hence distinct levels. If `zeros(a) ≠ zeros(b)`, then `a` and `b` belong to different hierarchical levels. Surjectivity: each of the four levels is realized — `zeros(t) = 0, 1, 2, 3` are all values permitted by T4, and each corresponds to exactly one level. The mapping is therefore bijective on `{0, 1, 2, 3}`.
+Injectivity: the function `z ↦ z + 1` is injective on ℕ, so distinct zero counts produce distinct field counts, hence distinct levels. If `zeros(a) ≠ zeros(b)`, then `a` and `b` belong to different hierarchical levels. Surjectivity: each of the four levels is realized — `zeros(t) = 0, 1, 2, 3` are all values permitted by T4, and each corresponds to exactly one level. The mapping is therefore bijective on `{0, 1, 2, 3}`.
 
 We note the essential role of the positive-component constraint in this result. Without it, a tumbler `[1, 0, 0, 3]` would have `zeros(t) = 2`, classifying it as a document address with three fields: `[1]`, `[]`, `[3]`. But the second zero is ambiguous — it could be a separator (giving an empty user field) or a zero-valued component within the user field (giving two fields: `[1]`, `[0, 3]`). The positive-component constraint eliminates the second interpretation: no field component can be zero, so every zero is unambiguously a separator, and the parse is unique. ∎
 
 *Formal Contract:*
 - *Axiom:* Valid address tumblers satisfy `zeros(t) ≤ 3`, `(A i : 1 ≤ i ≤ #t ∧ tᵢ ≠ 0 : tᵢ > 0)`, no adjacent zeros, `t₁ ≠ 0`, `t_{#t} ≠ 0`.
-- *Postconditions:* (a) `fields(t)` is well-defined and unique. (b) `zeros(t)` determines the hierarchical level bijectively on `{0, 1, 2, 3}`.
+- *Definition:* `zeros(t) = #{i : 1 ≤ i ≤ #t ∧ tᵢ = 0}`; `fields(t)` decomposes `t` into node, user, document, and element fields by partitioning at the zero-valued separator positions.
+- *Postconditions:* (a) The non-empty field constraint is equivalent to three syntactic conditions: no adjacent zeros, `t₁ ≠ 0`, `t_{#t} ≠ 0`. (b) `fields(t)` is well-defined and uniquely determined by `t` alone. (c) `zeros(t)` determines the hierarchical level bijectively on `{0, 1, 2, 3}`.
 
 
 ## Contiguous subtrees
