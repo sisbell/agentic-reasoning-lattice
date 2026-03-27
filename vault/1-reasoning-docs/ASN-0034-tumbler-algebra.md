@@ -1392,6 +1392,15 @@ where k = divergence(a, b). This is exactly the formula for b ⊖ a from Tumbler
 
 **D0 (DisplacementWellDefined).** a < b, and the divergence k of a and b satisfies k ≤ #a.
 
+*Dependencies:*
+- **Divergence definition:** For `a ≠ b`, `divergence(a, b)` is the least `k` where they differ; in case (i) `k ≤ min(#a, #b)` with `aₖ ≠ bₖ` and `aᵢ = bᵢ` for `i < k`; in case (ii) `k = min(#a, #b) + 1`.
+- **T1 (Lexicographic order):** `a < b` iff `∃ k ≥ 1` with agreement before `k` and either (i) `k ≤ min(#a, #b)` and `aₖ < bₖ`, or (ii) `k = #a + 1 ≤ #b`.
+- **T3 (Canonical representation):** `a = b ⟺ #a = #b ∧ (A i : 1 ≤ i ≤ #a : aᵢ = bᵢ)`.
+- **TA0 (Well-defined addition):** For `w > 0` and `actionPoint(w) ≤ #a`, `a ⊕ w ∈ T`.
+- **TA2 (Well-defined subtraction):** For `b ≥ a`, `b ⊖ a ∈ T` with `#(b ⊖ a) = max(#b, #a)`.
+- **TumblerSub (Constructive definition):** Zero-pad both operands to length `max(#b, #a)`. Let `k` be the first divergence; `(b ⊖ a)ᵢ = 0` for `i < k`, `(b ⊖ a)ₖ = bₖ - aₖ`, `(b ⊖ a)ᵢ = bᵢ` for `i > k`; result length `max(#b, #a)`.
+- **TumblerAdd (Constructive definition):** `(a ⊕ w)ᵢ = aᵢ` for `i < k`, `(a ⊕ w)ₖ = aₖ + wₖ`, `(a ⊕ w)ᵢ = wᵢ` for `i > k`, where `k = actionPoint(w)`; result length `#(a ⊕ w) = #w`.
+
 *Proof.* We show that under the hypotheses `a, b ∈ T`, `a < b`, and `divergence(a, b) ≤ #a`, the displacement `w = b ⊖ a` is a well-defined positive tumbler whose action point equals `divergence(a, b)`, and the addition `a ⊕ w` is well-defined. We also identify the boundary condition for round-trip faithfulness.
 
 Let `k = divergence(a, b)`. The hypothesis `k ≤ #a` eliminates Divergence case (ii), which would require `k = min(#a, #b) + 1 ≥ #a + 1 > #a`. We are therefore in case (i): `k ≤ min(#a, #b)`, with `aᵢ = bᵢ` for all `i < k` and `aₖ ≠ bₖ`. Since `a < b`, T1 case (i) gives the direction: `aₖ < bₖ`.
