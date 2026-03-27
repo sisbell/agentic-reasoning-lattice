@@ -164,6 +164,57 @@ def _is_definition(label, asn_text):
     return bool(pattern.search(asn_text))
 
 
+def _derive_type_tag(section_text):
+    """Derive (TYPE, construct) from formal contract markers in section text.
+
+    Returns a string like '(PRE/POST, lemma)' or '' if no contracts found.
+    """
+    has_pre = bool(re.search(r'\*\s*Preconditions?\s*:\s*\*', section_text))
+    has_post = bool(re.search(r'\*\s*Postconditions?\s*:\s*\*', section_text))
+    has_inv = bool(re.search(r'\*\s*Invariants?\s*:\s*\*', section_text))
+    has_axiom = bool(re.search(r'\*\s*Axioms?\s*:\s*\*', section_text))
+    has_frame = bool(re.search(r'\*\s*Frames?\s*:\s*\*', section_text))
+
+    if has_pre and has_post:
+        return "(PRE/POST, lemma)"
+    if has_post and not has_pre:
+        return "(POST, lemma)"
+    if has_inv:
+        return "(INV, predicate)"
+    if has_axiom:
+        return "(AXIOM, axiom)"
+    if has_frame:
+        return "(FRAME, predicate)"
+    if has_pre:
+        return "(PRE, lemma)"
+    return ""
+
+
+def _to_pascal_case(name):
+    """Convert a prose name to PascalCase identifier.
+
+    'Every component value is unbounded' -> 'EveryComponentValueIsUnbounded'
+    Already-PascalCase names pass through unchanged.
+    """
+    # Already PascalCase — has upper+lower and no spaces
+    if re.match(r'^[A-Z][a-zA-Z0-9]+$', name):
+        return name
+    # Strip trailing ellipsis from truncated names
+    name = re.sub(r'\.\.\.$', '', name).strip()
+    # Remove non-alphanumeric except spaces/hyphens
+    clean = re.sub(r'[^a-zA-Z0-9\s-]', '', name)
+    words = re.split(r'[\s-]+', clean)
+    # Cap at ~60 chars to avoid absurdly long identifiers
+    result = ""
+    for w in words:
+        if not w:
+            continue
+        result += w[0].upper() + w[1:]
+        if len(result) > 60:
+            break
+    return result or name
+
+
 def assemble_formal_statements(asn_num):
     """Mechanically assemble formal-statements.md from table + sections.
 
@@ -248,12 +299,18 @@ def assemble_formal_statements(asn_num):
 
     for prop in properties:
         label = prop["label"]
-        name = prop["name"]
+        name = _to_pascal_case(prop["name"])
 
         if prop["is_definition"]:
             parts.append(f"## {label} — {name} (DEFINITION, function)\n")
         else:
-            parts.append(f"## {label} — {name}\n")
+            # Derive type tag from formal contracts in section body
+            section_text = sections.get(label, "")
+            type_tag = _derive_type_tag(section_text)
+            if type_tag:
+                parts.append(f"## {label} — {name} {type_tag}\n")
+            else:
+                parts.append(f"## {label} — {name}\n")
 
         if label in sections:
             section = sections[label]
