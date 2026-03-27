@@ -369,15 +369,15 @@ A consequence of T8 and T9 together: the set of allocated addresses is a *growin
 
 By T10a, each allocator produces its sibling outputs exclusively by repeated application of `inc(·, 0)`. Let the allocator's base address be `t₀` and its successive outputs be `t₁, t₂, t₃, ...` where `tₙ₊₁ = inc(tₙ, 0)` for all `n ≥ 0`. The predicate `same_allocator(a, b)` holds exactly when both `a` and `b` appear in this sequence, and `allocated_before(a, b)` holds exactly when `a = tᵢ` and `b = tⱼ` with `i < j`. We must show `tᵢ < tⱼ`.
 
-We proceed by induction on the gap `j - i`.
+We proceed by induction on the gap `d = j - i ≥ 1`.
 
-*Base case* (`j - i = 1`). Here `tⱼ = inc(tᵢ, 0)`. By TA5(a), `inc(tᵢ, 0) > tᵢ`, so `tᵢ < tⱼ`.
+*Base case* (`d = 1`). Here `tⱼ = inc(tᵢ, 0)`. By TA5(a), `inc(tᵢ, 0) > tᵢ`, so `tᵢ < tⱼ`.
 
-*Inductive step* (`j - i = n + 1` for `n ≥ 1`, assuming the result for all gaps up to `n`). By the inductive hypothesis applied to the pair `(tᵢ, tⱼ₋₁)` with gap `j - 1 - i = n`, we have `tᵢ < tⱼ₋₁`. By the base case applied to the pair `(tⱼ₋₁, tⱼ)`, we have `tⱼ₋₁ < tⱼ`. By transitivity of the strict order (T1(c)), `tᵢ < tⱼ`.
+*Inductive step* (from `d` to `d + 1`, assuming the result holds for gap `d`). We must show `tᵢ < tⱼ` when `j - i = d + 1`. Since `d ≥ 1`, the index `j - 1` satisfies `i < j - 1 < j` with gap `(j - 1) - i = d`. By the inductive hypothesis, `tᵢ < tⱼ₋₁`. By TA5(a), `tⱼ = inc(tⱼ₋₁, 0) > tⱼ₋₁`, so `tⱼ₋₁ < tⱼ`. By transitivity of the strict order (T1(c)), `tᵢ < tⱼ`.
 
 This completes the induction. For any addresses `a, b` with `same_allocator(a, b) ∧ allocated_before(a, b)`, we have `a < b`.
 
-We note what T9 does *not* claim. The tumbler line as a whole does not grow monotonically by creation time. When a parent address forks a child via `inc(·, k')` with `k' > 0` (T10a), the child address is inserted between the parent and the parent's next sibling on the tumbler line — address `2.1.1` may be created long after `2.2`, yet `2.1 < 2.1.1 < 2.2`. The depth-first linearization (T1 case (ii)) means children always precede the parent's next sibling regardless of creation order. T9 holds per-allocator, not globally. ∎
+We note the scope of this result. T9 holds per-allocator, not globally. The tumbler line as a whole does not grow monotonically by creation time: when a parent forks a child via `inc(·, k')` with `k' > 0` (T10a), the child is inserted between the parent and the parent's next sibling — address `2.1.1` may be created long after `2.2`, yet `2.1 < 2.1.1 < 2.2` by T1 case (ii). The depth-first linearization places children before the parent's next sibling regardless of creation order. ∎
 
 *Formal Contract:*
 - *Preconditions:* `a, b ∈ T` with `same_allocator(a, b) ∧ allocated_before(a, b)` — both addresses produced by the same allocator's sibling stream, `a` allocated before `b`.
