@@ -104,6 +104,7 @@ properties:
     status: introduced
     name: Addition preserves the total order (weak)
     follows_from:
+    - T1
     - TA0
   Divergence:
     status: from
