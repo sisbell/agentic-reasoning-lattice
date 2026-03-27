@@ -164,7 +164,10 @@ Gregory's analysis reveals precisely what happens when T3 is violated. The compa
 
 T3 matters because address identity is load-bearing. If two representations could denote the same tumbler, equality tests might give false negatives, span containment checks might fail for addresses that should match, and the system might allocate a "new" address that is actually an alias for an existing one.
 
-*Proof.* T3 is derived from T0's characterisation of the carrier set. By T0, T is the set of all finite sequences over ℕ. A tumbler *is* its component sequence — there is no separate abstract value that a sequence "represents," no quotient by an equivalence relation, no normalization map whose image is the "true" tumbler. The biconditional `#a = #b ∧ (A i : 1 ≤ i ≤ #a : aᵢ = bᵢ) ≡ a = b` is the extensional definition of sequence equality applied to this carrier set. We verify both directions.
+*Dependencies:*
+- **T0(a) (Carrier-set definition):** T is the set of all finite sequences over ℕ with length ≥ 1. A tumbler *is* its component sequence; no quotient, equivalence relation, or normalization map is imposed on T beyond sequence identity.
+
+*Proof.* T3 is derived from T0's characterisation of the carrier set. By T0(a), T is the set of all finite sequences over ℕ. A tumbler *is* its component sequence — there is no separate abstract value that a sequence "represents," no quotient by an equivalence relation, no normalization map whose image is the "true" tumbler. The biconditional `#a = #b ∧ (A i : 1 ≤ i ≤ #a : aᵢ = bᵢ) ≡ a = b` is the extensional definition of sequence equality applied to this carrier set. We verify both directions.
 
 *Forward direction.* Let `a, b ∈ T` and suppose `#a = #b = n` and `aᵢ = bᵢ` for all `1 ≤ i ≤ n`. We must show `a = b`. Since `a` and `b` are finite sequences of the same length `n`, and they agree at every position `i` in `{1, ..., n}`, they are identical as sequences. This is precisely the extensional definition of sequence equality: two sequences are equal when they have the same length and the same value at every index. Therefore `a = b`.
 
