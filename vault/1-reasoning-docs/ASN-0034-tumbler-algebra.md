@@ -60,7 +60,9 @@ Let `n ∈ ℕ` with `n ≥ 1` be arbitrary. Define
 Since `n` was arbitrary, the universal claim holds. ∎
 
 *Formal Contract:*
-- *Axiom:* T is the set of all finite sequences over ℕ with length ≥ 1. Since there is no upper bound on the length of finite sequences, for any `n ≥ 1`, the constant sequence of `n` ones is a member of T with `#t = n ≥ n`.
+- *Preconditions:* `n ∈ ℕ`, `n ≥ 1`.
+- *Postconditions:* There exists `t ∈ T` such that `#t ≥ n`.
+- *Axiom:* T is the set of all finite sequences over ℕ with length ≥ 1; there is no upper bound on the length of a finite sequence.
 
 T0 is what separates the tumbler design from fixed-width addressing. Nelson: "New items may be continually inserted in tumbler-space while the other addresses remain valid." The word "continually" carries the weight — it means the process of creating new addresses never terminates. Between any two sibling addresses, the forking mechanism can always create children: "One digit can become several by a forking or branching process. This consists of creating successive new digits to the right." Each daughter can have daughters without limit, and each digit is itself unbounded.
 
