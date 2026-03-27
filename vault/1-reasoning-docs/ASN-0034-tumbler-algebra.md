@@ -1357,37 +1357,37 @@ The mechanism is TumblerAdd's tail replacement: components of the start position
 - **TumblerAdd (Constructive definition):** `(a ⊕ w)ᵢ = aᵢ` for `i < k`, `(a ⊕ w)ₖ = aₖ + wₖ`, `(a ⊕ w)ᵢ = wᵢ` for `i > k`; result length `#(a ⊕ w) = #w`. Used to expand both sums componentwise and to establish that the result length is independent of the start position.
 - **T3 (Canonical representation):** `a = b ⟺ #a = #b ∧ (A i : 1 ≤ i ≤ #a : aᵢ = bᵢ)`. Used in the forward direction to conclude equality from componentwise agreement, and contrapositively in the converse to extract componentwise agreement from equality.
 
-*Proof.* We show that for all `w ∈ T` with `w > 0` and action point `k`, and all `a, b ∈ T` with `#a ≥ k` and `#b ≥ k`, the equivalence `a ⊕ w = b ⊕ w ⟺ (A i : 1 ≤ i ≤ k : aᵢ = bᵢ)` holds. The argument proceeds by establishing each direction separately.
+*Proof.* We establish the equivalence `a ⊕ w = b ⊕ w ⟺ (A i : 1 ≤ i ≤ k : aᵢ = bᵢ)` for arbitrary `w ∈ T` with `w > 0` and action point `k`, and arbitrary `a, b ∈ T` with `#a ≥ k` and `#b ≥ k`.
 
-Both additions `a ⊕ w` and `b ⊕ w` are well-defined by TA0, since the action point `k` satisfies `k ≤ #a` and `k ≤ #b`. TumblerAdd's constructive definition builds each result in three regions relative to `k`:
+Both additions are well-defined: TA0 requires `w > 0` and `actionPoint(w) ≤ #a` (respectively `≤ #b`), and both hold by hypothesis since `k ≤ #a` and `k ≤ #b`. TumblerAdd gives the componentwise structure of each result in three regions relative to `k`:
 
 ```
-  (a ⊕ w)ᵢ = aᵢ         for 1 ≤ i < k     (prefix copy)
-  (a ⊕ w)ₖ = aₖ + wₖ                       (single-component advance)
-  (a ⊕ w)ᵢ = wᵢ         for k < i ≤ #w     (tail copy)
+  (a ⊕ w)ᵢ = aᵢ         for 1 ≤ i < k     (prefix: copied from operand)
+  (a ⊕ w)ₖ = aₖ + wₖ                       (action point: advanced)
+  (a ⊕ w)ᵢ = wᵢ         for k < i ≤ #w     (tail: copied from displacement)
 ```
 
-and identically for `b ⊕ w` with `bᵢ` replacing `aᵢ`. The result-length identity (TumblerAdd) gives `#(a ⊕ w) = #w = #(b ⊕ w)`.
+and identically for `b ⊕ w` with `bᵢ` replacing `aᵢ`. The result-length identity from TumblerAdd gives `#(a ⊕ w) = #w = #(b ⊕ w)`, so the two results have equal length regardless of `#a` and `#b`.
 
-*(Forward: agreement implies equal results.)* Assume `aᵢ = bᵢ` for all `1 ≤ i ≤ k`. We show `(a ⊕ w)ᵢ = (b ⊕ w)ᵢ` at every position `i` from `1` to `#w`, which together with `#(a ⊕ w) = #(b ⊕ w) = #w` yields `a ⊕ w = b ⊕ w` by T3.
+*(Forward: prefix agreement implies equal results.)* Assume `aᵢ = bᵢ` for all `1 ≤ i ≤ k`. We verify `(a ⊕ w)ᵢ = (b ⊕ w)ᵢ` at every position from `1` to `#w`.
 
-*Position i < k:* `(a ⊕ w)ᵢ = aᵢ = bᵢ = (b ⊕ w)ᵢ`. The first and third equalities are TumblerAdd's prefix-copy rule applied to `a` and `b` respectively; the middle equality is the hypothesis `aᵢ = bᵢ`.
+*Position i < k:* TumblerAdd's prefix rule gives `(a ⊕ w)ᵢ = aᵢ` and `(b ⊕ w)ᵢ = bᵢ`. The hypothesis `aᵢ = bᵢ` yields `(a ⊕ w)ᵢ = aᵢ = bᵢ = (b ⊕ w)ᵢ`.
 
-*Position i = k:* `(a ⊕ w)ₖ = aₖ + wₖ = bₖ + wₖ = (b ⊕ w)ₖ`. The first and third equalities are TumblerAdd's advance rule; the middle step substitutes the hypothesis `aₖ = bₖ`.
+*Position i = k:* TumblerAdd's advance rule gives `(a ⊕ w)ₖ = aₖ + wₖ` and `(b ⊕ w)ₖ = bₖ + wₖ`. The hypothesis `aₖ = bₖ` yields `aₖ + wₖ = bₖ + wₖ`, so `(a ⊕ w)ₖ = (b ⊕ w)ₖ`.
 
-*Position i > k:* `(a ⊕ w)ᵢ = wᵢ = (b ⊕ w)ᵢ`. Both equalities are TumblerAdd's tail-copy rule — neither `a` nor `b` contributes to positions beyond the action point.
+*Position i > k:* TumblerAdd's tail rule gives `(a ⊕ w)ᵢ = wᵢ` and `(b ⊕ w)ᵢ = wᵢ`. The components are identical without any hypothesis on `a` or `b` — neither operand contributes beyond the action point.
 
-All `#w` components agree and the lengths are equal, so `a ⊕ w = b ⊕ w` by T3.
+All `#w` components agree and the lengths are equal, so T3 gives `a ⊕ w = b ⊕ w`.
 
-*(Converse: equal results implies agreement.)* Assume `a ⊕ w = b ⊕ w`. By T3, this entails `(a ⊕ w)ᵢ = (b ⊕ w)ᵢ` at every position `1 ≤ i ≤ #w`. We extract `aᵢ = bᵢ` for each `1 ≤ i ≤ k`.
+*(Converse: equal results implies prefix agreement.)* Assume `a ⊕ w = b ⊕ w`. By T3 this yields `(a ⊕ w)ᵢ = (b ⊕ w)ᵢ` for every `1 ≤ i ≤ #w`. We extract `aᵢ = bᵢ` at each position up to `k`.
 
-*Position i < k:* TumblerAdd's prefix-copy rule gives `(a ⊕ w)ᵢ = aᵢ` and `(b ⊕ w)ᵢ = bᵢ`. From `(a ⊕ w)ᵢ = (b ⊕ w)ᵢ` we obtain `aᵢ = bᵢ`.
+*Position i < k:* TumblerAdd's prefix rule gives `(a ⊕ w)ᵢ = aᵢ` and `(b ⊕ w)ᵢ = bᵢ`. The componentwise equality `(a ⊕ w)ᵢ = (b ⊕ w)ᵢ` therefore gives `aᵢ = bᵢ`.
 
-*Position i = k:* TumblerAdd's advance rule gives `(a ⊕ w)ₖ = aₖ + wₖ` and `(b ⊕ w)ₖ = bₖ + wₖ`. From `(a ⊕ w)ₖ = (b ⊕ w)ₖ` we obtain `aₖ + wₖ = bₖ + wₖ`, hence `aₖ = bₖ` by cancellation in ℕ.
+*Position i = k:* TumblerAdd's advance rule gives `(a ⊕ w)ₖ = aₖ + wₖ` and `(b ⊕ w)ₖ = bₖ + wₖ`. The componentwise equality gives `aₖ + wₖ = bₖ + wₖ`, hence `aₖ = bₖ` by cancellation of `wₖ` in ℕ.
 
-*Positions i > k* impose no constraint on `a` or `b`: TumblerAdd's tail-copy rule gives `(a ⊕ w)ᵢ = wᵢ = (b ⊕ w)ᵢ` regardless of `aᵢ` and `bᵢ`, since these components are drawn entirely from `w`. This is the structural source of the many-to-one property — distinct tumblers that agree on the first `k` components but differ below `k` are mapped to the same result. ∎
+*Positions i > k* yield no information about `a` or `b`: TumblerAdd's tail rule gives `(a ⊕ w)ᵢ = wᵢ = (b ⊕ w)ᵢ` regardless of `aᵢ` and `bᵢ`, since these components are drawn entirely from the displacement `w`. This is the structural source of the many-to-one property — any two tumblers that agree on the first `k` components produce the same result, no matter how they differ at deeper positions. ∎
 
-This gives a precise characterization of the equivalence classes: *a and b produce the same result under w if and only if they agree on the first k components, where k is the action point of w.*
+The equivalence partitions the domain into equivalence classes: *a and b produce the same result under w if and only if they share the same k-component prefix, where k is the action point of w.*
 
 *Formal Contract:*
 - *Preconditions:* `w ∈ T`, `w > 0`, `a ∈ T`, `b ∈ T`, `#a ≥ actionPoint(w)`, `#b ≥ actionPoint(w)`
