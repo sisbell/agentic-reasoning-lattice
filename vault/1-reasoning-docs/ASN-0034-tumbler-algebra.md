@@ -1422,27 +1422,43 @@ Gregory's implementation reveals the resolution. The operands passed to the arit
 
   `(A o ∈ S, w > 0 : o ≥ w ⟹ o ⊖ w ∈ T)`
 
-Both operations produce results in T, and the subspace identifier — held as context — is never modified. The core guarantee is subspace closure: arithmetic on ordinals cannot escape the subspace.
+Both claims assert closure in T: arithmetic on ordinals, with the subspace identifier held as structural context, produces results that remain in T. The subspace identifier is not an operand — it determines *which* positions are subject to the shift, but never enters the arithmetic. This design ensures that no shift can escape the subspace.
 
-For `⊕`, a stronger result holds: components before the action point are preserved positive from `o ∈ S`, and `oₖ + wₖ > 0` since both are positive. When all components of `w` after `k` are also positive, the result is in S. For single-component ordinals (the common case), `[x] ⊕ [n] = [x + n] ∈ S` unconditionally.
+The ordinal-only formulation is not arbitrary. The natural 2-component formulation `[N, x]` fails for subtraction: `[N, x] ⊖ [0, n]` finds the divergence at position 1 (where `N > 0 = 0`), producing `[N, x]` — a no-op rather than a genuine shift. Stripping the subspace identifier from the operands avoids this degeneracy.
 
-The subspace identifier is context — it determines which positions are subject to the shift — not an operand to the arithmetic. Both operations produce genuine shifts in the ordinal-only view; the 2-component view gives a genuine shift for `⊕` but a vacuous closure for `⊖`. The ordinal-only formulation is adopted because applying `⊖` to full 2-component positions finds the divergence at the subspace identifier, producing a no-op rather than a genuine shift.
+*Proof.* We prove each conjunct of TA7a, then analyze the finer question of S-membership.
 
-For single-component ordinals, `⊖` gives closure in S ∪ Z: `[x] ⊖ [n]` is `[x - n] ∈ S` when `x > n`, or `[0] ∈ Z` when `x = n` (a sentinel, TA6). When the element field has deeper structure (`δ > 1` in T4), the ordinal `o` has multiple components. A displacement with action point `k ≥ 2` preserves all ordinal components before position `k` — the constructive definition copies `o₁, ..., oₖ₋₁` from the start position unchanged. For example, spanning from ordinal `[1, 3, 2]` to `[1, 5, 7]` requires displacement `[0, 2, 7]` (action point `k = 2`); `[1, 3, 2] ⊕ [0, 2, 7] = [1, 5, 7]` — position 1 of the ordinal is copied, preserving the ordinal prefix. The subspace closure holds in all cases because the subspace identifier is never an operand.
+Let `o = [o₁, ..., oₘ]` with `o ∈ S`, so `m ≥ 1` and every `oᵢ > 0`. Let `w` be a positive displacement with action point `k = min({i : 1 ≤ i ≤ #w ∧ wᵢ ≠ 0})`.
 
-**Verification of TA7a.** In the ordinal-only formulation, the shift operates on `o = [o₁, ..., oₘ]` with all `oᵢ > 0` (since `o ∈ S`), by displacement `w` with action point `k` satisfying `1 ≤ k ≤ m`.
+**Conjunct 1** (`⊕`-closure in T). The precondition gives `o ∈ T`, `w ∈ T`, `w > 0`, and `k ≤ #o = m`. These are exactly the preconditions of TA0 (well-defined addition). By TA0, `o ⊕ w ∈ T`, with `#(o ⊕ w) = #w`. The subspace identifier, held as structural context outside the operands, is untouched.
 
-*For `⊕`:* By the constructive definition, `(o ⊕ w)ᵢ = oᵢ` for `i < k` (positive, preserved from `o`), and `(o ⊕ w)ₖ = oₖ + wₖ > 0` (both positive). Components after `k` come from `w`. The result has length `#w` (by the result-length identity). The result is in T; it is in S when additionally all components of `w` after `k` are positive. The subspace identifier, held as context, is unchanged.
+A stronger result holds for S-membership. By TumblerAdd's constructive definition, the result `r = o ⊕ w` has components: `rᵢ = oᵢ > 0` for `1 ≤ i < k` (prefix copied from `o ∈ S`); `rₖ = oₖ + wₖ > 0` (since `oₖ > 0` because `o ∈ S`, and `wₖ > 0` because `k` is the action point of `w`); and `rᵢ = wᵢ` for `k < i ≤ #w` (tail copied from the displacement). Components before and at the action point are positive. The result is in S precisely when every tail component `wᵢ` (for `i > k`) is also positive. For single-component ordinals — the common case — `[x] ⊕ [n] = [x + n]`, which is unconditionally in S since both `x > 0` and `n > 0`.
 
-*For `⊖`:* We analyze by action point. When `#w > m`, TumblerSub produces a result of length `max(m, #w) = #w > m` with trailing zeros at positions `m + 1` through `#w` (from the zero-padded minuend); this result lies in T \ S. The S-membership claims below assume the typical case `#w ≤ m`.
+For example, spanning from ordinal `[1, 3, 2]` to `[1, 5, 7]` requires displacement `[0, 2, 7]` (action point `k = 2`). TumblerAdd produces `[1, 3 + 2, 7] = [1, 5, 7]` — position 1 of the ordinal is copied from the start, preserving the ordinal prefix.
 
-*Case `k ≥ 2`:* The displacement has `wᵢ = 0` for `i < k`. Since `o ∈ S`, `o₁ > 0`. The divergence falls at position 1 (where `o₁ > 0 = w₁`). TumblerSub produces: `r₁ = o₁ - 0 = o₁`, and `rᵢ = oᵢ` for `1 < i ≤ m` (copied from the minuend since `i > d = 1`). When `#w ≤ m`, the result has length `m` and equals `o` itself — a no-op; the result is trivially in S. The subtraction finds the mismatch at the ordinal's first positive component rather than at the displacement's intended action point.
+**Conjunct 2** (`⊖`-closure in T). The precondition gives `o ∈ T`, `w ∈ T`, and `o ≥ w`. These are exactly the preconditions of TA2 (well-defined subtraction). By TA2, `o ⊖ w ∈ T`. The subspace identifier is again untouched.
 
-*Case `k = 1`:* The displacement has `w₁ > 0`. Let `d = divergence(o, w)`. If `d = 1` (i.e., `o₁ ≠ w₁`): since `o ≥ w`, `o₁ > w₁`. TumblerSub yields `r₁ = o₁ - w₁ > 0` and `rᵢ = oᵢ > 0` for `1 < i ≤ m`. When `#w ≤ m`, all components are positive and the result is in S. If `d > 1` (i.e., `o₁ = w₁`, divergence later): TumblerSub zeros positions before `d`, giving `r₁ = 0`. The result has a zero first component and is not in S. Counterexample: `o = [5, 3]`, `w = [5, 1]` (action point `k = 1`, divergence `d = 2`). Result: `[0, 2] ∈ T` but `[0, 2] ∉ S ∪ Z`. This sub-case arises when `o` and `w` share a leading prefix — the subtraction produces a displacement with leading zeros rather than a valid ordinal position.
+The S-membership question for `⊖` is more delicate. We analyze by action point and divergence position, using TumblerSub's constructive definition: zero-pad to length `max(#o, #w)`, find the divergence position `d` (the first position where the padded sequences differ), then set `rᵢ = 0` for `i < d`, `r_d = o_d - w_d`, and `rᵢ = oᵢ` for `i > d`.
 
-In all cases the subspace identifier, held as context, is never modified. TA7a holds. ∎
+*Preliminary: when `#w > m`.* TumblerSub produces a result of length `max(m, #w) = #w > m`. The zero-padded minuend has zeros at positions `m + 1` through `#w`, so the result inherits trailing zeros at those positions and lies in T \ S. The cases below assume `#w ≤ m`.
+
+*Case `k ≥ 2`:* The displacement has `wᵢ = 0` for all `i < k`, so in particular `w₁ = 0`. Since `o ∈ S`, `o₁ > 0`. Therefore `o₁ ≠ w₁` and the divergence falls at `d = 1`. TumblerSub produces: `r₁ = o₁ - 0 = o₁ > 0`, and `rᵢ = oᵢ > 0` for `1 < i ≤ m` (copied from the minuend since `i > d = 1`). When `#w ≤ m`, the result has length `m` and equals `o` itself — a no-op. The result is trivially in S. This is the vacuous closure: TumblerSub finds the mismatch at the ordinal's first positive component rather than at the displacement's intended action point.
+
+*Case `k = 1`, divergence `d = 1`:* The displacement has `w₁ > 0`, and `o₁ ≠ w₁`. Since `o ≥ w`, the ordering at the first divergence position requires `o₁ > w₁` (T1). TumblerSub produces: `r₁ = o₁ - w₁ > 0` (since `o₁ > w₁ ≥ 1`), and `rᵢ = oᵢ > 0` for `1 < i ≤ m` (copied from the minuend). When `#w ≤ m`, all components are positive and the result is in S.
+
+*Case `k = 1`, divergence `d > 1`:* The displacement has `w₁ > 0`, and `o₁ = w₁` (the operands agree at position 1, with divergence at some later `d > 1`). TumblerSub zeros all positions before `d`: `rᵢ = 0` for `1 ≤ i < d`. In particular `r₁ = 0`, so the result has a zero first component and is not in S. Counterexample: `o = [5, 3]`, `w = [5, 1]` (action point `k = 1`, divergence `d = 2`). TumblerSub yields `r = [0, 3 - 1] = [0, 2]`. We have `[0, 2] ∈ T` (confirming the T-closure claim) but `[0, 2] ∉ S ∪ Z`. This sub-case arises when `o` and `w` share a leading prefix — the subtraction produces a displacement-like tumbler with leading zeros rather than a valid ordinal position.
+
+For single-component ordinals, the `d > 1` sub-case cannot arise (there is only one position), and `⊖` gives closure in S ∪ Z: `[x] ⊖ [n]` is `[x - n] ∈ S` when `x > n`, or `[0] ∈ Z` when `x = n` (a sentinel, TA6).
+
+In every case, the result lies in T. The subspace identifier, held as structural context outside the operands, is never modified by either operation. TA7a holds. ∎
 
 The restriction to element-local displacements is necessary. An unrestricted displacement whose action point falls at the subspace-identifier position could produce an address in a different subspace — TA7a cannot hold for arbitrary `w`.
+
+*Formal Contract:*
+- *Preconditions:* For `⊕`: `o ∈ S`, `w ∈ T`, `w > 0`, `actionPoint(w) ≤ #o`. For `⊖`: `o ∈ S`, `w ∈ T`, `o ≥ w`.
+- *Postconditions:* `o ⊕ w ∈ T`. `o ⊖ w ∈ T`. For `⊕`, the result is in S when all tail components of `w` (after the action point) are positive.
+- *Frame:* The subspace identifier `N`, held as structural context, is not an operand and is never modified by either operation.
+- *Definition:* **S** = {o ∈ T : #o ≥ 1 ∧ (A i : 1 ≤ i ≤ #o : oᵢ > 0)} — ordinals with all positive components, matching T4's positive-component constraint on element fields.
 
 
 ## What tumbler arithmetic is NOT
