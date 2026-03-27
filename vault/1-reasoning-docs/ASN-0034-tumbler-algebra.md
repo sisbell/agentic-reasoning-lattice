@@ -1011,9 +1011,20 @@ And a span may be empty — populated by nothing at present — yet valid: "A sp
 
 **T12 (Span well-definedness).** A span `(s, ℓ)` is well-formed when `ℓ > 0` and the action point `k` of `ℓ` satisfies `k ≤ #s` (the TA0 precondition for `s ⊕ ℓ`). Equivalently, the number of leading zeros in `ℓ` must be strictly less than `#s`. A well-formed span denotes the set `{t ∈ T : s ≤ t < s ⊕ ℓ}`. This set is contiguous under T1 — there is no tumbler between two members that is not itself a member.
 
-Contiguity is definitional: the span is an interval `[s, s ⊕ ℓ)` in a totally ordered set, and intervals in total orders are contiguous. Non-emptiness follows from TA-strict: since `ℓ > 0` and `k ≤ #s`, TA0 gives `s ⊕ ℓ ∈ T`, and TA-strict gives `s ⊕ ℓ > s` directly. The interval `[s, s ⊕ ℓ)` is therefore non-empty — it contains at least `s` itself.
+*Proof.* We establish three properties of the set `S = {t ∈ T : s ≤ t < s ⊕ ℓ}`: that the endpoint `s ⊕ ℓ` exists, that `S` is non-empty, and that `S` is contiguous.
+
+*(a) Endpoint existence.* The well-formedness conditions require `ℓ > 0` and that the action point `k` of `ℓ` satisfies `k ≤ #s`. These are precisely the preconditions of TA0, which gives `s ⊕ ℓ ∈ T`. The set `S` is therefore well-defined — its upper bound exists in `T`.
+
+*(b) Non-emptiness.* Since `ℓ > 0` and `k ≤ #s`, TA-strict gives `s ⊕ ℓ > s`. Therefore `s` satisfies both `s ≤ s` (reflexivity of `≤`) and `s < s ⊕ ℓ`, so `s ∈ S`. The set contains at least one element.
+
+*(c) Contiguity.* By T1, `<` is a strict total order on `T`. The set `S = {t ∈ T : s ≤ t < s ⊕ ℓ}` is a half-open interval in this total order. Suppose `a, c ∈ S` and `a ≤ b ≤ c` for some `b ∈ T`. From `a ∈ S` we have `s ≤ a`; combined with `a ≤ b`, transitivity (T1(c)) gives `s ≤ b`. From `c ∈ S` we have `c < s ⊕ ℓ`; combined with `b ≤ c`, transitivity gives `b < s ⊕ ℓ`. Together, `s ≤ b < s ⊕ ℓ`, so `b ∈ S`. No tumbler lying between two members of `S` can fall outside `S`. ∎
 
 We reserve T5 for the distinct claim that *prefix-defined* sets are contiguous — a non-trivial property of the lexicographic order.
+
+*Formal Contract:*
+- *Preconditions:* s ∈ T, ℓ ∈ T, ℓ > 0, actionPoint(ℓ) ≤ #s
+- *Definition:* span(s, ℓ) = {t ∈ T : s ≤ t < s ⊕ ℓ}
+- *Postconditions:* (a) s ⊕ ℓ ∈ T (endpoint exists, by TA0). (b) s ∈ span(s, ℓ) (non-empty, by TA-strict). (c) span(s, ℓ) is contiguous under T1.
 
 
 ## Order structure: adjacency and interpolation
