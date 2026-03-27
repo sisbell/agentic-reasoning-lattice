@@ -661,29 +661,35 @@ The result `r` is a finite sequence of natural numbers with length `n ≥ 1` —
 
 **TA1 (Order preservation under addition).** `(A a, b, w : a < b ∧ w > 0 ∧ k ≤ min(#a, #b) : a ⊕ w ≤ b ⊕ w)`, where `k` is the action point of `w`.
 
-TA1 guarantees weak (`≤`) order preservation universally — if two positions were in order before advancement, they remain in non-reversed order after. The precondition `k ≤ min(#a, #b)` inherits from TA0: both operations must be well-defined.
+TA1 guarantees weak (`≤`) order preservation: if two positions were ordered before advancement by the same displacement, they remain non-reversed after. The precondition `k ≤ min(#a, #b)` ensures both additions are well-defined per TA0.
 
-*Proof.* We show that for all `a, b, w ∈ T` with `a < b`, `w > 0`, and action point `k ≤ min(#a, #b)`, the advanced positions satisfy `a ⊕ w ≤ b ⊕ w`.
+*Dependencies:*
+- **TA0 (Well-defined addition):** `a ⊕ w ∈ T` when `w > 0` and `actionPoint(w) ≤ #a`; result length `#(a ⊕ w) = #w`.
+- **TumblerAdd (Constructive definition):** `(x ⊕ w)ᵢ = xᵢ` for `i < k`, `(x ⊕ w)ₖ = xₖ + wₖ`, `(x ⊕ w)ᵢ = wᵢ` for `i > k`, where `k = actionPoint(w)`.
+- **T1 (Lexicographic order):** `a < b` iff `∃ k ≥ 1` with agreement before `k` and either (i) `k ≤ min(#a, #b)` and `aₖ < bₖ`, or (ii) `k = #a + 1 ≤ #b`.
+- **T3 (Canonical representation):** `a = b ⟺ #a = #b ∧ (A i : 1 ≤ i ≤ #a : aᵢ = bᵢ)`.
 
-Let `k` be the action point of `w`. By TumblerAdd, the operation `⊕` builds the result in three regions: for `i < k`, `(a ⊕ w)ᵢ = aᵢ` (copy from start); at `i = k`, `(a ⊕ w)ₖ = aₖ + wₖ` (advance); for `i > k`, `(a ⊕ w)ᵢ = wᵢ` (copy from displacement). By TA0, both `a ⊕ w` and `b ⊕ w` are well-defined members of `T` with length `#w`, since `k ≤ min(#a, #b)` ensures the action point falls within both operands. The same three rules apply to `b ⊕ w`.
+*Proof.* We must show: for all `a, b, w ∈ T` with `a < b`, `w > 0`, and action point `k ≤ min(#a, #b)`, the advanced positions satisfy `a ⊕ w ≤ b ⊕ w`.
 
-Since `a < b`, T1 provides exactly two cases: either (i) there exists a least position `j` with `j ≤ min(#a, #b)` where `aⱼ < bⱼ` and `aᵢ = bᵢ` for all `i < j`, or (ii) `a` is a proper prefix of `b`, that is, `#a < #b` and `aᵢ = bᵢ` for all `1 ≤ i ≤ #a`.
+Let `k` be the action point of `w`. Since `k ≤ min(#a, #b)`, the precondition of TA0 is satisfied for both `a` and `b`, so `a ⊕ w` and `b ⊕ w` are well-defined members of T, each with length `#w`. TumblerAdd builds each result in three regions relative to `k`: for `i < k`, `(x ⊕ w)ᵢ = xᵢ` (prefix copy); at `i = k`, `(x ⊕ w)ₖ = xₖ + wₖ` (advance); for `i > k`, `(x ⊕ w)ᵢ = wᵢ` (tail from displacement).
 
-*Case (ii): `a` is a proper prefix of `b`.* Here `min(#a, #b) = #a`, so `k ≤ #a`. Since `aᵢ = bᵢ` for all `1 ≤ i ≤ #a` and `k ≤ #a`, the two start positions agree at every position that TumblerAdd consults: for `i < k`, `(a ⊕ w)ᵢ = aᵢ = bᵢ = (b ⊕ w)ᵢ`; at `i = k`, `(a ⊕ w)ₖ = aₖ + wₖ = bₖ + wₖ = (b ⊕ w)ₖ` since `aₖ = bₖ`; for `i > k`, `(a ⊕ w)ᵢ = wᵢ = (b ⊕ w)ᵢ`. Both results have length `#w` by TA0. Every component agrees, so `a ⊕ w = b ⊕ w` by T3, satisfying `≤`.
+Since `a < b`, T1 provides exactly two cases: either (i) there exists a least position `j` with `j ≤ min(#a, #b)` where `aⱼ < bⱼ` and `aᵢ = bᵢ` for all `i < j`, or (ii) `a` is a proper prefix of `b` — that is, `#a < #b` and `aᵢ = bᵢ` for all `1 ≤ i ≤ #a`.
+
+*Case (ii): `a` is a proper prefix of `b`.* Here `min(#a, #b) = #a`, so `k ≤ #a`, and the prefix condition gives `aᵢ = bᵢ` for all `1 ≤ i ≤ #a`. Since `k ≤ #a`, the action point falls within the range of agreement, and TumblerAdd consults only positions `1, ..., k` from `a` and `b`. We verify component-wise equality. For `i < k`: TumblerAdd's prefix-copy rule gives `(a ⊕ w)ᵢ = aᵢ = bᵢ = (b ⊕ w)ᵢ`, where the middle equality holds because `i < k ≤ #a` places `i` within the prefix range. At `i = k`: TumblerAdd's advance rule gives `(a ⊕ w)ₖ = aₖ + wₖ = bₖ + wₖ = (b ⊕ w)ₖ`, since `aₖ = bₖ` (as `k ≤ #a`). For `i > k`: TumblerAdd's tail-copy rule gives `(a ⊕ w)ᵢ = wᵢ = (b ⊕ w)ᵢ`. Both results have length `#w` by TA0 and every component agrees, so `a ⊕ w = b ⊕ w` by T3. Equality satisfies `≤`.
 
 *Case (i): component divergence at position `j`.* Here `j ≤ min(#a, #b)`, `aⱼ < bⱼ`, and `aᵢ = bᵢ` for all `i < j`. Three sub-cases arise from the relationship between the first divergence `j` and the action point `k`.
 
-*Sub-case j < k:* Position `j` falls in the prefix-copy region of TumblerAdd, so `(a ⊕ w)ⱼ = aⱼ` and `(b ⊕ w)ⱼ = bⱼ`, giving `(a ⊕ w)ⱼ = aⱼ < bⱼ = (b ⊕ w)ⱼ`. For all `i < j`, we have `i < j < k`, so both results are in the prefix-copy region and `(a ⊕ w)ᵢ = aᵢ = bᵢ = (b ⊕ w)ᵢ` by the agreement-before-divergence property. Position `j` witnesses T1 case (i): `a ⊕ w < b ⊕ w`.
+*Sub-case `j < k`.* Position `j` lies in TumblerAdd's prefix-copy region, so `(a ⊕ w)ⱼ = aⱼ` and `(b ⊕ w)ⱼ = bⱼ`, giving `(a ⊕ w)ⱼ = aⱼ < bⱼ = (b ⊕ w)ⱼ`. For all `i < j`: since `i < j < k`, both positions fall in the prefix-copy region, and the agreement condition `aᵢ = bᵢ` gives `(a ⊕ w)ᵢ = aᵢ = bᵢ = (b ⊕ w)ᵢ`. Since `j < k ≤ #w` and both results have length `#w` by TA0, position `j` is shared by both results and satisfies `j ≤ min(#(a ⊕ w), #(b ⊕ w))`. Position `j` witnesses T1 case (i) for `a ⊕ w < b ⊕ w`, and strict inequality satisfies `≤`.
 
-*Sub-case j = k:* For all `i < k = j`, both results are in the prefix-copy region and `(a ⊕ w)ᵢ = aᵢ = bᵢ = (b ⊕ w)ᵢ` by agreement before the divergence. At position `k`, `(a ⊕ w)ₖ = aₖ + wₖ` and `(b ⊕ w)ₖ = bₖ + wₖ`. Since `aₖ < bₖ` (the divergence at `j = k`) and addition of a fixed natural number preserves strict inequality on ℕ, we have `aₖ + wₖ < bₖ + wₖ`. Position `k` witnesses T1 case (i): `a ⊕ w < b ⊕ w`.
+*Sub-case `j = k`.* For all `i < k = j`: both positions fall in the prefix-copy region, and the agreement condition gives `(a ⊕ w)ᵢ = aᵢ = bᵢ = (b ⊕ w)ᵢ`. At position `k`: TumblerAdd's advance rule gives `(a ⊕ w)ₖ = aₖ + wₖ` and `(b ⊕ w)ₖ = bₖ + wₖ`. Since `aₖ < bₖ` (the divergence at `j = k`) and addition of a fixed natural number preserves strict inequality on ℕ — if `x < y` then `x + c < y + c` for all `c ∈ ℕ` — we have `aₖ + wₖ < bₖ + wₖ`. Since `k ≤ #w` and both results have length `#w` by TA0, position `k` satisfies `k ≤ min(#(a ⊕ w), #(b ⊕ w))`. Position `k` witnesses T1 case (i) for `a ⊕ w < b ⊕ w`, and strict inequality satisfies `≤`.
 
-*Sub-case j > k:* Since `k < j` and `aᵢ = bᵢ` for all `i < j`, in particular `aₖ = bₖ` (because `k < j`). For `i < k`: both results are in the prefix-copy region, and `i < k < j` gives `aᵢ = bᵢ`, so `(a ⊕ w)ᵢ = aᵢ = bᵢ = (b ⊕ w)ᵢ`. At position `k`: `(a ⊕ w)ₖ = aₖ + wₖ = bₖ + wₖ = (b ⊕ w)ₖ` since `aₖ = bₖ`. For `i > k`: both results copy from the displacement, so `(a ⊕ w)ᵢ = wᵢ = (b ⊕ w)ᵢ`. Both results have length `#w` by TA0. Every component agrees, so `a ⊕ w = b ⊕ w` by T3, satisfying `≤`.
+*Sub-case `j > k`.* Since `k < j` and `aᵢ = bᵢ` for all `i < j`, in particular `aₖ = bₖ` (because `k < j`). We verify component-wise equality of the two results. For `i < k`: both positions fall in the prefix-copy region, and `i < k < j` gives `aᵢ = bᵢ`, so `(a ⊕ w)ᵢ = aᵢ = bᵢ = (b ⊕ w)ᵢ`. At `i = k`: TumblerAdd's advance rule gives `(a ⊕ w)ₖ = aₖ + wₖ = bₖ + wₖ = (b ⊕ w)ₖ`, since `aₖ = bₖ`. For `i > k`: TumblerAdd's tail-copy rule gives `(a ⊕ w)ᵢ = wᵢ = (b ⊕ w)ᵢ`. Both results have length `#w` by TA0 and every component agrees, so `a ⊕ w = b ⊕ w` by T3. Equality satisfies `≤`.
 
 In every case and sub-case, `a ⊕ w ≤ b ⊕ w`. ∎
 
 *Formal Contract:*
-- *Preconditions:* a ∈ T, b ∈ T, w ∈ T, a < b, w > 0, actionPoint(w) ≤ min(#a, #b)
-- *Postconditions:* a ⊕ w ≤ b ⊕ w
+- *Preconditions:* `a ∈ T`, `b ∈ T`, `w ∈ T`, `a < b`, `w > 0`, `actionPoint(w) ≤ min(#a, #b)`
+- *Postconditions:* `a ⊕ w ≤ b ⊕ w`
 
 Strict order preservation holds under a tighter condition. We first need a precise notion of where two tumblers first differ.
 
