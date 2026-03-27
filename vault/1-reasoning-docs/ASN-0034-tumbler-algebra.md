@@ -19,6 +19,17 @@ This gives us our first property:
 
 In words: for every tumbler and every component position, there exists a tumbler whose value at that position exceeds any given bound. The address space within any subtree is inexhaustible.
 
+*Proof.* We must show that for every `t ∈ T`, every position `i` with `1 ≤ i ≤ #t`, and every bound `M ∈ ℕ`, there exists `t' ∈ T` that agrees with `t` at all positions except `i`, where `t'.dᵢ > M`.
+
+Let `t = d₁.d₂. ... .dₙ` be an arbitrary tumbler and let `i` satisfy `1 ≤ i ≤ n`. Let `M ∈ ℕ` be an arbitrary bound. Construct `t' = d₁. ... .dᵢ₋₁.(M + 1).dᵢ₊₁. ... .dₙ` — that is, the sequence identical to `t` except that the `i`-th component is replaced by `M + 1`.
+
+We verify that `t'` satisfies all requirements. First, `t' ∈ T`: each component of `t'` is a natural number (the unchanged components `dⱼ` are in ℕ by hypothesis, and `M + 1 ∈ ℕ` since ℕ is closed under successor), and `t'` is a finite sequence of length `n ≥ 1`, so `t'` belongs to the carrier set T. Second, `t'` agrees with `t` at every position `j ≠ i`, since those components are unchanged by construction. Third, `t'.dᵢ = M + 1 > M`, satisfying the bound requirement.
+
+Since `t`, `i`, and `M` were arbitrary, the universal claim holds. ∎
+
+*Formal Contract:*
+- *Axiom:* T is the set of all finite sequences over ℕ with length ≥ 1. Since ℕ is unbounded, for any `t ∈ T`, position `i`, and bound `M`, the sequence obtained by replacing `dᵢ` with `M + 1` is a member of T with the required properties.
+
 **T0(b) (Unbounded length).** `(A n ∈ ℕ : n ≥ 1 : (E t ∈ T :: #t ≥ n))`.
 
 In words: there is no maximum tumbler length — for every bound, a tumbler of at least that length exists in T. The hierarchy has unlimited nesting depth. T0(b) follows from T's definition as the set of all finite sequences over ℕ — for any `n`, the constant sequence `[1, 1, ..., 1]` of length `n` is a member. We state it explicitly because it carries independent architectural weight: T0(a) ensures siblings within a level are inexhaustible, while T0(b) ensures levels themselves are inexhaustible.
