@@ -148,12 +148,12 @@ Nelson requires that comparison be self-contained — no index consultation need
 
 Let `a = a₁. ... .aₘ` and `b = b₁. ... .bₙ`. The definition of `<` in T1 requires a witness position `k ≥ 1` satisfying `(A i : 1 ≤ i < k : aᵢ = bᵢ)` and either (i) `k ≤ min(m, n) ∧ aₖ < bₖ`, or (ii) `k = m + 1 ≤ n`. We construct a deterministic procedure that decides the ordering by scanning positions `i = 1, 2, ...` and examining the pair `(aᵢ, bᵢ)` at each, then count the pairs examined and inventory the data consulted.
 
-*Case 1: divergence at some position `k ≤ min(m, n)`.* The scan finds a position `k` where `aₖ ≠ bₖ`, having verified `aᵢ = bᵢ` for all `1 ≤ i < k`. Exactly `k` component pairs are examined. Since `k ≤ min(m, n)`, the bound `k ≤ min(#a, #b)` holds. By trichotomy on ℕ, exactly one of `aₖ < bₖ` or `bₖ < aₖ` holds. If `aₖ < bₖ`, then `k` witnesses `a < b` via T1 case (i), since `k ≤ min(m, n)` and the agreement condition holds for all `i < k`. If `bₖ < aₖ`, then `k` witnesses `b < a` via T1 case (i) by the same reasoning with roles exchanged. The values consulted are `a₁, ..., aₖ` and `b₁, ..., bₖ` — all components of the input tumblers.
+*Case 1: divergence at some position `k ≤ min(m, n)`.* The scan finds a position `k` where `aₖ ≠ bₖ`, having verified `aᵢ = bᵢ` for all `1 ≤ i < k`. Exactly `k` component pairs are examined. Since `k ≤ min(m, n)`, the bound `k ≤ min(#a, #b)` holds. By trichotomy on ℕ, exactly one of `aₖ < bₖ` or `bₖ < aₖ` holds. If `aₖ < bₖ`, then `k` witnesses `a < b` via T1 case (i), since `k ≤ min(m, n)` and the agreement condition holds for all `i < k`. If `bₖ < aₖ`, then `k` witnesses `b < a` via T1 case (i): `k ≤ min(n, m)`, the agreement condition `bᵢ = aᵢ` holds for all `1 ≤ i < k` (since `aᵢ = bᵢ` implies `bᵢ = aᵢ`), and `bₖ < aₖ`. The values consulted are `a₁, ..., aₖ` and `b₁, ..., bₖ` — all components of the input tumblers.
 
 *Case 2: no divergence within the shared range.* The scan exhausts all `min(m, n)` positions with `aᵢ = bᵢ` at every position `1 ≤ i ≤ min(m, n)`. Exactly `min(m, n)` component pairs are examined, satisfying the bound. Three sub-cases determine the ordering:
 
 - If `m < n`: position `k = m + 1` satisfies `k ≤ n` and the agreement condition `aᵢ = bᵢ` for all `1 ≤ i < k = m + 1`, i.e., for all `1 ≤ i ≤ m`. So `k` witnesses `a < b` via T1 case (ii).
-- If `n < m`: position `k = n + 1` satisfies `k ≤ m` and the agreement condition for all `1 ≤ i ≤ n`. So `k` witnesses `b < a` via T1 case (ii).
+- If `n < m`: position `k = n + 1` satisfies `k ≤ m` and the agreement condition `bᵢ = aᵢ` for all `1 ≤ i < k = n + 1`, i.e., for all `1 ≤ i ≤ n`. So `k` witnesses `b < a` via T1 case (ii).
 - If `m = n`: the tumblers have the same length and agree at every position, so `a = b` by T3.
 
 The sub-case decision consults only the lengths `m = #a` and `n = #b`, both intrinsic to the tumblers.
