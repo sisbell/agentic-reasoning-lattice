@@ -1,6 +1,9 @@
 asn: 34
 depends: []
 properties:
+  T0:
+    status: introduced
+    name: Carrier-set definition
   T0(a):
     status: introduced
     name: Every component value of a tumbler is unbounded
@@ -8,6 +11,7 @@ properties:
     status: introduced
     name: Tumblers of arbitrary length exist in T
     follows_from:
+    - T0
     - T0(a)
   T1:
     status: introduced
@@ -56,6 +60,8 @@ properties:
     - T2
     - T4
     - TA5
+    - TumblerAdd
+    - TumblerSub
   T9:
     status: other
     follows_from:
@@ -118,7 +124,7 @@ properties:
     status: introduced
     name: Well-defined addition
     follows_from:
-    - T0(a)
+    - T0
     - TumblerAdd
   TA1:
     status: introduced
@@ -312,6 +318,7 @@ properties:
     status: introduced
     name: OrdinalShift
     follows_from:
+    - OrdinalDisplacement
     - TA0
     - TumblerAdd
   TS1:
@@ -349,7 +356,8 @@ properties:
   TS5:
     status: corollary
     follows_from:
-    - T4
+    - OrdinalDisplacement
+    - OrdinalShift
     - TA0
     - TS3
     - TS4
