@@ -1528,6 +1528,10 @@ The generalization to #a < #b can be seen with a' = [1, 2] and the same b = [1, 
 
 When the depth is determined by context (typically m = #v for the tumbler being shifted), we write δₙ.
 
+*Formal Contract:*
+- *Preconditions:* n ≥ 1, m ≥ 1
+- *Definition:* δ(n, m) = [0, ..., 0, n] of length m, action point m
+
 **Definition (OrdinalShift).** For a tumbler v of length m and natural number n ≥ 1:
 
 `shift(v, n) = v ⊕ δ(n, m)`
