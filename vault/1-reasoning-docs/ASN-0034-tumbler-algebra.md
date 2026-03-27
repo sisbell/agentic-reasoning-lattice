@@ -1955,13 +1955,18 @@ And a span may be empty — populated by nothing at present — yet valid: "A sp
 
 **T12 (Span well-definedness).** A span `(s, ℓ)` is well-formed when `ℓ > 0` and the action point `k` of `ℓ` satisfies `k ≤ #s` (the TA0 precondition for `s ⊕ ℓ`). Equivalently, the number of leading zeros in `ℓ` must be strictly less than `#s`. A well-formed span denotes the set `{t ∈ T : s ≤ t < s ⊕ ℓ}`. This set is contiguous under T1 — there is no tumbler between two members that is not itself a member.
 
-*Proof.* We establish three properties of the set `S = {t ∈ T : s ≤ t < s ⊕ ℓ}`, given `s ∈ T`, `ℓ ∈ T`, `ℓ > 0`, and action point `k` of `ℓ` satisfying `k ≤ #s`.
+*Dependencies:*
+- **T1 (Lexicographic order):** `<` is a strict total order on T. We write `a ≤ b` for the reflexive closure: `a ≤ b` iff `a < b ∨ a = b`. T1(c) gives transitivity of `<`.
+- **TA0 (Well-defined addition):** For `a, w ∈ T` with `w > 0` and action point `k ≤ #a`, `a ⊕ w ∈ T`.
+- **TA-strict (Strict increase):** For `a ∈ T` and `w > 0` with action point `k ≤ #a`, `a ⊕ w > a`.
 
-We first record an equivalence stated in the theorem. The action point `k` is the position of the first nonzero component of `ℓ`, so `ℓ` has exactly `k − 1` leading zeros. The condition `k ≤ #s` therefore holds precisely when the number of leading zeros in `ℓ` is strictly less than `#s`; the two formulations express the same arithmetic constraint.
+*Proof.* We establish three properties of the set `S = {t ∈ T : s ≤ t < s ⊕ ℓ}`, given `s ∈ T`, `ℓ ∈ T`, `ℓ > 0`, and the action point `k = min({i : 1 ≤ i ≤ #ℓ ∧ ℓᵢ ≠ 0})` — the position of the first nonzero component of `ℓ`, which exists because `ℓ > 0` — satisfying `k ≤ #s`.
+
+We first record an equivalence stated in the theorem. Since `k` is the position of the first nonzero component of `ℓ`, the components `ℓ₁, ..., ℓₖ₋₁` are all zero: `ℓ` has exactly `k − 1` leading zeros. The condition `k ≤ #s` therefore holds precisely when the number of leading zeros in `ℓ` is strictly less than `#s` — the count `k − 1` satisfies `k − 1 < #s` iff `k ≤ #s`. The two formulations express the same arithmetic constraint.
 
 *(a) Endpoint existence.* The preconditions give `ℓ > 0` and `k ≤ #s`. These are exactly the preconditions of TA0 (positive displacement whose action point does not exceed the base length), so TA0 guarantees `s ⊕ ℓ ∈ T`. The set `S` is well-defined — its upper bound exists in `T`.
 
-*(b) Non-emptiness.* We show `s ∈ S` by verifying both defining conditions. First, `s ≤ s` holds by the definition of `≤` from T1: `a ≤ b` iff `a < b ∨ a = b`, and the second disjunct is satisfied. Second, TA-strict — whose preconditions `ℓ > 0` and `k ≤ #s` are given — yields `s ⊕ ℓ > s`, i.e., `s < s ⊕ ℓ`. Both conditions hold, so `s ∈ S`.
+*(b) Non-emptiness.* We show `s ∈ S` by verifying both defining conditions. First, `s ≤ s` holds because `≤` is the reflexive closure of `<`: `s = s` satisfies the second disjunct of `s < s ∨ s = s`. Second, TA-strict — whose preconditions `ℓ > 0` and `k ≤ #s` are given — yields `s ⊕ ℓ > s`, i.e., `s < s ⊕ ℓ`. Both conditions hold, so `s ∈ S`.
 
 *(c) Contiguity.* We show `S` is order-convex: for any `a, c ∈ S` and `b ∈ T` with `a ≤ b ≤ c`, the tumbler `b` belongs to `S`.
 
