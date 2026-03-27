@@ -1299,35 +1299,43 @@ The converse — right cancellation — does not hold. TumblerAdd's many-to-one 
 
 **TA-RC (RightCancellationFailure).** There exist tumblers a, b, w with a ≠ b and a ⊕ w = b ⊕ w (both sides well-defined).
 
-*Proof.* We exhibit three specific tumblers and verify the claim by direct computation.
+*Dependencies:*
+- **TA0 (Well-defined addition):** For `a, w ∈ T` with `w > 0` and action point `k ≤ #a`, `a ⊕ w ∈ T` with `#(a ⊕ w) = #w`.
+- **TumblerAdd (Constructive definition):** `(a ⊕ w)ᵢ = aᵢ` for `i < k`, `(a ⊕ w)ₖ = aₖ + wₖ`, `(a ⊕ w)ᵢ = wᵢ` for `i > k`; result length `#(a ⊕ w) = #w`.
+- **T3 (Canonical representation):** `a = b ⟺ #a = #b ∧ (A i : 1 ≤ i ≤ #a : aᵢ = bᵢ)`.
 
-Let `a = [1, 3, 5]`, `b = [1, 3, 7]`, and `w = [0, 2, 4]`. We first establish that `a ≠ b`: the third components differ (`5 ≠ 7`), so `a ≠ b` by T3 (CanonicalRepresentation).
+*Proof.* We exhibit three specific tumblers and verify the claim by direct computation. Three obligations must be discharged: that the witnesses are distinct, that both additions are well-defined, and that the results are equal.
 
-Next we verify that both additions are well-defined. The displacement `w` has action point `k = 2`, since `w₁ = 0` and `w₂ = 2 > 0`. For `a ⊕ w`, TA0 requires `actionPoint(w) ≤ #a`, i.e. `2 ≤ 3`, which holds. For `b ⊕ w`, TA0 requires `actionPoint(w) ≤ #b`, i.e. `2 ≤ 3`, which likewise holds.
+Let `a = [1, 3, 5]`, `b = [1, 3, 7]`, and `w = [0, 2, 4]`.
 
-We compute `a ⊕ w` by TumblerAdd's constructive definition with action point `k = 2`:
+**Distinctness.** The third components differ: `a₃ = 5` and `b₃ = 7`, so `a₃ ≠ b₃`. Since `#a = 3 = #b` but not all components agree, the contrapositive of T3 gives `a ≠ b`.
+
+**Well-definedness.** The displacement `w = [0, 2, 4]` has action point `k = 2`, since `w₁ = 0` and `w₂ = 2 > 0` — position 2 is the first nonzero component. For `a ⊕ w`, TA0 requires `actionPoint(w) ≤ #a`, i.e. `2 ≤ 3`, which holds. For `b ⊕ w`, TA0 requires `actionPoint(w) ≤ #b`, i.e. `2 ≤ 3`, which likewise holds. Both additions are well-defined.
+
+**Computation of a ⊕ w.** We expand by TumblerAdd's constructive definition with action point `k = 2`:
 
 - Position `i = 1` (`i < k`): prefix copy gives `(a ⊕ w)₁ = a₁ = 1`.
 - Position `i = 2` (`i = k`): advance gives `(a ⊕ w)₂ = a₂ + w₂ = 3 + 2 = 5`.
 - Position `i = 3` (`i > k`): tail copy gives `(a ⊕ w)₃ = w₃ = 4`.
 
-So `a ⊕ w = [1, 5, 4]`.
+The result-length identity gives `#(a ⊕ w) = #w = 3`, so `a ⊕ w = [1, 5, 4]`.
 
-We compute `b ⊕ w` by the same three rules:
+**Computation of b ⊕ w.** We expand by the same three rules with the same action point `k = 2`:
 
 - Position `i = 1` (`i < k`): prefix copy gives `(b ⊕ w)₁ = b₁ = 1`.
 - Position `i = 2` (`i = k`): advance gives `(b ⊕ w)₂ = b₂ + w₂ = 3 + 2 = 5`.
 - Position `i = 3` (`i > k`): tail copy gives `(b ⊕ w)₃ = w₃ = 4`.
 
-So `b ⊕ w = [1, 5, 4]`.
+The result-length identity gives `#(b ⊕ w) = #w = 3`, so `b ⊕ w = [1, 5, 4]`.
 
-Both results are `[1, 5, 4]`, hence `a ⊕ w = b ⊕ w`. The critical observation is that `a` and `b` differ only at position 3, which lies after the action point `k = 2`. TumblerAdd's tail-copy rule discards all components of the start after position `k`, replacing them with the displacement's tail. The difference between `a₃ = 5` and `b₃ = 7` is therefore erased — neither value contributes to the result.
+**Equality of results.** Both results are `[1, 5, 4]`. Since `#(a ⊕ w) = 3 = #(b ⊕ w)` and all three components agree, T3 gives `a ⊕ w = b ⊕ w`.
+
+The mechanism that produces this equality is TumblerAdd's tail-copy rule: for positions `i > k`, the result component `(a ⊕ w)ᵢ = wᵢ` depends only on `w`, not on the start. The components `a₃ = 5` and `b₃ = 7` both lie after the action point `k = 2`, so neither contributes to the result — the displacement's tail replaces them entirely.
 
 We have exhibited `a ≠ b` with `a ⊕ w = b ⊕ w`, both sides well-defined: right cancellation fails.  ∎
 
 *Formal Contract:*
-- *Preconditions:* a, b, w ∈ T; w > 0; actionPoint(w) ≤ #a; actionPoint(w) ≤ #b
-- *Postconditions:* a ≠ b ∧ a ⊕ w = b ⊕ w
+- *Postconditions:* `∃ a, b, w ∈ T : w > 0 ∧ actionPoint(w) ≤ #a ∧ actionPoint(w) ≤ #b ∧ a ≠ b ∧ a ⊕ w = b ⊕ w`
 
 The mechanism is TumblerAdd's tail replacement: components of the start position after the action point are discarded and replaced by the displacement's tail. Any two starts that agree on components 1..k and differ only on components after k will produce the same result under any displacement with action point k. Formally:
 
