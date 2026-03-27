@@ -380,19 +380,39 @@ Nelson: "Whoever owns a specific node, account, document or version may in turn 
 
 **T10a (Allocator discipline).** Each allocator produces its sibling outputs exclusively by repeated application of `inc(·, 0)` — shallow increment at the last significant position. To spawn a child allocator, the parent performs one `inc(·, k')` with `k' > 0` to establish the child's prefix, then delegates further allocation to the child. The parent's own sibling stream resumes with `inc(·, 0)`.
 
-T10a constrains what would otherwise be an unregulated choice. Without it, an allocator could intermix shallow and deep increments, generating outputs of varying lengths. The constraint to `k = 0` for siblings is essential: since `inc(·, 0)` preserves length (TA5(c) below), all sibling outputs from a single allocator have the same length. This uniform-length property is what the partition monotonicity and global uniqueness proofs depend on. If an allocator used `k > 0` for siblings, successive outputs would have increasing lengths and each output would extend the previous — making successive siblings nest rather than stand disjoint. This nesting would break the non-nesting premise required by the Prefix Ordering Extension lemma below.
+T10a constrains what would otherwise be an unregulated choice. Without it, an allocator could intermix shallow and deep increments, producing outputs of varying lengths whose prefix relationships would be uncontrolled. The `k > 0` operation is reserved exclusively for child-spawning: a single deep increment that establishes a new prefix at a deeper level, from which a new allocator continues with its own `inc(·, 0)` stream.
 
-The `k > 0` operation is reserved exclusively for child-spawning: a single deep increment that establishes a new prefix at a deeper level, from which a new allocator continues with its own `inc(·, 0)` stream.
+*Justification.* T10a is a design axiom — it constrains allocator behavior rather than following from prior properties. We justify the constraint by establishing three consequences on which the coordination-free uniqueness guarantees depend, then proving that the constraint is necessary.
 
-*Justification.* T10a is a design axiom — it constrains allocator behavior rather than following from prior properties. We justify the constraint by showing it is necessary and sufficient for three consequences on which the coordination-free uniqueness guarantees depend.
+**Consequence 1: Uniform sibling length.** Let an allocator have base address `t₀` and produce siblings by repeated application of `inc(·, 0)`: define `tₙ₊₁ = inc(tₙ, 0)` for `n ≥ 0`. We prove by induction on `n` that `#tₙ = #t₀` for all `n ≥ 0`.
 
-**Consequence 1: Uniform sibling length.** Let an allocator have base address `t₀` and produce siblings `t₁ = inc(t₀, 0)`, `t₂ = inc(t₁, 0)`, and so on. By TA5(c), `inc(t, 0)` preserves length: `#inc(t, 0) = #t`. By induction on `n`, `#tₙ = #t₀` for all `n ≥ 0`. The base case `n = 0` is immediate. For the inductive step, `#tₙ₊₁ = #inc(tₙ, 0) = #tₙ = #t₀` by TA5(c) and the inductive hypothesis. Every sibling output of a single allocator has the same length as its base address.
+*Base case.* `n = 0`: `#t₀ = #t₀` holds trivially.
 
-**Consequence 2: Non-nesting sibling prefixes.** Let `tᵢ` and `tⱼ` be distinct siblings from the same allocator, with `i < j`. By Consequence 1, `#tᵢ = #tⱼ`. A proper prefix is strictly shorter than its extension — if `tᵢ ≼ tⱼ` with `tᵢ ≠ tⱼ`, then `#tᵢ < #tⱼ`, contradicting `#tᵢ = #tⱼ`. Symmetrically, `tⱼ ⋠ tᵢ`. Two tumblers of equal length can stand in a prefix relationship only if they are equal, and they are not equal: by TA5(a), each application of `inc(·, 0)` produces a strictly greater tumbler, so `t₀ < t₁ < ... < tⱼ`, giving `tᵢ < tⱼ` and hence `tᵢ ≠ tⱼ` by T1 irreflexivity. Therefore `tᵢ ⋠ tⱼ ∧ tⱼ ⋠ tᵢ` — the sibling prefixes are non-nesting, satisfying the precondition of T10.
+*Inductive step.* Assume `#tₙ = #t₀`. By TA5(c), `inc(t, 0)` preserves length: `#inc(t, 0) = #t`. Applying this to `tₙ` yields `#tₙ₊₁ = #inc(tₙ, 0) = #tₙ`. By the inductive hypothesis `#tₙ = #t₀`, so `#tₙ₊₁ = #t₀`.
 
-**Consequence 3: Length separation between parent and child domains.** When a parent allocator with sibling length `γ = #t₀` spawns a child via `inc(t, k')` with `k' > 0`, the child's base address has length `γ + k'` by TA5(d). The child allocator then produces its own siblings by `inc(·, 0)`, and by Consequence 1 applied to the child, all child outputs have uniform length `γ + k'`. Since `k' ≥ 1`, every child output has length at least `γ + 1 > γ` — strictly longer than any parent sibling. By T3, tumblers of different length are distinct. The separation is additive across nesting levels: a descendant `d` levels deep produces outputs of length at least `γ + d`, so outputs at different depths never collide by length alone.
+Every sibling output of a single allocator has the same length as its base address.
 
-**Necessity.** Without the `k = 0` restriction for siblings, an allocator could produce `t₁ = inc(t₀, 0)` (length `#t₀`) followed by `t₂ = inc(t₁, 1)` (length `#t₀ + 1`). Now `t₁` agrees with `t₂` on positions `1, ..., #t₁` (by TA5(b,d): `t₂` agrees with `t₁` on all positions before the increment point, and the increment point is `#t₁ + 1`), and `#t₁ < #t₂`, so `t₁` is a proper prefix of `t₂`. The siblings nest: `t₁ ≼ t₂`. This violates the non-nesting precondition of T10, collapsing the partition independence guarantee — any address extending `t₂` also extends `t₁`, so T10 cannot distinguish the two domains. The constraint to `k = 0` for siblings is therefore both sufficient (Consequences 1–3) and necessary (its absence permits nesting). ∎
+**Consequence 2: Non-nesting sibling prefixes.** Let `tᵢ` and `tⱼ` be distinct siblings from the same allocator with `i < j`. We must show `tᵢ ⋠ tⱼ ∧ tⱼ ⋠ tᵢ`.
+
+First, `tᵢ ≠ tⱼ`. By TA5(a), each application of `inc(·, 0)` produces a strictly greater tumbler under T1, so the sibling sequence is strictly increasing: `t₀ < t₁ < ... < tⱼ`. In particular `tᵢ < tⱼ`, and by T1 irreflexivity `tᵢ ≠ tⱼ`.
+
+Second, `#tᵢ = #tⱼ` by Consequence 1, since both are siblings of the same allocator.
+
+Now suppose for contradiction that `tᵢ ≼ tⱼ`. Since `tᵢ ≠ tⱼ`, this is a proper prefix relationship, which requires `#tᵢ < #tⱼ` — contradicting `#tᵢ = #tⱼ`. The symmetric argument excludes `tⱼ ≼ tᵢ`: if `tⱼ ≼ tᵢ` with `tⱼ ≠ tᵢ`, then `#tⱼ < #tᵢ`, again contradicting `#tᵢ = #tⱼ`. Therefore `tᵢ ⋠ tⱼ ∧ tⱼ ⋠ tᵢ` — the sibling prefixes are non-nesting, satisfying the precondition of T10.
+
+**Consequence 3: Length separation between parent and child domains.** Let a parent allocator have base address `t₀` with sibling length `γ = #t₀`. When the parent spawns a child via `inc(t, k')` with `k' > 0` — where `t` is one of the parent's siblings — the child's base address `c₀` has length `#c₀ = #t + k'` by TA5(d). Since `t` is a parent sibling, `#t = γ` by Consequence 1, so `#c₀ = γ + k'`.
+
+The child allocator produces its own siblings by `inc(·, 0)`. By Consequence 1 applied to the child, all child outputs have uniform length `γ + k'`. Since `k' ≥ 1`, every child output has length at least `γ + 1 > γ` — strictly longer than any parent sibling. By T3, tumblers that differ in length are distinct: no child output can equal any parent sibling.
+
+The separation is additive across nesting levels. Each child-spawning step adds at least one component, so a descendant `d` levels deep produces outputs of length at least `γ + d`. Outputs at different depths never collide by length alone.
+
+**Necessity.** We show that relaxing the `k = 0` restriction for siblings permits nesting, violating the precondition of T10.
+
+Suppose an allocator produces `t₁ = inc(t₀, 0)` followed by `t₂ = inc(t₁, 1)`. By TA5(c), `#t₁ = #t₀`. By TA5(d), `#t₂ = #t₁ + 1 = #t₀ + 1`, so `#t₁ < #t₂`. By TA5(b), `t₂` agrees with `t₁` on all components before the increment point. For `inc(t₁, 1)` with `k = 1`, the child construction (TA5(d)) copies all of `t₁` into positions `1, ..., #t₁` of `t₂`. So `t₂` agrees with `t₁` on positions `1, ..., #t₁`, and `#t₁ < #t₂`. By T1 case (ii), `t₁` is a proper prefix of `t₂`: `t₁ ≼ t₂`.
+
+The siblings nest. This violates the non-nesting precondition of T10 — any address extending `t₂` also extends `t₁`, so T10 cannot distinguish the two domains. The partition independence guarantee collapses.
+
+The constraint to `k = 0` for siblings is therefore both sufficient (Consequences 1–3) and necessary (its absence permits nesting). ∎
 
 *Formal Contract:*
 - *Axiom:* Allocators produce sibling outputs exclusively by `inc(·, 0)`; child-spawning uses exactly one `inc(·, k')` with `k' > 0`.
