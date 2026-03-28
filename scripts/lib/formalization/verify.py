@@ -26,7 +26,7 @@ from lib.shared.paths import (WORKSPACE, USAGE_LOG, REVIEWS_DIR, ASNS_DIR,
 from lib.shared.common import find_asn, extract_property_sections
 from lib.formalization.deps import (find_property_table, parse_table_row,
                               detect_columns, generate_deps)
-from lib.discovery.rebase import _append_open_issues
+from lib.shared.audit import _append_open_issues
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"
 VERIFY_TEMPLATE = PROMPTS_DIR / "verify-proof.md"

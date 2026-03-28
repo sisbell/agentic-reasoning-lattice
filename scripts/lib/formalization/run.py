@@ -120,7 +120,7 @@ def step_audit(asn_num):
     if asn_path is None:
         return False
 
-    from lib.discovery.rebase import (
+    from lib.shared.audit import (
         step_surface_check, step_find_extensions, step_verify_transfer,
         step_audit as step_open_audit, _append_open_issues,
     )

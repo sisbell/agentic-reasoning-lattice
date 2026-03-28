@@ -150,7 +150,7 @@ def main():
                 # Cycle gate — check dependency graph before accepting
                 from lib.formalization.mechanical import check_cycles, format_cycle_findings
                 from lib.formalization.deps import generate_deps
-                from lib.discovery.rebase import _append_open_issues
+                from lib.shared.audit import _append_open_issues
 
                 # Regenerate deps from current ASN state
                 deps = generate_deps(asn_number)
@@ -209,7 +209,7 @@ def main():
             # Cycle gate — check before accepting convergence
             from lib.formalization.mechanical import check_cycles, format_cycle_findings
             from lib.formalization.deps import generate_deps
-            from lib.discovery.rebase import _append_open_issues
+            from lib.shared.audit import _append_open_issues
 
             deps = generate_deps(asn_number)
             cycles = check_cycles(asn_number)

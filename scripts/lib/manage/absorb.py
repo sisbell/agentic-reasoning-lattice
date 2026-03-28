@@ -424,7 +424,7 @@ def main():
     print(f"\n  [DONE] {ext_label} absorbed into {base_label}",
           file=sys.stderr)
     if source_num:
-        print(f"  [NEXT] Run: python scripts/rebase.py {source_num}",
+        print(f"  [NEXT] Run: ./run/asn-converge.sh {source_num}",
               file=sys.stderr)
 
 
