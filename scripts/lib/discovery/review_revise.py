@@ -25,7 +25,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, VOCABULARY, ASNS_DIR, REVIEWS_DIR, USAGE_LOG, sorted_reviews
 from lib.shared.foundation import load_foundation_statements
-from lib.discovery.review_check import load_deps_yaml
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
 DISCOVERY_PROMPT = PROMPTS_DIR / "discovery.md"
@@ -99,15 +98,6 @@ def build_prompt(asn_path, review_content, vocab, consultation_content=None, asn
     foundation = load_foundation_statements(asn_number)
     if foundation:
         parts.append(foundation)
-
-    deps_yaml = load_deps_yaml(asn_number)
-    if deps_yaml:
-        parts.append(f"## Dependency Graph\n\n"
-                      f"Current mechanically-extracted dependency graph. If your revisions "
-                      f"change which properties a derivation depends on, update the property "
-                      f"table Status column accordingly (e.g., change 'introduced' to "
-                      f"'from L2, T7') so the dependency graph stays in sync on re-export.\n\n"
-                      f"```yaml\n{deps_yaml}\n```")
 
     rel_path = asn_path.relative_to(WORKSPACE)
     asn_label = re.match(r"(ASN-\d+)", asn_path.stem).group(1)
