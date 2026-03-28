@@ -77,8 +77,8 @@ Let `a ∈ dom(Σ.C)` be arbitrary. By S0 (content immutability), `a ∈ dom(Σ.
 S1 is strictly weaker than S0: it asserts domain persistence without value preservation. We state it separately because it names a distinct architectural commitment — the content store grows monotonically — and because it specialises T8 (allocation permanence, ASN-0034) from the abstract address space to the content store. T8 guarantees `allocated(s) ⊆ allocated(s')` for the address space as a whole; S1 guarantees `dom(Σ.C) ⊆ dom(Σ'.C)` for the content store specifically. The two properties have different scopes: T8 covers addresses that have been allocated but may carry no content, while S1 covers addresses at which content has actually been stored. That `dom(Σ.C)` is a subset of the allocated set means S1 could in principle follow from T8 together with an axiom linking allocation to content storage — but the derivation from S0 is more direct and reveals the logical relationship: domain monotonicity is a consequence of content immutability, not an independent commitment. ∎
 
 *Formal Contract:*
-- *Preconditions:* State transition `Σ → Σ'` in a system satisfying S0 (content immutability).
-- *Invariant:* `dom(Σ.C) ⊆ dom(Σ'.C)`.
+- *Preconditions:* S0 (content immutability).
+- *Invariant:* `dom(Σ.C) ⊆ dom(Σ'.C)` for every transition `Σ → Σ'`.
 
 
 ## The arrangement and referential integrity
