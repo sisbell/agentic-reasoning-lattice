@@ -273,7 +273,17 @@ Before defining correspondence runs, we must establish the structure of `dom(M(d
 
 **S8-fin (Finite arrangement).** For each document `d`, `dom(Σ.M(d))` is finite. A document contains finitely many V-positions at any given state.
 
-S8-fin follows from the operational reality: each V-position enters `dom(M(d))` through a specific operation (INSERT, COPY, etc.), and the system has performed only finitely many operations. No operation introduces infinitely many V-positions.
+S8-fin is a design invariant whose enforcement is a constraint on every operation that modifies the arrangement. We justify it by induction over the sequence of operations that produce a reachable state.
+
+In the initial state Σ₀, every document `d` has `dom(Σ₀.M(d)) = ∅` — the empty set is finite. This is our base case.
+
+For the inductive step, suppose `dom(Σ.M(d))` is finite in state Σ, and let Σ → Σ' be a transition produced by a single operation. By design, every arrangement-modifying operation — INSERT, DELETE, COPY, REARRANGE, APPEND — accepts a finite specification and modifies `dom(M(d))` by adding or removing only finitely many V-positions. No operation is permitted to introduce infinitely many V-positions; this is not derived from other properties but is a constraint imposed on every operation definition. A finite set altered by finitely many additions and removals remains finite, so `dom(Σ'.M(d))` is finite.
+
+Since every reachable state is obtained from Σ₀ by a finite sequence of such transitions, and each transition preserves finiteness of the domain, `dom(Σ.M(d))` is finite for every document `d` in every reachable state Σ. ∎
+
+*Formal Contract:*
+- *Invariant:* `dom(Σ.M(d))` is finite for every document `d` and every reachable state Σ.
+- *Axiom:* Every arrangement-modifying operation adds or removes only finitely many V-positions — finiteness of each operation's effect is a design constraint enforced by construction.
 
 **S8a (V-position well-formedness).** Every V-position is an element-field tumbler with all components strictly positive:
 
