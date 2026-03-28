@@ -260,6 +260,7 @@ Gregory's implementation reveals two mechanisms for origin lookup. The I-address
 
 *Formal Contract:*
 - *Preconditions:* `a ∈ dom(Σ.C)` in a system conforming to S7a (document-scoped allocation), S7b (element-level I-addresses), T4 (FieldSeparatorConstraint, ASN-0034), and T10a (allocator discipline, ASN-0034).
+- *Definition:* `origin(a) = (fields(a).node).0.(fields(a).user).0.(fields(a).document)` — the document-level prefix of `a`, obtained by truncating the element field.
 - *Postconditions:* (a) `origin(a)` is well-defined and is a document-level tumbler with `zeros(origin(a)) = 2`. (b) `origin(a)` is the tumbler of the document that allocated `a`. (c) For `a₁, a₂` allocated under distinct documents, `origin(a₁) ≠ origin(a₂)`. (d) `origin(a)` is invariant across all states in which `a ∈ dom(Σ.C)`.
 - *Frame:* The content values `Σ.C(a)` and arrangement functions `Σ.M(d)` play no role — attribution is a property of the addressing scheme alone.
 
