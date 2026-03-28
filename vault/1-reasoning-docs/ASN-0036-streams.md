@@ -440,7 +440,7 @@ Therefore no two positions in V_S(d) can disagree at any component j with 2 ≤ 
 - *Preconditions:* V_S(d) non-empty; common depth m ≥ 3 (S8-depth); D-CTG (VContiguity); dom(M(d)) finite (S8-fin).
 - *Postconditions:* `(A v₁, v₂ ∈ V_S(d), j : 2 ≤ j ≤ m − 1 : (v₁)ⱼ = (v₂)ⱼ)`. Contiguity of V_S(d) reduces to contiguity of the m-th (last) component.
 
-Nelson's statement specifies not just contiguity but also the starting ordinal: "addresses 1 through 100," not "42 through 141." All ordinal numbering in the tumbler system starts at 1: the first child is always .1 (LM 4/20), link positions within a document begin at 1 (LM 4/31), and position 0 is structurally unavailable since zero serves as a field separator (T4, ASN-0034). V-positions follow the same convention.
+Nelson's statement specifies not just contiguity but also the starting ordinal: "addresses 1 through 100," not "42 through 141."
 
 **D-MIN (VMinimumPosition).** For each document d and subspace S with V_S(d) non-empty:
 
@@ -448,9 +448,14 @@ Nelson's statement specifies not just contiguity but also the starting ordinal: 
 
 where the tuple has length m (the common depth of V-positions in subspace S per S8-depth), and every component after the first is 1.
 
+D-MIN is a design constraint, not a derived property. D-CTG and S8-fin together establish that V_S(d) is a finite contiguous block, and D-CTG-depth establishes that positions share components 2 through m − 1, but none of these determine *where* the block starts: a set V_S(d) = {[S, 5, 3, k] : 1 ≤ k ≤ n} satisfies D-CTG, D-CTG-depth, S8-depth, and S8-fin equally well. What pins the starting ordinal is a convention of the tumbler system itself. All ordinal numbering starts at 1: the first child is always .1 (LM 4/20), link positions within a document begin at 1 (LM 4/31), and position 0 is structurally unavailable since zero serves as a field separator (T4, ASN-0034). D-MIN asserts that V-positions follow this same convention, giving each subspace the canonical starting point [S, 1, …, 1].
+
 At depth 2 this gives min(V_S(d)) = [S, 1]. Combined with D-CTG and S8-fin, a document with n elements in subspace S occupies V-positions [S, 1] through [S, n] — matching Nelson's "addresses 1 through 100."
 
-We now derive the general form. By D-CTG-depth (when m ≥ 3) or trivially (when m = 2, there is only one post-subspace component), all positions in V_S(d) share components 2 through m − 1. By D-MIN, min(V_S(d)) = [S, 1, …, 1], so those shared components have value 1. Every position is therefore [S, 1, …, 1, k] for varying k. D-CTG restricted to the last component forbids gaps among the k values; D-MIN gives the minimum k = 1; S8-fin bounds the maximum at some finite n. Thus:
+*Formal Contract:*
+- *Axiom:* `min(V_S(d)) = [S, 1, ..., 1]` for every document d and subspace S with V_S(d) non-empty, where the tuple has length m (S8-depth) and every post-subspace component is 1.
+
+*Corollary (general form).* We derive from D-MIN the structure of V_S(d). By D-CTG-depth (when m ≥ 3) or vacuously (when m = 2, there is only one post-subspace component), all positions in V_S(d) share components 2 through m − 1. By D-MIN, min(V_S(d)) = [S, 1, …, 1], so those shared components have value 1. Every position is therefore [S, 1, …, 1, k] for varying k. D-CTG restricted to the last component forbids gaps among the k values; D-MIN gives the minimum k = 1; S8-fin bounds the maximum at some finite n. Thus:
 
 **D-SEQ (SequentialPositions).** For each document d and subspace S, if V_S(d) is non-empty and the common V-position depth m ≥ 2 (S8-depth), then there exists n ≥ 1 such that:
 
