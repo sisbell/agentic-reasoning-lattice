@@ -1,0 +1,15 @@
+# Rebase Review of ASN-0036
+
+## REVISE
+
+### Issue 1: S4 cites GlobalUniqueness's components instead of GlobalUniqueness itself
+**ASN-0036, Content identity**: "S4 follows from foundation properties. T9 (ForwardAllocation, ASN-0034) covers same-allocator distinctness: later allocations are strictly greater, hence distinct from all earlier ones. T10 (PartitionIndependence, ASN-0034) covers cross-allocator distinctness for non-nesting prefixes… For allocators with nesting prefixes (parent-child), T10a (AllocatorDiscipline, ASN-0034) guarantees the child's outputs are deeper than the parent's — by TA5(d)… so T3 (CanonicalRepresentation, ASN-0034) ensures their outputs are distinct. Together they guarantee that no two distinct allocations… produce the same address."
+**Problem**: The foundation already provides GlobalUniqueness (ASN-0034), which consolidates T9, T10, T10a, TA5, and T3 into the single result "no two distinct allocation events anywhere in the system at any time produce the same address." S4's claim is exactly GlobalUniqueness (with a trivial extension about value-independence). The three-case inline derivation reproduces GlobalUniqueness's proof rather than citing the consolidated result. The registry entry (`from T9, T10, T10a, TA5, T3 (ASN-0034)`) lists the building blocks instead of the property they compose.
+**Required**: Cite GlobalUniqueness (ASN-0034) directly. Update registry from `from T9, T10, T10a, TA5, T3 (ASN-0034)` to `from GlobalUniqueness (ASN-0034)`. The three-case derivation can be replaced with the citation; if retained for expository purposes, it should be framed as recapping GlobalUniqueness's structure, not as a fresh derivation.
+
+### Issue 2: S7 re-derives GlobalUniqueness for document-prefix uniqueness
+**ASN-0036, Structural attribution**: "Three cases establish that distinct documents produce distinct prefixes. T9 (ForwardAllocation, ASN-0034) covers same-allocator distinctness: later allocations are strictly greater, so distinct documents within an allocator have distinct prefixes. T10 (PartitionIndependence, ASN-0034) covers cross-allocator distinctness… AllocatorDiscipline (T10a, ASN-0034) guarantees the child's outputs are deeper… so T3 (CanonicalRepresentation, ASN-0034) ensures their document prefixes are distinct."
+**Problem**: Same structural issue as S4. Document creation is an allocation event within a system conforming to T10a, so GlobalUniqueness (ASN-0034) directly gives distinct document tumblers. Since `origin(a)` is the document tumbler itself (computed via T4's `fields()`), distinct documents yield distinct origins. The three-case argument reproduces GlobalUniqueness's proof at the document level. The registry entry (`from S7a, S7b, T4, T9, T10, T10a, TA5, T3 (ASN-0034)`) lists the components instead of the consolidated property.
+**Required**: Cite GlobalUniqueness (ASN-0034) for document-level uniqueness. Update registry from `from S7a, S7b, T4, T9, T10, T10a, TA5, T3 (ASN-0034)` to `from S7a, S7b, T4, GlobalUniqueness (ASN-0034)`.
+
+VERDICT: REVISE

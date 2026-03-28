@@ -92,7 +92,7 @@ What distinguishes transclusion from coincidence? In conventional systems, ident
 
 regardless of whether `Σ.C(a₁) = Σ.C(a₂)`. Two independent writings of the word "hello" produce distinct I-addresses. A transclusion of existing content shares the original I-address.
 
-S4 follows from foundation properties. T9 (ForwardAllocation, ASN-0034) covers same-allocator distinctness: later allocations are strictly greater, hence distinct from all earlier ones. T10 (PartitionIndependence, ASN-0034) covers cross-allocator distinctness for non-nesting prefixes: disjoint subtree populations mean allocations from independent allocators cannot collide. For allocators with nesting prefixes (parent-child), T10a (AllocatorDiscipline, ASN-0034) guarantees the child's outputs are deeper than the parent's — by TA5(d), `#inc(t, k') = #t + k'` — so T3 (CanonicalRepresentation, ASN-0034) ensures their outputs are distinct. Together they guarantee that no two distinct allocations — whether from the same allocator or different allocators, whether simultaneous or separated by years — produce the same address. The two-stream architecture exploits this guarantee: when `Σ.M(d₁)(v₁) = Σ.M(d₂)(v₂)` for documents `d₁ ≠ d₂`, the system knows this is transclusion — shared content with a common origin — not coincidental value equality. The structural test for shared identity is address equality, decidable from the addresses alone (T3, ASN-0034) without value comparison.
+S4 follows directly from GlobalUniqueness (ASN-0034), which establishes that no two distinct allocation events — whether from the same allocator or different allocators, whether simultaneous or separated by years — produce the same address. The two-stream architecture exploits this guarantee: when `Σ.M(d₁)(v₁) = Σ.M(d₂)(v₂)` for documents `d₁ ≠ d₂`, the system knows this is transclusion — shared content with a common origin — not coincidental value equality. The structural test for shared identity is address equality, decidable from the addresses alone (T3, ASN-0034) without value comparison.
 
 S4 creates a fundamental asymmetry in the system. The content store `C` is oblivious to values — it does not care whether `C(a₁) = C(a₂)`. But the arrangement family `M` is sensitive to addresses — two arrangements that map to the same I-address share content structurally, while two arrangements that map to different I-addresses with equal values do not. Nelson captures the distinction:
 
@@ -163,7 +163,7 @@ With S7a and S7b established, we can state structural attribution:
 
 `origin(a) = (fields(a).node).0.(fields(a).user).0.(fields(a).document)`
 
-This is the full document tumbler `N.0.U.0.D` — uniquely identifying the allocating document across the system. Three cases establish that distinct documents produce distinct prefixes. T9 (ForwardAllocation, ASN-0034) covers same-allocator distinctness: later allocations are strictly greater, so distinct documents within an allocator have distinct prefixes. T10 (PartitionIndependence, ASN-0034) covers cross-allocator distinctness for non-nesting prefixes: disjoint subtree populations mean documents from independent allocators cannot share a prefix. For allocators with nesting prefixes (parent-child, where a parent spawns a child via `inc(·, k')` per T10a), AllocatorDiscipline (T10a, ASN-0034) guarantees the child's outputs are deeper than the parent's — by TA5(d), `#inc(t, k') = #t + k'` — so T3 (CanonicalRepresentation, ASN-0034) ensures their document prefixes are distinct. It is not metadata that can be stripped or forged — it IS the address. To retrieve the content, the system must know its I-address; to know its I-address is to know its origin.
+This is the full document tumbler `N.0.U.0.D` — uniquely identifying the allocating document across the system. Since document creation is an allocation event within a system conforming to T10a, GlobalUniqueness (ASN-0034) directly guarantees that distinct documents have distinct tumblers, and therefore distinct document-level prefixes. It is not metadata that can be stripped or forged — it IS the address. To retrieve the content, the system must know its I-address; to know its I-address is to know its origin.
 
 S7 follows from S7a (document-scoped allocation ensures the document-level prefix identifies the allocating document), S7b (element-level restriction ensures all three identifying fields are present), and T4 (FieldSeparatorConstraint, ASN-0034). Since I-addresses are permanent (S0) and unique (S4), this attribution is permanent and unseverable.
 
@@ -450,12 +450,12 @@ This has a formal consequence: document equality is not decidable by content com
 | S1 | Store monotonicity: `dom(C) ⊆ dom(C')` for all transitions | corollary of S0 |
 | S2 | Arrangement functionality: `M(d)` is a function — each V-position maps to exactly one I-address | introduced |
 | S3 | Referential integrity: `(A d, v : v ∈ dom(M(d)) : M(d)(v) ∈ dom(C))` | introduced |
-| S4 | Origin-based identity: distinct allocations produce distinct I-addresses regardless of value equality | from T9, T10, T10a, TA5, T3 (ASN-0034) |
+| S4 | Origin-based identity: distinct allocations produce distinct I-addresses regardless of value equality | from GlobalUniqueness (ASN-0034) |
 | S5 | Unrestricted sharing: S0–S3 do not entail any finite bound on sharing multiplicity | consistent with S0–S3 (witness construction) |
 | S6 | Persistence independence: `a ∈ dom(C)` is unconditional — independent of all arrangements | corollary of S0 |
 | S7a | Document-scoped allocation: every I-address is allocated under the originating document's prefix | introduced |
 | S7b | Element-level I-addresses: `(A a ∈ dom(C) :: zeros(a) = 3)` | introduced |
-| S7 | Structural attribution: `origin(a) = (fields(a).node).0.(fields(a).user).0.(fields(a).document)` — full document prefix | from S7a, S7b, T4, T9, T10, T10a, TA5, T3 (ASN-0034) |
+| S7 | Structural attribution: `origin(a) = (fields(a).node).0.(fields(a).user).0.(fields(a).document)` — full document prefix | from S7a, S7b, T4, GlobalUniqueness (ASN-0034) |
 | S8-fin | Finite arrangement: `dom(M(d))` is finite for every document `d` | introduced |
 | S8a | V-position well-formedness: `(A v ∈ dom(M(d)) : v₁ ≥ 1 : zeros(v) = 0 ∧ v > 0)`; link subspace deferred | introduced |
 | S8-depth | Fixed-depth V-positions: `(A d, v₁, v₂ : v₁ ∈ dom(M(d)) ∧ v₂ ∈ dom(M(d)) ∧ (v₁)₁ = (v₂)₁ : #v₁ = #v₂)` | design requirement |
