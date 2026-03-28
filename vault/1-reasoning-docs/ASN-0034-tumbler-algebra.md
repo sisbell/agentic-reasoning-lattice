@@ -440,7 +440,6 @@ This is a design requirement, not a derived property. The system specification d
 *Formal Contract:*
 - *Invariant:* For every state transition `s → s'`, `allocated(s) ⊆ allocated(s')`.
 - *Axiom:* The system defines no operation that removes an element from the allocated set. This is a design constraint, not a derived property.
-- *Frame:* Read-only operations (T1, T2, T4) and pure arithmetic (⊕, ⊖, inc) preserve the allocated set exactly: `allocated(s') = allocated(s)`.
 
 Nelson: "any address of any document in an ever-growing network may be specified by a permanent tumbler address." The guarantee is about the address itself — its persistence, its permanent occupancy of its position on the tumbler line.
 
