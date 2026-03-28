@@ -29,6 +29,12 @@ This observation forces the state into two components:
 
 A conventional system merges these — "the file" IS the content IS the arrangement. Editing overwrites. Saving destroys the prior state. Nelson rejected this explicitly: "Virtually all of computerdom is built around the destructive replacement of successive whole copies of each current version." The two-component model is his alternative: editing modifies `M(d)` while `C` remains invariant. The separation is the premise; what follows are the invariants it must satisfy.
 
+Σ.M(d) is a definition, not a derived property. We justify the modelling choice. A document in Nelson's architecture is not a contiguous block of stored content but a structure that *selects from* the content store — specifying which content appears, in what order. The natural mathematical object for this selection is a partial function `M(d) : T ⇀ T`. It maps from V-positions (tumblers addressing locations within the document's virtual stream) to I-addresses (tumblers addressing locations in the content store). It is partial because not every tumbler is an active V-position: only those positions at which `d` currently presents content belong to `dom(M(d))`. The codomain is `T` rather than `Val` because an arrangement does not contain content values directly — it refers to I-addresses where content resides. The content itself is retrieved via `Σ.C`. This indirection is the structural mechanism by which Nelson's two requirements — immutable content and mutable presentation — coexist: editing a document changes which I-addresses its V-positions reference (modifying `M(d)`) without altering what any I-address stores (preserving `Σ.C`). The arrangement is the second of two state components; together with the content store Σ.C, they constitute the complete system state `Σ = (C, M)`. ∎
+
+*Formal Contract:*
+- *Axiom:* `Σ.M(d) : T ⇀ T` — the arrangement of document `d` is a partial function from V-position tumblers to I-address tumblers.
+- *Definition:* `dom(Σ.M(d)) = {v ∈ T : Σ.M(d)(v) is defined}` — the set of V-positions currently active in `d`.
+- *Definition:* `ran(Σ.M(d)) = {Σ.M(d)(v) : v ∈ dom(Σ.M(d))}` — the set of I-addresses that `d` currently references.
 
 ## The content store
 
@@ -611,7 +617,7 @@ This has a formal consequence: document equality is not decidable by content com
 | Label | Statement | Status |
 |-------|-----------|--------|
 | Σ.C | Content store: `T ⇀ Val`, mapping I-addresses to content values | axiom (definition) |
-| Σ.M(d) | Arrangement for document `d`: `T ⇀ T`, mapping V-positions to I-addresses | introduced |
+| Σ.M(d) | Arrangement for document `d`: `T ⇀ T`, mapping V-positions to I-addresses | axiom (definition) |
 | S0 | Content immutability: `a ∈ dom(C) ⟹ a ∈ dom(C') ∧ C'(a) = C(a)` for all transitions | design requirement |
 | S1 | Store monotonicity: `dom(C) ⊆ dom(C')` for all transitions | from S0 |
 | S2 | Arrangement functionality: `M(d)` is a function — each V-position maps to exactly one I-address | axiom |
