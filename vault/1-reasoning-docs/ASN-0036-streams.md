@@ -17,9 +17,9 @@ The observation that motivates the entire design is that content EXISTS independ
 
 This observation forces the state into two components:
 
-**Σ.C : T ⇀ Val** — the *content store*. A partial function mapping Istream addresses to content values. `T` is the set of tumblers (ASN-0034); `Val` is an unspecified set of content values, opaque at this level of abstraction. The domain `dom(Σ.C)` is the set of I-addresses at which content has been stored.
+**Σ.C (ContentStore).** The *content store*: a partial function mapping Istream addresses to content values. `T` is the set of tumblers (ASN-0034); `Val` is an unspecified set of content values, opaque at this level of abstraction. The domain `dom(Σ.C)` is the set of I-addresses at which content has been stored.
 
-**Σ.M(d) : T ⇀ T** — the *arrangement* of document `d`. A partial function mapping Vstream positions to Istream addresses. The domain `dom(Σ.M(d))` is the set of V-positions currently active in `d`; the range `ran(Σ.M(d))` is the set of I-addresses that `d` currently references.
+**Σ.M(d) (Arrangement).** The *arrangement* of document `d`: a partial function mapping Vstream positions to Istream addresses. The domain `dom(Σ.M(d))` is the set of V-positions currently active in `d`; the range `ran(Σ.M(d))` is the set of I-addresses that `d` currently references.
 
 A conventional system merges these — "the file" IS the content IS the arrangement. Editing overwrites. Saving destroys the prior state. Nelson rejected this explicitly: "Virtually all of computerdom is built around the destructive replacement of successive whole copies of each current version." The two-component model is his alternative: editing modifies `M(d)` while `C` remains invariant. The separation is the premise; what follows are the invariants it must satisfy.
 
@@ -231,7 +231,7 @@ Nelson states that the Vstream is always a "dense, contiguous sequence" — afte
 
 Write S = subspace(v) = v₁ for the subspace identifier (the first component of the element-field V-position), and V_S(d) = {v ∈ dom(M(d)) : subspace(v) = S} for the set of V-positions in subspace S of document d. All V-positions in a given subspace share the same tumbler depth (S8-depth).
 
-**D-CTG — VContiguity (DESIGN).** For each document d and subspace S, V_S(d) is either empty or occupies every intermediate position between its extremes:
+**D-CTG (VContiguity).** For each document d and subspace S, V_S(d) is either empty or occupies every intermediate position between its extremes:
 
 `(A d, S, u, q : u ∈ V_S(d) ∧ q ∈ V_S(d) ∧ u < q : (A v : subspace(v) = S ∧ #v = #u ∧ u < v < q : v ∈ V_S(d)))`
 
@@ -256,11 +256,11 @@ By D-CTG, every such w belongs to V_S(d). By T0(a), unboundedly many values of n
 
 This applies uniformly to all depths m ≥ 3 and all divergence points j ∈ {2, …, m − 1}. At depth m = 3, the only possible pre-last divergence is j = 2. For illustration: suppose V_S(d) contained [S, 1, 5] and [S, 2, 1]. Setting j = 2, for any n > 5, w = [S, 1, n] satisfies [S, 1, 5] < [S, 1, n] < [S, 2, 1], so D-CTG forces [S, 1, 6], [S, 1, 7], ... into V_S(d) — infinitely many, contradicting S8-fin. At depth m = 4, divergence could occur at j = 2 or j = 3; the same construction applies in each case.
 
-**D-CTG-depth — SharedPrefixReduction (COROLLARY; from D-CTG, S8-fin, S8-depth, T0(a), T1, T3 (ASN-0034)).** For depth m ≥ 3, all positions in a non-empty V_S(d) share components 2 through m − 1. Contiguity reduces to contiguity of the last component alone — structurally identical to the depth 2 case.
+**D-CTG-depth (SharedPrefixReduction).** For depth m ≥ 3, all positions in a non-empty V_S(d) share components 2 through m − 1. Contiguity reduces to contiguity of the last component alone — structurally identical to the depth 2 case.
 
 Nelson's statement specifies not just contiguity but also the starting ordinal: "addresses 1 through 100," not "42 through 141." All ordinal numbering in the tumbler system starts at 1: the first child is always .1 (LM 4/20), link positions within a document begin at 1 (LM 4/31), and position 0 is structurally unavailable since zero serves as a field separator (T4, ASN-0034). V-positions follow the same convention.
 
-**D-MIN — VMinimumPosition (DESIGN).** For each document d and subspace S with V_S(d) non-empty:
+**D-MIN (VMinimumPosition).** For each document d and subspace S with V_S(d) non-empty:
 
 `min(V_S(d)) = [S, 1, ..., 1]`
 
@@ -270,7 +270,7 @@ At depth 2 this gives min(V_S(d)) = [S, 1]. Combined with D-CTG and S8-fin, a do
 
 We now derive the general form. By D-CTG-depth (when m ≥ 3) or trivially (when m = 2, there is only one post-subspace component), all positions in V_S(d) share components 2 through m − 1. By D-MIN, min(V_S(d)) = [S, 1, …, 1], so those shared components have value 1. Every position is therefore [S, 1, …, 1, k] for varying k. D-CTG restricted to the last component forbids gaps among the k values; D-MIN gives the minimum k = 1; S8-fin bounds the maximum at some finite n. Thus:
 
-**D-SEQ — SequentialPositions (COROLLARY; from D-CTG, D-CTG-depth, D-MIN, S8-fin, S8-depth).** For each document d and subspace S, if V_S(d) is non-empty and the common V-position depth m ≥ 2 (S8-depth), then there exists n ≥ 1 such that:
+**D-SEQ (SequentialPositions).** For each document d and subspace S, if V_S(d) is non-empty and the common V-position depth m ≥ 2 (S8-depth), then there exists n ≥ 1 such that:
 
 `V_S(d) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n}`
 
@@ -313,7 +313,7 @@ We work with the arrangement M(d) and the contiguity constraint D-CTG from above
 
 When V_S(d) is contiguous with |V_S(d)| = N positions, we write its elements as v₀, v₁, ..., v_{N−1} where v₀ is the minimum (D-MIN) and v_{j+1} = shift(v_j, 1) for 0 ≤ j < N − 1 (D-SEQ).
 
-**ValidInsertionPosition** — *ValidInsertionPosition* (DEF, predicate). A V-position v is a *valid insertion position* in subspace S of document d satisfying D-CTG when one of two cases holds:
+**Definition (ValidInsertionPosition).** A V-position v is a *valid insertion position* in subspace S of document d satisfying D-CTG when one of two cases holds:
 
 - *Non-empty subspace.* V_S(d) ≠ ∅ with |V_S(d)| = N. Write m for the common V-position depth in subspace S (S8-depth); m ≥ 2, since the first position placed in any subspace is established by the empty case, which requires m ≥ 2, and S8-depth preserves depth thereafter. Then either v = min(V_S(d)) (the j = 0 case) or v = shift(min(V_S(d)), j) for some j with 1 ≤ j ≤ N. In both cases, #v = m.
 
@@ -451,7 +451,7 @@ This has a formal consequence: document equality is not decidable by content com
 | S2 | Arrangement functionality: `M(d)` is a function — each V-position maps to exactly one I-address | axiom |
 | S3 | Referential integrity: `(A d, v : v ∈ dom(M(d)) : M(d)(v) ∈ dom(C))` | design requirement |
 | S4 | Origin-based identity: distinct allocations produce distinct I-addresses regardless of value equality | from GlobalUniqueness (ASN-0034) |
-| S5 | Unrestricted sharing: S0–S3 do not entail any finite bound on sharing multiplicity | consistent with S0–S3 (witness construction) |
+| S5 | Unrestricted sharing: S0–S3 do not entail any finite bound on sharing multiplicity | consistent with S0, S1, S2, S3 |
 | S6 | Persistence independence: `a ∈ dom(C)` is unconditional — independent of all arrangements | corollary of S0 |
 | S7a | Document-scoped allocation: every I-address is allocated under the originating document's prefix | design requirement |
 | S7b | Element-level I-addresses: `(A a ∈ dom(C) :: zeros(a) = 3)` | design requirement |
@@ -462,8 +462,8 @@ This has a formal consequence: document equality is not decidable by content com
 | S8 | Span decomposition: `dom(M(d))` decomposes into finitely many correspondence runs `(vⱼ, aⱼ, nⱼ)` with `M(d)(vⱼ + k) = aⱼ + k` for `0 ≤ k < nⱼ` | theorem from S8-fin, S8a, S2, S8-depth, T1, T3, T5, T10, TA5, TA7a (ASN-0034) |
 | D-CTG | V-position contiguity: within each subspace, V-positions form a contiguous ordinal range with no gaps — design constraint on well-formed document states | design requirement |
 | D-MIN | V-position minimum: minimum V-position in each non-empty subspace has all post-subspace components equal to 1 — design constraint | design requirement |
-| D-CTG-depth | Shared prefix reduction: at depth m ≥ 3, contiguity reduces to the last component (all positions share components 2 through m − 1) | corollary from D-CTG, S8-fin, S8-depth, T0(a), T1, T3 (ASN-0034) |
-| D-SEQ | Sequential positions (m ≥ 2): non-empty V_S(d) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n} for some n ≥ 1 | corollary from D-CTG, D-CTG-depth, D-MIN, S8-fin, S8-depth |
+| D-CTG-depth | Shared prefix reduction: at depth m ≥ 3, contiguity reduces to the last component (all positions share components 2 through m − 1) | corollary of D-CTG, S8-fin, S8-depth, T0(a), T1, T3 (ASN-0034) |
+| D-SEQ | Sequential positions (m ≥ 2): non-empty V_S(d) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n} for some n ≥ 1 | corollary of D-CTG, D-CTG-depth, D-MIN, S8-fin, S8-depth |
 | ValidInsertionPosition | if V_S(d) ≠ ∅: v = min(V_S(d)) or v = shift(min(V_S(d)), j) with 1 ≤ j ≤ N, common depth m ≥ 2; if V_S(d) = ∅: v = [S, 1, ..., 1] of depth m ≥ 2 | introduced |
 | S9 | Two-stream separation: arrangement changes cannot alter stored content | theorem from S0 |
 

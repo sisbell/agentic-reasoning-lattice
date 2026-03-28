@@ -9,7 +9,7 @@ properties:
     status: introduced
     name: Arrangement for document `d`
   S0:
-    status: introduced
+    status: design
     name: Content immutability
   S1:
     status: corollary
@@ -22,10 +22,10 @@ properties:
     follows_from_asns:
     - 34
   S2:
-    status: introduced
+    status: axiom
     name: Arrangement functionality
   S3:
-    status: introduced
+    status: design
     name: Referential integrity
     follows_from:
     - S1
@@ -57,7 +57,7 @@ properties:
     follows_from_asns:
     - 34
   S7a:
-    status: introduced
+    status: design
     name: Document-scoped allocation
     follows_from:
     - S7
@@ -65,7 +65,7 @@ properties:
     follows_from_asns:
     - 34
   S7b:
-    status: introduced
+    status: design
     name: Element-level I-addresses
     follows_from:
     - S7a
@@ -86,7 +86,7 @@ properties:
     - 34
     name: Structural attribution
   S8-fin:
-    status: introduced
+    status: design
     name: Finite arrangement
   S8a:
     status: introduced
@@ -127,7 +127,7 @@ properties:
     - 34
     name: Span decomposition
   D-CTG:
-    status: introduced
+    status: design
     name: V-position contiguity
     follows_from:
     - S8-depth
@@ -137,7 +137,7 @@ properties:
     follows_from_asns:
     - 34
   D-MIN:
-    status: introduced
+    status: design
     name: V-position minimum
     follows_from:
     - D-CTG
