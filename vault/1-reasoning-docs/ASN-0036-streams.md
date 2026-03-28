@@ -327,6 +327,10 @@ S8-depth allows us to define "consecutive V-positions" precisely. Within a subsp
 
 (Why non-trivial runs arise in practice is a separate question. Allocator discipline — T10a, ASN-0034 — establishes that each allocator produces sibling outputs exclusively by `inc(·, 0)`, and TA5(c) guarantees the successor has the same depth as the predecessor. Consecutive allocations therefore produce consecutive I-addresses, which is why sequential content creation naturally yields correspondence runs of length greater than one. But this operational fact is motivation for the definition of correspondence runs, not a dependency of the decomposition proof.)
 
+*Formal Contract:*
+- *Axiom:* `(A d, v₁, v₂ : v₁ ∈ dom(Σ.M(d)) ∧ v₂ ∈ dom(Σ.M(d)) ∧ (v₁)₁ = (v₂)₁ : #v₁ = #v₂)`
+- *Definition:* A *correspondence run* is a triple `(v, a, n)` with `n ≥ 1` such that `(A k : 0 ≤ k < n : Σ.M(d)(v + k) = a + k)`, where `v + k` and `a + k` denote ordinal displacement (TA7a) applied to V-positions and I-address element ordinals respectively.
+
 A *correspondence run* is a triple `(v, a, n)` — a V-position, an I-address, and a natural number `n ≥ 1` — such that the arrangement preserves ordinal displacement within the run:
 
 `(A k : 0 ≤ k < n : Σ.M(d)(v + k) = a + k)`
