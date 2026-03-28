@@ -1693,7 +1693,7 @@ Define `d = n₂ − n₁`. Since `n₂ > n₁` and both are natural numbers, `d
 
 We invoke TS3 (ShiftComposition) with tumbler `v`, first shift `n₁`, second shift `d`. The preconditions are `n₁ ≥ 1` (given), `d ≥ 1` (established above), and `#v = m` (given), all satisfied. Therefore `shift(shift(v, n₁), d) = shift(v, n₁ + d) = shift(v, n₂)`. This expresses the larger shift as a composition: first shift by `n₁`, then shift the result by `d`.
 
-Let `u = shift(v, n₁)`. We need `#u = m` to invoke TS4 on `u`. By the definition of shift, `u = v ⊕ δ(n₁, m)`, and by TA0 (result-length identity), `#u = #δ(n₁, m) = m`. So `u ∈ T` with `#u = m`. The composition identity gives `shift(v, n₂) = shift(u, d)`.
+Let `u = shift(v, n₁)`. We need `#u = m` to invoke TS4 on `u`. By OrdinalShift, `u = v ⊕ δ(n₁, m)`, where `δ(n₁, m) = [0, ..., 0, n₁]` has action point `m` (OrdinalDisplacement). The preconditions of TA0 are satisfied: `δ(n₁, m) > 0` because `n₁ ≥ 1` makes component `m` positive, and `k = m ≤ m = #v`. By TA0, `u = v ⊕ δ(n₁, m) ∈ T` with `#u = #δ(n₁, m) = m`. The composition identity gives `shift(v, n₂) = shift(u, d)`.
 
 We invoke TS4 (ShiftStrictIncrease) with tumbler `u` and shift amount `d`. The preconditions are `d ≥ 1` (established above) and `#u = m` (just confirmed), both satisfied. Therefore `shift(u, d) > u`.
 
