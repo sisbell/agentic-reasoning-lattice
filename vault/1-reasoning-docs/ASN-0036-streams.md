@@ -542,6 +542,10 @@ The asymmetry is deliberate and load-bearing. Nelson enumerates the guarantees t
 
 Gregory's implementation confirms the separation operationally. Every editing command in the FEBE protocol works exclusively on arrangement state. Of the editing commands Nelson specifies, none modifies existing Istream content. Commands that create content (INSERT, APPEND) extend `dom(C)` with fresh addresses and simultaneously update some `M(d)`. Commands that modify arrangement (DELETE, REARRANGE, COPY) touch only `M(d)`, leaving `C` untouched. No command crosses the boundary in the dangerous direction — no arrangement operation can corrupt stored content.
 
+*Formal Contract:*
+- *Preconditions:* State transition `Σ → Σ'` in a system satisfying S0 (content immutability).
+- *Invariant:* `[Σ'.M(d) ≠ Σ.M(d) ⟹ (A a ∈ dom(Σ.C) :: a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a))]`.
+
 
 ## Worked example
 
