@@ -432,7 +432,7 @@ Two findings from Gregory's implementation evidence illuminate the boundary betw
 | S3 | Adjacent or overlapping level-uniform, level-compatible spans merge to a single span | introduced |
 | S3a | Span merge is commutative | introduced |
 | S4 | Split at a level-compatible interior point produces an exact partition: nothing lost, nothing duplicated, the two parts adjacent | introduced |
-| TA-LC | a ⊕ x = a ⊕ y ⟹ x = y (LeftCancellation, ASN-0055) | cited |
+| TA-LC | a ⊕ x = a ⊕ y ⟹ x = y (LeftCancellation, ASN-0034) | cited |
 | S5 | The widths of two split parts compose under ⊕ to the original width | introduced |
 | S4a | Split-merge inverse: splitting σ at a level-compatible interior point and merging recovers σ exactly | introduced |
 | S3b | Merge-split inverse: merging adjacent level-uniform spans and splitting at the original boundary recovers both spans exactly | introduced |
