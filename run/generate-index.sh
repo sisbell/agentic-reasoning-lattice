@@ -2,7 +2,7 @@
 # Regenerate vault/project-model/index.md from ASN project yamls.
 #
 # Groups by topic, sorts by ASN number within each group.
-# Reads status, title, depends from each yaml.
+# Reads stage, title, depends from each yaml.
 # Computes export freshness from file timestamps.
 #
 # Usage:
@@ -24,7 +24,7 @@ for yaml in "$MODEL_DIR"/ASN-*/project.yaml; do
     asn_dir=$(dirname "$yaml")
     label=$(basename "$asn_dir")
     title=$(grep '^title:' "$yaml" | sed 's/title: *"//;s/"//' || true)
-    status=$(grep '^status:' "$yaml" | sed 's/status: *"//;s/"//' || true)
+    status=$(grep '^stage:' "$yaml" | sed 's/stage: *"//;s/"//' || true)
     topic=$(grep '^topic:' "$yaml" | sed 's/topic: *"//;s/"//' || true)
     deps=$(grep '^depends:' "$yaml" | sed 's/depends: *\[//;s/\]//;s/ //g' || true)
 
@@ -67,8 +67,8 @@ Regenerate with: `./run/generate-index.sh`
 
 ## Foundation
 
-| ASN | Title | Status | Export | Depends |
-|-----|-------|--------|--------|---------|
+| ASN | Title | Stage | Export | Depends |
+|-----|-------|-------|--------|---------|
 HEADER
 
 for line in "${foundations[@]}"; do
@@ -79,8 +79,8 @@ cat >> "$INDEX" << 'HEADER'
 
 ## Operations
 
-| ASN | Title | Status | Export | Depends |
-|-----|-------|--------|--------|---------|
+| ASN | Title | Stage | Export | Depends |
+|-----|-------|-------|--------|---------|
 HEADER
 
 for line in "${operations[@]}"; do
