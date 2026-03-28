@@ -11,6 +11,7 @@ Usage:
     python scripts/revise.py 9 --cycle 3    # 3 cycles (first uses latest review, rest do review → revise)
     python scripts/revise.py 9 --converge   # loop until CONVERGED (max 15)
     python scripts/revise.py 9 --converge 8 # loop until CONVERGED (max 8)
+    python scripts/revise.py 9 --cycles 3   # force 3 rounds, ignore convergence
     python scripts/revise.py 9 --resume revise  # skip consult, go straight to revise
 """
 
@@ -63,12 +64,26 @@ def main():
     parser.add_argument("--converge", nargs="?", type=int, const=15,
                         metavar="MAX",
                         help="Loop until CONVERGED verdict (default max: 15)")
+    parser.add_argument("--cycles", type=int, default=None,
+                        help="Force N review/revise rounds, ignore convergence")
     parser.add_argument("--resume", choices=["revise"],
                         help="Resume from revise (skip consult)")
     args = parser.parse_args()
 
-    # --converge overrides --cycle
-    max_cycles = args.converge if args.converge is not None else args.cycle
+    if args.cycles is not None and args.converge is not None:
+        print("  --cycles and --converge are mutually exclusive", file=sys.stderr)
+        sys.exit(1)
+
+    # Determine mode
+    if args.cycles is not None:
+        max_cycles = args.cycles
+        force_cycles = True
+    elif args.converge is not None:
+        max_cycles = args.converge
+        force_cycles = False
+    else:
+        max_cycles = args.cycle
+        force_cycles = False
 
     # Find ASN
     asn_path, asn_label = find_asn(args.asn)
@@ -78,7 +93,10 @@ def main():
 
     asn_number = int(asn_label.replace("ASN-", ""))
     print(f"  [REVISE] {asn_label} ({asn_path.name})", file=sys.stderr)
-    if args.converge is not None:
+    if args.cycles is not None:
+        print(f"  [REVISE] forced {max_cycles} cycle(s)",
+              file=sys.stderr)
+    elif args.converge is not None:
         print(f"  [REVISE] converge mode (max {max_cycles} cycles)",
               file=sys.stderr)
     else:
@@ -125,7 +143,10 @@ def main():
                     sys.exit(1)
             print(f"  [REVIEW] {review_path}", file=sys.stderr)
 
-            if converged:
+            if converged and force_cycles:
+                print(f"  [REVISE] Reviewer says CONVERGED but --cycles forces continuation",
+                      file=sys.stderr)
+            elif converged:
                 # Cycle gate — check dependency graph before accepting
                 from lib.formalization.mechanical import check_cycles, format_cycle_findings
                 from lib.formalization.deps import generate_deps
@@ -148,8 +169,8 @@ def main():
                     step_commit(f"Review {asn_label} — converged",
                                 asn_id=asn_number)
                     asn_num = asn_label.replace("ASN-", "").lstrip("0") or "0"
-                    print(f"\n  [NEXT] Export statements: "
-                          f"python scripts/normalize.py {asn_num}",
+                    print(f"\n  [NEXT] Formalize: "
+                          f"python scripts/formalize.py {asn_num} --step assembly",
                           file=sys.stderr)
                     break
 
@@ -181,7 +202,10 @@ def main():
             sys.exit(1)
         args.resume = None  # clear resume after first cycle
 
-        if revise_converged:
+        if revise_converged and force_cycles:
+            print(f"  [REVISE] Revise made no changes but --cycles forces continuation",
+                  file=sys.stderr)
+        elif revise_converged:
             # Cycle gate — check before accepting convergence
             from lib.formalization.mechanical import check_cycles, format_cycle_findings
             from lib.formalization.deps import generate_deps
