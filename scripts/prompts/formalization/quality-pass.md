@@ -48,7 +48,14 @@ The ASN is at `{{asn_path}}`.
    formal statement unchanged.
 2. The proof must be self-contained — a reader should understand it
    without reading any other section.
-3. Do not rewrite for cleaner structure or tighter language.
+3. Do not rewrite for cleaner structure or tighter language. Examples
+   of changes that are NOT substantive — do not make these:
+   - Renaming labels: "prefix copy" → "prefix: copied from operand"
+   - Rephrasing openings: "We show" → "We verify" or "We establish"
+   - Restructuring sentences that already convey the same logic
+   - Adding parenthetical attributions when the citation is already clear
+   Leave the author's voice intact. Only change text when the proof
+   has a gap, missing case, or incorrect statement.
 4. For axioms: state why the property holds by definition or design.
    Use `*Axiom:*` in the formal contract.
 5. For definitions: ensure the construction rule is clear. Use
