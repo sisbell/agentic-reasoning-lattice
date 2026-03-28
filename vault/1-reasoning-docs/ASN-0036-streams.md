@@ -54,6 +54,16 @@ Nelson states this as an explicit design commitment: "The true storage of text s
 
 Gregory's evidence reveals an instructive footnote. The implementation carries a `refcount` field annotated "for subtree sharing, disk garbage collecting." Functions for reference-counted deletion exist: `deletefullcrumandgarbageddescendents()` and `deletewithgarbageddescendents()`. But the actual reclamation call was commented out on a specific date: `/*subtreefree(ptr);*/ /*12/04/86*/`. The machinery was built, dated December 4, 1986, and deliberately deactivated. S0 and S1 are upheld not by architectural impossibility but by a design choice so consistent that four decades of continuous operation have never violated it.
 
+*Proof.* We wish to show that for every state transition `Σ → Σ'`, `dom(Σ.C) ⊆ dom(Σ'.C)`.
+
+Let `a ∈ dom(Σ.C)` be arbitrary. By S0 (content immutability), `a ∈ dom(Σ.C)` implies the conjunction `a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a)`. The first conjunct yields `a ∈ dom(Σ'.C)` directly. Since `a` was chosen arbitrarily from `dom(Σ.C)`, we have established `(A a : a ∈ dom(Σ.C) : a ∈ dom(Σ'.C))`, which is `dom(Σ.C) ⊆ dom(Σ'.C)` by definition of subset inclusion.
+
+S1 is strictly weaker than S0: it asserts domain persistence without value preservation. We state it separately because it names a distinct architectural commitment — the content store grows monotonically — and because it specialises T8 (allocation permanence, ASN-0034) from the abstract address space to the content store. T8 guarantees `allocated(s) ⊆ allocated(s')` for the address space as a whole; S1 guarantees `dom(Σ.C) ⊆ dom(Σ'.C)` for the content store specifically. The two properties have different scopes: T8 covers addresses that have been allocated but may carry no content, while S1 covers addresses at which content has actually been stored. That `dom(Σ.C)` is a subset of the allocated set means S1 could in principle follow from T8 together with an axiom linking allocation to content storage — but the derivation from S0 is more direct and reveals the logical relationship: domain monotonicity is a consequence of content immutability, not an independent commitment. ∎
+
+*Formal Contract:*
+- *Preconditions:* State transition `Σ → Σ'` in a system satisfying S0 (content immutability).
+- *Postconditions:* `dom(Σ.C) ⊆ dom(Σ'.C)`.
+
 
 ## The arrangement and referential integrity
 
@@ -555,7 +565,7 @@ This has a formal consequence: document equality is not decidable by content com
 | Σ.C | Content store: `T ⇀ Val`, mapping I-addresses to content values | introduced |
 | Σ.M(d) | Arrangement for document `d`: `T ⇀ T`, mapping V-positions to I-addresses | introduced |
 | S0 | Content immutability: `a ∈ dom(C) ⟹ a ∈ dom(C') ∧ C'(a) = C(a)` for all transitions | design requirement |
-| S1 | Store monotonicity: `dom(C) ⊆ dom(C')` for all transitions | corollary of S0 |
+| S1 | Store monotonicity: `dom(C) ⊆ dom(C')` for all transitions | from S0 |
 | S2 | Arrangement functionality: `M(d)` is a function — each V-position maps to exactly one I-address | axiom |
 | S3 | Referential integrity: `(A d, v : v ∈ dom(M(d)) : M(d)(v) ∈ dom(C))` | design requirement |
 | S4 | Origin-based identity: distinct allocations produce distinct I-addresses regardless of value equality | from GlobalUniqueness, T3 (ASN-0034) |
