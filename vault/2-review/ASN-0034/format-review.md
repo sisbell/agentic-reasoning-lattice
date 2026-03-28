@@ -1,38 +1,46 @@
 ### 1. Table Structure
 
-Table has exactly the three required columns — Label, Statement, Status — in correct order.
-
 (none)
+
+The table has the required three columns in the correct order: Label, Statement, Status.
 
 ### 2. Status Vocabulary
 
-All 48 status values match the standard vocabulary patterns: `axiom`, `introduced`, `from …`, `corollary of …`, `lemma (from …)`, `theorem from …`, `design requirement`.
-
 (none)
+
+All status values match standard patterns: `axiom`, `introduced`, `from …`, `corollary of …`, `design requirement`, `lemma (from …)`, `theorem from …`.
 
 ### 3. Header Format
 
-Every property header follows `**LABEL (Name).**` and every definition header follows `**Definition (Name).**`. Bold sub-headings inside proofs (`**Consequence 1: …**`, `**Necessity.**`, `**Verification of T4.**`, `**Claim:**`) are proof-section labels, not property introductions.
-
 (none)
+
+Every property header follows `**LABEL (Name).**` and every definition header follows `**Definition (Name).**`. Bold closure and trailing period are present throughout. Sub-section markers (`**Verification of T4.**`, `**Consequence 1: …**`, `**Necessity.**`) are clearly narrative prose, not property headers, and are not findings.
 
 ### 4. Missing Table Entries
 
-All 48 prose bold headers resolve to a table entry.
-
 (none)
+
+Every bold property or definition header in the prose has a corresponding row in the property table:
+
+- `**Definition (Divergence).**` → `Divergence` ✓  
+- `**Definition (TumblerAdd).**` → `TumblerAdd` ✓  
+- `**Definition (TumblerSub).**` → `TumblerSub` ✓  
+- `**Definition (PositiveTumbler).**` → `PositiveTumbler` ✓  
+- `**Definition (OrdinalDisplacement).**` → `OrdinalDisplacement` ✓  
+- `**Definition (OrdinalShift).**` → `OrdinalShift` ✓  
+- All 48 property/definition headers verified against the table.
 
 ### 5. Missing Prose Sections
 
-All 48 table entries have a corresponding bold prose header.
-
 (none)
+
+Every label in the property table has a corresponding bold prose section. All 48 labels accounted for.
 
 ### 6. Duplicate Labels
 
-No label appears more than once in the property table.
-
 (none)
+
+All 48 table labels are unique.
 
 ---
 

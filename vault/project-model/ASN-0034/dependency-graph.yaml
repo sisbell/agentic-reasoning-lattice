@@ -112,7 +112,6 @@ properties:
     status: from
     follows_from:
     - T1
-    - T5
     - TA-strict
     - TA0
     name: Span well-definedness
@@ -197,6 +196,7 @@ properties:
     follows_from:
     - T1
     - T3
+    - TA0
     - TA2
     - TA3-strict
     - TA4
@@ -278,7 +278,6 @@ properties:
   D0:
     status: from
     follows_from:
-    - D1
     - Divergence
     - T1
     - T3
