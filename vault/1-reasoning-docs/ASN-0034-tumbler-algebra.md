@@ -1570,7 +1570,7 @@ Fix `v₁, v₂ ∈ T` with `#v₁ = #v₂ = m` and `v₁ < v₂`, and fix `n �
 
 (iii) `k ≤ min(#v₁, #v₂)` — the action point `k = m` (OrdinalDisplacement), and `min(#v₁, #v₂) = min(m, m) = m`, so `m ≤ m` holds.
 
-(iv) `k ≥ divergence(v₁, v₂)` — since `#v₁ = #v₂ = m`, Divergence case (ii) (prefix divergence) is excluded: it requires `#v₁ ≠ #v₂`. Since `v₁ < v₂` implies `v₁ ≠ v₂`, case (i) applies: `divergence(v₁, v₂) = min({j : 1 ≤ j ≤ m ∧ v₁ⱼ ≠ v₂ⱼ})`, which satisfies `divergence(v₁, v₂) ≤ m`. The required `k = m ≥ divergence(v₁, v₂)` follows.
+(iv) `k ≥ divergence(v₁, v₂)` — since `v₁ < v₂` implies `v₁ ≠ v₂`, and `#v₁ = #v₂ = m`, Divergence gives `divergence(v₁, v₂) = min({j : 1 ≤ j ≤ m ∧ v₁ⱼ ≠ v₂ⱼ})`. This minimum ranges over a non-empty subset of `{1, …, m}` (non-empty because `v₁ ≠ v₂` with equal lengths guarantees at least one differing position), so `divergence(v₁, v₂) ≤ m`. The required `k = m ≥ divergence(v₁, v₂)` follows.
 
 All four preconditions hold. TA1-strict yields `v₁ ⊕ δ(n, m) < v₂ ⊕ δ(n, m)`, that is, `shift(v₁, n) < shift(v₂, n)`. ∎
 
