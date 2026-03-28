@@ -10,5 +10,5 @@ if [ $# -lt 1 ]; then
     exit 1
 fi
 
-python scripts/review.py "$1"
-python scripts/revise.py "$1" --converge
+python scripts/discover.py "$1"
+python scripts/discover.py "$1" --converge
