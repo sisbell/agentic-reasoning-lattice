@@ -93,6 +93,9 @@ This is inherent in the concept of a "virtual byte stream." Nelson: "Logical add
 
 We note the phrase "regardless of their native origin." A document's Vstream presents content as a seamless sequence even when the I-addresses are scattered across multiple documents' Istreams. The arrangement function is what makes heterogeneous Istream origins appear as a uniform Vstream stream.
 
+*Formal Contract:*
+- *Axiom:* For each document `d`, `Σ.M(d)` is a function — every `v ∈ dom(Σ.M(d))` maps to exactly one I-address.
+
 The bridge between the two state components is a well-formedness condition:
 
 **S3 (Referential integrity).** `(A d, v : v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ dom(Σ.C))`

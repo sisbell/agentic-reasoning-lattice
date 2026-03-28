@@ -296,3 +296,21 @@ Additionally, no `*Formal Contract:*` section is provided (checklist item 6).
 1. **Clarify the status of D-MIN.** If it is an axiom (a design constraint that V-position numbering starts at 1, paralleling Nelson's "addresses 1 through 100" and the tumbler convention that ordinals begin at 1 as noted at the end of the D-CTG-depth section), declare it as such with an axiom formal contract. If it is a theorem, provide a non-circular proof — this would require dependencies not currently listed (e.g., properties of how the initial document state assigns V-positions, and how each operation preserves the minimum).
 2. **Add a formal contract.** If axiom: `*Formal Contract:* — *Axiom:* min(V_S(d)) = [S, 1, …, 1] for every document d and subspace S with V_S(d) non-empty.` If theorem: preconditions (V_S(d) non-empty, S8-depth, etc.) and postcondition (`min(V_S(d)) = [S, 1, …, 1]`).
 3. **Separate the corollary.** The "general form" derivation (every position is [S, 1, …, 1, k] for 1 ≤ k ≤ n) is a valid consequence of D-MIN + D-CTG-depth + D-CTG + S8-fin, but it should be clearly labeled as a corollary that follows *from* D-MIN, not as the proof *of* D-MIN.
+
+### [REVIEW-47] [VERIFIED] D-MIN
+
+### [REVIEW-47] [RESOLVED] D-MIN
+
+### [REVIEW-47] [FOUND] S2
+```
+RESULT: FOUND
+
+**Problem**: The property section has no `*Formal Contract:*` section. S2 declares that `Σ.M(d)` is a function by design — the narrative says "This is inherent in the concept of a 'virtual byte stream'" — making it an axiom, not a derived result. The formal contract must capture this.
+
+**Required**: Append a formal contract to the property section:
+
+```
+*Formal Contract:*
+- *Axiom:* For each document d, Σ.M(d) is a function — every v ∈ dom(Σ.M(d)) maps to exactly one I-address
+```
+```
