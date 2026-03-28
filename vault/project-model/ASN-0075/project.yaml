@@ -1,6 +1,6 @@
 # ASN-0075 — SHOWDELETIONS Operation
 title: "SHOWDELETIONS Operation"
-status: "defined"
+stage: "inquiry"
 topic: "operation"
 depends: [34, 36, 47, 53, 58]
 out_of_scope: "INSERT, DELETE, COPY, REARRANGE operation mechanics, link semantics, version DAG structure, replication and inter-server protocol (BEBE)"
