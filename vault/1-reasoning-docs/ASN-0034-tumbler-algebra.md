@@ -1868,7 +1868,9 @@ The S-membership question for `⊖` is more delicate. We perform exhaustive case
 
 *Case `k = 1`, divergence `d > 1`:* The displacement has `w₁ > 0`, and `o₁ = w₁` — the operands agree at position 1, with divergence at some later `d > 1`. TumblerSub zeros all positions before `d`: `rᵢ = 0` for `1 ≤ i < d`. In particular `r₁ = 0`, so the result has a zero first component and is not in S. Counterexample: `o = [5, 3]`, `w = [5, 1]` (action point `k = 1`, divergence `d = 2`). TumblerSub yields `r = [0, 3 - 1] = [0, 2]`. We have `[0, 2] ∈ T` (confirming the T-closure claim) but `[0, 2] ∉ S ∪ Z`. This case arises when `o` and `w` share a leading prefix — the subtraction produces a displacement-like tumbler with leading zeros rather than a valid ordinal position.
 
-For single-component ordinals, the `d > 1` case cannot arise (there is only one position), and `⊖` gives closure in S ∪ Z: `[x] ⊖ [n]` yields `[x - n] ∈ S` when `x > n`, or `[0] ∈ Z` when `x = n` (a zero sentinel by TA6).
+*Case `k = 1`, no divergence:* When `#w = m` and `oᵢ = wᵢ` for every `1 ≤ i ≤ m`, the padded operands are identical — there is no position at which they differ. TumblerSub's no-divergence rule applies: the result is the zero tumbler `[0, ..., 0]` of length `m`, a member of T by TA6. Every component is zero, so the result lies in T \ S. (When `#w < m`, this sub-case cannot arise: the zero-padded subtrahend has `wᵢ = 0` at some position `i > #w` where `oᵢ > 0`, forcing a divergence.)
+
+For single-component ordinals, the `d > 1` case cannot arise (there is only one position) and the no-divergence case reduces to `o = w`. Thus `⊖` gives closure in S ∪ Z: `[x] ⊖ [n]` yields `[x - n] ∈ S` when `x > n`, or `[0] ∈ Z` when `x = n` (a zero sentinel by TA6).
 
 In every case, the result lies in T. The subspace identifier, held as structural context outside the operands, is never modified by either operation. TA7a holds. ∎
 
