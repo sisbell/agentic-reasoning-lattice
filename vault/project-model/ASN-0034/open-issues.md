@@ -91,3 +91,41 @@ Concrete example: child allocator produces `t₀ = [1,1,0,1]`. A grandchild allo
 The comparability conclusion is independently true (T1 is a strict total order by T1(b), so any two elements of T are comparable), but the stated reasoning path through T9 is invalid.
 
 **Required**: Replace Case 1's reasoning. Comparability of any `a, b ∈ T` follows directly from T1 trichotomy (T1(b)), not from T9. For the consistency-with-allocation-order claim, T9 applies per-allocator independently and needs no sub-partition scoping — it already guarantees `same_allocator(a, b) ∧ allocated_before(a, b) ⟹ a < b` regardless of which partition the allocator operates in. Alternatively, explicitly note that the intra-sub-partition case reduces to a recursive application of PartitionMonotonicity at the `tᵢ` level, where the child's sub-partition becomes the parent partition for the next level's argument.
+
+### [REVIEW-51] [VERIFIED] PartitionMonotonicity
+
+### [REVIEW-51] [RESOLVED] PartitionMonotonicity
+
+### [REVIEW-51] [VERIFIED] PositiveTumbler
+
+### [REVIEW-51] [VERIFIED] TA3-strict
+
+### [REVIEW-51] [VERIFIED] ReverseInverse
+
+### [REVIEW-51] [VERIFIED] T0(b)
+
+### [REVIEW-51] [VERIFIED] TA-strict
+
+### [REVIEW-51] [VERIFIED] T12
+
+### [REVIEW-51] [VERIFIED] T6
+
+### [REVIEW-51] [VERIFIED] T7
+
+### [REVIEW-51] [VERIFIED] TA-MTO
+
+### [REVIEW-51] [VERIFIED] TA-RC
+
+### [REVIEW-51] [VERIFIED] TA-assoc
+
+### [REVIEW-51] [VERIFIED] TA7a
+
+### [REVIEW-51] [VERIFIED] TS1
+
+### [REVIEW-51] [VERIFIED] TS2
+
+### [REVIEW-51] [VERIFIED] TS3
+
+### [REVIEW-51] [VERIFIED] TS4
+
+### [REVIEW-51] [VERIFIED] TS5
