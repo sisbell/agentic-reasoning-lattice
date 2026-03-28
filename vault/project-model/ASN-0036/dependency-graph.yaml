@@ -1,0 +1,188 @@
+asn: 36
+depends:
+- 34
+properties:
+  Σ.C:
+    status: introduced
+    name: Content store
+  Σ.M(d):
+    status: introduced
+    name: Arrangement for document `d`
+  S0:
+    status: introduced
+    name: Content immutability
+  S1:
+    status: corollary
+    follows_from:
+    - S0
+    - T10
+    - T8
+    - T9
+    name: Store monotonicity
+    follows_from_asns:
+    - 34
+  S2:
+    status: introduced
+    name: Arrangement functionality
+  S3:
+    status: introduced
+    name: Referential integrity
+    follows_from:
+    - S1
+  S4:
+    status: from
+    follows_from:
+    - GlobalUniqueness
+    - T3
+    follows_from_asns:
+    - 34
+    name: Origin-based identity
+  S5:
+    status: consistent
+    follows_from:
+    - S0
+    - S1
+    - S2
+    - S3
+    - S4
+    - S6
+    name: Unrestricted sharing
+  S6:
+    status: corollary
+    follows_from:
+    - S0
+    - S7
+    - T4
+    name: Persistence independence
+    follows_from_asns:
+    - 34
+  S7a:
+    status: introduced
+    name: Document-scoped allocation
+    follows_from:
+    - S7
+    - T4
+    follows_from_asns:
+    - 34
+  S7b:
+    status: introduced
+    name: Element-level I-addresses
+    follows_from:
+    - S7a
+    - T4
+    follows_from_asns:
+    - 34
+  S7:
+    status: from
+    follows_from:
+    - GlobalUniqueness
+    - S0
+    - S4
+    - S7a
+    - S7b
+    - T10a
+    - T4
+    follows_from_asns:
+    - 34
+    name: Structural attribution
+  S8-fin:
+    status: introduced
+    name: Finite arrangement
+  S8a:
+    status: introduced
+    name: V-position well-formedness
+    follows_from:
+    - S7b
+    - S8
+    - S8-depth
+    - T1
+    - T10
+    - T4
+    - T5
+    follows_from_asns:
+    - 34
+  S8-depth:
+    status: design
+    name: Fixed-depth V-positions
+    follows_from:
+    - S7a
+    - T10a
+    - TA7a
+    follows_from_asns:
+    - 34
+  S8:
+    status: theorem
+    follows_from:
+    - S2
+    - S8-depth
+    - S8-fin
+    - S8a
+    - T1
+    - T10
+    - T3
+    - T5
+    - TA5
+    - TA7a
+    follows_from_asns:
+    - 34
+    name: Span decomposition
+  D-CTG:
+    status: introduced
+    name: V-position contiguity
+    follows_from:
+    - S8-depth
+    - S8-fin
+    - T0(a)
+    - T3
+    follows_from_asns:
+    - 34
+  D-MIN:
+    status: introduced
+    name: V-position minimum
+    follows_from:
+    - D-CTG
+    - D-CTG-depth
+    - S8-depth
+    - S8-fin
+  D-CTG-depth:
+    status: corollary
+    follows_from:
+    - D-CTG
+    - S8-depth
+    - S8-fin
+    - T0(a)
+    - T1
+    - T3
+    - T4
+    follows_from_asns:
+    - 34
+    name: Shared prefix reduction
+  D-SEQ:
+    status: corollary
+    follows_from:
+    - D-CTG
+    - D-CTG-depth
+    - D-MIN
+    - S8-depth
+    - S8-fin
+    - ValidInsertionPosition
+    name: Sequential positions (m ≥ 2)
+  ValidInsertionPosition:
+    status: introduced
+    name: ValidInsertionPosition
+    follows_from:
+    - D-CTG
+    - D-MIN
+    - OrdinalShift
+    - S8-depth
+    - S8a
+    - T3
+    - TumblerAdd
+    follows_from_asns:
+    - 34
+  S9:
+    status: theorem
+    follows_from:
+    - S0
+    - S3
+    name: Two-stream separation
