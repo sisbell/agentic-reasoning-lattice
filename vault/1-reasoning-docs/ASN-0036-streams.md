@@ -163,6 +163,21 @@ S6 creates what Gregory calls an "orphan" phenomenon. Content in `dom(C)` that i
 
 This is not a deficiency but a structural consequence of the two-stream model. The system's query interface is Vstream-primary: you start from a document (a Vstream entity), look up content (through the arrangement), and follow references (through Istream addresses). There is no path that begins in Istream and discovers content without a Vstream entry point. Orphaned content is permanent but practically invisible — a kind of information-theoretic dark matter, present by guarantee but unobservable through the system's own instruments.
 
+*Proof.* We wish to show that for every `a ∈ dom(Σ.C)` and every state transition `Σ → Σ'`, the implication `a ∈ dom(Σ'.C)` holds regardless of any changes to any arrangement function `Σ.M(d)`.
+
+The argument has two parts: first that domain persistence holds, then that it holds independently of arrangements.
+
+**Domain persistence.** Let `a ∈ dom(Σ.C)` be arbitrary and let `Σ → Σ'` be any state transition. By S0 (content immutability), `a ∈ dom(Σ.C)` implies the conjunction `a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a)`. The first conjunct yields `a ∈ dom(Σ'.C)` directly. Since `a` was arbitrary, `(A a : a ∈ dom(Σ.C) : a ∈ dom(Σ'.C))`.
+
+**Independence from arrangements.** S0's guarantee is quantified over ALL state transitions `Σ → Σ'` — including transitions that add, remove, or reassign entries in any arrangement `M(d)`. Crucially, S0's antecedent is `a ∈ dom(Σ.C)` alone: it does not condition on whether `a` appears in `ran(M(d))` for any document `d`. The guarantee makes no reference to the arrangement functions whatsoever — the content function `C` and the arrangement functions `M` are distinct components of the system state, and S0 constrains `C` without mentioning `M`. Therefore, the conclusion `a ∈ dom(Σ'.C)` holds whether zero, one, or all arrangements reference `a`, and whether the transition modifies any arrangement or not. The persistence of `a` in `dom(C)` is a property of the content store alone, insulated from the arrangement layer by the two-stream separation.
+
+We note what S6 excludes. A system satisfying a weakened variant of S0 — one that permits removal of `a` from `dom(C)` when `(A d :: a ∉ ran(M(d)))` — would violate S6 while potentially preserving a conditional form of content immutability. S6's independence follows precisely because S0 is unconditional: it does not carve out an exception for unreferenced content. ∎
+
+*Formal Contract:*
+- *Preconditions:* `a ∈ dom(Σ.C)` and state transition `Σ → Σ'` in a system satisfying S0 (content immutability).
+- *Postconditions:* `a ∈ dom(Σ'.C)`, with no condition on the arrangement functions `Σ.M(d)` or `Σ'.M(d)` for any document `d`.
+- *Frame:* The arrangement functions `M(d)` are unconstrained — S6 holds for all possible values of `Σ'.M(d)`, including `Σ'.M(d) = ∅`.
+
 
 ## Structural attribution
 
@@ -570,7 +585,7 @@ This has a formal consequence: document equality is not decidable by content com
 | S3 | Referential integrity: `(A d, v : v ∈ dom(M(d)) : M(d)(v) ∈ dom(C))` | design requirement |
 | S4 | Origin-based identity: distinct allocations produce distinct I-addresses regardless of value equality | from GlobalUniqueness, T3 (ASN-0034) |
 | S5 | Unrestricted sharing: S0–S3 do not entail any finite bound on sharing multiplicity | consistent with S0, S1, S2, S3 |
-| S6 | Persistence independence: `a ∈ dom(C)` is unconditional — independent of all arrangements | corollary of S0 |
+| S6 | Persistence independence: `a ∈ dom(C)` is unconditional — independent of all arrangements | from S0 |
 | S7a | Document-scoped allocation: every I-address is allocated under the originating document's prefix | design requirement |
 | S7b | Element-level I-addresses: `(A a ∈ dom(C) :: zeros(a) = 3)` | design requirement |
 | S7 | Structural attribution: `origin(a) = (fields(a).node).0.(fields(a).user).0.(fields(a).document)` — full document prefix | from S7a, S7b, S0, S4, T4, T3, GlobalUniqueness (ASN-0034) |
