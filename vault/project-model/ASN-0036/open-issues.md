@@ -463,3 +463,19 @@ structural guarantees. For example:
   zeros(v) = 0 ∧ v > 0 (S8a consistency); in the non-empty case, exactly N + 1
   valid positions, pairwise distinct by T3.
 ```
+
+### [REVIEW-52] [VERIFIED] ValidInsertionPosition
+
+### [REVIEW-52] [RESOLVED] ValidInsertionPosition
+
+### [REVIEW-52] [VERIFIED] D-SEQ
+
+### [REVIEW-52] [VERIFIED] S6
+
+### [REVIEW-52] [VERIFIED] S5
+
+### [REVIEW-52] [VERIFIED] S9
+
+### [REVIEW-52] [VERIFIED] Σ.C
+
+### [REVIEW-52] [VERIFIED] Σ.M(d)
