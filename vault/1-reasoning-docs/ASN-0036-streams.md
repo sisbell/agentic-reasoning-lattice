@@ -110,6 +110,21 @@ For an operation that only adds a V-mapping without creating content, the target
 
 We observe a deliberate asymmetry. S3 says arrangement implies existence: `ran(M(d)) ⊆ dom(C)`. It does NOT say existence implies arrangement. Content can exist in Istream without being arranged in any current document. Nelson calls such content "deleted bytes — not currently addressable, awaiting historical backtrack functions, may remain included in other versions." The asymmetry is the space in which persistence independence lives.
 
+*Proof.* We establish S3 as a state invariant by induction over the reachable states of the system.
+
+**Base case.** In the initial state `Σ₀`, no document has yet acquired any arrangement entries: `dom(Σ₀.M(d)) = ∅` for every document `d`. The universal quantification `(A d, v : v ∈ dom(Σ₀.M(d)) : Σ₀.M(d)(v) ∈ dom(Σ₀.C))` holds vacuously over the empty domain.
+
+**Inductive step.** Assume S3 holds in state `Σ` and consider an arbitrary transition `Σ → Σ'`. We must show `(A d, v : v ∈ dom(Σ'.M(d)) : Σ'.M(d)(v) ∈ dom(Σ'.C))`. Take an arbitrary document `d` and `v ∈ dom(Σ'.M(d))`. Two cases arise.
+
+*Case 1: Preserved mapping.* Suppose `v ∈ dom(Σ.M(d))` and the mapping is retained: `Σ'.M(d)(v) = Σ.M(d)(v)`. By the inductive hypothesis, `Σ.M(d)(v) ∈ dom(Σ.C)`. By S1 (store monotonicity), `dom(Σ.C) ⊆ dom(Σ'.C)`. Combining: `Σ'.M(d)(v) = Σ.M(d)(v) ∈ dom(Σ.C) ⊆ dom(Σ'.C)`, so `Σ'.M(d)(v) ∈ dom(Σ'.C)`.
+
+*Case 2: New or modified mapping.* Suppose either `v ∉ dom(Σ.M(d))` or `Σ'.M(d)(v) ≠ Σ.M(d)(v)`. Let `a = Σ'.M(d)(v)`. The weakest-precondition analysis above requires `a ∈ dom(Σ'.C)` for every such mapping. We take this as an axiom: every arrangement-modifying operation that introduces a mapping `M(d)(v) = a` ensures `a ∈ dom(Σ'.C)` in the post-state — either because `a` already existed in `dom(Σ.C)` (and persists by S1), or because the operation atomically creates content at `a`. This is a design constraint on all arrangement-modifying operations, parallel to S0's constraint on content-store operations. Under this axiom, `Σ'.M(d)(v) ∈ dom(Σ'.C)`.
+
+Since both cases yield `Σ'.M(d)(v) ∈ dom(Σ'.C)`, and `d` and `v` were arbitrary, S3 holds in `Σ'`. By induction, S3 holds in every reachable state. ∎
+
+*Formal Contract:*
+- *Invariant:* `(A d, v : v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ dom(Σ.C))`
+
 
 ## Content identity
 
