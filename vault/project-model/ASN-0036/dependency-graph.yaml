@@ -137,6 +137,7 @@ properties:
     - S8-depth
     - S8-fin
     - T0(a)
+    - T1
     - T3
     follows_from_asns:
     - 34
