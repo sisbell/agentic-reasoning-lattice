@@ -27,15 +27,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, PROJECT_MODEL_DIR, load_manifest, dep_graph
 from lib.shared.common import find_asn
 
-# Import label scanning from dependency-audit.py (hyphenated filename)
-import importlib
-_dep_audit_path = WORKSPACE / "scripts" / "dependency-audit.py"
-_spec = importlib.util.spec_from_file_location("dependency_audit", _dep_audit_path)
-_dep_audit = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(_dep_audit)
-build_label_map = _dep_audit.build_label_map
-scan_reasoning_doc = _dep_audit.scan_reasoning_doc
-get_dep_chain = _dep_audit.get_dep_chain
+# Import label scanning from audit/dependency.py
+from audit.dependency import build_label_map, scan_reasoning_doc, get_dep_chain
 
 
 @dataclass
