@@ -54,10 +54,6 @@ properties:
   T8:
     status: design
     name: Allocation permanence
-    follows_from:
-    - T1
-    - T2
-    - T4
   T9:
     status: other
     follows_from:
