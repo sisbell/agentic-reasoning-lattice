@@ -1621,19 +1621,19 @@ Since `#v₁ = #v₂ = m` and `v₁ᵢ = v₂ᵢ` at every position `1 ≤ i ≤
 
 Fix `v ∈ T` with `#v = m`, and fix `n₁ ≥ 1`, `n₂ ≥ 1`. We compute each side of the equation `shift(shift(v, n₁), n₂) = shift(v, n₁ + n₂)` by expanding OrdinalShift and TumblerAdd, then show the results agree at every component.
 
-**Left side.** By OrdinalShift, `shift(v, n₁) = v ⊕ δ(n₁, m)`, where `δ(n₁, m) = [0, ..., 0, n₁]` has action point `m` (OrdinalDisplacement). The precondition of TA0 is satisfied: `k = m ≤ m = #v`. Let `u = v ⊕ δ(n₁, m)`. By TumblerAdd with action point `k = m`:
+**Left side.** By OrdinalShift, `shift(v, n₁) = v ⊕ δ(n₁, m)`, where `δ(n₁, m) = [0, ..., 0, n₁]` has action point `m` (OrdinalDisplacement). The preconditions of TA0 are satisfied: `δ(n₁, m) > 0` because `n₁ ≥ 1` makes component `m` positive, and `k = m ≤ m = #v`. Let `u = v ⊕ δ(n₁, m)`. By TumblerAdd with action point `k = m`:
 
 - For `1 ≤ i < m`: `uᵢ = vᵢ` (prefix copy — all `m − 1` higher-level components are preserved).
 - At `i = m`: `uₘ = vₘ + n₁` (single-component advance).
 - No positions `i > m` exist, since `#u = #δ(n₁, m) = m` by the result-length identity (TA0).
 
-Now we apply the second shift. By OrdinalShift, `shift(u, n₂) = u ⊕ δ(n₂, m)`, where `δ(n₂, m)` has action point `m` (OrdinalDisplacement). The precondition of TA0 is satisfied: `k = m ≤ m = #u`. Let `L = u ⊕ δ(n₂, m)` denote the left side. By TumblerAdd with action point `k = m`:
+Now we apply the second shift. By OrdinalShift, `shift(u, n₂) = u ⊕ δ(n₂, m)`, where `δ(n₂, m)` has action point `m` (OrdinalDisplacement). The preconditions of TA0 are satisfied: `δ(n₂, m) > 0` because `n₂ ≥ 1` makes component `m` positive, and `k = m ≤ m = #u`. Let `L = u ⊕ δ(n₂, m)` denote the left side. By TumblerAdd with action point `k = m`:
 
 - For `1 ≤ i < m`: `Lᵢ = uᵢ = vᵢ` (prefix copy, substituting the values of `u` established above).
 - At `i = m`: `Lₘ = uₘ + n₂ = (vₘ + n₁) + n₂` (advance, substituting `uₘ = vₘ + n₁`).
 - Length: `#L = #δ(n₂, m) = m` by the result-length identity (TA0).
 
-**Right side.** Since `n₁ ≥ 1` and `n₂ ≥ 1`, their sum `n₁ + n₂ ≥ 2 ≥ 1`, so `δ(n₁ + n₂, m)` is a well-formed ordinal displacement with action point `m` (OrdinalDisplacement). By OrdinalShift, `shift(v, n₁ + n₂) = v ⊕ δ(n₁ + n₂, m)`. The precondition of TA0 is satisfied: `k = m ≤ m = #v`. Let `R = v ⊕ δ(n₁ + n₂, m)` denote the right side. By TumblerAdd with action point `k = m`:
+**Right side.** Since `n₁ ≥ 1` and `n₂ ≥ 1`, their sum `n₁ + n₂ ≥ 2 ≥ 1`, so `δ(n₁ + n₂, m)` is a well-formed ordinal displacement with action point `m` (OrdinalDisplacement). By OrdinalShift, `shift(v, n₁ + n₂) = v ⊕ δ(n₁ + n₂, m)`. The preconditions of TA0 are satisfied: `δ(n₁ + n₂, m) > 0` because `n₁ + n₂ ≥ 2` makes component `m` positive, and `k = m ≤ m = #v`. Let `R = v ⊕ δ(n₁ + n₂, m)` denote the right side. By TumblerAdd with action point `k = m`:
 
 - For `1 ≤ i < m`: `Rᵢ = vᵢ` (prefix copy).
 - At `i = m`: `Rₘ = vₘ + (n₁ + n₂)` (single-component advance).
