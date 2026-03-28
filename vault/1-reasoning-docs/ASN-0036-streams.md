@@ -74,7 +74,7 @@ S1 is strictly weaker than S0: it asserts domain persistence without value prese
 
 *Formal Contract:*
 - *Preconditions:* State transition `Σ → Σ'` in a system satisfying S0 (content immutability).
-- *Postconditions:* `dom(Σ.C) ⊆ dom(Σ'.C)`.
+- *Invariant:* `dom(Σ.C) ⊆ dom(Σ'.C)`.
 
 
 ## The arrangement and referential integrity
