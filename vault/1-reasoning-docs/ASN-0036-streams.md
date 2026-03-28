@@ -234,6 +234,9 @@ We must also restrict S7's domain. The function `fields(a).document` is well-def
 
 This is a design requirement: content resides at the element level — the finest level of the four-level tumbler hierarchy. Node, user, and document-level tumblers identify containers, not content. By T4's field correspondence, `zeros(a) = 3` means all four identifying fields — node, user, document, element — are present, and the element field contains the content-level address.
 
+*Formal Contract:*
+- *Axiom:* `(A a ∈ dom(Σ.C) :: zeros(a) = 3)`
+
 With S7a and S7b established, we can state structural attribution:
 
 **S7 (Structural attribution).** For every `a ∈ dom(Σ.C)`, define the *origin* as the document-level prefix obtained by truncating the element field:
