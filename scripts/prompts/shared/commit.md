@@ -4,35 +4,21 @@ Commit changes to the vault with meaningful, descriptive commit messages.
 
 ## Process
 
-1. **Check for changes:**
+1. **Read the staged diff:**
    ```bash
-   git status vault/
+   git diff --cached
    ```
+   The correct files are already staged. Do NOT run `git add` — staging
+   is handled by the caller for concurrent safety.
 
-2. **If changes exist, read the diffs:**
-   ```bash
-   git diff vault/
-   git diff --cached vault/
-   ```
-
-3. **Understand what changed:**
+2. **Understand what changed:**
    - New ASN added?
    - Existing ASN revised?
    - What was the nature of the revision? (property fix, proof completion, edge case, etc.)
    - Was a review saved to `vault/2-review/`?
    - Was a Dafny file added or modified?
 
-4. **Stage the changes:**
-   ```bash
-   git add vault/0-consultations/ vault/1-reasoning-docs/ vault/requirements/ vault/2-review/ vault/project-model/ vault/4-modeling/ vault/6-examples/ vault/7-test-cases/ 2>/dev/null; true
-   ```
-
-   **Important:** Only stage vault/ directories listed above. Never stage:
-   - `vault/5-proofs/` — curated, human-reviewed proof files (committed separately)
-   - `scripts/` — script changes are committed separately from vault changes
-   - Any files outside `vault/`
-
-5. **Generate commit message:**
+3. **Generate commit message:**
 
    Format:
    ```
@@ -57,12 +43,12 @@ Commit changes to the vault with meaningful, descriptive commit messages.
    - `dafny(asn): ASN-0004 — formalize POST1-POST5, F0-F3`
    - `fix(asn): ASN-0004 correct D2 proof — missing d2≠doc precondition`
 
-6. **Commit:**
+4. **Commit:**
    ```bash
    git commit -m "<message>"
    ```
 
-7. **Report:** Show the commit hash and summary.
+5. **Report:** Show the commit hash and summary.
 
 ## Guidelines
 
