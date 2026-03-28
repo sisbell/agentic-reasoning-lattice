@@ -385,7 +385,7 @@ def step_rebase_revise(asn_num, asn_path, asn_label, rebased_properties,
 
 
 def step_review_revise(asn_num, asn_path, asn_label, rebased_properties,
-                       max_cycles, model, effort):
+                       max_cycles, model, effort, force_cycles=False):
     """Step 2: Rebase review/revise loop."""
     for cycle in range(1, max_cycles + 1):
         print(f"\n  --- Rebase review cycle {cycle}/{max_cycles} ---",
@@ -398,7 +398,10 @@ def step_review_revise(asn_num, asn_path, asn_label, rebased_properties,
             print(f"  [WARN] Review failed, continuing", file=sys.stderr)
             return False
 
-        if result == "CONVERGED":
+        if result == "CONVERGED" and force_cycles:
+            print(f"  [REVISE] CONVERGED but --cycles forces continuation",
+                  file=sys.stderr)
+        elif result == "CONVERGED":
             return True
 
         ok = step_rebase_revise(asn_num, asn_path, asn_label,
@@ -414,21 +417,6 @@ def step_review_revise(asn_num, asn_path, asn_label, rebased_properties,
           file=sys.stderr)
     return False
 
-
-def step_export(asn_num):
-    """Step 3: Re-export the ASN."""
-    print(f"  [EXPORT] Re-exporting ASN-{asn_num:04d}...", file=sys.stderr)
-
-    cmd = [sys.executable,
-           str(WORKSPACE / "scripts" / "normalize.py"),
-           str(asn_num)]
-    result = subprocess.run(cmd, capture_output=False, text=True,
-                            cwd=str(WORKSPACE))
-
-    if result.returncode != 0:
-        print(f"  [WARN] Export failed", file=sys.stderr)
-        return False
-    return True
 
 
 def update_rebase_timestamp(asn_num):
@@ -464,10 +452,27 @@ def main():
                         choices=["opus", "sonnet"])
     parser.add_argument("--effort", default="max",
                         help="Thinking effort level")
-    parser.add_argument("--max-cycles", type=int, default=5,
-                        help="Max review/revise cycles (default: 5)")
+    parser.add_argument("--converge", nargs="?", type=int, const=5,
+                        metavar="MAX",
+                        help="Stop review/revise on convergence, max N (default: 5)")
+    parser.add_argument("--cycles", type=int, default=None,
+                        help="Force N review/revise rounds, ignore convergence")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
+
+    if args.cycles is not None and args.converge is not None:
+        print("  --cycles and --converge are mutually exclusive", file=sys.stderr)
+        sys.exit(1)
+
+    if args.cycles is not None:
+        max_cycles = args.cycles
+        force_cycles = True
+    elif args.converge is not None:
+        max_cycles = args.converge
+        force_cycles = False
+    else:
+        max_cycles = 5
+        force_cycles = False
 
     asn_label = f"ASN-{args.asn:04d}"
 
@@ -482,7 +487,7 @@ def main():
         rebased_properties = "(auto-detect from foundation)"
 
     if args.dry_run:
-        print(f"  [DRY RUN] Steps: rebase → review/revise → export",
+        print(f"  [DRY RUN] Steps: rebase → review/revise",
               file=sys.stderr)
         return
 
@@ -498,16 +503,13 @@ def main():
     if args.properties:
         rebased_properties = args.properties
     else:
-        rebased_properties = "D0, D1"  # TODO: detect from diff
+        rebased_properties = "(all rebased properties)"
 
     # Step 2: Review/revise the rebase
     step_review_revise(args.asn, asn_path, asn_label, rebased_properties,
-                       args.max_cycles, args.model, args.effort)
+                       max_cycles, args.model, args.effort, force_cycles)
 
-    # Step 3: Re-export
-    step_export(args.asn)
-
-    # Record rebase check timestamp in project model
+    # Record rebase check timestamp
     update_rebase_timestamp(args.asn)
 
     log_usage("rebase-complete", 0, asn=args.asn)
