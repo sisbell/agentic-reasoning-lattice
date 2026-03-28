@@ -606,6 +606,7 @@ Gregory's implementation confirms the separation operationally. Every editing co
 *Formal Contract:*
 - *Preconditions:* State transition `Σ → Σ'` in a system satisfying S0 (content immutability).
 - *Invariant:* `[Σ'.M(d) ≠ Σ.M(d) ⟹ (A a ∈ dom(Σ.C) :: a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a))]`.
+- *Frame:* `Σ.C` — the content store is preserved unchanged across all transitions that modify any arrangement `Σ.M(d)`.
 
 
 ## Worked example
