@@ -123,6 +123,7 @@ We observe a deliberate asymmetry. S3 says arrangement implies existence: `ran(M
 Since both cases yield `Σ'.M(d)(v) ∈ dom(Σ'.C)`, and `d` and `v` were arbitrary, S3 holds in `Σ'`. By induction, S3 holds in every reachable state. ∎
 
 *Formal Contract:*
+- *Axiom:* Every arrangement-modifying operation introducing a mapping `M(d)(v) = a` ensures `a ∈ dom(Σ'.C)` in the post-state.
 - *Invariant:* `(A d, v : v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ dom(Σ.C))`
 
 
