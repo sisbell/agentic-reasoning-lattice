@@ -1,30 +1,26 @@
 ### 1. Table Structure
 
-(none)
+(none) — three-column table with correct column order and names.
 
 ### 2. Status Vocabulary
 
-(none)
+(none) — all status values conform to standard patterns.
 
 ### 3. Header Format
 
-(none)
+(none) — all bold headers carry label, parenthesised name, trailing period, and closing `**`.
 
 ### 4. Missing Table Entries
 
-(none)
-
-All bold property headers (`**LABEL (Name).**` and `**Definition (ValidInsertionPosition).**`) have corresponding table entries. Bold labels used as proof structure labels (`**Base case.**`, `**Cross-document construction.**`, `**Step 1: shared prefix.**`, etc.) and example checkpoints (`**D-CTG check.**`, `**Violation.**`, `**Non-empty case.**`, etc.) are not property headers and require no table entries.
+(none) — every bold property/definition header in the prose has a corresponding table row.
 
 ### 5. Missing Prose Sections
 
-(none)
-
-All 22 table entries (Σ.C, Σ.M(d), S0–S9, S7a, S7b, S8-fin, S8a, S8-depth, D-CTG, D-CTG-depth, D-MIN, D-SEQ, ValidInsertionPosition) have corresponding bold prose sections.
+(none) — every table label has a corresponding bold header in the prose.
 
 ### 6. Duplicate Labels
 
-(none)
+(none) — all 22 labels appear exactly once in the table.
 
 ---
 
