@@ -228,7 +228,7 @@ S7 requires an architectural premise that T4 alone does not supply. T4 tells us 
 
 This is a design requirement, not a convention. Nelson's baptism principle establishes it: "The owner of a given item controls the allocation of the numbers under it." A document owner baptises element addresses under that document's prefix — there is no mechanism for allocating I-addresses outside the creating document's subtree. The address IS the provenance: "You always know where you are, and can at once ascertain the home document of any specific word or character." Nelson says the home document can be ascertained directly from the address — not from a separate lookup table. The native/non-native distinction ("Native bytes of a document are those actually stored under its control") is computable only because I-addresses are scoped under their originating documents.
 
-We must also restrict S7's domain. The function `fields(a).document` is well-defined only when `zeros(a) ≥ 2` (per T4's field correspondence: `zeros = 0` is node-only, `zeros = 1` is node+user, `zeros ≥ 2` has a document field). Since Istream addresses designate content elements within documents, we require:
+A further design requirement constrains which tumblers may serve as content addresses. By T4's field correspondence (ASN-0034), the zero count determines a tumbler's hierarchical level: `zeros(t) = 0` gives node-level, `zeros(t) = 1` gives user-level, `zeros(t) = 2` gives document-level, and `zeros(t) = 3` gives element-level — the finest granularity. Since Istream addresses designate content elements within documents, we require:
 
 **S7b (Element-level I-addresses).** We require that every address in `dom(Σ.C)` is an element-level tumbler: `(A a ∈ dom(Σ.C) :: zeros(a) = 3)`.
 

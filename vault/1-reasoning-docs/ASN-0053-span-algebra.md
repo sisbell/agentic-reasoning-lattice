@@ -181,7 +181,7 @@ Verify S5: d ⊕ d' = [0, 0, 0, 0, 0, 0, 4] ⊕ [0, 0, 0, 0, 0, 0, 4]. Action po
 
 Each element of ⟦σ⟧ appears in exactly one of ⟦λ⟧ or ⟦ρ⟧ — those before p go left, those from p onward go right. The partition is forced by the total order; there is no ambiguity. Nelson confirms the structural basis: "each element occupies exactly one position on the tumbler line" and spans include "everything between their endpoints with no discretion" (Q2). The REARRANGE operation's three-cut semantics depend on this: "cut 2 is simultaneously the boundary of both regions — the first region ends where the second begins" (Q2).
 
-The composition property below depends on left cancellation of TumblerAdd: if a ⊕ x = a ⊕ y with both sides well-defined, then x = y (TA-LC, ASN-0055).
+The composition property below depends on left cancellation of TumblerAdd: if a ⊕ x = a ⊕ y with both sides well-defined, then x = y (TA-LC, ASN-0034).
 
 **S5** (*SplitWidthComposition*). Under the same conditions as S4, the widths of the two parts compose to the original width:
 
