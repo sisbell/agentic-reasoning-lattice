@@ -218,6 +218,19 @@ A V-position represents the element field of a full document-scoped address — 
 
 *Remark.* The shared vocabulary identifies a second subspace for links (v₁ = 2, per T4 and LM 4/30). Link-subspace V-positions satisfy the same `zeros(v) = 0` and `v > 0` constraints as text-subspace positions — both are element-field tumblers with strictly positive components. The subspace identifier (1 for text, 2 for links) is the first component of the element field; the `0` in tumbler notation (e.g., `N.0.U.0.D.V.0.2.1`) is a field separator, not a subspace identifier. Link-subspace arrangement semantics are deferred to a future ASN.
 
+*Proof.* S8a is a design requirement: V-positions are element-field tumblers, and T4 (FieldSeparatorConstraint, ASN-0034) constrains the structure of every field. We show each conjunct follows from this structural commitment.
+
+A full element-level I-address has the form `N.0.U.0.D.0.E` where `N`, `U`, `D`, `E` are the node, user, document, and element fields respectively, separated by zero-valued components. The arrangement `M(d)` maps V-positions to such I-addresses (S3, S7b). A V-position `v` is the element field `E` extracted from the document-scoped address — the fourth field in T4's decomposition. As an isolated field, `v` contains no field separators: the zeros in the full address are inter-field boundaries, not intra-field components. Therefore `zeros(v) = 0`.
+
+The conjunct `v > 0` — every component of `v` is strictly positive — follows directly from T4's positive-component constraint. T4 requires that every non-separator component of every field satisfy `Eₗ > 0` for `1 ≤ l ≤ δ`, where `δ = #v` is the number of components in the element field. Since `zeros(v) = 0`, every component of `v` is a non-separator component, so every component is strictly positive: `(A i : 1 ≤ i ≤ #v : vᵢ > 0)`.
+
+The conjunct `v₁ ≥ 1` is a specialisation of `v > 0` to the first component. T4's non-empty field constraint requires `δ ≥ 1` — the element field has at least one component. Since `v₁` is a component of the element field with `v₁ > 0` (from the positive-component constraint), we obtain `v₁ ≥ 1`. This is not an independent condition but a universally true consequence that we state explicitly because it is load-bearing: `v₁` serves as the subspace identifier, and S8's partition proof requires every V-position to belong to some subspace `S = v₁ ≥ 1` to invoke T5 and T10 for cross-subspace disjointness. ∎
+
+*Formal Contract:*
+- *Axiom:* V-positions are element-field tumblers — the fourth field in T4's decomposition of element-level addresses.
+- *Preconditions:* T4 (FieldSeparatorConstraint, ASN-0034) — every non-separator component is strictly positive, every present field has at least one component; S7b — addresses in `dom(Σ.C)` are element-level tumblers with `zeros(a) = 3`.
+- *Postconditions:* `(A v ∈ dom(Σ.M(d)) :: zeros(v) = 0 ∧ v₁ ≥ 1 ∧ v > 0)`.
+
 **S8-depth (Fixed-depth V-positions).** Within a given subspace `s` of document `d`, all V-positions share the same tumbler depth:
 
 `(A d, v₁, v₂ : v₁ ∈ dom(Σ.M(d)) ∧ v₂ ∈ dom(Σ.M(d)) ∧ (v₁)₁ = (v₂)₁ : #v₁ = #v₂)`
@@ -532,7 +545,7 @@ This has a formal consequence: document equality is not decidable by content com
 | S7b | Element-level I-addresses: `(A a ∈ dom(C) :: zeros(a) = 3)` | design requirement |
 | S7 | Structural attribution: `origin(a) = (fields(a).node).0.(fields(a).user).0.(fields(a).document)` — full document prefix | from S7a, S7b, S0, S4, T4, T3, GlobalUniqueness (ASN-0034) |
 | S8-fin | Finite arrangement: `dom(M(d))` is finite for every document `d` | design requirement |
-| S8a | V-position well-formedness: `(A v ∈ dom(M(d)) :: zeros(v) = 0 ∧ v₁ ≥ 1 ∧ v > 0)` — universal, from T4 positive-component constraint | introduced |
+| S8a | V-position well-formedness: `(A v ∈ dom(M(d)) :: zeros(v) = 0 ∧ v₁ ≥ 1 ∧ v > 0)` — universal, from T4 positive-component constraint | axiom from T4, S7b (ASN-0034) |
 | S8-depth | Fixed-depth V-positions: `(A d, v₁, v₂ : v₁ ∈ dom(M(d)) ∧ v₂ ∈ dom(M(d)) ∧ (v₁)₁ = (v₂)₁ : #v₁ = #v₂)` | design requirement |
 | S8 | Span decomposition: `dom(M(d))` decomposes into finitely many correspondence runs `(vⱼ, aⱼ, nⱼ)` with `M(d)(vⱼ + k) = aⱼ + k` for `0 ≤ k < nⱼ` | theorem from S8-fin, S2, S8a, S8-depth, T1, T3, T5, T10, TA5 (ASN-0034) |
 | D-CTG | V-position contiguity: within each subspace, V-positions form a contiguous ordinal range with no gaps — design constraint on well-formed document states | design requirement |
