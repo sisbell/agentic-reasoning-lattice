@@ -547,3 +547,85 @@ T1 is labeled **LexicographicTotalOrder** in the foundation. "TumblerOrdering" d
 ---
 
 `RESULT: 2 FINDINGS`
+
+### Finding 1: [stale-label] GlobalUniqueness
+**Location**: deps:S4
+**Detail**: Property S4 references GlobalUniqueness which does not exist in any active ASN's export
+
+### Finding 2: [stale-label] GlobalUniqueness
+**Location**: deps:S7
+**Detail**: Property S7 references GlobalUniqueness which does not exist in any active ASN's export
+
+### Finding 3: [stale-label] T0(a)
+**Location**: deps:D-CTG
+**Detail**: Property D-CTG references T0(a) which does not exist in any active ASN's export
+
+### Finding 4: [stale-label] T0(a)
+**Location**: deps:D-CTG-depth
+**Detail**: Property D-CTG-depth references T0(a) which does not exist in any active ASN's export
+
+### Finding 5: [stale-label] OrdinalShift
+**Location**: deps:ValidInsertionPosition
+**Detail**: Property ValidInsertionPosition references OrdinalShift which does not exist in any active ASN's export
+
+### Finding 6: [stale-label] TumblerAdd
+**Location**: deps:ValidInsertionPosition
+**Detail**: Property ValidInsertionPosition references TumblerAdd which does not exist in any active ASN's export
+
+### Finding 7: [prose-only] T0 (ASN-0034)
+**Location**: prose
+**Detail**: Prose cites T0 (ASN-0034) but no property table entry lists it in follows_from
+
+## Surface Check: ASN-0036 vs. Foundation ASN-0034
+
+---
+
+### 1. Stale Labels
+
+**Finding 1.** D-CTG-depth proof (SharedPrefixReduction section):
+
+> "The strict inequality at component j follows from v₁ < v₂ by T1(i) **(LexicographicOrdering, ASN-0034)**"
+
+T1's canonical label in the foundation is **LexicographicTotalOrder**. No property named "LexicographicOrdering" exists in ASN-0034.
+
+---
+
+**Finding 2.** D-SEQ proof (Step 3, contiguity of k-values):
+
+> "By T1(i) **(TumblerOrdering, ASN-0034)**, v₁ < v₂ since they agree on components 1 through m − 1..."
+
+Again, T1's canonical label is **LexicographicTotalOrder**. No property named "TumblerOrdering" exists in ASN-0034.
+
+---
+
+### 2. Structural Drift
+
+(none)
+
+---
+
+### 3. Local Redefinitions
+
+(none)
+
+---
+
+### 4. Registry Misclassification
+
+(none)
+
+---
+
+### 5. Missing Dependencies
+
+(none) — all foundation citations resolve within the declared dependency on ASN-0034.
+
+---
+
+### 6. Exhaustiveness Gaps
+
+(none)
+
+---
+
+`RESULT: 2 FINDINGS`
