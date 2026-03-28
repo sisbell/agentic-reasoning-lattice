@@ -587,7 +587,9 @@ We can now state the property that Nelson calls "the architectural foundation of
 
 `[Σ'.M(d) ≠ Σ.M(d) ⟹ (A a ∈ dom(Σ.C) :: a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a))]`
 
-*Proof.* S0 guarantees that `a ∈ dom(Σ.C)` implies `a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a)` for every state transition `Σ → Σ'`, unconditionally. The consequent of S9 is a special case of S0's universal guarantee, restricted to transitions that modify some arrangement. ∎
+*Proof.* We wish to show that for every state transition `Σ → Σ'`, if some arrangement changes — `Σ'.M(d) ≠ Σ.M(d)` — then every address in `dom(Σ.C)` persists with its value unchanged.
+
+S0 (content immutability) guarantees that `a ∈ dom(Σ.C)` implies `a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a)` for every state transition `Σ → Σ'`, unconditionally — that is, regardless of which state components the transition modifies. The consequent of S9 is identical to this guarantee. Since S0 holds for all transitions, it holds in particular for transitions where `Σ'.M(d) ≠ Σ.M(d)`, and S9 follows. ∎
 
 S9 is the formal statement of Nelson's claim: "The integrity of each document is maintained by keeping the two aspects separate: derivative documents are permanently defined (and stored) in terms of the originals and the changes." It says: the two state components are coupled only through S3 (referential integrity). Arrangements depend on the content store — S3 requires every V-reference to resolve — but the content store is independent of all arrangements. This is a one-way dependency:
 
