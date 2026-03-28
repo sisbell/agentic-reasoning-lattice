@@ -63,7 +63,7 @@ properties:
     status: design
     name: Document-scoped allocation
     follows_from:
-    - S7
+    - S7b
     - T4
     follows_from_asns:
     - 34
@@ -137,7 +137,6 @@ properties:
     - S8-depth
     - S8-fin
     - T0(a)
-    - T1
     - T3
     follows_from_asns:
     - 34
@@ -149,6 +148,9 @@ properties:
     - D-CTG-depth
     - S8-depth
     - S8-fin
+    - T4
+    follows_from_asns:
+    - 34
   D-CTG-depth:
     status: corollary
     follows_from:
@@ -158,7 +160,6 @@ properties:
     - T0(a)
     - T1
     - T3
-    - T4
     follows_from_asns:
     - 34
     name: Shared prefix reduction
