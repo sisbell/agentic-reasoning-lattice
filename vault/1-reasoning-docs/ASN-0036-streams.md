@@ -293,7 +293,7 @@ The conjunct `v₁ ≥ 1` is a specialisation of `v > 0` to the first component.
 
 *Formal Contract:*
 - *Axiom:* V-positions are element-field tumblers — the fourth field in T4's decomposition of element-level addresses.
-- *Preconditions:* T4 (FieldSeparatorConstraint, ASN-0034) — every non-separator component is strictly positive, every present field has at least one component; S7b — addresses in `dom(Σ.C)` are element-level tumblers with `zeros(a) = 3`.
+- *Preconditions:* S3 (Referential integrity) — `ran(M(d)) ⊆ dom(Σ.C)`, so S7b applies to the images of `M(d)`; T4 (FieldSeparatorConstraint, ASN-0034) — every non-separator component is strictly positive, every present field has at least one component; S7b — addresses in `dom(Σ.C)` are element-level tumblers with `zeros(a) = 3`.
 - *Postconditions:* `(A v ∈ dom(Σ.M(d)) :: zeros(v) = 0 ∧ v₁ ≥ 1 ∧ v > 0)`.
 
 **S8-depth (Fixed-depth V-positions).** Within a given subspace `s` of document `d`, all V-positions share the same tumbler depth:
