@@ -56,6 +56,10 @@ S0 is a strong property. It asserts two things simultaneously: that `a` remains 
 
 must hold in every reachable state. This constrains every operation to either leave `C(a)` unchanged or to operate only on addresses not yet in `dom(C)` — that is, to create new content at fresh addresses.
 
+*Formal Contract:*
+- *Invariant:* `a ∈ dom(Σ.C) ⟹ a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a)` for every transition `Σ → Σ'`
+- *Axiom:* imposed as a design constraint on all content-store operations
+
 **S1 (Store monotonicity).** `[dom(Σ.C) ⊆ dom(Σ'.C)]`
 
 S1 is a corollary of S0, stated separately for emphasis. It is the content-store specialisation of T8 (allocation permanence, ASN-0034): T8 guarantees that allocated addresses persist in the abstract address space; S1 ensures that the content at those addresses persists as well.
