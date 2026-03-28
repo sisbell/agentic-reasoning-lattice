@@ -100,6 +100,19 @@ S4 creates a fundamental asymmetry in the system. The content store `C` is obliv
 
 Live content shares I-addresses. Dead copies create new ones. The difference is structural — computable from the state alone.
 
+*Proof.* We are given I-addresses `a₁, a₂ ∈ dom(Σ.C)` produced by distinct allocation events within a system conforming to T10a (allocator discipline, ASN-0034). We wish to show `a₁ ≠ a₂`.
+
+GlobalUniqueness (ASN-0034) establishes the following invariant: for every pair of addresses `a, b` produced by distinct allocation events in any reachable system state, `a ≠ b`. The invariant's precondition requires only that `a₁` and `a₂` arise from distinct allocation events under T10a — it places no condition on the values `Σ.C(a₁)` and `Σ.C(a₂)`. Since `a₁` and `a₂` are produced by distinct allocation events by hypothesis, GlobalUniqueness yields `a₁ ≠ a₂` directly.
+
+The independence from content values deserves emphasis. GlobalUniqueness is a property of the tumbler addressing scheme: it derives from the structural interaction of T9 (forward allocation), T10 (partition independence), T10a (allocator discipline), and TA5 (hierarchical increment) — none of which reference the content store `C` or the value domain `Val`. The conclusion `a₁ ≠ a₂` is therefore invariant under any assignment of values to addresses. Whether `Σ.C(a₁) = Σ.C(a₂)` or `Σ.C(a₁) ≠ Σ.C(a₂)`, the addresses remain distinct.
+
+Finally, the distinctness `a₁ ≠ a₂` is decidable from the addresses alone by T3 (CanonicalRepresentation, ASN-0034): two tumblers are equal if and only if they have the same length and agree at every component. No value comparison is required — the structural test for shared identity is address equality, computable in time proportional to the shorter address. ∎
+
+*Formal Contract:*
+- *Preconditions:* `a₁, a₂ ∈ dom(Σ.C)` produced by distinct allocation events within a system conforming to T10a (allocator discipline, ASN-0034).
+- *Postconditions:* `a₁ ≠ a₂`, regardless of whether `Σ.C(a₁) = Σ.C(a₂)`.
+- *Frame:* The content store `C` and value domain `Val` play no role in the proof — distinctness is a property of the addressing scheme alone.
+
 
 ## Sharing
 
@@ -450,7 +463,7 @@ This has a formal consequence: document equality is not decidable by content com
 | S1 | Store monotonicity: `dom(C) ⊆ dom(C')` for all transitions | corollary of S0 |
 | S2 | Arrangement functionality: `M(d)` is a function — each V-position maps to exactly one I-address | axiom |
 | S3 | Referential integrity: `(A d, v : v ∈ dom(M(d)) : M(d)(v) ∈ dom(C))` | design requirement |
-| S4 | Origin-based identity: distinct allocations produce distinct I-addresses regardless of value equality | from GlobalUniqueness (ASN-0034) |
+| S4 | Origin-based identity: distinct allocations produce distinct I-addresses regardless of value equality | from GlobalUniqueness, T3 (ASN-0034) |
 | S5 | Unrestricted sharing: S0–S3 do not entail any finite bound on sharing multiplicity | consistent with S0, S1, S2, S3 |
 | S6 | Persistence independence: `a ∈ dom(C)` is unconditional — independent of all arrangements | corollary of S0 |
 | S7a | Document-scoped allocation: every I-address is allocated under the originating document's prefix | design requirement |
