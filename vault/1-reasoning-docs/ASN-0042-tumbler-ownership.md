@@ -453,7 +453,28 @@ The delegation is irrevocable:
 
 The formulation captures irrevocability without overclaiming. It says the *parent* can never recover the addresses, while permitting the delegate `π'` to sub-delegate (via O7(c)): if `π'` delegates to `π''` with `pfx(π') ≺ pfx(π'')`, then `ω(a) = π''` for `a ∈ dom(π'')` — the address leaves `π'`'s effective ownership but does not return to `π`. The domain restriction `dom(π') ∩ Σ'.alloc` ensures `ω` is applied only to addresses where it is defined (grounded by O4).
 
-This is a consequence of O3 and O12: once `π'` holds a longer matching prefix than `π`, only a delegation of a *still-longer* prefix can supersede `π'` — and by condition (ii) of the `delegated` relation, only `π'` itself can perform such delegation. The prefix `pfx(π)` is permanently shorter than `pfx(π')` (by O13), so `π` can never regain longest-match status. Nelson: "once assigned a User account, the user will have full control over its subdivision forevermore" (LM 4/29). There is no revocation command, no forced reclamation. Gregory confirms: `validaccount` is a stub that unconditionally returns TRUE — the system has no machinery for checking or revoking delegation. Once the sub-prefix exists, the delegate owns it permanently.
+We prove that in every state `Σ'` reachable from the delegation state, the delegating parent `π` is never the effective owner of any address in the delegate's domain. The argument is direct: we show that the longest-match computation in `Σ'` always finds a principal with a strictly longer prefix than `π`, so `π` cannot be `ω_{Σ'}(a)`.
+
+Let `Σ_d` denote the state in which `delegated_{Σ_d}(π, π')` holds, and let `Σ'` be any state with `Σ_d →⁺ Σ'`. Let `a ∈ dom(π') ∩ Σ'.alloc` be arbitrary.
+
+*The delegate persists with an unchanged prefix.* By O12 (PrincipalPersistence), `Π_{Σ_d} ⊆ Π_{Σ'}`, and since `π' ∈ Π_{Σ_d}` (by condition (iii) of the delegation relation, `π'` entered `Π` at `Σ_d`), we have `π' ∈ Π_{Σ'}`. By O13 (PrefixImmutability), `pfx_{Σ'}(π') = pfx_{Σ_d}(π')`. The delegate is present in every future state with its original prefix.
+
+*The delegate covers the address.* Since `a ∈ dom(π')`, the definition of domain gives `pfx(π') ≼ a`. This relation depends only on the components of `pfx(π')` and `a`. By O13, `pfx(π')` is immutable. By T8 (AllocationPermanence), `a` — being allocated — persists unchanged. Therefore `pfx_{Σ'}(π') ≼ a` holds in `Σ'`.
+
+*The delegate's prefix is strictly longer than the parent's.* By condition (i) of the delegation relation, `pfx(π) ≺ pfx(π')`, which gives `#pfx(π) < #pfx(π')`. By O13, both prefixes are immutable: `pfx_{Σ'}(π) = pfx_{Σ_d}(π)` and `pfx_{Σ'}(π') = pfx_{Σ_d}(π')`. The strict length inequality `#pfx_{Σ'}(π) < #pfx_{Σ'}(π')` holds in every reachable state.
+
+*The parent cannot be the longest match.* The effective owner `ω_{Σ'}(a)` is defined (O2) as the principal in `Π_{Σ'}` with the longest matching prefix for `a`. We have established that `π' ∈ Π_{Σ'}` with `pfx_{Σ'}(π') ≼ a` and `#pfx_{Σ'}(π') > #pfx_{Σ'}(π)`. Therefore `π'` (or some other principal with a still-longer prefix) achieves a longer match than `π`. The longest-match principal must have a prefix at least as long as `pfx(π')`, which is strictly longer than `pfx(π)`. Hence `ω_{Σ'}(a) ≠ π`.
+
+To see this last step precisely: suppose for contradiction that `ω_{Σ'}(a) = π`. Then by the definition of `ω`, `π` would need to satisfy `(A π'' ∈ Π_{Σ'} : π'' ≠ π ∧ pfx_{Σ'}(π'') ≼ a ⟹ #pfx_{Σ'}(π) > #pfx_{Σ'}(π''))`. But `π' ∈ Π_{Σ'}` with `π' ≠ π` (they are distinct — `π` was already in `Π` before delegation while `π'` was newly introduced, and their prefixes differ in length) and `pfx_{Σ'}(π') ≼ a`, yet `#pfx_{Σ'}(π) < #pfx_{Σ'}(π')` — contradicting the requirement. Therefore `ω_{Σ'}(a) ≠ π`.
+
+Note that the proof makes no claim about *who* the effective owner is — only that it is not `π`. The effective owner may be `π'` itself, or it may be a sub-delegate `π''` introduced by `π'` with `pfx(π') ≺ pfx(π'')`. In the latter case, `ω_{Σ'}(a) = π''` for `a ∈ dom(π'')` — the address leaves `π'`'s effective ownership but does not return to `π`, because `#pfx(π'') > #pfx(π') > #pfx(π)` and the argument above applies equally to `π''`. ∎
+
+*Design confirmation.* Nelson: "once assigned a User account, the user will have full control over its subdivision forevermore" (LM 4/29). There is no revocation command, no forced reclamation. Gregory confirms: `validaccount` is a stub that unconditionally returns TRUE — the system has no machinery for checking or revoking delegation. Once the sub-prefix exists, the delegate owns it permanently.
+
+*Formal Contract:*
+- *Preconditions:* `delegated_Σ(π, π')`, `a ∈ dom(π') ∩ Σ'.alloc`, `Σ →⁺ Σ'`.
+- *Postconditions:* `ω_{Σ'}(a) ≠ π`.
+- *Invariant:* Once delegation occurs, the parent's prefix is permanently shorter than the delegate's, so the parent can never regain longest-match status for any address in the delegate's domain.
 
 The combination of O3 (OwnershipRefinement), O8 (IrrevocableDelegation), O12 (PrincipalPersistence), O13 (PrefixImmutability), and T8 (AllocationPermanence) means the ownership structure of the address space is *monotonically growing*. New ownership domains are created through delegation but never destroyed. The tree of ownership deepens but never prunes.
 
@@ -575,7 +596,7 @@ The design philosophy is clear: minimize the authorization model to the point wh
 | AccountPrefix | `(A a ∈ T : T4(a) ⟹ acct(a) ≼ a)` — the account field is a prefix of any valid address | from T3, T4, T5, AccountField |
 | O6 | `acct(a) = acct(b) ⟹ ω(a) = ω(b)` — effective owner determined entirely by account field | from O1a, O2, O17, AccountPrefix |
 | O7 | Delegation (authorized by `delegated`) confers effective ownership (O2), subdivision authority (O5), and recursive delegation (O7) | introduced |
-| O8 | `delegated_Σ(π, π') ∧ a ∈ dom(π') ∩ Σ'.alloc ∧ Σ →⁺ Σ' ⟹ ω_{Σ'}(a) ≠ π` — delegating parent never regains ownership | introduced |
+| O8 | `delegated_Σ(π, π') ∧ a ∈ dom(π') ∩ Σ'.alloc ∧ Σ →⁺ Σ' ⟹ ω_{Σ'}(a) ≠ π` — delegating parent never regains ownership | from O2, O12, O13, T8, delegated(i) |
 | O9 | `(A π ∈ Π, a ∈ Σ.alloc : owns(π, a) ⟹ N(pfx(π)) ≼ N(a))` — ownership bounded by node field | from O1, O1a, T4, T5 |
 | O10 | Non-ownership of target yields a fork: new address under the requesting principal's domain | introduced |
 | O11 | Principal identity is axiomatic to the ownership model — authentication is external | axiom |
