@@ -77,6 +77,23 @@ The consequence: sub-account allocation (creating documents, versions, elements)
 
 O1a permits nesting *within* the account level. T4 allows multi-component user fields: `pfx(π₁) = [1, 0, 2]` and `pfx(π₂) = [1, 0, 2, 3]` both satisfy `zeros ≤ 1`, and `pfx(π₁) ≺ pfx(π₂)`. Nelson designed this deliberately: "accounts can spin off accounts" (LM 4/19). The User field is a tree, not a flat namespace — a principal may delegate a sub-account by forking a longer user field within its own prefix. Gregory confirms: `tumbleraccounteq` applied to account `[1, 0, 2, 3]` checks positions 0, 2, and 3, while account `[1, 0, 2]` checks only positions 0 and 2 — the child account is a strict refinement. What O1a prevents is *document-level* or *element-level* principals: no principal has `zeros(pfx(π)) ≥ 2`. The floor of ownership is the account level, but within that floor, the user-field tree can grow arbitrarily deep.
 
+We must show that `acct(a)` is well-defined for every valid tumbler `a` satisfying T4, that it produces a valid tumbler, and that its zero count is as claimed. The argument proceeds by cases on `zeros(a)`.
+
+*Case `zeros(a) = 0`.* The tumbler `a` contains no zero-valued components, so by T4(c) (the zero count determines the hierarchical level bijectively), `a` is a node-level tumbler: the entire sequence constitutes the node field `N(a)`, and no user, document, or element fields are present. The definition stipulates `acct(a) = a`. This is well-defined: `a` is a valid tumbler by hypothesis, and `zeros(acct(a)) = zeros(a) = 0 ≤ 1`.
+
+*Case `zeros(a) = 1`.* By T4(b), `fields(a)` decomposes `a` uniquely into a node field `N(a)` and a user field `U(a)`, separated by a single zero. No document or element fields are present. The definition stipulates `acct(a) = N(a) ++ [0] ++ U(a)`. But this concatenation reconstructs `a` itself — the entire tumbler is `N(a)` followed by one zero followed by `U(a)`, with no further components. Hence `acct(a) = a`. Validity: `a` satisfies T4 by hypothesis, and `zeros(acct(a)) = zeros(a) = 1`.
+
+*Case `zeros(a) = 2`.* By T4(b), `fields(a)` decomposes `a` uniquely into `N(a)`, `U(a)`, and `D(a)`, with the structure `N(a) ++ [0] ++ U(a) ++ [0] ++ D(a)`. By T4(a), each field has at least one component, and all field components are strictly positive. Define `acct(a) = N(a) ++ [0] ++ U(a)`. The node field `N(a)` has `α ≥ 1` components, all strictly positive (by T4(a)); the user field `U(a)` has `β ≥ 1` components, all strictly positive. The constructed tumbler therefore has length `α + 1 + β`, begins and ends with a positive component (no leading or trailing zero), contains exactly one zero (at position `α + 1`), and has no adjacent zeros (the zero is flanked by the last component of `N(a)` and the first component of `U(a)`, both positive by T4). It satisfies T4 and has `zeros(acct(a)) = 1`.
+
+*Case `zeros(a) = 3`.* By T4(b), `fields(a)` decomposes `a` uniquely into `N(a)`, `U(a)`, `D(a)`, and `E(a)`, with the structure `N(a) ++ [0] ++ U(a) ++ [0] ++ D(a) ++ [0] ++ E(a)`. Define `acct(a) = N(a) ++ [0] ++ U(a)`. By the same reasoning as the `zeros(a) = 2` case — `N(a)` and `U(a)` each have at least one strictly positive component by T4(a) — the constructed tumbler has exactly one zero, no adjacent zeros, no leading or trailing zero, and all non-separator components positive. It satisfies T4 and has `zeros(acct(a)) = 1`.
+
+The case distinction is exhaustive: T4 constrains `zeros(a) ∈ {0, 1, 2, 3}`, and each value is handled. In every case, `acct(a)` is a valid tumbler satisfying T4, and `zeros(acct(a)) ≤ 1`. The field extraction functions `N(a)` and `U(a)` are uniquely determined by T4(b) and decidable by T6, so the construction is computable from `a` alone. ∎
+
+*Formal Contract:*
+- *Preconditions:* `a ∈ T` is a valid tumbler satisfying T4 (positive-component constraint, at most three zeros, no adjacent zeros, no leading or trailing zero).
+- *Definition:* `acct(a) = a` when `zeros(a) = 0`; `acct(a) = N(a) ++ [0] ++ U(a)` when `zeros(a) ≥ 1`, where `N(a)` and `U(a)` are the node and user fields extracted by `fields(a)` (T4(b)), decidable by T6.
+- *Postconditions:* (a) `acct(a)` is a valid tumbler satisfying T4. (b) `zeros(acct(a)) ≤ 1`. (c) When `zeros(a) ≤ 1`: `acct(a) = a`. (d) When `zeros(a) ≥ 2`: `acct(a)` is a proper prefix of `a` with `zeros(acct(a)) = 1`.
+
 
 ## Ownership Domains
 
@@ -663,7 +680,7 @@ The design philosophy is clear: minimize the authorization model to the point wh
 | O17 | `(A Σ, a : a ∈ Σ.alloc ⟹ T4(a))` — every allocated address is a valid tumbler | axiom |
 | `ω(a)` | `effectiveOwner : Σ.alloc → Principal` — the effective owner function (defined only for allocated addresses) | introduced |
 | OwnershipDomain | `{a ∈ T : pfx(π) ≼ a}` — the ownership domain of a principal | introduced |
-| `acct(a)` | When `zeros(a) = 0`: `acct(a) = a`; when `zeros(a) ≥ 1`: truncation through user field | introduced |
+| `acct(a)` | When `zeros(a) = 0`: `acct(a) = a`; when `zeros(a) ≥ 1`: truncation through user field | definition from T4, T6 |
 | `allocated_by_Σ(π, a)` | Primitive relation: `a` was allocated by `π` in transition producing `Σ`; mechanism out of scope, constrained by O5 and O16 | introduced |
 | Delegation | `π'` introduced into `Π` by act of `π`, with `pfx(π) ≺ pfx(π')`, `π` most-specific covering principal, no existing principal extends `pfx(π')`, `zeros(pfx(π')) ≤ 1`, and `T4(pfx(π'))` | introduced |
 | `pfx(π)` | `ownershipPrefix : Principal → Tumbler` — injective, `zeros(pfx(π)) ≤ 1`, `T4(pfx(π))` | introduced |
