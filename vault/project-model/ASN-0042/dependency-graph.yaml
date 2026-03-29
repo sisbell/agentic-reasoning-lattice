@@ -3,7 +3,7 @@ depends:
 - 34
 properties:
   O0:
-    status: introduced
+    status: design
     name: StructuralOwnership
   O1:
     status: introduced
@@ -14,38 +14,38 @@ properties:
     follows_from_asns:
     - 34
   O1a:
-    status: introduced
+    status: design
     name: '`(A π ∈ Π'
-    follows_from:
-    - T4
-    - T5
-    - T6
-    follows_from_asns:
-    - 34
   O1b:
-    status: introduced
+    status: design
     name: '`pfx` is injective'
     follows_from:
     - O2
   O2:
     status: introduced
     name: OwnershipExclusivity
-    follows_from:
-    - O1b
-    - O4
-    - O5
-    - O6
   O3:
     status: introduced
     name: '`ω(a)` changes only through delegation introducing a longer matching prefix'
     follows_from:
     - O12
     - O13
+    - T8
+    follows_from_asns:
+    - 34
+  AccountLevelPermanence:
+    status: corollary
+    follows_from:
+    - O12
     - O14
     - O15
     - O1a
+    - O3
     - O5
+    - O6
+    - O8
     - T8
+    name: No external delegation can alter effective ownership within `dom(π)`
     follows_from_asns:
     - 34
   O4:
@@ -58,28 +58,28 @@ properties:
     - O16
     - O5
   O5:
-    status: introduced
+    status: design
     name: SubdivisionAuthority
     follows_from:
+    - Delegation
     - O1
     - O2
     - T10a
     - T3
-    - T4
     follows_from_asns:
     - 34
   AccountPrefix:
     status: introduced
     name: '`(A a ∈ T'
-  O6:
-    status: introduced
-    name: '`acct(a) = acct(b) ⟹ ω(a) = ω(b)`'
     follows_from:
-    - AccountPrefix
     - O17
+    - O6
     - T4
     follows_from_asns:
     - 34
+  O6:
+    status: introduced
+    name: '`acct(a) = acct(b) ⟹ ω(a) = ω(b)`'
   O7:
     status: introduced
     name: OwnershipDelegation
@@ -117,13 +117,13 @@ properties:
     - O5
     - O6
   O11:
-    status: introduced
+    status: axiom
     name: Principal identity is axiomatic to the ownership model
     follows_from:
     - O0
     - O10
   O12:
-    status: introduced
+    status: design
     name: '`(A Σ, Σ'''
     follows_from:
     - O3
@@ -132,14 +132,14 @@ properties:
     follows_from_asns:
     - 34
   O13:
-    status: introduced
+    status: design
     name: '`pfx_{Σ''}(π) = pfx_Σ(π)` for all transitions'
     follows_from:
     - T8
     follows_from_asns:
     - 34
   O14:
-    status: introduced
+    status: design
     name: BootstrapPrincipal
     follows_from:
     - O1a
@@ -150,25 +150,24 @@ properties:
     follows_from_asns:
     - 34
   O15:
-    status: introduced
+    status: design
     name: PrincipalClosure
     follows_from:
     - O12
-    - O16
     - O1a
-    - O5
   O16:
-    status: introduced
+    status: design
     name: '`(A a ∈ Σ'''
     follows_from:
     - O15
     - O4
     - O5
   O17:
-    status: introduced
+    status: axiom
     name: '`(A Σ, a'
     follows_from:
     - AccountPrefix
+    - Delegation
     - O6
     - O9
     - T10
@@ -178,17 +177,52 @@ properties:
   ω(a):
     status: introduced
     name: '`effectiveOwner'
-  dom(π):
+    follows_from:
+    - O1b
+    - O2
+    - O4
+    - O5
+    - O6
+  OwnershipDomain:
     status: introduced
     name: '`{a ∈ T'
+    follows_from:
+    - O1a
+    - T1
+    - T5
+    follows_from_asns:
+    - 34
   acct(a):
     status: introduced
     name: When `zeros(a) = 0`
+    follows_from:
+    - O1a
+    - T4
+    - T6
+    follows_from_asns:
+    - 34
   allocated_by_Σ(π, a):
     status: introduced
     name: Primitive relation
-  delegated_Σ(π, π'):
+    follows_from:
+    - O16
+    - O5
+  Delegation:
     status: introduced
+    name: Delegation
+    follows_from:
+    - AccountPrefix
+    - O12
+    - O1a
+    - O1b
+    - O5
+    - T4
+    follows_from_asns:
+    - 34
   pfx(π):
     status: introduced
     name: '`ownershipPrefix'
+    follows_from:
+    - T4
+    follows_from_asns:
+    - 34

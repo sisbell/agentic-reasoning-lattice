@@ -19,6 +19,8 @@ Nelson gives a striking answer. Ownership is not recorded in a registry external
 
 Gregory's implementation confirms this with unusual force. The sole ownership predicate in udanax-green — `isthisusersdocument` — delegates entirely to `tumbleraccounteq`, a function that compares two tumbler mantissa arrays digit by digit. No table is consulted. No file is opened. No registry is queried. The function receives two tumblers, performs arithmetic on their components, and returns a boolean. If we removed the function and replaced it with any other function that performs the same comparison, the system's ownership behavior would be identical. Ownership *is* the comparison.
 
+**pfx(π) (OwnershipPrefix).**
+
 We introduce the principals. Let `Π` denote the set of *principals* — the ownership subjects. Each principal `π ∈ Π` is associated with an *ownership prefix* `pfx(π) ∈ T`, a valid tumbler (satisfying T4) that serves as the root of their namespace. The mapping `pfx` is injective — distinct principals have distinct prefixes:
 
 **O1b (PrefixInjectivity).** `(A π₁, π₂ ∈ Π : pfx(π₁) = pfx(π₂) ⟹ π₁ = π₂)`
@@ -52,6 +54,8 @@ We formalize this asymmetry:
 
 Sub-account allocation — creating documents, versions, elements — does not introduce new ownership principals. It exercises the allocator's rights within an existing principal's domain.
 
+**acct(a) (AccountField).**
+
 Define `acct(a)` for any valid tumbler `a`: when `zeros(a) = 0` (node-level), `acct(a) = a`; when `zeros(a) ≥ 1`, `acct(a)` is the tumbler whose components are `N(a)` followed by `[0]` followed by `U(a)` — using the foundation's field extraction functions (T6) — having `zeros(acct(a)) = 1`.
 
 Gregory confirms the account-level boundary with unusual force. His `tumbleraccounteq` walks the mantissa of both tumblers in lockstep. For each non-zero component in the account tumbler, the document's component must match. For each zero, the counter advances. When the counter reaches two — the second zero — the function returns true unconditionally. Everything beyond the second zero is ignored. The implementation has no mechanism for finer-grained discrimination: `isthisusersdocument` (in all three build targets — `be.c`, `socketbe.c`, `xumain.c`) delegates directly to `tumbleraccounteq` with no intervening check. There is no per-document, per-version, or per-element authorization predicate anywhere in the codebase. The BERT system tracks per-document open/close state, but its authorization fallback is `isthisusersdocument` — account-level.
@@ -65,7 +69,7 @@ O1a permits nesting *within* the account level. T4 allows multi-component user f
 
 Each principal's prefix determines a set of addresses — their *domain*:
 
-**Definition (Ownership Domain).** For principal `π ∈ Π`, define `dom(π) = {a ∈ T : pfx(π) ≼ a}`.
+**Definition (OwnershipDomain).** For principal `π ∈ Π`, define `dom(π) = {a ∈ T : pfx(π) ≼ a}`.
 
 By T5 (ContiguousSubtrees), every ownership domain is a contiguous interval under the lexicographic order T1. This is a mathematical consequence of prefix containment and the tree-to-line mapping, not a policy choice. If `a, c ∈ dom(π)` and `a ≤ b ≤ c`, then `b ∈ dom(π)`. No address can escape from the interior of someone's domain.
 
@@ -118,6 +122,8 @@ In a single-node system, `Π₀ = {π_N}` where `π_N` is the node operator with
 
 Without this closure, O12 permits arbitrary growth of Π — a mechanism outside the delegation relation could introduce a principal at document level (violating O1a) or within a sub-domain without the effective owner's consent (circumventing the authorization guarantee of delegation condition (ii)). Nelson's design contains no concept of principals appearing outside the delegation hierarchy, and Gregory's codebase provides no mechanism for it. The at-most-one constraint reflects the atomic nature of a delegation act: one delegator, one delegate, one prefix.
 
+**allocated_by_Σ(π, a) (AllocatedBy).**
+
 We take `allocated_by_Σ(π, a)` — "address `a` was allocated by principal `π` in the transition producing state `Σ`" — as a primitive relation of the ownership model. Its mechanism (the baptism procedure that generates addresses and enters them into `Σ.alloc`) is out of scope; what the ownership model constrains is its signature and the properties it must satisfy (O5, O16). The signature:
 
   `allocated_by_Σ : Principal × Tumbler → Bool`
@@ -157,6 +163,8 @@ We resolve nesting by specificity:
 
   `(A a ∈ Σ.alloc : (E! π ∈ Π : ω(a) = π))`
 
+**ω(a) (EffectiveOwner).**
+
 where `ω(a)` — the *effective owner* — is the principal with the longest matching prefix:
 
   `ω(a) = π  ≡  pfx(π) ≼ a  ∧  (A π' ∈ Π : π' ≠ π ∧ pfx(π') ≼ a : #pfx(π) > #pfx(π'))`
@@ -184,7 +192,7 @@ The argument: `ω(a)` depends on three inputs — the address `a`, the set of pr
 
 Refinement is one-directional: `#pfx(ω_{Σ'}(a)) ≥ #pfx(ω_Σ(a))` in all transitions. Once a principal `π` becomes the effective owner through longest-match, only a *more specific* delegation can supersede it.
 
-**Corollary (Account-level permanence).** Account-level prefixes can nest — `pfx(π₁) = [1, 0, 2]` and `pfx(π₂) = [1, 0, 2, 3]` both satisfy O1a, and delegation from `π₁` to `π₂` changes `ω` for addresses in `dom(π₂)`. But such delegation requires an act of `π₁` itself: by O5 (for allocation) and condition (ii) of the `delegated` relation (for delegation), only the most-specific covering principal may allocate or delegate within its domain. By O15 (PrincipalClosure), delegation is the exclusive mechanism for introducing principals post-bootstrap. No delegation can introduce a principal whose prefix extends `pfx(π)` without `π`'s involvement. We show this by induction on the order in which principals enter Π.
+**AccountLevelPermanence (Account-level permanence).** Account-level prefixes can nest — `pfx(π₁) = [1, 0, 2]` and `pfx(π₂) = [1, 0, 2, 3]` both satisfy O1a, and delegation from `π₁` to `π₂` changes `ω` for addresses in `dom(π₂)`. But such delegation requires an act of `π₁` itself: by O5 (for allocation) and condition (ii) of the `delegated` relation (for delegation), only the most-specific covering principal may allocate or delegate within its domain. By O15 (PrincipalClosure), delegation is the exclusive mechanism for introducing principals post-bootstrap. No delegation can introduce a principal whose prefix extends `pfx(π)` without `π`'s involvement. We show this by induction on the order in which principals enter Π.
 
 *Base case.* For bootstrap principals `π ∈ Π₀`, O14's non-nesting constraint gives `(A π₁, π₂ ∈ Π₀ : π₁ ≠ π₂ ⟹ pfx(π₁) ⋠ pfx(π₂))` — no other bootstrap principal has a prefix extending `pfx(π)`.
 
@@ -249,7 +257,7 @@ The ownership prefix is embedded in the permanent address. Because every princip
 
 We first observe a structural property of `acct`: for any valid tumbler `a`, the account field is a prefix of the address itself:
 
-**Lemma (AccountPrefix).** `(A a ∈ T : T4(a) ⟹ acct(a) ≼ a)`
+**AccountPrefix (AccountPrefix).** `(A a ∈ T : T4(a) ⟹ acct(a) ≼ a)`
 
 The T4 restriction is essential: `acct` relies on field parsing (FieldParsing from ASN-0034), which requires T4 validity — for a tumbler like `[0, 0, 1]`, the field boundaries are ill-defined and `acct` is not well-defined. By O17, all allocated addresses satisfy T4, so the restriction does not limit application.
 
@@ -448,6 +456,7 @@ The design philosophy is clear: minimize the authorization model to the point wh
 | O1b | `pfx` is injective — distinct principals have distinct prefixes | design requirement |
 | O2 | Every allocated address has exactly one effective owner `ω(a)`, determined by longest matching prefix | introduced |
 | O3 | `ω(a)` changes only through delegation introducing a longer matching prefix — monotonic refinement | introduced |
+| AccountLevelPermanence | No external delegation can alter effective ownership within `dom(π)` — changes to `ω(a)` inside a principal's domain arise only from that principal's own acts or its sub-delegates' acts | corollary of O3, O5, O8, O12, O15 |
 | O4 | `(A a ∈ Σ.alloc : (E π ∈ Π : pfx(π) ≼ a))` — every allocated address is covered by some principal | introduced |
 | O5 | Only the principal with the longest matching prefix may allocate within its domain — subdivision authority | design requirement |
 | AccountPrefix | `(A a ∈ T : T4(a) ⟹ acct(a) ≼ a)` — the account field is a prefix of any valid address | introduced |
@@ -464,10 +473,10 @@ The design philosophy is clear: minimize the authorization model to the point wh
 | O16 | `(A a ∈ Σ'.alloc ∖ Σ.alloc : (E π ∈ Π_Σ : allocated_by_{Σ'}(π, a)))` — allocation closure | design requirement |
 | O17 | `(A Σ, a : a ∈ Σ.alloc ⟹ T4(a))` — every allocated address is a valid tumbler | axiom |
 | `ω(a)` | `effectiveOwner : Σ.alloc → Principal` — the effective owner function (defined only for allocated addresses) | introduced |
-| `dom(π)` | `{a ∈ T : pfx(π) ≼ a}` — the ownership domain of a principal | introduced |
+| OwnershipDomain | `{a ∈ T : pfx(π) ≼ a}` — the ownership domain of a principal | introduced |
 | `acct(a)` | When `zeros(a) = 0`: `acct(a) = a`; when `zeros(a) ≥ 1`: truncation through user field | introduced |
 | `allocated_by_Σ(π, a)` | Primitive relation: `a` was allocated by `π` in transition producing `Σ`; mechanism out of scope, constrained by O5 and O16 | introduced |
-| `delegated_Σ(π, π')` | `π'` introduced into `Π` by act of `π`, with `pfx(π) ≺ pfx(π')`, `π` most-specific covering principal, no existing principal extends `pfx(π')`, `zeros(pfx(π')) ≤ 1`, and `T4(pfx(π'))` | introduced |
+| Delegation | `π'` introduced into `Π` by act of `π`, with `pfx(π) ≺ pfx(π')`, `π` most-specific covering principal, no existing principal extends `pfx(π')`, `zeros(pfx(π')) ≤ 1`, and `T4(pfx(π'))` | introduced |
 | `pfx(π)` | `ownershipPrefix : Principal → Tumbler` — injective, `zeros(pfx(π)) ≤ 1`, `T4(pfx(π))` | introduced |
 
 
