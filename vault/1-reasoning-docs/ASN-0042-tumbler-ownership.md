@@ -158,6 +158,14 @@ We take `allocated_by_Σ(π, a)` — "address `a` was allocated by principal `π
 
   `allocated_by_Σ : Principal × Tumbler → Bool`
 
+This relation is primitive — it admits no derivation within the ownership model, and we justify its status as such. The ownership model's purpose is to constrain *who may allocate where* and to guarantee *that every allocation has an author*; the model does not define the mechanism by which allocation occurs. That mechanism belongs to the tumbler baptism specification, which produces the concrete act of generating an address and entering it into `Σ.alloc`. The ownership model receives this act as a fact — `allocated_by_{Σ'}(π, a)` holds precisely when the baptism procedure, executing on behalf of principal `π`, produced address `a` during the transition to state `Σ'` — and imposes two constraints upon it. First, O5 (SubdivisionAuthority) requires that the allocator be the most-specific covering principal: if `allocated_by_{Σ'}(π, a)` then `pfx(π) ≼ a` and no `π' ∈ Π_Σ` has a longer prefix that also covers `a`. Second, O16 (AllocationClosure) requires that every newly allocated address have an allocator: if `a ∈ Σ'.alloc ∖ Σ.alloc` then some `π ∈ Π_Σ` satisfies `allocated_by_{Σ'}(π, a)`. Together, O5 and O16 fully constrain the relation's behavior without defining its implementation. The relation's well-definedness is an obligation on any conforming baptism specification; the ownership model treats it as axiomatic. ∎
+
+*Axiom:* `allocated_by_Σ(π, a)` is a primitive relation of the ownership model.
+- *Signature:* `allocated_by_Σ : Principal × Tumbler → Bool`
+- *Semantics:* `allocated_by_{Σ'}(π, a)` holds when the baptism procedure, executing on behalf of `π`, produced `a` during the transition yielding `Σ'`.
+- *Constraints:* O5 (SubdivisionAuthority) — allocator is most-specific covering principal; O16 (AllocationClosure) — every new address has an allocator.
+- *Mechanism:* Out of scope; belongs to the tumbler baptism specification.
+
 **O16 (AllocationClosure).** Every address entering `Σ.alloc` in a state transition was allocated by some principal in `Π_Σ`:
 
   `(A Σ, Σ', a : Σ → Σ' ∧ a ∈ Σ'.alloc ∖ Σ.alloc  ⟹  (E π ∈ Π_Σ : allocated_by_{Σ'}(π, a)))`
@@ -681,7 +689,7 @@ The design philosophy is clear: minimize the authorization model to the point wh
 | `ω(a)` | `effectiveOwner : Σ.alloc → Principal` — the effective owner function (defined only for allocated addresses) | introduced |
 | OwnershipDomain | `{a ∈ T : pfx(π) ≼ a}` — the ownership domain of a principal | introduced |
 | `acct(a)` | When `zeros(a) = 0`: `acct(a) = a`; when `zeros(a) ≥ 1`: truncation through user field | definition from T4, T6 |
-| `allocated_by_Σ(π, a)` | Primitive relation: `a` was allocated by `π` in transition producing `Σ`; mechanism out of scope, constrained by O5 and O16 | introduced |
+| `allocated_by_Σ(π, a)` | Primitive relation: `a` was allocated by `π` in transition producing `Σ`; mechanism out of scope, constrained by O5 and O16 | axiom (constrained by O5, O16) |
 | Delegation | `π'` introduced into `Π` by act of `π`, with `pfx(π) ≺ pfx(π')`, `π` most-specific covering principal, no existing principal extends `pfx(π')`, `zeros(pfx(π')) ≤ 1`, and `T4(pfx(π'))` | introduced |
 | `pfx(π)` | `ownershipPrefix : Principal → Tumbler` — injective, `zeros(pfx(π)) ≤ 1`, `T4(pfx(π))` | introduced |
 
