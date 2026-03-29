@@ -144,8 +144,11 @@ def main():
             print(f"  [REVIEW] {review_path}", file=sys.stderr)
 
             if converged and force_cycles:
-                print(f"  [REVISE] Reviewer says CONVERGED but --cycles forces continuation",
+                print(f"  [REVISE] Reviewer says CONVERGED — skipping to next cycle",
                       file=sys.stderr)
+                step_commit(f"Review {asn_label} — converged (cycle {cycle})",
+                            asn_id=asn_number)
+                continue
             elif converged:
                 # Cycle gate — check dependency graph before accepting
                 from lib.formalization.mechanical import check_cycles, format_cycle_findings
@@ -203,8 +206,9 @@ def main():
         args.resume = None  # clear resume after first cycle
 
         if revise_converged and force_cycles:
-            print(f"  [REVISE] Revise made no changes but --cycles forces continuation",
+            print(f"  [REVISE] Revise made no changes — skipping to next cycle",
                   file=sys.stderr)
+            continue
         elif revise_converged:
             # Cycle gate — check before accepting convergence
             from lib.formalization.mechanical import check_cycles, format_cycle_findings
