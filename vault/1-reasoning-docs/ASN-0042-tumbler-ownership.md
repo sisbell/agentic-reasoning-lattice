@@ -163,6 +163,25 @@ We resolve nesting by specificity:
 
   `(A a ∈ Σ.alloc : (E! π ∈ Π : ω(a) = π))`
 
+We prove that for every allocated address `a`, there exists exactly one principal satisfying `ω(a) = π`, where `ω(a)` denotes the principal with the longest matching prefix: `ω(a) = π ≡ pfx(π) ≼ a ∧ (A π' ∈ Π : π' ≠ π ∧ pfx(π') ≼ a ⟹ #pfx(π) > #pfx(π'))`. The proof decomposes into existence and uniqueness.
+
+*Existence.* Let `C(a) = {π ∈ Π : pfx(π) ≼ a}` denote the set of principals whose prefix covers `a`. By O4 (DomainCoverage), `C(a) ≠ ∅` for every `a ∈ Σ.alloc` — every allocated address falls within at least one principal's domain. We must show that `C(a)` admits a unique longest-prefix element.
+
+The prefixes of principals in `C(a)` are totally ordered by the prefix relation. Let `p₁ = pfx(π₁)` and `p₂ = pfx(π₂)` for arbitrary `π₁, π₂ ∈ C(a)`, and suppose without loss of generality that `#p₁ ≤ #p₂`. Since `p₁ ≼ a`, we have `(p₁)ᵢ = aᵢ` for all `i ≤ #p₁`. Since `p₂ ≼ a`, we have `(p₂)ᵢ = aᵢ` for all `i ≤ #p₂`. For each `i ≤ #p₁`, both equalities hold, yielding `(p₁)ᵢ = aᵢ = (p₂)ᵢ`. Since `p₁` agrees with `p₂` on all `#p₁` components and `#p₁ ≤ #p₂`, we have `p₁ ≼ p₂`. Therefore any two prefixes in `{pfx(π) : π ∈ C(a)}` are comparable under `≼` — the covering set is a chain.
+
+The set `C(a)` is finite: each covering prefix `p ≼ a` is uniquely determined by its length — it equals `[a₁, …, a_{#p}]` — and there are at most `#a` possible lengths, so `|C(a)| ≤ #a`.
+
+A non-empty finite totally ordered set has a maximum. Therefore there exists a unique maximal length `ℓ* = max{#pfx(π) : π ∈ C(a)}`, and exactly one prefix of that length covers `a` (since the covering prefix of length `ℓ*` is determined: it must be `[a₁, …, a_{ℓ*}]`). Hence there exists a principal `π* ∈ C(a)` with `#pfx(π*) = ℓ*` satisfying the definition of `ω(a)`.
+
+*Uniqueness.* Suppose for contradiction that two distinct principals `π₁ ≠ π₂` both satisfy `ω(a) = π₁` and `ω(a) = π₂`. Then both achieve the longest matching prefix: `#pfx(π₁) = #pfx(π₂) = ℓ*`. Since both prefixes cover `a` and share the same length, `pfx(π₁) = [a₁, …, a_{ℓ*}] = pfx(π₂)`. By O1b (PrefixInjectivity), `pfx(π₁) = pfx(π₂)` implies `π₁ = π₂`, contradicting the assumption of distinctness. Therefore `ω(a)` is unique.
+
+We conclude: for every `a ∈ Σ.alloc`, there exists exactly one `π ∈ Π` with `ω(a) = π`. ∎
+
+*Formal Contract:*
+- *Preconditions:* `a ∈ Σ.alloc`.
+- *Postconditions:* `(E! π ∈ Π : ω(a) = π)`.
+- *Invariant:* Exclusivity holds in every reachable state — `ω` is a total function on `Σ.alloc`.
+
 **ω(a) (EffectiveOwner).**
 
 where `ω(a)` — the *effective owner* — is the principal with the longest matching prefix:
@@ -479,7 +498,7 @@ The design philosophy is clear: minimize the authorization model to the point wh
 | O1 | `owns(π, a) ≡ pfx(π) ≼ a` — ownership is prefix containment | introduced |
 | O1a | `(A π ∈ Π : zeros(pfx(π)) ≤ 1)` — ownership principals exist only at node or account level | design requirement |
 | O1b | `pfx` is injective — distinct principals have distinct prefixes | design requirement |
-| O2 | Every allocated address has exactly one effective owner `ω(a)`, determined by longest matching prefix | introduced |
+| O2 | Every allocated address has exactly one effective owner `ω(a)`, determined by longest matching prefix | from O4, O1b |
 | O3 | `ω(a)` changes only through delegation introducing a longer matching prefix — monotonic refinement | from T8, O12, O13, O1b |
 | AccountLevelPermanence | No external delegation can alter effective ownership within `dom(π)` — changes to `ω(a)` inside a principal's domain arise only from that principal's own acts or its sub-delegates' acts | corollary of O3, O5, O8, O12, O15 |
 | O4 | `(A a ∈ Σ.alloc : (E π ∈ Π : pfx(π) ≼ a))` — every allocated address is covered by some principal | introduced |
