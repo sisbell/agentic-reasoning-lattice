@@ -21,7 +21,14 @@ Gregory's implementation confirms this with unusual force. The sole ownership pr
 
 **pfx(π) (OwnershipPrefix).**
 
-We introduce the principals. Let `Π` denote the set of *principals* — the ownership subjects. Each principal `π ∈ Π` is associated with an *ownership prefix* `pfx(π) ∈ T`, a valid tumbler (satisfying T4) that serves as the root of their namespace. The mapping `pfx` is injective — distinct principals have distinct prefixes:
+We introduce the principals. Let `Π` denote the set of *principals* — the ownership subjects. Each principal `π ∈ Π` is associated with an *ownership prefix* `pfx(π) ∈ T`, a valid tumbler (satisfying T4) that serves as the root of their namespace. The mapping `pfx` is injective — distinct principals have distinct prefixes (formalized as O1b below).
+
+The mapping `pfx` is a primitive of the ownership model — it is posited, not derived. We justify its well-formedness. Nelson's architecture requires that every principal possess a namespace root readable from the address itself: "numbers are owned by individuals or companies, and subnumbers under them are bestowed" (LM 4/17). The mapping `pfx` formalizes this assignment — each principal receives the tumbler that roots its namespace. The codomain constraint `pfx(π) ∈ T` places the prefix in the tumbler space; the validity requirement T4 (FieldSeparatorConstraint) ensures that zero-valued components parse unambiguously as field separators, that field extraction via T6 is well-defined, and that the hierarchical level `zeros(pfx(π))` — on which the account-level boundary O1a depends — is determinate. Without T4, the prefix comparison `pfx(π) ≼ a` used in the ownership predicate O1 might not be computable, because the prefix relation T5 requires component-wise comparison of well-defined components, which T4 (through T3) guarantees. The remaining structural constraints — injectivity (O1b) and `zeros(pfx(π)) ≤ 1` (O1a) — are stated and proved as separate properties. ∎
+
+*Formal Contract:*
+- *Axiom:* `pfx : Π → T` is a total mapping assigning each principal its ownership prefix.
+- *Preconditions:* `π ∈ Π`.
+- *Postconditions:* (a) `pfx(π) ∈ T`. (b) `T4(pfx(π))` — the prefix is a valid tumbler satisfying FieldSeparatorConstraint. (c) Injectivity: stated separately as O1b. (d) Account-level boundary: stated separately as O1a.
 
 **O1b (PrefixInjectivity).** `(A π₁, π₂ ∈ Π : pfx(π₁) = pfx(π₂) ⟹ π₁ = π₂)`
 
@@ -691,7 +698,7 @@ The design philosophy is clear: minimize the authorization model to the point wh
 | `acct(a)` | When `zeros(a) = 0`: `acct(a) = a`; when `zeros(a) ≥ 1`: truncation through user field | definition from T4, T6 |
 | `allocated_by_Σ(π, a)` | Primitive relation: `a` was allocated by `π` in transition producing `Σ`; mechanism out of scope, constrained by O5 and O16 | axiom (constrained by O5, O16) |
 | Delegation | `π'` introduced into `Π` by act of `π`, with `pfx(π) ≺ pfx(π')`, `π` most-specific covering principal, no existing principal extends `pfx(π')`, `zeros(pfx(π')) ≤ 1`, and `T4(pfx(π'))` | introduced |
-| `pfx(π)` | `ownershipPrefix : Principal → Tumbler` — injective, `zeros(pfx(π)) ≤ 1`, `T4(pfx(π))` | introduced |
+| `pfx(π)` | `ownershipPrefix : Principal → Tumbler` — injective, `zeros(pfx(π)) ≤ 1`, `T4(pfx(π))` | axiom (T4) |
 
 
 ## Open Questions
