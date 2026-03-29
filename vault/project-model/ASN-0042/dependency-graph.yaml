@@ -99,7 +99,7 @@ properties:
     - 34
   O9:
     status: introduced
-    name: '`owns(π, a) ⟹ N(pfx(π)) ≼ N(a)`'
+    name: '`(A π ∈ Π, a ∈ Σ'
     follows_from:
     - O1
     - O1a
