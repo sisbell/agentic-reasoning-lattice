@@ -457,7 +457,7 @@ Since v₁ < w < v₂, subspace(w) = S, and #w = m = #v₁, D-CTG requires w ∈
 Therefore no two positions in V_S(d) can disagree at any component j with 2 ≤ j ≤ m − 1. All positions share components 2 through m − 1, and contiguity reduces to contiguity of the last component (component m) alone. ∎
 
 *Formal Contract:*
-- *Preconditions:* V_S(d) non-empty; common depth m ≥ 3 (S8-depth); D-CTG (VContiguity); dom(M(d)) finite (S8-fin).
+- *Preconditions:* V_S(d) non-empty; common depth m ≥ 3 (S8-depth); D-CTG (VContiguity); dom(M(d)) finite (S8-fin); T0(a) (UnboundedComponentValues, ASN-0034); T1(i) (TumblerOrdering, ASN-0034); T3 (CanonicalRepresentation, ASN-0034).
 - *Postconditions:* `(A v₁, v₂ ∈ V_S(d), j : 2 ≤ j ≤ m − 1 : (v₁)ⱼ = (v₂)ⱼ)`. Contiguity of V_S(d) reduces to contiguity of the m-th (last) component.
 
 Nelson's statement specifies not just contiguity but also the starting ordinal: "addresses 1 through 100," not "42 through 141."
