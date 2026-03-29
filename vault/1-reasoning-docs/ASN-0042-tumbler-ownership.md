@@ -431,13 +431,34 @@ Ownership authority does not propagate across node boundaries. A principal's eff
 
   `(A π ∈ Π, a ∈ Σ.alloc : owns(π, a)  ⟹  N(pfx(π)) ≼ N(a))`
 
-Two cases arise from O1a. When `zeros(pfx(π)) = 1` (account-level), the prefix has the form `N.0.U`, and the zero separator forces field-boundary alignment: `pfx(π) ≼ a` requires `a`'s first zero to appear at the same position as the prefix's zero, giving `N(a) = N(pfx(π))` — full equality. When `zeros(pfx(π)) = 0` (node-level), the prefix is entirely within the node field and contains no boundary markers, so `pfx(π) ≼ a` gives only `N(pfx(π)) ≼ N(a)` — the address may have a longer node field. This is structurally permitted: T10a allows `inc([1, 2], 1) = [1, 2, 1]` (still `zeros = 0`), so addresses with node fields strictly extending the principal's exist.
+We must show that if `owns(π, a)` holds for an allocated address `a`, then `N(pfx(π)) ≼ N(a)` — the principal's node field is a prefix of the address's node field. By O1 (PrefixDetermination), `owns(π, a) ≡ pfx(π) ≼ a`, so the hypothesis gives `pfx(π) ≼ a`: by T5, the components of `pfx(π)` match the leading components of `a`, that is, `#a ≥ #pfx(π)` and `aᵢ = pfx(π)ᵢ` for all `1 ≤ i ≤ #pfx(π)`. By O1a (AccountOwnershipBoundary), `zeros(pfx(π)) ≤ 1`. Two cases exhaust the possibilities.
 
-In both cases, the essential constraint holds: ownership cannot cross node boundaries. A principal at node `[1]` cannot own addresses at node `[2]`, because `[1]` is not a prefix of `[2, ...]`. The node field's leading components must match — only the *length* of the node field may differ, and only for node-level principals.
+*Case 1: `zeros(pfx(π)) = 0` (node-level principal).* Every component of `pfx(π)` is strictly positive — T4 (FieldSeparatorConstraint) requires that every non-separator component be positive, and the absence of zeros means every component is a non-separator. By T4's field decomposition, the node field of a tumbler with no zeros is the tumbler itself: `N(pfx(π)) = pfx(π)`, with `#N(pfx(π)) = #pfx(π)`.
 
-The consequence is that the same human being would hold *separate, independent* ownership roots on each node — distinct principals with distinct prefixes, distinct domains, and no structural relationship between them. Nelson's "docuverse" is a forest of independently owned trees rooted at nodes, not a single tree with a universal authority. The node operator delegates accounts within its node; those accounts have no automatic standing on any other node.
+Since `pfx(π) ≼ a`, the first `#pfx(π)` components of `a` match those of `pfx(π)` and are therefore all strictly positive. By T4, the node field `N(a)` consists of the components of `a` preceding the first zero-valued component (or all components of `a` if no zero occurs). Since positions `1` through `#pfx(π)` of `a` are all positive, the first zero of `a` — if it exists — occurs at position `#pfx(π) + 1` or later. Therefore `#N(a) ≥ #pfx(π) = #N(pfx(π))`. The first `#N(pfx(π))` components of `N(a)` are `a₁, ..., a_{#pfx(π)}`, which equal `pfx(π)₁, ..., pfx(π)_{#pfx(π)}` by the prefix relation, and these are exactly the components of `N(pfx(π))`. Hence `N(pfx(π)) ≼ N(a)`.
+
+Note that the inequality may be strict: T10a (SiblingShallowChildDeep) permits `inc([1, 2], 1) = [1, 2, 1]` with `zeros = 0`, so addresses with node fields strictly extending the principal's node field exist. In such cases `N(pfx(π)) ≺ N(a)` — the address belongs to a longer node path that shares the principal's node prefix.
+
+*Case 2: `zeros(pfx(π)) = 1` (account-level principal).* By T4, the prefix has the form `N₁. ... .Nₐ . 0 . U₁. ... .Uᵦ` with `α ≥ 1` and `β ≥ 1` (non-empty field constraint), where every `Nᵢ > 0` (positive-component constraint) and every `Uⱼ > 0`. The node field is `N(pfx(π)) = [N₁, ..., Nₐ]`, and the single zero sits at position `α + 1`.
+
+Since `pfx(π) ≼ a`, the first `α + 1 + β` components of `a` match those of `pfx(π)`:
+- Positions `1` through `α`: `aᵢ = Nᵢ > 0` for each `1 ≤ i ≤ α`.
+- Position `α + 1`: `a_{α+1} = 0`, matching the zero separator of `pfx(π)`.
+- Positions `α + 2` through `α + 1 + β`: `a_{α+1+j} = Uⱼ > 0` for each `1 ≤ j ≤ β`.
+
+By T4, the node field `N(a)` consists of the components of `a` before `a`'s first zero. Since positions `1` through `α` are all positive and position `α + 1` is zero, the first zero of `a` is at position `α + 1`. Hence `N(a) = [a₁, ..., aₐ] = [N₁, ..., Nₐ] = N(pfx(π))`. The prefix relation holds with equality: `N(pfx(π)) = N(a)`, which implies `N(pfx(π)) ≼ N(a)`.
+
+In both cases `N(pfx(π)) ≼ N(a)`. The case distinction is exhaustive by O1a. ∎
+
+The consequence is that ownership cannot cross node boundaries. A principal at node `[1]` cannot own addresses at node `[2]`, because `[1]` is not a prefix of `[2, ...]`. The node field's leading components must match — only the *length* of the node field may differ, and only for node-level principals (Case 1 above).
+
+The same human being would therefore hold *separate, independent* ownership roots on each node — distinct principals with distinct prefixes, distinct domains, and no structural relationship between them. Nelson's "docuverse" is a forest of independently owned trees rooted at nodes, not a single tree with a universal authority. The node operator delegates accounts within its node; those accounts have no automatic standing on any other node.
 
 Gregory's implementation has no cross-node communication, no remote ownership lookup, and no federation of identity. The account tumbler is per-session, per-node. But the abstract property does not depend on these implementation choices — it follows from the prefix geometry of T4 and the structural ownership predicate of O1.
+
+*Formal Contract:*
+- *Preconditions:* `π ∈ Π`, `a ∈ Σ.alloc`, `owns(π, a)`.
+- *Postconditions:* `N(pfx(π)) ≼ N(a)`. When `zeros(pfx(π)) = 1`: `N(pfx(π)) = N(a)` (equality). When `zeros(pfx(π)) = 0`: `N(pfx(π)) ≼ N(a)` (proper prefix permitted).
 
 
 ## The Fork as Ownership Boundary
@@ -520,7 +541,7 @@ The design philosophy is clear: minimize the authorization model to the point wh
 | O6 | `acct(a) = acct(b) ⟹ ω(a) = ω(b)` — effective owner determined entirely by account field | introduced |
 | O7 | Delegation (authorized by `delegated`) confers effective ownership (O2), subdivision authority (O5), and recursive delegation (O7) | introduced |
 | O8 | `delegated_Σ(π, π') ∧ a ∈ dom(π') ∩ Σ'.alloc ∧ Σ →⁺ Σ' ⟹ ω_{Σ'}(a) ≠ π` — delegating parent never regains ownership | introduced |
-| O9 | `(A π ∈ Π, a ∈ Σ.alloc : owns(π, a) ⟹ N(pfx(π)) ≼ N(a))` — ownership bounded by node field | introduced |
+| O9 | `(A π ∈ Π, a ∈ Σ.alloc : owns(π, a) ⟹ N(pfx(π)) ≼ N(a))` — ownership bounded by node field | from O1, O1a, T4, T5 |
 | O10 | Non-ownership of target yields a fork: new address under the requesting principal's domain | introduced |
 | O11 | Principal identity is axiomatic to the ownership model — authentication is external | axiom |
 | O12 | `(A Σ, Σ' : Σ → Σ' ⟹ Π_Σ ⊆ Π_{Σ'})` — principal persistence | design requirement |
