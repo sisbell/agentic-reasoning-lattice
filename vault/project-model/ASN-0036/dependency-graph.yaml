@@ -112,7 +112,9 @@ properties:
     follows_from:
     - S7a
     - T10a
+    - TA0
     - TA7a
+    - TumblerAdd
     follows_from_asns:
     - 34
   S8:
