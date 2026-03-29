@@ -574,3 +574,324 @@ For these tumblers, `fields(t)` is ill-defined. The allocation mechanism (S7a + 
 **Issue**: S8-fin is listed as a precondition in every other property that uses finiteness of `dom(M(d))` (S8, D-CTG-depth, D-SEQ all list it). ValidInsertionPosition breaks this convention. D-SEQ is acknowledged in the body text but absent from the formal contract. An operation ASN relying solely on ValidInsertionPosition's formal contract to determine its proof obligations would not know to establish S8-fin or to derive D-SEQ's sequential characterization.
 
 **What needs resolving**: Add S8-fin to the formal contract preconditions (since `|V_S(d)| = N` requires finiteness directly), and either list D-SEQ as a dependency or note that it is derived from the listed preconditions plus S8-fin.
+
+### Finding 1: [stale-label] GlobalUniqueness
+**Location**: deps:S4
+**Detail**: Property S4 references GlobalUniqueness which does not exist in any active ASN's export
+
+### Finding 2: [stale-label] GlobalUniqueness
+**Location**: deps:S7
+**Detail**: Property S7 references GlobalUniqueness which does not exist in any active ASN's export
+
+### Finding 3: [stale-label] TumblerAdd
+**Location**: deps:S8-depth
+**Detail**: Property S8-depth references TumblerAdd which does not exist in any active ASN's export
+
+### Finding 4: [stale-label] T0(a)
+**Location**: deps:D-CTG
+**Detail**: Property D-CTG references T0(a) which does not exist in any active ASN's export
+
+### Finding 5: [stale-label] T0(a)
+**Location**: deps:D-CTG-depth
+**Detail**: Property D-CTG-depth references T0(a) which does not exist in any active ASN's export
+
+### Finding 6: [stale-label] OrdinalShift
+**Location**: deps:ValidInsertionPosition
+**Detail**: Property ValidInsertionPosition references OrdinalShift which does not exist in any active ASN's export
+
+### Finding 7: [stale-label] TumblerAdd
+**Location**: deps:ValidInsertionPosition
+**Detail**: Property ValidInsertionPosition references TumblerAdd which does not exist in any active ASN's export
+
+### Finding 8: [prose-only] T0 (ASN-0034)
+**Location**: prose
+**Detail**: Prose cites T0 (ASN-0034) but no property table entry lists it in follows_from
+
+## Review of ASN-0036 Against ASN-0034 Foundation Statements
+
+### 1. Stale Labels
+
+**Finding 1.** The S8 proof cites T1 as `T1(i) (LexicographicOrdering, ASN-0034)`. No property named "LexicographicOrdering" exists in ASN-0034. T1's label is `LexicographicTotalOrder`.
+
+> *"From v ≤ t with first divergence at m: t_m ≥ v_m by T1(i) (LexicographicOrdering, ASN-0034): the first component at which two equal-length tumblers disagree determines their order."*
+
+**Finding 2.** D-CTG proof body, D-CTG-depth formal contract preconditions, and D-SEQ formal contract preconditions all cite T1 as `T1(i) (TumblerOrdering, ASN-0034)`. No property named "TumblerOrdering" exists in ASN-0034. The correct label is `LexicographicTotalOrder`. The two incorrect names are also inconsistent with each other.
+
+> *D-CTG proof: "The strict inequality at component j follows from v₁ < v₂ by T1(i) (TumblerOrdering, ASN-0034)"*
+> *D-CTG-depth formal contract: "T1(i) (TumblerOrdering, ASN-0034)"*
+> *D-SEQ formal contract: "T1(i) (TumblerOrdering, ASN-0034)"*
+
+Contrast with correctly-labeled citations elsewhere in the same ASN: `T4 (FieldSeparatorConstraint, ASN-0034)`, `T5 (PrefixContiguity, ASN-0034)`, `T3 (CanonicalRepresentation, ASN-0034)` — all match foundation labels exactly.
+
+### 2. Structural Drift
+
+(none)
+
+### 3. Local Redefinitions
+
+(none)
+
+### 4. Registry Misclassification
+
+(none)
+
+### 5. Missing Dependencies
+
+(none)
+
+### 6. Exhaustiveness Gaps
+
+(none)
+
+---
+
+`RESULT: 2 FINDINGS`
+
+I'll read the ASN and foundation carefully, then trace the argument chains.
+
+<tool_call>
+<tool_name>Read</tool_name>
+<parameters>
+<file_path>vault/project-model/ASN-0036/open-issues.md</file_path>
+</parameters>
+</tool_call>
+
+<tool_call>
+<tool_name>Read</tool_name>
+<parameters>
+<file_path>vault/project-model/ASN-0036/formal-statements.md</file_path>
+</parameters>
+</tool_call>
+
+<tool_call>
+<tool_name>Grep</tool_name>
+<parameters>
+<pattern>zeros\(a\) = 3|fields\(a\)</pattern>
+<file_path>vault/project-model/ASN-0036/formal-statements.md</file_path>
+</parameters>
+</tool_call>
+
+<tool_call>
+<tool_name>Grep</tool_name>
+<parameters>
+<pattern>T4.*Axiom|Valid address tumblers satisfy</pattern>
+<file_path>vault/project-model/ASN-0034/formal-statements.md</file_path>
+</parameters>
+</tool_call>
+
+<tool_call>
+<tool_name>Grep</tool_name>
+<parameters>
+<pattern>S8-fin|D-SEQ|ValidInsertionPosition</pattern>
+<file_path>vault/project-model/ASN-0036/formal-statements.md</file_path>
+</parameters>
+</tool_call>
+
+<tool_call>
+<tool_name>Read</tool_name>
+<parameters>
+<file_path>vault/project-model/ASN-0036/formal-statements.md</file_path>
+<offset>1</offset>
+<limit>30</limit>
+</parameters>
+</tool_call>
+
+<tool_call>
+<tool_name>Read</tool_name>
+<parameters>
+<file_path>vault/project-model/ASN-0036/formal-statements.md</file_path>
+<offset>30</offset>
+<limit>50</limit>
+</parameters>
+</tool_call>
+
+<tool_call>
+<tool_name>Read</tool_name>
+<parameters>
+<file_path>vault/project-model/ASN-0036/formal-statements.md</file_path>
+<offset>80</offset>
+<limit>50</limit>
+</parameters>
+</tool_call>
+
+<tool_call>
+<tool_name>Read</tool_name>
+<parameters>
+<file_path>vault/project-model/ASN-0036/formal-statements.md</file_path>
+<offset>130</offset>
+<limit>50</limit>
+</parameters>
+</tool_call>
+
+<tool_call>
+<tool_name>Read</tool_name>
+<parameters>
+<file_path>vault/project-model/ASN-0036/formal-statements.md</file_path>
+<offset>180</offset>
+<limit>50</limit>
+</parameters>
+</tool_call>
+
+<tool_call>
+<tool_name>Read</tool_name>
+<parameters>
+<file_path>vault/project-model/ASN-0036/formal-statements.md</file_path>
+<offset>230</offset>
+<limit>50</limit>
+</parameters>
+</tool_call>
+
+Now let me trace the specific chains where the structured checks couldn't reach — the logical gaps between what is stated and what is required.
+
+<tool_call>
+<tool_name>Grep</tool_name>
+<parameters>
+<pattern>Postconditions.*fields|fields.*well-defined</pattern>
+<file_path>vault/project-model/ASN-0034/formal-statements.md</file_path>
+</parameters>
+</tool_call>
+
+<tool_call>
+<tool_name>Grep</tool_name>
+<parameters>
+<pattern>Preconditions.*D-CTG|Preconditions.*d satisfies</pattern>
+<file_path>vault/project-model/ASN-0036/formal-statements.md</file_path>
+</parameters>
+</tool_call>
+
+<tool_call>
+<tool_name>Read</tool_name>
+<parameters>
+<file_path>vault/project-model/ASN-0036/formal-statements.md</file_path>
+<offset>200</offset>
+<limit>30</limit>
+</parameters>
+</tool_call>
+
+Now let me verify the S8 proof's cross-subspace argument in detail, and the S7 well-definedness chain.
+
+<tool_call>
+<tool_name>Grep</tool_name>
+<parameters>
+<pattern>Well-definedness|By S7b.*zeros</pattern>
+<file_path>vault/project-model/ASN-0036/formal-statements.md</file_path>
+</parameters>
+</tool_call>
+
+<tool_call>
+<tool_name>Read</tool_name>
+<parameters>
+<file_path>vault/project-model/ASN-0036/formal-statements.md</file_path>
+<offset>79</offset>
+<limit>15</limit>
+</parameters>
+</tool_call>
+
+Now I have the full picture. Let me write the review.
+
+<tool_call>
+<tool_name>Write</tool_name>
+<parameters>
+<file_path>vault/2-review/ASN-0036/review-60.md</file_path>
+<content># ASN-0036 Review 60 — Foundation Audit
+
+*Reviewer: Foundation audit (Dijkstra mode)*
+*Date: 2026-03-28*
+*Scope: Logical gaps the structured checks cannot see*
+
+---
+
+## Verified Properties
+
+The following argument chains were traced from foundation to conclusion and found sound:
+
+- **S0, S1, S6, S9**: Linear derivation from content-immutability axiom. S1 extracts the first conjunct of S0; S6 observes S0's unconditional scope; S9 specializes S0 to arrangement-modifying transitions. No unstated premises.
+- **S3**: Inductive proof with explicit axiom in Case 2. S1 correctly handles preserved mappings; the design constraint on new mappings is honestly identified as an axiom, not smuggled in as derived.
+- **S4**: GlobalUniqueness applies to I-addresses as allocation outputs. The independence from content values follows from GlobalUniqueness's purely structural character (no reference to Val).
+- **S5**: Constructive consistency proof. Both constructions (cross-document, within-document) are explicit, all four invariants checked, single-state models correctly satisfy S0/S1 vacuously.
+- **S8**: Singleton decomposition correctly established. Within-subspace uniqueness: the case split at divergence point j (j < m vs j = m) is exhaustive for equal-length tumblers by T3 contrapositive; both cases reach contradiction. Cross-subspace uniqueness: the m ≥ 2 case correctly applies T5 (prefix contiguity) to establish that [v, v+1) extends [S₁], then invokes non-nesting of single-component prefixes; the m = 1 case correctly constrains t₁ = S₁ for all t in [v, v+1) by exhaustive T1 case analysis.
+- **D-CTG-depth**: The construction of infinitely many intermediates when components 2..m−1 disagree is correct — each choice of n > (v₁)_{j+1} produces a distinct tumbler (by T3 at position j+1) satisfying v₁ < w < v₂ (by T1(i) at the appropriate divergence), contradicting S8-fin.
+- **D-SEQ**: Four-step derivation (shared prefix → minimum k → contiguity → finiteness) correctly assembles D-CTG-depth, D-MIN, D-CTG, and S8-fin into the sequential characterization. The m = 2 and m ≥ 3 cases are handled separately with correct justification.
+
+---
+
+## Findings
+
+### S7b provides `zeros(a) = 3` but S7 requires full T4 compliance for `fields(a)`
+
+**Foundation**: T4 (FieldSeparatorConstraint) — its postcondition (b), that `fields(t)` is well-defined and uniquely determined, is conditional on the full T4 axiom: `zeros(t) ≤ 3`, every non-separator component strictly positive, no adjacent zeros, `t₁ ≠ 0`, `t_{#t} ≠ 0`, every present field non-empty.
+
+**ASN**: S7 proof, "Well-definedness" paragraph:
+
+> "By S7b (element-level I-addresses), every `a ∈ dom(Σ.C)` satisfies `zeros(a) = 3`. By T4 (FieldSeparatorConstraint, ASN-0034), `zeros(a) = 3` means `a` contains exactly three zero-valued field separators, and `fields(a)` decomposes `a` into four fields."
+
+S7a's formal contract similarly cites S7b as the sole precondition: "S7b (element-level I-addresses) ensures `zeros(a) = 3` for all `a ∈ dom(Σ.C)`, so that T4's `fields(a)` yields node, user, document, and element fields."
+
+**Issue**: `zeros(a) = 3` is necessary but not sufficient for T4's `fields(a)` to be well-defined. Counterexamples with `zeros = 3` that violate T4:
+
+- `[0, 1, 0, 2, 0, 3, 4]` — leading zero (`t₁ = 0`), empty node field
+- `[1, 0, 0, 2, 0, 3, 4]` — adjacent zeros, empty user field
+- `[1, 0, 2, 0, 3, 0]` — trailing zero (`t_{#t} = 0`), empty element field
+
+For these tumblers `fields(t)` is ill-defined — T4's postcondition (b) does not apply. The allocation scheme (S7a + T10a + TA5) produces only T4-compliant addresses: `inc(·, 0)` preserves all T4 syntactic conditions (it modifies only the last component, which stays positive), and `inc(·, k>0)` appends `k−1` zeros and a `1`, maintaining the no-adjacent-zeros and no-trailing-zero constraints. So the gap cannot be exploited operationally. But the formal chain S7b → T4(b) jumps over the five remaining conditions of T4's axiom, and S7a's formal contract inherits the gap by depending on S7b alone for field extraction.
+
+**What needs resolving**: Either strengthen S7b to assert full T4 compliance for `dom(C)` — e.g., `(A a ∈ dom(Σ.C) :: a is a valid address tumbler satisfying T4)` with `zeros(a) = 3` as a corollary — or introduce a separate property establishing that the allocation scheme produces only T4-compliant addresses, derived from S7a + T10a + TA5, and cite it as a precondition in S7 and S7a.
+
+---
+
+### ValidInsertionPosition formal contract omits S8-fin
+
+**Foundation**: S8-fin (Finite arrangement) — `dom(M(d))` is finite for every document `d`. Every other property that uses finiteness of `dom(M(d))` lists S8-fin in its preconditions: S8, D-CTG-depth, D-SEQ.
+
+**ASN**: ValidInsertionPosition's formal contract states: "Preconditions: d satisfies D-CTG, D-MIN, S8-depth, S8a; S ≥ 1 (subspace identifier); if V_S(d) ≠ ∅, common V-position depth m ≥ 2." The definition body uses `|V_S(d)| = N` as a finite natural number and explicitly invokes D-SEQ:
+
+> "v₀ is the minimum (D-MIN) and v_{j+1} = shift(v_j, 1) for 0 ≤ j < N − 1 (D-SEQ)"
+
+The postcondition "exactly N + 1 valid insertion positions" requires N to be a definite natural number.
+
+**Issue**: Without S8-fin, the stated preconditions are consistent with `V_S(d)` being infinite — e.g., `V_S(d) = {[S, k] : k ∈ ℕ, k ≥ 1}` satisfies D-CTG (no gaps), D-MIN (`min = [S, 1]`), S8-depth (all depth 2), and S8a (all positive, no zeros). For an infinite `V_S(d)`, `|V_S(d)| = N` is not a natural number, and "exactly N + 1 valid insertion positions" is meaningless. D-SEQ, which the body cites for the sequential characterization, itself requires S8-fin as a precondition. An operation ASN relying solely on ValidInsertionPosition's stated preconditions to determine its proof obligations would not be obligated to establish finiteness.
+
+**What needs resolving**: Add S8-fin to the formal contract's preconditions. This also transitively supplies D-SEQ (which is derivable from D-CTG + D-CTG-depth + D-MIN + S8-fin + S8-depth + T1, all of which would then be available).
+
+---
+
+`RESULT: 2 FINDINGS`
+</content>
+</parameters>
+</tool_call>
+
+Now let me update the open issues file with these new findings.
+
+<tool_call>
+<tool_name>Read</tool_name>
+<parameters>
+<file_path>vault/project-model/ASN-0036/open-issues.md</file_path>
+</parameters>
+</tool_call>
+
+<tool_call>
+<tool_name>Edit</tool_name>
+<parameters>
+<file_path>vault/project-model/ASN-0036/open-issues.md</file_path>
+<old_string>### Finding 7: [prose-only] T0 (ASN-0034)
+**Location**: prose
+**Detail**: Prose cites T0 (ASN-0034) but no property table entry lists it in follows_from</old_string>
+<new_string>### Finding 7: [prose-only] T0 (ASN-0034)
+**Location**: prose
+**Detail**: Prose cites T0 (ASN-0034) but no property table entry lists it in follows_from
+
+### Finding 8: [precondition-gap] S7b insufficient for T4 field extraction
+**Location**: S7, S7a
+**Detail**: S7b provides only `zeros(a) = 3` but S7's proof and S7a's formal contract invoke T4's `fields(a)` postcondition, which requires the full T4 axiom (no adjacent zeros, no leading/trailing zero, positive non-separator components, non-empty fields). Tumblers with `zeros = 3` that violate these conditions exist (e.g. `[0,1,0,2,0,3,4]`). The allocation scheme preserves T4 compliance operationally but this is not formalized. Source: review-60.
+
+### Finding 9: [missing-dependency] ValidInsertionPosition omits S8-fin
+**Location**: ValidInsertionPosition formal contract
+**Detail**: The formal contract lists D-CTG, D-MIN, S8-depth, S8a as preconditions but omits S8-fin. The definition uses `|V_S(d)| = N` (requiring finiteness) and cites D-SEQ (which requires S8-fin). Without S8-fin, the stated preconditions are consistent with infinite V_S(d), making "exactly N + 1 valid insertion positions" meaningless. Source: review-60.</new_string>
+</parameters>
+</tool_call>
+
+Two new findings:
+
+1. **S7b → T4 precondition gap**: `zeros(a) = 3` is necessary but not sufficient for T4's `fields(a)` to be well-defined. The S7 proof invokes field extraction after establishing only the zero count, skipping T4's other five syntactic conditions (no adjacent zeros, no leading/trailing zero, positive non-separators, non-empty fields). The allocation scheme preserves these operationally but the formal chain has a gap.
+
+2. **ValidInsertionPosition missing S8-fin**: The formal contract omits finiteness of `dom(M(d))` despite using `|V_S(d)| = N` as a natural number and citing D-SEQ (which itself requires S8-fin). Without S8-fin, the stated preconditions are consistent with infinite V-position sets.
