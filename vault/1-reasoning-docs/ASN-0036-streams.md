@@ -542,7 +542,7 @@ When V_S(d) is contiguous with |V_S(d)| = N positions, we write its elements as 
 
 **Definition (ValidInsertionPosition).** A V-position v is a *valid insertion position* in subspace S of document d satisfying D-CTG when one of two cases holds:
 
-- *Non-empty subspace.* V_S(d) ≠ ∅ with |V_S(d)| = N. Write m for the common V-position depth in subspace S (S8-depth); m ≥ 2, since the first position placed in any subspace is established by the empty case, which requires m ≥ 2, and S8-depth preserves depth thereafter. Then either v = min(V_S(d)) (the j = 0 case) or v = shift(min(V_S(d)), j) for some j with 1 ≤ j ≤ N. In both cases, #v = m.
+- *Non-empty subspace.* V_S(d) ≠ ∅ with |V_S(d)| = N. Write m for the common V-position depth in subspace S (S8-depth); we require m ≥ 2 as a precondition. The bound is necessary and not derivable from D-CTG, D-MIN, S8-depth, and S8a alone: V_S(d) = {[S]} satisfies all four at m = 1, yet shift([S], 1) = [S] ⊕ [1] with action point 1, giving [S + 1] — a position in subspace S + 1, not S. (The empty case below establishes m ≥ 2 at subspace creation; S8-depth preserves it. Any subspace populated exclusively through ValidInsertionPosition therefore satisfies this precondition.) Then either v = min(V_S(d)) (the j = 0 case) or v = shift(min(V_S(d)), j) for some j with 1 ≤ j ≤ N. In both cases, #v = m.
 
 - *Empty subspace.* V_S(d) = ∅. Then v = [S, 1, ..., 1] of depth m ≥ 2, establishing the subspace's V-position depth at m. The lower bound m ≥ 2 is necessary: at m = 1, v = [S] and shift([S], 1) = [S] ⊕ δ(1, 1) = [S] ⊕ [1]; the action point of [1] is k = 1, so TumblerAdd gives r₁ = S + 1, producing [S + 1] — a position in subspace S + 1, not S. For m ≥ 2, δ(n, m) has action point m, and since m > 1, TumblerAdd copies component 1 unchanged — OrdinalShift preserves the subspace identifier. This is the canonical minimum position required by D-MIN. The choice of m is a one-time structural commitment: once any position is placed, S8-depth fixes the depth for all subsequent positions in the subspace.
 
@@ -561,7 +561,7 @@ We verify the structural claims. By D-MIN, min(V_S(d)) = [S, 1, ..., 1] of depth
 *S8a consistency.* For text-subspace positions (S ≥ 1), every valid position [S, 1, ..., 1 + j] has all components strictly positive (S ≥ 1, intermediate components are 1, last component is 1 + j ≥ 1), so zeros(v) = 0 and v > 0 — satisfying S8a. ∎
 
 *Formal Contract:*
-- *Preconditions:* d satisfies D-CTG, D-MIN, S8-depth, S8a; S ≥ 1 (subspace identifier).
+- *Preconditions:* d satisfies D-CTG, D-MIN, S8-depth, S8a; S ≥ 1 (subspace identifier); if V_S(d) ≠ ∅, common V-position depth m ≥ 2.
 - *Definition:* v is a valid insertion position in subspace S of d when: (1) V_S(d) ≠ ∅ with |V_S(d)| = N: v = min(V_S(d)) or v = shift(min(V_S(d)), j) for 1 ≤ j ≤ N; (2) V_S(d) = ∅: v = [S, 1, …, 1] of depth m ≥ 2.
 - *Postconditions:* #v = m (depth preservation); v₁ = S (subspace identity); zeros(v) = 0 ∧ v > 0 (S8a consistency); in the non-empty case, exactly N + 1 valid positions, pairwise distinct by T3.
 
