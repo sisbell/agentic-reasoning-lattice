@@ -8,14 +8,14 @@ Regenerate with: `./run/generate-index.sh`
 | ASN | Title | Stage | Export | Depends |
 |-----|-------|-------|--------|---------|
 | ASN-0034 | Tumbler Algebra | formalized | current | — |
-| ASN-0036 | Streams | discovery | stale | 34 |
+| ASN-0036 | Streams | formalized | current | 34 |
 | ASN-0040 | Tumbler Baptism | discovery | current | 34 |
 | ASN-0042 | Tumbler Ownership | discovery | current | 34 |
 | ASN-0043 | Link Ontology | discovery | current | 34,36 |
 | ASN-0045 | Tumbler Fields | discovery | current | 34,36 |
 | ASN-0047 | State Transitions | discovery | current | 34,36,43,45 |
 | ASN-0051 | Link Survivability | discovery | current | 34,36,43,47,53,58 |
-| ASN-0053 | Span Algebra | discovery | current | 34 |
+| ASN-0053 | Span Algebra | discovery | stale | 34 |
 | ASN-0058 | Permutation Model | discovery | current | 34,36,53 |
 
 ## Operations
