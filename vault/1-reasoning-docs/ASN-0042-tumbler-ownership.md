@@ -188,9 +188,34 @@ The correct invariant is monotonic refinement — `ω(a)` can change only throug
 
   `(A a ∈ Σ.alloc, Σ, Σ' : Σ → Σ' ∧ ω_{Σ'}(a) ≠ ω_Σ(a)  ⟹  (E π' ∈ Π_{Σ'} ∖ Π_Σ : pfx(π') ≼ a ∧ #pfx(π') > #pfx(ω_Σ(a))))`
 
-The argument: `ω(a)` depends on three inputs — the address `a`, the set of principals `Π`, and their prefixes. The address `a` is permanent (T8). By O13 (PrefixImmutability), no operation changes an existing principal's prefix. By O12 (PrincipalPersistence), no operation removes a principal from Π. Hence `ω(a)` can change only when `Π` grows — i.e., when delegation introduces a new principal whose prefix is a prefix of `a` and is longer than the current effective owner's.
+We prove that every change in effective ownership is witnessed by a new principal with a strictly longer matching prefix, by examining what the effective owner function depends on and what a state transition can alter.
 
-Refinement is one-directional: `#pfx(ω_{Σ'}(a)) ≥ #pfx(ω_Σ(a))` in all transitions. Once a principal `π` becomes the effective owner through longest-match, only a *more specific* delegation can supersede it.
+The effective owner `ω_Σ(a)` is defined (O2) as the principal in `Π_Σ` with the longest prefix matching `a`. This definition depends on exactly three inputs: the address `a`, the set of principals `Π_Σ`, and the prefix function `pfx` restricted to `Π_Σ`. We show that a transition `Σ → Σ'` can disturb at most one of these inputs.
+
+*The address is invariant.* By T8 (AllocationPermanence), once `a ∈ Σ.alloc`, the address `a` persists unchanged in every subsequent state. No component of `a` is modified.
+
+*No existing principal is removed.* By O12 (PrincipalPersistence), `Π_Σ ⊆ Π_{Σ'}`. Every principal present in `Σ` remains present in `Σ'`.
+
+*No existing prefix is altered.* By O13 (PrefixImmutability), for every `π ∈ Π_Σ`, `pfx_{Σ'}(π) = pfx_Σ(π)`. The prefix of every surviving principal is identical across the transition.
+
+These three facts together imply that the set of covering principals from `Π_Σ` is preserved exactly:
+
+  `{π ∈ Π_Σ : pfx_Σ(π) ≼ a} = {π ∈ Π_{Σ'} ∩ Π_Σ : pfx_{Σ'}(π) ≼ a}`
+
+The first equality follows from O12 (`Π_Σ ⊆ Π_{Σ'}`) and O13 (`pfx_{Σ'} = pfx_Σ` on `Π_Σ`). In particular, the longest match among `Π_Σ` — which is `ω_Σ(a)` — remains a covering principal in `Σ'` with the same prefix length.
+
+Now suppose `ω_{Σ'}(a) ≠ ω_Σ(a)`. Since `ω_Σ(a)` is still present in `Π_{Σ'}` with the same prefix (by O12 and O13), and since `ω_Σ(a)` was the longest match in `Π_Σ`, the only way for the longest-match computation over `Π_{Σ'}` to yield a *different* result is for some principal in `Π_{Σ'} ∖ Π_Σ` to cover `a` with a strictly longer prefix. That is, there must exist `π' ∈ Π_{Σ'} ∖ Π_Σ` satisfying both `pfx(π') ≼ a` and `#pfx(π') > #pfx(ω_Σ(a))`.
+
+To see why the new principal's prefix must be *strictly* longer: if `#pfx(π') ≤ #pfx(ω_Σ(a))`, then `ω_Σ(a)` would still be the longest (or tied-longest) match. But ties cannot occur — by O1b (PrefixInjectivity), distinct principals have distinct prefixes, and two distinct prefixes of the same length that both cover `a` would agree on all their components (each matching the corresponding component of `a`) and hence be equal, contradicting distinctness. So a new covering principal can only displace `ω_Σ(a)` by being strictly longer.
+
+We conclude: `ω_{Σ'}(a) ≠ ω_Σ(a)` implies `(E π' ∈ Π_{Σ'} ∖ Π_Σ : pfx(π') ≼ a ∧ #pfx(π') > #pfx(ω_Σ(a)))`. ∎
+
+*Corollary (monotonic refinement).* Since any new effective owner must have a strictly longer prefix than the one it displaces, `#pfx(ω_{Σ'}(a)) ≥ #pfx(ω_Σ(a))` in all transitions. Once a principal `π` becomes the effective owner through longest-match, only a *more specific* delegation can supersede it.
+
+*Formal Contract:*
+- *Preconditions:* `a ∈ Σ.alloc`, `Σ → Σ'`, `ω_{Σ'}(a) ≠ ω_Σ(a)`.
+- *Postconditions:* `(E π' ∈ Π_{Σ'} ∖ Π_Σ : pfx(π') ≼ a ∧ #pfx(π') > #pfx(ω_Σ(a)))`.
+- *Invariant:* `#pfx(ω_{Σ'}(a)) ≥ #pfx(ω_Σ(a))` for all transitions `Σ → Σ'`.
 
 **AccountLevelPermanence (Account-level permanence).** Account-level prefixes can nest — `pfx(π₁) = [1, 0, 2]` and `pfx(π₂) = [1, 0, 2, 3]` both satisfy O1a, and delegation from `π₁` to `π₂` changes `ω` for addresses in `dom(π₂)`. But such delegation requires an act of `π₁` itself: by O5 (for allocation) and condition (ii) of the `delegated` relation (for delegation), only the most-specific covering principal may allocate or delegate within its domain. By O15 (PrincipalClosure), delegation is the exclusive mechanism for introducing principals post-bootstrap. No delegation can introduce a principal whose prefix extends `pfx(π)` without `π`'s involvement. We show this by induction on the order in which principals enter Π.
 
@@ -455,7 +480,7 @@ The design philosophy is clear: minimize the authorization model to the point wh
 | O1a | `(A π ∈ Π : zeros(pfx(π)) ≤ 1)` — ownership principals exist only at node or account level | design requirement |
 | O1b | `pfx` is injective — distinct principals have distinct prefixes | design requirement |
 | O2 | Every allocated address has exactly one effective owner `ω(a)`, determined by longest matching prefix | introduced |
-| O3 | `ω(a)` changes only through delegation introducing a longer matching prefix — monotonic refinement | introduced |
+| O3 | `ω(a)` changes only through delegation introducing a longer matching prefix — monotonic refinement | from T8, O12, O13, O1b |
 | AccountLevelPermanence | No external delegation can alter effective ownership within `dom(π)` — changes to `ω(a)` inside a principal's domain arise only from that principal's own acts or its sub-delegates' acts | corollary of O3, O5, O8, O12, O15 |
 | O4 | `(A a ∈ Σ.alloc : (E π ∈ Π : pfx(π) ≼ a))` — every allocated address is covered by some principal | introduced |
 | O5 | Only the principal with the longest matching prefix may allocate within its domain — subdivision authority | design requirement |
