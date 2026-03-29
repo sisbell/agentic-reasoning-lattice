@@ -264,15 +264,38 @@ We conclude: `ω_{Σ'}(a) ≠ ω_Σ(a)` implies `(E π' ∈ Π_{Σ'} ∖ Π_Σ :
 - *Postconditions:* `(E π' ∈ Π_{Σ'} ∖ Π_Σ : pfx(π') ≼ a ∧ #pfx(π') > #pfx(ω_Σ(a)))`.
 - *Invariant:* `#pfx(ω_{Σ'}(a)) ≥ #pfx(ω_Σ(a))` for all transitions `Σ → Σ'`.
 
-**AccountLevelPermanence (Account-level permanence).** Account-level prefixes can nest — `pfx(π₁) = [1, 0, 2]` and `pfx(π₂) = [1, 0, 2, 3]` both satisfy O1a, and delegation from `π₁` to `π₂` changes `ω` for addresses in `dom(π₂)`. But such delegation requires an act of `π₁` itself: by O5 (for allocation) and condition (ii) of the `delegated` relation (for delegation), only the most-specific covering principal may allocate or delegate within its domain. By O15 (PrincipalClosure), delegation is the exclusive mechanism for introducing principals post-bootstrap. No delegation can introduce a principal whose prefix extends `pfx(π)` without `π`'s involvement. We show this by induction on the order in which principals enter Π.
+**AccountLevelPermanence (Account-level permanence).** No principal external to `dom(π)` can alter effective ownership within `dom(π)`. Changes to `ω(a)` for addresses in a principal's domain arise only from that principal's own delegation acts or from delegation acts of its sub-delegates:
 
-*Base case.* For bootstrap principals `π ∈ Π₀`, O14's non-nesting constraint gives `(A π₁, π₂ ∈ Π₀ : π₁ ≠ π₂ ⟹ pfx(π₁) ⋠ pfx(π₂))` — no other bootstrap principal has a prefix extending `pfx(π)`.
+  `(A π ∈ Π_Σ, Σ, Σ' : Σ → Σ' ∧ (E a ∈ dom(π) ∩ Σ.alloc : ω_{Σ'}(a) ≠ ω_Σ(a))  ⟹  (E π_d ∈ Π_Σ : pfx(π) ≼ pfx(π_d) ∧ (E π' ∈ Π_{Σ'} ∖ Π_Σ : delegated_Σ(π_d, π'))))`
 
-*Inductive step.* Suppose `π' ∈ Π_{Σ'} ∖ Π_Σ` is introduced by delegation. By condition (vi), no existing principal in `Π_Σ` has a prefix strictly extending `pfx(π')`. By condition (ii), the delegator is the most-specific covering principal for `pfx(π')`. These two conditions together mean that `π'` enters Π with no unauthorized sub-domains already occupied and only through an act of the principal that controls `pfx(π')`. For the inductive claim: suppose `π` is an existing principal and `pfx(π) ≺ pfx(π')`. Then `π'`'s introduction changes `ω` within `dom(π)` — but this introduction was authorized by the most-specific covering principal for `pfx(π')`, which is either `π` itself or a sub-delegate of `π` (whose authority derives from `π` by the inductive hypothesis). Conversely, if `pfx(π') ≺ pfx(π)`, condition (vi) would have blocked the introduction — `π` already has a prefix extending `pfx(π')`. Hence no delegation can place a principal inside `dom(π)` without `π`'s involvement (direct or through sub-delegates).
+That is: if any address in `dom(π)` changes effective owner across a transition, the delegator `π_d` responsible for that transition has a prefix extending `pfx(π)` — the delegator is `π` itself or a sub-delegate of `π`.
+
+We prove this by induction on the order in which principals enter Π, showing that every delegation whose new principal's domain intersects `dom(π)` is authorized by `π` or a sub-delegate of `π`.
+
+*What can change ω within dom(π)?* By O3 (OwnershipRefinement), `ω_{Σ'}(a) ≠ ω_Σ(a)` implies the existence of a new principal `π' ∈ Π_{Σ'} ∖ Π_Σ` with `pfx(π') ≼ a` and `#pfx(π') > #pfx(ω_Σ(a))`. By O15 (PrincipalClosure), `π'` entered Π either through bootstrap or delegation. Since `π' ∈ Π_{Σ'} ∖ Π_Σ` and `Σ` is a reachable state past bootstrap, `π'` was introduced by delegation: there exists `π_d ∈ Π_Σ` with `delegated_Σ(π_d, π')`. The question reduces to: must `pfx(π) ≼ pfx(π_d)`?
+
+*The new principal's prefix extends π's.* Since `a ∈ dom(π)`, we have `pfx(π) ≼ a`. Since `pfx(π') ≼ a` and `#pfx(π') > #pfx(ω_Σ(a)) ≥ #pfx(π)` (the inequality holds because `π` covers `a` and `ω_Σ(a)` is the longest match, so `#pfx(ω_Σ(a)) ≥ #pfx(π)`), the prefix `pfx(π')` is strictly longer than `pfx(π)`. Both `pfx(π)` and `pfx(π')` are prefixes of `a`, and by the nesting lemma for the prefix relation (T5), two prefixes of the same address are comparable: the shorter is a prefix of the longer. Hence `pfx(π) ≼ pfx(π')`, which gives `pfx(π) ≺ pfx(π')` since `#pfx(π) < #pfx(π')`.
+
+*The delegator's prefix extends π's.* By condition (i) of the delegation relation, `pfx(π_d) ≺ pfx(π')`, so `pfx(π_d) ≼ pfx(π')`. By condition (ii), `π_d` is the most-specific covering principal for `pfx(π')`: `(A π'' ∈ Π_Σ : pfx(π'') ≼ pfx(π') ⟹ #pfx(π'') ≤ #pfx(π_d))`. We established `pfx(π) ≼ pfx(π')` (since `pfx(π) ≺ pfx(π')`), so `π` is among the covering principals of `pfx(π')` in `Π_Σ`, giving `#pfx(π) ≤ #pfx(π_d)`. Both `pfx(π)` and `pfx(π_d)` are prefixes of `pfx(π')` (the former shown above; the latter by condition (i)), and two prefixes of the same tumbler are comparable by T5's nesting lemma. Since `#pfx(π) ≤ #pfx(π_d)`, the shorter-or-equal prefix is a prefix of the longer-or-equal: `pfx(π) ≼ pfx(π_d)`.
+
+This establishes the claim for a single transition. We now verify the two boundary conditions.
+
+*Base case (bootstrap).* By O14 (BootstrapPrincipal), bootstrap principals satisfy pairwise non-nesting: `(A π₁, π₂ ∈ Π₀ : π₁ ≠ π₂ ⟹ pfx(π₁) ⋠ pfx(π₂))`. No bootstrap principal's prefix extends another's, so no bootstrap principal occupies a sub-domain of another. The first transition that can change `ω` within `dom(π)` must be a delegation — and the argument above applies.
+
+*Inductive step (delegation introducing π' that nests within dom(π)).* Suppose `π' ∈ Π_{Σ'} ∖ Π_Σ` with `pfx(π) ≺ pfx(π')`. We showed `pfx(π) ≼ pfx(π_d)` where `π_d` is the delegator. There are two sub-cases. If `pfx(π_d) = pfx(π)`, then `π_d = π` (by O1b, PrefixInjectivity), and the delegation is `π`'s own act. If `pfx(π) ≺ pfx(π_d)`, then `π_d ∈ dom(π)` — `π_d` is a sub-delegate of `π`. By the inductive hypothesis, `π_d` itself entered Π through an act authorized by `π` or a sub-delegate of `π`. The delegation chain traces back to `π`.
+
+Conversely, suppose `pfx(π') ≼ pfx(π)` — the new principal's prefix is a prefix of `π`'s, meaning `dom(π) ⊆ dom(π')`. By condition (vi) of the delegation relation, `¬(E π'' ∈ Π_Σ : pfx(π') ≺ pfx(π''))` — no existing principal has a prefix strictly extending `pfx(π')`. But `π ∈ Π_Σ` and `pfx(π') ≼ pfx(π)` with `pfx(π') ≠ pfx(π)` (since `#pfx(π') ≤ #pfx(π)` and `pfx(π') ≼ pfx(π)` with `#pfx(π') < #pfx(π)` gives `pfx(π') ≺ pfx(π)`) would give `pfx(π') ≺ pfx(π)`, contradicting condition (vi). The remaining possibility is `pfx(π') = pfx(π)`, but then `#pfx(π') = #pfx(π)`, contradicting `#pfx(π') > #pfx(ω_Σ(a)) ≥ #pfx(π)`. Hence this case cannot arise.
+
+We conclude: every change to `ω(a)` within `dom(π)` is caused by a delegation whose delegator `π_d` satisfies `pfx(π) ≼ pfx(π_d)` — the delegator is `π` itself or a sub-delegate of `π`. No principal external to `dom(π)` can alter effective ownership within `dom(π)`. ∎
 
 Nelson confirms: "User 3 controls allocation of children directly under 3. User 3.2 controls everything under 3.2. User 3 cannot modify User 3.2's documents" (consultation, LM 4/20, 4/29, 2/29). The parent controls baptism; the child controls content. Changes to `ω` within `dom(π)` arise only from `π`'s own delegation choices, or recursively from sub-delegates' choices within their own sub-domains. This is Nelson's "forevermore": not that `ω` is static within `dom(π)`, but that no external act can alter it. The addresses `π` has not sub-delegated remain permanently under `π`'s effective ownership.
 
 This raises a tension that Nelson himself acknowledges. He mentions "someone who has bought the document rights" (LM 2/29), implying ownership can *transfer*. But the address permanently encodes the originating account (by O6 and T8), and Gregory's codebase contains no transfer mechanism whatsoever — no FEBE command, no data structure, no protocol step. We take the conservative reading: O3 describes the refinement regime for the system as specified. Transfer, if it exists, would require machinery that overrides the address-derived ownership — a registry external to the address structure — and Nelson leaves such machinery unspecified. The address is a birth certificate; a transfer would require a separate deed. We record this as an open question.
+
+*Formal Contract:*
+- *Preconditions:* `π ∈ Π_Σ`, `a ∈ dom(π) ∩ Σ.alloc`, `Σ → Σ'`, `ω_{Σ'}(a) ≠ ω_Σ(a)`.
+- *Postconditions:* `(E π_d ∈ Π_Σ : pfx(π) ≼ pfx(π_d) ∧ delegated_Σ(π_d, π'))` where `π' ∈ Π_{Σ'} ∖ Π_Σ` is the new principal causing the ownership change.
+- *Invariant:* Effective ownership within `dom(π)` is sovereign — no delegation by a principal external to `dom(π)` can alter `ω(a)` for any `a ∈ dom(π)`.
 
 
 ## Worked Example
@@ -590,7 +613,7 @@ The design philosophy is clear: minimize the authorization model to the point wh
 | O1b | `pfx` is injective — distinct principals have distinct prefixes | design requirement |
 | O2 | Every allocated address has exactly one effective owner `ω(a)`, determined by longest matching prefix | from O4, O1b |
 | O3 | `ω(a)` changes only through delegation introducing a longer matching prefix — monotonic refinement | from T8, O12, O13, O1b |
-| AccountLevelPermanence | No external delegation can alter effective ownership within `dom(π)` — changes to `ω(a)` inside a principal's domain arise only from that principal's own acts or its sub-delegates' acts | corollary of O3, O5, O8, O12, O15 |
+| AccountLevelPermanence | No external delegation can alter effective ownership within `dom(π)` — changes to `ω(a)` inside a principal's domain arise only from that principal's own acts or its sub-delegates' acts | from O3, O14, O15, O1b, T5, delegated(i)(ii)(vi) |
 | O4 | `(A a ∈ Σ.alloc : (E π ∈ Π : pfx(π) ≼ a))` — every allocated address is covered by some principal | from O14, O16, O5, O12, O13 |
 | O5 | Only the principal with the longest matching prefix may allocate within its domain — subdivision authority | design requirement |
 | AccountPrefix | `(A a ∈ T : T4(a) ⟹ acct(a) ≼ a)` — the account field is a prefix of any valid address | from T3, T4, T5, AccountField |
