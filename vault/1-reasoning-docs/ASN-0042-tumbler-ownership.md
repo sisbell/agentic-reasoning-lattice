@@ -316,9 +316,24 @@ We prove that equal account fields imply equal effective owners by showing that 
 
 **AccountPrefix (AccountPrefix).** `(A a ∈ T : T4(a) ⟹ acct(a) ≼ a)`
 
-The T4 restriction is essential: `acct` relies on field parsing (FieldParsing from ASN-0034), which requires T4 validity — for a tumbler like `[0, 0, 1]`, the field boundaries are ill-defined and `acct` is not well-defined. By O17, all allocated addresses satisfy T4, so the restriction does not limit application.
+We prove that for any tumbler `a` satisfying T4 (FieldSeparatorConstraint), `acct(a) ≼ a` — the account field is a prefix of the address. The T4 restriction is essential: `acct` relies on field parsing (FieldParsing from ASN-0034), which requires T4 validity for well-defined field boundaries — for a tumbler like `[0, 0, 1]`, adjacent zeros violate T4 and the field decomposition is ill-defined. By O17 (AllocatedAddressValidity), all allocated addresses satisfy T4, so the restriction does not limit application.
 
-When `zeros(a) = 0`, `acct(a) = a` and the claim is trivial. When `zeros(a) ≥ 1`, `acct(a)` is the truncation of `a` through its user field — the leading `N₁...Nα.0.U₁...Uβ` components — so `acct(a)` is literally a prefix of `a` by construction.
+The prefix relation (T5) requires two conditions: `#a ≥ #acct(a)` and `(A i : 1 ≤ i ≤ #acct(a) : acct(a)ᵢ = aᵢ)`. By T3 (CanonicalRepresentation), each component `aᵢ` is a uniquely determined natural number, so component equality is well-defined. By T4, `zeros(a) ∈ {0, 1, 2, 3}`, and the field decomposition `fields(a)` is uniquely determined by `a` alone. We proceed by cases on `zeros(a)`.
+
+*Case `zeros(a) = 0`.* The tumbler `a` contains no zero-valued components. By T4's field decomposition, the entire tumbler is its node field: `N(a) = a`, and no user, document, or element fields are present. By the definition of `acct` (AccountField), `acct(a) = a`. The prefix relation `a ≼ a` holds: `#a = #a` and `aᵢ = aᵢ` for all `1 ≤ i ≤ #a`.
+
+*Case `zeros(a) = 1`.* By T4, `a` has the form `N₁. ... .Nα . 0 . U₁. ... .Uβ` with `α ≥ 1`, `β ≥ 1`, every `Nᵢ > 0`, and every `Uⱼ > 0`. The node field is `N(a) = [N₁, …, Nα]` and the user field is `U(a) = [U₁, …, Uβ]`. By AccountField, `acct(a) = N(a) ++ [0] ++ U(a) = [N₁, …, Nα, 0, U₁, …, Uβ]`. Since `a` has exactly one zero separator and only node and user fields, `a = [N₁, …, Nα, 0, U₁, …, Uβ] = acct(a)`. The prefix relation holds as in the previous case: `acct(a) = a` implies `acct(a) ≼ a`.
+
+*Case `zeros(a) = 2`.* By T4, `a = N₁. ... .Nα . 0 . U₁. ... .Uβ . 0 . D₁. ... .Dγ` with `α ≥ 1`, `β ≥ 1`, `γ ≥ 1`, every `Nᵢ > 0`, every `Uⱼ > 0`, every `Dₖ > 0`. By AccountField, `acct(a) = [N₁, …, Nα, 0, U₁, …, Uβ]` with `#acct(a) = α + 1 + β`. The address has `#a = α + 1 + β + 1 + γ`. Since `γ ≥ 1`, `#a = α + 1 + β + 1 + γ ≥ α + 1 + β + 2 > α + 1 + β = #acct(a)`, satisfying the length condition `#a ≥ #acct(a)`. For the component condition: the first `α + 1 + β` components of `a` are `N₁, …, Nα, 0, U₁, …, Uβ`, which are exactly the components of `acct(a)`. Hence `acct(a)ᵢ = aᵢ` for all `1 ≤ i ≤ #acct(a)`, and `acct(a) ≼ a`.
+
+*Case `zeros(a) = 3`.* By T4, `a = N₁. ... .Nα . 0 . U₁. ... .Uβ . 0 . D₁. ... .Dγ . 0 . E₁. ... .Eδ` with `α ≥ 1`, `β ≥ 1`, `γ ≥ 1`, `δ ≥ 1`, all field components strictly positive. By AccountField, `acct(a) = [N₁, …, Nα, 0, U₁, …, Uβ]` with `#acct(a) = α + 1 + β`. The address has `#a = α + 1 + β + 1 + γ + 1 + δ ≥ α + 1 + β + 4 > #acct(a)`. The first `α + 1 + β` components of `a` are again `N₁, …, Nα, 0, U₁, …, Uβ` — the document and element fields appear strictly after position `α + 1 + β`. Hence `acct(a)ᵢ = aᵢ` for all `1 ≤ i ≤ #acct(a)`, and `acct(a) ≼ a`.
+
+In all four cases, `acct(a) ≼ a`. The case distinction is exhaustive: T4 constrains `zeros(a) ≤ 3`, and each value in `{0, 1, 2, 3}` is handled. ∎
+
+*Formal Contract:*
+- *Preconditions:* `a ∈ T`, `T4(a)`.
+- *Definition:* `acct(a) = a` when `zeros(a) = 0`; `acct(a) = N(a) ++ [0] ++ U(a)` when `zeros(a) ≥ 1`.
+- *Postconditions:* `acct(a) ≼ a`. When `zeros(a) ≤ 1`: `acct(a) = a` (equality). When `zeros(a) ≥ 2`: `acct(a) ≺ a` (strict prefix).
 
 The proof of O6 proceeds in two directions. *Forward:* we must show that for any principal `π` — by O1a (AccountOwnershipBoundary), every principal satisfies `zeros(pfx(π)) ≤ 1` — the relation `pfx(π) ≼ a` implies `pfx(π) ≼ acct(a)`. Two cases arise from the zero count.
 
@@ -542,7 +557,7 @@ The design philosophy is clear: minimize the authorization model to the point wh
 | AccountLevelPermanence | No external delegation can alter effective ownership within `dom(π)` — changes to `ω(a)` inside a principal's domain arise only from that principal's own acts or its sub-delegates' acts | corollary of O3, O5, O8, O12, O15 |
 | O4 | `(A a ∈ Σ.alloc : (E π ∈ Π : pfx(π) ≼ a))` — every allocated address is covered by some principal | introduced |
 | O5 | Only the principal with the longest matching prefix may allocate within its domain — subdivision authority | design requirement |
-| AccountPrefix | `(A a ∈ T : T4(a) ⟹ acct(a) ≼ a)` — the account field is a prefix of any valid address | introduced |
+| AccountPrefix | `(A a ∈ T : T4(a) ⟹ acct(a) ≼ a)` — the account field is a prefix of any valid address | from T3, T4, T5, AccountField |
 | O6 | `acct(a) = acct(b) ⟹ ω(a) = ω(b)` — effective owner determined entirely by account field | from O1a, O2, O17, AccountPrefix |
 | O7 | Delegation (authorized by `delegated`) confers effective ownership (O2), subdivision authority (O5), and recursive delegation (O7) | introduced |
 | O8 | `delegated_Σ(π, π') ∧ a ∈ dom(π') ∩ Σ'.alloc ∧ Σ →⁺ Σ' ⟹ ω_{Σ'}(a) ≠ π` — delegating parent never regains ownership | introduced |
