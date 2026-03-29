@@ -562,7 +562,12 @@ When `zeros(pfx(π)) = 1` (account-level principal): `π`'s prefix has the form 
 
 When `zeros(pfx(π)) = 0` (node-level principal): `π`'s prefix is entirely within the node field. Sub-delegates `π_i` with `pfx(π) ≺ pfx(π_i)` and `zeros(pfx(π_i)) = 0` extend the node field. Sub-delegates with `zeros(pfx(π_i)) = 1` have entered the user field. In either case, the set of sub-delegates is finite: by O15, each state transition introduces at most one new principal, and the system has undergone finitely many transitions. By T0a (UnboundedComponents), component values are unbounded. Collect the user-field components of all existing sub-delegate prefixes that have entered the user field (`zeros(pfx(π_i)) = 1`). If no such sub-delegates exist, choose any `u ≥ 1` — the condition is vacuously satisfied. Otherwise, choose `u` exceeding the maximum user-field component among all such prefixes — such a value exists because a finite set of natural numbers has a maximum, and T0a guarantees a tumbler with that component value exists. Then the address `a' = pfx(π).0.u.0.1.0.1` satisfies `pfx(π) ≼ a'`, and no sub-delegate's prefix is a prefix of `a'` (the fresh `u` avoids all existing sub-delegate prefixes). Hence `ω(a') = π`.
 
-In both cases, `π` can always produce an address it effectively owns. The fork operation's postcondition `ω(a') = π` is satisfiable in every reachable state.
+In both cases, `π` can always produce an address it effectively owns. The fork operation's postcondition `ω(a') = π` is satisfiable in every reachable state. ∎
+
+*Formal Contract:*
+- *Preconditions:* `π ∈ Π_Σ`, `a ∈ Σ.alloc`, `ω(a) ≠ π`.
+- *Postconditions:* `(E a' ∈ dom(π) : ω(a') = π ∧ a ∈ Σ.alloc)` — there exists an address `a'` in `dom(π)` effectively owned by `π`, and the original address `a` remains allocated and unmodified.
+- *Invariant:* In every reachable state, every principal can produce an address it effectively owns — the fork postcondition is universally satisfiable.
 
 O10 transforms the ownership boundary from a wall into a fork point. The only "permission" concept the system needs is prefix containment. Everything else — collaboration, annotation, criticism, derivation — is handled by creating new owned addresses and establishing relationships between them. The conventional permission hierarchy (users, groups, roles, ACLs) is replaced by a single structural predicate and an unbounded supply of fresh addresses.
 
@@ -621,7 +626,7 @@ The design philosophy is clear: minimize the authorization model to the point wh
 | O7 | Delegation (authorized by `delegated`) confers effective ownership (O2), subdivision authority (O5), and recursive delegation (O7) | introduced |
 | O8 | `delegated_Σ(π, π') ∧ a ∈ dom(π') ∩ Σ'.alloc ∧ Σ →⁺ Σ' ⟹ ω_{Σ'}(a) ≠ π` — delegating parent never regains ownership | from O2, O12, O13, T8, delegated(i) |
 | O9 | `(A π ∈ Π, a ∈ Σ.alloc : owns(π, a) ⟹ N(pfx(π)) ≼ N(a))` — ownership bounded by node field | from O1, O1a, T4, T5 |
-| O10 | Non-ownership of target yields a fork: new address under the requesting principal's domain | introduced |
+| O10 | Non-ownership of target yields a fork: new address under the requesting principal's domain | from O1a, O6, O15, T0a, TA5(d) |
 | O11 | Principal identity is axiomatic to the ownership model — authentication is external | axiom |
 | O12 | `(A Σ, Σ' : Σ → Σ' ⟹ Π_Σ ⊆ Π_{Σ'})` — principal persistence | design requirement |
 | O13 | `pfx_{Σ'}(π) = pfx_Σ(π)` for all transitions — prefix immutability | design requirement |
