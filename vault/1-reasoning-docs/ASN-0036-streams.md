@@ -475,7 +475,7 @@ At depth 2 this gives min(V_S(d)) = [S, 1]. Combined with D-CTG and S8-fin, a do
 *Formal Contract:*
 - *Axiom:* `min(V_S(d)) = [S, 1, ..., 1]` for every document d and subspace S with V_S(d) non-empty, where the tuple has length m (S8-depth) and every post-subspace component is 1.
 
-*Corollary (general form).* We derive from D-MIN the structure of V_S(d). By D-CTG-depth (when m ≥ 3) or vacuously (when m = 2, there is only one post-subspace component), all positions in V_S(d) share components 2 through m − 1. By D-MIN, min(V_S(d)) = [S, 1, …, 1], so those shared components have value 1. Every position is therefore [S, 1, …, 1, k] for varying k. D-CTG restricted to the last component forbids gaps among the k values; D-MIN gives the minimum k = 1; S8-fin bounds the maximum at some finite n. Thus:
+*Corollary (general form).* We derive from D-MIN the structure of V_S(d). By D-CTG-depth (when m ≥ 3) or vacuously (when m = 2, there is only one post-subspace component), all positions in V_S(d) share components 2 through m − 1. By D-MIN, min(V_S(d)) = [S, 1, …, 1], so those shared components have value 1. Every position is therefore [S, 1, …, 1, k] for varying k. D-CTG restricted to the last component forbids gaps among the k values; D-MIN gives the minimum k = 1; S8-fin bounds the maximum at some finite n. Thus V_S(d) = {[S, 1, …, 1, k] : 1 ≤ k ≤ n} for some finite n ≥ 1, which we record as:
 
 **D-SEQ (SequentialPositions).** For each document d and subspace S, if V_S(d) is non-empty and the common V-position depth m ≥ 2 (S8-depth), then there exists n ≥ 1 such that:
 
