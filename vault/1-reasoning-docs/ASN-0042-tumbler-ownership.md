@@ -39,6 +39,19 @@ The decision procedure is prefix containment:
 
 where `p ≼ a` denotes that `p` is a prefix of `a` in the sense of T5 — the components of `p` match the leading components of `a`.
 
+O1 is a definition: we define the ownership predicate `owns(π, a)` to be identical with prefix containment `pfx(π) ≼ a`. We verify that the definition is well-formed and that it satisfies the decidability requirement O0.
+
+*Well-formedness.* The prefix relation `≼` is defined by T5: `p ≼ a ⟺ #a ≥ #p ∧ (A i : 1 ≤ i ≤ #p : pᵢ = aᵢ)`. For `owns(π, a)` to be well-defined, two conditions must hold. First, `pfx(π)` must be a valid tumbler — this holds by the definition of `pfx`, which requires every principal's prefix to satisfy T4 (FieldSeparatorConstraint). Second, the component-wise comparison must be determinate — by T3 (CanonicalRepresentation), each component `pᵢ` and `aᵢ` is a uniquely determined natural number, so equality at each position is decidable.
+
+*Decidability.* The prefix check `pfx(π) ≼ a` requires one length comparison `#a ≥ #pfx(π)` followed by at most `#pfx(π)` component comparisons, each a comparison of natural numbers. The entire computation uses `pfx(π)` and `a` alone, consulting no mutable system state. This satisfies the design requirement O0 (StructuralOwnership): ownership is decidable from the prefix and the address without external state.
+
+*Design justification.* Nelson states that "numbers are owned by individuals or companies, and subnumbers under them are bestowed on other individuals and companies" (LM 4/17) — ownership is legible from the address itself. Gregory's `tumbleraccounteq` confirms the decision procedure: it walks the mantissa arrays of two tumblers in lockstep, comparing components. The definition `owns(π, a) ≡ pfx(π) ≼ a` formalizes this structural containment exactly. ∎
+
+*Formal Contract:*
+- *Definition:* `owns(π, a) ≡ pfx(π) ≼ a`, where `≼` is the prefix relation of T5.
+- *Preconditions:* `π ∈ Π`, `a ∈ T`, `T4(pfx(π))`, `T4(a)`.
+- *Postconditions:* `owns(π, a)` is a total, decidable predicate on `Π × T`.
+
 
 ## The Account-Level Boundary
 
@@ -495,7 +508,7 @@ The design philosophy is clear: minimize the authorization model to the point wh
 | Label | Statement | Status |
 |-------|-----------|--------|
 | O0 | Ownership of `a` by `π` is decidable from `pfx(π)` and `a` alone, without mutable state | design requirement |
-| O1 | `owns(π, a) ≡ pfx(π) ≼ a` — ownership is prefix containment | introduced |
+| O1 | `owns(π, a) ≡ pfx(π) ≼ a` — ownership is prefix containment | definition from T4, T5 |
 | O1a | `(A π ∈ Π : zeros(pfx(π)) ≤ 1)` — ownership principals exist only at node or account level | design requirement |
 | O1b | `pfx` is injective — distinct principals have distinct prefixes | design requirement |
 | O2 | Every allocated address has exactly one effective owner `ω(a)`, determined by longest matching prefix | from O4, O1b |
