@@ -362,9 +362,9 @@ The combination of O3 (OwnershipRefinement), O8 (IrrevocableDelegation), O12 (Pr
 
 Ownership authority does not propagate across node boundaries. A principal's effective ownership is bounded by its node prefix.
 
-**O9 (NodeLocalOwnership).** For a principal `π`, the ownership predicate `owns(π, a)` can hold only for addresses `a` whose node field extends the principal's node field:
+**O9 (NodeLocalOwnership).** For a principal `π`, the ownership predicate `owns(π, a)` can hold only for allocated addresses `a` whose node field extends the principal's node field:
 
-  `(A π ∈ Π, a ∈ T : owns(π, a)  ⟹  N(pfx(π)) ≼ N(a))`
+  `(A π ∈ Π, a ∈ Σ.alloc : owns(π, a)  ⟹  N(pfx(π)) ≼ N(a))`
 
 Two cases arise from O1a. When `zeros(pfx(π)) = 1` (account-level), the prefix has the form `N.0.U`, and the zero separator forces field-boundary alignment: `pfx(π) ≼ a` requires `a`'s first zero to appear at the same position as the prefix's zero, giving `N(a) = N(pfx(π))` — full equality. When `zeros(pfx(π)) = 0` (node-level), the prefix is entirely within the node field and contains no boundary markers, so `pfx(π) ≼ a` gives only `N(pfx(π)) ≼ N(a)` — the address may have a longer node field. This is structurally permitted: T10a allows `inc([1, 2], 1) = [1, 2, 1]` (still `zeros = 0`), so addresses with node fields strictly extending the principal's exist.
 
@@ -454,7 +454,7 @@ The design philosophy is clear: minimize the authorization model to the point wh
 | O6 | `acct(a) = acct(b) ⟹ ω(a) = ω(b)` — effective owner determined entirely by account field | introduced |
 | O7 | Delegation (authorized by `delegated`) confers effective ownership (O2), subdivision authority (O5), and recursive delegation (O7) | introduced |
 | O8 | `delegated_Σ(π, π') ∧ a ∈ dom(π') ∩ Σ'.alloc ∧ Σ →⁺ Σ' ⟹ ω_{Σ'}(a) ≠ π` — delegating parent never regains ownership | introduced |
-| O9 | `owns(π, a) ⟹ N(pfx(π)) ≼ N(a)` — ownership bounded by node field | introduced |
+| O9 | `(A π ∈ Π, a ∈ Σ.alloc : owns(π, a) ⟹ N(pfx(π)) ≼ N(a))` — ownership bounded by node field | introduced |
 | O10 | Non-ownership of target yields a fork: new address under the requesting principal's domain | introduced |
 | O11 | Principal identity is axiomatic to the ownership model — authentication is external | introduced |
 | O12 | `(A Σ, Σ' : Σ → Σ' ⟹ Π_Σ ⊆ Π_{Σ'})` — principal persistence | introduced |
