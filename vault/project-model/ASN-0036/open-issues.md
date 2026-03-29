@@ -331,3 +331,23 @@ case (e.g., "S8-depth depth m ≥ 2"), or introduce a system-level invariant tha
 every occupied subspace has depth m ≥ 2 and list it as a dependency. The narrative's
 operational justification is sound but needs to be reflected in the formal contract.
 ```
+
+### [REVIEW-59] [VERIFIED] ValidInsertionPosition
+
+### [REVIEW-59] [RESOLVED] ValidInsertionPosition
+
+### [REVIEW-59] [VERIFIED] D-SEQ
+
+### [REVIEW-59] [VERIFIED] S4
+
+### [REVIEW-59] [VERIFIED] S6
+
+### [REVIEW-59] [VERIFIED] S5
+
+### [REVIEW-59] [VERIFIED] S7
+
+### [REVIEW-59] [VERIFIED] S9
+
+### [REVIEW-59] [VERIFIED] Σ.C
+
+### [REVIEW-59] [VERIFIED] Σ.M(d)
