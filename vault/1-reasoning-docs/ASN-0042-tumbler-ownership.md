@@ -248,7 +248,23 @@ where `ω(a)` — the *effective owner* — is the principal with the longest ma
 
   `ω(a) = π  ≡  pfx(π) ≼ a  ∧  (A π' ∈ Π : π' ≠ π ∧ pfx(π') ≼ a : #pfx(π) > #pfx(π'))`
 
-Well-definedness of `ω` requires three observations: (i) by O4, at least one principal's prefix contains any allocated address; (ii) any two containing prefixes are linearly ordered by the prefix relation — we show this explicitly: suppose `p₁ ≼ a` and `p₂ ≼ a`, and WLOG `#p₁ ≤ #p₂`. For every `i ≤ #p₁`, the prefix relation gives `(p₁)ᵢ = aᵢ` and `(p₂)ᵢ = aᵢ`, hence `(p₁)ᵢ = (p₂)ᵢ`. Since `p₁` agrees with `p₂` on all `#p₁` components and `#p₁ ≤ #p₂`, we have `p₁ ≼ p₂`. Therefore the set of covering prefixes is totally ordered by `≼`. Moreover, this set is finite: each covering prefix `p ≼ a` is uniquely determined by its length (since `p = [a₁, …, a_{#p}]`), and there are at most `#a` possible lengths, so the covering set has at most `#a` elements. A finite totally ordered set has a maximum; thus the longest prefix exists and is unique; and (iii) by O1b, the principal holding that longest prefix is unique. Together these give `(E! π :: ω(a) = π)`.
+We prove that `ω` is a well-defined total function on `Σ.alloc` — that is, for every allocated address `a`, there exists exactly one principal `π` satisfying the defining equivalence. The argument decomposes into four steps: non-emptiness of the covering set, total ordering of covering prefixes, finiteness, and uniqueness of the witnessing principal.
+
+*Step 1: Non-emptiness.* Let `a ∈ Σ.alloc` and define `C(a) = {π ∈ Π : pfx(π) ≼ a}`, the set of principals whose prefix covers `a`. By O4 (DomainCoverage), every allocated address falls within at least one principal's domain, so `C(a) ≠ ∅`.
+
+*Step 2: Total ordering of covering prefixes.* We show that the prefixes `{pfx(π) : π ∈ C(a)}` form a chain under the prefix relation `≼`. Let `π₁, π₂ ∈ C(a)` be arbitrary, with `p₁ = pfx(π₁)` and `p₂ = pfx(π₂)`. Suppose without loss of generality that `#p₁ ≤ #p₂`. Since `p₁ ≼ a`, by T5 (PrefixRelation) we have `(p₁)ᵢ = aᵢ` for all `1 ≤ i ≤ #p₁`. Since `p₂ ≼ a`, we have `(p₂)ᵢ = aᵢ` for all `1 ≤ i ≤ #p₂`. For each `i` with `1 ≤ i ≤ #p₁`, both equalities hold, so `(p₁)ᵢ = aᵢ = (p₂)ᵢ`. The tumbler `p₁` agrees with `p₂` on all `#p₁` components, and `#p₁ ≤ #p₂`, so by T5 we have `p₁ ≼ p₂`. Since `π₁, π₂` were arbitrary members of `C(a)`, any two covering prefixes are comparable — the covering set is a chain.
+
+*Step 3: Finiteness.* Each covering prefix `p ≼ a` is uniquely determined by its length: since `p ≼ a` requires `pᵢ = aᵢ` for all `1 ≤ i ≤ #p`, the prefix of length `k` covering `a` can only be `[a₁, …, a_k]`. By T3 (CanonicalRepresentation), each component `aᵢ` is a uniquely determined natural number, so this prefix is unique. There are at most `#a` possible lengths (from `1` to `#a`), so `|C(a)| ≤ #a`. The covering set is finite.
+
+*Step 4: Existence and uniqueness of the maximum.* A non-empty finite chain has a unique maximum. Therefore there exists a unique maximal length `ℓ* = max{#pfx(π) : π ∈ C(a)}`, and by Step 3 the covering prefix of length `ℓ*` is uniquely determined as `[a₁, …, a_{ℓ*}]`. It remains to show that exactly one principal holds this prefix. Suppose `π₁, π₂ ∈ C(a)` both satisfy `#pfx(π₁) = #pfx(π₂) = ℓ*`. By Step 3, `pfx(π₁) = [a₁, …, a_{ℓ*}] = pfx(π₂)`. By O1b (PrefixInjectivity), equal prefixes imply `π₁ = π₂`. Hence there is exactly one principal `π* ∈ C(a)` achieving the maximal prefix length, and `π*` satisfies the defining equivalence: `pfx(π*) ≼ a` and for every `π' ≠ π*` with `pfx(π') ≼ a`, `#pfx(π*) > #pfx(π')`.
+
+We conclude: for every `a ∈ Σ.alloc`, there exists exactly one `π ∈ Π` with `ω(a) = π`. The function `ω : Σ.alloc → Π` is total and well-defined in every reachable state. ∎
+
+*Formal Contract:*
+- *Definition:* `ω(a) = π ≡ pfx(π) ≼ a ∧ (A π' ∈ Π : π' ≠ π ∧ pfx(π') ≼ a ⟹ #pfx(π) > #pfx(π'))`.
+- *Preconditions:* `a ∈ Σ.alloc`.
+- *Postconditions:* `(E! π ∈ Π : ω(a) = π)` — exactly one principal satisfies the defining equivalence.
+- *Invariant:* `ω` is a total function on `Σ.alloc` in every reachable state.
 
 The exclusivity of ownership is load-bearing. If two parties owned the same address, the system could not determine who is entitled to subdivide the space beneath it (O5 below), who originated the content (O6 below), or whose delegation created the address. Every downstream property depends on O2.
 
@@ -693,7 +709,7 @@ The design philosophy is clear: minimize the authorization model to the point wh
 | O15 | Principals enter Π exclusively through bootstrap or delegation; `\|Π_{Σ'} ∖ Π_Σ\| ≤ 1` per transition | design requirement |
 | O16 | `(A a ∈ Σ'.alloc ∖ Σ.alloc : (E π ∈ Π_Σ : allocated_by_{Σ'}(π, a)))` — allocation closure | design requirement |
 | O17 | `(A Σ, a : a ∈ Σ.alloc ⟹ T4(a))` — every allocated address is a valid tumbler | axiom |
-| `ω(a)` | `effectiveOwner : Σ.alloc → Principal` — the effective owner function (defined only for allocated addresses) | introduced |
+| `ω(a)` | `effectiveOwner : Σ.alloc → Principal` — the effective owner function (defined only for allocated addresses) | definition from O4, O1b, T5, T3 |
 | OwnershipDomain | `{a ∈ T : pfx(π) ≼ a}` — the ownership domain of a principal | introduced |
 | `acct(a)` | When `zeros(a) = 0`: `acct(a) = a`; when `zeros(a) ≥ 1`: truncation through user field | definition from T4, T6 |
 | `allocated_by_Σ(π, a)` | Primitive relation: `a` was allocated by `π` in transition producing `Σ`; mechanism out of scope, constrained by O5 and O16 | axiom (constrained by O5, O16) |
