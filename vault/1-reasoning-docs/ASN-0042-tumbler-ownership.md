@@ -442,27 +442,27 @@ The design philosophy is clear: minimize the authorization model to the point wh
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| O0 | Ownership of `a` by `π` is decidable from `pfx(π)` and `a` alone, without mutable state | introduced |
+| O0 | Ownership of `a` by `π` is decidable from `pfx(π)` and `a` alone, without mutable state | design requirement |
 | O1 | `owns(π, a) ≡ pfx(π) ≼ a` — ownership is prefix containment | introduced |
-| O1a | `(A π ∈ Π : zeros(pfx(π)) ≤ 1)` — ownership principals exist only at node or account level | introduced |
-| O1b | `pfx` is injective — distinct principals have distinct prefixes | introduced |
+| O1a | `(A π ∈ Π : zeros(pfx(π)) ≤ 1)` — ownership principals exist only at node or account level | design requirement |
+| O1b | `pfx` is injective — distinct principals have distinct prefixes | design requirement |
 | O2 | Every allocated address has exactly one effective owner `ω(a)`, determined by longest matching prefix | introduced |
 | O3 | `ω(a)` changes only through delegation introducing a longer matching prefix — monotonic refinement | introduced |
 | O4 | `(A a ∈ Σ.alloc : (E π ∈ Π : pfx(π) ≼ a))` — every allocated address is covered by some principal | introduced |
-| O5 | Only the principal with the longest matching prefix may allocate within its domain — subdivision authority | introduced |
+| O5 | Only the principal with the longest matching prefix may allocate within its domain — subdivision authority | design requirement |
 | AccountPrefix | `(A a ∈ T : T4(a) ⟹ acct(a) ≼ a)` — the account field is a prefix of any valid address | introduced |
 | O6 | `acct(a) = acct(b) ⟹ ω(a) = ω(b)` — effective owner determined entirely by account field | introduced |
 | O7 | Delegation (authorized by `delegated`) confers effective ownership (O2), subdivision authority (O5), and recursive delegation (O7) | introduced |
 | O8 | `delegated_Σ(π, π') ∧ a ∈ dom(π') ∩ Σ'.alloc ∧ Σ →⁺ Σ' ⟹ ω_{Σ'}(a) ≠ π` — delegating parent never regains ownership | introduced |
 | O9 | `(A π ∈ Π, a ∈ Σ.alloc : owns(π, a) ⟹ N(pfx(π)) ≼ N(a))` — ownership bounded by node field | introduced |
 | O10 | Non-ownership of target yields a fork: new address under the requesting principal's domain | introduced |
-| O11 | Principal identity is axiomatic to the ownership model — authentication is external | introduced |
-| O12 | `(A Σ, Σ' : Σ → Σ' ⟹ Π_Σ ⊆ Π_{Σ'})` — principal persistence | introduced |
-| O13 | `pfx_{Σ'}(π) = pfx_Σ(π)` for all transitions — prefix immutability | introduced |
-| O14 | `Π₀ ≠ ∅`, initial principals cover all initially allocated addresses, `zeros ≤ 1`, `pfx` injective on `Π₀`, `T4(pfx(π))`, and pairwise non-nesting — bootstrap with O1a/O1b/T4/non-nesting base cases | introduced |
-| O15 | Principals enter Π exclusively through bootstrap or delegation; `\|Π_{Σ'} ∖ Π_Σ\| ≤ 1` per transition | introduced |
-| O16 | `(A a ∈ Σ'.alloc ∖ Σ.alloc : (E π ∈ Π_Σ : allocated_by_{Σ'}(π, a)))` — allocation closure | introduced |
-| O17 | `(A Σ, a : a ∈ Σ.alloc ⟹ T4(a))` — every allocated address is a valid tumbler | introduced |
+| O11 | Principal identity is axiomatic to the ownership model — authentication is external | axiom |
+| O12 | `(A Σ, Σ' : Σ → Σ' ⟹ Π_Σ ⊆ Π_{Σ'})` — principal persistence | design requirement |
+| O13 | `pfx_{Σ'}(π) = pfx_Σ(π)` for all transitions — prefix immutability | design requirement |
+| O14 | `Π₀ ≠ ∅`, initial principals cover all initially allocated addresses, `zeros ≤ 1`, `pfx` injective on `Π₀`, `T4(pfx(π))`, and pairwise non-nesting — bootstrap with O1a/O1b/T4/non-nesting base cases | design requirement |
+| O15 | Principals enter Π exclusively through bootstrap or delegation; `\|Π_{Σ'} ∖ Π_Σ\| ≤ 1` per transition | design requirement |
+| O16 | `(A a ∈ Σ'.alloc ∖ Σ.alloc : (E π ∈ Π_Σ : allocated_by_{Σ'}(π, a)))` — allocation closure | design requirement |
+| O17 | `(A Σ, a : a ∈ Σ.alloc ⟹ T4(a))` — every allocated address is a valid tumbler | axiom |
 | `ω(a)` | `effectiveOwner : Σ.alloc → Principal` — the effective owner function (defined only for allocated addresses) | introduced |
 | `dom(π)` | `{a ∈ T : pfx(π) ≼ a}` — the ownership domain of a principal | introduced |
 | `acct(a)` | When `zeros(a) = 0`: `acct(a) = a`; when `zeros(a) ≥ 1`: truncation through user field | introduced |
