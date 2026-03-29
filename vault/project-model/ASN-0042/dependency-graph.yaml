@@ -6,11 +6,13 @@ properties:
     status: design
     name: StructuralOwnership
   O1:
-    status: introduced
-    name: '`owns(π, a) ≡ pfx(π) ≼ a`'
+    status: from
     follows_from:
+    - O0
+    - T3
     - T4
     - T5
+    name: '`owns(π, a) ≡ pfx(π) ≼ a`'
     follows_from_asns:
     - 34
   O1a:
@@ -22,41 +24,43 @@ properties:
     follows_from:
     - O2
   O2:
-    status: introduced
+    status: from
+    follows_from:
+    - O1b
+    - O4
     name: OwnershipExclusivity
   O3:
-    status: introduced
-    name: '`ω(a)` changes only through delegation introducing a longer matching prefix'
+    status: from
     follows_from:
     - O12
     - O13
+    - O1b
+    - O2
     - T8
+    name: '`ω(a)` changes only through delegation introducing a longer matching prefix'
     follows_from_asns:
     - 34
   AccountLevelPermanence:
-    status: corollary
+    status: from
     follows_from:
-    - O12
+    - Delegation
     - O14
     - O15
-    - O1a
+    - O1b
     - O3
-    - O5
-    - O6
-    - O8
-    - T8
+    - T5
     name: No external delegation can alter effective ownership within `dom(π)`
     follows_from_asns:
     - 34
   O4:
-    status: introduced
-    name: '`(A a ∈ Σ'
+    status: from
     follows_from:
     - O12
     - O13
     - O14
     - O16
     - O5
+    name: '`(A a ∈ Σ'
   O5:
     status: design
     name: SubdivisionAuthority
@@ -69,53 +73,67 @@ properties:
     follows_from_asns:
     - 34
   AccountPrefix:
-    status: introduced
-    name: '`(A a ∈ T'
+    status: from
     follows_from:
+    - AccountField
     - O17
-    - O6
+    - T3
     - T4
+    - T5
+    name: '`(A a ∈ T'
     follows_from_asns:
     - 34
   O6:
-    status: introduced
+    status: from
+    follows_from:
+    - O1a
+    - O2
+    - O17
+    - AccountPrefix
     name: '`acct(a) = acct(b) ⟹ ω(a) = ω(b)`'
   O7:
-    status: introduced
-    name: OwnershipDelegation
+    status: from
     follows_from:
+    - Delegation
+    - O15
     - O2
     - O5
+    name: OwnershipDelegation
   O8:
-    status: introduced
-    name: '`delegated_Σ(π, π'') ∧ a ∈ dom(π'') ∩ Σ'''
+    status: from
     follows_from:
+    - Delegation
     - O12
     - O13
-    - O3
+    - O2
     - O4
     - T8
+    name: '`delegated_Σ(π, π'') ∧ a ∈ dom(π'') ∩ Σ'''
     follows_from_asns:
     - 34
   O9:
-    status: introduced
-    name: '`(A π ∈ Π, a ∈ Σ'
+    status: from
     follows_from:
     - O1
     - O1a
     - T10a
     - T4
+    - T5
+    name: '`(A π ∈ Π, a ∈ Σ'
     follows_from_asns:
     - 34
   O10:
-    status: introduced
-    name: Non-ownership of target yields a fork
+    status: from
     follows_from:
+    - O15
     - O1a
     - O2
     - O3
     - O5
     - O6
+    - T0a
+    - TA5(d)
+    name: Non-ownership of target yields a fork
   O11:
     status: axiom
     name: Principal identity is axiomatic to the ownership model
@@ -175,14 +193,15 @@ properties:
     follows_from_asns:
     - 34
   ω(a):
-    status: introduced
-    name: '`effectiveOwner'
+    status: from
     follows_from:
     - O1b
-    - O2
     - O4
-    - O5
-    - O6
+    - T3
+    - T5
+    name: '`effectiveOwner'
+    follows_from_asns:
+    - 34
   OwnershipDomain:
     status: introduced
     name: '`{a ∈ T'
@@ -193,16 +212,16 @@ properties:
     follows_from_asns:
     - 34
   acct(a):
-    status: introduced
-    name: When `zeros(a) = 0`
+    status: from
     follows_from:
     - O1a
     - T4
     - T6
+    name: When `zeros(a) = 0`
     follows_from_asns:
     - 34
   allocated_by_Σ(π, a):
-    status: introduced
+    status: axiom
     name: Primitive relation
     follows_from:
     - O16
@@ -220,9 +239,15 @@ properties:
     follows_from_asns:
     - 34
   pfx(π):
-    status: introduced
+    status: axiom
     name: '`ownershipPrefix'
     follows_from:
+    - O1
+    - O1a
+    - O1b
+    - T3
     - T4
+    - T5
+    - T6
     follows_from_asns:
     - 34

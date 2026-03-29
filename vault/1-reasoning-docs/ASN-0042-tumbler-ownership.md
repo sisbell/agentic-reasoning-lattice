@@ -688,18 +688,18 @@ The design philosophy is clear: minimize the authorization model to the point wh
 | Label | Statement | Status |
 |-------|-----------|--------|
 | O0 | Ownership of `a` by `π` is decidable from `pfx(π)` and `a` alone, without mutable state | design requirement |
-| O1 | `owns(π, a) ≡ pfx(π) ≼ a` — ownership is prefix containment | definition from T4, T5 |
+| O1 | `owns(π, a) ≡ pfx(π) ≼ a` — ownership is prefix containment | from T4, T5 |
 | O1a | `(A π ∈ Π : zeros(pfx(π)) ≤ 1)` — ownership principals exist only at node or account level | design requirement |
 | O1b | `pfx` is injective — distinct principals have distinct prefixes | design requirement |
 | O2 | Every allocated address has exactly one effective owner `ω(a)`, determined by longest matching prefix | from O4, O1b |
 | O3 | `ω(a)` changes only through delegation introducing a longer matching prefix — monotonic refinement | from T8, O12, O13, O1b |
-| AccountLevelPermanence | No external delegation can alter effective ownership within `dom(π)` — changes to `ω(a)` inside a principal's domain arise only from that principal's own acts or its sub-delegates' acts | from O3, O14, O15, O1b, T5, delegated(i)(ii)(vi) |
+| AccountLevelPermanence | No external delegation can alter effective ownership within `dom(π)` — changes to `ω(a)` inside a principal's domain arise only from that principal's own acts or its sub-delegates' acts | from Delegation, O1b, O3, O14, O15, T5 |
 | O4 | `(A a ∈ Σ.alloc : (E π ∈ Π : pfx(π) ≼ a))` — every allocated address is covered by some principal | from O14, O16, O5, O12, O13 |
 | O5 | Only the principal with the longest matching prefix may allocate within its domain — subdivision authority | design requirement |
 | AccountPrefix | `(A a ∈ T : T4(a) ⟹ acct(a) ≼ a)` — the account field is a prefix of any valid address | from T3, T4, T5, AccountField |
 | O6 | `acct(a) = acct(b) ⟹ ω(a) = ω(b)` — effective owner determined entirely by account field | from O1a, O2, O17, AccountPrefix |
-| O7 | Delegation (authorized by `delegated`) confers effective ownership (O2), subdivision authority (O5), and recursive delegation (O7) | from O2, O5, O15, delegated(i)(ii)(iii)(vi) |
-| O8 | `delegated_Σ(π, π') ∧ a ∈ dom(π') ∩ Σ'.alloc ∧ Σ →⁺ Σ' ⟹ ω_{Σ'}(a) ≠ π` — delegating parent never regains ownership | from O2, O12, O13, T8, delegated(i) |
+| O7 | Delegation (authorized by `delegated`) confers effective ownership (O2), subdivision authority (O5), and recursive delegation (O7) | from Delegation, O2, O5, O15 |
+| O8 | `delegated_Σ(π, π') ∧ a ∈ dom(π') ∩ Σ'.alloc ∧ Σ →⁺ Σ' ⟹ ω_{Σ'}(a) ≠ π` — delegating parent never regains ownership | from Delegation, O2, O12, O13, T8 |
 | O9 | `(A π ∈ Π, a ∈ Σ.alloc : owns(π, a) ⟹ N(pfx(π)) ≼ N(a))` — ownership bounded by node field | from O1, O1a, T4, T5 |
 | O10 | Non-ownership of target yields a fork: new address under the requesting principal's domain | from O1a, O6, O15, T0a, TA5(d) |
 | O11 | Principal identity is axiomatic to the ownership model — authentication is external | axiom |
@@ -709,12 +709,12 @@ The design philosophy is clear: minimize the authorization model to the point wh
 | O15 | Principals enter Π exclusively through bootstrap or delegation; `\|Π_{Σ'} ∖ Π_Σ\| ≤ 1` per transition | design requirement |
 | O16 | `(A a ∈ Σ'.alloc ∖ Σ.alloc : (E π ∈ Π_Σ : allocated_by_{Σ'}(π, a)))` — allocation closure | design requirement |
 | O17 | `(A Σ, a : a ∈ Σ.alloc ⟹ T4(a))` — every allocated address is a valid tumbler | axiom |
-| `ω(a)` | `effectiveOwner : Σ.alloc → Principal` — the effective owner function (defined only for allocated addresses) | definition from O4, O1b, T5, T3 |
+| `ω(a)` | `effectiveOwner : Σ.alloc → Principal` — the effective owner function (defined only for allocated addresses) | from O4, O1b, T5, T3 |
 | OwnershipDomain | `{a ∈ T : pfx(π) ≼ a}` — the ownership domain of a principal | introduced |
-| `acct(a)` | When `zeros(a) = 0`: `acct(a) = a`; when `zeros(a) ≥ 1`: truncation through user field | definition from T4, T6 |
-| `allocated_by_Σ(π, a)` | Primitive relation: `a` was allocated by `π` in transition producing `Σ`; mechanism out of scope, constrained by O5 and O16 | axiom (constrained by O5, O16) |
+| `acct(a)` | When `zeros(a) = 0`: `acct(a) = a`; when `zeros(a) ≥ 1`: truncation through user field | from T4, T6 |
+| `allocated_by_Σ(π, a)` | Primitive relation: `a` was allocated by `π` in transition producing `Σ`; mechanism out of scope, constrained by O5 and O16 | axiom |
 | Delegation | `π'` introduced into `Π` by act of `π`, with `pfx(π) ≺ pfx(π')`, `π` most-specific covering principal, no existing principal extends `pfx(π')`, `zeros(pfx(π')) ≤ 1`, and `T4(pfx(π'))` | introduced |
-| `pfx(π)` | `ownershipPrefix : Principal → Tumbler` — injective, `zeros(pfx(π)) ≤ 1`, `T4(pfx(π))` | axiom (T4) |
+| `pfx(π)` | `ownershipPrefix : Principal → Tumbler` — injective, `zeros(pfx(π)) ≤ 1`, `T4(pfx(π))` | axiom |
 
 
 ## Open Questions
