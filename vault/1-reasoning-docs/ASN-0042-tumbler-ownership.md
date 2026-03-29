@@ -168,7 +168,22 @@ We first state a coverage requirement — every allocated address falls within s
 
   `(A a ∈ Σ.alloc : (E π ∈ Π : pfx(π) ≼ a))`
 
-This follows from O5 (SubdivisionAuthority, stated below), O14 (BootstrapPrincipal), and O16 (AllocationClosure): allocation only occurs within an existing principal's domain, so every allocated address is born under a covering prefix. The derivation: by O14, the initial state has a principal covering all initially allocated addresses. If `a` is newly allocated in a transition Σ → Σ', then by O16 there exists a principal `π ∈ Π_Σ` that allocated `a`, and by O5 `pfx(π) ≼ a`. By O12, `π` persists in Σ'. For addresses already in `Σ.alloc`, their covering principals persist in `Σ'` (O12) with unchanged prefixes (O13), so coverage is preserved. By induction on the transition history, O4 holds in every reachable state.
+We prove that in every reachable state `Σ`, every allocated address is covered by at least one principal's prefix. The proof is by induction on the length of the transition sequence leading to `Σ`.
+
+*Base case.* In the initial state `Σ₀`, the claim is `(A a ∈ Σ₀.alloc : (E π ∈ Π₀ : pfx(π) ≼ a))`. This is the second clause of O14 (BootstrapPrincipal), which asserts exactly that the initial principals cover all initially allocated addresses. The base case holds.
+
+*Inductive step.* Assume the claim holds in state `Σ`: every `a ∈ Σ.alloc` has a covering principal in `Π_Σ`. We must show it holds in any successor state `Σ'` with `Σ → Σ'`. Let `a ∈ Σ'.alloc` be an arbitrary allocated address. Two cases arise, exhausting `Σ'.alloc = Σ.alloc ∪ (Σ'.alloc ∖ Σ.alloc)`.
+
+*Case 1: `a ∈ Σ.alloc` (address was already allocated).* By the inductive hypothesis, there exists `π ∈ Π_Σ` with `pfx(π) ≼ a`. By O12 (PrincipalPersistence), `Π_Σ ⊆ Π_{Σ'}`, so `π ∈ Π_{Σ'}`. By O13 (PrefixImmutability), `pfx_{Σ'}(π) = pfx_Σ(π)`, so the prefix relation `pfx_{Σ'}(π) ≼ a` is preserved. Hence `a` has a covering principal in `Π_{Σ'}`.
+
+*Case 2: `a ∈ Σ'.alloc ∖ Σ.alloc` (address is newly allocated).* By O16 (AllocationClosure), there exists a principal `π ∈ Π_Σ` such that `allocated_by_{Σ'}(π, a)` — every newly allocated address was allocated by some existing principal. By O5 (SubdivisionAuthority), whenever `π` allocates `a`, the first conjunct of the postcondition gives `pfx(π) ≼ a` — the allocator's prefix covers the allocated address. By O12, `π ∈ Π_Σ ⊆ Π_{Σ'}`, and by O13, `pfx_{Σ'}(π) = pfx_Σ(π)`. Hence `pfx_{Σ'}(π) ≼ a`, and `a` has a covering principal in `Π_{Σ'}`.
+
+In both cases, every address in `Σ'.alloc` is covered by a principal in `Π_{Σ'}`. By induction on the transition sequence, the coverage invariant holds in every reachable state. ∎
+
+*Formal Contract:*
+- *Preconditions:* `a ∈ Σ.alloc`.
+- *Postconditions:* `(E π ∈ Π : pfx(π) ≼ a)`.
+- *Invariant:* Coverage holds in every reachable state — no allocated address is orphaned from the principal hierarchy.
 
 We resolve nesting by specificity:
 
@@ -555,7 +570,7 @@ The design philosophy is clear: minimize the authorization model to the point wh
 | O2 | Every allocated address has exactly one effective owner `ω(a)`, determined by longest matching prefix | from O4, O1b |
 | O3 | `ω(a)` changes only through delegation introducing a longer matching prefix — monotonic refinement | from T8, O12, O13, O1b |
 | AccountLevelPermanence | No external delegation can alter effective ownership within `dom(π)` — changes to `ω(a)` inside a principal's domain arise only from that principal's own acts or its sub-delegates' acts | corollary of O3, O5, O8, O12, O15 |
-| O4 | `(A a ∈ Σ.alloc : (E π ∈ Π : pfx(π) ≼ a))` — every allocated address is covered by some principal | introduced |
+| O4 | `(A a ∈ Σ.alloc : (E π ∈ Π : pfx(π) ≼ a))` — every allocated address is covered by some principal | from O14, O16, O5, O12, O13 |
 | O5 | Only the principal with the longest matching prefix may allocate within its domain — subdivision authority | design requirement |
 | AccountPrefix | `(A a ∈ T : T4(a) ⟹ acct(a) ≼ a)` — the account field is a prefix of any valid address | from T3, T4, T5, AccountField |
 | O6 | `acct(a) = acct(b) ⟹ ω(a) = ω(b)` — effective owner determined entirely by account field | from O1a, O2, O17, AccountPrefix |
