@@ -200,6 +200,8 @@ def step_assembly(asn_num):
     deps = generate_deps(asn_num)
     if deps:
         write_deps_yaml(asn_num, deps)
+        print(f"  [DEPS] Regenerated ({len(deps.get('properties', {}))} properties)",
+              file=sys.stderr)
 
     step_commit_asn(asn_num, hint="assembly")
     return True
