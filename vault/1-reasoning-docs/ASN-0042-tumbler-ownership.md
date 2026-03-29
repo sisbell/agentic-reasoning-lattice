@@ -462,11 +462,38 @@ Delegation preserves O1b (PrefixInjectivity). Suppose for contradiction that `pf
 
   (c) `π'` may delegate sub-prefixes `p''` with `pfx(π') ≺ p''` per O7 recursively
 
-Postcondition (a) is categorical, not conditional. By condition (vi) of the `delegated` relation, no principal in `Π_Σ` has a prefix strictly extending `pfx(π')`; by condition (i), `#pfx(π') > #pfx(π)` where `π` is the most-specific principal in `Π_Σ` covering `pfx(π')`. Hence `π'` has the strictly longest matching prefix in `Π_{Σ'}` for every address in `dom(π')`, and O2 yields `ω_{Σ'}(a) = π'` unconditionally.
+We prove each postcondition under the hypothesis that `delegated_Σ(π, π')` holds for a transition `Σ → Σ'`, with `π ∈ Π_Σ` and `π' ∈ Π_{Σ'} ∖ Π_Σ`.
+
+*Postcondition (a): `ω_{Σ'}(a) = π'` for all `a ∈ dom(π') ∩ Σ'.alloc`.*
+
+Let `a ∈ dom(π') ∩ Σ'.alloc` be arbitrary. By the definition of domain, `pfx(π') ≼ a`, so `π'` covers `a`. We must show that `π'` achieves the strictly longest matching prefix among all principals in `Π_{Σ'}`.
+
+By O15 (PrincipalClosure), at most one new principal enters `Π` per transition, and `π'` is that principal by condition (iii). Therefore `Π_{Σ'} = Π_Σ ∪ {π'}`. Let `π'' ∈ Π_Σ` with `pfx(π'') ≼ a` be an arbitrary pre-existing covering principal. Since both `pfx(π'')` and `pfx(π')` are prefixes of `a`, they are comparable under `≼` — by the covering chain argument established in O2 (OwnershipExclusivity), any two prefixes of the same address are linearly ordered by the prefix relation. Three cases exhaust the comparison.
+
+*Case `pfx(π') ≺ pfx(π'')`* — then `π'' ∈ Π_Σ` has a prefix strictly extending `pfx(π')`, contradicting condition (vi) of the delegation relation: `¬(E π'' ∈ Π_Σ : pfx(π') ≺ pfx(π''))`.
+
+*Case `pfx(π') = pfx(π'')`* — by condition (ii), `π` is the most-specific covering principal for `pfx(π')` in `Π_Σ`, so `#pfx(π'') ≤ #pfx(π)`. But `#pfx(π'') = #pfx(π')`, and by condition (i), `#pfx(π) < #pfx(π')`. Combining: `#pfx(π) < #pfx(π') = #pfx(π'') ≤ #pfx(π)` — contradiction.
+
+*Case `pfx(π'') ≺ pfx(π')`* — by condition (ii), `#pfx(π'') ≤ #pfx(π)`, and by condition (i), `#pfx(π) < #pfx(π')`. Therefore `#pfx(π'') < #pfx(π')`.
+
+Only the third case is consistent. Every pre-existing covering principal `π'' ∈ Π_Σ` satisfies `#pfx(π'') < #pfx(π')`. Since the only new principal in `Π_{Σ'}` is `π'` itself, `π'` achieves the unique longest matching prefix in `Π_{Σ'}` for `a`. By O2 (OwnershipExclusivity), `ω_{Σ'}(a) = π'`.
+
+*Postcondition (b): O5 applies to `π'`.*
+
+O5 (SubdivisionAuthority) requires that the allocator of a new address be the most-specific covering principal. By postcondition (a), `ω_{Σ'}(a) = π'` for every `a ∈ dom(π') ∩ Σ'.alloc` — `π'` has the longest matching prefix in its domain. For any new address `a` allocated within `dom(π')` in a successor transition `Σ' → Σ''`, O5's two conjuncts are: `pfx(π') ≼ a` (which holds by `a ∈ dom(π')`) and `(A π'' ∈ Π_{Σ'} : pfx(π'') ≼ a ⟹ #pfx(π'') ≤ #pfx(π'))` (which holds because postcondition (a) established that no principal in `Π_{Σ'}` has a longer matching prefix within `dom(π')` than `π'`). Hence `π'` satisfies O5's authorization condition for allocating within `dom(π')`.
+
+*Postcondition (c): recursive delegation.*
+
+Since `π' ∈ Π_{Σ'}`, the delegation relation's conditions are satisfiable with `π'` as delegator for a sub-prefix `p''` with `pfx(π') ≺ p''`. Condition (i) holds by the choice of `p''`. Condition (ii) is satisfiable because postcondition (a) establishes `π'` as the most-specific covering principal in `dom(π')` — for any `p''` with `pfx(π') ≺ p''`, we have `p'' ∈ dom(π')`, so `π'` has the longest matching prefix among principals in `Π_{Σ'}`, satisfying condition (ii) with `π'` in the role of delegator. Conditions (iv), (v), and (vi) constrain the target prefix `p''`, not the delegator, and are obligations on the choice of delegate prefix. The recursive structure is well-founded: each delegation introduces a principal with a strictly longer prefix (condition (i)), and prefix length is bounded by address length.
 
 The authorization constraint is carried by the `delegated` relation — condition (ii) requires `π` to be the most-specific covering principal. This prevents a grandparent from delegating within a sub-domain it has already handed off: if `π₁` delegates `[1, 0, 2, 3]` to `π₂`, then `π₁` cannot subsequently delegate `[1, 0, 2, 3, 5]` to `π₃`, because `π₂` — not `π₁` — is the most-specific covering principal for that prefix.
 
-Nelson: "Whoever owns a specific node, account, document or version may in turn designate (respectively) new nodes, accounts, documents and versions, by forking their integers" (LM 4/17). The allocation mechanism is uniform ("the entire tumbler works like that," LM 4/19), but the resulting authority is hierarchical: delegation at node and account level creates principals with full sovereignty over their domain, while allocation at document and version level exercises mechanical subdivision rights within the parent principal's domain without establishing independent ownership standing.
+Nelson: "Whoever owns a specific node, account, document or version may in turn designate (respectively) new nodes, accounts, documents and versions, by forking their integers" (LM 4/17). The allocation mechanism is uniform ("the entire tumbler works like that," LM 4/19), but the resulting authority is hierarchical: delegation at node and account level creates principals with full sovereignty over their domain, while allocation at document and version level exercises mechanical subdivision rights within the parent principal's domain without establishing independent ownership standing. ∎
+
+*Formal Contract:*
+- *Preconditions:* `delegated_Σ(π, π')`, `Σ → Σ'`.
+- *Postconditions:* (a) `(A a ∈ dom(π') ∩ Σ'.alloc : ω_{Σ'}(a) = π')`; (b) `π'` satisfies O5 for allocations within `dom(π')`; (c) the delegation relation is satisfiable with `π'` as delegator for sub-prefixes of `pfx(π')`.
+- *Invariant:* Delegation confers full sovereignty — the delegate becomes the effective owner of its entire domain immediately upon delegation, and acquires the rights to allocate and sub-delegate within that domain.
 
 The delegation is irrevocable:
 
@@ -623,7 +650,7 @@ The design philosophy is clear: minimize the authorization model to the point wh
 | O5 | Only the principal with the longest matching prefix may allocate within its domain — subdivision authority | design requirement |
 | AccountPrefix | `(A a ∈ T : T4(a) ⟹ acct(a) ≼ a)` — the account field is a prefix of any valid address | from T3, T4, T5, AccountField |
 | O6 | `acct(a) = acct(b) ⟹ ω(a) = ω(b)` — effective owner determined entirely by account field | from O1a, O2, O17, AccountPrefix |
-| O7 | Delegation (authorized by `delegated`) confers effective ownership (O2), subdivision authority (O5), and recursive delegation (O7) | introduced |
+| O7 | Delegation (authorized by `delegated`) confers effective ownership (O2), subdivision authority (O5), and recursive delegation (O7) | from O2, O5, O15, delegated(i)(ii)(iii)(vi) |
 | O8 | `delegated_Σ(π, π') ∧ a ∈ dom(π') ∩ Σ'.alloc ∧ Σ →⁺ Σ' ⟹ ω_{Σ'}(a) ≠ π` — delegating parent never regains ownership | from O2, O12, O13, T8, delegated(i) |
 | O9 | `(A π ∈ Π, a ∈ Σ.alloc : owns(π, a) ⟹ N(pfx(π)) ≼ N(a))` — ownership bounded by node field | from O1, O1a, T4, T5 |
 | O10 | Non-ownership of target yields a fork: new address under the requesting principal's domain | from O1a, O6, O15, T0a, TA5(d) |
