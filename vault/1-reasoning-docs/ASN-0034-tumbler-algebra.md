@@ -1300,21 +1300,28 @@ The three regions partition all positions 1 ≤ i ≤ #b: positions 1 through k 
 
 **D2 (DisplacementUnique).** Under D1's preconditions (a < b, divergence(a, b) ≤ #a, #a ≤ #b), if a ⊕ w = b then w = b ⊖ a.
 
-*Proof.* We show that any displacement w carrying a to b must equal the canonical displacement b ⊖ a. The argument has two steps: we produce a second witness for the same equation, then apply left cancellation to conclude the two witnesses are identical.
+*Proof.* We show that any displacement w carrying a to b must equal the canonical displacement b ⊖ a. The argument proceeds in four stages: extract the preconditions implicit in the hypothesis, invoke D1 to produce a second witness for the same equation, verify that both witnesses satisfy TA-LC's preconditions, and apply left cancellation.
 
-**Step 1: a second witness.** By D1 (DisplacementRoundTrip), the preconditions a < b, divergence(a, b) ≤ #a, and #a ≤ #b guarantee that a ⊕ (b ⊖ a) = b. So both w and b ⊖ a, when added to a, yield b.
+**Stage 1: Preconditions from the hypothesis.** The hypothesis states that a ⊕ w = b — that is, the addition a ⊕ w is well-defined and its result equals b. Well-definedness of a ⊕ w presupposes TA0 (WellDefinedAddition), which requires two conditions: w > 0, and actionPoint(w) ≤ #a. Since a ⊕ w = b is given as a well-defined equation, both conditions hold. We record for later use: w > 0, and actionPoint(w) ≤ #a.
 
-**Step 2: establishing TA-LC's preconditions.** To apply left cancellation (TA-LC), we must verify that both additions satisfy TA0 — that is, both displacements are positive and their action points fall within #a.
+**Stage 2: A second witness.** The explicit preconditions give a < b, divergence(a, b) ≤ #a, and #a ≤ #b. These are exactly D1's preconditions. By D1 (DisplacementRoundTrip):
 
-For w: the hypothesis states a ⊕ w = b, so the addition is well-defined. TA0 requires w > 0 (satisfied since the addition produces a result) and actionPoint(w) ≤ #a.
+  a ⊕ (b ⊖ a) = b
 
-For b ⊖ a: let k = divergence(a, b). By hypothesis k ≤ #a. Since a < b, the divergence occurs at a position where bₖ > aₖ (by T1), so (b ⊖ a)ₖ = bₖ − aₖ ≥ 1. Every component before position k is zero (TumblerSub copies the agreement prefix as zeros). Therefore b ⊖ a > 0 with action point k, and k ≤ #a satisfies TA0.
+We now have two equations with the same left operand a and the same result b:
 
-**Step 3: cancellation.** From the hypothesis a ⊕ w = b and Step 1's a ⊕ (b ⊖ a) = b, we obtain:
+  a ⊕ w = b          (hypothesis)
+  a ⊕ (b ⊖ a) = b    (D1)
 
-  a ⊕ w = a ⊕ (b ⊖ a)
+Substituting the common right-hand side: a ⊕ w = a ⊕ (b ⊖ a).
 
-Both sides are well-defined (Step 2). By TA-LC (LeftCancellation) — which states that a ⊕ x = a ⊕ y implies x = y when both additions satisfy TA0 — we conclude w = b ⊖ a.  ∎
+**Stage 3: Verify TA-LC's preconditions.** TA-LC (LeftCancellation) requires that both additions satisfy TA0 — that is, both displacements are positive and their action points fall within #a. We verify each.
+
+*For w.* Stage 1 established w > 0 and actionPoint(w) ≤ #a directly from the well-definedness of a ⊕ w. Both TA0 conditions hold.
+
+*For b ⊖ a.* The preconditions a < b and divergence(a, b) ≤ #a are exactly D0's preconditions. By D0 (DisplacementWellDefined), these guarantee three facts: b ⊖ a ∈ T, b ⊖ a > 0, and actionPoint(b ⊖ a) = divergence(a, b). The first TA0 condition — positivity — is b ⊖ a > 0, established by D0. The second — actionPoint(b ⊖ a) ≤ #a — follows from D0's actionPoint(b ⊖ a) = divergence(a, b) and the hypothesis divergence(a, b) ≤ #a. Both TA0 conditions hold.
+
+**Stage 4: Cancellation.** From Stage 2, a ⊕ w = a ⊕ (b ⊖ a). From Stage 3, both additions satisfy TA0: w > 0 with actionPoint(w) ≤ #a, and b ⊖ a > 0 with actionPoint(b ⊖ a) ≤ #a. These are exactly the preconditions of TA-LC (LeftCancellation), which states: if a ⊕ x = a ⊕ y with both additions satisfying TA0, then x = y. Applying TA-LC with x = w and y = b ⊖ a, we conclude w = b ⊖ a.  ∎
 
 D1 and D2 together characterize the displacement completely: D1 says b ⊖ a recovers b, D2 says nothing else does.
 
