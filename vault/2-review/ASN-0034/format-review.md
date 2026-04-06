@@ -1,47 +1,61 @@
+## Format Review: ASN-0034
+
 ### 1. Table Structure
 
 (none)
-
-The table has the required three columns in the correct order: Label, Statement, Status.
 
 ### 2. Status Vocabulary
 
 (none)
 
-All status values match standard patterns: `axiom`, `introduced`, `from …`, `corollary of …`, `design requirement`, `lemma (from …)`, `theorem from …`.
-
 ### 3. Header Format
 
-(none)
+All 29 findings are names with spaces where PascalCase is required.
 
-Every property header follows `**LABEL (Name).**` and every definition header follows `**Definition (Name).**`. Bold closure and trailing period are present throughout. Sub-section markers (`**Verification of T4.**`, `**Consequence 1: …**`, `**Necessity.**`) are clearly narrative prose, not property headers, and are not findings.
+| # | Actual header | Required name |
+|---|---------------|---------------|
+| 1 | `**T0(a) (Unbounded component values).**` | `UnboundedComponentValues` |
+| 2 | `**T0(b) (Unbounded length).**` | `UnboundedLength` |
+| 3 | `**T1 (Lexicographic order).**` | `LexicographicOrder` |
+| 4 | `**T2 (Intrinsic comparison).**` | `IntrinsicComparison` |
+| 5 | `**T3 (Canonical representation).**` | `CanonicalRepresentation` |
+| 6 | `**T4 (Hierarchical parsing).**` | `HierarchicalParsing` |
+| 7 | `**T5 (Contiguous subtrees).**` | `ContiguousSubtrees` |
+| 8 | `**T6 (Decidable containment).**` | `DecidableContainment` |
+| 9 | `**T7 (Subspace disjointness).**` | `SubspaceDisjointness` |
+| 10 | `**T8 (Allocation permanence).**` | `AllocationPermanence` |
+| 11 | `**T9 (Forward allocation).**` | `ForwardAllocation` |
+| 12 | `**T10 (Partition independence).**` | `PartitionIndependence` |
+| 13 | `**T10a (Allocator discipline).**` | `AllocatorDiscipline` |
+| 14 | `**PrefixOrderingExtension (Prefix ordering extension).**` | `PrefixOrderingExtension` |
+| 15 | `**PartitionMonotonicity (Partition monotonicity).**` | `PartitionMonotonicity` |
+| 16 | `**GlobalUniqueness (Global uniqueness).**` | `GlobalUniqueness` |
+| 17 | `**TA0 (Well-defined addition).**` | `WellDefinedAddition` |
+| 18 | `**TA1 (Order preservation under addition).**` | `OrderPreservationUnderAddition` |
+| 19 | `**TA1-strict (Strict order preservation).**` | `StrictOrderPreservation` |
+| 20 | `**TA-strict (Strict increase).**` | `StrictIncrease` |
+| 21 | `**TA2 (Well-defined subtraction).**` | `WellDefinedSubtraction` |
+| 22 | `**TA3 (Order preservation under subtraction, weak).**` | `OrderPreservationUnderSubtractionWeak` |
+| 23 | `**TA3-strict (Order preservation under subtraction, strict).**` | `OrderPreservationUnderSubtractionStrict` |
+| 24 | `**TA4 (Partial inverse).**` | `PartialInverse` |
+| 25 | `**ReverseInverse (Reverse inverse).**` | `ReverseInverse` |
+| 26 | `**TA5 (Hierarchical increment).**` | `HierarchicalIncrement` |
+| 27 | `**TA6 (Zero tumblers).**` | `ZeroTumblers` |
+| 28 | `**TA7a (Subspace closure).**` | `SubspaceClosure` |
+| 29 | `**T12 (Span well-definedness).**` | `SpanWellDefinedness` |
 
 ### 4. Missing Table Entries
 
 (none)
 
-Every bold property or definition header in the prose has a corresponding row in the property table:
-
-- `**Definition (Divergence).**` → `Divergence` ✓  
-- `**Definition (TumblerAdd).**` → `TumblerAdd` ✓  
-- `**Definition (TumblerSub).**` → `TumblerSub` ✓  
-- `**Definition (PositiveTumbler).**` → `PositiveTumbler` ✓  
-- `**Definition (OrdinalDisplacement).**` → `OrdinalDisplacement` ✓  
-- `**Definition (OrdinalShift).**` → `OrdinalShift` ✓  
-- All 48 property/definition headers verified against the table.
-
 ### 5. Missing Prose Sections
 
 (none)
-
-Every label in the property table has a corresponding bold prose section. All 48 labels accounted for.
 
 ### 6. Duplicate Labels
 
 (none)
 
-All 48 table labels are unique.
-
 ---
 
-`RESULT: CLEAN`
+`RESULT: 29 FINDINGS`
