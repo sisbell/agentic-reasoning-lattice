@@ -1505,27 +1505,47 @@ For valid addresses, `sig(t)` falls within the last populated field. This is a c
 
   (d) when `k > 0` (*child*): `#t' = #t + k`, the `k - 1` intermediate positions `#t + 1, ..., #t + k - 1` are set to `0` (field separators), and the final position `#t + k` is set to `1` (the first child).
 
-*Proof.* We must show that for every `t ∈ T` and `k ≥ 0`, the construction below produces a tumbler `t' = inc(t, k)` satisfying all four postconditions. Recall that `sig(t)` denotes the last significant position of `t`: when `t` has at least one nonzero component, `sig(t) = max({i : 1 ≤ i ≤ #t ∧ tᵢ ≠ 0})`; when every component of `t` is zero, `sig(t) = #t`.
+*Proof.* We must show that for every `t ∈ T` and `k ≥ 0`, the construction below produces a tumbler `t' = inc(t, k)` satisfying all four postconditions. The argument proceeds in four stages: define the construction and establish membership, verify agreement before the increment point, verify the structural postconditions, and prove strict ordering via T1. Recall that `sig(t)` denotes the last significant position of `t`: when `t` has at least one nonzero component, `sig(t) = max({i : 1 ≤ i ≤ #t ∧ tᵢ ≠ 0})`; when every component of `t` is zero, `sig(t) = #t`.
 
-**Construction.** Let `t = t₁. ... .tₘ` where `m = #t`, and let `k ≥ 0`. Define `t' = inc(t, k)` by cases.
+**Stage 1: Construction.** Let `t = t₁. ... .tₘ` where `m = #t ≥ 1` (since `t ∈ T`), and let `k ≥ 0`. Define `t' = inc(t, k)` by cases.
 
-When `k = 0` (*sibling increment*): set `t'ᵢ = tᵢ` for all `i ≠ sig(t)`, and `t'_{sig(t)} = t_{sig(t)} + 1`. The result has the same length: `#t' = m`.
+*Case `k = 0` (sibling increment).* Set `t'ᵢ = tᵢ` for all `i` with `1 ≤ i ≤ m` and `i ≠ sig(t)`, and set `t'_{sig(t)} = t_{sig(t)} + 1`. The result is a sequence of `m` natural numbers: each component is either an unchanged component of `t` (hence in ℕ) or `t_{sig(t)} + 1` (in ℕ since ℕ is closed under successor). The length is `#t' = m ≥ 1`, so `t' ∈ T` by T3 (CanonicalRepresentation).
 
-When `k > 0` (*child creation*): set `t'ᵢ = tᵢ` for `1 ≤ i ≤ m`, set `t'ᵢ = 0` for `m + 1 ≤ i ≤ m + k - 1` (the `k - 1` field separators), and set `t'_{m+k} = 1` (the first child). The result has length `#t' = m + k`.
+*Case `k > 0` (child creation).* Set `t'ᵢ = tᵢ` for `1 ≤ i ≤ m` (copy the original), set `t'ᵢ = 0` for `m + 1 ≤ i ≤ m + k - 1` (the `k - 1` field separators), and set `t'_{m+k} = 1` (the first child). The result is a sequence of `m + k` natural numbers: the first `m` are components of `t ∈ T` (hence in ℕ), the next `k - 1` are `0 ∈ ℕ`, and the final component is `1 ∈ ℕ`. The length is `#t' = m + k ≥ m + 1 ≥ 2 ≥ 1`, so `t' ∈ T` by T3.
 
-In both cases `t'` is a finite sequence of natural numbers with length ≥ 1, so `t' ∈ T`.
+We record for later use: in both cases, `t' ∈ T`.
 
-**Verification of (b)** (agreement before the increment point). For `k = 0`: by construction `t'ᵢ = tᵢ` for all `i` with `1 ≤ i < sig(t)`, since only position `sig(t)` is modified. For `k > 0`: by construction `t'ᵢ = tᵢ` for all `1 ≤ i ≤ m`, so `t'` agrees with `t` on every original position.
+**Stage 2: Agreement before the increment point [postcondition (b)].**
 
-**Verification of (c)** (sibling structure). When `k = 0`: `#t' = m = #t` by construction. The only modified position is `sig(t)`, where `t'_{sig(t)} = t_{sig(t)} + 1`. Every other position retains its original value.
+*Case `k = 0`.* The increment point is position `sig(t)`. By construction, `t'ᵢ = tᵢ` for all `i` with `1 ≤ i ≤ m` and `i ≠ sig(t)`. In particular, for every `i` with `1 ≤ i < sig(t)`, the condition `i ≠ sig(t)` holds (since `i < sig(t)` implies `i ≠ sig(t)`), so `t'ᵢ = tᵢ`. This establishes `(A i : 1 ≤ i < sig(t) : t'ᵢ = tᵢ)`.
 
-**Verification of (d)** (child structure). When `k > 0`: `#t' = m + k = #t + k` by construction. Positions `m + 1` through `m + k - 1` are `0` (field separators) — when `k = 1` this range is empty, so no separators are introduced. Position `m + k` is `1` (the first child).
+*Case `k > 0`.* The increment extends beyond all original positions: the new components occupy positions `m + 1` through `m + k`. By construction, `t'ᵢ = tᵢ` for all `1 ≤ i ≤ m`, so `t'` agrees with `t` on every original position. This establishes `(A i : 1 ≤ i ≤ #t : t'ᵢ = tᵢ)`.
 
-**Verification of (a)** (`t' > t`). We establish `t < t'` under the lexicographic order T1, treating each case separately.
+**Stage 3: Structural postconditions [(c) and (d)].**
 
-*Case `k = 0`.* Let `j = sig(t)`. By construction, `t'ᵢ = tᵢ` for all `i ≠ j`, so in particular the tumblers agree at every position `1 ≤ i < j` — this is part (b). At position `j`: `t'_j = t_j + 1 > t_j`, since `n + 1 > n` for every `n ∈ ℕ`. Since `j = sig(t) ≤ m` and `#t' = m`, we have `j ≤ min(#t, #t') = m`, so both tumblers have a component at position `j`. By T1 case (i) with divergence position `j`, the agreement on positions `1, ..., j - 1` and the strict inequality `t_j < t'_j` yield `t < t'`.
+*Postcondition (c): sibling structure when `k = 0`.* By Stage 1, `#t' = m = #t` — the length is unchanged. The only modified position is `sig(t)`, where `t'_{sig(t)} = t_{sig(t)} + 1`. Every other position `i` with `1 ≤ i ≤ m` and `i ≠ sig(t)` satisfies `t'ᵢ = tᵢ`. These are exactly the claims of postcondition (c).
 
-*Case `k > 0`.* By part (b), `t'ᵢ = tᵢ` for all `1 ≤ i ≤ m` — the tumblers agree on every position of `t`. Since `#t' = m + k > m = #t`, the tumblers agree at every position up to `#t`, and `t'` has further components beyond position `m`. T1 case (ii) applies with witness `m + 1 = #t + 1 ≤ #t' = m + k`: `t` is a proper prefix of `t'`, giving `t < t'`. ∎
+*Postcondition (d): child structure when `k > 0`.* By Stage 1, `#t' = m + k = #t + k`. The `k - 1` intermediate positions are `t'ᵢ = 0` for `m + 1 ≤ i ≤ m + k - 1`: when `k = 1`, this range `m + 1 ≤ i ≤ m` is empty, so no separators are introduced; when `k ≥ 2`, positions `m + 1, ..., m + k - 1` are each set to `0`. The final position is `t'_{m+k} = 1`. These are exactly the claims of postcondition (d).
+
+**Stage 4: Strict ordering [postcondition (a)].** We establish `t < t'` under T1 (LexicographicOrder), which defines `a < b` iff there exists a witness `j ≥ 1` with `aᵢ = bᵢ` for all `1 ≤ i < j`, and either (i) `j ≤ min(#a, #b)` and `aⱼ < bⱼ`, or (ii) `j = #a + 1 ≤ #b`.
+
+*Case `k = 0`.* Let `j = sig(t)`. We verify that `j` is a valid T1 case (i) witness for `t < t'`.
+
+*Agreement.* For all `1 ≤ i < j`: Stage 2 established `t'ᵢ = tᵢ`, equivalently `tᵢ = t'ᵢ`, for all `1 ≤ i < sig(t) = j`. The agreement condition holds.
+
+*Position bound.* We need `j ≤ min(#t, #t')`. Since `sig(t)` is defined as `max({i : 1 ≤ i ≤ #t ∧ tᵢ ≠ 0})` (when `t` has a nonzero component) or `#t` (when all components are zero), in either case `sig(t) ≤ #t = m`. Since `#t' = m` (Stage 3, postcondition (c)), we have `j = sig(t) ≤ m = min(m, m) = min(#t, #t')`. Both tumblers have a component at position `j`.
+
+*Strict inequality.* At position `j`: `t'_j = t_j + 1` by construction. Since `t_j ∈ ℕ`, we have `t_j + 1 > t_j` (the successor of a natural number strictly exceeds it), giving `t_j < t'_j`.
+
+All three conditions of T1 case (i) are satisfied with witness `j = sig(t)`: agreement on positions `1, ..., j - 1`, bound `j ≤ min(#t, #t')`, and `t_j < t'_j`. Therefore `t < t'`.
+
+*Case `k > 0`.* We verify that T1 case (ii) applies with witness `j = m + 1`.
+
+*Agreement.* For all `1 ≤ i < m + 1`, that is, `1 ≤ i ≤ m`: Stage 2 established `t'ᵢ = tᵢ` for all `1 ≤ i ≤ m`, equivalently `tᵢ = t'ᵢ`. The agreement condition holds.
+
+*Prefix condition.* T1 case (ii) requires `j = #t + 1 ≤ #t'`. We have `j = m + 1 = #t + 1` and `#t' = m + k` (Stage 3, postcondition (d)). Since `k > 0`, we have `k ≥ 1`, so `m + k ≥ m + 1`, giving `#t + 1 ≤ #t'`. The tumbler `t` is a proper prefix of `t'` — they agree on all `m = #t` positions of `t`, and `t'` has `k` additional positions beyond `m`.
+
+Both conditions of T1 case (ii) are satisfied with witness `j = m + 1`: agreement on positions `1, ..., m`, and `m + 1 = #t + 1 ≤ #t' = m + k`. Therefore `t < t'`. ∎
 
 *Formal Contract:*
 - *Definition:* `inc(t, k)` for `t ∈ T`, `k ≥ 0`: when `k = 0`, modify position `sig(t)` to `t_{sig(t)} + 1`; when `k > 0`, extend by `k` positions with `k - 1` zeros and final `1`.
