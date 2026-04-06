@@ -1184,25 +1184,49 @@ where k = divergence(a, b). This is exactly the formula for b ⊖ a from Tumbler
 
 **D0 (DisplacementWellDefined).** a < b, and the divergence k of a and b satisfies k ≤ #a.
 
-*Proof.* We show that under the hypotheses `a, b ∈ T`, `a < b`, and `divergence(a, b) ≤ #a`, the displacement `w = b ⊖ a` is a well-defined positive tumbler whose action point equals `divergence(a, b)`, and the addition `a ⊕ w` is well-defined. We also identify the boundary condition for round-trip faithfulness.
+*Proof.* We show that under the hypotheses `a, b ∈ T`, `a < b`, and `divergence(a, b) ≤ #a`, the displacement `w = b ⊖ a` is a well-defined positive tumbler whose action point equals `divergence(a, b)`, and the addition `a ⊕ w` is well-defined. We also identify the boundary condition for round-trip faithfulness. The argument proceeds in five stages: establish the divergence structure, compute the subtraction, establish positivity and action point, verify the addition's preconditions, and analyze the round-trip boundary.
 
-Let `k = divergence(a, b)`. The hypothesis `k ≤ #a` eliminates Divergence case (ii), which would require `k = min(#a, #b) + 1 ≥ #a + 1 > #a`. We are therefore in case (i): `k ≤ min(#a, #b)`, with `aᵢ = bᵢ` for all `i < k` and `aₖ ≠ bₖ`. Since `a < b`, T1 case (i) gives the direction: `aₖ < bₖ`.
+**Stage 1: Divergence structure.** Let `k = divergence(a, b)`. Since `a < b`, we have `a ≠ b` (by T1's irreflexivity), so the divergence is well-defined. We show that the hypothesis `k ≤ #a`, combined with `a < b`, forces Divergence case (i).
 
-When `a` is a proper prefix of `b`, the Divergence definition gives case (ii) with `k = #a + 1 > #a`, violating D0's hypothesis. No displacement exists for prefix-related pairs — the subtraction is defined but the round-trip addition is not, because the action point would exceed `#a`.
+Suppose for contradiction that Divergence case (ii) applies. Then `k = min(#a, #b) + 1` with `#a ≠ #b`, and `aᵢ = bᵢ` for all `1 ≤ i ≤ min(#a, #b)`. Two sub-cases arise. If `#a ≤ #b`, then `min(#a, #b) = #a`, giving `k = #a + 1 > #a` — contradicting the hypothesis `k ≤ #a`. If `#b < #a`, then `min(#a, #b) = #b`, and the agreement on all `#b` shared positions means `b` is a proper prefix of `a`; T1 case (ii) then gives `b < a`, contradicting `a < b`. Both sub-cases yield contradictions, so Divergence case (ii) is excluded.
 
-**Well-definedness of the subtraction.** Since `a < b` entails `b ≥ a`, the subtraction `w = b ⊖ a` is a well-defined tumbler in T by TA2. We now compute `w` explicitly. By TumblerSub, zero-pad both operands to length `max(#b, #a)` and scan for the first position at which the padded sequences disagree. Since `bᵢ = aᵢ` for all `i < k` (from Divergence case (i)) and `bₖ ≠ aₖ`, the first divergence between minuend `b` and subtrahend `a` is at position `k`. TumblerSub yields:
+We are therefore in Divergence case (i): `k ≤ min(#a, #b)`, with `aᵢ = bᵢ` for all `1 ≤ i < k` and `aₖ ≠ bₖ`. The bound `k ≤ min(#a, #b)` ensures that position `k` exists within both `a` (since `k ≤ #a`) and `b` (since `k ≤ #b`). Since `a < b` and the first `k − 1` components agree, T1's ordering must be witnessed at position `k` via case (i): `aₖ < bₖ`. (T1 case (ii) would require `k = #a + 1`, but Divergence case (i) gives `k ≤ #a`, so `k ≠ #a + 1`.)
 
-  `wᵢ = 0` for `i < k`, `wₖ = bₖ − aₖ`, `wᵢ = bᵢ` for `i > k`
+We record for later use: `aᵢ = bᵢ` for all `1 ≤ i < k`, `aₖ < bₖ`, and `k ≤ min(#a, #b)`.
 
-with `#w = max(#b, #a)`. The component `wₖ = bₖ − aₖ` is well-defined and non-negative because `bₖ > aₖ` (established above).
+**Prefix exclusion.** When `a` is a proper prefix of `b`, the Divergence definition gives case (ii) with `k = #a + 1 > #a`, violating D0's hypothesis. No displacement with a valid round-trip addition exists for prefix-related pairs — the subtraction `b ⊖ a` is defined (by TA2, since `b > a` entails `b ≥ a`), but the resulting displacement's action point exceeds `#a`, making the addition `a ⊕ (b ⊖ a)` undefined under TA0.
 
-**Positivity.** The displacement `w` is positive: `wₖ = bₖ − aₖ ≥ 1` since `aₖ < bₖ` and both are natural numbers. All components before position `k` are zero, so `w` is not the zero tumbler.
+**Stage 2: Compute w = b ⊖ a.** We first verify TumblerSub's precondition `b ≥ a`. Since `a < b`, T1's trichotomy (exactly one of `a < b`, `a = b`, `b < a` holds) gives `a ≠ b` and `¬(b < a)`. Since `a < b` is equivalent to `b > a`, and `b > a` implies `b ≥ a`, the precondition is satisfied. By TA2 (WellDefinedSubtraction), `w = b ⊖ a` is a well-defined tumbler in T.
 
-**Action point.** The action point of `w` is `k`: every component `wᵢ = 0` for `i < k`, and `wₖ > 0`, so `k` is the first positive component of `w`.
+We now compute `w` explicitly using TumblerSub's constructive formula. TumblerSub zero-pads both operands to length `p = max(#b, #a)` before scanning for divergence. The minuend is `b`; the subtrahend is `a`. Since `k ≤ min(#a, #b)`, position `k` falls within the original (unpadded) range of both operands, so zero-padding does not affect the divergence scan: at every position `1 ≤ i ≤ k`, the padded subtrahend has value `aᵢ` (since `i ≤ k ≤ #a`) and the padded minuend has value `bᵢ` (since `i ≤ k ≤ #b`).
 
-**Well-definedness of the addition.** TA0 requires `w > 0` (established) and `actionPoint(w) ≤ #a`. The action point is `k`, and the hypothesis gives `k ≤ #a`, so TA0 is satisfied. The addition `a ⊕ w` is a well-defined tumbler in T.
+The divergence between the padded sequences of `b` and `a` is at position `k`: at positions `1 ≤ i < k`, `bᵢ = aᵢ` (by the agreement property from Stage 1); at position `k`, `bₖ ≠ aₖ` (since `aₖ < bₖ`). So the first disagreement in the padded sequences is at `k`.
 
-**Round-trip boundary.** The displacement has length `#w = max(#a, #b)`. By the result-length identity (TumblerAdd), `#(a ⊕ w) = #w`. When `#a > #b`, this gives `#(a ⊕ w) = #a > #b`, so `a ⊕ w ≠ b` by T3 (CanonicalRepresentation) — the round-trip fails on length alone. Round-trip faithfulness requires the additional condition `#a ≤ #b`, under which `#w = #b` and the component-by-component recovery succeeds (D1). ∎
+Applying TumblerSub's constructive formula with divergence at `k`:
+
+  `wᵢ = 0`           for `1 ≤ i < k`      (positions before divergence are zeroed)
+  `wₖ = bₖ − aₖ`                           (reverse the advance at the divergence point)
+  `wᵢ = bᵢ`          for `k < i ≤ p`      (copy from minuend)
+
+The component `wₖ = bₖ − aₖ` is well-defined: both `aₖ` and `bₖ` are natural numbers (since `k ≤ #a` and `a ∈ T`; `k ≤ #b` and `b ∈ T`) with `bₖ > aₖ` (established in Stage 1), so `bₖ − aₖ` is a well-defined member of ℕ. The third rule copies from the minuend `b` at positions `k + 1` through `p = max(#b, #a)`. For positions `k < i ≤ #b`, `bᵢ` is a component of `b ∈ T`, hence `bᵢ ∈ ℕ`. For positions `#b < i ≤ p` (present only when `#a > #b`), the zero-padded value of `b` is `0 ∈ ℕ`. The result has length `#w = p = max(#b, #a)`.
+
+**Stage 3: Positivity and action point.** We establish that `w > 0` and identify its action point.
+
+*Positivity.* At position `k`, `wₖ = bₖ − aₖ`. Since `aₖ < bₖ` with both in ℕ, we have `bₖ ≥ aₖ + 1`, so `wₖ = bₖ − aₖ ≥ 1 > 0`. The tumbler `w` has at least one positive component and is therefore not the zero tumbler: `w > 0`.
+
+*Action point.* The action point of `w` is the least `i` with `1 ≤ i ≤ #w` such that `wᵢ > 0`. For all `1 ≤ i < k`, `wᵢ = 0` (by Stage 2's first rule). At position `k`, `wₖ ≥ 1 > 0` (just established). Since every position before `k` is zero and position `k` is positive, `k` is the least positive position: `actionPoint(w) = k`.
+
+**Stage 4: Well-definedness of the addition.** TA0 (WellDefinedAddition) requires two conditions for `a ⊕ w` to be well-defined: `w > 0` and `actionPoint(w) ≤ #a`.
+
+The first condition is established in Stage 3. For the second: `actionPoint(w) = k` (Stage 3), and the hypothesis gives `k ≤ #a`, so `actionPoint(w) = k ≤ #a`. Both conditions of TA0 are satisfied. By TA0, the addition `a ⊕ w` is a well-defined tumbler in T, with `#(a ⊕ w) = #w` by the result-length identity (TumblerAdd).
+
+**Stage 5: Round-trip boundary.** The displacement has length `#w = max(#a, #b)`. By the result-length identity, `#(a ⊕ w) = #w = max(#a, #b)`. We analyze whether the round-trip `a ⊕ (b ⊖ a) = b` can hold by examining the relationship between `#a` and `#b`.
+
+*Case `#a ≤ #b`.* Then `max(#a, #b) = #b`, so `#(a ⊕ w) = #b`. The result has the same length as `b`, and the component-by-component recovery succeeds: D1 (DisplacementRoundTrip) establishes `a ⊕ (b ⊖ a) = b` under the additional condition `#a ≤ #b`.
+
+*Case `#a > #b`.* Then `max(#a, #b) = #a`, so `#(a ⊕ w) = #a > #b`. The result has length `#a` while `b` has length `#b < #a`. By T3 (CanonicalRepresentation), two tumblers of different lengths cannot be equal: `#(a ⊕ w) ≠ #b` implies `a ⊕ w ≠ b`. The round-trip fails on length alone, before any component comparison is needed.
+
+Round-trip faithfulness therefore requires the additional condition `#a ≤ #b`. ∎
 
 *Formal Contract:*
 - *Preconditions:* a ∈ T, b ∈ T, a < b, divergence(a, b) ≤ #a
