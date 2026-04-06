@@ -396,19 +396,27 @@ The most consequential property of the address system is that once an address is
 
 **T8 (AllocationPermanence).** If tumbler `a ∈ T` has been allocated at any point in the system's history, then for all subsequent states, `a` remains in the set of allocated addresses. No operation removes an allocated address from the address space. The set of allocated addresses is monotonically non-decreasing.
 
-*Proof.* We must show that the set of allocated addresses grows monotonically: for every state transition s → s', `allocated(s) ⊆ allocated(s')`.
+*Proof.* We must show that the set of allocated addresses grows monotonically: for every state transition s → s', `allocated(s) ⊆ allocated(s')`. The argument proceeds in four stages: define the state model, verify single-step preservation by case analysis over all operation classes, establish exhaustiveness, and lift the single-step result to arbitrary transition sequences by induction.
 
-Every operation the system defines falls into exactly one of three classes; we treat each in turn.
+**Stage 1: State model.** A *state* `s` of the system carries, among other data, a set `allocated(s) ⊆ T` — the addresses that have been allocated up to and including state `s`. A *state transition* `s → s'` is the effect of executing one operation defined by the system. Our claim is the *monotone-allocation invariant*: `(A s, s' : s → s' : allocated(s) ⊆ allocated(s'))` — no single transition removes an address from the allocated set.
 
-*Case 1: Read-only operations.* Comparison and parsing (T1, T2, T4) inspect tumbler values without modifying any state. These transitions satisfy `allocated(s') = allocated(s)`, so `allocated(s) ⊆ allocated(s')` holds trivially.
+**Stage 2: Single-step preservation — case analysis.** Every operation the system defines falls into exactly one of three classes. We treat each in turn, showing that the monotone-allocation invariant holds for every transition in that class.
 
-*Case 2: Pure arithmetic.* The operations ⊕, ⊖, and inc are pure functions on T — they compute new tumbler values and return them without mutating allocation state. These transitions also satisfy `allocated(s') = allocated(s)`.
+*Case 1: Read-only operations.* Comparison (T1, T2) and parsing (T4) inspect tumbler values — examining components, counting zeros, scanning for divergence positions — without modifying any state. These operations produce an ordering judgment or a field decomposition, but alter no set. The transition satisfies `allocated(s') = allocated(s)`, so `allocated(s) ⊆ allocated(s')` holds by reflexivity of `⊆`.
 
-*Case 3: Allocation.* T10a constrains allocation to a single mechanism: each allocator advances its frontier by repeated application of `inc(·, 0)` (TA5), producing an address strictly greater than the previous, and inserts it into the allocated set. The transition satisfies `allocated(s') = allocated(s) ∪ {a_new}` for some fresh address `a_new`. Since `allocated(s) ⊆ allocated(s) ∪ {a_new} = allocated(s')`, the inclusion holds.
+*Case 2: Pure arithmetic.* The operations `⊕` (tumbler addition), `⊖` (tumbler subtraction), and `inc` (TA5, hierarchical increment) are pure functions on T — they accept tumbler inputs and return tumbler outputs without consulting or mutating the allocated set. The returned tumbler is a computed value, not an allocation event; it becomes allocated only if an allocator subsequently inserts it into the set (which is a Case 3 transition, not a Case 2 transition). These transitions satisfy `allocated(s') = allocated(s)`, so `allocated(s) ⊆ allocated(s')` holds by reflexivity of `⊆`.
 
-These three cases are exhaustive. The system specification defines no inverse operation — no "deallocate", "free", or "reclaim" that would remove an address from the allocated set. The absence of any removal operation is a deliberate design axiom, not a derived property.
+*Case 3: Allocation.* T10a (AllocatorDiscipline) constrains allocation to a single mechanism: each allocator advances its frontier by repeated application of `inc(·, 0)` (TA5), producing an address strictly greater than the previous (TA5(a)), and inserts it into the allocated set. The transition satisfies `allocated(s') = allocated(s) ∪ {a_new}` for some fresh address `a_new`. We verify the inclusion: for every `a ∈ allocated(s)`, we have `a ∈ allocated(s) ∪ {a_new} = allocated(s')`, so `allocated(s) ⊆ allocated(s')`. The set grows by exactly one element; no element is removed.
 
-Since every individual transition preserves the inclusion, an immediate induction on the length of any transition sequence s₀ → s₁ → ··· → sₙ yields `allocated(s₀) ⊆ allocated(sₙ)` for all reachable states. ∎
+**Stage 3: Exhaustiveness.** The three cases above partition all operations the system defines. Cases 1 and 2 cover every operation that does not modify the allocated set — every read-only inspection and every pure arithmetic computation. Case 3 covers the only operation that does modify the allocated set — insertion of a freshly allocated address. The system specification defines no inverse operation: no "deallocate", "free", or "reclaim" that would remove an address from `allocated(s)`. The absence of any removal operation is a deliberate design axiom, not a derived property. Since every defined operation falls into one of the three cases, and every case preserves `allocated(s) ⊆ allocated(s')`, the monotone-allocation invariant holds for every single-step transition.
+
+**Stage 4: Induction on transition sequences.** We lift the single-step result to arbitrary transition sequences. Let `s₀ → s₁ → ··· → sₙ` be a finite sequence of `n` transitions. We prove by induction on `n` that `allocated(s₀) ⊆ allocated(sₙ)`.
+
+*Base case* (`n = 0`). The sequence is the trivial sequence `s₀`, with no transitions. The claim `allocated(s₀) ⊆ allocated(s₀)` holds by reflexivity of `⊆`.
+
+*Inductive step* (from `n` to `n + 1`). Assume `allocated(s₀) ⊆ allocated(sₙ)` for the prefix `s₀ → ··· → sₙ`. The transition `sₙ → sₙ₊₁` is a single-step transition. By Stage 3, `allocated(sₙ) ⊆ allocated(sₙ₊₁)`. By transitivity of `⊆` — if `A ⊆ B` and `B ⊆ C` then `A ⊆ C` — we have `allocated(s₀) ⊆ allocated(sₙ₊₁)`.
+
+The induction closes. For every reachable state `sₙ` accessible from initial state `s₀` via any finite sequence of transitions, `allocated(s₀) ⊆ allocated(sₙ)`. ∎
 
 *Formal Contract:*
 - *Invariant:* For every state transition s → s', `allocated(s) ⊆ allocated(s')`.
