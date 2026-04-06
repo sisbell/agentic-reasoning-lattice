@@ -1,22 +1,18 @@
-# Section Repair
+# Elaborate
 
-You are writing a standalone proof for a property that currently lacks one.
-The property's statement exists but its proof is embedded in another
-property's section. Write a self-contained Dijkstra-style proof.
+You are writing a rigorous proof for a property. The property may have
+no proof, or its proof may be embedded in another property's section
+as a sub-claim or corollary.
 
 ## Property
 
 **Label**: {{label}}
 
-### Current Section (incomplete)
+### Current Section
 
 {{thin_section}}
 
-### Embedded Proof (reference only)
-
-The following section from another property contains a proof that covers
-this property. Use it to understand what needs to be proved, but write
-your own standalone argument.
+### Related Section (reference only)
 
 {{host_section}}
 
@@ -36,24 +32,20 @@ sentence that introduces it.
 - Reference dependencies by label citation, not by proximity
 - End with ∎
 
+## Formal Contract
+
+Ensure a `*Formal Contract:*` section at the end with applicable fields:
+
+- *Preconditions:* — what must hold before
+- *Postconditions:* — what is guaranteed after
+- *Invariant:* — what holds across all state transitions (for every s → s')
+- *Frame:* — what is preserved / not changed
+- *Axiom:* — fundamental assertion by definition or design, not derived
+- *Definition:* — the construction or computation rule
+
+Preserve exact conditions from the narrative. Do not add implicit
+type constraints. Only include fields that apply.
+
 ## ASN File
 
 The ASN is at `{{asn_path}}`.
-
-## Rules
-
-1. Write the proof directly after the property's bold header in the ASN.
-   Insert it after the existing statement text and before the next property's
-   bold header.
-2. The proof must be self-contained — a reader should understand it
-   without reading any other section.
-3. Reference dependencies by label (e.g., "By TA1, ...") not by
-   section proximity (e.g., "as shown above").
-4. If `*Formal Contract:*` is not already present, add one after the proof
-   with the applicable fields (Preconditions, Postconditions, Invariant,
-   Frame, Axiom, Definition). Preserve exact conditions from the narrative.
-5. Do not modify the original combined verification section or any
-   other property's section.
-6. For axioms or definitional properties (no derivation possible), write
-   a brief justification stating why the property holds by definition or
-   design, and use `*Axiom:*` in the formal contract.
