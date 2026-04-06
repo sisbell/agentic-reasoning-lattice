@@ -28,7 +28,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from lib.shared.paths import WORKSPACE, ASNS_DIR, PROJECT_MODEL_DIR, load_manifest, formal_stmts
 from lib.shared.common import find_asn
 
-PROMPT_TEMPLATE = WORKSPACE / "scripts" / "prompts" / "discovery" / "dependency-audit.md"
+PROMPT_TEMPLATE = WORKSPACE / "scripts" / "prompts" / "audit" / "dependency-audit.md"
 AUDIT_DIR = WORKSPACE / "vault" / "audit" / "dependency"
 
 

@@ -78,10 +78,8 @@ def invoke_claude(prompt, *, model="opus", effort="max", tools=None):
     try:
         data = json.loads(result.stdout)
         text = data.get("result", "")
-        print(f"  [{elapsed:.0f}s]", file=sys.stderr)
         return text, elapsed
     except (json.JSONDecodeError, KeyError):
-        print(f"  [{elapsed:.0f}s]", file=sys.stderr)
         return result.stdout.strip(), elapsed
 
 
@@ -360,31 +358,3 @@ def step_consult(asn_id, review_path):
     return None
 
 
-def step_revise(asn_id, consultation_path=None):
-    """Run review_revise.py via subprocess. Returns (asn_path, converged)."""
-    revise_script = WORKSPACE / "scripts" / "lib" / "review_revise.py"
-    cmd = [sys.executable, str(revise_script), str(asn_id)]
-    if consultation_path:
-        cmd.extend(["--consultation", consultation_path])
-
-    result = subprocess.run(
-        cmd, capture_output=True, text=True, cwd=str(WORKSPACE),
-    )
-
-    converged = result.returncode == 2
-
-    if result.returncode not in (0, 2):
-        print(f"  [REVISE] FAILED", file=sys.stderr)
-        if result.stderr:
-            for line in result.stderr.strip().split("\n")[:5]:
-                print(f"    {line}", file=sys.stderr)
-        return None, False
-
-    if result.stderr:
-        for line in result.stderr.strip().split("\n"):
-            print(f"  {line}", file=sys.stderr)
-
-    asn_path = result.stdout.strip()
-    if asn_path and Path(asn_path).exists():
-        return asn_path, converged
-    return None, False

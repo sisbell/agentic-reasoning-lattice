@@ -34,7 +34,7 @@ INTENT_DIR = WORKSPACE / "nelson" / "nelson-intent"
 LM_TOC = WORKSPACE / "nelson" / "literary-machines" / "table-of-contents.md"
 LM_INVENTORY = WORKSPACE / "nelson" / "literary-machines" / "inventory.md"
 LM_RAW_DIR = WORKSPACE / "nelson" / "literary-machines" / "raw"
-PROMPT_TEMPLATE = WORKSPACE / "scripts" / "prompts" / "discovery" / "nelson-agent.md"
+PROMPT_TEMPLATE = WORKSPACE / "scripts" / "prompts" / "discovery" / "consultation" / "nelson" / "answer.md"
 
 
 def read_file(path):

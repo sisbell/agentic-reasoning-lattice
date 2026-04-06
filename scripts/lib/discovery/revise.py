@@ -1,89 +1,230 @@
 #!/usr/bin/env python3
 """
-Revise pipeline — consult → revise → commit, optionally repeated.
+Revise an ASN based on review feedback.
 
-Takes an existing review (from review.py or Dafny review) and runs the
-revision loop: consult on REVISE findings, revise the ASN, commit.
-Multiple cycles re-review between revisions.
+Loads the discovery prompt (methodology, notation, rigor standards),
+injects vocabulary, appends the review content, and runs claude -p
+with tools so the agent can read the ASN, make targeted fixes, and
+consult Nelson/Gregory if needed.
 
 Usage:
-    python scripts/revise.py 9              # 1 cycle: consult → revise → commit (latest review)
-    python scripts/revise.py 9 --cycle 3    # 3 cycles (first uses latest review, rest do review → revise)
-    python scripts/revise.py 9 --converge   # loop until CONVERGED (max 15)
-    python scripts/revise.py 9 --converge 8 # loop until CONVERGED (max 8)
-    python scripts/revise.py 9 --cycles 3   # force 3 rounds, ignore convergence
-    python scripts/revise.py 9 --resume revise  # skip consult, go straight to revise
+    python scripts/lib/review_revise.py 9              # ASN-0009 + latest review
+    python scripts/lib/review_revise.py 9 review-1     # ASN-0009 + specific review
+    python scripts/lib/review_revise.py 9 -m sonnet    # use sonnet instead of opus
 """
 
 import argparse
+import json
+import os
+import re
+import subprocess
 import sys
 import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import sorted_reviews
+from lib.shared.paths import WORKSPACE, VOCABULARY, ASNS_DIR, REVIEWS_DIR, USAGE_LOG, sorted_reviews
+from lib.shared.foundation import load_foundation_statements
 
-from lib.discovery.review import (
-    find_asn,
-    step_review,
-    step_consult_revision,
-    step_revise,
-    step_commit,
-    has_revise_items,
-)
+PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
+DISCOVERY_PROMPT = PROMPTS_DIR / "instructions.md"
 
-MECHANICAL_REVIEW_MARKERS = [
-    "Based on Dafny verification",
-    "Based on Alloy",
-]
+MODEL = "claude-opus-4-6"
 
 
-def is_mechanical_review(review_path):
-    """Detect reviews from mechanical sources (Dafny, Alloy).
-
-    These reviews are grounded in counterexamples or proof divergences —
-    no expert consultation needed.
-    """
+def read_file(path):
     try:
-        # Markers appear on line 2-3 of the review; check the first 5 lines
-        with open(review_path) as f:
-            for _, line in zip(range(5), f):
-                if any(marker in line for marker in MECHANICAL_REVIEW_MARKERS):
-                    return True
-        return False
-    except (FileNotFoundError, OSError):
-        return False
+        return Path(path).read_text()
+    except FileNotFoundError:
+        return ""
+
+
+def find_asn(asn_id):
+    """Find ASN file by number. Accepts 9, 09, 0009, ASN-0009, etc."""
+    # Normalize to 4-digit number
+    num = re.sub(r"[^0-9]", "", str(asn_id))
+    if not num:
+        return None, None
+    label = f"ASN-{int(num):04d}"
+    matches = sorted(ASNS_DIR.glob(f"{label}-*.md"))
+    if matches:
+        return matches[0], label
+    return None, label
+
+
+def find_review(asn_label, review_spec=None):
+    """Find review file. If review_spec is None, use latest."""
+    if review_spec is None:
+        # Latest review
+        reviews = sorted_reviews(asn_label)
+        return reviews[-1] if reviews else None
+
+    # Try as-is first (full path)
+    path = Path(review_spec)
+    if path.exists():
+        return path
+
+    # Try in nested ASN dir (new layout)
+    candidate = REVIEWS_DIR / asn_label / f"{review_spec}.md"
+    if candidate.exists():
+        return candidate
+
+    # Try in nested ASN dir as-is
+    candidate = REVIEWS_DIR / asn_label / review_spec
+    if candidate.exists():
+        return candidate
+
+    # Try with .md in nested dir
+    candidate = REVIEWS_DIR / asn_label / f"{review_spec}.md"
+    if candidate.exists():
+        return candidate
+
+    return None
+
+
+def build_prompt(asn_path, review_content, vocab, consultation_content=None, asn_number=None):
+    """Build revise prompt: discovery methodology + vocab + revise assignment + review."""
+    skill_body = read_file(DISCOVERY_PROMPT)
+    if not skill_body:
+        print("  Discovery prompt not found at scripts/prompts/discovery/core/discovery.md",
+              file=sys.stderr)
+        sys.exit(1)
+
+    parts = [skill_body]
+
+    if vocab:
+        parts.append(f"## Shared Vocabulary\n\n{vocab}")
+
+    foundation = load_foundation_statements(asn_number)
+    if foundation:
+        parts.append(foundation)
+
+    rel_path = asn_path.relative_to(WORKSPACE)
+    asn_label = re.match(r"(ASN-\d+)", asn_path.stem).group(1)
+
+    assignment = f"""## Your Assignment: REVISE {asn_label}
+
+You are revising an existing ASN based on review feedback. Read the ASN at
+`{rel_path}`, then read the review below.
+
+Address every REVISE item. OUT_OF_SCOPE items are noted but do not require changes now.
+
+**Do not rewrite the ASN from scratch.** Make targeted fixes to address the
+specific issues raised. Preserve the existing structure, notation, and reasoning
+where it is not affected by the review.
+
+Write the revised ASN back to `{rel_path}`."""
+
+    if consultation_content:
+        assignment += f"""
+
+## Consultation Results
+
+The following expert consultations were conducted based on this review.
+Use these answers as evidence when addressing the corresponding REVISE items.
+
+{consultation_content}"""
+
+    assignment += f"""
+
+## Review
+
+{review_content}"""
+
+    parts.append(assignment)
+
+    return "\n\n".join(parts)
+
+
+def invoke_claude(prompt, model=None, effort="max"):
+    """Run claude -p with tools. Returns parsed JSON output."""
+    use_model = model or MODEL
+    cmd = [
+        "claude", "-p",
+        "--model", use_model,
+        "--output-format", "json",
+        "--allowedTools", "Edit,Bash,Write,Read,Glob,Grep",
+    ]
+
+    env = os.environ.copy()
+    env.pop("CLAUDECODE", None)
+    env["CLAUDE_CODE_EFFORT_LEVEL"] = effort
+
+    start = time.time()
+    result = subprocess.run(
+        cmd, input=prompt, capture_output=True, text=True, env=env,
+        cwd=str(WORKSPACE),
+    )
+    elapsed = time.time() - start
+
+    if result.returncode != 0:
+        print(f"  FAILED (exit {result.returncode}, {elapsed:.0f}s)",
+              file=sys.stderr)
+        if result.stderr:
+            for line in result.stderr.strip().split("\n")[:5]:
+                print(f"    {line}", file=sys.stderr)
+        return None, elapsed
+
+    try:
+        data = json.loads(result.stdout)
+        usage = data.get("usage", {})
+        cost = data.get("total_cost_usd", 0)
+        inp = (usage.get("input_tokens", 0) +
+               usage.get("cache_read_input_tokens", 0) +
+               usage.get("cache_creation_input_tokens", 0))
+        out = usage.get("output_tokens", 0)
+        num_turns = data.get("num_turns", 0)
+
+        print(f"  [{elapsed:.0f}s] in:{inp} out:{out} turns:{num_turns} ${cost:.4f}",
+              file=sys.stderr)
+
+        return data, elapsed
+    except (json.JSONDecodeError, KeyError):
+        print(f"  [{elapsed:.0f}s] [parse error]", file=sys.stderr)
+        return None, elapsed
+
+
+def log_usage(asn_label, elapsed, data):
+    """Append a usage entry to the log."""
+    if data is None:
+        return
+    usage = data.get("usage", {})
+    cost = data.get("total_cost_usd", 0)
+    inp = (usage.get("input_tokens", 0) +
+           usage.get("cache_read_input_tokens", 0) +
+           usage.get("cache_creation_input_tokens", 0))
+    out = usage.get("output_tokens", 0)
+
+    try:
+        entry = {
+            "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
+            "skill": "revise",
+            "asn": asn_label,
+            "elapsed_s": round(elapsed, 1),
+            "input_tokens": inp,
+            "output_tokens": out,
+            "num_turns": data.get("num_turns", 0),
+            "cost_usd": cost,
+        }
+        with open(USAGE_LOG, "a") as f:
+            f.write(json.dumps(entry) + "\n")
+    except OSError:
+        pass
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Revise pipeline — consult and revise from existing review")
+    parser = argparse.ArgumentParser(description="Revise an ASN based on review feedback")
     parser.add_argument("asn", help="ASN number (e.g., 9, 0009, ASN-0009)")
-    parser.add_argument("--cycle", "-n", type=int, default=1,
-                        help="Number of revise cycles (default: 1)")
-    parser.add_argument("--converge", nargs="?", type=int, const=15,
-                        metavar="MAX",
-                        help="Loop until CONVERGED verdict (default max: 15)")
-    parser.add_argument("--cycles", type=int, default=None,
-                        help="Force N review/revise rounds, ignore convergence")
-    parser.add_argument("--resume", choices=["revise"],
-                        help="Resume from revise (skip consult)")
+    parser.add_argument("review", nargs="?",
+                        help="Review identifier (e.g., review-1) — omit for latest")
+    parser.add_argument("--model", "-m", default="opus",
+                        choices=["opus", "sonnet"],
+                        help="Model (default: opus)")
+    parser.add_argument("--consultation",
+                        help="Path to consultation results file (from consult_for_revision.py)")
+    parser.add_argument("--effort", default="max",
+                        help="Thinking effort level (low/medium/high/max)")
     args = parser.parse_args()
-
-    if args.cycles is not None and args.converge is not None:
-        print("  --cycles and --converge are mutually exclusive", file=sys.stderr)
-        sys.exit(1)
-
-    # Determine mode
-    if args.cycles is not None:
-        max_cycles = args.cycles
-        force_cycles = True
-    elif args.converge is not None:
-        max_cycles = args.converge
-        force_cycles = False
-    else:
-        max_cycles = args.cycle
-        force_cycles = False
 
     # Find ASN
     asn_path, asn_label = find_asn(args.asn)
@@ -91,165 +232,77 @@ def main():
         print(f"  No ASN found for {args.asn} in vault/1-reasoning-docs/", file=sys.stderr)
         sys.exit(1)
 
-    asn_number = int(asn_label.replace("ASN-", ""))
-    print(f"  [REVISE] {asn_label} ({asn_path.name})", file=sys.stderr)
-    if args.cycles is not None:
-        print(f"  [REVISE] forced {max_cycles} cycle(s)",
-              file=sys.stderr)
-    elif args.converge is not None:
-        print(f"  [REVISE] converge mode (max {max_cycles} cycles)",
-              file=sys.stderr)
-    else:
-        print(f"  [REVISE] {max_cycles} cycle(s): consult → revise → commit",
-              file=sys.stderr)
-
-    start = time.time()
-
-    for cycle in range(1, max_cycles + 1):
-        if max_cycles > 1:
-            print(f"\n  ──── Cycle {cycle}/{max_cycles} ────",
+    # Find review
+    review_path = find_review(asn_label, args.review)
+    if review_path is None:
+        if args.review:
+            print(f"  Review not found: {args.review} for {asn_label}",
                   file=sys.stderr)
-
-        review_path = None
-        converged = False
-
-        if cycle == 1:
-            # Cycle 1: use latest existing review
-            reviews = sorted_reviews(asn_label)
-            if not reviews:
-                print(f"  [REVISE] No reviews found for {asn_label}",
-                      file=sys.stderr)
-                print(f"  Run: python scripts/review.py {args.asn}",
-                      file=sys.stderr)
-                sys.exit(1)
-            review_path = str(reviews[-1])
-            print(f"  [REVISE] Using review: {Path(review_path).name}",
-                  file=sys.stderr)
-
-            if not has_revise_items(review_path):
-                print(f"  [REVISE] No REVISE items in latest review — nothing to do",
-                      file=sys.stderr)
-                sys.exit(0)
         else:
-            # Cycles 2+: run review first
-            review_path, converged = step_review(args.asn)
-            if review_path is None:
-                print(f"  [REVISE] Review failed, retrying once...",
-                      file=sys.stderr)
-                review_path, converged = step_review(args.asn)
-                if review_path is None:
-                    print(f"  [REVISE] Review failed again, stopping",
-                          file=sys.stderr)
-                    sys.exit(1)
-            print(f"  [REVIEW] {review_path}", file=sys.stderr)
-
-            if converged and force_cycles:
-                print(f"  [REVISE] Reviewer says CONVERGED — skipping to next cycle",
-                      file=sys.stderr)
-                step_commit(f"Review {asn_label} — converged (cycle {cycle})",
-                            asn_id=asn_number)
-                continue
-            elif converged:
-                # Cycle gate — check dependency graph before accepting
-                from lib.formalization.mechanical import check_cycles, format_cycle_findings
-                from lib.formalization.deps import generate_deps
-                from lib.shared.audit import _append_open_issues
-
-                # Regenerate deps from current ASN state
-                deps = generate_deps(asn_number)
-
-                cycles = check_cycles(asn_number)
-                if cycles:
-                    print(f"  [CYCLES] {len(cycles)} cycles — "
-                          f"rejecting convergence", file=sys.stderr)
-                    _append_open_issues(asn_number,
-                                        format_cycle_findings(cycles))
-                    converged = False
-                    # Continue loop — next review picks up cycle findings
-                else:
-                    print(f"  [CYCLES] Clean", file=sys.stderr)
-                    print(f"  [REVISE] CONVERGED", file=sys.stderr)
-                    step_commit(f"Review {asn_label} — converged",
-                                asn_id=asn_number)
-                    asn_num = asn_label.replace("ASN-", "").lstrip("0") or "0"
-                    print(f"\n  [NEXT] Formalize: "
-                          f"python scripts/formalize.py {asn_num} --step assembly",
-                          file=sys.stderr)
-                    break
-
-            if not has_revise_items(review_path):
-                print(f"  [REVISE] No REVISE items — ASN is clean",
-                      file=sys.stderr)
-                step_commit(f"Review {asn_label} — no revisions needed", asn_id=asn_number)
-                break
-
-        # Consult (skip for mechanical reviews — findings are grounded in proofs/counterexamples)
-        consultation_path = None
-        skip_consult = (args.resume == "revise") or is_mechanical_review(review_path)
-        if skip_consult and is_mechanical_review(review_path):
-            print(f"  [REVISE] Mechanical review — skipping consultation",
+            print(f"  No reviews found for {asn_label} in vault/2-review/",
                   file=sys.stderr)
-        if not skip_consult:
-            consultation_path = step_consult_revision(args.asn, review_path)
-            if consultation_path is None:
-                print(f"  [REVISE] Consultation failed, stopping",
-                      file=sys.stderr)
-                sys.exit(1)
-            args.resume = None  # clear resume after first cycle
+        sys.exit(1)
 
-        # Revise
-        asn_result, revise_converged = step_revise(
-            args.asn, consultation_path=consultation_path)
-        if asn_result is None:
-            print(f"  [REVISE] Revise failed, stopping", file=sys.stderr)
-            sys.exit(1)
-        args.resume = None  # clear resume after first cycle
+    review_content = review_path.read_text()
 
-        if revise_converged and force_cycles:
-            print(f"  [REVISE] Revise made no changes — skipping to next cycle",
+    # Check for REVISE items
+    if "## REVISE" not in review_content:
+        print(f"  No REVISE section in {review_path.name}, nothing to do",
+              file=sys.stderr)
+        sys.exit(0)
+
+    # Load vocabulary
+    vocab = read_file(VOCABULARY)
+    if not vocab:
+        print("  Warning: vault/vocabulary.md not found", file=sys.stderr)
+
+    # Load consultation results if provided
+    consultation_content = None
+    if args.consultation:
+        consultation_content = read_file(args.consultation)
+        if not consultation_content:
+            print(f"  Warning: consultation file not found: {args.consultation}",
                   file=sys.stderr)
-            continue
-        elif revise_converged:
-            # Cycle gate — check before accepting convergence
-            from lib.formalization.mechanical import check_cycles, format_cycle_findings
-            from lib.formalization.deps import generate_deps
-            from lib.shared.audit import _append_open_issues
+            consultation_content = None
 
-            deps = generate_deps(asn_number)
-            cycles = check_cycles(asn_number)
-            if cycles:
-                print(f"  [CYCLES] {len(cycles)} cycles — "
-                      f"rejecting convergence", file=sys.stderr)
-                _append_open_issues(asn_number,
-                                    format_cycle_findings(cycles))
-                # Continue loop — next review picks up cycle findings
-            else:
-                print(f"  [CYCLES] Clean", file=sys.stderr)
-                print(f"  [REVISE] Revise made no changes — converged",
-                      file=sys.stderr)
-                step_commit(f"Revise {asn_label} — converged (cycle {cycle})", asn_id=asn_number)
-                break
+    # Build prompt
+    model_flag = {
+        "opus": "claude-opus-4-6",
+        "sonnet": "claude-sonnet-4-6",
+    }.get(args.model, args.model)
 
-        # Commit
-        step_commit(f"Revise {asn_label} (cycle {cycle})", asn_id=asn_number)
+    print(f"  [REVISE] {asn_label} ({asn_path.name})", file=sys.stderr)
+    print(f"  [REVIEW] {review_path.name}", file=sys.stderr)
+    if consultation_content:
+        print(f"  [CONSULTATION] {Path(args.consultation).name}", file=sys.stderr)
+    asn_num = int(re.sub(r"[^0-9]", "", asn_label))
+    prompt = build_prompt(asn_path, review_content, vocab, consultation_content, asn_number=asn_num)
+    print(f"  Prompt: {len(prompt) // 1024}KB (~{len(prompt) // 4} tokens)",
+          file=sys.stderr)
 
-        # Regenerate deps YAML so next review sees updated graph
-        from lib.formalization.deps import generate_deps, write_deps_yaml
-        deps = generate_deps(asn_number)
-        if deps:
-            write_deps_yaml(asn_number, deps)
+    # Run
+    data, elapsed = invoke_claude(prompt, model=model_flag, effort=args.effort)
 
+    if data is None:
+        print("  Revision failed", file=sys.stderr)
+        sys.exit(1)
+
+    # Log usage
+    log_usage(asn_label, elapsed, data)
+
+    # Verify the ASN was modified
+    check = subprocess.run(
+        ["git", "diff", "--quiet", str(asn_path)],
+        cwd=str(WORKSPACE),
+    )
+    if check.returncode == 0:
+        print(f"  [CONVERGED] {asn_path.name} was not modified — "
+              f"review issues already addressed", file=sys.stderr)
+        print(str(asn_path))
+        sys.exit(2)  # distinct from error (1) — signals convergence
     else:
-        # Loop exhausted without convergence
-        if args.converge is not None:
-            print(f"\n  [REVISE] Max cycles ({max_cycles}) reached without convergence",
-                  file=sys.stderr)
-            elapsed = time.time() - start
-            print(f"\n  [REVISE] Done ({elapsed:.0f}s)", file=sys.stderr)
-            sys.exit(1)
-
-    elapsed = time.time() - start
-    print(f"\n  [REVISE] Done ({elapsed:.0f}s)", file=sys.stderr)
+        print(f"  [OK] {asn_path.name}", file=sys.stderr)
+    print(str(asn_path))
 
 
 if __name__ == "__main__":

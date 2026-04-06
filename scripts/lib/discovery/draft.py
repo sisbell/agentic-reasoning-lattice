@@ -1,23 +1,16 @@
 #!/usr/bin/env python3
 """
-ASN pipeline — questions → consult → discover → commit.
+Discovery — synthesize expert consultation answers into a formal ASN.
 
-Orchestrates ASN production by calling step scripts:
-  1. Questions: decompose inquiry into sub-questions (preview only)
-  2. Consult: run all expert consultations (includes question generation)
-  3. Discover: synthesize consultation answers into a formal ASN
-  4. Commit: commit vault changes
+Reads consultation answers from vault/0-consultations/ASN-NNNN/consultation/answers.md,
+loads the discovery prompt template, and calls claude -p to write
+the ASN. Requires consultation answers to exist — run consult-experts.py first.
 
-Specify a step to run up to and including that step:
-    python scripts/draft.py --inquiries 4 questions    # preview sub-questions
-    python scripts/draft.py --inquiries 4 consult      # questions + consultations
-    python scripts/draft.py --inquiries 4 discover     # consult + discover
-    python scripts/draft.py --inquiries 4              # full pipeline (all steps)
-    python scripts/draft.py                            # all inquiries, full pipeline
+Output: vault/1-reasoning-docs/ASN-NNNN-title.md
 
-Resume from a specific step (skip earlier steps):
-    python scripts/draft.py --inquiries 4 --resume discover  # skip consult
-    python scripts/draft.py --inquiries 4 --resume commit    # just commit
+Usage:
+    python scripts/lib/draft_discover.py --inquiry-id 4
+    python scripts/lib/draft_discover.py --inquiry-id 4 --force   # overwrite existing ASN
 """
 
 import argparse
@@ -30,15 +23,12 @@ import yaml
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, ASNS_DIR, USAGE_LOG, PROJECT_MODEL_DIR, load_manifest
+from lib.shared.paths import WORKSPACE, ASNS_DIR, EXPERTS_DIR, VOCABULARY, USAGE_LOG, load_manifest
+from lib.shared.foundation import load_foundation_statements
 
-CONSULT_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "consult.py"
-DISCOVER_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "discover.py"
-COMMIT_PROMPT = WORKSPACE / "scripts" / "prompts" / "shared" / "commit.md"
+DISCOVERY_PROMPT = WORKSPACE / "scripts" / "prompts" / "discovery" / "instructions.md"
 
-COMMIT_MODEL = "claude-sonnet-4-6"
-
-STEPS = ["questions", "consult", "discover", "commit"]
+MODEL = "claude-opus-4-6"
 
 
 def read_file(path):
@@ -57,203 +47,73 @@ def load_prompt(path):
     return content
 
 
-def load_inquiries():
-    """Load all ASN definitions from project model directory."""
-    import re
-    inquiries = []
-    for path in sorted(PROJECT_MODEL_DIR.glob("ASN-*/project.yaml")):
-        m = re.match(r"ASN-(\d+)", path.parent.name)
-        if not m:
-            continue
-        asn_id = int(m.group(1))
-        manifest = load_manifest(asn_id)
-        if not manifest:
-            continue
-        inquiry = manifest.get("inquiry", {})
-        if not inquiry.get("question"):
-            continue
-        inquiries.append({
-            "id": asn_id,
-            "title": manifest.get("title", ""),
-            "area": "",
-            "question": inquiry.get("question", ""),
-            "out_of_scope": manifest.get("out_of_scope", ""),
-        })
-    return inquiries
+def load_inquiry(inquiry_id):
+    """Load inquiry from project model manifest."""
+    manifest = load_manifest(inquiry_id)
+    if not manifest:
+        print(f"  [ERROR] Manifest not found for ASN-{inquiry_id:04d}", file=sys.stderr)
+        sys.exit(1)
+    inquiry = manifest.get("consultations", {})
+    return {
+        "id": inquiry_id,
+        "title": manifest.get("title", ""),
+        "question": inquiry.get("question", ""),
+        "out_of_scope": manifest.get("out_of_scope", ""),
+    }
 
 
-# ─── Steps ────────────────────────────────────────────────────
-
-def step_questions(inquiry):
-    """Preview sub-questions via consult-experts.py --dry-run."""
-    print(f"  [QUESTIONS] Decomposing inquiry...")
-
-    env = os.environ.copy()
-    env.pop("CLAUDECODE", None)
-
-    cmd = [sys.executable, str(CONSULT_SCRIPT),
-           "--inquiry-id", str(inquiry["id"]), "--dry-run"]
-
-    start = time.time()
-    result = subprocess.run(
-        cmd, capture_output=True, text=True, env=env,
-        cwd=str(WORKSPACE),
-    )
-    elapsed = time.time() - start
-
-    if result.stderr:
-        for line in result.stderr.strip().split("\n"):
-            if line.strip():
-                print(f"    {line.strip()}")
-
-    if result.returncode != 0:
-        print(f"  [QUESTIONS] FAILED (exit {result.returncode}, {elapsed:.0f}s)")
-        return False
-
-    # stdout has the questions
-    if result.stdout.strip():
-        print(f"\n{result.stdout.strip()}\n")
-
-    print(f"  [QUESTIONS] Done ({elapsed:.0f}s)")
-    return True
+def slugify(title):
+    """Convert title to filename-safe slug."""
+    return title.lower().replace(" ", "-").replace("(", "").replace(")", "")
 
 
-def step_consult(inquiry):
-    """Run consult-experts.py: decompose + consult. Returns True on success."""
-    print(f"  [CONSULT] Decomposing inquiry + running consultations...")
+def log_usage(skill, asn_label, inquiry_title, area, elapsed, data):
+    """Append a usage entry to the log."""
+    usage = data.get("usage", {})
+    cost = data.get("total_cost_usd", 0)
+    inp = (usage.get("input_tokens", 0) +
+           usage.get("cache_read_input_tokens", 0) +
+           usage.get("cache_creation_input_tokens", 0))
+    out = usage.get("output_tokens", 0)
 
-    env = os.environ.copy()
-    env.pop("CLAUDECODE", None)
+    num_turns = data.get("num_turns", 0)
+    print(f"  [{elapsed:.0f}s] in:{inp} out:{out} turns:{num_turns} ${cost:.4f}",
+          file=sys.stderr)
 
-    cmd = [sys.executable, str(CONSULT_SCRIPT),
-           "--inquiry-id", str(inquiry["id"])]
+    entry = {
+        "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "skill": skill,
+        "asn": asn_label,
+        "inquiry": inquiry_title,
+        "area": area,
+        "elapsed_s": round(elapsed, 1),
+        "input_tokens": inp,
+        "output_tokens": out,
+        "num_turns": num_turns,
+        "cost_usd": cost,
+    }
+    with open(USAGE_LOG, "a") as f:
+        f.write(json.dumps(entry) + "\n")
 
-    start = time.time()
-    result = subprocess.run(
-        cmd, capture_output=True, text=True, env=env,
-        cwd=str(WORKSPACE),
-    )
-    elapsed = time.time() - start
-
-    if result.stderr:
-        for line in result.stderr.strip().split("\n"):
-            if line.strip():
-                print(f"    {line.strip()}")
-
-    if result.returncode != 0:
-        print(f"  [CONSULT] FAILED (exit {result.returncode}, {elapsed:.0f}s)")
-        return False
-
-    output_path = result.stdout.strip()
-    if output_path and Path(output_path).exists():
-        size = Path(output_path).stat().st_size
-        print(f"  [CONSULT] Done ({elapsed:.0f}s, {size // 1024}KB)")
-        return True
-
-    print(f"  [CONSULT] No output file ({elapsed:.0f}s)")
-    return False
+    return cost
 
 
-def step_discover(inquiry, force=False):
-    """Run discover.py. Returns path to ASN file or None."""
-    print(f"  [DISCOVER] Running discovery...")
-
-    env = os.environ.copy()
-    env.pop("CLAUDECODE", None)
-
-    cmd = [sys.executable, str(DISCOVER_SCRIPT),
-           "--inquiry-id", str(inquiry["id"])]
-    if force:
-        cmd.append("--force")
-
-    start = time.time()
-    result = subprocess.run(
-        cmd, capture_output=True, text=True, env=env,
-        cwd=str(WORKSPACE),
-    )
-    elapsed = time.time() - start
-
-    if result.stderr:
-        for line in result.stderr.strip().split("\n"):
-            if line.strip():
-                print(f"    {line.strip()}")
-
-    if result.returncode != 0:
-        print(f"  [DISCOVER] FAILED (exit {result.returncode}, {elapsed:.0f}s)")
-        return None
-
-    asn_path = result.stdout.strip()
-    if asn_path and Path(asn_path).exists():
-        size = Path(asn_path).stat().st_size
-        print(f"  [DISCOVER] Done ({elapsed:.0f}s, {size // 1024}KB)")
-        return Path(asn_path)
-
-    print(f"  [DISCOVER] No ASN file ({elapsed:.0f}s)")
-    return None
-
-
-def step_commit(hint="", asn_id=None):
-    """Commit vault changes. If asn_id given, scope to that ASN's files."""
-    import glob
-
-    if asn_id is not None:
-        label = f"ASN-{int(asn_id):04d}"
-        patterns = [
-            f"vault/1-reasoning-docs/{label}-*",
-            f"vault/2-review/{label}",
-            f"vault/0-consultations/{label}",
-            f"vault/project-model/{label}/",
-            f"vault/6-examples/{label}",
-        ]
-        # Stage only this ASN's files
-        for pattern in patterns:
-            full = str(WORKSPACE / pattern)
-            matches = glob.glob(full)
-            if matches:
-                subprocess.run(
-                    ["git", "add"] + matches,
-                    capture_output=True, text=True, cwd=str(WORKSPACE),
-                )
-            dirpath = WORKSPACE / pattern
-            if dirpath.is_dir():
-                subprocess.run(
-                    ["git", "add", str(dirpath)],
-                    capture_output=True, text=True, cwd=str(WORKSPACE),
-                )
-
-    result = subprocess.run(
-        ["git", "status", "--porcelain", "vault/"] if asn_id is None else
-        ["git", "diff", "--cached", "--stat"],
-        capture_output=True, text=True, cwd=str(WORKSPACE),
-    )
-    if not result.stdout.strip():
-        print(f"  [COMMIT] nothing to commit")
-        return True
-
-    skill_body = load_prompt(COMMIT_PROMPT)
-    scope = f"Only changes for {f'ASN-{int(asn_id):04d}' if asn_id else 'vault/'}"
-    prompt = f"""{skill_body}
-
-## Context
-
-{hint}
-
-{scope}. Read the diffs and commit with a descriptive message.
-"""
-
+def invoke_claude(prompt, model=None, max_turns=30,
+                  tools="Bash,Write,Read,Glob,Grep", effort="max"):
+    """Run claude -p and return parsed JSON output."""
+    use_model = model or MODEL
     cmd = [
         "claude", "-p",
-        "--model", COMMIT_MODEL,
+        "--model", use_model,
         "--output-format", "json",
-        "--max-turns", "8",
-        "--allowedTools", "Bash,Read",
+        "--max-turns", str(max_turns),
+        "--allowedTools", tools,
     ]
 
     env = os.environ.copy()
     env.pop("CLAUDECODE", None)
-    env["CLAUDE_CODE_EFFORT_LEVEL"] = "high"
+    env["CLAUDE_CODE_EFFORT_LEVEL"] = effort
 
-    print(f"  [COMMIT] reading diff, generating message...")
     start = time.time()
     result = subprocess.run(
         cmd, input=prompt, capture_output=True, text=True, env=env,
@@ -262,127 +122,183 @@ def step_commit(hint="", asn_id=None):
     elapsed = time.time() - start
 
     if result.returncode != 0:
-        print(f"  [COMMIT] failed ({elapsed:.0f}s) — changes left unstaged")
-        return False
+        print(f"  [FAILED] exit {result.returncode} ({elapsed:.0f}s)", file=sys.stderr)
+        if result.stderr:
+            for line in result.stderr.strip().split("\n")[:5]:
+                print(f"    {line}", file=sys.stderr)
+        return None, elapsed
 
-    print(f"  [COMMIT] done ({elapsed:.0f}s)")
-    return True
+    try:
+        data = json.loads(result.stdout)
+        return data, elapsed
+    except (json.JSONDecodeError, KeyError):
+        print(f"  [ERROR] Could not parse JSON output ({elapsed:.0f}s)", file=sys.stderr)
+        return None, elapsed
 
 
-# ─── Pipeline ─────────────────────────────────────────────────
+def build_discovery_prompt(answers_content):
+    """Build the discovery skill with consultation answers injected.
 
-def run_pipeline(inquiry, target_step, resume_from=None, force=False, dry_run=False):
-    """Run the pipeline for one inquiry from resume_from to target_step."""
-    asn_number = inquiry["id"]
-    title = inquiry["title"]
-    target_idx = STEPS.index(target_step)
-    start_idx = STEPS.index(resume_from) if resume_from else 0
+    Inserts answers after the Starting Point section (topic → data → method)
+    and updates consultation instructions to note answers are available.
+    """
+    skill_body = load_prompt(DISCOVERY_PROMPT)
 
-    run_steps = STEPS[start_idx:target_idx + 1]
-    steps_label = " → ".join(run_steps)
-    print(f"\n{'='*60}")
-    print(f"ASN-{asn_number:04d}: {title}")
-    print(f"Area: {inquiry['area']}")
-    print(f"Steps: {steps_label}")
-    print(f"{'='*60}")
+    # Insert answers after "## Starting Point" section
+    starting_marker = "## Starting Point"
+    sp_start = skill_body.find(starting_marker)
+    if sp_start != -1:
+        sp_end = skill_body.find("---", sp_start)
+        if sp_end != -1:
+            answers_section = f"""---
 
-    if dry_run:
-        print("  [DRY RUN]")
-        return True
+## Expert Consultation Answers
 
-    # Step: questions (preview only — if this is the target, stop here)
-    if "questions" in run_steps and target_step == "questions":
-        result = step_questions(inquiry)
-        print(f"\n  [NEXT] Run consultation + draft: "
-              f"python scripts/draft.py --inquiries {asn_number} --resume consult",
+Nelson answered questions about design intent; Gregory answered questions about implementation behavior. These answers are your primary input for this ASN.
+
+**Use these results as your foundation.** Synthesize these answers into a formal specification.
+
+<details>
+<summary>Consultation Answers (click to expand)</summary>
+
+{answers_content}
+
+</details>
+
+"""
+            skill_body = skill_body[:sp_end] + answers_section + skill_body[sp_end:]
+
+    # Update the consultation section to note answers are available
+    consult_marker = "### Consultation Order: Nelson First"
+    consult_start = skill_body.find(consult_marker)
+    if consult_start != -1:
+        consult_end = skill_body.find("---", consult_start)
+        if consult_end != -1:
+            skill_body = skill_body[:consult_start] + """### Expert Answers Available
+
+Consultation answers are provided above. They contain focused answers from Nelson (design intent) and Gregory (implementation evidence) on your topic. **Read them first** — they are your primary evidence base.
+
+Do not run ad-hoc expert consultations during discovery. All consultation was done upstream. Focus on synthesizing the provided answers into a formal specification.
+
+""" + skill_body[consult_end:]
+
+    return skill_body
+
+
+def run_discovery(inquiry, asn_number, slug, force=False):
+    """Run xan-discovery to write the ASN. Returns path to ASN file or None."""
+    outfile = ASNS_DIR / f"ASN-{asn_number:04d}-{slug}.md"
+
+    if outfile.exists() and not force:
+        print(f"  [SKIP] {outfile.name} already exists (use --force to overwrite)",
               file=sys.stderr)
-        return result
+        return outfile
 
-    # Step: consult (includes question generation)
-    if "consult" in run_steps:
-        success = step_consult(inquiry)
-        if not success:
-            print(f"  [FAILED] Consultation failed — stopping")
-            return False
-
-    # Step: discover
-    if "discover" in run_steps:
-        asn_path = step_discover(inquiry, force=force)
-        if asn_path is None:
-            return False
-
-    # Step: commit
-    if "commit" in run_steps:
-        step_commit(f"ASN-{asn_number:04d} {title}", asn_id=asn_number)
-
-    # Hint for next step
-    if target_step in ("discover", "commit"):
-        print(f"\n  [NEXT] Run review: python scripts/review.py {asn_number}",
+    # Require consultation answers
+    answers_path = EXPERTS_DIR / f"ASN-{asn_number:04d}" / "consultation" / "answers.md"
+    if not answers_path.exists():
+        print(f"  [ERROR] No consultation answers at {answers_path.relative_to(WORKSPACE)}",
               file=sys.stderr)
-        print(f"  [NEXT] Or review/revise loop: "
-              f"python scripts/revise.py {asn_number} --converge",
+        print(f"  Run consult-experts.py first: python scripts/consult-experts.py --inquiry-id {asn_number}",
               file=sys.stderr)
+        return None
 
-    return True
+    answers_content = answers_path.read_text()
+    skill_body = build_discovery_prompt(answers_content)
+    print(f"  [DISCOVERY] Using answers from {answers_path.relative_to(WORKSPACE)}",
+          file=sys.stderr)
+
+    vocab = read_file(VOCABULARY)
+    prompt_parts = [skill_body]
+
+    if vocab:
+        prompt_parts.append(f"## Shared Vocabulary\n\n{vocab}")
+
+    foundation = load_foundation_statements(asn_number)
+    if foundation:
+        prompt_parts.append(foundation)
+
+    out_of_scope = inquiry.get("out_of_scope", "")
+    scope_note = (f"\n5. The following topics are OUT OF SCOPE for this ASN — "
+                  f"do not define properties or operations for them, even if the "
+                  f"consultation answers discuss them: {out_of_scope}"
+                  if out_of_scope else "")
+
+    assignment = f"""## Your Assignment
+
+**ASN Number**: ASN-{asn_number:04d}
+**Topic**: {inquiry['title']}
+**Question**: {inquiry['question']}
+
+Write ASN-{asn_number:04d} to `vault/1-reasoning-docs/ASN-{asn_number:04d}-{slug}.md`.
+
+Remember:
+1. Read the consultation answers above — they are your primary input.
+2. Synthesize Nelson's design intent with Gregory's implementation evidence.
+3. Derive everything locally — do not reference other ASNs except foundation ASNs (provided above). Use foundation definitions for addressing, ordering, subspaces, and spans.
+4. Properties must be abstract — would an alternative implementation need them?{scope_note}
+"""
+    prompt_parts.append(assignment)
+
+    prompt = "\n\n".join(prompt_parts)
+    print(f"  [DISCOVERY] {len(prompt)} chars (~{len(prompt)//4} tokens)",
+          file=sys.stderr)
+
+    data, elapsed = invoke_claude(prompt)
+    if data is None:
+        return None
+
+    log_usage("discovery", f"ASN-{asn_number:04d}", inquiry["title"],
+              inquiry.get("area", ""), elapsed, data)
+
+    # Find the written ASN file
+    if outfile.exists():
+        print(f"  [OK] {outfile.name} ({outfile.stat().st_size} bytes)",
+              file=sys.stderr)
+        return outfile
+
+    written = list(ASNS_DIR.glob(f"ASN-{asn_number:04d}-*.md"))
+    if written:
+        actual = written[0]
+        print(f"  [OK] {actual.name} ({actual.stat().st_size} bytes) [different filename]",
+              file=sys.stderr)
+        return actual
+
+    print(f"  [WARN] ASN file not found — saving raw response", file=sys.stderr)
+    response = data.get("result", "")
+    if response:
+        fallback = ASNS_DIR / f"ASN-{asn_number:04d}-{slug}-response.md"
+        fallback.write_text(response)
+        return fallback
+
+    return None
 
 
 def main():
-    parser = argparse.ArgumentParser(description="ASN pipeline runner")
-    parser.add_argument("step", nargs="?", default="commit",
-                        choices=STEPS,
-                        help="Run up to this step (default: commit = all steps)")
-    parser.add_argument("--inquiries",
-                        help="Comma-separated inquiry IDs (e.g., 1,2,3)")
-    parser.add_argument("--resume", choices=STEPS,
-                        help="Resume from this step (skip earlier steps)")
+    parser = argparse.ArgumentParser(
+        description="Discovery: synthesize expert answers into a formal ASN")
+    parser.add_argument("--inquiry-id", type=int, required=True,
+                        help="Inquiry ID from inquiries.yaml")
     parser.add_argument("--force", action="store_true",
                         help="Overwrite existing ASN")
-    parser.add_argument("--dry-run", action="store_true",
-                        help="Show what would run")
     args = parser.parse_args()
 
-    inquiries = load_inquiries()
-
-    if args.inquiries:
-        ids = set(int(x) for x in args.inquiries.split(","))
-        inquiries = [i for i in inquiries if i["id"] in ids]
+    inquiry = load_inquiry(args.inquiry_id)
+    asn_number = inquiry["id"]
+    slug = slugify(inquiry["title"])
 
     ASNS_DIR.mkdir(parents=True, exist_ok=True)
 
-    target_idx = STEPS.index(args.step)
-    steps_label = " → ".join(STEPS[:target_idx + 1])
+    print(f"ASN-{asn_number:04d}: {inquiry['title']}", file=sys.stderr)
 
-    print(f"ASN Pipeline: {len(inquiries)} inquiries")
-    print(f"Steps: {steps_label}")
+    asn_path = run_discovery(inquiry, asn_number, slug, force=args.force)
 
-    results = []
-    total_start = time.time()
-
-    resume_from = args.resume
-
-    for inquiry in inquiries:
-        success = run_pipeline(
-            inquiry,
-            target_step=args.step,
-            resume_from=resume_from,
-            force=args.force,
-            dry_run=args.dry_run,
-        )
-        results.append({
-            "inquiry": inquiry["title"],
-            "asn": inquiry["id"],
-            "success": success,
-        })
-
-    total_elapsed = time.time() - total_start
-
-    print(f"\n{'='*60}")
-    print(f"DONE — {sum(1 for r in results if r['success'])}/{len(results)} succeeded "
-          f"({total_elapsed:.0f}s)")
-    print(f"{'='*60}")
-    for r in results:
-        status = "OK" if r["success"] else "FAILED"
-        print(f"  ASN-{r['asn']:04d} {r['inquiry']}: {status}")
+    if asn_path:
+        # Print the output file path to stdout (for pipeline consumption)
+        print(str(asn_path))
+    else:
+        print("  [FAILED] No ASN produced", file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":

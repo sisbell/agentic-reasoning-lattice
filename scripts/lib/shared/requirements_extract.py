@@ -27,7 +27,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, ASNS_DIR, REQUIREMENTS_DIR, USAGE_LOG
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"
+PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "requirements"
 TEMPLATE = PROMPTS_DIR / "extract-features.md"
 
 
@@ -59,7 +59,7 @@ def build_prompt(asn_contents, existing_features):
     template = read_file(TEMPLATE)
     if not template:
         print("  Prompt template not found: "
-              "scripts/prompts/formalization/extract-features.md",
+              "scripts/prompts/requirements/extract-features.md",
               file=sys.stderr)
         sys.exit(1)
 

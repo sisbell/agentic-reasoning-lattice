@@ -27,7 +27,7 @@ from lib.shared.common import find_asn
 from lib.shared.foundation import load_foundation_statements
 from lib.shared.paths import load_manifest
 
-PROMPT_TEMPLATE = WORKSPACE / "scripts" / "prompts" / "discovery" / "surface-check.md"
+PROMPT_TEMPLATE = WORKSPACE / "scripts" / "prompts" / "shared" / "dependency-report.md"
 AUDIT_DIR = WORKSPACE / "vault" / "audit" / "surface"
 
 

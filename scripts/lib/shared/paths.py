@@ -20,14 +20,14 @@ REVIEWS_DIR = VAULT / "2-review"
 
 # Stage 3: (removed — artifacts moved to per-ASN project-model directories)
 
-# Stage 4: Modeling
-ALLOY_DIR = VAULT / "4-modeling" / "alloy"
-DAFNY_DIR = VAULT / "4-modeling" / "dafny"
-PROOF_INDEX_DIR = VAULT / "4-modeling" / "proof-index"
-VERIFICATION_DIR = VAULT / "4-modeling" / "verification"
+# Stage 3: Modeling
+ALLOY_DIR = VAULT / "3-modeling" / "alloy"
+DAFNY_DIR = VAULT / "3-modeling" / "dafny"
+VERIFICATION_DIR = VAULT / "3-modeling" / "verification"
 
-# Stage 5: Proofs (curated, human-reviewed)
-PROOFS_DIR = VAULT / "5-proofs"
+
+# Stage 4: Proofs staging (Level 2 builds, pre-curation)
+PROOFS_DIR = VAULT / "4-proofs-staging"
 PROOF_IMPORTS = PROOFS_DIR / "imports.md"
 
 # Stage 6: Worked Examples
@@ -156,6 +156,55 @@ def load_manifest(asn_id):
             return yaml.safe_load(f) or {}
     except FileNotFoundError:
         return {}
+
+
+def check_dafny_module_coverage(asn_num):
+    """Verify every formal-statements label appears in exactly one dafny_modules bucket.
+
+    Returns list of error strings (empty = pass).
+    """
+    # Load bucket mapping
+    manifest = load_manifest(asn_num)
+    dafny_modules = manifest.get("modeling", {}).get("dafny_modules", {})
+    if not dafny_modules:
+        return []
+
+    # Parse formal-statements labels
+    stmts_path = formal_stmts(asn_num)
+    if not stmts_path.exists():
+        return [f"formal-statements.md not found at {stmts_path}"]
+
+    stmts_labels = []
+    for line in stmts_path.read_text().split("\n"):
+        m = re.match(r'^##\s+(.+?)\s+\u2014\s+', line)
+        if m:
+            stmts_labels.append(m.group(1))
+
+    if not stmts_labels:
+        return ["No property labels found in formal-statements.md"]
+
+    # Build label → module mapping, detect duplicates
+    label_to_module = {}
+    errors = []
+    for module, labels in dafny_modules.items():
+        for label in labels:
+            label = str(label)
+            if label in label_to_module:
+                errors.append(
+                    f"Duplicate: {label} in both {label_to_module[label]} and {module}")
+            label_to_module[label] = module
+
+    # Missing: in formal-statements but not in any bucket
+    stmts_set = set(stmts_labels)
+    bucket_set = set(label_to_module.keys())
+    for label in sorted(stmts_set - bucket_set):
+        errors.append(f"Missing from buckets: {label}")
+
+    # Extra: in a bucket but not in formal-statements
+    for label in sorted(bucket_set - stmts_set):
+        errors.append(f"Not in formal-statements: {label}")
+
+    return errors
 
 
 def load_excluded_covers(asn_id):

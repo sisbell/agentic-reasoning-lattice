@@ -25,7 +25,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from lib.shared.paths import WORKSPACE, USAGE_LOG
 from lib.shared.common import find_asn, extract_property_sections
-from lib.formalization.deps import find_property_table, parse_table_row, detect_columns
+from lib.formalization.core.build_dependency_graph import find_property_table, parse_table_row, detect_columns
 
 AUDIT_DIR = WORKSPACE / "vault" / "audit" / "classify"
 

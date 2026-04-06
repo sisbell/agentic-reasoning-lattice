@@ -20,11 +20,12 @@ from pathlib import Path
 WORKSPACE = Path(__file__).resolve().parent.parent
 PROMPTS = WORKSPACE / "scripts" / "prompts" / "examples"
 ASNS_DIR = WORKSPACE / "vault" / "1-reasoning-docs"
+PROJECT_MODEL_DIR = WORKSPACE / "vault" / "project-model"
 EXAMPLES_DIR = WORKSPACE / "vault" / "6-examples"
 
 GENERATE_MODEL = "claude-sonnet-4-6"
 REVIEW_MODELS = ["claude-sonnet-4-6"]
-GENERATE_PROMPT = PROMPTS / "generate.md"
+GENERATE_PROMPT = PROMPTS / "derive-examples.md"
 REVIEW_PROMPT = PROMPTS / "review.md"
 
 
@@ -36,6 +37,15 @@ def find_asn_file(asn_num):
         print(f"[ERROR] No ASN file found for {label}", file=sys.stderr)
         sys.exit(1)
     return matches[0]
+
+
+def find_formal_statements(asn_num):
+    """Find formal-statements.md for an ASN. Returns path or None."""
+    label = f"ASN-{asn_num:04d}"
+    path = PROJECT_MODEL_DIR / label / "formal-statements.md"
+    if path.exists():
+        return path
+    return None
 
 
 def call_claude(prompt, model=GENERATE_MODEL):
@@ -100,7 +110,7 @@ Update the Coverage table and Backlog to reflect your changes.
 
 {review_text}""")
 
-    parts.append(f"## ASN\n\n{asn_text}")
+    parts.append(f"## Formal Statements\n\n{asn_text}")
 
     prompt = "\n\n---\n\n".join(parts)
 
@@ -133,7 +143,7 @@ def review(asn_file, examples_file, review_file, cycle=1):
 
 ---
 
-## ASN Text
+## Formal Statements
 
 {asn_text}
 
@@ -175,6 +185,12 @@ def main():
     args = parser.parse_args()
 
     asn_file = find_asn_file(args.asn)
+    formal_stmts = find_formal_statements(args.asn)
+    spec_file = formal_stmts if formal_stmts else asn_file
+    if formal_stmts:
+        print(f"  [SPEC] Using formal-statements.md", file=sys.stderr)
+    else:
+        print(f"  [SPEC] No formal-statements.md — using raw ASN", file=sys.stderr)
     label = f"ASN-{args.asn:04d}"
 
     asn_dir = EXAMPLES_DIR / label
@@ -197,7 +213,7 @@ def main():
 
     # Step 1: Generate if no examples exist
     if not examples_file.exists():
-        success = generate(asn_file, examples_file)
+        success = generate(spec_file, examples_file)
         if not success:
             print("[FAILED] Generation failed")
             sys.exit(1)
@@ -209,7 +225,7 @@ def main():
         print(f"\n  ── Cycle {cycle}/{cycle_start + args.max_cycles - 1} ──")
 
         review_path = review_dir / f"review-{cycle}.md"
-        verdict = review(asn_file, examples_file, review_path, cycle=cycle)
+        verdict = review(spec_file, examples_file, review_path, cycle=cycle)
 
         if verdict == "CONVERGED":
             total_elapsed = time.time() - total_start
@@ -220,7 +236,7 @@ def main():
             return
 
         if verdict == "REVISE":
-            success = generate(asn_file, examples_file, review_file=review_path)
+            success = generate(spec_file, examples_file, review_file=review_path)
             if not success:
                 print("[FAILED] Revision failed")
                 sys.exit(1)

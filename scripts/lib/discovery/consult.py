@@ -31,7 +31,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, EXPERTS_DIR, USAGE_LOG, load_manifest, load_excluded_covers
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
+PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery" / "consultation"
 TEST_HARNESS = WORKSPACE / "udanax-test-harness"
 KB_SYNTHESIS = TEST_HARNESS / "knowledge-base" / "kb-synthesis.md"
 
@@ -40,12 +40,12 @@ CONCEPTS_DIR = WORKSPACE / "nelson" / "xanadu-concepts"
 INTENT_DIR = WORKSPACE / "nelson" / "nelson-intent"
 LM_TOC = WORKSPACE / "nelson" / "literary-machines" / "table-of-contents.md"
 LM_INVENTORY = WORKSPACE / "nelson" / "literary-machines" / "inventory.md"
-NELSON_PROMPT_TEMPLATE = PROMPTS_DIR / "nelson-agent.md"
+NELSON_PROMPT_TEMPLATE = PROMPTS_DIR / "nelson" / "answer.md"
 
 # Gregory source paths
 KB_FORMAL = TEST_HARNESS / "knowledge-base" / "kb-formal.md"
-GREGORY_KB_TEMPLATE = PROMPTS_DIR / "gregory-synthesis-agent.md"
-GREGORY_CODE_TEMPLATE = PROMPTS_DIR / "gregory-code-agent.md"
+GREGORY_KB_TEMPLATE = PROMPTS_DIR / "gregory" / "answer-from-kb.md"
+GREGORY_CODE_TEMPLATE = PROMPTS_DIR / "gregory" / "answer-from-code.md"
 
 _total_usage = {"input_tokens": 0, "output_tokens": 0, "cost_usd": 0.0, "calls": 0}
 _usage_lock = threading.Lock()
@@ -80,7 +80,7 @@ def load_inquiry(inquiry_id):
     if not manifest:
         print(f"  [ERROR] Manifest not found for ASN-{inquiry_id:04d}", file=sys.stderr)
         sys.exit(1)
-    inquiry = manifest.get("inquiry", {})
+    inquiry = manifest.get("consultations", {})
     # Flatten for backward compatibility: callers expect top-level keys
     return {
         "id": inquiry_id,
@@ -153,7 +153,7 @@ def _call_decompose(prompt, label, model="opus"):
 
 def filter_questions(inquiry_text, out_of_scope, questions, covers_text=""):
     """Filter questions for scope using a cheap LLM call. Returns filtered list."""
-    template = read_file(PROMPTS_DIR / "filter-questions.md")
+    template = read_file(WORKSPACE / "scripts" / "prompts" / "discovery" / "consultation" / "filter-questions.md")
     if not template:
         print("  [WARN] filter-questions.md not found, skipping filter",
               file=sys.stderr)
@@ -219,9 +219,9 @@ def decompose_inquiry(inquiry_text, num_nelson=10, num_gregory=10, model="opus",
     Gregory questions use KB vocabulary for precise technical questions.
     """
     # Pass 1: Nelson questions (inquiry only, no KB)
-    nelson_template = read_file(PROMPTS_DIR / "nelson-questions.md")
+    nelson_template = read_file(PROMPTS_DIR / "nelson" / "generate-questions.md")
     if not nelson_template:
-        print("  [ERROR] scripts/prompts/nelson-questions.md not found",
+        print("  [ERROR] nelson/generate-questions.md not found",
               file=sys.stderr)
         sys.exit(1)
 
@@ -239,9 +239,9 @@ def decompose_inquiry(inquiry_text, num_nelson=10, num_gregory=10, model="opus",
     nelson_response = _call_decompose(nelson_prompt, "nelson", model=model)
 
     # Pass 2: Gregory questions (inquiry + KB synthesis)
-    gregory_template = read_file(PROMPTS_DIR / "gregory-questions.md")
+    gregory_template = read_file(PROMPTS_DIR / "gregory" / "generate-questions.md")
     if not gregory_template:
-        print("  [ERROR] scripts/prompts/gregory-questions.md not found",
+        print("  [ERROR] gregory/generate-questions.md not found",
               file=sys.stderr)
         sys.exit(1)
 

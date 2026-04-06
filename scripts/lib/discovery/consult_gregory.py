@@ -34,7 +34,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, EXPERTS_DIR, USAGE_LOG
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
+PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery" / "consultation"
 TEST_HARNESS = WORKSPACE / "udanax-test-harness"
 KB_PATH = TEST_HARNESS / "knowledge-base" / "kb-formal.md"
 
@@ -129,7 +129,7 @@ def invoke_claude(prompt, model="sonnet", label="", allow_tools=False,
 
 def build_kb_prompt(question):
     """Assemble KB synthesis prompt from template + injected KB."""
-    template = read_file(PROMPTS_DIR / "gregory-synthesis-agent.md")
+    template = read_file(PROMPTS_DIR / "gregory" / "answer-from-kb.md")
     kb = read_file(KB_PATH)
     if not template:
         print("  KB prompt template not found", file=sys.stderr)
@@ -142,7 +142,7 @@ def build_kb_prompt(question):
 
 def build_code_prompt(question):
     """Assemble code exploration prompt from template."""
-    template = read_file(PROMPTS_DIR / "gregory-code-agent.md")
+    template = read_file(PROMPTS_DIR / "gregory" / "answer-from-code.md")
     if not template:
         print("  Code prompt template not found", file=sys.stderr)
         sys.exit(1)

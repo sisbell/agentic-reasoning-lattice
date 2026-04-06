@@ -1,34 +1,69 @@
 #!/usr/bin/env python3
 """
-Review pipeline — produce a Dijkstra-style review of an ASN.
+Review an ASN for rigor — Dijkstra-style proof checking.
 
-Runs a single review pass: analyze the ASN for rigor, produce structured
-findings, commit the review file, and stop. Revision is handled separately
-by revise.py.
+Loads the ASN content and shared vocabulary, injects them into a review
+prompt template, and invokes claude --print with --tools "" (review is
+pure analysis, no file access needed).
+
+Results written to vault/2-review/ for traceability.
 
 Usage:
-    python scripts/review.py 9                # review, commit, stop
-    python scripts/review.py 9 --review-only  # (deprecated, same as default)
+    python scripts/lib/review_check.py 4
+    python scripts/lib/review_check.py 9 --model sonnet
+    python scripts/lib/review_check.py 9 --effort high
+    python scripts/lib/review_check.py 4 --dry-run
 """
 
 import argparse
+import json
+import os
 import re
 import subprocess
 import sys
 import time
+
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, ASNS_DIR
+from lib.shared.paths import WORKSPACE, ASNS_DIR, VOCABULARY, REVIEWS_DIR, USAGE_LOG, PROJECT_MODEL_DIR, sorted_reviews, load_manifest, open_issues_path
+from lib.shared.foundation import load_foundation_statements
 
-REVIEW_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "review_check.py"
-CONSULT_REVISION_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "review_consult.py"
-REVISE_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "review_revise.py"
-COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
+PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
+REVIEW_TEMPLATE = PROMPTS_DIR / "review.md"
+
+
+def load_out_of_scope(asn_number):
+    """Look up out_of_scope for an ASN from its project model manifest."""
+    manifest = load_manifest(asn_number)
+    return manifest.get("out_of_scope", "")
+
+
+def load_hints(asn_number):
+    """Look up hints for an ASN from its project model manifest."""
+    manifest = load_manifest(asn_number)
+    hints = manifest.get("hints", [])
+    if not hints:
+        return ""
+    return "\n".join(f"- {h}" for h in hints)
+
+
+def read_file(path):
+    try:
+        return Path(path).read_text()
+    except FileNotFoundError:
+        return ""
 
 
 def find_asn(asn_id):
-    """Find ASN file by number. Accepts 9, 09, 0009, ASN-0009."""
+    """Find ASN file by number. Accepts 9, 09, 0009, ASN-0009, or full path."""
+    # If it's an existing file path, use it directly
+    path = Path(asn_id)
+    if path.exists():
+        label = re.match(r"(ASN-\d+)", path.stem)
+        return path, label.group(1) if label else path.stem
+
+    # Normalize to 4-digit number
     num = re.sub(r"[^0-9]", "", str(asn_id))
     if not num:
         return None, None
@@ -39,189 +74,186 @@ def find_asn(asn_id):
     return None, label
 
 
-def step_review(asn_id):
-    """Run review-asn.py. Returns (review_path, converged).
+def load_open_issues(asn_number):
+    """Load open issues file for an ASN. Returns content or empty string."""
+    path = open_issues_path(asn_number)
+    if path.exists():
+        content = path.read_text().strip()
+        if content:
+            return content
+    return "(none)"
 
-    converged is True when the reviewer's VERDICT is CONVERGED (exit 2).
+
+def process_resolved_issues(asn_number, review_text):
+    """Remove resolved issues from the open issues file.
+
+    Parses the ## RESOLVED section of a review. For each resolved issue,
+    removes the matching ### heading and its content from the open issues file.
     """
-    print(f"\n  === REVIEW ===", file=sys.stderr)
-    cmd = [sys.executable, str(REVIEW_SCRIPT), str(asn_id)]
-    result = subprocess.run(
-        cmd, capture_output=True, text=True, cwd=str(WORKSPACE),
-    )
+    # Find ## RESOLVED section
+    resolved_match = re.search(r"^## RESOLVED\s*\n(.*?)(?=^## |\Z)",
+                               review_text, re.MULTILINE | re.DOTALL)
+    if not resolved_match:
+        return
 
-    converged = result.returncode == 2
+    # Extract resolved issue titles
+    resolved_titles = re.findall(r"^### (.+)$", resolved_match.group(1),
+                                 re.MULTILINE)
+    if not resolved_titles:
+        return
 
-    if result.returncode not in (0, 2):
-        print(f"  [REVIEW] FAILED", file=sys.stderr)
-        if result.stderr:
-            for line in result.stderr.strip().split("\n"):
-                print(f"    {line}", file=sys.stderr)
-        return None, False
+    issues_path = open_issues_path(asn_number)
+    if not issues_path.exists():
+        return
 
-    if result.stderr:
-        for line in result.stderr.strip().split("\n"):
-            print(f"  {line}", file=sys.stderr)
+    content = issues_path.read_text()
+    original = content
 
-    review_path = result.stdout.strip()
-    if review_path and Path(review_path).exists():
-        return review_path, converged
-    return None, False
+    for title in resolved_titles:
+        # Remove the ### heading and everything until the next ### or end
+        pattern = rf"^### {re.escape(title)}\s*\n.*?(?=^### |\Z)"
+        content = re.sub(pattern, "", content, flags=re.MULTILINE | re.DOTALL)
+        print(f"  [RESOLVED] Removed: {title}", file=sys.stderr)
 
-
-def has_revise_items(review_path):
-    """Check if review has REVISE items.
-
-    Recognizes both standard review format (## REVISE) and
-    consistency check format (RESULT: n FINDINGS).
-    """
-    try:
-        content = Path(review_path).read_text()
-        if "## REVISE" in content:
-            return True
-        if "RESULT:" in content and "FINDINGS" in content:
-            return True
-        return False
-    except (FileNotFoundError, OSError):
-        return False
+    content = content.strip()
+    if content != original.strip():
+        if content:
+            issues_path.write_text(content + "\n")
+        else:
+            # All issues resolved — remove the file
+            issues_path.unlink()
+            print(f"  [RESOLVED] All open issues resolved — file removed",
+                  file=sys.stderr)
 
 
-def step_consult_revision(asn_id, review_path):
-    """Run consult_for_revision.py. Returns consultation results path or None."""
-    print(f"\n  === CONSULT ===", file=sys.stderr)
-    cmd = [sys.executable, str(CONSULT_REVISION_SCRIPT), str(asn_id)]
 
-    # Pass the review filename (e.g., "review-6") for targeting
-    review_name = Path(review_path).stem  # e.g., ASN-0001-review-6
-    # Extract "review-N" part
-    m = re.search(r"(review-\d+)", review_name)
-    if m:
-        cmd.append(m.group(1))
+def build_prompt(asn_content, vocabulary, out_of_scope="", hints="",
+                 asn_number=None, general=False):
+    """Assemble review prompt from template + injected content."""
+    template_path = REVIEW_TEMPLATE
+    template = read_file(template_path)
+    if not template:
+        print("  Review prompt template not found at scripts/prompts/review.md",
+              file=sys.stderr)
+        sys.exit(1)
 
-    result = subprocess.run(
-        cmd, capture_output=True, text=True, cwd=str(WORKSPACE),
-    )
-    if result.returncode != 0:
-        print(f"  [CONSULT] FAILED", file=sys.stderr)
-        if result.stderr:
-            for line in result.stderr.strip().split("\n")[:5]:
-                print(f"    {line}", file=sys.stderr)
-        return None
+    foundation = load_foundation_statements(asn_number)
+    open_issues = load_open_issues(asn_number) if asn_number else "(none)"
 
-    if result.stderr:
-        for line in result.stderr.strip().split("\n"):
-            print(f"  {line}", file=sys.stderr)
+    scope_note = (f"\n\n## Scope\n\nThe following topics are OUT OF SCOPE for this ASN. "
+                  f"Do not flag missing coverage for them. If the ASN defines properties "
+                  f"for these topics, flag them as OUT_OF_SCOPE: {out_of_scope}"
+                  if out_of_scope else "")
 
-    consultation_path = result.stdout.strip()
-    if consultation_path and Path(consultation_path).exists():
-        return consultation_path
+    hints_note = (f"\n\n## Hints\n\nThe following observations were noted during "
+                  f"exploration. Check whether the ASN addresses them — if not, "
+                  f"flag as REVISE:\n\n{hints}"
+                  if hints else "")
+
+    return template.replace(
+        "{{asn_content}}", asn_content
+    ).replace(
+        "{{vocabulary}}", vocabulary
+    ).replace(
+        "{{foundation_statements}}", foundation
+    ).replace(
+        "{{open_issues}}", open_issues
+    ) + scope_note + hints_note
+
+
+def strip_preamble(text):
+    """Strip any tool-use preamble before the review header."""
+    marker = re.search(r"^# Review of ASN-\d+", text, re.MULTILINE)
+    if marker:
+        return text[marker.start():]
+    return text
+
+
+def validate_review(text):
+    """Check that review text has required structure. Returns error message or None."""
+    if not re.search(r"^# Review of ASN-\d+", text, re.MULTILINE):
+        return "missing '# Review of ASN-NNNN' header"
+    if not re.search(r"^VERDICT:\s*\w+", text, re.MULTILINE):
+        return "missing VERDICT line"
+    if not (re.search(r"^## REVISE", text, re.MULTILINE) or
+            re.search(r"^## OUT_OF_SCOPE", text, re.MULTILINE)):
+        return "missing ## REVISE or ## OUT_OF_SCOPE section"
     return None
 
 
-def step_revise(asn_id, review_spec=None, consultation_path=None):
-    """Run revise-asn.py. Returns (asn_path, converged).
+def invoke_claude(prompt, model="opus", effort="max"):
+    """Call claude --print with --tools "". Returns plain text response."""
+    model_flag = {
+        "opus": "claude-opus-4-6",
+        "sonnet": "claude-sonnet-4-6",
+    }.get(model, model)
 
-    converged is True when the ASN was not modified (exit 2).
-    """
-    print(f"\n  === REVISE ===", file=sys.stderr)
-    cmd = [sys.executable, str(REVISE_SCRIPT), str(asn_id)]
-    if review_spec:
-        cmd.append(review_spec)
-    if consultation_path:
-        cmd.extend(["--consultation", consultation_path])
+    cmd = [
+        "claude", "--print",
+        "--model", model_flag,
+        "--tools", "",
+    ]
 
+    env = os.environ.copy()
+    env.pop("CLAUDECODE", None)
+    if effort:
+        env["CLAUDE_CODE_EFFORT_LEVEL"] = effort
+    env.setdefault("CLAUDE_CODE_MAX_OUTPUT_TOKENS", "128000")
+
+    start = time.time()
     result = subprocess.run(
-        cmd, capture_output=True, text=True, cwd=str(WORKSPACE),
+        cmd, input=prompt, capture_output=True, text=True, env=env,
+        timeout=None,
     )
+    elapsed = time.time() - start
 
-    converged = result.returncode == 2
-
-    if result.returncode not in (0, 2):
-        print(f"  [REVISE] FAILED", file=sys.stderr)
-        if result.stderr:
-            for line in result.stderr.strip().split("\n")[:5]:
-                print(f"    {line}", file=sys.stderr)
-        return None, False
-
-    if result.stderr:
-        for line in result.stderr.strip().split("\n"):
-            print(f"  {line}", file=sys.stderr)
-
-    asn_path = result.stdout.strip()
-    if asn_path and Path(asn_path).exists():
-        return asn_path, converged
-    return None, False
-
-
-def step_commit(hint="", asn_id=None):
-    """Run commit.py. If asn_id is provided, stage only that ASN's files.
-
-    For concurrent safety — two ASN pipelines won't include each
-    other's changes when asn_id is specified.
-    """
-    print(f"\n  === COMMIT ===", file=sys.stderr)
-
-    # Stage only this ASN's files if scoped
-    if asn_id is not None:
-        import glob
-        label = f"ASN-{int(asn_id):04d}"
-        patterns = [
-            f"vault/1-reasoning-docs/{label}-*",
-            f"vault/2-review/{label}",
-            f"vault/0-consultations/{label}",
-            f"vault/project-model/{label}/",
-            f"vault/6-examples/{label}",
-        ]
-        for pattern in patterns:
-            full = str(WORKSPACE / pattern)
-            matches = glob.glob(full)
-            if matches:
-                subprocess.run(
-                    ["git", "add"] + matches,
-                    capture_output=True, text=True, cwd=str(WORKSPACE),
-                )
-            # Also handle directories
-            dirpath = WORKSPACE / pattern
-            if dirpath.is_dir():
-                subprocess.run(
-                    ["git", "add", str(dirpath)],
-                    capture_output=True, text=True, cwd=str(WORKSPACE),
-                )
-
-    cmd = [sys.executable, str(COMMIT_SCRIPT)]
-    if hint:
-        cmd.append(hint)
-
-    result = subprocess.run(
-        cmd, capture_output=True, text=True, cwd=str(WORKSPACE),
-    )
     if result.returncode != 0:
-        print(f"  [COMMIT] FAILED", file=sys.stderr)
+        print(f"  FAILED (exit {result.returncode}, {elapsed:.0f}s)",
+              file=sys.stderr)
         if result.stderr:
-            for line in result.stderr.strip().split("\n")[:3]:
-                print(f"    {line}", file=sys.stderr)
-        return False
+            for line in result.stderr.strip().split("\n"):
+                print(f"    stderr: {line}", file=sys.stderr)
+        if result.stdout:
+            stdout_len = len(result.stdout)
+            print(f"    stdout: {stdout_len} chars partial output",
+                  file=sys.stderr)
+            # Show last 500 chars to see where it stopped
+            tail = result.stdout[-500:]
+            print(f"    stdout tail: ...{tail}", file=sys.stderr)
+        else:
+            print(f"    stdout: empty", file=sys.stderr)
+        return "", elapsed
 
-    if result.stderr:
-        for line in result.stderr.strip().split("\n"):
-            print(f"  {line}", file=sys.stderr)
+    print(f"  [{elapsed:.0f}s]", file=sys.stderr)
+    return result.stdout.strip(), elapsed
 
-    if result.stdout.strip():
-        print(f"  {result.stdout.strip()}", file=sys.stderr)
-    return True
+
+def log_usage(asn_label, elapsed):
+    """Append a usage entry to the log."""
+    try:
+        entry = {
+            "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
+            "skill": "review",
+            "asn": asn_label,
+            "elapsed_s": round(elapsed, 1),
+        }
+        with open(USAGE_LOG, "a") as f:
+            f.write(json.dumps(entry) + "\n")
+    except OSError:
+        pass
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Review an ASN — produce findings and stop")
-    parser.add_argument("asn", help="ASN number (e.g., 9, 0009, ASN-0009)")
-    parser.add_argument("--review-only", action="store_true",
-                        help="(deprecated — review-only is now the default)")
+    parser = argparse.ArgumentParser(description="Review an ASN for rigor")
+    parser.add_argument("asn", help="ASN number (e.g., 4, 0004, ASN-0004) or path")
+    parser.add_argument("--model", "-m", default="opus",
+                        choices=["opus", "sonnet"],
+                        help="Model (default: opus)")
+    parser.add_argument("--effort", default="max",
+                        help="Thinking effort level (low/medium/high/max)")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="Show prompt size without invoking Claude")
     args = parser.parse_args()
-
-    if args.review_only:
-        print("  Note: --review-only is deprecated; review.py is now review-only by default.",
-              file=sys.stderr)
 
     # Find ASN
     asn_path, asn_label = find_asn(args.asn)
@@ -229,46 +261,82 @@ def main():
         print(f"  No ASN found for {args.asn} in vault/1-reasoning-docs/", file=sys.stderr)
         sys.exit(1)
 
-    print(f"  [REVIEW] {asn_label} ({asn_path.name})", file=sys.stderr)
+    asn_content = asn_path.read_text()
+
+    # Read vocabulary
+    vocabulary = read_file(VOCABULARY)
+    if not vocabulary:
+        print("  Warning: vault/vocabulary.md not found", file=sys.stderr)
+
+    # Build prompt
+    print(f"  [REVIEW] {asn_label}", file=sys.stderr)
     asn_number = int(asn_label.replace("ASN-", ""))
+    out_of_scope = load_out_of_scope(asn_number)
+    if out_of_scope:
+        print(f"  [SCOPE] Out of scope: {out_of_scope}", file=sys.stderr)
+    hints = load_hints(asn_number)
+    if hints:
+        print(f"  [HINTS] {hints}", file=sys.stderr)
+    prompt = build_prompt(asn_content, vocabulary, out_of_scope=out_of_scope,
+                          hints=hints, asn_number=asn_number,
+                          general=False)
+    print(f"  Prompt: {len(prompt) // 1024}KB (~{len(prompt) // 4} tokens est.)",
+          file=sys.stderr)
 
-    start = time.time()
-
-    # Review
-    review_path, converged = step_review(args.asn)
-    if review_path is None:
-        print(f"  [REVIEW] Review failed, retrying once...", file=sys.stderr)
-        review_path, converged = step_review(args.asn)
-        if review_path is None:
-            print(f"  [REVIEW] Review failed again", file=sys.stderr)
-            sys.exit(1)
-    print(f"  [REVIEW] {review_path}", file=sys.stderr)
-
-    # Converged — commit and exit 2
-    if converged:
-        print(f"  [REVIEW] CONVERGED — no significant issues",
+    if args.dry_run:
+        print(f"  [DRY RUN] Would invoke {args.model} with --tools """,
               file=sys.stderr)
-        step_commit(f"Review {asn_label} — converged", asn_id=asn_number)
-        elapsed = time.time() - start
-        print(f"\n  [REVIEW] Done ({elapsed:.0f}s)", file=sys.stderr)
-        asn_num = asn_label.replace("ASN-", "").lstrip("0") or "0"
-        print(f"\n  [NEXT] Export statements: python scripts/normalize.py {asn_num}",
+        return
+
+    # Invoke Claude
+    text, elapsed = invoke_claude(prompt, model=args.model,
+                                  effort=args.effort)
+
+    if not text:
+        print("  No review produced", file=sys.stderr)
+        sys.exit(1)
+
+    # Strip any preamble before review header
+    text = strip_preamble(text)
+
+    # Validate review structure before writing
+    error = validate_review(text)
+    if error:
+        print(f"  MALFORMED REVIEW: {error}", file=sys.stderr)
+        print(f"  Response length: {len(text)} chars, {len(text.splitlines())} lines",
               file=sys.stderr)
+        sys.exit(1)
+
+    # Write output (sequential numbering: review-1, review-2, ...)
+    (REVIEWS_DIR / asn_label).mkdir(parents=True, exist_ok=True)
+    existing = sorted_reviews(asn_label)
+    next_num = 1
+    for f in existing:
+        m = re.search(r"review-(\d+)\.md$", f.name)
+        if m:
+            next_num = max(next_num, int(m.group(1)) + 1)
+    output_path = REVIEWS_DIR / asn_label / f"review-{next_num}.md"
+    output_path.write_text(text + "\n")
+
+    # Process resolved open issues
+    process_resolved_issues(asn_number, text)
+
+    # Parse verdict
+    verdict_match = re.search(r"^VERDICT:\s*(\w+)", text, re.MULTILINE)
+    verdict = verdict_match.group(1).upper() if verdict_match else "REVISE"
+    print(f"  [VERDICT] {verdict}", file=sys.stderr)
+
+    # Log usage
+    log_usage(asn_label, elapsed)
+
+    # Print output file path to stdout (for pipeline consumption)
+    print(str(output_path))
+
+    print(f"  [WROTE] {output_path.relative_to(WORKSPACE)}", file=sys.stderr)
+
+    # Exit 2 if converged (distinct from error=1)
+    if verdict == "CONVERGED":
         sys.exit(2)
-
-    # Check for REVISE items
-    if has_revise_items(review_path):
-        step_commit(f"Review {asn_label}", asn_id=asn_number)
-        elapsed = time.time() - start
-        print(f"\n  [REVIEW] Done ({elapsed:.0f}s)", file=sys.stderr)
-        print(f"  REVISE items found. Run: python scripts/revise.py {args.asn}",
-              file=sys.stderr)
-        sys.exit(0)
-
-    # No REVISE items — commit and exit
-    step_commit(f"Review {asn_label} — no revisions needed", asn_id=asn_number)
-    elapsed = time.time() - start
-    print(f"\n  [REVIEW] Done ({elapsed:.0f}s)", file=sys.stderr)
 
 
 if __name__ == "__main__":
