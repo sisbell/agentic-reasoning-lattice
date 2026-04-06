@@ -1066,25 +1066,45 @@ TumblerAdd's constructive definition determines each component of the result fro
 
 **TA-LC (LeftCancellation).** If a ⊕ x = a ⊕ y with both sides well-defined (TA0 satisfied for both), then x = y.
 
-*Proof.* We show that from the hypothesis `a ⊕ x = a ⊕ y`, with both additions satisfying TA0, it follows that `x = y`. The argument proceeds in two stages: first we establish that `x` and `y` share the same action point, then we show component-wise and length equality.
+*Proof.* We show that from the hypothesis `a ⊕ x = a ⊕ y`, with both additions satisfying TA0, it follows that `x = y`. The argument proceeds in four stages: unpack the preconditions to establish existence of action points and index bounds, show both action points must be equal, verify component-wise equality across all positions, and assemble the conclusion via length equality and T3.
 
-Let `k₁` be the action point of `x` and `k₂` the action point of `y`. Both exist because TA0 requires `x > 0` and `y > 0`, so each has at least one nonzero component. We eliminate both strict orderings.
+**Stage 1: Preconditions and action points.** Let `a = [a₁, ..., aₘ]`, `x = [x₁, ..., xₙ]`, and `y = [y₁, ..., yₗ]`. The hypothesis requires both additions to satisfy TA0 (WellDefinedAddition). For `a ⊕ x`: TA0 requires `x > 0` and `actionPoint(x) ≤ #a = m`. For `a ⊕ y`: TA0 requires `y > 0` and `actionPoint(y) ≤ #a = m`.
 
-**Case k₁ < k₂.** Since `k₁ < k₂` and the action point is the first nonzero component, every component of `y` before position `k₂` is zero — in particular `y_{k₁} = 0`. Position `k₁` therefore falls in the prefix-copy region of the addition `a ⊕ y`: by TumblerAdd, `(a ⊕ y)_{k₁} = a_{k₁}`. In the addition `a ⊕ x`, position `k₁` is the action point itself, so TumblerAdd gives `(a ⊕ x)_{k₁} = a_{k₁} + x_{k₁}`. From `a ⊕ x = a ⊕ y` we obtain `a_{k₁} + x_{k₁} = a_{k₁}`, hence `x_{k₁} = 0`. But `k₁` is the action point of `x`, so by definition `x_{k₁} > 0` — contradiction.
+Let `k₁ = actionPoint(x)` — the least `i` with `1 ≤ i ≤ n` such that `xᵢ > 0`. This exists because `x > 0` guarantees at least one positive component. By the TA0 precondition, `k₁ ≤ m`, so position `k₁` exists within `a`. Similarly, let `k₂ = actionPoint(y)` — the least `j` with `1 ≤ j ≤ l` such that `yⱼ > 0`. By the TA0 precondition, `k₂ ≤ m`, so position `k₂` exists within `a`.
 
-**Case k₂ < k₁.** Since `k₂ < k₁` and the action point is the first nonzero component, every component of `x` before position `k₁` is zero — in particular `x_{k₂} = 0`. Position `k₂` therefore falls in the prefix-copy region of the addition `a ⊕ x`: by TumblerAdd, `(a ⊕ x)_{k₂} = a_{k₂}`. In the addition `a ⊕ y`, position `k₂` is the action point itself, so TumblerAdd gives `(a ⊕ y)_{k₂} = a_{k₂} + y_{k₂}`. From `a ⊕ x = a ⊕ y` we obtain `a_{k₂} = a_{k₂} + y_{k₂}`, hence `y_{k₂} = 0`. But `k₂` is the action point of `y`, so by definition `y_{k₂} > 0` — contradiction.
+We record for later use: `x_{i} = 0` for all `1 ≤ i < k₁`, `x_{k₁} > 0`, `y_{j} = 0` for all `1 ≤ j < k₂`, and `y_{k₂} > 0`.
 
-Both strict orderings are impossible, so `k₁ = k₂`. Write `k` for this common action point. We now verify that `x` and `y` agree at every position and have the same length.
+**Stage 2: Action point equality.** We show `k₁ = k₂` by eliminating both strict orderings.
 
-**Positions i < k.** Both `x` and `y` have action point `k`, so by definition of action point every component before `k` is zero: `xᵢ = 0` and `yᵢ = 0`. Therefore `xᵢ = yᵢ = 0`.
+*Case k₁ < k₂.* We derive a contradiction. Since `k₁ < k₂` and `k₂` is the first positive position of `y`, every component of `y` before position `k₂` is zero — in particular, `y_{k₁} = 0` (since `1 ≤ k₁ < k₂`). We now determine which region of TumblerAdd's piecewise definition governs position `k₁` in each addition.
 
-**Position i = k.** TumblerAdd gives `(a ⊕ x)_k = a_k + x_k` and `(a ⊕ y)_k = a_k + y_k`. From `a ⊕ x = a ⊕ y` we get `a_k + x_k = a_k + y_k`, hence `x_k = y_k` by cancellation in ℕ.
+In `a ⊕ y`: the action point of `y` is `k₂`, and `k₁ < k₂`, so position `k₁` falls in the prefix-copy region. TumblerAdd's rule for `i < k₂` gives `(a ⊕ y)_{k₁} = a_{k₁}`.
 
-**Positions i > k.** For both additions, positions after the action point fall in the tail-copy region of TumblerAdd: `(a ⊕ x)_i = x_i` and `(a ⊕ y)_i = y_i`. From `a ⊕ x = a ⊕ y` we get `x_i = y_i`.
+In `a ⊕ x`: the action point of `x` is `k₁`, and position `k₁` is exactly the action point. TumblerAdd's rule for `i = k₁` gives `(a ⊕ x)_{k₁} = a_{k₁} + x_{k₁}`.
 
-**Length.** By T3 (CanonicalRepresentation), `a ⊕ x = a ⊕ y` implies `#(a ⊕ x) = #(a ⊕ y)`. The result-length identity (TumblerAdd) gives `#(a ⊕ w) = #w` for any well-defined addition. Applying this to both sides: `#x = #(a ⊕ x) = #(a ⊕ y) = #y`.
+From the hypothesis `a ⊕ x = a ⊕ y`, T3 (CanonicalRepresentation) gives component-wise equality: `(a ⊕ x)_{k₁} = (a ⊕ y)_{k₁}`. Substituting: `a_{k₁} + x_{k₁} = a_{k₁}`, hence `x_{k₁} = 0` by cancellation in ℕ. But `k₁` is the action point of `x`, so `x_{k₁} > 0` (Stage 1) — contradiction.
 
-All components of `x` and `y` agree at every position and `#x = #y`, so `x = y` by T3 (CanonicalRepresentation).  ∎
+*Case k₂ < k₁.* We derive a contradiction by a symmetric argument. Since `k₂ < k₁` and `k₁` is the first positive position of `x`, every component of `x` before position `k₁` is zero — in particular, `x_{k₂} = 0` (since `1 ≤ k₂ < k₁`). We determine the governing TumblerAdd region at position `k₂` in each addition.
+
+In `a ⊕ x`: the action point of `x` is `k₁`, and `k₂ < k₁`, so position `k₂` falls in the prefix-copy region. TumblerAdd's rule for `i < k₁` gives `(a ⊕ x)_{k₂} = a_{k₂}`.
+
+In `a ⊕ y`: the action point of `y` is `k₂`, and position `k₂` is exactly the action point. TumblerAdd's rule for `i = k₂` gives `(a ⊕ y)_{k₂} = a_{k₂} + y_{k₂}`.
+
+From `a ⊕ x = a ⊕ y`, component-wise equality (T3) gives `(a ⊕ x)_{k₂} = (a ⊕ y)_{k₂}`. Substituting: `a_{k₂} = a_{k₂} + y_{k₂}`, hence `y_{k₂} = 0` by cancellation in ℕ. But `k₂` is the action point of `y`, so `y_{k₂} > 0` (Stage 1) — contradiction.
+
+Both strict orderings lead to contradiction. By trichotomy on ℕ (exactly one of `k₁ < k₂`, `k₁ = k₂`, `k₂ < k₁` holds), we conclude `k₁ = k₂`. Write `k` for this common action point. The bounds from Stage 1 give `k ≤ m`, and `k` is the first positive position of both `x` and `y`.
+
+**Stage 3: Component-wise equality.** We show `xᵢ = yᵢ` at every position. The result `a ⊕ x` has length `#x = n` and `a ⊕ y` has length `#y = l`, both by the result-length identity (TumblerAdd: `#(a ⊕ w) = #w`). Since `a ⊕ x = a ⊕ y`, T3 gives `#(a ⊕ x) = #(a ⊕ y)`, hence `n = l` — both displacements have the same length. We verify component agreement in three regions.
+
+*Positions `1 ≤ i < k`.* Both `x` and `y` have action point `k`. By definition, every component before the action point is zero: `xᵢ = 0` (since `i < k = k₁` and `k₁` is the first positive position of `x`) and `yᵢ = 0` (since `i < k = k₂` and `k₂` is the first positive position of `y`). Therefore `xᵢ = yᵢ = 0`.
+
+*Position `i = k`.* Both additions have action point `k`, so TumblerAdd's advance rule gives `(a ⊕ x)_k = a_k + x_k` and `(a ⊕ y)_k = a_k + y_k`. The component `a_k` is well-defined since `k ≤ m` (Stage 1). From `a ⊕ x = a ⊕ y`, T3 gives `(a ⊕ x)_k = (a ⊕ y)_k`, so `a_k + x_k = a_k + y_k`. By cancellation in ℕ, `x_k = y_k`.
+
+*Positions `k < i ≤ n`.* For both additions, positions after the action point fall in the tail-copy region of TumblerAdd: the rule for `i > k` gives `(a ⊕ x)_i = x_i` and `(a ⊕ y)_i = y_i`. These positions exist in the result because `i ≤ n = #(a ⊕ x)` and `i ≤ n = l = #(a ⊕ y)`. From `a ⊕ x = a ⊕ y`, T3 gives `(a ⊕ x)_i = (a ⊕ y)_i`, hence `x_i = y_i`.
+
+All positions from `1` to `n` are covered: positions `1, ..., k − 1` by the first sub-case, position `k` by the second, and positions `k + 1, ..., n` by the third. At every position, `xᵢ = yᵢ`.
+
+**Stage 4: Conclusion.** We have `#x = n = l = #y` (established at the start of Stage 3) and `xᵢ = yᵢ` for all `1 ≤ i ≤ n` (Stage 3, all three sub-cases). By T3 (CanonicalRepresentation), two tumblers of the same length with identical components at every position are equal: `x = y`.  ∎
 
 TumblerAdd is *left-cancellative*: the start position can be "divided out" from equal results, recovering the displacement uniquely. This is a direct consequence of TumblerAdd's constructive definition — each component of the result is determined by exactly one input, so equality of results propagates back to equality of inputs.
 
