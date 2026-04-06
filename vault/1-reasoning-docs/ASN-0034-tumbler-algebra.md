@@ -126,19 +126,23 @@ Nelson requires that comparison be self-contained — no index consultation need
 
 **T2 (IntrinsicComparison).** The order relation T1 is computable from the two tumblers alone, without consulting any external data structure. The comparison examines at most `min(#a, #b)` component pairs.
 
-*Proof.* We must establish two claims: (1) the comparison requires no data beyond the components and lengths of the two tumblers, and (2) the number of component pairs examined is at most `min(#a, #b)`.
+*Proof.* We must establish two claims: (1) the comparison requires no data beyond the components and lengths of the two tumblers, and (2) the number of component pairs examined is at most `min(#a, #b)`. The argument proceeds in four stages: define the comparison procedure derived from T1, analyze the divergence case, analyze the exhaustion case, and verify data closure.
 
-Let `a = a₁. ... .aₘ` and `b = b₁. ... .bₙ`. The definition of `<` in T1 asks for the existence of a witness position `k ≥ 1` satisfying two conditions: agreement at all positions before `k`, and either a component divergence at `k` or prefix exhaustion at `k`. We trace exactly what data this examination consults and how many comparisons it performs.
+Let `a = a₁. ... .aₘ` and `b = b₁. ... .bₙ`. The definition of `<` in T1 asks for the existence of a witness position `k ≥ 1` satisfying two conditions: agreement at all positions before `k`, and either a component divergence at `k` or prefix exhaustion at `k`.
 
-The comparison proceeds by scanning positions `i = 1, 2, ...` and comparing the pair `(aᵢ, bᵢ)` at each position. Two outcomes are possible.
+**Stage 1: Comparison procedure.** The definition of T1 determines a scanning procedure: examine positions `i = 1, 2, ...` in order, comparing the pair `(aᵢ, bᵢ)` at each position. The scan terminates at the first position where the tumblers diverge, or when one tumbler is exhausted. At each position, the scan consults exactly two values — `aᵢ` and `bᵢ` — both components of the input tumblers. Two terminal outcomes are possible, analyzed in Stages 2 and 3.
 
-*Case 1: divergence at some position `k ≤ min(m, n)`.* The scan finds `aₖ ≠ bₖ` after verifying `aᵢ = bᵢ` for all `1 ≤ i < k`. Exactly `k` component pairs are examined. Since `k ≤ min(m, n)`, the bound holds. The ordering is decided by whether `aₖ < bₖ` or `bₖ < aₖ` — a comparison of two natural numbers, both intrinsic to the tumblers.
+**Stage 2: Divergence at position `k ≤ min(m, n)`.** The scan finds `aₖ ≠ bₖ` after verifying `aᵢ = bᵢ` for all `1 ≤ i < k`. The number of component pairs examined is exactly `k`: one pair at each of the `k - 1` agreeing positions, plus one pair at the divergence position. Since `k ≤ min(m, n)`, the bound `k ≤ min(#a, #b)` holds. The ordering is decided by whether `aₖ < bₖ` (giving `a < b` via T1 case (i)) or `bₖ < aₖ` (giving `b < a` via T1 case (i)) — a comparison of two natural numbers, both components of the input tumblers. Trichotomy on ℕ ensures exactly one holds, since `aₖ ≠ bₖ`.
 
-*Case 2: no divergence within the shared range.* The scan exhausts all `min(m, n)` positions without finding `aᵢ ≠ bᵢ`. Exactly `min(m, n)` component pairs are examined. The result is then determined by comparing the lengths `m` and `n`: if `m < n`, then `a` is a proper prefix of `b` and T1 case (ii) gives `a < b`; if `n < m`, the symmetric argument gives `b < a`; if `m = n`, then T3 gives `a = b`.
+**Stage 3: Exhaustion without divergence.** The scan reaches position `min(m, n)` without finding any `i` with `aᵢ ≠ bᵢ`. That is, `aᵢ = bᵢ` for all `1 ≤ i ≤ min(m, n)`. The number of component pairs examined is exactly `min(m, n) = min(#a, #b)` — the bound holds with equality. The ordering is then determined by comparing the lengths `m = #a` and `n = #b`, which are intrinsic properties of the tumblers:
 
-In both cases, the number of component pairs examined is at most `min(m, n) = min(#a, #b)`, establishing claim (2).
+- If `m < n`: `a` agrees with the first `m` components of `b` and `#a < #b`, so `k = m + 1` witnesses `a < b` via T1 case (ii).
+- If `n < m`: by the symmetric argument, `k = n + 1` witnesses `b < a` via T1 case (ii).
+- If `m = n`: then `#a = #b` and `aᵢ = bᵢ` for all `1 ≤ i ≤ m`, so `a = b` by T3 (canonical representation).
 
-For claim (1), we observe that every value consulted — the components `aᵢ` and `bᵢ` at each position, and the lengths `m` and `n` — belongs to the two tumblers themselves. The definition of T1 is expressed entirely in terms of these values. No tree structure, no index, no auxiliary mapping, and no external state participates in the decision. ∎
+These three sub-cases are exhaustive by trichotomy on ℕ applied to `m` and `n`.
+
+**Stage 4: Data closure.** We now verify claim (1). In Stages 2 and 3, every value consulted falls into one of three categories: (a) a component `aᵢ` for some `1 ≤ i ≤ m`, which is part of tumbler `a`; (b) a component `bᵢ` for some `1 ≤ i ≤ n`, which is part of tumbler `b`; (c) a length `m = #a` or `n = #b`, which is a property of tumbler `a` or `b` respectively. No value outside the set `{aᵢ : 1 ≤ i ≤ m} ∪ {bᵢ : 1 ≤ i ≤ n} ∪ {m, n}` is consulted. In particular, the definition of T1 references no tree structure, no index, no auxiliary mapping, and no external state. The comparison is a pure function of the two tumblers. ∎
 
 The importance of T2 is operational: span containment tests, link search, and index traversal all reduce to tumbler comparison. If comparison required a lookup, these operations would depend on auxiliary state, and the system's decentralization guarantee would collapse — one could not determine whether an address falls within a span without access to the index that manages that span.
 
