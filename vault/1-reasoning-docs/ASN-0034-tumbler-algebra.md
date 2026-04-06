@@ -507,29 +507,45 @@ T10a constrains what would otherwise be an unregulated choice. Without it, an al
 
 *Base case.* `n = 0`: `#t₀ = #t₀` holds trivially.
 
-*Inductive step.* Assume `#tₙ = #t₀`. By TA5(c), `inc(t, 0)` preserves length: `#inc(t, 0) = #t`. Applying this to `tₙ` yields `#tₙ₊₁ = #inc(tₙ, 0) = #tₙ`. By the inductive hypothesis `#tₙ = #t₀`, so `#tₙ₊₁ = #t₀`.
+*Inductive step.* Assume `#tₙ = #t₀` for some `n ≥ 0`. By definition, `tₙ₊₁ = inc(tₙ, 0)`. By TA5(c), `inc(t, 0)` preserves length: `#inc(t, 0) = #t`. Applying this to `tₙ` yields `#tₙ₊₁ = #inc(tₙ, 0) = #tₙ`. By the inductive hypothesis `#tₙ = #t₀`, so `#tₙ₊₁ = #t₀`. The induction closes.
 
-Every sibling output of a single allocator has the same length as its base address.
+Every sibling output of a single allocator has the same length as its base address: `(A n ≥ 0 :: #tₙ = #t₀)`.
 
-**Consequence 2: Non-nesting sibling prefixes.** Let `tᵢ` and `tⱼ` be distinct siblings from the same allocator with `i < j`. We must show `tᵢ ⋠ tⱼ ∧ tⱼ ⋠ tᵢ`.
+**Consequence 2: Non-nesting sibling prefixes.** Let `tᵢ` and `tⱼ` be distinct siblings from the same allocator with `i < j`. We must show `tᵢ ⋠ tⱼ ∧ tⱼ ⋠ tᵢ`. The argument proceeds in three stages: establish distinctness, establish uniform length, and derive non-nesting by contradiction.
 
-First, `tᵢ ≠ tⱼ`. By TA5(a), each application of `inc(·, 0)` produces a strictly greater tumbler under T1, so the sibling sequence is strictly increasing: `t₀ < t₁ < ... < tⱼ`. In particular `tᵢ < tⱼ`, and by T1 irreflexivity `tᵢ ≠ tⱼ`.
+**Stage 1: Distinctness.** By TA5(a), each application of `inc(·, 0)` produces a strictly greater tumbler under T1: `inc(t, 0) > t`. Starting from `t₀`, this gives the chain `t₀ < t₁ < t₂ < ... < tⱼ`. Since `i < j`, the chain includes the segment from `tᵢ` to `tⱼ`, so by repeated application of T1 transitivity (part (c)), `tᵢ < tⱼ`. By T1 irreflexivity (part (a)), `tᵢ < tⱼ` implies `tᵢ ≠ tⱼ`.
 
-Second, `#tᵢ = #tⱼ` by Consequence 1, since both are siblings of the same allocator.
+**Stage 2: Uniform length.** By Consequence 1, `#tᵢ = #t₀` and `#tⱼ = #t₀`, since both are siblings of the same allocator with base address `t₀`. Therefore `#tᵢ = #tⱼ`.
 
-Now suppose for contradiction that `tᵢ ≼ tⱼ`. Since `tᵢ ≠ tⱼ`, this is a proper prefix relationship, which requires `#tᵢ < #tⱼ` — contradicting `#tᵢ = #tⱼ`. The symmetric argument excludes `tⱼ ≼ tᵢ`: if `tⱼ ≼ tᵢ` with `tⱼ ≠ tᵢ`, then `#tⱼ < #tᵢ`, again contradicting `#tᵢ = #tⱼ`. Therefore `tᵢ ⋠ tⱼ ∧ tⱼ ⋠ tᵢ` — the sibling prefixes are non-nesting, satisfying the precondition of T10.
+**Stage 3: Non-nesting by contradiction.** The prefix relation `s ≼ r` holds when `#s ≤ #r` and `sₖ = rₖ` for all `1 ≤ k ≤ #s`. When `s ≼ r` and `s ≠ r`, this is a *proper* prefix relationship, which requires `#s < #r` — for if `#s = #r` and `sₖ = rₖ` at every position, then `s = r` by T3 (canonical representation), contradicting `s ≠ r`.
 
-**Consequence 3: Length separation between parent and child domains.** Let a parent allocator have base address `t₀` with sibling length `γ = #t₀`. When the parent spawns a child via `inc(t, k')` with `k' > 0` — where `t` is one of the parent's siblings — the child's base address `c₀` has length `#c₀ = #t + k'` by TA5(d). Since `t` is a parent sibling, `#t = γ` by Consequence 1, so `#c₀ = γ + k'`.
+Suppose for contradiction that `tᵢ ≼ tⱼ`. Since `tᵢ ≠ tⱼ` (Stage 1), this is a proper prefix relationship, requiring `#tᵢ < #tⱼ`. But `#tᵢ = #tⱼ` (Stage 2), a contradiction. Therefore `tᵢ ⋠ tⱼ`.
 
-The child allocator produces its own siblings by `inc(·, 0)`. By Consequence 1 applied to the child, all child outputs have uniform length `γ + k'`. Since `k' ≥ 1`, every child output has length at least `γ + 1 > γ` — strictly longer than any parent sibling. By T3, tumblers that differ in length are distinct: no child output can equal any parent sibling.
+Now suppose for contradiction that `tⱼ ≼ tᵢ`. Since `tⱼ ≠ tᵢ` (Stage 1, which established `tᵢ ≠ tⱼ`), this is a proper prefix relationship, requiring `#tⱼ < #tᵢ`. But `#tᵢ = #tⱼ` (Stage 2), a contradiction. Therefore `tⱼ ⋠ tᵢ`.
 
-The separation is additive across nesting levels. Each child-spawning step adds at least one component, so a descendant `d` levels deep produces outputs of length at least `γ + d`. Outputs at different depths never collide by length alone.
+Combining: `tᵢ ⋠ tⱼ ∧ tⱼ ⋠ tᵢ` — the sibling prefixes are non-nesting, satisfying the precondition of T10.
 
-**Necessity.** We show that relaxing the `k = 0` restriction for siblings permits nesting, violating the precondition of T10.
+**Consequence 3: Length separation between parent and child domains.** Let a parent allocator have base address `t₀` with sibling length `γ = #t₀`. We establish the child's length, show the separation is strict, and verify that it propagates across nesting levels.
 
-Suppose an allocator produces `t₁ = inc(t₀, 0)` followed by `t₂ = inc(t₁, 1)`. By TA5(c), `#t₁ = #t₀`. By TA5(d), `#t₂ = #t₁ + 1 = #t₀ + 1`, so `#t₁ < #t₂`. By TA5(b), `t₂` agrees with `t₁` on all components before the increment point. For `inc(t₁, 1)` with `k = 1`, the child construction (TA5(d)) copies all of `t₁` into positions `1, ..., #t₁` of `t₂`. So `t₂` agrees with `t₁` on positions `1, ..., #t₁`, and `#t₁ < #t₂`. By T1 case (ii), `t₁` is a proper prefix of `t₂`: `t₁ ≼ t₂`.
+**Stage 1: Child base length.** When the parent spawns a child via `inc(t, k')` with `k' > 0` — where `t` is one of the parent's siblings — the child's base address is `c₀ = inc(t, k')`. By TA5(d), `#c₀ = #t + k'`. Since `t` is a parent sibling, `#t = γ` by Consequence 1, so `#c₀ = γ + k'`.
 
-The siblings nest. This violates the non-nesting precondition of T10 — any address extending `t₂` also extends `t₁`, so T10 cannot distinguish the two domains. The partition independence guarantee collapses.
+**Stage 2: Child sibling uniformity.** The child allocator produces its own siblings by `inc(·, 0)` (T10a). By Consequence 1 applied to the child allocator — with base address `c₀` and sibling length `#c₀ = γ + k'` — every child sibling output has length `γ + k'`.
+
+**Stage 3: Strict separation.** Since `k' ≥ 1`, every child output has length `γ + k' ≥ γ + 1 > γ`. Every parent sibling has length `γ` (Consequence 1). The lengths differ: for any parent sibling `s` and any child output `c`, `#c = γ + k' ≠ γ = #s`. By T3 (canonical representation), tumblers of different lengths are distinct, so `s ≠ c`.
+
+**Stage 4: Additive propagation.** The separation is additive across nesting levels. Each child-spawning step via `inc(·, k')` with `k' ≥ 1` adds at least one component to the length (TA5(d)). A descendant `d` levels deep — reached by a chain of `d` child-spawning operations, each contributing at least one component — produces outputs of length at least `γ + d`. For descendants at levels `d₁ ≠ d₂`, the length bounds `γ + d₁ ≠ γ + d₂` ensure that their outputs never collide by T3.
+
+**Necessity.** We show that relaxing the `k = 0` restriction for siblings permits nesting, violating the precondition of T10. The argument constructs a concrete counterexample and verifies the prefix relationship step by step.
+
+Suppose an allocator produces `t₁ = inc(t₀, 0)` followed by `t₂ = inc(t₁, 1)`, treating both as sibling outputs — a violation of the T10a constraint, since `t₂` uses `k = 1 > 0`.
+
+**Stage 1: Length divergence.** By TA5(c), `inc(t₀, 0)` preserves length: `#t₁ = #t₀`. By TA5(d), `inc(t₁, 1)` extends the length: `#t₂ = #t₁ + 1 = #t₀ + 1`. Therefore `#t₁ < #t₂` — `t₂` is strictly longer than `t₁`.
+
+**Stage 2: Component agreement.** By TA5(b), `t₂ = inc(t₁, 1)` agrees with `t₁` on all components before the increment point: `(t₂)ᵢ = (t₁)ᵢ` for all `1 ≤ i ≤ #t₁`. By TA5(d), the child construction with `k = 1` sets `(t₂)_{#t₁+1} = 1` — the single new component. There are no intermediate zero-separators since `k - 1 = 0`. Thus `t₂` agrees with `t₁` on every position within the range of `t₁`, and extends it by one component.
+
+**Stage 3: Prefix relationship.** We verify the definition of `t₁ ≼ t₂`. The prefix relation requires two conditions: (1) `#t₁ ≤ #t₂`, which holds since `#t₂ = #t₁ + 1 > #t₁` (Stage 1); and (2) `(t₂)ᵢ = (t₁)ᵢ` for all `1 ≤ i ≤ #t₁`, which holds by Stage 2. Both conditions are met, so `t₁ ≼ t₂`. Since `#t₁ < #t₂`, this is a proper prefix: `t₁ ≺ t₂`.
+
+**Stage 4: Consequence.** The siblings nest: `t₁ ≼ t₂`. This violates the non-nesting precondition of T10. Any address `b` extending `t₂` — with `t₂ ≼ b` — also extends `t₁`, since `t₁ ≼ t₂` and `t₂ ≼ b` give `t₁ ≼ b` by transitivity of ≼. So T10 cannot distinguish the domains rooted at `t₁` and `t₂`: addresses allocated under `t₂` fall within `t₁`'s domain, and partition independence (T10) — which requires non-nesting prefixes — collapses.
 
 The constraint to `k = 0` for siblings is therefore both sufficient (Consequences 1–3) and necessary (its absence permits nesting). ∎
 
