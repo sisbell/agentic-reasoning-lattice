@@ -1212,29 +1212,43 @@ with `#w = max(#b, #a)`. The component `wₖ = bₖ − aₖ` is well-defined an
 
   a ⊕ (b ⊖ a) = b
 
-*Proof.* We must show that the displacement from a to b, when added back to a, recovers b exactly.
+*Proof.* We must show that the displacement from a to b, when added back to a, recovers b exactly. The argument proceeds in four stages: establish the divergence structure, compute b ⊖ a, verify TumblerAdd's preconditions, and verify component-wise equality with b.
 
-Let k = divergence(a, b). The preconditions give k ≤ #a and #a ≤ #b, so in particular k ≤ #a ≤ #b, whence k ≤ min(#a, #b). This rules out Divergence case (ii) — which would require k = min(#a, #b) + 1 > #a — and places us in case (i): aᵢ = bᵢ for all i < k, and aₖ < bₖ (the strict inequality follows from a < b at the divergence point, by T1).
+**Stage 1: Divergence structure.** Let k = divergence(a, b). The preconditions give k ≤ #a and #a ≤ #b, so k ≤ #a ≤ #b, whence k ≤ min(#a, #b). This rules out Divergence case (ii), which requires k = min(#a, #b) + 1; that would give k ≥ #a + 1 > #a, contradicting k ≤ #a. We are therefore in Divergence case (i): aᵢ = bᵢ for all 1 ≤ i < k, and aₖ ≠ bₖ with k ≤ min(#a, #b). Since a < b and k is the first disagreement position, T1 case (i) gives aₖ < bₖ — the strict inequality at the divergence point.
 
-Define w = b ⊖ a. By TumblerSub, the divergence between b and a (minuend and subtrahend) occurs at position k — they agree at all prior positions since bᵢ = aᵢ for i < k, and bₖ ≠ aₖ. The subtraction yields:
+We record the agreement property for later use: aᵢ = bᵢ for all 1 ≤ i < k, and equivalently bᵢ = aᵢ for all 1 ≤ i < k.
 
-  wᵢ = 0           for i < k
-  wₖ = bₖ − aₖ     (well-defined since bₖ > aₖ)
-  wᵢ = bᵢ          for i > k
+**Stage 2: Compute w = b ⊖ a.** We first verify TumblerSub's precondition b ≥ a. Since a < b, T1's trichotomy gives a ≠ b and ¬(b < a), hence b > a ≥ a, so b ≥ a.
 
-The result has length #w = max(#b, #a) = #b, since #a ≤ #b by hypothesis.
+TumblerSub zero-pads the shorter operand to the length of the longer before scanning for divergence. The minuend is b with #b components; the subtrahend is a with #a ≤ #b components. When #a < #b, a is conceptually extended with zeros at positions #a + 1 through #b. Since k ≤ #a, the divergence at position k falls within the original (unpadded) range of both operands, so the zero-padding does not affect the divergence scan: at every position i < k, both the padded and unpadded subtrahend have the value aᵢ, and at position k, both have aₖ.
 
-We establish two properties of w needed for TumblerAdd. First, w > 0: the component wₖ = bₖ − aₖ ≥ 1 since aₖ < bₖ, so w is not the zero tumbler. Second, the action point of w is k: every component before position k is zero, and wₖ > 0, so k is the first positive component. Since k ≤ #a by hypothesis, the precondition of TumblerAdd (TA0) is satisfied — the action point falls within the start position's length.
+The divergence between b and a (scanning for the first position where the zero-padded sequences differ) is also k: at positions 1 ≤ i < k, bᵢ = aᵢ (by the agreement property); at position k, bₖ ≠ aₖ (since aₖ < bₖ). So the divergence of the subtraction is k, the same as divergence(a, b) — the definition of divergence depends only on the first disagreement position, which is symmetric.
 
-Now we compute a ⊕ w by TumblerAdd's constructive definition, which builds the result component by component in three regions determined by the action point k:
+Applying TumblerSub's constructive formula with divergence at k:
 
-*Positions i < k (prefix copy):* (a ⊕ w)ᵢ = aᵢ. By the Divergence agreement property, aᵢ = bᵢ for all i < k. So (a ⊕ w)ᵢ = bᵢ.
+  wᵢ = 0           for 1 ≤ i < k      (positions before divergence are zeroed)
+  wₖ = bₖ − aₖ     (well-defined since bₖ > aₖ, both in ℕ)
+  wᵢ = bᵢ          for k < i ≤ #b     (copy from minuend)
 
-*Position i = k (single-component advance):* (a ⊕ w)ₖ = aₖ + wₖ = aₖ + (bₖ − aₖ) = bₖ. The cancellation is exact since all quantities are natural numbers with bₖ > aₖ.
+The first rule applies to positions 1 through k − 1. The third rule copies from b at all positions after k up to #b; this range includes positions beyond #a (if #a < #b), where the unpadded a has no components — but TumblerSub copies from the minuend b, not the subtrahend, so the values bᵢ for #a < i ≤ #b are well-defined. The result has length #w = max(#b, #a) = #b, since #a ≤ #b.
 
-*Positions i > k (tail from displacement):* (a ⊕ w)ᵢ = wᵢ = bᵢ. These components were copied from b into w by TumblerSub, and TumblerAdd copies them from w into the result.
+**Stage 3: Verify TumblerAdd's preconditions for a ⊕ w.** TA0 requires two conditions: w > 0, and actionPoint(w) ≤ #a.
 
-It remains to verify that the lengths match. By the result-length identity of TumblerAdd, #(a ⊕ w) = #w = #b. Every component of a ⊕ w equals the corresponding component of b, and both tumblers have length #b. By T3 (CanonicalRepresentation), a ⊕ w = b.  ∎
+*Positivity.* wₖ = bₖ − aₖ. Since aₖ < bₖ with both in ℕ, bₖ − aₖ ≥ 1, so wₖ ≥ 1 > 0. The tumbler w has at least one positive component and is therefore not the zero tumbler: w > 0.
+
+*Action point.* The action point of w is the least i with 1 ≤ i ≤ #w such that wᵢ > 0. For all 1 ≤ i < k, wᵢ = 0 (by Stage 2). At position k, wₖ ≥ 1 > 0 (just established). So the action point is k. The precondition gives k ≤ #a, so actionPoint(w) = k ≤ #a. Both conditions of TA0 are satisfied; the addition a ⊕ w is well-defined.
+
+**Stage 4: Compute a ⊕ w and verify equality with b.** We apply TumblerAdd's constructive definition with start position a and displacement w, action point k. The result r = a ⊕ w has length #r = #w = #b by the result-length identity. We verify rᵢ = bᵢ at every position 1 ≤ i ≤ #b.
+
+*Positions 1 ≤ i < k (prefix copy).* TumblerAdd gives rᵢ = aᵢ. The index bound i < k ≤ #a ensures position i exists within a. By the agreement property from Stage 1, aᵢ = bᵢ for all 1 ≤ i < k. Therefore rᵢ = aᵢ = bᵢ.
+
+*Position i = k (single-component advance).* TumblerAdd gives rₖ = aₖ + wₖ. The bound k ≤ #a ensures position k exists within a. Substituting wₖ = bₖ − aₖ from Stage 2: rₖ = aₖ + (bₖ − aₖ). Since aₖ < bₖ with both in ℕ, the difference bₖ − aₖ is a well-defined natural number, and the arithmetic identity n + (m − n) = m for n ≤ m in ℕ gives rₖ = bₖ.
+
+*Positions k < i ≤ #w (tail from displacement).* TumblerAdd gives rᵢ = wᵢ. Since #w = #b, the range k < i ≤ #w is exactly k < i ≤ #b. By Stage 2, wᵢ = bᵢ for all k < i ≤ #b. Therefore rᵢ = wᵢ = bᵢ.
+
+The three regions partition all positions 1 ≤ i ≤ #b: positions 1 through k − 1, position k, and positions k + 1 through #b. (When k = 1 the first region is empty; when k = #b the third region is empty; both are handled by the vacuous truth of universal quantification over an empty range.)
+
+**Conclusion by T3.** We have established two facts: (1) #r = #w = #b, and (2) rᵢ = bᵢ for every position 1 ≤ i ≤ #b. By T3 (CanonicalRepresentation) — two tumblers of the same length with identical components at every position are equal — r = b. That is, a ⊕ (b ⊖ a) = b.  ∎
 
 *Formal Contract:*
 - *Preconditions:* a ∈ T, b ∈ T, a < b, divergence(a, b) ≤ #a, #a ≤ #b
