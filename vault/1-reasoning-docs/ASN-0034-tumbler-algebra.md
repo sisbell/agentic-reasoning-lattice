@@ -15,7 +15,7 @@ A tumbler is a finite sequence of non-negative integers. We write `t = d₁.d₂
 
 This gives us our first property:
 
-**T0(a) (UnboundedComponentValues).** `(A t ∈ T, i : 1 ≤ i ≤ #t : (A M ∈ ℕ :: (E t' ∈ T :: t' agrees with t except t'.dᵢ > M)))`.
+**T0(a) (Unbounded component values).** `(A t ∈ T, i : 1 ≤ i ≤ #t : (A M ∈ ℕ :: (E t' ∈ T :: t' agrees with t except t'.dᵢ > M)))`.
 
 In words: for every tumbler and every component position, there exists a tumbler whose value at that position exceeds any given bound. The address space within any subtree is inexhaustible.
 
@@ -38,33 +38,23 @@ Since `t`, `i`, and `M` were arbitrary, the universal claim holds. ∎
 *Formal Contract:*
 - *Axiom:* T is the set of all finite sequences over ℕ with length ≥ 1. Since ℕ is unbounded, for any `t ∈ T`, position `i`, and bound `M`, the sequence obtained by replacing `dᵢ` with `M + 1` is a member of T with the required properties.
 
-**T0(b) (UnboundedLength).** `(A n ∈ ℕ : n ≥ 1 : (E t ∈ T :: #t ≥ n))`.
+**T0(b) (Unbounded length).** `(A n ∈ ℕ : n ≥ 1 : (E t ∈ T :: #t ≥ n))`.
 
 In words: there is no maximum tumbler length — for every bound, a tumbler of at least that length exists in T. The hierarchy has unlimited nesting depth. T0(b) follows from T's definition as the set of all finite sequences over ℕ — for any `n`, the constant sequence `[1, 1, ..., 1]` of length `n` is a member. We state it explicitly because it carries independent architectural weight: T0(a) ensures siblings within a level are inexhaustible, while T0(b) ensures levels themselves are inexhaustible.
 
-*Proof.* We must show `(A n ∈ ℕ : n ≥ 1 : (E t ∈ T :: #t ≥ n))` — for every natural number `n ≥ 1`, there exists a tumbler `t` in `T` whose length is at least `n`. The argument proceeds in four stages: recall the definition of T and the proof strategy, construct an explicit witness, verify that the witness belongs to T, and verify the length bound to close the universal quantification.
+*Proof.* We establish the universal claim by exhibiting, for arbitrary `n ≥ 1`, a witness `t ∈ T` with `#t ≥ n`.
 
-**Stage 1: The definition of T and proof strategy.** We recall that T is the set of all finite sequences over ℕ with length ≥ 1: a sequence `t = d₁.d₂. ... .dₘ` belongs to T if and only if (a) `m ≥ 1` and (b) `dᵢ ∈ ℕ` for all `1 ≤ i ≤ m`. Since the claim is universally quantified over all `n ≥ 1`, it suffices to let `n` be arbitrary and exhibit a witness `t ∈ T` with `#t ≥ n`. We proceed by direct construction.
-
-Let `n ∈ ℕ` with `n ≥ 1` be arbitrary.
-
-**Stage 2: Witness construction.** Define
+Let `n ∈ ℕ` with `n ≥ 1` be arbitrary. Define
 
 > `t = 1.1. ... .1` (n components)
 
-— the constant sequence of `n` ones, that is, `t = d₁.d₂. ... .dₙ` with `dᵢ = 1` for all `1 ≤ i ≤ n`. This is the simplest finite sequence of length exactly `n` over ℕ: every component is the smallest positive natural number. We must verify two claims: that `t` belongs to T, and that `#t ≥ n`.
+— the constant sequence of `n` ones, that is, `t = d₁.d₂. ... .dₙ` with `dᵢ = 1` for all `1 ≤ i ≤ n`. We must verify two things.
 
-**Stage 3: Membership verification — `t ∈ T`.** We check the two conditions of T's definition.
+*(i)* `t ∈ T`. The sequence `t` has length `n ≥ 1`, and each of its components is a natural number: `dᵢ = 1 ∈ ℕ` for all `1 ≤ i ≤ n`. Since T is the set of all finite sequences over ℕ with length ≥ 1, we have `t ∈ T`.
 
-*(a) Length condition: `#t ≥ 1`.* By construction, `t` has `n` components, so `#t = n`. Since `n ≥ 1` (given), `#t = n ≥ 1`.
+*(ii)* `#t ≥ n`. By construction `t` has exactly `n` components, so `#t = n`, and `n ≥ n` holds.
 
-*(b) Component condition: `dᵢ ∈ ℕ` for all `1 ≤ i ≤ n`.* For each `i` with `1 ≤ i ≤ n`, `dᵢ = 1`. Since `1 ∈ ℕ`, every component is a natural number.
-
-Both conditions are satisfied, so `t ∈ T`.
-
-**Stage 4: Length bound and universal closure.** By construction, `t` has exactly `n` components: `#t = n`. The inequality `#t ≥ n` reduces to `n ≥ n`, which holds for all `n ∈ ℕ` by reflexivity of `≥`.
-
-The witness `t` satisfies both requirements: `t ∈ T` (Stage 3) and `#t ≥ n` (this stage). Therefore the existential `(E t ∈ T :: #t ≥ n)` is satisfied. Since `n ≥ 1` was arbitrary, the universal claim `(A n ∈ ℕ : n ≥ 1 : (E t ∈ T :: #t ≥ n))` holds. ∎
+Since `n` was arbitrary, the universal claim holds. ∎
 
 *Formal Contract:*
 - *Axiom:* T is the set of all finite sequences over ℕ with length ≥ 1. Since there is no upper bound on the length of finite sequences, for any `n ≥ 1`, the constant sequence of `n` ones is a member of T with `#t = n ≥ n`.
@@ -80,7 +70,7 @@ We observe that Gregory's implementation uses a fixed 16-digit mantissa of 32-bi
 
 We require a total order on T. Nelson describes the "tumbler line" as a single linear sequence: "In a sense the tumbler line is like the real line, i.e., the line of integers and all the numbers in between." The system maps a hierarchical tree — servers containing accounts containing documents containing elements — onto this flat line via depth-first traversal. The traversal inherently produces a total order: for any two nodes in a tree, depth-first traversal visits one before the other. The ordering rule is lexicographic:
 
-**T1 (LexicographicOrder).** For tumblers `a = a₁. ... .aₘ` and `b = b₁. ... .bₙ`, define `a < b` iff there exists `k ≥ 1` such that `(A i : 1 ≤ i < k : aᵢ = bᵢ)` and either:
+**T1 (Lexicographic order).** For tumblers `a = a₁. ... .aₘ` and `b = b₁. ... .bₙ`, define `a < b` iff there exists `k ≥ 1` such that `(A i : 1 ≤ i < k : aᵢ = bᵢ)` and either:
 
   (i) `k ≤ min(m, n)` and `aₖ < bₖ`, or
 
@@ -102,7 +92,7 @@ Let `a, b ∈ T` with `#a = m` and `#b = n`. Define the *first divergence positi
 
 *Case 2: `k ≤ min(m, n)` and `aₖ ≠ bₖ`.* Since `aᵢ = bᵢ` for all `i < k` but `aₖ ≠ bₖ`, we have `a ≠ b`. By trichotomy on ℕ, exactly one of `aₖ < bₖ` or `bₖ < aₖ` holds. If `aₖ < bₖ`, then `k` witnesses `a < b` via T1 case (i); if `bₖ < aₖ`, then `k` witnesses `b < a` via T1 case (i). We confirm that no witness establishes the reverse. Any witness `k'` for the opposite ordering requires `aᵢ = bᵢ` for all `i < k'`. If `k' > k`, this fails at position `k` where `aₖ ≠ bₖ`. If `k' = k`, case (i) requires the opposite inequality at position `k`, contradicting ℕ-trichotomy, and case (ii) requires `k = n + 1` (or `k = m + 1`), contradicting `k ≤ min(m, n) ≤ n` (respectively `≤ m`). If `k' < k`, the minimality of `k` gives `a_{k'} = b_{k'}`, so case (i) fails on equal components and case (ii) requires `k' = n + 1` (or `m + 1`), but `k' < k ≤ min(m, n)` gives `k' < n` and `k' < m`, contradicting both. No witness exists; exactly one ordering holds.
 
-*Case 3: `k = min(m, n) + 1` — all shared positions agree but `m ≠ n`.* Since `aᵢ = bᵢ` for all `1 ≤ i ≤ min(m, n)` but `m ≠ n`, we have `a ≠ b` by T3 (distinct lengths). If `m < n`, then `k = m + 1 ≤ n`, so `a` is a proper prefix of `b` and `k` witnesses `a < b` via T1 case (ii). No witness for `b < a` exists: case (i) would require `bⱼ < aⱼ` at some position `j ≤ min(m, n)`, but all such positions have equal components; case (ii) would require `b` to be a proper prefix of `a`, i.e., `n < m`, contradicting `m < n`. If `m > n`, then `k = n + 1 ≤ m`, so `b` is a proper prefix of `a` and `k` witnesses `b < a` via T1 case (ii). No witness for `a < b` exists: case (i) would require `aⱼ < bⱼ` at some position `j ≤ min(m, n)`, but all such positions have equal components; case (ii) would require `a` to be a proper prefix of `b`, i.e., `m < n`, contradicting `m > n`.
+*Case 3: `k = min(m, n) + 1` — all shared positions agree but `m ≠ n`.* Since `aᵢ = bᵢ` for all `1 ≤ i ≤ min(m, n)` but `m ≠ n`, we have `a ≠ b` by T3 (distinct lengths). If `m < n`, then `k = m + 1 ≤ n`, so `a` is a proper prefix of `b` and `k` witnesses `a < b` via T1 case (ii). No witness for `b < a` exists: case (i) would require `bⱼ < aⱼ` at some position `j ≤ min(m, n)`, but all such positions have equal components; case (ii) would require `b` to be a proper prefix of `a`, i.e., `n < m`, contradicting `m < n`. If `m > n`, the symmetric argument gives `b < a` as the unique outcome.
 
 These three cases partition all pairs in `T × T`, and in each case exactly one of the three relations holds.
 
@@ -134,25 +124,21 @@ Nelson's assertion that the tumbler line is total — that two addresses are nev
 
 Nelson requires that comparison be self-contained — no index consultation needed:
 
-**T2 (IntrinsicComparison).** The order relation T1 is computable from the two tumblers alone, without consulting any external data structure. The comparison examines at most `min(#a, #b)` component pairs.
+**T2 (Intrinsic comparison).** The order relation T1 is computable from the two tumblers alone, without consulting any external data structure. The comparison examines at most `min(#a, #b)` component pairs.
 
-*Proof.* We must establish two claims: (1) the comparison requires no data beyond the components and lengths of the two tumblers, and (2) the number of component pairs examined is at most `min(#a, #b)`. The argument proceeds in four stages: define the comparison procedure derived from T1, analyze the divergence case, analyze the exhaustion case, and verify data closure.
+*Proof.* We must establish two claims: (1) the comparison requires no data beyond the components and lengths of the two tumblers, and (2) the number of component pairs examined is at most `min(#a, #b)`.
 
-Let `a = a₁. ... .aₘ` and `b = b₁. ... .bₙ`. The definition of `<` in T1 asks for the existence of a witness position `k ≥ 1` satisfying two conditions: agreement at all positions before `k`, and either a component divergence at `k` or prefix exhaustion at `k`.
+Let `a = a₁. ... .aₘ` and `b = b₁. ... .bₙ`. The definition of `<` in T1 asks for the existence of a witness position `k ≥ 1` satisfying two conditions: agreement at all positions before `k`, and either a component divergence at `k` or prefix exhaustion at `k`. We trace exactly what data this examination consults and how many comparisons it performs.
 
-**Stage 1: Comparison procedure.** The definition of T1 determines a scanning procedure: examine positions `i = 1, 2, ...` in order, comparing the pair `(aᵢ, bᵢ)` at each position. The scan terminates at the first position where the tumblers diverge, or when one tumbler is exhausted. At each position, the scan consults exactly two values — `aᵢ` and `bᵢ` — both components of the input tumblers. Two terminal outcomes are possible, analyzed in Stages 2 and 3.
+The comparison proceeds by scanning positions `i = 1, 2, ...` and comparing the pair `(aᵢ, bᵢ)` at each position. Two outcomes are possible.
 
-**Stage 2: Divergence at position `k ≤ min(m, n)`.** The scan finds `aₖ ≠ bₖ` after verifying `aᵢ = bᵢ` for all `1 ≤ i < k`. The number of component pairs examined is exactly `k`: one pair at each of the `k - 1` agreeing positions, plus one pair at the divergence position. Since `k ≤ min(m, n)`, the bound `k ≤ min(#a, #b)` holds. The ordering is decided by whether `aₖ < bₖ` (giving `a < b` via T1 case (i)) or `bₖ < aₖ` (giving `b < a` via T1 case (i)) — a comparison of two natural numbers, both components of the input tumblers. Trichotomy on ℕ ensures exactly one holds, since `aₖ ≠ bₖ`.
+*Case 1: divergence at some position `k ≤ min(m, n)`.* The scan finds `aₖ ≠ bₖ` after verifying `aᵢ = bᵢ` for all `1 ≤ i < k`. Exactly `k` component pairs are examined. Since `k ≤ min(m, n)`, the bound holds. The ordering is decided by whether `aₖ < bₖ` or `bₖ < aₖ` — a comparison of two natural numbers, both intrinsic to the tumblers.
 
-**Stage 3: Exhaustion without divergence.** The scan reaches position `min(m, n)` without finding any `i` with `aᵢ ≠ bᵢ`. That is, `aᵢ = bᵢ` for all `1 ≤ i ≤ min(m, n)`. The number of component pairs examined is exactly `min(m, n) = min(#a, #b)` — the bound holds with equality. The ordering is then determined by comparing the lengths `m = #a` and `n = #b`, which are intrinsic properties of the tumblers:
+*Case 2: no divergence within the shared range.* The scan exhausts all `min(m, n)` positions without finding `aᵢ ≠ bᵢ`. Exactly `min(m, n)` component pairs are examined. The result is then determined by comparing the lengths `m` and `n`: if `m < n`, then `a` is a proper prefix of `b` and T1 case (ii) gives `a < b`; if `n < m`, the symmetric argument gives `b < a`; if `m = n`, then T3 gives `a = b`.
 
-- If `m < n`: `a` agrees with the first `m` components of `b` and `#a < #b`, so `k = m + 1` witnesses `a < b` via T1 case (ii).
-- If `n < m`: by the symmetric argument, `k = n + 1` witnesses `b < a` via T1 case (ii).
-- If `m = n`: then `#a = #b` and `aᵢ = bᵢ` for all `1 ≤ i ≤ m`, so `a = b` by T3 (canonical representation).
+In both cases, the number of component pairs examined is at most `min(m, n) = min(#a, #b)`, establishing claim (2).
 
-These three sub-cases are exhaustive by trichotomy on ℕ applied to `m` and `n`.
-
-**Stage 4: Data closure.** We now verify claim (1). In Stages 2 and 3, every value consulted falls into one of three categories: (a) a component `aᵢ` for some `1 ≤ i ≤ m`, which is part of tumbler `a`; (b) a component `bᵢ` for some `1 ≤ i ≤ n`, which is part of tumbler `b`; (c) a length `m = #a` or `n = #b`, which is a property of tumbler `a` or `b` respectively. No value outside the set `{aᵢ : 1 ≤ i ≤ m} ∪ {bᵢ : 1 ≤ i ≤ n} ∪ {m, n}` is consulted. In particular, the definition of T1 references no tree structure, no index, no auxiliary mapping, and no external state. The comparison is a pure function of the two tumblers. ∎
+For claim (1), we observe that every value consulted — the components `aᵢ` and `bᵢ` at each position, and the lengths `m` and `n` — belongs to the two tumblers themselves. The definition of T1 is expressed entirely in terms of these values. No tree structure, no index, no auxiliary mapping, and no external state participates in the decision. ∎
 
 The importance of T2 is operational: span containment tests, link search, and index traversal all reduce to tumbler comparison. If comparison required a lookup, these operations would depend on auxiliary state, and the system's decentralization guarantee would collapse — one could not determine whether an address falls within a span without access to the index that manages that span.
 
@@ -168,7 +154,7 @@ Gregory's implementation confirms T2. The comparison function `tumblercmp` deleg
 
 Equality of tumblers must mean component-wise identity. There must be no representation in which two distinct sequences of components denote the same abstract tumbler:
 
-**T3 (CanonicalRepresentation).** `(A a, b ∈ T : a₁ = b₁ ∧ ... ∧ aₙ = bₙ ∧ #a = #b ≡ a = b)`.
+**T3 (Canonical representation).** `(A a, b ∈ T : a₁ = b₁ ∧ ... ∧ aₙ = bₙ ∧ #a = #b ≡ a = b)`.
 
 If two tumblers have the same length and the same components at every position, they are the same tumbler. Conversely, if they differ in any component or in length, they are distinct. No normalization, no trailing-zero ambiguity, no exponent variation can create aliases.
 
@@ -211,7 +197,7 @@ where each `Nᵢ, Uⱼ, Dₖ, Eₗ > 0`. The four fields are:
 
 Not every tumbler need have all four fields. A tumbler with zero zeros addresses a node. One zero: a user account. Two zeros: a document. Three zeros: an element. The count of zero-valued components determines the specificity level.
 
-**T4 (HierarchicalParsing).** Every tumbler `t ∈ T` used as an address contains at most three zero-valued components, appearing in order as field separators, every non-separator component is strictly positive, and every field present in the address has at least one component. Formally, if `t = N₁. ... .Nₐ . 0 . U₁. ... .Uᵦ . 0 . D₁. ... .Dᵧ . 0 . E₁. ... .Eδ`, then `(A i : 1 ≤ i ≤ α : Nᵢ > 0)`, `(A j : 1 ≤ j ≤ β : Uⱼ > 0)`, `(A k : 1 ≤ k ≤ γ : Dₖ > 0)`, `(A l : 1 ≤ l ≤ δ : Eₗ > 0)`, and `α ≥ 1`, `β ≥ 1` when present, `γ ≥ 1` when present, `δ ≥ 1` when present. We call this the *positive-component constraint*: every component of every field is strictly positive. The non-empty field constraint — each present field has at least one component — is equivalent to three syntactic conditions on the raw tumbler: no two zeros are adjacent, the tumbler does not begin with zero, and the tumbler does not end with zero. These conditions ensure that every zero genuinely separates two non-empty fields. Without the non-empty field constraint, a tumbler like `[1, 0, 0, 3]` would have `zeros = 2`, classifying it as a document address with an empty user field — the positive-component constraint holds vacuously on the empty field, but the parse is degenerate. The function `fields(t)` that extracts the node, user, document, and element fields is well-defined and computable from `t` alone. Define `zeros(t) = #{i : 1 ≤ i ≤ #t ∧ tᵢ = 0}`. The count of zero-valued components uniquely determines the hierarchical level:
+**T4 (Hierarchical parsing).** Every tumbler `t ∈ T` used as an address contains at most three zero-valued components, appearing in order as field separators, every non-separator component is strictly positive, and every field present in the address has at least one component. Formally, if `t = N₁. ... .Nₐ . 0 . U₁. ... .Uᵦ . 0 . D₁. ... .Dᵧ . 0 . E₁. ... .Eδ`, then `(A i : 1 ≤ i ≤ α : Nᵢ > 0)`, `(A j : 1 ≤ j ≤ β : Uⱼ > 0)`, `(A k : 1 ≤ k ≤ γ : Dₖ > 0)`, `(A l : 1 ≤ l ≤ δ : Eₗ > 0)`, and `α ≥ 1`, `β ≥ 1` when present, `γ ≥ 1` when present, `δ ≥ 1` when present. We call this the *positive-component constraint*: every component of every field is strictly positive. The non-empty field constraint — each present field has at least one component — is equivalent to three syntactic conditions on the raw tumbler: no two zeros are adjacent, the tumbler does not begin with zero, and the tumbler does not end with zero. These conditions ensure that every zero genuinely separates two non-empty fields. Without the non-empty field constraint, a tumbler like `[1, 0, 0, 3]` would have `zeros = 2`, classifying it as a document address with an empty user field — the positive-component constraint holds vacuously on the empty field, but the parse is degenerate. The function `fields(t)` that extracts the node, user, document, and element fields is well-defined and computable from `t` alone. Define `zeros(t) = #{i : 1 ≤ i ≤ #t ∧ tᵢ = 0}`. The count of zero-valued components uniquely determines the hierarchical level:
 
   - `zeros(t) = 0`: `t` is a node address (node field only),
   - `zeros(t) = 1`: `t` is a user address (node and user fields),
@@ -224,9 +210,9 @@ A subtlety deserves emphasis: the hierarchy is *convention layered over flat ari
 
 Hierarchy is constructed by the allocation machinery, not by the algebra. The `.0.` separator is produced when the allocation `depth` parameter equals 2 — creating a child at a *different hierarchical type* than its parent (e.g., an ACCOUNT creating a DOCUMENT). When creating a same-type child (DOCUMENT creating DOCUMENT = versioning), `depth = 1`, and no zero separator is introduced. Gregory confirms: there was even a bug where the first document under an account failed to receive its `.0.` separator — the convention had to be explicitly constructed by the allocator, not enforced by any algebraic invariant.
 
-**Verification of T4.** T4 is an axiom: it constrains which tumblers the system admits as valid addresses. We verify three consequences that follow from these constraints. The argument uses T3 (tumbler identity is sequence identity) and the T4 constraints themselves; no other properties are required.
+**Verification of T4.** T4 is an axiom: it constrains which tumblers the system admits as valid addresses. We verify three consequences that follow from these constraints. The argument uses only T3 (canonical representation) and the T4 constraints themselves; no other properties are required.
 
-*(a) Syntactic equivalence of the non-empty field constraint.* We prove that, given the positive-component constraint, the non-empty field constraint — each present field has at least one component — is equivalent to three syntactic conditions on the raw tumbler: (i) no two zeros are adjacent, (ii) `t₁ ≠ 0`, (iii) `t_{#t} ≠ 0`.
+*(a) Syntactic equivalence of the non-empty field constraint.* We prove that the non-empty field constraint — each present field has at least one component — is equivalent to three syntactic conditions on the raw tumbler: (i) no two zeros are adjacent, (ii) `t₁ ≠ 0`, (iii) `t_{#t} ≠ 0`.
 
 *Forward.* Assume every present field has at least one component, and that the positive-component constraint holds (every field component is strictly positive). We derive each syntactic condition separately.
 
@@ -234,23 +220,15 @@ Hierarchy is constructed by the allocation machinery, not by the algebra. The `.
 
 *Condition (iii): `t_{#t} ≠ 0`.* The last component `t_{#t}` belongs to the last present field — the node field if `zeros(t) = 0`, the user field if `zeros(t) = 1`, the document field if `zeros(t) = 2`, or the element field if `zeros(t) = 3`. In each case, that field has at least one component by the non-empty field constraint, and its last component is strictly positive by the positive-component constraint. Hence `t_{#t} > 0`, so `t_{#t} ≠ 0`.
 
-*Condition (i): no adjacent zeros.* Suppose for contradiction that `tᵢ = 0` and `tᵢ₊₁ = 0` for some position `i` with `1 ≤ i < #t`. By the positive-component constraint, no field component can be zero, so every zero-valued component is a field separator. Two consecutive separators at positions `i` and `i + 1` bound a field segment containing zero components — an empty field. This contradicts the non-empty field constraint. Hence no two zeros are adjacent.
+*Condition (i): no adjacent zeros.* Suppose for contradiction that `tᵢ = 0` and `tᵢ₊₁ = 0` for some position `i` with `1 ≤ i < #t`. Under T4, every zero-valued component is a field separator. Two consecutive separators at positions `i` and `i + 1` would bound a field segment containing zero components — an empty field. This contradicts the non-empty field constraint. Hence no two zeros are adjacent.
 
-*Reverse.* Assume (i), (ii), (iii), and the positive-component constraint hold. We must show that every present field has at least one component. Write `z₁ < z₂ < ... < z_m` for the positions of zero-valued components in `t`, where `m = zeros(t) ≤ 3`. By the positive-component constraint, every zero is a field separator — no field component can be zero. The separators partition `t` into `m + 1` segments: segment 1 spans positions `[1, z₁ - 1]`, segment `k` (for `2 ≤ k ≤ m`) spans `[z_{k-1} + 1, z_k - 1]`, and segment `m + 1` spans `[z_m + 1, #t]`. When `m = 0`, the single segment is `[1, #t]`. We show each segment is non-empty.
-
-*First segment.* By (ii), `t₁ ≠ 0`, so position 1 is not a zero position. If `m ≥ 1`, then `z₁ ≥ 2`, and the segment `[1, z₁ - 1]` contains at least position 1. If `m = 0`, the single segment `[1, #t]` is non-empty since `#t ≥ 1`.
-
-*Last segment.* By (iii), `t_{#t} ≠ 0`, so `#t` is not a zero position. If `m ≥ 1`, then `z_m ≤ #t - 1`, and the segment `[z_m + 1, #t]` contains at least position `#t`.
-
-*Interior segments.* For `2 ≤ k ≤ m`, consider segment `k` spanning `[z_{k-1} + 1, z_k - 1]`. By (i), no two zeros are adjacent, so `z_k ≥ z_{k-1} + 2`, giving `z_k - 1 ≥ z_{k-1} + 1`. The segment contains at least one position. Every component in this range is non-zero: `z_{k-1}` and `z_k` are consecutive zero positions by construction, so no zero lies strictly between them.
-
-All `m + 1` segments are non-empty, so every present field has at least one component.
+*Reverse.* Assume (i), (ii), and (iii) hold. We must show that every field has at least one component. The field segments of `t` are the maximal contiguous sub-sequences between consecutive separator zeros (with the first segment running from position 1 to the first zero minus one, and the last from the last zero plus one to position `#t`). By (ii), position 1 precedes any separator — if `t₁ ≠ 0`, the first segment begins with a non-zero component, so the node field is non-empty. By (iii), position `#t` follows any separator — if `t_{#t} ≠ 0`, the last segment ends with a non-zero component, so the last field is non-empty. By (i), between any two consecutive separator zeros at positions `j` and `j'` with `j' > j + 1` guaranteed, there is at least one position `j + 1 ≤ p < j'` with `tₚ ≠ 0` — actually, stronger: since `j' - j ≥ 2` (no adjacent zeros), the segment from `j + 1` to `j' - 1` contains at least one position, and that position is non-zero (it is a field component, not a separator). So every interior field is non-empty. All fields have at least one component.
 
 *(b) Unique parse.* We prove that under the T4 constraints, `fields(t)` — the decomposition of `t` into node, user, document, and element fields — is well-defined and uniquely determined by `t` alone.
 
-The argument turns on a single observation: the positive-component constraint makes the separator positions exactly recoverable. A position `i` satisfies `tᵢ = 0` if and only if `i` is a field separator. The forward direction: every separator has value 0 by the definition of the field decomposition — separators are the zero-valued components that delimit fields. The reverse direction: if `tᵢ = 0`, then `i` must be a separator, because no field component can be zero (every field component is strictly positive by the positive-component constraint). Therefore `{i : 1 ≤ i ≤ #t ∧ tᵢ = 0}` is exactly the set of separator positions — computable by a single scan of `t`. By T3, the component sequence of `t` is the tumbler itself: there is no representational ambiguity in reading off the zero positions, because tumbler identity is sequence identity.
+The argument turns on a single observation: the positive-component constraint makes the separator positions exactly recoverable. A position `i` satisfies `tᵢ = 0` if and only if `i` is a field separator. The forward direction: every separator has value 0 by the definition of the field decomposition — separators are the zero-valued components that delimit fields. The reverse direction: if `tᵢ = 0`, then `i` must be a separator, because no field component can be zero (every field component is strictly positive by the positive-component constraint). Therefore `{i : 1 ≤ i ≤ #t ∧ tᵢ = 0}` is exactly the set of separator positions — computable by a single scan of `t`.
 
-Given the separator positions `z₁ < ... < z_m`, the fields are the maximal contiguous sub-sequences between them: the node field is `(t₁, ..., t_{z₁-1})`, the user field is `(t_{z₁+1}, ..., t_{z₂-1})`, and so on, with the last field running from `z_m + 1` to `#t`. By part (a), each sub-sequence is non-empty. The separator positions are uniquely determined by `t`, so the field boundaries are uniquely determined. Two distinct decompositions would require two distinct sets of separator positions, but there is only one such set. Therefore `fields(t)` is well-defined and unique.
+Given the separator positions, the fields are the maximal contiguous sub-sequences between them: the node field runs from position 1 to the first separator minus one, the user field from the first separator plus one to the second separator minus one, and so on. By part (a), each sub-sequence is non-empty. The separator positions are uniquely determined by `t`, so the field boundaries are uniquely determined. Two distinct decompositions would require two distinct sets of separator positions, but there is only one such set. Therefore `fields(t)` is well-defined and unique.
 
 *(c) Level determination.* We prove that `zeros(t)` uniquely determines the hierarchical level, and the mapping is a bijection on `{0, 1, 2, 3}`.
 
@@ -269,15 +247,14 @@ We note the essential role of the positive-component constraint in this result. 
 
 *Formal Contract:*
 - *Axiom:* Valid address tumblers satisfy `zeros(t) ≤ 3`, `(A i : 1 ≤ i ≤ #t ∧ tᵢ ≠ 0 : tᵢ > 0)`, no adjacent zeros, `t₁ ≠ 0`, `t_{#t} ≠ 0`.
-- *Definition:* `zeros(t) = #{i : 1 ≤ i ≤ #t ∧ tᵢ = 0}`. `fields(t)` partitions `t` into the maximal contiguous sub-sequences of positive components, delimited by zero-valued separator positions.
-- *Postconditions:* (a) Non-empty field constraint ≡ no adjacent zeros ∧ `t₁ ≠ 0` ∧ `t_{#t} ≠ 0`. (b) `fields(t)` is well-defined and unique. (c) `zeros(t)` determines the hierarchical level bijectively on `{0, 1, 2, 3}`.
+- *Postconditions:* (a) `fields(t)` is well-defined and unique. (b) `zeros(t)` determines the hierarchical level bijectively on `{0, 1, 2, 3}`.
 
 
 ## Contiguous subtrees
 
 T4, combined with the total order T1, gives us the property that makes spans work:
 
-**T5 (ContiguousSubtrees).** For any tumbler prefix `p`, the set `{t ∈ T : p ≼ t}` (where `≼` denotes "is a prefix of") forms a contiguous interval under T1:
+**T5 (Contiguous subtrees).** For any tumbler prefix `p`, the set `{t ∈ T : p ≼ t}` (where `≼` denotes "is a prefix of") forms a contiguous interval under T1:
 
   `[p ≼ a ∧ p ≼ c ∧ a ≤ b ≤ c ⟹ p ≼ b]`
 
@@ -320,7 +297,7 @@ Because the hierarchy is projected onto a flat line (T1), containment in the tre
 
 The total order T1 determines *sequence* (which address comes first). But the system also needs *containment* — does address `a` belong to account `b`? Is document `d₁` under the same server as document `d₂`? These are not ordering questions; they are prefix questions.
 
-**T6 (DecidableContainment).** For any two tumblers `a, b ∈ T`, the following are decidable from the addresses alone:
+**T6 (Decidable containment).** For any two tumblers `a, b ∈ T`, the following are decidable from the addresses alone:
 
   (a) Whether `a` and `b` share the same node field.
 
@@ -367,7 +344,7 @@ Gregory's implementation confirms the distinction between ordering and containme
 
 Within a document's element space, the first component after the third zero delimiter identifies the *subspace*: 1 for text, 2 for links. Nelson also mentions that the link subspace "could be further subdivided." The critical property is permanent separation:
 
-**T7 (SubspaceDisjointness).** The subspace identifier (the first component of the element field) permanently separates the address space into disjoint regions. No tumbler in subspace `s₁` can equal or be confused with a tumbler in subspace `s₂ ≠ s₁`.
+**T7 (Subspace disjointness).** The subspace identifier (the first component of the element field) permanently separates the address space into disjoint regions. No tumbler in subspace `s₁` can equal or be confused with a tumbler in subspace `s₂ ≠ s₁`.
 
   `(A a, b ∈ T : a.E₁ ≠ b.E₁ ⟹ a ≠ b)`
 
@@ -404,29 +381,21 @@ The ordering T1 places all text addresses (subspace 1) before all link addresses
 
 The most consequential property of the address system is that once an address is allocated, it persists forever:
 
-**T8 (AllocationPermanence).** If tumbler `a ∈ T` has been allocated at any point in the system's history, then for all subsequent states, `a` remains in the set of allocated addresses. No operation removes an allocated address from the address space. The set of allocated addresses is monotonically non-decreasing.
+**T8 (Allocation permanence).** If tumbler `a ∈ T` has been allocated at any point in the system's history, then for all subsequent states, `a` remains in the set of allocated addresses. No operation removes an allocated address from the address space. The set of allocated addresses is monotonically non-decreasing.
 
-*Proof.* We must show that the set of allocated addresses grows monotonically: for every state transition s → s', `allocated(s) ⊆ allocated(s')`. The argument proceeds in four stages: define the state model, verify single-step preservation by case analysis over all operation classes, establish exhaustiveness, and lift the single-step result to arbitrary transition sequences by induction.
+*Proof.* We must show that the set of allocated addresses grows monotonically: for every state transition s → s', `allocated(s) ⊆ allocated(s')`.
 
-**Stage 1: State model.** A *state* `s` of the system carries, among other data, a set `allocated(s) ⊆ T` — the addresses that have been allocated up to and including state `s`. A *state transition* `s → s'` is the effect of executing one operation defined by the system. Our claim is the *monotone-allocation invariant*: `(A s, s' : s → s' : allocated(s) ⊆ allocated(s'))` — no single transition removes an address from the allocated set.
+Every operation the system defines falls into exactly one of three classes; we treat each in turn.
 
-**Stage 2: Single-step preservation — case analysis.** Every operation the system defines falls into exactly one of three classes. We treat each in turn, showing that the monotone-allocation invariant holds for every transition in that class.
+*Case 1: Read-only operations.* Comparison and parsing (T1, T2, T4) inspect tumbler values without modifying any state. These transitions satisfy `allocated(s') = allocated(s)`, so `allocated(s) ⊆ allocated(s')` holds trivially.
 
-*Case 1: Read-only operations.* Comparison (T1, T2) and parsing (T4) inspect tumbler values — examining components, counting zeros, scanning for divergence positions — without modifying any state. These operations produce an ordering judgment or a field decomposition, but alter no set. The transition satisfies `allocated(s') = allocated(s)`, so `allocated(s) ⊆ allocated(s')` holds by reflexivity of `⊆`.
+*Case 2: Pure arithmetic.* The operations ⊕, ⊖, and inc are pure functions on T — they compute new tumbler values and return them without mutating allocation state. These transitions also satisfy `allocated(s') = allocated(s)`.
 
-*Case 2: Pure arithmetic.* The operations `⊕` (tumbler addition), `⊖` (tumbler subtraction), and `inc` (TA5, hierarchical increment) are pure functions on T — they accept tumbler inputs and return tumbler outputs without consulting or mutating the allocated set. The returned tumbler is a computed value, not an allocation event; it becomes allocated only if an allocator subsequently inserts it into the set (which is a Case 3 transition, not a Case 2 transition). These transitions satisfy `allocated(s') = allocated(s)`, so `allocated(s) ⊆ allocated(s')` holds by reflexivity of `⊆`.
+*Case 3: Allocation.* T10a constrains allocation to a single mechanism: each allocator advances its frontier by repeated application of `inc(·, 0)` (TA5), producing an address strictly greater than the previous, and inserts it into the allocated set. The transition satisfies `allocated(s') = allocated(s) ∪ {a_new}` for some fresh address `a_new`. Since `allocated(s) ⊆ allocated(s) ∪ {a_new} = allocated(s')`, the inclusion holds.
 
-*Case 3: Allocation.* T10a (AllocatorDiscipline) constrains allocation to a single mechanism: each allocator advances its frontier by repeated application of `inc(·, 0)` (TA5), producing an address strictly greater than the previous (TA5(a)), and inserts it into the allocated set. The transition satisfies `allocated(s') = allocated(s) ∪ {a_new}` for some fresh address `a_new`. We verify the inclusion: for every `a ∈ allocated(s)`, we have `a ∈ allocated(s) ∪ {a_new} = allocated(s')`, so `allocated(s) ⊆ allocated(s')`. The set grows by exactly one element; no element is removed.
+These three cases are exhaustive. The system specification defines no inverse operation — no "deallocate", "free", or "reclaim" that would remove an address from the allocated set. The absence of any removal operation is a deliberate design axiom, not a derived property.
 
-**Stage 3: Exhaustiveness.** The three cases above partition all operations the system defines. Cases 1 and 2 cover every operation that does not modify the allocated set — every read-only inspection and every pure arithmetic computation. Case 3 covers the only operation that does modify the allocated set — insertion of a freshly allocated address. The system specification defines no inverse operation: no "deallocate", "free", or "reclaim" that would remove an address from `allocated(s)`. The absence of any removal operation is a deliberate design axiom, not a derived property. Since every defined operation falls into one of the three cases, and every case preserves `allocated(s) ⊆ allocated(s')`, the monotone-allocation invariant holds for every single-step transition.
-
-**Stage 4: Induction on transition sequences.** We lift the single-step result to arbitrary transition sequences. Let `s₀ → s₁ → ··· → sₙ` be a finite sequence of `n` transitions. We prove by induction on `n` that `allocated(s₀) ⊆ allocated(sₙ)`.
-
-*Base case* (`n = 0`). The sequence is the trivial sequence `s₀`, with no transitions. The claim `allocated(s₀) ⊆ allocated(s₀)` holds by reflexivity of `⊆`.
-
-*Inductive step* (from `n` to `n + 1`). Assume `allocated(s₀) ⊆ allocated(sₙ)` for the prefix `s₀ → ··· → sₙ`. The transition `sₙ → sₙ₊₁` is a single-step transition. By Stage 3, `allocated(sₙ) ⊆ allocated(sₙ₊₁)`. By transitivity of `⊆` — if `A ⊆ B` and `B ⊆ C` then `A ⊆ C` — we have `allocated(s₀) ⊆ allocated(sₙ₊₁)`.
-
-The induction closes. For every reachable state `sₙ` accessible from initial state `s₀` via any finite sequence of transitions, `allocated(s₀) ⊆ allocated(sₙ)`. ∎
+Since every individual transition preserves the inclusion, an immediate induction on the length of any transition sequence s₀ → s₁ → ··· → sₙ yields `allocated(s₀) ⊆ allocated(sₙ)` for all reachable states. ∎
 
 *Formal Contract:*
 - *Invariant:* For every state transition s → s', `allocated(s) ⊆ allocated(s')`.
@@ -444,7 +413,7 @@ T8 is required for link stability (links reference addresses, which must remain 
 
 T8 tells us that addresses, once allocated, are permanent. We now ask: in what order are new addresses assigned?
 
-**T9 (ForwardAllocation).** T10a below defines the allocation mechanism: each allocator advances by `inc(·, 0)`, incrementing by exactly 1 at the last significant position. Since `inc` produces a strictly greater tumbler at each step (TA5(a)), it follows that within each allocator's sequential stream, new addresses are strictly monotonically increasing:
+**T9 (Forward allocation).** T10a below defines the allocation mechanism: each allocator advances by `inc(·, 0)`, incrementing by exactly 1 at the last significant position. Since `inc` produces a strictly greater tumbler at each step (TA5(a)), it follows that within each allocator's sequential stream, new addresses are strictly monotonically increasing:
 
   `(A a, b : same_allocator(a, b) ∧ allocated_before(a, b) : a < b)`
 
@@ -481,35 +450,21 @@ We note the scope of this result. T9 holds per-allocator, not globally. The tumb
 
 The tumbler hierarchy exists so that independent actors can allocate addresses without communicating:
 
-**T10 (PartitionIndependence).** The address space is partitioned by prefix into ownership domains. Two allocators with distinct, non-nesting prefixes can allocate simultaneously, and the resulting addresses are guaranteed distinct.
+**T10 (Partition independence).** The address space is partitioned by prefix into ownership domains. Two allocators with distinct, non-nesting prefixes can allocate simultaneously, and the resulting addresses are guaranteed distinct.
 
 Formally: let `p₁` and `p₂` be prefixes such that neither is a prefix of the other (`p₁ ⋠ p₂ ∧ p₂ ⋠ p₁`). Then for any tumbler `a` with prefix `p₁` and any tumbler `b` with prefix `p₂`, `a ≠ b`.
 
-*Proof.* We must show: given prefixes `p₁ = p₁₁. ... .p₁ₘ` and `p₂ = p₂₁. ... .p₂ₙ` satisfying `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁`, and tumblers `a` with `p₁ ≼ a` and `b` with `p₂ ≼ b`, that `a ≠ b`. The argument proceeds in four stages: establish that the prefixes diverge within their common range, locate the minimal divergence position, transfer the divergence to the tumblers, and conclude distinctness via T3.
+*Proof.* We must show: given prefixes `p₁ = p₁₁. ... .p₁ₘ` and `p₂ = p₂₁. ... .p₂ₙ` satisfying `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁`, and tumblers `a` with `p₁ ≼ a` and `b` with `p₂ ≼ b`, that `a ≠ b`.
 
-**Stage 1: Divergence existence.** Let `ℓ = min(m, n)`. We show that there exists some position `j` with `1 ≤ j ≤ ℓ` at which `p₁ⱼ ≠ p₂ⱼ`, by case analysis on the relative lengths.
+We first establish that the non-nesting prefixes must diverge at some component position. Let `ℓ = min(m, n)`. The proof splits into two cases on the relative lengths of the prefixes.
 
-*Case 1: `m ≤ n`.* Then `ℓ = m`. Since `p₁ ⋠ p₂` — `p₁` is not a prefix of `p₂` — and `#p₁ = m ≤ n = #p₂`, the length condition for `p₁ ≼ p₂` is satisfied, so the component agreement must fail: there exists some `j` with `1 ≤ j ≤ m` such that `p₁ⱼ ≠ p₂ⱼ`. (If no such `j` existed, `p₂ᵢ = p₁ᵢ` would hold for all `1 ≤ i ≤ m`, and together with `m ≤ n`, this would give `p₁ ≼ p₂` — contradicting `p₁ ⋠ p₂`.) Since `ℓ = m`, we have `j ≤ ℓ`.
+*Case 1: `m ≤ n`.* Since `p₁ ⋠ p₂` — it is not the case that `p₁` is a prefix of `p₂` — and `p₁` has length `m ≤ n`, the definition of prefix requires `p₂ᵢ = p₁ᵢ` for all `1 ≤ i ≤ m`. The failure of this condition means there exists some `j` with `1 ≤ j ≤ m` such that `p₁ⱼ ≠ p₂ⱼ`. (If no such `j` existed, then `p₂` would agree with `p₁` on all `m` positions, making `p₁` a prefix of `p₂` — contradicting `p₁ ⋠ p₂`.) Since `m ≤ n`, we have `j ≤ m = ℓ`, so the divergence occurs within the common range.
 
-*Case 2: `m > n`.* Then `ℓ = n`. Since `p₂ ⋠ p₁` — `p₂` is not a prefix of `p₁` — and `#p₂ = n < m = #p₁`, the length condition for `p₂ ≼ p₁` is satisfied (`n ≤ m`), so the component agreement must fail: there exists some `j` with `1 ≤ j ≤ n` such that `p₂ⱼ ≠ p₁ⱼ`, equivalently `p₁ⱼ ≠ p₂ⱼ`. (If no such `j` existed, `p₁ᵢ = p₂ᵢ` would hold for all `1 ≤ i ≤ n`, and together with `n ≤ m`, this would give `p₂ ≼ p₁` — contradicting `p₂ ⋠ p₁`.) Since `ℓ = n`, we have `j ≤ ℓ`.
+*Case 2: `m > n`.* By the symmetric argument applied to `p₂ ⋠ p₁`: since `p₂` has the shorter length `n < m`, and it is not a prefix of `p₁`, there exists some `j` with `1 ≤ j ≤ n` such that `p₂ⱼ ≠ p₁ⱼ`. Since `n < m`, we have `j ≤ n = ℓ`.
 
-In both cases, the set `S = {j : 1 ≤ j ≤ ℓ ∧ p₁ⱼ ≠ p₂ⱼ}` is non-empty.
+In both cases, let `k` be the *least* such divergence position: `k = min{j : 1 ≤ j ≤ ℓ ∧ p₁ⱼ ≠ p₂ⱼ}`. By construction, `p₁ᵢ = p₂ᵢ` for all `1 ≤ i < k`, and `p₁ₖ ≠ p₂ₖ`, with `k ≤ ℓ ≤ min(m, n)`.
 
-**Stage 2: Minimal divergence position.** Define `k = min S = min{j : 1 ≤ j ≤ ℓ ∧ p₁ⱼ ≠ p₂ⱼ}`. By Stage 1, `S` is non-empty, so the minimum is well-defined. By construction:
-
-- *Agreement before `k`.* For all `1 ≤ i < k`: since `k` is the least member of `S`, every position `i < k` is not in `S`, so `p₁ᵢ = p₂ᵢ`.
-- *Disagreement at `k`.* Since `k ∈ S`, we have `p₁ₖ ≠ p₂ₖ`.
-- *Index bound.* `1 ≤ k ≤ ℓ = min(m, n)`, so `k ≤ m` and `k ≤ n` — position `k` falls within both prefixes.
-
-**Stage 3: Transfer divergence to tumblers.** We use the prefix relationships to establish that `a` and `b` inherit the divergence at position `k`.
-
-*Tumbler `a`.* Since `p₁ ≼ a`, the prefix definition gives `#p₁ ≤ #a` and `aᵢ = p₁ᵢ` for all `1 ≤ i ≤ #p₁ = m`. Since `k ≤ m` (Stage 2, index bound), position `k` falls within the range `1 ≤ k ≤ m`, so the agreement applies: `aₖ = p₁ₖ`.
-
-*Tumbler `b`.* Since `p₂ ≼ b`, the prefix definition gives `#p₂ ≤ #b` and `bᵢ = p₂ᵢ` for all `1 ≤ i ≤ #p₂ = n`. Since `k ≤ n` (Stage 2, index bound), position `k` falls within the range `1 ≤ k ≤ n`, so the agreement applies: `bₖ = p₂ₖ`.
-
-We record: `aₖ = p₁ₖ` and `bₖ = p₂ₖ`, with `p₁ₖ ≠ p₂ₖ` (Stage 2, disagreement at `k`).
-
-**Stage 4: Distinctness via T3.** Combining the results of Stages 2 and 3: `aₖ = p₁ₖ ≠ p₂ₖ = bₖ`, so `aₖ ≠ bₖ`. The tumblers `a` and `b` differ at component position `k`. By the reverse direction of T3 (CanonicalRepresentation) — two tumblers that differ in any component are distinct — we conclude `a ≠ b`. ∎
+We now transfer this divergence to `a` and `b`. Since `p₁ ≼ a`, the definition of prefix gives `aᵢ = p₁ᵢ` for all `1 ≤ i ≤ m`. Since `k ≤ m`, this yields `aₖ = p₁ₖ`. Since `p₂ ≼ b`, similarly `bᵢ = p₂ᵢ` for all `1 ≤ i ≤ n`. Since `k ≤ n`, this yields `bₖ = p₂ₖ`. Combining: `aₖ = p₁ₖ ≠ p₂ₖ = bₖ`. The tumblers `a` and `b` differ at position `k`, so by the reverse direction of T3 (tumblers that differ in any component are distinct), `a ≠ b`. ∎
 
 *Formal Contract:*
 - *Preconditions:* `p₁, p₂ ∈ T` with `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁`; `a, b ∈ T` with `p₁ ≼ a` and `p₂ ≼ b`.
@@ -519,7 +474,7 @@ The proof is elementary, but the property is architecturally profound. Nelson: "
 
 Nelson: "Whoever owns a specific node, account, document or version may in turn designate (respectively) new nodes, accounts, documents and versions, by forking their integers. We often call this the 'baptism' of new numbers." Baptism is the mechanism by which ownership domains are established — the owner of a number creates sub-numbers beneath it, and those sub-numbers belong exclusively to the owner.
 
-**T10a (AllocatorDiscipline).** Each allocator produces its sibling outputs exclusively by repeated application of `inc(·, 0)` — shallow increment at the last significant position. To spawn a child allocator, the parent performs one `inc(·, k')` with `k' > 0` to establish the child's prefix, then delegates further allocation to the child. The parent's own sibling stream resumes with `inc(·, 0)`.
+**T10a (Allocator discipline).** Each allocator produces its sibling outputs exclusively by repeated application of `inc(·, 0)` — shallow increment at the last significant position. To spawn a child allocator, the parent performs one `inc(·, k')` with `k' > 0` to establish the child's prefix, then delegates further allocation to the child. The parent's own sibling stream resumes with `inc(·, 0)`.
 
 T10a constrains what would otherwise be an unregulated choice. Without it, an allocator could intermix shallow and deep increments, producing outputs of varying lengths whose prefix relationships would be uncontrolled. The `k > 0` operation is reserved exclusively for child-spawning: a single deep increment that establishes a new prefix at a deeper level, from which a new allocator continues with its own `inc(·, 0)` stream.
 
@@ -529,45 +484,29 @@ T10a constrains what would otherwise be an unregulated choice. Without it, an al
 
 *Base case.* `n = 0`: `#t₀ = #t₀` holds trivially.
 
-*Inductive step.* Assume `#tₙ = #t₀` for some `n ≥ 0`. By definition, `tₙ₊₁ = inc(tₙ, 0)`. By TA5(c), `inc(t, 0)` preserves length: `#inc(t, 0) = #t`. Applying this to `tₙ` yields `#tₙ₊₁ = #inc(tₙ, 0) = #tₙ`. By the inductive hypothesis `#tₙ = #t₀`, so `#tₙ₊₁ = #t₀`. The induction closes.
+*Inductive step.* Assume `#tₙ = #t₀`. By TA5(c), `inc(t, 0)` preserves length: `#inc(t, 0) = #t`. Applying this to `tₙ` yields `#tₙ₊₁ = #inc(tₙ, 0) = #tₙ`. By the inductive hypothesis `#tₙ = #t₀`, so `#tₙ₊₁ = #t₀`.
 
-Every sibling output of a single allocator has the same length as its base address: `(A n ≥ 0 :: #tₙ = #t₀)`.
+Every sibling output of a single allocator has the same length as its base address.
 
-**Consequence 2: Non-nesting sibling prefixes.** Let `tᵢ` and `tⱼ` be distinct siblings from the same allocator with `i < j`. We must show `tᵢ ⋠ tⱼ ∧ tⱼ ⋠ tᵢ`. The argument proceeds in three stages: establish distinctness, establish uniform length, and derive non-nesting by contradiction.
+**Consequence 2: Non-nesting sibling prefixes.** Let `tᵢ` and `tⱼ` be distinct siblings from the same allocator with `i < j`. We must show `tᵢ ⋠ tⱼ ∧ tⱼ ⋠ tᵢ`.
 
-**Stage 1: Distinctness.** By TA5(a), each application of `inc(·, 0)` produces a strictly greater tumbler under T1: `inc(t, 0) > t`. Starting from `t₀`, this gives the chain `t₀ < t₁ < t₂ < ... < tⱼ`. Since `i < j`, the chain includes the segment from `tᵢ` to `tⱼ`, so by repeated application of T1 transitivity (part (c)), `tᵢ < tⱼ`. By T1 irreflexivity (part (a)), `tᵢ < tⱼ` implies `tᵢ ≠ tⱼ`.
+First, `tᵢ ≠ tⱼ`. By TA5(a), each application of `inc(·, 0)` produces a strictly greater tumbler under T1, so the sibling sequence is strictly increasing: `t₀ < t₁ < ... < tⱼ`. In particular `tᵢ < tⱼ`, and by T1 irreflexivity `tᵢ ≠ tⱼ`.
 
-**Stage 2: Uniform length.** By Consequence 1, `#tᵢ = #t₀` and `#tⱼ = #t₀`, since both are siblings of the same allocator with base address `t₀`. Therefore `#tᵢ = #tⱼ`.
+Second, `#tᵢ = #tⱼ` by Consequence 1, since both are siblings of the same allocator.
 
-**Stage 3: Non-nesting by contradiction.** The prefix relation `s ≼ r` holds when `#s ≤ #r` and `sₖ = rₖ` for all `1 ≤ k ≤ #s`. When `s ≼ r` and `s ≠ r`, this is a *proper* prefix relationship, which requires `#s < #r` — for if `#s = #r` and `sₖ = rₖ` at every position, then `s = r` by T3 (canonical representation), contradicting `s ≠ r`.
+Now suppose for contradiction that `tᵢ ≼ tⱼ`. Since `tᵢ ≠ tⱼ`, this is a proper prefix relationship, which requires `#tᵢ < #tⱼ` — contradicting `#tᵢ = #tⱼ`. The symmetric argument excludes `tⱼ ≼ tᵢ`: if `tⱼ ≼ tᵢ` with `tⱼ ≠ tᵢ`, then `#tⱼ < #tᵢ`, again contradicting `#tᵢ = #tⱼ`. Therefore `tᵢ ⋠ tⱼ ∧ tⱼ ⋠ tᵢ` — the sibling prefixes are non-nesting, satisfying the precondition of T10.
 
-Suppose for contradiction that `tᵢ ≼ tⱼ`. Since `tᵢ ≠ tⱼ` (Stage 1), this is a proper prefix relationship, requiring `#tᵢ < #tⱼ`. But `#tᵢ = #tⱼ` (Stage 2), a contradiction. Therefore `tᵢ ⋠ tⱼ`.
+**Consequence 3: Length separation between parent and child domains.** Let a parent allocator have base address `t₀` with sibling length `γ = #t₀`. When the parent spawns a child via `inc(t, k')` with `k' > 0` — where `t` is one of the parent's siblings — the child's base address `c₀` has length `#c₀ = #t + k'` by TA5(d). Since `t` is a parent sibling, `#t = γ` by Consequence 1, so `#c₀ = γ + k'`.
 
-Now suppose for contradiction that `tⱼ ≼ tᵢ`. Since `tⱼ ≠ tᵢ` (Stage 1, which established `tᵢ ≠ tⱼ`), this is a proper prefix relationship, requiring `#tⱼ < #tᵢ`. But `#tᵢ = #tⱼ` (Stage 2), a contradiction. Therefore `tⱼ ⋠ tᵢ`.
+The child allocator produces its own siblings by `inc(·, 0)`. By Consequence 1 applied to the child, all child outputs have uniform length `γ + k'`. Since `k' ≥ 1`, every child output has length at least `γ + 1 > γ` — strictly longer than any parent sibling. By T3, tumblers that differ in length are distinct: no child output can equal any parent sibling.
 
-Combining: `tᵢ ⋠ tⱼ ∧ tⱼ ⋠ tᵢ` — the sibling prefixes are non-nesting, satisfying the precondition of T10.
+The separation is additive across nesting levels. Each child-spawning step adds at least one component, so a descendant `d` levels deep produces outputs of length at least `γ + d`. Outputs at different depths never collide by length alone.
 
-**Consequence 3: Length separation between parent and child domains.** Let a parent allocator have base address `t₀` with sibling length `γ = #t₀`. We establish the child's length, show the separation is strict, and verify that it propagates across nesting levels.
+**Necessity.** We show that relaxing the `k = 0` restriction for siblings permits nesting, violating the precondition of T10.
 
-**Stage 1: Child base length.** When the parent spawns a child via `inc(t, k')` with `k' > 0` — where `t` is one of the parent's siblings — the child's base address is `c₀ = inc(t, k')`. By TA5(d), `#c₀ = #t + k'`. Since `t` is a parent sibling, `#t = γ` by Consequence 1, so `#c₀ = γ + k'`.
+Suppose an allocator produces `t₁ = inc(t₀, 0)` followed by `t₂ = inc(t₁, 1)`. By TA5(c), `#t₁ = #t₀`. By TA5(d), `#t₂ = #t₁ + 1 = #t₀ + 1`, so `#t₁ < #t₂`. By TA5(b), `t₂` agrees with `t₁` on all components before the increment point. For `inc(t₁, 1)` with `k = 1`, the child construction (TA5(d)) copies all of `t₁` into positions `1, ..., #t₁` of `t₂`. So `t₂` agrees with `t₁` on positions `1, ..., #t₁`, and `#t₁ < #t₂`. By T1 case (ii), `t₁` is a proper prefix of `t₂`: `t₁ ≼ t₂`.
 
-**Stage 2: Child sibling uniformity.** The child allocator produces its own siblings by `inc(·, 0)` (T10a). By Consequence 1 applied to the child allocator — with base address `c₀` and sibling length `#c₀ = γ + k'` — every child sibling output has length `γ + k'`.
-
-**Stage 3: Strict separation.** Since `k' ≥ 1`, every child output has length `γ + k' ≥ γ + 1 > γ`. Every parent sibling has length `γ` (Consequence 1). The lengths differ: for any parent sibling `s` and any child output `c`, `#c = γ + k' ≠ γ = #s`. By T3 (canonical representation), tumblers of different lengths are distinct, so `s ≠ c`.
-
-**Stage 4: Additive propagation.** The separation is additive across nesting levels. Each child-spawning step via `inc(·, k')` with `k' ≥ 1` adds at least one component to the length (TA5(d)). A descendant `d` levels deep — reached by a chain of `d` child-spawning operations, each contributing at least one component — produces outputs of length at least `γ + d`. For descendants at levels `d₁ ≠ d₂`, the length bounds `γ + d₁ ≠ γ + d₂` ensure that their outputs never collide by T3.
-
-**Necessity.** We show that relaxing the `k = 0` restriction for siblings permits nesting, violating the precondition of T10. The argument constructs a concrete counterexample and verifies the prefix relationship step by step.
-
-Suppose an allocator produces `t₁ = inc(t₀, 0)` followed by `t₂ = inc(t₁, 1)`, treating both as sibling outputs — a violation of the T10a constraint, since `t₂` uses `k = 1 > 0`.
-
-**Stage 1: Length divergence.** By TA5(c), `inc(t₀, 0)` preserves length: `#t₁ = #t₀`. By TA5(d), `inc(t₁, 1)` extends the length: `#t₂ = #t₁ + 1 = #t₀ + 1`. Therefore `#t₁ < #t₂` — `t₂` is strictly longer than `t₁`.
-
-**Stage 2: Component agreement.** By TA5(b), `t₂ = inc(t₁, 1)` agrees with `t₁` on all components before the increment point: `(t₂)ᵢ = (t₁)ᵢ` for all `1 ≤ i ≤ #t₁`. By TA5(d), the child construction with `k = 1` sets `(t₂)_{#t₁+1} = 1` — the single new component. There are no intermediate zero-separators since `k - 1 = 0`. Thus `t₂` agrees with `t₁` on every position within the range of `t₁`, and extends it by one component.
-
-**Stage 3: Prefix relationship.** We verify the definition of `t₁ ≼ t₂`. The prefix relation requires two conditions: (1) `#t₁ ≤ #t₂`, which holds since `#t₂ = #t₁ + 1 > #t₁` (Stage 1); and (2) `(t₂)ᵢ = (t₁)ᵢ` for all `1 ≤ i ≤ #t₁`, which holds by Stage 2. Both conditions are met, so `t₁ ≼ t₂`. Since `#t₁ < #t₂`, this is a proper prefix: `t₁ ≺ t₂`.
-
-**Stage 4: Consequence.** The siblings nest: `t₁ ≼ t₂`. This violates the non-nesting precondition of T10. Any address `b` extending `t₂` — with `t₂ ≼ b` — also extends `t₁`, since `t₁ ≼ t₂` and `t₂ ≼ b` give `t₁ ≼ b` by transitivity of ≼. So T10 cannot distinguish the domains rooted at `t₁` and `t₂`: addresses allocated under `t₂` fall within `t₁`'s domain, and partition independence (T10) — which requires non-nesting prefixes — collapses.
+The siblings nest. This violates the non-nesting precondition of T10 — any address extending `t₂` also extends `t₁`, so T10 cannot distinguish the two domains. The partition independence guarantee collapses.
 
 The constraint to `k = 0` for siblings is therefore both sufficient (Consequences 1–3) and necessary (its absence permits nesting). ∎
 
@@ -577,132 +516,78 @@ The constraint to `k = 0` for siblings is therefore both sufficient (Consequence
 
 We first establish a lemma that converts ordering of prefixes into ordering of all addresses under those prefixes.
 
-**PrefixOrderingExtension (PrefixOrderingExtension).** Let `p₁, p₂ ∈ T` be tumblers such that `p₁ < p₂` and neither is a prefix of the other (`p₁ ⋠ p₂ ∧ p₂ ⋠ p₁`). Then for every `a` extending `p₁` (`p₁ ≼ a`) and every `b` extending `p₂` (`p₂ ≼ b`), `a < b`.
+**PrefixOrderingExtension (Prefix ordering extension).** Let `p₁, p₂ ∈ T` be tumblers such that `p₁ < p₂` and neither is a prefix of the other (`p₁ ⋠ p₂ ∧ p₂ ⋠ p₁`). Then for every `a` extending `p₁` (`p₁ ≼ a`) and every `b` extending `p₂` (`p₂ ≼ b`), `a < b`.
 
-*Proof.* We must show: `(A a, b ∈ T : p₁ ≼ a ∧ p₂ ≼ b : a < b)`, given that `p₁ < p₂` and `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁`. The argument proceeds in four stages: determine which T1 case governs the prefix ordering, transfer the divergence point from the prefixes to their extensions via the prefix relation, verify the two conditions required by T1 case (i) for the extensions, and universally quantify.
+*Proof.* We must show: `(A a, b ∈ T : p₁ ≼ a ∧ p₂ ≼ b : a < b)`, given that `p₁ < p₂` and `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁`.
 
-**Stage 1: Determine the ordering mechanism.** Let `p₁ = p₁₁. ... .p₁ₘ` and `p₂ = p₂₁. ... .p₂ₙ`. The hypothesis `p₁ < p₂` means, by T1 (lexicographic order), that there exists a least position `k ≥ 1` such that `(A i : 1 ≤ i < k : p₁ᵢ = p₂ᵢ)` and one of two cases holds. We show that case (ii) is excluded by the non-nesting hypothesis, forcing case (i).
-
-Case (ii) of T1 requires `p₁` to be a proper prefix of `p₂`: `k = m + 1 ≤ n`, meaning `p₁` has length `m < n` and `p₂` agrees with `p₁` at every position `1 ≤ i ≤ m`. This gives `p₁ ≼ p₂` — contradicting the hypothesis `p₁ ⋠ p₂`. Therefore case (i) of T1 applies: `k ≤ min(m, n)` and `p₁ₖ < p₂ₖ`. We record:
+Let `p₁ = p₁₁. ... .p₁ₘ` and `p₂ = p₂₁. ... .p₂ₙ`. The hypothesis `p₁ < p₂` means, by T1 (lexicographic order), that there exists a least position `k ≥ 1` such that `(A i : 1 ≤ i < k : p₁ᵢ = p₂ᵢ)` and one of two cases holds. Case (ii) of T1 requires `p₁` to be a proper prefix of `p₂`, i.e., `k = m + 1 ≤ n`, which would give `p₁ ≼ p₂` — contradicting the hypothesis `p₁ ⋠ p₂`. Therefore case (i) of T1 applies: `k ≤ min(m, n)` and `p₁ₖ < p₂ₖ`. We record:
 
   (H1) `(A i : 1 ≤ i < k : p₁ᵢ = p₂ᵢ)` — the prefixes agree before position `k`.
 
   (H2) `k ≤ min(m, n)` and `p₁ₖ < p₂ₖ` — the prefixes diverge at position `k`.
 
-**Stage 2: Transfer the divergence point to extensions.** Let `a` and `b` be arbitrary tumblers with `p₁ ≼ a` and `p₂ ≼ b`. The prefix relation `p₁ ≼ a` means `#a ≥ m` and `aᵢ = p₁ᵢ` for all `1 ≤ i ≤ m`. Since `k ≤ m` (from H2, as `k ≤ min(m, n) ≤ m`), position `k` falls within the prefix region of `a`, so `aₖ = p₁ₖ`. The prefix relation `p₂ ≼ b` means `#b ≥ n` and `bᵢ = p₂ᵢ` for all `1 ≤ i ≤ n`. Since `k ≤ n` (from H2, as `k ≤ min(m, n) ≤ n`), position `k` falls within the prefix region of `b`, so `bₖ = p₂ₖ`.
+Now let `a` and `b` be arbitrary tumblers with `p₁ ≼ a` and `p₂ ≼ b`. The prefix relation `p₁ ≼ a` means `#a ≥ m` and `aᵢ = p₁ᵢ` for all `1 ≤ i ≤ m`. Since `k ≤ m` (from H2, as `k ≤ min(m, n) ≤ m`), position `k` falls within the prefix, so `aₖ = p₁ₖ`. By the same reasoning, `p₂ ≼ b` gives `#b ≥ n` and `bᵢ = p₂ᵢ` for all `1 ≤ i ≤ n`; since `k ≤ n`, we have `bₖ = p₂ₖ`.
 
-The divergence transfers: `aₖ = p₁ₖ < p₂ₖ = bₖ` (combining the prefix component identities with H2). Likewise, the agreement transfers: for each `i` with `1 ≤ i < k`, we have `aᵢ = p₁ᵢ` (since `i < k ≤ m`) and `bᵢ = p₂ᵢ` (since `i < k ≤ n`), and by H1, `p₁ᵢ = p₂ᵢ`, giving `aᵢ = bᵢ`.
+We now verify the two conditions required by T1 case (i) for `a < b`. First, agreement before position `k`: for each `i` with `1 ≤ i < k`, we have `aᵢ = p₁ᵢ` (from `p₁ ≼ a`, since `i < k ≤ m`) and `p₁ᵢ = p₂ᵢ` (from H1) and `p₂ᵢ = bᵢ` (from `p₂ ≼ b`, since `i < k ≤ n`), giving `aᵢ = bᵢ`. Second, strict inequality at position `k`: `aₖ = p₁ₖ < p₂ₖ = bₖ` (combining the prefix transfers with H2). Since `k ≤ min(#a, #b)` (as `k ≤ m ≤ #a` and `k ≤ n ≤ #b`), T1 case (i) applies, giving `a < b`.
 
-**Stage 3: Verify T1 case (i) conditions.** T1 case (i) requires three conditions for `a < b`: (1) a witness position `k ≤ min(#a, #b)`, (2) agreement `aᵢ = bᵢ` for all `1 ≤ i < k`, and (3) strict inequality `aₖ < bₖ`. We verify each.
-
-*Condition (1): witness position in range.* From H2, `k ≤ m` and `k ≤ n`. From the prefix relations, `#a ≥ m` and `#b ≥ n`. Chaining: `k ≤ m ≤ #a` and `k ≤ n ≤ #b`, so `k ≤ min(#a, #b)`.
-
-*Condition (2): agreement before `k`.* For each `i` with `1 ≤ i < k`: `aᵢ = p₁ᵢ` (from `p₁ ≼ a`, since `i < k ≤ m`), `p₁ᵢ = p₂ᵢ` (from H1), and `p₂ᵢ = bᵢ` (from `p₂ ≼ b`, since `i < k ≤ n`). By transitivity of equality: `aᵢ = bᵢ`.
-
-*Condition (3): strict inequality at `k`.* `aₖ = p₁ₖ` (Stage 2) and `bₖ = p₂ₖ` (Stage 2), and `p₁ₖ < p₂ₖ` (H2). Therefore `aₖ < bₖ`.
-
-All three conditions are satisfied. T1 case (i) applies, giving `a < b`.
-
-**Stage 4: Universal quantification.** Since `a` and `b` were arbitrary tumblers with `p₁ ≼ a` and `p₂ ≼ b`, the result holds for all such pairs: `(A a, b ∈ T : p₁ ≼ a ∧ p₂ ≼ b : a < b)`. ∎
+Since `a` and `b` were arbitrary tumblers extending `p₁` and `p₂` respectively, the result holds universally: `(A a, b ∈ T : p₁ ≼ a ∧ p₂ ≼ b : a < b)`. ∎
 
 *Formal Contract:*
 - *Preconditions:* `p₁, p₂ ∈ T` with `p₁ < p₂` (T1) and `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁` (non-nesting); `a, b ∈ T` with `p₁ ≼ a` and `p₂ ≼ b`.
 - *Postconditions:* `a < b` under T1.
 
-**PartitionMonotonicity (PartitionMonotonicity).** Within any prefix-delimited partition of the address space, the set of allocated addresses is totally ordered by T1, and this order is consistent with the allocation order of any single allocator within that partition. Moreover, for any two sibling sub-partitions with non-nesting prefixes `p₁ < p₂`, every address extending `p₁` precedes every address extending `p₂` under T1 — the per-allocator ordering extends to a cross-allocator ordering determined by the prefix structure.
+**PartitionMonotonicity (Partition monotonicity).** Within any prefix-delimited partition of the address space, the set of allocated addresses is totally ordered by T1, and this order is consistent with the allocation order of any single allocator within that partition. Moreover, for any two sibling sub-partitions with non-nesting prefixes `p₁ < p₂`, every address extending `p₁` precedes every address extending `p₂` under T1 — the per-allocator ordering extends to a cross-allocator ordering determined by the prefix structure.
 
-*Proof.* We must show that within a prefix-delimited partition, allocated addresses are totally ordered by T1 consistently with allocation order, and that for sibling sub-partition prefixes `p₁ < p₂` satisfying the non-nesting condition, every address extending `p₁` precedes every address extending `p₂`. The argument proceeds in four stages: establish the partition structure and sibling prefix sequence, prove sibling prefixes are non-nesting, derive cross-partition ordering from PrefixOrderingExtension, and combine intra- and cross-partition ordering into a total order.
+*Proof.* We must show that within a prefix-delimited partition, allocated addresses are totally ordered by T1 consistently with allocation order, and that for sibling sub-partition prefixes `p₁ < p₂` satisfying the non-nesting condition, every address extending `p₁` precedes every address extending `p₂`.
 
-**Stage 1: Partition structure and sibling prefix generation.** Consider a partition with prefix `p`. Every allocated address `a` in this partition satisfies `p ≼ a`, placing it in the set `{t ∈ T : p ≼ t}`. By T5 (ContiguousSubtrees), this set forms a contiguous interval under T1: for any `a, b, c ∈ T` with `p ≼ a`, `p ≼ c`, and `a ≤ b ≤ c`, it follows that `p ≼ b`. No address from outside the partition can interleave between two addresses inside it.
+**Partition structure.** Consider a partition with prefix `p`. Every allocated address `a` in this partition satisfies `p ≼ a`, placing it in the set `{t ∈ T : p ≼ t}`. By T5 (prefix convexity), this set forms a contiguous interval under T1: if `p ≼ a`, `p ≼ c`, and `a ≤ b ≤ c`, then `p ≼ b`. No address from outside the partition can interleave between two addresses inside it.
 
-Within the partition, the parent allocator spawns child allocators according to T10a (AllocatorDiscipline). The first child prefix `t₀` is produced by `inc(s, k)` with `k > 0`, where `s` is a parent sibling extending `p`; by TA5(d), `#t₀ = #s + k`. The parent's output stream then resumes with `inc(·, 0)` (T10a): `t₁ = inc(t₀, 0)`, `t₂ = inc(t₁, 0)`, and so on, each serving as the prefix for a distinct sub-partition. We record the sibling prefix sequence `t₀, t₁, t₂, ...` for use in subsequent stages.
+Within the partition, the parent allocator spawns child allocators according to T10a (allocator discipline). The first child prefix `t₀` is produced by `inc(s, k)` with `k > 0`, where `s` is a parent sibling extending `p`; by TA5(d), `#t₀ = #s + k`. The parent's output stream then resumes with `inc(·, 0)` (T10a): `t₁ = inc(t₀, 0)`, `t₂ = inc(t₁, 0)`, and so on, each serving as the prefix for a distinct sub-partition.
 
-**Stage 2: Sibling prefixes are non-nesting.** We establish that for distinct sibling prefixes `tᵢ` and `tⱼ` with `i ≠ j`: `tᵢ ⋠ tⱼ ∧ tⱼ ⋠ tᵢ`. The argument has three parts: uniform length, distinctness, and non-nesting.
+**Sibling prefixes are non-nesting.** We establish that for distinct sibling prefixes `tᵢ` and `tⱼ` with `i ≠ j`: `tᵢ ⋠ tⱼ ∧ tⱼ ⋠ tᵢ`.
 
-*Uniform length.* We prove by induction on `n` that `#tₙ = #t₀` for all `n ≥ 0`.
+*Uniform length.* By TA5(c), `inc(t, 0)` preserves length: `#inc(t, 0) = #t`. Applying this inductively from `t₀` — `#t₁ = #inc(t₀, 0) = #t₀`, and for each `n ≥ 0`, `#tₙ₊₁ = #inc(tₙ, 0) = #tₙ` — we obtain `#tₙ = #t₀` for all `n ≥ 0`. Every sibling prefix has the same length.
 
-*Base case.* `n = 0`: `#t₀ = #t₀` holds trivially.
+*Distinctness.* By TA5(a), each application of `inc(·, 0)` produces a strictly greater tumbler under T1, so the sibling prefix sequence is strictly increasing: `t₀ < t₁ < t₂ < ...`. In particular, `tᵢ ≠ tⱼ` for all `i ≠ j`.
 
-*Inductive step.* Assume `#tₙ = #t₀` for some `n ≥ 0`. By definition, `tₙ₊₁ = inc(tₙ, 0)`. By TA5(c), `inc(t, 0)` preserves length: `#inc(t, 0) = #t`. Applying this to `tₙ` yields `#tₙ₊₁ = #inc(tₙ, 0) = #tₙ`. By the inductive hypothesis `#tₙ = #t₀`, so `#tₙ₊₁ = #t₀`. The induction closes: every sibling prefix has the same length `#t₀`.
+*Non-nesting.* A proper prefix relationship `q ≺ r` requires `#q < #r`, since T1 case (ii) defines `q < r` when `q` is a proper prefix of `r`, which demands `#q = m < n = #r`. Since `#tᵢ = #tⱼ` (uniform length), neither can be a proper prefix of the other. The prefix relation `tᵢ ≼ tⱼ` means either `tᵢ = tⱼ` or `tᵢ ≺ tⱼ`; we have excluded both (`tᵢ ≠ tⱼ` from distinctness, `tᵢ ≺ tⱼ` from equal length). So `tᵢ ⋠ tⱼ`, and by the symmetric argument `tⱼ ⋠ tᵢ`.
 
-*Distinctness.* By TA5(a), each application of `inc(·, 0)` produces a strictly greater tumbler under T1: `inc(t, 0) > t`. Starting from `t₀`, this gives the chain `t₀ < t₁ < t₂ < ...` — each step produces a strictly greater tumbler. For any `i < j`, repeated application of T1 transitivity (part (c)) along the chain from `tᵢ` to `tⱼ` gives `tᵢ < tⱼ`. By T1 irreflexivity (part (a)), `tᵢ < tⱼ` implies `tᵢ ≠ tⱼ`.
+**Cross-partition ordering.** Take two sibling sub-partition prefixes `tᵢ` and `tⱼ` with `i < j`. From the strict monotonicity of the sibling sequence we have `tᵢ < tⱼ`, and we have just established `tᵢ ⋠ tⱼ ∧ tⱼ ⋠ tᵢ`. These are precisely the preconditions of PrefixOrderingExtension: for every address `a` with `tᵢ ≼ a` and every address `b` with `tⱼ ≼ b`, we conclude `a < b`. The prefix ordering of sub-partitions determines the address ordering across them.
 
-*Non-nesting.* We show `tᵢ ⋠ tⱼ` and `tⱼ ⋠ tᵢ` separately.
+**Intra-partition ordering.** Within any single sub-partition, all addresses are produced by one allocator's sequential stream of `inc(·, 0)` applications (T10a). By TA5(a), each step produces a strictly greater tumbler, so by T9 (forward allocation), `allocated_before(a, b)` implies `a < b`. Allocation order within each sub-partition coincides with address order.
 
-For `tᵢ ⋠ tⱼ`: suppose for contradiction that `tᵢ ≼ tⱼ`. The prefix relation `tᵢ ≼ tⱼ` means either `tᵢ = tⱼ` or `tᵢ ≺ tⱼ` (proper prefix). We have `tᵢ ≠ tⱼ` from distinctness. A proper prefix relationship `tᵢ ≺ tⱼ` requires `#tᵢ < #tⱼ` — since if `#tᵢ = #tⱼ` and `tᵢ` is a prefix of `tⱼ`, then `(tⱼ)ₗ = (tᵢ)ₗ` for all `1 ≤ l ≤ #tᵢ = #tⱼ`, giving `tᵢ = tⱼ` by T3 (CanonicalRepresentation), contradicting `tᵢ ≠ tⱼ`. But uniform length gives `#tᵢ = #t₀ = #tⱼ`, so `#tᵢ < #tⱼ` is false. Both disjuncts of `tᵢ ≼ tⱼ` fail; therefore `tᵢ ⋠ tⱼ`.
-
-For `tⱼ ⋠ tᵢ`: suppose for contradiction that `tⱼ ≼ tᵢ`. By the same reasoning — `tⱼ ≠ tᵢ` from distinctness, and a proper prefix `tⱼ ≺ tᵢ` would require `#tⱼ < #tᵢ`, contradicting `#tⱼ = #t₀ = #tᵢ` — both disjuncts fail. Therefore `tⱼ ⋠ tᵢ`.
-
-Combining: `tᵢ ⋠ tⱼ ∧ tⱼ ⋠ tᵢ` for all `i ≠ j`.
-
-**Stage 3: Cross-partition ordering.** Take two sibling sub-partition prefixes `tᵢ` and `tⱼ` with `i < j`. We verify the preconditions of PrefixOrderingExtension and apply it.
-
-*Precondition 1: `tᵢ < tⱼ`.* From the strict monotonicity of the sibling sequence established in Stage 2 (distinctness), `i < j` gives `tᵢ < tⱼ`.
-
-*Precondition 2: `tᵢ ⋠ tⱼ ∧ tⱼ ⋠ tᵢ`.* This is exactly the non-nesting result from Stage 2.
-
-Both preconditions are satisfied. By PrefixOrderingExtension, for every address `a` with `tᵢ ≼ a` and every address `b` with `tⱼ ≼ b`: `a < b`. The prefix ordering of sub-partitions determines the address ordering across them.
-
-**Stage 4: Intra-partition ordering and total ordering.** We establish ordering within each sub-partition, then combine with Stage 3 to obtain total ordering of all addresses in the partition.
-
-*Intra-partition ordering.* Within any single sub-partition with prefix `tᵢ`, all addresses are produced by one allocator's sequential stream of `inc(·, 0)` applications (T10a). By T9 (ForwardAllocation) — which proves by induction on the allocation gap, using TA5(a) at each step, that earlier allocations produce smaller tumblers — `allocated_before(a, b)` implies `a < b`. Allocation order within each sub-partition coincides with address order.
-
-*Total ordering.* Every address in the partition belongs to exactly one sub-partition — the sub-partition whose prefix it extends. For any two distinct allocated addresses `a` and `b` within the partition, exactly one of three cases holds.
-
-*Case 1: same sub-partition.* Both `a` and `b` belong to the sub-partition with prefix `tᵢ`. Since both are produced by the same allocator's sequential stream, one was allocated before the other. By T9, the earlier allocation is smaller under T1. So `a` and `b` are comparable, and the ordering is consistent with allocation order.
-
-*Case 2: `a` in earlier sub-partition.* `a` belongs to sub-partition `tᵢ` and `b` to sub-partition `tⱼ` with `i < j`. Then `tᵢ ≼ a` and `tⱼ ≼ b`, so by Stage 3 (PrefixOrderingExtension), `a < b`.
-
-*Case 3: `a` in later sub-partition.* `a` belongs to sub-partition `tᵢ` and `b` to sub-partition `tⱼ` with `i > j`. Then `tⱼ ≼ b` and `tᵢ ≼ a` with `j < i`, so by Stage 3 (PrefixOrderingExtension applied to the pair `tⱼ < tᵢ`), `b < a`.
-
-In every case, `a` and `b` are comparable under T1. The ordering is consistent with allocation order within each allocator (T9, Cases 1) and with prefix structure across allocators (PrefixOrderingExtension, Cases 2–3). ∎
+**Total ordering.** Every address in the partition belongs to exactly one sub-partition — the sub-partition whose prefix it extends. For any two distinct allocated addresses `a` and `b` within the partition: if both belong to the same sub-partition with prefix `tᵢ`, they are ordered by T9; if `a` belongs to sub-partition `tᵢ` and `b` to sub-partition `tⱼ` with `i < j`, then `a < b` by PrefixOrderingExtension; if `i > j`, then `b < a` by PrefixOrderingExtension. In every case, `a` and `b` are comparable under T1. The ordering is consistent with allocation order within each allocator (T9) and with prefix structure across allocators (PrefixOrderingExtension). ∎
 
 *Formal Contract:*
 - *Preconditions:* A system conforming to T10a (allocator discipline); a partition with prefix `p ∈ T`; sub-partition prefixes `t₀, t₁, ...` produced by `inc(·, 0)` from an initial child prefix `t₀ = inc(s, k)` with `k > 0` and `p ≼ s`.
 - *Postconditions:* (1) For sibling sub-partition prefixes `tᵢ < tⱼ` (with `i < j`) and any `a, b ∈ T` with `tᵢ ≼ a` and `tⱼ ≼ b`: `a < b`. (2) Within each sub-partition with prefix `tᵢ`: `allocated_before(a, b) ⟹ a < b`.
 - *Invariant:* For every reachable system state, the set of allocated addresses within any prefix-delimited partition is totally ordered by T1 consistently with per-allocator allocation order.
 
-**GlobalUniqueness (GlobalUniqueness).** No two distinct allocations, anywhere in the system, at any time, produce the same address.
+**GlobalUniqueness (Global uniqueness).** No two distinct allocations, anywhere in the system, at any time, produce the same address.
 
-*Proof.* We must show that for any two addresses `a` and `b` produced by distinct allocation events — whether by the same allocator, different allocators at the same level, or allocators at different levels of the hierarchy — `a ≠ b`. The argument proceeds in four stages: establish the exhaustive case partition, prove uniqueness within a single allocator via ordering, prove uniqueness across allocators with non-nesting prefixes via prefix divergence, and prove uniqueness across allocators with nesting prefixes via structural separation.
+*Proof.* We must show that for any two addresses `a` and `b` produced by distinct allocation events — whether by the same allocator, different allocators at the same level, or allocators at different levels of the hierarchy — `a ≠ b`. The argument partitions all pairs of distinct allocation events into four exhaustive cases based on the relationship between the allocators that produced them.
 
-**Stage 1: Case partition.** We classify every ordered pair `(a, b)` of addresses produced by distinct allocation events into exactly one of four cases, based on the relationship between the allocators `A₁` (producing `a`) and `A₂` (producing `b`).
+*Case 1: Same allocator.* Both `a` and `b` are produced by the same allocator's sequential stream. Since the allocation events are distinct, one was allocated before the other; without loss of generality, `allocated_before(a, b)`. By T9 (forward allocation), within a single allocator's stream, `allocated_before(a, b)` implies `a < b`. Since `a < b`, irreflexivity of the strict order (T1, part (a)) gives `a ≠ b`.
 
-*Classification.* The first branch is whether `A₁ = A₂`. If so: Case 1. If `A₁ ≠ A₂`: let `p₁` and `p₂` be the prefixes of `A₁` and `A₂`. The prefix relationship has exactly three possibilities: (i) `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁` — neither nests within the other: Case 2; (ii) one nests within the other — without loss of generality, `p₁ ≼ p₂` (the argument is symmetric) — and `zeros(a) ≠ zeros(b)`: Case 3; (iii) one nests within the other and `zeros(a) = zeros(b)`: Case 4.
+*Case 2: Different allocators with non-nesting prefixes.* The two allocators have prefixes `p₁` and `p₂` such that neither is a prefix of the other: `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁`. This arises whenever the allocators are siblings — two users under the same node, two documents under the same user, or any two sub-partitions whose prefixes diverge at some component. By T10 (partition independence), for any tumbler `a` extending `p₁` and any tumbler `b` extending `p₂`, `a ≠ b`. The proof of T10 locates a position `k` where `p₁ₖ ≠ p₂ₖ`, transfers this divergence to `aₖ ≠ bₖ`, and concludes via T3 (canonical representation).
 
-*Exhaustiveness.* The first branch (`A₁ = A₂` vs. `A₁ ≠ A₂`) is exhaustive by the law of excluded middle. When `A₁ ≠ A₂`, the prefix relationship partitions into nesting and non-nesting — for any two prefixes `p₁, p₂`, either `p₁ ≼ p₂`, or `p₂ ≼ p₁`, or neither, and these are exhaustive. Within the nesting case, `zeros(a) = zeros(b)` vs. `zeros(a) ≠ zeros(b)` is exhaustive by the law of excluded middle.
+*Case 3: Different allocators with nesting prefixes and different zero counts.* One allocator's prefix nests within the other's, and the two allocators produce addresses at different hierarchical levels. By T4 (hierarchical parsing), the zero count `zeros(t)` — the number of zero-valued field-separator components — uniquely determines the hierarchical level: `zeros = 0` for node, `zeros = 1` for user, `zeros = 2` for document, `zeros = 3` for element. The injective correspondence between levels and zero counts means allocators at different levels produce addresses with `zeros(a) ≠ zeros(b)`.
 
-*Mutual exclusivity.* Case 1 requires `A₁ = A₂`; Cases 2–4 require `A₁ ≠ A₂` — so Case 1 is disjoint from the others. Case 2 requires non-nesting prefixes; Cases 3–4 require nesting prefixes — so Case 2 is disjoint from Cases 3–4. Cases 3 and 4 are distinguished by `zeros(a) ≠ zeros(b)` vs. `zeros(a) = zeros(b)`, which are mutually exclusive.
+We show `a ≠ b` by contradiction. Suppose `a = b`. By T3, `a = b` requires `#a = #b` and `aᵢ = bᵢ` at every position `1 ≤ i ≤ #a`. If the components are identical at every position, then `{i : aᵢ = 0} = {i : bᵢ = 0}`, giving `zeros(a) = zeros(b)` — contradicting the hypothesis that the allocators operate at different hierarchical levels. Therefore `a ≠ b`.
 
-**Stage 2: Intra-allocator uniqueness (Case 1).** Both `a` and `b` are produced by the same allocator's sequential stream. Since the allocation events are distinct within a single sequential stream, one was allocated before the other; without loss of generality, `allocated_before(a, b)`.
+*Case 4: Different allocators with nesting prefixes and the same zero count.* This is the structurally subtle case: a parent and a descendant allocator both produce addresses at the same hierarchical level (same zero count). We show that length separation makes collision impossible.
 
-By T9 (forward allocation), within a single allocator's stream, `allocated_before(a, b)` implies `a < b`. T9's proof establishes this by induction on the gap between allocation indices: each application of `inc(·, 0)` produces a strictly greater tumbler by TA5(a), and transitivity of `<` (T1, part (c)) extends this to arbitrary gaps.
+Let the parent allocator have base address `t₀` with `#t₀ = γ`. By T10a (allocator discipline), the parent produces its sibling outputs exclusively by repeated application of `inc(·, 0)`. By TA5(c), `inc(t, 0)` preserves length: `#inc(t, 0) = #t`. Applying this inductively — as established in T10a Consequence 1 — every parent sibling output has uniform length `γ`.
 
-We derive `a ≠ b` from `a < b`. Suppose for contradiction that `a = b`. Then `a < a`, violating irreflexivity of `<` (T1, part (a)), which establishes `¬(a < a)` for all `a ∈ T`. The contradiction gives `a ≠ b`.
+To spawn a child allocator, the parent performs one `inc(t, k')` with `k' > 0` for some parent sibling `t` with `#t = γ`. By TA5(d), the child's base address `c₀ = inc(t, k')` has length `#c₀ = γ + k'`. Since `k' ≥ 1`, this gives `#c₀ ≥ γ + 1`. The child allocator then produces its own siblings by `inc(·, 0)` (T10a), and by TA5(c) applied inductively, all child sibling outputs have uniform length `γ + k'`.
 
-**Stage 3: Cross-allocator uniqueness with non-nesting prefixes (Case 2).** The two allocators `A₁` and `A₂` have prefixes `p₁` and `p₂` such that neither is a prefix of the other: `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁`. This arises whenever the allocators are siblings — two users under the same node, two documents under the same user, or any two sub-partitions whose prefixes diverge at some component.
+We now establish `a ≠ b`. Every parent sibling has length `γ`; every child sibling has length `γ + k'` with `k' ≥ 1`, so `γ + k' > γ`. If `a` is a parent output and `b` is a child output (or vice versa), then `#a ≠ #b`, and by T3 (tumblers of different lengths are distinct), `a ≠ b`.
 
-By T10a (allocator discipline), each allocator produces addresses that extend its own prefix: `p₁ ≼ a` and `p₂ ≼ b`. The preconditions of T10 (partition independence) are therefore satisfied: `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁`, `p₁ ≼ a`, and `p₂ ≼ b`. By T10, `a ≠ b`.
+One pair requires separate treatment: the parent's child-spawning output `c₀ = inc(t, k')` has length `γ + k'` — the same length as the child's sibling outputs. However, `c₀` IS the child's base address. The child's first sibling is `inc(c₀, 0)`, which satisfies `inc(c₀, 0) > c₀` by TA5(a). By T9, every subsequent child sibling strictly exceeds its predecessor, and therefore strictly exceeds `c₀`. No child sibling equals its own base address; each strictly exceeds it. And `c₀` itself is the parent's output, not a child sibling output, so no double-counting occurs.
 
-The mechanism is prefix divergence: T10's proof (Stages 1–2) locates the minimal position `k` at which `p₁ₖ ≠ p₂ₖ`, transfers this divergence to the tumblers via the prefix relationships — `aₖ = p₁ₖ` and `bₖ = p₂ₖ` (Stage 3) — yielding `aₖ ≠ bₖ`, and concludes `a ≠ b` by T3 (canonical representation, Stage 4).
+The length separation is additive across nesting levels. Each child-spawning step via `inc(·, k')` with `k' ≥ 1` adds at least one component (TA5(d)). A descendant `d` nesting levels below the parent produces outputs of length at least `γ + d > γ`. Allocators at different nesting depths produce outputs of different lengths, so they cannot collide by T3. Allocators at the same depth but on different branches have non-nesting prefixes and are handled by Case 2.
 
-**Stage 4: Cross-allocator uniqueness with nesting prefixes (Cases 3–4).** One allocator's prefix nests within the other's: without loss of generality, `p₁ ≼ p₂`. The allocators are in a parent-descendant relationship. We establish `a ≠ b` by two sub-cases determined by the zero-count relationship.
-
-*Case 3: Different zero counts — hierarchical level separation.* Suppose `zeros(a) ≠ zeros(b)`. By T4 (hierarchical parsing), the zero count `zeros(t)` — the number of zero-valued field-separator components — uniquely determines the hierarchical level via the bijection on `{0, 1, 2, 3}` established in T4 part (c): `zeros = 0` for node, `zeros = 1` for user, `zeros = 2` for document, `zeros = 3` for element. The injective correspondence means `zeros(a) ≠ zeros(b)` places `a` and `b` at different hierarchical levels.
-
-We show `a ≠ b` by contradiction. Suppose `a = b`. By T3 (canonical representation), `a = b` requires `#a = #b` and `aᵢ = bᵢ` at every position `1 ≤ i ≤ #a`. Component-wise identity at every position gives `{i : aᵢ = 0} = {i : bᵢ = 0}` — the sets of zero-valued positions are identical — so `zeros(a) = #{i : aᵢ = 0} = #{i : bᵢ = 0} = zeros(b)`. This contradicts the hypothesis `zeros(a) ≠ zeros(b)`. Therefore `a ≠ b`.
-
-*Case 4: Same zero count — length separation.* Suppose `zeros(a) = zeros(b)`. This is the structurally subtle case: a parent and a descendant allocator both produce addresses at the same hierarchical level. We show that length separation makes collision impossible. The argument has four parts: establish uniform parent length, establish uniform child length, derive the separation, and handle the child-spawning boundary.
-
-*Parent output length.* Let the parent allocator have base address `t₀` with `#t₀ = γ`. By T10a (allocator discipline), the parent produces its sibling outputs exclusively by repeated application of `inc(·, 0)`. By T10a Consequence 1 — which proves by induction on `n`, using TA5(c) at each step, that `#tₙ = #t₀` for all `n ≥ 0` — every parent sibling output has uniform length `γ`.
-
-*Child output length.* To spawn a child allocator, the parent performs one `inc(t, k')` with `k' > 0` for some parent sibling `t` with `#t = γ` (by uniform parent length). By TA5(d), the child's base address `c₀ = inc(t, k')` has length `#c₀ = #t + k' = γ + k'`. Since `k' ≥ 1`, this gives `#c₀ ≥ γ + 1`. The child allocator then produces its own siblings by `inc(·, 0)` (T10a). By T10a Consequence 1 applied to the child allocator — with base address `c₀` and base length `γ + k'` — every child sibling output has uniform length `γ + k'`.
-
-*Length separation.* Every parent sibling has length `γ` (uniform parent length). Every child sibling has length `γ + k'` (uniform child length). Since `k' ≥ 1`, we have `γ + k' ≥ γ + 1 > γ`, so `#a ≠ #b` whenever `a` is a parent output and `b` is a child output (or vice versa). By T3 (canonical representation — tumblers of different lengths are distinct), `a ≠ b`.
-
-*Child-spawning boundary.* One pair requires separate treatment: the parent's child-spawning output `c₀ = inc(t, k')` has length `γ + k'` — the same length as the child's sibling outputs. However, `c₀` IS the child's base address, and we must verify that no child sibling equals `c₀`. The child's first sibling is `inc(c₀, 0)`, which satisfies `inc(c₀, 0) > c₀` by TA5(a). By T9, every subsequent child sibling strictly exceeds its predecessor. By transitivity (T1, part (c)), every child sibling strictly exceeds `c₀`. Since `c₀ < s` for every child sibling `s`, T1 irreflexivity (part (a)) gives `c₀ ≠ s`. And `c₀` itself is the parent's output — the act of spawning — not a child sibling output, so no double-counting occurs.
-
-*Multi-level propagation.* The length separation is additive across nesting levels. Each child-spawning step via `inc(·, k')` with `k' ≥ 1` adds at least one component to the length (TA5(d)). A descendant `d` nesting levels below the parent — reached by a chain of `d` child-spawning operations, each contributing at least one component — produces outputs of length at least `γ + d`. For descendants at levels `d₁ ≠ d₂`, the length bounds `γ + d₁ ≠ γ + d₂` ensure their outputs never collide by T3. Allocators at the same depth but on different branches have non-nesting prefixes and are handled by Stage 3 (Case 2).
+*Exhaustiveness.* Every pair of distinct allocation events falls into exactly one case. If both events belong to the same allocator: Case 1. If the allocators differ: their prefixes either nest or do not. If non-nesting: Case 2. If nesting: the addresses either have different zero counts (Case 3) or the same zero count (Case 4). The four cases are exhaustive and mutually exclusive.
 
 *Critical dependence on T10a.* The argument in Case 4 depends on T10a's constraint that sibling allocations use `k = 0`. If a parent allocator could use `k > 0` for siblings, its outputs would have varying lengths — each deep increment extends the tumbler by TA5(d). Some parent output could then match the length of a child output, collapsing the length separation. T10a's necessity proof demonstrates this failure mode explicitly: `inc(t₁, 1)` produces a sibling that is a proper prefix of the next, violating the non-nesting precondition of T10. ∎
 
@@ -725,7 +610,7 @@ Let `⊕` denote tumbler addition: given a start position `a` and a displacement
 
 We require a notion of where a displacement "acts." For a positive displacement `w = [w₁, w₂, ..., wₙ]`, define the *action point* as `k = min({i : 1 ≤ i ≤ n ∧ wᵢ ≠ 0})` — the position of the first nonzero component. The leading zeros say "stay at these hierarchical levels"; the first nonzero component says "advance here."
 
-**TA0 (WellDefinedAddition).** For tumblers `a, w ∈ T` where `w > 0` and the action point `k` of `w` satisfies `k ≤ #a`, the result `a ⊕ w` is a well-defined tumbler in `T`.
+**TA0 (Well-defined addition).** For tumblers `a, w ∈ T` where `w > 0` and the action point `k` of `w` satisfies `k ≤ #a`, the result `a ⊕ w` is a well-defined tumbler in `T`.
 
 The precondition `k ≤ #a` is essential: the constructive definition copies components `a₁, ..., aₖ₋₁` from the start position and adds `wₖ` to `aₖ`, so position `k` must exist within `a`. A displacement whose action point exceeds `#a` — one with more leading zeros than `a` has components — would attempt to "stay at" hierarchical levels that the start position does not have, and the operation is undefined.
 
@@ -751,25 +636,25 @@ The result `r` is a finite sequence of natural numbers with length `n ≥ 1` —
 - *Preconditions:* a ∈ T, w ∈ T, w > 0, actionPoint(w) ≤ #a
 - *Postconditions:* a ⊕ w ∈ T, #(a ⊕ w) = #w
 
-**TA1 (OrderPreservationUnderAddition).** `(A a, b, w : a < b ∧ w > 0 ∧ k ≤ min(#a, #b) : a ⊕ w ≤ b ⊕ w)`, where `k` is the action point of `w`.
+**TA1 (Order preservation under addition).** `(A a, b, w : a < b ∧ w > 0 ∧ k ≤ min(#a, #b) : a ⊕ w ≤ b ⊕ w)`, where `k` is the action point of `w`.
 
 TA1 guarantees weak (`≤`) order preservation universally — if two positions were in order before advancement, they remain in non-reversed order after. The precondition `k ≤ min(#a, #b)` inherits from TA0: both operations must be well-defined.
 
 *Proof.* We show that for all `a, b, w ∈ T` with `a < b`, `w > 0`, and action point `k ≤ min(#a, #b)`, the advanced positions satisfy `a ⊕ w ≤ b ⊕ w`.
 
-Let `k` be the action point of `w` and write `n = #w`. By TumblerAdd, the operation `⊕` builds the result in three regions: for `i < k`, `(a ⊕ w)ᵢ = aᵢ` (copy from start); at `i = k`, `(a ⊕ w)ₖ = aₖ + wₖ` (advance); for `i > k`, `(a ⊕ w)ᵢ = wᵢ` (copy from displacement). By TA0, both `a ⊕ w` and `b ⊕ w` are well-defined members of `T` with length `n`, since `k ≤ min(#a, #b)` ensures the action point falls within both operands. The same three rules apply to `b ⊕ w`. Since both results share the length `n`, any ordering between them must come from a component divergence — T1 case (ii) is excluded between tumblers of equal length.
+Let `k` be the action point of `w`. By TumblerAdd, the operation `⊕` builds the result in three regions: for `i < k`, `(a ⊕ w)ᵢ = aᵢ` (copy from start); at `i = k`, `(a ⊕ w)ₖ = aₖ + wₖ` (advance); for `i > k`, `(a ⊕ w)ᵢ = wᵢ` (copy from displacement). By TA0, both `a ⊕ w` and `b ⊕ w` are well-defined members of `T` with length `#w`, since `k ≤ min(#a, #b)` ensures the action point falls within both operands. The same three rules apply to `b ⊕ w`.
 
 Since `a < b`, T1 provides exactly two cases: either (i) there exists a least position `j` with `j ≤ min(#a, #b)` where `aⱼ < bⱼ` and `aᵢ = bᵢ` for all `i < j`, or (ii) `a` is a proper prefix of `b`, that is, `#a < #b` and `aᵢ = bᵢ` for all `1 ≤ i ≤ #a`.
 
-*Case (ii): `a` is a proper prefix of `b`.* Here `min(#a, #b) = #a`, so `k ≤ #a`. Since `aᵢ = bᵢ` for all `1 ≤ i ≤ #a` and `k ≤ #a`, the two start positions agree at every position that TumblerAdd consults: for `i < k`, `(a ⊕ w)ᵢ = aᵢ = bᵢ = (b ⊕ w)ᵢ`; at `i = k`, `(a ⊕ w)ₖ = aₖ + wₖ = bₖ + wₖ = (b ⊕ w)ₖ` since `aₖ = bₖ`; for `i > k`, `(a ⊕ w)ᵢ = wᵢ = (b ⊕ w)ᵢ`. Both results have length `n` by TA0. Every component agrees and the lengths coincide, so `a ⊕ w = b ⊕ w` by T3, satisfying `≤`.
+*Case (ii): `a` is a proper prefix of `b`.* Here `min(#a, #b) = #a`, so `k ≤ #a`. Since `aᵢ = bᵢ` for all `1 ≤ i ≤ #a` and `k ≤ #a`, the two start positions agree at every position that TumblerAdd consults: for `i < k`, `(a ⊕ w)ᵢ = aᵢ = bᵢ = (b ⊕ w)ᵢ`; at `i = k`, `(a ⊕ w)ₖ = aₖ + wₖ = bₖ + wₖ = (b ⊕ w)ₖ` since `aₖ = bₖ`; for `i > k`, `(a ⊕ w)ᵢ = wᵢ = (b ⊕ w)ᵢ`. Both results have length `#w` by TA0. Every component agrees, so `a ⊕ w = b ⊕ w` by T3, satisfying `≤`.
 
 *Case (i): component divergence at position `j`.* Here `j ≤ min(#a, #b)`, `aⱼ < bⱼ`, and `aᵢ = bᵢ` for all `i < j`. Three sub-cases arise from the relationship between the first divergence `j` and the action point `k`.
 
-*Sub-case j < k:* Position `j` falls in the prefix-copy region of TumblerAdd, so `(a ⊕ w)ⱼ = aⱼ` and `(b ⊕ w)ⱼ = bⱼ`, giving `(a ⊕ w)ⱼ = aⱼ < bⱼ = (b ⊕ w)ⱼ`. For all `i < j`, we have `i < j < k`, so both results are in the prefix-copy region and `(a ⊕ w)ᵢ = aᵢ = bᵢ = (b ⊕ w)ᵢ` by the agreement-before-divergence property. Since `j < k ≤ n` (the action point is a valid index of `w`), position `j` satisfies `j ≤ n = min(#(a ⊕ w), #(b ⊕ w))` and witnesses T1 case (i): `a ⊕ w < b ⊕ w`.
+*Sub-case j < k:* Position `j` falls in the prefix-copy region of TumblerAdd, so `(a ⊕ w)ⱼ = aⱼ` and `(b ⊕ w)ⱼ = bⱼ`, giving `(a ⊕ w)ⱼ = aⱼ < bⱼ = (b ⊕ w)ⱼ`. For all `i < j`, we have `i < j < k`, so both results are in the prefix-copy region and `(a ⊕ w)ᵢ = aᵢ = bᵢ = (b ⊕ w)ᵢ` by the agreement-before-divergence property. Position `j` witnesses T1 case (i): `a ⊕ w < b ⊕ w`.
 
-*Sub-case j = k:* For all `i < k = j`, both results are in the prefix-copy region and `(a ⊕ w)ᵢ = aᵢ = bᵢ = (b ⊕ w)ᵢ` by agreement before the divergence. At position `k`, `(a ⊕ w)ₖ = aₖ + wₖ` and `(b ⊕ w)ₖ = bₖ + wₖ`. Since `aₖ < bₖ` (the divergence at `j = k`) and addition of a fixed natural number preserves strict inequality on ℕ, we have `aₖ + wₖ < bₖ + wₖ`. Since `k` is a valid index of `w`, `k ≤ n = min(#(a ⊕ w), #(b ⊕ w))`. Position `k` witnesses T1 case (i): `a ⊕ w < b ⊕ w`.
+*Sub-case j = k:* For all `i < k = j`, both results are in the prefix-copy region and `(a ⊕ w)ᵢ = aᵢ = bᵢ = (b ⊕ w)ᵢ` by agreement before the divergence. At position `k`, `(a ⊕ w)ₖ = aₖ + wₖ` and `(b ⊕ w)ₖ = bₖ + wₖ`. Since `aₖ < bₖ` (the divergence at `j = k`) and addition of a fixed natural number preserves strict inequality on ℕ, we have `aₖ + wₖ < bₖ + wₖ`. Position `k` witnesses T1 case (i): `a ⊕ w < b ⊕ w`.
 
-*Sub-case j > k:* Since `k < j` and `aᵢ = bᵢ` for all `i < j`, in particular `aₖ = bₖ` (because `k < j`). For `i < k`: both results are in the prefix-copy region, and `i < k < j` gives `aᵢ = bᵢ`, so `(a ⊕ w)ᵢ = aᵢ = bᵢ = (b ⊕ w)ᵢ`. At position `k`: `(a ⊕ w)ₖ = aₖ + wₖ = bₖ + wₖ = (b ⊕ w)ₖ` since `aₖ = bₖ`. For `i > k`: both results copy from the displacement, so `(a ⊕ w)ᵢ = wᵢ = (b ⊕ w)ᵢ` — in particular, the original divergence at position `j > k` is erased by tail replacement, since both results take the value `wⱼ` at that position. Both results have length `n` by TA0. Every component agrees and the lengths coincide, so `a ⊕ w = b ⊕ w` by T3, satisfying `≤`.
+*Sub-case j > k:* Since `k < j` and `aᵢ = bᵢ` for all `i < j`, in particular `aₖ = bₖ` (because `k < j`). For `i < k`: both results are in the prefix-copy region, and `i < k < j` gives `aᵢ = bᵢ`, so `(a ⊕ w)ᵢ = aᵢ = bᵢ = (b ⊕ w)ᵢ`. At position `k`: `(a ⊕ w)ₖ = aₖ + wₖ = bₖ + wₖ = (b ⊕ w)ₖ` since `aₖ = bₖ`. For `i > k`: both results copy from the displacement, so `(a ⊕ w)ᵢ = wᵢ = (b ⊕ w)ᵢ`. Both results have length `#w` by TA0. Every component agrees, so `a ⊕ w = b ⊕ w` by T3, satisfying `≤`.
 
 In every case and sub-case, `a ⊕ w ≤ b ⊕ w`. ∎
 
@@ -789,7 +674,7 @@ Exactly one case applies for any `a ≠ b`. In case (i), `a` and `b` differ at a
 
 For prefix-related pairs, `divergence(a, b) = min(#a, #b) + 1 > min(#a, #b)`. Since TA0 requires `k ≤ min(#a, #b)`, the condition `k ≥ divergence(a, b)` in TA1-strict below is unsatisfiable for prefix-related operands. This is correct: when `a` is a proper prefix of `b` (or vice versa), Case 1 of the verification below shows that addition erases the divergence, producing equality rather than strict inequality. TA1-strict makes no claim about prefix-related pairs — TA1 (weak) covers them, guaranteeing non-reversal.
 
-**TA1-strict (StrictOrderPreservation).** `(A a, b, w : a < b ∧ w > 0 ∧ k ≤ min(#a, #b) ∧ k ≥ divergence(a, b) : a ⊕ w < b ⊕ w)`, where `k` is the action point of `w`.
+**TA1-strict (Strict order preservation).** `(A a, b, w : a < b ∧ w > 0 ∧ k ≤ min(#a, #b) ∧ k ≥ divergence(a, b) : a ⊕ w < b ⊕ w)`, where `k` is the action point of `w`.
 
 When the action point falls before the divergence — `k < divergence(a, b)` — both operands agree at position `k`, both get the same `wₖ` added, and both copy the same tail from `w` afterward. The original divergence is erased and the results are equal. For example, `a = [1, 3]`, `b = [1, 5]` (diverge at position 2), `w = [2]` (action point at position 1): `a ⊕ w = [3] = b ⊕ w`. Order degrades to equality, never reversal.
 
@@ -797,11 +682,11 @@ When the action point falls before the divergence — `k < divergence(a, b)` —
 
 Let `j = divergence(a, b)` and let `k` be the action point of `w`. The preconditions give `k ≥ j` and `k ≤ min(#a, #b)`. From these bounds, `j ≤ min(#a, #b)`, which rules out Divergence case (ii) — prefix divergence requires `j = min(#a, #b) + 1` — and places us in case (i): position `j` is shared by both tumblers, `aⱼ ≠ bⱼ`, and `aᵢ = bᵢ` for all `i < j`. Since `a < b`, the T1 case (i) direction gives `aⱼ < bⱼ`.
 
-Recall TumblerAdd's constructive definition: for any tumbler `x` and positive displacement `w` with action point `k ≤ #x`, the result `x ⊕ w` is built component-wise as `(x ⊕ w)ᵢ = xᵢ` for `i < k` (prefix copy), `(x ⊕ w)ₖ = xₖ + wₖ` (single-component advance), and `(x ⊕ w)ᵢ = wᵢ` for `i > k` (tail from displacement). By TA0, both `a ⊕ w` and `b ⊕ w` are well-defined members of T, since `k ≤ min(#a, #b)` ensures the action point falls within both operands. Both results have length `#w` by the result-length identity (TumblerAdd), so any ordering between them must arise from component divergence — T1 case (ii) is excluded between equal-length tumblers. Two cases arise from the relationship between `k` and `j`.
+Recall TumblerAdd's constructive definition: for any tumbler `x` and positive displacement `w` with action point `k ≤ #x`, the result `x ⊕ w` is built component-wise as `(x ⊕ w)ᵢ = xᵢ` for `i < k` (prefix copy), `(x ⊕ w)ₖ = xₖ + wₖ` (single-component advance), and `(x ⊕ w)ᵢ = wᵢ` for `i > k` (tail from displacement). By TA0, both `a ⊕ w` and `b ⊕ w` are well-defined members of T, since `k ≤ min(#a, #b)` ensures the action point falls within both operands. Two cases arise from the relationship between `k` and `j`.
 
-*Case 1: `k = j`.* For `i < k`: since `i < j`, the Divergence agreement property gives `aᵢ = bᵢ`, and TumblerAdd's prefix-copy rule gives `(a ⊕ w)ᵢ = aᵢ = bᵢ = (b ⊕ w)ᵢ`. At position `k = j`: TumblerAdd gives `(a ⊕ w)ₖ = aₖ + wₖ` and `(b ⊕ w)ₖ = bₖ + wₖ`. Since `aₖ < bₖ` (the divergence inequality) and natural-number addition preserves strict inequality, `aₖ + wₖ < bₖ + wₖ`. The results agree on all positions before `k` and diverge strictly at `k`. Since `k` is a valid index of `w`, `k ≤ #w = #(a ⊕ w) = #(b ⊕ w)`, and position `k` witnesses T1 case (i): `a ⊕ w < b ⊕ w`.
+*Case 1: `k = j`.* For `i < k`: since `i < j`, the Divergence agreement property gives `aᵢ = bᵢ`, and TumblerAdd's prefix-copy rule gives `(a ⊕ w)ᵢ = aᵢ = bᵢ = (b ⊕ w)ᵢ`. At position `k = j`: TumblerAdd gives `(a ⊕ w)ₖ = aₖ + wₖ` and `(b ⊕ w)ₖ = bₖ + wₖ`. Since `aₖ < bₖ` (the divergence inequality) and natural-number addition preserves strict inequality, `aₖ + wₖ < bₖ + wₖ`. The results agree on all positions before `k` and diverge strictly at `k`. By T1 case (i), `a ⊕ w < b ⊕ w`.
 
-*Case 2: `k > j`.* For `i < k`: TumblerAdd's prefix-copy rule gives `(a ⊕ w)ᵢ = aᵢ` and `(b ⊕ w)ᵢ = bᵢ`. Since `j < k`, position `j` lies in this prefix-copy region: `(a ⊕ w)ⱼ = aⱼ < bⱼ = (b ⊕ w)ⱼ` (the divergence inequality is preserved). For `i < j`: the Divergence agreement property gives `aᵢ = bᵢ`, so `(a ⊕ w)ᵢ = aᵢ = bᵢ = (b ⊕ w)ᵢ`. The original divergence at position `j` survives intact in the results — the action point, being deeper, does not touch positions at or above `j`. Since `j < k ≤ #w`, position `j` satisfies `j ≤ #(a ⊕ w) = #(b ⊕ w)` and witnesses T1 case (i): `a ⊕ w < b ⊕ w`.
+*Case 2: `k > j`.* For `i < k`: TumblerAdd's prefix-copy rule gives `(a ⊕ w)ᵢ = aᵢ` and `(b ⊕ w)ᵢ = bᵢ`. Since `j < k`, position `j` lies in this prefix-copy region: `(a ⊕ w)ⱼ = aⱼ < bⱼ = (b ⊕ w)ⱼ` (the divergence inequality is preserved). For `i < j`: the Divergence agreement property gives `aᵢ = bᵢ`, so `(a ⊕ w)ᵢ = aᵢ = bᵢ = (b ⊕ w)ᵢ`. The original divergence at position `j` survives intact in the results — the action point, being deeper, does not touch positions at or above `j`. By T1 case (i), `a ⊕ w < b ⊕ w`.
 
 In both cases, `a ⊕ w < b ⊕ w`. ∎
 
@@ -811,35 +696,21 @@ In both cases, `a ⊕ w < b ⊕ w`. ∎
 
 But TA1 alone does not guarantee that addition *advances* a position. It preserves relative order between two positions but is silent about the relationship between `a` and `a ⊕ w`. We need:
 
-**TA-strict (StrictIncrease).** `(A a ∈ T, w > 0 : a ⊕ w > a)` (where `a ⊕ w` is well-defined, i.e., `k ≤ #a` per TA0).
+**TA-strict (Strict increase).** `(A a ∈ T, w > 0 : a ⊕ w > a)` (where `a ⊕ w` is well-defined, i.e., `k ≤ #a` per TA0).
 
 Without TA-strict, the axioms admit a degenerate model in which `a ⊕ w = a` for all `a, w`. This no-op model satisfies TA0 (result is in T), TA1 (if `a < b` then `a < b` — the consequent is unchanged), and TA4 (`(a ⊕ w) ⊖ w = a ⊖ w = a` if subtraction is equally degenerate). Every axiom is satisfied, yet spans are empty — the interval `[s, s ⊕ ℓ)` collapses to `[s, s)`. TA-strict excludes this model and ensures that advancing by a positive displacement moves forward. T12 (span well-definedness) depends on this directly.
 
-*Proof.* We are given `a ∈ T` and `w ∈ T` with `w > 0` and action point `k` satisfying `k ≤ #a`. We must show `a ⊕ w > a`. The argument proceeds in four stages: establish constraints and well-formedness from the hypotheses, compute the structure of `r = a ⊕ w` via TumblerAdd, verify agreement between `r` and `a` at all positions before `k`, and produce a T1 witness for strict increase at position `k`.
+*Proof.* We show that for all `a ∈ T` and `w > 0` with action point `k ≤ #a`, the advanced position `a ⊕ w` is strictly greater than `a` under T1.
 
-**Stage 1: Hypotheses, derived constraints, and well-formedness.** We recall the definitions on which the argument depends. The action point `k` of `w` is the least position with `wₖ ≠ 0`, that is, `k = min({i : 1 ≤ i ≤ #w ∧ wᵢ ≠ 0})`. This minimum exists because `w > 0` — a tumbler is positive if and only if it has at least one nonzero component, so the defining set is non-empty. By definition of action point, `wᵢ = 0` for all `1 ≤ i < k` and `wₖ > 0`.
+Let `a = [a₁, ..., aₘ]` and `w = [w₁, ..., wₙ]` with `w > 0`. The action point `k = min({i : 1 ≤ i ≤ n ∧ wᵢ ≠ 0})` exists because `w > 0`, and the TA0 precondition gives `k ≤ m`. Let `r = a ⊕ w`. By TA0, `r ∈ T` with `#r = n`, so the T1 comparison between `r` and `a` is well-defined.
 
-Let `a = [a₁, ..., aₘ]` and `w = [w₁, ..., wₙ]`, so `#a = m` and `#w = n`. The precondition gives `k ≤ m`. By TA0 (WellDefinedAddition), whose preconditions are `w > 0` and `k ≤ #a` — both given — the result `r = a ⊕ w` is a well-defined member of `T` with `#r = #w = n` (the result-length identity). Since both `a` and `r` are members of `T`, the T1 comparison between them is well-defined.
+We establish a witness for `r > a` under T1's definition. The TumblerAdd construction defines `r` in three regions: `rᵢ = aᵢ` for `1 ≤ i < k`, `rₖ = aₖ + wₖ`, and `rᵢ = wᵢ` for `k < i ≤ n`.
 
-**Stage 2: Structure of `r = a ⊕ w` via TumblerAdd.** By the TumblerAdd construction, the result `r = [r₁, ..., rₙ]` is built in three regions relative to the action point `k`:
+*Agreement before position `k`.* For every `i` with `1 ≤ i < k`, `rᵢ = aᵢ` — the prefix-copy rule of TumblerAdd reproduces the start position exactly. So `rᵢ = aᵢ` for all `i < k`.
 
-- For `1 ≤ i < k`: `rᵢ = aᵢ` (prefix copy from start position). The precondition `k ≤ m` ensures each position `i < k` exists within `a`.
-- At `i = k`: `rₖ = aₖ + wₖ` (single-component advance). Position `k` exists within `a` since `k ≤ m`, and within `w` since `k` is a valid index of `w` by definition.
-- For `k < i ≤ n`: `rᵢ = wᵢ` (tail copy from displacement). These positions come entirely from `w`, discarding any components of `a` beyond `k`.
+*Strict increase at position `k`.* By definition of action point, `wₖ > 0`. Therefore `rₖ = aₖ + wₖ > aₖ`, since adding a positive natural number to a non-negative one yields a strictly larger result. Position `k` satisfies `k ≤ m = #a` (the TA0 precondition) and `k ≤ n = #r` (since `k` is a valid index into `w` and `#r = #w = n`). Thus `k ≤ min(#a, #r)`.
 
-**Stage 3: Agreement between `r` and `a` before position `k`.** For every `i` with `1 ≤ i < k`, the prefix-copy rule gives `rᵢ = aᵢ`. This is an exact reproduction — TumblerAdd copies the start position's components verbatim at all positions before the action point. We record: `rᵢ = aᵢ` for all `1 ≤ i < k`.
-
-If `k = 1`, the range `1 ≤ i < 1` is empty, and the agreement condition holds vacuously — there are no positions before the action point to check.
-
-**Stage 4: Strict increase at position `k` and T1 witness.** By definition of action point, `wₖ > 0`, so `wₖ ≥ 1`. At position `k`, TumblerAdd gives `rₖ = aₖ + wₖ`. Since `aₖ ∈ ℕ` (because `a ∈ T` and `k ≤ m`) and `wₖ ≥ 1`, the sum satisfies `rₖ = aₖ + wₖ ≥ aₖ + 1 > aₖ` — adding a positive natural number to a non-negative one yields a strictly larger result.
-
-We now assemble the T1 witness. Position `k` must lie within both tumblers for T1 case (i) to apply: `k ≤ m = #a` holds by the precondition, and `k ≤ n = #r` holds because `k` is a valid index of `w` (so `k ≤ n`) and `#r = n`. Therefore `k ≤ min(#a, #r)`. The three conditions for T1 case (i) are satisfied with witness `k`:
-
-1. `aᵢ = rᵢ` for all `1 ≤ i < k` (Stage 3 — prefix agreement),
-2. `k ≤ min(#a, #r)` (established above),
-3. `aₖ < rₖ` (strict increase at the action point).
-
-By T1, position `k` witnesses `a < r`, that is, `a < a ⊕ w`, which is equivalently `a ⊕ w > a`. ∎
+We now have a witness for `a < r` via T1 case (i): position `k` satisfies `k ≤ min(#a, #r)`, with `aᵢ = rᵢ` for all `i < k` and `aₖ < rₖ`. By T1, `a < r`, i.e., `a < a ⊕ w`, which is equivalently `a ⊕ w > a`. ∎
 
 *Formal Contract:*
 - *Preconditions:* `a ∈ T`, `w ∈ T`, `w > 0`, `k ≤ #a` where `k` is the action point of `w`
@@ -849,7 +720,7 @@ By T1, position `k` witnesses `a < r`, that is, `a < a ⊕ w`, which is equivale
 
 Let `⊖` denote tumbler subtraction: given two positions, compute the displacement between them.
 
-**TA2 (WellDefinedSubtraction).** For tumblers `a, w ∈ T` where `a ≥ w`, `a ⊖ w` is a well-defined tumbler in `T`.
+**TA2 (Well-defined subtraction).** For tumblers `a, w ∈ T` where `a ≥ w`, `a ⊖ w` is a well-defined tumbler in `T`.
 
 *Proof.* We show that for all `a, w ∈ T` with `a ≥ w`, the operation `a ⊖ w` as defined by TumblerSub produces a member of `T` — a finite sequence of non-negative integers with at least one component.
 
@@ -879,45 +750,39 @@ In both cases, `a ⊖ w ∈ T`. ∎
 - *Preconditions:* a ∈ T, w ∈ T, a ≥ w
 - *Postconditions:* a ⊖ w ∈ T
 
-**TA3 (OrderPreservationUnderSubtractionWeak).** `(A a, b, w : a < b ∧ a ≥ w ∧ b ≥ w : a ⊖ w ≤ b ⊖ w)`.
+**TA3 (Order preservation under subtraction, weak).** `(A a, b, w : a < b ∧ a ≥ w ∧ b ≥ w : a ⊖ w ≤ b ⊖ w)`.
 
 *Proof.* We must show that for all `a, b, w ∈ T` with `a < b`, `a ≥ w`, and `b ≥ w`, the inequality `a ⊖ w ≤ b ⊖ w` holds under T1.
 
-Write `m = #a`, `n = #b`, `q = #w`. By TA2, since `a ≥ w` and `b ≥ w`, both `a ⊖ w` and `b ⊖ w` are well-formed tumblers in `T` with lengths `#(a ⊖ w) = max(m, q)` and `#(b ⊖ w) = max(n, q)` (by TumblerSub's result-length rule), so the comparison is well-defined. Write `Lₐ = max(m, q)` and `L_b = max(n, q)` for these result lengths throughout. We recall the subtraction rule (TumblerSub) for self-containment: given `x ≥ w`, zero-pad both operands to length `max(#x, q)` and scan for the first position at which the padded sequences disagree. If no such position exists (we say `x` is *zero-padded-equal* to `w`), then `x ⊖ w` is the zero tumbler of that length. Otherwise, let `d` be the first divergence position; then `(x ⊖ w)ᵢ = 0` for `i < d`, `(x ⊖ w)_d = x_d - w_d`, and `(x ⊖ w)ᵢ = xᵢ` for `i > d` (all under zero-padding), with result length `max(#x, q)`.
+By TA2, since `a ≥ w` and `b ≥ w`, both `a ⊖ w` and `b ⊖ w` are well-formed tumblers in `T`, so the comparison is well-defined. We recall the subtraction rule (TumblerSub) for self-containment: given `x ≥ w`, zero-pad both operands to length `max(#x, #w)` and scan for the first position at which the padded sequences disagree. If no such position exists (we say `x` is *zero-padded-equal* to `w`), then `x ⊖ w` is the zero tumbler of that length. Otherwise, let `d` be the first divergence position; then `(x ⊖ w)ᵢ = 0` for `i < d`, `(x ⊖ w)_d = x_d - w_d`, and `(x ⊖ w)ᵢ = xᵢ` for `i > d` (all under zero-padding), with result length `max(#x, #w)`.
 
-Since `a < b`, T1 provides two cases: either (i) there exists a first position `j` with `1 ≤ j ≤ min(m, n)` where `aⱼ < bⱼ` and `aᵢ = bᵢ` for all `1 ≤ i < j`, or (ii) `a` is a proper prefix of `b` — `m < n` and `aᵢ = bᵢ` for all `1 ≤ i ≤ m`. We treat each in turn, partitioning further by the divergence structure of the operands against `w`.
+Since `a < b`, T1 provides two cases: either (i) there exists a first position `j ≤ min(#a, #b)` where `aⱼ < bⱼ`, or (ii) `a` is a proper prefix of `b` — `#a < #b` and `aᵢ = bᵢ` for all `i ≤ #a`. We treat each in turn, partitioning further by the divergence structure of the operands against `w`.
 
-**Case A: `a` is a proper prefix of `b`** (T1 case (ii)). Then `m < n` and `aᵢ = bᵢ` for all `1 ≤ i ≤ m`.
+**Case A: `a` is a proper prefix of `b`** (T1 case (ii)). Then `#a < #b` and `aᵢ = bᵢ` for all `i ≤ #a`.
 
-*Sub-case A1: `a = w`.* By T3, `m = q` and `aᵢ = wᵢ` for all `1 ≤ i ≤ m`. No zero-padding is needed; the sequences are identical, so TumblerSub produces the zero tumbler `a ⊖ w = [0, ..., 0]` of length `Lₐ = max(m, q) = m`. For `b ⊖ w`: since `bᵢ = aᵢ = wᵢ` for all `1 ≤ i ≤ q = m`, zero-pad `w` to length `L_b = max(n, q) = n` (extending with zeros at positions `m + 1` through `n`, since `n > m = q`). If some `bᵢ > 0` for `m < i ≤ n`: let `d_b` be the least such `i`; TumblerSub gives `(b ⊖ w)_{d_b} = b_{d_b} - 0 > 0`, making `b ⊖ w` a positive tumbler. Since `a ⊖ w` is a zero tumbler and `b ⊖ w` has the positive component `(b ⊖ w)_{d_b}`, TA6 gives `a ⊖ w < b ⊖ w`. If `bᵢ = 0` for all `m < i ≤ n`: the padded sequences agree everywhere, so `b ⊖ w = [0, ..., 0]` of length `n`. Both results are zero tumblers with `(a ⊖ w)ᵢ = 0 = (b ⊖ w)ᵢ` for all `1 ≤ i ≤ m` and `Lₐ = m < n = L_b`; witness `k = m + 1 ≤ n` establishes `a ⊖ w < b ⊖ w` by T1 case (ii).
+*Sub-case A1: `a = w`.* The subtraction `a ⊖ w` yields the zero tumbler of length `max(#a, #w) = #a`, since the operands are identical. Since `a` is a proper prefix of `b` and `a = w`, we have `bᵢ = wᵢ` for all `i ≤ #w = #a`. If some component `bᵢ` with `i > #w` is nonzero, the pair `(b, w)` has a divergence beyond `#w`, making `b ⊖ w` a positive tumbler; by TA6 the zero tumbler `a ⊖ w` is strictly less. If `bᵢ = 0` for all `i > #w`, the zero-padded sequences of `b` and `w` agree everywhere, so `b ⊖ w` is the zero tumbler of length `max(#b, #w) = #b`. Both results are zero tumblers, but `#(a ⊖ w) = #a < #b = #(b ⊖ w)`, so `a ⊖ w` is a proper prefix of `b ⊖ w`, giving `a ⊖ w < b ⊖ w` by T1 case (ii).
 
-*Sub-case A2: `a > w` with divergence.* Let `dₐ` be the first position where the zero-padded sequences of `a` and `w` disagree. We establish `1 ≤ dₐ ≤ m`: if `a > w` by T1 case (i), the divergence falls at a shared position `dₐ ≤ min(m, q) ≤ m`; if by T1 case (ii), `w` is a proper prefix of `a` with `q < m`, and `dₐ` is the first `i > q` with `aᵢ > 0`, giving `q < dₐ ≤ m`. In both cases `1 ≤ dₐ ≤ m`.
+*Sub-case A2: `a > w` with divergence.* Let `dₐ` be the first position where the zero-padded sequences of `a` and `w` disagree. We claim `dₐ ≤ #a`: if `a > w` by T1 case (i), `dₐ ≤ min(#a, #w) ≤ #a`; if by T1 case (ii), `w` is a proper prefix of `a` and `dₐ` is the first `i > #w` with `aᵢ > 0`, so `dₐ ≤ #a`. Since `bᵢ = aᵢ` for all `i ≤ #a` and `dₐ ≤ #a`, the comparison of `b` against `w` (under zero-padding) agrees with that of `a` at all positions up through `dₐ`. So `d_b = dₐ = d`.
 
-We show `d_b = dₐ`. For `1 ≤ i < dₐ`: the zero-padded sequences of `a` and `w` agree at `i` (pre-divergence), and since `i < dₐ ≤ m` we have `bᵢ = aᵢ` (the prefix condition), so `b` and `w` also agree at `i` under zero-padding. At position `dₐ`: since `dₐ ≤ m`, the prefix condition gives `b_{dₐ} = a_{dₐ}`, and `a_{dₐ} ≠ w_{dₐ}^{\text{padded}}` (the divergence), so `b_{dₐ} ≠ w_{dₐ}^{\text{padded}}`. No disagreement before `dₐ` and a disagreement at `dₐ` gives `d_b = dₐ`. Write `d = dₐ = d_b`.
+Apply TumblerSub to both. At positions `i < d`: both results are zero. At position `d`: both compute `a_d - w_d = b_d - w_d`, since `a_d = b_d` for `d ≤ #a`. At positions `d < i ≤ #a`: both copy from their respective minuends, giving `aᵢ = bᵢ`. The two results agree on positions `1, ..., #a`.
 
-Apply TumblerSub to both with common divergence `d`. At positions `1 ≤ i < d`: both results are zero. At position `d`: `(a ⊖ w)_d = a_d - w_d^{\text{padded}}` and `(b ⊖ w)_d = b_d - w_d^{\text{padded}}`; since `d ≤ m` gives `b_d = a_d`, the two values are equal. At positions `d < i ≤ m`: both are in the tail-copy phase, giving `(a ⊖ w)ᵢ = aᵢ^{\text{padded}} = aᵢ` (since `i ≤ m`) and `(b ⊖ w)ᵢ = bᵢ^{\text{padded}} = bᵢ = aᵢ` (the last equality from the prefix condition). The two results agree on all positions `1, ..., m`.
+Beyond position `#a`, the results may differ. The result `a ⊖ w` has length `max(#a, #w)`, and `b ⊖ w` has length `max(#b, #w) ≥ max(#a, #w)` since `#b > #a`. At positions `#a < i ≤ max(#a, #w)` (present only when `#w > #a`): `(a ⊖ w)ᵢ = 0` from `a`'s zero-padding, while `(b ⊖ w)ᵢ = bᵢ` if `i ≤ #b` (copied from the minuend since `i > d`) and `0` if `i > #b` (from `b`'s zero-padding); in either case `(a ⊖ w)ᵢ ≤ (b ⊖ w)ᵢ`. If no disagreement exists on positions `1, ..., max(#a, #w)`, then `a ⊖ w` is a prefix of `b ⊖ w`, giving `a ⊖ w ≤ b ⊖ w` by T1 case (ii). If a first disagreement exists at position `p > #a`, then `(a ⊖ w)_p = 0 ≤ (b ⊖ w)_p`; if strict, `a ⊖ w < b ⊖ w` by T1 case (i); if `(b ⊖ w)_p = 0` at all such positions, then `a ⊖ w` is a prefix of `b ⊖ w`, giving `a ⊖ w ≤ b ⊖ w` by T1 case (ii).
 
-Beyond position `m`, the results may differ. We have `Lₐ ≤ L_b` since `n > m`. At positions `m < i ≤ Lₐ` (present only when `q > m`): `(a ⊖ w)ᵢ = 0` (from `a`'s zero-padding since `i > m`), while `(b ⊖ w)ᵢ = bᵢ^{\text{padded}} ≥ 0` (tail-copy since `i > d`); so `(a ⊖ w)ᵢ ≤ (b ⊖ w)ᵢ`. We compare the results under T1. If a first disagreement exists at some position `p` with `m < p ≤ Lₐ`: then `(a ⊖ w)_p = 0 < (b ⊖ w)_p` (strict because `p` is the *first* disagreement yet `(a ⊖ w)_p = 0`). Since `p ≤ Lₐ ≤ L_b`, position `p` satisfies `p ≤ min(Lₐ, L_b)` and witnesses T1 case (i): `a ⊖ w < b ⊖ w`. If no disagreement exists on `1, ..., Lₐ`: then `a ⊖ w` and `b ⊖ w` agree at every position of `a ⊖ w`. If `Lₐ < L_b`, then `Lₐ + 1 ≤ L_b` witnesses T1 case (ii): `a ⊖ w < b ⊖ w`. If `Lₐ = L_b`, both have the same length and agree everywhere, so `a ⊖ w = b ⊖ w` by T3, satisfying `≤`.
-
-*Sub-case A3: `a > w` without divergence (zero-padded equality).* Since `a > w` requires a structural difference yet the padded sequences agree everywhere, the only possibility is T1 case (ii): `w` is a proper prefix of `a` with `q < m` and `aᵢ = 0` for all `q < i ≤ m`. The subtraction `a ⊖ w` yields the zero tumbler of length `Lₐ = max(m, q) = m`. Since `bᵢ = aᵢ` for `1 ≤ i ≤ m` and `aᵢ = wᵢ` for `1 ≤ i ≤ q` (and `aᵢ = 0 = wᵢ^{\text{padded}}` for `q < i ≤ m`), `b` agrees with `w` on positions `1, ..., m`. The result `b ⊖ w` has length `L_b = max(n, q)`. Since `n > m ≥ q`, we have `L_b = n > m = Lₐ`. If `b ⊖ w` has any positive component, then `a ⊖ w` (all zeros) is strictly less by TA6. If `b ⊖ w` is also a zero tumbler: both results are zero tumblers agreeing on positions `1, ..., m`, with `Lₐ = m < n = L_b`, so witness `k = m + 1 ≤ n` gives `a ⊖ w < b ⊖ w` by T1 case (ii).
+*Sub-case A3: `a > w` without divergence (zero-padded equality).* Since `a > w` requires a structural difference yet the padded sequences agree everywhere, the only possibility is T1 case (ii): `w` is a proper prefix of `a` with `aᵢ = 0` for all `i > #w`. The subtraction `a ⊖ w` yields the zero tumbler of length `#a`. Since `b > a > w` and `#b > #a ≥ #w`, `b` agrees with `w` (hence with `a`) on positions `1, ..., #a`. The result `b ⊖ w` has length `max(#b, #w) = #b > #a`. If `b ⊖ w` has any positive component, then `a ⊖ w` (all zeros) is strictly less by TA6. If `b ⊖ w` is also a zero tumbler, `#(b ⊖ w) = #b > #a = #(a ⊖ w)`, so the shorter is a proper prefix of the longer, giving `a ⊖ w < b ⊖ w` by T1 case (ii).
 
 In all sub-cases of Case A, `a ⊖ w ≤ b ⊖ w`.
 
-**Case B: Component divergence at `j`** (T1 case (i)). There exists a first position `j` with `1 ≤ j ≤ min(m, n)` such that `aⱼ < bⱼ` and `aᵢ = bᵢ` for all `1 ≤ i < j`.
+**Case B: Component divergence at `j`** (T1 case (i)). There exists a first position `j ≤ min(#a, #b)` with `aⱼ < bⱼ` and `aᵢ = bᵢ` for all `i < j`.
 
-*Sub-case B1: `a` is zero-padded-equal to `w`.* The subtraction `a ⊖ w` is the zero tumbler of length `Lₐ`. At position `j`, zero-padded equality gives `wⱼ^{\text{padded}} = aⱼ`, so `bⱼ > aⱼ = wⱼ^{\text{padded}}`. The first disagreement between `b` and `w` (under zero-padding) occurs at or before `j` — specifically, at the least `i ≤ j` with `bᵢ ≠ wᵢ^{\text{padded}}`, which exists since `bⱼ ≠ wⱼ^{\text{padded}}`. TumblerSub produces a nonzero component at this divergence, making `b ⊖ w` a positive tumbler. Since `a ⊖ w` is a zero tumbler and `b ⊖ w` is positive, TA6 gives `a ⊖ w < b ⊖ w`.
+*Sub-case B1: `a` is zero-padded-equal to `w`.* The subtraction `a ⊖ w` is the zero tumbler of length `max(#a, #w)`. At position `j`, zero-padded equality gives `wⱼ = aⱼ`, so `bⱼ > aⱼ = wⱼ`. The pair `(b, w)` diverges at or before `j`, making `b ⊖ w` positive. By TA6, `a ⊖ w < b ⊖ w`.
 
-For the remaining sub-cases, `a` is not zero-padded-equal to `w`, so `dₐ = divergence(a, w)` is well-defined. The divergence `d_b = divergence(b, w)` is also well-defined: if `b` were zero-padded-equal to `w`, then at position `dₐ` we would have `a_{dₐ} > w_{dₐ}^{\text{padded}} = b_{dₐ}^{\text{padded}}` (from `a > w` at the divergence), while `aᵢ = wᵢ^{\text{padded}} = bᵢ` for all `i < dₐ` — making `dₐ` a position where `a > b`, contradicting `a < b`. Since `a > w` and `b > w` (both not zero-padded-equal, with `a ≥ w` and `b ≥ w`), at their respective divergences `a_{dₐ} > w_{dₐ}^{\text{padded}}` and `b_{d_b} > w_{d_b}^{\text{padded}}`.
+For the remaining sub-cases, `a` is not zero-padded-equal to `w`, so `dₐ = divergence(a, w)` is well-defined. The divergence `d_b = divergence(b, w)` is also well-defined: if `b` were zero-padded-equal to `w`, then at position `dₐ` we would have `a_{dₐ} > w_{dₐ} = b_{dₐ}` (from `a ≥ w` at the divergence), while `aᵢ = wᵢ = bᵢ` for all `i < dₐ` — making `dₐ` a position where `a > b`, contradicting `a < b`. Let `j` be the first position where `aⱼ < bⱼ`.
 
-*Sub-case B2: `dₐ = d_b = d`.* Both operands diverge from `w` at the same position. For `1 ≤ i < d`, both results are zero. Since `a` and `b` agree with `w` (hence with each other) before `d`, the `a`-vs-`b` divergence satisfies `j ≥ d`.
+*Sub-case B2: `dₐ = d_b = d`.* Both operands diverge from `w` at the same position. For `i < d`, both results are zero. Since `a` and `b` agree with `w` before `d`, and `aⱼ < bⱼ`, we have `j ≥ d`. If `j = d`: `a_d - w_d < b_d - w_d` since `a_d < b_d`, so `a ⊖ w < b ⊖ w` by T1 case (i). If `j > d`: `a_d = b_d` (since the first `a`-vs-`b` disagreement is at `j > d`), so both results agree at position `d`; at positions `d < i < j`, both copy from their minuends which agree (`aᵢ = bᵢ`); at position `j`, `(a ⊖ w)ⱼ = aⱼ < bⱼ = (b ⊖ w)ⱼ` since both are in the tail-copy phase (`j > d`). By T1 case (i), `a ⊖ w < b ⊖ w`.
 
-If `j = d`: `(a ⊖ w)_d = a_d - w_d^{\text{padded}}` and `(b ⊖ w)_d = b_d - w_d^{\text{padded}}`. From `a_d < b_d` and both differences being non-negative (established above), `a_d - w_d^{\text{padded}} < b_d - w_d^{\text{padded}}`. The results agree at all positions `i < d` (both zero) and first disagree at `d`. Since `d ≤ max(m, q) = Lₐ` and `d ≤ max(n, q) = L_b` (the divergence falls within both result lengths), position `d` satisfies `d ≤ min(Lₐ, L_b)` and witnesses T1 case (i): `a ⊖ w < b ⊖ w`.
+*Sub-case B3: `dₐ < d_b`.* At position `dₐ`, `a_{dₐ} ≠ w_{dₐ}` but `b_{dₐ} = w_{dₐ}`. Since both `a` and `b` agree with `w` at all positions before `dₐ`, the first disagreement between `a` and `b` is at `dₐ`, giving `j = dₐ` with `a_{dₐ} < b_{dₐ} = w_{dₐ}`. But `a ≥ w` requires `a_{dₐ} ≥ w_{dₐ}` at the divergence — contradiction. This case is impossible under the preconditions.
 
-If `j > d`: `a_d = b_d` (since the first `a`-vs-`b` disagreement is at `j > d`), so both results agree at position `d`. At positions `d < i < j`: both are in the tail-copy phase, giving `(a ⊖ w)ᵢ = aᵢ` and `(b ⊖ w)ᵢ = bᵢ`; since `aᵢ = bᵢ` for `i < j`, the results agree. At position `j`: `(a ⊖ w)ⱼ = aⱼ < bⱼ = (b ⊖ w)ⱼ` (both in tail-copy since `j > d`). The results agree at all positions before `j` and first disagree at `j`. Since `j ≤ min(m, n) ≤ min(Lₐ, L_b)` (as `m ≤ Lₐ` and `n ≤ L_b`), position `j` witnesses T1 case (i): `a ⊖ w < b ⊖ w`.
-
-*Sub-case B3: `dₐ < d_b`.* At position `dₐ`, `a_{dₐ} ≠ w_{dₐ}^{\text{padded}}` but `b_{dₐ} = w_{dₐ}^{\text{padded}}` (since `dₐ < d_b`). Both `a` and `b` agree with `w` at all positions before `dₐ`, so the first disagreement between `a` and `b` is at `dₐ`, giving `j = dₐ` with `a_{dₐ} < b_{dₐ} = w_{dₐ}^{\text{padded}}` (from `a < b`). But `a > w` requires `a_{dₐ} > w_{dₐ}^{\text{padded}}` at the divergence — contradiction. This case is impossible under the preconditions.
-
-*Sub-case B4: `dₐ > d_b`.* At position `d_b`, `b_{d_b} ≠ w_{d_b}^{\text{padded}}` but `a_{d_b} = w_{d_b}^{\text{padded}}` (since `d_b < dₐ`). Both `a` and `b` agree with `w` before `d_b`, so the first `a`-vs-`b` disagreement is at `d_b`, giving `j = d_b`. From `a < b`: `a_{d_b} < b_{d_b}`, i.e., `w_{d_b}^{\text{padded}} < b_{d_b}` — consistent with `b_{d_b} > w_{d_b}^{\text{padded}}` (established above). For `a ⊖ w`: position `d_b < dₐ` falls in the pre-divergence zero phase, so `(a ⊖ w)_{d_b} = 0`. For `b ⊖ w`: `d_b` is the divergence point, so `(b ⊖ w)_{d_b} = b_{d_b} - w_{d_b}^{\text{padded}} > 0`. At all positions `1 ≤ i < d_b`, both results are zero. The first disagreement is at `d_b` with `0 < b_{d_b} - w_{d_b}^{\text{padded}}`. Since `d_b ≤ min(m, n)` (from `j = d_b ≤ min(m, n)`) and `min(m, n) ≤ min(Lₐ, L_b)`, position `d_b` witnesses T1 case (i): `a ⊖ w < b ⊖ w`.
+*Sub-case B4: `dₐ > d_b`.* At position `d_b`, `b_{d_b} ≠ w_{d_b}` but `a_{d_b} = w_{d_b}`. Since both `a` and `b` agree with `w` before `d_b`, the first disagreement between `a` and `b` is at `d_b`, giving `j = d_b` with `a_{d_b} = w_{d_b} < b_{d_b}` — the inequality holds because `b ≥ w` forces `b_{d_b} > w_{d_b}` at this divergence. The result `(a ⊖ w)_{d_b} = 0` since `d_b < dₐ` falls in the pre-divergence zero phase for `a ⊖ w`. The result `(b ⊖ w)_{d_b} = b_{d_b} - w_{d_b} > 0`. At all positions `i < d_b`, both results are zero. By T1 case (i), `a ⊖ w < b ⊖ w`.
 
 In every case, `a ⊖ w ≤ b ⊖ w`. ∎
 
@@ -925,51 +790,37 @@ In every case, `a ⊖ w ≤ b ⊖ w`. ∎
 - *Preconditions:* a ∈ T, b ∈ T, w ∈ T, a < b, a ≥ w, b ≥ w
 - *Postconditions:* a ⊖ w ≤ b ⊖ w
 
-**TA3-strict (OrderPreservationUnderSubtractionStrict).** `(A a, b, w : a < b ∧ a ≥ w ∧ b ≥ w ∧ #a = #b : a ⊖ w < b ⊖ w)`.
+**TA3-strict (Order preservation under subtraction, strict).** `(A a, b, w : a < b ∧ a ≥ w ∧ b ≥ w ∧ #a = #b : a ⊖ w < b ⊖ w)`.
 
 We prove that subtracting a common lower bound from two equal-length tumblers preserves strict order: if `a` precedes `b`, both dominate `w`, and `#a = #b`, then `a ⊖ w` strictly precedes `b ⊖ w`.
 
-*Proof.* We are given `a, b, w ∈ T` with `a < b`, `a ≥ w`, `b ≥ w`, and `#a = #b`. We must show `a ⊖ w < b ⊖ w`. The argument proceeds in four stages: establish constraints and well-formedness from the hypotheses, handle the degenerate case where `a` is zero-padded-equal to `w`, prove both divergences exist with positive differences at their respective divergence points, and resolve three exhaustive cases on the relationship between divergence positions.
+*Proof.* We are given `a, b, w ∈ T` with `a < b`, `a ≥ w`, `b ≥ w`, and `#a = #b`. We must show `a ⊖ w < b ⊖ w`.
 
-**Stage 1: Hypotheses, derived constraints, and well-formedness.** We recall the definitions on which the argument depends. T1 defines `a < b` by: there exists a least `k ≥ 1` with `aᵢ = bᵢ` for all `i < k`, and either (i) `k ≤ min(#a, #b)` with `aₖ < bₖ`, or (ii) `k = #a + 1 ≤ #b` (`a` a proper prefix of `b`). TumblerSub defines `x ⊖ w` (for `x ≥ w`) by zero-padding both operands to length `max(#x, #w)` and scanning for the first position where the padded sequences disagree. If no disagreement exists (*zero-padded equality*), the result is the zero tumbler of length `max(#x, #w)`. If divergence occurs at position `d`, the result `r` satisfies: `rᵢ = 0` for `i < d`, `r_d = x_d - w_d`, and `rᵢ = xᵢ` for `i > d`, with `#r = max(#x, #w)`.
+**Preliminaries.** We recall the definitions on which the argument depends. T1 defines `a < b` by: there exists a least `k ≥ 1` with `aᵢ = bᵢ` for all `i < k`, and either (i) `k ≤ min(#a, #b)` with `aₖ < bₖ`, or (ii) `k = #a + 1 ≤ #b` (`a` a proper prefix of `b`). TumblerSub defines `x ⊖ w` (for `x ≥ w`) by zero-padding both operands to length `max(#x, #w)` and scanning for the first position where the padded sequences disagree. If no disagreement exists (*zero-padded equality*), the result is the zero tumbler of length `max(#x, #w)`. If divergence occurs at position `d`, the result `r` satisfies: `rᵢ = 0` for `i < d`, `r_d = x_d - w_d`, and `rᵢ = xᵢ` for `i > d`, with `#r = max(#x, #w)`.
 
-Since `#a = #b`, T1 case (ii) is impossible — it requires `k = #a + 1 ≤ #b`, giving `#a + 1 ≤ #b`, hence `#a < #b`, contradicting `#a = #b`. So `a < b` holds by case (i): there exists a least `j` with `1 ≤ j ≤ min(#a, #b) = #a` such that `aᵢ = bᵢ` for all `i < j` and `aⱼ < bⱼ`. We fix this `j` throughout.
+**The form of `a < b`.** Since `#a = #b`, T1 case (ii) is impossible — it requires `#a < #b`. So `a < b` holds by case (i): there exists a least `j` with `1 ≤ j ≤ #a` such that `aᵢ = bᵢ` for all `i < j` and `aⱼ < bⱼ`. We fix this `j` throughout.
 
-By TA2 (WellDefinedSubtraction), since `a ≥ w` and `b ≥ w`, both `a ⊖ w` and `b ⊖ w` are well-defined members of `T`. We note that the result lengths are equal: `#(a ⊖ w) = max(#a, #w) = max(#b, #w) = #(b ⊖ w)` (since `#a = #b`). Call this common length `L`. Since both results have length `L`, any application of T1 to the pair `(a ⊖ w, b ⊖ w)` is again in the equal-length regime — T1 case (ii) cannot arise between the results.
+**Well-formedness.** By TA2, both `a ⊖ w` and `b ⊖ w` are well-defined members of `T`.
 
-**Stage 2: Degenerate case — `a` zero-padded-equal to `w`.** If the zero-padded sequences of `a` and `w` agree at every position, TumblerSub gives `a ⊖ w` as the zero tumbler of length `L`. We show `b` must diverge from `w`, making `b ⊖ w` positive.
+We proceed by exhaustive case analysis on the divergence structure of the pairs `(a, w)` and `(b, w)` under zero-padding.
 
-For `i < j`: `bᵢ = aᵢ` (from T1, since `i` lies before the first divergence of `a` and `b`) and `aᵢ = wᵢ` (zero-padded equality of `a` and `w`), so `bᵢ = wᵢ`. At position `j`: `wⱼ = aⱼ` (zero-padded equality) and `bⱼ > aⱼ` (from `aⱼ < bⱼ` at the divergence), giving `bⱼ > wⱼ`. Since `bⱼ ≠ wⱼ`, the pair `(b, w)` diverges at some position `d ≤ j`, and TumblerSub yields `(b ⊖ w)_d = b_d - w_d > 0` at this divergence point.
+**Case A: `a` is zero-padded-equal to `w`.** By TumblerSub, `a ⊖ w` is the zero tumbler of length `max(#a, #w)`. For `i < j`: `b_i = a_i` (from T1) and `a_i = w_i` (zero-padded equality), so `b_i = w_i`. At position `j`: `w_j = a_j` (zero-padded equality) and `b_j > a_j` (from `a < b`), giving `b_j > w_j`. So `(b, w)` diverges at position `j`, and TumblerSub yields `(b ⊖ w)_j = b_j - w_j > 0`. Since `a ⊖ w` is a zero tumbler and `b ⊖ w` has a positive component, TA6 gives `a ⊖ w < b ⊖ w`.
 
-We verify the preconditions of TA6 conjunct 2. The tumbler `a ⊖ w` is a zero tumbler: `(a ⊖ w)ᵢ = 0` for all `1 ≤ i ≤ L`. The tumbler `b ⊖ w` has at least one positive component: `(b ⊖ w)_d > 0`. Both preconditions are satisfied. By TA6, `a ⊖ w < b ⊖ w`.
+**Setup for remaining cases.** Since `a` is not zero-padded-equal to `w`, the divergence `d_a = div(a, w)` is well-defined. Since `a ≥ w` and `a` is not zero-padded-equal to `w`, we have `a > w`, and T1 at the first zero-padded divergence gives `a_{d_a} > w_{d_a}`. We verify that `d_b = div(b, w)` also exists: if `b` were zero-padded-equal to `w`, then `b_{d_a} = w_{d_a} < a_{d_a}`, and since `b_i = w_i = a_i` for `i < d_a`, T1 gives `a > b` — contradicting `a < b`. So `d_b` is well-defined, with `b_{d_b} > w_{d_b}` by the same reasoning from `b > w`.
 
-**Stage 3: Existence and positivity of both divergences.** For the remaining cases, `a` is not zero-padded-equal to `w`, so the divergence `d_a = div(a, w)` is well-defined — there exists a first position at which the zero-padded sequences of `a` and `w` disagree.
+**Case 1: `d_a = d_b = d`.** Both pairs diverge from `w` at position `d`. By TumblerSub, `(a ⊖ w)_i = 0` and `(b ⊖ w)_i = 0` for all `i < d`. Since `a` and `b` both agree with `w` before `d`, they agree with each other, so `j ≥ d`.
 
-We show `a_{d_a} > w_{d_a}`. Since `a` is not zero-padded-equal to `w`, the tumblers are not zero-padded-identical. If `a = w` as tumblers (by T3: same length and components at every position), their padded sequences would be trivially identical — no divergence could exist, contradicting the existence of `d_a`. Therefore `a ≠ w`, and combined with `a ≥ w` this gives `a > w`. At the first zero-padded divergence `d_a`, the ordering `a > w` under T1 requires `a_{d_a} > w_{d_a}` — the pre-divergence agreement ensures the first disagreement determines the ordering, and `a > w` forces the `a`-side to be larger.
+*Subcase `j = d`:* `(a ⊖ w)_d = a_d - w_d` and `(b ⊖ w)_d = b_d - w_d`. From `j = d`: `a_d < b_d`. Since `a_d > w_d` and `b_d > w_d` (established in setup), both differences are positive and `a_d - w_d < b_d - w_d`. The results agree before `d` (both zero) and first disagree at `d`. By T1 case (i), `a ⊖ w < b ⊖ w`.
 
-We show `d_b = div(b, w)` exists by contradiction. Suppose `b` is zero-padded-equal to `w`. Then `b_{d_a} = w_{d_a}` (since `b` agrees with `w` everywhere under zero-padding). We have `w_{d_a} < a_{d_a}` (since `a_{d_a} > w_{d_a}`), so `b_{d_a} < a_{d_a}`. For all `i < d_a`: `aᵢ = wᵢ` (pre-divergence of `a` and `w`) and `bᵢ = wᵢ` (zero-padded equality of `b` and `w`), so `aᵢ = bᵢ`. The first divergence of `a` and `b` is at `d_a`, with `b_{d_a} < a_{d_a}`, so T1 case (i) gives `b < a` — contradicting `a < b`. Therefore `b` is not zero-padded-equal to `w`, and `d_b` is well-defined.
+*Subcase `j > d`:* `a_d = b_d` (since `j > d`), so `(a ⊖ w)_d = a_d - w_d = b_d - w_d = (b ⊖ w)_d`. For `d < i < j`: both results are in TumblerSub's tail-copy phase, giving `(a ⊖ w)_i = a_i` and `(b ⊖ w)_i = b_i`; since `a_i = b_i` (`i < j`), the results agree. At position `j`: `(a ⊖ w)_j = a_j` and `(b ⊖ w)_j = b_j` (still tail-copy), with `a_j < b_j`. The results first disagree at `j`. By T1 case (i), `a ⊖ w < b ⊖ w`.
 
-We show `b_{d_b} > w_{d_b}`. Since `b` is not zero-padded-equal to `w`, we have `b ≠ w` (if `b = w` by T3, their padded sequences would be identical, contradicting the existence of `d_b`). Combined with `b ≥ w`, this gives `b > w`. At the first zero-padded divergence `d_b`, the ordering `b > w` under T1 requires `b_{d_b} > w_{d_b}`.
+**Case 2: `d_a < d_b`.** At position `d_a`: `a_{d_a} ≠ w_{d_a}` but `b_{d_a} = w_{d_a}` (since `d_a < d_b`). Both agree with `w` — hence with each other — before `d_a`, and disagree at `d_a` (since `a_{d_a} ≠ w_{d_a} = b_{d_a}`), so `j = d_a`. From `a < b` by T1: `a_{d_a} < b_{d_a} = w_{d_a}`. But `a_{d_a} > w_{d_a}` (from setup) — contradiction. This case is impossible.
 
-**Stage 4: Exhaustive case analysis on divergence positions.** The positions `d_a` and `d_b` are natural numbers, so exactly one of `d_a = d_b`, `d_a < d_b`, or `d_a > d_b` holds (trichotomy on ℕ). We analyze each case.
+**Case 3: `d_a > d_b`.** At position `d_b`: `b_{d_b} ≠ w_{d_b}` but `a_{d_b} = w_{d_b}` (since `d_b < d_a`). Both agree with `w` — hence with each other — before `d_b`, and disagree at `d_b` (since `b_{d_b} ≠ w_{d_b} = a_{d_b}`), so `j = d_b`. From `a < b`: `a_{d_b} < b_{d_b}`, i.e., `w_{d_b} < b_{d_b}` — consistent with `b_{d_b} > w_{d_b}`.
 
-**Case 1: `d_a = d_b = d`.** Both pairs diverge from `w` at the same position `d`. By TumblerSub, `(a ⊖ w)_i = 0` and `(b ⊖ w)_i = 0` for all `i < d`. Since `a` and `b` both agree with `w` at all positions before `d`, they agree with each other: `aᵢ = wᵢ = bᵢ` for `i < d`. The first divergence `j` of `a` and `b` therefore satisfies `j ≥ d`.
+For `a ⊖ w`: position `d_b` falls before `d_a`, placing it in the pre-divergence zero phase, so `(a ⊖ w)_{d_b} = 0`. For `b ⊖ w`: `d_b` is the divergence point, so `(b ⊖ w)_{d_b} = b_{d_b} - w_{d_b} > 0`. At all positions `i < d_b`, both results are zero (pre-divergence for both). The first disagreement is at `d_b` with `0 < b_{d_b} - w_{d_b}`. By T1 case (i), `a ⊖ w < b ⊖ w`.
 
-*Subcase `j = d`:* At position `d`, TumblerSub gives `(a ⊖ w)_d = a_d - w_d` and `(b ⊖ w)_d = b_d - w_d`. From `j = d`: `a_d < b_d`. Since `a_d > w_d` (Stage 3), `a_d - w_d ≥ 1`; since `b_d > w_d` (Stage 3), `b_d - w_d ≥ 1`. Both differences are positive, and `a_d < b_d` gives `a_d - w_d < b_d - w_d` (subtracting the common `w_d` preserves strict inequality on ℕ). The results agree before `d` (both zero) and first disagree at `d` with `(a ⊖ w)_d < (b ⊖ w)_d`. Since `d` lies within the padded sequences, `d ≤ max(#a, #w) = L`, so `d ≤ min(L, L) = L`. T1 case (i) applies with witness `d`, giving `a ⊖ w < b ⊖ w`.
-
-*Subcase `j > d`:* Since `j > d`, position `d` lies before the first divergence of `a` and `b`, so `a_d = b_d`. Therefore `(a ⊖ w)_d = a_d - w_d = b_d - w_d = (b ⊖ w)_d` — the results agree at the divergence point. For `d < i < j`: position `i > d` places both results in TumblerSub's tail-copy phase, giving `(a ⊖ w)_i = a_i` and `(b ⊖ w)_i = b_i`. Since `i < j`, the T1 agreement condition gives `a_i = b_i`, so `(a ⊖ w)_i = (b ⊖ w)_i` — the results agree. At position `j`: both results remain in the tail-copy phase (`j > d`), giving `(a ⊖ w)_j = a_j` and `(b ⊖ w)_j = b_j`, with `a_j < b_j` (from T1 at the first divergence). The results first disagree at `j`. Since `j ≤ #a` (from T1, `j ≤ min(#a, #b) = #a` since `#a = #b`) and `#a ≤ max(#a, #w) = L`, we have `j ≤ L = min(L, L)`. T1 case (i) applies with witness `j`, giving `a ⊖ w < b ⊖ w`.
-
-**Case 2: `d_a < d_b` — impossible.** At position `d_a`: `a_{d_a} ≠ w_{d_a}` (divergence of `a` and `w`) but `b_{d_a} = w_{d_a}` (since `d_a < d_b`, position `d_a` lies in the pre-divergence agreement range of `b` and `w`). For `i < d_a`: `aᵢ = wᵢ` (pre-divergence of `a` and `w`) and `bᵢ = wᵢ` (pre-divergence of `b` and `w`, since `i < d_a < d_b`), so `aᵢ = bᵢ`. At `d_a`: `a_{d_a} ≠ w_{d_a} = b_{d_a}`, so `a_{d_a} ≠ b_{d_a}`. The tumblers `a` and `b` agree before `d_a` and disagree at `d_a`, so `j = d_a`.
-
-From `a < b` by T1 case (i) at position `j = d_a`: `a_{d_a} < b_{d_a}`. Since `b_{d_a} = w_{d_a}`, this gives `a_{d_a} < w_{d_a}`. But `a_{d_a} > w_{d_a}` from Stage 3. The conjunction `a_{d_a} < w_{d_a}` and `a_{d_a} > w_{d_a}` contradicts trichotomy of `<` on ℕ. This case is impossible.
-
-**Case 3: `d_a > d_b`.** At position `d_b`: `b_{d_b} ≠ w_{d_b}` (divergence of `b` and `w`) but `a_{d_b} = w_{d_b}` (since `d_b < d_a`, position `d_b` lies in the pre-divergence agreement range of `a` and `w`). For `i < d_b`: `aᵢ = wᵢ` (pre-divergence of `a` and `w`, since `i < d_b < d_a`) and `bᵢ = wᵢ` (pre-divergence of `b` and `w`), so `aᵢ = bᵢ`. At `d_b`: `b_{d_b} ≠ w_{d_b} = a_{d_b}`, so `a_{d_b} ≠ b_{d_b}`. The tumblers agree before `d_b` and disagree at `d_b`, so `j = d_b`.
-
-From `a < b` by T1 case (i) at position `j = d_b`: `a_{d_b} < b_{d_b}`, i.e., `w_{d_b} < b_{d_b}` — consistent with `b_{d_b} > w_{d_b}` from Stage 3.
-
-For `a ⊖ w`: position `d_b` falls before `d_a` (since `d_b < d_a`), placing it in TumblerSub's pre-divergence zero phase, so `(a ⊖ w)_{d_b} = 0`. For `b ⊖ w`: `d_b` is the divergence point, so `(b ⊖ w)_{d_b} = b_{d_b} - w_{d_b}`. Since `b_{d_b} > w_{d_b}` (Stage 3), `(b ⊖ w)_{d_b} ≥ 1 > 0`. At all positions `i < d_b`, both results are zero — position `i` lies in the pre-divergence zero phase for both subtractions (since `i < d_b < d_a`, so `i < d_a` and `i < d_b`). The first disagreement between the results is at `d_b`, with `(a ⊖ w)_{d_b} = 0 < (b ⊖ w)_{d_b}`. Since `d_b` lies within the padded sequences, `d_b ≤ max(#b, #w) = L`, so `d_b ≤ min(L, L) = L`. T1 case (i) applies with witness `d_b`, giving `a ⊖ w < b ⊖ w`.
-
-In every case — Stage 2 (degenerate) and Stage 4 Cases 1, 2 (impossible), and 3 — `a ⊖ w < b ⊖ w` is established. ∎
+In every case, `a ⊖ w < b ⊖ w` is established. ∎
 
 *Formal Contract:*
 - *Preconditions:* a ∈ T, b ∈ T, w ∈ T, a < b, a ≥ w, b ≥ w, #a = #b
@@ -977,7 +828,7 @@ In every case — Stage 2 (degenerate) and Stage 4 Cases 1, 2 (impossible), and 
 
 ### Partial inverse
 
-**TA4 (PartialInverse).** `(A a, w : w > 0 ∧ k = #a ∧ #w = k ∧ (A i : 1 ≤ i < k : aᵢ = 0) : (a ⊕ w) ⊖ w = a)`, where `k` is the action point of `w`.
+**TA4 (Partial inverse).** `(A a, w : w > 0 ∧ k = #a ∧ #w = k ∧ (A i : 1 ≤ i < k : aᵢ = 0) : (a ⊕ w) ⊖ w = a)`, where `k` is the action point of `w`.
 
 The precondition has three parts. First, `k = #a` — the action point falls at the last component of `a`. This is necessary because addition replaces `a`'s trailing structure below the action point with `w`'s trailing structure (tail replacement, defined below). When `k < #a`, components `aₖ₊₁, ..., a_{#a}` are discarded by addition and cannot be recovered by subtraction. Concretely: `[1, 5] ⊕ [1, 3] = [2, 3]` (action point 1, position 2 replaced by `w`'s trailing `3`), then `[2, 3] ⊖ [1, 3] = [1, 3] ≠ [1, 5]`.
 
@@ -989,7 +840,7 @@ When all three conditions hold, recovery is exact. The restriction is not a defi
 
 *Proof.* We show that under the stated preconditions, the round-trip `(a ⊕ w) ⊖ w` recovers `a` exactly. Throughout, `k` denotes the action point of `w` — the least position `i` with `wᵢ > 0` — so by definition `wᵢ = 0` for all `i < k` and `wₖ > 0`.
 
-**Step 1: the structure of `r = a ⊕ w`.** The addition is well-defined: TA0 requires `k ≤ #a`, and the precondition `k = #a` gives `k ≤ k`. By TumblerAdd, the result `r` is built in three regions relative to the action point: `rᵢ = aᵢ` for `i < k` (prefix copy), `rₖ = aₖ + wₖ` (single-component advance), and `rᵢ = wᵢ` for `i > k` (tail copy from displacement). We determine each region under the preconditions.
+**Step 1: the structure of `r = a ⊕ w`.** By TumblerAdd, the result `r` is built in three regions relative to the action point: `rᵢ = aᵢ` for `i < k` (prefix copy), `rₖ = aₖ + wₖ` (single-component advance), and `rᵢ = wᵢ` for `i > k` (tail copy from displacement). We determine each region under the preconditions.
 
 For `i < k`: the precondition `(A i : 1 ≤ i < k : aᵢ = 0)` gives `rᵢ = aᵢ = 0`.
 
@@ -999,15 +850,13 @@ For `i > k`: by the result-length identity (TA0), `#r = #w`. The precondition `#
 
 Therefore `r = [0, ..., 0, aₖ + wₖ]` — a tumbler of length `k` with zeros at all positions before `k`.
 
-**Step 2: establishing `r ≥ w`.** TumblerSub requires `r ≥ w` as a precondition; we verify it. Since `#r = k = #w`, no zero-padding is needed. At each position `i < k`, `rᵢ = 0 = wᵢ`. At position `k`, `rₖ = aₖ + wₖ ≥ wₖ` since `aₖ ∈ ℕ`. If `aₖ > 0`, the first divergence is at `k` with `rₖ > wₖ`, so `r > w` by T1 case (i). If `aₖ = 0`, then `rₖ = wₖ` and the tumblers agree at every position with equal length, so `r = w` by T3. In both cases `r ≥ w`.
-
-**Step 3: computing `s = r ⊖ w`.** By TumblerSub (applicable by Step 2), subtraction scans `r` and `w` for the first divergence. Since `#r = k = #w`, no zero-padding is needed. At each position `i < k`, both `rᵢ = 0` (Step 1) and `wᵢ = 0` (definition of action point), so `rᵢ = wᵢ` and no divergence occurs before position `k`.
+**Step 2: computing `s = r ⊖ w`.** By TumblerSub, subtraction scans `r` and `w` for the first divergence, zero-padding the shorter to the length of the longer. Since `#r = k = #w`, no padding is needed. At each position `i < k`, both `rᵢ = 0` (established above) and `wᵢ = 0` (definition of action point), so `rᵢ = wᵢ` and no divergence occurs before position `k`.
 
 Two cases arise at position `k`, exhausting all possibilities for `aₖ ∈ ℕ`.
 
 *Case 1: `aₖ > 0`.* Then `rₖ = aₖ + wₖ > wₖ` (since `aₖ > 0`), so `rₖ ≠ wₖ` and the first divergence is at position `k`. TumblerSub produces: `sᵢ = 0` for `i < k` (zeroing pre-divergence positions), `sₖ = rₖ - wₖ = (aₖ + wₖ) - wₖ = aₖ` (reversing the advance), and `sᵢ = rᵢ` for `i > k` (tail copy). Since `#r = k`, there are no positions beyond `k`, so the tail-copy region contributes nothing. The result length is `max(#r, #w) = k`, giving `s = [0, ..., 0, aₖ]` of length `k`. By the precondition, `aᵢ = 0` for all `i < k` and `#a = k`, so `s = a`.
 
-*Case 2: `aₖ = 0`.* Every component of `a` is zero: `aᵢ = 0` for `i < k` by precondition, and `aₖ = 0` by the case hypothesis, so `a` is the zero tumbler of length `k`. The addition gives `rₖ = 0 + wₖ = wₖ`. Combined with `rᵢ = 0 = wᵢ` for `i < k` and `#r = k = #w`, this yields `r = w` by T3. Now `s = r ⊖ w = w ⊖ w`: the sequences agree at every position, so no divergence exists and TumblerSub yields the zero tumbler of length `max(#w, #w) = k`. This zero tumbler of length `k` is exactly `a`.
+*Case 2: `aₖ = 0`.* Every component of `a` is zero: `aᵢ = 0` for `i < k` by precondition, and `aₖ = 0` by the case hypothesis, so `a` is the zero tumbler of length `k`. The addition gives `rₖ = 0 + wₖ = wₖ`. Combined with `rᵢ = 0 = wᵢ` for `i < k` and `#r = k = #w`, this yields `r = w`. Now `s = r ⊖ w = w ⊖ w`: the sequences agree at every position, so no divergence exists and TumblerSub yields the zero tumbler of length `max(#w, #w) = k`. This zero tumbler of length `k` is exactly `a`.
 
 In both cases, `(a ⊕ w) ⊖ w = a`. ∎
 
@@ -1019,43 +868,37 @@ Gregory's analysis confirms that `⊕` and `⊖` are NOT inverses in general. Th
 
 The reverse direction is equally necessary:
 
-**ReverseInverse (ReverseInverse).** `(A a, w : a ≥ w ∧ w > 0 ∧ k = #a ∧ #w = k ∧ (A i : 1 ≤ i < k : aᵢ = 0) : (a ⊖ w) ⊕ w = a)`, where `k` is the action point of `w`.
+**ReverseInverse (Reverse inverse).** `(A a, w : a ≥ w ∧ w > 0 ∧ k = #a ∧ #w = k ∧ (A i : 1 ≤ i < k : aᵢ = 0) : (a ⊖ w) ⊕ w = a)`, where `k` is the action point of `w`.
 
-*Proof.* We are given `a, w ∈ T` with `a ≥ w`, `w > 0`, `k = #a`, `#w = k`, and `(A i : 1 ≤ i < k : aᵢ = 0)`, where `k` is the action point of `w`. We must show `(a ⊖ w) ⊕ w = a`. The argument proceeds in four stages: establish constraints and well-formedness from the hypotheses, compute the structure of the intermediate tumbler `y = a ⊖ w`, verify that TA4 applies to yield a key identity, and prove `y ⊕ w = a` by contradiction using TA3-strict.
+*Proof.* We show that subtracting `w` from `a` and then adding `w` back recovers `a` exactly, under conditions that make the two operations mutually inverse. Throughout, `k` denotes the action point of `w` — the least position with `wₖ > 0` — so by definition `wᵢ = 0` for all `i < k`.
 
-**Stage 1: Hypotheses, derived constraints, and well-formedness.** We recall the definitions on which the argument depends. The action point `k` of `w` is the least position with `wₖ > 0`, so by definition `wᵢ = 0` for all `i < k` and `wₖ > 0`. The preconditions give `k = #a` and `#w = k`, so `#a = #w = k` — both tumblers have the same length. The zero-prefix condition `(A i : 1 ≤ i < k : aᵢ = 0)` constrains all components of `a` before the action point to zero.
+**Step 1: the structure of `y = a ⊖ w`.** By TumblerSub, subtraction scans `a` and `w` for the first position where they differ, zero-padding the shorter to length `max(#a, #w)`. Since `#a = k = #w` (given), no padding is needed. At each position `i < k`, both `aᵢ = 0` (by the zero-prefix precondition) and `wᵢ = 0` (by definition of action point), so the operands agree before position `k`.
 
-By TA2 (WellDefinedSubtraction), since `a ≥ w`, the subtraction `a ⊖ w` is a well-defined member of `T`. Since `#a = k = #w`, TumblerSub requires no zero-padding: `max(#a, #w) = k`, so both operands are scanned at their natural lengths.
-
-**Stage 2: The structure of `y = a ⊖ w`.** By TumblerSub, subtraction scans `a` and `w` for the first position where they differ. At each position `i < k`, both `aᵢ = 0` (by the zero-prefix precondition) and `wᵢ = 0` (by definition of action point), so the operands agree before position `k`.
-
-Two cases arise at position `k`. If `aₖ = wₖ`, then `a` and `w` agree at every position — there are no positions beyond `k` since both have length `k` — and TumblerSub produces the zero tumbler of length `k` (the zero-padded-equality case). If `aₖ > wₖ` (the only alternative, since `a ≥ w` excludes `aₖ < wₖ` at the first divergence), then `k` is the first divergence, and TumblerSub produces `yᵢ = 0` for `i < k`, `yₖ = aₖ - wₖ > 0`, and no components beyond `k` (since `max(#a, #w) = k`). In either case, `y` has three properties we record for later use:
+Two cases arise at position `k`. If `aₖ = wₖ`, then `a` and `w` agree at every position — there are no positions beyond `k` since both have length `k` — and TumblerSub produces the zero tumbler of length `k`. If `aₖ > wₖ` (the only alternative, since `a ≥ w` excludes `aₖ < wₖ`), then `k` is the first divergence, and TumblerSub produces `yᵢ = 0` for `i < k`, `yₖ = aₖ - wₖ > 0`, and no components beyond `k` (since `max(#a, #w) = k`). In either case, `y` has three properties we record for later use:
 
 - (Y1) `#y = k`
 - (Y2) `yᵢ = 0` for all `1 ≤ i < k`
 - (Y3) `yₖ = aₖ - wₖ`
 
-**Stage 3: TA4 yields the key identity `(y ⊕ w) ⊖ w = y`.** TA4 (PartialInverse) requires four preconditions: `w > 0`, `k = #y`, `#w = k`, and `(A i : 1 ≤ i < k : yᵢ = 0)`. We verify each. First, `w > 0` is given as a precondition of ReverseInverse. Second, `k = #y` holds by Y1. Third, `#w = k` is given. Fourth, `yᵢ = 0` for all `1 ≤ i < k` holds by Y2. All four preconditions are satisfied, so TA4 yields:
+**Step 2: TA4 applies to `y` and `w`.** TA4 (Partial inverse) requires four preconditions: `w > 0` (given), `k = #y` (by Y1), `#w = k` (given), and `(A i : 1 ≤ i < k : yᵢ = 0)` (by Y2). All four hold, so TA4 yields:
 
 `(y ⊕ w) ⊖ w = y`  — (†)
 
-This identity is the pivot of the argument: it tells us that `y` round-trips through addition and subtraction by `w`. If we can additionally show `y ⊕ w = a`, then TA3-strict becomes applicable to derive contradictions from any alternative.
+**Step 3: `y ⊕ w = a` by contradiction via TA3-strict.** Assume for contradiction that `y ⊕ w ≠ a`. We verify the preconditions of TA3-strict (Order preservation under subtraction, strict), which requires strict ordering between two tumblers, both `≥ w`, and equal length.
 
-**Stage 4: `y ⊕ w = a` by contradiction via TA3-strict.** Assume for contradiction that `y ⊕ w ≠ a`. We verify the preconditions of TA3-strict (OrderPreservationUnderSubtractionStrict), which requires strict ordering between two tumblers, both `≥ w`, and equal length.
-
-*Equal length.* By the result-length identity (TumblerAdd), `#(y ⊕ w) = #w`. The preconditions give `#w = k` and `k = #a`, so `#(y ⊕ w) = k = #a`. Since both tumblers have length `k`, T1 case (ii) — which requires unequal lengths — cannot arise between `y ⊕ w` and `a`.
+*Equal length.* By the result-length identity (TumblerAdd), `#(y ⊕ w) = #w`. The preconditions give `#w = k` and `k = #a`, so `#(y ⊕ w) = #a`.
 
 *`a ≥ w`.* Given as a precondition of ReverseInverse.
 
-*`y ⊕ w ≥ w`.* By TumblerAdd, for `i < k`: `(y ⊕ w)ᵢ = yᵢ = 0 = wᵢ` (using Y2 for `yᵢ = 0` and the definition of action point for `wᵢ = 0`). At position `k`: `(y ⊕ w)ₖ = yₖ + wₖ`. Since `#(y ⊕ w) = k = #w`, there are no positions beyond `k`, so the two tumblers `y ⊕ w` and `w` agree at all positions except possibly `k`. We show `yₖ > 0`. If `yₖ = 0`, then by Y3, `aₖ = wₖ`. Combined with `aᵢ = wᵢ = 0` for all `i < k` and `#a = #w = k`, this gives `a = w` by T3 (CanonicalRepresentation). Then `y = a ⊖ w = w ⊖ w`, which is the zero tumbler of length `k`, and `y ⊕ w` has `(y ⊕ w)ₖ = 0 + wₖ = wₖ` with zeros before `k`, so `y ⊕ w = w = a` by T3 — contradicting our assumption that `y ⊕ w ≠ a`. Therefore `yₖ > 0`, giving `(y ⊕ w)ₖ = yₖ + wₖ > wₖ`. The two tumblers agree before `k` and first differ at `k` with `(y ⊕ w)ₖ > wₖ`, so by T1 case (i) with witness `k`, `y ⊕ w > w`.
+*`y ⊕ w > w`.* By TumblerAdd, for `i < k`: `(y ⊕ w)ᵢ = yᵢ = 0 = wᵢ` (using Y2 and the definition of action point). At position `k`: `(y ⊕ w)ₖ = yₖ + wₖ`. Since `#(y ⊕ w) = k = #w`, there are no positions beyond `k`, so the two tumblers `y ⊕ w` and `w` agree at all positions except possibly `k`. We show `yₖ > 0`. If `yₖ = 0`, then by Y3, `aₖ = wₖ`. Combined with `aᵢ = wᵢ = 0` for all `i < k` and `#a = #w = k`, this gives `a = w` by T3 (CanonicalRepresentation). Then `y = a ⊖ w = w ⊖ w`, which is the zero tumbler of length `k`, and `y ⊕ w` has `(y ⊕ w)ₖ = 0 + wₖ = wₖ` with zeros before `k`, so `y ⊕ w = w = a` — contradicting our assumption. Therefore `yₖ > 0`, giving `(y ⊕ w)ₖ = yₖ + wₖ > wₖ`. The two tumblers agree before `k` and first differ at `k` with `(y ⊕ w)ₖ > wₖ`, so by T1, `y ⊕ w > w`.
 
-*Strict ordering between `y ⊕ w` and `a`.* By T1 (trichotomy), since `y ⊕ w ≠ a` and `#(y ⊕ w) = #a = k`, exactly one of `y ⊕ w < a` or `y ⊕ w > a` holds. We derive a contradiction from each.
+*Strict ordering between `y ⊕ w` and `a`.* By T1 (trichotomy), since `y ⊕ w ≠ a`, exactly one of `y ⊕ w < a` or `y ⊕ w > a` holds. We derive a contradiction from each.
 
-*Case `y ⊕ w > a`:* We have `a < y ⊕ w`, `a ≥ w`, `y ⊕ w > w` (so `y ⊕ w ≥ w`), and `#a = #(y ⊕ w)`. All preconditions of TA3-strict are met. Applying TA3-strict: `a ⊖ w < (y ⊕ w) ⊖ w`. The left side is `y` by definition of `y`; the right side is `y` by (†). This yields `y < y`, contradicting the irreflexivity of `<` established in T1 part (a).
+*Case `y ⊕ w > a`:* We have `a < y ⊕ w`, `a ≥ w`, `y ⊕ w ≥ w` (established above, in fact strict), and `#a = #(y ⊕ w)`. TA3-strict gives `a ⊖ w < (y ⊕ w) ⊖ w`. The left side is `y` by definition; the right side is `y` by (†). This yields `y < y`, contradicting the irreflexivity of `<` (T1).
 
-*Case `y ⊕ w < a`:* We have `y ⊕ w < a`, `y ⊕ w > w` (so `y ⊕ w ≥ w`), `a ≥ w`, and `#(y ⊕ w) = #a`. All preconditions of TA3-strict are met. Applying TA3-strict: `(y ⊕ w) ⊖ w < a ⊖ w`. The left side is `y` by (†); the right side is `y` by definition. This yields `y < y`, again contradicting irreflexivity.
+*Case `y ⊕ w < a`:* We have `y ⊕ w < a`, `y ⊕ w ≥ w` (strict), `a ≥ w`, and `#(y ⊕ w) = #a`. TA3-strict gives `(y ⊕ w) ⊖ w < a ⊖ w`. The left side is `y` by (†); the right side is `y` by definition. This yields `y < y`, again contradicting irreflexivity.
 
-Both cases produce contradictions, so the assumption `y ⊕ w ≠ a` is false. Therefore `y ⊕ w = a`, and since `y = a ⊖ w`, we conclude `(a ⊖ w) ⊕ w = a`. ∎
+Both cases are impossible, so the assumption `y ⊕ w ≠ a` is false. Therefore `(a ⊖ w) ⊕ w = a`. ∎
 
 *Formal Contract:*
 - *Preconditions:* `a ∈ T`, `w ∈ T`, `a ≥ w`, `w > 0`, `k = #a`, `#w = k`, `(A i : 1 ≤ i < k : aᵢ = 0)`, where `k` is the action point of `w`
@@ -1189,15 +1032,13 @@ For the remaining cases, `a < b` by T1 case (i) and `a` is not zero-padded-equal
 
 **Claim.** `(a ⊕ w) ⊖ w = a` under the full precondition: `k = #a`, `#w = k`, `(A i : 1 ≤ i < k : aᵢ = 0)`.
 
-*Proof.* Let `k` be the action point of `w`. The addition is well-defined: TA0 requires `k ≤ #a`, and the precondition `k = #a` satisfies this. Since `k = #a`, the addition `a ⊕ w` produces a result `r` with: `rᵢ = aᵢ = 0` for `i < k` (by the zero-prefix condition), `rₖ = aₖ + wₖ`, and `rᵢ = wᵢ` for `i > k`. Crucially, there are no components of `a` beyond position `k` — the tail replacement discards nothing. By the result-length identity, `#r = #w = k`, so `r = [0, ..., 0, aₖ + wₖ]`.
-
-Before subtracting, we verify TumblerSub's precondition `r ≥ w`. Since `#r = k = #w`, no zero-padding is needed. At positions `i < k`, `rᵢ = 0 = wᵢ`. At position `k`, `rₖ = aₖ + wₖ ≥ wₖ` since `aₖ ∈ ℕ`. So either `r = w` (when `aₖ = 0`, by T3) or `r > w` (when `aₖ > 0`, by T1 case (i)). In both cases `r ≥ w`.
+*Proof.* Let `k` be the action point of `w`. Since `k = #a`, the addition `a ⊕ w` produces a result `r` with: `rᵢ = aᵢ = 0` for `i < k` (by the zero-prefix condition), `rₖ = aₖ + wₖ`, and `rᵢ = wᵢ` for `i > k`. Crucially, there are no components of `a` beyond position `k` — the tail replacement discards nothing. By the result-length identity, `#r = #w = k`, so `r = [0, ..., 0, aₖ + wₖ]`.
 
 Now subtract `w` from `r`. The subtraction scans for the first divergence between `r` and `w`. For `i < k`: `rᵢ = 0 = wᵢ` (both are zero — `aᵢ` by the zero-prefix precondition, `wᵢ` by definition of action point). Two sub-cases arise at position `k`.
 
 *Sub-case (i): `aₖ > 0`.* Then `rₖ = aₖ + wₖ > wₖ`, and the first divergence is at position `k`. The subtraction produces: positions `i < k` get zero, position `k` gets `rₖ - wₖ = aₖ`, and positions `i > k` copy from `r`, giving `rᵢ = wᵢ`. Since `k = #a` and `#w = k`, there are no trailing components. The result is `[0, ..., 0, aₖ] = a`. For valid addresses, T4's positive-component constraint guarantees `aₖ > 0`, so this sub-case always applies in the address context.
 
-*Sub-case (ii): `aₖ = 0`.* Then `a` is a zero tumbler. The addition gives `rₖ = wₖ`. Since `#r = #w` (result-length identity) and `#w = k` (precondition), we have `r = w` by T3. The subtraction `w ⊖ w` yields the zero tumbler of length `k`, which is `a`. ∎
+*Sub-case (ii): `aₖ = 0`.* Then `a` is a zero tumbler. The addition gives `rₖ = wₖ`. Since `#r = #w` (result-length identity) and `#w = k` (precondition), we have `r = w`. The subtraction `w ⊖ w` yields the zero tumbler of length `k`, which is `a`. ∎
 
 
 ### Cancellation properties of ⊕
@@ -1206,45 +1047,25 @@ TumblerAdd's constructive definition determines each component of the result fro
 
 **TA-LC (LeftCancellation).** If a ⊕ x = a ⊕ y with both sides well-defined (TA0 satisfied for both), then x = y.
 
-*Proof.* We show that from the hypothesis `a ⊕ x = a ⊕ y`, with both additions satisfying TA0, it follows that `x = y`. The argument proceeds in four stages: unpack the preconditions to establish existence of action points and index bounds, show both action points must be equal, verify component-wise equality across all positions, and assemble the conclusion via length equality and T3.
+*Proof.* We show that from the hypothesis `a ⊕ x = a ⊕ y`, with both additions satisfying TA0, it follows that `x = y`. The argument proceeds in two stages: first we establish that `x` and `y` share the same action point, then we show component-wise and length equality.
 
-**Stage 1: Preconditions and action points.** Let `a = [a₁, ..., aₘ]`, `x = [x₁, ..., xₙ]`, and `y = [y₁, ..., yₗ]`. The hypothesis requires both additions to satisfy TA0 (WellDefinedAddition). For `a ⊕ x`: TA0 requires `x > 0` and `actionPoint(x) ≤ #a = m`. For `a ⊕ y`: TA0 requires `y > 0` and `actionPoint(y) ≤ #a = m`.
+Let `k₁` be the action point of `x` and `k₂` the action point of `y`. Both exist because TA0 requires `x > 0` and `y > 0`, so each has at least one nonzero component. We eliminate both strict orderings.
 
-Let `k₁ = actionPoint(x)` — the least `i` with `1 ≤ i ≤ n` such that `xᵢ > 0`. This exists because `x > 0` guarantees at least one positive component. By the TA0 precondition, `k₁ ≤ m`, so position `k₁` exists within `a`. Similarly, let `k₂ = actionPoint(y)` — the least `j` with `1 ≤ j ≤ l` such that `yⱼ > 0`. By the TA0 precondition, `k₂ ≤ m`, so position `k₂` exists within `a`.
+**Case k₁ < k₂.** Since `k₁ < k₂` and the action point is the first nonzero component, every component of `y` before position `k₂` is zero — in particular `y_{k₁} = 0`. Position `k₁` therefore falls in the prefix-copy region of the addition `a ⊕ y`: by TumblerAdd, `(a ⊕ y)_{k₁} = a_{k₁}`. In the addition `a ⊕ x`, position `k₁` is the action point itself, so TumblerAdd gives `(a ⊕ x)_{k₁} = a_{k₁} + x_{k₁}`. From `a ⊕ x = a ⊕ y` we obtain `a_{k₁} + x_{k₁} = a_{k₁}`, hence `x_{k₁} = 0`. But `k₁` is the action point of `x`, so by definition `x_{k₁} > 0` — contradiction.
 
-We record for later use: `x_{i} = 0` for all `1 ≤ i < k₁`, `x_{k₁} > 0`, `y_{j} = 0` for all `1 ≤ j < k₂`, and `y_{k₂} > 0`.
+**Case k₂ < k₁.** Since `k₂ < k₁` and the action point is the first nonzero component, every component of `x` before position `k₁` is zero — in particular `x_{k₂} = 0`. Position `k₂` therefore falls in the prefix-copy region of the addition `a ⊕ x`: by TumblerAdd, `(a ⊕ x)_{k₂} = a_{k₂}`. In the addition `a ⊕ y`, position `k₂` is the action point itself, so TumblerAdd gives `(a ⊕ y)_{k₂} = a_{k₂} + y_{k₂}`. From `a ⊕ x = a ⊕ y` we obtain `a_{k₂} = a_{k₂} + y_{k₂}`, hence `y_{k₂} = 0`. But `k₂` is the action point of `y`, so by definition `y_{k₂} > 0` — contradiction.
 
-**Stage 2: Action point equality.** We show `k₁ = k₂` by eliminating both strict orderings.
+Both strict orderings are impossible, so `k₁ = k₂`. Write `k` for this common action point. We now verify that `x` and `y` agree at every position and have the same length.
 
-*Case k₁ < k₂.* We derive a contradiction. Since `k₁ < k₂` and `k₂` is the first positive position of `y`, every component of `y` before position `k₂` is zero — in particular, `y_{k₁} = 0` (since `1 ≤ k₁ < k₂`). We now determine which region of TumblerAdd's piecewise definition governs position `k₁` in each addition.
+**Positions i < k.** Both `x` and `y` have action point `k`, so by definition of action point every component before `k` is zero: `xᵢ = 0` and `yᵢ = 0`. Therefore `xᵢ = yᵢ = 0`.
 
-In `a ⊕ y`: the action point of `y` is `k₂`, and `k₁ < k₂`, so position `k₁` falls in the prefix-copy region. TumblerAdd's rule for `i < k₂` gives `(a ⊕ y)_{k₁} = a_{k₁}`.
+**Position i = k.** TumblerAdd gives `(a ⊕ x)_k = a_k + x_k` and `(a ⊕ y)_k = a_k + y_k`. From `a ⊕ x = a ⊕ y` we get `a_k + x_k = a_k + y_k`, hence `x_k = y_k` by cancellation in ℕ.
 
-In `a ⊕ x`: the action point of `x` is `k₁`, and position `k₁` is exactly the action point. TumblerAdd's rule for `i = k₁` gives `(a ⊕ x)_{k₁} = a_{k₁} + x_{k₁}`.
+**Positions i > k.** For both additions, positions after the action point fall in the tail-copy region of TumblerAdd: `(a ⊕ x)_i = x_i` and `(a ⊕ y)_i = y_i`. From `a ⊕ x = a ⊕ y` we get `x_i = y_i`.
 
-From the hypothesis `a ⊕ x = a ⊕ y`, T3 (CanonicalRepresentation) gives component-wise equality: `(a ⊕ x)_{k₁} = (a ⊕ y)_{k₁}`. Substituting: `a_{k₁} + x_{k₁} = a_{k₁}`, hence `x_{k₁} = 0` by cancellation in ℕ. But `k₁` is the action point of `x`, so `x_{k₁} > 0` (Stage 1) — contradiction.
+**Length.** By T3 (CanonicalRepresentation), `a ⊕ x = a ⊕ y` implies `#(a ⊕ x) = #(a ⊕ y)`. The result-length identity (TumblerAdd) gives `#(a ⊕ w) = #w` for any well-defined addition. Applying this to both sides: `#x = #(a ⊕ x) = #(a ⊕ y) = #y`.
 
-*Case k₂ < k₁.* We derive a contradiction by a symmetric argument. Since `k₂ < k₁` and `k₁` is the first positive position of `x`, every component of `x` before position `k₁` is zero — in particular, `x_{k₂} = 0` (since `1 ≤ k₂ < k₁`). We determine the governing TumblerAdd region at position `k₂` in each addition.
-
-In `a ⊕ x`: the action point of `x` is `k₁`, and `k₂ < k₁`, so position `k₂` falls in the prefix-copy region. TumblerAdd's rule for `i < k₁` gives `(a ⊕ x)_{k₂} = a_{k₂}`.
-
-In `a ⊕ y`: the action point of `y` is `k₂`, and position `k₂` is exactly the action point. TumblerAdd's rule for `i = k₂` gives `(a ⊕ y)_{k₂} = a_{k₂} + y_{k₂}`.
-
-From `a ⊕ x = a ⊕ y`, component-wise equality (T3) gives `(a ⊕ x)_{k₂} = (a ⊕ y)_{k₂}`. Substituting: `a_{k₂} = a_{k₂} + y_{k₂}`, hence `y_{k₂} = 0` by cancellation in ℕ. But `k₂` is the action point of `y`, so `y_{k₂} > 0` (Stage 1) — contradiction.
-
-Both strict orderings lead to contradiction. By trichotomy on ℕ (exactly one of `k₁ < k₂`, `k₁ = k₂`, `k₂ < k₁` holds), we conclude `k₁ = k₂`. Write `k` for this common action point. The bounds from Stage 1 give `k ≤ m`, and `k` is the first positive position of both `x` and `y`.
-
-**Stage 3: Component-wise equality.** We show `xᵢ = yᵢ` at every position. The result `a ⊕ x` has length `#x = n` and `a ⊕ y` has length `#y = l`, both by the result-length identity (TumblerAdd: `#(a ⊕ w) = #w`). Since `a ⊕ x = a ⊕ y`, T3 gives `#(a ⊕ x) = #(a ⊕ y)`, hence `n = l` — both displacements have the same length. We verify component agreement in three regions.
-
-*Positions `1 ≤ i < k`.* Both `x` and `y` have action point `k`. By definition, every component before the action point is zero: `xᵢ = 0` (since `i < k = k₁` and `k₁` is the first positive position of `x`) and `yᵢ = 0` (since `i < k = k₂` and `k₂` is the first positive position of `y`). Therefore `xᵢ = yᵢ = 0`.
-
-*Position `i = k`.* Both additions have action point `k`, so TumblerAdd's advance rule gives `(a ⊕ x)_k = a_k + x_k` and `(a ⊕ y)_k = a_k + y_k`. The component `a_k` is well-defined since `k ≤ m` (Stage 1). From `a ⊕ x = a ⊕ y`, T3 gives `(a ⊕ x)_k = (a ⊕ y)_k`, so `a_k + x_k = a_k + y_k`. By cancellation in ℕ, `x_k = y_k`.
-
-*Positions `k < i ≤ n`.* For both additions, positions after the action point fall in the tail-copy region of TumblerAdd: the rule for `i > k` gives `(a ⊕ x)_i = x_i` and `(a ⊕ y)_i = y_i`. These positions exist in the result because `i ≤ n = #(a ⊕ x)` and `i ≤ n = l = #(a ⊕ y)`. From `a ⊕ x = a ⊕ y`, T3 gives `(a ⊕ x)_i = (a ⊕ y)_i`, hence `x_i = y_i`.
-
-All positions from `1` to `n` are covered: positions `1, ..., k − 1` by the first sub-case, position `k` by the second, and positions `k + 1, ..., n` by the third. At every position, `xᵢ = yᵢ`.
-
-**Stage 4: Conclusion.** We have `#x = n = l = #y` (established at the start of Stage 3) and `xᵢ = yᵢ` for all `1 ≤ i ≤ n` (Stage 3, all three sub-cases). By T3 (CanonicalRepresentation), two tumblers of the same length with identical components at every position are equal: `x = y`.  ∎
+All components of `x` and `y` agree at every position and `#x = #y`, so `x = y` by T3 (CanonicalRepresentation).  ∎
 
 TumblerAdd is *left-cancellative*: the start position can be "divided out" from equal results, recovering the displacement uniquely. This is a direct consequence of TumblerAdd's constructive definition — each component of the result is determined by exactly one input, so equality of results propagates back to equality of inputs.
 
@@ -1344,49 +1165,25 @@ where k = divergence(a, b). This is exactly the formula for b ⊖ a from Tumbler
 
 **D0 (DisplacementWellDefined).** a < b, and the divergence k of a and b satisfies k ≤ #a.
 
-*Proof.* We show that under the hypotheses `a, b ∈ T`, `a < b`, and `divergence(a, b) ≤ #a`, the displacement `w = b ⊖ a` is a well-defined positive tumbler whose action point equals `divergence(a, b)`, and the addition `a ⊕ w` is well-defined. We also identify the boundary condition for round-trip faithfulness. The argument proceeds in five stages: establish the divergence structure, compute the subtraction, establish positivity and action point, verify the addition's preconditions, and analyze the round-trip boundary.
+*Proof.* We show that under the hypotheses `a, b ∈ T`, `a < b`, and `divergence(a, b) ≤ #a`, the displacement `w = b ⊖ a` is a well-defined positive tumbler whose action point equals `divergence(a, b)`, and the addition `a ⊕ w` is well-defined. We also identify the boundary condition for round-trip faithfulness.
 
-**Stage 1: Divergence structure.** Let `k = divergence(a, b)`. Since `a < b`, we have `a ≠ b` (by T1's irreflexivity), so the divergence is well-defined. We show that the hypothesis `k ≤ #a`, combined with `a < b`, forces Divergence case (i).
+Let `k = divergence(a, b)`. The hypothesis `k ≤ #a` eliminates Divergence case (ii), which would require `k = min(#a, #b) + 1 ≥ #a + 1 > #a`. We are therefore in case (i): `k ≤ min(#a, #b)`, with `aᵢ = bᵢ` for all `i < k` and `aₖ ≠ bₖ`. Since `a < b`, T1 case (i) gives the direction: `aₖ < bₖ`.
 
-Suppose for contradiction that Divergence case (ii) applies. Then `k = min(#a, #b) + 1` with `#a ≠ #b`, and `aᵢ = bᵢ` for all `1 ≤ i ≤ min(#a, #b)`. Two sub-cases arise. If `#a ≤ #b`, then `min(#a, #b) = #a`, giving `k = #a + 1 > #a` — contradicting the hypothesis `k ≤ #a`. If `#b < #a`, then `min(#a, #b) = #b`, and the agreement on all `#b` shared positions means `b` is a proper prefix of `a`; T1 case (ii) then gives `b < a`, contradicting `a < b`. Both sub-cases yield contradictions, so Divergence case (ii) is excluded.
+When `a` is a proper prefix of `b`, the Divergence definition gives case (ii) with `k = #a + 1 > #a`, violating D0's hypothesis. No displacement exists for prefix-related pairs — the subtraction is defined but the round-trip addition is not, because the action point would exceed `#a`.
 
-We are therefore in Divergence case (i): `k ≤ min(#a, #b)`, with `aᵢ = bᵢ` for all `1 ≤ i < k` and `aₖ ≠ bₖ`. The bound `k ≤ min(#a, #b)` ensures that position `k` exists within both `a` (since `k ≤ #a`) and `b` (since `k ≤ #b`). Since `a < b` and the first `k − 1` components agree, T1's ordering must be witnessed at position `k` via case (i): `aₖ < bₖ`. (T1 case (ii) would require `k = #a + 1`, but Divergence case (i) gives `k ≤ #a`, so `k ≠ #a + 1`.)
+**Well-definedness of the subtraction.** Since `a < b` entails `b ≥ a`, the subtraction `w = b ⊖ a` is a well-defined tumbler in T by TA2. We now compute `w` explicitly. By TumblerSub, zero-pad both operands to length `max(#b, #a)` and scan for the first position at which the padded sequences disagree. Since `bᵢ = aᵢ` for all `i < k` (from Divergence case (i)) and `bₖ ≠ aₖ`, the first divergence between minuend `b` and subtrahend `a` is at position `k`. TumblerSub yields:
 
-We record for later use: `aᵢ = bᵢ` for all `1 ≤ i < k`, `aₖ < bₖ`, and `k ≤ min(#a, #b)`.
+  `wᵢ = 0` for `i < k`, `wₖ = bₖ − aₖ`, `wᵢ = bᵢ` for `i > k`
 
-**Prefix exclusion.** When `a` is a proper prefix of `b`, the Divergence definition gives case (ii) with `k = #a + 1 > #a`, violating D0's hypothesis. No displacement with a valid round-trip addition exists for prefix-related pairs — the subtraction `b ⊖ a` is defined (by TA2, since `b > a` entails `b ≥ a`), but the resulting displacement's action point exceeds `#a`, making the addition `a ⊕ (b ⊖ a)` undefined under TA0.
+with `#w = max(#b, #a)`. The component `wₖ = bₖ − aₖ` is well-defined and non-negative because `bₖ > aₖ` (established above).
 
-**Stage 2: Compute w = b ⊖ a.** We first verify TumblerSub's precondition `b ≥ a`. Since `a < b`, T1's trichotomy (exactly one of `a < b`, `a = b`, `b < a` holds) gives `a ≠ b` and `¬(b < a)`. Since `a < b` is equivalent to `b > a`, and `b > a` implies `b ≥ a`, the precondition is satisfied. By TA2 (WellDefinedSubtraction), `w = b ⊖ a` is a well-defined tumbler in T.
+**Positivity.** The displacement `w` is positive: `wₖ = bₖ − aₖ ≥ 1` since `aₖ < bₖ` and both are natural numbers. All components before position `k` are zero, so `w` is not the zero tumbler.
 
-We now compute `w` explicitly using TumblerSub's constructive formula. TumblerSub zero-pads both operands to length `p = max(#b, #a)` before scanning for divergence. The minuend is `b`; the subtrahend is `a`. Since `k ≤ min(#a, #b)`, position `k` falls within the original (unpadded) range of both operands, so zero-padding does not affect the divergence scan: at every position `1 ≤ i ≤ k`, the padded subtrahend has value `aᵢ` (since `i ≤ k ≤ #a`) and the padded minuend has value `bᵢ` (since `i ≤ k ≤ #b`).
+**Action point.** The action point of `w` is `k`: every component `wᵢ = 0` for `i < k`, and `wₖ > 0`, so `k` is the first positive component of `w`.
 
-The divergence between the padded sequences of `b` and `a` is at position `k`: at positions `1 ≤ i < k`, `bᵢ = aᵢ` (by the agreement property from Stage 1); at position `k`, `bₖ ≠ aₖ` (since `aₖ < bₖ`). So the first disagreement in the padded sequences is at `k`.
+**Well-definedness of the addition.** TA0 requires `w > 0` (established) and `actionPoint(w) ≤ #a`. The action point is `k`, and the hypothesis gives `k ≤ #a`, so TA0 is satisfied. The addition `a ⊕ w` is a well-defined tumbler in T.
 
-Applying TumblerSub's constructive formula with divergence at `k`:
-
-  `wᵢ = 0`           for `1 ≤ i < k`      (positions before divergence are zeroed)
-  `wₖ = bₖ − aₖ`                           (reverse the advance at the divergence point)
-  `wᵢ = bᵢ`          for `k < i ≤ p`      (copy from minuend)
-
-The component `wₖ = bₖ − aₖ` is well-defined: both `aₖ` and `bₖ` are natural numbers (since `k ≤ #a` and `a ∈ T`; `k ≤ #b` and `b ∈ T`) with `bₖ > aₖ` (established in Stage 1), so `bₖ − aₖ` is a well-defined member of ℕ. The third rule copies from the minuend `b` at positions `k + 1` through `p = max(#b, #a)`. For positions `k < i ≤ #b`, `bᵢ` is a component of `b ∈ T`, hence `bᵢ ∈ ℕ`. For positions `#b < i ≤ p` (present only when `#a > #b`), the zero-padded value of `b` is `0 ∈ ℕ`. The result has length `#w = p = max(#b, #a)`.
-
-**Stage 3: Positivity and action point.** We establish that `w > 0` and identify its action point.
-
-*Positivity.* At position `k`, `wₖ = bₖ − aₖ`. Since `aₖ < bₖ` with both in ℕ, we have `bₖ ≥ aₖ + 1`, so `wₖ = bₖ − aₖ ≥ 1 > 0`. The tumbler `w` has at least one positive component and is therefore not the zero tumbler: `w > 0`.
-
-*Action point.* The action point of `w` is the least `i` with `1 ≤ i ≤ #w` such that `wᵢ > 0`. For all `1 ≤ i < k`, `wᵢ = 0` (by Stage 2's first rule). At position `k`, `wₖ ≥ 1 > 0` (just established). Since every position before `k` is zero and position `k` is positive, `k` is the least positive position: `actionPoint(w) = k`.
-
-**Stage 4: Well-definedness of the addition.** TA0 (WellDefinedAddition) requires two conditions for `a ⊕ w` to be well-defined: `w > 0` and `actionPoint(w) ≤ #a`.
-
-The first condition is established in Stage 3. For the second: `actionPoint(w) = k` (Stage 3), and the hypothesis gives `k ≤ #a`, so `actionPoint(w) = k ≤ #a`. Both conditions of TA0 are satisfied. By TA0, the addition `a ⊕ w` is a well-defined tumbler in T, with `#(a ⊕ w) = #w` by the result-length identity (TumblerAdd).
-
-**Stage 5: Round-trip boundary.** The displacement has length `#w = max(#a, #b)`. By the result-length identity, `#(a ⊕ w) = #w = max(#a, #b)`. We analyze whether the round-trip `a ⊕ (b ⊖ a) = b` can hold by examining the relationship between `#a` and `#b`.
-
-*Case `#a ≤ #b`.* Then `max(#a, #b) = #b`, so `#(a ⊕ w) = #b`. The result has the same length as `b`, and the component-by-component recovery succeeds: D1 (DisplacementRoundTrip) establishes `a ⊕ (b ⊖ a) = b` under the additional condition `#a ≤ #b`.
-
-*Case `#a > #b`.* Then `max(#a, #b) = #a`, so `#(a ⊕ w) = #a > #b`. The result has length `#a` while `b` has length `#b < #a`. By T3 (CanonicalRepresentation), two tumblers of different lengths cannot be equal: `#(a ⊕ w) ≠ #b` implies `a ⊕ w ≠ b`. The round-trip fails on length alone, before any component comparison is needed.
-
-Round-trip faithfulness therefore requires the additional condition `#a ≤ #b`. ∎
+**Round-trip boundary.** The displacement has length `#w = max(#a, #b)`. By the result-length identity (TumblerAdd), `#(a ⊕ w) = #w`. When `#a > #b`, this gives `#(a ⊕ w) = #a > #b`, so `a ⊕ w ≠ b` by T3 (CanonicalRepresentation) — the round-trip fails on length alone. Round-trip faithfulness requires the additional condition `#a ≤ #b`, under which `#w = #b` and the component-by-component recovery succeeds (D1). ∎
 
 *Formal Contract:*
 - *Preconditions:* a ∈ T, b ∈ T, a < b, divergence(a, b) ≤ #a
@@ -1396,43 +1193,29 @@ Round-trip faithfulness therefore requires the additional condition `#a ≤ #b`.
 
   a ⊕ (b ⊖ a) = b
 
-*Proof.* We must show that the displacement from a to b, when added back to a, recovers b exactly. The argument proceeds in four stages: establish the divergence structure, compute b ⊖ a, verify TumblerAdd's preconditions, and verify component-wise equality with b.
+*Proof.* We must show that the displacement from a to b, when added back to a, recovers b exactly.
 
-**Stage 1: Divergence structure.** Let k = divergence(a, b). The preconditions give k ≤ #a and #a ≤ #b, so k ≤ #a ≤ #b, whence k ≤ min(#a, #b). This rules out Divergence case (ii), which requires k = min(#a, #b) + 1; that would give k ≥ #a + 1 > #a, contradicting k ≤ #a. We are therefore in Divergence case (i): aᵢ = bᵢ for all 1 ≤ i < k, and aₖ ≠ bₖ with k ≤ min(#a, #b). Since a < b and k is the first disagreement position, T1 case (i) gives aₖ < bₖ — the strict inequality at the divergence point.
+Let k = divergence(a, b). The preconditions give k ≤ #a and #a ≤ #b, so in particular k ≤ #a ≤ #b, whence k ≤ min(#a, #b). This rules out Divergence case (ii) — which would require k = min(#a, #b) + 1 > #a — and places us in case (i): aᵢ = bᵢ for all i < k, and aₖ < bₖ (the strict inequality follows from a < b at the divergence point, by T1).
 
-We record the agreement property for later use: aᵢ = bᵢ for all 1 ≤ i < k, and equivalently bᵢ = aᵢ for all 1 ≤ i < k.
+Define w = b ⊖ a. By TumblerSub, the divergence between b and a (minuend and subtrahend) occurs at position k — they agree at all prior positions since bᵢ = aᵢ for i < k, and bₖ ≠ aₖ. The subtraction yields:
 
-**Stage 2: Compute w = b ⊖ a.** We first verify TumblerSub's precondition b ≥ a. Since a < b, T1's trichotomy gives a ≠ b and ¬(b < a), hence b > a ≥ a, so b ≥ a.
+  wᵢ = 0           for i < k
+  wₖ = bₖ − aₖ     (well-defined since bₖ > aₖ)
+  wᵢ = bᵢ          for i > k
 
-TumblerSub zero-pads the shorter operand to the length of the longer before scanning for divergence. The minuend is b with #b components; the subtrahend is a with #a ≤ #b components. When #a < #b, a is conceptually extended with zeros at positions #a + 1 through #b. Since k ≤ #a, the divergence at position k falls within the original (unpadded) range of both operands, so the zero-padding does not affect the divergence scan: at every position i < k, both the padded and unpadded subtrahend have the value aᵢ, and at position k, both have aₖ.
+The result has length #w = max(#b, #a) = #b, since #a ≤ #b by hypothesis.
 
-The divergence between b and a (scanning for the first position where the zero-padded sequences differ) is also k: at positions 1 ≤ i < k, bᵢ = aᵢ (by the agreement property); at position k, bₖ ≠ aₖ (since aₖ < bₖ). So the divergence of the subtraction is k, the same as divergence(a, b) — the definition of divergence depends only on the first disagreement position, which is symmetric.
+We establish two properties of w needed for TumblerAdd. First, w > 0: the component wₖ = bₖ − aₖ ≥ 1 since aₖ < bₖ, so w is not the zero tumbler. Second, the action point of w is k: every component before position k is zero, and wₖ > 0, so k is the first positive component. Since k ≤ #a by hypothesis, the precondition of TumblerAdd (TA0) is satisfied — the action point falls within the start position's length.
 
-Applying TumblerSub's constructive formula with divergence at k:
+Now we compute a ⊕ w by TumblerAdd's constructive definition, which builds the result component by component in three regions determined by the action point k:
 
-  wᵢ = 0           for 1 ≤ i < k      (positions before divergence are zeroed)
-  wₖ = bₖ − aₖ     (well-defined since bₖ > aₖ, both in ℕ)
-  wᵢ = bᵢ          for k < i ≤ #b     (copy from minuend)
+*Positions i < k (prefix copy):* (a ⊕ w)ᵢ = aᵢ. By the Divergence agreement property, aᵢ = bᵢ for all i < k. So (a ⊕ w)ᵢ = bᵢ.
 
-The first rule applies to positions 1 through k − 1. The third rule copies from b at all positions after k up to #b; this range includes positions beyond #a (if #a < #b), where the unpadded a has no components — but TumblerSub copies from the minuend b, not the subtrahend, so the values bᵢ for #a < i ≤ #b are well-defined. The result has length #w = max(#b, #a) = #b, since #a ≤ #b.
+*Position i = k (single-component advance):* (a ⊕ w)ₖ = aₖ + wₖ = aₖ + (bₖ − aₖ) = bₖ. The cancellation is exact since all quantities are natural numbers with bₖ > aₖ.
 
-**Stage 3: Verify TumblerAdd's preconditions for a ⊕ w.** TA0 requires two conditions: w > 0, and actionPoint(w) ≤ #a.
+*Positions i > k (tail from displacement):* (a ⊕ w)ᵢ = wᵢ = bᵢ. These components were copied from b into w by TumblerSub, and TumblerAdd copies them from w into the result.
 
-*Positivity.* wₖ = bₖ − aₖ. Since aₖ < bₖ with both in ℕ, bₖ − aₖ ≥ 1, so wₖ ≥ 1 > 0. The tumbler w has at least one positive component and is therefore not the zero tumbler: w > 0.
-
-*Action point.* The action point of w is the least i with 1 ≤ i ≤ #w such that wᵢ > 0. For all 1 ≤ i < k, wᵢ = 0 (by Stage 2). At position k, wₖ ≥ 1 > 0 (just established). So the action point is k. The precondition gives k ≤ #a, so actionPoint(w) = k ≤ #a. Both conditions of TA0 are satisfied; the addition a ⊕ w is well-defined.
-
-**Stage 4: Compute a ⊕ w and verify equality with b.** We apply TumblerAdd's constructive definition with start position a and displacement w, action point k. The result r = a ⊕ w has length #r = #w = #b by the result-length identity. We verify rᵢ = bᵢ at every position 1 ≤ i ≤ #b.
-
-*Positions 1 ≤ i < k (prefix copy).* TumblerAdd gives rᵢ = aᵢ. The index bound i < k ≤ #a ensures position i exists within a. By the agreement property from Stage 1, aᵢ = bᵢ for all 1 ≤ i < k. Therefore rᵢ = aᵢ = bᵢ.
-
-*Position i = k (single-component advance).* TumblerAdd gives rₖ = aₖ + wₖ. The bound k ≤ #a ensures position k exists within a. Substituting wₖ = bₖ − aₖ from Stage 2: rₖ = aₖ + (bₖ − aₖ). Since aₖ < bₖ with both in ℕ, the difference bₖ − aₖ is a well-defined natural number, and the arithmetic identity n + (m − n) = m for n ≤ m in ℕ gives rₖ = bₖ.
-
-*Positions k < i ≤ #w (tail from displacement).* TumblerAdd gives rᵢ = wᵢ. Since #w = #b, the range k < i ≤ #w is exactly k < i ≤ #b. By Stage 2, wᵢ = bᵢ for all k < i ≤ #b. Therefore rᵢ = wᵢ = bᵢ.
-
-The three regions partition all positions 1 ≤ i ≤ #b: positions 1 through k − 1, position k, and positions k + 1 through #b. (When k = 1 the first region is empty; when k = #b the third region is empty; both are handled by the vacuous truth of universal quantification over an empty range.)
-
-**Conclusion by T3.** We have established two facts: (1) #r = #w = #b, and (2) rᵢ = bᵢ for every position 1 ≤ i ≤ #b. By T3 (CanonicalRepresentation) — two tumblers of the same length with identical components at every position are equal — r = b. That is, a ⊕ (b ⊖ a) = b.  ∎
+It remains to verify that the lengths match. By the result-length identity of TumblerAdd, #(a ⊕ w) = #w = #b. Every component of a ⊕ w equals the corresponding component of b, and both tumblers have length #b. By T3 (CanonicalRepresentation), a ⊕ w = b.  ∎
 
 *Formal Contract:*
 - *Preconditions:* a ∈ T, b ∈ T, a < b, divergence(a, b) ≤ #a, #a ≤ #b
@@ -1440,28 +1223,21 @@ The three regions partition all positions 1 ≤ i ≤ #b: positions 1 through k 
 
 **D2 (DisplacementUnique).** Under D1's preconditions (a < b, divergence(a, b) ≤ #a, #a ≤ #b), if a ⊕ w = b then w = b ⊖ a.
 
-*Proof.* We show that any displacement w carrying a to b must equal the canonical displacement b ⊖ a. The argument proceeds in four stages: extract the preconditions implicit in the hypothesis, invoke D1 to produce a second witness for the same equation, verify that both witnesses satisfy TA-LC's preconditions, and apply left cancellation.
+*Proof.* We show that any displacement w carrying a to b must equal the canonical displacement b ⊖ a. The argument has two steps: we produce a second witness for the same equation, then apply left cancellation to conclude the two witnesses are identical.
 
-**Stage 1: Preconditions from the hypothesis.** The hypothesis states that a ⊕ w = b — that is, the addition a ⊕ w is well-defined and its result equals b. Well-definedness of a ⊕ w presupposes TA0 (WellDefinedAddition), which requires two conditions: w > 0, and actionPoint(w) ≤ #a. Since a ⊕ w = b is given as a well-defined equation, both conditions hold. We record for later use: w > 0, and actionPoint(w) ≤ #a.
+**Step 1: a second witness.** By D1 (DisplacementRoundTrip), the preconditions a < b, divergence(a, b) ≤ #a, and #a ≤ #b guarantee that a ⊕ (b ⊖ a) = b. So both w and b ⊖ a, when added to a, yield b.
 
-**Stage 2: A second witness.** The explicit preconditions give a < b, divergence(a, b) ≤ #a, and #a ≤ #b. These are exactly D1's preconditions. By D1 (DisplacementRoundTrip):
+**Step 2: establishing TA-LC's preconditions.** To apply left cancellation (TA-LC), we must verify that both additions satisfy TA0 — that is, both displacements are positive and their action points fall within #a.
 
-  a ⊕ (b ⊖ a) = b
+For w: the hypothesis states a ⊕ w = b, so the addition is well-defined. TA0 requires w > 0 (satisfied since the addition produces a result) and actionPoint(w) ≤ #a.
 
-We now have two equations with the same left operand a and the same result b:
+For b ⊖ a: let k = divergence(a, b). By hypothesis k ≤ #a. Since a < b, the divergence occurs at a position where bₖ > aₖ (by T1), so (b ⊖ a)ₖ = bₖ − aₖ ≥ 1. Every component before position k is zero (TumblerSub copies the agreement prefix as zeros). Therefore b ⊖ a > 0 with action point k, and k ≤ #a satisfies TA0.
 
-  a ⊕ w = b          (hypothesis)
-  a ⊕ (b ⊖ a) = b    (D1)
+**Step 3: cancellation.** From the hypothesis a ⊕ w = b and Step 1's a ⊕ (b ⊖ a) = b, we obtain:
 
-Substituting the common right-hand side: a ⊕ w = a ⊕ (b ⊖ a).
+  a ⊕ w = a ⊕ (b ⊖ a)
 
-**Stage 3: Verify TA-LC's preconditions.** TA-LC (LeftCancellation) requires that both additions satisfy TA0 — that is, both displacements are positive and their action points fall within #a. We verify each.
-
-*For w.* Stage 1 established w > 0 and actionPoint(w) ≤ #a directly from the well-definedness of a ⊕ w. Both TA0 conditions hold.
-
-*For b ⊖ a.* The preconditions a < b and divergence(a, b) ≤ #a are exactly D0's preconditions. By D0 (DisplacementWellDefined), these guarantee three facts: b ⊖ a ∈ T, b ⊖ a > 0, and actionPoint(b ⊖ a) = divergence(a, b). The first TA0 condition — positivity — is b ⊖ a > 0, established by D0. The second — actionPoint(b ⊖ a) ≤ #a — follows from D0's actionPoint(b ⊖ a) = divergence(a, b) and the hypothesis divergence(a, b) ≤ #a. Both TA0 conditions hold.
-
-**Stage 4: Cancellation.** From Stage 2, a ⊕ w = a ⊕ (b ⊖ a). From Stage 3, both additions satisfy TA0: w > 0 with actionPoint(w) ≤ #a, and b ⊖ a > 0 with actionPoint(b ⊖ a) ≤ #a. These are exactly the preconditions of TA-LC (LeftCancellation), which states: if a ⊕ x = a ⊕ y with both additions satisfying TA0, then x = y. Applying TA-LC with x = w and y = b ⊖ a, we conclude w = b ⊖ a.  ∎
+Both sides are well-defined (Step 2). By TA-LC (LeftCancellation) — which states that a ⊕ x = a ⊕ y implies x = y when both additions satisfy TA0 — we conclude w = b ⊖ a.  ∎
 
 D1 and D2 together characterize the displacement completely: D1 says b ⊖ a recovers b, D2 says nothing else does.
 
@@ -1635,7 +1411,7 @@ We define the *last significant position* of a tumbler `t`. When `t` has at leas
 
 For valid addresses, `sig(t)` falls within the last populated field. This is a consequence of T4's positive-component constraint: every field component is strictly positive, so the last component of the last field is nonzero, and `sig(t) = #t`. Therefore `inc(t, 0)` on a valid address increments the last component of the last field, modifying only within that field and preserving the hierarchical structure.
 
-**TA5 (HierarchicalIncrement).** For tumbler `t ∈ T` and level `k ≥ 0`, there exists an operation `inc(t, k)` producing tumbler `t'` such that:
+**TA5 (Hierarchical increment).** For tumbler `t ∈ T` and level `k ≥ 0`, there exists an operation `inc(t, k)` producing tumbler `t'` such that:
 
   (a) `t' > t` (strictly greater under T1),
 
@@ -1645,47 +1421,27 @@ For valid addresses, `sig(t)` falls within the last populated field. This is a c
 
   (d) when `k > 0` (*child*): `#t' = #t + k`, the `k - 1` intermediate positions `#t + 1, ..., #t + k - 1` are set to `0` (field separators), and the final position `#t + k` is set to `1` (the first child).
 
-*Proof.* We must show that for every `t ∈ T` and `k ≥ 0`, the construction below produces a tumbler `t' = inc(t, k)` satisfying all four postconditions. The argument proceeds in four stages: define the construction and establish membership, verify agreement before the increment point, verify the structural postconditions, and prove strict ordering via T1. Recall that `sig(t)` denotes the last significant position of `t`: when `t` has at least one nonzero component, `sig(t) = max({i : 1 ≤ i ≤ #t ∧ tᵢ ≠ 0})`; when every component of `t` is zero, `sig(t) = #t`.
+*Proof.* We must show that for every `t ∈ T` and `k ≥ 0`, the construction below produces a tumbler `t' = inc(t, k)` satisfying all four postconditions. Recall that `sig(t)` denotes the last significant position of `t`: when `t` has at least one nonzero component, `sig(t) = max({i : 1 ≤ i ≤ #t ∧ tᵢ ≠ 0})`; when every component of `t` is zero, `sig(t) = #t`.
 
-**Stage 1: Construction.** Let `t = t₁. ... .tₘ` where `m = #t ≥ 1` (since `t ∈ T`), and let `k ≥ 0`. Define `t' = inc(t, k)` by cases.
+**Construction.** Let `t = t₁. ... .tₘ` where `m = #t`, and let `k ≥ 0`. Define `t' = inc(t, k)` by cases.
 
-*Case `k = 0` (sibling increment).* Set `t'ᵢ = tᵢ` for all `i` with `1 ≤ i ≤ m` and `i ≠ sig(t)`, and set `t'_{sig(t)} = t_{sig(t)} + 1`. The result is a sequence of `m` natural numbers: each component is either an unchanged component of `t` (hence in ℕ) or `t_{sig(t)} + 1` (in ℕ since ℕ is closed under successor). The length is `#t' = m ≥ 1`, so `t' ∈ T` by T3 (CanonicalRepresentation).
+When `k = 0` (*sibling increment*): set `t'ᵢ = tᵢ` for all `i ≠ sig(t)`, and `t'_{sig(t)} = t_{sig(t)} + 1`. The result has the same length: `#t' = m`.
 
-*Case `k > 0` (child creation).* Set `t'ᵢ = tᵢ` for `1 ≤ i ≤ m` (copy the original), set `t'ᵢ = 0` for `m + 1 ≤ i ≤ m + k - 1` (the `k - 1` field separators), and set `t'_{m+k} = 1` (the first child). The result is a sequence of `m + k` natural numbers: the first `m` are components of `t ∈ T` (hence in ℕ), the next `k - 1` are `0 ∈ ℕ`, and the final component is `1 ∈ ℕ`. The length is `#t' = m + k ≥ m + 1 ≥ 2 ≥ 1`, so `t' ∈ T` by T3.
+When `k > 0` (*child creation*): set `t'ᵢ = tᵢ` for `1 ≤ i ≤ m`, set `t'ᵢ = 0` for `m + 1 ≤ i ≤ m + k - 1` (the `k - 1` field separators), and set `t'_{m+k} = 1` (the first child). The result has length `#t' = m + k`.
 
-We record for later use: in both cases, `t' ∈ T`.
+In both cases `t'` is a finite sequence of natural numbers with length ≥ 1, so `t' ∈ T`.
 
-**Stage 2: Agreement before the increment point [postcondition (b)].**
+**Verification of (b)** (agreement before the increment point). For `k = 0`: by construction `t'ᵢ = tᵢ` for all `i` with `1 ≤ i < sig(t)`, since only position `sig(t)` is modified. For `k > 0`: by construction `t'ᵢ = tᵢ` for all `1 ≤ i ≤ m`, so `t'` agrees with `t` on every original position.
 
-*Case `k = 0`.* The increment point is position `sig(t)`. By construction, `t'ᵢ = tᵢ` for all `i` with `1 ≤ i ≤ m` and `i ≠ sig(t)`. In particular, for every `i` with `1 ≤ i < sig(t)`, the condition `i ≠ sig(t)` holds (since `i < sig(t)` implies `i ≠ sig(t)`), so `t'ᵢ = tᵢ`. This establishes `(A i : 1 ≤ i < sig(t) : t'ᵢ = tᵢ)`.
+**Verification of (c)** (sibling structure). When `k = 0`: `#t' = m = #t` by construction. The only modified position is `sig(t)`, where `t'_{sig(t)} = t_{sig(t)} + 1`. Every other position retains its original value.
 
-*Case `k > 0`.* The increment extends beyond all original positions: the new components occupy positions `m + 1` through `m + k`. By construction, `t'ᵢ = tᵢ` for all `1 ≤ i ≤ m`, so `t'` agrees with `t` on every original position. This establishes `(A i : 1 ≤ i ≤ #t : t'ᵢ = tᵢ)`.
+**Verification of (d)** (child structure). When `k > 0`: `#t' = m + k = #t + k` by construction. Positions `m + 1` through `m + k - 1` are `0` (field separators) — when `k = 1` this range is empty, so no separators are introduced. Position `m + k` is `1` (the first child).
 
-**Stage 3: Structural postconditions [(c) and (d)].**
+**Verification of (a)** (`t' > t`). We establish `t < t'` under the lexicographic order T1, treating each case separately.
 
-*Postcondition (c): sibling structure when `k = 0`.* By Stage 1, `#t' = m = #t` — the length is unchanged. The only modified position is `sig(t)`, where `t'_{sig(t)} = t_{sig(t)} + 1`. Every other position `i` with `1 ≤ i ≤ m` and `i ≠ sig(t)` satisfies `t'ᵢ = tᵢ`. These are exactly the claims of postcondition (c).
+*Case `k = 0`.* Let `j = sig(t)`. By construction, `t'ᵢ = tᵢ` for all `i ≠ j`, so in particular the tumblers agree at every position `1 ≤ i < j` — this is part (b). At position `j`: `t'_j = t_j + 1 > t_j`, since `n + 1 > n` for every `n ∈ ℕ`. Since `j = sig(t) ≤ m` and `#t' = m`, we have `j ≤ min(#t, #t') = m`, so both tumblers have a component at position `j`. By T1 case (i) with divergence position `j`, the agreement on positions `1, ..., j - 1` and the strict inequality `t_j < t'_j` yield `t < t'`.
 
-*Postcondition (d): child structure when `k > 0`.* By Stage 1, `#t' = m + k = #t + k`. The `k - 1` intermediate positions are `t'ᵢ = 0` for `m + 1 ≤ i ≤ m + k - 1`: when `k = 1`, this range `m + 1 ≤ i ≤ m` is empty, so no separators are introduced; when `k ≥ 2`, positions `m + 1, ..., m + k - 1` are each set to `0`. The final position is `t'_{m+k} = 1`. These are exactly the claims of postcondition (d).
-
-**Stage 4: Strict ordering [postcondition (a)].** We establish `t < t'` under T1 (LexicographicOrder), which defines `a < b` iff there exists a witness `j ≥ 1` with `aᵢ = bᵢ` for all `1 ≤ i < j`, and either (i) `j ≤ min(#a, #b)` and `aⱼ < bⱼ`, or (ii) `j = #a + 1 ≤ #b`.
-
-*Case `k = 0`.* Let `j = sig(t)`. We verify that `j` is a valid T1 case (i) witness for `t < t'`.
-
-*Agreement.* For all `1 ≤ i < j`: Stage 2 established `t'ᵢ = tᵢ`, equivalently `tᵢ = t'ᵢ`, for all `1 ≤ i < sig(t) = j`. The agreement condition holds.
-
-*Position bound.* We need `j ≤ min(#t, #t')`. Since `sig(t)` is defined as `max({i : 1 ≤ i ≤ #t ∧ tᵢ ≠ 0})` (when `t` has a nonzero component) or `#t` (when all components are zero), in either case `sig(t) ≤ #t = m`. Since `#t' = m` (Stage 3, postcondition (c)), we have `j = sig(t) ≤ m = min(m, m) = min(#t, #t')`. Both tumblers have a component at position `j`.
-
-*Strict inequality.* At position `j`: `t'_j = t_j + 1` by construction. Since `t_j ∈ ℕ`, we have `t_j + 1 > t_j` (the successor of a natural number strictly exceeds it), giving `t_j < t'_j`.
-
-All three conditions of T1 case (i) are satisfied with witness `j = sig(t)`: agreement on positions `1, ..., j - 1`, bound `j ≤ min(#t, #t')`, and `t_j < t'_j`. Therefore `t < t'`.
-
-*Case `k > 0`.* We verify that T1 case (ii) applies with witness `j = m + 1`.
-
-*Agreement.* For all `1 ≤ i < m + 1`, that is, `1 ≤ i ≤ m`: Stage 2 established `t'ᵢ = tᵢ` for all `1 ≤ i ≤ m`, equivalently `tᵢ = t'ᵢ`. The agreement condition holds.
-
-*Prefix condition.* T1 case (ii) requires `j = #t + 1 ≤ #t'`. We have `j = m + 1 = #t + 1` and `#t' = m + k` (Stage 3, postcondition (d)). Since `k > 0`, we have `k ≥ 1`, so `m + k ≥ m + 1`, giving `#t + 1 ≤ #t'`. The tumbler `t` is a proper prefix of `t'` — they agree on all `m = #t` positions of `t`, and `t'` has `k` additional positions beyond `m`.
-
-Both conditions of T1 case (ii) are satisfied with witness `j = m + 1`: agreement on positions `1, ..., m`, and `m + 1 = #t + 1 ≤ #t' = m + k`. Therefore `t < t'`. ∎
+*Case `k > 0`.* By part (b), `t'ᵢ = tᵢ` for all `1 ≤ i ≤ m` — the tumblers agree on every position of `t`. Since `#t' = m + k > m = #t`, the tumblers agree at every position up to `#t`, and `t'` has further components beyond position `m`. T1 case (ii) applies with witness `m + 1 = #t + 1 ≤ #t' = m + k`: `t` is a proper prefix of `t'`, giving `t < t'`. ∎
 
 *Formal Contract:*
 - *Definition:* `inc(t, k)` for `t ∈ T`, `k ≥ 0`: when `k = 0`, modify position `sig(t)` to `t_{sig(t)} + 1`; when `k > 0`, extend by `k` positions with `k - 1` zeros and final `1`.
@@ -1714,7 +1470,7 @@ Under T3, the tumblers `[0]`, `[0, 0]`, `[0, 0, 0]`, etc., are *distinct* elemen
 
 Every positive tumbler is greater than every zero tumbler under T1 — if `t` has a nonzero component at position `k`, then at position `k` either the zero tumbler has a smaller component (0 < tₖ) or has run out of components, either way placing it below `t`. The condition `w > 0` in TA0 and TA4 excludes all all-zero displacements regardless of length.
 
-**TA6 (ZeroTumblers).** No zero tumbler is a valid address — no all-zero tumbler designates content. Every zero tumbler is less than every positive tumbler under T1.
+**TA6 (Zero tumblers).** No zero tumbler is a valid address — no all-zero tumbler designates content. Every zero tumbler is less than every positive tumbler under T1.
 
   `(A t ∈ T : (A i : 1 ≤ i ≤ #t : tᵢ = 0) ⟹ t is not a valid address)`
 
@@ -1746,7 +1502,7 @@ An element-local position within subspace `S` has two components: the subspace i
 
 Gregory's implementation reveals the resolution. The operands passed to the arithmetic during shifts are not full element-local positions; they are *within-subspace ordinals* — the second component alone. The subspace identifier is not an operand to the shift; it is structural context that determines *which* positions are subject to the shift. The arithmetic receives ordinals, not full positions.
 
-**TA7a (SubspaceClosure).** The canonical representation for shift arithmetic is the *ordinal-only* formulation: a position in a subspace with identifier `N` and ordinal `o = [o₁, ..., oₘ]` (where `m ≥ 1`) is represented as the tumbler `o` for arithmetic purposes, with `N` held as structural context. Define **S** = {o ∈ T : #o ≥ 1 ∧ (A i : 1 ≤ i ≤ #o : oᵢ > 0)} — ordinals with all positive components, matching T4's positive-component constraint on element fields. An element-local displacement is a positive tumbler `w` with action point `k` satisfying `1 ≤ k ≤ m`. In this formulation:
+**TA7a (Subspace closure).** The canonical representation for shift arithmetic is the *ordinal-only* formulation: a position in a subspace with identifier `N` and ordinal `o = [o₁, ..., oₘ]` (where `m ≥ 1`) is represented as the tumbler `o` for arithmetic purposes, with `N` held as structural context. Define **S** = {o ∈ T : #o ≥ 1 ∧ (A i : 1 ≤ i ≤ #o : oᵢ > 0)} — ordinals with all positive components, matching T4's positive-component constraint on element fields. An element-local displacement is a positive tumbler `w` with action point `k` satisfying `1 ≤ k ≤ m`. In this formulation:
 
   `(A o ∈ S, w > 0 : k ≤ #o ⟹ o ⊕ w ∈ T)`
 
@@ -1858,7 +1614,7 @@ Nelson makes spans self-describing at every hierarchical level: "A digit of 'one
 
 And a span may be empty — populated by nothing at present — yet valid: "A span that contains nothing today may at a later time contain a million documents." The range is determined by the endpoints; what is actually stored within that range is a question about the current state of the system, not about the tumbler algebra.
 
-**T12 (SpanWellDefinedness).** A span `(s, ℓ)` is well-formed when `ℓ > 0` and the action point `k` of `ℓ` satisfies `k ≤ #s` (the TA0 precondition for `s ⊕ ℓ`). Equivalently, the number of leading zeros in `ℓ` must be strictly less than `#s`. A well-formed span denotes the set `{t ∈ T : s ≤ t < s ⊕ ℓ}`. This set is contiguous under T1 — there is no tumbler between two members that is not itself a member.
+**T12 (Span well-definedness).** A span `(s, ℓ)` is well-formed when `ℓ > 0` and the action point `k` of `ℓ` satisfies `k ≤ #s` (the TA0 precondition for `s ⊕ ℓ`). Equivalently, the number of leading zeros in `ℓ` must be strictly less than `#s`. A well-formed span denotes the set `{t ∈ T : s ≤ t < s ⊕ ℓ}`. This set is contiguous under T1 — there is no tumbler between two members that is not itself a member.
 
 *Proof.* We show that for `s ∈ T` and `ℓ ∈ T` with `ℓ > 0` and action point `k` of `ℓ` satisfying `k ≤ #s`, the set `S = {t ∈ T : s ≤ t < s ⊕ ℓ}` has three properties: its upper bound `s ⊕ ℓ` exists in `T`, it is non-empty, and it is order-convex (contiguous) under T1. We note that `k ≤ #s` is equivalent to requiring that the number of leading zeros in `ℓ` — which is `k − 1`, since the action point is the first nonzero position — be strictly less than `#s`: the two are restatements of the same arithmetic condition.
 
@@ -1901,25 +1657,25 @@ We instantiate the algebra on a concrete scenario. Server 1, user 3, document 2,
 
   `a₁ = 1.0.3.0.2.0.1.1`, `a₂ = 1.0.3.0.2.0.1.2`, `a₃ = 1.0.3.0.2.0.1.3`, `a₄ = 1.0.3.0.2.0.1.4`, `a₅ = 1.0.3.0.2.0.1.5`
 
-**T4 (HierarchicalParsing).** Take `a₃ = 1.0.3.0.2.0.1.3`. The three zeros at positions 2, 4, 6 are the field separators. Node field: `[1]`. User field: `[3]`. Document field: `[2]`. Element field: `[1, 3]`. The first component of the element field is `1`, placing this address in the text subspace. Every non-separator component is strictly positive, confirming T4.
+**T4 (Hierarchical parsing).** Take `a₃ = 1.0.3.0.2.0.1.3`. The three zeros at positions 2, 4, 6 are the field separators. Node field: `[1]`. User field: `[3]`. Document field: `[2]`. Element field: `[1, 3]`. The first component of the element field is `1`, placing this address in the text subspace. Every non-separator component is strictly positive, confirming T4.
 
 **T1 (Ordering).** We verify `a₁ < a₂ < a₃ < a₄ < a₅`. All five share the prefix `1.0.3.0.2.0.1` and diverge at position 8, where the values are `1, 2, 3, 4, 5` respectively. Lexicographic comparison at the divergence point confirms the order.
 
-**T5 (ContiguousSubtrees).** The prefix `p = 1.0.3.0.2` identifies all content in document 2. Any tumbler `b` with `a₁ ≤ b ≤ a₅` must share this prefix. If `b` diverged from `p` at some position `k ≤ 5`, then `bₖ ≠ pₖ`, but `a₁` and `a₅` agree with `p` at position `k`, so `bₖ < pₖ` would violate `a₁ ≤ b` and `bₖ > pₖ` would violate `b ≤ a₅`. So `b` extends prefix `p` — it belongs to document 2.
+**T5 (Contiguous subtrees).** The prefix `p = 1.0.3.0.2` identifies all content in document 2. Any tumbler `b` with `a₁ ≤ b ≤ a₅` must share this prefix. If `b` diverged from `p` at some position `k ≤ 5`, then `bₖ ≠ pₖ`, but `a₁` and `a₅` agree with `p` at position `k`, so `bₖ < pₖ` would violate `a₁ ≤ b` and `bₖ > pₖ` would violate `b ≤ a₅`. So `b` extends prefix `p` — it belongs to document 2.
 
-**T6 (DecidableContainment).** Do `a₃` and `a₅` belong to the same account? Extract user fields: both `[3]` under node `[1]`. Yes. Are they in the same document? Document fields: both `[2]`. Yes. Is `a₃` in the same document family as an address in document `2.1` (a version)? The document field `[2]` is a prefix of `[2, 1]`, so T6(d) confirms structural subordination.
+**T6 (Decidable containment).** Do `a₃` and `a₅` belong to the same account? Extract user fields: both `[3]` under node `[1]`. Yes. Are they in the same document? Document fields: both `[2]`. Yes. Is `a₃` in the same document family as an address in document `2.1` (a version)? The document field `[2]` is a prefix of `[2, 1]`, so T6(d) confirms structural subordination.
 
-**T7 (SubspaceDisjointness).** The document also contains a link at `ℓ₁ = 1.0.3.0.2.0.2.1`. Element field: `[2, 1]` — first component is `2`, placing this in the link subspace. By T7, `ℓ₁ ≠ aᵢ` for all `i` — the subspace identifiers differ.
+**T7 (Subspace disjointness).** The document also contains a link at `ℓ₁ = 1.0.3.0.2.0.2.1`. Element field: `[2, 1]` — first component is `2`, placing this in the link subspace. By T7, `ℓ₁ ≠ aᵢ` for all `i` — the subspace identifiers differ.
 
-**T9 (ForwardAllocation).** The five text addresses were allocated by a single allocator (user 3's element allocator within document 2, text subspace). Each address exceeds its predecessor: `a₁ < a₂ < a₃ < a₄ < a₅`. No gap-filling occurred.
+**T9 (Forward allocation).** The five text addresses were allocated by a single allocator (user 3's element allocator within document 2, text subspace). Each address exceeds its predecessor: `a₁ < a₂ < a₃ < a₄ < a₅`. No gap-filling occurred.
 
 **TA5 (Increment).** Allocating the sixth character: `inc(a₅, 0)`. Position `sig(a₅) = 8` (the last nonzero component). TA5(c): `a₆ = 1.0.3.0.2.0.1.6`. This preserves `#a₆ = #a₅ = 8` and differs only at position 8: `6 = 5 + 1`. By TA5(a), `a₆ > a₅`.
 
 **T12 (Span computation).** The addresses `a₂` through `a₄` form a natural span — three consecutive elements. We construct `(s, ℓ)` with `s = a₂ = 1.0.3.0.2.0.1.2`. An element-level displacement must have action point `k = 8`: `ℓ = [0, 0, 0, 0, 0, 0, 0, 3]`. By the constructive definition of `⊕`: positions 1–7 copy from `s` (giving `1.0.3.0.2.0.1`), position 8 advances: `2 + 3 = 5`. So `s ⊕ ℓ = 1.0.3.0.2.0.1.5 = a₅`. The span denotes the range `{t ∈ T : a₂ ≤ t < a₅}`. This range is infinite — between any two consecutive allocated addresses lie arbitrarily many unallocated tumblers (e.g., `a₂.0`, `a₂.1`, etc.). Among the five allocated addresses, the span covers `{a₂, a₃, a₄}`. A single-component length `[3]` would give the wrong result: action point `k = 1`, and `a₂ ⊕ [3] = [4]` — a node-level address. The action point of the span length must match the hierarchical level of the start address.
 
-**TA7a (SubspaceClosure).** Consider advancing text position ordinal `[3]` by displacement `[2]`: `[3] ⊕ [2] = [5]`. The result is a single-component ordinal — it remains within the text subspace. The subspace identifier `1` is held as context, unchanged. Subtracting: `[5] ⊖ [2] = [3]`. Recovery is exact (TA4 applies: `k = 1 = #a = #w`, zero-prefix condition vacuously satisfied).
+**TA7a (Subspace closure).** Consider advancing text position ordinal `[3]` by displacement `[2]`: `[3] ⊕ [2] = [5]`. The result is a single-component ordinal — it remains within the text subspace. The subspace identifier `1` is held as context, unchanged. Subtracting: `[5] ⊖ [2] = [3]`. Recovery is exact (TA4 applies: `k = 1 = #a = #w`, zero-prefix condition vacuously satisfied).
 
-**TA1 (OrderPreservationUnderAddition).** We have `a₂ < a₃` (divergence at position 8: `2 < 3`). Apply displacement `ℓ = [0,0,0,0,0,0,0,3]` (action point `k = 8`). Compute: `a₂ ⊕ ℓ`: positions 1–7 copy from `a₂` giving `1.0.3.0.2.0.1`, position 8 advances `2 + 3 = 5`. Result: `1.0.3.0.2.0.1.5`. `a₃ ⊕ ℓ`: positions 1–7 copy from `a₃` giving `1.0.3.0.2.0.1`, position 8 advances `3 + 3 = 6`. Result: `1.0.3.0.2.0.1.6`. Comparing: `1.0.3.0.2.0.1.5 < 1.0.3.0.2.0.1.6` — divergence at position 8, `5 < 6`. TA1 (weak) is confirmed. Since `k = 8 = divergence(a₂, a₃)`, TA1-strict predicts strict inequality — and we see `a₂ ⊕ ℓ < a₃ ⊕ ℓ` strictly, as claimed.
+**TA1 (Order preservation under addition).** We have `a₂ < a₃` (divergence at position 8: `2 < 3`). Apply displacement `ℓ = [0,0,0,0,0,0,0,3]` (action point `k = 8`). Compute: `a₂ ⊕ ℓ`: positions 1–7 copy from `a₂` giving `1.0.3.0.2.0.1`, position 8 advances `2 + 3 = 5`. Result: `1.0.3.0.2.0.1.5`. `a₃ ⊕ ℓ`: positions 1–7 copy from `a₃` giving `1.0.3.0.2.0.1`, position 8 advances `3 + 3 = 6`. Result: `1.0.3.0.2.0.1.6`. Comparing: `1.0.3.0.2.0.1.5 < 1.0.3.0.2.0.1.6` — divergence at position 8, `5 < 6`. TA1 (weak) is confirmed. Since `k = 8 = divergence(a₂, a₃)`, TA1-strict predicts strict inequality — and we see `a₂ ⊕ ℓ < a₃ ⊕ ℓ` strictly, as claimed.
 
 **TA4 (Partial inverse — full addresses).** Does the round-trip `(a₂ ⊕ ℓ) ⊖ ℓ = a₂` hold? We have `a₂ ⊕ ℓ = [1,0,3,0,2,0,1,5]`. Subtracting `ℓ = [0,0,0,0,0,0,0,3]`: scan for divergence — position 1: `1 ≠ 0`. Divergence at `d = 1`. Result: position 1 gets `1 - 0 = 1`, positions 2–8 copy from minuend: `0,3,0,2,0,1,5`. So `(a₂ ⊕ ℓ) ⊖ ℓ = [1,0,3,0,2,0,1,5] = a₂ ⊕ ℓ ≠ a₂`. The subtraction is a no-op — it finds the divergence at the node field (position 1), not at the action point. The round-trip fails. Checking TA4's preconditions: `k = 8`, `#a₂ = 8`, so `k = #a₂` ✓. `#ℓ = 8 = k` ✓. But `(A i : 1 ≤ i < 8 : (a₂)ᵢ = 0)`? Position 1 has `(a₂)₁ = 1 ≠ 0` ✗. The zero-prefix condition fails — `a₂` has nonzero components before the action point, so TA4's preconditions are not met and the theorem makes no claim. Contrast with the ordinal-only case above: `[5] ⊖ [2] = [3]`, `[3] ⊕ [2] = [5]`. Here `k = 1 = #[3] = #[2]` and the zero-prefix condition is vacuous. All preconditions hold and round-trip succeeds. The restrictive preconditions exist precisely to exclude cases like the full-address round-trip where the subtraction algorithm's divergence-discovery mechanism is misled by nonzero prefix components.
 
@@ -1971,55 +1727,55 @@ Removing any independent property breaks a system-level guarantee. T6 and T7 are
 
 ## Properties Introduced
 
-| Label | Name | Statement | Status |
-|-------|------|-----------|--------|
-| T0(a) | UnboundedComponentValues | Every component value of a tumbler is unbounded — no maximum value exists | introduced |
-| T0(b) | UnboundedLength | Tumblers of arbitrary length exist in T — the hierarchy has unlimited nesting depth | introduced |
-| T1 | LexicographicOrder | Tumblers are totally ordered by lexicographic comparison, with the prefix-less-than convention | introduced |
-| T2 | IntrinsicComparison | Tumbler comparison is computable from the two addresses alone, examining at most min(#a, #b) components | introduced |
-| T3 | CanonicalRepresentation | Each tumbler has exactly one canonical representation; component-wise identity is both necessary and sufficient for equality | introduced |
-| T4 | HierarchicalParsing | An address tumbler has at most three zero-valued components as field separators, every field component is strictly positive, and every present field has at least one component (no adjacent zeros, no leading/trailing zero) | introduced |
-| T5 | ContiguousSubtrees | The set of tumblers sharing a prefix forms a contiguous interval under T1 | introduced |
-| T6 | DecidableContainment | Containment (same node, same account, same document family, structural subordination) is decidable from addresses alone | corollary of T4 |
-| T7 | SubspaceDisjointness | Subspaces (text, links) within a document's element field are permanently disjoint | corollary of T3, T4 |
-| T8 | AllocationPermanence | Once allocated, an address is never removed from the address space; the set of allocated addresses is monotonically non-decreasing | introduced |
-| T9 | ForwardAllocation | Within a single allocator's sequential stream, new addresses are strictly monotonically increasing; gaps are permanent | lemma (from T10a, TA5) |
-| T10 | PartitionIndependence | Allocators with non-nesting prefixes produce distinct addresses without coordination | introduced |
-| T10a | AllocatorDiscipline | Each allocator uses inc(·, 0) for siblings and inc(·, k>0) only for child-spawning; this constrains sibling outputs to uniform length | introduced |
-| PrefixOrderingExtension | PrefixOrderingExtension | p₁ < p₂ with neither a prefix of the other implies a < b for every a with p₁ ≼ a and every b with p₂ ≼ b | lemma (from T1) |
-| PartitionMonotonicity | PartitionMonotonicity | Per-allocator ordering extends cross-allocator; for non-nesting sibling prefixes p₁ < p₂, every address extending p₁ precedes every address extending p₂ | theorem from PrefixOrderingExtension, T1, T3, T5, T9, T10a, TA5 |
-| GlobalUniqueness | GlobalUniqueness | No two distinct allocation events anywhere in the system at any time produce the same address | theorem from T3, T4, T9, T10, T10a, TA5 |
-| T12 | SpanWellDefinedness | A span (s, ℓ) is well-formed when ℓ > 0 and action point k of ℓ satisfies k ≤ #s; it denotes the contiguous interval {t : s ≤ t < s ⊕ ℓ}, non-empty by TA-strict | from T1, TA0, TA-strict |
-| TA0 | WellDefinedAddition | Tumbler addition a ⊕ w is well-defined when w > 0 and the action point k satisfies k ≤ #a | introduced |
-| TA1 | OrderPreservationUnderAddition | Addition preserves the total order (weak): a < b ⟹ a ⊕ w ≤ b ⊕ w | introduced |
-| Divergence | Divergence | Divergence point of two unequal tumblers: first position k where aₖ ≠ bₖ (component), or min(#a, #b) + 1 (prefix) | from T1 |
-| TA1-strict | StrictOrderPreservation | Addition preserves the total order (strict) when k ≤ min(#a, #b) ∧ k ≥ divergence(a, b) | from Divergence, TumblerAdd |
-| TA-strict | StrictIncrease | Adding a positive displacement strictly advances: a ⊕ w > a | from TumblerAdd, T1 |
-| TA2 | WellDefinedSubtraction | Tumbler subtraction a ⊖ w is well-defined when a ≥ w | from TumblerSub, T1 |
-| TA3 | OrderPreservationUnderSubtractionWeak | Subtraction preserves the total order (weak): a < b ⟹ a ⊖ w ≤ b ⊖ w when both are defined | from TA2, T1, TA6, TumblerSub |
-| TA3-strict | OrderPreservationUnderSubtractionStrict | Subtraction preserves the total order (strict) when additionally #a = #b | introduced |
-| TA4 | PartialInverse | Addition and subtraction are partial inverses: (a ⊕ w) ⊖ w = a when k = #a, #w = k, and all components of a before k are zero | from TumblerAdd, TumblerSub |
-| ReverseInverse | ReverseInverse | (a ⊖ w) ⊕ w = a when k = #a, #w = k, a ≥ w > 0, and all components of a before k are zero | corollary of TA3-strict, TA4, TumblerAdd, TumblerSub |
-| TumblerAdd | TumblerAdd | a ⊕ w: copy aᵢ for i < k, advance aₖ by wₖ at action point k, replace tail with wᵢ for i > k; result length = #w | introduced |
-| TumblerSub | TumblerSub | a ⊖ w: zero positions before divergence k, compute aₖ − wₖ at divergence point, copy aᵢ for i > k; result length = max(#a, #w) | from Divergence, T1 |
-| TA5 | HierarchicalIncrement | Hierarchical increment inc(t, k) produces t' > t: k=0 advances at sig(t), k>0 extends by k positions with separators and first child | introduced |
-| TA6 | ZeroTumblers | Every all-zero tumbler (any length) is less than every positive tumbler and is not a valid address | from T1, T4 |
-| PositiveTumbler | PositiveTumbler | t > 0 iff at least one component is nonzero; zero tumbler iff all components are zero | introduced |
-| TA7a | SubspaceClosure | Ordinal-only shift arithmetic: both ⊕ and ⊖ on ordinals produce results in T with the subspace identifier (held as context) unchanged | introduced |
-| TA-assoc | AdditionAssociative | Addition is associative where both compositions are defined: (a ⊕ b) ⊕ c = a ⊕ (b ⊕ c) | theorem from TumblerAdd, T3 |
-| TA-LC | LeftCancellation | a ⊕ x = a ⊕ y ⟹ x = y (left cancellation) | lemma (from TumblerAdd, T3) |
-| TA-RC | RightCancellationFailure | Right cancellation fails: ∃ a ≠ b with a ⊕ w = b ⊕ w | lemma (from TumblerAdd, T3) |
-| TA-MTO | ManyToOne | a agrees with b on components 1..k ⟺ a ⊕ w = b ⊕ w for displacement w with action point k | lemma (from TumblerAdd, T3) |
-| D0 | DisplacementWellDefined | Displacement well-definedness: a < b and divergence(a, b) ≤ #a ensures positive displacement with TA0 satisfied | from T3, TA0, TumblerAdd, TumblerSub |
-| D1 | DisplacementRoundTrip | Displacement round-trip: for a < b with divergence(a, b) ≤ #a and #a ≤ #b, a ⊕ (b ⊖ a) = b | lemma (from TumblerAdd, TumblerSub, T3, Divergence) |
-| D2 | DisplacementUnique | Displacement uniqueness: under D1's preconditions, if a ⊕ w = b then w = b ⊖ a | corollary of D1, TA-LC |
-| OrdinalDisplacement | OrdinalDisplacement | δ(n, m) = [0, ..., 0, n] of length m, action point m | introduced |
-| OrdinalShift | OrdinalShift | shift(v, n) = v ⊕ δ(n, #v) | introduced |
-| TS1 | ShiftOrderPreservation | shift preserves strict order: v₁ < v₂ ⟹ shift(v₁, n) < shift(v₂, n) | lemma (from TA1-strict) |
-| TS2 | ShiftInjectivity | shift is injective: shift(v₁, n) = shift(v₂, n) ⟹ v₁ = v₂ | lemma (from TA-MTO, T3) |
-| TS3 | ShiftComposition | shift composes additively: shift(shift(v, n₁), n₂) = shift(v, n₁ + n₂) | lemma (from TumblerAdd, T3) |
-| TS4 | ShiftStrictIncrease | shift strictly increases: shift(v, n) > v | corollary of TA-strict |
-| TS5 | ShiftAmountMonotonicity | shift is monotone in amount: n₁ < n₂ ⟹ shift(v, n₁) < shift(v, n₂) | corollary of TS3, TS4 |
+| Label | Statement | Status |
+|-------|-----------|--------|
+| T0(a) | Every component value of a tumbler is unbounded — no maximum value exists | introduced |
+| T0(b) | Tumblers of arbitrary length exist in T — the hierarchy has unlimited nesting depth | introduced |
+| T1 | Tumblers are totally ordered by lexicographic comparison, with the prefix-less-than convention | introduced |
+| T2 | Tumbler comparison is computable from the two addresses alone, examining at most min(#a, #b) components | introduced |
+| T3 | Each tumbler has exactly one canonical representation; component-wise identity is both necessary and sufficient for equality | introduced |
+| T4 | An address tumbler has at most three zero-valued components as field separators, every field component is strictly positive, and every present field has at least one component (no adjacent zeros, no leading/trailing zero) | introduced |
+| T5 | The set of tumblers sharing a prefix forms a contiguous interval under T1 | introduced |
+| T6 | Containment (same node, same account, same document family, structural subordination) is decidable from addresses alone | corollary of T4 |
+| T7 | Subspaces (text, links) within a document's element field are permanently disjoint | corollary of T3, T4 |
+| T8 | Once allocated, an address is never removed from the address space; the set of allocated addresses is monotonically non-decreasing | introduced |
+| T9 | Within a single allocator's sequential stream, new addresses are strictly monotonically increasing; gaps are permanent | lemma (from T10a, TA5) |
+| T10 | Allocators with non-nesting prefixes produce distinct addresses without coordination | introduced |
+| T10a | Each allocator uses inc(·, 0) for siblings and inc(·, k>0) only for child-spawning; this constrains sibling outputs to uniform length | introduced |
+| PrefixOrderingExtension | p₁ < p₂ with neither a prefix of the other implies a < b for every a with p₁ ≼ a and every b with p₂ ≼ b | lemma (from T1) |
+| PartitionMonotonicity | Per-allocator ordering extends cross-allocator; for non-nesting sibling prefixes p₁ < p₂, every address extending p₁ precedes every address extending p₂ | theorem from PrefixOrderingExtension, T1, T3, T5, T9, T10a, TA5 |
+| GlobalUniqueness | No two distinct allocation events anywhere in the system at any time produce the same address | theorem from T3, T4, T9, T10, T10a, TA5 |
+| T12 | A span (s, ℓ) is well-formed when ℓ > 0 and action point k of ℓ satisfies k ≤ #s; it denotes the contiguous interval {t : s ≤ t < s ⊕ ℓ}, non-empty by TA-strict | from T1, TA0, TA-strict |
+| TA0 | Tumbler addition a ⊕ w is well-defined when w > 0 and the action point k satisfies k ≤ #a | introduced |
+| TA1 | Addition preserves the total order (weak): a < b ⟹ a ⊕ w ≤ b ⊕ w | introduced |
+| Divergence | Divergence point of two unequal tumblers: first position k where aₖ ≠ bₖ (component), or min(#a, #b) + 1 (prefix) | from T1 |
+| TA1-strict | Addition preserves the total order (strict) when k ≤ min(#a, #b) ∧ k ≥ divergence(a, b) | from Divergence, TumblerAdd |
+| TA-strict | Adding a positive displacement strictly advances: a ⊕ w > a | from TumblerAdd, T1 |
+| TA2 | Tumbler subtraction a ⊖ w is well-defined when a ≥ w | from TumblerSub, T1 |
+| TA3 | Subtraction preserves the total order (weak): a < b ⟹ a ⊖ w ≤ b ⊖ w when both are defined | from TA2, T1, TA6, TumblerSub |
+| TA3-strict | Subtraction preserves the total order (strict) when additionally #a = #b | introduced |
+| TA4 | Addition and subtraction are partial inverses: (a ⊕ w) ⊖ w = a when k = #a, #w = k, and all components of a before k are zero | from TumblerAdd, TumblerSub |
+| ReverseInverse | (a ⊖ w) ⊕ w = a when k = #a, #w = k, a ≥ w > 0, and all components of a before k are zero | corollary of TA3-strict, TA4, TumblerAdd, TumblerSub |
+| TumblerAdd | a ⊕ w: copy aᵢ for i < k, advance aₖ by wₖ at action point k, replace tail with wᵢ for i > k; result length = #w | introduced |
+| TumblerSub | a ⊖ w: zero positions before divergence k, compute aₖ − wₖ at divergence point, copy aᵢ for i > k; result length = max(#a, #w) | from Divergence, T1 |
+| TA5 | Hierarchical increment inc(t, k) produces t' > t: k=0 advances at sig(t), k>0 extends by k positions with separators and first child | introduced |
+| TA6 | Every all-zero tumbler (any length) is less than every positive tumbler and is not a valid address | from T1, T4 |
+| PositiveTumbler | t > 0 iff at least one component is nonzero; zero tumbler iff all components are zero | introduced |
+| TA7a | Ordinal-only shift arithmetic: both ⊕ and ⊖ on ordinals produce results in T with the subspace identifier (held as context) unchanged | introduced |
+| TA-assoc | Addition is associative where both compositions are defined: (a ⊕ b) ⊕ c = a ⊕ (b ⊕ c) | theorem from TumblerAdd, T3 |
+| TA-LC | a ⊕ x = a ⊕ y ⟹ x = y (left cancellation) | lemma (from TumblerAdd, T3) |
+| TA-RC | Right cancellation fails: ∃ a ≠ b with a ⊕ w = b ⊕ w | lemma (from TumblerAdd, T3) |
+| TA-MTO | a agrees with b on components 1..k ⟺ a ⊕ w = b ⊕ w for displacement w with action point k | lemma (from TumblerAdd, T3) |
+| D0 | Displacement well-definedness: a < b and divergence(a, b) ≤ #a ensures positive displacement with TA0 satisfied | from T3, TA0, TumblerAdd, TumblerSub |
+| D1 | Displacement round-trip: for a < b with divergence(a, b) ≤ #a and #a ≤ #b, a ⊕ (b ⊖ a) = b | lemma (from TumblerAdd, TumblerSub, T3, Divergence) |
+| D2 | Displacement uniqueness: under D1's preconditions, if a ⊕ w = b then w = b ⊖ a | corollary of D1, TA-LC |
+| OrdinalDisplacement | δ(n, m) = [0, ..., 0, n] of length m, action point m | introduced |
+| OrdinalShift | shift(v, n) = v ⊕ δ(n, #v) | introduced |
+| TS1 | shift preserves strict order: v₁ < v₂ ⟹ shift(v₁, n) < shift(v₂, n) | lemma (from TA1-strict) |
+| TS2 | shift is injective: shift(v₁, n) = shift(v₂, n) ⟹ v₁ = v₂ | lemma (from TA-MTO, T3) |
+| TS3 | shift composes additively: shift(shift(v, n₁), n₂) = shift(v, n₁ + n₂) | lemma (from TumblerAdd, T3) |
+| TS4 | shift strictly increases: shift(v, n) > v | corollary of TA-strict |
+| TS5 | shift is monotone in amount: n₁ < n₂ ⟹ shift(v, n₁) < shift(v, n₂) | corollary of TS3, TS4 |
 
 
 ## Open Questions
