@@ -815,17 +815,31 @@ But TA1 alone does not guarantee that addition *advances* a position. It preserv
 
 Without TA-strict, the axioms admit a degenerate model in which `a ⊕ w = a` for all `a, w`. This no-op model satisfies TA0 (result is in T), TA1 (if `a < b` then `a < b` — the consequent is unchanged), and TA4 (`(a ⊕ w) ⊖ w = a ⊖ w = a` if subtraction is equally degenerate). Every axiom is satisfied, yet spans are empty — the interval `[s, s ⊕ ℓ)` collapses to `[s, s)`. TA-strict excludes this model and ensures that advancing by a positive displacement moves forward. T12 (span well-definedness) depends on this directly.
 
-*Proof.* We show that for all `a ∈ T` and `w > 0` with action point `k ≤ #a`, the advanced position `a ⊕ w` is strictly greater than `a` under T1.
+*Proof.* We are given `a ∈ T` and `w ∈ T` with `w > 0` and action point `k` satisfying `k ≤ #a`. We must show `a ⊕ w > a`. The argument proceeds in four stages: establish constraints and well-formedness from the hypotheses, compute the structure of `r = a ⊕ w` via TumblerAdd, verify agreement between `r` and `a` at all positions before `k`, and produce a T1 witness for strict increase at position `k`.
 
-Let `a = [a₁, ..., aₘ]` and `w = [w₁, ..., wₙ]` with `w > 0`. The action point `k = min({i : 1 ≤ i ≤ n ∧ wᵢ ≠ 0})` exists because `w > 0`, and the TA0 precondition gives `k ≤ m`. Let `r = a ⊕ w`. By TA0, `r ∈ T` with `#r = n`, so the T1 comparison between `r` and `a` is well-defined.
+**Stage 1: Hypotheses, derived constraints, and well-formedness.** We recall the definitions on which the argument depends. The action point `k` of `w` is the least position with `wₖ ≠ 0`, that is, `k = min({i : 1 ≤ i ≤ #w ∧ wᵢ ≠ 0})`. This minimum exists because `w > 0` — a tumbler is positive if and only if it has at least one nonzero component, so the defining set is non-empty. By definition of action point, `wᵢ = 0` for all `1 ≤ i < k` and `wₖ > 0`.
 
-We establish a witness for `r > a` under T1's definition. The TumblerAdd construction defines `r` in three regions: `rᵢ = aᵢ` for `1 ≤ i < k`, `rₖ = aₖ + wₖ`, and `rᵢ = wᵢ` for `k < i ≤ n`.
+Let `a = [a₁, ..., aₘ]` and `w = [w₁, ..., wₙ]`, so `#a = m` and `#w = n`. The precondition gives `k ≤ m`. By TA0 (WellDefinedAddition), whose preconditions are `w > 0` and `k ≤ #a` — both given — the result `r = a ⊕ w` is a well-defined member of `T` with `#r = #w = n` (the result-length identity). Since both `a` and `r` are members of `T`, the T1 comparison between them is well-defined.
 
-*Agreement before position `k`.* For every `i` with `1 ≤ i < k`, `rᵢ = aᵢ` — the prefix-copy rule of TumblerAdd reproduces the start position exactly. So `rᵢ = aᵢ` for all `i < k`.
+**Stage 2: Structure of `r = a ⊕ w` via TumblerAdd.** By the TumblerAdd construction, the result `r = [r₁, ..., rₙ]` is built in three regions relative to the action point `k`:
 
-*Strict increase at position `k`.* By definition of action point, `wₖ > 0`. Therefore `rₖ = aₖ + wₖ > aₖ`, since adding a positive natural number to a non-negative one yields a strictly larger result. Position `k` satisfies `k ≤ m = #a` (the TA0 precondition) and `k ≤ n = #r` (since `k` is a valid index into `w` and `#r = #w = n`). Thus `k ≤ min(#a, #r)`.
+- For `1 ≤ i < k`: `rᵢ = aᵢ` (prefix copy from start position). The precondition `k ≤ m` ensures each position `i < k` exists within `a`.
+- At `i = k`: `rₖ = aₖ + wₖ` (single-component advance). Position `k` exists within `a` since `k ≤ m`, and within `w` since `k` is a valid index of `w` by definition.
+- For `k < i ≤ n`: `rᵢ = wᵢ` (tail copy from displacement). These positions come entirely from `w`, discarding any components of `a` beyond `k`.
 
-We now have a witness for `a < r` via T1 case (i): position `k` satisfies `k ≤ min(#a, #r)`, with `aᵢ = rᵢ` for all `i < k` and `aₖ < rₖ`. By T1, `a < r`, i.e., `a < a ⊕ w`, which is equivalently `a ⊕ w > a`. ∎
+**Stage 3: Agreement between `r` and `a` before position `k`.** For every `i` with `1 ≤ i < k`, the prefix-copy rule gives `rᵢ = aᵢ`. This is an exact reproduction — TumblerAdd copies the start position's components verbatim at all positions before the action point. We record: `rᵢ = aᵢ` for all `1 ≤ i < k`.
+
+If `k = 1`, the range `1 ≤ i < 1` is empty, and the agreement condition holds vacuously — there are no positions before the action point to check.
+
+**Stage 4: Strict increase at position `k` and T1 witness.** By definition of action point, `wₖ > 0`, so `wₖ ≥ 1`. At position `k`, TumblerAdd gives `rₖ = aₖ + wₖ`. Since `aₖ ∈ ℕ` (because `a ∈ T` and `k ≤ m`) and `wₖ ≥ 1`, the sum satisfies `rₖ = aₖ + wₖ ≥ aₖ + 1 > aₖ` — adding a positive natural number to a non-negative one yields a strictly larger result.
+
+We now assemble the T1 witness. Position `k` must lie within both tumblers for T1 case (i) to apply: `k ≤ m = #a` holds by the precondition, and `k ≤ n = #r` holds because `k` is a valid index of `w` (so `k ≤ n`) and `#r = n`. Therefore `k ≤ min(#a, #r)`. The three conditions for T1 case (i) are satisfied with witness `k`:
+
+1. `aᵢ = rᵢ` for all `1 ≤ i < k` (Stage 3 — prefix agreement),
+2. `k ≤ min(#a, #r)` (established above),
+3. `aₖ < rₖ` (strict increase at the action point).
+
+By T1, position `k` witnesses `a < r`, that is, `a < a ⊕ w`, which is equivalently `a ⊕ w > a`. ∎
 
 *Formal Contract:*
 - *Preconditions:* `a ∈ T`, `w ∈ T`, `w > 0`, `k ≤ #a` where `k` is the action point of `w`
