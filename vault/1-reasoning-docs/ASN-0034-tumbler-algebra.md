@@ -42,19 +42,29 @@ Since `t`, `i`, and `M` were arbitrary, the universal claim holds. ∎
 
 In words: there is no maximum tumbler length — for every bound, a tumbler of at least that length exists in T. The hierarchy has unlimited nesting depth. T0(b) follows from T's definition as the set of all finite sequences over ℕ — for any `n`, the constant sequence `[1, 1, ..., 1]` of length `n` is a member. We state it explicitly because it carries independent architectural weight: T0(a) ensures siblings within a level are inexhaustible, while T0(b) ensures levels themselves are inexhaustible.
 
-*Proof.* We establish the universal claim by exhibiting, for arbitrary `n ≥ 1`, a witness `t ∈ T` with `#t ≥ n`.
+*Proof.* We must show `(A n ∈ ℕ : n ≥ 1 : (E t ∈ T :: #t ≥ n))` — for every natural number `n ≥ 1`, there exists a tumbler `t` in `T` whose length is at least `n`. The argument proceeds in four stages: recall the definition of T and the proof strategy, construct an explicit witness, verify that the witness belongs to T, and verify the length bound to close the universal quantification.
 
-Let `n ∈ ℕ` with `n ≥ 1` be arbitrary. Define
+**Stage 1: The definition of T and proof strategy.** We recall that T is the set of all finite sequences over ℕ with length ≥ 1: a sequence `t = d₁.d₂. ... .dₘ` belongs to T if and only if (a) `m ≥ 1` and (b) `dᵢ ∈ ℕ` for all `1 ≤ i ≤ m`. Since the claim is universally quantified over all `n ≥ 1`, it suffices to let `n` be arbitrary and exhibit a witness `t ∈ T` with `#t ≥ n`. We proceed by direct construction.
+
+Let `n ∈ ℕ` with `n ≥ 1` be arbitrary.
+
+**Stage 2: Witness construction.** Define
 
 > `t = 1.1. ... .1` (n components)
 
-— the constant sequence of `n` ones, that is, `t = d₁.d₂. ... .dₙ` with `dᵢ = 1` for all `1 ≤ i ≤ n`. We must verify two things.
+— the constant sequence of `n` ones, that is, `t = d₁.d₂. ... .dₙ` with `dᵢ = 1` for all `1 ≤ i ≤ n`. This is the simplest finite sequence of length exactly `n` over ℕ: every component is the smallest positive natural number. We must verify two claims: that `t` belongs to T, and that `#t ≥ n`.
 
-*(i)* `t ∈ T`. The sequence `t` has length `n ≥ 1`, and each of its components is a natural number: `dᵢ = 1 ∈ ℕ` for all `1 ≤ i ≤ n`. Since T is the set of all finite sequences over ℕ with length ≥ 1, we have `t ∈ T`.
+**Stage 3: Membership verification — `t ∈ T`.** We check the two conditions of T's definition.
 
-*(ii)* `#t ≥ n`. By construction `t` has exactly `n` components, so `#t = n`, and `n ≥ n` holds.
+*(a) Length condition: `#t ≥ 1`.* By construction, `t` has `n` components, so `#t = n`. Since `n ≥ 1` (given), `#t = n ≥ 1`.
 
-Since `n` was arbitrary, the universal claim holds. ∎
+*(b) Component condition: `dᵢ ∈ ℕ` for all `1 ≤ i ≤ n`.* For each `i` with `1 ≤ i ≤ n`, `dᵢ = 1`. Since `1 ∈ ℕ`, every component is a natural number.
+
+Both conditions are satisfied, so `t ∈ T`.
+
+**Stage 4: Length bound and universal closure.** By construction, `t` has exactly `n` components: `#t = n`. The inequality `#t ≥ n` reduces to `n ≥ n`, which holds for all `n ∈ ℕ` by reflexivity of `≥`.
+
+The witness `t` satisfies both requirements: `t ∈ T` (Stage 3) and `#t ≥ n` (this stage). Therefore the existential `(E t ∈ T :: #t ≥ n)` is satisfied. Since `n ≥ 1` was arbitrary, the universal claim `(A n ∈ ℕ : n ≥ 1 : (E t ∈ T :: #t ≥ n))` holds. ∎
 
 *Formal Contract:*
 - *Axiom:* T is the set of all finite sequences over ℕ with length ≥ 1. Since there is no upper bound on the length of finite sequences, for any `n ≥ 1`, the constant sequence of `n` ones is a member of T with `#t = n ≥ n`.
