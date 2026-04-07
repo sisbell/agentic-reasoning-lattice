@@ -25,7 +25,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, REVIEWS_DIR, next_review_number, load_manifest
 from lib.shared.common import find_asn, step_commit_asn
-from lib.formalization.core.asn_normalizer import step_stabilize
+from lib.formalization.core.asn_normalizer import step_refresh_deps
 from lib.formalization.cross_review.review import run_review, extract_findings
 from lib.formalization.cross_review.revise import revise
 
@@ -58,7 +58,7 @@ def run_cross_review(asn_num, max_cycles=10, dry_run=False):
         print(f"\n  [CYCLE {cycle}/{max_cycles}]", file=sys.stderr)
 
         # Format gate
-        step_stabilize(asn_num)
+        step_refresh_deps(asn_num)
 
         # Run review
         findings_text, elapsed = run_review(

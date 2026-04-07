@@ -24,7 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, USAGE_LOG, REVIEWS_DIR
 from lib.shared.common import find_asn, extract_property_sections
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization" / "format"
+PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "blueprinting" / "format"
 REVIEW_TEMPLATE = PROMPTS_DIR / "review.md"
 REVISE_TEMPLATE = PROMPTS_DIR / "revise.md"
 
@@ -89,7 +89,7 @@ def _format_review_path(asn_label):
 def step_format_review(asn_num):
     """Run format review. Returns (is_clean, findings_text).
 
-    Saves findings to vault/2-review/ASN-NNNN/format-review.md.
+    Saves findings to vault/1-reasoning-docs-review/ASN-NNNN/format-review.md.
     """
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
@@ -172,7 +172,7 @@ def normalize_format(asn_num):
     """Run format normalization. Returns True if clean.
 
     Format review/revise cycle (up to 30 cycles).
-    Findings saved to vault/2-review/ASN-NNNN/format-review.md.
+    Findings saved to vault/1-reasoning-docs-review/ASN-NNNN/format-review.md.
     """
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:

@@ -144,7 +144,7 @@ def step_integration_review(base_num, base_path, property_labels,
                             model, effort):
     """Step 2a: Targeted integration review (not generic review).
 
-    Writes review to vault/2-review/ASN-NNNN/ for traceability.
+    Writes review to vault/1-reasoning-docs-review/ASN-NNNN/ for traceability.
     """
     from lib.shared.paths import VOCABULARY, REVIEWS_DIR, next_review_number
     from lib.shared.foundation import load_foundation_statements

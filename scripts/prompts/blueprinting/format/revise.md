@@ -16,8 +16,13 @@ reviewer found the issues listed below. Fix each one in the ASN file.
    - introduced, corollary of, from, theorem from, extends, design requirement, cited, lemma
 6. **Missing table entries**: if a definition or property exists in prose but not
    in the table, add a row. Use the PascalCase name as the label for definitions.
-7. Do not add, remove, or reorder properties. Only fix formatting and add
-   missing table entries.
+7. **Property boundary markers**: insert a horizontal rule (`---`) on its
+   own line immediately before each property or definition bold header.
+   This marks the boundary between properties for downstream disassembly.
+   Do not place `---` before the very first property in the ASN, before
+   `##` section headers, or inside worked examples.
+8. Do not add, remove, or reorder properties. Only fix formatting, add
+   missing table entries, and insert boundary markers.
 
 ## ASN File
 

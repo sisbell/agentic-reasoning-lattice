@@ -6,7 +6,7 @@ Loads the ASN content and shared vocabulary, injects them into a review
 prompt template, and invokes claude --print with --tools "" (review is
 pure analysis, no file access needed).
 
-Results written to vault/2-review/ for traceability.
+Results written to vault/1-reasoning-docs-review/ for traceability.
 
 Usage:
     python scripts/lib/review_check.py 4

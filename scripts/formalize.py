@@ -25,7 +25,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, REVIEWS_DIR, next_review_number
 from lib.shared.common import find_asn, extract_property_sections, step_commit_asn
-from lib.formalization.core.asn_normalizer import step_stabilize
+from lib.formalization.core.asn_normalizer import step_refresh_deps
 from lib.formalization.core.build_dependency_graph import generate_deps, write_deps_yaml
 from lib.formalization.core.topological_sort import topological_sort_labels
 from lib.formalization.formalize.produce_contract import (
@@ -67,7 +67,7 @@ def run_formalize(asn_num, max_cycles=5, mode="incremental",
 
     for cycle in range(1, max_cycles + 1):
         # Format gate
-        step_stabilize(asn_num)
+        step_refresh_deps(asn_num)
 
         # Validate axiom contracts (axioms are excluded from quality_rewrite
         # but their contracts can still be incomplete)

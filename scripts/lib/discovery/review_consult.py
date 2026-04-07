@@ -361,7 +361,7 @@ def main():
             print(f"  Review not found: {args.review} for {asn_label}",
                   file=sys.stderr)
         else:
-            print(f"  No reviews found for {asn_label} in vault/2-review/",
+            print(f"  No reviews found for {asn_label} in vault/1-reasoning-docs-review/",
                   file=sys.stderr)
         sys.exit(1)
 

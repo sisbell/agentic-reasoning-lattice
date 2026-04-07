@@ -25,7 +25,7 @@ from lib.shared.paths import (WORKSPACE, REVIEWS_DIR, USAGE_LOG,
                     next_review_number, load_manifest)
 from lib.shared.common import find_asn, read_file, step_commit_asn
 from lib.shared.foundation import load_foundation_statements
-from lib.formalization.core.asn_normalizer import step_stabilize
+from lib.formalization.core.asn_normalizer import step_refresh_deps
 
 DEP_REPORT_TEMPLATE = WORKSPACE / "scripts" / "prompts" / "shared" / "dependency-report.md"
 REVISE_TEMPLATE = WORKSPACE / "scripts" / "prompts" / "rebase" / "revise.md"
@@ -168,7 +168,7 @@ def run_dependency_review(asn_num, max_cycles=10, dry_run=False):
         print(f"\n  [CYCLE {cycle}/{max_cycles}]", file=sys.stderr)
 
         # Format gate
-        step_stabilize(asn_num)
+        step_refresh_deps(asn_num)
 
         # Run dependency report
         report = run_dependency_report(asn_num)

@@ -72,7 +72,7 @@ def _export_one(asn_id, do_format_gate=False, contract_check="fail"):
 
     # Format gate (if requested)
     if do_format_gate:
-        from lib.formalization.core.asn_formatter import normalize_format
+        from lib.blueprinting.format import normalize_format
         ok = normalize_format(asn_num)
         if not ok:
             print(f"  [ERROR] Format normalization failed for {asn_label}",

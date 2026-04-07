@@ -9,9 +9,9 @@ be promoted to their own property sections.
 
 **Label**: {{label}}
 
-## Section Content
+## Property File Content
 
-{{section}}
+{{content}}
 
 ## Task
 

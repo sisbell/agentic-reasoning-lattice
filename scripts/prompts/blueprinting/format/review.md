@@ -113,6 +113,12 @@ Table entries that have no corresponding prose section.
 ### 6. Duplicate Labels
 The same label appearing more than once in the property table.
 
+### 7. Missing Boundary Markers
+Each property or definition bold header (except the very first in the ASN)
+must be preceded by a horizontal rule (`---`) on its own line. This marks
+property boundaries for downstream disassembly. Do not require `---` before
+`##` section headers or inside worked example sections.
+
 ## Output Format
 
 For each category, list findings or write "(none)". Be specific — quote the

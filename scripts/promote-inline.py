@@ -2,164 +2,215 @@
 """
 Promote Inline — extract embedded results to standalone properties.
 
-Scans property sections for content after the formal contract (derived
-lemmas, consequences, commentary). Promotes derived results to their
-own property sections so the formalization pipeline can handle them.
+Operates on per-property blueprint files. For each flagged property:
+1. Promote: rewrite narrative, create new property section in the file
+2. Format: review/revise fixes labels, headers on the new section
+3. Disassemble: split the file into separate property files
 
-Standalone tool — run before formalization as needed.
+Run `python scripts/lint.py inline 34` first to identify candidates.
 
 Usage:
-    python scripts/promote-inline.py 34              # scan + promote all
-    python scripts/promote-inline.py 34 --label TA5  # single property
-    python scripts/promote-inline.py 34 --dry-run    # scan only
+    python scripts/promote-inline.py 34              # promote all flagged
+    python scripts/promote-inline.py 34 --label T10a # single property
+    python scripts/promote-inline.py 34 --dry-run    # show what would be promoted
 """
 
 import argparse
 import json
+import os
 import re
+import subprocess
 import sys
 import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, USAGE_LOG, REVIEWS_DIR, next_review_number
-from lib.shared.common import (find_asn, extract_property_sections,
-                                invoke_claude, invoke_claude_agent,
-                                step_commit_asn)
-from lib.formalization.core.build_dependency_graph import (
-    find_property_table, parse_table_row)
+from lib.shared.paths import (
+    WORKSPACE, USAGE_LOG,
+    blueprint_properties_dir,
+)
+from lib.shared.common import find_asn, invoke_claude, step_commit_asn
+from lib.blueprinting.lint import _extract_post_contract, _scan_property_file
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization" / "promote-inline"
-SCAN_TEMPLATE = PROMPTS_DIR / "scan.md"
+PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "blueprinting" / "promote-inline"
 PROMOTE_TEMPLATE = PROMPTS_DIR / "promote.md"
+DISASSEMBLE_TEMPLATE = WORKSPACE / "scripts" / "prompts" / "blueprinting" / "disassemble.md"
 
 
-def _extract_post_contract(section):
-    """Extract content after the formal contract in a property section."""
-    marker = "*Formal Contract:*"
-    idx = section.find(marker)
-    if idx == -1:
-        return None
-
-    # Find the end of the contract block — next section header or end
-    after_marker = section[idx:]
-
-    # The contract block ends at the next blank line followed by non-contract
-    # content, or at a bold header, or at end of section
-    lines = after_marker.split("\n")
-    contract_lines = []
-    post_lines = []
-    in_contract = True
-
-    for i, line in enumerate(lines):
-        if i == 0:
-            contract_lines.append(line)
-            continue
-        if in_contract:
-            stripped = line.strip()
-            if stripped.startswith("- *") or stripped.startswith("*") or not stripped:
-                contract_lines.append(line)
-            else:
-                in_contract = False
-                post_lines.append(line)
-        else:
-            post_lines.append(line)
-
-    post_content = "\n".join(post_lines).strip()
-    return post_content if post_content else None
-
-
-def _log_usage(skill, elapsed, asn_num, **extra):
-    """Append usage entry."""
-    try:
-        entry = {
-            "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
-            "skill": f"promote-inline-{skill}",
-            "asn": f"ASN-{asn_num:04d}",
-            "elapsed_s": round(elapsed, 1),
-            **extra,
-        }
-        with open(USAGE_LOG, "a") as f:
-            f.write(json.dumps(entry) + "\n")
-    except OSError:
-        pass
-
-
-def scan_property(label, section):
-    """Scan one property's section for inline results. Returns list of findings."""
-    template = SCAN_TEMPLATE.read_text()
-    prompt = (template
-              .replace("{{label}}", label)
-              .replace("{{section}}", section))
-
-    result, elapsed = invoke_claude(prompt, model="sonnet", effort="high")
-
-    if result is None or "(none)" in result:
-        return []
-
-    findings = []
-    for line in result.strip().split("\n"):
-        line = line.strip()
-        if not line or line.startswith("```"):
-            continue
-        parts = [p.strip() for p in line.split("|")]
-        if len(parts) >= 4:
-            findings.append({
-                "kind": parts[0],
-                "label": parts[1],
-                "name": parts[2],
-                "description": parts[3],
-            })
-
-    return findings
-
-
-def promote_property(asn_num, label, results):
-    """Promote inline results for one property. Returns True if changes made."""
-    asn_path, asn_label = find_asn(str(asn_num))
-    if asn_path is None:
-        return False
-
+def _promote_one(prop_file, label, findings, vocabulary, table):
+    """Promote inline results in one property file. Returns rewritten content."""
     template = PROMOTE_TEMPLATE.read_text()
-    rel_path = asn_path.relative_to(WORKSPACE)
+    content = prop_file.read_text()
 
-    # Format results list
     results_text = "\n".join(
         f"- {r['kind']} | {r['label']} | {r['name']} | {r['description']}"
-        for r in results
+        for r in findings
     )
 
     prompt = (template
-              .replace("{{asn_path}}", str(rel_path))
-              .replace("{{label}}", label)
+              .replace("{{content}}", content)
+              .replace("{{vocabulary}}", vocabulary)
+              .replace("{{table}}", table)
               .replace("{{results}}", results_text))
 
-    print(f"  [PROMOTE] {label} — {len([r for r in results if r['kind'] == 'derived'])} results...",
+    print(f"  [PROMOTE] {label} — {len([r for r in findings if r['kind'] == 'derived'])} results...",
           file=sys.stderr)
 
+    cmd = [
+        "claude", "--print", "--model", "claude-opus-4-6",
+        "--tools", "",
+    ]
+    env = os.environ.copy()
+    env.pop("CLAUDECODE", None)
+    env["CLAUDE_CODE_EFFORT_LEVEL"] = "high"
+
     start = time.time()
-    data, elapsed = invoke_claude_agent(
-        prompt, model="opus", effort="high",
-        tools="Edit,Read,Glob,Grep")
-    _log_usage("promote", elapsed, asn_num, label=label)
+    result = subprocess.run(
+        cmd, input=prompt, capture_output=True, text=True, env=env,
+    )
+    elapsed = time.time() - start
 
-    if data is None:
+    if result.returncode != 0:
         print(f"    FAILED ({elapsed:.0f}s)", file=sys.stderr)
-        return False
+        return None, elapsed
 
-    # Report what was created
-    for r in results:
-        if r["kind"] == "derived":
-            print(f"    Created: {r['label']} ({r['name']})", file=sys.stderr)
-        else:
-            print(f"    Kept: {r['description']} ({r['kind']})", file=sys.stderr)
+    new_content = result.stdout.strip()
+    if len(new_content) < len(content) * 0.5:
+        print(f"    REJECTED (output too short)", file=sys.stderr)
+        return None, elapsed
 
-    cost = 0
-    if isinstance(data, dict):
-        cost = data.get("total_cost_usd", 0)
-    print(f"    Done ({elapsed:.0f}s, ${cost:.2f})", file=sys.stderr)
+    print(f"    Done ({elapsed:.0f}s)", file=sys.stderr)
+    return new_content, elapsed
+
+
+def _format_one(prop_file):
+    """Run format review/revise on a single property file. Returns True if clean."""
+    from lib.blueprinting.format import step_format_review, step_format_revise
+
+    content = prop_file.read_text()
+
+    # Use format review prompt with file content (print mode)
+    review_template = (WORKSPACE / "scripts" / "prompts" / "blueprinting"
+                       / "format" / "review.md").read_text()
+    prompt = review_template.replace("{{asn_content}}", content)
+
+    cmd = ["claude", "--print", "--model", "claude-sonnet-4-6"]
+    env = os.environ.copy()
+    env.pop("CLAUDECODE", None)
+    env["CLAUDE_CODE_EFFORT_LEVEL"] = "high"
+
+    result = subprocess.run(
+        cmd, input=prompt, capture_output=True, text=True, env=env,
+    )
+
+    if result.returncode != 0:
+        return True  # skip format on failure
+
+    text = result.stdout.strip()
+    if "RESULT: CLEAN" in text:
+        print(f"    [FORMAT] Clean", file=sys.stderr)
+        return True
+
+    # Has findings — run revise with agent tools
+    revise_template = (WORKSPACE / "scripts" / "prompts" / "blueprinting"
+                       / "format" / "revise.md").read_text()
+    rel_path = prop_file.relative_to(WORKSPACE)
+    revise_prompt = (revise_template
+                     .replace("{{asn_path}}", str(rel_path))
+                     .replace("{{findings}}", text))
+
+    cmd = [
+        "claude", "-p",
+        "--model", "claude-sonnet-4-6",
+        "--output-format", "json",
+        "--allowedTools", "Edit,Read,Glob,Grep",
+    ]
+    env["CLAUDE_CODE_EFFORT_LEVEL"] = "high"
+
+    result = subprocess.run(
+        cmd, input=revise_prompt, capture_output=True, text=True, env=env,
+        cwd=str(WORKSPACE),
+    )
+
+    if result.returncode == 0:
+        print(f"    [FORMAT] Revised", file=sys.stderr)
+    else:
+        print(f"    [FORMAT] Revise failed", file=sys.stderr)
 
     return True
+
+
+def _disassemble_one(prop_file, blueprint_dir):
+    """Disassemble a property file that contains multiple properties into separate files."""
+    content = prop_file.read_text()
+
+    # Check if file actually has multiple property headers
+    headers = re.findall(r'^\*\*\S+.*?\.\*\*', content, re.MULTILINE)
+    if len(headers) <= 1:
+        print(f"    [DISASSEMBLE] Single property — no split needed", file=sys.stderr)
+        return []
+
+    template = DISASSEMBLE_TEMPLATE.read_text()
+    rel_dir = blueprint_dir.relative_to(WORKSPACE)
+
+    prompt = (template
+              .replace("{{asn_path}}", str(prop_file.relative_to(WORKSPACE)))
+              .replace("{{output_dir}}", str(rel_dir)))
+
+    print(f"    [DISASSEMBLE] {len(headers)} properties in file...",
+          file=sys.stderr)
+
+    cmd = [
+        "claude", "-p",
+        "--model", "claude-sonnet-4-6",
+        "--output-format", "json",
+        "--allowedTools", "Read,Write,Glob",
+    ]
+
+    env = os.environ.copy()
+    env.pop("CLAUDECODE", None)
+    env["CLAUDE_CODE_EFFORT_LEVEL"] = "max"
+
+    start = time.time()
+    result = subprocess.run(
+        cmd, input=prompt, capture_output=True, text=True, env=env,
+        cwd=str(WORKSPACE),
+    )
+    elapsed = time.time() - start
+
+    if result.returncode != 0:
+        print(f"    [DISASSEMBLE] FAILED ({elapsed:.0f}s)", file=sys.stderr)
+        return []
+
+    # Find new files created (files in blueprint_dir that weren't there before)
+    new_files = []
+    for f in blueprint_dir.glob("*.md"):
+        if f != prop_file and not f.name.startswith("_"):
+            new_files.append(f.name)
+
+    print(f"    [DISASSEMBLE] Done ({elapsed:.0f}s)", file=sys.stderr)
+    return new_files
+
+
+def _update_table(blueprint_dir, findings):
+    """Append new property entries to _table.md."""
+    table_path = blueprint_dir / "_table.md"
+    if not table_path.exists():
+        return
+
+    derived = [f for f in findings if f["kind"] == "derived"]
+    if not derived:
+        return
+
+    lines = table_path.read_text().rstrip().split("\n")
+    for f in derived:
+        label = f["label"]
+        name = f["name"]
+        desc = f["description"]
+        lines.append(f"| {label} | {name} | {desc} | introduced |")
+
+    table_path.write_text("\n".join(lines) + "\n")
+    print(f"    [TABLE] Added {len(derived)} entries", file=sys.stderr)
 
 
 def main():
@@ -177,103 +228,91 @@ def main():
         print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
         sys.exit(1)
 
-    print(f"\n  [PROMOTE-INLINE] {asn_label}", file=sys.stderr)
-
-    # Get all property sections
-    text = asn_path.read_text()
-    rows = find_property_table(text)
-    if rows is None:
-        print(f"  No property table found", file=sys.stderr)
+    blueprint_dir = blueprint_properties_dir(asn_label)
+    if not blueprint_dir.exists():
+        print(f"  No blueprint directory for {asn_label}", file=sys.stderr)
         sys.exit(1)
 
-    labels = []
-    for row in rows[2:]:
-        cells = parse_table_row(row)
-        if cells and cells[0].strip():
-            labels.append(cells[0].strip().strip("`*"))
+    print(f"\n  [PROMOTE-INLINE] {asn_label}", file=sys.stderr)
+    print(f"  Blueprint: {blueprint_dir.relative_to(WORKSPACE)}", file=sys.stderr)
 
-    sections = extract_property_sections(text, known_labels=labels, truncate=False)
+    # Load vocabulary and table
+    vocab_path = blueprint_dir / "_vocabulary.md"
+    vocabulary = vocab_path.read_text() if vocab_path.exists() else "(no vocabulary file)"
 
-    # Filter to single label if specified
+    table_path = blueprint_dir / "_table.md"
+    table = table_path.read_text() if table_path.exists() else "(no table file)"
+
+    # Collect property files
+    prop_files = sorted(
+        f for f in blueprint_dir.glob("*.md")
+        if not f.name.startswith("_")
+    )
+
     if args.label:
-        labels = [l for l in labels if l == args.label]
+        prop_files = [f for f in prop_files if f.name.replace(".md", "") == args.label]
 
-    # Scan for inline results
-    MIN_SECTION_SIZE = 2000  # skip small properties unlikely to have embedded results
-    print(f"\n  [SCAN] {len(labels)} properties, checking for inline results...",
-          file=sys.stderr)
-
-    properties_with_findings = []
-    no_content_count = 0
-
-    for label in labels:
-        section = sections.get(label, "")
-        if not section or len(section) < MIN_SECTION_SIZE:
-            no_content_count += 1
+    # Scan for candidates (mechanical pre-filter + LLM scan)
+    candidates = []
+    for f in prop_files:
+        content = f.read_text()
+        if len(content) < 500:
+            continue
+        post = _extract_post_contract(content)
+        if not post:
             continue
 
-        # Scan with sonnet
-        findings = scan_property(label, section)
-        if not findings:
-            no_content_count += 1
-            continue
-
-        derived = [f for f in findings if f["kind"] == "derived"]
-        commentary = [f for f in findings if f["kind"] == "commentary"]
-
-        print(f"    {label}: {len(findings)} inline block{'s' if len(findings) != 1 else ''} found",
-              file=sys.stderr)
-        for f in findings:
-            if f["kind"] == "derived":
-                print(f"      - {f['label']} ({f['name']}): {f['description']} (derived result)",
-                      file=sys.stderr)
-            else:
-                print(f"      - {f['description']} (commentary — keeping in place)",
-                      file=sys.stderr)
+        label = f.name.replace(".md", "")
+        print(f"  Scanning {label}...", end="", file=sys.stderr, flush=True)
+        findings, elapsed = _scan_property_file(label, content)
+        derived = [fd for fd in findings if fd["kind"] == "derived"]
 
         if derived:
-            properties_with_findings.append((label, findings))
+            print(f" {len(derived)} derived ({elapsed:.0f}s)", file=sys.stderr)
+            candidates.append((label, f, findings))
+        else:
+            print(f" clean ({elapsed:.0f}s)", file=sys.stderr)
 
-    if no_content_count:
-        print(f"    {no_content_count} properties: no post-contract content",
-              file=sys.stderr)
-
-    if not properties_with_findings:
+    if not candidates:
         print(f"\n  Nothing to promote.", file=sys.stderr)
         return
 
-    print(f"\n  {len(properties_with_findings)} properties with results to promote.",
+    print(f"\n  {len(candidates)} properties with results to promote.",
           file=sys.stderr)
 
     if args.dry_run:
-        print(f"\n  [DRY RUN] Would promote {sum(len([f for f in findings if f['kind'] == 'derived']) for _, findings in properties_with_findings)} results.",
-              file=sys.stderr)
+        for label, f, findings in candidates:
+            derived = [fd for fd in findings if fd["kind"] == "derived"]
+            for fd in derived:
+                print(f"    {label} → {fd['label']} ({fd['name']}): {fd['description']}",
+                      file=sys.stderr)
         return
 
-    # Promote each property
-    for label, findings in properties_with_findings:
-        ok = promote_property(asn_num, label, findings)
-        if ok:
-            # Write review
-            (REVIEWS_DIR / asn_label).mkdir(parents=True, exist_ok=True)
-            review_num = next_review_number(asn_label)
-            rev_path = REVIEWS_DIR / asn_label / f"review-{review_num}.md"
-            with open(rev_path, "w") as rf:
-                rf.write(f"# Promote Inline — {asn_label} / {label}\n\n")
-                rf.write(f"*{time.strftime('%Y-%m-%d %H:%M')}*\n\n")
-                for f in findings:
-                    if f["kind"] == "derived":
-                        rf.write(f"- Promoted: **{f['label']}** ({f['name']}) — {f['description']}\n")
-                    else:
-                        rf.write(f"- Kept: {f['description']} (commentary)\n")
-                rf.write("\n")
+    # Promote each property: promote → format → disassemble
+    for label, prop_file, findings in candidates:
+        print(f"\n  --- {label} ---", file=sys.stderr)
 
-            step_commit_asn(asn_num,
-                            hint=f"promote-inline {label}: {len([f for f in findings if f['kind'] == 'derived'])} results")
+        # Step 1: Promote (rewrite narrative, create new section in file)
+        new_content, elapsed = _promote_one(
+            prop_file, label, findings, vocabulary, table)
+        if new_content is None:
+            continue
+        prop_file.write_text(new_content + "\n")
 
-    print(f"\n  [NEXT] Run the formalization pipeline to complete the new properties:",
-          file=sys.stderr)
-    print(f"  ./run/formalize.sh {asn_num}", file=sys.stderr)
+        # Step 2: Format (fix labels, headers)
+        _format_one(prop_file)
+
+        # Step 3: Disassemble (split file into separate property files)
+        new_files = _disassemble_one(prop_file, blueprint_dir)
+
+        # Step 4: Update table
+        _update_table(blueprint_dir, findings)
+
+        # Reload table for next iteration
+        if table_path.exists():
+            table = table_path.read_text()
+
+    print(f"\n  [PROMOTE-INLINE] Done", file=sys.stderr)
 
 
 if __name__ == "__main__":

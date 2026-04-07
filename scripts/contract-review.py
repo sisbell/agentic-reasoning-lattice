@@ -23,7 +23,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, REVIEWS_DIR, next_review_number
 from lib.shared.common import (find_asn, extract_property_sections,
                                 step_commit_asn)
-from lib.formalization.core.asn_normalizer import step_stabilize
+from lib.formalization.core.asn_normalizer import step_refresh_deps
 from lib.formalization.core.build_dependency_graph import (
     find_property_table, parse_table_row)
 from lib.formalization.assembly.validate_contracts import validate_contract
@@ -50,7 +50,7 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
 
     for cycle in range(1, max_cycles + 1):
         # Format gate
-        step_stabilize(asn_num)
+        step_refresh_deps(asn_num)
 
         # Get all property sections
         text = asn_path.read_text()

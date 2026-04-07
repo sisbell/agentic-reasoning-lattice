@@ -1,16 +1,20 @@
 # Promote Inline Results
 
-You are Dijkstra, restructuring an ASN reasoning document. A property
-section contains embedded results (lemmas, consequences) that should
-be standalone properties with their own self-contained proofs.
+You are Dijkstra, restructuring a property file. This property contains
+embedded results (lemmas, consequences) that should become standalone
+properties with their own self-contained proofs.
 
-## ASN File
+## Vocabulary
 
-The ASN is at `{{asn_path}}`. Read it, restructure it, write it back.
+{{vocabulary}}
 
-## Source Property
+## Current Property Table
 
-**Label**: {{label}}
+{{table}}
+
+## Source Property File
+
+{{content}}
 
 ## Results to Promote
 
@@ -25,7 +29,7 @@ statement must be justified in the sentence that introduces it.
 
 1. For each result marked "derived" above:
    - Create a new property section with a `**LABEL (PascalCaseName).**`
-     header, placed immediately after the source property's section
+     header, placed after the source property's section in this file
    - Write the proof as a standalone derivation in Dijkstra's style:
      state what is being proven, develop the argument step by step,
      justify each formal statement in the sentence that introduces it,
@@ -40,7 +44,13 @@ statement must be justified in the sentence that introduces it.
 
 3. The source property's formal contract must not change.
 
-4. Do not modify any other property's section.
+4. Choose labels that extend the source property's label (e.g.,
+   T10a-C1, T10a-C2 or T5(a), T5(b)). Check the property table
+   above to avoid collisions with existing labels.
 
-5. New property sections do NOT need a formal contract or table entry —
-   the formalization pipeline handles those downstream.
+## Output
+
+Return the complete rewritten file. The file will contain the source
+property (with citations replacing inline proofs) followed by the new
+property sections. Nothing else — no preamble, no explanation, no
+markdown fences. Just the file content.

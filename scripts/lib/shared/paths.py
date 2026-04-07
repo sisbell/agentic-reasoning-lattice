@@ -16,9 +16,13 @@ ASNS_DIR = VAULT / "1-reasoning-docs"
 VOCABULARY = VAULT / "vocabulary.md"
 
 # Stage 2: Review
-REVIEWS_DIR = VAULT / "2-review"
+REVIEWS_DIR = VAULT / "1-reasoning-docs-review"
 
-# Stage 3: (removed — artifacts moved to per-ASN project-model directories)
+# Blueprinting
+BLUEPRINTS_DIR = VAULT / "2-blueprints"
+
+# Stage 3: Formalization (per-property working copies)
+FORMALIZATION_DIR = VAULT / "3-formalization"
 
 # Stage 3: Modeling
 ALLOY_DIR = VAULT / "3-modeling" / "alloy"
@@ -114,6 +118,31 @@ def next_review_number(asn_label):
         if m:
             nums.append(int(m.group(1)))
     return max(nums, default=0) + 1
+
+
+def blueprint_properties_dir(asn_label):
+    """Per-ASN blueprint properties directory."""
+    return BLUEPRINTS_DIR / asn_label / "properties"
+
+
+def blueprint_lint_dir(asn_label):
+    """Per-ASN blueprint lint directory."""
+    return BLUEPRINTS_DIR / asn_label / "lint"
+
+
+def blueprint_global_lint_dir():
+    """Global blueprint lint directory (cross-ASN results)."""
+    return BLUEPRINTS_DIR / "lint"
+
+
+def lint_path(asn_label, kind):
+    """Path to a per-ASN lint result file (e.g., status.md, deps.md, inline.md)."""
+    return blueprint_lint_dir(asn_label) / f"{kind}.md"
+
+
+def lint_global_path(kind):
+    """Path to a global lint result file (e.g., deps-global.md)."""
+    return blueprint_global_lint_dir() / f"{kind}.md"
 
 
 def next_modeling_number(asn_label):

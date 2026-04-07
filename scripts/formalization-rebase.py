@@ -22,7 +22,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, REVIEWS_DIR, load_manifest, next_review_number
 from lib.shared.common import find_asn, step_commit_asn
-from lib.formalization.core.asn_normalizer import step_stabilize
+from lib.formalization.core.asn_normalizer import step_refresh_deps
 from lib.formalization.core.build_dependency_graph import generate_deps
 from lib.formalization.rebase.review import run_review
 from lib.formalization.rebase.revise import revise
@@ -123,7 +123,7 @@ def run_rebase(asn_num, max_cycles=5, mode="full_sweep", dry_run=False):
               file=sys.stderr)
 
         # Format gate
-        step_stabilize(asn_num)
+        step_refresh_deps(asn_num)
 
         # Run review
         findings = run_review(asn_num, target_labels)
