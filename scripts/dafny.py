@@ -107,18 +107,6 @@ def main():
     print(f"  [SOURCE] per-property files from {prop_dir.relative_to(WORKSPACE)}",
           file=sys.stderr)
 
-    # Build contracts-only summary (full prose is too large for prompts)
-    extract_parts = []
-    for f in sorted(prop_dir.glob("*.md")):
-        if f.name.startswith("_"):
-            continue
-        content = f.read_text().strip()
-        header = content.split("\n", 1)[0]
-        m = re.search(r'(\*Formal Contract:\*.*)', content, re.DOTALL)
-        contract = m.group(1).strip() if m else ""
-        extract_parts.append(f"{header}\n\n{contract}" if contract else header)
-    extract_text = "\n\n---\n\n".join(extract_parts)
-
     if not index_rows:
         print(f"  No properties found", file=sys.stderr)
         sys.exit(1)
@@ -208,7 +196,7 @@ def main():
         for row in candidates:
             prompt = build_property_prompt(
                 template_text, imports_text, proof_modules_text,
-                row, extract_text)
+                row, "")
             print(f"  [{row['label']}] {row['proof_label']}  "
                   f"({len(prompt) // 1024}KB prompt)", file=sys.stderr)
         return
@@ -272,7 +260,7 @@ def main():
             # Build prompt
             prompt = build_property_prompt(
                 template_text, imports_text, proof_modules_text,
-                row, extract_text, dep_context=dep_context,
+                row, "", dep_context=dep_context,
             )
 
             # Launch agent
