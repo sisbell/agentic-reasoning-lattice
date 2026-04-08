@@ -20,7 +20,7 @@ from collections import defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, REVIEWS_DIR, load_manifest, next_review_number
+from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, load_manifest, next_review_number
 from lib.shared.common import find_asn, step_commit_asn
 from lib.formalization.core.build_dependency_graph import generate_deps
 from lib.formalization.rebase.review import run_review
@@ -113,6 +113,8 @@ def run_rebase(asn_num, max_cycles=5, mode="full_sweep", dry_run=False):
               file=sys.stderr)
         return "converged"
 
+    review_dir = FORMALIZATION_DIR / asn_label / "reviews"
+
     print(f"\n  [REBASE] {asn_label} (depends: {depends})", file=sys.stderr)
 
     start_time = time.time()
@@ -140,9 +142,9 @@ def run_rebase(asn_num, max_cycles=5, mode="full_sweep", dry_run=False):
         had_findings = True
 
         # New review file per cycle
-        (REVIEWS_DIR / asn_label).mkdir(parents=True, exist_ok=True)
-        review_num = next_review_number(asn_label)
-        review_path = REVIEWS_DIR / asn_label / f"review-{review_num}.md"
+        review_dir.mkdir(parents=True, exist_ok=True)
+        review_num = next_review_number(asn_label, reviews_dir=review_dir)
+        review_path = review_dir / f"review-{review_num}.md"
         with open(review_path, "w") as rf:
             rf.write(f"# Dependency Rebase — {asn_label} (cycle {cycle})\n\n")
             rf.write(f"*{time.strftime('%Y-%m-%d %H:%M')}*\n\n")

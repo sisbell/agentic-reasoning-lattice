@@ -104,9 +104,12 @@ def sanitize_filename(label, name):
     return re.sub(r"[^A-Za-z0-9_-]", "", name)
 
 
-def next_review_number(asn_label):
+def next_review_number(asn_label, reviews_dir=None):
     """Find the next review number for this ASN (shared sequence with all reviews)."""
-    asn_dir = REVIEWS_DIR / asn_label
+    if reviews_dir is not None:
+        asn_dir = reviews_dir
+    else:
+        asn_dir = REVIEWS_DIR / asn_label
     if not asn_dir.exists():
         return 1
     existing = sorted(asn_dir.glob("review-*.md"))

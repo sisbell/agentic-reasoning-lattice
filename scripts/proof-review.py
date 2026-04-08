@@ -21,7 +21,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, REVIEWS_DIR, next_review_number
+from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, next_review_number
 from lib.shared.common import find_asn, parallel_llm_calls, step_commit_asn
 from lib.formalization.core.build_dependency_graph import generate_deps
 from lib.formalization.core.topological_sort import topological_sort_labels
@@ -60,6 +60,7 @@ def run_proof_review(asn_num, max_cycles=5, mode="incremental",
 
     print(f"\n  [PROOF REVIEW] {asn_label}", file=sys.stderr)
 
+    review_dir = FORMALIZATION_DIR / asn_label / "reviews"
     prop_dir = FORMALIZATION_DIR / asn_label
     if not prop_dir.exists():
         print(f"  No formalization directory for {asn_label}", file=sys.stderr)
@@ -118,11 +119,14 @@ def run_proof_review(asn_num, max_cycles=5, mode="incremental",
         def _verify_one(label):
             result, finding_text = review_property(
                 asn_num, label, deps_data, sections, foundation_cache)
-            return label, result, finding_text
+            return label, (result, finding_text)
 
         results = parallel_llm_calls(review_labels, _verify_one, max_workers=10)
 
-        for label, result, finding_text in results:
+        for label, result_tuple in results:
+            if result_tuple is None:
+                continue
+            result, finding_text = result_tuple
             if result == "verified":
                 cycle_verified.add(label)
             elif result == "found":
@@ -147,9 +151,9 @@ def run_proof_review(asn_num, max_cycles=5, mode="incremental",
         had_findings = True
 
         # New review file per cycle
-        (REVIEWS_DIR / asn_label).mkdir(parents=True, exist_ok=True)
-        review_num = next_review_number(asn_label)
-        review_path = REVIEWS_DIR / asn_label / f"review-{review_num}.md"
+        review_dir.mkdir(parents=True, exist_ok=True)
+        review_num = next_review_number(asn_label, reviews_dir=review_dir)
+        review_path = review_dir / f"review-{review_num}.md"
         with open(review_path, "w") as rf:
             rf.write(f"# Proof Review — {asn_label} (cycle {cycle})\n\n")
             rf.write(f"*{time.strftime('%Y-%m-%d %H:%M')}*\n\n")
@@ -162,12 +166,7 @@ def run_proof_review(asn_num, max_cycles=5, mode="incremental",
             rf.write(f"{len(cycle_verified)} verified, "
                      f"{len(cycle_findings)} found.\n")
 
-        if dry_run or single_label:
-            break
-
-        if max_cycles == 1:
-            print(f"\n  Single pass — {len(cycle_findings)} findings, no fixes.",
-                  file=sys.stderr)
+        if dry_run:
             break
 
         # Revise each found property

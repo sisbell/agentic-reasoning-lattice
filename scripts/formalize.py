@@ -23,7 +23,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, REVIEWS_DIR, next_review_number
+from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, next_review_number
 from lib.shared.common import find_asn, step_commit_asn
 from lib.formalization.core.build_dependency_graph import generate_deps, write_deps_yaml
 from lib.formalization.core.topological_sort import topological_sort_labels, topological_levels
@@ -32,7 +32,7 @@ from lib.formalization.formalize.produce_contract import (
     _has_formal_contract, _downstream_dependents, _compute_hash,
 )
 from lib.shared.common import parallel_llm_calls
-from lib.formalization.assembly.validate_contracts import validate_contract
+
 
 
 def run_formalize(asn_num, max_cycles=5, mode="incremental",
@@ -57,6 +57,7 @@ def run_formalize(asn_num, max_cycles=5, mode="incremental",
 
     print(f"\n  [FORMALIZE] {asn_label}", file=sys.stderr)
 
+    review_dir = FORMALIZATION_DIR / asn_label / "reviews"
     prop_dir = FORMALIZATION_DIR / asn_label
     if not prop_dir.exists():
         print(f"  No formalization directory for {asn_label}", file=sys.stderr)
@@ -75,44 +76,6 @@ def run_formalize(asn_num, max_cycles=5, mode="incremental",
     total_failed = 0
 
     for cycle in range(1, max_cycles + 1):
-        # Validate axiom contracts (axioms are excluded from produce_contract
-        # but their contracts can still be incomplete)
-        if not dry_run:
-            # Read statuses from _table.md
-            table_path = prop_dir / "_table.md"
-            axiom_labels = []
-            if table_path.exists():
-                for line in table_path.read_text().split("\n"):
-                    if (line.strip().startswith("|")
-                            and not line.strip().startswith("| Label")
-                            and not line.strip().startswith("|---")):
-                        cells = [c.strip() for c in line.split("|")]
-                        if len(cells) >= 2 and cells[1].strip():
-                            label = cells[1].strip().strip("`*")
-                            status = cells[-2].strip().lower() if len(cells) > 2 else ""
-                            if status in ("axiom", "design requirement"):
-                                axiom_labels.append(label)
-
-            if axiom_labels and (single_label is None or single_label in axiom_labels):
-                print(f"  [AXIOM CONTRACTS] {len(axiom_labels)} axioms",
-                      file=sys.stderr)
-                check_labels = [single_label] if single_label else axiom_labels
-                for label in check_labels:
-                    prop_file = prop_dir / (label.replace("(", "").replace(")", "") + ".md")
-                    if not prop_file.exists():
-                        continue
-                    section = prop_file.read_text()
-                    if not section or not _has_formal_contract(section):
-                        continue
-                    match, detail = validate_contract(label, section)
-                    if match:
-                        print(f"    {label}: MATCH", file=sys.stderr)
-                    else:
-                        print(f"    {label}: MISMATCH", file=sys.stderr)
-                        for line in detail.split('\n')[:3]:
-                            if line.strip():
-                                print(f"      {line.strip()}", file=sys.stderr)
-
         # Find properties needing quality
         force = force_rebuild or (single_label is not None)
         needs, current_hashes = find_properties_needing_quality(
@@ -181,14 +144,18 @@ def run_formalize(asn_num, max_cycles=5, mode="incremental",
                 ok, file_changed, response = produce_contract(
                     asn_num, label, item["section"],
                     prop_path=prop_path, max_cycles=1)
-                return label, ok, file_changed, response
+                return label, (ok, file_changed, response)
 
             results = parallel_llm_calls(
                 level_needs, _process_one, max_workers=10)
 
             # Process results
             level_changed = False
-            for label, ok, file_changed, response in results:
+            for label, result_tuple in results:
+                if result_tuple is None:
+                    cycle_failed += 1
+                    continue
+                ok, file_changed, response = result_tuple
                 if ok:
                     cycle_rewritten += 1
                     if file_changed:
@@ -196,9 +163,9 @@ def run_formalize(asn_num, max_cycles=5, mode="incremental",
                         level_changed = True
 
                         # Write review file
-                        (REVIEWS_DIR / asn_label).mkdir(parents=True, exist_ok=True)
-                        review_num = next_review_number(asn_label)
-                        rev_path = REVIEWS_DIR / asn_label / f"review-{review_num}.md"
+                        review_dir.mkdir(parents=True, exist_ok=True)
+                        review_num = next_review_number(asn_label, reviews_dir=review_dir)
+                        rev_path = review_dir / f"review-{review_num}.md"
                         with open(rev_path, "w") as rf:
                             rf.write(f"# Formalize — {asn_label} / {label}\n\n")
                             rf.write(f"*{time.strftime('%Y-%m-%d %H:%M')}*\n\n")
@@ -211,9 +178,9 @@ def run_formalize(asn_num, max_cycles=5, mode="incremental",
                 else:
                     cycle_failed += 1
                     if response and response.startswith("REJECTED:"):
-                        (REVIEWS_DIR / asn_label).mkdir(parents=True, exist_ok=True)
-                        review_num = next_review_number(asn_label)
-                        rev_path = REVIEWS_DIR / asn_label / f"review-{review_num}.md"
+                        review_dir.mkdir(parents=True, exist_ok=True)
+                        review_num = next_review_number(asn_label, reviews_dir=review_dir)
+                        rev_path = review_dir / f"review-{review_num}.md"
                         with open(rev_path, "w") as rf:
                             rf.write(f"# Produce Contract REJECTED — {asn_label} / {label}\n\n")
                             rf.write(f"*{time.strftime('%Y-%m-%d %H:%M')}*\n\n")

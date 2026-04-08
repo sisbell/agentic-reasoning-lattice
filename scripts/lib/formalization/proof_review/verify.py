@@ -18,7 +18,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, USAGE_LOG, REVIEWS_DIR, next_review_number, formal_stmts
+from lib.shared.paths import WORKSPACE, USAGE_LOG, formal_stmts
 from lib.shared.common import find_asn
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization" / "proof-review"
@@ -166,13 +166,5 @@ def review_property(asn_num, label, deps_data, sections, foundation_cache=None):
 
     # FOUND — extract finding text
     print(f" FOUND ({elapsed:.0f}s)", file=sys.stderr)
-
-    # Write review file for audit trail
-    review_dir = REVIEWS_DIR / asn_label
-    review_dir.mkdir(parents=True, exist_ok=True)
-    review_num = next_review_number(asn_label)
-    review_path = review_dir / f"review-{review_num}.md"
-    review_path.write_text(f"# Proof Verification: {label}\n\n{text}\n")
-    print(f"  [WROTE] {review_path.relative_to(WORKSPACE)}", file=sys.stderr)
 
     return "found", text

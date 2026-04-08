@@ -23,7 +23,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, REVIEWS_DIR, next_review_number, load_manifest
+from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, next_review_number, load_manifest
 from lib.shared.common import find_asn, assemble_readonly, step_commit_asn
 from lib.formalization.cross_review.review import run_review, extract_findings
 from lib.formalization.cross_review.revise import revise
@@ -45,6 +45,8 @@ def run_cross_review(asn_num, max_cycles=10, dry_run=False):
         print(f"  {asn_label} has no dependencies — nothing to review",
               file=sys.stderr)
         return "converged"
+
+    review_dir = FORMALIZATION_DIR / asn_label / "reviews"
 
     print(f"\n  [CROSS-REVIEW] {asn_label}", file=sys.stderr)
 
@@ -81,9 +83,9 @@ def run_cross_review(asn_num, max_cycles=10, dry_run=False):
         had_findings = True
 
         # New review file per cycle
-        (REVIEWS_DIR / asn_label).mkdir(parents=True, exist_ok=True)
-        review_num = next_review_number(asn_label)
-        review_path = REVIEWS_DIR / asn_label / f"review-{review_num}.md"
+        review_dir.mkdir(parents=True, exist_ok=True)
+        review_num = next_review_number(asn_label, reviews_dir=review_dir)
+        review_path = review_dir / f"review-{review_num}.md"
         with open(review_path, "w") as rf:
             rf.write(f"# Cross-cutting Review — {asn_label} (cycle {cycle})\n\n")
             rf.write(f"*{time.strftime('%Y-%m-%d %H:%M')}*\n\n")

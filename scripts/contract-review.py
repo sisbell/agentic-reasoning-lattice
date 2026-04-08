@@ -20,7 +20,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, REVIEWS_DIR, next_review_number
+from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, next_review_number
 from lib.shared.common import find_asn, parallel_llm_calls, step_commit_asn
 from lib.formalization.assembly.validate_contracts import validate_contract
 from lib.formalization.formalize.produce_contract import (
@@ -40,6 +40,7 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
 
     print(f"\n  [CONTRACT-REVIEW] {asn_label}", file=sys.stderr)
 
+    review_dir = FORMALIZATION_DIR / asn_label / "reviews"
     prop_dir = FORMALIZATION_DIR / asn_label
     if not prop_dir.exists():
         print(f"  No formalization directory for {asn_label}", file=sys.stderr)
@@ -77,12 +78,15 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
         def _validate_one(item):
             label, content, f = item
             match, detail = validate_contract(label, content)
-            return label, match, detail, f
+            return label, (match, detail, f)
 
         results = parallel_llm_calls(candidates, _validate_one, max_workers=10)
 
         mismatches = []
-        for label, match, detail, f in results:
+        for label, result_tuple in results:
+            if result_tuple is None:
+                continue
+            match, detail, f = result_tuple
             if match:
                 pass  # clean
             else:
@@ -119,12 +123,15 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
             content = prop_path.read_text()
             ok, changed, response = produce_contract(
                 asn_num, label, content, prop_path=prop_path, max_cycles=1)
-            return label, ok, changed
+            return label, (ok, changed)
 
         fix_results = parallel_llm_calls(mismatches, _fix_one, max_workers=10)
 
         any_changed = False
-        for label, ok, changed in fix_results:
+        for label, result_tuple in fix_results:
+            if result_tuple is None:
+                continue
+            ok, changed = result_tuple
             if changed:
                 any_changed = True
 
@@ -132,9 +139,9 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
             step_commit_asn(asn_num, hint="contract-review fixes")
 
         # Write review
-        (REVIEWS_DIR / asn_label).mkdir(parents=True, exist_ok=True)
-        review_num = next_review_number(asn_label)
-        review_path = REVIEWS_DIR / asn_label / f"review-{review_num}.md"
+        review_dir.mkdir(parents=True, exist_ok=True)
+        review_num = next_review_number(asn_label, reviews_dir=review_dir)
+        review_path = review_dir / f"review-{review_num}.md"
         with open(review_path, "w") as rf:
             rf.write(f"# Contract Review — {asn_label} (cycle {cycle})\n\n")
             rf.write(f"*{time.strftime('%Y-%m-%d %H:%M')}*\n\n")

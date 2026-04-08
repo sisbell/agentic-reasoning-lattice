@@ -46,25 +46,25 @@ def run_formalization_review(asn_num, max_cycles=3, dry_run=False):
 
         all_converged = True
 
-        # 1. Proof review
-        result = run_proof_review(asn_num, max_cycles=1, dry_run=dry_run)
+        # 1. Proof review (find → fix → converge)
+        result = run_proof_review(asn_num, max_cycles=5, dry_run=dry_run)
         if result != "converged":
             all_converged = False
 
-        # 2. Contract review
-        result = run_contract_review(asn_num, max_cycles=1, dry_run=dry_run)
+        # 2. Contract review (validate → fix → converge)
+        result = run_contract_review(asn_num, max_cycles=5, dry_run=dry_run)
         if result != "converged":
             all_converged = False
 
-        # 3. Cross-cutting review
-        result = run_cross_review(asn_num, max_cycles=1, dry_run=dry_run)
+        # 3. Cross-cutting review (whole-ASN → fix → converge)
+        result = run_cross_review(asn_num, max_cycles=3, dry_run=dry_run)
         if result != "converged":
             all_converged = False
 
-        # 4. Dependency review
+        # 4. Dependency review (validate refs → fix → converge)
         try:
             from lib.dependency_review.pipeline import run_dependency_review
-            result = run_dependency_review(asn_num, max_cycles=1, dry_run=dry_run)
+            result = run_dependency_review(asn_num, max_cycles=3, dry_run=dry_run)
             if result != "converged":
                 all_converged = False
         except Exception as e:

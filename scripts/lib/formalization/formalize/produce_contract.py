@@ -47,7 +47,7 @@ def _log_usage(step, elapsed, asn_num, label=""):
 
 def _is_definition(section_text):
     """Check if a section is a definition."""
-    return bool(re.match(r'^\*\*Definition\s*\(', section_text.strip()))
+    return bool(re.search(r'^\*\*Definition\s*\(', section_text, re.MULTILINE))
 
 
 def _has_formal_contract(section_text):
@@ -311,10 +311,9 @@ def produce_contract(asn_num, label, section, prop_path=None, max_cycles=3):
         # Parse response — should be the complete rewritten section
         new_section = response_text.strip()
 
-        # Validate it contains the property header
-        if f"**{label}" not in new_section:
-            print(f"  [PRODUCE-CONTRACT] Bad response (no header): {new_section[:200]}",
-                  file=sys.stderr)
+        # Reject tool_call leaks
+        if "<tool_call>" in new_section:
+            print(f"  [PRODUCE-CONTRACT] REJECTED (tool_call leak)", file=sys.stderr)
             continue
 
         # Check if unchanged

@@ -1,7 +1,8 @@
-# Quality Pass
+# Produce Contract
 
 You are rewriting a property's proof to Dijkstra standard and ensuring
-it has a complete formal contract.
+it has a complete formal contract. Everything you need is provided in
+this prompt — do not attempt to read files, search, or use tools.
 
 ## Property
 
