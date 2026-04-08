@@ -31,7 +31,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import (WORKSPACE, FORMALIZATION_DIR, DAFNY_DIR, USAGE_LOG,
                     load_manifest)
-from lib.shared.common import find_asn, assemble_readonly, parallel_llm_calls
+from lib.shared.common import find_asn, parallel_llm_calls
 from lib.formalization.core.build_dependency_graph import generate_deps
 from lib.formalization.core.topological_sort import topological_sort_labels, topological_levels
 from lib.modeling.dafny.translate import (
@@ -107,7 +107,17 @@ def main():
     print(f"  [SOURCE] per-property files from {prop_dir.relative_to(WORKSPACE)}",
           file=sys.stderr)
 
-    extract_text = assemble_readonly(asn_label)
+    # Build contracts-only summary (full prose is too large for prompts)
+    extract_parts = []
+    for f in sorted(prop_dir.glob("*.md")):
+        if f.name.startswith("_"):
+            continue
+        content = f.read_text().strip()
+        header = content.split("\n", 1)[0]
+        m = re.search(r'(\*Formal Contract:\*.*)', content, re.DOTALL)
+        contract = m.group(1).strip() if m else ""
+        extract_parts.append(f"{header}\n\n{contract}" if contract else header)
+    extract_text = "\n\n---\n\n".join(extract_parts)
 
     if not index_rows:
         print(f"  No properties found", file=sys.stderr)
