@@ -25,10 +25,10 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, ALLOY_DIR, formal_stmts
-from lib.shared.common import find_asn, extract_property_sections
+from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, ALLOY_DIR
+from lib.shared.common import find_asn
 from lib.modeling.alloy.translate import (
-    parse_extract, build_property_prompt, generate_one,
+    build_property_prompt, generate_one,
     PROMPTS_DIR, SYNTAX_REF,
 )
 from lib.modeling.alloy.align import align_validate_cycle
@@ -75,14 +75,12 @@ def main():
               file=sys.stderr)
         sys.exit(1)
 
-    # Load extract
+    # Load from per-property files
     asn_num = int(re.search(r'\d+', asn_label).group())
-    extract_path = formal_stmts(asn_num)
-    extract = read_file(extract_path)
-    if not extract:
-        print(f"  No extract found at {extract_path.relative_to(WORKSPACE)}",
-              file=sys.stderr)
-        print(f"  Run: python scripts/normalize.py {args.asn}",
+    prop_dir = FORMALIZATION_DIR / asn_label
+    if not prop_dir.exists():
+        print(f"  No formalization directory for {asn_label}", file=sys.stderr)
+        print(f"  Run: python scripts/promote-blueprint.py {args.asn}",
               file=sys.stderr)
         sys.exit(1)
 
@@ -93,14 +91,49 @@ def main():
               "scripts/prompts/modeling/alloy/syntax-reference.md",
               file=sys.stderr)
 
-    # Per-property mode
-    parsed = parse_extract(extract)
-    properties = parsed["properties"]
-    definitions = parsed["definitions"]
+    # Read per-property files — separate definitions from properties
+    definitions = []
+    properties = []
+    for f in sorted(prop_dir.glob("*.md")):
+        if f.name.startswith("_"):
+            continue
+        content = f.read_text()
+        label = f.name.replace(".md", "")
+        if re.search(r'^\*\*Definition\s', content, re.MULTILINE):
+            definitions.append(content)
+        else:
+            m = re.search(r'^\*\*\S+\s*\(([^)]+)\)', content, re.MULTILINE)
+            name = m.group(1) if m else label
+            properties.append({
+                "label": label,
+                "name": name,
+                "type": "",
+                "construct": "",
+                "body": content,
+            })
+    definitions_text = "\n\n---\n\n".join(definitions)
 
     if not properties:
-        print(f"  No properties found in extract", file=sys.stderr)
+        print(f"  No properties found in {prop_dir.relative_to(WORKSPACE)}",
+              file=sys.stderr)
         sys.exit(1)
+
+    # Build dependency context per property (generate_deps called once)
+    from lib.formalization.core.build_dependency_graph import generate_deps
+    deps_data = generate_deps(asn_num)
+    dep_contexts = {}
+    for prop in properties:
+        label = prop["label"]
+        if deps_data:
+            follows = deps_data.get("properties", {}).get(label, {}).get("follows_from", [])
+            parts = []
+            for dep in follows:
+                dep_file = prop_dir / (dep.replace("(", "").replace(")", "") + ".md")
+                if dep_file.exists():
+                    parts.append(dep_file.read_text().strip())
+            dep_contexts[label] = "\n\n---\n\n".join(parts)
+        else:
+            dep_contexts[label] = ""
 
     # Filter to specific properties if requested
     if args.property:
@@ -109,7 +142,6 @@ def main():
         for target in targets:
             found = [p for p in properties if p["label"] == target]
             if not found:
-                # Try case-insensitive prefix match
                 found = [p for p in properties
                          if p["label"].lower().startswith(target.lower())]
             if not found:
@@ -119,22 +151,6 @@ def main():
                 sys.exit(1)
             matches.extend(found)
         properties = matches
-
-    # Setup contract sections for validation
-    stmts_text = extract
-    _label_map = {}
-    for _line in stmts_text.split("\n"):
-        _m = re.match(r'^##\s+(.+?)\s+\u2014\s+(.+?)(?:\s+\(|$)', _line)
-        if _m:
-            _label = _m.group(1).strip()
-            _name = _m.group(2).strip()
-            _pascal = re.match(r'^([A-Z][a-zA-Z0-9]+)', _name)
-            if _pascal:
-                _label_map[_pascal.group(1)] = _label
-    _all_labels = list(set(_label_map.values()))
-    contract_sections = extract_property_sections(stmts_text,
-                                                   known_labels=_all_labels,
-                                                   truncate=False)
 
     # Contract-only mode: validate existing .als files
     if args.contract_only:
@@ -151,10 +167,10 @@ def main():
         out_dir = existing[-1]
         print(f"  [CONTRACT] {asn_label} ({out_dir.name})", file=sys.stderr)
         for als_file in sorted(out_dir.glob("*.als")):
-            section = contract_sections.get(
-                _label_map.get(als_file.stem, ""), "")
-            if not section:
+            prop_file = prop_dir / (als_file.stem + ".md")
+            if not prop_file.exists():
                 continue
+            section = prop_file.read_text()
             alloy_source = read_file(als_file)
             rec, reason, elapsed = validate(alloy_source, section, als_file.stem)
             print(f"  {als_file.stem}: {rec.upper()} ({elapsed:.0f}s)",
@@ -200,14 +216,15 @@ def main():
     results = []
     for prop in properties:
         result = make_result(prop, out_dir)
-        generate_one(result, prop, definitions, asn_label, args,
-                      syntax_ref=syntax_ref)
+        generate_one(result, prop, definitions_text, asn_label, args,
+                      syntax_ref=syntax_ref,
+                      dep_context=dep_contexts.get(prop["label"], ""))
         if not args.no_cleanup:
             cleanup_property_artifacts(result["als_path"])
 
         # Validate contract — align cycle if FLAG
         if not args.dry_run and result["als_path"].exists():
-            section = contract_sections.get(prop["label"], "")
+            section = prop["body"]
             if section:
                 print(f"    [CONTRACT]", file=sys.stderr, end="", flush=True)
                 contract_result, reason, a_cost = align_validate_cycle(

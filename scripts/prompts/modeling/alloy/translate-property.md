@@ -18,6 +18,12 @@ These are the shared definitions from the ASN that this property may reference.
 
 {{definitions}}
 
+## Dependencies
+
+These are the properties this one depends on (follows_from).
+
+{{dep_context}}
+
 ## Property to check
 
 {{property}}

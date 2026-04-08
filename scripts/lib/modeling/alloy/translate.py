@@ -96,7 +96,7 @@ def parse_extract(text):
     }
 
 
-def build_property_prompt(definitions, prop, syntax_ref=""):
+def build_property_prompt(definitions, prop, syntax_ref="", dep_context=""):
     """Assemble prompt for a single property from per-property template."""
     template = read_file(PROPERTY_TEMPLATE)
     if not template:
@@ -110,12 +110,14 @@ def build_property_prompt(definitions, prop, syntax_ref=""):
     ).replace(
         "{{definitions}}", definitions
     ).replace(
+        "{{dep_context}}", dep_context or "(none)"
+    ).replace(
         "{{property}}", prop["body"]
     )
 
 
 def generate_one(result, prop, definitions, asn_label, args,
-                  syntax_ref=""):
+                  syntax_ref="", dep_context=""):
     """Generate and self-check the .als file for a single property.
 
     The agent writes the model, runs Alloy, and fixes syntax errors
@@ -126,7 +128,8 @@ def generate_one(result, prop, definitions, asn_label, args,
     """
     als_path = result["als_path"]
 
-    prompt = build_property_prompt(definitions, prop, syntax_ref=syntax_ref)
+    prompt = build_property_prompt(definitions, prop, syntax_ref=syntax_ref,
+                                   dep_context=dep_context)
 
     # Append agent self-check instructions
     alloy_jar = os.environ.get("ALLOY_JAR", ALLOY_JAR_DEFAULT)
