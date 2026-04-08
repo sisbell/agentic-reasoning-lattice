@@ -193,7 +193,7 @@ def lint_status(asn_num, dry_run=False):
 # Deps lint (from audit/dependency.py)
 # ---------------------------------------------------------------------------
 
-def _build_label_map():
+def build_label_map():
     """Scan all exports and build maps of labels.
 
     Returns:
@@ -238,7 +238,7 @@ def _build_label_map():
     return label_map, label_sources
 
 
-def _scan_reasoning_doc(asn_path, label_map):
+def scan_reasoning_doc(asn_path, label_map):
     """Scan a reasoning doc for label references."""
     text = asn_path.read_text()
     found = {}
@@ -259,7 +259,7 @@ def _get_active_asns():
     return sorted(active)
 
 
-def _get_dep_chain(asn_num):
+def get_dep_chain(asn_num):
     """Get the full transitive dependency chain for an ASN."""
     visited = set()
 
@@ -297,8 +297,8 @@ def _check_asn(asn_num, label_map):
         return None, None
 
     declared_deps = set(manifest.get("depends", []))
-    dep_chain = _get_dep_chain(asn_num)
-    used_labels = _scan_reasoning_doc(asn_path, label_map)
+    dep_chain = get_dep_chain(asn_num)
+    used_labels = scan_reasoning_doc(asn_path, label_map)
 
     transitive = {}
     uncertain = {}
@@ -484,7 +484,7 @@ def lint_deps(asn_nums=None):
     if not asn_nums:
         asn_nums = _get_active_asns()
 
-    label_map, label_sources = _build_label_map()
+    label_map, label_sources = build_label_map()
     print(f"\n  Label map: {len(label_map)} labels from "
           f"{len(set(label_map.values()))} exports\n")
 

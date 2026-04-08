@@ -19,8 +19,8 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, load_manifest, formal_stmts, dep_graph
-from lib.shared.common import find_asn, extract_property_sections
+from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, load_manifest, formal_stmts, dep_graph
+from lib.shared.common import find_asn
 
 
 # ---------------------------------------------------------------------------
@@ -404,10 +404,18 @@ def generate_deps(asn_num):
         print(f"  [ERROR] ASN-{asn_num:04d} not found", file=sys.stderr)
         return None
 
-    text = asn_path.read_text()
-    table_rows = find_property_table(text)
+    # Read table from formalization directory if available, otherwise from ASN
+    prop_dir = FORMALIZATION_DIR / asn_label
+    table_path = prop_dir / "_table.md" if prop_dir.exists() else None
+
+    if table_path and table_path.exists():
+        table_text = table_path.read_text()
+    else:
+        table_text = asn_path.read_text()
+
+    table_rows = find_property_table(table_text)
     if table_rows is None:
-        print(f"  [ERROR] No property table found in {asn_path.name}", file=sys.stderr)
+        print(f"  [ERROR] No property table found", file=sys.stderr)
         return None
 
     # Parse header
@@ -506,8 +514,17 @@ def generate_deps(asn_num):
         properties[label] = prop
 
     # Enrich with property names and prose citations
-    # Table-driven: pass known labels for anchored section finding
-    sections = extract_property_sections(text, known_labels=list(properties.keys()))
+    # Read per-property files if available, otherwise extract from monolithic ASN
+    if prop_dir and prop_dir.exists():
+        sections = {}
+        for f in prop_dir.glob("*.md"):
+            if not f.name.startswith("_"):
+                label = f.name.replace(".md", "")
+                sections[label] = f.read_text()
+    else:
+        from lib.shared.common import extract_property_sections
+        text = asn_path.read_text()
+        sections = extract_property_sections(text, known_labels=list(properties.keys()))
     foundation_labels = _build_foundation_labels(depends)
     prose_citations = _scan_prose_citations(sections, set(properties.keys()),
                                             foundation_labels)

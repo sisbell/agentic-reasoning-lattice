@@ -21,16 +21,22 @@ PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization" / "cross-revie
 REVISE_TEMPLATE = PROMPTS_DIR / "revise.md"
 
 
-def revise(asn_num, title, finding_text):
+def revise(asn_num, title, finding_text, prop_dir=None):
     """Apply fix for one finding. Returns True if changes made."""
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
         return False
 
+    # Use formalization directory if provided
+    if prop_dir is None:
+        from lib.shared.paths import FORMALIZATION_DIR
+        prop_dir = FORMALIZATION_DIR / asn_label
+
     template = read_file(REVISE_TEMPLATE)
-    rel_path = asn_path.relative_to(WORKSPACE)
+    rel_path = prop_dir.relative_to(WORKSPACE)
 
     # The finding may not have a single label — use the title
+    # Point agent at the formalization directory (contains per-property files)
     prompt = (template
         .replace("{{asn_path}}", str(rel_path))
         .replace("{{label}}", title)

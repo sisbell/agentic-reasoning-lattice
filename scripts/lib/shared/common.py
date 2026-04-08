@@ -180,6 +180,54 @@ def parallel_llm_calls(items, worker_fn, max_workers=10):
     return [results[i] for i in sorted(results.keys())]
 
 
+def assemble_readonly(asn_label):
+    """Concatenate per-property files from vault/3-formalization/ for read-only use.
+
+    Returns assembled text in table order (preamble, table, properties).
+    Used by cross-cutting scripts that need the whole-ASN view.
+    """
+    from lib.shared.paths import FORMALIZATION_DIR
+
+    prop_dir = FORMALIZATION_DIR / asn_label
+    if not prop_dir.exists():
+        return ""
+
+    parts = []
+
+    # Structural files first
+    for name in ["_preamble.md", "_table.md"]:
+        f = prop_dir / name
+        if f.exists():
+            parts.append(f.read_text().strip())
+
+    # Property files in table label order
+    table_path = prop_dir / "_table.md"
+    if table_path.exists():
+        table_text = table_path.read_text()
+        ordered_labels = []
+        for line in table_text.split("\n"):
+            if (line.strip().startswith("|")
+                    and not line.strip().startswith("| Label")
+                    and not line.strip().startswith("|---")):
+                cells = [c.strip() for c in line.split("|")]
+                if len(cells) >= 2 and cells[1].strip():
+                    label = cells[1].strip().strip("`*")
+                    ordered_labels.append(label)
+
+        for label in ordered_labels:
+            filename = label.replace("(", "").replace(")", "") + ".md"
+            f = prop_dir / filename
+            if f.exists():
+                parts.append(f.read_text().strip())
+    else:
+        # No table — read all property files alphabetically
+        for f in sorted(prop_dir.glob("*.md")):
+            if not f.name.startswith("_"):
+                parts.append(f.read_text().strip())
+
+    return "\n\n---\n\n".join(parts)
+
+
 def extract_property_sections(asn_text, known_labels=None, truncate=True):
     """Extract the derivation text for each property.
 

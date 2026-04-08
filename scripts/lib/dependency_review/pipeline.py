@@ -21,11 +21,10 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import (WORKSPACE, REVIEWS_DIR, USAGE_LOG,
+from lib.shared.paths import (WORKSPACE, FORMALIZATION_DIR, REVIEWS_DIR, USAGE_LOG,
                     next_review_number, load_manifest)
-from lib.shared.common import find_asn, read_file, step_commit_asn
+from lib.shared.common import find_asn, read_file, assemble_readonly, step_commit_asn
 from lib.shared.foundation import load_foundation_statements
-from lib.formalization.core.asn_normalizer import step_refresh_deps
 
 DEP_REPORT_TEMPLATE = WORKSPACE / "scripts" / "prompts" / "shared" / "dependency-report.md"
 REVISE_TEMPLATE = WORKSPACE / "scripts" / "prompts" / "rebase" / "revise.md"
@@ -51,10 +50,15 @@ def run_dependency_report(asn_num):
         print(f"  [ERROR] dependency-report.md not found", file=sys.stderr)
         return None
 
+    # Use assembled per-property files if available, otherwise monolithic ASN
+    asn_content = assemble_readonly(asn_label)
+    if not asn_content:
+        asn_content = asn_path.read_text()
+
     depends_str = ", ".join(f"ASN-{d:04d}" for d in depends)
     prompt = (template
               .replace("{{foundation_statements}}", foundation)
-              .replace("{{asn_content}}", asn_path.read_text())
+              .replace("{{asn_content}}", asn_content)
               .replace("{{asn_label}}", asn_label)
               .replace("{{depends}}", depends_str))
 
@@ -98,8 +102,14 @@ def revise_report(asn_num, report_text):
     if asn_path is None:
         return False
 
+    # Point agent at formalization directory if available
+    prop_dir = FORMALIZATION_DIR / asn_label
+    if prop_dir.exists():
+        rel_path = prop_dir.relative_to(WORKSPACE)
+    else:
+        rel_path = asn_path.relative_to(WORKSPACE)
+
     template = read_file(REVISE_TEMPLATE)
-    rel_path = asn_path.relative_to(WORKSPACE)
 
     prompt = (template
         .replace("{{asn_path}}", str(rel_path))
@@ -166,9 +176,6 @@ def run_dependency_review(asn_num, max_cycles=10, dry_run=False):
 
     for cycle in range(1, max_cycles + 1):
         print(f"\n  [CYCLE {cycle}/{max_cycles}]", file=sys.stderr)
-
-        # Format gate
-        step_refresh_deps(asn_num)
 
         # Run dependency report
         report = run_dependency_report(asn_num)

@@ -20,9 +20,8 @@ from collections import defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, REVIEWS_DIR, load_manifest, next_review_number
+from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, REVIEWS_DIR, load_manifest, next_review_number
 from lib.shared.common import find_asn, step_commit_asn
-from lib.formalization.core.asn_normalizer import step_refresh_deps
 from lib.formalization.core.build_dependency_graph import generate_deps
 from lib.formalization.rebase.review import run_review
 from lib.formalization.rebase.revise import revise
@@ -53,11 +52,14 @@ def _downstream_dependents(asn_num, changed_labels):
 
 def _apply_name_fixes(asn_num, findings):
     """Mechanically fix inline name mismatches. Returns set of changed labels."""
-    asn_path, _ = find_asn(str(asn_num))
-    if asn_path is None:
+    _, asn_label = find_asn(str(asn_num))
+    if asn_label is None:
         return set()
 
-    text = asn_path.read_text()
+    prop_dir = FORMALIZATION_DIR / asn_label
+    if not prop_dir.exists():
+        return set()
+
     changed = set()
 
     for f in findings:
@@ -74,12 +76,14 @@ def _apply_name_fixes(asn_num, findings):
         old = f"{up_label} ({wrong_name})"
         new = f"{up_label} ({right_name})"
 
-        if old in text:
-            text = text.replace(old, new)
-            changed.add(f.label)
-
-    if changed:
-        asn_path.write_text(text)
+        # Fix in per-property files
+        for prop_file in prop_dir.glob("*.md"):
+            if prop_file.name.startswith("_"):
+                continue
+            text = prop_file.read_text()
+            if old in text:
+                prop_file.write_text(text.replace(old, new))
+                changed.add(f.label)
 
     return changed
 
@@ -121,9 +125,6 @@ def run_rebase(asn_num, max_cycles=5, mode="full_sweep", dry_run=False):
         label_desc = f"{len(target_labels)} properties (dirty set)" if target_labels else "all properties"
         print(f"\n  [CYCLE {cycle}/{max_cycles}] {label_desc}, {mode}",
               file=sys.stderr)
-
-        # Format gate
-        step_refresh_deps(asn_num)
 
         # Run review
         findings = run_review(asn_num, target_labels)

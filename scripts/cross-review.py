@@ -23,9 +23,8 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, REVIEWS_DIR, next_review_number, load_manifest
-from lib.shared.common import find_asn, step_commit_asn
-from lib.formalization.core.asn_normalizer import step_refresh_deps
+from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, REVIEWS_DIR, next_review_number, load_manifest
+from lib.shared.common import find_asn, assemble_readonly, step_commit_asn
 from lib.formalization.cross_review.review import run_review, extract_findings
 from lib.formalization.cross_review.revise import revise
 
@@ -49,6 +48,13 @@ def run_cross_review(asn_num, max_cycles=10, dry_run=False):
 
     print(f"\n  [CROSS-REVIEW] {asn_label}", file=sys.stderr)
 
+    prop_dir = FORMALIZATION_DIR / asn_label
+    if not prop_dir.exists():
+        print(f"  No formalization directory for {asn_label}", file=sys.stderr)
+        return "failed"
+
+    print(f"  Directory: {prop_dir.relative_to(WORKSPACE)}", file=sys.stderr)
+
     start_time = time.time()
     converged = False
     previous_findings = ""
@@ -57,12 +63,12 @@ def run_cross_review(asn_num, max_cycles=10, dry_run=False):
     for cycle in range(1, max_cycles + 1):
         print(f"\n  [CYCLE {cycle}/{max_cycles}]", file=sys.stderr)
 
-        # Format gate
-        step_refresh_deps(asn_num)
+        # Assemble per-property files for whole-ASN review
+        asn_content = assemble_readonly(asn_label)
 
         # Run review
         findings_text, elapsed = run_review(
-            asn_num, asn_path, asn_label, previous_findings)
+            asn_num, asn_content, asn_label, previous_findings)
 
         if findings_text is None:
             converged = True
@@ -102,7 +108,7 @@ def run_cross_review(asn_num, max_cycles=10, dry_run=False):
         # Revise each finding
         any_changed = False
         for title, finding_text in findings:
-            ok = revise(asn_num, title, finding_text)
+            ok = revise(asn_num, title, finding_text, prop_dir=prop_dir)
             if ok:
                 any_changed = True
 

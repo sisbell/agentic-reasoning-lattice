@@ -16,21 +16,17 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, USAGE_LOG, formal_stmts, asn_dir
-from lib.shared.common import find_asn, extract_property_sections, invoke_claude
+from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, USAGE_LOG, formal_stmts, asn_dir
+from lib.shared.common import find_asn, invoke_claude
 from lib.formalization.core.build_dependency_graph import find_property_table, parse_table_row, detect_columns
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization" / "assembly"
 TRIM_TEMPLATE = PROMPTS_DIR / "produce-interface.md"
 
 
-def _is_definition(label, asn_text):
-    """Check if a label has a **Definition (Label).** header in the prose."""
-    pattern = re.compile(
-        r'^\*\*Definition\s*\(' + re.escape(label) + r'\)',
-        re.MULTILINE
-    )
-    return bool(pattern.search(asn_text))
+def _is_definition(content):
+    """Check if property content starts with a Definition header."""
+    return bool(re.search(r'^\*\*Definition\s*\(', content.strip(), re.MULTILINE))
 
 
 def _log_usage(step, elapsed, asn_num):
@@ -61,10 +57,17 @@ def assemble_formal_statements(asn_num):
         print(f"  [ASSEMBLE] ASN-{asn_num:04d} not found", file=sys.stderr)
         return None
 
-    text = asn_path.read_text()
-    rows = find_property_table(text)
+    # Read from formalization directory if available
+    prop_dir = FORMALIZATION_DIR / asn_label
+    if prop_dir.exists():
+        table_path = prop_dir / "_table.md"
+        table_text = table_path.read_text() if table_path.exists() else ""
+    else:
+        table_text = asn_path.read_text()
+
+    rows = find_property_table(table_text)
     if rows is None:
-        print(f"  [ASSEMBLE] No property table in {asn_path.name}",
+        print(f"  [ASSEMBLE] No property table found",
               file=sys.stderr)
         return None
 
@@ -112,24 +115,35 @@ def assemble_formal_statements(asn_num):
         if not name and re.match(r'^[A-Z][a-z].*[A-Z]', label):
             name = label
 
-        # Check if this is a definition (from prose header)
-        is_def = _is_definition(label, text)
-
         properties.append({
             "label": label,
             "name": name or label,
             "statement": statement,
-            "is_definition": is_def,
         })
         labels.append(label)
 
-    # Extract derivation sections (full text, no truncation)
-    sections = extract_property_sections(text, known_labels=labels, truncate=False)
+    # Read per-property files if available, otherwise extract from monolithic ASN
+    if prop_dir and prop_dir.exists():
+        sections = {}
+        for f in prop_dir.glob("*.md"):
+            if not f.name.startswith("_"):
+                lbl = f.name.replace(".md", "")
+                sections[lbl] = f.read_text()
+    else:
+        from lib.shared.common import extract_property_sections
+        text = asn_path.read_text()
+        sections = extract_property_sections(text, known_labels=labels, truncate=False)
+
+    # Determine definition status from content
+    for prop in properties:
+        content = sections.get(prop["label"], "")
+        prop["is_definition"] = _is_definition(content) if content else False
 
     # Get source metadata
-    date_match = re.search(r"\*.*?(\d{4}-\d{2}-\d{2}).*?\*", text)
+    source_text = asn_path.read_text()
+    date_match = re.search(r"\*.*?(\d{4}-\d{2}-\d{2}).*?\*", source_text)
     all_dates = re.findall(r"\d{4}-\d{2}-\d{2}",
-                           date_match.group(0)) if date_match else []
+                           date_match.group(0) if date_match else "")
     asn_date = all_dates[-1] if all_dates else "unknown"
 
     # Assemble output

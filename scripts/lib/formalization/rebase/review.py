@@ -22,12 +22,12 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, formal_stmts, load_manifest, dep_graph
-from lib.shared.common import find_asn, extract_property_sections, read_file
+from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, formal_stmts, load_manifest, dep_graph
+from lib.shared.common import find_asn, assemble_readonly, read_file
 from lib.shared.foundation import load_foundation_statements
 from lib.formalization.core.build_dependency_graph import generate_deps
 from lib.formalization.core.finding import Finding
-from audit.dependency import build_label_map, scan_reasoning_doc, get_dep_chain
+from lib.blueprinting.lint import build_label_map, scan_reasoning_doc, get_dep_chain
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "rebase"
 REVIEW_TEMPLATE = PROMPTS_DIR / "review.md"
@@ -106,12 +106,15 @@ def extract_claims(asn_num):
         print(f"  [ERROR] No deps YAML for ASN-{asn_num:04d}", file=sys.stderr)
         return []
 
-    asn_path, _ = find_asn(str(asn_num))
+    asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
         print(f"  [ERROR] ASN-{asn_num:04d} not found", file=sys.stderr)
         return []
 
-    asn_text = asn_path.read_text()
+    # Use assembled per-property files if available
+    asn_text = assemble_readonly(asn_label)
+    if not asn_text:
+        asn_text = asn_path.read_text()
     claims = []
 
     # Source 1: deps YAML extends/parallels entries
@@ -562,7 +565,10 @@ def _check_cross_references(asn_num, target_labels=None):
     if not upstream_names:
         return []
 
-    asn_text = asn_path.read_text()
+    # Use assembled per-property files if available
+    asn_text = assemble_readonly(asn_label)
+    if not asn_text:
+        asn_text = asn_path.read_text()
 
     deps_data = generate_deps(asn_num)
     if not deps_data:
@@ -633,8 +639,18 @@ def _check_cross_references(asn_num, target_labels=None):
     # Sub-check (c): LLM semantic check
     template = REVIEW_TEMPLATE.read_text()
     all_labels = list(deps_data.get("properties", {}).keys())
-    local_sections = extract_property_sections(
-        asn_text, known_labels=all_labels, truncate=False)
+
+    # Read per-property files if available
+    prop_dir = FORMALIZATION_DIR / asn_label
+    if prop_dir.exists():
+        local_sections = {}
+        for f in prop_dir.glob("*.md"):
+            if not f.name.startswith("_"):
+                local_sections[f.name.replace(".md", "")] = f.read_text()
+    else:
+        from lib.shared.common import extract_property_sections
+        local_sections = extract_property_sections(
+            asn_text, known_labels=all_labels, truncate=False)
 
     for label, prop_data in deps_data.get("properties", {}).items():
         if target_labels and label not in target_labels:
@@ -764,11 +780,16 @@ def _check_dependency_report(asn_num):
     if not foundation:
         return []
 
+    # Use assembled per-property files if available
+    asn_content = assemble_readonly(asn_label)
+    if not asn_content:
+        asn_content = asn_path.read_text()
+
     template = DEP_REPORT_TEMPLATE.read_text()
     depends_str = ", ".join(f"ASN-{d:04d}" for d in depends)
     prompt = (template
               .replace("{{foundation_statements}}", foundation)
-              .replace("{{asn_content}}", asn_path.read_text())
+              .replace("{{asn_content}}", asn_content)
               .replace("{{asn_label}}", asn_label)
               .replace("{{depends}}", depends_str))
 

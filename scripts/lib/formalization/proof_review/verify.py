@@ -19,7 +19,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, USAGE_LOG, REVIEWS_DIR, next_review_number, formal_stmts
-from lib.shared.common import find_asn, extract_property_sections
+from lib.shared.common import find_asn
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization" / "proof-review"
 VERIFY_TEMPLATE = PROMPTS_DIR / "verify.md"

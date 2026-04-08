@@ -16,8 +16,8 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, USAGE_LOG, formal_stmts
-from lib.shared.common import find_asn, extract_property_sections, invoke_claude
+from lib.shared.paths import WORKSPACE, USAGE_LOG, FORMALIZATION_DIR, formal_stmts
+from lib.shared.common import find_asn, invoke_claude
 from lib.formalization.core.build_dependency_graph import (find_property_table, parse_table_row,
                               detect_columns, generate_deps)
 
@@ -101,6 +101,8 @@ def _find_dirty(current_hashes, stored_hashes, deps_data):
 def find_properties_needing_quality(asn_num, force_all=True, force_rebuild=False):
     """Find properties that need a quality pass.
 
+    Reads per-property files from vault/3-formalization/ASN-NNNN/.
+
     If force_rebuild=True, returns ALL (ignores hashes).
     If force_all=True, uses hash-based dirty detection.
     If force_all=False, returns only those missing formal contracts.
@@ -109,34 +111,43 @@ def find_properties_needing_quality(asn_num, force_all=True, force_rebuild=False
     if asn_path is None:
         return [], {}
 
-    text = asn_path.read_text()
-    rows = find_property_table(text)
-    if rows is None:
+    prop_dir = FORMALIZATION_DIR / asn_label
+    if not prop_dir.exists():
+        print(f"  No formalization directory for {asn_label}", file=sys.stderr)
         return [], {}
 
-    labels = []
+    # Read statuses from _table.md
+    table_path = prop_dir / "_table.md"
     statuses = {}
-    for row in rows[2:]:
-        cells = parse_table_row(row)
-        if cells and cells[0].strip():
-            label = cells[0].strip().strip("`*")
-            labels.append(label)
-            statuses[label] = cells[-1].strip().lower()
+    if table_path.exists():
+        for line in table_path.read_text().split("\n"):
+            if (line.strip().startswith("|")
+                    and not line.strip().startswith("| Label")
+                    and not line.strip().startswith("|---")):
+                cells = [c.strip() for c in line.split("|")]
+                if len(cells) >= 2 and cells[1].strip():
+                    label = cells[1].strip().strip("`*")
+                    status = cells[-2].strip().lower() if len(cells) > 2 else ""
+                    statuses[label] = status
 
-    sections = extract_property_sections(text, known_labels=labels,
-                                          truncate=False)
+    # Read per-property files
+    prop_files = sorted(
+        f for f in prop_dir.glob("*.md")
+        if not f.name.startswith("_")
+    )
 
     # Build candidate list (exclude definitions, axioms)
     candidates = []
-    for label in labels:
-        section = sections.get(label, "")
-        if not section:
+    for f in prop_files:
+        content = f.read_text()
+        if not content.strip():
             continue
-        if _is_definition(section):
+        label = f.name.replace(".md", "")
+        if _is_definition(content):
             continue
         if statuses.get(label, "") in ("axiom", "design requirement"):
             continue
-        candidates.append({"label": label, "section": section})
+        candidates.append({"label": label, "section": content, "path": f})
 
     if not force_all:
         return [c for c in candidates if not _has_formal_contract(c["section"])], {}
@@ -213,7 +224,7 @@ def _review_rewrite(pre_section, post_section, label):
 
 
 def _build_dep_context(asn_num, label):
-    """Build dependency context for a property — same-ASN sections + foundation excerpts."""
+    """Build dependency context for a property — same-ASN files + foundation excerpts."""
     deps_data = generate_deps(asn_num)
     if not deps_data:
         return "(none)"
@@ -222,18 +233,15 @@ def _build_dep_context(asn_num, label):
     follows_from = prop_data.get("follows_from", [])
     all_labels = set(deps_data.get("properties", {}).keys())
 
-    asn_path, _ = find_asn(str(asn_num))
-    if asn_path is None:
-        return "(none)"
-
-    text = asn_path.read_text()
-    sections = extract_property_sections(text, known_labels=list(all_labels),
-                                          truncate=False)
+    _, asn_label = find_asn(str(asn_num))
+    prop_dir = FORMALIZATION_DIR / asn_label
 
     dep_parts = []
     for dep_label in follows_from:
-        if dep_label in all_labels and dep_label in sections:
-            dep_parts.append(f"### {dep_label}\n\n{sections[dep_label]}")
+        if dep_label in all_labels:
+            dep_file = prop_dir / (dep_label.replace("(", "").replace(")", "") + ".md")
+            if dep_file.exists():
+                dep_parts.append(f"### {dep_label}\n\n{dep_file.read_text().strip()}")
 
     # Foundation deps
     depends = deps_data.get("depends", [])
@@ -259,16 +267,15 @@ def _build_dep_context(asn_num, label):
     return "\n\n".join(dep_parts) if dep_parts else "(none)"
 
 
-def quality_rewrite(asn_num, label, section, max_cycles=3):
+def quality_rewrite(asn_num, label, section, prop_path=None, max_cycles=3):
     """Rewrite one property to Dijkstra standard.
 
-    Print-mode only — no file access. Model receives the section +
-    dependency context, returns the rewritten section. Caller splices
-    it back into the ASN.
+    Print-mode only — model receives the section + dependency context,
+    returns the rewritten section. Writes directly to the property file.
 
     Returns (ok, changed, response_text):
         ok: bool — whether the property now has a formal contract
-        changed: bool — whether the ASN file was actually modified
+        changed: bool — whether the property file was actually modified
         response_text: str — LLM response for the review file
     """
     asn_path, asn_label = find_asn(str(asn_num))
@@ -277,7 +284,7 @@ def quality_rewrite(asn_num, label, section, max_cycles=3):
 
     template = QUALITY_TEMPLATE.read_text()
 
-    # Build dependency context (same-ASN sections + foundation excerpts)
+    # Build dependency context (same-ASN files + foundation excerpts)
     dep_text = _build_dep_context(asn_num, label)
 
     prompt = (template
@@ -285,7 +292,7 @@ def quality_rewrite(asn_num, label, section, max_cycles=3):
               .replace("{{section}}", section)
               .replace("{{dependency_sections}}", dep_text))
 
-    pre_content = asn_path.read_text()
+    pre_content = section
 
     for cycle in range(1, max_cycles + 1):
         print(f"  [PRODUCE-CONTRACT] {label} (cycle {cycle}, "
@@ -310,16 +317,10 @@ def quality_rewrite(asn_num, label, section, max_cycles=3):
                   file=sys.stderr)
             continue
 
-        # Splice back into ASN
-        text = asn_path.read_text()
-        new_text = text.replace(section, new_section)
-        if new_text == text:
-            # Section unchanged or splice failed
-            if section == new_section:
-                print(f"  [PRODUCE-CONTRACT] {label} — no changes", file=sys.stderr)
-                return True, False, response_text
-            print(f"  [PRODUCE-CONTRACT] Splice failed, retrying...", file=sys.stderr)
-            continue
+        # Check if unchanged
+        if new_section == section.strip():
+            print(f"  [PRODUCE-CONTRACT] {label} — no changes", file=sys.stderr)
+            return True, False, response_text
 
         # Review gate
         review_ok, review_detail = _review_rewrite(
@@ -329,13 +330,15 @@ def quality_rewrite(asn_num, label, section, max_cycles=3):
                   file=sys.stderr)
             return False, False, f"REJECTED: {review_detail}"
 
-        asn_path.write_text(new_text)
+        # Write directly to property file
+        if prop_path:
+            prop_path.write_text(new_section + "\n")
         print(f"  [PRODUCE-CONTRACT] Done ({elapsed:.0f}s)", file=sys.stderr)
 
         if _has_formal_contract(new_section):
             # Validate contract — report result, outer cycle handles retries
             match, detail = validate_contract(label, new_section)
-            file_changed = asn_path.read_text() != pre_content
+            file_changed = new_section.strip() != pre_content.strip()
             if match:
                 print(f"  [CONTRACT] {label} — MATCH", file=sys.stderr)
             else:

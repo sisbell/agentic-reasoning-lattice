@@ -20,12 +20,8 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, REVIEWS_DIR, next_review_number
-from lib.shared.common import (find_asn, extract_property_sections,
-                                step_commit_asn)
-from lib.formalization.core.asn_normalizer import step_refresh_deps
-from lib.formalization.core.build_dependency_graph import (
-    find_property_table, parse_table_row)
+from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, REVIEWS_DIR, next_review_number
+from lib.shared.common import find_asn, step_commit_asn
 from lib.formalization.assembly.validate_contracts import validate_contract
 from lib.formalization.formalize.produce_contract import (
     _has_formal_contract, quality_rewrite)
@@ -44,47 +40,43 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
 
     print(f"\n  [CONTRACT-REVIEW] {asn_label}", file=sys.stderr)
 
+    prop_dir = FORMALIZATION_DIR / asn_label
+    if not prop_dir.exists():
+        print(f"  No formalization directory for {asn_label}", file=sys.stderr)
+        return "failed"
+
+    print(f"  Directory: {prop_dir.relative_to(WORKSPACE)}", file=sys.stderr)
+
     start_time = time.time()
     converged = False
     had_findings = False
 
     for cycle in range(1, max_cycles + 1):
-        # Format gate
-        step_refresh_deps(asn_num)
-
-        # Get all property sections
-        text = asn_path.read_text()
-        rows = find_property_table(text)
-        if rows is None:
-            print(f"  No property table found", file=sys.stderr)
-            return "failed"
-
-        labels = []
-        for row in rows[2:]:
-            cells = parse_table_row(row)
-            if cells and cells[0].strip():
-                labels.append(cells[0].strip().strip("`*"))
+        # Read per-property files
+        prop_files = sorted(
+            f for f in prop_dir.glob("*.md")
+            if not f.name.startswith("_")
+        )
 
         if single_label:
-            labels = [l for l in labels if l == single_label]
-
-        sections = extract_property_sections(
-            text, known_labels=labels, truncate=False)
+            prop_files = [f for f in prop_files
+                          if f.name.replace(".md", "") == single_label]
 
         # Validate each property
         mismatches = []
         checked = 0
 
-        print(f"\n  [CYCLE {cycle}/{max_cycles}] {len(labels)} properties",
+        print(f"\n  [CYCLE {cycle}/{max_cycles}] {len(prop_files)} properties",
               file=sys.stderr)
 
-        for label in labels:
-            section = sections.get(label, "")
-            if not section or not _has_formal_contract(section):
+        for f in prop_files:
+            label = f.name.replace(".md", "")
+            content = f.read_text()
+            if not content or not _has_formal_contract(content):
                 continue
             checked += 1
 
-            match, detail = validate_contract(label, section)
+            match, detail = validate_contract(label, content)
             if match:
                 print(f"    {label}: MATCH", file=sys.stderr)
             else:
@@ -92,7 +84,7 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
                 for line in detail.split('\n')[:3]:
                     if line.strip():
                         print(f"      {line.strip()}", file=sys.stderr)
-                mismatches.append((label, detail))
+                mismatches.append((label, detail, f))
 
         print(f"\n  {checked} checked, {len(mismatches)} mismatches",
               file=sys.stderr)
@@ -113,12 +105,12 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
             break
 
         # Fix mismatches via produce-contract (opus, full context)
-        for label, detail in mismatches:
-            section = sections.get(label, "")
+        for label, detail, prop_path in mismatches:
+            content = prop_path.read_text()
             print(f"  [FIX] {label} — re-running produce-contract...",
                   file=sys.stderr)
             ok, changed, response = quality_rewrite(
-                asn_num, label, section, max_cycles=1)
+                asn_num, label, content, prop_path=prop_path, max_cycles=1)
             if changed:
                 step_commit_asn(asn_num,
                                 hint=f"{label} contract fix")
@@ -130,7 +122,7 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
         with open(review_path, "w") as rf:
             rf.write(f"# Contract Review — {asn_label} (cycle {cycle})\n\n")
             rf.write(f"*{time.strftime('%Y-%m-%d %H:%M')}*\n\n")
-            for label, detail in mismatches:
+            for label, detail, _ in mismatches:
                 rf.write(f"### {label}\n\n{detail}\n\n")
             rf.write(f"{len(mismatches)} mismatches.\n")
 

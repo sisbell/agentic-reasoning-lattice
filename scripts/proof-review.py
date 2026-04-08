@@ -21,9 +21,8 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, REVIEWS_DIR, next_review_number
-from lib.shared.common import find_asn, extract_property_sections, step_commit_asn
-from lib.formalization.core.asn_normalizer import step_refresh_deps
+from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, REVIEWS_DIR, next_review_number
+from lib.shared.common import find_asn, step_commit_asn
 from lib.formalization.core.build_dependency_graph import generate_deps
 from lib.formalization.core.topological_sort import topological_sort_labels
 from lib.formalization.proof_review.verify import review_property
@@ -61,6 +60,13 @@ def run_proof_review(asn_num, max_cycles=5, mode="incremental",
 
     print(f"\n  [PROOF REVIEW] {asn_label}", file=sys.stderr)
 
+    prop_dir = FORMALIZATION_DIR / asn_label
+    if not prop_dir.exists():
+        print(f"  No formalization directory for {asn_label}", file=sys.stderr)
+        return "failed"
+
+    print(f"  Directory: {prop_dir.relative_to(WORKSPACE)}", file=sys.stderr)
+
     start_time = time.time()
     all_findings = {}   # label → finding_text (latest)
     all_verified = set()
@@ -68,19 +74,18 @@ def run_proof_review(asn_num, max_cycles=5, mode="incremental",
     had_findings = False
 
     for cycle in range(1, max_cycles + 1):
-        # Format gate
-        step_refresh_deps(asn_num)
-
-        # Generate fresh deps and sections
+        # Generate fresh deps
         deps_data = generate_deps(asn_num)
         if deps_data is None:
             print(f"  No dependency data — cannot review", file=sys.stderr)
             return "failed"
 
-        text = asn_path.read_text()
-        labels = list(deps_data.get("properties", {}).keys())
-        sections = extract_property_sections(text, known_labels=labels,
-                                              truncate=False)
+        # Read per-property files
+        sections = {}
+        for f in prop_dir.glob("*.md"):
+            if not f.name.startswith("_"):
+                label = f.name.replace(".md", "")
+                sections[label] = f.read_text()
         ordered = topological_sort_labels(deps_data)
 
         # Determine which properties to review
@@ -156,7 +161,8 @@ def run_proof_review(asn_num, max_cycles=5, mode="incremental",
         # Revise each found property
         changed = set()
         for label, finding_text in cycle_findings.items():
-            ok = revise(asn_num, label, finding_text)
+            prop_path = prop_dir / (label.replace("(", "").replace(")", "") + ".md")
+            ok = revise(asn_num, label, finding_text, prop_path=prop_path)
             if ok:
                 changed.add(label)
 

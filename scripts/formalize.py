@@ -23,9 +23,8 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, REVIEWS_DIR, next_review_number
-from lib.shared.common import find_asn, extract_property_sections, step_commit_asn
-from lib.formalization.core.asn_normalizer import step_refresh_deps
+from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, REVIEWS_DIR, next_review_number
+from lib.shared.common import find_asn, step_commit_asn
 from lib.formalization.core.build_dependency_graph import generate_deps, write_deps_yaml
 from lib.formalization.core.topological_sort import topological_sort_labels
 from lib.formalization.formalize.produce_contract import (
@@ -57,6 +56,15 @@ def run_formalize(asn_num, max_cycles=5, mode="incremental",
 
     print(f"\n  [FORMALIZE] {asn_label}", file=sys.stderr)
 
+    prop_dir = FORMALIZATION_DIR / asn_label
+    if not prop_dir.exists():
+        print(f"  No formalization directory for {asn_label}", file=sys.stderr)
+        print(f"  Run: python scripts/promote-blueprint.py {asn_num}",
+              file=sys.stderr)
+        return "failed"
+
+    print(f"  Directory: {prop_dir.relative_to(WORKSPACE)}", file=sys.stderr)
+
     start_time = time.time()
     converged = False
     dirty_set = None  # None = all properties on first pass
@@ -66,45 +74,43 @@ def run_formalize(asn_num, max_cycles=5, mode="incremental",
     total_failed = 0
 
     for cycle in range(1, max_cycles + 1):
-        # Format gate
-        step_refresh_deps(asn_num)
-
         # Validate axiom contracts (axioms are excluded from quality_rewrite
         # but their contracts can still be incomplete)
         if not dry_run:
-            from lib.formalization.core.build_dependency_graph import find_property_table, parse_table_row
-            text = asn_path.read_text()
-            rows = find_property_table(text)
-            if rows:
-                all_labels = []
-                axiom_labels = []
-                for row in rows[2:]:
-                    cells = parse_table_row(row)
-                    if cells and cells[0].strip():
-                        label = cells[0].strip().strip("`*")
-                        all_labels.append(label)
-                        status = cells[-1].strip().lower()
-                        if status in ("axiom", "design requirement"):
-                            axiom_labels.append(label)
+            # Read statuses from _table.md
+            table_path = prop_dir / "_table.md"
+            axiom_labels = []
+            if table_path.exists():
+                for line in table_path.read_text().split("\n"):
+                    if (line.strip().startswith("|")
+                            and not line.strip().startswith("| Label")
+                            and not line.strip().startswith("|---")):
+                        cells = [c.strip() for c in line.split("|")]
+                        if len(cells) >= 2 and cells[1].strip():
+                            label = cells[1].strip().strip("`*")
+                            status = cells[-2].strip().lower() if len(cells) > 2 else ""
+                            if status in ("axiom", "design requirement"):
+                                axiom_labels.append(label)
 
-                if axiom_labels and (single_label is None or single_label in axiom_labels):
-                    print(f"  [AXIOM CONTRACTS] {len(axiom_labels)} axioms",
-                          file=sys.stderr)
-                    sections = extract_property_sections(
-                        text, known_labels=all_labels, truncate=False)
-                    check_labels = [single_label] if single_label else axiom_labels
-                    for label in check_labels:
-                        section = sections.get(label, "")
-                        if not section or not _has_formal_contract(section):
-                            continue
-                        match, detail = validate_contract(label, section)
-                        if match:
-                            print(f"    {label}: MATCH", file=sys.stderr)
-                        else:
-                            print(f"    {label}: MISMATCH", file=sys.stderr)
-                            for line in detail.split('\n')[:3]:
-                                if line.strip():
-                                    print(f"      {line.strip()}", file=sys.stderr)
+            if axiom_labels and (single_label is None or single_label in axiom_labels):
+                print(f"  [AXIOM CONTRACTS] {len(axiom_labels)} axioms",
+                      file=sys.stderr)
+                check_labels = [single_label] if single_label else axiom_labels
+                for label in check_labels:
+                    prop_file = prop_dir / (label.replace("(", "").replace(")", "") + ".md")
+                    if not prop_file.exists():
+                        continue
+                    section = prop_file.read_text()
+                    if not section or not _has_formal_contract(section):
+                        continue
+                    match, detail = validate_contract(label, section)
+                    if match:
+                        print(f"    {label}: MATCH", file=sys.stderr)
+                    else:
+                        print(f"    {label}: MISMATCH", file=sys.stderr)
+                        for line in detail.split('\n')[:3]:
+                            if line.strip():
+                                print(f"      {line.strip()}", file=sys.stderr)
 
         # Find properties needing quality
         force = force_rebuild or (single_label is not None)
@@ -158,8 +164,10 @@ def run_formalize(asn_num, max_cycles=5, mode="incremental",
 
         for label in ordered_needs:
             item = needs_map[label]
+            prop_path = item.get("path") or prop_dir / (label.replace("(", "").replace(")", "") + ".md")
             ok, file_changed, response = quality_rewrite(
-                asn_num, label, item["section"], max_cycles=1)
+                asn_num, label, item["section"],
+                prop_path=prop_path, max_cycles=1)
 
             if ok:
                 cycle_rewritten += 1
@@ -178,17 +186,14 @@ def run_formalize(asn_num, max_cycles=5, mode="incremental",
                     # Commit this change
                     step_commit_asn(asn_num, hint=f"{label} quality rewrite")
 
-                # Re-read sections for subsequent properties
-                text = asn_path.read_text()
-                all_labels = list(deps_data.get("properties", {}).keys()) if deps_data else []
-                sections = extract_property_sections(
-                    text, known_labels=all_labels, truncate=False)
+                # Re-read property files for subsequent properties
                 for l in needs_labels:
-                    if l in sections:
-                        needs_map[l]["section"] = sections[l]
+                    l_path = prop_dir / (l.replace("(", "").replace(")", "") + ".md")
+                    if l_path.exists():
+                        needs_map[l]["section"] = l_path.read_text()
 
                 # Update hash incrementally (survives kill)
-                updated_section = sections.get(label, item["section"])
+                updated_section = needs_map.get(label, {}).get("section", item["section"])
                 if deps_data and label in deps_data.get("properties", {}):
                     deps_data["properties"][label]["hash"] = _compute_hash(updated_section)
                     write_deps_yaml(asn_num, deps_data)
