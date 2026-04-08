@@ -125,7 +125,11 @@ def main():
         label = f.name.replace(".md", "")
         source_hashes[label] = _hash_content(content)
         if re.search(r'^\*\*Definition\s', content, re.MULTILINE):
-            definitions.append(content)
+            # Header + formal contract only (skip derivation prose)
+            header = content.split("\n", 1)[0]
+            m = re.search(r'(\*Formal Contract:\*.*)', content, re.DOTALL)
+            contract = m.group(1).strip() if m else ""
+            definitions.append(f"{header}\n\n{contract}" if contract else header)
         else:
             m = re.search(r'^\*\*\S+\s*\(([^)]+)\)', content, re.MULTILINE)
             name = m.group(1) if m else label
@@ -142,7 +146,7 @@ def main():
         print(f"  No properties found", file=sys.stderr)
         sys.exit(1)
 
-    # Build dependency context (generate_deps called once)
+    # Build dependency context (contracts only — full prose is too large)
     from lib.formalization.core.build_dependency_graph import generate_deps
     deps_data = generate_deps(asn_num)
     dep_contexts = {}
@@ -154,7 +158,12 @@ def main():
             for dep in follows:
                 dep_file = prop_dir / (dep.replace("(", "").replace(")", "") + ".md")
                 if dep_file.exists():
-                    parts.append(dep_file.read_text().strip())
+                    content = dep_file.read_text().strip()
+                    # Extract header + formal contract only
+                    header = content.split("\n", 1)[0]
+                    m = re.search(r'(\*Formal Contract:\*.*)', content, re.DOTALL)
+                    contract = m.group(1).strip() if m else ""
+                    parts.append(f"{header}\n\n{contract}" if contract else header)
             dep_contexts[label] = "\n\n---\n\n".join(parts)
         else:
             dep_contexts[label] = ""
