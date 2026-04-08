@@ -23,7 +23,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, next_review_number, load_manifest
+from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, next_review_number
 from lib.shared.common import find_asn, assemble_readonly, step_commit_asn
 from lib.formalization.cross_review.review import run_review, extract_findings
 from lib.formalization.cross_review.revise import revise
@@ -38,13 +38,6 @@ def run_cross_review(asn_num, max_cycles=10, dry_run=False):
     if asn_path is None:
         print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
         return "failed"
-
-    manifest = load_manifest(asn_num)
-    depends = manifest.get("depends", []) if manifest else []
-    if not depends:
-        print(f"  {asn_label} has no dependencies — nothing to review",
-              file=sys.stderr)
-        return "converged"
 
     review_dir = FORMALIZATION_DIR / asn_label / "reviews"
 
