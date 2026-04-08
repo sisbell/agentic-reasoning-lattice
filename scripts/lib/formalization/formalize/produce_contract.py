@@ -267,7 +267,7 @@ def _build_dep_context(asn_num, label):
     return "\n\n".join(dep_parts) if dep_parts else "(none)"
 
 
-def quality_rewrite(asn_num, label, section, prop_path=None, max_cycles=3):
+def produce_contract(asn_num, label, section, prop_path=None, max_cycles=3):
     """Rewrite one property to Dijkstra standard.
 
     Print-mode only — model receives the section + dependency context,

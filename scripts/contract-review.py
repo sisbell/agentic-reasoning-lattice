@@ -21,10 +21,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, REVIEWS_DIR, next_review_number
-from lib.shared.common import find_asn, step_commit_asn
+from lib.shared.common import find_asn, parallel_llm_calls, step_commit_asn
 from lib.formalization.assembly.validate_contracts import validate_contract
 from lib.formalization.formalize.produce_contract import (
-    _has_formal_contract, quality_rewrite)
+    _has_formal_contract, produce_contract)
 
 
 def run_contract_review(asn_num, max_cycles=5, dry_run=False,
@@ -62,23 +62,29 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
             prop_files = [f for f in prop_files
                           if f.name.replace(".md", "") == single_label]
 
-        # Validate each property
-        mismatches = []
-        checked = 0
-
-        print(f"\n  [CYCLE {cycle}/{max_cycles}] {len(prop_files)} properties",
-              file=sys.stderr)
-
+        # Filter to properties with formal contracts
+        candidates = []
         for f in prop_files:
             label = f.name.replace(".md", "")
             content = f.read_text()
-            if not content or not _has_formal_contract(content):
-                continue
-            checked += 1
+            if content and _has_formal_contract(content):
+                candidates.append((label, content, f))
 
+        print(f"\n  [CYCLE {cycle}/{max_cycles}] {len(candidates)} properties with contracts",
+              file=sys.stderr)
+
+        # Validate all in parallel (read-only sonnet calls)
+        def _validate_one(item):
+            label, content, f = item
             match, detail = validate_contract(label, content)
+            return label, match, detail, f
+
+        results = parallel_llm_calls(candidates, _validate_one, max_workers=10)
+
+        mismatches = []
+        for label, match, detail, f in results:
             if match:
-                print(f"    {label}: MATCH", file=sys.stderr)
+                pass  # clean
             else:
                 print(f"    {label}: MISMATCH", file=sys.stderr)
                 for line in detail.split('\n')[:3]:
@@ -86,7 +92,7 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
                         print(f"      {line.strip()}", file=sys.stderr)
                 mismatches.append((label, detail, f))
 
-        print(f"\n  {checked} checked, {len(mismatches)} mismatches",
+        print(f"\n  {len(candidates)} checked, {len(mismatches)} mismatches",
               file=sys.stderr)
 
         if not mismatches:
@@ -104,16 +110,26 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
                   file=sys.stderr)
             break
 
-        # Fix mismatches via produce-contract (opus, full context)
-        for label, detail, prop_path in mismatches:
+        # Fix mismatches via produce-contract in parallel (opus, full context)
+        print(f"\n  [FIX] {len(mismatches)} mismatches — produce-contract...",
+              file=sys.stderr)
+
+        def _fix_one(item):
+            label, detail, prop_path = item
             content = prop_path.read_text()
-            print(f"  [FIX] {label} — re-running produce-contract...",
-                  file=sys.stderr)
-            ok, changed, response = quality_rewrite(
+            ok, changed, response = produce_contract(
                 asn_num, label, content, prop_path=prop_path, max_cycles=1)
+            return label, ok, changed
+
+        fix_results = parallel_llm_calls(mismatches, _fix_one, max_workers=10)
+
+        any_changed = False
+        for label, ok, changed in fix_results:
             if changed:
-                step_commit_asn(asn_num,
-                                hint=f"{label} contract fix")
+                any_changed = True
+
+        if any_changed:
+            step_commit_asn(asn_num, hint="contract-review fixes")
 
         # Write review
         (REVIEWS_DIR / asn_label).mkdir(parents=True, exist_ok=True)

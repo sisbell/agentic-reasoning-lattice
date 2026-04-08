@@ -26,11 +26,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, REVIEWS_DIR, next_review_number
 from lib.shared.common import find_asn, step_commit_asn
 from lib.formalization.core.build_dependency_graph import generate_deps, write_deps_yaml
-from lib.formalization.core.topological_sort import topological_sort_labels
+from lib.formalization.core.topological_sort import topological_sort_labels, topological_levels
 from lib.formalization.formalize.produce_contract import (
-    find_properties_needing_quality, quality_rewrite,
+    find_properties_needing_quality, produce_contract,
     _has_formal_contract, _downstream_dependents, _compute_hash,
 )
+from lib.shared.common import parallel_llm_calls
 from lib.formalization.assembly.validate_contracts import validate_contract
 
 
@@ -74,7 +75,7 @@ def run_formalize(asn_num, max_cycles=5, mode="incremental",
     total_failed = 0
 
     for cycle in range(1, max_cycles + 1):
-        # Validate axiom contracts (axioms are excluded from quality_rewrite
+        # Validate axiom contracts (axioms are excluded from produce_contract
         # but their contracts can still be incomplete)
         if not dry_run:
             # Read statuses from _table.md
@@ -157,61 +158,83 @@ def run_formalize(asn_num, max_cycles=5, mode="incremental",
                 print(f"    {label:30s} {status}", file=sys.stderr)
             break
 
-        # Rewrite each property (single attempt — convergence loop handles retries)
+        # Rewrite properties in parallel by dependency level
         cycle_rewritten = 0
         cycle_failed = 0
         changed = set()
+        rejected = False
 
-        for label in ordered_needs:
-            item = needs_map[label]
-            prop_path = item.get("path") or prop_dir / (label.replace("(", "").replace(")", "") + ".md")
-            ok, file_changed, response = quality_rewrite(
-                asn_num, label, item["section"],
-                prop_path=prop_path, max_cycles=1)
+        levels = topological_levels(deps_data)
 
-            if ok:
-                cycle_rewritten += 1
-                if file_changed:
-                    changed.add(label)
+        for level_idx, level_labels in enumerate(levels):
+            level_needs = [l for l in level_labels if l in needs_labels]
+            if not level_needs:
+                continue
 
-                    # Write review file for this change
-                    (REVIEWS_DIR / asn_label).mkdir(parents=True, exist_ok=True)
-                    review_num = next_review_number(asn_label)
-                    rev_path = REVIEWS_DIR / asn_label / f"review-{review_num}.md"
-                    with open(rev_path, "w") as rf:
-                        rf.write(f"# Formalize — {asn_label} / {label}\n\n")
-                        rf.write(f"*{time.strftime('%Y-%m-%d %H:%M')}*\n\n")
-                        rf.write(response + "\n")
+            print(f"\n  [LEVEL {level_idx}] {len(level_needs)} properties",
+                  file=sys.stderr)
 
-                    # Commit this change
-                    step_commit_asn(asn_num, hint=f"{label} quality rewrite")
+            def _process_one(label):
+                item = needs_map[label]
+                prop_path = item.get("path") or prop_dir / (
+                    label.replace("(", "").replace(")", "") + ".md")
+                ok, file_changed, response = produce_contract(
+                    asn_num, label, item["section"],
+                    prop_path=prop_path, max_cycles=1)
+                return label, ok, file_changed, response
 
-                # Re-read property files for subsequent properties
+            results = parallel_llm_calls(
+                level_needs, _process_one, max_workers=10)
+
+            # Process results
+            level_changed = False
+            for label, ok, file_changed, response in results:
+                if ok:
+                    cycle_rewritten += 1
+                    if file_changed:
+                        changed.add(label)
+                        level_changed = True
+
+                        # Write review file
+                        (REVIEWS_DIR / asn_label).mkdir(parents=True, exist_ok=True)
+                        review_num = next_review_number(asn_label)
+                        rev_path = REVIEWS_DIR / asn_label / f"review-{review_num}.md"
+                        with open(rev_path, "w") as rf:
+                            rf.write(f"# Formalize — {asn_label} / {label}\n\n")
+                            rf.write(f"*{time.strftime('%Y-%m-%d %H:%M')}*\n\n")
+                            rf.write(response + "\n")
+
+                        # Update hash
+                        updated = (prop_dir / (label.replace("(", "").replace(")", "") + ".md"))
+                        if updated.exists() and deps_data and label in deps_data.get("properties", {}):
+                            deps_data["properties"][label]["hash"] = _compute_hash(updated.read_text())
+                else:
+                    cycle_failed += 1
+                    if response and response.startswith("REJECTED:"):
+                        (REVIEWS_DIR / asn_label).mkdir(parents=True, exist_ok=True)
+                        review_num = next_review_number(asn_label)
+                        rev_path = REVIEWS_DIR / asn_label / f"review-{review_num}.md"
+                        with open(rev_path, "w") as rf:
+                            rf.write(f"# Produce Contract REJECTED — {asn_label} / {label}\n\n")
+                            rf.write(f"*{time.strftime('%Y-%m-%d %H:%M')}*\n\n")
+                            rf.write(response + "\n")
+                        print(f"\n  [ABORT] Produce contract rejected for {label}.",
+                              file=sys.stderr)
+                        rejected = True
+
+            if rejected:
+                return "rejected"
+
+            # Commit after each level, re-read for next level's deps
+            if level_changed:
+                write_deps_yaml(asn_num, deps_data)
+                step_commit_asn(asn_num, hint=f"produce-contract level {level_idx}")
+
+                # Re-read property files for next level
                 for l in needs_labels:
                     l_path = prop_dir / (l.replace("(", "").replace(")", "") + ".md")
                     if l_path.exists():
                         needs_map[l]["section"] = l_path.read_text()
-
-                # Update hash incrementally (survives kill)
-                updated_section = needs_map.get(label, {}).get("section", item["section"])
-                if deps_data and label in deps_data.get("properties", {}):
-                    deps_data["properties"][label]["hash"] = _compute_hash(updated_section)
-                    write_deps_yaml(asn_num, deps_data)
-            else:
-                cycle_failed += 1
-                if response.startswith("REJECTED:"):
-                    # Review gate rejected the rewrite — write review and stop
-                    (REVIEWS_DIR / asn_label).mkdir(parents=True, exist_ok=True)
-                    review_num = next_review_number(asn_label)
-                    rev_path = REVIEWS_DIR / asn_label / f"review-{review_num}.md"
-                    with open(rev_path, "w") as rf:
-                        rf.write(f"# Quality Rewrite REJECTED — {asn_label} / {label}\n\n")
-                        rf.write(f"*{time.strftime('%Y-%m-%d %H:%M')}*\n\n")
-                        rf.write(response + "\n")
-                    print(f"\n  [ABORT] Quality rewrite rejected for {label}. "
-                          f"Review: {rev_path.relative_to(WORKSPACE)}",
-                          file=sys.stderr)
-                    return "rejected"
 
         total_rewritten += cycle_rewritten
         total_failed += cycle_failed

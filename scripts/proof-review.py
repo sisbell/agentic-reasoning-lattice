@@ -22,7 +22,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, REVIEWS_DIR, next_review_number
-from lib.shared.common import find_asn, step_commit_asn
+from lib.shared.common import find_asn, parallel_llm_calls, step_commit_asn
 from lib.formalization.core.build_dependency_graph import generate_deps
 from lib.formalization.core.topological_sort import topological_sort_labels
 from lib.formalization.proof_review.verify import review_property
@@ -102,15 +102,27 @@ def run_proof_review(asn_num, max_cycles=5, mode="incremental",
         print(f"\n  [CYCLE {cycle}/{max_cycles}] {label_desc}",
               file=sys.stderr)
 
-        # Review
+        # Pre-populate foundation cache (shared read-only data)
+        from lib.shared.paths import formal_stmts, load_manifest
         foundation_cache = {}
+        manifest = load_manifest(asn_num)
+        for dep_asn in manifest.get("depends", []) if manifest else []:
+            stmt_path = formal_stmts(dep_asn)
+            if stmt_path.exists():
+                foundation_cache[dep_asn] = stmt_path.read_text()
+
+        # Review all properties in parallel (verify is read-only)
         cycle_findings = {}
         cycle_verified = set()
 
-        for label in review_labels:
+        def _verify_one(label):
             result, finding_text = review_property(
                 asn_num, label, deps_data, sections, foundation_cache)
+            return label, result, finding_text
 
+        results = parallel_llm_calls(review_labels, _verify_one, max_workers=10)
+
+        for label, result, finding_text in results:
             if result == "verified":
                 cycle_verified.add(label)
             elif result == "found":
