@@ -1,0 +1,18 @@
+**TA5a (IncrementPreservesT4).** The operation `inc(t, k)` on a valid address `t` preserves T4 if and only if `k = 0`, or `k = 1` with `zeros(t) ≤ 3`, or `k = 2` with `zeros(t) ≤ 2`. For all `k ≥ 3`, T4 is violated regardless of `zeros(t)`.
+
+*Proof.* Let `t` be a valid address satisfying T4, and let `t' = inc(t, k)`. We determine when `t'` satisfies T4. Recall that T4 requires: (i) at most three zero-valued field separators, (ii) every field component strictly positive, and (iii) no adjacent zeros — equivalently, every present field has at least one component. Two constraints must hold simultaneously: the zero-count bound and a structural constraint against adjacent zeros. We examine each value of `k`.
+
+*Case `k = 0` (sibling increment).* By TA5(c), `t'` has the same length as `t` and differs only at position `sig(t)`, where `t'_{sig(t)} = t_{sig(t)} + 1`. No zero components are added or removed, so `zeros(t') = zeros(t)`. No new adjacencies between components are created, since only one position changes and its new value is strictly greater than the old. Since `t` satisfies T4, so does `t'`. T4 is preserved unconditionally.
+
+*Case `k = 1` (immediate child).* By TA5(d), `t'` extends `t` by one position: `#t' = #t + 1`, with `t'_{#t+1} = 1`. The range of separator positions `#t + 1` through `#t + k - 1 = #t` is empty, so no zero separators are introduced: `zeros(t') = zeros(t)`. The appended component `1` is positive. The last component of `t` is positive — by TA5-SigValid, `t_{#t} > 0` — so the new component is not adjacent to a zero. T4 is preserved when the existing zero count is within bound: `zeros(t) ≤ 3`.
+
+*Case `k = 2` (grandchild with one separator).* By TA5(d), `t'` extends `t` by two positions: `t'_{#t+1} = 0` (one field separator) and `t'_{#t+2} = 1` (the first child). Thus `zeros(t') = zeros(t) + 1`. The appended sequence is `[0, 1]`: the zero at position `#t + 1` is flanked by `t_{#t}` (positive, by T4's positive-component constraint) on the left and by `1` on the right, so no adjacent zeros are created. The non-empty field constraint is satisfied: the new field contains the component `1`. T4 is preserved when `zeros(t') = zeros(t) + 1 ≤ 3`, i.e., when `zeros(t) ≤ 2`.
+
+*Case `k ≥ 3`.* By TA5(d), the appended sequence has `k - 1 ≥ 2` consecutive zero components at positions `#t + 1` through `#t + k - 1`, followed by `1` at position `#t + k`. Since `k - 1 ≥ 2`, at least two of these zeros are adjacent — specifically, positions `#t + 1` and `#t + 2` are both zero. Adjacent zeros create an empty field, violating T4's non-empty field constraint. As a concrete witness: `inc([1], 3)` produces `[1, 0, 0, 1]`, where positions 2 and 3 are adjacent zeros, parsing as node `[1]`, separator, *empty user field*, separator, document `[1]`. The zero count is 2 (within the bound of 3), yet the empty field violates T4 regardless. T4 is violated for all `k ≥ 3`.
+
+The effective constraints are therefore: `k = 0` (always valid), `k = 1` (when `zeros(t) ≤ 3`), `k = 2` (when `zeros(t) ≤ 2`). The hierarchy enforces this naturally: each `inc(·, k)` with `k > 0` introduces one new hierarchical level, and the address format has exactly four fields with three separators, so at most three child-creation steps can be applied from a node address — three `inc(·, 2)` steps, with `zeros(t) = 0, 1, 2` respectively before each step, each satisfying `zeros(t) ≤ 2`. ∎
+
+*Formal Contract:*
+- *Precondition:* `t` satisfies T4 (valid address tumbler), `k ≥ 0`.
+- *Guarantee:* `inc(t, k)` satisfies T4 iff `k = 0`, or `k = 1 ∧ zeros(t) ≤ 3`, or `k = 2 ∧ zeros(t) ≤ 2`.
+- *Failure:* For `k ≥ 3`, `inc(t, k)` violates T4 (adjacent zeros create an empty field).
