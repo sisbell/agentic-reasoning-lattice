@@ -30,8 +30,14 @@ run_contract_review = _contract_review.run_contract_review
 run_cross_review = _cross_review.run_cross_review
 
 
-def run_formalization_review(asn_num, max_cycles=3, dry_run=False):
-    """Run all four review steps in a convergence loop."""
+def run_formalization_review(asn_num, max_cycles=3, dry_run=False,
+                             keep_cache=False):
+    """Run all four review steps in a convergence loop.
+
+    keep_cache: if True, don't invalidate hash caches between outer cycles.
+    Only changed properties get re-checked — useful when iterating on
+    cross-review findings where most properties are untouched.
+    """
     _, asn_label = find_asn(str(asn_num))
     if asn_label is None:
         print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
@@ -49,7 +55,9 @@ def run_formalization_review(asn_num, max_cycles=3, dry_run=False):
 
         # Invalidate caches so each outer cycle re-checks everything
         # (prior steps may have changed files that affect later steps)
-        if cycle > 1:
+        # With --keep-cache, only properties whose source hash changed
+        # will be re-checked — much faster for cross-review convergence.
+        if cycle > 1 and not keep_cache:
             for cache_name in ("_verify-cache.json", "_contract-cache.json"):
                 cache_path = prop_dir / cache_name
                 if cache_path.exists():
@@ -110,11 +118,15 @@ def main():
                         help="Maximum outer cycles (default: 3)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Review only, don't fix")
+    parser.add_argument("--keep-cache", action="store_true",
+                        help="Don't invalidate caches between cycles — "
+                             "only re-check properties whose source changed")
     args = parser.parse_args()
 
     asn_num = int(re.sub(r"[^0-9]", "", args.asn))
     result = run_formalization_review(asn_num, max_cycles=args.max_cycles,
-                                      dry_run=args.dry_run)
+                                      dry_run=args.dry_run,
+                                      keep_cache=args.keep_cache)
     sys.exit(0 if result == "converged" else 1)
 
 
