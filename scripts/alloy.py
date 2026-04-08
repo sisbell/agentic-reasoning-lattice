@@ -146,28 +146,6 @@ def main():
         print(f"  No properties found", file=sys.stderr)
         sys.exit(1)
 
-    # Build dependency context (contracts only — full prose is too large)
-    from lib.formalization.core.build_dependency_graph import generate_deps
-    deps_data = generate_deps(asn_num)
-    dep_contexts = {}
-    for prop in properties:
-        label = prop["label"]
-        if deps_data:
-            follows = deps_data.get("properties", {}).get(label, {}).get("follows_from", [])
-            parts = []
-            for dep in follows:
-                dep_file = prop_dir / (dep.replace("(", "").replace(")", "") + ".md")
-                if dep_file.exists():
-                    content = dep_file.read_text().strip()
-                    # Extract header + formal contract only
-                    header = content.split("\n", 1)[0]
-                    m = re.search(r'(\*Formal Contract:\*.*)', content, re.DOTALL)
-                    contract = m.group(1).strip() if m else ""
-                    parts.append(f"{header}\n\n{contract}" if contract else header)
-            dep_contexts[label] = "\n\n---\n\n".join(parts)
-        else:
-            dep_contexts[label] = ""
-
     # Filter to specific properties
     if args.property:
         targets = [t.strip() for t in args.property.split(",")]
@@ -212,7 +190,7 @@ def main():
         for prop in candidates:
             prompt = build_property_prompt(
                 definitions_text, prop, syntax_ref=syntax_ref,
-                dep_context=dep_contexts.get(prop["label"], ""))
+                )
             print(f"\n  [{prop['label']}] {prop['name']}  "
                   f"({len(prompt) // 1024}KB prompt)", file=sys.stderr)
         return
@@ -227,7 +205,7 @@ def main():
         result = make_result(prop, out_dir)
         generate_one(result, prop, definitions_text, asn_label, args,
                       syntax_ref=syntax_ref,
-                      dep_context=dep_contexts.get(label, ""))
+)
         if not args.no_cleanup:
             cleanup_property_artifacts(result["als_path"])
 
