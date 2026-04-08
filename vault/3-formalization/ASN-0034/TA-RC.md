@@ -31,7 +31,6 @@ Both results are `[1, 5, 4]`, hence `a ⊕ w = b ⊕ w`. The critical observatio
 We have exhibited `a ≠ b` with `a ⊕ w = b ⊕ w`, both sides well-defined: right cancellation fails.  ∎
 
 *Formal Contract:*
-- *Preconditions:* a, b, w ∈ T; w > 0; actionPoint(w) ≤ #a; actionPoint(w) ≤ #b
-- *Postconditions:* a ≠ b ∧ a ⊕ w = b ⊕ w
+- *Axiom:* ∃ a, b, w ∈ T : w > 0 ∧ actionPoint(w) ≤ #a ∧ actionPoint(w) ≤ #b ∧ a ≠ b ∧ a ⊕ w = b ⊕ w
 
 The mechanism is TumblerAdd's tail replacement: components of the start position after the action point are discarded and replaced by the displacement's tail. Any two starts that agree on components 1..k and differ only on components after k will produce the same result under any displacement with action point k. Formally:
