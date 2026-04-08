@@ -112,14 +112,29 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
         print(f"\n  [CYCLE {cycle}/{max_cycles}] {len(candidates)} properties to validate",
               file=sys.stderr)
 
+        # Pre-build dependency contexts (generate_deps called once)
+        from lib.formalization.core.build_dependency_graph import generate_deps
+        deps_data = generate_deps(asn_num)
+        dep_contexts = {}
+        for label, content, f in candidates:
+            if deps_data:
+                prop_data = deps_data.get("properties", {}).get(label, {})
+                follows_from = prop_data.get("follows_from", [])
+                parts = []
+                for dep_label in follows_from:
+                    dep_file = prop_dir / (dep_label.replace("(", "").replace(")", "") + ".md")
+                    if dep_file.exists():
+                        parts.append(f"### {dep_label}\n\n{dep_file.read_text().strip()}")
+                dep_contexts[label] = "\n\n".join(parts) if parts else "(none)"
+            else:
+                dep_contexts[label] = "(none)"
+
         # Validate all in parallel (read-only sonnet calls)
         def _validate_one(item):
             label, content, f = item
-            from lib.formalization.formalize.produce_contract import _build_dep_context
-            dep_context = _build_dep_context(asn_num, label)
             match, detail = validate_contract(label, content,
                                               vocabulary=vocabulary,
-                                              dependencies=dep_context,
+                                              dependencies=dep_contexts.get(label, ""),
                                               model=validate_model)
             return label, (match, detail, f)
 
@@ -172,16 +187,12 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
             label, detail, prop_path = item
             content = prop_path.read_text()
 
-            # Build dependency context from table
-            from lib.formalization.formalize.produce_contract import _build_dep_context
-            dep_context = _build_dep_context(asn_num, label)
-
             prompt = (template
                       .replace("{{label}}", label)
                       .replace("{{section}}", content)
                       .replace("{{finding}}", detail)
                       .replace("{{vocabulary}}", vocabulary)
-                      .replace("{{dependencies}}", dep_context))
+                      .replace("{{dependencies}}", dep_contexts.get(label, "(none)")))
             response, elapsed = invoke_claude(prompt, model="opus",
                                               effort="high")
             if not response or "<tool_call>" in response:

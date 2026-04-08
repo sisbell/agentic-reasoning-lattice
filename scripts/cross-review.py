@@ -29,7 +29,7 @@ from lib.formalization.cross_review.review import run_review, extract_findings
 from lib.formalization.cross_review.revise import revise
 
 
-def run_cross_review(asn_num, max_cycles=10, dry_run=False):
+def run_cross_review(asn_num, max_cycles=10, dry_run=False, model="opus"):
     """Run the cross-cutting review pipeline.
 
     Returns "converged" or "not_converged".
@@ -63,7 +63,7 @@ def run_cross_review(asn_num, max_cycles=10, dry_run=False):
 
         # Run review
         findings_text, elapsed = run_review(
-            asn_num, asn_content, asn_label, previous_findings)
+            asn_num, asn_content, asn_label, previous_findings, model=model)
 
         if findings_text is None:
             converged = True
@@ -141,8 +141,14 @@ def run_cross_review(asn_num, max_cycles=10, dry_run=False):
     return "converged" if converged else "not_converged"
 
 
-def run_revise_from_review(asn_num, review_path):
-    """Read an existing review file and revise each finding."""
+def run_revise_from_review(asn_num, review_spec):
+    """Read an existing review file and revise each finding.
+
+    review_spec can be:
+      - a number (e.g., "7" → review-7.md)
+      - a filename (e.g., "review-7.md")
+      - a full path
+    """
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
         print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
@@ -153,7 +159,23 @@ def run_revise_from_review(asn_num, review_path):
         print(f"  No formalization directory for {asn_label}", file=sys.stderr)
         return False
 
-    review_text = Path(review_path).read_text()
+    # Resolve review spec to path
+    review_dir = prop_dir / "reviews"
+    review_path = Path(review_spec)
+    if not review_path.exists():
+        # Try as number or filename
+        if review_spec.isdigit():
+            review_path = review_dir / f"review-{review_spec}.md"
+        elif not review_spec.endswith(".md"):
+            review_path = review_dir / f"{review_spec}.md"
+        else:
+            review_path = review_dir / review_spec
+
+    if not review_path.exists():
+        print(f"  Review file not found: {review_path}", file=sys.stderr)
+        return False
+
+    review_text = review_path.read_text()
     findings = extract_findings(review_text)
 
     if not findings:
@@ -182,6 +204,8 @@ def main():
     parser.add_argument("asn", help="ASN number (e.g., 40)")
     parser.add_argument("--max-cycles", type=int, default=3,
                         help="Maximum convergence cycles (default: 3)")
+    parser.add_argument("--model", default="opus",
+                        help="Model for review (default: opus)")
     parser.add_argument("--review", metavar="PATH",
                         help="Revise findings from an existing review file")
     parser.add_argument("--dry-run", action="store_true",
@@ -195,6 +219,7 @@ def main():
         sys.exit(0 if ok else 1)
 
     result = run_cross_review(asn_num, max_cycles=args.max_cycles,
+                               model=args.model,
                                dry_run=args.dry_run)
     sys.exit(0 if result == "converged" else 1)
 

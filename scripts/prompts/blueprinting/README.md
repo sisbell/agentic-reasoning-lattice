@@ -1,9 +1,9 @@
-# Blueprinting Pipeline
+# Pipeline
+
+## Blueprinting
 
 Prepare a monolithic ASN for formalization by normalizing format,
 disassembling into per-property files, and running quality checks.
-
-## Pipeline
 
 ```bash
 # 1. Format + names
@@ -20,31 +20,38 @@ python scripts/lint.py missing 34       # undeclared label references
 python scripts/lint.py inline 34        # embedded results to promote
 python scripts/lint.py status 34        # wrong status classifications
 
-# 5. Manual fixes based on lint findings
+# 5. Triage + promotion plan
+python scripts/triage-inline.py 34
+# edit vault/2-blueprints/ASN-NNNN/lint/promotion-plan.md
 
-# 6. Promote inline results (if lint found any)
+# 6. Promote inline results + extract definitions
 python scripts/promote-inline.py 34
+python scripts/extract-definition.py 34
 
-# 7. Structure proofs into explicit stages
-python scripts/proof-structure.py 34
-
-# 8. Promote to formalization
+# 7. Promote to formalization
 python scripts/promote-blueprint.py 34
 ```
 
-## What each step does
+## Formalization
 
-| Step | Script | Input | Output |
-|------|--------|-------|--------|
-| Format | `blueprint.py` | monolithic ASN | formatted ASN |
-| Disassemble | `disassemble.py` | formatted ASN (with `---` markers) | `vault/2-blueprints/ASN-NNNN/properties/` |
-| Vocabulary | `build-vocabulary.py` | property files | `_vocabulary.md` |
-| Lint missing | `lint.py missing` | property files | `lint/missing.md` |
-| Lint inline | `lint.py inline` | property files | `lint/inline.md` |
-| Lint status | `lint.py status` | property files (via monolithic ASN) | `lint/status.md` |
-| Promote inline | `promote-inline.py` | property files | new property files + updated source |
-| Proof structure | `proof-structure.py` | property files | restructured property files |
-| Promote | `promote-blueprint.py` | `vault/2-blueprints/` | `vault/3-formalization/ASN-NNNN/` |
+Review and converge proofs, contracts, and cross-property consistency.
+
+```bash
+# Full review cycle (proof → contract → cross → dependency)
+python scripts/formalization-review.py 34
+
+# Or run steps individually:
+python scripts/proof-review.py 34          # verify proofs, fix gaps
+python scripts/contract-review.py 34       # validate contracts, fix mismatches
+python scripts/cross-review.py 34          # whole-ASN structural analysis
+python scripts/dependency-review.py 34     # upstream reference validation
+
+# Pick up cross-review findings from a previous run:
+python scripts/cross-review.py 34 --review vault/3-formalization/ASN-0034/reviews/review-7.md
+
+# Assembly (for downstream consumers)
+python scripts/formalization-assembly.py 34
+```
 
 ## Output structure
 
@@ -61,4 +68,16 @@ vault/2-blueprints/ASN-NNNN/
     missing.md
     inline.md
     status.md
+    triage.md
+    promotion-plan.md
+
+vault/3-formalization/ASN-NNNN/
+  _table.md
+  _vocabulary.md
+  T0a.md
+  T1.md
+  ...
+  reviews/
+    review-1.md
+    ...
 ```

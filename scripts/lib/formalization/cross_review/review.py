@@ -23,7 +23,7 @@ PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization" / "cross-revie
 REVIEW_TEMPLATE = PROMPTS_DIR / "review.md"
 
 
-def run_review(asn_num, asn_content, asn_label, previous_findings=""):
+def run_review(asn_num, asn_content, asn_label, previous_findings="", model="opus"):
     """Run Opus deep review. Returns (findings_text, elapsed) or (None, elapsed)."""
     foundation = load_foundation_statements(asn_num)
     if not foundation:
@@ -51,7 +51,7 @@ def run_review(asn_num, asn_content, asn_label, previous_findings=""):
     print(f"  [REVIEW] Reading ASN + foundation (Opus)...",
           end="", file=sys.stderr, flush=True)
 
-    text, elapsed = invoke_claude(prompt, model="opus", effort="high")
+    text, elapsed = invoke_claude(prompt, model=model, effort="high")
 
     if not text:
         print(f" error ({elapsed:.0f}s)", file=sys.stderr)

@@ -37,12 +37,23 @@ def run_formalization_review(asn_num, max_cycles=3, dry_run=False):
         print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
         return "failed"
 
+    from lib.shared.paths import FORMALIZATION_DIR
+    prop_dir = FORMALIZATION_DIR / asn_label
+
     print(f"\n  [FORMALIZATION-REVIEW] {asn_label}", file=sys.stderr)
     start_time = time.time()
 
     for cycle in range(1, max_cycles + 1):
         print(f"\n  ========== CYCLE {cycle}/{max_cycles} ==========",
               file=sys.stderr)
+
+        # Invalidate caches so each outer cycle re-checks everything
+        # (prior steps may have changed files that affect later steps)
+        if cycle > 1:
+            for cache_name in ("_verify-cache.json", "_contract-cache.json"):
+                cache_path = prop_dir / cache_name
+                if cache_path.exists():
+                    cache_path.unlink()
 
         all_converged = True
 
