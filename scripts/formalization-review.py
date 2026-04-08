@@ -44,6 +44,7 @@ def run_formalization_review(asn_num, max_cycles=3, dry_run=False,
         return "failed"
 
     from lib.shared.paths import FORMALIZATION_DIR
+    from lib.formalization.core.reconcile_table import print_reconciliation
     prop_dir = FORMALIZATION_DIR / asn_label
 
     print(f"\n  [FORMALIZATION-REVIEW] {asn_label}", file=sys.stderr)
@@ -52,6 +53,9 @@ def run_formalization_review(asn_num, max_cycles=3, dry_run=False,
     for cycle in range(1, max_cycles + 1):
         print(f"\n  ========== CYCLE {cycle}/{max_cycles} ==========",
               file=sys.stderr)
+
+        # Mechanical check: property files match table rows
+        print_reconciliation(asn_num)
 
         # Invalidate caches so each outer cycle re-checks everything
         # (prior steps may have changed files that affect later steps)
