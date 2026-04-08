@@ -30,7 +30,7 @@ rᵢ   =  ⎨ aₖ + wₖ      if i = k        (single-component advance)
          ⎩ wᵢ           if i > k        (copy from displacement)
 ```
 
-The result `a ⊕ w = [r₁, ..., rₚ]` has length `p = max(k - 1, 0) + (n - k + 1)`. Since `w > 0` implies `k ≥ 1`, this simplifies to `p = (k - 1) + (n - k + 1) = n = #w`. We record this as the *result-length identity*: **`#(a ⊕ w) = #w`** — the length of the sum is determined entirely by the displacement, not the start position. This identity is load-bearing: the reverse inverse proof and the TA4 verification both depend on knowing the result length.
+The result `a ⊕ w = [r₁, ..., rₚ]` has length `p = max(k - 1, 0) + (n - k + 1)`. Since `w > 0` implies `k ≥ 1`, this simplifies to `p = (k - 1) + (n - k + 1) = n = #w`. We record this as the *result-length identity*: **`#(a ⊕ w) = #w`** — the length of the sum is determined entirely by the displacement, not the start position. This identity is load-bearing for subsequent properties that depend on TumblerAdd.
 
 **Precondition:** `k ≤ m` — the displacement's action point must fall within the start position's length.
 
@@ -48,4 +48,9 @@ Three properties of this definition require explicit statement:
 [1, 1, 999] ⊕ [0, 2]  = [1, 3]
 ```
 
-This is correct and intentional: advancing to "the beginning of the next chapter" lands at the same place regardless of where you were within the current chapter.
+This is correct and intentional: advancing to "the beginning of the next chapter" lands at the same place regardless of where you were within the current chapter. ∎
+
+*Formal Contract:*
+- *Preconditions:* a ∈ T, w ∈ T, w > 0, actionPoint(w) ≤ #a
+- *Definition:* rᵢ = aᵢ if i < k; rₖ = aₖ + wₖ; rᵢ = wᵢ if i > k
+- *Postconditions:* a ⊕ w ∈ T, #(a ⊕ w) = #w

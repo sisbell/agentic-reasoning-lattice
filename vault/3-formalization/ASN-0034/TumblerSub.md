@@ -9,3 +9,7 @@ rᵢ   =  ⎨ aₖ - wₖ      if i = k        (reverse the advance)
 The result has length `max(#a, #w)`.
 
 **Precondition:** `a ≥ w` — when `a ≠ w`, at the divergence point (after zero-padding) `aₖ ≥ wₖ`.
+
+*Formal Contract:*
+- *Preconditions:* a ≥ w (when a ≠ w, at the first divergence point k after zero-padding, aₖ ≥ wₖ)
+- *Definition:* a ⊖ w computed by case analysis on divergence point k; rᵢ = 0 for i < k, rₖ = aₖ − wₖ, rᵢ = aᵢ for i > k; when no divergence exists, a ⊖ w = [0, …, 0]; #(a ⊖ w) = max(#a, #w)
