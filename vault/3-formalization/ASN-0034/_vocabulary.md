@@ -13,9 +13,7 @@
 - **componentwise comparison** — equality check on two finite sequences: same length and pairwise equal components
 - **d** — the difference n₂ − n₁, used to decompose the larger shift as a composition of two smaller shifts
 - **displacement from a to b** — the tumbler w = b ⊖ a; the unique w such that a ⊕ w = b
-- **div(a, w)** — divergence position: first index where the zero-padded sequences of a and w disagree
 - **divergence(a, b)** — the divergence of tumblers a, b ∈ T (a ≠ b): the index where they first differ, or min(#a,#b)+1 if one is a proper prefix of the other
-- **divergence(x, w)** — the first position at which the zero-padded sequences of x and w disagree
 - **document field** — D₁. ... .Dᵧ — the third field of an address tumbler, identifying the document and version
 - **dᵢ** — the i-th component of a tumbler t
 - **element field** — E₁. ... .Eδ — the fourth field of an address tumbler, identifying the content element
@@ -41,6 +39,7 @@
 - **zero tumbler** — a tumbler whose every component is zero — (A i : 1 ≤ i ≤ #t : tᵢ = 0)
 - **zero-padded-equal** — x is zero-padded-equal to w when zero-padding both to the same length yields identical sequences (no divergence position exists)
 - **zeros(t)** — number of zero-valued field-separator components in tumbler t: #{i : tᵢ = 0}
+- **zpd(a, w)** — zero-padded divergence: first position where the zero-padded sequences of a and w disagree (TumblerSub); may exceed `divergence(a, w)` when one operand is a proper prefix of the other
 - **δ(n, m)** — ordinal displacement: tumbler [0, 0, ..., 0, n] of length m with action point m
 - **δₙ** — shorthand for δ(n, m) when depth m is determined by context (typically m = #v)
 - **⊕** — tumbler addition: given start position a and displacement w, computes the advanced position a ⊕ w

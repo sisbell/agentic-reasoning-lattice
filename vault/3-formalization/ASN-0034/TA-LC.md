@@ -38,7 +38,7 @@ Beyond position `#a`, the results may differ. The result `a ⊖ w` has length `m
 
 *Case 0a: `a < b` by component divergence and `a` zero-padded-equal to `w`.* There exists `j ≤ min(#a, #b)` with `aⱼ < bⱼ`. Since `a` and `w` agree at every position under zero-padding, `a ⊖ w` is the zero tumbler of length `max(#a, #w)`. At position `j`, `wⱼ = aⱼ` (from zero-padded equality), so `bⱼ > aⱼ = wⱼ`. The pair `(b, w)` diverges at or before `j`, making `b ⊖ w` positive. By TA6, `a ⊖ w < b ⊖ w`.
 
-For the remaining cases, `a < b` by T1 case (i) and `a` is not zero-padded-equal to `w`, so `dₐ = divergence(a, w)` is well-defined. Let `d_b = divergence(b, w)` (under zero-padding).
+For the remaining cases, `a < b` by T1 case (i) and `a` is not zero-padded-equal to `w`, so `dₐ = zpd(a, w)` — TumblerSub's zero-padded divergence — is well-defined. Let `d_b = zpd(b, w)`.
 
 *Case 1: `dₐ = d_b = d`.* For `i < d`, both results are zero. At position `d`, we need `j ≥ d` (since `a` and `b` agree with `w` before `d`). If `j = d`: `a_d - w_d < b_d - w_d`, so `a ⊖ w < b ⊖ w`. If `j > d`: `a_d = b_d`, so both results agree at `d`; at positions `d < i < j`, both copy from their respective minuends which agree; at position `j`, `aⱼ < bⱼ`. So `a ⊖ w < b ⊖ w`.
 

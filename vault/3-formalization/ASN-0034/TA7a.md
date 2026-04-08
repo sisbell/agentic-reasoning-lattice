@@ -28,7 +28,7 @@ For example, spanning from ordinal `[1, 3, 2]` to `[1, 5, 7]` requires displacem
 
 **Conjunct 2** (`⊖`-closure in T). The precondition gives `o ∈ T`, `w ∈ T`, and `o ≥ w`. These are exactly the preconditions of TA2 (well-defined subtraction). By TA2, `o ⊖ w ∈ T`. The subspace identifier is again untouched.
 
-The S-membership question for `⊖` is more delicate. We analyze by action point and divergence position, using TumblerSub's constructive definition: zero-pad to length `max(#o, #w)`, find the divergence position `d` (the first position where the padded sequences differ), then set `rᵢ = 0` for `i < d`, `r_d = o_d - w_d`, and `rᵢ = oᵢ` for `i > d`.
+The S-membership question for `⊖` is more delicate. We analyze by action point and divergence position, using TumblerSub's constructive definition: zero-pad to length `max(#o, #w)`, find the divergence position `d` (the first position where the padded sequences differ), then set `rᵢ = 0` for `i < d`, `r_d = o_d - w_d`, and `rᵢ = oᵢ` (zero-padded) for `i > d`.
 
 *Preliminary: when `#w > m`.* TumblerSub produces a result of length `max(m, #w) = #w > m`. The zero-padded minuend has zeros at positions `m + 1` through `#w`, so the result inherits trailing zeros at those positions and lies in T \ S. The cases below assume `#w ≤ m`.
 
