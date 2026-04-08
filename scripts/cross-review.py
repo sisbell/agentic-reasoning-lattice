@@ -141,17 +141,59 @@ def run_cross_review(asn_num, max_cycles=10, dry_run=False):
     return "converged" if converged else "not_converged"
 
 
+def run_revise_from_review(asn_num, review_path):
+    """Read an existing review file and revise each finding."""
+    asn_path, asn_label = find_asn(str(asn_num))
+    if asn_path is None:
+        print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
+        return False
+
+    prop_dir = FORMALIZATION_DIR / asn_label
+    if not prop_dir.exists():
+        print(f"  No formalization directory for {asn_label}", file=sys.stderr)
+        return False
+
+    review_text = Path(review_path).read_text()
+    findings = extract_findings(review_text)
+
+    if not findings:
+        print(f"  No findings in {review_path}", file=sys.stderr)
+        return False
+
+    print(f"\n  [REVISE] {asn_label} — {len(findings)} findings from {review_path}",
+          file=sys.stderr)
+
+    any_changed = False
+    for title, finding_text in findings:
+        print(f"\n  ### {title}", file=sys.stderr)
+        ok = revise(asn_num, title, finding_text, prop_dir=prop_dir)
+        if ok:
+            any_changed = True
+
+    if any_changed:
+        step_commit_asn(asn_num, hint="cross-review revise")
+
+    return any_changed
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Cross-cutting Review — deep structural analysis")
     parser.add_argument("asn", help="ASN number (e.g., 40)")
     parser.add_argument("--max-cycles", type=int, default=3,
                         help="Maximum convergence cycles (default: 3)")
+    parser.add_argument("--review", metavar="PATH",
+                        help="Revise findings from an existing review file")
     parser.add_argument("--dry-run", action="store_true",
                         help="Review only, don't fix")
     args = parser.parse_args()
 
     asn_num = int(re.sub(r"[^0-9]", "", args.asn))
+
+    if args.review:
+        ok = run_revise_from_review(asn_num, args.review)
+        sys.exit(0 if ok else 1)
+
     result = run_cross_review(asn_num, max_cycles=args.max_cycles,
                                dry_run=args.dry_run)
     sys.exit(0 if result == "converged" else 1)
