@@ -114,7 +114,11 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
         # Validate all in parallel (read-only sonnet calls)
         def _validate_one(item):
             label, content, f = item
-            match, detail = validate_contract(label, content)
+            from lib.formalization.formalize.produce_contract import _build_dep_context
+            dep_context = _build_dep_context(asn_num, label)
+            match, detail = validate_contract(label, content,
+                                              vocabulary=vocabulary,
+                                              dependencies=dep_context)
             return label, (match, detail, f)
 
         results = parallel_llm_calls(candidates, _validate_one, max_workers=10)
