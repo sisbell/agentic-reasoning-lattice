@@ -21,12 +21,36 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import hashlib
+import json
+
 from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, next_review_number
 from lib.shared.common import find_asn, parallel_llm_calls, step_commit_asn
 from lib.formalization.core.build_dependency_graph import generate_deps
 from lib.formalization.core.topological_sort import topological_sort_labels
 from lib.formalization.proof_review.verify import review_property
 from lib.formalization.proof_review.revise import revise
+
+
+def _hash_content(text):
+    """Short content hash."""
+    return hashlib.sha256(text.encode()).hexdigest()[:16]
+
+
+def _load_verified_hashes(cache_path):
+    """Load {label: hash} of properties that passed verification."""
+    if not cache_path.exists():
+        return {}
+    try:
+        return json.loads(cache_path.read_text())
+    except (json.JSONDecodeError, ValueError):
+        return {}
+
+
+def _save_verified_hashes(cache_path, hashes):
+    """Save verified hashes."""
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    cache_path.write_text(json.dumps(hashes, indent=2) + "\n")
 
 
 def _downstream_dependents(changed_labels, deps_data):
@@ -68,6 +92,10 @@ def run_proof_review(asn_num, max_cycles=5, mode="incremental",
 
     print(f"  Directory: {prop_dir.relative_to(WORKSPACE)}", file=sys.stderr)
 
+    # Load verification cache — skip properties unchanged since last VERIFIED
+    cache_path = prop_dir / "_verify-cache.json"
+    verified_hashes = _load_verified_hashes(cache_path)
+
     start_time = time.time()
     all_findings = {}   # label → finding_text (latest)
     all_verified = set()
@@ -93,7 +121,20 @@ def run_proof_review(asn_num, max_cycles=5, mode="incremental",
         if single_label:
             review_labels = [single_label]
         elif cycle == 1 or mode == "full_sweep":
-            review_labels = ordered
+            # Skip properties unchanged since last verified run
+            review_labels = []
+            cached = 0
+            for label in ordered:
+                content = sections.get(label, "")
+                current_hash = _hash_content(content) if content else ""
+                if current_hash and verified_hashes.get(label) == current_hash:
+                    cached += 1
+                    all_verified.add(label)
+                else:
+                    review_labels.append(label)
+            if cached:
+                print(f"  [CACHE] {cached} properties unchanged — skipping",
+                      file=sys.stderr)
         else:
             # Incremental: only dirty set, in dependency order
             review_labels = [l for l in ordered if l in dirty_set]
@@ -136,6 +177,16 @@ def run_proof_review(asn_num, max_cycles=5, mode="incremental",
         for label in cycle_findings:
             all_verified.discard(label)
         all_findings.update(cycle_findings)
+
+        # Update verification cache — save hashes for verified properties
+        for label in cycle_verified:
+            content = sections.get(label, "")
+            if content:
+                verified_hashes[label] = _hash_content(content)
+        # Invalidate cache for properties with findings
+        for label in cycle_findings:
+            verified_hashes.pop(label, None)
+        _save_verified_hashes(cache_path, verified_hashes)
 
         print(f"\n  {len(cycle_findings)} found, {len(cycle_verified)} verified",
               file=sys.stderr)
@@ -187,6 +238,11 @@ def run_proof_review(asn_num, max_cycles=5, mode="incremental",
 
         # Dirty set for next cycle
         dirty_set = changed | _downstream_dependents(changed, deps_data)
+
+        # Invalidate cache for changed + dependents
+        for label in dirty_set:
+            verified_hashes.pop(label, None)
+        _save_verified_hashes(cache_path, verified_hashes)
 
         # Remove fixed properties from findings if they'll be re-checked
         for label in changed:

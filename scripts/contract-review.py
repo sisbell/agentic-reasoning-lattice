@@ -14,6 +14,8 @@ Usage:
 """
 
 import argparse
+import hashlib
+import json
 import re
 import sys
 import time
@@ -21,10 +23,28 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, next_review_number
-from lib.shared.common import find_asn, parallel_llm_calls, step_commit_asn
+from lib.shared.common import find_asn, invoke_claude, parallel_llm_calls, step_commit_asn
 from lib.formalization.assembly.validate_contracts import validate_contract
-from lib.formalization.formalize.produce_contract import (
-    _has_formal_contract, produce_contract)
+from lib.formalization.formalize.produce_contract import _has_formal_contract
+
+FIX_CONTRACT_TEMPLATE = (WORKSPACE / "scripts" / "prompts" / "formalization"
+                         / "contract-review" / "fix-contract.md")
+
+
+def _hash_content(text):
+    return hashlib.sha256(text.encode()).hexdigest()[:16]
+
+def _load_cache(path):
+    if not path.exists():
+        return {}
+    try:
+        return json.loads(path.read_text())
+    except (json.JSONDecodeError, ValueError):
+        return {}
+
+def _save_cache(path, data):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, indent=2) + "\n")
 
 
 def run_contract_review(asn_num, max_cycles=5, dry_run=False,
@@ -48,6 +68,13 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
 
     print(f"  Directory: {prop_dir.relative_to(WORKSPACE)}", file=sys.stderr)
 
+    # Load vocabulary
+    vocab_path = prop_dir / "_vocabulary.md"
+    vocabulary = vocab_path.read_text() if vocab_path.exists() else "(no vocabulary)"
+
+    cache_path = prop_dir / "_contract-cache.json"
+    validated_hashes = _load_cache(cache_path)
+
     start_time = time.time()
     converged = False
     had_findings = False
@@ -63,15 +90,25 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
             prop_files = [f for f in prop_files
                           if f.name.replace(".md", "") == single_label]
 
-        # Filter to properties with formal contracts
+        # Filter to properties with formal contracts, skip cached
         candidates = []
+        cached = 0
         for f in prop_files:
             label = f.name.replace(".md", "")
             content = f.read_text()
-            if content and _has_formal_contract(content):
-                candidates.append((label, content, f))
+            if not content or not _has_formal_contract(content):
+                continue
+            current_hash = _hash_content(content)
+            if validated_hashes.get(label) == current_hash:
+                cached += 1
+                continue
+            candidates.append((label, content, f))
 
-        print(f"\n  [CYCLE {cycle}/{max_cycles}] {len(candidates)} properties with contracts",
+        if cached:
+            print(f"  [CACHE] {cached} contracts unchanged — skipping",
+                  file=sys.stderr)
+
+        print(f"\n  [CYCLE {cycle}/{max_cycles}] {len(candidates)} properties to validate",
               file=sys.stderr)
 
         # Validate all in parallel (read-only sonnet calls)
@@ -88,7 +125,9 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
                 continue
             match, detail, f = result_tuple
             if match:
-                pass  # clean
+                # Cache this property as validated
+                content = f.read_text()
+                validated_hashes[label] = _hash_content(content)
             else:
                 print(f"    {label}: MISMATCH", file=sys.stderr)
                 for line in detail.split('\n')[:3]:
@@ -98,6 +137,9 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
 
         print(f"\n  {len(candidates)} checked, {len(mismatches)} mismatches",
               file=sys.stderr)
+
+        # Save cache after validation
+        _save_cache(cache_path, validated_hashes)
 
         if not mismatches:
             converged = True
@@ -114,16 +156,37 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
                   file=sys.stderr)
             break
 
-        # Fix mismatches via produce-contract in parallel (opus, full context)
-        print(f"\n  [FIX] {len(mismatches)} mismatches — produce-contract...",
+        # Fix mismatches — surgical contract edit only
+        print(f"\n  [FIX] {len(mismatches)} mismatches — fix-contract...",
               file=sys.stderr)
+
+        template = FIX_CONTRACT_TEMPLATE.read_text()
 
         def _fix_one(item):
             label, detail, prop_path = item
             content = prop_path.read_text()
-            ok, changed, response = produce_contract(
-                asn_num, label, content, prop_path=prop_path, max_cycles=1)
-            return label, (ok, changed)
+
+            # Build dependency context from table
+            from lib.formalization.formalize.produce_contract import _build_dep_context
+            dep_context = _build_dep_context(asn_num, label)
+
+            prompt = (template
+                      .replace("{{label}}", label)
+                      .replace("{{section}}", content)
+                      .replace("{{finding}}", detail)
+                      .replace("{{vocabulary}}", vocabulary)
+                      .replace("{{dependencies}}", dep_context))
+            response, elapsed = invoke_claude(prompt, model="opus",
+                                              effort="high")
+            if not response or "<tool_call>" in response:
+                return label, (False, False)
+            new_content = response.strip()
+            if len(new_content) < len(content) * 0.5:
+                return label, (False, False)
+            if new_content == content.strip():
+                return label, (True, False)
+            prop_path.write_text(new_content + "\n")
+            return label, (True, True)
 
         fix_results = parallel_llm_calls(mismatches, _fix_one, max_workers=10)
 
@@ -136,6 +199,10 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
                 any_changed = True
 
         if any_changed:
+            # Invalidate cache for fixed properties
+            for label, _, _ in mismatches:
+                validated_hashes.pop(label, None)
+            _save_cache(cache_path, validated_hashes)
             step_commit_asn(asn_num, hint="contract-review fixes")
 
         # Write review
