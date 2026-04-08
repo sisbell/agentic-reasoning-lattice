@@ -6,7 +6,7 @@ disassembling into per-property files, and running quality checks.
 ## Pipeline
 
 ```bash
-# 1. Format + names + lint unformalized
+# 1. Format + names
 python scripts/blueprint.py 34
 
 # 2. Disassemble into per-property files
@@ -36,7 +36,7 @@ python scripts/promote-blueprint.py 34
 
 | Step | Script | Input | Output |
 |------|--------|-------|--------|
-| Format | `blueprint.py` | monolithic ASN | formatted ASN + lint report |
+| Format | `blueprint.py` | monolithic ASN | formatted ASN |
 | Disassemble | `disassemble.py` | formatted ASN (with `---` markers) | `vault/2-blueprints/ASN-NNNN/properties/` |
 | Vocabulary | `build-vocabulary.py` | property files | `_vocabulary.md` |
 | Lint missing | `lint.py missing` | property files | `lint/missing.md` |
@@ -61,5 +61,4 @@ vault/2-blueprints/ASN-NNNN/
     missing.md
     inline.md
     status.md
-    unformalized.md
 ```

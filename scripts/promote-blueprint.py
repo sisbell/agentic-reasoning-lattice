@@ -21,7 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import (
     WORKSPACE, FORMALIZATION_DIR, blueprint_properties_dir,
 )
-from lib.shared.common import find_asn
+from lib.shared.common import find_asn, step_commit_asn
 
 
 def promote_blueprint(asn_num, dry_run=False):
@@ -42,8 +42,12 @@ def promote_blueprint(asn_num, dry_run=False):
     print(f"  Source: {src.relative_to(WORKSPACE)}", file=sys.stderr)
     print(f"  Target: {dst.relative_to(WORKSPACE)}", file=sys.stderr)
 
-    # Count files
-    files = list(src.glob("*.md"))
+    # Collect files: property files + _table.md + _vocabulary.md
+    keep_structural = {"_table.md", "_vocabulary.md"}
+    files = sorted(
+        f for f in src.glob("*.md")
+        if not f.name.startswith("_") or f.name in keep_structural
+    )
     print(f"  Files:  {len(files)}", file=sys.stderr)
 
     if dst.exists():
@@ -51,15 +55,19 @@ def promote_blueprint(asn_num, dry_run=False):
               file=sys.stderr)
 
     if dry_run:
-        print(f"\n  [DRY RUN] Would copy {len(files)} files", file=sys.stderr)
+        for f in files:
+            print(f"    {f.name}", file=sys.stderr)
         return True
 
-    # Copy
-    if dst.exists():
-        shutil.rmtree(dst)
-    shutil.copytree(src, dst)
+    # Copy selected files
+    dst.mkdir(parents=True, exist_ok=True)
+    for f in files:
+        shutil.copy2(f, dst / f.name)
 
     print(f"\n  [PROMOTE] Done — {len(files)} files copied", file=sys.stderr)
+
+    step_commit_asn(asn_num, hint="promote-blueprint")
+
     return True
 
 

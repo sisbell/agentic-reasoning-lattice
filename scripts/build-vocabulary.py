@@ -20,7 +20,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, blueprint_properties_dir
-from lib.shared.common import find_asn
+from lib.shared.common import find_asn, step_commit_asn
 
 TEMPLATE = WORKSPACE / "scripts" / "prompts" / "blueprinting" / "vocabulary.md"
 
@@ -77,10 +77,16 @@ def build_vocabulary(asn_num, dry_run=False):
         print(f"  No blueprint directory for {asn_label}", file=sys.stderr)
         return False
 
+    structural_skip = {"_table.md", "_preamble.md", "_vocabulary.md"}
     prop_files = sorted(
         f for f in prop_dir.glob("*.md")
         if not f.name.startswith("_")
     )
+    structural_files = sorted(
+        f for f in prop_dir.glob("_*.md")
+        if f.name not in structural_skip
+    )
+    prop_files = prop_files + structural_files
 
     template = TEMPLATE.read_text()
 
@@ -118,9 +124,11 @@ def build_vocabulary(asn_num, dry_run=False):
         for symbol in sorted(all_entries.keys()):
             f.write(f"- **{symbol}** — {all_entries[symbol]}\n")
 
-    print(f"\n  [VOCABULARY] {len(all_entries)} definitions extracted "
-          f"({total_elapsed:.0f}s)", file=sys.stderr)
+    print(f"\n  [VOCABULARY] {len(all_entries)} definitions extracted",
+          file=sys.stderr)
     print(f"  Written: {vocab_path.relative_to(WORKSPACE)}", file=sys.stderr)
+
+    step_commit_asn(asn_num, hint="vocabulary")
 
     return True
 

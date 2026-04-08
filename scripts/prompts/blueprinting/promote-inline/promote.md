@@ -36,6 +36,9 @@ statement must be justified in the sentence that introduces it.
      make each case explicit, end with ∎
    - The proof should be self-contained — a reader should understand it
      without reading the source property's section
+   - Include a `*Formal Contract:*` section after the proof. If the
+     source file already has a contract for this result, preserve it.
+     Otherwise, state the property's preconditions and guarantees
    - In the source property's narrative, replace the inline proof with
      a citation to the new label
 

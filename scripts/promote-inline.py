@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-Promote Inline — extract embedded results to standalone properties.
+Promote Inline — extract embedded derived results to standalone properties.
 
-Operates on per-property blueprint files. For each flagged property:
+Reads the lint inline report for derived findings, then for each:
 1. Promote: rewrite narrative, create new property section in the file
 2. Format: review/revise fixes labels, headers on the new section
 3. Disassemble: split the file into separate property files
 
-Run `python scripts/lint.py inline 34` first to identify candidates.
+Run `python scripts/lint.py inline 34` first to build the report.
 
 Usage:
     python scripts/promote-inline.py 34              # promote all flagged
@@ -27,13 +27,41 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import (
     WORKSPACE, USAGE_LOG,
-    blueprint_properties_dir,
+    blueprint_properties_dir, lint_path,
 )
-from lib.shared.common import find_asn, invoke_claude, step_commit_asn
-from lib.blueprinting.lint import _extract_post_contract, _scan_property_file
+from lib.shared.common import find_asn, step_commit_asn
+from lib.blueprinting.lint import _parse_inline_report
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "blueprinting" / "promote-inline"
 PROMOTE_TEMPLATE = PROMPTS_DIR / "promote.md"
+
+
+def _parse_promotion_plan(plan_path, section):
+    """Parse a promotion plan section into {source_label: [target_labels]}.
+
+    Format:
+        ## Promote
+        - T0b → T0a
+        - T10a → T10a.1, T10a.2, T10a.3
+    """
+    if not plan_path.exists():
+        return {}
+
+    text = plan_path.read_text()
+    result = {}
+    in_section = False
+    for line in text.split("\n"):
+        if line.strip().startswith("## "):
+            in_section = line.strip().lstrip("# ").strip().lower() == section.lower()
+            continue
+        if not in_section:
+            continue
+        m = re.match(r'^- (\S+)\s*→\s*(.+)', line.strip())
+        if m:
+            source = m.group(1)
+            targets = [t.strip() for t in m.group(2).split(",")]
+            result[source] = targets
+    return result
 DISASSEMBLE_TEMPLATE = WORKSPACE / "scripts" / "prompts" / "blueprinting" / "disassemble.md"
 
 
@@ -256,38 +284,55 @@ def main():
     table_path = blueprint_dir / "_table.md"
     table = table_path.read_text() if table_path.exists() else "(no table file)"
 
-    # Collect property files
-    prop_files = sorted(
-        f for f in blueprint_dir.glob("*.md")
-        if not f.name.startswith("_")
-    )
+    # Read inline findings for LLM context
+    report_path = lint_path(asn_label, "inline")
+    if not report_path.exists():
+        print(f"  No inline lint report. Run: python scripts/lint.py inline {asn_num}",
+              file=sys.stderr)
+        sys.exit(1)
 
-    if args.label:
-        prop_files = [f for f in prop_files if f.name.replace(".md", "") == args.label]
+    all_findings = _parse_inline_report(report_path)
 
-    # Scan for candidates
+    # Determine which labels to act on
+    plan_path = blueprint_dir.parent / "lint" / "promotion-plan.md"
+    plan = _parse_promotion_plan(plan_path, "Promote")
+
+    if plan:
+        print(f"  Reading promotion plan: {plan_path.relative_to(WORKSPACE)}",
+              file=sys.stderr)
+        source_labels = set(plan.keys())
+    elif args.label:
+        source_labels = {args.label}
+    else:
+        print(f"  No promotion plan found and no --label specified.",
+              file=sys.stderr)
+        print(f"  Create: {plan_path.relative_to(WORKSPACE)}", file=sys.stderr)
+        sys.exit(1)
+
+    # Build candidates from plan + inline findings
     candidates = []
-    for f in prop_files:
-        content = f.read_text()
-        if not content.strip():
+    for label in sorted(source_labels):
+        if label not in all_findings:
+            print(f"  WARNING: {label} not in inline report, skipping",
+                  file=sys.stderr)
             continue
-
-        label = f.name.replace(".md", "")
-        print(f"  Scanning {label}...", end="", file=sys.stderr, flush=True)
-        findings, elapsed = _scan_property_file(label, content)
-        derived = [fd for fd in findings if fd["kind"] == "derived"]
-
-        if derived:
-            print(f" {len(derived)} derived ({elapsed:.0f}s)", file=sys.stderr)
-            candidates.append((label, f, findings))
-        else:
-            print(f" clean ({elapsed:.0f}s)", file=sys.stderr)
+        findings = all_findings[label]
+        derived = [f for f in findings if f["kind"] == "derived"]
+        if not derived:
+            print(f"  WARNING: {label} has no derived findings, skipping",
+                  file=sys.stderr)
+            continue
+        prop_file = blueprint_dir / (label + ".md")
+        if not prop_file.exists():
+            print(f"  WARNING: {label}.md not found, skipping", file=sys.stderr)
+            continue
+        candidates.append((label, prop_file, findings))
 
     if not candidates:
         print(f"\n  Nothing to promote.", file=sys.stderr)
         return
 
-    print(f"\n  {len(candidates)} properties with results to promote.",
+    print(f"  {len(candidates)} properties to promote.",
           file=sys.stderr)
 
     if args.dry_run:
@@ -321,6 +366,8 @@ def main():
         # Reload table for next iteration
         if table_path.exists():
             table = table_path.read_text()
+
+    step_commit_asn(asn_num, hint="promote-inline")
 
     print(f"\n  [PROMOTE-INLINE] Done", file=sys.stderr)
 

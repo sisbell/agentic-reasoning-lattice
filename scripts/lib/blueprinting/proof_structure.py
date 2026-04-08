@@ -60,6 +60,43 @@ def _label_from_filename(filename):
     return filename.replace(".md", "")
 
 
+def _parse_deps_from_table(table_path):
+    """Parse _table.md to build {label: [dep_labels]} from Status column."""
+    if not table_path.exists():
+        return {}
+
+    deps = {}
+    for line in table_path.read_text().split("\n"):
+        if not line.strip().startswith("|") or line.strip().startswith("| Label") or line.strip().startswith("|---"):
+            continue
+        cells = [c.strip() for c in line.split("|")]
+        if len(cells) < 5:
+            continue
+        label = cells[1].strip()
+        status = cells[4].strip() if len(cells) > 4 else cells[-2].strip()
+        # Extract label references from status: "from T1, T3", "corollary of T4", etc.
+        ref_labels = re.findall(r'\b([A-Z][A-Za-z0-9\-\.()]+)', status)
+        # Filter out status keywords
+        skip_words = {"from", "corollary", "of", "theorem", "lemma", "introduced",
+                      "axiom", "design", "requirement", "definition", "cited"}
+        ref_labels = [r for r in ref_labels if r.lower() not in skip_words]
+        deps[label] = ref_labels
+    return deps
+
+
+def _load_dep_context(prop_dir, dep_labels):
+    """Load dependency property file contents for context."""
+    sections = []
+    for dep_label in dep_labels:
+        # Try exact filename, then with parens removed
+        dep_file = prop_dir / (dep_label + ".md")
+        if not dep_file.exists():
+            dep_file = prop_dir / (dep_label.replace("(", "").replace(")", "") + ".md")
+        if dep_file.exists():
+            sections.append(f"### {dep_label}\n\n{dep_file.read_text().strip()}")
+    return "\n\n---\n\n".join(sections) if sections else "(no dependency files found)"
+
+
 def proof_structure(asn_num, label=None, dry_run=False):
     """Structure proofs in per-property blueprint files."""
     asn_path, asn_label = find_asn(str(asn_num))
@@ -76,6 +113,10 @@ def proof_structure(asn_num, label=None, dry_run=False):
     # Load vocabulary if available
     vocab_path = prop_dir / "_vocabulary.md"
     vocabulary = vocab_path.read_text() if vocab_path.exists() else "(no vocabulary file)"
+
+    # Load dependency map from table
+    table_path = prop_dir / "_table.md"
+    dep_map = _parse_deps_from_table(table_path)
 
     # Collect property files (skip _*.md structural files)
     prop_files = sorted(
@@ -126,13 +167,18 @@ def proof_structure(asn_num, label=None, dry_run=False):
 
         print(f"    {prop_label}...", end="", file=sys.stderr, flush=True)
 
+        # Load dependency context
+        dep_labels = dep_map.get(prop_label, [])
+        dep_context = _load_dep_context(prop_dir, dep_labels)
+
         prompt = (template
                   .replace("{{vocabulary}}", vocabulary)
-                  .replace("{{content}}", content))
+                  .replace("{{content}}", content)
+                  .replace("{{dependencies}}", dep_context))
 
         cmd = [
             "claude", "--print",
-            "--model", "claude-sonnet-4-6",
+            "--model", "claude-opus-4-6",
             "--tools", "",
         ]
 

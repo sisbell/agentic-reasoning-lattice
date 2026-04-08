@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """
-Blueprint — format normalization + name population + lint.
+Blueprint — format normalization + name population.
 
 Prepares a monolithic ASN for disassembly. Runs format review/revise,
-populates the Name column, commits, then lints for unformalized
-properties (content that should be declared but isn't).
+populates the Name column, and commits.
 
 Usage:
     python scripts/blueprint.py 34
@@ -19,11 +18,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.common import find_asn, step_commit_asn
 from lib.blueprinting.format import normalize_format
 from lib.blueprinting.names import step_populate_names
-from lib.blueprinting.lint import lint_unformalized
 
 
 def run_blueprint(asn_num):
-    """Run the blueprinting pipeline: format → names → commit → lint → commit."""
+    """Run the blueprinting pipeline: format → names → commit."""
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
         print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
@@ -41,28 +39,13 @@ def run_blueprint(asn_num):
     if not ok:
         return False
 
-    # 3. Lint for unformalized properties
-    findings = lint_unformalized(asn_num)
-
-    # 4. Commit format + names + lint report
+    # 3. Commit format + names
     step_commit_asn(asn_num, hint="blueprint")
 
-    # 5. Final status
-    if findings:
-        print(f"\n  [BLUEPRINT] Unformalized properties found.",
-              file=sys.stderr)
-        print(f"  Fix manually, then re-run blueprint.py.",
-              file=sys.stderr)
-        print(f"\n  Verify the ASN has been properly formatted before"
-              f" proceeding to disassembly.", file=sys.stderr)
-        return False
-    else:
-        print(f"\n  [BLUEPRINT] ASN is clean.",
-              file=sys.stderr)
-        print(f"  Verify the ASN has been properly formatted, then run:",
-              file=sys.stderr)
-        print(f"  python scripts/disassemble.py {asn_num}", file=sys.stderr)
-        return True
+    print(f"\n  [BLUEPRINT] Done. Next step:",
+          file=sys.stderr)
+    print(f"  python scripts/disassemble.py {asn_num}", file=sys.stderr)
+    return True
 
 
 def main():

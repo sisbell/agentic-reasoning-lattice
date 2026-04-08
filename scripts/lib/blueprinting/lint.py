@@ -649,7 +649,7 @@ def _extract_post_contract(content):
     return post_content if post_content else None
 
 
-def _scan_property_file(label, content):
+def _scan_property_file(label, content, model="claude-sonnet-4-6"):
     """Scan a property file for inline results. Returns list of findings."""
     template = SCAN_TEMPLATE.read_text()
     prompt = (template
@@ -657,7 +657,7 @@ def _scan_property_file(label, content):
               .replace("{{content}}", content))
 
     cmd = [
-        "claude", "--print", "--model", "claude-sonnet-4-6",
+        "claude", "--print", "--model", model,
     ]
     env = os.environ.copy()
     env.pop("CLAUDECODE", None)
@@ -693,8 +693,75 @@ def _scan_property_file(label, content):
     return findings, elapsed
 
 
-def lint_inline(asn_num, dry_run=False):
-    """Scan per-property blueprint files for embedded results."""
+def _parse_inline_report(report_path):
+    """Parse an existing inline lint report into {label: [findings]}."""
+    if not report_path.exists():
+        return {}
+
+    existing = {}
+    current_label = None
+    for line in report_path.read_text().split("\n"):
+        m = re.match(r'^## (.+)', line)
+        if m:
+            current_label = m.group(1).strip()
+            if current_label not in existing:
+                existing[current_label] = []
+            continue
+        if current_label and line.strip().startswith("- **"):
+            # Parse: - **kind** | label | name | description
+            parts = line.strip().lstrip("- ").split("|")
+            if len(parts) >= 4:
+                kind_raw = parts[0].strip()
+                kind = re.sub(r'\*\*', '', kind_raw).strip()
+                existing[current_label].append({
+                    "kind": kind,
+                    "label": parts[1].strip(),
+                    "name": parts[2].strip(),
+                    "description": parts[3].strip(),
+                })
+    return existing
+
+
+def _dedup_key(fd):
+    """Dedup key for a finding. Uses (kind, label) for actionable findings,
+    (kind, description) for commentary (which has no stable label)."""
+    if fd["kind"] in ("derived", "definition") and fd["label"] and fd["label"] != "—":
+        return (fd["kind"], fd["label"])
+    return (fd["kind"], fd["name"])
+
+
+def _merge_findings(existing, new_findings):
+    """Merge new findings into existing, deduplicating by stable keys."""
+    merged = {}
+    # Start with existing
+    for label, findings in existing.items():
+        merged[label] = list(findings)
+
+    new_count = 0
+    for label, findings in new_findings:
+        if label not in merged:
+            merged[label] = []
+        existing_keys = {_dedup_key(f) for f in merged[label]}
+        for fd in findings:
+            key = _dedup_key(fd)
+            if key not in existing_keys:
+                merged[label].append(fd)
+                existing_keys.add(key)
+                new_count += 1
+
+    # Remove labels with no actionable findings
+    merged = {label: findings for label, findings in merged.items()
+              if any(f["kind"] in ("derived", "definition") for f in findings)}
+
+    return merged, new_count
+
+
+def lint_inline(asn_num, dry_run=False, model="claude-sonnet-4-6"):
+    """Scan per-property blueprint files for embedded results.
+
+    Merges new findings with any existing report — findings accumulate
+    across runs rather than being overwritten.
+    """
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
         print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
@@ -735,40 +802,55 @@ def lint_inline(asn_num, dry_run=False):
     # Scan all candidates in parallel
     def _check_inline(item):
         label, f, content = item
-        findings, elapsed = _scan_property_file(label, content)
+        findings, elapsed = _scan_property_file(label, content, model=model)
         actionable = [fd for fd in findings if fd["kind"] in ("derived", "definition")]
         return label, findings if actionable else []
 
     from lib.shared.common import parallel_llm_calls
     results = parallel_llm_calls(candidates, _check_inline, max_workers=10)
 
-    all_findings = [(label, findings) for label, findings in results if findings]
+    new_findings = [(label, findings) for label, findings in results if findings]
 
-    # Write report
+    # Merge with existing report
     out_path = lint_path(asn_label, "inline")
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
+    existing = _parse_inline_report(out_path)
+    # Dedup existing report (may have accumulated duplicates from prior runs)
+    for label in existing:
+        seen = set()
+        deduped = []
+        for fd in existing[label]:
+            key = _dedup_key(fd)
+            if key not in seen:
+                deduped.append(fd)
+                seen.add(key)
+        existing[label] = deduped
+    merged, new_count = _merge_findings(existing, new_findings)
+
+    # Write merged report
     with open(out_path, "w") as rf:
         rf.write(f"# Inline Lint — {asn_label}\n\n")
-        rf.write(f"*Scanned: {time.strftime('%Y-%m-%d %H:%M')}*\n\n")
+        rf.write(f"*Last scanned: {time.strftime('%Y-%m-%d %H:%M')}*\n\n")
 
-        if not all_findings:
+        if not merged:
             rf.write("No embedded results found.\n")
         else:
-            for label, findings in all_findings:
+            for label in sorted(merged.keys()):
+                findings = merged[label]
                 rf.write(f"## {label}\n\n")
                 for fd in findings:
                     rf.write(f"- **{fd['kind']}** | {fd['label']} | "
                              f"{fd['name']} | {fd['description']}\n")
                 rf.write("\n")
 
-        rf.write(f"\n*{len(candidates)} files scanned ."
-                 f"{len(all_findings)} with embedded results.*\n")
+        rf.write(f"\n*{len(candidates)} files scanned. "
+                 f"{len(merged)} with embedded results.*\n")
 
     print(f"\n  [LINT-INLINE] Report: {out_path.relative_to(WORKSPACE)}",
           file=sys.stderr)
-    print(f"  [LINT-INLINE] {len(all_findings)} properties with embedded results",
-          file=sys.stderr)
+    print(f"  [LINT-INLINE] {len(merged)} properties with embedded results"
+          f" ({new_count} new)", file=sys.stderr)
 
     # Log usage
     try:
@@ -778,94 +860,16 @@ def lint_inline(asn_num, dry_run=False):
             "asn": asn_label,
             "elapsed_s": 0,
             "candidates": len(candidates),
-            "with_findings": len(all_findings),
+            "with_findings": len(merged),
+            "new_findings": new_count,
         }
         with open(USAGE_LOG, "a") as wf:
             wf.write(json.dumps(entry) + "\n")
     except OSError:
         pass
 
-    return str(out_path)
+    return new_count
 
-
-# ---------------------------------------------------------------------------
-# Unformalized lint (LLM scan of monolithic ASN for undeclared properties)
-# ---------------------------------------------------------------------------
-
-UNFORMALIZED_TEMPLATE = PROMPTS_DIR / "unformalized.md"
-
-
-def lint_unformalized(asn_num):
-    """Scan monolithic ASN for properties that exist in prose but aren't declared.
-
-    Uses sonnet to read the ASN and identify content that defines or asserts
-    a property but lacks a bold header and/or table entry.
-    Returns findings text (empty string if clean).
-    """
-    asn_path, asn_label = find_asn(str(asn_num))
-    if asn_path is None:
-        print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
-        return None
-
-    template = UNFORMALIZED_TEMPLATE.read_text()
-    asn_content = asn_path.read_text()
-    prompt = template.replace("{{asn_content}}", asn_content)
-
-    print(f"\n  [LINT-UNFORMALIZED] Scanning {asn_label}...", file=sys.stderr)
-
-    cmd = [
-        "claude", "--print", "--model", "claude-sonnet-4-6",
-    ]
-    env = os.environ.copy()
-    env.pop("CLAUDECODE", None)
-    env["CLAUDE_CODE_EFFORT_LEVEL"] = "high"
-
-    start = time.time()
-    result = subprocess.run(
-        cmd, input=prompt, capture_output=True, text=True, env=env,
-    )
-    elapsed = time.time() - start
-
-    if result.returncode != 0:
-        print(f"  [LINT-UNFORMALIZED] FAILED ({elapsed:.0f}s)", file=sys.stderr)
-        return None
-
-    text = result.stdout.strip()
-
-    # Write report
-    out_path = lint_path(asn_label, "unformalized")
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(f"# Unformalized Properties — {asn_label}\n\n"
-                        f"*Scanned: {time.strftime('%Y-%m-%d %H:%M')}*\n\n"
-                        f"{text}\n")
-
-    # Print to console
-    is_clean = "RESULT: CLEAN" in text
-    if is_clean:
-        print(f"  [LINT-UNFORMALIZED] CLEAN ({elapsed:.0f}s)", file=sys.stderr)
-    else:
-        print(f"  [LINT-UNFORMALIZED] Findings ({elapsed:.0f}s):", file=sys.stderr)
-        for line in text.strip().split("\n"):
-            if line.strip():
-                print(f"    {line.strip()}", file=sys.stderr)
-
-    print(f"  Report: {out_path.relative_to(WORKSPACE)}", file=sys.stderr)
-
-    # Log usage
-    try:
-        entry = {
-            "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
-            "skill": "lint-unformalized",
-            "asn": asn_label,
-            "elapsed_s": round(elapsed, 1),
-            "clean": is_clean,
-        }
-        with open(USAGE_LOG, "a") as f:
-            f.write(json.dumps(entry) + "\n")
-    except OSError:
-        pass
-
-    return "" if is_clean else text
 
 
 # ---------------------------------------------------------------------------
@@ -875,11 +879,32 @@ def lint_unformalized(asn_num):
 MISSING_TEMPLATE = PROMPTS_DIR / "missing.md"
 
 
-def lint_missing(asn_num):
+def _parse_missing_report(report_path):
+    """Parse existing missing lint report into {(source, missing_label): line}."""
+    if not report_path.exists():
+        return {}
+
+    existing = {}
+    for line in report_path.read_text().split("\n"):
+        m = re.match(r'^- \*\*(\S+)\*\*:\s*(MISSING:\s*\S+.*)', line.strip())
+        if m:
+            source = m.group(1)
+            ref_text = m.group(2).strip()
+            # Extract missing label from "MISSING: LABEL — context"
+            parts = ref_text.replace("MISSING:", "").strip().split("—")
+            missing_label = parts[0].strip() if parts else ""
+            key = (source, missing_label)
+            if key not in existing:
+                existing[key] = line.strip()
+    return existing
+
+
+def lint_missing(asn_num, model="claude-opus-4-6"):
     """Check per-property blueprint files for references to undeclared labels.
 
-    For each property file, sends content + declared labels to sonnet.
-    Returns list of (label, missing_refs) tuples. Empty list if clean.
+    Merges new findings with any existing report — findings accumulate
+    across runs. For each property file, sends content + declared labels
+    to LLM. Returns list of (label, missing_refs) tuples.
     """
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
@@ -933,7 +958,7 @@ def lint_missing(asn_num):
                   .replace("{{label}}", label)
                   .replace("{{content}}", content))
 
-        cmd = ["claude", "--print", "--model", "claude-opus-4-6"]
+        cmd = ["claude", "--print", "--model", model]
         env = os.environ.copy()
         env.pop("CLAUDECODE", None)
         env["CLAUDE_CODE_EFFORT_LEVEL"] = "high"
@@ -960,37 +985,39 @@ def lint_missing(asn_num):
         if refs:
             all_missing.append((label, refs))
 
-    # Write report
+    # Merge with existing report
     out_path = lint_path(asn_label, "missing")
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
+    existing = _parse_missing_report(out_path)
+
+    new_count = 0
+    for label, refs in all_missing:
+        for ref in refs:
+            parts = ref.replace("MISSING:", "").strip().split("—")
+            missing_label = parts[0].strip() if parts else ""
+            key = (label, missing_label)
+            if key not in existing:
+                existing[key] = f"- **{label}**: {ref}"
+                new_count += 1
+
+    # Write merged report
     with open(out_path, "w") as rf:
         rf.write(f"# Missing Dependencies — {asn_label}\n\n")
-        rf.write(f"*Scanned: {time.strftime('%Y-%m-%d %H:%M')}*\n\n")
+        rf.write(f"*Last scanned: {time.strftime('%Y-%m-%d %H:%M')}*\n\n")
 
-        if not all_missing:
+        if not existing:
             rf.write("No missing dependencies found.\n")
         else:
-            # Collect unique missing labels across all files
-            missing_labels = {}
-            for label, refs in all_missing:
-                for ref in refs:
-                    rf.write(f"- **{label}**: {ref}\n")
+            for key in sorted(existing.keys()):
+                rf.write(f"{existing[key]}\n")
             rf.write(f"\n*{len(prop_files)} files scanned.*\n")
 
     # Print summary
-    if all_missing:
-        # Deduplicate missing labels
-        unique_missing = set()
-        for _, refs in all_missing:
-            for ref in refs:
-                # Extract label from "MISSING: LABEL — context"
-                parts = ref.replace("MISSING:", "").strip().split("—")
-                if parts:
-                    unique_missing.add(parts[0].strip())
-
-        print(f"\n  [LINT-MISSING] {len(unique_missing)} undeclared label(s):",
-              file=sys.stderr)
+    unique_missing = set(k[1] for k in existing.keys())
+    if unique_missing:
+        print(f"\n  [LINT-MISSING] {len(unique_missing)} undeclared label(s)"
+              f" ({new_count} new):", file=sys.stderr)
         for m in sorted(unique_missing):
             print(f"    {m}", file=sys.stderr)
     else:
@@ -1013,7 +1040,7 @@ def lint_missing(asn_num):
     except OSError:
         pass
 
-    return all_missing
+    return new_count
 
 
 # ---------------------------------------------------------------------------
@@ -1042,18 +1069,21 @@ def main():
     sp_inline = subparsers.add_parser("inline",
         help="Scan blueprint files for embedded results to promote")
     sp_inline.add_argument("asn", help="ASN number (e.g., 34)")
+    sp_inline.add_argument("--cycles", type=int, default=3,
+        help="Number of scan cycles to run (default: 3)")
+    sp_inline.add_argument("--model", default="claude-sonnet-4-6",
+        help="Model to use (default: claude-sonnet-4-6)")
     sp_inline.add_argument("--dry-run", action="store_true",
         help="Show candidates without invoking Claude")
-
-    # unformalized subcommand
-    sp_unformalized = subparsers.add_parser("unformalized",
-        help="Scan monolithic ASN for undeclared properties (LLM)")
-    sp_unformalized.add_argument("asn", help="ASN number (e.g., 34)")
 
     # missing subcommand
     sp_missing = subparsers.add_parser("missing",
         help="Check blueprint files for references to undeclared labels (LLM)")
     sp_missing.add_argument("asn", help="ASN number (e.g., 34)")
+    sp_missing.add_argument("--cycles", type=int, default=3,
+        help="Number of scan cycles to run (default: 3)")
+    sp_missing.add_argument("--model", default="claude-opus-4-6",
+        help="Model to use (default: claude-opus-4-6)")
 
     args = parser.parse_args()
 
@@ -1067,20 +1097,23 @@ def main():
         lint_deps(asn_nums=args.asns if args.asns else None)
     elif args.command == "inline":
         asn_num = int(re.sub(r"[^0-9]", "", args.asn))
-        lint_inline(asn_num, dry_run=args.dry_run)
-        step_commit_asn(asn_num, hint="lint-inline")
-    elif args.command == "unformalized":
-        asn_num = int(re.sub(r"[^0-9]", "", args.asn))
-        findings = lint_unformalized(asn_num)
-        step_commit_asn(asn_num, hint="lint-unformalized")
-        if findings:
-            sys.exit(1)
+        if args.dry_run:
+            lint_inline(asn_num, dry_run=True)
+        else:
+            for cycle in range(1, args.cycles + 1):
+                print(f"\n  === Cycle {cycle}/{args.cycles} ===",
+                      file=sys.stderr)
+                new_count = lint_inline(asn_num, model=args.model)
+                if new_count > 0:
+                    step_commit_asn(asn_num, hint="lint-inline")
     elif args.command == "missing":
         asn_num = int(re.sub(r"[^0-9]", "", args.asn))
-        findings = lint_missing(asn_num)
-        step_commit_asn(asn_num, hint="lint-missing")
-        if findings:
-            sys.exit(1)
+        for cycle in range(1, args.cycles + 1):
+            print(f"\n  === Cycle {cycle}/{args.cycles} ===",
+                  file=sys.stderr)
+            new_count = lint_missing(asn_num, model=args.model)
+            if new_count > 0:
+                step_commit_asn(asn_num, hint="lint-missing")
 
 
 if __name__ == "__main__":

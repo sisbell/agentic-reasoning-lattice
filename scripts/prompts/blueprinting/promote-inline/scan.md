@@ -25,8 +25,10 @@ proof, and formal contract. Classify each distinct block as one of:
 - **commentary**: Design rationale, implementation notes, worked
   examples, or explanatory text. Should stay in place.
 
-Do NOT classify the main property statement, its proof, or its
-formal contract — those belong to the property.
+The main property is the one whose label matches the filename. Do NOT
+classify the main property's own statement, proof, or formal contract.
+If the file contains additional `**LABEL (Name).**` headers beyond the
+main property, each is an embedded result that should be classified.
 
 For derived and definition results, suggest a label and PascalCase name.
 

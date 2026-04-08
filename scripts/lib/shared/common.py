@@ -276,6 +276,8 @@ def step_commit_asn(asn_id, hint=""):
     patterns = [
         f"vault/1-reasoning-docs/{label}-*",
         f"vault/1-reasoning-docs-review/{label}/",
+        f"vault/2-blueprints/{label}/",
+        f"vault/3-formalization/{label}/",
         f"vault/0-consultations/{label}/",
         f"vault/project-model/{label}/",
         f"vault/6-examples/{label}/",

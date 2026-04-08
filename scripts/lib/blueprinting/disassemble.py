@@ -17,7 +17,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, blueprint_properties_dir
-from lib.shared.common import find_asn
+from lib.shared.common import find_asn, step_commit_asn
 
 
 def _extract_table(text):
@@ -220,6 +220,8 @@ def disassemble_asn(asn_num, dry_run=False):
 
     print(f"\n  [DISASSEMBLE] {written} property files, {flagged} flagged",
           file=sys.stderr)
+
+    step_commit_asn(asn_num, hint="disassemble")
 
     return True
 
