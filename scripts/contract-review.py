@@ -48,7 +48,8 @@ def _save_cache(path, data):
 
 
 def run_contract_review(asn_num, max_cycles=5, dry_run=False,
-                         single_label=None, validate_model="sonnet"):
+                         single_label=None, validate_model="sonnet",
+                         force=False):
     """Run contract review — validate and fix contracts.
 
     Returns "converged" or "not_converged".
@@ -73,7 +74,7 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
     vocabulary = vocab_path.read_text() if vocab_path.exists() else "(no vocabulary)"
 
     cache_path = prop_dir / "_contract-cache.json"
-    validated_hashes = _load_cache(cache_path)
+    validated_hashes = {} if force else _load_cache(cache_path)
 
     start_time = time.time()
     converged = False
@@ -224,6 +225,10 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
     elapsed = time.time() - start_time
     print(f"  Elapsed: {elapsed:.0f}s", file=sys.stderr)
 
+    # Commit any remaining review files (e.g. clean convergence cycle)
+    if had_findings:
+        step_commit_asn(asn_num, hint="contract-review")
+
     return "converged" if converged else "not_converged"
 
 
@@ -236,6 +241,8 @@ def main():
     parser.add_argument("--label", help="Review a single property only")
     parser.add_argument("--model", default="sonnet",
                         help="Model for validation (default: sonnet)")
+    parser.add_argument("--force", action="store_true",
+                        help="Ignore cache, re-validate all properties")
     parser.add_argument("--dry-run", action="store_true",
                         help="Report mismatches without fixing")
     args = parser.parse_args()
@@ -244,7 +251,8 @@ def main():
     result = run_contract_review(asn_num, max_cycles=args.max_cycles,
                                   dry_run=args.dry_run,
                                   single_label=args.label,
-                                  validate_model=args.model)
+                                  validate_model=args.model,
+                                  force=args.force)
     sys.exit(0 if result == "converged" else 1)
 
 

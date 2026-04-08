@@ -64,7 +64,7 @@ def _downstream_dependents(changed_labels, deps_data):
 
 
 def run_proof_review(asn_num, max_cycles=5, mode="incremental",
-                     dry_run=False, single_label=None):
+                     dry_run=False, single_label=None, force=False):
     """Run the proof review pipeline.
 
     Args:
@@ -94,7 +94,7 @@ def run_proof_review(asn_num, max_cycles=5, mode="incremental",
 
     # Load verification cache — skip properties unchanged since last VERIFIED
     cache_path = prop_dir / "_verify-cache.json"
-    verified_hashes = _load_verified_hashes(cache_path)
+    verified_hashes = {} if force else _load_verified_hashes(cache_path)
 
     start_time = time.time()
     all_findings = {}   # label → finding_text (latest)
@@ -266,9 +266,8 @@ def run_proof_review(asn_num, max_cycles=5, mode="incremental",
 
     print(f"  Elapsed: {elapsed:.0f}s", file=sys.stderr)
 
-    if had_findings and not dry_run and not converged and not single_label:
-        step_commit_asn(asn_num,
-                        f"proof-review(asn): {asn_label} — not converged")
+    if had_findings and not dry_run:
+        step_commit_asn(asn_num, hint="proof-review")
 
     return "converged" if converged else "not_converged"
 
@@ -283,6 +282,8 @@ def main():
                         default="incremental",
                         help="Convergence mode (default: incremental)")
     parser.add_argument("--label", help="Review a single property only")
+    parser.add_argument("--force", action="store_true",
+                        help="Ignore cache, re-verify all properties")
     parser.add_argument("--dry-run", action="store_true",
                         help="Verify only, don't fix")
     args = parser.parse_args()
@@ -290,7 +291,8 @@ def main():
     asn_num = int(re.sub(r"[^0-9]", "", args.asn))
     result = run_proof_review(asn_num, max_cycles=args.max_cycles,
                                mode=args.mode, dry_run=args.dry_run,
-                               single_label=args.label)
+                               single_label=args.label,
+                               force=args.force)
     sys.exit(0 if result == "converged" else 1)
 
 
