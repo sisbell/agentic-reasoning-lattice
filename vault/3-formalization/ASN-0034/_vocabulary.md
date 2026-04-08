@@ -1,0 +1,47 @@
+# Vocabulary — ASN-0034
+
+- **< (on T)** — lexicographic order: a < b iff ∃ k ≥ 1 with aᵢ = bᵢ for all i < k, and either (i) k ≤ min(m,n) ∧ aₖ < bₖ, or (ii) k = m+1 ≤ n
+- **D(t)** — document field of tumbler t, extracted via fields(t)
+- **E(t)** — element field of tumbler t, extracted via fields(t)
+- **N(t)** — node field of tumbler t, extracted via fields(t)
+- **S** — set of ordinals with all positive components: S = {o ∈ T : #o ≥ 1 ∧ (A i : 1 ≤ i ≤ #o : oᵢ > 0)}
+- **T** — the set of all tumblers (all finite sequences over ℕ with length ≥ 1)
+- **U(t)** — user field of tumbler t, extracted via fields(t)
+- **Z** — set of zero tumblers: Z = {t ∈ T : (A i : 1 ≤ i ≤ #t : tᵢ = 0)}
+- **action point** — least position k with wₖ > 0 (implying wᵢ = 0 for all i < k)
+- **allocated_before(a, b)** — predicate: a = tᵢ and b = tⱼ with i < j in the allocator's sequential output sequence
+- **componentwise comparison** — equality check on two finite sequences: same length and pairwise equal components
+- **d** — the difference n₂ − n₁, used to decompose the larger shift as a composition of two smaller shifts
+- **displacement from a to b** — the tumbler w = b ⊖ a; the unique w such that a ⊕ w = b
+- **div(a, w)** — divergence position: first index where the zero-padded sequences of a and w disagree
+- **divergence(a, b)** — the divergence of tumblers a, b ∈ T (a ≠ b): the index where they first differ, or min(#a,#b)+1 if one is a proper prefix of the other
+- **divergence(x, w)** — the first position at which the zero-padded sequences of x and w disagree
+- **document field** — D₁. ... .Dᵧ — the third field of an address tumbler, identifying the document and version
+- **dᵢ** — the i-th component of a tumbler t
+- **element field** — E₁. ... .Eδ — the fourth field of an address tumbler, identifying the content element
+- **element-local displacement** — a positive tumbler w with action point k satisfying 1 ≤ k ≤ m, operating on within-subspace ordinals only
+- **field separator** — a component with value zero; used as structural delimiter between address fields
+- **fields(t)** — function that extracts the node, user, document, and element fields from tumbler t
+- **first divergence position** — the least positive integer k at which two tumblers disagree — either aₖ ≠ bₖ at some k ≤ min(m,n), or one tumbler is exhausted at k = min(m,n)+1
+- **inc(t, k)** — hierarchical increment: when k = 0, increments position sig(t) by 1 (sibling); when k > 0, extends t by k positions with k−1 zero separators and final 1 (child creation)
+- **node field** — N₁. ... .Nₐ — the first field of an address tumbler, identifying the server
+- **non-empty field constraint** — each present field in a valid address tumbler has at least one component
+- **order-convex** — a set S is order-convex if for all a, c ∈ S and b ∈ T, a ≤ b ≤ c implies b ∈ S (synonym: contiguous)
+- **positive tumbler** — t > 0 iff at least one component is nonzero
+- **positive-component constraint** — every component of every field in a valid address tumbler is strictly positive (> 0)
+- **result-length identity** — #(a ⊕ w) = #w — the length of the sum equals the length of the displacement, not the start position
+- **same_allocator(a, b)** — predicate: both a and b appear in the same allocator's sequential sibling stream
+- **shift(v, n)** — ordinal shift: advances the deepest component of tumbler v by n, defined as v ⊕ δ(n, m) where m = #v
+- **sig(t)** — last significant position of tumbler t: max({i : 1 ≤ i ≤ #t ∧ tᵢ ≠ 0}) when any component is nonzero; #t when all components are zero
+- **span(s, ℓ)** — set of tumblers in range: {t ∈ T : s ≤ t < s ⊕ ℓ}, where s is start address and ℓ is a positive tumbler displacement
+- **t = d₁.d₂. ... .dₙ** — tumbler notation: a finite sequence of components where each dᵢ ∈ ℕ and n ≥ 1
+- **t > 0** — positive tumbler: t ∈ T is positive iff at least one component is nonzero — (E i : 1 ≤ i ≤ #t : tᵢ ≠ 0)
+- **tail replacement** — operation in tumbler addition where result components beyond the action point are copied from w: rᵢ = wᵢ for i > k
+- **user field** — U₁. ... .Uᵦ — the second field of an address tumbler, identifying the account
+- **zero tumbler** — a tumbler whose every component is zero — (A i : 1 ≤ i ≤ #t : tᵢ = 0)
+- **zero-padded-equal** — x is zero-padded-equal to w when zero-padding both to the same length yields identical sequences (no divergence position exists)
+- **zeros(t)** — number of zero-valued field-separator components in tumbler t: #{i : tᵢ = 0}
+- **δ(n, m)** — ordinal displacement: tumbler [0, 0, ..., 0, n] of length m with action point m
+- **δₙ** — shorthand for δ(n, m) when depth m is determined by context (typically m = #v)
+- **⊕** — tumbler addition: given start position a and displacement w, computes the advanced position a ⊕ w
+- **⊖** — tumbler subtraction: given two positions, compute the displacement between them
