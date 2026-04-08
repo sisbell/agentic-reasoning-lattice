@@ -1,5 +1,3 @@
-### Partial inverse
-
 **TA4 (PartialInverse).** `(A a, w : w > 0 ∧ k = #a ∧ #w = k ∧ (A i : 1 ≤ i < k : aᵢ = 0) : (a ⊕ w) ⊖ w = a)`, where `k` is the action point of `w`.
 
 The precondition has three parts. First, `k = #a` — the action point falls at the last component of `a`. This is necessary because addition replaces `a`'s trailing structure below the action point with `w`'s trailing structure (tail replacement, defined below). When `k < #a`, components `aₖ₊₁, ..., a_{#a}` are discarded by addition and cannot be recovered by subtraction. Concretely: `[1, 5] ⊕ [1, 3] = [2, 3]` (action point 1, position 2 replaced by `w`'s trailing `3`), then `[2, 3] ⊖ [1, 3] = [1, 3] ≠ [1, 5]`.
@@ -12,7 +10,7 @@ When all three conditions hold, recovery is exact. The restriction is not a defi
 
 *Proof.* We show that under the stated preconditions, the round-trip `(a ⊕ w) ⊖ w` recovers `a` exactly. Throughout, `k` denotes the action point of `w` — the least position `i` with `wᵢ > 0` — so by definition `wᵢ = 0` for all `i < k` and `wₖ > 0`.
 
-**Step 1: the structure of `r = a ⊕ w`.** By TumblerAdd, the result `r` is built in three regions relative to the action point: `rᵢ = aᵢ` for `i < k` (prefix copy), `rₖ = aₖ + wₖ` (single-component advance), and `rᵢ = wᵢ` for `i > k` (tail copy from displacement). We determine each region under the preconditions.
+**Step 1: the structure of `r = a ⊕ w`.** By TumblerAdd (applicable since `k = #a` gives `k ≤ #a`, satisfying TA0's precondition), the result `r` is built in three regions relative to the action point: `rᵢ = aᵢ` for `i < k` (prefix copy), `rₖ = aₖ + wₖ` (single-component advance), and `rᵢ = wᵢ` for `i > k` (tail copy from displacement). We determine each region under the preconditions.
 
 For `i < k`: the precondition `(A i : 1 ≤ i < k : aᵢ = 0)` gives `rᵢ = aᵢ = 0`.
 
@@ -26,7 +24,7 @@ Therefore `r = [0, ..., 0, aₖ + wₖ]` — a tumbler of length `k` with zeros 
 
 Two cases arise at position `k`, exhausting all possibilities for `aₖ ∈ ℕ`.
 
-*Case 1: `aₖ > 0`.* Then `rₖ = aₖ + wₖ > wₖ` (since `aₖ > 0`), so `rₖ ≠ wₖ` and the first divergence is at position `k`. TumblerSub produces: `sᵢ = 0` for `i < k` (zeroing pre-divergence positions), `sₖ = rₖ - wₖ = (aₖ + wₖ) - wₖ = aₖ` (reversing the advance), and `sᵢ = rᵢ` for `i > k` (tail copy). Since `#r = k`, there are no positions beyond `k`, so the tail-copy region contributes nothing. The result length is `max(#r, #w) = k`, giving `s = [0, ..., 0, aₖ]` of length `k`. By the precondition, `aᵢ = 0` for all `i < k` and `#a = k`, so `s = a`.
+*Case 1: `aₖ > 0`.* Then `rₖ = aₖ + wₖ > wₖ` (since `aₖ > 0`), so `rₖ ≠ wₖ` and the first divergence is at position `k`. Since `rₖ > wₖ`, TumblerSub's precondition `rₖ ≥ wₖ` at the divergence point is satisfied. TumblerSub produces: `sᵢ = 0` for `i < k` (zeroing pre-divergence positions), `sₖ = rₖ - wₖ = (aₖ + wₖ) - wₖ = aₖ` (reversing the advance), and `sᵢ = rᵢ` for `i > k` (tail copy). Since `#r = k`, there are no positions beyond `k`, so the tail-copy region contributes nothing. The result length is `max(#r, #w) = k`, giving `s = [0, ..., 0, aₖ]` of length `k`. By the precondition, `aᵢ = 0` for all `i < k` and `#a = k`, so `s = a`.
 
 *Case 2: `aₖ = 0`.* Every component of `a` is zero: `aᵢ = 0` for `i < k` by precondition, and `aₖ = 0` by the case hypothesis, so `a` is the zero tumbler of length `k`. The addition gives `rₖ = 0 + wₖ = wₖ`. Combined with `rᵢ = 0 = wᵢ` for `i < k` and `#r = k = #w`, this yields `r = w`. Now `s = r ⊖ w = w ⊖ w`: the sequences agree at every position, so no divergence exists and TumblerSub yields the zero tumbler of length `max(#w, #w) = k`. This zero tumbler of length `k` is exactly `a`.
 
