@@ -75,6 +75,21 @@ def _promote_one(prop_file, label, findings, vocabulary, table):
         return None, elapsed
 
     new_content = result.stdout.strip()
+
+    # Strip tool_call markup if LLM leaked it
+    if "<tool_call>" in new_content:
+        import json as _json
+        try:
+            tc_start = new_content.index('{"name"')
+            tc_end = new_content.index("</tool_call>")
+            tc_data = _json.loads(new_content[tc_start:tc_end].strip())
+            extracted = tc_data.get("arguments", {}).get("content", "")
+            if extracted:
+                new_content = extracted
+                print(f"    (extracted from tool_call)", file=sys.stderr)
+        except (ValueError, _json.JSONDecodeError):
+            pass
+
     if len(new_content) < len(content) * 0.5:
         print(f"    REJECTED (output too short)", file=sys.stderr)
         return None, elapsed
@@ -141,76 +156,74 @@ def _format_one(prop_file):
 
 
 def _disassemble_one(prop_file, blueprint_dir):
-    """Disassemble a property file that contains multiple properties into separate files."""
+    """Mechanically split a property file at --- markers into separate files."""
     content = prop_file.read_text()
 
-    # Check if file actually has multiple property headers
-    headers = re.findall(r'^\*\*\S+.*?\.\*\*', content, re.MULTILINE)
-    if len(headers) <= 1:
-        print(f"    [DISASSEMBLE] Single property — no split needed", file=sys.stderr)
+    # Split on --- markers
+    chunks = re.split(r'\n---\n', content)
+    if len(chunks) <= 1:
+        print(f"    [DISASSEMBLE] No --- markers — single property", file=sys.stderr)
         return []
 
-    template = DISASSEMBLE_TEMPLATE.read_text()
-    rel_dir = blueprint_dir.relative_to(WORKSPACE)
-
-    prompt = (template
-              .replace("{{asn_path}}", str(prop_file.relative_to(WORKSPACE)))
-              .replace("{{output_dir}}", str(rel_dir)))
-
-    print(f"    [DISASSEMBLE] {len(headers)} properties in file...",
-          file=sys.stderr)
-
-    cmd = [
-        "claude", "-p",
-        "--model", "claude-sonnet-4-6",
-        "--output-format", "json",
-        "--allowedTools", "Read,Write,Glob",
-    ]
-
-    env = os.environ.copy()
-    env.pop("CLAUDECODE", None)
-    env["CLAUDE_CODE_EFFORT_LEVEL"] = "max"
-
-    start = time.time()
-    result = subprocess.run(
-        cmd, input=prompt, capture_output=True, text=True, env=env,
-        cwd=str(WORKSPACE),
-    )
-    elapsed = time.time() - start
-
-    if result.returncode != 0:
-        print(f"    [DISASSEMBLE] FAILED ({elapsed:.0f}s)", file=sys.stderr)
-        return []
-
-    # Find new files created (files in blueprint_dir that weren't there before)
     new_files = []
-    for f in blueprint_dir.glob("*.md"):
-        if f != prop_file and not f.name.startswith("_"):
-            new_files.append(f.name)
+    source_label = prop_file.name.replace(".md", "")
 
-    print(f"    [DISASSEMBLE] Done ({elapsed:.0f}s)", file=sys.stderr)
+    for i, chunk in enumerate(chunks):
+        stripped = chunk.strip()
+        if not stripped:
+            continue
+
+        if i == 0:
+            # First chunk is the source property — overwrite the file
+            prop_file.write_text(stripped + "\n")
+            continue
+
+        # Extract label from header
+        m = re.match(r'^\*\*(\S+)\s*\(', stripped)
+        if not m:
+            m = re.match(r'^\*\*Definition\s*\(([^)]+)\)', stripped)
+        if m:
+            label = m.group(1)
+            filename = label.replace("(", "").replace(")", "") + ".md"
+        else:
+            filename = f"{source_label}-part{i}.md"
+
+        out_path = blueprint_dir / filename
+        out_path.write_text(stripped + "\n")
+        new_files.append(filename)
+        print(f"    [DISASSEMBLE] Created {filename}", file=sys.stderr)
+
     return new_files
 
 
-def _update_table(blueprint_dir, findings):
-    """Append new property entries to _table.md."""
+def _split_table_marker(output, blueprint_dir):
+    """Split LLM output at === TABLE === marker, append rows to _table.md.
+
+    Returns the file content (everything before the marker).
+    """
     table_path = blueprint_dir / "_table.md"
-    if not table_path.exists():
-        return
 
-    derived = [f for f in findings if f["kind"] == "derived"]
-    if not derived:
-        return
+    if "=== TABLE ===" not in output:
+        return output
 
-    lines = table_path.read_text().rstrip().split("\n")
-    for f in derived:
-        label = f["label"]
-        name = f["name"]
-        desc = f["description"]
-        lines.append(f"| {label} | {name} | {desc} | introduced |")
+    parts = output.split("=== TABLE ===", 1)
+    content = parts[0].strip()
+    table_section = parts[1].strip() if len(parts) > 1 else ""
 
-    table_path.write_text("\n".join(lines) + "\n")
-    print(f"    [TABLE] Added {len(derived)} entries", file=sys.stderr)
+    # Extract table rows (skip header and separator lines)
+    new_rows = []
+    for line in table_section.split("\n"):
+        stripped = line.strip()
+        if stripped.startswith("|") and not re.match(r'\|\s*Label\s*\|', stripped) and not re.match(r'\|\s*-', stripped):
+            new_rows.append(stripped)
+
+    if new_rows and table_path.exists():
+        existing = table_path.read_text().rstrip().split("\n")
+        existing.extend(new_rows)
+        table_path.write_text("\n".join(existing) + "\n")
+        print(f"    [TABLE] Added {len(new_rows)} entries", file=sys.stderr)
+
+    return content
 
 
 def main():
@@ -252,14 +265,11 @@ def main():
     if args.label:
         prop_files = [f for f in prop_files if f.name.replace(".md", "") == args.label]
 
-    # Scan for candidates (mechanical pre-filter + LLM scan)
+    # Scan for candidates
     candidates = []
     for f in prop_files:
         content = f.read_text()
-        if len(content) < 500:
-            continue
-        post = _extract_post_contract(content)
-        if not post:
+        if not content.strip():
             continue
 
         label = f.name.replace(".md", "")
@@ -297,6 +307,9 @@ def main():
             prop_file, label, findings, vocabulary, table)
         if new_content is None:
             continue
+
+        # Split at === TABLE === marker, append rows to _table.md
+        new_content = _split_table_marker(new_content, blueprint_dir)
         prop_file.write_text(new_content + "\n")
 
         # Step 2: Format (fix labels, headers)
@@ -304,9 +317,6 @@ def main():
 
         # Step 3: Disassemble (split file into separate property files)
         new_files = _disassemble_one(prop_file, blueprint_dir)
-
-        # Step 4: Update table
-        _update_table(blueprint_dir, findings)
 
         # Reload table for next iteration
         if table_path.exists():

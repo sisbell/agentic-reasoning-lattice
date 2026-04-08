@@ -115,9 +115,12 @@ The same label appearing more than once in the property table.
 
 ### 7. Missing Boundary Markers
 Each property or definition bold header (except the very first in the ASN)
-must be preceded by a horizontal rule (`---`) on its own line. This marks
-property boundaries for downstream disassembly. Do not require `---` before
-`##` section headers or inside worked example sections.
+AND each `##` or `###` section header must be preceded by a horizontal
+rule (`---`) on its own line. This marks boundaries for downstream
+disassembly. Do not require `---` before the very first property, or
+between lines inside the worked example section (the `## Worked example`
+header itself should have `---` before it, but the property-label
+sub-headers within the worked example should not).
 
 ## Output Format
 

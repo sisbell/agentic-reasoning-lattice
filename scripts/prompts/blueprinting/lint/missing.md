@@ -24,6 +24,10 @@ A citation is a reference like "by T0", "from T3", "per TA5",
 "using TumblerAdd" — where the label is used as a justification
 or dependency, not just mentioned in passing.
 
+Labels must match exactly as written. A reference to one label is not
+satisfied by a different label that happens to share a prefix or look
+similar. Each distinct label is its own property.
+
 ## Output
 
 For each missing label, write one line:

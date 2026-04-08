@@ -137,35 +137,34 @@ def lint_status(asn_num, dry_run=False):
         f.write("| Label | Current Status | Recommendation | Reason |\n")
         f.write("|-------|---------------|----------------|--------|\n")
 
-    total_elapsed = 0
-    changes = 0
-
-    for i, prop in enumerate(properties, 1):
+    def _check_status(prop):
         label = prop["label"]
         status = prop["status"]
         section = sections.get(label, "(no section found)")
-
-        print(f"  [{i}/{len(properties)}] {label}...",
-              end="", file=sys.stderr, flush=True)
-
         rec, reason, elapsed = _classify_one(label, status, section)
-        total_elapsed += elapsed
+        return label, (status, rec, reason)
 
+    from lib.shared.common import parallel_llm_calls
+    results = parallel_llm_calls(properties, _check_status, max_workers=10)
+
+    changes = 0
+    rows = []
+    for label, data in results:
+        if data is None:
+            continue
+        status, rec, reason = data
         marker = ""
         if rec not in ("ok", "error"):
             if rec != status.lower():
                 marker = " **"
                 changes += 1
-
-        row = f"| {label} | {status} | {rec}{marker} | {reason} |"
-        print(f" → {rec} ({elapsed:.0f}s)", file=sys.stderr)
-
-        with open(out_path, "a") as f:
-            f.write(row + "\n")
+        rows.append(f"| {label} | {status} | {rec}{marker} | {reason} |")
 
     with open(out_path, "a") as f:
-        f.write(f"\n*{len(properties)} properties audited in "
-                f"{total_elapsed:.0f}s. {changes} recommended changes.*\n")
+        for row in rows:
+            f.write(row + "\n")
+        f.write(f"\n*{len(properties)} properties audited. "
+                f"{changes} recommended changes.*\n")
 
     # Log usage
     try:
@@ -173,7 +172,7 @@ def lint_status(asn_num, dry_run=False):
             "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
             "skill": "lint-status",
             "asn": asn_label,
-            "elapsed_s": round(total_elapsed, 1),
+            "elapsed_s": 0,
             "properties": len(properties),
             "changes": changes,
         }
@@ -706,53 +705,44 @@ def lint_inline(asn_num, dry_run=False):
         print(f"  No blueprint directory for {asn_label}", file=sys.stderr)
         return None
 
-    # Collect property files (skip _*.md structural files)
+    # Collect all files — property files AND structural files
+    # (except _table.md, _preamble.md, _vocabulary.md which are metadata)
+    skip_structural = {"_table.md", "_preamble.md", "_vocabulary.md"}
     prop_files = sorted(
         f for f in prop_dir.glob("*.md")
-        if not f.name.startswith("_")
+        if f.name not in skip_structural
     )
 
-    print(f"  [LINT-INLINE] {asn_label}: {len(prop_files)} property files",
+    print(f"  [LINT-INLINE] {asn_label}: {len(prop_files)} files to scan",
           file=sys.stderr)
 
-    # Mechanical pre-filter: check for post-contract content
     candidates = []
     for f in prop_files:
         content = f.read_text()
-        if len(content) < _INLINE_MIN_SIZE:
+        if not content.strip():
             continue
-        post = _extract_post_contract(content)
-        if post:
-            label = f.name.replace(".md", "")
-            candidates.append((label, f, content, len(post)))
+        label = f.name.replace(".md", "")
+        candidates.append((label, f, content))
 
-    print(f"  [LINT-INLINE] {len(candidates)} files with post-contract content",
+    print(f"  [LINT-INLINE] {len(candidates)} files to scan",
           file=sys.stderr)
 
     if dry_run:
-        for label, f, content, post_size in candidates:
-            print(f"    {label:30s} {len(content):6d}B  post-contract: {post_size}B",
-                  file=sys.stderr)
+        for label, f, content in candidates:
+            print(f"    {label:30s} {len(content):6d}B", file=sys.stderr)
         return None
 
-    # Scan candidates with sonnet
-    all_findings = []
-    total_elapsed = 0
-
-    for label, f, content, _ in candidates:
-        print(f"    {label}...", end="", file=sys.stderr, flush=True)
+    # Scan all candidates in parallel
+    def _check_inline(item):
+        label, f, content = item
         findings, elapsed = _scan_property_file(label, content)
-        total_elapsed += elapsed
+        actionable = [fd for fd in findings if fd["kind"] in ("derived", "definition")]
+        return label, findings if actionable else []
 
-        derived = [fd for fd in findings if fd["kind"] == "derived"]
-        commentary = [fd for fd in findings if fd["kind"] == "commentary"]
+    from lib.shared.common import parallel_llm_calls
+    results = parallel_llm_calls(candidates, _check_inline, max_workers=10)
 
-        if derived:
-            print(f" {len(derived)} derived, {len(commentary)} commentary ({elapsed:.0f}s)",
-                  file=sys.stderr)
-            all_findings.append((label, findings))
-        else:
-            print(f" clean ({elapsed:.0f}s)", file=sys.stderr)
+    all_findings = [(label, findings) for label, findings in results if findings]
 
     # Write report
     out_path = lint_path(asn_label, "inline")
@@ -772,7 +762,7 @@ def lint_inline(asn_num, dry_run=False):
                              f"{fd['name']} | {fd['description']}\n")
                 rf.write("\n")
 
-        rf.write(f"\n*{len(candidates)} files scanned in {total_elapsed:.0f}s. "
+        rf.write(f"\n*{len(candidates)} files scanned ."
                  f"{len(all_findings)} with embedded results.*\n")
 
     print(f"\n  [LINT-INLINE] Report: {out_path.relative_to(WORKSPACE)}",
@@ -786,7 +776,7 @@ def lint_inline(asn_num, dry_run=False):
             "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
             "skill": "lint-inline",
             "asn": asn_label,
-            "elapsed_s": round(total_elapsed, 1),
+            "elapsed_s": 0,
             "candidates": len(candidates),
             "with_findings": len(all_findings),
         }
@@ -928,54 +918,47 @@ def lint_missing(asn_num):
     print(f"\n  [LINT-MISSING] {asn_label}: {len(prop_files)} property files, "
           f"{len(declared_labels)} declared labels", file=sys.stderr)
 
-    all_missing = []
-    total_elapsed = 0
-
+    # Filter to files worth scanning
+    candidates = []
     for f in prop_files:
+        content = f.read_text()
+        if len(content.strip()) >= 100:
+            candidates.append(f)
+
+    def _check_one(f):
         label = f.name.replace(".md", "")
         content = f.read_text()
-
-        if len(content.strip()) < 100:
-            continue
-
         prompt = (template
                   .replace("{{declared_labels}}", declared_str)
                   .replace("{{label}}", label)
                   .replace("{{content}}", content))
 
-        print(f"    {label}...", end="", file=sys.stderr, flush=True)
-
-        cmd = [
-            "claude", "--print", "--model", "claude-sonnet-4-6",
-        ]
+        cmd = ["claude", "--print", "--model", "claude-opus-4-6"]
         env = os.environ.copy()
         env.pop("CLAUDECODE", None)
         env["CLAUDE_CODE_EFFORT_LEVEL"] = "high"
 
-        start = time.time()
         result = subprocess.run(
             cmd, input=prompt, capture_output=True, text=True, env=env,
         )
-        elapsed = time.time() - start
-        total_elapsed += elapsed
-
         if result.returncode != 0:
-            print(f" error ({elapsed:.0f}s)", file=sys.stderr)
-            continue
+            return label, None
 
         text = result.stdout.strip()
-
         if "RESULT: CLEAN" in text:
-            print(f" clean ({elapsed:.0f}s)", file=sys.stderr)
-        else:
-            missing_refs = [line.strip() for line in text.split("\n")
-                           if line.strip().startswith("MISSING:")]
-            if missing_refs:
-                print(f" {len(missing_refs)} missing ({elapsed:.0f}s)",
-                      file=sys.stderr)
-                all_missing.append((label, missing_refs))
-            else:
-                print(f" clean ({elapsed:.0f}s)", file=sys.stderr)
+            return label, []
+
+        missing_refs = [line.strip() for line in text.split("\n")
+                       if line.strip().startswith("MISSING:")]
+        return label, missing_refs
+
+    from lib.shared.common import parallel_llm_calls
+    results = parallel_llm_calls(candidates, _check_one, max_workers=10)
+
+    all_missing = []
+    for label, refs in results:
+        if refs:
+            all_missing.append((label, refs))
 
     # Write report
     out_path = lint_path(asn_label, "missing")
@@ -993,7 +976,7 @@ def lint_missing(asn_num):
             for label, refs in all_missing:
                 for ref in refs:
                     rf.write(f"- **{label}**: {ref}\n")
-            rf.write(f"\n*{len(prop_files)} files scanned in {total_elapsed:.0f}s.*\n")
+            rf.write(f"\n*{len(prop_files)} files scanned.*\n")
 
     # Print summary
     if all_missing:
@@ -1021,7 +1004,7 @@ def lint_missing(asn_num):
             "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
             "skill": "lint-missing",
             "asn": asn_label,
-            "elapsed_s": round(total_elapsed, 1),
+            "elapsed_s": 0,
             "files_scanned": len(prop_files),
             "missing_count": len(all_missing),
         }
@@ -1074,22 +1057,28 @@ def main():
 
     args = parser.parse_args()
 
+    from lib.shared.common import step_commit_asn
+
     if args.command == "status":
         asn_num = int(re.sub(r"[^0-9]", "", args.asn))
         lint_status(asn_num, dry_run=args.dry_run)
+        step_commit_asn(asn_num, hint="lint-status")
     elif args.command == "deps":
         lint_deps(asn_nums=args.asns if args.asns else None)
     elif args.command == "inline":
         asn_num = int(re.sub(r"[^0-9]", "", args.asn))
         lint_inline(asn_num, dry_run=args.dry_run)
+        step_commit_asn(asn_num, hint="lint-inline")
     elif args.command == "unformalized":
         asn_num = int(re.sub(r"[^0-9]", "", args.asn))
         findings = lint_unformalized(asn_num)
+        step_commit_asn(asn_num, hint="lint-unformalized")
         if findings:
             sys.exit(1)
     elif args.command == "missing":
         asn_num = int(re.sub(r"[^0-9]", "", args.asn))
         findings = lint_missing(asn_num)
+        step_commit_asn(asn_num, hint="lint-missing")
         if findings:
             sys.exit(1)
 

@@ -143,6 +143,43 @@ def log_usage(skill, elapsed, **extra):
         pass
 
 
+def parallel_llm_calls(items, worker_fn, max_workers=10):
+    """Run LLM calls in parallel over a list of items.
+
+    worker_fn(item) → (label, result) — called in thread pool.
+    Returns list of (label, result) in original item order.
+    Prints progress with thread-safe locking.
+    """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    import threading
+
+    print_lock = threading.Lock()
+    results = {}  # index → (label, result)
+
+    def _wrapped(idx, item):
+        label, result = worker_fn(item)
+        with print_lock:
+            print(f"    {label}...", file=sys.stderr)
+        return idx, label, result
+
+    with ThreadPoolExecutor(max_workers=max_workers) as pool:
+        futures = {
+            pool.submit(_wrapped, i, item): i
+            for i, item in enumerate(items)
+        }
+        for future in as_completed(futures):
+            try:
+                idx, label, result = future.result()
+                results[idx] = (label, result)
+            except Exception as e:
+                idx = futures[future]
+                print(f"    [ERROR] item {idx}: {e}", file=sys.stderr)
+                results[idx] = ("?", None)
+
+    # Return in original order
+    return [results[i] for i in sorted(results.keys())]
+
+
 def extract_property_sections(asn_text, known_labels=None, truncate=True):
     """Extract the derivation text for each property.
 

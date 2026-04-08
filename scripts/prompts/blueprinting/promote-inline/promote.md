@@ -52,5 +52,25 @@ statement must be justified in the sentence that introduces it.
 
 Return the complete rewritten file. The file will contain the source
 property (with citations replacing inline proofs) followed by the new
-property sections. Nothing else — no preamble, no explanation, no
-markdown fences. Just the file content.
+property sections. Place a `---` boundary marker on its own line
+between each property section.
+
+After the file content, write a `=== TABLE ===` marker on its own line,
+then one table row per new property:
+
+| Label | Name | Statement | Status |
+
+Where:
+- **Label**: the new property's label (e.g., T10a-C1)
+- **Name**: PascalCase identifier (e.g., UniformSiblingLength)
+- **Statement**: one-line summary of what the property establishes
+- **Status**: one of the standard vocabulary terms:
+  - `corollary of LABEL1, LABEL2` — derived directly from listed properties
+  - `from LABEL1, LABEL2` — follows from listed properties
+  - `theorem from LABEL1, LABEL2` — theorem derived from listed properties
+  - `lemma (from LABEL1, LABEL2)` — lemma derived from listed properties
+  - `introduced` — new property in this ASN
+  - `axiom` — fundamental assertion, not derived
+  - `design requirement` — imposed by design, not derived
+
+Nothing else — no preamble, no explanation, no markdown fences.
