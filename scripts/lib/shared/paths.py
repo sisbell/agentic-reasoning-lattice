@@ -148,38 +148,6 @@ def lint_global_path(kind):
     return blueprint_global_lint_dir() / f"{kind}.md"
 
 
-def next_modeling_number(asn_label):
-    """Find the next Dafny modeling number for this ASN."""
-    asn_dir = DAFNY_DIR / asn_label
-    if not asn_dir.exists():
-        return 1
-    nums = []
-    for p in asn_dir.glob("modeling-*"):
-        m = re.search(r"modeling-(\d+)$", p.name)
-        if m:
-            nums.append(int(m.group(1)))
-    return max(nums, default=0) + 1
-
-
-def find_latest_modeling_dir(asn_label):
-    """Find the latest Dafny modeling directory for an ASN.
-
-    Returns the path to the latest modeling-N dir, or None.
-    """
-    asn_dir = DAFNY_DIR / asn_label
-    if not asn_dir.exists():
-        return None
-    gen_dirs = []
-    for p in asn_dir.glob("modeling-*"):
-        m = re.search(r"modeling-(\d+)$", p.name)
-        if m:
-            gen_dirs.append((int(m.group(1)), p))
-    if not gen_dirs:
-        return None
-    gen_dirs.sort()
-    return gen_dirs[-1][1]
-
-
 def load_manifest(asn_id):
     """Load a manifest file for an ASN. Returns dict or empty dict."""
     path = project_yaml(asn_id)
@@ -188,55 +156,6 @@ def load_manifest(asn_id):
             return yaml.safe_load(f) or {}
     except FileNotFoundError:
         return {}
-
-
-def check_dafny_module_coverage(asn_num):
-    """Verify every formal-statements label appears in exactly one dafny_modules bucket.
-
-    Returns list of error strings (empty = pass).
-    """
-    # Load bucket mapping
-    manifest = load_manifest(asn_num)
-    dafny_modules = manifest.get("modeling", {}).get("dafny_modules", {})
-    if not dafny_modules:
-        return []
-
-    # Parse formal-statements labels
-    stmts_path = formal_stmts(asn_num)
-    if not stmts_path.exists():
-        return [f"formal-statements.md not found at {stmts_path}"]
-
-    stmts_labels = []
-    for line in stmts_path.read_text().split("\n"):
-        m = re.match(r'^##\s+(.+?)\s+\u2014\s+', line)
-        if m:
-            stmts_labels.append(m.group(1))
-
-    if not stmts_labels:
-        return ["No property labels found in formal-statements.md"]
-
-    # Build label → module mapping, detect duplicates
-    label_to_module = {}
-    errors = []
-    for module, labels in dafny_modules.items():
-        for label in labels:
-            label = str(label)
-            if label in label_to_module:
-                errors.append(
-                    f"Duplicate: {label} in both {label_to_module[label]} and {module}")
-            label_to_module[label] = module
-
-    # Missing: in formal-statements but not in any bucket
-    stmts_set = set(stmts_labels)
-    bucket_set = set(label_to_module.keys())
-    for label in sorted(stmts_set - bucket_set):
-        errors.append(f"Missing from buckets: {label}")
-
-    # Extra: in a bucket but not in formal-statements
-    for label in sorted(bucket_set - stmts_set):
-        errors.append(f"Not in formal-statements: {label}")
-
-    return errors
 
 
 def load_excluded_covers(asn_id):

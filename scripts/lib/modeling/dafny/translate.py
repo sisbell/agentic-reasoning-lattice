@@ -17,8 +17,9 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
-from lib.shared.paths import (WORKSPACE, PROOFS_DIR, USAGE_LOG,
-                    load_manifest, formal_stmts)
+from lib.shared.paths import (WORKSPACE, FORMALIZATION_DIR, PROOFS_DIR, USAGE_LOG,
+                    load_manifest)
+from lib.shared.common import find_asn, assemble_readonly
 from lib.modeling.dafny.common import read_file
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "modeling" / "dafny"
@@ -27,23 +28,30 @@ DAFNY_REFERENCE = PROMPTS_DIR / "dafny-reference.dfy"
 
 
 def build_property_list_from_asn(asn_num):
-    """Build property list from ASN table + formal contracts.
+    """Build property list from per-property files in vault/3-formalization/.
 
-    Reads the property table for labels/status, and formal-statements.md
-    for contract types.
+    Reads _table.md for labels/status, per-property files for contract types.
 
     Returns list of row dicts with keys: label, proof_label, type, construct, notes.
     """
-    from lib.shared.common import find_asn, extract_property_sections
     from lib.formalization.core.build_dependency_graph import (find_property_table, parse_table_row,
                                               detect_columns)
 
-    asn_path, asn_label = find_asn(str(asn_num))
-    if asn_path is None:
+    _, asn_label = find_asn(str(asn_num))
+    if asn_label is None:
         return []
 
-    text = asn_path.read_text()
-    table_rows = find_property_table(text)
+    prop_dir = FORMALIZATION_DIR / asn_label
+    if not prop_dir.exists():
+        return []
+
+    # Read table
+    table_path = prop_dir / "_table.md"
+    if not table_path.exists():
+        return []
+
+    table_text = table_path.read_text()
+    table_rows = find_property_table(table_text)
     if table_rows is None:
         return []
 
@@ -53,38 +61,11 @@ def build_property_list_from_asn(asn_num):
     has_type = "type" in cols
     data_rows = table_rows[2:]
 
-    # Load formal-statements for contract scanning and name extraction
-    stmts_path = formal_stmts(int(re.sub(r"[^0-9]", "", str(asn_num))))
-    stmts_text = read_file(stmts_path) if stmts_path else ""
-
-    # Get labels and table names for section extraction
-    labels = []
-    table_names = {}  # label -> PascalCase name from Name column
-    for row in data_rows:
-        cells = parse_table_row(row)
-        if cells and cells[0].strip():
-            label = cells[0].strip().strip("`*")
-            labels.append(label)
-            if has_name and len(cells) > cols["name"]:
-                name_val = cells[cols["name"]].strip()
-                if name_val:
-                    table_names[label] = name_val
-
-    # Extract PascalCase names from formal-statements headers (fallback)
-    # Format: ## LABEL — PascalCaseName or ## LABEL — PascalCaseName (TYPE, construct)
-    stmts_names = {}
-    for line in stmts_text.split("\n"):
-        m = re.match(r'^##\s+(.+?)\s+\u2014\s+([A-Z][a-zA-Z0-9]+)', line)
-        if m:
-            name = m.group(2)
-            if re.match(r'^[A-Z][a-z]+[A-Z]', name):
-                stmts_names[m.group(1)] = name
-
-    # Extract sections from formal-statements for contract scanning
-    stmts_sections = {}
-    if stmts_text:
-        stmts_sections = extract_property_sections(
-            stmts_text, known_labels=labels, truncate=False)
+    # Read per-property files for contract type detection
+    prop_contents = {}
+    for f in prop_dir.glob("*.md"):
+        if not f.name.startswith("_"):
+            prop_contents[f.name.replace(".md", "")] = f.read_text()
 
     rows = []
     for row in data_rows:
@@ -96,32 +77,31 @@ def build_property_list_from_asn(asn_num):
             continue
 
         status = cells[-1].strip().lower()
-        # Statement: everything between fixed columns and status
-        fixed_cols = {0}
-        if has_name:
-            fixed_cols.add(cols["name"])
-        if has_type:
-            fixed_cols.add(cols["type"])
-        stmt_start = max(fixed_cols) + 1
-        statement = "|".join(cells[stmt_start:-1]).strip() if len(cells) > stmt_start + 1 else ""
 
-        # Extract proof_label (PascalCase name)
-        # Prefer: Name column > formal-statements header > PascalCase label > sanitized label
-        proof_label = table_names.get(label, "")
+        # Extract proof_label from Name column or property header
+        table_name = ""
+        if has_name and len(cells) > cols["name"]:
+            table_name = cells[cols["name"]].strip()
+
+        proof_label = table_name
         if not proof_label:
-            proof_label = stmts_names.get(label, "")
+            # Extract from property file header: **LABEL (PascalName).**
+            content = prop_contents.get(label, "")
+            m = re.search(r'^\*\*\S+\s*\(([A-Z][a-zA-Z0-9]+)\)', content, re.MULTILINE)
+            if m:
+                proof_label = m.group(1)
         if not proof_label and re.match(r'^[A-Z][a-z].*[A-Z]', label):
             proof_label = label
         if not proof_label:
             proof_label = re.sub(r'[^a-zA-Z0-9]', '', label)
 
-        # Derive type from status + formal contract
-        section = stmts_sections.get(label, "")
-        has_pre = bool(re.search(r'\*\s*Preconditions?\s*:\s*\*', section))
-        has_post = bool(re.search(r'\*\s*Postconditions?\s*:\s*\*', section))
-        has_inv = bool(re.search(r'\*\s*Invariants?\s*:\s*\*', section))
-        has_def = bool(re.search(r'\*\s*Definition\s*:\s*\*', section))
-        has_axiom = bool(re.search(r'\*\s*Axioms?\s*:\s*\*', section))
+        # Derive type from status + formal contract in property file
+        content = prop_contents.get(label, "")
+        has_pre = bool(re.search(r'\*\s*Preconditions?\s*:\s*\*', content))
+        has_post = bool(re.search(r'\*\s*Postconditions?\s*:\s*\*', content))
+        has_inv = bool(re.search(r'\*\s*Invariants?\s*:\s*\*', content))
+        has_def = bool(re.search(r'\*\s*Definition\s*:\s*\*', content))
+        has_axiom = bool(re.search(r'\*\s*Axioms?\s*:\s*\*', content))
 
         if status in ("axiom", "design requirement"):
             type_tag = "AXIOM"
@@ -147,7 +127,7 @@ def build_property_list_from_asn(asn_num):
             "proof_label": proof_label,
             "type": type_tag,
             "construct": construct,
-            "notes": cells[-1].strip(),  # raw Status text
+            "notes": cells[-1].strip(),
         })
 
     return rows

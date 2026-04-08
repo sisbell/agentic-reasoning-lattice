@@ -3,13 +3,13 @@
 Per-property Dafny contract review.
 
 Compares each generated .dfy file against its formal contract from
-formal-statements.md. Flags mismatches for author review.
+per-property files in vault/3-formalization/. Flags mismatches for
+author review.
 
-Output: vault/3-modeling/dafny/ASN-NNNN/modeling-N/CONTRACT-REVIEW.md
+Output: per-property review files in vault/3-modeling/dafny/ASN-NNNN/reviews/
 
 Usage:
     python scripts/lib/modeling/dafny/validate.py 34
-    python scripts/lib/modeling/dafny/validate.py 34 --modeling 2
     python scripts/lib/modeling/dafny/validate.py 34 --dry-run
 """
 
@@ -23,10 +23,8 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
-from lib.shared.paths import (WORKSPACE, USAGE_LOG,
-                   formal_stmts)
-from lib.shared.common import find_asn, extract_property_sections
-from lib.modeling.dafny.common import find_modeling_dir
+from lib.shared.paths import (WORKSPACE, FORMALIZATION_DIR, DAFNY_DIR, USAGE_LOG)
+from lib.shared.common import find_asn
 
 PROMPT_TEMPLATE = WORKSPACE / "scripts" / "prompts" / "modeling" / "dafny" / "validate-contract.md"
 
@@ -78,39 +76,35 @@ def validate(dafny_source, formal_contract, label):
     return text.strip().lower(), "", elapsed
 
 
-def validate_batch(asn_num, modeling_dir, dry_run=False):
-    """Run per-property contract review. Returns path to review file."""
+def validate_batch(asn_num, dfy_dir, dry_run=False):
+    """Run per-property contract review. Returns path to review dir."""
     asn_label = f"ASN-{asn_num:04d}"
-    modeling_name = modeling_dir.name
 
-    print(f"  [CONTRACT] {asn_label} ({modeling_name})", file=sys.stderr)
+    print(f"  [CONTRACT] {asn_label}", file=sys.stderr)
 
-    stmts_path = formal_stmts(asn_num)
-    if not stmts_path.exists():
-        print(f"  No formal-statements.md for {asn_label}", file=sys.stderr)
+    # Read contract sections from per-property files
+    prop_dir = FORMALIZATION_DIR / asn_label
+    if not prop_dir.exists():
+        print(f"  No formalization directory for {asn_label}", file=sys.stderr)
         return None
 
-    stmts_text = stmts_path.read_text()
-
-    dfy_files = sorted(modeling_dir.glob("*.dfy"))
+    dfy_files = sorted(dfy_dir.glob("*.dfy"))
     if not dfy_files:
-        print(f"  No .dfy files in {modeling_dir}", file=sys.stderr)
+        print(f"  No .dfy files in {dfy_dir}", file=sys.stderr)
         return None
 
-    # Build label map from formal-statements headers
-    label_map = {}
-    for line in stmts_text.split("\n"):
-        m = re.match(r'^##\s+(.+?)\s+\u2014\s+(.+?)(?:\s+\(|$)', line)
-        if m:
-            label = m.group(1).strip()
-            name = m.group(2).strip()
-            pascal = re.match(r'^([A-Z][a-zA-Z0-9]+)', name)
-            if pascal:
-                label_map[pascal.group(1)] = label
+    # Build sections from per-property files
+    sections = {}
+    for f in prop_dir.glob("*.md"):
+        if not f.name.startswith("_"):
+            sections[f.name.replace(".md", "")] = f.read_text()
 
-    all_labels = list(set(label_map.values()))
-    sections = extract_property_sections(stmts_text, known_labels=all_labels,
-                                          truncate=False)
+    # Build label map: PascalCase name -> label (for .dfy filename matching)
+    label_map = {}
+    for label, content in sections.items():
+        m = re.search(r'^\*\*\S+\s*\(([A-Z][a-zA-Z0-9]+)\)', content, re.MULTILINE)
+        if m:
+            label_map[m.group(1)] = label
 
     print(f"  Properties: {len(dfy_files)}", file=sys.stderr)
 
@@ -124,11 +118,8 @@ def validate_batch(asn_num, modeling_dir, dry_run=False):
                   file=sys.stderr)
         return None
 
-    out_path = modeling_dir / "CONTRACT-REVIEW.md"
-
-    with open(out_path, "w") as f:
-        f.write(f"# Contract Review \u2014 {asn_label} ({modeling_name})\n\n")
-        f.write(f"*Reviewed: {time.strftime('%Y-%m-%d %H:%M')}*\n\n")
+    review_dir = dfy_dir / "reviews"
+    review_dir.mkdir(parents=True, exist_ok=True)
 
     total_elapsed = 0
     clean_count = 0
@@ -152,28 +143,27 @@ def validate_batch(asn_num, modeling_dir, dry_run=False):
         rec, reason, elapsed = validate(dafny_source, section, label)
         total_elapsed += elapsed
 
+        review_path = review_dir / f"{label}.md"
         if rec == "clean":
             clean_count += 1
             print(f" \u2192 CLEAN ({elapsed:.0f}s)", file=sys.stderr)
+            if review_path.exists():
+                review_path.unlink()
         elif rec == "flag":
             flag_count += 1
             print(f" \u2192 FLAG ({elapsed:.0f}s)", file=sys.stderr)
-            with open(out_path, "a") as f:
-                f.write(f"## {label} \u2014 {stem}\n\n")
-                f.write(f"{reason}\n\n")
+            with open(review_path, "w") as f:
+                f.write(f"# {label} \u2014 Contract FLAG\n\n")
+                f.write(f"*{time.strftime('%Y-%m-%d %H:%M')}*\n\n")
+                f.write(f"{reason}\n")
         else:
             print(f" \u2192 {rec} ({elapsed:.0f}s)", file=sys.stderr)
 
     total = clean_count + flag_count
     summary = f"{total} properties reviewed: {clean_count} CLEAN, {flag_count} FLAG"
 
-    content = out_path.read_text()
-    header_end = content.index("\n\n", content.index("*Reviewed:")) + 2
-    content = content[:header_end] + summary + "\n\n" + content[header_end:]
-    out_path.write_text(content)
-
     print(f"\n  {summary}", file=sys.stderr)
-    print(f"  Report: {out_path.relative_to(WORKSPACE)}", file=sys.stderr)
+    print(f"  Reviews: {review_dir.relative_to(WORKSPACE)}/", file=sys.stderr)
 
     try:
         entry = {
@@ -189,15 +179,13 @@ def validate_batch(asn_num, modeling_dir, dry_run=False):
     except OSError:
         pass
 
-    return out_path
+    return review_dir
 
 
 def main():
     parser = argparse.ArgumentParser(
         description="Per-property Dafny contract review")
     parser.add_argument("asn", help="ASN number (e.g., 34)")
-    parser.add_argument("--modeling", type=int, default=None,
-                        help="Specific modeling-N to review (default: latest)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Show property list without reviewing")
     args = parser.parse_args()
@@ -205,12 +193,12 @@ def main():
     asn_num = int(re.sub(r"[^0-9]", "", args.asn))
     asn_label = f"ASN-{asn_num:04d}"
 
-    modeling_dir = find_modeling_dir(asn_label, args.modeling)
-    if modeling_dir is None:
-        print(f"  No modeling directory found for {asn_label}", file=sys.stderr)
+    dfy_dir = DAFNY_DIR / asn_label
+    if not dfy_dir.exists():
+        print(f"  No dafny directory found for {asn_label}", file=sys.stderr)
         sys.exit(1)
 
-    validate_batch(asn_num, modeling_dir, dry_run=args.dry_run)
+    validate_batch(asn_num, dfy_dir, dry_run=args.dry_run)
 
 
 if __name__ == "__main__":

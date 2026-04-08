@@ -6,10 +6,9 @@ Provides the align-with-contract agent call and the align-validate cycle,
 plus a standalone CLI for fixing unverified files.
 
 Usage:
-    python scripts/lib/modeling/dafny/align.py 1
-    python scripts/lib/modeling/dafny/align.py 1 --property TA3
-    python scripts/lib/modeling/dafny/align.py 1 --modeling 2
-    python scripts/lib/modeling/dafny/align.py 1 --dry-run
+    python scripts/lib/modeling/dafny/align.py 34
+    python scripts/lib/modeling/dafny/align.py 34 --property TA3
+    python scripts/lib/modeling/dafny/align.py 34 --dry-run
 """
 
 import argparse
@@ -23,8 +22,8 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
-from lib.shared.paths import WORKSPACE
-from lib.modeling.dafny.common import read_file, write_status_file, find_modeling_dir, log_usage
+from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, DAFNY_DIR
+from lib.modeling.dafny.common import read_file, log_usage
 from lib.modeling.dafny.verify import verify
 from lib.modeling.dafny.validate import validate
 
@@ -130,9 +129,7 @@ def main():
     parser.add_argument("asn",
                         help="ASN number (e.g., 1, 0001, ASN-0001)")
     parser.add_argument("--property", "-p",
-                        help="Fix specific properties, comma-separated (e.g., T5 or T1,T3,TA0)")
-    parser.add_argument("--modeling", type=int, default=None,
-                        help="Target specific modeling-N directory")
+                        help="Fix specific properties, comma-separated")
     parser.add_argument("--model", "-m", default="opus",
                         choices=["opus", "sonnet"],
                         help="Model (default: opus)")
@@ -144,41 +141,34 @@ def main():
                         help="Show what would be fixed without invoking Claude")
     args = parser.parse_args()
 
-    # Find modeling directory
+    # Find dafny directory
     num = re.sub(r"[^0-9]", "", str(args.asn))
     if not num:
         print(f"  Invalid ASN: {args.asn}", file=sys.stderr)
         sys.exit(1)
     asn_label = f"ASN-{int(num):04d}"
-    gen_dir = find_modeling_dir(asn_label, args.modeling)
-    if gen_dir is None:
-        print(f"  No modeling directory found for {args.asn}", file=sys.stderr)
+    gen_dir = DAFNY_DIR / asn_label
+    if not gen_dir.exists():
+        print(f"  No dafny directory found for {args.asn}", file=sys.stderr)
         sys.exit(1)
 
     print(f"[FIX] {asn_label} — {gen_dir.relative_to(WORKSPACE)}",
           file=sys.stderr)
 
-    # Load formal contracts for contract alignment
-    from lib.shared.paths import formal_stmts
-    from lib.shared.common import extract_property_sections
-    asn_num = int(re.sub(r"[^0-9]", "", asn_label))
-    stmts_path = formal_stmts(asn_num)
+    # Load formal contracts from per-property files
+    prop_dir = FORMALIZATION_DIR / asn_label
     contract_sections = {}
     label_map = {}
-    if stmts_path.exists():
-        stmts_text = stmts_path.read_text()
-        # Build label map: PascalCase name -> label
-        for line in stmts_text.split("\n"):
-            m = re.match(r'^##\s+(.+?)\s+\u2014\s+(.+?)(?:\s+\(|$)', line)
+    if prop_dir.exists():
+        for f in prop_dir.glob("*.md"):
+            if f.name.startswith("_"):
+                continue
+            label = f.name.replace(".md", "")
+            content = f.read_text()
+            contract_sections[label] = content
+            m = re.search(r'^\*\*\S+\s*\(([A-Z][a-zA-Z0-9]+)\)', content, re.MULTILINE)
             if m:
-                label = m.group(1).strip()
-                name = m.group(2).strip()
-                pascal = re.match(r'^([A-Z][a-zA-Z0-9]+)', name)
-                if pascal:
-                    label_map[pascal.group(1)] = label
-        all_labels = list(set(label_map.values()))
-        contract_sections = extract_property_sections(
-            stmts_text, known_labels=all_labels, truncate=False)
+                label_map[m.group(1)] = label
 
     # Find .dfy files
     dfy_files = sorted(gen_dir.glob("*.dfy"))
@@ -240,9 +230,10 @@ def main():
         return
 
     # Fix each failure
+    review_dir = gen_dir / "reviews"
+    review_dir.mkdir(parents=True, exist_ok=True)
     total_cost = 0
     fixed = 0
-    fix_results = []
 
     for dfy_path, errors in failures:
         print(f"\n  [{dfy_path.stem}]...", file=sys.stderr, end="", flush=True)
@@ -267,16 +258,25 @@ def main():
 
             # Validate contract + align cycle if FLAG
             if formal_contract:
-                contract_result, _, a_cost = align_validate_cycle(
+                contract_result, reason, a_cost = align_validate_cycle(
                     dfy_path, formal_contract, prop_label,
                     model=args.model, effort=args.effort)
                 total_cost += a_cost
-                print(f" {contract_result}", file=sys.stderr)
             else:
                 print(f" (no contract)", file=sys.stderr)
 
             if contract_result in ("CLEAN", ""):
                 fixed += 1
+                # Clean — remove stale review
+                review_path = review_dir / f"{prop_label}.md"
+                if review_path.exists():
+                    review_path.unlink()
+            elif contract_result == "FLAG":
+                review_path = review_dir / f"{prop_label}.md"
+                with open(review_path, "w") as rf:
+                    rf.write(f"# {prop_label} — Contract FLAG\n\n")
+                    rf.write(f"*{time.strftime('%Y-%m-%d %H:%M')}*\n\n")
+                    rf.write(f"{reason}\n")
         elif status == "compile_failure":
             print(f" COMPILE FAILURE", file=sys.stderr)
         elif status == "proof_failure":
@@ -284,19 +284,10 @@ def main():
         else:
             print(f" {status.upper()}", file=sys.stderr)
 
-        fix_results.append({
-            "proof_label": dfy_path.stem,
-            "status": status,
-            "contract": contract_result,
-            "cost": cost,
-        })
         log_usage(asn_label, dfy_path.stem, elapsed, status == "verified", cost)
 
-    # Update STATUS.md with fix results
-    write_status_file(gen_dir, fix_results, source="fix")
     print(f"\n  Done: {fixed}/{len(failures)} fixed, ${total_cost:.2f}",
           file=sys.stderr)
-    print(f"  Status: {gen_dir.name}/STATUS.md", file=sys.stderr)
 
 
 if __name__ == "__main__":
