@@ -1,170 +1,33 @@
-# Discovery — Creating New ASNs
+# Discovery
 
-The discovery pipeline turns an inquiry into an Abstract Specification Note (ASN). It decomposes the inquiry into sub-questions, runs parallel expert consultations, then synthesizes the answers into a formal ASN using Dijkstra-style derivation.
+Discovery is about finding the formal structure of a system that exists but has never been formally specified. The goal is not to design — the system already exists — but to uncover the properties that make it work.
 
-## How It Works
+## Starting from nothing
 
-```
-inquiries.yaml (inquiry N)
-     |
-     v
-[1] questions      decompose into Nelson + Gregory sub-questions
-     |
-     v
-[2] consult        5 Nelson threads (parallel) + Gregory (sequential)
-     |
-     v
-[3] discover       Dijkstra-style synthesis → ASN
-     |
-     v
-[4] commit         write ASN to vault/asns/
-```
+Begin with a broad question: "What are the key guarantees of the system?" This draws in a wide range of concepts that the reasoning process works through — address permanence, content identity, hierarchical structure, link semantics. The result is a large initial ASN with many properties.
 
-### Step 1: Question Decomposition
+This first ASN is too big. That's expected. Read through it and look for natural boundaries — clusters of properties that reason about the same concept independently of other clusters. Tumbler arithmetic doesn't need to know about links. Content insertion doesn't need to know about version semantics.
 
-The inquiry (a broad topic like "How does content insertion work?") is decomposed into focused sub-questions for each channel:
+Split the large ASN into two or more focused ASNs, each covering one topic. Run discovery on each one independently.
 
-- **Nelson questions** — target design guarantees in design vocabulary only. Each question aims at one atomic guarantee. Implementation terms (I-addresses, V-space, spanfilade) are banned. Generated from the inquiry text using `scripts/prompts/discovery/nelson-questions.md`.
+## Growing the lattice
 
-- **Gregory questions** — target observable behavior, data structure interactions, and edge cases in KB technical vocabulary. Generated from the inquiry text plus KB context using `scripts/prompts/discovery/gregory-questions.md`.
+As you run discovery on the separate ASNs, patterns emerge. Two ASNs independently derive the same property — both need tumbler comparison, both define what "prefix" means. When you see this, look at whether one ASN's properties are natural foundations for the other. If so, make it a dependency — the dependent ASN assumes those properties rather than re-deriving them. If neither is a natural home for the shared concept, there's a missing foundation layer. Extract it into a new ASN that both depend on.
 
-### Step 2: Consultation
+Each ASN goes through review/revise cycles. During review, an ASN may reveal that it's really two independent arguments sharing a label namespace — the derivation threads never reference each other. Or review keeps finding properties that belong elsewhere, or the ASN is simply too large to hold in your head. These are signals to split. Meanwhile, reviewers flag things as out of scope that turn out to be genuine gaps — questions no existing ASN can answer. These become new ASNs.
 
-Sub-questions are sent to the appropriate expert channels:
+The lattice grows through this process. An ASN depends on another when it uses that ASN's properties as premises. If you find circular dependencies — A needs B and B needs A — the boundary is wrong. Either one contains properties that belong in the other, or both depend on a missing foundation that should be extracted.
 
-- **Nelson** — 5 parallel consultation threads. Each thread answers one Nelson sub-question using Literary Machines and concept files as source material. Uses opus for reasoning depth.
+Foundation ASNs emerge at the bottom of the lattice. They weren't planned — they were discovered by noticing what kept being re-derived across multiple ASNs.
 
-- **Gregory** — sequential consultation with two parallel agents per question:
-  - **KB synthesis agent** — answers from the knowledge base (findings, analysis)
-  - **Code exploration agent** — answers by reading udanax-green source code directly
+## Entering blueprinting
 
-All consultation results are written to `vault/experts/ASN-NNNN/consultation/`.
+At some point the lattice has enough structure that you can see which ASNs everything else rests on. These foundations need to be put on rigorous standing — formal contracts, mechanical verification, the full weight of the downstream pipeline. [Blueprinting](blueprinting.md) is that transition. But it can only happen bottom-up: a foundation must be solid before anything built on it can be trusted.
 
-See [Expert Consultation](expert-consultation.md) for the full two-channel architecture.
+An ASN is ready to enter blueprinting when three conditions hold:
 
-**Foundation ASNs:** When drafting ontology-layer ASNs, stop here and curate the consultation output before proceeding — the decomposition agent explores broadly and will produce questions outside the ASN's layer scope. See [Consultation Curation](consultation-curation.md). After curation, resume with `--resume discover`.
+**It must be a foundation in the lattice.** You cannot blueprint an ASN if it depends on another ASN that hasn't been blueprinted and formalized yet. Work bottom-up — foundations first, then the ASNs that build on them.
 
-### Step 3: Discovery
+**Discovery cycles are producing diminishing returns.** When review/revise cycles start wordsmithing — rephrasing for clarity, minor notational adjustments, few or no REVISE findings — the reasoning has stabilized. If each cycle is making substantive structural changes, the ASN isn't ready.
 
-The discovery agent receives all consultation answers and synthesizes them into a formal ASN. This is the hardest step — it constructs a model (not a summary) from which properties are derived.
-
-The agent follows Dijkstra-style discipline:
-- Define the state model and operations precisely
-- Derive labeled properties from the model structure
-- State assumptions explicitly
-- Flag contradictions and gaps
-
-Each ASN contains:
-- **Prose** — explanatory text describing the operation or concept
-- **Formal properties** — labeled claims (DEL1, DEL2, INS-F1, etc.) that can be true or false
-- **Properties Introduced** — summary table of all properties with types
-- **Open Questions** — gaps discovered during derivation
-
-Uses opus with tools (Read, Write, Bash) for full reasoning capability.
-
-### Step 4: Commit
-
-The new ASN is written to `vault/asns/ASN-NNNN-title.md` and committed. The commit message is generated by a sonnet agent summarizing the changes.
-
-## Artifacts
-
-### Input
-
-| Artifact | Location | Description |
-|----------|----------|-------------|
-| Inquiry | `vault/project-model/ASN-NNNN.yaml` | ASN definition with question, scope, and dependencies |
-| Nelson sources | `nelson/literary-machines/`, `nelson/xanadu-concepts/` | Design intent materials |
-| Gregory KB | `udanax-test-harness/knowledge-base/` | Implementation analysis |
-| Gregory code | `udanax-test-harness/` | udanax-green C source |
-| Vocabulary | `vault/vocabulary.md` | Shared terms and type definitions |
-
-### Output
-
-| Artifact | Location | Description |
-|----------|----------|-------------|
-| ASN | `vault/asns/ASN-NNNN-title.md` | Formal specification note |
-| Questions | `vault/experts/ASN-NNNN/consultation/questions.md` | Decomposed sub-questions |
-| Answers | `vault/experts/ASN-NNNN/consultation/answers.md` | Consolidated expert answers |
-| Session logs | `vault/experts/ASN-NNNN/sessions/nelson-N/`, `gregory-N/` | Individual agent transcripts |
-
-## ASN Structure
-
-Each ASN follows a consistent format:
-
-```markdown
-# ASN-NNNN — Title
-
-## Context
-What this ASN models and why.
-
-## [Topic-specific sections]
-Prose with embedded formal properties.
-
-**Property PRE1 (Precondition Name):** ...
-**Property INS1 (Result Name):** ...
-
-## Properties Introduced
-
-| Label | Type | Name | Description |
-|-------|------|------|-------------|
-| PRE1  | PRE  | ...  | ...         |
-| INS1  | POST | ...  | ...         |
-
-## Open Questions
-- Questions discovered during derivation that belong to other ASNs
-```
-
-Labels are neutral (S0, PRE1, INS-F2) to avoid anchoring bias during review. Descriptive names are assigned later in the proof index.
-
-## CLI Reference
-
-```bash
-# Full pipeline: questions → consult → discover → commit
-python scripts/draft.py --inquiries 4
-
-# Multiple inquiries
-python scripts/draft.py --inquiries 1,4,9
-
-# All unprocessed inquiries
-python scripts/draft.py
-
-# Stop at specific stage
-python scripts/draft.py --inquiries 4 questions    # preview sub-questions only
-python scripts/draft.py --inquiries 4 consult      # questions + consultations
-python scripts/draft.py --inquiries 4 discover     # consult + discover (no commit)
-
-# Resume from a stage (skip earlier stages)
-python scripts/draft.py --inquiries 4 --resume discover  # skip consult, use existing answers (e.g. after curation)
-
-# Overwrite existing ASN
-python scripts/draft.py --inquiries 4 --force
-
-# Preview without executing
-python scripts/draft.py --inquiries 4 --dry-run
-```
-
-### Flags
-
-| Flag | Description |
-|------|-------------|
-| `--inquiries N[,M,...]` | Specific inquiry numbers to process |
-| `--resume STAGE` | Skip stages before STAGE, use existing artifacts |
-| `--force` | Overwrite existing ASN (default: skip if exists) |
-| `--dry-run` | Show what would run without executing |
-
-### Stages (positional argument)
-
-| Stage | Runs |
-|-------|------|
-| `questions` | Decomposition only |
-| `consult` | Questions + consultations |
-| `discover` | Questions + consultations + discovery |
-| *(none)* | Full pipeline through commit |
-
-## Design Decisions
-
-**Why parallel Nelson, sequential Gregory?** Nelson threads are independent — each answers one question from the same source material. Gregory is sequential because the code exploration agent may need context from earlier answers to ask the right follow-up questions.
-
-**Why Dijkstra-style derivation?** The discovery agent constructs a model and derives properties, rather than summarizing what the experts said. This is the difference between documentation and modeling — the model generates consequences the experts didn't state directly. See [Methodology](methodology.md) for the full rationale.
-
-**Why neutral labels?** Labels like DEL1, INS-F2 are intentionally non-descriptive to avoid anchoring the review agent's assessment. If a property were named "ContentPermanence," the reviewer might accept it without checking whether it actually guarantees permanence. Neutral labels force the reviewer to evaluate the claim on its merits. Descriptive names are assigned later in the [proof index](modeling.md).
+**No other ASN in discovery owns properties that belong here.** Before promoting to blueprinting, scan the other ASNs still in discovery. If any of them independently derived properties that naturally belong in this ASN, absorb them first.
