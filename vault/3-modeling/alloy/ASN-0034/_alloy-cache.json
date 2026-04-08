@@ -1,0 +1,262 @@
+{
+  "D0": {
+    "hash": "008b1aa7d9544af3",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "D1": {
+    "hash": "a13b9fb84a6ce284",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "D2": {
+    "hash": "210d8973d4f754f1",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "GlobalUniqueness": {
+    "hash": "6e956c27db8abe39",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "PartitionMonotonicity": {
+    "hash": "385d6df650361ba5",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "PrefixOrderingExtension": {
+    "hash": "6f174b1ad5c279f3",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "ReverseInverse": {
+    "hash": "4dd360d93cd52969",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "T0": {
+    "hash": "9b2e6b870a36798a",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "T0a": {
+    "hash": "8570987e09e2d1f9",
+    "status": "counterexample",
+    "contract": "CLEAN"
+  },
+  "T0b": {
+    "hash": "13f918dd487f9ce3",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "T1": {
+    "hash": "b05ac9f6d5dac8e5",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "T10": {
+    "hash": "c87e65424bc57747",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "T10a-N": {
+    "hash": "41be17052db9f2de",
+    "status": "counterexample",
+    "contract": "CLEAN"
+  },
+  "T10a.1": {
+    "hash": "35ca50389af97478",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "T10a.2": {
+    "hash": "3dd97adc2942e5ed",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "T10a.3": {
+    "hash": "9f37d70de2b00e31",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "T10a": {
+    "hash": "17324838023fc06e",
+    "status": "counterexample",
+    "contract": "CLEAN"
+  },
+  "T12": {
+    "hash": "308a0491e0e6d2af",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "T2": {
+    "hash": "09e6f79b53e3b4dc",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "T3": {
+    "hash": "4ddd065beaa12474",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "T4": {
+    "hash": "7ea0306e433fcac9",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "T4a": {
+    "hash": "6b2266ab0742247c",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "T4b": {
+    "hash": "a80d1a4c32dc6afa",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "T4c": {
+    "hash": "63f4dc47ca592ad6",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "T5": {
+    "hash": "bce88c846a079d55",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "T6": {
+    "hash": "b910dbdb01f3bbd4",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "T7": {
+    "hash": "9cf6acd6105fe1a0",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "T8": {
+    "hash": "24fbd8de06536856",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "T9": {
+    "hash": "d8547bd7a0572053",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "TA-LC": {
+    "hash": "45379ce862a7a235",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "TA-MTO": {
+    "hash": "446099fd48534729",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "TA-RC": {
+    "hash": "c16007058c357cc4",
+    "status": "counterexample",
+    "contract": "CLEAN"
+  },
+  "TA-assoc": {
+    "hash": "8a7e458c07e6e762",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "TA-strict": {
+    "hash": "9b86d7099aa54e18",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "TA0": {
+    "hash": "4d595d16aab75758",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "TA1-strict": {
+    "hash": "287c9e072a2b53f6",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "TA1": {
+    "hash": "e317526a23d8c77d",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "TA2": {
+    "hash": "e64262b694a8296a",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "TA3-strict": {
+    "hash": "758ad21105fde70f",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "TA3": {
+    "hash": "7a817dca2c3df486",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "TA4": {
+    "hash": "51d5a93abec45b87",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "TA5-SIG": {
+    "hash": "b923c03ffe42bc80",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "TA5-SigValid": {
+    "hash": "af9d829f3f275ab8",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "TA5": {
+    "hash": "995313461288c90d",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "TA5a": {
+    "hash": "862903eacd5c261c",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "TA6": {
+    "hash": "19f408d447c1a48f",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "TA7a": {
+    "hash": "8f43baba4bb3a0fa",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "TS1": {
+    "hash": "ca9a5fe1c93d420d",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "TS2": {
+    "hash": "12dd58d03a8a7618",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "TS3": {
+    "hash": "32388a3be91aa76f",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "TS4": {
+    "hash": "96f73b09f918fcc8",
+    "status": "pass",
+    "contract": "CLEAN"
+  },
+  "TS5": {
+    "hash": "e7bf5200c69a3842",
+    "status": "pass",
+    "contract": "CLEAN"
+  }
+}
