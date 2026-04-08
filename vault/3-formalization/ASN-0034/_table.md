@@ -1,5 +1,6 @@
 | Label | Name | Statement | Status |
 |-------|------|-----------|--------|
+| T0 | CarrierSetDefinition | T is the set of all finite sequences over ℕ with length ≥ 1 | axiom |
 | T0(a) | UnboundedComponentValues | Every component value of a tumbler is unbounded — no maximum value exists | from T0 |
 | T0(b) | UnboundedLength | Tumblers of arbitrary length exist in T — the hierarchy has unlimited nesting depth | introduced |
 | T1 | LexicographicOrder | Tumblers are totally ordered by lexicographic comparison, with the prefix-less-than convention | introduced |
@@ -57,4 +58,4 @@
 | TA5-SIG | LastSignificantPosition | sig(t): index of the rightmost nonzero component of a tumbler, or #t when all-zero | introduced |
 | TA5-SigValid | SigOnValidAddresses | sig(t) = #t for all valid addresses, following from T4's positive-component constraint | corollary of TA5-SIG, T4 |
 | TA5a | IncrementPreservesT4 | inc(t,k) preserves T4 iff k=0, or k=1 with zeros(t)≤3, or k=2 with zeros(t)≤2; fails for k≥3 | from TA5, T4 |
-| Def-Span | Span | A span is a pair (s, ℓ) denoting the contiguous range {t ∈ T : s ≤ t < s ⊕ ℓ} | definition |
+| Span | Span | A span is a pair (s, ℓ) denoting the contiguous range {t ∈ T : s ≤ t < s ⊕ ℓ} | definition |
