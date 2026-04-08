@@ -50,7 +50,7 @@ def _log_usage(elapsed, asn_num, count):
         pass
 
 
-def validate_contract(label, section, vocabulary="", dependencies=""):
+def validate_contract(label, section, vocabulary="", dependencies="", model="sonnet"):
     """Validate one property's contract against its proof section.
 
     Returns (match: bool, detail: str).
@@ -72,7 +72,7 @@ def validate_contract(label, section, vocabulary="", dependencies=""):
               .replace("{{vocabulary}}", vocabulary or "(none)")
               .replace("{{dependencies}}", dependencies or "(none)"))
 
-    result, elapsed = invoke_claude(prompt, model="sonnet", effort="high")
+    result, elapsed = invoke_claude(prompt, model=model, effort="high")
 
     if result is None:
         return True, ""  # LLM call failed, don't block

@@ -48,7 +48,7 @@ def _save_cache(path, data):
 
 
 def run_contract_review(asn_num, max_cycles=5, dry_run=False,
-                         single_label=None):
+                         single_label=None, validate_model="sonnet"):
     """Run contract review — validate and fix contracts.
 
     Returns "converged" or "not_converged".
@@ -118,7 +118,8 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
             dep_context = _build_dep_context(asn_num, label)
             match, detail = validate_contract(label, content,
                                               vocabulary=vocabulary,
-                                              dependencies=dep_context)
+                                              dependencies=dep_context,
+                                              model=validate_model)
             return label, (match, detail, f)
 
         results = parallel_llm_calls(candidates, _validate_one, max_workers=10)
@@ -233,6 +234,8 @@ def main():
     parser.add_argument("--max-cycles", type=int, default=5,
                         help="Maximum convergence cycles (default: 5)")
     parser.add_argument("--label", help="Review a single property only")
+    parser.add_argument("--model", default="sonnet",
+                        help="Model for validation (default: sonnet)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Report mismatches without fixing")
     args = parser.parse_args()
@@ -240,7 +243,8 @@ def main():
     asn_num = int(re.sub(r"[^0-9]", "", args.asn))
     result = run_contract_review(asn_num, max_cycles=args.max_cycles,
                                   dry_run=args.dry_run,
-                                  single_label=args.label)
+                                  single_label=args.label,
+                                  validate_model=args.model)
     sys.exit(0 if result == "converged" else 1)
 
 
