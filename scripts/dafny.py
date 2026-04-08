@@ -42,6 +42,30 @@ from lib.modeling.dafny.verify import verify
 from lib.modeling.dafny.align import align_validate_cycle
 from lib.modeling.dafny.common import read_file, run_commit, log_usage
 
+REVIEW_PROMPT = WORKSPACE / "scripts" / "prompts" / "modeling" / "dafny" / "review-failure.md"
+
+
+def _review_failure(prop_text, dfy_path, verification_errors):
+    """Classify a verification failure as spec issue vs proof artifact."""
+    template = read_file(REVIEW_PROMPT)
+    if not template:
+        return verification_errors
+    dfy_source = read_file(dfy_path)
+    prompt = (template
+              .replace("{{property_text}}", prop_text)
+              .replace("{{dafny_source}}", dfy_source)
+              .replace("{{verification_errors}}", verification_errors))
+    import os, subprocess
+    cmd = ["claude", "--print", "--model", "claude-opus-4-6"]
+    env = os.environ.copy()
+    env.pop("CLAUDECODE", None)
+    env["CLAUDE_CODE_EFFORT_LEVEL"] = "high"
+    result = subprocess.run(
+        cmd, input=prompt, capture_output=True, text=True, env=env)
+    if result.returncode != 0:
+        return verification_errors
+    return result.stdout.strip()
+
 
 def _hash_content(text):
     return hashlib.sha256(text.encode()).hexdigest()[:16]
@@ -114,8 +138,7 @@ def main():
     # Proof module dependencies from project model manifest
     manifest = load_manifest(asn_number)
     module_names = manifest.get("modeling", {}).get("proof_imports", [])
-    base_modules = ["TumblerAlgebra"]
-    all_modules = base_modules + [m for m in module_names if m not in base_modules]
+    all_modules = list(module_names)
 
     imports_text = (f"| ASN | Proof modules |\n|-----|---------------|\n"
                     f"| {asn_label} | {', '.join(all_modules)} |")
@@ -306,10 +329,9 @@ def main():
                     result["cost"] += a_cost
                 else:
                     print(f" (no contract)", file=sys.stderr)
-            elif status == "compile_failure":
-                print(f" COMPILE FAILURE", file=sys.stderr)
-            elif status == "proof_failure":
-                print(f" PROOF FAILURE", file=sys.stderr)
+            elif status in ("compile_failure", "proof_failure"):
+                print(f" {status.upper().replace('_', ' ')}", file=sys.stderr)
+                result["verification_errors"] = vout
             else:
                 print(f" {status.upper()}", file=sys.stderr)
 
@@ -339,9 +361,17 @@ def main():
             # Write per-property review
             review_path = review_dir / f"{label}.md"
             if result["status"] in ("proof_failure", "compile_failure", "gen_fail"):
+                errors = result.get("verification_errors", "")
+                prop_text = prop_contents.get(label, "")
+                dfy_path = result.get("dfy_path")
+                if errors and prop_text and dfy_path and dfy_path.exists():
+                    analysis = _review_failure(prop_text, dfy_path, errors)
+                else:
+                    analysis = errors or result["status"]
                 with open(review_path, "w") as rf:
                     rf.write(f"# {label} — {result['status'].replace('_', ' ').title()}\n\n")
                     rf.write(f"*{time.strftime('%Y-%m-%d %H:%M')}*\n\n")
+                    rf.write(analysis + "\n")
             elif result.get("contract") == "FLAG":
                 with open(review_path, "w") as rf:
                     rf.write(f"# {label} — Contract FLAG\n\n")
@@ -351,7 +381,8 @@ def main():
                 if review_path.exists():
                     review_path.unlink()
 
-    _save_cache(cache_path, cache)
+        # Flush cache after each level (resume picks up here if interrupted)
+        _save_cache(cache_path, cache)
 
     # --- Summary ---
 
@@ -373,6 +404,10 @@ def main():
             print(f"  Reviews: {review_dir.relative_to(WORKSPACE)}/",
                   file=sys.stderr)
 
+        import subprocess
+        subprocess.run(
+            ["git", "add", str(out_dir)],
+            capture_output=True, text=True, cwd=str(WORKSPACE))
         run_commit(f"{asn_label} dafny — {len(all_results)} properties")
 
 

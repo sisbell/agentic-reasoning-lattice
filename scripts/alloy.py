@@ -25,6 +25,7 @@ import hashlib
 import json
 import re
 import sys
+import threading
 import time
 from pathlib import Path
 
@@ -37,9 +38,33 @@ from lib.modeling.alloy.translate import (
 )
 from lib.modeling.alloy.align import align_validate_cycle
 from lib.modeling.alloy.common import (
-    read_file, log_usage, step_commit, cleanup_property_artifacts,
-    make_result, print_summary,
+    read_file, invoke_claude, log_usage, step_commit,
+    cleanup_property_artifacts, make_result, print_summary,
 )
+
+REVIEW_PROMPT = PROMPTS_DIR / "review-counterexample.md"
+
+
+def _review_counterexample(prop_text, als_path, checker_output):
+    """Classify a counterexample as spec issue vs modeling artifact."""
+    template = read_file(REVIEW_PROMPT)
+    if not template:
+        return checker_output
+    als_source = read_file(als_path)
+    prompt = (template
+              .replace("{{property_text}}", prop_text)
+              .replace("{{alloy_source}}", als_source)
+              .replace("{{checker_output}}", checker_output))
+    import os, subprocess
+    cmd = ["claude", "--print", "--model", "claude-opus-4-6"]
+    env = os.environ.copy()
+    env.pop("CLAUDECODE", None)
+    env["CLAUDE_CODE_EFFORT_LEVEL"] = "high"
+    result = subprocess.run(
+        cmd, input=prompt, capture_output=True, text=True, env=env)
+    if result.returncode != 0:
+        return checker_output
+    return result.stdout.strip()
 
 
 def _hash_content(text):
@@ -199,17 +224,19 @@ def main():
         print(f"  Nothing to do.", file=sys.stderr)
         return
 
-    # Process properties in parallel
+    # Process properties in parallel — flush cache + reviews per property
+    cache_lock = threading.Lock()
+    all_results = []
+    results_lock = threading.Lock()
+
     def _process_property(prop):
         label = prop["label"]
         result = make_result(prop, out_dir)
         generate_one(result, prop, definitions_text, asn_label, args,
                       syntax_ref=syntax_ref,
 )
-        if not args.no_cleanup:
-            cleanup_property_artifacts(result["als_path"])
 
-        # Validate contract
+        # Validate contract (may re-invoke Alloy via align cycles)
         if not args.skip_check and result["als_path"].exists():
             section = prop["body"]
             if section:
@@ -219,51 +246,56 @@ def main():
                 result["contract"] = contract_result
                 result["review_reason"] = reason if contract_result == "FLAG" else ""
 
-        return label, result
+        # Cleanup after align (align may re-invoke Alloy, creating new artifacts)
+        if not args.no_cleanup:
+            cleanup_property_artifacts(result["als_path"])
 
-    results_list = parallel_llm_calls(
-        candidates, _process_property, max_workers=args.workers)
-
-    # Collect results, write per-property reviews, update cache
-    all_results = []
-    flag_count = 0
-    clean_count = 0
-
-    for label, result in results_list:
-        if result is None:
-            continue
-        all_results.append(result)
-
-        # Update cache
+        # Flush review file (each property writes its own file — no contention)
         status = result.get("status", "")
         contract = result.get("contract", "")
-        cache[label] = {
-            "hash": source_hashes.get(label, ""),
-            "status": status,
-            "contract": contract,
-        }
-
-        # Write per-property review for findings
         review_path = review_dir / f"{label}.md"
         if status == "counterexample":
-            flag_count += 1
+            analysis = _review_counterexample(
+                prop["body"], result["als_path"],
+                result.get("alloy_output", ""))
+            result["review_analysis"] = analysis
             with open(review_path, "w") as rf:
                 rf.write(f"# {label} — Counterexample\n\n")
                 rf.write(f"*{time.strftime('%Y-%m-%d %H:%M')}*\n\n")
-                rf.write(result.get("alloy_output", "") + "\n")
+                rf.write(analysis + "\n")
         elif contract == "FLAG":
-            flag_count += 1
             with open(review_path, "w") as rf:
                 rf.write(f"# {label} — Contract FLAG\n\n")
                 rf.write(f"*{time.strftime('%Y-%m-%d %H:%M')}*\n\n")
                 rf.write(result.get("review_reason", "") + "\n")
         else:
-            clean_count += 1
-            # Delete stale review if property now passes
             if review_path.exists():
                 review_path.unlink()
 
-    _save_cache(cache_path, cache)
+        # Flush cache (shared file — needs lock)
+        with cache_lock:
+            cache[label] = {
+                "hash": source_hashes.get(label, ""),
+                "status": status,
+                "contract": contract,
+            }
+            _save_cache(cache_path, cache)
+
+        with results_lock:
+            all_results.append(result)
+
+        return label, result
+
+    parallel_llm_calls(
+        candidates, _process_property, max_workers=args.workers)
+
+    # Counters for summary
+    flag_count = sum(1 for r in all_results
+                     if r.get("status") == "counterexample"
+                     or r.get("contract") == "FLAG")
+    clean_count = sum(1 for r in all_results
+                      if r.get("status") != "counterexample"
+                      and r.get("contract") != "FLAG")
 
     # Summary
     if all_results:
@@ -276,13 +308,17 @@ def main():
             print(f"  Reviews: {review_dir.relative_to(WORKSPACE)}/",
                   file=sys.stderr)
 
-    # Commit
-    if not args.skip_check and not args.dry_run:
+    # Commit — git add first so commit.py sees the new files
+    if not args.skip_check and not args.dry_run and all_results:
+        import subprocess
+        subprocess.run(
+            ["git", "add", str(out_dir)],
+            capture_output=True, text=True, cwd=str(WORKSPACE))
         any_counterexample = any(r.get("status") == "counterexample"
                                   for r in all_results)
         if any_counterexample:
             step_commit(f"alloy(asn): {asn_label} — counterexamples found")
-        elif all_results:
+        else:
             step_commit(f"alloy(asn): {asn_label} — {len(all_results)} properties checked")
 
     # Output paths for scripting
