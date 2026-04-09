@@ -14,7 +14,7 @@
 | T8 | AllocationPermanence | Once allocated, an address is never removed from the address space; the set of allocated addresses is monotonically non-decreasing | theorem from T1, T2, T4, T10a, TA5, TumblerAdd, TumblerSub |
 | T9 | ForwardAllocation | Within a single allocator's sequential stream, new addresses are strictly monotonically increasing; gaps are permanent | lemma (from T10a, TA5) |
 | T10 | PartitionIndependence | Allocators with non-nesting prefixes produce distinct addresses without coordination | theorem from T3, Prefix |
-| T10a | AllocatorDiscipline | Each allocator uses inc(·, 0) for siblings and inc(·, k>0) only for child-spawning; this constrains sibling outputs to uniform length | design requirement (postconditions from TA5, T10, Prefix) |
+| T10a | AllocatorDiscipline | Each allocator uses inc(·, 0) for siblings and inc(·, k>0) only for child-spawning; this constrains sibling outputs to uniform length | design requirement (postconditions from TA5, T1, T10, Prefix) |
 | PrefixOrderingExtension | PrefixOrderingExtension | p₁ < p₂ with neither a prefix of the other implies a < b for every a with p₁ ≼ a and every b with p₂ ≼ b | lemma (from T1) |
 | PartitionMonotonicity | PartitionMonotonicity | Per-allocator ordering extends cross-allocator; for non-nesting sibling prefixes p₁ < p₂, every address extending p₁ precedes every address extending p₂ | theorem from PrefixOrderingExtension, T1, T3, T5, T9, T10a, TA5 |
 | GlobalUniqueness | GlobalUniqueness | No two distinct allocation events anywhere in the system at any time produce the same address | theorem from T3, T4, T9, T10, T10a, TA5 |
