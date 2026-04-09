@@ -11,7 +11,7 @@
 | T5 | ContiguousSubtrees | The set of tumblers sharing a prefix forms a contiguous interval under T1 | introduced |
 | T6 | DecidableContainment | Containment (same node, same account, same document family, structural subordination) is decidable from addresses alone | corollary of T4 |
 | T7 | SubspaceDisjointness | Subspaces (text, links) within a document's element field are permanently disjoint | corollary of T3, T4 |
-| NoDeallocation | NoDeallocation | The system defines no operation that removes an element from the allocated set; this is a design constraint, not a derived property | design axiom |
+| NoDeallocation | NoDeallocation | The system defines no operation that removes an element from the allocated set; this is a design constraint, not a derived property | design requirement |
 | T8 | AllocationPermanence | Once allocated, an address is never removed from the address space; the set of allocated addresses is monotonically non-decreasing | theorem from T1, T2, T4, T10a, TA5, TumblerAdd, TumblerSub, NoDeallocation |
 | T9 | ForwardAllocation | Within a single allocator's sequential stream, new addresses are strictly monotonically increasing; gaps are permanent | lemma (from T1, T10a, TA5) |
 | T10 | PartitionIndependence | Allocators with non-nesting prefixes produce distinct addresses without coordination | theorem from T3, Prefix |
