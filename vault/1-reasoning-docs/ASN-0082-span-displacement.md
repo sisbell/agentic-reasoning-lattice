@@ -61,6 +61,10 @@ Let M(d) : T ⇀ T denote the arrangement function for document d — a partial 
 
 The I-address is unchanged — only the V-position moves. This is Nelson's central guarantee (Q1, Q5): the permanent identity of every existing byte is invariant under insertion. "Since the links are to the bytes themselves, any links to those bytes remain stably attached to them" [LM 4/30]. The shift moves content in the document's arrangement without touching the content's identity in the store. The left-region frame (I3-L) ensures that content before the insertion point is undisturbed. The cross-subspace frame (I3-X) ensures that link subspaces and other subspaces are unaffected by a text-subspace insertion. The cross-document frame (I3-D) ensures that other documents are unchanged.
 
+**Consistency.** We verify that the four assignment regions are pairwise disjoint, ensuring M'(d) is a well-defined partial function. *Shifted vs left*: for v ≥ p in subspace S, shift(v, n) > v ≥ p by TS4 (ASN-0034), so shift(v, n) > p > u for every u < p; no shifted output coincides with a left-region position. *Shifted vs shifted*: TS2 (injectivity) guarantees distinct v's produce distinct shift(v, n)'s. *Shifted vs cross-subspace*: subspace preservation (shift(v, n)₁ = v₁ = S when m ≥ 2) ensures shifted positions remain in subspace S, disjoint from I3-X positions (subspace ≠ S). *Left vs cross-subspace*: left-region positions have subspace S, cross-subspace positions have subspace ≠ S — disjoint by definition. *Cross-document*: I3-D operates on d' ≠ d, disjoint from the other three by document identity. The four regions are pairwise disjoint, so M'(d) is well-defined on their union.
+
+**Gap region.** I3, I3-L, I3-X, and I3-D are partial constraints on M'(d) — they specify how *existing* content is repositioned but leave the gap [p, shift(p, n)) within subspace S unaddressed. Position p itself is not covered: p is not < p (so I3-L excludes it), and for every v ≥ p, shift(v, n) > v ≥ p by TS4 (ASN-0034), so no shifted image lands at p. The n − 1 positions between p and shift(p, n) are likewise outside any assignment region. These n gap positions are where newly inserted content will be placed; the content-placement postcondition (mapping them to freshly appended I-addresses) is an operation-level concern deferred to a future INSERT ASN.
+
 
 ### Worked Example
 
@@ -87,20 +91,42 @@ Positions [1, 1] and [1, 2] are below p = [1, 3] and remain unchanged (I3-L). Th
 **Boundary: empty document.** When dom(M(d)) = ∅, both I3 and I3-L quantify over ∅ and hold vacuously. The postcondition is consistent: insertion into an empty document creates no conflicts. ∎
 
 
+## Span Width Preservation
+
+The point-level shift I3 lifts to a span-level property connecting this ASN to the span algebra framework of ASN-0053. Consider a level-uniform span σ = (s, ℓ) within the shifted region — that is, s ≥ p, subspace(s) = S, and #s = #ℓ = m with actionPoint(ℓ) = m. The last condition is not restrictive: for a within-subspace span, actionPoint(ℓ) < m would change a component above the element-field ordinal, pushing the reach into a different subspace or document — so within-subspace spans necessarily have actionPoint(ℓ) = m. Define the shifted span σ' = (shift(s, n), ℓ).
+
+**I3-S** — *SpanShiftPreservation* (LEMMA, introduced). For a level-uniform span σ = (s, ℓ) with s ≥ p, subspace(s) = S, #s = #ℓ = m, and actionPoint(ℓ) = m, the shifted span σ' = (shift(s, n), ℓ) satisfies:
+
+(a) reach(σ') = shift(reach(σ), n)
+
+(b) width(σ') = ℓ
+
+*Derivation of (a).* We have reach(σ) = s ⊕ ℓ and reach(σ') = shift(s, n) ⊕ ℓ (SpanReach, ASN-0053). Expanding: reach(σ') = (s ⊕ δₙ) ⊕ ℓ. Both δₙ and ℓ have action point m, and m ≤ #s = m, m ≤ #δₙ = m, so TA-assoc (ASN-0034) applies: (s ⊕ δₙ) ⊕ ℓ = s ⊕ (δₙ ⊕ ℓ). By TumblerAdd, δₙ ⊕ ℓ = [0, …, 0, n + ℓₘ] since both operands have all zeros before position m; similarly ℓ ⊕ δₙ = [0, …, 0, ℓₘ + n]. These are equal by commutativity of natural-number addition. Applying TA-assoc in reverse: s ⊕ (ℓ ⊕ δₙ) = (s ⊕ ℓ) ⊕ δₙ = reach(σ) ⊕ δₙ = shift(reach(σ), n). ∎
+
+*Derivation of (b).* The span σ' is level-uniform: #shift(s, n) = m = #ℓ by the result-length identity of TumblerAdd. By D2 (WidthRecovery, ASN-0053), width(σ') = reach(σ') ⊖ start(σ'). From (a), reach(σ') = shift(reach(σ), n) and start(σ') = shift(s, n). Both shifted tumblers agree at positions 1 through m − 1 — shift copies these from the originals, and reach(σ) agrees with s at these positions since actionPoint(ℓ) = m — and differ at position m by (sₘ + ℓₘ + n) − (sₘ + n) = ℓₘ. By TumblerSub, the result is [0, …, 0, ℓₘ] = ℓ. ∎
+
+Both endpoints of a within-subspace span shift by the same displacement δₙ; the width — the displacement between them — is invariant. This connects I3's point-level shift to ASN-0053's span framework: the displacement arithmetic underlying span endpoints (SpanReach) commutes with uniform ordinal translation.
+
+
 ## Statement Registry
 
 | Label | Type | Statement | Status |
 |-------|------|-----------|--------|
+| M(d) | definition | M(d) : T ⇀ T — arrangement function mapping V-positions to I-addresses for document d | introduced (local) |
+| subspace(v) | definition | subspace(v) = v₁ — the first component of a V-position, identifying its subspace | introduced (local) |
 | VD | axiom | All V-positions in a subspace share the same tumbler depth | introduced (local) |
 | VP | axiom | subspace(v) = v₁ ≥ 1 for every V-position v | introduced (local) |
 | I3 | postcondition | (A v : v ∈ dom(M(d)) ∧ subspace(v) = S ∧ v ≥ p : shift(v, n) ∈ dom(M'(d)) ∧ M'(d)(shift(v, n)) = M(d)(v)) | introduced |
 | I3-L | frame | (A v : v ∈ dom(M(d)) ∧ subspace(v) = S ∧ v < p : v ∈ dom(M'(d)) ∧ M'(d)(v) = M(d)(v)) | introduced |
 | I3-X | frame | (A v : v ∈ dom(M(d)) ∧ subspace(v) ≠ S : v ∈ dom(M'(d)) ∧ M'(d)(v) = M(d)(v)) | introduced |
 | I3-D | frame | (A d' ≠ d : M'(d') = M(d')) | introduced |
+| I3-S | lemma | For level-uniform σ = (s, ℓ) with s ≥ p and actionPoint(ℓ) = m: reach((shift(s, n), ℓ)) = shift(reach(σ), n) and width preserved | introduced |
 | OrdinalDisplacement | definition | δ(n, m) = [0, ..., 0, n] of length m, action point m | cited (ASN-0034) |
 | OrdinalShift | definition | shift(v, n) = v ⊕ δ(n, #v) | cited (ASN-0034) |
 | TS1 | lemma | shift preserves strict order: v₁ < v₂ ⟹ shift(v₁, n) < shift(v₂, n) | cited (ASN-0034) |
 | TS2 | lemma | shift is injective: shift(v₁, n) = shift(v₂, n) ⟹ v₁ = v₂ | cited (ASN-0034) |
+| SpanReach | definition | reach(σ) = start(σ) ⊕ width(σ) | cited (ASN-0053) |
+| D2 | lemma | For level-uniform σ: reach(σ) ⊖ start(σ) = width(σ) | cited (ASN-0053) |
 
 
 ## Open Questions
