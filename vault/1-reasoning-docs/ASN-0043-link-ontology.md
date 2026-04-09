@@ -1,6 +1,6 @@
 # ASN-0043: Link Ontology
 
-*2026-03-16 (revised 2026-04-09)*
+*2026-03-16 (revised 2026-04-09, revision 43)*
 
 The two-space model (ASN-0036) established two state components: the content store `Σ.C` — an immutable, append-only mapping from I-addresses to values — and the arrangements `Σ.M(d)` — mutable mappings from V-positions to I-addresses, one per document. Together these give us content: its existence, its identity, and its presentation.
 
@@ -232,7 +232,7 @@ We verify that `Σ'` is conforming:
 - *L1 (LinkElementLevel).* The address `a` is an element-level tumbler by construction: allocated under a document prefix with all four fields, giving `zeros(a) = 3`.
 - *L1a (LinkScopedAllocation).* The address `a` is allocated under `d'`'s prefix by construction: `home(a) = d'`.
 - *L1b (LinkElementFieldDepth).* The address `a` is constructed with `#fields(a).element ≥ 2` (at minimum `[s_L, 1]`).
-- *L1c (LinkAllocatorConformance).* The address `a` is the next output of a T10a-conforming allocator within `d'`'s link subspace, produced by `inc(·, 0)` from the allocator's current frontier.
+- *L1c (LinkAllocatorConformance).* When `d'` already has link allocations, the address `a` is the next output of a T10a-conforming allocator within `d'`'s link subspace, produced by `inc(·, 0)` from the allocator's current frontier. When `d'` has no prior link allocations (as when `dom(Σ.L) = ∅`), the first link address is established by the child-spawning sequence from `d'`'s element-level allocator: `inc` to reach subspace `s_L` at element field depth 1, then `inc(·, 1)` to reach depth 2 — T10a-conforming by TA5a bounds (`k' = 1` with `zeros ≤ 3`). All subsequent link addresses in that subspace are then producible by `inc(·, 0)`.
 - *L3–L5.* The type span `(g, δ(1, #g))` is well-formed by T12; the endset sequence `(∅, ∅, {(g, δ(1, #g))})` has arity 3 ≥ 2, satisfying L3. Empty endsets are valid by the definition of Endset. L5 holds trivially.
 - *L11a (LinkUniqueness).* `a ∉ dom(Σ.L)` by construction (chosen fresh from the infinitely many unoccupied addresses in `d'`'s link subspace).
 - *L12 (LinkImmutability).* For every `b ∈ dom(Σ.L)`: `b ∈ dom(Σ'.L)` and `Σ'.L(b) = Σ.L(b)`, since `Σ'` only adds the new entry at `a`.
@@ -347,12 +347,18 @@ The two primitives are peers. Both have permanent tumbler addresses. Both are st
 | State component | `Σ.C : T ⇀ Val` | `Σ.L : T ⇀ Link` |
 | Subspace | `s_C` | `s_L` |
 | Payload | Opaque values (bytes) | Structured endset sequences (N ≥ 2; standard triple by convention) |
-| Sharing | Transcludable — same I-address in multiple arrangements (S5) | Non-transcludable — S3 requires `M(d)(v) ∈ dom(Σ.C)`, and L0 gives `dom(Σ.L) ∩ dom(Σ.C) = ∅` |
+| Sharing | Transcludable — same I-address in multiple arrangements (S5) | Non-transcludable — arrangements cannot map to link addresses (L14a) |
 | Address determines | Content origin (S7) | Link home and owner (L2) |
 
-Content identity is *shareable*: the same I-address can appear in the arrangements of multiple documents via transclusion, and this sharing is the mechanism for content reuse (S5, ASN-0036). Link identity is *unique*: each link has exactly one address, and there is no mechanism to make two documents "share" the same link. We can derive this from two properties already established. First, S3 (ReferentialIntegrity, ASN-0036) requires that every V-mapping points to a content address: `(A d, v : v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ dom(Σ.C))`. Second, L0 establishes `dom(Σ.L) ∩ dom(Σ.C) = ∅`. Together these entail that no arrangement can map a V-position to a link address — the transclusion mechanism (multiple arrangements referencing the same I-address) cannot apply to links. A link at address `a` is homed in `home(a)` and owned by the principal of `home(a)` — period. It cannot be transcluded into another owner's authority.
+Content identity is *shareable*: the same I-address can appear in the arrangements of multiple documents via transclusion, and this sharing is the mechanism for content reuse (S5, ASN-0036). Link identity is *non-transcludable*: no arrangement may map a V-position to a link address. We state this as an explicit invariant:
 
-This asymmetry is deliberate. Content wants to be shared — that is the point of transclusion. But a connection is an assertion by a specific principal about specific content, and assertions are not transferable by reference.
+**L14a — NonTranscludability.**
+
+`(A d, v : v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∉ dom(Σ.L))`
+
+A connection is an assertion by a specific principal about specific content, and assertions are not transferable by reference. A link at address `a` is homed in `home(a)` and owned by the principal of `home(a)` — period. It cannot be transcluded into another owner's authority.
+
+Under the current model, S3 and L0 jointly satisfy L14a: S3 (ReferentialIntegrity, ASN-0036) requires `(A d, v : v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ dom(Σ.C))`, and L0 establishes `dom(Σ.L) ∩ dom(Σ.C) = ∅`, so no V-position can map to a link address. But L14a stands as an independent design requirement — if S3 is later extended to accommodate link V-positions in the arrangement layer (as Gregory's implementation evidence suggests may be necessary), non-transcludability of links must still hold by its own force, not merely as a side effect of referential integrity.
 
 
 ## Summary of the Link Model
@@ -431,6 +437,8 @@ So `Σ.L = {a ↦ (F, G, Θ)}`.
 
 *L14 (DualPrimitive).* `dom(Σ.C) ∪ dom(Σ.L) = {c₁, c₂, a}`. All stored entities. `dom(Σ.C) ∩ dom(Σ.L) = ∅`. ✓
 
+*L14a (NonTranscludability).* `ran(Σ.M(d)) = {c₁, c₂}`. For each `v ∈ dom(Σ.M(d))`: `Σ.M(d)(v) ∈ {c₁, c₂} ⊆ dom(Σ.C)`, and `dom(Σ.L) = {a}` with `a ∉ {c₁, c₂}` (by L0). So `Σ.M(d)(v) ∉ dom(Σ.L)`. ✓
+
 *L10 (TypeHierarchyByContainment).* For the ghost type at `g = 1.0.2.0.1.0.1.1`, define a parent type `p = 1.0.2.0.1.0.1` with displacement `δ(1, 7) = [0, 0, 0, 0, 0, 0, 1]` (action point `k = 7 = #p`). The coverage of `(p, δ(1, #p))` is `{t : p ≤ t < shift(p, 1)} = {t : 1.0.2.0.1.0.1 ≤ t < 1.0.2.0.1.0.2}`. Since `g = 1.0.2.0.1.0.1.1` and `p ≼ g`, by T1(ii) `g ≥ p`, and `g < 1.0.2.0.1.0.2` because `g` agrees with `p` at position 7 (both have value 1) while `inc(p, 0)` has value 2 there. So `g ∈ coverage({(p, δ(1, #p))})` — a single span query at `p` matches the subtype at `g`. ✓
 
 *L9 (TypeGhostPermission).* The type endset references `g = 1.0.2.0.1.0.1.1`, which is not in `dom(Σ.C) ∪ dom(Σ.L) = {c₁, c₂, a}`. This state is conforming — the ghost type is permitted. ✓
@@ -503,6 +511,7 @@ The final state is `Σ_2` with `Σ_2.L = {a ↦ (F, G, Θ),\; a' ↦ (F, G, Θ),
 | L12a | LEMMA | LinkStoreMonotonicity — `dom(Σ.L) ⊆ dom(Σ'.L)` for every state transition | introduced |
 | L13 | LEMMA | ReflexiveAddressing — link addresses are valid endset span targets; canonical span coverage by PrefixSpanCoverage | introduced |
 | L14 | INV | DualPrimitive — stored entities partition into content (`dom(Σ.C)`) and links (`dom(Σ.L)`) with no third category | introduced |
+| L14a | INV | NonTranscludability — `(A d, v : v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∉ dom(Σ.L))`; independent of S3 formulation | introduced |
 | coverage(e) | DEF | the union of address sets denoted by the spans in endset e | introduced |
 | home(a) | DEF | document-level prefix extracted from a link address via T4 field parsing — the document under whose prefix the link resides | introduced |
 | Endset | DEF | `𝒫_fin(Span)` — a finite set of well-formed spans | introduced |
