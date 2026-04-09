@@ -11,3 +11,9 @@ I've read the entire ASN-0034 as a system — tracing every precondition chain, 
 **What needs resolving**: TA1-strict's declared dependencies should include T1, consistent with the convention established by TA3, TA-strict (`from TumblerAdd, T1`), and other arithmetic properties that list T1 when their proofs invoke it directly.
 
 No other cross-property logical issues found. The proofs are correct: case analyses are exhaustive over their domains, the formal Divergence and TumblerSub's zpd are never conflated, the allocation uniqueness argument correctly partitions all pairs through four exhaustive cases, and the PartitionMonotonicity induction correctly establishes that parent-level siblings leave the partition (inc(p, 0) does not extend p, since it modifies position sig(p)).
+
+## Result
+
+Not converged after 3 cycles.
+
+*Elapsed: 4713s*
