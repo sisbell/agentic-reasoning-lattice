@@ -147,7 +147,7 @@ The frame condition is essential: baptism alters the registry and nothing else. 
 
 **Monotonicity (B0).** Σ'.B = Σ.B ∪ {a} ⊇ Σ.B directly — the registry grows by one element and no element is removed.
 
-**B1 preservation.** In the target namespace, children(Σ'.B, p, d) = {c₁, ..., cₘ, c_{m+1}} — a contiguous prefix of length m + 1, since the new element is the immediate successor of the previous maximum. For every other namespace (p', d'), B7 ensures a ∉ S(p', d'), so children(Σ'.B, p', d') = children(Σ.B, p', d'), and their contiguous prefix property is undisturbed. B0a (Baptismal Closure) guarantees no non-baptismal mechanism introduces elements that could disrupt contiguity in any namespace.
+**B1 preservation.** In the target namespace, children(Σ'.B, p, d) = {c₁, ..., cₘ, c_{m+1}} — a contiguous prefix of length m + 1, since the new element is the immediate successor of the previous maximum. For every other B6-valid namespace (p', d'), B7 ensures a ∉ S(p', d'), so children(Σ'.B, p', d') = children(Σ.B, p', d'), and their contiguous prefix property is undisturbed. Non-B6 namespaces require additional case analysis — the complete argument, covering streams whose elements are entirely T4-invalid and the sole-defect trailing-zero case where stream identity collapses to an already-handled B6-valid namespace, is given in the B1 proof below. B0a (Baptismal Closure) guarantees no non-baptismal mechanism introduces elements that could disrupt contiguity in any namespace.
 
 **B10 preservation.** The new element a must satisfy T4 for the registry-wide validity invariant to hold. Two cases arise from the definition of next. When m = 0, a = inc(p, d) — the first child. B6 provides exactly the three conditions that the TA5a (IncrementPreservesT4, ASN-0034) requires: p satisfies T4 by B6(i), d ≤ 2 by B6(ii), and zeros(p) + (d − 1) ≤ 3 by B6(iii). Therefore a satisfies T4. When m > 0, a = inc(cₘ, 0) — a sibling increment. By B10 for the current state, cₘ satisfies T4 (it was admitted by a prior baptism or is a conforming seed). TA5a with k = 0 preserves T4 unconditionally — no zeros are added, no adjacencies are introduced. Therefore a satisfies T4. ∎
 
@@ -561,7 +561,7 @@ After M − m steps, hwm(B_{M−m}, p, d) = m + (M − m) = M. Setting B' = B_{M
 | B0 | `Σ.B ⊆ Σ'.B` for all transitions — irrevocability (extends T8) | design requirement |
 | B0a | `Σ'.B \ Σ.B ⊆ {baptism(p,d) outputs for (p,d) satisfying B6}` — registry grows only through baptism | design requirement |
 | B₀ conf. | B₀ is non-empty and finite, `children(B₀, p, d)` is a contiguous prefix for all (p, d), and `(A t ∈ B₀ : t satisfies T4)` — seed conformance | design requirement |
-| B1 | `cₙ ∈ B ⟹ (A i : 1 ≤ i < n : cᵢ ∈ B)` — contiguous prefix (requires conforming B₀) | from B₀ conf., B0, B0a, B4, B7, B10, Bop, S0, TA5(c) |
+| B1 | `cₙ ∈ B ⟹ (A i : 1 ≤ i < n : cᵢ ∈ B)` — contiguous prefix (requires conforming B₀) | from B₀ conf., B0, B0a, B4, B6, B7, B10, next def., S0, TA5(c); Bop correctness follows as corollary |
 | B2 | `next(B, p, d) = c_{hwm+1}` — high water mark sufficiency (from B1) | from B1, S0, NextAddress |
 | B3 | `t ∈ Σ.B` does not imply t is occupied — ghost validity | design requirement |
 | B4 | Same-namespace baptisms serialized: `commit(β₁) ≺ read(β₂) ∨ commit(β₂) ≺ read(β₁)` | design requirement |
