@@ -21,3 +21,9 @@ I've read the entire ASN-0034 end to end, tracking definitions, precondition cha
 **ASN**: T10a formal contract postconditions (T10a.1–T10a.3, T10a-N) — none mention T4 preservation
 **Issue**: T10a constrains allocators to use `inc(·, k')` with `k' > 0` for child-spawning but places no upper bound on `k'`. TA5a proves that `k' ≥ 3` produces adjacent zeros, violating T4's non-empty field constraint. The two properties are individually correct but no property connects them to guarantee that the allocator discipline preserves T4. An allocator conforming to T10a could use `k' = 3`, producing a tumbler with adjacent zeros that violates T4. Downstream properties T4a–T4c, T6, T7 all assume T4, so their guarantees silently depend on allocators restricting `k'` to {1, 2} with appropriate `zeros(t)` bounds — a constraint identified by TA5a but absent from T10a.
 **What needs resolving**: Either T10a's axiom must restrict child-spawning `k'` to values that preserve T4 (referencing TA5a for the exact bounds), or a new property must establish the invariant that the allocator discipline produces only T4-compliant addresses — connecting T10a's behavioral constraint with TA5a's preservation conditions.
+
+## Result
+
+Converged after 2 cycles.
+
+*Elapsed: 3772s*
