@@ -143,7 +143,7 @@ The frame condition is essential: baptism alters the registry and nothing else. 
 
 **Well-definedness.** The postcondition invokes next(Σ.B, p, d), which branches on whether children(Σ.B, p, d) is empty. If empty, the result is inc(p, d) — well-defined for any p ∈ T and d ≥ 1 by TA5(d). If non-empty, the result is inc(max(children(Σ.B, p, d)), 0). By B1, children(Σ.B, p, d) = {c₁, ..., cₘ} for some m ≥ 1, a finite contiguous prefix, so max exists and equals cₘ. The sibling increment inc(cₘ, 0) is well-defined by TA5(c), since cₘ has a positive last component: for c₁ = inc(p, d), position #p + d holds value 1 (TA5(d)), and each subsequent sibling increment advances this position by 1 (TA5(c)), preserving positivity. In both branches, next produces an element of T.
 
-**Freshness.** Let a = next(Σ.B, p, d) = c_{m+1} where m = hwm(Σ.B, p, d). We show a ∉ Σ.B by partitioning Σ.B into three classes. Within namespace (p, d): by B1, children(Σ.B, p, d) = {c₁, ..., cₘ} is a contiguous prefix of length m, so c_{m+1} is the first unbaptized sibling — it does not appear among {c₁, ..., cₘ}. In any other namespace (p', d') ≠ (p, d): by B7 (Namespace Disjointness), S(p, d) ∩ S(p', d') = ∅, and since a ∈ S(p, d) by construction, a cannot belong to children(Σ.B, p', d') ⊆ S(p', d'). For elements of Σ.B belonging to no sibling stream — root seeds such as [1], where no valid (p'', d'') yields #p'' + d'' = 1 since #p'' ≥ 1 and d'' ≥ 1 — these elements are not in S(p, d), so a ∈ S(p, d) ensures a ≠ t for each such t. The three classes exhaust Σ.B; in each, a is absent. B4 ensures the partition is stable: no concurrent same-namespace baptism modifies children(Σ.B, p, d) between the read and the commitment.
+**Freshness.** Let a = next(Σ.B, p, d) = c_{m+1} where m = hwm(Σ.B, p, d). We show a ∉ Σ.B. By construction, a = c_{m+1} ∈ S(p, d). Since children(Σ.B, p, d) = Σ.B ∩ S(p, d) by definition, if a ∈ Σ.B then a ∈ children(Σ.B, p, d). By B1, children(Σ.B, p, d) = {c₁, ..., cₘ}. By S0 (StreamOrdering), distinct stream indices produce distinct elements: since m + 1 > i for all 1 ≤ i ≤ m, we have c_{m+1} ≠ cᵢ for each such i. Therefore a ∉ {c₁, ..., cₘ} = children(Σ.B, p, d), contradicting the supposition. We conclude a ∉ Σ.B. B4 ensures the observation is stable: no concurrent same-namespace baptism modifies children(Σ.B, p, d) between the read and the commitment.
 
 **Monotonicity (B0).** Σ'.B = Σ.B ∪ {a} ⊇ Σ.B directly — the registry grows by one element and no element is removed.
 
@@ -218,18 +218,18 @@ From B₀ conformance (T4 for seeds) and B6(i) (T4 for parents), we derive by in
 
 *Inductive step.* Assume B10 holds for state Σ with registry B — that is, every t ∈ B satisfies T4. Consider a transition Σ → Σ' producing registry B'. By B0a (Baptismal Closure), the only mechanism that adds elements to B is baptism: B' = B ∪ {a} where a = next(B, p, d) for some (p, d) satisfying B6. We must show every t ∈ B' satisfies T4. For elements t ∈ B, the inductive hypothesis gives t satisfies T4 directly. It remains to show the new element a satisfies T4.
 
-By B6, the parent p satisfies T4 (condition (i)), d ∈ {1, 2} (condition (ii)), and zeros(p) + (d − 1) ≤ 3 (condition (iii)). Let m = hwm(B, p, d). The definition of next (NextAddress) and B2 (High Water Mark Sufficiency) give a = c_{m+1}, the (m + 1)-th element of the sibling stream S(p, d). Two cases arise from the value of m.
+By B6, the parent p satisfies T4 (condition (i)), d ∈ {1, 2} (condition (ii)), and zeros(p) + (d − 1) ≤ 3 (condition (iii)). By the definition of next (NextAddress), a = next(B, p, d) branches on whether children(B, p, d) is empty. Two cases arise.
 
-*Case 1: m = 0.* The children set is empty, so a = c₁ = inc(p, d). The TA5a (IncrementPreservesT4, ASN-0034) states that inc(t, k) preserves T4 when t satisfies T4, k ≤ 2, and zeros(t) + (k − 1) ≤ 3. These three conditions are exactly B6(i), B6(ii), and B6(iii) with t = p and k = d. Therefore a = inc(p, d) satisfies T4.
+*Case 1: children(B, p, d) = ∅.* Then a = inc(p, d) by the definition of next. The TA5a (IncrementPreservesT4, ASN-0034) states that inc(t, k) preserves T4 when t satisfies T4, k ≤ 2, and zeros(t) + (k − 1) ≤ 3. These three conditions are exactly B6(i), B6(ii), and B6(iii) with t = p and k = d. Therefore a = inc(p, d) satisfies T4.
 
-*Case 2: m ≥ 1.* The children set is non-empty, and a = c_{m+1} = inc(cₘ, 0) — a sibling increment. By B1 (Contiguous Prefix), children(B, p, d) = {c₁, ..., cₘ}, so cₘ ∈ B. By the inductive hypothesis (B10 for the current state), cₘ satisfies T4. TA5a with k = 0 states that inc(t, 0) preserves T4 unconditionally: no zeros are added (TA5(c) modifies only position sig(t), advancing a positive value by one), no adjacent zeros are introduced, and the tumbler neither begins nor ends in zero after the increment. Therefore a = inc(cₘ, 0) satisfies T4.
+*Case 2: children(B, p, d) ≠ ∅.* The set children(B, p, d) = B ∩ S(p, d) is a non-empty finite subset of T (finite because B is finite). Let t = max(children(B, p, d)) — which exists because T1 is a total order on every non-empty finite set. By definition of children, t ∈ children(B, p, d) ⊆ B. By the inductive hypothesis (B10 for the current state), t satisfies T4. The definition of next gives a = inc(t, 0). TA5a with k = 0 states that inc(t, 0) preserves T4 unconditionally: no zeros are added (TA5(c) modifies only position sig(t), advancing a positive value by one), no adjacent zeros are introduced, and the tumbler neither begins nor ends in zero after the increment. Therefore a = inc(t, 0) satisfies T4.
 
 In both cases, a satisfies T4. Since every element of B satisfies T4 by the inductive hypothesis and the new element a satisfies T4 by the case analysis, every element of B' = B ∪ {a} satisfies T4. By induction on the transition sequence, B10 holds in every reachable state. ∎
 
 *Formal Contract:*
 - *Invariant:* `(A t ∈ Σ.B : t satisfies T4)` — every baptized address satisfies FieldSeparatorConstraint.
 - *Base:* B₀ conf. — every seed element satisfies T4.
-- *Preservation:* Each baptism preserves B10: when m = 0, by B6 and TA5a (IncrementPreservesT4, ASN-0034) with k = d; when m ≥ 1, by the inductive hypothesis and TA5a with k = 0. B0a ensures no non-baptismal mechanism introduces elements that might violate T4.
+- *Preservation:* Each baptism preserves B10: when children are empty, by B6 and TA5a (IncrementPreservesT4, ASN-0034) with k = d; when children are non-empty, max(children) ∈ B satisfies T4 by the inductive hypothesis, and TA5a with k = 0 preserves T4 unconditionally. B0a ensures no non-baptismal mechanism introduces elements that might violate T4.
 
 B1 holds for all states reachable from a conforming B₀ under operations satisfying B0a and B7.
 
@@ -284,9 +284,9 @@ Let B' = B ∪ {a} where a = next(B, p, d) = c_{hwm+1}. B1 for B' requires two t
 
 The freshness derivation similarly:
 
-  wp(baptize(p, d), a ∉ B) — state precondition: B1; environmental: B4; lemma: B7.
+  wp(baptize(p, d), a ∉ B) — state precondition: B1; environmental: B4; lemma: S0.
 
-The new address c_{hwm+1} must not already appear in B. We partition B into three cases. Within namespace (p, d), B1 ensures children is a contiguous prefix of length hwm, so c_{hwm+1} is the first unbaptized sibling — it cannot be in B ∩ S(p, d). In any other namespace (p', d'), B7 (a mathematical property of the stream structure, not a state predicate) ensures S(p, d) ∩ S(p', d') = ∅, so c_{hwm+1} cannot be in B ∩ S(p', d') either. For elements of B not in any namespace stream — root seed elements such as [1] that have no standard parent (no tumbler p exists with #p + d = #[1] = 1 for valid d) — c_{hwm+1} ∈ S(p, d) by construction, and these elements ∉ S(p, d), so no collision. Together, B1, B7, and the stream membership of c_{hwm+1} guarantee freshness across the full partition of B, with B4 ensuring the state observation is current.
+The new address c_{hwm+1} must not already appear in B. By construction, c_{hwm+1} ∈ S(p, d). Since children(B, p, d) = B ∩ S(p, d), membership of c_{hwm+1} in B would place it in children(B, p, d). By B1, children is a contiguous prefix {c₁, ..., c_{hwm}}. By S0, distinct stream indices produce distinct elements, so c_{hwm+1} ∉ {c₁, ..., c_{hwm}}. Contradiction: c_{hwm+1} ∉ B. B4 ensures the state observation is current.
 
 Both derivations reason about a single baptism acting on a known state B. B4 (Namespace Serialization) discharges the serialization assumption: by ensuring that same-namespace baptisms do not interleave, B4 guarantees that each baptism observes the complete state left by the previous one. Without B4, two concurrent baptisms could both read hwm = m, and both wp results would be invalidated.
 
@@ -571,7 +571,7 @@ After M − m steps, hwm(B_{M−m}, p, d) = m + (M − m) = M. Setting B' = B_{M
 | B7 | `(p, d) ≠ (p', d') ⟹ S(p, d) ∩ S(p', d') = ∅` — namespace disjointness | from T3, T4, T10, S1, TA5(c), TA5(d), B6 |
 | B8 | Distinct baptisms produce distinct addresses — global uniqueness | from B0, B1, B2, B4, B7, S0, T1 |
 | B9 | `(A p, d, M : (E B' reachable : hwm(B', p, d) ≥ M))` — unbounded extent | from T0(a), B1, B2, B4, B6, Bop, TA5(c), TA5(d) |
-| B10 | `(A t ∈ Σ.B : t satisfies T4)` — registry-wide T4 validity | from B₀ conf., B0a, B1, B2, B6, TA5(c), TA5a |
+| B10 | `(A t ∈ Σ.B : t satisfies T4)` — registry-wide T4 validity | from B₀ conf., B0a, B6, TA5(c), TA5a |
 
 
 ## Open Questions
