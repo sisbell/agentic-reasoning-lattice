@@ -1,6 +1,6 @@
 # ASN-0036: Istream and Vstream
 
-*2026-03-14; revised 2026-03-21, 2026-03-22, 2026-03-22, 2026-03-28*
+*2026-03-14; revised 2026-03-21, 2026-03-22, 2026-03-22, 2026-03-28, 2026-04-09*
 
 We wish to understand what formal invariants govern the relationship between permanent content storage and mutable document arrangement in Xanadu. Nelson separated these concerns into two address spaces — Istream for content identity and Vstream for document positions — and asserted this separation as the architectural foundation on which permanence, transclusion, and attribution all rest. We seek the abstract properties that define this separation: what must hold in any correct implementation, regardless of the underlying data structures.
 
@@ -305,11 +305,13 @@ S8-depth allows us to define "consecutive V-positions" precisely. Within a subsp
 
 (Why non-trivial runs arise in practice is a separate question. Allocator discipline — T10a, ASN-0034 — establishes that each allocator produces sibling outputs exclusively by `inc(·, 0)`, and TA5(c) guarantees the successor has the same depth as the predecessor. Consecutive allocations therefore produce consecutive I-addresses, which is why sequential content creation naturally yields correspondence runs of length greater than one. But this operational fact is motivation for the definition of correspondence runs, not a dependency of the decomposition proof.)
 
+We extend the ordinal displacement notation to `k = 0`: define `v + 0 = v` (identity) and `v + k = shift(v, k)` for `k ≥ 1`. OrdinalShift (ASN-0034) has precondition `n ≥ 1`; the extension to `k = 0` is purely notational — no arithmetic is performed.
+
 A *correspondence run* is a triple `(v, a, n)` — a V-position, an I-address, and a natural number `n ≥ 1` — such that the arrangement preserves ordinal displacement within the run:
 
 `(A k : 0 ≤ k < n : Σ.M(d)(v + k) = a + k)`
 
-At `k = 0` this is the base case `M(d)(v) = a` — no displacement, no arithmetic. Each subsequent `k` increments both the V-ordinal and the I-ordinal by the same amount. Within a correspondence run, each step forward in Vstream corresponds to the same step forward in Istream.
+At `k = 0` this is the base case `M(d)(v) = a`. Each subsequent `k` increments both the V-ordinal and the I-ordinal by the same amount. Within a correspondence run, each step forward in Vstream corresponds to the same step forward in Istream.
 
 **S8 (Finite span decomposition).** For each document `d`, the arrangement `{(v, Σ.M(d)(v)) : v ∈ dom(Σ.M(d))}` can be decomposed into a finite set of correspondence runs `{(vⱼ, aⱼ, nⱼ)}` such that:
 
@@ -341,7 +343,9 @@ Both cases yield contradictions. Since all V-positions in subspace `S` have dept
 
 **Uniqueness across subspaces.** Let `v ∈ dom(M(d))` with `v₁ = S₁` and `w ∈ dom(M(d))` with `w₁ = S₂`, where `S₁ ≠ S₂`. By S8a, `v` extends the single-component prefix `[S₁]` and `w` extends `[S₂]`. These prefixes are non-nesting: `[S₁] ≼ [S₂]` would require `S₁ = S₂` (both length-1 tumblers, so equality requires componentwise agreement by T3), contradicting `S₁ ≠ S₂`; symmetrically `[S₂] ⋠ [S₁]`.
 
-The successor `v + 1` also extends `[S₁]`: since `sig(v) = m ≥ 2`, TA5(b) gives `(v + 1)ᵢ = vᵢ` for all `i < sig(v)`, so in particular `(v + 1)₁ = v₁ = S₁`. (The case `m = 1`, where the V-position is a bare subspace identifier `[S]`, is operationally excluded: ValidInsertionPosition requires `m ≥ 2` for all V-positions, since at `m = 1` ordinal succession changes the subspace identifier.)
+For `m = 1`, each subspace `S` contains at most one V-position: the only depth-1 tumbler with first component `S` is `[S]` itself (by T3, any other depth-1 tumbler `[k]` with `k = S` is the same tumbler). The singleton interval `[[S], [S] + 1) = [[S], [S + 1])` at depth 1 contains no other depth-1 tumbler: `S ≤ k < S + 1` with `k ∈ ℕ` forces `k = S`. So both within-subspace and cross-subspace uniqueness are immediate at `m = 1` — singleton intervals for distinct subspaces `S₁ ≠ S₂` have distinct sole members `[S₁]` and `[S₂]`.
+
+For `m ≥ 2`, the successor `v + 1` also extends `[S₁]`: since `sig(v) = m ≥ 2`, TA5(b) gives `(v + 1)ᵢ = vᵢ` for all `i < sig(v)`, so in particular `(v + 1)₁ = v₁ = S₁`.
 
 Since `[S₁] ≼ v` and `[S₁] ≼ (v + 1)` and `v ≤ v + 1` by TA5(a), T5 (PrefixContiguity, ASN-0034) gives: for any `t` with `v ≤ t ≤ v + 1`, `[S₁] ≼ t`. Every element of `[v, v + 1)` therefore extends `[S₁]`. By T10 (ASN-0034), since `[S₁]` and `[S₂]` are non-nesting prefixes, any tumbler extending `[S₁]` is distinct from any tumbler extending `[S₂]`. In particular, `w` (which extends `[S₂]`) cannot belong to `[v, v + 1)`.
 
@@ -629,7 +633,7 @@ This has a formal consequence: document equality is not decidable by content com
 | S7b | Element-level I-addresses: `(A a ∈ dom(C) :: zeros(a) = 3)` | design requirement |
 | S7 | Structural attribution: `origin(a) = (fields(a).node).0.(fields(a).user).0.(fields(a).document)` — full document prefix | from S7a, S7b, S0, S4, T4, T3, GlobalUniqueness (ASN-0034) |
 | S8-fin | Finite arrangement: `dom(M(d))` is finite for every document `d` | design requirement |
-| S8a | V-position well-formedness: `(A v ∈ dom(M(d)) :: zeros(v) = 0 ∧ v₁ ≥ 1 ∧ v > 0)` — universal, from T4 positive-component constraint | from T4, S7b (ASN-0034) |
+| S8a | V-position well-formedness: `(A v ∈ dom(M(d)) :: zeros(v) = 0 ∧ v₁ ≥ 1 ∧ v > 0)` — universal, from T4 positive-component constraint | axiom (V-positions are element-field tumblers); structural properties from T4 (ASN-0034) |
 | S8-depth | Fixed-depth V-positions: `(A d, v₁, v₂ : v₁ ∈ dom(M(d)) ∧ v₂ ∈ dom(M(d)) ∧ (v₁)₁ = (v₂)₁ : #v₁ = #v₂)` | design requirement |
 | S8 | Span decomposition: `dom(M(d))` decomposes into finitely many correspondence runs `(vⱼ, aⱼ, nⱼ)` with `M(d)(vⱼ + k) = aⱼ + k` for `0 ≤ k < nⱼ` | theorem from S8-fin, S2, S8a, S8-depth, T1, T3, T5, T10, TA5 (ASN-0034) |
 | D-CTG | V-position contiguity: within each subspace, V-positions form a contiguous ordinal range with no gaps — design constraint on well-formed document states | design requirement |
