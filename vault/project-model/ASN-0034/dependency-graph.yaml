@@ -3,353 +3,343 @@ depends: []
 properties:
   T0:
     status: axiom
-    name: Carrier-set definition
+    name: CarrierSetDefinition
   T0(a):
-    status: introduced
-    name: Every component value of a tumbler is unbounded
-  T0(b):
-    status: introduced
-    name: Tumblers of arbitrary length exist in T
+    status: from
     follows_from:
     - T0
-    - T0(a)
+    name: UnboundedComponentValues
+  T0(b):
+    status: introduced
+    name: UnboundedLength
   T1:
     status: introduced
-    name: Lexicographic order
-    follows_from:
-    - T0(a)
-    - T3
+    name: LexicographicOrder
   T2:
     status: introduced
-    name: Intrinsic comparison
-    follows_from:
-    - T1
-    - T3
+    name: IntrinsicComparison
   T3:
     status: from
     follows_from:
-    - T0(a)
-    name: Canonical representation
+    - T0
+    name: CanonicalRepresentation
   T4:
-    status: axiom
-    name: Hierarchical parsing
+    status: other
+    follows_from:
+    - T3
+    name: HierarchicalParsing
+  Prefix:
+    status: introduced
+    name: PrefixRelation
   T5:
     status: introduced
-    name: The set of tumblers sharing a prefix forms a contiguous interval under T1
-    follows_from:
-    - T1
-    - T3
+    name: ContiguousSubtrees
   T6:
     status: corollary
     follows_from:
-    - T3
     - T4
-    name: Decidable containment
+    name: DecidableContainment
   T7:
     status: corollary
     follows_from:
     - T3
     - T4
-    name: Subspace disjointness
-  T8:
+    name: SubspaceDisjointness
+  NoDeallocation:
     status: design
-    name: Allocation permanence
+    name: NoDeallocation
+  T8:
+    status: theorem
+    follows_from:
+    - T1
+    - T2
+    - T4
+    - T10a
+    - TA5
+    - TumblerAdd
+    - TumblerSub
+    - NoDeallocation
+    name: AllocationPermanence
   T9:
     status: other
     follows_from:
     - T1
-    - T10
     - T10a
-    - T8
     - TA5
-    name: Forward allocation
+    name: ForwardAllocation
   T10:
-    status: introduced
-    name: Partition independence
+    status: theorem
     follows_from:
-    - T1
     - T3
+    - Prefix
+    name: PartitionIndependence
   T10a:
     status: design
-    name: Allocator discipline
-    follows_from:
-    - T1
-    - T10
-    - T3
-    - TA5
+    name: AllocatorDiscipline
   PrefixOrderingExtension:
     status: other
     follows_from:
     - T1
-    name: Prefix ordering extension
+    name: PrefixOrderingExtension
   PartitionMonotonicity:
     status: theorem
     follows_from:
     - PrefixOrderingExtension
     - T1
-    - T10a
     - T3
     - T5
     - T9
+    - T10a
     - TA5
-    name: Partition monotonicity
+    name: PartitionMonotonicity
   GlobalUniqueness:
     status: theorem
     follows_from:
     - T1
-    - T10
-    - T10a
     - T3
     - T4
     - T9
+    - T10
+    - T10a
     - TA5
-    name: Global uniqueness
+    name: GlobalUniqueness
   T12:
     status: from
     follows_from:
     - T1
-    - TA-strict
     - TA0
-    name: Span well-definedness
+    - TA-strict
+    name: SpanWellDefinedness
   TA0:
     status: introduced
-    name: Well-defined addition
-    follows_from:
-    - T0
-    - TumblerAdd
+    name: WellDefinedAddition
   TA1:
     status: introduced
-    name: Addition preserves the total order (weak)
-    follows_from:
-    - T1
-    - T3
-    - TA0
-    - TumblerAdd
+    name: OrderPreservationUnderAddition
   Divergence:
     status: from
     follows_from:
     - T1
-    - TA0
-    - TA1
-    - TA1-strict
-    name: Divergence point of two unequal tumblers
+    name: Divergence
   TA1-strict:
     status: from
     follows_from:
     - Divergence
-    - T1
-    - TA0
     - TumblerAdd
-    name: strict (Strict order preservation)
+    - T1
+    name: StrictOrderPreservation
   TA-strict:
     status: from
     follows_from:
-    - T0(a)
-    - T1
-    - T12
-    - TA0
-    - TA1
-    - TA4
     - TumblerAdd
-    name: Adding a positive displacement strictly advances
+    - T1
+    name: StrictIncrease
   TA2:
     status: from
     follows_from:
-    - Divergence
-    - T0(a)
-    - T1
-    - T3
     - TumblerSub
-    name: Tumbler subtraction a ⊖ w is well-defined when a ≥ w
+    - T1
+    name: WellDefinedSubtraction
   TA3:
     status: from
     follows_from:
-    - T1
     - TA2
+    - T1
     - TA6
     - TumblerSub
-    name: Subtraction preserves the total order (weak)
+    name: OrderPreservationUnderSubtractionWeak
   TA3-strict:
     status: introduced
-    name: 'Subtraction preserves the total order (strict) when additionally #a = #b'
-    follows_from:
-    - T1
-    - TA2
-    - TA6
-    - TumblerSub
+    name: OrderPreservationUnderSubtractionStrict
   TA4:
     status: from
     follows_from:
-    - T1
-    - T3
-    - TA0
-    - TA2
     - TumblerAdd
     - TumblerSub
-    name: Addition and subtraction are partial inverses
+    name: PartialInverse
   ReverseInverse:
     status: corollary
     follows_from:
-    - T1
-    - T3
-    - TA0
-    - TA2
     - TA3-strict
     - TA4
     - TumblerAdd
     - TumblerSub
-    name: Reverse inverse
+    name: ReverseInverse
   TumblerAdd:
-    status: introduced
-    name: TumblerAdd
-    follows_from:
-    - TA4
-  TumblerSub:
     status: from
     follows_from:
-    - Divergence
-    - T1
-    - TA1
-    - TA1-strict
-    - TA2
-    - TA3
+    - T0
+    - PositiveTumbler
+    name: TumblerAdd
+  TumblerSub:
+    status: introduced
     name: TumblerSub
   TA5:
     status: introduced
-    name: Hierarchical increment inc(t, k) produces t' > t
-    follows_from:
-    - T1
+    name: HierarchicalIncrement
   TA6:
     status: from
     follows_from:
     - T1
     - T4
-    name: Zero tumblers
+    name: ZeroTumblers
   PositiveTumbler:
     status: introduced
     name: PositiveTumbler
-    follows_from:
-    - T1
-    - TA0
-    - TA4
   TA7a:
     status: introduced
-    name: Ordinal-only shift arithmetic
-    follows_from:
-    - T1
-    - T4
-    - TA0
-    - TA2
-    - TA6
-    - TumblerAdd
-    - TumblerSub
+    name: SubspaceClosure
   TA-assoc:
     status: theorem
     follows_from:
-    - T3
-    - TA0
     - TumblerAdd
-    name: Addition is associative where both compositions are defined
+    - T3
+    name: AdditionAssociative
   TA-LC:
     status: other
     follows_from:
-    - T3
-    - TA0
     - TumblerAdd
-    name: LC (LeftCancellation)
+    - T3
+    name: LeftCancellation
   TA-RC:
     status: other
     follows_from:
-    - T3
-    - TA0
     - TumblerAdd
-    name: Right cancellation fails
+    - T3
+    name: RightCancellationFailure
   TA-MTO:
     status: other
     follows_from:
-    - T3
-    - TA0
     - TumblerAdd
-    name: MTO (ManyToOne)
+    - T3
+    name: ManyToOne
   D0:
     status: from
     follows_from:
-    - Divergence
-    - T1
     - T3
     - TA0
-    - TA2
     - TumblerAdd
     - TumblerSub
-    name: Displacement well-definedness
+    name: DisplacementWellDefined
   D1:
     status: other
     follows_from:
-    - D0
-    - Divergence
-    - T1
-    - T3
     - TumblerAdd
     - TumblerSub
-    name: Displacement round-trip
+    - T3
+    - Divergence
+    name: DisplacementRoundTrip
   D2:
     status: corollary
     follows_from:
-    - D0
     - D1
     - TA-LC
-    - TA0
-    - TumblerAdd
-    - TumblerSub
-    name: Displacement uniqueness
+    name: DisplacementUnique
   OrdinalDisplacement:
     status: introduced
     name: OrdinalDisplacement
   OrdinalShift:
-    status: introduced
-    name: OrdinalShift
+    status: from
     follows_from:
-    - OrdinalDisplacement
     - TA0
     - TumblerAdd
+    - OrdinalDisplacement
+    - T0
+    - PositiveTumbler
+    name: OrdinalShift
   TS1:
     status: other
     follows_from:
-    - Divergence
-    - OrdinalDisplacement
-    - OrdinalShift
     - TA1-strict
     name: ShiftOrderPreservation
   TS2:
     status: other
     follows_from:
-    - OrdinalDisplacement
-    - OrdinalShift
-    - T3
     - TA-MTO
+    - T3
     name: ShiftInjectivity
   TS3:
     status: other
     follows_from:
-    - OrdinalDisplacement
-    - OrdinalShift
-    - T3
-    - TA0
     - TumblerAdd
+    - T3
     name: ShiftComposition
   TS4:
     status: corollary
     follows_from:
-    - OrdinalDisplacement
-    - OrdinalShift
     - TA-strict
     name: ShiftStrictIncrease
   TS5:
     status: corollary
     follows_from:
-    - OrdinalDisplacement
-    - OrdinalShift
-    - TA0
     - TS3
     - TS4
     name: ShiftAmountMonotonicity
+  T10a.1:
+    status: corollary
+    follows_from:
+    - T10a
+    - TA5
+    name: UniformSiblingLength
+  T10a.2:
+    status: corollary
+    follows_from:
+    - T10a
+    - T1
+    - TA5
+    name: NonNestingSiblingPrefixes
+  T10a.3:
+    status: corollary
+    follows_from:
+    - T10a
+    - T3
+    - TA5
+    name: LengthSeparation
+  T10a.4:
+    status: corollary
+    follows_from:
+    - T10a
+    - TA5a
+    name: T4PreservationUnderDiscipline
+  T10a-N:
+    status: other
+    follows_from:
+    - T1
+    - TA5
+    name: AllocatorDisciplineNecessity
+  T4a:
+    status: corollary
+    follows_from:
+    - T4
+    name: SyntacticEquivalence
+  T4b:
+    status: corollary
+    follows_from:
+    - T3
+    - T4
+    - T4a
+    name: UniqueParse
+  T4c:
+    status: corollary
+    follows_from:
+    - T4
+    - T4b
+    name: LevelDetermination
+  TA5-SIG:
+    status: introduced
+    name: LastSignificantPosition
+  TA5-SigValid:
+    status: corollary
+    follows_from:
+    - TA5-SIG
+    - T4
+    name: SigOnValidAddresses
+  TA5a:
+    status: from
+    follows_from:
+    - TA5
+    - T4
+    name: IncrementPreservesT4
+  Span:
+    status: introduced
+    name: Span
