@@ -83,18 +83,41 @@ def _classify_one(label, status, section):
     return rec, reason, elapsed
 
 
-def lint_status(asn_num, dry_run=False):
-    """Run status lint on an ASN. Returns output path or None."""
+def lint_status(asn_num, dry_run=False, formalization=False):
+    """Run status lint on an ASN. Returns output path or None.
+
+    formalization: if True, read from vault/3-formalization/ per-property files
+    instead of the monolithic ASN.
+    """
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
         print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
         return None
 
-    text = asn_path.read_text()
-    rows = find_property_table(text)
-    if rows is None:
-        print(f"  No property table in {asn_path.name}", file=sys.stderr)
-        return None
+    if formalization:
+        from lib.shared.paths import FORMALIZATION_DIR
+        prop_dir = FORMALIZATION_DIR / asn_label
+        table_path = prop_dir / "_table.md"
+        if not table_path.exists():
+            print(f"  No _table.md in {prop_dir}", file=sys.stderr)
+            return None
+        table_text = table_path.read_text()
+        rows = find_property_table(table_text)
+        if rows is None:
+            print(f"  No property table in _table.md", file=sys.stderr)
+            return None
+        # Read sections from per-property files
+        sections = {}
+        for f in prop_dir.glob("*.md"):
+            if not f.name.startswith("_"):
+                sections[f.name.replace(".md", "")] = f.read_text()
+    else:
+        text = asn_path.read_text()
+        rows = find_property_table(text)
+        if rows is None:
+            print(f"  No property table in {asn_path.name}", file=sys.stderr)
+            return None
+        sections = None  # built below after labels collected
 
     header = parse_table_row(rows[0])
     cols = detect_columns(header)
@@ -114,8 +137,9 @@ def lint_status(asn_num, dry_run=False):
         labels.append(label)
         properties.append({"label": label, "status": status})
 
-    sections = extract_property_sections(text, known_labels=labels,
-                                          truncate=False)
+    if not formalization:
+        sections = extract_property_sections(text, known_labels=labels,
+                                              truncate=False)
 
     print(f"  [LINT-STATUS] {asn_label}: {len(properties)} properties",
           file=sys.stderr)
@@ -1058,6 +1082,8 @@ def main():
     sp_status.add_argument("asn", help="ASN number (e.g., 34)")
     sp_status.add_argument("--dry-run", action="store_true",
         help="Show properties without invoking Claude")
+    sp_status.add_argument("--formalization", action="store_true",
+        help="Read from vault/3-formalization/ instead of blueprint/ASN")
 
     # deps subcommand
     sp_deps = subparsers.add_parser("deps",
@@ -1091,7 +1117,8 @@ def main():
 
     if args.command == "status":
         asn_num = int(re.sub(r"[^0-9]", "", args.asn))
-        lint_status(asn_num, dry_run=args.dry_run)
+        lint_status(asn_num, dry_run=args.dry_run,
+                    formalization=getattr(args, 'formalization', False))
         step_commit_asn(asn_num, hint="lint-status")
     elif args.command == "deps":
         lint_deps(asn_nums=args.asns if args.asns else None)
