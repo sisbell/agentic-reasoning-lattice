@@ -7,11 +7,13 @@ This ASN extends ASN-0053 (Span Algebra) with the post-insertion shift property:
 
 ## Local Axioms
 
-**VD** — *UniformVPositionDepth* (AXIOM, local). All V-positions within a given subspace of a document share the same tumbler depth:
+**VB** — *BootstrapDiscipline* (AXIOM, local). Within each subspace's element field, the allocator bootstraps a two-level nesting once per atom type — establishing the atom-type discriminator and serial-counter prefix (e.g., D.0.1 for text) — after which all subsequent V-positions are produced by flat sibling allocation (`inc(·, 0)` only). No further child-spawning occurs after the initial bootstrap.
+
+**VD** — *UniformVPositionDepth* (LEMMA, local). All V-positions within a given subspace of a document share the same tumbler depth:
 
 `(A v₁, v₂ ∈ dom(M(d)) : subspace(v₁) = subspace(v₂) = S ⟹ #v₁ = #v₂)`
 
-Within each subspace's element field, the allocator bootstraps a two-level nesting once per atom type — establishing the atom-type discriminator and serial-counter prefix (e.g., D.0.1 for text) — after which all subsequent V-positions are produced by flat sibling allocation (`inc(·, 0)` only). Since sibling outputs have uniform length (T10a.1, ASN-0034), all V-positions at the serial-counter level share the same depth. VD is therefore a consequence of T10a.1 together with the structural fact that no further child-spawning occurs after the initial bootstrap.
+Since VB constrains V-position allocation to flat sibling production after bootstrap, and sibling outputs have uniform length (T10a.1, ASN-0034), all V-positions at the serial-counter level share the same depth.
 
 **VP** — *PositiveSubspace* (AXIOM, local). The subspace identifier of every V-position is positive:
 
@@ -117,7 +119,8 @@ Both endpoints of a within-subspace span shift by the same displacement δₙ; t
 | M(d) | definition | M(d) : T ⇀ T — arrangement function mapping V-positions to I-addresses for document d | introduced (local) |
 | subspace(v) | definition | subspace(v) = v₁ — the first component of a V-position, identifying its subspace | introduced (local) |
 | ordinal-level | definition | A span σ = (s, ℓ) is ordinal-level when actionPoint(ℓ) = #s = #ℓ | introduced (local) |
-| VD | axiom | All V-positions in a subspace share the same tumbler depth | introduced (local) |
+| VB | axiom | After bootstrap, V-position allocation uses flat sibling allocation only — no further child-spawning | introduced (local) |
+| VD | lemma | All V-positions in a subspace share the same tumbler depth | introduced (local) |
 | VP | axiom | subspace(v) = v₁ ≥ 1 for every V-position v | introduced (local) |
 | I3 | postcondition | (A v : v ∈ dom(M(d)) ∧ subspace(v) = S ∧ v ≥ p : shift(v, n) ∈ dom(M'(d)) ∧ M'(d)(shift(v, n)) = M(d)(v)) | introduced |
 | I3-L | frame | (A v : v ∈ dom(M(d)) ∧ subspace(v) = S ∧ v < p : v ∈ dom(M'(d)) ∧ M'(d)(v) = M(d)(v)) | introduced |
@@ -137,6 +140,7 @@ Both endpoints of a within-subspace span shift by the same displacement δₙ; t
 | D2 | lemma | For level-uniform σ: reach(σ) ⊖ start(σ) = width(σ) | cited (ASN-0053) |
 | S6 | lemma | For level-uniform σ: #reach(σ) = #s | cited (ASN-0053) |
 | T12 | precondition | span(s, ℓ) well-formed when ℓ > 0 and actionPoint(ℓ) ≤ #s | cited (ASN-0034) |
+| T10a.1 | lemma | All siblings from one allocator have uniform length | cited (ASN-0034) |
 | T4 | axiom | Address tumblers have ≤ 3 zeros as field separators; every field component strictly positive | cited (ASN-0034) |
 
 
