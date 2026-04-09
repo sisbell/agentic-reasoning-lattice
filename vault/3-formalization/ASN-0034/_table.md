@@ -23,7 +23,7 @@
 | TA0 | WellDefinedAddition | Tumbler addition a ⊕ w is well-defined when w > 0 and the action point k satisfies k ≤ #a | introduced |
 | TA1 | OrderPreservationUnderAddition | Addition preserves the total order (weak): a < b ⟹ a ⊕ w ≤ b ⊕ w | introduced |
 | Divergence | Divergence | Divergence point of two unequal tumblers: first position k where aₖ ≠ bₖ (component), or min(#a, #b) + 1 (prefix) | from T1 |
-| TA1-strict | StrictOrderPreservation | Addition preserves the total order (strict) when k ≤ min(#a, #b) ∧ k ≥ divergence(a, b) | from Divergence, TumblerAdd |
+| TA1-strict | StrictOrderPreservation | Addition preserves the total order (strict) when k ≤ min(#a, #b) ∧ k ≥ divergence(a, b) | from Divergence, TumblerAdd, T1 |
 | TA-strict | StrictIncrease | Adding a positive displacement strictly advances: a ⊕ w > a | from TumblerAdd, T1 |
 | TA2 | WellDefinedSubtraction | Tumbler subtraction a ⊖ w is well-defined when a ≥ w | from TumblerSub, T1 |
 | TA3 | OrderPreservationUnderSubtractionWeak | Subtraction preserves the total order (weak): a < b ⟹ a ⊖ w ≤ b ⊖ w when both are defined | from TA2, T1, TA6, TumblerSub |
