@@ -30,7 +30,7 @@
 | TA3-strict | OrderPreservationUnderSubtractionStrict | Subtraction preserves the total order (strict) when additionally #a = #b | introduced |
 | TA4 | PartialInverse | Addition and subtraction are partial inverses: (a ⊕ w) ⊖ w = a when k = #a, #w = k, and all components of a before k are zero | from TumblerAdd, TumblerSub |
 | ReverseInverse | ReverseInverse | (a ⊖ w) ⊕ w = a when k = #a, #w = k, a ≥ w > 0, and all components of a before k are zero | corollary of TA3-strict, TA4, TumblerAdd, TumblerSub |
-| TumblerAdd | TumblerAdd | a ⊕ w: copy aᵢ for i < k, advance aₖ by wₖ at action point k, replace tail with wᵢ for i > k; result length = #w | introduced |
+| TumblerAdd | TumblerAdd | a ⊕ w: copy aᵢ for i < k, advance aₖ by wₖ at action point k, replace tail with wᵢ for i > k; result length = #w | from T0 |
 | TumblerSub | TumblerSub | a ⊖ w: zero positions before divergence k, compute aₖ − wₖ at divergence point, copy aᵢ for i > k; result length = max(#a, #w) | introduced |
 | TA5 | HierarchicalIncrement | Hierarchical increment inc(t, k) produces t' > t: k=0 advances at sig(t), k>0 extends by k positions with separators and first child | introduced |
 | TA6 | ZeroTumblers | Every all-zero tumbler (any length) is less than every positive tumbler and is not a valid address | from T1, T4 |

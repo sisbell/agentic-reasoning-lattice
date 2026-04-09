@@ -22,7 +22,7 @@ AFTER:  1.0.3.0.5.0.1.1
 
 Reading `[0,0,0,0,3,0,1,1]`: four leading zeros mean "same server, same account." Component 5 is 3: "advance 3 documents." Trailing `[0,1,1]`: "land at element 1.1 in the target document." The start position's element field `[1,777]` is replaced by the displacement's trailing structure `[1,1]`.
 
-**TumblerAdd (TumblerAdd).** Let `a = [a₁, ..., aₘ]` and `w = [w₁, ..., wₙ]` with `w > 0`. With action point `k`:
+**TumblerAdd (TumblerAdd).** Let `a = [a₁, ..., aₘ]` and `w = [w₁, ..., wₙ]` with `a, w ∈ T` and `w > 0`. Define the *action point* of `w` as `k = min{i : 1 ≤ i ≤ n ∧ wᵢ ≠ 0}` — the index of the first nonzero component. Since `w > 0`, at least one component is nonzero, so `k` exists and is well-defined. Require `k ≤ m`: the action point must fall within the start position's length.
 
 ```
          ⎧ aᵢ           if i < k        (copy from start)
@@ -30,9 +30,11 @@ rᵢ   =  ⎨ aₖ + wₖ      if i = k        (single-component advance)
          ⎩ wᵢ           if i > k        (copy from displacement)
 ```
 
-The result `a ⊕ w = [r₁, ..., rₚ]` has length `p = max(k - 1, 0) + (n - k + 1)`. Since `w > 0` implies `k ≥ 1`, this simplifies to `p = (k - 1) + (n - k + 1) = n = #w`. We record this as the *result-length identity*: **`#(a ⊕ w) = #w`** — the length of the sum is determined entirely by the displacement, not the start position. This identity is load-bearing for subsequent properties that depend on TumblerAdd.
+The result `a ⊕ w = [r₁, ..., rₚ]` has length `p = (k - 1) + 1 + (n - k) = n = #w`. Since `w ∈ T` requires `n ≥ 1`, the result has at least one component. We record this as the *result-length identity*: **`#(a ⊕ w) = #w`** — the length of the sum is determined entirely by the displacement, not the start position.
 
-**Precondition:** `k ≤ m` — the displacement's action point must fall within the start position's length.
+Each component of the result is a natural number: for `i < k`, `rᵢ = aᵢ ∈ ℕ` since `a ∈ T` and `k ≤ m` ensures position `i` exists within `a`; at the action point, `rₖ = aₖ + wₖ ∈ ℕ` by closure of ℕ under addition; for `i > k`, `rᵢ = wᵢ ∈ ℕ` since `w ∈ T`. The result is therefore a finite sequence over ℕ with length ≥ 1, hence **`a ⊕ w ∈ T`** by T0.
+
+These two identities are load-bearing for subsequent properties that depend on TumblerAdd.
 
 Three properties of this definition require explicit statement:
 
@@ -52,5 +54,5 @@ This is correct and intentional: advancing to "the beginning of the next chapter
 
 *Formal Contract:*
 - *Preconditions:* a ∈ T, w ∈ T, w > 0, actionPoint(w) ≤ #a
-- *Definition:* rᵢ = aᵢ if i < k; rₖ = aₖ + wₖ; rᵢ = wᵢ if i > k
+- *Definition:* k = min{i : 1 ≤ i ≤ n ∧ wᵢ ≠ 0}; rᵢ = aᵢ if i < k; rₖ = aₖ + wₖ; rᵢ = wᵢ if i > k
 - *Postconditions:* a ⊕ w ∈ T, #(a ⊕ w) = #w
