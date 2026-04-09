@@ -1,0 +1,8 @@
+# ASN-0080 — Span Algebra 0
+title: "Span Algebra 0"
+extends: 53
+source: 59
+depends: [34, 53]
+
+consultations:
+  question: "Extension of ASN-0053: properties I3 from ASN-0059."
