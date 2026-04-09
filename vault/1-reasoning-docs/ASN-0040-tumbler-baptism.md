@@ -189,7 +189,7 @@ When (p, d) does not satisfy B6 but S(p, d) contains T4-valid elements: this occ
 
 *Stream identity.* Both streams share the recurrence cₙ₊₁ = inc(cₙ, 0). Since c₁ = c'₁ and the recurrence is deterministic, the streams are identical: S(p, 1) = S(p', 2).
 
-Since p' satisfies T4 (p₁ > 0, no adjacent zeros, p'_{#p'} = p_{#p−1} > 0 since the trailing zero was the sole defect) and (p', 2) satisfies B6, two sub-cases arise. If (p', d') ≠ (p₀, d₀), B7 gives S(p₀, d₀) ∩ S(p', d') = ∅, hence a ∉ S(p', d') = S(p, d), and children(B', p, d) = children(B, p, d). If (p', d') = (p₀, d₀), then children(B', p, d) = children(B', p₀, d₀), whose contiguous prefix property was established in the target namespace case above.
+We verify that p' satisfies T4 and (p', 2) satisfies B6. For T4: p₁ > 0 (inherited from p); no adjacent zeros (the trailing zero was the sole defect — if p had adjacent zeros or a leading zero, these would be additional T4 violations, contradicting the sole-defect hypothesis); p'_{#p'} = p_{#p−1} > 0 since the trailing zero was the sole defect. For the zero count: the sole-defect hypothesis gives zeros(p) ≤ 3 (a second violation — such as zeros(p) > 3 — would contradict sole defect). Removing the trailing zero yields zeros(p') = zeros(p) − 1 ≤ 2. B6(i): p' satisfies T4 as just shown. B6(ii): d' = 2 ∈ {1, 2}. B6(iii): zeros(p') + (d' − 1) = zeros(p') + 1 ≤ 3. Therefore (p', 2) satisfies B6. Two sub-cases arise. If (p', d') ≠ (p₀, d₀), B7 gives S(p₀, d₀) ∩ S(p', d') = ∅, hence a ∉ S(p', d') = S(p, d), and children(B', p, d) = children(B, p, d). If (p', d') = (p₀, d₀), then children(B', p, d) = children(B', p₀, d₀), whose contiguous prefix property was established in the target namespace case above.
 
 In all sub-cases, children(B', p, d) is a contiguous prefix of S(p, d).
 
@@ -200,11 +200,7 @@ Since B1 is preserved in the target namespace and in every other namespace, B1 h
 - *Base:* B₀ conf. — seed set satisfies contiguous prefix for all (p, d).
 - *Preservation:* Each baptism preserves B1 in the target namespace (by Bop, B0, B4, S0, TA5(c)) and in all other namespaces (by B7 for B6-valid pairs; by B10 for non-B6 pairs whose streams are entirely T4-invalid; by stream identity S(p, 1) = S(p', 2) — proved by first-element component comparison and deterministic recurrence — for non-B6 pairs where p ends in zero as its sole defect and d = 1).
 
-The argument proceeds by induction on the sequence of baptisms within a namespace. The base case is vacuous: when no child has been baptized, the empty set is trivially a prefix. For the inductive step, suppose children(B, p, d) = {c₁, ..., cₘ} is a contiguous prefix of length m. By B4, the next baptism observes the complete state left by the previous one — no concurrent same-namespace baptism has intervened. The operation (Bop) computes next(B, p, d) = inc(cₘ, 0) = c_{m+1}. No element is skipped: the definition of next always selects the immediate successor. By B0, existing elements persist, so the prefix only grows. The new set {c₁, ..., c_{m+1}} is a prefix of length m + 1.
-
-This argument rests on two additional properties. First, no operation outside this namespace inserts an element into S(p, d) — established below as B7 (Namespace Disjointness). Second, no mechanism other than baptism adds elements to B at all — established above as B0a (Baptismal Closure). Without B0a, a non-baptismal operation could insert arbitrary elements into B, and the inductive step would be ungrounded.
-
-B1 is universally quantified over all (p', d'), so the inductive step must also show that c_{hwm+1} does not disrupt any *other* namespace. For B6-valid pairs, B7 gives S(p, d) ∩ S(p', d') = ∅, so the new element does not enter their children set. For non-B6 pairs, either every stream element violates T4 — making children empty by B10 — or the stream is identical to some B6-valid namespace's stream and inherits its contiguous prefix property. B1 is therefore preserved for all (p', d'), not just the target namespace.
+Two dependencies bear emphasis. B7 (Namespace Disjointness) ensures no operation outside a namespace inserts an element into its stream. B0a (Baptismal Closure) ensures no mechanism other than baptism adds elements to B at all — without B0a, a non-baptismal operation could insert arbitrary elements into B, and the preservation argument would be ungrounded.
 
 The induction also requires a conforming base:
 
@@ -559,13 +555,13 @@ After M − m steps, hwm(B_{M−m}, p, d) = m + (M − m) = M. Setting B' = B_{M
 | S(p,d) | Sibling stream: c₁ = inc(p, d), cₙ₊₁ = inc(cₙ, 0) | from TA5(b), TA5(c), TA5(d) |
 | hwm(B,p,d) | High water mark: #children(B, p, d) — sufficient allocation statistic | from B1, S0 |
 | next(B,p,d) | Next address: if children = ∅ then inc(p, d) else inc(max(children), 0) | from TA5(c), TA5(d), T1 |
-| Bop | baptize(p, d): PRE B6, B4; POST Σ'.B = Σ.B ∪ {next(Σ.B, p, d)}; FRAME only Σ.B | from B1, B4, B6, B7, B0a, B10, TA5, TA5a |
+| Bop | baptize(p, d): PRE B6, B4; POST Σ'.B = Σ.B ∪ {next(Σ.B, p, d)}; FRAME only Σ.B | from B0, B1, B4, B6, B7, B0a, B10, TA5, TA5a |
 | S0 | `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)` — stream strictly ordered | from TA5(a), T1 |
 | S1 | `(A n : n ≥ 1 : p ≼ cₙ)` — all stream elements extend parent | from TA5(b), TA5(c), TA5(d) |
 | B0 | `Σ.B ⊆ Σ'.B` for all transitions — irrevocability (extends T8) | design requirement |
 | B0a | `Σ'.B \ Σ.B ⊆ {baptism(p,d) outputs for (p,d) satisfying B6}` — registry grows only through baptism | design requirement |
 | B₀ conf. | B₀ is non-empty and finite, `children(B₀, p, d)` is a contiguous prefix for all (p, d), and `(A t ∈ B₀ : t satisfies T4)` — seed conformance | design requirement |
-| B1 | `cₙ ∈ B ⟹ (A i : 1 ≤ i < n : cᵢ ∈ B)` — contiguous prefix (requires conforming B₀) | from B₀ conf., B0, B0a, B4, B7, Bop, S0, TA5(c) |
+| B1 | `cₙ ∈ B ⟹ (A i : 1 ≤ i < n : cᵢ ∈ B)` — contiguous prefix (requires conforming B₀) | from B₀ conf., B0, B0a, B4, B7, B10, Bop, S0, TA5(c) |
 | B2 | `next(B, p, d) = c_{hwm+1}` — high water mark sufficiency (from B1) | from B1, S0, NextAddress |
 | B3 | `t ∈ Σ.B` does not imply t is occupied — ghost validity | design requirement |
 | B4 | Same-namespace baptisms serialized: `commit(β₁) ≺ read(β₂) ∨ commit(β₂) ≺ read(β₁)` | design requirement |
