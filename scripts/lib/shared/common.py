@@ -228,6 +228,33 @@ def assemble_readonly(asn_label):
     return "\n\n---\n\n".join(parts)
 
 
+def load_property_sections(prop_dir):
+    """Load per-property files into a dict, indexed by both filename and
+    normalized table labels.
+
+    Handles the mismatch between table labels like T0(a) and filenames
+    like T0a.md. Lookup by either form will work.
+    """
+    sections = {}
+    for f in sorted(prop_dir.glob("*.md")):
+        if f.name.startswith("_"):
+            continue
+        content = f.read_text()
+        fname = f.name.replace(".md", "")
+        sections[fname] = content
+    # Add reverse mappings for table labels with parens/prefix:
+    # T0a -> also indexed as T0(a), T0(b), etc.
+    import re as _re
+    for fname in list(sections.keys()):
+        # T0a -> T0(a): if fname matches LABEL+letter, add paren form
+        m = _re.match(r'^([A-Z]+\d+)([a-z])$', fname)
+        if m:
+            paren_label = f"{m.group(1)}({m.group(2)})"
+            if paren_label not in sections:
+                sections[paren_label] = sections[fname]
+    return sections
+
+
 def extract_property_sections(asn_text, known_labels=None, truncate=True):
     """Extract the derivation text for each property.
 

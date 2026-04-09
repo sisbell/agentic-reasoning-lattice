@@ -106,11 +106,9 @@ def lint_status(asn_num, dry_run=False, formalization=False):
         if rows is None:
             print(f"  No property table in _table.md", file=sys.stderr)
             return None
-        # Read sections from per-property files
-        sections = {}
-        for f in prop_dir.glob("*.md"):
-            if not f.name.startswith("_"):
-                sections[f.name.replace(".md", "")] = f.read_text()
+        # Read sections from per-property files (normalized lookup)
+        from lib.shared.common import load_property_sections
+        sections = load_property_sections(prop_dir)
     else:
         text = asn_path.read_text()
         rows = find_property_table(text)

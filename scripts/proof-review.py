@@ -109,12 +109,9 @@ def run_proof_review(asn_num, max_cycles=5, mode="incremental",
             print(f"  No dependency data — cannot review", file=sys.stderr)
             return "failed"
 
-        # Read per-property files
-        sections = {}
-        for f in prop_dir.glob("*.md"):
-            if not f.name.startswith("_"):
-                label = f.name.replace(".md", "")
-                sections[label] = f.read_text()
+        # Read per-property files (normalized lookup handles T0(a) → T0a etc.)
+        from lib.shared.common import load_property_sections
+        sections = load_property_sections(prop_dir)
         ordered = topological_sort_labels(deps_data)
 
         # Determine which properties to review

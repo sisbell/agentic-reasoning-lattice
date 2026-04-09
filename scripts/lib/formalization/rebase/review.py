@@ -643,10 +643,8 @@ def _check_cross_references(asn_num, target_labels=None):
     # Read per-property files if available
     prop_dir = FORMALIZATION_DIR / asn_label
     if prop_dir.exists():
-        local_sections = {}
-        for f in prop_dir.glob("*.md"):
-            if not f.name.startswith("_"):
-                local_sections[f.name.replace(".md", "")] = f.read_text()
+        from lib.shared.common import load_property_sections
+        local_sections = load_property_sections(prop_dir)
     else:
         from lib.shared.common import extract_property_sections
         local_sections = extract_property_sections(

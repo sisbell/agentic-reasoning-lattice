@@ -516,11 +516,8 @@ def generate_deps(asn_num):
     # Enrich with property names and prose citations
     # Read per-property files if available, otherwise extract from monolithic ASN
     if prop_dir and prop_dir.exists():
-        sections = {}
-        for f in prop_dir.glob("*.md"):
-            if not f.name.startswith("_"):
-                label = f.name.replace(".md", "")
-                sections[label] = f.read_text()
+        from lib.shared.common import load_property_sections
+        sections = load_property_sections(prop_dir)
     else:
         from lib.shared.common import extract_property_sections
         text = asn_path.read_text()
