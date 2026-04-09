@@ -71,6 +71,12 @@ This parallels S7b for content (ASN-0036). A link address carries all four tumbl
 
 This parallels S7a (DocumentScopedAllocation, ASN-0036) for content. Gregory confirms: `docreatelink` allocates the link address within the creating document's address space via `findisatoinsertmolecule`, which extends the document's I-stream. The allocation prefix is determined by the document parameter, not by the endsets — a link whose endsets reference entirely foreign content is still allocated under the creating document's prefix.
 
+**L1b — LinkElementFieldDepth.** Every link address has element field depth at least 2:
+
+`(A a ∈ dom(Σ.L) :: #fields(a).element ≥ 2)`
+
+This parallels S7c (ElementFieldDepth, ASN-0036) for content. At depth 1, the element field is `[s_L]` — the subspace identifier alone. Sibling allocation via `inc(·, 0)` would advance the only component, producing `[s_L + 1]` — an address in subspace `s_L + 1`, not `s_L`. This is the same degeneracy identified in ValidInsertionPosition (ASN-0036): at depth 1, `shift([s_L], 1) = [s_L + 1]` crosses subspace boundaries because the ordinal displacement `δ(1, 1)` has action point 1, which coincides with the subspace identifier position. At depth `m ≥ 2`, `δ(n, m)` has action point `m > 1`, so TumblerAdd copies component 1 unchanged — all siblings remain in subspace `s_L`. The worked example below uses element field `[2, 1]` (depth 2), consistent with this constraint.
+
 
 ## Home and Ownership
 
@@ -82,9 +88,9 @@ Because link addresses are element-level tumblers (L1) allocated under their cre
 
 This is the same formula as `origin` (ASN-0036), applied here to link addresses rather than content addresses. The domain extension is justified: link addresses are tumblers used as addresses (keys in `Σ.L`), so T4 (HierarchicalParsing, ASN-0034) constrains them to satisfy its format requirements; L1 establishes `zeros(a) = 3`, placing them at element level with all four fields present; therefore `fields` is well-defined and the formula computes correctly.
 
-**GlobalUniqueness.** No two allocation events anywhere in the system produce the same address. S4 (OriginBasedIdentity, ASN-0036) establishes this for I-addresses (content store addresses). We observe that the three foundation axioms underlying S4's derivation are properties of the tumbler allocation mechanism itself, not of any particular subspace or store: T9 (ForwardAllocation, ASN-0034) is quantified over all tumblers sharing an allocator — its antecedent `same_allocator(a, b) ∧ allocated_before(a, b)` carries no subspace restriction; T10 (PartitionIndependence, ASN-0034) is quantified over all prefix pairs with `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁` — again, no subspace restriction; T10a (AllocatorDiscipline, ASN-0034) describes how any allocator produces outputs via `inc(·, 0)` and spawns children via `inc(·, k')` — a structural discipline on tumbler arithmetic that applies uniformly regardless of which subspace the allocated addresses occupy. None of these axioms reference `Σ.C`, `Σ.L`, or any store-specific property. Therefore the same three cases that S4 uses for content-subspace uniqueness — same-allocator distinctness via T9, non-nesting cross-allocator distinctness via T10, nesting-prefix cross-allocator distinctness via T10a + TA5(d) + T3 — apply identically to link-subspace allocations. Any element-level tumbler produced by the allocation discipline receives a globally unique address.
+By GlobalUniqueness (UniqueAddressAllocation, ASN-0034), no two allocation events produce the same address. Link addresses are produced by allocation events conforming to T10a (via L1a). Therefore each link receives a globally unique address.
 
-The home document determines the link's owner. This is not metadata attached to the link — it IS the link's address, read through the field structure. By L1a, the document-level prefix of `a` identifies the document whose owner created the link; by L1 and T4 (HierarchicalParsing, ASN-0034), the prefix is recoverable from the address alone. Together these yield the link analog of S7 (StructuralAttribution, ASN-0036): `home(a)` uniquely identifies the creating document across the system (by the same three cases as S7's derivation — T9, T10, and T10a + TA5(d) + T3, ASN-0034 — with L1a replacing S7a and L1 replacing S7b), and this identification is structural — embedded in the address, not attached as metadata.
+The home document determines the link's owner. This is not metadata attached to the link — it IS the link's address, read through the field structure. By L1a, the document-level prefix of `a` identifies the document whose owner created the link; by L1 and T4 (HierarchicalParsing, ASN-0034), the prefix is recoverable from the address alone. Together these yield the link analog of S7 (StructuralAttribution, ASN-0036): `home(a)` uniquely identifies the creating document across the system — by GlobalUniqueness (UniqueAddressAllocation, ASN-0034), distinct allocations produce distinct addresses, so distinct documents yield distinct home prefixes — and this identification is structural, embedded in the address, not attached as metadata.
 
 The critical property — the one that distinguishes this design from systems where annotations are embedded in the annotated content:
 
@@ -210,13 +216,14 @@ This is a profound design choice. It decouples classification from content retri
 
 `(A Σ : Σ satisfies L0–L14 ∧ S0–S3 : (E Σ' extending Σ, a ∈ dom(Σ'.L), (s, ℓ) ∈ Σ'.L(a).type :: coverage({(s, ℓ)}) ⊄ dom(Σ'.C) ∪ dom(Σ'.L)))`
 
-*Witness.* Take any conforming `Σ`. Choose a subspace identifier `s_X` with `s_X ≠ s_C` and `s_X ≠ s_L` (by T0(a), element-field first components range over all naturals, so values beyond `s_C` and `s_L` exist). Let `g` be any element-level tumbler with `fields(g).E₁ = s_X`. By L0, `dom(Σ.C) ⊆ {t : fields(t).E₁ = s_C}` and `dom(Σ.L) ⊆ {t : fields(t).E₁ = s_L}`. Since `s_X ≠ s_C` and `s_X ≠ s_L`, T7 gives `g ∉ dom(Σ.C) ∪ dom(Σ.L)` — unconditionally, regardless of the size of these domains. Choose a document prefix `d'` under which no address has been allocated — that is, no `b ∈ dom(Σ.C)` has `origin(b) = d'` and no `b ∈ dom(Σ.L)` has `home(b) = d'` (by T0(a), node-field components are unbounded, providing prefixes beyond any finite allocation history). Allocate a link address `a` under `d'`'s link subspace with `fields(a).E₁ = s_L` and `zeros(a) = 3`; since `d'` is fresh, `a ∉ dom(Σ.L)`. Define `Σ'` as `Σ` extended with `Σ'.L(a) = (∅, ∅, {(g, δ(1, #g))})`, and `Σ'.C = Σ.C`, `Σ'.M = Σ.M`.
+*Witness.* Take any conforming `Σ`. Choose a subspace identifier `s_X` with `s_X ≠ s_C` and `s_X ≠ s_L` (by T0(a), element-field first components range over all naturals, so values beyond `s_C` and `s_L` exist). Let `g` be any element-level tumbler with `fields(g).E₁ = s_X`. By L0, `dom(Σ.C) ⊆ {t : fields(t).E₁ = s_C}` and `dom(Σ.L) ⊆ {t : fields(t).E₁ = s_L}`. Since `s_X ≠ s_C` and `s_X ≠ s_L`, T7 gives `g ∉ dom(Σ.C) ∪ dom(Σ.L)` — unconditionally, regardless of the size of these domains. Choose a document prefix `d'` under which no address has been allocated — that is, no `b ∈ dom(Σ.C)` has `origin(b) = d'` and no `b ∈ dom(Σ.L)` has `home(b) = d'` (by T0(a), node-field components are unbounded, providing prefixes beyond any finite allocation history). Allocate a link address `a` under `d'`'s link subspace with `fields(a).E₁ = s_L`, `zeros(a) = 3`, and `#fields(a).element ≥ 2`; since `d'` is fresh, `a ∉ dom(Σ.L)`. Define `Σ'` as `Σ` extended with `Σ'.L(a) = (∅, ∅, {(g, δ(1, #g))})`, and `Σ'.C = Σ.C`, `Σ'.M = Σ.M`.
 
 We verify that `Σ'` is conforming:
 
 - *L0 (SubspacePartition).* The address `a` is constructed with `fields(a).E₁ = s_L`. Since `s_L ≠ s_C`, `a ∉ dom(Σ'.C) = dom(Σ.C)`, preserving disjointness.
 - *L1 (LinkElementLevel).* The address `a` is an element-level tumbler by construction: allocated under a document prefix with all four fields, giving `zeros(a) = 3`.
 - *L1a (LinkScopedAllocation).* The address `a` is allocated under `d'`'s prefix by construction: `home(a) = d'`.
+- *L1b (LinkElementFieldDepth).* The address `a` is constructed with `#fields(a).element ≥ 2` (at minimum `[s_L, 1]`).
 - *L3–L5.* The type span `(g, δ(1, #g))` is well-formed by T12; the endset sequence `(∅, ∅, {(g, δ(1, #g))})` has arity 3 ≥ 2, satisfying L3. Empty endsets are valid by the definition of Endset. L5 holds trivially.
 - *L11a (LinkUniqueness).* No address in `dom(Σ.L)` has prefix `d'`, so `a ∉ dom(Σ.L)`, and `a` is distinct from every existing link address.
 - *L12 (LinkImmutability).* For every `b ∈ dom(Σ.L)`: `b ∈ dom(Σ'.L)` and `Σ'.L(b) = Σ.L(b)`, since `Σ'` only adds the new entry at `a`.
@@ -259,13 +266,13 @@ We observe that L10 characterizes the structural affordance that the address spa
 
 We now establish the identity semantics of links. The three requirements we began with — distinguishability, ownership, referenceability — crystallize into two derived properties.
 
-**L11a — LinkUniqueness.** Link addresses are produced by forward allocation (T9, ASN-0034) within the link subspace. By GlobalUniqueness, no two allocation events anywhere in the system produce the same address. Therefore every link has a globally unique, permanent identity, and the question "are these the same link?" reduces to tumbler comparison (T2, IntrinsicComparison).
+**L11a — LinkUniqueness.** Link addresses are produced by forward allocation (T9, ASN-0034) within the link subspace. By GlobalUniqueness (UniqueAddressAllocation, ASN-0034), no two allocation events anywhere in the system produce the same address. Therefore every link has a globally unique, permanent identity, and the question "are these the same link?" reduces to tumbler comparison (T2, IntrinsicComparison).
 
 **L11b — NonInjectivity.** The link store imposes no injectivity constraint — multiple addresses may store the same endset sequence:
 
 `(A Σ satisfying L0–L14, a ∈ dom(Σ.L) :: (E Σ' extending Σ, a' ∈ dom(Σ'.L) :: a' ≠ a ∧ Σ'.L(a') = Σ.L(a) ∧ Σ' satisfies L0–L14))`
 
-That is, for any conforming state `Σ` with a link at `a ∈ dom(Σ.L)` where `Σ.L(a) = (F, G, Θ)`, there exists a conforming extension `Σ'` with a fresh address `a' ∈ dom(Σ'.L)`, `a' ≠ a`, and `Σ'.L(a') = (F, G, Θ)`. The invariants *permit* non-injectivity — every state with a link can be extended to a non-injective state — but they do not *require* it. The witness is immediate: allocate `a'` by forward allocation within the same document's link subspace, and set `Σ'.L(a') = (F, G, Θ)` with `Σ'.C = Σ.C` and `Σ'.M = Σ.M`. All invariants L0–L14 are preserved: L0 by subspace (`a'` is in `s_L`); L1/L1a by allocation; L2 structurally (home is field extraction from the address); L3–L5 by construction (same endset sequence as the existing link); L6 because the new entry copies the same sequence, preserving slot distinction; L11a uniqueness for `a'` by GlobalUniqueness; L12 because existing entries are unchanged; L12a follows from L12; L14 because `a'` is in subspace `s_L`, preserving disjointness with `dom(Σ'.C)`; L8, L10, L13 are lemmas that do not constrain states; S0–S3 hold trivially since `Σ'.C = Σ.C` and `Σ'.M = Σ.M`.
+That is, for any conforming state `Σ` with a link at `a ∈ dom(Σ.L)` where `Σ.L(a) = (F, G, Θ)`, there exists a conforming extension `Σ'` with a fresh address `a' ∈ dom(Σ'.L)`, `a' ≠ a`, and `Σ'.L(a') = (F, G, Θ)`. The invariants *permit* non-injectivity — every state with a link can be extended to a non-injective state — but they do not *require* it. The witness is immediate: allocate `a'` by forward allocation within the same document's link subspace, and set `Σ'.L(a') = (F, G, Θ)` with `Σ'.C = Σ.C` and `Σ'.M = Σ.M`. All invariants L0–L14 are preserved: L0 by subspace (`a'` is in `s_L`); L1/L1a/L1b by allocation (element field depth ≥ 2 by construction); L2 structurally (home is field extraction from the address); L3–L5 by construction (same endset sequence as the existing link); L6 because the new entry copies the same sequence, preserving slot distinction; L11a uniqueness for `a'` by GlobalUniqueness (UniqueAddressAllocation, ASN-0034); L12 because existing entries are unchanged; L12a follows from L12; L14 because `a'` is in subspace `s_L`, preserving disjointness with `dom(Σ'.C)`; L8, L10, L13 are lemmas that do not constrain states; S0–S3 hold trivially since `Σ'.C = Σ.C` and `Σ'.M = Σ.M`.
 
 Two links with identical endsets — same from, same to, same type — but different addresses are separate objects, independently owned, independently removable, independently targetable by other links.
 
@@ -390,6 +397,8 @@ So `Σ.L = {a ↦ (F, G, Θ)}`.
 
 *L1a (LinkScopedAllocation).* `home(a) = 1.0.1.0.1 = d`, the creating document. ✓
 
+*L1b (LinkElementFieldDepth).* `fields(a).element = [2, 1]`, so `#fields(a).element = 2 ≥ 2`. ✓
+
 *L2 (OwnershipEndsetIndependence).* `home(a) = 1.0.1.0.1`, computed from the field structure of `a` alone. The endsets `(F, G, Θ)` are not consulted. ✓
 
 *L3 (NEndsetStructure).* `|Σ.L(a)| = 3 ≥ 2`, and each endset is in `𝒫_fin(Span)`. ✓
@@ -459,6 +468,7 @@ The final state is `Σ_2` with `Σ_2.L = {a ↦ (F, G, Θ),\; a' ↦ (F, G, Θ),
 | L0 | INV | SubspacePartition — link addresses occupy subspace `s_L`, content addresses occupy `s_C`, and `dom(Σ.L) ∩ dom(Σ.C) = ∅` | introduced |
 | L1 | INV | LinkElementLevel — every link address is an element-level tumbler: `(A a ∈ dom(Σ.L) :: zeros(a) = 3)` | introduced |
 | L1a | INV | LinkScopedAllocation — every link address is allocated under the creating document's tumbler prefix | introduced |
+| L1b | INV | LinkElementFieldDepth — every link address has element field depth ≥ 2: `(A a ∈ dom(Σ.L) :: #fields(a).element ≥ 2)` | introduced |
 | L2 | LEMMA | OwnershipEndsetIndependence — `home(a)` depends only on `a`, not on the link's endsets | introduced |
 | L3 | INV | NEndsetStructure — every link has at least two endsets: `\|Σ.L(a)\| ≥ 2`; arity 3 `(F, G, Θ)` by StandardTriple convention | introduced |
 | L4 | LEMMA | EndsetGenerality — endset spans satisfy T12 (definitional from L3); the substantive content is the absence of additional constraints: no single-document, content-only, or existence restriction | introduced |
@@ -469,8 +479,7 @@ The final state is `Σ_2` with `Σ_2.L = {a ↦ (F, G, Θ),\; a' ↦ (F, G, Θ),
 | L9 | LEMMA | TypeGhostPermission — for standard-triple links, any conforming state can be extended with a link whose type endset references addresses outside `dom(Σ.C) ∪ dom(Σ.L)` | introduced |
 | PrefixSpanCoverage | LEMMA | For any tumbler `x` with `#x ≥ 1`, the unit-depth span has `coverage({(x, δ(1, #x))}) = {t ∈ T : x ≼ t}`; equivalently `x ⊕ δ(1, #x) = shift(x, 1)` | introduced |
 | L10 | LEMMA | TypeHierarchyByContainment — `coverage({(p, δ(1, #p))}) = subtypes(p)` by PrefixSpanCoverage | introduced |
-| GlobalUniqueness | LEMMA | No two allocation events produce the same address — extends S4 (OriginBasedIdentity, ASN-0036) beyond I-addresses via T9, T10, T10a, TA5, T3 (ASN-0034) | introduced |
-| L11a | LEMMA | LinkUniqueness — link addresses inherit GlobalUniqueness; each link has a globally unique, permanent identity | introduced |
+| L11a | LEMMA | LinkUniqueness — by GlobalUniqueness (UniqueAddressAllocation, ASN-0034), each link has a globally unique, permanent identity | introduced |
 | L11b | LEMMA | NonInjectivity — every conforming state with a link can be extended to a non-injective conforming state | introduced |
 | L12 | INV | LinkImmutability — `(A Σ, Σ' : a ∈ dom(Σ.L) : a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a))` for every state transition | introduced |
 | L12a | LEMMA | LinkStoreMonotonicity — `dom(Σ.L) ⊆ dom(Σ'.L)` for every state transition | introduced |
