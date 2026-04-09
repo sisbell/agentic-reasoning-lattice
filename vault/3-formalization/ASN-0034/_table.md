@@ -11,10 +11,11 @@
 | T5 | ContiguousSubtrees | The set of tumblers sharing a prefix forms a contiguous interval under T1 | introduced |
 | T6 | DecidableContainment | Containment (same node, same account, same document family, structural subordination) is decidable from addresses alone | corollary of T4 |
 | T7 | SubspaceDisjointness | Subspaces (text, links) within a document's element field are permanently disjoint | corollary of T3, T4 |
-| T8 | AllocationPermanence | Once allocated, an address is never removed from the address space; the set of allocated addresses is monotonically non-decreasing | theorem from T1, T2, T4, T10a, TA5, TumblerAdd, TumblerSub |
+| NoDeallocation | NoDeallocation | The system defines no operation that removes an element from the allocated set; this is a design constraint, not a derived property | design axiom |
+| T8 | AllocationPermanence | Once allocated, an address is never removed from the address space; the set of allocated addresses is monotonically non-decreasing | theorem from T1, T2, T4, T10a, TA5, TumblerAdd, TumblerSub, NoDeallocation |
 | T9 | ForwardAllocation | Within a single allocator's sequential stream, new addresses are strictly monotonically increasing; gaps are permanent | lemma (from T10a, TA5) |
 | T10 | PartitionIndependence | Allocators with non-nesting prefixes produce distinct addresses without coordination | theorem from T3, Prefix |
-| T10a | AllocatorDiscipline | Each allocator uses inc(·, 0) for siblings and inc(·, k>0) only for child-spawning; this constrains sibling outputs to uniform length | design requirement (postconditions from TA5, T1, T10, Prefix) |
+| T10a | AllocatorDiscipline | Each allocator uses inc(·, 0) for siblings and inc(·, k'∈{1,2}) with TA5a bounds for child-spawning; constrains sibling outputs to uniform length and preserves T4 | design requirement (postconditions from TA5, TA5a, T4, T1, T10, Prefix) |
 | PrefixOrderingExtension | PrefixOrderingExtension | p₁ < p₂ with neither a prefix of the other implies a < b for every a with p₁ ≼ a and every b with p₂ ≼ b | lemma (from T1) |
 | PartitionMonotonicity | PartitionMonotonicity | Per-allocator ordering extends cross-allocator; for non-nesting sibling prefixes p₁ < p₂, every address extending p₁ precedes every address extending p₂ | theorem from PrefixOrderingExtension, T1, T3, T5, T9, T10a, TA5 |
 | GlobalUniqueness | GlobalUniqueness | No two distinct allocation events anywhere in the system at any time produce the same address | theorem from T3, T4, T9, T10, T10a, TA5 |
@@ -52,6 +53,7 @@
 | T10a.1 | UniformSiblingLength | All siblings produced by a single allocator have the same length as its base address | corollary of T10a, TA5 |
 | T10a.2 | NonNestingSiblingPrefixes | Distinct siblings from the same allocator are prefix-incomparable | corollary of T10a.1, T1, TA5 |
 | T10a.3 | LengthSeparation | Child allocator outputs have strictly greater length than any parent sibling output, with additive separation across nesting levels | corollary of T10a.1, T3, TA5 |
+| T10a.4 | T4PreservationUnderDiscipline | The allocator discipline produces only T4-compliant addresses: inc(·, 0) preserves T4 unconditionally, child-spawning k'∈{1,2} with TA5a bounds preserves T4 | corollary of T10a, TA5a |
 | T10a-N | AllocatorDisciplineNecessity | Relaxing the k=0 restriction for siblings permits prefix nesting, violating the T10 precondition | lemma (from T1, TA5) |
 | T4a | SyntacticEquivalence | Non-empty field constraint is equivalent to no adjacent zeros, t₁ ≠ 0, and t_{#t} ≠ 0 | corollary of T4 |
 | T4b | UniqueParse | fields(t) is well-defined and uniquely determined under T4 constraints | corollary of T3, T4, T4a |

@@ -1,0 +1,23 @@
+# Cross-cutting Review — ASN-0034 (cycle 1)
+
+*2026-04-08 19:02*
+
+I've read the entire ASN-0034 end to end, tracking definitions, precondition chains, and cross-property dependencies. Three findings.
+
+### PartitionMonotonicity postcondition claims unproved cross-allocator temporal consistency
+**Foundation**: T9 (ForwardAllocation), T10a (AllocatorDiscipline), PrefixOrderingExtension
+**ASN**: PartitionMonotonicity postcondition "(2) Within each sub-partition with prefix tᵢ (for i ≥ 0): allocated_before(a, b) ⟹ a < b"
+**Issue**: The postcondition uses `allocated_before` without qualifying "by the same allocator," claiming that global temporal allocation order matches T1 spatial order within each sub-partition. The proof establishes per-allocator consistency (T9) and cross-sub-partition T1 ordering (PrefixOrderingExtension), but not cross-allocator temporal consistency. Concrete counterexample: within the sub-partition rooted at tᵢ, the child allocator produces u₀ then spawns a grandchild (base v₀ = inc(u₀, k'')), then resumes with u₁ = inc(u₀, 0). The grandchild later produces c₁ = inc(v₀, 0). Temporal order: u₁ before c₁. T1 order: c₁ < u₁ (c₁ extends u₀, and PrefixOrderingExtension with u₀ < u₁ gives every extension of u₀ preceding u₁). So `allocated_before(u₁, c₁)` but `c₁ < u₁` — violating the postcondition. The Invariant correctly uses the weaker phrase "consistently with per-allocator allocation order," which the proof does establish. Postcondition (2) should match the Invariant's qualifier.
+**What needs resolving**: Postcondition (2) must either scope `allocated_before` to same-allocator pairs (matching T9's formulation and the Invariant's "per-allocator" qualifier), or the proof must establish the stronger cross-allocator claim — which would require specifying a depth-first execution model where child allocation completes before the parent resumes sibling production.
+
+### T8 dependency list omits the no-deallocation axiom
+**Foundation**: T8 (AllocationPermanence), listed as "theorem from T1, T2, T4, T10a, TA5, TumblerAdd, TumblerSub"
+**ASN**: T8 formal contract — "Axiom: The system defines no operation that removes an element from the allocated set. This is a design constraint, not a derived property."
+**Issue**: The property table labels T8 as a theorem derived from the listed properties, but the proof's exhaustiveness argument depends on an axiom — that no deallocation operation exists — which is not derivable from T1, T2, T4, T10a, TA5, TumblerAdd, or TumblerSub. The proof text explicitly says "The absence of any removal operation is a deliberate design axiom, not a derived property," and the formal contract lists it as an axiom. Yet the table's "theorem from" status implies T8 follows entirely from the listed dependencies. The axiom is load-bearing: without it, one could define a system conforming to all listed dependencies that includes a `free(t)` operation, breaking monotonicity.
+**What needs resolving**: Either the no-deallocation axiom must appear in T8's dependency list (or as a separate named axiom that T8 cites), or T8's status must be reclassified to reflect its partly axiomatic nature — distinguishing the axiom (no removal operation exists) from the derived invariant (allocated set grows monotonically).
+
+### T10a permits child-spawning parameters that violate T4
+**Foundation**: T10a (AllocatorDiscipline) — "child-spawning uses exactly one inc(·, k') with k' > 0"; TA5a (IncrementPreservesT4) — "inc(t, k) preserves T4 iff k = 0, or k = 1 ∧ zeros(t) ≤ 3, or k = 2 ∧ zeros(t) ≤ 2; fails for k ≥ 3"
+**ASN**: T10a formal contract postconditions (T10a.1–T10a.3, T10a-N) — none mention T4 preservation
+**Issue**: T10a constrains allocators to use `inc(·, k')` with `k' > 0` for child-spawning but places no upper bound on `k'`. TA5a proves that `k' ≥ 3` produces adjacent zeros, violating T4's non-empty field constraint. The two properties are individually correct but no property connects them to guarantee that the allocator discipline preserves T4. An allocator conforming to T10a could use `k' = 3`, producing a tumbler with adjacent zeros that violates T4. Downstream properties T4a–T4c, T6, T7 all assume T4, so their guarantees silently depend on allocators restricting `k'` to {1, 2} with appropriate `zeros(t)` bounds — a constraint identified by TA5a but absent from T10a.
+**What needs resolving**: Either T10a's axiom must restrict child-spawning `k'` to values that preserve T4 (referencing TA5a for the exact bounds), or a new property must establish the invariant that the allocator discipline produces only T4-compliant addresses — connecting T10a's behavioral constraint with TA5a's preservation conditions.
