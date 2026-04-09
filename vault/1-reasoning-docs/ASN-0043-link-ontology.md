@@ -1,6 +1,6 @@
 # ASN-0043: Link Ontology
 
-*2026-03-16 (revised 2026-04-09, revision 43)*
+*2026-03-16 (revised 2026-04-09, revision 44)*
 
 The two-space model (ASN-0036) established two state components: the content store `Σ.C` — an immutable, append-only mapping from I-addresses to values — and the arrangements `Σ.M(d)` — mutable mappings from V-positions to I-addresses, one per document. Together these give us content: its existence, its identity, and its presentation.
 
@@ -59,7 +59,7 @@ The system designates at least two subspaces within each document's element fiel
 
 `(A a ∈ dom(Σ.C) :: fields(a).E₁ = s_C)`
 
-By T7, this yields the fundamental disjointness:
+By L1 (below), `zeros(a) = 3` for all `a ∈ dom(Σ.L)`; by S7b (ElementLevelIAddresses, ASN-0036), `zeros(b) = 3` for all `b ∈ dom(Σ.C)`. These satisfy T7's precondition (`a, b ∈ T` with `zeros(a) = zeros(b) = 3`), yielding the fundamental disjointness:
 
 `dom(Σ.L) ∩ dom(Σ.C) = ∅`
 
@@ -239,6 +239,7 @@ We verify that `Σ'` is conforming:
 - *L14 (DualPrimitive).* `dom(Σ'.C) ∪ dom(Σ'.L) = dom(Σ.C) ∪ (dom(Σ.L) ∪ {a})`. Disjointness holds since `a` is in subspace `s_L` and `dom(Σ'.C) ⊆ s_C`.
 - *L-fin (LinkStoreFiniteness).* `dom(Σ'.L) = dom(Σ.L) ∪ {a}`; since `dom(Σ.L)` is finite by L-fin on `Σ`, `dom(Σ'.L)` is finite.
 - *S0–S3.* Content store and arrangements are unchanged (`Σ'.C = Σ.C`, `Σ'.M = Σ.M`), so all ASN-0036 invariants carry over from `Σ`.
+- *L14a (NonTranscludability).* Arrangements are unchanged (`Σ'.M = Σ.M`), so for every `(d, v)` with `v ∈ dom(Σ'.M(d))`, `Σ'.M(d)(v) = Σ.M(d)(v) ∈ dom(Σ.C)` by S3 on `Σ`; since `dom(Σ.C) ∩ dom(Σ'.L) = ∅` by L0 (verified above), `Σ'.M(d)(v) ∉ dom(Σ'.L)`.
 - *Remaining properties.* L2 holds structurally (home is field extraction from the address); L6 vacuously (F = G = ∅ makes the antecedent false); L8, L10, L13 are lemmas that do not constrain states; L12a follows from L12.
 
 No property of L0–L14, L-fin, or S0–S3 constrains `coverage(Σ'.L(a).type) ⊆ dom(Σ'.C)`. The ghost address `g` has `fields(g).E₁ = s_X`. Since `s_X ≠ s_C`, L0 gives `g ∉ dom(Σ'.C)`. Since `s_X ≠ s_L`, L0 gives `g ∉ dom(Σ'.L)`. Therefore `g ∉ dom(Σ'.C) ∪ dom(Σ'.L)` — unconditionally, by subspace separation alone. ∎
@@ -282,7 +283,7 @@ We now establish the identity semantics of links. The three requirements we bega
 
 `(A Σ satisfying L0–L14 ∧ L-fin, a ∈ dom(Σ.L) :: (E Σ' extending Σ, a' ∈ dom(Σ'.L) :: a' ≠ a ∧ Σ'.L(a') = Σ.L(a) ∧ Σ' satisfies L0–L14 ∧ L-fin))`
 
-That is, for any conforming state `Σ` with a link at `a ∈ dom(Σ.L)` where `Σ.L(a) = (F, G, Θ)`, there exists a conforming extension `Σ'` with a fresh address `a' ∈ dom(Σ'.L)`, `a' ≠ a`, and `Σ'.L(a') = (F, G, Θ)`. The invariants *permit* non-injectivity — every state with a link can be extended to a non-injective state — but they do not *require* it. The witness is immediate: by L1b (LinkElementFieldDepth), every link address has element field depth ≥ 2, so the ordinal component (the second element-field position onward) ranges over all naturals by T0(a) (UnboundedComponentValues, ASN-0034) — yielding infinitely many valid link addresses within any document's link subspace. By L-fin, only finitely many are occupied. Therefore unoccupied addresses exist; allocate `a'` by forward allocation within the same document's link subspace, and set `Σ'.L(a') = (F, G, Θ)` with `Σ'.C = Σ.C` and `Σ'.M = Σ.M`. All invariants L0–L14 and L-fin are preserved: L0 by subspace (`a'` is in `s_L`); L1/L1a/L1b by allocation (element field depth ≥ 2 by construction); L1c — `a'` is the next sibling output of the allocator via `inc(·, 0)` from its current frontier within the same document's link subspace, conforming to T10a; freshness follows from T9 (ForwardAllocation); L2 structurally (home is field extraction from the address); L3–L5 by construction (same endset sequence as the existing link); L6 because the new entry copies the same sequence, preserving slot distinction; L11a uniqueness for `a'` by GlobalUniqueness (UniqueAddressAllocation, ASN-0034); L12 because existing entries are unchanged; L12a follows from L12; L-fin because `dom(Σ'.L) = dom(Σ.L) ∪ {a'}` is finite; L14 because `a'` is in subspace `s_L`, preserving disjointness with `dom(Σ'.C)`; L8, L10, L13 are lemmas that do not constrain states; S0–S3 hold trivially since `Σ'.C = Σ.C` and `Σ'.M = Σ.M`.
+That is, for any conforming state `Σ` with a link at `a ∈ dom(Σ.L)` where `Σ.L(a) = (F, G, Θ)`, there exists a conforming extension `Σ'` with a fresh address `a' ∈ dom(Σ'.L)`, `a' ≠ a`, and `Σ'.L(a') = (F, G, Θ)`. The invariants *permit* non-injectivity — every state with a link can be extended to a non-injective state — but they do not *require* it. The witness is immediate: by L1b (LinkElementFieldDepth), every link address has element field depth ≥ 2, so the ordinal component (the second element-field position onward) ranges over all naturals by T0(a) (UnboundedComponentValues, ASN-0034) — yielding infinitely many valid link addresses within any document's link subspace. By L-fin, only finitely many are occupied. Therefore unoccupied addresses exist; allocate `a'` by forward allocation within the same document's link subspace, and set `Σ'.L(a') = (F, G, Θ)` with `Σ'.C = Σ.C` and `Σ'.M = Σ.M`. All invariants L0–L14 and L-fin are preserved: L0 by subspace (`a'` is in `s_L`); L1/L1a/L1b by allocation (element field depth ≥ 2 by construction); L1c — `a'` is the next sibling output of the allocator via `inc(·, 0)` from its current frontier within the same document's link subspace, conforming to T10a; freshness follows from GlobalUniqueness (UniqueAddressAllocation, ASN-0034) via L11a; L2 structurally (home is field extraction from the address); L3–L5 by construction (same endset sequence as the existing link); L6 because the new entry copies the same sequence, preserving slot distinction; L11a uniqueness for `a'` by GlobalUniqueness (UniqueAddressAllocation, ASN-0034); L12 because existing entries are unchanged; L12a follows from L12; L-fin because `dom(Σ'.L) = dom(Σ.L) ∪ {a'}` is finite; L14 because `a'` is in subspace `s_L`, preserving disjointness with `dom(Σ'.C)`; L14a by S3 (arrangements unchanged, so all V-position targets remain in `dom(Σ.C)`) and L0 (verified above, `dom(Σ.C) ∩ dom(Σ'.L) = ∅`); L8, L10, L13 are lemmas that do not constrain states; S0–S3 hold trivially since `Σ'.C = Σ.C` and `Σ'.M = Σ.M`.
 
 Two links with identical endsets — same from, same to, same type — but different addresses are separate objects, independently owned, independently removable, independently targetable by other links.
 
@@ -414,6 +415,8 @@ So `Σ.L = {a ↦ (F, G, Θ)}`.
 *L1a (LinkScopedAllocation).* `home(a) = 1.0.1.0.1 = d`, the creating document. ✓
 
 *L1b (LinkElementFieldDepth).* `fields(a).element = [2, 1]`, so `#fields(a).element = 2 ≥ 2`. ✓
+
+*L1c (LinkAllocatorConformance).* The link address `a = 1.0.1.0.1.0.2.1` is producible by a T10a-conforming allocator from the document prefix `d = 1.0.1.0.1`: (i) `inc(d, 2)` → `1.0.1.0.1.0.1` — element depth 1, subspace 1 (`k' = 2` with `zeros(d) = 2`, satisfying TA5a: `k' = 2` requires `zeros ≤ 2`); (ii) `inc(1.0.1.0.1.0.1, 0)` → `1.0.1.0.1.0.2` — sibling advance to subspace 2 (`k = 0`, unconditionally T4-preserving); (iii) `inc(1.0.1.0.1.0.2, 1)` → `1.0.1.0.1.0.2.1` = `a` — child at depth 2 (`k' = 1` with `zeros(1.0.1.0.1.0.2) = 3`, satisfying TA5a: `k' = 1` requires `zeros ≤ 3`). Each step conforms to T10a. ✓
 
 *L-fin (LinkStoreFiniteness).* `|dom(Σ.L)| = 1`, which is finite. ✓
 
