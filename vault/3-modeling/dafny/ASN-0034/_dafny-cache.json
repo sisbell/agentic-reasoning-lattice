@@ -1,6 +1,31 @@
 {
+  "NoDeallocation": {
+    "hash": "a28a3f4a2eacc661",
+    "status": "verified",
+    "contract": "CLEAN"
+  },
+  "T3": {
+    "hash": "866c659d4771c6b8",
+    "status": "verified",
+    "contract": "CLEAN"
+  },
+  "T2": {
+    "hash": "09e6f79b53e3b4dc",
+    "status": "verified",
+    "contract": "CLEAN"
+  },
+  "TA-assoc": {
+    "hash": "8a7e458c07e6e762",
+    "status": "verified",
+    "contract": "CLEAN"
+  },
   "D1": {
     "hash": "a13b9fb84a6ce284",
+    "status": "verified",
+    "contract": "CLEAN"
+  },
+  "TS3": {
+    "hash": "32388a3be91aa76f",
     "status": "verified",
     "contract": "CLEAN"
   }

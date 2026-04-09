@@ -13,5 +13,6 @@ module ShiftComposition {
     requires n1 >= 1
     requires n2 >= 1
     ensures OS.OrdinalShift(OS.OrdinalShift(v, n1), n2) == OS.OrdinalShift(v, n1 + n2)
+    ensures |OS.OrdinalShift(OS.OrdinalShift(v, n1), n2).components| == |v.components|
   { }
 }

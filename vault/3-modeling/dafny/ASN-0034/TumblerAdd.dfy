@@ -33,13 +33,15 @@ module TumblerAdd {
     requires ValidTumbler(a)
     requires ValidTumbler(w)
     requires IsPositive(w)
-    requires ActionPoint(w) < |a.components|
+    requires ActionPoint(w) <= |a.components|
     ensures |r.components| == |w.components|
     ensures ValidTumbler(r)
+    ensures IsPositive(r)
   {
     var k := ActionPoint(w);
+    var a_k := if k < |a.components| then a.components[k] else 0;
     Tumbler(
-      a.components[..k] + [a.components[k] + w.components[k]] + w.components[k+1..]
+      a.components[..k] + [a_k + w.components[k]] + w.components[k+1..]
     )
   }
 }
