@@ -14,7 +14,7 @@
 | T8 | AllocationPermanence | Once allocated, an address is never removed from the address space; the set of allocated addresses is monotonically non-decreasing | theorem from T1, T2, T4, T10a, TA5, TumblerAdd, TumblerSub |
 | T9 | ForwardAllocation | Within a single allocator's sequential stream, new addresses are strictly monotonically increasing; gaps are permanent | lemma (from T10a, TA5) |
 | T10 | PartitionIndependence | Allocators with non-nesting prefixes produce distinct addresses without coordination | theorem from T3, Prefix |
-| T10a | AllocatorDiscipline | Each allocator uses inc(·, 0) for siblings and inc(·, k>0) only for child-spawning; this constrains sibling outputs to uniform length | design requirement (postconditions from TA5, T10) |
+| T10a | AllocatorDiscipline | Each allocator uses inc(·, 0) for siblings and inc(·, k>0) only for child-spawning; this constrains sibling outputs to uniform length | design requirement (postconditions from TA5, T10, Prefix) |
 | PrefixOrderingExtension | PrefixOrderingExtension | p₁ < p₂ with neither a prefix of the other implies a < b for every a with p₁ ≼ a and every b with p₂ ≼ b | lemma (from T1) |
 | PartitionMonotonicity | PartitionMonotonicity | Per-allocator ordering extends cross-allocator; for non-nesting sibling prefixes p₁ < p₂, every address extending p₁ precedes every address extending p₂ | theorem from PrefixOrderingExtension, T1, T3, T5, T9, T10a, TA5 |
 | GlobalUniqueness | GlobalUniqueness | No two distinct allocation events anywhere in the system at any time produce the same address | theorem from T3, T4, T9, T10, T10a, TA5 |
@@ -43,7 +43,7 @@
 | D1 | DisplacementRoundTrip | Displacement round-trip: for a < b with divergence(a, b) ≤ #a and #a ≤ #b, a ⊕ (b ⊖ a) = b | lemma (from TumblerAdd, TumblerSub, T3, Divergence) |
 | D2 | DisplacementUnique | Displacement uniqueness: under D1's preconditions, if a ⊕ w = b then w = b ⊖ a | corollary of D1, TA-LC |
 | OrdinalDisplacement | OrdinalDisplacement | δ(n, m) = [0, ..., 0, n] of length m, action point m | introduced |
-| OrdinalShift | OrdinalShift | shift(v, n) = v ⊕ δ(n, #v) | introduced |
+| OrdinalShift | OrdinalShift | shift(v, n) = v ⊕ δ(n, #v) | from TA0, TumblerAdd, OrdinalDisplacement, T0, PositiveTumbler |
 | TS1 | ShiftOrderPreservation | shift preserves strict order: v₁ < v₂ ⟹ shift(v₁, n) < shift(v₂, n) | lemma (from TA1-strict) |
 | TS2 | ShiftInjectivity | shift is injective: shift(v₁, n) = shift(v₂, n) ⟹ v₁ = v₂ | lemma (from TA-MTO, T3) |
 | TS3 | ShiftComposition | shift composes additively: shift(shift(v, n₁), n₂) = shift(v, n₁ + n₂) | lemma (from TumblerAdd, T3) |

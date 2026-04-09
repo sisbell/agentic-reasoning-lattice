@@ -12,7 +12,7 @@
 
 Define `k = min({i : 1 ≤ i ≤ n : tᵢ > 0})` — the position of the first positive component in `t`. This minimum exists because `t` has at least one positive component. By minimality of `k`, we have `tᵢ = 0` for all `1 ≤ i < k`, and `tₖ > 0`.
 
-*Case 1* (`k ≤ m`): For all positions `1 ≤ i < k`, `sᵢ = 0` (since `s` is a zero tumbler) and `tᵢ = 0` (by minimality of `k`), so `sᵢ = tᵢ`. At position `k`, `sₖ = 0 < tₖ` (since `tₖ > 0`). Since `k ≤ m ≤ min(m, n)`, this is a divergence within the shared length. T1 case (i) applies with witness `k`, giving `s < t`.
+*Case 1* (`k ≤ m`): For all positions `1 ≤ i < k`, `sᵢ = 0` (since `s` is a zero tumbler) and `tᵢ = 0` (by minimality of `k`), so `sᵢ = tᵢ`. At position `k`, `sₖ = 0 < tₖ` (since `tₖ > 0`). Since `k ≤ m` (case assumption) and `k ≤ n` (by definition of `k` as an element of `{1, …, n}`), we have `k ≤ min(m, n)` — this is a divergence within the shared length. T1 case (i) applies with witness `k`, giving `s < t`.
 
 *Case 2* (`k > m`): For all positions `1 ≤ i ≤ m`, we have `i ≤ m < k`, so `tᵢ = 0` (by minimality of `k`) and `sᵢ = 0` (since `s` is a zero tumbler), giving `sᵢ = tᵢ`. The tumblers agree at every position of `s`. Since `m < k` and `k ≤ n`, we have `m < n`, so `m + 1 ≤ n`. T1 case (ii) applies with witness `m + 1`: `s` is a proper prefix of `t`, hence `s < t`. ∎
 
