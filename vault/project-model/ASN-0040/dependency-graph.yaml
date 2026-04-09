@@ -1,0 +1,235 @@
+asn: 40
+depends:
+- 34
+properties:
+  Σ.B:
+    status: introduced
+    name: B ⊆ T
+    follows_from:
+    - B0
+    - B0a
+    - B1
+    - T4
+    follows_from_asns:
+    - 34
+  S(p,d):
+    status: from
+    follows_from:
+    - TA5(b)
+    - TA5(c)
+    - TA5(d)
+    name: Sibling stream
+  hwm(B,p,d):
+    status: from
+    follows_from:
+    - B1
+    - Prefix
+    - S0
+    - T1
+    name: High water mark
+    follows_from_asns:
+    - 34
+  next(B,p,d):
+    status: from
+    follows_from:
+    - T1
+    - TA5(c)
+    - TA5(d)
+    name: Next address
+    follows_from_asns:
+    - 34
+  Bop:
+    status: from
+    follows_from:
+    - B0
+    - B0a
+    - B1
+    - B10
+    - B4
+    - B6
+    - B7
+    - S0
+    - TA5
+    - TA5a
+    name: Baptism
+  S0:
+    status: from
+    follows_from:
+    - T1
+    - TA5(a)
+    - TA5a
+    name: '`(A i, j'
+    follows_from_asns:
+    - 34
+  S1:
+    status: from
+    follows_from:
+    - Prefix
+    - T1
+    - T5
+    - TA5
+    - TA5(b)
+    - TA5(c)
+    - TA5(d)
+    name: '`(A n'
+    follows_from_asns:
+    - 34
+  B0:
+    status: design
+    name: '`Σ'
+    follows_from:
+    - T8
+    follows_from_asns:
+    - 34
+  B0a:
+    status: design
+    name: '`Σ'''
+    follows_from:
+    - T4
+    - TA5
+    follows_from_asns:
+    - 34
+  B₀ conf.:
+    status: design
+  B1:
+    status: from
+    follows_from:
+    - B
+    - B0
+    - B0a
+    - B10
+    - B4
+    - B6
+    - B7
+    - Bop
+    - S0
+    - T4
+    - TA5
+    - TA5(c)
+    name: '`cₙ ∈ B ⟹ (A i'
+    follows_from_asns:
+    - 34
+  B2:
+    status: from
+    follows_from:
+    - B0
+    - B0a
+    - B1
+    - B4
+    - B7
+    - NextAddress
+    - Prefix
+    - S0
+    - T1
+    name: '`next(B, p, d) = c_{hwm+1}`'
+    follows_from_asns:
+    - 34
+  B3:
+    status: design
+    name: '`t ∈ Σ'
+  B4:
+    status: design
+    name: Same-namespace baptisms serialized
+    follows_from:
+    - T10
+    follows_from_asns:
+    - 34
+  B5:
+    status: from
+    follows_from:
+    - B6
+    - TA5
+    - TA5(b)
+    - TA5(d)
+    name: '`zeros(inc(p, d)) = zeros(p) + (d − 1)`'
+    follows_from_asns:
+    - 34
+  B5a:
+    status: from
+    follows_from:
+    - B5
+    - B6
+    - TA5
+    - TA5(c)
+    - TA5-SIG
+    name: '`zeros(inc(t, 0)) = zeros(t)`'
+    follows_from_asns:
+    - 34
+  B6:
+    status: from
+    follows_from:
+    - B5
+    - B7
+    - T4
+    - TA5
+    - TA5a
+    name: '`p satisfies T4`, `d ∈ {1, 2}`, and `zeros(p) + (d − 1) ≤ 3`'
+    follows_from_asns:
+    - 34
+  B7:
+    status: from
+    follows_from:
+    - B6
+    - S1
+    - T10
+    - T3
+    - T4
+    - TA5
+    - TA5(c)
+    - TA5(d)
+    - TA5-SIG
+    name: '`(p, d) ≠ (p'', d'') ⟹ S(p, d) ∩ S(p'', d'') = ∅`'
+    follows_from_asns:
+    - 34
+  B8:
+    status: from
+    follows_from:
+    - B0
+    - B1
+    - B2
+    - B4
+    - B7
+    - GlobalUniqueness
+    - Prefix
+    - S0
+    - T1
+    - T10
+    - T10a
+    - T3
+    - T9
+    name: Distinct baptisms produce distinct addresses
+    follows_from_asns:
+    - 34
+  B9:
+    status: from
+    follows_from:
+    - B1
+    - B2
+    - B4
+    - B6
+    - Bop
+    - T0(a)
+    - TA5
+    - TA5(c)
+    - TA5(d)
+    name: '`(A p, d, M'
+    follows_from_asns:
+    - 34
+  B10:
+    status: from
+    follows_from:
+    - B
+    - B0
+    - B0a
+    - B1
+    - B4
+    - B6
+    - Prefix
+    - S0
+    - T1
+    - T4
+    - TA5(c)
+    - TA5a
+    name: '`(A t ∈ Σ'
+    follows_from_asns:
+    - 34
