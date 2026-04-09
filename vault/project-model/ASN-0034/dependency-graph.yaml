@@ -24,7 +24,7 @@ properties:
     - T0
     name: CanonicalRepresentation
   T4:
-    status: other
+    status: axiom
     follows_from:
     - T3
     name: HierarchicalParsing
@@ -61,7 +61,7 @@ properties:
     - NoDeallocation
     name: AllocationPermanence
   T9:
-    status: other
+    status: lemma
     follows_from:
     - T1
     - T10a
@@ -75,9 +75,16 @@ properties:
     name: PartitionIndependence
   T10a:
     status: design
+    follows_from:
+    - TA5
+    - TA5a
+    - T4
+    - T1
+    - T10
+    - Prefix
     name: AllocatorDiscipline
   PrefixOrderingExtension:
-    status: other
+    status: lemma
     follows_from:
     - T1
     name: PrefixOrderingExtension
@@ -196,19 +203,19 @@ properties:
     - T3
     name: AdditionAssociative
   TA-LC:
-    status: other
+    status: lemma
     follows_from:
     - TumblerAdd
     - T3
     name: LeftCancellation
   TA-RC:
-    status: other
+    status: lemma
     follows_from:
     - TumblerAdd
     - T3
     name: RightCancellationFailure
   TA-MTO:
-    status: other
+    status: lemma
     follows_from:
     - TumblerAdd
     - T3
@@ -222,7 +229,7 @@ properties:
     - TumblerSub
     name: DisplacementWellDefined
   D1:
-    status: other
+    status: lemma
     follows_from:
     - TumblerAdd
     - TumblerSub
@@ -248,18 +255,18 @@ properties:
     - PositiveTumbler
     name: OrdinalShift
   TS1:
-    status: other
+    status: lemma
     follows_from:
     - TA1-strict
     name: ShiftOrderPreservation
   TS2:
-    status: other
+    status: lemma
     follows_from:
     - TA-MTO
     - T3
     name: ShiftInjectivity
   TS3:
-    status: other
+    status: lemma
     follows_from:
     - TumblerAdd
     - T3
@@ -302,7 +309,7 @@ properties:
     - TA5a
     name: T4PreservationUnderDiscipline
   T10a-N:
-    status: other
+    status: lemma
     follows_from:
     - T1
     - TA5
