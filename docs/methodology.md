@@ -69,3 +69,23 @@ Modeling provides what text-based review cannot: mechanical certainty.
 The formalization-modeling boundary is where the specification earns trust. A counterexample from Alloy or a proof failure from Dafny is not a tool problem — it is a finding about the specification itself. These findings flow back into formalization: the affected property's contract is revised, the formalization review cycle re-converges on the changed properties, and modeling runs again.
 
 This loop repeats until all models are consistent and all proofs pass. The specification is done when formalization and modeling agree — when every property has a formal contract that text-based review accepts and mechanical verification confirms.
+
+## What Verification Proves and What It Cannot
+
+Each stage provides a specific guarantee. Understanding what each stage *cannot* tell you is as important as understanding what it can.
+
+**Contracts** are the claims — preconditions, postconditions, invariants, definitions stated in the ASN. They say what the system guarantees.
+
+**Proofs** are the reasoning — Dijkstra-style derivation prose that justifies those claims. The proofs can have gaps, wrong steps, or missing cases, and the claims can still be true. A correct contract with a flawed proof is better than no contract at all.
+
+**Formalization review** checks that the contracts are precise, internally consistent, and faithful to the derivation prose. It catches conflation, missing preconditions, and structural gaps between properties. But it operates on text — it can be wrong, and it can miss things that look plausible in natural language.
+
+**Dafny verification** proves that the contracts are logically consistent and faithfully encoded — every contract field is translated correctly and every proof obligation is discharged. This is mechanical certainty. But Dafny cannot tell you:
+
+- Whether a postcondition describes what the system *should* do — that is a design question, answered by the consultations with Nelson and Gregory
+- Whether the axioms are the right axioms — those are posited from evidence, not derived
+- Whether the system described by these contracts matches the actual implementation — that requires testing against the real system
+
+**Golden tests** close the final gap. The contracts compile through Dafny to Go. Running that Go against the real system (udanax-green) checks whether the formalized specification matches reality. A golden test failure means the spec is internally consistent but doesn't describe the actual system.
+
+The chain of trust runs from human judgment through mechanical verification to empirical testing. Each link strengthens a different part: consultations establish intent, formalization makes it precise, verification makes it consistent, testing makes it real. No single stage is sufficient — the specification earns trust from the combination.
