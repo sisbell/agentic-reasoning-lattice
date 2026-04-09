@@ -7,5 +7,5 @@ Given the separator positions, the field boundaries follow deterministically. Th
 Two distinct decompositions of `t` would require two distinct sets of separator positions. But there is exactly one such set. Therefore `fields(t)` is well-defined and unique. ∎
 
 *Formal Contract:*
-- *Preconditions:* `t` satisfies the T4 constraints (at most three zero-valued components, positive-component constraint, non-empty field constraint).
+- *Preconditions:* `t` satisfies T3 (CanonicalRepresentation): the component sequence of `t` is fixed by sequence identity, with no alternative encoding yielding different component values. `t` satisfies the T4 constraints (at most three zero-valued components, positive-component constraint, non-empty field constraint).
 - *Postconditions:* `fields(t)` — the decomposition into node, user, document, and element sub-sequences — is well-defined and uniquely determined by `t`.
