@@ -31,7 +31,9 @@ properties:
     status: design
     name: Referential integrity
     follows_from:
-    - S1
+    - NoDeallocation
+    follows_from_asns:
+    - 34
   S4:
     status: from
     follows_from:
@@ -63,18 +65,28 @@ properties:
     status: design
     name: Document-scoped allocation
     follows_from:
-    - S7b
+    - Prefix
     - T4
+    - T4c
     follows_from_asns:
     - 34
   S7b:
     status: design
     name: Element-level I-addresses
     follows_from:
-    - S7a
     - T4
     follows_from_asns:
     - 34
+  S7c:
+    status: design
+    name: Element-field depth
+    follows_from:
+    - S7b
+    - T4
+    - TA7a
+    follows_from_asns:
+    - 34
+    - 36
   S7:
     status: from
     follows_from:
@@ -93,16 +105,10 @@ properties:
     status: design
     name: Finite arrangement
   S8a:
-    status: from
+    status: axiom
     follows_from:
-    - S3
-    - S7b
-    - S8
-    - S8-depth
-    - T1
-    - T10
     - T4
-    - T5
+    - V-positions
     follows_from_asns:
     - 34
     name: V-position well-formedness
@@ -110,10 +116,7 @@ properties:
     status: design
     name: Fixed-depth V-positions
     follows_from:
-    - S7a
-    - T10a
-    - TA0
-    - TA7a
+    - OrdinalShift
     - TumblerAdd
     follows_from_asns:
     - 34
@@ -129,6 +132,7 @@ properties:
     - T3
     - T5
     - TA5
+    - TA5a
     follows_from_asns:
     - 34
     name: Span decomposition
@@ -136,23 +140,14 @@ properties:
     status: design
     name: V-position contiguity
     follows_from:
-    - S8-depth
-    - S8-fin
     - T0(a)
+    - T1
     - T3
     follows_from_asns:
     - 34
   D-MIN:
     status: design
     name: V-position minimum
-    follows_from:
-    - D-CTG
-    - D-CTG-depth
-    - S8-depth
-    - S8-fin
-    - T4
-    follows_from_asns:
-    - 34
   D-CTG-depth:
     status: corollary
     follows_from:
@@ -162,6 +157,7 @@ properties:
     - T0(a)
     - T1
     - T3
+    - T4
     follows_from_asns:
     - 34
     name: Shared prefix reduction
