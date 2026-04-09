@@ -61,7 +61,7 @@ def run_formalization_review(asn_num, max_cycles=3, dry_run=False,
         # (prior steps may have changed files that affect later steps)
         # With --keep-cache, only properties whose source hash changed
         # will be re-checked — much faster for cross-review convergence.
-        if cycle > 1 and not keep_cache:
+        if not keep_cache:
             for cache_name in ("_verify-cache.json", "_contract-cache.json"):
                 cache_path = prop_dir / cache_name
                 if cache_path.exists():
