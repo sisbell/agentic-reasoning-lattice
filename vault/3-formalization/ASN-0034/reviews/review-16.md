@@ -15,3 +15,9 @@ Under the standard tumbler ordering (lexicographic with shorter-is-less for pref
 **Required**: Add the tumbler ordering definition as a dependency, and either (a) show that under that ordering `w > 0` implies `∃i: wᵢ ≠ 0`, or (b) strengthen the precondition to explicitly require at least one nonzero component (e.g., `∃i: wᵢ ≠ 0`) rather than relying on `w > 0` alone.
 
 21 verified, 1 found.
+
+## Result
+
+Converged after 3 cycles. 62 verified.
+
+*Elapsed: 2604s*
