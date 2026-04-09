@@ -11,7 +11,7 @@ This ASN extends ASN-0053 (Span Algebra) with the post-insertion shift property:
 
 `(A v₁, v₂ ∈ dom(M(d)) : subspace(v₁) = subspace(v₂) = S ⟹ #v₁ = #v₂)`
 
-This is a structural consequence of how V-positions are allocated within a subspace: each subspace uses a single allocator whose sibling outputs have uniform length (T10a.1, ASN-0034).
+Within each subspace's element field, the allocator bootstraps a two-level nesting once per atom type — establishing the atom-type discriminator and serial-counter prefix (e.g., D.0.1 for text) — after which all subsequent V-positions are produced by flat sibling allocation (`inc(·, 0)` only). Since sibling outputs have uniform length (T10a.1, ASN-0034), all V-positions at the serial-counter level share the same depth. VD is therefore a consequence of T10a.1 together with the structural fact that no further child-spawning occurs after the initial bootstrap.
 
 **VP** — *PositiveSubspace* (AXIOM, local). The subspace identifier of every V-position is positive:
 
@@ -38,16 +38,16 @@ Injectivity is likewise guaranteed: for v₁, v₂ with #v₁ = #v₂ = m, shift
 
 Injectivity ensures the shift creates no collisions: distinct V-positions remain distinct after shifting.
 
-Additionally, shift preserves structural properties. Subspace preservation requires m ≥ 2: by TumblerAdd (ASN-0034), positions before the action point are copied from v — for δₙ with action point k = m, positions i < k are copied from v — so when m ≥ 2, position 1 (the subspace identifier) is preserved: shift(v, n)₁ = v₁, giving subspace(shift(v, n)) = subspace(v). When m = 1, shift([S], n) = [S + n] changes the subspace identifier; we exclude this by requiring #p ≥ 2 as an operation precondition. By VD, all V-positions in the subspace share p's depth, so m ≥ 2 holds throughout. Furthermore, #shift(v, n) = #δₙ = m = #v by the result-length identity of TumblerAdd. So the shift preserves subspace membership, tumbler depth, and — since vₘ + n > 0 whenever vₘ ≥ 1 — the positivity required by VP.
+Additionally, shift preserves structural properties. Subspace preservation requires m ≥ 2: by TumblerAdd (ASN-0034), positions before the action point are copied from v — for δₙ with action point k = m, positions i < k are copied from v — so when m ≥ 2, position 1 (the subspace identifier) is preserved: shift(v, n)₁ = v₁, giving subspace(shift(v, n)) = subspace(v). When m = 1, shift([S], n) = [S + n] changes the subspace identifier; we exclude this by requiring #p ≥ 2 as an operation precondition. By VD, all V-positions in subspace S share a uniform depth d; the depth-compatibility precondition on I3 requires d = #p when such V-positions exist, so m = d = #p ≥ 2 holds for every V-position in the shifted region. This also ensures that the comparison v ≥ p in I3's quantifier is between equal-length tumblers, giving it the clean "at or to the right of p" semantics without prefix-case ambiguity. Furthermore, #shift(v, n) = #δₙ = m = #v by the result-length identity of TumblerAdd. The shift preserves two distinct positivity properties: the positive-component constraint (T4) is maintained because vₘ + n > 0 whenever vₘ ≥ 1 (T4 guarantees all element-field components are positive); VP is preserved because shift copies position 1 from v when m ≥ 2, giving shift(v, n)₁ = v₁ ≥ 1.
 
 
 ## Post-Insertion Shift
 
-Let M(d) : T ⇀ T denote the arrangement function for document d — a partial map from V-positions (element-field tumblers in the Vstream) to I-addresses (element-field tumblers in the Istream). An operation that places n ≥ 1 new content elements at position p in document d within subspace S = subspace(p) = p₁ (with S ≥ 1 per VP) modifies M(d) to produce M'(d).
+Let M(d) : T ⇀ T denote the arrangement function for document d — a partial map from V-positions (element-field tumblers in the Vstream) to I-addresses (element-field tumblers in the Istream). An operation that places n ≥ 1 new content elements at position p in document d within subspace S = subspace(p) = p₁ (with S ≥ 1) modifies M(d) to produce M'(d).
 
 **I3** — *PostInsertionShift* (POSTCONDITION, introduced). Content at or beyond p shifts forward by n ordinal positions.
 
-*Preconditions:* d is a document; M(d) : T ⇀ T is its arrangement; p ∈ T with #p ≥ 2 and subspace(p) = S ≥ 1 (VP); n ≥ 1; M'(d) is the post-insertion arrangement.
+*Preconditions:* d is a document; M(d) : T ⇀ T is its arrangement; p ∈ T with #p ≥ 2 and subspace(p) = S ≥ 1; depth-compatible: if {v ∈ dom(M(d)) : subspace(v) = S} ≠ ∅ then #p = #v for any such v (unique depth by VD); n ≥ 1; M'(d) is the post-insertion arrangement.
 
 *Postconditions:*
 
@@ -79,6 +79,12 @@ The left-region frame (I3-L) preserves [1, 1] and [1, 2] with unchanged I-addres
 | [1, 5] | b + 4 | [1, 7] | b + 4 | shifted (I3) |
 
 Positions [1, 1] and [1, 2] are below p = [1, 3] and remain unchanged (I3-L). The three V-positions at or beyond p are each advanced by δ₂ = [0, 2]; their I-addresses are unchanged (I3). ∎
+
+**Boundary: insert at start.** Set p = [1, 1]. No V-position v satisfies v < p (since [1, 1] is the smallest in subspace 1), so I3-L's quantifier ranges over ∅ and holds vacuously. I3 shifts all five positions: shift([1, 1], 2) = [1, 3], ..., shift([1, 5], 2) = [1, 7], each preserving its I-address. ∎
+
+**Boundary: insert past end.** Set p = [1, 6]. No V-position v satisfies v ≥ p, so I3's quantifier ranges over ∅ and holds vacuously. I3-L preserves all five positions [1, 1] through [1, 5] with unchanged I-addresses. ∎
+
+**Boundary: empty document.** When dom(M(d)) = ∅, both I3 and I3-L quantify over ∅ and hold vacuously. The postcondition is consistent: insertion into an empty document creates no conflicts. ∎
 
 
 ## Statement Registry
