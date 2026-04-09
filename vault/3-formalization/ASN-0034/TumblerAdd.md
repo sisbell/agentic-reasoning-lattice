@@ -22,7 +22,7 @@ AFTER:  1.0.3.0.5.0.1.1
 
 Reading `[0,0,0,0,3,0,1,1]`: four leading zeros mean "same server, same account." Component 5 is 3: "advance 3 documents." Trailing `[0,1,1]`: "land at element 1.1 in the target document." The start position's element field `[1,777]` is replaced by the displacement's trailing structure `[1,1]`.
 
-**TumblerAdd (TumblerAdd).** Let `a = [a₁, ..., aₘ]` and `w = [w₁, ..., wₙ]` with `a, w ∈ T` and `w > 0`. Define the *action point* of `w` as `k = min{i : 1 ≤ i ≤ n ∧ wᵢ ≠ 0}` — the index of the first nonzero component. Since `w > 0`, at least one component is nonzero, so `k` exists and is well-defined. Require `k ≤ m`: the action point must fall within the start position's length.
+**TumblerAdd (TumblerAdd).** Let `a = [a₁, ..., aₘ]` and `w = [w₁, ..., wₙ]` with `a, w ∈ T` and `w > 0`. Define the *action point* of `w` as `k = min{i : 1 ≤ i ≤ n ∧ wᵢ ≠ 0}` — the index of the first nonzero component. By PositiveTumbler, the precondition `w > 0` means `(E i : 1 ≤ i ≤ n : wᵢ ≠ 0)` — at least one component of `w` is nonzero — so the set `{i : 1 ≤ i ≤ n ∧ wᵢ ≠ 0}` is non-empty and `k` is well-defined. Require `k ≤ m`: the action point must fall within the start position's length.
 
 ```
          ⎧ aᵢ           if i < k        (copy from start)
