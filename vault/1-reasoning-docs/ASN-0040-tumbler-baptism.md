@@ -149,7 +149,7 @@ The frame condition is essential: baptism alters the registry and nothing else. 
 
 **B1 preservation.** In the target namespace, children(Σ'.B, p, d) = {c₁, ..., cₘ, c_{m+1}} — a contiguous prefix of length m + 1, since the new element is the immediate successor of the previous maximum. For every other namespace (p', d'), B7 ensures a ∉ S(p', d'), so children(Σ'.B, p', d') = children(Σ.B, p', d'), and their contiguous prefix property is undisturbed. B0a (Baptismal Closure) guarantees no non-baptismal mechanism introduces elements that could disrupt contiguity in any namespace.
 
-**B10 preservation.** The new element a must satisfy T4 for the registry-wide validity invariant to hold. Two cases arise from the definition of next. When m = 0, a = inc(p, d) — the first child. B6 provides exactly the three conditions that the IncrementPreservesValidity lemma (ASN-0034) requires: p satisfies T4 by B6(i), d ≤ 2 by B6(ii), and zeros(p) + (d − 1) ≤ 3 by B6(iii). Therefore a satisfies T4. When m > 0, a = inc(cₘ, 0) — a sibling increment. By B10 for the current state, cₘ satisfies T4 (it was admitted by a prior baptism or is a conforming seed). IncrementPreservesValidity with k = 0 preserves T4 unconditionally — no zeros are added, no adjacencies are introduced. Therefore a satisfies T4. ∎
+**B10 preservation.** The new element a must satisfy T4 for the registry-wide validity invariant to hold. Two cases arise from the definition of next. When m = 0, a = inc(p, d) — the first child. B6 provides exactly the three conditions that the TA5a (IncrementPreservesT4, ASN-0034) requires: p satisfies T4 by B6(i), d ≤ 2 by B6(ii), and zeros(p) + (d − 1) ≤ 3 by B6(iii). Therefore a satisfies T4. When m > 0, a = inc(cₘ, 0) — a sibling increment. By B10 for the current state, cₘ satisfies T4 (it was admitted by a prior baptism or is a conforming seed). TA5a with k = 0 preserves T4 unconditionally — no zeros are added, no adjacencies are introduced. Therefore a satisfies T4. ∎
 
 *Formal Contract:*
 - *Preconditions:* p ∈ T, d ∈ ℕ with d ≥ 1; B6(p, d) holds; B4 holds for namespace (p, d); Σ.B satisfies B1 and B10.
@@ -183,7 +183,13 @@ When (p, d) satisfies B6: both (p₀, d₀) and (p, d) meet B7's preconditions, 
 
 When (p, d) does not satisfy B6 and every element of S(p, d) violates T4: since a satisfies T4, a ∉ S(p, d). Moreover, B10 for the current state ensures every element of B satisfies T4, so children(B, p, d) = ∅. Therefore children(B', p, d) = ∅, trivially a contiguous prefix. (This covers cases where p has adjacent zeros, p starts with zero, or d ≥ 3.)
 
-When (p, d) does not satisfy B6 but S(p, d) contains T4-valid elements: this occurs when p ends in zero (with no other T4 defect) and d ∈ {1, 2}. In this case S(p, d) is identical to S(p', d') for some T4-valid parent p' at greater depth d' — the trailing zeros of p merge with the stream's separator structure to produce the same element prefix. Since (p', d') satisfies B6, two sub-cases arise. If (p', d') ≠ (p₀, d₀), B7 gives S(p₀, d₀) ∩ S(p', d') = ∅, hence a ∉ S(p', d') = S(p, d), and children(B', p, d) = children(B, p, d). If (p', d') = (p₀, d₀), then children(B', p, d) = children(B', p₀, d₀), whose contiguous prefix property was established in the target namespace case above.
+When (p, d) does not satisfy B6 but S(p, d) contains T4-valid elements: this occurs when p ends in zero (with no other T4 defect) and d = 1. (When d = 2, the trailing zero of p at position #p and the d − 1 = 1 intermediate zero from TA5(d) at position #p + 1 create adjacent zeros, so all stream elements violate T4 — this falls under the previous sub-case.) Let p' be p with its trailing zero removed, so #p' = #p − 1 and p'ᵢ = pᵢ for 1 ≤ i ≤ #p − 1, and let d' = 2. We show S(p, 1) = S(p', 2) by proving first-element equality and then applying the shared recurrence.
+
+*First-element equality.* The first element of S(p, 1) is c₁ = inc(p, 1). By TA5(d), c₁ has length #p + 1, with the first #p components preserved from p and position #p + 1 set to 1 (d − 1 = 0 intermediate zeros). So c₁ = [p₁, ..., p_{#p−1}, 0, 1] since p_{#p} = 0. The first element of S(p', 2) is c'₁ = inc(p', 2). By TA5(d), c'₁ has length #p' + 2 = #p + 1, with the first #p' = #p − 1 components preserved from p', one intermediate zero at position #p' + 1 = #p, and position #p' + 2 = #p + 1 set to 1. So c'₁ = [p'₁, ..., p'_{#p−1}, 0, 1] = [p₁, ..., p_{#p−1}, 0, 1]. Component-by-component, c₁ = c'₁.
+
+*Stream identity.* Both streams share the recurrence cₙ₊₁ = inc(cₙ, 0). Since c₁ = c'₁ and the recurrence is deterministic, the streams are identical: S(p, 1) = S(p', 2).
+
+Since p' satisfies T4 (p₁ > 0, no adjacent zeros, p'_{#p'} = p_{#p−1} > 0 since the trailing zero was the sole defect) and (p', 2) satisfies B6, two sub-cases arise. If (p', d') ≠ (p₀, d₀), B7 gives S(p₀, d₀) ∩ S(p', d') = ∅, hence a ∉ S(p', d') = S(p, d), and children(B', p, d) = children(B, p, d). If (p', d') = (p₀, d₀), then children(B', p, d) = children(B', p₀, d₀), whose contiguous prefix property was established in the target namespace case above.
 
 In all sub-cases, children(B', p, d) is a contiguous prefix of S(p, d).
 
@@ -192,7 +198,7 @@ Since B1 is preserved in the target namespace and in every other namespace, B1 h
 *Formal Contract:*
 - *Invariant:* `(A p, d, n : n ≥ 1 ∧ cₙ ∈ Σ.B ⟹ (A i : 1 ≤ i < n : cᵢ ∈ Σ.B))` — equivalently, children(Σ.B, p, d) = {c₁, ..., cₘ} for some m ≥ 0.
 - *Base:* B₀ conf. — seed set satisfies contiguous prefix for all (p, d).
-- *Preservation:* Each baptism preserves B1 in the target namespace (by Bop, B0, B4, S0, TA5(c)) and in all other namespaces (by B7 for B6-valid pairs; by B10 for non-B6 pairs whose streams are entirely T4-invalid; by stream identity with a B6-valid namespace for non-B6 pairs whose streams contain T4-valid elements).
+- *Preservation:* Each baptism preserves B1 in the target namespace (by Bop, B0, B4, S0, TA5(c)) and in all other namespaces (by B7 for B6-valid pairs; by B10 for non-B6 pairs whose streams are entirely T4-invalid; by stream identity S(p, 1) = S(p', 2) — proved by first-element component comparison and deterministic recurrence — for non-B6 pairs where p ends in zero as its sole defect and d = 1).
 
 The argument proceeds by induction on the sequence of baptisms within a namespace. The base case is vacuous: when no child has been baptized, the empty set is trivially a prefix. For the inductive step, suppose children(B, p, d) = {c₁, ..., cₘ} is a contiguous prefix of length m. By B4, the next baptism observes the complete state left by the previous one — no concurrent same-namespace baptism has intervened. The operation (Bop) computes next(B, p, d) = inc(cₘ, 0) = c_{m+1}. No element is skipped: the definition of next always selects the immediate successor. By B0, existing elements persist, so the prefix only grows. The new set {c₁, ..., c_{m+1}} is a prefix of length m + 1.
 
@@ -202,9 +208,9 @@ B1 is universally quantified over all (p', d'), so the inductive step must also 
 
 The induction also requires a conforming base:
 
-**B₀ conf. (SeedConformance).** B₀ is finite, `(A p, d : children(B₀, p, d) is a contiguous prefix of S(p, d))`, and `(A t ∈ B₀ : t satisfies T4)`.
+**B₀ conf. (SeedConformance).** B₀ is non-empty and finite, `(A p, d : children(B₀, p, d) is a contiguous prefix of S(p, d))`, and `(A t ∈ B₀ : t satisfies T4)`.
 
-B₀ must be finite, satisfy B1 for every namespace at genesis, and have every seed element be a valid address under T4. Finiteness is required because the next function's well-definedness depends on max(children(B, p, d)) existing, which requires children to be a finite set; since B starts as B₀ and grows by one element per baptism, B₀ finite implies B finite in every reachable state. Without the contiguity requirement, the seed set could contain {c₁, c₃} for some namespace — a gap that the inductive argument cannot repair, since baptism only appends the next sibling. Without the T4 requirement, a seed element could serve as a parent that violates B6(i), undermining B7's disjointness guarantee.
+B₀ must be non-empty and finite, satisfy B1 for every namespace at genesis, and have every seed element be a valid address under T4. Non-emptiness is required because with B₀ = ∅ the conformance conditions hold vacuously but no parent exists to anchor any baptism — the system cannot grow. Finiteness is required because the next function's well-definedness depends on max(children(B, p, d)) existing, which requires children to be a finite set; since B starts as B₀ and grows by one element per baptism, B₀ finite implies B finite in every reachable state. Without the contiguity requirement, the seed set could contain {c₁, c₃} for some namespace — a gap that the inductive argument cannot repair, since baptism only appends the next sibling. Without the T4 requirement, a seed element could serve as a parent that violates B6(i), undermining B7's disjointness guarantee.
 
 From B₀ conformance (T4 for seeds) and B6(i) (T4 for parents), we derive by induction on the baptism sequence that T4 validity is a registry-wide invariant:
 
@@ -218,16 +224,16 @@ From B₀ conformance (T4 for seeds) and B6(i) (T4 for parents), we derive by in
 
 By B6, the parent p satisfies T4 (condition (i)), d ∈ {1, 2} (condition (ii)), and zeros(p) + (d − 1) ≤ 3 (condition (iii)). Let m = hwm(B, p, d). The definition of next (NextAddress) and B2 (High Water Mark Sufficiency) give a = c_{m+1}, the (m + 1)-th element of the sibling stream S(p, d). Two cases arise from the value of m.
 
-*Case 1: m = 0.* The children set is empty, so a = c₁ = inc(p, d). The IncrementPreservesValidity lemma (ASN-0034) states that inc(t, k) preserves T4 when t satisfies T4, k ≤ 2, and zeros(t) + (k − 1) ≤ 3. These three conditions are exactly B6(i), B6(ii), and B6(iii) with t = p and k = d. Therefore a = inc(p, d) satisfies T4.
+*Case 1: m = 0.* The children set is empty, so a = c₁ = inc(p, d). The TA5a (IncrementPreservesT4, ASN-0034) states that inc(t, k) preserves T4 when t satisfies T4, k ≤ 2, and zeros(t) + (k − 1) ≤ 3. These three conditions are exactly B6(i), B6(ii), and B6(iii) with t = p and k = d. Therefore a = inc(p, d) satisfies T4.
 
-*Case 2: m ≥ 1.* The children set is non-empty, and a = c_{m+1} = inc(cₘ, 0) — a sibling increment. By B1 (Contiguous Prefix), children(B, p, d) = {c₁, ..., cₘ}, so cₘ ∈ B. By the inductive hypothesis (B10 for the current state), cₘ satisfies T4. The IncrementPreservesValidity lemma with k = 0 states that inc(t, 0) preserves T4 unconditionally: no zeros are added (TA5(c) modifies only position sig(t), advancing a positive value by one), no adjacent zeros are introduced, and the tumbler neither begins nor ends in zero after the increment. Therefore a = inc(cₘ, 0) satisfies T4.
+*Case 2: m ≥ 1.* The children set is non-empty, and a = c_{m+1} = inc(cₘ, 0) — a sibling increment. By B1 (Contiguous Prefix), children(B, p, d) = {c₁, ..., cₘ}, so cₘ ∈ B. By the inductive hypothesis (B10 for the current state), cₘ satisfies T4. TA5a with k = 0 states that inc(t, 0) preserves T4 unconditionally: no zeros are added (TA5(c) modifies only position sig(t), advancing a positive value by one), no adjacent zeros are introduced, and the tumbler neither begins nor ends in zero after the increment. Therefore a = inc(cₘ, 0) satisfies T4.
 
 In both cases, a satisfies T4. Since every element of B satisfies T4 by the inductive hypothesis and the new element a satisfies T4 by the case analysis, every element of B' = B ∪ {a} satisfies T4. By induction on the transition sequence, B10 holds in every reachable state. ∎
 
 *Formal Contract:*
 - *Invariant:* `(A t ∈ Σ.B : t satisfies T4)` — every baptized address satisfies FieldSeparatorConstraint.
 - *Base:* B₀ conf. — every seed element satisfies T4.
-- *Preservation:* Each baptism preserves B10: when m = 0, by B6 and IncrementPreservesValidity (ASN-0034) with k = d; when m ≥ 1, by the inductive hypothesis and IncrementPreservesValidity with k = 0. B0a ensures no non-baptismal mechanism introduces elements that might violate T4.
+- *Preservation:* Each baptism preserves B10: when m = 0, by B6 and TA5a (IncrementPreservesT4, ASN-0034) with k = d; when m ≥ 1, by the inductive hypothesis and TA5a with k = 0. B0a ensures no non-baptismal mechanism introduces elements that might violate T4.
 
 B1 holds for all states reachable from a conforming B₀ under operations satisfying B0a and B7.
 
@@ -405,11 +411,17 @@ For subsequent siblings cₙ₊₁ = inc(cₙ, 0): the same lemma with k = 0 sta
 
 *Condition (iii) is necessary for T4.* Let zeros(p) + (d − 1) > 3 with d ∈ {1, 2} and p satisfying T4. By B5, zeros(c₁) = zeros(p) + (d − 1) > 3. But T4 requires zeros(t) ≤ 3 for any valid address — at most three field separators for the four-level hierarchy. The first child already exceeds the zero budget, so c₁ violates T4.
 
-*Condition (i) is necessary for the system.* Let p violate T4 with d ∈ {1, 2} and zeros(p) + (d − 1) ≤ 3. Two sub-cases arise. If p has adjacent zeros, these persist in inc(p, d) by TA5(b), and the output inherits the empty-field violation — every stream element violates T4. If p ends in zero but has no adjacent zeros, the stream may satisfy T4 without condition (i): consider p = [1, 0] with d = 1. Then c₁ = inc([1, 0], 1) = [1, 0, 1] — one zero at position 2, positive first and last components, no adjacent zeros — and every cₙ = [1, 0, n] satisfies T4. However, S([1, 0], 1) is identical to S([1], 2): both produce the sequence [1, 0, 1], [1, 0, 2], [1, 0, 3], ... In general, when p ends in zero and d = 1, the trailing zero of p merges with the stream structure to produce the same elements as S(p', d + 1) where p' is p with the trailing zero removed — a T4-valid parent at greater depth. Permitting baptism under such a malformed parent creates a namespace whose sibling stream coincides with an existing valid namespace, collapsing B7 (Namespace Disjointness). Condition (i) is therefore necessary not for T4 preservation in isolation, but for the namespace partitioning on which global uniqueness (B8) depends. ∎
+*Condition (i) is necessary for the system.* Let p violate T4 with d ∈ {1, 2} and zeros(p) + (d − 1) ≤ 3. Two structurally distinct situations arise, depending on whether the T4 violation lies in the interior of p (positions 1 through #p − 1) or only at the trailing position #p.
+
+*(a) Interior violation: some T4 defect in positions 1 through #p − 1.* This covers adjacent zeros anywhere in p and the leading-zero case p₁ = 0. By TA5(b), inc(p, d) preserves positions 1 through #p, so the defective positions survive into c₁. Each subsequent cₙ₊₁ = inc(cₙ, 0) modifies only position sig(cₙ) = #p + d > #p (since d ≥ 1), leaving positions 1 through #p untouched. By induction, every stream element carries the interior T4 violation. For example, with p = [0, 1, 2] (leading zero, p₁ = 0): c₁ = inc([0, 1, 2], 1) = [0, 1, 2, 1], and (cₙ)₁ = 0 for all n ≥ 1, violating T4's t₁ ≠ 0 requirement.
+
+*(b) Trailing zero as the sole T4 defect: p_{#p} = 0 with no adjacent zeros and p₁ > 0.* The stream may satisfy T4 without condition (i). Consider p = [1, 0] with d = 1. Then c₁ = inc([1, 0], 1) = [1, 0, 1] — one zero at position 2, positive first and last components, no adjacent zeros — and every cₙ = [1, 0, n] satisfies T4. However, S([1, 0], 1) is identical to S([1], 2): both produce the sequence [1, 0, 1], [1, 0, 2], [1, 0, 3], ... (The stream identity is proved in B1's other-namespaces argument below.) In general, when p ends in zero and d = 1, the trailing zero of p merges with the stream structure to produce the same elements as S(p', d + 1) where p' is p with the trailing zero removed — a T4-valid parent at greater depth. Permitting baptism under such a malformed parent creates a namespace whose sibling stream coincides with an existing valid namespace, collapsing B7 (Namespace Disjointness). When d = 2, the trailing zero of p at position #p and the d − 1 = 1 intermediate zero from TA5(d) at position #p + 1 create adjacent zeros, so all stream elements violate T4 — this falls under sub-case (a).
+
+Condition (i) is therefore necessary: interior violations propagate to every stream element, and trailing-zero violations either propagate (when d = 2 creates adjacent zeros) or collapse the namespace partitioning on which global uniqueness (B8) depends (when d = 1). ∎
 
 *Formal Contract:*
 - *Preconditions:* p ∈ T, d ∈ ℕ with d ≥ 1.
-- *Postconditions:* (a) Sufficiency: `(p satisfies T4 ∧ d ∈ {1, 2} ∧ zeros(p) + (d − 1) ≤ 3) ⟹ (A n ≥ 1 : cₙ ∈ S(p, d) satisfies T4)`. (b) Necessity: violating (ii) or (iii) produces T4 violations in S(p, d); violating (i) either produces T4 violations (adjacent zeros case) or creates a stream identical to some valid S(p', d'), collapsing B7.
+- *Postconditions:* (a) Sufficiency: `(p satisfies T4 ∧ d ∈ {1, 2} ∧ zeros(p) + (d − 1) ≤ 3) ⟹ (A n ≥ 1 : cₙ ∈ S(p, d) satisfies T4)`. (b) Necessity: violating (ii) or (iii) produces T4 violations in S(p, d); violating (i) either propagates interior violations (adjacent zeros, leading zero) to every stream element via TA5(b), or — when the sole defect is a trailing zero — produces adjacent zeros for d = 2 (falling under interior violation) or creates a stream identical to some valid S(p', d') for d = 1, collapsing B7.
 
 
 ## Namespace disjointness
@@ -547,12 +559,12 @@ After M − m steps, hwm(B_{M−m}, p, d) = m + (M − m) = M. Setting B' = B_{M
 | S(p,d) | Sibling stream: c₁ = inc(p, d), cₙ₊₁ = inc(cₙ, 0) | from TA5(b), TA5(c), TA5(d) |
 | hwm(B,p,d) | High water mark: #children(B, p, d) — sufficient allocation statistic | from B1, S0 |
 | next(B,p,d) | Next address: if children = ∅ then inc(p, d) else inc(max(children), 0) | from TA5(c), TA5(d), T1 |
-| Bop | baptize(p, d): PRE B6, B4; POST Σ'.B = Σ.B ∪ {next(Σ.B, p, d)}; FRAME only Σ.B | from B1, B4, B6, B7, B0a, B10, TA5, IncrementPreservesValidity |
+| Bop | baptize(p, d): PRE B6, B4; POST Σ'.B = Σ.B ∪ {next(Σ.B, p, d)}; FRAME only Σ.B | from B1, B4, B6, B7, B0a, B10, TA5, TA5a |
 | S0 | `(A i, j : 1 ≤ i < j : cᵢ < cⱼ)` — stream strictly ordered | from TA5(a), T1 |
 | S1 | `(A n : n ≥ 1 : p ≼ cₙ)` — all stream elements extend parent | from TA5(b), TA5(c), TA5(d) |
 | B0 | `Σ.B ⊆ Σ'.B` for all transitions — irrevocability (extends T8) | design requirement |
 | B0a | `Σ'.B \ Σ.B ⊆ {baptism(p,d) outputs for (p,d) satisfying B6}` — registry grows only through baptism | design requirement |
-| B₀ conf. | B₀ is finite, `children(B₀, p, d)` is a contiguous prefix for all (p, d), and `(A t ∈ B₀ : t satisfies T4)` — seed conformance | design requirement |
+| B₀ conf. | B₀ is non-empty and finite, `children(B₀, p, d)` is a contiguous prefix for all (p, d), and `(A t ∈ B₀ : t satisfies T4)` — seed conformance | design requirement |
 | B1 | `cₙ ∈ B ⟹ (A i : 1 ≤ i < n : cᵢ ∈ B)` — contiguous prefix (requires conforming B₀) | from B₀ conf., B0, B0a, B4, B7, Bop, S0, TA5(c) |
 | B2 | `next(B, p, d) = c_{hwm+1}` — high water mark sufficiency (from B1) | from B1, S0, NextAddress |
 | B3 | `t ∈ Σ.B` does not imply t is occupied — ghost validity | design requirement |
@@ -563,7 +575,7 @@ After M − m steps, hwm(B_{M−m}, p, d) = m + (M − m) = M. Setting B' = B_{M
 | B7 | `(p, d) ≠ (p', d') ⟹ S(p, d) ∩ S(p', d') = ∅` — namespace disjointness | from T3, T4, T10, S1, TA5(c), TA5(d), B6 |
 | B8 | Distinct baptisms produce distinct addresses — global uniqueness | from B0, B1, B2, B4, B7, S0, T1 |
 | B9 | `(A p, d, M : (E B' reachable : hwm(B', p, d) ≥ M))` — unbounded extent | from T0(a), B1, B2, B4, B6, Bop, TA5(c), TA5(d) |
-| B10 | `(A t ∈ Σ.B : t satisfies T4)` — registry-wide T4 validity | from B₀ conf., B0a, B1, B2, B6, TA5(c), IncrementPreservesValidity |
+| B10 | `(A t ∈ Σ.B : t satisfies T4)` — registry-wide T4 validity | from B₀ conf., B0a, B1, B2, B6, TA5(c), TA5a |
 
 
 ## Open Questions
