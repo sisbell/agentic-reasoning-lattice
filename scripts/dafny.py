@@ -32,7 +32,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import (WORKSPACE, FORMALIZATION_DIR, DAFNY_DIR, USAGE_LOG,
                     load_manifest)
 from lib.shared.common import find_asn, parallel_llm_calls
-from lib.formalization.core.build_dependency_graph import generate_deps
+from lib.formalization.core.build_dependency_graph import generate_formalization_deps
 from lib.formalization.core.topological_sort import topological_sort_labels, topological_levels
 from lib.modeling.dafny.translate import (
     build_property_list_from_asn, read_proof_modules,
@@ -185,7 +185,7 @@ def main():
 
     # --- Dependency graph ---
 
-    deps_data = generate_deps(asn_number)
+    deps_data = generate_formalization_deps(asn_number)
 
     # --- Hash cache — skip unchanged ---
 

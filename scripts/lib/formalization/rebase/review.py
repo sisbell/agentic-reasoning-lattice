@@ -25,7 +25,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, formal_stmts, load_manifest, dep_graph
 from lib.shared.common import find_asn, assemble_readonly, read_file
 from lib.shared.foundation import load_foundation_statements
-from lib.formalization.core.build_dependency_graph import generate_deps
+from lib.formalization.core.build_dependency_graph import generate_discovery_deps
 from lib.formalization.core.finding import Finding
 from lib.blueprinting.lint import build_label_map, scan_reasoning_doc, get_dep_chain
 
@@ -570,7 +570,7 @@ def _check_cross_references(asn_num, target_labels=None):
     if not asn_text:
         asn_text = asn_path.read_text()
 
-    deps_data = generate_deps(asn_num)
+    deps_data = generate_discovery_deps(asn_num)
     if not deps_data:
         return []
 

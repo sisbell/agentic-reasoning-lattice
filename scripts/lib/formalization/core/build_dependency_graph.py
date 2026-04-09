@@ -125,14 +125,20 @@ def _parse_status(status_text):
         result["asn_refs"] = asns
         return result
 
-    # "axiom"
-    if status == "axiom":
+    # "axiom" or "axiom (postconditions from T3)"
+    if status.startswith("axiom"):
         result["kind"] = "axiom"
+        labels, asns = _extract_labels_and_asns(status)
+        result["labels"] = labels
+        result["asn_refs"] = asns
         return result
 
-    # "design requirement"
+    # "design requirement" or "design requirement (postconditions from TA5, T10)"
     if status.startswith("design"):
         result["kind"] = "design"
+        labels, asns = _extract_labels_and_asns(status)
+        result["labels"] = labels
+        result["asn_refs"] = asns
         return result
 
     # "cited" or "cited (ASN-NNNN)"
@@ -187,6 +193,14 @@ def _parse_status(status_text):
     # "theorem from LABELS" or "from LABELS"
     if status.startswith("theorem") or status.startswith("from"):
         result["kind"] = "theorem" if status.startswith("theorem") else "from"
+        labels, asns = _extract_labels_and_asns(status)
+        result["labels"] = labels
+        result["asn_refs"] = asns
+        return result
+
+    # "lemma (from T1, TA5)" or "lemma from T1"
+    if status.startswith("lemma"):
+        result["kind"] = "lemma"
         labels, asns = _extract_labels_and_asns(status)
         result["labels"] = labels
         result["asn_refs"] = asns
@@ -394,8 +408,34 @@ def _scan_prose_citations(sections, own_labels, foundation_labels):
 # Main: generate deps YAML
 # ---------------------------------------------------------------------------
 
-def generate_deps(asn_num):
-    """Parse the ASN property table and generate structured dependency data.
+def generate_formalization_deps(asn_num):
+    """Parse the formalization property table and generate dependency data.
+
+    Table-only: reads _table.md status column for follows_from. No prose
+    scanning. For formalization and modeling pipelines.
+
+    Returns a dict suitable for YAML serialization, or None on failure.
+    """
+    return _generate_deps_core(asn_num, prose_citations=False)
+
+
+def generate_discovery_deps(asn_num):
+    """Parse the property table and enrich with prose citation scanning.
+
+    Table + prose: reads _table.md status column, then scans derivation
+    prose for additional label citations. For discovery assembly and rebase.
+
+    Returns a dict suitable for YAML serialization, or None on failure.
+    """
+    return _generate_deps_core(asn_num, prose_citations=True)
+
+
+# Backward compatibility alias
+generate_deps = generate_formalization_deps
+
+
+def _generate_deps_core(asn_num, prose_citations=False):
+    """Core dependency graph builder.
 
     Returns a dict suitable for YAML serialization, or None on failure.
     """
@@ -513,7 +553,7 @@ def generate_deps(asn_num):
 
         properties[label] = prop
 
-    # Enrich with property names and prose citations
+    # Enrich with property names (and optionally prose citations)
     # Read per-property files if available, otherwise extract from monolithic ASN
     if prop_dir and prop_dir.exists():
         from lib.shared.common import load_property_sections
@@ -522,11 +562,7 @@ def generate_deps(asn_num):
         from lib.shared.common import extract_property_sections
         text = asn_path.read_text()
         sections = extract_property_sections(text, known_labels=list(properties.keys()))
-    foundation_labels = _build_foundation_labels(depends)
-    prose_citations = _scan_prose_citations(sections, set(properties.keys()),
-                                            foundation_labels)
 
-    prose_count = 0
     for label, prop in properties.items():
         # Add property name — prefer Name column (canonical), then Statement
         # column, then prose header, then PascalCase label
@@ -540,24 +576,29 @@ def generate_deps(asn_num):
         if name:
             prop["name"] = name
 
-        # Merge prose citations into follows_from
-        # Skip for axioms and design requirements — they are posited,
-        # not derived, so prose mentions are contextual not dependencies
-        if prop.get("status") in ("axiom", "design") :
-            pass
-        elif label in prose_citations:
+    # Prose citation scanning (discovery only)
+    if prose_citations:
+        foundation_labels = _build_foundation_labels(depends)
+        cited = _scan_prose_citations(sections, set(properties.keys()),
+                                      foundation_labels)
+        prose_count = 0
+        for label, prop in properties.items():
+            if prop.get("status") in ("axiom", "design"):
+                continue
+            if label not in cited:
+                continue
             existing = set(prop.get("follows_from", []))
             existing_asns = set(prop.get("follows_from_asns", []))
 
-            for cited in prose_citations[label]['local']:
-                if cited not in existing:
+            for c in cited[label]['local']:
+                if c not in existing:
                     prose_count += 1
-                existing.add(cited)
+                existing.add(c)
 
-            for cited, asn_num_ref in prose_citations[label]['foundation']:
-                if cited not in existing:
+            for c, asn_num_ref in cited[label]['foundation']:
+                if c not in existing:
                     prose_count += 1
-                existing.add(cited)
+                existing.add(c)
                 existing_asns.add(asn_num_ref)
 
             if existing:
@@ -565,9 +606,9 @@ def generate_deps(asn_num):
             if existing_asns:
                 prop["follows_from_asns"] = sorted(existing_asns)
 
-    if prose_count:
-        print(f"  [PROSE] {prose_count} additional citations from derivation text",
-              file=sys.stderr)
+        if prose_count:
+            print(f"  [PROSE] {prose_count} additional citations from derivation text",
+                  file=sys.stderr)
 
     # Preserve hash and skip_quality fields from existing dep graph
     existing_path = dep_graph(asn_num)

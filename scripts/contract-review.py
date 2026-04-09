@@ -113,8 +113,8 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
               file=sys.stderr)
 
         # Pre-build dependency contexts (generate_deps called once)
-        from lib.formalization.core.build_dependency_graph import generate_deps
-        deps_data = generate_deps(asn_num)
+        from lib.formalization.core.build_dependency_graph import generate_formalization_deps
+        deps_data = generate_formalization_deps(asn_num)
         dep_contexts = {}
         for label, content, f in candidates:
             if deps_data:

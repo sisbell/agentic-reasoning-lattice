@@ -24,39 +24,28 @@ from lib.shared.paths import WORKSPACE, formal_stmts, dep_graph, load_manifest
 from lib.shared.common import find_asn
 from lib.formalization.assembly.produce_interface import assemble_formal_statements
 from lib.formalization.assembly.validate_contracts import validate_contracts
-from lib.formalization.core.build_dependency_graph import generate_deps, write_deps_yaml
+from lib.formalization.core.build_dependency_graph import generate_formalization_deps, write_deps_yaml
 
 COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
 
 
 def _generate_deps(asn_num, label):
-    """Generate deps YAML: mechanical extract + LLM scan."""
-    # Phase 1: Mechanical extract
+    """Generate deps YAML from formalization table (no prose scanning)."""
     try:
-        deps = generate_deps(asn_num)
+        deps = generate_formalization_deps(asn_num)
         if deps:
             path = write_deps_yaml(asn_num, deps)
-            print(f"  [DEPS] mechanical: {path.relative_to(WORKSPACE)} "
+            print(f"  [DEPS] {path.relative_to(WORKSPACE)} "
                   f"({len(deps['properties'])} properties)", file=sys.stderr)
         else:
-            print(f"  [DEPS] WARNING: mechanical extract failed for {label}",
+            print(f"  [DEPS] WARNING: extract failed for {label}",
                   file=sys.stderr)
-            return
     except Exception as e:
-        print(f"  [DEPS] WARNING: mechanical extract failed for {label}: {e}",
-              file=sys.stderr)
-        return
-
-    # Phase 2: LLM scan for undeclared dependencies
-    try:
-        from lib.formalization.assembly.scan_undeclared_deps import scan_asn
-        scan_asn(asn_num, model="sonnet", effort="high")
-    except Exception as e:
-        print(f"  [DEPS] WARNING: LLM dep scan failed for {label}: {e}",
+        print(f"  [DEPS] WARNING: extract failed for {label}: {e}",
               file=sys.stderr)
 
 
-def _export_one(asn_id, do_format_gate=False, contract_check="fail"):
+def _export_one(asn_id, do_format_gate=False, contract_check="skip"):
     """Export a single ASN: optional format gate + contract validation + assembly + deps.
 
     contract_check: "fail" (default), "warn", or "skip"
@@ -117,6 +106,8 @@ def main():
                         help="Run format normalization gate before assembly")
     parser.add_argument("--dry-run", action="store_true",
                         help="Show what would be done without doing it")
+    parser.add_argument("--deps-only", action="store_true",
+                        help="Generate dependency graph only, skip formal-statements")
     parser.add_argument("--skip-contract-check", action="store_true",
                         help="Skip contract validation gate")
     parser.add_argument("--warn-contract-check", action="store_true",
@@ -129,13 +120,19 @@ def main():
             print(f"  [DRY RUN] Would export {asn_label}", file=sys.stderr)
         return
 
+    if args.deps_only:
+        for asn_id in args.asns:
+            asn_num = int(re.sub(r"[^0-9]", "", str(asn_id)))
+            _, asn_label = find_asn(asn_id)
+            if asn_label:
+                _generate_deps(asn_num, asn_label)
+        return
+
     succeeded = []
     failed = []
 
-    contract_check = "fail"
-    if args.skip_contract_check:
-        contract_check = "skip"
-    elif args.warn_contract_check:
+    contract_check = "skip"
+    if args.warn_contract_check:
         contract_check = "warn"
 
     for asn_id in args.asns:

@@ -22,7 +22,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, formal_stmts, dep_graph
 from lib.shared.common import find_asn
 from lib.discovery.assembly.produce_statements import export_one
-from lib.formalization.core.build_dependency_graph import generate_deps, write_deps_yaml
+from lib.formalization.core.build_dependency_graph import generate_discovery_deps, write_deps_yaml
 
 COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
 
@@ -30,7 +30,7 @@ COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
 def _generate_deps(asn_num, label):
     """Generate deps YAML: mechanical extract + LLM scan."""
     try:
-        deps = generate_deps(asn_num)
+        deps = generate_discovery_deps(asn_num)
         if deps:
             path = write_deps_yaml(asn_num, deps)
             print(f"  [DEPS] mechanical: {path.relative_to(WORKSPACE)} "
@@ -64,7 +64,17 @@ def main():
                         help="Thinking effort level (default: high)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Show what would be done without doing it")
+    parser.add_argument("--deps-only", action="store_true",
+                        help="Generate dependency graph only, skip formal-statements")
     args = parser.parse_args()
+
+    if args.deps_only:
+        for asn_id in args.asns:
+            asn_num = int(re.sub(r"[^0-9]", "", str(asn_id)))
+            _, label = find_asn(asn_id)
+            if label:
+                _generate_deps(asn_num, label)
+        return
 
     succeeded = []
     failed = []

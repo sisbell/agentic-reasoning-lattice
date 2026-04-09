@@ -25,7 +25,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, next_review_number
 from lib.shared.common import find_asn, step_commit_asn
-from lib.formalization.core.build_dependency_graph import generate_deps, write_deps_yaml
+from lib.formalization.core.build_dependency_graph import generate_formalization_deps, write_deps_yaml
 from lib.formalization.core.topological_sort import topological_sort_labels, topological_levels
 from lib.formalization.formalize.produce_contract import (
     find_properties_needing_quality, produce_contract,
@@ -98,7 +98,7 @@ def run_formalize(asn_num, max_cycles=5, mode="incremental",
             break
 
         # Sort in dependency order
-        deps_data = generate_deps(asn_num)
+        deps_data = generate_formalization_deps(asn_num)
         ordered = topological_sort_labels(deps_data) if deps_data else []
         needs_labels = {n["label"] for n in needs}
         needs_map = {n["label"]: n for n in needs}

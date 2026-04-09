@@ -22,7 +22,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, load_manifest, next_review_number
 from lib.shared.common import find_asn, step_commit_asn
-from lib.formalization.core.build_dependency_graph import generate_deps
+from lib.formalization.core.build_dependency_graph import generate_discovery_deps
 from lib.formalization.rebase.review import run_review
 from lib.formalization.rebase.revise import revise
 
@@ -37,7 +37,7 @@ def _group_by_label(findings):
 
 def _downstream_dependents(asn_num, changed_labels):
     """Find properties that depend on any of the changed labels."""
-    deps_data = generate_deps(asn_num)
+    deps_data = generate_discovery_deps(asn_num)
     if not deps_data:
         return set()
 

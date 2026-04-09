@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, USAGE_LOG, FORMALIZATION_DIR, formal_stmts
 from lib.shared.common import find_asn, invoke_claude
 from lib.formalization.core.build_dependency_graph import (find_property_table, parse_table_row,
-                              detect_columns, generate_deps)
+                              detect_columns, generate_formalization_deps)
 
 from lib.formalization.assembly.validate_contracts import validate_contract
 
@@ -156,7 +156,7 @@ def find_properties_needing_quality(asn_num, force_all=True, force_rebuild=False
         return candidates, {}
 
     # Hash-based dirty detection
-    deps_data = generate_deps(asn_num)
+    deps_data = generate_formalization_deps(asn_num)
     if deps_data is None:
         return candidates, {}
 
@@ -225,7 +225,7 @@ def _review_rewrite(pre_section, post_section, label):
 
 def _build_dep_context(asn_num, label):
     """Build dependency context for a property — same-ASN files + foundation excerpts."""
-    deps_data = generate_deps(asn_num)
+    deps_data = generate_formalization_deps(asn_num)
     if not deps_data:
         return "(none)"
 

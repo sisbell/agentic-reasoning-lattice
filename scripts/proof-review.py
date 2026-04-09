@@ -26,7 +26,7 @@ import json
 
 from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, next_review_number
 from lib.shared.common import find_asn, parallel_llm_calls, step_commit_asn
-from lib.formalization.core.build_dependency_graph import generate_deps
+from lib.formalization.core.build_dependency_graph import generate_formalization_deps
 from lib.formalization.core.topological_sort import topological_sort_labels
 from lib.formalization.proof_review.verify import review_property
 from lib.formalization.proof_review.revise import revise
@@ -104,7 +104,7 @@ def run_proof_review(asn_num, max_cycles=5, mode="incremental",
 
     for cycle in range(1, max_cycles + 1):
         # Generate fresh deps
-        deps_data = generate_deps(asn_num)
+        deps_data = generate_formalization_deps(asn_num)
         if deps_data is None:
             print(f"  No dependency data — cannot review", file=sys.stderr)
             return "failed"
