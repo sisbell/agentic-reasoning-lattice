@@ -74,10 +74,10 @@ def _classify_one(label, status, section):
 
     if "|" in line:
         parts = line.split("|", 1)
-        rec = parts[0].strip().lower()
+        rec = parts[0].strip().strip("`*").lower()
         reason = parts[1].strip()
     else:
-        rec = line.strip().lower()
+        rec = line.strip().strip("`*").lower()
         reason = ""
 
     return rec, reason, elapsed
@@ -168,7 +168,11 @@ def lint_status(asn_num, dry_run=False, formalization=False):
     def _check_status(prop):
         label = prop["label"]
         status = prop["status"]
-        section = sections.get(label, "(no section found)")
+        # Normalize label for file lookup: T0(a) -> T0a, Def-Span -> Span
+        norm = label.replace("(", "").replace(")", "")
+        if norm.startswith("Def-"):
+            norm = norm[4:]
+        section = sections.get(label) or sections.get(norm) or "(no section found)"
         rec, reason, elapsed = _classify_one(label, status, section)
         return label, (status, rec, reason)
 
