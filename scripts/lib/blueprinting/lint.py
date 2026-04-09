@@ -152,7 +152,11 @@ def lint_status(asn_num, dry_run=False, formalization=False):
         return None
 
     # Set up output file
-    out_path = lint_path(asn_label, "status")
+    if formalization:
+        from lib.shared.paths import FORMALIZATION_DIR
+        out_path = FORMALIZATION_DIR / asn_label / "reviews" / "status-lint.md"
+    else:
+        out_path = lint_path(asn_label, "status")
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     with open(out_path, "w") as f:
