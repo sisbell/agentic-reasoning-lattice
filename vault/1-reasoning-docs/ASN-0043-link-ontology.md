@@ -38,6 +38,12 @@ The full system state is now:
 
 where `Σ.C` is the content store (ASN-0036), `Σ.M` is the family of arrangements (ASN-0036), and `Σ.L` is the link store (this ASN).
 
+**L-fin — LinkStoreFiniteness.** For each reachable system state, `dom(Σ.L)` is finite:
+
+`|dom(Σ.L)| < ∞`
+
+This parallels S8-fin (FiniteArrangement, ASN-0036) for arrangements. The set of valid link addresses — element-level tumblers with `fields(a).E₁ = s_L` and `#fields(a).element ≥ 2` — is countably infinite, but only finitely many are occupied in any reachable state. Without this axiom, a model could map every valid link address to a link value, leaving no room for fresh allocation; the extension proofs (L9, L11b) depend on the existence of unoccupied addresses.
+
 
 ## Subspace Residence
 
@@ -189,7 +195,7 @@ Gregory's implementation encodes this distinction at two independent levels: in 
 
 But the slot distinction is *structural*, not *semantic*. Whether "from" means "source" and "to" means "destination" is not determined by any invariant of the link structure:
 
-**L7 — DirectionalFlexibility.** The invariants L0–L14 impose no constraint on which of the from/to slots carries directional significance; any directional interpretation is determined by the link type, outside the link structure.
+**L7 — DirectionalFlexibility.** The invariants L0–L14 and L-fin impose no constraint on which of the from/to slots carries directional significance; any directional interpretation is determined by the link type, outside the link structure.
 
 Nelson: "A link is typically directional. Thus it has a from-set, the bytes the link is 'from,' and a to-set, the bytes the link is 'to.' (What 'from' and 'to' mean depend on the specific case.)" The word "typically" is deliberate. A citation link is directional — it goes *from* citing text *to* cited source. A counterpart link marking equivalence has no meaningful direction. A heading link populates only one content endset — Nelson calls it "inane" to label that one endset "from." The structure provides two slots; the type defines whether the distinction carries directional weight.
 
@@ -212,11 +218,11 @@ Nelson: "What the 'type' designation points to is completely arbitrary. This is 
 
 This is a profound design choice. It decouples classification from content retrieval entirely. A search for "all links of type X" never fetches the bytes at address X — it only matches the address. This means:
 
-**L9 — TypeGhostPermission.** For links following the standard triple convention: ghost types are permitted. For any conforming state `Σ` satisfying L0–L14 and S0–S3, there exists a conforming state `Σ'` extending `Σ` with a standard-triple link whose type endset references an address outside `dom(Σ'.C) ∪ dom(Σ'.L)`:
+**L9 — TypeGhostPermission.** For links following the standard triple convention: ghost types are permitted. For any conforming state `Σ` satisfying L0–L14, L-fin, and S0–S3, there exists a conforming state `Σ'` extending `Σ` with a standard-triple link whose type endset references an address outside `dom(Σ'.C) ∪ dom(Σ'.L)`:
 
-`(A Σ : Σ satisfies L0–L14 ∧ S0–S3 : (E Σ' extending Σ, a ∈ dom(Σ'.L), (s, ℓ) ∈ Σ'.L(a).type :: coverage({(s, ℓ)}) ⊄ dom(Σ'.C) ∪ dom(Σ'.L)))`
+`(A Σ : Σ satisfies L0–L14 ∧ L-fin ∧ S0–S3 : (E Σ' extending Σ, a ∈ dom(Σ'.L), (s, ℓ) ∈ Σ'.L(a).type :: coverage({(s, ℓ)}) ⊄ dom(Σ'.C) ∪ dom(Σ'.L)))`
 
-*Witness.* Take any conforming `Σ`. Choose a subspace identifier `s_X` with `s_X ≠ s_C` and `s_X ≠ s_L` (by T0(a), element-field first components range over all naturals, so values beyond `s_C` and `s_L` exist). Let `g` be any element-level tumbler with `fields(g).E₁ = s_X`. By L0, `dom(Σ.C) ⊆ {t : fields(t).E₁ = s_C}` and `dom(Σ.L) ⊆ {t : fields(t).E₁ = s_L}`. Since `s_X ≠ s_C` and `s_X ≠ s_L`, T7 gives `g ∉ dom(Σ.C) ∪ dom(Σ.L)` — unconditionally, regardless of the size of these domains. Choose a document prefix `d'` under which no address has been allocated — that is, no `b ∈ dom(Σ.C)` has `origin(b) = d'` and no `b ∈ dom(Σ.L)` has `home(b) = d'` (by T0(a), node-field components are unbounded, providing prefixes beyond any finite allocation history). Allocate a link address `a` under `d'`'s link subspace with `fields(a).E₁ = s_L`, `zeros(a) = 3`, and `#fields(a).element ≥ 2`; since `d'` is fresh, `a ∉ dom(Σ.L)`. Define `Σ'` as `Σ` extended with `Σ'.L(a) = (∅, ∅, {(g, δ(1, #g))})`, and `Σ'.C = Σ.C`, `Σ'.M = Σ.M`.
+*Witness.* Take any conforming `Σ`. Choose a subspace identifier `s_X` with `s_X ≠ s_C` and `s_X ≠ s_L` (by T0(a), element-field first components range over all naturals, so values beyond `s_C` and `s_L` exist). Let `g` be any element-level tumbler with `fields(g).E₁ = s_X`. By L0, `dom(Σ.C) ⊆ {t : fields(t).E₁ = s_C}` and `dom(Σ.L) ⊆ {t : fields(t).E₁ = s_L}`. Since `s_X ≠ s_C` and `s_X ≠ s_L`, T7 gives `g ∉ dom(Σ.C) ∪ dom(Σ.L)` — unconditionally, regardless of the size of these domains. Choose a document prefix `d'` under which no address has been allocated — that is, no `b ∈ dom(Σ.C)` has `origin(b) = d'` and no `b ∈ dom(Σ.L)` has `home(b) = d'` (by L-fin, `dom(Σ.L)` is finite; by T0(a), node-field components are unbounded, so document prefixes exist beyond those occupied by any existing address). Allocate a link address `a` under `d'`'s link subspace with `fields(a).E₁ = s_L`, `zeros(a) = 3`, and `#fields(a).element ≥ 2`; since `d'` is fresh, `a ∉ dom(Σ.L)`. Define `Σ'` as `Σ` extended with `Σ'.L(a) = (∅, ∅, {(g, δ(1, #g))})`, and `Σ'.C = Σ.C`, `Σ'.M = Σ.M`.
 
 We verify that `Σ'` is conforming:
 
@@ -228,12 +234,13 @@ We verify that `Σ'` is conforming:
 - *L11a (LinkUniqueness).* No address in `dom(Σ.L)` has prefix `d'`, so `a ∉ dom(Σ.L)`, and `a` is distinct from every existing link address.
 - *L12 (LinkImmutability).* For every `b ∈ dom(Σ.L)`: `b ∈ dom(Σ'.L)` and `Σ'.L(b) = Σ.L(b)`, since `Σ'` only adds the new entry at `a`.
 - *L14 (DualPrimitive).* `dom(Σ'.C) ∪ dom(Σ'.L) = dom(Σ.C) ∪ (dom(Σ.L) ∪ {a})`. Disjointness holds since `a` is in subspace `s_L` and `dom(Σ'.C) ⊆ s_C`.
+- *L-fin (LinkStoreFiniteness).* `dom(Σ'.L) = dom(Σ.L) ∪ {a}`; since `dom(Σ.L)` is finite by L-fin on `Σ`, `dom(Σ'.L)` is finite.
 - *S0–S3.* Content store and arrangements are unchanged (`Σ'.C = Σ.C`, `Σ'.M = Σ.M`), so all ASN-0036 invariants carry over from `Σ`.
 - *Remaining properties.* L2 holds structurally (home is field extraction from the address); L6 vacuously (F = G = ∅ makes the antecedent false); L8, L10, L13 are lemmas that do not constrain states; L12a follows from L12.
 
-No property of L0–L14 or S0–S3 constrains `coverage(Σ'.L(a).type) ⊆ dom(Σ'.C)`. The ghost address `g` has `fields(g).E₁ = s_X`. Since `s_X ≠ s_C`, L0 gives `g ∉ dom(Σ'.C)`. Since `s_X ≠ s_L`, L0 gives `g ∉ dom(Σ'.L)`. Therefore `g ∉ dom(Σ'.C) ∪ dom(Σ'.L)` — unconditionally, by subspace separation alone. ∎
+No property of L0–L14, L-fin, or S0–S3 constrains `coverage(Σ'.L(a).type) ⊆ dom(Σ'.C)`. The ghost address `g` has `fields(g).E₁ = s_X`. Since `s_X ≠ s_C`, L0 gives `g ∉ dom(Σ'.C)`. Since `s_X ≠ s_L`, L0 gives `g ∉ dom(Σ'.L)`. Therefore `g ∉ dom(Σ'.C) ∪ dom(Σ'.L)` — unconditionally, by subspace separation alone. ∎
 
-No property of L0–L14 constrains type endset targets to content addresses. Nelson: "Indeed, there is no need for the presence of elements at the addresses specified. Link types may be ghost elements." The type address is a pure name — a position chosen by convention, not a pointer to content that must be dereferenced.
+No property of L0–L14 or L-fin constrains type endset targets to content addresses. Nelson: "Indeed, there is no need for the presence of elements at the addresses specified. Link types may be ghost elements." The type address is a pure name — a position chosen by convention, not a pointer to content that must be dereferenced.
 
 A consequence of L8 and L9 together: new link types can be defined by choosing a fresh tumbler address and using it as a type endset. No content needs to be created at that address. No registry needs to be updated. No schema needs to change. The type exists as soon as someone uses it. This is what makes the type system "open-ended" — any user can extend it without coordination or system modification.
 
@@ -270,9 +277,9 @@ We now establish the identity semantics of links. The three requirements we bega
 
 **L11b — NonInjectivity.** The link store imposes no injectivity constraint — multiple addresses may store the same endset sequence:
 
-`(A Σ satisfying L0–L14, a ∈ dom(Σ.L) :: (E Σ' extending Σ, a' ∈ dom(Σ'.L) :: a' ≠ a ∧ Σ'.L(a') = Σ.L(a) ∧ Σ' satisfies L0–L14))`
+`(A Σ satisfying L0–L14 ∧ L-fin, a ∈ dom(Σ.L) :: (E Σ' extending Σ, a' ∈ dom(Σ'.L) :: a' ≠ a ∧ Σ'.L(a') = Σ.L(a) ∧ Σ' satisfies L0–L14 ∧ L-fin))`
 
-That is, for any conforming state `Σ` with a link at `a ∈ dom(Σ.L)` where `Σ.L(a) = (F, G, Θ)`, there exists a conforming extension `Σ'` with a fresh address `a' ∈ dom(Σ'.L)`, `a' ≠ a`, and `Σ'.L(a') = (F, G, Θ)`. The invariants *permit* non-injectivity — every state with a link can be extended to a non-injective state — but they do not *require* it. The witness is immediate: allocate `a'` by forward allocation within the same document's link subspace, and set `Σ'.L(a') = (F, G, Θ)` with `Σ'.C = Σ.C` and `Σ'.M = Σ.M`. All invariants L0–L14 are preserved: L0 by subspace (`a'` is in `s_L`); L1/L1a/L1b by allocation (element field depth ≥ 2 by construction); L2 structurally (home is field extraction from the address); L3–L5 by construction (same endset sequence as the existing link); L6 because the new entry copies the same sequence, preserving slot distinction; L11a uniqueness for `a'` by GlobalUniqueness (UniqueAddressAllocation, ASN-0034); L12 because existing entries are unchanged; L12a follows from L12; L14 because `a'` is in subspace `s_L`, preserving disjointness with `dom(Σ'.C)`; L8, L10, L13 are lemmas that do not constrain states; S0–S3 hold trivially since `Σ'.C = Σ.C` and `Σ'.M = Σ.M`.
+That is, for any conforming state `Σ` with a link at `a ∈ dom(Σ.L)` where `Σ.L(a) = (F, G, Θ)`, there exists a conforming extension `Σ'` with a fresh address `a' ∈ dom(Σ'.L)`, `a' ≠ a`, and `Σ'.L(a') = (F, G, Θ)`. The invariants *permit* non-injectivity — every state with a link can be extended to a non-injective state — but they do not *require* it. The witness is immediate: by L-fin, `dom(Σ.L)` is finite, so the same document's link subspace contains unoccupied addresses; allocate `a'` by forward allocation within it, and set `Σ'.L(a') = (F, G, Θ)` with `Σ'.C = Σ.C` and `Σ'.M = Σ.M`. All invariants L0–L14 and L-fin are preserved: L0 by subspace (`a'` is in `s_L`); L1/L1a/L1b by allocation (element field depth ≥ 2 by construction); L2 structurally (home is field extraction from the address); L3–L5 by construction (same endset sequence as the existing link); L6 because the new entry copies the same sequence, preserving slot distinction; L11a uniqueness for `a'` by GlobalUniqueness (UniqueAddressAllocation, ASN-0034); L12 because existing entries are unchanged; L12a follows from L12; L-fin because `dom(Σ'.L) = dom(Σ.L) ∪ {a'}` is finite; L14 because `a'` is in subspace `s_L`, preserving disjointness with `dom(Σ'.C)`; L8, L10, L13 are lemmas that do not constrain states; S0–S3 hold trivially since `Σ'.C = Σ.C` and `Σ'.M = Σ.M`.
 
 Two links with identical endsets — same from, same to, same type — but different addresses are separate objects, independently owned, independently removable, independently targetable by other links.
 
@@ -399,6 +406,8 @@ So `Σ.L = {a ↦ (F, G, Θ)}`.
 
 *L1b (LinkElementFieldDepth).* `fields(a).element = [2, 1]`, so `#fields(a).element = 2 ≥ 2`. ✓
 
+*L-fin (LinkStoreFiniteness).* `|dom(Σ.L)| = 1`, which is finite. ✓
+
 *L2 (OwnershipEndsetIndependence).* `home(a) = 1.0.1.0.1`, computed from the field structure of `a` alone. The endsets `(F, G, Θ)` are not consulted. ✓
 
 *L3 (NEndsetStructure).* `|Σ.L(a)| = 3 ≥ 2`, and each endset is in `𝒫_fin(Span)`. ✓
@@ -437,6 +446,8 @@ We extend the state in two steps, naming each intermediate state, to verify L11b
 
 *L12a across `Σ → Σ_1`.* `dom(Σ.L) = {a} ⊆ {a, a'} = dom(Σ_1.L)`. ✓
 
+*L-fin across `Σ → Σ_1`.* `|dom(Σ_1.L)| = 2`, which is finite. ✓
+
 *Step 2: adding the meta-link `a₂`.* Define `a₂ = 1.0.1.0.1.0.2.3` — a meta-link whose from-endset references the first link `a`.
 
 Define the span targeting `a`: `δ(1, 8) = [0, 0, 0, 0, 0, 0, 0, 1]` has action point `k = 8 = #a`, and `k ≤ #a` holds, so `(a, δ(1, 8))` is well-formed by T12. ✓
@@ -459,12 +470,15 @@ The final state is `Σ_2` with `Σ_2.L = {a ↦ (F, G, Θ),\; a' ↦ (F, G, Θ),
 
 *L12a across `Σ_1 → Σ_2`.* `dom(Σ_1.L) = {a, a'} ⊆ {a, a', a₂} = dom(Σ_2.L)`. ✓
 
+*L-fin across `Σ_1 → Σ_2`.* `|dom(Σ_2.L)| = 3`, which is finite. ✓
+
 
 ## Properties Introduced
 
 | Label | Type | Statement | Status |
 |-------|------|-----------|--------|
 | Σ.L | DEF | `Σ.L : T ⇀ Link` — the link store, mapping addresses to link values | introduced |
+| L-fin | INV | LinkStoreFiniteness — `|dom(Σ.L)| < ∞` for each reachable state; parallels S8-fin (ASN-0036) | introduced |
 | L0 | INV | SubspacePartition — link addresses occupy subspace `s_L`, content addresses occupy `s_C`, and `dom(Σ.L) ∩ dom(Σ.C) = ∅` | introduced |
 | L1 | INV | LinkElementLevel — every link address is an element-level tumbler: `(A a ∈ dom(Σ.L) :: zeros(a) = 3)` | introduced |
 | L1a | INV | LinkScopedAllocation — every link address is allocated under the creating document's tumbler prefix | introduced |
@@ -474,7 +488,7 @@ The final state is `Σ_2` with `Σ_2.L = {a ↦ (F, G, Θ),\; a' ↦ (F, G, Θ),
 | L4 | LEMMA | EndsetGenerality — endset spans satisfy T12 (definitional from L3); the substantive content is the absence of additional constraints: no single-document, content-only, or existence restriction | introduced |
 | L5 | INV | EndsetSetSemantics — an endset is an unordered set; only span membership matters | introduced |
 | L6 | INV | SlotDistinction — endsets occupy structurally distinguished positions; for the standard triple: `F ≠ G ⟹ (F, G, Θ) ≠ (G, F, Θ)` | introduced |
-| L7 | META | DirectionalFlexibility — L0–L14 impose no constraint on directional significance of from/to slots | introduced |
+| L7 | META | DirectionalFlexibility — L0–L14 and L-fin impose no constraint on directional significance of from/to slots | introduced |
 | L8 | DEF | TypeByAddress — for standard-triple links, type matching is by address identity: `same_type(a₁, a₂) ⟺ Σ.L(a₁).type = Σ.L(a₂).type` | introduced |
 | L9 | LEMMA | TypeGhostPermission — for standard-triple links, any conforming state can be extended with a link whose type endset references addresses outside `dom(Σ.C) ∪ dom(Σ.L)` | introduced |
 | PrefixSpanCoverage | LEMMA | For any tumbler `x` with `#x ≥ 1`, the unit-depth span has `coverage({(x, δ(1, #x))}) = {t ∈ T : x ≼ t}`; equivalently `x ⊕ δ(1, #x) = shift(x, 1)` | introduced |
