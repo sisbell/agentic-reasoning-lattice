@@ -24,8 +24,13 @@ The Dafny declaration must be a faithful encoding of the formal contract:
 - Every `ensures` must correspond to a *Postconditions:* field
 - `axiom` or `assume` must correspond to *Axiom:* or design requirement
 - `function`/`predicate` body must correspond to *Definition:* field
+- *Invariant:* must be encoded as a predicate over two states (pre/post)
+- *Frame:* must be encoded as ensures clauses preserving the stated fields
 - Any `requires` not in *Preconditions:* is an added precondition — FLAG
 - Any *Postconditions:* not in `ensures` is a missing guarantee — FLAG
+- Axioms must be `axiom` or `assume`, not `lemma` — FLAG if proved instead of assumed
+- Definitions must be `function` or `predicate`, not `lemma` — FLAG if wrong construct
+- Lemmas/theorems must be `lemma`, not `function` or `axiom` — FLAG if wrong construct
 - Semantic equivalence counts as a match (e.g., `Subtractable(a, w)` ≡ `a >= w`)
 
 ## Output
