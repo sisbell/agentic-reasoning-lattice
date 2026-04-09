@@ -46,3 +46,9 @@ structural induction.
 ```
 
 7 verified, 1 found.
+
+## Result
+
+Not converged after 5 cycles. 0 findings remain.
+
+*Elapsed: 4875s*
