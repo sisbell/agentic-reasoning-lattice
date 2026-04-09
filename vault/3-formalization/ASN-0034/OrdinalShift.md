@@ -1,4 +1,4 @@
-**Definition (OrdinalShift).** For a tumbler v ∈ T of length m = #v and natural number n ≥ 1:
+**OrdinalShift (OrdinalShift).** For a tumbler v ∈ T of length m = #v and natural number n ≥ 1:
 
 `shift(v, n) = v ⊕ δ(n, m)`
 
