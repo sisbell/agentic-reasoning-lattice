@@ -1,6 +1,6 @@
 # ASN-0081 — Span Algebra 1
 title: "Span Algebra 1"
-extends: 53
+extends: 82
 source: 61
 depends: [34, 36, 53]
 
