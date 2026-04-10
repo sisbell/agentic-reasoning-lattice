@@ -21,7 +21,7 @@ We derive that the I-address range is invariant and that multiplicities are pres
 
 **R-RI** — S3 (referential integrity, ASN-0036) is preserved as a consequence: ran(M'(d)) = ran(M(d)) ⊆ dom(C) = dom(C'), where the inclusion is S3 for the pre-state and the equality is C' = C.
 
-**Invariant preservation.** The following ASN-0036 invariants depend only on `dom(M(d))` and are preserved because `dom(M'(d)) = dom(M(d))`: D-CTG, D-MIN, S8-fin, S8a, S8-depth. Together with R-RI (S3), the well-definedness lemmas R-PIV/R-SWP (S2), and C' = C (S0, S1), every ASN-0036 invariant is maintained by an arrangement rearrangement.
+**Invariant preservation.** The following ASN-0036 invariants depend only on `dom(M(d))` and are preserved because `dom(M'(d)) = dom(M(d))`: D-CTG, D-MIN, S8-fin, S8a, S8-depth. Together with R-RI (S3), the well-definedness lemmas R-PIV/R-SWP (S2), and C' = C (S0, S1, S7a, S7b, S7c — all properties constraining the content store and its domain carry over from the identity C' = C), every ASN-0036 invariant is maintained by an arrangement rearrangement.
 
 Any bijection qualifies; a rearrangement determined by cut points is one where the regions to exchange are identified by a tuple of cut positions. The properties in this ASN characterize this specific class of permutations.
 
@@ -283,9 +283,11 @@ We recall from S8 (FiniteSpanDecomposition, ASN-0036) that the arrangement M(d) 
 
 (B3) *Consistency:* for each block (vⱼ, aⱼ, nⱼ) and 0 ≤ k < nⱼ: M(d)(vⱼ + k) = aⱼ + k.
 
-**Split.** Given a block b = (v, a, n) and an interior offset c with 1 ≤ c < n, the *split* at c produces two blocks: (v, a, c) and (v + c, a + c, n − c). The two blocks are V-disjoint (ordinal ranges [ord(v), ord(v) + c) and [ord(v) + c, ord(v) + n)), their V-extents partition b's V-extent, and both satisfy B3 (the correspondence relation restricts to each sub-range).
+**Split.** Given a block b = (v, a, n) and an interior offset c with 1 ≤ c < n, the *split* at c produces two blocks: (v, a, c) and (v + c, a + c, n − c). The two blocks are V-disjoint (ordinal ranges [ord(v), ord(v) + c) and [ord(v) + c, ord(v) + n)), and their V-extents partition b's V-extent.
 
-**Merge.** Two blocks (v₁, a₁, n₁) and (v₂, a₂, n₂) are *mergeable* when v₂ = v₁ + n₁ (V-adjacent) and a₂ = a₁ + n₁ (I-adjacent). The merged block is (v₁, a₁, n₁ + n₂).
+Both pieces satisfy B3. For the first piece (v, a, c), we need M(d)(v + k) = a + k for 0 ≤ k < c; this holds by restricting the original B3 to the subrange k < c < n. For the second piece (v + c, a + c, n − c), we need M(d)((v + c) + k) = (a + c) + k for 0 ≤ k < n − c. When k ≥ 1, associativity (TS3) gives (v + c) + k = v + (c + k); when k = 0, (v + c) + 0 = v + c by the identity convention. In both cases, c + k < n, so the original B3 yields M(d)(v + (c + k)) = a + (c + k). The same associativity/identity argument gives (a + c) + k = a + (c + k), completing the derivation: M(d)((v + c) + k) = a + (c + k) = (a + c) + k.
+
+**Merge.** Two blocks (v₁, a₁, n₁) and (v₂, a₂, n₂) are *mergeable* when v₂ = v₁ + n₁ (V-adjacent) and a₂ = a₁ + n₁ (I-adjacent). The merged block is (v₁, a₁, n₁ + n₂). We verify B3 for the merged block — that M(d)(v₁ + k) = a₁ + k for 0 ≤ k < n₁ + n₂ — by two cases. For 0 ≤ k < n₁: this is B3 of the first block directly. For n₁ ≤ k < n₁ + n₂: write k = n₁ + k' with 0 ≤ k' < n₂. When k' ≥ 1, TS3 gives v₁ + k = v₁ + (n₁ + k') = (v₁ + n₁) + k' = v₂ + k'; when k' = 0, v₁ + n₁ = v₂ by the adjacency condition. By B3 of the second block, M(d)(v₂ + k') = a₂ + k'. The same associativity/identity argument gives a₁ + k = a₁ + (n₁ + k') = (a₁ + n₁) + k' = a₂ + k', so M(d)(v₁ + k) = a₂ + k' = a₁ + k.
 
 **R-BLK — BlockDecompositionTransformation (LEMMA).** Let B = {b₁, ..., bₘ} be a block decomposition of M(d) satisfying B1–B3. Let the cut sequence C have cut positions c₀, ..., c_{n−1}. The rearranged arrangement M'(d) admits a block decomposition B' obtained by:
 
