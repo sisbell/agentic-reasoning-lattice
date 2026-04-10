@@ -56,7 +56,9 @@ These are inverses: ord(vpos(S, o)) = o and vpos(subspace(v), ord(v)) = v.
 
 of depth m − 1.
 
-*Postcondition:* When w > 0 and w₁ = 0, w_ord > 0. (Since w > 0 and the first component is zero, at least one of w₂, ..., wₘ is nonzero, so w_ord is positive.)
+*Preconditions:* `#w ≥ 2`, `w₁ = 0`.
+
+*Postconditions:* `w_ord ∈ T`, `#w_ord = #w − 1 ≥ 1`. When `w > 0`, `w_ord > 0`. (Since w > 0 and the first component is zero, at least one of w₂, ..., wₘ is nonzero, so w_ord is positive.)
 
 At the restricted depth m = 2 (see D-SHIFT below), w = [0, c] for positive integer c, and w_ord = [c] with [c] > 0.
 
@@ -333,7 +335,7 @@ Q₃ = {[1,1], [1,2], [1,3]}.
 | Q₃ | DEF | Q₃ = {σ(v) : v ∈ R} — the set of shifted right-region positions in the post-state | introduced |
 | ord(v) | DEF | Ordinal extraction: ord(v) = [v₂, ..., vₘ] strips the subspace identifier; precondition #v ≥ 2; postconditions: ord(v) ∈ T with #ord(v) = #v − 1; order equivalence: v₁ < v₂ ⟺ ord(v₁) < ord(v₂) when subspace(v₁) = subspace(v₂) ∧ #v₁ = #v₂ | introduced |
 | vpos(S, o) | DEF | V-position reconstruction: vpos(S, o) = [S, o₁, ..., oₖ]; preconditions #o ≥ 1, S ≥ 1; postcondition vpos(S, o) ∈ T with #vpos(S, o) = #o + 1; inverse of ord | introduced |
-| w_ord | DEF | Ordinal displacement projection: w_ord = [w₂, ..., wₘ] for V-depth w with w₁ = 0; postcondition: w > 0 ∧ w₁ = 0 ⟹ w_ord > 0 | introduced |
+| w_ord | DEF | Ordinal displacement projection: w_ord = [w₂, ..., wₘ] for V-depth w with w₁ = 0; preconditions: #w ≥ 2, w₁ = 0; postconditions: w_ord ∈ T, #w_ord = #w − 1 ≥ 1, w > 0 ⟹ w_ord > 0 | introduced |
 | D-L | frame | (A v ∈ L : v ∈ dom(M'(d)) ∧ M'(d)(v) = M(d)(v)) | introduced |
 | D-DOM | postcondition | {v ∈ dom(M'(d)) : subspace(v) = S} = L ∪ Q₃ | introduced |
 | D-CS | frame | (A S' ≠ S : V_{S'}(d') = V_{S'}(d)) ∧ (A v : v ∈ dom(M(d)) ∧ subspace(v) ≠ S : M'(d)(v) = M(d)(v)) | introduced |
