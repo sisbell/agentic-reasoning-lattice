@@ -633,19 +633,19 @@ This has a formal consequence: document equality is not decidable by content com
 | S0 | Content immutability: `a ∈ dom(C) ⟹ a ∈ dom(C') ∧ C'(a) = C(a)` for all transitions | design requirement |
 | S1 | Store monotonicity: `dom(C) ⊆ dom(C')` for all transitions | from S0 |
 | S2 | Arrangement functionality: `M(d)` is a function — each V-position maps to exactly one I-address | axiom |
-| S3 | Referential integrity: `(A d, v : v ∈ dom(M(d)) : M(d)(v) ∈ dom(C))` | design requirement |
+| S3 | Referential integrity: `(A d, v : v ∈ dom(M(d)) : M(d)(v) ∈ dom(C))` | design; uses NoDeallocation (ASN-0034) |
 | S4 | Origin-based identity: distinct allocations produce distinct I-addresses regardless of value equality | from GlobalUniqueness, T3 (ASN-0034) |
 | S5 | Unrestricted sharing: S0–S3 do not entail any finite bound on sharing multiplicity | consistent with S0, S1, S2, S3 |
 | S6 | Persistence independence: `a ∈ dom(C)` is unconditional — independent of all arrangements | from S0 |
-| S7a | Document-scoped allocation: every I-address is allocated under the originating document's prefix | design requirement |
-| S7b | Element-level I-addresses: `(A a ∈ dom(C) :: zeros(a) = 3)` | design requirement |
-| S7c | Element-field depth: `(A a ∈ dom(C) :: #fields(a).element ≥ 2)` — subspace identifier and content ordinal occupy distinct components | design requirement |
+| S7a | Document-scoped allocation: every I-address is allocated under the originating document's prefix | design; uses Prefix, T4, T4c (ASN-0034) |
+| S7b | Element-level I-addresses: `(A a ∈ dom(C) :: zeros(a) = 3)` | design; uses T4 (ASN-0034) |
+| S7c | Element-field depth: `(A a ∈ dom(C) :: #fields(a).element ≥ 2)` — subspace identifier and content ordinal occupy distinct components | design; uses S7b, T4, TA7a (ASN-0034) |
 | S7 | Structural attribution: `origin(a) = (fields(a).node).0.(fields(a).user).0.(fields(a).document)` — full document prefix | from S7a, S7b, S0, S4, T4, T3, GlobalUniqueness (ASN-0034) |
 | S8-fin | Finite arrangement: `dom(M(d))` is finite for every document `d` | design requirement |
 | S8a | V-position well-formedness: `(A v ∈ dom(M(d)) :: zeros(v) = 0 ∧ v₁ ≥ 1 ∧ v > 0)` — universal, from T4 positive-component constraint | axiom (V-positions are element-field tumblers); structural properties from T4 (ASN-0034) |
-| S8-depth | Fixed-depth V-positions: `(A d, v₁, v₂ : v₁ ∈ dom(M(d)) ∧ v₂ ∈ dom(M(d)) ∧ (v₁)₁ = (v₂)₁ : #v₁ = #v₂)` | design requirement |
+| S8-depth | Fixed-depth V-positions: `(A d, v₁, v₂ : v₁ ∈ dom(M(d)) ∧ v₂ ∈ dom(M(d)) ∧ (v₁)₁ = (v₂)₁ : #v₁ = #v₂)` | design; uses OrdinalShift, TumblerAdd (ASN-0034) |
 | S8 | Span decomposition: `dom(M(d))` decomposes into finitely many correspondence runs `(vⱼ, aⱼ, nⱼ)` with `M(d)(vⱼ + k) = aⱼ + k` for `0 ≤ k < nⱼ` | theorem from S8-fin, S2, S8a, S8-depth, T1, T3, T5, T10, TA5 (ASN-0034) |
-| D-CTG | V-position contiguity: within each subspace, V-positions form a contiguous ordinal range with no gaps — design constraint on well-formed document states | design requirement |
+| D-CTG | V-position contiguity: within each subspace, V-positions form a contiguous ordinal range with no gaps — design constraint on well-formed document states | design; uses T0(a), T1, T3 (ASN-0034) |
 | D-MIN | V-position minimum: minimum V-position in each non-empty subspace has all post-subspace components equal to 1 — design constraint | design requirement |
 | D-CTG-depth | Shared prefix reduction: at depth m ≥ 3, contiguity reduces to the last component (all positions share components 2 through m − 1) | corollary of D-CTG, S8-fin, S8-depth, T0(a), T1, T3 (ASN-0034) |
 | D-SEQ | Sequential positions (m ≥ 2): non-empty V_S(d) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n} for some n ≥ 1 | from D-CTG, D-CTG-depth, D-MIN, S8-fin, S8-depth, T1 (ASN-0034) |
