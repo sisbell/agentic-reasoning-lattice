@@ -24,11 +24,19 @@ We frequently need to separate a V-position into its subspace identifier and its
 
 — the tumbler of length m − 1 obtained by stripping the subspace identifier.
 
+*Precondition:* `#v ≥ 2`. When #v = 1, the result would be the empty sequence, which is not in T (T0 requires length ≥ 1).
+
+*Postconditions:* `ord(v) ∈ T` with `#ord(v) = #v − 1 ≥ 1`.
+
 **Definition — VPositionReconstruction.** For subspace identifier S and ordinal o = [o₁, ..., oₖ]:
 
 `vpos(S, o) = [S, o₁, ..., oₖ]`
 
-with #vpos(S, o) = k + 1. These are inverses: ord(vpos(S, o)) = o and vpos(subspace(v), ord(v)) = v.
+*Preconditions:* `#o ≥ 1` (so the result has length ≥ 2 and is in T); `S ≥ 1` (a valid subspace identifier per S8a).
+
+*Postconditions:* `vpos(S, o) ∈ T` with `#vpos(S, o) = #o + 1`.
+
+These are inverses: ord(vpos(S, o)) = o and vpos(subspace(v), ord(v)) = v.
 
 **Definition — OrdinalDisplacementProjection.** For a V-depth displacement w with w₁ = 0 and #w = m, the *ordinal displacement* is:
 
@@ -123,13 +131,19 @@ We verify that the shift σ defined by D-SHIFT is well-behaved: order-preserving
 
 **D-BJ** — *ShiftBijectivity* (LEMMA, lemma). The map σ : R → Q₃ is an order-preserving bijection.
 
-*Preconditions:* #p = 2 (scoping axiom); v₁, v₂ ∈ R with v₁ < v₂.
+*Preconditions:* #p = 2 (scoping axiom); v₁, v₂ ∈ R with v₁ ≠ v₂ (for injectivity) or v₁ < v₂ (for order-preservation).
 
-*Postconditions:* `σ(v₁) < σ(v₂)`
+*Postconditions:*
 
-*Proof.* All ordinals in R share the same depth (S8-depth), giving #ord(v₁) = #ord(v₂). For any v₁ < v₂ in R, we have ord(v₁) < ord(v₂) (since they share the subspace identifier, the ordering depends only on the ordinal). Both ordinals satisfy ord(v) ≥ w_ord (established above). By TA3-strict (OrderPreservationSubtractionStrict, ASN-0034) — a < b ∧ a ≥ w ∧ b ≥ w ∧ #a = #b ⟹ a ⊖ w < b ⊖ w — we conclude ord(v₁) ⊖ w_ord < ord(v₂) ⊖ w_ord, hence σ(v₁) < σ(v₂). ∎
+- (a) Order-preservation: `v₁ < v₂ ⟹ σ(v₁) < σ(v₂)`
+- (b) Injectivity: `v₁ ≠ v₂ ⟹ σ(v₁) ≠ σ(v₂)`
+- (c) Surjectivity: `Q₃ = {σ(v) : v ∈ R}`
 
-Order preservation implies injectivity: v₁ ≠ v₂ ⟹ σ(v₁) ≠ σ(v₂). The shift creates no collisions.
+*Proof of (a).* All ordinals in R share the same depth (S8-depth), giving #ord(v₁) = #ord(v₂). For any v₁ < v₂ in R, we have ord(v₁) < ord(v₂) (since they share the subspace identifier, the ordering depends only on the ordinal). Both ordinals satisfy ord(v) ≥ w_ord (established above). By TA3-strict (OrderPreservationSubtractionStrict, ASN-0034) — a < b ∧ a ≥ w ∧ b ≥ w ∧ #a = #b ⟹ a ⊖ w < b ⊖ w — we conclude ord(v₁) ⊖ w_ord < ord(v₂) ⊖ w_ord, hence σ(v₁) < σ(v₂). ∎
+
+*Proof of (b).* For v₁ ≠ v₂ in R, trichotomy (T1) gives v₁ < v₂ or v₂ < v₁. In either case, part (a) yields σ(v₁) < σ(v₂) or σ(v₂) < σ(v₁), so σ(v₁) ≠ σ(v₂). ∎
+
+*Proof of (c).* Q₃ is defined as {σ(v) : v ∈ R}, so surjectivity holds by construction. ∎
 
 **D-SEP** — *GapClosure* (LEMMA, lemma). The contraction width exactly bridges the ordinal distance between p and r, so shifting the right cut point back by the width recovers the ordinal of the left cut point. When R ≠ ∅, D-CTG ensures this algebraic identity has the semantic consequence that the shifted right region begins exactly where the left region ends.
 
@@ -301,8 +315,8 @@ Q₃ = {[1,1], [1,2], [1,3]}.
 | Contraction | operation | Remove span (p, w) from subspace S of document d; preconditions: p ∈ V_S(d), w > 0, #w = #p, w₁ = 0, #p = 2, containment (p₂ + w₂ − 1 ≤ N); postconditions: D-SHIFT, D-DOM; frame: D-L, D-CS, D-CD, D-I | introduced |
 | ThreeRegions | DEF | L = {v ∈ V_S(d) : v < p}, X = {v ∈ V_S(d) : p ≤ v < r}, R = {v ∈ V_S(d) : v ≥ r}; partition of V_S(d) | introduced |
 | Q₃ | DEF | Q₃ = {σ(v) : v ∈ R} — the set of shifted right-region positions in the post-state | introduced |
-| ord(v) | DEF | Ordinal extraction: ord(v) = [v₂, ..., vₘ] strips the subspace identifier | introduced |
-| vpos(S, o) | DEF | V-position reconstruction: vpos(S, o) = [S, o₁, ..., oₖ]; inverse of ord | introduced |
+| ord(v) | DEF | Ordinal extraction: ord(v) = [v₂, ..., vₘ] strips the subspace identifier; precondition #v ≥ 2; postcondition ord(v) ∈ T with #ord(v) = #v − 1 | introduced |
+| vpos(S, o) | DEF | V-position reconstruction: vpos(S, o) = [S, o₁, ..., oₖ]; preconditions #o ≥ 1, S ≥ 1; postcondition vpos(S, o) ∈ T with #vpos(S, o) = #o + 1; inverse of ord | introduced |
 | w_ord | DEF | Ordinal displacement projection: w_ord = [w₂, ..., wₘ] for V-depth w with w₁ = 0 | introduced |
 | D-L | frame | (A v ∈ L : v ∈ dom(M'(d)) ∧ M'(d)(v) = M(d)(v)) | introduced |
 | D-DOM | postcondition | {v ∈ dom(M'(d)) : subspace(v) = S} = L ∪ Q₃ | introduced |
@@ -310,7 +324,7 @@ Q₃ = {[1,1], [1,2], [1,3]}.
 | D-CD | frame | Cross-document arrangements unchanged | introduced |
 | D-I | frame | (A a ∈ dom(Σ.C) : a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a)) — content store unchanged | introduced |
 | D-SHIFT | postcondition | (A v ∈ R : M'(d)(σ(v)) = M(d)(v)) where σ(v) = vpos(S, ord(v) ⊖ w_ord) | introduced |
-| D-BJ | lemma | σ : R → Q₃ is an order-preserving bijection | introduced |
+| D-BJ | lemma | σ : R → Q₃ is an order-preserving bijection: (a) v₁ < v₂ ⟹ σ(v₁) < σ(v₂), (b) v₁ ≠ v₂ ⟹ σ(v₁) ≠ σ(v₂), (c) Q₃ = {σ(v) : v ∈ R} | introduced |
 | D-SEP | lemma | ord(r) ⊖ w_ord = ord(p); when R ≠ ∅, min Q₃ ordinal = ord(p) | introduced |
 | D-DP | lemma | L ∩ Q₃ = ∅ and no residual gap at contraction boundary | introduced |
 | S2-post | lemma | Post-state M'(d) is a function | introduced |
