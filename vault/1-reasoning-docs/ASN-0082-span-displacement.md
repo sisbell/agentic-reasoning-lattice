@@ -7,13 +7,13 @@ This ASN extends ASN-0053 (Span Algebra) with the post-insertion shift property:
 
 ## Local Axioms
 
-**VB** — *BootstrapDiscipline* (AXIOM, local). Within each subspace's element field, the allocator bootstraps a two-level nesting once per atom type — establishing the atom-type discriminator and serial-counter prefix (e.g., D.0.1 for text) — after which all subsequent V-positions are produced by flat sibling allocation (`inc(·, 0)` only). No further child-spawning occurs after the initial bootstrap.
+**VB** — *BootstrapDiscipline* (AXIOM, local). All V-positions in dom(M(d)) within a subspace are produced exclusively by a single allocator's sibling stream (`inc(·, 0)` only). The allocator's prefix is established by a bootstrap phase — one or more child-spawning increments (`inc(·, k')` with `k' > 0`) that create structural nesting (e.g., D.0.1 for text, establishing an atom-type discriminator and serial-counter prefix). Bootstrap-established prefixes are structural scaffolding; they do not appear in dom(M(d)). No child-spawning occurs after the bootstrap prefix is established. The nesting depth of the bootstrap is not constrained to a particular value — only the consequence matters: every V-position that enters dom(M(d)) is a sibling-stream output at the same allocator depth.
 
 **VD** — *UniformVPositionDepth* (LEMMA, local). All V-positions within a given subspace of a document share the same tumbler depth:
 
 `(A v₁, v₂ ∈ dom(M(d)) : subspace(v₁) = subspace(v₂) = S ⟹ #v₁ = #v₂)`
 
-Since VB constrains V-position allocation to flat sibling production after bootstrap, and sibling outputs have uniform length (T10a.1, ASN-0034), all V-positions at the serial-counter level share the same depth.
+Since VB requires every V-position in dom(M(d)) within a subspace to be a sibling-stream output from a single allocator — with bootstrap prefixes excluded from dom(M(d)) — and sibling outputs have uniform length (T10a.1, ASN-0034), all V-positions within a subspace share the same depth.
 
 **VP** — *PositiveSubspace* (AXIOM, local). The subspace identifier of every V-position is positive:
 
@@ -119,7 +119,7 @@ Both endpoints of a within-subspace span shift by the same displacement δₙ; t
 | M(d) | definition | M(d) : T ⇀ T — arrangement function mapping V-positions to I-addresses for document d | introduced (local) |
 | subspace(v) | definition | subspace(v) = v₁ — the first component of a V-position, identifying its subspace | introduced (local) |
 | ordinal-level | definition | A span σ = (s, ℓ) is ordinal-level when actionPoint(ℓ) = #s = #ℓ | introduced (local) |
-| VB | axiom | After bootstrap, V-position allocation uses flat sibling allocation only — no further child-spawning | introduced (local) |
+| VB | axiom | All V-positions in dom(M(d)) within a subspace are sibling-stream outputs; bootstrap prefixes are structural and excluded from dom(M(d)) | introduced (local) |
 | VD | lemma | All V-positions in a subspace share the same tumbler depth | introduced (local) |
 | VP | axiom | subspace(v) = v₁ ≥ 1 for every V-position v | introduced (local) |
 | I3 | postcondition | (A v : v ∈ dom(M(d)) ∧ subspace(v) = S ∧ v ≥ p : shift(v, n) ∈ dom(M'(d)) ∧ M'(d)(shift(v, n)) = M(d)(v)) | introduced |
