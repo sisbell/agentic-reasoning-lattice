@@ -1,8 +1,0 @@
-# ASN-0081 — Span Algebra 1
-title: "Span Algebra 1"
-extends: 82
-source: 61
-depends: [34, 36, 53]
-
-consultations:
-  question: "Extension of ASN-0053: properties D-SHIFT, D-BJ, D-SEP from ASN-0061."
