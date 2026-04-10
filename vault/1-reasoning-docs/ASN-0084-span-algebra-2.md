@@ -15,7 +15,7 @@ We restrict to depth-2 V-positions (#v = 2, ordinal depth 1) throughout this ASN
 
 We recall D-CTG (VContiguity, ASN-0036): within each subspace, V-positions form a contiguous ordinal range with no gaps.
 
-An *arrangement rearrangement* is a state transition Σ → Σ' in which dom(M'(d)) = dom(M(d)), C' = C (S0, ASN-0036), and there exists a bijection π : dom(M(d)) → dom(M'(d)) such that M'(d)(π(v)) = M(d)(v) for all v ∈ dom(M(d)).
+An *arrangement rearrangement* is a state transition Σ → Σ' in which dom(M'(d)) = dom(M(d)), C' = C (S0, ASN-0036), M'(d') = M(d') for all d' ≠ d, and there exists a bijection π : dom(M(d)) → dom(M'(d)) such that M'(d)(π(v)) = M(d)(v) for all v ∈ dom(M(d)).
 
 We derive that the I-address range is invariant and that multiplicities are preserved. Since π is surjective onto dom(M'(d)) = dom(M(d)), every u ∈ dom(M'(d)) has the form u = π(v) for exactly one v ∈ dom(M(d)). Therefore: ran(M'(d)) = {M'(d)(u) : u ∈ dom(M'(d))} = {M'(d)(π(v)) : v ∈ dom(M(d))} = {M(d)(v) : v ∈ dom(M(d))} = ran(M(d)). The second equality uses surjectivity of π; the third uses the defining property M'(d)(π(v)) = M(d)(v). The multiset of I-addresses is also preserved: since π is a bijection, for each I-address a, the preimage {v : M(d)(v) = a} is in bijection with {π(v) : M(d)(v) = a} = {u : M'(d)(u) = a}, so the multiplicity of a is identical in M(d) and M'(d).
 
@@ -206,9 +206,9 @@ For (b): the right-hand sides reference M(d)(c₂ + j) for j < w_β (ordinals of
          ⎩ c₀ + j              if v = c₁ + j, 0 ≤ j < w_β  (β → start)
 ```
 
-*Proof.* We verify M'(d)(π(v)) = M(d)(v) in each case. For exterior v: π(v) = v, and M'(d)(v) = M(d)(v) by R-EXT. For v = c₀ + j in α: π(v) = c₀ + w_β + j, and M'(d)(c₀ + w_β + j) = M(d)(c₀ + j) = M(d)(v) by R-P2. For v = c₁ + j in β: π(v) = c₀ + j, and M'(d)(c₀ + j) = M(d)(c₁ + j) = M(d)(v) by R-P1.
+*Proof.* We verify M'(d)(π(v)) = M(d)(v) in each case. For v ∈ dom(M(d)) with subspace(v) ≠ S: π(v) = v, and M'(d)(v) = M(d)(v) by R-FRAME-P(a). For v ∈ V_S(d) with v < c₀ or v ≥ c₂: π(v) = v, and M'(d)(v) = M(d)(v) by R-EXT. For v = c₀ + j in α: π(v) = c₀ + w_β + j, and M'(d)(c₀ + w_β + j) = M(d)(c₀ + j) = M(d)(v) by R-P2. For v = c₁ + j in β: π(v) = c₀ + j, and M'(d)(c₀ + j) = M(d)(c₁ + j) = M(d)(v) by R-P1.
 
-Injectivity: within each case, the mapping is injective (the exterior is the identity; the α case maps distinct j to distinct c₀ + w_β + j; the β case maps distinct j to distinct c₀ + j). Across cases: the three image sets — V_S(d) \ [c₀, c₂), {c₀ + w_β + j : 0 ≤ j < w_α}, {c₀ + j : 0 ≤ j < w_β} — are pairwise disjoint (shown in R-PIV). Surjectivity: every position in dom(M'(d)) = dom(M(d)) is the image of some position under π (the three image sets cover V_S(d), also shown in R-PIV). ∎
+Injectivity: within each case, the mapping is injective (the exterior is the identity; the α case maps distinct j to distinct c₀ + w_β + j; the β case maps distinct j to distinct c₀ + j). Across cases: the four image sets — {v ∈ dom(M(d)) : subspace(v) ≠ S}, V_S(d) \ [c₀, c₂), {c₀ + w_β + j : 0 ≤ j < w_α}, {c₀ + j : 0 ≤ j < w_β} — are pairwise disjoint (the first is disjoint from the rest by subspace separation; the remaining three are pairwise disjoint as shown in R-PIV). Surjectivity: non-S positions map to themselves under the identity, and the three V_S(d) image sets cover V_S(d) (shown in R-PIV); together they cover dom(M(d)). ∎
 
 The pivot postcondition preserves dom(M(d)) (R-PIV), preserves C (R-FRAME-P(c)), and admits the bijection π satisfying M'(d)(π(v)) = M(d)(v) (R-PPERM); it therefore constitutes an arrangement rearrangement, and the invariant preservation established above applies.
 
@@ -226,7 +226,9 @@ The pivot postcondition preserves dom(M(d)) (R-PIV), preserves C (R-FRAME-P(c)),
 
 *Proof.* We verify M'(d)(π(v)) = M(d)(v) in each case.
 
-For exterior v: π(v) = v, and M'(d)(v) = M(d)(v) by R-EXT.
+For v ∈ dom(M(d)) with subspace(v) ≠ S: π(v) = v, and M'(d)(v) = M(d)(v) by R-FRAME-S(a).
+
+For v ∈ V_S(d) with v < c₀ or v ≥ c₃: π(v) = v, and M'(d)(v) = M(d)(v) by R-EXT.
 
 For v = c₀ + j in α (0 ≤ j < w_α): π(v) = c₀ + w_β + w_μ + j, and M'(d)(c₀ + w_β + w_μ + j) = M(d)(c₀ + j) = M(d)(v) by R-S3.
 
@@ -234,7 +236,7 @@ For v = c₁ + j in μ (0 ≤ j < w_μ): π(v) = c₀ + w_β + j, and M'(d)(c₀
 
 For v = c₂ + j in β (0 ≤ j < w_β): π(v) = c₀ + j, and M'(d)(c₀ + j) = M(d)(c₂ + j) = M(d)(v) by R-S1.
 
-Injectivity: within each case, the mapping is injective (the exterior is the identity; the α case maps distinct j to distinct c₀ + w_β + w_μ + j; the μ case maps distinct j to distinct c₀ + w_β + j; the β case maps distinct j to distinct c₀ + j). Across cases: the four image sets — V_S(d) \ [c₀, c₃), {c₀ + w_β + w_μ + j : 0 ≤ j < w_α}, {c₀ + w_β + j : 0 ≤ j < w_μ}, {c₀ + j : 0 ≤ j < w_β} — are pairwise disjoint (shown in R-SWP). Surjectivity: every position in dom(M'(d)) = dom(M(d)) is the image of some position under π (the four image sets cover V_S(d), also shown in R-SWP). ∎
+Injectivity: within each case, the mapping is injective (the exterior is the identity; the α case maps distinct j to distinct c₀ + w_β + w_μ + j; the μ case maps distinct j to distinct c₀ + w_β + j; the β case maps distinct j to distinct c₀ + j). Across cases: the five image sets — {v ∈ dom(M(d)) : subspace(v) ≠ S}, V_S(d) \ [c₀, c₃), {c₀ + w_β + w_μ + j : 0 ≤ j < w_α}, {c₀ + w_β + j : 0 ≤ j < w_μ}, {c₀ + j : 0 ≤ j < w_β} — are pairwise disjoint (the first is disjoint from the rest by subspace separation; the remaining four are pairwise disjoint as shown in R-SWP). Surjectivity: non-S positions map to themselves under the identity, and the four V_S(d) image sets cover V_S(d) (shown in R-SWP); together they cover dom(M(d)). ∎
 
 The swap postcondition preserves dom(M(d)) (R-SWP), preserves C (R-FRAME-S(c)), and admits the bijection π satisfying M'(d)(π(v)) = M(d)(v) (R-SPERM); it therefore constitutes an arrangement rearrangement, and the invariant preservation established above applies.
 
@@ -469,9 +471,11 @@ Sorted by V-start: {([1,1], A, 1), ([1,2], E, 3), ([1,5], D, 1), ([1,6], B, 2), 
 | R-PRE | DEF | Precondition: M(d) exists, V_S(d) non-empty, cuts satisfy CS1–CS4, affected range covered, regions non-empty | introduced |
 | PivotPostcondition | DEF | 3-cut rearrangement: β content placed at c₀, then α content, exterior unchanged (R-EXT, R-P1, R-P2) | introduced |
 | SwapPostcondition | DEF | 4-cut rearrangement: β at c₀, then μ, then α, exterior unchanged (R-EXT, R-S1, R-S2, R-S3) | introduced |
-| ArrangementRearrangement | DEF | State transition with dom(M'(d)) = dom(M(d)), C' = C, and bijection π with M'(d)(π(v)) = M(d)(v) | introduced |
-| PermutationDisplacement | DEF | Δ(v) = ord(π(v)) − ord(v): uniform within each region, determined by region widths alone | introduced |
-| Block | DEF | Correspondence run (v, a, n) with M(d)(v + k) = a + k for 0 ≤ k < n, satisfying B1–B3 | introduced |
+| ArrangementRearrangement | DEF | State transition with dom(M'(d)) = dom(M(d)), C' = C, M'(d') = M(d') for d' ≠ d, and bijection π with M'(d)(π(v)) = M(d)(v) | introduced |
+| PermutationDisplacement | DEF | Δ(v) = ord(π(v)) − ord(v) | introduced |
+| PermutationDisplacement | LEMMA | Δ(v) is uniform within each region, determined by region widths alone | introduced |
+| Block | DEF | Correspondence run (v, a, n) with M(d)(v + k) = a + k for 0 ≤ k < n | introduced |
+| BlockDecomposition | DEF | Finite set of blocks satisfying B1 (coverage), B2 (disjointness), B3 (consistency) | introduced |
 | Split | DEF | Block (v, a, n) at interior offset c yields (v, a, c) and (v + c, a + c, n − c) | introduced |
 | Merge | DEF | V-adjacent and I-adjacent blocks (v₁, a₁, n₁), (v₂, a₂, n₂) combine to (v₁, a₁, n₁ + n₂) | introduced |
 | R-PIV | LEMMA | Pivot postcondition is a total function on dom(M(d)) | supporting |
