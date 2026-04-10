@@ -62,6 +62,22 @@ of depth m − 1.
 
 At the restricted depth m = 2 (see D-SHIFT below), w = [0, c] for positive integer c, and w_ord = [c] with [c] > 0.
 
+**Lemma — OrdinalAdditiveCompatibility.** For a V-position p with #p = m ≥ 2 and a displacement w with w₁ = 0, #w = m, and w > 0:
+
+`ord(p ⊕ w) = ord(p) ⊕ w_ord`
+
+Whole-tumbler addition commutes with ordinal extraction when the displacement has a zero first component. This is the bridge between full-address arithmetic (p ⊕ w) and ordinal-level arithmetic (ord(p) ⊕ w_ord): stripping the subspace identifier before or after addition gives the same result.
+
+*Preconditions:* p ∈ T, w ∈ T, #p = m ≥ 2, #w = m, w₁ = 0, w > 0, actionPoint(w) ≤ #p.
+
+*Proof at depth m = 2.* Write p = [S, p₂] and w = [0, c] for positive integer c.
+
+1. p ⊕ w = [S, p₂] ⊕ [0, c] = [S, p₂ + c] (TumblerAdd, action point k = 2: r₁ = S from p, r₂ = p₂ + c).
+2. ord(p ⊕ w) = ord([S, p₂ + c]) = [p₂ + c] (definition of ord).
+3. ord(p) ⊕ w_ord = [p₂] ⊕ [c] = [p₂ + c] (TumblerAdd, action point k = 1: r₁ = p₂ + c).
+
+Hence ord(p ⊕ w) = [p₂ + c] = ord(p) ⊕ w_ord. ∎
+
 
 ## Contraction Setup
 
@@ -105,7 +121,7 @@ By trichotomy of the total order (T1, ASN-0034), every v ∈ V_S(d) falls in exa
 
 `(A v : v ∈ R : σ(v) ∈ dom(M'(d)) ∧ M'(d)(σ(v)) = M(d)(v))`
 
-The shift is well-defined. For any v ∈ R, ord(v) ≥ ord(r) = ord(p) ⊕ w_ord (since v ≥ r). The subtraction ord(v) ⊖ w_ord is well-defined by TA2 (SubtractionWellDefined, ASN-0034). At our restricted depth #p = 2: ord(v) = [vₘ] and w_ord = [c] for positive integer c, so [vₘ] ⊖ [c] = [vₘ − c] is well-defined when vₘ ≥ c, which holds since vₘ ≥ ord(r)₁ = pₘ + c. The shifted ordinal is positive: the minimum shifted ordinal is ord(r) ⊖ w_ord = ord(p) (verified in D-SEP below). Since p ∈ V_S(d) and S8a guarantees all components of every V-position are strictly positive, we have p₂ ≥ 1, hence ord(p) = [p₂] is positive. So the shifted V-position satisfies S8a.
+The shift is well-defined. For any v ∈ R, ord(v) ≥ ord(r) (since v ≥ r, by the order equivalence of ord). Since r = p ⊕ w, OrdinalAdditiveCompatibility gives ord(r) = ord(p) ⊕ w_ord. The subtraction ord(v) ⊖ w_ord is well-defined by TA2 (SubtractionWellDefined, ASN-0034). At our restricted depth #p = 2: ord(v) = [vₘ] and w_ord = [c] for positive integer c, so [vₘ] ⊖ [c] = [vₘ − c] is well-defined when vₘ ≥ c, which holds since vₘ ≥ ord(r)₁ = pₘ + c. The shifted ordinal is positive: the minimum shifted ordinal is ord(r) ⊖ w_ord = ord(p) (verified in D-SEP below). Since p ∈ V_S(d) and S8a guarantees all components of every V-position are strictly positive, we have p₂ ≥ 1, hence ord(p) = [p₂] is positive. So the shifted V-position satisfies S8a.
 
 What the shift preserves and changes: D-SHIFT changes the V-ordinal of each right-region position but preserves the I-address. The position in the permanent content store is unchanged; the position in the document's arrangement shifts to close the gap. This is the two-space separation in action: the arrangement (Vstream) is modified while the content (Istream) remains invariant. Nelson: "The address of a byte in its native document is of no concern to the user or to the front end; indeed, it may be constantly changing" [LM 4/11].
 
@@ -172,7 +188,7 @@ We verify that the shift σ defined by D-SHIFT is well-behaved: order-preserving
 - (a) Algebraic identity: `ord(r) ⊖ w_ord = ord(p)`.
 - (b) When R ≠ ∅: by D-CTG, r = min(R) — the last element of X and some v ∈ R bracket r in V_S(d), so contiguity forces r ∈ V_S(d). Then σ(r) is well-defined and ord(σ(r)) = ord(p), i.e., min({ord(u) : u ∈ Q₃}) = ord(p).
 
-*Proof of (a).* We need (ord(p) ⊕ w_ord) ⊖ w_ord = ord(p). At our restricted depth #p = 2: ord(p) = [p₂] and w_ord = [c] for positive integer c. Then ord(p) ⊕ w_ord = [p₂ + c] by TumblerAdd. And [p₂ + c] ⊖ [c]: the two sequences have equal length 1, divergence at position 1 where (p₂ + c) > c, giving r₁ = (p₂ + c) − c = p₂. Result: [p₂] = ord(p). ✓
+*Proof of (a).* Since r = p ⊕ w, OrdinalAdditiveCompatibility gives ord(r) = ord(p) ⊕ w_ord. The claim ord(r) ⊖ w_ord = ord(p) thus reduces to (ord(p) ⊕ w_ord) ⊖ w_ord = ord(p). At our restricted depth #p = 2: ord(p) = [p₂] and w_ord = [c] for positive integer c. Then ord(p) ⊕ w_ord = [p₂ + c] by TumblerAdd. And [p₂ + c] ⊖ [c]: the two sequences have equal length 1, divergence at position 1 where (p₂ + c) > c, giving r₁ = (p₂ + c) − c = p₂. Result: [p₂] = ord(p). ✓
 
 This applies TA4 (PartialInverse, ASN-0034): (a ⊕ w) ⊖ w = a when w > 0, the action point k = #a, #w = k, and (A i : 1 ≤ i < k : aᵢ = 0). Here a = ord(p) and w = w_ord. The positivity w_ord > 0 holds by the OrdinalDisplacementProjection postcondition (w > 0 and w₁ = 0 imply w_ord > 0). For depth-1 ordinals (k = 1), the zero-prefix condition is vacuously satisfied.
 
@@ -340,6 +356,7 @@ Q₃ = {[1,1], [1,2], [1,3]}.
 | ord(v) | DEF | Ordinal extraction: ord(v) = [v₂, ..., vₘ] strips the subspace identifier; precondition #v ≥ 2; postconditions: ord(v) ∈ T with #ord(v) = #v − 1; order equivalence: v₁ < v₂ ⟺ ord(v₁) < ord(v₂) when subspace(v₁) = subspace(v₂) ∧ #v₁ = #v₂ | introduced |
 | vpos(S, o) | DEF | V-position reconstruction: vpos(S, o) = [S, o₁, ..., oₖ]; preconditions #o ≥ 1, S ≥ 1; postcondition vpos(S, o) ∈ T with #vpos(S, o) = #o + 1; inverse of ord | introduced |
 | w_ord | DEF | Ordinal displacement projection: w_ord = [w₂, ..., wₘ] for V-depth w with w₁ = 0; preconditions: #w ≥ 2, w₁ = 0; postconditions: w_ord ∈ T, #w_ord = #w − 1 ≥ 1, w > 0 ⟹ w_ord > 0 | introduced |
+| OrdinalAdditiveCompatibility | lemma | ord(p ⊕ w) = ord(p) ⊕ w_ord when w₁ = 0, #w = #p, w > 0, actionPoint(w) ≤ #p; proved at depth 2 | introduced |
 | D-L | frame | (A v ∈ L : v ∈ dom(M'(d)) ∧ M'(d)(v) = M(d)(v)) | introduced |
 | D-DOM | postcondition | {v ∈ dom(M'(d)) : subspace(v) = S} = L ∪ Q₃ | introduced |
 | D-CS | frame | (A S' ≠ S : V_{S'}(d') = V_{S'}(d)) ∧ (A v : v ∈ dom(M(d)) ∧ subspace(v) ≠ S : M'(d)(v) = M(d)(v)) | introduced |
