@@ -17,9 +17,9 @@ We recall D-CTG (VContiguity, ASN-0036): within each subspace, V-positions form 
 
 An *arrangement rearrangement* is a state transition Σ → Σ' in which dom(M'(d)) = dom(M(d)), C' = C (S0, ASN-0036), and there exists a bijection π : dom(M(d)) → dom(M'(d)) such that M'(d)(π(v)) = M(d)(v) for all v ∈ dom(M(d)).
 
-We derive that the I-address multiset is invariant. Since π is surjective onto dom(M'(d)) = dom(M(d)), every u ∈ dom(M'(d)) has the form u = π(v) for exactly one v ∈ dom(M(d)). Therefore: ran(M'(d)) = {M'(d)(u) : u ∈ dom(M'(d))} = {M'(d)(π(v)) : v ∈ dom(M(d))} = {M(d)(v) : v ∈ dom(M(d))} = ran(M(d)). The second equality uses surjectivity of π; the third uses the defining property M'(d)(π(v)) = M(d)(v).
+We derive that the I-address range is invariant and that multiplicities are preserved. Since π is surjective onto dom(M'(d)) = dom(M(d)), every u ∈ dom(M'(d)) has the form u = π(v) for exactly one v ∈ dom(M(d)). Therefore: ran(M'(d)) = {M'(d)(u) : u ∈ dom(M'(d))} = {M'(d)(π(v)) : v ∈ dom(M(d))} = {M(d)(v) : v ∈ dom(M(d))} = ran(M(d)). The second equality uses surjectivity of π; the third uses the defining property M'(d)(π(v)) = M(d)(v). The multiset of I-addresses is also preserved: since π is a bijection, for each I-address a, the preimage {v : M(d)(v) = a} is in bijection with {π(v) : M(d)(v) = a} = {u : M'(d)(u) = a}, so the multiplicity of a is identical in M(d) and M'(d).
 
-S3 (referential integrity, ASN-0036) is preserved as a consequence: ran(M'(d)) = ran(M(d)) ⊆ dom(C) = dom(C'), where the inclusion is S3 for the pre-state and the equality is C' = C.
+**R-RI** — S3 (referential integrity, ASN-0036) is preserved as a consequence: ran(M'(d)) = ran(M(d)) ⊆ dom(C) = dom(C'), where the inclusion is S3 for the pre-state and the equality is C' = C.
 
 Any bijection qualifies; a rearrangement determined by cut points is one where the regions to exchange are identified by a tuple of cut positions. The properties in this ASN characterize this specific class of permutations.
 
@@ -269,7 +269,7 @@ The displacement formulation makes it clear that every position in the affected 
 
 We recall from S8 (FiniteSpanDecomposition, ASN-0036) that the arrangement M(d) admits a finite decomposition into correspondence runs. We use the following vocabulary for this section:
 
-**Block.** A *block* is a correspondence run (v, a, n) with n ≥ 1, meaning M(d)(v + k) = a + k for all 0 ≤ k < n. A *block decomposition* of M(d) is a finite set B = {β₁, ..., βₘ} of blocks satisfying:
+**Block.** A *block* is a correspondence run (v, a, n) with n ≥ 1, meaning M(d)(v + k) = a + k for all 0 ≤ k < n. A *block decomposition* of M(d) is a finite set B = {b₁, ..., bₘ} of blocks satisfying:
 
 (B1) *Coverage:* every v ∈ dom(M(d)) belongs to exactly one block's V-extent.
 
@@ -277,13 +277,13 @@ We recall from S8 (FiniteSpanDecomposition, ASN-0036) that the arrangement M(d) 
 
 (B3) *Consistency:* for each block (vⱼ, aⱼ, nⱼ) and 0 ≤ k < nⱼ: M(d)(vⱼ + k) = aⱼ + k.
 
-**Split.** Given a block β = (v, a, n) and an interior offset c with 1 ≤ c < n, the *split* at c produces two blocks: (v, a, c) and (v + c, a + c, n − c). The two blocks are V-disjoint (ordinal ranges [ord(v), ord(v) + c) and [ord(v) + c, ord(v) + n)), their V-extents partition β's V-extent, and both satisfy B3 (the correspondence relation restricts to each sub-range).
+**Split.** Given a block b = (v, a, n) and an interior offset c with 1 ≤ c < n, the *split* at c produces two blocks: (v, a, c) and (v + c, a + c, n − c). The two blocks are V-disjoint (ordinal ranges [ord(v), ord(v) + c) and [ord(v) + c, ord(v) + n)), their V-extents partition b's V-extent, and both satisfy B3 (the correspondence relation restricts to each sub-range).
 
 **Merge.** Two blocks (v₁, a₁, n₁) and (v₂, a₂, n₂) are *mergeable* when v₂ = v₁ + n₁ (V-adjacent) and a₂ = a₁ + n₁ (I-adjacent). The merged block is (v₁, a₁, n₁ + n₂).
 
-**R-BLK — BlockDecompositionTransformation (LEMMA).** Let B = {β₁, ..., βₘ} be a block decomposition of M(d) satisfying B1–B3. Let the cut sequence C have cut positions c₀, ..., c_{n−1}. The rearranged arrangement M'(d) admits a block decomposition B' obtained by:
+**R-BLK — BlockDecompositionTransformation (LEMMA).** Let B = {b₁, ..., bₘ} be a block decomposition of M(d) satisfying B1–B3. Let the cut sequence C have cut positions c₀, ..., c_{n−1}. The rearranged arrangement M'(d) admits a block decomposition B' obtained by:
 
-*Phase 1: Split.* Process cut positions in index order (c₀, c₁, ..., c_{n−1}), maintaining the decomposition as it is progressively refined. For each cut position cᵢ, if cᵢ falls in the interior of some block βₖ = (vₖ, aₖ, nₖ) in the current decomposition — meaning cᵢ ∈ V(βₖ) and cᵢ ≠ vₖ — split βₖ at the offset c = ord(cᵢ) − ord(vₖ), producing (vₖ, aₖ, c) and (vₖ + c, aₖ + c, nₖ − c). The split preserves B1–B3: the two new blocks partition the V-extent of the original. CS2's strict ordering (c₀ < c₁ < ... < c_{n−1}) guarantees that each later cut falls either at a block boundary already created by an earlier split, or in the right-hand piece of an earlier split — so the process is well-defined. After all splits, no block straddles any cut position.
+*Phase 1: Split.* Process cut positions in index order (c₀, c₁, ..., c_{n−1}), maintaining the decomposition as it is progressively refined. For each cut position cᵢ, if cᵢ falls in the interior of some block bₖ = (vₖ, aₖ, nₖ) in the current decomposition — meaning cᵢ ∈ V(bₖ) and cᵢ ≠ vₖ — split bₖ at the offset c = ord(cᵢ) − ord(vₖ), producing (vₖ, aₖ, c) and (vₖ + c, aₖ + c, nₖ − c). The split preserves B1–B3: the two new blocks partition the V-extent of the original. CS2's strict ordering (c₀ < c₁ < ... < c_{n−1}) guarantees that each later cut falls either at a block boundary already created by an earlier split, or in the right-hand piece of an earlier split — so the process is well-defined. After all splits, no block straddles any cut position.
 
 *Phase 2: Classify.* Each block in the post-split decomposition lies entirely within one region (exterior left, α, μ if 4-cut, β, or exterior right), because no block crosses a cut boundary.
 
@@ -300,15 +300,19 @@ The I-start and width of each block are preserved because the rearrangement modi
 
 The resulting blocks satisfy B3 (Consistency): for each reassembled block (π(vⱼ), aⱼ, nⱼ) and 0 ≤ k < nⱼ: M'(d)(π(vⱼ) + k) = M'(d)(π(vⱼ + k)) = M(d)(vⱼ + k) = aⱼ + k. The second equality uses the permutation definition M'(d)(π(v)) = M(d)(v); the first uses the commutativity π(vⱼ + k) = π(vⱼ) + k.
 
-*Proof (commutativity).* The premise is that after Phase 1, every block lies in a single region, so for each block (vⱼ, aⱼ, nⱼ) and 0 ≤ k < nⱼ, positions vⱼ and vⱼ + k are in the same region and receive the same displacement formula.
+*Proof (commutativity).* After Phase 1, every block lies in a single region, so for each block (vⱼ, aⱼ, nⱼ) and 0 ≤ k < nⱼ, positions vⱼ and vⱼ + k are in the same region. We verify π(vⱼ + k) = π(vⱼ) + k in each region case using the explicit R-PPERM and R-SPERM formulas, with associativity of natural-number addition at the ordinal level as the sole algebraic tool.
 
-For v = vⱼ + k in region α (3-cut case): π(v) = v + w_β (adding w_β ordinal positions). And π(vⱼ) + k = (vⱼ + w_β) + k = vⱼ + (w_β + k) = (vⱼ + k) + w_β = v + w_β = π(v), using associativity and commutativity of natural-number addition at the ordinal level.
+*Exterior (both forms):* π(vⱼ + k) = vⱼ + k = π(vⱼ) + k, since π is the identity on the exterior.
 
-For v = vⱼ + k in region β (3-cut case): π(v) = c₀ + (j + k) where v = c₁ + (j + k) for some j. And π(vⱼ) + k = (c₀ + j) + k = c₀ + (j + k) = π(v), by associativity.
+*3-cut α:* vⱼ = c₀ + j' for some 0 ≤ j' < w_α. Then vⱼ + k = c₀ + (j' + k), and by R-PPERM: π(vⱼ + k) = c₀ + w_β + (j' + k). Also π(vⱼ) + k = (c₀ + w_β + j') + k = c₀ + w_β + (j' + k) by associativity.
 
-For exterior v: π(v) = v, and π(vⱼ) + k = vⱼ + k = v = π(v) trivially.
+*3-cut β:* vⱼ = c₁ + j' for some 0 ≤ j' < w_β. Then vⱼ + k = c₁ + (j' + k), and by R-PPERM: π(vⱼ + k) = c₀ + (j' + k). Also π(vⱼ) + k = (c₀ + j') + k = c₀ + (j' + k) by associativity.
 
-The 4-cut μ case follows identically: π(v) = v + (w_β − w_α), and π(vⱼ) + k = (vⱼ + (w_β − w_α)) + k = (vⱼ + k) + (w_β − w_α) = π(v). ∎
+*4-cut α:* vⱼ = c₀ + j' for some 0 ≤ j' < w_α. Then vⱼ + k = c₀ + (j' + k), and by R-SPERM: π(vⱼ + k) = c₀ + w_β + w_μ + (j' + k). Also π(vⱼ) + k = (c₀ + w_β + w_μ + j') + k = c₀ + w_β + w_μ + (j' + k) by associativity.
+
+*4-cut μ:* vⱼ = c₁ + j' for some 0 ≤ j' < w_μ. Then vⱼ + k = c₁ + (j' + k), and by R-SPERM: π(vⱼ + k) = c₀ + w_β + (j' + k). Also π(vⱼ) + k = (c₀ + w_β + j') + k = c₀ + w_β + (j' + k) by associativity.
+
+*4-cut β:* vⱼ = c₂ + j' for some 0 ≤ j' < w_β. Then vⱼ + k = c₂ + (j' + k), and by R-SPERM: π(vⱼ + k) = c₀ + (j' + k). Also π(vⱼ) + k = (c₀ + j') + k = c₀ + (j' + k) by associativity. ∎
 
 Coverage (B1) and disjointness (B2): π is a bijection on dom(M(d)), so the V-extents of the reassembled blocks are pairwise disjoint (from B2 of the pre-reassembly decomposition and injectivity of π) and cover dom(M'(d)) = dom(M(d)) (from B1 and surjectivity of π).
 
@@ -327,7 +331,7 @@ M(d)([1,4]) = 5.0.2.0.1.1    (I-address D)
 M(d)([1,5]) = 5.0.2.0.1.2    (I-address E)
 ```
 
-Content A–C originates from document 3.0.1 (origin 3.0.1); D–E from document 5.0.2 (origin 5.0.2). The canonical decomposition has two blocks: β₁ = ([1,1], 3.0.1.0.1.1, 3) and β₂ = ([1,4], 5.0.2.0.1.1, 2).
+Content A–C originates from document 3.0.1 (origin 3.0.1); D–E from document 5.0.2 (origin 5.0.2). The canonical decomposition has two blocks: b₁ = ([1,1], 3.0.1.0.1.1, 3) and b₂ = ([1,4], 5.0.2.0.1.1, 2).
 
 We apply a 3-cut pivot with C = ([1,2], [1,4], [1,5]): c₀ = [1,2], c₁ = [1,4], c₂ = [1,5]. The affected range is [c₀, c₂) = {[1,2], [1,3], [1,4]}. Region α = {[1,2], [1,3]} (w_α = 2), region β = {[1,4]} (w_β = 1).
 
@@ -355,7 +359,7 @@ M'(d)([1,5]) = E     (exterior, unchanged)
 
 **R-PPERM verification.** The permutation π: π([1,1]) = [1,1] (exterior), π([1,2]) = [1,3] (α: c₀ + 0 → c₀ + w_β + 0 = [1,3]), π([1,3]) = [1,4] (α: c₀ + 1 → c₀ + w_β + 1 = [1,4]), π([1,4]) = [1,2] (β: c₁ + 0 → c₀ + 0 = [1,2]), π([1,5]) = [1,5] (exterior). We check: M'(d)(π([1,2])) = M'(d)([1,3]) = B = M(d)([1,2]) ✓. M'(d)(π([1,4])) = M'(d)([1,2]) = D = M(d)([1,4]) ✓.
 
-**Block decomposition after rearrangement.** The new canonical decomposition has four blocks: ([1,1], A, 1), ([1,2], D, 1), ([1,3], B, 2), ([1,5], E, 1). Block ([1,3], B, 2) is valid because B = 3.0.1.0.1.2 and C = 3.0.1.0.1.3 = B + 1. Block ([1,5], E, 1) is exterior, unchanged by R-EXT. Note that D = 5.0.2.0.1.1 cannot merge with A = 3.0.1.0.1.1 (different origins — origin(D) = 5.0.2 ≠ 3.0.1 = origin(A), so I-adjacency fails) nor with B = 3.0.1.0.1.2 (not I-adjacent: D + 1 ≠ B). Block ([1,3], B, 2) cannot merge with ([1,5], E, 1): C + 1 = 3.0.1.0.1.4 ≠ E = 5.0.2.0.1.2 (different origins). The cut at [1,2] (c₀, interior to β₁ at offset 1) split the original block β₁ into ([1,1], A, 1) and ([1,2], B, 2), and the rearrangement inserted the single-element block for D between them.
+**Block decomposition after rearrangement.** The new canonical decomposition has four blocks: ([1,1], A, 1), ([1,2], D, 1), ([1,3], B, 2), ([1,5], E, 1). Block ([1,3], B, 2) is valid because B = 3.0.1.0.1.2 and C = 3.0.1.0.1.3 = B + 1. Block ([1,5], E, 1) is exterior, unchanged by R-EXT. Note that D = 5.0.2.0.1.1 cannot merge with A = 3.0.1.0.1.1 (different origins — origin(D) = 5.0.2 ≠ 3.0.1 = origin(A), so I-adjacency fails) nor with B = 3.0.1.0.1.2 (not I-adjacent: D + 1 ≠ B). Block ([1,3], B, 2) cannot merge with ([1,5], E, 1): C + 1 = 3.0.1.0.1.4 ≠ E = 5.0.2.0.1.2 (different origins). The cut at [1,2] (c₀, interior to b₁ at offset 1) split the original block b₁ into ([1,1], A, 1) and ([1,2], B, 2), and the rearrangement inserted the single-element block for D between them.
 
 
 ## Worked Example: 4-Cut Swap on an 8-Position Document
@@ -373,7 +377,7 @@ M(d)([1,7]) = 5.0.2.0.1.3    (I-address G)
 M(d)([1,8]) = 3.0.1.0.1.4    (I-address H)
 ```
 
-Content A–C originates from document 3.0.1; D from document 7.0.1; E–G from document 5.0.2; H from document 3.0.1. The canonical decomposition has four blocks: β₁ = ([1,1], A, 3), β₂ = ([1,4], D, 1), β₃ = ([1,5], E, 3), β₄ = ([1,8], H, 1).
+Content A–C originates from document 3.0.1; D from document 7.0.1; E–G from document 5.0.2; H from document 3.0.1. The canonical decomposition has four blocks: b₁ = ([1,1], A, 3), b₂ = ([1,4], D, 1), b₃ = ([1,5], E, 3), b₄ = ([1,8], H, 1).
 
 We apply a 4-cut swap with C = ([1,2], [1,4], [1,5], [1,8]): c₀ = [1,2], c₁ = [1,4], c₂ = [1,5], c₃ = [1,8]. The affected range is [c₀, c₃) = {[1,2], ..., [1,7]}. Region α = {[1,2], [1,3]} (w_α = 2), middle μ = {[1,4]} (w_μ = 1), region β = {[1,5], [1,6], [1,7]} (w_β = 3). Since w_α = 2 ≠ w_β = 3, the middle displacement w_β − w_α = 1 is nonzero.
 
@@ -423,7 +427,7 @@ The three swap clauses tile [c₀, c₃) = [[1,2], [1,8]) exactly: R-S1 covers o
 
 **Displacement verification.** Δ([1,2]) = 6 − 2 = +4 = w_β + w_μ ✓. Δ([1,3]) = 7 − 3 = +4 ✓. Δ([1,4]) = 5 − 4 = +1 = w_β − w_α ✓. Δ([1,5]) = 2 − 5 = −3 = −(w_α + w_μ) ✓. Δ([1,6]) = 3 − 6 = −3 ✓. Δ([1,7]) = 4 − 7 = −3 ✓. The middle-region displacement is +1, confirming the asymmetric structure when w_α ≠ w_β.
 
-**Block decomposition via R-BLK.** *Phase 1 (Split):* c₀ = [1,2] is interior to β₁ = ([1,1], A, 3) at offset 1. Split: ([1,1], A, 1) and ([1,2], B, 2). The remaining cuts c₁ = [1,4], c₂ = [1,5], c₃ = [1,8] coincide with block starts, so no further splits. Post-split decomposition: {([1,1], A, 1), ([1,2], B, 2), ([1,4], D, 1), ([1,5], E, 3), ([1,8], H, 1)}.
+**Block decomposition via R-BLK.** *Phase 1 (Split):* c₀ = [1,2] is interior to b₁ = ([1,1], A, 3) at offset 1. Split: ([1,1], A, 1) and ([1,2], B, 2). The remaining cuts c₁ = [1,4], c₂ = [1,5], c₃ = [1,8] coincide with block starts, so no further splits. Post-split decomposition: {([1,1], A, 1), ([1,2], B, 2), ([1,4], D, 1), ([1,5], E, 3), ([1,8], H, 1)}.
 
 *Phase 2 (Classify):* ([1,1], A, 1) → exterior left. ([1,2], B, 2) → α. ([1,4], D, 1) → μ. ([1,5], E, 3) → β. ([1,8], H, 1) → exterior right.
 
@@ -450,8 +454,9 @@ Sorted by V-start: {([1,1], A, 1), ([1,2], E, 3), ([1,5], D, 1), ([1,6], B, 2), 
 | R-SWP | LEMMA | Swap postcondition is a total function on dom(M(d)) | supporting |
 | R-PPERM | LEMMA | Bijection π for 3-cut pivot: α shifts forward by w_β, β shifts backward by w_α | introduced |
 | R-SPERM | LEMMA | Bijection π for 4-cut swap: α shifts forward by w_β + w_μ, μ shifts by w_β − w_α, β shifts backward by w_α + w_μ | introduced |
-| R-FRAME | FRAME | Other subspaces, other documents, and content store are preserved | introduced |
-| R-S3 | LEMMA | Rearrangement preserves S3: ran(M'(d)) = ran(M(d)) ⊆ dom(C) = dom(C') | introduced |
+| R-FRAME-P | FRAME | Pivot: other subspaces, other documents, and content store are preserved | introduced |
+| R-FRAME-S | FRAME | Swap: other subspaces, other documents, and content store are preserved | introduced |
+| R-RI | LEMMA | Rearrangement preserves S3 (referential integrity): ran(M'(d)) = ran(M(d)) ⊆ dom(C) = dom(C') | introduced |
 | R-BLK | LEMMA | Block decomposition transforms by split-at-cuts then displace-per-region, preserving B1–B3 | introduced |
 
 
