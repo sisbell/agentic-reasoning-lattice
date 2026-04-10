@@ -247,7 +247,7 @@ We observe the structural relationship between the two forms: the 4-cut postcond
 
 The permutations R-PPERM and R-SPERM can be characterized by ordinal displacements — how far each position moves within its subspace. These displacements illuminate the structure and connect to the block decomposition transformation.
 
-**Definition — PermutationDisplacement.** For a position v in the affected range, define Δ(v) = ord(π(v)) − ord(v) (an integer, possibly negative).
+**Definition — PermutationDisplacement.** For a position v ∈ dom(M(d)), define Δ(v) = ord(π(v)) − ord(v) (an integer, possibly negative). On the exterior, π(v) = v, so Δ(v) = 0.
 
 For the 3-cut pivot, from R-PPERM:
 
@@ -494,7 +494,7 @@ Sorted by V-start: {([1,1], A, 1), ([1,2], E, 3), ([1,5], D, 1), ([1,6], B, 2), 
 | PivotPostcondition | DEF | 3-cut rearrangement: β content placed at c₀, then α content, exterior unchanged (R-EXT, R-P1, R-P2) | introduced |
 | SwapPostcondition | DEF | 4-cut rearrangement: β at c₀, then μ, then α, exterior unchanged (R-EXT, R-S1, R-S2, R-S3) | introduced |
 | ArrangementRearrangement | DEF | State transition with dom(M'(d)) = dom(M(d)), C' = C, M'(d') = M(d') for d' ≠ d, and bijection π with M'(d)(π(v)) = M(d)(v) | introduced |
-| PermutationDisplacement | DEF | Δ(v) = ord(π(v)) − ord(v) | introduced |
+| PermutationDisplacement | DEF | Δ(v) = ord(π(v)) − ord(v) for all v ∈ dom(M(d)); Δ = 0 on exterior | introduced |
 | R-DISP | LEMMA | For all v₁, v₂ in the same region, Δ(v₁) = Δ(v₂); common value determined by region widths alone | introduced |
 | Block | DEF | Correspondence run (v, a, n) with M(d)(v + k) = a + k for 0 ≤ k < n | introduced |
 | BlockDecomposition | DEF | Finite set of blocks satisfying B1 (coverage), B2 (disjointness), B3 (consistency) | introduced |
