@@ -98,9 +98,13 @@ The contraction's effect on regions L and X, and on state outside subspace S and
 
 Combined with D-L and D-SHIFT, this fully characterizes M'(d) within subspace S: positions in L retain their original I-address mappings, positions in Q₃ hold shifted mappings from R, and no other subspace-S positions exist in dom(M'(d)). The original X mappings are not preserved — any X address that reappears in Q₃ carries the shifted I-address from the corresponding R position, not its pre-contraction content.
 
-**D-CS** — *CrossSubspaceFrame* (FRAME, introduced). Positions in other subspaces are unchanged:
+**D-CS** — *CrossSubspaceFrame* (FRAME, introduced). Other subspaces are unchanged — their position sets are exactly the pre-state sets with the same mappings:
 
-`(A v : v ∈ dom(M(d)) ∧ subspace(v) ≠ S : v ∈ dom(M'(d)) ∧ M'(d)(v) = M(d)(v))`
+`(A S' ≠ S : {v ∈ dom(M'(d)) : subspace(v) = S'} = {v ∈ dom(M(d)) : subspace(v) = S'})`
+
+`∧ (A v : v ∈ dom(M(d)) ∧ subspace(v) ≠ S : M'(d)(v) = M(d)(v))`
+
+The first conjunct establishes domain equality per non-S subspace (no positions added or removed); the second establishes mapping equality (no values changed). Together they give the biconditional that the invariant proofs (D-CTG-post, D-MIN-post, S8-depth-post, S8a-post) require when citing D-CS for "unchanged" non-S subspaces.
 
 **D-CD** — *CrossDocumentFrame* (FRAME, introduced). Other documents are unchanged:
 
@@ -290,16 +294,19 @@ Q₃ = {[1,1], [1,2], [1,3]}.
 
 | Label | Type | Statement | Status |
 |-------|------|-----------|--------|
+| Contraction | operation | Remove span (p, w) from subspace S of document d; preconditions: D-SHIFT; postconditions: D-SHIFT, D-DOM; frame: D-L, D-CS, D-CD, D-I | introduced |
+| ThreeRegions | DEF | L = {v ∈ V_S(d) : v < p}, X = {v ∈ V_S(d) : p ≤ v < r}, R = {v ∈ V_S(d) : v ≥ r}; partition of V_S(d) | introduced |
+| Q₃ | DEF | Q₃ = {σ(v) : v ∈ R} — the set of shifted right-region positions in the post-state | introduced |
 | ord(v) | DEF | Ordinal extraction: ord(v) = [v₂, ..., vₘ] strips the subspace identifier | introduced |
 | vpos(S, o) | DEF | V-position reconstruction: vpos(S, o) = [S, o₁, ..., oₖ]; inverse of ord | introduced |
 | w_ord | DEF | Ordinal displacement projection: w_ord = [w₂, ..., wₘ] for V-depth w with w₁ = 0 | introduced |
 | D-L | frame | (A v ∈ L : v ∈ dom(M'(d)) ∧ M'(d)(v) = M(d)(v)) | introduced |
 | D-DOM | postcondition | {v ∈ dom(M'(d)) : subspace(v) = S} = L ∪ Q₃ | introduced |
-| D-CS | frame | Cross-subspace positions unchanged | introduced |
+| D-CS | frame | (A S' ≠ S : V_{S'}(d') = V_{S'}(d)) ∧ (A v : subspace(v) ≠ S : M'(d)(v) = M(d)(v)) | introduced |
 | D-CD | frame | Cross-document arrangements unchanged | introduced |
 | D-I | frame | (A a ∈ dom(Σ.C) : a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a)) — content store unchanged | introduced |
 | D-SHIFT | postcondition | (A v ∈ R : M'(d)(σ(v)) = M(d)(v)) where σ(v) = vpos(S, ord(v) ⊖ w_ord) | introduced |
-| D-BJ | lemma | σ is order-preserving and injective on R | introduced |
+| D-BJ | lemma | σ : R → Q₃ is an order-preserving bijection | introduced |
 | D-SEP | lemma | ord(r) ⊖ w_ord = ord(p); when R ≠ ∅, min Q₃ ordinal = ord(p) | introduced |
 | D-DP | lemma | L ∩ Q₃ = ∅ and no residual gap at contraction boundary | introduced |
 | S2-post | lemma | Post-state M'(d) is a function | introduced |
