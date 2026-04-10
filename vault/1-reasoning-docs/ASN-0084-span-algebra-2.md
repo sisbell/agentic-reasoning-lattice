@@ -21,9 +21,11 @@ We derive that the I-address range is invariant and that multiplicities are pres
 
 **R-RI** — S3 (referential integrity, ASN-0036) is preserved as a consequence: ran(M'(d)) = ran(M(d)) ⊆ dom(C) = dom(C'), where the inclusion is S3 for the pre-state and the equality is C' = C.
 
+**Invariant preservation.** The following ASN-0036 invariants depend only on `dom(M(d))` and are preserved because `dom(M'(d)) = dom(M(d))`: D-CTG, D-MIN, S8-fin, S8a, S8-depth. Together with R-RI (S3), the well-definedness lemmas R-PIV/R-SWP (S2), and C' = C (S0, S1), every ASN-0036 invariant is maintained by an arrangement rearrangement.
+
 Any bijection qualifies; a rearrangement determined by cut points is one where the regions to exchange are identified by a tuple of cut positions. The properties in this ASN characterize this specific class of permutations.
 
-Notation: at depth 2, V-positions have the form [S, p]. We write `c₀ + j` for the V-position [S, ord(c₀) + j] — that is, j ordinal increments via TA5(c) (ASN-0034). By convention, `c₀ + 0 = c₀` (identity). Associativity `(c₀ + j) + k = c₀ + (j + k)` follows from natural-number addition at the ordinal level.
+Notation: at depth 2, V-positions have the form [S, p]. We write `c₀ + j` for the V-position [S, ord(c₀) + j] — that is, ordinal shift via OrdinalShift (ASN-0034): `c₀ + j = shift(c₀, j)`, consistent with the correspondence-run convention of ASN-0036. By convention, `c₀ + 0 = c₀` (identity). Associativity `(c₀ + j) + k = c₀ + (j + k)` follows from TS3 (ShiftComposition, ASN-0034): `shift(shift(v, n₁), n₂) = shift(v, n₁ + n₂)`.
 
 
 ## Cut Points and the Region Partition
@@ -450,6 +452,16 @@ Sorted by V-start: {([1,1], A, 1), ([1,2], E, 3), ([1,5], D, 1), ([1,6], B, 2), 
 
 | Label | Type | Statement | Status |
 |-------|------|-----------|--------|
+| CutSequence | DEF | Tuple (c₀, ..., c_{n−1}) with n ∈ {3,4}, strictly ordered, same subspace, depth 2 (CS1–CS4) | introduced |
+| RegionPartition | DEF | Partition of affected range into regions α, β (3-cut) or α, μ, β (4-cut) by cut positions | introduced |
+| R-PRE | DEF | Precondition: M(d) exists, V_S(d) non-empty, cuts satisfy CS1–CS4, affected range covered, regions non-empty | introduced |
+| PivotPostcondition | DEF | 3-cut rearrangement: β content placed at c₀, then α content, exterior unchanged (R-EXT, R-P1, R-P2) | introduced |
+| SwapPostcondition | DEF | 4-cut rearrangement: β at c₀, then μ, then α, exterior unchanged (R-EXT, R-S1, R-S2, R-S3) | introduced |
+| ArrangementRearrangement | DEF | State transition with dom(M'(d)) = dom(M(d)), C' = C, and bijection π with M'(d)(π(v)) = M(d)(v) | introduced |
+| PermutationDisplacement | DEF | Δ(v) = ord(π(v)) − ord(v): uniform within each region, determined by region widths alone | introduced |
+| Block | DEF | Correspondence run (v, a, n) with M(d)(v + k) = a + k for 0 ≤ k < n, satisfying B1–B3 | introduced |
+| Split | DEF | Block (v, a, n) at interior offset c yields (v, a, c) and (v + c, a + c, n − c) | introduced |
+| Merge | DEF | V-adjacent and I-adjacent blocks (v₁, a₁, n₁), (v₂, a₂, n₂) combine to (v₁, a₁, n₁ + n₂) | introduced |
 | R-PIV | LEMMA | Pivot postcondition is a total function on dom(M(d)) | supporting |
 | R-SWP | LEMMA | Swap postcondition is a total function on dom(M(d)) | supporting |
 | R-PPERM | LEMMA | Bijection π for 3-cut pivot: α shifts forward by w_β, β shifts backward by w_α | introduced |
