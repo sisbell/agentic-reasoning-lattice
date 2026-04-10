@@ -9,7 +9,7 @@ This ASN extends ASN-0053 (Span Algebra) with properties characterizing the perm
 
 We work with the content store C : T ⇀ Val (Σ.C, ASN-0036) and the arrangement function M(d) : T ⇀ T for each document d (Σ.M(d), ASN-0036). The arrangement M(d) is the mutable layer; C is immutable (S0, ASN-0036).
 
-For a V-position v with subspace(v) = v₁ and #v = m, the *ordinal* is ord(v) = [v₂, ..., vₘ] — the tumbler obtained by stripping the subspace identifier. The reconstruction vpos(S, o) = [S, o₁, ..., oₖ] is its inverse.
+For a V-position v with subspace(v) = v₁ and #v = m, the *ordinal* is ord(v) = [v₂, ..., vₘ] — the tumbler obtained by stripping the subspace identifier.
 
 We restrict to depth-2 V-positions (#v = 2, ordinal depth 1) throughout this ASN. At depth 2, D-SEQ (ASN-0036) gives V_S(d) = {[S, k] : 1 ≤ k ≤ n}, and ordinals are single natural numbers. This restriction simplifies the presentation; generalization to deeper ordinals is structurally identical by D-CTG-depth (ASN-0036), which reduces contiguity at any depth m ≥ 3 to contiguity of the last component alone.
 
@@ -275,7 +275,7 @@ The displacement formulation makes it clear that every position in the affected 
 
 We recall from S8 (FiniteSpanDecomposition, ASN-0036) that the arrangement M(d) admits a finite decomposition into correspondence runs. We use the following vocabulary for this section:
 
-**Block.** A *block* is a correspondence run (v, a, n) with n ≥ 1, meaning M(d)(v + k) = a + k for all 0 ≤ k < n. A *block decomposition* of M(d) is a finite set B = {b₁, ..., bₘ} of blocks satisfying:
+**Block.** A *block* is a correspondence run (v, a, n) with n ≥ 1, meaning M(d)(v + k) = a + k for all 0 ≤ k < n. The *V-extent* of a block (v, a, n) is V(v, a, n) = {v + k : 0 ≤ k < n}. A *block decomposition* of M(d) is a finite set B = {b₁, ..., bₘ} of blocks satisfying:
 
 (B1) *Coverage:* every v ∈ dom(M(d)) belongs to exactly one block's V-extent.
 
