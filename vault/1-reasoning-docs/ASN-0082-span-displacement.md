@@ -192,13 +192,15 @@ Whole-tumbler addition commutes with ordinal extraction when the displacement ha
 
 *Preconditions:* p ∈ T, w ∈ T, #p = m ≥ 2, #w = m, w₁ = 0, w > 0, actionPoint(w) ≤ #p.
 
-*Proof at depth m = 2.* Write p = [S, p₂] and w = [0, c] for positive integer c.
+*Proof.* Write p = [S, p₂, ..., pₘ] and w = [0, w₂, ..., wₘ]. Since w₁ = 0 and w > 0, the action point of w is k = min{i : 1 ≤ i ≤ m ∧ wᵢ ≠ 0} with k ≥ 2.
 
-1. p ⊕ w = [S, p₂] ⊕ [0, c] = [S, p₂ + c] (TumblerAdd, action point k = 2: r₁ = S from p, r₂ = p₂ + c).
-2. ord(p ⊕ w) = ord([S, p₂ + c]) = [p₂ + c] (definition of ord).
-3. ord(p) ⊕ w_ord = [p₂] ⊕ [c] = [p₂ + c] (TumblerAdd, action point k = 1: r₁ = p₂ + c).
+By TumblerAdd, p ⊕ w = [r₁, ..., rₘ] where rᵢ = pᵢ for i < k, rₖ = pₖ + wₖ, and rᵢ = wᵢ for i > k. Since k ≥ 2, position 1 is copied from p: r₁ = S. So p ⊕ w = [S, p₂, ..., p_{k−1}, pₖ + wₖ, w_{k+1}, ..., wₘ], and ord(p ⊕ w) = [p₂, ..., p_{k−1}, pₖ + wₖ, w_{k+1}, ..., wₘ].
 
-Hence ord(p ⊕ w) = [p₂ + c] = ord(p) ⊕ w_ord. ∎
+Now consider ord(p) ⊕ w_ord. We have ord(p) = [p₂, ..., pₘ] (length m − 1) and w_ord = [w₂, ..., wₘ] (length m − 1). The action point of w_ord is k − 1 ≥ 1: the first nonzero component of w_ord is at position k − 1, since (w_ord)ⱼ = w_{j+1} and the first nonzero w_{j+1} occurs at j + 1 = k, i.e., j = k − 1. The precondition actionPoint(w_ord) ≤ #ord(p) holds: k − 1 ≤ m − 1, which follows from k ≤ m (actionPoint(w) ≤ #p). By TumblerAdd, ord(p) ⊕ w_ord = [q₁, ..., q_{m−1}] where qᵢ = (ord(p))ᵢ = p_{i+1} for i < k − 1, q_{k−1} = p_k + w_k, and qᵢ = (w_ord)ᵢ = w_{i+1} for i > k − 1. This gives [p₂, ..., p_{k−1}, pₖ + wₖ, w_{k+1}, ..., wₘ].
+
+The two expressions are identical component by component. ∎
+
+*Verification at m = 2.* Write p = [S, p₂] and w = [0, c] for positive integer c. Then k = 2, p ⊕ w = [S, p₂ + c], ord(p ⊕ w) = [p₂ + c]. And ord(p) ⊕ w_ord = [p₂] ⊕ [c] = [p₂ + c]. ✓
 
 
 ## Post-Contraction Shift
@@ -339,6 +341,10 @@ Three cases arise at the boundary. When L ≠ ∅ and R ≠ ∅: L's maximum ord
 **D-MIN-post** — *VMinimumPreservation* (LEMMA, introduced). When the post-state subspace S is non-empty, the minimum V-position is [S, 1, ..., 1]. When the post-state subspace S is empty, D-MIN holds vacuously.
 
 *Proof.* Three cases. When L ≠ ∅: the pre-state minimum is min(V_S(d)) = [S, 1] (D-MIN). Since p > min(V_S(d)), we have min(V_S(d)) ∈ L. D-L preserves it, so min(L ∪ Q₃) = [S, 1]. When L = ∅ and R ≠ ∅: p = min(V_S(d)) = [S, 1] by D-MIN, so ord(p) = [1]. By D-SEP(b), min Q₃ has ordinal ord(p) = [1], giving min Q₃ = [S, 1]. When L = ∅ and R = ∅: V_S(d') = L ∪ Q₃ = ∅, so D-MIN holds vacuously — no non-empty subspace to constrain. By D-CS, other subspaces of d retain their pre-state position sets and satisfy D-MIN by the pre-state invariant. By D-CD, other documents are unchanged. ∎
+
+**D-SEQ-post** — *SequentialPositionsPreservation* (LEMMA, introduced). When the post-state V_S(d) is non-empty, V_S(d) = {[S, k] : 1 ≤ k ≤ N − c}.
+
+*Proof.* By D-CTG-post, the post-state V_S(d) = L ∪ Q₃ is contiguous. By D-MIN-post, when non-empty, min(V_S(d)) = [S, 1]. By S8-depth-post (below), all V-positions in subspace S have depth 2. These three conditions — contiguity, minimum at [S, 1], and uniform depth 2 — are exactly the preconditions of the D-SEQ derivation (ASN-0036): contiguity at depth 2 with minimum [S, 1] yields V_S(d) = {[S, k] : 1 ≤ k ≤ n} for some n ≥ 1. It remains to identify n. The pre-state has N positions; the contraction removes c positions (the set X with |X| = c), so |L ∪ Q₃| = N − c. Hence n = N − c, and V_S(d) = {[S, k] : 1 ≤ k ≤ N − c}. When V_S(d) is empty (N − c = 0, i.e., the entire subspace was contracted), D-SEQ holds vacuously. ∎
 
 **S8-depth-post** — *FixedDepthPreservation* (LEMMA, introduced). The post-state satisfies S8-depth: all V-positions within subspace S share the same depth.
 
@@ -506,7 +512,7 @@ Q₃ = {[1,1], [1,2], [1,3]}.
 | ord(v) | definition | Ordinal extraction: ord(v) = [v₂, ..., vₘ] strips the subspace identifier; precondition #v ≥ 2; postconditions: ord(v) ∈ T with #ord(v) = #v − 1; order equivalence: v₁ < v₂ ⟺ ord(v₁) < ord(v₂) when subspace(v₁) = subspace(v₂) ∧ #v₁ = #v₂ | introduced |
 | vpos(S, o) | definition | V-position reconstruction: vpos(S, o) = [S, o₁, ..., oₖ]; preconditions #o ≥ 1, S ≥ 1; postcondition vpos(S, o) ∈ T with #vpos(S, o) = #o + 1; inverse of ord | introduced |
 | w_ord | definition | Ordinal displacement projection: w_ord = [w₂, ..., wₘ] for V-depth w with w₁ = 0; preconditions: #w ≥ 2, w₁ = 0; postconditions: w_ord ∈ T, #w_ord = #w − 1 ≥ 1, w > 0 ⟹ w_ord > 0 | introduced |
-| OrdinalAdditiveCompatibility | lemma | ord(p ⊕ w) = ord(p) ⊕ w_ord when w₁ = 0, #w = #p, w > 0, actionPoint(w) ≤ #p; proved at depth 2 | introduced |
+| OrdinalAdditiveCompatibility | lemma | ord(p ⊕ w) = ord(p) ⊕ w_ord when w₁ = 0, #w = #p, w > 0, actionPoint(w) ≤ #p; holds for all m ≥ 2 | introduced |
 | Contraction | operation | Remove span (p, w) from subspace S of document d; preconditions: p ∈ V_S(d), w > 0, #w = #p, w₁ = 0, #p = 2, containment (p₂ + w₂ − 1 ≤ N); postconditions: D-SHIFT, D-DOM; frame: D-L, D-CS, D-CD, D-I | introduced |
 | ThreeRegions | definition | L = {v ∈ V_S(d) : v < p}, X = {v ∈ V_S(d) : p ≤ v < r}, R = {v ∈ V_S(d) : v ≥ r}; partition of V_S(d) | introduced |
 | Q₃ | definition | Q₃ = {σ(v) : v ∈ R} — the set of shifted right-region positions in the post-state | introduced |
@@ -523,6 +529,7 @@ Q₃ = {[1,1], [1,2], [1,3]}.
 | S3-post | lemma | Post-state ran(M'(d)) ⊆ dom(Σ'.C) | introduced |
 | D-CTG-post | lemma | Post-state V_S(d) is contiguous | introduced |
 | D-MIN-post | lemma | Post-state min V_S(d) = [S, 1, ..., 1] when non-empty; vacuous when empty | introduced |
+| D-SEQ-post | lemma | When post-state V_S(d) non-empty, V_S(d) = {[S, k] : 1 ≤ k ≤ N − c} | introduced |
 | S8-depth-post | lemma | Post-state V-positions in subspace S share depth 2 | introduced |
 | S8a-post | lemma | Post-state V-positions are zero-free and positive | introduced |
 | S8-fin-post | lemma | Post-state dom(M'(d)) is finite | introduced |
