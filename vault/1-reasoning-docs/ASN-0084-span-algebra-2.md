@@ -154,7 +154,7 @@ The domain is dom(M'(d)) = dom(M(d)).
 
 The arrangement is: region β content starting at c₀ (clause R-S1), then middle content (clause R-S2), then region α content (clause R-S3). Everything outside [c₀, c₃) is unchanged (clause R-EXT). Positions in other subspaces, other documents, and the content store are all preserved.
 
-We must verify that the clauses cover [c₀, c₃) without overlap. The total width is w_β + w_μ + w_α. We need this to equal |[c₀, c₃)| = w_α + w_μ + w_β. Trivially: w_β + w_μ + w_α = w_α + w_μ + w_β. The three clause ranges are [c₀, c₀ + w_β), [c₀ + w_β, c₀ + w_β + w_μ), [c₀ + w_β + w_μ, c₀ + w_β + w_μ + w_α). By associativity of ordinal addition, the last position is c₀ + (w_β + w_μ + w_α) = c₀ + (w_α + w_μ + w_β). And c₀ + (w_α + w_μ + w_β) has ordinal ord(c₀) + w_α + w_μ + w_β = ord(c₃), so the three ranges tile [c₀, c₃) exactly.
+We must verify that the clauses cover [c₀, c₃) without overlap. The total width is w_β + w_μ + w_α. We need this to equal |[c₀, c₃)| = w_α + w_μ + w_β. Trivially: w_β + w_μ + w_α = w_α + w_μ + w_β. The three clause ranges are [c₀, c₀ + w_β), [c₀ + w_β, c₀ + w_β + w_μ), [c₀ + w_β + w_μ, c₀ + w_β + w_μ + w_α). By commutativity of natural-number addition, the last position is c₀ + (w_β + w_μ + w_α) = c₀ + (w_α + w_μ + w_β). And c₀ + (w_α + w_μ + w_β) has ordinal ord(c₀) + w_α + w_μ + w_β = ord(c₃), so the three ranges tile [c₀, c₃) exactly.
 
 
 ## Postcondition Well-Definedness
@@ -210,6 +210,8 @@ For (b): the right-hand sides reference M(d)(c₂ + j) for j < w_β (ordinals of
 
 Injectivity: within each case, the mapping is injective (the exterior is the identity; the α case maps distinct j to distinct c₀ + w_β + j; the β case maps distinct j to distinct c₀ + j). Across cases: the three image sets — V_S(d) \ [c₀, c₂), {c₀ + w_β + j : 0 ≤ j < w_α}, {c₀ + j : 0 ≤ j < w_β} — are pairwise disjoint (shown in R-PIV). Surjectivity: every position in dom(M'(d)) = dom(M(d)) is the image of some position under π (the three image sets cover V_S(d), also shown in R-PIV). ∎
 
+The pivot postcondition preserves dom(M(d)) (R-PIV), preserves C (R-FRAME-P(c)), and admits the bijection π satisfying M'(d)(π(v)) = M(d)(v) (R-PPERM); it therefore constitutes an arrangement rearrangement, and the invariant preservation established above applies.
+
 
 ## The 4-Cut Swap Permutation
 
@@ -233,6 +235,8 @@ For v = c₁ + j in μ (0 ≤ j < w_μ): π(v) = c₀ + w_β + j, and M'(d)(c₀
 For v = c₂ + j in β (0 ≤ j < w_β): π(v) = c₀ + j, and M'(d)(c₀ + j) = M(d)(c₂ + j) = M(d)(v) by R-S1.
 
 Injectivity: within each case, the mapping is injective (the exterior is the identity; the α case maps distinct j to distinct c₀ + w_β + w_μ + j; the μ case maps distinct j to distinct c₀ + w_β + j; the β case maps distinct j to distinct c₀ + j). Across cases: the four image sets — V_S(d) \ [c₀, c₃), {c₀ + w_β + w_μ + j : 0 ≤ j < w_α}, {c₀ + w_β + j : 0 ≤ j < w_μ}, {c₀ + j : 0 ≤ j < w_β} — are pairwise disjoint (shown in R-SWP). Surjectivity: every position in dom(M'(d)) = dom(M(d)) is the image of some position under π (the four image sets cover V_S(d), also shown in R-SWP). ∎
+
+The swap postcondition preserves dom(M(d)) (R-SWP), preserves C (R-FRAME-S(c)), and admits the bijection π satisfying M'(d)(π(v)) = M(d)(v) (R-SPERM); it therefore constitutes an arrangement rearrangement, and the invariant preservation established above applies.
 
 We observe the structural relationship between the two forms: the 4-cut postcondition formulas (R-S1, R-S2, R-S3) reduce to the 3-cut formulas (R-P1, R-P2) when w_μ is set to zero in the expressions — R-S2 vanishes, and R-S3 becomes R-P2. However, the preconditions prevent this degenerate case from arising: CS2 requires c₁ < c₂, so w_μ ≥ 1. The two forms are distinct primitives. The 3-cut pivot transposes two *adjacent* regions; the 4-cut swap transposes two regions separated by at least one middle position.
 
@@ -285,7 +289,7 @@ We recall from S8 (FiniteSpanDecomposition, ASN-0036) that the arrangement M(d) 
 
 **R-BLK — BlockDecompositionTransformation (LEMMA).** Let B = {b₁, ..., bₘ} be a block decomposition of M(d) satisfying B1–B3. Let the cut sequence C have cut positions c₀, ..., c_{n−1}. The rearranged arrangement M'(d) admits a block decomposition B' obtained by:
 
-*Phase 1: Split.* Process cut positions in index order (c₀, c₁, ..., c_{n−1}), maintaining the decomposition as it is progressively refined. For each cut position cᵢ, if cᵢ falls in the interior of some block bₖ = (vₖ, aₖ, nₖ) in the current decomposition — meaning cᵢ ∈ V(bₖ) and cᵢ ≠ vₖ — split bₖ at the offset c = ord(cᵢ) − ord(vₖ), producing (vₖ, aₖ, c) and (vₖ + c, aₖ + c, nₖ − c). The split preserves B1–B3: the two new blocks partition the V-extent of the original. CS2's strict ordering (c₀ < c₁ < ... < c_{n−1}) guarantees that each later cut falls either at a block boundary already created by an earlier split, or in the right-hand piece of an earlier split — so the process is well-defined. After all splits, no block straddles any cut position.
+*Phase 1: Split.* Process cut positions in index order (c₀, c₁, ..., c_{n−1}), maintaining the decomposition as it is progressively refined. For each cut position cᵢ, if cᵢ falls in the interior of some block bₖ = (vₖ, aₖ, nₖ) in the current decomposition — meaning cᵢ ∈ V(bₖ) and cᵢ ≠ vₖ — split bₖ at the offset c = ord(cᵢ) − ord(vₖ), producing (vₖ, aₖ, c) and (vₖ + c, aₖ + c, nₖ − c). The split preserves B1–B3: the two new blocks partition the V-extent of the original. Each cut position either coincides with a boundary in the current decomposition or falls interior to some block. When a later cut falls in a block already split by an earlier (strictly smaller) cut, it necessarily falls in the right-hand piece — CS2's strict ordering (c₀ < c₁ < ... < c_{n−1}) guarantees this. The process is well-defined because B1–B3 are maintained after each split. After all splits, no block straddles any cut position.
 
 *Phase 2: Classify.* Each block in the post-split decomposition lies entirely within one region (exterior left, α, μ if 4-cut, β, or exterior right), because no block crosses a cut boundary.
 
