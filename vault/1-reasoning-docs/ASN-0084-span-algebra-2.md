@@ -2,12 +2,12 @@
 
 *2026-04-10*
 
-This ASN extends ASN-0053 (Span Algebra) with properties characterizing the permutation structure of cut-point transposition and its effect on block decompositions. When a contiguous range of V-positions is partitioned by cut points and two regions exchange places, the resulting bijection has a uniform displacement structure determined by region widths alone. The block decomposition — a partition into contiguous V-to-I mapping spans (ASN-0058) — transforms by splitting at cuts, classifying into regions, and reassembling with per-region displacements. These properties extend span algebra by characterizing how contiguous intervals interact under the permutation class that cut-point transposition defines.
+This ASN extends ASN-0053 (Span Algebra) with properties characterizing the permutation structure of cut-point transposition and its effect on block decompositions. When a contiguous range of V-positions is partitioned by cut points and two regions exchange places, the resulting bijection has a uniform displacement structure determined by region widths alone. The block decomposition — the finite partition into correspondence runs (S8, ASN-0036) — transforms by splitting at cuts, classifying into regions, and reassembling with per-region displacements. These properties extend span algebra by characterizing how contiguous intervals interact under the permutation class that cut-point transposition defines.
 
 
 ## State and Vocabulary
 
-We work with system state Σ = (C, E, M, R) per ASN-0047. C is the content store (T ⇀ Val), E the entity set, M the arrangement function with M(d) : T ⇀ T for each document d, and R the provenance relation. The arrangement M(d) is the mutable layer.
+We work with the content store C : T ⇀ Val (Σ.C, ASN-0036) and the arrangement function M(d) : T ⇀ T for each document d (Σ.M(d), ASN-0036). The arrangement M(d) is the mutable layer; C is immutable (S0, ASN-0036).
 
 For a V-position v with subspace(v) = v₁ and #v = m, the *ordinal* is ord(v) = [v₂, ..., vₘ] — the tumbler obtained by stripping the subspace identifier. The reconstruction vpos(S, o) = [S, o₁, ..., oₖ] is its inverse.
 
@@ -15,9 +15,9 @@ We restrict to depth-2 V-positions (#v = 2, ordinal depth 1) throughout this ASN
 
 We recall D-CTG (VContiguity, ASN-0036): within each subspace, V-positions form a contiguous ordinal range with no gaps.
 
-In the state-transition framework of ASN-0047, arrangement reordering (K.μ~) admits a bijection π : dom(M(d)) → dom(M'(d)) such that M'(d)(π(v)) = M(d)(v) for all v ∈ dom(M(d)). The corollary is ran(M'(d)) = ran(M(d)) — the multiset of I-addresses is invariant. But K.μ~ admits *any* bijection. A rearrangement determined by cut points is a specific kind of K.μ~ — one where the regions to exchange are identified by a tuple of cut positions. The properties in this ASN characterize this specific permutation.
+An *arrangement rearrangement* is a state transition Σ → Σ' in which dom(M'(d)) = dom(M(d)), C' = C (S0, ASN-0036), and there exists a bijection π : dom(M(d)) → dom(M'(d)) such that M'(d)(π(v)) = M(d)(v) for all v ∈ dom(M(d)). The corollary is ran(M'(d)) = ran(M(d)) — the multiset of I-addresses is invariant. Any bijection qualifies; a rearrangement determined by cut points is one where the regions to exchange are identified by a tuple of cut positions. The properties in this ASN characterize this specific class of permutations.
 
-Notation: `c₀ + j` denotes j ordinal increments via TA5(c) (ASN-0034), and `c₀ + 0 = c₀` by the M-aux convention (ASN-0058).
+Notation: at depth 2, V-positions have the form [S, p]. We write `c₀ + j` for the V-position [S, ord(c₀) + j] — that is, j ordinal increments via TA5(c) (ASN-0034). By convention, `c₀ + 0 = c₀` (identity). Associativity `(c₀ + j) + k = c₀ + (j + k)` follows from natural-number addition at the ordinal level.
 
 
 ## Cut Points and the Region Partition
@@ -64,7 +64,7 @@ The following precondition and postcondition clauses define the rearrangement op
 
 **R-PRE — RearrangePrecondition.**
 
-(i) d ∈ E_doc (the document exists).
+(i) M(d) is well-defined (the document's arrangement exists).
 
 (ii) V_S(d) ≠ ∅ (the subspace is non-empty — one cannot rearrange nothing).
 
@@ -99,9 +99,17 @@ Three cuts produce two adjacent regions that exchange places. The operation is: 
 
 `M'(d)(c₀ + w_β + j) = M(d)(c₀ + j)`
 
-where `c₀ + j` and `c₁ + j` denote j ordinal increments via TA5(c) (ASN-0034), and `c₀ + 0 = c₀` by the M-aux convention (ASN-0058). The domain is dom(M'(d)) = dom(M(d)).
+The domain is dom(M'(d)) = dom(M(d)).
 
-In words: the first w_β positions of the affected range receive the content that was in β (clause R-P1). The next w_α positions receive the content that was in α (clause R-P2). Everything outside the affected range is unchanged (clause R-EXT).
+(R-FRAME-P) Frame conditions:
+
+(a) For v ∈ dom(M(d)) with subspace(v) ≠ S: M'(d)(v) = M(d)(v).
+
+(b) For all d' ≠ d: M'(d') = M(d').
+
+(c) C' = C (S0, ASN-0036).
+
+In words: the first w_β positions of the affected range receive the content that was in β (clause R-P1). The next w_α positions receive the content that was in α (clause R-P2). Everything outside the affected range is unchanged (clause R-EXT). Positions in other subspaces, other documents, and the content store are all preserved.
 
 
 ### 4-Cut Swap Postcondition
@@ -126,29 +134,58 @@ Four cuts produce two outer regions separated by a middle region. The semantics 
 
 `M'(d)(c₀ + w_β + w_μ + j) = M(d)(c₀ + j)`
 
-with dom(M'(d)) = dom(M(d)).
+The domain is dom(M'(d)) = dom(M(d)).
 
-The arrangement is: region β content starting at c₀ (clause R-S1), then middle content (clause R-S2), then region α content (clause R-S3). Everything outside [c₀, c₃) is unchanged (clause R-EXT).
+(R-FRAME-S) Frame conditions:
 
-We must verify that the clauses cover [c₀, c₃) without overlap. The total width is w_β + w_μ + w_α. We need this to equal |[c₀, c₃)| = w_α + w_μ + w_β. Trivially: w_β + w_μ + w_α = w_α + w_μ + w_β. The three clause ranges are [c₀, c₀ + w_β), [c₀ + w_β, c₀ + w_β + w_μ), [c₀ + w_β + w_μ, c₀ + w_β + w_μ + w_α). By M-aux associativity, the last position is c₀ + (w_β + w_μ + w_α) = c₀ + (w_α + w_μ + w_β). And c₀ + (w_α + w_μ + w_β) has ordinal ord(c₀) + w_α + w_μ + w_β = ord(c₃), so the three ranges tile [c₀, c₃) exactly.
+(a) For v ∈ dom(M(d)) with subspace(v) ≠ S: M'(d)(v) = M(d)(v).
+
+(b) For all d' ≠ d: M'(d') = M(d').
+
+(c) C' = C (S0, ASN-0036).
+
+The arrangement is: region β content starting at c₀ (clause R-S1), then middle content (clause R-S2), then region α content (clause R-S3). Everything outside [c₀, c₃) is unchanged (clause R-EXT). Positions in other subspaces, other documents, and the content store are all preserved.
+
+We must verify that the clauses cover [c₀, c₃) without overlap. The total width is w_β + w_μ + w_α. We need this to equal |[c₀, c₃)| = w_α + w_μ + w_β. Trivially: w_β + w_μ + w_α = w_α + w_μ + w_β. The three clause ranges are [c₀, c₀ + w_β), [c₀ + w_β, c₀ + w_β + w_μ), [c₀ + w_β + w_μ, c₀ + w_β + w_μ + w_α). By associativity of ordinal addition, the last position is c₀ + (w_β + w_μ + w_α) = c₀ + (w_α + w_μ + w_β). And c₀ + (w_α + w_μ + w_β) has ordinal ord(c₀) + w_α + w_μ + w_β = ord(c₃), so the three ranges tile [c₀, c₃) exactly.
 
 
 ## Postcondition Well-Definedness
 
-**R-PIV — PivotWellDefined (LEMMA, supporting).** The pivot postcondition defines a total function on V_S(d) (each position is assigned exactly one I-address).
+**R-PIV — PivotWellDefined (LEMMA, supporting).** The pivot postcondition defines a total function on dom(M(d)) (each position is assigned exactly one I-address).
 
-*Proof.* We must show: (a) every v ∈ V_S(d) falls under exactly one clause, and (b) the right-hand sides are well-defined.
+*Proof.* We must show: (a) every v ∈ dom(M(d)) falls under exactly one clause, and (b) the right-hand sides are well-defined.
 
-For (a): the positions addressed by R-EXT are those outside [c₀, c₂). The positions addressed by R-P1 are {c₀ + j : 0 ≤ j < w_β}. At depth 2, c₀ = [S, p] and c₀ + j = [S, p + j], so these positions have ordinals p, p + 1, ..., p + w_β − 1. By D-SEQ, these are distinct positions in V_S(d) (since R-PRE(iv) guarantees all ordinals from p to p + w_α + w_β − 1 are occupied). The positions addressed by R-P2 are {c₀ + w_β + j : 0 ≤ j < w_α} = {[S, p + w_β + j] : 0 ≤ j < w_α}, with ordinals p + w_β, ..., p + w_β + w_α − 1. By M-aux (ASN-0058), c₀ + (w_β + j) = (c₀ + w_β) + j, so these are well-defined.
+For v ∈ dom(M(d)) with subspace(v) ≠ S: R-FRAME-P(a) assigns M'(d)(v) = M(d)(v), and no other clause applies (R-EXT, R-P1, R-P2 operate only on subspace S positions).
+
+It remains to show that every v ∈ V_S(d) falls under exactly one of R-EXT, R-P1, R-P2.
+
+For (a): the positions addressed by R-EXT are those outside [c₀, c₂). The positions addressed by R-P1 are {c₀ + j : 0 ≤ j < w_β}. At depth 2, c₀ = [S, p] and c₀ + j = [S, p + j], so these positions have ordinals p, p + 1, ..., p + w_β − 1. By D-SEQ, these are distinct positions in V_S(d) (since R-PRE(iv) guarantees all ordinals from p to p + w_α + w_β − 1 are occupied). The positions addressed by R-P2 are {c₀ + w_β + j : 0 ≤ j < w_α} = {[S, p + w_β + j] : 0 ≤ j < w_α}, with ordinals p + w_β, ..., p + w_β + w_α − 1. By associativity of ordinal addition, c₀ + (w_β + j) = (c₀ + w_β) + j, so these are well-defined.
 
 The R-P1 ordinal range is [p, p + w_β). The R-P2 ordinal range is [p + w_β, p + w_β + w_α). Since w_β ≥ 1, these ranges are disjoint. Their union is [p, p + w_β + w_α) = [p, p + w_α + w_β). And p + w_α + w_β is the ordinal of c₂ (since |[c₀, c₂)| = w_α + w_β, and by D-SEQ the ordinals are consecutive). So the union of R-P1 and R-P2 covers exactly [c₀, c₂) ∩ V_S(d). Together with R-EXT (covering V_S(d) \ [c₀, c₂)), every position is covered exactly once.
 
 For (b): the right-hand sides reference M(d)(c₁ + j) for j < w_β and M(d)(c₀ + j) for j < w_α. By R-PRE(iv), all positions in [c₀, c₂) are in V_S(d) ⊆ dom(M(d)). The positions c₁ + j for j < w_β have ordinals in [ord(c₁), ord(c₂)) = the ordinals of β. The positions c₀ + j for j < w_α have ordinals in [ord(c₀), ord(c₁)) = the ordinals of α. Both sets are subsets of [c₀, c₂) ∩ V_S(d) ⊆ dom(M(d)). ∎
 
 
-**R-SWP — SwapWellDefined (LEMMA, supporting).** The swap postcondition defines a total function on V_S(d).
+**R-SWP — SwapWellDefined (LEMMA, supporting).** The swap postcondition defines a total function on dom(M(d)).
 
-*Proof.* Identical in structure to R-PIV. The three clause ranges partition [c₀, c₃) (shown above). The right-hand sides reference M(d) at positions in β (clause R-S1), μ (clause R-S2), and α (clause R-S3), all within dom(M(d)) by R-PRE(iv). ∎
+*Proof.* We must show: (a) every v ∈ dom(M(d)) falls under exactly one clause, and (b) the right-hand sides are well-defined.
+
+For v ∈ dom(M(d)) with subspace(v) ≠ S: R-FRAME-S(a) assigns M'(d)(v) = M(d)(v), and no other clause applies.
+
+It remains to show that every v ∈ V_S(d) falls under exactly one of R-EXT, R-S1, R-S2, R-S3.
+
+For (a): let p = ord(c₀). The positions addressed by each clause have the following ordinal ranges:
+
+- R-EXT: ordinals outside [p, p + w_α + w_μ + w_β), i.e., ord(v) < p or ord(v) ≥ p + w_α + w_μ + w_β.
+- R-S1: {c₀ + j : 0 ≤ j < w_β}, ordinals [p, p + w_β).
+- R-S2: {c₀ + w_β + j : 0 ≤ j < w_μ}, ordinals [p + w_β, p + w_β + w_μ). By associativity, c₀ + (w_β + j) = (c₀ + w_β) + j, so these are well-defined.
+- R-S3: {c₀ + w_β + w_μ + j : 0 ≤ j < w_α}, ordinals [p + w_β + w_μ, p + w_β + w_μ + w_α). Similarly well-defined by associativity.
+
+Pairwise disjointness: the four ordinal ranges are [p, p + w_β), [p + w_β, p + w_β + w_μ), [p + w_β + w_μ, p + w_β + w_μ + w_α), and the exterior. Since w_β ≥ 1 and w_μ ≥ 1 (CS2 forces c₁ < c₂, so w_μ ≥ 1) and w_α ≥ 1, the half-open intervals are non-empty and their left endpoints are strictly increasing: p < p + w_β < p + w_β + w_μ < p + w_β + w_μ + w_α. Hence no two intervals overlap, and none overlaps with the exterior.
+
+Exhaustiveness: the union of R-S1, R-S2, R-S3 covers ordinals [p, p + w_β + w_μ + w_α). And p + w_β + w_μ + w_α = p + w_α + w_μ + w_β = ord(c₃) (since |[c₀, c₃)| = w_α + w_μ + w_β and ordinals are consecutive by D-SEQ). So the union of all four clauses covers V_S(d).
+
+For (b): the right-hand sides reference M(d)(c₂ + j) for j < w_β (ordinals of β), M(d)(c₁ + j) for j < w_μ (ordinals of μ), and M(d)(c₀ + j) for j < w_α (ordinals of α). All three sets are subsets of [c₀, c₃) ∩ V_S(d) ⊆ dom(M(d)) by R-PRE(iv). ∎
 
 
 ## The 3-Cut Pivot Permutation
@@ -224,26 +261,52 @@ The displacement formulation makes it clear that every position in the affected 
 
 ## Block Decomposition Transformation
 
-**R-BLK — BlockDecompositionTransformation (LEMMA).** Let B = {β₁, ..., βₘ} be a block decomposition of M(d) satisfying B1–B3 (ASN-0058). Let the cut sequence C have cut positions c₀, ..., c_{n−1}. The rearranged arrangement M'(d) admits a block decomposition B' obtained by:
+We recall from S8 (FiniteSpanDecomposition, ASN-0036) that the arrangement M(d) admits a finite decomposition into correspondence runs. We use the following vocabulary for this section:
 
-*Phase 1: Split.* For each cut position cᵢ, if cᵢ falls in the interior of some block βₖ = (vₖ, aₖ, nₖ) — meaning cᵢ ∈ V(βₖ) and cᵢ ≠ vₖ — split βₖ at the point c = ord(cᵢ) − ord(vₖ) via M4 (SplitDefinition, ASN-0058). This produces two blocks: (vₖ, aₖ, c) and (vₖ + c, aₖ + c, nₖ − c). By M5 (SplitPartition) and M6f (SplitFrame), the resulting decomposition is equivalent to B. After all splits, no block straddles any cut position.
+**Block.** A *block* is a correspondence run (v, a, n) with n ≥ 1, meaning M(d)(v + k) = a + k for all 0 ≤ k < n. A *block decomposition* of M(d) is a finite set B = {β₁, ..., βₘ} of blocks satisfying:
+
+(B1) *Coverage:* every v ∈ dom(M(d)) belongs to exactly one block's V-extent.
+
+(B2) *Disjointness:* the V-extents of distinct blocks are pairwise disjoint.
+
+(B3) *Consistency:* for each block (vⱼ, aⱼ, nⱼ) and 0 ≤ k < nⱼ: M(d)(vⱼ + k) = aⱼ + k.
+
+**Split.** Given a block β = (v, a, n) and an interior offset c with 1 ≤ c < n, the *split* at c produces two blocks: (v, a, c) and (v + c, a + c, n − c). The two blocks are V-disjoint (ordinal ranges [ord(v), ord(v) + c) and [ord(v) + c, ord(v) + n)), their V-extents partition β's V-extent, and both satisfy B3 (the correspondence relation restricts to each sub-range).
+
+**Merge.** Two blocks (v₁, a₁, n₁) and (v₂, a₂, n₂) are *mergeable* when v₂ = v₁ + n₁ (V-adjacent) and a₂ = a₁ + n₁ (I-adjacent). The merged block is (v₁, a₁, n₁ + n₂).
+
+**R-BLK — BlockDecompositionTransformation (LEMMA).** Let B = {β₁, ..., βₘ} be a block decomposition of M(d) satisfying B1–B3. Let the cut sequence C have cut positions c₀, ..., c_{n−1}. The rearranged arrangement M'(d) admits a block decomposition B' obtained by:
+
+*Phase 1: Split.* Process cut positions in index order (c₀, c₁, ..., c_{n−1}), maintaining the decomposition as it is progressively refined. For each cut position cᵢ, if cᵢ falls in the interior of some block βₖ = (vₖ, aₖ, nₖ) in the current decomposition — meaning cᵢ ∈ V(βₖ) and cᵢ ≠ vₖ — split βₖ at the offset c = ord(cᵢ) − ord(vₖ), producing (vₖ, aₖ, c) and (vₖ + c, aₖ + c, nₖ − c). The split preserves B1–B3: the two new blocks partition the V-extent of the original. CS2's strict ordering (c₀ < c₁ < ... < c_{n−1}) guarantees that each later cut falls either at a block boundary already created by an earlier split, or in the right-hand piece of an earlier split — so the process is well-defined. After all splits, no block straddles any cut position.
 
 *Phase 2: Classify.* Each block in the post-split decomposition lies entirely within one region (exterior left, α, μ if 4-cut, β, or exterior right), because no block crosses a cut boundary.
 
 *Phase 3: Reassemble.* Apply the permutation to each block's V-start:
 
 - Exterior blocks: unchanged.
-- α blocks: β_k = (vₖ, aₖ, nₖ) becomes (π(vₖ), aₖ, nₖ) — the V-start shifts by the α displacement, the I-start and width are preserved.
+- α blocks: (vₖ, aₖ, nₖ) becomes (π(vₖ), aₖ, nₖ) — the V-start shifts by the α displacement, the I-start and width are preserved.
 - β blocks: similarly, V-start shifts by the β displacement.
 - μ blocks (4-cut only): V-start shifts by the μ displacement.
 
-The I-start and width of each block are preserved because REARRANGE modifies no I-addresses and the displacement is uniform within each region (all positions in a region shift by the same amount). The resulting blocks satisfy B3 (Consistency): for each block j, the reassembled block is (π(vⱼ), aⱼ, nⱼ), and for each offset k with 0 ≤ k < nⱼ: M'(d)(π(vⱼ) + k) = M'(d)(π(vⱼ + k)) = M(d)(vⱼ + k) = aⱼ + k. The second equality holds because π(vⱼ + k) = π(vⱼ) + k — the uniform displacement means ordinal increment commutes with the permutation within each region.
+The I-start and width of each block are preserved because the rearrangement modifies no I-addresses and the displacement is uniform within each region (all positions in a region shift by the same amount).
 
-*Proof (commutativity).* For v = vⱼ + k in region α (3-cut case): π(v) = v + w_β (adding w_β ordinal positions). And π(vⱼ) + k = (vⱼ + w_β) + k = vⱼ + (w_β + k) = (vⱼ + k) + w_β = v + w_β = π(v), using M-aux and commutativity of natural-number addition at the ordinal level. The argument is identical for β, μ, and exterior regions. ∎
+*Contiguity of reassembled blocks.* Within each region, π applies a uniform ordinal displacement. After Phase 1, every block lies entirely in a single region, so for each block (vⱼ, aⱼ, nⱼ) and 0 ≤ k < nⱼ, positions vⱼ and vⱼ + k are in the same region and receive the same displacement. By the commutativity π(vⱼ + k) = π(vⱼ) + k (shown below), consecutive V-positions in the original block map to consecutive V-positions, so each reassembled block (π(vⱼ), aⱼ, nⱼ) occupies a contiguous V-position range and is therefore a valid block.
 
-Coverage (B1) and disjointness (B2) follow from π being a bijection: π maps the V-extents of the original blocks to pairwise-disjoint sets covering dom(M'(d)).
+The resulting blocks satisfy B3 (Consistency): for each reassembled block (π(vⱼ), aⱼ, nⱼ) and 0 ≤ k < nⱼ: M'(d)(π(vⱼ) + k) = M'(d)(π(vⱼ + k)) = M(d)(vⱼ + k) = aⱼ + k. The second equality uses the permutation definition M'(d)(π(v)) = M(d)(v); the first uses the commutativity π(vⱼ + k) = π(vⱼ) + k.
 
-The decomposition B' is valid but not necessarily maximally merged. After rearrangement, blocks that were in different regions may become V-adjacent and I-adjacent. For example, if the last block of β (now placed at the end of the β region in its new position) happens to be I-adjacent with the first block of the following region, M7 (MergeCondition, ASN-0058) is satisfied and the two blocks could be merged. The maximally merged decomposition (M12) may therefore have fewer blocks than B'.
+*Proof (commutativity).* The premise is that after Phase 1, every block lies in a single region, so for each block (vⱼ, aⱼ, nⱼ) and 0 ≤ k < nⱼ, positions vⱼ and vⱼ + k are in the same region and receive the same displacement formula.
+
+For v = vⱼ + k in region α (3-cut case): π(v) = v + w_β (adding w_β ordinal positions). And π(vⱼ) + k = (vⱼ + w_β) + k = vⱼ + (w_β + k) = (vⱼ + k) + w_β = v + w_β = π(v), using associativity and commutativity of natural-number addition at the ordinal level.
+
+For v = vⱼ + k in region β (3-cut case): π(v) = c₀ + (j + k) where v = c₁ + (j + k) for some j. And π(vⱼ) + k = (c₀ + j) + k = c₀ + (j + k) = π(v), by associativity.
+
+For exterior v: π(v) = v, and π(vⱼ) + k = vⱼ + k = v = π(v) trivially.
+
+The 4-cut μ case follows identically: π(v) = v + (w_β − w_α), and π(vⱼ) + k = (vⱼ + (w_β − w_α)) + k = (vⱼ + k) + (w_β − w_α) = π(v). ∎
+
+Coverage (B1) and disjointness (B2): π is a bijection on dom(M(d)), so the V-extents of the reassembled blocks are pairwise disjoint (from B2 of the pre-reassembly decomposition and injectivity of π) and cover dom(M'(d)) = dom(M(d)) (from B1 and surjectivity of π).
+
+The decomposition B' is valid but not necessarily maximally merged. After rearrangement, blocks that were in different regions may become V-adjacent and I-adjacent, satisfying the merge condition. The maximally merged decomposition may therefore have fewer blocks than B'.
 
 
 ## Worked Example: 3-Cut Pivot on a 5-Position Document
@@ -262,7 +325,7 @@ Content A–C originates from document 3.0.1 (origin 3.0.1); D–E from document
 
 We apply a 3-cut pivot with C = ([1,2], [1,4], [1,5]): c₀ = [1,2], c₁ = [1,4], c₂ = [1,5]. The affected range is [c₀, c₂) = {[1,2], [1,3], [1,4]}. Region α = {[1,2], [1,3]} (w_α = 2), region β = {[1,4]} (w_β = 1).
 
-**R-PRE verification.** (i) d ∈ E_doc. (ii) V_S(d) ≠ ∅. (iii) CS1: n = 3; CS2: [1,2] < [1,4] < [1,5]; CS3: all subspace 1; CS4: all depth 2. (iv) All positions in [[1,2], [1,5]) are in V_S(d). (v) w_α = 2 ≥ 1, w_β = 1 ≥ 1. (vi) All ordinals positive. ✓
+**R-PRE verification.** (i) M(d) well-defined. (ii) V_S(d) ≠ ∅. (iii) CS1: n = 3; CS2: [1,2] < [1,4] < [1,5]; CS3: all subspace 1; CS4: all depth 2. (iv) All positions in [[1,2], [1,5]) are in V_S(d). (v) w_α = 2 ≥ 1, w_β = 1 ≥ 1. (vi) All ordinals positive. ✓
 
 **Applying the postconditions.** We compute M'(d) position by position:
 
@@ -286,7 +349,7 @@ M'(d)([1,5]) = E     (exterior, unchanged)
 
 **R-PPERM verification.** The permutation π: π([1,1]) = [1,1] (exterior), π([1,2]) = [1,3] (α: c₀ + 0 → c₀ + w_β + 0 = [1,3]), π([1,3]) = [1,4] (α: c₀ + 1 → c₀ + w_β + 1 = [1,4]), π([1,4]) = [1,2] (β: c₁ + 0 → c₀ + 0 = [1,2]), π([1,5]) = [1,5] (exterior). We check: M'(d)(π([1,2])) = M'(d)([1,3]) = B = M(d)([1,2]) ✓. M'(d)(π([1,4])) = M'(d)([1,2]) = D = M(d)([1,4]) ✓.
 
-**Block decomposition after rearrangement.** The new canonical decomposition has four blocks: ([1,1], A, 1), ([1,2], D, 1), ([1,3], B, 2), ([1,5], E, 1). Block ([1,3], B, 2) is valid because B = 3.0.1.0.1.2 and C = 3.0.1.0.1.3 = B + 1. Block ([1,5], E, 1) is exterior, unchanged by R-EXT. Note that D = 5.0.2.0.1.1 cannot merge with A = 3.0.1.0.1.1 (different origins, per M16) nor with B = 3.0.1.0.1.2 (not I-adjacent: D + 1 ≠ B). Block ([1,3], B, 2) cannot merge with ([1,5], E, 1): C + 1 = 3.0.1.0.1.4 ≠ E = 5.0.2.0.1.2 (different origins). The cut at [1,2] (c₀, interior to β₁ at offset 1) split the original block β₁ into ([1,1], A, 1) and ([1,2], B, 2), and the rearrangement inserted the single-element block for D between them.
+**Block decomposition after rearrangement.** The new canonical decomposition has four blocks: ([1,1], A, 1), ([1,2], D, 1), ([1,3], B, 2), ([1,5], E, 1). Block ([1,3], B, 2) is valid because B = 3.0.1.0.1.2 and C = 3.0.1.0.1.3 = B + 1. Block ([1,5], E, 1) is exterior, unchanged by R-EXT. Note that D = 5.0.2.0.1.1 cannot merge with A = 3.0.1.0.1.1 (different origins — origin(D) = 5.0.2 ≠ 3.0.1 = origin(A), so I-adjacency fails) nor with B = 3.0.1.0.1.2 (not I-adjacent: D + 1 ≠ B). Block ([1,3], B, 2) cannot merge with ([1,5], E, 1): C + 1 = 3.0.1.0.1.4 ≠ E = 5.0.2.0.1.2 (different origins). The cut at [1,2] (c₀, interior to β₁ at offset 1) split the original block β₁ into ([1,1], A, 1) and ([1,2], B, 2), and the rearrangement inserted the single-element block for D between them.
 
 
 ## Worked Example: 4-Cut Swap on an 8-Position Document
@@ -308,7 +371,7 @@ Content A–C originates from document 3.0.1; D from document 7.0.1; E–G from 
 
 We apply a 4-cut swap with C = ([1,2], [1,4], [1,5], [1,8]): c₀ = [1,2], c₁ = [1,4], c₂ = [1,5], c₃ = [1,8]. The affected range is [c₀, c₃) = {[1,2], ..., [1,7]}. Region α = {[1,2], [1,3]} (w_α = 2), middle μ = {[1,4]} (w_μ = 1), region β = {[1,5], [1,6], [1,7]} (w_β = 3). Since w_α = 2 ≠ w_β = 3, the middle displacement w_β − w_α = 1 is nonzero.
 
-**R-PRE verification.** (i) d ∈ E_doc. (ii) V_S(d) ≠ ∅. (iii) CS1: n = 4; CS2: [1,2] < [1,4] < [1,5] < [1,8]; CS3: all subspace 1; CS4: all depth 2. (iv) All positions in [[1,2], [1,8]) are in V_S(d). (v) w_α = 2 ≥ 1, w_β = 3 ≥ 1. (vi) All ordinals positive. ✓
+**R-PRE verification.** (i) M(d) well-defined. (ii) V_S(d) ≠ ∅. (iii) CS1: n = 4; CS2: [1,2] < [1,4] < [1,5] < [1,8]; CS3: all subspace 1; CS4: all depth 2. (iv) All positions in [[1,2], [1,8]) are in V_S(d). (v) w_α = 2 ≥ 1, w_β = 3 ≥ 1. (vi) All ordinals positive. ✓
 
 **Applying the postconditions.** We compute M'(d) position by position:
 
@@ -377,10 +440,11 @@ Sorted by V-start: {([1,1], A, 1), ([1,2], E, 3), ([1,5], D, 1), ([1,6], B, 2), 
 
 | Label | Type | Statement | Status |
 |-------|------|-----------|--------|
-| R-PIV | LEMMA | Pivot postcondition is a total function on V_S(d) | supporting |
-| R-SWP | LEMMA | Swap postcondition is a total function on V_S(d) | supporting |
+| R-PIV | LEMMA | Pivot postcondition is a total function on dom(M(d)) | supporting |
+| R-SWP | LEMMA | Swap postcondition is a total function on dom(M(d)) | supporting |
 | R-PPERM | LEMMA | Bijection π for 3-cut pivot: α shifts forward by w_β, β shifts backward by w_α | introduced |
 | R-SPERM | LEMMA | Bijection π for 4-cut swap: α shifts forward by w_β + w_μ, μ shifts by w_β − w_α, β shifts backward by w_α + w_μ | introduced |
+| R-FRAME | FRAME | Other subspaces, other documents, and content store are preserved | introduced |
 | R-BLK | LEMMA | Block decomposition transforms by split-at-cuts then displace-per-region, preserving B1–B3 | introduced |
 
 
