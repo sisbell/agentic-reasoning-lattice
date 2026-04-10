@@ -313,6 +313,8 @@ Both pieces satisfy B3. For the first piece (v, a, c), we need A(v + k) = a + k 
 
 **Merge.** Two blocks (v₁, a₁, n₁) and (v₂, a₂, n₂) are *mergeable* when v₂ = v₁ + n₁ (V-adjacent) and a₂ = a₁ + n₁ (I-adjacent). The merged block is (v₁, a₁, n₁ + n₂). We verify B3 for the merged block — that A(v₁ + k) = a₁ + k for 0 ≤ k < n₁ + n₂ — by two cases. For 0 ≤ k < n₁: this is B3 of the first block directly. For n₁ ≤ k < n₁ + n₂: write k = n₁ + k' with 0 ≤ k' < n₂. When k' ≥ 1, TS3 gives v₁ + k = v₁ + (n₁ + k') = (v₁ + n₁) + k' = v₂ + k'; when k' = 0, v₁ + n₁ = v₂ by the adjacency condition. By B3 of the second block, A(v₂ + k') = a₂ + k'. The same associativity/identity argument gives a₁ + k = a₁ + (n₁ + k') = (a₁ + n₁) + k' = a₂ + k', so A(v₁ + k) = a₂ + k' = a₁ + k. As with Split, this proof is arrangement-parametric: it depends only on B3 of the two constituent blocks and TS3, with no property specific to M(d). In particular, when R-BLK applies Merge to the post-rearrangement arrangement M'(d), the B3 verification holds because the reassembled blocks already satisfy B3 for M'(d) (established in Phase 3).
 
+**Canonical block decomposition.** The *canonical block decomposition* of M(d) is the unique decomposition into *maximal* blocks — blocks that cannot be extended by merging with a V-adjacent, I-adjacent neighbor. Uniqueness follows from M(d) being a function (S2): for any v ∈ dom(M(d)), there is exactly one maximal block containing v, determined by extending forward from v while M(d)(v + k) = M(d)(v) + k holds, and extending backward symmetrically. Two maximal blocks that share any V-position must be identical (both determined by extension from that shared position), so the maximal blocks partition dom(M(d)) uniquely. The canonical decomposition is the result of exhaustively merging all mergeable pairs in any valid decomposition; the result is independent of merge order.
+
 **R-COMM — PermutationShiftCommutativity (LEMMA).** Let π be a cut-point permutation (R-PPERM or R-SPERM) for a cut sequence C satisfying R-PRE. For any V-position v and offset k ≥ 0 such that v and v + k lie in the same region (exterior, α, μ, or β):
 
 `π(v + k) = π(v) + k`
@@ -500,6 +502,7 @@ Sorted by V-start: {([1,1], A, 1), ([1,2], E, 3), ([1,5], D, 1), ([1,6], B, 2), 
 | BlockDecomposition | DEF | Finite set of blocks satisfying B1 (coverage), B2 (disjointness), B3 (consistency) | introduced |
 | Split | DEF | Block (v, a, n) at interior offset c yields (v, a, c) and (v + c, a + c, n − c) | introduced |
 | Merge | DEF | V-adjacent and I-adjacent blocks (v₁, a₁, n₁), (v₂, a₂, n₂) combine to (v₁, a₁, n₁ + n₂) | introduced |
+| CanonicalBlockDecomposition | DEF | Unique decomposition into maximal blocks — no two V-adjacent, I-adjacent blocks remain unmerged; uniqueness from S2 | introduced |
 | R-PIV | LEMMA | Pivot postcondition is a total function on dom(M(d)) | supporting |
 | R-SWP | LEMMA | Swap postcondition is a total function on dom(M(d)) | supporting |
 | R-PPERM | LEMMA | Bijection π for 3-cut pivot: α shifts forward by w_β, β shifts backward by w_α | introduced |
