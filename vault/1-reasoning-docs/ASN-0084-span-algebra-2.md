@@ -270,7 +270,15 @@ We observe a symmetry in the 3-cut case: the forward displacement of α equals t
 
 In the 4-cut case, the symmetry is more subtle. The forward displacement of α is w_β + w_μ, while the backward displacement of β is w_α + w_μ. These are equal only when w_α = w_β. The middle compensates: w_μ · (w_β − w_α) absorbs the imbalance. The total displacement over the affected range is w_α · (w_β + w_μ) + w_μ · (w_β − w_α) + w_β · (−(w_α + w_μ)) = w_α · w_β + w_α · w_μ + w_μ · w_β − w_μ · w_α − w_β · w_α − w_β · w_μ = 0.
 
-The displacement formulation makes it clear that every position in the affected range shifts by a value determined solely by the region widths — the displacement does not depend on the position's location within its region. All positions in α shift by the same amount; all positions in β shift by the same amount.
+The displacement formulation makes it clear that every position in the affected range shifts by a value determined solely by the region widths — the displacement does not depend on the position's location within its region. All positions in α shift by the same amount; all positions in β shift by the same amount. We state this formally:
+
+**R-DISP — DisplacementUniformity (LEMMA).** Let C be a cut sequence satisfying R-PRE, and let π be the permutation from R-PPERM (3-cut) or R-SPERM (4-cut). For all v₁, v₂ in the same region (exterior, α, μ, or β):
+
+`Δ(v₁) = Δ(v₂)`
+
+with the common value given by: for 3-cut, Δ = +w_β on α, Δ = −w_α on β, Δ = 0 on exterior; for 4-cut, Δ = +(w_β + w_μ) on α, Δ = +(w_β − w_α) on μ, Δ = −(w_α + w_μ) on β, Δ = 0 on exterior.
+
+*Proof.* The result follows directly from the explicit R-PPERM and R-SPERM formulas, in which the offset j within a region cancels. For two positions v₁ = c₀ + j₁ and v₂ = c₀ + j₂ both in α (3-cut): Δ(v₁) = ord(π(v₁)) − ord(v₁) = ord(c₀ + w_β + j₁) − ord(c₀ + j₁) = (ord(c₀) + w_β + j₁) − (ord(c₀) + j₁) = w_β = Δ(v₂). The remaining regions follow identically — in each case, the j terms cancel and the common value depends only on region widths. ∎
 
 
 ## Block Decomposition Transformation
@@ -287,9 +295,9 @@ We recall from S8 (FiniteSpanDecomposition, ASN-0036) that the arrangement M(d) 
 
 **Split.** Given a block b = (v, a, n) and an interior offset c with 1 ≤ c < n, the *split* at c produces two blocks: (v, a, c) and (v + c, a + c, n − c). The two blocks are V-disjoint (ordinal ranges [ord(v), ord(v) + c) and [ord(v) + c, ord(v) + n)), and their V-extents partition b's V-extent.
 
-Both pieces satisfy B3. For the first piece (v, a, c), we need M(d)(v + k) = a + k for 0 ≤ k < c; this holds by restricting the original B3 to the subrange k < c < n. For the second piece (v + c, a + c, n − c), we need M(d)((v + c) + k) = (a + c) + k for 0 ≤ k < n − c. When k ≥ 1, associativity (TS3) gives (v + c) + k = v + (c + k); when k = 0, (v + c) + 0 = v + c by the identity convention. In both cases, c + k < n, so the original B3 yields M(d)(v + (c + k)) = a + (c + k). The same associativity/identity argument gives (a + c) + k = a + (c + k), completing the derivation: M(d)((v + c) + k) = a + (c + k) = (a + c) + k.
+Both pieces satisfy B3. For the first piece (v, a, c), we need A(v + k) = a + k for 0 ≤ k < c; this holds by restricting the original B3 to the subrange k < c < n. For the second piece (v + c, a + c, n − c), we need A((v + c) + k) = (a + c) + k for 0 ≤ k < n − c. When k ≥ 1, associativity (TS3) gives (v + c) + k = v + (c + k); when k = 0, (v + c) + 0 = v + c by the identity convention. In both cases, c + k < n, so the original B3 yields A(v + (c + k)) = a + (c + k). The same associativity/identity argument gives (a + c) + k = a + (c + k), completing the derivation: A((v + c) + k) = a + (c + k) = (a + c) + k. This proof is arrangement-parametric: it uses only B3 of the original block and TS3 (shift composition), with no property specific to M(d). The same reasoning applies to any arrangement A under which the block (v, a, n) satisfies B3.
 
-**Merge.** Two blocks (v₁, a₁, n₁) and (v₂, a₂, n₂) are *mergeable* when v₂ = v₁ + n₁ (V-adjacent) and a₂ = a₁ + n₁ (I-adjacent). The merged block is (v₁, a₁, n₁ + n₂). We verify B3 for the merged block — that M(d)(v₁ + k) = a₁ + k for 0 ≤ k < n₁ + n₂ — by two cases. For 0 ≤ k < n₁: this is B3 of the first block directly. For n₁ ≤ k < n₁ + n₂: write k = n₁ + k' with 0 ≤ k' < n₂. When k' ≥ 1, TS3 gives v₁ + k = v₁ + (n₁ + k') = (v₁ + n₁) + k' = v₂ + k'; when k' = 0, v₁ + n₁ = v₂ by the adjacency condition. By B3 of the second block, M(d)(v₂ + k') = a₂ + k'. The same associativity/identity argument gives a₁ + k = a₁ + (n₁ + k') = (a₁ + n₁) + k' = a₂ + k', so M(d)(v₁ + k) = a₂ + k' = a₁ + k.
+**Merge.** Two blocks (v₁, a₁, n₁) and (v₂, a₂, n₂) are *mergeable* when v₂ = v₁ + n₁ (V-adjacent) and a₂ = a₁ + n₁ (I-adjacent). The merged block is (v₁, a₁, n₁ + n₂). We verify B3 for the merged block — that A(v₁ + k) = a₁ + k for 0 ≤ k < n₁ + n₂ — by two cases. For 0 ≤ k < n₁: this is B3 of the first block directly. For n₁ ≤ k < n₁ + n₂: write k = n₁ + k' with 0 ≤ k' < n₂. When k' ≥ 1, TS3 gives v₁ + k = v₁ + (n₁ + k') = (v₁ + n₁) + k' = v₂ + k'; when k' = 0, v₁ + n₁ = v₂ by the adjacency condition. By B3 of the second block, A(v₂ + k') = a₂ + k'. The same associativity/identity argument gives a₁ + k = a₁ + (n₁ + k') = (a₁ + n₁) + k' = a₂ + k', so A(v₁ + k) = a₂ + k' = a₁ + k. As with Split, this proof is arrangement-parametric: it depends only on B3 of the two constituent blocks and TS3, with no property specific to M(d). In particular, when R-BLK applies Merge to the post-rearrangement arrangement M'(d), the B3 verification holds because the reassembled blocks already satisfy B3 for M'(d) (established in Phase 3).
 
 **R-COMM — PermutationShiftCommutativity (LEMMA).** Let π be a cut-point permutation (R-PPERM or R-SPERM) for a cut sequence C satisfying R-PRE. For any V-position v and offset k ≥ 0 such that v and v + k lie in the same region (exterior, α, μ, or β):
 
@@ -473,7 +481,7 @@ Sorted by V-start: {([1,1], A, 1), ([1,2], E, 3), ([1,5], D, 1), ([1,6], B, 2), 
 | SwapPostcondition | DEF | 4-cut rearrangement: β at c₀, then μ, then α, exterior unchanged (R-EXT, R-S1, R-S2, R-S3) | introduced |
 | ArrangementRearrangement | DEF | State transition with dom(M'(d)) = dom(M(d)), C' = C, M'(d') = M(d') for d' ≠ d, and bijection π with M'(d)(π(v)) = M(d)(v) | introduced |
 | PermutationDisplacement | DEF | Δ(v) = ord(π(v)) − ord(v) | introduced |
-| PermutationDisplacement | LEMMA | Δ(v) is uniform within each region, determined by region widths alone | introduced |
+| R-DISP | LEMMA | For all v₁, v₂ in the same region, Δ(v₁) = Δ(v₂); common value determined by region widths alone | introduced |
 | Block | DEF | Correspondence run (v, a, n) with M(d)(v + k) = a + k for 0 ≤ k < n | introduced |
 | BlockDecomposition | DEF | Finite set of blocks satisfying B1 (coverage), B2 (disjointness), B3 (consistency) | introduced |
 | Split | DEF | Block (v, a, n) at interior offset c yields (v, a, c) and (v + c, a + c, n − c) | introduced |
