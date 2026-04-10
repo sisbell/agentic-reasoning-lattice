@@ -9,9 +9,15 @@ This ASN extends the span algebra (ASN-0053) with ordinal extraction functions a
 
 The following ASN-0036 properties are cited throughout. We use short labels for readability; each references the canonical statement in ASN-0036.
 
+- **S0** (ContentImmutability): for every state transition, `a ∈ dom(Σ.C) ⟹ a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a)`.
+- **S2** (ArrangementFunctionality): each V-position in dom(M(d)) has a uniquely determined I-address.
+- **S3** (ReferentialIntegrity): `ran(M(d)) ⊆ dom(Σ.C)`.
+- **S8-fin** (FiniteArrangement): for each document d, dom(M(d)) is finite.
 - **S8-depth** (FixedDepthVPositions): all V-positions within a subspace share the same tumbler depth — `(A d, v₁, v₂ : v₁ ∈ dom(M(d)) ∧ v₂ ∈ dom(M(d)) ∧ (v₁)₁ = (v₂)₁ : #v₁ = #v₂)`.
 - **S8a** (VPositionWellFormedness): V-positions are zero-free and positive — `(A v ∈ dom(M(d)) :: zeros(v) = 0 ∧ v₁ ≥ 1 ∧ v > 0)`. In particular, every component of every V-position is strictly positive.
 - **D-CTG** (VContiguity): within subspace S, V_S(d) is order-contiguous — `(A d, S, u, q : u ∈ V_S(d) ∧ q ∈ V_S(d) ∧ u < q : (A v : subspace(v) = S ∧ #v = #u ∧ u < v < q : v ∈ V_S(d)))`.
+- **D-SEQ** (SequentialPositions): when V_S(d) is non-empty with common depth m ≥ 2, there exists n ≥ 1 such that V_S(d) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n}.
+- **D-MIN** (VMinimumPosition): when V_S(d) is non-empty, min(V_S(d)) = [S, 1, ..., 1].
 
 
 ## Ordinal Extraction
@@ -42,7 +48,11 @@ These are inverses: ord(vpos(S, o)) = o and vpos(subspace(v), ord(v)) = v.
 
 `w_ord = [w₂, ..., wₘ]`
 
-of depth m − 1. At the restricted depth m = 2 (see D-SHIFT below), w = [0, c] for positive integer c, and w_ord = [c].
+of depth m − 1.
+
+*Postcondition:* When w > 0 and w₁ = 0, w_ord > 0. (Since w > 0 and the first component is zero, at least one of w₂, ..., wₘ is nonzero, so w_ord is positive.)
+
+At the restricted depth m = 2 (see D-SHIFT below), w = [0, c] for positive integer c, and w_ord = [c] with [c] > 0.
 
 
 ## Contraction Setup
@@ -156,9 +166,9 @@ We verify that the shift σ defined by D-SHIFT is well-behaved: order-preserving
 
 *Proof of (a).* We need (ord(p) ⊕ w_ord) ⊖ w_ord = ord(p). At our restricted depth #p = 2: ord(p) = [p₂] and w_ord = [c] for positive integer c. Then ord(p) ⊕ w_ord = [p₂ + c] by TumblerAdd. And [p₂ + c] ⊖ [c]: the two sequences have equal length 1, divergence at position 1 where (p₂ + c) > c, giving r₁ = (p₂ + c) − c = p₂. Result: [p₂] = ord(p). ✓
 
-This applies TA4 (PartialInverse, ASN-0034): (a ⊕ w) ⊖ w = a when the action point k = #a, #w = k, and (A i : 1 ≤ i < k : aᵢ = 0). For depth-1 ordinals (k = 1), the zero-prefix condition is vacuously satisfied.
+This applies TA4 (PartialInverse, ASN-0034): (a ⊕ w) ⊖ w = a when w > 0, the action point k = #a, #w = k, and (A i : 1 ≤ i < k : aᵢ = 0). Here a = ord(p) and w = w_ord. The positivity w_ord > 0 holds by the OrdinalDisplacementProjection postcondition (w > 0 and w₁ = 0 imply w_ord > 0). For depth-1 ordinals (k = 1), the zero-prefix condition is vacuously satisfied.
 
-*Proof of (b).* Suppose R ≠ ∅, so there exists v ∈ V_S(d) with v ≥ r. The last element of X (with ordinal ord(p) + c − 1) is in V_S(d), and v ∈ V_S(d) with v ≥ r > last element of X. By D-CTG, every same-subspace, same-depth position between them — including r — is in V_S(d). Hence r ∈ R and r = min(R) (since r ≤ v for all v ∈ R by definition). By D-BJ, σ is order-preserving, so σ(r) = min(Q₃). By part (a), ord(σ(r)) = ord(p). ∎
+*Proof of (b).* Suppose R ≠ ∅, so there exists v ∈ V_S(d) with v ≥ r. Either v = r, so r ∈ V_S(d) directly, or v > r, in which case the last element of X (with ordinal ord(p) + c − 1) is in V_S(d), and v ∈ V_S(d) with v > r > last element of X, so D-CTG gives r ∈ V_S(d). In both cases r ∈ R and r = min(R) (since r ≤ v for all v ∈ R by definition). By D-BJ, σ is order-preserving, so σ(r) = min(Q₃). By part (a), ord(σ(r)) = ord(p). ∎
 
 **D-DP** — *DensePartition* (LEMMA, lemma). The post-state arrangement in subspace S is exactly the union of the preserved left region and the shifted right region, with no overlap and no gap at the contraction boundary.
 
@@ -317,10 +327,10 @@ Q₃ = {[1,1], [1,2], [1,3]}.
 | Q₃ | DEF | Q₃ = {σ(v) : v ∈ R} — the set of shifted right-region positions in the post-state | introduced |
 | ord(v) | DEF | Ordinal extraction: ord(v) = [v₂, ..., vₘ] strips the subspace identifier; precondition #v ≥ 2; postcondition ord(v) ∈ T with #ord(v) = #v − 1 | introduced |
 | vpos(S, o) | DEF | V-position reconstruction: vpos(S, o) = [S, o₁, ..., oₖ]; preconditions #o ≥ 1, S ≥ 1; postcondition vpos(S, o) ∈ T with #vpos(S, o) = #o + 1; inverse of ord | introduced |
-| w_ord | DEF | Ordinal displacement projection: w_ord = [w₂, ..., wₘ] for V-depth w with w₁ = 0 | introduced |
+| w_ord | DEF | Ordinal displacement projection: w_ord = [w₂, ..., wₘ] for V-depth w with w₁ = 0; postcondition: w > 0 ∧ w₁ = 0 ⟹ w_ord > 0 | introduced |
 | D-L | frame | (A v ∈ L : v ∈ dom(M'(d)) ∧ M'(d)(v) = M(d)(v)) | introduced |
 | D-DOM | postcondition | {v ∈ dom(M'(d)) : subspace(v) = S} = L ∪ Q₃ | introduced |
-| D-CS | frame | (A S' ≠ S : V_{S'}(d') = V_{S'}(d)) ∧ (A v : subspace(v) ≠ S : M'(d)(v) = M(d)(v)) | introduced |
+| D-CS | frame | (A S' ≠ S : V_{S'}(d') = V_{S'}(d)) ∧ (A v : v ∈ dom(M(d)) ∧ subspace(v) ≠ S : M'(d)(v) = M(d)(v)) | introduced |
 | D-CD | frame | Cross-document arrangements unchanged | introduced |
 | D-I | frame | (A a ∈ dom(Σ.C) : a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a)) — content store unchanged | introduced |
 | D-SHIFT | postcondition | (A v ∈ R : M'(d)(σ(v)) = M(d)(v)) where σ(v) = vpos(S, ord(v) ⊖ w_ord) | introduced |
