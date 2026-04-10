@@ -190,6 +190,10 @@ Three cases arise at the boundary. When L ≠ ∅ and R ≠ ∅: L's maximum ord
 
 *Proof.* Positions in L satisfy S8a by the pre-state invariant and D-L (unchanged). Positions in Q₃: σ(v) = [S, vₘ − c] with S ≥ 1 (subspace identifier, S8a on v) and vₘ − c ≥ p₂ ≥ 1 (since vₘ ≥ p₂ + c for v ∈ R, and p₂ ≥ 1 by S8a on p). Both components are strictly positive, so zeros(σ(v)) = 0 and σ(v) > 0. By D-CS, other subspaces are unchanged. ∎
 
+**S8-fin-post** — *FiniteArrangementPreservation* (LEMMA, introduced). The post-state satisfies S8-fin: `dom(M'(d))` is finite.
+
+*Proof.* By D-DOM, the subspace-S positions in dom(M'(d)) are L ∪ Q₃. L ⊆ V_S(d) and Q₃ = σ(R) with R ⊆ V_S(d), so |L ∪ Q₃| ≤ |V_S(d)|, which is finite by S8-fin on the pre-state. By D-CS, other subspaces of d retain their pre-state domains (finite by S8-fin). By D-CD, other documents are unchanged. ∎
+
 
 ## Worked Example
 
@@ -294,7 +298,7 @@ Q₃ = {[1,1], [1,2], [1,3]}.
 
 | Label | Type | Statement | Status |
 |-------|------|-----------|--------|
-| Contraction | operation | Remove span (p, w) from subspace S of document d; preconditions: D-SHIFT; postconditions: D-SHIFT, D-DOM; frame: D-L, D-CS, D-CD, D-I | introduced |
+| Contraction | operation | Remove span (p, w) from subspace S of document d; preconditions: p ∈ V_S(d), w > 0, #w = #p, w₁ = 0, #p = 2, containment (p₂ + w₂ − 1 ≤ N); postconditions: D-SHIFT, D-DOM; frame: D-L, D-CS, D-CD, D-I | introduced |
 | ThreeRegions | DEF | L = {v ∈ V_S(d) : v < p}, X = {v ∈ V_S(d) : p ≤ v < r}, R = {v ∈ V_S(d) : v ≥ r}; partition of V_S(d) | introduced |
 | Q₃ | DEF | Q₃ = {σ(v) : v ∈ R} — the set of shifted right-region positions in the post-state | introduced |
 | ord(v) | DEF | Ordinal extraction: ord(v) = [v₂, ..., vₘ] strips the subspace identifier | introduced |
@@ -315,6 +319,7 @@ Q₃ = {[1,1], [1,2], [1,3]}.
 | D-MIN-post | lemma | Post-state min V_S(d) = [S, 1, ..., 1] when non-empty; vacuous when empty | introduced |
 | S8-depth-post | lemma | Post-state V-positions in subspace S share depth 2 | introduced |
 | S8a-post | lemma | Post-state V-positions are zero-free and positive | introduced |
+| S8-fin-post | lemma | Post-state dom(M'(d)) is finite | introduced |
 
 
 ## Open Questions
