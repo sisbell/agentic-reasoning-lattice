@@ -326,14 +326,14 @@ The decomposition B' is valid but not necessarily maximally merged. After rearra
 We trace a concrete 3-cut pivot to verify the postconditions against explicit values. Let document d have subspace S = 1 with V_S(d) = {[1,1], [1,2], [1,3], [1,4], [1,5]}, and let the arrangement be:
 
 ```
-M(d)([1,1]) = 3.0.1.0.1.1    (I-address A)
-M(d)([1,2]) = 3.0.1.0.1.2    (I-address B)
-M(d)([1,3]) = 3.0.1.0.1.3    (I-address C)
-M(d)([1,4]) = 5.0.2.0.1.1    (I-address D)
-M(d)([1,5]) = 5.0.2.0.1.2    (I-address E)
+M(d)([1,1]) = 3.0.1.0.1.0.1.1    (I-address A)
+M(d)([1,2]) = 3.0.1.0.1.0.1.2    (I-address B)
+M(d)([1,3]) = 3.0.1.0.1.0.1.3    (I-address C)
+M(d)([1,4]) = 5.0.2.0.1.0.1.1    (I-address D)
+M(d)([1,5]) = 5.0.2.0.1.0.1.2    (I-address E)
 ```
 
-Content A–C originates from document 3.0.1 (origin 3.0.1); D–E from document 5.0.2 (origin 5.0.2). The canonical decomposition has two blocks: b₁ = ([1,1], 3.0.1.0.1.1, 3) and b₂ = ([1,4], 5.0.2.0.1.1, 2).
+Content A–C originates from document 3.0.1.0.1 (origin 3.0.1.0.1); D–E from document 5.0.2.0.1 (origin 5.0.2.0.1). The canonical decomposition has two blocks: b₁ = ([1,1], 3.0.1.0.1.0.1.1, 3) and b₂ = ([1,4], 5.0.2.0.1.0.1.1, 2).
 
 We apply a 3-cut pivot with C = ([1,2], [1,4], [1,5]): c₀ = [1,2], c₁ = [1,4], c₂ = [1,5]. The affected range is [c₀, c₂) = {[1,2], [1,3], [1,4]}. Region α = {[1,2], [1,3]} (w_α = 2), region β = {[1,4]} (w_β = 1).
 
@@ -361,7 +361,7 @@ M'(d)([1,5]) = E     (exterior, unchanged)
 
 **R-PPERM verification.** The permutation π: π([1,1]) = [1,1] (exterior), π([1,2]) = [1,3] (α: c₀ + 0 → c₀ + w_β + 0 = [1,3]), π([1,3]) = [1,4] (α: c₀ + 1 → c₀ + w_β + 1 = [1,4]), π([1,4]) = [1,2] (β: c₁ + 0 → c₀ + 0 = [1,2]), π([1,5]) = [1,5] (exterior). We check: M'(d)(π([1,2])) = M'(d)([1,3]) = B = M(d)([1,2]) ✓. M'(d)(π([1,4])) = M'(d)([1,2]) = D = M(d)([1,4]) ✓.
 
-**Block decomposition after rearrangement.** The new canonical decomposition has four blocks: ([1,1], A, 1), ([1,2], D, 1), ([1,3], B, 2), ([1,5], E, 1). Block ([1,3], B, 2) is valid because B = 3.0.1.0.1.2 and C = 3.0.1.0.1.3 = B + 1. Block ([1,5], E, 1) is exterior, unchanged by R-EXT. Note that D = 5.0.2.0.1.1 cannot merge with A = 3.0.1.0.1.1 (different origins — origin(D) = 5.0.2 ≠ 3.0.1 = origin(A), so I-adjacency fails) nor with B = 3.0.1.0.1.2 (not I-adjacent: D + 1 ≠ B). Block ([1,3], B, 2) cannot merge with ([1,5], E, 1): C + 1 = 3.0.1.0.1.4 ≠ E = 5.0.2.0.1.2 (different origins). The cut at [1,2] (c₀, interior to b₁ at offset 1) split the original block b₁ into ([1,1], A, 1) and ([1,2], B, 2), and the rearrangement inserted the single-element block for D between them.
+**Block decomposition after rearrangement.** The new canonical decomposition has four blocks: ([1,1], A, 1), ([1,2], D, 1), ([1,3], B, 2), ([1,5], E, 1). Block ([1,3], B, 2) is valid because B = 3.0.1.0.1.0.1.2 and C = 3.0.1.0.1.0.1.3 = B + 1. Block ([1,5], E, 1) is exterior, unchanged by R-EXT. Note that D = 5.0.2.0.1.0.1.1 cannot merge with A = 3.0.1.0.1.0.1.1 (different origins — origin(D) = 5.0.2.0.1 ≠ 3.0.1.0.1 = origin(A), so I-adjacency fails) nor with B = 3.0.1.0.1.0.1.2 (not I-adjacent: D + 1 ≠ B). Block ([1,3], B, 2) cannot merge with ([1,5], E, 1): C + 1 = 3.0.1.0.1.0.1.4 ≠ E = 5.0.2.0.1.0.1.2 (different origins). The cut at [1,2] (c₀, interior to b₁ at offset 1) split the original block b₁ into ([1,1], A, 1) and ([1,2], B, 2), and the rearrangement inserted the single-element block for D between them.
 
 
 ## Worked Example: 4-Cut Swap on an 8-Position Document
@@ -369,17 +369,17 @@ M'(d)([1,5]) = E     (exterior, unchanged)
 We trace a 4-cut swap with unequal region widths. Let document d have subspace S = 1 with V_S(d) = {[1,1], ..., [1,8]}, and let the arrangement be:
 
 ```
-M(d)([1,1]) = 3.0.1.0.1.1    (I-address A)
-M(d)([1,2]) = 3.0.1.0.1.2    (I-address B)
-M(d)([1,3]) = 3.0.1.0.1.3    (I-address C)
-M(d)([1,4]) = 7.0.1.0.1.1    (I-address D)
-M(d)([1,5]) = 5.0.2.0.1.1    (I-address E)
-M(d)([1,6]) = 5.0.2.0.1.2    (I-address F)
-M(d)([1,7]) = 5.0.2.0.1.3    (I-address G)
-M(d)([1,8]) = 3.0.1.0.1.4    (I-address H)
+M(d)([1,1]) = 3.0.1.0.1.0.1.1    (I-address A)
+M(d)([1,2]) = 3.0.1.0.1.0.1.2    (I-address B)
+M(d)([1,3]) = 3.0.1.0.1.0.1.3    (I-address C)
+M(d)([1,4]) = 7.0.1.0.1.0.1.1    (I-address D)
+M(d)([1,5]) = 5.0.2.0.1.0.1.1    (I-address E)
+M(d)([1,6]) = 5.0.2.0.1.0.1.2    (I-address F)
+M(d)([1,7]) = 5.0.2.0.1.0.1.3    (I-address G)
+M(d)([1,8]) = 3.0.1.0.1.0.1.4    (I-address H)
 ```
 
-Content A–C originates from document 3.0.1; D from document 7.0.1; E–G from document 5.0.2; H from document 3.0.1. The canonical decomposition has four blocks: b₁ = ([1,1], A, 3), b₂ = ([1,4], D, 1), b₃ = ([1,5], E, 3), b₄ = ([1,8], H, 1).
+Content A–C originates from document 3.0.1.0.1; D from document 7.0.1.0.1; E–G from document 5.0.2.0.1; H from document 3.0.1.0.1. The canonical decomposition has four blocks: b₁ = ([1,1], A, 3), b₂ = ([1,4], D, 1), b₃ = ([1,5], E, 3), b₄ = ([1,8], H, 1).
 
 We apply a 4-cut swap with C = ([1,2], [1,4], [1,5], [1,8]): c₀ = [1,2], c₁ = [1,4], c₂ = [1,5], c₃ = [1,8]. The affected range is [c₀, c₃) = {[1,2], ..., [1,7]}. Region α = {[1,2], [1,3]} (w_α = 2), middle μ = {[1,4]} (w_μ = 1), region β = {[1,5], [1,6], [1,7]} (w_β = 3). Since w_α = 2 ≠ w_β = 3, the middle displacement w_β − w_α = 1 is nonzero.
 
@@ -443,7 +443,7 @@ The three swap clauses tile [c₀, c₃) = [[1,2], [1,8]) exactly: R-S1 covers o
 
 Sorted by V-start: {([1,1], A, 1), ([1,2], E, 3), ([1,5], D, 1), ([1,6], B, 2), ([1,8], H, 1)}. Checking B3: for block ([1,2], E, 3), M'(d)([1,2]) = E, M'(d)([1,3]) = F = E + 1, M'(d)([1,4]) = G = E + 2 ✓.
 
-*Merge check:* ([1,6], B, 2) and ([1,8], H, 1) are V-adjacent (6 + 2 = 8) and I-adjacent (B + 2 = 3.0.1.0.1.4 = H). Merge: ([1,6], B, 3). No other pair satisfies both conditions — ([1,1], A, 1) and ([1,2], E, 3) differ in origin; ([1,2], E, 3) and ([1,5], D, 1) differ in origin; ([1,5], D, 1) and ([1,6], B, 2) differ in origin.
+*Merge check:* ([1,6], B, 2) and ([1,8], H, 1) are V-adjacent (6 + 2 = 8) and I-adjacent (B + 2 = 3.0.1.0.1.0.1.4 = H). Merge: ([1,6], B, 3). No other pair satisfies both conditions — ([1,1], A, 1) and ([1,2], E, 3) differ in origin; ([1,2], E, 3) and ([1,5], D, 1) differ in origin; ([1,5], D, 1) and ([1,6], B, 2) differ in origin.
 
 **Canonical decomposition:** {([1,1], A, 1), ([1,2], E, 3), ([1,5], D, 1), ([1,6], B, 3)}. The rearrangement brought B, C (formerly at [1,2]–[1,3]) adjacent to H (at [1,8]), and since B + 2 = H, they merge into a single block of width 3. Meanwhile A, formerly part of a width-3 block with B and C, is now isolated.
 
