@@ -21,7 +21,7 @@ We derive that the I-address range is invariant and that multiplicities are pres
 
 **R-RI** — S3 (referential integrity, ASN-0036) is preserved as a consequence: ran(M'(d)) = ran(M(d)) ⊆ dom(C) = dom(C'), where the inclusion is S3 for the pre-state and the equality is C' = C.
 
-**Invariant preservation.** The following ASN-0036 invariants depend only on `dom(M(d))` and are preserved because `dom(M'(d)) = dom(M(d))`: D-CTG, D-MIN, S8-fin, S8a, S8-depth. Together with R-RI (S3), the well-definedness lemmas R-PIV/R-SWP (S2), and C' = C (S0, S1, S7a, S7b, S7c — all properties constraining the content store and its domain carry over from the identity C' = C), every ASN-0036 invariant is maintained by an arrangement rearrangement.
+**Invariant preservation.** The following ASN-0036 invariants depend only on `dom(M(d))` and are preserved because `dom(M'(d)) = dom(M(d))`: D-CTG, D-MIN, S8-fin, S8a, S8-depth. S2 (arrangement functionality) holds because each u ∈ dom(M'(d)) has u = π(v) for exactly one v (bijectivity), so M'(d)(u) = M(d)(v) is uniquely determined. Together with R-RI (S3) and C' = C (S0, S1, S7a, S7b, S7c — all properties constraining the content store and its domain carry over from the identity C' = C), every ASN-0036 invariant is maintained by an arrangement rearrangement.
 
 Any bijection qualifies; a rearrangement determined by cut points is one where the regions to exchange are identified by a tuple of cut positions. The properties in this ASN characterize this specific class of permutations.
 
@@ -289,6 +289,26 @@ Both pieces satisfy B3. For the first piece (v, a, c), we need M(d)(v + k) = a +
 
 **Merge.** Two blocks (v₁, a₁, n₁) and (v₂, a₂, n₂) are *mergeable* when v₂ = v₁ + n₁ (V-adjacent) and a₂ = a₁ + n₁ (I-adjacent). The merged block is (v₁, a₁, n₁ + n₂). We verify B3 for the merged block — that M(d)(v₁ + k) = a₁ + k for 0 ≤ k < n₁ + n₂ — by two cases. For 0 ≤ k < n₁: this is B3 of the first block directly. For n₁ ≤ k < n₁ + n₂: write k = n₁ + k' with 0 ≤ k' < n₂. When k' ≥ 1, TS3 gives v₁ + k = v₁ + (n₁ + k') = (v₁ + n₁) + k' = v₂ + k'; when k' = 0, v₁ + n₁ = v₂ by the adjacency condition. By B3 of the second block, M(d)(v₂ + k') = a₂ + k'. The same associativity/identity argument gives a₁ + k = a₁ + (n₁ + k') = (a₁ + n₁) + k' = a₂ + k', so M(d)(v₁ + k) = a₂ + k' = a₁ + k.
 
+**R-COMM — PermutationShiftCommutativity (LEMMA).** Let π be a cut-point permutation (R-PPERM or R-SPERM) for a cut sequence C satisfying R-PRE. For any V-position v and offset k ≥ 0 such that v and v + k lie in the same region (exterior, α, μ, or β):
+
+`π(v + k) = π(v) + k`
+
+In words: the cut-point permutation commutes with ordinal shift within each region. Every position in a region receives the same ordinal displacement, so shifting within the region before or after applying π yields the same result.
+
+*Proof.* We verify each region case using the explicit R-PPERM and R-SPERM formulas, with associativity of natural-number addition at the ordinal level as the sole algebraic tool.
+
+*Exterior (both forms):* π(v + k) = v + k = π(v) + k, since π is the identity on the exterior.
+
+*3-cut α:* v = c₀ + j' for some 0 ≤ j' < w_α. Then v + k = c₀ + (j' + k), and by R-PPERM: π(v + k) = c₀ + w_β + (j' + k). Also π(v) + k = (c₀ + w_β + j') + k = c₀ + w_β + (j' + k) by associativity.
+
+*3-cut β:* v = c₁ + j' for some 0 ≤ j' < w_β. Then v + k = c₁ + (j' + k), and by R-PPERM: π(v + k) = c₀ + (j' + k). Also π(v) + k = (c₀ + j') + k = c₀ + (j' + k) by associativity.
+
+*4-cut α:* v = c₀ + j' for some 0 ≤ j' < w_α. Then v + k = c₀ + (j' + k), and by R-SPERM: π(v + k) = c₀ + w_β + w_μ + (j' + k). Also π(v) + k = (c₀ + w_β + w_μ + j') + k = c₀ + w_β + w_μ + (j' + k) by associativity.
+
+*4-cut μ:* v = c₁ + j' for some 0 ≤ j' < w_μ. Then v + k = c₁ + (j' + k), and by R-SPERM: π(v + k) = c₀ + w_β + (j' + k). Also π(v) + k = (c₀ + w_β + j') + k = c₀ + w_β + (j' + k) by associativity.
+
+*4-cut β:* v = c₂ + j' for some 0 ≤ j' < w_β. Then v + k = c₂ + (j' + k), and by R-SPERM: π(v + k) = c₀ + (j' + k). Also π(v) + k = (c₀ + j') + k = c₀ + (j' + k) by associativity. ∎
+
 **R-BLK — BlockDecompositionTransformation (LEMMA).** Let B = {b₁, ..., bₘ} be a block decomposition of M(d) satisfying B1–B3. Let the cut sequence C have cut positions c₀, ..., c_{n−1}. The rearranged arrangement M'(d) admits a block decomposition B' obtained by:
 
 *Phase 1: Split.* Process cut positions in index order (c₀, c₁, ..., c_{n−1}), maintaining the decomposition as it is progressively refined. For each cut position cᵢ, if cᵢ falls in the interior of some block bₖ = (vₖ, aₖ, nₖ) in the current decomposition — meaning cᵢ ∈ V(bₖ) and cᵢ ≠ vₖ — split bₖ at the offset c = ord(cᵢ) − ord(vₖ), producing (vₖ, aₖ, c) and (vₖ + c, aₖ + c, nₖ − c). The split preserves B1–B3: the two new blocks partition the V-extent of the original. Each cut position either coincides with a boundary in the current decomposition or falls interior to some block. When a later cut falls in a block already split by an earlier (strictly smaller) cut, it necessarily falls in the right-hand piece — CS2's strict ordering (c₀ < c₁ < ... < c_{n−1}) guarantees this. The process is well-defined because B1–B3 are maintained after each split. After all splits, no block straddles any cut position.
@@ -304,23 +324,9 @@ Both pieces satisfy B3. For the first piece (v, a, c), we need M(d)(v + k) = a +
 
 The I-start and width of each block are preserved because the rearrangement modifies no I-addresses and the displacement is uniform within each region (all positions in a region shift by the same amount).
 
-*Contiguity of reassembled blocks.* Within each region, π applies a uniform ordinal displacement. After Phase 1, every block lies entirely in a single region, so for each block (vⱼ, aⱼ, nⱼ) and 0 ≤ k < nⱼ, positions vⱼ and vⱼ + k are in the same region and receive the same displacement. By the commutativity π(vⱼ + k) = π(vⱼ) + k (shown below), consecutive V-positions in the original block map to consecutive V-positions, so each reassembled block (π(vⱼ), aⱼ, nⱼ) occupies a contiguous V-position range and is therefore a valid block.
+*Contiguity of reassembled blocks.* Within each region, π applies a uniform ordinal displacement. After Phase 1, every block lies entirely in a single region, so for each block (vⱼ, aⱼ, nⱼ) and 0 ≤ k < nⱼ, positions vⱼ and vⱼ + k are in the same region and receive the same displacement. By R-COMM (π(vⱼ + k) = π(vⱼ) + k), consecutive V-positions in the original block map to consecutive V-positions, so each reassembled block (π(vⱼ), aⱼ, nⱼ) occupies a contiguous V-position range and is therefore a valid block.
 
-The resulting blocks satisfy B3 (Consistency): for each reassembled block (π(vⱼ), aⱼ, nⱼ) and 0 ≤ k < nⱼ: M'(d)(π(vⱼ) + k) = M'(d)(π(vⱼ + k)) = M(d)(vⱼ + k) = aⱼ + k. The second equality uses the permutation definition M'(d)(π(v)) = M(d)(v); the first uses the commutativity π(vⱼ + k) = π(vⱼ) + k.
-
-*Proof (commutativity).* After Phase 1, every block lies in a single region, so for each block (vⱼ, aⱼ, nⱼ) and 0 ≤ k < nⱼ, positions vⱼ and vⱼ + k are in the same region. We verify π(vⱼ + k) = π(vⱼ) + k in each region case using the explicit R-PPERM and R-SPERM formulas, with associativity of natural-number addition at the ordinal level as the sole algebraic tool.
-
-*Exterior (both forms):* π(vⱼ + k) = vⱼ + k = π(vⱼ) + k, since π is the identity on the exterior.
-
-*3-cut α:* vⱼ = c₀ + j' for some 0 ≤ j' < w_α. Then vⱼ + k = c₀ + (j' + k), and by R-PPERM: π(vⱼ + k) = c₀ + w_β + (j' + k). Also π(vⱼ) + k = (c₀ + w_β + j') + k = c₀ + w_β + (j' + k) by associativity.
-
-*3-cut β:* vⱼ = c₁ + j' for some 0 ≤ j' < w_β. Then vⱼ + k = c₁ + (j' + k), and by R-PPERM: π(vⱼ + k) = c₀ + (j' + k). Also π(vⱼ) + k = (c₀ + j') + k = c₀ + (j' + k) by associativity.
-
-*4-cut α:* vⱼ = c₀ + j' for some 0 ≤ j' < w_α. Then vⱼ + k = c₀ + (j' + k), and by R-SPERM: π(vⱼ + k) = c₀ + w_β + w_μ + (j' + k). Also π(vⱼ) + k = (c₀ + w_β + w_μ + j') + k = c₀ + w_β + w_μ + (j' + k) by associativity.
-
-*4-cut μ:* vⱼ = c₁ + j' for some 0 ≤ j' < w_μ. Then vⱼ + k = c₁ + (j' + k), and by R-SPERM: π(vⱼ + k) = c₀ + w_β + (j' + k). Also π(vⱼ) + k = (c₀ + w_β + j') + k = c₀ + w_β + (j' + k) by associativity.
-
-*4-cut β:* vⱼ = c₂ + j' for some 0 ≤ j' < w_β. Then vⱼ + k = c₂ + (j' + k), and by R-SPERM: π(vⱼ + k) = c₀ + (j' + k). Also π(vⱼ) + k = (c₀ + j') + k = c₀ + (j' + k) by associativity. ∎
+The resulting blocks satisfy B3 (Consistency): for each reassembled block (π(vⱼ), aⱼ, nⱼ) and 0 ≤ k < nⱼ: M'(d)(π(vⱼ) + k) = M'(d)(π(vⱼ + k)) = M(d)(vⱼ + k) = aⱼ + k. The second equality uses the permutation definition M'(d)(π(v)) = M(d)(v); the first uses R-COMM.
 
 Coverage (B1) and disjointness (B2): π is a bijection on dom(M(d)), so the V-extents of the reassembled blocks are pairwise disjoint (from B2 of the pre-reassembly decomposition and injectivity of π) and cover dom(M'(d)) = dom(M(d)) (from B1 and surjectivity of π).
 
@@ -475,6 +481,7 @@ Sorted by V-start: {([1,1], A, 1), ([1,2], E, 3), ([1,5], D, 1), ([1,6], B, 2), 
 | R-FRAME-P | FRAME | Pivot: other subspaces, other documents, and content store are preserved | introduced |
 | R-FRAME-S | FRAME | Swap: other subspaces, other documents, and content store are preserved | introduced |
 | R-RI | LEMMA | Rearrangement preserves S3 (referential integrity): ran(M'(d)) = ran(M(d)) ⊆ dom(C) = dom(C') | introduced |
+| R-COMM | LEMMA | π(v + k) = π(v) + k when v and v + k lie in the same region: cut-point permutation commutes with ordinal shift | introduced |
 | R-BLK | LEMMA | Block decomposition transforms by split-at-cuts then displace-per-region, preserving B1–B3 | introduced |
 
 
