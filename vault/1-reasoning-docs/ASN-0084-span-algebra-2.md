@@ -17,7 +17,7 @@ We recall D-CTG (VContiguity, ASN-0036): within each subspace, V-positions form 
 
 An *arrangement rearrangement* is a state transition Σ → Σ' in which dom(M'(d)) = dom(M(d)), C' = C (S0, ASN-0036), M'(d') = M(d') for all d' ≠ d, and there exists a bijection π : dom(M(d)) → dom(M'(d)) such that M'(d)(π(v)) = M(d)(v) for all v ∈ dom(M(d)).
 
-We derive that the I-address range is invariant and that multiplicities are preserved. Since π is surjective onto dom(M'(d)) = dom(M(d)), every u ∈ dom(M'(d)) has the form u = π(v) for exactly one v ∈ dom(M(d)). Therefore: ran(M'(d)) = {M'(d)(u) : u ∈ dom(M'(d))} = {M'(d)(π(v)) : v ∈ dom(M(d))} = {M(d)(v) : v ∈ dom(M(d))} = ran(M(d)). The second equality uses surjectivity of π; the third uses the defining property M'(d)(π(v)) = M(d)(v). The multiset of I-addresses is also preserved: since π is a bijection, for each I-address a, the preimage {v : M(d)(v) = a} is in bijection with {π(v) : M(d)(v) = a} = {u : M'(d)(u) = a}, so the multiplicity of a is identical in M(d) and M'(d).
+We derive that the I-address range is invariant and that multiplicities are preserved. Since π is a bijection from dom(M(d)) to dom(M'(d)) = dom(M(d)), every u ∈ dom(M'(d)) has the form u = π(v) for exactly one v ∈ dom(M(d)). Therefore: ran(M'(d)) = {M'(d)(u) : u ∈ dom(M'(d))} = {M'(d)(π(v)) : v ∈ dom(M(d))} = {M(d)(v) : v ∈ dom(M(d))} = ran(M(d)). The second equality uses surjectivity of π; the third uses the defining property M'(d)(π(v)) = M(d)(v). The multiset of I-addresses is also preserved: since π is a bijection, for each I-address a, the preimage {v : M(d)(v) = a} is in bijection with {π(v) : M(d)(v) = a} = {u : M'(d)(u) = a}, so the multiplicity of a is identical in M(d) and M'(d).
 
 **R-RI** — S3 (referential integrity, ASN-0036) is preserved as a consequence: ran(M'(d)) = ran(M(d)) ⊆ dom(C) = dom(C'), where the inclusion is S3 for the pre-state and the equality is C' = C.
 
@@ -278,7 +278,21 @@ The displacement formulation makes it clear that every position in the affected 
 
 with the common value given by: for 3-cut, Δ = +w_β on α, Δ = −w_α on β, Δ = 0 on exterior; for 4-cut, Δ = +(w_β + w_μ) on α, Δ = +(w_β − w_α) on μ, Δ = −(w_α + w_μ) on β, Δ = 0 on exterior.
 
-*Proof.* The result follows directly from the explicit R-PPERM and R-SPERM formulas, in which the offset j within a region cancels. For two positions v₁ = c₀ + j₁ and v₂ = c₀ + j₂ both in α (3-cut): Δ(v₁) = ord(π(v₁)) − ord(v₁) = ord(c₀ + w_β + j₁) − ord(c₀ + j₁) = (ord(c₀) + w_β + j₁) − (ord(c₀) + j₁) = w_β = Δ(v₂). The remaining regions follow identically — in each case, the j terms cancel and the common value depends only on region widths. ∎
+*Proof.* The result follows from the explicit R-PPERM and R-SPERM formulas, in which the offset j within a region cancels. We show each region.
+
+*Exterior (both forms):* π(v) = v, so Δ(v) = ord(v) − ord(v) = 0.
+
+*3-cut α:* For v = c₀ + j: Δ(v) = ord(c₀ + w_β + j) − ord(c₀ + j) = (ord(c₀) + w_β + j) − (ord(c₀) + j) = w_β.
+
+*3-cut β:* For v = c₁ + j: Δ(v) = ord(c₀ + j) − ord(c₁ + j) = (ord(c₀) + j) − (ord(c₁) + j) = ord(c₀) − ord(c₁) = −w_α.
+
+*4-cut α:* For v = c₀ + j: Δ(v) = ord(c₀ + w_β + w_μ + j) − ord(c₀ + j) = (ord(c₀) + w_β + w_μ + j) − (ord(c₀) + j) = w_β + w_μ.
+
+*4-cut μ:* For v = c₁ + j: Δ(v) = ord(c₀ + w_β + j) − ord(c₁ + j) = (ord(c₀) + w_β + j) − (ord(c₁) + j) = ord(c₀) + w_β − ord(c₁). Since ord(c₁) = ord(c₀) + w_α: Δ = w_β − w_α.
+
+*4-cut β:* For v = c₂ + j: Δ(v) = ord(c₀ + j) − ord(c₂ + j) = (ord(c₀) + j) − (ord(c₂) + j) = ord(c₀) − ord(c₂). Since ord(c₂) = ord(c₀) + w_α + w_μ: Δ = −(w_α + w_μ).
+
+In every case, j cancels and the common value depends only on region widths. ∎
 
 
 ## Block Decomposition Transformation
