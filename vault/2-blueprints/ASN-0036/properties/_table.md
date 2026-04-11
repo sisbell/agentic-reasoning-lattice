@@ -14,7 +14,7 @@
 | S7c | ElementFieldDepth | Element-field depth: `(A a ∈ dom(C) :: #fields(a).element ≥ 2)` — subspace identifier and content ordinal occupy distinct components | design requirement |
 | S7 | StructuralAttribution | Structural attribution: `origin(a) = (fields(a).node).0.(fields(a).user).0.(fields(a).document)` — full document prefix | from S7a, S7b, S0, S4, T4, T3, GlobalUniqueness (ASN-0034) |
 | S8-fin | FiniteArrangement | Finite arrangement: `dom(M(d))` is finite for every document `d` | design requirement |
-| S8a | VPositionWellFormedness | V-position well-formedness: `(A v ∈ dom(M(d)) :: zeros(v) = 0 ∧ v₁ ≥ 1 ∧ v > 0)` — universal, from T4 positive-component constraint | axiom |
+| S8a | VPositionWellFormedness | V-position well-formedness: `(A v ∈ dom(M(d)) :: zeros(v) = 0 ∧ v₁ ≥ 1 ∧ v > 0)` — universal, from T4 positive-component constraint | design requirement |
 | S8-depth | FixedDepthVPositions | Fixed-depth V-positions: `(A d, v₁, v₂ : v₁ ∈ dom(M(d)) ∧ v₂ ∈ dom(M(d)) ∧ (v₁)₁ = (v₂)₁ : #v₁ = #v₂)` | design requirement |
 | S8 | FiniteSpanDecomposition | Span decomposition: `dom(M(d))` decomposes into finitely many correspondence runs `(vⱼ, aⱼ, nⱼ)` with `M(d)(vⱼ + k) = aⱼ + k` for `0 ≤ k < nⱼ` | theorem from S8-fin, S2, S8a, S8-depth, T1, T3, T5, T10, TA5 (ASN-0034) |
 | ord(v) | OrdinalExtraction | Ordinal extraction: ord(v) = [v₂, ..., vₘ]; when v satisfies S8a, ord(v) ∈ S | introduced |
