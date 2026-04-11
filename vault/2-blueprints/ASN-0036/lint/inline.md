@@ -1,6 +1,6 @@
 # Inline Lint — ASN-0036
 
-*Last scanned: 2026-04-11 10:20*
+*Last scanned: 2026-04-11 10:24*
 
 ## D-CTG
 
@@ -11,11 +11,17 @@
 - **derived** | D-CTG-UNIF | SubspaceComponentUniformity | At depth m ≥ 3, D-CTG + S8-fin forces all positions in V_S(d) to share components 2 through m−1
 - **definition** | D-CTG-SUB | SubspaceVPositions | V_S(d) = set of V-positions in subspace S of document d
 - **derived** | D-CTG-DEPTH | DepthUniformity | D-CTG + S8-fin forces all V-positions in a subspace to share components 2 through m−1 at depth m≥3
+- **definition** | DEF-SVS | SubspaceVPositionSet | notation V_S(d) for the set of V-positions belonging to a given subspace within a document
+- **derived** | D-SHR | SubspaceHomogeneityRestriction | D-CTG + S8-fin forces all depth-m≥3 positions in a subspace to share components 2 through m−1
 
 ## D-MIN
 
 - **commentary** | — | — | depth-2 specialization of D-MIN combined with D-CTG and S8-fin to recover Nelson's address range
 - **derived** | D-UFORM | UniformPositionForm | every V-position in a fixed subspace has the form [S, 1, …, 1, k] for varying k
+
+## OrdShiftHom
+
+- **derived** | ShiftS8aClosure | ShiftS8aClosure | shift preserves S8a: if v satisfies S8a then shift(v, n) satisfies S8a
 
 ## S0
 
@@ -26,6 +32,7 @@
 
 - **derived** | S3-WP | AddMappingPrecondition | weakest precondition for S3 under add-mapping is a ∈ dom(Σ.C)
 - **commentary** | — | — | logical vs temporal dependency: atomic ops satisfy S3 without sequential precedence
+- **derived** | S3a | AddMappingPrecondition | wp(add-mapping, S3) requires target I-address already in dom(C)
 
 ## S6
 
@@ -36,6 +43,11 @@
 
 - **definition** | D-ORIGIN | OriginFunction | The origin function mapping an element-level I-address to its document-level prefix tumbler N.0.U.0.D
 - **commentary** | — | — | Two-stream separation: distinction between "where I am reading" (Vstream, document A) and "where this came from" (Istream, document B)
+
+## S8
+
+- **definition** | D-RUNS | RunCount | Notation #runs(d) for the number of correspondence runs in document d's current arrangement
+- **commentary** | — | — | Architectural and performance implications of run fragmentation: representation cost, run splitting/removal under editing, Gregory's 40% CPU hotspot evidence, and the abandoned run-consolidation function
 
 ## S8-depth
 
@@ -51,6 +63,8 @@
 - **derived** | S8-irun-uniform | IRunDepthUniformity | I-addresses within a correspondence run share depth and prefix, following from TumblerAdd's prefix-copy rule
 - **definition** | S8-ord-ext | OrdinalDisplacementExtension | Extends ordinal displacement notation to k=0 as identity for both V-positions and I-addresses
 - **definition** | S8-corrrun | CorrespondenceRun | A correspondence run is a triple (v, a, n) such that M(d)(v+k) = a+k for all 0 ≤ k < n
+- **definition** | S8-ord-zero | OrdinalShiftZeroExtension | extends ordinal displacement notation to k=0 as identity for V-positions and I-addresses
+- **definition** | S8-run | CorrespondenceRun | a triple (v, a, n) where M(d)(v+k) = a+k for all 0 ≤ k < n
 
 ## _properties-introduced
 
@@ -84,6 +98,11 @@
 - **definition** | w_ord | OrdinalDisplacementProjection | Notation for the tail of a displacement vector with zero leading component
 - **definition** | ValidInsertionPosition | ValidInsertionPosition | Predicate characterising legal V-positions for content insertion operations
 
+## ord(v)
+
+- **commentary** | — | — | narrative motivation linking S8a and TA7a to the decomposition
+- **definition** | ord-v | OrdinalExtraction | extracts the within-subspace ordinal [v₂,…,vₘ] from a V-position
+
 ## vpos(S, o)
 
 - **derived** | vpos-s8a | VPositionS8aSatisfaction | under positivity conditions, vpos(S, o) satisfies S8a (zeros = 0 and result > 0)
@@ -94,4 +113,4 @@
 - **commentary** | — | — | Design rationale for the two-component state model and Nelson's motivation for separating content from arrangement
 
 
-*33 files scanned. 10 with embedded results.*
+*33 files scanned. 13 with embedded results.*
