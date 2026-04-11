@@ -56,14 +56,16 @@ def _classify_chunk(chunk):
         name = m.group(1).strip()
         return ("definition", name, stripped)
 
-    # Property header: **LABEL (Name).**
-    m = re.match(r'^\*\*(\S+)\s*\(([^)]+)\)\.\*\*', stripped)
+    # Property header: **LABEL (PascalCaseName).**
+    # .+? handles labels with spaces/parens like vpos(S, o)
+    # [A-Z][A-Za-z0-9]+ anchors on the PascalCase name
+    m = re.match(r'^\*\*(.+?)\s+\(([A-Z][A-Za-z0-9]+)\)\.\*\*', stripped)
     if m:
         label = m.group(1)
         return ("property", label, stripped)
 
     # Also match **LABEL — Name.** format (em-dash style)
-    m = re.match(r'^\*\*(\S+)\s*[\u2014\u2013-]\s*', stripped)
+    m = re.match(r'^\*\*(.+?)\s+[\u2014\u2013-]\s*', stripped)
     if m:
         label = m.group(1)
         return ("property", label, stripped)
