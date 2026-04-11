@@ -1,6 +1,5 @@
 # ASN-0084 — Span Algebra 2
 title: "Span Algebra 2"
-extends: 53
 source: 65
 depends: [34, 36, 53]
 

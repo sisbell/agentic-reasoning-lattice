@@ -1,6 +1,5 @@
 # ASN-0082 — Span Displacement
 title: "Span Displacement"
-extends: 53
 source: [59, 61]
 depends: [34, 36, 53]
 
