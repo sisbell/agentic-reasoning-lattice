@@ -62,7 +62,7 @@ The definitions above decompose V-positions into subspace context and ordinal op
 
 So `ord(v ⊕ w) = [r₂, ..., rₘ] = [v₂, ..., v_{k-1}, vₖ + wₖ, w_{k+1}, ..., wₘ]`.
 
-For the right-hand side, `w_ord = [w₂, ..., wₘ]` has `actionPoint(w_ord) = k - 1`, since `(w_ord)ⱼ = w_{j+1}` and the first nonzero `w_{j+1}` occurs at `j + 1 = k`, i.e. `j = k - 1`. By TumblerAdd for `ord(v) ⊕ w_ord`:
+For the right-hand side, `w_ord = [w₂, ..., wₘ]` has `actionPoint(w_ord) = k - 1`, since `(w_ord)ⱼ = w_{j+1}` and the first nonzero `w_{j+1}` occurs at `j + 1 = k`, i.e. `j = k - 1`. The application is well-defined: `actionPoint(w_ord) = k − 1 ≤ m − 1 = #ord(v)`, since `k ≤ m` by precondition. By TumblerAdd for `ord(v) ⊕ w_ord`:
 
 - For `1 ≤ j < k-1`: `(ord(v) ⊕ w_ord)ⱼ = ord(v)ⱼ = v_{j+1}`.
 - At `j = k-1`: `(ord(v) ⊕ w_ord)_{k-1} = ord(v)_{k-1} + (w_ord)_{k-1} = vₖ + wₖ`.
@@ -78,7 +78,7 @@ The two sequences are identical component by component. ∎
 
 *Formal Contract:*
 - *Preconditions:* `v ∈ T` satisfying S8a, `#v = m ≥ 2`; `w ∈ T`, `w > 0`, `#w = m`, `w₁ = 0`, `actionPoint(w) ≤ m`.
-- *Postconditions:* `ord(v ⊕ w) = ord(v) ⊕ w_ord`.
+- *Postconditions:* (a) `ord(v ⊕ w) = ord(v) ⊕ w_ord`. (b) `subspace(v ⊕ w) = subspace(v)` — since `k ≥ 2`, TumblerAdd copies `r₁ = v₁` from the start, preserving the subspace identifier. (c) Full decomposition: `v ⊕ w = vpos(subspace(v), ord(v) ⊕ w_ord)` — by (b) and (a), `v ⊕ w` has subspace `subspace(v)` and ordinal `ord(v) ⊕ w_ord`; by the inverse property `vpos(subspace(v), ord(v)) = v` (vpos contract (b)), reconstruction from these components recovers the result.
 - *Frame:* Both sides are computed from `v` and `w` alone — no state is consulted.
 
 **OrdAddS8a** — *AdditionPreservesS8a* (LEMMA). Under OrdAddHom's preconditions, `v ⊕ w` satisfies S8a if and only if all components of `w_ord` after its action point are positive.
@@ -118,7 +118,7 @@ Since `shift(v, n) = v ⊕ δ(n, m)` and `δ(n, m) = [0, ..., 0, n]` has `δ(n, 
 | ord(v) | Ordinal extraction: ord(v) = [v₂, ..., vₘ]; when v satisfies S8a, ord(v) ∈ S | introduced |
 | vpos(S, o) | V-position reconstruction: vpos(S, o) = [S, o₁, ..., oₖ]; inverse of ord; result satisfies S8a | introduced |
 | w_ord | Ordinal displacement projection: w_ord = [w₂, ..., wₘ] for displacement w with w₁ = 0 | introduced |
-| OrdAddHom | ord(v ⊕ w) = ord(v) ⊕ w_ord for within-subspace displacements (w₁ = 0) | introduced |
+| OrdAddHom | (a) ord(v ⊕ w) = ord(v) ⊕ w_ord; (b) subspace(v ⊕ w) = subspace(v); (c) v ⊕ w = vpos(subspace(v), ord(v) ⊕ w_ord) | introduced |
 | OrdAddS8a | v ⊕ w satisfies S8a ⟺ all tail components of w after the action point are positive; equivalently ord(v ⊕ w) ∈ S ⟺ v ⊕ w satisfies S8a | introduced |
 | OrdShiftHom | ord(shift(v, n)) = shift(ord(v), n); shift(v, n) unconditionally satisfies S8a when v does | introduced |
 
