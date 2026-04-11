@@ -40,8 +40,8 @@ for yaml in "$MODEL_DIR"/ASN-*/project.yaml; do
     elif [ ! -f "$export_file" ]; then
         export_status="missing"
     else
-        asn_ts=$(stat -f %m "$asn_file" 2>/dev/null || echo "0")
-        export_ts=$(stat -f %m "$export_file" 2>/dev/null || echo "0")
+        asn_ts=$(git log -1 --format=%ct -- "$asn_file" 2>/dev/null || echo "0")
+        export_ts=$(git log -1 --format=%ct -- "$export_file" 2>/dev/null || echo "0")
         if [ "$export_ts" -ge "$asn_ts" ]; then
             export_status="current"
         else
