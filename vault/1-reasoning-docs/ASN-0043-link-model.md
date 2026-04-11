@@ -1,4 +1,4 @@
-# ASN-0043: Link Ontology
+# ASN-0043: Link Model
 
 *2026-03-16 (revised 2026-04-09, revision 44)*
 

@@ -1,5 +1,5 @@
-# ASN-0058 — Permutation Model
-title: "Permutation Model"
+# ASN-0058 — Bundle Algebra
+title: "Bundle Algebra"
 stage: "discovery"
 topic: "structure"
 depends: [34, 36, 53]

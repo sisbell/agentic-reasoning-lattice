@@ -1,4 +1,4 @@
-# ASN-0058: The Permutation Model
+# ASN-0058: Bundle Algebra
 
 *2026-03-20, revised 2026-03-22*
 

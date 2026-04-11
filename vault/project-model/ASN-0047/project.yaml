@@ -1,5 +1,5 @@
-# ASN-0047 — State Transitions
-title: "State Transitions"
+# ASN-0047 — Transition Model
+title: "Transition Model"
 stage: "discovery"
 topic: "machine"
 depends: [34, 36, 43, 45]

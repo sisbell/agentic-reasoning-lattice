@@ -1,5 +1,5 @@
-# ASN-0051 — Link Survivability
-title: "Link Survivability"
+# ASN-0051 — Link Projection Displacement
+title: "Link Projection Displacement"
 stage: "discovery"
 topic: "dynamics"
 depends: [34, 36, 43, 47, 53, 58]

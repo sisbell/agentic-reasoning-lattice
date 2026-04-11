@@ -1,5 +1,5 @@
-# ASN-0036 — Streams
-title: "Streams"
+# ASN-0036 — Strand Model
+title: "Strand Model"
 stage: "discovery"
 topic: "structure"
 depends: [34]

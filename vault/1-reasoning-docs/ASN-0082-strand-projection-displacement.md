@@ -1,4 +1,4 @@
-# ASN-0082: Span Displacement
+# ASN-0082: Strand Projection Displacement
 
 *2026-04-09*
 

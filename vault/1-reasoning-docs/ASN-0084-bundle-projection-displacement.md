@@ -1,4 +1,4 @@
-# ASN-0084: Span Algebra 2
+# ASN-0084: Bundle Projection Displacement
 
 *2026-04-10*
 

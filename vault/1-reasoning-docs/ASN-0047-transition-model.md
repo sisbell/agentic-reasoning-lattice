@@ -1,4 +1,4 @@
-# ASN-0047: State Transitions
+# ASN-0047: Transition Model
 
 *2026-03-17, revised 2026-03-22*
 

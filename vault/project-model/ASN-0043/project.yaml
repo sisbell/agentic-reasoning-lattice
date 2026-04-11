@@ -1,5 +1,5 @@
-# ASN-0043 — Link Ontology
-title: "Link Ontology"
+# ASN-0043 — Link Model
+title: "Link Model"
 stage: "discovery"
 topic: "structure"
 depends: [34, 36]
