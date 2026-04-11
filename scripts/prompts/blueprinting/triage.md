@@ -50,9 +50,18 @@ A finding should be left in place when:
   own proof — not independently citable
 - It re-verifies a result that already has its own property file
   (check the property table for existing labels)
+- It is a precondition, postcondition, frame condition, or invariant
+  characterization of an existing property (e.g., a wp reformulation
+  of S0 or S3). These belong to the property they describe, not as
+  standalone properties.
 - It is commentary, design rationale, or a worked example
 
 ## Output Format
+
+SOURCE_LABEL is the property file that contains the embedded result —
+the `## heading` in the inline report (e.g., S0, S8-depth, Σ.M(d)).
+SUGGESTED_LABEL is the name for the new property being promoted or
+extracted.
 
 ```
 ## Promote
@@ -68,6 +77,9 @@ A finding should be left in place when:
 - SOURCE_LABEL → SUGGESTED_LABEL: one-line reason
 ```
 
-List each unique finding exactly once. Do not include commentary
-findings — only derived and definition. Output ONLY the three
-sections. No preamble, no explanation.
+List each unique finding exactly once — do not place the same finding
+in multiple sections. If uncertain, prefer the higher-priority
+category: Promote > Extract > Leave.
+
+Do not include commentary findings — only derived and definition.
+Output ONLY the three sections. No preamble, no explanation.
