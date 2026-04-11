@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 """
-Promote Inline — extract embedded derived results to standalone properties.
+Execute Promotion Plan — promote derived results and extract definitions.
 
-Reads the lint inline report for derived findings, then for each:
+Reads the promotion plan and inline lint report, then for each:
 1. Promote: rewrite narrative, create new property section in the file
 2. Format: review/revise fixes labels, headers on the new section
 3. Disassemble: split the file into separate property files
 
-Run `python scripts/lint.py inline 34` first to build the report.
+Run create-promotion-plan.py first to generate the plan.
 
 Usage:
-    python scripts/promote-inline.py 34              # promote all flagged
-    python scripts/promote-inline.py 34 --label T10a # single property
-    python scripts/promote-inline.py 34 --dry-run    # show what would be promoted
+    python scripts/execute-promotion-plan.py 34              # execute full plan
+    python scripts/execute-promotion-plan.py 34 --label T10a # single property
+    python scripts/execute-promotion-plan.py 34 --dry-run    # show what would be promoted
 """
 
 import argparse

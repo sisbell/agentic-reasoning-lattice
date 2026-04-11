@@ -20,12 +20,12 @@ python scripts/lint.py missing 34       # undeclared label references
 python scripts/lint.py inline 34        # embedded results to promote
 python scripts/lint.py status 34        # wrong status classifications
 
-# 5. Triage + promotion plan
-python scripts/triage-inline.py 34
-# edit vault/2-blueprints/ASN-NNNN/lint/promotion-plan.md
+# 5. Create promotion plan
+python scripts/create-promotion-plan.py 34
+# copy triage.md → promotion-plan.md, review and edit
 
-# 6. Promote inline results + extract definitions
-python scripts/promote-inline.py 34
+# 6. Execute promotion plan
+python scripts/execute-promotion-plan.py 34
 python scripts/extract-definition.py 34
 
 # 7. Promote to formalization

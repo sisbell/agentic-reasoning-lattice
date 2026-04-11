@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Triage Inline — prioritize lint inline findings into an action plan.
+Create Promotion Plan — prioritize lint findings into an action plan.
 
 Reads the inline lint report, missing dependencies report, and property
 table. Sends to an LLM which deduplicates, applies prioritization
@@ -12,9 +12,9 @@ Use --rewrite to start from scratch.
 Run lint inline and lint missing first to build the reports.
 
 Usage:
-    python scripts/triage-inline.py 34
-    python scripts/triage-inline.py 34 --rewrite
-    python scripts/triage-inline.py 34 --dry-run
+    python scripts/create-promotion-plan.py 34
+    python scripts/create-promotion-plan.py 34 --rewrite
+    python scripts/create-promotion-plan.py 34 --dry-run
 """
 
 import argparse

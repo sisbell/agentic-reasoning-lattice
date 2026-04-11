@@ -48,7 +48,7 @@ For each derived result:
 ## Usage
 
 ```
-python scripts/promote-inline.py 34              # scan + promote all
-python scripts/promote-inline.py 34 --label TA5  # single property
-python scripts/promote-inline.py 34 --dry-run    # scan only
+python scripts/execute-promotion-plan.py 34              # execute full plan
+python scripts/execute-promotion-plan.py 34 --label TA5  # single property
+python scripts/execute-promotion-plan.py 34 --dry-run    # show what would be promoted
 ```
