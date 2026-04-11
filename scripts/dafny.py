@@ -35,7 +35,7 @@ from lib.shared.common import find_asn, parallel_llm_calls
 from lib.formalization.core.build_dependency_graph import generate_formalization_deps
 from lib.formalization.core.topological_sort import topological_sort_labels, topological_levels
 from lib.modeling.dafny.translate import (
-    build_property_list_from_asn, read_proof_modules,
+    build_property_list_from_asn,
     build_property_prompt, translate_one, TEMPLATE,
 )
 from lib.modeling.dafny.verify import verify
@@ -135,16 +135,6 @@ def main():
         print(f"  No properties found", file=sys.stderr)
         sys.exit(1)
 
-    # Proof module dependencies from project model manifest
-    manifest = load_manifest(asn_number)
-    module_names = manifest.get("modeling", {}).get("proof_imports", [])
-    all_modules = list(module_names)
-
-    imports_text = (f"| ASN | Proof modules |\n|-----|---------------|\n"
-                    f"| {asn_label} | {', '.join(all_modules)} |")
-
-    proof_modules, proof_modules_text = read_proof_modules(all_modules)
-
     # Filter to specific properties if requested
     if args.property:
         targets = [t.strip() for t in args.property.split(",")]
@@ -213,13 +203,11 @@ def main():
     print(f"  [DAFNY] {asn_label} — {len(candidates)} to process "
           f"({len(index_rows)} total)",
           file=sys.stderr)
-    print(f"  Imports: {', '.join(all_modules)}", file=sys.stderr)
 
     if args.dry_run:
         for row in candidates:
             prompt = build_property_prompt(
-                template_text, imports_text, proof_modules_text,
-                row, "")
+                template_text, row, "")
             print(f"  [{row['label']}] {row['proof_label']}  "
                   f"({len(prompt) // 1024}KB prompt)", file=sys.stderr)
         return
@@ -282,8 +270,7 @@ def main():
 
             # Build prompt
             prompt = build_property_prompt(
-                template_text, imports_text, proof_modules_text,
-                row, "", dep_context=dep_context,
+                template_text, row, "", dep_context=dep_context,
             )
 
             # Launch agent

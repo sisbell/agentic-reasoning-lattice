@@ -9,5 +9,3 @@ out_of_scope: "Named operations and their specifications (INSERT, DELETE, COPY, 
 inquiry:
   question: "What are the primitive ways system state can change? Given permanent stores and mutable arrangements, what transitions are possible and what invariants must each preserve?"
 
-modeling:
-  proof_imports: [TumblerAlgebra, TumblerOrder, TumblerHierarchy, TumblerAllocation]

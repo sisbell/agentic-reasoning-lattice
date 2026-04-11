@@ -3,7 +3,6 @@ Dafny translate step — prompt building + single-property translation.
 
 Step functions for the dafny orchestrator (scripts/dafny.py):
 - build_property_list_from_asn: parse ASN table into property rows
-- read_proof_modules: load .dfy proof module sources
 - build_property_prompt: assemble prompt for one property
 - translate_one: launch Claude agent to write + verify one .dfy file
 """
@@ -147,52 +146,7 @@ def find_imports_for_asn(asn_label, imports_text):
     return None
 
 
-def read_proof_modules(module_names):
-    """Read .dfy files for listed proof modules.
-
-    Module names map to files: TumblerAlgebra -> TumblerAlgebra.dfy,
-    TumblerOrder -> TumblerOrder.dfy, etc. All files live under
-    vault/5-proofs/TumblerAlgebra/ (the shared directory).
-
-    Returns a dict of {relative_path: source} and a formatted text block
-    for prompt injection. Paths are relative to WORKSPACE.
-    """
-    modules = {}
-    seen = set()
-    for mod_name in module_names:
-        # Try as a directory first (backward compat)
-        mod_dir = PROOFS_DIR / mod_name
-        if mod_dir.is_dir():
-            for dfy_file in sorted(mod_dir.glob("*.dfy")):
-                content = read_file(dfy_file)
-                if content.strip() and dfy_file not in seen:
-                    seen.add(dfy_file)
-                    rel_path = str(dfy_file.relative_to(WORKSPACE))
-                    modules[rel_path] = content
-        else:
-            # Try as a .dfy file under any proofs subdirectory
-            found = False
-            for dfy_file in PROOFS_DIR.rglob(f"{mod_name}.dfy"):
-                found = True
-                content = read_file(dfy_file)
-                if content.strip() and dfy_file not in seen:
-                    seen.add(dfy_file)
-                    rel_path = str(dfy_file.relative_to(WORKSPACE))
-                    modules[rel_path] = content
-            if not found:
-                print(f"  Warning: proof module not found: {mod_name}",
-                      file=sys.stderr)
-
-    # Format as prompt text — show path so LLM can compute includes
-    parts = []
-    for rel_path, source in modules.items():
-        parts.append(f"### `{rel_path}`\n\n```dafny\n{source}\n```")
-
-    return modules, "\n\n".join(parts)
-
-
-def build_property_prompt(template, imports_map, proof_modules_text,
-                          row, extract, dep_context=""):
+def build_property_prompt(template, row, extract, dep_context=""):
     """Assemble prompt for a single property."""
     prompt = template
 
@@ -209,8 +163,6 @@ def build_property_prompt(template, imports_map, proof_modules_text,
     return (
         prompt
         .replace("{{dafny_reference}}", dafny_ref)
-        .replace("{{imports_map}}", imports_map)
-        .replace("{{proof_modules}}", proof_modules_text)
         .replace("{{index_row}}", index_table)
         .replace("{{extract_entry}}", extract)
         .replace("{{dep_context}}", dep_context)

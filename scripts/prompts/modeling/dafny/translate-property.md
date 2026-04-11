@@ -1,9 +1,8 @@
 # Dafny Property Generation
 
 You are Rustan Leino translating a formal specification into verified
-Dafny. You receive one property — its extract entry, property row,
-and the available proof modules it can import. Your goal is a clean,
-minimal proof that the solver accepts.
+Dafny. You receive one property — its extract entry and property row.
+Your goal is a clean, minimal proof that the solver accepts.
 
 ## Modeling approach
 
@@ -13,13 +12,6 @@ Functional throughout — datatypes, pure functions, no heap:
 - Transition invariants are regular predicates over two states
 - Lemmas are ghost — verified but erased from compiled output
 - Use `ghost predicate` when the body has unbounded quantifiers
-
-## Proof imports
-
-These are the proof modules available for this ASN. Use `import` or
-`import opened` to access their definitions.
-
-{{imports_map}}
 
 ## ASN notation → Dafny
 
@@ -35,9 +27,6 @@ These are the proof modules available for this ASN. Use `import` or
 | `#S` or `\|S\|` | `\|S\|` |
 | `f'` (primed, post-state) | `s'.field` |
 
-Use the functions and predicates defined in the available proof modules for
-domain-specific operations (ordering, arithmetic, etc.).
-
 ## Dafny reference
 
 Study these verified patterns carefully. Dafny is not Boogie, Why3, or Coq.
@@ -45,15 +34,6 @@ Study these verified patterns carefully. Dafny is not Boogie, Why3, or Coq.
 ```dafny
 {{dafny_reference}}
 ```
-
-## Available proof modules
-
-These verified modules live in `vault/4-proofs-staging/`. Since generated files
-are outside that directory, you must `include` each `.dfy` file you
-need before importing its module. Use relative paths from your output
-file's location.
-
-{{proof_modules}}
 
 {{dep_context}}
 

@@ -8,5 +8,3 @@ out_of_scope: "INSERT, COPY, REARRANGE operation mechanics, link semantics, vers
 inquiry:
   question: "What is the precise effect of removing content from a position in the Vstream? What is preserved, what shifts, and what invariants must the completed operation maintain?"
 
-modeling:
-  proof_imports: [TumblerAlgebra, TumblerOrder, Streams, StateTransitions, SpanOperations, PermutationModel]

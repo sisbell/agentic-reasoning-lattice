@@ -8,6 +8,4 @@ out_of_scope: "DELETE, COPY, REARRANGE operation mechanics, link semantics, vers
 inquiry:
   question: "What is the precise effect of inserting new content at a position in the Vstream? What is allocated, what shifts, and what invariants must the completed operation preserve?"
 
-modeling:
-  proof_imports: [TumblerAlgebra, TumblerOrder, Streams, StateTransitions, SpanOperations, PermutationModel]
 last_rebase_check: "2026-03-23T09:54:21"

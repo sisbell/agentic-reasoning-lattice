@@ -8,5 +8,3 @@ out_of_scope: "Arrangement canonical decomposition and contiguity invariants, op
 inquiry:
   question: "What properties must a contiguous Vstream-to-Istream mapping block preserve? How do paired spans split, merge, and maintain width coupling across the permutation?"
 
-modeling:
-  proof_imports: [TumblerAlgebra, TumblerOrder, TwoSpace, SpanOperations]

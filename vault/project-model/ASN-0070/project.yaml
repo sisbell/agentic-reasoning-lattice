@@ -8,5 +8,3 @@ out_of_scope: "INSERT, DELETE, COPY, REARRANGE operation mechanics, link creatio
 inquiry:
   question: "Given a link and a document, how does the system resolve the link's endsets to visible Vstream positions? What determines which content is reachable and what is the form of the result?"
 
-modeling:
-  proof_imports: [TumblerAlgebra, TumblerOrder, Streams, StateTransitions, LinkOntology, SpanOperations, PermutationModel]

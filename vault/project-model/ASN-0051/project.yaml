@@ -8,5 +8,3 @@ out_of_scope: "Link type semantics and interpretation, replication and inter-ser
 inquiry:
   question: "What guarantees does the system provide about links across state changes? What survives, what changes, and what can a link holder rely on?"
 
-modeling:
-  proof_imports: [TumblerAlgebra, TumblerOrder, TumblerHierarchy, TumblerAllocation, Streams, StateTransitions, LinkOntology, SpanOperations, PermutationModel]

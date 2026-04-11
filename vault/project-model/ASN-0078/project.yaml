@@ -8,5 +8,3 @@ out_of_scope: "INSERT, DELETE, COPY, REARRANGE operation mechanics, version crea
 inquiry:
   question: "What is the precise effect of creating a new link with endsets referencing Istream content? What is allocated, what is indexed, and what invariants must the completed operation maintain?"
 
-modeling:
-  proof_imports: [TumblerAlgebra, TumblerOrder, Streams, StateTransitions, LinkOntology, LinkSurvivability, SpanOperations, PermutationModel]

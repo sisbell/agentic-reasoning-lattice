@@ -8,6 +8,4 @@ out_of_scope: "Operations and their effects on spans (INSERT, DELETE, COPY, REAR
 inquiry:
   question: "What properties do contiguous regions of the tumbler space have? How do spans cover, intersect, split, and compose?"
 
-modeling:
-  proof_imports: [TumblerAlgebra, TumblerOrder, TumblerHierarchy, TumblerAllocation]
 last_rebase_check: "2026-03-23T09:54:21"

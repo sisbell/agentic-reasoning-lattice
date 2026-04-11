@@ -8,5 +8,3 @@ out_of_scope: "INSERT, DELETE, COPY, REARRANGE operation mechanics, link semanti
 inquiry:
   question: "Given two documents, how does the system identify which Istream content they share? What determines the correspondence and what form does the result take?"
 
-modeling:
-  proof_imports: [TumblerAlgebra, TumblerOrder, Streams, StateTransitions, SpanOperations, PermutationModel]

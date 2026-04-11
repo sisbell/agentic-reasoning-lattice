@@ -8,6 +8,4 @@ out_of_scope: "I-space and V-space as named concepts (dual-space model), content
 inquiry:
   question: "What algebraic structure do tumblers form? What are the ordering, arithmetic, and allocation properties?"
 
-modeling:
-  proof_imports: []
 last_pipeline_run: "2026-03-27T21:53:52"

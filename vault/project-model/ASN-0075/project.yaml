@@ -8,5 +8,3 @@ out_of_scope: "INSERT, DELETE, COPY, REARRANGE operation mechanics, link semanti
 inquiry:
   question: "Nelson (LM 4/79) lists 'show deletions' as a desired feature. Given two documents that share history, identify which content was present in one arrangement but absent from the other. The operation should return the deleted content in a form the system can act on."
 
-modeling:
-  proof_imports: [TumblerAlgebra, TumblerOrder, Streams, StateTransitions, SpanOperations, PermutationModel]

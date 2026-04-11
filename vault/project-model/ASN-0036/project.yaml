@@ -8,8 +8,6 @@ out_of_scope: "Node ontology and node tree structure, account creation and deleg
 inquiry:
   question: "What is the relationship between permanent content storage (Istream) and mutable document arrangement (Vstream)? What invariants connect them?"
 
-modeling:
-  proof_imports: [TumblerAlgebra, TumblerOrder, TumblerHierarchy, TumblerAddition, TumblerAllocation]
 last_consistency_check: "2026-03-23T15:52:12"
 last_consistency_result: "CLEAN"
 last_rebase_check: "2026-03-23T15:55:37"

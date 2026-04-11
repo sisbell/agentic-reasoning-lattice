@@ -8,6 +8,4 @@ out_of_scope: "Ownership, authorization, delegation, and agent identity (deferre
 inquiry:
   question: "What is the structural mechanism of baptism — how do new positions enter the tumbler hierarchy, and what invariants govern the growing set of baptized positions?"
 
-modeling:
-  proof_imports: [TumblerAlgebra, TumblerOrder, TumblerHierarchy, TumblerAllocation]
 last_rebase_check: "2026-03-23T09:54:21"
