@@ -29,7 +29,8 @@
 | D-SEQ | SequentialPositions | Sequential positions (m ≥ 2): non-empty V_S(d) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n} for some n ≥ 1 | from D-CTG, D-CTG-depth, D-MIN, S8-fin, S8-depth, T1 (ASN-0034) |
 | ValidInsertionPosition | ValidInsertionPosition | if V_S(d) ≠ ∅: v = min(V_S(d)) or v = shift(min(V_S(d)), j) with 1 ≤ j ≤ N, common depth m ≥ 2; if V_S(d) = ∅: v = [S, 1, ..., 1] of depth m ≥ 2 | introduced |
 | S9 | TwoStreamSeparation | Two-stream separation: arrangement changes cannot alter stored content | theorem from S0 |
-| S8-depth(a) | ConsecutiveVPositions | Consecutive V-positions within a subspace differ only at the ordinal (last) component; well-defined under uniform depth | introduced |
-| S8-depth(b) | OrdinalDisplacementExtension | Extends ordinal displacement notation to k=0 as identity for both V-positions and I-addresses | introduced |
-| S8-depth(c) | CorrespondenceRun | Triple `(v, a, n)` with `n ≥ 1` such that `M(d)(v+k) = a+k` for all `0 ≤ k < n` | introduced |
-| S8-depth-C1 | IAddressRunUniformity | All I-addresses in a correspondence run share the same tumbler depth and prefix, differing only at the element ordinal | corollary of S8-depth(b), S8-depth(c), TumblerAdd (ASN-0034), S7c |
+| S8-depth-C1 | IAddressRunUniformity | All I-addresses in a correspondence run share the same tumbler depth and prefix, differing only at the element ordinal | corollary of OrdinalDisplacementExtension, CorrespondenceRun, TumblerAdd (ASN-0034), S7c |
+| V_S(d) | SubspaceVPositionSet | `V_S(d) = {v ∈ dom(M(d)) : subspace(v) = S}`, the set of V-positions in subspace S of document d | introduced |
+| ConsecutiveVPositions | ConsecutiveVPositions | Consecutive V-positions within a subspace differ only at the ordinal (last) component; well-defined under uniform depth | introduced |
+| OrdinalDisplacementExtension | OrdinalDisplacementExtension | Extends ordinal displacement notation to `k = 0` as identity for both V-positions and I-addresses | introduced |
+| CorrespondenceRun | CorrespondenceRun | Triple `(v, a, n)` with `n ≥ 1` such that `M(d)(v + k) = a + k` for all `0 ≤ k < n` | introduced |
