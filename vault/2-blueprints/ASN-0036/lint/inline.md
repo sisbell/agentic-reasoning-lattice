@@ -1,6 +1,6 @@
 # Inline Lint — ASN-0036
 
-*Last scanned: 2026-04-11 10:24*
+*Last scanned: 2026-04-11 10:25*
 
 ## D-CTG
 
@@ -13,6 +13,8 @@
 - **derived** | D-CTG-DEPTH | DepthUniformity | D-CTG + S8-fin forces all V-positions in a subspace to share components 2 through m−1 at depth m≥3
 - **definition** | DEF-SVS | SubspaceVPositionSet | notation V_S(d) for the set of V-positions belonging to a given subspace within a document
 - **derived** | D-SHR | SubspaceHomogeneityRestriction | D-CTG + S8-fin forces all depth-m≥3 positions in a subspace to share components 2 through m−1
+- **definition** | D-VSS | SubspaceVPositionSet | The set V_S(d) of all V-positions in subspace S of document d, used to state contiguity and uniformity conditions
+- **derived** | D-CTG-U | SubspaceComponentUniformity | D-CTG and S8-fin jointly force all depth-m≥3 positions in a subspace to share components 2 through m−1
 
 ## D-MIN
 
@@ -22,6 +24,7 @@
 ## OrdShiftHom
 
 - **derived** | ShiftS8aClosure | ShiftS8aClosure | shift preserves S8a: if v satisfies S8a then shift(v, n) satisfies S8a
+- **derived** | OrdShiftS8a | OrdinalShiftS8aPreservation | shift preserves S8a when v satisfies S8a, proved via OrdAddS8a vacuous condition
 
 ## S0
 
@@ -65,6 +68,10 @@
 - **definition** | S8-corrrun | CorrespondenceRun | A correspondence run is a triple (v, a, n) such that M(d)(v+k) = a+k for all 0 ≤ k < n
 - **definition** | S8-ord-zero | OrdinalShiftZeroExtension | extends ordinal displacement notation to k=0 as identity for V-positions and I-addresses
 - **definition** | S8-run | CorrespondenceRun | a triple (v, a, n) where M(d)(v+k) = a+k for all 0 ≤ k < n
+- **definition** | D-consec-vpos | ConsecutiveVPositions | V-positions s.x and s.(x+1) within a subspace are consecutive iff they differ only at the ordinal component
+- **definition** | D-ordshift-zero | OrdinalDisplacementZero | Extension of ordinal displacement notation to k=0 for both V-positions and I-addresses
+- **definition** | D-corrrun | CorrespondenceRun | Triple (v, a, n) with arrangement condition M(d)(v+k) = a+k for 0 ≤ k < n
+- **derived** | S8-iaddr-uniform | IAddressRunUniformity | All I-addresses in a correspondence run share the same tumbler depth and prefix, differing only at the element ordinal
 
 ## _properties-introduced
 
@@ -97,6 +104,7 @@
 - **definition** | vpos(S,o) | VPositionReconstruction | Operation reconstructing a V-position from subspace and ordinal; inverse of ord
 - **definition** | w_ord | OrdinalDisplacementProjection | Notation for the tail of a displacement vector with zero leading component
 - **definition** | ValidInsertionPosition | ValidInsertionPosition | Predicate characterising legal V-positions for content insertion operations
+- **definition** | vpos(S, o) | VPositionReconstruction | inverse operator reconstructing V-position from subspace and ordinal
 
 ## ord(v)
 
