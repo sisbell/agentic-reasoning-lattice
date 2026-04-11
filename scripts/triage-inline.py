@@ -6,10 +6,14 @@ Reads the inline lint report, missing dependencies report, and property
 table. Sends to an LLM which deduplicates, applies prioritization
 criteria, and outputs a promote/extract/leave action plan.
 
+By default, accumulates with any existing triage report (union of findings).
+Use --rewrite to start from scratch.
+
 Run lint inline and lint missing first to build the reports.
 
 Usage:
     python scripts/triage-inline.py 34
+    python scripts/triage-inline.py 34 --rewrite
     python scripts/triage-inline.py 34 --dry-run
 """
 
@@ -32,10 +36,51 @@ PROMPT_PATH = (WORKSPACE / "scripts" / "prompts" / "blueprinting"
                / "triage.md")
 
 
+def _parse_triage_section(text, section):
+    """Parse a triage section into a dict of {key: line}.
+    Key is SOURCE → TARGET (without the reason)."""
+    entries = {}
+    in_section = False
+    for line in text.split("\n"):
+        if line.strip().startswith("## "):
+            in_section = line.strip().lstrip("# ").strip().lower() == section.lower()
+            continue
+        if not in_section:
+            continue
+        m = re.match(r'^- (.+?\s*→\s*\S+)', line.strip())
+        if m:
+            key = m.group(1).strip()
+            entries[key] = line.strip()
+    return entries
+
+
+def _merge_triage(existing_text, new_text):
+    """Merge new triage into existing, keeping the union of findings.
+    Returns merged text and count of new entries."""
+    new_count = 0
+    sections = []
+    for section in ("Promote", "Extract", "Leave"):
+        existing = _parse_triage_section(existing_text, section)
+        new = _parse_triage_section(new_text, section)
+        # Add new entries not already present
+        for key, line in new.items():
+            if key not in existing:
+                existing[key] = line
+                new_count += 1
+        lines = sorted(existing.values())
+        sections.append(f"## {section}\n\n" + "\n".join(lines) if lines else f"## {section}\n\n(none)")
+    merged = "\n\n".join(sections)
+    return merged, new_count
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Triage Inline — prioritize findings into action plan")
     parser.add_argument("asn", help="ASN number (e.g., 34)")
+    parser.add_argument("--rewrite", action="store_true",
+                        help="Overwrite existing triage instead of accumulating")
+    parser.add_argument("--cycles", type=int, default=3,
+                        help="Number of triage cycles to run (default: 3)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Show inputs without running LLM")
     args = parser.parse_args()
@@ -98,33 +143,50 @@ def main():
     env.pop("CLAUDECODE", None)
     env["CLAUDE_CODE_EFFORT_LEVEL"] = "high"
 
-    print(f"  Triaging...", file=sys.stderr)
-
-    start = time.time()
-    result = subprocess.run(
-        cmd, input=prompt, capture_output=True, text=True, env=env,
-    )
-    elapsed = time.time() - start
-
-    if result.returncode != 0:
-        print(f"  FAILED ({elapsed:.0f}s)", file=sys.stderr)
-        sys.exit(1)
-
-    triage_text = result.stdout.strip()
-
-    # Write triage report
     out_path = lint_path(asn_label, "triage")
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(f"# Triage — {asn_label}\n\n"
-                        f"*Generated: {time.strftime('%Y-%m-%d %H:%M')}*\n\n"
-                        f"{triage_text}\n")
 
-    # Count actions
-    promote_count = len(re.findall(r'^- .+→', triage_text, re.M))
-    print(f"\n  [TRIAGE] Done ({elapsed:.0f}s)", file=sys.stderr)
-    print(f"  Report: {out_path.relative_to(WORKSPACE)}", file=sys.stderr)
+    # Clear existing on --rewrite
+    if args.rewrite and out_path.exists():
+        out_path.unlink()
 
-    step_commit_asn(asn_num, hint="triage-inline")
+    for cycle in range(1, args.cycles + 1):
+        print(f"\n  === Cycle {cycle}/{args.cycles} ===", file=sys.stderr)
+        print(f"  Triaging...", file=sys.stderr)
+
+        start = time.time()
+        result = subprocess.run(
+            cmd, input=prompt, capture_output=True, text=True, env=env,
+        )
+        elapsed = time.time() - start
+
+        if result.returncode != 0:
+            print(f"  FAILED ({elapsed:.0f}s)", file=sys.stderr)
+            sys.exit(1)
+
+        triage_text = result.stdout.strip()
+
+        if not out_path.exists():
+            out_path.write_text(f"# Triage — {asn_label}\n\n"
+                                f"*Generated: {time.strftime('%Y-%m-%d %H:%M')}*\n\n"
+                                f"{triage_text}\n")
+            new_count = len(re.findall(r'^- .+→', triage_text, re.M))
+            print(f"  [TRIAGE] {new_count} entries ({elapsed:.0f}s)",
+                  file=sys.stderr)
+        else:
+            existing_text = out_path.read_text()
+            merged, new_count = _merge_triage(existing_text, triage_text)
+            if new_count > 0:
+                out_path.write_text(f"# Triage — {asn_label}\n\n"
+                                    f"*Generated: {time.strftime('%Y-%m-%d %H:%M')}*\n\n"
+                                    f"{merged}\n")
+            print(f"  [TRIAGE] {new_count} new entries ({elapsed:.0f}s)",
+                  file=sys.stderr)
+
+        print(f"  Report: {out_path.relative_to(WORKSPACE)}", file=sys.stderr)
+
+        if new_count > 0:
+            step_commit_asn(asn_num, hint="triage-inline")
 
 
 if __name__ == "__main__":
