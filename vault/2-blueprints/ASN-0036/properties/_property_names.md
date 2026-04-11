@@ -2,6 +2,8 @@
 
 | Filename | Label |
 |----------|-------|
+| ConsecutiveVPositions.md | ConsecutiveVPositions |
+| CorrespondenceRun.md | CorrespondenceRun |
 | D-CTG.md | D-CTG |
 | D-CTG-depth.md | D-CTG-depth |
 | D-MIN.md | D-MIN |
@@ -9,6 +11,7 @@
 | OrdAddHom.md | OrdAddHom |
 | OrdAddS8a.md | OrdAddS8a |
 | OrdShiftHom.md | OrdShiftHom |
+| OrdinalDisplacementExtension.md | OrdinalDisplacementExtension |
 | S0.md | S0 |
 | S1.md | S1 |
 | S2.md | S2 |
@@ -22,11 +25,14 @@
 | S7c.md | S7c |
 | S8.md | S8 |
 | S8-depth.md | S8-depth |
+| S8-depth-C1.md | S8-depth-C1 |
 | S8-fin.md | S8-fin |
 | S8a.md | S8a |
 | S9.md | S9 |
+| V_Sd.md | V_S(d) |
 | ValidInsertionPosition.md | ValidInsertionPosition |
 | ordv.md | ord(v) |
 | vposS-o.md | vpos(S, o) |
 | w_ord.md | w_ord |
+| Σ.C.md | Σ.C |
 | Σ.Md.md | Σ.M(d) |
