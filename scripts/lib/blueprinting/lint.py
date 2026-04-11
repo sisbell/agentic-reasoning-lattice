@@ -805,7 +805,8 @@ def lint_inline(asn_num, dry_run=False, model="claude-sonnet-4-6"):
 
     # Collect all files — property files AND structural files
     # (except _table.md, _preamble.md, _vocabulary.md which are metadata)
-    skip_structural = {"_table.md", "_preamble.md", "_vocabulary.md"}
+    skip_structural = {"_table.md", "_preamble.md", "_vocabulary.md",
+                       "_properties-introduced.md", "_property_names.md"}
     prop_files = sorted(
         f for f in prop_dir.glob("*.md")
         if f.name not in skip_structural
