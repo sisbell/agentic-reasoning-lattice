@@ -91,7 +91,8 @@ def _load_dep_context(prop_dir, dep_labels):
         # Try exact filename, then with parens removed
         dep_file = prop_dir / (dep_label + ".md")
         if not dep_file.exists():
-            dep_file = prop_dir / (dep_label.replace("(", "").replace(")", "") + ".md")
+            from lib.shared.common import label_to_filename
+            dep_file = prop_dir / label_to_filename(dep_label)
         if dep_file.exists():
             sections.append(f"### {dep_label}\n\n{dep_file.read_text().strip()}")
     return "\n\n---\n\n".join(sections) if sections else "(no dependency files found)"

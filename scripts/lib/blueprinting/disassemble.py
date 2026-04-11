@@ -77,8 +77,9 @@ def _classify_chunk(chunk):
 
 
 def _label_to_filename(label):
-    """Convert label to filename: T0(a) → T0a.md."""
-    return label.replace("(", "").replace(")", "") + ".md"
+    """Convert label to filename — delegates to shared function."""
+    from lib.shared.common import label_to_filename
+    return label_to_filename(label)
 
 
 def disassemble_asn(asn_num, dry_run=False):

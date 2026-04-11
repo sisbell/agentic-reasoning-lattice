@@ -20,6 +20,14 @@ def read_file(path):
         return ""
 
 
+def label_to_filename(label):
+    """Convert property label to filename: T0(a) → T0a.md, vpos(S, o) → vpos-S-o.md."""
+    name = label.replace("(", "").replace(")", "")
+    name = name.replace(",", "").replace(" ", "-")
+    name = re.sub(r'-+', '-', name).strip("-")
+    return name + ".md"
+
+
 def find_asn(asn_id, asns_dir=None):
     """Find ASN by number. Accepts 9, 09, 0009, ASN-0009, or full path.
 
@@ -215,7 +223,7 @@ def assemble_readonly(asn_label):
                     ordered_labels.append(label)
 
         for label in ordered_labels:
-            filename = label.replace("(", "").replace(")", "") + ".md"
+            filename = label_to_filename(label)
             f = prop_dir / filename
             if f.exists():
                 parts.append(f.read_text().strip())
