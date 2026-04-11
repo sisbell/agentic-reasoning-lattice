@@ -79,7 +79,7 @@ def main():
     parser.add_argument("asn", help="ASN number (e.g., 34)")
     parser.add_argument("--rewrite", action="store_true",
                         help="Overwrite existing triage instead of accumulating")
-    parser.add_argument("--cycles", type=int, default=3,
+    parser.add_argument("--cycles", type=int, default=1,
                         help="Number of triage cycles to run (default: 3)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Show inputs without running LLM")
