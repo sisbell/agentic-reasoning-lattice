@@ -81,7 +81,24 @@ The two sequences are identical component by component. ∎
 - *Postconditions:* `ord(v ⊕ w) = ord(v) ⊕ w_ord`.
 - *Frame:* Both sides are computed from `v` and `w` alone — no state is consulted.
 
-*Corollary (TA7a connection).* By OrdAddHom, `ord(v ⊕ w) = ord(v) ⊕ w_ord`. Since `v` satisfies S8a, `ord(v) ∈ S` (by ord's postcondition). TA7a's `⊕` postconditions therefore apply to the right-hand side: `ord(v) ⊕ w_ord ∈ S` when all components of `w_ord` after its action point are positive. By the homomorphism, this governs the left-hand side — `ord(v ⊕ w) ∈ S` under the same condition. Instance (b) above confirms the boundary: `w_ord = [4, 0]` has a zero after the action point, and the result `[7, 0] ∉ S`.
+**OrdAddS8a** — *AdditionPreservesS8a* (LEMMA). Under OrdAddHom's preconditions, `v ⊕ w` satisfies S8a if and only if all components of `w_ord` after its action point are positive.
+
+*Proof.* Let `r = v ⊕ w` with `k = actionPoint(w) ≥ 2`. By TumblerAdd, the components of `r` partition into three regions:
+
+- `r₁ = v₁ ≥ 1` (by S8a on `v`, and `w₁ = 0` so `1 < k` and TumblerAdd copies from `v`).
+- For `2 ≤ i < k`: `rᵢ = vᵢ ≥ 1` (by S8a on `v`).
+- At `i = k`: `rₖ = vₖ + wₖ ≥ 1 + 1 = 2` (since `vₖ ≥ 1` by S8a and `wₖ ≥ 1` as the action-point component).
+- For `k < i ≤ m`: `rᵢ = wᵢ` (copied from the displacement).
+
+Components `r₁` through `rₖ` are unconditionally positive. S8a requires `zeros(r) = 0` and `r > 0`, which reduces to: every component is positive. The only components that can fail are `r_{k+1}, ..., r_m = w_{k+1}, ..., w_m` — exactly the tail components of `w`, which are the tail components of `w_ord` (since `(w_ord)_j = w_{j+1}` and the action point of `w_ord` is `k - 1`). Therefore:
+
+`v ⊕ w satisfies S8a ⟺ (A i : k < i ≤ m : wᵢ > 0) ⟺ all tail components of w_ord are positive`
+
+By OrdAddHom, `ord(v ⊕ w) = ord(v) ⊕ w_ord`, so equivalently `ord(v ⊕ w) ∈ S` under the same condition — the ordinal-domain S-membership and the V-position S8a property are two views of the same constraint on the displacement's tail. Instance (b) above confirms the boundary: `w_ord = [4, 0]` has a zero after the action point, and `v ⊕ w = [1, 7, 0]` fails S8a. ∎
+
+*Formal Contract:*
+- *Preconditions:* `v ∈ T` satisfying S8a, `#v = m ≥ 2`; `w ∈ T`, `w > 0`, `#w = m`, `w₁ = 0`, `actionPoint(w) ≤ m`.
+- *Postconditions:* `v ⊕ w satisfies S8a ⟺ (A i : actionPoint(w) < i ≤ m : wᵢ > 0)`. Equivalently, `ord(v ⊕ w) ∈ S ⟺ v ⊕ w satisfies S8a`.
 
 **OrdShiftHom** — *OrdinalShiftHomomorphism* (COROLLARY). For a V-position `v` satisfying S8a with `#v = m ≥ 2` and `n ≥ 1`:
 
@@ -91,7 +108,7 @@ Since `shift(v, n) = v ⊕ δ(n, m)` and `δ(n, m) = [0, ..., 0, n]` has `δ(n, 
 
 *Formal Contract:*
 - *Preconditions:* `v ∈ T` satisfying S8a, `#v = m ≥ 2`, `n ≥ 1`.
-- *Postconditions:* `ord(shift(v, n)) = shift(ord(v), n)`.
+- *Postconditions:* `ord(shift(v, n)) = shift(ord(v), n)`. Since `δ(n, m) = [0, ..., 0, n]` has action point `m`, there are no tail components after the action point — the OrdAddS8a condition is vacuously satisfied. Therefore `shift(v, n)` unconditionally satisfies S8a when `v` does.
 
 
 ## Properties Introduced
@@ -102,7 +119,8 @@ Since `shift(v, n) = v ⊕ δ(n, m)` and `δ(n, m) = [0, ..., 0, n]` has `δ(n, 
 | vpos(S, o) | V-position reconstruction: vpos(S, o) = [S, o₁, ..., oₖ]; inverse of ord; result satisfies S8a | introduced |
 | w_ord | Ordinal displacement projection: w_ord = [w₂, ..., wₘ] for displacement w with w₁ = 0 | introduced |
 | OrdAddHom | ord(v ⊕ w) = ord(v) ⊕ w_ord for within-subspace displacements (w₁ = 0) | introduced |
-| OrdShiftHom | ord(shift(v, n)) = shift(ord(v), n) | introduced |
+| OrdAddS8a | v ⊕ w satisfies S8a ⟺ all tail components of w after the action point are positive; equivalently ord(v ⊕ w) ∈ S ⟺ v ⊕ w satisfies S8a | introduced |
+| OrdShiftHom | ord(shift(v, n)) = shift(ord(v), n); shift(v, n) unconditionally satisfies S8a when v does | introduced |
 
 
 ## Open Questions
