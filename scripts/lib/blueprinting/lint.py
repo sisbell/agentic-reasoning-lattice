@@ -1056,17 +1056,18 @@ def lint_missing(asn_num, model="claude-opus-4-6"):
                 existing[key] = f"- **{label}**: {ref}"
                 new_count += 1
 
-    # Write merged report
-    with open(out_path, "w") as rf:
-        rf.write(f"# Missing Dependencies — {asn_label}\n\n")
-        rf.write(f"*Last scanned: {time.strftime('%Y-%m-%d %H:%M')}*\n\n")
+    # Write merged report (only when there are new findings or no report exists)
+    if new_count > 0 or not out_path.exists():
+        with open(out_path, "w") as rf:
+            rf.write(f"# Missing Dependencies — {asn_label}\n\n")
+            rf.write(f"*Last scanned: {time.strftime('%Y-%m-%d %H:%M')}*\n\n")
 
-        if not existing:
-            rf.write("No missing dependencies found.\n")
-        else:
-            for key in sorted(existing.keys()):
-                rf.write(f"{existing[key]}\n")
-            rf.write(f"\n*{len(prop_files)} files scanned.*\n")
+            if not existing:
+                rf.write("No missing dependencies found.\n")
+            else:
+                for key in sorted(existing.keys()):
+                    rf.write(f"{existing[key]}\n")
+                rf.write(f"\n*{len(prop_files)} files scanned.*\n")
 
     # Print summary
     unique_missing = set(k[1] for k in existing.keys())
