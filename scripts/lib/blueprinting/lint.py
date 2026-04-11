@@ -930,6 +930,19 @@ def _parse_missing_report(report_path):
     return existing
 
 
+def _labels_from_table(table_path):
+    """Extract labels from a _table.md file."""
+    labels = []
+    for line in table_path.read_text().split("\n"):
+        if (line.strip().startswith("|")
+                and not line.strip().startswith("| Label")
+                and not line.strip().startswith("|---")):
+            cells = [c.strip() for c in line.split("|")]
+            if len(cells) >= 2 and cells[1].strip():
+                labels.append(cells[1].strip().strip("`*"))
+    return labels
+
+
 def lint_missing(asn_num, model="claude-opus-4-6"):
     """Check per-property blueprint files for references to undeclared labels.
 
@@ -954,13 +967,23 @@ def lint_missing(asn_num, model="claude-opus-4-6"):
         print(f"  No _table.md in blueprint", file=sys.stderr)
         return None
 
-    table_text = table_path.read_text()
-    declared_labels = []
-    for line in table_text.split("\n"):
-        if line.strip().startswith("|") and not line.strip().startswith("| Label") and not line.strip().startswith("|---"):
-            cells = [c.strip() for c in line.split("|")]
-            if len(cells) >= 2 and cells[1].strip():
-                declared_labels.append(cells[1].strip().strip("`*"))
+    declared_labels = _labels_from_table(table_path)
+
+    # Include upstream ASN labels from dependencies
+    from lib.shared.paths import PROJECT_MODEL_DIR, FORMALIZATION_DIR
+    project_yaml = PROJECT_MODEL_DIR / asn_label / "project.yaml"
+    if project_yaml.exists():
+        for line in project_yaml.read_text().split("\n"):
+            if line.startswith("depends:"):
+                dep_nums = re.findall(r'\d+', line)
+                for dep_num in dep_nums:
+                    dep_label = f"ASN-{int(dep_num):04d}"
+                    dep_table = FORMALIZATION_DIR / dep_label / "_table.md"
+                    if dep_table.exists():
+                        upstream = _labels_from_table(dep_table)
+                        declared_labels.extend(upstream)
+                        print(f"  [LINT-MISSING] +{len(upstream)} labels from {dep_label}",
+                              file=sys.stderr)
 
     declared_str = ", ".join(declared_labels)
 
