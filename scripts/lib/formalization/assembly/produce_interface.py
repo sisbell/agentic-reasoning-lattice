@@ -17,7 +17,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, USAGE_LOG, formal_stmts, asn_dir
-from lib.shared.common import find_asn, invoke_claude
+from lib.shared.common import find_asn, invoke_claude, load_property_names, filename_to_label
 from lib.formalization.core.build_dependency_graph import find_property_table, parse_table_row, detect_columns
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization" / "assembly"
@@ -124,10 +124,11 @@ def assemble_formal_statements(asn_num):
 
     # Read per-property files if available, otherwise extract from monolithic ASN
     if prop_dir and prop_dir.exists():
+        _prop_names = load_property_names(prop_dir)
         sections = {}
         for f in prop_dir.glob("*.md"):
             if not f.name.startswith("_"):
-                lbl = f.name.replace(".md", "")
+                lbl = filename_to_label(f.name, _prop_names)
                 sections[lbl] = f.read_text()
     else:
         from lib.shared.common import extract_property_sections

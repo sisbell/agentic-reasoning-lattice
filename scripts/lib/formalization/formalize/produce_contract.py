@@ -17,7 +17,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, USAGE_LOG, FORMALIZATION_DIR, formal_stmts
-from lib.shared.common import find_asn, invoke_claude
+from lib.shared.common import find_asn, invoke_claude, load_property_names, filename_to_label
 from lib.formalization.core.build_dependency_graph import (find_property_table, parse_table_row,
                               detect_columns, generate_formalization_deps)
 
@@ -115,6 +115,7 @@ def find_properties_needing_quality(asn_num, force_all=True, force_rebuild=False
     if not prop_dir.exists():
         print(f"  No formalization directory for {asn_label}", file=sys.stderr)
         return [], {}
+    _prop_names = load_property_names(prop_dir)
 
     # Read statuses from _table.md
     table_path = prop_dir / "_table.md"
@@ -142,7 +143,7 @@ def find_properties_needing_quality(asn_num, force_all=True, force_rebuild=False
         content = f.read_text()
         if not content.strip():
             continue
-        label = f.name.replace(".md", "")
+        label = filename_to_label(f.name, _prop_names)
         if _is_definition(content):
             continue
         if statuses.get(label, "") in ("axiom", "design requirement"):

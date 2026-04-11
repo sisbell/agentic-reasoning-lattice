@@ -18,7 +18,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import (WORKSPACE, FORMALIZATION_DIR, PROOFS_DIR, USAGE_LOG,
                     load_manifest)
-from lib.shared.common import find_asn, assemble_readonly
+from lib.shared.common import find_asn, assemble_readonly, load_property_names, filename_to_label
 from lib.modeling.dafny.common import read_file
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "modeling" / "dafny"
@@ -61,10 +61,11 @@ def build_property_list_from_asn(asn_num):
     data_rows = table_rows[2:]
 
     # Read per-property files for contract type detection
+    _prop_names = load_property_names(prop_dir)
     prop_contents = {}
     for f in prop_dir.glob("*.md"):
         if not f.name.startswith("_"):
-            prop_contents[f.name.replace(".md", "")] = f.read_text()
+            prop_contents[filename_to_label(f.name, _prop_names)] = f.read_text()
 
     rows = []
     for row in data_rows:

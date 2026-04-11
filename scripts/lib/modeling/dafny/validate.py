@@ -24,7 +24,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import (WORKSPACE, FORMALIZATION_DIR, DAFNY_DIR, USAGE_LOG)
-from lib.shared.common import find_asn
+from lib.shared.common import find_asn, load_property_names, filename_to_label
 
 PROMPT_TEMPLATE = WORKSPACE / "scripts" / "prompts" / "modeling" / "dafny" / "validate-contract.md"
 
@@ -94,10 +94,11 @@ def validate_batch(asn_num, dfy_dir, dry_run=False):
         return None
 
     # Build sections from per-property files
+    _prop_names = load_property_names(prop_dir)
     sections = {}
     for f in prop_dir.glob("*.md"):
         if not f.name.startswith("_"):
-            sections[f.name.replace(".md", "")] = f.read_text()
+            sections[filename_to_label(f.name, _prop_names)] = f.read_text()
 
     # Build label map: PascalCase name -> label (for .dfy filename matching)
     label_map = {}

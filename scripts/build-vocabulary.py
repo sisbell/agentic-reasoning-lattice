@@ -20,7 +20,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, blueprint_properties_dir
-from lib.shared.common import find_asn, step_commit_asn
+from lib.shared.common import find_asn, step_commit_asn, load_property_names, filename_to_label
 
 TEMPLATE = WORKSPACE / "scripts" / "prompts" / "blueprinting" / "vocabulary.md"
 
@@ -99,10 +99,11 @@ def build_vocabulary(asn_num, dry_run=False):
         return True
 
     # Filter to files worth scanning
+    _prop_names = load_property_names(prop_dir)
     candidates = [f for f in prop_files if len(f.read_text().strip()) >= 50]
 
     def _scan_one(f):
-        label = f.name.replace(".md", "")
+        label = filename_to_label(f.name, _prop_names)
         content = f.read_text()
         entries, elapsed = _scan_file(label, content, template)
         return label, entries

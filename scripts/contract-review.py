@@ -23,7 +23,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, next_review_number
-from lib.shared.common import find_asn, invoke_claude, parallel_llm_calls, step_commit_asn
+from lib.shared.common import find_asn, invoke_claude, parallel_llm_calls, step_commit_asn, load_property_names, filename_to_label
 from lib.formalization.assembly.validate_contracts import validate_contract
 from lib.formalization.formalize.produce_contract import _has_formal_contract
 
@@ -67,6 +67,7 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
         print(f"  No formalization directory for {asn_label}", file=sys.stderr)
         return "failed"
 
+    _prop_names = load_property_names(prop_dir)
     print(f"  Directory: {prop_dir.relative_to(WORKSPACE)}", file=sys.stderr)
 
     # Load vocabulary
@@ -89,13 +90,13 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
 
         if single_label:
             prop_files = [f for f in prop_files
-                          if f.name.replace(".md", "") == single_label]
+                          if filename_to_label(f.name, _prop_names) == single_label]
 
         # Filter to properties with formal contracts, skip cached
         candidates = []
         cached = 0
         for f in prop_files:
-            label = f.name.replace(".md", "")
+            label = filename_to_label(f.name, _prop_names)
             content = f.read_text()
             if not content or not _has_formal_contract(content):
                 continue

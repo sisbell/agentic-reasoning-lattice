@@ -28,7 +28,7 @@ from lib.shared.paths import (
     blueprint_properties_dir, blueprint_lint_dir, blueprint_global_lint_dir,
     lint_path, lint_global_path,
 )
-from lib.shared.common import find_asn, extract_property_sections
+from lib.shared.common import find_asn, extract_property_sections, load_property_names, filename_to_label
 from lib.formalization.core.build_dependency_graph import (
     find_property_table, parse_table_row, detect_columns,
 )
@@ -801,6 +801,7 @@ def lint_inline(asn_num, dry_run=False, model="claude-sonnet-4-6"):
     if not prop_dir.exists():
         print(f"  No blueprint directory for {asn_label}", file=sys.stderr)
         return None
+    _prop_names = load_property_names(prop_dir)
 
     # Collect all files — property files AND structural files
     # (except _table.md, _preamble.md, _vocabulary.md which are metadata)
@@ -818,7 +819,7 @@ def lint_inline(asn_num, dry_run=False, model="claude-sonnet-4-6"):
         content = f.read_text()
         if not content.strip():
             continue
-        label = f.name.replace(".md", "")
+        label = filename_to_label(f.name, _prop_names)
         candidates.append((label, f, content))
 
     print(f"  [LINT-INLINE] {len(candidates)} files to scan",
@@ -945,6 +946,7 @@ def lint_missing(asn_num, model="claude-opus-4-6"):
     if not prop_dir.exists():
         print(f"  No blueprint directory for {asn_label}", file=sys.stderr)
         return None
+    _prop_names = load_property_names(prop_dir)
 
     # Read declared labels from _table.md
     table_path = prop_dir / "_table.md"
@@ -981,7 +983,7 @@ def lint_missing(asn_num, model="claude-opus-4-6"):
             candidates.append(f)
 
     def _check_one(f):
-        label = f.name.replace(".md", "")
+        label = filename_to_label(f.name, _prop_names)
         content = f.read_text()
         prompt = (template
                   .replace("{{declared_labels}}", declared_str)

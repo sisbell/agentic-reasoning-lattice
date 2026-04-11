@@ -43,7 +43,7 @@ def promote_blueprint(asn_num, dry_run=False):
     print(f"  Target: {dst.relative_to(WORKSPACE)}", file=sys.stderr)
 
     # Collect files: property files + _table.md + _vocabulary.md
-    keep_structural = {"_table.md", "_vocabulary.md"}
+    keep_structural = {"_table.md", "_vocabulary.md", "_property_names.md"}
     files = sorted(
         f for f in src.glob("*.md")
         if not f.name.startswith("_") or f.name in keep_structural

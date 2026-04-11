@@ -10,7 +10,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import FORMALIZATION_DIR
-from lib.shared.common import find_asn
+from lib.shared.common import find_asn, load_property_names, filename_to_label
 from lib.formalization.core.build_dependency_graph import (
     find_property_table, parse_table_row, detect_columns,
 )
@@ -65,10 +65,11 @@ def reconcile_table(asn_num):
             norm_to_table[_normalize_label(label)] = label
 
     # --- Scan property files ---
+    _prop_names = load_property_names(prop_dir)
     file_labels = set()
     for f in sorted(prop_dir.glob("*.md")):
         if not f.name.startswith("_"):
-            file_labels.add(f.name.replace(".md", ""))
+            file_labels.add(filename_to_label(f.name, _prop_names))
 
     # --- Check correspondence (using normalized labels) ---
     norm_table = set(norm_to_table.keys())

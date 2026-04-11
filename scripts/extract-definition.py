@@ -28,7 +28,7 @@ from lib.shared.paths import (
     WORKSPACE,
     blueprint_properties_dir, lint_path,
 )
-from lib.shared.common import find_asn, step_commit_asn
+from lib.shared.common import find_asn, step_commit_asn, load_property_names, filename_to_label, label_to_filename
 from lib.blueprinting.lint import _parse_inline_report
 
 PROMPT_PATH = (WORKSPACE / "scripts" / "prompts" / "blueprinting"
@@ -160,7 +160,8 @@ def _disassemble_one(prop_file, blueprint_dir):
         return []
 
     new_files = []
-    source_label = prop_file.name.replace(".md", "")
+    _prop_names = load_property_names(blueprint_dir)
+    source_label = filename_to_label(prop_file.name, _prop_names)
 
     for i, chunk in enumerate(chunks):
         stripped = chunk.strip()
@@ -179,7 +180,7 @@ def _disassemble_one(prop_file, blueprint_dir):
             m = re.match(r'^\*\*(\S+)\s*\(', stripped)
         if m:
             label = m.group(1).strip()
-            filename = label.replace("(", "").replace(")", "") + ".md"
+            filename = label_to_filename(label)
         else:
             filename = f"{source_label}-def{i}.md"
 

@@ -31,7 +31,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import (WORKSPACE, FORMALIZATION_DIR, DAFNY_DIR, USAGE_LOG,
                     load_manifest)
-from lib.shared.common import find_asn, parallel_llm_calls
+from lib.shared.common import find_asn, parallel_llm_calls, load_property_names, filename_to_label
 from lib.formalization.core.build_dependency_graph import generate_formalization_deps
 from lib.formalization.core.topological_sort import topological_sort_labels, topological_levels
 from lib.modeling.dafny.translate import (
@@ -164,11 +164,12 @@ def main():
 
     # --- Read per-property source files + hashes ---
 
+    _prop_names = load_property_names(prop_dir)
     source_hashes = {}
     prop_contents = {}
     for f in sorted(prop_dir.glob("*.md")):
         if not f.name.startswith("_"):
-            label = f.name.replace(".md", "")
+            label = filename_to_label(f.name, _prop_names)
             content = f.read_text()
             source_hashes[label] = _hash_content(content)
             prop_contents[label] = content

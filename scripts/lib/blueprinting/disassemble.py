@@ -219,6 +219,13 @@ def disassemble_asn(asn_num, dry_run=False):
                   + "\n".join(f"- {i}" for i in issues) + "\n")
         (output_dir / "_issues.md").write_text(report)
 
+    # Generate _property_names.md from _table.md
+    from lib.shared.common import generate_property_names
+    mapping, warnings = generate_property_names(output_dir)
+    for w in warnings:
+        print(f"    WARNING: {w}", file=sys.stderr)
+    print(f"  [DISASSEMBLE] {len(mapping)} property names mapped", file=sys.stderr)
+
     print(f"\n  [DISASSEMBLE] {written} property files, {flagged} flagged",
           file=sys.stderr)
 

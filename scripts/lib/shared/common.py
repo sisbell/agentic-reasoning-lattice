@@ -28,6 +28,86 @@ def label_to_filename(label):
     return name + ".md"
 
 
+PROPERTY_NAMES_FILE = "_property_names.md"
+
+
+def load_property_names(prop_dir):
+    """Read _property_names.md → {filename_stem: original_label}. Returns {} if missing."""
+    path = Path(prop_dir) / PROPERTY_NAMES_FILE
+    if not path.exists():
+        return {}
+    mapping = {}
+    for line in path.read_text().split("\n"):
+        line = line.strip()
+        if not line.startswith("|") or line.startswith("| Filename") or line.startswith("|---"):
+            continue
+        cells = [c.strip() for c in line.split("|")]
+        if len(cells) >= 3 and cells[1] and cells[2]:
+            stem = cells[1].replace(".md", "")
+            mapping[stem] = cells[2]
+    return mapping
+
+
+def save_property_names(prop_dir, mapping):
+    """Write _property_names.md as markdown table, sorted by filename."""
+    prop_dir = Path(prop_dir)
+    lines = [
+        "# Property Names\n",
+        "| Filename | Label |",
+        "|----------|-------|",
+    ]
+    for stem in sorted(mapping.keys()):
+        lines.append(f"| {stem}.md | {mapping[stem]} |")
+    (prop_dir / PROPERTY_NAMES_FILE).write_text("\n".join(lines) + "\n")
+
+
+def generate_property_names(prop_dir):
+    """Regenerate _property_names.md from _table.md in prop_dir.
+
+    Reads labels from the table, applies label_to_filename() to get stems,
+    checks each file exists, writes the mapping.
+    Returns (mapping, warnings) where warnings is a list of strings.
+    """
+    prop_dir = Path(prop_dir)
+    table_path = prop_dir / "_table.md"
+    if not table_path.exists():
+        return {}, ["_table.md not found"]
+
+    mapping = {}
+    warnings = []
+    for line in table_path.read_text().split("\n"):
+        line = line.strip()
+        if not line.startswith("|") or line.startswith("| Label") or line.startswith("|---"):
+            continue
+        cells = [c.strip() for c in line.split("|")]
+        if len(cells) < 2 or not cells[1].strip():
+            continue
+        label = cells[1].strip().strip("`*")
+        filename = label_to_filename(label)
+        stem = filename.replace(".md", "")
+        if (prop_dir / filename).exists():
+            mapping[stem] = label
+        else:
+            warnings.append(f"table label '{label}' → {filename} not found")
+
+    # Check for property files without table entries
+    for f in sorted(prop_dir.glob("*.md")):
+        if f.name.startswith("_"):
+            continue
+        stem = f.name.replace(".md", "")
+        if stem not in mapping:
+            warnings.append(f"file {f.name} has no table entry")
+
+    save_property_names(prop_dir, mapping)
+    return mapping, warnings
+
+
+def filename_to_label(filename, mapping):
+    """Look up filename in mapping, fall back to stem if not found."""
+    stem = filename.replace(".md", "") if filename.endswith(".md") else filename
+    return mapping.get(stem, stem)
+
+
 def find_asn(asn_id, asns_dir=None):
     """Find ASN by number. Accepts 9, 09, 0009, ASN-0009, or full path.
 
@@ -237,29 +317,35 @@ def assemble_readonly(asn_label):
 
 
 def load_property_sections(prop_dir):
-    """Load per-property files into a dict, indexed by both filename and
-    normalized table labels.
+    """Load per-property files into a dict, indexed by both filename stem
+    and original label (from _property_names.md when available).
 
-    Handles the mismatch between table labels like T0(a) and filenames
-    like T0a.md. Lookup by either form will work.
+    Handles the mismatch between table labels like vpos(S, o) and filenames
+    like vpos-S-o.md. Lookup by either form will work.
     """
+    prop_dir = Path(prop_dir)
+    mapping = load_property_names(prop_dir)
     sections = {}
     for f in sorted(prop_dir.glob("*.md")):
         if f.name.startswith("_"):
             continue
         content = f.read_text()
-        fname = f.name.replace(".md", "")
-        sections[fname] = content
-    # Add reverse mappings for table labels with parens/prefix:
-    # T0a -> also indexed as T0(a), T0(b), etc.
-    import re as _re
-    for fname in list(sections.keys()):
-        # T0a -> T0(a): if fname matches LABEL+letter, add paren form
-        m = _re.match(r'^([A-Z]+\d+)([a-z])$', fname)
-        if m:
-            paren_label = f"{m.group(1)}({m.group(2)})"
-            if paren_label not in sections:
-                sections[paren_label] = sections[fname]
+        stem = f.name.replace(".md", "")
+        sections[stem] = content
+        # Also index by original label if different from stem
+        label = mapping.get(stem, stem)
+        if label != stem:
+            sections[label] = content
+    # Fallback heuristic for ASNs without _property_names.md:
+    # T0a -> also indexed as T0(a)
+    if not mapping:
+        import re as _re
+        for fname in list(sections.keys()):
+            m = _re.match(r'^([A-Z]+\d+)([a-z])$', fname)
+            if m:
+                paren_label = f"{m.group(1)}({m.group(2)})"
+                if paren_label not in sections:
+                    sections[paren_label] = sections[fname]
     return sections
 
 
