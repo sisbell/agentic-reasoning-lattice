@@ -2,7 +2,7 @@
 
 *2026-04-11*
 
-The strand model (ASN-0036) defines V-positions as element-field tumblers whose first component is the subspace identifier (subspace(v) = v₁), and the ordinal-only formulation of TA7a (ASN-0034) establishes that within-subspace arithmetic passes only the ordinal to the operations while holding the subspace identifier as structural context. This ASN extends the strand model with the concrete extraction and reconstruction functions that formalize this decomposition: separating a V-position into its subspace identifier and its within-subspace ordinal, reconstructing a V-position from these components, and projecting a displacement onto its ordinal component. We then establish the central property: tumbler addition commutes with the decomposition, connecting these definitions to TA7a's closure guarantees on S.
+The strand model (ASN-0036) defines V-positions as element-field tumblers whose first component is the subspace identifier (subspace(v) = v₁), and the ordinal-only formulation of TA7a (ASN-0034) establishes that within-subspace arithmetic passes only the ordinal to the operations while holding the subspace identifier as structural context. This ASN extends the strand model with the concrete extraction and reconstruction functions that formalize this decomposition: separating a V-position into its subspace identifier and its within-subspace ordinal, reconstructing a V-position from these components, and projecting a displacement onto its ordinal component. We then establish the central property: tumbler addition commutes with the decomposition, and derive from this that TA7a's closure guarantees on S govern the S-membership of the result.
 
 
 ## Ordinal Extraction
@@ -30,7 +30,7 @@ with #vpos(S, o) = k + 1. These are inverses: ord(vpos(S, o)) = o and vpos(subsp
 *Formal Contract:*
 - *Preconditions:* `S ≥ 1`, `o ∈ T`, `(A i : 1 ≤ i ≤ #o : oᵢ > 0)`.
 - *Definition:* `vpos(S, o) = [S, o₁, ..., oₖ]` where `k = #o`.
-- *Postconditions:* `vpos(S, o) ∈ T`, `#vpos(S, o) = #o + 1`, `vpos(S, o)₁ = S`. The result satisfies S8a: `zeros(vpos(S, o)) = 0` (S ≥ 1 and each oᵢ > 0, so no component is zero) and `vpos(S, o) > 0`.
+- *Postconditions:* `vpos(S, o) ∈ T`, `#vpos(S, o) = #o + 1`, `vpos(S, o)₁ = S`. The result satisfies S8a: `zeros(vpos(S, o)) = 0` (S ≥ 1 and each oᵢ > 0, so no component is zero) and `vpos(S, o) > 0`. (a) For `S ≥ 1` and `o ∈ S`: `ord(vpos(S, o)) = o` — since `vpos(S, o) = [S, o₁, ..., oₖ]`, stripping the first component recovers `[o₁, ..., oₖ] = o`. (b) For `v` satisfying S8a with `#v ≥ 2`: `vpos(subspace(v), ord(v)) = v` — since `subspace(v) = v₁` and `ord(v) = [v₂, ..., vₘ]`, reconstruction gives `[v₁, v₂, ..., vₘ] = v`.
 - *Frame:* Pure function on `S` and the component sequence of `o` — no state is read or modified.
 
 **w_ord** — *OrdinalDisplacementProjection* (DEF, function). For a displacement w with `w₁ = 0` and `#w = m ≥ 2`, the *ordinal projection* is:
@@ -42,7 +42,7 @@ of length m − 1. The condition `w₁ = 0` is structurally necessary: it ensure
 *Formal Contract:*
 - *Preconditions:* `w ∈ T`, `#w ≥ 2`, `w₁ = 0`.
 - *Definition:* `w_ord = [w₂, ..., wₘ]` where `m = #w`.
-- *Postconditions:* `w_ord ∈ T` (length `m - 1 ≥ 1`, satisfying T0). `#w_ord = #w - 1`. When `w > 0`, `w_ord > 0` — since `w₁ = 0`, positivity of `w` requires some `wᵢ > 0` with `i ≥ 2`, which appears in `w_ord`. `actionPoint(w_ord) = actionPoint(w) - 1`.
+- *Postconditions:* `w_ord ∈ T` (length `m - 1 ≥ 1`, satisfying T0). `#w_ord = #w - 1`. When `w > 0`, `w_ord > 0` — since `w₁ = 0`, positivity of `w` requires some `wᵢ > 0` with `i ≥ 2`, which appears in `w_ord`. When `w > 0`: `actionPoint(w_ord) = actionPoint(w) - 1`.
 - *Frame:* Pure function on the component sequence of `w` — no state is read or modified.
 
 
@@ -72,10 +72,16 @@ So `ord(v) ⊕ w_ord = [v₂, ..., v_{k-1}, vₖ + wₖ, w_{k+1}, ..., wₘ]`.
 
 The two sequences are identical component by component. ∎
 
+*Instance (a).* Let `v = [1, 3, 5]`, `w = [0, 0, 2]` (action point 3). Then `v ⊕ w = [1, 3, 7]` and `ord([1, 3, 7]) = [3, 7]`. On the right, `ord(v) = [3, 5]` and `w_ord = [0, 2]`, giving `[3, 5] ⊕ [0, 2] = [3, 7]`. Both sides agree.
+
+*Instance (b).* Let `v = [1, 3, 5]`, `w = [0, 4, 0]` (action point 2). Then `v ⊕ w = [1, 7, 0]` and `ord([1, 7, 0]) = [7, 0]`. On the right, `ord(v) = [3, 5]` and `w_ord = [4, 0]`, giving `[3, 5] ⊕ [4, 0] = [7, 0]`. Both sides agree. Note that `[7, 0] ∉ S` — the zero in the tail component after the action point places the result outside TA7a's domain S, illustrating the S-membership boundary.
+
 *Formal Contract:*
 - *Preconditions:* `v ∈ T` satisfying S8a, `#v = m ≥ 2`; `w ∈ T`, `w > 0`, `#w = m`, `w₁ = 0`, `actionPoint(w) ≤ m`.
 - *Postconditions:* `ord(v ⊕ w) = ord(v) ⊕ w_ord`.
 - *Frame:* Both sides are computed from `v` and `w` alone — no state is consulted.
+
+*Corollary (TA7a connection).* By OrdAddHom, `ord(v ⊕ w) = ord(v) ⊕ w_ord`. Since `v` satisfies S8a, `ord(v) ∈ S` (by ord's postcondition). TA7a's `⊕` postconditions therefore apply to the right-hand side: `ord(v) ⊕ w_ord ∈ S` when all components of `w_ord` after its action point are positive. By the homomorphism, this governs the left-hand side — `ord(v ⊕ w) ∈ S` under the same condition. Instance (b) above confirms the boundary: `w_ord = [4, 0]` has a zero after the action point, and the result `[7, 0] ∉ S`.
 
 **OrdShiftHom** — *OrdinalShiftHomomorphism* (COROLLARY). For a V-position `v` satisfying S8a with `#v = m ≥ 2` and `n ≥ 1`:
 
