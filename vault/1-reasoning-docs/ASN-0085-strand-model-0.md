@@ -28,9 +28,9 @@ We frequently need to separate a V-position into its subspace identifier and its
 with #vpos(S, o) = k + 1. These are inverses: ord(vpos(S, o)) = o and vpos(subspace(v), ord(v)) = v.
 
 *Formal Contract:*
-- *Preconditions:* `S ≥ 1`, `o ∈ T`, `(A i : 1 ≤ i ≤ #o : oᵢ > 0)`.
+- *Preconditions:* `S ∈ ℕ`, `o ∈ T`, `#o ≥ 1`.
 - *Definition:* `vpos(S, o) = [S, o₁, ..., oₖ]` where `k = #o`.
-- *Postconditions:* `vpos(S, o) ∈ T`, `#vpos(S, o) = #o + 1`, `vpos(S, o)₁ = S`. The result satisfies S8a: `zeros(vpos(S, o)) = 0` (S ≥ 1 and each oᵢ > 0, so no component is zero) and `vpos(S, o) > 0`. (a) For `S ≥ 1` and `o ∈ S`: `ord(vpos(S, o)) = o` — since `vpos(S, o) = [S, o₁, ..., oₖ]`, stripping the first component recovers `[o₁, ..., oₖ] = o`. (b) For `v` satisfying S8a with `#v ≥ 2`: `vpos(subspace(v), ord(v)) = v` — since `subspace(v) = v₁` and `ord(v) = [v₂, ..., vₘ]`, reconstruction gives `[v₁, v₂, ..., vₘ] = v`.
+- *Postconditions:* `vpos(S, o) ∈ T`, `#vpos(S, o) = #o + 1`, `vpos(S, o)₁ = S`. (a) `ord(vpos(S, o)) = o` — since `vpos(S, o) = [S, o₁, ..., oₖ]`, stripping the first component recovers `[o₁, ..., oₖ] = o`. (b) For any `v ∈ T` with `#v ≥ 2`: `vpos(subspace(v), ord(v)) = v` — since `subspace(v) = v₁` and `ord(v) = [v₂, ..., vₘ]`, reconstruction gives `[v₁, v₂, ..., vₘ] = v`. Both inverse properties are pure sequence identities that hold unconditionally on T. When `S ≥ 1` and `(A i : 1 ≤ i ≤ #o : oᵢ > 0)`, the result satisfies S8a: `zeros(vpos(S, o)) = 0` (S ≥ 1 and each oᵢ > 0, so no component is zero) and `vpos(S, o) > 0`.
 - *Frame:* Pure function on `S` and the component sequence of `o` — no state is read or modified.
 
 **w_ord** — *OrdinalDisplacementProjection* (DEF, function). For a displacement w with `w₁ = 0` and `#w = m ≥ 2`, the *ordinal projection* is:
@@ -78,7 +78,7 @@ The two sequences are identical component by component. ∎
 
 *Formal Contract:*
 - *Preconditions:* `v ∈ T` satisfying S8a, `#v = m ≥ 2`; `w ∈ T`, `w > 0`, `#w = m`, `w₁ = 0`, `actionPoint(w) ≤ m`.
-- *Postconditions:* (a) `ord(v ⊕ w) = ord(v) ⊕ w_ord`. (b) `subspace(v ⊕ w) = subspace(v)` — since `k ≥ 2`, TumblerAdd copies `r₁ = v₁` from the start, preserving the subspace identifier. (c) Full decomposition: `v ⊕ w = vpos(subspace(v), ord(v) ⊕ w_ord)` — by (b) and (a), `v ⊕ w` has subspace `subspace(v)` and ordinal `ord(v) ⊕ w_ord`; by the inverse property `vpos(subspace(v), ord(v)) = v` (vpos contract (b)), reconstruction from these components recovers the result.
+- *Postconditions:* (a) `ord(v ⊕ w) = ord(v) ⊕ w_ord`. (b) `subspace(v ⊕ w) = subspace(v)` — since `k ≥ 2`, TumblerAdd copies `r₁ = v₁` from the start, preserving the subspace identifier. (c) Full decomposition: `v ⊕ w = vpos(subspace(v), ord(v) ⊕ w_ord)` — let `r = v ⊕ w`; by TA0 `#r = #w = m ≥ 2`, so the generalized inverse (vpos contract (b)) applies to `r`: `vpos(subspace(r), ord(r)) = r`; substituting `subspace(r) = subspace(v)` from (b) and `ord(r) = ord(v) ⊕ w_ord` from (a) yields the result. Note that `ord(v) ⊕ w_ord` need not lie in S — the definition and inverse properties of vpos are pure sequence operations that hold for any `o ∈ T`.
 - *Frame:* Both sides are computed from `v` and `w` alone — no state is consulted.
 
 **OrdAddS8a** — *AdditionPreservesS8a* (LEMMA). Under OrdAddHom's preconditions, `v ⊕ w` satisfies S8a if and only if all components of `w_ord` after its action point are positive.
@@ -116,7 +116,7 @@ Since `shift(v, n) = v ⊕ δ(n, m)` and `δ(n, m) = [0, ..., 0, n]` has `δ(n, 
 | Label | Statement | Status |
 |-------|-----------|--------|
 | ord(v) | Ordinal extraction: ord(v) = [v₂, ..., vₘ]; when v satisfies S8a, ord(v) ∈ S | introduced |
-| vpos(S, o) | V-position reconstruction: vpos(S, o) = [S, o₁, ..., oₖ]; inverse of ord; result satisfies S8a | introduced |
+| vpos(S, o) | V-position reconstruction: vpos(S, o) = [S, o₁, ..., oₖ]; inverse of ord for any o ∈ T; satisfies S8a when S ≥ 1 and all oᵢ > 0 | introduced |
 | w_ord | Ordinal displacement projection: w_ord = [w₂, ..., wₘ] for displacement w with w₁ = 0 | introduced |
 | OrdAddHom | (a) ord(v ⊕ w) = ord(v) ⊕ w_ord; (b) subspace(v ⊕ w) = subspace(v); (c) v ⊕ w = vpos(subspace(v), ord(v) ⊕ w_ord) | introduced |
 | OrdAddS8a | v ⊕ w satisfies S8a ⟺ all tail components of w after the action point are positive; equivalently ord(v ⊕ w) ∈ S ⟺ v ⊕ w satisfies S8a | introduced |
