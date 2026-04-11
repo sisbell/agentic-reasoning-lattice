@@ -1,6 +1,6 @@
 # Inline Lint — ASN-0036
 
-*Last scanned: 2026-04-11 10:25*
+*Last scanned: 2026-04-11 10:27*
 
 ## D-CTG
 
@@ -15,11 +15,14 @@
 - **derived** | D-SHR | SubspaceHomogeneityRestriction | D-CTG + S8-fin forces all depth-m≥3 positions in a subspace to share components 2 through m−1
 - **definition** | D-VSS | SubspaceVPositionSet | The set V_S(d) of all V-positions in subspace S of document d, used to state contiguity and uniformity conditions
 - **derived** | D-CTG-U | SubspaceComponentUniformity | D-CTG and S8-fin jointly force all depth-m≥3 positions in a subspace to share components 2 through m−1
+- **definition** | DEF-VSUB | VSubspacePositions | Notation V_S(d) for the set of V-positions in subspace S of document d
+- **derived** | D-UPRFX | UniformSubspacePrefix | At depth m ≥ 3, D-CTG + S8-fin forces all positions in V_S(d) to share components 2 through m − 1
 
 ## D-MIN
 
 - **commentary** | — | — | depth-2 specialization of D-MIN combined with D-CTG and S8-fin to recover Nelson's address range
 - **derived** | D-UFORM | UniformPositionForm | every V-position in a fixed subspace has the form [S, 1, …, 1, k] for varying k
+- **derived** | D-UNIF | UniformPositionForm | all positions in V_S(d) have form [S, 1, …, 1, k] for varying k
 
 ## OrdShiftHom
 
@@ -72,6 +75,10 @@
 - **definition** | D-ordshift-zero | OrdinalDisplacementZero | Extension of ordinal displacement notation to k=0 for both V-positions and I-addresses
 - **definition** | D-corrrun | CorrespondenceRun | Triple (v, a, n) with arrangement condition M(d)(v+k) = a+k for 0 ≤ k < n
 - **derived** | S8-iaddr-uniform | IAddressRunUniformity | All I-addresses in a correspondence run share the same tumbler depth and prefix, differing only at the element ordinal
+- **definition** | DEF-consecutive-v-positions | ConsecutiveVPositions | Consecutive V-positions within a subspace differ only at the ordinal (last) component
+- **derived** | S8b-run-uniformity | RunIAddressUniformity | I-addresses within a correspondence run share the same depth and prefix, differing only at the element ordinal
+- **definition** | DEF-ordinal-displacement-zero | OrdinalDisplacementZero | Extension of ordinal displacement notation to k=0: v+0=v and a+0=a
+- **definition** | DEF-correspondence-run | CorrespondenceRun | Triple (v, a, n) such that M(d)(v+k) = a+k for all 0 ≤ k < n
 
 ## _properties-introduced
 
@@ -105,6 +112,22 @@
 - **definition** | w_ord | OrdinalDisplacementProjection | Notation for the tail of a displacement vector with zero leading component
 - **definition** | ValidInsertionPosition | ValidInsertionPosition | Predicate characterising legal V-positions for content insertion operations
 - **definition** | vpos(S, o) | VPositionReconstruction | inverse operator reconstructing V-position from subspace and ordinal
+- **definition** | S0 | ContentImmutability | Design requirement: stored content does not change across transitions
+- **definition** | S2 | ArrangementFunctionality | Axiom: each V-position maps to exactly one I-address
+- **definition** | S3 | ReferentialIntegrity | Design requirement: every V-position resolves to a stored address
+- **definition** | S7a | DocumentScopedAllocation | Design requirement: every I-address carries the originating document prefix
+- **definition** | S7b | ElementLevelIAddresses | Design requirement: all content-store addresses have exactly three zero components
+- **definition** | S7c | ElementFieldDepth | Design requirement: subspace identifier and content ordinal occupy distinct components
+- **definition** | S8-fin | FiniteArrangement | Design requirement: document arrangement domain is finite
+- **definition** | S8a | VPositionWellFormedness | Axiom: V-positions are zero-free, positive-subspace, strictly positive
+- **definition** | S8-depth | FixedDepthVPositions | Design requirement: V-positions within a subspace share a common depth
+- **definition** | D-CTG | VContiguity | Design constraint: V-positions within each subspace form a contiguous ordinal range
+- **definition** | D-MIN | VMinimumPosition | Design constraint: minimum V-position in each non-empty subspace has all-ones suffix
+
+## _the-document-as-arrangement
+
+- **derived** | _document-identity-not-content-equality | DocumentIdentityNotContentEquality | two documents with identical rendered output may be distinct; identity requires comparing identifiers or arrangements, not content
+- **commentary** | — | — | Nelson quote and braid metaphor as design rationale for the arrangement/content distinction
 
 ## ord(v)
 
@@ -121,4 +144,4 @@
 - **commentary** | — | — | Design rationale for the two-component state model and Nelson's motivation for separating content from arrangement
 
 
-*33 files scanned. 13 with embedded results.*
+*33 files scanned. 14 with embedded results.*
