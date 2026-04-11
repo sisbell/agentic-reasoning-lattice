@@ -8,20 +8,20 @@ Regenerate with: `./run/generate-index.sh`
 | ASN | Title | Stage | Export | Depends |
 |-----|-------|-------|--------|---------|
 | ASN-0034 | Tumbler Algebra | formalized | current | — |
-| ASN-0036 | Streams | formalized | current | 34 |
 | ASN-0040 | Tumbler Baptism | discovery | current | 34 |
-| ASN-0042 | Tumbler Ownership | discovery | current | 34 |
-| ASN-0043 | Link Ontology | discovery | current | 34,36 |
-| ASN-0045 | Tumbler Fields | discovery | current | 34,36 |
-| ASN-0047 | State Transitions | discovery | current | 34,36,43,45 |
-| ASN-0051 | Link Survivability | discovery | current | 34,36,43,47,53,58 |
-| ASN-0053 | Span Algebra | discovery | stale | 34 |
-| ASN-0058 | Permutation Model | discovery | current | 34,36,53 |
+| ASN-0042 | Tumbler Ownership | discovery | stale | 34,40 |
+| ASN-0045 | Tumbler Fields | discovery | current | 34 |
 
 ## Operations
 
 | ASN | Title | Stage | Export | Depends |
 |-----|-------|-------|--------|---------|
+| ASN-0036 | Strand Model | discovery | stale | 34 |
+| ASN-0043 | Link Model | discovery | stale | 34,36 |
+| ASN-0047 | Transition Model | discovery | stale | 34,36,43,45 |
+| ASN-0051 | Link Projection Displacement | discovery | stale | 34,36,43,47,53,58 |
+| ASN-0053 | Span Algebra | discovery | stale | 34 |
+| ASN-0058 | Bundle Algebra | discovery | stale | 34,36,53 |
 | ASN-0059 | INSERT Operation | discovery | current | 34,36,47,53,58 |
 | ASN-0061 | DELETE Operation | discovery | current | 34,36,43,47,53,58 |
 | ASN-0065 | REARRANGE Operation | discovery | current | 34,36,47,53,58 |
@@ -35,4 +35,6 @@ Regenerate with: `./run/generate-index.sh`
 | ASN-0077 | SHOWORIGIN Operation | inquiry | — | 34,36,47,53,58 |
 | ASN-0078 | CREATELINK Operation | inquiry | — | 34,36,43,47,51,53,58 |
 | ASN-0079 | FINDLINKS Operation | discovery | missing | 34,36,43,47,53,58 |
+| ASN-0082 | Strand Projection Displacement | — | missing | 34,36,53 |
+| ASN-0084 | Bundle Projection Displacement | — | missing | 34,36,53 |
 
