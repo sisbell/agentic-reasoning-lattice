@@ -1,8 +1,0 @@
-# ASN-0085 — Strand Model 0
-title: "Strand Model 0"
-extends: 36
-source: 61
-depends: [34, 36]
-
-consultations:
-  question: "Extension of ASN-0036: properties ord(v), vpos(S, o), w_ord from ASN-0061."
