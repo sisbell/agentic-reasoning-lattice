@@ -1,17 +1,29 @@
 # Inline Lint — ASN-0036
 
-*Last scanned: 2026-04-11 10:17*
+*Last scanned: 2026-04-11 10:19*
 
 ## D-CTG
 
 - **definition** | D-VSUB | VSubspacePositions | Notation V_S(d) for the set of V-positions in subspace S of document d
 - **derived** | D-CTGD | VContiguityDepthConstraint | D-CTG + S8-fin at depth m ≥ 3 forces all positions in a subspace to share components 2 through m−1
 - **commentary** | — | — | Nelson citation motivating the contiguity requirement
+- **definition** | D-VSET | SubspacePositionSet | V_S(d) = {v ∈ dom(M(d)) : subspace(v) = S}, the set of V-positions in subspace S of document d
+- **derived** | D-CTG-UNIF | SubspaceComponentUniformity | At depth m ≥ 3, D-CTG + S8-fin forces all positions in V_S(d) to share components 2 through m−1
 
 ## D-MIN
 
 - **commentary** | — | — | depth-2 specialization of D-MIN combined with D-CTG and S8-fin to recover Nelson's address range
 - **derived** | D-UFORM | UniformPositionForm | every V-position in a fixed subspace has the form [S, 1, …, 1, k] for varying k
+
+## S0
+
+- **commentary** | — | — | design rationale explaining why content immutability is required via Nelson's transclusion/versioning guarantees
+- **derived** | S0a | WeakestPreconditionContentImmutability | wp characterization of S0 constraining operations to fresh addresses only
+
+## S6
+
+- **definition** | S6-D1 | OrphanContent | Content in dom(C) unreachable from any Vstream entry point because it appears in no current arrangement
+- **commentary** | — | — | Design rationale: Nelson's explicit rejection of GC for unreferenced content, historical backtrack motivation
 
 ## S7
 
@@ -24,6 +36,42 @@
 - **commentary** | — | — | why non-trivial runs arise in practice (T10a/TA5(c) allocator discipline as motivation, not dependency)
 - **definition** | OrdinalShiftExtension | OrdinalShiftExtension | extends ordinal displacement notation to k=0 for both V-positions and I-addresses
 - **definition** | CorrespondenceRun | CorrespondenceRun | triple (v, a, n) such that M(d)(v+k) = a+k for all 0 ≤ k < n
+- **definition** | DEF-ConsecutiveVPositions | ConsecutiveVPositions | positions within a subspace are consecutive iff they differ only at the ordinal (last) component
+- **derived** | S8a-IRunUniformity | IRunUniformity | all I-addresses within a correspondence run share the same tumbler depth and prefix, differing only at the element ordinal
+- **definition** | DEF-OrdinalDisplacementExtension | OrdinalDisplacementExtension | extends ordinal displacement notation to k=0 via v+0=v (identity) for both V-positions and I-addresses
+- **definition** | DEF-CorrespondenceRun | CorrespondenceRun | triple (v, a, n) with n≥1 such that M(d)(v+k)=a+k for all 0≤k<n
+
+## _properties-introduced
+
+- **derived** | S0 | ContentImmutability | Design requirement: content values at known addresses never change across transitions
+- **derived** | S1 | StoreMonotonicity | Consequence of S0: domain of content store only grows
+- **derived** | S2 | ArrangementFunctionality | Axiom: each V-position maps to exactly one I-address
+- **derived** | S3 | ReferentialIntegrity | Design requirement: every arranged V-position points to a stored address
+- **derived** | S4 | OriginBasedIdentity | Derived from GlobalUniqueness/T3: distinct allocations yield distinct addresses
+- **derived** | S5 | UnrestrictedSharing | Consistency result: S0–S3 impose no bound on sharing multiplicity
+- **derived** | S6 | PersistenceIndependence | Derived from S0: address membership is unconditional of arrangements
+- **derived** | S7a | DocumentScopedAllocation | Design requirement: every I-address carries its document's prefix
+- **derived** | S7b | ElementLevelIAddresses | Design requirement: all stored addresses have exactly three zero-components
+- **derived** | S7c | ElementFieldDepth | Design requirement: subspace identifier and content ordinal occupy distinct field components
+- **derived** | S7 | StructuralAttribution | Theorem from S7a/S7b/S0/S4/T4/T3/GlobalUniqueness: origin recoverable from address fields
+- **derived** | S8-fin | FiniteArrangement | Design requirement: every document's V-position domain is finite
+- **derived** | S8a | VPositionWellFormedness | Axiom: V-positions have zero trailing zeros, positive subspace, and are strictly positive
+- **derived** | S8-depth | FixedDepthVPositions | Design requirement: all V-positions in the same subspace share depth
+- **derived** | S8 | FiniteSpanDecomposition | Theorem: V-position domain decomposes into finitely many contiguous correspondence runs
+- **derived** | OrdAddHom | OrdinalAdditionHomomorphism | Lemma: tumbler addition preserves subspace and acts as ordinal addition on tail
+- **derived** | OrdAddS8a | AdditionPreservesS8a | Lemma: S8a preservation under addition iff tail components after action point stay positive
+- **derived** | OrdShiftHom | OrdinalShiftHomomorphism | Corollary of OrdAddHom: shift preserves S8a and acts as ordinal shift
+- **derived** | D-CTG | VContiguity | Design constraint: V-positions within each subspace form a contiguous ordinal range
+- **derived** | D-MIN | VMinimumPosition | Design constraint: minimum V-position in each non-empty subspace has all trailing components equal to 1
+- **derived** | D-CTG-depth | SharedPrefixReduction | Corollary: at depth ≥ 3, contiguity reduces to variation in the final component only
+- **derived** | D-SEQ | SequentialPositions | Derived from D-CTG/D-MIN/S8-fin/S8-depth/T1: non-empty subspace V-positions form a sequential range [S,1,…,1,k]
+- **derived** | S9 | TwoStreamSeparation | Theorem from S0: arrangement transitions cannot alter stored content
+- **definition** | Σ.C | ContentStore | Content store structure mapping I-addresses to content values
+- **definition** | Σ.M(d) | Arrangement | Arrangement structure mapping V-positions to I-addresses per document
+- **definition** | ord(v) | OrdinalExtraction | Operation stripping the subspace component to yield ordinal tail
+- **definition** | vpos(S,o) | VPositionReconstruction | Operation reconstructing a V-position from subspace and ordinal; inverse of ord
+- **definition** | w_ord | OrdinalDisplacementProjection | Notation for the tail of a displacement vector with zero leading component
+- **definition** | ValidInsertionPosition | ValidInsertionPosition | Predicate characterising legal V-positions for content insertion operations
 
 ## Σ.M(d)
 
@@ -31,4 +79,4 @@
 - **commentary** | — | — | Design rationale for the two-component state model and Nelson's motivation for separating content from arrangement
 
 
-*33 files scanned. 5 with embedded results.*
+*33 files scanned. 8 with embedded results.*
