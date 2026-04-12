@@ -1,3 +1,7 @@
+# Formalize — ASN-0036 / w_ord
+
+*2026-04-12 14:56*
+
 **w_ord** — *OrdinalDisplacementProjection* (DEF, function). For a displacement w with `w₁ = 0` and `#w = m ≥ 2`, the *ordinal projection* is:
 
 `w_ord = [w₂, ..., wₘ]`
