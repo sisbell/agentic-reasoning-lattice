@@ -1,3 +1,7 @@
+# Formalize — ASN-0036 / D-MIN
+
+*2026-04-12 14:52*
+
 **D-MIN (VMinimumPosition).** For each document d and subspace S with V_S(d) non-empty:
 
 `min(V_S(d)) = [S, 1, ..., 1]`
