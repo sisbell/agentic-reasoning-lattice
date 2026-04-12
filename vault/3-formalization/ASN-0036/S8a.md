@@ -8,7 +8,7 @@ A V-position represents the element field of a full document-scoped address — 
 
 *Proof.* S8a is a design requirement: V-positions are element-field tumblers, and T4 (FieldSeparatorConstraint, ASN-0034) constrains the structure of every field. We show each conjunct follows from this structural commitment.
 
-A full element-level I-address has the form `N.0.U.0.D.0.E` where `N`, `U`, `D`, `E` are the node, user, document, and element fields respectively, separated by zero-valued components. The arrangement `M(d)` maps V-positions to such I-addresses (S3, S7b). A V-position `v` is the element field `E` extracted from the document-scoped address — the fourth field in T4's decomposition. As an isolated field, `v` contains no field separators: the zeros in the full address are inter-field boundaries, not intra-field components. Therefore `zeros(v) = 0`.
+A full element-level I-address has the form `N.0.U.0.D.0.E` where `N`, `U`, `D`, `E` are the node, user, document, and element fields respectively, separated by zero-valued components. The arrangement `M(d)` maps V-positions to such I-addresses (S3, S7b). A V-position `v` is the element field `E` extracted from the document-scoped address — the fourth field in T4's decomposition. As an isolated field, v contains no field separators: the zeros in the full address are inter-field boundaries, not intra-field components. Since T4's positive-component constraint requires `Eₗ > 0` for every component of the element field, no component of `v` equals zero; therefore `zeros(v) = 0`.
 
 The conjunct `v > 0` — every component of `v` is strictly positive — follows directly from T4's positive-component constraint. T4 requires that every non-separator component of every field satisfy `Eₗ > 0` for `1 ≤ l ≤ δ`, where `δ = #v` is the number of components in the element field. Since `zeros(v) = 0`, every component of `v` is a non-separator component, so every component is strictly positive: `(A i : 1 ≤ i ≤ #v : vᵢ > 0)`.
 
@@ -16,5 +16,5 @@ The conjunct `v₁ ≥ 1` is a specialisation of `v > 0` to the first component.
 
 *Formal Contract:*
 - *Axiom:* V-positions are element-field tumblers — the fourth field in T4's decomposition of element-level addresses.
-- *Preconditions:* T4 (FieldSeparatorConstraint, ASN-0034) — every non-separator component is strictly positive, every present field has at least one component; S7b — addresses in `dom(Σ.C)` are element-level tumblers with `zeros(a) = 3`.
+- *Preconditions:* T4 (FieldSeparatorConstraint, ASN-0034) — every non-separator component is strictly positive, every present field has at least one component; S3 (Referential integrity) — every V-reference resolves, connecting V-positions to addresses in `dom(Σ.C)`; S7b — addresses in `dom(Σ.C)` are element-level tumblers with `zeros(a) = 3`.
 - *Postconditions:* `(A v ∈ dom(Σ.M(d)) :: zeros(v) = 0 ∧ v₁ ≥ 1 ∧ v > 0)`.
