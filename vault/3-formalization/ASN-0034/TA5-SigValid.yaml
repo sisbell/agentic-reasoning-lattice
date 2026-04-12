@@ -1,0 +1,6 @@
+label: TA5-SigValid
+name: SigOnValidAddresses
+type: corollary
+depends:
+- TA5-SIG
+- T4

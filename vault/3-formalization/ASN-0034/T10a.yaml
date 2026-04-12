@@ -1,0 +1,4 @@
+label: T10a
+name: AllocatorDiscipline
+type: design-requirement
+depends: []

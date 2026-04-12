@@ -1,0 +1,5 @@
+label: PrefixOrderingExtension
+name: PrefixOrderingExtension
+type: lemma
+depends:
+- T1

@@ -1,0 +1,4 @@
+label: TA3-strict
+name: OrderPreservationUnderSubtractionStrict
+type: definition
+depends: []

@@ -1,0 +1,5 @@
+label: T4a
+name: SyntacticEquivalence
+type: corollary
+depends:
+- T4

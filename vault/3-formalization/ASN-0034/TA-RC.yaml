@@ -1,0 +1,6 @@
+label: TA-RC
+name: RightCancellationFailure
+type: lemma
+depends:
+- TumblerAdd
+- T3

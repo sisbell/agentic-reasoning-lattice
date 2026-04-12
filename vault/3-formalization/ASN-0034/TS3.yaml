@@ -1,0 +1,6 @@
+label: TS3
+name: ShiftComposition
+type: lemma
+depends:
+- TumblerAdd
+- T3

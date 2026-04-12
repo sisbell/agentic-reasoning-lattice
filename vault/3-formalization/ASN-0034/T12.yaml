@@ -1,0 +1,7 @@
+label: T12
+name: SpanWellDefinedness
+type: corollary
+depends:
+- T1
+- TA0
+- TA-strict

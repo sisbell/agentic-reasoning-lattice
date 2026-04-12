@@ -1,0 +1,6 @@
+label: TA2
+name: WellDefinedSubtraction
+type: corollary
+depends:
+- TumblerSub
+- T1

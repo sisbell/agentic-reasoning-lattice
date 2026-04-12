@@ -1,0 +1,5 @@
+label: TS1
+name: ShiftOrderPreservation
+type: lemma
+depends:
+- TA1-strict

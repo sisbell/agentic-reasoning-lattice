@@ -1,0 +1,6 @@
+label: TA-LC
+name: LeftCancellation
+type: lemma
+depends:
+- TumblerAdd
+- T3

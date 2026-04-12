@@ -1,0 +1,6 @@
+label: T10a.4
+name: T4PreservationUnderDiscipline
+type: corollary
+depends:
+- T10a
+- TA5a

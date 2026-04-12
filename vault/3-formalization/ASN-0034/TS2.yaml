@@ -1,0 +1,6 @@
+label: TS2
+name: ShiftInjectivity
+type: lemma
+depends:
+- TA-MTO
+- T3

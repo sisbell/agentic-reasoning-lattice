@@ -1,0 +1,6 @@
+label: TA4
+name: PartialInverse
+type: corollary
+depends:
+- TumblerAdd
+- TumblerSub

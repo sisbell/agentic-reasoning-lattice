@@ -1,0 +1,12 @@
+label: T8
+name: AllocationPermanence
+type: theorem
+depends:
+- T1
+- T2
+- T4
+- T10a
+- TA5
+- TumblerAdd
+- TumblerSub
+- NoDeallocation

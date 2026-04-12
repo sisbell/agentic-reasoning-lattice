@@ -1,0 +1,7 @@
+label: TA1-strict
+name: StrictOrderPreservation
+type: corollary
+depends:
+- Divergence
+- TumblerAdd
+- T1

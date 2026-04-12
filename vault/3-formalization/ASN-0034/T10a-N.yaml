@@ -1,0 +1,6 @@
+label: T10a-N
+name: AllocatorDisciplineNecessity
+type: lemma
+depends:
+- T1
+- TA5

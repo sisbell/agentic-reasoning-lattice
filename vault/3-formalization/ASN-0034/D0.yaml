@@ -1,0 +1,8 @@
+label: D0
+name: DisplacementWellDefined
+type: corollary
+depends:
+- T3
+- TA0
+- TumblerAdd
+- TumblerSub

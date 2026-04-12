@@ -1,0 +1,7 @@
+label: T9
+name: ForwardAllocation
+type: lemma
+depends:
+- T1
+- T10a
+- TA5

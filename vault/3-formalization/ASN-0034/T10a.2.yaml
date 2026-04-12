@@ -1,0 +1,7 @@
+label: T10a.2
+name: NonNestingSiblingPrefixes
+type: corollary
+depends:
+- T10a.1
+- T1
+- TA5

@@ -1,0 +1,6 @@
+label: TA6
+name: ZeroTumblers
+type: corollary
+depends:
+- T1
+- T4

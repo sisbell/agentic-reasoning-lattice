@@ -1,0 +1,6 @@
+label: D2
+name: DisplacementUnique
+type: corollary
+depends:
+- D1
+- TA-LC

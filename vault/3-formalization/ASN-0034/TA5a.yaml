@@ -1,0 +1,6 @@
+label: TA5a
+name: IncrementPreservesT4
+type: corollary
+depends:
+- TA5
+- T4

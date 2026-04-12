@@ -1,0 +1,5 @@
+label: Divergence
+name: Divergence
+type: corollary
+depends:
+- T1

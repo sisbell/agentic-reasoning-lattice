@@ -1,0 +1,4 @@
+label: NoDeallocation
+name: NoDeallocation
+type: design-requirement
+depends: []

@@ -1,0 +1,6 @@
+label: T10
+name: PartitionIndependence
+type: theorem
+depends:
+- T3
+- Prefix

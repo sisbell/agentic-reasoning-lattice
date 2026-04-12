@@ -1,0 +1,6 @@
+label: TA-assoc
+name: AdditionAssociative
+type: theorem
+depends:
+- TumblerAdd
+- T3

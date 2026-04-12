@@ -1,0 +1,6 @@
+label: T4c
+name: LevelDetermination
+type: corollary
+depends:
+- T4
+- T4b

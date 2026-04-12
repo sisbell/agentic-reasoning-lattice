@@ -1,0 +1,6 @@
+label: T7
+name: SubspaceDisjointness
+type: corollary
+depends:
+- T3
+- T4

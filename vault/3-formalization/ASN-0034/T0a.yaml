@@ -1,0 +1,5 @@
+label: T0(a)
+name: UnboundedComponentValues
+type: corollary
+depends:
+- T0

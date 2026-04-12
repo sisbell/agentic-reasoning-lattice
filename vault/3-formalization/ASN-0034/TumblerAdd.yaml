@@ -1,0 +1,6 @@
+label: TumblerAdd
+name: TumblerAdd
+type: corollary
+depends:
+- T0
+- PositiveTumbler

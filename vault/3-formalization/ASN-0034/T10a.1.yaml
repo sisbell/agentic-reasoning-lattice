@@ -1,0 +1,6 @@
+label: T10a.1
+name: UniformSiblingLength
+type: corollary
+depends:
+- T10a
+- TA5

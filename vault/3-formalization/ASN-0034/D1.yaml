@@ -1,0 +1,8 @@
+label: D1
+name: DisplacementRoundTrip
+type: lemma
+depends:
+- TumblerAdd
+- TumblerSub
+- T3
+- Divergence

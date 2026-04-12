@@ -1,0 +1,5 @@
+label: T6
+name: DecidableContainment
+type: corollary
+depends:
+- T4

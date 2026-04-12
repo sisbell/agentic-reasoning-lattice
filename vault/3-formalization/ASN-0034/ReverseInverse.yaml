@@ -1,0 +1,8 @@
+label: ReverseInverse
+name: ReverseInverse
+type: corollary
+depends:
+- TA3-strict
+- TA4
+- TumblerAdd
+- TumblerSub

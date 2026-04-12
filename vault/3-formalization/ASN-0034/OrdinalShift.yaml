@@ -1,0 +1,9 @@
+label: OrdinalShift
+name: OrdinalShift
+type: corollary
+depends:
+- TA0
+- TumblerAdd
+- OrdinalDisplacement
+- T0
+- PositiveTumbler

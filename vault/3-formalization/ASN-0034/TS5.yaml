@@ -1,0 +1,6 @@
+label: TS5
+name: ShiftAmountMonotonicity
+type: corollary
+depends:
+- TS3
+- TS4

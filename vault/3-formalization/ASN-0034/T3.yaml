@@ -1,0 +1,5 @@
+label: T3
+name: CanonicalRepresentation
+type: corollary
+depends:
+- T0

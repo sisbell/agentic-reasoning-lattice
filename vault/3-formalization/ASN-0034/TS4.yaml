@@ -1,0 +1,5 @@
+label: TS4
+name: ShiftStrictIncrease
+type: corollary
+depends:
+- TA-strict

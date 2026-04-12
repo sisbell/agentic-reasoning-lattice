@@ -1,0 +1,6 @@
+label: TA-strict
+name: StrictIncrease
+type: corollary
+depends:
+- TumblerAdd
+- T1
