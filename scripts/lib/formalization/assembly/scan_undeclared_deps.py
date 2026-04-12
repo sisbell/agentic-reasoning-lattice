@@ -25,7 +25,7 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, load_manifest, formal_stmts, dep_graph
-from lib.shared.common import find_asn, read_file, extract_property_sections
+from lib.shared.common import find_asn, read_file, extract_property_sections, build_label_index, dump_yaml
 
 PROMPT_TEMPLATE = WORKSPACE / "scripts" / "prompts" / "formalization" / "assembly" / "scan-dependency.md"
 
@@ -334,10 +334,27 @@ def scan_asn(asn_num, model="sonnet", effort="high", dry_run=False):
                       allow_unicode=True, width=120)
         print(f"  [WROTE] {deps_path.relative_to(WORKSPACE)}", file=sys.stderr)
 
-        # Fix the ASN property table
-        fixes = _build_table_fixes(deps, original_deps)
-        if fixes:
-            _fix_asn_table(asn_path, fixes)
+        # Update per-property YAML depends fields
+        from lib.shared.paths import FORMALIZATION_DIR
+        prop_dir = FORMALIZATION_DIR / asn_label
+        if prop_dir.exists():
+            _label_index = build_label_index(prop_dir)
+            for label, prop_data in deps.get("properties", {}).items():
+                stem = _label_index.get(label)
+                if stem is None:
+                    continue
+                yaml_path = prop_dir / f"{stem}.yaml"
+                if not yaml_path.exists():
+                    continue
+                with open(yaml_path) as yf:
+                    ydata = yaml.safe_load(yf)
+                new_deps = prop_data.get("follows_from", [])
+                old_deps = ydata.get("depends", [])
+                # Add-only: merge new deps into existing
+                merged = list(dict.fromkeys(old_deps + [d for d in new_deps if d not in old_deps]))
+                if merged != old_deps:
+                    ydata["depends"] = merged
+                    dump_yaml(ydata, yaml_path)
 
     return deps
 
