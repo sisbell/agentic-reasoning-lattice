@@ -28,6 +28,8 @@ Compare before and after. Check:
 
 2. **No meaning changed** — the proof should establish the same
    claims. Steps should not be silently dropped or simplified away.
+   Updating the PascalCase name of a cited dependency is acceptable
+   as long as the label itself is unchanged.
 
 3. **Formal contract correct** — if added or updated, it should
    match what the proof establishes.
