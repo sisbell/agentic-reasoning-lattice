@@ -33,7 +33,7 @@ must be explicit — no "by similar reasoning." End proofs with ∎.
 
 4. If the fix affects formal contracts, update them to match.
 
-5. If the fix affects the property table (dependencies, status), update
-   the table rows.
+5. If the fix adds new dependencies, add them to the `depends` list in
+   the affected property's `.yaml` file. Do not remove existing dependencies.
 
 6. Do not change anything beyond what the finding requires.

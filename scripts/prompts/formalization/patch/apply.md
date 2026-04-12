@@ -21,7 +21,7 @@ Apply the changes described in the patch instruction:
 2. **Propagate downstream effects.** After applying the fix, check for
    references to the changed material elsewhere in the document:
    - Proofs that cite the changed property — update citations if needed
-   - The property table — update status, dependencies, or statement
+   - Per-property `.yaml` files — add to `depends` if new dependencies are introduced
    - Formal contracts — update if the fix changes what the property
      establishes
    - Worked examples — update if they reference changed material

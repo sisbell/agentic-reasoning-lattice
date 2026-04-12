@@ -57,6 +57,5 @@ The ASN is at `{{asn_path}}`.
 6. For axioms or definitional properties (no derivation possible), write
    a brief justification stating why the property holds by definition or
    design, and use `*Axiom:*` in the formal contract.
-7. Update the property's Status column in the property table to reflect
-   the actual dependencies used in the proof (e.g., change `introduced`
-   to `from TA1, TumblerAdd` if those are cited in the proof).
+7. If the proof cites dependencies not already in the property's `.yaml`
+   file, add them to the `depends` list. Do not remove existing dependencies.
