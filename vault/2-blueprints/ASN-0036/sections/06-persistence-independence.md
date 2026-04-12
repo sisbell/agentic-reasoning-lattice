@@ -1,0 +1,32 @@
+## Persistence independence
+
+Content persists in Istream regardless of whether any arrangement references it.
+
+**S6 (Persistence independence).** The membership of `a` in `dom(Σ.C)` is independent of all arrangements:
+
+`[a ∈ dom(Σ.C) ⟹ a ∈ dom(Σ'.C)]`
+
+regardless of any changes to any `Σ.M(d)`.
+
+S6 is a consequence of S0, which guarantees domain persistence unconditionally — it does not condition on whether any arrangement references `a`. But we state S6 separately because it names a design commitment that S0's formulation does not emphasise: the decision NOT to garbage-collect unreferenced content.
+
+A system could satisfy a weakened form of S0 that permits removal when `(A d :: a ∉ ran(M(d)))` — when no arrangement references the content. Nelson explicitly rejects this. "Deleted bytes" are described as "not currently addressable, awaiting historical backtrack functions." The content remains because history requires it. Version reconstruction depends on the availability of Istream fragments from prior arrangements. If content were reclaimed when its last current reference vanished, the system could not fulfill: "When you ask for a given part of a given version at a given time, it comes to your screen."
+
+S6 creates what Gregory calls an "orphan" phenomenon. Content in `dom(C)` that is not in `ran(M(d))` for any current document `d` is *unreachable through any query that starts from Vstream*. Gregory's evidence is definitive: "There is no mechanism to discover them, and the architecture makes no provision for it." The system provides no Istream iterator, no allocation registry queryable for "all content ever stored." To retrieve orphaned content, you must already know its I-address.
+
+This is not a deficiency but a structural consequence of the two-stream model. The system's query interface is Vstream-primary: you start from a document (a Vstream entity), look up content (through the arrangement), and follow references (through Istream addresses). There is no path that begins in Istream and discovers content without a Vstream entry point. Orphaned content is permanent but practically invisible — a kind of information-theoretic dark matter, present by guarantee but unobservable through the system's own instruments.
+
+*Proof.* We wish to show that for every `a ∈ dom(Σ.C)` and every state transition `Σ → Σ'`, the implication `a ∈ dom(Σ'.C)` holds regardless of any changes to any arrangement function `Σ.M(d)`.
+
+The argument has two parts: first that domain persistence holds, then that it holds independently of arrangements.
+
+**Domain persistence.** Let `a ∈ dom(Σ.C)` be arbitrary and let `Σ → Σ'` be any state transition. By S0 (content immutability), `a ∈ dom(Σ.C)` implies the conjunction `a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a)`. The first conjunct yields `a ∈ dom(Σ'.C)` directly. Since `a` was arbitrary, `(A a : a ∈ dom(Σ.C) : a ∈ dom(Σ'.C))`.
+
+**Independence from arrangements.** S0's guarantee is quantified over ALL state transitions `Σ → Σ'` — including transitions that add, remove, or reassign entries in any arrangement `M(d)`. Crucially, S0's antecedent is `a ∈ dom(Σ.C)` alone: it does not condition on whether `a` appears in `ran(M(d))` for any document `d`. The guarantee makes no reference to the arrangement functions whatsoever — the content function `C` and the arrangement functions `M` are distinct components of the system state, and S0 constrains `C` without mentioning `M`. Therefore, the conclusion `a ∈ dom(Σ'.C)` holds whether zero, one, or all arrangements reference `a`, and whether the transition modifies any arrangement or not. The persistence of `a` in `dom(C)` is a property of the content store alone, insulated from the arrangement layer by the two-stream separation.
+
+We note what S6 excludes. A system satisfying a weakened variant of S0 — one that permits removal of `a` from `dom(C)` when `(A d :: a ∉ ran(M(d)))` — would violate S6 while potentially preserving a conditional form of content immutability. S6's independence follows precisely because S0 is unconditional: it does not carve out an exception for unreferenced content. ∎
+
+*Formal Contract:*
+- *Preconditions:* `a ∈ dom(Σ.C)` and state transition `Σ → Σ'` in a system satisfying S0 (content immutability).
+- *Postconditions:* `a ∈ dom(Σ'.C)`, with no condition on the arrangement functions `Σ.M(d)` or `Σ'.M(d)` for any document `d`.
+- *Frame:* The arrangement functions `M(d)` are unconstrained — S6 holds for all possible values of `Σ'.M(d)`, including `Σ'.M(d) = ∅`.

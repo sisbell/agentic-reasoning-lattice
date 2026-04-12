@@ -1,0 +1,96 @@
+## Span decomposition
+
+The arrangement `M(d)` maps individual V-positions to I-addresses. But the mapping has internal structure: contiguous V-ranges often correspond to contiguous I-ranges. This is what makes finite representation possible.
+
+Before defining correspondence runs, we must establish the structure of `dom(M(d))` more carefully.
+
+**S8-fin (Finite arrangement).** For each document `d`, `dom(Σ.M(d))` is finite. A document contains finitely many V-positions at any given state.
+
+S8-fin follows from the operational reality: each V-position enters `dom(M(d))` through a specific operation (INSERT, COPY, etc.), and the system has performed only finitely many operations. No operation introduces infinitely many V-positions.
+
+**S8a (V-position well-formedness).** Every V-position is an element-field tumbler with all components strictly positive:
+
+`(A v ∈ dom(Σ.M(d)) :: zeros(v) = 0 ∧ v₁ ≥ 1 ∧ v > 0)`
+
+A V-position represents the element field of a full document-scoped address — the fourth field in the T4 field structure. Its first component `v₁` is the subspace identifier. The conjunct `v₁ ≥ 1` is not a guard but a universally true consequence: V-positions are element-field tumblers, and T4's positive-component constraint requires every component of every field to be strictly positive — so `v₁ ≥ 1` holds for all V-positions without exception. This universality is load-bearing: S8's partition proof requires every V-position to belong to some subspace `S` with `v₁ = S ≥ 1` to invoke T5 and T10 for cross-subspace disjointness. The domain and range of `M(d)` live in structurally different tumbler subsets: `dom(M(d)) ⊆ {t ∈ T : zeros(t) = 0 ∧ t > 0}` (element-field tumblers), while `ran(M(d)) ⊆ {t ∈ T : zeros(t) = 3}` (full element-level addresses, per S7b). Since all V-positions in subspace `s` extend the single-component prefix `[s]`, T5 (PrefixContiguity, ASN-0034) guarantees they form a contiguous interval under T1 — grounding the application of tumbler ordering properties to V-positions and justifying S8-depth's reference to "within a subspace."
+
+*Remark.* The shared vocabulary identifies a second subspace for links (v₁ = 2, per T4 and LM 4/30). Link-subspace V-positions satisfy the same `zeros(v) = 0` and `v > 0` constraints as text-subspace positions — both are element-field tumblers with strictly positive components. The subspace identifier (1 for text, 2 for links) is the first component of the element field; the `0` in tumbler notation (e.g., `N.0.U.0.D.V.0.2.1`) is a field separator, not a subspace identifier. Link-subspace arrangement semantics are deferred to a future ASN.
+
+*Proof.* S8a is a design requirement: V-positions are element-field tumblers, and T4 (FieldSeparatorConstraint, ASN-0034) constrains the structure of every field. We show each conjunct follows from this structural commitment.
+
+A full element-level I-address has the form `N.0.U.0.D.0.E` where `N`, `U`, `D`, `E` are the node, user, document, and element fields respectively, separated by zero-valued components. The arrangement `M(d)` maps V-positions to such I-addresses (S3, S7b). A V-position `v` is the element field `E` extracted from the document-scoped address — the fourth field in T4's decomposition. As an isolated field, `v` contains no field separators: the zeros in the full address are inter-field boundaries, not intra-field components. Therefore `zeros(v) = 0`.
+
+The conjunct `v > 0` — every component of `v` is strictly positive — follows directly from T4's positive-component constraint. T4 requires that every non-separator component of every field satisfy `Eₗ > 0` for `1 ≤ l ≤ δ`, where `δ = #v` is the number of components in the element field. Since `zeros(v) = 0`, every component of `v` is a non-separator component, so every component is strictly positive: `(A i : 1 ≤ i ≤ #v : vᵢ > 0)`.
+
+The conjunct `v₁ ≥ 1` is a specialisation of `v > 0` to the first component. T4's non-empty field constraint requires `δ ≥ 1` — the element field has at least one component. Since `v₁` is a component of the element field with `v₁ > 0` (from the positive-component constraint), we obtain `v₁ ≥ 1`. This is not an independent condition but a universally true consequence that we state explicitly because it is load-bearing: `v₁` serves as the subspace identifier, and S8's partition proof requires every V-position to belong to some subspace `S = v₁ ≥ 1` to invoke T5 and T10 for cross-subspace disjointness. ∎
+
+*Formal Contract:*
+- *Axiom:* V-positions are element-field tumblers — the fourth field in T4's decomposition of element-level addresses.
+- *Preconditions:* T4 (FieldSeparatorConstraint, ASN-0034) — every non-separator component is strictly positive, every present field has at least one component; S7b — addresses in `dom(Σ.C)` are element-level tumblers with `zeros(a) = 3`.
+- *Postconditions:* `(A v ∈ dom(Σ.M(d)) :: zeros(v) = 0 ∧ v₁ ≥ 1 ∧ v > 0)`.
+
+**S8-depth (Fixed-depth V-positions).** Within a given subspace `s` of document `d`, all V-positions share the same tumbler depth:
+
+`(A d, v₁, v₂ : v₁ ∈ dom(Σ.M(d)) ∧ v₂ ∈ dom(Σ.M(d)) ∧ (v₁)₁ = (v₂)₁ : #v₁ = #v₂)`
+
+This is a design requirement, not a convention — parallel to S7a. Gregory's evidence supports it: V-addresses in the text subspace consistently use the form `s.x` — two tumbler digits, where `s` is the subspace identifier and `x` is the ordinal. The two-blade knife computation (which sets the second blade at `(N+1).1` for any insertion at `N.x`) works only if all positions within a subspace share the same depth. Any correct implementation must satisfy this constraint.
+
+S8-depth allows us to define "consecutive V-positions" precisely. Within a subspace, consecutive positions differ only at the ordinal (last) component: position `s.x` is followed by `s.(x+1)`. A parallel uniformity holds for I-addresses within a correspondence run: all I-addresses in a run share the same tumbler depth and prefix, differing only at the element ordinal. This follows directly from TumblerAdd (PositionAdvance, ASN-0034): ordinal displacement `δₖ = [0, ..., 0, k]` has its action point at the last component, so TumblerAdd copies all earlier components from the start address unchanged (preserving the prefix) and produces a result of length `#δₖ` (preserving depth). The uniformity is definitional — a correspondence run `(v, a, n)` specifies `M(d)(v + k) = a + k`, and both `v + k` and `a + k` are ordinal displacements whose depth and prefix preservation follow from TumblerAdd's component-wise definition. Subspace preservation follows separately: for V-positions, the subspace identifier `v₁` is before the action point and is copied unchanged by TumblerAdd's prefix rule; for I-addresses, S7c guarantees element-field depth `δ ≥ 2`, so the subspace identifier `E₁` is structural context outside the ordinal, and the shift acts on `[E₂, ..., E_δ]` without altering `E₁`. We write `v + k` for ordinal displacement applied to V-positions, and `a + k` for the same applied to the element ordinal of I-addresses.
+
+(Why non-trivial runs arise in practice is a separate question. Allocator discipline — T10a, ASN-0034 — establishes that each allocator produces sibling outputs exclusively by `inc(·, 0)`, and TA5(c) guarantees the successor has the same depth as the predecessor. Consecutive allocations therefore produce consecutive I-addresses, which is why sequential content creation naturally yields correspondence runs of length greater than one. But this operational fact is motivation for the definition of correspondence runs, not a dependency of the decomposition proof.)
+
+We extend the ordinal displacement notation to `k = 0`: define `v + 0 = v` (identity) and `v + k = shift(v, k)` for `k ≥ 1`. OrdinalShift (ASN-0034) has precondition `n ≥ 1`; the extension to `k = 0` is purely notational — no arithmetic is performed. For I-addresses, define `a + 0 = a` and `a + k = shift(a, k) = a ⊕ δ(k, #a)` for `k ≥ 1`. This is well-defined: the action point of `δ(k, #a)` is `#a`, which falls at the element field's last component — S7c guarantees element-field depth `δ ≥ 2`, so the last component of the full address *is* the element ordinal's deepest position — and TumblerAdd's prefix rule copies all earlier components (node, user, document fields, their separators, and the subspace identifier) unchanged, producing a result of length `#a`.
+
+A *correspondence run* is a triple `(v, a, n)` — a V-position, an I-address, and a natural number `n ≥ 1` — such that the arrangement preserves ordinal displacement within the run:
+
+`(A k : 0 ≤ k < n : Σ.M(d)(v + k) = a + k)`
+
+At `k = 0` this is the base case `M(d)(v) = a`. Each subsequent `k` increments both the V-ordinal and the I-ordinal by the same amount. Within a correspondence run, each step forward in Vstream corresponds to the same step forward in Istream.
+
+**S8 (Finite span decomposition).** For each document `d`, the arrangement `{(v, Σ.M(d)(v)) : v ∈ dom(Σ.M(d))}` can be decomposed into a finite set of correspondence runs `{(vⱼ, aⱼ, nⱼ)}` such that:
+
+(a) The runs partition the V-positions: every V-position in `dom(Σ.M(d))` falls in exactly one run — `(A v ∈ dom(Σ.M(d)) :: (E! j :: vⱼ ≤ v < vⱼ + nⱼ))`
+
+(b) Within each run: `Σ.M(d)(vⱼ + k) = aⱼ + k` for all `k` with `0 ≤ k < nⱼ`
+
+Each run represents a contiguous block of content that entered the arrangement as a unit — characters typed sequentially, or a span transcluded whole.
+
+*Proof.* We construct a finite decomposition satisfying both conjuncts and prove it partitions `dom(M(d))`.
+
+**Existence.** By S8-fin, `dom(M(d))` is finite. By S2 (ArrangementFunctionality), `M(d)` is a function, so each `v ∈ dom(M(d))` has a uniquely determined image `a = M(d)(v)`. For each such `v`, form the singleton run `(v, a, 1)`. Conjunct (b) requires `M(d)(v + k) = a + k` for all `k` with `0 ≤ k < 1` — the only such `k` is `0`, giving `M(d)(v) = a`, which holds by construction. Since `dom(M(d))` is finite, the collection of singletons is finite.
+
+**Coverage.** Each `v ∈ dom(M(d))` lies in its own singleton's interval: `v ≤ v < v + 1`, where the right inequality holds because `v + 1 = inc(v, 0) > v` by TA5(a). So every V-position falls in at least one run.
+
+**Uniqueness within a subspace.** Let `v, w ∈ dom(M(d))` be distinct V-positions with `v₁ = w₁ = S`. By S8-depth, `#v = #w = m` for some common depth `m`. We show `w ∉ [v, v + 1)`.
+
+By S8a, `zeros(v) = 0`, so every component of `v` is nonzero and `sig(v) = max({i : 1 ≤ i ≤ m ∧ vᵢ ≠ 0}) = m`. By TA5(c), `v + 1 = inc(v, 0)` satisfies `#(v + 1) = m` and differs from `v` only at position `m`, with `(v + 1)_m = v_m + 1`. In particular, `(v + 1)ᵢ = vᵢ` for all `i < m`.
+
+Suppose for contradiction that `t ≠ v` satisfies `#t = m` and `v ≤ t < v + 1`. Since `#t = #v = m`, the sequences diverge at some first position `j ≤ m`.
+
+*Case j < m.* Then `tᵢ = vᵢ` for `i < j` and `tⱼ > vⱼ` (from `v ≤ t` by T1(i), since `j ≤ m = min(m, m)`). Since `(v + 1)ⱼ = vⱼ` (as `j < m`), and `tᵢ = vᵢ = (v + 1)ᵢ` for `i < j`, the first divergence between `t` and `v + 1` is at position `j` with `tⱼ > (v + 1)ⱼ`, giving `t > v + 1` by T1(i) — contradicting `t < v + 1`.
+
+*Case j = m.* Then `tᵢ = vᵢ` for `i < m`, so `tᵢ = (v + 1)ᵢ` for `i < m` as well. The first divergence between `t` and `v + 1` is at position `m`. From `v ≤ t` with first divergence at `m`: `t_m ≥ v_m` by T1(i). From `t < v + 1` with first divergence at `m`: `t_m < (v + 1)_m = v_m + 1` by T1(i). Since components are natural numbers, `v_m ≤ t_m < v_m + 1` forces `t_m = v_m`. But then `t` agrees with `v` at all `m` components with `#t = #v = m`, so `t = v` by T3 (CanonicalRepresentation, ASN-0034) — contradicting `t ≠ v`.
+
+Both cases yield contradictions. Since all V-positions in subspace `S` have depth `m` (S8-depth), no distinct V-position in the same subspace falls in `v`'s singleton interval.
+
+*Remark.* S8-depth is essential. Without it, `dom(M(d))` could contain `s.3` (depth 2) and `s.3.1` (depth 3). By T1(ii), `s.3 < s.3.1` (prefix extension), and by T1(i) at position 2, `s.3.1 < s.4`. The position `s.3.1` would fall in the singleton interval of both `s.3` and `s.3.1` — violating unique partition.
+
+**Uniqueness across subspaces.** Let `v ∈ dom(M(d))` with `v₁ = S₁` and `w ∈ dom(M(d))` with `w₁ = S₂`, where `S₁ ≠ S₂`. By S8a, `v` extends the single-component prefix `[S₁]` and `w` extends `[S₂]`. These prefixes are non-nesting: `[S₁] ≼ [S₂]` would require `S₁ = S₂` (both length-1 tumblers, so equality requires componentwise agreement by T3), contradicting `S₁ ≠ S₂`; symmetrically `[S₂] ⋠ [S₁]`.
+
+For `m = 1`, each subspace `S` contains at most one V-position: the only depth-1 tumbler with first component `S` is `[S]` itself (by T3, any other depth-1 tumbler `[k]` with `k = S` is the same tumbler). The singleton interval `[[S], [S] + 1) = [[S], [S + 1])` at depth 1 contains no other depth-1 tumbler: `S ≤ k < S + 1` with `k ∈ ℕ` forces `k = S`. Within-subspace uniqueness is immediate.
+
+For cross-subspace uniqueness at `m = 1`, we must show that no V-position from subspace `S₂ ≠ S₁`, at any depth, falls in `[[S₁], [S₁ + 1])`. The interval contains every proper extension of `[S₁]` (by T1(ii), `[S₁] < [S₁, x, ...]`, and by T1(i), `[S₁, x, ...] < [S₁ + 1]` since the first component `S₁ < S₁ + 1`), so we cannot restrict attention to depth-1 tumblers. We show every tumbler `t` in the interval has `t₁ = S₁`. From `[S₁] ≤ t`: if `t₁ < S₁` then `t < [S₁]` by T1(i), contradicting the lower bound; so `t₁ ≥ S₁`. From `t < [S₁ + 1]`: if `t₁ > S₁` then `t₁ ≥ S₁ + 1`, and either (i) `t₁ > S₁ + 1`, giving `t > [S₁ + 1]` by T1(i), or (ii) `t₁ = S₁ + 1` with `#t = 1`, giving `t = [S₁ + 1]`, or (iii) `t₁ = S₁ + 1` with `#t > 1`, giving `t > [S₁ + 1]` by T1(ii) — all contradicting `t < [S₁ + 1]`; so `t₁ ≤ S₁`. Combined: `t₁ = S₁`. Since any V-position `w` in subspace `S₂ ≠ S₁` has `w₁ = S₂ ≠ S₁` (by S8a), `w` cannot belong to `[[S₁], [S₁ + 1])`. Cross-subspace uniqueness holds at `m = 1`.
+
+For `m ≥ 2`, the successor `v + 1` also extends `[S₁]`: since `sig(v) = m ≥ 2`, TA5(b) gives `(v + 1)ᵢ = vᵢ` for all `i < sig(v)`, so in particular `(v + 1)₁ = v₁ = S₁`.
+
+Since `[S₁] ≼ v` and `[S₁] ≼ (v + 1)` and `v ≤ v + 1` by TA5(a), T5 (PrefixContiguity, ASN-0034) gives: for any `t` with `v ≤ t ≤ v + 1`, `[S₁] ≼ t`. Every element of `[v, v + 1)` therefore extends `[S₁]`. By T10 (ASN-0034), since `[S₁]` and `[S₂]` are non-nesting prefixes, any tumbler extending `[S₁]` is distinct from any tumbler extending `[S₂]`. In particular, `w` (which extends `[S₂]`) cannot belong to `[v, v + 1)`.
+
+**Conclusion.** The singleton runs cover every V-position in `dom(M(d))` (coverage) and no V-position falls in two distinct singleton intervals (uniqueness within and across subspaces). The singletons partition `dom(M(d))`. Since `dom(M(d))` is finite (S8-fin), the decomposition is finite, establishing both conjuncts (a) and (b). ∎
+
+*Formal Contract:*
+- *Preconditions:* `dom(M(d))` finite (S8-fin); `M(d)` a function (S2); `(A v ∈ dom(M(d)) :: zeros(v) = 0 ∧ v₁ ≥ 1)` (S8a); within each subspace, all V-positions share a common depth (S8-depth).
+- *Postconditions:* There exists a finite set of correspondence runs `{(vⱼ, aⱼ, nⱼ)}` satisfying (a) `(A v ∈ dom(M(d)) :: (E! j :: vⱼ ≤ v < vⱼ + nⱼ))` and (b) `(A j, k : 0 ≤ k < nⱼ : M(d)(vⱼ + k) = aⱼ + k)`.
+
+What matters architecturally is that the number of runs `#runs(d)` is typically far smaller than `|dom(M(d))|` — the representation cost is proportional to the number of editing events, not the document size. Non-trivial runs arise when consecutive allocations produce consecutive I-addresses (as T10a and TA5(c) ensure operationally). Editing can both split and remove runs — inserting content in the middle of a run splits it into two, while deleting an entire run's V-span removes it. The number of distinct Istream allocation events underlying a document's history is monotonically non-decreasing (by S1), but the current arrangement's run count fluctuates with editing.
+
+Gregory's evidence shows that `#runs(d)` has consequences beyond representation cost. Each correspondence run requires an independent tree traversal during V↔I translation. Gregory identifies the inner loop of this traversal as the documented CPU hotspot, responsible for 40% of processing time. For a document with `N` runs, a full V→I conversion requires `N` independent traversals — the cost is multiplicative in the fragmentation level, not merely additive. A consolidation function to merge adjacent runs was started in the implementation and abandoned mid-expression — the function body stops with an incomplete conditional: `if(`. Any implementation of the two-stream architecture must either consolidate runs or accept performance proportional to fragmentation level.
