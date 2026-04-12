@@ -512,20 +512,6 @@ def _generate_deps_core(asn_num, prose_citations=False):
             print(f"  [PROSE] {prose_count} additional citations from derivation text",
                   file=sys.stderr)
 
-    # Preserve hash and skip_quality fields from existing dep graph
-    existing_path = dep_graph(asn_num)
-    if existing_path.exists():
-        try:
-            existing = yaml.safe_load(existing_path.read_text()) or {}
-            for label, prop in properties.items():
-                old_prop = existing.get("properties", {}).get(label, {})
-                if "hash" in old_prop:
-                    prop["hash"] = old_prop["hash"]
-                if old_prop.get("skip_quality"):
-                    prop["skip_quality"] = True
-        except Exception:
-            pass
-
     return {
         "asn": asn_num,
         "depends": depends,

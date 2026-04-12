@@ -24,15 +24,28 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, next_review_number
-from lib.shared.common import find_asn, step_commit_asn
-from lib.formalization.core.build_dependency_graph import generate_formalization_deps, write_deps_yaml
+from lib.shared.common import find_asn, step_commit_asn, build_label_index, parallel_llm_calls
+from lib.formalization.core.build_dependency_graph import generate_formalization_deps
 from lib.formalization.core.topological_sort import topological_sort_labels, topological_levels
 from lib.formalization.formalize.produce_contract import (
     find_properties_needing_quality, produce_contract,
     _has_formal_contract, _downstream_dependents, _compute_hash,
 )
-from lib.shared.common import parallel_llm_calls
+import hashlib
+import json
 
+
+def _load_cache(path):
+    if not path.exists():
+        return {}
+    try:
+        return json.loads(path.read_text())
+    except (json.JSONDecodeError, ValueError):
+        return {}
+
+def _save_cache(path, data):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, indent=2) + "\n")
 
 
 def run_formalize(asn_num, max_cycles=5, mode="incremental",
@@ -65,6 +78,9 @@ def run_formalize(asn_num, max_cycles=5, mode="incremental",
               file=sys.stderr)
         return "failed"
 
+    _label_index = build_label_index(prop_dir)
+    cache_path = prop_dir / "_cache.json"
+    cache = _load_cache(cache_path)
     print(f"  Directory: {prop_dir.relative_to(WORKSPACE)}", file=sys.stderr)
 
     start_time = time.time()
@@ -139,8 +155,8 @@ def run_formalize(asn_num, max_cycles=5, mode="incremental",
 
             def _process_one(label):
                 item = needs_map[label]
-                prop_path = item.get("path") or prop_dir / (
-                    label.replace("(", "").replace(")", "") + ".md")
+                stem = _label_index.get(label, label.replace("(", "").replace(")", ""))
+                prop_path = item.get("path") or prop_dir / f"{stem}.md"
                 ok, file_changed, response = produce_contract(
                     asn_num, label, item["section"],
                     prop_path=prop_path, max_cycles=1)
@@ -171,10 +187,16 @@ def run_formalize(asn_num, max_cycles=5, mode="incremental",
                             rf.write(f"*{time.strftime('%Y-%m-%d %H:%M')}*\n\n")
                             rf.write(response + "\n")
 
-                        # Update hash
-                        updated = (prop_dir / (label.replace("(", "").replace(")", "") + ".md"))
-                        if updated.exists() and deps_data and label in deps_data.get("properties", {}):
-                            deps_data["properties"][label]["hash"] = _compute_hash(updated.read_text())
+                        # Update hash cache
+                        stem = _label_index.get(label, label.replace("(", "").replace(")", ""))
+                        md_path = prop_dir / f"{stem}.md"
+                        yaml_path = prop_dir / f"{stem}.yaml"
+                        if md_path.exists():
+                            hash_input = md_path.read_text()
+                            if yaml_path.exists():
+                                hash_input += yaml_path.read_text()
+                            cache[label] = _compute_hash(hash_input)
+                            _save_cache(cache_path, cache)
                 else:
                     cycle_failed += 1
                     if response and response.startswith("REJECTED:"):
@@ -194,12 +216,12 @@ def run_formalize(asn_num, max_cycles=5, mode="incremental",
 
             # Commit after each level, re-read for next level's deps
             if level_changed:
-                write_deps_yaml(asn_num, deps_data)
                 step_commit_asn(asn_num, hint=f"produce-contract level {level_idx}")
 
                 # Re-read property files for next level
                 for l in needs_labels:
-                    l_path = prop_dir / (l.replace("(", "").replace(")", "") + ".md")
+                    l_stem = _label_index.get(l, l.replace("(", "").replace(")", ""))
+                    l_path = prop_dir / f"{l_stem}.md"
                     if l_path.exists():
                         needs_map[l]["section"] = l_path.read_text()
 

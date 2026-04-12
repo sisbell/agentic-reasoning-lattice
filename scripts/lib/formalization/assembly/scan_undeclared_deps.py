@@ -260,15 +260,13 @@ def scan_asn(asn_num, model="sonnet", effort="high", dry_run=False):
         print(f"  [ERROR] ASN-{asn_num:04d} not found", file=sys.stderr)
         return None
 
-    # Load existing deps YAML
-    deps_path = dep_graph(asn_num)
-    if not deps_path.exists():
-        print(f"  [ERROR] No deps YAML — run: python scripts/lib/rebase_deps.py {asn_num}",
+    # Build deps from per-property YAMLs
+    from lib.formalization.core.build_dependency_graph import generate_formalization_deps
+    deps = generate_formalization_deps(asn_num)
+    if deps is None:
+        print(f"  [ERROR] Could not build deps from per-property YAMLs",
               file=sys.stderr)
         return None
-
-    with open(deps_path) as f:
-        deps = yaml.safe_load(f)
 
     asn_text = asn_path.read_text()
     sections = extract_property_sections(asn_text)
