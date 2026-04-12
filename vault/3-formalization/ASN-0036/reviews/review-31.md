@@ -1,3 +1,7 @@
+# Formalize — ASN-0036 / S8a
+
+*2026-04-12 15:50*
+
 **S8a (V-position well-formedness).** Every V-position is an element-field tumbler with all components strictly positive:
 
 `(A v ∈ dom(Σ.M(d)) :: zeros(v) = 0 ∧ v₁ ≥ 1 ∧ v > 0)`
