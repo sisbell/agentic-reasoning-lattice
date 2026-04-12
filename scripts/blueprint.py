@@ -1,57 +1,68 @@
 #!/usr/bin/env python3
 """
-Blueprint — format normalization + name population.
+Blueprint — full pipeline: decompose → enrich → disassemble → validate.
 
-Prepares a monolithic ASN for disassembly. Runs format review/revise,
-populates the Name column, and commits.
+Runs the complete blueprinting pipeline on an ASN. Each stage commits
+its output automatically.
 
 Usage:
-    python scripts/blueprint.py 34
+    python scripts/blueprint.py 36
 """
 
 import argparse
 import re
 import sys
+import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.common import find_asn, step_commit_asn
-from lib.blueprinting.format import normalize_format
-from lib.blueprinting.names import step_populate_names
+from lib.blueprinting.decompose import decompose_asn
+from lib.blueprinting.enrich import enrich_asn
+from lib.blueprinting.disassemble import disassemble_asn
+from lib.blueprinting.validate import print_validation
 
 
 def run_blueprint(asn_num):
-    """Run the blueprinting pipeline: format → names → commit."""
-    asn_path, asn_label = find_asn(str(asn_num))
-    if asn_path is None:
-        print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
-        return False
+    """Run full blueprinting pipeline."""
+    start = time.time()
 
-    print(f"\n  [BLUEPRINT] {asn_label}", file=sys.stderr)
-
-    # 1. Format normalization
-    ok = normalize_format(asn_num)
+    # Step 1: Decompose — mechanical ## split + per-section LLM
+    ok = decompose_asn(asn_num)
     if not ok:
+        print(f"\n  [BLUEPRINT] FAILED at decompose", file=sys.stderr)
         return False
 
-    # 2. Name population
-    ok = step_populate_names(asn_num)
+    # Step 2: Enrich — 3 per-property LLM passes (type, deps, vocab)
+    ok = enrich_asn(asn_num)
     if not ok:
+        print(f"\n  [BLUEPRINT] FAILED at enrich", file=sys.stderr)
         return False
 
-    # 3. Commit format + names
-    step_commit_asn(asn_num, hint="blueprint")
+    # Step 3: Disassemble — section YAMLs → per-property .yaml + .md pairs
+    ok = disassemble_asn(asn_num)
+    if not ok:
+        print(f"\n  [BLUEPRINT] FAILED at disassemble", file=sys.stderr)
+        return False
 
-    print(f"\n  [BLUEPRINT] Done. Next step:",
-          file=sys.stderr)
-    print(f"  python scripts/disassemble.py {asn_num}", file=sys.stderr)
-    return True
+    # Step 4: Validate — structural integrity checks
+    ok = print_validation(asn_num)
+
+    elapsed = time.time() - start
+    if ok:
+        print(f"\n  [BLUEPRINT] COMPLETE ({elapsed:.0f}s)", file=sys.stderr)
+        print(f"  Next: python scripts/promote-blueprint.py {asn_num}",
+              file=sys.stderr)
+    else:
+        print(f"\n  [BLUEPRINT] COMPLETE with validation errors ({elapsed:.0f}s)",
+              file=sys.stderr)
+
+    return ok
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Blueprint — format + names + lint")
-    parser.add_argument("asn", help="ASN number (e.g., 34)")
+        description="Run full blueprinting pipeline: decompose → enrich → disassemble → validate")
+    parser.add_argument("asn", help="ASN number (e.g., 36)")
     args = parser.parse_args()
 
     asn_num = int(re.sub(r"[^0-9]", "", args.asn))
