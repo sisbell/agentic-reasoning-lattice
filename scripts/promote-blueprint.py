@@ -42,13 +42,14 @@ def promote_blueprint(asn_num, dry_run=False):
     print(f"  Source: {src.relative_to(WORKSPACE)}", file=sys.stderr)
     print(f"  Target: {dst.relative_to(WORKSPACE)}", file=sys.stderr)
 
-    # Collect files: property files + _table.md + _vocabulary.md
-    keep_structural = {"_table.md", "_vocabulary.md", "_property_names.md"}
-    files = sorted(
-        f for f in src.glob("*.md")
-        if not f.name.startswith("_") or f.name in keep_structural
-    )
-    print(f"  Files:  {len(files)}", file=sys.stderr)
+    # Collect files: per-property .yaml + .md pairs + structural _*.md
+    yaml_files = sorted(f for f in src.glob("*.yaml"))
+    md_files = sorted(f for f in src.glob("*.md")
+                      if not f.name.startswith("_"))
+    structural_files = sorted(f for f in src.glob("_*.md"))
+    files = yaml_files + md_files + structural_files
+    print(f"  Files:  {len(files)} ({len(yaml_files)} yaml, {len(md_files)} md, "
+          f"{len(structural_files)} structural)", file=sys.stderr)
 
     if dst.exists():
         print(f"  WARNING: {dst.relative_to(WORKSPACE)} already exists — will overwrite",

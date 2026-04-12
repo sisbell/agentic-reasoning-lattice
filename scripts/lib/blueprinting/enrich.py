@@ -18,22 +18,10 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, BLUEPRINTS_DIR
-from lib.shared.common import find_asn, invoke_claude, parallel_llm_calls
+from lib.shared.common import find_asn, invoke_claude, parallel_llm_calls, dump_yaml, step_commit_asn
 
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "blueprinting"
-
-
-# Custom YAML dumper that uses block scalars for multiline strings
-class _BlockDumper(yaml.Dumper):
-    pass
-
-def _str_representer(dumper, data):
-    if "\n" in data:
-        return dumper.represent_scalar("tag:yaml.org,2002:str", data, style="|")
-    return dumper.represent_scalar("tag:yaml.org,2002:str", data)
-
-_BlockDumper.add_representer(str, _str_representer)
 
 
 def _load_properties(sections_dir):
@@ -55,7 +43,6 @@ def _fill_prompt(template_path, prop):
     prompt = prompt.replace("{{label}}", str(prop.get("label", "")))
     prompt = prompt.replace("{{name}}", str(prop.get("name", "")))
     prompt = prompt.replace("{{body}}", str(prop.get("body", "")))
-    prompt = prompt.replace("{{formal_contract}}", str(prop.get("formal_contract", "None")))
     return prompt
 
 
@@ -123,9 +110,7 @@ def _run_pass(pass_name, template_path, properties, fields):
                 if field in result:
                     prop[field] = result[field]
 
-        with open(yaml_path, "w") as f:
-            yaml.dump(data, f, Dumper=_BlockDumper, default_flow_style=False,
-                      allow_unicode=True, sort_keys=False, width=120)
+        dump_yaml(data, yaml_path)
 
     print(f"    {pass_name}: {ok} ok, {fail} failed, {elapsed:.0f}s", file=sys.stderr)
     return ok, fail
@@ -171,6 +156,8 @@ def enrich_asn(asn_num):
     elapsed = time.time() - start
     print(f"\n  [ENRICH] 3 passes, {total_ok} total enrichments, {total_fail} failures, {elapsed:.0f}s",
           file=sys.stderr)
+
+    step_commit_asn(asn_num, hint="enrich")
     return True
 
 

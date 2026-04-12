@@ -15,7 +15,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, BLUEPRINTS_DIR
-from lib.shared.common import find_asn, invoke_claude, parallel_llm_calls
+from lib.shared.common import find_asn, invoke_claude, parallel_llm_calls, step_commit_asn
 
 
 PROMPT_PATH = WORKSPACE / "scripts" / "prompts" / "blueprinting" / "decompose.md"
@@ -172,6 +172,8 @@ def decompose_asn(asn_num):
     print(f"\n  [DECOMPOSE] {len(sections)} sections, {yaml_count} with properties, "
           f"{total_props} total properties, {elapsed:.0f}s",
           file=sys.stderr)
+
+    step_commit_asn(asn_num, hint="decompose")
     return True
 
 

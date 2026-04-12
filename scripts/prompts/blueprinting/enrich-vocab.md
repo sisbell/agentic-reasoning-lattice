@@ -40,7 +40,3 @@ Name: {{name}}
 ### Body
 
 {{body}}
-
-### Formal Contract
-
-{{formal_contract}}

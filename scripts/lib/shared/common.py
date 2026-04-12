@@ -8,8 +8,40 @@ import sys
 import time
 from pathlib import Path
 
+import yaml
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, ASNS_DIR, USAGE_LOG
+
+
+# Custom YAML dumper — uses block scalars (|) for multiline strings
+class BlockDumper(yaml.Dumper):
+    pass
+
+def _block_str_representer(dumper, data):
+    if "\n" in data:
+        return dumper.represent_scalar("tag:yaml.org,2002:str", data, style="|")
+    return dumper.represent_scalar("tag:yaml.org,2002:str", data)
+
+BlockDumper.add_representer(str, _block_str_representer)
+
+
+def dump_yaml(data, path):
+    """Write YAML with block scalars for multiline strings."""
+    with open(path, "w") as f:
+        yaml.dump(data, f, Dumper=BlockDumper, default_flow_style=False,
+                  allow_unicode=True, sort_keys=False, width=120)
+
+
+def build_label_index(prop_dir):
+    """Scan YAML files in a directory, return {label: filename_stem} dict."""
+    index = {}
+    for yf in Path(prop_dir).glob("*.yaml"):
+        with open(yf) as f:
+            data = yaml.safe_load(f)
+        if data and "label" in data:
+            index[data["label"]] = yf.stem
+    return index
 
 
 def read_file(path):

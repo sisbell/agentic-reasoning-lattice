@@ -1,247 +1,143 @@
-"""Disassemble ASN — split on boundary markers, classify chunks.
+"""Disassemble — read section YAMLs, write per-property file pairs.
 
-Blueprinting step: mechanically splits the ASN at `---` boundary markers
-(inserted by format), then classifies each chunk. Property chunks get
-written to per-property files. Ambiguous chunks are flagged.
+Blueprinting step: reads the enriched section YAML files from decompose+enrich,
+writes per-property .yaml (metadata) + .md (body + formal contract) pairs.
 
 Usage (standalone):
-    python scripts/lib/blueprinting/disassemble.py 34
-    python scripts/lib/blueprinting/disassemble.py 34 --dry-run
+    python scripts/lib/blueprinting/disassemble.py 36
+    python scripts/lib/blueprinting/disassemble.py 36 --dry-run
 """
 
 import argparse
 import re
+import shutil
 import sys
-import time
 from pathlib import Path
 
+import yaml
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, blueprint_properties_dir
-from lib.shared.common import find_asn, step_commit_asn
-
-
-def _extract_table(text):
-    """Extract the property table block from text."""
-    lines = text.split("\n")
-    table_lines = []
-    in_table = False
-    for line in lines:
-        if re.match(r"\|\s*Label\s*\|", line):
-            in_table = True
-        if in_table:
-            if line.strip().startswith("|"):
-                table_lines.append(line)
-            elif table_lines:
-                break
-    return "\n".join(table_lines) if table_lines else None
-
-
-def _classify_chunk(chunk):
-    """Classify a chunk split by --- markers.
-
-    Returns (kind, label, content) where kind is:
-      'property' — has **LABEL (Name).** header
-      'definition' — has **Definition (Name).** header
-      'section' — starts with ## or ### header
-      'unknown' — can't classify mechanically
-    """
-    stripped = chunk.strip()
-    if not stripped:
-        return ("empty", "", "")
-
-    # Definition header first (before general property match):
-    # **Definition (Name).** — use the name as label
-    m = re.match(r'^\*\*Definition\s*\(([^)]+)\)\.\*\*', stripped)
-    if m:
-        name = m.group(1).strip()
-        return ("definition", name, stripped)
-
-    # Property header: **LABEL (PascalCaseName).**
-    # .+? handles labels with spaces/parens like vpos(S, o)
-    # [A-Z][A-Za-z0-9]+ anchors on the PascalCase name
-    m = re.match(r'^\*\*(.+?)\s+\(([A-Z][A-Za-z0-9]+)\)\.\*\*', stripped)
-    if m:
-        label = m.group(1)
-        return ("property", label, stripped)
-
-    # Also match **LABEL — Name.** format (em-dash style)
-    m = re.match(r'^\*\*(.+?)\s+[\u2014\u2013-]\s*', stripped)
-    if m:
-        label = m.group(1)
-        return ("property", label, stripped)
-
-    # Section header: ## or ###
-    m = re.match(r'^#{2,3}\s+', stripped)
-    if m:
-        return ("section", "", stripped)
-
-    return ("unknown", "", stripped)
-
-
-def _label_to_filename(label):
-    """Convert label to filename — delegates to shared function."""
-    from lib.shared.common import label_to_filename
-    return label_to_filename(label)
+from lib.shared.paths import WORKSPACE, BLUEPRINTS_DIR
+from lib.shared.common import find_asn, label_to_filename, dump_yaml, step_commit_asn
 
 
 def disassemble_asn(asn_num, dry_run=False):
-    """Disassemble an ASN into per-property files.
-
-    Mechanically splits on --- markers, classifies each chunk,
-    writes property files. Flags ambiguous chunks.
-    """
+    """Read section YAMLs, write per-property .yaml + .md pairs."""
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
         print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
         return False
 
-    output_dir = blueprint_properties_dir(asn_label)
-    text = asn_path.read_text()
+    sections_dir = BLUEPRINTS_DIR / asn_label / "sections"
+    properties_dir = BLUEPRINTS_DIR / asn_label / "properties"
 
-    print(f"\n  [DISASSEMBLE] {asn_label}", file=sys.stderr)
-    print(f"  Source: {asn_path.relative_to(WORKSPACE)}", file=sys.stderr)
-    print(f"  Output: {output_dir.relative_to(WORKSPACE)}", file=sys.stderr)
-
-    # Split on --- markers
-    # The first chunk is the preamble (before any ---)
-    raw_chunks = re.split(r'\n---\n', text)
-
-    if len(raw_chunks) < 2:
-        print(f"  [DISASSEMBLE] No --- markers found. Run format first.",
-              file=sys.stderr)
+    if not sections_dir.exists():
+        print(f"  No sections directory — run decompose first", file=sys.stderr)
         return False
 
-    # The preamble may contain the first property (no --- before it).
-    # Split preamble at the first bold property/definition header.
-    preamble_raw = raw_chunks[0]
-    first_prop_match = re.search(
-        r'^(\*\*\S+\s*\([^)]+\)\.\*\*|\*\*Definition\s*\([^)]+\)\.\*\*)',
-        preamble_raw, re.MULTILINE)
-    if first_prop_match:
-        preamble = preamble_raw[:first_prop_match.start()].rstrip()
-        first_chunk = preamble_raw[first_prop_match.start():]
-        chunks = [first_chunk] + raw_chunks[1:]
-    else:
-        preamble = preamble_raw
-        chunks = raw_chunks[1:]
+    print(f"\n  [DISASSEMBLE] {asn_label}", file=sys.stderr)
+    print(f"  Sections: {sections_dir.relative_to(WORKSPACE)}", file=sys.stderr)
+    print(f"  Output:   {properties_dir.relative_to(WORKSPACE)}", file=sys.stderr)
 
-    print(f"  {len(chunks)} chunks after split", file=sys.stderr)
+    if not dry_run:
+        properties_dir.mkdir(parents=True, exist_ok=True)
 
-    # Extract table from preamble
-    table = _extract_table(text)
+    # Collect all properties from section YAMLs
+    prop_count = 0
+    structural_count = 0
 
-    # Classify each chunk
-    classified = []
-    for chunk in chunks:
-        kind, label, content = _classify_chunk(chunk)
-        classified.append((kind, label, content))
+    for yaml_path in sorted(sections_dir.glob("*.yaml")):
+        with open(yaml_path) as f:
+            data = yaml.safe_load(f)
 
-    # Absorb section chunks into the next property
-    # (section headers that introduce context for the following property)
-    merged = []
-    pending_sections = []
-    for kind, label, content in classified:
-        if kind == "section":
-            pending_sections.append(content)
-        elif kind in ("property", "definition"):
-            if pending_sections:
-                # Prepend section context to this property
-                content = "\n\n".join(pending_sections) + "\n\n" + content
-                pending_sections = []
-            merged.append((kind, label, content))
+        if not data:
+            continue
+
+        properties = data.get("properties", [])
+
+        if properties:
+            for prop in properties:
+                label = prop.get("label", "")
+                if not label:
+                    print(f"    WARNING: property without label in {yaml_path.name}",
+                          file=sys.stderr)
+                    continue
+
+                stem = label_to_filename(label).replace(".md", "")
+
+                # Build metadata dict
+                meta = {
+                    "label": label,
+                    "name": prop.get("name", ""),
+                }
+                if prop.get("type"):
+                    meta["type"] = prop["type"]
+                if prop.get("depends"):
+                    meta["depends"] = prop["depends"]
+                else:
+                    meta["depends"] = []
+                if prop.get("vocabulary"):
+                    meta["vocabulary"] = prop["vocabulary"]
+                if prop.get("literature_citations"):
+                    meta["literature_citations"] = prop["literature_citations"]
+
+                # Body markdown (formal contract is included in body)
+                md_content = prop.get("body", "").rstrip()
+
+                if dry_run:
+                    print(f"    {stem}.yaml + {stem}.md  ({label})", file=sys.stderr)
+                else:
+                    dump_yaml(meta, properties_dir / f"{stem}.yaml")
+                    (properties_dir / f"{stem}.md").write_text(md_content + "\n")
+                    print(f"    {stem}.yaml + {stem}.md", file=sys.stderr)
+
+                prop_count += 1
+
+    # Copy structural sections (no properties — preamble, table, worked example, etc.)
+    for md_path in sorted(sections_dir.glob("*.md")):
+        yaml_path = md_path.with_suffix(".yaml")
+
+        # Structural = has no YAML, or YAML has no properties
+        is_structural = False
+        if not yaml_path.exists():
+            is_structural = True
         else:
-            merged.append((kind, label, content))
+            with open(yaml_path) as f:
+                data = yaml.safe_load(f)
+            if not data or not data.get("properties"):
+                is_structural = True
 
-    if dry_run:
-        for kind, label, content in merged:
-            size = len(content)
-            if kind == "property":
-                print(f"    {_label_to_filename(label):30s} property  {size:6d}B",
-                      file=sys.stderr)
-            elif kind == "definition":
-                print(f"    {_label_to_filename(label):30s} definition {size:6d}B",
-                      file=sys.stderr)
-            elif kind == "unknown":
-                preview = content[:80].replace("\n", " ")
-                print(f"    {'???':30s} UNKNOWN   {size:6d}B  {preview}",
-                      file=sys.stderr)
-        if pending_sections:
-            print(f"    {len(pending_sections)} trailing section(s)",
-                  file=sys.stderr)
-        return True
+        if is_structural:
+            # Extract slug from filename: "00-preamble.md" → "preamble"
+            name = md_path.stem
+            if "-" in name:
+                slug = name.split("-", 1)[1]
+            else:
+                slug = name
+            out_name = f"_{slug}.md"
 
-    # Write files
-    output_dir.mkdir(parents=True, exist_ok=True)
-    written = 0
-    flagged = 0
+            if dry_run:
+                print(f"    {out_name}  (structural)", file=sys.stderr)
+            else:
+                shutil.copy2(md_path, properties_dir / out_name)
+                print(f"    {out_name}  (structural)", file=sys.stderr)
 
-    # Preamble (everything before first ---, minus the table)
-    preamble_text = preamble.strip()
-    if table:
-        preamble_text = preamble_text.replace(table, "").strip()
-    (output_dir / "_preamble.md").write_text(preamble_text + "\n")
+            structural_count += 1
 
-    # Table
-    if table:
-        (output_dir / "_table.md").write_text(table + "\n")
-
-    # Trailing sections (not absorbed into a property — write to structural files)
-    for section_content in pending_sections:
-        # Extract ## header to determine filename
-        header_match = re.match(r'^#{2,3}\s+(.+)', section_content.strip())
-        if header_match:
-            header_name = header_match.group(1).strip()
-            # Convert to filename: "Worked example" → _worked-example.md
-            filename = "_" + re.sub(r'[^a-z0-9]+', '-', header_name.lower()).strip('-') + ".md"
-        else:
-            filename = "_section.md"
-        (output_dir / filename).write_text(section_content.strip() + "\n")
-        print(f"    {filename} (structural)", file=sys.stderr)
-
-    # Property and definition files
-    issues = []
-    for kind, label, content in merged:
-        if kind in ("property", "definition"):
-            filename = _label_to_filename(label)
-            (output_dir / filename).write_text(content.strip() + "\n")
-            written += 1
-            print(f"    {filename}", file=sys.stderr)
-        elif kind == "unknown":
-            flagged += 1
-            preview = content[:100].replace("\n", " ")
-            issues.append(f"UNKNOWN chunk ({len(content)}B): {preview}")
-            # Write to a flagged file for manual review
-            (output_dir / f"_flagged-{flagged}.md").write_text(content.strip() + "\n")
-            print(f"    _flagged-{flagged}.md  *** NEEDS REVIEW ***",
-                  file=sys.stderr)
-
-    # Write issues report if any
-    if issues:
-        report = (f"# Disassembly Issues — {asn_label}\n\n"
-                  + "\n".join(f"- {i}" for i in issues) + "\n")
-        (output_dir / "_issues.md").write_text(report)
-
-    # Generate _property_names.md from _table.md
-    from lib.shared.common import generate_property_names
-    mapping, warnings = generate_property_names(output_dir)
-    for w in warnings:
-        print(f"    WARNING: {w}", file=sys.stderr)
-    print(f"  [DISASSEMBLE] {len(mapping)} property names mapped", file=sys.stderr)
-
-    print(f"\n  [DISASSEMBLE] {written} property files, {flagged} flagged",
+    print(f"\n  [DISASSEMBLE] {prop_count} properties, {structural_count} structural files",
           file=sys.stderr)
 
-    step_commit_asn(asn_num, hint="disassemble")
-
+    if not dry_run:
+        step_commit_asn(asn_num, hint="disassemble")
     return True
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Disassemble ASN into per-property files")
-    parser.add_argument("asn", help="ASN number (e.g., 34)")
+        description="Disassemble section YAMLs into per-property file pairs")
+    parser.add_argument("asn", help="ASN number (e.g., 36)")
     parser.add_argument("--dry-run", action="store_true",
-                        help="Show classification without writing files")
+                        help="Show what would be written without writing")
     args = parser.parse_args()
 
     asn_num = int(re.sub(r"[^0-9]", "", args.asn))
