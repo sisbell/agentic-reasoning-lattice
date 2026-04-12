@@ -1,3 +1,7 @@
+# Formalize — ASN-0036 / ord(v)
+
+*2026-04-12 14:43*
+
 **ord(v)** — *OrdinalExtraction* (DEF, function). For a V-position v with #v = m and subspace(v) = v₁, the *ordinal* is:
 
 `ord(v) = [v₂, ..., vₘ]`
