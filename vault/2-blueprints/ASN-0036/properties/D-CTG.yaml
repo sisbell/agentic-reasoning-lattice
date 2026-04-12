@@ -1,0 +1,9 @@
+label: D-CTG
+name: VContiguity
+type: theorem
+depends:
+- S8-fin
+- S8-depth
+- T0(a)
+- T1(i)
+- T3

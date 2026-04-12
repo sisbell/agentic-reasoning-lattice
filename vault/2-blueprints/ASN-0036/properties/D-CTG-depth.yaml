@@ -1,0 +1,14 @@
+label: D-CTG-depth
+name: SharedPrefixReduction
+type: lemma
+depends:
+- D-CTG
+- S8-depth
+- S8-fin
+- T0(a)
+- T1(i)
+- T3
+- T4
+literature_citations:
+- LM 4/20
+- LM 4/31

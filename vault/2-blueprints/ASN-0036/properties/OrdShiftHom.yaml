@@ -1,0 +1,6 @@
+label: OrdShiftHom
+name: OrdinalShiftHomomorphism
+type: corollary
+depends:
+- OrdAddHom
+- OrdAddS8a

@@ -1,0 +1,9 @@
+label: S4
+name: OriginBasedIdentity
+type: corollary
+depends:
+- GlobalUniqueness
+- T3
+- T10a
+literature_citations:
+- LM 2/48

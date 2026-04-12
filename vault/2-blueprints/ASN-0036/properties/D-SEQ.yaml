@@ -1,0 +1,11 @@
+label: D-SEQ
+name: SequentialPositions
+type: theorem
+depends:
+- S8-depth
+- D-CTG-depth
+- D-MIN
+- T1(i)
+- D-CTG
+- S8-fin
+- ValidInsertionPosition

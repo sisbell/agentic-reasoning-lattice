@@ -1,0 +1,11 @@
+label: Σ.C
+name: ContentStore
+type: definition
+depends: []
+vocabulary:
+- symbol: Σ.C
+  meaning: 'The content store: a partial function from tumblers to content values, mapping Istream addresses to content'
+- symbol: Val
+  meaning: An unspecified set of content values, opaque at this level of abstraction
+- symbol: dom(Σ.C)
+  meaning: The set of I-addresses at which content has been stored; the domain of the content store partial function
