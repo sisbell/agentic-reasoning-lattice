@@ -1,6 +1,6 @@
 {
   "S9": "eec3cd52f854ac95",
-  "D-CTG": "a3330d8beb89644a",
+  "D-CTG": "a42bbd7b60ec64b3",
   "D-MIN": "521071e2abf0ceb5",
   "OrdAddHom": "97ab7167a8e06f63",
   "w_ord": "bf2c23e0c3c0cbf0",
@@ -12,5 +12,6 @@
   "S8a": "374de7d08b80509a",
   "OrdAddS8a": "73f6b660104ddba8",
   "ord(v)": "cafc8fe4673b0d37",
-  "vpos(S, o)": "fa5287a755968786"
+  "vpos(S, o)": "fa5287a755968786",
+  "OrdShiftHom": "c027f78998e2a40f"
 }
