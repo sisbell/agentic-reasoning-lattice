@@ -17,8 +17,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, USAGE_LOG, formal_stmts, asn_dir
-from lib.shared.common import find_asn, invoke_claude, load_property_names, filename_to_label
-from lib.formalization.core.build_dependency_graph import find_property_table, parse_table_row, detect_columns
+from lib.shared.common import find_asn, invoke_claude, build_label_index, load_property_metadata
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization" / "assembly"
 TRIM_TEMPLATE = PROMPTS_DIR / "produce-interface.md"
@@ -57,83 +56,43 @@ def assemble_formal_statements(asn_num):
         print(f"  [ASSEMBLE] ASN-{asn_num:04d} not found", file=sys.stderr)
         return None
 
-    # Read from formalization directory if available
+    # Read from formalization directory
     prop_dir = FORMALIZATION_DIR / asn_label
-    if prop_dir.exists():
-        table_path = prop_dir / "_table.md"
-        table_text = table_path.read_text() if table_path.exists() else ""
-    else:
-        table_text = asn_path.read_text()
-
-    rows = find_property_table(table_text)
-    if rows is None:
-        print(f"  [ASSEMBLE] No property table found",
+    if not prop_dir.exists():
+        print(f"  [ASSEMBLE] No formalization directory for {asn_label}",
               file=sys.stderr)
         return None
 
-    # Parse table
-    header = parse_table_row(rows[0])
-    cols = detect_columns(header)
-    has_type = "type" in cols
-    has_name = "name" in cols
-    data_rows = rows[2:]
+    # Read metadata from per-property YAMLs
+    metadata = load_property_metadata(prop_dir)
+    if not metadata:
+        print(f"  [ASSEMBLE] No per-property YAML files found",
+              file=sys.stderr)
+        return None
+
+    _label_index = build_label_index(prop_dir)
+    _filename_to_label = {f"{stem}.md": lbl for lbl, stem in _label_index.items()}
 
     # Collect labels and metadata
     properties = []
     labels = []
-    for row in data_rows:
-        cells = parse_table_row(row)
-        if len(cells) < 2:
-            continue
-        label = cells[0].strip().strip("`*")
-        if not label:
-            continue
-
-        # Read Name column if present
-        table_name = ""
-        if has_name and len(cells) > cols["name"]:
-            table_name = cells[cols["name"]].strip()
-
-        # Statement: everything between fixed columns and status
-        fixed_cols = {0}
-        if has_name:
-            fixed_cols.add(cols["name"])
-        if has_type:
-            fixed_cols.add(cols["type"])
-        stmt_start = max(fixed_cols) + 1
-        statement = "|".join(cells[stmt_start:-1]).strip() if len(cells) > stmt_start + 1 else ""
-
-        # Determine name: prefer Name column, then extract from statement, then label
-        name = table_name
-        if not name and statement:
-            m = re.match(r'^([^:.—–]+)', statement)
-            if m:
-                candidate = m.group(1).strip()
-                if len(candidate) >= 2 and candidate[0].isupper():
-                    name = candidate[:77] + "..." if len(candidate) > 77 else candidate
-        # PascalCase label fallback
+    for label, data in metadata.items():
+        name = data.get("name", "")
         if not name and re.match(r'^[A-Z][a-z].*[A-Z]', label):
             name = label
-
         properties.append({
             "label": label,
             "name": name or label,
-            "statement": statement,
+            "statement": "",  # statement not stored in YAML — extracted from .md below
         })
         labels.append(label)
 
-    # Read per-property files if available, otherwise extract from monolithic ASN
-    if prop_dir and prop_dir.exists():
-        _prop_names = load_property_names(prop_dir)
-        sections = {}
-        for f in prop_dir.glob("*.md"):
-            if not f.name.startswith("_"):
-                lbl = filename_to_label(f.name, _prop_names)
-                sections[lbl] = f.read_text()
-    else:
-        from lib.shared.common import extract_property_sections
-        text = asn_path.read_text()
-        sections = extract_property_sections(text, known_labels=labels, truncate=False)
+    # Read per-property .md files
+    sections = {}
+    for f in prop_dir.glob("*.md"):
+        if not f.name.startswith("_"):
+            lbl = _filename_to_label.get(f.name, f.stem)
+            sections[lbl] = f.read_text()
 
     # Determine definition status from content
     for prop in properties:
