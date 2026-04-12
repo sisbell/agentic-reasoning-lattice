@@ -1,3 +1,7 @@
+# Formalize — ASN-0036 / OrdAddS8a
+
+*2026-04-12 15:10*
+
 **OrdAddS8a** — *AdditionPreservesS8a* (LEMMA). For a V-position `v` satisfying S8a with `#v = m ≥ 2`, and a displacement `w` with `w₁ = 0`, `#w = m`, `w > 0`, and `actionPoint(w) ≤ m`: `v ⊕ w` satisfies S8a if and only if all components of `w_ord` after its action point are positive.
 
 *Proof.* Let `r = v ⊕ w` with `k = actionPoint(w)`. Since `w₁ = 0` and `w > 0`, the first nonzero component of `w` occurs at some position `k ≥ 2`. By TumblerAdd's result-length identity, `#r = #w = m`, so `r` has the same number of components as `v` and `w`. By TumblerAdd, the components of `r` partition into three regions:
