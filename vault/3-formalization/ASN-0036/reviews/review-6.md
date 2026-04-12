@@ -1,3 +1,7 @@
+# Formalize — ASN-0036 / S1
+
+*2026-04-12 14:34*
+
 **S1 (Store monotonicity).** `[dom(Σ.C) ⊆ dom(Σ'.C)]`
 
 S1 is a corollary of S0, stated separately for emphasis. It is the content-store specialisation of T8 (allocation permanence, ASN-0034): T8 guarantees that allocated addresses persist in the abstract address space; S1 ensures that the content at those addresses persists as well.
