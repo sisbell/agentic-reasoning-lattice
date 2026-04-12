@@ -17,9 +17,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, USAGE_LOG, FORMALIZATION_DIR, formal_stmts
-from lib.shared.common import find_asn, invoke_claude, load_property_names, filename_to_label
-from lib.formalization.core.build_dependency_graph import (find_property_table, parse_table_row,
-                              detect_columns, generate_formalization_deps)
+from lib.shared.common import find_asn, invoke_claude, build_label_index, load_property_metadata
+from lib.formalization.core.build_dependency_graph import generate_formalization_deps
 
 from lib.formalization.assembly.validate_contracts import validate_contract
 
@@ -115,21 +114,12 @@ def find_properties_needing_quality(asn_num, force_all=True, force_rebuild=False
     if not prop_dir.exists():
         print(f"  No formalization directory for {asn_label}", file=sys.stderr)
         return [], {}
-    _prop_names = load_property_names(prop_dir)
+    label_index = build_label_index(prop_dir)
+    _filename_to_label = {f"{stem}.md": lbl for lbl, stem in label_index.items()}
 
-    # Read statuses from _table.md
-    table_path = prop_dir / "_table.md"
-    statuses = {}
-    if table_path.exists():
-        for line in table_path.read_text().split("\n"):
-            if (line.strip().startswith("|")
-                    and not line.strip().startswith("| Label")
-                    and not line.strip().startswith("|---")):
-                cells = [c.strip() for c in line.split("|")]
-                if len(cells) >= 2 and cells[1].strip():
-                    label = cells[1].strip().strip("`*")
-                    status = cells[-2].strip().lower() if len(cells) > 2 else ""
-                    statuses[label] = status
+    # Read types from per-property YAMLs
+    metadata = load_property_metadata(prop_dir)
+    statuses = {lbl: data.get("type", "") for lbl, data in metadata.items()}
 
     # Read per-property files
     prop_files = sorted(
@@ -143,10 +133,10 @@ def find_properties_needing_quality(asn_num, force_all=True, force_rebuild=False
         content = f.read_text()
         if not content.strip():
             continue
-        label = filename_to_label(f.name, _prop_names)
+        label = _filename_to_label.get(f.name, f.stem)
         if _is_definition(content):
             continue
-        if statuses.get(label, "") in ("axiom", "design requirement"):
+        if statuses.get(label, "") in ("axiom", "design-requirement"):
             continue
         candidates.append({"label": label, "section": content, "path": f})
 
@@ -236,11 +226,13 @@ def _build_dep_context(asn_num, label):
 
     _, asn_label = find_asn(str(asn_num))
     prop_dir = FORMALIZATION_DIR / asn_label
+    _label_index = build_label_index(prop_dir)
 
     dep_parts = []
     for dep_label in follows_from:
         if dep_label in all_labels:
-            dep_file = prop_dir / (dep_label.replace("(", "").replace(")", "") + ".md")
+            dep_stem = _label_index.get(dep_label, dep_label.replace("(", "").replace(")", ""))
+            dep_file = prop_dir / f"{dep_stem}.md"
             if dep_file.exists():
                 dep_parts.append(f"### {dep_label}\n\n{dep_file.read_text().strip()}")
 

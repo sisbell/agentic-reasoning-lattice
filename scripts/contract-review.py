@@ -23,7 +23,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, next_review_number
-from lib.shared.common import find_asn, invoke_claude, parallel_llm_calls, step_commit_asn, load_property_names, filename_to_label
+from lib.shared.common import find_asn, invoke_claude, parallel_llm_calls, step_commit_asn, build_label_index, aggregate_vocabulary
 from lib.formalization.assembly.validate_contracts import validate_contract
 from lib.formalization.formalize.produce_contract import _has_formal_contract
 
@@ -67,12 +67,12 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
         print(f"  No formalization directory for {asn_label}", file=sys.stderr)
         return "failed"
 
-    _prop_names = load_property_names(prop_dir)
+    label_index = build_label_index(prop_dir)
+    _filename_to_label = {f"{stem}.md": lbl for lbl, stem in label_index.items()}
     print(f"  Directory: {prop_dir.relative_to(WORKSPACE)}", file=sys.stderr)
 
-    # Load vocabulary
-    vocab_path = prop_dir / "_vocabulary.md"
-    vocabulary = vocab_path.read_text() if vocab_path.exists() else "(no vocabulary)"
+    # Load vocabulary from per-property YAMLs
+    vocabulary = aggregate_vocabulary(prop_dir)
 
     cache_path = prop_dir / "_contract-cache.json"
     validated_hashes = {} if force else _load_cache(cache_path)
@@ -90,13 +90,13 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
 
         if single_label:
             prop_files = [f for f in prop_files
-                          if filename_to_label(f.name, _prop_names) == single_label]
+                          if _filename_to_label.get(f.name, f.stem) == single_label]
 
         # Filter to properties with formal contracts, skip cached
         candidates = []
         cached = 0
         for f in prop_files:
-            label = filename_to_label(f.name, _prop_names)
+            label = _filename_to_label.get(f.name, f.stem)
             content = f.read_text()
             if not content or not _has_formal_contract(content):
                 continue
@@ -123,7 +123,8 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
                 follows_from = prop_data.get("follows_from", [])
                 parts = []
                 for dep_label in follows_from:
-                    dep_file = prop_dir / (dep_label.replace("(", "").replace(")", "") + ".md")
+                    dep_stem = label_index.get(dep_label, dep_label.replace("(", "").replace(")", ""))
+                    dep_file = prop_dir / f"{dep_stem}.md"
                     if dep_file.exists():
                         parts.append(f"### {dep_label}\n\n{dep_file.read_text().strip()}")
                 dep_contexts[label] = "\n\n".join(parts) if parts else "(none)"

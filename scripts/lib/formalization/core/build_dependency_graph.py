@@ -20,7 +20,7 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, load_manifest, formal_stmts, dep_graph
-from lib.shared.common import find_asn
+from lib.shared.common import find_asn, load_property_metadata, build_label_index
 
 
 # ---------------------------------------------------------------------------
@@ -444,137 +444,39 @@ def _generate_deps_core(asn_num, prose_citations=False):
         print(f"  [ERROR] ASN-{asn_num:04d} not found", file=sys.stderr)
         return None
 
-    # Read table from formalization directory if available, otherwise from ASN
+    # Read from per-property YAMLs
     prop_dir = FORMALIZATION_DIR / asn_label
-    table_path = prop_dir / "_table.md" if prop_dir.exists() else None
-
-    if table_path and table_path.exists():
-        table_text = table_path.read_text()
-    else:
-        table_text = asn_path.read_text()
-
-    table_rows = find_property_table(table_text)
-    if table_rows is None:
-        print(f"  [ERROR] No property table found", file=sys.stderr)
-        return None
-
-    # Parse header
-    header_cells = parse_table_row(table_rows[0])
-    cols = detect_columns(header_cells)
-
-    # Skip separator row (row 1)
-    data_rows = table_rows[2:]
 
     # Get manifest for ASN-level depends
     manifest = load_manifest(asn_num)
     depends = manifest.get("depends", [])
 
-    # Parse each property row
-    has_type = "type" in cols
-    has_name = "name" in cols
+    # Build properties dict from YAML metadata
+    metadata = load_property_metadata(prop_dir) if prop_dir.exists() else {}
+
+    if not metadata:
+        print(f"  [ERROR] No per-property YAML files found in {prop_dir}",
+              file=sys.stderr)
+        return None
+
     properties = {}
-    _statement_names = {}  # label → name extracted from Statement column
-    _table_names = {}  # label → name from Name column
-    for row in data_rows:
-        cells = parse_table_row(row)
-        if len(cells) < 2:
-            continue
+    for label, data in metadata.items():
+        prop = {"status": data.get("type", "introduced")}
 
-        label = cells[0].strip()
-        if not label:
-            continue
+        if data.get("type"):
+            prop["type"] = data["type"]
 
-        # Clean label: remove backticks, formatting
-        label = label.strip("`").strip("*").strip()
+        if data.get("name"):
+            prop["name"] = data["name"]
 
-        # Status is always the last cell
-        status_text = cells[-1].strip()
-
-        # Name column (PascalCase canonical name)
-        if has_name and len(cells) > cols["name"]:
-            name_text = cells[cols["name"]].strip()
-            if name_text:
-                _table_names[label] = name_text
-
-        # Type is second cell if present
-        type_idx = cols.get("type")
-        type_text = cells[type_idx].strip() if type_idx is not None and len(cells) > type_idx else ""
-
-        # Statement is everything between fixed columns (label, name, type) and status
-        # Find the first column after all fixed columns
-        fixed_cols = {0}  # label always at 0
-        if has_name:
-            fixed_cols.add(cols["name"])
-        if has_type:
-            fixed_cols.add(cols["type"])
-        stmt_start = max(fixed_cols) + 1
-        stmt_end = -1  # exclude status
-        statement_text = "|".join(cells[stmt_start:stmt_end]).strip() if len(cells) > stmt_start + 1 else ""
-
-        # Extract property name from Statement column
-        stmt_name = _extract_name_from_statement(statement_text)
-        if stmt_name:
-            _statement_names[label] = stmt_name
-
-        # Parse status for dependencies
-        status_info = _parse_status(status_text)
-
-        # Parse statement for extends/parallels
-        stmt_relations = _parse_statement_for_relations(statement_text)
-
-        # Build property entry
-        prop = {"status": status_info["kind"]}
-
-        if type_text:
-            prop["type"] = type_text
-
-        if status_info["labels"]:
-            prop["follows_from"] = status_info["labels"]
-
-        if status_info["asn_refs"]:
-            prop["follows_from_asns"] = sorted(set(status_info["asn_refs"]))
-
-        # Merge extends/parallels from Status and Statement
-        extends = status_info.get("extends") or stmt_relations.get("extends")
-        if extends:
-            prop["extends"] = extends
-
-        parallels = status_info.get("parallels") or stmt_relations.get("parallels")
-        if parallels:
-            prop["parallels"] = parallels
-
-        # Additional via labels from statement
-        if "via_labels" in stmt_relations:
-            existing = prop.get("follows_from", [])
-            prop["follows_from"] = list(dict.fromkeys(existing + stmt_relations["via_labels"]))
-        if "via_asns" in stmt_relations:
-            existing = prop.get("follows_from_asns", [])
-            prop["follows_from_asns"] = sorted(set(existing + stmt_relations["via_asns"]))
+        if data.get("depends"):
+            prop["follows_from"] = data["depends"]
 
         properties[label] = prop
 
-    # Enrich with property names (and optionally prose citations)
-    # Read per-property files if available, otherwise extract from monolithic ASN
-    if prop_dir and prop_dir.exists():
-        from lib.shared.common import load_property_sections
-        sections = load_property_sections(prop_dir)
-    else:
-        from lib.shared.common import extract_property_sections
-        text = asn_path.read_text()
-        sections = extract_property_sections(text, known_labels=list(properties.keys()))
-
-    for label, prop in properties.items():
-        # Add property name — prefer Name column (canonical), then Statement
-        # column, then prose header, then PascalCase label
-        name = _table_names.get(label) or ""
-        if not name:
-            name = _statement_names.get(label) or ""
-        if not name and label in sections:
-            name = _extract_property_name(sections[label])
-        if not name and re.match(r'^[A-Z][a-z].*[A-Z]', label):
-            name = label
-        if name:
-            prop["name"] = name
+    # Read per-property .md files for prose citation scanning
+    from lib.shared.common import load_property_sections
+    sections = load_property_sections(prop_dir) if prop_dir.exists() else {}
 
     # Prose citation scanning (discovery only)
     if prose_citations:
