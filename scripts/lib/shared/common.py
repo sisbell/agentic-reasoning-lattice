@@ -44,6 +44,61 @@ def build_label_index(prop_dir):
     return index
 
 
+def load_property_metadata(prop_dir, label=None):
+    """Load YAML metadata for one or all properties.
+
+    If label is given, returns single dict (or None if not found).
+    If label is None, returns {label: dict} for all properties.
+    """
+    prop_dir = Path(prop_dir)
+    if label is not None:
+        index = build_label_index(prop_dir)
+        stem = index.get(label)
+        if stem is None:
+            return None
+        yf = prop_dir / f"{stem}.yaml"
+        with open(yf) as f:
+            return yaml.safe_load(f)
+
+    result = {}
+    for yf in sorted(prop_dir.glob("*.yaml")):
+        with open(yf) as f:
+            data = yaml.safe_load(f)
+        if data and "label" in data:
+            result[data["label"]] = data
+    return result
+
+
+def aggregate_vocabulary(prop_dir):
+    """Read vocabulary field from all property YAMLs, return formatted markdown string.
+
+    Aggregates all vocabulary entries across all properties into a single
+    string suitable for passing to LLM prompts. Sorted alphabetically,
+    deduplicated by symbol.
+    """
+    prop_dir = Path(prop_dir)
+    seen = {}  # symbol → meaning (dedup)
+
+    for yf in sorted(prop_dir.glob("*.yaml")):
+        with open(yf) as f:
+            data = yaml.safe_load(f)
+        if not data:
+            continue
+        for entry in data.get("vocabulary", []) or []:
+            if isinstance(entry, dict) and "symbol" in entry and "meaning" in entry:
+                sym = entry["symbol"]
+                if sym not in seen:
+                    seen[sym] = entry["meaning"]
+
+    if not seen:
+        return "(no vocabulary)"
+
+    lines = []
+    for sym in sorted(seen.keys()):
+        lines.append(f"- **{sym}** — {seen[sym]}")
+    return "\n".join(lines)
+
+
 def read_file(path):
     """Read file, return '' on FileNotFoundError."""
     try:
