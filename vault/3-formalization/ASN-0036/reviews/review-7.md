@@ -1,3 +1,7 @@
+# Formalize — ASN-0036 / S6
+
+*2026-04-12 14:34*
+
 **S6 (Persistence independence).** The membership of `a` in `dom(Σ.C)` is independent of all arrangements:
 
 `[a ∈ dom(Σ.C) ⟹ a ∈ dom(Σ'.C)]`
