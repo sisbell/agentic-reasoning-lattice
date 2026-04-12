@@ -411,7 +411,13 @@ def load_property_sections(prop_dir):
     like vpos-S-o.md. Lookup by either form will work.
     """
     prop_dir = Path(prop_dir)
-    mapping = load_property_names(prop_dir)
+    # Build label index from YAML files, fall back to _property_names.md
+    label_index = build_label_index(prop_dir)
+    if label_index:
+        stem_to_label = {stem: lbl for lbl, stem in label_index.items()}
+    else:
+        mapping = load_property_names(prop_dir)
+        stem_to_label = {stem: lbl for stem, lbl in mapping.items()}
     sections = {}
     for f in sorted(prop_dir.glob("*.md")):
         if f.name.startswith("_"):
@@ -420,19 +426,9 @@ def load_property_sections(prop_dir):
         stem = f.name.replace(".md", "")
         sections[stem] = content
         # Also index by original label if different from stem
-        label = mapping.get(stem, stem)
+        label = stem_to_label.get(stem, stem)
         if label != stem:
             sections[label] = content
-    # Fallback heuristic for ASNs without _property_names.md:
-    # T0a -> also indexed as T0(a)
-    if not mapping:
-        import re as _re
-        for fname in list(sections.keys()):
-            m = _re.match(r'^([A-Z]+\d+)([a-z])$', fname)
-            if m:
-                paren_label = f"{m.group(1)}({m.group(2)})"
-                if paren_label not in sections:
-                    sections[paren_label] = sections[fname]
     return sections
 
 
