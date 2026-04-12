@@ -4,130 +4,167 @@ narrative: |
 
   Write S = subspace(v) = v₁ for the subspace identifier (the first component of the element-field V-position), and V_S(d) = {v ∈ dom(M(d)) : subspace(v) = S} for the set of V-positions in subspace S of document d. All V-positions in a given subspace share the same tumbler depth (S8-depth).
 properties:
-  - label: D-CTG
-    name: VContiguity
-    body: |
-      **D-CTG (VContiguity).** For each document d and subspace S, V_S(d) is either empty or occupies every intermediate position between its extremes:
+- label: D-CTG
+  name: VContiguity
+  body: |
+    **D-CTG (VContiguity).** For each document d and subspace S, V_S(d) is either empty or occupies every intermediate position between its extremes:
 
-      `(A d, S, u, q : u ∈ V_S(d) ∧ q ∈ V_S(d) ∧ u < q : (A v : subspace(v) = S ∧ #v = #u ∧ u < v < q : v ∈ V_S(d)))`
+    `(A d, S, u, q : u ∈ V_S(d) ∧ q ∈ V_S(d) ∧ u < q : (A v : subspace(v) = S ∧ #v = #u ∧ u < v < q : v ∈ V_S(d)))`
 
-      In words: within each subspace, V-positions form a contiguous ordinal range with no gaps. If positions [1, 3] and [1, 7] are occupied, then every position [1, k] with 3 < k < 7 must also be occupied.
+    In words: within each subspace, V-positions form a contiguous ordinal range with no gaps. If positions [1, 3] and [1, 7] are occupied, then every position [1, k] with 3 < k < 7 must also be occupied.
 
-      For the standard text subspace at depth m = 2, this is a finite condition: the intermediates between [S, a] and [S, b] are the finitely many [S, i] with a < i < b. Combined with S8-fin (dom(M(d)) is finite), contiguity at depth 2 says V_S(d) occupies a single unbroken block of ordinals.
+    For the standard text subspace at depth m = 2, this is a finite condition: the intermediates between [S, a] and [S, b] are the finitely many [S, i] with a < i < b. Combined with S8-fin (dom(M(d)) is finite), contiguity at depth 2 says V_S(d) occupies a single unbroken block of ordinals.
 
-      At depth m ≥ 3, D-CTG combined with S8-fin forces a stronger restriction: all positions in V_S(d) must share components 2 through m − 1.
+    At depth m ≥ 3, D-CTG combined with S8-fin forces a stronger restriction: all positions in V_S(d) must share components 2 through m − 1.
 
-      *Proof.* Suppose for contradiction that V_S(d) contains two positions v₁ < v₂ (both depth m by S8-depth) whose first point of disagreement is at component j with 2 ≤ j ≤ m − 1 — that is, (v₁)ᵢ = (v₂)ᵢ for all i < j, and (v₁)ⱼ < (v₂)ⱼ (since v₁ < v₂ by T1(i)). For any natural number n > (v₁)ⱼ₊₁, define w of length m by:
+    *Proof.* Suppose for contradiction that V_S(d) contains two positions v₁ < v₂ (both depth m by S8-depth) whose first point of disagreement is at component j with 2 ≤ j ≤ m − 1 — that is, (v₁)ᵢ = (v₂)ᵢ for all i < j, and (v₁)ⱼ < (v₂)ⱼ (since v₁ < v₂ by T1(i)). For any natural number n > (v₁)ⱼ₊₁, define w of length m by:
 
-      - wᵢ = (v₁)ᵢ for 1 ≤ i ≤ j (agreeing with v₁ on the first j components),
-      - wⱼ₊₁ = n,
-      - wᵢ = 1 for j + 2 ≤ i ≤ m (if any such positions exist).
+    - wᵢ = (v₁)ᵢ for 1 ≤ i ≤ j (agreeing with v₁ on the first j components),
+    - wⱼ₊₁ = n,
+    - wᵢ = 1 for j + 2 ≤ i ≤ m (if any such positions exist).
 
-      Then w has subspace S (since w₁ = (v₁)₁ = S) and depth m. We verify v₁ < w < v₂:
+    Then w has subspace S (since w₁ = (v₁)₁ = S) and depth m. We verify v₁ < w < v₂:
 
-      - **w > v₁**: w agrees with v₁ on components 1 through j. At component j + 1, n > (v₁)ⱼ₊₁. By T1(i), w > v₁.
-      - **w < v₂**: w agrees with v₂ on components 1 through j − 1 (since v₁ and v₂ agree there). At component j, wⱼ = (v₁)ⱼ < (v₂)ⱼ. By T1(i), w < v₂.
+    - **w > v₁**: w agrees with v₁ on components 1 through j. At component j + 1, n > (v₁)ⱼ₊₁. By T1(i), w > v₁.
+    - **w < v₂**: w agrees with v₂ on components 1 through j − 1 (since v₁ and v₂ agree there). At component j, wⱼ = (v₁)ⱼ < (v₂)ⱼ. By T1(i), w < v₂.
 
-      By D-CTG, every such w belongs to V_S(d). By T0(a), unboundedly many values of n exist; distinct values of n produce tumblers that differ at component j + 1, hence are distinct by T3 (CanonicalRepresentation, ASN-0034) — yielding infinitely many distinct positions in V_S(d), contradicting S8-fin. ∎
+    By D-CTG, every such w belongs to V_S(d). By T0(a), unboundedly many values of n exist; distinct values of n produce tumblers that differ at component j + 1, hence are distinct by T3 (CanonicalRepresentation, ASN-0034) — yielding infinitely many distinct positions in V_S(d), contradicting S8-fin. ∎
 
-      This applies uniformly to all depths m ≥ 3 and all divergence points j ∈ {2, …, m − 1}. At depth m = 3, the only possible pre-last divergence is j = 2. For illustration: suppose V_S(d) contained [S, 1, 5] and [S, 2, 1]. Setting j = 2, for any n > 5, w = [S, 1, n] satisfies [S, 1, 5] < [S, 1, n] < [S, 2, 1], so D-CTG forces [S, 1, 6], [S, 1, 7], ... into V_S(d) — infinitely many, contradicting S8-fin. At depth m = 4, divergence could occur at j = 2 or j = 3; the same construction applies in each case.
+    This applies uniformly to all depths m ≥ 3 and all divergence points j ∈ {2, …, m − 1}. At depth m = 3, the only possible pre-last divergence is j = 2. For illustration: suppose V_S(d) contained [S, 1, 5] and [S, 2, 1]. Setting j = 2, for any n > 5, w = [S, 1, n] satisfies [S, 1, 5] < [S, 1, n] < [S, 2, 1], so D-CTG forces [S, 1, 6], [S, 1, 7], ... into V_S(d) — infinitely many, contradicting S8-fin. At depth m = 4, divergence could occur at j = 2 or j = 3; the same construction applies in each case.
+  type: theorem
+  depends:
+  - S8-fin
+  - S8-depth
+  - T0(a)
+  - T1(i)
+  - T3
+  literature_citations: []
+  vocabulary: []
+- label: D-CTG-depth
+  name: SharedPrefixReduction
+  body: |
+    **D-CTG-depth (SharedPrefixReduction).** For depth m ≥ 3, all positions in a non-empty V_S(d) share components 2 through m − 1. Contiguity reduces to contiguity of the last component alone — structurally identical to the depth 2 case.
 
-  - label: D-CTG-depth
-    name: SharedPrefixReduction
-    body: |
-      **D-CTG-depth (SharedPrefixReduction).** For depth m ≥ 3, all positions in a non-empty V_S(d) share components 2 through m − 1. Contiguity reduces to contiguity of the last component alone — structurally identical to the depth 2 case.
+    *Proof.* Let V_S(d) be non-empty with common depth m ≥ 3 (S8-depth). Suppose for contradiction that V_S(d) contains two positions v₁ and v₂ with v₁ < v₂ (both depth m) whose first point of disagreement is at component j with 2 ≤ j ≤ m − 1 — that is, (v₁)ᵢ = (v₂)ᵢ for all i < j, and (v₁)ⱼ < (v₂)ⱼ (the inequality follows from v₁ < v₂ by T1(i), since j is the first disagreeing component and j ≤ min(m, m)).
 
-      *Proof.* Let V_S(d) be non-empty with common depth m ≥ 3 (S8-depth). Suppose for contradiction that V_S(d) contains two positions v₁ and v₂ with v₁ < v₂ (both depth m) whose first point of disagreement is at component j with 2 ≤ j ≤ m − 1 — that is, (v₁)ᵢ = (v₂)ᵢ for all i < j, and (v₁)ⱼ < (v₂)ⱼ (the inequality follows from v₁ < v₂ by T1(i), since j is the first disagreeing component and j ≤ min(m, m)).
+    We construct infinitely many intermediates. For any natural number n > (v₁)ⱼ₊₁, define w of length m by:
 
-      We construct infinitely many intermediates. For any natural number n > (v₁)ⱼ₊₁, define w of length m by:
+    - wᵢ = (v₁)ᵢ for 1 ≤ i ≤ j (agreeing with v₁ on the first j components),
+    - wⱼ₊₁ = n,
+    - wᵢ = 1 for j + 2 ≤ i ≤ m (if any such positions exist; since j ≤ m − 1, at least the m-th component exists at position j + 1 or beyond).
 
-      - wᵢ = (v₁)ᵢ for 1 ≤ i ≤ j (agreeing with v₁ on the first j components),
-      - wⱼ₊₁ = n,
-      - wᵢ = 1 for j + 2 ≤ i ≤ m (if any such positions exist; since j ≤ m − 1, at least the m-th component exists at position j + 1 or beyond).
+    Then w has depth m (it has m components by construction), and subspace(w) = w₁ = (v₁)₁ = S (since j ≥ 2, the first component is copied from v₁). We verify v₁ < w < v₂:
 
-      Then w has depth m (it has m components by construction), and subspace(w) = w₁ = (v₁)₁ = S (since j ≥ 2, the first component is copied from v₁). We verify v₁ < w < v₂:
+    - **w > v₁**: w agrees with v₁ on components 1 through j. At component j + 1, wⱼ₊₁ = n > (v₁)ⱼ₊₁. Since j + 1 ≤ m = min(m, m), by T1(i), w > v₁.
+    - **w < v₂**: w agrees with v₂ on components 1 through j − 1 (since v₁ and v₂ agree on these components by the definition of j). At component j, wⱼ = (v₁)ⱼ < (v₂)ⱼ. Since j ≤ m − 1 ≤ min(m, m), by T1(i), w < v₂.
 
-      - **w > v₁**: w agrees with v₁ on components 1 through j. At component j + 1, wⱼ₊₁ = n > (v₁)ⱼ₊₁. Since j + 1 ≤ m = min(m, m), by T1(i), w > v₁.
-      - **w < v₂**: w agrees with v₂ on components 1 through j − 1 (since v₁ and v₂ agree on these components by the definition of j). At component j, wⱼ = (v₁)ⱼ < (v₂)ⱼ. Since j ≤ m − 1 ≤ min(m, m), by T1(i), w < v₂.
+    Since v₁ < w < v₂, subspace(w) = S, and #w = m = #v₁, D-CTG requires w ∈ V_S(d). By T0(a) (UnboundedComponentValues, ASN-0034), unboundedly many values of n > (v₁)ⱼ₊₁ exist. Distinct values of n yield distinct tumblers w (they differ at component j + 1, so by T3, CanonicalRepresentation, ASN-0034, they are unequal). This produces infinitely many distinct positions in V_S(d), contradicting S8-fin (dom(M(d)) is finite).
 
-      Since v₁ < w < v₂, subspace(w) = S, and #w = m = #v₁, D-CTG requires w ∈ V_S(d). By T0(a) (UnboundedComponentValues, ASN-0034), unboundedly many values of n > (v₁)ⱼ₊₁ exist. Distinct values of n yield distinct tumblers w (they differ at component j + 1, so by T3, CanonicalRepresentation, ASN-0034, they are unequal). This produces infinitely many distinct positions in V_S(d), contradicting S8-fin (dom(M(d)) is finite).
+    Therefore no two positions in V_S(d) can disagree at any component j with 2 ≤ j ≤ m − 1. All positions share components 2 through m − 1, and contiguity reduces to contiguity of the last component (component m) alone. ∎
 
-      Therefore no two positions in V_S(d) can disagree at any component j with 2 ≤ j ≤ m − 1. All positions share components 2 through m − 1, and contiguity reduces to contiguity of the last component (component m) alone. ∎
+    *Formal Contract:*
+    - *Preconditions:* V_S(d) non-empty; common depth m ≥ 3 (S8-depth).
+    - *Postconditions:* `(A v₁, v₂ ∈ V_S(d), j : 2 ≤ j ≤ m − 1 : (v₁)ⱼ = (v₂)ⱼ)`. Contiguity of V_S(d) reduces to contiguity of the m-th (last) component.
 
-      *Formal Contract:*
-      - *Preconditions:* V_S(d) non-empty; common depth m ≥ 3 (S8-depth).
-      - *Postconditions:* `(A v₁, v₂ ∈ V_S(d), j : 2 ≤ j ≤ m − 1 : (v₁)ⱼ = (v₂)ⱼ)`. Contiguity of V_S(d) reduces to contiguity of the m-th (last) component.
+    Nelson's statement specifies not just contiguity but also the starting ordinal: "addresses 1 through 100," not "42 through 141." All ordinal numbering in the tumbler system starts at 1: the first child is always .1 (LM 4/20), link positions within a document begin at 1 (LM 4/31), and position 0 is structurally unavailable since zero serves as a field separator (T4, ASN-0034). V-positions follow the same convention.
+  type: lemma
+  depends:
+  - D-CTG
+  - S8-depth
+  - S8-fin
+  - T0(a)
+  - T1(i)
+  - T3
+  - T4
+  literature_citations:
+  - LM 4/20
+  - LM 4/31
+  vocabulary: []
+- label: D-MIN
+  name: VMinimumPosition
+  body: |
+    **D-MIN (VMinimumPosition).** For each document d and subspace S with V_S(d) non-empty:
 
-      Nelson's statement specifies not just contiguity but also the starting ordinal: "addresses 1 through 100," not "42 through 141." All ordinal numbering in the tumbler system starts at 1: the first child is always .1 (LM 4/20), link positions within a document begin at 1 (LM 4/31), and position 0 is structurally unavailable since zero serves as a field separator (T4, ASN-0034). V-positions follow the same convention.
+    `min(V_S(d)) = [S, 1, ..., 1]`
 
-  - label: D-MIN
-    name: VMinimumPosition
-    body: |
-      **D-MIN (VMinimumPosition).** For each document d and subspace S with V_S(d) non-empty:
+    where the tuple has length m (the common depth of V-positions in subspace S per S8-depth), and every component after the first is 1.
 
-      `min(V_S(d)) = [S, 1, ..., 1]`
+    At depth 2 this gives min(V_S(d)) = [S, 1]. Combined with D-CTG and S8-fin, a document with n elements in subspace S occupies V-positions [S, 1] through [S, n] — matching Nelson's "addresses 1 through 100."
 
-      where the tuple has length m (the common depth of V-positions in subspace S per S8-depth), and every component after the first is 1.
+    We now derive the general form. By D-CTG-depth (when m ≥ 3) or trivially (when m = 2, there is only one post-subspace component), all positions in V_S(d) share components 2 through m − 1. By D-MIN, min(V_S(d)) = [S, 1, …, 1], so those shared components have value 1. Every position is therefore [S, 1, …, 1, k] for varying k. D-CTG restricted to the last component forbids gaps among the k values; D-MIN gives the minimum k = 1; S8-fin bounds the maximum at some finite n. Thus:
+  type: definition
+  depends:
+  - D-CTG
+  - S8-depth
+  - S8-fin
+  literature_citations: []
+  vocabulary: []
+- label: D-SEQ
+  name: SequentialPositions
+  body: |
+    **D-SEQ (SequentialPositions).** For each document d and subspace S, if V_S(d) is non-empty and the common V-position depth m ≥ 2 (S8-depth), then there exists n ≥ 1 such that:
 
-      At depth 2 this gives min(V_S(d)) = [S, 1]. Combined with D-CTG and S8-fin, a document with n elements in subspace S occupies V-positions [S, 1] through [S, n] — matching Nelson's "addresses 1 through 100."
+    `V_S(d) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n}`
 
-      We now derive the general form. By D-CTG-depth (when m ≥ 3) or trivially (when m = 2, there is only one post-subspace component), all positions in V_S(d) share components 2 through m − 1. By D-MIN, min(V_S(d)) = [S, 1, …, 1], so those shared components have value 1. Every position is therefore [S, 1, …, 1, k] for varying k. D-CTG restricted to the last component forbids gaps among the k values; D-MIN gives the minimum k = 1; S8-fin bounds the maximum at some finite n. Thus:
+    where the tuple has length m. The precondition m ≥ 2 is necessary: at m = 1 the tuple `[S, 1, ..., 1, k]` collapses to a single component where the subspace identifier S and the varying ordinal k occupy the same position, and the derivation step "D-MIN gives the minimum k = 1" fails because min(V_S(d)) = [S] has last component S, not 1. ValidInsertionPosition independently requires m ≥ 2 (the empty-subspace case establishes this lower bound), so the precondition is always satisfied in practice. At depth 2 this gives V_S(d) = {[S, k] : 1 ≤ k ≤ n}, matching Nelson's "addresses 1 through n."
 
-  - label: D-SEQ
-    name: SequentialPositions
-    body: |
-      **D-SEQ (SequentialPositions).** For each document d and subspace S, if V_S(d) is non-empty and the common V-position depth m ≥ 2 (S8-depth), then there exists n ≥ 1 such that:
+    *Proof.* Let V_S(d) be non-empty and let m ≥ 2 be the common depth of all V-positions in subspace S (S8-depth guarantees a common depth exists).
 
-      `V_S(d) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n}`
+    **Step 1: shared prefix.** We show that every position in V_S(d) has the form [S, 1, …, 1, k] — that is, components 2 through m − 1 are all equal to 1, with only the last component varying.
 
-      where the tuple has length m. The precondition m ≥ 2 is necessary: at m = 1 the tuple `[S, 1, ..., 1, k]` collapses to a single component where the subspace identifier S and the varying ordinal k occupy the same position, and the derivation step "D-MIN gives the minimum k = 1" fails because min(V_S(d)) = [S] has last component S, not 1. ValidInsertionPosition independently requires m ≥ 2 (the empty-subspace case establishes this lower bound), so the precondition is always satisfied in practice. At depth 2 this gives V_S(d) = {[S, k] : 1 ≤ k ≤ n}, matching Nelson's "addresses 1 through n."
+    *Case m = 2.* Every position has exactly two components: the subspace identifier S at component 1, and a single ordinal at component 2. There are no intermediate components (components 2 through m − 1 is the empty range 2 through 1), so the shared-prefix condition holds vacuously. Every position is [S, k] for some k, which is [S, 1, …, 1, k] with zero intervening 1s.
 
-      *Proof.* Let V_S(d) be non-empty and let m ≥ 2 be the common depth of all V-positions in subspace S (S8-depth guarantees a common depth exists).
+    *Case m ≥ 3.* By D-CTG-depth (SharedPrefixReduction), all positions in V_S(d) share components 2 through m − 1. By D-MIN (VMinimumPosition), the minimum element of V_S(d) is [S, 1, …, 1] — a tuple of length m with every post-subspace component equal to 1. Since the minimum shares components 2 through m − 1 with every other position, and those components of the minimum are all 1, every position in V_S(d) has components 2 through m − 1 equal to 1. Every position is therefore [S, 1, …, 1, k] for some value k at the m-th component.
 
-      **Step 1: shared prefix.** We show that every position in V_S(d) has the form [S, 1, …, 1, k] — that is, components 2 through m − 1 are all equal to 1, with only the last component varying.
+    **Step 2: minimum k.** By D-MIN, min(V_S(d)) = [S, 1, …, 1] of length m. In the representation [S, 1, …, 1, k], the minimum has k = 1 at the last component. Since the minimum is in V_S(d), the set of k-values attained by positions in V_S(d) includes 1.
 
-      *Case m = 2.* Every position has exactly two components: the subspace identifier S at component 1, and a single ordinal at component 2. There are no intermediate components (components 2 through m − 1 is the empty range 2 through 1), so the shared-prefix condition holds vacuously. Every position is [S, k] for some k, which is [S, 1, …, 1, k] with zero intervening 1s.
+    **Step 3: contiguity of k-values.** Let k₁ < k₂ be two values attained by positions v₁ = [S, 1, …, 1, k₁] and v₂ = [S, 1, …, 1, k₂] in V_S(d). Both have subspace S and depth m. By T1(i) (TumblerOrdering, ASN-0034), v₁ < v₂ since they agree on components 1 through m − 1 and differ first at component m where k₁ < k₂. For any integer k with k₁ < k < k₂, the tuple w = [S, 1, …, 1, k] satisfies subspace(w) = S, #w = m, and v₁ < w < v₂ (again by T1(i), since w agrees with both on components 1 through m − 1 and k₁ < k < k₂ at component m). By D-CTG (VContiguity), w ∈ V_S(d). Therefore every integer between any two attained k-values is itself attained — the k-values form a contiguous range.
 
-      *Case m ≥ 3.* By D-CTG-depth (SharedPrefixReduction), all positions in V_S(d) share components 2 through m − 1. By D-MIN (VMinimumPosition), the minimum element of V_S(d) is [S, 1, …, 1] — a tuple of length m with every post-subspace component equal to 1. Since the minimum shares components 2 through m − 1 with every other position, and those components of the minimum are all 1, every position in V_S(d) has components 2 through m − 1 equal to 1. Every position is therefore [S, 1, …, 1, k] for some value k at the m-th component.
+    **Step 4: finiteness.** By S8-fin (Finite arrangement), dom(M(d)) is finite, so V_S(d) ⊆ dom(M(d)) is finite. The k-values form a finite contiguous range.
 
-      **Step 2: minimum k.** By D-MIN, min(V_S(d)) = [S, 1, …, 1] of length m. In the representation [S, 1, …, 1, k], the minimum has k = 1 at the last component. Since the minimum is in V_S(d), the set of k-values attained by positions in V_S(d) includes 1.
+    **Assembly.** The k-values form a finite contiguous range of positive integers (Step 3, Step 4) beginning at 1 (Step 2). Therefore there exists n ≥ 1 such that the k-values are exactly {1, 2, …, n}. By Step 1, V_S(d) = {[S, 1, …, 1, k] : 1 ≤ k ≤ n}. ∎
 
-      **Step 3: contiguity of k-values.** Let k₁ < k₂ be two values attained by positions v₁ = [S, 1, …, 1, k₁] and v₂ = [S, 1, …, 1, k₂] in V_S(d). Both have subspace S and depth m. By T1(i) (TumblerOrdering, ASN-0034), v₁ < v₂ since they agree on components 1 through m − 1 and differ first at component m where k₁ < k₂. For any integer k with k₁ < k < k₂, the tuple w = [S, 1, …, 1, k] satisfies subspace(w) = S, #w = m, and v₁ < w < v₂ (again by T1(i), since w agrees with both on components 1 through m − 1 and k₁ < k < k₂ at component m). By D-CTG (VContiguity), w ∈ V_S(d). Therefore every integer between any two attained k-values is itself attained — the k-values form a contiguous range.
+    *Formal Contract:*
+    - *Preconditions:* V_S(d) non-empty; common V-position depth m ≥ 2 (S8-depth).
+    - *Postconditions:* `(E n : n ≥ 1 : V_S(d) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n})` where each tuple has length m.
 
-      **Step 4: finiteness.** By S8-fin (Finite arrangement), dom(M(d)) is finite, so V_S(d) ⊆ dom(M(d)) is finite. The k-values form a finite contiguous range.
+    D-CTG is a design constraint on well-formed document states. It constrains which arrangement modifications constitute well-formed editing operations. We verify the base case: before any operations, dom(M(d)) = ∅ for all d (the arrangement is a partial function; no content has been allocated, so no V-mapping exists), so V_S(d) = ∅ for every subspace S. D-CTG holds vacuously (no u, q exist to trigger its antecedent), and D-MIN holds vacuously (its antecedent requires V_S(d) non-empty). Observe that not all arrangement modifications preserve D-CTG: removing a single interior V-position from dom(M(d)) leaves the positions on either side no longer contiguous. D-CTG is therefore preserved only by those modifications that constitute well-formed editing operations — operations that restore contiguity after structural changes (e.g., by shifting subsequent positions).
 
-      **Assembly.** The k-values form a finite contiguous range of positive integers (Step 3, Step 4) beginning at 1 (Step 2). Therefore there exists n ≥ 1 such that the k-values are exactly {1, 2, …, n}. By Step 1, V_S(d) = {[S, 1, …, 1, k] : 1 ≤ k ≤ n}. ∎
+    Whether DELETE, INSERT, COPY, and REARRANGE preserve D-CTG is a verification obligation for each operation's ASN.
 
-      *Formal Contract:*
-      - *Preconditions:* V_S(d) non-empty; common V-position depth m ≥ 2 (S8-depth).
-      - *Postconditions:* `(E n : n ≥ 1 : V_S(d) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n})` where each tuple has length m.
+    ### Concrete example
 
-      D-CTG is a design constraint on well-formed document states. It constrains which arrangement modifications constitute well-formed editing operations. We verify the base case: before any operations, dom(M(d)) = ∅ for all d (the arrangement is a partial function; no content has been allocated, so no V-mapping exists), so V_S(d) = ∅ for every subspace S. D-CTG holds vacuously (no u, q exist to trigger its antecedent), and D-MIN holds vacuously (its antecedent requires V_S(d) non-empty). Observe that not all arrangement modifications preserve D-CTG: removing a single interior V-position from dom(M(d)) leaves the positions on either side no longer contiguous. D-CTG is therefore preserved only by those modifications that constitute well-formed editing operations — operations that restore contiguity after structural changes (e.g., by shifting subsequent positions).
+    Consider document d at depth 2 in the text subspace (S = 1), with arrangement:
 
-      Whether DELETE, INSERT, COPY, and REARRANGE preserve D-CTG is a verification obligation for each operation's ASN.
+    M(d) = {[1,1] ↦ a₁,  [1,2] ↦ a₂,  [1,3] ↦ a₃}
 
-      ### Concrete example
+    Then V₁(d) = {[1,1], [1,2], [1,3]}.
 
-      Consider document d at depth 2 in the text subspace (S = 1), with arrangement:
+    **D-CTG check.** The extremes are [1,1] and [1,3]. The only intermediate with subspace 1 and depth 2 between them is [1,2], which is in V₁(d). For the adjacent pairs — ([1,1],[1,2]) and ([1,2],[1,3]) — there are no intermediates. D-CTG is satisfied. ✓
 
-      M(d) = {[1,1] ↦ a₁,  [1,2] ↦ a₂,  [1,3] ↦ a₃}
+    **D-MIN check.** min(V₁(d)) = [1,1], whose last component is 1. ✓
 
-      Then V₁(d) = {[1,1], [1,2], [1,3]}.
+    **Violation.** Suppose we removed [1,2], yielding V₁(d) = {[1,1], [1,3]}. Now [1,2] is an intermediate between [1,1] and [1,3] that is absent from V₁(d) — D-CTG is violated. This illustrates why removing a single interior V-position is not a well-formed editing operation on its own; a well-formed deletion must also shift subsequent positions to restore contiguity.
 
-      **D-CTG check.** The extremes are [1,1] and [1,3]. The only intermediate with subspace 1 and depth 2 between them is [1,2], which is in V₁(d). For the adjacent pairs — ([1,1],[1,2]) and ([1,2],[1,3]) — there are no intermediates. D-CTG is satisfied. ✓
+    Now consider depth 3. Let document d' have arrangement:
 
-      **D-MIN check.** min(V₁(d)) = [1,1], whose last component is 1. ✓
+    M(d') = {[1,1,1] ↦ a₁,  [1,1,2] ↦ a₂,  [1,1,3] ↦ a₃}
 
-      **Violation.** Suppose we removed [1,2], yielding V₁(d) = {[1,1], [1,3]}. Now [1,2] is an intermediate between [1,1] and [1,3] that is absent from V₁(d) — D-CTG is violated. This illustrates why removing a single interior V-position is not a well-formed editing operation on its own; a well-formed deletion must also shift subsequent positions to restore contiguity.
+    Then V₁(d') = {[1,1,1], [1,1,2], [1,1,3]}.
 
-      Now consider depth 3. Let document d' have arrangement:
+    **D-CTG check.** The extremes are [1,1,1] and [1,1,3]. The only intermediate at subspace 1 and depth 3 between them is [1,1,2], which is in V₁(d'). ✓
 
-      M(d') = {[1,1,1] ↦ a₁,  [1,1,2] ↦ a₂,  [1,1,3] ↦ a₃}
+    **D-MIN check.** min(V₁(d')) = [1,1,1] = [S, 1, 1], with all post-subspace components equal to 1. ✓
 
-      Then V₁(d') = {[1,1,1], [1,1,2], [1,1,3]}.
-
-      **D-CTG check.** The extremes are [1,1,1] and [1,1,3]. The only intermediate at subspace 1 and depth 3 between them is [1,1,2], which is in V₁(d'). ✓
-
-      **D-MIN check.** min(V₁(d')) = [1,1,1] = [S, 1, 1], with all post-subspace components equal to 1. ✓
-
-      **Violation (depth ≥ 3).** Suppose instead V₁(d') = {[1,1,1], [1,2,1]}. D-CTG requires every intermediate with subspace 1 and depth 3 between [1,1,1] and [1,2,1] to be present. But [1,1,2], [1,1,3], [1,1,4], ... are all intermediates — infinitely many, contradicting S8-fin. This is D-CTG-depth in action: positions differing before the last component cannot coexist in a finite arrangement.
+    **Violation (depth ≥ 3).** Suppose instead V₁(d') = {[1,1,1], [1,2,1]}. D-CTG requires every intermediate with subspace 1 and depth 3 between [1,1,1] and [1,2,1] to be present. But [1,1,2], [1,1,3], [1,1,4], ... are all intermediates — infinitely many, contradicting S8-fin. This is D-CTG-depth in action: positions differing before the last component cannot coexist in a finite arrangement.
+  type: theorem
+  depends:
+  - S8-depth
+  - D-CTG-depth
+  - D-MIN
+  - T1(i)
+  - D-CTG
+  - S8-fin
+  - ValidInsertionPosition
+  literature_citations: []
+  vocabulary: []
