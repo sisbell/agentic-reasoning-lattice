@@ -30,3 +30,8 @@ We verify the structural claims. By D-MIN, min(V_S(d)) = [S, 1, ..., 1] of depth
 That gives N + 1 = 4 positions. After an operation places new content at, say, [1, 2] — with whatever displacement mechanism the operation defines — the resulting V₁(d) must satisfy D-CTG and D-MIN. Verifying this is the operation's obligation, not the predicate's.
 
 **Empty case.** V₁(d) = ∅. Choosing depth m = 2, the valid insertion position is [1, 1]. D-MIN requires min(V₁(d)) = [1, 1] once the subspace becomes non-empty, so the position is exactly the one D-MIN demands. Choosing m = 3 instead would give [1, 1, 1]; by T3, this is a different tumbler — once chosen, S8-depth locks the subspace to depth 3 for all future positions.
+
+*Formal Contract:*
+- *Definition:* A V-position v is a valid insertion position in subspace S of document d when: (a) V_S(d) ≠ ∅ with |V_S(d)| = N and v = shift(min(V_S(d)), j) for 0 ≤ j ≤ N (where shift(·, 0) is identity); or (b) V_S(d) = ∅ and v = [S, 1, ..., 1] of depth m ≥ 2.
+- *Preconditions:* d satisfies D-CTG, D-MIN, S8-depth, S8a; S ≥ 1; in the non-empty case, m ≥ 2 (inherited from the empty-case establishment and S8-depth).
+- *Postconditions:* (i) #v = m (depth preservation); (ii) v₁ = S (subspace identity); (iii) zeros(v) = 0 ∧ v > 0 (S8a compliance); (iv) the N + 1 valid positions in the non-empty case are pairwise distinct.

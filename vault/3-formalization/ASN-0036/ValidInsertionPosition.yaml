@@ -7,6 +7,8 @@ depends:
 - D-MIN
 - T3
 - S8a
+- OrdinalShift
+- TumblerAdd
 vocabulary:
 - symbol: valid insertion position
   meaning: A V-position v in subspace S of document d satisfying D-CTG, where either V_S(d) is non-empty and v equals shift(min(V_S(d)),

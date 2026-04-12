@@ -15,3 +15,6 @@ A *correspondence run* is a triple `(v, a, n)` — a V-position, an I-address, a
 `(A k : 0 ≤ k < n : Σ.M(d)(v + k) = a + k)`
 
 At `k = 0` this is the base case `M(d)(v) = a`. Each subsequent `k` increments both the V-ordinal and the I-ordinal by the same amount. Within a correspondence run, each step forward in Vstream corresponds to the same step forward in Istream.
+
+*Formal Contract:*
+- *Axiom:* (A d, v₁, v₂ : v₁ ∈ dom(Σ.M(d)) ∧ v₂ ∈ dom(Σ.M(d)) ∧ (v₁)₁ = (v₂)₁ : #v₁ = #v₂)
