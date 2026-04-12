@@ -1,0 +1,5 @@
+label: S1
+name: StoreMonotonicity
+type: corollary
+depends:
+- S0

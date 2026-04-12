@@ -1,0 +1,8 @@
+label: vpos(S, o)
+name: VPositionReconstruction
+type: definition
+depends:
+- S8a
+vocabulary:
+- symbol: vpos(S, o)
+  meaning: Reconstructs a v-position from subspace identifier S and ordinal o = [o₁, ..., oₖ] as [S, o₁, ..., oₖ]

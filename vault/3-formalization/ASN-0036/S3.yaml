@@ -1,0 +1,5 @@
+label: S3
+name: ReferentialIntegrity
+type: design-requirement
+depends:
+- S1

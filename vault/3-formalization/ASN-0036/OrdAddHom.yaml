@@ -1,0 +1,9 @@
+label: OrdAddHom
+name: OrdinalAdditionHomomorphism
+type: lemma
+depends:
+- TumblerAdd
+- TA0
+vocabulary:
+- symbol: w_ord
+  meaning: The ordinal part of displacement w, defined as [w₂, ..., wₘ] — i.e., ord(w)

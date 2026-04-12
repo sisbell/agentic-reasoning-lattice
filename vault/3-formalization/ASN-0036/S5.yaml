@@ -1,0 +1,8 @@
+label: S5
+name: UnrestrictedSharing
+type: theorem
+depends:
+- S0
+- S1
+- S2
+- S3

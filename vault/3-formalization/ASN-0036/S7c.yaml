@@ -1,0 +1,9 @@
+label: S7c
+name: ElementFieldDepth
+type: design-requirement
+depends:
+- T4
+- S7a
+- S7b
+- T10a
+- TA7a

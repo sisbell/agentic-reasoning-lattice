@@ -1,0 +1,7 @@
+label: D-MIN
+name: VMinimumPosition
+type: definition
+depends:
+- D-CTG
+- S8-depth
+- S8-fin

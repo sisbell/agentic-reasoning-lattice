@@ -1,0 +1,4 @@
+label: S8-fin
+name: FiniteArrangement
+type: design-requirement
+depends: []
