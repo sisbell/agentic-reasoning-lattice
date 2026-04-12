@@ -31,7 +31,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, ALLOY_DIR
-from lib.shared.common import find_asn, parallel_llm_calls, load_property_names, filename_to_label
+from lib.shared.common import find_asn, parallel_llm_calls, build_label_index
 from lib.modeling.alloy.translate import (
     build_property_prompt, generate_one,
     PROMPTS_DIR, SYNTAX_REF,
@@ -140,7 +140,8 @@ def main():
         print("  Warning: no syntax reference", file=sys.stderr)
 
     # Read per-property files
-    _prop_names = load_property_names(prop_dir)
+    _label_index = build_label_index(prop_dir)
+    _filename_to_label = {f"{stem}.md": lbl for lbl, stem in _label_index.items()}
     definitions = []
     properties = []
     source_hashes = {}
@@ -148,7 +149,7 @@ def main():
         if f.name.startswith("_"):
             continue
         content = f.read_text()
-        label = filename_to_label(f.name, _prop_names)
+        label = _filename_to_label.get(f.name, f.stem)
         source_hashes[label] = _hash_content(content)
         if re.search(r'^\*\*Definition\s', content, re.MULTILINE):
             # Header + formal contract only (skip derivation prose)
