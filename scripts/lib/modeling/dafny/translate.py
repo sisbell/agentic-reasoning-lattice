@@ -18,7 +18,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import (WORKSPACE, FORMALIZATION_DIR, PROOFS_DIR, USAGE_LOG,
                     load_manifest)
-from lib.shared.common import find_asn, assemble_readonly, load_property_names, filename_to_label
+from lib.shared.common import find_asn, assemble_readonly, build_label_index, load_property_metadata
 from lib.modeling.dafny.common import read_file
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "modeling" / "dafny"
@@ -29,13 +29,10 @@ DAFNY_REFERENCE = PROMPTS_DIR / "dafny-reference.dfy"
 def build_property_list_from_asn(asn_num):
     """Build property list from per-property files in vault/3-formalization/.
 
-    Reads _table.md for labels/status, per-property files for contract types.
+    Reads per-property YAML for metadata, .md files for contract type detection.
 
     Returns list of row dicts with keys: label, proof_label, type, construct, notes.
     """
-    from lib.formalization.core.build_dependency_graph import (find_property_table, parse_table_row,
-                                              detect_columns)
-
     _, asn_label = find_asn(str(asn_num))
     if asn_label is None:
         return []
@@ -44,48 +41,26 @@ def build_property_list_from_asn(asn_num):
     if not prop_dir.exists():
         return []
 
-    # Read table
-    table_path = prop_dir / "_table.md"
-    if not table_path.exists():
+    # Read metadata from per-property YAMLs
+    metadata = load_property_metadata(prop_dir)
+    if not metadata:
         return []
 
-    table_text = table_path.read_text()
-    table_rows = find_property_table(table_text)
-    if table_rows is None:
-        return []
-
-    header = parse_table_row(table_rows[0])
-    cols = detect_columns(header)
-    has_name = "name" in cols
-    has_type = "type" in cols
-    data_rows = table_rows[2:]
-
-    # Read per-property files for contract type detection
-    _prop_names = load_property_names(prop_dir)
+    # Read per-property .md files for contract type detection
+    _label_index = build_label_index(prop_dir)
+    _filename_to_label = {f"{stem}.md": lbl for lbl, stem in _label_index.items()}
     prop_contents = {}
     for f in prop_dir.glob("*.md"):
         if not f.name.startswith("_"):
-            prop_contents[filename_to_label(f.name, _prop_names)] = f.read_text()
+            prop_contents[_filename_to_label.get(f.name, f.stem)] = f.read_text()
 
     rows = []
-    for row in data_rows:
-        cells = parse_table_row(row)
-        if len(cells) < 2:
-            continue
-        label = cells[0].strip().strip("`*")
-        if not label:
-            continue
+    for label, data in metadata.items():
+        status = data.get("type", "").lower()
 
-        status = cells[-1].strip().lower()
-
-        # Extract proof_label from Name column or property header
-        table_name = ""
-        if has_name and len(cells) > cols["name"]:
-            table_name = cells[cols["name"]].strip()
-
-        proof_label = table_name
+        # proof_label from YAML name, or extract from header, or sanitize label
+        proof_label = data.get("name", "")
         if not proof_label:
-            # Extract from property file header: **LABEL (PascalName).**
             content = prop_contents.get(label, "")
             m = re.search(r'^\*\*\S+\s*\(([A-Z][a-zA-Z0-9]+)\)', content, re.MULTILINE)
             if m:
@@ -95,7 +70,7 @@ def build_property_list_from_asn(asn_num):
         if not proof_label:
             proof_label = re.sub(r'[^a-zA-Z0-9]', '', label)
 
-        # Derive type from status + formal contract in property file
+        # Derive Dafny type from YAML type + formal contract in .md
         content = prop_contents.get(label, "")
         has_pre = bool(re.search(r'\*\s*Preconditions?\s*:\s*\*', content))
         has_post = bool(re.search(r'\*\s*Postconditions?\s*:\s*\*', content))
@@ -103,7 +78,7 @@ def build_property_list_from_asn(asn_num):
         has_def = bool(re.search(r'\*\s*Definition\s*:\s*\*', content))
         has_axiom = bool(re.search(r'\*\s*Axioms?\s*:\s*\*', content))
 
-        if status in ("axiom", "design requirement"):
+        if status in ("axiom", "design-requirement"):
             type_tag = "AXIOM"
             construct = "axiom"
         elif has_def:
@@ -127,7 +102,7 @@ def build_property_list_from_asn(asn_num):
             "proof_label": proof_label,
             "type": type_tag,
             "construct": construct,
-            "notes": cells[-1].strip(),
+            "notes": status,
         })
 
     return rows

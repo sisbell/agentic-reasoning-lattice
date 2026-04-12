@@ -23,7 +23,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, DAFNY_DIR
-from lib.shared.common import load_property_names, filename_to_label
+from lib.shared.common import build_label_index
 from lib.modeling.dafny.common import read_file, log_usage
 from lib.modeling.dafny.verify import verify
 from lib.modeling.dafny.validate import validate
@@ -161,11 +161,12 @@ def main():
     contract_sections = {}
     label_map = {}
     if prop_dir.exists():
-        _prop_names = load_property_names(prop_dir)
+        _label_index = build_label_index(prop_dir)
+        _filename_to_label = {f"{stem}.md": lbl for lbl, stem in _label_index.items()}
         for f in prop_dir.glob("*.md"):
             if f.name.startswith("_"):
                 continue
-            label = filename_to_label(f.name, _prop_names)
+            label = _filename_to_label.get(f.name, f.stem)
             content = f.read_text()
             contract_sections[label] = content
             m = re.search(r'^\*\*\S+\s*\(([A-Z][a-zA-Z0-9]+)\)', content, re.MULTILINE)
