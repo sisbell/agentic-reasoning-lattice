@@ -1,3 +1,7 @@
+# Formalize — ASN-0036 / S8
+
+*2026-04-12 16:22*
+
 **S8 (Finite span decomposition).** For each document `d`, the arrangement `{(v, Σ.M(d)(v)) : v ∈ dom(Σ.M(d))}` can be decomposed into a finite set of correspondence runs `{(vⱼ, aⱼ, nⱼ)}` such that:
 
 (a) The runs partition the V-positions: every V-position in `dom(Σ.M(d))` falls in exactly one run — `(A v ∈ dom(Σ.M(d)) :: (E! j :: vⱼ ≤ v < vⱼ + nⱼ))`

@@ -1,3 +1,7 @@
+# Formalize — ASN-0036 / OrdShiftHom
+
+*2026-04-12 16:22*
+
 **OrdShiftHom** — *OrdinalShiftHomomorphism* (COROLLARY). For a V-position `v` with `#v = m ≥ 2` and `n ≥ 1`:
 
 `ord(shift(v, n)) = shift(ord(v), n)`
