@@ -1,62 +1,43 @@
 # Blueprinting
 
-Blueprinting takes a converged reasoning document and prepares it for formalization. The ASN enters as a monolithic prose document with embedded properties; it leaves as a directory of individual property files, each classified, contracted, and with dependencies mapped.
+> "The people in charge of the development of large and complex systems should adopt a point of view shared by all mature engineering disciplines, namely that of using an artifact to reason about their future system during its construction." — Jean-Raymond Abrial, *Modeling in Event-B*
 
-```
-ASN (monolithic)
-     |
-  format + disassemble ──→ per-property files + table + vocabulary
-     |
-  lint (inline, missing, status)
-     |
-  triage ──→ promotion plan (human-reviewed)
-     |
-  promote / extract ──→ new property files, reclassifications
-     |
-  promote to formalization
-```
+## The case for an intermediate representation
 
-## Formatting and disassembly
+A reasoning document from discovery contains the right properties, but they're embedded in narrative prose — definitions interleaved with proofs, motivating examples alongside formal statements, architectural commentary woven through derivations. That narrative is how humans reason. But you cannot formalize narrative. You can only formalize the formal claims within it.
 
-The first steps are mechanical. Format the ASN to normalize the property table — consistent PascalCase names, clean markers, uniform structure. Then disassemble: split the monolithic document into one file per property, preserving each property's derivation prose. The table and preamble become structural files (`_table.md`, `_preamble.md`).
+At some point, the narrative and the formal content must be separated. The formal claims need to stand on their own — each with a clear statement, explicit dependencies, and a classification that tells the verification pipeline what to do with it. The narrative stays as context for human reviewers. This separation is what blueprinting produces.
 
-After disassembly, build the vocabulary — scan all property files and extract every notation definition into a shared `_vocabulary.md`. This becomes the reference for all downstream tools and reviewers.
+## What blueprinting produces
 
-At this point you have a directory of property files that together contain exactly the same content as the original ASN, just addressable individually.
+A monolithic reasoning document becomes a set of per-property file pairs. Each property gets two files: a YAML file carrying metadata (label, name, type, dependencies, vocabulary) and a markdown file carrying the body (statement, justification, proof).
 
-## Linting
+The metadata makes the formal structure explicit: what this property is, what it depends on, what notation it introduces. The body preserves the interleaved narrative and formal content because formalization's reviewers need the narrative to understand the proof. Full separation comes later, at modeling, when only the formal contracts enter mechanical verification.
 
-Three independent lint passes examine the decomposed properties:
+The metadata at blueprinting time is deliberately incomplete. Type classifications are best-effort, dependencies are extracted from prose but may be imprecise, vocabulary attribution has minor errors. Formalization tightens all of it. Blueprinting just needs to get the structure right enough that formalization can operate per-property.
 
-**Inline lint** scans each property file for embedded results that should be their own properties. A long derivation may prove an intermediate result that other properties could reference — but because it's buried in prose, no one can depend on it. Inline lint finds these. Each run catches roughly 75% of findings due to non-determinism, so multiple cycles accumulate and deduplicate.
+## Decomposition as progressive refinement
 
-**Missing lint** looks for references to labels that don't exist in the property table — properties that the derivation assumes but no one declared. These are gaps: the reasoning uses something that was never formally stated.
+Blueprinting works in layers, each adding detail the previous layer could not see.
 
-**Status lint** classifies each property — is this really an axiom, or is it derived? Is this labeled as a lemma but actually a definition? The status determines how downstream tools handle the property.
+First, a mechanical split on section headers. No judgment — just string splitting. This produces sections of manageable size, each isolable.
 
-## Triage
+Then, per-section analysis identifies the properties within each section. Each section is read with full context to make structural decisions: this bold header is a case split inside a proof, not a new property. These two definitions share a preamble but are logically independent. This "axiom" has a proof — it's really a design requirement whose consequences are derived.
 
-Lint produces findings. Triage turns findings into a plan. An LLM examines all inline and missing findings together and produces a promotion plan:
+Then, per-property classification and dependency extraction. Each property is analyzed independently: what type is it, what does its proof cite, what notation does it introduce.
 
-- **Promote** — an embedded result should become its own property (e.g., T0b contains both T0(a) and T0(b), split them)
-- **Extract** — an embedded definition should become a standalone definition file (e.g., T12's derivation contains the definition of Span)
-- **Leave** — the finding is not actionable (commentary, already covered, too minor)
+Each layer refines what the previous produced. The section split doesn't know about properties. The property identification doesn't know about types. The classification doesn't know about vocabulary. Progressive refinement, not a single pass.
 
-The promotion plan is a human-editable file. Review it before proceeding — the triage LLM can miss things (it missed T0a and Span in ASN-0034, both had to be manually added). This is the key judgment point in blueprinting.
+## The reasoning document as artifact
 
-## Promotion and extraction
+Discovery produces reasoning documents — Dijkstra-style prose with embedded properties. Blueprinting transforms them into structured per-property files. Formalization refines those files into precise contracts. Modeling translates the contracts into mechanically verifiable code.
 
-Execute the plan. For each promote action, the source property's narrative is rewritten to reference the new property, and the new property gets its own file with derivation and formal contract. For each extract action, the definition is pulled out into a standalone definition file.
+At each stage, the same system properties are represented with increasing precision. The content doesn't change. The representation does. A property that discovery expressed as "content once stored is never modified" becomes a classified design-requirement with label S0, explicit dependencies, and eventually a formal contract with preconditions and postconditions that a theorem prover can verify.
 
-After promotion, run status lint again — newly created properties need classification. Apply any reclassifications to the table.
+The reasoning document is frozen once it enters blueprinting. It served its purpose. The reasoning is done, the properties are found. From this point forward, the per-property files are the working copy. This is deliberate: the reasoning document is the record of discovery. Modifying it during formalization would mix two concerns: finding properties and verifying them.
 
-## Entering formalization
+## Why structural issues are expected
 
-The final step copies the property files, table, and vocabulary to the formalization directory. At this point every property has:
+Discovery agents reason to understand, not to verify. They name properties inconsistently, embed definitions inside proofs, derive intermediate results that other properties need but never formally declare. A property might be labeled "axiom" in one sentence and proven from other properties in the next paragraph. Two definitions might share a section because the author was thinking about them together, even though they're logically independent.
 
-- Its own file with derivation prose
-- A label and PascalCase name in the table
-- A classification (axiom, definition, lemma, corollary, design requirement)
-- Dependencies mapped in the table's status column
-
-The property files don't yet have formal contracts — that's what formalization produces. But they have enough structure that formalization can operate on each one independently.
+These are not bugs. They're the natural result of writing to understand rather than writing to verify. Blueprinting exists because the discovery process is messy and the formalization process needs clean inputs.

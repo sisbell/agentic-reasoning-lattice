@@ -1,6 +1,6 @@
 # Discovery
 
-Discovery is about finding the formal structure of a system that exists but has never been formally specified. The goal is not to design — the system already exists — but to uncover the properties that make it work.
+Discovery is about finding the formal structure of a system that exists but has never been formally specified. The system already exists — the goal is to uncover the properties that make it work.
 
 ## Starting from nothing
 
