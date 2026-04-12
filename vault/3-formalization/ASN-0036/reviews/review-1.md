@@ -1,3 +1,7 @@
+# Formalize — ASN-0036 / S9
+
+*2026-04-12 14:20*
+
 **S9 (Two-stream separation).** No modification to any arrangement `Σ.M(d)` can alter the content store `Σ.C`:
 
 `[Σ'.M(d) ≠ Σ.M(d) ⟹ (A a ∈ dom(Σ.C) :: a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a))]`
