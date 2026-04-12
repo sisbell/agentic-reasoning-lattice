@@ -1,3 +1,7 @@
+# Formalize — ASN-0036 / OrdAddHom
+
+*2026-04-12 14:31*
+
 **OrdAddHom** — *OrdinalAdditionHomomorphism* (LEMMA). For a V-position `v` with `#v = m ≥ 2`, and a displacement `w` with `w₁ = 0`, `#w = m`, `w > 0`, and `actionPoint(w) ≤ m`:
 
 `ord(v ⊕ w) = ord(v) ⊕ w_ord`
