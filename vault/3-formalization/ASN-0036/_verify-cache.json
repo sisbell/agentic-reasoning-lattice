@@ -15,13 +15,13 @@
   "S4": "fb233a6947620700",
   "S8-depth": "bb872b88e183eafa",
   "OrdAddS8a": "c63bbbe950951db5",
-  "D-SEQ": "e41b635f65bc692d",
-  "D-CTG-depth": "29a848e9e79db860",
   "S8a": "10599d0b0dd0550c",
-  "ValidInsertionPosition": "c29df2c2d5364318",
   "S9": "56534167c66aed4b",
   "S3": "f1ed5ece82455ff3",
-  "S8": "4c0014bbb32b141a",
   "S5": "04617ccb6d2ddc55",
+  "S8-fin": "87402a1c1070dfec",
+  "D-SEQ": "e41b635f65bc692d",
+  "ValidInsertionPosition": "c29df2c2d5364318",
+  "S8": "4c0014bbb32b141a",
   "D-MIN": "508fb8a7b9a48e66"
 }
