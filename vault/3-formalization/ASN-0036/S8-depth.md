@@ -10,8 +10,12 @@ S8-depth allows us to define "consecutive V-positions" precisely. Within a subsp
 
 We extend the ordinal displacement notation to `k = 0`: define `v + 0 = v` (identity) and `v + k = shift(v, k)` for `k ≥ 1`. OrdinalShift (ASN-0034) has precondition `n ≥ 1`; the extension to `k = 0` is purely notational — no arithmetic is performed. For I-addresses, define `a + 0 = a` and `a + k = shift(a, k) = a ⊕ δ(k, #a)` for `k ≥ 1`. This is well-defined: the action point of `δ(k, #a)` is `#a`, which falls at the element field's last component — S7c guarantees element-field depth `δ ≥ 2`, so the last component of the full address *is* the element ordinal's deepest position — and TumblerAdd's prefix rule copies all earlier components (node, user, document fields, their separators, and the subspace identifier) unchanged, producing a result of length `#a`.
 
-A *correspondence run* is a triple `(v, a, n)` — a V-position, an I-address, and a natural number `n ≥ 1` — such that the arrangement preserves ordinal displacement within the run:
+A *correspondence run* in document `d` is a triple `(v, a, n)` — a V-position, an I-address, and a natural number `n ≥ 1` — such that the arrangement preserves ordinal displacement within the run:
 
 `(A k : 0 ≤ k < n : Σ.M(d)(v + k) = a + k)`
 
 At `k = 0` this is the base case `M(d)(v) = a`. Each subsequent `k` increments both the V-ordinal and the I-ordinal by the same amount. Within a correspondence run, each step forward in Vstream corresponds to the same step forward in Istream.
+
+*Formal Contract:*
+- *Axiom:* `(A d, v₁, v₂ : v₁ ∈ dom(Σ.M(d)) ∧ v₂ ∈ dom(Σ.M(d)) ∧ (v₁)₁ = (v₂)₁ : #v₁ = #v₂)`
+- *Definition:* A correspondence run in document `d` is a triple `(v, a, n)` with `n ≥ 1` such that `(A k : 0 ≤ k < n : Σ.M(d)(v + k) = a + k)`, where `v + 0 = v`, `a + 0 = a`, and for `k ≥ 1`, `v + k = shift(v, k)`, `a + k = shift(a, k)`.

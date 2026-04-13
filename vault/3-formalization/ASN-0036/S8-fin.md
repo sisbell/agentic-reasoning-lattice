@@ -1,3 +1,12 @@
-**S8-fin (Finite arrangement).** For each document `d`, `dom(Σ.M(d))` is finite. A document contains finitely many V-positions at any given state.
+**S8-fin (FiniteArrangement).** For each document `d`, `dom(Σ.M(d))` is finite in every reachable state `Σ`.
 
-S8-fin follows from the operational reality: each V-position enters `dom(M(d))` through a specific operation (INSERT, COPY, etc.), and the system has performed only finitely many operations. No operation introduces infinitely many V-positions.
+We establish the invariant by induction over the operation history.
+
+*Base case.* In the initial state Σ₀, no operations have been performed, so `dom(Σ₀.M(d)) = ∅` for every document `d`. The empty set is finite.
+
+*Inductive step.* Suppose `dom(Σ.M(d))` is finite in state Σ. Let Σ → Σ' be any state transition produced by an operation (INSERT, DELETE, COPY, MOVE, REARRANGE, or APPEND). Each such operation acts on a finite selection of existing V-positions and introduces at most finitely many new ones — the union of a finite set with a finite set is finite, and the removal of elements from a finite set leaves a finite set. Therefore `dom(Σ'.M(d))` is finite.
+
+This is a design requirement: every operation specification must individually discharge the obligation that it maps a finite arrangement to a finite arrangement. The base case and the closure argument above reduce that global invariant to a per-operation verification condition. ∎
+
+*Formal Contract:*
+- *Invariant:* dom(Σ.M(d)) is finite for every document d in every reachable state Σ

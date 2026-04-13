@@ -16,7 +16,12 @@ We verify the structural claims. By D-MIN, min(V_S(d)) = [S, 1, ..., 1] of depth
 
 *Subspace identity.* Since δ(j, m) has action point m ≥ 2, TumblerAdd copies component 1 unchanged: shift(min, j)₁ = min₁ = S for all j ≥ 1. For j = 0, v₁ = min₁ = S directly.
 
-*S8a consistency.* For text-subspace positions (S ≥ 1), every valid position [S, 1, ..., 1 + j] has all components strictly positive (S ≥ 1, intermediate components are 1, last component is 1 + j ≥ 1), so zeros(v) = 0 and v > 0 — satisfying S8a.
+*S8a consistency.* For text-subspace positions (S ≥ 1), every valid position [S, 1, ..., 1 + j] has all components strictly positive (S ≥ 1, intermediate components are 1, last component is 1 + j ≥ 1), so zeros(v) = 0 and v > 0 — satisfying S8a. ∎
+
+*Formal Contract:*
+- *Definition:* A V-position v is a valid insertion position in subspace S of document d when either (1) V_S(d) ≠ ∅ with |V_S(d)| = N and v = shift(min(V_S(d)), j) for 0 ≤ j ≤ N (where shift(min, 0) = min), or (2) V_S(d) = ∅ and v = [S, 1, ..., 1] of depth m ≥ 2.
+- *Preconditions:* d satisfies D-CTG; S is a subspace identifier (S ≥ 1); S8-depth holds for V_S(d); D-MIN holds for V_S(d).
+- *Postconditions:* All valid insertion positions satisfy #v = m (depth preservation), v₁ = S (subspace identity), zeros(v) = 0 ∧ v > 0 (S8a consistency); in the non-empty case, the N + 1 positions are pairwise distinct (by T3).
 
 ### Valid insertion position examples
 
