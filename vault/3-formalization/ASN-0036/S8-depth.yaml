@@ -5,6 +5,7 @@ depends:
 - PositionAdvance
 - S7c
 - OrdinalShift
+- S8-vdepth
 vocabulary:
 - symbol: v + 0 = v
   meaning: 'Identity case of ordinal displacement notation: adding zero displacement to a V-position returns it unchanged'

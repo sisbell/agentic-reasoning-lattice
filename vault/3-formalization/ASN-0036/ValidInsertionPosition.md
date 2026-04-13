@@ -1,6 +1,6 @@
 **Definition (ValidInsertionPosition).** A V-position v is a *valid insertion position* in subspace S of document d satisfying D-CTG when one of two cases holds:
 
-- *Non-empty subspace.* V_S(d) ≠ ∅ with |V_S(d)| = N. Write m for the common V-position depth in subspace S (S8-depth); m ≥ 2, since the first position placed in any subspace is established by the empty case, which requires m ≥ 2, and S8-depth preserves depth thereafter. Then either v = min(V_S(d)) (the j = 0 case) or v = shift(min(V_S(d)), j) for some j with 1 ≤ j ≤ N. In both cases, #v = m.
+- *Non-empty subspace.* V_S(d) ≠ ∅. Since d satisfies S8-fin, dom(M(d)) is finite, so V_S(d) is finite; write |V_S(d)| = N. Write m for the common V-position depth in subspace S (S8-depth); m ≥ 2, since the first position placed in any subspace is established by the empty case, which requires m ≥ 2, and S8-depth preserves depth thereafter. Then either v = min(V_S(d)) (the j = 0 case) or v = shift(min(V_S(d)), j) for some j with 1 ≤ j ≤ N. In both cases, #v = m.
 
 - *Empty subspace.* V_S(d) = ∅. Then v = [S, 1, ..., 1] of depth m ≥ 2, establishing the subspace's V-position depth at m. The lower bound m ≥ 2 is necessary: at m = 1, v = [S] and shift([S], 1) = [S] ⊕ δ(1, 1) = [S] ⊕ [1]; the action point of [1] is k = 1, so TumblerAdd gives r₁ = S + 1, producing [S + 1] — a position in subspace S + 1, not S. For m ≥ 2, δ(n, m) has action point m, and since m > 1, TumblerAdd copies component 1 unchanged — OrdinalShift preserves the subspace identifier. This is the canonical minimum position required by D-MIN. The choice of m is a one-time structural commitment: once any position is placed, S8-depth fixes the depth for all subsequent positions in the subspace.
 
@@ -33,5 +33,5 @@ That gives N + 1 = 4 positions. After an operation places new content at, say, [
 
 *Formal Contract:*
 - *Definition:* A V-position v is a valid insertion position in subspace S of document d when: (a) V_S(d) ≠ ∅ with |V_S(d)| = N and v = shift(min(V_S(d)), j) for 0 ≤ j ≤ N (where shift(·, 0) is identity); or (b) V_S(d) = ∅ and v = [S, 1, ..., 1] of depth m ≥ 2.
-- *Preconditions:* d satisfies D-CTG, D-MIN, S8-depth, S8a; S ≥ 1; in the non-empty case, m ≥ 2 (inherited from the empty-case establishment and S8-depth).
+- *Preconditions:* d satisfies D-CTG, D-MIN, S8-depth, S8a, S8-fin; S ≥ 1; in the non-empty case, m ≥ 2 (inherited from the empty-case establishment and S8-depth).
 - *Postconditions:* (i) #v = m (depth preservation); (ii) v₁ = S (subspace identity); (iii) zeros(v) = 0 ∧ v > 0 (S8a compliance); (iv) the N + 1 valid positions in the non-empty case are pairwise distinct.

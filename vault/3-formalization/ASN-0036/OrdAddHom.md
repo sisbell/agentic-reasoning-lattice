@@ -18,7 +18,11 @@ For the right-hand side, `w_ord = [w₂, ..., wₘ]` has `actionPoint(w_ord) = k
 
 So `ord(v) ⊕ w_ord = [v₂, ..., v_{k-1}, vₖ + wₖ, w_{k+1}, ..., wₘ]`.
 
-The two sequences are identical component by component. ∎
+The two sequences are identical component by component, establishing postcondition (a).
+
+*Postcondition (b).* Since `k ≥ 2`, TumblerAdd's copy-from-start rule gives `r₁ = v₁`, so `subspace(v ⊕ w) = subspace(v)`.
+
+*Postcondition (c).* Let `r = v ⊕ w`. By TA0, `#r = #w = m ≥ 2`, so vpos(S, o) Inverse (b) — the identity `vpos(subspace(r), ord(r)) = r` for any `r ∈ T` with `#r ≥ 2` — applies. Substituting `subspace(r) = subspace(v)` from postcondition (b) and `ord(r) = ord(v) ⊕ w_ord` from postcondition (a) yields `v ⊕ w = vpos(subspace(v), ord(v) ⊕ w_ord)`. Note that `ord(v) ⊕ w_ord` need not lie in S — the definition and inverse properties of vpos are pure sequence operations holding for any `o ∈ T`. ∎
 
 *Instance (a).* Let `v = [1, 3, 5]`, `w = [0, 0, 2]` (action point 3). Then `v ⊕ w = [1, 3, 7]` and `ord([1, 3, 7]) = [3, 7]`. On the right, `ord(v) = [3, 5]` and `w_ord = [0, 2]`, giving `[3, 5] ⊕ [0, 2] = [3, 7]`. Both sides agree.
 
@@ -26,5 +30,5 @@ The two sequences are identical component by component. ∎
 
 *Formal Contract:*
 - *Preconditions:* `v ∈ T`, `#v = m ≥ 2`; `w ∈ T`, `w > 0`, `#w = m`, `w₁ = 0`, `actionPoint(w) ≤ m`.
-- *Postconditions:* (a) `ord(v ⊕ w) = ord(v) ⊕ w_ord`. (b) `subspace(v ⊕ w) = subspace(v)` — since `k ≥ 2`, TumblerAdd copies `r₁ = v₁` from the start, preserving the subspace identifier. (c) Full decomposition: `v ⊕ w = vpos(subspace(v), ord(v) ⊕ w_ord)` — let `r = v ⊕ w`; by TA0 `#r = #w = m ≥ 2`, so the generalized inverse (vpos contract (b)) applies to `r`: `vpos(subspace(r), ord(r)) = r`; substituting `subspace(r) = subspace(v)` from (b) and `ord(r) = ord(v) ⊕ w_ord` from (a) yields the result. Note that `ord(v) ⊕ w_ord` need not lie in S — the definition and inverse properties of vpos are pure sequence operations that hold for any `o ∈ T`.
+- *Postconditions:* (a) `ord(v ⊕ w) = ord(v) ⊕ w_ord`. (b) `subspace(v ⊕ w) = subspace(v)`. (c) `v ⊕ w = vpos(subspace(v), ord(v) ⊕ w_ord)`.
 - *Frame:* Both sides are computed from `v` and `w` alone — no state is consulted.
