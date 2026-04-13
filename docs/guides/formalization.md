@@ -25,7 +25,7 @@ Four review steps run in a convergence loop:
 
 **Contract review** — Validates that each formal contract matches the proof. On MISMATCH, rewrites the contract. Vocabulary context is aggregated from all property YAMLs automatically.
 
-**Cross-review** — Reads the entire assembled ASN (all properties concatenated) + foundation statements. Finds issues that per-property review can't catch: carrier-set conflation, precondition chain gaps, circular reasoning across properties. Reviser agent can edit multiple `.md` files and update `.yaml` depends (add-only).
+**Cross-review** — Reads the entire assembled ASN (all properties concatenated) + foundation statements. Finds issues that per-property review can't catch: carrier-set conflation, precondition chain gaps, circular reasoning across properties. Reviser agent can edit multiple `.md` files and update `.yaml` depends (add-only). When cross-review detects a [dependency cone](../reference/dependency-cone.md), it switches to a focused cone review loop.
 
 **Dependency review** — Scans property bodies for references to labels not declared in the `depends` field. Add-only — new deps found are added to the `.yaml`, never removed.
 
@@ -99,3 +99,5 @@ The per-property constraint is architectural. Each property is formalized indepe
 In discovery, the whole ASN is the context and converges because the full picture constrains it. When you split into smaller pieces (per-property), each piece has room to improve independently, and those improvements can cascade — fix S7a, now S7 needs updating, now S8 references S7 differently. Without a fixed boundary (your dependencies are immutable), refinement never stops.
 
 The per-property constraint prevents infinite refinement. Cross-review is the escape valve for the issues that per-property can't catch (carrier-set conflation, precondition chain gaps, circular reasoning across properties). Per-property handles 95% fast. Cross-review handles the 5% that needs a wider view.
+
+When cross-review converges the loosely-coupled properties but stalls on a tightly-coupled core, it's a [dependency cone](../reference/dependency-cone.md) — one apex property thrashing against stable dependencies. The cone mechanism narrows context to just that cluster and resolves it with focused attention.
