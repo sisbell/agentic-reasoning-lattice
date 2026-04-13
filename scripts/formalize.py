@@ -155,7 +155,7 @@ def run_formalize(asn_num, max_cycles=5, mode="incremental",
 
             def _process_one(label):
                 item = needs_map[label]
-                stem = _label_index.get(label, label.replace("(", "").replace(")", ""))
+                stem = _label_index.get(label, label)
                 prop_path = item.get("path") or prop_dir / f"{stem}.md"
                 ok, file_changed, response = produce_contract(
                     asn_num, label, item["section"],
@@ -188,7 +188,7 @@ def run_formalize(asn_num, max_cycles=5, mode="incremental",
                             rf.write(response + "\n")
 
                         # Update hash cache
-                        stem = _label_index.get(label, label.replace("(", "").replace(")", ""))
+                        stem = _label_index.get(label, label)
                         md_path = prop_dir / f"{stem}.md"
                         yaml_path = prop_dir / f"{stem}.yaml"
                         if md_path.exists():
@@ -220,7 +220,7 @@ def run_formalize(asn_num, max_cycles=5, mode="incremental",
 
                 # Re-read property files for next level
                 for l in needs_labels:
-                    l_stem = _label_index.get(l, l.replace("(", "").replace(")", ""))
+                    l_stem = _label_index.get(l, l)
                     l_path = prop_dir / f"{l_stem}.md"
                     if l_path.exists():
                         needs_map[l]["section"] = l_path.read_text()

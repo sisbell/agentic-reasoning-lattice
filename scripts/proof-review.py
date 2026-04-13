@@ -25,7 +25,7 @@ import hashlib
 import json
 
 from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, next_review_number
-from lib.shared.common import find_asn, parallel_llm_calls, step_commit_asn
+from lib.shared.common import find_asn, parallel_llm_calls, step_commit_asn, build_label_index
 from lib.formalization.core.build_dependency_graph import generate_formalization_deps
 from lib.formalization.core.topological_sort import topological_sort_labels
 from lib.formalization.proof_review.verify import review_property
@@ -91,6 +91,8 @@ def run_proof_review(asn_num, max_cycles=5, mode="incremental",
         return "failed"
 
     print(f"  Directory: {prop_dir.relative_to(WORKSPACE)}", file=sys.stderr)
+
+    _label_index = build_label_index(prop_dir)
 
     # Load verification cache — skip properties unchanged since last VERIFIED
     cache_path = prop_dir / "_verify-cache.json"
@@ -220,7 +222,8 @@ def run_proof_review(asn_num, max_cycles=5, mode="incremental",
         # Revise each found property
         changed = set()
         for label, finding_text in cycle_findings.items():
-            prop_path = prop_dir / (label.replace("(", "").replace(")", "") + ".md")
+            stem = _label_index.get(label, label)
+            prop_path = prop_dir / f"{stem}.md"
             ok = revise(asn_num, label, finding_text, prop_path=prop_path)
             if ok:
                 changed.add(label)

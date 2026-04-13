@@ -107,92 +107,6 @@ def read_file(path):
         return ""
 
 
-def label_to_filename(label):
-    """Convert property label to filename: T0(a) → T0a.md, vpos(S, o) → vpos-S-o.md."""
-    name = label.replace("(", "").replace(")", "")
-    name = name.replace(",", "").replace(" ", "-")
-    name = re.sub(r'-+', '-', name).strip("-")
-    return name + ".md"
-
-
-PROPERTY_NAMES_FILE = "_property_names.md"
-
-
-def load_property_names(prop_dir):
-    """Read _property_names.md → {filename_stem: original_label}. Returns {} if missing."""
-    path = Path(prop_dir) / PROPERTY_NAMES_FILE
-    if not path.exists():
-        return {}
-    mapping = {}
-    for line in path.read_text().split("\n"):
-        line = line.strip()
-        if not line.startswith("|") or line.startswith("| Filename") or line.startswith("|---"):
-            continue
-        cells = [c.strip() for c in line.split("|")]
-        if len(cells) >= 3 and cells[1] and cells[2]:
-            stem = cells[1].replace(".md", "")
-            mapping[stem] = cells[2]
-    return mapping
-
-
-def save_property_names(prop_dir, mapping):
-    """Write _property_names.md as markdown table, sorted by filename."""
-    prop_dir = Path(prop_dir)
-    lines = [
-        "# Property Names\n",
-        "| Filename | Label |",
-        "|----------|-------|",
-    ]
-    for stem in sorted(mapping.keys()):
-        lines.append(f"| {stem}.md | {mapping[stem]} |")
-    (prop_dir / PROPERTY_NAMES_FILE).write_text("\n".join(lines) + "\n")
-
-
-def generate_property_names(prop_dir):
-    """Regenerate _property_names.md from _table.md in prop_dir.
-
-    Reads labels from the table, applies label_to_filename() to get stems,
-    checks each file exists, writes the mapping.
-    Returns (mapping, warnings) where warnings is a list of strings.
-    """
-    prop_dir = Path(prop_dir)
-    table_path = prop_dir / "_table.md"
-    if not table_path.exists():
-        return {}, ["_table.md not found"]
-
-    mapping = {}
-    warnings = []
-    for line in table_path.read_text().split("\n"):
-        line = line.strip()
-        if not line.startswith("|") or line.startswith("| Label") or line.startswith("|---"):
-            continue
-        cells = [c.strip() for c in line.split("|")]
-        if len(cells) < 2 or not cells[1].strip():
-            continue
-        label = cells[1].strip().strip("`*")
-        filename = label_to_filename(label)
-        stem = filename.replace(".md", "")
-        if (prop_dir / filename).exists():
-            mapping[stem] = label
-        else:
-            warnings.append(f"table label '{label}' → {filename} not found")
-
-    # Check for property files without table entries
-    for f in sorted(prop_dir.glob("*.md")):
-        if f.name.startswith("_"):
-            continue
-        stem = f.name.replace(".md", "")
-        if stem not in mapping:
-            warnings.append(f"file {f.name} has no table entry")
-
-    save_property_names(prop_dir, mapping)
-    return mapping, warnings
-
-
-def filename_to_label(filename, mapping):
-    """Look up filename in mapping, fall back to stem if not found."""
-    stem = filename.replace(".md", "") if filename.endswith(".md") else filename
-    return mapping.get(stem, stem)
 
 
 def find_asn(asn_id, asns_dir=None):
@@ -358,7 +272,7 @@ def parallel_llm_calls(items, worker_fn, max_workers=10):
 def assemble_readonly(asn_label):
     """Concatenate per-property files from vault/3-formalization/ for read-only use.
 
-    Returns assembled text in table order (preamble, table, properties).
+    Returns assembled text (preamble + structural sections + properties).
     Used by cross-cutting scripts that need the whole-ASN view.
     """
     from lib.shared.paths import FORMALIZATION_DIR
@@ -370,54 +284,26 @@ def assemble_readonly(asn_label):
     parts = []
 
     # Structural files first
-    for name in ["_preamble.md", "_table.md"]:
-        f = prop_dir / name
-        if f.exists():
+    for f in sorted(prop_dir.glob("_*.md")):
+        parts.append(f.read_text().strip())
+
+    # Property files alphabetically
+    for f in sorted(prop_dir.glob("*.md")):
+        if not f.name.startswith("_"):
             parts.append(f.read_text().strip())
-
-    # Property files in table label order
-    table_path = prop_dir / "_table.md"
-    if table_path.exists():
-        table_text = table_path.read_text()
-        ordered_labels = []
-        for line in table_text.split("\n"):
-            if (line.strip().startswith("|")
-                    and not line.strip().startswith("| Label")
-                    and not line.strip().startswith("|---")):
-                cells = [c.strip() for c in line.split("|")]
-                if len(cells) >= 2 and cells[1].strip():
-                    label = cells[1].strip().strip("`*")
-                    ordered_labels.append(label)
-
-        for label in ordered_labels:
-            filename = label_to_filename(label)
-            f = prop_dir / filename
-            if f.exists():
-                parts.append(f.read_text().strip())
-    else:
-        # No table — read all property files alphabetically
-        for f in sorted(prop_dir.glob("*.md")):
-            if not f.name.startswith("_"):
-                parts.append(f.read_text().strip())
 
     return "\n\n---\n\n".join(parts)
 
 
 def load_property_sections(prop_dir):
     """Load per-property files into a dict, indexed by both filename stem
-    and original label (from _property_names.md when available).
+    and original label (from YAML metadata).
 
-    Handles the mismatch between table labels like vpos(S, o) and filenames
-    like vpos-S-o.md. Lookup by either form will work.
+    Lookup by either filename stem or label will work.
     """
     prop_dir = Path(prop_dir)
-    # Build label index from YAML files, fall back to _property_names.md
     label_index = build_label_index(prop_dir)
-    if label_index:
-        stem_to_label = {stem: lbl for lbl, stem in label_index.items()}
-    else:
-        mapping = load_property_names(prop_dir)
-        stem_to_label = {stem: lbl for stem, lbl in mapping.items()}
+    stem_to_label = {stem: lbl for lbl, stem in label_index.items()}
     sections = {}
     for f in sorted(prop_dir.glob("*.md")):
         if f.name.startswith("_"):
