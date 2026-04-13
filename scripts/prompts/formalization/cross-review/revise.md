@@ -35,6 +35,9 @@ must be explicit — no "by similar reasoning." End proofs with ∎.
 
 5. If the fix adds new dependencies, add them to the `depends` list in
    the affected property's `.yaml` file. Do not remove existing dependencies.
+   If a finding identifies an undeclared dependency (a property used in a
+   proof but not in the `.yaml` depends list), always add it to the `.yaml`
+   — do not just mention it in the prose or formal contract.
 
 6. If the fix requires a new property that doesn't exist, create both files
    in `{{asn_path}}/`. Use the label as the filename.
