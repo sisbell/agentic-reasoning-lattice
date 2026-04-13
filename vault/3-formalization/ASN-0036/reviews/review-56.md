@@ -15,3 +15,9 @@ RESULT: FOUND
 2. Remove "When `v` satisfies S8a: `subspace(v) ≥ 1`" from the postconditions and soften the narrative reference to a non-contractual remark (e.g., "Note: for V-positions, S8a separately guarantees v₁ ≥ 1").
 
 31 verified, 1 found.
+
+## Result
+
+Converged after 2 cycles. 32 verified.
+
+*Elapsed: 529s*
