@@ -1,0 +1,5 @@
+label: V_S(d)
+name: SubspaceVPositionSet
+type: definition
+depends:
+  - S8a

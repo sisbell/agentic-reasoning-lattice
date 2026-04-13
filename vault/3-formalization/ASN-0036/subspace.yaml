@@ -1,0 +1,5 @@
+label: subspace(v)
+name: SubspaceIdentifier
+type: definition
+depends:
+  - S8a
