@@ -4,6 +4,7 @@ type: definition
 depends:
 - D-CTG
 - S8-depth
+- S8-vdepth
 - D-MIN
 - T3
 - S8a

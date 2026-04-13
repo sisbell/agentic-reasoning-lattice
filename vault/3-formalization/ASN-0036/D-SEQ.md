@@ -1,10 +1,10 @@
-**D-SEQ (SequentialPositions).** For each document d and subspace S, if V_S(d) is non-empty and the common V-position depth m ≥ 2 (S8-depth), then there exists n ≥ 1 such that:
+**D-SEQ (SequentialPositions).** For each document d and subspace S, if V_S(d) is non-empty, the common V-position depth is m (S8-depth), and m ≥ 2 (S8-vdepth), then there exists n ≥ 1 such that:
 
 `V_S(d) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n}`
 
-where the tuple has length m. The precondition m ≥ 2 is necessary: at m = 1 the tuple `[S, 1, ..., 1, k]` collapses to a single component where the subspace identifier S and the varying ordinal k occupy the same position, and the derivation step "D-MIN gives the minimum k = 1" fails because min(V_S(d)) = [S] has last component S, not 1. ValidInsertionPosition independently requires m ≥ 2 (the empty-subspace case establishes this lower bound), so the precondition is always satisfied in practice. At depth 2 this gives V_S(d) = {[S, k] : 1 ≤ k ≤ n}, matching Nelson's "addresses 1 through n."
+where the tuple has length m. The precondition m ≥ 2 is necessary: at m = 1 the tuple `[S, 1, ..., 1, k]` collapses to a single component where the subspace identifier S and the varying ordinal k occupy the same position, and the derivation step "D-MIN gives the minimum k = 1" fails because min(V_S(d)) = [S] has last component S, not 1. S8-vdepth axiomatically guarantees #v ≥ 2 for every V-position in dom(M(d)), so by S8-depth the common depth m satisfies m ≥ 2 and the precondition is always satisfied. At depth 2 this gives V_S(d) = {[S, k] : 1 ≤ k ≤ n}, matching Nelson's "addresses 1 through n."
 
-*Proof.* Let V_S(d) be non-empty and let m ≥ 2 be the common depth of all V-positions in subspace S (S8-depth guarantees a common depth exists).
+*Proof.* Let V_S(d) be non-empty and let m be the common depth of all V-positions in subspace S (S8-depth guarantees a common depth exists); m ≥ 2 by S8-vdepth.
 
 **Step 1: shared prefix.** We show that every position in V_S(d) has the form [S, 1, …, 1, k] — that is, components 2 through m − 1 are all equal to 1, with only the last component varying.
 
@@ -21,7 +21,7 @@ where the tuple has length m. The precondition m ≥ 2 is necessary: at m = 1 th
 **Assembly.** The k-values form a finite contiguous range of positive integers (Step 3, Step 4) beginning at 1 (Step 2). Therefore there exists n ≥ 1 such that the k-values are exactly {1, 2, …, n}. By Step 1, V_S(d) = {[S, 1, …, 1, k] : 1 ≤ k ≤ n}. ∎
 
 *Formal Contract:*
-- *Preconditions:* V_S(d) non-empty; common V-position depth m ≥ 2 (S8-depth). D-CTG (VContiguity) holds for V_S(d). D-MIN (VMinimumPosition) holds for V_S(d). S8-fin (dom(M(d)) is finite).
+- *Preconditions:* V_S(d) non-empty; common V-position depth m (S8-depth); m ≥ 2 (S8-vdepth). D-CTG (VContiguity) holds for V_S(d). D-MIN (VMinimumPosition) holds for V_S(d). S8-fin (dom(M(d)) is finite).
 - *Postconditions:* `(E n : n ≥ 1 : V_S(d) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n})` where each tuple has length m.
 
 D-CTG is a design constraint on well-formed document states. It constrains which arrangement modifications constitute well-formed editing operations. We verify the base case: before any operations, dom(M(d)) = ∅ for all d (the arrangement is a partial function; no content has been allocated, so no V-mapping exists), so V_S(d) = ∅ for every subspace S. D-CTG holds vacuously (no u, q exist to trigger its antecedent), and D-MIN holds vacuously (its antecedent requires V_S(d) non-empty). Observe that not all arrangement modifications preserve D-CTG: removing a single interior V-position from dom(M(d)) leaves the positions on either side no longer contiguous. D-CTG is therefore preserved only by those modifications that constitute well-formed editing operations — operations that restore contiguity after structural changes (e.g., by shifting subsequent positions).

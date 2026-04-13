@@ -3,6 +3,7 @@ name: SequentialPositions
 type: theorem
 depends:
 - S8-depth
+- S8-vdepth
 - D-CTG-depth
 - D-MIN
 - T1(i)
