@@ -1,5 +1,5 @@
 label: S8
-name: FiniteSpanDecomposition
+name: FiniteCorrespondenceRunDecomposition
 type: theorem
 depends:
 - S8-fin
@@ -7,6 +7,7 @@ depends:
 - S3
 - S8a
 - S8-depth
+- D-CTG
 - S8-vdepth
 - TS4
 - OrdinalShift
