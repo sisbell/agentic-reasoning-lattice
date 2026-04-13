@@ -4,8 +4,10 @@ type: theorem
 depends:
 - S8-fin
 - S2
+- S3
 - S8a
 - S8-depth
+- S8-vdepth
 - TS4
 - OrdinalShift
 - T1
