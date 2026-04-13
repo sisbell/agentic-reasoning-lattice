@@ -1,10 +1,12 @@
 # Dependency Cone
 
-A dependency cone is a convergence bottleneck in cross-review where one property (the apex) keeps getting revised while its dependencies are stable.
+## Pattern
 
-## Shape
+Per-property iterative refinement decomposes a system into independent units and converges each one separately. This works when properties are loosely coupled — fix one, move on. But some properties form tightly coupled constraint systems where each unit's correctness depends on precise alignment with its neighbors. Fixing one seam shifts another. The decomposition that enables convergence for most properties creates a bottleneck for the coupled ones.
 
-The apex sits atop a set of dependencies in the DAG. The dependencies are correct and stable — they stopped changing. The apex keeps getting patched because each per-finding fix adjusts one seam with its neighbors, which shifts another seam, which the next review flags.
+A dependency cone is the specific shape this bottleneck takes: one property (the apex) depends on many others that are individually correct and stable. The apex keeps getting revised because no single fix can reconcile all its inputs at once.
+
+## Structure
 
 ```
         S8          ← apex (thrashing)
@@ -14,44 +16,48 @@ The apex sits atop a set of dependencies in the DAG. The dependencies are correc
    ...   T4  S8-depth
 ```
 
+The dependencies form a DAG, not a cycle. The foundations converged early — they're simple, loosely coupled properties that per-property refinement handles well. The apex is a complex property that must reconcile all of them simultaneously. Each per-finding fix adjusts one seam with one neighbor, which shifts another seam, which the next review flags.
+
+## Cause
+
+The per-property constraint that drives convergence for loosely coupled properties prevents it for tightly coupled ones. When a property has N stable dependencies and its proof must reference all of them consistently — correct dependency lists, accurate contracts, precise cross-references — fixing one inconsistency at a time can't reach a global solution. The reviser sees one finding but never the full picture.
+
+This is analogous to iterative methods for solving systems of equations. Gauss-Seidel iteration (one variable at a time) converges when the system is diagonally dominant (loose coupling). For tightly coupled systems, direct solution (simultaneous treatment) is needed.
+
 ## Detection
 
-Mechanical, from git history:
+The pattern is detectable mechanically from revision history:
 
-1. Count property file touches in the last N cross-review commits for this ASN
-2. The most-touched property is the candidate apex
-3. If the apex has >= 3 touches and its dependencies have < half that, it's a cone
+1. One property has significantly more touches than its dependencies in recent review commits
+2. Its dependencies have low or zero touch counts in the same window
+3. The pattern persists across multiple review cycles
 
-```bash
-# Auto-detection happens within cross-review
-python scripts/cross-review.py 36 --max-cycles 5
-
-# Force a specific apex
-python scripts/cross-review.py 36 --cone S8
-```
-
-## Why per-finding revision fails
-
-Cross-review finds: "S8 is missing D-CTG in its dependency list." The reviser fixes S8.md but not S8.yaml. Next review finds: "S8's contract cites S8-depth but doesn't list it as a precondition." The reviser adjusts the contract. Next review finds another seam.
-
-Each fix is correct in isolation. But the reviser only sees one finding at a time — it never sees the full picture of what the apex needs to reconcile across all its inputs.
+The asymmetry — apex thrashing, dependencies stable — distinguishes a cone from general non-convergence where multiple properties are all changing.
 
 ## Resolution
 
-When a cone is detected, cross-review switches to a focused loop:
+Narrow the scope to the coupled set and resolve it as a unit:
 
-1. Assemble just the cone (apex + same-ASN dependencies)
+1. Assemble the apex and its same-ASN dependencies as a single context
 2. Load only the cross-ASN foundation labels the cone references
-3. Run the same cross-review prompt with this narrower context
-4. Revise findings — the reviser can now make coordinated fixes
-5. Loop until the cone converges, then return to full cross-review
+3. Review the cone as a constraint system — "are these jointly consistent" rather than "find any issue in the full ASN"
+4. Revise with all cone properties visible, enabling coordinated fixes
+5. Once the cone converges, resume full-ASN review to verify nothing broke
 
-The narrower context means the reviewer focuses entirely on the constraint system instead of scanning 29 properties and finding scattered issues. For ASN-0036, this reduced the review context from ~90K to ~37K characters.
+The narrower context focuses the reviewer on the constraint system instead of scattering attention across unrelated properties. For ASN-0036, this reduced review context from ~90K to ~37K characters.
 
-## When it fires
+## Tooling
 
-The cone pattern appears after cross-review has converged the loosely-coupled properties. What remains is the tightly-coupled core — typically a complex theorem that depends on many stable foundations. The per-property convergence approach (solving one equation at a time) works for loose coupling but stalls on tight coupling.
+```bash
+# Auto-detection within cross-review (fires when pattern is found)
+python scripts/cross-review.py 36 --max-cycles 5
 
-## Discovered
+# Force a specific apex (skip detection, go straight to cone review)
+python scripts/cross-review.py 36 --cone S8
+```
 
-ASN-0036 cross-review, reviews 60-65. S8 (FiniteCorrespondenceRunDecomposition) was touched in 4 of 6 consecutive cross-review commits while its 7 dependencies were touched 0-1 times.
+Detection parameters: window of 5 cross-review commits, threshold of 3+ apex touches with dependencies at less than half. The window uses only cross-review commits for the specific ASN (path-filtered git log).
+
+## Origin
+
+Discovered during ASN-0036 formalization, reviews 60-65. S8 (FiniteCorrespondenceRunDecomposition) was touched in 4 of 6 consecutive cross-review commits while its 7 dependencies were touched 0-1 times. The cross-review had already converged the loosely coupled properties (S7, ValidInsertionPosition, S3) in earlier rounds — what remained was the tightly coupled S8 core.
