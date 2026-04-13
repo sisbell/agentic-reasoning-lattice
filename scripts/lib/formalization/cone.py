@@ -265,7 +265,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
     return "converged" if converged else "not_converged"
 
 
-def run_cone_sweep(asn_num, min_deps=4, max_cycles=3, dry_run=False, model="opus"):
+def run_cone_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False, model="opus"):
     """Proactive cone review sweep — bottom-up DAG walk.
 
     For each property with >= min_deps same-ASN dependencies,
