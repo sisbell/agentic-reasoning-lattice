@@ -8,3 +8,4 @@ With S7a and S7b established, we can state structural attribution. (S7c, stated 
 
 *Formal Contract:*
 - *Axiom:* (A a ∈ dom(Σ.C) :: #fields(a).element ≥ 2)
+- *Preconditions:* `zeros(a) = 3` for all `a ∈ dom(Σ.C)` — T4's field correspondence requires `zeros(a) = 3` for the element field to exist and `#fields(a).element` to be well-defined. (Entailed by S7b.)
