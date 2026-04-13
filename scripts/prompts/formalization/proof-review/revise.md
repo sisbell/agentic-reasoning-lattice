@@ -89,10 +89,9 @@ The `*Formal Contract:*` marker is a fixed string. Do not modify it.
 
 4. If the proof needs a property that doesn't exist anywhere in the ASN
    or its foundations, create both files for the new property:
-   - `{NewLabel}.md` — derivation section with header, proof, and formal contract
-   - `{NewLabel}.yaml` — metadata with label, name, type, depends fields
-   Filenames are derived from labels: strip parentheses, replace spaces/commas
-   with hyphens (e.g., `V_S(d)` → `V_Sd`, `subspace(v)` → `subspace`).
+   - `{Label}.md` — derivation section with header, proof, and formal contract
+   - `{Label}.yaml` — metadata with label, name, type, depends fields
+   Use the label as the filename. Create them in the same directory as `{{asn_path}}`.
 
 5. Do not change anything beyond the specific property being fixed and
    any new properties needed. Do not modify narrative prose.
