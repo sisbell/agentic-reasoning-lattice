@@ -2,7 +2,7 @@
 
 S8-fin is an invariant over reachable states. We establish it by induction on the length of the operation trace — the finite sequence of operations producing any reachable state.
 
-**Base case.** The initial-state axiom (Σ.M(d)) establishes that `dom(Σ₀.M(d)) = ∅` for every document `d`. The empty set is finite.
+**Base case.** Σ.M(d) establishes as an axiom that `dom(Σ₀.C) = ∅ ∧ (∀ d : dom(Σ₀.M(d)) = ∅)` — the initial state contains no arrangements. In particular, `dom(Σ₀.M(d)) = ∅` for every document `d`. The empty set is finite.
 
 **Inductive step.** Let Σ be a reachable state in which dom(Σ.M(d)) is finite for every document d, and let operation op produce successor state Σ'. Each editing operation modifies dom(M(d)) by adding or removing finitely many V-positions: INSERT allocates one V-position per inserted content element — bounded by the finite size of the input; COPY creates one V-position per transcluded element — bounded by the finite cardinality of the source span, which lies within a finite domain by the inductive hypothesis; DELETE removes V-positions from dom(M(d)), and removing elements from a finite set yields a finite set; REARRANGE permutes existing mappings without altering the domain's cardinality. In each case, dom(Σ'.M(d)) differs from dom(Σ.M(d)) by a finite set, so dom(Σ'.M(d)) is finite.
 
