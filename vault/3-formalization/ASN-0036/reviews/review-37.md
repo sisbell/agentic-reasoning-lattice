@@ -1,3 +1,7 @@
+# Formalize — ASN-0036 / D-CTG-depth
+
+*2026-04-13 13:10*
+
 **D-CTG-depth (SharedPrefixReduction).** For depth m ≥ 3, all positions in a non-empty V_S(d) share components 2 through m − 1. Contiguity reduces to contiguity of the last component alone — structurally identical to the depth 2 case.
 
 *Proof.* Let V_S(d) be non-empty with common depth m ≥ 3 (S8-depth). Suppose for contradiction that V_S(d) contains two positions v₁ and v₂ with v₁ < v₂ (both depth m) whose first point of disagreement is at component j with 2 ≤ j ≤ m − 1 — that is, (v₁)ᵢ = (v₂)ᵢ for all i < j (in particular, (v₁)₁ = S = (v₂)₁, since both belong to V_S(d)), and (v₁)ⱼ < (v₂)ⱼ (the inequality follows from v₁ < v₂ by T1(i), since j is the first disagreeing component and j ≤ min(m, m)).
