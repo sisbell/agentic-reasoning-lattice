@@ -17,15 +17,23 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, load_manifest
 from lib.shared.common import read_file, invoke_claude
-from lib.shared.foundation import load_foundation_statements
+from lib.shared.foundation import load_foundation_statements, load_foundation_for_labels
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization" / "cross-review"
 REVIEW_TEMPLATE = PROMPTS_DIR / "review.md"
 
 
-def run_review(asn_num, asn_content, asn_label, previous_findings="", model="opus"):
-    """Run Opus deep review. Returns (findings_text, elapsed) or (None, elapsed)."""
-    foundation = load_foundation_statements(asn_num)
+def run_review(asn_num, asn_content, asn_label, previous_findings="", model="opus",
+               foundation_labels=None):
+    """Run Opus deep review. Returns (findings_text, elapsed) or (None, elapsed).
+
+    If foundation_labels is provided, only loads foundation statements for
+    those specific labels (for cone review). Otherwise loads all.
+    """
+    if foundation_labels is not None:
+        foundation = load_foundation_for_labels(asn_num, foundation_labels)
+    else:
+        foundation = load_foundation_statements(asn_num)
     if not foundation:
         foundation = "(none — this is a foundation ASN; review internal consistency only)"
 

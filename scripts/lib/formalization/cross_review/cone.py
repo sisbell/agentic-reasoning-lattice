@@ -171,6 +171,19 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
     print(f"\n  [CONE-REVIEW] {apex_label} + {len(dep_labels)} deps",
           file=sys.stderr)
 
+    # Collect cross-ASN deps for narrowed foundation loading
+    asn_labels = set(build_label_index(prop_dir).keys())
+    all_cone_labels = [apex_label] + dep_labels
+    cross_asn_deps = []
+    for label in all_cone_labels:
+        meta = load_property_metadata(prop_dir, label=label)
+        if meta:
+            for d in meta.get("depends", []):
+                if d not in asn_labels and d not in cross_asn_deps:
+                    cross_asn_deps.append(d)
+
+    print(f"  Foundation: {len(cross_asn_deps)} cross-ASN deps", file=sys.stderr)
+
     # Load review history for the apex
     history = _extract_apex_history(asn_label, apex_label)
 
@@ -184,9 +197,10 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
         # Assemble just the cone
         cone_content = assemble_cone(asn_label, apex_label, dep_labels)
 
-        # Run review with cone content instead of full ASN
+        # Run review with narrowed foundation
         findings_text, elapsed = run_review(
-            asn_num, cone_content, asn_label, previous_findings, model=model)
+            asn_num, cone_content, asn_label, previous_findings, model=model,
+            foundation_labels=cross_asn_deps)
 
         if findings_text is None:
             print(f"\n  [CONE] Converged after {cycle} cycle{'s' if cycle > 1 else ''}.",
