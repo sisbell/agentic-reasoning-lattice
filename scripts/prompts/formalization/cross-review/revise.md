@@ -36,10 +36,24 @@ must be explicit — no "by similar reasoning." End proofs with ∎.
 5. If the fix adds new dependencies, add them to the `depends` list in
    the affected property's `.yaml` file. Do not remove existing dependencies.
 
-6. If the fix requires a new property that doesn't exist, create both files:
-   - `{Label}.yaml` with fields: label, name, type, depends
-   - `{Label}.md` with bold header, definition/statement, and formal contract
-   Filenames are derived from labels: strip parentheses, replace spaces/commas
-   with hyphens (e.g., `V_S(d)` → `V_Sd`, `subspace(v)` → `subspace`).
+6. If the fix requires a new property that doesn't exist, create both files
+   in `{{asn_path}}/`. Use the label as the filename.
+
+   `{Label}.yaml`:
+   ```yaml
+   label: AX-1
+   name: InitialEmpty
+   type: axiom
+   depends:
+     - D2
+   ```
+
+   `{Label}.md`:
+   ```markdown
+   **AX-1 (InitialEmpty).** [definition or statement]
+
+   *Formal Contract:*
+   - *Axiom:* [formal assertion]
+   ```
 
 7. Do not change anything beyond what the finding requires.
