@@ -3,7 +3,5 @@ name: VPositionWellFormedness
 type: theorem
 depends:
 - T4
-- S7b
-- S3
 literature_citations:
 - LM 4/30
