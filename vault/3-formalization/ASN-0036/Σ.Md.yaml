@@ -11,3 +11,5 @@ vocabulary:
   meaning: The set of V-positions currently active in document d; the domain of the arrangement function
 - symbol: ran(Σ.M(d))
   meaning: The set of I-addresses that document d currently references; the range of the arrangement function
+- symbol: Σ₀
+  meaning: The initial system state before any operations have been applied; dom(Σ₀.C) = ∅ and dom(Σ₀.M(d)) = ∅ for every document d

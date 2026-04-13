@@ -1,10 +1,10 @@
-**subspace(v) (SubspaceIdentifier).** The subspace identifier of a V-position v:
+**subspace(v) (SubspaceIdentifier).** For a tumbler v with #v ≥ 1, the subspace identifier is the first-component extraction:
 
 `subspace(v) = v₁`
 
-The first component of an element-field tumbler identifies which subspace the position belongs to (1 for text, 2 for links). By S8a, v₁ ≥ 1 for all V-positions.
+Since v₁ is defined for any tumbler with at least one component, subspace applies throughout T wherever #v ≥ 1 — including contexts where V-position membership has not yet been established (D-CTG's inner quantifier, OrdAddHom's result tumbler, D-CTG-depth's constructed intermediates). For V-positions (elements of dom(Σ.M(d))), the subspace identifier distinguishes which subspace the position belongs to (1 for text, 2 for links); by S8a, subspace(v) ≥ 1 in that case.
 
 *Formal Contract:*
-- *Definition:* `subspace(v) = v₁` for v ∈ dom(Σ.M(d)).
-- *Preconditions:* S8a — v₁ ≥ 1.
-- *Postconditions:* subspace(v) ≥ 1.
+- *Definition:* `subspace(v) = v₁` for `v ∈ T` with `#v ≥ 1`.
+- *Preconditions:* `v ∈ T`, `#v ≥ 1`.
+- *Postconditions:* `subspace(v) ∈ ℕ`. When `v` satisfies S8a: `subspace(v) ≥ 1`.

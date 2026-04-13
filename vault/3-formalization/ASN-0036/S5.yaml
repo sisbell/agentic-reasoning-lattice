@@ -2,6 +2,7 @@ label: S5
 name: UnrestrictedSharing
 type: theorem
 depends:
+- Σ.C
 - S0
 - S1
 - S2
