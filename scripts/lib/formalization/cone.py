@@ -1,9 +1,13 @@
 """
-Dependency cone detection and cone-scoped review.
+Dependency cone — detection, focused review, and proactive sweep.
 
-Detects when a single property (the apex) keeps getting revised while
-its dependencies are stable — a "dependency cone." Runs a focused
-review/revise loop on just the cone to accelerate convergence.
+A dependency cone is a property (the apex) that sits atop many stable
+dependencies and can't converge under per-finding revision. See
+docs/reference/dependency-cone.md for the pattern.
+
+- detect_dependency_cone: reactive, from git history
+- run_cone_review: focused review/revise loop on one cone
+- run_cone_sweep: proactive bottom-up DAG walk, reviews all qualifying cones
 """
 
 import re
@@ -20,6 +24,8 @@ from lib.shared.common import (
 )
 from lib.formalization.cross_review.review import run_review, extract_findings
 from lib.formalization.cross_review.revise import revise
+from lib.formalization.core.build_dependency_graph import generate_formalization_deps
+from lib.formalization.core.topological_sort import topological_levels
 
 
 def detect_dependency_cone(asn_num, window=5, threshold=3):
@@ -257,3 +263,65 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
 
     print(f"  [CONE] Elapsed: {elapsed:.0f}s", file=sys.stderr)
     return "converged" if converged else "not_converged"
+
+
+def run_cone_sweep(asn_num, min_deps=4, max_cycles=3, dry_run=False, model="opus"):
+    """Proactive cone review sweep — bottom-up DAG walk.
+
+    For each property with >= min_deps same-ASN dependencies,
+    run a cone review. Process in topological order (foundations first)
+    so each cone's dependencies are stable when it runs.
+
+    Returns "converged" or "not_converged".
+    """
+    _, asn_label = find_asn(str(asn_num))
+    if asn_label is None:
+        print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
+        return "failed"
+
+    prop_dir = FORMALIZATION_DIR / asn_label
+    if not prop_dir.exists():
+        print(f"  No formalization directory for {asn_label}", file=sys.stderr)
+        return "failed"
+
+    deps_data = generate_formalization_deps(asn_num)
+    if not deps_data:
+        print(f"  No dependency data for {asn_label}", file=sys.stderr)
+        return "failed"
+
+    levels = topological_levels(deps_data)
+    asn_labels = set(build_label_index(prop_dir).keys())
+
+    print(f"\n  [CONE-SWEEP] {asn_label} — {len(asn_labels)} properties, "
+          f"min_deps={min_deps}", file=sys.stderr)
+
+    start_time = time.time()
+    cones_reviewed = 0
+    any_not_converged = False
+
+    for level_idx, level_labels in enumerate(levels):
+        for label in level_labels:
+            meta = load_property_metadata(prop_dir, label=label)
+            if not meta:
+                continue
+            same_deps = [d for d in meta.get("depends", []) if d in asn_labels]
+            if len(same_deps) < min_deps:
+                continue
+
+            cones_reviewed += 1
+            result = run_cone_review(
+                asn_num, label, same_deps,
+                max_cycles=max_cycles, dry_run=dry_run, model=model)
+
+            if result != "converged":
+                any_not_converged = True
+
+    elapsed = time.time() - start_time
+    if cones_reviewed == 0:
+        print(f"\n  [CONE-SWEEP] No properties with >= {min_deps} same-ASN deps.",
+              file=sys.stderr)
+    else:
+        print(f"\n  [CONE-SWEEP] {cones_reviewed} cones reviewed in {elapsed:.0f}s",
+              file=sys.stderr)
+
+    return "not_converged" if any_not_converged else "converged"
