@@ -24,7 +24,9 @@ Compare before and after. Check:
 1. **No content deleted** — all text from before should be present
    in after (possibly reworded but not removed). Bold headers,
    commentary paragraphs, post-contract material, dependency
-   sections must all be preserved.
+   sections must all be preserved. Restructuring within the formal
+   contract is allowed — moving content between contract fields
+   (e.g., Axiom → Preconditions) is not deletion.
 
 2. **No meaning changed** — the proof should establish the same
    claims. Steps should not be silently dropped or simplified away.
