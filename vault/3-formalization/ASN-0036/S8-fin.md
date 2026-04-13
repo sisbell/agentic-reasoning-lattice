@@ -9,4 +9,4 @@ S8-fin is an invariant over reachable states. We establish it by induction on th
 That each specific operation adds only finitely many V-positions is a verification obligation for the operation's own ASN — parallel to the per-operation obligations for S0 (content immutability), S3 (referential integrity), and D-CTG (contiguity). ∎
 
 *Formal Contract:*
-- *Invariant:* dom(Σ.M(d)) is finite for every document d and every reachable state Σ. Base case: the initial-state axiom (Σ.M(d)) establishes dom(Σ₀.M(d)) = ∅.
+- *Invariant:* dom(Σ.M(d)) is finite for every document d and every reachable state Σ.

@@ -51,3 +51,9 @@ The foundation names this property `T1 — LexicographicOrder`. The label `Tumbl
 ---
 
 `RESULT: 2 FINDINGS`
+
+## Result
+
+Converged after 2 cycles.
+
+*Elapsed: 578s*
