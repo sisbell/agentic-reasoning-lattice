@@ -86,3 +86,9 @@ gap that the subspace identity postcondition depends on.
 ```
 
 18 verified, 2 found.
+
+## Result
+
+Converged after 3 cycles. 32 verified.
+
+*Elapsed: 1700s*

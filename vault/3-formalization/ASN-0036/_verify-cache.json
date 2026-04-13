@@ -11,7 +11,6 @@
   "w_ord": "12b563b964f9749f",
   "S4": "fb233a6947620700",
   "\u03a3.C": "e2adecab9bb4eb57",
-  "S8-depth": "c970ed13a9b2f7da",
   "S7": "7e4262111f24eb27",
   "S2": "257a5de8a422d310",
   "D-MIN": "d0d1e0b2d43ff4fe",
@@ -21,12 +20,15 @@
   "D-CTG": "3d2ab9bc57ea9919",
   "S8a": "64c9a6e4f39f7be0",
   "S7a": "815433e7fd1ff648",
-  "D-SEQ": "4a391bf768d58c0f",
   "S7b": "77b356e6e33062c0",
   "D-CTG-depth": "525d38f7fe2cb58e",
   "S8-fin": "ecb79c383f6f5af8",
   "S0": "1c12756bfaf54d84",
   "S1": "35bc1d5829049090",
   "S9": "56534167c66aed4b",
-  "S8": "e8c2c70c30ae39e3"
+  "S8": "e8c2c70c30ae39e3",
+  "S8-depth": "c970ed13a9b2f7da",
+  "ValidInsertionPosition": "6c5b51966d4118ba",
+  "S7c": "3fadc77874f0570e",
+  "D-SEQ": "4a391bf768d58c0f"
 }
