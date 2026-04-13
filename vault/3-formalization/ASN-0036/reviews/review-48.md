@@ -48,3 +48,9 @@ I'll read through the ASN systematically, tracking definitions, quantifier scope
 **ASN**: S5 motivational sketch: "We construct an execution trace of N + 2 states beginning at Σ₀: first a content-creation transition that introduces an I-address a, then N + 1 arrangement-extension transitions." S5 formal proof: "We construct an execution trace σ_N = ⟨Σ₀, Σ₁, Σ₂, …, Σ_{N+2}⟩ comprising N + 2 transitions."
 **Issue**: The sketch says "N + 2 states." The construction has 1 content-creation transition + (N + 1) arrangement-extension transitions = N + 2 transitions, requiring states Σ₀ through Σ_{N+2} — that is, N + 3 states. The formal proof correctly counts "N + 2 transitions"; the sketch's "N + 2 states" is off by one. The error is confined to the motivational paragraph; the formal proof, constructions, and verifications all use the correct count.
 **What needs resolving**: The sketch should say "N + 3 states" or (more naturally) "N + 2 transitions."
+
+## Result
+
+Cone not converged after 3 cycles.
+
+*Elapsed: 3212s*
