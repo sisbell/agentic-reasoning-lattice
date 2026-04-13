@@ -18,7 +18,7 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, BLUEPRINTS_DIR
-from lib.shared.common import find_asn, label_to_filename, dump_yaml, step_commit_asn
+from lib.shared.common import find_asn, dump_yaml, step_commit_asn
 
 
 def disassemble_asn(asn_num, dry_run=False):
@@ -63,7 +63,12 @@ def disassemble_asn(asn_num, dry_run=False):
                           file=sys.stderr)
                     continue
 
-                stem = label_to_filename(label).replace(".md", "")
+                if ' ' in label or label.endswith('.'):
+                    print(f"    WARNING: bad label '{label}' in {yaml_path.name} — skipping",
+                          file=sys.stderr)
+                    continue
+
+                stem = label
 
                 # Build metadata dict
                 meta = {

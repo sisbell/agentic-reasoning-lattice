@@ -87,6 +87,13 @@ def validate_asn(asn_num):
                 labels_seen[label] = stem
                 all_props[label] = (stem, data)
 
+        # 5. Label hygiene
+        if label:
+            if ' ' in label:
+                errors.append(f"BAD_LABEL | {yf.name}: label '{label}' contains spaces")
+            if label.endswith('.'):
+                errors.append(f"BAD_LABEL | {yf.name}: label '{label}' ends with period")
+
     # 6. Body not empty
     for mf in md_files:
         content = mf.read_text().strip()
