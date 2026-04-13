@@ -5,5 +5,5 @@ This is a design requirement, not a convention. Nelson's baptism principle estab
 We must also restrict S7's domain. The function `fields(a).document` is well-defined only when `zeros(a) ≥ 2` (per T4's field correspondence: `zeros = 0` is node-only, `zeros = 1` is node+user, `zeros ≥ 2` has a document field). Since Istream addresses designate content elements within documents, we require: for every `a ∈ dom(Σ.C)`, `zeros(a) = 3` — that is, every content address sits at the element level. This is S7b (element-level I-addresses), which guarantees that `fields(a)` provides all four fields and `fields(a).document` is always well-defined for content addresses.
 
 *Formal Contract:*
-- *Axiom:* For every `a ∈ dom(Σ.C)` with `zeros(a) ≥ 2`, the document-level prefix — `(fields(a).node).0.(fields(a).user).0.(fields(a).document)` — is the tumbler of the document whose owner allocated `a`.
-- *Preconditions:* `a ∈ dom(Σ.C)`, `zeros(a) ≥ 2` (per T4, ensuring `fields(a).document` is well-defined).
+- *Axiom:* For every `a ∈ dom(Σ.C)`, the document-level prefix — `(fields(a).node).0.(fields(a).user).0.(fields(a).document)` — is the tumbler of the document whose owner allocated `a`.
+- *Preconditions:* `a ∈ dom(Σ.C)`, `zeros(a) = 3` (S7b: every content address sits at the element level, ensuring all four fields of `fields(a)` are well-defined).
