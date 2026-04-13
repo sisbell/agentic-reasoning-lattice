@@ -39,3 +39,9 @@ I've read the full ASN-0036 against its foundation statements, tracing every def
 **Issue**: D-CTG's inner quantifier ranges over all tumblers v ∈ T satisfying three conditions, then forces the conclusion v ∈ V_S(d). Before the axiom fires, v is an arbitrary tumbler — not a V-position, not in dom(M(d)), and not subject to S8a. The condition "subspace(v) = S" applies the function outside its formal domain. The same mismatch appears in OrdAddHom: v ⊕ w is a tumbler in T that may fail S8a (OrdAddS8a shows S8a compliance is conditional on the displacement's tail components), yet postcondition (b) applies subspace to it. Since subspace(t) = t₁ is a trivial component extraction well-defined on all of T, the results are correct — but the formal definition's domain restriction to dom(Σ.M(d)) with S8a as a precondition makes these applications technically out of scope. D-CTG-depth's proof has the same pattern: "subspace(w) = w₁ = (v₁)₁ = S" applies subspace to a constructed intermediate that is not yet a V-position.
 
 **What needs resolving**: Either extend subspace's formal definition to all tumblers in T (dropping the S8a precondition, since t₁ is defined for any t with #t ≥ 1), or replace "subspace(v) = S" with "v₁ = S" in D-CTG's axiom and restate OrdAddHom postcondition (b) as "(v ⊕ w)₁ = v₁". The V_S(d) definition already uses v₁ = S directly, making either fix consistent with existing conventions.
+
+## Result
+
+Not converged after 3 cycles.
+
+*Elapsed: 5530s*
