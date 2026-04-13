@@ -32,9 +32,7 @@ from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, next_review_number
 from lib.shared.common import find_asn, assemble_readonly, step_commit_asn
 from lib.formalization.cross_review.review import run_review, extract_findings
 from lib.formalization.cross_review.revise import revise
-from lib.formalization.cross_review.cone import (
-    detect_dependency_cone, run_cone_review,
-)
+from lib.formalization.cone import detect_dependency_cone, run_cone_review
 
 
 def run_cross_review(asn_num, max_cycles=10, dry_run=False, model="opus"):
