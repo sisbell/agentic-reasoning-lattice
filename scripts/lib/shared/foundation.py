@@ -81,3 +81,62 @@ def load_foundation_statements(asn_id):
                 )
 
     return "\n\n".join(sections)
+
+
+def _extract_label_section(export_text, label):
+    """Extract a single property section from a formal-statements export.
+
+    Sections are delimited by `## LABEL — Name` headers.
+    Returns the section text or None if not found.
+    """
+    pattern = re.compile(
+        r'^## ' + re.escape(label) + r'\s*—\s*(.+?)(?=\n## |\Z)',
+        re.MULTILINE | re.DOTALL
+    )
+    m = pattern.search(export_text)
+    if m:
+        return m.group(0).strip()
+    return None
+
+
+def load_foundation_for_labels(asn_id, labels):
+    """Load foundation statements for specific labels only.
+
+    Scans the ASN's dependency exports for each requested label.
+    Returns concatenated text of matching sections. Labels not found
+    in any dependency export are silently skipped.
+    """
+    if not labels:
+        return ""
+
+    manifest = load_manifest(asn_id)
+    dep_ids = manifest.get("depends", [])
+    if not dep_ids:
+        return ""
+
+    # Load all dependency exports once
+    exports = {}  # dep_id → text
+    for dep_id in dep_ids:
+        stmt_path = formal_stmts(dep_id)
+        if stmt_path.exists():
+            exports[dep_id] = stmt_path.read_text()
+        # Also check extensions
+        for ext_id in find_extensions(dep_id):
+            if ext_id == asn_id:
+                continue
+            ext_path = formal_stmts(ext_id)
+            if ext_path.exists():
+                exports[ext_id] = ext_path.read_text()
+
+    # Extract requested labels
+    labels_set = set(labels)
+    sections = []
+    found = set()
+    for dep_id, text in exports.items():
+        for label in labels_set - found:
+            section = _extract_label_section(text, label)
+            if section:
+                sections.append(section)
+                found.add(label)
+
+    return "\n\n---\n\n".join(sections)
