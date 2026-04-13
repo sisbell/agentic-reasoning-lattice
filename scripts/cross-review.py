@@ -10,10 +10,15 @@ coincidence in examples.
 Whole-ASN review, not per-property. Convergence: review → fix findings →
 re-review → converge.
 
+Includes dependency cone detection: when one property keeps getting
+revised while its dependencies are stable, switches to a focused
+cone review/revise loop to accelerate convergence.
+
 Usage:
     python scripts/cross-review.py 40
     python scripts/cross-review.py 40 --max-cycles 1     # single pass, no fixing
     python scripts/cross-review.py 40 --dry-run           # review only
+    python scripts/cross-review.py 36 --cone S8           # force cone review on S8
 """
 
 import argparse
@@ -27,6 +32,9 @@ from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, next_review_number
 from lib.shared.common import find_asn, assemble_readonly, step_commit_asn
 from lib.formalization.cross_review.review import run_review, extract_findings
 from lib.formalization.cross_review.revise import revise
+from lib.formalization.cross_review.cone import (
+    detect_dependency_cone, run_cone_review,
+)
 
 
 def run_cross_review(asn_num, max_cycles=10, dry_run=False, model="opus"):
@@ -118,6 +126,13 @@ def run_cross_review(asn_num, max_cycles=10, dry_run=False, model="opus"):
         # Accumulate findings for next cycle's "existing open issues"
         previous_findings = (previous_findings + "\n\n" + findings_text).strip()
 
+        # Check for dependency cone
+        cone = detect_dependency_cone(asn_num)
+        if cone:
+            apex, deps = cone
+            run_cone_review(asn_num, apex, deps, max_cycles=3,
+                            dry_run=dry_run, model=model)
+
     # Append final result to last review file
     elapsed = time.time() - start_time
     if had_findings:
@@ -208,6 +223,8 @@ def main():
                         help="Model for review (default: opus)")
     parser.add_argument("--review", metavar="PATH",
                         help="Revise findings from an existing review file")
+    parser.add_argument("--cone", metavar="LABEL",
+                        help="Force cone review on a specific apex property")
     parser.add_argument("--dry-run", action="store_true",
                         help="Review only, don't fix")
     args = parser.parse_args()
@@ -217,6 +234,23 @@ def main():
     if args.review:
         ok = run_revise_from_review(asn_num, args.review)
         sys.exit(0 if ok else 1)
+
+    if args.cone:
+        # Force cone review — load deps from YAML, skip detection
+        _, asn_label = find_asn(str(asn_num))
+        prop_dir = FORMALIZATION_DIR / asn_label
+        from lib.shared.common import load_property_metadata, build_label_index
+        asn_labels = set(build_label_index(prop_dir).keys())
+        meta = load_property_metadata(prop_dir, label=args.cone)
+        if not meta:
+            print(f"  Property {args.cone} not found", file=sys.stderr)
+            sys.exit(1)
+        dep_labels = [d for d in meta.get("depends", []) if d in asn_labels]
+        result = run_cone_review(asn_num, args.cone, dep_labels,
+                                  max_cycles=args.max_cycles,
+                                  dry_run=args.dry_run,
+                                  model=args.model)
+        sys.exit(0 if result == "converged" else 1)
 
     result = run_cross_review(asn_num, max_cycles=args.max_cycles,
                                model=args.model,
