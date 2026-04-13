@@ -18,7 +18,7 @@ where the tuple has length m. The precondition m ≥ 2 is necessary: at m = 1 th
 
 **Step 4: finiteness.** By S8-fin (Finite arrangement), dom(M(d)) is finite, so V_S(d) ⊆ dom(M(d)) is finite. The k-values form a finite contiguous range.
 
-**Assembly.** The k-values form a finite contiguous range of positive integers (Step 3, Step 4) beginning at 1 (Step 2). Therefore there exists n ≥ 1 such that the k-values are exactly {1, 2, …, n}. By Step 1, V_S(d) = {[S, 1, …, 1, k] : 1 ≤ k ≤ n}. ∎
+**Assembly.** The k-values are positive integers — tumbler components are positive naturals (T0(a), ASN-0034) — forming a finite contiguous range (Step 3, Step 4) beginning at 1 (Step 2). Therefore there exists n ≥ 1 such that the k-values are exactly {1, 2, …, n}. By Step 1, V_S(d) = {[S, 1, …, 1, k] : 1 ≤ k ≤ n}. ∎
 
 *Formal Contract:*
 - *Preconditions:* V_S(d) non-empty; common V-position depth m ≥ 2 (S8-depth); D-CTG (VContiguity); D-MIN (VMinimumPosition); S8-fin (finite arrangement).
