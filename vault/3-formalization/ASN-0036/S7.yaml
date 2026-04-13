@@ -4,6 +4,7 @@ type: theorem
 depends:
 - S7a
 - S7b
+- S7d
 - S0
 - S4
 - T3

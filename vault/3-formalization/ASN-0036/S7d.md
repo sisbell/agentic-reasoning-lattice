@@ -1,0 +1,7 @@
+**S7d (DocumentLevelAllocation).** Every document-level address in the system is the product of a T10a-conforming allocation event. For every `a ∈ dom(Σ.C)`, the document-level prefix `origin(a)` — the tumbler `N.0.U.0.D` with `zeros(origin(a)) = 2` — was itself produced by a distinct allocation event within a system conforming to T10a (ASN-0034).
+
+This is a design requirement paralleling S7a. Where S7a constrains element-level allocation to be document-scoped, S7d constrains document-level allocation to fall under T10a's discipline. Nelson's baptism principle operates at every level of the hierarchy: node operators allocate user prefixes, users allocate document prefixes, documents allocate element addresses. Each level is governed by T10a's allocator discipline — the mechanism by which a parent spawns a child allocator via `inc(·, k')` with `k' ∈ {1, 2}` applies uniformly across levels. Without this axiom, GlobalUniqueness — whose precondition demands that the addresses in question be "produced by distinct allocation events within a system conforming to T10a" — cannot be discharged for document-level tumblers, and S7's uniqueness-across-documents argument has an unjustified step.
+
+*Formal Contract:*
+- *Axiom:* For every `a ∈ dom(Σ.C)`, the document-level prefix `origin(a)` was produced by a T10a-conforming allocation event.
+- *Preconditions:* `a ∈ dom(Σ.C)` with `zeros(a) = 3` (entailed by S7b). T4 field decomposition yields well-defined `origin(a)` with `zeros(origin(a)) = 2`.

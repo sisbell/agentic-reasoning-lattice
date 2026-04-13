@@ -1,0 +1,7 @@
+label: S7d
+name: DocumentLevelAllocation
+type: design-requirement
+depends:
+- T4
+- T10a
+- S7b
