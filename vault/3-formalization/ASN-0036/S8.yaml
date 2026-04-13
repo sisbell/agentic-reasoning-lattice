@@ -7,7 +7,6 @@ depends:
 - S3
 - S8a
 - S8-depth
-- D-CTG
 - S8-vdepth
 - TS4
 - OrdinalShift
