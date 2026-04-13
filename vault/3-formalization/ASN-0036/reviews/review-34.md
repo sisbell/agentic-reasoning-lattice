@@ -1,3 +1,7 @@
+# Formalize — ASN-0036 / D-CTG
+
+*2026-04-13 12:46*
+
 **D-CTG (VContiguity).** For each document d and subspace S, V_S(d) is either empty or occupies every intermediate position between its extremes:
 
 `(A d, S, u, q : u ∈ V_S(d) ∧ q ∈ V_S(d) ∧ u < q : (A v : subspace(v) = S ∧ #v = #u ∧ u < v < q : v ∈ V_S(d)))`
