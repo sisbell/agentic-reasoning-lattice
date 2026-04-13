@@ -6,7 +6,7 @@ In words: within each subspace, V-positions form a contiguous ordinal range with
 
 For the standard text subspace at depth m = 2, this is a finite condition: the intermediates between [S, a] and [S, b] are the finitely many [S, i] with a < i < b. Combined with S8-fin (dom(M(d)) is finite), contiguity at depth 2 says V_S(d) occupies a single unbroken block of ordinals.
 
-At depth m ≥ 3, D-CTG combined with S8-fin forces a stronger restriction: all positions in V_S(d) must share components 2 through m − 1.
+At depth m ≥ 3, D-CTG combined with S8-fin, T0(a), and T3 forces a stronger restriction: all positions in V_S(d) must share components 2 through m − 1.
 
 *Proof.* Suppose for contradiction that V_S(d) contains two positions v₁ < v₂ (both depth m by S8-depth) whose first point of disagreement is at component j with 2 ≤ j ≤ m − 1 — that is, (v₁)ᵢ = (v₂)ᵢ for all i < j, and (v₁)ⱼ < (v₂)ⱼ (since v₁ < v₂ by T1(i)). Component 1 cannot be the first disagreement because both positions belong to V_S(d), so (v₁)₁ = S = (v₂)₁. For any natural number n > (v₁)ⱼ₊₁, define w of length m by:
 
@@ -26,4 +26,4 @@ This applies uniformly to all depths m ≥ 3 and all divergence points j ∈ {2,
 *Formal Contract:*
 - *Preconditions:* S8-fin — `dom(Σ.M(d))` is finite for every document `d` and every reachable state Σ; S8-depth — within a given subspace `S` of document `d`, all V-positions share the same tumbler depth: `(A v₁, v₂ : v₁ ∈ V_S(d) ∧ v₂ ∈ V_S(d) : #v₁ = #v₂)`.
 - *Axiom:* `(A d, S, u, q : u ∈ V_S(d) ∧ q ∈ V_S(d) ∧ u < q : (A v : subspace(v) = S ∧ #v = #u ∧ u < v < q : v ∈ V_S(d)))` — within each subspace, V-positions form a contiguous ordinal range with no gaps. This is a design requirement on valid arrangements: operations that modify V_S(d) must preserve contiguity.
-- *Postconditions:* Combined with S8-fin and S8-depth, for any subspace of depth m ≥ 3, all V-positions in V_S(d) share components 2 through m − 1: `(A d, S, v₁, v₂ : v₁ ∈ V_S(d) ∧ v₂ ∈ V_S(d) ∧ #v₁ ≥ 3 : (A j : 2 ≤ j ≤ #v₁ − 1 : (v₁)ⱼ = (v₂)ⱼ))`. V-positions in such a subspace differ only at the last component and form a contiguous block there.
+- *Postconditions:* Combined with S8-fin, S8-depth, T0(a) (UnboundedComponentValues, ASN-0034), and T3 (CanonicalRepresentation, ASN-0034), for any subspace of depth m ≥ 3, all V-positions in V_S(d) share components 2 through m − 1: `(A d, S, v₁, v₂ : v₁ ∈ V_S(d) ∧ v₂ ∈ V_S(d) ∧ #v₁ ≥ 3 : (A j : 2 ≤ j ≤ #v₁ − 1 : (v₁)ⱼ = (v₂)ⱼ))`. V-positions in such a subspace differ only at the last component and form a contiguous block there.

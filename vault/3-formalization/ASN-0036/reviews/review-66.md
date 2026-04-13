@@ -1,0 +1,12 @@
+# Cone Review — ASN-0036/S8 (cycle 1)
+
+*2026-04-13 10:11*
+
+I've read the full ASN and foundation statements, tracing every precondition chain, checking quantifier scope, verifying definition consistency, and confirming case exhaustiveness across all properties. One new issue found.
+
+### D-CTG postcondition requires T0(a) but the formal contract omits it — and the postcondition is false without it
+
+**Foundation**: T0(a) (UnboundedComponentValues, ASN-0034) — every component value is unbounded; T3 (CanonicalRepresentation, ASN-0034) — tumbler equality is sequence equality
+**ASN**: D-CTG formal contract: "*Postconditions:* Combined with S8-fin and S8-depth, for any subspace of depth m ≥ 3, all V-positions in V\_S(d) share components 2 through m − 1." D-CTG proof: "By T0(a), unboundedly many values of n exist; distinct values of n produce tumblers that differ at component j + 1, hence are distinct by T3 (CanonicalRepresentation, ASN-0034) — yielding infinitely many distinct positions in V\_S(d), contradicting S8-fin."
+**Issue**: The postcondition proof constructs intermediates with unboundedly many values at component j+1, derives their distinctness via T3, and obtains infinitely many forced positions contradicting S8-fin. The "Combined with" list names only S8-fin and S8-depth; T0(a) and T3 are cited by name in the proof text but absent from the formal contract. T0(a) is not merely a proof technique — it is a genuine precondition for the postcondition's truth. Counterexample in a bounded-component space (max value M = 10): V\_S(d) = {[S, 1, k] : 1 ≤ k ≤ 10} ∪ {[S, 2, 1]} at depth 3 satisfies D-CTG (every intermediate between [S,1,1] and [S,2,1] is present: [S,1,2] through [S,1,10]; between [S,1,10] and [S,2,1] no depth-3 tumblers with subspace S and all-positive components exist in the bounded space), S8-fin (11 positions), S8-depth (all depth 3), and S8a (all components positive) — yet violates the postcondition: component 2 takes values 1 and 2, not uniform. In the unbounded space, this arrangement is invalid: D-CTG forces [S,1,11], [S,1,12], ... between [S,1,10] and [S,2,1], producing infinitely many positions and contradicting S8-fin. T0(a) is the property that makes this infinite forcing possible, bridging D-CTG + S8-fin to the postcondition.
+**What needs resolving**: D-CTG's postcondition declaration must include T0(a) (and T3) among its dependencies. Without T0(a), the postcondition is not a consequence of D-CTG + S8-fin + S8-depth — it admits counterexamples in bounded-component spaces.
