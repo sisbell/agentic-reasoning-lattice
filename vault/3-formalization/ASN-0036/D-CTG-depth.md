@@ -6,7 +6,7 @@ We construct infinitely many intermediates. For any natural number n > (v₁)ⱼ
 
 - wᵢ = (v₁)ᵢ for 1 ≤ i ≤ j (agreeing with v₁ on the first j components),
 - wⱼ₊₁ = n,
-- wᵢ = 1 for j + 2 ≤ i ≤ m (if any such positions exist; since j ≤ m − 1, at least the m-th component exists at position j + 1 or beyond).
+- wᵢ = 1 for j + 2 ≤ i ≤ m (the minimum valid component value, zero being the field separator (T4, ASN-0034); if j = m − 1 this range is empty).
 
 Then w has depth m (it has m components by construction), and subspace(w) = w₁ = (v₁)₁ = S (since j ≥ 2, the first component is copied from v₁). We verify v₁ < w < v₂:
 
