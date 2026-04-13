@@ -5,7 +5,7 @@ depends:
 - S8-depth
 - D-CTG-depth
 - D-MIN
-- T1(i)
+- T1
 - D-CTG
 - S8-fin
 - ValidInsertionPosition
