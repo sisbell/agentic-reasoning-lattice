@@ -13,4 +13,4 @@ We now derive the general form. The characterisation `V_S(d) = {[S, 1, …, 1, k
 *Formal Contract:*
 - *Axiom:* `min(V_S(d)) = [S, 1, ..., 1]` — for any non-empty subspace, the minimum V-position is the depth-m tuple with subspace identifier S and every subsequent component equal to 1. This is a design requirement: operations that modify V_S(d) must preserve this minimum.
 - *Preconditions:* V_S(d) ≠ ∅; all positions in V_S(d) share depth m (S8-depth); all V-position components are strictly positive (S8a).
-- *Postconditions:* Combined with D-CTG, S8-fin, and S8-vdepth (for m ≥ 2), `V_S(d) = {[S, 1, …, 1, k] : 1 ≤ k ≤ n}` for some finite n ≥ 1. Positions within a subspace differ only at the last component and form a contiguous range starting at 1.
+- *Postconditions:* Combined with D-CTG, S8-fin, S8-depth, and S8-vdepth (for m ≥ 2), `V_S(d) = {[S, 1, …, 1, k] : 1 ≤ k ≤ n}` for some finite n ≥ 1. Positions within a subspace differ only at the last component and form a contiguous range starting at 1.
