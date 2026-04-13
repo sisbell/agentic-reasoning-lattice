@@ -19,8 +19,9 @@ At `k = 0` this is the base case `M(d)(v) = a`. Each subsequent `k` increments b
 *Formal Contract:*
 - *Axiom:* `(A d, v₁, v₂ : v₁ ∈ dom(Σ.M(d)) ∧ v₂ ∈ dom(Σ.M(d)) ∧ (v₁)₁ = (v₂)₁ : #v₁ = #v₂)`
 - *Definition:* A correspondence run in document `d` is a triple `(v, a, n)` with `n ≥ 1` such that `(A k : 0 ≤ k < n : Σ.M(d)(v + k) = a + k)`, where `v + 0 = v`, `a + 0 = a`, and for `k ≥ 1`, `v + k = shift(v, k)`, `a + k = shift(a, k)`.
+- *Preconditions:* Postcondition 3 requires S7c (`#fields(a).element ≥ 2`): at element-field depth `δ = 1`, the subspace identifier `E₁` coincides with the action point `#a`, and OrdinalShift would alter it — subspace preservation would be false.
 - *Postconditions:* For any correspondence run `(v, a, n)` in document `d`:
   1. V-position subspace preservation (requires `#v ≥ 2`): `(A k : 0 ≤ k < n : (v + k)₁ = v₁)` — position 1 precedes the action point `#v` iff `1 < #v`, so OrdinalShift's prefix rule copies the subspace identifier unchanged. (At `#v = 1`, the action point coincides with position 1 and subspace preservation does not hold.)
   2. V-position depth preservation: `(A k : 0 ≤ k < n : #(v + k) = #v)` — OrdinalShift produces a result of length `#v`.
-  3. I-address subspace preservation: `(A k : 0 ≤ k < n : E₁(a + k) = E₁(a))` — S7c guarantees element-field depth `δ ≥ 2`, placing `E₁` outside the action point; OrdinalShift's prefix rule copies it unchanged.
+  3. I-address subspace preservation (requires S7c, `δ ≥ 2`): `(A k : 0 ≤ k < n : E₁(a + k) = E₁(a))` — S7c places `E₁` before the action point; OrdinalShift's prefix rule copies it unchanged.
   4. I-address depth preservation: `(A k : 0 ≤ k < n : #(a + k) = #a)` — OrdinalShift produces a result of length `#a`.
