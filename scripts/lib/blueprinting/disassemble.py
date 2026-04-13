@@ -63,10 +63,10 @@ def disassemble_asn(asn_num, dry_run=False):
                           file=sys.stderr)
                     continue
 
-                if ' ' in label or label.endswith('.'):
-                    print(f"    WARNING: bad label '{label}' in {yaml_path.name} — skipping",
-                          file=sys.stderr)
-                    continue
+                clean = label.rstrip('.').replace(' ', '-')
+                if clean != label:
+                    print(f"    FIX: '{label}' → '{clean}'", file=sys.stderr)
+                    label = clean
 
                 stem = label
 
