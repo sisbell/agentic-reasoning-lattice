@@ -46,7 +46,7 @@ def revise(asn_num, title, finding_text, prop_dir=None):
         "claude", "-p",
         "--model", "claude-opus-4-6",
         "--output-format", "json",
-        "--allowedTools", "Edit,Read,Glob,Grep",
+        "--allowedTools", "Edit,Write,Read,Glob,Grep",
     ]
 
     env = os.environ.copy()
