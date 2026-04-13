@@ -1,3 +1,7 @@
+# Formalize — ASN-0036 / vpos(S, o)
+
+*2026-04-13 12:41*
+
 **vpos(S, o)** — *VPositionReconstruction* (DEF, function). For subspace identifier S and ordinal o = [o₁, ..., oₖ]:
 
 `vpos(S, o) = [S, o₁, ..., oₖ]`
