@@ -21,7 +21,7 @@ where the tuple has length m. The precondition m ≥ 2 is necessary: at m = 1 th
 **Assembly.** The k-values form a finite contiguous range of positive integers (Step 3, Step 4) beginning at 1 (Step 2). Therefore there exists n ≥ 1 such that the k-values are exactly {1, 2, …, n}. By Step 1, V_S(d) = {[S, 1, …, 1, k] : 1 ≤ k ≤ n}. ∎
 
 *Formal Contract:*
-- *Preconditions:* V_S(d) non-empty; common V-position depth m ≥ 2 (S8-depth).
+- *Preconditions:* V_S(d) non-empty; common V-position depth m ≥ 2 (S8-depth); D-CTG (VContiguity); D-MIN (VMinimumPosition); S8-fin (finite arrangement).
 - *Postconditions:* `(E n : n ≥ 1 : V_S(d) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n})` where each tuple has length m.
 
 D-CTG is a design constraint on well-formed document states. It constrains which arrangement modifications constitute well-formed editing operations. We verify the base case: before any operations, dom(M(d)) = ∅ for all d (the arrangement is a partial function; no content has been allocated, so no V-mapping exists), so V_S(d) = ∅ for every subspace S. D-CTG holds vacuously (no u, q exist to trigger its antecedent), and D-MIN holds vacuously (its antecedent requires V_S(d) non-empty). Observe that not all arrangement modifications preserve D-CTG: removing a single interior V-position from dom(M(d)) leaves the positions on either side no longer contiguous. D-CTG is therefore preserved only by those modifications that constitute well-formed editing operations — operations that restore contiguity after structural changes (e.g., by shifting subsequent positions).
