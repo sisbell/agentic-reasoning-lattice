@@ -6,7 +6,6 @@ depends:
 - S2
 - S8a
 - S8-depth
-- TA5
 - TS4
 - OrdinalShift
 - T1
