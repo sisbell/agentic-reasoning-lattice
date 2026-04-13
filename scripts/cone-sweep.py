@@ -30,8 +30,8 @@ def main():
     parser.add_argument("asn", help="ASN number (e.g., 36)")
     parser.add_argument("--min-deps", type=int, default=4,
                         help="Minimum same-ASN dependencies to qualify (default: 4)")
-    parser.add_argument("--max-cycles", type=int, default=3,
-                        help="Max convergence cycles per cone (default: 3)")
+    parser.add_argument("--max-cycles", type=int, default=8,
+                        help="Max convergence cycles per cone (default: 8)")
     parser.add_argument("--model", default="opus",
                         help="Model for review (default: opus)")
     parser.add_argument("--dry-run", action="store_true",
