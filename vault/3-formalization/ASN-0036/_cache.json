@@ -10,8 +10,10 @@
   "\u03a3.M(d)": "b8f08a663d18d3ed",
   "S5": "6904059a96c7b3e3",
   "S8a": "d2b9c97b8c8dae01",
-  "OrdAddS8a": "73f6b660104ddba8",
+  "OrdAddS8a": "f6ea7558fb336c34",
   "ord(v)": "cafc8fe4673b0d37",
   "vpos(S, o)": "fa5287a755968786",
-  "OrdShiftHom": "c027f78998e2a40f"
+  "OrdShiftHom": "c027f78998e2a40f",
+  "V_S(d)": "8501c05fff020bed",
+  "subspace(v)": "a7548165c47d8f63"
 }

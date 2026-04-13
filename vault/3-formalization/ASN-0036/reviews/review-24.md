@@ -1,3 +1,7 @@
+# Formalize — ASN-0036 / V_S(d)
+
+*2026-04-13 12:21*
+
 **V_S(d) (SubspaceVPositionSet).** The set of V-positions in subspace S of document d:
 
 `V_S(d) = {v ∈ dom(Σ.M(d)) : v₁ = S}`

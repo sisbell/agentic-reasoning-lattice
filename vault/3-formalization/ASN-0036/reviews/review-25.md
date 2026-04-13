@@ -1,3 +1,7 @@
+# Formalize — ASN-0036 / subspace(v)
+
+*2026-04-13 12:21*
+
 **subspace(v) (SubspaceIdentifier).** The subspace identifier of a V-position v:
 
 `subspace(v) = v₁`
