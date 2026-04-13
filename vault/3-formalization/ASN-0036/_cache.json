@@ -1,7 +1,7 @@
 {
   "S9": "eec3cd52f854ac95",
   "D-CTG": "8df54497289e6867",
-  "D-MIN": "8699b9dfae47f3f2",
+  "D-MIN": "45847e6ce07983ae",
   "OrdAddHom": "97ab7167a8e06f63",
   "w_ord": "ae43d82ce3f67659",
   "S1": "671142f97c7a7b21",
@@ -15,5 +15,6 @@
   "vpos(S, o)": "fa5287a755968786",
   "OrdShiftHom": "4f17f109ce426a93",
   "V_S(d)": "8501c05fff020bed",
-  "subspace(v)": "a7548165c47d8f63"
+  "subspace(v)": "a7548165c47d8f63",
+  "D-CTG-depth": "6dd62dfed549bebf"
 }
