@@ -27,3 +27,9 @@ I've read the full ASN-0036 and its ASN-0034 foundation statements, tracing ever
 **ASN**: S8 proof, exhaustiveness aside: *"The key restriction is #v = #u: since u ∈ V_S(d) has depth m by S8-depth, D-CTG's constraint becomes #v = m, so only depth-m tumblers can be forced into V_S(d). The following case analysis on depth-m tumblers therefore covers all members of V_S(d)."*; S8 formal contract: *"Preconditions: … V-positions within each subspace form a contiguous ordinal range — D-CTG"*
 **Issue**: The proof's own exhaustiveness analysis concludes that S8-depth alone guarantees the case analysis covers all members of `V_S(d)` — D-CTG's `#v = #u` restriction means it can only "force" depth-m tumblers into `V_S(d)`, which S8-depth already ensures. The singleton decomposition works for *any* finite set of V-positions with uniform depth per subspace, regardless of contiguity. The proof never invokes D-CTG's contiguity guarantee in any step. Yet the formal contract lists D-CTG as a precondition. This creates an internal contradiction within the S8 section: the prose establishes that D-CTG is not needed, then the formal contract asserts it is. The property table correctly omits D-CTG, but the formal contract's inclusion falsely suggests the decomposition theorem requires contiguous arrangements — obscuring the fact that S8 holds even for fragmented (D-CTG-violating) states.
 **What needs resolving**: The formal contract's precondition list must be reconciled with the proof's analysis. If D-CTG is not used in any proof step, it should not appear as a precondition of S8.
+
+## Result
+
+Converged after 2 cycles.
+
+*Elapsed: 2956s*

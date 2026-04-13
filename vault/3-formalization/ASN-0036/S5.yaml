@@ -7,3 +7,10 @@ depends:
 - S1
 - S2
 - S3
+- S7b
+- S8a
+- S8-vdepth
+- S8-depth
+- S8-fin
+- D-CTG
+- D-MIN
