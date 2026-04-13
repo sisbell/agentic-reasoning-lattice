@@ -21,3 +21,9 @@ I've read the entire ASN and foundation statements carefully, tracking every def
 **ASN**: S5 proof, quoted: "S0–S3 are the only invariants checked. The constructions are minimal — single I-address, trivial arrangements — to isolate the consistency claim"; narrative text: "Transclusion is recursive and unlimited"; "no counter, cap, MAX_TRANSCLUSIONS constant, or any other limiting mechanism"
 **Issue**: S5's formal property proves that S0–S3 alone do not entail a finite bound on sharing multiplicity. The proof constructs standalone models — a single I-address `a` with `C(a) = w` — without verifying that `a` satisfies S7b (`zeros(a) = 3`), or that the arrangement satisfies D-CTG, D-MIN, S8-fin, or S8-depth. The narrative surrounding S5 then asserts system-wide unrestricted sharing, citing Nelson's design intent and Gregory's implementation evidence. These system-wide claims are true — a valid state satisfying all invariants can be constructed with arbitrarily high sharing multiplicity (e.g., `{[1,k] ↦ a : 1 ≤ k ≤ N+1}` with `a` element-level satisfies D-CTG, D-MIN, S8-fin, S8-depth, S8a, and S7b) — but this is not what S5 formally establishes. The gap is between S5's proved scope (S0–S3 consistency) and S5's narrative scope (system-wide unrestricted sharing).
 **What needs resolving**: Either strengthen S5's proof to verify the full invariant set (the construction is straightforward — choose an element-level I-address and sequential V-positions), or narrow the narrative claims to match the formal scope. A future ASN citing S5 for "unrestricted sharing in the system" would be making an unsound argument unless the full-invariant consistency is established somewhere.
+
+## Result
+
+Converged after 2 cycles.
+
+*Elapsed: 4013s*
