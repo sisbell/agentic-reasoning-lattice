@@ -195,11 +195,25 @@ def run_summarize(asn_num, force=False, dry_run=False):
         summaries = _parse_summaries(response)
         print(f" {len(summaries)} summaries ({elapsed:.0f}s)", file=sys.stderr)
 
+        # Build name→label reverse map for fuzzy matching
+        name_to_label = {}
+        for l in batch:
+            meta = all_metadata.get(l, {})
+            name = meta.get("name", "")
+            if name:
+                name_to_label[name] = l
+
         # Write summaries to YAMLs
         for label in batch:
-            if label not in summaries:
+            summary = summaries.get(label)
+            if not summary:
+                # Try matching by name (LLM sometimes uses name instead of label)
+                name = all_metadata.get(label, {}).get("name", "")
+                summary = summaries.get(name)
+            if not summary:
                 print(f"    WARNING: no summary for {label}", file=sys.stderr)
                 continue
+            summaries[label] = summary  # normalize key for cache
 
             stem = label_index.get(label, label)
             yaml_path = prop_dir / f"{stem}.yaml"
