@@ -1,12 +1,10 @@
-label: S7
-name: StructuralAttribution
+label: S7e
+name: OriginDiscriminatesDocuments
 type: theorem
 depends:
 - D-DOC
-- S7a
 - S7b
 - S7d
-- S0
 - T4
 - T10a
 - GlobalUniqueness

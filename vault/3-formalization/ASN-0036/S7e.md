@@ -1,0 +1,9 @@
+**S7e (OriginDiscriminatesDocuments).** For any `a₁, a₂ ∈ dom(Σ.C)` allocated under distinct documents `d₁ ≠ d₂` (D-DOC): `origin(a₁) ≠ origin(a₂)`. The origin function discriminates allocating documents without ambiguity.
+
+This is the system-level consequence of GlobalUniqueness (ASN-0034) applied to document-level allocation. Where S7 establishes that a single address `a` carries well-defined, permanent attribution to its allocating document, S7e establishes that distinct documents are distinguished by their origins — a pair-wise claim whose quantification ranges over all pairs of addresses from distinct documents, not over a single address.
+
+*Proof.* Let `a₁, a₂ ∈ dom(Σ.C)` be allocated under distinct documents `d₁ ≠ d₂` (D-DOC). By D-DOC, document distinctness means `d₁` and `d₂` were created by distinct allocation events. By S7d (hierarchical allocation discipline), there exists a single T10a-conforming system S within which all allocation events for addresses in `dom(Σ.C)` occur; in particular, the creating events of `d₁` and `d₂` both belong to S. GlobalUniqueness (ASN-0034) — whose precondition requires precisely that the addresses be produced by distinct allocation events within a single T10a-conforming system — therefore applies: the document-level tumblers of `d₁` and `d₂` are distinct. By origin(a) (DocumentLevelPrefix), `origin(a₁)` is the document-level prefix identifying `d₁` and `origin(a₂)` is the document-level prefix identifying `d₂`. Since the document-level tumblers are distinct, `origin(a₁) ≠ origin(a₂)`. ∎
+
+*Formal Contract:*
+- *Preconditions:* `a₁, a₂ ∈ dom(Σ.C)` allocated under distinct documents `d₁ ≠ d₂` (D-DOC), in a system conforming to S7b (element-level I-addresses), S7d (hierarchical allocation discipline), origin(a) (DocumentLevelPrefix), T4 (HierarchicalParsing, ASN-0034), and GlobalUniqueness (ASN-0034).
+- *Postconditions:* `origin(a₁) ≠ origin(a₂)`.
