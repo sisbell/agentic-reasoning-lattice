@@ -9,4 +9,5 @@ For the standard text subspace at depth m = 2, this is a finite condition: the i
 At depth m ≥ 3, D-CTG combined with S8-fin and S8-depth forces a stronger restriction: all positions in V_S(d) must share components 2 through m − 1. This is a derived consequence — not part of the contiguity invariant itself — and D-CTG-depth (SharedPrefixReduction) establishes that result.
 
 *Formal Contract:*
+- *Preconditions:* `V_S(d) ⊆ dom(M(d)) ⊆ T` (Σ.M(d)), so the lexicographic order `<` (T1, ASN-0034) is well-defined on V-positions.
 - *Invariant:* `(A d, S, u, q : u ∈ V_S(d) ∧ q ∈ V_S(d) ∧ u < q : (A v : subspace(v) = S ∧ #v = #u ∧ u < v < q : v ∈ V_S(d)))` — within each subspace, V-positions form a contiguous range under lexicographic order.

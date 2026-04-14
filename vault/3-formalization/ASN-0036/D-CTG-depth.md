@@ -1,6 +1,6 @@
 **D-CTG-depth (SharedPrefixReduction).** For depth m ≥ 3, all positions in a non-empty V_S(d) share components 2 through m − 1. Contiguity reduces to contiguity of the last component alone — structurally identical to the depth 2 case.
 
-*Proof.* Let V_S(d) be non-empty with common depth m ≥ 3 (S8-depth). Suppose for contradiction that V_S(d) contains two positions v₁ and v₂ with v₁ < v₂ (both depth m) whose first point of disagreement is at component j with 2 ≤ j ≤ m − 1 — that is, (v₁)ᵢ = (v₂)ᵢ for all i < j (in particular, (v₁)₁ = S = (v₂)₁, since both belong to V_S(d)), and (v₁)ⱼ < (v₂)ⱼ (the inequality follows from v₁ < v₂ by T1(i), since j is the first disagreeing component and j ≤ min(m, m)).
+*Proof.* Let V_S(d) be non-empty with common depth m ≥ 3 (S8-depth). Since `V_S(d) ⊆ dom(M(d)) ⊆ T` (Σ.M(d)), every element of `V_S(d)` belongs to `T`, so T1 applies to V-positions throughout. Suppose for contradiction that V_S(d) contains two positions v₁ and v₂ with v₁ < v₂ (both depth m) whose first point of disagreement is at component j with 2 ≤ j ≤ m − 1 — that is, (v₁)ᵢ = (v₂)ᵢ for all i < j (in particular, (v₁)₁ = S = (v₂)₁, since both belong to V_S(d)), and (v₁)ⱼ < (v₂)ⱼ (the inequality follows from v₁ < v₂ by T1(i), since j is the first disagreeing component and j ≤ min(m, m)).
 
 We construct infinitely many intermediates. For any natural number n > (v₁)ⱼ₊₁, define w of length m by:
 
@@ -20,5 +20,5 @@ Therefore no two positions in V_S(d) can disagree at any component j with 2 ≤ 
 Nelson's statement specifies not just contiguity but also the starting ordinal: "addresses 1 through 100," not "42 through 141." All ordinal numbering in the tumbler system starts at 1: the first child is always .1 (LM 4/20), link positions within a document begin at 1 (LM 4/31), and position 0 is structurally unavailable since zero serves as a field separator (T4, ASN-0034). V-positions follow the same convention.
 
 *Formal Contract:*
-- *Preconditions:* V_S(d) non-empty; common depth m ≥ 3 (S8-depth); D-CTG (VContiguity); S8-fin (finite arrangement).
+- *Preconditions:* `V_S(d) ⊆ dom(M(d)) ⊆ T` (Σ.M(d)), providing carrier-set membership for T1; V_S(d) non-empty; common depth m ≥ 3 (S8-depth); D-CTG (VContiguity); S8-fin (finite arrangement).
 - *Postconditions:* `(A v₁, v₂ : v₁ ∈ V_S(d) ∧ v₂ ∈ V_S(d) : (A j : 2 ≤ j ≤ #v₁ − 1 : (v₁)ⱼ = (v₂)ⱼ))`. Contiguity of V_S(d) reduces to contiguity of the m-th (last) component.

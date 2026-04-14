@@ -8,7 +8,7 @@ In both cases, S = v₁ is the subspace identifier.
 
 In the non-empty case, there are exactly N + 1 valid insertion positions: the N positions coinciding with existing V-positions v₀ through v_{N−1}, plus the append position shift(min(V_S(d)), N). In the empty case, the parameter m determines a unique valid position [S, 1, ..., 1] of depth m.
 
-We verify the structural claims. By D-MIN, min(V_S(d)) = [S, 1, ..., 1] of depth m. By OrdinalShift, since m ≥ 2, the prefix rule (`shift(v, j)ᵢ = vᵢ` for `i < m`) copies components 1 through m − 1 unchanged, and the last-component increment (`shift(v, j)_m = v_m + j`) sets position m to 1 + j. The explicit form is shift(min(V_S(d)), j) = [S, 1, ..., 1 + j].
+We verify the structural claims. By D-MIN, min(V_S(d)) = [S, 1, ..., 1] of depth m. Since `V_S(d) ⊆ dom(M(d)) ⊆ T` (Σ.M(d)), `min(V_S(d)) ∈ T`, satisfying OrdinalShift's precondition. By OrdinalShift, since m ≥ 2, the prefix rule (`shift(v, j)ᵢ = vᵢ` for `i < m`) copies components 1 through m − 1 unchanged, and the last-component increment (`shift(v, j)_m = v_m + j`) sets position m to 1 + j. The explicit form is shift(min(V_S(d)), j) = [S, 1, ..., 1 + j].
 
 *Distinctness.* The N + 1 positions have last components 1 (for j = 0, where v = min(V_S(d))), 2, 3, ..., N + 1 (for j = 1, ..., N). These are pairwise distinct natural numbers, so by T3 (CanonicalRepresentation, ASN-0034) the N + 1 tumblers are pairwise distinct.
 
@@ -20,7 +20,7 @@ We verify the structural claims. By D-MIN, min(V_S(d)) = [S, 1, ..., 1] of depth
 
 *Formal Contract:*
 - *Definition:* Given depth m ≥ 2, a V-position v is a valid insertion position for depth m in subspace S of document d when either (1) V_S(d) ≠ ∅ with |V_S(d)| = N, m equals the common depth (S8-depth, S8-vdepth gives m ≥ 2), and v = min(V_S(d)) + j for 0 ≤ j ≤ N (where + is the ordinal displacement notation of S8-depth: v + 0 = v, v + k = shift(v, k) for k ≥ 1), or (2) V_S(d) = ∅ and v = [S, 1, ..., 1] of depth m.
-- *Preconditions:* d satisfies D-CTG; S is a subspace identifier (S ≥ 1); m ≥ 2; S8-fin (dom(M(d)) is finite); in the non-empty case, m equals the common depth from S8-depth and S8-vdepth gives m ≥ 2; D-MIN holds for V_S(d).
+- *Preconditions:* `V_S(d) ⊆ dom(M(d)) ⊆ T` (Σ.M(d)), providing carrier-set membership for OrdinalShift and T3; d satisfies D-CTG; S is a subspace identifier (S ≥ 1); m ≥ 2; S8-fin (dom(M(d)) is finite); in the non-empty case, m equals the common depth from S8-depth and S8-vdepth gives m ≥ 2; D-MIN holds for V_S(d).
 - *Postconditions:* All valid insertion positions satisfy #v = m (depth preservation — m is an independent parameter, so this constrains the position's depth to equal the specified depth), v₁ = S (subspace identity), zeros(v) = 0 ∧ v > 0 (S8a consistency); in the non-empty case, the N + 1 positions are pairwise distinct (by T3).
 
 ### Valid insertion position examples

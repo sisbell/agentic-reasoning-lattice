@@ -2,6 +2,7 @@ label: D-CTG-depth
 name: SharedPrefixReduction
 type: lemma
 depends:
+- Σ.M(d)
 - D-CTG
 - S8-depth
 - S8-fin

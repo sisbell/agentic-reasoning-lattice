@@ -2,6 +2,7 @@ label: ValidInsertionPosition
 name: ValidInsertionPosition
 type: definition
 depends:
+- Σ.M(d)
 - D-CTG
 - S8-depth
 - S8-fin

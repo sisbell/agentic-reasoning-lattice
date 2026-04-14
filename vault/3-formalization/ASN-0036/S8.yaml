@@ -2,10 +2,12 @@ label: S8
 name: FiniteSpanDecomposition
 type: theorem
 depends:
+- Σ.M(d)
 - S8-fin
 - S2
 - S8a
 - S8-depth
+- S8-vdepth
 - OrdinalShift
 - T0
 - T1
