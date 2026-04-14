@@ -44,3 +44,9 @@
 **ASN**: PrefixOrderingExtension (first property, uses `≼` in statement and proof), T5 (inline definition in proof: "`p ≼ a` means `#a ≥ #p` and `aᵢ = pᵢ` for all `1 ≤ i ≤ #p`"), T10a (lists "Prefix (PrefixRelation)" as a foundation), PartitionMonotonicity (uses `≼` throughout)
 **Issue**: PrefixOrderingExtension — the first property in the document — uses `≼` in its statement ("for every `a` extending `p₁` (`p₁ ≼ a`)") and its proof. The first actual definition appears four properties later, inline in T5's proof. T10a references "Prefix (PrefixRelation)" as though it were a separately defined property with its own formal contract, but no such standalone definition exists. The usage is *consistent* across all properties — the meaning doesn't shift — but the definition is scattered across inline glosses rather than established once as a foundation for all downstream consumers.
 **What needs resolving**: The prefix relation needs a single canonical definition (with formal contract specifying the biconditional `p ≼ a ⟺ #a ≥ #p ∧ (∀ i : 1 ≤ i ≤ #p : aᵢ = pᵢ)`) that precedes all properties referencing it. T10a's citation of "Prefix (PrefixRelation)" as a foundation suggests this was intended but never realized.
+
+## Result
+
+Cone converged after 2 cycles.
+
+*Elapsed: 4832s*
