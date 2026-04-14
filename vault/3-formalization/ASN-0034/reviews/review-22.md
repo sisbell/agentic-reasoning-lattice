@@ -22,3 +22,9 @@ Counterexample 2: `start = [3, 2, 1]`, `w = [0, 5]` (action point 2). `end = [3,
 The formula is correct for its actual usage in the displacement identities section — computing displacements between two positions (`b ⊖ a`) — but the narrative describes a different operation (inverting TumblerAdd) that the formula does not and cannot perform.
 
 **What needs resolving**: The introductory description of TumblerSub must describe what the operation actually computes, not an inverse relationship with TumblerAdd that does not hold. The operation computes a component-wise difference at the first point of (zero-padded) divergence — this is the operation used downstream (e.g., in D0 as `b ⊖ a`), and the description should match that use.
+
+## Result
+
+Cone converged after 3 cycles.
+
+*Elapsed: 2568s*
