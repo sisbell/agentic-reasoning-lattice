@@ -3,3 +3,4 @@ name: Divergence
 type: corollary
 depends:
 - T1
+- T3
