@@ -1,4 +1,5 @@
 label: Prefix
 name: PrefixRelation
 type: definition
-depends: []
+depends:
+  - T3
