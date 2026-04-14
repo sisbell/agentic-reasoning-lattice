@@ -1,4 +1,8 @@
-"""Load foundation ASN statements for injection into prompts."""
+"""Load foundation ASN statements for injection into prompts.
+
+Reads directly from per-property YAML (summary) + .md (formal contract)
+files. No dependency on pre-built export files.
+"""
 
 import re
 import sys
@@ -7,7 +11,8 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import PROJECT_MODEL_DIR, asn_dir, formal_stmts, load_manifest
+from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, PROJECT_MODEL_DIR, load_manifest
+from lib.shared.common import build_label_index, load_property_metadata
 
 
 def find_extensions(base_id):
@@ -35,108 +40,127 @@ def find_extensions(base_id):
     return sorted(extensions)
 
 
-def load_foundation_statements(asn_id):
-    """Load formal statements for an ASN's dependencies.
+def _extract_formal_contract(md_text):
+    """Extract *Formal Contract:* section from .md text."""
+    marker = "*Formal Contract:*"
+    idx = md_text.find(marker)
+    if idx == -1:
+        return ""
+    return md_text[idx:].strip()
 
-    Reads the ASN's depends field from its manifest, then loads formal
-    statements for each dependency. Extensions (ASNs with extends: <dep>)
-    are automatically bundled with their base ASN.
+
+def _load_property_statement(dep_asn_num, label):
+    """Load one property's foundation statement from per-property files.
+
+    Returns formatted section text or None if not found.
     """
+    asn_label = f"ASN-{int(dep_asn_num):04d}"
+    prop_dir = FORMALIZATION_DIR / asn_label
+    if not prop_dir.exists():
+        return None
+
+    meta = load_property_metadata(prop_dir, label=label)
+    if not meta or not meta.get("summary"):
+        return None
+
+    label_index = build_label_index(prop_dir)
+    stem = label_index.get(label)
+    if not stem:
+        return None
+
+    md_path = prop_dir / f"{stem}.md"
+    if not md_path.exists():
+        return None
+
+    contract = _extract_formal_contract(md_path.read_text())
+    name = meta.get("name", label)
+    summary = meta["summary"]
+
+    section = f"## {label} — {name}\n\n{summary}"
+    if contract:
+        section += f"\n\n{contract}"
+    return section
+
+
+def _dep_ids_with_extensions(asn_id):
+    """Get all dependency ASN IDs including extensions."""
     manifest = load_manifest(asn_id)
     dep_ids = manifest.get("depends", [])
-    if not dep_ids:
+    all_ids = []
+    for dep_id in dep_ids:
+        all_ids.append(dep_id)
+        for ext_id in find_extensions(dep_id):
+            if ext_id != asn_id:
+                all_ids.append(ext_id)
+    return all_ids
+
+
+def load_foundation_statements(asn_id):
+    """Load all foundation statements from per-property files.
+
+    Reads YAML summaries + .md formal contracts for every property
+    in each dependency ASN. Errors if summaries are missing.
+    """
+    all_dep_ids = _dep_ids_with_extensions(asn_id)
+    if not all_dep_ids:
         return ""
 
     sections = []
-    for dep_id in dep_ids:
-        # Load base dependency
-        dep_manifest = load_manifest(dep_id)
-        title = dep_manifest.get("title", "")
-        label = f"ASN-{int(dep_id):04d}"
-        stmt_path = formal_stmts(dep_id)
-        if stmt_path.exists():
-            content = stmt_path.read_text().strip()
-            sections.append(
-                f"## Foundation: {label} ({title})\n\n{content}"
-            )
-        else:
-            print(f"  [ERROR] Dependency {label} has no formal statements — "
-                  f"run: python scripts/normalize.py {dep_id}",
+    for dep_id in all_dep_ids:
+        asn_label = f"ASN-{int(dep_id):04d}"
+        prop_dir = FORMALIZATION_DIR / asn_label
+        if not prop_dir.exists():
+            print(f"  [ERROR] No formalization dir for {asn_label}",
+                  file=sys.stderr)
+            continue
+
+        all_meta = load_property_metadata(prop_dir)
+        if not all_meta:
+            print(f"  [ERROR] No property metadata for {asn_label}",
+                  file=sys.stderr)
+            continue
+
+        missing = [l for l, m in all_meta.items() if not m.get("summary")]
+        if missing:
+            print(f"  [ERROR] {asn_label} missing summaries for "
+                  f"{len(missing)} properties — "
+                  f"run: python scripts/summarize.py {dep_id}",
                   file=sys.stderr)
             sys.exit(1)
 
-        # Load extensions of this dependency
-        for ext_id in find_extensions(dep_id):
-            # Don't include self as own extension
-            if ext_id == asn_id:
-                continue
-            ext_manifest = load_manifest(ext_id)
-            ext_title = ext_manifest.get("title", "")
-            ext_label = f"ASN-{int(ext_id):04d}"
-            ext_path = formal_stmts(ext_id)
-            if ext_path.exists():
-                ext_content = ext_path.read_text().strip()
-                sections.append(
-                    f"## Foundation: {ext_label} ({ext_title}, extends {label})\n\n{ext_content}"
-                )
+        for label in all_meta:
+            stmt = _load_property_statement(dep_id, label)
+            if stmt:
+                sections.append(stmt)
 
-    return "\n\n".join(sections)
-
-
-def _extract_label_section(export_text, label):
-    """Extract a single property section from a formal-statements export.
-
-    Sections are delimited by `## LABEL — Name` headers.
-    Returns the section text or None if not found.
-    """
-    pattern = re.compile(
-        r'^## ' + re.escape(label) + r'\s*—\s*(.+?)(?=\n## |\Z)',
-        re.MULTILINE | re.DOTALL
-    )
-    m = pattern.search(export_text)
-    if m:
-        return m.group(0).strip()
-    return None
+    return "\n\n---\n\n".join(sections)
 
 
 def load_foundation_for_labels(asn_id, labels):
-    """Load foundation statements for specific labels only.
+    """Load foundation statements for specific labels from per-property files.
 
-    Scans the ASN's dependency exports for each requested label.
-    Returns concatenated text of matching sections. Labels not found
-    in any dependency export are silently skipped.
+    Reads YAML summary + .md formal contract for each label.
+    Warns if a label is not found in any dependency ASN.
     """
     if not labels:
         return ""
 
-    manifest = load_manifest(asn_id)
-    dep_ids = manifest.get("depends", [])
-    if not dep_ids:
+    all_dep_ids = _dep_ids_with_extensions(asn_id)
+    if not all_dep_ids:
         return ""
 
-    # Load all dependency exports once
-    exports = {}  # dep_id → text
-    for dep_id in dep_ids:
-        stmt_path = formal_stmts(dep_id)
-        if stmt_path.exists():
-            exports[dep_id] = stmt_path.read_text()
-        # Also check extensions
-        for ext_id in find_extensions(dep_id):
-            if ext_id == asn_id:
-                continue
-            ext_path = formal_stmts(ext_id)
-            if ext_path.exists():
-                exports[ext_id] = ext_path.read_text()
-
-    # Extract requested labels
-    labels_set = set(labels)
     sections = []
-    found = set()
-    for dep_id, text in exports.items():
-        for label in labels_set - found:
-            section = _extract_label_section(text, label)
-            if section:
-                sections.append(section)
-                found.add(label)
+    for label in labels:
+        found = False
+        for dep_id in all_dep_ids:
+            stmt = _load_property_statement(dep_id, label)
+            if stmt:
+                sections.append(stmt)
+                found = True
+                break
+        if not found:
+            print(f"  [WARNING] Foundation label '{label}' not found — "
+                  f"run: python scripts/summarize.py on dependency",
+                  file=sys.stderr)
 
     return "\n\n---\n\n".join(sections)
