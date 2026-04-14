@@ -1,6 +1,12 @@
-### Constructive definition of ⊕ and ⊖
+## Tumbler arithmetic
 
-The axiomatic properties above state what `⊕` and `⊖` must satisfy. We now give a constructive definition that shows how they work. Tumbler addition is not arithmetic addition — it is a **position-advance operation**: given a start position `a` and a displacement `w`, compute where you land. The displacement encodes both the distance and the hierarchical level at which the advance occurs.
+We now turn to the arithmetic operations. The system requires operations that advance a position by a displacement (for computing span endpoints and shifting positions) and that recover the displacement between two positions (for computing span widths). These operations — tumbler addition (⊕, constructed in TumblerAdd) and subtraction (⊖, constructed in TumblerSub) — are not arithmetic on numbers but position-advance operations in a hierarchical address space.
+
+A displacement `w` is a tumbler whose leading zeros say "stay at these hierarchical levels" and whose first nonzero component says "advance here." Components after the advance point describe the structure of the landing position within the target region.
+
+### Definition of ⊕
+
+Tumbler addition is not arithmetic addition — it is a **position-advance operation**: given a start position `a` and a displacement `w`, compute where you land. The displacement encodes both the distance and the hierarchical level at which the advance occurs.
 
 ```
 START:  1.0.3.0.2.0.1.777

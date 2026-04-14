@@ -4,3 +4,4 @@ type: corollary
 depends:
 - TumblerAdd
 - TumblerSub
+- PositiveTumbler

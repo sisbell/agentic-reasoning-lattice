@@ -1,4 +1,6 @@
 label: PositiveTumbler
 name: PositiveTumbler
 type: definition
-depends: []
+depends:
+- T1
+- T3

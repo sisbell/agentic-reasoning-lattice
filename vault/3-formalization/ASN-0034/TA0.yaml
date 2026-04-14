@@ -1,4 +1,5 @@
 label: TA0
 name: WellDefinedAddition
-type: definition
-depends: []
+type: theorem
+depends:
+- TumblerAdd

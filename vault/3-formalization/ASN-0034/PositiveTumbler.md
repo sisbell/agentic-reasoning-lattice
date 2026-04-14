@@ -12,7 +12,7 @@ Every positive tumbler is greater than every zero tumbler under T1.
 
 *Case `#z < k`.* For `1 ≤ i ≤ #z` we have `i < k` (since `i ≤ #z < k`), whence `tᵢ = 0 = zᵢ`, establishing the T1 agreement condition at every position of `z`. From `#z < k ≤ #t` we obtain `#z + 1 ≤ #t`, so by T1 case (ii) with witness `#z + 1`, `z < t`. ∎
 
-The condition `w > 0` in TA0 and TA4 excludes all all-zero displacements regardless of length.
+The condition `w > 0` in TA0 excludes all all-zero displacements regardless of length.
 
 *Formal Contract:*
 - *Definition:* `t > 0` (positive) iff `(E i : 1 ≤ i ≤ #t : tᵢ ≠ 0)`. Zero tumbler: `(A i : 1 ≤ i ≤ #t : tᵢ = 0)`.
