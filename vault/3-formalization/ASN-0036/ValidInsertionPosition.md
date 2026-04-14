@@ -16,7 +16,7 @@ We verify the structural claims. By D-MIN, min(V_S(d)) = [S, 1, ..., 1] of depth
 
 *Subspace identity.* Since m ≥ 2, position 1 precedes position m, and OrdinalShift's prefix rule gives shift(min, j)₁ = min₁ = S for all j ≥ 1. For j = 0, v₁ = min₁ = S directly.
 
-*S8a consistency.* For text-subspace positions (S ≥ 1), every valid position [S, 1, ..., 1 + j] has all components strictly positive (S ≥ 1, intermediate components are 1, last component is 1 + j ≥ 1), so zeros(v) = 0 and v > 0 — satisfying S8a. ∎
+*S8a consistency.* The precondition requires S ≥ 1, which is the universal condition on subspace identifiers — it holds for every subspace, text or link alike. Every valid position [S, 1, ..., 1 + j] therefore has all components strictly positive: S ≥ 1 by precondition, intermediate components are 1, and the last component is 1 + j ≥ 1. Hence zeros(v) = 0 and v > 0, satisfying S8a for all subspaces. ∎
 
 *Formal Contract:*
 - *Definition:* A V-position v is a valid insertion position in subspace S of document d when either (1) V_S(d) ≠ ∅ with |V_S(d)| = N and common depth m (S8-vdepth gives m ≥ 2), and v = min(V_S(d)) + j for 0 ≤ j ≤ N (where + is the ordinal displacement notation of S8-depth: v + 0 = v, v + k = shift(v, k) for k ≥ 1), or (2) V_S(d) = ∅ and v = [S, 1, ..., 1] of depth m ≥ 2.
