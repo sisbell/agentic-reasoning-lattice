@@ -14,3 +14,9 @@ Concrete witness: `a = [2, 1]`, `b = [2, 1, 0, 0]`, `w = [1, 0, 0, 0]`. All prec
 The same misapplication appears in the subsequent sentence: "if `(b ⊖ w)_p = 0` at all such positions, then `a ⊖ w` is a prefix of `b ⊖ w`, giving `a ⊖ w ≤ b ⊖ w` by T1 case (ii)" — though this branch is additionally vacuous (a "first disagreement" position where both sides are zero is not a disagreement).
 
 **What needs resolving**: The proof must distinguish the case `#(a ⊖ w) < #(b ⊖ w)` — where T1 case (ii) properly applies — from the case `#(a ⊖ w) = #(b ⊖ w)` (triggered when `#w ≥ #b`), where full component agreement yields `a ⊖ w = b ⊖ w` by T3, and `≤` follows from equality. A TLA+ encoding would require this case split.
+
+## Result
+
+Cone converged after 2 cycles.
+
+*Elapsed: 3121s*
