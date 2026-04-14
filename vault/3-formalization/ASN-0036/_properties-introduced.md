@@ -8,9 +8,10 @@
 | S1 | Store monotonicity: `dom(C) ⊆ dom(C')` for all transitions | from S0 |
 | S2 | Arrangement functionality: `M(d)` is a function — each V-position maps to exactly one I-address | axiom |
 | S3 | Referential integrity: `(A d, v : v ∈ dom(M(d)) : M(d)(v) ∈ dom(C))` | design; uses NoDeallocation (ASN-0034) |
-| S4 | Origin-based identity: distinct allocations produce distinct I-addresses regardless of value equality | from GlobalUniqueness, T3 (ASN-0034) |
+| AX-2 | Allocation-mediated entry: `dom(Σ.C) ⊆ allocated(s)` — content-store addresses are T10a-conforming allocated addresses | axiom |
+| S4 | Origin-based identity: distinct allocations produce distinct I-addresses regardless of value equality | from GlobalUniqueness, T3, AX-2 (ASN-0034) |
 | S5 | Unrestricted sharing: S0–S3 do not entail any finite bound on sharing multiplicity | consistent with S0, S1, S2, S3 |
-| S6 | Persistence independence: `a ∈ dom(C)` is unconditional — independent of all arrangements | from S0 |
+| S6 | Persistence independence: named restatement of S1 — labels the anti-GC commitment | restatement of S1 |
 | S7a | Document-scoped allocation: every I-address is allocated under the originating document's prefix | design; uses Prefix, T4, T4c (ASN-0034) |
 | S7b | Element-level I-addresses: `(A a ∈ dom(C) :: zeros(a) = 3)` | design; uses T4 (ASN-0034) |
 | S7c | Element-field depth: `(A a ∈ dom(C) :: #fields(a).element ≥ 2)` — subspace identifier and content ordinal occupy distinct components | design; uses S7b, T4, TA7a (ASN-0034) |

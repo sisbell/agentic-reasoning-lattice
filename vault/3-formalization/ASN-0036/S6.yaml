@@ -3,3 +3,4 @@ name: PersistenceIndependence
 type: corollary
 depends:
 - S0
+- S1

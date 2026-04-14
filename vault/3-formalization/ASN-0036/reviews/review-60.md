@@ -26,3 +26,9 @@
 **ASN**: S7d axiom — "For every a ∈ dom(Σ.C): (i) origin(a) was produced by a distinct allocation event within a system conforming to T10a; (ii) a itself was produced by a distinct allocation event within a system conforming to T10a"; S7 proof, Uniqueness — "By S7d, each of these creating events is T10a-conforming. GlobalUniqueness therefore applies"
 **Issue**: GlobalUniqueness's precondition requires both addresses to arise from events "within a system conforming to T10a" — a single allocator tree, as its depth-based induction proof assumes. S7d's axiom asserts that each address's producing event is "within a system conforming to T10a," but the indefinite article "a system" is existentially quantified per-event: for a₁ and a₂ in dom(C), S7d yields ∃S₁: origin(a₁)'s event ∈ S₁ and ∃S₂: origin(a₂)'s event ∈ S₂. GlobalUniqueness requires S₁ = S₂. S7's uniqueness proof collapses the two existentials into one shared system ("By S7d, each of these creating events is T10a-conforming. GlobalUniqueness therefore applies") without establishing that both events belong to the same T10a-conforming system. In a multi-node Xanadu network where distinct nodes might host independent allocator trees, per-event conformance does not entail cross-tree uniqueness.
 **What needs resolving**: S7d's axiom should establish that all allocation events across all addresses in dom(C) — at both document and element levels — occur within a single T10a-conforming system, not merely that each event individually occurs within some T10a-conforming system. Alternatively, a system-level axiom asserting single-system membership should be stated so that S7's proof can discharge GlobalUniqueness's single-system precondition explicitly.
+
+## Result
+
+Cone converged after 4 cycles.
+
+*Elapsed: 7254s*

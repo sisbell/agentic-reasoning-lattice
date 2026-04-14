@@ -4,5 +4,6 @@ type: corollary
 depends:
 - GlobalUniqueness
 - T10a
+- AX-2
 literature_citations:
 - LM 2/48
