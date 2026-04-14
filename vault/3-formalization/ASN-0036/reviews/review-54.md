@@ -17,3 +17,9 @@
 **ASN**: ValidInsertionPosition S8a consistency — "For text-subspace positions (S ≥ 1), every valid position [S, 1, ..., 1 + j] has all components strictly positive (S ≥ 1, intermediate components are 1, last component is 1 + j ≥ 1), so zeros(v) = 0 and v > 0 — satisfying S8a."
 **Issue**: The proof's label says "For text-subspace positions (S ≥ 1)," but S ≥ 1 is the universal condition on all subspace identifiers — it is the precondition stated in ValidInsertionPosition's own formal contract ("S is a subspace identifier (S ≥ 1)"), not a text-subspace-specific condition. The text subspace has S = 1; the link subspace has S = 2; both satisfy S ≥ 1. The mathematical argument is correct for all subspaces — it uses only S ≥ 1 and the structure [S, 1, ..., 1 + j]. But the label "text-subspace" creates an apparent scope restriction that contradicts both the formal contract's universal precondition and S8a's explicit remark that link-subspace positions satisfy the same constraints. A formalizer reading the label might believe link-subspace positions require a separate consistency proof.
 **What needs resolving**: The S8a consistency section should either drop the "text-subspace" qualifier (the argument is universal over S ≥ 1) or explicitly note that the same argument covers all subspaces including the link subspace.
+
+## Result
+
+Cone not converged after 3 cycles.
+
+*Elapsed: 5118s*
