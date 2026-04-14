@@ -13,3 +13,9 @@ The root cause is upstream: `a ⊕ w ≥ w` is a general consequence of TumblerA
 By contrast, ReverseInverse's Step 3 explicitly constructs the proof that `y ⊕ w > w` before invoking TA3-strict, correctly discharging the same kind of obligation. The asymmetry between the two proofs makes the gap in TA4 visible.
 
 **What needs resolving**: TumblerAdd must export `a ⊕ w ≥ w` as a postcondition (with proof from the construction), and TA4 Step 2 must cite it to discharge TumblerSub's precondition before proceeding to the divergence case analysis.
+
+## Result
+
+Cone converged after 2 cycles.
+
+*Elapsed: 3276s*
