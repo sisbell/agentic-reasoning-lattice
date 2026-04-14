@@ -49,3 +49,9 @@ Now, the new issues:
 **ASN**: S8-depth formal contract postcondition 3: `"I-address subspace preservation: (A k : 0 ≤ k < n : E₁(a + k) = E₁(a)) — S7c guarantees element-field depth δ ≥ 2, placing E₁ outside the action point; OrdinalShift's prefix rule copies it unchanged."`
 **Issue**: Postcondition 3 holds only because S7c constrains element-field depth to `δ ≥ 2`, which places the subspace identifier `E₁` strictly before the action point `#a`. At `δ = 1`, `E₁` would *be* the action point — `shift(a, k)` would alter the subspace identifier, and postcondition 3 would be false. S7c is cited inline in the postcondition text but S8-depth's formal contract has no Preconditions section — its structure (Axiom + Definition + Postconditions) implies no dependencies. This is inconsistent: the contract structure signals "no preconditions" while postcondition 3 requires S7c. The parallel V-position postcondition (postcondition 1) correctly guards its weaker case with `"(requires #v ≥ 2)"`, but postcondition 3 presents the I-address case as unconditional, with the S7c dependency hidden in the justification text. Any downstream consumer of postcondition 3 must independently discover the S7c requirement.
 **What needs resolving**: Either add a Preconditions section to S8-depth's formal contract declaring S7c as a dependency of postcondition 3, or restructure so the correspondence-run postconditions are a separate property with their own explicit preconditions — separating them from the depth-uniformity axiom that genuinely has none.
+
+## Result
+
+Cone not converged after 3 cycles.
+
+*Elapsed: 3961s*

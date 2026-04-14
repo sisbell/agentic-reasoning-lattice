@@ -7,6 +7,9 @@ depends:
 - D-MIN
 - T3
 - S8a
+- OrdinalShift
+- S8-vdepth
+- S7c
 vocabulary:
 - symbol: valid insertion position
   meaning: A V-position v in subspace S of document d satisfying D-CTG, where either V_S(d) is non-empty with common depth m ≥ 2 and v equals shift(min(V_S(d)),
