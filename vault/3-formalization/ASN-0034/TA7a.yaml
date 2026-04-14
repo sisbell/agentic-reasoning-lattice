@@ -2,3 +2,7 @@ label: TA7a
 name: SubspaceClosure
 type: definition
 depends: []
+summary: Defines the subspace S as the set of tumblers with all positive components (matching T4's field constraint) and characterizes
+  when ⊕ and ⊖ preserve membership in S. Addition stays in S when all tail components of the width are positive; subtraction
+  stays in S in most cases but exits S when the divergence point forces a zero into the first component — for example, [5,3]
+  ⊖ [5,1] = [0,2] ∉ S.

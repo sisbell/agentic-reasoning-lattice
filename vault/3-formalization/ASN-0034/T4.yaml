@@ -2,3 +2,6 @@ label: T4
 name: HierarchicalParsing
 type: axiom
 depends: []
+summary: Address tumblers encode a four-level containment hierarchy (network, user, document, element) using zero components
+  as field separators, with at most three separating zeros, all non-separator components strictly positive, and every present
+  field containing at least one component.

@@ -4,3 +4,6 @@ type: lemma
 depends:
 - TumblerAdd
 - T3
+summary: 'Tumbler addition is left-cancellative: if a ⊕ x = a ⊕ y (both well-defined), then x = y. This holds because TumblerAdd''s
+  constructive definition determines each result component from exactly one input, so equality of results propagates back
+  component-by-component to equality of the displacements.'

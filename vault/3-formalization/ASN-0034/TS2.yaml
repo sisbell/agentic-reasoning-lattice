@@ -4,3 +4,5 @@ type: lemma
 depends:
 - TA-MTO
 - T3
+summary: 'Shift is injective on equal-length tumblers: if two tumblers of the same length m produce the same result under
+  the same positive shift n, they must have been identical. No two distinct same-length tumblers can collide under shift.'

@@ -4,3 +4,6 @@ type: corollary
 depends:
 - T1
 - T3
+summary: 'Defines the divergence index for two distinct tumblers as the first position where their components differ, or min(#a,
+  #b) + 1 when all shared components agree but the tumblers have unequal length. Exactly one of these two cases applies for
+  any unequal pair, with exhaustiveness guaranteed by T3.'

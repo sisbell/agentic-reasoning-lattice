@@ -3,3 +3,7 @@ name: HierarchicalIncrement
 type: definition
 depends:
 - TA5-SIG
+summary: 'inc(t, k) is the allocation increment operator: for k = 0 it advances the counter at the rightmost nonzero position
+  to produce the next sibling at the same hierarchical depth; for k > 0 it extends the address by k positions (k−1 zeros then
+  a 1) to produce a child. In neither case does it produce the true immediate successor in the total order — that gap contains
+  t''s entire subtree — but for allocation purposes advancing past all existing addresses is all that is required.'

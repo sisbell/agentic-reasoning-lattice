@@ -6,3 +6,6 @@ depends:
 - TA4
 - TumblerAdd
 - TumblerSub
+summary: 'Tumbler subtraction and addition are mutually inverse under the right conditions: subtracting a displacement w from
+  an address a and then re-adding w recovers a exactly, provided a ≥ w, both have the same depth, and all components of a
+  before the action point of w are zero.'

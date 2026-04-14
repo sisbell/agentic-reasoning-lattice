@@ -2,3 +2,5 @@ label: NoDeallocation
 name: NoDeallocation
 type: design-requirement
 depends: []
+summary: The system contains no operation that removes an address from the allocated set — the allocated set is strictly append-only.
+  This is a foundational design constraint, not a derived fact, and it is what makes permanence guarantees possible.

@@ -3,3 +3,6 @@ name: IntrinsicComparison
 type: definition
 depends:
 - T0
+summary: 'The ordering between any two tumblers is determined solely by their component sequences and lengths, with no external
+  data structures consulted. The comparison is a pure function that terminates after examining at most min(#a, #b) component
+  pairs.'

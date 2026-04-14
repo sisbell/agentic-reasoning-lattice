@@ -4,3 +4,6 @@ type: corollary
 depends:
 - T4
 - T4b
+summary: Counting the zeros in a valid T4 tumbler exactly counts its field separators and therefore determines the tumbler's
+  hierarchical level (server, account, document, or element). The mapping from zero-count to level is a bijection on {0, 1,
+  2, 3}, so level determination requires only a scan of the raw component sequence.

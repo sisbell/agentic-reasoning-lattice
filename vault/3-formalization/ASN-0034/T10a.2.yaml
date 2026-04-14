@@ -7,3 +7,6 @@ depends:
 - T1
 - TA5
 - T10
+summary: 'Distinct siblings from the same allocator are prefix-incomparable — neither address is a prefix of the other. This
+  follows from their equal length (T10a.1) combined with T1 and T10: equal-length tumblers can only be related by equality,
+  not strict prefix.'

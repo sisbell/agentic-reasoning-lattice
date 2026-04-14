@@ -5,3 +5,6 @@ depends:
 - T3
 - T4
 - T4a
+summary: Under T4's constraints, the zero-valued components of a tumbler serve exclusively as field separators — never as
+  field values — so separator positions are recoverable by a single scan. This makes the decomposition into node, user, document,
+  and element subsequences uniquely determined by the tumbler itself, with no ambiguity.

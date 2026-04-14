@@ -5,3 +5,6 @@ depends:
 - T1
 - TA0
 - TA-strict
+summary: 'A span is well-defined whenever its preconditions hold: the displaced endpoint s ⊕ ℓ exists in T (by TA0), the span
+  is non-empty because s is always a member (by TA-strict), and the span is order-convex under the tumbler ordering (by T1)
+  — any tumbler between two members of the span is itself a member.'

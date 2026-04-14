@@ -4,3 +4,6 @@ type: definition
 depends:
 - T0
 - PositiveTumbler
+summary: Defines the canonical displacement vector δ(n, m) as the length-m tumbler that is zero in all positions except the
+  last, where it holds n ≥ 1. This is the primitive unit for incrementing a tumbler at a specific depth without touching any
+  shallower components.

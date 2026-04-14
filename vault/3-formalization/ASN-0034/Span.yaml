@@ -2,3 +2,5 @@ label: Span
 name: Span
 type: definition
 depends: []
+summary: A span is a start address paired with a positive displacement length, denoting the contiguous set of tumblers from
+  the start up to (but not including) the start plus the length; it is a half-open interval in tumbler address space.
