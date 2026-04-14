@@ -3,6 +3,8 @@ name: FixedDepthVPositions
 type: design-requirement
 depends:
 - PositionAdvance
+- S3
+- S7b
 - S7c
 - OrdinalShift
 - S8-vdepth

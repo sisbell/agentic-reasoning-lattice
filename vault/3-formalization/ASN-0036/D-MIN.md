@@ -4,7 +4,7 @@
 
 where the tuple has length m (the common depth of V-positions in subspace S per S8-depth), and every component after the first is 1.
 
-D-MIN is a design requirement on valid arrangements. Tumbler components are positive natural numbers (T0(a)), so 1 is the smallest value any component can take. The position [S, 1, …, 1] is therefore the least element of subspace S under lexicographic order (T1): any other position in subspace S shares the first component S but must differ at some subsequent component; at the first such component j, [S, 1, …, 1] has value 1 and the other position, having a positive natural (T0(a)) distinct from 1, has value strictly greater than 1 — making it strictly larger by T1(i). D-MIN requires that this least position is always present when the subspace is non-empty — every operation that populates or modifies V_S(d) must include [S, 1, …, 1] in the resulting set.
+D-MIN is a design requirement on valid arrangements. V-position components are strictly positive natural numbers (S8a, deriving from T4's positive-component constraint), so 1 is the smallest value any component can take. The position [S, 1, …, 1] is therefore the least element of subspace S under lexicographic order (T1): any other position in subspace S shares the first component S but must differ at some subsequent component; at the first such component j, [S, 1, …, 1] has value 1 and the other position, having a positive natural (S8a) distinct from 1, has value strictly greater than 1 — making it strictly larger by T1(i). D-MIN requires that this least position is always present when the subspace is non-empty — every operation that populates or modifies V_S(d) must include [S, 1, …, 1] in the resulting set.
 
 At depth 2 this gives min(V_S(d)) = [S, 1]. Combined with D-CTG and S8-fin, a document with n elements in subspace S occupies V-positions [S, 1] through [S, n] — matching Nelson's "addresses 1 through 100."
 
@@ -18,5 +18,5 @@ In summary: since S8-vdepth gives m ≥ 2 for every populated subspace, position
 
 *Formal Contract:*
 - *Axiom:* `min(V_S(d)) = [S, 1, ..., 1]` — for any non-empty subspace, the minimum V-position is the depth-m tuple with subspace identifier S and every subsequent component equal to 1. This is a design requirement: operations that modify V_S(d) must preserve this minimum.
-- *Preconditions:* V_S(d) ≠ ∅; all positions in V_S(d) share depth m (S8-depth); S8-vdepth gives m ≥ 2.
+- *Preconditions:* V_S(d) ≠ ∅; all positions in V_S(d) share depth m (S8-depth); S8-vdepth gives m ≥ 2; S8a (V-position well-formedness) gives v > 0 for all V-positions, so every component ≥ 1.
 - *Postconditions:* Combined with D-CTG, S8-fin, and S8-vdepth (m ≥ 2 for populated subspaces): `V_S(d) = {[S, 1, …, 1, k] : 1 ≤ k ≤ n}` for some finite n ≥ 1. Positions within a subspace differ only at the last component and form a contiguous range starting at 1.

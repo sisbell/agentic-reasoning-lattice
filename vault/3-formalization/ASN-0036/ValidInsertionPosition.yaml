@@ -12,5 +12,5 @@ depends:
 - S7c
 vocabulary:
 - symbol: valid insertion position
-  meaning: A V-position v in subspace S of document d satisfying D-CTG, where either V_S(d) is non-empty with common depth m ≥ 2 and v equals shift(min(V_S(d)),
-    j) for some 0 ≤ j ≤ N, or V_S(d) is empty and v = [S, 1, ..., 1] of depth m ≥ 2
+  meaning: A V-position v in subspace S of document d satisfying D-CTG, where either V_S(d) is non-empty with common depth m ≥ 2 and v equals min(V_S(d))
+    + j for some 0 ≤ j ≤ N (using S8-depth ordinal displacement), or V_S(d) is empty and v = [S, 1, ..., 1] of depth m ≥ 2
