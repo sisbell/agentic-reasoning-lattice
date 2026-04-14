@@ -42,7 +42,9 @@ Each component of the result is a natural number: for `i < k`, `rᵢ = aᵢ ∈ 
 
 The construction also yields strict advancement. Since `k` is the first nonzero component of `w`, we have `wₖ ≥ 1`, so `rₖ = aₖ + wₖ ≥ aₖ + 1 > aₖ`. For all `i` with `1 ≤ i < k`, `rᵢ = aᵢ` by the construction. The precondition `k ≤ m` gives `k ≤ #a`, and the result-length identity gives `k ≤ n = #(a ⊕ w)`, so `k ≤ min(#a, #(a ⊕ w))` and both tumblers have a component at position `k`. T1 case (i) with divergence position `k` — agreement on positions `1, ..., k - 1` and strict inequality `aₖ < rₖ` — yields `a < a ⊕ w`. We record this as the *ordering guarantee*: **`a ⊕ w > a`** — tumbler addition strictly advances the start position.
 
-These three results are load-bearing for subsequent properties that depend on TumblerAdd.
+The construction also yields dominance over the displacement. Since `#(a ⊕ w) = #w` (result-length identity), the T1 comparison of `a ⊕ w` and `w` reduces to finding the first position where `rᵢ ≠ wᵢ`. For `i < k`, `rᵢ = aᵢ` and `wᵢ = 0` (by definition of action point); if some `aⱼ > 0` for `j < k`, the least such `j` is a divergence point with `rⱼ > wⱼ`, so T1 case (i) gives `r > w`. If instead `aᵢ = 0` for all `i < k`, then at position `k` we have `rₖ = aₖ + wₖ` and `wₖ > 0`; when `aₖ > 0`, `rₖ > wₖ` and T1 case (i) again gives `r > w`; when `aₖ = 0`, `rₖ = wₖ`, and since `rᵢ = wᵢ` for all `i > k` and `#r = #w`, the tumblers are equal, hence `r ≥ w`. In every case: **`a ⊕ w ≥ w`** — the result of tumbler addition dominates the displacement in T1 ordering.
+
+These four results are load-bearing for subsequent properties that depend on TumblerAdd.
 
 Three properties of this definition require explicit statement:
 
@@ -63,4 +65,4 @@ This is correct and intentional: advancing to "the beginning of the next chapter
 *Formal Contract:*
 - *Preconditions:* a ∈ T, w ∈ T, w > 0, actionPoint(w) ≤ #a
 - *Definition:* k = min{i : 1 ≤ i ≤ n ∧ wᵢ ≠ 0}; rᵢ = aᵢ if i < k; rₖ = aₖ + wₖ; rᵢ = wᵢ if i > k
-- *Postconditions:* a ⊕ w ∈ T, #(a ⊕ w) = #w, a ⊕ w > a (T1)
+- *Postconditions:* a ⊕ w ∈ T, #(a ⊕ w) = #w, a ⊕ w > a (T1), a ⊕ w ≥ w (T1)

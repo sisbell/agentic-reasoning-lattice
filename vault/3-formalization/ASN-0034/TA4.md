@@ -22,7 +22,7 @@ For `i > k`: by the result-length identity (TA0), `#r = #w`. The precondition `#
 
 Therefore `r = [0, ..., 0, aₖ + wₖ]` — a tumbler of length `k` with zeros at all positions before `k`.
 
-**Step 2: computing `s = r ⊖ w`.** By TumblerSub, subtraction scans `r` and `w` for the first divergence, zero-padding the shorter to the length of the longer. Since `#r = k = #w`, no padding is needed. At each position `i < k`, both `rᵢ = 0` (established above) and `wᵢ = 0` (definition of action point), so `rᵢ = wᵢ` and no divergence occurs before position `k`.
+**Step 2: computing `s = r ⊖ w`.** TumblerSub requires `r ≥ w` (T1). Since `r = a ⊕ w`, TumblerAdd's dominance postcondition gives `r ≥ w`, discharging this obligation. Subtraction scans `r` and `w` for the first divergence, zero-padding the shorter to the length of the longer. Since `#r = k = #w`, no padding is needed. At each position `i < k`, both `rᵢ = 0` (established above) and `wᵢ = 0` (definition of action point), so `rᵢ = wᵢ` and no divergence occurs before position `k`.
 
 Two cases arise at position `k`, exhausting all possibilities for `aₖ ∈ ℕ`.
 

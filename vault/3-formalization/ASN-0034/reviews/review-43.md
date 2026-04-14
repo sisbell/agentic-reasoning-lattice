@@ -15,3 +15,9 @@ Looking at this ASN as a complete system, checking every definition, preconditio
 The proof's five-case partition cannot route the resulting pairs. The two children have identical domain prefixes (`p₁ = p₂ = t`), identical spawning parameters (`k'₁ = k'₂`), and identical output zero counts. Case 1 requires same producing allocator — these are different allocators (created by different events). Case 3 requires non-nesting prefixes — identical prefixes satisfy both `p₁ ≼ p₂` and `p₂ ≼ p₁`, so the non-nesting condition `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁` fails. Case 4 requires `zeros(a) ≠ zeros(b)` — same k' from same prefix gives same zero count. Case 5 explicitly assumes `p₁ ≠ p₂`. No case accepts the pair. The `p₁ = p₂` subcase with *different* k' values is handled correctly — `k'₁ ≠ k'₂` yields different output zero counts, routing to Case 4 — so only the same-element same-k' duplicate is unhandled.
 
 **What needs resolving**: T10a must incorporate a uniqueness constraint ensuring each `(parent_domain_element, k')` pair produces at most one child-spawning event, so that the duplicate scenario is axiomatically excluded. Under this constraint, `p₁ = p₂` forces `k'₁ ≠ k'₂`, guaranteeing different output zero counts and routing to Case 4; the exhaustiveness paragraph should then explicitly address why identical-prefix same-k' pairs cannot arise.
+
+## Result
+
+Cone not converged after 8 cycles.
+
+*Elapsed: 17339s*
