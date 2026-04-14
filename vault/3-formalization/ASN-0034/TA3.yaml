@@ -4,5 +4,6 @@ type: corollary
 depends:
 - TA2
 - T1
+- T3
 - TA6
 - TumblerSub
