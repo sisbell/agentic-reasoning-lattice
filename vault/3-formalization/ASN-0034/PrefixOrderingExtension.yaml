@@ -2,4 +2,5 @@ label: PrefixOrderingExtension
 name: PrefixOrderingExtension
 type: lemma
 depends:
+- Prefix
 - T1

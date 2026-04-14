@@ -1,4 +1,7 @@
 label: T5
 name: ContiguousSubtrees
 type: definition
-depends: []
+depends:
+  - Prefix
+  - T1
+  - T3

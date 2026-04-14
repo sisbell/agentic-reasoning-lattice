@@ -1,6 +1,6 @@
-**TA5a (IncrementPreservesT4).** The operation `inc(t, k)` on a valid address `t` preserves T4 if and only if `k = 0`, or `k = 1` with `zeros(t) ≤ 3`, or `k = 2` with `zeros(t) ≤ 2`. For all `k ≥ 3`, T4 is violated regardless of `zeros(t)`.
+**TA5a (IncrementPreservesT4).** Let `zeros(t) = #{i : 1 ≤ i ≤ #t ∧ tᵢ = 0}` denote the count of zero-valued components of `t` (defined in T4). The operation `inc(t, k)` on a valid address `t` preserves T4 if and only if `k = 0`, or `k = 1` with `zeros(t) ≤ 3`, or `k = 2` with `zeros(t) ≤ 2`. For all `k ≥ 3`, T4 is violated regardless of `zeros(t)`.
 
-*Proof.* Let `t` be a valid address satisfying T4, and let `t' = inc(t, k)`. We determine when `t'` satisfies T4. Recall that T4 requires: (i) at most three zero-valued field separators, (ii) every field component strictly positive, and (iii) no adjacent zeros — equivalently, every present field has at least one component. Two constraints must hold simultaneously: the zero-count bound and a structural constraint against adjacent zeros. We examine each value of `k`.
+*Proof.* Let `t` be a valid address satisfying T4, and let `t' = inc(t, k)`. Write `zeros(t) = #{i : 1 ≤ i ≤ #t ∧ tᵢ = 0}` for the count of zero-valued components (T4). We determine when `t'` satisfies T4. Recall that T4 requires: (i) `zeros(t) ≤ 3` (at most three zero-valued field separators), (ii) every field component strictly positive, and (iii) no adjacent zeros — equivalently, every present field has at least one component. Two constraints must hold simultaneously: the zero-count bound and a structural constraint against adjacent zeros. We examine each value of `k`.
 
 *Case `k = 0` (sibling increment).* By TA5(c), `t'` has the same length as `t` and differs only at position `sig(t)`, where `t'_{sig(t)} = t_{sig(t)} + 1`. No zero components are added or removed, so `zeros(t') = zeros(t)`. No new adjacencies between components are created, since only one position changes and its new value is strictly greater than the old. Since `t` satisfies T4, so does `t'`. T4 is preserved unconditionally.
 
@@ -13,6 +13,6 @@
 The effective constraints are therefore: `k = 0` (always valid), `k = 1` (when `zeros(t) ≤ 3`), `k = 2` (when `zeros(t) ≤ 2`). The hierarchy enforces this naturally: each `inc(·, k)` with `k > 0` introduces one new hierarchical level, and the address format has exactly four fields with three separators, so at most three child-creation steps can be applied from a node address — three `inc(·, 2)` steps, with `zeros(t) = 0, 1, 2` respectively before each step, each satisfying `zeros(t) ≤ 2`. ∎
 
 *Formal Contract:*
-- *Precondition:* `t` satisfies T4 (valid address tumbler), `k ≥ 0`.
+- *Precondition:* `t` satisfies T4 (valid address tumbler), `k ≥ 0`. `zeros(t) = #{i : 1 ≤ i ≤ #t ∧ tᵢ = 0}` (T4).
 - *Guarantee:* `inc(t, k)` satisfies T4 iff `k = 0`, or `k = 1 ∧ zeros(t) ≤ 3`, or `k = 2 ∧ zeros(t) ≤ 2`.
 - *Failure:* For `k ≥ 3`, `inc(t, k)` violates T4 (adjacent zeros create an empty field).

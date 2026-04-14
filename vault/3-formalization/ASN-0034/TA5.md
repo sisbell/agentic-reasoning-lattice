@@ -48,5 +48,5 @@ The conditions under which `inc` preserves the structural validity constraint T4
 |-------|-----------|--------|
 | TA5 | `inc(t, k)` produces `t' > t` with same-length structure for `k = 0` (sibling) and extended structure for `k > 0` (child) | introduced |
 | TA5-SIG | `sig(t)` is the rightmost nonzero component position of `t`, or `#t` when all components are zero | introduced |
-| TA5-SigValid | For every valid address satisfying T4, `sig(t) = #t` | lemma |
-| TA5a | `inc(t, k)` preserves T4 iff `k = 0`, or `k = 1 ∧ zeros(t) ≤ 3`, or `k = 2 ∧ zeros(t) ≤ 2`; violated for `k ≥ 3` | lemma |
+| TA5-SigValid | For every valid address satisfying T4, `sig(t) = #t` | proved |
+| TA5a | `inc(t, k)` preserves T4 iff `k = 0`, or `k = 1 ∧ zeros(t) ≤ 3`, or `k = 2 ∧ zeros(t) ≤ 2`; violated for `k ≥ 3` | proved |

@@ -3,4 +3,5 @@ name: IncrementPreservesT4
 type: corollary
 depends:
 - TA5
+- TA5-SigValid
 - T4
