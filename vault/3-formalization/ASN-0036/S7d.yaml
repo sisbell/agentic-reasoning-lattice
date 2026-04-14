@@ -1,5 +1,5 @@
 label: S7d
-name: DocumentLevelAllocation
+name: HierarchicalAllocationDiscipline
 type: design-requirement
 depends:
 - T4
