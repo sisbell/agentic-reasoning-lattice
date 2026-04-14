@@ -1,0 +1,6 @@
+label: ZPD
+name: ZeroPaddedDivergence
+type: definition
+depends:
+- T0
+- Divergence

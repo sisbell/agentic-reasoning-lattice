@@ -1,0 +1,11 @@
+**Definition (ZeroPaddedDivergence).** For tumblers `a, w ∈ T`, the *zero-padded divergence* `zpd(a, w)` is defined over the zero-padded extensions of both operands to common length `L = max(#a, #w)`: set `aᵢ = 0` for `i > #a` and `wᵢ = 0` for `i > #w`. If the padded sequences agree at every position — `(A i : 1 ≤ i ≤ L : aᵢ = wᵢ)` — then `zpd(a, w)` is *undefined*; we say `a` and `w` are *zero-padded-equal*. Otherwise, `zpd(a, w)` is the least `k` with `1 ≤ k ≤ L` such that `aₖ ≠ wₖ` and `(A i : 1 ≤ i < k : aᵢ = wᵢ)` — the first position at which the padded sequences disagree.
+
+The function is partial. It is undefined precisely when the padded sequences agree everywhere — as occurs when one operand is a proper prefix of the other with all trailing components zero (e.g., `a = [3, 0]` and `w = [3]` pad to the identical sequence `[3, 0]`). Two equal tumblers are trivially zero-padded-equal, so `zpd(a, a)` is always undefined.
+
+**Relationship to Divergence.** When `a ≠ w`, the formal Divergence and `zpd` may disagree. In Divergence case (i) — component divergence at a shared position `k ≤ min(#a, #w)` — no padding is consulted at positions `1, ..., k`, since both operands have actual values there; hence `zpd(a, w) = divergence(a, w) = k`. In Divergence case (ii) — one tumbler is a proper prefix of the other — Divergence reports the boundary `min(#a, #w) + 1`, whereas `zpd` scans through the zero-padded values. If the longer operand has a nonzero component at some position beyond `min(#a, #w)`, then `zpd(a, w)` equals the least such position, which is at least `divergence(a, w)`. If all trailing components of the longer operand are zero, the padded sequences agree everywhere and `zpd(a, w)` is undefined — the tumblers are distinct yet zero-padded-equal.
+
+*Formal Contract:*
+- *Domain:* a ∈ T, w ∈ T
+- *Definition:* Pad to length L = max(#a, #w): aᵢ = 0 for i > #a, wᵢ = 0 for i > #w. If (A i : 1 ≤ i ≤ L : aᵢ = wᵢ), zpd(a, w) is undefined. Otherwise, zpd(a, w) = min {k : 1 ≤ k ≤ L ∧ aₖ ≠ wₖ}.
+- *Codomain:* When defined, zpd(a, w) ∈ {1, ..., max(#a, #w)}.
+- *Partiality:* zpd(a, w) is undefined iff a and w are zero-padded-equal.
