@@ -8,6 +8,8 @@ depends:
 - T9
 - T10
 - T10a
+- T10a.4
+- T4a
 - TA5
 - TA5-SigValid
 - Prefix
