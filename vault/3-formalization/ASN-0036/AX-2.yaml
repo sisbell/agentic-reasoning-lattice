@@ -4,3 +4,5 @@ type: axiom
 depends:
   - Σ.C
   - T10a
+  - AX-1
+  - T8
