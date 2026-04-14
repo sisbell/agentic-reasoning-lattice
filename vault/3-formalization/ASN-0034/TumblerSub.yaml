@@ -3,4 +3,6 @@ name: TumblerSub
 type: definition
 depends:
 - T0
+- T1
+- Divergence
 - ZPD
