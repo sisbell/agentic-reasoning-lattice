@@ -10,4 +10,5 @@ depends:
 - T10
 - T10a
 - TA5
+- TA5-SigValid
 - Prefix
