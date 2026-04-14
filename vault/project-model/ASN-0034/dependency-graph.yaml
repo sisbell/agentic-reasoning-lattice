@@ -1,55 +1,271 @@
 asn: 34
 depends: []
 properties:
+  D0:
+    status: corollary
+    type: corollary
+    name: DisplacementWellDefined
+    follows_from:
+    - T3
+    - TA0
+    - TumblerAdd
+    - TumblerSub
+  D1:
+    status: lemma
+    type: lemma
+    name: DisplacementRoundTrip
+    follows_from:
+    - TumblerAdd
+    - TumblerSub
+    - T3
+    - Divergence
+    - ZPD
+  D2:
+    status: corollary
+    type: corollary
+    name: DisplacementUnique
+    follows_from:
+    - D1
+    - TA-LC
+  Divergence:
+    status: corollary
+    type: corollary
+    name: Divergence
+    follows_from:
+    - T1
+    - T3
+  GlobalUniqueness:
+    status: theorem
+    type: theorem
+    name: GlobalUniqueness
+    follows_from:
+    - T1
+    - T3
+    - T4
+    - T9
+    - T10
+    - T10a
+    - T10a.4
+    - T4a
+    - TA5
+    - TA5-SigValid
+    - Prefix
+  NoDeallocation:
+    status: design-requirement
+    type: design-requirement
+    name: NoDeallocation
+  OrdinalDisplacement:
+    status: definition
+    type: definition
+    name: OrdinalDisplacement
+    follows_from:
+    - T0
+    - PositiveTumbler
+  OrdinalShift:
+    status: corollary
+    type: corollary
+    name: OrdinalShift
+    follows_from:
+    - TA0
+    - TumblerAdd
+    - OrdinalDisplacement
+    - T0
+    - PositiveTumbler
+  PartitionMonotonicity:
+    status: theorem
+    type: theorem
+    name: PartitionMonotonicity
+    follows_from:
+    - Prefix
+    - PrefixOrderingExtension
+    - T1
+    - T3
+    - T5
+    - T9
+    - T10a
+    - TA5
+  PositiveTumbler:
+    status: definition
+    type: definition
+    name: PositiveTumbler
+    follows_from:
+    - T1
+    - T3
+  Prefix:
+    status: definition
+    type: definition
+    name: PrefixRelation
+    follows_from:
+    - T3
+  PrefixOrderingExtension:
+    status: lemma
+    type: lemma
+    name: PrefixOrderingExtension
+    follows_from:
+    - Prefix
+    - T1
+  ReverseInverse:
+    status: corollary
+    type: corollary
+    name: ReverseInverse
+    follows_from:
+    - TA3-strict
+    - TA4
+    - TumblerAdd
+    - TumblerSub
+  Span:
+    status: definition
+    type: definition
+    name: Span
   T0:
     status: axiom
+    type: axiom
     name: CarrierSetDefinition
   T0(a):
-    status: from
-    follows_from:
-    - T0
+    status: corollary
+    type: corollary
     name: UnboundedComponentValues
-  T0(b):
-    status: introduced
-    name: UnboundedLength
-  T1:
-    status: introduced
-    name: LexicographicOrder
-  T2:
-    status: introduced
-    name: IntrinsicComparison
-  T3:
-    status: from
     follows_from:
     - T0
+  T0(b):
+    status: definition
+    type: definition
+    name: UnboundedLength
+    follows_from:
+    - T0
+  T1:
+    status: definition
+    type: definition
+    name: LexicographicOrder
+    follows_from:
+    - T3
+  T10:
+    status: theorem
+    type: theorem
+    name: PartitionIndependence
+    follows_from:
+    - T3
+    - Prefix
+  T10a-N:
+    status: lemma
+    type: lemma
+    name: AllocatorDisciplineNecessity
+    follows_from:
+    - Prefix
+    - T1
+    - TA5
+    - T10
+  T10a.1:
+    status: corollary
+    type: corollary
+    name: UniformSiblingLength
+    follows_from:
+    - T10a
+    - TA5
+  T10a.2:
+    status: corollary
+    type: corollary
+    name: NonNestingSiblingPrefixes
+    follows_from:
+    - Prefix
+    - T10a.1
+    - T1
+    - TA5
+    - T10
+  T10a.3:
+    status: corollary
+    type: corollary
+    name: LengthSeparation
+    follows_from:
+    - T10a.1
+    - T3
+    - TA5
+  T10a.4:
+    status: corollary
+    type: corollary
+    name: T4PreservationUnderDiscipline
+    follows_from:
+    - T10a
+    - TA5a
+    - T4
+  T10a:
+    status: design-requirement
+    type: design-requirement
+    name: AllocatorDiscipline
+    follows_from:
+    - Prefix
+    - T10
+    - T4
+  T12:
+    status: corollary
+    type: corollary
+    name: SpanWellDefinedness
+    follows_from:
+    - T1
+    - TA0
+    - TA-strict
+  T2:
+    status: definition
+    type: definition
+    name: IntrinsicComparison
+    follows_from:
+    - T0
+  T3:
+    status: corollary
+    type: corollary
     name: CanonicalRepresentation
+    follows_from:
+    - T0
   T4:
     status: axiom
+    type: axiom
+    name: HierarchicalParsing
+  T4a:
+    status: corollary
+    type: corollary
+    name: SyntacticEquivalence
+    follows_from:
+    - T4
+  T4b:
+    status: corollary
+    type: corollary
+    name: UniqueParse
     follows_from:
     - T3
-    name: HierarchicalParsing
-  Prefix:
-    status: introduced
-    name: PrefixRelation
+    - T4
+    - T4a
+  T4c:
+    status: corollary
+    type: corollary
+    name: LevelDetermination
+    follows_from:
+    - T4
+    - T4b
   T5:
-    status: introduced
+    status: definition
+    type: definition
     name: ContiguousSubtrees
+    follows_from:
+    - Prefix
+    - T1
+    - T3
   T6:
     status: corollary
+    type: corollary
+    name: DecidableContainment
     follows_from:
     - T4
-    name: DecidableContainment
   T7:
     status: corollary
+    type: corollary
+    name: SubspaceDisjointness
     follows_from:
     - T3
     - T4
-    name: SubspaceDisjointness
-  NoDeallocation:
-    status: design
-    name: NoDeallocation
   T8:
     status: theorem
+    type: theorem
+    name: AllocationPermanence
     follows_from:
     - T1
     - T2
@@ -59,294 +275,190 @@ properties:
     - TumblerAdd
     - TumblerSub
     - NoDeallocation
-    name: AllocationPermanence
   T9:
     status: lemma
-    follows_from:
-    - T1
-    - T10a
-    - TA5
+    type: lemma
     name: ForwardAllocation
-  T10:
-    status: theorem
     follows_from:
-    - T3
-    - Prefix
-    name: PartitionIndependence
-  T10a:
-    status: design
-    follows_from:
-    - TA5
-    - TA5a
-    - T4
     - T1
-    - T10
-    - Prefix
-    name: AllocatorDiscipline
-  PrefixOrderingExtension:
+    - T8
+    - T10a
+    - TA5
+  TA-LC:
     status: lemma
+    type: lemma
+    name: LeftCancellation
     follows_from:
-    - T1
-    name: PrefixOrderingExtension
-  PartitionMonotonicity:
-    status: theorem
-    follows_from:
-    - PrefixOrderingExtension
-    - T1
+    - TumblerAdd
     - T3
-    - T5
-    - T9
-    - T10a
-    - TA5
-    name: PartitionMonotonicity
-  GlobalUniqueness:
-    status: theorem
+  TA-MTO:
+    status: lemma
+    type: lemma
+    name: ManyToOne
     follows_from:
-    - T1
+    - TumblerAdd
     - T3
-    - T4
-    - T9
-    - T10
-    - T10a
-    - TA5
-    name: GlobalUniqueness
-  T12:
-    status: from
+  TA-RC:
+    status: lemma
+    type: lemma
+    name: RightCancellationFailure
     follows_from:
+    - TumblerAdd
+    - T3
+  TA-assoc:
+    status: theorem
+    type: theorem
+    name: AdditionAssociative
+    follows_from:
+    - TumblerAdd
+    - T3
+  TA-strict:
+    status: corollary
+    type: corollary
+    name: StrictIncrease
+    follows_from:
+    - TumblerAdd
     - T1
-    - TA0
-    - TA-strict
-    name: SpanWellDefinedness
   TA0:
-    status: introduced
+    status: theorem
+    type: theorem
     name: WellDefinedAddition
-  TA1:
-    status: introduced
-    name: OrderPreservationUnderAddition
-  Divergence:
-    status: from
     follows_from:
-    - T1
-    name: Divergence
+    - TumblerAdd
   TA1-strict:
-    status: from
+    status: corollary
+    type: corollary
+    name: StrictOrderPreservation
     follows_from:
     - Divergence
     - TumblerAdd
     - T1
-    name: StrictOrderPreservation
-  TA-strict:
-    status: from
-    follows_from:
-    - TumblerAdd
-    - T1
-    name: StrictIncrease
+  TA1:
+    status: definition
+    type: definition
+    name: OrderPreservationUnderAddition
   TA2:
-    status: from
+    status: corollary
+    type: corollary
+    name: WellDefinedSubtraction
     follows_from:
     - TumblerSub
     - T1
-    name: WellDefinedSubtraction
+  TA3-strict:
+    status: definition
+    type: definition
+    name: OrderPreservationUnderSubtractionStrict
   TA3:
-    status: from
+    status: corollary
+    type: corollary
+    name: OrderPreservationUnderSubtractionWeak
     follows_from:
     - TA2
     - T1
+    - T3
     - TA6
     - TumblerSub
-    name: OrderPreservationUnderSubtractionWeak
-  TA3-strict:
-    status: introduced
-    name: OrderPreservationUnderSubtractionStrict
   TA4:
-    status: from
-    follows_from:
-    - TumblerAdd
-    - TumblerSub
+    status: corollary
+    type: corollary
     name: PartialInverse
-  ReverseInverse:
-    status: corollary
     follows_from:
-    - TA3-strict
-    - TA4
     - TumblerAdd
     - TumblerSub
-    name: ReverseInverse
-  TumblerAdd:
-    status: from
-    follows_from:
-    - T0
     - PositiveTumbler
-    name: TumblerAdd
-  TumblerSub:
-    status: introduced
-    name: TumblerSub
-  TA5:
-    status: introduced
-    name: HierarchicalIncrement
-  TA6:
-    status: from
-    follows_from:
-    - T1
-    - T4
-    name: ZeroTumblers
-  PositiveTumbler:
-    status: introduced
-    name: PositiveTumbler
-  TA7a:
-    status: introduced
-    name: SubspaceClosure
-  TA-assoc:
-    status: theorem
-    follows_from:
-    - TumblerAdd
-    - T3
-    name: AdditionAssociative
-  TA-LC:
-    status: lemma
-    follows_from:
-    - TumblerAdd
-    - T3
-    name: LeftCancellation
-  TA-RC:
-    status: lemma
-    follows_from:
-    - TumblerAdd
-    - T3
-    name: RightCancellationFailure
-  TA-MTO:
-    status: lemma
-    follows_from:
-    - TumblerAdd
-    - T3
-    name: ManyToOne
-  D0:
-    status: from
-    follows_from:
-    - T3
-    - TA0
-    - TumblerAdd
-    - TumblerSub
-    name: DisplacementWellDefined
-  D1:
-    status: lemma
-    follows_from:
-    - TumblerAdd
-    - TumblerSub
-    - T3
-    - Divergence
-    name: DisplacementRoundTrip
-  D2:
-    status: corollary
-    follows_from:
-    - D1
-    - TA-LC
-    name: DisplacementUnique
-  OrdinalDisplacement:
-    status: introduced
-    name: OrdinalDisplacement
-  OrdinalShift:
-    status: from
-    follows_from:
-    - TA0
-    - TumblerAdd
-    - OrdinalDisplacement
-    - T0
-    - PositiveTumbler
-    name: OrdinalShift
-  TS1:
-    status: lemma
-    follows_from:
-    - TA1-strict
-    name: ShiftOrderPreservation
-  TS2:
-    status: lemma
-    follows_from:
-    - TA-MTO
-    - T3
-    name: ShiftInjectivity
-  TS3:
-    status: lemma
-    follows_from:
-    - TumblerAdd
-    - T3
-    name: ShiftComposition
-  TS4:
-    status: corollary
-    follows_from:
-    - TA-strict
-    name: ShiftStrictIncrease
-  TS5:
-    status: corollary
-    follows_from:
-    - TS3
-    - TS4
-    name: ShiftAmountMonotonicity
-  T10a.1:
-    status: corollary
-    follows_from:
-    - T10a
-    - TA5
-    name: UniformSiblingLength
-  T10a.2:
-    status: corollary
-    follows_from:
-    - T10a
-    - T1
-    - TA5
-    name: NonNestingSiblingPrefixes
-  T10a.3:
-    status: corollary
-    follows_from:
-    - T10a
-    - T3
-    - TA5
-    name: LengthSeparation
-  T10a.4:
-    status: corollary
-    follows_from:
-    - T10a
-    - TA5a
-    name: T4PreservationUnderDiscipline
-  T10a-N:
-    status: lemma
-    follows_from:
-    - T1
-    - TA5
-    name: AllocatorDisciplineNecessity
-  T4a:
-    status: corollary
-    follows_from:
-    - T4
-    name: SyntacticEquivalence
-  T4b:
-    status: corollary
-    follows_from:
-    - T3
-    - T4
-    - T4a
-    name: UniqueParse
-  T4c:
-    status: corollary
-    follows_from:
-    - T4
-    - T4b
-    name: LevelDetermination
   TA5-SIG:
-    status: introduced
+    status: definition
+    type: definition
     name: LastSignificantPosition
   TA5-SigValid:
     status: corollary
+    type: corollary
+    name: SigOnValidAddresses
     follows_from:
     - TA5-SIG
     - T4
-    name: SigOnValidAddresses
+  TA5:
+    status: definition
+    type: definition
+    name: HierarchicalIncrement
+    follows_from:
+    - TA5-SIG
   TA5a:
-    status: from
+    status: corollary
+    type: corollary
+    name: IncrementPreservesT4
     follows_from:
     - TA5
+    - TA5-SigValid
     - T4
-    name: IncrementPreservesT4
-  Span:
-    status: introduced
-    name: Span
+  TA6:
+    status: corollary
+    type: corollary
+    name: ZeroTumblers
+    follows_from:
+    - T1
+    - T4
+  TA7a:
+    status: definition
+    type: definition
+    name: SubspaceClosure
+  TS1:
+    status: lemma
+    type: lemma
+    name: ShiftOrderPreservation
+    follows_from:
+    - TA1-strict
+  TS2:
+    status: lemma
+    type: lemma
+    name: ShiftInjectivity
+    follows_from:
+    - TA-MTO
+    - T3
+  TS3:
+    status: lemma
+    type: lemma
+    name: ShiftComposition
+    follows_from:
+    - TumblerAdd
+    - T3
+  TS4:
+    status: corollary
+    type: corollary
+    name: ShiftStrictIncrease
+    follows_from:
+    - TA-strict
+  TS5:
+    status: corollary
+    type: corollary
+    name: ShiftAmountMonotonicity
+    follows_from:
+    - TS3
+    - TS4
+  TumblerAdd:
+    status: definition
+    type: definition
+    name: TumblerAdd
+    follows_from:
+    - T0
+    - T1
+    - PositiveTumbler
+  TumblerSub:
+    status: definition
+    type: definition
+    name: TumblerSub
+    follows_from:
+    - T0
+    - T1
+    - T3
+    - Divergence
+    - ZPD
+    - TumblerAdd
+    - D0
+  ZPD:
+    status: definition
+    type: definition
+    name: ZeroPaddedDivergence
+    follows_from:
+    - T0
+    - Divergence
