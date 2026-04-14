@@ -4,6 +4,7 @@ type: theorem
 depends:
 - AX-1
 - AX-2
+- AX-3
 - S0
 - S1
 - S2

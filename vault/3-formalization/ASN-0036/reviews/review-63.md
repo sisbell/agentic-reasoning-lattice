@@ -1,0 +1,19 @@
+# Cone Review — ASN-0036/S5 (cycle 3)
+
+*2026-04-14 14:21*
+
+### S5's proof constructions require countably infinite document and V-position spaces — a cardinality assumption no property or definition establishes
+
+**Foundation**: N/A (internal state model)
+**ASN**: S5 (Unrestricted sharing), formal statement: `(A N ∈ ℕ :: (E σ = ⟨Σ₀, …, Σₖ⟩ :: …))`, cross-document construction: "Introduce a V-mapping `Σᵢ₊₁.M(dᵢ)(vᵢ) = a` … with the `dᵢ` pairwise distinct"; within-document construction: "adding `vᵢ ↦ a` for a fresh V-position `vᵢ` … with the `vᵢ` pairwise distinct." Also: AX-1's `(A d : dom(Σ₀.M(d)) = ∅)`, S2's `(A d, v …)`, S3's `(A d, v …)`.
+**Issue**: S5's formal claim quantifies `∀N ∈ ℕ` and then constructs traces requiring `N + 1` pairwise-distinct documents (cross-document case) or `N + 1` pairwise-distinct V-positions within a single document (within-document case). For arbitrary `N`, this requires both the document identifier space and the V-position space to be countably infinite. Neither this ASN nor the declared foundations define these type domains or constrain their cardinality. The state model `Σ = (C, M)` is used throughout — AX-1 quantifies universally over documents, S2 and S3 quantify over document–position pairs — yet the domains over which `d` and `v` range are never specified. If the document space were a finite set of cardinality `m`, the cross-document construction would fail for `N ≥ m`. If V-positions formed a finite set, the within-document construction would fail analogously. The same gap affects S5's set comprehension `{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}`, whose well-definedness as a set (not a proper class) requires knowing the size of the document space.
+**What needs resolving**: The ASN needs to define the type domains of its state model — at minimum the document identifier space and V-position space — with cardinality sufficient to support S5's constructions (countably infinite, or stated to be unbounded). This could be a top-level definition block establishing `Σ = (C, M)` with `C : Addr ⇀ Val`, `M : Doc → (VPos ⇀ Addr)` and the constraint that `Doc` and `VPos` are countably infinite.
+
+---
+
+### S3's proof claims a partition of dom(Σ'.M(d)) but Case 4 lies outside the partitioned set
+
+**Foundation**: N/A (internal proof structure)
+**ASN**: S3 (Referential integrity), proof, inductive step: "We partition the V-positions in `dom(Σ'.M(d))` into those inherited from Σ and those introduced or modified by the transition." Cases 1–4 follow.
+**Issue**: The proof announces a partition of `dom(Σ'.M(d))` and then presents four cases. Cases 1–3 are subsets of `dom(Σ'.M(d))`: inherited unchanged (Case 1: `v ∈ dom(Σ'.M(d))` with `Σ'.M(d)(v) = Σ.M(d)(v)`), added (Case 2: `v ∈ dom(Σ'.M(d))` with `v ∉ dom(Σ.M(d))`), modified (Case 3: `v ∈ dom(Σ'.M(d)) ∩ dom(Σ.M(d))` with `Σ'.M(d)(v) ≠ Σ.M(d)(v)`). These three are exhaustive and pairwise disjoint over `dom(Σ'.M(d))`. Case 4 covers `v ∈ dom(Σ.M(d)) \ dom(Σ'.M(d))` — positions that are by definition *not* in `dom(Σ'.M(d))` and therefore outside the set being partitioned. The proof correctly observes that removed positions impose no obligation on S3 in the post-state, so Case 4 does not affect the proof's validity. But the framing presents a four-case partition over a set for which only three cases are members. A reader following the partition claim expects all four cases to be subsets of `dom(Σ'.M(d))`; Case 4 violates this expectation.
+**What needs resolving**: Either restrict the labeled case analysis to Cases 1–3 (which are exhaustive over the claimed domain `dom(Σ'.M(d))`) and present Case 4 as a separate supplementary observation about the complement, or expand the partition claim to cover `dom(Σ.M(d)) ∪ dom(Σ'.M(d))` so that all four cases fall within the stated domain.

@@ -1,0 +1,12 @@
+label: AX-3
+name: InfiniteTypeDomains
+type: axiom
+depends:
+  - D-DOC
+  - S8a
+  - GlobalUniqueness
+vocabulary:
+- symbol: Doc
+  meaning: 'The document identifier space: {d ∈ T : zeros(d) = 2}, countably infinite'
+- symbol: VPos(S)
+  meaning: 'The V-position space within subspace S: {v ∈ T : zeros(v) = 0 ∧ v₁ = S ∧ v > 0}, countably infinite for each S ≥ 1'

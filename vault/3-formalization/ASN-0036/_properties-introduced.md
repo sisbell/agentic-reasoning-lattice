@@ -9,6 +9,7 @@
 | S2 | Arrangement functionality: `M(d)` is a function — each V-position maps to exactly one I-address | axiom |
 | S3 | Referential integrity: `(A d, v : v ∈ dom(M(d)) : M(d)(v) ∈ dom(C))` | design; uses NoDeallocation (ASN-0034) |
 | AX-2 | Allocation-mediated entry: `dom(Σ.C) ⊆ allocated(s)` — content-store addresses are T10a-conforming allocated addresses | axiom |
+| AX-3 | Infinite type domains: `Doc` and `VPos(S)` are countably infinite — carrier sets for the state model | axiom |
 | S4 | Origin-based identity: distinct allocations produce distinct I-addresses regardless of value equality | from GlobalUniqueness, T3, AX-2 (ASN-0034) |
 | S5 | Unrestricted sharing: S0–S3 do not entail any finite bound on sharing multiplicity | consistent with S0, S1, S2, S3 |
 | S6 | Persistence independence: named restatement of S1 — labels the anti-GC commitment | restatement of S1 |
