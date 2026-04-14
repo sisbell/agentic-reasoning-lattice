@@ -112,7 +112,8 @@ def _parse_summaries(response_text):
         line = line.strip()
         if not line or line.startswith("```"):
             continue
-        match = re.match(r'^([A-Za-z0-9_\-().Σ₀]+):\s*(.+)$', line)
+        # Match "LABEL: summary" or "LABEL (Name): summary"
+        match = re.match(r'^([A-Za-z0-9_\-().Σ₀]+)\s*(?:\([^)]*\))?\s*:\s*(.+)$', line)
         if match:
             summaries[match.group(1)] = match.group(2).strip()
     return summaries
