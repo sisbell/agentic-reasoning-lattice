@@ -1,4 +1,6 @@
 label: OrdinalDisplacement
 name: OrdinalDisplacement
 type: definition
-depends: []
+depends:
+- T0
+- PositiveTumbler
