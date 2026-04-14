@@ -4,3 +4,4 @@ type: corollary
 depends:
 - T10a
 - TA5a
+- T4

@@ -4,3 +4,4 @@ type: design-requirement
 depends:
 - Prefix
 - T10
+- T4
