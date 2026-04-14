@@ -3,4 +3,5 @@ name: TumblerAdd
 type: definition
 depends:
 - T0
+- T1
 - PositiveTumbler
