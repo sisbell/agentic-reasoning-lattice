@@ -2,3 +2,5 @@ label: T0
 name: CarrierSetDefinition
 type: axiom
 depends: []
+summary: Establishes the carrier set T as all finite sequences of natural numbers with at least one component, taken as an
+  axiom — the foundation on which all tumbler arithmetic is built.
