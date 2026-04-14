@@ -12,7 +12,7 @@ What abstract property distinguishes content that exists but is unreachable from
 
 Under what conditions do operations guarantee non-trivial correspondence runs (length > 1) — must sequential content creation produce a single run, or is the singleton decomposition the only structure guaranteed without operation-level constraints?
 
-Does each well-formed editing operation (DELETE, INSERT, COPY, REARRANGE) preserve D-CTG and D-MIN?
+Does each well-formed editing operation preserve D-CTG and D-MIN?
 
 What invariants must the displacement mechanism satisfy so that insertion at a ValidInsertionPosition preserves D-CTG, D-MIN, and S2?
 

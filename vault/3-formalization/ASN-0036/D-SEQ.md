@@ -26,7 +26,7 @@ where the tuple has length m. The precondition m ≥ 2 is necessary: at m = 1 th
 
 D-CTG is a design constraint on well-formed document states. It constrains which arrangement modifications constitute well-formed editing operations. We verify the base case: before any operations, dom(M(d)) = ∅ for all d (the arrangement is a partial function; no content has been allocated, so no V-mapping exists), so V_S(d) = ∅ for every subspace S. D-CTG holds vacuously (no u, q exist to trigger its antecedent), and D-MIN holds vacuously (its antecedent requires V_S(d) non-empty). Observe that not all arrangement modifications preserve D-CTG: removing a single interior V-position from dom(M(d)) leaves the positions on either side no longer contiguous. D-CTG is therefore preserved only by those modifications that constitute well-formed editing operations — operations that restore contiguity after structural changes (e.g., by shifting subsequent positions).
 
-Whether DELETE, INSERT, COPY, and REARRANGE preserve D-CTG is a verification obligation for each operation's ASN.
+Every operation that modifies V_S(d) must preserve D-CTG — this is a verification obligation for each operation's ASN, parallel to S8-fin's per-operation finiteness obligation and D-MIN's per-operation minimum-position obligation.
 
 ### Concrete example
 
