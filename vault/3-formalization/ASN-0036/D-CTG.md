@@ -12,7 +12,7 @@ We establish the invariant by induction over the operation history.
 
 *Base case.* By AX-1 (InitialEmptyState), `dom(Σ₀.M(d)) = ∅` for every document `d`, so `V_S(d) = ∅` for every subspace `S`. The universal quantification holds vacuously — the empty set contains no pair of positions between which a gap could exist.
 
-*Inductive step.* Suppose contiguity holds in state Σ: within each subspace, V-positions form a gapless range. Let Σ → Σ' be any state transition produced by an operation (INSERT, DELETE, COPY, MOVE, REARRANGE, or APPEND). Each such operation must ensure that no gap appears within any subspace — neither by introducing a position beyond the current extremes without filling the interval, nor by removing an interior position without collapsing the surrounding range. Therefore `V_S(d)` in Σ' remains contiguous.
+*Inductive step.* Suppose contiguity holds in state Σ: within each subspace, V-positions form a gapless range. Let Σ → Σ' be any state transition; by AX-5 (ClosedWorldTransition), some op ∈ Op produces Σ' from Σ. Each such operation must ensure that no gap appears within any subspace — neither by introducing a position beyond the current extremes without filling the interval, nor by removing an interior position without collapsing the surrounding range. Therefore `V_S(d)` in Σ' remains contiguous.
 
 Every operation specification must individually discharge the obligation that it maps a contiguous arrangement to a contiguous arrangement. The base case and the closure argument above reduce that global invariant to a per-operation verification condition. ∎
 

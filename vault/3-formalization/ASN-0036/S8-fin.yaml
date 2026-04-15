@@ -3,3 +3,4 @@ name: FiniteArrangement
 type: design-requirement
 depends:
 - AX-1
+- AX-5
