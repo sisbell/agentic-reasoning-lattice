@@ -10,6 +10,7 @@ depends:
 - S8-fin
 - D-MIN
 - T3
+- T0
 - S8a
 - OrdinalShift
 - S8-vdepth
