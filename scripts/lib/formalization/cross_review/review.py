@@ -62,8 +62,8 @@ def run_review(asn_num, asn_content, asn_label, previous_findings="", model="opu
     text, elapsed = invoke_claude(prompt, model=model, effort="high")
 
     if not text:
-        print(f" error ({elapsed:.0f}s)", file=sys.stderr)
-        return None, elapsed
+        print(f"  FAILED (exit 1, {elapsed:.0f}s)", file=sys.stderr)
+        return "ERROR", elapsed
 
     if "NO NEW ISSUES" in text:
         print(f" NO NEW ISSUES ({elapsed:.0f}s)", file=sys.stderr)
