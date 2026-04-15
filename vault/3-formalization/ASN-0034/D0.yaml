@@ -6,6 +6,7 @@ depends:
 - T3
 - PositiveTumbler
 - TA0
+- TA2
 - TumblerAdd
 - TumblerSub
 summary: Given two tumblers a < b whose divergence point lies within a's length, displacement b ⊖ a is itself a valid tumbler

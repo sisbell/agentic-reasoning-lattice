@@ -32,3 +32,9 @@ The `#b < #a` sub-case is indeed impossible under D0's hypotheses, but the argum
 The gap is cross-cutting: D0's case elimination depends on the interaction between the Divergence definition (which is direction-agnostic — case (ii) applies regardless of which tumbler is shorter) and T1's ordering semantics (which forces the prefix to be the lesser tumbler), but the proof cites neither T1 nor the ordering direction at this step.
 
 **What needs resolving**: The case elimination must either (a) explicitly establish that `a < b` forces `#a < #b` in Divergence case (ii) (via T1 case (ii)), making `min(#a, #b) = #a` and the inequality valid; or (b) split into two sub-cases — `#a < #b` (eliminated by `k = #a + 1 > #a`) and `#b < #a` (eliminated by the T1 contradiction with `a < b`).
+
+## Result
+
+Cone converged after 3 cycles.
+
+*Elapsed: 4155s*
