@@ -380,3 +380,9 @@ Here are my findings from the cross-cutting review:
 **ASN**: ValidInsertionPosition formal definition: "v = min(V_S(d)) + j for 0 ≤ j ≤ N (where + is the ordinal displacement notation of S8-crun: v + 0 = v, v + k = shift(v, k) for k ≥ 1)"
 **Issue**: OrdinalShift requires `n ≥ 1`; `shift(v, 0)` is outside its domain. VIP extends the notation to `j = 0` by defining `v + 0 = v`, citing S8-crun for this convention. VIP's body text correctly handles the two regimes with an explicit case split: "either v = min(V_S(d)) (the j = 0 case) or v = shift(min(V_S(d)), j) for some j with 1 ≤ j ≤ N." The depth-preservation proof also splits: "For j ≥ 1, #shift(v, j) = #v = m by OrdinalShift. For j = 0, #v = #min(V_S(d)) = m by D-MIN." But the formal definition compresses both into `min(V_S(d)) + j` for `0 ≤ j ≤ N`, creating a unified expression that looks like a single operation across the entire range while silently switching semantics at the boundary. S8-crun — the property that defines this convention — is not among the foundation statements and is not shown for cross-cutting review. Any downstream consumer who traces `+` to OrdinalShift will find `j = 0` falls outside OrdinalShift's domain; the rescue comes from a convention in a property that is cited but invisible. The body text is sound; the formal definition papers over a domain boundary that formalization must resolve.
 **What needs resolving**: Either VIP's formal definition should use the explicit case split that its body text and proofs already employ, or S8-crun must appear as a visible precondition — a formal statement that extends OrdinalShift's displacement notation to `n = 0` with identity semantics. The current design hides a domain-extension convention inside a notation shorthand.
+
+## Result
+
+Cone converged after 4 cycles.
+
+*Elapsed: 6996s*

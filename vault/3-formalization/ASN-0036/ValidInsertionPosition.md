@@ -2,7 +2,7 @@
 
 - *Non-empty subspace.* V_S(d) ≠ ∅. By S8-fin, dom(M(d)) is finite, so V_S(d) is finite with |V_S(d)| = N for some natural number N. The common V-position depth in subspace S is determined by S8-depth; since V_S(d) is non-empty, its positions lie in dom(Σ.M(d)), so S8-vdepth gives this common depth is at least 2. The parameter m must equal this common depth — the existing positions determine the only admissible value. Then either v = min(V_S(d)) (the j = 0 case) or v = shift(min(V_S(d)), j) for some j with 1 ≤ j ≤ N. In both cases, #v = m.
 
-- *Empty subspace.* V_S(d) = ∅. Then v = [S, 1, ..., 1] of depth m. The lower bound m ≥ 2 is required for compatibility with S7c: once this position enters dom(Σ.M(d)), S8-vdepth demands #v ≥ 2, so the parameter must satisfy the same bound. For the given m, this is the unique valid position: the tuple [S, 1, ..., 1] of depth m is fully determined by S and m. This is the canonical minimum position required by D-MIN.
+- *Empty subspace.* V_S(d) = ∅. Then v = [S, 1, ..., 1] of depth m. The lower bound m ≥ 2 is required by S8-vdepth: once this position enters dom(Σ.M(d)), that axiom demands #v ≥ 2, so the parameter must satisfy the same bound. For the given m, this is the unique valid position: the tuple [S, 1, ..., 1] of depth m is fully determined by S and m. This is the canonical minimum position required by D-MIN.
 
 In both cases, S = v₁ is the subspace identifier.
 
