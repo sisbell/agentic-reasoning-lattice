@@ -3,6 +3,7 @@ name: DisplacementWellDefined
 type: corollary
 depends:
 - T3
+- PositiveTumbler
 - TA0
 - TumblerAdd
 - TumblerSub

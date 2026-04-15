@@ -63,6 +63,6 @@ Three properties of this definition require explicit statement:
 This is correct and intentional: advancing to "the beginning of the next chapter" lands at the same place regardless of where you were within the current chapter. ∎
 
 *Formal Contract:*
-- *Preconditions:* a ∈ T, w ∈ T, w > 0, actionPoint(w) ≤ #a
+- *Preconditions:* a ∈ T, w ∈ T, w > 0 (PositiveTumbler), actionPoint(w) ≤ #a
 - *Definition:* k = min{i : 1 ≤ i ≤ n ∧ wᵢ ≠ 0}; rᵢ = aᵢ if i < k; rₖ = aₖ + wₖ; rᵢ = wᵢ if i > k
 - *Postconditions:* a ⊕ w ∈ T, #(a ⊕ w) = #w, a ⊕ w > a (T1), a ⊕ w ≥ w (T1)
