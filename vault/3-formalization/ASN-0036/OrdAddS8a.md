@@ -7,7 +7,7 @@
 - At `i = k`: `rₖ = vₖ + wₖ ≥ 1 + 1 = 2` (since `vₖ ≥ 1` by S8a and `wₖ ≥ 1` as the action-point component).
 - For `k < i ≤ m`: `rᵢ = wᵢ` (copied from the displacement).
 
-Components `r₁` through `rₖ` are unconditionally positive. S8a requires `zeros(r) = 0`, `r₁ ≥ 1`, and `r > 0`, which together reduce to: every component of `r` is strictly positive. Since the prefix `r₁, ..., rₖ` is established positive, the only components that can fail are `r_{k+1}, ..., r_m = w_{k+1}, ..., w_m` — exactly the tail components of `w`, which are the tail components of `w_ord` (since `(w_ord)_j = w_{j+1}` and the action point of `w_ord` is `k - 1`). When `k = m`, the tail region is empty and the condition holds vacuously. Therefore:
+Components `r₁` through `rₖ` are unconditionally positive. S8a requires `zeros(r) = 0` and `r₁ ≥ 1`, which is equivalent to every component of `r` being strictly positive (the second conjunct is a consequence of the first on natural-number components, per T0). Since the prefix `r₁, ..., rₖ` is established positive, the only components that can fail are `r_{k+1}, ..., r_m = w_{k+1}, ..., w_m` — exactly the tail components of `w`, which are the tail components of `w_ord` (since `(w_ord)_j = w_{j+1}` and the action point of `w_ord` is `k - 1`). When `k = m`, the tail region is empty and the condition holds vacuously. Therefore:
 
 `v ⊕ w satisfies S8a ⟺ (A i : k < i ≤ m : wᵢ > 0) ⟺ all tail components of w_ord are positive`
 

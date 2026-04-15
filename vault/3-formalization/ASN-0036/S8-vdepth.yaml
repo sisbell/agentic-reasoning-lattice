@@ -1,7 +1,4 @@
 label: S8-vdepth
 name: MinimalVPositionDepth
-type: theorem
-depends:
-- S8a
-- S3
-- S7c
+type: axiom
+depends: []

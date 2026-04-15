@@ -19,7 +19,7 @@
 | S7 | Structural attribution: `origin(a) = (fields(a).node).0.(fields(a).user).0.(fields(a).document)` — full document prefix | from S7a, S7b, S0, S4, T4, T3, GlobalUniqueness (ASN-0034) |
 | S7e | Origin discriminates documents: for `a₁, a₂` under distinct documents (D-DOC), `origin(a₁) ≠ origin(a₂)` | from S7d, D-DOC, GlobalUniqueness (ASN-0034), origin(a) |
 | S8-fin | Finite arrangement: `dom(M(d))` is finite for every document `d` | design requirement |
-| S8a | V-position well-formedness: `(A v ∈ dom(M(d)) :: zeros(v) = 0 ∧ v₁ ≥ 1 ∧ v > 0)` — standalone constraint on V-position components | design requirement |
+| S8a | V-position well-formedness: `(A v ∈ dom(M(d)) :: zeros(v) = 0 ∧ v₁ ≥ 1)` — standalone constraint on V-position components; `v₁ ≥ 1` is a consequence of `zeros(v) = 0`, stated for S8's partition proof | design requirement |
 | S8-depth | Fixed-depth V-positions: `(A d, v₁, v₂ : v₁ ∈ dom(M(d)) ∧ v₂ ∈ dom(M(d)) ∧ (v₁)₁ = (v₂)₁ : #v₁ = #v₂)` | design; uses OrdinalShift, TumblerAdd (ASN-0034) |
 | S8 | Span decomposition: `dom(M(d))` decomposes into finitely many correspondence runs `(vⱼ, aⱼ, nⱼ)` with `M(d)(vⱼ + k) = aⱼ + k` for `0 ≤ k < nⱼ` | theorem from S8-fin, S2, S8a, S8-depth, T1, T3, T5, T10, TA5 (ASN-0034) |
 | ord(v) | Ordinal extraction: ord(v) = [v₂, ..., vₘ]; when v satisfies S8a, ord(v) ∈ S | introduced |

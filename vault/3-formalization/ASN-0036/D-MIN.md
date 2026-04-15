@@ -12,5 +12,5 @@ D-MIN's axiom, together with contiguity (D-CTG) and finiteness (S8-fin), motivat
 
 *Formal Contract:*
 - *Axiom:* `min(V_S(d)) = [S, 1, ..., 1]` — for any non-empty subspace, the minimum V-position is the depth-m tuple with subspace identifier S and every subsequent component equal to 1. This is a design requirement: operations that modify V_S(d) must preserve this minimum.
-- *Preconditions:* V_S(d) ≠ ∅; all positions in V_S(d) share depth m (S8-depth); S8-vdepth gives m ≥ 2; S8a (V-position well-formedness) gives v > 0 for all V-positions, so every component ≥ 1.
+- *Preconditions:* V_S(d) ≠ ∅; all positions in V_S(d) share depth m (S8-depth); S8-vdepth gives m ≥ 2; S8a (V-position well-formedness) gives zeros(v) = 0 for all V-positions, so every component ≥ 1.
 - *Postconditions:* `min(V_S(d)) = [S, 1, ..., 1]` is the least element of V_S(d) under lexicographic order. Since every V-position component is at least 1 (S8a) and the tuple [S, 1, …, 1] has the minimum possible value at every post-subspace component, no element of V_S(d) can precede it.
