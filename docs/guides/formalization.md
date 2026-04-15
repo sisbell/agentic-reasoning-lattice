@@ -1,10 +1,18 @@
 # Guide: Formalization Pipeline
 
-*Updated 2026-04-12.*
+*Updated 2026-04-14.*
 
 ## Overview
 
-Formalization transforms per-property file pairs from blueprinting into rigorously proven specifications with formal contracts. Each property is formalized independently — its dependencies are immutable context. See [why this converges](#why-per-property-formalization-converges). The pipeline runs: formalize → review cycle → assembly.
+Formalization transforms per-property file pairs from blueprinting into rigorously proven specifications with formal contracts. Each property is formalized independently — its dependencies are immutable context. See [why this converges](#why-per-property-formalization-converges).
+
+The pipeline operates at three scales, inspired by multigrid methods (Brandt 1977):
+
+- **Property scale** — proof review, contract review. One property at a time, dependencies fixed.
+- **Cluster scale** — cone sweep. A tightly coupled group of properties reviewed together.
+- **System scale** — cross-review. The entire ASN reviewed at once.
+
+These compose into a V-cycle: upward through scales (property → cluster → system), then downward to re-verify anything that changed.
 
 ## Pipeline Stages
 
@@ -17,26 +25,48 @@ Rewrites every non-definition, non-axiom property's proof to Dijkstra standard a
 - Processes each dependency level in parallel
 - Auto-commits after each dependency level
 
-### Review Cycle
+### Property-Scale Review
 
-Four review steps run in a convergence loop:
-
-**Proof review** — For each property, sends the body + dependency context to the LLM. Checks 7 points: logical gaps, unjustified steps, missing cases, dependency correctness, formal contract completeness. On FOUND, a reviser agent edits the `.md` file. If new dependencies are discovered, the reviser adds them to the `.yaml` depends list (add-only).
+**Proof review** — For each property, sends the body + dependency context to the LLM. Checks logical gaps, unjustified steps, missing cases, dependency correctness, formal contract completeness. On FOUND, a reviser agent edits the `.md` file. If new dependencies are discovered, the reviser adds them to the `.yaml` depends list (add-only).
 
 **Contract review** — Validates that each formal contract matches the proof. On MISMATCH, rewrites the contract. Vocabulary context is aggregated from all property YAMLs automatically.
 
-**Cross-review** — Reads the entire assembled ASN (all properties concatenated) + foundation statements. Finds issues that per-property review can't catch: carrier-set conflation, precondition chain gaps, circular reasoning across properties. Reviser agent can edit multiple `.md` files and update `.yaml` depends (add-only). When cross-review detects a [dependency cone](../reference/dependency-cone.md), it switches to a focused cone review loop.
+### Cluster-Scale Review: Cone Sweep
 
-**Dependency review** — Scans property bodies for references to labels not declared in the `depends` field. Add-only — new deps found are added to the `.yaml`, never removed.
+**Cone sweep** — Walks the dependency graph bottom-up. For each property with enough same-ASN dependencies, assembles the full dependency cone (apex + all direct dependents) and runs a focused review/revise loop with the entire cone as context.
+
+Per-property review stalls on tightly coupled claims — one property keeps getting revised while its dependencies sit stable. This is a [dependency cone](../patterns/dependency-cone.md). The cone sweep detects these clusters and reviews them as a unit. The loop runs until the reviewer finds no issues or max cycles is reached.
+
+### System-Scale Review: Cross-Review
+
+**Cross-review** — Reads the entire assembled ASN (all properties) + foundation statements. Finds issues that narrower scales can't catch: carrier-set conflation, precondition chain gaps, circular reasoning across properties. Reviser agent can edit multiple `.md` files and update `.yaml` depends (add-only).
+
+### V-Cycle Orchestrator
+
+Composes all three scales into a single upward-downward pass:
+
+1. **Upward pass:** proof review → contract review → cone sweep → cross-review
+2. **Dirty set detection:** after cross-review, check which properties changed via git diff
+3. **Downward pass:** for any changed properties, run cone review on affected cones, then re-run proof and contract review on the changed properties
+
+The downward pass fires on ANY change during the upward pass. Each scale handles the errors it is efficient at.
+
+### Summarize
+
+Generates 1-3 sentence summaries for property YAML files. These summaries populate the `summary` field in each `.yaml` and are used by assembly and foundation loading. Run this before assembly. Hash caching skips unchanged properties.
 
 ### Assembly
 
-Produces two export files in `vault/project-model/ASN-NNNN/`:
+Mechanical, no LLM. Reads YAML summaries + .md formal contracts and writes two export files in `vault/project-model/ASN-NNNN/`:
 
-- `formal-statements.md` — trimmed property sections for downstream consumers
+- `formal-statements.md` — summary + formal contract per property, in dependency order
 - `dependency-graph.yaml` — structured dependency data for discovery and rebase
 
-Generated from per-property files on demand — not maintained during formalization.
+Requires summaries to exist (run summarize first). Milliseconds, not minutes.
+
+### Foundation Loading
+
+Downstream ASNs load foundation dependencies directly from per-property YAML (summary) + .md (formal contract) files. No export gate — if the per-property files exist and have summaries, they can be loaded.
 
 ## Caching
 
@@ -61,6 +91,7 @@ Dependencies are tracked in per-property `.yaml` files under the `depends` field
 label: T8
 name: AllocationPermanence
 type: theorem
+summary: Every address, once allocated, persists in all future states.
 depends:
   - T1
   - T2
@@ -75,18 +106,20 @@ depends:
 - **label** — stable key, never changes
 - **name** — PascalCase, can be refined
 - **type** — classification from blueprinting (axiom, definition, design-requirement, lemma, theorem, corollary)
+- **summary** — 1-3 sentence summary, generated by summarize.py
 - **depends** — direct dependencies, add-only during formalization
 
 ## File Structure
 
 ```
 vault/3-formalization/ASN-NNNN/
-  S0.yaml          ← metadata: label, name, type, depends
+  S0.yaml          ← metadata: label, name, type, summary, depends
   S0.md            ← body: statement + justification + proof + formal contract
   S1.yaml
   S1.md
   _preamble.md     ← structural (no YAML pair)
   _cache.json      ← hash cache (not git-tracked, delete to force re-run)
+  _summary-cache.json ← summarize hash cache
   reviews/         ← review artifacts (timestamped)
 ```
 
@@ -96,8 +129,8 @@ The `.yaml` is the metadata source of truth. The `.md` is what the LLM reads and
 
 The per-property constraint is architectural. Each property is formalized independently — its dependencies are immutable context. This is like solving a system of equations one variable at a time with the others fixed. It converges. Multi-property formalization would be like solving them all simultaneously — it can oscillate.
 
-In discovery, the whole ASN is the context and converges because the full picture constrains it. When you split into smaller pieces (per-property), each piece has room to improve independently, and those improvements can cascade — fix S7a, now S7 needs updating, now S8 references S7 differently. Without a fixed boundary (your dependencies are immutable), refinement never stops.
+Per-property handles independent claims fast. When tightly coupled claims stall single-property review, a [dependency cone](../patterns/dependency-cone.md) is the signal — one apex property thrashing against stable dependencies. The cone sweep widens context to the cluster and resolves it with focused attention. Cross-review catches what both narrower scales miss — gaps between distant properties that only show up at full-ASN scope.
 
-The per-property constraint prevents infinite refinement. Cross-review is the escape valve for the issues that per-property can't catch (carrier-set conflation, precondition chain gaps, circular reasoning across properties). Per-property handles 95% fast. Cross-review handles the 5% that needs a wider view.
+The three scales compose: property scale handles 80% fast, cluster scale handles 15% that needs coupling context, system scale handles 5% that needs the full picture. The V-cycle iterates until all three scales converge.
 
-When cross-review converges the loosely-coupled properties but stalls on a tightly-coupled core, it's a [dependency cone](../reference/dependency-cone.md) — one apex property thrashing against stable dependencies. The cone mechanism narrows context to just that cluster and resolves it with focused attention.
+See [Verification V-Cycle](../design-notes/verification-v-cycle.md) for the theoretical grounding and multigrid analogy.

@@ -46,17 +46,35 @@ Narrow the scope to the coupled set and resolve it as a unit:
 
 The narrower context focuses the reviewer on the constraint system instead of scattering attention across unrelated properties. For ASN-0036, this reduced review context from ~90K to ~37K characters.
 
-## Tooling
+## Resolution stages
 
-```bash
-# Auto-detection within cross-review (fires when pattern is found)
-python scripts/cross-review.py 36 --max-cycles 5
+When a cone is resolved through focused review, the findings progress through distinct stages. Each stage only becomes visible after the previous one is resolved — you can't see mathematical precision issues until the citations are correct, and you can't see structural organization until the proofs are complete. The cone peels layers.
 
-# Force a specific apex (skip detection, go straight to cone review)
-python scripts/cross-review.py 36 --cone S8
-```
+**Stage 1: Citation accuracy.** Wrong foundation properties cited. Missing preconditions in contracts. Different names used for the same operation. These are surface issues — the proof is right but the references are wrong.
 
-Detection parameters: window of 5 cross-review commits, threshold of 3+ apex touches with dependencies at less than half. The window uses only cross-review commits for the specific ASN (path-filtered git log).
+*Observed: TumblerAdd→OrdinalShift, missing T3/GlobalUniqueness/S7c in contracts, shift/inc equivocation.*
+
+**Stage 2: Completeness.** Missing axioms that proofs assume without stating. Undeclared dependencies. Missing guards on postconditions that fail at boundary values. The proof has gaps.
+
+*Observed: AX-1 (initial state), S7d (document allocation), D-CTG missing from S8 depends, D-MIN guard at m≥2.*
+
+**Stage 3: Structural coherence.** Axioms scoped too narrowly. Proof structures that don't match what they're trying to show. Narrative and formal content inconsistent.
+
+*Observed: AX-1 expanded to cover content store, S5 rewritten from isolated-state to execution-trace model, S3 pre-state/post-state formula inconsistency.*
+
+**Stage 4: Mathematical precision.** Unstated assumptions about the domain. Properties that are derivable but asserted as axioms. Proofs that claim a specific scope when the argument is more general.
+
+*Observed: natural-number discreteness unstated, S8-vdepth promoted from design requirement to theorem, subspace-universal scope in VIP narrowed to "text-subspace."*
+
+**Stage 5: Structural organization.** Phantom dependencies. Redundant properties whose postconditions duplicate other properties. Mathematical insights about edge cases.
+
+*Observed: phantom dependencies (referenced but not stated), D-CTG postcondition duplicating D-CTG-depth, VIP empty-case insight (infinitely many mutually exclusive valid positions).*
+
+## Leads to
+
+[Scope narrowing](scope-narrowing.md) — the cone is resolved by narrowing to the cluster and applying [review/revise iteration](review-revise-iteration.md) with focused context. The stages above are what the review/revise cycle finds at each layer.
+
+[Verification V-Cycle](../design-notes/verification-v-cycle.md) — the multi-scale architecture that emerged from the cone problem. Property, cluster, and system scales composed into an upward-downward pass, each handling the error class it is efficient at.
 
 ## Origin
 

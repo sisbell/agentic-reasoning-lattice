@@ -1,37 +1,24 @@
 # Agentic Reasoning Lattice
 
-A reasoning lattice is a set of reasoning documents with explicit dependencies between them. Each document covers one topic, declares what it depends on, and builds on verified foundations below it. The lattice grows through discovery as shared concepts are extracted into new layers. Foundation documents are formalized and verified first. Everything above builds on what's been proven.
-
-## What this is
-
-A multi-agent system that discovers mathematical structure through structured disagreement between independent evidence channels. Local agents run structured pipelines — discovery, blueprinting, formalization, verification — producing a dependency lattice of reasoning documents with machine-checked proofs.
-
-The agents discover mathematical structure. That mathematical structure specifies a protocol for agentic memory and communication:
-
-- Permanent knowledge trails — every reasoning step is addressable and retrievable
-- Traceable provenance — any conclusion can be traced back through its dependency chain
-- Shared reasoning — agents work from the same claims, not copies that drift
-
-Once that protocol is implemented, agents become agentic — discovering collaboratively at scale. Their own discoveries give them new capabilities.
-
-## How it works
-
-Two agent channels — one consulting established theory, one analyzing raw evidence — are separated by a vocabulary firewall. The theory channel cannot reference specific data. The data channel cannot use theoretical terms. A synthesis agent integrates both into structured reasoning documents with dependency-mapped claims. Where the channels agree, principles are validated. Where they disagree, new principles emerge.
-
-The system is demonstrated on the Xanadu hypertext system — derived from Ted Nelson's design intent (*Literary Machines*) and Roger Gregory's implementation (udanax-green). Xanadu provides the target agentic protocol: permanent addresses, bidirectional links, transclusion, immutable content, traceable provenance. These are the primitives that enable distributed agents to collaborate through shared, permanent knowledge trails.
+A multi-agent system that discovers formal properties and constraints through structured disagreement between independent evidence channels. Local agents run structured pipelines — discovery, blueprinting, formalization, verification — producing a dependency lattice of reasoning documents with machine-checked proofs.
 
 ## What it produces
 
 The framework has produced a verified, domain-independent mathematical foundation through its own operation: sequence arithmetic, interval algebra, correspondence decomposition, and displacement theory — with machine-checked proofs at the foundation and bounded model checking across the lattice.
 
-## From local agents to agentic
+A reasoning lattice is a set of reasoning documents with explicit dependencies between them. Each document covers one topic, declares what it depends on, and builds on verified foundations below it. The lattice grows through discovery as shared concepts are extracted into new layers. Foundation documents are formalized and verified first. Everything above builds on what's been proven.
 
-What exists today is local agents running rigorous pipelines with a systematic methodology — convergence criteria, dependency ordering, formal verification. The Xanadu protocol doesn't replace something broken. It scales something that works locally into something that works distributedly. Permanent addressable knowledge trails let distributed agents trace how any conclusion was reached, share reasoning through transclusion, and propagate changes through bidirectional links.
+The agents discover formal properties and constraints. Those properties specify a protocol for agentic memory and communication:
 
-1. Local Agents discover mathematical structure (today, working, local)
-2. That mathematics specifies a remote communication protocol
-3. That protocol enables distributed collaboration
-4. Distributed Agents become Agentic and discover more, better, faster
+- Permanent knowledge trails — every reasoning step is addressable and retrievable
+- Traceable provenance — any conclusion can be traced back through its dependency chain
+- Shared reasoning — agents work from the same claims, not copies that drift
+
+## How it works
+
+Two agent channels — one consulting established theory, one analyzing raw evidence — are separated by a vocabulary firewall. The theory channel cannot reference specific data. The data channel cannot use theoretical terms. A synthesis agent integrates both into structured reasoning documents with dependency-mapped claims. Where the channels agree, principles are validated. Where they disagree, new principles emerge.
+
+The system is demonstrated on the Xanadu hypertext system — deriving formal properties from Ted Nelson's design intent (*Literary Machines*) and Roger Gregory's 1988 implementation (udanax-green) under enforced vocabulary separation. Xanadu's protocol primitives — permanent addresses, bidirectional links, traceable provenance — are what the system discovered. The methodology bootstrapped the mathematics of the protocol through its own operation.
 
 ## Documentation
 
@@ -61,3 +48,12 @@ What exists today is local agents running rigorous pipelines with a systematic m
 - [vault/project-model/](vault/project-model/) — per-ASN manifests, exports, dependency graphs
 - [scripts/](scripts/) — pipeline automation
 - [docs/](docs/) — methodology, guides, runbooks
+
+## Vision
+
+What exists today is local agents running rigorous pipelines with a systematic methodology — convergence criteria, dependency ordering, formal verification. The next step scales something that works locally into something that works distributedly. Permanent addressable knowledge trails let distributed agents trace how any conclusion was reached, share reasoning without copying, and propagate changes through dependency links.
+
+1. Local agents discover formal properties and constraints (today, working, demonstrated)
+2. Those properties specify a remote communication protocol
+3. That protocol enables distributed collaboration
+4. Distributed agents discover more, better, faster

@@ -1,6 +1,6 @@
 # Methodology
 
-This project applies incremental formal specification to a system where the design authority (Ted Nelson) and implementation evidence (Roger Gregory's udanax-green) exist but no formal specification does. The methodology follows established industry practice in formal methods: incremental refinement (Abrial), Design by Contract (Meyer), and lightweight formal methods (Jackson). It is adapted for a setting where the specification must be elicited from domain authorities rather than written from requirements.
+This project applies incremental formal specification to domains where authorities exist but no formal specification does. The methodology follows established industry practice in formal methods: incremental refinement (Abrial), Design by Contract (Meyer), and lightweight formal methods (Jackson). It is adapted for a setting where the specification must be elicited from domain authorities rather than written from requirements.
 
 The central idea: start from informal understanding, refine incrementally toward machine-checked proofs, and let each stage of formalization expose errors in the previous stage. This follows the standard progression from informal to formal. What is specific to this project is the discovery-first approach (the specification is elicited from domain authorities) and the tight feedback loop between text-based formalization and mechanical verification.
 
@@ -17,10 +17,10 @@ Each stage refines the same content at increasing precision. Discovery captures 
 
 Elicit the system's structure through consultation with domain authorities. Discovery connects — it grows the lattice outward from a broad question to focused foundations. Properties emerge from understanding design intent and implementation evidence. The key principles:
 
-- **Two independent channels** — design intent (Nelson) and implementation evidence (Gregory), kept separate by a vocabulary firewall
+- **Two independent channels** — design intent and implementation evidence, kept separate by a vocabulary firewall
 - **Abstract Specification Notes (ASNs)** — each ASN is a reasoning document: Dijkstra-style derivation prose with embedded properties, covering one topic. ASNs form a dependency lattice — each declares what it depends on and what it covers, building on verified foundations
 - **Convergence through review** — structured consultation, review, and revision cycles until the reasoning is internally consistent
-- **Properties emerge, not prescribed** — the structure of the system reveals itself through careful questioning
+- **Properties emerge, not prescribed** — the structure of the domain reveals itself through careful questioning
 
 The core artifact is the ASN. Properties are stated in natural language with enough precision to be unambiguous, but the emphasis is on the reasoning that justifies them.
 
@@ -67,6 +67,25 @@ The formalization-modeling boundary is where the specification earns trust. A co
 
 This loop repeats until all models are consistent and all proofs pass. The specification is done when formalization and modeling agree: every property has a formal contract that text-based review accepts and mechanical verification confirms.
 
+## What the Methodology Reveals
+
+Running this pipeline on a domain does not just produce verified properties — it produces algebraic structure. This was not designed in. It emerged from operating the methodology on a hard domain and was recognized only after the pattern language crystallized.
+
+The reasoning lattice has two operations at two scales:
+
+- **Meet** — when two units share a concept, the common ground is extracted into a new foundation layer below both. Blueprinting executes meets: a document-level node becomes many property-level nodes. Extraction executes meets: shared definitions become foundation ASNs that dependents absorb.
+- **Join** — when an investigation builds on multiple foundations, a new node is created above them. Synthesis executes joins: two channel outputs become one reasoning document. Scope promotion executes joins: an out-of-scope finding becomes a new node connecting to existing ones.
+
+The lattice order — which nodes depend on which — is discovered, not imposed. Foundation layers emerge when multiple higher-level documents independently define the same concept. The extraction creates the layer; the lattice grows downward. The pattern language (12 operationally discovered patterns) names what was already happening implicitly. The meets and joins were present from the start — they became visible once enough structure had accumulated to recognize them.
+
+This is the most important output of the methodology: not just verified properties, but a self-organizing knowledge structure with proven algebraic properties.
+
+The multi-scale review architecture — property, cluster, system — emerged from this structure. When per-property refinement stalls on tightly coupled claims ([dependency cones](patterns/dependency-cone.md)), widening to the cluster resolves them. See [Verification V-Cycle](design-notes/verification-v-cycle.md) for the theoretical grounding and multigrid analogy.
+
+## Origin
+
+This methodology was developed to formalize the Xanadu hypertext system — a domain where design authority (Ted Nelson, *Literary Machines*) and implementation evidence (Roger Gregory's udanax-green) exist but no formal specification does. The reasoning lattice — with its meet and join operations, dependency ordering, and self-healing rebase — was built for that purpose. What emerged from operating the system was the recognition that these operations constitute a general algebraic structure, independent of the domain being formalized. The methodology is the generalization. Xanadu is the origin.
+
 ## What Verification Proves and What It Cannot
 
 Each stage provides a specific guarantee. Understanding what each stage *cannot* tell you is as important as understanding what it can.
@@ -79,10 +98,10 @@ Each stage provides a specific guarantee. Understanding what each stage *cannot*
 
 **Dafny verification** proves that the contracts are logically consistent and faithfully encoded — every contract field is translated correctly and every proof obligation is discharged. This is mechanical certainty. But Dafny cannot tell you:
 
-- Whether a postcondition describes what the system *should* do — that is a design question, answered by the consultations with Nelson and Gregory
+- Whether a postcondition describes what the system *should* do — that is a design question, answered by consultation with domain authorities
 - Whether the axioms are the right axioms — those are posited from evidence, not derived
 - Whether the system described by these contracts matches the actual implementation — that requires testing against the real system
 
-**Golden tests** close the final gap. The contracts compile through Dafny to Go. Running that Go against the real system (udanax-green) checks whether the formalized specification matches reality. A golden test failure means the spec is internally consistent but doesn't describe the actual system.
+**Golden tests** close the final gap. The contracts compile through Dafny to Go. Running that Go against the real system checks whether the formalized specification matches reality. A golden test failure means the spec is internally consistent but doesn't describe the actual system.
 
 The chain of trust runs from human judgment through mechanical verification to empirical testing. Each link strengthens a different part: consultations establish intent, formalization makes it precise, verification makes it consistent, testing makes it real. No single stage is sufficient — the specification earns trust from the combination.
