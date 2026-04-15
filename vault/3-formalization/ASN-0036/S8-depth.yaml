@@ -3,7 +3,7 @@ name: FixedDepthVPositions
 type: design-requirement
 depends:
 - Σ.M(d)
-- PositionAdvance
+- TumblerAdd
 - S3
 - S7b
 - S7c
