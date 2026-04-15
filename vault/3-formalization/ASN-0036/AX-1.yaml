@@ -1,4 +1,5 @@
 label: AX-1
 name: InitialEmptyState
 type: axiom
-depends: []
+depends:
+- D-DOC

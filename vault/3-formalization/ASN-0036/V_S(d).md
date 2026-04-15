@@ -13,6 +13,6 @@ V_S(d) partitions dom(Σ.M(d)) by subspace identifier. Every element of V_S(d) s
 **Common depth.** All positions in V_S(d) satisfy subspace(v) = S, so they extend the single-component prefix [S]. S8-depth (MinimalVPositionDepth) establishes that within any subspace, all V-positions share a common depth. Since V_S(d) is precisely the set of V-positions in subspace S, S8-depth applies directly: there exists a depth δ_S such that #v = δ_S for all v ∈ V_S(d). ∎
 
 *Formal Contract:*
-- *Definition:* `V_S(d) = {v ∈ dom(Σ.M(d)) : subspace(v) = S}` for subspace identifier S ≥ 1 and document d.
+- *Definition:* `V_S(d) = {v ∈ dom(Σ.M(d)) : subspace(v) = S}` for subspace identifier S ≥ 1 and d ∈ D.
 - *Preconditions:* subspace (SubspaceIdentifier) — subspace(v) = v₁ with subspace(v) ≥ 1 for all v ∈ dom(Σ.M(d)); S8a (V-position well-formedness) — every v ∈ dom(Σ.M(d)) satisfies zeros(v) = 0 ∧ v₁ ≥ 1; S8-depth (MinimalVPositionDepth) — within any subspace, all V-positions share a common depth.
 - *Postconditions:* {V_S(d) : S ≥ 1} partitions dom(Σ.M(d)) into pairwise disjoint sets; every v ∈ V_S(d) satisfies S8a; all positions in V_S(d) share common depth δ_S with #v = δ_S for all v ∈ V_S(d).

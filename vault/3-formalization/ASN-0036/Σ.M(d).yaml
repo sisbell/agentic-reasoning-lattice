@@ -3,6 +3,7 @@ name: Arrangement
 type: definition
 depends:
 - Σ.C
+- D-DOC
 vocabulary:
 - symbol: Σ.M(d)
   meaning: The arrangement of document d; a partial function from V-position tumblers to I-address tumblers, mapping active

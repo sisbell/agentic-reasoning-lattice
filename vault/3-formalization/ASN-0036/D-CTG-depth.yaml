@@ -12,6 +12,7 @@ depends:
 - T1
 - T3
 - T4
+- D-DOC
 literature_citations:
 - LM 4/20
 - LM 4/31
