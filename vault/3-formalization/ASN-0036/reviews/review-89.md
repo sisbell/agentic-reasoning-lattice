@@ -225,3 +225,9 @@ Now let me trace the cross-cutting chains systematically. I'll focus on dependen
 **ASN**: D-CTG (VContiguity) — formal contract annotation: "The v ∈ T guard is operationally universal for same-depth same-subspace tuples (OrdinalShift; T0, ASN-0034)."
 **Issue**: The annotation claims that the filter `v ∈ T` in the inner quantifier is "operationally universal" — i.e., it never excludes a candidate intermediate — and attributes this jointly to OrdinalShift and T0. But the claim is purely about T-membership: any tuple [S, x₂, …, xₘ] with natural-number components and length m ≥ 2 ≥ 1 is a finite sequence over ℕ with length ≥ 1, hence in T by T0 alone. OrdinalShift contributes nothing to T-membership of arbitrary intermediates. OrdinalShift's role in D-CTG is different and stated correctly in the body text: "At depth m = 2, OrdinalShift provides a constructive witness." That is about *constructibility* — showing that intermediates can be reached by shifting — not about *carrier-set membership*. Furthermore, at depth m ≥ 3, OrdinalShift cannot construct all intermediates (it only varies the last component), yet the annotation applies its citation to all depths via the general "same-depth same-subspace tuples" phrasing. A formalizer tracing the annotation would look for OrdinalShift's contribution to the universality claim, find only the narrow `shift(v,n) ∈ T` postcondition (which covers shift results, not arbitrary intermediates), and be forced to discover independently that T0 provides the general result.
 **What needs resolving**: The formal contract annotation should cite T0 alone for the T-membership universality claim. OrdinalShift's constructive role belongs in the body text (where it already appears), not in the formal contract's justification of why `v ∈ T` is non-restrictive.
+
+## Result
+
+Cone converged after 3 cycles.
+
+*Elapsed: 3228s*

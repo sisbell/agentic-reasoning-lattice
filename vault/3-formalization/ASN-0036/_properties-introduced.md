@@ -30,8 +30,10 @@
 | OrdAddS8a | v ⊕ w satisfies S8a ⟺ all tail components of w after the action point are positive; equivalently ord(v ⊕ w) ∈ S ⟺ v ⊕ w satisfies S8a | lemma from OrdAddHom, S8a, TumblerAdd (ASN-0034) |
 | OrdShiftHom | ord(shift(v, n)) = shift(ord(v), n); shift(v, n) unconditionally satisfies S8a when v does | corollary from OrdAddHom, OrdAddS8a, OrdinalShift, OrdinalDisplacement (ASN-0034) |
 | D-CTG | V-position contiguity: within each subspace, V-positions form a contiguous ordinal range with no gaps — design constraint on well-formed document states | design; uses T0(a), T1, T3 (ASN-0034) |
-| D-MIN | V-position minimum: minimum V-position in each non-empty subspace has all post-subspace components equal to 1 — design constraint | design requirement |
+| D-MIN | V-position minimum: min_S(d) = min(V_S(d)), the T1-least element of V_S(d) — pure definition, membership trivial | definition |
+| AX-6 | Minimum presence: V_S(d) ≠ ∅ ⟹ [S, 1, …, 1] ∈ V_S(d) — design constraint on operations | design requirement |
+| D-MIN-VAL | Minimum position value: min_S(d) = [S, 1, …, 1] — characterizes the value of the minimum | from D-MIN, AX-6, S8a, T1, T3 (ASN-0034) |
 | D-CTG-depth | Shared prefix reduction: at depth m ≥ 3, contiguity reduces to the last component (all positions share components 2 through m − 1) | corollary of D-CTG, S8-fin, S8-depth, T0(a), T1, T3 (ASN-0034) |
-| D-SEQ | Sequential positions (m ≥ 2): non-empty V_S(d) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n} for some n ≥ 1 | from D-CTG, D-CTG-depth, D-MIN, S8-fin, S8-depth, T1 (ASN-0034) |
+| D-SEQ | Sequential positions (m ≥ 2): non-empty V_S(d) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n} for some n ≥ 1 | from D-CTG, D-CTG-depth, D-MIN, D-MIN-VAL, AX-6, S8-fin, S8-depth, T1 (ASN-0034) |
 | ValidInsertionPosition | given depth m ≥ 2: if V_S(d) ≠ ∅, m equals common depth and v = min(V_S(d)) or v = shift(min(V_S(d)), j) with 1 ≤ j ≤ N; if V_S(d) = ∅, v = [S, 1, ..., 1] of depth m | introduced |
 | S9 | Two-stream separation: arrangement changes cannot alter stored content | theorem from S0 |

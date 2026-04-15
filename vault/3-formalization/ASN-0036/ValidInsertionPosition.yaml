@@ -9,6 +9,8 @@ depends:
 - S8-crun
 - S8-fin
 - D-MIN
+- D-MIN-VAL
+- AX-6
 - T3
 - T0
 - S8a

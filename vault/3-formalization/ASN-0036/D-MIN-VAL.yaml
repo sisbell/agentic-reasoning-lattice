@@ -1,0 +1,13 @@
+label: D-MIN-VAL
+name: MinimumPositionValue
+type: theorem
+depends:
+- D-MIN
+- AX-6
+- V_S(d)
+- Σ.M(d)
+- T1
+- T3
+- S8-depth
+- S8-vdepth
+- S8a
