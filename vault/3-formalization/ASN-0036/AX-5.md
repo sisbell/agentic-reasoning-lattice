@@ -1,4 +1,4 @@
-**AX-5 (ClosedWorldTransition).** Every state transition is produced by one of six operations. Let Op = {INSERT, DELETE, COPY, MOVE, REARRANGE, APPEND}. For every pair of consecutive reachable states Σ, Σ' in a system trace, there exists exactly one op ∈ Op such that Σ' is the result of applying op to Σ.
+**AX-5 (ClosedWorldTransition).** Every state transition is produced by one of six operations. Let Op = {INSERT, DELETE, COPY, MOVE, REARRANGE, APPEND}. For every pair of consecutive reachable states Σ, Σ' in a system trace, there exists an op ∈ Op such that Σ' = op(Σ).
 
 This is the closed-world assumption on the transition relation. The system state Σ = (C, M) (comprising the content store Σ.C and the arrangement Σ.M(d) for each document d) evolves only through these six operations — no other mechanism modifies any component of Σ. In TLA+ terms, this axiom corresponds to the `Next` predicate: `Next ≡ INSERT ∨ DELETE ∨ COPY ∨ MOVE ∨ REARRANGE ∨ APPEND`.
 
