@@ -4,6 +4,8 @@ type: corollary
 depends:
 - T1
 - T3
+- Divergence
+- ZPD
 - PositiveTumbler
 - TA0
 - TA2
