@@ -5,6 +5,7 @@ depends:
 - Σ.M(d)
 - D-CTG
 - S8-depth
+- S8-crun
 - S8-fin
 - D-MIN
 - T3
@@ -15,4 +16,4 @@ depends:
 vocabulary:
 - symbol: valid insertion position
   meaning: Given depth m ≥ 2, a V-position v in subspace S of document d satisfying D-CTG, where either V_S(d) is non-empty with m equal to the common depth and v equals min(V_S(d))
-    + j for some 0 ≤ j ≤ N (using S8-depth ordinal displacement), or V_S(d) is empty and v = [S, 1, ..., 1] of depth m
+    + j for some 0 ≤ j ≤ N (using S8-crun ordinal displacement), or V_S(d) is empty and v = [S, 1, ..., 1] of depth m

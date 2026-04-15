@@ -5,7 +5,7 @@
 We produce infinitely many intermediates by applying T0(a) (UnboundedComponentValues, ASN-0034) to v₁ at position j + 1. Since v₁ ∈ T and j + 1 ≤ m (because j ≤ m − 1), position j + 1 is a valid component of v₁. For any bound M, T0(a) yields a tumbler t' ∈ T that agrees with v₁ at every position except j + 1, where t'ⱼ₊₁ > M. Each such t' satisfies:
 
 - **subspace(t') = S**: Since j ≥ 2, position 1 is unchanged, so t'₁ = (v₁)₁ = S.
-- **#t' = m**: T0(a) modifies a single component in place, preserving length.
+- **#t' = m**: By T0(a)'s postcondition, `#t' = #v₁ = m`.
 - **t' > v₁**: t' agrees with v₁ on components 1 through j (all positions other than j + 1 are unchanged, and j < j + 1). At component j + 1, t'ⱼ₊₁ > M ≥ (v₁)ⱼ₊₁ (choosing M ≥ (v₁)ⱼ₊₁). Since j + 1 is the first disagreeing component and j + 1 ≤ m = min(m, m), by T1(i), t' > v₁.
 - **t' < v₂**: t' agrees with v₂ on components 1 through j − 1 (these are copied from v₁, which agrees with v₂ through those positions by the definition of j). At component j, t'ⱼ = (v₁)ⱼ < (v₂)ⱼ. Since j ≤ m − 1 < m = min(m, m), by T1(i), t' < v₂.
 - **t' ∈ T**: By T0(a)'s postcondition.
