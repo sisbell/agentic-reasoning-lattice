@@ -2,4 +2,5 @@ label: V_S(d)
 name: SubspaceVPositionSet
 type: definition
 depends:
+  - subspace(v)
   - S8a

@@ -1,0 +1,8 @@
+label: AX-4
+name: BaseOrdinal
+type: axiom
+depends:
+  - V_S(d)
+literature_citations:
+  - LM 4/20
+  - LM 4/31

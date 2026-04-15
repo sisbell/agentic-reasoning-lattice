@@ -3,6 +3,8 @@ name: SharedPrefixReduction
 type: lemma
 depends:
 - Σ.M(d)
+- subspace(v)
+- V_S(d)
 - D-CTG
 - S8-depth
 - S8-fin
