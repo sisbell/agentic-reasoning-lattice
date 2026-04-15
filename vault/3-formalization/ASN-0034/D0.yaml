@@ -2,6 +2,7 @@ label: D0
 name: DisplacementWellDefined
 type: corollary
 depends:
+- T1
 - T3
 - PositiveTumbler
 - TA0
