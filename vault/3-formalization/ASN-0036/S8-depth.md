@@ -1,6 +1,6 @@
 **S8-depth (Fixed-depth V-positions).** Within a given subspace `s` of document `d`, all V-positions share the same tumbler depth:
 
-`(A d, v₁, v₂ : v₁ ∈ dom(Σ.M(d)) ∧ v₂ ∈ dom(Σ.M(d)) ∧ (v₁)₁ = (v₂)₁ : #v₁ = #v₂)`
+`(A d, p, q : p ∈ dom(Σ.M(d)) ∧ q ∈ dom(Σ.M(d)) ∧ p₁ = q₁ : #p = #q)`
 
 This is a design requirement, not a convention — parallel to S7a. Gregory's evidence supports it: V-addresses in the text subspace consistently use the form `s.x` — two tumbler digits, where `s` is the subspace identifier and `x` is the ordinal. The two-blade knife computation (which sets the second blade at `(N+1).1` for any insertion at `N.x`) works only if all positions within a subspace share the same depth. Any correct implementation must satisfy this constraint.
 
@@ -17,7 +17,7 @@ A *correspondence run* in document `d` is a triple `(v, a, n)` — a V-position,
 At `k = 0` this is the base case `M(d)(v) = a`. Each subsequent `k` increments both the V-ordinal and the I-ordinal by the same amount. Within a correspondence run, each step forward in Vstream corresponds to the same step forward in Istream.
 
 *Formal Contract:*
-- *Axiom:* `(A d, v₁, v₂ : v₁ ∈ dom(Σ.M(d)) ∧ v₂ ∈ dom(Σ.M(d)) ∧ (v₁)₁ = (v₂)₁ : #v₁ = #v₂)`
+- *Axiom:* `(A d, p, q : p ∈ dom(Σ.M(d)) ∧ q ∈ dom(Σ.M(d)) ∧ p₁ = q₁ : #p = #q)`
 - *Definition:* A correspondence run in document `d` is a triple `(v, a, n)` with `n ≥ 1` such that `(A k : 0 ≤ k < n : Σ.M(d)(v + k) = a + k)`, where `v + 0 = v`, `a + 0 = a`, and for `k ≥ 1`, `v + k = shift(v, k)`, `a + k = shift(a, k)`.
 - *Preconditions:* `dom(M(d)) ⊆ T` and `ran(M(d)) ⊆ T` (Σ.M(d)), ensuring OrdinalShift's precondition `v ∈ T` is met for V-positions and I-addresses. Postcondition 1 requires `#v ≥ 2`. S8-vdepth establishes this bound as an axiom for every V-position in `dom(M(d))` — depth-1 V-position subspaces are excluded by the model, and the postconditions hold unconditionally. At `#v = 1`, position 1 would be the last component, and OrdinalShift's last-component increment would give `shift(v, k)₁ = v₁ + k ≠ v₁`, so the subspace identifier would change and subspace preservation would be false. Postcondition 3 requires that each `a + k` in the run is an element-level address. For every 0 ≤ k < n, the correspondence run definition gives `M(d)(v + k) = a + k`; S3 (ReferentialIntegrity) gives `a + k ∈ dom(Σ.C)`; S7b (Element-level I-addresses) gives `zeros(a + k) = 3`, confirming four-field structure and making `E₁(a + k)` well-defined. At `k = 0`, S7c then gives `#fields(a).element ≥ 2` (`δ ≥ 2`). At element-field depth `δ = 1`, position 1 would be the last component (`#a`), and OrdinalShift's last-component increment would alter `E₁` — subspace preservation would be false.
 - *Postconditions:* For any correspondence run `(v, a, n)` in document `d`:
