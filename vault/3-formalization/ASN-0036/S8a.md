@@ -1,6 +1,6 @@
 **S8a (VPositionWellFormedness).** Every V-position has all components strictly positive and contains no zero-valued separators:
 
-`(A v ∈ dom(Σ.M(d)) :: zeros(v) = 0 ∧ v₁ ≥ 1)`
+`(A d ∈ D, v : v ∈ dom(Σ.M(d)) : zeros(v) = 0 ∧ v₁ ≥ 1)`
 
 This is a design requirement on the V-position space, parallel to S8-depth's fixed-depth constraint and S8-fin's finiteness constraint. V-positions are indices into the arrangement map Σ.M(d); the two conjuncts constrain their internal structure. The conjunct `zeros(v) = 0` is the independent content: no component of a V-position is zero — V-positions carry no field-separator structure. Since components are natural numbers (T0), `zeros(v) = 0` is equivalent to every component being strictly positive: `(A i : 1 ≤ i ≤ #v : vᵢ ≥ 1)`. The conjunct `v₁ ≥ 1` is a consequence of `zeros(v) = 0` — the first component is a component, so it is non-zero, and as a natural number, at least 1 — stated explicitly because it is load-bearing: `v₁` serves as the subspace identifier, and S8's partition proof requires every V-position to belong to some subspace `S = v₁ ≥ 1` to invoke T5 and T10 for cross-subspace disjointness.
 
@@ -9,5 +9,5 @@ The positivity constraint is load-bearing for D-MIN: if V-position components co
 *Remark.* The shared vocabulary identifies a second subspace for links (v₁ = 2, per LM 4/30). Link-subspace V-positions satisfy the same `zeros(v) = 0` constraint as text-subspace positions — both have strictly positive components. The subspace identifier (1 for text, 2 for links) is the first component; the `0` in tumbler notation (e.g., `N.0.U.0.D.0.2.1`) is a field separator, not a subspace identifier. Link-subspace arrangement semantics are deferred to a future ASN.
 
 *Formal Contract:*
-- *Axiom:* `(A v ∈ dom(Σ.M(d)) :: zeros(v) = 0 ∧ v₁ ≥ 1)` — every V-position has strictly positive components and no separator structure. The conjunct `v₁ ≥ 1` is a consequence of `zeros(v) = 0` on natural-number components (T0), stated explicitly for downstream use in S8's partition proof. This is a design requirement: operations that construct or modify V-positions must produce tumblers with all components strictly positive.
+- *Axiom:* `(A d ∈ D, v : v ∈ dom(Σ.M(d)) : zeros(v) = 0 ∧ v₁ ≥ 1)` — every V-position has strictly positive components and no separator structure, for every reachable state Σ. The conjunct `v₁ ≥ 1` is a consequence of `zeros(v) = 0` on natural-number components (T0), stated explicitly for downstream use in S8's partition proof. This is a design requirement: operations that construct or modify V-positions must produce tumblers with all components strictly positive.
 - *Postconditions:* `zeros(v) = 0` (no separators; equivalently, every component is strictly positive), `v₁ ≥ 1` (valid subspace identifier — a consequence of `zeros(v) = 0`, stated for direct citation).
