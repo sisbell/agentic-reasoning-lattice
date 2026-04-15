@@ -2,6 +2,7 @@ label: D-CTG
 name: VContiguity
 type: theorem
 depends:
+- AX-1
 - Σ.M(d)
 - subspace(v)
 - V_S(d)

@@ -2,4 +2,5 @@ label: S8-depth
 name: FixedDepthVPositions
 type: design-requirement
 depends:
+- AX-1
 - Σ.M(d)
