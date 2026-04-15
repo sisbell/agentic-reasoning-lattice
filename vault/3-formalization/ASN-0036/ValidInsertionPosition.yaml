@@ -4,6 +4,7 @@ type: definition
 depends:
 - Σ.M(d)
 - D-CTG
+- D-CTG-depth
 - S8-depth
 - S8-crun
 - S8-fin

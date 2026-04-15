@@ -6,7 +6,15 @@
 
 In both cases, S = v₁ is the subspace identifier.
 
-In the non-empty case, there are exactly N + 1 valid insertion positions: the N positions coinciding with existing V-positions v₀ through v_{N−1}, plus the append position shift(min(V_S(d)), N). In the empty case, the parameter m determines a unique valid position [S, 1, ..., 1] of depth m.
+*Sequential form of V_S(d).* We establish that the existing N positions are exactly shift(min(V_S(d)), 0) through shift(min(V_S(d)), N − 1), so that the definition's parameterization by j indexes existing positions for j < N and extends beyond them at j = N.
+
+*Case m = 2.* There are no intermediate components (the range [2, m − 1] = [2, 1] is empty), so every position in V_S(d) has the form [S, k]. By D-MIN, min(V_S(d)) = [S, 1], giving k = 1 at the minimum. By D-CTG, the k-values are contiguous: for any v₁ = [S, k₁], v₂ = [S, k₂] with k₁ < k₂ in V_S(d), every [S, k] with k₁ < k < k₂ belongs to V_S(d). By S8-fin, V_S(d) is finite, so the k-values form a finite contiguous range starting at 1 — namely {1, 2, …, N}. Since shift([S, 1], j) = [S, 1 + j] by OrdinalShift, the positions are {shift(min, j) : 0 ≤ j ≤ N − 1}.
+
+*Case m ≥ 3.* By D-CTG-depth (SharedPrefixReduction), all positions in V_S(d) share components 2 through m − 1. By D-MIN, min(V_S(d)) = [S, 1, …, 1] of depth m, so the shared intermediate components are all 1. Every position therefore has the form [S, 1, …, 1, k] for some k at the m-th component, with k = 1 at the minimum. By D-CTG — reduced to last-component contiguity by D-CTG-depth's postcondition (2) — the k-values are contiguous. By S8-fin, V_S(d) is finite, so the k-values are {1, 2, …, N}. Since shift([S, 1, …, 1], j) = [S, 1, …, 1 + j] by OrdinalShift, the positions are again {shift(min, j) : 0 ≤ j ≤ N − 1}.
+
+In both depth cases, V_S(d) = {shift(min(V_S(d)), j) : 0 ≤ j ≤ N − 1}. ∎
+
+It follows that there are exactly N + 1 valid insertion positions in the non-empty case: the N positions coinciding with existing V-positions shift(min, 0) through shift(min, N − 1), plus the append position shift(min(V_S(d)), N) — the first position beyond all existing V-positions, since its last component 1 + N exceeds every existing last component in {1, …, N}. In the empty case, the parameter m determines a unique valid position [S, 1, ..., 1] of depth m.
 
 We verify the structural claims. By D-MIN, min(V_S(d)) = [S, 1, ..., 1] of depth m. Since `V_S(d) ⊆ dom(M(d)) ⊆ T` (Σ.M(d)), `min(V_S(d)) ∈ T`, satisfying OrdinalShift's precondition. By OrdinalShift, since m ≥ 2, the prefix rule (`shift(v, j)ᵢ = vᵢ` for `i < m`) copies components 1 through m − 1 unchanged, and the last-component increment (`shift(v, j)_m = v_m + j`) sets position m to 1 + j. The explicit form is shift(min(V_S(d)), j) = [S, 1, ..., 1 + j].
 
@@ -20,7 +28,7 @@ We verify the structural claims. By D-MIN, min(V_S(d)) = [S, 1, ..., 1] of depth
 
 *Formal Contract:*
 - *Definition:* Given depth m ≥ 2, a V-position v is a valid insertion position for depth m in subspace S of document d when either (1) V_S(d) ≠ ∅ with |V_S(d)| = N, m equals the common depth (S8-depth, S8-vdepth gives m ≥ 2), and v = min(V_S(d)) + j for 0 ≤ j ≤ N (where + is the ordinal displacement notation of S8-crun: v + 0 = v, v + k = shift(v, k) for k ≥ 1), or (2) V_S(d) = ∅ and v = [S, 1, ..., 1] of depth m.
-- *Preconditions:* `V_S(d) ⊆ dom(M(d)) ⊆ T` (Σ.M(d)), providing carrier-set membership for OrdinalShift and T3; d satisfies D-CTG; S is a subspace identifier (S ≥ 1); m ≥ 2; S8-fin (dom(M(d)) is finite); in the non-empty case, m equals the common depth from S8-depth and S8-vdepth gives m ≥ 2; D-MIN holds for V_S(d).
+- *Preconditions:* `V_S(d) ⊆ dom(M(d)) ⊆ T` (Σ.M(d)), providing carrier-set membership for OrdinalShift and T3; d satisfies D-CTG; D-CTG-depth (SharedPrefixReduction — for m ≥ 3, establishes sequential form of V_S(d)); S is a subspace identifier (S ≥ 1); m ≥ 2; S8-fin (dom(M(d)) is finite); in the non-empty case, m equals the common depth from S8-depth and S8-vdepth gives m ≥ 2; D-MIN holds for V_S(d).
 - *Postconditions:* All valid insertion positions satisfy #v = m (depth preservation — m is an independent parameter, so this constrains the position's depth to equal the specified depth), v₁ = S (subspace identity), zeros(v) = 0 ∧ v₁ ≥ 1 (S8a consistency); in the non-empty case, the N + 1 positions are pairwise distinct (by T3).
 
 ### Valid insertion position examples
@@ -34,4 +42,4 @@ We verify the structural claims. By D-MIN, min(V_S(d)) = [S, 1, ..., 1] of depth
 
 That gives N + 1 = 4 positions. After an operation places new content at, say, [1, 2] — with whatever displacement mechanism the operation defines — the resulting V₁(d) must satisfy D-CTG and D-MIN. Verifying this is the operation's obligation, not the predicate's.
 
-**Empty case.** V₁(d) = ∅. For depth parameter m = 2, the unique valid insertion position is [1, 1]. D-MIN requires min(V₁(d)) = [1, 1] once the subspace becomes non-empty, so the position is exactly the one D-MIN demands. For m = 3, the unique valid position is [1, 1, 1]; by T3, this is a different tumbler — once placed, S8-depth locks the subspace to depth 3 for all future positions. The depth parameter distinguishes these as different predicates: for each m, exactly one position is valid.
+**Empty case.** V₁(d) = ∅. For depth parameter m = 2, the unique valid insertion position is [1, 1]. D-MIN requires min(V₁(d)) = [1, 1] once the subspace becomes non-empty, so the position is exactly the one D-MIN demands. For m = 3, the unique valid position is [1, 1, 1]; by T3, this is a different tumbler — once placed, S8-depth locks the subspace to depth 3 as long as it remains non-empty (S8-depth's invariant constrains positions that coexist in a single reachable state; an operation that empties V₁(d) and repopulates at a different depth m' satisfies S8-depth provided all new positions share depth m'). The depth parameter distinguishes these as different predicates: for each m, exactly one position is valid.
