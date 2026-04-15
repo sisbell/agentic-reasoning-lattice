@@ -1,4 +1,8 @@
 label: Prefix
 name: PrefixRelation
 type: definition
-depends: []
+depends:
+- T3
+summary: A tumbler p is a prefix of q (p ≼ q) when p is no longer than q and every component of p matches the corresponding
+  component of q at the same position. A proper prefix (p ≺ q) additionally requires p ≠ q, which combined with the canonical
+  representation guarantee (T3) forces p to be strictly shorter than q.

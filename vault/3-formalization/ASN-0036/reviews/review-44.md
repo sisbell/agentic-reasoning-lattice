@@ -1,17 +1,11 @@
-# Contract Review — ASN-0036 (cycle 2)
+# Cone Review — ASN-0036/S7 (cycle 2)
 
-*2026-04-12 17:30*
+*2026-04-13 14:38*
 
-### S7
+I'll read the ASN content and foundation statements carefully, checking for cross-cutting issues not already captured.
 
-`
-
-- `MISSING_PRECONDITION: T3 (CanonicalRepresentation, ASN-0034) is explicitly invoked in the Uniqueness across documents sub-proof ("By T3 (CanonicalRepresentation, ASN-0034), this distinctness is decidable by component-wise comparison") but is absent from the contract's precondition list. All other named dependencies (S0, S4, S7a, S7b, T4, T10a, GlobalUniqueness) are listed; T3 is the sole omission.`
-
-- `MISSING_POSTCONDITION: The proof establishes via T3 that the origin-distinctness result — origin(a₁) ≠ origin(a₂) — is decidable by component-wise comparison of the tumblers, without value comparison. This decidability claim is a proven result present in the proof body but is not captured in any of the three postconditions (a)–(c), nor in the invariant or frame. The frame says attribution requires no value comparison, but does not state the positive claim that the comparison is structurally decidable in O(min(|a₁|, |a₂|)) component checks.`
-
-### ValidInsertionPosition
-
-- `EXTRA_PRECONDITION: S8a — the proof does not use S8a as an assumption about the incoming arrangement. Under "S8a consistency," the proof *establishes* that every valid insertion position satisfies zeros(v) = 0 ∧ v > 0 (postcondition iii). S8a is a result of the definition, not a constraint the caller must supply. It should be removed from the preconditions list.`
-
-2 mismatches.
+### S4 contract missing GlobalUniqueness dependency
+**Foundation**: GlobalUniqueness (UniqueAddressAllocation) — for any `a, b ∈ T` produced by distinct allocation events within a system conforming to T10a: `a ≠ b`
+**ASN**: S4 formal contract — `*Preconditions:* a₁, a₂ ∈ dom(Σ.C) produced by distinct allocation events within a system conforming to T10a (allocator discipline, ASN-0034) and T3 (CanonicalRepresentation, ASN-0034).`; S4 proof — "GlobalUniqueness (ASN-0034) establishes the following invariant… GlobalUniqueness yields `a₁ ≠ a₂` directly."
+**Issue**: GlobalUniqueness is the proof's sole inference engine — it is cited twice, and the entire derivation is a one-step application of it. Yet the precondition list names T10a and T3 but not GlobalUniqueness. The previous contract review (finding #16) described the pre-fix state as listing "T10a and GlobalUniqueness only" and prescribed adding T3; the current state has T10a and T3 with GlobalUniqueness absent, indicating it was inadvertently dropped during that fix. Per the project convention established in the S7 contract review — theorem dependencies used as logical steps in a proof must appear in the precondition list — GlobalUniqueness must be restored. T10a is the system-level conformance requirement; GlobalUniqueness is the derived lemma the proof actually invokes. Both are needed, for different reasons.
+**What needs resolving**: Restore GlobalUniqueness to S4's precondition list alongside T10a and T3, so the contract reads `…within a system conforming to T10a (allocator discipline, ASN-0034), GlobalUniqueness (ASN-0034), and T3 (CanonicalRepresentation, ASN-0034)` — or equivalent phrasing that lists all three.

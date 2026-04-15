@@ -1,71 +1,28 @@
-# Proof Review — ASN-0036 (cycle 4)
+# Cone Review — ASN-0036/ValidInsertionPosition (cycle 1)
 
-*2026-04-12 19:38*
+*2026-04-13 17:06*
 
-5 properties (D-CTG, D-CTG-depth, D-MIN, D-SEQ, ValidInsertionPosition)
+### TumblerAdd cited as proof substrate without foundation import
 
-### D-CTG
-
-Looking at the proof against the verification checklist:
-
-**1–4, 6–7: Sound.** The contradiction argument is correctly constructed — the intermediate tumblers w are well-defined, the ordering v₁ < w < v₂ holds, and distinct n values yield infinitely many distinct positions via T3, contradicting S8-fin. Case coverage is complete (j ranges over {2,…,m−1}; the j=m case is the non-contradictory scenario where positions already agree on 2..m−1). The formal contract accurately reflects the axiom and postcondition.
-
-**5: Dependency correctness — gap found.**
-
-T1(i) (lexicographic ordering from ASN-0034) is used three times in the proof:
-- "since v₁ < v₂ by T1(i)" in the setup
-- "By T1(i), w > v₁" — ordering at component j+1
-- "By T1(i), w < v₂" — ordering at component j
-
-Yet T1(i) is not listed in the dependency set. The entire ordering argument — establishing v₁ < w < v₂ so that D-CTG's universal quantifier applies to w — depends on T1(i)'s lexicographic comparison rule. T0(a) and T3 from the same ASN are declared; T1(i) was omitted.
-
-```
-RESULT: FOUND
-
-**Problem**: T1(i) (LexicographicOrder, ASN-0034) is used three times in the proof
-to establish the critical ordering relations v₁ < w and w < v₂, but is not declared
-as a dependency. Without T1(i), the proof cannot justify that the constructed
-intermediate w falls strictly between v₁ and v₂.
-
-**Required**: Add T1(i) (ASN-0034) to the dependency list for D-CTG.
-```
-
-### D-SEQ
-
-Looking at the D-SEQ proof carefully against the checklist:
-
-**1. Precondition completeness** — All preconditions stated and used. ✓
-
-**2. Case coverage** — m = 2 and m ≥ 3 cover all m ≥ 2. Single-element case (n = 1) handled: Step 3 is vacuously satisfied, assembly works. ✓
-
-**3. Postcondition establishment** — Steps 1–4 plus assembly establish the claimed set equality. ✓
-
-**4. All conjuncts addressed** — Single main claim fully proved. ✓
-
-**5. Dependency correctness** — Two issues:
-
-- **T1(i) (LexicographicOrder, ASN-0034) is used directly in Step 3 but not declared as a dependency.** Step 3 explicitly invokes "By T1(i) (LexicographicOrder, ASN-0034), v₁ < v₂ since they agree on components 1 through m − 1 and differ first at component m where k₁ < k₂" and again for v₁ < w < v₂. This is a direct invocation, not mediated through D-CTG or D-CTG-depth. The proof cannot establish the ordering of intermediate tuples without T1(i).
-
-- **ValidInsertionPosition is declared as a dependency but never referenced in the proof.** The proof text never mentions ValidInsertionPosition; it is unused.
-
-**6. Formal contract** — Preconditions and postconditions match the narrative. T1(i) is a general theorem (always true), so omitting it from preconditions is defensible — but it should be tracked as a dependency. ✓
-
-**7. Missing guarantees** — No missing guarantees; all invoked properties are sound for their usage. ✓
+**Foundation**: OrdinalShift (ShiftDefinition, ASN-0034) — definition uses `v ⊕ δ(n, m)` but exports postconditions that absorb TumblerAdd's behavior
+**ASN**: S8-depth — "the action point of δ(k, #a) is #a"; ValidInsertionPosition — "since δ(j, m) has action point m and m ≥ 2, TumblerAdd copies components 1 through m − 1 unchanged and sets the last component to 1 + j"; empty-case proof — "the action point of [1] is k = 1, so TumblerAdd gives r₁ = S + 1"
+**Issue**: The ASN cites TumblerAdd by name and reasons through its internal structure — the δ(n, m) vector, its "action point," and componentwise addition semantics — at seven distinct points across S8-depth and ValidInsertionPosition. TumblerAdd is not in the foundation statements, and "action point" is defined nowhere in the cited foundations. Every claim the ASN derives via TumblerAdd is independently derivable from OrdinalShift's exported postconditions (prefix preservation: `shift(v,n)ᵢ = vᵢ` for `i < m`; last-component increment: `shift(v,n)ₘ = vₘ + n`), but the proofs as written go through TumblerAdd's internal structure rather than OrdinalShift's interface.
+**What needs resolving**: Either import TumblerAdd as a foundation with its action-point definition and δ-vector semantics, or restate the seven proof steps to use only OrdinalShift postconditions without referencing TumblerAdd, δ vectors, or action points by name.
 
 ---
 
-```
-RESULT: FOUND
+### D-MIN postcondition notation assumes m ≥ 2 without guard
 
-**Problem**: Dependency list mismatch. T1(i) (LexicographicOrder, ASN-0034) is directly
-invoked in Step 3 — "By T1(i) (LexicographicOrder, ASN-0034), v₁ < v₂ since they agree
-on components 1 through m − 1 and differ first at component m where k₁ < k₂" — but is
-not declared as a dependency of D-SEQ. The proof's ordering argument for intermediate
-tuples (v₁ < w < v₂) depends on it and cannot proceed without it. Separately,
-ValidInsertionPosition is declared as a dependency but never referenced in the proof.
+**Foundation**: D-MIN axiom, D-CTG invariant, S8-fin, S8-depth
+**ASN**: D-MIN postcondition — "Combined with D-CTG and S8-fin, `V_S(d) = {[S, 1, …, 1, k] : 1 ≤ k ≤ n}` for some finite n ≥ 1. Positions within a subspace differ only at the last component and form a contiguous range starting at 1."
+**Issue**: The derivation handles m = 2 ("trivially") and m ≥ 3 (via the D-CTG depth-≥-3 postcondition) but never addresses m = 1. At depth 1, the notation `[S, 1, …, 1, k]` collapses: the subspace identifier S and the varying ordinal k occupy the same (only) component position. For S = 2, the postcondition predicts `V_S(d) = {[k] : 1 ≤ k ≤ n}`, which includes `[1]` — a position in subspace 1, not subspace 2. The notation requires at least two components to keep the subspace identifier and the ordinal in distinct positions, but the formal postcondition states no m ≥ 2 guard.
+**What needs resolving**: The postcondition either needs an explicit m ≥ 2 guard, or the derivation needs a separate m = 1 case establishing that `V_S(d) = {[S]}` (exactly one position where the subspace identifier is the only component and no independent ordinal exists).
 
-**Required**: (1) Add T1(i) (LexicographicOrder, ASN-0034) to D-SEQ's dependency list.
-(2) Remove ValidInsertionPosition from D-SEQ's dependency list (it is not used).
-```
+---
 
-3 verified, 2 found.
+### V-position depth ≥ 2 is derivable but never stated
+
+**Foundation**: S8a (V-positions are element-field tumblers), S3 (ReferentialIntegrity), S7c (element-field depth δ ≥ 2)
+**ASN**: S8-depth — guards postcondition 1 on `#v ≥ 2`, discusses failure at `#v = 1`; ValidInsertionPosition — states `m ≥ 2` as a precondition, gives two paragraphs of m = 1 failure analysis; D-MIN postcondition — notation implicitly requires m ≥ 2
+**Issue**: S8a establishes that each V-position v is the element field of M(d)(v). S3 guarantees M(d)(v) ∈ dom(Σ.C). S7c guarantees `#fields(a).element ≥ 2` for such addresses. Combining these three: `#v ≥ 2` for every V-position in every populated subspace. This three-step chain is never assembled. Instead, `m ≥ 2` appears as an apparently independent precondition in ValidInsertionPosition, as a guard in S8-depth postcondition 1, and as an implicit assumption in D-MIN's postcondition derivation. The ASN devotes substantial text to m = 1 failure modes (subspace-identity breakdown in both S8-depth and ValidInsertionPosition), treating depth 1 as a live concern — when it is structurally impossible for any V-position that participates in M(d). (For the empty-subspace case in ValidInsertionPosition, m ≥ 2 remains a genuine design constraint, but it is separately justified by compatibility with S7c's element-field depth requirement.)
+**What needs resolving**: State `#v ≥ 2` as a derived property of V-positions (from S8a + S3 + S7c), then simplify the downstream chain: D-MIN's postcondition holds without a depth caveat for populated subspaces, ValidInsertionPosition's non-empty case inherits m ≥ 2 as a theorem rather than a guard, and S8-depth postcondition 1 loses its parenthetical exception.

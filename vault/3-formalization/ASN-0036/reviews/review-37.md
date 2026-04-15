@@ -1,51 +1,28 @@
-# Formalize — ASN-0036 / S8
+# Formalize — ASN-0036 / D-CTG-depth
 
-*2026-04-12 16:22*
+*2026-04-13 13:10*
 
-**S8 (Finite span decomposition).** For each document `d`, the arrangement `{(v, Σ.M(d)(v)) : v ∈ dom(Σ.M(d))}` can be decomposed into a finite set of correspondence runs `{(vⱼ, aⱼ, nⱼ)}` such that:
+**D-CTG-depth (SharedPrefixReduction).** For depth m ≥ 3, all positions in a non-empty V_S(d) share components 2 through m − 1. Contiguity reduces to contiguity of the last component alone — structurally identical to the depth 2 case.
 
-(a) The runs partition the V-positions: every V-position in `dom(Σ.M(d))` falls in exactly one run — `(A v ∈ dom(Σ.M(d)) :: (E! j :: vⱼ ≤ v < vⱼ + nⱼ))`
+*Proof.* Let V_S(d) be non-empty with common depth m ≥ 3 (S8-depth). Suppose for contradiction that V_S(d) contains two positions v₁ and v₂ with v₁ < v₂ (both depth m) whose first point of disagreement is at component j with 2 ≤ j ≤ m − 1 — that is, (v₁)ᵢ = (v₂)ᵢ for all i < j (in particular, (v₁)₁ = S = (v₂)₁, since both belong to V_S(d)), and (v₁)ⱼ < (v₂)ⱼ (the inequality follows from v₁ < v₂ by T1(i), since j is the first disagreeing component and j ≤ min(m, m)).
 
-(b) Within each run: `Σ.M(d)(vⱼ + k) = aⱼ + k` for all `k` with `0 ≤ k < nⱼ`
+We construct infinitely many intermediates. For any natural number n > (v₁)ⱼ₊₁, define w of length m by:
 
-Each run represents a contiguous block of content that entered the arrangement as a unit — characters typed sequentially, or a span transcluded whole.
+- wᵢ = (v₁)ᵢ for 1 ≤ i ≤ j (agreeing with v₁ on the first j components),
+- wⱼ₊₁ = n,
+- wᵢ = 1 for j + 2 ≤ i ≤ m (if any such positions exist; since j ≤ m − 1, at least the m-th component exists at position j + 1 or beyond).
 
-*Proof.* We construct a finite decomposition satisfying both conjuncts and prove it partitions `dom(M(d))`.
+Then w has depth m (it has m components by construction), and subspace(w) = w₁ = (v₁)₁ = S (since j ≥ 2, the first component is copied from v₁). We verify v₁ < w < v₂:
 
-**Existence.** By S8-fin, `dom(M(d))` is finite. By S2 (ArrangementFunctionality), `M(d)` is a function, so each `v ∈ dom(M(d))` has a uniquely determined image `a = M(d)(v)`. For each such `v`, form the singleton run `(v, a, 1)`. Conjunct (b) requires `M(d)(v + k) = a + k` for all `k` with `0 ≤ k < 1` — the only such `k` is `0`, giving `M(d)(v) = a`, which holds by construction. Since `dom(M(d))` is finite, the collection of singletons is finite.
+- **w > v₁**: w agrees with v₁ on components 1 through j. At component j + 1, wⱼ₊₁ = n > (v₁)ⱼ₊₁. Since j + 1 ≤ m = min(m, m), by T1(i), w > v₁.
+- **w < v₂**: w agrees with v₂ on components 1 through j − 1 (since v₁ and v₂ agree on these components by the definition of j). At component j, wⱼ = (v₁)ⱼ < (v₂)ⱼ. Since j ≤ m − 1 < m = min(m, m), by T1(i), w < v₂.
 
-**Coverage.** Each `v ∈ dom(M(d))` lies in its own singleton's interval: `v ≤ v < v + 1`, where the right inequality holds because `v + 1 = inc(v, 0) > v` by TA5(a). So every V-position falls in at least one run.
+Since v₁ < w < v₂, subspace(w) = S, and #w = m = #v₁, D-CTG requires w ∈ V_S(d). By T0(a) (UnboundedComponentValues, ASN-0034), unboundedly many values of n > (v₁)ⱼ₊₁ exist. Distinct values of n yield distinct tumblers w (they differ at component j + 1, so by T3, CanonicalRepresentation, ASN-0034, they are unequal). This produces infinitely many distinct positions in V_S(d), contradicting S8-fin (dom(M(d)) is finite).
 
-**Uniqueness within a subspace.** Let `v, w ∈ dom(M(d))` be distinct V-positions with `v₁ = w₁ = S`. By S8-depth, `#v = #w = m` for some common depth `m`. We show `w ∉ [v, v + 1)`.
+Therefore no two positions in V_S(d) can disagree at any component j with 2 ≤ j ≤ m − 1. All positions share components 2 through m − 1, and contiguity reduces to contiguity of the last component (component m) alone. ∎
 
-By S8a, `zeros(v) = 0`, so every component of `v` is nonzero and `sig(v) = max({i : 1 ≤ i ≤ m ∧ vᵢ ≠ 0}) = m`. By TA5(c), `v + 1 = inc(v, 0)` satisfies `#(v + 1) = m` and differs from `v` only at position `m`, with `(v + 1)_m = v_m + 1`. In particular, `(v + 1)ᵢ = vᵢ` for all `i < m`.
-
-Suppose for contradiction that `t ≠ v` satisfies `#t = m` and `v ≤ t < v + 1`. Since `#t = #v = m`, the sequences diverge at some first position `j ≤ m`.
-
-*Case j < m.* Then `tᵢ = vᵢ` for `i < j` and `tⱼ > vⱼ` (from `v ≤ t` by T1(i), since `j ≤ m = min(m, m)`). Since `(v + 1)ⱼ = vⱼ` (as `j < m`), and `tᵢ = vᵢ = (v + 1)ᵢ` for `i < j`, the first divergence between `t` and `v + 1` is at position `j` with `tⱼ > (v + 1)ⱼ`, giving `t > v + 1` by T1(i) — contradicting `t < v + 1`.
-
-*Case j = m.* Then `tᵢ = vᵢ` for `i < m`, so `tᵢ = (v + 1)ᵢ` for `i < m` as well. The first divergence between `t` and `v + 1` is at position `m`. From `v ≤ t` with first divergence at `m`: `t_m ≥ v_m` by T1(i). From `t < v + 1` with first divergence at `m`: `t_m < (v + 1)_m = v_m + 1` by T1(i). Since components are natural numbers, `v_m ≤ t_m < v_m + 1` forces `t_m = v_m`. But then `t` agrees with `v` at all `m` components with `#t = #v = m`, so `t = v` by T3 (CanonicalRepresentation, ASN-0034) — contradicting `t ≠ v`.
-
-Both cases yield contradictions. Since all V-positions in subspace `S` have depth `m` (S8-depth), no distinct V-position in the same subspace falls in `v`'s singleton interval.
-
-*Remark.* S8-depth is essential. Without it, `dom(M(d))` could contain `s.3` (depth 2) and `s.3.1` (depth 3). By T1(ii), `s.3 < s.3.1` (prefix extension), and by T1(i) at position 2, `s.3.1 < s.4`. The position `s.3.1` would fall in the singleton interval of both `s.3` and `s.3.1` — violating unique partition.
-
-**Uniqueness across subspaces.** Let `v ∈ dom(M(d))` with `v₁ = S₁` and `w ∈ dom(M(d))` with `w₁ = S₂`, where `S₁ ≠ S₂`. By S8a, `v` extends the single-component prefix `[S₁]` and `w` extends `[S₂]`. These prefixes are non-nesting: `[S₁] ≼ [S₂]` would require `S₁ = S₂` (both length-1 tumblers, so equality requires componentwise agreement by T3), contradicting `S₁ ≠ S₂`; symmetrically `[S₂] ⋠ [S₁]`.
-
-For `m = 1`, each subspace `S` contains at most one V-position: the only depth-1 tumbler with first component `S` is `[S]` itself (by T3, any other depth-1 tumbler `[k]` with `k = S` is the same tumbler). The singleton interval `[[S], [S] + 1) = [[S], [S + 1])` at depth 1 contains no other depth-1 tumbler: `S ≤ k < S + 1` with `k ∈ ℕ` forces `k = S`. Within-subspace uniqueness is immediate.
-
-For cross-subspace uniqueness at `m = 1`, we must show that no V-position from subspace `S₂ ≠ S₁`, at any depth, falls in `[[S₁], [S₁ + 1])`. The interval contains every proper extension of `[S₁]` (by T1(ii), `[S₁] < [S₁, x, ...]`, and by T1(i), `[S₁, x, ...] < [S₁ + 1]` since the first component `S₁ < S₁ + 1`), so we cannot restrict attention to depth-1 tumblers. We show every tumbler `t` in the interval has `t₁ = S₁`. From `[S₁] ≤ t`: if `t₁ < S₁` then `t < [S₁]` by T1(i), contradicting the lower bound; so `t₁ ≥ S₁`. From `t < [S₁ + 1]`: if `t₁ > S₁` then `t₁ ≥ S₁ + 1`, and either (i) `t₁ > S₁ + 1`, giving `t > [S₁ + 1]` by T1(i), or (ii) `t₁ = S₁ + 1` with `#t = 1`, giving `t = [S₁ + 1]`, or (iii) `t₁ = S₁ + 1` with `#t > 1`, giving `t > [S₁ + 1]` by T1(ii) — all contradicting `t < [S₁ + 1]`; so `t₁ ≤ S₁`. Combined: `t₁ = S₁`. Since any V-position `w` in subspace `S₂ ≠ S₁` has `w₁ = S₂ ≠ S₁` (by S8a), `w` cannot belong to `[[S₁], [S₁ + 1])`. Cross-subspace uniqueness holds at `m = 1`.
-
-For `m ≥ 2`, the successor `v + 1` also extends `[S₁]`: since `sig(v) = m ≥ 2`, TA5(b) gives `(v + 1)ᵢ = vᵢ` for all `i < sig(v)`, so in particular `(v + 1)₁ = v₁ = S₁`.
-
-Since `[S₁] ≼ v` and `[S₁] ≼ (v + 1)` and `v ≤ v + 1` by TA5(a), T5 (ContiguousSubtrees, ASN-0034) gives: for any `t` with `v ≤ t ≤ v + 1`, `[S₁] ≼ t`. Every element of `[v, v + 1)` therefore extends `[S₁]`. By T10 (ASN-0034), since `[S₁]` and `[S₂]` are non-nesting prefixes, any tumbler extending `[S₁]` is distinct from any tumbler extending `[S₂]`. In particular, `w` (which extends `[S₂]`) cannot belong to `[v, v + 1)`.
-
-**Conclusion.** The singleton runs cover every V-position in `dom(M(d))` (coverage) and no V-position falls in two distinct singleton intervals (uniqueness within and across subspaces). The singletons partition `dom(M(d))`. Since `dom(M(d))` is finite (S8-fin), the decomposition is finite, establishing both conjuncts (a) and (b). ∎
+Nelson's statement specifies not just contiguity but also the starting ordinal: "addresses 1 through 100," not "42 through 141." All ordinal numbering in the tumbler system starts at 1: the first child is always .1 (LM 4/20), link positions within a document begin at 1 (LM 4/31), and position 0 is structurally unavailable since zero serves as a field separator (T4, ASN-0034). V-positions follow the same convention.
 
 *Formal Contract:*
-- *Preconditions:* `dom(M(d))` finite (S8-fin); `M(d)` a function (S2); `(A v ∈ dom(M(d)) :: zeros(v) = 0 ∧ v₁ ≥ 1)` (S8a); within each subspace, all V-positions share a common depth (S8-depth).
-- *Postconditions:* There exists a finite set of correspondence runs `{(vⱼ, aⱼ, nⱼ)}` satisfying (a) `(A v ∈ dom(M(d)) :: (E! j :: vⱼ ≤ v < vⱼ + nⱼ))` and (b) `(A j, k : 0 ≤ k < nⱼ : M(d)(vⱼ + k) = aⱼ + k)`.
-
-What matters architecturally is that the number of runs `#runs(d)` is typically far smaller than `|dom(M(d))|` — the representation cost is proportional to the number of editing events, not the document size. Non-trivial runs arise when consecutive allocations produce consecutive I-addresses (as T10a and TA5(c) ensure operationally). Editing can both split and remove runs — inserting content in the middle of a run splits it into two, while deleting an entire run's V-span removes it. The number of distinct Istream allocation events underlying a document's history is monotonically non-decreasing (by S1), but the current arrangement's run count fluctuates with editing.
-
-Gregory's evidence shows that `#runs(d)` has consequences beyond representation cost. Each correspondence run requires an independent tree traversal during V↔I translation. Gregory identifies the inner loop of this traversal as the documented CPU hotspot, responsible for 40% of processing time. For a document with `N` runs, a full V→I conversion requires `N` independent traversals — the cost is multiplicative in the fragmentation level, not merely additive. A consolidation function to merge adjacent runs was started in the implementation and abandoned mid-expression — the function body stops with an incomplete conditional: `if(`. Any implementation of the two-stream architecture must either consolidate runs or accept performance proportional to fragmentation level.
+- *Preconditions:* V_S(d) non-empty; common depth m ≥ 3 (S8-depth); D-CTG (VContiguity); S8-fin (finite arrangement).
+- *Postconditions:* `(A v₁, v₂ : v₁ ∈ V_S(d) ∧ v₂ ∈ V_S(d) : (A j : 2 ≤ j ≤ #v₁ − 1 : (v₁)ⱼ = (v₂)ⱼ))`. Contiguity of V_S(d) reduces to contiguity of the m-th (last) component.

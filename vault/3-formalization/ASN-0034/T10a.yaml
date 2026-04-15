@@ -1,4 +1,11 @@
 label: T10a
 name: AllocatorDiscipline
 type: design-requirement
-depends: []
+depends:
+- Prefix
+- T10
+- T4
+summary: The allocator discipline specifies that sibling outputs are produced exclusively by inc(·, 0) and child allocators
+  are spawned by exactly one inc(·, k') with k' ∈ {1, 2}, with each (t, k') pair used at most once. This discipline is both
+  sufficient to guarantee uniform sibling lengths, prefix-incomparability, length separation across depths, and T4 preservation
+  — and necessary, since relaxing it allows a prefix relationship between siblings, violating the T10 precondition.

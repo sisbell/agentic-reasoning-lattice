@@ -1,23 +1,25 @@
-# Proof Review — ASN-0036 (cycle 1)
+# Cone Review — ASN-0036/D-SEQ (cycle 2)
 
-*2026-04-12 21:05*
+*2026-04-13 18:48*
 
-32 properties
+### S8a is a phantom dependency — referenced but never formally stated
+**Foundation**: T4 (HierarchicalParsing) — positive-component constraint: "every non-separator component is strictly positive," scoped to "every tumbler `t ∈ T` used as an address"
+**ASN**: D-MIN body: "V-position components are strictly positive natural numbers (S8a, deriving from T4's positive-component constraint)"; D-MIN preconditions: "S8a (V-position well-formedness) gives `v > 0` for all V-positions, so every component ≥ 1"; ValidInsertionPosition postconditions: "`zeros(v) = 0 ∧ v > 0` (S8a consistency)"
+**Issue**: S8a is cited by D-MIN (to establish that 1 is the smallest possible component value, making `[S, 1, …, 1]` the least element), by ValidInsertionPosition (to verify constructed positions are well-formed), and within S8-depth's postcondition chain — but S8a has no formal contract anywhere in the ASN. D-MIN attributes S8a to "T4's positive-component constraint," but T4's constraint is scoped to tumblers "used as an address" — tumblers with up to three zero-valued field separators. V-positions are intra-document indices with `zeros(v) = 0`; they are not address tumblers. T4 does not constrain them, so the derivation chain is broken. Without S8a, D-MIN's justification collapses: if V-position components could include 0, then `[S, 0, …, 0]` would precede `[S, 1, …, 1]` under T1, and the axiom that `min(V_S(d)) = [S, 1, …, 1]` would be inconsistent with the set of constructible positions. This is parallel to the S8-vdepth phantom (previous finding) but for a different constraint: S8-vdepth provides the depth bound `m ≥ 2`, S8a provides component positivity. Both are independently needed and independently ungrounded.
+**What needs resolving**: S8a needs a formal contract — either as a standalone axiom (design requirement that all V-position components are strictly positive) stated alongside S8-depth, or as a derived postcondition with an explicit proof chain. If derived, the derivation cannot appeal to T4 (which constrains addresses, not V-positions); it must come from a property whose scope includes V-positions. The claimed derivation from T4 in D-MIN's body should be retracted or replaced.
 
-### subspace(v)
+---
 
-RESULT: FOUND
+### D-CTG postcondition and proof duplicate D-CTG-depth
+**Foundation**: D-CTG (VContiguity) — the invariant is the contiguity condition; D-CTG-depth (SharedPrefixReduction) — derives the shared-prefix result from D-CTG + S8-fin + S8-depth
+**ASN**: D-CTG postcondition: "At depth m ≥ 3, D-CTG ∧ S8-fin ∧ S8-depth implies all positions in V_S(d) share components 2 through m − 1: `(A d, S, v₁, v₂ : … : (A j : 2 ≤ j ≤ #v₁ − 1 : (v₁)ⱼ = (v₂)ⱼ))`"; D-CTG-depth postcondition: "`(A v₁, v₂ : v₁ ∈ V_S(d) ∧ v₂ ∈ V_S(d) : (A j : 2 ≤ j ≤ #v₁ − 1 : (v₁)ⱼ = (v₂)ⱼ))`"
+**Issue**: D-CTG's postcondition and D-CTG-depth's postcondition state the same result, and both bodies contain the same proof — the construction of intermediate `w` with an arbitrary component value `n`, yielding infinitely many intermediates that contradict S8-fin. D-CTG achieves this by introducing S8-fin and S8-depth in its postcondition clause, but these are not preconditions of the D-CTG invariant. The invariant is the contiguity condition alone; the shared-prefix result is a *consequence* of combining contiguity with finiteness and fixed depth, which is exactly D-CTG-depth's role. D-CTG-depth has the correct precondition chain (D-CTG, S8-fin, S8-depth) for this derivation. D-SEQ Step 1 cites D-CTG-depth, but a future ASN could equally cite D-CTG's postcondition, creating ambiguity about the canonical source. This is structurally parallel to the D-MIN/D-SEQ duplication in previous findings.
+**What needs resolving**: D-CTG's postcondition should state only what follows from the contiguity invariant itself — not derived consequences that require additional dependencies. The shared-prefix result should be D-CTG-depth's exclusive postcondition. The verbatim proof in D-CTG's body should be removed or replaced with a forward reference to D-CTG-depth.
 
-**Problem**: The formal contract postcondition claims "When `v` satisfies S8a: `subspace(v) ≥ 1`", and the narrative states "by S8a, subspace(v) ≥ 1 in that case" — yet the dependency list is "(none)". S8a is used to establish a postcondition guarantee but is not declared as a dependency. Either S8a must appear in the dependency list, or the conditional postcondition must be removed from the formal contract and the narrative reference downgraded to pure commentary.
+---
 
-**Required**: One of two fixes:
-1. Add S8a to the dependency list and keep the conditional postcondition, or
-2. Remove "When `v` satisfies S8a: `subspace(v) ≥ 1`" from the postconditions and soften the narrative reference to a non-contractual remark (e.g., "Note: for V-positions, S8a separately guarantees v₁ ≥ 1").
-
-31 verified, 1 found.
-
-## Result
-
-Converged after 2 cycles. 32 verified.
-
-*Elapsed: 529s*
+### ValidInsertionPosition empty case admits infinitely many mutually exclusive valid positions
+**Foundation**: S8-depth (Fixed-depth V-positions) — "all V-positions share the same tumbler depth" within a subspace, but this constrains positions already in `V_S(d)`, which is empty in this case
+**ASN**: ValidInsertionPosition definition, empty case: "V_S(d) = ∅. Then v = [S, 1, ..., 1] of depth m ≥ 2"; body text: "there is one valid position per choice of depth m — but since m is chosen once and then held fixed by S8-depth, exactly one position is valid for any given depth"
+**Issue**: When `V_S(d) = ∅`, the definition admits `v = [S, 1]` (m = 2), `v = [S, 1, 1]` (m = 3), `v = [S, 1, 1, 1]` (m = 4), and so on — infinitely many valid insertion positions, pairwise distinct by T3. These are mutually exclusive: inserting `[S, 1]` locks the subspace to depth 2 via S8-depth, after which `[S, 1, 1]` can never enter `V_S(d)`. The text appeals to S8-depth as an after-the-fact constraint ("the choice of m is a one-time structural commitment"), but S8-depth constrains positions *already in* `V_S(d)` — in the empty case it imposes nothing. The depth parameter m is neither an explicit input to the predicate nor constrained by any precondition, so `ValidInsertionPosition(v, S, d)` returns true for infinitely many `v` simultaneously. The formal contract's postcondition "`#v = m` (depth preservation)" is vacuous in the empty case because m covaries with v — it says only that the position has whatever depth it has. This also affects contract completeness: `|V_S(d)| = N` in the non-empty case requires finiteness (S8-fin), which is not listed among the preconditions, though other properties (D-CTG-depth, D-SEQ) consistently list it.
+**What needs resolving**: The empty-case definition needs to make m an explicit parameter or precondition of the predicate, so that for a given choice of m, exactly one position is valid. The current formulation produces a predicate that is true for infinitely many mutually incompatible positions in a single state — a property that cannot serve as a precondition for operation specifications that need to identify a unique insertion target. The S8-fin omission from the precondition list should also be corrected for consistency with D-CTG-depth and D-SEQ.

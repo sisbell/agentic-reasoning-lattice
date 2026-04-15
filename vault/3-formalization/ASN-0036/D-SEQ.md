@@ -4,7 +4,7 @@
 
 where the tuple has length m. The precondition m ≥ 2 is necessary: at m = 1 the tuple `[S, 1, ..., 1, k]` collapses to a single component where the subspace identifier S and the varying ordinal k occupy the same position, and the derivation step "D-MIN gives the minimum k = 1" fails because min(V_S(d)) = [S] has last component S, not 1. S8-vdepth axiomatically guarantees #v ≥ 2 for every V-position in dom(M(d)), so by S8-depth the common depth m satisfies m ≥ 2 and the precondition is always satisfied. At depth 2 this gives V_S(d) = {[S, k] : 1 ≤ k ≤ n}, matching Nelson's "addresses 1 through n."
 
-*Proof.* Let V_S(d) be non-empty and let m be the common depth of all V-positions in subspace S (S8-depth guarantees a common depth exists); m ≥ 2 by S8-vdepth.
+*Proof.* Let V_S(d) be non-empty and let m be the common depth of all V-positions in subspace S (S8-depth guarantees a common depth exists; S8-vdepth gives m ≥ 2).
 
 **Step 1: shared prefix.** We show that every position in V_S(d) has the form [S, 1, …, 1, k] — that is, components 2 through m − 1 are all equal to 1, with only the last component varying.
 
@@ -14,19 +14,19 @@ where the tuple has length m. The precondition m ≥ 2 is necessary: at m = 1 th
 
 **Step 2: minimum k.** By D-MIN, min(V_S(d)) = [S, 1, …, 1] of length m. In the representation [S, 1, …, 1, k], the minimum has k = 1 at the last component. Since the minimum is in V_S(d), the set of k-values attained by positions in V_S(d) includes 1.
 
-**Step 3: contiguity of k-values.** Let k₁ < k₂ be two values attained by positions v₁ = [S, 1, …, 1, k₁] and v₂ = [S, 1, …, 1, k₂] in V_S(d). Both have subspace S and depth m. By T1(i) (LexicographicOrder, ASN-0034), v₁ < v₂ since they agree on components 1 through m − 1 and differ first at component m where k₁ < k₂. For any integer k with k₁ < k < k₂, the tuple w = [S, 1, …, 1, k] satisfies subspace(w) = S, #w = m, and v₁ < w < v₂ (again by T1(i), since w agrees with both on components 1 through m − 1 and k₁ < k < k₂ at component m). By D-CTG (VContiguity), w ∈ V_S(d). Therefore every integer between any two attained k-values is itself attained — the k-values form a contiguous range.
+**Step 3: contiguity of k-values.** Let k₁ < k₂ be two values attained by positions v₁ = [S, 1, …, 1, k₁] and v₂ = [S, 1, …, 1, k₂] in V_S(d). Both have subspace S and depth m, and both belong to `T` since `V_S(d) ⊆ dom(M(d)) ⊆ T` (Σ.M(d)). By T1(i) (TumblerOrdering, ASN-0034), v₁ < v₂ since they agree on components 1 through m − 1 and differ first at component m where k₁ < k₂. For any integer k with k₁ < k < k₂, the tuple w = [S, 1, …, 1, k] is a finite sequence of m naturals with m ≥ 2 ≥ 1, hence w ∈ T by T0 (CarrierSetDefinition, ASN-0034). Since w ∈ T: subspace(w) = S, #w = m, and v₁ < w < v₂ (by T1(i), since w agrees with both on components 1 through m − 1 and k₁ < k < k₂ at component m). By D-CTG (VContiguity), w ∈ V_S(d). Therefore every integer between any two attained k-values is itself attained — the k-values form a contiguous range.
 
 **Step 4: finiteness.** By S8-fin (Finite arrangement), dom(M(d)) is finite, so V_S(d) ⊆ dom(M(d)) is finite. The k-values form a finite contiguous range.
 
-**Assembly.** The k-values form a finite contiguous range of positive integers (Step 3, Step 4) beginning at 1 (Step 2). Therefore there exists n ≥ 1 such that the k-values are exactly {1, 2, …, n}. By Step 1, V_S(d) = {[S, 1, …, 1, k] : 1 ≤ k ≤ n}. ∎
+**Assembly.** The k-values form a finite contiguous range of integers (Steps 3, 4) beginning at 1 (Step 2). Therefore there exists n ≥ 1 such that the k-values are exactly {1, 2, …, n}. By Step 1, V_S(d) = {[S, 1, …, 1, k] : 1 ≤ k ≤ n}. ∎
 
 *Formal Contract:*
-- *Preconditions:* V_S(d) non-empty; common V-position depth m (S8-depth); m ≥ 2 (S8-vdepth). D-CTG (VContiguity) holds for V_S(d). D-MIN (VMinimumPosition) holds for V_S(d). S8-fin (dom(M(d)) is finite).
-- *Postconditions:* `(E n : n ≥ 1 : V_S(d) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n})` where each tuple has length m.
+- *Preconditions:* `V_S(d) ⊆ dom(M(d)) ⊆ T` (Σ.M(d)), providing carrier-set membership for T1; T0 (CarrierSetDefinition, ASN-0034) — tuple-constructed intermediates [S, 1, …, 1, k] are finite sequences of naturals with length m ≥ 1, discharging the `v ∈ T` guard in D-CTG for positions not drawn from V_S(d); V_S(d) non-empty; common V-position depth m (S8-depth) with m ≥ 2 (S8-vdepth); D-CTG (VContiguity); D-CTG-depth (SharedPrefixReduction — for m ≥ 3, establishes that all positions share components 2 through m − 1); D-MIN (VMinimumPosition); S8-fin (finite arrangement).
+- *Postconditions:* `(E n : n ≥ 1 : V_S(d) = {[S, 1, ..., 1, k] : 1 ≤ k ≤ n})` where each tuple has length m and belongs to T by T0 (CarrierSetDefinition, ASN-0034).
 
 D-CTG is a design constraint on well-formed document states. It constrains which arrangement modifications constitute well-formed editing operations. We verify the base case: before any operations, dom(M(d)) = ∅ for all d (the arrangement is a partial function; no content has been allocated, so no V-mapping exists), so V_S(d) = ∅ for every subspace S. D-CTG holds vacuously (no u, q exist to trigger its antecedent), and D-MIN holds vacuously (its antecedent requires V_S(d) non-empty). Observe that not all arrangement modifications preserve D-CTG: removing a single interior V-position from dom(M(d)) leaves the positions on either side no longer contiguous. D-CTG is therefore preserved only by those modifications that constitute well-formed editing operations — operations that restore contiguity after structural changes (e.g., by shifting subsequent positions).
 
-Whether DELETE, INSERT, COPY, and REARRANGE preserve D-CTG is a verification obligation for each operation's ASN.
+Every operation that modifies V_S(d) must preserve D-CTG — this is a verification obligation for each operation's ASN, parallel to S8-fin's per-operation finiteness obligation and D-MIN's per-operation minimum-position obligation.
 
 ### Concrete example
 

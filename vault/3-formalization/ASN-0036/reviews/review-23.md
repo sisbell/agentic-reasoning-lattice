@@ -1,10 +1,10 @@
 # Formalize — ASN-0036 / OrdAddS8a
 
-*2026-04-12 15:10*
+*2026-04-13 12:21*
 
 **OrdAddS8a** — *AdditionPreservesS8a* (LEMMA). For a V-position `v` satisfying S8a with `#v = m ≥ 2`, and a displacement `w` with `w₁ = 0`, `#w = m`, `w > 0`, and `actionPoint(w) ≤ m`: `v ⊕ w` satisfies S8a if and only if all components of `w_ord` after its action point are positive.
 
-*Proof.* Let `r = v ⊕ w` with `k = actionPoint(w)`. Since `w₁ = 0` and `w > 0`, the first nonzero component of `w` occurs at some position `k ≥ 2`. By TumblerAdd's result-length identity, `#r = #w = m`, so `r` has the same number of components as `v` and `w`. By TumblerAdd, the components of `r` partition into three regions:
+*Proof.* Let `r = v ⊕ w` with `k = actionPoint(w)`. Since `w₁ = 0` and `w > 0`, the first nonzero component of `w` occurs at some position `k ≥ 2`. By TumblerAdd, the components of `r` partition into three regions:
 
 - `r₁ = v₁ ≥ 1` (by S8a on `v`, and `1 < k` so TumblerAdd copies from `v`).
 - For `2 ≤ i < k`: `rᵢ = vᵢ ≥ 1` (by S8a on `v`).
@@ -20,3 +20,4 @@ By OrdAddHom, `ord(v ⊕ w) = ord(v) ⊕ w_ord`, so checking S8a on `v ⊕ w` re
 *Formal Contract:*
 - *Preconditions:* `v ∈ T` satisfying S8a, `#v = m ≥ 2`; `w ∈ T`, `w > 0`, `#w = m`, `w₁ = 0`, `actionPoint(w) ≤ m`.
 - *Postconditions:* `v ⊕ w satisfies S8a ⟺ (A i : actionPoint(w) < i ≤ m : wᵢ > 0)`. Equivalently, since `r₁ = v₁ ≥ 1` unconditionally and `ord(v ⊕ w) = ord(v) ⊕ w_ord` (OrdAddHom), `v ⊕ w` satisfies S8a if and only if all components of `ord(v) ⊕ w_ord` are positive.
+- *Frame:* Both sides are computed from `v` and `w` alone — no state is consulted.

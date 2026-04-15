@@ -10,4 +10,5 @@ For S8a preservation: since `actionPoint(δ(n, m)) = m`, the tail region after t
 
 *Formal Contract:*
 - *Preconditions:* `v ∈ T`, `#v = m ≥ 2`, `n ≥ 1`.
-- *Postconditions:* (a) `ord(shift(v, n)) = shift(ord(v), n)`. (b) If `v` satisfies S8a, then `shift(v, n)` satisfies S8a — by OrdAddS8a with `w = δ(n, m)`, `actionPoint(w) = m`, so the tail region `(m, m]` is empty and the positivity condition holds vacuously.
+- *Postconditions:* `ord(shift(v, n)) = shift(ord(v), n)`. When `v` satisfies S8a, OrdAddS8a applies; since `δ(n, m) = [0, ..., 0, n]` has action point `m`, there are no tail components after the action point — the OrdAddS8a condition is vacuously satisfied. Therefore `shift(v, n)` unconditionally satisfies S8a when `v` does.
+- *Frame:* Both sides are computed from `v` and `n` alone — no state is consulted.

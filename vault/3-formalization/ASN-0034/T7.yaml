@@ -4,3 +4,6 @@ type: corollary
 depends:
 - T3
 - T4
+summary: Within the element space, the first element component identifies the subspace (e.g., 1 for text, 2 for links), and
+  addresses in different subspaces are permanently disjoint. Arithmetic within one subspace cannot produce addresses in another,
+  because the subspace identifier is part of the address structure itself, not metadata.

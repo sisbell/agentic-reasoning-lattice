@@ -1,25 +1,17 @@
-# Contract Review — ASN-0036 (cycle 1)
+# Cone Review — ASN-0036/S7 (cycle 1)
 
-*2026-04-12 17:27*
+*2026-04-13 14:24*
 
-### S7
+I'll read the ASN content carefully against the foundation statements, looking for cross-cutting issues not already captured.
 
-- `MISSING_PRECONDITION: S4 (origin-based identity, ASN-0036)` — The permanence argument in the proof explicitly invokes S4: "By S4 (origin-based identity), distinct allocation events produce distinct addresses, so the address `a` itself is never reassigned or reused." This is load-bearing for the contract's invariant (attribution is fixed across all states). S4 is absent from the listed preconditions.
+### S7a axiom text undefined at its own stated precondition
+**Foundation**: T4 (HierarchicalParsing) — `zeros(t) = 2` is document-level (three fields: node, user, document; no element field); `zeros(t) = 3` is element-level (all four fields including element)
+**ASN**: S7a formal contract — Axiom: "the document-level prefix of `a` — the tumbler `N.0.U.0.D` obtained by truncating the element field"; Preconditions: "`zeros(a) ≥ 2` for all `a ∈ dom(Σ.C)`"
+**Issue**: The axiom text describes the document-level prefix as "obtained by truncating the element field." By T4, the element field exists only when `zeros(a) = 3`. At `zeros(a) = 2` — which the stated precondition permits — the tumbler has no element field, so "truncating the element field" is an undefined operation. The parenthetical "(Entailed by S7b: `zeros(a) = 3`)" acknowledges that the element field exists in practice, but a formal contract must be self-consistent under its own stated preconditions, without relying on external properties that are not listed as preconditions. A TLA+ formalization cannot define `TruncateElementField(a)` when no element field exists.
+**What needs resolving**: Either strengthen the precondition to `zeros(a) = 3` (making S7b an explicit precondition of S7a, consistent with S7c's contract which already lists S7b), or rephrase the axiom to define the document-level prefix without referencing the element field — e.g., as "the subtumbler consisting of the node, user, and document fields with their separators" — which is well-defined at `zeros ≥ 2`.
 
-- `MISSING_PRECONDITION: GlobalUniqueness (ASN-0034)` — The uniqueness-across-documents step explicitly cites GlobalUniqueness as a direct dependency: "GlobalUniqueness (ASN-0034) guarantees their document-level tumblers are distinct." The contract lists T10a (which is one input to GlobalUniqueness alongside T9, T10, and TA5), but GlobalUniqueness is not a direct consequence of T10a alone — it is a derived theorem. Since the proof treats it as a named dependency rather than an inferred consequence of T10a, it should be listed explicitly, consistent with how S4's own contract handles it.
-
-### S7a
-
-- `INACCURATE: The precondition uses zeros(a) ≥ 2, but the proof explicitly establishes that the required domain restriction is zeros(a) = 3 ("we require: for every a ∈ dom(Σ.C), zeros(a) = 3 — that is, every content address sits at the element level"). zeros(a) ≥ 2 is the T4 minimum for fields(a).document to be well-defined, but the proof goes further, asserting S7b as the actual constraint on dom(Σ.C). The contract's precondition should be zeros(a) = 3.`
-
-### S8-depth
-
-`
-
-- `MISSING_POSTCONDITION: The formal definition of correspondence runs — a triple (v, a, n) with n ≥ 1 satisfying (A k : 0 ≤ k < n : Σ.M(d)(v + k) = a + k) — is introduced and established in the proof as a named formal object, but is absent from the contract. Consumers of S8-depth who need correspondence runs (e.g. S8-fin) depend on this definition being part of what S8-depth guarantees.`
-
-### ValidInsertionPosition
-
-- `MISSING_POSTCONDITION: The explicit form of valid positions in the non-empty case is proven in the proof ("The explicit form is shift(min(V_S(d)), j) = [S, 1, ..., 1 + j]") but is absent from the postconditions. The proof derives this via D-MIN (min = [S, 1, ..., 1]), OrdinalShift, and TumblerAdd (action point m ≥ 2 copies components 1 through m−1 unchanged, increments last component by j). A consumer of the contract cannot recover the concrete shape of valid positions from the definition alone — the definition only says v = shift(min(V_S(d)), j), not what that evaluates to. The postcondition should read: in the non-empty case, each valid position has the explicit form [S, 1, ..., 1 + j] for 0 ≤ j ≤ N.`
-
-4 mismatches.
+### S4 proof cites T3 but contract omits it
+**Foundation**: T3 (CanonicalRepresentation) — tumbler equality is sequence equality, decidable by component-wise comparison
+**ASN**: S4 proof — "the distinctness `a₁ ≠ a₂` is decidable from the addresses alone by T3 (CanonicalRepresentation, ASN-0034): two tumblers are equal if and only if they have the same length and agree at every component"; S4 formal contract — Preconditions list T10a and GlobalUniqueness only
+**Issue**: T3 is cited in the proof as the final logical step before QED, establishing that the postcondition `a₁ ≠ a₂` is decidable and that "the structural test for shared identity is address equality, computable in time proportional to the shorter address." The contract review for S7 already established the project convention: theorem dependencies used as logical steps in a proof must appear in the contract's precondition list. S7's contract was corrected to include T3 for an identical usage pattern ("this distinctness is decidable by component-wise comparison"). S4 has the same usage of T3 but its contract was not similarly corrected.
+**What needs resolving**: Add T3 to S4's formal contract preconditions, consistent with the convention applied to S7.

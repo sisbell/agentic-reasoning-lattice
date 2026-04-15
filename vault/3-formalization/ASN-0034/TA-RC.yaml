@@ -4,3 +4,6 @@ type: lemma
 depends:
 - TumblerAdd
 - T3
+summary: 'Right cancellation fails: distinct tumblers can yield identical results under the same displacement. Any two start
+  addresses that agree on components 1..k but differ only beyond position k will produce the same output under any displacement
+  with action point k, because TumblerAdd discards and replaces the tail after the action point.'

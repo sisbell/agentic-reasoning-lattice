@@ -2,6 +2,7 @@ label: PartitionMonotonicity
 name: PartitionMonotonicity
 type: theorem
 depends:
+- Prefix
 - PrefixOrderingExtension
 - T1
 - T3
@@ -9,3 +10,7 @@ depends:
 - T9
 - T10a
 - TA5
+summary: Within any prefix-delimited partition, all allocated addresses are totally ordered by T1 in a way that is consistent
+  with each allocator's local allocation order. Additionally, for any two sibling sub-partitions whose prefixes are ordered
+  p₁ < p₂, every address under p₁ precedes every address under p₂ — so the prefix structure alone determines the cross-allocator
+  ordering.

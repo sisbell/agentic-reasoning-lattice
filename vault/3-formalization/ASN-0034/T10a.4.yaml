@@ -4,3 +4,7 @@ type: corollary
 depends:
 - T10a
 - TA5a
+- T4
+summary: Every address produced by a conforming allocator tree satisfies the T4 tumbler-validity condition. The root's base
+  satisfies T4 by initialization, inc(·, 0) preserves T4 unconditionally (TA5a), and child-spawning uses k' ∈ {1, 2} within
+  TA5a's preservation bounds — so T4 holds at every depth by induction.

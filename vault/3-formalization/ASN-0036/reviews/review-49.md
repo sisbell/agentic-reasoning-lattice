@@ -1,79 +1,21 @@
-# Proof Review — ASN-0036 (cycle 1)
+# Cone Review — ASN-0036/S8 (cycle 1)
 
-*2026-04-12 19:21*
+*2026-04-13 15:56*
 
-32 properties
+I'll read through the ASN content carefully, paying attention to cross-property chains.
 
-### S8-fin
+### shift/inc equivocation — two distinct operations used interchangeably without bridging lemma
 
-RESULT: FOUND
-
-**Problem**: The formal contract's *Invariant* field embeds proof methodology that is not part of the invariant itself. The invariant is stated as:
-
-> `dom(Σ.M(d)) is finite for every document d and every reachable state Σ. Base case: the initial-state axiom (Σ.M(d)) establishes dom(Σ₀.M(d)) = ∅.`
-
-The second sentence ("Base case: the initial-state axiom (Σ.M(d)) establishes dom(Σ₀.M(d)) = ∅") is proof strategy — it describes *how* the invariant is established, not *what* the invariant asserts. The property narrative states the invariant as: "For each document `d`, `dom(Σ.M(d))` is finite." The formal contract expands beyond this by including induction base-case detail.
-
-**Required**: Remove the base-case clause from the formal contract so the invariant field states only the invariant:
-
-```
-*Formal Contract:*
-- *Invariant:* dom(Σ.M(d)) is finite for every document d and every reachable state Σ.
-```
-
-### D-CTG
-
-**Checking the proof of D-CTG against the verification checklist.**
-
-The construction is sound: w is well-defined for all j ∈ {2, …, m−1}, the ordering arguments are correct, T0(a) supplies unboundedly many n, and T3 distinguishes the resulting tumblers. The postcondition follows correctly from the contradiction with S8-fin.
-
-However, there is a dependency gap:
-
-```
-RESULT: FOUND
-
-**Problem**: The proof explicitly invokes T1(i) twice — "By T1(i), w > v₁" and
-"By T1(i), w < v₂" — to establish that lexicographic comparison is decided by
-the first differing component. T1(i) is not listed among the declared
-dependencies (S8-fin, S8-depth, T0(a), T3). Without T1(i), the two ordering
-claims are unjustified.
-
-**Required**: Add T1(i) (LexicographicOrder, ASN-0034) to the dependency list
-for D-CTG.
-```
-
-### S3
-
-I'll verify S3's proof against the checklist.
-
-**1. Precondition completeness** — The proof assumes S1 and an "initial-state axiom (Σ.M(d))" establishing `dom(Σ₀.M(d)) = ∅`. Both are stated. Per-operation obligations are transparently described. ✓
-
-**2. Case coverage** — Three cases for `v ∈ dom(Σ'.M(d))`: retained, new-to-existing, atomic-create. Modified mappings (where `v ∈ dom(Σ.M(d))` but the value changes) fall under Cases 2 or 3 depending on whether the new target is in `dom(Σ.C)` or freshly created. The exhaustiveness argument confirms: `a ∈ dom(Σ.C)` or `a ∈ A` (fresh), and the fourth case (`a ∉ dom(Σ'.C)`) is explicitly excluded as a per-operation obligation. ✓
-
-**3. Postcondition establishment** — The proof establishes `Σ'.M(d)(v) ∈ dom(Σ'.C)` for arbitrary `d`, `v` in every case. ✓
-
-**4. All conjuncts addressed** — Single universal quantifier; both base case and inductive step proved. ✓
-
-**5. Dependency correctness** — S1 is declared and used in Cases 1 and 2 and the exhaustiveness argument. The initial-state axiom for M(d) is used in the base case but not listed as a dependency — this may be an intra-ASN axiom, so borderline. S0, S8-fin, and D-CTG are mentioned only as analogies, not used logically. ✓
-
-**6. Formal contract** — **Problem identified.** S3 is proved by induction over state transitions (base case + inductive step), which is the standard invariant proof pattern. The formal contract labels it as `*Axiom:*`. Compare with S1, which has an identical proof structure (invariant across transitions, derived from a precondition) and is correctly labeled:
-
-> S1: `*Preconditions:* S0 … *Invariant:* For every state transition …`
-
-S3's proof depends on S1 (for Case 1: retained mappings remain valid because `dom(Σ.C) ⊆ dom(Σ'.C)`). Without S1, Case 1 fails — content deletion could strand a retained reference. S3 is therefore not a standalone axiom; it is an invariant whose preservation depends on S1 as a precondition. The per-operation verification obligation (new/modified mappings must target existing or concurrently-created addresses) is also a precondition, not captured in the contract's field structure.
-
-**7. Missing guarantees** — No missing guarantees beyond the formal contract issue above. ✓
+**Foundation**: OrdinalShift (ShiftDefinition) — `shift(v, n)` advances deepest component by `n`; TA5 (HierarchicalIncrement) — `inc(v, k)` modifies position `sig(v)` when `k = 0`
+**ASN**: S8-depth defines `v + k = shift(v, k)` for `k ≥ 1`; S8 proof then says `"v + 1 = inc(v, 0) > v by TA5(a)"`, `"By TA5(c), v + 1 = inc(v, 0) satisfies #(v + 1) = m"`, and `"TA5(b) gives (v + 1)ᵢ = vᵢ for all i < sig(v)"`
+**Issue**: The S8-depth definition establishes `v + 1 = shift(v, 1)` (OrdinalShift). The S8 proof cites TA5(a), TA5(b), and TA5(c) — which are postconditions of `inc(v, 0)`, a different operation. The proof asserts `v + 1 = inc(v, 0)` without establishing the equivalence. These operations coincide when `sig(v) = #v` (i.e., the last component is nonzero), which S8a guarantees for V-positions — but this bridge is never constructed. The equivalence is provable: OrdinalShift gives `shift(v,1)_m = v_m + 1` with all earlier components unchanged; TA5(c) gives `inc(v,0)_{sig(v)} = v_{sig(v)} + 1` with all earlier components unchanged; when `sig(v) = m`, both produce the same result by T3 (CanonicalRepresentation). Every citation of TA5 in the S8 proof could alternatively cite OrdinalShift and T1 directly, but as written the precondition chain has an unlinked step.
+**What needs resolving**: Either establish `shift(v, 1) = inc(v, 0)` for tumblers with all-positive components (bridging OrdinalShift to TA5 via T3), or rewrite the S8 proof to cite OrdinalShift directly for the ordering, length-preservation, and prefix-preservation properties it already provides.
 
 ---
 
-```
-RESULT: FOUND
+### V-position minimum depth #v ≥ 2 not established — postcondition 1 is false at depth 1
 
-**Problem**: The formal contract labels S3 as `*Axiom:*` but the proof establishes it as an invariant by induction, depending on S1 as a precondition. This is inconsistent with the proof structure and with S1's own contract, which uses `*Preconditions:* + *Invariant:*` for an analogous inductive proof. The current contract also buries S1 and the per-operation obligation in prose rather than listing them as structured fields.
-
-**Required**: Replace the formal contract with:
-- *Preconditions:* S1 (store monotonicity); initial-state axiom (Σ.M(d)) establishing dom(Σ₀.M(d)) = ∅; per-operation verification obligation — every operation that sets Σ'.M(d)(v) = a must ensure a ∈ dom(Σ'.C).
-- *Invariant:* `(A d, v : v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ dom(Σ.C))` — every V-reference resolves.
-```
-
-24 verified, 3 found.
+**Foundation**: OrdinalShift — `shift(v, n)ᵢ = vᵢ` for `i < #v` (prefix preservation requires the target position to be strictly before the action point)
+**ASN**: S8-depth postcondition 1: `"(A k : 0 ≤ k < n : (v + k)₁ = v₁) — the subspace identifier precedes the action point and is copied unchanged by TumblerAdd's prefix rule."` S8a postconditions: `zeros(v) = 0 ∧ v₁ ≥ 1 ∧ v > 0`. S8-depth axiom: within a subspace, all V-positions share the same depth.
+**Issue**: Postcondition 1 claims the subspace identifier `v₁` is preserved by ordinal shift — that position 1 "precedes the action point." OrdinalShift's action point is position `#v`. Position 1 precedes it iff `#v ≥ 2`. For I-addresses, S7c guarantees element-field depth `δ ≥ 2`, and postcondition 3 correctly cites this. For V-positions, no parallel constraint is stated. S8a gives `#v ≥ 1` (via T4's non-empty field constraint) but not `#v ≥ 2`. At `#v = 1`: `shift([s], k) = [s + k]`, so `(v + k)₁ = s + k ≠ s = v₁` for `k ≥ 1` — postcondition 1 is false. The S8 proof itself is not affected (its m = 1 case uses a direct argument that avoids postcondition 1, and the m ≥ 2 case correctly has `#v ≥ 2`), but any downstream consumer of postcondition 1 inherits an unsound guarantee at depth 1.
+**What needs resolving**: Either add an explicit constraint `#v ≥ 2` for V-positions (paralleling S7c for I-addresses) and cite it in postcondition 1, or guard postcondition 1 with a `#v ≥ 2` precondition so its scope matches its validity.

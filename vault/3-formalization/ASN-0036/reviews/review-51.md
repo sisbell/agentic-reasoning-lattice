@@ -1,68 +1,57 @@
-# Proof Review — ASN-0036 (cycle 3)
+# Cone Review — ASN-0036/S8 (cycle 3)
 
-*2026-04-12 19:34*
+*2026-04-13 16:49*
 
-7 properties (D-CTG, D-CTG-depth, D-MIN, D-SEQ, S8, S8-fin, ValidInsertionPosition)
+I'll examine the full ASN, tracing every dependency chain across properties.
 
-### D-CTG
+<tool_call>
+<tool_name>Grep</tool_name>
+<parameters>
+<pattern>TumblerAdd|PositionAdvance|inc\(v|TA5\(a\)|TA5\(b\)</pattern>
+<path>/Users/shane/Documents/github/claude/xanadu-spec</path>
+<include>*.md</include>
+</parameters>
+</tool_call>
 
-## Verification of D-CTG
+<tool_call>
+<tool_name>Grep</tool_name>
+<parameters>
+<pattern>S7c|S7b|S3.*Referential</pattern>
+<path>/Users/shane/Documents/github/claude/xanadu-spec/vault</path>
+<include>*.md</include>
+</parameters>
+</tool_call>
 
-The proof structure is sound: assume two positions v₁ < v₂ disagree at some component j ∈ {2, …, m−1}, construct infinitely many intermediate w's by varying component j+1, invoke D-CTG to force them all into V_S(d), and contradict S8-fin.
+Let me trace the dependency chains systematically across all properties in the provided ASN content.
 
-The ordering arguments are correct:
-- **w > v₁**: agrees on 1..j, wins at j+1 since n > (v₁)_{j+1}. ✓
-- **w < v₂**: agrees on 1..j−1, loses at j since w_j = (v₁)_j < (v₂)_j. ✓
+**Checking the three user-identified findings against the current text:**
 
-The case that j = m (last component) is the complement — it means all components 2 through m−1 agree, which is exactly the postcondition. Coverage is complete.
+The current S8 proof consistently cites OrdinalShift, not TA5 or TumblerAdd. The S8-depth motivational text mentions TA5(c) but explicitly disclaims it: *"this operational fact is motivation for the definition of correspondence runs, not a dependency of the decomposition proof."* All four S8-depth postconditions cite OrdinalShift. Findings 1 and 3 appear to reference text from a prior revision — the equivocation has been corrected.
 
-S8-fin, S8-depth, T0(a), and T3 are all used as claimed. The formal contract correctly separates the axiom (contiguity as a design requirement) from the derived postcondition (shared components for depth ≥ 3).
+Finding 2 (#v ≥ 2 not established) remains valid in the current text.
 
-However, the proof explicitly invokes **T1(i)** three times — once in the setup ("since v₁ < v₂ by T1(i)") and twice in the ordering verification ("By T1(i), w > v₁" and "By T1(i), w < v₂") — to establish that lexicographic comparison is determined by the first point of disagreement. T1(i) is not listed among the declared dependencies.
-
-```
-RESULT: FOUND
-
-**Problem**: T1(i) (lexicographic ordering of tumblers, ASN-0034) is used three times in the proof but is not declared as a dependency. The entire contradiction argument relies on T1(i) to establish v₁ < w and w < v₂ from component-wise comparisons at the first point of disagreement.
-
-**Required**: Add T1(i) to the dependency list for D-CTG.
-```
-
-### D-CTG-depth
-
-## Verification of D-CTG-depth (SharedPrefixReduction)
-
-**1. Precondition completeness** — All stated: V_S(d) non-empty, common depth m ≥ 3 (S8-depth), D-CTG, S8-fin. Sufficient for the proof. ✓
-
-**2. Case coverage** — The proof handles arbitrary j ∈ {2, …, m−1}. At j = m−1, the range j+2 ≤ i ≤ m is empty (acknowledged in the proof). At j = 2, the construction fills components 3 through m. Component j+1 always exists since j ≤ m−1 implies j+1 ≤ m. ✓
-
-**3. Postcondition establishment** — The contradiction argument correctly shows no two positions can disagree at any component j with 2 ≤ j ≤ m−1, establishing the shared-prefix result. The reduction to last-component contiguity follows immediately: if components 1 through m−1 are fixed, only component m can vary. ✓
-
-**4. All conjuncts addressed** — Both parts of the postcondition (shared components 2 through m−1; reduction to last-component contiguity) are established. ✓
-
-**5. Dependency correctness** — **Issue found.** The proof invokes T1(i) (LexicographicOrder, ASN-0034) three times:
-- To conclude (v₁)_j < (v₂)_j from v₁ < v₂ at first disagreement j
-- To establish w > v₁ (agreement through j, then n > (v₁)_{j+1} at component j+1)
-- To establish w < v₂ (agreement through j−1, then (v₁)_j < (v₂)_j at component j)
-
-T1(i) is not declared in the dependency list and its text is not provided among the dependencies.
-
-**6. Formal contract** — Preconditions and postconditions match the proof's structure. The formal quantified statement correctly captures the shared-prefix result. ✓
-
-**7. Missing guarantees** — No guarantee gaps beyond the undeclared T1(i) dependency.
+Now, the new issues:
 
 ---
 
-```
-RESULT: FOUND
+### S8 uniqueness argument depends on natural-number discreteness without a declared foundation for the component domain
 
-**Problem**: T1(i) (LexicographicOrder, ASN-0034) is used three times in the proof
-but is not declared as a dependency. The proof relies on it to establish ordering
-at the first point of disagreement: "(v₁)ⱼ < (v₂)ⱼ (the inequality follows from
-v₁ < v₂ by T1(i))", "By T1(i), w > v₁", and "By T1(i), w < v₂".
+**Foundation**: T1 (LexicographicOrder) defines `<` on components; OrdinalShift defines `vₘ + n`; T4 establishes that some components are `0` and others are `> 0`. Together these constrain components to an ordered structure with zero, positivity, and addition — consistent with ℤ, ℚ, or ℝ, not only ℕ.
+**ASN**: S8 proof, within-subspace uniqueness, Case j = m: `"Since components are natural numbers, vₘ ≤ tₘ < vₘ + 1 forces tₘ = vₘ."` Cross-subspace m = 1: `"if t₁ > S₁ then t₁ ≥ S₁ + 1"` (discreteness again).
+**Issue**: The S8 proof's core uniqueness argument — that no depth-m tumbler besides `v` falls in `[v, v+1)` — hinges on natural-number discreteness: if `n ≤ x < n + 1` for `n, x ∈ ℕ`, then `x = n`. This property is invoked twice (within-subspace Case j = m, and cross-subspace m = 1 case analysis) and stated as `"Since components are natural numbers,"` but no foundation statement declares the component domain as ℕ. The foundation statements establish arithmetic and ordering on components but not the discrete-lattice property that eliminates values between consecutive integers. Without this, the uniqueness proof admits a gap: over ℚ or ℝ components, `[v, v+1)` would contain infinitely many points, and the singleton-interval partition argument fails.
+**What needs resolving**: Either add a foundation-level declaration that tumbler components are natural numbers (establishing discreteness as a consequence), or cite the specific ASN-0034 definition that fixes the component domain — so the S8 proof's discreteness claims have a traceable foundation link.
 
-**Required**: Add T1(i) (LexicographicOrder, ASN-0034) to the declared dependency
-list for D-CTG-depth.
-```
+---
 
-5 verified, 2 found.
+### S8-depth postcondition 3 depends on S7c without declaring it as a precondition
+
+**Foundation**: OrdinalShift (ShiftDefinition) — prefix rule: `shift(v, n)ᵢ = vᵢ` for `i < #v`.
+**ASN**: S8-depth formal contract postcondition 3: `"I-address subspace preservation: (A k : 0 ≤ k < n : E₁(a + k) = E₁(a)) — S7c guarantees element-field depth δ ≥ 2, placing E₁ outside the action point; OrdinalShift's prefix rule copies it unchanged."`
+**Issue**: Postcondition 3 holds only because S7c constrains element-field depth to `δ ≥ 2`, which places the subspace identifier `E₁` strictly before the action point `#a`. At `δ = 1`, `E₁` would *be* the action point — `shift(a, k)` would alter the subspace identifier, and postcondition 3 would be false. S7c is cited inline in the postcondition text but S8-depth's formal contract has no Preconditions section — its structure (Axiom + Definition + Postconditions) implies no dependencies. This is inconsistent: the contract structure signals "no preconditions" while postcondition 3 requires S7c. The parallel V-position postcondition (postcondition 1) correctly guards its weaker case with `"(requires #v ≥ 2)"`, but postcondition 3 presents the I-address case as unconditional, with the S7c dependency hidden in the justification text. Any downstream consumer of postcondition 3 must independently discover the S7c requirement.
+**What needs resolving**: Either add a Preconditions section to S8-depth's formal contract declaring S7c as a dependency of postcondition 3, or restructure so the correspondence-run postconditions are a separate property with their own explicit preconditions — separating them from the depth-uniformity axiom that genuinely has none.
+
+## Result
+
+Cone not converged after 3 cycles.
+
+*Elapsed: 3961s*

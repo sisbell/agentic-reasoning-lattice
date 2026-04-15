@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 """
-Formalization Export — assemble formal-statements.md + deps from a formalized ASN.
+Formalization Assembly — produce formal-statements.md + dependency graph.
 
-Mechanically extracts formal interface from the property table and derivation
-sections, trims narrative via LLM, then generates the dependency graph
-(mechanical + LLM scan). Commits both artifacts.
+Mechanically assembles the export from YAML summaries + .md formal contracts.
+No LLM calls. Requires summaries — run summarize.py first.
 
 Usage:
-    python scripts/formalization-export.py 40
-    python scripts/formalization-export.py 40 --normalize   # run format gate first
-    python scripts/formalization-export.py 40 --dry-run
-    python scripts/formalization-export.py 34 36 40          # multiple ASNs
+    python scripts/formalization-assembly.py 34
+    python scripts/formalization-assembly.py 34 36 40
+    python scripts/formalization-assembly.py 34 --deps-only
+    python scripts/formalization-assembly.py 34 --dry-run
 """
 
 import argparse
@@ -23,14 +22,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, formal_stmts, dep_graph, load_manifest
 from lib.shared.common import find_asn
 from lib.formalization.assembly.produce_interface import assemble_formal_statements
-from lib.formalization.assembly.validate_contracts import validate_contracts
 from lib.formalization.core.build_dependency_graph import generate_formalization_deps, write_deps_yaml
 
 COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
 
 
 def _generate_deps(asn_num, label):
-    """Generate deps YAML from formalization table (no prose scanning)."""
+    """Generate deps YAML from per-property metadata."""
     try:
         deps = generate_formalization_deps(asn_num)
         if deps:
@@ -45,10 +43,8 @@ def _generate_deps(asn_num, label):
               file=sys.stderr)
 
 
-def _export_one(asn_id, do_format_gate=False, contract_check="skip"):
-    """Export a single ASN: optional format gate + contract validation + assembly + deps.
-
-    contract_check: "fail" (default), "warn", or "skip"
+def _export_one(asn_id):
+    """Export a single ASN: assembly + deps.
 
     Returns (asn_label, True) on success, (asn_id, False) on failure.
     """
@@ -59,31 +55,7 @@ def _export_one(asn_id, do_format_gate=False, contract_check="skip"):
 
     asn_num = int(re.sub(r"[^0-9]", "", str(asn_id)))
 
-    # Format gate (if requested)
-    if do_format_gate:
-        from lib.blueprinting.format import normalize_format
-        ok = normalize_format(asn_num)
-        if not ok:
-            print(f"  [ERROR] Format normalization failed for {asn_label}",
-                  file=sys.stderr)
-            return asn_label, False
-
-    # Contract validation gate
-    if contract_check != "skip":
-        mismatches = validate_contracts(asn_num)
-        if mismatches:
-            for label, detail in mismatches:
-                print(f"  [CONTRACT MISMATCH] {label}: {detail}",
-                      file=sys.stderr)
-            if contract_check == "fail":
-                print(f"  [ERROR] {len(mismatches)} contract mismatch(es) — "
-                      f"aborting assembly for {asn_label}", file=sys.stderr)
-                return asn_label, False
-            else:
-                print(f"  [WARNING] {len(mismatches)} contract mismatch(es) — "
-                      f"continuing (warn mode)", file=sys.stderr)
-
-    # Assembly
+    # Assembly (mechanical — reads YAML summaries + .md contracts)
     path = assemble_formal_statements(asn_num)
     if path is None:
         print(f"  [ERROR] Assembly failed for {asn_label}", file=sys.stderr)
@@ -91,7 +63,7 @@ def _export_one(asn_id, do_format_gate=False, contract_check="skip"):
 
     print(str(path))
 
-    # Deps generation
+    # Deps generation (already mechanical)
     _generate_deps(asn_num, asn_label)
 
     return asn_label, True
@@ -99,19 +71,13 @@ def _export_one(asn_id, do_format_gate=False, contract_check="skip"):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Formalization Export — formal-statements.md + deps from formalized ASNs")
+        description="Formalization Assembly — formal-statements.md + deps")
     parser.add_argument("asns", nargs="+",
-                        help="ASN numbers (e.g., 55 56 34) or paths")
-    parser.add_argument("--normalize", action="store_true",
-                        help="Run format normalization gate before assembly")
+                        help="ASN numbers (e.g., 34 36 40) or paths")
     parser.add_argument("--dry-run", action="store_true",
                         help="Show what would be done without doing it")
     parser.add_argument("--deps-only", action="store_true",
                         help="Generate dependency graph only, skip formal-statements")
-    parser.add_argument("--skip-contract-check", action="store_true",
-                        help="Skip contract validation gate")
-    parser.add_argument("--warn-contract-check", action="store_true",
-                        help="Report contract mismatches without failing")
     args = parser.parse_args()
 
     if args.dry_run:
@@ -131,13 +97,8 @@ def main():
     succeeded = []
     failed = []
 
-    contract_check = "skip"
-    if args.warn_contract_check:
-        contract_check = "warn"
-
     for asn_id in args.asns:
-        label, ok = _export_one(asn_id, do_format_gate=args.normalize,
-                                contract_check=contract_check)
+        label, ok = _export_one(asn_id)
         if ok:
             succeeded.append(label)
         else:
@@ -155,15 +116,6 @@ def main():
         cmd = [sys.executable, str(COMMIT_SCRIPT),
                f"Export formal statements {labels}"]
         subprocess.run(cmd, capture_output=True, text=True, cwd=str(WORKSPACE))
-
-        # Hint for extensions
-        if len(args.asns) == 1:
-            asn_num = int(re.sub(r"[^0-9]", "", str(args.asns[0])))
-            manifest = load_manifest(asn_num)
-            if manifest.get("extends"):
-                print(f"\n  [NEXT] Absorb into base: "
-                      f"python scripts/absorb.py {asn_num}",
-                      file=sys.stderr)
 
     if failed:
         print(f"\n  FAILED: {', '.join(failed)}", file=sys.stderr)

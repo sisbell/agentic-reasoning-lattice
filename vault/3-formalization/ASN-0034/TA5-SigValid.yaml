@@ -4,3 +4,5 @@ type: corollary
 depends:
 - TA5-SIG
 - T4
+summary: 'Because every valid address satisfying T4 has strictly positive components in every field and at least one component
+  in its last field, the rightmost nonzero position is always the final position — so sig(t) = #t for all valid addresses.'

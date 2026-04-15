@@ -1,12 +1,12 @@
-**S8-fin (FiniteArrangement).** For each document `d`, `dom(Σ.M(d))` is finite. A document contains finitely many V-positions at any given state.
+**S8-fin (FiniteArrangement).** For each `d ∈ D`, `dom(Σ.M(d))` is finite in every reachable state `Σ`.
 
-S8-fin is an invariant over reachable states. We establish it by induction on the length of the operation trace — the finite sequence of operations producing any reachable state.
+We establish the invariant by induction over the operation history.
 
-**Base case.** Σ.M(d) establishes as an axiom that `dom(Σ₀.C) = ∅ ∧ (∀ d : dom(Σ₀.M(d)) = ∅)` — the initial state contains no arrangements. In particular, `dom(Σ₀.M(d)) = ∅` for every document `d`. The empty set is finite.
+*Base case.* By AX-1 (InitialEmptyState), `dom(Σ₀.M(d)) = ∅` for every document `d`. The empty set is finite.
 
-**Inductive step.** Let Σ be a reachable state in which dom(Σ.M(d)) is finite for every document d, and let operation op produce successor state Σ'. Each editing operation modifies dom(M(d)) by adding or removing finitely many V-positions: INSERT allocates one V-position per inserted content element — bounded by the finite size of the input; COPY creates one V-position per transcluded element — bounded by the finite cardinality of the source span, which lies within a finite domain by the inductive hypothesis; DELETE removes V-positions from dom(M(d)), and removing elements from a finite set yields a finite set; REARRANGE permutes existing mappings without altering the domain's cardinality. In each case, dom(Σ'.M(d)) differs from dom(Σ.M(d)) by a finite set, so dom(Σ'.M(d)) is finite.
+*Inductive step.* Suppose `dom(Σ.M(d))` is finite in state Σ. Let Σ → Σ' be any state transition; by AX-5 (ClosedWorldTransition), some op ∈ Op produces Σ' from Σ. Each such operation acts on a finite selection of existing V-positions and introduces at most finitely many new ones — the union of a finite set with a finite set is finite, and the removal of elements from a finite set leaves a finite set. Therefore `dom(Σ'.M(d))` is finite.
 
-That each specific operation adds only finitely many V-positions is a verification obligation for the operation's own ASN — parallel to the per-operation obligations for S0 (content immutability), S3 (referential integrity), and D-CTG (contiguity). ∎
+This is a design requirement: every operation specification must individually discharge the obligation that it maps a finite arrangement to a finite arrangement. The base case and the closure argument above reduce that global invariant to a per-operation verification condition. ∎
 
 *Formal Contract:*
-- *Invariant:* dom(Σ.M(d)) is finite for every document d and every reachable state Σ.
+- *Invariant:* dom(Σ.M(d)) is finite for every d ∈ D in every reachable state Σ

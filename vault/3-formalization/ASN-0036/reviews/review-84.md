@@ -1,0 +1,20 @@
+# Cone Review — ASN-0036/D-SEQ (cycle 4)
+
+*2026-04-15 03:14*
+
+I've read all the property files and foundation statements, and traced every cross-cutting chain against the provided ASN content. Most previous findings have been addressed in the current text. I found one new issue.
+
+---
+
+### D-CTG body text attributes intermediate T-membership solely to OrdinalShift, contradicting its own formal contract annotation and requiring an uncited forward reference to D-CTG-depth at m ≥ 3
+
+**Foundation**: T0 (CarrierSetDefinition, ASN-0034) — "T is the set of all finite sequences over ℕ with length ≥ 1"; OrdinalShift (ASN-0034) — `shift(v, n) ∈ T` for `v ∈ T, n ≥ 1`
+**ASN**: D-CTG (VContiguity), body text: "This quantification over v ∈ T is no restriction. OrdinalShift (ASN-0034) is the operative guarantee… Every same-depth same-subspace intermediate between two V-positions is reachable as a shift, and belongs to T by OrdinalShift's postcondition." D-CTG formal contract annotation: "The v ∈ T guard is operationally universal for same-depth same-subspace tuples (OrdinalShift; T0, ASN-0034)."
+**Issue**: The body text says "OrdinalShift is the operative guarantee" for intermediate T-membership. The formal contract annotation on the same property says "(OrdinalShift; T0, ASN-0034)" — citing T0 alongside OrdinalShift. T0 is the direct and sufficient justification: it defines T as all finite sequences over ℕ with length ≥ 1, so every intermediate (a finite sequence of naturals) is in T regardless of whether it is constructible as a shift. The body text drops T0 entirely and instead makes the stronger claim "Every same-depth same-subspace intermediate between two V-positions is reachable as a shift." At m = 2 this holds directly (`[S, k] = shift([S, a], k−a)` for `k > a`). At m ≥ 3, an intermediate can have different prefix components from the V-positions (e.g., `[1, 2, 0]` lies between `[1, 1, 1]` and `[1, 2, 1]` in T but is not reachable as `shift(u, n)` for any `u ∈ T` since `shift` preserves all non-last components and produces a last component ≥ 1). The claim becomes true only after D-CTG-depth establishes that all V_S(d) members and their intermediates share a prefix — but D-CTG-depth is derived from D-CTG itself. The body text thus forward-references a result derived from the very invariant it is explaining, without citing it, while discussing D-CTG-depth in a separate paragraph ("At depth m ≥ 3, D-CTG combined with S8-fin and S8-depth forces a stronger restriction…") without connecting it to the shift-reachability claim.
+**What needs resolving**: D-CTG's body text should attribute the `v ∈ T` universality to T0, matching its own formal contract annotation. T0 alone establishes that every same-depth same-subspace intermediate is in T — no OrdinalShift or D-CTG-depth needed. If shift-reachability is mentioned, it should be scoped: at m = 2 OrdinalShift constructs all intermediates directly; at m ≥ 3 the shared-prefix result (D-CTG-depth) is additionally required.
+
+## Result
+
+Cone converged after 5 cycles.
+
+*Elapsed: 5756s*

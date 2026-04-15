@@ -1,19 +1,17 @@
-# Contract Review — ASN-0036 (cycle 1)
+# Cone Review — ASN-0036/D-SEQ (cycle 3)
 
-*2026-04-12 21:11*
+*2026-04-13 19:27*
 
-### D-CTG
+I've read the entire ASN carefully, tracing every cross-property chain. Most of the structural issues have already been captured. After a thorough pass, I find one new issue:
 
-- `MISSING_PRECONDITION: S8-fin` — The derived postcondition (V-positions at depth m ≥ 3 share components 2 through m − 1) is established by a finiteness contradiction: assuming divergence at a non-last component allows unboundedly many distinct V-positions, contradicting S8-fin. The proof cites S8-fin explicitly ("contradicting S8-fin"). The contract has no preconditions section; S8-fin appears only in the postcondition prose ("Combined with S8-fin and S8-depth..."), not as a formally listed precondition.
+### D-CTG verification obligation omits MOVE and APPEND despite S8-fin enumerating them as state transitions
+**Foundation**: S8-fin (FiniteArrangement) — "Let Σ → Σ' be any state transition produced by an operation (INSERT, DELETE, COPY, MOVE, REARRANGE, or APPEND)" and "every operation specification must individually discharge the obligation"
+**ASN**: D-CTG body text — "Whether DELETE, INSERT, COPY, and REARRANGE preserve D-CTG is a verification obligation for each operation's ASN"
+**Issue**: S8-fin defines the complete set of arrangement-modifying operations as six: INSERT, DELETE, COPY, MOVE, REARRANGE, APPEND. S8-fin uses universal language ("every operation specification must individually discharge the obligation") and D-MIN does the same ("every operation that populates or modifies V_S(d) must include [S, 1, …, 1]"). D-CTG alone uses an explicit four-operation list that omits MOVE and APPEND. Both MOVE and APPEND modify dom(M(d)) — MOVE removes and re-inserts positions, APPEND adds a new position — so both can break contiguity. A downstream operation ASN for MOVE or APPEND that reads D-CTG's text would see no verification obligation for contiguity, while S8-fin's text imposes a finiteness obligation on the same operations. The formal contracts of D-CTG and S8-fin (stated as universal invariants without operation lists) are consistent; the gap is in the body text that establishes what downstream ASNs must verify.
+**What needs resolving**: D-CTG's verification obligation sentence should either use universal language matching D-MIN and S8-fin ("every operation that modifies V_S(d) must preserve D-CTG"), or explicitly list all six operations from S8-fin's enumeration. If MOVE or APPEND are composites of the four listed operations (and therefore inherit D-CTG preservation), this compositional relationship should be stated so the omission is justified rather than silent.
 
-- `MISSING_PRECONDITION: S8-depth` — The proof invokes S8-depth explicitly ("both depth m by S8-depth") to establish that v₁ and v₂ share the same tumbler depth m. This is load-bearing in two places: (1) the construction of the intermediate witness w requires knowing the common depth m; (2) the postcondition formula uses `#v₁ − 1` as the upper bound for the shared-component range, implicitly treating `#v₂ = #v₁` — which only holds because S8-depth guarantees uniform depth within a subspace. S8-depth appears only in the postcondition prose, not as a formally listed precondition.
+## Result
 
-### D-MIN
+Cone not converged after 3 cycles.
 
-- `INACCURACY: The postcondition's "combined with" clause reads "Combined with D-CTG, S8-fin, and S8-vdepth (for m ≥ 2)", but the proof explicitly derives the general form by stating "By D-CTG combined with S8-fin and S8-depth (when m ≥ 3) or trivially (when m = 2)". S8-depth is explicitly named as a substantive contributor to establishing that all positions share components 2 through m−1 — which is a necessary intermediate step before D-MIN's axiom can pin those shared components to value 1. The contract omits S8-depth from the postcondition's "combined with" clause. Although S8-depth appears as a precondition (so it is in scope), the "combined with" clause is meant to guide readers on which facts combine with D-MIN to yield the full characterization, and omitting an explicitly cited ingredient from that clause is inaccurate. The clause should read "Combined with D-CTG, S8-fin, S8-depth, and S8-vdepth (for m ≥ 2)"`.
-
-### S9
-
-- `MISSING_PRECONDITION: S0 (content immutability) — the proof's sole dependency and the entire basis of the argument — is not listed as a formal precondition. It appears only in the Frame with an oblique "(by S0)" reference, which does not serve the same role as an explicit precondition declaration (compare S3's contract, which lists S1 and the per-operation obligation under "Preconditions:")`.
-
-3 mismatches.
+*Elapsed: 4267s*

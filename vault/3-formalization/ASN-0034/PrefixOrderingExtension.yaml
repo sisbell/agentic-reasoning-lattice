@@ -2,4 +2,8 @@ label: PrefixOrderingExtension
 name: PrefixOrderingExtension
 type: lemma
 depends:
+- Prefix
 - T1
+summary: 'If two non-nested tumblers are ordered (p₁ < p₂), that ordering propagates to all their extensions: every tumbler
+  rooted at p₁ is less than every tumbler rooted at p₂. This means the comparison between two subtrees can be resolved entirely
+  at their roots.'

@@ -4,4 +4,4 @@ This is a design requirement: content resides at the element level — the fines
 
 *Formal Contract:*
 - *Axiom:* (A a ∈ dom(Σ.C) :: zeros(a) = 3)
-- *Preconditions:* T4 (HierarchicalParsing) — provides the definition of `zeros` and the level correspondence (`zeros(t) = 3` ↔ element address with all four fields present).
+- *Preconditions:* T4 (HierarchicalParsing) — provides the definition of zeros(t) and the level correspondence zeros(t) = 3 ↔ element address.

@@ -1,31 +1,25 @@
-# Proof Review — ASN-0036 (cycle 4)
+# Contract Review — ASN-0036 (cycle 1)
 
-*2026-04-12 17:17*
+*2026-04-13 14:11*
 
-5 properties (D-CTG, D-CTG-depth, D-MIN, D-SEQ, ValidInsertionPosition)
+### S7
 
-### D-CTG
+`
 
-## Verification
+- `MISSING_PRECONDITION: T3 (CanonicalRepresentation, ASN-0034) is cited in the proof's uniqueness section — "By T3 (CanonicalRepresentation, ASN-0034), this distinctness is decidable by component-wise comparison" — as a logical step supporting the decidability of origin inequality. Following the project convention of listing theorem dependencies as preconditions (S0, S4, S7a, S7b, T4, and GlobalUniqueness are all listed this way), T3 should appear in the precondition list but does not.`
 
-The proof's construction is correct: given two positions v₁ < v₂ disagreeing at a non-last component j, the family of witnesses w (parameterized by n) are properly shown to satisfy v₁ < w < v₂ with matching subspace and depth, yielding the desired contradiction with S8-fin via T0(a) and T3. Case coverage is complete (j = m would mean they already share components 2..m−1, and j = 1 is excluded by shared subspace). The formal contract matches the narrative.
+### S8-depth
 
-However, the proof invokes **T1(i)** three times — to justify that the first point of disagreement determines the ordering of v₁ vs v₂, w vs v₁, and w vs v₂ — yet T1(i) is not listed among the declared dependencies.
+- `MISSING_POSTCONDITION`: The proof explicitly establishes subspace preservation for V-positions within a run — `(A k : 0 ≤ k < n : (v+k)₁ = v₁)` — via TumblerAdd's prefix rule (the subspace identifier component is before the action point and is copied unchanged). The contract omits this.
 
-```
-RESULT: FOUND
+- `MISSING_POSTCONDITION`: The proof explicitly establishes subspace preservation for I-addresses within a run — the element subspace identifier E₁ of `a+k` equals E₁ of `a` for all k — as a combined result of S7c (element-field depth δ ≥ 2 places E₁ outside the action point) and TumblerAdd's prefix rule. The contract omits this.
 
-**Problem**: T1(i) is used but not declared as a dependency.
-The proof text references T1(i) in three places:
-  1. "(v₁)ⱼ < (v₂)ⱼ (since v₁ < v₂ by T1(i))"
-  2. "By T1(i), w > v₁"
-  3. "By T1(i), w < v₂"
-All three ordering claims depend on T1(i) providing the lexicographic comparison
-rule for tumblers (first differing component determines order). Without T1(i) as
-ground truth, these steps cannot be verified from the declared dependencies alone.
+- `MISSING_POSTCONDITION`: The proof explicitly states that `a+k` produces a result of length `#a` ("TumblerAdd's prefix rule copies all earlier components … unchanged, producing a result of length `#a`"). The contract does not capture `#(a+k) = #a`.
 
-**Required**: Add T1(i) (lexicographic ordering of tumblers, ASN-0034) to the
-dependency list for D-CTG.
-```
+### S9
 
-4 verified, 1 found.
+`
+
+- `MISSING_PRECONDITION: S0 (content immutability) — the proof's sole inference engine is S0's unconditional guarantee. The contract lists no preconditions at all. The Frame entry mentions S0 parenthetically, but a Frame clause describes what is preserved, not what is assumed. By direct analogy with S3's contract, which explicitly lists "S1 (store monotonicity)" as a precondition, S9's contract should list "S0 (content immutability)" as a precondition.`
+
+3 mismatches.

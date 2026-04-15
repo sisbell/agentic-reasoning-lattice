@@ -3,3 +3,6 @@ name: SyntacticEquivalence
 type: corollary
 depends:
 - T4
+summary: 'The structural constraint that every present field in an address tumbler is non-empty is equivalent to three purely
+  syntactic conditions on the raw component sequence: the sequence neither starts nor ends with zero, and no two zeros appear
+  adjacently. This equivalence holds under T4''s requirement that all field components are strictly positive.'

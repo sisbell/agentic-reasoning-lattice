@@ -2,13 +2,18 @@ label: D-CTG-depth
 name: SharedPrefixReduction
 type: lemma
 depends:
+- Σ.M(d)
+- subspace(v)
+- V_S(d)
 - D-CTG
 - S8-depth
 - S8-fin
+- T0
 - T0(a)
 - T1
 - T3
 - T4
+- D-DOC
 literature_citations:
 - LM 4/20
 - LM 4/31

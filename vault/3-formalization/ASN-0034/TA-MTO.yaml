@@ -4,3 +4,6 @@ type: lemma
 depends:
 - TumblerAdd
 - T3
+summary: Two tumblers a and b produce the same result under displacement w if and only if they agree on every component up
+  to and including w's action point k. Components after position k are discarded by TumblerAdd's tail replacement, so only
+  the prefix up to k influences the result.

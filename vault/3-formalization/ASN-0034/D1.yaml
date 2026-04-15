@@ -6,3 +6,6 @@ depends:
 - TumblerSub
 - T3
 - Divergence
+- ZPD
+summary: 'Under the additional constraint that a is no longer than b, displacement is faithful: a ⊕ (b ⊖ a) = b exactly. This
+  is the core round-trip lemma that ties subtraction and addition into an inverse pair.'

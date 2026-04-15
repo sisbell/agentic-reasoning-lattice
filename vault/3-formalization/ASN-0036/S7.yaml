@@ -2,15 +2,12 @@ label: S7
 name: StructuralAttribution
 type: theorem
 depends:
+- D-DOC
 - S7a
 - S7b
+- S7d
 - S0
-- S4
-- T3
 - T4
 - T10a
 - GlobalUniqueness
-vocabulary:
-- symbol: origin(a)
-  meaning: The document-level prefix of I-address a, computed as (fields(a).node).0.(fields(a).user).0.(fields(a).document)
-    — the tumbler N.0.U.0.D identifying the document that allocated a
+- origin(a)

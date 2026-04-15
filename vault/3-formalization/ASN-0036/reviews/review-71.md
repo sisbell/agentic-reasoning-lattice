@@ -1,0 +1,25 @@
+# Cone Review — ASN-0036/D-CTG-depth (cycle 2)
+
+*2026-04-14 20:32*
+
+### S8-depth bundles axiom and correspondence-run results under a single precondition declaration
+**Foundation**: Σ.M(d) (Arrangement) — the only dependency the axiom requires; S3 (ReferentialIntegrity), S7b (Element-level I-addresses), S7c, S8-vdepth — additionally required by postconditions 1 and 3
+**ASN**: S8-depth formal contract: `*Preconditions:* dom(M(d)) ⊆ T and ran(M(d)) ⊆ T (Σ.M(d))…` followed by prose paragraphs invoking S8-vdepth ("S8-vdepth establishes this bound as an axiom"), S3 ("S3 (ReferentialIntegrity) gives a + k ∈ dom(Σ.C)"), S7b ("S7b (Element-level I-addresses) gives zeros(a + k) = 3"), and S7c ("S7c then gives #fields(a).element ≥ 2")
+**Issue**: S8-depth's formal contract contains two logically independent objects: (1) an axiom — `(A d, p, q : p ∈ dom(Σ.M(d)) ∧ q ∈ dom(Σ.M(d)) ∧ p₁ = q₁ : #p = #q)` — and (2) a correspondence run definition with four postconditions. The axiom requires only Σ.M(d). Postcondition 1 (`#v ≥ 2`) additionally requires S8-vdepth; postcondition 3 (I-address subspace preservation) additionally requires S3, S7b, and S7c. These four dependencies appear only in explanatory prose — the formal `*Preconditions:*` declaration lists only Σ.M(d). This creates two problems. First, the formal interface understates its preconditions: a consumer that satisfies only Σ.M(d) believes postconditions 1 and 3 hold, but they do not without S8-vdepth, S3, S7b, S7c. Second, a property citing S8-depth for the axiom alone — D-CTG-depth cites "common depth m ≥ 3 (S8-depth)" — inherits an ambiguous dependency that conflates the axiom's minimal requirements with the correspondence-run postconditions' larger set.
+**What needs resolving**: Either separate the axiom from the correspondence-run definition and postconditions into distinct properties (each with its own preconditions and formal contract), or surface the full dependency set in the formal declaration with explicit annotation of which preconditions serve which postconditions.
+
+---
+
+### D-CTG-depth proof relies on T0(a) preserving tumbler length, which T0(a) does not state
+**Foundation**: T0(a) (UnboundedComponentValues, ASN-0034): postcondition says "there exists `t' ∈ T` that agrees with `t` at all positions except at position `i`, where `t'.dᵢ > M`"
+**ASN**: D-CTG-depth proof: "`#t' = m`: T0(a) modifies a single component in place, preserving length."
+**Issue**: D-CTG-depth's proof asserts `#t' = m` (= `#v₁`) and attributes this to T0(a). This is load-bearing: D-CTG's universal quantifier requires `#v = #u`, so the intermediate `t'` must have depth `m` to be forced into `V_S(d)`. If `#t' ≠ m`, the `#v = #u` constraint in D-CTG is not satisfied, `t'` is not forced into `V_S(d)`, and the entire contradiction argument collapses. However, T0(a)'s formal contract states that `t'` "agrees with `t` at all positions except at position `i`" without explicitly constraining `#t'`. The intended reading — same length, same components except at `i` — is natural, but under a strict reading, `t'` could have additional components beyond `#t` while still agreeing "at all positions [of `t`] except `i`." T3 (CanonicalRepresentation) characterizes equality via same-length-and-same-components, which supports the intended reading indirectly, but T0(a) neither references T3 nor states `#t' = #t` as a postcondition.
+**What needs resolving**: T0(a)'s formal contract should explicitly state `#t' = #t` as a postcondition, or define "agrees with `t` at all positions except `i`" in terms of T3 so that equal length is entailed.
+
+---
+
+### E₁(·) appears in S8-depth's formal postcondition without a definition
+**Foundation**: T4 (HierarchicalParsing, ASN-0034) defines the four-field hierarchy; T4b (UniqueParse) establishes `fields(t)` as a well-defined decomposition
+**ASN**: S8-depth postcondition 3 formal statement: `(A k : 0 ≤ k < n : E₁(a + k) = E₁(a))` — "the first component of the element field"
+**Issue**: `E₁(·)` is used as a projection function in a quantified formal statement but has no definition block in the ASN or in the exported foundation statements. The intended meaning is recoverable: T4 defines the four-level hierarchy, T4b establishes `fields(t)`, so `E₁(t) = fields(t).element₁` — the first component of the fourth field. But the derivation chain from T4's field parsing to the projection `E₁` is never formally stated. The postcondition's proof text carefully establishes which tumbler position `E₁` occupies and shows it is preserved under shift, but the proof operates on a notation that lacks a formal anchor. In contrast to `dom(·)` and `ran(·)` (which Σ.M(d) defines explicitly), `E₁` enters the formal language without introduction. For TLA+ formalization, `E₁` would need to be a defined operator — without a definition block, there is no specification to translate.
+**What needs resolving**: A definition block connecting `E₁(t)` to T4's field parsing — either within S8-depth, as a shared definition property in ASN-0036, or as a foundation-level export from ASN-0034 — so that the formal postcondition formula references a defined term.

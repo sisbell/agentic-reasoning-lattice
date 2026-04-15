@@ -5,3 +5,6 @@ depends:
 - Divergence
 - TumblerAdd
 - T1
+summary: When two tumblers are in strict order and the displacement's action point falls at or after their divergence, addition
+  strictly preserves that order (`a ⊕ w < b ⊕ w`). If the action point precedes the divergence, both results become identical
+  — order degrades to equality but never reverses.

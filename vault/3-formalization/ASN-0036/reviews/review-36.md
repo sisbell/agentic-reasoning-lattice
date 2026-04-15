@@ -1,17 +1,28 @@
-# Formalize — ASN-0036 / OrdShiftHom
+# Formalize — ASN-0036 / D-CTG-depth
 
-*2026-04-12 16:22*
+*2026-04-13 13:03*
 
-**OrdShiftHom** — *OrdinalShiftHomomorphism* (COROLLARY). For a V-position `v` with `#v = m ≥ 2` and `n ≥ 1`:
+**D-CTG-depth (SharedPrefixReduction).** For depth m ≥ 3, all positions in a non-empty V_S(d) share components 2 through m − 1. Contiguity reduces to contiguity of the last component alone — structurally identical to the depth 2 case.
 
-`ord(shift(v, n)) = shift(ord(v), n)`
+*Proof.* Let V_S(d) be non-empty with common depth m ≥ 3 (S8-depth). Suppose for contradiction that V_S(d) contains two positions v₁ and v₂ with v₁ < v₂ (both depth m) whose first point of disagreement is at component j with 2 ≤ j ≤ m − 1 — that is, (v₁)ᵢ = (v₂)ᵢ for all i < j (in particular, (v₁)₁ = S = (v₂)₁, since both belong to V_S(d)), and (v₁)ⱼ < (v₂)ⱼ (the inequality follows from v₁ < v₂ by T1(i), since j is the first disagreeing component and j ≤ min(m, m)).
 
-Since `shift(v, n) = v ⊕ δ(n, m)` and `δ(n, m) = [0, ..., 0, n]` is a tumbler of length `m` with zeros in positions `1` through `m - 1` and `n` in position `m`, we verify OrdAddHom's preconditions: `δ(n, m)₁ = 0`; `δ(n, m) > 0` because `n ≥ 1` makes the last component positive; `#δ(n, m) = m`; and `actionPoint(δ(n, m)) = m ≤ m`, since position `m` is the first nonzero component. OrdAddHom applies, giving `ord(v ⊕ δ(n, m)) = ord(v) ⊕ (δ(n, m))_ord`.
+We construct infinitely many intermediates. For any natural number n > (v₁)ⱼ₊₁, define w of length m by:
 
-The ordinal projection `(δ(n, m))_ord = [δ(n, m)₂, ..., δ(n, m)_m] = [0, ..., 0, n]` of length `m - 1` is `δ(n, m-1)`. Since `#ord(v) = m - 1`, the definition of shift gives `shift(ord(v), n) = ord(v) ⊕ δ(n, m-1)`. So `ord(v ⊕ δ(n, m)) = ord(v) ⊕ δ(n, m-1) = shift(ord(v), n)`.
+- wᵢ = (v₁)ᵢ for 1 ≤ i ≤ j (agreeing with v₁ on the first j components),
+- wⱼ₊₁ = n,
+- wᵢ = 1 for j + 2 ≤ i ≤ m (if any such positions exist; since j ≤ m − 1, at least the m-th component exists at position j + 1 or beyond).
 
-For S8a preservation: since `actionPoint(δ(n, m)) = m`, the tail region after the action point (positions `k < i ≤ m` with `k = m`) is empty. By OrdAddS8a, the condition for `v ⊕ δ(n, m)` to satisfy S8a reduces to a vacuously true universal quantification over this empty range. Therefore `shift(v, n)` unconditionally satisfies S8a when `v` does. ∎
+Then w has depth m (it has m components by construction), and subspace(w) = w₁ = (v₁)₁ = S (since j ≥ 2, the first component is copied from v₁). We verify v₁ < w < v₂:
+
+- **w > v₁**: w agrees with v₁ on components 1 through j. At component j + 1, wⱼ₊₁ = n > (v₁)ⱼ₊₁. Since j + 1 ≤ m = min(m, m), by T1(i), w > v₁.
+- **w < v₂**: w agrees with v₂ on components 1 through j − 1 (since v₁ and v₂ agree on these components by the definition of j). At component j, wⱼ = (v₁)ⱼ < (v₂)ⱼ. Since j ≤ m − 1 < m = min(m, m), by T1(i), w < v₂.
+
+Since v₁ < w < v₂, subspace(w) = S, and #w = m = #v₁, D-CTG requires w ∈ V_S(d). By T0(a) (UnboundedComponentValues, ASN-0034), unboundedly many values of n > (v₁)ⱼ₊₁ exist. Distinct values of n yield distinct tumblers w (they differ at component j + 1, so by T3, CanonicalRepresentation, ASN-0034, they are unequal). This produces infinitely many distinct positions in V_S(d), contradicting S8-fin (dom(M(d)) is finite).
+
+Therefore no two positions in V_S(d) can disagree at any component j with 2 ≤ j ≤ m − 1. All positions share components 2 through m − 1, and contiguity reduces to contiguity of the last component (component m) alone. ∎
+
+Nelson's statement specifies not just contiguity but also the starting ordinal: "addresses 1 through 100," not "42 through 141." All ordinal numbering in the tumbler system starts at 1: the first child is always .1 (LM 4/20), link positions within a document begin at 1 (LM 4/31), and position 0 is structurally unavailable since zero serves as a field separator (T4, ASN-0034). V-positions follow the same convention.
 
 *Formal Contract:*
-- *Preconditions:* `v ∈ T`, `#v = m ≥ 2`, `n ≥ 1`.
-- *Postconditions:* (a) `ord(shift(v, n)) = shift(ord(v), n)`. (b) If `v` satisfies S8a, then `shift(v, n)` satisfies S8a — by OrdAddS8a with `w = δ(n, m)`, `actionPoint(w) = m`, so the tail region `(m, m]` is empty and the positivity condition holds vacuously.
+- *Preconditions:* V_S(d) non-empty; common depth m ≥ 3 (S8-depth); D-CTG (VContiguity); S8-fin (finite arrangement).
+- *Postconditions:* `(A v₁, v₂ ∈ V_S(d), j : 2 ≤ j ≤ m − 1 : (v₁)ⱼ = (v₂)ⱼ)`. Contiguity of V_S(d) reduces to contiguity of the m-th (last) component.

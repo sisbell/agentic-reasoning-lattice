@@ -4,3 +4,5 @@ type: corollary
 depends:
 - TumblerAdd
 - T1
+summary: 'Adding any positive displacement to a tumbler strictly advances it: `a ⊕ w > a` whenever the operation is well-defined.
+  This excludes degenerate models where addition is a no-op, and directly guarantees that spans `[s, s ⊕ ℓ)` are non-empty.'

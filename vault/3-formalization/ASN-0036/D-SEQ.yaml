@@ -2,10 +2,12 @@ label: D-SEQ
 name: SequentialPositions
 type: theorem
 depends:
+- Σ.M(d)
 - S8-depth
 - S8-vdepth
 - D-CTG-depth
 - D-MIN
 - T1
+- T0
 - D-CTG
 - S8-fin

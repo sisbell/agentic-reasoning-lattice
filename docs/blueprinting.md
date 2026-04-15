@@ -16,6 +16,8 @@ The metadata makes the formal structure explicit: what this property is, what it
 
 The metadata at blueprinting time is deliberately incomplete. Type classifications are best-effort, dependencies are extracted from prose but may be imprecise, vocabulary attribution has minor errors. Formalization tightens all of it. Blueprinting just needs to get the structure right enough that formalization can operate per-property.
 
+This is the meet operation at the document scale — a single node in the document lattice becomes many nodes in the property lattice, each with explicit dependencies. Blueprinting is where the two granularities of the lattice diverge.
+
 ## Decomposition as progressive refinement
 
 Blueprinting works in layers, each adding detail the previous layer could not see.

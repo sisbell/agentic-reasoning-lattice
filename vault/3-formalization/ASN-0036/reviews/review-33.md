@@ -1,6 +1,6 @@
 # Formalize — ASN-0036 / vpos(S, o)
 
-*2026-04-12 15:53*
+*2026-04-13 12:41*
 
 **vpos(S, o)** — *VPositionReconstruction* (DEF, function). For subspace identifier S and ordinal o = [o₁, ..., oₖ]:
 
@@ -16,10 +16,10 @@ The construction prepends the natural number S to the component sequence of tumb
 
 *Inverse (b): vpos(subspace(v), ord(v)) = v for any v ∈ T with #v ≥ 2.* Let v = [v₁, v₂, ..., vₘ] with m = #v ≥ 2. Then subspace(v) = v₁ and ord(v) = [v₂, ..., vₘ]. The ordinal ord(v) has #ord(v) = m − 1 ≥ 1 components, satisfying the precondition #o ≥ 1 required by vpos. Applying the definition: vpos(v₁, [v₂, ..., vₘ]) = [v₁, v₂, ..., vₘ] = v. This identity holds unconditionally on T for any v with #v ≥ 2.
 
-*S8a preservation.* When S ≥ 1 and every component of o is strictly positive — that is, (A i : 1 ≤ i ≤ k : oᵢ > 0) — the result vpos(S, o) = [S, o₁, ..., oₖ] has every component strictly positive. No component is zero, so zeros(vpos(S, o)) = 0. Since S ≥ 1 entails the first component is at least 1, and all remaining components exceed zero, vpos(S, o) > 0. All three conjuncts of S8a (V-position well-formedness) are therefore satisfied. ∎
+*S8a preservation.* When S ≥ 1 and every component of o is strictly positive — that is, (A i : 1 ≤ i ≤ k : oᵢ > 0) — the result vpos(S, o) = [S, o₁, ..., oₖ] has every component strictly positive. No component is zero, so zeros(vpos(S, o)) = 0. Since S ≥ 1 entails the first component is at least 1 — that is, vpos(S, o)₁ = S ≥ 1 — and all remaining components exceed zero, vpos(S, o) > 0. All three conjuncts of S8a (V-position well-formedness) are therefore satisfied. ∎
 
 *Formal Contract:*
 - *Preconditions:* `S ∈ ℕ`, `o ∈ T`, `#o ≥ 1`.
 - *Definition:* `vpos(S, o) = [S, o₁, ..., oₖ]` where `k = #o`.
-- *Postconditions:* `vpos(S, o) ∈ T`, `#vpos(S, o) = #o + 1`, `vpos(S, o)₁ = S`. (a) `ord(vpos(S, o)) = o`. (b) For any `v ∈ T` with `#v ≥ 2`: `vpos(subspace(v), ord(v)) = v`. When `S ≥ 1` and `(A i : 1 ≤ i ≤ #o : oᵢ > 0)`: `zeros(vpos(S, o)) = 0 ∧ vpos(S, o)₁ ≥ 1 ∧ vpos(S, o) > 0` (S8a, V-position well-formedness).
+- *Postconditions:* `vpos(S, o) ∈ T`, `#vpos(S, o) = #o + 1`, `vpos(S, o)₁ = S`. (a) `ord(vpos(S, o)) = o`. (b) For any `v ∈ T` with `#v ≥ 2`: `vpos(subspace(v), ord(v)) = v`. When `S ≥ 1` and `(A i : 1 ≤ i ≤ #o : oᵢ > 0)`: `vpos(S, o)₁ ≥ 1 ∧ zeros(vpos(S, o)) = 0 ∧ vpos(S, o) > 0` (S8a, V-position well-formedness).
 - *Frame:* Pure function on `S` and the component sequence of `o` — no state is read or modified.

@@ -3,3 +3,6 @@ name: UnboundedLength
 type: definition
 depends:
 - T0
+summary: 'There is no maximum tumbler length — for every natural number n, a tumbler of at least n components exists in T.
+  Together with T0(a), this makes the address space infinite in two independent dimensions: unlimited siblings at any level,
+  and unlimited nesting depth.'

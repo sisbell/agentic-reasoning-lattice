@@ -1,28 +1,22 @@
-# Formalize — ASN-0036 / D-CTG-depth
+# Formalize — ASN-0036 / V_S(d)
 
-*2026-04-12 15:16*
+*2026-04-13 12:21*
 
-**D-CTG-depth (SharedPrefixReduction).** For depth m ≥ 3, all positions in a non-empty V_S(d) share components 2 through m − 1. Contiguity reduces to contiguity of the last component alone — structurally identical to the depth 2 case.
+**V_S(d) (SubspaceVPositionSet).** The set of V-positions in subspace S of document d:
 
-*Proof.* Let V_S(d) be non-empty with common depth m ≥ 3 (S8-depth). Suppose for contradiction that V_S(d) contains two positions v₁ and v₂ with v₁ < v₂ (both depth m) whose first point of disagreement is at component j with 2 ≤ j ≤ m − 1 — that is, (v₁)ᵢ = (v₂)ᵢ for all i < j, and (v₁)ⱼ < (v₂)ⱼ (the inequality follows from v₁ < v₂ by T1(i), since j is the first disagreeing component and j ≤ min(m, m)).
+`V_S(d) = {v ∈ dom(Σ.M(d)) : v₁ = S}`
 
-We construct infinitely many intermediates. For any natural number n > (v₁)ⱼ₊₁, define w of length m by:
+V_S(d) partitions dom(Σ.M(d)) by subspace identifier. Every element of V_S(d) satisfies S8a (V-position well-formedness): zeros(v) = 0, v₁ ≥ 1, v > 0. Within V_S(d), all positions share a common depth by S8-depth.
 
-- wᵢ = (v₁)ᵢ for 1 ≤ i ≤ j (agreeing with v₁ on the first j components),
-- wⱼ₊₁ = n,
-- wᵢ = 1 for j + 2 ≤ i ≤ m (if any such positions exist; since j ≤ m − 1, at least the m-th component exists at position j + 1 or beyond).
+*Proof.* The definition filters dom(Σ.M(d)) on first component; we verify the three claimed consequences.
 
-Then w has depth m (it has m components by construction), and subspace(w) = w₁ = (v₁)₁ = S (since j ≥ 2, the first component is copied from v₁). We verify v₁ < w < v₂:
+**Partition.** We show the family {V_S(d) : S ≥ 1} partitions dom(Σ.M(d)). *Coverage:* by S8a (V-position well-formedness), every v ∈ dom(Σ.M(d)) satisfies v₁ ≥ 1, so v ∈ V_{v₁}(d) — every V-position belongs to at least one member of the family. *Disjointness:* if v ∈ V_S(d) ∩ V_{S'}(d), then v₁ = S and v₁ = S', hence S = S'. The sets are pairwise disjoint. Together: dom(Σ.M(d)) = ∪{V_S(d) : S ≥ 1}, and the union is disjoint.
 
-- **w > v₁**: w agrees with v₁ on components 1 through j. At component j + 1, wⱼ₊₁ = n > (v₁)ⱼ₊₁. Since j + 1 ≤ m = min(m, m), by T1(i), w > v₁.
-- **w < v₂**: w agrees with v₂ on components 1 through j − 1 (since v₁ and v₂ agree on these components by the definition of j). At component j, wⱼ = (v₁)ⱼ < (v₂)ⱼ. Since j ≤ m − 1 ≤ min(m, m), by T1(i), w < v₂.
+**S8a satisfaction.** Every v ∈ V_S(d) is, by construction, an element of dom(Σ.M(d)). S8a quantifies universally over dom(Σ.M(d)), so zeros(v) = 0 ∧ v₁ ≥ 1 ∧ v > 0 holds for each such v. The filter condition v₁ = S selects a subset of a domain whose elements already satisfy S8a; it adds no new constraint.
 
-Since v₁ < w < v₂, subspace(w) = S, and #w = m = #v₁, D-CTG requires w ∈ V_S(d). By T0(a) (UnboundedComponentValues, ASN-0034), unboundedly many values of n > (v₁)ⱼ₊₁ exist. Distinct values of n yield distinct tumblers w (they differ at component j + 1, so by T3, CanonicalRepresentation, ASN-0034, they are unequal). This produces infinitely many distinct positions in V_S(d), contradicting S8-fin (dom(M(d)) is finite).
-
-Therefore no two positions in V_S(d) can disagree at any component j with 2 ≤ j ≤ m − 1. All positions share components 2 through m − 1, and contiguity reduces to contiguity of the last component (component m) alone. ∎
+**Common depth.** All positions in V_S(d) share the first component v₁ = S, so they extend the single-component prefix [S]. S8-depth (MinimalVPositionDepth) establishes that within any subspace, all V-positions share a common depth. Since V_S(d) is precisely the set of V-positions in subspace S, S8-depth applies directly: there exists a depth δ_S such that #v = δ_S for all v ∈ V_S(d). ∎
 
 *Formal Contract:*
-- *Preconditions:* V_S(d) non-empty; common depth m ≥ 3 (S8-depth). D-CTG (VContiguity) holds for V_S(d). S8-fin (dom(M(d)) is finite).
-- *Postconditions:* `(A v₁, v₂ ∈ V_S(d), j : 2 ≤ j ≤ m − 1 : (v₁)ⱼ = (v₂)ⱼ)`. Contiguity of V_S(d) reduces to contiguity of the m-th (last) component.
-
-Nelson's statement specifies not just contiguity but also the starting ordinal: "addresses 1 through 100," not "42 through 141." All ordinal numbering in the tumbler system starts at 1: the first child is always .1 (LM 4/20), link positions within a document begin at 1 (LM 4/31), and position 0 is structurally unavailable since zero serves as a field separator (T4, ASN-0034). V-positions follow the same convention.
+- *Definition:* `V_S(d) = {v ∈ dom(Σ.M(d)) : v₁ = S}` for subspace identifier S ≥ 1 and document d.
+- *Preconditions:* S8a — every v ∈ dom(Σ.M(d)) satisfies zeros(v) = 0 ∧ v₁ ≥ 1 ∧ v > 0; S8-depth (MinimalVPositionDepth) — within any subspace, all V-positions share a common depth.
+- *Postconditions:* {V_S(d) : S ≥ 1} partitions dom(Σ.M(d)) into pairwise disjoint sets; every v ∈ V_S(d) satisfies S8a; all positions in V_S(d) share common depth δ_S with #v = δ_S for all v ∈ V_S(d).

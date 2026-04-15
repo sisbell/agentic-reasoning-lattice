@@ -1,0 +1,6 @@
+label: D-DOC
+name: Document
+type: definition
+depends:
+- T4
+- T10a

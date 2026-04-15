@@ -2,15 +2,16 @@ label: S8
 name: FiniteCorrespondenceRunDecomposition
 type: theorem
 depends:
+- Σ.M(d)
 - S8-fin
 - S2
 - S3
 - S8a
 - S8-depth
+- S8-crun
 - S8-vdepth
-- D-CTG
-- TS4
 - OrdinalShift
+- T0
 - T1
 - T3
 - T5

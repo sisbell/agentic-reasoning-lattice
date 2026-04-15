@@ -2,5 +2,11 @@ label: D-MIN
 name: VMinimumPosition
 type: definition
 depends:
+- V_S(d)
+- Σ.M(d)
+- T1
+- D-CTG
 - S8-depth
+- S8-fin
+- S8-vdepth
 - S8a

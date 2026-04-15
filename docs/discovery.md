@@ -4,21 +4,21 @@ Discovery is about finding the formal structure of a system that exists but has 
 
 ## Starting from nothing
 
-Begin with a broad question: "What are the key guarantees of the system?" This draws in a wide range of concepts that the reasoning process works through — address permanence, content identity, hierarchical structure, link semantics. The result is a large initial ASN with many properties.
+Begin with a broad question: "What are the key guarantees of the system?" This draws in a wide range of concepts that the reasoning process works through — addressing, content identity, hierarchical structure, link semantics. The result is a large initial ASN with many properties.
 
-This first ASN is too big. That's expected. Read through it and look for natural boundaries — clusters of properties that reason about the same concept independently of other clusters. Tumbler arithmetic doesn't need to know about links. Content insertion doesn't need to know about version semantics.
+This first ASN is too big. That's expected. Read through it and look for natural boundaries — clusters of properties that reason about the same concept independently of other clusters. One topic doesn't need to know about another — addressing doesn't need to know about link semantics, insertion doesn't need to know about versioning.
 
 Split the large ASN into two or more focused ASNs, each covering one topic. Run discovery on each one independently.
 
 ## Growing the lattice
 
-As you run discovery on the separate ASNs, patterns emerge. Two ASNs independently derive the same property — both need tumbler comparison, both define what "prefix" means. When you see this, look at whether one ASN's properties are natural foundations for the other. If so, make it a dependency — the dependent ASN assumes those properties rather than re-deriving them. If neither is a natural home for the shared concept, there's a missing foundation layer. Extract it into a new ASN that both depend on.
+As you run discovery on the separate ASNs, patterns emerge. Two ASNs independently derive the same property — both need the same comparison operation, both define the same foundational concept. When you see this, look at whether one ASN's properties are natural foundations for the other. If so, make it a dependency — the dependent ASN assumes those properties rather than re-deriving them. If neither is a natural home for the shared concept, there's a missing foundation layer. Extract it into a new ASN that both depend on. This is the meet operation in the lattice — the extracted foundation is the greatest common element below both dependent ASNs.
 
-Each ASN goes through review/revise cycles. During review, an ASN may reveal that it's really two independent arguments sharing a label namespace — the derivation threads never reference each other. Or review keeps finding properties that belong elsewhere, or the ASN is simply too large to hold in your head. These are signals to split. Meanwhile, reviewers flag things as out of scope that turn out to be genuine gaps — questions no existing ASN can answer. These become new ASNs.
+Each ASN goes through review/revise cycles. During review, an ASN may reveal that it's really two independent arguments sharing a label namespace — the derivation threads never reference each other. Or review keeps finding properties that belong elsewhere, or the ASN is simply too large to hold in your head. These are signals to split. Meanwhile, reviewers flag things as out of scope that turn out to be genuine gaps — questions no existing ASN can answer. These become new ASNs. Each new ASN created above existing ones is a join — a node that builds on multiple foundations.
 
 The lattice grows through this process. An ASN depends on another when it uses that ASN's properties as premises. If you find circular dependencies — A needs B and B needs A — the boundary is wrong. Either one contains properties that belong in the other, or both depend on a missing foundation that should be extracted.
 
-Foundation ASNs emerge at the bottom of the lattice. They weren't planned — they were discovered by noticing what kept being re-derived across multiple ASNs.
+Foundation ASNs emerge at the bottom of the lattice. They weren't planned — they were discovered by noticing what kept being re-derived across multiple ASNs. This downward growth is characteristic of the meet operation: the lattice deepens as shared concepts are extracted into new foundation layers below existing work.
 
 ## Entering blueprinting
 

@@ -1,15 +1,5 @@
-# Formalize — ASN-0036 / Σ.M(d)
+# Formalize — ASN-0036 / D-CTG
 
-*2026-04-12 15:23*
+*2026-04-13 12:26*
 
-**Σ.M(d) (Arrangement).** The *arrangement* of document `d`: a partial function mapping Vstream positions to Istream addresses. The domain `dom(Σ.M(d))` is the set of V-positions currently active in `d`; the range `ran(Σ.M(d))` is the set of I-addresses that `d` currently references.
-
-A conventional system merges these — "the file" IS the content IS the arrangement. Editing overwrites. Saving destroys the prior state. Nelson rejected this explicitly: "Virtually all of computerdom is built around the destructive replacement of successive whole copies of each current version." The two-component model is his alternative: editing modifies `M(d)` while `C` remains invariant. The separation is the premise; what follows are the invariants it must satisfy.
-
-Σ.M(d) is a definition, not a derived property. We justify the modelling choice. A document in Nelson's architecture is not a contiguous block of stored content but a structure that *selects from* the content store — specifying which content appears, in what order. The natural mathematical object for this selection is a partial function `M(d) : T ⇀ T`. It maps from V-positions (tumblers addressing locations within the document's virtual stream) to I-addresses (tumblers addressing locations in the content store). It is partial because not every tumbler is an active V-position: only those positions at which `d` currently presents content belong to `dom(M(d))`. The codomain is `T` rather than `Val` because an arrangement does not contain content values directly — it refers to I-addresses where content resides. The content itself is retrieved via Σ.C (the content store, a partial function `T ⇀ Val` mapping I-addresses to content values). This indirection is the structural mechanism by which Nelson's two requirements — immutable content and mutable presentation — coexist: editing a document changes which I-addresses its V-positions reference (modifying `M(d)`) without altering what any I-address stores (preserving Σ.C). The arrangement is the second of two state components; together with the content store Σ.C, they constitute the complete system state `Σ = (C, M)`. ∎
-
-*Formal Contract:*
-- *Axiom:* `Σ.M(d) : T ⇀ T` — the arrangement of document `d` is a partial function from V-position tumblers to I-address tumblers.
-- *Definition:* `dom(Σ.M(d)) = {v ∈ T : Σ.M(d)(v) is defined}` — the set of V-positions currently active in `d`.
-- *Definition:* `ran(Σ.M(d)) = {Σ.M(d)(v) : v ∈ dom(Σ.M(d))}` — the set of I-addresses that `d` currently references.
-- *Definition:* `Σ = (C, M)` — the complete system state is the pair of the content store and the arrangement family.
+- `INACCURATE: The postcondition formula guards with v₁ ∈ V_S(d) ∧ v₂ ∈ V_S(d) ∧ #v₁ ≥ 3, then accesses (v₂)ⱼ for 2 ≤ j ≤ #v₁ − 1, without requiring #v₂ = #v₁. The component access (v₂)ⱼ is only well-formed when #v₂ ≥ #v₁ − 1 + 1 = #v₁. The proof establishes this result only for positions of equal depth m (both v₁ and v₂ have depth m "by S8-depth"). The guard should include #v₁ = #v₂ to make the formula self-contained and faithful to the proof's assumption: v₁ ∈ V_S(d) ∧ v₂ ∈ V_S(d) ∧ #v₁ = #v₂ ∧ #v₁ ≥ 3.`

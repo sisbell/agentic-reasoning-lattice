@@ -1,0 +1,11 @@
+label: S7e
+name: OriginDiscriminatesDocuments
+type: theorem
+depends:
+- D-DOC
+- S7b
+- S7d
+- T4
+- T10a
+- GlobalUniqueness
+- origin(a)

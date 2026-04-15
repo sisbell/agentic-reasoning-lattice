@@ -1,0 +1,8 @@
+label: AX-2
+name: AllocationMediatedEntry
+type: axiom
+depends:
+  - Σ.C
+  - T10a
+  - AX-1
+  - T8

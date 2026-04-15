@@ -1,47 +1,25 @@
-# Cross-cutting Review — ASN-0036 (cycle 3)
+# Cone Review — ASN-0036/S5 (cycle 2)
 
-*2026-04-12 18:55*
+*2026-04-13 15:23*
 
-I've read the full ASN-0036 against its foundation statements, tracing every definition, precondition chain, and citation. I note that several previous findings appear to have been addressed in revision (D-MIN now cites S8a, D-SEQ now cites S8-vdepth, V_S(d) and subspace now have formal definition blocks, S3 is now classified as an axiom, D-MIN postcondition now cites S8-vdepth). Three new findings follow.
+I'll read the full ASN carefully, tracking definitions, quantifier scopes, and cross-property dependencies.
 
----
+**Properties shown:** S0 (axiom), S1 (from S0), S2 (axiom), S3 (invariant), S5 (consistency claim).
+**Properties referenced but not shown:** S4, S6, S7+.
+**Shared axiom:** AX-1 (initial empty arrangement).
 
-### S5 existential proof requires Val ≠ ∅ without declaring it
+**Dependency chain:** S0 → S1 → S3 (via Case 1); AX-1 → S3 (base case); S0+S1+S2+S3+S4+S6 → S5 (conforming trace).
 
-**Foundation**: Σ.C (ContentStore) — "Σ.C : T ⇀ Val — the content store is a partial function from tumblers to content values." Val is described as "an unspecified set of content values, opaque at this level of abstraction."
-
-**ASN**: S5 (Unrestricted sharing), cross-document construction: "Define state Σ_N = (C_N, M_N) by: C_N = {a ↦ w} for a single I-address a and arbitrary value w ∈ Val."
-
-**Issue**: The phrase "arbitrary value w ∈ Val" presupposes Val ≠ ∅. The Σ.C definition characterizes Val as "an unspecified set" — which includes the empty set. If Val = ∅, then dom(Σ.C) = ∅ in every state, and S5's inner existential "(E a ∈ dom(Σ.C) :: ...)" is false in every state, making S5's claimed postcondition — `(A N ∈ ℕ :: (E Σ :: ...))` — false. Both constructions (cross-document and within-document) fail identically. The formal contract lists "N ∈ ℕ arbitrary" as the sole precondition, with no mention of Val. The within-document construction has the same gap: "C'_N = {a ↦ w} for a single I-address a and arbitrary value w ∈ Val."
-
-**What needs resolving**: Either the Σ.C definition must assert Val ≠ ∅ (a natural axiom — the system stores something), or S5's formal contract must add Val ≠ ∅ as a precondition.
+Let me trace the formal contracts and proofs against each other.
 
 ---
 
-### S8-fin and S3 inductive proofs rely on an unstated initial-state axiom
+### AX-1 constrains arrangements but S5 proof extracts initial content-store emptiness from it
 
-**Foundation**: Σ.M(d) (Arrangement) — "Σ.M(d) : T ⇀ T — the arrangement of document d is a partial function." Σ.C (ContentStore) — "Σ.C : T ⇀ Val." Neither definition specifies an initial value.
+**Foundation**: (internal — foundation ASN)
 
-**ASN**: S8-fin (FiniteArrangement), base case: "In the initial state Σ₀, no operations have been performed. ... For every document d, dom(Σ₀.M(d)) = ∅. The empty set is finite." S3 (Referential integrity), base case: "In the initial state Σ₀, no arrangements have been established: dom(Σ₀.M(d)) = ∅ for every document d."
+**ASN**: S5 proof, cross-document construction: "Σ₀: The initial state. By AX-1, dom(Σ₀.M(d)) = ∅ for all documents d, **and dom(Σ₀.C) = ∅**." Same claim in the within-document construction: "Σ₀: The initial state (AX-1). dom(Σ₀.M(d)) = ∅ for all d, **and dom(Σ₀.C) = ∅**."
 
-**Issue**: Both inductive proofs assert `dom(Σ₀.M(d)) = ∅` as a fact, but no property in the ASN axiomatizes the initial state. The Σ.M(d) definition says it is a partial function — which could be empty or non-empty. The claim that the initial arrangement is empty is an appeal to operational intuition ("no operations have been performed"), not a derivation from any stated axiom. In TLA+ formalization, the initial-state predicate `Init` is a distinct axiom (`∀ d : M(d) = ∅ ∧ C = ∅`); its absence leaves both inductive base cases formally ungrounded. The same gap affects dom(Σ₀.C) = ∅, which S3's base case uses implicitly (the universal quantification over dom(Σ₀.M(d)) is vacuous, but S8-fin's base case explicitly depends on the empty initial arrangement).
+**Issue**: AX-1 as defined in S3's formal contract is "initial empty arrangement — `dom(Σ₀.M(d)) = ∅` for all `d`." It constrains the arrangement component M only. Both S5 constructions assert `dom(Σ₀.C) = ∅` as a consequence of AX-1, but this does not follow — AX-1 says nothing about the content store. The proof depends on this ungrounded claim in at least four places: (1) defining `Σ₁.C = {a ↦ w}` as the complete content store rather than `Σ₀.C ∪ {a ↦ w}`; (2) S0 verification at `Σ₀ → Σ₁` ("dom(Σ₀.C) = ∅, so the universal quantification holds vacuously"); (3) S1 verification at `Σ₀ → Σ₁` ("`dom(Σ₀.C) = ∅ ⊆ {a}`"); (4) S6 verification at `Σ₀ → Σ₁` ("`dom(Σ₀.C) = ∅`, so the implication holds vacuously"). If `dom(Σ₀.C)` were non-empty, the first transition would need to preserve all pre-existing content (S0 obligation), include pre-existing addresses in the domain comparison (S1), and check persistence independence for existing content (S6) — none of which the proof addresses.
 
-**What needs resolving**: An initial-state axiom establishing `dom(Σ₀.M(d)) = ∅` for every document d and `dom(Σ₀.C) = ∅` must be stated as a formal property — either as a standalone axiom or as part of the Σ = (C, M) state model definition. Both S8-fin's and S3's formal contracts should cite it.
-
----
-
-### subspace(v) definition restricts domain to V-positions but is applied to arbitrary tumblers
-
-**Foundation**: subspace(v) (SubspaceIdentifier) — "subspace(v) = v₁ for v ∈ dom(Σ.M(d)). Preconditions: S8a — v₁ ≥ 1."
-
-**ASN**: D-CTG (VContiguity), axiom: `(A v : subspace(v) = S ∧ #v = #u ∧ u < v < q : v ∈ V_S(d))`. OrdAddHom postcondition (b): `subspace(v ⊕ w) = subspace(v)`.
-
-**Issue**: D-CTG's inner quantifier ranges over all tumblers v ∈ T satisfying three conditions, then forces the conclusion v ∈ V_S(d). Before the axiom fires, v is an arbitrary tumbler — not a V-position, not in dom(M(d)), and not subject to S8a. The condition "subspace(v) = S" applies the function outside its formal domain. The same mismatch appears in OrdAddHom: v ⊕ w is a tumbler in T that may fail S8a (OrdAddS8a shows S8a compliance is conditional on the displacement's tail components), yet postcondition (b) applies subspace to it. Since subspace(t) = t₁ is a trivial component extraction well-defined on all of T, the results are correct — but the formal definition's domain restriction to dom(Σ.M(d)) with S8a as a precondition makes these applications technically out of scope. D-CTG-depth's proof has the same pattern: "subspace(w) = w₁ = (v₁)₁ = S" applies subspace to a constructed intermediate that is not yet a V-position.
-
-**What needs resolving**: Either extend subspace's formal definition to all tumblers in T (dropping the S8a precondition, since t₁ is defined for any t with #t ≥ 1), or replace "subspace(v) = S" with "v₁ = S" in D-CTG's axiom and restate OrdAddHom postcondition (b) as "(v ⊕ w)₁ = v₁". The V_S(d) definition already uses v₁ = S directly, making either fix consistent with existing conventions.
-
-## Result
-
-Not converged after 3 cycles.
-
-*Elapsed: 5530s*
+**What needs resolving**: Either expand AX-1 to also specify the initial content store (e.g., `dom(Σ₀.C) = ∅`), or introduce a separate initial-state axiom for `C`, or rewrite the S5 constructions to work for arbitrary `Σ₀.C` (by allocating `a ∉ dom(Σ₀.C)` and defining `Σ₁.C = Σ₀.C ∪ {a ↦ w}`). The first option is simplest and aligns with the proof's apparent intent; the current phrasing "initial empty arrangement" names only half of what the proofs require from the initial state.

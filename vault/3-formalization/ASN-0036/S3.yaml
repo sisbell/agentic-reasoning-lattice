@@ -2,5 +2,7 @@ label: S3
 name: ReferentialIntegrity
 type: design-requirement
 depends:
+- AX-1
 - S1
-- Σ.M(d)
+- S2
+- D-DOC

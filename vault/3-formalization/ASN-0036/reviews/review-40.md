@@ -1,79 +1,94 @@
-# Proof Review — ASN-0036 (cycle 3)
+# Proof Review — ASN-0036 (cycle 2)
 
-*2026-04-12 17:12*
+*2026-04-13 14:02*
 
-10 properties (D-CTG, D-CTG-depth, D-MIN, D-SEQ, OrdAddHom, OrdAddS8a, OrdShiftHom, S8, S8-depth, ValidInsertionPosition)
+20 properties (D-CTG, D-CTG-depth, D-MIN, D-SEQ, S0, S1, S2, S3, S5, S6, S7, S7a, S7b, S7c, S8, S8-depth, S8-fin, S8a, S9, ValidInsertionPosition)
 
-### D-CTG
+### S7c
 
-I need to verify the D-CTG proof against the checklist.
+## Verification of S7c (Element-field depth)
 
-**Tracing the proof logic:**
+S7c is an axiom (design requirement) asserting `(A a ∈ dom(Σ.C) :: #fields(a).element ≥ 2)`.
 
-The derived postcondition (shared components 2..m−1 at depth ≥ 3) is proved by contradiction. Suppose v₁ < v₂ in V_S(d) first disagree at component j ∈ {2,…,m−1}. Construct w of length m: copy v₁ on components 1..j, set w_{j+1} = n for arbitrary n > (v₁)_{j+1}, set remaining components to 1.
+**Checklist analysis:**
 
-- **w > v₁**: agrees through j, exceeds at j+1. ✓
-- **w < v₂**: agrees through j−1, then w_j = (v₁)_j < (v₂)_j. ✓
-- **subspace(w) = S, #w = m**: by construction. ✓
-- **D-CTG forces w ∈ V_S(d)**: all quantifier conditions met. ✓
-- **Infinitely many distinct w**: unbounded n (T0(a)), distinct at component j+1 (T3). ✓
-- **Contradicts S8-fin**: infinitely many positions in dom(M(d)). ✓
+1. **Precondition completeness** — The expression `#fields(a).element` is well-defined only when the element field exists, which by T4 requires `zeros(a) = 3`. S7b establishes exactly this for all `a ∈ dom(Σ.C)`. The narrative explicitly acknowledges this dependency: "With S7a and S7b established, we can state structural attribution." But the formal contract omits it.
 
-The case j = m (last component) is correctly excluded from {2,…,m−1}, allowing positions to differ there. The postcondition is fully established.
+2. **Case coverage** — N/A (axiom, not a proof).
 
-**Checklist:**
+3. **Postcondition establishment** — N/A (axiom).
 
-1. **Precondition completeness** — All cases covered: any disagreement in {2,…,m−1} leads to contradiction; depth < 3 excluded by #v₁ ≥ 3 guard. ✓
-2. **Case coverage** — All j ∈ {2,…,m−1} handled uniformly. Boundary cases (j=2, j=m−1) verified in the illustrative examples. ✓
-3. **Postcondition establishment** — The contradiction proof fully establishes the shared-components claim. ✓
-4. **All conjuncts addressed** — Axiom stated; postcondition proved. ✓
-5. **Dependency correctness** — The proof cites **T1(i)** three times ("since v₁ < v₂ by T1(i)", "By T1(i), w > v₁", "By T1(i), w < v₂") to justify lexicographic ordering comparisons. T1(i) is **not listed as a dependency**. The proof's ordering arguments rely on the structural property that the first point of disagreement determines the ordering — this is exactly what T1(i) establishes and cannot be derived from S8-fin, S8-depth, T0(a), or T3 alone.
-6. **Formal contract** — Axiom + Postconditions structure is appropriate and matches the narrative. ✓
-7. **Missing guarantees** — No missing guarantees beyond the undeclared T1(i).
+4. **All conjuncts addressed** — Single conjunct, stated.
 
-```
-RESULT: FOUND
+5. **Dependency correctness** — The narrative references T4, S7a, S7b, T10a, and TA7a. T10a is used to motivate why δ = 1 is problematic (it's reachable). TA7a is used to explain why δ ≥ 2 is needed (ordinal-only formulation requires a non-empty ordinal after removing the subspace identifier). These are appropriate.
 
-**Problem**: T1(i) (lexicographic ordering on tumblers) is cited three times in the proof but is not declared as a dependency. The proof uses T1(i) to establish both v₁ < w and w < v₂ by reasoning about the first point of component disagreement — this structural property of tumbler ordering is not derivable from the four listed dependencies (S8-fin, S8-depth, T0(a), T3).
+6. **Formal contract** — **Gap found.** The formal contract is:
+   ```
+   - *Axiom:* (A a ∈ dom(Σ.C) :: #fields(a).element ≥ 2)
+   ```
+   Compare with S7a's formal contract, which follows the same pattern (axiom over `dom(Σ.C)` using `fields(a)`) but explicitly lists:
+   ```
+   - *Preconditions:* zeros(a) ≥ 2 for all a ∈ dom(Σ.C) — T4's field correspondence 
+     requires this for the document field to exist. (Entailed by S7b: zeros(a) = 3.)
+   ```
+   S7c uses `fields(a).element`, which requires `zeros(a) = 3` for the element field to exist (T4 field correspondence). The narrative says this dependency exists ("With S7a and S7b established..."), but the formal contract doesn't state it.
 
-**Required**: Add T1(i) from ASN-0034 to the dependency list for D-CTG.
-```
-
-### D-CTG-depth
-
-I'll verify D-CTG-depth against the checklist.
-
-**Proof strategy:** Contradiction — assume two positions disagree at some component j with 2 ≤ j ≤ m−1, construct infinitely many intermediates forced into V_S(d) by D-CTG, contradicting S8-fin.
-
-**1. Precondition completeness** — All assumptions stated: V_S(d) non-empty, common depth m ≥ 3 (S8-depth), D-CTG, S8-fin. ✓
-
-**2. Case coverage** — The construction handles all j ∈ {2, …, m−1}. When j = m−1, the "fill with 1" clause is vacuous (j+2 > m), and w_m = n — works correctly. ✓
-
-**3. Postcondition establishment** — The contradiction shows no two positions can disagree at components 2 through m−1, so all positions share those components. Contiguity then reduces to the last component. Both postcondition conjuncts established. ✓
-
-**4. All conjuncts addressed** — Shared-prefix result proved; reduction to last-component contiguity follows. ✓
-
-**5. Dependency correctness** — The proof invokes **T1(i) (LexicographicOrder, ASN-0034)** three times:
-- "the inequality follows from v₁ < v₂ by T1(i)"
-- "by T1(i), w > v₁"
-- "by T1(i), w < v₂"
-
-T1(i) is **not declared** in the dependency list. The provided dependencies are D-CTG, S8-depth, S8-fin, T0(a), T3, T4. T4 is declared and used (Nelson paragraph on zero as field separator). All other declared dependencies are used. But T1(i) is used without being declared.
-
-**6. Formal contract** — Preconditions list V_S(d) non-empty, m ≥ 3, D-CTG, S8-fin. Postconditions state the universal shared-prefix quantifier and the reduction claim. Matches the narrative. ✓
-
-**7. Missing guarantees** — No missing guarantees beyond the undeclared T1(i). The proof's reasoning about lexicographic order is sound given T1(i)'s stated semantics. ✓
+7. **Missing guarantees** — No missing guarantees beyond the precondition gap above.
 
 ```
 RESULT: FOUND
 
-**Problem**: T1(i) (LexicographicOrder, ASN-0034) is used three times in the proof
-but is not declared in the dependency list. The proof relies on it to establish
-v₁ < v₂ ordering from the first disagreeing component, w > v₁ at component j+1,
-and w < v₂ at component j — all critical steps in the contradiction argument.
+**Problem**: The formal contract omits the precondition that `fields(a).element` be well-defined. The quantified expression `#fields(a).element` requires the element field to exist, which T4's field correspondence guarantees only when `zeros(a) = 3`. The narrative acknowledges this: "With S7a and S7b established, we can state structural attribution." S7a's formal contract follows the correct pattern by listing `zeros(a) ≥ 2` as a precondition with a note "(Entailed by S7b)." S7c should do the same for `zeros(a) = 3`.
 
-**Required**: Add T1(i) (LexicographicOrder, ASN-0034) to the declared dependencies
-of D-CTG-depth.
+**Required**: Add a Preconditions field to the formal contract:
+```
+*Formal Contract:*
+- *Axiom:* (A a ∈ dom(Σ.C) :: #fields(a).element ≥ 2)
+- *Preconditions:* S7b (zeros(a) = 3 for all a ∈ dom(Σ.C)) — T4's field correspondence requires zeros(a) = 3 for the element field to exist and `#fields(a).element` to be well-defined.
+```
 ```
 
-8 verified, 2 found.
+### ValidInsertionPosition
+
+Looking at the proof carefully against the checklist:
+
+**Precondition completeness** — The narrative states "m ≥ 2" in the non-empty case and provides a detailed argument for why m = 1 fails (shift changes subspace). However, this constraint is absent from the formal contract.
+
+**Case coverage** — Empty and non-empty are exhaustive; boundary N = 1 works. ✓
+
+**Postcondition establishment** — Distinctness, depth preservation, subspace identity, and S8a consistency are all explicitly argued with correct reasoning, *provided* m ≥ 2 holds. ✓
+
+**All conjuncts addressed** — All four postcondition conjuncts are proved. ✓
+
+**Dependency correctness** — OrdinalShift and TumblerAdd (ASN-0034) are used but not listed as separate dependencies; however, their relevant properties are restated within the S8-depth dependency text (prefix preservation, result-length identity), which is sufficient. D-CTG is declared and used as a precondition on d. ✓
+
+**Formal contract** — Mismatch with narrative. The formal contract's Definition field reads:
+
+> (1) V_S(d) ≠ ∅ with |V_S(d)| = N and v = shift(min(V_S(d)), j) for 0 ≤ j ≤ N
+
+No depth constraint appears in case (1). Case (2) explicitly states "of depth m ≥ 2." The Preconditions also omit m ≥ 2. Yet the narrative explicitly states "m ≥ 2" for the non-empty case and the subspace identity postcondition depends on it: at m = 1, min = [S], and shift([S], 1) = [S] ⊕ [1] produces [S + 1] — a position in subspace S + 1, not S. The justification ("the first position placed in any subspace is established by the empty case, which requires m ≥ 2, and S8-depth preserves depth thereafter") is an inductive argument about operational history, not a consequence of the four listed preconditions. A document state with V_S(d) = {[S]} satisfies D-CTG, S8-depth, D-MIN, and S8a, yet has m = 1.
+
+```
+RESULT: FOUND
+
+**Problem**: The formal contract omits the m ≥ 2 constraint for the non-empty case.
+The narrative states "m ≥ 2" and proves it is load-bearing (m = 1 breaks subspace
+identity), but the formal contract's Definition for case (1) and its Preconditions
+do not include this constraint. The listed preconditions (D-CTG, S ≥ 1, S8-depth,
+D-MIN) are jointly satisfiable at m = 1 — e.g., V_S(d) = {[S]} satisfies all four —
+yet at m = 1 the postcondition v₁ = S fails for j ≥ 1.
+
+**Required**: Add m ≥ 2 to the formal contract — either as a precondition
+("S8-depth holds for V_S(d) with common depth m ≥ 2") or as an explicit constraint
+in case (1) of the Definition ("with |V_S(d)| = N and common depth m ≥ 2"). This
+makes the formal contract match the narrative's stated requirement and closes the
+gap that the subspace identity postcondition depends on.
+```
+
+18 verified, 2 found.
+
+## Result
+
+Converged after 3 cycles. 32 verified.
+
+*Elapsed: 1700s*

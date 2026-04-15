@@ -1,4 +1,4 @@
-**T0(a) (UnboundedComponentValues).** `(A t ∈ T, i : 1 ≤ i ≤ #t : (A M ∈ ℕ :: (E t' ∈ T :: t' agrees with t except t'.dᵢ > M)))`.
+**T0(a) (UnboundedComponentValues).** `(A t ∈ T, i : 1 ≤ i ≤ #t : (A M ∈ ℕ :: (E t' ∈ T :: #t' = #t ∧ t' agrees with t except t'.dᵢ > M)))`.
 
 A tumbler is a finite sequence `t = d₁.d₂. ... .dₙ` where each `dᵢ ∈ ℕ` and `n ≥ 1`; the set T comprises all such sequences. The claim is that for every tumbler and every component position, there exists a tumbler whose value at that position exceeds any given bound — the address space within any subtree is inexhaustible.
 
@@ -8,7 +8,7 @@ Let `t = d₁.d₂. ... .dₙ` be an arbitrary member of T, let `i` satisfy `1 �
 
 > `t' = d₁. ... .dᵢ₋₁.(M + 1).dᵢ₊₁. ... .dₙ`
 
-— the sequence obtained from `t` by replacing its `i`-th component with `M + 1` and leaving all other components unchanged. We must verify three things.
+— the sequence obtained from `t` by replacing its `i`-th component with `M + 1` and leaving all other components unchanged. We must verify four things.
 
 *(i)* `t' ∈ T`. The sequence `t'` has length `n ≥ 1`, and each of its components is a natural number: for `j ≠ i`, the component `dⱼ ∈ ℕ` by hypothesis on `t`; for `j = i`, the component is `M + 1`, which belongs to ℕ since ℕ is closed under successor. Since T is the set of all finite sequences over ℕ with length ≥ 1, we have `t' ∈ T`.
 
@@ -16,7 +16,9 @@ Let `t = d₁.d₂. ... .dₙ` be an arbitrary member of T, let `i` satisfy `1 �
 
 *(iii)* `t'.dᵢ > M`. By construction `t'.dᵢ = M + 1`, and `M + 1 > M` for all `M ∈ ℕ`.
 
+*(iv)* `#t' = #t`. By construction, `t'` has `n` components — the same count as `t` — since replacing the value at position `i` does not alter the length of the sequence.
+
 Since `t`, `i`, and `M` were arbitrary, the universal claim holds. ∎
 
 *Formal Contract:*
-- *Postcondition:* For every tumbler `t ∈ T` and every component position `i` with `1 ≤ i ≤ #t`, and for every bound `M ∈ ℕ`, there exists `t' ∈ T` that agrees with `t` at all positions except `i`, where `t'.dᵢ > M`.
+- *Postcondition:* For every tumbler `t ∈ T` and every component position `i` with `1 ≤ i ≤ #t`, and for every bound `M ∈ ℕ`, there exists `t' ∈ T` with `#t' = #t` that agrees with `t` at all positions except `i`, where `t'.dᵢ > M`.

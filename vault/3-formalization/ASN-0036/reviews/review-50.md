@@ -1,47 +1,57 @@
-# Proof Review — ASN-0036 (cycle 2)
+# Cone Review — ASN-0036/S8 (cycle 2)
 
-*2026-04-12 19:28*
+*2026-04-13 16:22*
 
-11 properties (D-CTG, D-CTG-depth, D-MIN, D-SEQ, S3, S5, S8, S8-fin, S8a, S9, ValidInsertionPosition)
+I'll read the full ASN carefully, tracing every dependency chain and checking cross-property interactions.
 
-### S8-fin
+Let me start by examining the foundation statements and then work through each property systematically.
 
-RESULT: FOUND
+<tool_call>
+<tool_name>Read</tool_name>
+<parameters>
+<file_path>/Users/shane/Documents/github/claude/xanadu-spec/vault/project-model/ASN-0036/formal-statements.md</file_path>
+</parameters>
+</tool_call>
 
-**Problem**: The base case relies on an initial-state axiom — "The initial-state axiom (Σ.M(d)) establishes that dom(Σ₀.M(d)) = ∅ for every document d" — but the dependencies section lists "(none)." Whatever property or axiom establishes that every document's mapping domain is empty in the initial state is used but undeclared.
+<tool_call>
+<tool_name>Read</tool_name>
+<parameters>
+<file_path>/Users/shane/Documents/github/claude/xanadu-spec/vault/project-model/ASN-0036/dependency-graph.yaml</file_path>
+</parameters>
+</tool_call>
 
-**Required**: Add the initial-state axiom (the property that establishes `dom(Σ₀.M(d)) = ∅` for every document `d`) as an explicit dependency. Additionally, the parenthetical reference "(Σ.M(d))" appears to be a garbled axiom label — it should be corrected to cite the actual label of the axiom being invoked.
+<tool_call>
+<tool_name>Glob</tool_name>
+<parameters>
+<pattern>vault/project-model/ASN-0034/formal-statements.md</pattern>
+</parameters>
+</tool_call>
 
-### D-CTG
+<tool_call>
+<tool_name>Grep</tool_name>
+<parameters>
+<pattern>TumblerAdd|PositionAdvance</pattern>
+<path>/Users/shane/Documents/github/claude/xanadu-spec</path>
+<include>*.md</include>
+</parameters>
+</tool_call>
 
-I need to verify the D-CTG proof against the checklist.
+After thorough review, here is my finding:
 
-**1. Precondition completeness** — The proof assumes v₁, v₂ ∈ V_S(d) with depth m ≥ 3, which follows from S8-depth. The constructed w uses components from v₁ plus positive integers (n > (v₁)ⱼ₊₁ ≥ 1, and padding with 1), so w ∈ T is implicit but correct. ✓
+---
 
-**2. Case coverage** — The proof handles j ∈ {2, …, m−1}. If j = m (disagreement only at the last component), positions already share components 2 through m−1, so the postcondition holds trivially. j = 1 is excluded since both positions have subspace S. ✓
+### S8-depth postconditions 2–4 cite TumblerAdd (not in foundation statements) while postcondition 1 cites OrdinalShift for the identical property
 
-**3. Postcondition establishment** — The contradiction (infinitely many positions via S8-fin) is properly derived. ✓
+**Foundation**: OrdinalShift (ShiftDefinition, ASN-0034) — postconditions: `shift(v, n) ∈ T`, `#shift(v, n) = #v`, `shift(v, n)ᵢ = vᵢ` for `i < m`, `shift(v, n)ₘ = vₘ + n`
 
-**4. All conjuncts addressed** — The formal contract's postcondition (shared components 2 through m−1) is fully proved. The narrative mention of "contiguous block at last component" follows from applying the axiom to positions that now share all but the last component — no separate proof needed. ✓
+**ASN**: S8-depth formal contract postconditions:
+- Postcondition 1: `"OrdinalShift's prefix rule copies the subspace identifier unchanged"`
+- Postcondition 2: `"TumblerAdd produces a result of length #v"`
+- Postcondition 3: `"TumblerAdd's prefix rule copies it unchanged"`
+- Postcondition 4: `"TumblerAdd produces a result of length #a"`
 
-**5. Dependency correctness** — All four declared dependencies are used:
-- S8-fin: the contradiction target ✓
-- S8-depth: uniform depth within a subspace ✓
-- T0(a): unboundedly many n ✓
-- T3: distinct n → distinct tumblers ✓
+Also in S8-depth prose: `"both v + k and a + k are ordinal displacements whose depth and prefix preservation follow from TumblerAdd's component-wise definition"`
 
-However, **T1(i)** (lexicographic ordering) is cited three times in the proof — "since v₁ < v₂ by T1(i)", "By T1(i), w > v₁", "By T1(i), w < v₂" — but is **not declared as a dependency**.
+**Issue**: The `v + k` notation is defined in terms of OrdinalShift: `"v + k = shift(v, k) for k ≥ 1."` The properties cited in postconditions 2–4 — length preservation (`#shift(v, k) = #v`) and prefix preservation (`shift(v, k)ᵢ = vᵢ` for `i < m`) — are postconditions of OrdinalShift, which is listed in the foundation statements. TumblerAdd (PositionAdvance, ASN-0034) is referenced as the justification but is absent from the foundation statements. Postcondition 1 correctly cites OrdinalShift for the same prefix-preservation property that postcondition 3 attributes to TumblerAdd. Within one formal contract, the same property is attributed to two different operations. The dependency chain from postconditions 2–4 passes through TumblerAdd, which is ungrounded in the declared foundations; the chain from postcondition 1 passes through OrdinalShift, which is grounded. Any downstream consumer of postconditions 2–4 inherits an unverifiable link.
 
-**6. Formal contract** — Axiom + Postconditions fields are appropriate. The quantified statements match the narrative. ✓
-
-**7. Missing guarantees** — No guarantee is assumed beyond what the dependencies provide (once T1(i) is added).
-
-```
-RESULT: FOUND
-
-**Problem**: T1(i) (lexicographic ordering of tumblers, ASN-0034) is used three times in the proof — to establish v₁ < v₂, w > v₁, and w < v₂ — but is not declared as a dependency.
-
-**Required**: Add T1(i) from ASN-0034 to the dependency list for D-CTG.
-```
-
-9 verified, 2 found.
+**What needs resolving**: Either add TumblerAdd (PositionAdvance) to the foundation statements so the dependency chain is complete, or rewrite postconditions 2–4 to cite OrdinalShift — matching postcondition 1's citation — since OrdinalShift already provides both length preservation and prefix preservation as explicit postconditions.

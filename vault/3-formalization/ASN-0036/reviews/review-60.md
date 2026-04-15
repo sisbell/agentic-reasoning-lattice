@@ -1,66 +1,34 @@
-# Cross-cutting Review — ASN-0036 (cycle 1)
+# Cone Review — ASN-0036/S7 (cycle 3)
 
-*2026-04-12 23:05*
+*2026-04-14 12:39*
 
-I'll read the ASN and foundation statements carefully, then systematically check cross-property consistency.
+### S7 postcondition (c) introduces universally quantified variables absent from the precondition scope
 
-<tool_call>
-<tool_name>Read</tool_name>
-<parameters>
-<file_path>/Users/shane/Documents/github/claude/xanadu-spec/vault/project-model/ASN-0036/formal-statements.md</file_path>
-<offset>0</offset>
-<limit>50</limit>
-</parameters>
-</tool_call>
-
-Let me check the current formal statements to verify the foundation properties match what's cited.
-
-<tool_call>
-<tool_name>Read</tool_name>
-<parameters>
-<file_path>/Users/shane/Documents/github/claude/xanadu-spec/vault/project-model/ASN-0036/formal-statements.md</file_path>
-</parameters>
-</tool_call>
-
-<tool_call>
-<tool_name>Glob</tool_name>
-<parameters>
-<pattern>/Users/shane/Documents/github/claude/xanadu-spec/vault/project-model/ASN-0036/*</pattern>
-</parameters>
-</tool_call>
-
-<tool_call>
-<tool_name>Glob</tool_name>
-<parameters>
-<pattern>/Users/shane/Documents/github/claude/xanadu-spec/vault/project-model/ASN-0034/*</pattern>
-</parameters>
-</tool_call>
-
-I have the complete ASN and foundation in the prompt. Let me now deliver my cross-review findings.
+**Foundation**: GlobalUniqueness (ASN-0034) — "For every pair of addresses a, b arising from distinct allocation events in any reachable system state: a ≠ b"
+**ASN**: S7 formal contract — preconditions: "a ∈ dom(Σ.C) in a system conforming to S0, S4, D-DOC, S7a, S7b, S7d, origin(a), T4, and GlobalUniqueness"; postconditions: "(a) origin(a) is well-defined … (b) origin(a) is the identifier (D-DOC) … (c) For a₁, a₂ allocated under distinct documents (D-DOC), origin(a₁) ≠ origin(a₂)"
+**Issue**: The precondition binds a single address `a` and establishes a system context. Postconditions (a) and (b) and the invariant are all consequences for this specific `a`. Postcondition (c) introduces fresh variables `a₁, a₂` with their own qualification ("allocated under distinct documents") — a universally quantified system-level claim, not a consequence of the input `a`. A formalizer translating S7 into TLA+ must decide: produce one THEOREM binding `a` (in which case `a₁` and `a₂` in (c) are unbound), or two separate theorems (one for (a)/(b)/invariant about `a`, one for (c) about pairs). The contract conflates an input-specific property with a system-wide theorem under a single precondition that binds neither `a₁` nor `a₂`.
+**What needs resolving**: Either extract postcondition (c) into a separate property with its own preconditions (binding `a₁, a₂ ∈ dom(Σ.C)` allocated under distinct documents `d₁ ≠ d₂` per D-DOC, with S7d and GlobalUniqueness as dependencies), or restructure S7's precondition to bind the pair `a₁, a₂` alongside the system context — clarifying which postconditions apply to which inputs.
 
 ---
 
-### S8-vdepth undeclared in Properties Introduced table
+### S7 lists S4 as a precondition but no formal postcondition or invariant requires it
 
-**Foundation**: N/A — this is an internal structural issue
-**ASN**: The Properties Introduced table (top of ASN) lists S8-fin, S8a, S8-depth, and S8 but omits S8-vdepth. Yet S8-vdepth is formally defined later as a standalone section with its own axiom and formal contract: `(A d, v : v ∈ dom(Σ.M(d)) : #v ≥ 2)`.
-**Issue**: S8-vdepth is a load-bearing design requirement cited by name in the proofs and formal contracts of D-SEQ ("m ≥ 2 (S8-vdepth)"), ValidInsertionPosition ("m ≥ 2 by S8-vdepth"), and the S8-depth discussion. Because it is absent from the properties table, it is invisible to any dependency-tracking process that reads only the table. A downstream ASN checking whether it has imported all of ASN-0036's axioms would miss S8-vdepth entirely.
-**What needs resolving**: S8-vdepth must be added to the Properties Introduced table as a declared design requirement, with its dependencies and dependents recorded at the same level of detail as S8-fin, S8a, and S8-depth.
-
----
-
-### D-SEQ dependency list omits S8-vdepth
-
-**Foundation**: S8-vdepth (MinimalVPositionDepth) — `#v ≥ 2` for all V-positions
-**ASN**: D-SEQ table entry says `from D-CTG, D-CTG-depth, D-MIN, S8-fin, S8-depth, T1 (ASN-0034)`. But D-SEQ's proof opens with "m ≥ 2 by S8-vdepth" and its formal contract lists `m ≥ 2 (S8-vdepth)` as a precondition.
-**Issue**: The precondition m ≥ 2 is necessary for D-SEQ's derivation — the proof's Step 1 (Case m = 2) relies on it, and the proof explicitly states "The precondition m ≥ 2 is necessary: at m = 1 the tuple [S, 1, ..., 1, k] collapses to a single component where the subspace identifier S and the varying ordinal k occupy the same position." Without S8-vdepth, D-SEQ's proof has an unfounded assumption. The formal contract correctly records the dependency, but the summary table does not, making the dependency graph incomplete for any process that reads the table.
-**What needs resolving**: D-SEQ's table entry must list S8-vdepth among its dependencies (which first requires S8-vdepth to appear in the properties table per the previous finding).
+**Foundation**: S4 (Origin-based identity) — postcondition: "a₁ ≠ a₂, regardless of whether Σ.C(a₁) = Σ.C(a₂)"; S0 (Content immutability) — "a ∈ dom(Σ.C) ⟹ a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a)"
+**ASN**: S7 formal contract — preconditions include "S4 (origin-based identity)"; S7 permanence proof — "By S7d, a was itself produced by a T10a-conforming allocation event; S4 therefore applies, and distinct allocation events produce distinct addresses, so a is never reassigned or reused. The attribution cannot be severed."
+**Issue**: S4 is invoked only in the Permanence section for the intermediate claim "a is never reassigned or reused," supporting the informal assertion "the attribution cannot be severed." Neither claim appears in S7's postconditions or invariant. The formal invariant — "origin(a) is invariant across all state transitions" — follows from S0 alone (a persists in dom(Σ'.C) for all successors) and the purity of origin(a) (computed from a's components, independent of system state), without any appeal to S4. Postcondition (a) uses only the origin definition, S7b, and T4. Postcondition (b) uses S7a. Postcondition (c) uses D-DOC, S7d, and GlobalUniqueness. None reference S4. The result is a precondition that inflates S7's dependency set — any downstream property citing S7 inherits a dependency on S4 that contributes to no formal conclusion. (Same pattern as finding #7, where T3 supports only a decidability remark absent from S4's postconditions.)
+**What needs resolving**: Either add a formal postcondition capturing the "non-reuse" or "unseverability" claim so S4 has a conclusion to support, or remove S4 from S7's precondition list and reframe the permanence proof's S4 invocation as commentary rather than a formal proof step.
 
 ---
 
-### S3 table entry cites NoDeallocation but proof derives from S1
+### S7d asserts per-event T10a conformance but S7's uniqueness proof requires single-system membership
 
-**Foundation**: NoDeallocation (ASN-0034) — "The system defines no operation that removes an element from the set of allocated addresses." S1 (ASN-0036) — Store monotonicity, derived from S0.
-**ASN**: S3 table entry: `design; uses NoDeallocation (ASN-0034)`. S3 formal contract: `Preconditions: S1 (store monotonicity); initial-state axiom (Σ.M(d)) establishing dom(Σ₀.M(d)) = ∅; per-operation verification obligation`. S3 proof inductive step: "By S1 (store monotonicity), dom(Σ.C) ⊆ dom(Σ'.C), whence Σ'.M(d)(v) = Σ.M(d)(v) ∈ dom(Σ'.C)."
-**Issue**: The table claims S3 depends on NoDeallocation (an ASN-0034 foundation property), but the actual proof and formal contract depend on S1 (an ASN-0036 property derived from S0). NoDeallocation provides background motivation for why S0 is a reasonable axiom, but it does not appear anywhere in S3's derivation chain. The declared dependency path (S3 → NoDeallocation) differs from the actual dependency path (S3 → S1 → S0). This misattribution means the dependency graph incorrectly connects S3 to the foundation through NoDeallocation rather than through S0/S1, which could mislead verification of the cross-ASN dependency chain.
-**What needs resolving**: S3's table entry must reflect the actual derivation: its formal dependency is on S1 (and transitively S0), not on NoDeallocation. If NoDeallocation's role as motivation for S0's reasonableness is worth recording, it should be noted in S0's entry rather than S3's.
+**Foundation**: GlobalUniqueness (ASN-0034) — precondition: "a, b ∈ T produced by distinct allocation events … within a system conforming to T10a"; proof structure: "Strong induction on allocator tree depth d"
+**ASN**: S7d axiom — "For every a ∈ dom(Σ.C): (i) origin(a) was produced by a distinct allocation event within a system conforming to T10a; (ii) a itself was produced by a distinct allocation event within a system conforming to T10a"; S7 proof, Uniqueness — "By S7d, each of these creating events is T10a-conforming. GlobalUniqueness therefore applies"
+**Issue**: GlobalUniqueness's precondition requires both addresses to arise from events "within a system conforming to T10a" — a single allocator tree, as its depth-based induction proof assumes. S7d's axiom asserts that each address's producing event is "within a system conforming to T10a," but the indefinite article "a system" is existentially quantified per-event: for a₁ and a₂ in dom(C), S7d yields ∃S₁: origin(a₁)'s event ∈ S₁ and ∃S₂: origin(a₂)'s event ∈ S₂. GlobalUniqueness requires S₁ = S₂. S7's uniqueness proof collapses the two existentials into one shared system ("By S7d, each of these creating events is T10a-conforming. GlobalUniqueness therefore applies") without establishing that both events belong to the same T10a-conforming system. In a multi-node Xanadu network where distinct nodes might host independent allocator trees, per-event conformance does not entail cross-tree uniqueness.
+**What needs resolving**: S7d's axiom should establish that all allocation events across all addresses in dom(C) — at both document and element levels — occur within a single T10a-conforming system, not merely that each event individually occurs within some T10a-conforming system. Alternatively, a system-level axiom asserting single-system membership should be stated so that S7's proof can discharge GlobalUniqueness's single-system precondition explicitly.
+
+## Result
+
+Cone converged after 4 cycles.
+
+*Elapsed: 7254s*

@@ -1,41 +1,27 @@
-# Cross-cutting Review — ASN-0036 (cycle 2)
+# Cone Review — ASN-0036/S5 (cycle 1)
 
-*2026-04-12 18:18*
+*2026-04-13 14:58*
 
-I've read the full ASN-0036 against its foundation statements, tracing every citation, precondition chain, and definition across all properties. Here are three new findings.
+I'll read the full ASN content carefully, focusing on cross-property interactions.
 
----
-
-### S8 proof applies TA5 properties (defined for `inc`) to `shift` results via an unstated equivalence
-
-**Foundation**: TA5 (HierarchicalIncrement) — defines `inc(t, k)` and its properties (a)–(d). OrdinalShift (ShiftDefinition) — defines `shift(v, n) = v ⊕ δ(n, m)` via TumblerAdd. TS4 (ShiftStrictIncrease) — `shift(v, n) > v`.
-
-**ASN**: S8 (Finite span decomposition), uniqueness proof: "By S8a, `zeros(v) = 0`, so every component of `v` is nonzero and `sig(v) = … = m`. By TA5(c), `v + 1 = inc(v, 0)` satisfies `#(v + 1) = m` and differs from `v` only at position `m`." And cross-subspace at m ≥ 2: "since `sig(v) = m ≥ 2`, TA5(b) gives `(v + 1)ᵢ = vᵢ` for all `i < sig(v)`."
-
-**Issue**: S8-depth defines `v + 1 = shift(v, 1) = v ⊕ δ(1, #v)` (via TumblerAdd), while `inc(v, 0)` is a separate operation defined by TA5 (direct component modification at `sig(v)`). The proof asserts `v + 1 = inc(v, 0)` and then applies TA5(a), TA5(b), TA5(c) — all properties of `inc` — to characterize `shift` results. For S8a-satisfying tumblers these operations coincide (both advance the last component by 1), but this equivalence is never stated or derived. Every TA5 fact the proof cites has a direct counterpart in the shift/TumblerAdd framework: TS4 gives `shift(v, 1) > v`, OrdinalShift's postcondition gives `#shift(v, 1) = #v`, and TumblerAdd's copy rule gives `shift(v, 1)ᵢ = vᵢ` for `i < m`. The bridge is both unstated and unnecessary — the proof introduces a dependency on an unproven lemma when the required facts are directly available from shift's own properties.
-
-**What needs resolving**: Either establish that `shift(v, 1) = inc(v, 0)` for S8a-satisfying tumblers as an explicit lemma (bridging TumblerAdd and TA5), or rewrite S8's proof to cite TumblerAdd/OrdinalShift/TS4 directly rather than routing through TA5.
+### S3 induction base case relies on an unstated initial-state axiom
+**Foundation**: (internal — foundation ASN)
+**ASN**: S3 proof, base case: "In the initial state Σ₀, no operations have been performed, so dom(Σ₀.M(d)) = ∅ for every document d."
+**Issue**: The proof's inductive base case asserts `dom(Σ₀.M(d)) = ∅` for all `d` — an assumption about the initial state that is not captured anywhere in S3's formal contract. The contract lists preconditions as S1 and per-operation obligations, but the induction requires a third condition: S3 holds in the initial state. The empty-arrangement claim is sufficient for the base case but is itself an axiom (or a consequence of some unstated initial-state specification). Without it, the induction has no ground to stand on. More generally, the proof would work for any initial state satisfying S3 — the contract should require this, rather than the proof silently assuming the narrower condition of emptiness.
+**What needs resolving**: S3's formal contract must include an initial-state precondition — either "dom(Σ₀.M(d)) = ∅ for every document d" if that is the intended axiom, or the weaker "S3 holds in Σ₀" if arbitrary valid initial states are permitted.
 
 ---
 
-### S3 formal contract claims derivability from S1, but proof requires an unstated operation-level constraint
-
-**Foundation**: S0 (Content immutability), S1 (Store monotonicity) — `dom(Σ.C) ⊆ dom(Σ'.C)`.
-
-**ASN**: S3 (Referential integrity), formal contract: "*Preconditions:* S1 (store monotonicity) holds for the system. *Invariant:* `(A d, v : v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ dom(Σ.C))` for every reachable state Σ." Proof, exhaustiveness: "An operation mapping to an address in neither set … would yield `a ∉ dom(Σ'.C)`, violating the invariant. Such an operation is excluded by S3's status as a design requirement."
-
-**Issue**: S3's formal contract presents it as an invariant with S1 as its sole precondition, implying S3 is derivable from S1. It is not. A system satisfying S0 and S1 can violate S3: start from Σ₀ with empty content store and arrangements; perform a transition that adds `M(d)(v) = a` where `a` is never allocated; S0 holds vacuously (no existing content to preserve), S1 holds (dom(C) doesn't shrink), but `a ∉ dom(Σ'.C)`, violating S3. The proof acknowledges this by invoking "S3's status as a design requirement" to exclude the non-conforming fourth case — making the argument self-referential. S3 has the same logical status as D-CTG: a design constraint on operations with per-operation verification obligations. D-CTG is correctly classified as an axiom; S3 is misclassified as an invariant derivable from S1. S8-fin, which has the same inductive structure, avoids this by listing no preconditions — it doesn't claim derivability from another property.
-
-**What needs resolving**: S3's formal contract must either (a) classify S3 as an axiom/design requirement with per-operation verification obligations (parallel to D-CTG), or (b) add the operation-level constraint — that every transition mapping `v` to `a` satisfies `a ∈ dom(Σ'.C)` — as an explicit precondition alongside S1.
+### S5 consistency claim covers S0–S3 but narrative binds S5 to S4
+**Foundation**: (internal — foundation ASN)
+**ASN**: S5 formal statement: `(A N ∈ ℕ :: (E Σ :: Σ satisfies S0–S3 ∧ ...))` vs. S5 narrative: "The combination of S4 and S5 gives the system its distinctive character. S4 says identity is structural — determined by I-address, not by value."
+**Issue**: S5's formal claim and proof check consistency with S0–S3 only. The narrative presents S4 and S5 as architecturally coupled ("the combination … gives the system its distinctive character"), and S6 is referenced parenthetically ("possibly zero for orphaned content (S6)"). If S4 imposes constraints on states — for instance, distinguishing content by I-address rather than by value — then the constructions must be shown to satisfy S4 for the consistency claim to cover the ASN's actual property set. The constructions likely satisfy S4 trivially (single I-address), but "likely trivial" is not "established." The formal claim is weaker than the narrative suggests: it shows S0–S3 don't cap sharing, but doesn't show that S0–S5 together don't cap sharing.
+**What needs resolving**: Either extend S5's formal statement and proof to check all properties of the ASN (including S4 and any others), or explicitly scope the narrative to match the formal claim — make clear that S5 establishes consistency with a strict subset of the ASN's properties, and state why the remaining properties are excluded.
 
 ---
 
-### D-MIN postcondition depends on m ≥ 2 (S8-vdepth) without declaring it
-
-**Foundation**: S8-vdepth (MinimalVPositionDepth) — `(A d, v : v ∈ dom(Σ.M(d)) : #v ≥ 2)`.
-
-**ASN**: D-MIN (VMinimumPosition), formal contract: "*Postconditions:* Combined with D-CTG and S8-fin, `V_S(d) = {[S, 1, …, 1, k] : 1 ≤ k ≤ n}` for some finite n ≥ 1." The inline derivation: "By D-CTG combined with S8-fin and S8-depth (when m ≥ 3) or trivially (when m = 2, there is only one post-subspace component)…"
-
-**Issue**: The characterization `V_S(d) = {[S, 1, …, 1, k] : 1 ≤ k ≤ n}` uses a notation where `S` occupies position 1 and `k` occupies position `m`. This requires `m ≥ 2` — at `m = 1`, positions 1 and `m` coincide, `S` and `k` occupy the same component, and the notation is ill-formed (D-SEQ explicitly acknowledges this: "at m = 1 the tuple `[S, 1, …, 1, k]` collapses to a single component"). The inline derivation handles `m = 2` and `m ≥ 3` but silently excludes `m = 1`, relying on a bound that comes from S8-vdepth. D-MIN's formal contract lists `S8-depth` and `S8a` as preconditions and "D-CTG and S8-fin" as combining properties for the postcondition, but does not list S8-vdepth. D-SEQ, which formalizes the same characterization, correctly cites S8-vdepth for `m ≥ 2` in its preconditions — but D-MIN's postcondition derives the result independently without inheriting that dependency.
-
-**What needs resolving**: D-MIN's postcondition must declare its dependency on S8-vdepth (for the `m ≥ 2` lower bound), either by adding S8-vdepth to the "Combined with" list or by noting `m ≥ 2` as a precondition of the postcondition's derivation.
+### S5 quantifies over states but S0/S1 are transition properties
+**Foundation**: (internal — foundation ASN)
+**ASN**: S5 formal statement: `(E Σ :: Σ satisfies S0–S3 ∧ ...)` and S5 proof: "S0 and S1 are vacuous — single state, no transition to check."
+**Issue**: S0 and S1 are universally quantified over state transitions (`Σ → Σ'`). S2 and S3 are predicates on individual states. S5's existential quantifier `∃Σ` ranges over states, then claims "Σ satisfies S0–S3" — but satisfaction of S0/S1 is undefined for an isolated state without transitions. The proof resolves this by noting vacuity (no transitions means S0/S1 hold trivially), which is logically sound but proves something weaker than the design intent. Nelson's claim that transclusion is "recursive and unlimited" is about sharing *growing through operations* in a system where S0/S1 are non-vacuously enforced. The current proof shows only that high-sharing states *exist*, not that they are *reachable* through a sequence of transitions that genuinely respect content immutability and store monotonicity.
+**What needs resolving**: The formal statement needs to quantify over systems (behaviors/execution traces), not isolated states, so that S0/S1 are non-vacuously satisfied. Alternatively, construct a multi-state model — an initial state, a sequence of content-creation and arrangement operations, and a resulting state with multiplicity > N — demonstrating that unbounded sharing is achievable through transitions that substantively satisfy S0 and S1.

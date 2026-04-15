@@ -1,0 +1,9 @@
+**D-DOC (Document).** A *document* is an abstract entity created by a single document-level allocation event — an invocation within a T10a-conforming system (ASN-0034) whose output `d` satisfies `zeros(d) = 2` under T4's zero-count function (ASN-0034). The tumbler `d` is the document's *identifier*. Two documents are *distinct* if and only if they were created by distinct allocation events; since each allocation event produces exactly one output, distinct documents entail distinct creating events by definition.
+
+We define the carrier set `D = {d ∈ T : zeros(d) = 2}` — the set of all tumblers at the document level of T4's hierarchy. Every formal contract in this ASN that quantifies universally over documents draws `d` from `D`.
+
+This definition bridges the gap between the abstract notion of a document — the thing that owns content, has an author, and participates in transclusions — and the formal addressing machinery of T10a. Nelson's "document" is the entity whose owner controls allocation of I-addresses beneath its prefix; the allocation event that produces the document-level tumbler is the act of creation that brings this entity into existence. The identification of document distinctness with allocation-event distinctness is not a convention but a consequence of the architecture: each allocation event produces exactly one tumbler, and that tumbler is the sole identifier of the created document.
+
+*Formal Contract:*
+- *Definition:* A document is an abstract entity created by a T10a-conforming allocation event producing a tumbler `d` with `zeros(d) = 2`. Its identifier is `d`. Documents are distinct iff their creating allocation events are distinct.
+- *Definition:* `D = {d ∈ T : zeros(d) = 2}` — the carrier set of document identifiers.

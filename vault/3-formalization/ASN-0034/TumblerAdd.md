@@ -1,6 +1,12 @@
-### Constructive definition of ⊕ and ⊖
+## Tumbler arithmetic
 
-The axiomatic properties above state what `⊕` and `⊖` must satisfy. We now give a constructive definition that shows how they work. Tumbler addition is not arithmetic addition — it is a **position-advance operation**: given a start position `a` and a displacement `w`, compute where you land. The displacement encodes both the distance and the hierarchical level at which the advance occurs.
+We now turn to the arithmetic operations. The system requires operations that advance a position by a displacement (for computing span endpoints and shifting positions) and that recover the displacement between two positions (for computing span widths). These operations — tumbler addition (⊕, constructed in TumblerAdd) and subtraction (⊖, constructed in TumblerSub) — are not arithmetic on numbers but position-advance operations in a hierarchical address space.
+
+A displacement `w` is a tumbler whose leading zeros say "stay at these hierarchical levels" and whose first nonzero component says "advance here." Components after the advance point describe the structure of the landing position within the target region.
+
+### Definition of ⊕
+
+Tumbler addition is not arithmetic addition — it is a **position-advance operation**: given a start position `a` and a displacement `w`, compute where you land. The displacement encodes both the distance and the hierarchical level at which the advance occurs.
 
 ```
 START:  1.0.3.0.2.0.1.777
@@ -34,7 +40,11 @@ The result `a ⊕ w = [r₁, ..., rₚ]` has length `p = (k - 1) + 1 + (n - k) =
 
 Each component of the result is a natural number: for `i < k`, `rᵢ = aᵢ ∈ ℕ` since `a ∈ T` and `k ≤ m` ensures position `i` exists within `a`; at the action point, `rₖ = aₖ + wₖ ∈ ℕ` by closure of ℕ under addition; for `i > k`, `rᵢ = wᵢ ∈ ℕ` since `w ∈ T`. The result is therefore a finite sequence over ℕ with length ≥ 1, hence **`a ⊕ w ∈ T`** by T0.
 
-These two identities are load-bearing for subsequent properties that depend on TumblerAdd.
+The construction also yields strict advancement. Since `k` is the first nonzero component of `w`, we have `wₖ ≥ 1`, so `rₖ = aₖ + wₖ ≥ aₖ + 1 > aₖ`. For all `i` with `1 ≤ i < k`, `rᵢ = aᵢ` by the construction. The precondition `k ≤ m` gives `k ≤ #a`, and the result-length identity gives `k ≤ n = #(a ⊕ w)`, so `k ≤ min(#a, #(a ⊕ w))` and both tumblers have a component at position `k`. T1 case (i) with divergence position `k` — agreement on positions `1, ..., k - 1` and strict inequality `aₖ < rₖ` — yields `a < a ⊕ w`. We record this as the *ordering guarantee*: **`a ⊕ w > a`** — tumbler addition strictly advances the start position.
+
+The construction also yields dominance over the displacement. Since `#(a ⊕ w) = #w` (result-length identity), the T1 comparison of `a ⊕ w` and `w` reduces to finding the first position where `rᵢ ≠ wᵢ`. For `i < k`, `rᵢ = aᵢ` and `wᵢ = 0` (by definition of action point); if some `aⱼ > 0` for `j < k`, the least such `j` is a divergence point with `rⱼ > wⱼ`, so T1 case (i) gives `r > w`. If instead `aᵢ = 0` for all `i < k`, then at position `k` we have `rₖ = aₖ + wₖ` and `wₖ > 0`; when `aₖ > 0`, `rₖ > wₖ` and T1 case (i) again gives `r > w`; when `aₖ = 0`, `rₖ = wₖ`, and since `rᵢ = wᵢ` for all `i > k` and `#r = #w`, the tumblers are equal, hence `r ≥ w`. In every case: **`a ⊕ w ≥ w`** — the result of tumbler addition dominates the displacement in T1 ordering.
+
+These four results are load-bearing for subsequent properties that depend on TumblerAdd.
 
 Three properties of this definition require explicit statement:
 
@@ -55,4 +65,4 @@ This is correct and intentional: advancing to "the beginning of the next chapter
 *Formal Contract:*
 - *Preconditions:* a ∈ T, w ∈ T, w > 0, actionPoint(w) ≤ #a
 - *Definition:* k = min{i : 1 ≤ i ≤ n ∧ wᵢ ≠ 0}; rᵢ = aᵢ if i < k; rₖ = aₖ + wₖ; rᵢ = wᵢ if i > k
-- *Postconditions:* a ⊕ w ∈ T, #(a ⊕ w) = #w
+- *Postconditions:* a ⊕ w ∈ T, #(a ⊕ w) = #w, a ⊕ w > a (T1), a ⊕ w ≥ w (T1)

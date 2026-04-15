@@ -1,17 +1,33 @@
-# Formalize — ASN-0036 / OrdShiftHom
+# Formalize — ASN-0036 / D-CTG
 
-*2026-04-12 15:58*
+*2026-04-13 12:46*
 
-**OrdShiftHom** — *OrdinalShiftHomomorphism* (COROLLARY). For a V-position `v` with `#v = m ≥ 2` and `n ≥ 1`:
+**D-CTG (VContiguity).** For each document d and subspace S, V_S(d) is either empty or occupies every intermediate position between its extremes:
 
-`ord(shift(v, n)) = shift(ord(v), n)`
+`(A d, S, u, q : u ∈ V_S(d) ∧ q ∈ V_S(d) ∧ u < q : (A v : subspace(v) = S ∧ #v = #u ∧ u < v < q : v ∈ V_S(d)))`
 
-Since `shift(v, n) = v ⊕ δ(n, m)` and `δ(n, m) = [0, ..., 0, n]` is a tumbler of length `m` with zeros in positions `1` through `m - 1` and `n` in position `m`, we verify OrdAddHom's preconditions: `δ(n, m)₁ = 0`; `δ(n, m) > 0` because `n ≥ 1` makes the last component positive; `#δ(n, m) = m`; and `actionPoint(δ(n, m)) = m ≤ m`, since position `m` is the first nonzero component. OrdAddHom applies, giving `ord(v ⊕ δ(n, m)) = ord(v) ⊕ (δ(n, m))_ord`.
+In words: within each subspace, V-positions form a contiguous ordinal range with no gaps. If positions [1, 3] and [1, 7] are occupied, then every position [1, k] with 3 < k < 7 must also be occupied.
 
-The ordinal projection `(δ(n, m))_ord = [δ(n, m)₂, ..., δ(n, m)_m] = [0, ..., 0, n]` of length `m - 1` is `δ(n, m-1)`. Since `#ord(v) = m - 1`, the definition of shift gives `shift(ord(v), n) = ord(v) ⊕ δ(n, m-1)`. So `ord(v ⊕ δ(n, m)) = ord(v) ⊕ δ(n, m-1) = shift(ord(v), n)`.
+For the standard text subspace at depth m = 2, this is a finite condition: the intermediates between [S, a] and [S, b] are the finitely many [S, i] with a < i < b. Combined with S8-fin (dom(M(d)) is finite), contiguity at depth 2 says V_S(d) occupies a single unbroken block of ordinals.
 
-For S8a preservation: since `actionPoint(δ(n, m)) = m`, the tail region after the action point (positions `k < i ≤ m` with `k = m`) is empty. By OrdAddS8a, the condition for `v ⊕ δ(n, m)` to satisfy S8a reduces to a vacuously true universal quantification over this empty range. Therefore `shift(v, n)` unconditionally satisfies S8a when `v` does. ∎
+At depth m ≥ 3, D-CTG combined with S8-fin forces a stronger restriction: all positions in V_S(d) must share components 2 through m − 1.
+
+*Proof.* Suppose for contradiction that V_S(d) contains two positions v₁ < v₂ (both depth m by S8-depth) whose first point of disagreement is at component j with 2 ≤ j ≤ m − 1 — that is, (v₁)ᵢ = (v₂)ᵢ for all i < j, and (v₁)ⱼ < (v₂)ⱼ (since v₁ < v₂ by T1(i)). Component 1 cannot be the first disagreement because both positions belong to V_S(d), so (v₁)₁ = S = (v₂)₁. For any natural number n > (v₁)ⱼ₊₁, define w of length m by:
+
+- wᵢ = (v₁)ᵢ for 1 ≤ i ≤ j (agreeing with v₁ on the first j components),
+- wⱼ₊₁ = n,
+- wᵢ = 1 for j + 2 ≤ i ≤ m (if any such positions exist).
+
+Then w has subspace S (since w₁ = (v₁)₁ = S) and depth m (since w has exactly m components). We verify v₁ < w < v₂:
+
+- **w > v₁**: w agrees with v₁ on components 1 through j. At component j + 1, n > (v₁)ⱼ₊₁. By T1(i), w > v₁.
+- **w < v₂**: w agrees with v₂ on components 1 through j − 1 (since v₁ and v₂ agree there). At component j, wⱼ = (v₁)ⱼ < (v₂)ⱼ. By T1(i), w < v₂.
+
+Since subspace(w) = S, #w = #v₁ = m, and v₁ < w < v₂, D-CTG requires w ∈ V_S(d). By T0(a) (UnboundedComponentValues, ASN-0034), unboundedly many values of n exist; distinct values of n produce tumblers that differ at component j + 1, hence are distinct by T3 (CanonicalRepresentation, ASN-0034) — yielding infinitely many distinct positions in V_S(d), contradicting S8-fin. ∎
+
+This applies uniformly to all depths m ≥ 3 and all divergence points j ∈ {2, …, m − 1}. At depth m = 3, the only possible pre-last divergence is j = 2. For illustration: suppose V_S(d) contained [S, 1, 5] and [S, 2, 1]. Setting j = 2, for any n > 5, w = [S, 1, n] satisfies [S, 1, 5] < [S, 1, n] < [S, 2, 1], so D-CTG forces [S, 1, 6], [S, 1, 7], ... into V_S(d) — infinitely many, contradicting S8-fin. At depth m = 4, divergence could occur at j = 2 or j = 3; the same construction applies in each case.
 
 *Formal Contract:*
-- *Preconditions:* `v ∈ T`, `#v = m ≥ 2`, `n ≥ 1`.
-- *Postconditions:* (a) `ord(shift(v, n)) = shift(ord(v), n)`. (b) If `v` satisfies S8a, then `shift(v, n)` satisfies S8a — by OrdAddS8a with `w = δ(n, m)`, `actionPoint(w) = m`, so the tail region `(k, m]` is empty and the positivity condition holds vacuously.
+- *Invariant:* `(A d, S, u, q : u ∈ V_S(d) ∧ q ∈ V_S(d) ∧ u < q : (A v : subspace(v) = S ∧ #v = #u ∧ u < v < q : v ∈ V_S(d)))` — within each subspace, V-positions form a contiguous range under lexicographic order.
+- *Preconditions:* The postcondition requires S8-fin (`dom(M(d))` is finite) and S8-depth (all V-positions in a subspace share the same tumbler depth).
+- *Postconditions:* At depth m ≥ 3, D-CTG ∧ S8-fin ∧ S8-depth implies all positions in V_S(d) share components 2 through m − 1: `(A d, S, v₁, v₂ : v₁ ∈ V_S(d) ∧ v₂ ∈ V_S(d) ∧ #v₁ ≥ 3 : (A j : 2 ≤ j ≤ #v₁ − 1 : (v₁)ⱼ = (v₂)ⱼ))`.

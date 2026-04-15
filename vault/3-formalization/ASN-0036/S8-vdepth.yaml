@@ -1,4 +1,5 @@
 label: S8-vdepth
 name: MinimalVPositionDepth
-type: design-requirement
-depends: []
+type: axiom
+depends:
+- D-DOC

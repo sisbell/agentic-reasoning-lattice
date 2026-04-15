@@ -2,16 +2,18 @@ label: ValidInsertionPosition
 name: ValidInsertionPosition
 type: definition
 depends:
+- Σ.M(d)
 - D-CTG
+- D-CTG-depth
 - S8-depth
-- S8-vdepth
+- S8-crun
+- S8-fin
 - D-MIN
 - T3
+- T0
 - S8a
-- S8-fin
 - OrdinalShift
-- TumblerAdd
+- S8-vdepth
 vocabulary:
 - symbol: valid insertion position
-  meaning: A V-position v in subspace S of document d satisfying D-CTG, where either V_S(d) is non-empty and v equals shift(min(V_S(d)),
-    j) for some 0 ≤ j ≤ N, or V_S(d) is empty and v = [S, 1, ..., 1] of depth m ≥ 2
+  meaning: Given depth m ≥ 2, a V-position v in subspace S of document d satisfying D-CTG, where either V_S(d) is non-empty with m equal to the common depth and either v = min(V_S(d)) or v = shift(min(V_S(d)), j) for some 1 ≤ j ≤ N (via OrdinalShift), or V_S(d) is empty and v = [S, 1, ..., 1] of depth m

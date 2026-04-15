@@ -208,6 +208,11 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
             asn_num, cone_content, asn_label, previous_findings, model=model,
             foundation_labels=cross_asn_deps)
 
+        if findings_text == "ERROR":
+            print(f"\n  [CONE] FAILED on cycle {cycle} (review error). Skipping.",
+                  file=sys.stderr)
+            break
+
         if findings_text is None:
             print(f"\n  [CONE] Converged after {cycle} cycle{'s' if cycle > 1 else ''}.",
                   file=sys.stderr)
@@ -250,9 +255,10 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
         previous_findings = (previous_findings + "\n\n" + findings_text).strip()
 
     elapsed = time.time() - start_time
-    converged = not had_findings or (findings_text is None)
+    failed = (findings_text == "ERROR")
+    converged = not failed and (not had_findings or (findings_text is None))
 
-    if had_findings:
+    if had_findings and not failed:
         with open(review_path, "a") as rf:
             rf.write(f"\n## Result\n\n")
             if converged:
@@ -262,6 +268,8 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
             rf.write(f"\n*Elapsed: {elapsed:.0f}s*\n")
 
     print(f"  [CONE] Elapsed: {elapsed:.0f}s", file=sys.stderr)
+    if failed:
+        return "failed"
     return "converged" if converged else "not_converged"
 
 
