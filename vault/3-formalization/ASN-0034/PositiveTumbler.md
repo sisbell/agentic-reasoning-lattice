@@ -4,7 +4,7 @@ Under T3, the tumblers `[0]`, `[0, 0]`, `[0, 0, 0]`, etc., are *distinct* elemen
 
 **Definition (PositiveTumbler).** A tumbler `t ∈ T` is *positive*, written `Pos(t)`, iff at least one of its components is nonzero: `(E i : 1 ≤ i ≤ #t : tᵢ ≠ 0)`. A tumbler is a *zero tumbler* iff every component is zero: `(A i : 1 ≤ i ≤ #t : tᵢ = 0)`.
 
-The predicate `Pos(t)` is not written `t > 0`, because `>` already denotes T1's lexicographic ordering, and the two notions diverge. Under T1, `[0, 0] > [0]` by case (ii) — the prefix rule — so `[0, 0]` is T1-greater than `[0]`. Yet `[0, 0]` has no nonzero component: `¬Pos([0, 0])`. Every all-zero tumbler of length ≥ 2 is T1-positive but not PositiveTumbler-positive. The converse inclusion holds: `Pos(t)` implies `t` is T1-greater than every zero tumbler, as the following proof establishes.
+The predicate `Pos(t)` is not written `t > 0`, because `>` already denotes T1's lexicographic ordering, and the two notions diverge. The all-zero tumbler `[0, 0]` exhibits the divergence concretely: under T1, `[0] < [0, 0]` by case (ii) — the prefix rule, since `[0]` is a proper prefix of `[0, 0]` — yet `¬Pos([0, 0])`, since every component of `[0, 0]` is zero. The converse direction does hold: `Pos(t)` implies `t` is T1-greater than every zero tumbler, as the following proof establishes.
 
 Every positive tumbler is greater than every zero tumbler under T1.
 
@@ -14,9 +14,9 @@ Every positive tumbler is greater than every zero tumbler under T1.
 
 *Case `#z < k`.* For `1 ≤ i ≤ #z` we have `i < k` (since `i ≤ #z < k`), whence `tᵢ = 0 = zᵢ`, establishing the T1 agreement condition at every position of `z`. From `#z < k ≤ #t` we obtain `#z + 1 ≤ #t`, so by T1 case (ii) with witness `#z + 1`, `z < t`. ∎
 
-The condition `Pos(w)` in TA0 excludes all all-zero displacements regardless of length.
+The condition `Pos(w)` in TA0 (WellDefinedAddition — forward reference, § Tumbler arithmetic below) excludes all all-zero displacements regardless of length.
 
 *Formal Contract:*
 - *Definition:* `Pos(t)` (positive) iff `(E i : 1 ≤ i ≤ #t : tᵢ ≠ 0)`. Zero tumbler: `(A i : 1 ≤ i ≤ #t : tᵢ = 0)`.
-- *Depends:* T1 (LexicographicOrder) — the postcondition proof invokes T1 case (i) when `#z ≥ k` to conclude `z < t` from `zₖ = 0 < tₖ`, and T1 case (ii) when `#z < k` to conclude `z < t` from `z` being a proper prefix of `t`.
+- *Depends:* T1 (LexicographicOrder) — the postcondition proof invokes T1 case (i) when `#z ≥ k` to conclude `z < t` from `zₖ = 0 < tₖ`, and T1 case (ii) when `#z < k` to conclude `z < t` from `z` being a proper prefix of `t`. TA0 (WellDefinedAddition) [forward reference — TA0 is stated in § Tumbler arithmetic, after this section] — the closing prose paragraph cites TA0's precondition `Pos(w)` to motivate the predicate's purpose within tumbler addition.
 - *Postconditions:* `(A t ∈ T, z ∈ T : Pos(t) ∧ (A i : 1 ≤ i ≤ #z : zᵢ = 0) :: z < t)` — every positive tumbler is strictly greater under T1 than every zero tumbler of any length.
