@@ -25,3 +25,9 @@ I'll work through the ASN systematically, checking cross-property consistency, p
 **ASN**: TumblerSub body text: "The roundtrip `a ⊕ (b ⊖ a) = b` therefore requires two independently necessary constraints: `zpd(b, a) ≤ #a` (ensuring TumblerAdd's precondition) and `#a ≤ #b` (ensuring the result length equals `#b`) — the conjunction established by D0."
 **Issue**: Two gaps between TumblerSub's narrative and D0's formal contract. (a) **Terminology mismatch.** The narrative states the first constraint as `zpd(b, a) ≤ #a`; D0's precondition states it as `divergence(a, b) ≤ #a`. These are provably equivalent under D0's hypotheses — D0's proof establishes Divergence case (i) where `zpd(b, a) = divergence(a, b)` — but the equivalence is internal to D0's proof, not exported in any formal contract. A reader matching TumblerSub's narrative against D0's contract finds mismatched terms with no traceable bridge. (b) **Scope misattribution.** The narrative says D0 "establishes" a two-constraint conjunction, but D0's preconditions include only one constraint (`divergence(a, b) ≤ #a`). The second constraint (`#a ≤ #b`) is not a D0 precondition — D0 handles it solely as a negative postcondition (`#a > #b → ≠`), and the positive round-trip identity `a ⊕ (b ⊖ a) = b` under the full conjunction is deferred to D1, which does not exist in this ASN.
 **What needs resolving**: (a) TumblerSub's narrative must either use `divergence(a, b) ≤ #a` (matching D0's contract) or explicitly state that `zpd(b, a) = divergence(a, b)` holds under D0's hypotheses, citing the ZPD–Divergence relationship and Divergence symmetry. (b) The attribution must be corrected: D0 establishes one constraint as a precondition and proves the necessity of the other via its negative postcondition, but does not establish the conjunction as a sufficient condition for the round-trip — that is D1's role.
+
+## Result
+
+Cone converged after 5 cycles.
+
+*Elapsed: 8192s*

@@ -8,5 +8,5 @@ depends:
 - TA5
 - T10
 summary: 'Distinct siblings from the same allocator are prefix-incomparable — neither address is a prefix of the other. This
-  follows from their equal length (T10a.1) combined with T1 and T10: equal-length tumblers can only be related by equality,
-  not strict prefix.'
+  follows from their equal length (T10a.1) combined with Prefix: equal-length tumblers are prefix-related only if identical,
+  so a proper prefix relation between equal-length siblings is impossible. The cross-allocator extension is T10a.5.'

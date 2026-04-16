@@ -9,7 +9,7 @@
 - **U(t)** — user field of tumbler t, extracted via fields(t)
 - **Z** — set of zero tumblers: Z = {t ∈ T : (A i : 1 ≤ i ≤ #t : tᵢ = 0)}
 - **action point** — least position k with wₖ > 0 (implying wᵢ = 0 for all i < k)
-- **allocated_before(a, b)** — predicate: a = tᵢ and b = tⱼ with i < j in the allocator's sequential output sequence
+- **allocated_before(a, b)** — predicate: a = tᵢ and b = tⱼ with i < j in dom(A), the allocator's inc(·, 0) sibling stream (T9)
 - **componentwise comparison** — equality check on two finite sequences: same length and pairwise equal components
 - **d** — the difference n₂ − n₁, used to decompose the larger shift as a composition of two smaller shifts
 - **displacement from a to b** — the tumbler w = b ⊖ a; the unique w such that a ⊕ w = b
@@ -29,7 +29,7 @@
 - **positive tumbler** — Pos(t) iff at least one component is nonzero
 - **positive-component constraint** — every component of every field in a valid address tumbler is strictly positive (> 0)
 - **result-length identity** — #(a ⊕ w) = #w — the length of the sum equals the length of the displacement, not the start position
-- **same_allocator(a, b)** — predicate: both a and b appear in the same allocator's sequential sibling stream
+- **same_allocator(a, b)** — predicate: ∃A : a ∈ dom(A) ∧ b ∈ dom(A), where dom(A) is the inc(·, 0) sibling stream excluding child-spawning outputs (T9)
 - **shift(v, n)** — ordinal shift: advances the deepest component of tumbler v by n, defined as v ⊕ δ(n, m) where m = #v
 - **sig(t)** — last significant position of tumbler t: max({i : 1 ≤ i ≤ #t ∧ tᵢ ≠ 0}) when any component is nonzero; #t when all components are zero
 - **span(s, ℓ)** — set of tumblers in range: {t ∈ T : s ≤ t < s ⊕ ℓ}, where s is start address and ℓ is a positive tumbler displacement
