@@ -35,7 +35,7 @@ from lib.formalization.cross_review.revise import revise
 from lib.formalization.cone import detect_dependency_cone, run_cone_review
 
 
-def run_cross_review(asn_num, max_cycles=10, dry_run=False, model="opus"):
+def run_cross_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
     """Run the cross-cutting review pipeline.
 
     Returns "converged" or "not_converged".
@@ -215,8 +215,8 @@ def main():
     parser = argparse.ArgumentParser(
         description="Cross-cutting Review — deep structural analysis")
     parser.add_argument("asn", help="ASN number (e.g., 40)")
-    parser.add_argument("--max-cycles", type=int, default=3,
-                        help="Maximum convergence cycles (default: 3)")
+    parser.add_argument("--max-cycles", type=int, default=8,
+                        help="Maximum convergence cycles (default: 8)")
     parser.add_argument("--model", default="opus",
                         help="Model for review (default: opus)")
     parser.add_argument("--review", metavar="PATH",
