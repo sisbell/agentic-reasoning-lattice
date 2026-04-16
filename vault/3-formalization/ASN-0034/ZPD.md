@@ -7,6 +7,7 @@ The function is partial. It is undefined precisely when the padded sequences agr
 *Formal Contract:*
 - *Domain:* a ∈ T, w ∈ T
 - *Definition:* Pad to length L = max(#a, #w): aᵢ = 0 for i > #a, wᵢ = 0 for i > #w. If (A i : 1 ≤ i ≤ L : aᵢ = wᵢ), zpd(a, w) is undefined. Otherwise, zpd(a, w) = min {k : 1 ≤ k ≤ L ∧ aₖ ≠ wₖ}.
+- *Depends:* Divergence (Divergence) — the Relationship to Divergence postconditions consume Divergence's two-case structure (case (i): component divergence at `k ≤ min(#a, #w)`, case (ii): prefix divergence at `min(#a, #w) + 1`) and its domain restriction `a ≠ b`, which gates the postcondition's guard `a ≠ w`.
 - *Codomain:* When defined, zpd(a, w) ∈ {1, ..., max(#a, #w)}.
 - *Partiality:* zpd(a, w) is undefined iff a and w are zero-padded-equal.
 - *Postconditions (Symmetry):* `zpd(a, w)` is defined iff `zpd(w, a)` is defined, and when defined, `zpd(a, w) = zpd(w, a)`. Padding both operands to `max(#a, #w)` and scanning for the first disagreement are symmetric operations: `aₖ ≠ wₖ` iff `wₖ ≠ aₖ`.

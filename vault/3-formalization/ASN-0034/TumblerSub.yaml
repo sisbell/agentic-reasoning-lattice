@@ -11,6 +11,7 @@ depends:
 - ActionPoint
 - TumblerAdd
 - D0
+- D1
 summary: 'Defines tumbler subtraction `a ⊖ w` as the component-wise difference computed at the first point of zero-padded
   divergence: components before that point become zero, the divergence point is subtracted, and deeper components are copied
   from the minuend. The roundtrip `a ⊕ (b ⊖ a) = b` requires two independently necessary conditions — that the divergence
