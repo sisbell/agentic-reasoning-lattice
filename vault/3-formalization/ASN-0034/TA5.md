@@ -8,9 +8,9 @@ The *last significant position* `sig(t)` of a tumbler — defined in TA5-SIG —
 
   (a) `t' > t` (strictly greater under T1),
 
-  (b) `t'` agrees with `t` on all components before the increment point,
+  (b) when `k = 0`: `t'` agrees with `t` at every position other than `sig(t)`; when `k > 0`: `t'` agrees with `t` on all original positions,
 
-  (c) when `k = 0` (*sibling*): `#t' = #t`, and `t'` differs from `t` only at position `sig(t)`, where `t'_{sig(t)} = t_{sig(t)} + 1`,
+  (c) when `k = 0` (*sibling*): `#t' = #t` and `t'_{sig(t)} = t_{sig(t)} + 1`,
 
   (d) when `k > 0` (*child*): `#t' = #t + k`, the `k - 1` intermediate positions `#t + 1, ..., #t + k - 1` are set to `0` (field separators), and the final position `#t + k` is set to `1` (the first child).
 
@@ -24,9 +24,9 @@ When `k > 0` (*child creation*): set `t'ᵢ = tᵢ` for `1 ≤ i ≤ m`, set `t'
 
 In both cases `t'` is a finite sequence of natural numbers with length ≥ 1, so `t' ∈ T`.
 
-**Verification of (b)** (agreement before the increment point). For `k = 0`: by construction `t'ᵢ = tᵢ` for all `i` with `1 ≤ i < sig(t)`, since only position `sig(t)` is modified. For `k > 0`: by construction `t'ᵢ = tᵢ` for all `1 ≤ i ≤ m`, so `t'` agrees with `t` on every original position.
+**Verification of (b)** (agreement at non-modified positions). For `k = 0`: by construction `t'ᵢ = tᵢ` for all `i ≠ sig(t)`, so in particular for every `i` with `1 ≤ i ≤ #t` and `i ≠ sig(t)` — this covers both the positions preceding `sig(t)` and any trailing positions beyond it. For `k > 0`: by construction `t'ᵢ = tᵢ` for all `1 ≤ i ≤ m`, so `t'` agrees with `t` on every original position.
 
-**Verification of (c)** (sibling structure). When `k = 0`: `#t' = m = #t` by construction. The only modified position is `sig(t)`, where `t'_{sig(t)} = t_{sig(t)} + 1`. Every other position retains its original value.
+**Verification of (c)** (sibling structure). When `k = 0`: `#t' = m = #t` by construction. At position `sig(t)`, `t'_{sig(t)} = t_{sig(t)} + 1` by construction; agreement at all other positions is established in (b).
 
 **Verification of (d)** (child structure). When `k > 0`: `#t' = m + k = #t + k` by construction. Positions `m + 1` through `m + k - 1` are `0` (field separators) — when `k = 1` this range is empty, so no separators are introduced. Position `m + k` is `1` (the first child).
 
@@ -39,7 +39,7 @@ In both cases `t'` is a finite sequence of natural numbers with length ≥ 1, so
 *Formal Contract:*
 - *Preconditions:* `t ∈ T`, `k ≥ 0`.
 - *Definition:* `inc(t, k)`: when `k = 0`, modify position `sig(t)` (TA5-SIG) to `t_{sig(t)} + 1`; when `k > 0`, extend by `k` positions with `k - 1` zeros and final `1`.
-- *Postconditions:* `t' ∈ T`. (a) `t' > t` under T1. (b) When `k = 0`: `(A i : 1 ≤ i < sig(t) : t'ᵢ = tᵢ)`. When `k > 0`: `(A i : 1 ≤ i ≤ #t : t'ᵢ = tᵢ)`. (c) When `k = 0`: `#t' = #t`, modification only at `sig(t)`, where `t'_{sig(t)} = t_{sig(t)} + 1`. (d) When `k > 0`: `#t' = #t + k`, positions `#t + 1 ... #t + k - 1` are `0`, position `#t + k` is `1`.
+- *Postconditions:* `t' ∈ T`. (a) `t' > t` under T1. (b) When `k = 0`: `(A i : 1 ≤ i ≤ #t ∧ i ≠ sig(t) : t'ᵢ = tᵢ)`. When `k > 0`: `(A i : 1 ≤ i ≤ #t : t'ᵢ = tᵢ)`. (c) When `k = 0`: `#t' = #t`, `t'_{sig(t)} = t_{sig(t)} + 1`. (d) When `k > 0`: `#t' = #t + k`, positions `#t + 1 ... #t + k - 1` are `0`, position `#t + k` is `1`.
 
 Gregory's analysis reveals a critical distinction: `inc(t, 0)` does NOT produce the immediate successor of `t` in the total order. In the general case, it produces the smallest same-length tumbler that agrees with `t` on positions `1, ..., sig(t) − 1` and has a strictly larger component at position `sig(t)`. When `sig(t) = #t` — which holds for valid addresses by TA5-SigValid — this is the smallest same-length tumbler strictly greater than `t`: the *next peer* at the same hierarchical depth. When `sig(t) < #t` (i.e., trailing zeros exist beyond the rightmost nonzero component), the gap between `t` and `inc(t, 0)` contains same-length tumblers as well — for example, `(2, 0, 0)` and `inc((2, 0, 0), 0) = (3, 0, 0)` have `(2, 0, 1)` strictly between them. The gap between `t` and `inc(t, 0)` contains the entire subtree of `t`: all tumblers of the form `t.x₁. ... .xₘ` for any `m ≥ 1` and any `x₁ ≥ 0`. The true immediate successor in the total order is `t.0` — the zero-extension — by the prefix convention (T1 case (ii)). For any `k > 0`, `inc(t, k)` does NOT produce the immediate successor of `t` in the total order. For `k = 1` the result is `t.1`; for `k = 2` the result is `t.0.1`. In both cases, `t.0` (the true immediate successor) lies strictly between `t` and the result. The gap between `t` and `inc(t, k)` contains `t`'s entire subtree of zero-extensions. For address allocation, the distinction is harmless: allocation cares about advancing the counter past all existing addresses, not about visiting every point in the total order.
 
