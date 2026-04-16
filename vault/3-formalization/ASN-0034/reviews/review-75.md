@@ -1,0 +1,9 @@
+# Cone Review — ASN-0034/TA3 (cycle 3)
+
+*2026-04-16 08:13*
+
+### TA2 formal contract omits T0 (CarrierSetDefinition) from Depends
+**Foundation**: (internal — T0 CarrierSetDefinition, not shown)
+**ASN**: TA2 (WellDefinedSubtraction), formal contract Depends field — lists TumblerSub, T1, T3 but not T0
+**Issue**: TA2's proof uses T0 directly in two distinct ways. First, it invokes T0's minimum-length guarantee: "Since `#a ≥ 1` and `#w ≥ 1` (both are tumblers in T), `p ≥ 1`" — the fact that T-membership entails length ≥ 1 is a T0 export, not derivable from TumblerSub, T1, or T3. Second, both Case 1 and Case 2 conclude T-membership by asserting the result is "a finite sequence of non-negative integers with length at least 1 — a member of T" — this appeals to T0's characterisation of the carrier set T, which is the criterion for membership. Every other property in this ASN that uses either of these T0 facts (T1, T3, TA6, TumblerSub) lists T0 in its Depends. TA2 is the sole exception. The Depends annotation for TumblerSub claims the proof "delegates to TumblerSub's piecewise construction," but the proof body actually performs independent membership verification from first principles — it checks each component region and concludes T-membership via T0, rather than citing TumblerSub's already-exported postcondition `a ⊖ w ∈ T`.
+**What needs resolving**: TA2's formal contract must include T0 (CarrierSetDefinition) in its Depends field, with the role of each use stated: T0's minimum-length guarantee (`#a ≥ 1` for `a ∈ T`) and T0's carrier-set characterisation (concluding T-membership from component properties and result length). Alternatively, if the intention is genuine delegation to TumblerSub, the proof body should cite TumblerSub's postcondition `a ⊖ w ∈ T` directly rather than re-deriving it — in which case T0 would be unnecessary but the proof text must be revised to match the Depends description.

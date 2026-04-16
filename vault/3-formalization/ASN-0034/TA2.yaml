@@ -3,6 +3,7 @@ name: WellDefinedSubtraction
 type: corollary
 depends:
 - TumblerSub
+- T0
 - T1
 - T3
 summary: 'Tumbler subtraction is closed on T: whenever a ≥ w, the result a ⊖ w is itself a valid tumbler. This establishes
