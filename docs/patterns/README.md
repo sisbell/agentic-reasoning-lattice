@@ -1,6 +1,6 @@
 # Pattern Language for Agentic Reasoning Systems
 
-Patterns for how agents discover, verify, and organize knowledge. These patterns were observed during the formalization of the Xanadu hypertext system. They generalize to any system where agents produce structured knowledge under dependency constraints.
+Patterns for how agents discover, verify, and organize knowledge. These patterns were observed during operation on the Xanadu demonstration domain. They generalize to any system where agents produce structured knowledge under dependency constraints.
 
 The scientific method is the lineage: narrow scope, refine through iteration, verify coherence. These patterns describe what happens when agents operationalize that rhythm — the specific structures, failure modes, and growth mechanisms that emerge.
 
@@ -22,12 +22,12 @@ Patterns that adjust or feed the cycle:
 
 - [Dependency cone](dependency-cone.md) — tight coupling defeats narrow-scope refinement. A signal to widen.
 - [Scoped inquiry](scoped-inquiry.md) — narrowing applied to questions. Each authority investigates what it's qualified to evaluate.
-- [Two data authorities](two-data-authorities.md) — independent channels with enforced separation. Agreement validates, disagreement discovers.
+- [Two data authorities](two-data-authorities.md) — independent channels with enforced separation. Agreement validates, disagreement discovers new hypotheses.
 - [Consult authority](consult-authority.md) — during refinement, go back to the source when uncertain. Keeps the review/revise loop grounded in evidence.
 - [Representation change](representation-change.md) — same content, different form. A tool that scope narrowing uses when the current form can't support finer granularity.
 - [Vocabulary bridge](vocabulary-bridge.md) — map domain language to structural language once, share across the lattice. Sits between foundation algebra and higher layers.
 - [Scope promotion](scope-promotion.md) — out-of-scope findings promoted to first-class investigations. How the lattice grows outward.
-- Extract/absorb — shared concepts extracted into new foundation layers, duplicates absorbed. How the lattice grows inward. *(not yet written)*
+- [Extract/absorb](extract-absorb.md) — shared concepts extracted into new foundation layers, duplicates absorbed. How the lattice grows inward.
 
 The structure that accumulates the output:
 

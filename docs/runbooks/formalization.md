@@ -80,4 +80,4 @@ python scripts/proof-review.py <ASN> --label T8      # single property review
 
 ---
 
-See the [formalization guide](../guides/formalization.md) for how the pipeline works and the [V-cycle design note](../design-notes/verification-v-cycle.md) for the multi-scale architecture.
+See the [formalization guide](../guides/formalization.md) for how the V-cycle works and the [V-cycle design note](../design-notes/verification-v-cycle.md) for the multi-scale architecture.

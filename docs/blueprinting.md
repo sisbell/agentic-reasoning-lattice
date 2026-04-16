@@ -4,9 +4,9 @@
 
 ## The case for an intermediate representation
 
-A reasoning document from discovery contains the right properties, but they're embedded in narrative prose — definitions interleaved with proofs, motivating examples alongside formal statements, architectural commentary woven through derivations. That narrative is how humans reason. But you cannot formalize narrative. You can only formalize the formal claims within it.
+A reasoning document from discovery contains the right properties, but they're embedded in narrative prose — definitions interleaved with proofs, motivating examples alongside formal statements, architectural commentary woven through derivations. This document is the ASN produced by synthesis — the join of theory and data channel outputs from a campaign inquiry. That narrative is how humans reason. But you cannot formalize narrative. You can only formalize the formal claims within it.
 
-At some point, the narrative and the formal content must be separated. The formal claims need to stand on their own — each with a clear statement, explicit dependencies, and a classification that tells the verification pipeline what to do with it. The narrative stays as context for human reviewers. This separation is what blueprinting produces.
+At some point, the narrative and the formal content must be separated. The formal claims need to stand on their own — each with a clear statement, explicit dependencies, and a classification that tells the V-cycle how to treat it. The narrative stays as context for human reviewers. This separation is what blueprinting produces.
 
 ## What blueprinting produces
 
@@ -17,6 +17,8 @@ The metadata makes the formal structure explicit: what this property is, what it
 The metadata at blueprinting time is deliberately incomplete. Type classifications are best-effort, dependencies are extracted from prose but may be imprecise, vocabulary attribution has minor errors. Formalization tightens all of it. Blueprinting just needs to get the structure right enough that formalization can operate per-property.
 
 This is the meet operation at the document scale — a single node in the document lattice becomes many nodes in the property lattice, each with explicit dependencies. Blueprinting is where the two granularities of the lattice diverge.
+
+![Two granularities](diagrams/two-granularities.svg)
 
 ## Decomposition as progressive refinement
 
@@ -29,6 +31,21 @@ Then, per-section analysis identifies the properties within each section. Each s
 Then, per-property classification and dependency extraction. Each property is analyzed independently: what type is it, what does its proof cite, what notation does it introduce.
 
 Each layer refines what the previous produced. The section split doesn't know about properties. The property identification doesn't know about types. The classification doesn't know about vocabulary. Progressive refinement, not a single pass.
+
+## Property types across domains
+
+The property classifications — axiom, definition, design requirement, lemma, theorem, corollary — are domain-independent. What changes across domains is what fills each type, not the type itself. The V-cycle treats each type the same way regardless of domain: axioms are accepted, definitions are named, theorems are proven.
+
+| Type | Mathematics | Materials science | Legal reasoning | Clinical |
+|------|-------------|-------------------|-----------------|----------|
+| **Axiom** | assumed truths | conservation laws, symmetry rules | statutory definitions | diagnostic criteria |
+| **Definition** | formal definitions | operational terms (band gap, conductivity) | case law interpretations | condition classifications |
+| **Design requirement** | architectural constraints | measurement constraints | jurisdictional constraints | treatment constraints |
+| **Lemma** | intermediate results | intermediate empirical relationships | precedent chains | clinical relationships |
+| **Theorem** | proven properties | discovered principles (Wiedemann-Franz) | novel legal conclusions | treatment protocols |
+| **Corollary** | immediate consequences | derivative predictions | derived obligations | derived recommendations |
+
+The vocabulary firewall operates on domain vocabulary — theory channel terms vs data channel terms differ by domain, but the firewall mechanism is identical. Blueprinting classifies what the channels produce. Formalization verifies it. The lattice organizes it.
 
 ## The reasoning document as artifact
 

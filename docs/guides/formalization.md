@@ -1,4 +1,4 @@
-# Guide: Formalization Pipeline
+# Guide: Formalization V-Cycle
 
 *Updated 2026-04-14.*
 
@@ -6,7 +6,7 @@
 
 Formalization transforms per-property file pairs from blueprinting into rigorously proven specifications with formal contracts. Each property is formalized independently — its dependencies are immutable context. See [why this converges](#why-per-property-formalization-converges).
 
-The pipeline operates at three scales, inspired by multigrid methods (Brandt 1977):
+The V-cycle operates at three scales, inspired by multigrid methods (Brandt 1977):
 
 - **Property scale** — proof review, contract review. One property at a time, dependencies fixed.
 - **Cluster scale** — cone sweep. A tightly coupled group of properties reviewed together.
@@ -14,7 +14,7 @@ The pipeline operates at three scales, inspired by multigrid methods (Brandt 197
 
 These compose into a V-cycle: upward through scales (property → cluster → system), then downward to re-verify anything that changed.
 
-## Pipeline Stages
+## Stages
 
 ### Formalize
 

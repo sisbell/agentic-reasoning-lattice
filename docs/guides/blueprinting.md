@@ -1,12 +1,12 @@
-# Guide: Blueprinting Pipeline
+# Guide: Blueprinting
 
 *Updated 2026-04-12.*
 
 ## Overview
 
-Blueprinting transforms a monolithic ASN reasoning document into per-property file pairs (`.yaml` metadata + `.md` body) ready for formalization. The pipeline runs: decompose → enrich → disassemble → validate → promote.
+Blueprinting transforms a monolithic ASN reasoning document into per-property file pairs (`.yaml` metadata + `.md` body) ready for formalization. The process runs: decompose → enrich → disassemble → validate → promote.
 
-## Pipeline Stages
+## Stages
 
 ### Decompose
 

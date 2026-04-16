@@ -1,6 +1,6 @@
 # Verification V-Cycle
 
-*Design note. See [Formalization Guide](../guides/formalization.md) for the practical pipeline reference.*
+*Design note. See [Formalization Guide](../guides/formalization.md) for the practical V-cycle reference.*
 
 ## Overview
 

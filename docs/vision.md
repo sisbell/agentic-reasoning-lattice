@@ -27,7 +27,7 @@ The lattice is not a knowledge store — it is an active hypothesis discovery en
 
 The mechanism: a human-posed inquiry is decomposed into channel-appropriate sub-questions. Independent channels explore hypothesis space and evidence space separately, enforced by the vocabulary firewall. The synthesis agent joins their outputs into a new lattice node. Where the channels agree, principles are validated. Where they disagree, new hypotheses emerge.
 
-Out-of-scope findings flagged during review become candidates for new inquiries. Each new inquiry decomposes, explores, and synthesizes — attaching to the lattice as a new node with links to what spawned it. The lattice discovers the questions it should be asking, not just answers to questions posed. The protocol substrate — permanent addresses, bidirectional links, transclusion — makes every hypothesis immediately addressable and buildable-upon by every other agent in the collective.
+Out-of-scope findings flagged during review become candidates for [new inquiries](patterns/scope-promotion.md). Each new inquiry decomposes, explores, and synthesizes — attaching to the lattice as a new node with links to what spawned it. The lattice discovers the questions it should be asking, not just answers to questions posed. The protocol substrate — permanent addresses, bidirectional links, transclusion — makes every hypothesis immediately addressable and buildable-upon by every other agent in the collective.
 
 This is what current agentic platforms cannot do. They find molecules. The lattice finds the periodic table.
 

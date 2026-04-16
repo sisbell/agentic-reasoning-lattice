@@ -9,7 +9,7 @@ When narrowing overshoots — when the pieces are too coupled to converge indepe
 ## Forces
 
 - **Broad scope can't harden.** Discovery produces a reasoning document with 29 properties. Reviewing the whole document at once can't make each property precise — there's too much to hold in focus.
-- **Narrow scope enables convergence.** One property at a time, dependencies fixed. The piece is small enough to fully check. Changes don't cascade to neighbors. This is [fixed-context iteration](review-revise-iteration.md) — and it works for most properties.
+- **Narrow scope enables convergence.** One property at a time, dependencies fixed. The piece is small enough to fully check. Changes don't cascade to neighbors. This is [review/revise iteration](review-revise-iteration.md) — and it works for most properties.
 - **Over-narrowing hides coupling.** Some properties can't be verified in isolation. S8 depends on 7 other properties — checking S8 alone misses the seams between them. This is the [dependency cone](dependency-cone.md).
 - **The right width is discovered, not prescribed.** You don't know the coupling in advance. You narrow, hit a wall, widen to the cluster, check again. The three scopes that formalization settled on (property, cluster, full ASN) weren't planned — they're where the system found equilibrium.
 
