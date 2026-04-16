@@ -14,4 +14,4 @@ summary: For any two allocators not in an ancestor-descendant relationship, ever
   with every output of the other. The proof identifies the branching point in the allocator tree and shows — via positional
   inheritance through the tree, the at-most-once child-spawning constraint, and the divergence of sibling outputs — that
   outputs of non-ancestor-related allocators disagree at a fixed position within their common range, excluding any prefix
-  relationship. Together with T10a.2, this establishes the full precondition of T10 across the entire allocator tree.
+  relationship. Together with T10a.2, this establishes T10's precondition for every non-ancestor-descendant allocator pair; ancestor-descendant pairs inherently nest and are separated by length (T10a.3).
