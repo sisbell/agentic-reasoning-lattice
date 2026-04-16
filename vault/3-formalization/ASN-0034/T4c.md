@@ -16,5 +16,5 @@ The mapping from zero count to hierarchical level is defined by the number of fi
 We note the essential role of the positive-component constraint in this result. Without it, a tumbler `[1, 0, 0, 3]` would have `zeros(t) = 2`, classifying it as a document address with three fields: `[1]`, `[]`, `[3]`. But the second zero would be ambiguous — it could be a separator (giving an empty user field) or a zero-valued component within the user field (giving two fields: `[1]`, `[0, 3]`). The positive-component constraint eliminates the second interpretation: no field component can be zero, so every zero is unambiguously a separator, and the parse is unique. ∎
 
 *Formal Contract:*
-- *Preconditions:* `t` satisfies the T4 constraints.
-- *Postconditions:* `zeros(t) ∈ {0, 1, 2, 3}`, and the mapping `zeros(t) → hierarchical level` is a bijection on `{0, 1, 2, 3}`.
+- *Preconditions:* `t` satisfies the T4 constraints (at most three zero-valued components, positive-component constraint, non-empty field constraint). `t` satisfies T4b (UniqueParse): every zero in `t` is a field separator and every separator is a zero, so the separator positions are exactly the zero-valued positions.
+- *Postconditions:* `zeros(t)` counts exactly the number of field separators in `t`, and the number of fields present equals `zeros(t) + 1`. The mapping `zeros(t) → hierarchical level` is a bijection on `{0, 1, 2, 3}`: distinct zero counts imply distinct hierarchical levels (injectivity), and every level in {node, user, document, element} is realized by exactly one zero count (surjectivity).
