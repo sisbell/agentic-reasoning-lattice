@@ -56,5 +56,11 @@
   "TS5": "e7bf5200c69a3842",
   "TumblerAdd": "abc9b31c53670170",
   "TumblerSub": "f63389b2f3622158",
-  "ZPD": "a3728eab072e5d40"
+  "ZPD": "a3728eab072e5d40",
+  "GlobalUniqueness": "e38f870a80599ed8",
+  "PartitionMonotonicity": "e2da253363499acd",
+  "T4": "7d1cd6189fd8f188",
+  "T4c": "529121a22cc8a16d",
+  "T8": "b9655bb86bea81f0",
+  "TA5": "a7ec3d26626f2c4f"
 }
