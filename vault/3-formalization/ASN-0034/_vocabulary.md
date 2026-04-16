@@ -29,7 +29,7 @@
 - **positive tumbler** — Pos(t) iff at least one component is nonzero
 - **positive-component constraint** — every component of every field in a valid address tumbler is strictly positive (> 0)
 - **result-length identity** — #(a ⊕ w) = #w — the length of the sum equals the length of the displacement, not the start position
-- **same_allocator(a, b)** — predicate: ∃A : a ∈ dom(A) ∧ b ∈ dom(A), where dom(A) is the inc(·, 0) sibling stream excluding child-spawning outputs (T9)
+- **same_allocator(a, b)** — predicate: ∃A : a ∈ dom(A) ∧ b ∈ dom(A), where dom(A) is the inc(·, 0) sibling stream excluding child-spawning outputs (T10a)
 - **shift(v, n)** — ordinal shift: advances the deepest component of tumbler v by n, defined as v ⊕ δ(n, m) where m = #v
 - **sig(t)** — last significant position of tumbler t: max({i : 1 ≤ i ≤ #t ∧ tᵢ ≠ 0}) when any component is nonzero; #t when all components are zero
 - **span(s, ℓ)** — set of tumblers in range: {t ∈ T : s ≤ t < s ⊕ ℓ}, where s is start address and ℓ is a positive tumbler displacement

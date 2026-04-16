@@ -3,6 +3,7 @@ name: NonNestingSiblingPrefixes
 type: corollary
 depends:
 - Prefix
+- T10a
 - T10a.1
 - T1
 - TA5
