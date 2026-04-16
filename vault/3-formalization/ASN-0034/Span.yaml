@@ -1,6 +1,11 @@
 label: Span
 name: Span
 type: definition
-depends: []
-summary: A span is a start address paired with a positive displacement length, denoting the contiguous set of tumblers from
-  the start up to (but not including) the start plus the length; it is a half-open interval in tumbler address space.
+depends:
+- ActionPoint
+- TA0
+summary: |
+  A span is a start address paired with a positive displacement length whose action point does
+  not exceed the start address's length — these being precisely TA0's preconditions for s ⊕ ℓ
+  to lie in T — denoting the contiguous set of tumblers from the start up to (but not including)
+  the start plus the length; it is a half-open interval in tumbler address space.
