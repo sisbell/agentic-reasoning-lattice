@@ -1,7 +1,11 @@
 label: TA1
 name: OrderPreservationUnderAddition
 type: definition
-depends: []
+depends:
+  - T1
+  - T3
+  - TA0
+  - TumblerAdd
 summary: 'Tumbler addition weakly preserves order: if `a < b` and both additions are well-defined, then `a ⊕ w ≤ b ⊕ w`. This
   is the universal (but non-strict) guarantee; strict preservation requires the additional constraint that the action point
   meets or exceeds the divergence of `a` and `b`.'

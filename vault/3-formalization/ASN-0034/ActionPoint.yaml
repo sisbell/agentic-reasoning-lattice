@@ -1,0 +1,7 @@
+label: ActionPoint
+name: ActionPoint
+type: definition
+depends:
+- PositiveTumbler
+summary: Defines the action point of a positive tumbler as the least index with a nonzero component.
+  Existence follows from PositiveTumbler; bounds are 1 ≤ actionPoint(w) ≤ #w.
