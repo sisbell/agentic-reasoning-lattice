@@ -1,4 +1,4 @@
-**TA1-strict (StrictOrderPreservation).** `(A a, b, w : a < b ∧ w > 0 ∧ k ≤ min(#a, #b) ∧ k ≥ divergence(a, b) : a ⊕ w < b ⊕ w)`, where `k` is the action point of `w`.
+**TA1-strict (StrictOrderPreservation).** `(A a, b, w : a < b ∧ Pos(w) ∧ actionPoint(w) ≤ min(#a, #b) ∧ actionPoint(w) ≥ divergence(a, b) : a ⊕ w < b ⊕ w)`.
 
 When the action point falls before the divergence — `k < divergence(a, b)` — both operands agree at position `k`, both get the same `wₖ` added, and both copy the same tail from `w` afterward. The original divergence is erased and the results are equal. For example, `a = [1, 3]`, `b = [1, 5]` (diverge at position 2), `w = [2]` (action point at position 1): `a ⊕ w = [3] = b ⊕ w`. Order degrades to equality, never reversal.
 
@@ -15,7 +15,7 @@ Recall TumblerAdd's constructive definition: for any tumbler `x` and positive di
 In both cases, `a ⊕ w < b ⊕ w`. ∎
 
 *Formal Contract:*
-- *Preconditions:* a ∈ T, b ∈ T, w ∈ T, a < b, w > 0, actionPoint(w) ≤ min(#a, #b), actionPoint(w) ≥ divergence(a, b)
+- *Preconditions:* a ∈ T, b ∈ T, w ∈ T, a < b, Pos(w), actionPoint(w) ≤ min(#a, #b), actionPoint(w) ≥ divergence(a, b)
 - *Postconditions:* a ⊕ w < b ⊕ w
 
 But TA1 alone does not guarantee that addition *advances* a position. It preserves relative order between two positions but is silent about the relationship between `a` and `a ⊕ w`. We need:

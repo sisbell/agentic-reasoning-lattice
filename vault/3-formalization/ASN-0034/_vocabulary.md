@@ -25,7 +25,8 @@
 - **node field** — N₁. ... .Nₐ — the first field of an address tumbler, identifying the server
 - **non-empty field constraint** — each present field in a valid address tumbler has at least one component
 - **order-convex** — a set S is order-convex if for all a, c ∈ S and b ∈ T, a ≤ b ≤ c implies b ∈ S (synonym: contiguous)
-- **positive tumbler** — t > 0 iff at least one component is nonzero
+- **Pos(t)** — positive tumbler predicate: t ∈ T is positive iff at least one component is nonzero — (E i : 1 ≤ i ≤ #t : tᵢ ≠ 0). Distinct from T1-positivity: [0,0] > [0] under T1 but ¬Pos([0,0])
+- **positive tumbler** — Pos(t) iff at least one component is nonzero
 - **positive-component constraint** — every component of every field in a valid address tumbler is strictly positive (> 0)
 - **result-length identity** — #(a ⊕ w) = #w — the length of the sum equals the length of the displacement, not the start position
 - **same_allocator(a, b)** — predicate: both a and b appear in the same allocator's sequential sibling stream
@@ -33,7 +34,7 @@
 - **sig(t)** — last significant position of tumbler t: max({i : 1 ≤ i ≤ #t ∧ tᵢ ≠ 0}) when any component is nonzero; #t when all components are zero
 - **span(s, ℓ)** — set of tumblers in range: {t ∈ T : s ≤ t < s ⊕ ℓ}, where s is start address and ℓ is a positive tumbler displacement
 - **t = d₁.d₂. ... .dₙ** — tumbler notation: a finite sequence of components where each dᵢ ∈ ℕ and n ≥ 1
-- **t > 0** — positive tumbler: t ∈ T is positive iff at least one component is nonzero — (E i : 1 ≤ i ≤ #t : tᵢ ≠ 0)
+- **t > 0 (DEPRECATED)** — ambiguous notation; use Pos(t) instead. Under T1, t > [0] is satisfied by all-zero tumblers of length ≥ 2, which are not PositiveTumbler-positive
 - **tail replacement** — operation in tumbler addition where result components beyond the action point are copied from w: rᵢ = wᵢ for i > k
 - **user field** — U₁. ... .Uᵦ — the second field of an address tumbler, identifying the account
 - **zero tumbler** — a tumbler whose every component is zero — (A i : 1 ≤ i ≤ #t : tᵢ = 0)

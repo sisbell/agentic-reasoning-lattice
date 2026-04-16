@@ -33,5 +33,5 @@ Positions `i > k` impose no constraint on `a` or `b`: `(a ⊕ w)ᵢ = wᵢ = (b 
 This gives a precise characterization of the equivalence classes: *a and b produce the same result under w if and only if they agree on the first k components, where k is the action point of w.*
 
 *Formal Contract:*
-- *Preconditions:* w ∈ T, w > 0, a ∈ T, b ∈ T, #a ≥ actionPoint(w), #b ≥ actionPoint(w)
+- *Preconditions:* w ∈ T, Pos(w), a ∈ T, b ∈ T, #a ≥ actionPoint(w), #b ≥ actionPoint(w)
 - *Postconditions:* a ⊕ w = b ⊕ w ⟺ (A i : 1 ≤ i ≤ actionPoint(w) : aᵢ = bᵢ)

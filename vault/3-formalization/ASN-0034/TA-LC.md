@@ -1,10 +1,10 @@
 ### Verification of TA1 and TA1-strict
 
-**Claim:** (TA1, weak form). If `a < b`, `w > 0`, and `k ≤ min(#a, #b)`, then `a ⊕ w ≤ b ⊕ w`.
+**Claim:** (TA1, weak form). If `a < b`, `Pos(w)`, and `actionPoint(w) ≤ min(#a, #b)`, then `a ⊕ w ≤ b ⊕ w`.
 
-**Claim:** (TA1-strict). If additionally `k ≥ divergence(a, b)`, then `a ⊕ w < b ⊕ w`.
+**Claim:** (TA1-strict). If additionally `actionPoint(w) ≥ divergence(a, b)`, then `a ⊕ w < b ⊕ w`.
 
-*Proof.* Let `j = divergence(a, b)`. In case (i) of the Divergence definition, `aⱼ < bⱼ`; in case (ii), `j = min(#a, #b) + 1` exceeds both tumblers' shared positions and the ordering `a < b` follows from the prefix rule. Three cases arise.
+*Proof.* Let `k = actionPoint(w)` and let `j = divergence(a, b)`. In case (i) of the Divergence definition, `aⱼ < bⱼ`; in case (ii), `j = min(#a, #b) + 1` exceeds both tumblers' shared positions and the ordering `a < b` follows from the prefix rule. Three cases arise.
 
 *Case 1: `k < j`.* Both `a` and `b` agree at position `k` (since `k < j`), so `(a ⊕ w)ₖ = aₖ + wₖ = bₖ + wₖ = (b ⊕ w)ₖ`. At positions after `k`, both results copy from `w`, giving identical tails. So `a ⊕ w = b ⊕ w`. The weak form (`≤`) holds. The strict form does not — the original divergence is erased by tail replacement.
 
@@ -74,7 +74,7 @@ TumblerAdd's constructive definition determines each component of the result fro
 
 *Proof.* We show that from the hypothesis `a ⊕ x = a ⊕ y`, with both additions satisfying TA0, it follows that `x = y`. The argument proceeds in two stages: first we establish that `x` and `y` share the same action point, then we show component-wise and length equality.
 
-Let `k₁` be the action point of `x` and `k₂` the action point of `y`. Both exist because TA0 requires `x > 0` and `y > 0`, so each has at least one nonzero component. We eliminate both strict orderings.
+Let `k₁` be the action point of `x` and `k₂` the action point of `y`. Both exist because TA0 requires `Pos(x)` and `Pos(y)`, so each has at least one nonzero component. We eliminate both strict orderings.
 
 **Case k₁ < k₂.** Since `k₁ < k₂` and the action point is the first nonzero component, every component of `y` before position `k₂` is zero — in particular `y_{k₁} = 0`. Position `k₁` therefore falls in the prefix-copy region of the addition `a ⊕ y`: by TumblerAdd, `(a ⊕ y)_{k₁} = a_{k₁}`. In the addition `a ⊕ x`, position `k₁` is the action point itself, so TumblerAdd gives `(a ⊕ x)_{k₁} = a_{k₁} + x_{k₁}`. From `a ⊕ x = a ⊕ y` we obtain `a_{k₁} + x_{k₁} = a_{k₁}`, hence `x_{k₁} = 0`. But `k₁` is the action point of `x`, so by definition `x_{k₁} > 0` — contradiction.
 
@@ -97,5 +97,5 @@ TumblerAdd is *left-cancellative*: the start position can be "divided out" from 
 *Worked example.* Let a = [2, 5] and suppose a ⊕ x = a ⊕ y = [2, 8]. We recover x and y uniquely. First, the action points must agree. Suppose k_x = 1: then (a ⊕ x)₁ = a₁ + x₁ = 2 + x₁ = 2, giving x₁ = 0, which contradicts k_x = 1 being the first nonzero component. So k_x ≠ 1, and since #x ≤ 2 (from the result length), k_x = 2. Now suppose k_y = 1: then (a ⊕ y)₁ = a₁ + y₁ = 2 + y₁ = 2, giving y₁ = 0, which contradicts k_y = 1. So k_y = 2. At position k = 2: a₂ + x₂ = 5 + x₂ = 8 gives x₂ = 3, and a₂ + y₂ = 5 + y₂ = 8 gives y₂ = 3. For i < k: x₁ = 0 = y₁ (both zero before the action point). From the result-length identity: #(a ⊕ x) = #x, so #x = 2 = #y. By T3, x = y = [0, 3].
 
 *Formal Contract:*
-- *Preconditions:* a, x, y ∈ T; x > 0; y > 0; actionPoint(x) ≤ #a; actionPoint(y) ≤ #a; a ⊕ x = a ⊕ y
+- *Preconditions:* a, x, y ∈ T; Pos(x); Pos(y); actionPoint(x) ≤ #a; actionPoint(y) ≤ #a; a ⊕ x = a ⊕ y
 - *Postconditions:* x = y

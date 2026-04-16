@@ -1,4 +1,4 @@
-**ReverseInverse (ReverseInverse).** `(A a, w : a ≥ w ∧ w > 0 ∧ k = #a ∧ #w = k ∧ (A i : 1 ≤ i < k : aᵢ = 0) : (a ⊖ w) ⊕ w = a)`, where `k` is the action point of `w`.
+**ReverseInverse (ReverseInverse).** `(A a, w : a ≥ w ∧ Pos(w) ∧ k = #a ∧ #w = k ∧ (A i : 1 ≤ i < k : aᵢ = 0) : (a ⊖ w) ⊕ w = a)`, where `k` is the action point of `w`.
 
 *Proof.* We show that subtracting `w` from `a` and then adding `w` back recovers `a` exactly, under conditions that make the two operations mutually inverse. Throughout, `k` denotes the action point of `w` — the least position with `wₖ > 0` — so by definition `wᵢ = 0` for all `i < k`.
 
@@ -10,7 +10,7 @@ Two cases arise at position `k`. If `aₖ = wₖ`, then `a` and `w` agree at eve
 - (Y2) `yᵢ = 0` for all `1 ≤ i < k`
 - (Y3) `yₖ = aₖ - wₖ`
 
-**Step 2: TA4 applies to `y` and `w`.** TA4 (Partial inverse) requires four preconditions: `w > 0` (given), `k = #y` (by Y1), `#w = k` (given), and `(A i : 1 ≤ i < k : yᵢ = 0)` (by Y2). All four hold, so TA4 yields:
+**Step 2: TA4 applies to `y` and `w`.** TA4 (Partial inverse) requires four preconditions: `Pos(w)` (given), `k = #y` (by Y1), `#w = k` (given), and `(A i : 1 ≤ i < k : yᵢ = 0)` (by Y2). All four hold, so TA4 yields:
 
 `(y ⊕ w) ⊖ w = y`  — (†)
 
@@ -31,5 +31,5 @@ Two cases arise at position `k`. If `aₖ = wₖ`, then `a` and `w` agree at eve
 Both cases are impossible, so the assumption `y ⊕ w ≠ a` is false. Therefore `(a ⊖ w) ⊕ w = a`. ∎
 
 *Formal Contract:*
-- *Preconditions:* `a ∈ T`, `w ∈ T`, `a ≥ w`, `w > 0`, `k = #a`, `#w = k`, `(A i : 1 ≤ i < k : aᵢ = 0)`, where `k` is the action point of `w`
+- *Preconditions:* `a ∈ T`, `w ∈ T`, `a ≥ w`, `Pos(w)`, `k = #a`, `#w = k`, `(A i : 1 ≤ i < k : aᵢ = 0)`, where `k` is the action point of `w`
 - *Postconditions:* `(a ⊖ w) ⊕ w = a`

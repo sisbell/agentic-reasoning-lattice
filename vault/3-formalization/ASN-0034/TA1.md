@@ -1,8 +1,8 @@
-**TA1 (OrderPreservationUnderAddition).** `(A a, b, w : a < b ∧ w > 0 ∧ k ≤ min(#a, #b) : a ⊕ w ≤ b ⊕ w)`, where `k` is the action point of `w`.
+**TA1 (OrderPreservationUnderAddition).** `(A a, b, w : a < b ∧ Pos(w) ∧ actionPoint(w) ≤ min(#a, #b) : a ⊕ w ≤ b ⊕ w)`.
 
-TA1 guarantees weak (`≤`) order preservation universally — if two positions were in order before advancement, they remain in non-reversed order after. The precondition `k ≤ min(#a, #b)` inherits from TA0: both operations must be well-defined.
+TA1 guarantees weak (`≤`) order preservation universally — if two positions were in order before advancement, they remain in non-reversed order after. The precondition `actionPoint(w) ≤ min(#a, #b)` inherits from TA0: both operations must be well-defined.
 
-*Proof.* We show that for all `a, b, w ∈ T` with `a < b`, `w > 0`, and action point `k ≤ min(#a, #b)`, the advanced positions satisfy `a ⊕ w ≤ b ⊕ w`.
+*Proof.* We show that for all `a, b, w ∈ T` with `a < b`, `Pos(w)`, and `actionPoint(w) ≤ min(#a, #b)`, the advanced positions satisfy `a ⊕ w ≤ b ⊕ w`.
 
 Let `k` be the action point of `w`. By TumblerAdd, the operation `⊕` builds the result in three regions: for `i < k`, `(a ⊕ w)ᵢ = aᵢ` (copy from start); at `i = k`, `(a ⊕ w)ₖ = aₖ + wₖ` (advance); for `i > k`, `(a ⊕ w)ᵢ = wᵢ` (copy from displacement). By TA0, both `a ⊕ w` and `b ⊕ w` are well-defined members of `T` with length `#w`, since `k ≤ min(#a, #b)` ensures the action point falls within both operands. The same three rules apply to `b ⊕ w`.
 
@@ -21,7 +21,7 @@ Since `a < b`, T1 provides exactly two cases: either (i) there exists a least po
 In every case and sub-case, `a ⊕ w ≤ b ⊕ w`. ∎
 
 *Formal Contract:*
-- *Preconditions:* a ∈ T, b ∈ T, w ∈ T, a < b, w > 0, actionPoint(w) ≤ min(#a, #b)
+- *Preconditions:* a ∈ T, b ∈ T, w ∈ T, a < b, Pos(w), actionPoint(w) ≤ min(#a, #b)
 - *Postconditions:* a ⊕ w ≤ b ⊕ w
 
 Strict order preservation holds under a tighter condition. We first need a precise notion of where two tumblers first differ.

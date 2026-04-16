@@ -8,9 +8,9 @@ Gregory's implementation reveals the resolution. The operands passed to the arit
 
 **TA7a (SubspaceClosure).** The canonical representation for shift arithmetic is the *ordinal-only* formulation: a position in a subspace with identifier `N` and ordinal `o = [o₁, ..., oₘ]` (where `m ≥ 1`) is represented as the tumbler `o` for arithmetic purposes, with `N` held as structural context. Define **S** = {o ∈ T : #o ≥ 1 ∧ (A i : 1 ≤ i ≤ #o : oᵢ > 0)} — ordinals with all positive components, matching T4's positive-component constraint on element fields. An element-local displacement is a positive tumbler `w` with action point `k` satisfying `1 ≤ k ≤ m`. In this formulation:
 
-  `(A o ∈ S, w > 0 : k ≤ #o ⟹ o ⊕ w ∈ T)`
+  `(A o ∈ S, Pos(w) : k ≤ #o ⟹ o ⊕ w ∈ T)`
 
-  `(A o ∈ S, w > 0 : o ≥ w ⟹ o ⊖ w ∈ T)`
+  `(A o ∈ S, Pos(w) : o ≥ w ⟹ o ⊖ w ∈ T)`
 
 Both claims assert closure in T: arithmetic on ordinals, with the subspace identifier held as structural context, produces results that remain in T. The subspace identifier is not an operand — it determines *which* positions are subject to the shift, but never enters the arithmetic. This design ensures that no shift can escape the subspace.
 
@@ -20,7 +20,7 @@ The ordinal-only formulation is not arbitrary. The natural 2-component formulati
 
 Let `o = [o₁, ..., oₘ]` with `o ∈ S`, so `m ≥ 1` and every `oᵢ > 0`. Let `w` be a positive displacement with action point `k = min({i : 1 ≤ i ≤ #w ∧ wᵢ ≠ 0})`.
 
-**Conjunct 1** (`⊕`-closure in T). The precondition gives `o ∈ T`, `w ∈ T`, `w > 0`, and `k ≤ #o = m`. These are exactly the preconditions of TA0 (well-defined addition). By TA0, `o ⊕ w ∈ T`, with `#(o ⊕ w) = #w`. The subspace identifier, held as structural context outside the operands, is untouched.
+**Conjunct 1** (`⊕`-closure in T). The precondition gives `o ∈ T`, `w ∈ T`, `Pos(w)`, and `k ≤ #o = m`. These are exactly the preconditions of TA0 (well-defined addition). By TA0, `o ⊕ w ∈ T`, with `#(o ⊕ w) = #w`. The subspace identifier, held as structural context outside the operands, is untouched.
 
 A stronger result holds for S-membership. By TumblerAdd's constructive definition, the result `r = o ⊕ w` has components: `rᵢ = oᵢ > 0` for `1 ≤ i < k` (prefix copied from `o ∈ S`); `rₖ = oₖ + wₖ > 0` (since `oₖ > 0` because `o ∈ S`, and `wₖ > 0` because `k` is the action point of `w`); and `rᵢ = wᵢ` for `k < i ≤ #w` (tail copied from the displacement). Components before and at the action point are positive. The result is in S precisely when every tail component `wᵢ` (for `i > k`) is also positive. For single-component ordinals — the common case — `[x] ⊕ [n] = [x + n]`, which is unconditionally in S since both `x > 0` and `n > 0`.
 
@@ -45,7 +45,7 @@ In every case, the result lies in T. The subspace identifier, held as structural
 The restriction to element-local displacements is necessary. An unrestricted displacement whose action point falls at the subspace-identifier position could produce an address in a different subspace — TA7a cannot hold for arbitrary `w`.
 
 *Formal Contract:*
-- *Preconditions:* For `⊕`: `o ∈ S`, `w ∈ T`, `w > 0`, `actionPoint(w) ≤ #o`. For `⊖`: `o ∈ S`, `w ∈ T`, `w > 0`, `o ≥ w`.
+- *Preconditions:* For `⊕`: `o ∈ S`, `w ∈ T`, `Pos(w)`, `actionPoint(w) ≤ #o`. For `⊖`: `o ∈ S`, `w ∈ T`, `Pos(w)`, `o ≥ w`.
 - *Postconditions:* `o ⊕ w ∈ T`, `#(o ⊕ w) = #w`. `o ⊖ w ∈ T`. For `⊕`, the result is in S when all tail components of `w` (after the action point) are positive. For `⊖` with `actionPoint(w) ≥ 2` and `#w ≤ #o`: the divergence falls at position 1, TumblerSub produces `o` itself (a no-op), and the result is in S. For `⊖` with `actionPoint(w) = 1` and divergence at position `d = 1` (i.e., `o₁ ≠ w₁`): `r₁ = o₁ - w₁ > 0` and `rᵢ = oᵢ > 0` for `i > 1`, so the result is in S when `#w ≤ #o`. For `⊖` with `actionPoint(w) = 1` and divergence at position `d > 1` (i.e., `o₁ = w₁`): the result has `r₁ = 0` and lies in `T \ S` (counterexample: `[5, 3] ⊖ [5, 1] = [0, 2]`). For `⊖` when `#w > #o`: the result inherits trailing zeros at positions `#o + 1` through `#w` and lies in `T \ S`. For `⊖` on single-component ordinals (`#o = 1`, `#w = 1`): the result is in `S ∪ Z`: `[x] ⊖ [n] ∈ S` when `x > n`, and `[x] ⊖ [n] ∈ Z` when `x = n`.
 - *Frame:* The subspace identifier `N`, held as structural context, is not an operand and is never modified by either operation.
 - *Definition:* **S** = {o ∈ T : #o ≥ 1 ∧ (A i : 1 ≤ i ≤ #o : oᵢ > 0)} — ordinals with all positive components, matching T4's positive-component constraint on element fields.

@@ -6,9 +6,9 @@
 
 Fix v ∈ T with #v = m, and fix n ≥ 1. By OrdinalShift, shift(v, n) = v ⊕ δ(n, m), so we must show v ⊕ δ(n, m) > v.
 
-We apply TA-strict (Strict increase) with start position a = v and displacement w = δ(n, m). TA-strict requires two preconditions: w > 0, and actionPoint(w) ≤ #a. We verify each.
+We apply TA-strict (Strict increase) with start position a = v and displacement w = δ(n, m). TA-strict requires two preconditions: Pos(w), and actionPoint(w) ≤ #a. We verify each.
 
-*First precondition: δ(n, m) > 0.* By OrdinalDisplacement, δ(n, m) = [0, ..., 0, n] of length m, with n at position m. Since n ≥ 1, component m is positive, so δ(n, m) is not the zero tumbler — that is, δ(n, m) > 0.
+*First precondition: Pos(δ(n, m)).* By OrdinalDisplacement, δ(n, m) = [0, ..., 0, n] of length m, with n at position m. Since n ≥ 1, component m is positive, so δ(n, m) is not the zero tumbler — that is, Pos(δ(n, m)).
 
 *Second precondition: actionPoint(δ(n, m)) ≤ #v.* By OrdinalDisplacement, the action point of δ(n, m) is m (position m is the first nonzero component, since positions 1 through m − 1 are zero and position m is n ≥ 1). Since #v = m, the precondition m ≤ m holds.
 

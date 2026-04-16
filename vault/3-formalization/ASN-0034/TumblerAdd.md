@@ -28,7 +28,7 @@ AFTER:  1.0.3.0.5.0.1.1
 
 Reading `[0,0,0,0,3,0,1,1]`: four leading zeros mean "same server, same account." Component 5 is 3: "advance 3 documents." Trailing `[0,1,1]`: "land at element 1.1 in the target document." The start position's element field `[1,777]` is replaced by the displacement's trailing structure `[1,1]`.
 
-**TumblerAdd (TumblerAdd).** Let `a = [a₁, ..., aₘ]` and `w = [w₁, ..., wₙ]` with `a, w ∈ T` and `w > 0`. Define the *action point* of `w` as `k = min{i : 1 ≤ i ≤ n ∧ wᵢ ≠ 0}` — the index of the first nonzero component. By PositiveTumbler, the precondition `w > 0` means `(E i : 1 ≤ i ≤ n : wᵢ ≠ 0)` — at least one component of `w` is nonzero — so the set `{i : 1 ≤ i ≤ n ∧ wᵢ ≠ 0}` is non-empty and `k` is well-defined. Require `k ≤ m`: the action point must fall within the start position's length.
+**TumblerAdd (TumblerAdd).** Let `a = [a₁, ..., aₘ]` and `w = [w₁, ..., wₙ]` with `a, w ∈ T` and `Pos(w)`. Define the *action point* of `w` as `k = min{i : 1 ≤ i ≤ n ∧ wᵢ ≠ 0}` — the index of the first nonzero component. By PositiveTumbler, the precondition `Pos(w)` means `(E i : 1 ≤ i ≤ n : wᵢ ≠ 0)` — at least one component of `w` is nonzero — so the set `{i : 1 ≤ i ≤ n ∧ wᵢ ≠ 0}` is non-empty and `k` is well-defined. Require `k ≤ m`: the action point must fall within the start position's length.
 
 ```
          ⎧ aᵢ           if i < k        (copy from start)
@@ -63,7 +63,7 @@ Three properties of this definition require explicit statement:
 This is correct and intentional: advancing to "the beginning of the next chapter" lands at the same place regardless of where you were within the current chapter. ∎
 
 *Formal Contract:*
-- *Preconditions:* a ∈ T, w ∈ T, w > 0 (PositiveTumbler), actionPoint(w) ≤ #a
+- *Preconditions:* a ∈ T, w ∈ T, Pos(w) (PositiveTumbler), actionPoint(w) ≤ #a
 - *Definition:* k = min{i : 1 ≤ i ≤ n ∧ wᵢ ≠ 0}; rᵢ = aᵢ if i < k; rₖ = aₖ + wₖ; rᵢ = wᵢ if i > k
 - *Depends:* T1 (LexicographicOrder) — both ordering postconditions invoke T1 case (i) at the first divergence position. T3 (CanonicalRepresentation) — the equality sub-case of `a ⊕ w ≥ w` concludes `r = w` from component-wise agreement and equal length.
 - *Postconditions:* a ⊕ w ∈ T, #(a ⊕ w) = #w, a ⊕ w > a (T1), a ⊕ w ≥ w (T1, T3)

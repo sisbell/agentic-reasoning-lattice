@@ -1,4 +1,4 @@
-**TA4 (PartialInverse).** `(A a, w : w > 0 ∧ k = #a ∧ #w = k ∧ (A i : 1 ≤ i < k : aᵢ = 0) : (a ⊕ w) ⊖ w = a)`, where `k` is the action point of `w`.
+**TA4 (PartialInverse).** `(A a, w : Pos(w) ∧ k = #a ∧ #w = k ∧ (A i : 1 ≤ i < k : aᵢ = 0) : (a ⊕ w) ⊖ w = a)`, where `k` is the action point of `w`.
 
 The precondition has three parts. First, `k = #a` — the action point falls at the last component of `a`. This is necessary because addition replaces `a`'s trailing structure below the action point with `w`'s trailing structure (tail replacement, defined below). When `k < #a`, components `aₖ₊₁, ..., a_{#a}` are discarded by addition and cannot be recovered by subtraction. Concretely: `[1, 5] ⊕ [1, 3] = [2, 3]` (action point 1, position 2 replaced by `w`'s trailing `3`), then `[2, 3] ⊖ [1, 3] = [1, 3] ≠ [1, 5]`.
 
@@ -8,7 +8,7 @@ Third, `(A i : 1 ≤ i < k : aᵢ = 0)` — all components of `a` before the act
 
 When all three conditions hold, recovery is exact. The restriction is not a deficiency but a precise statement of when the operations are inverses.
 
-The precondition `w > 0` (PositiveTumbler) guarantees that the action point `k` exists; by PositiveTumbler, this excludes every all-zero displacement regardless of length.
+The precondition `Pos(w)` (PositiveTumbler) guarantees that the action point `k` exists; by PositiveTumbler, this excludes every all-zero displacement regardless of length.
 
 *Proof.* We show that under the stated preconditions, the round-trip `(a ⊕ w) ⊖ w` recovers `a` exactly. Throughout, `k` denotes the action point of `w` — the least position `i` with `wᵢ > 0` — so by definition `wᵢ = 0` for all `i < k` and `wₖ > 0`.
 
@@ -33,7 +33,7 @@ Two cases arise at position `k`, exhausting all possibilities for `aₖ ∈ ℕ`
 In both cases, `(a ⊕ w) ⊖ w = a`. ∎
 
 *Formal Contract:*
-- *Preconditions:* `a ∈ T`, `w ∈ T`, `w > 0`, `k = #a`, `#w = k`, `(A i : 1 ≤ i < k : aᵢ = 0)`, where `k` is the action point of `w`
+- *Preconditions:* `a ∈ T`, `w ∈ T`, `Pos(w)`, `k = #a`, `#w = k`, `(A i : 1 ≤ i < k : aᵢ = 0)`, where `k` is the action point of `w`
 - *Postconditions:* `(a ⊕ w) ⊖ w = a`
 
 Gregory's analysis confirms that `⊕` and `⊖` are NOT inverses in general. The implementation's `absadd` is asymmetric: the first argument supplies the high-level prefix, the second supplies the low-level suffix. When `d = a ⊖ b` strips a common prefix (reducing the exponent), `b ⊕ d` puts the difference in the wrong operand position — `absadd`'s else branch discards the first argument entirely and returns the second. The operand-order asymmetry causes total information loss even before any digit overflow.
