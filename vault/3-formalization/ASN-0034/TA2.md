@@ -26,8 +26,9 @@ We verify that each region produces non-negative integer components.
 
 The result `r` has length `p = max(#a, #w) ≥ 1` with every component in ℕ — a member of T.
 
-In both cases, `a ⊖ w ∈ T`. ∎
+In both cases, `a ⊖ w ∈ T` with `#(a ⊖ w) = max(#a, #w)`. ∎
 
 *Formal Contract:*
 - *Preconditions:* a ∈ T, w ∈ T, a ≥ w
-- *Postconditions:* a ⊖ w ∈ T
+- *Depends:* TumblerSub (TumblerSub) — the proof delegates to TumblerSub's piecewise construction: component membership in ℕ and result length `max(#a, #w) ≥ 1` are established by TumblerSub's definition. T1 (LexicographicOrder) — the proof derives `a > w` from `a ≥ w ∧ a ≠ w` via T1 trichotomy, then uses T1's two cases to establish `aₖ ≥ wₖ` at the divergence point. T3 (CanonicalRepresentation) — the proof concludes `a ≠ w` from the existence of a padded divergence: if `a = w` by T3, the padded sequences would be identical, contradicting the case hypothesis.
+- *Postconditions:* a ⊖ w ∈ T, #(a ⊖ w) = max(#a, #w)

@@ -28,7 +28,7 @@ AFTER:  1.0.3.0.5.0.1.1
 
 Reading `[0,0,0,0,3,0,1,1]`: four leading zeros mean "same server, same account." Component 5 is 3: "advance 3 documents." Trailing `[0,1,1]`: "land at element 1.1 in the target document." The start position's element field `[1,777]` is replaced by the displacement's trailing structure `[1,1]`.
 
-**TumblerAdd (TumblerAdd).** Let `a = [a₁, ..., aₘ]` and `w = [w₁, ..., wₙ]` with `a, w ∈ T` and `Pos(w)`. Define the *action point* of `w` as `k = min{i : 1 ≤ i ≤ n ∧ wᵢ ≠ 0}` — the index of the first nonzero component. By PositiveTumbler, the precondition `Pos(w)` means `(E i : 1 ≤ i ≤ n : wᵢ ≠ 0)` — at least one component of `w` is nonzero — so the set `{i : 1 ≤ i ≤ n ∧ wᵢ ≠ 0}` is non-empty and `k` is well-defined. Require `k ≤ m`: the action point must fall within the start position's length.
+**TumblerAdd (TumblerAdd).** Let `a = [a₁, ..., aₘ]` and `w = [w₁, ..., wₙ]` with `a, w ∈ T` and `Pos(w)`. By ActionPoint, the precondition `Pos(w)` yields a well-defined action point `k = actionPoint(w)` — the least index with a nonzero component — satisfying `1 ≤ k ≤ n` and `wₖ ≥ 1`. Require `k ≤ m`: the action point must fall within the start position's length.
 
 ```
          ⎧ aᵢ           if i < k        (copy from start)
@@ -63,7 +63,7 @@ Three properties of this definition require explicit statement:
 This is correct and intentional: advancing to "the beginning of the next chapter" lands at the same place regardless of where you were within the current chapter. ∎
 
 *Formal Contract:*
-- *Preconditions:* a ∈ T, w ∈ T, Pos(w) (PositiveTumbler), actionPoint(w) ≤ #a
-- *Definition:* k = min{i : 1 ≤ i ≤ n ∧ wᵢ ≠ 0}; rᵢ = aᵢ if i < k; rₖ = aₖ + wₖ; rᵢ = wᵢ if i > k
-- *Depends:* T0 (CarrierSetDefinition) — membership `a ⊕ w ∈ T` is concluded via T0's characterisation of T as finite sequences over ℕ with length ≥ 1. PositiveTumbler (PositiveTumbler) — the precondition `Pos(w)` guarantees the action-point set `{i : wᵢ ≠ 0}` is non-empty, making `k` well-defined. T1 (LexicographicOrder) — both ordering postconditions invoke T1 case (i) at the first divergence position. T3 (CanonicalRepresentation) — the equality sub-case of `a ⊕ w ≥ w` concludes `r = w` from component-wise agreement and equal length.
+- *Preconditions:* a ∈ T, w ∈ T, Pos(w) (PositiveTumbler), actionPoint(w) ≤ #a (ActionPoint)
+- *Definition:* k = actionPoint(w) (ActionPoint); rᵢ = aᵢ if i < k; rₖ = aₖ + wₖ; rᵢ = wᵢ if i > k
+- *Depends:* T0 (CarrierSetDefinition) — membership `a ⊕ w ∈ T` is concluded via T0's characterisation of T as finite sequences over ℕ with length ≥ 1. ActionPoint (ActionPoint) — supplies `k = actionPoint(w)` with bounds `1 ≤ k ≤ n` and `wₖ ≥ 1`. PositiveTumbler (PositiveTumbler) — defines the predicate `Pos(w)` used in the precondition. T1 (LexicographicOrder) — both ordering postconditions invoke T1 case (i) at the first divergence position. T3 (CanonicalRepresentation) — the equality sub-case of `a ⊕ w ≥ w` concludes `r = w` from component-wise agreement and equal length.
 - *Postconditions:* a ⊕ w ∈ T, #(a ⊕ w) = #w, a ⊕ w > a (T1), a ⊕ w ≥ w (T1, T3)

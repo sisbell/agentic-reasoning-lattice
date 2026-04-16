@@ -3,5 +3,6 @@ name: WellDefinedAddition
 type: theorem
 depends:
 - TumblerAdd
+- ActionPoint
 summary: Tumbler addition is well-defined whenever the action point of the displacement fits within the depth of the base
   address. The result is a tumbler whose depth equals the depth of the displacement, not the base.

@@ -4,5 +4,6 @@ type: corollary
 depends:
 - TumblerSub
 - T1
+- T3
 summary: 'Tumbler subtraction is closed on T: whenever a ≥ w, the result a ⊖ w is itself a valid tumbler. This establishes
   that the subtraction operator is well-defined and stays within the type.'

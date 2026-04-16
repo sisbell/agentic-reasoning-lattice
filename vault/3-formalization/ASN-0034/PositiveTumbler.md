@@ -18,4 +18,5 @@ The condition `Pos(w)` in TA0 excludes all all-zero displacements regardless of 
 
 *Formal Contract:*
 - *Definition:* `Pos(t)` (positive) iff `(E i : 1 ≤ i ≤ #t : tᵢ ≠ 0)`. Zero tumbler: `(A i : 1 ≤ i ≤ #t : tᵢ = 0)`.
+- *Depends:* T1 (LexicographicOrder) — the postcondition proof invokes T1 case (i) when `#z ≥ k` to conclude `z < t` from `zₖ = 0 < tₖ`, and T1 case (ii) when `#z < k` to conclude `z < t` from `z` being a proper prefix of `t`.
 - *Postconditions:* `(A t ∈ T, z ∈ T : Pos(t) ∧ (A i : 1 ≤ i ≤ #z : zᵢ = 0) :: z < t)` — every positive tumbler is strictly greater under T1 than every zero tumbler of any length.
