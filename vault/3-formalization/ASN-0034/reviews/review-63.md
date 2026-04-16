@@ -1,0 +1,27 @@
+# Cone Review — ASN-0034/D0 (cycle 2)
+
+*2026-04-16 01:31*
+
+I'll read through the full ASN systematically, tracing definitions, precondition chains, and cross-property contracts.
+
+### T0 (CarrierSetDefinition) referenced as a dependency throughout but absent from the ASN
+**Foundation**: T3 proof ("By T0, T is the set of all finite sequences over ℕ"), TumblerAdd formal contract ("Depends: T0 (CarrierSetDefinition)"), TumblerSub formal contract ("Depends: T0 (CarrierSetDefinition)")
+**ASN**: ASN metadata: "Declared depends: (none)"; no section defines T0
+**Issue**: Every membership conclusion `… ∈ T` in this ASN terminates at T0: the proofs assemble a finite sequence over ℕ with length ≥ 1 and invoke T0 to place the result in T. T3's proof appeals to T0 for the identity "T is the set of all finite sequences over ℕ," and T3 itself is characterized as holding "by the definition of the carrier set" — i.e., by T0. Yet T0 has no definition, no formal contract, and no axiom statement anywhere in the document. Nor is it declared as an external dependency. The carrier set's defining properties — that its elements are finite sequences, that components lie in ℕ, that length is at least 1 — are used pervasively but are grounded in a phantom. T1's proof also implicitly depends on T0: it uses `#a` (length), `aₖ` (component projection), and `a ∈ T` without establishing what these mean, yet does not list T0 in its Depends.
+**What needs resolving**: T0 must appear as a stated axiom or definition within this ASN (since the ASN declares no external dependencies), with a formal contract exporting the characterization that every other property consumes: T is the set of finite sequences over ℕ with length ≥ 1, equipped with length `#·` and component projection `·ᵢ`.
+
+---
+
+### D1 (round-trip identity) referenced by D0 but absent — the culminating displacement identity is unproved
+**Foundation**: D0 (DisplacementWellDefined), proof narrative: "Round-trip faithfulness requires the additional condition `#a ≤ #b`, under which `#w = #b` and the component-by-component recovery succeeds (D1)."
+**ASN**: The introductory paragraph of the displacement section promises: "We establish the well-definedness condition for such displacement recovery and the round-trip identity that guarantees faithfulness." D0 establishes the well-definedness condition. The round-trip identity `a ⊕ (b ⊖ a) = b` is never stated or proved. D1 does not appear as a property, lemma, or formal contract anywhere in the document.
+**Issue**: D0 is structurally incomplete without D1. D0 establishes that `b ⊖ a` is a positive tumbler with the correct action point and that `a ⊕ (b ⊖ a) ∈ T` — all the setup for the round-trip — and even proves the negative boundary (`#a > #b → a ⊕ (b ⊖ a) ≠ b`). But the positive result, the identity that motivates the entire displacement section, is deferred to a property that does not exist. A consumer reading only formal contracts sees that displacement subtraction is well-defined and that the forward addition is well-defined, but has no contract guaranteeing that the composition recovers the target. The ASN's narrative arc — "given positions `a < b`, compute the displacement and recover `b`" — is set up but never closed.
+**What needs resolving**: D1 must appear as a stated property with a formal contract, proving `a ⊕ (b ⊖ a) = b` under the conjunction of D0's preconditions and `#a ≤ #b`, with an explicit component-by-component verification against TumblerAdd's and TumblerSub's constructions.
+
+---
+
+### ZPD–Divergence case-correspondence consumed by downstream contracts but not exported by ZPD's formal contract
+**Foundation**: ZPD (ZeroPaddedDivergence), formal contract: "Domain: a ∈ T, w ∈ T. Definition: … Codomain: … Partiality: …" — no postconditions
+**ASN**: ZPD body text, "Relationship to Divergence": "In Divergence case (i) — component divergence at a shared position `k ≤ min(#a, #w)` — no padding is consulted at positions `1, ..., k` … hence `zpd(a, w) = divergence(a, w) = k`." TumblerSub's precondition proof cites this as "The ZPD–Divergence relationship (ZPD) gives `zpd(a, w) = divergence(a, w) = k`." D0's proof cites it as "`zpd(b, a) = divergence(a, b) = k` (ZPD, Relationship to Divergence, case (i))."
+**Issue**: The identity `zpd(a, w) = divergence(a, w)` in Divergence case (i), and the bound `zpd(a, w) ≥ divergence(a, w)` in case (ii), are derivable results stated only in ZPD's expository body text. ZPD's formal contract has no Postconditions section at all. Yet both TumblerSub and D0 treat the case-(i) identity as a citable result of ZPD — TumblerSub uses it to identify the subtraction's divergence point with the formal Divergence, and D0 uses it to equate `actionPoint(b ⊖ a)` with `divergence(a, b)`. A formalizer reading only formal contracts cannot trace these claims back to any exported statement. The gap also obscures the case-(ii) divergence: in that case zpd may strictly exceed Divergence's value or be undefined, a distinction that downstream proofs (D0's elimination of case (ii), TumblerSub's prefix handling) silently rely on.
+**What needs resolving**: ZPD's formal contract must export postconditions capturing the relationship to Divergence in both cases: (i) when `divergence(a, w)` falls at a shared position, `zpd(a, w) = divergence(a, w)`; (ii) when one operand is a proper prefix, `zpd(a, w) ≥ divergence(a, w)` when defined, and the conditions under which zpd is undefined. These are the results that TumblerSub and D0 actually consume.

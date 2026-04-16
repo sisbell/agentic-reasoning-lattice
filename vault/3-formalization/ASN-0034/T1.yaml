@@ -2,6 +2,7 @@ label: T1
 name: LexicographicOrder
 type: definition
 depends:
+- T0
 - T3
 summary: 'Tumblers are totally ordered lexicographically: compare component by component, and if one tumbler is a proper prefix
   of the other, the shorter one comes first. This total order is architecturally necessary because spans are defined as contiguous

@@ -2,10 +2,13 @@ label: D1
 name: DisplacementRoundTrip
 type: lemma
 depends:
-- TumblerAdd
-- TumblerSub
-- T3
 - Divergence
+- T1
 - ZPD
+- TumblerSub
+- PositiveTumbler
+- TA0
+- TumblerAdd
+- T3
 summary: 'Under the additional constraint that a is no longer than b, displacement is faithful: a ⊕ (b ⊖ a) = b exactly. This
   is the core round-trip lemma that ties subtraction and addition into an inverse pair.'
