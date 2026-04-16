@@ -36,4 +36,5 @@ In every case, `a ⊖ w ≤ b ⊖ w`. ∎
 
 *Formal Contract:*
 - *Preconditions:* a ∈ T, b ∈ T, w ∈ T, a < b, a ≥ w, b ≥ w
+- *Depends:* TA2 (WellFormedSubtraction) — establishes that `a ⊖ w` and `b ⊖ w` are well-formed tumblers in T, making the comparison well-defined. TumblerSub (TumblerSub) — supplies the component-wise subtraction definition (zero-padded divergence, three-phase formula) and the precondition consequence that `aₖ > wₖ` at `k = zpd(a, w)`, used throughout every case. T1 (LexicographicOrder) — provides the strict ordering `<` for the initial case split on `a < b` (prefix vs. component divergence), the derived relations `≥` and `≤` (T1 postcondition (d)) for the preconditions and postcondition, and the ordering comparisons in every sub-case. T3 (EqualityFromComponentAgreement) — concludes `a ⊖ w = b ⊖ w` from component-wise agreement in Sub-case A2's length-equality branch. TA6 (ZeroTumblerOrdering) — establishes that a zero tumbler is strictly less than any positive tumbler, used in Sub-cases A1, A3, and B1 to conclude `a ⊖ w < b ⊖ w` when one result is the zero tumbler.
 - *Postconditions:* a ⊖ w ≤ b ⊖ w

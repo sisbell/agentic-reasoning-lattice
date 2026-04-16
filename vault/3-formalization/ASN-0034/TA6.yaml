@@ -2,6 +2,7 @@ label: TA6
 name: ZeroTumblers
 type: corollary
 depends:
+- T0
 - T1
 - T4
 summary: No all-zero tumbler designates content — every such tumbler fails T4's positive-component requirement and is therefore
