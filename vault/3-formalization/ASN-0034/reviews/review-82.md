@@ -19,3 +19,9 @@
 **ASN**: T10a axiom body writes "satisfying the TA5a bounds (`k' = 1` when `zeros(t)` (TA5a) `≤ 3`, `k' = 2` when `zeros(t) ≤ 2`) to establish the child's prefix"; the corresponding *Formal Contract → Axiom → Depends* line lists "T4 (HierarchicalParsing…), TA5 (IncrementPostconditions…), TA5a (IncrementPreservesT4…)". Only T10a.4's Depends clause directly pairs the axiomatic `k' ∈ {1, 2}` restriction with TA5a's zero-count bounds; the axiom line itself does not quote the bounds it conditions on.
 **Issue**: The axiom, as written, imposes a side condition that `zeros(t)` must satisfy a bound *before* every child-spawning event. But T10a.4's proof is the only place that derives T4 preservation inductively — it assumes the allocator discipline already restricts `(t, k')` to pairs within TA5a's bounds. This is circular in tone: the axiom constrains `k'` by `zeros(t)`, but whether that constraint is *actively checked by the allocator* or *derived from T10a.4 given some implicit initial condition* is not stated. A reader auditing the precondition chain cannot tell whether a conforming allocator is required to compute `zeros(t)` at runtime, or whether the axiom is implicitly assuming the inductive invariant holds (making the `zeros(·)` clause redundant given T10a.4).
 **What needs resolving**: Clarify whether the `zeros(t)` bound in the axiom is a runtime precondition on the allocator (checked before each spawn) or a derived invariant (guaranteed by T10a.4 given a T4-valid root). If derived, the axiom could simply state `k' ∈ {1, 2}` and let T10a.4's proof supply the bound by induction; if required, the axiom's Depends line should prominently cite TA5a's `zeros(·)` definition as a precondition symbol whose meaning the axiom itself relies on to be well-formed.
+
+## Result
+
+Cone converged after 3 cycles.
+
+*Elapsed: 4550s*
