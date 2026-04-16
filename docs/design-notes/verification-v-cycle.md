@@ -50,6 +50,18 @@ Each scale is efficient at a different class of verification problem:
 
 Single-scale iteration wastes cycles: local grinds on issues it can't resolve, global scans dozens of properties to find one issue. Multi-scale cycling routes each problem to the scale that can handle it efficiently.
 
+## Structural Coverage: What Each Scale Can and Cannot See
+
+Beyond efficiency, the scales have different *structural coverage*. Some errors are not just inefficient to find at narrower scales — they are invisible. Global review is non-negotiable because of what the narrower scales cannot reach:
+
+**Vocabulary collisions between distant clusters.** When a symbol is used with one meaning in one cluster and a different meaning in another, cone review cannot see the conflict. Each cone narrows context to its apex and dependencies; distant collisions fall outside every cone's window. Only full-ASN context reveals the overlap.
+
+**Issues in properties below the cone-apex threshold.** The cone sweep runs on properties with at least a threshold number of same-ASN dependencies. Small properties — definitions, axioms, single-claim auxiliaries — never qualify as cone apexes. They appear only as dependencies in someone else's cone, where the reviewer's attention is on the apex. Issues internal to these properties (unsound claims, missing axiomatic support, silent assumptions) are structurally invisible to cone sweep. Global review reads every property with equal weight.
+
+**Cross-cone gaps in dependency declarations.** A property's YAML `depends` list is a local concern, but its correctness depends on usage across the whole ASN. A missing dependency is visible within a cone only if the dependent and the depended-upon are both in it. For dependencies that span cones, only the full-ASN view catches the omission.
+
+These are not efficiency arguments. They describe what each scale is architecturally positioned to detect. The V-cycle's value is not just faster convergence — it is complete coverage that no single scale provides.
+
 ## Relationship to Multigrid Methods
 
 The Verification V-Cycle adapts the multigrid V-cycle from numerical analysis. In multigrid, iterative relaxation on a fine grid eliminates high-frequency errors quickly but stalls on low-frequency (smooth) errors. Projecting the residual to a coarser grid makes the smooth error oscillatory and therefore easy to fix. Cycling between grid levels converges in O(N) operations — optimal.
