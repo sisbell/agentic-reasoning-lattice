@@ -5,6 +5,7 @@ depends:
 - Prefix
 - T10
 - T4
+- TA5
 - TA5a
 summary: The allocator discipline specifies that sibling outputs are produced exclusively by inc(·, 0) and child allocators
   are spawned by exactly one inc(·, k') with k' ∈ {1, 2}, with each (t, k') pair used at most once. The discipline is
