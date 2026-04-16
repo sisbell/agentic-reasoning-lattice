@@ -2,6 +2,7 @@ label: T8
 name: AllocationPermanence
 type: theorem
 depends:
+- AllocatedSet
 - T1
 - T2
 - T4

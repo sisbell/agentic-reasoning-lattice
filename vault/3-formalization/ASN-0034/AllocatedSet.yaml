@@ -1,0 +1,9 @@
+label: AllocatedSet
+name: AllocatedSet
+type: definition
+depends:
+  - T9
+  - T10a
+summary: Defines allocated(s) — the set of addresses allocated at state s — as the union of realized allocator domains
+  across all allocators activated in s. Bridges T10a's allocator mechanism and T9's per-allocator domains to the
+  state-indexed formulation used by T8 and NoDeallocation.

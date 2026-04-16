@@ -6,7 +6,7 @@ depends:
 - T10
 - T4
 summary: The allocator discipline specifies that sibling outputs are produced exclusively by inc(·, 0) and child allocators
-  are spawned by exactly one inc(·, k') with k' ∈ {1, 2}, with each (t, k') pair used at most once. This discipline is both
+  are spawned by exactly one inc(·, k') with k' ∈ {1, 2}, with each (t, k') pair used at most once. The discipline is
   sufficient to guarantee uniform sibling lengths, prefix-incomparability within allocators and across non-ancestor-descendant allocators, length separation
-  across depths, and T4 preservation — and necessary, since relaxing it allows a prefix relationship between siblings,
-  violating the T10 precondition.
+  across depths, and T4 preservation (T10a.1–T10a.5). The necessity proof (T10a-N) establishes that the sibling restriction
+  (k=0 only) is indispensable for prefix-incomparability; the remaining constraints serve T4 preservation and child-prefix uniqueness.
