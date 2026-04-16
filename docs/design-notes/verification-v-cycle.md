@@ -82,6 +82,20 @@ The analogy:
 
 The V-cycle differs from classical multigrid in two ways. First, each scale runs to internal convergence before passing to the next (cascadic behavior), rather than doing a few sweeps and restricting the residual. Second, the restriction is implicit — wider context reveals what narrower context can't see, rather than an explicit residual projection. The downward verification pass is this cycle's addition — classical cascadic multigrid has no downward pass.
 
+## The V-Cycle as Self-Evaluation
+
+Cross-review findings that appear to be cone-level issues are diagnostic signals — evidence that cone sweep did not genuinely converge, only stopped. A clean cross-review is not just completion; it is evidence that lower scales reached genuine ground state. This makes the V-cycle self-evaluating: the system assesses the quality of its own lower-scale processes through the pattern of what higher scales find.
+
+There is no noise in a truly converged system. What looks like noise at cross-review is a signal that a lower scale is incomplete. The pattern of findings tells you where the incompleteness lives:
+
+- **Cross-review finds a vocabulary collision** → genuine structural issue, cone sweep is architecturally unable to see it
+- **Cross-review finds something that looks like a cone-level issue** → cone sweep did not converge, go back
+- **Cross-review finds nothing** → lower scales reached genuine ground state, convergence is real
+
+This self-evaluation property is what makes the V-cycle a protocol substrate rather than just a verification procedure. A system that can detect incomplete convergence in its own processes can improve those processes — adjusting scope, reconfiguring cone boundaries, reallocating agent computation. The pattern language systematically reduces wasted computation by routing problems to the scale that can resolve them. The V-cycle's self-diagnostic signal is what makes that routing improvable over time.
+
+This connects directly to the adiabatic property of the protocol. Each scale's convergence is a genuine precondition for the next scale's findings being trustworthy — not just an ordering constraint. Running cross-review on a partially-converged system doesn't produce faster results; it produces misleading ones. The adiabatic ordering is what separates genuine structural findings from artifacts of incomplete lower-scale processing.
+
 ## Detection of Scale-Appropriate Problems
 
 The cycle includes a mechanical detection mechanism for regional-scale problems. The [dependency cone](../patterns/dependency-cone.md) pattern identifies properties that keep getting revised while their dependencies are stable — a signal that local review is stalling on a tightly coupled cluster. Cone detection uses git revision frequency and YAML dependency metadata, with no LLM involvement.
