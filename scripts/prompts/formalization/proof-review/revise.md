@@ -95,3 +95,18 @@ The `*Formal Contract:*` marker is a fixed string. Do not modify it.
 
 5. Do not change anything beyond the specific property being fixed and
    any new properties needed. Do not modify narrative prose.
+
+6. **YAML formatting.** When writing any `.yaml` file, ensure the YAML is
+   valid. If a value contains colons, quotes, or spans multiple lines
+   (common in `summary` fields with math notation), use a literal block
+   scalar (`|`) or a quoted string. For example:
+
+   ```yaml
+   summary: |
+     Defines dom(A) = ⋃{domₛ(A) : s reachable} — the colon in the set
+     comprehension requires a block scalar or quoting.
+   ```
+
+   Do not write a plain scalar summary that contains an unescaped colon
+   followed by a space — YAML will parse it as a key-value separator and
+   break the file.
