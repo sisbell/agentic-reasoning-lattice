@@ -56,7 +56,7 @@ def revise(asn_num, label, findings):
 
     cmd = [
         "claude", "-p",
-        "--model", "claude-opus-4-6",
+        "--model", "claude-opus-4-7",
         "--output-format", "json",
         "--allowedTools", "Edit,Read,Glob,Grep",
     ]

@@ -35,7 +35,7 @@ def align(dfy_path, errors, formal_contract, model="opus",
               effort="max", max_turns=12):
     """Run align-with-contract agent. Returns (success, elapsed, cost)."""
     model_flag = {
-        "opus": "claude-opus-4-6",
+        "opus": "claude-opus-4-7",
         "sonnet": "claude-sonnet-4-6",
     }.get(model, model)
 

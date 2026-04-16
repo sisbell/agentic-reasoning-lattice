@@ -34,7 +34,7 @@ MAX_CYCLES = 30
 def _invoke_claude(prompt, model="sonnet", effort="high", tools=False):
     """Call claude --print. If tools=True, allows file read/write."""
     model_flag = {
-        "opus": "claude-opus-4-6",
+        "opus": "claude-opus-4-7",
         "sonnet": "claude-sonnet-4-6",
     }.get(model, model)
 

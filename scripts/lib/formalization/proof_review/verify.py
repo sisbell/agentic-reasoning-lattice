@@ -29,7 +29,7 @@ def _invoke_opus(prompt, effort="high"):
     """Call claude --print with opus."""
     cmd = [
         "claude", "--print",
-        "--model", "claude-opus-4-6",
+        "--model", "claude-opus-4-7",
         "--tools", "",
     ]
 

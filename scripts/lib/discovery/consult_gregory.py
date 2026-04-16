@@ -53,7 +53,7 @@ def invoke_claude(prompt, model="sonnet", label="", allow_tools=False,
                   cwd=None, effort=None, output_file=None):
     """Call claude --print. Write result to output_file. Returns response text."""
     model_flag = {
-        "opus": "claude-opus-4-6",
+        "opus": "claude-opus-4-7",
         "sonnet": "claude-sonnet-4-6",
     }.get(model, model)
 

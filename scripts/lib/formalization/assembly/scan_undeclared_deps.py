@@ -85,7 +85,7 @@ def _scan_property(label, property_text, asn_label, depends, available_labels,
               .replace("{{property_text}}", property_text)
               .replace("{{available_labels}}", available_labels))
 
-    model_flag = {"opus": "claude-opus-4-6", "sonnet": "claude-sonnet-4-6"}.get(model, model)
+    model_flag = {"opus": "claude-opus-4-7", "sonnet": "claude-sonnet-4-6"}.get(model, model)
 
     cmd = ["claude", "--print", "--model", model_flag,
            "--output-format", "json", "--tools", ""]

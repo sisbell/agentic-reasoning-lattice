@@ -82,7 +82,7 @@ def strip_preamble(text):
 def invoke_claude(prompt, model="opus", effort="high"):
     """Call claude --print with --tools "". Returns plain text response."""
     model_flag = {
-        "opus": "claude-opus-4-6",
+        "opus": "claude-opus-4-7",
         "sonnet": "claude-sonnet-4-6",
     }.get(model, model)
 

@@ -148,7 +148,7 @@ def build_property_prompt(template, row, extract, dep_context=""):
 def translate_one(prompt, out_path, model="sonnet", effort="max", max_turns=12):
     """Launch a Claude agent with tools to write + verify the .dfy file."""
     model_flag = {
-        "opus": "claude-opus-4-6",
+        "opus": "claude-opus-4-7",
         "sonnet": "claude-sonnet-4-6",
     }.get(model, model)
 

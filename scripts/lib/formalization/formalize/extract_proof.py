@@ -265,7 +265,7 @@ def repair_section(asn_num, label, thin_section, host_section,
 
         cmd = [
             "claude", "-p",
-            "--model", "claude-opus-4-6",
+            "--model", "claude-opus-4-7",
             "--output-format", "json",
             "--allowedTools", "Edit,Read,Glob,Grep",
         ]

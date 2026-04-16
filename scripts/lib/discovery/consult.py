@@ -98,7 +98,7 @@ def load_inquiry(inquiry_id):
 def _call_decompose(prompt, label, model="opus"):
     """Call claude --print for question generation. Returns response text."""
     model_flag = {
-        "opus": "claude-opus-4-6",
+        "opus": "claude-opus-4-7",
         "sonnet": "claude-sonnet-4-6",
     }.get(model, model)
 
@@ -303,7 +303,7 @@ def _invoke_claude(prompt, model="opus", effort=None, allow_tools=False,
                    cwd=None, label=""):
     """Call claude --print, parse JSON, track usage. Returns response text."""
     model_flag = {
-        "opus": "claude-opus-4-6",
+        "opus": "claude-opus-4-7",
         "sonnet": "claude-sonnet-4-6",
     }.get(model, model)
 

@@ -29,7 +29,7 @@ from lib.shared.foundation import load_foundation_statements
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
 DISCOVERY_PROMPT = PROMPTS_DIR / "instructions.md"
 
-MODEL = "claude-opus-4-6"
+MODEL = "claude-opus-4-7"
 
 
 def read_file(path):
@@ -267,7 +267,7 @@ def main():
 
     # Build prompt
     model_flag = {
-        "opus": "claude-opus-4-6",
+        "opus": "claude-opus-4-7",
         "sonnet": "claude-sonnet-4-6",
     }.get(args.model, args.model)
 

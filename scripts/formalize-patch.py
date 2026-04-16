@@ -55,7 +55,7 @@ def step_apply(asn_num, asn_path, asn_label, patch_content, model, effort):
 
     cmd = [
         "claude", "-p",
-        "--model", {"opus": "claude-opus-4-6", "sonnet": "claude-sonnet-4-6"}[model],
+        "--model", {"opus": "claude-opus-4-7", "sonnet": "claude-sonnet-4-6"}[model],
         "--output-format", "json",
         "--allowedTools", "Edit,Read,Glob,Grep",
     ]

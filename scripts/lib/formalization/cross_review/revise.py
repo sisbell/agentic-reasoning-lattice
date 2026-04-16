@@ -44,7 +44,7 @@ def revise(asn_num, title, finding_text, prop_dir=None):
 
     cmd = [
         "claude", "-p",
-        "--model", "claude-opus-4-6",
+        "--model", "claude-opus-4-7",
         "--output-format", "json",
         "--allowedTools", "Edit,Write,Read,Glob,Grep",
     ]

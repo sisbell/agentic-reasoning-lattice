@@ -117,7 +117,7 @@ def revise_report(asn_num, report_text):
 
     cmd = [
         "claude", "-p",
-        "--model", "claude-opus-4-6",
+        "--model", "claude-opus-4-7",
         "--output-format", "json",
         "--allowedTools", "Edit,Read,Glob,Grep",
     ]

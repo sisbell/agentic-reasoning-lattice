@@ -26,7 +26,7 @@ def validate(alloy_source, formal_contract, label):
               .replace("{{formal_contract}}", formal_contract))
 
     cmd = [
-        "claude", "--print", "--model", "claude-opus-4-6",
+        "claude", "--print", "--model", "claude-opus-4-7",
     ]
     env = os.environ.copy()
     env.pop("CLAUDECODE", None)

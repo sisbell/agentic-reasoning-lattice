@@ -48,7 +48,7 @@ def invoke_claude(prompt, model="opus", effort=None, allow_tools=False,
                   output_file=None):
     """Call claude --print with pre-assembled prompt via stdin."""
     model_flag = {
-        "opus": "claude-opus-4-6",
+        "opus": "claude-opus-4-7",
         "sonnet": "claude-sonnet-4-6",
     }.get(model, model)
 

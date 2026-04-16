@@ -35,7 +35,7 @@ def invoke_claude(prompt, out_path, model="opus", effort=None,
     Returns (success, elapsed, cost).
     """
     model_flag = {
-        "opus": "claude-opus-4-6",
+        "opus": "claude-opus-4-7",
         "sonnet": "claude-sonnet-4-6",
     }.get(model, model)
 

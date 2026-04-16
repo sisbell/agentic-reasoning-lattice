@@ -250,7 +250,7 @@ def verify_claims(claims, model="sonnet", effort="high", batch_size=3):
         prompt = prompt.replace("{{count}}", str(len(batch)))
 
         # Call LLM
-        model_flag = {"opus": "claude-opus-4-6", "sonnet": "claude-sonnet-4-6"}.get(model, model)
+        model_flag = {"opus": "claude-opus-4-7", "sonnet": "claude-sonnet-4-6"}.get(model, model)
         cmd = ["claude", "--print", "--model", model_flag,
                "--output-format", "json", "--tools", ""]
 

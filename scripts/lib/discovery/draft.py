@@ -28,7 +28,7 @@ from lib.shared.foundation import load_foundation_statements
 
 DISCOVERY_PROMPT = WORKSPACE / "scripts" / "prompts" / "discovery" / "instructions.md"
 
-MODEL = "claude-opus-4-6"
+MODEL = "claude-opus-4-7"
 
 
 def read_file(path):

@@ -56,7 +56,7 @@ def _review_failure(prop_text, dfy_path, verification_errors):
               .replace("{{dafny_source}}", dfy_source)
               .replace("{{verification_errors}}", verification_errors))
     import os, subprocess
-    cmd = ["claude", "--print", "--model", "claude-opus-4-6"]
+    cmd = ["claude", "--print", "--model", "claude-opus-4-7"]
     env = os.environ.copy()
     env.pop("CLAUDECODE", None)
     env["CLAUDE_CODE_EFFORT_LEVEL"] = "high"

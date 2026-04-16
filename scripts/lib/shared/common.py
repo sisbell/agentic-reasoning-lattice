@@ -133,7 +133,7 @@ def find_asn(asn_id, asns_dir=None):
 def invoke_claude(prompt, *, model="opus", effort="max", tools=None):
     """Call claude --print (single-turn, no tools by default). Returns (text, elapsed)."""
     model_flag = {
-        "opus": "claude-opus-4-6",
+        "opus": "claude-opus-4-7",
         "sonnet": "claude-sonnet-4-6",
     }.get(model, model)
 
@@ -176,7 +176,7 @@ def invoke_claude_agent(prompt, *, model="opus", effort="max",
                         tools="Read,Write,Bash", max_turns=12, cwd=None):
     """Call claude -p (agent mode). Returns (json_data, elapsed)."""
     model_flag = {
-        "opus": "claude-opus-4-6",
+        "opus": "claude-opus-4-7",
         "sonnet": "claude-sonnet-4-6",
     }.get(model, model)
 
