@@ -7,5 +7,6 @@ depends:
 - T3
 - TA6
 - TumblerSub
+- ZPD
 summary: 'A weak form of order preservation under subtraction: if a < b and both dominate w, then a ⊖ w ≤ b ⊖ w, with no equal-length
   requirement. This relaxes TA3-strict by allowing the result to collapse to equality when lengths differ.'
