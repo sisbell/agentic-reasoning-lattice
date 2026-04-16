@@ -8,15 +8,11 @@ A dependency cone is the specific shape this bottleneck takes: one property (the
 
 ## Structure
 
-```
-        S8          ← apex (thrashing)
-       / | \
-  S8-fin S8a D-CTG  ← stable foundations
-    |     |    |
-   ...   T4  S8-depth
-```
+![Dependency cone](../diagrams/dependency-cone.svg)
 
 The dependencies form a DAG, not a cycle. The foundations converged early — they're simple, loosely coupled properties that per-property refinement handles well. The apex is a complex property that must reconcile all of them simultaneously. Each per-finding fix adjusts one seam with one neighbor, which shifts another seam, which the next review flags.
+
+The cone boundary is the same-ASN cluster — the set of properties reviewed as a unit. Cross-ASN foundations sit outside the cone, loaded as labels only, providing context without being part of the focused review.
 
 ## Cause
 
@@ -48,6 +44,8 @@ The narrower context focuses the reviewer on the constraint system instead of sc
 
 ## Resolution stages
 
+![Resolution stages](../diagrams/resolution-stages.svg)
+
 When a cone is resolved through focused review, the findings progress through distinct stages. Each stage only becomes visible after the previous one is resolved — you can't see mathematical precision issues until the citations are correct, and you can't see structural organization until the proofs are complete. The cone peels layers.
 
 **Stage 1: Citation accuracy.** Wrong foundation properties cited. Missing preconditions in contracts. Different names used for the same operation. These are surface issues — the proof is right but the references are wrong.
@@ -70,6 +68,20 @@ When a cone is resolved through focused review, the findings progress through di
 
 *Observed: phantom dependencies (referenced but not stated), D-CTG postcondition duplicating D-CTG-depth, VIP empty-case insight (infinitely many mutually exclusive valid positions).*
 
+## Structural reorganization
+
+Cones don't just review — they reorganize. When focused review reveals that a property is doing multiple jobs, the cone extracts the separate concerns into new properties. This is [extract/absorb](extract-absorb.md) happening inside a cone review.
+
+Observed during the D-CTG-depth cone on ASN-0036 (8 cycles):
+
+- **Cycle 2**: S8-depth was bundling an axiom and correspondence-run results under a single property. The cone extracted S8-crun (CorrespondenceRun) as its own property, created E₁(a) (ElementSubspaceProjection) as a missing formal definition, and updated S7c, S8, and ValidInsertionPosition to reference the new properties.
+- **Cycle 3**: S8-depth, D-CTG, and S8-fin all used inductive proofs citing an initial state that had no formal definition. The cone created AX-1 (InitialEmptyState) and anchored all three base cases to it. Reclassified S8-depth from Axiom to Invariant because it now had a proof.
+- **Cycle 4**: The three invariant proofs assumed an implicit closed-world transition relation. The cone created AX-5 to formalize it.
+
+The cone touched 33 of 43 properties in the ASN — 77% — because extraction ripples through consumers. Each structural change updated downstream references, which triggered further findings in subsequent cycles. The edits were individually correct (extractions, missing definitions, citation updates) but the breadth of changes is why D-CTG-depth took 8 cycles to converge.
+
+This reorganization pattern suggests cones operate at two levels: **review** (are these jointly consistent?) and **refactor** (should these be structured differently?). The refactoring emerges from the review — the cone sees that a property needs splitting because the review can't reconcile its multiple roles.
+
 ## Leads to
 
 [Scope narrowing](scope-narrowing.md) — the cone is resolved by narrowing to the cluster and applying [review/revise iteration](review-revise-iteration.md) with focused context. The stages above are what the review/revise cycle finds at each layer.
@@ -78,4 +90,4 @@ When a cone is resolved through focused review, the findings progress through di
 
 ## Origin
 
-Discovered during ASN-0036 formalization, reviews 60-65. S8 (FiniteCorrespondenceRunDecomposition) was touched in 4 of 6 consecutive cross-review commits while its 7 dependencies were touched 0-1 times. The cross-review had already converged the loosely coupled properties (S7, ValidInsertionPosition, S3) in earlier rounds — what remained was the tightly coupled S8 core.
+Discovered during ASN-0036 formalization on the Xanadu project, reviews 60-65. S8 (FiniteCorrespondenceRunDecomposition) was touched in 4 of 6 consecutive cross-review commits while its 7 dependencies were touched 0-1 times. The cross-review had already converged the loosely coupled properties (S7, ValidInsertionPosition, S3) in earlier rounds — what remained was the tightly coupled S8 core.

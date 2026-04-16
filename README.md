@@ -1,6 +1,6 @@
 # Agentic Reasoning Lattice
 
-A multi-agent system that discovers formal properties and constraints through structured disagreement between independent evidence channels. Local agents run structured pipelines — discovery, blueprinting, formalization, verification — producing a dependency lattice of reasoning documents with machine-checked proofs.
+A multi-agent framework that accelerates verified hypothesis discovery through structured disagreement between independent evidence channels. Agents grow a reasoning lattice of permanently addressed, dependency-tracked, machine-verified knowledge — replacing ad-hoc protocols with verified protocol mathematics.
 
 ![Two-channel architecture](docs/diagrams/two-channel-architecture.svg)
 
@@ -18,18 +18,23 @@ Agents grow the lattice by creating permanent links and reasoning trails — the
 
 ## How it works
 
-Two agent channels — one consulting established theory, one analyzing raw evidence — are separated by a vocabulary firewall. The theory channel cannot reference specific data. The data channel cannot use theoretical terms. A synthesis agent integrates both into structured reasoning documents with dependency-mapped claims. Where the channels agree, principles are validated. Where they disagree, new hypotheses emerge.
+A human-posed question is decomposed into channel-appropriate sub-questions. Two independent agent channels — one consulting established theory, one analyzing raw evidence — are separated by a vocabulary firewall that forces hypothesis space exploration. The theory channel cannot use data-specific terms. The data channel cannot retrieve known solutions from theoretical vocabulary. A synthesis agent integrates both into a structured reasoning document with dependency-mapped claims. Where the channels agree, principles are validated. Where they disagree, new hypotheses emerge.
+
+Each reasoning document is decomposed into atomic properties (blueprinting — a meet operation), then verified through the adiabatic V-cycle: property scale, cluster scale, and document scale, each converging before passing to the next. Mechanical verification (Dafny proofs, Alloy bounded model checking) confirms logical consistency. Every verified node is a testable prediction — the oracle traces failures back to the specific claim and evidence channel that diverged.
+
+Out-of-scope findings flagged during review become new inquiries, attaching to the lattice as new nodes. The system discovers the questions it should be asking, not just answers to questions posed.
 
 The system is demonstrated on the Xanadu hypertext system — deriving formal properties from Ted Nelson's design intent (*Literary Machines*) and Roger Gregory's 1988 implementation (udanax-green) under enforced vocabulary separation. Xanadu's protocol primitives — permanent addresses, bidirectional links, traceable provenance — are what the system discovered. The methodology bootstrapped the mathematics of the protocol through its own operation.
 
 ## Documentation
 
-### Methodology
-
-- [Methodology](docs/methodology.md) — overall approach: discovery → blueprinting → formalization → modeling
-- [Discovery](docs/discovery.md) — finding the formal structure through structured consultation
-- [Blueprinting](docs/blueprinting.md) — constructing the intermediate representation for formalization
+- [Vision](docs/vision.md) — hypothesis space navigation, semantic communication substrate, Lamarckian evolution, building the engine
+- [Methodology](docs/methodology.md) — inquiry decomposition, two-channel discovery, V-cycle review, pattern language
+- [Discovery](docs/discovery.md) — finding formal structure through structured consultation
+- [Blueprinting](docs/blueprinting.md) — meet operation: document → atomic properties
 - [Formalization](docs/formalization.md) — precision as a discovery tool, reasoning that improves itself
+- [Pattern Language](docs/patterns/pattern-language.md) — 12 operationally discovered patterns for agentic reasoning systems
+- [Verification V-Cycle](docs/design-notes/verification-v-cycle.md) — multi-scale review architecture and multigrid analogy
 
 ### Guides
 
@@ -50,12 +55,3 @@ The system is demonstrated on the Xanadu hypertext system — deriving formal pr
 - [vault/project-model/](vault/project-model/) — per-ASN manifests, exports, dependency graphs
 - [scripts/](scripts/) — pipeline automation
 - [docs/](docs/) — methodology, guides, runbooks
-
-## Vision
-
-What exists today is local agents running rigorous pipelines with a systematic methodology — convergence criteria, dependency ordering, formal verification. The next step scales something that works locally into something that works distributedly. Permanent addressable knowledge trails let distributed agents trace how any conclusion was reached, share reasoning without copying, and propagate changes through dependency links.
-
-1. Local agents discover formal properties and constraints (today, working, demonstrated)
-2. Those properties specify a remote communication protocol
-3. That protocol enables distributed collaboration
-4. Distributed agents discover more, better, faster

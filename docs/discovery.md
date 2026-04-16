@@ -1,33 +1,43 @@
 # Discovery
 
-Discovery is about finding the formal structure of a system that exists but has never been formally specified. The system already exists — the goal is to uncover the properties that make it work.
+A human poses a question. Discovery investigates it through two independent agent channels separated by a vocabulary firewall, producing a reasoning lattice of verified claims.
 
-## Starting from nothing
+## The campaign
 
-Begin with a broad question: "What are the key guarantees of the system?" This draws in a wide range of concepts that the reasoning process works through — addressing, content identity, hierarchical structure, link semantics. The result is a large initial ASN with many properties.
+A campaign begins with a question — broad enough to be interesting, specific enough to be tractable. "What governs the stability of this class of materials?" "What are the key guarantees of this addressing scheme?" The question is the entry point. Everything that follows grows from it.
 
-This first ASN is too big. That's expected. Read through it and look for natural boundaries — clusters of properties that reason about the same concept independently of other clusters. One topic doesn't need to know about another — addressing doesn't need to know about link semantics, insertion doesn't need to know about versioning.
+The question is decomposed into channel-appropriate sub-questions before any consultation begins. Theory channel questions are framed for hypothesis space — what does established knowledge predict? Data channel questions are framed for evidence space — what do the raw measurements show? Neither channel sees the other's sub-questions.
 
-Split the large ASN into two or more focused ASNs, each covering one topic. Run discovery on each one independently.
+The theory channel consults established domain knowledge — literature, models, known principles. The data channel analyzes raw evidence — measurements, source code, experimental outputs. A vocabulary firewall prevents each from using the other's terms. The data channel reasons from evidence alone. It cannot retrieve known solutions from theoretical vocabulary — it can only report patterns it observes. This forces hypothesis space exploration rather than retrieval.
+
+A synthesis step integrates both channels into a structured reasoning document (ASN) with dependency-mapped claims. Where the channels agree, principles are validated. Where they disagree, new hypotheses emerge. The disagreements are where discovery happens.
+
+A campaign ends when the questions it spawned have been investigated, the resulting ASNs have entered blueprinting, and the verified nodes are in the lattice. One campaign may produce multiple ASNs — each sub-question that warrants its own investigation becomes its own node.
 
 ## Growing the lattice
 
-As you run discovery on the separate ASNs, patterns emerge. Two ASNs independently derive the same property — both need the same comparison operation, both define the same foundational concept. When you see this, look at whether one ASN's properties are natural foundations for the other. If so, make it a dependency — the dependent ASN assumes those properties rather than re-deriving them. If neither is a natural home for the shared concept, there's a missing foundation layer. Extract it into a new ASN that both depend on. This is the meet operation in the lattice — the extracted foundation is the greatest common element below both dependent ASNs.
+![Growing the lattice](diagrams/growing-the-lattice.svg)
 
-Each ASN goes through review/revise cycles. During review, an ASN may reveal that it's really two independent arguments sharing a label namespace — the derivation threads never reference each other. Or review keeps finding properties that belong elsewhere, or the ASN is simply too large to hold in your head. These are signals to split. Meanwhile, reviewers flag things as out of scope that turn out to be genuine gaps — questions no existing ASN can answer. These become new ASNs. Each new ASN created above existing ones is a join — a node that builds on multiple foundations.
+The first ASN from a campaign is usually too broad. That's expected. Agents identify natural boundaries — clusters of properties that reason about the same concept independently of other clusters — and split into focused ASNs, each covering one topic. Discovery runs on each independently.
 
-The lattice grows through this process. An ASN depends on another when it uses that ASN's properties as premises. If you find circular dependencies — A needs B and B needs A — the boundary is wrong. Either one contains properties that belong in the other, or both depend on a missing foundation that should be extracted.
+As discovery proceeds on separate ASNs, patterns emerge. Two ASNs independently derive the same property — both need the same comparison operation, both define the same foundational concept. When this happens, one ASN's properties may be natural foundations for the other. If so, it becomes a dependency — the dependent ASN assumes those properties rather than re-deriving them. If neither is a natural home for the shared concept, there's a missing foundation layer. Extract it into a new ASN that both depend on. This is the meet operation — the extracted foundation is the greatest common element below both dependent ASNs.
 
-Foundation ASNs emerge at the bottom of the lattice. They weren't planned — they were discovered by noticing what kept being re-derived across multiple ASNs. This downward growth is characteristic of the meet operation: the lattice deepens as shared concepts are extracted into new foundation layers below existing work.
+Each ASN goes through [review/revise cycles](patterns/review-revise-iteration.md). During review, out-of-scope findings get flagged — questions that no existing ASN can answer, properties that belong elsewhere, concepts that need their own investigation. These are candidates for new inquiries, attaching to the lattice as new nodes. This is [scope promotion](patterns/scope-promotion.md) — the system discovers the questions it should be asking, not just answers to questions posed. Each new ASN created above existing ones is a join — a node that builds on multiple foundations.
+
+The lattice grows through this process. Foundation ASNs emerge at the bottom — discovered by noticing what keeps being re-derived across multiple ASNs. The lattice deepens as shared concepts are extracted into new foundation layers. New domain vocabulary emerges because the mathematics requires it, not prescribed in advance.
 
 ## Entering blueprinting
 
-At some point the lattice has enough structure that you can see which ASNs everything else rests on. These foundations need to be put on rigorous standing — formal contracts, mechanical verification, the full weight of the downstream pipeline. [Blueprinting](blueprinting.md) is that transition. But it can only happen bottom-up: a foundation must be solid before anything built on it can be trusted.
+At some point the lattice has enough structure to see which ASNs everything else rests on. These foundations need to be put on rigorous standing — formal contracts, mechanical verification, the full weight of the V-cycle. [Blueprinting](blueprinting.md) is that transition. It can only happen bottom-up: a foundation must be solid before anything built on it can be trusted.
 
 An ASN is ready to enter blueprinting when three conditions hold:
 
 **It must be a foundation in the lattice.** You cannot blueprint an ASN if it depends on another ASN that hasn't been blueprinted and formalized yet. Work bottom-up — foundations first, then the ASNs that build on them.
 
-**Discovery cycles are producing diminishing returns.** When review/revise cycles start wordsmithing — rephrasing for clarity, minor notational adjustments, few or no REVISE findings — the reasoning has stabilized. If each cycle is making substantive structural changes, the ASN isn't ready.
+**Discovery cycles are producing diminishing returns.** When review/revise cycles start wordsmithing — rephrasing for clarity, minor notational adjustments, few or no substantive findings — the reasoning has stabilized. If each cycle is making structural changes, the ASN isn't ready.
 
 **No other ASN in discovery owns properties that belong here.** Before promoting to blueprinting, scan the other ASNs still in discovery. If any of them independently derived properties that naturally belong in this ASN, absorb them first.
+
+## Origin
+
+This methodology was developed to formalize the Xanadu hypertext system — deriving formal properties from Ted Nelson's design intent (*Literary Machines*) and Roger Gregory's 1988 implementation (udanax-green) under enforced vocabulary separation. The campaign model, vocabulary firewall, and lattice growth operations emerged from that work. The methodology is the generalization. Xanadu is the origin.
