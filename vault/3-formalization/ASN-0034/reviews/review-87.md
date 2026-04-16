@@ -19,3 +19,9 @@
 **ASN**: T4's statement: "`α ≥ 1`, `β ≥ 1` when present, `γ ≥ 1` when present, `δ ≥ 1` when present". T4's Formal Contract axiom: "every field present in the address has at least one component (non-empty field constraint)". The notion of "present" is not defined in T4 itself — it is established only later by T4c's bijection between `zeros(t)` and hierarchical level.
 **Issue**: T4 states its non-empty field constraint in terms of "present" fields, but the formalization of presence (via `zeros(t)`) is a consequence theorem (T4c) that itself depends on T4b (UniqueParse), which in turn depends on T3 and on the T4 constraints. T4's axiom as written refers forward to a notion it does not itself define — the pipeline cannot evaluate T4's constraints without first evaluating T4c. This is not an outright contradiction, but the axiom is not self-contained: a reader or formalizer needs to know which fields are "present" for a given `t` before T4 can be checked, yet T4 is what is supposed to determine that.
 **What needs resolving**: Either reformulate T4 so the field presence notion is defined internally (e.g., by the positional structure of zeros directly, without appeal to T4c), or restructure so that "field presence" is a primitive notion in T4 and T4c derives the bijection with hierarchical level from that primitive rather than defining it.
+
+## Result
+
+Not converged after 3 cycles.
+
+*Elapsed: 3077s*
