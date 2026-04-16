@@ -6,4 +6,5 @@ The precondition `actionPoint(w) ≤ #a` is essential: TumblerAdd's construction
 
 *Formal Contract:*
 - *Preconditions:* a ∈ T, w ∈ T, Pos(w), actionPoint(w) ≤ #a
+- *Depends:* TumblerAdd (TumblerAdd) — the proof delegates entirely to TumblerAdd's piecewise construction: component membership in ℕ and the result-length identity `#(a ⊕ w) = #w` are TumblerAdd postconditions.
 - *Postconditions:* a ⊕ w ∈ T, #(a ⊕ w) = #w

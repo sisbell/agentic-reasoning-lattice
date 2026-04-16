@@ -65,5 +65,5 @@ This is correct and intentional: advancing to "the beginning of the next chapter
 *Formal Contract:*
 - *Preconditions:* a ∈ T, w ∈ T, Pos(w) (PositiveTumbler), actionPoint(w) ≤ #a
 - *Definition:* k = min{i : 1 ≤ i ≤ n ∧ wᵢ ≠ 0}; rᵢ = aᵢ if i < k; rₖ = aₖ + wₖ; rᵢ = wᵢ if i > k
-- *Depends:* T1 (LexicographicOrder) — both ordering postconditions invoke T1 case (i) at the first divergence position. T3 (CanonicalRepresentation) — the equality sub-case of `a ⊕ w ≥ w` concludes `r = w` from component-wise agreement and equal length.
+- *Depends:* T0 (CarrierSetDefinition) — membership `a ⊕ w ∈ T` is concluded via T0's characterisation of T as finite sequences over ℕ with length ≥ 1. PositiveTumbler (PositiveTumbler) — the precondition `Pos(w)` guarantees the action-point set `{i : wᵢ ≠ 0}` is non-empty, making `k` well-defined. T1 (LexicographicOrder) — both ordering postconditions invoke T1 case (i) at the first divergence position. T3 (CanonicalRepresentation) — the equality sub-case of `a ⊕ w ≥ w` concludes `r = w` from component-wise agreement and equal length.
 - *Postconditions:* a ⊕ w ∈ T, #(a ⊕ w) = #w, a ⊕ w > a (T1), a ⊕ w ≥ w (T1, T3)

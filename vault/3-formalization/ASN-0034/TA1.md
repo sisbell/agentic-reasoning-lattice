@@ -22,6 +22,7 @@ In every case and sub-case, `a ⊕ w ≤ b ⊕ w`. ∎
 
 *Formal Contract:*
 - *Preconditions:* a ∈ T, b ∈ T, w ∈ T, a < b, Pos(w), actionPoint(w) ≤ min(#a, #b)
+- *Depends:* TA0 (WellDefinedAddition) — both `a ⊕ w` and `b ⊕ w` must be well-defined members of T with length `#w`. TumblerAdd (TumblerAdd) — the three-region piecewise structure determines how each component of the result is computed. T1 (LexicographicOrder) — case analysis on the ordering `a < b` drives the proof structure, and T1 case (i) establishes the ordering of the results. T3 (CanonicalRepresentation) — component-wise agreement with equal length concludes `a ⊕ w = b ⊕ w` in the prefix and j > k sub-cases.
 - *Postconditions:* a ⊕ w ≤ b ⊕ w
 
 Strict order preservation holds under a tighter condition. We first need a precise notion of where two tumblers first differ.
