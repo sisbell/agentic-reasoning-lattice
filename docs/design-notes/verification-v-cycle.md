@@ -18,6 +18,8 @@ The Verification V-Cycle addresses this by cycling through three scales of revie
 
 ## Cycle Structure
 
+![Verification V-Cycle](../diagrams/verification-v-cycle.svg)
+
 Each pass follows an upward-then-downward path:
 
 ```

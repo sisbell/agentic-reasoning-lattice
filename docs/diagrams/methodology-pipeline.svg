@@ -1,0 +1,75 @@
+<svg width="100%" viewBox="0 0 680 580" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M2 1L8 5L2 9" fill="none" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</marker>
+<marker id="arrow-gray" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M2 1L8 5L2 9" fill="none" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</marker>
+</defs>
+
+<!-- Human inquiry -->
+<rect x="240" y="20" width="200" height="44" rx="8" fill="#D3D1C7" stroke="#888780" stroke-width="0.5"/>
+<text font-family="sans-serif" font-size="14" font-weight="500" fill="#2C2C2A" x="340" y="42" text-anchor="middle" dominant-baseline="central">Human inquiry</text>
+
+<line x1="340" y1="64" x2="340" y2="96" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<!-- Question decomposition -->
+<rect x="200" y="96" width="280" height="44" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+<text font-family="sans-serif" font-size="14" font-weight="500" fill="#26215C" x="340" y="118" text-anchor="middle" dominant-baseline="central">Question decomposition</text>
+
+<!-- Split to channels -->
+<line x1="260" y1="140" x2="160" y2="180" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="420" y1="140" x2="520" y2="180" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<!-- Firewall -->
+<rect x="274" y="150" width="132" height="22" rx="4" fill="none" stroke="#E24B4A" stroke-width="0.8" stroke-dasharray="3 2"/>
+<text font-family="sans-serif" font-size="12" fill="#E24B4A" x="340" y="164" text-anchor="middle" dominant-baseline="central">vocabulary firewall</text>
+
+<!-- Theory channel -->
+<rect x="60" y="180" width="190" height="44" rx="8" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
+<text font-family="sans-serif" font-size="14" font-weight="500" fill="#04342C" x="155" y="196" text-anchor="middle" dominant-baseline="central">Theory channel</text>
+<text font-family="sans-serif" font-size="12" fill="#085041" x="155" y="214" text-anchor="middle" dominant-baseline="central">hypothesis space</text>
+
+<!-- Data channel -->
+<rect x="430" y="180" width="190" height="44" rx="8" fill="#B5D4F4" stroke="#185FA5" stroke-width="0.5"/>
+<text font-family="sans-serif" font-size="14" font-weight="500" fill="#042C53" x="525" y="196" text-anchor="middle" dominant-baseline="central">Data channel</text>
+<text font-family="sans-serif" font-size="12" fill="#0C447C" x="525" y="214" text-anchor="middle" dominant-baseline="central">evidence space</text>
+
+<!-- Converge to synthesis -->
+<line x1="210" y1="224" x2="295" y2="264" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="470" y1="224" x2="385" y2="264" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<!-- Synthesis join -->
+<rect x="200" y="264" width="280" height="44" rx="8" fill="#FAC775" stroke="#854F0B" stroke-width="0.5"/>
+<text font-family="sans-serif" font-size="14" font-weight="500" fill="#412402" x="340" y="280" text-anchor="middle" dominant-baseline="central">Synthesis — join</text>
+<text font-family="sans-serif" font-size="12" fill="#633806" x="340" y="298" text-anchor="middle" dominant-baseline="central">reasoning document (ASN)</text>
+
+<!-- Out-of-scope loop from ASN -->
+<path d="M 480 286 Q 620 286 620 180 Q 620 96 480 96" fill="none" stroke="#888780" stroke-width="1" stroke-dasharray="4 2" marker-end="url(#arrow)"/>
+<text font-family="sans-serif" font-size="12" fill="#5F5E5A" x="634" y="220" text-anchor="start">out-of-scope</text>
+<text font-family="sans-serif" font-size="12" fill="#5F5E5A" x="634" y="236" text-anchor="start">findings →</text>
+<text font-family="sans-serif" font-size="12" fill="#5F5E5A" x="634" y="252" text-anchor="start">new inquiry</text>
+
+<line x1="340" y1="308" x2="340" y2="340" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<!-- Blueprinting meet -->
+<rect x="200" y="340" width="280" height="44" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+<text font-family="sans-serif" font-size="14" font-weight="500" fill="#26215C" x="340" y="356" text-anchor="middle" dominant-baseline="central">Blueprinting — meet</text>
+<text font-family="sans-serif" font-size="12" fill="#3C3489" x="340" y="374" text-anchor="middle" dominant-baseline="central">document → atomic properties</text>
+
+<line x1="340" y1="384" x2="340" y2="416" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<!-- V-cycle -->
+<rect x="200" y="416" width="280" height="44" rx="8" fill="#F5C4B3" stroke="#993C1D" stroke-width="0.5"/>
+<text font-family="sans-serif" font-size="14" font-weight="500" fill="#4A1B0C" x="340" y="432" text-anchor="middle" dominant-baseline="central">V-cycle review</text>
+<text font-family="sans-serif" font-size="12" fill="#712B13" x="340" y="450" text-anchor="middle" dominant-baseline="central">property → cluster → document</text>
+
+<line x1="340" y1="460" x2="340" y2="492" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<!-- Lattice -->
+<rect x="200" y="492" width="280" height="44" rx="8" fill="#C0DD97" stroke="#3B6D11" stroke-width="0.5"/>
+<text font-family="sans-serif" font-size="14" font-weight="500" fill="#173404" x="340" y="508" text-anchor="middle" dominant-baseline="central">Verified nodes → lattice</text>
+<text font-family="sans-serif" font-size="12" fill="#27500A" x="340" y="526" text-anchor="middle" dominant-baseline="central">permanent · addressable · dependency-tracked</text>
+
+</svg>
