@@ -4,6 +4,7 @@ type: definition
 depends:
   - T9
   - T10a
+  - NoDeallocation
 summary: |
   Defines allocated(s) — the set of addresses allocated at state s — as the union of realized allocator domains
   across all allocators activated in s. Bridges T10a's allocator mechanism and per-allocator domains to the

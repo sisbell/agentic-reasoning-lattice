@@ -5,6 +5,7 @@ depends:
 - T0
 - T1
 - T4
+- PositiveTumbler
 summary: No all-zero tumbler designates content — every such tumbler fails T4's positive-component requirement and is therefore
   not a valid address. Zero tumblers sit below all positive tumblers in the total order and serve as sentinels for uninitialized
   values and unbounded span endpoints.

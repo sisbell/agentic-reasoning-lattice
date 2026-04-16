@@ -2,5 +2,8 @@ label: NoDeallocation
 name: NoDeallocation
 type: axiom
 depends: []
-summary: The system contains no operation that removes an address from the allocated set — the allocated set is strictly append-only.
+summary: |
+  The system contains no operation that removes an address from the allocated set — the allocated set is strictly append-only.
   This is a foundational design constraint, not a derived fact, and it is what makes permanence guarantees possible.
+  Fixes the signature of Σ as partial functions op : 𝒮 ⇀ 𝒮, so the axiom's `op(s) defined` clause is read as
+  `s ∈ dom(op)` and a transition `s → s'` is the pair `(s, op(s))` with `op ∈ Σ` and `s ∈ dom(op)`.
