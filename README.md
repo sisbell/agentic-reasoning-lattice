@@ -2,21 +2,23 @@
 
 A multi-agent system that discovers formal properties and constraints through structured disagreement between independent evidence channels. Local agents run structured pipelines — discovery, blueprinting, formalization, verification — producing a dependency lattice of reasoning documents with machine-checked proofs.
 
+![Two-channel architecture](docs/diagrams/two-channel-architecture.svg)
+
 ## What it produces
 
 The framework has produced a verified, domain-independent mathematical foundation through its own operation: sequence arithmetic, interval algebra, correspondence decomposition, and displacement theory — with machine-checked proofs at the foundation and bounded model checking across the lattice.
 
 A reasoning lattice is a set of reasoning documents with explicit dependencies between them. Each document covers one topic, declares what it depends on, and builds on verified foundations below it. The lattice grows through discovery as shared concepts are extracted into new layers. Foundation documents are formalized and verified first. Everything above builds on what's been proven.
 
-The agents discover formal properties and constraints. Those properties specify a protocol for agentic memory and communication:
+Agents grow the lattice by creating permanent links and reasoning trails — the communication substrate builds itself through operation. Each verified node is a compact, generalizable principle — permanently addressed, dependency-tracked, and machine-verified. The lattice IS the protocol: permanent addresses, bidirectional dependencies, traceable provenance. Agents coordinate through it, not around it.
 
 - Permanent knowledge trails — every reasoning step is addressable and retrievable
 - Traceable provenance — any conclusion can be traced back through its dependency chain
-- Shared reasoning — agents work from the same claims, not copies that drift
+- Shared reasoning — agents work from the same verified claims, not copies that drift
 
 ## How it works
 
-Two agent channels — one consulting established theory, one analyzing raw evidence — are separated by a vocabulary firewall. The theory channel cannot reference specific data. The data channel cannot use theoretical terms. A synthesis agent integrates both into structured reasoning documents with dependency-mapped claims. Where the channels agree, principles are validated. Where they disagree, new principles emerge.
+Two agent channels — one consulting established theory, one analyzing raw evidence — are separated by a vocabulary firewall. The theory channel cannot reference specific data. The data channel cannot use theoretical terms. A synthesis agent integrates both into structured reasoning documents with dependency-mapped claims. Where the channels agree, principles are validated. Where they disagree, new hypotheses emerge.
 
 The system is demonstrated on the Xanadu hypertext system — deriving formal properties from Ted Nelson's design intent (*Literary Machines*) and Roger Gregory's 1988 implementation (udanax-green) under enforced vocabulary separation. Xanadu's protocol primitives — permanent addresses, bidirectional links, traceable provenance — are what the system discovered. The methodology bootstrapped the mathematics of the protocol through its own operation.
 

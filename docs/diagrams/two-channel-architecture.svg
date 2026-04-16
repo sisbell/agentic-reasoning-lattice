@@ -1,0 +1,72 @@
+<svg width="680" height="520" viewBox="0 0 680 520" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</marker>
+</defs>
+
+<!-- Human query -->
+<rect x="240" y="20" width="200" height="44" rx="8" fill="#D3D1C7" stroke="#888780" stroke-width="0.5"/>
+<text font-family="sans-serif" font-size="14" font-weight="500" fill="#2C2C2A" x="340" y="42" text-anchor="middle" dominant-baseline="central">Human-posed inquiry</text>
+
+<!-- Arrow down to decomposition -->
+<line x1="340" y1="64" x2="340" y2="96" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<!-- Question decomposition -->
+<rect x="190" y="96" width="300" height="44" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
+<text font-family="sans-serif" font-size="14" font-weight="500" fill="#26215C" x="340" y="118" text-anchor="middle" dominant-baseline="central">Question decomposition</text>
+
+<!-- Arrows splitting to two channels -->
+<line x1="260" y1="140" x2="160" y2="186" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="420" y1="140" x2="520" y2="186" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<!-- Vocabulary firewall label -->
+<rect x="270" y="152" width="140" height="26" rx="4" fill="none" stroke="#E24B4A" stroke-width="1" stroke-dasharray="4 2"/>
+<text font-family="sans-serif" font-size="12" fill="#E24B4A" x="340" y="169" text-anchor="middle" dominant-baseline="central">vocabulary firewall</text>
+
+<!-- Theory channel -->
+<rect x="60" y="186" width="200" height="56" rx="8" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
+<text font-family="sans-serif" font-size="14" font-weight="500" fill="#04342C" x="160" y="207" text-anchor="middle" dominant-baseline="central">Theory channel</text>
+<text font-family="sans-serif" font-size="12" fill="#085041" x="160" y="227" text-anchor="middle" dominant-baseline="central">Hypothesis space</text>
+
+<!-- Data channel -->
+<rect x="420" y="186" width="200" height="56" rx="8" fill="#B5D4F4" stroke="#185FA5" stroke-width="0.5"/>
+<text font-family="sans-serif" font-size="14" font-weight="500" fill="#042C53" x="520" y="207" text-anchor="middle" dominant-baseline="central">Data channel</text>
+<text font-family="sans-serif" font-size="12" fill="#0C447C" x="520" y="227" text-anchor="middle" dominant-baseline="central">Evidence space</text>
+
+<!-- Foundation model label -->
+<text font-family="sans-serif" font-size="12" fill="#444441" x="160" y="260" text-anchor="middle">Foundation model + MACE-MP</text>
+
+<!-- Small science models label -->
+<text font-family="sans-serif" font-size="12" fill="#444441" x="520" y="260" text-anchor="middle">Small science models</text>
+
+<!-- Arrows converging to synthesis -->
+<line x1="200" y1="242" x2="290" y2="305" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="480" y1="242" x2="390" y2="305" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<!-- Agree/disagree labels -->
+<text font-family="sans-serif" font-size="12" fill="#444441" x="224" y="290" text-anchor="middle">agree →</text>
+<text font-family="sans-serif" font-size="12" fill="#444441" x="416" y="290" text-anchor="middle">← disagree</text>
+
+<!-- Synthesis / Join -->
+<rect x="215" y="305" width="210" height="44" rx="8" fill="#FAC775" stroke="#854F0B" stroke-width="0.5"/>
+<text font-family="sans-serif" font-size="14" font-weight="500" fill="#412402" x="320" y="327" text-anchor="middle" dominant-baseline="central">Synthesis — join</text>
+
+<!-- Arrow down to lattice -->
+<line x1="320" y1="349" x2="320" y2="381" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<!-- Reasoning lattice -->
+<rect x="150" y="381" width="340" height="56" rx="8" fill="#F5C4B3" stroke="#993C1D" stroke-width="0.5"/>
+<text font-family="sans-serif" font-size="14" font-weight="500" fill="#4A1B0C" x="320" y="402" text-anchor="middle" dominant-baseline="central">Reasoning lattice</text>
+<text font-family="sans-serif" font-size="12" fill="#712B13" x="320" y="422" text-anchor="middle" dominant-baseline="central">Verified nodes (nuggets) — permanent trails</text>
+
+<!-- Outcome labels -->
+<text font-family="sans-serif" font-size="12" fill="#444441" x="100" y="468" text-anchor="middle">validates</text>
+<text font-family="sans-serif" font-size="12" fill="#444441" x="340" y="468" text-anchor="middle">new hypotheses emerge</text>
+<text font-family="sans-serif" font-size="12" fill="#444441" x="560" y="468" text-anchor="middle">discovers</text>
+
+<line x1="160" y1="437" x2="200" y2="455" stroke="#888780" stroke-width="1.5" stroke-opacity="0.4" marker-end="url(#arrow)"/>
+<line x1="340" y1="437" x2="340" y2="455" stroke="#888780" stroke-width="1.5" stroke-opacity="0.4" marker-end="url(#arrow)"/>
+<line x1="480" y1="437" x2="440" y2="455" stroke="#888780" stroke-width="1.5" stroke-opacity="0.4" marker-end="url(#arrow)"/>
+
+</svg>
