@@ -10,7 +10,7 @@ Discovery produces properties independently. Each property is reasonable in isol
 
 These contradictions are the raw material of formalization. By demanding precision — exact preconditions, exhaustive case coverage, explicit dependencies — formalization resolves them and surfaces structure that was hidden in the vagueness.
 
-From the demonstration domain: ASN-0034's GlobalUniqueness theorem illustrates this. Discovery stated the property simply: no two distinct allocations produce the same address. Formalization demanded an exhaustive proof and revealed that a 40-year-old addressing scheme achieves coordination-free uniqueness through structural length separation — a property its designer never articulated. The proof also showed that the allocator discipline constraint is necessary: without it, uniqueness fails.
+From the demonstration domain: ASN-0034's GlobalUniqueness theorem illustrates this. Discovery stated the property simply: no two distinct allocations produce the same address. Formalization demanded an exhaustive proof and revealed that a 40-year-old addressing scheme achieves coordination-free uniqueness through structural length separation — a property its designer never articulated. The proof also showed that the allocator discipline constraint is necessary: without it, uniqueness fails. Later, [multi-scale review](design-notes/verification-v-cycle.md) found a counterexample that mechanical verification (Dafny), bounded model checking (Alloy), and 30+ single-scale review cycles all missed — the allocator axiom permitted duplicate child-spawning. The fix cascaded through the lattice and 4 dependent properties re-verified automatically.
 
 Each contradiction resolved tightens the specification and often reveals a deeper principle that unifies what seemed like separate concerns. The resolution process is where domain-specific reasoning dissolves into general mathematics. In the demonstration domain, the content architecture's two-stream separation became an instance of correspondence decomposition; tumbler arithmetic became sequence arithmetic over ordered finite sequences. The domain terms fell away and the mathematics stood on its own. The reasoning lattice organized the work. Formalization revealed that the work was more general than the domain that motivated it.
 
@@ -21,6 +21,8 @@ Discovery connects — it finds properties, links them, grows the lattice outwar
 Each cycle builds on the previous. The proof reviewer tightens a contract. The contract reviewer sees that the tightened contract now implies something new. The cross-reviewer sees a relationship between two properties that only became visible because both were strengthened in the previous cycle. The reasoning compounds — each property formalized makes the next one more precise, because the contracts it produces become the premises its dependents reason from.
 
 ## Formalization radiates through the lattice
+
+![Formalization radiation](diagrams/formalization-radiation.svg)
 
 Formalizing a foundation ASN changes everything above it. When a foundation's properties gain precise contracts — exact preconditions, exact postconditions, exact constraints — the discovery ASNs that depend on it see those contracts. Their reasoning becomes more rigorous because their premises are more rigorous. Properties that were invisible under informal foundations become visible under formal ones.
 

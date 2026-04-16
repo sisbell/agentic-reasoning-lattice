@@ -22,7 +22,7 @@ A human-posed question is decomposed into channel-appropriate sub-questions. Two
 
 Each reasoning document is decomposed into atomic properties (blueprinting — a meet operation), then verified through the adiabatic V-cycle: property scale, cluster scale, and document scale, each converging before passing to the next. Mechanical verification (Dafny proofs, Alloy bounded model checking) confirms logical consistency. Every verified node is a testable prediction — the oracle traces failures back to the specific claim and evidence channel that diverged.
 
-Out-of-scope findings flagged during review become new inquiries, attaching to the lattice as new nodes. The system discovers the questions it should be asking, not just answers to questions posed.
+Out-of-scope findings flagged during review become [new inquiries](docs/patterns/scope-promotion.md), attaching to the lattice as new nodes. The system discovers the questions it should be asking, not just answers to questions posed.
 
 The system is demonstrated on the Xanadu hypertext system — deriving formal properties from Ted Nelson's design intent (*Literary Machines*) and Roger Gregory's 1988 implementation (udanax-green) under enforced vocabulary separation. Xanadu's protocol primitives — permanent addresses, bidirectional links, traceable provenance — are what the system discovered. The methodology bootstrapped the mathematics of the protocol through its own operation.
 
