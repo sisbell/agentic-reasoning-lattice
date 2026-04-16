@@ -33,3 +33,9 @@ RESULT: FOUND
 ```
 
 37 verified, 1 found.
+
+## Result
+
+Converged after 3 cycles. 63 verified.
+
+*Elapsed: 2834s*

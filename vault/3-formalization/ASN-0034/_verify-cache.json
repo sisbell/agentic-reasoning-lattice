@@ -8,7 +8,6 @@
   "TA5": "47797f4dcb4cc960",
   "T10a.1": "35ca50389af97478",
   "T0(a)": "9249e3d7366b56a5",
-  "TS5": "e7bf5200c69a3842",
   "TA7a": "8f43baba4bb3a0fa",
   "TS1": "ca9a5fe1c93d420d",
   "TS4": "96f73b09f918fcc8",
@@ -60,5 +59,7 @@
   "TA5a": "28a74b1125aa455c",
   "TA3": "2d2ab134875b01c2",
   "TA3-strict": "e3a65ff0960c3c78",
-  "Prefix": "3b207bee0c0051a7"
+  "Prefix": "3b207bee0c0051a7",
+  "TS3": "32388a3be91aa76f",
+  "TS5": "e7bf5200c69a3842"
 }
