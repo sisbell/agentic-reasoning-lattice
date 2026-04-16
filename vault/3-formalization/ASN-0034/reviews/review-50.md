@@ -32,3 +32,9 @@ D0's proof eliminates Divergence case (ii), leaving case (i) with `k ≤ min(#a,
 The gap is cross-cutting in two ways. First, neither `divergence` nor `zpd` is formally defined in the ASN — both are invoked as named properties (`Divergence` with case (i)/(ii), `ZPD`) that the ASN uses but does not establish, despite declaring no dependencies. Second, the identity between them is not a tautology but a theorem that depends on D0's specific case elimination; the proof chain from D0's postcondition `actionPoint(b ⊖ a) = divergence(a, b)` passes through `actionPoint(b ⊖ a) = zpd(b, a)` (from TumblerSub's construction) and then `zpd(b, a) = divergence(a, b)` (unproven), and any downstream consumer of D0's postcondition inherits this unstated link.
 
 **What needs resolving**: The ASN must either (a) formally define both `divergence` and `zpd`, prove their equivalence under Divergence case (i) — specifically that `k ≤ min(#a, #b)` with component disagreement at `k` implies `zpd = divergence = k` — and cite this equivalence explicitly in D0's proof; or (b) unify the parameterization so that TumblerSub and D0 share a single formally-defined divergence concept, eliminating the implicit bridge.
+
+## Result
+
+Cone converged after 3 cycles.
+
+*Elapsed: 2884s*
