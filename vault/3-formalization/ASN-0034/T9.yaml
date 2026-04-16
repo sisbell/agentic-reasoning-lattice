@@ -5,6 +5,7 @@ depends:
 - T1
 - T8
 - T10a
+- T10a.6
 - TA5
 summary: Addresses produced by the same allocator's sibling stream are assigned in strictly increasing tumbler order. If address
   a is allocated before b by the same allocator, then a < b under the tumbler ordering established by T1.

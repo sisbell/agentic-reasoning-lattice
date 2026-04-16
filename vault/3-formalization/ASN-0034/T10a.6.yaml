@@ -1,0 +1,15 @@
+label: T10a.6
+name: DomainDisjointness
+type: corollary
+depends:
+- T10a.1
+- T10a.3
+- T10a.5
+- Prefix
+summary: |
+  Distinct allocators have disjoint domains, dom(X) ∩ dom(Y) = ∅. Two cases. When X and Y share a lineage with X the
+  ancestor, T10a.1 gives uniform per-domain length and T10a.3 gives strict length inequality between ancestor and descendant
+  sibling streams, so no element can carry both lengths. Otherwise, T10a.5 gives cross-allocator prefix-incomparability,
+  which any shared element would contradict via reflexivity of the Prefix relation. Witness-uniqueness corollary — whenever
+  same_allocator(a, b) holds, the witnessing allocator A and the enumeration indices i, j with a = tᵢ, b = tⱼ are uniquely
+  determined by the pair (a, b), so any predicate phrased over those indices (T9's allocated_before) is well-defined.
