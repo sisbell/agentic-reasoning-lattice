@@ -3,14 +3,6 @@ name: AllocationPermanence
 type: theorem
 depends:
 - AllocatedSet
-- T1
-- T2
-- T4
-- T10a
-- TA5
-- TumblerAdd
-- TumblerSub
 - NoDeallocation
 summary: Once an address is allocated it is never removed — the allocated set grows monotonically across every state transition.
-  This follows directly from the NoDeallocation axiom, which precludes any removal operation; read-only and arithmetic operations
-  preserve the set exactly, while allocation operations extend it.
+  This follows directly from the NoDeallocation axiom, which precludes any removal operation from the transition vocabulary Σ.
