@@ -1,6 +1,6 @@
 # Verification V-Cycle
 
-*Design note. See [Formalization Guide](../guides/formalization.md) for the practical V-cycle reference.*
+*Design note. See [Formalization Guide](../guides/formalization.md) for the practical pipeline reference.*
 
 ## Overview
 
@@ -51,6 +51,8 @@ Each scale is efficient at a different class of verification problem:
 Single-scale iteration wastes cycles: local grinds on issues it can't resolve, global scans dozens of properties to find one issue. Multi-scale cycling routes each problem to the scale that can handle it efficiently.
 
 ## Structural Coverage: What Each Scale Can and Cannot See
+
+![Structural coverage](../diagrams/structural-coverage.svg)
 
 Beyond efficiency, the scales have different *structural coverage*. Some errors are not just inefficient to find at narrower scales — they are invisible. Global review is non-negotiable because of what the narrower scales cannot reach:
 
