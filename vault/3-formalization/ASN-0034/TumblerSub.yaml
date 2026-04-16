@@ -7,6 +7,8 @@ depends:
 - T3
 - Divergence
 - ZPD
+- PositiveTumbler
+- ActionPoint
 - TumblerAdd
 - D0
 summary: 'Defines tumbler subtraction `a ⊖ w` as the component-wise difference computed at the first point of zero-padded
