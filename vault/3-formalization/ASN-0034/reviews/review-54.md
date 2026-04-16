@@ -23,3 +23,9 @@ Contrast with k>0, where the contract is complete: (b) covers `1..#t`, (d) cover
 No property within this ASN depends on the missing quantification (T10a-N uses k=1; TA5(a) uses only the divergence at `sig(t)`), so the gap is latent. But the precondition of TA5 is `t ∈ T`, not validity, and the contract is the exported interface for downstream consumers.
 
 **What needs resolving**: The "modification only at sig(t)" claim needs a quantified formula — either extend (b) to `(A i : 1 ≤ i ≤ #t ∧ i ≠ sig(t) : t'ᵢ = tᵢ)`, which would subsume the current (b), or add an explicit postcondition for `(A i : sig(t) < i ≤ #t : t'ᵢ = tᵢ)`. For valid addresses where `sig(t) = #t` (by TA5-SigValid) the range is empty and the gap vanishes, but the general contract should not depend on that.
+
+## Result
+
+Cone converged after 2 cycles.
+
+*Elapsed: 1645s*
