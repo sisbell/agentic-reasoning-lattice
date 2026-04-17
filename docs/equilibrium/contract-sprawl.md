@@ -32,6 +32,10 @@ T0 was the only property introducing ℕ. Every ℕ fact had nowhere else to go.
 
 With the split, new facts about the concept are added as new properties, not as clauses to an existing one. Previous citations stay valid because no existing contract changes. Growth is by accretion instead of mutation. The attractor is dissolved — no single property is the sole home for the concept, so there is no accumulation point.
 
+**Follow the split with a review/revise iteration to rewrite downstream citations.** The split creates a temporary citation debt: every downstream reference that cited the old attractor for a fact that moved is now misattributed. Narrative Depends clauses say "by T0 (well-ordering)" when they should say "by NAT-wellorder." The YAML structure is correct as soon as NAT-* is added to the depends list, but the prose annotations remain stale.
+
+Cross-review is the tool to find these citations mechanically — it reads the whole ASN and flags "property P cites attractor for X, but attractor no longer states X." The reviser rewrites the citations one finding at a time. A few cycles converges the cleanup. The split is the structural fix; the review/revise iteration is the citation realignment that follows. Both are required to fully resolve Contract Sprawl.
+
 ## Related
 
 - [Accretion](../patterns/accretion.md) — the pattern that prevents Contract Sprawl. Properties grow by adding new properties, not by mutating existing ones.
