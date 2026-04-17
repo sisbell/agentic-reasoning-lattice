@@ -11,3 +11,9 @@
 
 A Lamport-style reader will notice that one of the four axiom clauses carries no logical content and that proof citations to it are misdirected.
 **What needs resolving**: Either (a) strengthen the constraint so it is not vacuous over T0's carrier (e.g., state what it is meant to rule out that T0 + the other three clauses do not), or (b) drop it from T4 and retarget the TA5a citation to the boundary clause that actually supplies `t_{#t} ≠ 0`. If positivity is meant to disambiguate the separator/field-component role of zeros, that intent should be stated at a level where it is non-trivial (e.g., over a broader component domain, or as a definitional role-assignment rather than a positional predicate).
+
+## Result
+
+Cone converged after 2 cycles.
+
+*Elapsed: 1206s*

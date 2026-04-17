@@ -2,8 +2,11 @@ label: TA1
 name: OrderPreservationUnderAddition
 type: definition
 depends:
+  - T0
   - T1
   - T3
+  - TA-Pos
+  - ActionPoint
   - TA0
   - TumblerAdd
 summary: 'Tumbler addition weakly preserves order: if `a < b` and both additions are well-defined, then `a ⊕ w ≤ b ⊕ w`. This
