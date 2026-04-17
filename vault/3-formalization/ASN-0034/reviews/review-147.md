@@ -13,3 +13,9 @@
 **ASN**: T4 (HierarchicalParsing). The body text says `Every tumbler t ∈ T used as an address satisfies three positional conditions, stated entirely in terms of the indices at which zero occurs: at most three of its components are zero, no two zeros are adjacent, and neither t₁ nor t_{#t} is zero` and then `We call the last two conditions (no adjacent zeros, neither boundary component zero) collectively the field-segment constraint`. The formal contract instead lists four separate clauses — `zeros(t) ≤ 3; (A i : 1 ≤ i < #t : ¬(tᵢ = 0 ∧ tᵢ₊₁ = 0)); t₁ ≠ 0; t_{#t} ≠ 0` — and says `the last three together form the field-segment constraint`.
 **Issue**: The body enumerates three conditions with the field-segment constraint being "the last two" (adjacency + a single combined boundary clause). The contract enumerates four conditions with the field-segment constraint being "the last three" (adjacency + two separate boundary clauses). The semantic content is identical, but the two enumerations disagree on whether `t₁ ≠ 0` and `t_{#t} ≠ 0` are one conjunctive clause or two separate clauses, and they disagree on which conditions the phrase "field-segment constraint" names by position. T4a's proof, which discharges (i), (ii), (iii) as three separately-labelled conditions, follows yet a third enumeration (three clauses, with adjacency as (i) and the two boundary conditions as (ii) and (iii) separately).
 **What needs resolving**: Pick a single enumeration — either three conditions (with combined boundary) or four (with split boundary) — and use it uniformly in the body prose, the formal contract, and the T4a/T4b proofs that reference the conditions by position or by the `field-segment constraint` name.
+
+## Result
+
+Cone converged after 3 cycles.
+
+*Elapsed: 1586s*

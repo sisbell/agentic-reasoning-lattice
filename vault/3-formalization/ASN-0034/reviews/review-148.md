@@ -1,0 +1,15 @@
+# Cone Review — ASN-0034/T1 (cycle 1)
+
+*2026-04-17 10:49*
+
+### Case 2 mirror sub-cases packaged as single sites while Case 3 mirror sub-cases are split — declared per-instance convention not uniformly applied
+
+**Foundation**: NAT-addcompat (NatAdditionOrderCompatibility), NAT-order (NatStrictTotalOrder).
+
+**ASN**: T1 (LexicographicOrder), Depends enumeration. The convention is declared explicitly: *"The NAT-* site counts that follow use a uniform per-instance convention: branches of a case that instantiate an axiom at distinct symbols count as separate sites."* The preamble then illustrates this with Case 3's two branches, which are split for NAT-discrete, NAT-addcompat, and NAT-order-transitivity precisely because they *"instantiate their NAT-* axioms at distinct symbols — `m + 1 ≤ n` vs `n + 1 ≤ m` for NAT-discrete's forward direction, `m < m + 1` vs `n < n + 1` for NAT-addcompat's strict successor inequality, and the correspondingly distinct transitivity compositions..."*
+
+But Case 2's reverse-witness rebuttals exhibit the same instance-distinct structure and are packaged as single sites via "respectively" notation. NAT-addcompat site 2: *"Case 2's `k' = k` reverse-witness rebuttal under the reverse witness's case (ii), to supply `n < n + 1` (resp. `m < m + 1`) so that NAT-order's trichotomy can refute `n + 1 ≤ n` (resp. `m + 1 ≤ m`)."* NAT-addcompat site 3 (Case 2's `k' < k` rebuttal) similarly uses "(resp. `m < m + 1`)". NAT-order trichotomy sites 3 and 4 (the same rebuttals on the trichotomy side) likewise fold both symbols into a single site each.
+
+**Issue**: Case 2's `(a < b) vs (b < a)` parameterization is structurally identical to Case 3's `(m < n) vs (n < m)` parameterization — each fixes a forward direction and rebuts the reverse, and each instantiates NAT-addcompat's strict successor inequality at two distinct symbols depending on that direction. Under the declared per-instance convention, Case 2's rebuttals should therefore contribute two sites each (for `n < n + 1` and `m < m + 1` separately), not one. At present NAT-addcompat's "eight distinct sites" total absorbs sites 2 and 3 as one each (actually 4 and 4 under the convention) and NAT-order-transitivity's sites 3 and 4 do the same; if Case 3 had been packaged under Case 2's convention the totals would close the other way. Whichever choice the ASN makes, the two cases must be counted by the same rule so the "uniform per-instance convention" declaration matches the itemization it governs.
+
+**What needs resolving**: Either split Case 2's "respectively" rebuttals into separate sites (raising NAT-addcompat to ten and NAT-order-transitivity to eight, with corresponding preamble totals) and do the same for the NAT-order trichotomy sites that currently use "(respectively)" notation, or collapse Case 3's mirror branches back into single sites for NAT-addcompat, NAT-discrete, and NAT-order-transitivity (reversing the cycle-7 split) and restate the convention to match. The convention declaration and the itemization must agree.
