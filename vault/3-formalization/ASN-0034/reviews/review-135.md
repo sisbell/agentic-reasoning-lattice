@@ -1,0 +1,11 @@
+# Cross-cutting Review — ASN-0034 (cycle 2)
+
+*2026-04-17 08:33*
+
+Reading the ASN end-to-end against the per-step NAT-* citation convention that T0 establishes ("Each proof cites only the ℕ facts it actually uses") and the structure of cross-cutting deductions.
+
+### T7 Sub-case 2b silently uses NAT-cancel for separator-position cancellation
+**Foundation**: N/A (foundation ASN — internal consistency)
+**ASN**: T7 (SubspaceDisjointness), Sub-case 2b. The proof argues that if `t' = a` and `t' = b` had identical separator-position sets `{α + 1, α + β + 2, α + β + γ + 3}` and `{α' + 1, α' + β' + 2, α' + β' + γ' + 3}`: *"Matching the first elements: `α + 1 = α' + 1`, so `α = α'`. Substituting into the second: `α + β + 2 = α + β' + 2`, so `β = β'`. Substituting into the third: `α + β + γ + 3 = α + β + γ' + 3`, so `γ = γ'`."*
+**Issue**: Each "so" step is right cancellation on ℕ — the load-bearing NAT-cancel inference (`n + m = p + m ⟹ n = p`) — applied at `m = 1`, then at the regrouped `m = 2`, then at `m = 3`. T7's Depends lists T0, T3, T4, T4b, but does not list NAT-cancel. The same per-step citation policy that GlobalUniqueness applies for the structurally identical `(k'₁, k'₂) = (2, 1)` cancellation step (`(#p₁ + 1) + 1 = #p₂ + 1 ⟹ #p₂ = #p₁ + 1`), and that TA-LC and TA-MTO apply for cancellation at action points, treats these as load-bearing ℕ-axiom appeals that must be cited from NAT-cancel rather than left to background arithmetic. T7 leaves them implicit, which both violates T0's stated convention and breaks Depends-graph traceability for any future tightening of NAT-cancel. The intermediate regroupings `α + β + 2 = (α + β) + 2` and `α + β + γ + 3 = (α + β + γ) + 3` are also unstated; under the convention TS3 and TA-assoc follow they would be discharged from NAT-addassoc.
+**What needs resolving**: Either explicitly discharge each of the three cancellation steps in Sub-case 2b from NAT-cancel (with the regroupings from NAT-addassoc) and add those citations to T7's Depends, or restructure the contradiction so it does not pass through ℕ-arithmetic on the separator-position formulas (for instance, by working directly with the position differences using already-cited lemmas).

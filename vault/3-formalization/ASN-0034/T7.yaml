@@ -6,6 +6,8 @@ depends:
 - T4
 - T4b
 - T0
+- NAT-cancel
+- NAT-addassoc
 summary: For two T4-valid element-level addresses (tumblers satisfying the T4 constraints with exactly three zero delimiters),
   differing in the first element-field component places them in distinct subspaces — text (1) and links (2) cannot share
   an address. T4-validity is required so that T4b licenses the component-access notation `a.E₁`, `b.E₁` used in the statement;
