@@ -4,6 +4,8 @@ type: definition
 depends:
 - T0
 - TA-Pos
+- NAT-order
+- NAT-zero
 - NAT-discrete
 - NAT-wellorder
 summary: Defines the action point of a positive tumbler as the index of its first nonzero component. Because the tumbler is
