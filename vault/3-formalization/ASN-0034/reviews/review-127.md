@@ -38,3 +38,9 @@ Scanning the ASN for cross-cutting issues not captured in Previous Findings.
 **ASN**: T8's Depends reads *"AllocatedSet (AllocatedSet) — defines `allocated(s)`... NoDeallocation (the system defines no removal operation — the sole premise required for the monotonicity conclusion...)"* — the NoDeallocation citation replaces the standard `Property (Alias)` parenthetical with a narrative gloss. Elsewhere NoDeallocation is cited as *"NoDeallocation (NoDeallocation) [forward reference — NoDeallocation is stated after this section]"* (in AllocatedSet's Depends). Similarly, in several Depends clauses NAT-* axioms are cited as *"NAT-sub (NatPartialSubtraction)"*, *"NAT-order (NatStrictTotalOrder)"*, etc. — full alias; but in D1's Depends, NAT-cancel is never cited while conditional subtraction is used (the issue is separately captured), and in various places citations like *"NAT-addcompat's left order compatibility"* appear in prose without the `(NatAdditionOrderCompatibility)` parenthetical that opens the Depends entry.
 **Issue**: Previous Finding 14 captured alias drift among T4/T4a/T4c/TA5/T0/TA6 variants. The NoDeallocation citation in T8 shows a related pattern: the standard `Property (Alias)` format is replaced by a parenthetical that describes the property's content. A reviser using grep on the alias name to locate consumers will miss the T8 citation. The convention appears to be `Property (AliasInTitle) — explanation`; T8's NoDeallocation citation omits the alias-in-title component.
 **What needs resolving**: Normalize NoDeallocation's citation in T8 to match the `NoDeallocation (NoDeallocation)` form used in AllocatedSet's Depends, so every Depends entry is locatable by alias-text search. More generally, the ASN needs a single canonical citation format applied uniformly, so the Depends graph is mechanically traversable.
+
+## Result
+
+Not converged after 8 cycles.
+
+*Elapsed: 12262s*
