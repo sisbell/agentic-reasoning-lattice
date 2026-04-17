@@ -18,6 +18,7 @@ Since `n` was arbitrary, the universal claim holds. ∎
 
 *Formal Contract:*
 - *Postcondition:* For every `n ∈ ℕ` with `n ≥ 1`, there exists `t ∈ T` with `#t ≥ n`.
+- *Depends:* T0 (CarrierSetDefinition) — step (i) invokes T0's carrier characterisation — that T is the set of all finite sequences over ℕ with length ≥ 1 — to conclude `t ∈ T` from `t` being the length-`n` constant sequence of ones, with `n ≥ 1` satisfying the length constraint and each component `dᵢ = 1 ∈ ℕ` satisfying the component-type constraint; and the length operator `#·` used in step (ii) to state `#t = n` and in the postcondition's `#t ≥ n` is the primitive that T0 introduces.
 
 T0 is what separates the tumbler design from fixed-width addressing. Nelson: "New items may be continually inserted in tumbler-space while the other addresses remain valid." The word "continually" carries the weight — it means the process of creating new addresses never terminates. Between any two sibling addresses, the forking mechanism can always create children: "One digit can become several by a forking or branching process. This consists of creating successive new digits to the right." Each daughter can have daughters without limit, and each digit is itself unbounded.
 
