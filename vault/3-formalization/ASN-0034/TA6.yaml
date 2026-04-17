@@ -4,9 +4,13 @@ type: corollary
 depends:
 - T0
 - T1
+- T3
 - T4
 - TA-Pos
 - NAT-zero
+- NAT-order
+- NAT-discrete
+- NAT-wellorder
 summary: No all-zero tumbler is a valid address — every zero tumbler is excluded by the boundary rule T4 enforces on first
   components. As a sentinel benefit, every zero tumbler is strictly less than every positive tumbler under the lexicographic
   order, making them safe lower-bound markers for uninitialized values and unbounded span endpoints.
