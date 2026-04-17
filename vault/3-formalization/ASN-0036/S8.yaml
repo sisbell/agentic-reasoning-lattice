@@ -16,6 +16,7 @@ depends:
 - T3
 - T5
 - T10
+- NAT-discrete
 vocabulary:
 - symbol: correspondence runs {(vⱼ, aⱼ, nⱼ)}
   meaning: a finite set of triples where vⱼ is a starting V-position, aⱼ is the corresponding starting I-address, and nⱼ is
