@@ -2,6 +2,7 @@
 *.pyc
 __pycache__/
 .env
+.claude/
 vault/usage-log.jsonl
 nelson/literary-machines/*.pdf
 nelson/literary-machines/raw/
