@@ -2,6 +2,7 @@ label: TA5
 name: HierarchicalIncrement
 type: definition
 depends:
+- T0
 - T1
 - TA5-SIG
 summary: 'inc(t, k) is the allocation increment operator: for k = 0 it advances the counter at the rightmost nonzero position

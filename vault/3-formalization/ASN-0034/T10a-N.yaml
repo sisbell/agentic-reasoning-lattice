@@ -2,10 +2,14 @@ label: T10a-N
 name: AllocatorDisciplineNecessity
 type: lemma
 depends:
+- T10a
 - Prefix
 - T1
 - TA5
 - T10
-summary: Relaxing the allocator's sibling restriction (k=0 only) to allow child increments (k=1) after a sibling increment
-  causes the produced addresses to fall into a prefix relationship, which violates T10's non-nesting precondition and breaks
-  the uniqueness guarantee. This proves the k=0 restriction is not a convenience but a necessity.
+summary: |
+  T10a restricts sibling production to inc(·, 0); relaxing this restriction to permit inc(·, k) with any k ≥ 0
+  in the sibling stream admits a co-sibling pair t₁ = inc(t₀, 0), t₂ = inc(t₁, 1) that, by TA5(b) and TA5(d),
+  satisfies the Prefix conditions and so nests as t₁ ≼ t₂. The pair then falsifies T10's non-nesting
+  precondition when offered as candidate independent-allocation prefixes, so T10a's k = 0 sibling restriction
+  is necessary for T10's precondition to hold among co-sibling outputs.

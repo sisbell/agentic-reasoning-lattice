@@ -13,3 +13,9 @@
 **ASN**: `TumblerAdd`, dominance-over-displacement proof (`a ⊕ w ≥ w`): "For `i < k`, `rᵢ = aᵢ` and `wᵢ = 0` (by definition of action point); if some `aⱼ > 0` for `j < k`, the least such `j` is a divergence point with `rⱼ > wⱼ`, so T1 case (i) gives `r > w`." TumblerAdd's `Depends` T0 entry cites T0 for carrier-set membership, order-compatibility of `+`, strict successor inequality, and additive identity — but not well-ordering.
 **Issue**: The step "the least such `j`" asserts existence of the minimum of the set `{j : 1 ≤ j < k ∧ aⱼ > 0}`, a nonempty subset of ℕ in the branch where some `aⱼ > 0` exists. This is an independent use of T0's well-ordering distinct from the well-ordering use propagated into TumblerAdd through its `actionPoint(w)` preconditions (which ActionPoint discharges internally). A formalizer scanning TumblerAdd's `Depends` to license this proof step has no source in scope for "least such `j` exists" — the four T0 facts recorded (carrier set, `+`-monotonicity, successor, identity) do not entail the least-element principle. Cycle 7 widened T0 and cited the principle in `PositiveTumbler` and `ActionPoint`, but the analogous step inside `TumblerAdd`'s own proof was not updated.
 **What needs resolving**: TumblerAdd's `Depends` T0 entry should be widened to record T0's well-ordering of ℕ as the licensing source for the "least such `j`" step in the dominance proof, matching the per-step citation convention now used elsewhere in the ASN.
+
+## Result
+
+Cone not converged after 8 cycles.
+
+*Elapsed: 2868s*

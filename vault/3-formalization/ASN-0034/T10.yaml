@@ -2,6 +2,7 @@ label: T10
 name: PartitionIndependence
 type: theorem
 depends:
+- T0
 - T3
 - Prefix
 summary: 'If two tumblers p₁ and p₂ are non-nested (neither is a prefix of the other), then any address descended from p₁
