@@ -1,0 +1,9 @@
+# Cone Review — ASN-0034/T10a-N (cycle 5)
+
+*2026-04-16 20:46*
+
+### T10a-N generalization from `k = 1` to arbitrary `k > 0` is unstated
+**Foundation**: N/A (internal)
+**ASN**: T10a-N (AllocatorDisciplineNecessity), proof and final clause — the construction is executed with a specific witness `t₂ = inc(t₁, 1)`, invoking "TA5(d), since `k = 1 > 0` at the second step, `#t₂ = #t₁ + 1`". The concluding sentence then generalizes: "any relaxation that admits some `inc(·, k)` with `k > 0` into the sibling stream admits this construction, and hence admits a co-sibling pair at which T10's precondition fails."
+**Issue**: The proof body fixes `k = 1`, yet the necessity claim quantifies over *every* `k > 0`. The generalization is left implicit: for arbitrary `k₀ > 0`, TA5(d) gives `#t₂ = #t₁ + k₀` and TA5(b) gives agreement on positions `1..#t₁`, so the `t₁ ≼ t₂` conclusion is reconstructible — but nowhere does the proof state that the argument is parametric in `k`, nor does it note that `k = 1` is chosen merely as the minimal witness. A narrow relaxation admitting only some specific `k₀ > 1` (say, permitting `inc(·, 2)` but forbidding `inc(·, 1)`) would not admit the literal construction `t₂ = inc(t₁, 1)`; the reader must re-run the TA5 steps at `k = k₀` to recover the conclusion. Under the per-step citation convention the document otherwise enforces, the gap between "the proof establishes the `k = 1` case" and "the conclusion quantifies over all `k > 0`" is load-bearing.
+**What needs resolving**: Either state the construction parametrically (`t₂ = inc(t₁, k)` for arbitrary `k > 0`, with TA5(d)'s length equation and TA5(b)'s agreement clause applied at that `k`) so the necessity claim follows directly, or weaken the concluding clause to match what the `k = 1` witness actually establishes.
