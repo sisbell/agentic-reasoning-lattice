@@ -3,7 +3,11 @@ name: ManyToOne
 type: lemma
 depends:
 - TumblerAdd
+- TA0
+- TA-Pos
+- ActionPoint
 - T3
+- NAT-cancel
 summary: 'Two tumblers a and b yield the same result under displacement w if and only if they agree on every component from
   position 1 through w''s action point. This is TumblerAdd''s many-to-one property made precise: components of the starting
   position beyond the action point are overwritten by the displacement''s tail and cannot influence or be recovered from the

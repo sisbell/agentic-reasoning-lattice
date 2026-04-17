@@ -16,4 +16,5 @@ Both preconditions are satisfied. By TA-strict: v ⊕ δ(n, m) > v, that is, shi
 
 *Formal Contract:*
 - *Preconditions:* v ∈ T, n ≥ 1, #v = m
+- *Depends:* OrdinalShift (OrdinalShift) — invoked at the proof opening to unfold `shift(v, n) = v ⊕ δ(n, m)` ("By OrdinalShift, shift(v, n) = v ⊕ δ(n, m), so we must show v ⊕ δ(n, m) > v"); without OrdinalShift the reduction to TA-strict could not be performed. OrdinalDisplacement (OrdinalDisplacement) — invoked twice in the precondition checks: at the first precondition for the structural form `δ(n, m) = [0, ..., 0, n]` and the positivity of its m-th component ("By OrdinalDisplacement, δ(n, m) = [0, ..., 0, n] of length m, with n at position m. Since n ≥ 1, component m is positive"), and at the second precondition for the action-point fact ("By OrdinalDisplacement, the action point of δ(n, m) is m"). TA-strict (StrictIncrease) — invoked at the proof closing to convert the two discharged preconditions into the strict ordering ("By TA-strict: v ⊕ δ(n, m) > v, that is, shift(v, n) > v"); TA-strict is the load-bearing lemma the entire proof reduces to.
 - *Postconditions:* shift(v, n) > v

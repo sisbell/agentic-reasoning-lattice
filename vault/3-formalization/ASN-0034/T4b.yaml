@@ -2,6 +2,7 @@ label: T4b
 name: UniqueParse
 type: corollary
 depends:
+- T0
 - T3
 - T4
 - T4a

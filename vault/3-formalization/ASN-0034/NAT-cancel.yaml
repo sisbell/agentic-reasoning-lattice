@@ -1,0 +1,10 @@
+label: NAT-cancel
+name: NatAdditionCancellation
+type: axiom
+depends: []
+summary: |
+  Addition on ℕ is cancellative on either side and absorbs at a summand:
+  `m + n = m + p ⟹ n = p` (left), `n + m = p + m ⟹ n = p` (right), and
+  `m + n = m ⟹ n = 0` (summand absorption), for every `m, n, p ∈ ℕ`. Stated as
+  an axiom alongside the other NAT-* facts so downstream proofs can cite it
+  directly without appealing to an implicit "standard properties of ℕ" clause.

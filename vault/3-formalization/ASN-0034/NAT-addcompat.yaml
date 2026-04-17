@@ -2,5 +2,10 @@ label: NAT-addcompat
 name: NatAdditionOrderCompatibility
 type: axiom
 depends: []
-summary: 'Addition on ℕ is monotone with respect to order: if `n ≥ p` then `m + n ≥ m + p` for all `m`. Additionally, every
-  natural number is strictly less than its successor: `n < n + 1`.'
+summary: |
+  Addition on ℕ is monotone with respect to order on either side: if `n ≥ p`
+  then `m + n ≥ m + p` (left) and `n + m ≥ p + m` (right) for all `m`. Both
+  forms are stated as axiom clauses so proofs that add a fixed summand on the
+  right (e.g. TA1's `aₖ + wₖ < bₖ + wₖ`) need not tacitly assume commutativity.
+  Additionally, every natural number is strictly less than its successor:
+  `n < n + 1`.

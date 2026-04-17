@@ -3,6 +3,9 @@ name: StrictIncrease
 type: corollary
 depends:
 - TumblerAdd
+- TA0
+- TA-Pos
+- ActionPoint
 - T1
 summary: 'Applying any positive displacement strictly advances a tumbler: a ⊕ w > a whenever the addition is well-defined.
   This rules out degenerate no-op models that otherwise satisfy all addition axioms, and is the foundational guarantee that
