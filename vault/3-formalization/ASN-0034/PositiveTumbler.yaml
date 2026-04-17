@@ -5,6 +5,7 @@ depends:
 - T0
 - T3
 - T1
+- NAT-order
 - NAT-discrete
 - NAT-wellorder
 summary: 'Defines positivity for tumblers: a tumbler is positive if at least one component is nonzero, and a zero tumbler

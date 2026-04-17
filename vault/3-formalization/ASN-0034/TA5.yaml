@@ -7,6 +7,7 @@ depends:
 - TA5-SIG
 - NAT-closure
 - NAT-addcompat
+- NAT-discrete
 summary: 'The increment operation inc(t, k) produces a new address strictly greater than t under lexicographic order: k =
   0 advances the rightmost nonzero component to yield the next peer at the same depth, while k > 0 appends k new components
   to yield a child address at depth k below t. For valid addresses, inc(t, 0) produces the next sibling; inc(t, k) for k >

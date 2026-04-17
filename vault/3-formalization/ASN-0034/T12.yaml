@@ -2,9 +2,12 @@ label: T12
 name: SpanWellDefinedness
 type: corollary
 depends:
+- Span
 - T1
 - TA0
 - TA-strict
-summary: 'A span is the set of all tumblers from a start address s up to but not including the displaced endpoint s⊕ℓ, and
-  this definition is well-formed: the endpoint exists (TA0), the span is non-empty because s is always a member (TA-strict),
-  and the span is order-convex under T1 — any tumbler lying between two span members is itself in the span.'
+summary: |
+  For any (s, ℓ) satisfying the preconditions of Definition (Span), the set span(s, ℓ) has three
+  theorem-level properties: the endpoint s⊕ℓ exists in T (TA0), the set is non-empty because s is
+  always a member (TA-strict), and the set is order-convex under T1 — any tumbler lying between
+  two members is itself a member.

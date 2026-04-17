@@ -5,6 +5,7 @@ depends:
 - T1
 - T3
 - NAT-order
+- NAT-wellorder
 summary: 'Given two distinct tumblers `a ≠ b`, `divergence(a, b)` returns the exact index where they first differ — either
   the position of the first mismatched component, or `min(#a, #b) + 1` when all shared components agree but lengths differ.
   The function is symmetric and always defined for distinct tumblers (exhaustiveness guaranteed by T3: if neither case applied,
