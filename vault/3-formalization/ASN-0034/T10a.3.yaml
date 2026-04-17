@@ -2,6 +2,7 @@ label: T10a.3
 name: LengthSeparation
 type: corollary
 depends:
+- T10a
 - T10a.1
 - T3
 - TA5
