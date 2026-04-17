@@ -4,6 +4,7 @@ type: lemma
 depends:
 - T0
 - T10a
+- T10a.2
 - T10a.6
 - Prefix
 - T1
@@ -14,6 +15,8 @@ summary: |
   k ≥ 0 in the sibling stream admits, for arbitrary k > 0, a co-sibling pair t₁ = inc(t₀, 0),
   t₂ = inc(t₁, k) that, by TA5(b) and TA5(d), satisfies the Prefix conditions and so nests as t₁ ≼ t₂.
   The construction is parametric in k > 0: every k > 0 admitted by the relaxation yields such a failing
-  pair. The pair then falsifies T10's non-nesting precondition when
-  offered as candidate independent-allocation prefixes, so T10a's k = 0 sibling restriction is necessary
-  for T10's precondition to hold among co-sibling outputs.
+  pair. The pair — distinct by the strict length inequality #t₁ < #t₂ and nesting by t₁ ≼ t₂ — falsifies
+  T10a.2 (NonNestingSiblingPrefixes), T10a's own within-allocator consequence and the vehicle by which
+  T10a supplies T10's non-nesting precondition on co-sibling prefixes; the downstream effect on T10
+  flows through T10a.2 rather than through a direct application of T10 to the pair. T10a's k = 0
+  sibling restriction is therefore necessary for T10a.2 to hold among co-sibling outputs.
