@@ -1,0 +1,9 @@
+# Cone Review — ASN-0034/PositiveTumbler (cycle 4)
+
+*2026-04-16 22:05*
+
+### T1's proof prose and *Depends* clause disagree on T3's location
+**Foundation**: n/a (internal document consistency)
+**ASN**: T1 (LexicographicOrder), proof opening: "The argument relies on the corresponding properties of `<` on ℕ and on T3 (CanonicalRepresentation, stated in § *Canonical form* above): tumblers with the same length and identical components at every position are equal." T1's *Depends* clause on the same property annotates T3 as "[forward reference — T3 is stated in § Canonical form, after this section]" (paraphrased from the previous-findings quotation; the Depends entry for T3 describes it as a forward reference in the current text).
+**Issue**: The proof prose locates § Canonical form "above" T1. In document order, however, § Canonical form follows § The total order — T3 is stated *after* T1, which is precisely why T1's Depends clause and previous finding #7 identify the reference as a forward reference. The proof's parenthetical "above" is therefore factually wrong about document layout and internally inconsistent with the same property's own Depends annotation. A reader who trusts the prose will scroll up looking for T3 and find nothing; a reader who trusts the Depends will see the two signals contradicting each other and be unable to tell which one reflects the intended final structure.
+**What needs resolving**: Either reorder the document so § Canonical form genuinely precedes § The total order (in which case "above" becomes correct and the Depends forward-reference annotation must be removed, aligning with previous finding #7), or correct the proof-prose parenthetical to match the Depends clause (e.g., "stated in § *Canonical form* below" or drop the location clue entirely). The two signals must agree on where T3 lives relative to T1.
