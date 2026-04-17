@@ -1,0 +1,114 @@
+<svg width="100%" viewBox="0 0 680 500" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>Citation drift: internal vs passive drivers</title>
+  <desc>Left shows internal drift within an ASN where content evolves but metadata lags. Right shows passive drift where upstream changes leave downstream citations stale. A single review/revise resolution spans both.</desc>
+
+  <style>
+    text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+    .th { font-size: 14px; font-weight: 500; fill: #2C2C2A; }
+    .ts { font-size: 12px; font-weight: 400; fill: #5F5E5A; }
+    .box-bg { fill: #F1EFE8; }
+    .box-stroke { stroke: #D3D1C7; stroke-width: 0.5; }
+    .blue-fill { fill: #E6F1FB; }
+    .blue-stroke { stroke: #185FA5; stroke-width: 0.5; }
+    .blue-text { fill: #0C447C; }
+    .teal-fill { fill: #E1F5EE; }
+    .teal-stroke { stroke: #0F6E56; stroke-width: 0.5; }
+    .teal-text { fill: #085041; }
+    .gray-fill { fill: #F1EFE8; }
+    .gray-stroke { stroke: #5F5E5A; stroke-width: 0.5; }
+    .gray-text { fill: #444441; }
+    .green-fill { fill: #EAF3DE; }
+    .green-stroke { stroke: #3B6D11; stroke-width: 0.5; }
+    .green-text { fill: #27500A; }
+    .red-dot { fill: #E24B4A; }
+    .red-text { fill: #A32D2D; }
+    .leader { stroke: #888780; stroke-width: 0.5; stroke-dasharray: 4 3; }
+    .divider { stroke: #D3D1C7; stroke-width: 0.5; }
+  </style>
+
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <!-- LEFT HALF: Internal drift -->
+  <text class="th" x="170" y="32" text-anchor="middle">Internal drivers</text>
+  <text class="ts" x="170" y="50" text-anchor="middle">Continuous — produced by active work</text>
+
+  <rect x="40" y="68" width="260" height="260" rx="16" class="box-bg box-stroke"/>
+  <text class="th" x="60" y="92">ASN-0034</text>
+
+  <rect x="60" y="108" width="100" height="32" rx="6" class="blue-fill blue-stroke"/>
+  <text class="ts blue-text" x="110" y="128" text-anchor="middle" dominant-baseline="central">T12</text>
+  <circle cx="152" cy="112" r="4" class="red-dot"/>
+
+  <rect x="180" y="108" width="100" height="32" rx="6" class="blue-fill blue-stroke"/>
+  <text class="ts blue-text" x="230" y="128" text-anchor="middle" dominant-baseline="central">TA-assoc</text>
+  <circle cx="272" cy="112" r="4" class="red-dot"/>
+
+  <rect x="60" y="156" width="100" height="32" rx="6" class="blue-fill blue-stroke"/>
+  <text class="ts blue-text" x="110" y="176" text-anchor="middle" dominant-baseline="central">Span</text>
+  <circle cx="152" cy="160" r="4" class="red-dot"/>
+
+  <rect x="180" y="156" width="100" height="32" rx="6" class="blue-fill blue-stroke"/>
+  <text class="ts blue-text" x="230" y="176" text-anchor="middle" dominant-baseline="central">T10a.1</text>
+  <circle cx="272" cy="160" r="4" class="red-dot"/>
+
+  <rect x="60" y="204" width="100" height="32" rx="6" class="blue-fill blue-stroke"/>
+  <text class="ts blue-text" x="110" y="224" text-anchor="middle" dominant-baseline="central">TA-LC</text>
+  <circle cx="152" cy="208" r="4" class="red-dot"/>
+
+  <rect x="180" y="204" width="100" height="32" rx="6" class="blue-fill blue-stroke"/>
+  <text class="ts blue-text" x="230" y="224" text-anchor="middle" dominant-baseline="central">NoDealloc</text>
+
+  <text class="ts" x="170" y="262" text-anchor="middle">Content revised ✓</text>
+  <text class="ts" x="170" y="280" text-anchor="middle">Depends clauses lag</text>
+
+  <circle cx="96" cy="306" r="4" class="red-dot"/>
+  <text class="ts" x="106" y="310">= stale citation</text>
+
+  <!-- RIGHT HALF: Passive drift -->
+  <text class="th" x="510" y="32" text-anchor="middle">Passive drivers</text>
+  <text class="ts" x="510" y="50" text-anchor="middle">Event-driven — caused upstream</text>
+
+  <rect x="400" y="68" width="220" height="120" rx="16" class="box-bg box-stroke"/>
+  <text class="th" x="420" y="92">ASN-0034</text>
+  <text class="ts" x="420" y="108">upstream</text>
+
+  <rect x="420" y="120" width="80" height="28" rx="6" class="teal-fill teal-stroke"/>
+  <text class="ts teal-text" x="460" y="138" text-anchor="middle" dominant-baseline="central">T0</text>
+  <text class="ts" x="508" y="138">→</text>
+  <rect x="518" y="120" width="84" height="28" rx="6" class="teal-fill teal-stroke"/>
+  <text class="ts teal-text" x="560" y="138" text-anchor="middle" dominant-baseline="central">NAT-*</text>
+
+  <rect x="400" y="228" width="220" height="100" rx="16" class="box-bg box-stroke"/>
+  <text class="th" x="420" y="252">ASN-0036</text>
+  <text class="ts" x="420" y="268">downstream</text>
+
+  <rect x="420" y="280" width="80" height="28" rx="6" class="gray-fill gray-stroke"/>
+  <text class="ts gray-text" x="460" y="298" text-anchor="middle" dominant-baseline="central">cites T0</text>
+  <circle cx="492" cy="284" r="4" class="red-dot"/>
+
+  <rect x="520" y="280" width="80" height="28" rx="6" class="gray-fill gray-stroke"/>
+  <text class="ts gray-text" x="560" y="298" text-anchor="middle" dominant-baseline="central">cites T0</text>
+  <circle cx="592" cy="284" r="4" class="red-dot"/>
+
+  <line x1="460" y1="188" x2="460" y2="228" stroke="#E24B4A" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arrow)"/>
+  <line x1="560" y1="188" x2="560" y2="228" stroke="#E24B4A" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arrow)"/>
+  <text class="ts red-text" x="510" y="214" text-anchor="middle">stale links</text>
+
+  <text class="ts" x="510" y="348" text-anchor="middle">Invisible to local review —</text>
+  <text class="ts" x="510" y="364" text-anchor="middle">needs upstream trigger</text>
+
+  <!-- UNIFIED RESOLUTION -->
+  <line x1="40" y1="400" x2="640" y2="400" class="divider"/>
+  <text class="th" x="340" y="424" text-anchor="middle">Resolution</text>
+
+  <rect x="120" y="438" width="440" height="44" rx="8" class="green-fill green-stroke"/>
+  <text class="th green-text" x="340" y="460" text-anchor="middle" dominant-baseline="central">Review / revise iteration</text>
+
+  <text class="ts" x="170" y="498" text-anchor="middle">within ASN</text>
+  <text class="ts" x="510" y="498" text-anchor="middle">across ASNs (rebase scope)</text>
+
+</svg>
