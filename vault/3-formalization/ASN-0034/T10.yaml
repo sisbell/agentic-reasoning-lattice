@@ -5,6 +5,8 @@ depends:
 - T0
 - T3
 - Prefix
+- NAT-order
+- NAT-wellorder
 summary: 'If two tumblers p₁ and p₂ are non-nested (neither is a prefix of the other), then any address descended from p₁
   and any address descended from p₂ are guaranteed to be distinct. This is the formal basis for coordination-free allocation:
   owners of disjoint subtrees can allocate addresses independently with no risk of collision.'

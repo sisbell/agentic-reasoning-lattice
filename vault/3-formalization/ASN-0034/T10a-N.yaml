@@ -10,6 +10,9 @@ depends:
 - T1
 - TA5
 - T10
+- NAT-discrete
+- NAT-addcompat
+- NAT-wellorder
 summary: |
   T10a restricts sibling production to inc(·, 0); relaxing this restriction to permit inc(·, k) with any
   k ≥ 0 in the sibling stream admits, for arbitrary k > 0, a co-sibling pair t₁ = inc(t₀, 0),

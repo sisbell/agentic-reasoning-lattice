@@ -7,6 +7,9 @@ depends:
 - T3
 - TA-Pos
 - ActionPoint
+- NAT-closure
+- NAT-addcompat
+- NAT-wellorder
 summary: Defines tumbler addition `a ⊕ w`, the operation that advances position `a` by displacement `w`. The result copies
   `a`'s components before the displacement's action point, adds at that level, then takes `w`'s deeper components — producing
   a tumbler strictly greater than `a` with the same length as `w`.

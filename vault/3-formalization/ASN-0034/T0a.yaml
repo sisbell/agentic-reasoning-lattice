@@ -3,6 +3,8 @@ name: UnboundedComponentValues
 type: corollary
 depends:
 - T0
+- NAT-closure
+- NAT-addcompat
 summary: For every tumbler and every component position, the value at that position is unbounded — no matter what bound M
   you choose, a tumbler exists that agrees with the original everywhere except at that position, where it exceeds M. This
   guarantees siblings at any level are inexhaustible.
