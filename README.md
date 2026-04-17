@@ -35,6 +35,7 @@ The system is demonstrated on the Xanadu hypertext system — deriving formal pr
 - [Formalization](docs/formalization.md) — precision as a discovery tool, reasoning that improves itself
 - [Pattern Language](docs/patterns/pattern-language.md) — 12 operationally discovered patterns for agentic reasoning systems
 - [Verification V-Cycle](docs/design-notes/verification-v-cycle.md) — multi-scale review architecture and multigrid analogy
+- [Glossary](docs/glossary.md) — system-specific terms and their definitions
 
 ### Guides
 
