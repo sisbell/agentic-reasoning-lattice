@@ -5,7 +5,7 @@ depends:
 - T0
 - T1
 - T3
-- PositiveTumbler
+- TA-Pos
 - ActionPoint
 summary: Defines tumbler addition `a ⊕ w`, the operation that advances position `a` by displacement `w`. The result copies
   `a`'s components before the displacement's action point, adds at that level, then takes `w`'s deeper components — producing

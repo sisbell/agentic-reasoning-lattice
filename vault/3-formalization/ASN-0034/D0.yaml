@@ -6,7 +6,7 @@ depends:
 - T3
 - Divergence
 - ZPD
-- PositiveTumbler
+- TA-Pos
 - ActionPoint
 - TA0
 - TA2

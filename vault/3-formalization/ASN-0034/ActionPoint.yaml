@@ -3,6 +3,6 @@ name: ActionPoint
 type: definition
 depends:
 - T0
-- PositiveTumbler
+- TA-Pos
 summary: Defines the action point of a positive tumbler as the least index with a nonzero component.
-  Existence follows from PositiveTumbler; bounds are 1 ≤ actionPoint(w) ≤ #w.
+  Existence follows from TA-Pos; bounds are 1 ≤ actionPoint(w) ≤ #w.

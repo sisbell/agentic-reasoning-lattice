@@ -1,10 +1,10 @@
-**TA0 (WellDefinedAddition).** TumblerAdd's piecewise construction yields a well-defined tumbler: for `a, w ∈ T` where `Pos(w)` and `actionPoint(w) ≤ #a`, the result `a ⊕ w` lies in `T`.
+**TA0 (WellDefinedAddition).** TumblerAdd's piecewise construction yields a well-defined tumbler: for `a, w ∈ T` where `Pos(w)` and `actionPoint(w) ≤ #a`, the result `a ⊕ w` lies in `T`. Both TumblerAdd (the piecewise construction of `⊕`) and ActionPoint (the action-point function on positive tumblers) are sister properties of this ASN, stated above with their own formal contracts and listed in this property's *Depends* clause.
 
 The precondition `actionPoint(w) ≤ #a` is essential: TumblerAdd's construction copies components `a₁, ..., aₖ₋₁` from the start position and adds `wₖ` to `aₖ`, so position `k` must exist within `a`. A displacement whose action point exceeds `#a` — one with more leading zeros than `a` has components — would attempt to "stay at" hierarchical levels that the start position does not have, and the operation is undefined.
 
-*Proof.* By ActionPoint, `Pos(w)` yields a well-defined action point `k = actionPoint(w)` with `1 ≤ k ≤ #w` and `wₖ ≥ 1`. The precondition `k ≤ #a` ensures that TumblerAdd's piecewise construction is applicable: the prefix-copy region `i < k` indexes valid positions within `a`, and the action-point component `aₖ` exists. By TumblerAdd, each component of the result lies in ℕ and `#(a ⊕ w) = #w ≥ 1`, so `a ⊕ w ∈ T`. ∎
+*Proof.* By ActionPoint (this ASN), `Pos(w)` yields a well-defined action point `k = actionPoint(w)` with `1 ≤ k ≤ #w` and `wₖ ≥ 1`. The precondition `k ≤ #a` ensures that TumblerAdd's piecewise construction is applicable: the prefix-copy region `i < k` indexes valid positions within `a`, and the action-point component `aₖ` exists. By TumblerAdd (this ASN), each component of the result lies in ℕ and `#(a ⊕ w) = #w ≥ 1`, so `a ⊕ w ∈ T`. ∎
 
 *Formal Contract:*
-- *Preconditions:* a ∈ T, w ∈ T, Pos(w), actionPoint(w) ≤ #a (ActionPoint)
-- *Depends:* TumblerAdd (TumblerAdd) — the proof delegates entirely to TumblerAdd's piecewise construction: component membership in ℕ and the result-length identity `#(a ⊕ w) = #w` are TumblerAdd postconditions. ActionPoint (ActionPoint) — the precondition `actionPoint(w) ≤ #a` references ActionPoint's definition of the action-point function.
+- *Preconditions:* a ∈ T, w ∈ T, Pos(w), actionPoint(w) ≤ #a (ActionPoint, this ASN)
+- *Depends:* TumblerAdd (TumblerAdd, this ASN) — the proof delegates entirely to TumblerAdd's piecewise construction: component membership in ℕ and the result-length identity `#(a ⊕ w) = #w` are TumblerAdd postconditions. ActionPoint (ActionPoint, this ASN) — the precondition `actionPoint(w) ≤ #a` references ActionPoint's definition of the action-point function.
 - *Postconditions:* a ⊕ w ∈ T, #(a ⊕ w) = #w

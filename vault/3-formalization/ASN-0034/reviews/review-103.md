@@ -7,3 +7,9 @@
 **ASN**: T10a-N (AllocatorDisciplineNecessity), final paragraph — "under the relaxation, however, `t₁` and `t₂` are co-sibling outputs of one allocator, so the pair `(t₁, t₂)` is **offered to T10 as candidate prefixes of independent allocation**; the T10 precondition `p₁ ⋠ p₂ ∧ p₂ ⋠ p₁` then fails on this pair because `t₁ ≼ t₂`."
 **Issue**: The argument's decisive step is the transition from "`t₁` and `t₂` are co-sibling outputs of one allocator" to "the pair `(t₁, t₂)` is offered to T10 as candidate prefixes of independent allocation." T10's preconditions name `p₁` and `p₂` as the prefixes of two *independent allocators*, not as the outputs of a single allocator — so some principle must promote sibling outputs into T10-prefix candidates (presumably "baptism": each allocated tumbler becomes a potential base for child allocation). This promotion is load-bearing for the contradiction — without it, the failure `t₁ ≼ t₂` does not falsify any T10 application — yet nothing in the Depends cites a clause that establishes it. T10a.6 is cited for parent/child domain disjointness, which is the *dual* direction (separating domains that already exist), not for "each sibling output is itself an allocator-base candidate." The prose preceding T10a-N mentions baptism informally but that text is not a contract clause the proof can point at.
 **What needs resolving**: Either cite a specific subclause of T10a (or another property) that establishes "each sibling output becomes an independent-allocator-prefix candidate for T10," matching the per-step citation convention used elsewhere in this ASN; or re-frame the conclusion so it falsifies a claim T10a itself makes (e.g., "sibling outputs of one allocator are non-nesting"), which does not require promoting the pair to T10 at all.
+
+## Result
+
+Cone not converged after 8 cycles.
+
+*Elapsed: 3525s*

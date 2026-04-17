@@ -36,7 +36,7 @@
 - **sig(t)** — last significant position of tumbler t: max({i : 1 ≤ i ≤ #t ∧ tᵢ ≠ 0}) when any component is nonzero; #t when all components are zero
 - **span(s, ℓ)** — set of tumblers in range: {t ∈ T : s ≤ t < s ⊕ ℓ}, where s is start address and ℓ is a positive tumbler displacement with actionPoint(ℓ) ≤ #s (TA0's precondition for s ⊕ ℓ ∈ T)
 - **t = d₁.d₂. ... .dₙ** — tumbler notation: a finite sequence of components where each dᵢ ∈ ℕ and n ≥ 1
-- **t > 0 (DEPRECATED)** — ambiguous notation; use Pos(t) instead. Under T1, t > [0] is satisfied by all-zero tumblers of length ≥ 2, which are not PositiveTumbler-positive
+- **t > 0 (DEPRECATED)** — ambiguous notation; use Pos(t) instead. Under T1, t > [0] is satisfied by all-zero tumblers of length ≥ 2, which are not TA-Pos-positive
 - **tail replacement** — operation in tumbler addition where result components beyond the action point are copied from w: rᵢ = wᵢ for i > k
 - **user field** — U₁. ... .Uᵦ — the second field of an address tumbler, identifying the account
 - **zero tumbler** — a tumbler whose every component is zero — (A i : 1 ≤ i ≤ #t : tᵢ = 0)

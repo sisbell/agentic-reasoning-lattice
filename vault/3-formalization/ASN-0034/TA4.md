@@ -8,7 +8,7 @@ Third, `(A i : 1 ≤ i < k : aᵢ = 0)` — all components of `a` before the act
 
 When all three conditions hold, recovery is exact. The restriction is not a deficiency but a precise statement of when the operations are inverses.
 
-The precondition `Pos(w)` (PositiveTumbler) guarantees that the action point `k` exists; by PositiveTumbler, this excludes every all-zero displacement regardless of length.
+The precondition `Pos(w)` (TA-Pos) guarantees that the action point `k` exists; by TA-Pos, this excludes every all-zero displacement regardless of length.
 
 *Proof.* We show that under the stated preconditions, the round-trip `(a ⊕ w) ⊖ w` recovers `a` exactly. Throughout, `k` denotes the action point of `w` — the least position `i` with `wᵢ > 0` — so by definition `wᵢ = 0` for all `i < k` and `wₖ > 0`.
 

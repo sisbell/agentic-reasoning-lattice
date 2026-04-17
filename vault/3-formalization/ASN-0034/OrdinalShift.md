@@ -2,7 +2,7 @@
 
 `shift(v, n) = v ⊕ δ(n, m)`
 
-We verify the four preconditions of TA0 for this application. First, v ∈ T by assumption. Second, by OrdinalDisplacement, δ(n, m) = [0, …, 0, n] is a finite sequence of length m ≥ 1 over ℕ, so by T0, δ(n, m) ∈ T. Third, since n ≥ 1 the m-th component of δ(n, m) is nonzero, whence by PositiveTumbler Pos(δ(n, m)). Fourth, the action point of δ(n, m) is m = #v by OrdinalDisplacement, so actionPoint(δ(n, m)) ≤ #v holds trivially.
+We verify the four preconditions of TA0 for this application. First, v ∈ T by assumption. Second, by OrdinalDisplacement, δ(n, m) = [0, …, 0, n] is a finite sequence of length m ≥ 1 over ℕ, so by T0, δ(n, m) ∈ T. Third, since n ≥ 1 the m-th component of δ(n, m) is nonzero, whence by TA-Pos Pos(δ(n, m)). Fourth, the action point of δ(n, m) is m = #v by OrdinalDisplacement, so actionPoint(δ(n, m)) ≤ #v holds trivially.
 
 With all TA0 preconditions satisfied, shift(v, n) = v ⊕ δ(n, m) ∈ T. By TumblerAdd: shift(v, n)ᵢ = vᵢ for i < m, shift(v, n)ₘ = vₘ + n, and #shift(v, n) = #δ(n, m) = m = #v. The shift advances the deepest component by exactly n, leaving all higher-level components unchanged.
 

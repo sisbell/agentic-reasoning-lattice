@@ -4,7 +4,7 @@ type: corollary
 depends:
 - TumblerAdd
 - TumblerSub
-- PositiveTumbler
+- TA-Pos
 summary: 'Tumbler addition and subtraction are a partial inverse pair: (a ⊕ w) ⊖ w = a, but only when w''s action point equals
   #a and all of a''s non-final components are zero. In general, ⊕ is asymmetric — it replaces the low-level suffix of the
   result with w''s tail — so components of a below the action point are discarded and cannot be recovered by subtracting w.'
