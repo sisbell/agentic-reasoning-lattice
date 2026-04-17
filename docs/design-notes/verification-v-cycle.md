@@ -89,7 +89,7 @@ Cross-review findings that appear to be cone-level issues are diagnostic signals
 There is no noise in a truly converged system. What looks like noise at cross-review is a signal that a lower scale is incomplete. The pattern of findings tells you where the incompleteness lives:
 
 - **Cross-review finds a vocabulary collision** → genuine structural issue, cone sweep is architecturally unable to see it
-- **Cross-review finds something that looks like a cone-level issue** → cone sweep did not converge, go back
+- **Cross-review finds something that looks like a cone-level issue** → cone sweep did not converge, go back. See [Contract Sprawl](../equilibrium/contract-sprawl.md) for a specific failure mode that produces this signal.
 - **Cross-review finds nothing** → lower scales reached genuine ground state, convergence is real
 
 This self-evaluation property is what makes the V-cycle a protocol substrate rather than just a verification procedure. A system that can detect incomplete convergence in its own processes can improve those processes — adjusting scope, reconfiguring cone boundaries, reallocating agent computation. The pattern language systematically reduces wasted computation by routing problems to the scale that can resolve them. The V-cycle's self-diagnostic signal is what makes that routing improvable over time.

@@ -28,6 +28,7 @@ Patterns that adjust or feed the cycle:
 - [Vocabulary bridge](vocabulary-bridge.md) — map domain language to structural language once, share across the lattice. Sits between foundation algebra and higher layers.
 - [Scope promotion](scope-promotion.md) — out-of-scope findings promoted to first-class investigations. How the lattice grows outward.
 - [Extract/absorb](extract-absorb.md) — shared concepts extracted into new foundation layers, duplicates absorbed. How the lattice grows inward.
+- [Accretion](accretion.md) — properties grow the lattice by adding new properties, not by mutating existing ones. The discipline that prevents Contract Sprawl.
 
 The structure that accumulates the output:
 

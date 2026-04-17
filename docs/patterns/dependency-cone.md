@@ -88,6 +88,8 @@ This reorganization pattern suggests cones operate at two levels: **review** (ar
 
 [Verification V-Cycle](../design-notes/verification-v-cycle.md) — the multi-scale architecture that emerged from the cone problem. Property, cluster, and system scales composed into an upward-downward pass, each handling the error class it is efficient at.
 
+[Contract Sprawl](../equilibrium/contract-sprawl.md) — cones can mask Contract Sprawl. A cone that fails to converge may look like coupling complexity when the real cause is the apex sprawling each cycle.
+
 ## Origin
 
 Discovered during ASN-0036 formalization on the Xanadu project, reviews 60-65. S8 (FiniteCorrespondenceRunDecomposition) was touched in 4 of 6 consecutive cross-review commits while its 7 dependencies were touched 0-1 times. The cross-review had already converged the loosely coupled properties (S7, ValidInsertionPosition, S3) in earlier rounds — what remained was the tightly coupled S8 core.
