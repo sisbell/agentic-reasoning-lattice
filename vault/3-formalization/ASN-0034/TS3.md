@@ -27,7 +27,7 @@ Now we apply the second shift. By OrdinalShift, shift(u, n₂) = u ⊕ δ(n₂, 
 **Comparison.** Both sides have length m: #L = m = #R. We verify component-wise equality:
 
 - For 1 ≤ i < m: Lᵢ = vᵢ = Rᵢ — both sides copied the prefix from v.
-- At i = m: Lₘ = (vₘ + n₁) + n₂ and Rₘ = vₘ + (n₁ + n₂). These are equal by the associativity of addition in ℕ: (vₘ + n₁) + n₂ = vₘ + (n₁ + n₂).
+- At i = m: Lₘ = (vₘ + n₁) + n₂ and Rₘ = vₘ + (n₁ + n₂). These are equal by NAT-addassoc (NatAdditionAssociative), which states `(m + n) + p = m + (n + p)` for every `m, n, p ∈ ℕ`: instantiated with `vₘ, n₁, n₂`, it yields `(vₘ + n₁) + n₂ = vₘ + (n₁ + n₂)`.
 
 Every component agrees and both tumblers have the same length. By T3 (CanonicalRepresentation): L = R, that is, shift(shift(v, n₁), n₂) = shift(v, n₁ + n₂). ∎
 
