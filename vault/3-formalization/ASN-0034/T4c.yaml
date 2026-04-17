@@ -5,10 +5,12 @@ depends:
 - T0
 - T4
 summary: |
-  The count of zero-valued components in a valid tumbler is a bijection onto hierarchical
-  level: zero zeros means node address, one means user, two means document, three means
-  element. This follows because T4's definitional role-assignment biconditional makes
-  every zero a separator and every separator a zero, so the zero count equals the
-  separator count and the number of fields present is always the separator count plus
-  one. No dependency on T4b is required because both the biconditional and the bound
-  zeros(t) ≤ 3 are clauses of T4's own axiom.
+  On the T4-valid subset of T (tumblers satisfying zeros(t) ≤ 3, no two zeros adjacent,
+  t₁ ≠ 0, t_{#t} ≠ 0), the count of zero-valued components is a bijection onto
+  hierarchical level: zero zeros means node address, one means user, two means
+  document, three means element. The claim is universally quantified over the T4-valid
+  subdomain and assigns no level outside it. This follows because T4's definitional
+  role-assignment biconditional makes every zero a separator and every separator a
+  zero, so the zero count equals the separator count and the number of fields present
+  is always the separator count plus one. No dependency on T4b is required because
+  both the biconditional and the bound zeros(t) ≤ 3 are clauses of T4's own axiom.
