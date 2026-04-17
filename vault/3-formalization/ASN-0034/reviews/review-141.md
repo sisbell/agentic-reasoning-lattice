@@ -1,0 +1,13 @@
+# Cone Review — ASN-0034/T1 (cycle 4)
+
+*2026-04-17 09:44*
+
+### NAT-order trichotomy undercount at Case 3's `m ≠ n` split
+
+**Foundation**: NAT-order (NatStrictTotalOrder).
+
+**ASN**: T1 (LexicographicOrder), part (b) Trichotomy, Case 3. The proof proceeds: *"Case 3: `k = min(m, n) + 1` — all shared positions agree but `m ≠ n`. [...] If `m < n`, then `k = m + 1 ≤ n`, so `a` is a proper prefix of `b` and `k` witnesses `a < b` via T1 case (ii). [...] If `m > n`, the symmetric argument gives `b < a` as the unique outcome."* The exhaustiveness of the "`m < n`" / "`m > n`" split consumes NAT-order's trichotomy on ℕ at the pair `(m, n)` to move from the case hypothesis `m ≠ n` to the disjunction `m < n ∨ n < m`.
+
+**Issue**: T1's Depends list enumerates NAT-order's trichotomy at exactly six sites — part (a) Case (ii); part (b) Case 2's opening step (to resolve disagreeing components `aₖ ≠ bₖ` into `aₖ < bₖ ∨ bₖ < aₖ`); part (b) Case 2's `k' = k` rebuttal via the reverse witness's case (i); part (b) Case 2's `k' = k` rebuttal via case (ii); part (b) Case 2's `k' < k` rebuttal via case (ii); and part (c) sub-case (i, ii). Case 3's length-level split `m ≠ n ⟹ m < n ∨ n < m` is not among them, yet it has exactly the same structural character as Case 2's opening step — both convert disequality into a strict dichotomy via trichotomy on ℕ, the only difference being that Case 2 applies trichotomy to components `aₖ, bₖ` while Case 3 applies it to lengths `m, n`. Under T0's convention ("each proof cites only the ℕ facts it actually uses"), the enumeration is an exhaustive list of trichotomy consumptions; Case 3's split is a missing site. The symmetric branch's "unique outcome" claim in Case 3 then inherits the same bookkeeping gap when it asserts that `m > n` produces `b < a` uniquely: eliminating the `m = n` possibility a second time here is either redundant with the initial `m ≠ n` hypothesis or consumes trichotomy again at the length level.
+
+**What needs resolving**: Either add the Case 3 length-level trichotomy invocation to the NAT-order enumeration as a seventh site (parallel to the Case 2 opening step, but at the length pair rather than the component pair), or restructure Case 3 so that the `m < n` / `m > n` split routes through a site already enumerated — for instance, by folding Case 3 into Case 2's trichotomy invocation through a unified "divergence index" that handles component-level and length-level disagreements by a single trichotomy use. The fix must either extend the enumeration or change the proof; leaving the enumeration at six while the proof consumes trichotomy at seven distinct pairs violates the citation-policy convention that the NAT-* axioms enforce.
