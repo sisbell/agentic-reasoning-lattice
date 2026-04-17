@@ -1,0 +1,13 @@
+label: T10a.8
+name: UniformSiblingZeroCount
+type: corollary
+depends:
+- T10a
+- T10a.4
+- T4
+- TA5
+- TA5-SigValid
+summary: |
+  All siblings produced by a single allocator share the same zero count as the base address. Each inc(·, 0) step modifies
+  only the terminal component (TA5(b), TA5(c), TA5-SigValid, T10a.4), and that component is strictly positive before and
+  after the +1 (T4's field-segment constraint), so no position enters or leaves the zero set.

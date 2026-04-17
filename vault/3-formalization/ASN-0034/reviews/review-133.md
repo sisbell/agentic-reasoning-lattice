@@ -19,3 +19,9 @@ Reading the ASN as a system, I found one new cross-cutting issue beyond those in
 The omission is load-bearing for the per-step citation convention that T0 introduces in the same paragraph. T0's enumeration is what tells a reviser what counts as an "ℕ fact" whose use must be cited. A reviser checking whether a proof's Depends is complete — or one adding a new proof and wondering whether an arithmetic step needs citation — will consult T0's list, see five names, and not know to look for NAT-sub, NAT-cancel, and NAT-addassoc. The three omitted axioms do exist elsewhere in the ASN with their own Formal Contracts, so the issue is specifically an inventory gap in T0's framing sentence, not a missing axiom: T0 asserts completeness of the NAT-* layer but under-reports it.
 
 **What needs resolving**: Either (a) extend T0's enumeration to list all eight NAT-* axioms the ASN states, making the "separate axioms" parenthetical an exhaustive index that matches the per-step citation convention T0 also stipulates; or (b) rephrase T0 so its list is not read as exhaustive — e.g., "among which are …" — and point readers elsewhere for the full NAT-* inventory. Without either change, T0's framing diverges from the ASN's actual NAT-* footprint, and the completeness claim that licenses the per-step citation policy is undersupported by its own statement.
+
+## Result
+
+Converged after 7 cycles.
+
+*Elapsed: 3136s*
