@@ -19,3 +19,9 @@
 **ASN**: The formalization and postcondition are both `a.E₁ ≠ b.E₁ ⟹ a ≠ b` — a claim about first-element-field components differing, with no mention of subspace identifiers, disjoint regions, or "confusion" between subspaces.
 **Issue**: The formal claim is weaker-stated and more general than the informal framing promises: it says two element-level tumblers with different first element-field components are unequal (essentially an application of Leibniz through T3). It does *not* establish the "permanent separation into disjoint regions" that the title and narrative invoke, nor does it refer to subspace identifiers `{1, 2}` as a typed concept. Downstream ASNs importing T7 under the name "SubspaceDisjointness" may assume properties the formal statement does not grant — for instance, that spans in subspace 1 are disjoint from spans in subspace 2, or that the subspace identifier has a distinguished type separate from other element-field components.
 **What needs resolving**: Either tighten the formal statement to match the title (quantify explicitly over subspace-identifier values, state the region-disjointness claim that subsequent properties will cite), or rename/reframe T7 so its title and narrative match the Leibniz-level claim it actually proves, and relocate "permanent separation" to a separate property downstream.
+
+## Result
+
+Cone converged after 2 cycles.
+
+*Elapsed: 1654s*

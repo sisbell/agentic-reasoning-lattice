@@ -1,0 +1,10 @@
+label: NAT-zero
+name: NatZeroMinimum
+type: axiom
+depends: []
+summary: |
+  Fixes 0 as the minimum of ℕ via `(A n ∈ ℕ :: 0 ≤ n)`. Independent of NAT-order
+  (which gives strict total order but does not identify 0 as the minimum) and
+  NAT-wellorder (which gives ℕ a least element but does not name that element 0).
+  Supplies the lower-bound premise `0 ≤ n` needed to instantiate NAT-discrete at
+  `m = 0` to derive the inference `n ≠ 0 ⟹ n ≥ 1`.
