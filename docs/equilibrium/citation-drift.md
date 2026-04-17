@@ -42,6 +42,14 @@ Cross-review findings of the form "property P uses X in its proof but does not l
 
 The pattern is distributed, not concentrated: Contract Sprawl concentrates on one attractor; citation drift scatters across many properties. Each finding is small. Accumulation across dozens of properties is what makes the signal visible.
 
+### Subtype: bridge citations
+
+A proof has steps that go X → Y. Each such step needs a rule that licenses the inference. If the rule is "X implies Y by property P," then P has to be cited — P is what makes the step valid.
+
+A bridge is exactly this: a property P that establishes X → Y (or X ≡ Y) for two concepts in the proof. When the proof uses the inference, the dependency metadata must list P. Otherwise the proof has a step licensed by a rule that isn't declared — the conclusion follows from premises that include an uncited rule.
+
+Missing bridge citations are citation drift at the inference-rule level.
+
 ## Example
 
 After the T0 split on ASN-0034, two cross-review runs surfaced dozens of internally-driven findings across cycles:
