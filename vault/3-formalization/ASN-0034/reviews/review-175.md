@@ -1,0 +1,15 @@
+# Cone Review — ASN-0034/ZPD (cycle 1)
+
+*2026-04-17 15:55*
+
+### Unaxiomatized binary `max`/`min` operators in ZeroPaddedDivergence
+**Foundation**: Divergence Definition's per-step convention — "every operator occurring in the Definition is either T0's length `#·`, T0's component projection, or the strict order `<` supplied by NAT-order"; the Definition explicitly avoids "any primitive binary-minimum operator on ℕ" by case-splitting under NAT-order's trichotomy and citing NAT-order in its Depends for that length-pair role.
+**ASN**: ZeroPaddedDivergence Definition and Codomain — "`L = max(#a, #w)`", "`Codomain: ... max(#a, #w)`", and the Relationship to Divergence postcondition's "`k ≤ min(#a, #w)`" and "`min(#a, #w) + 1`".
+**Issue**: zpd freely invokes the binary operators `max(·, ·)` and `min(·, ·)` on ℕ without discharging them. Its Depends cites T0 (for `#·` and projection), NAT-wellorder (for `min{k : ...}` as least-element of a nonempty subset), and Divergence — but lists no axiom that defines `max`/`min` on pairs of naturals. NAT-order is not cited at all, even though Divergence's analogous "shorter length" dispatch is carried out via NAT-order's trichotomy at the length pair precisely to avoid this primitive. The sibling-section convention establishes that such operators must be discharged per-step; zpd silently relies on `max`/`min` as if they were primitive.
+**What needs resolving**: zpd must either (a) restate its definition and postconditions using a NAT-order trichotomy case-split on `(#a, #w)` (matching Divergence's pattern, with a corresponding NAT-order entry in Depends covering both the length-pair role inside the Definition and the length-pair role inside the Relationship-to-Divergence postcondition), or (b) introduce/cite an explicit axiom defining binary `max`/`min` on ℕ and add it to Depends. As written, the Depends list does not cover every operator the Definition and postconditions use.
+
+### `0 ∈ ℕ` invoked as well-typing premise without a discharging citation
+**Foundation**: T0's "exhaustive" list of ℕ-axioms — "NAT-closure, NAT-order, NAT-discrete, NAT-addcompat, NAT-wellorder, NAT-zero, NAT-sub, NAT-cancel, NAT-addassoc" — names NAT-zero ("zero as lower bound of ℕ") as the axiom asserting facts about 0.
+**ASN**: ZeroPaddedDivergence Depends, T0 entry — "the padding values in `aᵢ = 0` for `i > #a` and `wᵢ = 0` for `i > #w` are well-typed component values precisely because `0 ∈ ℕ`".
+**Issue**: zpd's padding step assigns the literal `0` into positions whose values are required by T0 to lie in ℕ. The Depends justifies this by appealing to `0 ∈ ℕ`, but `0 ∈ ℕ` is the content of NAT-zero, not T0 — T0 only stipulates that *existing* components `aᵢ, bᵢ ∈ ℕ` and notes ℕ⁺ excludes zero, never asserting that `0 ∈ ℕ`. The well-typing of padding therefore rests on NAT-zero, but NAT-zero appears nowhere in zpd's Depends.
+**What needs resolving**: Either add NAT-zero to zpd's Depends with a citation explaining that the padding values' membership in ℕ rests on it, or relocate the `0 ∈ ℕ` claim to a property that is in fact cited.
