@@ -1,0 +1,7 @@
+label: NAT-order
+name: NatStrictTotalOrder
+type: axiom
+depends: []
+summary: |
+  The binary relation < on ℕ is a strict total order — irreflexivity, transitivity, trichotomy — with non-strict
+  companion ≤ defined as m < n ∨ m = n. Stated as an axiom for downstream proofs that compare natural numbers.

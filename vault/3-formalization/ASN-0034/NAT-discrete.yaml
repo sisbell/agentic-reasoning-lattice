@@ -1,0 +1,7 @@
+label: NAT-discrete
+name: NatDiscreteness
+type: axiom
+depends: []
+summary: |
+  No natural number lies strictly between n and n + 1 — formally, m ≤ n < m + 1 implies n = m. Stated as an axiom
+  because discreteness is independent of strict total order.

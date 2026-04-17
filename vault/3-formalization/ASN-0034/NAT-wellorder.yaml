@@ -1,0 +1,7 @@
+label: NAT-wellorder
+name: NatWellOrdering
+type: axiom
+depends: []
+summary: |
+  Every nonempty subset of ℕ has a least element. Independent of strict total order and discreteness. Licenses min
+  over nonempty subsets and supports inductive arguments.
