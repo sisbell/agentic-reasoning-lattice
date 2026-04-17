@@ -2,6 +2,7 @@ label: TA0
 name: WellDefinedAddition
 type: theorem
 depends:
+- T0
 - TA-Pos
 - ActionPoint
 - TumblerAdd
