@@ -13,3 +13,9 @@
 **ASN**: T2 proof, Case 2 sub-case `m < n`: "The shared range is exactly `{i : 1 ≤ i ≤ m}` — every position of `a`, each of which satisfies `i ≤ n` via the case hypothesis". T2 Depends narrative for NAT-order: "the proof invokes trichotomy on ℕ at two distinct sites" (only trichotomy sites enumerated).
 **Issue**: Passing from `i ≤ m` and the case hypothesis `m < n` to `i ≤ n` is NAT-order transitivity (strict-and-nonstrict composition), not trichotomy. The symmetric sub-case `n < m` invokes the mirrored instance. T2's Depends lists NAT-order but its itemised narrative accounts only for two trichotomy sites (component pair and length pair), leaving these transitivity uses undocumented — a gap under the same per-site accounting discipline T1's Depends adopts.
 **What needs resolving**: T2's NAT-order entry must either extend its site enumeration to cover the transitivity invocations in Case 2's `m < n` and `n < m` sub-cases, or rework those sub-cases so that `i ≤ n` (respectively `i ≤ m`) is obtained without composing across `<`.
+
+## Result
+
+Cone converged after 4 cycles.
+
+*Elapsed: 2471s*

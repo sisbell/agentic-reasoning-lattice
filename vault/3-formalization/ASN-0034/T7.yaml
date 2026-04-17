@@ -1,15 +1,23 @@
 label: T7
-name: SubspaceDisjointness
+name: FirstElementFieldDistinction
 type: corollary
 depends:
 - T3
 - T4
+- T4a
 - T4b
 - T0
 - NAT-cancel
 - NAT-addassoc
-summary: For two T4-valid element-level addresses (tumblers satisfying the T4 constraints with exactly three zero delimiters),
-  differing in the first element-field component places them in distinct subspaces — text (1) and links (2) cannot share
-  an address. T4-validity is required so that T4b licenses the component-access notation `a.E₁`, `b.E₁` used in the statement;
-  without it the predicate is ill-formed. This structural separation guarantees that arithmetic within one subspace never
-  produces addresses belonging to another.
+summary: |
+  For two T4-valid element-level addresses (tumblers satisfying the T4 constraints with exactly
+  three zero delimiters), differing in the first element-field component forces the tumblers
+  themselves to be distinct — a Leibniz-level claim discharged through T3 (canonical
+  representation) restricted to T4-valid element-level addresses. T4-validity is required so that
+  T4b licenses the component-access notation `a.E₁`, `b.E₁` used in the statement; without it the
+  predicate is ill-formed. T7 does not itself establish region-level disjointness of the
+  Nelson-convention subspaces `{1, 2}` — the stronger claim that the set of T4-valid element-level
+  tumblers with `E₁ = 1` (text) is a typed region disjoint from the set with `E₁ = 2` (links),
+  treating the subspace identifier as a distinguished typed concept, is relocated to a downstream
+  property in a later ASN. T7 supplies the structural prerequisite on which that relocation rests:
+  arithmetic that changes the first element-field component cannot leave the tumbler unchanged.
