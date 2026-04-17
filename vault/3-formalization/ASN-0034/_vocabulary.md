@@ -1,12 +1,12 @@
 # Vocabulary — ASN-0034
 
 - **< (on T)** — lexicographic order: a < b iff ∃ k ≥ 1 with aᵢ = bᵢ for all i < k, and either (i) k ≤ min(m,n) ∧ aₖ < bₖ, or (ii) k = m+1 ≤ n
-- **D(t)** — document field of tumbler t, extracted via fields(t)
-- **E(t)** — element field of tumbler t, extracted via fields(t)
-- **N(t)** — node field of tumbler t, extracted via fields(t)
+- **D(t)** — document field of tumbler t, the third component of fields(t); a finite sequence over ℕ⁺, equal to ε iff the field is absent (zeros(t) ≤ 1)
+- **E(t)** — element field of tumbler t, the fourth component of fields(t); a finite sequence over ℕ⁺, equal to ε iff the field is absent (zeros(t) ≤ 2)
+- **N(t)** — node field of tumbler t, the first component of fields(t); a finite sequence over ℕ⁺, non-empty for every t ∈ T
 - **S** — set of ordinals with all positive components: S = {o ∈ T : #o ≥ 1 ∧ (A i : 1 ≤ i ≤ #o : oᵢ > 0)}
 - **T** — the set of all tumblers (all finite sequences over ℕ with length ≥ 1)
-- **U(t)** — user field of tumbler t, extracted via fields(t)
+- **U(t)** — user field of tumbler t, the second component of fields(t); a finite sequence over ℕ⁺, equal to ε iff the field is absent (zeros(t) = 0)
 - **Z** — set of zero tumblers: Z = {t ∈ T : (A i : 1 ≤ i ≤ #t : tᵢ = 0)}
 - **action point** — least position k with wₖ > 0 (implying wᵢ = 0 for all i < k)
 - **allocated_before(a, b)** — predicate: a = tᵢ and b = tⱼ with i < j in dom(A), the allocator's inc(·, 0) sibling stream (T9)
@@ -19,7 +19,7 @@
 - **element field** — E₁. ... .Eδ — the fourth field of an address tumbler, identifying the content element
 - **element-local displacement** — a positive tumbler w with action point k satisfying 1 ≤ k ≤ m, operating on within-subspace ordinals only
 - **field separator** — a component with value zero; used as structural delimiter between address fields
-- **fields(t)** — function that extracts the node, user, document, and element fields from tumbler t
+- **fields(t)** — total function fields : T → Seq(ℕ⁺) × Seq(ℕ⁺) × Seq(ℕ⁺) × Seq(ℕ⁺) with fields(t) = (N(t), U(t), D(t), E(t)); absent fields are represented by the empty sequence ε, unambiguous because every present field segment is non-empty (T4a). Presence pattern by zeros(t): 0 → only N; 1 → N, U; 2 → N, U, D; 3 → all four
 - **first divergence position** — the least positive integer k at which two tumblers disagree — either aₖ ≠ bₖ at some k ≤ min(m,n), or one tumbler is exhausted at k = min(m,n)+1
 - **inc(t, k)** — hierarchical increment: when k = 0, increments position sig(t) by 1 (sibling); when k > 0, extends t by k positions with k−1 zero separators and final 1 (child creation)
 - **node field** — N₁. ... .Nₐ — the first field of an address tumbler, identifying the server

@@ -4,6 +4,7 @@ type: corollary
 depends:
 - T3
 - T4
+- T4b
 - T0
 summary: For two element-level addresses (those with exactly three zero delimiters), differing in the first element-field
   component places them in distinct subspaces — text (1) and links (2) cannot share an address. This structural separation

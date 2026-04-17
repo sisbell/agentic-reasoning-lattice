@@ -5,6 +5,7 @@ depends:
 - T0
 - T10a
 - T10a.2
+- T10a.5
 - T10a.6
 - Prefix
 - T1

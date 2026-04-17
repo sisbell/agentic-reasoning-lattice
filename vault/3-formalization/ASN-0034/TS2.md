@@ -2,9 +2,7 @@
 
 `(A v₁, v₂, n : n ≥ 1 ∧ #v₁ = #v₂ = m : shift(v₁, n) = shift(v₂, n) ⟹ v₁ = v₂)`
 
-*Proof.* Fix v₁, v₂ ∈ T with #v₁ = #v₂ = m, and fix n ≥ 1. Assume shift(v₁, n) = shift(v₂, n).
-
-If m = 0, both v₁ and v₂ are the unique empty sequence (), so v₁ = v₂ and we are done. Assume m ≥ 1 for the remainder.
+*Proof.* Fix v₁, v₂ ∈ T with #v₁ = #v₂ = m, and fix n ≥ 1. Assume shift(v₁, n) = shift(v₂, n). Since v₁, v₂ ∈ T, T0 (CarrierSetDefinition) gives m = #v₁ = #v₂ ≥ 1, so no empty-sequence case arises.
 
 By OrdinalShift, the assumption rewrites as v₁ ⊕ δ(n, m) = v₂ ⊕ δ(n, m). We apply TA-MTO (ManyToOne) with w = δ(n, m), a = v₁, b = v₂, verifying its preconditions:
 

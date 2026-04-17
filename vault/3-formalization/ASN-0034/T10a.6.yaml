@@ -2,6 +2,7 @@ label: T10a.6
 name: DomainDisjointness
 type: corollary
 depends:
+- T10a
 - T10a.1
 - T10a.3
 - T10a.5
