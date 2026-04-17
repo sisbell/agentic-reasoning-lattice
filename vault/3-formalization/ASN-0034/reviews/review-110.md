@@ -12,3 +12,9 @@
 
 The neighbouring properties (TA0, TumblerAdd) cite T0, TA-Pos, and ActionPoint explicitly whenever they use those symbols or their order-on-ℕ facts, so the local convention is per-step citation, not transitive inheritance through TA0.
 **What needs resolving**: Either extend TA1's Depends to include T0 (for ℕ-order-under-addition), TA-Pos (for `Pos`), and ActionPoint (for `actionPoint`) with the per-use rationales matching the established style, or state and defend a convention under which pass-through preconditions and ℕ-order facts need not be re-cited when already cited by a listed dependency.
+
+## Result
+
+Cone converged after 2 cycles.
+
+*Elapsed: 375s*
