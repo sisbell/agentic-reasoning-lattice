@@ -11,3 +11,9 @@
 **Issue**: The case (ii) inference is the load-bearing step that promotes `aₖ ≠ 0` to the strict comparison `aₖ > wₖ` which is then propagated as the "precondition consequence" feeding NAT-sub's strict-positivity and conditional-closure clauses for the entire downstream chain (TumblerSub's positivity postcondition, D0's positivity, D1's `wₖ ≥ 1`, D2's positivity verification). TumblerSub's NAT-order citation only covers the `>` → `≥` conversion at the NAT-sub interface, not the prior `≠ 0` → `> 0` step. A reviser tightening NAT-discrete has no Depends-backed signal that TumblerSub's case (ii) consumes it, even though sister properties applying the same inference cite it explicitly.
 
 **What needs resolving**: TumblerSub's Depends must cite NAT-discrete for the `aₖ ≠ 0 ⟹ aₖ > 0` step in case (ii) of the precondition-consequence proof, matching the per-step convention TA-Pos and ActionPoint already follow. Alternatively, restate the step in terms of NAT-order/NAT-sub facts already in TumblerSub's current Depends.
+
+## Result
+
+Cone not converged after 3 cycles.
+
+*Elapsed: 977s*

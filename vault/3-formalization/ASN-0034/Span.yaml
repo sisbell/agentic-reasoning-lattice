@@ -2,8 +2,11 @@ label: Span
 name: Span
 type: definition
 depends:
+- TA-Pos
 - ActionPoint
+- TumblerAdd
 - TA0
+- T1
 summary: A span is a pair (start address, length) that denotes a contiguous range of tumblers on the tumbler line, from the
   start address up to but not including the result of displacing by the length. The two validity conditions — the length must
   be positive and its action point must not exceed the depth of the start — are precisely what guarantee the upper bound is
