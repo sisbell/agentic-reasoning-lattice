@@ -4,7 +4,9 @@ type: corollary
 depends:
 - D0
 - D1
+- Divergence
 - T1
+- ZPD
 - TA0
 - TA-LC
 - TA-Pos
