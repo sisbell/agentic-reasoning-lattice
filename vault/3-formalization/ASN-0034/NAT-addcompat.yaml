@@ -3,9 +3,14 @@ name: NatAdditionOrderCompatibility
 type: axiom
 depends: []
 summary: |
-  Addition on ℕ is monotone with respect to order on either side: if `n ≥ p`
-  then `m + n ≥ m + p` (left) and `n + m ≥ p + m` (right) for all `m`. Both
-  forms are stated as axiom clauses so proofs that add a fixed summand on the
-  right (e.g. TA1's `aₖ + wₖ < bₖ + wₖ`) need not tacitly assume commutativity.
-  Additionally, every natural number is strictly less than its successor:
-  `n < n + 1`.
+  Addition on ℕ is non-strictly monotone with respect to order on either side:
+  if `n ≥ p` then `m + n ≥ m + p` (left) and `n + m ≥ p + m` (right) for all
+  `m`. Both forms are stated as axiom clauses so proofs that add a fixed
+  summand on either side need not tacitly assume commutativity — TA1's
+  strict-promotion chain uses the right form to lift `aₖ ≤ bₖ` to
+  `aₖ + wₖ ≤ bₖ + wₖ`. The clauses deliver only non-strict `≥`; promoting
+  `aₖ < bₖ` to the strict `aₖ + wₖ < bₖ + wₖ` requires combining NAT-addcompat
+  with NAT-cancel (to rule out the equality `aₖ + wₖ = bₖ + wₖ`) and NAT-order
+  (to weaken `<` to `≤` and to re-strengthen `≤` with non-equality back to
+  `<`). Additionally, every natural number is strictly less than its
+  successor: `n < n + 1`.
