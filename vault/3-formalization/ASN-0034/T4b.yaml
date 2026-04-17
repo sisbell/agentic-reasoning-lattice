@@ -7,11 +7,15 @@ depends:
 - T4
 - T4a
 summary: |
-  fields : T → Seq(ℕ⁺) × Seq(ℕ⁺) × Seq(ℕ⁺) × Seq(ℕ⁺) is a total function returning
-  (N(t), U(t), D(t), E(t)) with absent fields represented by ε. The marker is unambiguous
-  because T4a forces every present field segment to be non-empty, so X(t) = ε iff field X
-  is absent in t. The absence pattern is fixed by zeros(t) ∈ {0, 1, 2, 3}, and component-
-  access notation t.X₁ is defined iff X(t) ≠ ε — in particular t.E₁ requires zeros(t) = 3.
-  Well-definedness follows because T4's role-assignment makes zeros exactly the field
-  separators and T3's canonical representation ensures no alternative encoding could yield
-  a different scan result.
+  fields : T ⇀ Seq(ℕ⁺) × Seq(ℕ⁺) × Seq(ℕ⁺) × Seq(ℕ⁺) is a partial function whose domain
+  is exactly the T4-valid subset of T (at most three zeros, no two adjacent, t₁ ≠ 0,
+  t_{#t} ≠ 0). On that subdomain it returns (N(t), U(t), D(t), E(t)) with absent fields
+  represented by ε. The marker is unambiguous because T4a forces every present field
+  segment to be non-empty, so X(t) = ε iff field X is absent in t. The absence pattern
+  is fixed by zeros(t) ∈ {0, 1, 2, 3}, and component-access notation t.X₁ is defined iff
+  X(t) ≠ ε — in particular t.E₁ requires zeros(t) = 3. Well-definedness follows because
+  T4's role-assignment makes zeros exactly the field separators and T3's canonical
+  representation ensures no alternative encoding could yield a different scan result.
+  Outside the T4-valid subdomain (zeros(t) ≥ 4, or zeros(t) ≤ 3 with a violated
+  field-segment constraint) this corollary assigns no value to fields(t); consumers must
+  discharge T4-validity as a precondition.
