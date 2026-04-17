@@ -5,6 +5,6 @@ depends:
 - T1
 - TA0
 - TA-strict
-summary: 'A span is well-defined whenever its preconditions hold: the displaced endpoint s ⊕ ℓ exists in T (by TA0), the span
-  is non-empty because s is always a member (by TA-strict), and the span is order-convex under the tumbler ordering (by T1)
-  — any tumbler between two members of the span is itself a member.'
+summary: 'A span is the set of all tumblers from a start address s up to but not including the displaced endpoint s⊕ℓ, and
+  this definition is well-formed: the endpoint exists (TA0), the span is non-empty because s is always a member (TA-strict),
+  and the span is order-convex under T1 — any tumbler lying between two span members is itself in the span.'

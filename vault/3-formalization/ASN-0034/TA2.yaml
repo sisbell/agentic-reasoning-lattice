@@ -7,5 +7,5 @@ depends:
 - T1
 - T3
 - NAT-order
-summary: 'Tumbler subtraction is closed on T: whenever a ≥ w, the result a ⊖ w is itself a valid tumbler. This establishes
-  that the subtraction operator is well-defined and stays within the type.'
+summary: 'Tumbler subtraction a ⊖ w is well-defined whenever a ≥ w, producing a valid tumbler whose length is max(#a, #w).
+  The result lies in T and correctly represents the displacement needed to reach a from w.'

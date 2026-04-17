@@ -2,6 +2,7 @@ label: TA3-strict
 name: OrderPreservationUnderSubtractionStrict
 type: definition
 depends:
-  - TA2
-summary: 'Subtracting a common lower bound w from two equal-length tumblers a < b strictly preserves their order: a ⊖ w <
-  b ⊖ w. The equal-length precondition (#a = #b) is required for the strict inequality to hold.'
+- TA2
+summary: 'Subtracting a common lower bound from two equal-length ordered positions preserves strict order: if a < b and both
+  dominate w with equal lengths, then a ⊖ w < b ⊖ w. The equal-length precondition is load-bearing — without it the piecewise
+  subtraction could shift the divergence point in a way that collapses or reverses the ordering.'

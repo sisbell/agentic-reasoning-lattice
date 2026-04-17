@@ -12,7 +12,7 @@ depends:
 - T10a.4
 - TA5
 - TA5-SigValid
-summary: Within any prefix-delimited partition, all allocated addresses are totally ordered by T1 in a way that is consistent
-  with each allocator's local allocation order. Additionally, for any two sibling sub-partitions whose prefixes are ordered
-  p₁ < p₂, every address under p₁ precedes every address under p₂ — so the prefix structure alone determines the cross-allocator
-  ordering.
+summary: Within any prefix-delimited partition of the address space, all allocated addresses are totally ordered by T1 consistently
+  with per-allocator allocation order. For sibling sub-partitions with non-nesting prefixes p₁ < p₂, every address extending
+  p₁ precedes every address extending p₂ — the prefix hierarchy imposes a global cross-allocator ordering on top of each allocator's
+  local order.

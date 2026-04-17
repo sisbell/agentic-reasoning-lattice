@@ -2,9 +2,6 @@ label: T4
 name: HierarchicalParsing
 type: axiom
 depends: []
-summary: |
-  Address tumblers encode a four-level containment hierarchy (network, user, document, element) using zero components
-  as field separators, constrained by purely positional conditions on the raw component sequence — at most three zeros,
-  no two zeros adjacent, and neither the first nor last component zero — without any appeal to a prior notion of which
-  fields are "present" in the address. Positivity of non-zero components is not a separate axiom clause: T0's carrier ℕ
-  already makes non-zero ⇔ strictly positive.
+summary: 'Valid tumblers encode a four-level containment hierarchy (node, user, document, element) using zero-valued components
+  as field separators. The axiom constrains separator placement: at most three zeros, none adjacent, and neither the first
+  nor last component may be zero — guaranteeing every field segment is non-empty.'

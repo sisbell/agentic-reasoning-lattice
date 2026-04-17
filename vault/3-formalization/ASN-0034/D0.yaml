@@ -12,6 +12,6 @@ depends:
 - TA2
 - TumblerAdd
 - TumblerSub
-summary: Given two tumblers a < b whose divergence point lies within a's length, displacement b ⊖ a is itself a valid tumbler
-  and is strictly positive, with its action point at the divergence. The round-trip a ⊕ (b ⊖ a) = b holds only when a is no
-  longer than b; if a is strictly longer, the reconstruction may not recover b exactly.
+summary: Establishes that when a < b and the divergence point does not exceed a's length, the displacement b ⊖ a is a well-defined
+  positive tumbler whose action point equals the divergence index. The round-trip a ⊕ (b ⊖ a) recovers b exactly when a is
+  no longer than b; if a is strictly longer than b, the round-trip is guaranteed to fail.

@@ -4,8 +4,7 @@ type: definition
 depends:
 - ActionPoint
 - TA0
-summary: |
-  A span is a start address paired with a positive displacement length whose action point does
-  not exceed the start address's length — these being precisely TA0's preconditions for s ⊕ ℓ
-  to lie in T — denoting the contiguous set of tumblers from the start up to (but not including)
-  the start plus the length; it is a half-open interval in tumbler address space.
+summary: A span is a pair (start address, length) that denotes a contiguous range of tumblers on the tumbler line, from the
+  start address up to but not including the result of displacing by the length. The two validity conditions — the length must
+  be positive and its action point must not exceed the depth of the start — are precisely what guarantee the upper bound is
+  a legal tumbler, so any pair satisfying them yields a well-defined set of addresses.

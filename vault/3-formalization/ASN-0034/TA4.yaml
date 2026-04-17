@@ -5,6 +5,7 @@ depends:
 - TumblerAdd
 - TumblerSub
 - TA-Pos
-summary: 'Tumbler addition and subtraction are a partial inverse pair: (a ⊕ w) ⊖ w = a, but only when w''s action point equals
-  #a and all of a''s non-final components are zero. In general, ⊕ is asymmetric — it replaces the low-level suffix of the
-  result with w''s tail — so components of a below the action point are discarded and cannot be recovered by subtracting w.'
+summary: 'Tumbler addition and subtraction are partial inverses only under tight structural conditions: (a ⊕ w) ⊖ w = a holds
+  exactly when the action point of w coincides with the last position of a and all components of a before that position are
+  zero. The restriction is necessary because addition discards the trailing structure of its first argument below the action
+  point, making recovery impossible in the general case.'

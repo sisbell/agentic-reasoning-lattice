@@ -6,6 +6,6 @@ depends:
 - T1
 - T3
 - NAT-order
-summary: 'The ordering between any two tumblers is determined solely by their component sequences and lengths, with no external
-  data structures consulted. The comparison is a pure function that terminates after examining at most min(#a, #b) component
-  pairs.'
+summary: The tumbler order from T1 is computable from the two tumblers alone, consulting no external state — only their component
+  sequences and lengths. The comparison terminates after examining at most min(#a,#b) component pairs, making it both intrinsic
+  and bounded.

@@ -4,6 +4,6 @@ type: theorem
 depends:
 - TumblerAdd
 - T3
-summary: Tumbler addition is associative — `(a ⊕ b) ⊕ c = a ⊕ (b ⊕ c)` — when action points are compatible with the depths
-  of their left operands. The result always has depth `#c`, and the action point of the composed displacement `b ⊕ c` is `min(actionPoint(b),
-  actionPoint(c))`.
+summary: 'Tumbler addition is associative: (a ⊕ b) ⊕ c = a ⊕ (b ⊕ c) whenever action points are properly ordered (k_b ≤ #a
+  and k_c ≤ #b). The result length always equals the length of the rightmost operand, and the effective action point of a
+  composed displacement b ⊕ c is min(k_b, k_c).'

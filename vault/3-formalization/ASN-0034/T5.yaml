@@ -5,6 +5,6 @@ depends:
 - Prefix
 - T1
 - T3
-summary: If two addresses share a common prefix and a third address falls between them in the total lexicographic order, that
-  third address must also share the prefix. This means every subtree maps to a contiguous interval on the tumbler line, so
-  span endpoints alone implicitly determine all addresses in between — no addresses from unrelated subtrees can interleave.
+summary: If two tumblers a and c share a common prefix p, then every tumbler b between them in the lexicographic order also
+  shares that prefix. This means every prefix-defined subtree occupies a contiguous interval on the tumbler line — no address
+  from an unrelated subtree can appear between two addresses in the same subtree.

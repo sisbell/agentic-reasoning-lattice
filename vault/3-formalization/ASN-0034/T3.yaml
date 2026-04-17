@@ -3,6 +3,6 @@ name: CanonicalRepresentation
 type: corollary
 depends:
 - T0
-summary: Each tumbler has exactly one representation as a component sequence — equality holds if and only if the sequences
-  have the same length and matching components at every position. No normalization, quotient, or external identification is
-  imposed on T.
+summary: Tumbler equality is exactly component-wise sequence equality — two tumblers are equal if and only if they have the
+  same length and identical values at every position. No normalization, quotient, or external identification is imposed; the
+  raw component sequences must be literally identical.

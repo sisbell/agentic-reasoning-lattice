@@ -6,5 +6,6 @@ depends:
 - TA-Pos
 - ActionPoint
 - TumblerAdd
-summary: Tumbler addition is well-defined whenever the action point of the displacement fits within the depth of the base
-  address. The result is a tumbler whose depth equals the depth of the displacement, not the base.
+summary: Adding a positive displacement w to a position a yields a valid tumbler, provided w's action point does not exceed
+  a's length. The action-point constraint ensures the piecewise construction can actually access position k within a; without
+  it, the operation is undefined. The result inherits its length from w, not from a.

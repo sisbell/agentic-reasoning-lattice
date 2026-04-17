@@ -6,5 +6,5 @@ depends:
 - T3
 - OrdinalShift
 - OrdinalDisplacement
-summary: 'Shift is injective on equal-length tumblers: if two tumblers of the same length m produce the same result under
-  the same positive shift n, they must have been identical. No two distinct same-length tumblers can collide under shift.'
+summary: 'Shift is injective over same-length tumblers: if shifting v₁ and v₂ by the same positive amount n yields identical
+  results, then v₁ and v₂ must have been equal. This rules out any collisions introduced by the shift operation.'

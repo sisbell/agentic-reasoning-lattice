@@ -5,7 +5,6 @@ depends:
 - TA5-SIG
 - T4
 - T0
-summary: |
-  Because T4's field-segment constraint forces t_{#t} ≠ 0 and T0's carrier ℕ turns non-zero into strictly positive,
-  the last component of every valid address is strictly positive — so the rightmost nonzero position is always the final
-  position, and sig(t) = #t for all valid addresses.
+summary: For any valid address satisfying T4, the signature function sig(t) equals the length of the tumbler — that is, the
+  last component is always the rightmost nonzero position. This follows directly from T4's field-segment constraint, which
+  forbids a zero final component.

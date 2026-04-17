@@ -6,11 +6,7 @@ depends:
 - T10a.3
 - T10a.5
 - Prefix
-summary: |
-  Distinct allocators have disjoint domains, dom(X) ∩ dom(Y) = ∅. Two cases. When X and Y share a lineage with X the
-  ancestor, T10a.1 gives uniform per-domain length and T10a.3 gives strict length inequality between ancestor and descendant
-  sibling streams, so no element can carry both lengths. Otherwise, T10a.5 gives cross-allocator prefix-incomparability,
-  which any shared element would contradict via reflexivity of the Prefix relation. Witness-uniqueness corollary — whenever
-  same_allocator(a, b) holds, the witnessing allocator A with a, b ∈ dom(A) is uniquely determined by the pair (a, b).
-  Single-valuedness of the enumeration indices i, j with a = tᵢ, b = tⱼ further requires the within-allocator injectivity
-  of T10a.7; T10a.6 and T10a.7 together underwrite well-definedness of T9's allocated_before predicate.
+summary: 'Any two distinct allocators have disjoint domains — no tumbler address can belong to more than one allocator''s
+  output stream. The proof splits into two cases: ancestor–descendant pairs are separated by strict length differences, while
+  non-ancestor–descendant pairs are separated by prefix-incomparability. As a corollary, whenever two addresses share an allocator,
+  that allocator is uniquely determined by the pair.'

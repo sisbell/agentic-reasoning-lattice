@@ -5,7 +5,6 @@ depends:
 - T3
 - T4
 - T0
-summary: Within the element space, the first element component identifies the subspace (e.g., 1 for text, 2 for links), and
-  addresses in different subspaces are permanently disjoint. Arithmetic within one subspace cannot produce addresses in another,
-  because the subspace identifier is part of the address structure itself, not metadata. Positivity of non-zero components
-  is supplied by T0's carrier ℕ, not by a T4 clause.
+summary: For two element-level addresses (those with exactly three zero delimiters), differing in the first element-field
+  component places them in distinct subspaces — text (1) and links (2) cannot share an address. This structural separation
+  guarantees that arithmetic within one subspace never produces addresses belonging to another.

@@ -2,6 +2,5 @@ label: NAT-addcompat
 name: NatAdditionOrderCompatibility
 type: axiom
 depends: []
-summary: |
-  Addition on ℕ is compatible with the order — n ≥ p implies m + n ≥ m + p — and the successor is strictly greater,
-  n < n + 1. Stated as an axiom for proofs that lift inequalities through arithmetic.
+summary: 'Addition on ℕ is monotone with respect to order: if `n ≥ p` then `m + n ≥ m + p` for all `m`. Additionally, every
+  natural number is strictly less than its successor: `n < n + 1`.'

@@ -13,8 +13,7 @@ depends:
 - D0
 - D1
 - NAT-order
-summary: 'Defines tumbler subtraction `a ⊖ w` as the component-wise difference computed at the first point of zero-padded
-  divergence: components before that point become zero, the divergence point is subtracted, and deeper components are copied
-  from the minuend. The roundtrip `a ⊕ (b ⊖ a) = b` requires two independently necessary conditions — that the divergence
-  point falls within `a`''s length and that `a` is no longer than `b` — explaining why TumblerSub''s domain is strictly narrower
-  than the ordering `a ≥ w` alone would suggest.'
+summary: 'Defines component-wise tumbler subtraction `a ⊖ w`, producing a result whose nonzero components begin at the first
+  zero-padded divergence point and whose length is `max(#a, #w)`. The result captures the positional difference from `w` to
+  `a`, but the round-trip `a ⊕ (b ⊖ a) = b` holds only when two independent conditions are met: `divergence(a, b) ≤ #a` (so
+  TumblerAdd''s precondition is satisfied) and `#a ≤ #b` (so the result length matches `#b`).'

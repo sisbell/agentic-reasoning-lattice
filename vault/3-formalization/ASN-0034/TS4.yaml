@@ -3,5 +3,5 @@ name: ShiftStrictIncrease
 type: corollary
 depends:
 - TA-strict
-summary: 'Every positive shift strictly increases the tumbler: shift(v, n) > v for all n ≥ 1. No tumbler can be shifted in
-  place or backward — shift always moves strictly forward in tumbler order.'
+summary: Shifting a tumbler by any positive amount strictly increases it — the shifted result is always greater than the original
+  under the lexicographic order. This makes shift a strict advance with no fixed points.

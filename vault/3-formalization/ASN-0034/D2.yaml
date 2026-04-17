@@ -6,5 +6,6 @@ depends:
 - TA-LC
 - TA-Pos
 - ActionPoint
-summary: 'The displacement carrying a to b is unique: if any tumbler w satisfies a ⊕ w = b under D1''s preconditions, then
-  w must equal b ⊖ a. This rules out multiple distinct displacements for the same source–target pair.'
+summary: 'Proves that the displacement carrying a to b is unique: any positive tumbler w satisfying a ⊕ w = b must equal the
+  canonical displacement b ⊖ a. The argument applies left cancellation after D1 supplies a second witness, so no two distinct
+  displacements can produce the same target from the same source.'

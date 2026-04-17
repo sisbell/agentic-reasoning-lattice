@@ -4,5 +4,6 @@ type: theorem
 depends:
 - AllocatedSet
 - NoDeallocation
-summary: Once an address is allocated it is never removed — the allocated set grows monotonically across every state transition.
-  This follows directly from the NoDeallocation axiom, which precludes any removal operation from the transition vocabulary Σ.
+summary: 'The set of allocated addresses grows monotonically across every state transition: once an address enters the allocated
+  set it is never removed. This follows directly from the absence of any removal operation in the transition vocabulary, so
+  the guarantee covers all present and future operations.'

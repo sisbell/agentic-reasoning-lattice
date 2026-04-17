@@ -2,14 +2,14 @@ label: TA1
 name: OrderPreservationUnderAddition
 type: definition
 depends:
-  - T0
-  - T1
-  - T3
-  - TA-Pos
-  - ActionPoint
-  - TA0
-  - TumblerAdd
-  - NAT-addcompat
-summary: 'Tumbler addition weakly preserves order: if `a < b` and both additions are well-defined, then `a ⊕ w ≤ b ⊕ w`. This
-  is the universal (but non-strict) guarantee; strict preservation requires the additional constraint that the action point
-  meets or exceeds the divergence of `a` and `b`.'
+- T0
+- T1
+- T3
+- TA-Pos
+- ActionPoint
+- TA0
+- TumblerAdd
+- NAT-addcompat
+summary: 'Adding the same positive displacement to two ordered positions preserves their relative order weakly: a < b implies
+  a ⊕ w ≤ b ⊕ w. This holds universally — regardless of where the action point falls relative to the divergence — so no ordering
+  relationship can be reversed by a common advancement.'

@@ -8,9 +8,7 @@ depends:
 - T10a.6
 - T10a.7
 - TA5
-summary: |
-  Addresses produced by the same allocator's sibling stream are assigned in strictly increasing tumbler order. If
-  address a is allocated before b by the same allocator, then a < b under the tumbler ordering established by T1.
-  Well-definedness of the allocated_before predicate factors into cross-allocator witness uniqueness (T10a.6) and
-  within-allocator enumeration injectivity (T10a.7), which together make the enumeration indices i, j with a = tᵢ,
-  b = tⱼ single-valued functions of (a, b) whenever same_allocator(a, b) holds.
+summary: When two addresses are produced by the same allocator and one is allocated before the other, the earlier-allocated
+  address is strictly smaller under the tumbler total order. Well-definedness of "allocated before" requires domain disjointness
+  across allocators and index injectivity within a single allocator; the strict ordering itself follows from the monotonicity
+  of the increment operation and transitivity of the total order.

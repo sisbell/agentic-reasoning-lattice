@@ -2,14 +2,9 @@ label: AllocatedSet
 name: AllocatedSet
 type: definition
 depends:
-  - T9
-  - T10a
-  - NoDeallocation
-summary: |
-  Defines allocated(s) — the set of addresses allocated at state s — as the union of realized allocator domains
-  across all allocators activated in s. Bridges T10a's allocator mechanism and per-allocator domains to the
-  state-indexed formulation used by T8 and NoDeallocation, and establishes the explicit embedding domₛ(A) ⊆ dom(A)
-  as an initial segment with enumeration indices preserved. The reachable-state containment dom(A) ⊇ ⋃{domₛ(A) : s reachable}
-  also holds; the reverse inclusion is not claimed, since no axiom of this ASN furnishes the liveness/progress
-  needed for equality. Properties proven over dom(A) (notably T9's forward-ordering) transfer to realized
-  allocations via the initial-segment structure alone.
+- T9
+- T10a
+- NoDeallocation
+summary: Defines the concrete set of allocated addresses at any reachable system state as the union of finite prefixes drawn
+  from each activated allocator's theoretical domain. Establishes that allocation-relevant properties proved over T10a's abstract
+  per-allocator chains transfer without modification to the realized finite prefixes seen in any actual execution state.

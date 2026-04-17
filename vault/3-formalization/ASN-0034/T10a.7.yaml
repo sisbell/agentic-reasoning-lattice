@@ -2,13 +2,10 @@ label: T10a.7
 name: EnumerationInjectivity
 type: corollary
 depends:
-  - T10a
-  - TA5
-  - T1
-summary: |
-  For every allocator A, the enumeration n ↦ tₙ of dom(A) is injective — m ≠ n implies tₘ ≠ tₙ. Proof: TA5(a) gives
-  tₙ₊₁ = inc(tₙ, 0) > tₙ; induction on the gap via T1 (c) transitivity lifts this to tₘ < tₙ for m < n; T1 (a)
-  irreflexivity converts strict inequality into distinctness. Equivalently, the enumeration is strictly increasing
-  under the tumbler order. Together with T10a.6 (cross-allocator witness uniqueness), this injectivity makes the
-  enumeration indices i, j with a = tᵢ, b = tⱼ single-valued functions of (a, b) whenever same_allocator(a, b) holds —
-  the well-definedness condition for T9's allocated_before predicate.
+- T10a
+- TA5
+- T1
+summary: Within a single allocator, the sequential enumeration of its domain is injective — distinct indices always produce
+  distinct addresses. Because each step strictly increases under the tumbler order, the full enumeration is strictly monotone,
+  making the index of any address a single-valued function of that address. Together with T10a.6, this makes the enumeration
+  indices of any same-allocator pair uniquely determined, which is required for T9's allocated_before predicate to be well-defined.

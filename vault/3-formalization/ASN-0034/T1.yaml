@@ -6,6 +6,7 @@ depends:
 - T3
 - NAT-order
 - NAT-wellorder
-summary: 'Tumblers are totally ordered lexicographically: compare component by component, and if one tumbler is a proper prefix
-  of the other, the shorter one comes first. This total order is architecturally necessary because spans are defined as contiguous
-  intervals on the tumbler line — incomparable addresses would make span endpoints undefined.'
+summary: 'Defines a strict total order on T by lexicographic comparison: two tumblers are compared component-by-component
+  left to right, with the first disagreement deciding the outcome, and a shorter tumbler preceding any proper extension of
+  itself. The order is irreflexive, satisfies trichotomy, and is transitive — making any two tumblers comparable and giving
+  the "tumbler line" its linear structure on which spans, link endsets, and content reference all depend.'

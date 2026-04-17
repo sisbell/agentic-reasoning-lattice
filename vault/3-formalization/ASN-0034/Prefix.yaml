@@ -5,6 +5,6 @@ depends:
 - T0
 - T3
 - NAT-order
-summary: A tumbler p is a prefix of q (p ≼ q) when p is no longer than q and every component of p matches the corresponding
-  component of q at the same position. A proper prefix (p ≺ q) additionally requires p ≠ q, which combined with the canonical
-  representation guarantee (T3) forces p to be strictly shorter than q.
+summary: 'Defines the prefix relation p ≼ q: p''s length does not exceed q''s and every component of p matches the corresponding
+  component of q. A proper prefix p ≺ q additionally requires p ≠ q, which forces #p < #q strictly — equal-length agreement
+  would make the tumblers identical by T3.'

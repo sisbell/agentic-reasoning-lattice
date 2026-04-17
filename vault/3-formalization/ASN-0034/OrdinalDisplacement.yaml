@@ -5,6 +5,6 @@ depends:
 - T0
 - TA-Pos
 - ActionPoint
-summary: Defines the canonical displacement vector δ(n, m) as the length-m tumbler that is zero in all positions except the
-  last, where it holds n ≥ 1. This is the primitive unit for incrementing a tumbler at a specific depth without touching any
-  shallower components.
+summary: δ(n, m) is the canonical "pure depth-m shift" tumbler — a sequence of length m that is zero everywhere except at
+  the last position, which holds n ≥ 1. It acts at depth m and serves as the unit displacement that later shift operations
+  are built from.

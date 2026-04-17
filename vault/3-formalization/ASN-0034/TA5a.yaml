@@ -5,6 +5,7 @@ depends:
 - TA5
 - TA5-SigValid
 - T4
-summary: 'The allocation increment inc(t, k) preserves T4 validity if and only if no new empty field (adjacent zeros) is introduced:
-  k = 0 always preserves validity, k = 1 preserves it when the address already has at most 3 zero separators, k = 2 preserves
-  it only when zeros(t) ≤ 2, and k ≥ 3 always violates T4 by creating an empty field.'
+summary: The increment operation inc(t, k) produces a valid address (satisfying T4) if and only if k = 0, or k = 1 with at
+  most three existing zero components, or k = 2 with at most two existing zero components; for k ≥ 3 the result always violates
+  T4 because the appended separator zeros create an adjacent-zero or empty-field violation. This gives the precise depth limit
+  for child allocation from any given valid address.

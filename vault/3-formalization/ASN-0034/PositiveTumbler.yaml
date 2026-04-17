@@ -7,6 +7,6 @@ depends:
 - T1
 - NAT-discrete
 - NAT-wellorder
-summary: A tumbler is positive if it contains at least one nonzero component; a tumbler is a zero tumbler if all components
-  are zero. Every positive tumbler is strictly greater under T1 than every zero tumbler of any length, establishing a clean
-  separation between the all-zero tumblers (which form an ascending chain by length) and the rest of the address space.
+summary: 'Defines positivity for tumblers: a tumbler is positive if at least one component is nonzero, and a zero tumbler
+  has all components equal to zero. Every positive tumbler is strictly greater under T1 than every zero tumbler of any length,
+  regardless of their respective lengths.'

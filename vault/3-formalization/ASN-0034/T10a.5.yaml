@@ -2,17 +2,17 @@ label: T10a.5
 name: CrossAllocatorIncomparability
 type: corollary
 depends:
-  - T10a
-  - T10a.1
-  - T10a.3
-  - T10a.4
-  - T4
-  - TA5
-  - TA5-SigValid
-  - T3
-  - Prefix
-summary: For any two allocators not in an ancestor-descendant relationship, every output of one is prefix-incomparable
-  with every output of the other. The proof identifies the branching point in the allocator tree and shows — via positional
-  inheritance through the tree, the at-most-once child-spawning constraint, and the divergence of sibling outputs — that
-  outputs of non-ancestor-related allocators disagree at a fixed position within their common range, excluding any prefix
-  relationship. Together with T10a.2, this establishes T10's precondition for every non-ancestor-descendant allocator pair; ancestor-descendant pairs inherently nest and are separated by length (T10a.3).
+- T10a
+- T10a.1
+- T10a.3
+- T10a.4
+- T4
+- TA5
+- TA5-SigValid
+- T3
+- Prefix
+summary: 'Any two allocators that are not in an ancestor-descendant relationship produce mutually prefix-incomparable outputs
+  — no output of one can be a prefix of any output of the other. The argument traces to the lowest common ancestor: the two
+  spawning paths diverge at sibling outputs of that ancestor, and length separation (T10a.3) together with T4-based component
+  analysis (TA5-SigValid) shows the divergence is irreconcilable. Together with T10a.2, this delivers T10''s non-nesting precondition
+  for every allocator pair in the tree.'

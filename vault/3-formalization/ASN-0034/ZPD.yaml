@@ -6,6 +6,8 @@ depends:
 - Divergence
 - NAT-order
 - NAT-wellorder
-summary: Defines `zpd(a, w)` as the index of the first position where two tumblers disagree after both are zero-padded to
-  the same length. The function is partial — undefined when the padded sequences agree everywhere, a condition that arises
-  not only when `a = w` but also when one tumbler is a zero-trailing prefix of the other.
+summary: 'Defines the zero-padded divergence `zpd(a, w)` as the first position at which two tumblers disagree after both are
+  extended to length `max(#a, #w)` by appending zeros. The function is partial: it is undefined when the padded sequences
+  agree everywhere, which occurs when one operand is a prefix of the other with all trailing components zero — a case where
+  Divergence fires but zpd does not. When defined, zpd is symmetric and equals the ordinary divergence index whenever the
+  disagreement falls within the shared length of both operands.'

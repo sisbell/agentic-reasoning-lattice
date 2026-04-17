@@ -4,6 +4,6 @@ type: lemma
 depends:
 - Prefix
 - T1
-summary: 'If two non-nested tumblers are ordered (p₁ < p₂), that ordering propagates to all their extensions: every tumbler
-  rooted at p₁ is less than every tumbler rooted at p₂. This means the comparison between two subtrees can be resolved entirely
-  at their roots.'
+summary: If p₁ < p₂ and neither is a prefix of the other, then every tumbler extending p₁ precedes every tumbler extending
+  p₂ under T1. The divergence position witnessing p₁ < p₂ carries through to all extensions, so the relative order of the
+  two prefix subtrees is fully determined by the prefixes alone.

@@ -7,6 +7,6 @@ depends:
 - OrdinalDisplacement
 - T0
 - TA-Pos
-summary: 'Defines shift(v, n) as the result of adding the ordinal displacement δ(n, #v) to v, which increments v''s deepest
-  component by n while preserving its length and all shallower components. This gives a closed-form expression for the standard
-  "next sibling" operation within a tumbler''s own depth.'
+summary: 'Shifting a tumbler v by n increments only its last component by n, leaving all earlier components unchanged, and
+  is computed as tumbler addition v ⊕ δ(n, #v). The result has the same length and same prefix as v, with the final component
+  strictly increased.'
