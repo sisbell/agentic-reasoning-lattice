@@ -4,8 +4,8 @@ type: corollary
 depends:
 - T4
 summary: |
-  T4's three positional conditions on zeros — no two adjacent, not first, not last — are equivalent, under T4's
-  positive-component constraint, to the condition that every field segment of the tumbler is non-empty, where a field
-  segment is a maximal contiguous sub-sequence of non-zero positions delimited by the zeros. The equivalence is proven
-  without appeal to T4c's hierarchical labels; combined with T4c, it yields the semantic reading that every present
-  field has at least one component.
+  T4's three positional conditions on zeros — no two adjacent, not first, not last — are equivalent to the condition
+  that every field segment of the tumbler is non-empty, where a field segment is a maximal contiguous sub-sequence of
+  non-zero positions delimited by the zeros. Positivity of non-zero components is supplied by T0's carrier ℕ, not by
+  a separate T4 axiom. The equivalence is proven without appeal to T4c's hierarchical labels; combined with T4c, it
+  yields the semantic reading that every present field has at least one component.

@@ -24,12 +24,11 @@
 - **inc(t, k)** — hierarchical increment: when k = 0, increments position sig(t) by 1 (sibling); when k > 0, extends t by k positions with k−1 zero separators and final 1 (child creation)
 - **node field** — N₁. ... .Nₐ — the first field of an address tumbler, identifying the server
 - **field segment** — a maximal contiguous sub-sequence of non-zero positions in a tumbler `t`, delimited by the zeros of `t`; there are exactly `zeros(t) + 1` of them
-- **field-segment constraint** — T4's three positional conditions on zeros: no two are adjacent, `t₁ ≠ 0`, and `t_{#t} ≠ 0`; equivalently (by T4a, under the positive-component constraint) every field segment of `t` is non-empty
+- **field-segment constraint** — T4's three positional conditions on zeros: no two are adjacent, `t₁ ≠ 0`, and `t_{#t} ≠ 0`; equivalently (by T4a) every field segment of `t` is non-empty
 - **non-empty field constraint** — the semantic reading of T4's field-segment constraint once T4c assigns hierarchical labels to segments: each present field in a valid address tumbler has at least one component
 - **order-convex** — a set S is order-convex if for all a, c ∈ S and b ∈ T, a ≤ b ≤ c implies b ∈ S (synonym: contiguous)
 - **Pos(t)** — positive tumbler predicate: t ∈ T is positive iff at least one component is nonzero — (E i : 1 ≤ i ≤ #t : tᵢ ≠ 0). Distinct from T1-positivity: [0,0] > [0] under T1 but ¬Pos([0,0])
 - **positive tumbler** — Pos(t) iff at least one component is nonzero
-- **positive-component constraint** — every component of every field in a valid address tumbler is strictly positive (> 0)
 - **result-length identity** — #(a ⊕ w) = #w — the length of the sum equals the length of the displacement, not the start position
 - **same_allocator(a, b)** — predicate: ∃A : a ∈ dom(A) ∧ b ∈ dom(A), where dom(A) is the inc(·, 0) sibling stream excluding child-spawning outputs (T10a)
 - **shift(v, n)** — ordinal shift: advances the deepest component of tumbler v by n, defined as v ⊕ δ(n, m) where m = #v

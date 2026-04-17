@@ -3,7 +3,8 @@ name: DecidableContainment
 type: corollary
 depends:
 - T4
+- T0
 summary: Containment at any hierarchical level — same server, same account, same document, subdocument prefix — is decidable
   using only the two tumbler representations, by extracting fields via T4b and comparing componentwise. The result introduces
-  no new mathematics beyond T4 but states the decidability claim explicitly because it is load-bearing for correct decentralized
-  operation.
+  no new mathematics beyond T4 (with positivity of non-zero components supplied by T0's carrier ℕ) but states the decidability
+  claim explicitly because it is load-bearing for correct decentralized operation.
