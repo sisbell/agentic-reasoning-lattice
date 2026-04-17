@@ -13,3 +13,9 @@
 **ASN**: T4b (UniqueParse) — "`fields : T ⇀ Seq(ℕ⁺) × Seq(ℕ⁺) × Seq(ℕ⁺) × Seq(ℕ⁺)`"; and "Each projection returns a finite sequence of *strictly positive* natural numbers: T0's carrier ℕ makes every non-zero component positive".
 **Issue**: ℕ⁺ appears in T4b's type signature (four times) as if it were a known object, but it is not defined in T0 or anywhere upstream. T4b's prose glosses it as "strictly positive natural numbers" and attributes the exclusion of zero to T0, but the symbol itself is introduced for the first time in a postcondition type signature. A reader cannot cite T4b's signature formally without an upstream definition of ℕ⁺.
 **What needs resolving**: Either define ℕ⁺ (e.g., as `{n ∈ ℕ : n > 0}`) at the point where it is first used, or add it to T0's notation and make the carrier/subcarrier distinction explicit so T4b's signature is grounded.
+
+## Result
+
+Cone converged after 2 cycles.
+
+*Elapsed: 739s*
