@@ -22,3 +22,9 @@ and Divergence's Depends on T1:
 
 **Issue**: The claimed bijection is between Divergence's two cases and T1's two *definitional clauses* ((i) shared-position strict comparison, (ii) proper prefix). But Divergence case (i) requires only `aₖ ≠ bₖ`, not a strict order. Bridging from `aₖ ≠ bₖ` to "either `aₖ < bₖ` (T1 case (i) for `a < b`) or `bₖ < aₖ` (T1 case (i) for `b < a`)" requires NAT-order trichotomy on the component pair. Without that step the bijection is only with *unordered* disagreement, not with T1's (directed) clauses. The Depends list does not cite NAT-order, so the bridging axiom is not declared.
 **What needs resolving**: Either narrow the stated bijection (Divergence case (i) corresponds to T1 case (i) *in whichever direction holds*, mediated by NAT-order's trichotomy at the divergent component), adding NAT-order to Divergence's Depends; or relocate the component-level direction split so it is clearly part of callers (TA1, T5, etc.) rather than of Divergence's semantics.
+
+## Result
+
+Cone converged after 2 cycles.
+
+*Elapsed: 1068s*
