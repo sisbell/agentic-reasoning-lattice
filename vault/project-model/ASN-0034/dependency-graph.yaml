@@ -1,13 +1,36 @@
 asn: 34
 depends: []
 properties:
+  ActionPoint:
+    status: definition
+    type: definition
+    name: ActionPoint
+    follows_from:
+    - T0
+    - TA-Pos
+    - NAT-discrete
+    - NAT-wellorder
+  AllocatedSet:
+    status: definition
+    type: definition
+    name: AllocatedSet
+    follows_from:
+    - T9
+    - T10a
+    - NoDeallocation
   D0:
     status: corollary
     type: corollary
     name: DisplacementWellDefined
     follows_from:
+    - T1
     - T3
+    - Divergence
+    - ZPD
+    - TA-Pos
+    - ActionPoint
     - TA0
+    - TA2
     - TumblerAdd
     - TumblerSub
   D1:
@@ -15,11 +38,14 @@ properties:
     type: lemma
     name: DisplacementRoundTrip
     follows_from:
-    - TumblerAdd
-    - TumblerSub
-    - T3
     - Divergence
+    - T1
     - ZPD
+    - TumblerSub
+    - TA-Pos
+    - TA0
+    - TumblerAdd
+    - T3
   D2:
     status: corollary
     type: corollary
@@ -27,6 +53,8 @@ properties:
     follows_from:
     - D1
     - TA-LC
+    - TA-Pos
+    - ActionPoint
   Divergence:
     status: corollary
     type: corollary
@@ -34,6 +62,7 @@ properties:
     follows_from:
     - T1
     - T3
+    - NAT-order
   GlobalUniqueness:
     status: theorem
     type: theorem
@@ -45,14 +74,37 @@ properties:
     - T9
     - T10
     - T10a
+    - T10a.1
+    - T10a.3
     - T10a.4
     - T4a
     - TA5
     - TA5-SigValid
     - Prefix
+    - AllocatedSet
+  NAT-addcompat:
+    status: axiom
+    type: axiom
+    name: NatAdditionOrderCompatibility
+  NAT-closure:
+    status: axiom
+    type: axiom
+    name: NatArithmeticClosure
+  NAT-discrete:
+    status: axiom
+    type: axiom
+    name: NatDiscreteness
+  NAT-order:
+    status: axiom
+    type: axiom
+    name: NatStrictTotalOrder
+  NAT-wellorder:
+    status: axiom
+    type: axiom
+    name: NatWellOrdering
   NoDeallocation:
-    status: design-requirement
-    type: design-requirement
+    status: axiom
+    type: axiom
     name: NoDeallocation
   OrdinalDisplacement:
     status: definition
@@ -60,7 +112,8 @@ properties:
     name: OrdinalDisplacement
     follows_from:
     - T0
-    - PositiveTumbler
+    - TA-Pos
+    - ActionPoint
   OrdinalShift:
     status: corollary
     type: corollary
@@ -70,7 +123,7 @@ properties:
     - TumblerAdd
     - OrdinalDisplacement
     - T0
-    - PositiveTumbler
+    - TA-Pos
   PartitionMonotonicity:
     status: theorem
     type: theorem
@@ -79,24 +132,31 @@ properties:
     - Prefix
     - PrefixOrderingExtension
     - T1
-    - T3
     - T5
     - T9
     - T10a
+    - T10a.1
+    - T10a.4
     - TA5
-  PositiveTumbler:
+    - TA5-SigValid
+  TA-Pos:
     status: definition
     type: definition
     name: PositiveTumbler
     follows_from:
-    - T1
+    - T0
     - T3
+    - T1
+    - NAT-discrete
+    - NAT-wellorder
   Prefix:
     status: definition
     type: definition
     name: PrefixRelation
     follows_from:
+    - T0
     - T3
+    - NAT-order
   PrefixOrderingExtension:
     status: lemma
     type: lemma
@@ -117,6 +177,9 @@ properties:
     status: definition
     type: definition
     name: Span
+    follows_from:
+    - ActionPoint
+    - TA0
   T0:
     status: axiom
     type: axiom
@@ -127,6 +190,8 @@ properties:
     name: UnboundedComponentValues
     follows_from:
     - T0
+    - NAT-closure
+    - NAT-addcompat
   T0(b):
     status: definition
     type: definition
@@ -138,23 +203,36 @@ properties:
     type: definition
     name: LexicographicOrder
     follows_from:
+    - T0
     - T3
+    - NAT-order
+    - NAT-wellorder
   T10:
     status: theorem
     type: theorem
     name: PartitionIndependence
     follows_from:
+    - T0
     - T3
     - Prefix
+    - NAT-order
+    - NAT-wellorder
   T10a-N:
     status: lemma
     type: lemma
     name: AllocatorDisciplineNecessity
     follows_from:
+    - T0
+    - T10a
+    - T10a.2
+    - T10a.6
     - Prefix
     - T1
     - TA5
     - T10
+    - NAT-discrete
+    - NAT-addcompat
+    - NAT-wellorder
   T10a.1:
     status: corollary
     type: corollary
@@ -168,6 +246,7 @@ properties:
     name: NonNestingSiblingPrefixes
     follows_from:
     - Prefix
+    - T10a
     - T10a.1
     - T1
     - TA5
@@ -188,6 +267,37 @@ properties:
     - T10a
     - TA5a
     - T4
+  T10a.5:
+    status: corollary
+    type: corollary
+    name: CrossAllocatorIncomparability
+    follows_from:
+    - T10a
+    - T10a.1
+    - T10a.3
+    - T10a.4
+    - T4
+    - TA5
+    - TA5-SigValid
+    - T3
+    - Prefix
+  T10a.6:
+    status: corollary
+    type: corollary
+    name: DomainDisjointness
+    follows_from:
+    - T10a.1
+    - T10a.3
+    - T10a.5
+    - Prefix
+  T10a.7:
+    status: corollary
+    type: corollary
+    name: EnumerationInjectivity
+    follows_from:
+    - T10a
+    - TA5
+    - T1
   T10a:
     status: design-requirement
     type: design-requirement
@@ -196,6 +306,8 @@ properties:
     - Prefix
     - T10
     - T4
+    - TA5
+    - TA5a
   T12:
     status: corollary
     type: corollary
@@ -210,6 +322,9 @@ properties:
     name: IntrinsicComparison
     follows_from:
     - T0
+    - T1
+    - T3
+    - NAT-order
   T3:
     status: corollary
     type: corollary
@@ -255,6 +370,7 @@ properties:
     name: DecidableContainment
     follows_from:
     - T4
+    - T0
   T7:
     status: corollary
     type: corollary
@@ -262,18 +378,13 @@ properties:
     follows_from:
     - T3
     - T4
+    - T0
   T8:
     status: theorem
     type: theorem
     name: AllocationPermanence
     follows_from:
-    - T1
-    - T2
-    - T4
-    - T10a
-    - TA5
-    - TumblerAdd
-    - TumblerSub
+    - AllocatedSet
     - NoDeallocation
   T9:
     status: lemma
@@ -283,6 +394,8 @@ properties:
     - T1
     - T8
     - T10a
+    - T10a.6
+    - T10a.7
     - TA5
   TA-LC:
     status: lemma
@@ -324,6 +437,9 @@ properties:
     type: theorem
     name: WellDefinedAddition
     follows_from:
+    - T0
+    - TA-Pos
+    - ActionPoint
     - TumblerAdd
   TA1-strict:
     status: corollary
@@ -337,17 +453,31 @@ properties:
     status: definition
     type: definition
     name: OrderPreservationUnderAddition
+    follows_from:
+    - T0
+    - T1
+    - T3
+    - TA-Pos
+    - ActionPoint
+    - TA0
+    - TumblerAdd
+    - NAT-addcompat
   TA2:
     status: corollary
     type: corollary
     name: WellDefinedSubtraction
     follows_from:
     - TumblerSub
+    - T0
     - T1
+    - T3
+    - NAT-order
   TA3-strict:
     status: definition
     type: definition
     name: OrderPreservationUnderSubtractionStrict
+    follows_from:
+    - TA2
   TA3:
     status: corollary
     type: corollary
@@ -358,6 +488,7 @@ properties:
     - T3
     - TA6
     - TumblerSub
+    - ZPD
   TA4:
     status: corollary
     type: corollary
@@ -365,7 +496,7 @@ properties:
     follows_from:
     - TumblerAdd
     - TumblerSub
-    - PositiveTumbler
+    - TA-Pos
   TA5-SIG:
     status: definition
     type: definition
@@ -377,12 +508,17 @@ properties:
     follows_from:
     - TA5-SIG
     - T4
+    - T0
   TA5:
     status: definition
     type: definition
     name: HierarchicalIncrement
     follows_from:
+    - T0
+    - T1
     - TA5-SIG
+    - NAT-closure
+    - NAT-addcompat
   TA5a:
     status: corollary
     type: corollary
@@ -396,8 +532,10 @@ properties:
     type: corollary
     name: ZeroTumblers
     follows_from:
+    - T0
     - T1
     - T4
+    - TA-Pos
   TA7a:
     status: definition
     type: definition
@@ -415,6 +553,8 @@ properties:
     follows_from:
     - TA-MTO
     - T3
+    - OrdinalShift
+    - OrdinalDisplacement
   TS3:
     status: lemma
     type: lemma
@@ -422,6 +562,7 @@ properties:
     follows_from:
     - TumblerAdd
     - T3
+    - OrdinalShift
   TS4:
     status: corollary
     type: corollary
@@ -442,7 +583,12 @@ properties:
     follows_from:
     - T0
     - T1
-    - PositiveTumbler
+    - T3
+    - TA-Pos
+    - ActionPoint
+    - NAT-closure
+    - NAT-addcompat
+    - NAT-wellorder
   TumblerSub:
     status: definition
     type: definition
@@ -453,8 +599,12 @@ properties:
     - T3
     - Divergence
     - ZPD
+    - TA-Pos
+    - ActionPoint
     - TumblerAdd
     - D0
+    - D1
+    - NAT-order
   ZPD:
     status: definition
     type: definition
@@ -462,3 +612,5 @@ properties:
     follows_from:
     - T0
     - Divergence
+    - NAT-order
+    - NAT-wellorder
