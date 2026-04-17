@@ -1,0 +1,13 @@
+# Cone Review — ASN-0034/T1 (cycle 2)
+
+*2026-04-17 11:01*
+
+### `min` bound properties consumed without being attributed to a NAT-* site
+
+**Foundation**: NAT-order (NatStrictTotalOrder).
+
+**ASN**: T1 (LexicographicOrder), part (b) Trichotomy Case 2 (`k' = k` reverse-witness rebuttal via case (ii)), Case 3 opening, and part (c) Transitivity (Case `k₂ < k₁` case-(i) branch of `a < b`; sub-case (i, ii)). The enumeration's transitivity-site description for Case `k₂ < k₁` under the case-(i) branch of `a < b` openly invokes the derivation of `k₁ ≤ m`: *"the bound itself discharged from the case-(i) hypothesis `k₁ ≤ min(m, n)` via the standard `min(m, n) ≤ m`"*. Parallel compositions `k ≤ min(m, n) ≤ n` appear in Case 2's `k' = k` case-(ii) rebuttal (*"contradicting `k ≤ min(m, n) ≤ n` (respectively `≤ m`)"*) and in sub-case (i, ii) (*"`aₖ < bₖ` with `k ≤ min(m, n)` requires `k ≤ n`"*).
+
+**Issue**: Two separate NAT-order consumptions are absorbed into the label "the standard `min(m, n) ≤ m`" without being counted. First, the inequality `min(m, n) ≤ m` (and symmetrically `min(m, n) ≤ n`) is itself a NAT-order fact — `min` is not introduced in T0 nor axiomatized by any NAT-* clause, so the property must be derived from NAT-order's trichotomy together with `≤`'s reflexive component. Second, composing `k ≤ min(m, n)` with `min(m, n) ≤ m` to yield `k ≤ m` is a non-strict/non-strict transitivity of `≤` on ℕ, which is itself discharged from NAT-order's transitivity via the `≤` definition `(m < n ∨ m = n)`. Neither the min-bound fact nor the transitive composition appears in the sixteen-site enumeration for NAT-order, and the convention declaration — that each proof cites only the ℕ facts it actually uses, with per-instance counting — has no exemption for "standard" min properties. The same uncounted pattern occurs at least three times in the proof (sites listed above), so this is not a single arithmetic slip but a systematic omission.
+
+**What needs resolving**: Either enumerate the min-bound consumptions (each `min(m, n) ≤ m` / `min(m, n) ≤ n` as a NAT-order site, and each subsequent `k ≤ min(m, n) ≤ m` composition as a transitivity site, incrementing the site count and preamble accordingly) or bring `min` into the foundation's explicit surface — either by adding a NAT-* axiom characterising `min` (whose properties would then discharge these compositions without fresh NAT-order citations) or by rewriting the proof to avoid `min` in favour of direct bounds like `k ≤ m ∧ k ≤ n`, which the case hypotheses already supply. Whichever route is chosen, the enumeration and the proof text must agree on what counts as a NAT-order consumption.
