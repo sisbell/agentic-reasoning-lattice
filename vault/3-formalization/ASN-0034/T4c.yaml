@@ -4,7 +4,11 @@ type: corollary
 depends:
 - T0
 - T4
-- T4b
-summary: 'The count of zero-valued components in a valid tumbler is a bijection onto hierarchical level: zero zeros means
-  node address, one means user, two means document, three means element. This follows because every zero is a separator (T4b),
-  so the zero count equals the separator count, and the number of fields present is always the separator count plus one.'
+summary: |
+  The count of zero-valued components in a valid tumbler is a bijection onto hierarchical
+  level: zero zeros means node address, one means user, two means document, three means
+  element. This follows because T4's definitional role-assignment biconditional makes
+  every zero a separator and every separator a zero, so the zero count equals the
+  separator count and the number of fields present is always the separator count plus
+  one. No dependency on T4b is required because both the biconditional and the bound
+  zeros(t) ≤ 3 are clauses of T4's own axiom.
