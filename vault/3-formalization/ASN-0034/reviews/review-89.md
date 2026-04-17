@@ -1,0 +1,12 @@
+# Cone Review — ASN-0034/TumblerAdd (cycle 2)
+
+*2026-04-16 19:40*
+
+### `TA6 (ZeroTumblers)` is cited as a forward reference in PositiveTumbler's postcondition but is absent from the ASN
+**Foundation**: PositiveTumbler (this ASN) — the postcondition documents its relationship to a sibling property `TA6` that is claimed to live in § Tumbler arithmetic.
+**ASN**: PositiveTumbler's Formal Contract, Postconditions field:
+> This postcondition is the *canonical* statement of the zero-tumbler-below-positive-tumbler relation; TA6 (ZeroTumblers) conjunct 2 [forward reference — TA6 is stated in § Tumbler arithmetic, after this section] is the same fact with operand names swapped (TA6's `s` plays the role of `z` here), and Conjunct 2 cites this postcondition in place of an independent reproof. Any future tightening of this statement must be reflected at TA6 as well, so the pair can be checked for mutual consistency at one site each.
+
+The § Tumbler arithmetic section as it stands contains only `TumblerAdd (TumblerAdd)`. There is no property named `TA6` or `ZeroTumblers` anywhere in the ASN content, and `TA6` is not listed in PositiveTumbler's *Depends* field either.
+**Issue**: The postcondition annotation promises a reciprocal cross-reference (with a non-trivial maintenance invariant — "any future tightening … must be reflected at TA6 as well") to a property that does not exist in the ASN. Two distinct problems follow: (i) the forward reference is dangling, so the stated mutual-consistency contract cannot be discharged — there is no second site to check; (ii) the *Depends* list does not record `TA6`, even though the postcondition text prescribes coupling between PositiveTumbler's postcondition and TA6's conjunct 2. A formalizer or downstream reader who tries to verify the "canonical statement" coupling has no target. This is distinct from the cycle-1 finding on `TA0`: that finding concerned a prose sentence naming `TA0` as the consumer of `Pos(w)`; this finding concerns a separate property name (`TA6`/`ZeroTumblers`) introduced in the postcondition itself, along with a reciprocal-citation obligation absent from any present sibling.
+**What needs resolving**: Either introduce `TA6 (ZeroTumblers)` explicitly in § Tumbler arithmetic with the conjunct 2 that this postcondition promises to track (and add it to PositiveTumbler's *Depends*), or remove the forward-reference paragraph from the Postconditions field and drop the mutual-consistency obligation until a sibling property actually carries the reciprocal statement.
