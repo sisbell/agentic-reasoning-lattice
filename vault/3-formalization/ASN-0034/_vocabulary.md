@@ -40,7 +40,7 @@
 - **user field** — U₁. ... .Uᵦ — the second field of an address tumbler, identifying the account
 - **zero tumbler** — a tumbler whose every component is zero — (A i : 1 ≤ i ≤ #t : tᵢ = 0)
 - **zero-padded-equal** — x is zero-padded-equal to w when zero-padding both to the same length yields identical sequences (no divergence position exists)
-- **zeros(t)** — number of zero-valued field-separator components in tumbler t: #{i : tᵢ = 0}
+- **zeros(t)** — count of zero-valued components of tumbler t: #{i : 1 ≤ i ≤ #t ∧ tᵢ = 0}. Defined extensionally on all of T, not only T4-valid addresses — the field-separator role attaches only to zeros in T4-valid tumblers (via T4's definitional role-assignment), whereas `zeros(t)` itself is used in TA5a and T10a on arbitrary `t` (including non-T4-valid intermediate results such as `inc(t, k)` with `k ≥ 3`) to decide T4-validity.
 - **zpd(a, w)** — zero-padded divergence: first position where the zero-padded sequences of a and w disagree (TumblerSub); may exceed `divergence(a, w)` when one operand is a proper prefix of the other
 - **δ(n, m)** — ordinal displacement: tumbler [0, 0, ..., 0, n] of length m with action point m
 - **δₙ** — shorthand for δ(n, m) when depth m is determined by context (typically m = #v)
