@@ -1,0 +1,9 @@
+# Cone Review — ASN-0034/T2 (cycle 2)
+
+*2026-04-17 13:04*
+
+### `min` operator used in T2 without being introduced in scope
+**Foundation**: T0 (CarrierSetDefinition) introduces only the carrier T, length `#·`, component projection `·ᵢ`, and the subcarrier `ℕ⁺`; NAT-order (NatStrictTotalOrder) introduces `<` and `≤` on ℕ but no `min`. No foundation property in the ASN defines `min : ℕ × ℕ → ℕ`.
+**ASN**: T2 proof — "The comparison examines at most `min(#a, #b)` component pairs"; Case 1: "Since `k ≤ min(m, n)`, the bound holds"; Case 2: "The scan exhausts all `min(m, n)` positions … Exactly `min(m, n)` component pairs are examined." T2 Formal Contract postcondition (b): "At most `min(#a, #b)` component pairs are examined." By contrast, T1's definition and proof deliberately express the same concept by the conjunction `k ≤ m ∧ k ≤ n`, and the Divergence corollary was revised (per commit 859f7bc7) to eliminate `min`.
+**Issue**: T2 treats `min` as primitive, including in a formal postcondition, yet `min` has no definition anywhere in the ASN's Depends closure — T0 does not introduce it, NAT-order does not introduce it, and T1 deliberately avoids it. The postcondition `At most min(#a, #b) component pairs are examined` is therefore ill-formed in T2's declared foundation, and the proof's repeated use of `min(m, n)` is a symbol with no binding. Because the project has already eliminated `min` from T1 and Divergence, T2's continued reliance on it is also a consistency drift rather than merely an omitted definition.
+**What needs resolving**: T2 must either (a) re-express its bound and the internal proof steps using the same conjunctive style T1 adopted (`k ≤ #a ∧ k ≤ #b`, etc.), or (b) add a foundation property that defines `min` from NAT-order's `<` and establishes the characterisation `c = min(m, n) ⟺ (c ≤ m ∧ c ≤ n ∧ (c = m ∨ c = n))`, and then add that property to T2's Depends list alongside the resulting NAT-order citation.
