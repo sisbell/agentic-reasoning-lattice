@@ -7,6 +7,7 @@ depends:
 - T3
 - NAT-order
 - NAT-wellorder
+- NAT-closure
 summary: |
   Given two distinct tumblers `a ≠ b`, `divergence(a, b)` returns the exact index where they first differ — either
   the position of the first mismatched component (bounded by `k ≤ #a ∧ k ≤ #b` rather than by a primitive binary
