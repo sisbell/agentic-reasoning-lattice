@@ -5,6 +5,7 @@ depends:
 - Prefix
 - PrefixOrderingExtension
 - T1
+- T3
 - T5
 - T9
 - T10a
