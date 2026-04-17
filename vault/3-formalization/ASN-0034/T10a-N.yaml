@@ -3,6 +3,7 @@ name: AllocatorDisciplineNecessity
 type: lemma
 depends:
 - T10a
+- T10a.6
 - Prefix
 - T1
 - TA5
