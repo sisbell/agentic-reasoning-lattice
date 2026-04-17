@@ -6,6 +6,8 @@ depends:
 - TA2
 - TumblerSub
 - ZPD
+- NAT-sub
+- NAT-order
 summary: 'Subtracting a common lower bound from two equal-length ordered positions preserves strict order: if a < b and both
   dominate w with equal lengths, then a ⊖ w < b ⊖ w. The equal-length precondition is load-bearing — without it the piecewise
   subtraction could shift the divergence point in a way that collapses or reverses the ordering.'

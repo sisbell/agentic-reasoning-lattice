@@ -6,7 +6,7 @@ We verify the four preconditions of TA0 for this application. First, v ∈ T by 
 
 With all TA0 preconditions satisfied, shift(v, n) = v ⊕ δ(n, m) ∈ T. By TumblerAdd: shift(v, n)ᵢ = vᵢ for i < m, shift(v, n)ₘ = vₘ + n, and #shift(v, n) = #δ(n, m) = m = #v. The shift advances the deepest component by exactly n, leaving all higher-level components unchanged.
 
-Additionally, shift preserves structural properties. When m ≥ 2, the action point of δₙ leaves position 1 unchanged — shift(v, n)₁ = v₁. When m = 1, shift([S], n) = [S + n] changes the first component. Since n ≥ 1, component positivity holds unconditionally: shift(v, n)ₘ = vₘ + n ≥ 1 for all vₘ ≥ 0. ∎
+Additionally, shift preserves structural properties. When m ≥ 2, the action point of δₙ leaves position 1 unchanged — shift(v, n)₁ = v₁. When m = 1, letting c denote the sole component so that v = [c] with c ∈ ℕ, shift([c], n) = [c + n] changes the first component. Since n ≥ 1, component positivity holds unconditionally: shift(v, n)ₘ = vₘ + n ≥ 1 for all vₘ ≥ 0. ∎
 
 *Formal Contract:*
 - *Preconditions:* v ∈ T, n ≥ 1

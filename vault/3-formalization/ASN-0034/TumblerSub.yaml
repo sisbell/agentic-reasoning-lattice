@@ -13,6 +13,7 @@ depends:
 - D0
 - D1
 - NAT-order
+- NAT-sub
 summary: 'Defines component-wise tumbler subtraction `a ⊖ w`, producing a result whose nonzero components begin at the first
   zero-padded divergence point and whose length is `max(#a, #w)`. The result captures the positional difference from `w` to
   `a`, but the round-trip `a ⊕ (b ⊖ a) = b` holds only when two independent conditions are met: `divergence(a, b) ≤ #a` (so
