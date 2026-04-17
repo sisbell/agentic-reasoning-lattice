@@ -1,4 +1,4 @@
-**T4b (UniqueParse).** Under the constraints of T4 — at most three zero-valued components, no two zeros adjacent, neither `t₁` nor `t_{#t}` zero — the partial function
+**T4b (UniqueParse).** Under the constraints of T4 — at most three zero-valued components, no two zeros adjacent, `t₁ ≠ 0`, `t_{#t} ≠ 0` — the partial function
 
   `fields : T ⇀ Seq(ℕ⁺) × Seq(ℕ⁺) × Seq(ℕ⁺) × Seq(ℕ⁺)`
 
