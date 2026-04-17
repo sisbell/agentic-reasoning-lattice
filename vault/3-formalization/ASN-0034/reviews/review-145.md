@@ -15,3 +15,9 @@
 **Issue**: 1 + 7 + 6 = 14, not 13. The preamble total contradicts the itemized count by one site. Under T0's citation convention ("each proof cites only the ℕ facts it actually uses"), the enumeration functions as an auditable inventory; a preamble total that disagrees with the explicit clause-by-clause breakdown makes the inventory unverifiable without the reader first deciding which number to trust. The parallel totals for NAT-addcompat ("eight distinct sites" matching 8 itemized) and NAT-discrete ("three distinct sites" matching 3 itemized) pass this check, so the discrepancy is isolated to NAT-order and reads as an arithmetic slip rather than an intentional grouping.
 
 **What needs resolving**: Either correct the preamble to "fourteen distinct sites" to match the 1+7+6 itemization, or identify which itemized site should be folded into another (for example, if two trichotomy invocations at the same pair `(m,n)` are intended to count as one under the declared per-instance convention) and restate both the preamble total and the clause-specific count so the arithmetic closes.
+
+## Result
+
+Cone not converged after 8 cycles.
+
+*Elapsed: 4355s*
