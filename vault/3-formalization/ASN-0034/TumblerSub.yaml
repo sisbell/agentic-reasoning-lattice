@@ -12,6 +12,7 @@ depends:
 - TumblerAdd
 - D0
 - D1
+- NAT-discrete
 - NAT-order
 - NAT-sub
 summary: 'Defines component-wise tumbler subtraction `a ⊖ w`, producing a result whose nonzero components begin at the first
