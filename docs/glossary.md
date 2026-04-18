@@ -2,7 +2,7 @@
 
 Terms specific to this reasoning system. Cross-references point to where each term is discussed substantively.
 
-[A](#a) · [B](#b) · [C](#c) · [D](#d) · [E](#e) · [F](#f) · [G](#g) · [I](#i) · [J](#j) · [L](#l) · [M](#m) · [N](#n) · [O](#o) · [P](#p) · [R](#r) · [S](#s) · [T](#t) · [U](#u) · [V](#v) · [Y](#y)
+[A](#a) · [B](#b) · [C](#c) · [D](#d) · [E](#e) · [F](#f) · [G](#g) · [H](#h) · [I](#i) · [J](#j) · [L](#l) · [M](#m) · [N](#n) · [O](#o) · [P](#p) · [R](#r) · [S](#s) · [T](#t) · [U](#u) · [V](#v) · [Y](#y)
 
 ## A
 
@@ -31,6 +31,8 @@ Terms specific to this reasoning system. Cross-references point to where each te
 ## C
 
 **Campaign.** A discovery effort investigating a specific question. Produces one or more ASNs and grows the lattice through scope promotion.
+
+**Channel asymmetry.** Shape-mismatch between the theory channel and the data channel. Prevents naive merging and forces synthesis to coin bridging vocabulary. See [Channel Asymmetry pattern](patterns/channel-asymmetry.md).
 
 **Citation, inline.** A reference in the proof narrative like "by NAT-wellorder." Part of proof content, not metadata.
 
@@ -76,9 +78,13 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Downward pass.** Second phase of the [V-cycle](design-notes/verification-v-cycle.md) — re-verifying at narrower scales after wider-scale corrections.
 
+**Domain language emergence.** The process by which the system coins new prose words for concepts it will reason with, as two-channel synthesis and subsequent review cycles produce claims existing vocabulary can't express. See [Domain Language Emergence](design-notes/domain-language-emergence.md).
+
 ## E
 
 **Enumerated surface.** A property structure that pre-identifies where sub-facts will live (e.g., `T10a.1`, `T10a.2`, ...). Invites [accretion](patterns/accretion.md); prevents Genesis Attractors forming.
+
+**Evidence space.** The space of observed behaviors and measurements the data channel reports. Complement to [hypothesis space](#h).
 
 **Excavation stages.** The predictable stages review/revise findings progress through as cycles deepen: citation accuracy → completeness → structural coherence → mathematical precision → structural organization → prose clarity. See [Review/Revise Iteration](patterns/review-revise-iteration.md).
 
@@ -99,6 +105,10 @@ Terms specific to this reasoning system. Cross-references point to where each te
 **Genesis Attractor.** See Attractor, Genesis.
 
 **Ground state.** The state of genuine convergence across all scales — property, cluster, and system review all agree there are no remaining issues. Distinguished from "stopped" (no finding in one scale but others can still expose issues). See [V-cycle self-evaluation](design-notes/verification-v-cycle.md#the-v-cycle-as-self-evaluation).
+
+## H
+
+**Hypothesis space.** The space of candidate principles and concepts that could organize a domain. Explored by the theory channel. Complement to [evidence space](#e). New [prose coinage](patterns/prose-coinage.md) is a form of hypothesis generation.
 
 ## I
 
@@ -144,6 +154,10 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Property.** A single unit of reasoning within an ASN. Has a label, type, formal contract, and dependencies. The cited building block of the lattice.
 
+**Prose coinage.** The atomic event of coining a new prose word for a concept no existing vocabulary captures precisely (e.g., "action point," "divergence," "subspace"). Occurs in two modes: [synthesis coinage](#s) and [review coinage](#r). Precedes [prose compression](patterns/prose-compression.md). See [Prose Coinage pattern](patterns/prose-coinage.md).
+
+**Prose compression.** A prose-named concept gets a symbol for compact formal manipulation (e.g., "tumbler addition" → `⊕`). Same concept, compressed form. Produced by [review/revise iteration](patterns/review-revise-iteration.md) as concepts are used frequently enough that compact notation pays for itself. See [Prose Compression pattern](patterns/prose-compression.md).
+
 **Property lattice.** The fine granularity of the [reasoning lattice](patterns/reasoning-lattice.md) — individual properties as nodes, per-property dependencies as edges.
 
 **Property scale.** [Verification V-Cycle](design-notes/verification-v-cycle.md) scope of one property with its dependencies as fixed context.
@@ -155,6 +169,8 @@ Terms specific to this reasoning system. Cross-references point to where each te
 **Rebase.** Re-verifying downstream properties after a foundation changes. Happens automatically via review/revise cycles because changed dependencies invalidate dependents' metadata.
 
 **Representation change.** Progressive transformation of content through different forms (narrative → structured → formal → mechanical) without changing the underlying claim. See [Representation Change pattern](patterns/representation-change.md).
+
+**Review coinage.** [Prose coinage](patterns/prose-coinage.md) that happens during review/revise cycles rather than at synthesis. Occurs in both discovery and formalization. Roughly 30% of an ASN's coinages. Driven by reviewer pressure surfacing a concept the current text is discussing in ad-hoc prose without a shared name. See [Synthesis coinage](#s) for contrast.
 
 **Review/revise iteration.** Repeating cycles of review (finding issues), revision (fixing them), and re-review until convergence. See [Review/Revise Iteration pattern](patterns/review-revise-iteration.md).
 
@@ -185,6 +201,8 @@ Terms specific to this reasoning system. Cross-references point to where each te
 **Summarize.** The step that regenerates the `summary` YAML field using batched LLM calls. Prerequisite to assembly.
 
 **Synthesis.** The step integrating theory-channel and data-channel outputs into a structured reasoning document with dependency-mapped claims.
+
+**Synthesis coinage.** [Prose coinage](patterns/prose-coinage.md) that occurs at the synthesis step when two-channel outputs are reconciled. Roughly 70% of an ASN's coinages happen here, because synthesis is where incompatible vocabularies must be merged into a single reasoning document and no existing word may fit precisely. Contrasts with [review coinage](#r) which happens during later review/revise cycles.
 
 **System scale.** [Verification V-Cycle](design-notes/verification-v-cycle.md) scope of the whole ASN with full foundation context.
 

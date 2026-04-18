@@ -1,0 +1,85 @@
+<svg width="100%" viewBox="0 0 680 420" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>Prose compression: from prose name to symbol, both forms persist</title>
+  <desc>A prose name is coined during synthesis, then compressed to a symbol when stable and frequently used. Both forms remain: prose for narrative reasoning, symbol for formal manipulation.</desc>
+
+  <style>
+    text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+    .th { font-size: 14px; font-weight: 500; fill: #2C2C2A; }
+    .ts { font-size: 12px; font-weight: 400; fill: #5F5E5A; }
+    .blue-fill { fill: #E6F1FB; }
+    .blue-stroke { stroke: #185FA5; stroke-width: 0.5; }
+    .blue-text { fill: #0C447C; }
+    .coral-fill { fill: #FAECE7; }
+    .coral-stroke { stroke: #993C1D; stroke-width: 0.5; }
+    .coral-text { fill: #712B13; }
+    .arr { stroke: #5F5E5A; stroke-width: 1.5; fill: none; }
+    .divider { stroke: #D3D1C7; stroke-width: 0.5; }
+  </style>
+
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <!-- STAGE 1: Prose coinage -->
+  <rect x="40" y="40" width="180" height="56" rx="8" class="blue-fill blue-stroke"/>
+  <text class="th blue-text" x="130" y="60" text-anchor="middle" dominant-baseline="central">Prose coinage</text>
+  <text class="ts blue-text" x="130" y="78" text-anchor="middle" dominant-baseline="central">Concept gets a name</text>
+
+  <!-- Arrow to compression gate -->
+  <line x1="220" y1="68" x2="280" y2="68" class="arr" marker-end="url(#arrow)"/>
+
+  <!-- STAGE 2: Compression gate -->
+  <rect x="280" y="40" width="180" height="56" rx="8" class="coral-fill coral-stroke"/>
+  <text class="th coral-text" x="370" y="60" text-anchor="middle" dominant-baseline="central">Compression</text>
+  <text class="ts coral-text" x="370" y="78" text-anchor="middle" dominant-baseline="central">Stable + recurring use</text>
+
+  <!-- Two output arrows branching -->
+  <path d="M330 96 L330 130 L170 130 L170 160" fill="none" class="arr" marker-end="url(#arrow)"/>
+  <path d="M410 96 L410 130 L510 130 L510 160" fill="none" class="arr" marker-end="url(#arrow)"/>
+
+  <!-- LEFT branch: Prose persists -->
+  <rect x="70" y="160" width="200" height="44" rx="8" class="blue-fill blue-stroke"/>
+  <text class="th blue-text" x="170" y="182" text-anchor="middle" dominant-baseline="central">Prose name persists</text>
+  <text class="ts" x="170" y="224" text-anchor="middle">Narrative reasoning,</text>
+  <text class="ts" x="170" y="240" text-anchor="middle">explanation, onboarding</text>
+
+  <!-- RIGHT branch: Symbol created -->
+  <rect x="410" y="160" width="200" height="44" rx="8" class="coral-fill coral-stroke"/>
+  <text class="th coral-text" x="510" y="182" text-anchor="middle" dominant-baseline="central">Symbol created</text>
+  <text class="ts" x="510" y="224" text-anchor="middle">Proofs, contracts,</text>
+  <text class="ts" x="510" y="240" text-anchor="middle">algebraic chains</text>
+
+  <!-- Examples section -->
+  <line x1="40" y1="270" x2="640" y2="270" class="divider"/>
+  <text class="th" x="340" y="296" text-anchor="middle">Examples from ASN-0034</text>
+
+  <!-- Example pairs -->
+  <rect x="50" y="316" width="170" height="32" rx="6" class="blue-fill blue-stroke"/>
+  <text class="ts blue-text" x="135" y="336" text-anchor="middle" dominant-baseline="central">tumbler addition</text>
+  <line x1="220" y1="332" x2="258" y2="332" class="arr" marker-end="url(#arrow)"/>
+  <rect x="260" y="316" width="50" height="32" rx="6" class="coral-fill coral-stroke"/>
+  <text class="th coral-text" x="285" y="336" text-anchor="middle" dominant-baseline="central">⊕</text>
+
+  <rect x="50" y="360" width="170" height="32" rx="6" class="blue-fill blue-stroke"/>
+  <text class="ts blue-text" x="135" y="380" text-anchor="middle" dominant-baseline="central">prefix relation</text>
+  <line x1="220" y1="376" x2="258" y2="376" class="arr" marker-end="url(#arrow)"/>
+  <rect x="260" y="360" width="50" height="32" rx="6" class="coral-fill coral-stroke"/>
+  <text class="th coral-text" x="285" y="380" text-anchor="middle" dominant-baseline="central">≼</text>
+
+  <rect x="370" y="316" width="170" height="32" rx="6" class="blue-fill blue-stroke"/>
+  <text class="ts blue-text" x="455" y="336" text-anchor="middle" dominant-baseline="central">ordinal displacement</text>
+  <line x1="540" y1="332" x2="578" y2="332" class="arr" marker-end="url(#arrow)"/>
+  <rect x="580" y="316" width="50" height="32" rx="6" class="coral-fill coral-stroke"/>
+  <text class="th coral-text" x="605" y="336" text-anchor="middle" dominant-baseline="central">δ</text>
+
+  <rect x="370" y="360" width="170" height="32" rx="6" class="blue-fill blue-stroke"/>
+  <text class="ts blue-text" x="455" y="380" text-anchor="middle" dominant-baseline="central">zero-padded divergence</text>
+  <line x1="540" y1="376" x2="578" y2="376" class="arr" marker-end="url(#arrow)"/>
+  <rect x="580" y="360" width="50" height="32" rx="6" class="coral-fill coral-stroke"/>
+  <text class="th coral-text" x="605" y="380" text-anchor="middle" dominant-baseline="central">zpd</text>
+
+  <text class="ts" x="340" y="414" text-anchor="middle">Both forms remain — citing either refers to the same concept</text>
+
+</svg>

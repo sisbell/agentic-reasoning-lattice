@@ -17,12 +17,6 @@ Properties grow the lattice by adding new properties, not by mutating existing o
 - The fact can be stated independently enough to stand as its own property
 - Downstream consumers cite the new property directly, rather than relying on the old one
 
-## When it fails
-
-- The "new fact" is actually a fix to an existing one — mutation is unavoidable
-- The fact cannot be separated from an existing property without breaking both
-- Accretion is used to avoid thinking, producing a sprawl of trivial properties that each state one clause
-
 ## Design for accretion
 
 Whether growth happens by accretion or by mutation is determined at the moment a concept is introduced. Two design signals tell the reviser where new facts should go:

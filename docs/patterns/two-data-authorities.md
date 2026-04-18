@@ -41,6 +41,14 @@ The constraint is a vocabulary firewall — each channel is prohibited from usin
 
 [Review/revise iteration](review-revise-iteration.md) — the quality of discovery output determines how much work formalization must do. Clean two-authority discovery → fewer gaps → faster review/revise convergence.
 
+## Served by
+
+[Channel Asymmetry](channel-asymmetry.md) — specifies the shape relationship between the two channels. When the channels arrive in incompatible representational shapes, the bridging pressure produces genuine coinage rather than symbol-matching.
+
+## Instantiations
+
+- [Legacy Software Discovery](two-data-authorities-legacy-software.md) — grounded instantiation. Reverse-engineering the principles behind a legacy software system using the designer's material as theory and the working implementation as data. Xanadu is the worked example.
+
 ## Applications
 
 ### Theory and evidence channels

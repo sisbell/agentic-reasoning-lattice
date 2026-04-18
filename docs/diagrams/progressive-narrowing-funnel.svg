@@ -1,0 +1,50 @@
+<svg width="100%" viewBox="0 0 680 410" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>Progressive narrowing funnel</title>
+<desc>A funnel diagram showing vocabulary narrowing through four stages: channels, synthesis, discovery review, and formalization review</desc>
+
+<!-- Band 1: Channels — blue -->
+<path d="M50,40 L570,40 L535,108 L85,108 Z" fill="#85B7EB" stroke="#378ADD" stroke-width="0.5"/>
+<text x="310" y="64" text-anchor="middle" dominant-baseline="central" fill="#042C53" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="14" font-weight="500">Channels</text>
+<text x="310" y="86" text-anchor="middle" dominant-baseline="central" fill="#185FA5" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="12">Theory + data source vocabulary</text>
+
+<!-- Band 2: Synthesis / first draft — teal -->
+<path d="M85,118 L535,118 L490,186 L130,186 Z" fill="#5DCAA5" stroke="#0F6E56" stroke-width="0.5"/>
+<text x="310" y="140" text-anchor="middle" dominant-baseline="central" fill="#04342C" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="14" font-weight="500">Synthesis / first draft</text>
+<text x="310" y="162" text-anchor="middle" dominant-baseline="central" fill="#085041" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="12">Bulk coinage (~70% of invented terms)</text>
+
+<!-- Review pressure -->
+<text x="310" y="202" text-anchor="middle" fill="#7F77DD" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="12" opacity="0.8">&#x25BE; review pressure &#x25BE;</text>
+
+<!-- Band 3: Discovery review/revise — purple -->
+<path d="M130,214 L490,214 L440,282 L180,282 Z" fill="#AFA9EC" stroke="#534AB7" stroke-width="0.5"/>
+<text x="310" y="236" text-anchor="middle" dominant-baseline="central" fill="#26215C" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="14" font-weight="500">Discovery review / revise</text>
+<text x="310" y="258" text-anchor="middle" dominant-baseline="central" fill="#3C3489" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="12">Precision terms, compression (~30%)</text>
+
+<!-- Review pressure -->
+<text x="310" y="298" text-anchor="middle" fill="#D85A30" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="12" opacity="0.8">&#x25BE; review pressure &#x25BE;</text>
+
+<!-- Band 4: Formalization — coral -->
+<path d="M180,310 L440,310 L400,373 L220,373 Z" fill="#F0997B" stroke="#993C1D" stroke-width="0.5"/>
+<text x="310" y="330" text-anchor="middle" dominant-baseline="central" fill="#4A1B0C" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="14" font-weight="500">Formalization review / revise</text>
+<text x="310" y="352" text-anchor="middle" dominant-baseline="central" fill="#712B13" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="12">Partitions structure, final tightening</text>
+
+<!-- Right-side annotations -->
+<line x1="553" y1="74" x2="580" y2="74" stroke="#378ADD" stroke-width="0.5" stroke-dasharray="3 3"/>
+<circle cx="578" cy="74" r="2" fill="#378ADD"/>
+<text x="588" y="78" fill="#378ADD" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="12">inherited terms</text>
+
+<!-- Bracket spanning bands 2+3 -->
+<path d="M580,142 L588,142 L588,252 L580,252" fill="none" stroke="#7F77DD" stroke-width="0.8"/>
+<text x="596" y="190" fill="#7F77DD" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="12">invented</text>
+<text x="596" y="204" fill="#7F77DD" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="12">reasoning</text>
+<text x="596" y="218" fill="#7F77DD" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="12">vocabulary</text>
+
+<line x1="420" y1="341" x2="580" y2="341" stroke="#D85A30" stroke-width="0.5" stroke-dasharray="3 3"/>
+<circle cx="578" cy="341" r="2" fill="#D85A30"/>
+<text x="588" y="337" fill="#D85A30" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="12">structural</text>
+<text x="588" y="351" fill="#D85A30" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="12">names</text>
+
+<!-- Bottom annotation -->
+<text x="310" y="400" text-anchor="middle" fill="#AFA9EC" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="12" opacity="0.6">each stage removes variance, increases precision and citability</text>
+
+</svg>

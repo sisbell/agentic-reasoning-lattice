@@ -33,7 +33,7 @@ The system is demonstrated on the Xanadu hypertext system — deriving formal pr
 - [Discovery](docs/discovery.md) — finding formal structure through structured consultation
 - [Blueprinting](docs/blueprinting.md) — meet operation: document → atomic properties
 - [Formalization](docs/formalization.md) — precision as a discovery tool, reasoning that improves itself
-- [Pattern Language](docs/patterns/pattern-language.md) — 12 operationally discovered patterns for agentic reasoning systems
+- [Pattern Language](docs/patterns/README.md) — operationally discovered patterns for agentic reasoning systems
 - [Verification V-Cycle](docs/design-notes/verification-v-cycle.md) — multi-scale review architecture and multigrid analogy
 - [Glossary](docs/glossary.md) — system-specific terms and their definitions
 
@@ -53,6 +53,6 @@ The system is demonstrated on the Xanadu hypertext system — deriving formal pr
 - [vault/2-blueprints/](vault/2-blueprints/) — per-property decomposition (blueprinting output)
 - [vault/3-formalization/](vault/3-formalization/) — formalized properties with contracts
 - [vault/3-modeling/](vault/3-modeling/) — Dafny proofs and Alloy models
-- [vault/project-model/](vault/project-model/) — per-ASN manifests, exports, dependency graphs
+- [vault/project-model/](vault/project-model/index.md) — per-ASN manifests, exports, dependency graphs
 - [scripts/](scripts/) — pipeline automation
-- [docs/](docs/) — methodology, guides, runbooks
+- [docs/](docs/README.md) — methodology, patterns, design notes, guides, runbooks
