@@ -13,3 +13,9 @@
 **ASN**: TS2 statement: "`(A v₁, v₂, n : n ≥ 1 ∧ #v₁ = #v₂ = m : shift(v₁, n) = shift(v₂, n) ⟹ v₁ = v₂)`".
 **Issue**: The universal quantifier binds `v₁, v₂, n`. The range conjunct `#v₁ = #v₂ = m` contains `m`, which is not bound by the quantifier, not introduced as a parameter at an outer scope, and not declared elsewhere in the TS2 Formal Contract (which restates `#v₁ = #v₂ = m` in Preconditions with the same free `m`). A reader cannot tell whether `m` is implicitly existentially quantified (equivalent to `#v₁ = #v₂`), universally quantified at an outer scope, or a named parameter. Sister properties in the ASN that state a shared length introduce it by either explicit quantification or by equality to a defined expression. The free `m` also propagates into the Preconditions list, where it appears unbound.
 **What needs resolving**: TS2 must bind `m` explicitly — either by dropping `m` and writing `#v₁ = #v₂`, or by adding `m` to the quantifier (e.g., `(A v₁, v₂ ∈ T, n ∈ ℕ, m : …)`), with the Preconditions list updated to match. The binding convention should align with how other ASN properties introduce shared length parameters.
+
+## Result
+
+Cone converged after 6 cycles.
+
+*Elapsed: 3327s*

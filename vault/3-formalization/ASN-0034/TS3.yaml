@@ -6,6 +6,9 @@ depends:
 - T3
 - OrdinalShift
 - NAT-addassoc
+- NAT-closure
+- NAT-addcompat
+- NAT-order
 - TA0
 - OrdinalDisplacement
 summary: 'Two successive shifts compose into a single shift: applying shift by n₁ and then by n₂ is identical to a single

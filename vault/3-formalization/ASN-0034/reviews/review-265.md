@@ -1,0 +1,15 @@
+# Cone Review — ASN-0034/TS3 (cycle 1)
+
+*2026-04-18 09:02*
+
+### TS3 omits ℕ-typing preconditions required by its callees
+**Foundation**: OrdinalShift preconditions `v ∈ T, n ∈ ℕ, n ≥ 1`; OrdinalDisplacement preconditions `n ∈ ℕ, m ∈ ℕ, n ≥ 1, m ≥ 1`.
+**ASN**: TS3 (ShiftComposition), quantifier `(A v, n₁, n₂ : n₁ ≥ 1 ∧ n₂ ≥ 1 ∧ #v = m : ...)` and Preconditions list `v ∈ T, n₁ ≥ 1, n₂ ≥ 1, #v = m`.
+**Issue**: TS3 invokes OrdinalShift three times — `shift(v, n₁)`, `shift(u, n₂)`, `shift(v, n₁ + n₂)` — and (transitively) OrdinalDisplacement at each, but never supplies `n₁ ∈ ℕ` or `n₂ ∈ ℕ`. OrdinalDisplacement's own proof explicitly articulates the convention that an order statement like `n ≥ 1` *presupposes rather than establishes* carrier membership and routes the m-th position's ℕ-typing from the separate `n ∈ ℕ` precondition. Under that convention, `n₁ ≥ 1` and `n₂ ≥ 1` alone do not discharge OrdinalShift's `n ∈ ℕ` precondition. The chain from TS3 to the downstream callees therefore has a broken link at the very first step of each `shift(·, ·)` unfolding.
+**What needs resolving**: TS3 must either (a) add `n₁ ∈ ℕ, n₂ ∈ ℕ` to its range predicate and Preconditions list so each shift invocation has a named `n ∈ ℕ` source, or (b) justify internally why order-statement-only typing suffices here while OrdinalShift/OrdinalDisplacement route it separately. Option (a) is the convention already established in this ASN.
+
+### TS3's right-side `n₁ + n₂ ≥ 1` discharge is unsourced
+**Foundation**: OrdinalShift's precondition `n ∈ ℕ, n ≥ 1`; NAT-closure (closure of ℕ under addition); NAT-addcompat (order-compatibility / successor inequality); NAT-order (composition of `≥`/`>`).
+**ASN**: TS3 right-side preface: "Since n₁ ≥ 1 and n₂ ≥ 1, their sum n₁ + n₂ ≥ 2 ≥ 1, so δ(n₁ + n₂, m) is a well-formed ordinal displacement with action point m."
+**Issue**: Three sub-facts are asserted without citation: (i) `n₁ + n₂ ∈ ℕ` (needed for OrdinalDisplacement's `n ∈ ℕ` precondition on the sum), which requires NAT-closure; (ii) `n₁ + n₂ ≥ 2` from `n₁ ≥ 1 ∧ n₂ ≥ 1`, which requires NAT-addcompat's order-compatibility; (iii) `2 ≥ 1`, which requires NAT-addcompat's successor inequality and NAT-order's defining clause. The ASN's established per-step citation discipline (enforced explicitly inside TumblerAdd, TA-Pos, and OrdinalDisplacement's own `n ≥ 1 ⟹ n ≠ 0` promotion) requires each of these links to name a NAT-* source. TS3's Depends lists only OrdinalShift, OrdinalDisplacement, TA0, TumblerAdd, NAT-addassoc, T3 — none of NAT-closure, NAT-addcompat, or NAT-order appears, so the right-side preface rests on background arithmetic rather than the enumerated ℕ axioms.
+**What needs resolving**: TS3 must source the `n₁ + n₂ ∈ ℕ` and `n₁ + n₂ ≥ 1` discharges from named NAT-* axioms (NAT-closure plus NAT-addcompat/NAT-order as appropriate) and extend its Depends list to match, or cite a sibling step in this ASN whose discharge it reuses.
