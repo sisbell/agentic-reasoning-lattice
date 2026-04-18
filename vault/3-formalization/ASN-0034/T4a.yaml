@@ -4,6 +4,9 @@ type: corollary
 depends:
 - T0
 - T4
+- NAT-zero
+- NAT-discrete
+- NAT-order
 summary: The three positional conditions from T4 (no adjacent zeros, nonzero first and last components) are logically equivalent
   to the condition that every field segment of the tumbler is non-empty. This records the bridge between T4's positional form
   and the semantic reading that every present field contributes at least one component.

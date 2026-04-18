@@ -6,6 +6,9 @@ depends:
 - T3
 - T4
 - T4a
+- NAT-zero
+- NAT-discrete
+- NAT-order
 summary: |
   fields : T ⇀ Seq(ℕ⁺) × Seq(ℕ⁺) × Seq(ℕ⁺) × Seq(ℕ⁺) is a partial function whose domain
   is exactly the T4-valid subset of T (at most three zeros, no two adjacent, t₁ ≠ 0,
