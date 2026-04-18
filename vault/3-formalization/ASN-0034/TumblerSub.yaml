@@ -13,6 +13,7 @@ depends:
 - D0
 - D1
 - NAT-order
+- NAT-addcompat
 - NAT-sub
 - NAT-zero
 summary: |
