@@ -4,6 +4,7 @@ type: corollary
 depends:
 - TumblerAdd
 - TumblerSub
+- T0
 - TA-Pos
 - TA0
 - ActionPoint
