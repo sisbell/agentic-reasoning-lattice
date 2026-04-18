@@ -12,6 +12,7 @@ depends:
 - TA5
 - T10
 - NAT-order
+- NAT-zero
 - NAT-discrete
 - NAT-addcompat
 - NAT-wellorder
