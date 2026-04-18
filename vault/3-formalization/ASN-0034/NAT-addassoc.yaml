@@ -4,5 +4,10 @@ type: axiom
 depends: []
 summary: |
   Addition on ℕ is associative: `(m + n) + p = m + (n + p)` for every `m, n, p ∈ ℕ`.
-  Stated as an axiom alongside the other NAT-* facts so downstream proofs can cite it
-  directly without appealing to an implicit "standard properties of ℕ" clause.
+  Registered as one of the nine NAT-* axioms inside T0's enumeration (declared
+  exhaustive); this file states the formal content downstream proofs cite. Membership
+  in the enumeration is decided by demonstrated downstream consumption — associativity
+  enters via TS3 and TA-assoc (which regroup three summands at a single component);
+  commutativity is held out (no proof in this ASN reorders two summands), which is
+  what licenses TumblerAdd's dominance argument to rule out the symmetric proof
+  route through `1 + wₖ > wₖ`.
