@@ -17,3 +17,9 @@
 T0's NAT-* enumeration is declared exhaustive and does not include a commutativity axiom (NAT-addassoc is listed, NAT-addcomm is not). The strict-advancement derivation is therefore *asymmetric*: it works when `wₖ ≥ 1` (the action-point's own guarantee) but not when the positivity sits on the start-position side `aₖ ≥ 1`, which is exactly the sub-case the dominance proof asserts without justification.
 
 **What needs resolving**: Either (a) supply an explicit derivation of `aₖ > 0 ⟹ aₖ + wₖ > wₖ` using only the axioms in T0's exhaustive list (e.g., through NAT-sub right-telescoping + NAT-order, with the corresponding Depends additions), or (b) add commutativity of ℕ addition as a NAT-* axiom and update T0's exhaustive enumeration accordingly, or (c) restructure the dominance proof so the sub-case does not require strict advancement on the left summand. The current text asserts `rₖ > wₖ` at the same per-step granularity that every other strict inequality in this ASN is derived explicitly — leaving this one gap uniquely unjustified.
+
+## Result
+
+Cone converged after 3 cycles.
+
+*Elapsed: 1868s*
