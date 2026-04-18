@@ -9,6 +9,7 @@ depends:
 - ActionPoint
 - NAT-closure
 - NAT-addcompat
+- NAT-cancel
 - NAT-order
 - NAT-zero
 - NAT-wellorder
