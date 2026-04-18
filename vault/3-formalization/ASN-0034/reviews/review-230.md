@@ -19,3 +19,9 @@ Reflexivity `t ≼ t` is nowhere listed among Prefix's derived postconditions.
 Reflexivity is definitionally immediate — `#t ≤ #t` by NAT-order and `tᵢ = tᵢ` by equality reflexivity — but the contract convention in this ASN requires derived consequences that downstream proofs cite by name to appear as explicit postconditions, not be left to the reader to re-derive from the definition.
 
 **What needs resolving**: Prefix must either (a) export reflexivity `(∀t ∈ T :: t ≼ t)` as an explicit derived postcondition with its supporting citation chain (NAT-order reflexivity of `≤` on ℕ; equality reflexivity at each component), making it available to T10a.6's Depends by name; or (b) T10a.6 Case 2's proof must unfold the Prefix definition inline and discharge the `t ≼ t` step against Prefix's Definition clause together with NAT-order and equality reflexivity directly, removing the "reflexivity of ≼" cite from its Depends.
+
+## Result
+
+Cone converged after 3 cycles.
+
+*Elapsed: 1874s*

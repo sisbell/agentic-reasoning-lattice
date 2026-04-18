@@ -6,6 +6,7 @@ depends:
 - T10a
 - T10a.1
 - T1
+- T3
 - TA5
 - T10
 summary: Distinct outputs of a single allocator are prefix-incomparable — neither sibling is a prefix of the other. Because
