@@ -5,8 +5,11 @@ depends:
 - Prefix
 - T10
 - T4
+- T0
 - TA5
 - TA5a
+- NAT-zero
+- NAT-discrete
 - NAT-addcompat
 summary: Allocators must produce sibling addresses exclusively by shallow increment inc(·,0), and may spawn child allocators
   only via a single deep increment with k'∈{1,2} subject to TA5a's zero-count bound zeros(t) ≤ 2 at k'=2 (k'=1 preserves
