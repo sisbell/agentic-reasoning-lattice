@@ -1,11 +1,18 @@
 label: TA0
 name: WellDefinedAddition
-type: theorem
+type: corollary
 depends:
+- TumblerAdd
 - T0
 - TA-Pos
 - ActionPoint
-- TumblerAdd
-summary: Adding a positive displacement w to a position a yields a valid tumbler, provided w's action point does not exceed
-  a's length. The action-point constraint ensures the piecewise construction can actually access position k within a; without
-  it, the operation is undefined. The result inherits its length from w, not from a.
+summary: |
+  A named corollary exporting TumblerAdd's first two postconditions a ⊕ w ∈ T and #(a ⊕ w) = #w as a single labelled
+  well-definedness fact for downstream use. Under the preconditions a ∈ T, w ∈ T, Pos(w), actionPoint(w) ≤ #a, TA0
+  restates these two postconditions unchanged, so the per-step axioms TumblerAdd cites (T0 for the membership reassembly,
+  NAT-closure for closure of ℕ under addition at the action point, NAT-sub for the result-length-identity collapse, and
+  T0's length axiom for #w ≥ 1) live inside TumblerAdd and are transitively sourced here. The chief downstream consumers
+  are TA1, TA1-strict, TA-LC, TA-RC, TA-MTO, TA-assoc, TA4, TA7a, OrdinalShift, D0, D1, D2, Span, T12, and TS3 — every
+  property that needs "a ⊕ w is a tumbler of length #w" without the ordering or dominance guarantees and would otherwise
+  cherry-pick from TumblerAdd's four-postcondition list. The motivation for the precondition actionPoint(w) ≤ #a
+  belongs to TumblerAdd's construction; TA0's content is the labelled handle, not the construction-side argument.
