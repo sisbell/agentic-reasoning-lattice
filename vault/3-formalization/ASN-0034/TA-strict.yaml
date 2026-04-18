@@ -3,6 +3,7 @@ name: StrictIncrease
 type: corollary
 depends:
 - TumblerAdd
+- T0
 - TA0
 - TA-Pos
 - ActionPoint
