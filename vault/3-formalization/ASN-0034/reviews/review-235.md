@@ -13,3 +13,9 @@
 **ASN**: T10a.3 (LengthSeparation), local-monotonicity paragraph: "The difference `k'_{d_A+1} + … + k'_{d_B}` is a sum of `d_B − d_A` terms, each `k'_i ≥ 1`; iterated NAT-addcompat order-compatibility applied term-by-term … lifts these per-term bounds to `k'_{d_A+1} + … + k'_{d_B} ≥ d_B − d_A`, and since `d_B > d_A` this gives `d_B − d_A ≥ 1`, hence `1 ≤ k'_{d_A+1} + … + k'_{d_B}`." Depends lists T10a, T10a.1, TA5, NAT-addcompat, T3 — no NAT-zero and no NAT-discrete.
 **Issue**: Two places in this paragraph consume NAT-discrete (together with NAT-zero). First, framing the sum as "`d_B − d_A` terms" with indices `d_A + 1, …, d_B` presupposes the index range is non-empty when `d_B > d_A`, i.e., `d_A + 1 ≤ d_B` — exactly the NAT-discrete sharpening of `d_A < d_B` in ℕ. Second, the explicit claim "`d_B > d_A` … gives `d_B − d_A ≥ 1`" is the same NAT-discrete inference stated directly. NAT-addcompat supplies the order-compatibility step that lifts per-term `1 ≤ k'_i` across the sum, but NAT-addcompat alone does not convert a strict order between naturals (`d_B > d_A`) into a lower bound on their difference (`d_B − d_A ≥ 1`) — that is NAT-discrete's content, and NAT-zero provides the `0 ≤ d_B − d_A` lower bound the NAT-discrete instantiation requires. The convention the ASN (and TA5) applies elsewhere would name T0 + NAT-zero + NAT-discrete jointly at this step.
 **What needs resolving**: T10a.3's local-monotonicity proof and Depends must cite NAT-zero and NAT-discrete (alongside the already-cited NAT-addcompat) at the step sharpening `d_B > d_A` in ℕ to `d_B − d_A ≥ 1`, matching the per-step citation convention TA5 explicitly names for the structurally identical "strict order in ℕ ⟹ successor-bounded difference" inference.
+
+## Result
+
+Cone converged after 6 cycles.
+
+*Elapsed: 3590s*
