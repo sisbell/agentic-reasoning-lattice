@@ -1,0 +1,21 @@
+# Cone Review — ASN-0034/TA2 (cycle 1)
+
+*2026-04-18 11:46*
+
+### TA2 invokes `max` and `min` as primitive ℕ operators, contradicting TumblerSub's explicit avoidance
+**Foundation**: TumblerSub's Definition, which replaces `max(#a, #w)` with the NAT-order-trichotomy-dispatched longer length `L` and replaces `k ≤ min(#w, #a)` with the conjunction `k ≤ #w ∧ k ≤ #a`, citing the convention that "every operator in the Definition must be discharged by a Depends entry." Divergence's case (i) (cited by TumblerSub) likewise uses the conjunction form.
+**ASN**: TA2 (WellDefinedSubtraction). Proof writes `p = max(#a, #w)` and uses it throughout. Sub-case (i) states "There exists a first position `j ≤ min(#a, #w)`". The Postcondition reads `#(a ⊖ w) = max(#a, #w)`.
+**Issue**: The same operator on the same length pair `(#a, #w)` is treated as a primitive in TA2 and as a derived name furnished by NAT-order trichotomy in TumblerSub. The document is inconsistent on whether `max`/`min` on ℕ are admissible unsourced primitives. TA2 additionally appeals to these operators in its Postcondition without a Depends entry discharging them.
+**What needs resolving**: Either (a) align TA2's formulation with TumblerSub's NAT-order-trichotomy dispatch — replacing `max(#a, #w)` with the trichotomy-named `L` and `min(#a, #w)` with the explicit conjunction — and update the Depends to include NAT-order; or (b) admit `max`/`min` as primitives globally and remove TumblerSub's elaborate NAT-order-trichotomy dispatch. One meaning per operator across the document.
+
+### TA2 derives `aₖ > 0` from `aₖ ≠ 0` without the NAT-zero + NAT-order route TumblerSub uses
+**Foundation**: TumblerSub's precondition-consequence case (ii) routes `aₖ ≠ 0 ⟹ aₖ > 0` through NAT-zero's lower bound `0 ≤ aₖ` (at `n = aₖ`) combined with NAT-order's defining clause `m ≤ n ⟺ m < n ∨ m = n` unfolding `0 ≤ aₖ` to `0 < aₖ ∨ 0 = aₖ`, then excluding the equality disjunct by the divergence observation. This discharge is called out as "matching the per-step convention ActionPoint's third postcondition applies for the structurally identical `≠ 0 ⟹ > 0` step."
+**ASN**: TA2 sub-case (ii): "The divergence `k` falls at the first position `i > #w` where `aᵢ > 0` — such a position must exist, for if `aᵢ = 0` at every `i > #w` the padded sequences would agree everywhere, contradicting the case hypothesis. At position `k`, `aₖ > 0 = wₖ` (zero-padded)."
+**Issue**: TA2 jumps from "the padded sequences diverge at `k`" (i.e., `aₖ ≠ 0`) directly to `aₖ > 0` with no axiom cited. Under TumblerSub's/ActionPoint's per-step convention, this step requires NAT-zero (for `0 ≤ aₖ`) and NAT-order (to unfold `≤` and exclude the equality disjunct). TA2's Depends list contains neither NAT-zero nor a NAT-order clause for this purpose.
+**What needs resolving**: TA2 must either discharge `aₖ ≠ 0 ⟹ aₖ > 0` through the same NAT-zero + NAT-order route used elsewhere in the ASN, or the ASN must adopt a different convention uniformly and TumblerSub/ActionPoint should be simplified to match.
+
+### TA2 Depends omits NAT-zero despite zero-padded ℕ-membership steps in the proof
+**Foundation**: TumblerSub's Depends cites NAT-zero for four ASN-internal sites including operand zero-padding (`aᵢ = 0` for `i > #a`, `wᵢ = 0` for `i > #w`), with the stated reason that T0 "supplies component-membership in ℕ only for *existing* positions."
+**ASN**: TA2 writes "`rᵢ = aᵢ` (zero-padded). If `i > #a`, then `aᵢ = 0 ∈ ℕ` (zero-padded)" and in sub-case (ii) "Zero-padding extends `w` with zeros at positions `#w + 1` through `p = #a`" and "`aₖ > 0 = wₖ` (zero-padded)" and "`rₖ = aₖ - 0 = aₖ ∈ ℕ`". Depends list: TumblerSub, T0, T1, T3, NAT-sub, NAT-order.
+**Issue**: Every one of these sites requires `0 ∈ ℕ` for the ℕ-valued (in)equality to be well-formed, and TumblerSub's discharge convention routes this through NAT-zero — but TA2's Depends does not cite NAT-zero. Either TA2 is relying on T0 for `0 ∈ ℕ` (which TumblerSub explicitly argues T0 does not supply) or the citation is missing.
+**What needs resolving**: TA2 must either add NAT-zero to its Depends and cite it at each `0 ∈ ℕ` site, or the ASN must reconcile its two positions on whether T0 alone suffices for `0 ∈ ℕ` at zero-padded positions.
