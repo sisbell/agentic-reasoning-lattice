@@ -15,7 +15,11 @@ depends:
 - NAT-discrete
 - NAT-order
 - NAT-sub
-summary: 'Defines component-wise tumbler subtraction `a ⊖ w`, producing a result whose nonzero components begin at the first
-  zero-padded divergence point and whose length is `max(#a, #w)`. The result captures the positional difference from `w` to
-  `a`, but the round-trip `a ⊕ (b ⊖ a) = b` holds only when two independent conditions are met: `divergence(a, b) ≤ #a` (so
-  TumblerAdd''s precondition is satisfied) and `#a ≤ #b` (so the result length matches `#b`).'
+summary: |
+  Defines component-wise tumbler subtraction `a ⊖ w`, producing a result whose nonzero components begin at the first
+  zero-padded divergence point and whose length is `L` — the longer of `#a` and `#w`, named by NAT-order trichotomy on
+  `(#a, #w)` (sub-case (α): `#a = #w`, `L = #a`; (β): `#a < #w`, `L = #w`; (γ): `#w < #a`, `L = #a`) rather than by a
+  primitive binary-maximum operator on ℕ, reproducing ZPD's analogous length-pair dispatch for the same operand pair.
+  The result captures the positional difference from `w` to `a`, but the round-trip `a ⊕ (b ⊖ a) = b` holds only when
+  two independent conditions are met: `divergence(a, b) ≤ #a` (so TumblerAdd's precondition is satisfied) and
+  `#a ≤ #b` (so the result length matches `#b`).
