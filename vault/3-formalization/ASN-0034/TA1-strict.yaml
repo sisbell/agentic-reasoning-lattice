@@ -2,6 +2,7 @@ label: TA1-strict
 name: StrictOrderPreservation
 type: corollary
 depends:
+- T0
 - Divergence
 - TumblerAdd
 - TA0
