@@ -12,7 +12,6 @@ depends:
 - TumblerAdd
 - D0
 - D1
-- NAT-discrete
 - NAT-order
 - NAT-sub
 - NAT-zero

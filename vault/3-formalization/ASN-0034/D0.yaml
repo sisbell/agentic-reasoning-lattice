@@ -14,7 +14,6 @@ depends:
 - TumblerSub
 - NAT-sub
 - NAT-order
-- NAT-closure
 - NAT-addcompat
 summary: Establishes that when a < b and the divergence point does not exceed a's length, the displacement b ⊖ a is a well-defined
   positive tumbler whose action point equals the divergence index. The round-trip a ⊕ (b ⊖ a) recovers b exactly when a is
