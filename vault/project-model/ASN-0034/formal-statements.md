@@ -86,7 +86,7 @@ No two distinct allocation events — whether from the same allocator, sibling a
 
 ---
 
-## NAT-addcompat — NatAdditionOrderCompatibility
+## NAT-addcompat — NatAdditionOrderAndSuccessor
 
 Addition on ℕ is monotone with respect to order: if `n ≥ p` then `m + n ≥ m + p` for all `m`. Additionally, every natural number is strictly less than its successor: `n < n + 1`.
 
@@ -95,7 +95,7 @@ Addition on ℕ is monotone with respect to order: if `n ≥ p` then `m + n ≥ 
 
 ---
 
-## NAT-closure — NatArithmeticClosure
+## NAT-closure — NatArithmeticClosureAndIdentity
 
 ℕ is closed under successor (`n + 1 ∈ ℕ`) and binary addition (`m + n ∈ ℕ`), with `0` serving as the additive identity (`0 + n = n`).
 

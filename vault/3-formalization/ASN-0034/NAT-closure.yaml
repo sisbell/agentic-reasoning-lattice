@@ -1,5 +1,5 @@
 label: NAT-closure
-name: NatArithmeticClosure
+name: NatArithmeticClosureAndIdentity
 type: axiom
 depends: []
 summary: ℕ is closed under successor (`n + 1 ∈ ℕ`) and binary addition (`m + n ∈ ℕ`), with `0` serving as the additive identity

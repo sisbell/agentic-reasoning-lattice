@@ -3,7 +3,6 @@ name: PositiveTumbler
 type: definition
 depends:
 - T0
-- T3
 - T1
 - NAT-order
 - NAT-zero

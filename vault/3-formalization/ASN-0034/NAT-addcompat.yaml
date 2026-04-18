@@ -1,5 +1,5 @@
 label: NAT-addcompat
-name: NatAdditionOrderCompatibility
+name: NatAdditionOrderAndSuccessor
 type: axiom
 depends: []
 summary: |

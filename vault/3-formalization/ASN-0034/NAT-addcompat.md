@@ -1,4 +1,4 @@
-**NAT-addcompat (NatAdditionOrderCompatibility).** Addition on ℕ is compatible with the order on either side, and `n < n + 1` for every `n ∈ ℕ`.
+**NAT-addcompat (NatAdditionOrderAndSuccessor).** Addition on ℕ is compatible with the order on either side, and `n < n + 1` for every `n ∈ ℕ`.
 
 Three related facts are stated together as one axiom because they all concern the interaction between addition and `<` on ℕ:
 

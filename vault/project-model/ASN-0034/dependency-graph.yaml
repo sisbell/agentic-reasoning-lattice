@@ -85,11 +85,11 @@ properties:
   NAT-addcompat:
     status: axiom
     type: axiom
-    name: NatAdditionOrderCompatibility
+    name: NatAdditionOrderAndSuccessor
   NAT-closure:
     status: axiom
     type: axiom
-    name: NatArithmeticClosure
+    name: NatArithmeticClosureAndIdentity
   NAT-discrete:
     status: axiom
     type: axiom
