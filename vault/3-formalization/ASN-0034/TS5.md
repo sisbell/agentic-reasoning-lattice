@@ -16,11 +16,7 @@ Let u = shift(v, n₁). By OrdinalShift, u is a tumbler with #u = m (shift prese
 
 Substituting back: shift(v, n₂) = shift(u, d) > u = shift(v, n₁), that is, shift(v, n₁) < shift(v, n₂). ∎
 
-*Worked example.* Let v = [2, 3, 7] (m = 3) and n = 4. Then δ(4, 3) = [0, 0, 4] with action point 3. TA0: k = 3 ≤ 3 = #v. By TumblerAdd: shift(v, 4) = [2, 3, 7 + 4] = [2, 3, 11].
-
-For TS1: take v₁ = [2, 3, 5] < v₂ = [2, 3, 9] with n = 4. Then shift(v₁, 4) = [2, 3, 9] < [2, 3, 13] = shift(v₂, 4). ✓
-
-For TS3: shift(shift([2, 3, 7], 4), 3) = shift([2, 3, 11], 3) = [2, 3, 14] = shift([2, 3, 7], 7). ✓
+*Worked example.* Let v = [2, 3, 7] (m = 3) with n₁ = 4 and n₂ = 7, so n₂ > n₁ ≥ 1. Then δ(4, 3) = [0, 0, 4] and δ(7, 3) = [0, 0, 7], each with action point 3. TA0: k = 3 ≤ 3 = #v at both invocations. By TumblerAdd: shift(v, 4) = [2, 3, 7 + 4] = [2, 3, 11] and shift(v, 7) = [2, 3, 7 + 7] = [2, 3, 14]. The first two components agree and 11 < 14 at position 3, so by T1's lexicographic ordering [2, 3, 11] < [2, 3, 14], that is, shift(v, 4) < shift(v, 7). ✓
 
 *Formal Contract:*
 - *Preconditions:* v ∈ T, n₁ ∈ ℕ, n₂ ∈ ℕ, n₁ ≥ 1, n₂ > n₁, #v = m
