@@ -1,0 +1,9 @@
+# Cone Review — ASN-0034/TA2 (cycle 2)
+
+*2026-04-18 12:02*
+
+### TA2 asserts `aₖ - 0 = aₖ` without citing the axioms needed to discharge it
+**Foundation**: NAT-sub's stated clauses are conditional closure, right-inverse `(m − n) + n = m`, left-inverse `n + (m − n) = m`, strict positivity, right telescoping, and strict monotonicity. NAT-closure supplies only the *left* identity `0 + n = n` (not the right identity `n + 0 = n`). T0's enumeration does not list commutativity of addition. The ASN's per-step convention requires each algebraic step to route through an axiom.
+**ASN**: TA2 sub-case (ii), after establishing `aₖ > 0` and `wₖ = 0`: "NAT-sub's conditional closure then yields `rₖ = aₖ - 0 = aₖ ∈ ℕ` (with the subtrahend `0 ∈ ℕ` again from NAT-zero's zero-padding supply)."
+**Issue**: The equation `aₖ - 0 = aₖ` is an algebraic claim that NAT-sub's conditional closure does not deliver — conditional closure gives `aₖ - 0 ∈ ℕ`, not the equality. Discharging `m - 0 = m` on the stated axiom base requires NAT-sub's *left-inverse* clause at `n = 0` (yielding `0 + (m − 0) = m`) composed with NAT-closure's left identity `0 + (m − 0) = m − 0`. TA2's Depends cites NAT-sub but names only "conditional closure" at this site, and does not cite NAT-closure at all. The right-telescoping route `(m + 0) − 0 = m` would require the *right* identity `m + 0 = m`, which NAT-closure does not supply. Either the equality is an uncited step or the wrong clause/axiom is nominated.
+**What needs resolving**: TA2 must either (a) drop the extraneous `= aₖ` and rely only on conditional closure (sufficient for `rₖ ∈ ℕ`), or (b) cite the specific clauses needed — NAT-sub's left-inverse characterisation at `n = 0` together with NAT-closure's left identity — and add NAT-closure to the Depends enumeration with per-site accounting matching the convention used elsewhere in the ASN.
