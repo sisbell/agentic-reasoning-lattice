@@ -1,0 +1,9 @@
+# Cone Review — ASN-0034/TA4 (cycle 1)
+
+*2026-04-18 12:54*
+
+### `max` used as primitive in TA4, contradicting TumblerSub's no-primitive-max convention
+**Foundation**: TumblerSub (Definition; Postconditions: `#(a ⊖ w) = L`). The Definition replaces binary maximum with a NAT-order trichotomy on `(#a, #w)` that names `L`: "`L` … is furnished by the selected sub-case rather than by any primitive binary-maximum operator on ℕ, matching the convention that every operator in the Definition must be discharged by a Depends entry."
+**ASN**: TA4 (PartialInverse), proof Step 2. Case 1: "The result length is `max(#r, #w) = k`, giving `s = [0, ..., 0, aₖ]` of length `k`." Case 2: "TumblerSub yields the zero tumbler of length `max(#w, #w) = k`."
+**Issue**: TumblerSub's contract deliberately avoids a primitive binary-maximum operator on ℕ and requires consumers to read the result length off the trichotomy-named `L`. TA4 reaches into TumblerSub's output length and writes it as `max(·, ·)`, reintroducing the primitive TumblerSub was written to exclude. TA4's Depends list also omits NAT-order, which would have to be cited (in its trichotomy clause on `(#r, #w)` and `(#w, #w)`) were TA4 to discharge the length claim the same way TumblerSub does. The drift is cross-cutting: any downstream consumer following TA4's precedent will reopen the same primitive TumblerSub closes.
+**What needs resolving**: TA4 must express the result length of `r ⊖ w` using the same trichotomy-named `L` discipline TumblerSub's contract establishes — either by citing the applicable sub-case of NAT-order's trichotomy on `(#r, #w)` (both equal `k` by this point, so sub-case (α) furnishes `L = k`) and adding NAT-order to TA4's Depends, or by reading `L` directly off TumblerSub's postcondition `#(a ⊖ w) = L` and identifying `L = k` from the specialised operand lengths without naming `max` at all.
