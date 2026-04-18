@@ -12,7 +12,8 @@ depends:
 - NAT-closure
 - NAT-addcompat
 - NAT-sub
-summary: The increment operation inc(t, k) produces a valid address (satisfying T4) if and only if k = 0, or k = 1 with at
-  most three existing zero components, or k = 2 with at most two existing zero components; for k ≥ 3 the result always violates
-  T4 because the appended separator zeros create an adjacent-zero or empty-field violation. This gives the precise depth limit
-  for child allocation from any given valid address.
+summary: The increment operation inc(t, k) produces a valid address (satisfying T4) if and only if k ∈ {0, 1}, or k = 2 with
+  at most two existing zero components; for k ≥ 3 the result always violates T4 because the appended separator zeros create
+  an adjacent-zero or empty-field violation. The k = 1 branch carries no extra zero-count side condition beyond T4-validity
+  of t, since inc(·, 1) is zero-separator-neutral. This gives the precise depth limit for child allocation from any given
+  valid address.
