@@ -10,6 +10,8 @@ depends:
 - T1
 - T3
 - NAT-closure
+- NAT-addcompat
+- NAT-cancel
 - NAT-zero
 - NAT-order
 - NAT-sub
