@@ -1,0 +1,20 @@
+label: TA-PosDom
+name: PositiveDominatesZero
+type: theorem
+depends:
+- T0
+- T1
+- TA-Pos
+- ActionPoint
+- NAT-order
+- NAT-zero
+- NAT-discrete
+- NAT-wellorder
+- NAT-addcompat
+- NAT-closure
+summary: |
+  Every positive tumbler is strictly greater under T1 than every zero tumbler of any length. Established by a case
+  analysis on whether the zero tumbler's length reaches the action point of the positive tumbler: when it does, T1
+  case (i) separates them at the action-point component; when it does not, T1 case (ii) separates them by the
+  prefix rule. Splits the ordering theorem off from TA-Pos so that TA-Pos's Depends (T0 only) is acyclic with
+  ActionPoint's.

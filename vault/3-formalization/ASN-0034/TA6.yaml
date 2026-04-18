@@ -7,6 +7,7 @@ depends:
 - T3
 - T4
 - TA-Pos
+- TA-PosDom
 - NAT-zero
 - NAT-order
 - NAT-discrete

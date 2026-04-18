@@ -3,14 +3,8 @@ name: PositiveTumbler
 type: definition
 depends:
 - T0
-- T1
-- NAT-order
-- NAT-zero
-- NAT-discrete
-- NAT-wellorder
-- NAT-addcompat
-- NAT-closure
-- ActionPoint
-summary: 'Defines positivity for tumblers: a tumbler is positive if at least one component is nonzero, and a zero tumbler
-  has all components equal to zero. Every positive tumbler is strictly greater under T1 than every zero tumbler of any length,
-  regardless of their respective lengths.'
+summary: |
+  Defines positivity for tumblers: a tumbler is positive if at least one component is nonzero, and a zero tumbler
+  has all components equal to zero. The ordering consequence — every positive tumbler is strictly greater under T1
+  than every zero tumbler of any length — is established separately as TA-PosDom (PositiveDominatesZero), which
+  consumes ActionPoint and therefore sits downstream of both TA-Pos and ActionPoint.
