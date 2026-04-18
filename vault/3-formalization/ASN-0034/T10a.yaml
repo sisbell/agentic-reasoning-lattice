@@ -8,6 +8,7 @@ depends:
 - TA5
 - TA5a
 summary: Allocators must produce sibling addresses exclusively by shallow increment inc(·,0), and may spawn child allocators
-  only via a single deep increment with k'∈{1,2} subject to zero-count bounds from TA5a. This discipline ensures all outputs
-  have controlled prefix relationships, prevents length collisions within and across allocators, and preserves the T4 structural
-  invariant throughout the entire allocator tree by induction.
+  only via a single deep increment with k'∈{1,2} subject to TA5a's zero-count bound zeros(t) ≤ 2 at k'=2 (k'=1 preserves
+  T4 unconditionally on T4-valid t). This discipline ensures all outputs have controlled prefix relationships, prevents length
+  collisions within and across allocators, and preserves the T4 structural invariant throughout the entire allocator tree
+  by induction.

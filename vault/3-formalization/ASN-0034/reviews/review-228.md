@@ -13,3 +13,9 @@
 **ASN**: Divergence's symmetry argument for case (i): "In case (i), the condition `aₖ ≠ bₖ` with agreement on all prior components is unchanged by swapping `a` and `b`, so the least such `k` is the same."
 **Issue**: The argument names only the disagreement and prior-agreement conjuncts as swap-invariant; it does not address the bound conjuncts `k ≤ #a ∧ k ≤ #b`. Under swap, the qualifying set's predicate becomes `i ≤ #b ∧ i ≤ #a ∧ bᵢ ≠ aᵢ`, which is logically equivalent to the original by `∧`-commutativity and `≠`-symmetry but only because each conjunct individually permutes — a step the prose elides at the bound conjuncts while spelling out only the disagreement and agreement conjuncts. Compared to the elaborated per-step discipline applied at downstream consumption sites of these same bounds (TA1-strict separately discharges `k ≤ #a` and `k ≤ #b` against `j = #a + 1` and `j = #b + 1`), the symmetry argument's coverage of the swap-invariance at the bound conjuncts is left implicit.
 **What needs resolving**: Either expand the case-(i) symmetry sub-argument to enumerate the swap-invariance of the bound conjuncts (`k ≤ #a ∧ k ≤ #b` is preserved under swap because `∧` is commutative, exposed at the same per-step granularity as the disagreement and agreement conjuncts), or document a convention that swap-invariance of `∧`-conjuncts is taken as background and need not be itemized — applying that convention uniformly so downstream consumers reading the symmetry argument's per-step style do not infer that only the named conjuncts are checked.
+
+## Result
+
+Cone not converged after 8 cycles.
+
+*Elapsed: 4107s*
