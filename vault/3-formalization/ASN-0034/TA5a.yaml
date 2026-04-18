@@ -6,7 +6,6 @@ depends:
 - TA5-SigValid
 - T4
 - T4a
-- T4c
 - T0
 summary: The increment operation inc(t, k) produces a valid address (satisfying T4) if and only if k = 0, or k = 1 with at
   most three existing zero components, or k = 2 with at most two existing zero components; for k ≥ 3 the result always violates
