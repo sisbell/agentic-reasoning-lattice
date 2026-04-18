@@ -7,7 +7,7 @@
 - **S** — set of ordinals with all positive components: S = {o ∈ T : #o ≥ 1 ∧ (A i : 1 ≤ i ≤ #o : oᵢ > 0)}
 - **T** — the set of all tumblers (all finite sequences over ℕ with length ≥ 1)
 - **U(t)** — user field of tumbler t, the second component of fields(t); a finite sequence over ℕ⁺, equal to ε iff the field is absent (zeros(t) = 0)
-- **Z** — set of zero tumblers: Z = {t ∈ T : (A i : 1 ≤ i ≤ #t : tᵢ = 0)}
+- **Z** — set of zero tumblers: Z = {t ∈ T : Zero(t)}
 - **action point** — least position k with wₖ > 0 (implying wᵢ = 0 for all i < k)
 - **allocated_before(a, b)** — predicate: a = tᵢ and b = tⱼ with i < j in dom(A), the allocator's inc(·, 0) sibling stream (T9)
 - **componentwise comparison** — equality check on two finite sequences: same length and pairwise equal components
@@ -27,7 +27,7 @@
 - **field-segment constraint** — T4's three positional conditions on zeros: no two are adjacent, `t₁ ≠ 0`, and `t_{#t} ≠ 0`; equivalently (by T4a) every field segment of `t` is non-empty
 - **non-empty field constraint** — the semantic reading of T4's field-segment constraint once T4c classifies T4-valid tumblers by zero count into the four hierarchical levels (*node address*, *user address*, *document address*, *element address*): each field segment present in a valid address tumbler has at least one component
 - **order-convex** — a set S is order-convex if for all a, c ∈ S and b ∈ T, a ≤ b ≤ c implies b ∈ S (synonym: contiguous)
-- **Pos(t)** — positive tumbler predicate: t ∈ T is positive iff at least one component is nonzero — (E i : 1 ≤ i ≤ #t : tᵢ ≠ 0). Distinct from T1-positivity: [0,0] > [0] under T1 but ¬Pos([0,0])
+- **Pos(t)** — positive tumbler predicate: t ∈ T is positive iff at least one component is nonzero — (E i : 1 ≤ i ≤ #t : tᵢ ≠ 0). Distinct from T1-positivity: [0,0] > [0] under T1 but ¬Pos([0,0]) (equivalently Zero([0,0]))
 - **positive tumbler** — Pos(t) iff at least one component is nonzero
 - **result-length identity** — #(a ⊕ w) = #w — the length of the sum equals the length of the displacement, not the start position
 - **same_allocator(a, b)** — predicate: ∃A : a ∈ dom(A) ∧ b ∈ dom(A), where dom(A) is the inc(·, 0) sibling stream excluding child-spawning outputs (T10a)
@@ -38,7 +38,8 @@
 - **t > 0 (DEPRECATED)** — ambiguous notation; use Pos(t) instead. Under T1, t > [0] is satisfied by all-zero tumblers of length ≥ 2, which are not TA-Pos-positive
 - **tail replacement** — operation in tumbler addition where result components beyond the action point are copied from w: rᵢ = wᵢ for i > k
 - **user field** — U₁. ... .Uᵦ — the second field of an address tumbler, identifying the account
-- **zero tumbler** — a tumbler whose every component is zero — (A i : 1 ≤ i ≤ #t : tᵢ = 0)
+- **Zero(t)** — zero tumbler predicate: t ∈ T is a zero tumbler iff every component is zero — (A i : 1 ≤ i ≤ #t : tᵢ = 0). Paired with Pos(t) at TA-Pos's definition site so downstream properties bind the guard as a single symbol; logically dual to Pos(t) on T (T0's #t ≥ 1 rules out the vacuous case)
+- **zero tumbler** — a tumbler whose every component is zero — Zero(t) iff (A i : 1 ≤ i ≤ #t : tᵢ = 0)
 - **zero-padded-equal** — x is zero-padded-equal to w when zero-padding both to the same length yields identical sequences (no divergence position exists)
 - **zeros(t)** — count of zero-valued components of tumbler t: #{i : 1 ≤ i ≤ #t ∧ tᵢ = 0}. Defined extensionally on all of T, not only T4-valid addresses — the field-separator role attaches only to zeros in T4-valid tumblers (via T4's definitional role-assignment), whereas `zeros(t)` itself is used in TA5a and T10a on arbitrary `t` (including non-T4-valid intermediate results such as `inc(t, k)` with `k ≥ 3`) to decide T4-validity.
 - **zpd(a, w)** — zero-padded divergence: first position where the zero-padded sequences of a and w disagree (TumblerSub); may exceed `divergence(a, w)` when one operand is a proper prefix of the other

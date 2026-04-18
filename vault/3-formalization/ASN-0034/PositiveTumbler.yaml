@@ -4,7 +4,10 @@ type: definition
 depends:
 - T0
 summary: |
-  Defines positivity for tumblers: a tumbler is positive if at least one component is nonzero, and a zero tumbler
-  has all components equal to zero. The ordering consequence — every positive tumbler is strictly greater under T1
-  than every zero tumbler of any length — is established separately as TA-PosDom (PositiveDominatesZero), which
-  consumes ActionPoint and therefore sits downstream of both TA-Pos and ActionPoint.
+  Defines positivity for tumblers as a paired pair of predicate symbols: `Pos(t)` (positive) iff at least one
+  component is nonzero, and `Zero(t)` (zero tumbler) iff every component is zero. The two are introduced together so
+  that downstream properties can bind `Zero(z)` in preconditions or postcondition guards uniformly rather than
+  spelling the universal `(A i : 1 ≤ i ≤ #z : zᵢ = 0)` out inline. The ordering consequence — every positive tumbler
+  is strictly greater under T1 than every zero tumbler of any length — is established separately by a downstream
+  ordering theorem (TA-PosDom) that consumes ActionPoint and therefore sits downstream of both TA-Pos and
+  ActionPoint.
