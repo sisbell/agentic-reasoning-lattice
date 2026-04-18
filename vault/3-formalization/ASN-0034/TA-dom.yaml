@@ -1,0 +1,22 @@
+label: TA-dom
+name: DisplacementDominance
+type: corollary
+depends:
+- TumblerAdd
+- TA0
+- TA-Pos
+- ActionPoint
+- T1
+- T3
+summary: |
+  A named corollary exporting TumblerAdd's dominance-guarantee postcondition a ⊕ w ≥ w as a single labelled fact for
+  downstream use. Under the preconditions a ∈ T, w ∈ T, Pos(w), actionPoint(w) ≤ #a, TA-dom restates TumblerAdd's
+  fourth postcondition unchanged, so the per-step NAT-* sourcing (NAT-zero, NAT-order, NAT-addcompat, NAT-closure,
+  NAT-cancel, NAT-wellorder) for the case-split discharge of r ≥ w — the divergence sub-case routing through T1
+  case (i) at the least index j with aⱼ > 0, and the equality sub-case routing through T3 at the inner aₖ = 0
+  branch via NAT-closure's additive identity — lives inside TumblerAdd and is transitively sourced here. The chief
+  downstream consumer is TA4 (ReverseCancellation), whose Step 2 cites the dominance fact to discharge TumblerSub's
+  r ≥ w precondition. Dominance is carried by TumblerAdd's construction itself (the tail-copy rule forcing
+  rᵢ = wᵢ above the action point, and the action-point and prefix-copy regions together either matching or
+  exceeding w's components below and at k), so TA-dom is a theorem derived from TumblerAdd — not an independent
+  axiom excluding a below-displacement model.

@@ -8,6 +8,8 @@ depends:
 - NAT-zero
 - NAT-discrete
 - NAT-wellorder
+- NAT-addcompat
+- ActionPoint
 summary: 'Defines positivity for tumblers: a tumbler is positive if at least one component is nonzero, and a zero tumbler
   has all components equal to zero. Every positive tumbler is strictly greater under T1 than every zero tumbler of any length,
   regardless of their respective lengths.'
