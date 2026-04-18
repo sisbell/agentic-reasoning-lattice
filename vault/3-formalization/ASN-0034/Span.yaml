@@ -8,7 +8,7 @@ depends:
 - TumblerAdd
 - TA0
 - T1
-summary: A span is a pair (start address, length) that denotes a contiguous range of tumblers on the tumbler line, from the
-  start address up to but not including the result of displacing by the length. The two validity conditions — the length must
-  be positive and its action point must not exceed the depth of the start — are precisely what guarantee the upper bound is
-  a legal tumbler, so any pair satisfying them yields a well-defined set of addresses.
+summary: A span is the address-set determined by a pair (start address, length), containing every tumbler from the start
+  up to but not including the result of displacing by the length. The two validity conditions — the length must be positive
+  and its action point must not exceed the depth of the start — are precisely what guarantee the upper bound is a legal
+  tumbler, so any pair satisfying them yields a well-defined span.
