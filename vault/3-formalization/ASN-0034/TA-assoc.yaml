@@ -9,6 +9,7 @@ depends:
 - ActionPoint
 - T3
 - NAT-addassoc
+- NAT-addcompat
 - NAT-closure
 - NAT-order
 summary: 'Tumbler addition is associative: (a ⊕ b) ⊕ c = a ⊕ (b ⊕ c) whenever action points are properly ordered (k_b ≤ #a
