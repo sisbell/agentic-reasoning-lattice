@@ -3,6 +3,7 @@ name: DecidableContainment
 type: corollary
 depends:
 - T0
+- T3
 - T4
 - T4a
 - T4b
