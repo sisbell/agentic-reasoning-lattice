@@ -13,3 +13,9 @@
 **ASN**: TS3 comparison step: "At i = m: Lₘ = (vₘ + n₁) + n₂ and Rₘ = vₘ + (n₁ + n₂). These are equal by NAT-addassoc (NatAdditionAssociative), which states `(m + n) + p = m + (n + p)` for every `m, n, p ∈ ℕ`: instantiated with `vₘ, n₁, n₂`, it yields `(vₘ + n₁) + n₂ = vₘ + (n₁ + n₂)`."
 **Issue**: NAT-addassoc's three ℕ-typing preconditions at the instantiation `m = vₘ, n = n₁, p = n₂` are: `vₘ ∈ ℕ`, `n₁ ∈ ℕ`, `n₂ ∈ ℕ`. The latter two transfer directly from TS3's own preconditions. The former — `vₘ ∈ ℕ` — requires T0's carrier characterisation of `T` as finite sequences over ℕ, applied at position `m` of `v ∈ T` (with `m = #v` placing position `m` within `v`). TS3 asserts the instantiation without naming a source for `vₘ ∈ ℕ`. Under the per-step citation discipline TumblerAdd enforces at its structurally identical `aⱼ ∈ ℕ` and `aₖ ∈ ℕ` discharges (each routed through T0's carrier characterisation and the precondition `k ≤ m` placing the index within `a`), the component-typing premise must be explicit.
 **What needs resolving**: TS3 must source `vₘ ∈ ℕ` from a named axiom at the comparison step (T0's carrier characterisation is the natural source, combined with the binder's `#v = m` placing position `m` within `v`), and extend its Depends list accordingly.
+
+## Result
+
+Cone converged after 4 cycles.
+
+*Elapsed: 2540s*
