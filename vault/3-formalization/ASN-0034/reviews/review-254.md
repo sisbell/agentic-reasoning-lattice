@@ -1,0 +1,9 @@
+# Cone Review — ASN-0034/TS1 (cycle 3)
+
+*2026-04-18 07:11*
+
+### Citation-scope paragraph misclassifies T3 as upstream-cone when T3 is directly cited in TS1's Depends
+**Foundation**: TS1's Depends explicitly lists "T3 (CanonicalRepresentation) — invoked at precondition check (viii) to consume Divergence's exhaustiveness postcondition at the case-(ii)-exclusion step…".
+**ASN**: TS1's "Citation scope" paragraph partitions the cited labels into two groups. The first group: "Every foundation label cited in this property's Depends — OrdinalShift, OrdinalDisplacement, Divergence, TA1-strict, T0, T1, TA-Pos, NAT-order, NAT-wellorder — refers to a definition located elsewhere in this same ASN (ASN-0034)". The second group: "The broader foundation names collectively consumed across this proof's upstream cone — T3, TA0, TumblerAdd, ActionPoint, NAT-addcompat, NAT-cancel, NAT-closure, NAT-zero — are likewise internal to ASN-0034".
+**Issue**: T3 is placed in the "upstream cone / not directly cited" bucket, but T3 is a directly cited entry in TS1's Depends with its own consumption-site prose. The first bucket's enumeration therefore claims to list "every foundation label cited in this property's Depends" while omitting one. A reviser reading the citation-scope paragraph to locate the `T3.md` file is told T3 is only transitively reachable, contradicting the per-step discipline the Depends paragraph itself invokes ("requires T3 to be listed here rather than left to flow transitively through Divergence's exhaustiveness").
+**What needs resolving**: The citation-scope paragraph's partition must match the actual Depends membership — either T3 must move into the first group (directly cited, with its own `T3.md` location disclosed), or the claim "every foundation label cited in this property's Depends" must be rephrased to match whatever partition is intended.

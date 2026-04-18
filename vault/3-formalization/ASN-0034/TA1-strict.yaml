@@ -4,6 +4,7 @@ type: corollary
 depends:
 - T0
 - Divergence
+- T3
 - TumblerAdd
 - TA0
 - TA-Pos
