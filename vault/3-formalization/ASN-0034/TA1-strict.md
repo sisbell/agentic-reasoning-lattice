@@ -1,4 +1,4 @@
-**TA1-strict (StrictOrderPreservation).** `(A a, b, w : a < b ∧ Pos(w) ∧ actionPoint(w) ≤ #a ∧ actionPoint(w) ≤ #b ∧ actionPoint(w) ≥ divergence(a, b) : a ⊕ w < b ⊕ w)`.
+**TA1-strict (StrictOrderPreservation).** `(A a, b, w ∈ T : a < b ∧ Pos(w) ∧ actionPoint(w) ≤ #a ∧ actionPoint(w) ≤ #b ∧ actionPoint(w) ≥ divergence(a, b) : a ⊕ w < b ⊕ w)`.
 
 When the action point falls before the divergence — `k < divergence(a, b)` — both operands agree at position `k`, both get the same `wₖ` added, and both copy the same tail from `w` afterward. The original divergence is erased and the results are equal. For example, `a = [1, 3]`, `b = [1, 5]` (diverge at position 2), `w = [2]` (action point at position 1): `a ⊕ w = [3] = b ⊕ w`. Order degrades to equality, never reversal.
 
