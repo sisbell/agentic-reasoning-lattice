@@ -9,6 +9,8 @@ depends:
 - ActionPoint
 - NAT-closure
 - NAT-addcompat
+- NAT-order
+- NAT-zero
 - NAT-wellorder
 - NAT-sub
 summary: 'Defines tumbler addition (⊕) as a hierarchical position-advance operation: below the action point components are

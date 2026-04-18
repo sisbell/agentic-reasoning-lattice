@@ -1,0 +1,15 @@
+# Cone Review — ASN-0034/TumblerAdd (cycle 1)
+
+*2026-04-17 19:41*
+
+### TumblerAdd Depends omits NAT-order and NAT-zero, despite multiple proof steps consuming them
+**Foundation**: TumblerAdd (TumblerAdd) — Depends list enumerates T0, NAT-closure, NAT-addcompat, NAT-wellorder, NAT-sub, ActionPoint, TA-Pos, T1, T3.
+**ASN**: TumblerAdd's strict-advancement proof — *"`rₖ = aₖ + wₖ ≥ aₖ + 1 > aₖ`"* — and TumblerAdd's dominance proof, which case-splits *"if some `aⱼ > 0` for `j < k`, the least such `j` is a divergence point"* versus *"If instead `aᵢ = 0` for all `i < k`, then at position `k` we have `rₖ = aₖ + wₖ` and `wₖ > 0`; when `aₖ > 0`, … when `aₖ = 0`, …"*.
+**Issue**: Two distinct kinds of NAT-* uses in TumblerAdd's proofs are not reflected in its Depends list, in sharp contrast to the per-step citation discipline modelled by T1, TA-Pos, and ActionPoint:
+
+1. **NAT-order chaining `≥` with `>`.** The strict-advancement chain `rₖ ≥ aₖ + 1 > aₖ` collapses two facts produced by NAT-addcompat (the left-order-compatibility lift `aₖ + wₖ ≥ aₖ + 1` from `wₖ ≥ 1`, and the strict successor inequality `aₖ + 1 > aₖ`) into the conclusion `rₖ > aₖ`. NAT-addcompat alone delivers each link but not the composition; the `≥`/`>` composition is a NAT-order step (transitivity of `<` against the unpacked disjunct `=` of `≥`, exactly the pattern T1's transitivity Depends accounts for at every analogous chain). Similarly, "`wₖ > 0`" inside the dominance proof reads ActionPoint's `wₖ ≥ 1` against `1 > 0`, again a NAT-order chain.
+
+2. **NAT-order/NAT-zero dichotomy on `aⱼ ∈ ℕ`.** The dominance case split "some `aⱼ > 0` for `j < k`" versus "`aᵢ = 0` for all `i < k`" (and the inner split `aₖ > 0` versus `aₖ = 0`) is a dichotomy at `0` on ℕ. ActionPoint's and TA-Pos's analogous dichotomies (`tₖ ≠ 0 ⟹ tₖ ≥ 1`, `w_{actionPoint(w)} ≥ 1`) are explicitly routed through NAT-zero (to fix `0 ≤ aⱼ`) and NAT-order (to unfold `≤` into `< ∨ =`). TumblerAdd performs the same dichotomy at two distinct sites without citing either axiom.
+
+The omission also breaks the convention NAT-addcompat itself articulates: its own contract notes that the order-compatibility clauses *only* yield non-strict conclusions, with strict promotion routed jointly through NAT-order, NAT-cancel, and NAT-addcompat. TumblerAdd's strict-advancement step is precisely such a promotion (non-strict `≥` lifted to strict `>`), yet NAT-order is absent.
+**What needs resolving**: TumblerAdd's Depends list must enumerate NAT-order (for the `≥`/`>` chain in strict advancement, the `wₖ ≥ 1 ⟹ wₖ > 0` reading inside the dominance proof, and the `< ∨ =` unfolding used in each `aⱼ`-dichotomy site) and NAT-zero (to fix `0 ≤ aⱼ` and `0 ≤ aₖ` so the dichotomy reduces to `> 0 ∨ = 0`), at the per-instance granularity that T1, TA-Pos, and ActionPoint already establish for analogous steps. Either that, or the proofs must be rewritten so the strict-advancement chain and the dominance dichotomy do not consume facts beyond what the current Depends list discharges.
