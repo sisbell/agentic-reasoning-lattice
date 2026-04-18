@@ -1,0 +1,9 @@
+# Cone Review — ASN-0034/TA3 (cycle 4)
+
+*2026-04-18 16:02*
+
+### NAT-discrete missing from TA3's Depends at T1 case (ii) witness construction
+**Foundation**: N/A — cross-cutting citation discipline established in T1's Depends, which enumerates three NAT-discrete sites for the forward direction `m < n ⟹ m + 1 ≤ n` at exactly the same step-pattern TA3 produces when constructing T1 case (ii) witnesses.
+**ASN**: TA3 Sub-case A1: "`#(a ⊖ w) = #a < #b = #(b ⊖ w)`, so `a ⊖ w` is a proper prefix of `b ⊖ w`, giving `a ⊖ w < b ⊖ w` by T1 case (ii)." Sub-case A2 no-disagreement branch: "If `L_{a,w} < L_{b,w}`, `a ⊖ w` is a proper prefix of `b ⊖ w`, giving `a ⊖ w < b ⊖ w` by T1 case (ii)." Sub-case A3: "`#(b ⊖ w) = #b > #a = #(a ⊖ w)`, so the shorter is a proper prefix of the longer, giving `a ⊖ w < b ⊖ w` by T1 case (ii)." TA3 Depends lists T1, T3, TA2, TA6, TumblerSub, ZPD, NAT-sub, NAT-order, NAT-zero — no NAT-discrete.
+**Issue**: T1 case (ii)'s definition requires the witness `k = #a + 1 ≤ #b` (not the weaker `#a < #b`), so constructing a T1 case (ii) witness from a strict length inequality `#a < #b` requires the successor-comparison step `#a < #b ⟹ #a + 1 ≤ #b`. T1's own Depends identifies this step as NAT-discrete's forward direction (enumerated at three distinct sites in T1). TA3 performs the same step at three distinct sites (A1, A2's no-disagreement branch, A3) but omits NAT-discrete, leaving the `+1 ≤` bound consumed by T1 case (ii) without an axiomatic source — neither NAT-order nor NAT-addcompat alone supplies the discreteness gap between `<` and `+1 ≤`.
+**What needs resolving**: TA3 must either add NAT-discrete to its Depends with per-site accounting of the three T1 case (ii) witness constructions, or reformulate each use so that `#a + 1 ≤ #b` (resp. `L_{a,w} + 1 ≤ L_{b,w}`) is supplied by some other cited property.
