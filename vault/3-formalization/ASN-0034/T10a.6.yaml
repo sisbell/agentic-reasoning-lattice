@@ -7,8 +7,7 @@ depends:
 - T10a.3
 - T10a.5
 - Prefix
-- NAT-order
 summary: 'Any two distinct allocators have disjoint domains — no tumbler address can belong to more than one allocator''s
   output stream. The proof splits into two cases: ancestor–descendant pairs are separated by strict length differences, while
-  non-ancestor–descendant pairs are separated by prefix-incomparability. As a corollary, whenever two addresses share an allocator,
-  that allocator is uniquely determined by the pair.'
+  non-ancestor–descendant pairs are separated by prefix-incomparability combined with Prefix''s reflexivity postcondition.
+  As a corollary, whenever two addresses share an allocator, that allocator is uniquely determined by the pair.'
