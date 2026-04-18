@@ -1,6 +1,6 @@
 **TS4 (ShiftStrictIncrease).**
 
-`(A v, n, m : n ∈ ℕ ∧ n ≥ 1 ∧ #v = m : shift(v, n) > v)`
+`(A v, n, m : v ∈ T ∧ n ∈ ℕ ∧ n ≥ 1 ∧ #v = m : shift(v, n) > v)`
 
 The dummy `m` in the binder is a local abbreviation for `#v`: for any fixed `v ∈ T`, the range predicate `#v = m` determines `m` uniquely as the length of `v` (with `m ∈ ℕ` following by T0's length operator typing `#·: T → ℕ` applied to `v ∈ T`, and `m ≥ 1` following by T0's length axiom `#a ≥ 1 for all a ∈ T`), so the universal over `m` collapses to the single witness `m = #v` — an abbreviation pattern matching the one OrdinalShift's own Definition clause `shift(v, n) = v ⊕ δ(n, m) where m = #v` uses at its point of introduction, and matching TS3's binder preface at its analogous dummy-`m` site.
 
