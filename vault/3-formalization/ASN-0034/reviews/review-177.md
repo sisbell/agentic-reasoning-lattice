@@ -7,3 +7,9 @@
 **ASN**: ZeroPaddedDivergence Depends, T0 entry — "the component projections `aᵢ`, `wᵢ`, `aₖ`, `wₖ` **appearing in the padding equations** and the disagreement predicate, all come from T0's characterisation of T as finite sequences over ℕ". The padding equations are the assignments `aᵢ = 0` for `#a < i ≤ L` (sub-case β) and `wᵢ = 0` for `#w < i ≤ L` (sub-case γ), whose left-hand sides reference `aᵢ`/`wᵢ` at positions `i > #a` / `i > #w`.
 **Issue**: ZPD's citation attributes the projections appearing in the padding equations to T0, but T0's projection is *undefined* at positions beyond the respective length. The padding equations do not merely consume T0's projection — they **extend** it, introducing a new projection operator that agrees with T0's on `1 ≤ i ≤ #a` and equals `0` on `#a < i ≤ L`. NAT-zero (correctly cited) supplies `0 ∈ ℕ` so the padded *values* have the right type, but nothing discharges the extension of the projection *operator* itself from T0's domain `{1,...,#a}` to the common domain `{1,...,L}`. The same Depends entry later acknowledges this — "T0 supplies component-membership in ℕ only for *existing* positions" — which contradicts its opening claim that projections "appearing in the padding equations ... come from T0".
 **What needs resolving**: Either make the extension explicit inside ZPD (e.g., define a padded projection `â`, `ŵ` on `{1,...,L}` and state that `âᵢ = aᵢ` for `i ≤ #a`, `âᵢ = 0` for `i > #a`, with the agreement/disagreement predicates operating on `â`, `ŵ` rather than on `a`, `w`), or narrow the T0 citation so it only covers projections at existing positions and introduce an ASN-internal definitional step that discharges the extension. As written, the Depends list treats an operator extension as if it were a direct citation of T0's projection.
+
+## Result
+
+Cone converged after 4 cycles.
+
+*Elapsed: 4274s*
