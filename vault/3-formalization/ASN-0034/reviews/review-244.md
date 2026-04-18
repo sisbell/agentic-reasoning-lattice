@@ -1,0 +1,9 @@
+# Cone Review — ASN-0034/T12 (cycle 1)
+
+*2026-04-18 05:48*
+
+### T0 absent from Definition (Span)'s Depends despite direct use of `T` and `#`
+**Foundation**: T0 (CarrierSetDefinition) — introduces the carrier `T` and the length operator `#`, per T1's Depends entry ("T0 … the definition uses length `#a` and component projection `aₖ` for `a ∈ T`, which T0 introduces") and TA0's Depends entry ("T0 … supplies the meaning of `∈ T` in the postcondition `a ⊕ w ∈ T`").
+**ASN**: Definition (Span). Definiens: "A *span* is a pair `(s, ℓ)` where `s ∈ T` is a start address and `ℓ ∈ T` is a length"; precondition "`actionPoint(ℓ) ≤ #s`"; defining set "`span(s, ℓ) = {t ∈ T : s ≤ t < s ⊕ ℓ}`". Depends list: "TA-Pos … ActionPoint … TumblerAdd … TA0 … T1" — no T0 entry.
+**Issue**: The definition invokes `∈ T` three times (at `s`, `ℓ`, and the set builder `t ∈ T`) and the length operator `#` once (`#s`). Both symbols are sourced from T0 in every peer property's Depends (T1 and TA0 each cite T0 by name for exactly these usages), but Definition (Span)'s Depends omits T0. Under the citation discipline practiced elsewhere in this ASN — direct predecessors listed, arithmetic axioms inherited only transitively through proof-cascade handles — a *definition* that writes `T` and `#` in its own body should cite T0 directly rather than inherit it through TA0 or T1 (both of which consume T0 themselves; neither *re-exports* T0's vocabulary as a handle the way TA0 re-exports TumblerAdd's first two postconditions).
+**What needs resolving**: Either add a T0 entry to Definition (Span)'s Depends — naming the usages (`∈ T` in the pair components and the defining set, `#s` in the precondition) — or explicitly state and justify a citation convention under which T0 is considered inherited through TA0/T1 and therefore not re-listed (and, if the latter, reconcile that convention with T1 and TA0's own direct T0 citations, which would then be redundant).

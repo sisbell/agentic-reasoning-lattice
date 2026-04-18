@@ -11,3 +11,9 @@
 **Issue**: The announced count is seven; the enumerated list contains eight. The discrepancy aligns with T10a.8 (Uniform sibling zero count) having been introduced into the numbered consequences and the Formal Contract Postconditions block (T10a.1 through T10a.8) without a corresponding update to the axiom body's framing sentence. A reader matching the plan sentence against the enumeration finds the count one short, and any extractor keying on "seven" as a structural invariant will undercount the consequences T10a claims to deliver.
 
 **What needs resolving**: The axiom body's framing sentence must report the correct count of consequences established in this ASN (eight as currently enumerated) — or, if the intent is to exclude one of the eight from the "coordination-free uniqueness" framing, the sentence must identify which one is excluded and why, so the announced count and the enumerated list agree exactly.
+
+## Result
+
+Cone not converged after 8 cycles.
+
+*Elapsed: 3716s*

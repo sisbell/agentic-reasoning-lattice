@@ -2,6 +2,7 @@ label: Span
 name: Span
 type: definition
 depends:
+- T0
 - TA-Pos
 - ActionPoint
 - TumblerAdd
