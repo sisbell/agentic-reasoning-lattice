@@ -5,9 +5,18 @@ depends:
 - T10a
 - T10a.4
 - T4
+- T0
+- NAT-zero
+- NAT-discrete
+- NAT-closure
+- NAT-addcompat
 - TA5
 - TA5-SigValid
 summary: |
   All siblings produced by a single allocator share the same zero count as the base address. Each inc(·, 0) step modifies
-  only the terminal component (TA5(b), TA5(c), TA5-SigValid, T10a.4), and that component is strictly positive before and
-  after the +1 (T4's field-segment constraint), so no position enters or leaves the zero set.
+  only the terminal component (TA5(b), TA5(c), TA5-SigValid, T10a.4). The pre-increment value at position sig(tₙ) = #tₙ
+  is strictly positive on ℕ by the per-step chain T4 (non-zero) + T0 (carrier ℕ) + NAT-zero (lower bound 0 ≤ tᵢ) +
+  NAT-discrete (rules out 0 ≤ tᵢ < 1 under tᵢ ≠ 0). The +1 step preserves positivity by the parallel chain
+  NAT-closure (successor ∈ ℕ) + NAT-zero + NAT-addcompat (strict successor inequality n < n + 1), matching the per-step
+  citation convention TA5a's case k = 0 already follows for the structurally identical sibling step. Hence no position
+  enters or leaves the zero set.
