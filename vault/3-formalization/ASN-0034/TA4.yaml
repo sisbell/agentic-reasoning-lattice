@@ -9,6 +9,8 @@ depends:
 - ActionPoint
 - T1
 - T3
+- NAT-closure
+- NAT-zero
 - NAT-order
 - NAT-sub
 summary: 'Tumbler addition and subtraction are partial inverses only under tight structural conditions: (a ⊕ w) ⊖ w = a holds

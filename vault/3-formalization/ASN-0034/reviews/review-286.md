@@ -1,0 +1,15 @@
+# Cone Review — ASN-0034/TA4 (cycle 2)
+
+*2026-04-18 13:03*
+
+### TA4 invokes NAT-closure's additive identity in Case 2 without listing NAT-closure in Depends
+**Foundation**: NAT-closure (NatArithmeticClosureAndIdentity) — additive identity `(A n ∈ ℕ :: 0 + n = n)`. The same per-step discipline is enforced at TumblerAdd's dominance sub-case `aₖ = 0`, where the closing equality `rₖ = aₖ + wₖ = 0 + wₖ = wₖ` is annotated "NAT-closure's additive identity `0 + wₖ = wₖ` rewrites…", with NAT-closure listed in TumblerAdd's Depends; and at ActionPoint's third postcondition, where `0 + 1 = 1` is similarly cited.
+**ASN**: TA4 (PartialInverse), proof Step 2 Case 2: "The addition gives `rₖ = 0 + wₖ = wₖ`. Combined with `rᵢ = 0 = wᵢ` for `i < k` and `#r = k = #w`, this yields `r = w`." TA4's Depends list enumerates TA-Pos, ActionPoint, TumblerAdd, TA0, T1, TumblerSub, T3, NAT-order, NAT-sub — NAT-closure is absent.
+**Issue**: The rewrite `0 + wₖ = wₖ` is a NAT-closure additive-identity step, not a syntactic identification of numerals. It is load-bearing for Case 2 — without it, the conclusion `r = w` (which T3 then converts into `s = a`) is not in hand. The same per-step convention TumblerAdd's dominance equality sub-case adopts at the structurally identical site requires NAT-closure to be cited and listed; TA4's elision breaks that convention while consuming the same axiomatic step.
+**What needs resolving**: TA4 must either add NAT-closure to its Depends list (with a per-site entry naming the Case 2 use of additive identity at `n = wₖ`) or restructure Case 2 to avoid invoking the additive identity directly.
+
+### TA4's Case 1/Case 2 dichotomy on `aₖ ∈ ℕ` requires NAT-zero, which is absent from Depends
+**Foundation**: NAT-zero (NatZeroMinimum) — `(A n ∈ ℕ :: 0 ≤ n)`. TumblerAdd's dominance proof discharges the structurally identical dichotomy `aₖ > 0 ∨ aₖ = 0` via NAT-zero (lower bound `0 ≤ aₖ`) composed with NAT-order's defining clause `m ≤ n ⟺ m < n ∨ m = n` at `m = 0, n = aₖ` — and TumblerAdd's Depends enumerates NAT-zero with a four-site entry covering exactly this pattern.
+**ASN**: TA4 (PartialInverse), proof Step 2: "Two cases arise at position `k`, exhausting all possibilities for `aₖ ∈ ℕ`. *Case 1: `aₖ > 0`.* … *Case 2: `aₖ = 0`.*" TA4's Depends omits NAT-zero.
+**Issue**: For arbitrary ℤ the trichotomy at `(0, aₖ)` would also admit `aₖ < 0`; restricting to `aₖ > 0 ∨ aₖ = 0` requires the lower bound `0 ≤ aₖ`, which is NAT-zero's axiom. NAT-order's trichotomy alone does not exclude the negative branch — that is precisely what NAT-zero contributes everywhere else in this ASN (TumblerAdd's two dichotomy sites, TumblerSub's case (ii), ActionPoint's third postcondition). TA4 invokes the same dichotomy without citing the axiom that justifies dropping the third disjunct.
+**What needs resolving**: TA4 must either add NAT-zero to its Depends (with a per-site entry naming the Step 2 dichotomy at `n = aₖ`) or rewrite Step 2 to dispatch the case split through an axiom already in scope.
