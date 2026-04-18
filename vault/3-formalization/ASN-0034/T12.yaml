@@ -3,6 +3,7 @@ name: SpanWellDefinedness
 type: corollary
 depends:
 - Span
+- T0
 - T1
 - TA0
 - TA-strict
