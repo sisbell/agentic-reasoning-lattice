@@ -2,6 +2,7 @@ label: TA-assoc
 name: AdditionAssociative
 type: theorem
 depends:
+- T0
 - TumblerAdd
 - TA0
 - TA-Pos
