@@ -3,6 +3,7 @@ name: OrdinalDisplacement
 type: definition
 depends:
 - T0
+- NAT-zero
 - TA-Pos
 - ActionPoint
 summary: δ(n, m) is the canonical "pure depth-m shift" tumbler — a sequence of length m that is zero everywhere except at
