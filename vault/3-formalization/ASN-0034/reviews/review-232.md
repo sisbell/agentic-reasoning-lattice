@@ -1,0 +1,9 @@
+# Cone Review — ASN-0034/T10a.3 (cycle 2)
+
+*2026-04-18 03:56*
+
+### T10a.8 omits NAT-addcompat for "non-zero status intact" under +1
+**Foundation**: TA5's Depends establishes the document's per-step convention that NAT-level arithmetic inferences are cited explicitly — in particular, NAT-addcompat is named for both the strict successor inequality (`n < n + 1`) and order-compatibility of addition (`p ≤ n ⟹ m + p ≤ m + n`), discharging steps like `t'_j = t_j + 1 > t_j` and `1 ≤ k ⟹ #t + 1 ≤ #t + k` rather than leaving them as implicit appeals to ℕ-arithmetic.
+**ASN**: T10a.8 (UniformSiblingZeroCount) proof: "The `inc(·, 0)` step then advances only that position (TA5(b), TA5(c)), leaving its non-zero status intact, and preserves length (TA5(c)), so no position enters or leaves the zero set." Depends lists T10a, T10a.4, T4, TA5, TA5-SigValid.
+**Issue**: The step "leaving its non-zero status intact" is a distinct inference from the "non-zero ⇒ strictly positive" sharpening at the base address (already flagged in Previous Findings). Here the claim is that once `t_sig ≥ 1`, the successor `t_sig + 1` is also non-zero. In ℕ this requires NAT-addcompat — either via the successor inequality `n + 1 > n ≥ 1 > 0` or via order-compatibility of addition — the same lemma TA5's Depends cites for structurally identical `+1` steps. T10a.8's proof handwaves through this step with "intact," and its Depends list omits NAT-addcompat entirely. TA5 preserves length and modifies position, but TA5 alone does not supply the NAT fact that `n + 1 ≠ 0` for `n ∈ ℕ`.
+**What needs resolving**: T10a.8's proof and Depends must cite NAT-addcompat at the step propagating strict positivity through the `+1` advance — distinct from the initial sharpening step — matching the per-step citation convention TA5 applies for identical successor/order arithmetic.
