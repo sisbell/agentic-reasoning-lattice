@@ -2,6 +2,9 @@ label: AllocatedSet
 name: AllocatedSet
 type: definition
 depends:
+- T0
+- T0(a)
+- T0(b)
 - T9
 - T10a
 - NoDeallocation
