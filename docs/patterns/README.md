@@ -37,6 +37,14 @@ Patterns that seed the hypothesis space — how the system proposes new territor
 - [Prose coinage](prose-coinage.md) — at the concept level. Synthesis coins a new prose word proposing a concept that didn't exist in either channel's source. Each coinage is a structural claim.
 - [Scope promotion](scope-promotion.md) — at the topic level. An out-of-scope finding is promoted to a first-class investigation, proposing a whole area worth its own ASN. How the lattice grows outward.
 
+Patterns of convergence — when iteration stops, relative to the downstream verifier:
+
+Convergence is always relative to what consumes the output next. Different verifiers imply different stopping criteria; the underlying iterative machinery is the same. Candidates observed in this system, with pattern documentation status noted:
+
+- **Ground State** — V-cycle convergence across all scales (property, cluster, system review all agree). Defined in [glossary](../glossary.md#g); discussed in [Verification V-Cycle](../design-notes/verification-v-cycle.md). Not yet a standalone pattern doc.
+- **Saturation** — probe-archive convergence: new questions become answerable from the existing archive rather than requiring new probes (Gregory's 80-test finding). Discussed in [Self-Healing](../design-notes/self-healing.md). Not yet a standalone pattern doc.
+- **Hypothesis articulation** — science-deployment convergence: claim stated precisely enough that another lab could reproduce the test. Not yet documented; conjectured from the reproducibility / falsifiability framing.
+
 The structure that accumulates the output:
 
 - [Reasoning lattice](reasoning-lattice.md) — nodes with explicit dependencies at two granularities: documents and properties. Grows outward via scope promotion, inward via extract/absorb. Produced by repeated narrow → refine → verify cycles.

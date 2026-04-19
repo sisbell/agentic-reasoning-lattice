@@ -22,7 +22,8 @@ Complete index of the documentation. The root [README](../README.md) is the proj
 
 ## Deployment-specific
 
-- [Science](science/) — speculative notes on deploying the system to scientific domains.
+- [Software](software/README.md) — grounded deployment: reverse-engineering legacy software systems. Demonstrated on the Xanadu hypertext system.
+- [Science](science/README.md) — speculative deployment: applying the architecture to scientific discovery.
 
 ## Guides and runbooks
 

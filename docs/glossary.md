@@ -108,6 +108,8 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 ## H
 
+**Hypothesis cluster.** A [cone](patterns/dependency-cone.md) in a science deployment: apex (hypothesis statement) plus its supporting dependencies (axioms, definitions, data citations, coined concepts). Regional convergence of a hypothesis cluster = hypothesis ready for its scope. See [Science Approach](science/README.md).
+
 **Hypothesis space.** The space of candidate principles and concepts that could organize a domain. Explored by the theory channel. Complement to [evidence space](#e). New [prose coinage](patterns/prose-coinage.md) is a form of hypothesis generation.
 
 ## I

@@ -26,6 +26,14 @@ Out-of-scope findings flagged during review become [new inquiries](docs/patterns
 
 The system is demonstrated on the Xanadu hypertext system — deriving formal properties from Ted Nelson's design intent (*Literary Machines*) and Roger Gregory's 1988 implementation (udanax-green) under enforced vocabulary separation. Xanadu's protocol primitives — permanent addresses, bidirectional links, traceable provenance — are what the system discovered. The methodology bootstrapped the mathematics of the protocol through its own operation.
 
+## Applying to science
+
+The architecture is deployment-general. The machinery — two-channel discovery, blueprinting, formalization, V-cycle review — operates on abstract inputs with domain-specific verifiers at each scale. The Xanadu case uses Dafny as the verifier for proof soundness; a scientific deployment would use experimental reproducibility.
+
+In a science deployment, the system produces **hypotheses**, not discoveries. Verification happens externally — in a lab, through replication, or by matching against known answers for rediscovery tests. The AI's job ends at articulating claims precisely enough to be tested; reality confirms or refutes them.
+
+See [Science Approach](docs/science/README.md) for the convergence framing, cone-as-hypothesis-cluster structure, and the Judger evaluation model.
+
 ## Documentation
 
 - [Vision](docs/vision.md) — hypothesis space navigation, semantic communication substrate, Lamarckian evolution, building the engine
@@ -36,6 +44,11 @@ The system is demonstrated on the Xanadu hypertext system — deriving formal pr
 - [Pattern Language](docs/patterns/README.md) — operationally discovered patterns for agentic reasoning systems
 - [Verification V-Cycle](docs/design-notes/verification-v-cycle.md) — multi-scale review architecture and multigrid analogy
 - [Glossary](docs/glossary.md) — system-specific terms and their definitions
+
+### Deployments
+
+- [Software](docs/software/README.md) — grounded deployment on legacy software reverse-engineering (Xanadu)
+- [Science](docs/science/README.md) — speculative deployment on scientific discovery
 
 ### Guides
 
