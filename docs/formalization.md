@@ -18,7 +18,7 @@ Each contradiction resolved tightens the specification and often reveals a deepe
 
 Discovery connects — it finds properties, links them, grows the lattice outward. Formalization constructs — it builds from the bottom up, each piece locked into place before the next goes on. Each property formalized adds a piece to the structure, and that piece constrains what the remaining pieces can be. A tightened precondition in one cycle enables the next cycle's reviewer to see implications the previous version didn't have. A resolved contradiction between two properties reveals a relationship that only becomes visible once both are precise. The degrees of freedom shrink. The system takes shape.
 
-Each cycle builds on the previous. The proof reviewer tightens a contract. The contract reviewer sees that the tightened contract now implies something new. The full-reviewer sees a relationship between two properties that only became visible because both were strengthened in the previous cycle. The reasoning compounds — each property formalized makes the next one more precise, because the contracts it produces become the premises its dependents reason from.
+Each cycle builds on the previous. The local reviewer tightens a contract. The contract reviewer sees that the tightened contract now implies something new. The full-reviewer sees a relationship between two properties that only became visible because both were strengthened in the previous cycle. The reasoning compounds — each property formalized makes the next one more precise, because the contracts it produces become the premises its dependents reason from.
 
 ## Formalization radiates through the lattice
 

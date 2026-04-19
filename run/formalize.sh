@@ -2,7 +2,7 @@
 # Formalize — run the full formalization pipeline on an ASN.
 #
 # Runs each stage to internal convergence in sequence:
-#   formalize → contract-review → dependency-review → full-review → proof-review → contract-review
+#   formalize → contract-review → dependency-review → full-review → local-review → contract-review
 #
 # Usage:
 #   ./run/formalize.sh 40                       # full pipeline, 1 cycle
@@ -23,7 +23,7 @@ done
 
 if [ $# -lt 1 ]; then
     echo "Usage: $0 [--from STEP] ASN [CYCLES]" >&2
-    echo "Steps: formalize, dependency-review, full-review, proof-review" >&2
+    echo "Steps: formalize, dependency-review, full-review, local-review" >&2
     exit 1
 fi
 
@@ -45,29 +45,29 @@ for i in $(seq 1 "$CYCLES"); do
             python scripts/contract-review.py "$ASN" &&
             python scripts/dependency-review.py "$ASN" &&
             python scripts/full-review.py "$ASN" &&
-            python scripts/proof-review.py "$ASN" &&
+            python scripts/local-review.py "$ASN" &&
             python scripts/contract-review.py "$ASN"
             ;;
         contract-review)
             python scripts/contract-review.py "$ASN" &&
             python scripts/dependency-review.py "$ASN" &&
             python scripts/full-review.py "$ASN" &&
-            python scripts/proof-review.py "$ASN" &&
+            python scripts/local-review.py "$ASN" &&
             python scripts/contract-review.py "$ASN"
             ;;
         dependency-review)
             python scripts/dependency-review.py "$ASN" &&
             python scripts/full-review.py "$ASN" &&
-            python scripts/proof-review.py "$ASN" &&
+            python scripts/local-review.py "$ASN" &&
             python scripts/contract-review.py "$ASN"
             ;;
         full-review)
             python scripts/full-review.py "$ASN" &&
-            python scripts/proof-review.py "$ASN" &&
+            python scripts/local-review.py "$ASN" &&
             python scripts/contract-review.py "$ASN"
             ;;
-        proof-review)
-            python scripts/proof-review.py "$ASN" &&
+        local-review)
+            python scripts/local-review.py "$ASN" &&
             python scripts/contract-review.py "$ASN"
             ;;
         contract-review-final)
@@ -75,7 +75,7 @@ for i in $(seq 1 "$CYCLES"); do
             ;;
         *)
             echo "Unknown step: $FROM" >&2
-            echo "Valid: formalize, contract-review, dependency-review, full-review, proof-review" >&2
+            echo "Valid: formalize, contract-review, dependency-review, full-review, local-review" >&2
             exit 1
             ;;
     esac

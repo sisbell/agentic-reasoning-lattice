@@ -1,7 +1,7 @@
 # Formalization Patch
 
 Applies targeted fixes to formalized ASNs from downstream findings
-(assembly validation, Dafny verification, Alloy checking, proof review).
+(assembly validation, Dafny verification, Alloy checking, local review).
 
 ## Usage
 

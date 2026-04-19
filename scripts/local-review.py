@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 """
-Proof Review — verify proofs with incremental convergence.
+Local Review — verify proofs with incremental convergence.
 
 Reviews each property's proof against a 7-point checklist. On FOUND,
 revises and re-verifies in the next cycle. Dirty set tracks changed
 properties + their downstream dependents.
 
 Usage:
-    python scripts/proof-review.py 40
-    python scripts/proof-review.py 40 --max-cycles 1     # single pass, no fixing
-    python scripts/proof-review.py 40 --mode full_sweep   # check all each cycle
-    python scripts/proof-review.py 40 --label B0a         # single property
-    python scripts/proof-review.py 40 --dry-run           # verify only, no fixes
+    python scripts/local-review.py 40
+    python scripts/local-review.py 40 --max-cycles 1     # single pass, no fixing
+    python scripts/local-review.py 40 --mode full_sweep   # check all each cycle
+    python scripts/local-review.py 40 --label B0a         # single property
+    python scripts/local-review.py 40 --dry-run           # verify only, no fixes
 """
 
 import argparse
@@ -28,8 +28,8 @@ from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, next_review_number
 from lib.shared.common import find_asn, parallel_llm_calls, step_commit_asn, build_label_index
 from lib.formalization.core.build_dependency_graph import generate_formalization_deps
 from lib.formalization.core.topological_sort import topological_sort_labels
-from lib.formalization.proof_review.verify import review_property
-from lib.formalization.proof_review.revise import revise
+from lib.formalization.local_review.verify import review_property
+from lib.formalization.local_review.revise import revise
 
 
 def _hash_content(text):
@@ -63,9 +63,9 @@ def _downstream_dependents(changed_labels, deps_data):
     return dependents
 
 
-def run_proof_review(asn_num, max_cycles=5, mode="incremental",
+def run_local_review(asn_num, max_cycles=5, mode="incremental",
                      dry_run=False, single_label=None, force=False):
-    """Run the proof review pipeline.
+    """Run the local review pipeline.
 
     Args:
         asn_num: ASN number
@@ -82,7 +82,7 @@ def run_proof_review(asn_num, max_cycles=5, mode="incremental",
         print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
         return "failed"
 
-    print(f"\n  [PROOF REVIEW] {asn_label}", file=sys.stderr)
+    print(f"\n  [LOCAL REVIEW] {asn_label}", file=sys.stderr)
 
     review_dir = FORMALIZATION_DIR / asn_label / "reviews"
     prop_dir = FORMALIZATION_DIR / asn_label
@@ -205,7 +205,7 @@ def run_proof_review(asn_num, max_cycles=5, mode="incremental",
         review_num = next_review_number(asn_label, reviews_dir=review_dir)
         review_path = review_dir / f"review-{review_num}.md"
         with open(review_path, "w") as rf:
-            rf.write(f"# Proof Review — {asn_label} (cycle {cycle})\n\n")
+            rf.write(f"# Local Review — {asn_label} (cycle {cycle})\n\n")
             rf.write(f"*{time.strftime('%Y-%m-%d %H:%M')}*\n\n")
             rf.write(f"{len(review_labels)} properties")
             if cycle > 1 and mode == "incremental":
@@ -234,7 +234,7 @@ def run_proof_review(asn_num, max_cycles=5, mode="incremental",
 
         # Commit
         step_commit_asn(asn_num,
-                        f"proof-review(asn): {asn_label} — cycle {cycle}")
+                        f"local-review(asn): {asn_label} — cycle {cycle}")
 
         # Dirty set for next cycle
         dirty_set = changed | _downstream_dependents(changed, deps_data)
@@ -267,14 +267,14 @@ def run_proof_review(asn_num, max_cycles=5, mode="incremental",
     print(f"  Elapsed: {elapsed:.0f}s", file=sys.stderr)
 
     if had_findings and not dry_run:
-        step_commit_asn(asn_num, hint="proof-review")
+        step_commit_asn(asn_num, hint="local-review")
 
     return "converged" if converged else "not_converged"
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Proof Review — verify proofs with convergence loop")
+        description="Local Review — verify proofs with convergence loop")
     parser.add_argument("asn", help="ASN number (e.g., 40)")
     parser.add_argument("--max-cycles", type=int, default=5,
                         help="Maximum convergence cycles (default: 5)")
@@ -289,7 +289,7 @@ def main():
     args = parser.parse_args()
 
     asn_num = int(re.sub(r"[^0-9]", "", args.asn))
-    result = run_proof_review(asn_num, max_cycles=args.max_cycles,
+    result = run_local_review(asn_num, max_cycles=args.max_cycles,
                                mode=args.mode, dry_run=args.dry_run,
                                single_label=args.label,
                                force=args.force)

@@ -2,7 +2,7 @@
 
 You are applying a targeted fix to a formalized ASN reasoning document.
 The patch addresses a known issue identified during verification
-(assembly validation, Dafny, Alloy, or proof review). Apply the fix
+(assembly validation, Dafny, Alloy, or local review). Apply the fix
 precisely and propagate any necessary downstream changes.
 
 ## Patch Instruction

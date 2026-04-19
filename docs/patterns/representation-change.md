@@ -61,7 +61,7 @@ Per-property files → formal-statements.md export. The representation change go
 
 ### Review/revise within a representation
 
-Each [review/revise iteration](review-revise-iteration.md) cycle operates within a single representation. Proof review works on markdown. Contract review works on formal contracts. Dafny verification works on code. The representation is stable during refinement — changes within the representation, not between representations.
+Each [review/revise iteration](review-revise-iteration.md) cycle operates within a single representation. Local review works on markdown. Contract review works on formal contracts. Dafny verification works on code. The representation is stable during refinement — changes within the representation, not between representations.
 
 ## Relationship to other patterns
 

@@ -3,7 +3,7 @@
 V-Cycle Formalization Review — multigrid-inspired convergence.
 
 Three scales of optimization in a V-cycle:
-  Local:    proof-review, contract-review (one property at a time)
+  Local:    local-review, contract-review (one property at a time)
   Regional: cone-sweep (high-dependency clusters, bottom-up DAG walk)
   Global:   full-review (full ASN scan)
 
@@ -34,11 +34,11 @@ from lib.formalization.cone import run_cone_sweep, run_cone_review
 from lib.formalization.core.build_dependency_graph import generate_formalization_deps
 
 # Hyphenated script names need importlib
-_proof_review = importlib.import_module("proof-review")
+_local_review = importlib.import_module("local-review")
 _contract_review = importlib.import_module("contract-review")
 _full_review = importlib.import_module("full-review")
 
-run_proof_review = _proof_review.run_proof_review
+run_local_review = _local_review.run_local_review
 run_contract_review = _contract_review.run_contract_review
 run_full_review = _full_review.run_full_review
 
@@ -147,12 +147,12 @@ def run_vcycle(asn_num, max_passes=5, min_cone_deps=4, dry_run=False):
         # ── Upward (restriction) ──
         print(f"\n  ── Upward ──", file=sys.stderr)
 
-        # 1. Proof review (local)
+        # 1. Local review (property scale)
         h = _git_head()
-        run_proof_review(asn_num, max_cycles=5, dry_run=dry_run)
+        run_local_review(asn_num, max_cycles=5, dry_run=dry_run)
         proof_changed = _get_changed_labels(asn_label, h)
         all_changed |= proof_changed
-        print(f"  [PROOF-REVIEW] → {len(proof_changed)} changed",
+        print(f"  [LOCAL-REVIEW] → {len(proof_changed)} changed",
               file=sys.stderr)
 
         # 2. Contract review (local)
@@ -208,7 +208,7 @@ def run_vcycle(asn_num, max_passes=5, min_cone_deps=4, dry_run=False):
 
             h = _git_head()
             for label in sorted(affected):
-                run_proof_review(asn_num, max_cycles=2, single_label=label,
+                run_local_review(asn_num, max_cycles=2, single_label=label,
                                  dry_run=dry_run)
                 run_contract_review(asn_num, max_cycles=2, single_label=label,
                                     dry_run=dry_run)

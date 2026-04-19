@@ -1,11 +1,11 @@
 """
-Proof Review verify step — per-property 7-point checklist verification.
+Local Review verify step — per-property 7-point checklist verification.
 
 Builds a minimal context (property section + dependency sections) and
 calls opus to verify the proof. Returns structured results for the
 convergence loop.
 
-Step function for the orchestrator (scripts/proof-review.py):
+Step function for the orchestrator (scripts/local-review.py):
 - review_property: verify one property's proof, return (status, finding_text)
 """
 
@@ -21,7 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, USAGE_LOG, formal_stmts
 from lib.shared.common import find_asn
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization" / "proof-review"
+PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization" / "local-review"
 VERIFY_TEMPLATE = PROMPTS_DIR / "verify.md"
 
 

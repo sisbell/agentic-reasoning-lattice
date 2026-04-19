@@ -16,13 +16,13 @@ Convergence is always relative to a downstream verifier. Different domains have 
 
 | Scale | Operator | Science verifier |
 |---|---|---|
-| Local | local-review (current: proof-review) | hypothesis articulation (testable) |
+| Local | local-review | hypothesis articulation (testable) |
 | Regional | regional-review (current: cone-review) | cluster articulation (mutually consistent) |
 | Global | full-review | framework coherence |
 
 At each scale, the operator iterates until the relevant verifier finds no new issues. Science cones stabilize when hypotheses are articulated precisely enough to test. The [software deployment](../software/README.md) uses the same machinery with a different verifier (proof soundness via Dafny).
 
-(Operator names above use both current and proposed scale-based naming. The full-review scale has been renamed from cross-review; proof-review and cone-review remain with proposed renames to local-review and regional-review. See memory: operator rename plan.)
+(Local and full scales use their renamed scale-based operator names; the regional scale is still named cone-review pending its rename. See memory: operator rename plan.)
 
 ### Cone as hypothesis cluster
 

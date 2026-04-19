@@ -54,7 +54,7 @@ This progression was observed independently in ASN-0034 discovery (reviews 14-31
 
 ## Applications
 
-### Proof review
+### Local review
 
 **Scope**: one property at a time, dependencies as fixed context.
 **Review criteria**: 7-point checklist — logical gaps, unjustified steps, missing cases, dependency correctness, formal contract completeness.

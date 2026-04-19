@@ -10,7 +10,7 @@ The Verification V-Cycle addresses this by cycling through three scales of revie
 
 ## Scales
 
-**Local** — formalize, proof-review, contract-review. One property at a time, dependencies as fixed context. Fast convergence on property-level issues: logical gaps, missing cases, contract mismatches. Cannot see cross-property consistency problems.
+**Local** — formalize, local-review, contract-review. One property at a time, dependencies as fixed context. Fast convergence on property-level issues: logical gaps, missing cases, contract mismatches. Cannot see cross-property consistency problems.
 
 **Regional** — cone-sweep. Reviews dependency cones: properties with many same-ASN dependencies, processed bottom-up in topological order. Narrowed context (apex + dependencies + relevant foundation only) focuses attention on the constraint system. Catches issues that span tightly coupled clusters — the [dependency cone](../patterns/dependency-cone.md) pattern.
 
@@ -25,14 +25,14 @@ Each pass follows an upward-then-downward path:
 ```
 ── Upward ──
   1. formalize         local     produce formal contracts
-  2. proof-review      local     fix proofs
+  2. local-review      local     fix proofs
   3. contract-review   local     fix contracts
   4. cone-sweep        regional  fix clusters (bottom-up DAG walk)
   5. full-review       global    broad scan
 
 ── Downward ──
   6. cone-review       regional  re-check cones affected by upward changes
-  7. proof-review      local     re-check properties affected by steps 5-6
+  7. local-review      local     re-check properties affected by steps 5-6
   8. contract-review   local     re-check contracts affected by steps 5-7
 ```
 
@@ -72,7 +72,7 @@ The analogy:
 
 | Multigrid | Verification V-Cycle |
 |-----------|------|
-| Fine grid relaxation | Local review (proof, contract) |
+| Fine grid relaxation | Property scale (local-review, contract-review) |
 | Medium grid | Regional review (cone-sweep) |
 | Coarse grid | Global review (full-review) |
 | High-frequency error | Property-level issues (local inconsistencies) |

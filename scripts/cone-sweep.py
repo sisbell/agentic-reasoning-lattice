@@ -7,7 +7,7 @@ properties with >= N same-ASN dependencies. Each cone review assembles
 just the apex + its dependencies, with narrowed foundation loading.
 
 This is the "regional" optimization stage in the V-cycle:
-  proof-review (local) → contract-review (local) → cone-sweep (regional) → full-review (global)
+  local-review (local) → contract-review (local) → cone-sweep (regional) → full-review (global)
 
 Usage:
     python scripts/cone-sweep.py 36

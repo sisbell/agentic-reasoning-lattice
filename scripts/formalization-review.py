@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Formalization Review — orchestrate proof, contract, full, and dependency reviews.
+Formalization Review — orchestrate local, contract, full, and dependency reviews.
 
 Runs the four review steps in order, repeating cycles until all converge
 or max cycles reached.
@@ -21,11 +21,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.common import find_asn
 
 import importlib
-_proof_review = importlib.import_module("proof-review")
+_local_review = importlib.import_module("local-review")
 _contract_review = importlib.import_module("contract-review")
 _full_review = importlib.import_module("full-review")
 
-run_proof_review = _proof_review.run_proof_review
+run_local_review = _local_review.run_local_review
 run_contract_review = _contract_review.run_contract_review
 run_full_review = _full_review.run_full_review
 
@@ -65,8 +65,8 @@ def run_formalization_review(asn_num, max_cycles=3, dry_run=False,
 
         all_converged = True
 
-        # 1. Proof review (find → fix → converge)
-        result = run_proof_review(asn_num, max_cycles=5, dry_run=dry_run)
+        # 1. Local review (find → fix → converge)
+        result = run_local_review(asn_num, max_cycles=5, dry_run=dry_run)
         if result != "converged":
             all_converged = False
 

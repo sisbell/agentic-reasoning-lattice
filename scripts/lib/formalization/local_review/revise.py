@@ -1,5 +1,5 @@
 """
-Proof Review reviser — applies proof fixes from findings.
+Local Review reviser — applies proof fixes from findings.
 
 Takes a property label and its finding text, builds a prompt from
 revise.md, and runs claude -p with Edit tools to apply the fix.
@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, USAGE_LOG
 from lib.shared.common import find_asn
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization" / "proof-review"
+PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization" / "local-review"
 REVISE_TEMPLATE = PROMPTS_DIR / "revise.md"
 
 
@@ -81,7 +81,7 @@ def revise(asn_num, label, finding_text, prop_path=None):
     try:
         entry = {
             "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
-            "skill": "proof-review-revise",
+            "skill": "local-review-revise",
             "asn": asn_label,
             "property": label,
             "elapsed_s": round(elapsed, 1),

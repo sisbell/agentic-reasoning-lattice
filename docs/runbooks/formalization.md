@@ -21,11 +21,11 @@ Produces formal contracts and rewrites proofs to Dijkstra standard. Auto-commits
 ### 2. Property-scale review
 
 ```bash
-python scripts/proof-review.py <ASN>
+python scripts/local-review.py <ASN>
 python scripts/contract-review.py <ASN>
 ```
 
-Proof review checks logical gaps, missing cases, dependency correctness. Contract review validates contracts match proofs. Run until findings trend to zero.
+Local review checks logical gaps, missing cases, dependency correctness. Contract review validates contracts match proofs. Run until findings trend to zero.
 
 ### 3. Cone sweep (cluster-scale review)
 
@@ -75,7 +75,7 @@ Mechanical — reads YAML summaries + .md contracts, writes `formal-statements.m
 ```bash
 python scripts/formalize.py <ASN> --dry-run         # list candidates
 python scripts/formalize.py <ASN> --label T8         # single property
-python scripts/proof-review.py <ASN> --label T8      # single property review
+python scripts/local-review.py <ASN> --label T8      # single property review
 ```
 
 ---

@@ -45,9 +45,9 @@ Discovery produces a 15-page reasoning document. Blueprinting narrows: decompose
 
 ### Formalization
 
-Formalization narrows further: review one property at a time. Proof review checks the proof. Contract review checks the contract. Each review cycle operates within the property's scope, with dependencies as fixed context.
+Formalization narrows further: review one property at a time. Local review checks the proof. Contract review checks the contract. Each review cycle operates within the property's scope, with dependencies as fixed context.
 
-When proof review converged 31 of 32 properties but kept cycling on S8, the narrowing had overshot. S8's 7 dependencies created coupling that property-scope review couldn't resolve. Widening to the S8 cone (apex + dependencies) gave the reviewer enough context to see the constraint system. The scope matched the coupling.
+When local review converged 31 of 32 properties but kept cycling on S8, the narrowing had overshot. S8's 7 dependencies created coupling that property-scope review couldn't resolve. Widening to the S8 cone (apex + dependencies) gave the reviewer enough context to see the constraint system. The scope matched the coupling.
 
 ### Discovery
 

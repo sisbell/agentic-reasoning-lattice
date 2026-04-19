@@ -26,7 +26,7 @@ The V-cycle is the core of the methodology. It traverses the lattice at three sc
 
 **Descend through meets** — decompose to property scale:
 
-- **Proof review** — each property reviewed independently with its dependencies as fixed context. Checks logical gaps, missing cases, dependency correctness, formal contract completeness.
+- **Local review** — each property reviewed independently with its dependencies as fixed context. Checks logical gaps, missing cases, dependency correctness, formal contract completeness.
 - **Contract review** — validates that each formal contract (preconditions, postconditions, invariants, frame conditions) matches the proof.
 
 **Review at cluster scale** — [dependency cones](patterns/dependency-cone.md):

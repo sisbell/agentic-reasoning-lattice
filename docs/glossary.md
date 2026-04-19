@@ -128,6 +128,8 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Lemma.** A property classified as an intermediate result supporting higher-level theorems.
 
+**Local-review.** Property-scale review checking logical gaps, unjustified steps, missing cases, and dependency correctness. One property at a time with its dependencies as fixed context. Renamed from proof-review.
+
 ## M
 
 **Markdown body (`.md`).** The file that holds a property's content: narrative, proof, formal contract.
@@ -163,8 +165,6 @@ Terms specific to this reasoning system. Cross-references point to where each te
 **Property lattice.** The fine granularity of the [reasoning lattice](patterns/reasoning-lattice.md) — individual properties as nodes, per-property dependencies as edges.
 
 **Property scale.** [Verification V-Cycle](design-notes/verification-v-cycle.md) scope of one property with its dependencies as fixed context.
-
-**Proof review.** Property-scale review checking logical gaps, unjustified steps, missing cases, and dependency correctness.
 
 ## R
 
@@ -224,7 +224,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Under-citation.** A proof uses a property that its Depends list doesn't include. The most common form of [Citation Drift](equilibrium/citation-drift.md).
 
-**Upward pass.** First phase of the [V-cycle](design-notes/verification-v-cycle.md) — proof review → contract review → cone sweep → full-review, building confidence from narrow to wide scope.
+**Upward pass.** First phase of the [V-cycle](design-notes/verification-v-cycle.md) — local review → contract review → cone sweep → full-review, building confidence from narrow to wide scope.
 
 ## V
 

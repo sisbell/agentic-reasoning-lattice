@@ -8,7 +8,7 @@ Formalization transforms per-property file pairs from blueprinting into rigorous
 
 The V-cycle operates at three scales, inspired by multigrid methods (Brandt 1977):
 
-- **Property scale** — proof review, contract review. One property at a time, dependencies fixed.
+- **Property scale** — local review, contract review. One property at a time, dependencies fixed.
 - **Cluster scale** — cone sweep. A tightly coupled group of properties reviewed together.
 - **System scale** — full-review. The entire ASN reviewed at once.
 
@@ -27,7 +27,7 @@ Rewrites every non-definition, non-axiom property's proof to Dijkstra standard a
 
 ### Property-Scale Review
 
-**Proof review** — For each property, sends the body + dependency context to the LLM. Checks logical gaps, unjustified steps, missing cases, dependency correctness, formal contract completeness. On FOUND, a reviser agent edits the `.md` file. If new dependencies are discovered, the reviser adds them to the `.yaml` depends list (add-only).
+**Local review** — For each property, sends the body + dependency context to the LLM. Checks logical gaps, unjustified steps, missing cases, dependency correctness, formal contract completeness. On FOUND, a reviser agent edits the `.md` file. If new dependencies are discovered, the reviser adds them to the `.yaml` depends list (add-only).
 
 **Contract review** — Validates that each formal contract matches the proof. On MISMATCH, rewrites the contract. Vocabulary context is aggregated from all property YAMLs automatically.
 
@@ -45,7 +45,7 @@ Per-property review stalls on tightly coupled claims — one property keeps gett
 
 Composes all three scales into a single upward-downward pass:
 
-1. **Upward pass:** proof review → contract review → cone sweep → full-review
+1. **Upward pass:** local review → contract review → cone sweep → full-review
 2. **Dirty set detection:** after full-review, check which properties changed via git diff
 3. **Downward pass:** for any changed properties, run cone review on affected cones, then re-run proof and contract review on the changed properties
 
