@@ -54,8 +54,6 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Corollary.** A property classified as an immediate consequence of another.
 
-**Cross-review.** System-scale review reading an entire ASN. Finds issues invisible to narrower scales: carrier-set conflation, precondition chain gaps, vocabulary collisions, issues in small properties.
-
 ## D
 
 **Data channel.** The agent channel that reads raw evidence (implementation code, experimental measurements) and reports patterns. Forbidden from using theory-level vocabulary. See [Two Data Authorities](patterns/two-data-authorities.md).
@@ -99,6 +97,8 @@ Terms specific to this reasoning system. Cross-references point to where each te
 **Formalization.** The stage that rewrites proofs to Dijkstra standard, produces formal contracts, and runs the V-cycle to convergence. See [formalization guide](guides/formalization.md).
 
 **Foundation.** From a downstream ASN's perspective, any upstream ASN it depends on. Foundation content is read-only context for the downstream's review cycles.
+
+**Full-review.** System-scale review reading an entire ASN. Finds issues invisible to narrower scales: carrier-set conflation, precondition chain gaps, vocabulary collisions, issues in small properties. Renamed from cross-review.
 
 ## G
 
@@ -224,7 +224,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Under-citation.** A proof uses a property that its Depends list doesn't include. The most common form of [Citation Drift](equilibrium/citation-drift.md).
 
-**Upward pass.** First phase of the [V-cycle](design-notes/verification-v-cycle.md) — proof review → contract review → cone sweep → cross-review, building confidence from narrow to wide scope.
+**Upward pass.** First phase of the [V-cycle](design-notes/verification-v-cycle.md) — proof review → contract review → cone sweep → full-review, building confidence from narrow to wide scope.
 
 ## V
 

@@ -36,10 +36,10 @@ python scripts/cone-sweep.py <ASN> --cone S8    # single cone
 
 Walks the dependency graph bottom-up. Reviews tightly coupled clusters as a unit. Default max 8 cycles per cone. Use `--cone LABEL` to target a specific apex.
 
-### 4. Cross-review (system-scale review)
+### 4. Full-review (system-scale review)
 
 ```bash
-python scripts/cross-review.py <ASN>
+python scripts/full-review.py <ASN>
 ```
 
 Full ASN scan with foundation context. Catches carrier-set conflation, precondition chain gaps, scope mismatches.
@@ -52,7 +52,7 @@ python scripts/formalization-vcycle.py <ASN> --max-passes 3
 python scripts/formalization-vcycle.py <ASN> --dry-run
 ```
 
-Runs the full upward-downward pass: proof → contract → cone-sweep → cross-review → cone re-check → proof re-check → contract re-check. Converged when no scale changes anything in a full pass.
+Runs the full upward-downward pass: proof → contract → cone-sweep → full-review → cone re-check → proof re-check → contract re-check. Converged when no scale changes anything in a full pass.
 
 ### 6. Summarize
 

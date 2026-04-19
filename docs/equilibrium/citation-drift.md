@@ -32,13 +32,13 @@ Passive drift arrives in bursts after upstream events, then stops. Downstream AS
 
 ### Why the distinction matters
 
-Internal drift is *produced* within the ASN under review and *detected* by cross-review on the same ASN. A review cycle both causes and catches its own drift. Converges in a few iterations.
+Internal drift is *produced* within the ASN under review and *detected* by full-review on the same ASN. A review cycle both causes and catches its own drift. Converges in a few iterations.
 
-Passive drift is *caused* outside the ASN and *invisible* to local review. A downstream ASN's cross-review may converge perfectly while the ASN still carries stale citations to an upstream that has moved on. Detection requires cross-ASN review or a rebase triggered by the upstream event.
+Passive drift is *caused* outside the ASN and *invisible* to local review. A downstream ASN's full-review may converge perfectly while the ASN still carries stale citations to an upstream that has moved on. Detection requires cross-ASN review or a rebase triggered by the upstream event.
 
 ## Signal
 
-Cross-review findings of the form "property P uses X in its proof but does not list X in Depends" — or in discovery, prose references to labels, concepts, or vocabulary that no longer exist in that form upstream.
+Full-review findings of the form "property P uses X in its proof but does not list X in Depends" — or in discovery, prose references to labels, concepts, or vocabulary that no longer exist in that form upstream.
 
 The pattern is distributed, not concentrated: Contract Sprawl concentrates on one attractor; citation drift scatters across many properties. Each finding is small. Accumulation across dozens of properties is what makes the signal visible.
 
@@ -52,7 +52,7 @@ Missing bridge citations are citation drift at the inference-rule level.
 
 ## Example
 
-After the T0 split on ASN-0034, two cross-review runs surfaced dozens of internally-driven findings across cycles:
+After the T0 split on ASN-0034, two full-review runs surfaced dozens of internally-driven findings across cycles:
 
 - NAT-* axioms stated but not cited by 11 properties
 - T12, TA-assoc, TA5-SIG, Span omit Depends clauses entirely
@@ -63,19 +63,19 @@ After the T0 split on ASN-0034, two cross-review runs surfaced dozens of interna
 
 Each finding was small. The total across two runs exceeded twenty.
 
-The same split produced passive drift in ASN-0036 — its proofs still cite T0 for ℕ facts that now live in NAT-*, and its discovery prose references labels that no longer exist in that form. That drift is invisible to ASN-0036's own cross-review unless the review also reads ASN-0034's current state.
+The same split produced passive drift in ASN-0036 — its proofs still cite T0 for ℕ facts that now live in NAT-*, and its discovery prose references labels that no longer exist in that form. That drift is invisible to ASN-0036's own full-review unless the review also reads ASN-0034's current state.
 
 ## Resolution
 
-Review/revise iteration at the system scale. Cross-review finds internal drift mechanically by cross-referencing proof content and Depends lists. The reviser patches the metadata one finding at a time. A few cycles converges the cleanup.
+Review/revise iteration at the system scale. Full-review finds internal drift mechanically by cross-referencing proof content and Depends lists. The reviser patches the metadata one finding at a time. A few cycles converges the cleanup.
 
 Passive drift from upstream changes requires a rebase pass — cross-ASN review or a deliberate downstream updating step triggered when the upstream event happens. A downstream ASN's own review cycles will not produce this drift on their own, but will not resolve it either unless they are told the upstream moved.
 
-Citation drift is the expected side effect of active reorganization. Every [Contract Sprawl](contract-sprawl.md) split produces it. Every [accretion](../patterns/accretion.md) produces a small amount. The presence of drift is not a failure — it is evidence that reasoning has recently changed and metadata hasn't caught up. Cross-review (for internal drift) and cross-ASN rebase (for passive drift) are the tools that resolve it.
+Citation drift is the expected side effect of active reorganization. Every [Contract Sprawl](contract-sprawl.md) split produces it. Every [accretion](../patterns/accretion.md) produces a small amount. The presence of drift is not a failure — it is evidence that reasoning has recently changed and metadata hasn't caught up. Full-review (for internal drift) and cross-ASN rebase (for passive drift) are the tools that resolve it.
 
 ## Related
 
-- [Review/Revise Iteration](../patterns/review-revise-iteration.md) — the mechanism that resolves drift. Cross-review finds each gap; the reviser patches the metadata; cycles converge.
+- [Review/Revise Iteration](../patterns/review-revise-iteration.md) — the mechanism that resolves drift. Full-review finds each gap; the reviser patches the metadata; cycles converge.
 - [Contract Sprawl](contract-sprawl.md) — a split produces a burst of passive drift in every downstream consumer of the attractor. Cleanup is required follow-up.
 - [Accretion](../patterns/accretion.md) — new properties introduced as accretion produce small internal drift until downstream proofs discover the new home.
-- [Verification V-Cycle](../design-notes/verification-v-cycle.md) — drift is the main thing cross-review catches. Its scattered per-property nature is precisely what narrower scales miss.
+- [Verification V-Cycle](../design-notes/verification-v-cycle.md) — drift is the main thing full-review catches. Its scattered per-property nature is precisely what narrower scales miss.

@@ -3,7 +3,7 @@ Dependency Review — validate dependency references with convergence.
 
 Runs dependency-report (structural drift, registry misclassification)
 and fixes findings. Designed to run between contract-review and
-cross-review.
+full-review.
 
 Usage:
     python scripts/dependency-review.py 40

@@ -47,7 +47,7 @@ The synthesis agent reads all authority responses and assembles a reasoning docu
 
 ### In formalization
 
-Cross-review reads the entire assembled ASN and checks that the hardened properties cohere. Each property was reviewed and revised at property scope. Cross-review verifies at ASN scope.
+Full-review reads the entire assembled ASN and checks that the hardened properties cohere. Each property was reviewed and revised at property scope. Full-review verifies at ASN scope.
 
 **What it catches**: S8's proof uses D-CTG for contiguous range structure but never declares the dependency. At property scope, S8's proof looks fine — D-CTG is just something it references. At whole-ASN scope, the missing dependency is visible because the reviewer can see both S8 and D-CTG and notice the undeclared relationship.
 
@@ -72,7 +72,7 @@ When formalization of one ASN discovers something that affects another (a scope 
 Scope narrowing and verify the whole always appear together. Every narrowing step needs a corresponding verification at the original width:
 
 - Discovery narrows via scoped inquiry → synthesis verifies the whole consultation
-- Blueprinting narrows into properties → formalization narrows further, then cross-review verifies the whole ASN
+- Blueprinting narrows into properties → formalization narrows further, then full-review verifies the whole ASN
 - Cone review narrows to a cluster → re-verifies the cluster's coherence
 - Extract/absorb narrows a shared concept into one definition → verify consuming documents still cohere
 
@@ -80,4 +80,4 @@ Narrowing without verification produces pieces that don't fit. Verification with
 
 ## Origin
 
-Verify the whole was present before scope narrowing was named. The cross-review step existed from the first formalization runs — it was always clear that per-property review couldn't catch everything. The pattern was recognized when the same structure appeared at every scale: synthesis in discovery (verify the consultation), cross-review in formalization (verify the ASN), cone review (verify the cluster). The same check, at different widths, for the same reason — narrowing creates seams, verification finds them.
+Verify the whole was present before scope narrowing was named. The full-review step existed from the first formalization runs — it was always clear that per-property review couldn't catch everything. The pattern was recognized when the same structure appeared at every scale: synthesis in discovery (verify the consultation), full-review in formalization (verify the ASN), cone review (verify the cluster). The same check, at different widths, for the same reason — narrowing creates seams, verification finds them.

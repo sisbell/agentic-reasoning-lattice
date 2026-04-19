@@ -47,7 +47,7 @@ Prose coinage happens in two distinct modes:
 
 **Synthesis coinage.** The stage where two-channel outputs get reconciled into a single reasoning document. Coining happens in bulk here — roughly 70% of an ASN's prose coinages appear in the first draft from synthesis.
 
-**Review-driven coinage.** When a reviewer surfaces a concept the current text is discussing in ad-hoc prose without a shared name, revise coins one. This happens in both discovery review cycles AND formalization review cycles (proof review, contract review, cone review, cross-review).
+**Review-driven coinage.** When a reviewer surfaces a concept the current text is discussing in ad-hoc prose without a shared name, revise coins one. This happens in both discovery review cycles AND formalization review cycles (proof review, contract review, cone review, full-review).
 
 Discovery-stage review-driven coinage in ASN-0036 produced `subspace` in review cycle 1. Formalization-stage review-driven coinage produced terms like `execution trace`, `initial empty state` (AX-1), `allocation-mediated entry` (AX-2), `hierarchical allocation discipline` (S7d), `element subspace projection` (E₁) — none of which existed in the first draft. Each was coined during cone review when the reviewer pressed on a concept the current text hadn't named.
 

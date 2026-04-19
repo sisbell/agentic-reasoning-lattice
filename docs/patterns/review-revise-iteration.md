@@ -68,7 +68,7 @@ This progression was observed independently in ASN-0034 discovery (reviews 14-31
 **Reviser**: contract rewriter — regenerates the contract section.
 **Convergence**: typically 1-3 cycles. Mechanical — less LLM judgment involved.
 
-### Cross review
+### Full review
 
 **Scope**: entire ASN + foundation statements.
 **Review criteria**: cross-property consistency — carrier-set conflation, precondition chain gaps, scope mismatches, undeclared dependencies.
@@ -78,9 +78,9 @@ This progression was observed independently in ASN-0034 discovery (reviews 14-31
 ### Cone review
 
 **Scope**: one property + its same-ASN dependencies, narrowed foundation.
-**Review criteria**: same as cross review, but focused on the constraint system around one high-dependency property.
-**Reviser**: same as cross review.
-**Convergence**: faster than cross review — narrower context produces more precise findings. Typically 1-3 cycles per cone.
+**Review criteria**: same as full-review, but focused on the constraint system around one high-dependency property.
+**Reviser**: same as full-review.
+**Convergence**: faster than full-review — narrower context produces more precise findings. Typically 1-3 cycles per cone.
 
 ## Origin
 

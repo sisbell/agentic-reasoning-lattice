@@ -55,7 +55,7 @@ The boundary observation captures enough context to seed the new investigation: 
 
 ### ASN-0040 T10a conformance
 
-During cross-review of ASN-0040 (Tumbler Baptism), the reviewer found:
+During full-review of ASN-0040 (Tumbler Baptism), the reviewer found:
 
 > "Stating 'baptism conforms to T10a' as a formal property would close the bridge between the algebraic and set-theoretic developments, but this is a future convenience, not an error in this ASN."
 

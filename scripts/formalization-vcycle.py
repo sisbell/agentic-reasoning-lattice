@@ -5,7 +5,7 @@ V-Cycle Formalization Review — multigrid-inspired convergence.
 Three scales of optimization in a V-cycle:
   Local:    proof-review, contract-review (one property at a time)
   Regional: cone-sweep (high-dependency clusters, bottom-up DAG walk)
-  Global:   cross-review (full ASN scan)
+  Global:   full-review (full ASN scan)
 
 Upward pass (restriction): local → regional → global — builds confidence.
 Downward pass (prolongation): regional → local — verifies corrections.
@@ -36,11 +36,11 @@ from lib.formalization.core.build_dependency_graph import generate_formalization
 # Hyphenated script names need importlib
 _proof_review = importlib.import_module("proof-review")
 _contract_review = importlib.import_module("contract-review")
-_cross_review = importlib.import_module("cross-review")
+_full_review = importlib.import_module("full-review")
 
 run_proof_review = _proof_review.run_proof_review
 run_contract_review = _contract_review.run_contract_review
-run_cross_review = _cross_review.run_cross_review
+run_full_review = _full_review.run_full_review
 
 
 def _git_head():
@@ -171,12 +171,12 @@ def run_vcycle(asn_num, max_passes=5, min_cone_deps=4, dry_run=False):
         print(f"  [CONE-SWEEP] → {len(cone_changed)} changed",
               file=sys.stderr)
 
-        # 4. Cross review (global)
+        # 4. Full review (global)
         h = _git_head()
-        run_cross_review(asn_num, max_cycles=3, dry_run=dry_run)
+        run_full_review(asn_num, max_cycles=3, dry_run=dry_run)
         global_changed = _get_changed_labels(asn_label, h)
         all_changed |= global_changed
-        print(f"  [CROSS-REVIEW] → {len(global_changed)} changed",
+        print(f"  [FULL-REVIEW] → {len(global_changed)} changed",
               file=sys.stderr)
 
         # ── Downward (prolongation) ──

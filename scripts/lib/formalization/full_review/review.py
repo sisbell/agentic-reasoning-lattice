@@ -1,11 +1,11 @@
 """
-Cross-cutting Review step — whole-ASN deep structural analysis.
+Full Review step — whole-ASN deep structural analysis.
 
 Reads the entire ASN + foundation and finds issues that per-property
 pipelines can't catch: carrier-set conflation, precondition chain gaps,
 arguments that assume what they prove, missing cases.
 
-Step functions for the orchestrator (scripts/cross-review.py):
+Step functions for the orchestrator (scripts/full-review.py):
 - run_review: run Opus deep review, return findings text
 - extract_findings: parse findings into (title, text) tuples
 """
@@ -19,7 +19,7 @@ from lib.shared.paths import WORKSPACE, load_manifest
 from lib.shared.common import read_file, invoke_claude
 from lib.shared.foundation import load_foundation_statements, load_foundation_for_labels
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization" / "cross-review"
+PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization" / "full-review"
 REVIEW_TEMPLATE = PROMPTS_DIR / "review.md"
 
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Formalization Review — orchestrate proof, contract, cross, and dependency reviews.
+Formalization Review — orchestrate proof, contract, full, and dependency reviews.
 
 Runs the four review steps in order, repeating cycles until all converge
 or max cycles reached.
@@ -23,11 +23,11 @@ from lib.shared.common import find_asn
 import importlib
 _proof_review = importlib.import_module("proof-review")
 _contract_review = importlib.import_module("contract-review")
-_cross_review = importlib.import_module("cross-review")
+_full_review = importlib.import_module("full-review")
 
 run_proof_review = _proof_review.run_proof_review
 run_contract_review = _contract_review.run_contract_review
-run_cross_review = _cross_review.run_cross_review
+run_full_review = _full_review.run_full_review
 
 
 def run_formalization_review(asn_num, max_cycles=3, dry_run=False,
@@ -36,7 +36,7 @@ def run_formalization_review(asn_num, max_cycles=3, dry_run=False,
 
     keep_cache: if True, don't invalidate hash caches between outer cycles.
     Only changed properties get re-checked — useful when iterating on
-    cross-review findings where most properties are untouched.
+    full-review findings where most properties are untouched.
     """
     _, asn_label = find_asn(str(asn_num))
     if asn_label is None:
@@ -56,7 +56,7 @@ def run_formalization_review(asn_num, max_cycles=3, dry_run=False,
         # Invalidate caches so each outer cycle re-checks everything
         # (prior steps may have changed files that affect later steps)
         # With --keep-cache, only properties whose source hash changed
-        # will be re-checked — much faster for cross-review convergence.
+        # will be re-checked — much faster for full-review convergence.
         if not keep_cache:
             for cache_name in ("_verify-cache.json", "_contract-cache.json"):
                 cache_path = prop_dir / cache_name
@@ -75,8 +75,8 @@ def run_formalization_review(asn_num, max_cycles=3, dry_run=False,
         if result != "converged":
             all_converged = False
 
-        # 3. Cross-cutting review (whole-ASN → fix → converge)
-        result = run_cross_review(asn_num, max_cycles=3, dry_run=dry_run)
+        # 3. Full review (whole-ASN → fix → converge)
+        result = run_full_review(asn_num, max_cycles=3, dry_run=dry_run)
         if result != "converged":
             all_converged = False
 

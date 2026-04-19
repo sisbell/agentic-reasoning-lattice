@@ -37,7 +37,7 @@ Narrow a broad question into targeted sub-questions scoped to each authority ([s
 
 ### Formalization
 
-Narrow the ASN into per-property scope. Refine each property's proof and contract through review/revise iteration. [Verify the whole](verify-the-whole.md) ASN through cross-review.
+Narrow the ASN into per-property scope. Refine each property's proof and contract through review/revise iteration. [Verify the whole](verify-the-whole.md) ASN through full-review.
 
 ### Extract/absorb
 
@@ -67,6 +67,6 @@ The three-phase cycle is the primitive. The other patterns either participate in
 
 ## Origin
 
-Discovered in this conversation. Scope narrowing, review/revise iteration, and verify the whole were documented as separate patterns. Each was observed independently at different times — review/revise from the first formalization runs, scope narrowing from the blueprinting redesign, verify the whole from cross-review.
+Discovered in this conversation. Scope narrowing, review/revise iteration, and verify the whole were documented as separate patterns. Each was observed independently at different times — review/revise from the first formalization runs, scope narrowing from the blueprinting redesign, verify the whole from full-review.
 
 The insight that they are one rhythm came from listing every process in the system and seeing the same three phases in each: discovery, formalization, extract/absorb, cone review, scope promotion. Three steps, same order, everywhere. The patterns we documented separately are phases of a single cycle.

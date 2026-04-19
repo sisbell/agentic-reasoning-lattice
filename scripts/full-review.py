@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Cross-cutting Review — deep structural analysis with convergence.
+Full Review — deep structural analysis with convergence.
 
 Reads the whole ASN + foundation and finds issues that per-property
 pipelines can't catch: carrier-set conflation, precondition chain gaps,
@@ -15,10 +15,10 @@ revised while its dependencies are stable, switches to a focused
 cone review/revise loop to accelerate convergence.
 
 Usage:
-    python scripts/cross-review.py 40
-    python scripts/cross-review.py 40 --max-cycles 1     # single pass, no fixing
-    python scripts/cross-review.py 40 --dry-run           # review only
-    python scripts/cross-review.py 36 --cone S8           # force cone review on S8
+    python scripts/full-review.py 40
+    python scripts/full-review.py 40 --max-cycles 1     # single pass, no fixing
+    python scripts/full-review.py 40 --dry-run           # review only
+    python scripts/full-review.py 36 --cone S8           # force cone review on S8
 """
 
 import argparse
@@ -30,13 +30,13 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, next_review_number
 from lib.shared.common import find_asn, assemble_readonly, step_commit_asn
-from lib.formalization.cross_review.review import run_review, extract_findings
-from lib.formalization.cross_review.revise import revise
+from lib.formalization.full_review.review import run_review, extract_findings
+from lib.formalization.full_review.revise import revise
 from lib.formalization.cone import detect_dependency_cone, run_cone_review
 
 
-def run_cross_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
-    """Run the cross-cutting review pipeline.
+def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
+    """Run the full review pipeline.
 
     Returns "converged" or "not_converged".
     """
@@ -47,7 +47,7 @@ def run_cross_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
 
     review_dir = FORMALIZATION_DIR / asn_label / "reviews"
 
-    print(f"\n  [CROSS-REVIEW] {asn_label}", file=sys.stderr)
+    print(f"\n  [FULL-REVIEW] {asn_label}", file=sys.stderr)
 
     prop_dir = FORMALIZATION_DIR / asn_label
     if not prop_dir.exists():
@@ -86,7 +86,7 @@ def run_cross_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
         review_num = next_review_number(asn_label, reviews_dir=review_dir)
         review_path = review_dir / f"review-{review_num}.md"
         with open(review_path, "w") as rf:
-            rf.write(f"# Cross-cutting Review — {asn_label} (cycle {cycle})\n\n")
+            rf.write(f"# Full Review — {asn_label} (cycle {cycle})\n\n")
             rf.write(f"*{time.strftime('%Y-%m-%d %H:%M')}*\n\n")
             rf.write(findings_text + "\n")
 
@@ -119,7 +119,7 @@ def run_cross_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
 
         # Commit
         step_commit_asn(asn_num,
-                        f"cross-review(asn): {asn_label} — cycle {cycle}")
+                        f"full-review(asn): {asn_label} — cycle {cycle}")
 
         # Accumulate findings for next cycle's "existing open issues"
         previous_findings = (previous_findings + "\n\n" + findings_text).strip()
@@ -149,7 +149,7 @@ def run_cross_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
 
     if had_findings and not dry_run and not converged:
         step_commit_asn(asn_num,
-                        f"cross-review(asn): {asn_label} — not converged")
+                        f"full-review(asn): {asn_label} — not converged")
 
     return "converged" if converged else "not_converged"
 
@@ -206,14 +206,14 @@ def run_revise_from_review(asn_num, review_spec):
             any_changed = True
 
     if any_changed:
-        step_commit_asn(asn_num, hint="cross-review revise")
+        step_commit_asn(asn_num, hint="full-review revise")
 
     return any_changed
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Cross-cutting Review — deep structural analysis")
+        description="Full Review — deep structural analysis")
     parser.add_argument("asn", help="ASN number (e.g., 40)")
     parser.add_argument("--max-cycles", type=int, default=8,
                         help="Maximum convergence cycles (default: 8)")
@@ -250,7 +250,7 @@ def main():
                                   model=args.model)
         sys.exit(0 if result == "converged" else 1)
 
-    result = run_cross_review(asn_num, max_cycles=args.max_cycles,
+    result = run_full_review(asn_num, max_cycles=args.max_cycles,
                                model=args.model,
                                dry_run=args.dry_run)
     sys.exit(0 if result == "converged" else 1)

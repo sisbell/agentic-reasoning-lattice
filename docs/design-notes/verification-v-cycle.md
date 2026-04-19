@@ -14,7 +14,7 @@ The Verification V-Cycle addresses this by cycling through three scales of revie
 
 **Regional** — cone-sweep. Reviews dependency cones: properties with many same-ASN dependencies, processed bottom-up in topological order. Narrowed context (apex + dependencies + relevant foundation only) focuses attention on the constraint system. Catches issues that span tightly coupled clusters — the [dependency cone](../patterns/dependency-cone.md) pattern.
 
-**Global** — cross-review. Full ASN scan with complete foundation context. Finds issues invisible at narrower scales: carrier-set conflation, precondition chain gaps across unrelated properties, scope mismatches between proof and narrative. Broadest view, noisiest context, slowest convergence.
+**Global** — full-review. Full ASN scan with complete foundation context. Finds issues invisible at narrower scales: carrier-set conflation, precondition chain gaps across unrelated properties, scope mismatches between proof and narrative. Broadest view, noisiest context, slowest convergence.
 
 ## Cycle Structure
 
@@ -28,7 +28,7 @@ Each pass follows an upward-then-downward path:
   2. proof-review      local     fix proofs
   3. contract-review   local     fix contracts
   4. cone-sweep        regional  fix clusters (bottom-up DAG walk)
-  5. cross-review      global    broad scan
+  5. full-review       global    broad scan
 
 ── Downward ──
   6. cone-review       regional  re-check cones affected by upward changes
@@ -74,7 +74,7 @@ The analogy:
 |-----------|------|
 | Fine grid relaxation | Local review (proof, contract) |
 | Medium grid | Regional review (cone-sweep) |
-| Coarse grid | Global review (cross-review) |
+| Coarse grid | Global review (full-review) |
 | High-frequency error | Property-level issues (local inconsistencies) |
 | Low-frequency error | Cross-property patterns (dependency cones) |
 | Restriction | Assembling wider context |
@@ -84,17 +84,17 @@ The V-cycle differs from classical multigrid in two ways. First, each scale runs
 
 ## The V-Cycle as Self-Evaluation
 
-Cross-review findings that appear to be cone-level issues are diagnostic signals — evidence that cone sweep did not genuinely converge, only stopped. A clean cross-review is not just completion; it is evidence that lower scales reached genuine ground state. This makes the V-cycle self-evaluating: the system assesses the quality of its own lower-scale processes through the pattern of what higher scales find.
+Full-review findings that appear to be cone-level issues are diagnostic signals — evidence that cone sweep did not genuinely converge, only stopped. A clean full-review is not just completion; it is evidence that lower scales reached genuine ground state. This makes the V-cycle self-evaluating: the system assesses the quality of its own lower-scale processes through the pattern of what higher scales find.
 
-There is no noise in a truly converged system. What looks like noise at cross-review is a signal that a lower scale is incomplete. The pattern of findings tells you where the incompleteness lives:
+There is no noise in a truly converged system. What looks like noise at full-review is a signal that a lower scale is incomplete. The pattern of findings tells you where the incompleteness lives:
 
-- **Cross-review finds a vocabulary collision** → genuine structural issue, cone sweep is architecturally unable to see it
-- **Cross-review finds something that looks like a cone-level issue** → cone sweep did not converge, go back. See [Contract Sprawl](../equilibrium/contract-sprawl.md) for a specific failure mode that produces this signal.
-- **Cross-review finds nothing** → lower scales reached genuine ground state, convergence is real
+- **Full-review finds a vocabulary collision** → genuine structural issue, cone sweep is architecturally unable to see it
+- **Full-review finds something that looks like a cone-level issue** → cone sweep did not converge, go back. See [Contract Sprawl](../equilibrium/contract-sprawl.md) for a specific failure mode that produces this signal.
+- **Full-review finds nothing** → lower scales reached genuine ground state, convergence is real
 
 This self-evaluation property is what makes the V-cycle a protocol substrate rather than just a verification procedure. A system that can detect incomplete convergence in its own processes can improve those processes — adjusting scope, reconfiguring cone boundaries, reallocating agent computation. The pattern language systematically reduces wasted computation by routing problems to the scale that can resolve them. The V-cycle's self-diagnostic signal is what makes that routing improvable over time.
 
-This connects directly to the adiabatic property of the protocol. Each scale's convergence is a genuine precondition for the next scale's findings being trustworthy — not just an ordering constraint. Running cross-review on a partially-converged system doesn't produce faster results; it produces misleading ones. The adiabatic ordering is what separates genuine structural findings from artifacts of incomplete lower-scale processing.
+This connects directly to the adiabatic property of the protocol. Each scale's convergence is a genuine precondition for the next scale's findings being trustworthy — not just an ordering constraint. Running full-review on a partially-converged system doesn't produce faster results; it produces misleading ones. The adiabatic ordering is what separates genuine structural findings from artifacts of incomplete lower-scale processing.
 
 ## Detection of Scale-Appropriate Problems
 

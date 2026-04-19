@@ -10,7 +10,7 @@ The V-cycle operates at three scales, inspired by multigrid methods (Brandt 1977
 
 - **Property scale** — proof review, contract review. One property at a time, dependencies fixed.
 - **Cluster scale** — cone sweep. A tightly coupled group of properties reviewed together.
-- **System scale** — cross-review. The entire ASN reviewed at once.
+- **System scale** — full-review. The entire ASN reviewed at once.
 
 These compose into a V-cycle: upward through scales (property → cluster → system), then downward to re-verify anything that changed.
 
@@ -37,16 +37,16 @@ Rewrites every non-definition, non-axiom property's proof to Dijkstra standard a
 
 Per-property review stalls on tightly coupled claims — one property keeps getting revised while its dependencies sit stable. This is a [dependency cone](../patterns/dependency-cone.md). The cone sweep detects these clusters and reviews them as a unit. The loop runs until the reviewer finds no issues or max cycles is reached.
 
-### System-Scale Review: Cross-Review
+### System-Scale Review: Full-Review
 
-**Cross-review** — Reads the entire assembled ASN (all properties) + foundation statements. Finds issues that narrower scales can't catch: carrier-set conflation, precondition chain gaps, circular reasoning across properties. Reviser agent can edit multiple `.md` files and update `.yaml` depends (add-only).
+**Full-review** — Reads the entire assembled ASN (all properties) + foundation statements. Finds issues that narrower scales can't catch: carrier-set conflation, precondition chain gaps, circular reasoning across properties. Reviser agent can edit multiple `.md` files and update `.yaml` depends (add-only).
 
 ### V-Cycle Orchestrator
 
 Composes all three scales into a single upward-downward pass:
 
-1. **Upward pass:** proof review → contract review → cone sweep → cross-review
-2. **Dirty set detection:** after cross-review, check which properties changed via git diff
+1. **Upward pass:** proof review → contract review → cone sweep → full-review
+2. **Dirty set detection:** after full-review, check which properties changed via git diff
 3. **Downward pass:** for any changed properties, run cone review on affected cones, then re-run proof and contract review on the changed properties
 
 The downward pass fires on ANY change during the upward pass. Each scale handles the errors it is efficient at.
@@ -129,7 +129,7 @@ The `.yaml` is the metadata source of truth. The `.md` is what the LLM reads and
 
 The per-property constraint is architectural. Each property is formalized independently — its dependencies are immutable context. This is like solving a system of equations one variable at a time with the others fixed. It converges. Multi-property formalization would be like solving them all simultaneously — it can oscillate.
 
-Per-property handles independent claims fast. When tightly coupled claims stall single-property review, a [dependency cone](../patterns/dependency-cone.md) is the signal — one apex property thrashing against stable dependencies. The cone sweep widens context to the cluster and resolves it with focused attention. Cross-review catches what both narrower scales miss — gaps between distant properties that only show up at full-ASN scope.
+Per-property handles independent claims fast. When tightly coupled claims stall single-property review, a [dependency cone](../patterns/dependency-cone.md) is the signal — one apex property thrashing against stable dependencies. The cone sweep widens context to the cluster and resolves it with focused attention. Full-review catches what both narrower scales miss — gaps between distant properties that only show up at full-ASN scope.
 
 The three scales compose: property scale handles 80% fast, cluster scale handles 15% that needs coupling context, system scale handles 5% that needs the full picture. The V-cycle iterates until all three scales converge.
 

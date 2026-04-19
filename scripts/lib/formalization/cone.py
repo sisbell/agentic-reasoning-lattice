@@ -22,8 +22,8 @@ from lib.shared.common import (
     find_asn, build_label_index, load_property_metadata,
     step_commit_asn,
 )
-from lib.formalization.cross_review.review import run_review, extract_findings
-from lib.formalization.cross_review.revise import revise
+from lib.formalization.full_review.review import run_review, extract_findings
+from lib.formalization.full_review.revise import revise
 from lib.formalization.core.build_dependency_graph import generate_formalization_deps
 from lib.formalization.core.topological_sort import topological_levels
 
@@ -31,7 +31,7 @@ from lib.formalization.core.topological_sort import topological_levels
 def detect_dependency_cone(asn_num, window=5, threshold=3):
     """Detect a dependency cone from git history.
 
-    Scans the last `window` cross-review commits for this ASN.
+    Scans the last `window` full-review commits for this ASN.
     If one property has >= `threshold` touches while its YAML
     dependencies have <= 1 touch, returns (apex_label, dep_labels).
     Otherwise returns None.
@@ -43,10 +43,13 @@ def detect_dependency_cone(asn_num, window=5, threshold=3):
     prop_dir = FORMALIZATION_DIR / asn_label
     rel_dir = prop_dir.relative_to(WORKSPACE)
 
-    # Get last N cross-review commits touching this ASN
+    # Get last N review commits touching this ASN.
+    # Match both prefixes so historical cross-review commits remain findable
+    # across the rename. The older prefix was used for 194+ commits.
     try:
         result = subprocess.run(
-            ["git", "log", f"--grep=cross-review", f"-{window}",
+            ["git", "log", "-E", "--grep=cross-review|full-review",
+             f"-{window}",
              "--format=%H", "--", str(rel_dir)],
             capture_output=True, text=True, cwd=str(WORKSPACE),
         )
@@ -162,7 +165,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
                     dry_run=False, model="opus"):
     """Run a focused review/revise loop on the dependency cone.
 
-    Same structure as cross-review but with narrower context:
+    Same structure as full-review but with narrower context:
     only the apex and its same-ASN dependencies.
 
     Returns "converged" or "not_converged".

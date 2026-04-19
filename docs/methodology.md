@@ -35,7 +35,7 @@ The V-cycle is the core of the methodology. It traverses the lattice at three sc
 
 **Ascend through joins** — recompose to document scale:
 
-- **Cross-review** — full ASN scan with foundation context. Catches what narrower scales miss: conflation of distinct concepts, precondition chain gaps across distant properties, scope mismatches between proof and narrative.
+- **Full-review** — full ASN scan with foundation context. Catches what narrower scales miss: conflation of distinct concepts, precondition chain gaps across distant properties, scope mismatches between proof and narrative.
 
 **Descend again** — verify corrections:
 

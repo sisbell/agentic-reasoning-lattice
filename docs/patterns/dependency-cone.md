@@ -92,4 +92,4 @@ This reorganization pattern suggests cones operate at two levels: **review** (ar
 
 ## Origin
 
-Discovered during ASN-0036 formalization on the Xanadu project, reviews 60-65. S8 (FiniteCorrespondenceRunDecomposition) was touched in 4 of 6 consecutive cross-review commits while its 7 dependencies were touched 0-1 times. The cross-review had already converged the loosely coupled properties (S7, ValidInsertionPosition, S3) in earlier rounds — what remained was the tightly coupled S8 core.
+Discovered during ASN-0036 formalization on the Xanadu project, reviews 60-65. S8 (FiniteCorrespondenceRunDecomposition) was touched in 4 of 6 consecutive full-review commits while its 7 dependencies were touched 0-1 times. The full-review had already converged the loosely coupled properties (S7, ValidInsertionPosition, S3) in earlier rounds — what remained was the tightly coupled S8 core.

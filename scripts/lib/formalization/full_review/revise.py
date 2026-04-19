@@ -1,5 +1,5 @@
 """
-Cross-cutting Review reviser — applies fixes from findings.
+Full Review reviser — applies fixes from findings.
 
 Takes a finding title and text, builds a prompt from the revise template,
 and runs claude -p with Edit tools to apply the fix.
@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, USAGE_LOG
 from lib.shared.common import find_asn, read_file
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization" / "cross-review"
+PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization" / "full-review"
 REVISE_TEMPLATE = PROMPTS_DIR / "revise.md"
 
 
@@ -83,7 +83,7 @@ def revise(asn_num, title, finding_text, prop_dir=None):
     try:
         entry = {
             "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
-            "skill": "cross-review-revise",
+            "skill": "full-review-revise",
             "asn": asn_label,
             "finding": title,
             "elapsed_s": round(elapsed, 1),

@@ -37,17 +37,17 @@ python scripts/promote-blueprint.py 34
 Review and converge proofs, contracts, and cross-property consistency.
 
 ```bash
-# Full review cycle (proof → contract → cross → dependency)
+# Full review cycle (proof → contract → full → dependency)
 python scripts/formalization-review.py 34
 
 # Or run steps individually:
 python scripts/proof-review.py 34          # verify proofs, fix gaps
 python scripts/contract-review.py 34       # validate contracts, fix mismatches
-python scripts/cross-review.py 34          # whole-ASN structural analysis
+python scripts/full-review.py 34           # whole-ASN structural analysis
 python scripts/dependency-review.py 34     # upstream reference validation
 
-# Pick up cross-review findings from a previous run:
-python scripts/cross-review.py 34 --review vault/3-formalization/ASN-0034/reviews/review-7.md
+# Pick up full-review findings from a previous run:
+python scripts/full-review.py 34 --review vault/3-formalization/ASN-0034/reviews/review-7.md
 
 # Assembly (for downstream consumers)
 python scripts/formalization-assembly.py 34

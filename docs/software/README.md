@@ -18,7 +18,7 @@ Convergence is always relative to a downstream verifier. For software reverse-en
 |---|---|---|
 | Local | local-review (current: proof-review) | proof soundness per property |
 | Regional | regional-review (current: cone-review) | cluster proof consistency |
-| Global | global-review (current: cross-review) | lattice proof consistency |
+| Global | full-review | lattice proof consistency |
 
 At each scale, the operator iterates until the verifier finds no new issues.
 

@@ -1,6 +1,6 @@
-# Cross-cutting Fix
+# Full Review Fix
 
-You are fixing a cross-cutting issue in an ASN reasoning document.
+You are fixing a whole-ASN issue in a reasoning document.
 Unlike per-property fixes, this issue may span multiple properties
 or involve the relationship between the ASN's language and its
 foundation's definitions.
