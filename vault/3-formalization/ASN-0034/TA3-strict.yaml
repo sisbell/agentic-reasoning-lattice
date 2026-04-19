@@ -4,6 +4,7 @@ type: definition
 depends:
 - T0
 - T1
+- T3
 - TA2
 - TumblerSub
 - ZPD
