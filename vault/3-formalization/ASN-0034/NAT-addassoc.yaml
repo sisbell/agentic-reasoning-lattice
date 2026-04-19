@@ -7,7 +7,8 @@ summary: |
   Registered as one of the nine NAT-* axioms inside T0's enumeration (declared
   exhaustive); this file states the formal content downstream proofs cite. Membership
   in the enumeration is decided by demonstrated downstream consumption — associativity
-  enters via TS3 and TA-assoc (which regroup three summands at a single component);
-  commutativity is held out (no proof in this ASN reorders two summands), which is
-  what licenses TumblerAdd's dominance argument to rule out the symmetric proof
-  route through `1 + wₖ > wₖ`.
+  enters via GlobalUniqueness Case 5's length-collision argument (which regroups
+  `#p₁ + (1 + 1)` as `(#p₁ + 1) + 1` in the `(k'₁, k'₂) = (2, 1)` extraction);
+  commutativity is held out because no proof in this ASN reorders two summands, and
+  its omission is what forces NAT-addcompat and NAT-cancel to state their
+  left/right clauses independently rather than deriving one from the other.
