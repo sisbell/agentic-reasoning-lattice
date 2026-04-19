@@ -65,7 +65,7 @@ Each [review/revise iteration](review-revise-iteration.md) cycle operates within
 
 ## Relationship to other patterns
 
-[Scope narrowing](scope-narrowing.md) — representation change is a tool that scope narrowing reaches for when the current form doesn't support finer granularity. You can't narrow a narrative document into properties without changing its representation to structured files. Narrowing decides WHAT to focus on. Representation change provides the form that makes the focus possible. Not all narrowing requires representation change — cone review narrows to a cluster without changing form.
+[Scope narrowing](scope-narrowing.md) — representation change is a tool that scope narrowing reaches for when the current form doesn't support finer granularity. You can't narrow a narrative document into properties without changing its representation to structured files. Narrowing decides WHAT to focus on. Representation change provides the form that makes the focus possible. Not all narrowing requires representation change — regional review narrows to a cluster without changing form.
 
 [Narrow → Refine → Verify](narrow-refine-verify.md) — representation change serves the primary cycle but is not a phase within it. It happens when needed: before narrowing (blueprinting), after narrowing (extract/absorb), between refinement stages (formalization → modeling). Refinement operates within a single representation — the representation is stable during the review/revise loop.
 

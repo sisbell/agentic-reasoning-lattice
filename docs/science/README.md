@@ -1,6 +1,6 @@
 # Science Deployment: Approach
 
-*Design note. Speculative — not yet run. How the [Two Data Authorities](../patterns/two-data-authorities.md) pattern and its supporting machinery (V-cycle, cone-review, lattice) would apply to scientific discovery. Core framing: the system produces hypotheses, not discoveries. Verification happens downstream.*
+*Design note. Speculative — not yet run. How the [Two Data Authorities](../patterns/two-data-authorities.md) pattern and its supporting machinery (V-cycle, regional-review, lattice) would apply to scientific discovery. Core framing: the system produces hypotheses, not discoveries. Verification happens downstream.*
 
 ## Core claim
 
@@ -17,12 +17,12 @@ Convergence is always relative to a downstream verifier. Different domains have 
 | Scale | Operator | Science verifier |
 |---|---|---|
 | Local | local-review | hypothesis articulation (testable) |
-| Regional | regional-review (current: cone-review) | cluster articulation (mutually consistent) |
+| Regional | regional-review | cluster articulation (mutually consistent) |
 | Global | full-review | framework coherence |
 
 At each scale, the operator iterates until the relevant verifier finds no new issues. Science cones stabilize when hypotheses are articulated precisely enough to test. The [software deployment](../software/README.md) uses the same machinery with a different verifier (proof soundness via Dafny).
 
-(Local and full scales use their renamed scale-based operator names; the regional scale is still named cone-review pending its rename. See memory: operator rename plan.)
+(All three scales use scale-based operator names: local-review, regional-review, full-review. The operator-name refactor is complete.)
 
 ### Cone as hypothesis cluster
 

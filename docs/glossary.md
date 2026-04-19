@@ -40,10 +40,6 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Cone, dependency.** A cluster of tightly coupled properties where an apex keeps being revised while dependencies are stable. See [Dependency Cone pattern](patterns/dependency-cone.md).
 
-**Cone review.** Focused review of a specific dependency cone with apex + dependencies as context. Resolves the cluster as a constraint system.
-
-**Cone sweep.** Proactive cluster-scale review walking the dependency graph bottom-up, running cone review on every property meeting the dependency threshold.
-
 **Consult authority.** During revision, return to source material to ground findings in evidence. See [Consult Authority pattern](patterns/consult-authority.md).
 
 **Content.** What the `.md` file holds — narrative, proof, formal contract claims. Distinct from metadata.
@@ -170,6 +166,10 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Rebase.** Re-verifying downstream properties after a foundation changes. Happens automatically via review/revise cycles because changed dependencies invalidate dependents' metadata.
 
+**Regional-review.** Focused review of a specific dependency cone with apex + dependencies as context. Resolves the cluster as a constraint system. Renamed from cone-review.
+
+**Regional-sweep.** Proactive regional-scale review walking the dependency graph bottom-up, running regional-review on every property meeting the dependency threshold. Renamed from cone-sweep.
+
 **Representation change.** Progressive transformation of content through different forms (narrative → structured → formal → mechanical) without changing the underlying claim. See [Representation Change pattern](patterns/representation-change.md).
 
 **Review coinage.** [Prose coinage](patterns/prose-coinage.md) that happens during review/revise cycles rather than at synthesis. Occurs in both discovery and formalization. Roughly 30% of an ASN's coinages. Driven by reviewer pressure surfacing a concept the current text is discussing in ad-hoc prose without a shared name. See [Synthesis coinage](#s) for contrast.
@@ -224,7 +224,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Under-citation.** A proof uses a property that its Depends list doesn't include. The most common form of [Citation Drift](equilibrium/citation-drift.md).
 
-**Upward pass.** First phase of the [V-cycle](design-notes/verification-v-cycle.md) — local review → contract review → cone sweep → full-review, building confidence from narrow to wide scope.
+**Upward pass.** First phase of the [V-cycle](design-notes/verification-v-cycle.md) — local review → contract review → regional sweep → full-review, building confidence from narrow to wide scope.
 
 ## V
 

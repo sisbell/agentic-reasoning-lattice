@@ -51,9 +51,9 @@ Full-review reads the entire assembled ASN and checks that the hardened properti
 
 **What it catches**: S8's proof uses D-CTG for contiguous range structure but never declares the dependency. At property scope, S8's proof looks fine — D-CTG is just something it references. At whole-ASN scope, the missing dependency is visible because the reviewer can see both S8 and D-CTG and notice the undeclared relationship.
 
-### In cone review
+### In regional review
 
-Cone review is verify-the-whole at cluster scope. The cluster's properties have been hardened individually. Cone review assembles them and checks coherence — but only within the cluster, not the full ASN.
+Regional review is verify-the-whole at cluster scope. The cluster's properties have been hardened individually. Regional review assembles them and checks coherence — but only within the cluster, not the full ASN.
 
 **What it catches**: S4's contract omits T3 as a precondition. At property scope, S4 looks fine. At S7's cone scope, the reviewer sees that S7 depends on S4 providing T3-based guarantees, but S4's contract doesn't promise them. The seam between S4 and S7 is only visible when both are in context.
 
@@ -73,11 +73,11 @@ Scope narrowing and verify the whole always appear together. Every narrowing ste
 
 - Discovery narrows via scoped inquiry → synthesis verifies the whole consultation
 - Blueprinting narrows into properties → formalization narrows further, then full-review verifies the whole ASN
-- Cone review narrows to a cluster → re-verifies the cluster's coherence
+- Regional review narrows to a cluster → re-verifies the cluster's coherence
 - Extract/absorb narrows a shared concept into one definition → verify consuming documents still cohere
 
 Narrowing without verification produces pieces that don't fit. Verification without narrowing has nothing hardened to check. The pair is the fundamental rhythm of the system: narrow, harden, step back, check.
 
 ## Origin
 
-Verify the whole was present before scope narrowing was named. The full-review step existed from the first formalization runs — it was always clear that per-property review couldn't catch everything. The pattern was recognized when the same structure appeared at every scale: synthesis in discovery (verify the consultation), full-review in formalization (verify the ASN), cone review (verify the cluster). The same check, at different widths, for the same reason — narrowing creates seams, verification finds them.
+Verify the whole was present before scope narrowing was named. The full-review step existed from the first formalization runs — it was always clear that per-property review couldn't catch everything. The pattern was recognized when the same structure appeared at every scale: synthesis in discovery (verify the consultation), full-review in formalization (verify the ASN), regional review (verify the cluster). The same check, at different widths, for the same reason — narrowing creates seams, verification finds them.

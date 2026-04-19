@@ -37,7 +37,7 @@ The findings progress through predictable stages:
 4. **Mathematical precision** — unstated domain assumptions, properties asserted when derivable, proofs claiming specific scope when argument is general.
 5. **Structural organization** — phantom dependencies, redundant properties, edge-case insights.
 
-This progression was observed independently in ASN-0034 discovery (reviews 14-31), ASN-0036 discovery (reviews 1-26), and ASN-0036 formalization cone reviews. The same stages, same order, across different ASNs and different pipeline stages.
+This progression was observed independently in ASN-0034 discovery (reviews 14-31), ASN-0036 discovery (reviews 1-26), and ASN-0036 formalization regional reviews. The same stages, same order, across different ASNs and different pipeline stages.
 
 ## When it converges
 
@@ -75,7 +75,7 @@ This progression was observed independently in ASN-0034 discovery (reviews 14-31
 **Reviser**: agent with Edit/Write tools, can modify multiple properties per finding.
 **Convergence**: slow — broad context means noisy findings. May stall on [dependency cones](dependency-cone.md).
 
-### Cone review
+### Regional review
 
 **Scope**: one property + its same-ASN dependencies, narrowed foundation.
 **Review criteria**: same as full-review, but focused on the constraint system around one high-dependency property.

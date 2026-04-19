@@ -1,13 +1,15 @@
 """
-Dependency cone — detection, focused review, and proactive sweep.
+Regional-scale V-cycle operators: regional-review (one cone) and
+regional-sweep (across all qualifying cones), plus cone detection
+and assembly helpers.
 
 A dependency cone is a property (the apex) that sits atop many stable
 dependencies and can't converge under per-finding revision. See
-docs/reference/dependency-cone.md for the pattern.
+docs/patterns/dependency-cone.md for the pattern.
 
 - detect_dependency_cone: reactive, from git history
-- run_cone_review: focused review/revise loop on one cone
-- run_cone_sweep: proactive bottom-up DAG walk, reviews all qualifying cones
+- run_regional_review: focused review/revise loop on one cone
+- run_regional_sweep: proactive bottom-up DAG walk, reviews all qualifying cones
 """
 
 import re
@@ -161,9 +163,9 @@ def _extract_apex_history(asn_label, apex_label, max_reviews=5):
     return "\n\n---\n\n".join(reversed(relevant))
 
 
-def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
-                    dry_run=False, model="opus"):
-    """Run a focused review/revise loop on the dependency cone.
+def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
+                        dry_run=False, model="opus"):
+    """Run a focused regional-scale review/revise loop on one dependency cone.
 
     Same structure as full-review but with narrower context:
     only the apex and its same-ASN dependencies.
@@ -177,7 +179,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
     prop_dir = FORMALIZATION_DIR / asn_label
     review_dir = prop_dir / "reviews"
 
-    print(f"\n  [CONE-REVIEW] {apex_label} + {len(dep_labels)} deps",
+    print(f"\n  [REGIONAL-REVIEW] {apex_label} + {len(dep_labels)} deps",
           file=sys.stderr)
 
     # Collect cross-ASN deps for narrowed foundation loading
@@ -201,7 +203,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
     had_findings = False
 
     for cycle in range(1, max_cycles + 1):
-        print(f"\n  [CONE CYCLE {cycle}/{max_cycles}]", file=sys.stderr)
+        print(f"\n  [CYCLE {cycle}/{max_cycles}]", file=sys.stderr)
 
         # Assemble just the cone
         cone_content = assemble_cone(asn_label, apex_label, dep_labels)
@@ -212,12 +214,12 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
             foundation_labels=cross_asn_deps)
 
         if findings_text == "ERROR":
-            print(f"\n  [CONE] FAILED on cycle {cycle} (review error). Skipping.",
+            print(f"\n  [REGIONAL-REVIEW] FAILED on cycle {cycle} (review error). Skipping.",
                   file=sys.stderr)
             break
 
         if findings_text is None:
-            print(f"\n  [CONE] Converged after {cycle} cycle{'s' if cycle > 1 else ''}.",
+            print(f"\n  [REGIONAL-REVIEW] Converged after {cycle} cycle{'s' if cycle > 1 else ''}.",
                   file=sys.stderr)
             break
 
@@ -228,7 +230,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
         review_num = next_review_number(asn_label, reviews_dir=review_dir)
         review_path = review_dir / f"review-{review_num}.md"
         with open(review_path, "w") as rf:
-            rf.write(f"# Cone Review — {asn_label}/{apex_label} (cycle {cycle})\n\n")
+            rf.write(f"# Regional Review — {asn_label}/{apex_label} (cycle {cycle})\n\n")
             rf.write(f"*{time.strftime('%Y-%m-%d %H:%M')}*\n\n")
             rf.write(findings_text + "\n")
 
@@ -253,7 +255,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
             break
 
         step_commit_asn(asn_num,
-                        f"cone-review(asn): {asn_label}/{apex_label} — cycle {cycle}")
+                        f"regional-review(asn): {asn_label}/{apex_label} — cycle {cycle}")
 
         previous_findings = (previous_findings + "\n\n" + findings_text).strip()
 
@@ -265,22 +267,22 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
         with open(review_path, "a") as rf:
             rf.write(f"\n## Result\n\n")
             if converged:
-                rf.write(f"Cone converged after {cycle} cycles.\n")
+                rf.write(f"Regional review converged after {cycle} cycles.\n")
             else:
-                rf.write(f"Cone not converged after {cycle} cycles.\n")
+                rf.write(f"Regional review not converged after {cycle} cycles.\n")
             rf.write(f"\n*Elapsed: {elapsed:.0f}s*\n")
 
-    print(f"  [CONE] Elapsed: {elapsed:.0f}s", file=sys.stderr)
+    print(f"  [REGIONAL-REVIEW] Elapsed: {elapsed:.0f}s", file=sys.stderr)
     if failed:
         return "failed"
     return "converged" if converged else "not_converged"
 
 
-def run_cone_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False, model="opus"):
-    """Proactive cone review sweep — bottom-up DAG walk.
+def run_regional_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False, model="opus"):
+    """Proactive regional-scale sweep — bottom-up DAG walk.
 
     For each property with >= min_deps same-ASN dependencies,
-    run a cone review. Process in topological order (foundations first)
+    run a regional review. Process in topological order (foundations first)
     so each cone's dependencies are stable when it runs.
 
     Returns "converged" or "not_converged".
@@ -303,7 +305,7 @@ def run_cone_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False, model="opus
     levels = topological_levels(deps_data)
     asn_labels = set(build_label_index(prop_dir).keys())
 
-    print(f"\n  [CONE-SWEEP] {asn_label} — {len(asn_labels)} properties, "
+    print(f"\n  [REGIONAL-SWEEP] {asn_label} — {len(asn_labels)} properties, "
           f"min_deps={min_deps}", file=sys.stderr)
 
     start_time = time.time()
@@ -320,7 +322,7 @@ def run_cone_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False, model="opus
                 continue
 
             cones_reviewed += 1
-            result = run_cone_review(
+            result = run_regional_review(
                 asn_num, label, same_deps,
                 max_cycles=max_cycles, dry_run=dry_run, model=model)
 
@@ -329,10 +331,10 @@ def run_cone_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False, model="opus
 
     elapsed = time.time() - start_time
     if cones_reviewed == 0:
-        print(f"\n  [CONE-SWEEP] No properties with >= {min_deps} same-ASN deps.",
+        print(f"\n  [REGIONAL-SWEEP] No properties with >= {min_deps} same-ASN deps.",
               file=sys.stderr)
     else:
-        print(f"\n  [CONE-SWEEP] {cones_reviewed} cones reviewed in {elapsed:.0f}s",
+        print(f"\n  [REGIONAL-SWEEP] {cones_reviewed} cones reviewed in {elapsed:.0f}s",
               file=sys.stderr)
 
     return "not_converged" if any_not_converged else "converged"

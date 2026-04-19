@@ -34,7 +34,7 @@ The bridge sits between the algebra (which knows only tumblers and operations) a
 
 **Alias resolution**: maps multiple domain terms to the same structural property. Nelson calls it "node," Gregory calls it "server," T4 calls it "network field" — all mean the first tumbler field. The two data authorities produce different terms because they reason from different sources. Without resolution, every downstream ASN encounters the confusion independently and resolves it ad hoc.
 
-Both kinds sit in the same bridge layer. Both arise because the authorities speak different languages about the same structure. The interesting property: alias conflicts surface in different contexts. The "node" vs "network" mismatch appeared in S7's cone review — not in a vocabulary audit, but in a proof that needed to cite T4 precisely. The cone couldn't reconcile S7's "node" with T4's "network" and flagged it. Each context that encounters the alias discovers the inconsistency independently until the bridge resolves it once.
+Both kinds sit in the same bridge layer. Both arise because the authorities speak different languages about the same structure. The interesting property: alias conflicts surface in different contexts. The "node" vs "network" mismatch appeared in S7's regional review — not in a vocabulary audit, but in a proof that needed to cite T4 precisely. The cone couldn't reconcile S7's "node" with T4's "network" and flagged it. Each context that encounters the alias discovers the inconsistency independently until the bridge resolves it once.
 
 ## Detection
 
@@ -67,4 +67,4 @@ Every ASN above ASN-0034 that mentions "document" or "element" depends on these 
 
 ## Origin
 
-Discovered when the ASN-0036 cone sweep, running against the updated ASN-0034 foundation, created D-DOC to complete S7's proof. The definition matched ASN-0045's discovery output exactly — the formalization independently rediscovered what discovery had already found. ASN-0045's role as a vocabulary bridge between algebra and structure became clear: it wasn't corollaries, it was the translation layer that every higher ASN needs.
+Discovered when the ASN-0036 regional sweep, running against the updated ASN-0034 foundation, created D-DOC to complete S7's proof. The definition matched ASN-0045's discovery output exactly — the formalization independently rediscovered what discovery had already found. ASN-0045's role as a vocabulary bridge between algebra and structure became clear: it wasn't corollaries, it was the translation layer that every higher ASN needs.

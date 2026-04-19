@@ -9,7 +9,7 @@ Formalization transforms per-property file pairs from blueprinting into rigorous
 The V-cycle operates at three scales, inspired by multigrid methods (Brandt 1977):
 
 - **Property scale** — local review, contract review. One property at a time, dependencies fixed.
-- **Cluster scale** — cone sweep. A tightly coupled group of properties reviewed together.
+- **Cluster scale** — regional sweep. A tightly coupled group of properties reviewed together.
 - **System scale** — full-review. The entire ASN reviewed at once.
 
 These compose into a V-cycle: upward through scales (property → cluster → system), then downward to re-verify anything that changed.
@@ -31,11 +31,11 @@ Rewrites every non-definition, non-axiom property's proof to Dijkstra standard a
 
 **Contract review** — Validates that each formal contract matches the proof. On MISMATCH, rewrites the contract. Vocabulary context is aggregated from all property YAMLs automatically.
 
-### Cluster-Scale Review: Cone Sweep
+### Cluster-Scale Review: Regional Sweep
 
-**Cone sweep** — Walks the dependency graph bottom-up. For each property with enough same-ASN dependencies, assembles the full dependency cone (apex + all direct dependents) and runs a focused review/revise loop with the entire cone as context.
+**Regional sweep** — Walks the dependency graph bottom-up. For each property with enough same-ASN dependencies, assembles the full dependency cone (apex + all direct dependents) and runs a focused review/revise loop with the entire cone as context.
 
-Per-property review stalls on tightly coupled claims — one property keeps getting revised while its dependencies sit stable. This is a [dependency cone](../patterns/dependency-cone.md). The cone sweep detects these clusters and reviews them as a unit. The loop runs until the reviewer finds no issues or max cycles is reached.
+Per-property review stalls on tightly coupled claims — one property keeps getting revised while its dependencies sit stable. This is a [dependency cone](../patterns/dependency-cone.md). The regional sweep detects these clusters and reviews them as a unit. The loop runs until the reviewer finds no issues or max cycles is reached.
 
 ### System-Scale Review: Full-Review
 
@@ -45,9 +45,9 @@ Per-property review stalls on tightly coupled claims — one property keeps gett
 
 Composes all three scales into a single upward-downward pass:
 
-1. **Upward pass:** local review → contract review → cone sweep → full-review
+1. **Upward pass:** local review → contract review → regional sweep → full-review
 2. **Dirty set detection:** after full-review, check which properties changed via git diff
-3. **Downward pass:** for any changed properties, run cone review on affected cones, then re-run proof and contract review on the changed properties
+3. **Downward pass:** for any changed properties, run regional review on affected cones, then re-run proof and contract review on the changed properties
 
 The downward pass fires on ANY change during the upward pass. Each scale handles the errors it is efficient at.
 
@@ -129,7 +129,7 @@ The `.yaml` is the metadata source of truth. The `.md` is what the LLM reads and
 
 The per-property constraint is architectural. Each property is formalized independently — its dependencies are immutable context. This is like solving a system of equations one variable at a time with the others fixed. It converges. Multi-property formalization would be like solving them all simultaneously — it can oscillate.
 
-Per-property handles independent claims fast. When tightly coupled claims stall single-property review, a [dependency cone](../patterns/dependency-cone.md) is the signal — one apex property thrashing against stable dependencies. The cone sweep widens context to the cluster and resolves it with focused attention. Full-review catches what both narrower scales miss — gaps between distant properties that only show up at full-ASN scope.
+Per-property handles independent claims fast. When tightly coupled claims stall single-property review, a [dependency cone](../patterns/dependency-cone.md) is the signal — one apex property thrashing against stable dependencies. The regional sweep widens context to the cluster and resolves it with focused attention. Full-review catches what both narrower scales miss — gaps between distant properties that only show up at full-ASN scope.
 
 The three scales compose: property scale handles 80% fast, cluster scale handles 15% that needs coupling context, system scale handles 5% that needs the full picture. The V-cycle iterates until all three scales converge.
 

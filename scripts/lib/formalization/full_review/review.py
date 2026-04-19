@@ -28,7 +28,7 @@ def run_review(asn_num, asn_content, asn_label, previous_findings="", model="opu
     """Run Opus deep review. Returns (findings_text, elapsed) or (None, elapsed).
 
     If foundation_labels is provided, only loads foundation statements for
-    those specific labels (for cone review). Otherwise loads all.
+    those specific labels (for regional review). Otherwise loads all.
     """
     if foundation_labels is not None:
         foundation = load_foundation_for_labels(asn_num, foundation_labels)

@@ -27,11 +27,11 @@ python scripts/contract-review.py <ASN>
 
 Local review checks logical gaps, missing cases, dependency correctness. Contract review validates contracts match proofs. Run until findings trend to zero.
 
-### 3. Cone sweep (cluster-scale review)
+### 3. Regional sweep (cluster-scale review)
 
 ```bash
-python scripts/cone-sweep.py <ASN>
-python scripts/cone-sweep.py <ASN> --cone S8    # single cone
+python scripts/regional-sweep.py <ASN>
+python scripts/regional-sweep.py <ASN> --cone S8    # single cone
 ```
 
 Walks the dependency graph bottom-up. Reviews tightly coupled clusters as a unit. Default max 8 cycles per cone. Use `--cone LABEL` to target a specific apex.
@@ -52,7 +52,7 @@ python scripts/formalization-vcycle.py <ASN> --max-passes 3
 python scripts/formalization-vcycle.py <ASN> --dry-run
 ```
 
-Runs the full upward-downward pass: proof → contract → cone-sweep → full-review → cone re-check → proof re-check → contract re-check. Converged when no scale changes anything in a full pass.
+Runs the full upward-downward pass: local → contract → regional-sweep → full-review → regional re-check → local re-check → contract re-check. Converged when no scale changes anything in a full pass.
 
 ### 6. Summarize
 

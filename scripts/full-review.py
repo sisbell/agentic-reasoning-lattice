@@ -12,13 +12,13 @@ re-review → converge.
 
 Includes dependency cone detection: when one property keeps getting
 revised while its dependencies are stable, switches to a focused
-cone review/revise loop to accelerate convergence.
+regional review/revise loop to accelerate convergence.
 
 Usage:
     python scripts/full-review.py 40
     python scripts/full-review.py 40 --max-cycles 1     # single pass, no fixing
     python scripts/full-review.py 40 --dry-run           # review only
-    python scripts/full-review.py 36 --cone S8           # force cone review on S8
+    python scripts/full-review.py 36 --cone S8           # force regional review on cone apex S8
 """
 
 import argparse
@@ -32,7 +32,7 @@ from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, next_review_number
 from lib.shared.common import find_asn, assemble_readonly, step_commit_asn
 from lib.formalization.full_review.review import run_review, extract_findings
 from lib.formalization.full_review.revise import revise
-from lib.formalization.cone import detect_dependency_cone, run_cone_review
+from lib.formalization.regional import detect_dependency_cone, run_regional_review
 
 
 def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
@@ -128,7 +128,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
         cone = detect_dependency_cone(asn_num)
         if cone:
             apex, deps = cone
-            run_cone_review(asn_num, apex, deps, max_cycles=3,
+            run_regional_review(asn_num, apex, deps, max_cycles=3,
                             dry_run=dry_run, model=model)
 
     # Append final result to last review file
@@ -222,7 +222,7 @@ def main():
     parser.add_argument("--review", metavar="PATH",
                         help="Revise findings from an existing review file")
     parser.add_argument("--cone", metavar="LABEL",
-                        help="Force cone review on a specific apex property")
+                        help="Force regional review on a specific cone apex")
     parser.add_argument("--dry-run", action="store_true",
                         help="Review only, don't fix")
     args = parser.parse_args()
@@ -234,7 +234,7 @@ def main():
         sys.exit(0 if ok else 1)
 
     if args.cone:
-        # Force cone review — load deps from YAML, skip detection
+        # Force regional review — load deps from YAML, skip detection
         _, asn_label = find_asn(str(asn_num))
         prop_dir = FORMALIZATION_DIR / asn_label
         from lib.shared.common import load_property_metadata, build_label_index
@@ -244,7 +244,7 @@ def main():
             print(f"  Property {args.cone} not found", file=sys.stderr)
             sys.exit(1)
         dep_labels = [d for d in meta.get("depends", []) if d in asn_labels]
-        result = run_cone_review(asn_num, args.cone, dep_labels,
+        result = run_regional_review(asn_num, args.cone, dep_labels,
                                   max_cycles=args.max_cycles,
                                   dry_run=args.dry_run,
                                   model=args.model)

@@ -31,7 +31,7 @@ The V-cycle is the core of the methodology. It traverses the lattice at three sc
 
 **Review at cluster scale** — [dependency cones](patterns/dependency-cone.md):
 
-- **Cone sweep** — walks the dependency graph bottom-up. When tightly coupled properties stall single-scale review (one property thrashing while its dependencies are stable), the cone is detected and reviewed as a unit with focused context. Each cone converges before moving to the next.
+- **Regional sweep** — walks the dependency graph bottom-up. When tightly coupled properties stall single-scale review (one property thrashing while its dependencies are stable), the cone is detected and reviewed as a unit with focused context. Each cone converges before moving to the next.
 
 **Ascend through joins** — recompose to document scale:
 

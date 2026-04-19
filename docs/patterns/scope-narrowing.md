@@ -22,14 +22,14 @@ broad (discovery)
   │            │
   │            stalls on coupling
   │            │
-  │            widen ──→ per-cluster (cone review)
+  │            widen ──→ per-cluster (regional review)
   │                        │
   │                        verify coherence
   │                        │
   └── verify the whole ←──┘
 ```
 
-The narrowing is progressive. Discovery works at full-ASN scope. Blueprinting breaks it into properties. Formalization reviews each property. When property-level review stalls on a [dependency cone](dependency-cone.md), cone review widens to the cluster. [Verify the whole](verify-the-whole.md) checks that the hardened pieces cohere.
+The narrowing is progressive. Discovery works at full-ASN scope. Blueprinting breaks it into properties. Formalization reviews each property. When property-level review stalls on a [dependency cone](dependency-cone.md), regional review widens to the cluster. [Verify the whole](verify-the-whole.md) checks that the hardened pieces cohere.
 
 ## Leads to
 

@@ -1,6 +1,6 @@
 # Software Reverse-Engineering: Approach
 
-*Design note. Grounded — demonstrated on the Xanadu hypertext system. How the [Two Data Authorities](../patterns/two-data-authorities.md) pattern and supporting machinery (V-cycle, cone-review, lattice) apply to legacy software reverse-engineering. Core framing: the system produces formal specifications, not new implementations.*
+*Design note. Grounded — demonstrated on the Xanadu hypertext system. How the [Two Data Authorities](../patterns/two-data-authorities.md) pattern and supporting machinery (V-cycle, regional-review, lattice) apply to legacy software reverse-engineering. Core framing: the system produces formal specifications, not new implementations.*
 
 ## Core claim
 
@@ -17,7 +17,7 @@ Convergence is always relative to a downstream verifier. For software reverse-en
 | Scale | Operator | Verifier |
 |---|---|---|
 | Local | local-review | proof soundness per property |
-| Regional | regional-review (current: cone-review) | cluster proof consistency |
+| Regional | regional-review | cluster proof consistency |
 | Global | full-review | lattice proof consistency |
 
 At each scale, the operator iterates until the verifier finds no new issues.

@@ -12,7 +12,7 @@ The Verification V-Cycle addresses this by cycling through three scales of revie
 
 **Local** — formalize, local-review, contract-review. One property at a time, dependencies as fixed context. Fast convergence on property-level issues: logical gaps, missing cases, contract mismatches. Cannot see cross-property consistency problems.
 
-**Regional** — cone-sweep. Reviews dependency cones: properties with many same-ASN dependencies, processed bottom-up in topological order. Narrowed context (apex + dependencies + relevant foundation only) focuses attention on the constraint system. Catches issues that span tightly coupled clusters — the [dependency cone](../patterns/dependency-cone.md) pattern.
+**Regional** — regional-sweep. Reviews dependency cones: properties with many same-ASN dependencies, processed bottom-up in topological order. Narrowed context (apex + dependencies + relevant foundation only) focuses attention on the constraint system. Catches issues that span tightly coupled clusters — the [dependency cone](../patterns/dependency-cone.md) pattern.
 
 **Global** — full-review. Full ASN scan with complete foundation context. Finds issues invisible at narrower scales: carrier-set conflation, precondition chain gaps across unrelated properties, scope mismatches between proof and narrative. Broadest view, noisiest context, slowest convergence.
 
@@ -27,11 +27,11 @@ Each pass follows an upward-then-downward path:
   1. formalize         local     produce formal contracts
   2. local-review      local     fix proofs
   3. contract-review   local     fix contracts
-  4. cone-sweep        regional  fix clusters (bottom-up DAG walk)
+  4. regional-sweep    regional  fix clusters (bottom-up DAG walk)
   5. full-review       global    broad scan
 
 ── Downward ──
-  6. cone-review       regional  re-check cones affected by upward changes
+  6. regional-review   regional  re-check cones affected by upward changes
   7. local-review      local     re-check properties affected by steps 5-6
   8. contract-review   local     re-check contracts affected by steps 5-7
 ```
@@ -56,9 +56,9 @@ Single-scale iteration wastes cycles: local grinds on issues it can't resolve, g
 
 Beyond efficiency, the scales have different *structural coverage*. Some errors are not just inefficient to find at narrower scales — they are invisible. Global review is non-negotiable because of what the narrower scales cannot reach:
 
-**Vocabulary collisions between distant clusters.** When a symbol is used with one meaning in one cluster and a different meaning in another, cone review cannot see the conflict. Each cone narrows context to its apex and dependencies; distant collisions fall outside every cone's window. Only full-ASN context reveals the overlap.
+**Vocabulary collisions between distant clusters.** When a symbol is used with one meaning in one cluster and a different meaning in another, regional review cannot see the conflict. Each cone narrows context to its apex and dependencies; distant collisions fall outside every cone's window. Only full-ASN context reveals the overlap.
 
-**Issues in properties below the cone-apex threshold.** The cone sweep runs on properties with at least a threshold number of same-ASN dependencies. Small properties — definitions, axioms, single-claim auxiliaries — never qualify as cone apexes. They appear only as dependencies in someone else's cone, where the reviewer's attention is on the apex. Issues internal to these properties (unsound claims, missing axiomatic support, silent assumptions) are structurally invisible to cone sweep. Global review reads every property with equal weight.
+**Issues in properties below the cone-apex threshold.** The regional sweep runs on properties with at least a threshold number of same-ASN dependencies. Small properties — definitions, axioms, single-claim auxiliaries — never qualify as cone apexes. They appear only as dependencies in someone else's cone, where the reviewer's attention is on the apex. Issues internal to these properties (unsound claims, missing axiomatic support, silent assumptions) are structurally invisible to regional sweep. Global review reads every property with equal weight.
 
 **Cross-cone gaps in dependency declarations.** A property's YAML `depends` list is a local concern, but its correctness depends on usage across the whole ASN. A missing dependency is visible within a cone only if the dependent and the depended-upon are both in it. For dependencies that span cones, only the full-ASN view catches the omission.
 
@@ -73,7 +73,7 @@ The analogy:
 | Multigrid | Verification V-Cycle |
 |-----------|------|
 | Fine grid relaxation | Property scale (local-review, contract-review) |
-| Medium grid | Regional review (cone-sweep) |
+| Medium grid | Regional review (regional-sweep) |
 | Coarse grid | Global review (full-review) |
 | High-frequency error | Property-level issues (local inconsistencies) |
 | Low-frequency error | Cross-property patterns (dependency cones) |
@@ -84,12 +84,12 @@ The V-cycle differs from classical multigrid in two ways. First, each scale runs
 
 ## The V-Cycle as Self-Evaluation
 
-Full-review findings that appear to be cone-level issues are diagnostic signals — evidence that cone sweep did not genuinely converge, only stopped. A clean full-review is not just completion; it is evidence that lower scales reached genuine ground state. This makes the V-cycle self-evaluating: the system assesses the quality of its own lower-scale processes through the pattern of what higher scales find.
+Full-review findings that appear to be cone-level issues are diagnostic signals — evidence that regional sweep did not genuinely converge, only stopped. A clean full-review is not just completion; it is evidence that lower scales reached genuine ground state. This makes the V-cycle self-evaluating: the system assesses the quality of its own lower-scale processes through the pattern of what higher scales find.
 
 There is no noise in a truly converged system. What looks like noise at full-review is a signal that a lower scale is incomplete. The pattern of findings tells you where the incompleteness lives:
 
-- **Full-review finds a vocabulary collision** → genuine structural issue, cone sweep is architecturally unable to see it
-- **Full-review finds something that looks like a cone-level issue** → cone sweep did not converge, go back. See [Contract Sprawl](../equilibrium/contract-sprawl.md) for a specific failure mode that produces this signal.
+- **Full-review finds a vocabulary collision** → genuine structural issue, regional sweep is architecturally unable to see it
+- **Full-review finds something that looks like a cone-level issue** → regional sweep did not converge, go back. See [Contract Sprawl](../equilibrium/contract-sprawl.md) for a specific failure mode that produces this signal.
 - **Full-review finds nothing** → lower scales reached genuine ground state, convergence is real
 
 This self-evaluation property is what makes the V-cycle a protocol substrate rather than just a verification procedure. A system that can detect incomplete convergence in its own processes can improve those processes — adjusting scope, reconfiguring cone boundaries, reallocating agent computation. The pattern language systematically reduces wasted computation by routing problems to the scale that can resolve them. The V-cycle's self-diagnostic signal is what makes that routing improvable over time.

@@ -70,7 +70,7 @@ When a cone is resolved through focused review, the findings progress through di
 
 ## Structural reorganization
 
-Cones don't just review — they reorganize. When focused review reveals that a property is doing multiple jobs, the cone extracts the separate concerns into new properties. This is [extract/absorb](extract-absorb.md) happening inside a cone review.
+Cones don't just review — they reorganize. When focused review reveals that a property is doing multiple jobs, the cone extracts the separate concerns into new properties. This is [extract/absorb](extract-absorb.md) happening inside a regional review.
 
 Observed during the D-CTG-depth cone on ASN-0036 (8 cycles):
 

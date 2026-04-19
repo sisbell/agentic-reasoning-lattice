@@ -43,7 +43,7 @@ Narrow the ASN into per-property scope. Refine each property's proof and contrac
 
 Narrow to a shared concept found across documents. Refine the extracted definition into a single authoritative version. Verify that consuming documents cohere with the shared version.
 
-### Cone review
+### Regional review
 
 Narrow to a dependency cluster ([scope narrowing](scope-narrowing.md) to the cone). Refine the apex and its relationships through focused review/revise. Verify the cluster coheres before returning to wider scope.
 
@@ -69,4 +69,4 @@ The three-phase cycle is the primitive. The other patterns either participate in
 
 Discovered in this conversation. Scope narrowing, review/revise iteration, and verify the whole were documented as separate patterns. Each was observed independently at different times — review/revise from the first formalization runs, scope narrowing from the blueprinting redesign, verify the whole from full-review.
 
-The insight that they are one rhythm came from listing every process in the system and seeing the same three phases in each: discovery, formalization, extract/absorb, cone review, scope promotion. Three steps, same order, everywhere. The patterns we documented separately are phases of a single cycle.
+The insight that they are one rhythm came from listing every process in the system and seeing the same three phases in each: discovery, formalization, extract/absorb, regional review, scope promotion. Three steps, same order, everywhere. The patterns we documented separately are phases of a single cycle.

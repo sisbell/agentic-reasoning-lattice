@@ -4,7 +4,7 @@ V-Cycle Formalization Review — multigrid-inspired convergence.
 
 Three scales of optimization in a V-cycle:
   Local:    local-review, contract-review (one property at a time)
-  Regional: cone-sweep (high-dependency clusters, bottom-up DAG walk)
+  Regional: regional-sweep (high-dependency clusters, bottom-up DAG walk)
   Global:   full-review (full ASN scan)
 
 Upward pass (restriction): local → regional → global — builds confidence.
@@ -30,7 +30,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR
 from lib.shared.common import find_asn, build_label_index, load_property_metadata
-from lib.formalization.cone import run_cone_sweep, run_cone_review
+from lib.formalization.regional import run_regional_sweep, run_regional_review
 from lib.formalization.core.build_dependency_graph import generate_formalization_deps
 
 # Hyphenated script names need importlib
@@ -163,12 +163,12 @@ def run_vcycle(asn_num, max_passes=5, min_cone_deps=4, dry_run=False):
         print(f"  [CONTRACT-REVIEW] → {len(contract_changed)} changed",
               file=sys.stderr)
 
-        # 3. Cone sweep (regional)
+        # 3. Regional sweep (regional)
         h = _git_head()
-        run_cone_sweep(asn_num, min_deps=min_cone_deps, dry_run=dry_run)
+        run_regional_sweep(asn_num, min_deps=min_cone_deps, dry_run=dry_run)
         cone_changed = _get_changed_labels(asn_label, h)
         all_changed |= cone_changed
-        print(f"  [CONE-SWEEP] → {len(cone_changed)} changed",
+        print(f"  [REGIONAL-SWEEP] → {len(cone_changed)} changed",
               file=sys.stderr)
 
         # 4. Full review (global)
@@ -181,7 +181,7 @@ def run_vcycle(asn_num, max_passes=5, min_cone_deps=4, dry_run=False):
 
         # ── Downward (prolongation) ──
         # Descend if ANY upward step changed anything — not just global.
-        # Global may miss issues due to context overload, but cone sweep
+        # Global may miss issues due to context overload, but regional sweep
         # or local fixes still need verification at finer scales.
         upward_changed = set(all_changed)
         if upward_changed:
@@ -192,13 +192,13 @@ def run_vcycle(asn_num, max_passes=5, min_cone_deps=4, dry_run=False):
             h = _git_head()
             affected_cones = _affected_cones(upward_changed, asn_num, min_cone_deps)
             for apex, deps in affected_cones:
-                print(f"  [CONE-REVIEW] {apex} ({len(deps)} deps)",
+                print(f"  [REGIONAL-REVIEW] {apex} ({len(deps)} deps)",
                       file=sys.stderr)
-                run_cone_review(asn_num, apex, deps, max_cycles=2,
+                run_regional_review(asn_num, apex, deps, max_cycles=2,
                                 dry_run=dry_run)
             regional_changed = _get_changed_labels(asn_label, h)
             all_changed |= regional_changed
-            print(f"  [CONE-REVIEW] → {len(regional_changed)} changed",
+            print(f"  [REGIONAL-REVIEW] → {len(regional_changed)} changed",
                   file=sys.stderr)
 
             # 6-7. Local: re-check affected properties
@@ -251,7 +251,7 @@ def main():
     parser.add_argument("--max-passes", type=int, default=5,
                         help="Maximum V-cycle passes (default: 5)")
     parser.add_argument("--min-cone-deps", type=int, default=4,
-                        help="Minimum same-ASN deps for cone sweep (default: 4)")
+                        help="Minimum same-ASN deps for regional sweep (default: 4)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Review only, don't fix")
     args = parser.parse_args()

@@ -17,7 +17,7 @@ The same pattern appears at two scales:
 
 **Document lattice** — nodes are reasoning documents (ASNs). Links are declared dependencies between documents. Discovery operates here: two data authorities produce documents, scope promotion adds new documents at the edges, extract/absorb restructures documents into layers.
 
-**Property lattice** — nodes are individual properties (theorems, definitions, axioms). Links are declared dependencies between properties. Formalization operates here: review/revise iteration refines each property, cone review handles tightly coupled clusters, verify the whole checks coherence.
+**Property lattice** — nodes are individual properties (theorems, definitions, axioms). Links are declared dependencies between properties. Formalization operates here: review/revise iteration refines each property, regional review handles tightly coupled clusters, verify the whole checks coherence.
 
 The two are not separate structures. The property lattice is a finer view of the document lattice. Each document contains many properties. Each document-level dependency decomposes into property-level dependencies.
 

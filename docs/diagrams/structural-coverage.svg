@@ -10,7 +10,7 @@
 <!-- Panel 1 — Vocabulary collision -->
 <rect x="10" y="28" width="200" height="260" rx="8" fill="none" stroke="#D3D1C7" stroke-width="0.5"/>
 <text font-family="sans-serif" font-size="14" font-weight="500" fill="#2C2C2A" x="110" y="52" text-anchor="middle">Vocabulary collision</text>
-<text font-family="sans-serif" font-size="12" fill="#5F5E5A" x="110" y="70" text-anchor="middle">invisible to cone review</text>
+<text font-family="sans-serif" font-size="12" fill="#5F5E5A" x="110" y="70" text-anchor="middle">invisible to regional review</text>
 
 <rect x="24" y="88" width="72" height="26" rx="4" fill="none" stroke="#E24B4A" stroke-width="0.8" stroke-dasharray="3 2"/>
 <text font-family="sans-serif" font-size="12" fill="#A32D2D" x="60" y="104" text-anchor="middle">cone A</text>
@@ -33,7 +33,7 @@
 <!-- Panel 2 — Below threshold -->
 <rect x="240" y="28" width="200" height="260" rx="8" fill="none" stroke="#D3D1C7" stroke-width="0.5"/>
 <text font-family="sans-serif" font-size="14" font-weight="500" fill="#2C2C2A" x="340" y="52" text-anchor="middle">Below apex threshold</text>
-<text font-family="sans-serif" font-size="12" fill="#5F5E5A" x="340" y="70" text-anchor="middle">invisible to cone sweep</text>
+<text font-family="sans-serif" font-size="12" fill="#5F5E5A" x="340" y="70" text-anchor="middle">invisible to regional sweep</text>
 
 <rect x="270" y="90" width="140" height="56" rx="6" fill="#D3D1C7" stroke="#888780" stroke-width="0.5"/>
 <text font-family="sans-serif" font-size="14" font-weight="500" fill="#2C2C2A" x="340" y="112" text-anchor="middle" dominant-baseline="central">Axiom AX1</text>
@@ -49,7 +49,7 @@
 <!-- Panel 3 — Cross-cone gap -->
 <rect x="470" y="28" width="200" height="260" rx="8" fill="none" stroke="#D3D1C7" stroke-width="0.5"/>
 <text font-family="sans-serif" font-size="14" font-weight="500" fill="#2C2C2A" x="570" y="52" text-anchor="middle">Cross-cone gap</text>
-<text font-family="sans-serif" font-size="12" fill="#5F5E5A" x="570" y="70" text-anchor="middle">invisible to cone review</text>
+<text font-family="sans-serif" font-size="12" fill="#5F5E5A" x="570" y="70" text-anchor="middle">invisible to regional review</text>
 
 <rect x="486" y="90" width="80" height="56" rx="6" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
 <text font-family="sans-serif" font-size="14" font-weight="500" fill="#26215C" x="526" y="112" text-anchor="middle" dominant-baseline="central">P3</text>

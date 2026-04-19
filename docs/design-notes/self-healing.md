@@ -4,13 +4,13 @@ Places where the system could detect a disequilibrium pattern from its own opera
 
 ## Already automated
 
-**Dependency cone detection.** Full-review and cone-sweep detect cones mechanically from git revision frequency and run cone-scoped review in response. No human intervention. Demonstrated working on ASN-0036's S8 and ASN-0034's T10a-N.
+**Dependency cone detection.** Full-review and regional-sweep detect cones mechanically from git revision frequency and run cone-scoped review in response. No human intervention. Demonstrated working on ASN-0036's S8 and ASN-0034's T10a-N.
 
 **Review convergence detection.** A scale converges when its reviewer finds no new issues. Mechanical signal. Already drives loop termination at each scale.
 
 **Cone-sweep bottom-up ordering.** Walks the dependency DAG in topological order so each cone has stable downstream context. Automatic.
 
-**LLM-failure distinction.** Full-review and cone-sweep now distinguish "converged" from "review errored" so a failed cycle doesn't get counted as success. Mechanical.
+**LLM-failure distinction.** Full-review and regional-sweep now distinguish "converged" from "review errored" so a failed cycle doesn't get counted as success. Mechanical.
 
 ## Detection ready, action not yet automated
 

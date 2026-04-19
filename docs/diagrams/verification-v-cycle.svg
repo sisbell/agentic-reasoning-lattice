@@ -38,9 +38,9 @@
 
 <line x1="170" y1="140" x2="170" y2="196" stroke="#1D9E75" stroke-width="1.5" marker-end="url(#arrow-green)"/>
 
-<!-- Cone sweep — cluster scale -->
+<!-- Regional sweep — cluster scale -->
 <rect x="80" y="196" width="180" height="56" rx="8" fill="#FAC775" stroke="#854F0B" stroke-width="0.5"/>
-<text font-family="sans-serif" font-size="14" font-weight="500" fill="#412402" x="170" y="218" text-anchor="middle" dominant-baseline="central">Cone sweep</text>
+<text font-family="sans-serif" font-size="14" font-weight="500" fill="#412402" x="170" y="218" text-anchor="middle" dominant-baseline="central">Regional sweep</text>
 <text font-family="sans-serif" font-size="12" fill="#633806" x="170" y="238" text-anchor="middle" dominant-baseline="central">tightly coupled clusters</text>
 
 <line x1="170" y1="252" x2="170" y2="316" stroke="#1D9E75" stroke-width="1.5" marker-end="url(#arrow-green)"/>
