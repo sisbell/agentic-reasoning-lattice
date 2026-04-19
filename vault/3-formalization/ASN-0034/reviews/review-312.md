@@ -1,0 +1,9 @@
+# Cone Review — ASN-0034/TA7a (cycle 2)
+
+*2026-04-18 17:52*
+
+### Case analysis for `⊖` in TA7a omits `o = w`
+**Foundation**: TumblerSub's Definition — when `zpd(a, w)` is undefined (padded sequences fully agree), TumblerSub returns the zero tumbler `[0, …, 0]` of length `L`.
+**ASN**: TA7a Conjunct 2 proof, after the Preliminary, splits into exactly three cases: "*Case `k ≥ 2`*" (which concludes `d = 1` from `w₁ = 0 ≠ o₁ > 0`), "*Case `k = 1`, divergence `d = 1`*" ("The displacement has `w₁ > 0`, and `o₁ ≠ w₁`"), and "*Case `k = 1`, divergence `d > 1`*" ("`w₁ > 0`, and `o₁ = w₁` … with divergence at some later `d > 1`"). All three assume a divergence position `d` exists.
+**Issue**: Under the stated preconditions `o ∈ S`, `w ∈ T`, `Pos(w)`, `o ≥ w`, the sub-case `o = w` is admissible: take `w := o` for any `o ∈ S` with `#o ≥ 2`, e.g. `o = w = [1, 2]`. Then `Pos(w)` holds (all components > 0), `o ≥ w` holds trivially, `actionPoint(w) = 1` (so `k = 1`), and `#w ≤ m` (so the Preliminary does not apply). But `o` and `w` are zero-padded equal, so `zpd(o, w)` is undefined — neither `d = 1` nor `d > 1` names a real position — and TumblerSub returns the zero tumbler `[0, …, 0] ∈ Z`. The three enumerated cases do not cover this scenario, so the exhaustiveness claim fails. Correspondingly, the postconditions list sub-cases keyed on `actionPoint(w)` and a specified `d`, plus a `#w > #o` case and a single-component case, but no multi-component `o = w` clause; the `[x] ⊖ [n] ∈ Z when x = n` clause is scoped to `#o = #w = 1`.
+**What needs resolving**: Either add a fourth case to Conjunct 2 covering `k = 1` with `o` and `w` zero-padded equal (concluding the result is in `Z`, via TumblerSub's no-divergence branch), or show that the precondition rules this case out (it does not, under the current contract), and correspondingly extend the postcondition list to classify the multi-component `o = w` result as `∈ Z`.
