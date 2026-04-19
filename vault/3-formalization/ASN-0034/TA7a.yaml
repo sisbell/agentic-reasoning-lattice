@@ -14,6 +14,8 @@ depends:
 - TA6
 - NAT-sub
 - NAT-closure
+- NAT-order
+- NAT-zero
 summary: Defines the subspace S as the set of tumblers with all positive components, and characterizes exactly when ⊕ and
   ⊖ preserve membership in S. Addition stays in S when all tail components of the displacement are positive; subtraction stays
   in S in several cases but can escape to T \ S when the action point is 1 and the leading components agree, or when operand

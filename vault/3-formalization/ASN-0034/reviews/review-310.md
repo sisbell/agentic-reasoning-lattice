@@ -27,3 +27,9 @@ TA3-strict's Depends lists T0 (via previous finding), T1, TumblerSub, ZPD, TA2, 
 **Issue**: To pass from `a ≥ w` to `a > w` the argument must eliminate the `a = w` disjunct of `a ≥ w ⟺ a > w ∨ a = w`. The elimination uses "not-ZPE ⟹ `a ≠ w`", whose contrapositive `a = w ⟹ ZPE` is the T3-licensed step that TumblerSub and TA2 explicitly cite T3 to discharge. TA3-strict performs the identical step (visible as "`a` is not zero-padded-equal to `w`, we have `a > w`") but does not cite T3. Under the ASN's convention that "each proof cites only the ℕ [and T3/T0] facts it actually uses", this step is unsourced. The same omission arguably carries into the Setup's rebuttal step ("if `b` were zero-padded-equal to `w` …"), though that chain can be reached through ZPD alone.
 
 **What needs resolving**: Either add T3 to TA3-strict's Depends with a citation covering the Setup's `not-ZPE(a, w) ⟹ a ≠ w` and (if the rebuttal is read the same way) `not-ZPE(b, w) ⟹ b ≠ w` steps — matching the per-site T3 citation TumblerSub and TA2 already apply to the structurally identical derivations — or restructure the Setup to consume TumblerSub's precondition-consequence directly (which already exports `a_k > w_k` at `k = zpd(a, w)` with the T3 appeal discharged internally), eliminating the intermediate `a > w` step from TA3-strict's own argument.
+
+## Result
+
+Cone converged after 4 cycles.
+
+*Elapsed: 2823s*
