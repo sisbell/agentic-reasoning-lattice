@@ -1,12 +1,12 @@
 """
-Local Review verify step — per-claim 7-point checklist verification.
+Local Review step — per-claim 7-point checklist review.
 
 Builds a minimal context (claim section + dependency sections) and
-calls opus to verify the proof. Returns structured results for the
+calls opus to review the proof. Returns structured results for the
 convergence loop.
 
 Step function for the orchestrator (scripts/local-review.py):
-- review_claim: verify one claim's proof, return (status, finding_text)
+- review_claim: review one claim's proof, return (status, finding_text)
 """
 
 import json
@@ -22,7 +22,7 @@ from lib.shared.paths import WORKSPACE, USAGE_LOG, formal_stmts
 from lib.shared.common import find_asn
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization" / "local-review"
-VERIFY_TEMPLATE = PROMPTS_DIR / "verify.md"
+REVIEW_TEMPLATE = PROMPTS_DIR / "review.md"
 
 
 def _invoke_opus(prompt, effort="high"):
@@ -45,19 +45,19 @@ def _invoke_opus(prompt, effort="high"):
     elapsed = time.time() - start
 
     if result.returncode != 0:
-        print(f"  [VERIFY] FAILED (exit {result.returncode}, {elapsed:.0f}s)",
+        print(f"  [REVIEW] FAILED (exit {result.returncode}, {elapsed:.0f}s)",
               file=sys.stderr)
         return "", elapsed
 
     return result.stdout.strip(), elapsed
 
 
-def _log_usage(step, elapsed, asn_num, label=""):
+def _log_usage(elapsed, asn_num, label=""):
     """Append usage entry."""
     try:
         entry = {
             "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
-            "skill": f"verify-proof-{step}",
+            "skill": "local-review",
             "asn": f"ASN-{asn_num:04d}",
             "elapsed_s": round(elapsed, 1),
         }
@@ -71,7 +71,7 @@ def _log_usage(step, elapsed, asn_num, label=""):
 
 def _build_proof_context(asn_num, label, deps_data, sections,
                          foundation_cache=None):
-    """Build verification context for a single claim.
+    """Build review context for a single claim.
 
     Returns (claim_section, dependency_text) where dependency_text
     contains all sections referenced by follows_from.
@@ -127,12 +127,12 @@ def _build_proof_context(asn_num, label, deps_data, sections,
 
 
 def review_claim(asn_num, label, deps_data, sections, foundation_cache=None):
-    """Verify one claim's proof.
+    """Review one claim's proof.
 
     Returns:
         ("verified", None) — proof passes all checks
         ("found", finding_text) — issue found, finding_text has Problem + Required
-        ("error", None) — verification call failed
+        ("error", None) — review call failed
     """
     asn_label = f"ASN-{asn_num:04d}"
 
@@ -140,28 +140,28 @@ def review_claim(asn_num, label, deps_data, sections, foundation_cache=None):
         asn_num, label, deps_data, sections, foundation_cache)
 
     if not claim_section:
-        print(f"  [VERIFY] {label}: no section found — skipping",
+        print(f"  [REVIEW] {label}: no section found — skipping",
               file=sys.stderr)
         return "error", None
 
-    template = VERIFY_TEMPLATE.read_text()
+    template = REVIEW_TEMPLATE.read_text()
     prompt = (template
               .replace("{{label}}", label)
               .replace("{{claim_section}}", claim_section)
               .replace("{{dependency_sections}}", dependency_text))
 
-    print(f"  [VERIFY] {label} ({len(prompt) // 1024}KB)...",
+    print(f"  [REVIEW] {label} ({len(prompt) // 1024}KB)...",
           file=sys.stderr, end="", flush=True)
 
     text, elapsed = _invoke_opus(prompt)
-    _log_usage("verify", elapsed, asn_num, label=label)
+    _log_usage(elapsed, asn_num, label=label)
 
     if not text:
         print(f" error ({elapsed:.0f}s)", file=sys.stderr)
         return "error", None
 
-    if "RESULT: VERIFIED" in text:
-        print(f" verified ({elapsed:.0f}s)", file=sys.stderr)
+    if "RESULT: CLEAN" in text:
+        print(f" clean ({elapsed:.0f}s)", file=sys.stderr)
         return "verified", None
 
     # FOUND — extract finding text

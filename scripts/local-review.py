@@ -28,7 +28,7 @@ from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, next_review_number
 from lib.shared.common import find_asn, parallel_llm_calls, step_commit_asn, build_label_index
 from lib.formalization.core.build_dependency_graph import generate_formalization_deps
 from lib.formalization.core.topological_sort import topological_sort_labels
-from lib.formalization.local_review.verify import review_claim
+from lib.formalization.local_review.review import review_claim
 from lib.formalization.local_review.revise import revise
 
 

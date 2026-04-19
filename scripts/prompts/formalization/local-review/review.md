@@ -1,9 +1,9 @@
-# Proof Verification
+# Claim Review
 
-You are verifying a single claim's proof in an Abstract Specification Note
+You are reviewing a single claim's proof in an Abstract Specification Note
 (ASN) for the Xanadu hypertext system.
 
-## Claim to Verify
+## Claim to Review
 
 **Label**: {{label}}
 
@@ -18,7 +18,7 @@ Use them as ground truth when checking the proof's reasoning.
 
 {{dependency_sections}}
 
-## Verification Checklist
+## Review Checklist
 
 1. **Precondition completeness** — Are all required inputs and conditions stated?
    What is assumed? Is anything missing?
@@ -97,7 +97,7 @@ Use them as ground truth when checking the proof's reasoning.
 If the proof is sound and complete:
 
 ```
-RESULT: VERIFIED
+RESULT: CLEAN
 ```
 
 If there is an issue:
