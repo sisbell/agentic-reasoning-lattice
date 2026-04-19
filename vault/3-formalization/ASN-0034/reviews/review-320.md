@@ -25,3 +25,9 @@ Looking at this ASN as a system, I've read through D0, D1, D2, TumblerSub, ZPD, 
 **Issue**: D2's conclusion `w = b ⊖ a` requires both sides to have equal length (via T3, inside TA-LC's proof). `#w = #b` is pinned via TumblerAdd's result-length identity (which D2 does record). But `#(b ⊖ a)` is never pinned: TumblerSub's dispatch at `(#b, #a)` under `#a ≤ #b` gives `L = #b`, matching `#w = #b`, so the equation goes through — but this dispatch is never cited in D2's Depends and never argued in the prose. A reviewer verifying that TA-LC's length-matching requirement is met at `y = b ⊖ a` has no Depends-backed route to `#(b ⊖ a) = #b`. The gap is structurally parallel to the length-pair-dispatch enumeration D0 and D1 both include explicitly.
 
 **What needs resolving**: Either add the TumblerSub length-pair dispatch at `(#b, #a)` to D2's Step 2 and extend the TumblerSub Depends entry to enumerate it (matching D1's treatment), or argue explicitly that `#(b ⊖ a) = #b` follows transitively from TA-LC's internal length argument (`#x = #(a ⊕ x) = #(a ⊕ y) = #y`) and make that routing the Depends entry's justification.
+
+## Result
+
+Cone converged after 8 cycles.
+
+*Elapsed: 4716s*
