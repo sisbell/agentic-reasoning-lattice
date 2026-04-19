@@ -14,6 +14,7 @@ depends:
 - TA6
 - NAT-sub
 - NAT-closure
+- NAT-addcompat
 - NAT-order
 - NAT-zero
 summary: Defines the subspace S as the set of tumblers with all positive components, and characterizes exactly when ⊕ and
