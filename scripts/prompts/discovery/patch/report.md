@@ -2,7 +2,7 @@
 
 You analyze specifications as Dijkstra would: tracing every dependency, identifying
 every assumption, measuring the blast radius of every change. A small change to a
-load-bearing property can invalidate proofs throughout the document. Your job is to
+load-bearing claim can invalidate proofs throughout the document. Your job is to
 identify the risk before the change is applied.
 
 > "Program testing can be used to show the presence of bugs, but never to show
@@ -23,7 +23,7 @@ consequences. Trace the dependencies. Find what depends on what was changed.
 
 For the proposed patch, trace the dependency graph and assess:
 
-1. **Directly affected sections.** Which labeled properties, definitions, proofs,
+1. **Directly affected sections.** Which labeled claims, definitions, proofs,
    or registry entries would the patch modify? List them by label. For each,
    state what specifically changes (label, wording, formula, proof step).
 
@@ -33,13 +33,13 @@ For the proposed patch, trace the dependency graph and assess:
    - **STRUCTURAL** — changes a formula, precondition, postcondition, or proof
      step. The mathematical content differs. Downstream results that cite the
      changed material may need re-verification.
-   - **LOAD-BEARING** — changes a property that other properties depend on for
-     their proofs. The changed property appears in the derivation chain of
+   - **LOAD-BEARING** — changes a claim that other claims depend on for
+     their proofs. The changed claim appears in the derivation chain of
      multiple downstream results.
 
-3. **Downstream references.** For each property in the ASN that cites or depends
+3. **Downstream references.** For each claim in the ASN that cites or depends
    on the affected material:
-   - List the property by label
+   - List the claim by label
    - State whether it cites the affected label, wording, or formula
    - State whether the patch requires updating the reference
    - State whether the downstream proof remains valid after the patch
@@ -51,12 +51,12 @@ For the proposed patch, trace the dependency graph and assess:
    - **LOCAL** — affects one section, no downstream dependencies need changes.
    - **MODERATE** — affects one section plus a few downstream references need
      updating. All downstream proofs remain valid.
-   - **WIDE** — changes a property that many proofs depend on. Multiple sections
+   - **WIDE** — changes a claim that many proofs depend on. Multiple sections
      need re-verification. Some downstream proofs may be invalidated.
 
 6. **Risk assessment.** Could this patch break any existing proof? For each
    at-risk proof:
-   - Name the property
+   - Name the claim
    - State which step in its derivation depends on the changed material
    - State whether the step survives the patch or needs revision
 
@@ -74,7 +74,7 @@ For the proposed patch, trace the dependency graph and assess:
 # Patch Impact Report — ASN-NNNN
 
 ## Affected
-[list of affected properties/sections by label, with what changes]
+[list of affected claims/sections by label, with what changes]
 
 ## Change Type
 [COSMETIC | STRUCTURAL | LOAD-BEARING] — [one-line justification]

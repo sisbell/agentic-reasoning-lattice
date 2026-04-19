@@ -1,15 +1,15 @@
 """
-Topological sort for property labels by dependency order.
+Topological sort for claim labels by dependency order.
 
-Sorts properties so that foundations come first — if property B
-follows_from property A, then A appears before B in the result.
+Sorts claims so that foundations come first — if claim B
+follows_from claim A, then A appears before B in the result.
 Cycles are silently skipped (not blocked).
 """
 
 
 def topological_sort_labels(deps_data):
-    """Sort property labels in dependency order (foundations first)."""
-    props = deps_data.get("properties", {})
+    """Sort claim labels in dependency order (foundations first)."""
+    props = deps_data.get("claims", {})
     all_labels = set(props.keys())
 
     graph = {}
@@ -42,11 +42,11 @@ def topological_levels(deps_data):
     """Group labels by dependency depth for parallel processing.
 
     Level 0 = no local dependencies. Level N = depends on something at
-    level N-1. Properties at the same level can run concurrently.
+    level N-1. Claims at the same level can run concurrently.
 
     Returns list of lists: [[level0_labels], [level1_labels], ...]
     """
-    props = deps_data.get("properties", {})
+    props = deps_data.get("claims", {})
     all_labels = set(props.keys())
 
     graph = {}

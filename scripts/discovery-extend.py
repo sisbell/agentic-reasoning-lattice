@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Extract properties from a source ASN into a new extension ASN.
+Extract claims from a source ASN into a new extension ASN.
 
 Usage:
-    python scripts/discovery-extend.py -s 53 -t 57 -b 34 --properties D0,D1
-    python scripts/discovery-extend.py --source 53 --target 57 --base 34 --properties D0,D1
+    python scripts/discovery-extend.py -s 53 -t 57 -b 34 --claims D0,D1
+    python scripts/discovery-extend.py --source 53 --target 57 --base 34 --claims D0,D1
 """
 
 import argparse
@@ -24,16 +24,16 @@ from lib.shared.foundation import load_foundation_statements
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Extract properties from a source ASN into a new "
+        description="Extract claims from a source ASN into a new "
                     "extension ASN")
     parser.add_argument("-s", "--source", type=int, required=True,
-                        help="Source ASN number (where properties live now)")
+                        help="Source ASN number (where claims live now)")
     parser.add_argument("-t", "--target", type=int, required=True,
                         help="New ASN number to create")
     parser.add_argument("-b", "--base", type=int, required=True,
                         help="Base ASN that the new extension extends")
-    parser.add_argument("--properties", required=True,
-                        help="Comma-separated property labels to extract")
+    parser.add_argument("--claims", required=True,
+                        help="Comma-separated claim labels to extract")
     parser.add_argument("--model", "-m", default="opus",
                         choices=["opus", "sonnet"])
     parser.add_argument("--effort", default="max",
@@ -41,11 +41,11 @@ def main():
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
-    property_labels = [p.strip() for p in args.properties.split(",")]
+    claim_labels = [p.strip() for p in args.claims.split(",")]
 
     # Validate
     source_path, source_content, base_manifest = validate(
-        args.source, args.target, args.base, property_labels)
+        args.source, args.target, args.base, claim_labels)
 
     base_title = base_manifest.get("title", "")
     slug, ext_title = derive_names(base_title, args.base)
@@ -64,10 +64,10 @@ def main():
     source_label = f"ASN-{args.source:04d}"
 
     print(f"  [EXTEND] {target_label} (extends {base_label}, "
-          f"properties {', '.join(property_labels)} from {source_label})",
+          f"claims {', '.join(claim_labels)} from {source_label})",
           file=sys.stderr)
 
-    prompt = build_prompt(source_content, property_labels, args.target,
+    prompt = build_prompt(source_content, claim_labels, args.target,
                           args.base, args.source, base_title, ext_title,
                           base_statements, foundation_stmts)
 
@@ -99,17 +99,17 @@ def main():
 
     # Write project model
     yaml_path = write_manifest(args.target, ext_title, args.base,
-                               args.source, depends, property_labels)
+                               args.source, depends, claim_labels)
     print(f"  [WROTE] {yaml_path.relative_to(WORKSPACE)}", file=sys.stderr)
 
     # Log usage
     log_usage("extend", elapsed, source=args.source, target=args.target,
-              base=args.base, properties=property_labels)
+              base=args.base, claims=claim_labels)
 
     # Commit
     print(f"\n  === COMMIT ===", file=sys.stderr)
     step_commit(f"extend(asn): {target_label} extract "
-                f"{', '.join(property_labels)} from {source_label} "
+                f"{', '.join(claim_labels)} from {source_label} "
                 f"into {base_label} extension")
 
     # Hints

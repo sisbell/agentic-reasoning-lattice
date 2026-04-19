@@ -14,7 +14,7 @@ prompt — do not attempt to read files, search, or use tools.
 
 {{dependencies}}
 
-## Property
+## Claim
 
 **Label**: {{label}}
 
@@ -28,8 +28,8 @@ prompt — do not attempt to read files, search, or use tools.
 
 ## Task
 
-Fix ONLY the `*Formal Contract:*` section at the end of the property.
-Do not modify the property statement, proof, narrative, section headers,
+Fix ONLY the `*Formal Contract:*` section at the end of the claim.
+Do not modify the claim statement, proof, narrative, section headers,
 or any other content. Return the complete file with everything else
 unchanged — only the formal contract section should differ.
 
@@ -47,6 +47,6 @@ proof narrative.
 
 ## Output
 
-Return the complete property file as raw text. Everything above the
+Return the complete claim file as raw text. Everything above the
 `*Formal Contract:*` marker must be identical to the input. Only the
 contract section may change. No markdown fences, no commentary.

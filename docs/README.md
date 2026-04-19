@@ -7,7 +7,7 @@ Complete index of the documentation. The root [README](../README.md) is the proj
 - [Vision](vision.md) — hypothesis space navigation, semantic communication substrate, building the engine
 - [Methodology](methodology.md) — inquiry decomposition, two-channel discovery, V-cycle review
 - [Discovery](discovery.md) — finding formal structure through structured consultation
-- [Blueprinting](blueprinting.md) — meet operation: document → atomic properties
+- [Blueprinting](blueprinting.md) — meet operation: document → atomic claims
 - [Formalization](formalization.md) — precision as a discovery tool
 - [Glossary](glossary.md) — system-specific terms and their definitions
 

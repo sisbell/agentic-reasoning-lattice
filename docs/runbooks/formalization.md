@@ -16,7 +16,7 @@
 python scripts/formalize.py <ASN>
 ```
 
-Produces formal contracts and rewrites proofs to Dijkstra standard. Auto-commits per dependency level. Skips cached properties — delete `_cache.json` to force full re-run.
+Produces formal contracts and rewrites proofs to Dijkstra standard. Auto-commits per dependency level. Skips cached claims — delete `_cache.json` to force full re-run.
 
 ### 2. Local-scale review
 
@@ -60,7 +60,7 @@ Runs the full upward-downward pass: local → contract → regional-sweep → fu
 python scripts/summarize.py <ASN>
 ```
 
-Populates the `summary` field in each property YAML. Required before assembly. Hash-cached — only regenerates changed properties.
+Populates the `summary` field in each claim YAML. Required before assembly. Hash-cached — only regenerates changed claims.
 
 ### 7. Assembly
 
@@ -74,8 +74,8 @@ Mechanical — reads YAML summaries + .md contracts, writes `formal-statements.m
 
 ```bash
 python scripts/formalize.py <ASN> --dry-run         # list candidates
-python scripts/formalize.py <ASN> --label T8         # single property
-python scripts/local-review.py <ASN> --label T8      # single property review
+python scripts/formalize.py <ASN> --label T8         # single claim
+python scripts/local-review.py <ASN> --label T8      # single claim review
 ```
 
 ---

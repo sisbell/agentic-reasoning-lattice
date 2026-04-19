@@ -1,15 +1,15 @@
 # Dependency Cross-Reference Review
 
-You are checking whether a property's references to upstream ASN
-properties are correct.
+You are checking whether a claim's references to upstream ASN
+claims are correct.
 
-## Property being checked
+## Claim being checked
 
-**Label**: {{property_label}}
+**Label**: {{claim_label}}
 
-{{property_section}}
+{{claim_section}}
 
-## Upstream property (from ASN-{{upstream_asn}})
+## Upstream claim (from ASN-{{upstream_asn}})
 
 **Label**: {{upstream_label}}
 
@@ -17,12 +17,12 @@ properties are correct.
 
 ## Check
 
-Compare this property's reference to the upstream property:
+Compare this claim's reference to the upstream claim:
 
 - Does the local citation use the upstream's canonical name?
-- Is the local property a redefinition of the upstream property?
+- Is the local claim a redefinition of the upstream claim?
   (Same invariant/postcondition re-derived locally instead of cited.)
-- Does the dependency declaration in the property table match the
+- Does the dependency declaration in the claim table match the
   actual usage in the proof?
 - Are sub-label references (e.g., TA5(a), TA5(b)) used where the
   upstream exports only the parent label (e.g., TA5)?

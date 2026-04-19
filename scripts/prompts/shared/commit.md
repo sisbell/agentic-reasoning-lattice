@@ -14,7 +14,7 @@ Commit changes to the vault with meaningful, descriptive commit messages.
 2. **Understand what changed:**
    - New ASN added?
    - Existing ASN revised?
-   - What was the nature of the revision? (property fix, proof completion, edge case, etc.)
+   - What was the nature of the revision? (claim fix, proof completion, edge case, etc.)
    - Was a review saved to `vault/2-review/`?
    - Was a Dafny file added or modified?
 
@@ -33,7 +33,7 @@ Commit changes to the vault with meaningful, descriptive commit messages.
    - `revise` — ASN revised to address review findings
    - `alloy` — Alloy model and check results
    - `dafny` — Dafny verification added or updated
-   - `fix` — corrected an error (wrong property, invalid proof)
+   - `fix` — corrected an error (wrong claim, invalid proof)
 
    Examples:
    - `discovery(asn): ASN-0004 Content Insertion`
@@ -54,7 +54,7 @@ Commit changes to the vault with meaningful, descriptive commit messages.
 
 - Be specific: "Fix D2 to require d2≠doc" not "Fix proof"
 - Mention ASN numbers: "ASN-0004" not "the insertion ASN"
-- Name the properties affected: "POST5, F0" not "some properties"
+- Name the claims affected: "POST5, F0" not "some claims"
 - If review-driven, note it: "Address review 1 issue 3: missing boundary case"
 - Keep first line under 72 characters
 - Body should describe WHAT changed and WHY in domain terms

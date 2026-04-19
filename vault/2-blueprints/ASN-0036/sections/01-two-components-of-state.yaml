@@ -5,7 +5,7 @@ narrative: |
   > "Instead, suppose we create an append-only storage system. User makes changes, the changes difflessly into the storage system, filed, as it were, chronologically." [LM 2/14]
 
   This observation forces the state into two components:
-properties:
+claims:
 - label: Σ.C
   name: ContentStore
   body: |

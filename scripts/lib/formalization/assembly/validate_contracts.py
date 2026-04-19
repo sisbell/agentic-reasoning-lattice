@@ -1,7 +1,7 @@
 """
 Validate Contracts — check formal contracts against proof sections.
 
-Per-property LLM validation: reads each property's proof section and
+Per-claim LLM validation: reads each claim's proof section and
 formal contract, reports MATCH or MISMATCH with detailed findings.
 
 Step function for the orchestrator (scripts/formalization-assembly.py):
@@ -16,9 +16,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, USAGE_LOG
-from lib.shared.common import find_asn, extract_property_sections, invoke_claude
+from lib.shared.common import find_asn, extract_claim_sections, invoke_claude
 from lib.formalization.core.build_dependency_graph import (
-    find_property_table, parse_table_row, detect_columns,
+    find_claim_table, parse_table_row, detect_columns,
 )
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization" / "assembly"
@@ -26,7 +26,7 @@ VALIDATE_TEMPLATE = PROMPTS_DIR / "validate-contracts.md"
 
 
 def _extract_formal_contract(section_text):
-    """Extract the formal contract block from a property section."""
+    """Extract the formal contract block from a claim section."""
     marker = "*Formal Contract:*"
     idx = section_text.find(marker)
     if idx == -1:
@@ -41,7 +41,7 @@ def _log_usage(elapsed, asn_num, count):
             "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
             "skill": "validate-contracts",
             "asn": f"ASN-{asn_num:04d}",
-            "properties": count,
+            "claims": count,
             "elapsed_s": round(elapsed, 1),
         }
         with open(USAGE_LOG, "a") as f:
@@ -51,7 +51,7 @@ def _log_usage(elapsed, asn_num, count):
 
 
 def validate_contract(label, section, vocabulary="", dependencies="", model="sonnet"):
-    """Validate one property's contract against its proof section.
+    """Validate one claim's contract against its proof section.
 
     Returns (match: bool, detail: str).
     """
@@ -89,7 +89,7 @@ def validate_contract(label, section, vocabulary="", dependencies="", model="son
 
 
 def validate_contracts(asn_num):
-    """Validate all property contracts against their proof sections.
+    """Validate all claim contracts against their proof sections.
 
     Returns a list of (label, detail) tuples for mismatches.
     Empty list means all contracts match.
@@ -100,9 +100,9 @@ def validate_contracts(asn_num):
         return []
 
     text = asn_path.read_text()
-    rows = find_property_table(text)
+    rows = find_claim_table(text)
     if rows is None:
-        print(f"  [VALIDATE] No property table in {asn_path.name}",
+        print(f"  [VALIDATE] No claim table in {asn_path.name}",
               file=sys.stderr)
         return []
 
@@ -119,7 +119,7 @@ def validate_contracts(asn_num):
             labels.append(label)
 
     # Extract sections
-    sections = extract_property_sections(text, known_labels=labels, truncate=False)
+    sections = extract_claim_sections(text, known_labels=labels, truncate=False)
 
     # Load template
     template = VALIDATE_TEMPLATE.read_text()
@@ -128,7 +128,7 @@ def validate_contracts(asn_num):
     checked = 0
     start = time.time()
 
-    print(f"  [VALIDATE] Checking {len(labels)} properties...",
+    print(f"  [VALIDATE] Checking {len(labels)} claims...",
           file=sys.stderr, flush=True)
 
     for label in labels:

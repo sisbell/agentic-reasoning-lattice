@@ -1,7 +1,7 @@
-"""Enrich property YAMLs — add type, dependencies, vocabulary.
+"""Enrich claim YAMLs — add type, dependencies, vocabulary.
 
 Blueprinting step: reads the section YAML files from decompose, runs
-three focused LLM passes per property (type, deps, vocab) in parallel.
+three focused LLM passes per claim (type, deps, vocab) in parallel.
 Updates the YAML files in place.
 
 Usage (standalone):
@@ -25,20 +25,20 @@ PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "blueprinting"
 
 
 def _load_properties(sections_dir):
-    """Load all properties from section YAML files. Returns [(yaml_path, index, prop), ...]."""
-    properties = []
+    """Load all claims from section YAML files. Returns [(yaml_path, index, prop), ...]."""
+    claims = []
     for yaml_path in sorted(sections_dir.glob("*.yaml")):
         with open(yaml_path) as f:
             data = yaml.safe_load(f)
-        if not data or not data.get("properties"):
+        if not data or not data.get("claims"):
             continue
-        for i, prop in enumerate(data["properties"]):
-            properties.append((yaml_path, i, prop))
-    return properties
+        for i, prop in enumerate(data["claims"]):
+            claims.append((yaml_path, i, prop))
+    return claims
 
 
 def _fill_prompt(template_path, prop):
-    """Fill a prompt template with property fields."""
+    """Fill a prompt template with claim fields."""
     prompt = template_path.read_text()
     prompt = prompt.replace("{{label}}", str(prop.get("label", "")))
     prompt = prompt.replace("{{name}}", str(prop.get("name", "")))
@@ -66,14 +66,14 @@ def _call_llm(prompt):
 
 
 def _enrich_one(prop, pass_name, template_path):
-    """Run a single enrichment pass on a property."""
+    """Run a single enrichment pass on a claim."""
     prompt = _fill_prompt(template_path, prop)
     return _call_llm(prompt)
 
 
-def _run_pass(pass_name, template_path, properties, fields):
-    """Run one enrichment pass across all properties in parallel."""
-    print(f"\n  Pass: {pass_name} ({len(properties)} properties)...", file=sys.stderr)
+def _run_pass(pass_name, template_path, claims, fields):
+    """Run one enrichment pass across all claims in parallel."""
+    print(f"\n  Pass: {pass_name} ({len(claims)} claims)...", file=sys.stderr)
 
     def worker(item):
         yaml_path, index, prop = item
@@ -82,7 +82,7 @@ def _run_pass(pass_name, template_path, properties, fields):
         return label, (yaml_path, index, result)
 
     start = time.time()
-    results = parallel_llm_calls(properties, worker, max_workers=5)
+    results = parallel_llm_calls(claims, worker, max_workers=5)
     elapsed = time.time() - start
 
     # Collect updates per file
@@ -105,7 +105,7 @@ def _run_pass(pass_name, template_path, properties, fields):
             data = yaml.safe_load(f)
 
         for index, result in file_updates.items():
-            prop = data["properties"][index]
+            prop = data["claims"][index]
             for field in fields:
                 if field in result:
                     prop[field] = result[field]
@@ -117,7 +117,7 @@ def _run_pass(pass_name, template_path, properties, fields):
 
 
 def enrich_asn(asn_num):
-    """Enrich property YAMLs with type, dependencies, vocabulary (3 passes)."""
+    """Enrich claim YAMLs with type, dependencies, vocabulary (3 passes)."""
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
         print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
@@ -128,11 +128,11 @@ def enrich_asn(asn_num):
         print(f"  No sections directory — run decompose first", file=sys.stderr)
         return False
 
-    properties = _load_properties(sections_dir)
+    claims = _load_properties(sections_dir)
     print(f"\n  [ENRICH] {asn_label}", file=sys.stderr)
-    print(f"  {len(properties)} properties to enrich", file=sys.stderr)
+    print(f"  {len(claims)} claims to enrich", file=sys.stderr)
 
-    if not properties:
+    if not claims:
         print(f"  Nothing to enrich", file=sys.stderr)
         return True
 
@@ -147,9 +147,9 @@ def enrich_asn(asn_num):
     start = time.time()
 
     for pass_name, template_path, fields in passes:
-        # Reload properties each pass (files updated by previous pass)
-        properties = _load_properties(sections_dir)
-        ok, fail = _run_pass(pass_name, template_path, properties, fields)
+        # Reload claims each pass (files updated by previous pass)
+        claims = _load_properties(sections_dir)
+        ok, fail = _run_pass(pass_name, template_path, claims, fields)
         total_ok += ok
         total_fail += fail
 
@@ -163,7 +163,7 @@ def enrich_asn(asn_num):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Enrich property YAMLs with type, dependencies, vocabulary")
+        description="Enrich claim YAMLs with type, dependencies, vocabulary")
     parser.add_argument("asn", help="ASN number (e.g., 36)")
     args = parser.parse_args()
 

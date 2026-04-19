@@ -1,6 +1,6 @@
 # Vocabulary Extraction
 
-You are scanning a property file for shared notation definitions.
+You are scanning a claim file for shared notation definitions.
 Extract any symbols, operations, or terminology that this file
 DEFINES (not just uses).
 
@@ -16,7 +16,7 @@ A usage just references an already-defined symbol:
 
 Only report DEFINITIONS, not usages.
 
-## Property File
+## Claim File
 
 **Label:** {{label}}
 

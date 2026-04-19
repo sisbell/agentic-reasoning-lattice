@@ -1,19 +1,19 @@
 # Proof Verification
 
-You are verifying a single property's proof in an Abstract Specification Note
+You are verifying a single claim's proof in an Abstract Specification Note
 (ASN) for the Xanadu hypertext system.
 
-## Property to Verify
+## Claim to Verify
 
 **Label**: {{label}}
 
-### Property Section
+### Claim Section
 
-{{property_section}}
+{{claim_section}}
 
 ### Dependencies
 
-The following properties and definitions are referenced by this proof.
+The following claims and definitions are referenced by this proof.
 Use them as ground truth when checking the proof's reasoning.
 
 {{dependency_sections}}
@@ -28,18 +28,18 @@ Use them as ground truth when checking the proof's reasoning.
    cases arise," are there really only three?
 
 3. **Postcondition establishment** — Does the proof actually establish what the
-   property claims? Or does it say "by similar reasoning" or "follows similarly"
+   claim claims? Or does it say "by similar reasoning" or "follows similarly"
    without showing work?
 
-4. **All conjuncts addressed** — If the property has multiple parts (a), (b), (c),
+4. **All conjuncts addressed** — If the claim has multiple parts (a), (b), (c),
    is each one proved? Are any skipped?
 
 5. **Dependency correctness** — Does the proof use the dependencies it claims?
    Are there dependencies used but not declared, or declared but not used?
 
-6. **Formal contract** — Does the property section end with a `*Formal Contract:*`
+6. **Formal contract** — Does the claim section end with a `*Formal Contract:*`
    section listing the applicable fields? Choose the fields that match what the
-   property actually is. Examples:
+   claim actually is. Examples:
 
    For an operation with preconditions and postconditions:
    ```
@@ -60,7 +60,7 @@ Use them as ground truth when checking the proof's reasoning.
    - *Axiom:* (a₁ = b₁ ∧ ... ∧ aₙ = bₙ ∧ #a = #b) ≡ (a = b)
    ```
 
-   For a property that preserves something:
+   For a claim that preserves something:
    ```
    *Formal Contract:*
    - *Preconditions:* o ∈ S, w > 0, k ≤ #o
@@ -81,16 +81,16 @@ Use them as ground truth when checking the proof's reasoning.
    - **Frame**: what is preserved / not changed
    - **Axiom**: fundamental assertion by definition or design, not derived
    - **Definition**: the construction or computation rule
-   Only include fields that apply. A property may have multiple fields
+   Only include fields that apply. A claim may have multiple fields
    (e.g., Preconditions + Postconditions + Frame).
    If the formal contract is missing or incomplete, flag as FOUND.
    If the formal contract does not match the conditions stated in the
-   property's narrative — simplified, expanded, or with added implicit
+   claim's narrative — simplified, expanded, or with added implicit
    type constraints — flag as FOUND.
 
 7. **Missing guarantees** — Does the proof assume a guarantee that no existing
-   property in the provided dependencies establishes? If so, flag as FOUND and
-   describe the missing property that should be created.
+   claim in the provided dependencies establishes? If so, flag as FOUND and
+   describe the missing claim that should be created.
 
 ## Output
 
@@ -112,5 +112,5 @@ RESULT: FOUND
 Be specific. Cite the exact text that is wrong or missing. Construct a
 counterexample if the proof misses a case.
 
-Work only with the property section and dependencies provided above.
+Work only with the claim section and dependencies provided above.
 Do not search for additional files or attempt tool calls.

@@ -1,6 +1,6 @@
 """Load foundation ASN statements for injection into prompts.
 
-Reads directly from per-property YAML (summary) + .md (formal contract)
+Reads directly from per-claim YAML (summary) + .md (formal contract)
 files. No dependency on pre-built export files.
 """
 
@@ -12,7 +12,7 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, PROJECT_MODEL_DIR, load_manifest
-from lib.shared.common import build_label_index, load_property_metadata
+from lib.shared.common import build_label_index, load_claim_metadata
 
 
 def find_extensions(base_id):
@@ -50,25 +50,25 @@ def _extract_formal_contract(md_text):
 
 
 def _load_property_statement(dep_asn_num, label):
-    """Load one property's foundation statement from per-property files.
+    """Load one claim's foundation statement from per-claim files.
 
     Returns formatted section text or None if not found.
     """
     asn_label = f"ASN-{int(dep_asn_num):04d}"
-    prop_dir = FORMALIZATION_DIR / asn_label
-    if not prop_dir.exists():
+    claim_dir = FORMALIZATION_DIR / asn_label
+    if not claim_dir.exists():
         return None
 
-    meta = load_property_metadata(prop_dir, label=label)
+    meta = load_claim_metadata(claim_dir, label=label)
     if not meta or not meta.get("summary"):
         return None
 
-    label_index = build_label_index(prop_dir)
+    label_index = build_label_index(claim_dir)
     stem = label_index.get(label)
     if not stem:
         return None
 
-    md_path = prop_dir / f"{stem}.md"
+    md_path = claim_dir / f"{stem}.md"
     if not md_path.exists():
         return None
 
@@ -96,9 +96,9 @@ def _dep_ids_with_extensions(asn_id):
 
 
 def load_foundation_statements(asn_id):
-    """Load all foundation statements from per-property files.
+    """Load all foundation statements from per-claim files.
 
-    Reads YAML summaries + .md formal contracts for every property
+    Reads YAML summaries + .md formal contracts for every claim
     in each dependency ASN. Errors if summaries are missing.
     """
     all_dep_ids = _dep_ids_with_extensions(asn_id)
@@ -108,22 +108,22 @@ def load_foundation_statements(asn_id):
     sections = []
     for dep_id in all_dep_ids:
         asn_label = f"ASN-{int(dep_id):04d}"
-        prop_dir = FORMALIZATION_DIR / asn_label
-        if not prop_dir.exists():
+        claim_dir = FORMALIZATION_DIR / asn_label
+        if not claim_dir.exists():
             print(f"  [ERROR] No formalization dir for {asn_label}",
                   file=sys.stderr)
             continue
 
-        all_meta = load_property_metadata(prop_dir)
+        all_meta = load_claim_metadata(claim_dir)
         if not all_meta:
-            print(f"  [ERROR] No property metadata for {asn_label}",
+            print(f"  [ERROR] No claim metadata for {asn_label}",
                   file=sys.stderr)
             continue
 
         missing = [l for l, m in all_meta.items() if not m.get("summary")]
         if missing:
             print(f"  [ERROR] {asn_label} missing summaries for "
-                  f"{len(missing)} properties — "
+                  f"{len(missing)} claims — "
                   f"run: python scripts/summarize.py {dep_id}",
                   file=sys.stderr)
             sys.exit(1)
@@ -137,7 +137,7 @@ def load_foundation_statements(asn_id):
 
 
 def load_foundation_for_labels(asn_id, labels):
-    """Load foundation statements for specific labels from per-property files.
+    """Load foundation statements for specific labels from per-claim files.
 
     Reads YAML summary + .md formal contract for each label.
     Warns if a label is not found in any dependency ASN.

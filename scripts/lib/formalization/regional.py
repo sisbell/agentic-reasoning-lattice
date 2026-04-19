@@ -3,7 +3,7 @@ Regional-scale V-cycle operators: regional-review (one cone) and
 regional-sweep (across all qualifying cones), plus cone detection
 and assembly helpers.
 
-A dependency cone is a property (the apex) that sits atop many stable
+A dependency cone is a claim (the apex) that sits atop many stable
 dependencies and can't converge under per-finding revision. See
 docs/patterns/dependency-cone.md for the pattern.
 
@@ -21,7 +21,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, next_review_number
 from lib.shared.common import (
-    find_asn, build_label_index, load_property_metadata,
+    find_asn, build_label_index, load_claim_metadata,
     step_commit_asn,
 )
 from lib.formalization.full_review.review import run_review, extract_findings
@@ -34,7 +34,7 @@ def detect_dependency_cone(asn_num, window=5, threshold=3):
     """Detect a dependency cone from git history.
 
     Scans the last `window` full-review commits for this ASN.
-    If one property has >= `threshold` touches while its YAML
+    If one claim has >= `threshold` touches while its YAML
     dependencies have <= 1 touch, returns (apex_label, dep_labels).
     Otherwise returns None.
     """
@@ -42,8 +42,8 @@ def detect_dependency_cone(asn_num, window=5, threshold=3):
     if asn_label is None:
         return None
 
-    prop_dir = FORMALIZATION_DIR / asn_label
-    rel_dir = prop_dir.relative_to(WORKSPACE)
+    claim_dir = FORMALIZATION_DIR / asn_label
+    rel_dir = claim_dir.relative_to(WORKSPACE)
 
     # Get last N review commits touching this ASN.
     # Match both prefixes so historical cross-review commits remain findable
@@ -64,9 +64,9 @@ def detect_dependency_cone(asn_num, window=5, threshold=3):
     if len(commits) < threshold:
         return None
 
-    # Count property file touches per commit
+    # Count claim file touches per commit
     touch_counts = {}  # label → count
-    label_index = build_label_index(prop_dir)
+    label_index = build_label_index(claim_dir)
     stem_to_label = {stem: lbl for lbl, stem in label_index.items()}
 
     for commit_hash in commits:
@@ -83,7 +83,7 @@ def detect_dependency_cone(asn_num, window=5, threshold=3):
             if not line.startswith(str(rel_dir)):
                 continue
             fname = Path(line).name
-            # Skip reviews, structural files, non-property files
+            # Skip reviews, structural files, non-claim files
             if "reviews/" in line or fname.startswith("_") or fname.startswith("."):
                 continue
             stem = fname.replace(".md", "").replace(".yaml", "")
@@ -93,14 +93,14 @@ def detect_dependency_cone(asn_num, window=5, threshold=3):
     if not touch_counts:
         return None
 
-    # Find candidate apex: most-touched property above threshold
+    # Find candidate apex: most-touched claim above threshold
     apex = max(touch_counts, key=touch_counts.get)
     if touch_counts[apex] < threshold:
         return None
 
     # Load apex dependencies (same-ASN only)
     asn_labels = set(label_index.keys())
-    meta = load_property_metadata(prop_dir, label=apex)
+    meta = load_claim_metadata(claim_dir, label=apex)
     if not meta:
         return None
 
@@ -121,12 +121,12 @@ def detect_dependency_cone(asn_num, window=5, threshold=3):
 
 
 def assemble_cone(asn_label, apex_label, dep_labels):
-    """Assemble just the cone properties for focused review.
+    """Assemble just the cone claims for focused review.
 
-    Returns concatenated text of apex + same-ASN dependency properties.
+    Returns concatenated text of apex + same-ASN dependency claims.
     """
-    prop_dir = FORMALIZATION_DIR / asn_label
-    label_index = build_label_index(prop_dir)
+    claim_dir = FORMALIZATION_DIR / asn_label
+    label_index = build_label_index(claim_dir)
     parts = []
 
     # Include dependencies first (context), then apex
@@ -134,7 +134,7 @@ def assemble_cone(asn_label, apex_label, dep_labels):
         stem = label_index.get(label)
         if stem is None:
             continue
-        md_path = prop_dir / f"{stem}.md"
+        md_path = claim_dir / f"{stem}.md"
         if md_path.exists():
             parts.append(md_path.read_text().strip())
 
@@ -176,18 +176,18 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
     if asn_label is None:
         return "failed"
 
-    prop_dir = FORMALIZATION_DIR / asn_label
-    review_dir = prop_dir / "reviews"
+    claim_dir = FORMALIZATION_DIR / asn_label
+    review_dir = claim_dir / "reviews"
 
     print(f"\n  [REGIONAL-REVIEW] {apex_label} + {len(dep_labels)} deps",
           file=sys.stderr)
 
     # Collect cross-ASN deps for narrowed foundation loading
-    asn_labels = set(build_label_index(prop_dir).keys())
+    asn_labels = set(build_label_index(claim_dir).keys())
     all_cone_labels = [apex_label] + dep_labels
     cross_asn_deps = []
     for label in all_cone_labels:
-        meta = load_property_metadata(prop_dir, label=label)
+        meta = load_claim_metadata(claim_dir, label=label)
         if meta:
             for d in meta.get("depends", []):
                 if d not in asn_labels and d not in cross_asn_deps:
@@ -246,7 +246,7 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
         # Revise each finding
         any_changed = False
         for title, finding_text in findings:
-            ok = revise(asn_num, title, finding_text, prop_dir=prop_dir)
+            ok = revise(asn_num, title, finding_text, claim_dir=claim_dir)
             if ok:
                 any_changed = True
 
@@ -281,7 +281,7 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
 def run_regional_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False, model="opus"):
     """Proactive regional-scale sweep — bottom-up DAG walk.
 
-    For each property with >= min_deps same-ASN dependencies,
+    For each claim with >= min_deps same-ASN dependencies,
     run a regional review. Process in topological order (foundations first)
     so each cone's dependencies are stable when it runs.
 
@@ -292,8 +292,8 @@ def run_regional_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False, model="
         print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
         return "failed"
 
-    prop_dir = FORMALIZATION_DIR / asn_label
-    if not prop_dir.exists():
+    claim_dir = FORMALIZATION_DIR / asn_label
+    if not claim_dir.exists():
         print(f"  No formalization directory for {asn_label}", file=sys.stderr)
         return "failed"
 
@@ -303,9 +303,9 @@ def run_regional_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False, model="
         return "failed"
 
     levels = topological_levels(deps_data)
-    asn_labels = set(build_label_index(prop_dir).keys())
+    asn_labels = set(build_label_index(claim_dir).keys())
 
-    print(f"\n  [REGIONAL-SWEEP] {asn_label} — {len(asn_labels)} properties, "
+    print(f"\n  [REGIONAL-SWEEP] {asn_label} — {len(asn_labels)} claims, "
           f"min_deps={min_deps}", file=sys.stderr)
 
     start_time = time.time()
@@ -314,7 +314,7 @@ def run_regional_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False, model="
 
     for level_idx, level_labels in enumerate(levels):
         for label in level_labels:
-            meta = load_property_metadata(prop_dir, label=label)
+            meta = load_claim_metadata(claim_dir, label=label)
             if not meta:
                 continue
             same_deps = [d for d in meta.get("depends", []) if d in asn_labels]
@@ -331,7 +331,7 @@ def run_regional_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False, model="
 
     elapsed = time.time() - start_time
     if cones_reviewed == 0:
-        print(f"\n  [REGIONAL-SWEEP] No properties with >= {min_deps} same-ASN deps.",
+        print(f"\n  [REGIONAL-SWEEP] No claims with >= {min_deps} same-ASN deps.",
               file=sys.stderr)
     else:
         print(f"\n  [REGIONAL-SWEEP] {cones_reviewed} cones reviewed in {elapsed:.0f}s",

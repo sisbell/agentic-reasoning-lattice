@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Promote Blueprint — copy blueprint properties to formalization.
+Promote Blueprint — copy blueprint claims to formalization.
 
-Copies per-property files from vault/2-blueprints/ASN-NNNN/properties/
+Copies per-claim files from vault/2-blueprints/ASN-NNNN/claims/
 to vault/3-formalization/ASN-NNNN/ where formalization operates on
 the files in place.
 
@@ -25,7 +25,7 @@ from lib.shared.common import find_asn, step_commit_asn
 
 
 def promote_blueprint(asn_num, dry_run=False):
-    """Copy blueprint properties to formalization."""
+    """Copy blueprint claims to formalization."""
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
         print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
@@ -42,7 +42,7 @@ def promote_blueprint(asn_num, dry_run=False):
     print(f"  Source: {src.relative_to(WORKSPACE)}", file=sys.stderr)
     print(f"  Target: {dst.relative_to(WORKSPACE)}", file=sys.stderr)
 
-    # Collect files: per-property .yaml + .md pairs + structural _*.md
+    # Collect files: per-claim .yaml + .md pairs + structural _*.md
     yaml_files = sorted(f for f in src.glob("*.yaml"))
     md_files = sorted(f for f in src.glob("*.md")
                       if not f.name.startswith("_"))

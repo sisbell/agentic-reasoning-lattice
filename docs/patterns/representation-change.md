@@ -8,8 +8,8 @@ Direct jumps between distant representations fail. Narrative cannot become Dafny
 
 ## Forces
 
-- **Each process has input requirements.** Discovery produces narrative. Formalization needs per-property files with metadata. Modeling needs formal contracts. Verification needs executable code. No single representation serves all processes.
-- **Content is preserved.** The property "content once stored is never modified" is the same claim at every stage. What changes is how it's expressed — as a sentence in a paragraph, as a YAML entry with label S0, as a formal contract with preconditions and postconditions, as a Dafny method with assertions.
+- **Each process has input requirements.** Discovery produces narrative. Formalization needs per-claim files with metadata. Modeling needs formal contracts. Verification needs executable code. No single representation serves all processes.
+- **Content is preserved.** The claim "content once stored is never modified" is the same claim at every stage. What changes is how it's expressed — as a sentence in a paragraph, as a YAML entry with label S0, as a formal contract with preconditions and postconditions, as a Dafny method with assertions.
 - **Large jumps fail.** Asking an agent to go from narrative prose to verified Dafny in one step produces unreliable results. Too many decisions at once — decomposition, classification, formalization, and translation all conflated.
 - **Small steps are verifiable.** Each representation change can be checked: does the structured version capture what the narrative said? Does the formal contract match the proof? Does the Dafny code implement the contract? Each step has clear acceptance criteria.
 
@@ -20,7 +20,7 @@ narrative prose (discovery output)
   │
   representation change: decompose + structure
   │
-per-property YAML + markdown (blueprinting output)
+per-claim YAML + markdown (blueprinting output)
   │
   representation change: formalize
   │
@@ -37,7 +37,7 @@ Each arrow is a representation change. The content at the top and bottom is the 
 
 Blueprinting is [scope narrowing](scope-narrowing.md) + representation change applied together.
 
-**Scope narrowing**: a monolithic reasoning document is decomposed into individual properties. Each property becomes an independently addressable unit.
+**Scope narrowing**: a monolithic reasoning document is decomposed into individual claims. Each claim becomes an independently addressable unit.
 
 **Representation change**: narrative prose becomes structured metadata (YAML) + body (markdown). The narrative stays in the body for human readers. The metadata makes the formal structure explicit — label, type, dependencies, vocabulary.
 
@@ -49,7 +49,7 @@ Together they produce what formalization needs: small, structured, independently
 
 ### Discovery → blueprinting
 
-Narrative prose → per-property YAML/MD pairs. The largest representation gap in the pipeline. Handled by progressive decomposition: mechanical section split → per-section property identification → per-property classification and enrichment → disassembly into file pairs → validation.
+Narrative prose → per-claim YAML/MD pairs. The largest representation gap in the pipeline. Handled by progressive decomposition: mechanical section split → per-section claim identification → per-claim classification and enrichment → disassembly into file pairs → validation.
 
 ### Formalization → verification
 
@@ -57,7 +57,7 @@ Formal contracts → Dafny/Alloy code. The contracts specify preconditions, post
 
 ### Assembly → export
 
-Per-property files → formal-statements.md export. The representation change goes in the opposite direction — from detailed per-property files to trimmed summaries for downstream consumers. Content is reduced but the formal content is preserved.
+Per-claim files → formal-statements.md export. The representation change goes in the opposite direction — from detailed per-claim files to trimmed summaries for downstream consumers. Content is reduced but the formal content is preserved.
 
 ### Review/revise within a representation
 
@@ -65,7 +65,7 @@ Each [review/revise iteration](review-revise-iteration.md) cycle operates within
 
 ## Relationship to other patterns
 
-[Scope narrowing](scope-narrowing.md) — representation change is a tool that scope narrowing reaches for when the current form doesn't support finer granularity. You can't narrow a narrative document into properties without changing its representation to structured files. Narrowing decides WHAT to focus on. Representation change provides the form that makes the focus possible. Not all narrowing requires representation change — regional review narrows to a cluster without changing form.
+[Scope narrowing](scope-narrowing.md) — representation change is a tool that scope narrowing reaches for when the current form doesn't support finer granularity. You can't narrow a narrative document into claims without changing its representation to structured files. Narrowing decides WHAT to focus on. Representation change provides the form that makes the focus possible. Not all narrowing requires representation change — regional review narrows to a cluster without changing form.
 
 [Narrow → Refine → Verify](narrow-refine-verify.md) — representation change serves the primary cycle but is not a phase within it. It happens when needed: before narrowing (blueprinting), after narrowing (extract/absorb), between refinement stages (formalization → verification). Refinement operates within a single representation — the representation is stable during the review/revise loop.
 

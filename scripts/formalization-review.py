@@ -35,8 +35,8 @@ def run_formalization_review(asn_num, max_cycles=3, dry_run=False,
     """Run all four review steps in a convergence loop.
 
     keep_cache: if True, don't invalidate hash caches between outer cycles.
-    Only changed properties get re-checked — useful when iterating on
-    full-review findings where most properties are untouched.
+    Only changed claims get re-checked — useful when iterating on
+    full-review findings where most claims are untouched.
     """
     _, asn_label = find_asn(str(asn_num))
     if asn_label is None:
@@ -44,7 +44,7 @@ def run_formalization_review(asn_num, max_cycles=3, dry_run=False,
         return "failed"
 
     from lib.shared.paths import FORMALIZATION_DIR
-    prop_dir = FORMALIZATION_DIR / asn_label
+    claim_dir = FORMALIZATION_DIR / asn_label
 
     print(f"\n  [FORMALIZATION-REVIEW] {asn_label}", file=sys.stderr)
     start_time = time.time()
@@ -55,11 +55,11 @@ def run_formalization_review(asn_num, max_cycles=3, dry_run=False,
 
         # Invalidate caches so each outer cycle re-checks everything
         # (prior steps may have changed files that affect later steps)
-        # With --keep-cache, only properties whose source hash changed
+        # With --keep-cache, only claims whose source hash changed
         # will be re-checked — much faster for full-review convergence.
         if not keep_cache:
             for cache_name in ("_verify-cache.json", "_contract-cache.json"):
-                cache_path = prop_dir / cache_name
+                cache_path = claim_dir / cache_name
                 if cache_path.exists():
                     cache_path.unlink()
 
@@ -120,7 +120,7 @@ def main():
                         help="Review only, don't fix")
     parser.add_argument("--keep-cache", action="store_true",
                         help="Don't invalidate caches between cycles — "
-                             "only re-check properties whose source changed")
+                             "only re-check claims whose source changed")
     args = parser.parse_args()
 
     asn_num = int(re.sub(r"[^0-9]", "", args.asn))

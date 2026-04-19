@@ -1,13 +1,13 @@
 # Elaborate Proof
 
-You are writing a rigorous proof for a property. Develop the argument
+You are writing a rigorous proof for a claim. Develop the argument
 step by step with full justification.
 
 ## Vocabulary
 
 {{vocabulary}}
 
-## Property
+## Claim
 
 {{content}}
 
@@ -40,7 +40,7 @@ sentence that introduces it.
    Preserve exact conditions from the narrative. Only include
    fields that apply.
 
-2. **Do not change what is proven.** The property statement,
+2. **Do not change what is proven.** The claim statement,
    preconditions, and postconditions must remain identical.
 
 3. **Do not add or remove content.** Only restructure the proof
@@ -52,5 +52,5 @@ sentence that introduces it.
 
 ## Output
 
-Return the complete rewritten property file. Nothing else — no
+Return the complete rewritten claim file. Nothing else — no
 preamble, no explanation, no markdown fences. Just the file content.

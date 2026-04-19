@@ -18,11 +18,11 @@ A campaign ends when the questions it spawned have been investigated, the result
 
 ![Growing the lattice](diagrams/growing-the-lattice.svg)
 
-The first ASN from a campaign is usually too broad. That's expected. Agents identify natural boundaries — clusters of properties that reason about the same concept independently of other clusters — and split into focused ASNs, each covering one topic. Discovery runs on each independently.
+The first ASN from a campaign is usually too broad. That's expected. Agents identify natural boundaries — clusters of claims that reason about the same concept independently of other clusters — and split into focused ASNs, each covering one topic. Discovery runs on each independently.
 
-As discovery proceeds on separate ASNs, patterns emerge. Two ASNs independently derive the same property — both need the same comparison operation, both define the same foundational concept. When this happens, one ASN's properties may be natural foundations for the other. If so, it becomes a dependency — the dependent ASN assumes those properties rather than re-deriving them. If neither is a natural home for the shared concept, there's a missing foundation layer. Extract it into a new ASN that both depend on. This is the meet operation — the extracted foundation is the greatest common element below both dependent ASNs.
+As discovery proceeds on separate ASNs, patterns emerge. Two ASNs independently derive the same claim — both need the same comparison operation, both define the same foundational concept. When this happens, one ASN's claims may be natural foundations for the other. If so, it becomes a dependency — the dependent ASN assumes those claims rather than re-deriving them. If neither is a natural home for the shared concept, there's a missing foundation layer. Extract it into a new ASN that both depend on. This is the meet operation — the extracted foundation is the greatest common element below both dependent ASNs.
 
-Each ASN goes through [review/revise cycles](patterns/review-revise-iteration.md). During review, out-of-scope findings get flagged — questions that no existing ASN can answer, properties that belong elsewhere, concepts that need their own investigation. These are candidates for new inquiries, attaching to the lattice as new nodes. This is [scope promotion](patterns/scope-promotion.md) — the system discovers the questions it should be asking, not just answers to questions posed. Each new ASN created above existing ones is a join — a node that builds on multiple foundations.
+Each ASN goes through [review/revise cycles](patterns/review-revise-iteration.md). During review, out-of-scope findings get flagged — questions that no existing ASN can answer, claims that belong elsewhere, concepts that need their own investigation. These are candidates for new inquiries, attaching to the lattice as new nodes. This is [scope promotion](patterns/scope-promotion.md) — the system discovers the questions it should be asking, not just answers to questions posed. Each new ASN created above existing ones is a join — a node that builds on multiple foundations.
 
 The lattice grows through this process. Foundation ASNs emerge at the bottom — discovered by noticing what keeps being re-derived across multiple ASNs. The lattice deepens as shared concepts are extracted into new foundation layers. New domain vocabulary emerges because the mathematics requires it, not prescribed in advance.
 
@@ -36,8 +36,8 @@ An ASN is ready to enter blueprinting when three conditions hold:
 
 **Discovery cycles are producing diminishing returns.** When review/revise cycles start wordsmithing — rephrasing for clarity, minor notational adjustments, few or no substantive findings — the reasoning has stabilized. If each cycle is making structural changes, the ASN isn't ready.
 
-**No other ASN in discovery owns properties that belong here.** Before promoting to blueprinting, scan the other ASNs still in discovery. If any of them independently derived properties that naturally belong in this ASN, absorb them first.
+**No other ASN in discovery owns claims that belong here.** Before promoting to blueprinting, scan the other ASNs still in discovery. If any of them independently derived claims that naturally belong in this ASN, absorb them first.
 
 ## Origin
 
-This methodology was developed to formalize the Xanadu hypertext system — deriving formal properties from Ted Nelson's design intent (*Literary Machines*) and Roger Gregory's 1988 implementation (udanax-green) under enforced vocabulary separation. The campaign model, vocabulary firewall, and lattice growth operations emerged from that work. The methodology is the generalization. Xanadu is the origin.
+This methodology was developed to formalize the Xanadu hypertext system — deriving formal claims from Ted Nelson's design intent (*Literary Machines*) and Roger Gregory's 1988 implementation (udanax-green) under enforced vocabulary separation. The campaign model, vocabulary firewall, and lattice growth operations emerged from that work. The methodology is the generalization. Xanadu is the origin.

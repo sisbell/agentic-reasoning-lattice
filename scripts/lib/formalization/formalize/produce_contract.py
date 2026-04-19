@@ -1,9 +1,9 @@
 """
-Produce Contract step — Dijkstra rewrite + formal contracts per property.
+Produce Contract step — Dijkstra rewrite + formal contracts per claim.
 
 Step functions for the formalize orchestrator (scripts/formalize.py):
-- find_properties_needing_quality: scan ASN for properties needing rewrite
-- quality_rewrite: rewrite one property to Dijkstra standard with formal contract
+- find_properties_needing_quality: scan ASN for claims needing rewrite
+- quality_rewrite: rewrite one claim to Dijkstra standard with formal contract
 """
 
 import hashlib
@@ -17,7 +17,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, USAGE_LOG, FORMALIZATION_DIR, formal_stmts
-from lib.shared.common import find_asn, invoke_claude, build_label_index, load_property_metadata
+from lib.shared.common import find_asn, invoke_claude, build_label_index, load_claim_metadata
 from lib.formalization.core.build_dependency_graph import generate_formalization_deps
 
 from lib.formalization.assembly.validate_contracts import validate_contract
@@ -55,10 +55,10 @@ def _has_formal_contract(section_text):
 
 
 def _downstream_dependents(changed_labels, deps_data):
-    """Find properties that depend on any of the changed labels."""
+    """Find claims that depend on any of the changed labels."""
     dependents = set()
-    for label, prop_data in deps_data.get("properties", {}).items():
-        follows = set(prop_data.get("follows_from", []))
+    for label, claim_data in deps_data.get("claims", {}).items():
+        follows = set(claim_data.get("follows_from", []))
         if follows & changed_labels:
             dependents.add(label)
     return dependents
@@ -70,7 +70,7 @@ def _compute_hash(text):
 
 
 def _find_dirty(current_hashes, stored_hashes, deps_data):
-    """Find properties that are dirty (changed or dependency changed).
+    """Find claims that are dirty (changed or dependency changed).
 
     Returns set of dirty labels.
     """
@@ -82,11 +82,11 @@ def _find_dirty(current_hashes, stored_hashes, deps_data):
         if stored is None or stored != current:
             dirty.add(label)
 
-    # Transitive pass: mark dependents of dirty properties
+    # Transitive pass: mark dependents of dirty claims
     changed = True
     while changed:
         changed = False
-        for label, prop in deps_data.get("properties", {}).items():
+        for label, prop in deps_data.get("claims", {}).items():
             if label in dirty:
                 continue
             follows = set(prop.get("follows_from", []))
@@ -98,9 +98,9 @@ def _find_dirty(current_hashes, stored_hashes, deps_data):
 
 
 def find_properties_needing_quality(asn_num, force_all=True, force_rebuild=False):
-    """Find properties that need a quality pass.
+    """Find claims that need a quality pass.
 
-    Reads per-property files from vault/3-formalization/ASN-NNNN/.
+    Reads per-claim files from vault/3-formalization/ASN-NNNN/.
 
     If force_rebuild=True, returns ALL (ignores hashes).
     If force_all=True, uses hash-based dirty detection.
@@ -110,20 +110,20 @@ def find_properties_needing_quality(asn_num, force_all=True, force_rebuild=False
     if asn_path is None:
         return [], {}
 
-    prop_dir = FORMALIZATION_DIR / asn_label
-    if not prop_dir.exists():
+    claim_dir = FORMALIZATION_DIR / asn_label
+    if not claim_dir.exists():
         print(f"  No formalization directory for {asn_label}", file=sys.stderr)
         return [], {}
-    label_index = build_label_index(prop_dir)
+    label_index = build_label_index(claim_dir)
     _filename_to_label = {f"{stem}.md": lbl for lbl, stem in label_index.items()}
 
-    # Read types from per-property YAMLs
-    metadata = load_property_metadata(prop_dir)
+    # Read types from per-claim YAMLs
+    metadata = load_claim_metadata(claim_dir)
     statuses = {lbl: data.get("type", "") for lbl, data in metadata.items()}
 
-    # Read per-property files
+    # Read per-claim files
     prop_files = sorted(
-        f for f in prop_dir.glob("*.md")
+        f for f in claim_dir.glob("*.md")
         if not f.name.startswith("_")
     )
 
@@ -153,7 +153,7 @@ def find_properties_needing_quality(asn_num, force_all=True, force_rebuild=False
 
     stored_hashes = {}
     skip_labels = set()
-    for label, prop in deps_data.get("properties", {}).items():
+    for label, prop in deps_data.get("claims", {}).items():
         if "hash" in prop:
             stored_hashes[label] = prop["hash"]
         if prop.get("skip_quality"):
@@ -165,7 +165,7 @@ def find_properties_needing_quality(asn_num, force_all=True, force_rebuild=False
     dirty = _find_dirty(current_hashes, stored_hashes, deps_data)
 
     # Dirty (hash changed) or missing contract → needs produce-contract.
-    # Unchanged properties are cached. Convergence = no changes made.
+    # Unchanged claims are cached. Convergence = no changes made.
     needs = []
     cached = 0
     for c in candidates:
@@ -181,7 +181,7 @@ def find_properties_needing_quality(asn_num, force_all=True, force_rebuild=False
             cached += 1
 
     if cached:
-        print(f"  [CACHE] {cached} properties cached, {len(needs)} dirty",
+        print(f"  [CACHE] {cached} claims cached, {len(needs)} dirty",
               file=sys.stderr)
 
     return needs, current_hashes
@@ -215,24 +215,24 @@ def _review_rewrite(pre_section, post_section, label):
 
 
 def _build_dep_context(asn_num, label):
-    """Build dependency context for a property — same-ASN files + foundation excerpts."""
+    """Build dependency context for a claim — same-ASN files + foundation excerpts."""
     deps_data = generate_formalization_deps(asn_num)
     if not deps_data:
         return "(none)"
 
-    prop_data = deps_data.get("properties", {}).get(label, {})
-    follows_from = prop_data.get("follows_from", [])
-    all_labels = set(deps_data.get("properties", {}).keys())
+    claim_data = deps_data.get("claims", {}).get(label, {})
+    follows_from = claim_data.get("follows_from", [])
+    all_labels = set(deps_data.get("claims", {}).keys())
 
     _, asn_label = find_asn(str(asn_num))
-    prop_dir = FORMALIZATION_DIR / asn_label
-    _label_index = build_label_index(prop_dir)
+    claim_dir = FORMALIZATION_DIR / asn_label
+    _label_index = build_label_index(claim_dir)
 
     dep_parts = []
     for dep_label in follows_from:
         if dep_label in all_labels:
             dep_stem = _label_index.get(dep_label, dep_label.replace("(", "").replace(")", ""))
-            dep_file = prop_dir / f"{dep_stem}.md"
+            dep_file = claim_dir / f"{dep_stem}.md"
             if dep_file.exists():
                 dep_parts.append(f"### {dep_label}\n\n{dep_file.read_text().strip()}")
 
@@ -260,15 +260,15 @@ def _build_dep_context(asn_num, label):
     return "\n\n".join(dep_parts) if dep_parts else "(none)"
 
 
-def produce_contract(asn_num, label, section, prop_path=None, max_cycles=3):
-    """Rewrite one property to Dijkstra standard.
+def produce_contract(asn_num, label, section, claim_path=None, max_cycles=3):
+    """Rewrite one claim to Dijkstra standard.
 
     Print-mode only — model receives the section + dependency context,
-    returns the rewritten section. Writes directly to the property file.
+    returns the rewritten section. Writes directly to the claim file.
 
     Returns (ok, changed, response_text):
-        ok: bool — whether the property now has a formal contract
-        changed: bool — whether the property file was actually modified
+        ok: bool — whether the claim now has a formal contract
+        changed: bool — whether the claim file was actually modified
         response_text: str — LLM response for the review file
     """
     asn_path, asn_label = find_asn(str(asn_num))
@@ -322,9 +322,9 @@ def produce_contract(asn_num, label, section, prop_path=None, max_cycles=3):
                   file=sys.stderr)
             return False, False, f"REJECTED: {review_detail}"
 
-        # Write directly to property file
-        if prop_path:
-            prop_path.write_text(new_section + "\n")
+        # Write directly to claim file
+        if claim_path:
+            claim_path.write_text(new_section + "\n")
         print(f"  [PRODUCE-CONTRACT] Done ({elapsed:.0f}s)", file=sys.stderr)
 
         if _has_formal_contract(new_section):

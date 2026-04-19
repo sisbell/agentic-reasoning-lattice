@@ -1,7 +1,7 @@
 title: Persistence independence
 narrative: |
   Content persists in Istream regardless of whether any arrangement references it.
-properties:
+claims:
 - label: S6
   name: PersistenceIndependence
   body: |

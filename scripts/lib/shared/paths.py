@@ -21,7 +21,7 @@ REVIEWS_DIR = VAULT / "1-reasoning-docs-review"
 # Blueprinting
 BLUEPRINTS_DIR = VAULT / "2-blueprints"
 
-# Stage 3: Formalization (per-property working copies)
+# Stage 3: Formalization (per-claim working copies)
 FORMALIZATION_DIR = VAULT / "3-formalization"
 
 # Stage 3: Verification
@@ -123,8 +123,8 @@ def next_review_number(asn_label, reviews_dir=None):
 
 
 def blueprint_properties_dir(asn_label):
-    """Per-ASN blueprint properties directory."""
-    return BLUEPRINTS_DIR / asn_label / "properties"
+    """Per-ASN blueprint claims directory."""
+    return BLUEPRINTS_DIR / asn_label / "claims"
 
 
 def blueprint_lint_dir(asn_label):

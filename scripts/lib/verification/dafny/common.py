@@ -35,9 +35,9 @@ def log_usage(asn_label, proof_label, elapsed, verified, cost):
     try:
         entry = {
             "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
-            "skill": "generate-dafny-property",
+            "skill": "generate-dafny-claim",
             "asn": asn_label,
-            "property": proof_label,
+            "claim": proof_label,
             "elapsed_s": round(elapsed, 1),
             "verified": verified,
             "cost_usd": cost,

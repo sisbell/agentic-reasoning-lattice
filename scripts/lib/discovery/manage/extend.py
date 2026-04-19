@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Extract properties from a source ASN into a new extension ASN.
+Extract claims from a source ASN into a new extension ASN.
 
 Usage:
-    python scripts/discovery-extend.py -s 53 -t 57 -b 34 --properties D0,D1
-    python scripts/discovery-extend.py --source 53 --target 57 --base 34 --properties D0,D1
+    python scripts/discovery-extend.py -s 53 -t 57 -b 34 --claims D0,D1
+    python scripts/discovery-extend.py --source 53 --target 57 --base 34 --claims D0,D1
 """
 
 import re
@@ -25,12 +25,12 @@ EXTEND_TEMPLATE = PROMPTS_DIR / "extend.md"
 
 
 def parse_registry_labels(asn_content):
-    """Extract property labels from the statement registry table."""
+    """Extract claim labels from the statement registry table."""
     labels = []
     in_table = False
     for line in asn_content.splitlines():
         lower = line.lower()
-        if "statement registry" in lower or "properties introduced" in lower:
+        if "statement registry" in lower or "claims introduced" in lower:
             in_table = False  # reset -- next table is the one
             continue
         if line.startswith("| ") and ("Label" in line or "label" in line):
@@ -51,7 +51,7 @@ def parse_registry_labels(asn_content):
     return labels
 
 
-def validate(source_num, target_num, base_num, property_labels):
+def validate(source_num, target_num, base_num, claim_labels):
     """Validate inputs. Returns (source_path, source_content) or exits."""
     # Source != base
     if source_num == base_num:
@@ -86,12 +86,12 @@ def validate(source_num, target_num, base_num, property_labels):
               file=sys.stderr)
         sys.exit(1)
 
-    # Property labels exist in source registry
+    # Claim labels exist in source registry
     source_content = source_path.read_text()
     registry_labels = parse_registry_labels(source_content)
-    missing = [p for p in property_labels if p not in registry_labels]
+    missing = [p for p in claim_labels if p not in registry_labels]
     if missing:
-        print(f"  [ERROR] Properties not found in source registry: "
+        print(f"  [ERROR] Claims not found in source registry: "
               f"{', '.join(missing)}", file=sys.stderr)
         print(f"  Available labels: {', '.join(registry_labels)}",
               file=sys.stderr)
@@ -118,7 +118,7 @@ def compute_depends(base_num):
     return sorted(deps)
 
 
-def build_prompt(source_content, property_labels, target_num, base_num,
+def build_prompt(source_content, claim_labels, target_num, base_num,
                  source_num, base_title, ext_title, base_statements,
                  foundation_stmts):
     """Build the extraction prompt from the template."""
@@ -136,7 +136,7 @@ def build_prompt(source_content, property_labels, target_num, base_num,
             .replace("{{source_content}}", source_content)
             .replace("{{foundation_statements}}", foundation_stmts)
             .replace("{{base_statements}}", base_statements)
-            .replace("{{properties}}", ", ".join(property_labels))
+            .replace("{{claims}}", ", ".join(claim_labels))
             .replace("{{target_label}}", target_label)
             .replace("{{base_label}}", base_label)
             .replace("{{base_title}}", base_title)
@@ -154,7 +154,7 @@ def strip_preamble(text):
 
 
 def write_manifest(target_num, title, base_num, source_num, depends,
-                   properties):
+                   claims):
     """Write the project model YAML for the new extension."""
     target_label = f"ASN-{target_num:04d}"
     base_label = f"ASN-{base_num:04d}"
@@ -170,7 +170,7 @@ def write_manifest(target_num, title, base_num, source_num, depends,
         f"\n"
         f"consultations:\n"
         f'  question: "Extension of {base_label}: '
-        f'properties {", ".join(properties)} from {source_label}."\n'
+        f'claims {", ".join(claims)} from {source_label}."\n'
     )
 
     path = project_yaml(target_num)

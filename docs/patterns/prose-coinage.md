@@ -4,7 +4,7 @@
 
 An agent coins a new prose word for a concept the reasoning will refer to from that point forward. The concept is one no existing vocabulary precisely captures; the coined word gives it a handle. The word enters the ASN's narrative and becomes available for subsequent claims, proofs, and downstream ASN consumption.
 
-Each coinage is a hypothesis — a structural claim about the domain proposing that the named concept exists and has the properties the reasoning requires of it. Coinage is how the system seeds hypothesis space.
+Each coinage is a hypothesis — a structural claim about the domain proposing that the named concept exists and has the claims the reasoning requires of it. Coinage is how the system seeds hypothesis space.
 
 "Action point," "divergence," "displacement," "zero-padded-equal," "subspace" — each was coined at a specific moment when synthesis needed a word for a concept that had no precise term in either channel's source vocabulary.
 
@@ -12,7 +12,7 @@ Each coinage is a hypothesis — a structural claim about the domain proposing t
 
 - **Two channels produce outputs with incompatible or incomplete vocabularies.** The theory channel uses one set of words; the data channel uses another. Neither fully captures the reconciled concept synthesis is trying to express.
 - **Borrowed terms are imprecise.** Using an existing word that almost-but-not-quite fits propagates the mismatch into every subsequent claim that builds on it.
-- **Unnamed concepts can't be cited.** Without a word, the concept cannot be referenced from another property, another ASN, or another proof step. It stays buried in the prose of one paragraph.
+- **Unnamed concepts can't be cited.** Without a word, the concept cannot be referenced from another claim, another ASN, or another proof step. It stays buried in the prose of one paragraph.
 - **Naming commits.** Once coined, the word propagates through review cycles, into downstream ASNs, into formalization. A poor choice is expensive to revert.
 
 ## Structure
@@ -39,7 +39,7 @@ The coinage is a single event with downstream consequences. The same word gets c
 - The concept is precise enough that a single word can capture it (not a vague cluster, not a paragraph's worth of context)
 - No existing word in either channel's vocabulary already expresses the concept adequately
 - The word is short enough for repeated use in narrative and dense formal contracts
-- The coinage happens at the synthesis moment, before the concept gets discussed in other properties under a different ad-hoc phrase each time
+- The coinage happens at the synthesis moment, before the concept gets discussed in other claims under a different ad-hoc phrase each time
 
 ## Produced by
 

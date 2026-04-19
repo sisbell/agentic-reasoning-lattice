@@ -20,11 +20,11 @@ Agents grow the lattice by creating permanent links and reasoning trails — the
 
 A human-posed question is decomposed into channel-appropriate sub-questions. Two independent agent channels — one consulting established theory, one analyzing raw evidence — are separated by a vocabulary firewall that forces hypothesis space exploration. The theory channel cannot use data-specific terms. The data channel cannot retrieve known solutions from theoretical vocabulary. A synthesis agent integrates both into a structured reasoning document with dependency-mapped claims. Where the channels agree, principles are validated. Where they disagree, new hypotheses emerge.
 
-Each reasoning document is decomposed into atomic properties (blueprinting — a meet operation), then verified through the adiabatic V-cycle: local scale (one property), regional scale (a cluster of coupled properties), and full scale (the whole document), each converging before passing to the next. Mechanical verification (Dafny proofs, Alloy bounded model checking) confirms logical consistency. Every verified node is a testable prediction — the oracle traces failures back to the specific claim and evidence channel that diverged.
+Each reasoning document is decomposed into atomic claims (blueprinting — a meet operation), then verified through the adiabatic V-cycle: local scale (one claim), regional scale (a cluster of coupled claims), and full scale (the whole document), each converging before passing to the next. Mechanical verification (Dafny proofs, Alloy bounded model checking) confirms logical consistency. Every verified node is a testable prediction — the oracle traces failures back to the specific claim and evidence channel that diverged.
 
 Out-of-scope findings flagged during review become [new inquiries](docs/patterns/scope-promotion.md), attaching to the lattice as new nodes. The system discovers the questions it should be asking, not just answers to questions posed.
 
-The system is demonstrated on the Xanadu hypertext system — deriving formal properties from Ted Nelson's design intent (*Literary Machines*) and Roger Gregory's 1988 implementation (udanax-green) under enforced vocabulary separation. Xanadu's protocol primitives — permanent addresses, bidirectional links, traceable provenance — are what the system discovered. The methodology bootstrapped the mathematics of the protocol through its own operation.
+The system is demonstrated on the Xanadu hypertext system — deriving formal claims from Ted Nelson's design intent (*Literary Machines*) and Roger Gregory's 1988 implementation (udanax-green) under enforced vocabulary separation. Xanadu's protocol primitives — permanent addresses, bidirectional links, traceable provenance — are what the system discovered. The methodology bootstrapped the mathematics of the protocol through its own operation.
 
 ## Applying to science
 
@@ -39,7 +39,7 @@ See [Science Approach](docs/science/README.md) for the convergence framing, cone
 - [Vision](docs/vision.md) — hypothesis space navigation, semantic communication substrate, Lamarckian evolution, building the engine
 - [Methodology](docs/methodology.md) — inquiry decomposition, two-channel discovery, V-cycle review, pattern language
 - [Discovery](docs/discovery.md) — finding formal structure through structured consultation
-- [Blueprinting](docs/blueprinting.md) — meet operation: document → atomic properties
+- [Blueprinting](docs/blueprinting.md) — meet operation: document → atomic claims
 - [Formalization](docs/formalization.md) — precision as a discovery tool, reasoning that improves itself
 - [Pattern Language](docs/patterns/README.md) — operationally discovered patterns for agentic reasoning systems
 - [Review V-Cycle](docs/design-notes/review-v-cycle.md) — multi-scale review architecture and multigrid analogy
@@ -63,8 +63,8 @@ See [Science Approach](docs/science/README.md) for the convergence framing, cone
 ## Structure
 
 - [vault/1-reasoning-docs/](vault/1-reasoning-docs/) — ASN reasoning documents (discovery output)
-- [vault/2-blueprints/](vault/2-blueprints/) — per-property decomposition (blueprinting output)
-- [vault/3-formalization/](vault/3-formalization/) — formalized properties with contracts
+- [vault/2-blueprints/](vault/2-blueprints/) — per-claim decomposition (blueprinting output)
+- [vault/3-formalization/](vault/3-formalization/) — formalized claims with contracts
 - [vault/3-verification/](vault/3-verification/) — Dafny proofs and Alloy models
 - [vault/project-model/](vault/project-model/index.md) — per-ASN manifests, exports, dependency graphs
 - [scripts/](scripts/) — pipeline automation

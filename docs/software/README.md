@@ -16,7 +16,7 @@ Convergence is always relative to a downstream verifier. For software reverse-en
 
 | Scale | Operator | Verifier |
 |---|---|---|
-| Local | local-review | proof soundness per property |
+| Local | local-review | proof soundness per claim |
 | Regional | regional-review | cluster proof consistency |
 | Full | full-review | lattice proof consistency |
 
@@ -24,7 +24,7 @@ At each scale, the operator iterates until the verifier finds no new issues.
 
 ### Cone as proof cluster
 
-A cone is an apex property plus its dependencies. In the software case, the apex is a theorem or operation and the dependencies are the axioms, definitions, and lemmas it cites. Regional convergence of a cone means:
+A cone is an apex claim plus its dependencies. In the software case, the apex is a theorem or operation and the dependencies are the axioms, definitions, and lemmas it cites. Regional convergence of a cone means:
 
 - Apex's proof is consistent with its dependencies
 - No declared-cycle issues
@@ -37,10 +37,10 @@ Full ASN convergence: all cones regionally converged, lattice-wide citation and 
 
 Unlike the science deployment (which uses an agentic Judger to check against target principles), the software deployment's verifier is mechanical:
 
-- **Dafny:** checks each property's formal contract against its proof obligations. Binary per property: verified or fails.
+- **Dafny:** checks each claim's formal contract against its proof obligations. Binary per claim: verified or fails.
 - **Code execution:** generated Rust (or equivalent) code runs and behaves as the specification claims.
 
-Dafny verification is the "match convergence" analog — the specification holds against its claimed properties. Failed verification indicates either the specification is wrong or the proof is flawed; both require revising the lattice until Dafny is satisfied.
+Dafny verification is the "match convergence" analog — the specification holds against its claimed claims. Failed verification indicates either the specification is wrong or the proof is flawed; both require revising the lattice until Dafny is satisfied.
 
 ## What the system produces
 
@@ -68,7 +68,7 @@ The system's value is rigorous formalization of what was built, not invention of
 
 - **Theory channel:** Ted Nelson's *Literary Machines* and associated concept catalog. Noun-heavy descriptive prose.
 - **Data channel:** Roger Gregory's udanax-green C implementation. Verb-in-packaging function names requiring un-wrapping.
-- **Foundation output:** ASN-0034 (Tumbler Algebra) — ~80 formalized properties covering sequence arithmetic, total order, prefix, addition, subtraction, displacement, allocation discipline, span algebra.
+- **Foundation output:** ASN-0034 (Tumbler Algebra) — ~80 formalized claims covering sequence arithmetic, total order, prefix, addition, subtraction, displacement, allocation discipline, span algebra.
 - **Downstream:** ASN-0036 (Strand Model) and additional ASNs build on the foundation.
 - **Verification machinery:** Dafny proofs for formal contracts, Rust codegen (in progress) for executable output.
 

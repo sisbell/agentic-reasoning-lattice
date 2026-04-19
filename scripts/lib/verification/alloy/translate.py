@@ -1,9 +1,9 @@
 """
-Alloy translate step — extract parsing, prompt building, single-property generation.
+Alloy translate step — extract parsing, prompt building, single-claim generation.
 
 Step functions for the alloy orchestrator (scripts/alloy.py):
-- parse_extract: split formal-statements into definitions + properties
-- build_property_prompt: assemble prompt for one property
+- parse_extract: split formal-statements into definitions + claims
+- build_claim_prompt: assemble prompt for one claim
 - generate_one: launch Claude agent to write + self-check one .als file
 """
 
@@ -22,7 +22,7 @@ from lib.verification.alloy.common import (read_file, invoke_claude, log_usage,
     ALLOY_JAR_DEFAULT)
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "verification" / "alloy"
-PROPERTY_TEMPLATE = PROMPTS_DIR / "translate-property.md"
+CLAIM_TEMPLATE = PROMPTS_DIR / "translate-claim.md"
 SYNTAX_REF = PROMPTS_DIR / "syntax-reference.md"
 
 
@@ -39,16 +39,16 @@ _PROP_NO_TYPE_RE = re.compile(
 
 
 def parse_extract(text):
-    """Parse an extract into definitions and properties.
+    """Parse an extract into definitions and claims.
 
     Returns dict with:
       definitions: str — all definition sections concatenated
-      properties: list[dict] — each with label, name, type, construct, body
+      claims: list[dict] — each with label, name, type, construct, body
     """
     sections = re.split(r"(?=^## )", text, flags=re.MULTILINE)
 
     definitions = []
-    properties = []
+    claims = []
 
     for section in sections:
         section = section.strip()
@@ -68,9 +68,9 @@ def parse_extract(text):
             definitions.append(section)
             continue
 
-        # Property with type tag
+        # Claim with type tag
         if m:
-            properties.append({
+            claims.append({
                 "label": m.group(1),
                 "name": m.group(2),
                 "type": m.group(3),
@@ -79,10 +79,10 @@ def parse_extract(text):
             })
             continue
 
-        # Property without type tag
+        # Claim without type tag
         m2 = _PROP_NO_TYPE_RE.match(first_line)
         if m2:
-            properties.append({
+            claims.append({
                 "label": m2.group(1),
                 "name": m2.group(2),
                 "type": "",
@@ -92,16 +92,16 @@ def parse_extract(text):
 
     return {
         "definitions": "\n\n".join(definitions),
-        "properties": properties,
+        "claims": claims,
     }
 
 
-def build_property_prompt(definitions, prop, syntax_ref="", dep_context=""):
-    """Assemble prompt for a single property from per-property template."""
-    template = read_file(PROPERTY_TEMPLATE)
+def build_claim_prompt(definitions, prop, syntax_ref="", dep_context=""):
+    """Assemble prompt for a single claim from per-claim template."""
+    template = read_file(CLAIM_TEMPLATE)
     if not template:
         print("  Prompt template not found at "
-              "scripts/prompts/verification/alloy/translate-property.md",
+              "scripts/prompts/verification/alloy/translate-claim.md",
               file=sys.stderr)
         sys.exit(1)
 
@@ -112,13 +112,13 @@ def build_property_prompt(definitions, prop, syntax_ref="", dep_context=""):
     ).replace(
         "{{dep_context}}", dep_context or "(none)"
     ).replace(
-        "{{property}}", prop["body"]
+        "{{claim}}", prop["body"]
     )
 
 
 def generate_one(result, prop, definitions, asn_label, args,
                   syntax_ref="", dep_context=""):
-    """Generate and self-check the .als file for a single property.
+    """Generate and self-check the .als file for a single claim.
 
     The agent writes the model, runs Alloy, and fixes syntax errors
     autonomously.  The script then runs a final Alloy check to confirm
@@ -128,7 +128,7 @@ def generate_one(result, prop, definitions, asn_label, args,
     """
     als_path = result["als_path"]
 
-    prompt = build_property_prompt(definitions, prop, syntax_ref=syntax_ref,
+    prompt = build_claim_prompt(definitions, prop, syntax_ref=syntax_ref,
                                    dep_context=dep_context)
 
     # Append agent self-check instructions
@@ -145,10 +145,10 @@ After writing the Alloy model to `{als_path}`, verify it by running:
 Repeat until the model is syntactically valid.
 
 **If you see counterexamples** (SAT on a check command): this is a valid
-result — it means the property does not hold. Do NOT modify the model to
+result — it means the claim does not hold. Do NOT modify the model to
 avoid counterexamples. Leave the model as-is and stop.
 
-**If all checks show UNSAT**: the property holds within scope. Stop.
+**If all checks show UNSAT**: the claim holds within scope. Stop.
 """
 
     print(f"\n  [{prop['label']}] {prop['name']}  "
@@ -186,7 +186,7 @@ avoid counterexamples. Leave the model as-is and stop.
             print(f"    No model generated", file=sys.stderr)
             result["status"] = "gen-fail"
             log_usage(asn_label, llm_elapsed, 0, False,
-                      prop_label=prop["label"], cost=cost,
+                      claim_label=prop["label"], cost=cost,
                       model=model_used)
             return result
 
@@ -200,7 +200,7 @@ avoid counterexamples. Leave the model as-is and stop.
         if alloy_output is None:
             result["status"] = "no-alloy"
             log_usage(asn_label, result["llm_elapsed"], 0, False,
-                      prop_label=prop["label"], cost=result.get("cost", 0),
+                      claim_label=prop["label"], cost=result.get("cost", 0),
                       model=result.get("model"))
             return result
 
@@ -216,13 +216,13 @@ avoid counterexamples. Leave the model as-is and stop.
         result["status"] = status
         has_ce = status == "counterexample"
         log_usage(asn_label, result["llm_elapsed"], alloy_elapsed,
-                  has_ce, prop_label=prop["label"],
+                  has_ce, claim_label=prop["label"],
                   cost=result.get("cost", 0),
                   model=result.get("model"))
     else:
         result["status"] = "generated"
         log_usage(asn_label, result["llm_elapsed"], 0, False,
-                  prop_label=prop["label"], cost=result.get("cost", 0),
+                  claim_label=prop["label"], cost=result.get("cost", 0),
                   model=result.get("model"))
 
     return result

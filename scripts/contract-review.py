@@ -2,7 +2,7 @@
 """
 Contract Review — validate formal contracts against proofs.
 
-Runs contract validation (sonnet, ~4s per property) on all properties
+Runs contract validation (sonnet, ~4s per claim) on all claims
 with formal contracts. On MISMATCH, re-runs produce-contract (opus)
 to rewrite the contract with full proof + deps context.
 
@@ -62,19 +62,19 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
     print(f"\n  [CONTRACT-REVIEW] {asn_label}", file=sys.stderr)
 
     review_dir = FORMALIZATION_DIR / asn_label / "reviews"
-    prop_dir = FORMALIZATION_DIR / asn_label
-    if not prop_dir.exists():
+    claim_dir = FORMALIZATION_DIR / asn_label
+    if not claim_dir.exists():
         print(f"  No formalization directory for {asn_label}", file=sys.stderr)
         return "failed"
 
-    label_index = build_label_index(prop_dir)
+    label_index = build_label_index(claim_dir)
     _filename_to_label = {f"{stem}.md": lbl for lbl, stem in label_index.items()}
-    print(f"  Directory: {prop_dir.relative_to(WORKSPACE)}", file=sys.stderr)
+    print(f"  Directory: {claim_dir.relative_to(WORKSPACE)}", file=sys.stderr)
 
-    # Load vocabulary from per-property YAMLs
-    vocabulary = aggregate_vocabulary(prop_dir)
+    # Load vocabulary from per-claim YAMLs
+    vocabulary = aggregate_vocabulary(claim_dir)
 
-    cache_path = prop_dir / "_contract-cache.json"
+    cache_path = claim_dir / "_contract-cache.json"
     validated_hashes = {} if force else _load_cache(cache_path)
 
     start_time = time.time()
@@ -82,9 +82,9 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
     had_findings = False
 
     for cycle in range(1, max_cycles + 1):
-        # Read per-property files
+        # Read per-claim files
         prop_files = sorted(
-            f for f in prop_dir.glob("*.md")
+            f for f in claim_dir.glob("*.md")
             if not f.name.startswith("_")
         )
 
@@ -92,7 +92,7 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
             prop_files = [f for f in prop_files
                           if _filename_to_label.get(f.name, f.stem) == single_label]
 
-        # Filter to properties with formal contracts, skip cached
+        # Filter to claims with formal contracts, skip cached
         candidates = []
         cached = 0
         for f in prop_files:
@@ -110,7 +110,7 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
             print(f"  [CACHE] {cached} contracts unchanged — skipping",
                   file=sys.stderr)
 
-        print(f"\n  [CYCLE {cycle}/{max_cycles}] {len(candidates)} properties to validate",
+        print(f"\n  [CYCLE {cycle}/{max_cycles}] {len(candidates)} claims to validate",
               file=sys.stderr)
 
         # Pre-build dependency contexts (generate_deps called once)
@@ -119,12 +119,12 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
         dep_contexts = {}
         for label, content, f in candidates:
             if deps_data:
-                prop_data = deps_data.get("properties", {}).get(label, {})
-                follows_from = prop_data.get("follows_from", [])
+                claim_data = deps_data.get("claims", {}).get(label, {})
+                follows_from = claim_data.get("follows_from", [])
                 parts = []
                 for dep_label in follows_from:
                     dep_stem = label_index.get(dep_label, dep_label.replace("(", "").replace(")", ""))
-                    dep_file = prop_dir / f"{dep_stem}.md"
+                    dep_file = claim_dir / f"{dep_stem}.md"
                     if dep_file.exists():
                         parts.append(f"### {dep_label}\n\n{dep_file.read_text().strip()}")
                 dep_contexts[label] = "\n\n".join(parts) if parts else "(none)"
@@ -148,7 +148,7 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
                 continue
             match, detail, f = result_tuple
             if match:
-                # Cache this property as validated
+                # Cache this claim as validated
                 content = f.read_text()
                 validated_hashes[label] = _hash_content(content)
             else:
@@ -186,8 +186,8 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
         template = FIX_CONTRACT_TEMPLATE.read_text()
 
         def _fix_one(item):
-            label, detail, prop_path = item
-            content = prop_path.read_text()
+            label, detail, claim_path = item
+            content = claim_path.read_text()
 
             prompt = (template
                       .replace("{{label}}", label)
@@ -204,7 +204,7 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
                 return label, (False, False)
             if new_content == content.strip():
                 return label, (True, False)
-            prop_path.write_text(new_content + "\n")
+            claim_path.write_text(new_content + "\n")
             return label, (True, True)
 
         fix_results = parallel_llm_calls(mismatches, _fix_one, max_workers=10)
@@ -218,7 +218,7 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
                 any_changed = True
 
         if any_changed:
-            # Invalidate cache for fixed properties
+            # Invalidate cache for fixed claims
             for label, _, _ in mismatches:
                 validated_hashes.pop(label, None)
             _save_cache(cache_path, validated_hashes)
@@ -251,11 +251,11 @@ def main():
     parser.add_argument("asn", help="ASN number (e.g., 34)")
     parser.add_argument("--max-cycles", type=int, default=5,
                         help="Maximum convergence cycles (default: 5)")
-    parser.add_argument("--label", help="Review a single property only")
+    parser.add_argument("--label", help="Review a single claim only")
     parser.add_argument("--model", default="sonnet",
                         help="Model for validation (default: sonnet)")
     parser.add_argument("--force", action="store_true",
-                        help="Ignore cache, re-validate all properties")
+                        help="Ignore cache, re-validate all claims")
     parser.add_argument("--dry-run", action="store_true",
                         help="Report mismatches without fixing")
     args = parser.parse_args()

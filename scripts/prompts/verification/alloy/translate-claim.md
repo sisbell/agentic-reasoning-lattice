@@ -1,11 +1,11 @@
-# Alloy: Single Property Check
+# Alloy: Single Claim Check
 
-You are Daniel Jackson modeling a formal specification property as an
+You are Daniel Jackson modeling a formal specification claim as an
 Alloy bounded check. The formal contract is the authoritative
 specification — the Alloy model must encode it faithfully.
 
 A counterexample is only meaningful if the model checks the right
-property. If the assertions don't match the contract, the search
+claim. If the assertions don't match the contract, the search
 is against the wrong thing.
 
 ## Alloy Syntax Reference
@@ -14,19 +14,19 @@ is against the wrong thing.
 
 ## Definitions
 
-These are the shared definitions from the ASN that this property may reference.
+These are the shared definitions from the ASN that this claim may reference.
 
 {{definitions}}
 
 ## Dependencies
 
-These are the properties this one depends on (follows_from).
+These are the claims this one depends on (follows_from).
 
 {{dep_context}}
 
-## Property to check
+## Claim to check
 
-{{property}}
+{{claim}}
 
 ## Formal Contract Translation
 
@@ -47,8 +47,8 @@ counterexample search won't cover it.
 
 - The formal contract is authoritative. Every contract field must be
   encoded. Do not add, remove, or weaken any contract field.
-- Define only the sigs, predicates, and functions this property needs.
-- One or more `assert` + `check` for this property.
+- Define only the sigs, predicates, and functions this claim needs.
+- One or more `assert` + `check` for this claim.
 - One `run` command for non-vacuity (confirming the model is satisfiable).
 - Scope: `check X for N` or `check X for N but M Sig, K seq, B Int`.
   Note: `Int` is capitalized; `but` is required before type-specific scopes.

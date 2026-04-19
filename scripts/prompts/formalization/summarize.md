@@ -1,8 +1,8 @@
-# Summarize Properties
+# Summarize Claims
 
-For each property below, write a 1-3 sentence summary of what it
+For each claim below, write a 1-3 sentence summary of what it
 establishes. The summary should be self-contained — a reader should
-understand the property's role and guarantees without needing to parse
+understand the claim's role and guarantees without needing to parse
 formal notation or read the proof.
 
 Good summary: "In words: tumbler comparison requires only the two
@@ -12,13 +12,13 @@ min(#a, #b) component pairs."
 
 Bad summary: "See T1 for details." / "This follows from the definition."
 
-## Properties
+## Claims
 
-{{properties}}
+{{claims}}
 
 ## Output
 
-One line per property, in the same order as the input:
+One line per claim, in the same order as the input:
 
 ```
 LABEL: summary text here

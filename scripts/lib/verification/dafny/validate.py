@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Per-property Dafny contract review.
+Per-claim Dafny contract review.
 
 Compares each generated .dfy file against its formal contract from
-per-property files in vault/3-formalization/. Flags mismatches for
+per-claim files in vault/3-formalization/. Flags mismatches for
 author review.
 
-Output: per-property review files in vault/3-verification/dafny/ASN-NNNN/reviews/
+Output: per-claim review files in vault/3-verification/dafny/ASN-NNNN/reviews/
 
 Usage:
     python scripts/lib/verification/dafny/validate.py 34
@@ -30,7 +30,7 @@ PROMPT_TEMPLATE = WORKSPACE / "scripts" / "prompts" / "verification" / "dafny" /
 
 
 def validate(dafny_source, formal_contract, label):
-    """Review a single property. Returns (result, reason, elapsed)."""
+    """Review a single claim. Returns (result, reason, elapsed)."""
     template = PROMPT_TEMPLATE.read_text()
     prompt = (template
               .replace("{{dafny_source}}", dafny_source)
@@ -77,14 +77,14 @@ def validate(dafny_source, formal_contract, label):
 
 
 def validate_batch(asn_num, dfy_dir, dry_run=False):
-    """Run per-property contract review. Returns path to review dir."""
+    """Run per-claim contract review. Returns path to review dir."""
     asn_label = f"ASN-{asn_num:04d}"
 
     print(f"  [CONTRACT] {asn_label}", file=sys.stderr)
 
-    # Read contract sections from per-property files
-    prop_dir = FORMALIZATION_DIR / asn_label
-    if not prop_dir.exists():
+    # Read contract sections from per-claim files
+    claim_dir = FORMALIZATION_DIR / asn_label
+    if not claim_dir.exists():
         print(f"  No formalization directory for {asn_label}", file=sys.stderr)
         return None
 
@@ -93,11 +93,11 @@ def validate_batch(asn_num, dfy_dir, dry_run=False):
         print(f"  No .dfy files in {dfy_dir}", file=sys.stderr)
         return None
 
-    # Build sections from per-property files
-    _label_index = build_label_index(prop_dir)
+    # Build sections from per-claim files
+    _label_index = build_label_index(claim_dir)
     _filename_to_label = {f"{stem}.md": lbl for lbl, stem in _label_index.items()}
     sections = {}
-    for f in prop_dir.glob("*.md"):
+    for f in claim_dir.glob("*.md"):
         if not f.name.startswith("_"):
             sections[_filename_to_label.get(f.name, f.stem)] = f.read_text()
 
@@ -108,7 +108,7 @@ def validate_batch(asn_num, dfy_dir, dry_run=False):
         if m:
             label_map[m.group(1)] = label
 
-    print(f"  Properties: {len(dfy_files)}", file=sys.stderr)
+    print(f"  Claims: {len(dfy_files)}", file=sys.stderr)
 
     if dry_run:
         for f in dfy_files:
@@ -162,7 +162,7 @@ def validate_batch(asn_num, dfy_dir, dry_run=False):
             print(f" \u2192 {rec} ({elapsed:.0f}s)", file=sys.stderr)
 
     total = clean_count + flag_count
-    summary = f"{total} properties reviewed: {clean_count} CLEAN, {flag_count} FLAG"
+    summary = f"{total} claims reviewed: {clean_count} CLEAN, {flag_count} FLAG"
 
     print(f"\n  {summary}", file=sys.stderr)
     print(f"  Reviews: {review_dir.relative_to(WORKSPACE)}/", file=sys.stderr)
@@ -173,7 +173,7 @@ def validate_batch(asn_num, dfy_dir, dry_run=False):
             "skill": "dafny-contract-review",
             "asn": asn_label,
             "elapsed_s": round(total_elapsed, 1),
-            "properties": total,
+            "claims": total,
             "flags": flag_count,
         }
         with open(USAGE_LOG, "a") as f:
@@ -186,10 +186,10 @@ def validate_batch(asn_num, dfy_dir, dry_run=False):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Per-property Dafny contract review")
+        description="Per-claim Dafny contract review")
     parser.add_argument("asn", help="ASN number (e.g., 34)")
     parser.add_argument("--dry-run", action="store_true",
-                        help="Show property list without reviewing")
+                        help="Show claim list without reviewing")
     args = parser.parse_args()
 
     asn_num = int(re.sub(r"[^0-9]", "", args.asn))

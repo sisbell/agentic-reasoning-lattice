@@ -33,10 +33,10 @@ def dump_yaml(data, path):
                   allow_unicode=True, sort_keys=False, width=120)
 
 
-def build_label_index(prop_dir):
+def build_label_index(claim_dir):
     """Scan YAML files in a directory, return {label: filename_stem} dict."""
     index = {}
-    for yf in Path(prop_dir).glob("*.yaml"):
+    for yf in Path(claim_dir).glob("*.yaml"):
         with open(yf) as f:
             data = yaml.safe_load(f)
         if data and "label" in data:
@@ -44,24 +44,24 @@ def build_label_index(prop_dir):
     return index
 
 
-def load_property_metadata(prop_dir, label=None):
-    """Load YAML metadata for one or all properties.
+def load_claim_metadata(claim_dir, label=None):
+    """Load YAML metadata for one or all claims.
 
     If label is given, returns single dict (or None if not found).
-    If label is None, returns {label: dict} for all properties.
+    If label is None, returns {label: dict} for all claims.
     """
-    prop_dir = Path(prop_dir)
+    claim_dir = Path(claim_dir)
     if label is not None:
-        index = build_label_index(prop_dir)
+        index = build_label_index(claim_dir)
         stem = index.get(label)
         if stem is None:
             return None
-        yf = prop_dir / f"{stem}.yaml"
+        yf = claim_dir / f"{stem}.yaml"
         with open(yf) as f:
             return yaml.safe_load(f)
 
     result = {}
-    for yf in sorted(prop_dir.glob("*.yaml")):
+    for yf in sorted(claim_dir.glob("*.yaml")):
         with open(yf) as f:
             data = yaml.safe_load(f)
         if data and "label" in data:
@@ -69,17 +69,17 @@ def load_property_metadata(prop_dir, label=None):
     return result
 
 
-def aggregate_vocabulary(prop_dir):
-    """Read vocabulary field from all property YAMLs, return formatted markdown string.
+def aggregate_vocabulary(claim_dir):
+    """Read vocabulary field from all claim YAMLs, return formatted markdown string.
 
-    Aggregates all vocabulary entries across all properties into a single
+    Aggregates all vocabulary entries across all claims into a single
     string suitable for passing to LLM prompts. Sorted alphabetically,
     deduplicated by symbol.
     """
-    prop_dir = Path(prop_dir)
+    claim_dir = Path(claim_dir)
     seen = {}  # symbol → meaning (dedup)
 
-    for yf in sorted(prop_dir.glob("*.yaml")):
+    for yf in sorted(claim_dir.glob("*.yaml")):
         with open(yf) as f:
             data = yaml.safe_load(f)
         if not data:
@@ -270,42 +270,42 @@ def parallel_llm_calls(items, worker_fn, max_workers=10):
 
 
 def assemble_readonly(asn_label):
-    """Concatenate per-property files from vault/3-formalization/ for read-only use.
+    """Concatenate per-claim files from vault/3-formalization/ for read-only use.
 
-    Returns assembled text (preamble + structural sections + properties).
+    Returns assembled text (preamble + structural sections + claims).
     Used by cross-cutting scripts that need the whole-ASN view.
     """
     from lib.shared.paths import FORMALIZATION_DIR
 
-    prop_dir = FORMALIZATION_DIR / asn_label
-    if not prop_dir.exists():
+    claim_dir = FORMALIZATION_DIR / asn_label
+    if not claim_dir.exists():
         return ""
 
     parts = []
 
     # Structural files first
-    for f in sorted(prop_dir.glob("_*.md")):
+    for f in sorted(claim_dir.glob("_*.md")):
         parts.append(f.read_text().strip())
 
-    # Property files alphabetically
-    for f in sorted(prop_dir.glob("*.md")):
+    # Claim files alphabetically
+    for f in sorted(claim_dir.glob("*.md")):
         if not f.name.startswith("_"):
             parts.append(f.read_text().strip())
 
     return "\n\n---\n\n".join(parts)
 
 
-def load_property_sections(prop_dir):
-    """Load per-property files into a dict, indexed by both filename stem
+def load_claim_sections(claim_dir):
+    """Load per-claim files into a dict, indexed by both filename stem
     and original label (from YAML metadata).
 
     Lookup by either filename stem or label will work.
     """
-    prop_dir = Path(prop_dir)
-    label_index = build_label_index(prop_dir)
+    claim_dir = Path(claim_dir)
+    label_index = build_label_index(claim_dir)
     stem_to_label = {stem: lbl for lbl, stem in label_index.items()}
     sections = {}
-    for f in sorted(prop_dir.glob("*.md")):
+    for f in sorted(claim_dir.glob("*.md")):
         if f.name.startswith("_"):
             continue
         content = f.read_text()
@@ -318,8 +318,8 @@ def load_property_sections(prop_dir):
     return sections
 
 
-def extract_property_sections(asn_text, known_labels=None, truncate=True):
-    """Extract the derivation text for each property.
+def extract_claim_sections(asn_text, known_labels=None, truncate=True):
+    """Extract the derivation text for each claim.
 
     If known_labels is provided, uses label-anchored search (table-driven):
     searches for each label as a bold header start, handling any format.
@@ -362,7 +362,7 @@ def extract_property_sections(asn_text, known_labels=None, truncate=True):
 
 
 def _extract_sections_by_labels(asn_text, labels, truncate=True):
-    """Table-driven section extraction using known property labels.
+    """Table-driven section extraction using known claim labels.
 
     For each label, finds the bold header line (any format) and captures
     text up to the next known label or section header.
@@ -370,7 +370,7 @@ def _extract_sections_by_labels(asn_text, labels, truncate=True):
     # Build label-specific patterns and find their positions
     label_positions = []
     for label in labels:
-        # Pattern 1: **LABEL followed by space, (, or * — standard property header
+        # Pattern 1: **LABEL followed by space, (, or * — standard claim header
         pattern1 = re.compile(
             r'^\*\*' + re.escape(label) + r'(?:\s|\(|\*)',
             re.MULTILINE

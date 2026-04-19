@@ -267,18 +267,18 @@ pred Add[s, sPost: State, k: Key, v: Value] {
   sPost.active = s.active + k
 }
 
--- Derived property: count of active keys
+-- Derived claim: count of active keys
 fun activeCount[s: State]: Int {
   #s.active
 }
 
--- Property: Add preserves well-formedness
+-- Claim: Add preserves well-formedness
 assert AddPreservesWF {
   all s, sPost: State, k: Key, v: Value |
     (wellFormed[s] and Add[s, sPost, k, v]) implies wellFormed[sPost]
 }
 
--- Property: Add does not remove existing keys
+-- Claim: Add does not remove existing keys
 assert AddMonotonic {
   all s, sPost: State, k: Key, v: Value |
     (Add[s, sPost, k, v]) implies s.active in sPost.active

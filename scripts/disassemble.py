@@ -1,4 +1,4 @@
-"""Disassemble — section YAMLs to per-property file pairs.
+"""Disassemble — section YAMLs to per-claim file pairs.
 
 Usage:
     python scripts/disassemble.py <ASN>

@@ -3,7 +3,7 @@ narrative: |
   Every V-position can be traced to the document that originally created its content.
 
   S7 requires an architectural premise that T4 alone does not supply. T4 tells us HOW to parse a tumbler into fields; it does not tell us that Istream addresses are allocated under the originating document's tumbler prefix. We state this premise explicitly:
-properties:
+claims:
 - label: S7a
   name: DocumentScopedAllocation
   body: |

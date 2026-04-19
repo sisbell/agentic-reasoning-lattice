@@ -10,7 +10,7 @@ This is how the lattice grows outward. Not by expanding existing documents, but 
 
 ## Forces
 
-- **Investigation has natural boundaries.** An agent focused on the state model encounters allocation discipline. An agent focused on baptism encounters conformance to external properties. Following every thread makes the investigation unbounded.
+- **Investigation has natural boundaries.** An agent focused on the state model encounters allocation discipline. An agent focused on baptism encounters conformance to external claims. Following every thread makes the investigation unbounded.
 - **LLMs self-narrow.** When an agent marks something out of scope, it is constraining itself — keeping focus on its assigned topic while preserving the finding for the system. This is productive self-discipline, not a limitation.
 - **Out-of-scope findings are real discoveries.** They represent topics the lattice doesn't cover yet. Each one is a signal that the lattice has a gap at its edge.
 - **Ignoring boundaries loses growth.** If out-of-scope items aren't captured, the lattice only grows through deliberate planning. Promotion lets it grow organically from what investigation reveals.
@@ -57,9 +57,9 @@ The boundary observation captures enough context to seed the new investigation: 
 
 During full-review of ASN-0040 (Tumbler Baptism), the reviewer found:
 
-> "Stating 'baptism conforms to T10a' as a formal property would close the bridge between the algebraic and set-theoretic developments, but this is a future convenience, not an error in this ASN."
+> "Stating 'baptism conforms to T10a' as a formal claim would close the bridge between the algebraic and set-theoretic developments, but this is a future convenience, not an error in this ASN."
 
-This is a boundary observation — T10a conformance is real, relevant, and outside ASN-0040's scope. Promoting it would create a new ASN (or a new property in an existing ASN) that formally establishes the bridge between baptism and allocator discipline.
+This is a boundary observation — T10a conformance is real, relevant, and outside ASN-0040's scope. Promoting it would create a new ASN (or a new claim in an existing ASN) that formally establishes the bridge between baptism and allocator discipline.
 
 ### Integration issues as scope promotions
 

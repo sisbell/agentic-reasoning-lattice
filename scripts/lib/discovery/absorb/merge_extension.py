@@ -4,10 +4,10 @@ Absorb an extension ASN back into its base and update the source.
 
 Reads the extension's project model to find:
   - extends: the base/parent ASN
-  - source: the ASN that originally derived these properties (optional)
+  - source: the ASN that originally derived these claims (optional)
 
 Pipeline:
-  1. Integrate extension properties into base reasoning doc (Claude agent)
+  1. Integrate extension claims into base reasoning doc (Claude agent)
   2. Review/revise the integration
   3. Re-export the base
   4. Update source ASN citations (Claude agent, if source field set)
@@ -40,12 +40,12 @@ ABSORB_SOURCE_TEMPLATE = PROMPTS_DIR / "update-citations-in-source.md"
 
 
 def parse_extension_labels(ext_content):
-    """Extract property labels from the extension ASN's registry."""
+    """Extract claim labels from the extension ASN's registry."""
     labels = []
     in_table = False
     for line in ext_content.splitlines():
         lower = line.lower()
-        if "statement registry" in lower or "properties introduced" in lower:
+        if "statement registry" in lower or "claims introduced" in lower:
             in_table = False
             continue
         if line.startswith("| ") and ("Label" in line or "label" in line):
@@ -102,7 +102,7 @@ def validate(ext_num):
 
 
 def step_integrate(ext_num, base_num, ext_path, base_path, model, effort):
-    """Step 1: Claude agent integrates extension properties into base."""
+    """Step 1: Claude agent integrates extension claims into base."""
     ext_label = f"ASN-{ext_num:04d}"
     base_label = f"ASN-{int(base_num):04d}"
 
@@ -120,7 +120,7 @@ def step_integrate(ext_num, base_num, ext_path, base_path, model, effort):
               .replace("{{base_path}}", str(base_path))
               .replace("{{date}}", date))
 
-    print(f"  [INTEGRATE] {ext_label} properties into {base_label}",
+    print(f"  [INTEGRATE] {ext_label} claims into {base_label}",
           file=sys.stderr)
 
     data, elapsed = invoke_claude_agent(
@@ -140,7 +140,7 @@ def step_integrate(ext_num, base_num, ext_path, base_path, model, effort):
     return True
 
 
-def step_integration_review(base_num, base_path, property_labels,
+def step_integration_review(base_num, base_path, claim_labels,
                             model, effort):
     """Step 2a: Targeted integration review (not generic review).
 
@@ -162,7 +162,7 @@ def step_integration_review(base_num, base_path, property_labels,
 
     prompt = (template
               .replace("{{asn_content}}", base_content)
-              .replace("{{property_labels}}", ", ".join(property_labels))
+              .replace("{{claim_labels}}", ", ".join(claim_labels))
               .replace("{{vocabulary}}", vocabulary)
               .replace("{{foundation_statements}}", foundation))
 
@@ -197,7 +197,7 @@ def step_integration_review(base_num, base_path, property_labels,
     return text
 
 
-def step_integration_revise(base_num, base_path, property_labels,
+def step_integration_revise(base_num, base_path, claim_labels,
                             review_text, model, effort):
     """Step 2b: Fix integration issues found by review."""
     from lib.shared.paths import VOCABULARY
@@ -217,7 +217,7 @@ def step_integration_revise(base_num, base_path, property_labels,
               .replace("{{vocabulary}}", vocabulary)
               .replace("{{foundation_statements}}", foundation)
               .replace("{{base_path}}", str(base_path))
-              .replace("{{property_labels}}", ", ".join(property_labels))
+              .replace("{{claim_labels}}", ", ".join(claim_labels))
               .replace("{{review_content}}", review_text))
 
     print(f"  [REVISE] Fixing integration issues in {base_label}...",
@@ -239,7 +239,7 @@ def step_integration_revise(base_num, base_path, property_labels,
     return True
 
 
-def step_review_revise(base_num, base_path, property_labels,
+def step_review_revise(base_num, base_path, claim_labels,
                        max_cycles, model, effort):
     """Step 2: Integration review/revise loop."""
     for cycle in range(1, max_cycles + 1):
@@ -247,7 +247,7 @@ def step_review_revise(base_num, base_path, property_labels,
               file=sys.stderr)
 
         result = step_integration_review(base_num, base_path,
-                                         property_labels, model, effort)
+                                         claim_labels, model, effort)
 
         if result is None:
             print(f"  [WARN] Review failed, continuing", file=sys.stderr)
@@ -257,7 +257,7 @@ def step_review_revise(base_num, base_path, property_labels,
             return True
 
         # Revise
-        ok = step_integration_revise(base_num, base_path, property_labels,
+        ok = step_integration_revise(base_num, base_path, claim_labels,
                                      result, model, effort)
         if not ok:
             print(f"  [WARN] Revise failed at cycle {cycle}",
@@ -303,10 +303,10 @@ def step_update_source(ext_num, source_num, base_num, ext_path,
         return False
 
     ext_content = ext_path.read_text()
-    property_labels = parse_extension_labels(ext_content)
+    claim_labels = parse_extension_labels(ext_content)
 
-    if not property_labels:
-        print(f"  [WARN] No introduced properties found in {ext_label}",
+    if not claim_labels:
+        print(f"  [WARN] No introduced claims found in {ext_label}",
               file=sys.stderr)
         return False
 
@@ -321,7 +321,7 @@ def step_update_source(ext_num, source_num, base_num, ext_path,
               .replace("{{source_label}}", source_label)
               .replace("{{base_label}}", base_label)
               .replace("{{ext_content}}", ext_content)
-              .replace("{{property_labels}}", ", ".join(property_labels))
+              .replace("{{claim_labels}}", ", ".join(claim_labels))
               .replace("{{source_path}}", str(source_path)))
 
     print(f"  [UPDATE] {source_label} — citing from {base_label}",

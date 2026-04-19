@@ -2,15 +2,15 @@
 """
 Full Review — deep structural analysis with convergence.
 
-Reads the whole ASN + foundation and finds issues that per-property
+Reads the whole ASN + foundation and finds issues that per-claim
 pipelines can't catch: carrier-set conflation, precondition chain gaps,
 arguments that assume what they prove, missing cases that hold by
 coincidence in examples.
 
-Whole-ASN review, not per-property. Convergence: review → fix findings →
+Whole-ASN review, not per-claim. Convergence: review → fix findings →
 re-review → converge.
 
-Includes dependency cone detection: when one property keeps getting
+Includes dependency cone detection: when one claim keeps getting
 revised while its dependencies are stable, switches to a focused
 regional review/revise loop to accelerate convergence.
 
@@ -49,12 +49,12 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
 
     print(f"\n  [FULL-REVIEW] {asn_label}", file=sys.stderr)
 
-    prop_dir = FORMALIZATION_DIR / asn_label
-    if not prop_dir.exists():
+    claim_dir = FORMALIZATION_DIR / asn_label
+    if not claim_dir.exists():
         print(f"  No formalization directory for {asn_label}", file=sys.stderr)
         return "failed"
 
-    print(f"  Directory: {prop_dir.relative_to(WORKSPACE)}", file=sys.stderr)
+    print(f"  Directory: {claim_dir.relative_to(WORKSPACE)}", file=sys.stderr)
 
     start_time = time.time()
     converged = False
@@ -64,7 +64,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
     for cycle in range(1, max_cycles + 1):
         print(f"\n  [CYCLE {cycle}/{max_cycles}]", file=sys.stderr)
 
-        # Assemble per-property files for whole-ASN review
+        # Assemble per-claim files for whole-ASN review
         asn_content = assemble_readonly(asn_label)
 
         # Run review
@@ -109,7 +109,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
         # Revise each finding
         any_changed = False
         for title, finding_text in findings:
-            ok = revise(asn_num, title, finding_text, prop_dir=prop_dir)
+            ok = revise(asn_num, title, finding_text, claim_dir=claim_dir)
             if ok:
                 any_changed = True
 
@@ -167,13 +167,13 @@ def run_revise_from_review(asn_num, review_spec):
         print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
         return False
 
-    prop_dir = FORMALIZATION_DIR / asn_label
-    if not prop_dir.exists():
+    claim_dir = FORMALIZATION_DIR / asn_label
+    if not claim_dir.exists():
         print(f"  No formalization directory for {asn_label}", file=sys.stderr)
         return False
 
     # Resolve review spec to path
-    review_dir = prop_dir / "reviews"
+    review_dir = claim_dir / "reviews"
     review_path = Path(review_spec)
     if not review_path.exists():
         # Try as number or filename
@@ -201,7 +201,7 @@ def run_revise_from_review(asn_num, review_spec):
     any_changed = False
     for title, finding_text in findings:
         print(f"\n  ### {title}", file=sys.stderr)
-        ok = revise(asn_num, title, finding_text, prop_dir=prop_dir)
+        ok = revise(asn_num, title, finding_text, claim_dir=claim_dir)
         if ok:
             any_changed = True
 
@@ -236,12 +236,12 @@ def main():
     if args.cone:
         # Force regional review — load deps from YAML, skip detection
         _, asn_label = find_asn(str(asn_num))
-        prop_dir = FORMALIZATION_DIR / asn_label
-        from lib.shared.common import load_property_metadata, build_label_index
-        asn_labels = set(build_label_index(prop_dir).keys())
-        meta = load_property_metadata(prop_dir, label=args.cone)
+        claim_dir = FORMALIZATION_DIR / asn_label
+        from lib.shared.common import load_claim_metadata, build_label_index
+        asn_labels = set(build_label_index(claim_dir).keys())
+        meta = load_claim_metadata(claim_dir, label=args.cone)
         if not meta:
-            print(f"  Property {args.cone} not found", file=sys.stderr)
+            print(f"  Claim {args.cone} not found", file=sys.stderr)
             sys.exit(1)
         dep_labels = [d for d in meta.get("depends", []) if d in asn_labels]
         result = run_regional_review(asn_num, args.cone, dep_labels,

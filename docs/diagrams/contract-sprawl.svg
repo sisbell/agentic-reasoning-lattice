@@ -1,6 +1,6 @@
 <svg width="100%" viewBox="0 0 680 440" role="img" xmlns="http://www.w3.org/2000/svg">
   <title>Contract sprawl: genesis attractor and resolution</title>
-  <desc>Left side shows property T0 growing taller as clauses accumulate across review cycles. Right side shows the resolution: splitting T0 into dedicated, independently citable properties.</desc>
+  <desc>Left side shows claim T0 growing taller as clauses accumulate across review cycles. Right side shows the resolution: splitting T0 into dedicated, independently citable claims.</desc>
 
   <style>
     text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
@@ -69,7 +69,7 @@
 
   <!-- RIGHT: Section label -->
   <text class="th" x="510" y="36" text-anchor="middle">Resolution</text>
-  <text class="ts" x="510" y="54" text-anchor="middle">Dedicated properties</text>
+  <text class="ts" x="510" y="54" text-anchor="middle">Dedicated claims</text>
 
   <!-- Split boxes (teal) -->
   <rect x="400" y="100" width="220" height="40" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
@@ -88,7 +88,7 @@
   <text class="label" x="510" y="344" text-anchor="middle" dominant-baseline="central" fill="#085041">NAT-wellorder</text>
 
   <!-- Accretion note -->
-  <text class="ts" x="510" y="390" text-anchor="middle">New facts → new properties</text>
+  <text class="ts" x="510" y="390" text-anchor="middle">New facts → new claims</text>
   <text class="ts" x="510" y="406" text-anchor="middle">Previous citations stay valid</text>
 
 </svg>

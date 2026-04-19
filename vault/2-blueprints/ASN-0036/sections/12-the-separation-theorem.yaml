@@ -1,7 +1,7 @@
 title: The separation theorem
 narrative: |
   We can now state the property that Nelson calls "the architectural foundation of everything" as a theorem rather than an axiom.
-properties:
+claims:
 - label: S9
   name: TwoStreamSeparation
   body: |

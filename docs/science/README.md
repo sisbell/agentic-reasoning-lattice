@@ -26,7 +26,7 @@ At each scale, the operator iterates until the relevant verifier finds no new is
 
 ### Cone as hypothesis cluster
 
-A cone is an apex property plus its dependencies. In the science case, it serves as a hypothesis cluster:
+A cone is an apex claim plus its dependencies. In the science case, it serves as a hypothesis cluster:
 
 - **Apex:** the hypothesis statement (a theorem-class claim)
 - **Dependencies:** supporting axioms (e.g., kinetic theory background), definitions (operational: κ, σ), data-channel citations (specific measurements), coined concepts (e.g., "Lorenz number" as a named invariant)

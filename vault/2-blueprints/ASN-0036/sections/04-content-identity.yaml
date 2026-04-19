@@ -1,7 +1,7 @@
 title: Content identity
 narrative: |
   What distinguishes transclusion from coincidence? In conventional systems, identity is by value — two files with identical bytes are "the same." In Xanadu, identity is by address.
-properties:
+claims:
 - label: S4
   name: OriginBasedIdentity
   body: |

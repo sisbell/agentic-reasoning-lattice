@@ -1,7 +1,7 @@
 asn: 42
 depends:
 - 34
-properties:
+claims:
   O0:
     status: design
     name: StructuralOwnership

@@ -28,13 +28,13 @@ COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
 
 
 def _generate_deps(asn_num, label):
-    """Generate deps YAML from per-property metadata."""
+    """Generate deps YAML from per-claim metadata."""
     try:
         deps = generate_formalization_deps(asn_num)
         if deps:
             path = write_deps_yaml(asn_num, deps)
             print(f"  [DEPS] {path.relative_to(WORKSPACE)} "
-                  f"({len(deps['properties'])} properties)", file=sys.stderr)
+                  f"({len(deps['claims'])} claims)", file=sys.stderr)
         else:
             print(f"  [DEPS] WARNING: extract failed for {label}",
                   file=sys.stderr)

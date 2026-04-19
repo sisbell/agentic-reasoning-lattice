@@ -34,8 +34,8 @@ The findings progress through predictable stages:
 1. **Citation accuracy** — wrong references, missing preconditions in contracts. Surface errors that are immediately visible.
 2. **Completeness** — missing axioms, undeclared dependencies, boundary guards. Gaps in what's stated.
 3. **Structural coherence** — axioms scoped too narrowly, proof structure mismatched to claims, narrative and formal content inconsistent.
-4. **Mathematical precision** — unstated domain assumptions, properties asserted when derivable, proofs claiming specific scope when argument is general.
-5. **Structural organization** — phantom dependencies, redundant properties, edge-case insights.
+4. **Mathematical precision** — unstated domain assumptions, claims asserted when derivable, proofs claiming specific scope when argument is general.
+5. **Structural organization** — phantom dependencies, redundant claims, edge-case insights.
 
 This progression was observed independently in ASN-0034 discovery (reviews 14-31), ASN-0036 discovery (reviews 1-26), and ASN-0036 formalization regional reviews. The same stages, same order, across different ASNs and different pipeline stages.
 
@@ -56,14 +56,14 @@ This progression was observed independently in ASN-0034 discovery (reviews 14-31
 
 ### Local review
 
-**Scope**: one property at a time, dependencies as fixed context.
+**Scope**: one claim at a time, dependencies as fixed context.
 **Review criteria**: 7-point checklist — logical gaps, unjustified steps, missing cases, dependency correctness, formal contract completeness.
-**Reviser**: agent with Edit tools, operates on the property's `.md` file.
-**Convergence**: typically 2-5 cycles per property.
+**Reviser**: agent with Edit tools, operates on the claim's `.md` file.
+**Convergence**: typically 2-5 cycles per claim.
 
 ### Contract review
 
-**Scope**: one property at a time.
+**Scope**: one claim at a time.
 **Review criteria**: formal contract matches what the proof establishes. Preconditions, postconditions, invariants, frame conditions.
 **Reviser**: contract rewriter — regenerates the contract section.
 **Convergence**: typically 1-3 cycles. Mechanical — less LLM judgment involved.
@@ -71,14 +71,14 @@ This progression was observed independently in ASN-0034 discovery (reviews 14-31
 ### Full review
 
 **Scope**: entire ASN + foundation statements.
-**Review criteria**: cross-property consistency — carrier-set conflation, precondition chain gaps, scope mismatches, undeclared dependencies.
-**Reviser**: agent with Edit/Write tools, can modify multiple properties per finding.
+**Review criteria**: cross-claim consistency — carrier-set conflation, precondition chain gaps, scope mismatches, undeclared dependencies.
+**Reviser**: agent with Edit/Write tools, can modify multiple claims per finding.
 **Convergence**: slow — broad context means noisy findings. May stall on [dependency cones](dependency-cone.md).
 
 ### Regional review
 
-**Scope**: one property + its same-ASN dependencies, narrowed foundation.
-**Review criteria**: same as full-review, but focused on the constraint system around one high-dependency property.
+**Scope**: one claim + its same-ASN dependencies, narrowed foundation.
+**Review criteria**: same as full-review, but focused on the constraint system around one high-dependency claim.
 **Reviser**: same as full-review.
 **Convergence**: faster than full-review — narrower context produces more precise findings. Typically 1-3 cycles per cone.
 

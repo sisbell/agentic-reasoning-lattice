@@ -11,7 +11,7 @@ Separate the evidence into two independent channels with enforced boundaries. Ea
 - **Single-source bias.** One channel sees what it expects to see. Theory finds confirmation. Data finds patterns without knowing which ones matter.
 - **Contamination.** If theory can reference data, it cherry-picks. If data can use theoretical terms, it imports assumptions. Independence must be enforced, not hoped for.
 - **Agreement is validation.** When independent channels reach the same conclusion through different evidence, the conclusion is robust — it doesn't depend on one source's biases.
-- **Disagreement is discovery.** When the channels conflict, something new is present — a property, a distinction, a relationship that neither channel would find alone.
+- **Disagreement is discovery.** When the channels conflict, something new is present — a claim, a distinction, a relationship that neither channel would find alone.
 
 ## Structure
 
@@ -59,12 +59,12 @@ The constraint is a vocabulary firewall — each channel is prohibited from usin
 
 **Vocabulary firewall**: theory channel cannot say "the code does X." Evidence channel cannot say "Nelson requires X."
 
-**Synthesis**: integrates both into ASN reasoning documents with dependency-mapped claims. Each claim traces to theory, evidence, or both. Disagreements become open questions or new properties.
+**Synthesis**: integrates both into ASN reasoning documents with dependency-mapped claims. Each claim traces to theory, evidence, or both. Disagreements become open questions or new claims.
 
 ### What it discovered
 
 - T10a allocator discipline — theory described hierarchical allocation, evidence showed `inc(·,0)` sibling streams. The match validated both; the constraints (`k' ∈ {1,2}`) emerged from disagreement about how deep allocation can go.
-- Corollary properties from absorb runs (ASN-0055/0057/0060) — evidence found patterns that theory hadn't named. The two-authority synthesis produced new properties that neither channel would have found alone.
+- Corollary claims from absorb runs (ASN-0055/0057/0060) — evidence found patterns that theory hadn't named. The two-authority synthesis produced new claims that neither channel would have found alone.
 - Integration gaps (S7c analogs, GlobalUniqueness citation, backward shift) — places where theory assumed something evidence didn't confirm, or evidence showed something theory hadn't formalized.
 
 ## Origin

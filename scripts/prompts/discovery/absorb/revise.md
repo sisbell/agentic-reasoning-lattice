@@ -27,20 +27,20 @@ Apply these standards when fixing issues:
 4. **Every invariant conjunct addressed** — Don't skip the hard ones
 5. **Depth is mandatory** — Claims without proofs are not fixes. Postconditions
    without derived consequences are incomplete. Show the steps.
-6. **Concrete examples required** — If a property lacks a worked example that
+6. **Concrete examples required** — If a claim lacks a worked example that
    exercises the key mechanism, add one with specific tumblers
 7. **Biconditionals need both directions** — If a statement claims ⟺, both
    directions must have explicit proofs
 8. **No cross-ASN references (except foundation ASNs)** — Use foundation
    definitions directly. Do not reference non-foundation ASNs.
 
-## Your Assignment: Revise Integration of New Properties
+## Your Assignment: Revise Integration of New Claims
 
-An integration review found issues with newly integrated properties in this ASN.
+An integration review found issues with newly integrated claims in this ASN.
 Read the ASN at `{{base_path}}`, then read the review below.
 
 **Scope:** Address every REVISE item in the review. These issues concern ONLY the
-newly integrated properties listed below. Do not modify pre-existing content that
+newly integrated claims listed below. Do not modify pre-existing content that
 is unrelated to the review findings.
 
 **Fix the actual problems:**
@@ -56,9 +56,9 @@ and reasoning where it is not affected by the review.
 
 Write the revised ASN back to `{{base_path}}`.
 
-## Properties That Were Integrated
+## Claims That Were Integrated
 
-{{property_labels}}
+{{claim_labels}}
 
 ## Review
 

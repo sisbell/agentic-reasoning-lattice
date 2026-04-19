@@ -16,7 +16,7 @@ CONTRACT_REVIEW_TEMPLATE = PROMPTS_DIR / "validate-contract.md"
 
 
 def validate(alloy_source, formal_contract, label):
-    """Review a single Alloy property against its formal contract.
+    """Review a single Alloy claim against its formal contract.
 
     Returns (result, reason, elapsed) where result is 'clean' or 'flag'.
     """

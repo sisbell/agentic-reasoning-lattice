@@ -20,9 +20,9 @@ Apply the changes described in the patch instruction:
 
 2. **Propagate downstream effects.** After applying the fix, check for
    references to the changed material elsewhere in the document:
-   - Proofs that cite the changed property — update citations if needed
-   - Per-property `.yaml` files — add to `depends` if new dependencies are introduced
-   - Formal contracts — update if the fix changes what the property
+   - Proofs that cite the changed claim — update citations if needed
+   - Per-claim `.yaml` files — add to `depends` if new dependencies are introduced
+   - Formal contracts — update if the fix changes what the claim
      establishes
    - Worked examples — update if they reference changed material
 

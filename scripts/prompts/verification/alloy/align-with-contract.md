@@ -46,7 +46,7 @@ Then make that change and nothing else.
 ## Rules
 
 - The formal contract is authoritative. Do NOT weaken assertions,
-  remove checks, or change the property's meaning.
+  remove checks, or change the claim's meaning.
 - Every *Postconditions:* field must appear as an `assert` + `check`.
 - Every *Preconditions:* field must appear as a constraint.
 - Do NOT remove sigs, predicates, or run commands — only fix them.

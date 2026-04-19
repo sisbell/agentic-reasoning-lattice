@@ -13,7 +13,7 @@ Applies targeted fixes to formalized ASNs from downstream findings
 ## Patch File Format
 
 Free-form markdown describing what to fix. Be specific — name the
-property, quote the finding, state the required change. Example:
+claim, quote the finding, state the required change. Example:
 
 ```markdown
 # TA5 — add t' ∈ T postcondition

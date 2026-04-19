@@ -28,7 +28,7 @@ from lib.formalization.rebase.revise import revise
 
 
 def _group_by_label(findings):
-    """Group findings by property label. Returns list of (label, [findings])."""
+    """Group findings by claim label. Returns list of (label, [findings])."""
     groups = defaultdict(list)
     for f in findings:
         groups[f.label].append(f)
@@ -36,14 +36,14 @@ def _group_by_label(findings):
 
 
 def _downstream_dependents(asn_num, changed_labels):
-    """Find properties that depend on any of the changed labels."""
+    """Find claims that depend on any of the changed labels."""
     deps_data = generate_discovery_deps(asn_num)
     if not deps_data:
         return set()
 
     dependents = set()
-    for label, prop_data in deps_data.get("properties", {}).items():
-        follows = set(prop_data.get("follows_from", []))
+    for label, claim_data in deps_data.get("claims", {}).items():
+        follows = set(claim_data.get("follows_from", []))
         if follows & changed_labels:
             dependents.add(label)
 
@@ -56,8 +56,8 @@ def _apply_name_fixes(asn_num, findings):
     if asn_label is None:
         return set()
 
-    prop_dir = FORMALIZATION_DIR / asn_label
-    if not prop_dir.exists():
+    claim_dir = FORMALIZATION_DIR / asn_label
+    if not claim_dir.exists():
         return set()
 
     changed = set()
@@ -76,13 +76,13 @@ def _apply_name_fixes(asn_num, findings):
         old = f"{up_label} ({wrong_name})"
         new = f"{up_label} ({right_name})"
 
-        # Fix in per-property files
-        for prop_file in prop_dir.glob("*.md"):
-            if prop_file.name.startswith("_"):
+        # Fix in per-claim files
+        for claim_file in claim_dir.glob("*.md"):
+            if claim_file.name.startswith("_"):
                 continue
-            text = prop_file.read_text()
+            text = claim_file.read_text()
             if old in text:
-                prop_file.write_text(text.replace(old, new))
+                claim_file.write_text(text.replace(old, new))
                 changed.add(f.label)
 
     return changed
@@ -94,7 +94,7 @@ def run_rebase(asn_num, max_cycles=5, mode="full_sweep", dry_run=False):
     Args:
         asn_num: ASN number
         max_cycles: Maximum convergence cycles
-        mode: "full_sweep" (all properties each cycle) or
+        mode: "full_sweep" (all claims each cycle) or
               "incremental" (dirty set + dependents)
         dry_run: Show what would run without fixing
 
@@ -118,13 +118,13 @@ def run_rebase(asn_num, max_cycles=5, mode="full_sweep", dry_run=False):
     print(f"\n  [REBASE] {asn_label} (depends: {depends})", file=sys.stderr)
 
     start_time = time.time()
-    target_labels = None  # None = all properties
+    target_labels = None  # None = all claims
     all_findings = []
     converged = False
     had_findings = False
 
     for cycle in range(1, max_cycles + 1):
-        label_desc = f"{len(target_labels)} properties (dirty set)" if target_labels else "all properties"
+        label_desc = f"{len(target_labels)} claims (dirty set)" if target_labels else "all claims"
         print(f"\n  [CYCLE {cycle}/{max_cycles}] {label_desc}, {mode}",
               file=sys.stderr)
 
@@ -162,7 +162,7 @@ def run_rebase(asn_num, max_cycles=5, mode="full_sweep", dry_run=False):
                   file=sys.stderr)
 
         if dry_run:
-            print(f"\n  [DRY RUN] Would revise {len(_group_by_label(findings))} properties",
+            print(f"\n  [DRY RUN] Would revise {len(_group_by_label(findings))} claims",
                   file=sys.stderr)
             break
 
@@ -188,7 +188,7 @@ def run_rebase(asn_num, max_cycles=5, mode="full_sweep", dry_run=False):
 
         # LLM revise for remaining findings
         if llm_fixes:
-            print(f"\n  [REVISE] {len(_group_by_label(llm_fixes))} properties...",
+            print(f"\n  [REVISE] {len(_group_by_label(llm_fixes))} claims...",
                   file=sys.stderr)
             for label, label_findings in _group_by_label(llm_fixes):
                 ok = revise(asn_num, label, label_findings)
@@ -207,7 +207,7 @@ def run_rebase(asn_num, max_cycles=5, mode="full_sweep", dry_run=False):
         if mode == "incremental":
             target_labels = changed_labels | _downstream_dependents(
                 asn_num, changed_labels)
-        # full_sweep: target_labels stays None (all properties)
+        # full_sweep: target_labels stays None (all claims)
 
     # Append final result to last review file
     elapsed = time.time() - start_time

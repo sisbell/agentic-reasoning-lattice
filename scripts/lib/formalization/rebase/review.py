@@ -59,12 +59,12 @@ def _load_deps_yaml(asn_num):
 
 
 def _extract_prose_context(asn_text, label, max_chars=1500):
-    """Extract prose around a property label from the ASN text.
+    """Extract prose around a claim label from the ASN text.
 
-    Finds the property definition (**LABEL — Name.**) and captures
+    Finds the claim definition (**LABEL — Name.**) and captures
     the surrounding text.
     """
-    # Find the property section
+    # Find the claim section
     pattern = re.compile(
         r'\*\*' + re.escape(label) + r'\s*(?:—|–|-)',
         re.MULTILINE
@@ -75,11 +75,11 @@ def _extract_prose_context(asn_text, label, max_chars=1500):
         pattern = re.compile(r'^' + re.escape(label) + r'\s*(?:—|–|-)', re.MULTILINE)
         m = pattern.search(asn_text)
     if not m:
-        return f"[property section for {label} not found in ASN]"
+        return f"[claim section for {label} not found in ASN]"
 
     start = m.start()
 
-    # Capture forward until next property or section header
+    # Capture forward until next claim or section header
     next_prop = re.search(r'\n\*\*[A-Z]', asn_text[start + 10:])
     next_section = re.search(r'\n## ', asn_text[start + 10:])
 
@@ -111,16 +111,16 @@ def extract_claims(asn_num):
         print(f"  [ERROR] ASN-{asn_num:04d} not found", file=sys.stderr)
         return []
 
-    # Use assembled per-property files if available
+    # Use assembled per-claim files if available
     asn_text = assemble_readonly(asn_label)
     if not asn_text:
         asn_text = asn_path.read_text()
     claims = []
 
     # Source 1: deps YAML extends/parallels entries
-    for label, prop_data in deps["properties"].items():
+    for label, claim_data in deps["claims"].items():
         for rel_type in ("extends", "parallels"):
-            rel = prop_data.get(rel_type)
+            rel = claim_data.get(rel_type)
             if not rel:
                 continue
 
@@ -164,7 +164,7 @@ def extract_claims(asn_num):
         re.IGNORECASE
     )
 
-    for label, prop_data in deps["properties"].items():
+    for label, claim_data in deps["claims"].items():
         context = _extract_prose_context(asn_text, label, max_chars=2000)
 
         for m in parallel_pattern.finditer(context):
@@ -191,7 +191,7 @@ def extract_claims(asn_num):
 
 
 def _load_foundation_statement(foundation_label, foundation_asn):
-    """Load a specific foundation property's statement from its export."""
+    """Load a specific foundation claim's statement from its export."""
     stmt_path = formal_stmts(foundation_asn)
     if not stmt_path.exists():
         return f"[export not found for ASN-{foundation_asn:04d}]"
@@ -210,7 +210,7 @@ def _load_foundation_statement(foundation_label, foundation_asn):
             section = section[:2000] + "\n[...truncated...]"
         return section
 
-    return f"[property {foundation_label} not found in ASN-{foundation_asn:04d} export]"
+    return f"[claim {foundation_label} not found in ASN-{foundation_asn:04d} export]"
 
 
 def verify_claims(claims, model="sonnet", effort="high", batch_size=3):
@@ -237,8 +237,8 @@ def verify_claims(claims, model="sonnet", effort="high", batch_size=3):
                 claim.foundation_label, claim.foundation_asn)
 
             sections.append(f"""### Claim {j}
-**Local property**: {claim.local_label} ({claim.local_type} {claim.foundation_label} from ASN-{claim.foundation_asn:04d})
-**Foundation property**:
+**Local claim**: {claim.local_label} ({claim.local_type} {claim.foundation_label} from ASN-{claim.foundation_asn:04d})
+**Foundation claim**:
 {foundation_stmt}
 
 **Local context**:
@@ -330,10 +330,10 @@ def _check_stale_labels(deps, label_map, dep_chain):
     asn_num = deps["asn"]
 
     # Build set of local labels (defined in this ASN)
-    local_labels = set(deps["properties"].keys())
+    local_labels = set(deps["claims"].keys())
 
-    for prop_label, prop_data in deps["properties"].items():
-        for ref_label in prop_data.get("follows_from", []):
+    for claim_label, claim_data in deps["claims"].items():
+        for ref_label in claim_data.get("follows_from", []):
             # Local reference — OK
             if ref_label in local_labels:
                 continue
@@ -346,8 +346,8 @@ def _check_stale_labels(deps, label_map, dep_chain):
                         category="undeclared-asn",
                         label=ref_label,
                         source_asn=source,
-                        location=f"deps:{prop_label}",
-                        detail=f"Property {prop_label} references {ref_label} "
+                        location=f"deps:{claim_label}",
+                        detail=f"Claim {claim_label} references {ref_label} "
                                f"from ASN-{source:04d}, which is not in depends "
                                f"(declared: {deps['depends']})"
                     ))
@@ -356,14 +356,14 @@ def _check_stale_labels(deps, label_map, dep_chain):
                     category="stale-label",
                     label=ref_label,
                     source_asn=None,
-                    location=f"deps:{prop_label}",
-                    detail=f"Property {prop_label} references {ref_label} "
+                    location=f"deps:{claim_label}",
+                    detail=f"Claim {claim_label} references {ref_label} "
                            f"which does not exist in any active ASN's export"
                 ))
 
         # Check extends/parallels references
         for rel_type in ("extends", "parallels"):
-            rel = prop_data.get(rel_type)
+            rel = claim_data.get(rel_type)
             if not rel:
                 continue
             ref_label = rel.get("label", "")
@@ -373,8 +373,8 @@ def _check_stale_labels(deps, label_map, dep_chain):
                     category="stale-label",
                     label=ref_label,
                     source_asn=ref_asn,
-                    location=f"deps:{prop_label}.{rel_type}",
-                    detail=f"Property {prop_label} {rel_type} {ref_label} "
+                    location=f"deps:{claim_label}.{rel_type}",
+                    detail=f"Claim {claim_label} {rel_type} {ref_label} "
                            f"which does not exist in any active ASN's export"
                 ))
             if ref_asn and ref_asn not in dep_chain:
@@ -382,8 +382,8 @@ def _check_stale_labels(deps, label_map, dep_chain):
                     category="undeclared-asn",
                     label=ref_label,
                     source_asn=ref_asn,
-                    location=f"deps:{prop_label}.{rel_type}",
-                    detail=f"Property {prop_label} {rel_type} references "
+                    location=f"deps:{claim_label}.{rel_type}",
+                    detail=f"Claim {claim_label} {rel_type} references "
                            f"ASN-{ref_asn:04d} which is not in depends"
                 ))
 
@@ -394,7 +394,7 @@ def _check_prose_citations(asn_num, deps, label_map, dep_chain):
     """Check 2: ASN prose cites foundation labels not in the deps YAML.
 
     Find labels referenced in the prose that come from dependency ASNs
-    but are not declared in the property table's follows_from.
+    but are not declared in the claim table's follows_from.
     """
     findings = []
     asn_path, _ = find_asn(str(asn_num))
@@ -406,15 +406,15 @@ def _check_prose_citations(asn_num, deps, label_map, dep_chain):
 
     # Build the set of all labels declared in deps YAML follows_from
     declared_labels = set()
-    for prop_data in deps["properties"].values():
-        declared_labels.update(prop_data.get("follows_from", []))
+    for claim_data in deps["claims"].values():
+        declared_labels.update(claim_data.get("follows_from", []))
         for rel_type in ("extends", "parallels"):
-            rel = prop_data.get(rel_type)
+            rel = claim_data.get(rel_type)
             if rel and rel.get("label"):
                 declared_labels.add(rel["label"])
 
     # Also include local labels
-    local_labels = set(deps["properties"].keys())
+    local_labels = set(deps["claims"].keys())
 
     for ref_label, source_asn in prose_refs.items():
         # Skip if it's a local label
@@ -439,7 +439,7 @@ def _check_prose_citations(asn_num, deps, label_map, dep_chain):
             source_asn=source_asn,
             location="prose",
             detail=f"Prose cites {ref_label} (ASN-{source_asn:04d}) "
-                   f"but no property table entry lists it in follows_from"
+                   f"but no claim table entry lists it in follows_from"
         ))
 
     return findings
@@ -458,7 +458,7 @@ def check_asn(asn_num, verbose=False):
     dep_chain = get_dep_chain(asn_num)
 
     if verbose:
-        print(f"  [INFO] ASN-{asn_num:04d}: {len(deps['properties'])} properties, "
+        print(f"  [INFO] ASN-{asn_num:04d}: {len(deps['claims'])} claims, "
               f"depends: {deps['depends']}, dep chain: {sorted(dep_chain)}",
               file=sys.stderr)
         print(f"  [INFO] Label map: {len(label_map)} labels across active ASNs",
@@ -557,7 +557,7 @@ def _check_cross_references(asn_num, target_labels=None):
                 if pascal:
                     upstream_names[label] = pascal.group(1)
 
-        sections = extract_property_sections(
+        sections = extract_claim_sections(
             stmts_text, known_labels=dep_labels, truncate=False)
         for label, section in sections.items():
             upstream_sections[label] = (dep_num, section)
@@ -565,7 +565,7 @@ def _check_cross_references(asn_num, target_labels=None):
     if not upstream_names:
         return []
 
-    # Use assembled per-property files if available
+    # Use assembled per-claim files if available
     asn_text = assemble_readonly(asn_label)
     if not asn_text:
         asn_text = asn_path.read_text()
@@ -587,33 +587,33 @@ def _check_cross_references(asn_num, target_labels=None):
             cited_name = m.group(1)
             if cited_name != canonical_name:
                 line_num = asn_text[:m.start()].count('\n') + 1
-                prop_label = _find_containing_property(
+                claim_label = _find_containing_claim(
                     deps_data, asn_text, m.start())
-                if target_labels and prop_label and prop_label not in target_labels:
+                if target_labels and claim_label and claim_label not in target_labels:
                     continue
                 findings.append(Finding(
                     category="name-mismatch",
-                    label=prop_label or up_label,
+                    label=claim_label or up_label,
                     source_asn=None,
                     location=f"prose:L{line_num}",
                     detail=(f"{up_label} cited as \"{cited_name}\" but "
                             f"upstream canonical name is \"{canonical_name}\". "
                             f"**Required**: Replace \"{up_label} ({cited_name})\" "
                             f"with \"{up_label} ({canonical_name})\" everywhere "
-                            f"in this property section."),
+                            f"in this claim section."),
                 ))
                 break
 
     # Sub-check (b): Redefinition check
-    for label, prop_data in deps_data.get("properties", {}).items():
+    for label, claim_data in deps_data.get("claims", {}).items():
         if target_labels and label not in target_labels:
             continue
-        local_name = prop_data.get("name", "")
+        local_name = claim_data.get("name", "")
         if not local_name:
             continue
         for up_label, canonical_name in upstream_names.items():
             if local_name == canonical_name or local_name == up_label:
-                status = prop_data.get("status", "")
+                status = claim_data.get("status", "")
                 if status in ("cited", "corollary", "confirms"):
                     continue
                 dep_num = (upstream_sections[up_label][0]
@@ -624,9 +624,9 @@ def _check_cross_references(asn_num, target_labels=None):
                     label=label,
                     source_asn=dep_num,
                     location=f"redefines:{up_label}",
-                    detail=(f"Local property {label} ({local_name}) has the same "
+                    detail=(f"Local claim {label} ({local_name}) has the same "
                             f"name as upstream {up_label} ({canonical_name}) from "
-                            f"{dep_str}. If these are the same property, "
+                            f"{dep_str}. If these are the same claim, "
                             f"{label} should cite the upstream rather than re-derive "
                             f"it locally. "
                             f"**Required**: If {label} proves the same invariant as "
@@ -638,23 +638,23 @@ def _check_cross_references(asn_num, target_labels=None):
 
     # Sub-check (c): LLM semantic check
     template = REVIEW_TEMPLATE.read_text()
-    all_labels = list(deps_data.get("properties", {}).keys())
+    all_labels = list(deps_data.get("claims", {}).keys())
 
-    # Read per-property files if available
-    prop_dir = FORMALIZATION_DIR / asn_label
-    if prop_dir.exists():
-        from lib.shared.common import load_property_sections
-        local_sections = load_property_sections(prop_dir)
+    # Read per-claim files if available
+    claim_dir = FORMALIZATION_DIR / asn_label
+    if claim_dir.exists():
+        from lib.shared.common import load_claim_sections
+        local_sections = load_claim_sections(claim_dir)
     else:
-        from lib.shared.common import extract_property_sections
-        local_sections = extract_property_sections(
+        from lib.shared.common import extract_claim_sections
+        local_sections = extract_claim_sections(
             asn_text, known_labels=all_labels, truncate=False)
 
-    for label, prop_data in deps_data.get("properties", {}).items():
+    for label, claim_data in deps_data.get("claims", {}).items():
         if target_labels and label not in target_labels:
             continue
 
-        follows_from_asns = prop_data.get("follows_from_asns", [])
+        follows_from_asns = claim_data.get("follows_from_asns", [])
         if not follows_from_asns:
             continue
 
@@ -662,7 +662,7 @@ def _check_cross_references(asn_num, target_labels=None):
         if not local_section:
             continue
 
-        follows_from = prop_data.get("follows_from", [])
+        follows_from = claim_data.get("follows_from", [])
         for ref_label in follows_from:
             if ref_label not in upstream_sections:
                 continue
@@ -670,8 +670,8 @@ def _check_cross_references(asn_num, target_labels=None):
             dep_num, upstream_section = upstream_sections[ref_label]
 
             prompt = (template
-                .replace("{{property_label}}", label)
-                .replace("{{property_section}}", local_section[:3000])
+                .replace("{{claim_label}}", label)
+                .replace("{{claim_section}}", local_section[:3000])
                 .replace("{{upstream_label}}", ref_label)
                 .replace("{{upstream_asn}}", str(dep_num))
                 .replace("{{upstream_contract}}", upstream_section[:3000]))
@@ -689,12 +689,12 @@ def _check_cross_references(asn_num, target_labels=None):
     return findings
 
 
-def _find_containing_property(deps_data, asn_text, char_offset):
-    """Find which property section contains a given character offset."""
+def _find_containing_claim(deps_data, asn_text, char_offset):
+    """Find which claim section contains a given character offset."""
     props = []
     for m in re.finditer(r'\*\*(\S+)\s*(?:\(|—|–|-)', asn_text):
         label = m.group(1)
-        if label in deps_data.get("properties", {}):
+        if label in deps_data.get("claims", {}):
             props.append((m.start(), label))
 
     if not props:
@@ -778,7 +778,7 @@ def _check_dependency_report(asn_num):
     if not foundation:
         return []
 
-    # Use assembled per-property files if available
+    # Use assembled per-claim files if available
     asn_content = assemble_readonly(asn_label)
     if not asn_content:
         asn_content = asn_path.read_text()

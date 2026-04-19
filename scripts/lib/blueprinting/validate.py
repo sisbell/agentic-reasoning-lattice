@@ -1,6 +1,6 @@
-"""Validate — check per-property file pairs for completeness and consistency.
+"""Validate — check per-claim file pairs for completeness and consistency.
 
-Blueprinting step: reads the per-property .yaml + .md pairs from disassemble,
+Blueprinting step: reads the per-claim .yaml + .md pairs from disassemble,
 runs mechanical checks. No LLM calls.
 
 Usage (standalone):
@@ -24,14 +24,14 @@ REQUIRED_FIELDS = {"label", "name", "type", "depends"}
 
 
 def validate_asn(asn_num):
-    """Validate per-property file pairs. Returns (errors, warnings)."""
+    """Validate per-claim file pairs. Returns (errors, warnings)."""
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
         return [f"ASN-{asn_num:04d} not found"], []
 
-    properties_dir = BLUEPRINTS_DIR / asn_label / "properties"
+    properties_dir = BLUEPRINTS_DIR / asn_label / "claims"
     if not properties_dir.exists():
-        return [f"No properties directory — run disassemble first"], []
+        return [f"No claims directory — run disassemble first"], []
 
     errors = []
     warnings = []
@@ -111,13 +111,13 @@ def print_validation(asn_num):
     _, asn_label = find_asn(str(asn_num))
     errors, warnings = validate_asn(asn_num)
 
-    properties_dir = BLUEPRINTS_DIR / asn_label / "properties"
+    properties_dir = BLUEPRINTS_DIR / asn_label / "claims"
     yaml_count = len(list(properties_dir.glob("*.yaml"))) if properties_dir.exists() else 0
     md_count = len([f for f in properties_dir.glob("*.md") if not f.name.startswith("_")]) if properties_dir.exists() else 0
     structural_count = len(list(properties_dir.glob("_*.md"))) if properties_dir.exists() else 0
 
     print(f"\n  [VALIDATE] {asn_label}", file=sys.stderr)
-    print(f"  {yaml_count} properties, {md_count} .md files, {structural_count} structural",
+    print(f"  {yaml_count} claims, {md_count} .md files, {structural_count} structural",
           file=sys.stderr)
 
     if errors:
@@ -142,7 +142,7 @@ def print_validation(asn_num):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Validate per-property file pairs for completeness and consistency")
+        description="Validate per-claim file pairs for completeness and consistency")
     parser.add_argument("asn", help="ASN number (e.g., 36)")
     args = parser.parse_args()
 

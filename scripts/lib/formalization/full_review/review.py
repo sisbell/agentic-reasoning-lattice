@@ -1,7 +1,7 @@
 """
 Full Review step — whole-ASN deep structural analysis.
 
-Reads the entire ASN + foundation and finds issues that per-property
+Reads the entire ASN + foundation and finds issues that per-claim
 pipelines can't catch: carrier-set conflation, precondition chain gaps,
 arguments that assume what they prove, missing cases.
 

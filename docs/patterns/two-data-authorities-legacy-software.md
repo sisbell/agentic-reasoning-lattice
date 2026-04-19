@@ -41,7 +41,7 @@ Working implementation (source + live system) ──→ data channel ─┘
 - The designer's material is accessible and comprehensive enough to answer intent questions
 - The implementation is readable source code (not just binaries) and can be run for behavioral testing
 - The design and the implementation were produced with enough independence that they don't simply echo each other
-- Both can be framed as evidence against the same kind of abstract properties
+- Both can be framed as evidence against the same kind of abstract claims
 
 ## Empirical findings from the Xanadu demonstration
 

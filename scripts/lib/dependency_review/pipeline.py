@@ -50,7 +50,7 @@ def run_dependency_report(asn_num):
         print(f"  [ERROR] dependency-report.md not found", file=sys.stderr)
         return None
 
-    # Use assembled per-property files if available, otherwise monolithic ASN
+    # Use assembled per-claim files if available, otherwise monolithic ASN
     asn_content = assemble_readonly(asn_label)
     if not asn_content:
         asn_content = asn_path.read_text()
@@ -103,9 +103,9 @@ def revise_report(asn_num, report_text):
         return False
 
     # Point agent at formalization directory if available
-    prop_dir = FORMALIZATION_DIR / asn_label
-    if prop_dir.exists():
-        rel_path = prop_dir.relative_to(WORKSPACE)
+    claim_dir = FORMALIZATION_DIR / asn_label
+    if claim_dir.exists():
+        rel_path = claim_dir.relative_to(WORKSPACE)
     else:
         rel_path = asn_path.relative_to(WORKSPACE)
 

@@ -1,4 +1,4 @@
-"""Enrich property YAMLs — add type, dependencies, vocabulary.
+"""Enrich claim YAMLs — add type, dependencies, vocabulary.
 
 Usage:
     python scripts/enrich.py <ASN>

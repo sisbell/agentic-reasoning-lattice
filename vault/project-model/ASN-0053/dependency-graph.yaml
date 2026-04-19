@@ -1,7 +1,7 @@
 asn: 53
 depends:
 - 34
-properties:
+claims:
   D0:
     status: cited
     name: Displacement well-definedness

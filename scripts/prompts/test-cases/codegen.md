@@ -31,7 +31,7 @@ Given this test case:
 
 ```markdown
 ## TC-001: proper prefix orders before its extension
-**Property:** T1 case (ii)
+**Claim:** T1 case (ii)
 **Given:**
 p = [1, 0, 3]
 d = [1, 0, 3, 0, 2]

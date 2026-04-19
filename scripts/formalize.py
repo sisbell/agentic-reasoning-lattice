@@ -2,7 +2,7 @@
 """
 Formalize — Dijkstra rewrite + formal contracts with convergence.
 
-Rewrites every non-definition property's proof to Dijkstra standard
+Rewrites every non-definition claim's proof to Dijkstra standard
 and ensures each has a complete formal contract. Uses incremental
 convergence: rewrite all needing quality → re-check → rewrite dirty
 set + dependents → converge.
@@ -11,7 +11,7 @@ Usage:
     python scripts/formalize.py 40
     python scripts/formalize.py 40 --max-cycles 1     # single pass
     python scripts/formalize.py 40 --mode full_sweep   # check all each cycle
-    python scripts/formalize.py 40 --label B0a         # single property
+    python scripts/formalize.py 40 --label B0a         # single claim
     python scripts/formalize.py 40 --dry-run           # list what needs quality
     python scripts/formalize.py 40 --contracts-only    # only missing contracts
 """
@@ -58,7 +58,7 @@ def run_formalize(asn_num, max_cycles=5, mode="incremental",
         max_cycles: Maximum convergence cycles
         mode: "incremental" (dirty set + dependents) or "full_sweep"
         dry_run: List what needs quality without rewriting
-        single_label: If set, only formalize this one property (force rewrite even if contract exists)
+        single_label: If set, only formalize this one claim (force rewrite even if contract exists)
 
     Returns:
         "converged" or "not_converged"
@@ -71,28 +71,28 @@ def run_formalize(asn_num, max_cycles=5, mode="incremental",
     print(f"\n  [FORMALIZE] {asn_label}", file=sys.stderr)
 
     review_dir = FORMALIZATION_DIR / asn_label / "reviews"
-    prop_dir = FORMALIZATION_DIR / asn_label
-    if not prop_dir.exists():
+    claim_dir = FORMALIZATION_DIR / asn_label
+    if not claim_dir.exists():
         print(f"  No formalization directory for {asn_label}", file=sys.stderr)
         print(f"  Run: python scripts/promote-blueprint.py {asn_num}",
               file=sys.stderr)
         return "failed"
 
-    _label_index = build_label_index(prop_dir)
-    cache_path = prop_dir / "_cache.json"
+    _label_index = build_label_index(claim_dir)
+    cache_path = claim_dir / "_cache.json"
     cache = _load_cache(cache_path)
-    print(f"  Directory: {prop_dir.relative_to(WORKSPACE)}", file=sys.stderr)
+    print(f"  Directory: {claim_dir.relative_to(WORKSPACE)}", file=sys.stderr)
 
     start_time = time.time()
     converged = False
-    dirty_set = None  # None = all properties on first pass
+    dirty_set = None  # None = all claims on first pass
     force_all = force_rebuild or (single_label is not None)
 
     total_rewritten = 0
     total_failed = 0
 
     for cycle in range(1, max_cycles + 1):
-        # Find properties needing quality
+        # Find claims needing quality
         force = force_rebuild or (single_label is not None)
         needs, current_hashes = find_properties_needing_quality(
             asn_num, force_all=force_all, force_rebuild=force)
@@ -124,7 +124,7 @@ def run_formalize(asn_num, max_cycles=5, mode="incremental",
         # Add any not in the graph
         ordered_needs += sorted(needs_labels - set(ordered_needs))
 
-        label_desc = (f"{len(ordered_needs)} properties"
+        label_desc = (f"{len(ordered_needs)} claims"
                       + (f" (dirty set)" if dirty_set is not None else ""))
         print(f"\n  [CYCLE {cycle}/{max_cycles}] {label_desc}",
               file=sys.stderr)
@@ -137,7 +137,7 @@ def run_formalize(asn_num, max_cycles=5, mode="incremental",
                 print(f"    {label:30s} {status}", file=sys.stderr)
             break
 
-        # Rewrite properties in parallel by dependency level
+        # Rewrite claims in parallel by dependency level
         cycle_rewritten = 0
         cycle_failed = 0
         changed = set()
@@ -150,16 +150,16 @@ def run_formalize(asn_num, max_cycles=5, mode="incremental",
             if not level_needs:
                 continue
 
-            print(f"\n  [LEVEL {level_idx}] {len(level_needs)} properties",
+            print(f"\n  [LEVEL {level_idx}] {len(level_needs)} claims",
                   file=sys.stderr)
 
             def _process_one(label):
                 item = needs_map[label]
                 stem = _label_index.get(label, label)
-                prop_path = item.get("path") or prop_dir / f"{stem}.md"
+                claim_path = item.get("path") or claim_dir / f"{stem}.md"
                 ok, file_changed, response = produce_contract(
                     asn_num, label, item["section"],
-                    prop_path=prop_path, max_cycles=1)
+                    claim_path=claim_path, max_cycles=1)
                 return label, (ok, file_changed, response)
 
             results = parallel_llm_calls(
@@ -189,8 +189,8 @@ def run_formalize(asn_num, max_cycles=5, mode="incremental",
 
                         # Update hash cache
                         stem = _label_index.get(label, label)
-                        md_path = prop_dir / f"{stem}.md"
-                        yaml_path = prop_dir / f"{stem}.yaml"
+                        md_path = claim_dir / f"{stem}.md"
+                        yaml_path = claim_dir / f"{stem}.yaml"
                         if md_path.exists():
                             hash_input = md_path.read_text()
                             if yaml_path.exists():
@@ -218,10 +218,10 @@ def run_formalize(asn_num, max_cycles=5, mode="incremental",
             if level_changed:
                 step_commit_asn(asn_num, hint=f"produce-contract level {level_idx}")
 
-                # Re-read property files for next level
+                # Re-read claim files for next level
                 for l in needs_labels:
                     l_stem = _label_index.get(l, l)
-                    l_path = prop_dir / f"{l_stem}.md"
+                    l_path = claim_dir / f"{l_stem}.md"
                     if l_path.exists():
                         needs_map[l]["section"] = l_path.read_text()
 
@@ -261,13 +261,13 @@ def main():
     parser.add_argument("--mode", choices=["incremental", "full_sweep"],
                         default="incremental",
                         help="Convergence mode (default: incremental)")
-    parser.add_argument("--label", help="Formalize a single property only")
+    parser.add_argument("--label", help="Formalize a single claim only")
     parser.add_argument("--dry-run", action="store_true",
-                        help="List properties needing quality pass")
+                        help="List claims needing quality pass")
     parser.add_argument("--contracts-only", action="store_true",
-                        help="Only rewrite properties missing contracts")
+                        help="Only rewrite claims missing contracts")
     parser.add_argument("--force", action="store_true",
-                        help="Full rebuild — ignore hashes, process all properties")
+                        help="Full rebuild — ignore hashes, process all claims")
     args = parser.parse_args()
 
     asn_num = int(re.sub(r"[^0-9]", "", args.asn))

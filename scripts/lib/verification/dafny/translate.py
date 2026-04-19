@@ -1,9 +1,9 @@
 """
-Dafny translate step — prompt building + single-property translation.
+Dafny translate step — prompt building + single-claim translation.
 
 Step functions for the dafny orchestrator (scripts/dafny.py):
-- build_property_list_from_asn: parse ASN table into property rows
-- build_property_prompt: assemble prompt for one property
+- build_claim_list_from_asn: parse ASN table into claim rows
+- build_claim_prompt: assemble prompt for one claim
 - translate_one: launch Claude agent to write + verify one .dfy file
 """
 
@@ -18,18 +18,18 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import (WORKSPACE, FORMALIZATION_DIR, PROOFS_DIR, USAGE_LOG,
                     load_manifest)
-from lib.shared.common import find_asn, assemble_readonly, build_label_index, load_property_metadata
+from lib.shared.common import find_asn, assemble_readonly, build_label_index, load_claim_metadata
 from lib.verification.dafny.common import read_file
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "verification" / "dafny"
-TEMPLATE = PROMPTS_DIR / "translate-property.md"
+TEMPLATE = PROMPTS_DIR / "translate-claim.md"
 DAFNY_REFERENCE = PROMPTS_DIR / "dafny-reference.dfy"
 
 
-def build_property_list_from_asn(asn_num):
-    """Build property list from per-property files in vault/3-formalization/.
+def build_claim_list_from_asn(asn_num):
+    """Build claim list from per-claim files in vault/3-formalization/.
 
-    Reads per-property YAML for metadata, .md files for contract type detection.
+    Reads per-claim YAML for metadata, .md files for contract type detection.
 
     Returns list of row dicts with keys: label, proof_label, type, construct, notes.
     """
@@ -37,22 +37,22 @@ def build_property_list_from_asn(asn_num):
     if asn_label is None:
         return []
 
-    prop_dir = FORMALIZATION_DIR / asn_label
-    if not prop_dir.exists():
+    claim_dir = FORMALIZATION_DIR / asn_label
+    if not claim_dir.exists():
         return []
 
-    # Read metadata from per-property YAMLs
-    metadata = load_property_metadata(prop_dir)
+    # Read metadata from per-claim YAMLs
+    metadata = load_claim_metadata(claim_dir)
     if not metadata:
         return []
 
-    # Read per-property .md files for contract type detection
-    _label_index = build_label_index(prop_dir)
+    # Read per-claim .md files for contract type detection
+    _label_index = build_label_index(claim_dir)
     _filename_to_label = {f"{stem}.md": lbl for lbl, stem in _label_index.items()}
-    prop_contents = {}
-    for f in prop_dir.glob("*.md"):
+    claim_contents = {}
+    for f in claim_dir.glob("*.md"):
         if not f.name.startswith("_"):
-            prop_contents[_filename_to_label.get(f.name, f.stem)] = f.read_text()
+            claim_contents[_filename_to_label.get(f.name, f.stem)] = f.read_text()
 
     rows = []
     for label, data in metadata.items():
@@ -61,7 +61,7 @@ def build_property_list_from_asn(asn_num):
         # proof_label from YAML name, or extract from header, or sanitize label
         proof_label = data.get("name", "")
         if not proof_label:
-            content = prop_contents.get(label, "")
+            content = claim_contents.get(label, "")
             m = re.search(r'^\*\*\S+\s*\(([A-Z][a-zA-Z0-9]+)\)', content, re.MULTILINE)
             if m:
                 proof_label = m.group(1)
@@ -71,7 +71,7 @@ def build_property_list_from_asn(asn_num):
             proof_label = re.sub(r'[^a-zA-Z0-9]', '', label)
 
         # Derive Dafny type from YAML type + formal contract in .md
-        content = prop_contents.get(label, "")
+        content = claim_contents.get(label, "")
         has_pre = bool(re.search(r'\*\s*Preconditions?\s*:\s*\*', content))
         has_post = bool(re.search(r'\*\s*Postconditions?\s*:\s*\*', content))
         has_inv = bool(re.search(r'\*\s*Invariants?\s*:\s*\*', content))
@@ -122,11 +122,11 @@ def find_imports_for_asn(asn_label, imports_text):
     return None
 
 
-def build_property_prompt(template, row, extract, dep_context=""):
-    """Assemble prompt for a single property."""
+def build_claim_prompt(template, row, extract, dep_context=""):
+    """Assemble prompt for a single claim."""
     prompt = template
 
-    # Format property row as markdown table
+    # Format claim row as markdown table
     index_table = (
         "| ASN Label | Proof Label | Type | Construct | Notes |\n"
         "|-----------|------------|------|-----------|-------|\n"
@@ -176,8 +176,8 @@ Write the Dafny module to: {out_path}
 Work in small steps. Each step adds ONE thing, then verifies.
 
 1. Write the module with the full declaration — the predicate or lemma
-   with its body, plus any accompanying lemmas the property requires
-   (e.g., a "strict total order" property needs irreflexivity,
+   with its body, plus any accompanying lemmas the claim requires
+   (e.g., a "strict total order" claim needs irreflexivity,
    transitivity, trichotomy, and asymmetry lemmas). Start every lemma
    body empty `{{ }}`. Write to disk, then run `dafny verify {out_path}`.
 

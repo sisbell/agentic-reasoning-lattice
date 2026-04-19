@@ -14,11 +14,11 @@ Places where the system could detect a disequilibrium pattern from its own opera
 
 ## Detection ready, action not yet automated
 
-**Contract Sprawl.** Signal: same property's formal contract grows across multiple cone cycles. Git history + contract-length delta would detect it. Action could range from flagging to proposing a split plan to executing the split. Judgment of what to split and how to name the pieces currently requires human input.
+**Contract Sprawl.** Signal: same claim's formal contract grows across multiple cone cycles. Git history + contract-length delta would detect it. Action could range from flagging to proposing a split plan to executing the split. Judgment of what to split and how to name the pieces currently requires human input.
 
 **Citation Drift (internal).** Full-review finds these but only on its own schedule. A dedicated scan between sweeps could surface drift faster. Already self-corrects once detected.
 
-**Bridge-citation gaps.** A subtype of Citation Drift. Detectable by identifying proof steps that move between concepts without citing the property that licenses the move. Needs LLM-level analysis, not just text matching.
+**Bridge-citation gaps.** A subtype of Citation Drift. Detectable by identifying proof steps that move between concepts without citing the claim that licenses the move. Needs LLM-level analysis, not just text matching.
 
 **Non-converging cones.** A cone hitting max_cycles without a "no new issues" signal. Already visible in output. Could be surfaced as a first-class alert and cross-referenced with other signals (is the apex also a sprawl candidate?).
 
@@ -28,9 +28,9 @@ Places where the system could detect a disequilibrium pattern from its own opera
 
 **Cross-ASN foundation drift (passive).** When an upstream ASN changes, every downstream consumer carries citation drift until a rebase pass. No automated mechanism currently scans for passive drift. A cross-ASN validator could detect "downstream cites label that no longer exists upstream" or "downstream's understanding of upstream is stale."
 
-**Summary staleness.** A property's summary YAML field may describe old content if the property has been revised. Summarize.py uses content hashes for its own cache, but a consumer of summaries has no signal that a summary is out of date relative to the formal contract it summarizes.
+**Summary staleness.** A claim's summary YAML field may describe old content if the claim has been revised. Summarize.py uses content hashes for its own cache, but a consumer of summaries has no signal that a summary is out of date relative to the formal contract it summarizes.
 
-**Attractor formation, not just sprawl.** Before a property sprawls, it often shows early signs — new clauses being added about a specific concept, multiple proofs independently citing the same fact through it. Catching attractor formation before sprawl would prevent the cascade entirely. Requires concept-level understanding of what a property is absorbing.
+**Attractor formation, not just sprawl.** Before a claim sprawls, it often shows early signs — new clauses being added about a specific concept, multiple proofs independently citing the same fact through it. Catching attractor formation before sprawl would prevent the cascade entirely. Requires concept-level understanding of what a claim is absorbing.
 
 **Cross-ASN vocabulary collision.** Two ASNs using the same symbol for different things, discoverable only by comparing vocabulary YAML across ASNs. Not currently scanned.
 

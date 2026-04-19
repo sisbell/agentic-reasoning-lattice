@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
 """
-Alloy — generate Alloy models per ASN property with bounded checking.
+Alloy — generate Alloy models per ASN claim with bounded checking.
 
-Reads per-property files from vault/3-formalization/, generates one .als
-per property using an agentic Claude session (with Bash access to run Alloy
-and self-fix syntax errors), validates contracts, writes per-property reviews.
+Reads per-claim files from vault/3-formalization/, generates one .als
+per claim using an agentic Claude session (with Bash access to run Alloy
+and self-fix syntax errors), validates contracts, writes per-claim reviews.
 
 Parallel: 3 workers by default (each is an agent session + JVM).
-Hash cache: skips unchanged properties since last successful run.
+Hash cache: skips unchanged claims since last successful run.
 
 Requires: Alloy installed at /Applications/Alloy.app (macOS) or ALLOY_JAR set.
 
 Usage:
     python scripts/alloy.py 34                    # full pipeline
-    python scripts/alloy.py 34 --property T1      # single property
+    python scripts/alloy.py 34 --claim T1      # single claim
     python scripts/alloy.py 34 --workers 5        # more parallelism
     python scripts/alloy.py 34 --force             # ignore cache
-    python scripts/alloy.py 34 --dry-run           # show property list
+    python scripts/alloy.py 34 --dry-run           # show claim list
     python scripts/alloy.py 34 --skip-check        # generate only
 """
 
@@ -33,26 +33,26 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, ALLOY_DIR
 from lib.shared.common import find_asn, parallel_llm_calls, build_label_index
 from lib.verification.alloy.translate import (
-    build_property_prompt, generate_one,
+    build_claim_prompt, generate_one,
     PROMPTS_DIR, SYNTAX_REF,
 )
 from lib.verification.alloy.align import align_validate_cycle
 from lib.verification.alloy.common import (
     read_file, invoke_claude, log_usage, step_commit,
-    cleanup_property_artifacts, make_result, print_summary,
+    cleanup_claim_artifacts, make_result, print_summary,
 )
 
 REVIEW_PROMPT = PROMPTS_DIR / "review-counterexample.md"
 
 
-def _review_counterexample(prop_text, als_path, checker_output):
+def _review_counterexample(claim_text, als_path, checker_output):
     """Classify a counterexample as spec issue vs modeling artifact."""
     template = read_file(REVIEW_PROMPT)
     if not template:
         return checker_output
     als_source = read_file(als_path)
     prompt = (template
-              .replace("{{property_text}}", prop_text)
+              .replace("{{claim_text}}", claim_text)
               .replace("{{alloy_source}}", als_source)
               .replace("{{checker_output}}", checker_output))
     import os, subprocess
@@ -100,9 +100,9 @@ def main():
     parser.add_argument("--skip-check", action="store_true",
                         help="Generate model only, don't run Alloy")
     parser.add_argument("--dry-run", action="store_true",
-                        help="Show property list and prompt sizes")
-    parser.add_argument("--property", "-p", default=None,
-                        help="Specific properties, comma-separated")
+                        help="Show claim list and prompt sizes")
+    parser.add_argument("--claim", "-p", default=None,
+                        help="Specific claims, comma-separated")
     parser.add_argument("--max-turns", type=int, default=12,
                         help="Max agentic turns (default: 12)")
     parser.add_argument("--workers", type=int, default=3,
@@ -119,10 +119,10 @@ def main():
         print(f"  No ASN found for {args.asn}", file=sys.stderr)
         sys.exit(1)
 
-    # Load from per-property files
+    # Load from per-claim files
     asn_num = int(re.search(r'\d+', asn_label).group())
-    prop_dir = FORMALIZATION_DIR / asn_label
-    if not prop_dir.exists():
+    claim_dir = FORMALIZATION_DIR / asn_label
+    if not claim_dir.exists():
         print(f"  No formalization directory for {asn_label}", file=sys.stderr)
         print(f"  Run: python scripts/promote-blueprint.py {args.asn}",
               file=sys.stderr)
@@ -139,13 +139,13 @@ def main():
     if not syntax_ref:
         print("  Warning: no syntax reference", file=sys.stderr)
 
-    # Read per-property files
-    _label_index = build_label_index(prop_dir)
+    # Read per-claim files
+    _label_index = build_label_index(claim_dir)
     _filename_to_label = {f"{stem}.md": lbl for lbl, stem in _label_index.items()}
     definitions = []
-    properties = []
+    claims = []
     source_hashes = {}
-    for f in sorted(prop_dir.glob("*.md")):
+    for f in sorted(claim_dir.glob("*.md")):
         if f.name.startswith("_"):
             continue
         content = f.read_text()
@@ -160,7 +160,7 @@ def main():
         else:
             m = re.search(r'^\*\*\S+\s*\(([^)]+)\)', content, re.MULTILINE)
             name = m.group(1) if m else label
-            properties.append({
+            claims.append({
                 "label": label,
                 "name": name,
                 "type": "",
@@ -169,24 +169,24 @@ def main():
             })
     definitions_text = "\n\n---\n\n".join(definitions)
 
-    if not properties:
-        print(f"  No properties found", file=sys.stderr)
+    if not claims:
+        print(f"  No claims found", file=sys.stderr)
         sys.exit(1)
 
-    # Filter to specific properties
-    if args.property:
-        targets = [t.strip() for t in args.property.split(",")]
+    # Filter to specific claims
+    if args.claim:
+        targets = [t.strip() for t in args.claim.split(",")]
         matches = []
         for target in targets:
-            found = [p for p in properties if p["label"] == target]
+            found = [p for p in claims if p["label"] == target]
             if not found:
-                found = [p for p in properties
+                found = [p for p in claims
                          if p["label"].lower().startswith(target.lower())]
             if not found:
-                print(f"  No property matching '{target}'", file=sys.stderr)
+                print(f"  No claim matching '{target}'", file=sys.stderr)
                 sys.exit(1)
             matches.extend(found)
-        properties = matches
+        claims = matches
 
     # Hash cache — skip unchanged
     cache_path = out_dir / "_alloy-cache.json"
@@ -194,7 +194,7 @@ def main():
 
     candidates = []
     cached = 0
-    for prop in properties:
+    for prop in claims:
         label = prop["label"]
         als_path = out_dir / f"{label}.als"
         entry = cache.get(label, {})
@@ -206,16 +206,16 @@ def main():
             candidates.append(prop)
 
     if cached:
-        print(f"  [CACHE] {cached} properties unchanged — skipping",
+        print(f"  [CACHE] {cached} claims unchanged — skipping",
               file=sys.stderr)
 
     print(f"  {asn_label} — {len(candidates)} to process "
-          f"({len(properties)} total, {len(definitions)} definitions)",
+          f"({len(claims)} total, {len(definitions)} definitions)",
           file=sys.stderr)
 
     if args.dry_run:
         for prop in candidates:
-            prompt = build_property_prompt(
+            prompt = build_claim_prompt(
                 definitions_text, prop, syntax_ref=syntax_ref,
                 )
             print(f"\n  [{prop['label']}] {prop['name']}  "
@@ -226,7 +226,7 @@ def main():
         print(f"  Nothing to do.", file=sys.stderr)
         return
 
-    # Process properties in parallel — flush cache + reviews per property
+    # Process claims in parallel — flush cache + reviews per claim
     cache_lock = threading.Lock()
     all_results = []
     results_lock = threading.Lock()
@@ -250,9 +250,9 @@ def main():
 
         # Cleanup after align (align may re-invoke Alloy, creating new artifacts)
         if not args.no_cleanup:
-            cleanup_property_artifacts(result["als_path"])
+            cleanup_claim_artifacts(result["als_path"])
 
-        # Flush review file (each property writes its own file — no contention)
+        # Flush review file (each claim writes its own file — no contention)
         status = result.get("status", "")
         contract = result.get("contract", "")
         review_path = review_dir / f"{label}.md"
@@ -321,7 +321,7 @@ def main():
         if any_counterexample:
             step_commit(f"alloy(asn): {asn_label} — counterexamples found")
         else:
-            step_commit(f"alloy(asn): {asn_label} — {len(all_results)} properties checked")
+            step_commit(f"alloy(asn): {asn_label} — {len(all_results)} claims checked")
 
     # Output paths for scripting
     for r in all_results:

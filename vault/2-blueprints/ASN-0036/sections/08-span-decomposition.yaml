@@ -3,7 +3,7 @@ narrative: |
   The arrangement `M(d)` maps individual V-positions to I-addresses. But the mapping has internal structure: contiguous V-ranges often correspond to contiguous I-ranges. This is what makes finite representation possible.
 
   Before defining correspondence runs, we must establish the structure of `dom(M(d))` more carefully.
-properties:
+claims:
 - label: S8-fin
   name: FiniteArrangement
   body: |

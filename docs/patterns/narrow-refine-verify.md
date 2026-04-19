@@ -14,7 +14,7 @@ The pattern language documented here is not a new method. It is the set of pract
 
 Every process in the system follows the same three-phase rhythm:
 
-1. **Narrow** — reduce scope until the problem is tractable. Break a broad question into targeted sub-questions. Break a document into properties. Focus on a cluster instead of the whole.
+1. **Narrow** — reduce scope until the problem is tractable. Break a broad question into targeted sub-questions. Break a document into claims. Focus on a cluster instead of the whole.
 
 2. **Refine** — within the narrowed scope, iteratively improve. Find issues, fix them, re-check. The scope is small enough to converge — changes don't cascade beyond the boundary.
 
@@ -37,7 +37,7 @@ Narrow a broad question into targeted sub-questions scoped to each authority ([s
 
 ### Formalization
 
-Narrow the ASN into per-property scope. Refine each property's proof and contract through review/revise iteration. [Verify the whole](verify-the-whole.md) ASN through full-review.
+Narrow the ASN into per-claim scope. Refine each claim's proof and contract through review/revise iteration. [Verify the whole](verify-the-whole.md) ASN through full-review.
 
 ### Extract/absorb
 

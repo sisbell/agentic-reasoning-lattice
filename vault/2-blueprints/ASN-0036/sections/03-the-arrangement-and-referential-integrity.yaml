@@ -1,7 +1,7 @@
 title: The arrangement and referential integrity
 narrative: |
   Vstream is where mutability lives. Each document's arrangement `M(d)` maps V-positions to I-addresses, presenting stored content as a readable sequence. Unlike `C`, arrangements change freely — content can be added, removed, and reordered.
-properties:
+claims:
 - label: S2
   name: ArrangementFunctionality
   body: |

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Summarize — generate summaries for property YAMLs.
+Summarize — generate summaries for claim YAMLs.
 
-Reads each property's .md body and formal contract, generates a 1-3
+Reads each claim's .md body and formal contract, generates a 1-3
 sentence summary via LLM, writes it to the summary field in the .yaml.
 
 Summaries enable mechanical foundation export — no LLM-based assembly
@@ -25,7 +25,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR
 from lib.shared.common import (
-    find_asn, build_label_index, load_property_metadata,
+    find_asn, build_label_index, load_claim_metadata,
     dump_yaml, invoke_claude, step_commit_asn,
 )
 
@@ -76,13 +76,13 @@ def _extract_statement_and_contract(md_text):
     return statement, contract
 
 
-def _build_batch_text(batch, prop_dir, label_index, all_metadata):
-    """Build the properties text for a batch of labels."""
+def _build_batch_text(batch, claim_dir, label_index, all_metadata):
+    """Build the claims text for a batch of labels."""
     parts = []
     for label in batch:
         meta = all_metadata.get(label, {})
         stem = label_index.get(label, label)
-        md_path = prop_dir / f"{stem}.md"
+        md_path = claim_dir / f"{stem}.md"
 
         if not md_path.exists():
             continue
@@ -120,30 +120,30 @@ def _parse_summaries(response_text):
 
 
 def run_summarize(asn_num, force=False, dry_run=False):
-    """Generate summaries for properties that need them."""
+    """Generate summaries for claims that need them."""
     _, asn_label = find_asn(str(asn_num))
     if asn_label is None:
         print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
         return False
 
-    prop_dir = FORMALIZATION_DIR / asn_label
-    if not prop_dir.exists():
+    claim_dir = FORMALIZATION_DIR / asn_label
+    if not claim_dir.exists():
         print(f"  No formalization directory for {asn_label}", file=sys.stderr)
         return False
 
-    label_index = build_label_index(prop_dir)
-    all_metadata = load_property_metadata(prop_dir)
-    cache_path = prop_dir / "_summary-cache.json"
+    label_index = build_label_index(claim_dir)
+    all_metadata = load_claim_metadata(claim_dir)
+    cache_path = claim_dir / "_summary-cache.json"
     cache = {} if force else _load_cache(cache_path)
 
-    print(f"\n  [SUMMARIZE] {asn_label} — {len(all_metadata)} properties",
+    print(f"\n  [SUMMARIZE] {asn_label} — {len(all_metadata)} claims",
           file=sys.stderr)
 
-    # Determine which properties need summarization
+    # Determine which claims need summarization
     needs_summary = []
     for label, meta in all_metadata.items():
         stem = label_index.get(label, label)
-        md_path = prop_dir / f"{stem}.md"
+        md_path = claim_dir / f"{stem}.md"
         if not md_path.exists():
             continue
 
@@ -156,11 +156,11 @@ def run_summarize(asn_num, force=False, dry_run=False):
         needs_summary.append((label, md_hash))
 
     if not needs_summary:
-        print(f"  All {len(all_metadata)} properties have current summaries.",
+        print(f"  All {len(all_metadata)} claims have current summaries.",
               file=sys.stderr)
         return True
 
-    print(f"  {len(needs_summary)} properties need summarization.",
+    print(f"  {len(needs_summary)} claims need summarization.",
           file=sys.stderr)
 
     if dry_run:
@@ -180,8 +180,8 @@ def run_summarize(asn_num, force=False, dry_run=False):
         batch_num = batch_start // BATCH_SIZE + 1
         total_batches = (len(labels_only) + BATCH_SIZE - 1) // BATCH_SIZE
 
-        batch_text = _build_batch_text(batch, prop_dir, label_index, all_metadata)
-        prompt = template.replace("{{properties}}", batch_text)
+        batch_text = _build_batch_text(batch, claim_dir, label_index, all_metadata)
+        prompt = template.replace("{{claims}}", batch_text)
 
         print(f"  [BATCH {batch_num}/{total_batches}] {', '.join(batch)}...",
               end="", file=sys.stderr, flush=True)
@@ -216,7 +216,7 @@ def run_summarize(asn_num, force=False, dry_run=False):
             summaries[label] = summary  # normalize key for cache
 
             stem = label_index.get(label, label)
-            yaml_path = prop_dir / f"{stem}.yaml"
+            yaml_path = claim_dir / f"{stem}.yaml"
             if not yaml_path.exists():
                 continue
 
@@ -245,10 +245,10 @@ def run_summarize(asn_num, force=False, dry_run=False):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Summarize — generate summaries for property YAMLs")
+        description="Summarize — generate summaries for claim YAMLs")
     parser.add_argument("asn", help="ASN number (e.g., 34)")
     parser.add_argument("--force", action="store_true",
-                        help="Re-summarize all properties (ignore cache)")
+                        help="Re-summarize all claims (ignore cache)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Show what would be summarized, don't run")
     args = parser.parse_args()

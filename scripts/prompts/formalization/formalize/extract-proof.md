@@ -1,10 +1,10 @@
 # Section Repair
 
-You are writing a standalone proof for a property that currently lacks one.
-The property's statement exists but its proof is embedded in another
-property's section. Write a self-contained Dijkstra-style proof.
+You are writing a standalone proof for a claim that currently lacks one.
+The claim's statement exists but its proof is embedded in another
+claim's section. Write a self-contained Dijkstra-style proof.
 
-## Property
+## Claim
 
 **Label**: {{label}}
 
@@ -14,8 +14,8 @@ property's section. Write a self-contained Dijkstra-style proof.
 
 ### Embedded Proof (reference only)
 
-The following section from another property contains a proof that covers
-this property. Use it to understand what needs to be proved, but write
+The following section from another claim contains a proof that covers
+this claim. Use it to understand what needs to be proved, but write
 your own standalone argument.
 
 {{host_section}}
@@ -42,8 +42,8 @@ The ASN is at `{{asn_path}}`.
 
 ## Rules
 
-1. Write the proof directly after the property's bold header in the ASN.
-   Insert it after the existing statement text and before the next property's
+1. Write the proof directly after the claim's bold header in the ASN.
+   Insert it after the existing statement text and before the next claim's
    bold header.
 2. The proof must be self-contained — a reader should understand it
    without reading any other section.
@@ -53,9 +53,9 @@ The ASN is at `{{asn_path}}`.
    with the applicable fields (Preconditions, Postconditions, Invariant,
    Frame, Axiom, Definition). Preserve exact conditions from the narrative.
 5. Do not modify the original combined verification section or any
-   other property's section.
-6. For axioms or definitional properties (no derivation possible), write
-   a brief justification stating why the property holds by definition or
+   other claim's section.
+6. For axioms or definitional claims (no derivation possible), write
+   a brief justification stating why the claim holds by definition or
    design, and use `*Axiom:*` in the formal contract.
-7. If the proof cites dependencies not already in the property's `.yaml`
+7. If the proof cites dependencies not already in the claim's `.yaml`
    file, add them to the `depends` list. Do not remove existing dependencies.

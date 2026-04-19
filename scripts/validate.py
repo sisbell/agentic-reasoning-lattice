@@ -1,4 +1,4 @@
-"""Validate — check per-property file pairs for completeness and consistency.
+"""Validate — check per-claim file pairs for completeness and consistency.
 
 Usage:
     python scripts/validate.py <ASN>

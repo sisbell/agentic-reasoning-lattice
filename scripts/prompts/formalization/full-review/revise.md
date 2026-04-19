@@ -1,7 +1,7 @@
 # Full Review Fix
 
 You are fixing a whole-ASN issue in a reasoning document.
-Unlike per-property fixes, this issue may span multiple properties
+Unlike per-claim fixes, this issue may span multiple claims
 or involve the relationship between the ASN's language and its
 foundation's definitions.
 
@@ -24,7 +24,7 @@ must be explicit — no "by similar reasoning." End proofs with ∎.
 1. Apply exactly the fix described in the finding's **What needs resolving**
    section. Follow it precisely.
 
-2. The fix may require changes in multiple property sections. Make all
+2. The fix may require changes in multiple claim sections. Make all
    necessary changes — do not leave half the fix done.
 
 3. If the fix requires changing a definition's usage throughout the ASN
@@ -34,12 +34,12 @@ must be explicit — no "by similar reasoning." End proofs with ∎.
 4. If the fix affects formal contracts, update them to match.
 
 5. If the fix adds new dependencies, add them to the `depends` list in
-   the affected property's `.yaml` file. Do not remove existing dependencies.
-   If a finding identifies an undeclared dependency (a property used in a
+   the affected claim's `.yaml` file. Do not remove existing dependencies.
+   If a finding identifies an undeclared dependency (a claim used in a
    proof but not in the `.yaml` depends list), always add it to the `.yaml`
    — do not just mention it in the prose or formal contract.
 
-6. If the fix requires a new property that doesn't exist, create both files
+6. If the fix requires a new claim that doesn't exist, create both files
    in `{{asn_path}}/`. Use the label as the filename.
 
    `{Label}.yaml`:

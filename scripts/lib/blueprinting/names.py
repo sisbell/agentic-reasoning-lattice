@@ -1,6 +1,6 @@
 """Name column population — extract PascalCase names from prose headers.
 
-Blueprinting step: populates the Name column in the property table
+Blueprinting step: populates the Name column in the claim table
 after format normalization ensures headers are PascalCase.
 """
 
@@ -56,14 +56,14 @@ def step_populate_names(asn_num):
     Skips if the Name column already exists and all cells are populated.
     Returns True on success.
     """
-    from lib.formalization.core.build_dependency_graph import find_property_table, parse_table_row, detect_columns
+    from lib.formalization.core.build_dependency_graph import find_claim_table, parse_table_row, detect_columns
 
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
         return True
 
     text = asn_path.read_text()
-    rows = find_property_table(text)
+    rows = find_claim_table(text)
     if rows is None:
         return True
 

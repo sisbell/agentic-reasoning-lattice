@@ -16,9 +16,9 @@ Out-of-scope findings flagged during review become candidates for new inquiries,
 
 ## [Blueprinting](blueprinting.md)
 
-Blueprinting is the meet operation on the lattice: a document-level node becomes many property-level nodes. A reasoning document with dozens of interleaved properties is decomposed into atomic units — one file per claim, dependencies mapped, vocabulary extracted. Each property is classified (axiom, definition, design requirement, lemma, theorem, corollary) and gets its own statement, justification, and proof.
+Blueprinting is the meet operation on the lattice: a document-level node becomes many claim-level nodes. A reasoning document with dozens of interleaved claims is decomposed into atomic units — one file per claim, dependencies mapped, vocabulary extracted. Each claim is classified (axiom, definition, design requirement, lemma, theorem, corollary) and gets its own statement, justification, and proof.
 
-This decomposition is what makes the V-cycle possible. Properties can be reviewed independently at narrow scope, grouped into clusters at regional scope, and reassembled at document scope. Without blueprinting, the V-cycle has nothing to traverse.
+This decomposition is what makes the V-cycle possible. Claims can be reviewed independently at narrow scope, grouped into clusters at regional scope, and reassembled at document scope. Without blueprinting, the V-cycle has nothing to traverse.
 
 ## [The V-Cycle](design-notes/review-v-cycle.md)
 
@@ -26,20 +26,20 @@ The V-cycle is the core of the methodology. It traverses the lattice at three sc
 
 **Descend through meets** — decompose to local scale:
 
-- **Local review** — each property reviewed independently with its dependencies as fixed context. Checks logical gaps, missing cases, dependency correctness, formal contract completeness.
+- **Local review** — each claim reviewed independently with its dependencies as fixed context. Checks logical gaps, missing cases, dependency correctness, formal contract completeness.
 - **Contract review** — validates that each formal contract (preconditions, postconditions, invariants, frame conditions) matches the proof.
 
 **Review at regional scale** — [dependency cones](patterns/dependency-cone.md):
 
-- **Regional sweep** — walks the dependency graph bottom-up. When tightly coupled properties stall single-scale review (one property thrashing while its dependencies are stable), the cone is detected and reviewed as a unit with focused context. Each cone converges before moving to the next.
+- **Regional sweep** — walks the dependency graph bottom-up. When tightly coupled claims stall single-scale review (one claim thrashing while its dependencies are stable), the cone is detected and reviewed as a unit with focused context. Each cone converges before moving to the next.
 
 **Ascend through joins** — recompose to full scale:
 
-- **Full-review** — full ASN scan with foundation context. Catches what narrower scales miss: conflation of distinct concepts, precondition chain gaps across distant properties, scope mismatches between proof and narrative.
+- **Full-review** — full ASN scan with foundation context. Catches what narrower scales miss: conflation of distinct concepts, precondition chain gaps across distant claims, scope mismatches between proof and narrative.
 
 **Descend again** — verify corrections:
 
-- Any property changed during the upward pass is re-verified at local and regional scale on the downward pass.
+- Any claim changed during the upward pass is re-verified at local and regional scale on the downward pass.
 
 Each scale converges before passing to the next — an adiabatic protocol. The V-cycle repeats until no scale changes anything in a full pass.
 
@@ -57,7 +57,7 @@ The oracle is the mechanism that makes the lattice systematically improvable. Ev
 
 ## Self-Healing
 
-When a foundation claim changes, dependents re-verify automatically through the same V-cycle that built them. The lattice self-heals because every dependency is explicit and tracked. A fix at the foundation propagates upward: dependent properties are flagged, re-enter the V-cycle, and adapt. Demonstrated when the GlobalUniqueness fix cascaded through 4 dependent properties that re-verified without manual intervention.
+When a foundation claim changes, dependents re-verify automatically through the same V-cycle that built them. The lattice self-heals because every dependency is explicit and tracked. A fix at the foundation propagates upward: dependent claims are flagged, re-enter the V-cycle, and adapt. Demonstrated when the GlobalUniqueness fix cascaded through 4 dependent claims that re-verified without manual intervention.
 
 This is a property of the lattice structure, not a feature bolted on. Permanent addresses mean claims never lose their identity. Bidirectional dependencies mean changes are visible in both directions. The V-cycle means re-verification follows the same rhythm that produced the original verification.
 
@@ -65,7 +65,7 @@ This is a property of the lattice structure, not a feature bolted on. Permanent 
 
 Twelve patterns govern how the system operates. They were discovered through operation — each observed before it was named. The primary pattern is [narrow → refine → verify](patterns/narrow-refine-verify.md), the scientific method operationalized for agents. The remaining patterns describe what happens in practice: when review stalls ([dependency cone](patterns/dependency-cone.md)), how questions decompose ([scoped inquiry](patterns/scoped-inquiry.md)), how domain and formal language connect ([vocabulary bridge](patterns/vocabulary-bridge.md)), how the lattice grows ([scope promotion](patterns/scope-promotion.md), [extract/absorb](patterns/extract-absorb.md)).
 
-The patterns compose — every process in the system, at every scale, follows the same narrow → refine → verify rhythm. Discovery narrows questions to channels. Blueprinting narrows documents to properties. The V-cycle narrows review to the scale that matches the error. The pattern language systematically reduces wasted agent computation by routing each problem to the scope that can resolve it.
+The patterns compose — every process in the system, at every scale, follows the same narrow → refine → verify rhythm. Discovery narrows questions to channels. Blueprinting narrows documents to claims. The V-cycle narrows review to the scale that matches the error. The pattern language systematically reduces wasted agent computation by routing each problem to the scope that can resolve it.
 
 See [Pattern Language for Agentic Reasoning Systems](patterns/README.md) for the full catalog.
 

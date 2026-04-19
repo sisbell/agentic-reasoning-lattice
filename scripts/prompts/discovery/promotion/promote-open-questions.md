@@ -32,7 +32,7 @@ A question qualifies as a new inquiry when ALL of these hold:
 
 1. **New territory.** The question opens a topic not already covered by an existing inquiry. Check the current inquiries list — if the question is a sub-case of an existing inquiry, it does not qualify.
 
-2. **Abstract, not implementation.** The question asks about system guarantees, invariants, or architectural properties — not about how to code something or which data structure to use.
+2. **Abstract, not implementation.** The question asks about system guarantees, invariants, or architectural claims — not about how to code something or which data structure to use.
 
 3. **Independently investigable.** The question can be studied without first resolving every other open question. It is self-contained enough for Nelson and/or Gregory consultation.
 
@@ -60,7 +60,7 @@ For each qualifying question, decide which experts are needed:
 
 - **Nelson only** (`gregory: 0`): The question is about design intent, architectural philosophy, or system-level guarantees with no implementation-specific angle. Example: "What must the version fork model guarantee about shared content?"
 
-- **Gregory only** (`nelson: 0`): The question is about implementation behavior, data structure properties, or code-level evidence with no design-intent angle. Example: "Does the enfilade rebalance preserve displacement invariants?"
+- **Gregory only** (`nelson: 0`): The question is about implementation behavior, data structure claims, or code-level evidence with no design-intent angle. Example: "Does the enfilade rebalance preserve displacement invariants?"
 
 - **Both** (default): The question benefits from both design intent and implementation evidence. Most questions fall here.
 
@@ -79,7 +79,7 @@ Assign one of these areas based on the question's primary concern:
 - `links` — link structure, endsets, link discovery
 - `versioning` — version creation, version relationships
 - `documents` — document lifecycle, ownership, access
-- `data-structures` — enfilades, indexes, structural properties
+- `data-structures` — enfilades, indexes, structural claims
 - `concurrency` — multi-user, multi-server, consistency
 - `protocol` — FEBE/BEBE protocol, session management
 - `economics` — royalties, accounting, payment

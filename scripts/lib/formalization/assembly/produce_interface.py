@@ -1,7 +1,7 @@
 """
 Produce Interface — mechanically assemble formal-statements.md.
 
-Reads YAML summaries + .md formal contracts for each property.
+Reads YAML summaries + .md formal contracts for each claim.
 No LLM calls. Requires summaries to exist — run summarize.py first.
 """
 
@@ -12,15 +12,15 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, formal_stmts, asn_dir
-from lib.shared.common import find_asn, build_label_index, load_property_metadata
+from lib.shared.common import find_asn, build_label_index, load_claim_metadata
 from lib.shared.foundation import _extract_formal_contract
 
 
 def assemble_formal_statements(asn_num):
     """Mechanically assemble formal-statements.md from YAML summaries + .md contracts.
 
-    Reads summary from each property's YAML and formal contract from its .md.
-    Errors if any property is missing a summary.
+    Reads summary from each claim's YAML and formal contract from its .md.
+    Errors if any claim is missing a summary.
 
     Returns the output path, or None on failure.
     """
@@ -29,24 +29,24 @@ def assemble_formal_statements(asn_num):
         print(f"  [ASSEMBLE] ASN-{asn_num:04d} not found", file=sys.stderr)
         return None
 
-    prop_dir = FORMALIZATION_DIR / asn_label
-    if not prop_dir.exists():
+    claim_dir = FORMALIZATION_DIR / asn_label
+    if not claim_dir.exists():
         print(f"  [ASSEMBLE] No formalization directory for {asn_label}",
               file=sys.stderr)
         return None
 
-    all_meta = load_property_metadata(prop_dir)
+    all_meta = load_claim_metadata(claim_dir)
     if not all_meta:
-        print(f"  [ASSEMBLE] No property metadata for {asn_label}",
+        print(f"  [ASSEMBLE] No claim metadata for {asn_label}",
               file=sys.stderr)
         return None
 
-    label_index = build_label_index(prop_dir)
+    label_index = build_label_index(claim_dir)
 
     # Check summaries exist
     missing = [l for l, m in all_meta.items() if not m.get("summary")]
     if missing:
-        print(f"  [ASSEMBLE] {len(missing)} properties missing summaries — "
+        print(f"  [ASSEMBLE] {len(missing)} claims missing summaries — "
               f"run: python scripts/summarize.py {asn_num}",
               file=sys.stderr)
         for l in missing[:10]:
@@ -72,7 +72,7 @@ def assemble_formal_statements(asn_num):
         summary = meta["summary"]
 
         stem = label_index.get(label, label)
-        md_path = prop_dir / f"{stem}.md"
+        md_path = claim_dir / f"{stem}.md"
 
         parts.append(f"## {label} — {name}\n")
         parts.append(f"{summary}\n")
@@ -94,7 +94,7 @@ def assemble_formal_statements(asn_num):
 
     prop_count = len(all_meta)
     print(f"  [ASSEMBLE] {out_path.relative_to(WORKSPACE)} "
-          f"({prop_count} properties, {len(output) // 1024}KB)",
+          f"({prop_count} claims, {len(output) // 1024}KB)",
           file=sys.stderr)
 
     return out_path

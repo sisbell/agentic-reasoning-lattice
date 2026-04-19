@@ -4,11 +4,11 @@
 
 ### Step 1: Translate (`scripts/dafny.py`)
 
-**Prompt:** `translate-property.md` + `dafny-reference.dfy`
+**Prompt:** `translate-claim.md` + `dafny-reference.dfy`
 **Script:** `scripts/lib/verification/dafny/translate.py`
 **Function:** `translate_one()`
 
-Per-property translation. Agent converts a formal contract into verified
+Per-claim translation. Agent converts a formal contract into verified
 Dafny code (up to 24 turns). Uses formal-statements.md as input, proof
 modules from vault/5-proofs/ as imports.
 
@@ -58,7 +58,7 @@ Also provides standalone fix entry point via `align.py main()` for
 
 | File | Purpose |
 |------|---------|
-| `translate-property.md` | Translate formal contract to Dafny (Leino priming) |
+| `translate-claim.md` | Translate formal contract to Dafny (Leino priming) |
 | `dafny-reference.dfy` | Verified pattern examples injected into translation |
 | `validate-contract.md` | Gate check: does Dafny match formal contract? (Leino priming) |
 | `align-with-contract.md` | Fix proof to match contract with CoT (Leino priming) |

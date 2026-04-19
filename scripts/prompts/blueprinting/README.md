@@ -3,13 +3,13 @@
 ## Blueprinting
 
 Prepare a monolithic ASN for formalization by normalizing format,
-disassembling into per-property files, and running quality checks.
+disassembling into per-claim files, and running quality checks.
 
 ```bash
 # 1. Format + names
 python scripts/blueprint.py 34
 
-# 2. Disassemble into per-property files
+# 2. Disassemble into per-claim files
 python scripts/disassemble.py 34
 
 # 3. Build vocabulary
@@ -34,7 +34,7 @@ python scripts/promote-blueprint.py 34
 
 ## Formalization
 
-Review and converge proofs, contracts, and cross-property consistency.
+Review and converge proofs, contracts, and cross-claim consistency.
 
 ```bash
 # Full review cycle (local → contract → full → dependency)
@@ -57,7 +57,7 @@ python scripts/formalization-assembly.py 34
 
 ```
 vault/2-blueprints/ASN-NNNN/
-  properties/
+  claims/
     _preamble.md
     _table.md
     _vocabulary.md

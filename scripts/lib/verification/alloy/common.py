@@ -101,7 +101,7 @@ Write the complete Alloy model to: {out_path}
 
 
 def log_usage(asn_label, llm_elapsed, alloy_elapsed, has_counterexample,
-              prop_label=None, cost=0.0, model=None):
+              claim_label=None, cost=0.0, model=None):
     """Append a usage entry to the log."""
     try:
         entry = {
@@ -112,8 +112,8 @@ def log_usage(asn_label, llm_elapsed, alloy_elapsed, has_counterexample,
             "alloy_elapsed_s": round(alloy_elapsed, 1),
             "counterexample": has_counterexample,
         }
-        if prop_label:
-            entry["property"] = prop_label
+        if claim_label:
+            entry["claim"] = claim_label
         if cost:
             entry["cost_usd"] = round(cost, 4)
         if model:
@@ -150,11 +150,11 @@ def step_commit(hint=""):
     return True
 
 
-def cleanup_property_artifacts(als_path):
-    """Remove Alloy build artifacts for a single property.
+def cleanup_claim_artifacts(als_path):
+    """Remove Alloy build artifacts for a single claim.
 
     Alloy creates a subdirectory named after the .als file (without extension)
-    for counterexample output. Remove it after each property check.
+    for counterexample output. Remove it after each claim check.
     """
     artifact_dir = als_path.parent / als_path.stem
     if artifact_dir.is_dir():
@@ -183,7 +183,7 @@ def next_run_number(asn_label):
 
 
 def make_result(prop, out_dir):
-    """Create a result dict for a property."""
+    """Create a result dict for a claim."""
     filename = sanitize_filename(prop["label"], prop["name"])
     return {
         "label": prop["label"],
@@ -201,7 +201,7 @@ def make_result(prop, out_dir):
 def print_summary(asn_label, results):
     """Print a summary table to stderr."""
     print(f"\n{'='*60}", file=sys.stderr)
-    print(f"  {asn_label} Alloy Check ({len(results)} properties)",
+    print(f"  {asn_label} Alloy Check ({len(results)} claims)",
           file=sys.stderr)
     print(f"{'='*60}", file=sys.stderr)
 

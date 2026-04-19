@@ -1,6 +1,6 @@
 asn: 34
 depends: []
-properties:
+claims:
   ActionPoint:
     status: definition
     type: definition

@@ -34,7 +34,7 @@ def _generate_deps(asn_num, label):
         if deps:
             path = write_deps_yaml(asn_num, deps)
             print(f"  [DEPS] mechanical: {path.relative_to(WORKSPACE)} "
-                  f"({len(deps['properties'])} properties)", file=sys.stderr)
+                  f"({len(deps['claims'])} claims)", file=sys.stderr)
         else:
             print(f"  [DEPS] WARNING: mechanical extract failed for {label}",
                   file=sys.stderr)

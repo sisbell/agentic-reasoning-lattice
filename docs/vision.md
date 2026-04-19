@@ -1,23 +1,23 @@
 # Vision
 
-The reasoning lattice is properties connected by links, shared through transclusion, and versioned for concurrent access. Three Xanadu protocol primitives make this possible:
+The reasoning lattice is claims connected by links, shared through transclusion, and versioned for concurrent access. Three Xanadu protocol primitives make this possible:
 
-**Links** — every dependency between properties is a bidirectional link. The lattice IS the link structure.
+**Links** — every dependency between claims is a bidirectional link. The lattice IS the link structure.
 
-**Transclusion** — properties reference each other's content directly. One source of truth, many views. No copying, no assembly.
+**Transclusion** — claims reference each other's content directly. One source of truth, many views. No copying, no assembly.
 
-**Versioning** — every property has a permanent version history. Agents work against stable snapshots while the lattice evolves around them.
+**Versioning** — every claim has a permanent version history. Agents work against stable snapshots while the lattice evolves around them.
 
 Together they provide:
 
-- Addressable knowledge — every property, every claim, every proof step has a permanent address
+- Addressable knowledge — every claim, every link, every proof step has a permanent address
 - Traceable provenance — any conclusion can be traced back through its dependency links
-- Shared reasoning — agents work from the same properties, not copies that drift
+- Shared reasoning — agents work from the same claims, not copies that drift
 - Concurrent access — multiple agents work the lattice simultaneously, each seeing a consistent versioned view
-- Live dependencies — when a foundation property is updated, consumers see the update through transclusion
+- Live dependencies — when a foundation claim is updated, consumers see the update through transclusion
 - No conflicts — versioned snapshots mean agents never interfere with each other's work
-- Growth without coordination — new properties link into the lattice without central planning
-- Focused reasoning — links and transclusion let agents narrow to any cluster of properties directly, without assembling files or breaking documents apart. Blueprinting and formalization are no longer separate stages — they are reasoning at different scopes on the same linked structure
+- Growth without coordination — new claims link into the lattice without central planning
+- Focused reasoning — links and transclusion let agents narrow to any cluster of claims directly, without assembling files or breaking documents apart. Blueprinting and formalization are no longer separate stages — they are reasoning at different scopes on the same linked structure
 
 ## The protocol as discovery engine
 
@@ -51,7 +51,7 @@ The versioned lattice is the fine-tuning curriculum. Every campaign's reasoning 
 
 This is Lamarckian evolution: acquired reasoning is directly transmissible. An agent that discovers a new principle through structured disagreement encodes that principle as a verified lattice node. Subsequent agents build on it through transclusion — the discovery propagates through the collective without retraining from scratch.
 
-The adiabatic V-cycle governs how evolution happens: each scale converges before the next begins. Property-level refinement converges. Cluster-level refinement converges. System-level review converges. Evolution is gradual and controlled — not simultaneous multi-objective optimization, but structured incremental improvement through the same rhythm that built the lattice.
+The adiabatic V-cycle governs how evolution happens: each scale converges before the next begins. Claim-level refinement converges. Cluster-level refinement converges. System-level review converges. Evolution is gradual and controlled — not simultaneous multi-objective optimization, but structured incremental improvement through the same rhythm that built the lattice.
 
 Phase II agents don't just use the lattice. They grow it, read it, and evolve through it. The protocol substrate is both the communication medium and the evolutionary record.
 
@@ -60,7 +60,7 @@ Phase II agents don't just use the lattice. They grow it, read it, and evolve th
 What exists today is the local implementation: agents running structured pipelines on a single machine, producing a verified dependency lattice through discovery, blueprinting, formalization, and verification. The Xanadu protocol substrate — currently implemented as files, git commits, and YAML dependencies — will be rebuilt as a live linked structure.
 
 When the substrate is live:
-- Every property has a permanent address, not a file path
+- Every claim has a permanent address, not a file path
 - Every dependency is a bidirectional link, not a YAML field
 - Every version is a permanent snapshot, not a git commit
 - Blueprinting and formalization are reasoning at different scopes on the same linked structure, not separate pipeline stages

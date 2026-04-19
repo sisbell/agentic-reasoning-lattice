@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Generate property dependency YAML from an ASN's property table.
+Generate claim dependency YAML from an ASN's claim table.
 
-Parses the "Properties Introduced" table in the ASN reasoning doc,
+Parses the "Claims Introduced" table in the ASN reasoning doc,
 extracting labels, types, and declared dependencies from the Status column.
 Produces a structured YAML file alongside the ASN's formal statements export.
 
@@ -20,15 +20,15 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, load_manifest, formal_stmts, dep_graph
-from lib.shared.common import find_asn, load_property_metadata, build_label_index
+from lib.shared.common import find_asn, load_claim_metadata, build_label_index
 
 
 # ---------------------------------------------------------------------------
-# Property table parser
+# Claim table parser
 # ---------------------------------------------------------------------------
 
-def find_property_table(text):
-    """Find the Properties Introduced table in the ASN text.
+def find_claim_table(text):
+    """Find the Claims Introduced table in the ASN text.
 
     Returns the lines of the table (header + separator + data rows),
     or None if not found.
@@ -217,7 +217,7 @@ def _parse_status(status_text):
 
 
 def _extract_labels_and_asns(text):
-    """Extract property labels and ASN references from text.
+    """Extract claim labels and ASN references from text.
 
     Labels are patterns like T1, T10a, TA5(c), S7b, S8-fin, D-CTG-depth,
     PrefixSpanCoverage, etc.
@@ -293,11 +293,11 @@ def _parse_statement_for_relations(statement_text):
 
 
 # ---------------------------------------------------------------------------
-# Property name extraction
+# Claim name extraction
 # ---------------------------------------------------------------------------
 
 def _extract_name_from_statement(statement_text):
-    """Extract a property name from the Statement column text.
+    """Extract a claim name from the Statement column text.
 
     Looks for a name before the first colon, period, or em-dash.
     E.g., "Content immutability: for every state..." → "Content immutability"
@@ -328,8 +328,8 @@ def _extract_name_from_statement(statement_text):
     return name
 
 
-def _extract_property_name(section_text):
-    """Extract property name from derivation header.
+def _extract_claim_name(section_text):
+    """Extract claim name from derivation header.
 
     Handles both formats:
       **L0 — SubspacePartition.**
@@ -409,7 +409,7 @@ def _scan_prose_citations(sections, own_labels, foundation_labels):
 # ---------------------------------------------------------------------------
 
 def generate_formalization_deps(asn_num):
-    """Parse the formalization property table and generate dependency data.
+    """Parse the formalization claim table and generate dependency data.
 
     Table-only: reads _table.md status column for follows_from. No prose
     scanning. For formalization and verification pipelines.
@@ -420,7 +420,7 @@ def generate_formalization_deps(asn_num):
 
 
 def generate_discovery_deps(asn_num):
-    """Parse the property table and enrich with prose citation scanning.
+    """Parse the claim table and enrich with prose citation scanning.
 
     Table + prose: reads _table.md status column, then scans derivation
     prose for additional label citations. For discovery assembly and rebase.
@@ -444,22 +444,22 @@ def _generate_deps_core(asn_num, prose_citations=False):
         print(f"  [ERROR] ASN-{asn_num:04d} not found", file=sys.stderr)
         return None
 
-    # Read from per-property YAMLs
-    prop_dir = FORMALIZATION_DIR / asn_label
+    # Read from per-claim YAMLs
+    claim_dir = FORMALIZATION_DIR / asn_label
 
     # Get manifest for ASN-level depends
     manifest = load_manifest(asn_num)
     depends = manifest.get("depends", [])
 
-    # Build properties dict from YAML metadata
-    metadata = load_property_metadata(prop_dir) if prop_dir.exists() else {}
+    # Build claims dict from YAML metadata
+    metadata = load_claim_metadata(claim_dir) if claim_dir.exists() else {}
 
     if not metadata:
-        print(f"  [ERROR] No per-property YAML files found in {prop_dir}",
+        print(f"  [ERROR] No per-claim YAML files found in {claim_dir}",
               file=sys.stderr)
         return None
 
-    properties = {}
+    claims = {}
     for label, data in metadata.items():
         prop = {"status": data.get("type", "introduced")}
 
@@ -472,19 +472,19 @@ def _generate_deps_core(asn_num, prose_citations=False):
         if data.get("depends"):
             prop["follows_from"] = data["depends"]
 
-        properties[label] = prop
+        claims[label] = prop
 
-    # Read per-property .md files for prose citation scanning
-    from lib.shared.common import load_property_sections
-    sections = load_property_sections(prop_dir) if prop_dir.exists() else {}
+    # Read per-claim .md files for prose citation scanning
+    from lib.shared.common import load_claim_sections
+    sections = load_claim_sections(claim_dir) if claim_dir.exists() else {}
 
     # Prose citation scanning (discovery only)
     if prose_citations:
         foundation_labels = _build_foundation_labels(depends)
-        cited = _scan_prose_citations(sections, set(properties.keys()),
+        cited = _scan_prose_citations(sections, set(claims.keys()),
                                       foundation_labels)
         prose_count = 0
-        for label, prop in properties.items():
+        for label, prop in claims.items():
             if prop.get("status") in ("axiom", "design"):
                 continue
             if label not in cited:
@@ -515,7 +515,7 @@ def _generate_deps_core(asn_num, prose_citations=False):
     return {
         "asn": asn_num,
         "depends": depends,
-        "properties": properties,
+        "claims": claims,
     }
 
 
@@ -526,7 +526,7 @@ def write_deps_yaml(asn_num, deps_data):
     """
     import copy
     export = copy.deepcopy(deps_data)
-    for prop in export.get("properties", {}).values():
+    for prop in export.get("claims", {}).values():
         if prop.get("status") == "confirms":
             prop["status"] = "cited"
 
@@ -541,7 +541,7 @@ def write_deps_yaml(asn_num, deps_data):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate property dependency YAML")
+    parser = argparse.ArgumentParser(description="Generate claim dependency YAML")
     parser.add_argument("asn", help="ASN number (e.g., 43)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Parse and print, don't write")
@@ -556,11 +556,11 @@ def main():
     if args.dry_run:
         yaml.dump(deps, sys.stdout, default_flow_style=False, sort_keys=False,
                   allow_unicode=True, width=120)
-        print(f"\n  [{len(deps['properties'])} properties parsed]", file=sys.stderr)
+        print(f"\n  [{len(deps['claims'])} claims parsed]", file=sys.stderr)
     else:
         path = write_deps_yaml(asn_num, deps)
         print(f"  [WROTE] {path.relative_to(WORKSPACE)}", file=sys.stderr)
-        print(f"  [{len(deps['properties'])} properties]", file=sys.stderr)
+        print(f"  [{len(deps['claims'])} claims]", file=sys.stderr)
         print(str(path))
 
 

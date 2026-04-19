@@ -7,7 +7,7 @@
 
 <!-- Column headers -->
 <text font-family="sans-serif" font-size="14" font-weight="500" fill="#2C2C2A" x="120" y="30" text-anchor="middle">Document lattice</text>
-<text font-family="sans-serif" font-size="14" font-weight="500" fill="#2C2C2A" x="560" y="30" text-anchor="middle">Property lattice</text>
+<text font-family="sans-serif" font-size="14" font-weight="500" fill="#2C2C2A" x="560" y="30" text-anchor="middle">Claim lattice</text>
 
 <!-- Vertical divider -->
 <line x1="330" y1="44" x2="330" y2="440" stroke="#D3D1C7" stroke-width="0.5" stroke-dasharray="4 2"/>
@@ -36,12 +36,12 @@
 <!-- Blueprinting -->
 <rect x="248" y="60" width="160" height="56" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
 <text font-family="sans-serif" font-size="14" font-weight="500" fill="#26215C" x="328" y="80" text-anchor="middle" dominant-baseline="central">Blueprinting</text>
-<text font-family="sans-serif" font-size="12" fill="#3C3489" x="328" y="98" text-anchor="middle" dominant-baseline="central">meet — 1 ASN → N properties</text>
+<text font-family="sans-serif" font-size="12" fill="#3C3489" x="328" y="98" text-anchor="middle" dominant-baseline="central">meet — 1 ASN → N claims</text>
 
 <!-- Arrow from ASN A to Blueprinting -->
 <line x1="190" y1="88" x2="246" y2="88" stroke="#534AB7" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-<!-- Arrows to properties -->
+<!-- Arrows to claims -->
 <line x1="408" y1="76" x2="448" y2="56" stroke="#534AB7" stroke-width="1.5" marker-end="url(#arrow)"/>
 <line x1="408" y1="84" x2="448" y2="156" stroke="#534AB7" stroke-width="1.5" marker-end="url(#arrow)"/>
 <line x1="408" y1="92" x2="448" y2="256" stroke="#534AB7" stroke-width="1.5" marker-end="url(#arrow)"/>
@@ -67,11 +67,11 @@
 <text font-family="sans-serif" font-size="14" font-weight="500" fill="#26215C" x="555" y="358" text-anchor="middle" dominant-baseline="central">Axiom AX1</text>
 <text font-family="sans-serif" font-size="12" fill="#3C3489" x="555" y="376" text-anchor="middle" dominant-baseline="central">assumed · base case</text>
 
-<text font-family="sans-serif" font-size="12" fill="#5F5E5A" x="555" y="416" text-anchor="middle">one node = one property</text>
+<text font-family="sans-serif" font-size="12" fill="#5F5E5A" x="555" y="416" text-anchor="middle">one node = one claim</text>
 <text font-family="sans-serif" font-size="12" fill="#5F5E5A" x="555" y="432" text-anchor="middle">formalization operates here</text>
 
 <!-- Bottom summary -->
 <rect x="40" y="450" width="600" height="36" rx="8" fill="none" stroke="#D3D1C7" stroke-width="0.5"/>
-<text font-family="sans-serif" font-size="12" fill="#444441" x="340" y="470" text-anchor="middle" dominant-baseline="central">same lattice operations at both scales — meet and join govern document and property levels equally</text>
+<text font-family="sans-serif" font-size="12" fill="#444441" x="340" y="470" text-anchor="middle" dominant-baseline="central">same lattice operations at both scales — meet and join govern document and claim levels equally</text>
 
 </svg>

@@ -36,9 +36,9 @@
 <!-- AFTER column -->
 <text font-family="sans-serif" font-size="14" font-weight="500" fill="#2C2C2A" x="530" y="20" text-anchor="middle">After formalization</text>
 
-<!-- New property emerged -->
+<!-- New claim emerged -->
 <rect x="390" y="36" width="260" height="50" rx="8" fill="#C0DD97" stroke="#3B6D11" stroke-width="0.5"/>
-<text font-family="sans-serif" font-size="14" font-weight="500" fill="#173404" x="520" y="54" text-anchor="middle" dominant-baseline="central">New property — emerged</text>
+<text font-family="sans-serif" font-size="14" font-weight="500" fill="#173404" x="520" y="54" text-anchor="middle" dominant-baseline="central">New claim — emerged</text>
 <text font-family="sans-serif" font-size="12" fill="#27500A" x="520" y="72" text-anchor="middle" dominant-baseline="central">invisible before · visible now</text>
 
 <line x1="520" y1="86" x2="520" y2="126" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
@@ -72,6 +72,6 @@
 <!-- Bottom summary -->
 <rect x="40" y="360" width="600" height="56" rx="8" fill="none" stroke="#D3D1C7" stroke-width="0.5"/>
 <text font-family="sans-serif" font-size="14" font-weight="500" fill="#2C2C2A" x="340" y="380" text-anchor="middle" dominant-baseline="central">Formalization creates conditions for more discovery</text>
-<text font-family="sans-serif" font-size="12" fill="#444441" x="340" y="400" text-anchor="middle" dominant-baseline="central">precise foundations make new properties visible · precision radiates upward through all dependents</text>
+<text font-family="sans-serif" font-size="12" fill="#444441" x="340" y="400" text-anchor="middle" dominant-baseline="central">precise foundations make new claims visible · precision radiates upward through all dependents</text>
 
 </svg>

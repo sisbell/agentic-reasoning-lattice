@@ -44,7 +44,7 @@ existing document.
    - Does the notation match the rest of the document?
 
 3. **Check the registry:**
-   - Are affected properties listed with correct labels, types, and status?
+   - Are affected claims listed with correct labels, types, and status?
    - Are dependencies noted?
 
 4. **Categorize each issue as REVISE only:**
@@ -64,9 +64,9 @@ existing document.
 
 ## What NOT to Review
 
-- Pre-existing properties that were NOT affected by the patch
+- Pre-existing claims that were NOT affected by the patch
 - Scope questions (no OUT_OF_SCOPE section)
-- Suggestions for additional properties or improvements
+- Suggestions for additional claims or improvements
 
 ## Output Format
 

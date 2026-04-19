@@ -19,10 +19,10 @@ Apply the changes described in the patch instruction:
 
 2. **Propagate downstream effects.** After applying the fix, check for references
    to the changed material elsewhere in the document:
-   - Proofs that cite the changed property — update citations if labels changed
+   - Proofs that cite the changed claim — update citations if labels changed
    - The statement registry — update labels, wording, or status if affected
    - Worked examples that reference the changed material — update if needed
-   - Transition prose that introduces the changed property — adjust if needed
+   - Transition prose that introduces the changed claim — adjust if needed
 
 3. **Do NOT modify anything unrelated.** Only touch material directly affected
    by the patch instruction and its downstream references. Do not rephrase,

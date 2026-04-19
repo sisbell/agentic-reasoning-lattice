@@ -1,34 +1,34 @@
 # Scan for Inline Results
 
-You are scanning a property file for embedded content that should be
+You are scanning a claim file for embedded content that should be
 extracted — derived results, definitions, or commentary.
 
-## Property
+## Claim
 
 **Label**: {{label}}
 
-## Property File Content
+## Claim File Content
 
 {{content}}
 
 ## Task
 
-Identify any embedded content beyond the main property's own statement,
+Identify any embedded content beyond the main claim's own statement,
 proof, and formal contract. Classify each distinct block as one of:
 
 - **derived**: A result with a proof that establishes something
   independently citable (consequence, lemma, claim). Should be promoted
-  to its own property.
+  to its own claim.
 - **definition**: A named concept, construction, or notation introduced
   in narrative (e.g., "A span is a pair (s, ℓ)...", "Define the action
   point as..."). Should be extracted to its own definition file.
 - **commentary**: Design rationale, implementation notes, worked
   examples, or explanatory text. Should stay in place.
 
-The main property is the one whose label matches the filename. Do NOT
-classify the main property's own statement, proof, or formal contract.
+The main claim is the one whose label matches the filename. Do NOT
+classify the main claim's own statement, proof, or formal contract.
 If the file contains additional `**LABEL (Name).**` headers beyond the
-main property, each is an embedded result that should be classified.
+main claim, each is an embedded result that should be classified.
 
 For derived and definition results, suggest a label and PascalCase name.
 

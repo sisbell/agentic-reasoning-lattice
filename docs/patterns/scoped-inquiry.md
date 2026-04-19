@@ -4,7 +4,7 @@
 
 A complex question asked broadly produces shallow answers. An agent given "analyze this system" returns surface observations. The question is too large for the context to focus on.
 
-Decompose the question along authority boundaries. One line of questioning targets what should be true — the properties, guarantees, and purpose of the system. Another targets how it works — the mechanisms, internals, and observed behavior. Each line is scoped to what that authority is qualified to evaluate. Neither line crosses into the other's territory.
+Decompose the question along authority boundaries. One line of questioning targets what should be true — the claims, guarantees, and purpose of the system. Another targets how it works — the mechanisms, internals, and observed behavior. Each line is scoped to what that authority is qualified to evaluate. Neither line crosses into the other's territory.
 
 The decomposition is not splitting the question in half. It is translating one question into two different investigations that approach the same subject from directions that cannot contaminate each other.
 
@@ -53,13 +53,13 @@ The sub-questions are designed, not generated. Each one extracts a specific piec
 
 ### ASN discovery consultation
 
-**One question**: "What are the properties of document arrangement in the Xanadu system?"
+**One question**: "What are the claims of document arrangement in the Xanadu system?"
 
 **Theory scope** (Nelson's design): What guarantees does the arrangement provide? What invariants must hold across state transitions? What is the purpose of separating content from arrangement? What constraints does permanence impose? What does "transclusion" require of the arrangement model?
 
 **Evidence scope** (Gregory's implementation): How does the FEBE protocol modify arrangements? What data structures represent M(d)? How do editing commands (INSERT, DELETE, REARRANGE, COPY) operate on arrangement state? What invariants does the code maintain? What edge cases does the implementation handle?
 
-**Synthesis**: produces ASN-0036 (Strand Model) with 29 properties — each traced to theory, evidence, or both. The arrangement functionality invariant (S2) came from theory. The V-position well-formedness constraint (S8a) came from evidence. The two-stream separation (S9) emerged from the disagreement between what theory requires (immutability) and what the implementation provides (which editing commands exist).
+**Synthesis**: produces ASN-0036 (Strand Model) with 29 claims — each traced to theory, evidence, or both. The arrangement functionality invariant (S2) came from theory. The V-position well-formedness constraint (S8a) came from evidence. The two-stream separation (S9) emerged from the disagreement between what theory requires (immutability) and what the implementation provides (which editing commands exist).
 
 ## Origin
 

@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """
-LLM-assisted dependency scanner for ASN properties.
+LLM-assisted dependency scanner for ASN claims.
 
-For each property in an ASN, extracts its derivation section and asks
-a focused LLM call to identify foundation labels the property logically
+For each claim in an ASN, extracts its derivation section and asks
+a focused LLM call to identify foundation labels the claim logically
 depends on. Merges results into the deps YAML and optionally updates
-the ASN's property table.
+the ASN's claim table.
 
 Usage:
     python scripts/lib/rebase_dep_scan.py 43           # scan and update deps YAML
     python scripts/lib/rebase_dep_scan.py 43 --dry-run  # scan and print, don't write
-    python scripts/lib/rebase_dep_scan.py 43 --fix-asn  # also update ASN property table
+    python scripts/lib/rebase_dep_scan.py 43 --fix-asn  # also update ASN claim table
 """
 
 import argparse
@@ -25,7 +25,7 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, load_manifest, formal_stmts, dep_graph
-from lib.shared.common import find_asn, read_file, extract_property_sections, build_label_index, dump_yaml
+from lib.shared.common import find_asn, read_file, extract_claim_sections, build_label_index, dump_yaml
 
 PROMPT_TEMPLATE = WORKSPACE / "scripts" / "prompts" / "formalization" / "assembly" / "scan-dependency.md"
 
@@ -66,12 +66,12 @@ def _build_available_labels(asn_num):
 
 
 # ---------------------------------------------------------------------------
-# LLM call per property
+# LLM call per claim
 # ---------------------------------------------------------------------------
 
-def _scan_property(label, property_text, asn_label, depends, available_labels,
+def _scan_claim(label, claim_text, asn_label, depends, available_labels,
                   model="sonnet", effort="high"):
-    """Call LLM to identify foundation dependencies for one property."""
+    """Call LLM to identify foundation dependencies for one claim."""
     template = read_file(PROMPT_TEMPLATE)
     if not template:
         print(f"  [ERROR] Prompt template not found: {PROMPT_TEMPLATE}",
@@ -82,7 +82,7 @@ def _scan_property(label, property_text, asn_label, depends, available_labels,
               .replace("{{label}}", label)
               .replace("{{asn_label}}", asn_label)
               .replace("{{depends}}", str(depends))
-              .replace("{{property_text}}", property_text)
+              .replace("{{claim_text}}", claim_text)
               .replace("{{available_labels}}", available_labels))
 
     model_flag = {"opus": "claude-opus-4-7", "sonnet": "claude-sonnet-4-6"}.get(model, model)
@@ -140,19 +140,19 @@ def _scan_property(label, property_text, asn_label, depends, available_labels,
 
 
 # ---------------------------------------------------------------------------
-# ASN property table fixer
+# ASN claim table fixer
 # ---------------------------------------------------------------------------
 
 def _build_table_fixes(updated_deps, original_deps):
-    """Compare updated vs original deps to find properties needing Status fixes.
+    """Compare updated vs original deps to find claims needing Status fixes.
 
-    Returns dict of label → new_status_text for properties that gained
+    Returns dict of label → new_status_text for claims that gained
     new foundation dependencies.
     """
     fixes = {}
 
-    for label, prop in updated_deps["properties"].items():
-        orig = original_deps["properties"].get(label, {})
+    for label, prop in updated_deps["claims"].items():
+        orig = original_deps["claims"].get(label, {})
         orig_labels = set(orig.get("follows_from", []))
         new_labels = set(prop.get("follows_from", []))
         added = new_labels - orig_labels
@@ -199,14 +199,14 @@ def _build_table_fixes(updated_deps, original_deps):
 
 
 def _fix_asn_table(asn_path, fixes):
-    """Update the ASN file's property table Status column.
+    """Update the ASN file's claim table Status column.
 
     For each label in fixes, find the table row and replace the Status cell.
     """
     text = asn_path.read_text()
     lines = text.split("\n")
 
-    # Find the property table
+    # Find the claim table
     table_start = None
     for i, line in enumerate(lines):
         if re.match(r"\|\s*Label\s*\|", line):
@@ -214,7 +214,7 @@ def _fix_asn_table(asn_path, fixes):
             break
 
     if table_start is None:
-        print(f"  [FIX-ASN] WARNING: property table not found", file=sys.stderr)
+        print(f"  [FIX-ASN] WARNING: claim table not found", file=sys.stderr)
         return
 
     fixed_count = 0
@@ -240,18 +240,18 @@ def _fix_asn_table(asn_path, fixes):
 
     if fixed_count > 0:
         asn_path.write_text("\n".join(lines))
-        print(f"  [FIX-ASN] Updated {fixed_count} property table entries in "
+        print(f"  [FIX-ASN] Updated {fixed_count} claim table entries in "
               f"{asn_path.name}", file=sys.stderr)
     else:
         print(f"  [FIX-ASN] No table fixes needed", file=sys.stderr)
 
 
 # ---------------------------------------------------------------------------
-# Main: scan all properties and merge into deps YAML
+# Main: scan all claims and merge into deps YAML
 # ---------------------------------------------------------------------------
 
 def scan_asn(asn_num, model="sonnet", effort="high", dry_run=False):
-    """Scan all properties in an ASN for foundation dependencies.
+    """Scan all claims in an ASN for foundation dependencies.
 
     Returns updated deps dict, or None on failure.
     """
@@ -260,16 +260,16 @@ def scan_asn(asn_num, model="sonnet", effort="high", dry_run=False):
         print(f"  [ERROR] ASN-{asn_num:04d} not found", file=sys.stderr)
         return None
 
-    # Build deps from per-property YAMLs
+    # Build deps from per-claim YAMLs
     from lib.formalization.core.build_dependency_graph import generate_formalization_deps
     deps = generate_formalization_deps(asn_num)
     if deps is None:
-        print(f"  [ERROR] Could not build deps from per-property YAMLs",
+        print(f"  [ERROR] Could not build deps from per-claim YAMLs",
               file=sys.stderr)
         return None
 
     asn_text = asn_path.read_text()
-    sections = extract_property_sections(asn_text)
+    sections = extract_claim_sections(asn_text)
     available_labels = _build_available_labels(asn_num)
     manifest = load_manifest(asn_num)
     depends = manifest.get("depends", [])
@@ -278,32 +278,32 @@ def scan_asn(asn_num, model="sonnet", effort="high", dry_run=False):
     import copy
     original_deps = copy.deepcopy(deps)
 
-    print(f"  [DEP-SCAN] ASN-{asn_num:04d}: {len(sections)} property sections, "
+    print(f"  [DEP-SCAN] ASN-{asn_num:04d}: {len(sections)} claim sections, "
           f"scanning with {model}...", file=sys.stderr)
 
     new_deps_found = 0
 
-    for label, prop_text in sections.items():
+    for label, claim_text in sections.items():
         # Skip if not in the deps YAML (might be a worked example label)
-        if label not in deps["properties"]:
+        if label not in deps["claims"]:
             continue
 
-        prop_data = deps["properties"][label]
+        claim_data = deps["claims"][label]
 
         # Skip definitions with no derivation
-        if prop_data.get("type") == "DEF" and prop_data.get("status") == "introduced":
+        if claim_data.get("type") == "DEF" and claim_data.get("status") == "introduced":
             # Still scan — definitions can reference foundation
             pass
 
-        result = _scan_property(label, prop_text, asn_label, depends,
+        result = _scan_claim(label, claim_text, asn_label, depends,
                                available_labels, model=model, effort=effort)
 
         if result is None:
             continue
 
         # Merge new dependencies into existing
-        existing_labels = set(prop_data.get("follows_from", []))
-        existing_asns = set(prop_data.get("follows_from_asns", []))
+        existing_labels = set(claim_data.get("follows_from", []))
+        existing_asns = set(claim_data.get("follows_from_asns", []))
 
         for dep in result:
             dep_label = dep.get("label", "")
@@ -318,9 +318,9 @@ def scan_asn(asn_num, model="sonnet", effort="high", dry_run=False):
 
         # Update deps data
         if existing_labels:
-            prop_data["follows_from"] = sorted(existing_labels)
+            claim_data["follows_from"] = sorted(existing_labels)
         if existing_asns:
-            prop_data["follows_from_asns"] = sorted(existing_asns)
+            claim_data["follows_from_asns"] = sorted(existing_asns)
 
     print(f"  [DEP-SCAN] Done: {new_deps_found} new dependencies found",
           file=sys.stderr)
@@ -332,21 +332,21 @@ def scan_asn(asn_num, model="sonnet", effort="high", dry_run=False):
                       allow_unicode=True, width=120)
         print(f"  [WROTE] {deps_path.relative_to(WORKSPACE)}", file=sys.stderr)
 
-        # Update per-property YAML depends fields
+        # Update per-claim YAML depends fields
         from lib.shared.paths import FORMALIZATION_DIR
-        prop_dir = FORMALIZATION_DIR / asn_label
-        if prop_dir.exists():
-            _label_index = build_label_index(prop_dir)
-            for label, prop_data in deps.get("properties", {}).items():
+        claim_dir = FORMALIZATION_DIR / asn_label
+        if claim_dir.exists():
+            _label_index = build_label_index(claim_dir)
+            for label, claim_data in deps.get("claims", {}).items():
                 stem = _label_index.get(label)
                 if stem is None:
                     continue
-                yaml_path = prop_dir / f"{stem}.yaml"
+                yaml_path = claim_dir / f"{stem}.yaml"
                 if not yaml_path.exists():
                     continue
                 with open(yaml_path) as yf:
                     ydata = yaml.safe_load(yf)
-                new_deps = prop_data.get("follows_from", [])
+                new_deps = claim_data.get("follows_from", [])
                 old_deps = ydata.get("depends", [])
                 # Add-only: merge new deps into existing
                 merged = list(dict.fromkeys(old_deps + [d for d in new_deps if d not in old_deps]))
@@ -359,7 +359,7 @@ def scan_asn(asn_num, model="sonnet", effort="high", dry_run=False):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="LLM-assisted dependency scanner for ASN properties")
+        description="LLM-assisted dependency scanner for ASN claims")
     parser.add_argument("asn", help="ASN number (e.g., 43)")
     parser.add_argument("--model", "-m", default="sonnet",
                         choices=["opus", "sonnet"])
@@ -367,7 +367,7 @@ def main():
     parser.add_argument("--dry-run", action="store_true",
                         help="Scan and print, don't update deps YAML or ASN")
     parser.add_argument("--no-fix", action="store_true",
-                        help="Update deps YAML but don't fix ASN property table")
+                        help="Update deps YAML but don't fix ASN claim table")
     args = parser.parse_args()
 
     asn_num = int(re.sub(r"[^0-9]", "", args.asn))

@@ -1,11 +1,11 @@
 # Review Quality Rewrite
 
-You are reviewing a quality rewrite of a single property in an ASN.
+You are reviewing a quality rewrite of a single claim in an ASN.
 The rewrite should improve proof quality and add/update the formal
-contract. It should NOT delete content, modify other properties, or
+contract. It should NOT delete content, modify other claims, or
 change meaning.
 
-## Property
+## Claim
 
 **Label**: {{label}}
 

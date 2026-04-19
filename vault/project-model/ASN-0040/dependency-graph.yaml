@@ -1,7 +1,7 @@
 asn: 40
 depends:
 - 34
-properties:
+claims:
   Σ.B:
     status: introduced
     name: B ⊆ T

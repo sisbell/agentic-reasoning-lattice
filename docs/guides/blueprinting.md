@@ -4,7 +4,7 @@
 
 ## Overview
 
-Blueprinting transforms a monolithic ASN reasoning document into per-property file pairs (`.yaml` metadata + `.md` body) ready for formalization. The process runs: decompose → enrich → disassemble → validate → promote.
+Blueprinting transforms a monolithic ASN reasoning document into per-claim file pairs (`.yaml` metadata + `.md` body) ready for formalization. The process runs: decompose → enrich → disassemble → validate → promote.
 
 ## Stages
 
@@ -14,25 +14,25 @@ Two phases:
 
 1. **Mechanical `##` split** — splits the ASN at section headers. Pure python, no LLM. Each `##` section becomes its own `.md` file in `vault/2-blueprints/ASN-NNNN/sections/`.
 
-2. **Per-section LLM analysis** — Sonnet reads each section, produces a `.yaml` file identifying the properties within it (label, name, body). Runs in parallel across sections.
+2. **Per-section LLM analysis** — Sonnet reads each section, produces a `.yaml` file identifying the claims within it (label, name, body). Runs in parallel across sections.
 
-Structural sections (preamble, property table, worked example, open questions) are skipped from LLM analysis — they're written as `.md` only.
+Structural sections (preamble, claim table, worked example, open questions) are skipped from LLM analysis — they're written as `.md` only.
 
 ### Enrich
 
-Three per-property LLM passes, each running all properties in parallel:
+Three per-claim LLM passes, each running all claims in parallel:
 
-1. **Type** — classifies each property: axiom, definition, design-requirement, lemma, theorem, corollary. Uses Dijkstra-school reasoning to determine if a proof is present, if the property is a postulate, etc.
+1. **Type** — classifies each claim: axiom, definition, design-requirement, lemma, theorem, corollary. Uses Dijkstra-school reasoning to determine if a proof is present, if the claim is a postulate, etc.
 
-2. **Dependencies** — extracts property labels directly referenced in the proof or design justification. Add-only — lists what the property uses, not transitive dependencies.
+2. **Dependencies** — extracts claim labels directly referenced in the proof or design justification. Add-only — lists what the claim uses, not transitive dependencies.
 
-3. **Vocabulary** — identifies notation this property introduces (not uses). Distinguishes definitions from usages.
+3. **Vocabulary** — identifies notation this claim introduces (not uses). Distinguishes definitions from usages.
 
 Each pass has its own focused prompt. Updates the section YAML files in place.
 
 ### Disassemble
 
-Mechanical step — reads section YAMLs, writes per-property file pairs:
+Mechanical step — reads section YAMLs, writes per-claim file pairs:
 
 - `{label}.yaml` — metadata only (label, name, type, depends, vocabulary)
 - `{label}.md` — body text (statement + justification + proof + formal contract if present)
@@ -56,7 +56,7 @@ Reports PASS/FAIL with details.
 
 ### Promote
 
-Copies per-property `.yaml` + `.md` pairs and structural `_*.md` files from `vault/2-blueprints/ASN-NNNN/properties/` to `vault/3-formalization/ASN-NNNN/`.
+Copies per-claim `.yaml` + `.md` pairs and structural `_*.md` files from `vault/2-blueprints/ASN-NNNN/claims/` to `vault/3-formalization/ASN-NNNN/`.
 
 ## Output Structure
 
@@ -68,7 +68,7 @@ vault/2-blueprints/ASN-NNNN/
     01-two-components-of-state.md
     01-two-components-of-state.yaml  ← LLM structural analysis + enrichment
     ...
-  properties/
+  claims/
     S0.yaml                          ← metadata
     S0.md                            ← body
     S1.yaml
@@ -104,6 +104,6 @@ literature_citations:
 - **name** — PascalCase. Can change during formalization.
 - **type** — classification. Set during enrich, not modified by formalization.
 - **depends** — direct dependencies only. Add-only during formalization.
-- **vocabulary** — symbols introduced by this property.
+- **vocabulary** — symbols introduced by this claim.
 - **literature_citations** — external references (e.g., Nelson's Literary Machines).
 

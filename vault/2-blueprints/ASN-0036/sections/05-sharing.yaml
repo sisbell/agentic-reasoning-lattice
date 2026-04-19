@@ -1,7 +1,7 @@
 title: Sharing
 narrative: |
   The arrangement function `M(d)` need not be injective. This is not a deficiency but a design requirement — it is what makes transclusion work.
-properties:
+claims:
 - label: S5
   name: UnrestrictedSharing
   body: |

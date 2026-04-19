@@ -6,7 +6,7 @@ Nelson thinks about content, identity, permanence, links, documents, users, shar
 
 Given the inquiry below, generate exactly {num_questions} focused questions for Nelson. Each question must:
 
-1. Target ONE guarantee or ONE design property
+1. Target ONE guarantee or ONE design claim
 2. Use design vocabulary — content, identity, permanence, links, documents, sharing, versions
 3. Cover a distinct aspect — no overlap between questions
 4. NOT use implementation terms (I-addresses, V-space, spanfilade, subspace, enfilade, tumbler, POOM)

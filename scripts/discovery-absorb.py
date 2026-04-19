@@ -64,8 +64,8 @@ def main():
 
     # Step 2: Review/revise the integration
     ext_content = ext_path.read_text()
-    property_labels = parse_extension_labels(ext_content)
-    step_review_revise(base_num, base_path, property_labels,
+    claim_labels = parse_extension_labels(ext_content)
+    step_review_revise(base_num, base_path, claim_labels,
                        args.max_cycles, args.model, args.effort)
 
     # Step 3: Re-export the base

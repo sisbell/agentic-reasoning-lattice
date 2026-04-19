@@ -23,7 +23,7 @@ PROMPT_PATH = WORKSPACE / "scripts" / "prompts" / "blueprinting" / "decompose.md
 # Sections that are structural — no LLM analysis needed
 SKIP_HEADERS = {
     "PREAMBLE",
-    "Properties Introduced",
+    "Claims Introduced",
     "Open Questions",
     "Worked example",
 }
@@ -64,7 +64,7 @@ def _slugify(header):
 def analyze_section(section_content):
     """Call LLM to produce YAML analysis of a section. Returns YAML string or None.
 
-    Returns None if LLM fails or finds no properties.
+    Returns None if LLM fails or finds no claims.
     """
     prompt_template = PROMPT_PATH.read_text()
     prompt = prompt_template.replace("{{section_content}}", section_content)
@@ -82,7 +82,7 @@ def analyze_section(section_content):
     if text.endswith("```"):
         text = text[:-3].rstrip()
 
-    # Skip if no properties found
+    # Skip if no claims found
     if "- label:" not in text:
         return None
 
@@ -169,8 +169,8 @@ def decompose_asn(asn_num):
             total_props += prop_count
             yaml_count += 1
 
-    print(f"\n  [DECOMPOSE] {len(sections)} sections, {yaml_count} with properties, "
-          f"{total_props} total properties, {elapsed:.0f}s",
+    print(f"\n  [DECOMPOSE] {len(sections)} sections, {yaml_count} with claims, "
+          f"{total_props} total claims, {elapsed:.0f}s",
           file=sys.stderr)
 
     step_commit_asn(asn_num, hint="decompose")

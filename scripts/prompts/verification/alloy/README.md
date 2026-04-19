@@ -4,10 +4,10 @@
 
 ### Step 1: Translate (`scripts/model.py alloy`)
 
-**Prompt:** `translate-property.md` + `syntax-reference.md` + `reference.als`
+**Prompt:** `translate-claim.md` + `syntax-reference.md` + `reference.als`
 **Script:** `scripts/lib/verification/alloy.py` → `generate_one()`
 
-Per-property translation. Agent converts a formal contract into an
+Per-claim translation. Agent converts a formal contract into an
 Alloy model with sigs, predicates, assertions, and check commands.
 Runs the Alloy checker and fixes syntax errors in a loop.
 
@@ -43,7 +43,7 @@ weakens assertions or removes checks.
 
 | File | Purpose |
 |------|---------|
-| `translate-property.md` | Translate formal contract to Alloy (Jackson priming) |
+| `translate-claim.md` | Translate formal contract to Alloy (Jackson priming) |
 | `syntax-reference.md` | Alloy syntax reference injected into translation |
 | `reference.als` | Reference patterns for Alloy modeling |
 | `validate-contract.md` | Gate check: does Alloy match formal contract? (Jackson priming) |

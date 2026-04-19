@@ -1,7 +1,7 @@
 """
 Local Review reviser — applies proof fixes from findings.
 
-Takes a property label and its finding text, builds a prompt from
+Takes a claim label and its finding text, builds a prompt from
 revise.md, and runs claude -p with Edit tools to apply the fix.
 """
 
@@ -21,20 +21,20 @@ PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization" / "local-revie
 REVISE_TEMPLATE = PROMPTS_DIR / "revise.md"
 
 
-def revise(asn_num, label, finding_text, prop_path=None):
-    """Apply proof fix for a property. Returns True if changes made."""
+def revise(asn_num, label, finding_text, claim_path=None):
+    """Apply proof fix for a claim. Returns True if changes made."""
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
         print(f"    [REVISE] ASN not found", file=sys.stderr)
         return False
 
-    # Use property file path if provided, otherwise fall back to ASN path
-    if prop_path is None:
+    # Use claim file path if provided, otherwise fall back to ASN path
+    if claim_path is None:
         from lib.shared.paths import FORMALIZATION_DIR
-        prop_path = FORMALIZATION_DIR / asn_label / (label.replace("(", "").replace(")", "") + ".md")
+        claim_path = FORMALIZATION_DIR / asn_label / (label.replace("(", "").replace(")", "") + ".md")
 
     template = REVISE_TEMPLATE.read_text()
-    rel_path = prop_path.relative_to(WORKSPACE)
+    rel_path = claim_path.relative_to(WORKSPACE)
     prompt = (template
         .replace("{{asn_path}}", str(rel_path))
         .replace("{{label}}", label)
@@ -83,7 +83,7 @@ def revise(asn_num, label, finding_text, prop_path=None):
             "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
             "skill": "local-review-revise",
             "asn": asn_label,
-            "property": label,
+            "claim": label,
             "elapsed_s": round(elapsed, 1),
             "cost_usd": cost,
         }

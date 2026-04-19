@@ -12,9 +12,9 @@ For each test case, ask three questions:
 
 1. **Can I run it?** Given should be variable assignments. Assert should be one function call with an expected result. If either contains English instead of data, it fails this test.
 
-2. **Is it right?** Check every value in Given and Assert against the worked example. Wrong tumbler literal, wrong operation result, wrong property label — flag it.
+2. **Is it right?** Check every value in Given and Assert against the worked example. Wrong tumbler literal, wrong operation result, wrong claim label — flag it.
 
-3. **Is it complete?** Walk the example's Properties exercised section. Every bullet that describes a computable result should have a corresponding test case. Every skip should be genuinely non-computable.
+3. **Is it complete?** Walk the example's Claims exercised section. Every bullet that describes a computable result should have a corresponding test case. Every skip should be genuinely non-computable.
 
 One finding per issue. Say what is wrong and what it should be.
 
@@ -31,7 +31,7 @@ Otherwise:
 ```
 VERDICT: REVISE
 
-### {TC number or property label}: {what is wrong}
+### {TC number or claim label}: {what is wrong}
 **Fix:** {what the corrected TC or new TC should look like}
 ```
 

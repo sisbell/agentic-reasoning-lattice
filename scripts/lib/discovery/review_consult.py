@@ -112,7 +112,7 @@ def build_categorization_prompt(asn_content, revise_section):
 
 ## Categories
 
-- **INTERNAL** — Fixable from the ASN's own content. The fix is derivable from definitions, proofs, or reasoning already present in the ASN. Examples: inconsistent notation, missing case in a proof that can be filled from existing definitions, a precondition that follows from an already-stated property.
+- **INTERNAL** — Fixable from the ASN's own content. The fix is derivable from definitions, proofs, or reasoning already present in the ASN. Examples: inconsistent notation, missing case in a proof that can be filled from existing definitions, a precondition that follows from an already-stated claim.
 
 - **NELSON** — Needs Nelson consultation. The fix requires understanding Ted Nelson's design intent — what the system was *meant* to do, what semantic constraints the designer intended. Nelson has access to Literary Machines and Nelson's concept notes. Examples: "Was this operation intended to be total or partial?", "Does the design require this ordering to be strict?"
 

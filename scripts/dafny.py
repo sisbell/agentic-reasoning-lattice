@@ -1,23 +1,23 @@
 #!/usr/bin/env python3
 """
-Dafny — generate Dafny declarations per ASN property.
+Dafny — generate Dafny declarations per ASN claim.
 
-Reads per-property files from vault/3-formalization/, generates one .dfy
-per property using an agentic Claude session (with Read/Write/Bash tools
-to write, verify, and self-fix), validates contracts, writes per-property reviews.
+Reads per-claim files from vault/3-formalization/, generates one .dfy
+per claim using an agentic Claude session (with Read/Write/Bash tools
+to write, verify, and self-fix), validates contracts, writes per-claim reviews.
 
-Parallel: level-based (topological order). Properties at the same dependency
+Parallel: level-based (topological order). Claims at the same dependency
 level run concurrently (default 3 workers). Between levels, waits for all
 verified files before proceeding (next level may include earlier .dfy files).
 
-Hash cache: skips unchanged properties since last successful run.
+Hash cache: skips unchanged claims since last successful run.
 
 Usage:
     python scripts/dafny.py 34                    # full pipeline
-    python scripts/dafny.py 34 --property T1      # single property
+    python scripts/dafny.py 34 --claim T1      # single claim
     python scripts/dafny.py 34 --workers 5        # more parallelism
     python scripts/dafny.py 34 --force            # ignore cache
-    python scripts/dafny.py 34 --dry-run          # show property list
+    python scripts/dafny.py 34 --dry-run          # show claim list
 """
 
 import argparse
@@ -35,8 +35,8 @@ from lib.shared.common import find_asn, parallel_llm_calls, build_label_index
 from lib.formalization.core.build_dependency_graph import generate_formalization_deps
 from lib.formalization.core.topological_sort import topological_sort_labels, topological_levels
 from lib.verification.dafny.translate import (
-    build_property_list_from_asn,
-    build_property_prompt, translate_one, TEMPLATE,
+    build_claim_list_from_asn,
+    build_claim_prompt, translate_one, TEMPLATE,
 )
 from lib.verification.dafny.verify import verify
 from lib.verification.dafny.align import align_validate_cycle
@@ -45,14 +45,14 @@ from lib.verification.dafny.common import read_file, run_commit, log_usage
 REVIEW_PROMPT = WORKSPACE / "scripts" / "prompts" / "verification" / "dafny" / "review-failure.md"
 
 
-def _review_failure(prop_text, dfy_path, verification_errors):
+def _review_failure(claim_text, dfy_path, verification_errors):
     """Classify a verification failure as spec issue vs proof artifact."""
     template = read_file(REVIEW_PROMPT)
     if not template:
         return verification_errors
     dfy_source = read_file(dfy_path)
     prompt = (template
-              .replace("{{property_text}}", prop_text)
+              .replace("{{claim_text}}", claim_text)
               .replace("{{dafny_source}}", dfy_source)
               .replace("{{verification_errors}}", verification_errors))
     import os, subprocess
@@ -87,18 +87,18 @@ def _save_cache(path, data):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Generate Dafny declarations per ASN property")
+        description="Generate Dafny declarations per ASN claim")
     parser.add_argument("asn",
                         help="ASN number (e.g., 1, 0001, ASN-0001)")
-    parser.add_argument("--property", "-p",
-                        help="Generate specific properties, comma-separated")
+    parser.add_argument("--claim", "-p",
+                        help="Generate specific claims, comma-separated")
     parser.add_argument("--model", "-m", default="opus",
                         choices=["opus", "sonnet"],
                         help="Model (default: opus)")
     parser.add_argument("--effort", default="max",
                         help="Thinking effort level (low/medium/high/max)")
     parser.add_argument("--max-turns", type=int, default=24,
-                        help="Max agent turns per property (default: 24)")
+                        help="Max agent turns per claim (default: 24)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Show what would be generated without invoking Claude")
     parser.add_argument("--workers", type=int, default=3,
@@ -111,8 +111,8 @@ def main():
 
     asn_number = int(re.sub(r"[^0-9]", "", str(args.asn)))
     asn_label = f"ASN-{asn_number:04d}"
-    prop_dir = FORMALIZATION_DIR / asn_label
-    if not prop_dir.exists():
+    claim_dir = FORMALIZATION_DIR / asn_label
+    if not claim_dir.exists():
         print(f"  No formalization directory for {asn_label}",
               file=sys.stderr)
         print(f"  Run: python scripts/promote-blueprint.py {args.asn}",
@@ -121,23 +121,23 @@ def main():
 
     template_text = read_file(TEMPLATE)
     if not template_text:
-        print("  Prompt template not found: scripts/prompts/verification/dafny/translate-property.md",
+        print("  Prompt template not found: scripts/prompts/verification/dafny/translate-claim.md",
               file=sys.stderr)
         sys.exit(1)
 
     # --- Parse inputs ---
 
-    index_rows = build_property_list_from_asn(asn_number)
-    print(f"  [SOURCE] per-property files from {prop_dir.relative_to(WORKSPACE)}",
+    index_rows = build_claim_list_from_asn(asn_number)
+    print(f"  [SOURCE] per-claim files from {claim_dir.relative_to(WORKSPACE)}",
           file=sys.stderr)
 
     if not index_rows:
-        print(f"  No properties found", file=sys.stderr)
+        print(f"  No claims found", file=sys.stderr)
         sys.exit(1)
 
-    # Filter to specific properties if requested
-    if args.property:
-        targets = [t.strip() for t in args.property.split(",")]
+    # Filter to specific claims if requested
+    if args.claim:
+        targets = [t.strip() for t in args.claim.split(",")]
         matches = []
         for target in targets:
             found = [r for r in index_rows
@@ -147,7 +147,7 @@ def main():
                          if r["label"].lower().startswith(target.lower())
                          or r["proof_label"].lower().startswith(target.lower())]
             if not found:
-                print(f"  Property '{target}' not found in property list",
+                print(f"  Claim '{target}' not found in claim list",
                       file=sys.stderr)
                 print(f"  Available: {', '.join(r['label'] for r in index_rows)}",
                       file=sys.stderr)
@@ -162,18 +162,18 @@ def main():
     review_dir = out_dir / "reviews"
     review_dir.mkdir(parents=True, exist_ok=True)
 
-    # --- Read per-property source files + hashes ---
+    # --- Read per-claim source files + hashes ---
 
-    _label_index = build_label_index(prop_dir)
+    _label_index = build_label_index(claim_dir)
     _filename_to_label = {f"{stem}.md": lbl for lbl, stem in _label_index.items()}
     source_hashes = {}
-    prop_contents = {}
-    for f in sorted(prop_dir.glob("*.md")):
+    claim_contents = {}
+    for f in sorted(claim_dir.glob("*.md")):
         if not f.name.startswith("_"):
             label = _filename_to_label.get(f.name, f.stem)
             content = f.read_text()
             source_hashes[label] = _hash_content(content)
-            prop_contents[label] = content
+            claim_contents[label] = content
 
     # --- Dependency graph ---
 
@@ -199,7 +199,7 @@ def main():
             candidates.append(row)
 
     if cached:
-        print(f"  [CACHE] {cached} properties unchanged — skipping",
+        print(f"  [CACHE] {cached} claims unchanged — skipping",
               file=sys.stderr)
 
     print(f"  [DAFNY] {asn_label} — {len(candidates)} to process "
@@ -208,7 +208,7 @@ def main():
 
     if args.dry_run:
         for row in candidates:
-            prompt = build_property_prompt(
+            prompt = build_claim_prompt(
                 template_text, row, "")
             print(f"  [{row['label']}] {row['proof_label']}  "
                   f"({len(prompt) // 1024}KB prompt)", file=sys.stderr)
@@ -247,7 +247,7 @@ def main():
         if not level_candidates:
             continue
 
-        print(f"\n  [LEVEL {level_idx}] {len(level_candidates)} properties",
+        print(f"\n  [LEVEL {level_idx}] {len(level_candidates)} claims",
               file=sys.stderr)
 
         # Snapshot verified_files for this level (read-only in workers)
@@ -260,8 +260,8 @@ def main():
 
             # Build dependency context from earlier levels
             dep_context = ""
-            if deps_data and label in deps_data.get("properties", {}):
-                follows = deps_data["properties"][label].get("follows_from", [])
+            if deps_data and label in deps_data.get("claims", {}):
+                follows = deps_data["claims"][label].get("follows_from", [])
                 available = [(dep, level_verified[dep]) for dep in follows
                              if dep in level_verified]
                 if available:
@@ -271,7 +271,7 @@ def main():
                     dep_context = "\n".join(lines) + "\n"
 
             # Build prompt
-            prompt = build_property_prompt(
+            prompt = build_claim_prompt(
                 template_text, row, "", dep_context=dep_context,
             )
 
@@ -308,7 +308,7 @@ def main():
                 print(f" verified({n})", file=sys.stderr, end="", flush=True)
 
                 # Validate contract
-                section = prop_contents.get(label, "")
+                section = claim_contents.get(label, "")
                 if section:
                     contract_result, reason, a_cost = align_validate_cycle(
                         out_path, section, label,
@@ -347,14 +347,14 @@ def main():
                 "contract": result.get("contract", ""),
             }
 
-            # Write per-property review
+            # Write per-claim review
             review_path = review_dir / f"{label}.md"
             if result["status"] in ("proof_failure", "compile_failure", "gen_fail"):
                 errors = result.get("verification_errors", "")
-                prop_text = prop_contents.get(label, "")
+                claim_text = claim_contents.get(label, "")
                 dfy_path = result.get("dfy_path")
-                if errors and prop_text and dfy_path and dfy_path.exists():
-                    analysis = _review_failure(prop_text, dfy_path, errors)
+                if errors and claim_text and dfy_path and dfy_path.exists():
+                    analysis = _review_failure(claim_text, dfy_path, errors)
                 else:
                     analysis = errors or result["status"]
                 with open(review_path, "w") as rf:
@@ -397,7 +397,7 @@ def main():
         subprocess.run(
             ["git", "add", str(out_dir)],
             capture_output=True, text=True, cwd=str(WORKSPACE))
-        run_commit(f"{asn_label} dafny — {len(all_results)} properties")
+        run_commit(f"{asn_label} dafny — {len(all_results)} claims")
 
 
 if __name__ == "__main__":

@@ -2,7 +2,7 @@ asn: 43
 depends:
 - 34
 - 36
-properties:
+claims:
   Σ.L:
     status: introduced
     type: DEF

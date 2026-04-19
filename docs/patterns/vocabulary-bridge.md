@@ -4,9 +4,9 @@
 
 Discovery agents and formalization agents speak different languages about the same things. Discovery uses domain vocabulary — "document," "element," "content," "link" — because that's what the authorities (Nelson, Gregory) use. Formalization uses structural vocabulary — `zeros(t) = 2`, field levels, T4 field decomposition — because that's what the math requires.
 
-Without a bridge, every formalized ASN independently translates domain terms to structural properties. The cone on ASN-0036 recreated D-DOC ("a document is a tumbler with zeros(d) = 2") because no shared translation existed. ASN-0040 would need the same translation for baptism. Every ASN above the algebra layer encounters the same gap.
+Without a bridge, every formalized ASN independently translates domain terms to structural claims. The cone on ASN-0036 recreated D-DOC ("a document is a tumbler with zeros(d) = 2") because no shared translation existed. ASN-0040 would need the same translation for baptism. Every ASN above the algebra layer encounters the same gap.
 
-A vocabulary bridge is a dedicated layer that maps domain concepts to structural properties once, so every ASN above it can use domain language grounded in formal structure.
+A vocabulary bridge is a dedicated layer that maps domain concepts to structural claims once, so every ASN above it can use domain language grounded in formal structure.
 
 ## Forces
 
@@ -30,17 +30,17 @@ The bridge sits between the algebra (which knows only tumblers and operations) a
 
 ## Two kinds of bridge
 
-**Domain → structural**: maps a domain concept to its formal definition. "Document" → `zeros(t) = 2`. The concept exists in the authorities' vocabulary. The structural property exists in the algebra. The bridge connects them.
+**Domain → structural**: maps a domain concept to its formal definition. "Document" → `zeros(t) = 2`. The concept exists in the authorities' vocabulary. The structural claim exists in the algebra. The bridge connects them.
 
-**Alias resolution**: maps multiple domain terms to the same structural property. Nelson calls it "node," Gregory calls it "server," T4 calls it "network field" — all mean the first tumbler field. The two data authorities produce different terms because they reason from different sources. Without resolution, every downstream ASN encounters the confusion independently and resolves it ad hoc.
+**Alias resolution**: maps multiple domain terms to the same structural claim. Nelson calls it "node," Gregory calls it "server," T4 calls it "network field" — all mean the first tumbler field. The two data authorities produce different terms because they reason from different sources. Without resolution, every downstream ASN encounters the confusion independently and resolves it ad hoc.
 
-Both kinds sit in the same bridge layer. Both arise because the authorities speak different languages about the same structure. The interesting property: alias conflicts surface in different contexts. The "node" vs "network" mismatch appeared in S7's regional review — not in a vocabulary audit, but in a proof that needed to cite T4 precisely. The cone couldn't reconcile S7's "node" with T4's "network" and flagged it. Each context that encounters the alias discovers the inconsistency independently until the bridge resolves it once.
+Both kinds sit in the same bridge layer. Both arise because the authorities speak different languages about the same structure. The interesting claim: alias conflicts surface in different contexts. The "node" vs "network" mismatch appeared in S7's regional review — not in a vocabulary audit, but in a proof that needed to cite T4 precisely. The cone couldn't reconcile S7's "node" with T4's "network" and flagged it. Each context that encounters the alias discovers the inconsistency independently until the bridge resolves it once.
 
 ## Detection
 
 You know you need a vocabulary bridge when:
 
-- A cone creates a definition that maps a domain term to a structural property
+- A cone creates a definition that maps a domain term to a structural claim
 - The same mapping would be needed by multiple ASNs
 - The domain term comes from the discovery authorities, not from the formalization
 

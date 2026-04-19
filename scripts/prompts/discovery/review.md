@@ -77,7 +77,7 @@ foundation already defines, flag it as REVISE.
 - Postconditions established but consequences not explored — if the ASN proves POST1 (fresh allocation) and POST2 (I-space preserved), what does that imply? Identity independence? Version correspondence preservation? Derive the consequences.
 - No concrete example — the ASN should verify its key postconditions against at least one specific scenario from the implementation evidence (e.g., "INSERT 'XY' at position 3 into 'ABCDE' — check POST1, POST3, POST5 against the result").
 - Weakest precondition analysis missing or trivial — if wp is only computed for postconditions where the answer is "trivially true," that's not analysis. Find a non-trivial case (e.g., wp for "link discoverability is preserved").
-- Derived guarantees stated without derivation — if a property is labeled "derived," the derivation must be explicit. Name the premises, show the chain.
+- Derived guarantees stated without derivation — if a claim is labeled "derived," the derivation must be explicit. Name the premises, show the chain.
 
 ## Standards
 
@@ -120,9 +120,9 @@ Output the META and VERDICT lines as plain text, exactly as shown — no markdow
 
 The following open issues were identified by foundation audits or manually. Each open issue is a **mandatory REVISE finding** — the ASN cannot converge while open issues remain. Do not attempt to address all open issues at once. Pick the most impactful issue (or a small related group) and write REVISE items for those.
 
-When an open issue flags an incomplete domain extension, the fix is to complete the argument — establish analogs of missing prerequisites so the extension is fully grounded. Do not remove the extension or bypass it by citing the original foundation result directly. The extension serves as a bridge property that downstream properties can cite without re-arguing the foundation prerequisites each time.
+When an open issue flags an incomplete domain extension, the fix is to complete the argument — establish analogs of missing prerequisites so the extension is fully grounded. Do not remove the extension or bypass it by citing the original foundation result directly. The extension serves as a bridge claim that downstream claims can cite without re-arguing the foundation prerequisites each time.
 
-When an open issue reports a circular dependency (e.g., `[cycle] A → B → A`), determine which direction is correct by reading the actual derivations. One edge is wrong — a property's Status column claims a dependency that doesn't exist in the proof. Flag the incorrect entry as REVISE: "Remove X from Y's follows_from — Y's derivation does not use X."
+When an open issue reports a circular dependency (e.g., `[cycle] A → B → A`), determine which direction is correct by reading the actual derivations. One edge is wrong — a claim's Status column claims a dependency that doesn't exist in the proof. Flag the incorrect entry as REVISE: "Remove X from Y's follows_from — Y's derivation does not use X."
 
 When you are satisfied that an open issue has been fully resolved in the ASN body, include a `## RESOLVED` section listing the issues to remove from the open issues file, with a brief justification for each:
 

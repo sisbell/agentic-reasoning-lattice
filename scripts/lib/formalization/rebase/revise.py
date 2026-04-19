@@ -1,7 +1,7 @@
 """
 Dependency Rebase reviser — applies fixes from findings.
 
-Takes a property label and its findings, builds a prompt from the
+Takes a claim label and its findings, builds a prompt from the
 revise template, and runs claude -p with Edit tools to apply the fix.
 """
 
@@ -31,16 +31,16 @@ def format_finding_for_reviser(findings):
             f"**Problem**: {f.detail}\n\n"
             f"**Required**: Fix the {f.category} issue — "
             f"{'update the reference to use the canonical upstream label' if f.category == 'stale-label' else ''}"
-            f"{'add the missing dependency to the property table' if f.category == 'missing-dep' else ''}"
+            f"{'add the missing dependency to the claim table' if f.category == 'missing-dep' else ''}"
             f"{'add the ASN to the depends list in project.yaml' if f.category == 'undeclared-asn' else ''}"
-            f"{'add the label to the follows_from list in the property table' if f.category == 'prose-only' else ''}"
+            f"{'add the label to the follows_from list in the claim table' if f.category == 'prose-only' else ''}"
             f"{f.detail if f.category in ('cross-ref', 'extension-gap') else ''}"
         )
     return "\n\n---\n\n".join(parts)
 
 
 def revise(asn_num, label, findings):
-    """Apply fixes for a property's findings. Returns True if changes made."""
+    """Apply fixes for a claim's findings. Returns True if changes made."""
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
         print(f"    [REVISE] ASN not found", file=sys.stderr)
@@ -99,7 +99,7 @@ def revise(asn_num, label, findings):
             "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
             "skill": "rebase-revise",
             "asn": asn_label,
-            "property": label,
+            "claim": label,
             "findings": len(findings),
             "elapsed_s": round(elapsed, 1),
             "cost_usd": cost,

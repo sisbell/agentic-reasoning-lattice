@@ -1,9 +1,9 @@
 """
-Section repair — write standalone proofs for embedded properties.
+Section repair — write standalone proofs for embedded claims.
 
-Identifies properties whose proofs are embedded in other properties'
+Identifies claims whose proofs are embedded in other claims'
 sections and writes self-contained Dijkstra-style proofs in each
-property's own section.
+claim's own section.
 
 Usage (standalone):
     python scripts/lib/repair_sections.py 34
@@ -24,8 +24,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import (WORKSPACE, USAGE_LOG, REVIEWS_DIR,
                    formal_stmts, load_manifest,
                    next_review_number)
-from lib.shared.common import find_asn, extract_property_sections, step_commit_asn
-from lib.formalization.core.build_dependency_graph import (find_property_table, parse_table_row,
+from lib.shared.common import find_asn, extract_claim_sections, step_commit_asn
+from lib.formalization.core.build_dependency_graph import (find_claim_table, parse_table_row,
                               detect_columns, generate_formalization_deps)
 from lib.formalization.core.topological_sort import topological_sort_labels
 
@@ -63,12 +63,12 @@ def _has_proof(section_text):
 
 
 def find_incomplete_sections(asn_num):
-    """Find properties with no proof in their own section.
+    """Find claims with no proof in their own section.
 
     Returns list of dicts:
-        label: property label
+        label: claim label
         thin_section: the incomplete section text
-        host_label: label of the property whose section contains the proof (or None)
+        host_label: label of the claim whose section contains the proof (or None)
         host_section: the host section text (or None)
     """
     asn_path, asn_label = find_asn(str(asn_num))
@@ -76,7 +76,7 @@ def find_incomplete_sections(asn_num):
         return []
 
     text = asn_path.read_text()
-    rows = find_property_table(text)
+    rows = find_claim_table(text)
     if rows is None:
         return []
 
@@ -91,7 +91,7 @@ def find_incomplete_sections(asn_num):
             statuses[label] = cells[-1].strip().lower()
 
     # Extract sections
-    sections = extract_property_sections(text, known_labels=labels,
+    sections = extract_claim_sections(text, known_labels=labels,
                                           truncate=False)
 
     # Find incomplete sections
@@ -142,12 +142,12 @@ def find_incomplete_sections(asn_num):
 
 
 def find_oversized_sections(asn_num):
-    """Find sections containing proofs for OTHER properties.
+    """Find sections containing proofs for OTHER claims.
 
     Returns list of dicts:
-        label: the embedded property label (needs its own section)
-        thin_section: the embedded property's own section (if it exists)
-        host_label: the property whose section contains the embedded proof
+        label: the embedded claim label (needs its own section)
+        thin_section: the embedded claim's own section (if it exists)
+        host_label: the claim whose section contains the embedded proof
         host_section: the host section text
     """
     asn_path, asn_label = find_asn(str(asn_num))
@@ -155,7 +155,7 @@ def find_oversized_sections(asn_num):
         return []
 
     text = asn_path.read_text()
-    rows = find_property_table(text)
+    rows = find_claim_table(text)
     if rows is None:
         return []
 
@@ -166,10 +166,10 @@ def find_oversized_sections(asn_num):
             labels.append(cells[0].strip().strip("`*"))
 
     label_set = set(labels)
-    sections = extract_property_sections(text, known_labels=labels,
+    sections = extract_claim_sections(text, known_labels=labels,
                                           truncate=False)
 
-    # For each section, check if it contains proofs for other properties
+    # For each section, check if it contains proofs for other claims
     oversized = []
     seen = set()
 
@@ -208,9 +208,9 @@ def find_oversized_sections(asn_num):
 
 def build_repair_context(asn_num, label, deps_data, sections):
     """Build dependency context for a section repair."""
-    prop_data = deps_data.get("properties", {}).get(label, {})
-    follows_from = prop_data.get("follows_from", [])
-    all_labels = set(deps_data.get("properties", {}).keys())
+    claim_data = deps_data.get("claims", {}).get(label, {})
+    follows_from = claim_data.get("follows_from", [])
+    all_labels = set(deps_data.get("claims", {}).keys())
 
     dep_parts = []
     for dep_label in follows_from:
@@ -243,7 +243,7 @@ def build_repair_context(asn_num, label, deps_data, sections):
 
 def repair_section(asn_num, label, thin_section, host_section,
                    dependency_text, max_cycles=5):
-    """Write a standalone proof for one property. Returns True on success."""
+    """Write a standalone proof for one claim. Returns True on success."""
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
         return False
@@ -291,7 +291,7 @@ def repair_section(asn_num, label, thin_section, host_section,
         # Re-check: does the section now have a proof?
         text = asn_path.read_text()
         labels_list = [label]
-        updated_sections = extract_property_sections(
+        updated_sections = extract_claim_sections(
             text, known_labels=labels_list, truncate=False)
         updated = updated_sections.get(label, "")
 
@@ -346,14 +346,14 @@ def step_repair_sections(asn_num):
 
     # Get all sections
     text = asn_path.read_text()
-    all_labels = list(deps_data.get("properties", {}).keys())
-    sections = extract_property_sections(text, known_labels=all_labels,
+    all_labels = list(deps_data.get("claims", {}).keys())
+    sections = extract_claim_sections(text, known_labels=all_labels,
                                           truncate=False)
 
     # Sort in dependency order
     ordered = topological_sort_labels(deps_data)
 
-    print(f"\n  [REPAIR] {asn_label}: {len(incomplete)} properties "
+    print(f"\n  [REPAIR] {asn_label}: {len(incomplete)} claims "
           f"need repair", file=sys.stderr)
 
     repaired = 0
@@ -378,7 +378,7 @@ def step_repair_sections(asn_num):
             repaired += 1
             # Re-read ASN and sections (changed by repair)
             text = asn_path.read_text()
-            sections = extract_property_sections(
+            sections = extract_claim_sections(
                 text, known_labels=all_labels, truncate=False)
         else:
             failed += 1
@@ -390,7 +390,7 @@ def step_repair_sections(asn_num):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Section repair — standalone proofs for embedded properties")
+        description="Section repair — standalone proofs for embedded claims")
     parser.add_argument("asn", help="ASN number (e.g., 34)")
     parser.add_argument("--label", help="Repair a single label only")
     parser.add_argument("--dry-run", action="store_true",
@@ -401,7 +401,7 @@ def main():
 
     if args.dry_run:
         incomplete = find_incomplete_sections(asn_num)
-        print(f"\n  {len(incomplete)} properties need repair:")
+        print(f"\n  {len(incomplete)} claims need repair:")
         for item in incomplete:
             host = f" (proof in {item['host_label']})" if item['host_label'] else " (no embedded proof found)"
             print(f"    {item['label']:30s}{host}")
@@ -417,8 +417,8 @@ def main():
         deps_data = generate_formalization_deps(asn_num)
         asn_path, _ = find_asn(str(asn_num))
         text = asn_path.read_text()
-        all_labels = list(deps_data.get("properties", {}).keys())
-        sections = extract_property_sections(text, known_labels=all_labels,
+        all_labels = list(deps_data.get("claims", {}).keys())
+        sections = extract_claim_sections(text, known_labels=all_labels,
                                               truncate=False)
         dep_text = build_repair_context(asn_num, args.label, deps_data, sections)
         ok = repair_section(asn_num, args.label,

@@ -1,10 +1,10 @@
 # Produce Contract
 
-You are rewriting a property's proof to Dijkstra standard and ensuring
+You are rewriting a claim's proof to Dijkstra standard and ensuring
 it has a complete formal contract. Everything you need is provided in
 this prompt — do not attempt to read files, search, or use tools.
 
-## Property
+## Claim
 
 **Label**: {{label}}
 
@@ -41,14 +41,14 @@ type constraints. Only include fields that apply.
 
 ## Dependencies
 
-These properties are referenced by this proof. Use them for context
+These claims are referenced by this proof. Use them for context
 when checking citations and preconditions.
 
 {{dependency_sections}}
 
 ## Rules
 
-1. Rewrite the proof. Keep the property's bold header and formal
+1. Rewrite the proof. Keep the claim's bold header and formal
    statement unchanged.
 2. The proof must be self-contained — a reader should understand it
    without reading any other section.
@@ -60,7 +60,7 @@ when checking citations and preconditions.
    - Adding parenthetical attributions when the citation is already clear
    Leave the author's voice intact. Only change text when the proof
    has a gap, missing case, or incorrect statement.
-4. For axioms: state why the property holds by definition or design.
+4. For axioms: state why the claim holds by definition or design.
    Use `*Axiom:*` in the formal contract.
 5. For definitions: ensure the construction rule is clear. Use
    `*Definition:*` in the formal contract.
@@ -69,6 +69,6 @@ when checking citations and preconditions.
 
 ## Output
 
-Return the complete rewritten property section as raw text. Start with
+Return the complete rewritten claim section as raw text. Start with
 the bold header line (e.g., `**T1 (LexicographicOrder).**`). Do not
 include markdown fences, commentary, or tool calls — just the section.

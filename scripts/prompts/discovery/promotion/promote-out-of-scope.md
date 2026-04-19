@@ -56,7 +56,7 @@ Match the style of the existing inquiries in the list above.
 For each qualifying topic, decide which experts are needed:
 
 - **Nelson only** (`gregory: 0`): The question is about design intent, architectural philosophy, or system-level guarantees with no implementation-specific angle.
-- **Gregory only** (`nelson: 0`): The question is about implementation behavior, data structure properties, or code-level evidence with no design-intent angle.
+- **Gregory only** (`nelson: 0`): The question is about implementation behavior, data structure claims, or code-level evidence with no design-intent angle.
 - **Both** (default): The question benefits from both design intent and implementation evidence. Most questions fall here.
 
 ## Sub-question Count
@@ -74,7 +74,7 @@ Assign one of these areas based on the topic's primary concern:
 - `links` — link structure, endsets, link discovery
 - `versioning` — version creation, version relationships
 - `documents` — document lifecycle, ownership, access
-- `data-structures` — enfilades, indexes, structural properties
+- `data-structures` — enfilades, indexes, structural claims
 - `concurrency` — multi-user, multi-server, consistency
 - `protocol` — FEBE/BEBE protocol, session management
 - `economics` — royalties, accounting, payment

@@ -3,7 +3,7 @@
 V-Cycle Formalization Review — multigrid-inspired convergence.
 
 Three scales of optimization in a V-cycle:
-  Local:    local-review, contract-review (one property at a time)
+  Local:    local-review, contract-review (one claim at a time)
   Regional: regional-sweep (high-dependency clusters, bottom-up DAG walk)
   Full:     full-review (full ASN scan)
 
@@ -29,7 +29,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR
-from lib.shared.common import find_asn, build_label_index, load_property_metadata
+from lib.shared.common import find_asn, build_label_index, load_claim_metadata
 from lib.formalization.regional import run_regional_sweep, run_regional_review
 from lib.formalization.core.build_dependency_graph import generate_formalization_deps
 
@@ -53,12 +53,12 @@ def _git_head():
 
 
 def _get_changed_labels(asn_label, before_hash):
-    """Get property labels changed since before_hash.
+    """Get claim labels changed since before_hash.
 
     Diffs HEAD vs before_hash for the ASN's formalization dir,
     maps changed filenames to labels via build_label_index.
     """
-    prop_dir = FORMALIZATION_DIR / asn_label
+    claim_dir = FORMALIZATION_DIR / asn_label
     result = subprocess.run(
         ["git", "diff", "--name-only", before_hash, "HEAD",
          "--", f"vault/3-formalization/{asn_label}/"],
@@ -68,7 +68,7 @@ def _get_changed_labels(asn_label, before_hash):
     if not result.stdout.strip():
         return set()
 
-    label_index = build_label_index(prop_dir)
+    label_index = build_label_index(claim_dir)
     stem_to_label = {stem: lbl for lbl, stem in label_index.items()}
 
     changed = set()
@@ -89,9 +89,9 @@ def _affected_cones(changed_labels, asn_num, min_deps=4):
     Returns list of (apex_label, dep_labels) tuples.
     """
     _, asn_label = find_asn(str(asn_num))
-    prop_dir = FORMALIZATION_DIR / asn_label
-    asn_labels = set(build_label_index(prop_dir).keys())
-    all_meta = load_property_metadata(prop_dir)
+    claim_dir = FORMALIZATION_DIR / asn_label
+    asn_labels = set(build_label_index(claim_dir).keys())
+    all_meta = load_claim_metadata(claim_dir)
 
     cones = []
     for label, meta in all_meta.items():
@@ -109,7 +109,7 @@ def _affected_cones(changed_labels, asn_num, min_deps=4):
 def _downstream_labels(changed_labels, deps_data):
     """Find labels that depend on any changed label (one level)."""
     downstream = set()
-    props = deps_data.get("properties", {})
+    props = deps_data.get("claims", {})
     for label, info in props.items():
         follows = set(info.get("follows_from", []))
         if follows & changed_labels:
@@ -127,8 +127,8 @@ def run_vcycle(asn_num, max_passes=5, min_cone_deps=4, dry_run=False):
         print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
         return "failed"
 
-    prop_dir = FORMALIZATION_DIR / asn_label
-    if not prop_dir.exists():
+    claim_dir = FORMALIZATION_DIR / asn_label
+    if not claim_dir.exists():
         print(f"  No formalization directory for {asn_label}", file=sys.stderr)
         return "failed"
 
@@ -201,7 +201,7 @@ def run_vcycle(asn_num, max_passes=5, min_cone_deps=4, dry_run=False):
             print(f"  [REGIONAL-REVIEW] → {len(regional_changed)} changed",
                   file=sys.stderr)
 
-            # 6-7. Local: re-check affected properties
+            # 6-7. Local: re-check affected claims
             affected = upward_changed | regional_changed
             if deps_data:
                 affected |= _downstream_labels(affected, deps_data)

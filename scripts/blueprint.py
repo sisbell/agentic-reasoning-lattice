@@ -32,13 +32,13 @@ def run_blueprint(asn_num):
         print(f"\n  [BLUEPRINT] FAILED at decompose", file=sys.stderr)
         return False
 
-    # Step 2: Enrich — 3 per-property LLM passes (type, deps, vocab)
+    # Step 2: Enrich — 3 per-claim LLM passes (type, deps, vocab)
     ok = enrich_asn(asn_num)
     if not ok:
         print(f"\n  [BLUEPRINT] FAILED at enrich", file=sys.stderr)
         return False
 
-    # Step 3: Disassemble — section YAMLs → per-property .yaml + .md pairs
+    # Step 3: Disassemble — section YAMLs → per-claim .yaml + .md pairs
     ok = disassemble_asn(asn_num)
     if not ok:
         print(f"\n  [BLUEPRINT] FAILED at disassemble", file=sys.stderr)

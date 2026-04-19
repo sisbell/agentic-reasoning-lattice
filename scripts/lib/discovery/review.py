@@ -141,7 +141,7 @@ def build_prompt(asn_content, vocabulary, out_of_scope="", hints="",
     open_issues = load_open_issues(asn_number) if asn_number else "(none)"
 
     scope_note = (f"\n\n## Scope\n\nThe following topics are OUT OF SCOPE for this ASN. "
-                  f"Do not flag missing coverage for them. If the ASN defines properties "
+                  f"Do not flag missing coverage for them. If the ASN defines claims "
                   f"for these topics, flag them as OUT_OF_SCOPE: {out_of_scope}"
                   if out_of_scope else "")
 

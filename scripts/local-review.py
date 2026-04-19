@@ -2,15 +2,15 @@
 """
 Local Review — verify proofs with incremental convergence.
 
-Reviews each property's proof against a 7-point checklist. On FOUND,
+Reviews each claim's proof against a 7-point checklist. On FOUND,
 revises and re-verifies in the next cycle. Dirty set tracks changed
-properties + their downstream dependents.
+claims + their downstream dependents.
 
 Usage:
     python scripts/local-review.py 40
     python scripts/local-review.py 40 --max-cycles 1     # single pass, no fixing
     python scripts/local-review.py 40 --mode full_sweep   # check all each cycle
-    python scripts/local-review.py 40 --label B0a         # single property
+    python scripts/local-review.py 40 --label B0a         # single claim
     python scripts/local-review.py 40 --dry-run           # verify only, no fixes
 """
 
@@ -28,7 +28,7 @@ from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, next_review_number
 from lib.shared.common import find_asn, parallel_llm_calls, step_commit_asn, build_label_index
 from lib.formalization.core.build_dependency_graph import generate_formalization_deps
 from lib.formalization.core.topological_sort import topological_sort_labels
-from lib.formalization.local_review.verify import review_property
+from lib.formalization.local_review.verify import review_claim
 from lib.formalization.local_review.revise import revise
 
 
@@ -38,7 +38,7 @@ def _hash_content(text):
 
 
 def _load_verified_hashes(cache_path):
-    """Load {label: hash} of properties that passed verification."""
+    """Load {label: hash} of claims that passed verification."""
     if not cache_path.exists():
         return {}
     try:
@@ -54,10 +54,10 @@ def _save_verified_hashes(cache_path, hashes):
 
 
 def _downstream_dependents(changed_labels, deps_data):
-    """Find properties that depend on any of the changed labels."""
+    """Find claims that depend on any of the changed labels."""
     dependents = set()
-    for label, prop_data in deps_data.get("properties", {}).items():
-        follows = set(prop_data.get("follows_from", []))
+    for label, claim_data in deps_data.get("claims", {}).items():
+        follows = set(claim_data.get("follows_from", []))
         if follows & changed_labels:
             dependents.add(label)
     return dependents
@@ -72,7 +72,7 @@ def run_local_review(asn_num, max_cycles=5, mode="incremental",
         max_cycles: Maximum convergence cycles
         mode: "incremental" (dirty set + dependents) or "full_sweep"
         dry_run: Verify only, don't fix
-        single_label: If set, only review this one property
+        single_label: If set, only review this one claim
 
     Returns:
         "converged" or "not_converged"
@@ -85,17 +85,17 @@ def run_local_review(asn_num, max_cycles=5, mode="incremental",
     print(f"\n  [LOCAL REVIEW] {asn_label}", file=sys.stderr)
 
     review_dir = FORMALIZATION_DIR / asn_label / "reviews"
-    prop_dir = FORMALIZATION_DIR / asn_label
-    if not prop_dir.exists():
+    claim_dir = FORMALIZATION_DIR / asn_label
+    if not claim_dir.exists():
         print(f"  No formalization directory for {asn_label}", file=sys.stderr)
         return "failed"
 
-    print(f"  Directory: {prop_dir.relative_to(WORKSPACE)}", file=sys.stderr)
+    print(f"  Directory: {claim_dir.relative_to(WORKSPACE)}", file=sys.stderr)
 
-    _label_index = build_label_index(prop_dir)
+    _label_index = build_label_index(claim_dir)
 
-    # Load verification cache — skip properties unchanged since last VERIFIED
-    cache_path = prop_dir / "_verify-cache.json"
+    # Load verification cache — skip claims unchanged since last VERIFIED
+    cache_path = claim_dir / "_verify-cache.json"
     verified_hashes = {} if force else _load_verified_hashes(cache_path)
 
     start_time = time.time()
@@ -111,16 +111,16 @@ def run_local_review(asn_num, max_cycles=5, mode="incremental",
             print(f"  No dependency data — cannot review", file=sys.stderr)
             return "failed"
 
-        # Read per-property files (normalized lookup handles T0(a) → T0a etc.)
-        from lib.shared.common import load_property_sections
-        sections = load_property_sections(prop_dir)
+        # Read per-claim files (normalized lookup handles T0(a) → T0a etc.)
+        from lib.shared.common import load_claim_sections
+        sections = load_claim_sections(claim_dir)
         ordered = topological_sort_labels(deps_data)
 
-        # Determine which properties to review
+        # Determine which claims to review
         if single_label:
             review_labels = [single_label]
         elif cycle == 1 or mode == "full_sweep":
-            # Skip properties unchanged since last verified run
+            # Skip claims unchanged since last verified run
             review_labels = []
             cached = 0
             for label in ordered:
@@ -132,13 +132,13 @@ def run_local_review(asn_num, max_cycles=5, mode="incremental",
                 else:
                     review_labels.append(label)
             if cached:
-                print(f"  [CACHE] {cached} properties unchanged — skipping",
+                print(f"  [CACHE] {cached} claims unchanged — skipping",
                       file=sys.stderr)
         else:
             # Incremental: only dirty set, in dependency order
             review_labels = [l for l in ordered if l in dirty_set]
 
-        label_desc = (f"{len(review_labels)} properties"
+        label_desc = (f"{len(review_labels)} claims"
                       + (f" (dirty set)" if cycle > 1 and mode == "incremental" else ""))
         print(f"\n  [CYCLE {cycle}/{max_cycles}] {label_desc}",
               file=sys.stderr)
@@ -152,12 +152,12 @@ def run_local_review(asn_num, max_cycles=5, mode="incremental",
             if stmt_path.exists():
                 foundation_cache[dep_asn] = stmt_path.read_text()
 
-        # Review all properties in parallel (verify is read-only)
+        # Review all claims in parallel (verify is read-only)
         cycle_findings = {}
         cycle_verified = set()
 
         def _verify_one(label):
-            result, finding_text = review_property(
+            result, finding_text = review_claim(
                 asn_num, label, deps_data, sections, foundation_cache)
             return label, (result, finding_text)
 
@@ -177,12 +177,12 @@ def run_local_review(asn_num, max_cycles=5, mode="incremental",
             all_verified.discard(label)
         all_findings.update(cycle_findings)
 
-        # Update verification cache — save hashes for verified properties
+        # Update verification cache — save hashes for verified claims
         for label in cycle_verified:
             content = sections.get(label, "")
             if content:
                 verified_hashes[label] = _hash_content(content)
-        # Invalidate cache for properties with findings
+        # Invalidate cache for claims with findings
         for label in cycle_findings:
             verified_hashes.pop(label, None)
         _save_verified_hashes(cache_path, verified_hashes)
@@ -207,7 +207,7 @@ def run_local_review(asn_num, max_cycles=5, mode="incremental",
         with open(review_path, "w") as rf:
             rf.write(f"# Local Review — {asn_label} (cycle {cycle})\n\n")
             rf.write(f"*{time.strftime('%Y-%m-%d %H:%M')}*\n\n")
-            rf.write(f"{len(review_labels)} properties")
+            rf.write(f"{len(review_labels)} claims")
             if cycle > 1 and mode == "incremental":
                 rf.write(f" ({', '.join(sorted(review_labels))})")
             rf.write(f"\n\n")
@@ -219,12 +219,12 @@ def run_local_review(asn_num, max_cycles=5, mode="incremental",
         if dry_run:
             break
 
-        # Revise each found property
+        # Revise each found claim
         changed = set()
         for label, finding_text in cycle_findings.items():
             stem = _label_index.get(label, label)
-            prop_path = prop_dir / f"{stem}.md"
-            ok = revise(asn_num, label, finding_text, prop_path=prop_path)
+            claim_path = claim_dir / f"{stem}.md"
+            ok = revise(asn_num, label, finding_text, claim_path=claim_path)
             if ok:
                 changed.add(label)
 
@@ -244,7 +244,7 @@ def run_local_review(asn_num, max_cycles=5, mode="incremental",
             verified_hashes.pop(label, None)
         _save_verified_hashes(cache_path, verified_hashes)
 
-        # Remove fixed properties from findings if they'll be re-checked
+        # Remove fixed claims from findings if they'll be re-checked
         for label in changed:
             all_findings.pop(label, None)
 
@@ -281,9 +281,9 @@ def main():
     parser.add_argument("--mode", choices=["incremental", "full_sweep"],
                         default="incremental",
                         help="Convergence mode (default: incremental)")
-    parser.add_argument("--label", help="Review a single property only")
+    parser.add_argument("--label", help="Review a single claim only")
     parser.add_argument("--force", action="store_true",
-                        help="Ignore cache, re-verify all properties")
+                        help="Ignore cache, re-verify all claims")
     parser.add_argument("--dry-run", action="store_true",
                         help="Verify only, don't fix")
     args = parser.parse_args()

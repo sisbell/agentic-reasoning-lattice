@@ -8,9 +8,9 @@ Verification at the whole is not the same as the original broad investigation. D
 
 ## Forces
 
-- **Narrowing creates seams.** Breaking a document into 29 properties creates 29 boundaries. Each boundary is a potential inconsistency — a definition used differently on either side, a dependency assumed but not declared, a notation that shifted meaning.
-- **Local correctness does not imply global correctness.** Each property's proof may be sound. Each contract may match its proof. But the properties together may be inconsistent — S8's proof uses D-CTG without declaring it, S5's narrative claims more than its proof establishes.
-- **The whole reveals what the parts hide.** Cross-property issues are invisible at property scope. They only become visible when you see multiple properties together — the shared definitions, the dependency chains, the implicit assumptions that cross boundaries.
+- **Narrowing creates seams.** Breaking a document into 29 claims creates 29 boundaries. Each boundary is a potential inconsistency — a definition used differently on either side, a dependency assumed but not declared, a notation that shifted meaning.
+- **Local correctness does not imply global correctness.** Each claim's proof may be sound. Each contract may match its proof. But the claims together may be inconsistent — S8's proof uses D-CTG without declaring it, S5's narrative claims more than its proof establishes.
+- **The whole reveals what the parts hide.** Cross-claim issues are invisible at claim scope. They only become visible when you see multiple claims together — the shared definitions, the dependency chains, the implicit assumptions that cross boundaries.
 - **Verification is cheaper than discovery.** The work is already hardened. You're not producing new content — you're checking consistency. The findings are specific: "S8 uses D-CTG but doesn't declare it" rather than "the arrangement model needs work."
 
 ## Structure
@@ -29,11 +29,11 @@ The verification uses the same [review/revise iteration](review-revise-iteration
 
 Verification findings fall into categories:
 
-- **Undeclared dependencies** — a property uses another without declaring the relationship
+- **Undeclared dependencies** — a claim uses another without declaring the relationship
 - **Contract mismatches** — a contract claims something the proof doesn't establish (or vice versa)
 - **Scope mismatches** — narrative claims exceed what the formal proof covers
-- **Shared definition drift** — the same term used with subtly different meanings across properties
-- **Missing bridging properties** — two properties that should connect but nothing formally links them
+- **Shared definition drift** — the same term used with subtly different meanings across claims
+- **Missing bridging claims** — two claims that should connect but nothing formally links them
 
 Each finding goes back through scope narrowing — fix it at the narrowest scope that can see the problem.
 
@@ -47,15 +47,15 @@ The synthesis agent reads all authority responses and assembles a reasoning docu
 
 ### In formalization
 
-Full-review reads the entire assembled ASN and checks that the hardened properties cohere. Each property was reviewed and revised at property scope. Full-review verifies at ASN scope.
+Full-review reads the entire assembled ASN and checks that the hardened claims cohere. Each claim was reviewed and revised at claim scope. Full-review verifies at ASN scope.
 
-**What it catches**: S8's proof uses D-CTG for contiguous range structure but never declares the dependency. At property scope, S8's proof looks fine — D-CTG is just something it references. At whole-ASN scope, the missing dependency is visible because the reviewer can see both S8 and D-CTG and notice the undeclared relationship.
+**What it catches**: S8's proof uses D-CTG for contiguous range structure but never declares the dependency. At claim scope, S8's proof looks fine — D-CTG is just something it references. At whole-ASN scope, the missing dependency is visible because the reviewer can see both S8 and D-CTG and notice the undeclared relationship.
 
 ### In regional review
 
-Regional review is verify-the-whole at cluster scope. The cluster's properties have been hardened individually. Regional review assembles them and checks coherence — but only within the cluster, not the full ASN.
+Regional review is verify-the-whole at cluster scope. The cluster's claims have been hardened individually. Regional review assembles them and checks coherence — but only within the cluster, not the full ASN.
 
-**What it catches**: S4's contract omits T3 as a precondition. At property scope, S4 looks fine. At S7's cone scope, the reviewer sees that S7 depends on S4 providing T3-based guarantees, but S4's contract doesn't promise them. The seam between S4 and S7 is only visible when both are in context.
+**What it catches**: S4's contract omits T3 as a precondition. At claim scope, S4 looks fine. At S7's cone scope, the reviewer sees that S7 depends on S4 providing T3-based guarantees, but S4's contract doesn't promise them. The seam between S4 and S7 is only visible when both are in context.
 
 ### In extract/absorb
 
@@ -72,7 +72,7 @@ When formalization of one ASN discovers something that affects another (a scope 
 Scope narrowing and verify the whole always appear together. Every narrowing step needs a corresponding verification at the original width:
 
 - Discovery narrows via scoped inquiry → synthesis verifies the whole consultation
-- Blueprinting narrows into properties → formalization narrows further, then full-review verifies the whole ASN
+- Blueprinting narrows into claims → formalization narrows further, then full-review verifies the whole ASN
 - Regional review narrows to a cluster → re-verifies the cluster's coherence
 - Extract/absorb narrows a shared concept into one definition → verify consuming documents still cohere
 
@@ -80,4 +80,4 @@ Narrowing without verification produces pieces that don't fit. Verification with
 
 ## Origin
 
-Verify the whole was present before scope narrowing was named. The full-review step existed from the first formalization runs — it was always clear that per-property review couldn't catch everything. The pattern was recognized when the same structure appeared at every scale: synthesis in discovery (verify the consultation), full-review in formalization (verify the ASN), regional review (verify the cluster). The same check, at different widths, for the same reason — narrowing creates seams, verification finds them.
+Verify the whole was present before scope narrowing was named. The full-review step existed from the first formalization runs — it was always clear that per-claim review couldn't catch everything. The pattern was recognized when the same structure appeared at every scale: synthesis in discovery (verify the consultation), full-review in formalization (verify the ASN), regional review (verify the cluster). The same check, at different widths, for the same reason — narrowing creates seams, verification finds them.

@@ -7,7 +7,7 @@ plus a standalone CLI for fixing unverified files.
 
 Usage:
     python scripts/lib/verification/dafny/align.py 34
-    python scripts/lib/verification/dafny/align.py 34 --property TA3
+    python scripts/lib/verification/dafny/align.py 34 --claim TA3
     python scripts/lib/verification/dafny/align.py 34 --dry-run
 """
 
@@ -129,15 +129,15 @@ def main():
         description="Fix unverified Dafny files with agentic baby-steps")
     parser.add_argument("asn",
                         help="ASN number (e.g., 1, 0001, ASN-0001)")
-    parser.add_argument("--property", "-p",
-                        help="Fix specific properties, comma-separated")
+    parser.add_argument("--claim", "-p",
+                        help="Fix specific claims, comma-separated")
     parser.add_argument("--model", "-m", default="opus",
                         choices=["opus", "sonnet"],
                         help="Model (default: opus)")
     parser.add_argument("--effort", default="max",
                         help="Thinking effort level")
     parser.add_argument("--max-turns", type=int, default=24,
-                        help="Max agent turns per property (default: 24)")
+                        help="Max agent turns per claim (default: 24)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Show what would be fixed without invoking Claude")
     args = parser.parse_args()
@@ -156,14 +156,14 @@ def main():
     print(f"[FIX] {asn_label} — {gen_dir.relative_to(WORKSPACE)}",
           file=sys.stderr)
 
-    # Load formal contracts from per-property files
-    prop_dir = FORMALIZATION_DIR / asn_label
+    # Load formal contracts from per-claim files
+    claim_dir = FORMALIZATION_DIR / asn_label
     contract_sections = {}
     label_map = {}
-    if prop_dir.exists():
-        _label_index = build_label_index(prop_dir)
+    if claim_dir.exists():
+        _label_index = build_label_index(claim_dir)
         _filename_to_label = {f"{stem}.md": lbl for lbl, stem in _label_index.items()}
-        for f in prop_dir.glob("*.md"):
+        for f in claim_dir.glob("*.md"):
             if f.name.startswith("_"):
                 continue
             label = _filename_to_label.get(f.name, f.stem)
@@ -180,9 +180,9 @@ def main():
               file=sys.stderr)
         sys.exit(1)
 
-    # Filter to specific properties if requested
-    if args.property:
-        targets = [t.strip() for t in args.property.split(",")]
+    # Filter to specific claims if requested
+    if args.claim:
+        targets = [t.strip() for t in args.claim.split(",")]
         matches = []
         for target in targets:
             found = [f for f in dfy_files
@@ -241,9 +241,9 @@ def main():
     for dfy_path, errors in failures:
         print(f"\n  [{dfy_path.stem}]...", file=sys.stderr, end="", flush=True)
 
-        # Find formal contract for this property
-        prop_label = label_map.get(dfy_path.stem, "")
-        formal_contract = contract_sections.get(prop_label, "")
+        # Find formal contract for this claim
+        claim_label = label_map.get(dfy_path.stem, "")
+        formal_contract = contract_sections.get(claim_label, "")
 
         _, elapsed, cost = align(
             dfy_path, errors, formal_contract=formal_contract,
@@ -262,7 +262,7 @@ def main():
             # Validate contract + align cycle if FLAG
             if formal_contract:
                 contract_result, reason, a_cost = align_validate_cycle(
-                    dfy_path, formal_contract, prop_label,
+                    dfy_path, formal_contract, claim_label,
                     model=args.model, effort=args.effort)
                 total_cost += a_cost
             else:
@@ -271,13 +271,13 @@ def main():
             if contract_result in ("CLEAN", ""):
                 fixed += 1
                 # Clean — remove stale review
-                review_path = review_dir / f"{prop_label}.md"
+                review_path = review_dir / f"{claim_label}.md"
                 if review_path.exists():
                     review_path.unlink()
             elif contract_result == "FLAG":
-                review_path = review_dir / f"{prop_label}.md"
+                review_path = review_dir / f"{claim_label}.md"
                 with open(review_path, "w") as rf:
-                    rf.write(f"# {prop_label} — Contract FLAG\n\n")
+                    rf.write(f"# {claim_label} — Contract FLAG\n\n")
                     rf.write(f"*{time.strftime('%Y-%m-%d %H:%M')}*\n\n")
                     rf.write(f"{reason}\n")
         elif status == "compile_failure":

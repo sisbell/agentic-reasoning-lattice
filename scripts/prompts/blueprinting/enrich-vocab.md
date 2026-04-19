@@ -1,4 +1,4 @@
-You are scanning a property for shared notation definitions. Extract any symbols, operations, or terminology that this property DEFINES (not just uses).
+You are scanning a claim for shared notation definitions. Extract any symbols, operations, or terminology that this claim DEFINES (not just uses).
 
 Output ONLY valid YAML. No commentary, no code fences, no explanation.
 
@@ -26,13 +26,13 @@ vocabulary:
     meaning: "<brief definition>"
 ```
 
-If this property defines no new notation:
+If this claim defines no new notation:
 
 ```yaml
 vocabulary: []
 ```
 
-## Property
+## Claim
 
 Label: {{label}}
 Name: {{name}}

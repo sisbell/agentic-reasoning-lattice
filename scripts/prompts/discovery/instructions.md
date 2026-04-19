@@ -13,7 +13,7 @@ Discovery and verification are ONE process:
 1. Start with a guarantee (what must be maintained?)
 2. Try to state it formally → discover you need types
 3. Try to define types → discover you need structure
-4. Try to verify → discover you need properties
+4. Try to verify → discover you need claims
 5. **When stuck, ask:** "What must be true for this to be provable?"
 6. Query the authorities for the answer
 7. Improve the specification immediately with what you learn
@@ -68,33 +68,33 @@ This order matters. If you consult Gregory first, implementation detail will sha
 
 **Important:** The scripts write results to `vault/0-consultations/.../sessions/` for traceability. Do NOT try to capture their stdout as the answer — read the file path they print, then use the Read tool on that path.
 
-**When to consult:** Nelson first on every topic — always. Gregory when you need implementation evidence or to check whether the implementation satisfies an abstract property. Never consult to confirm what you already know.
+**When to consult:** Nelson first on every topic — always. Gregory when you need implementation evidence or to check whether the implementation satisfies an abstract claim. Never consult to confirm what you already know.
 
-**How to ask:** One focused question per call. Each question targets ONE guarantee or ONE property. If you need to understand three aspects of INSERT, make three separate calls — not one call with three sub-questions. Compound questions get shallow answers; focused questions get deep ones.
+**How to ask:** One focused question per call. Each question targets ONE guarantee or ONE claim. If you need to understand three aspects of INSERT, make three separate calls — not one call with three sub-questions. Compound questions get shallow answers; focused questions get deep ones.
 
-Ask about **guarantees**, not **mechanisms**. "What must the addressing system guarantee about permanence?" not "How does the tumbler data structure work?" Gregory's answers should be evidence for or against abstract properties, not definitions of implementation structures.
+Ask about **guarantees**, not **mechanisms**. "What must the addressing system guarantee about permanence?" not "How does the tumbler data structure work?" Gregory's answers should be evidence for or against abstract claims, not definitions of implementation structures.
 
 ---
 
 ## Abstract Specification
 
-You are writing an **abstract** specification. The test for every property:
+You are writing an **abstract** specification. The test for every claim:
 
-> "Would an alternative implementation also need to satisfy this property?"
+> "Would an alternative implementation also need to satisfy this claim?"
 
-If yes — it's abstract, include it. If no — it's implementation-specific, note it as an observation but do not elevate it to a property.
+If yes — it's abstract, include it. If no — it's implementation-specific, note it as an observation but do not elevate it to a claim.
 
-**Good properties** (abstract):
+**Good claims** (abstract):
 - "Every allocated address is permanent — no operation removes an address from the space"
 - "INSERT at position p preserves content at all addresses ≠ p"
 - "Link discovery is symmetric — if A links to B, B can discover the link"
 
-**Bad properties** (implementation-specific):
+**Bad claims** (implementation-specific):
 - "The GranNode has a height field that equals 1 + max child height"
 - "NPLACES = 16 limits tumbler digits"
 - "findpreviousisagr returns the loaf-local maximum"
 
-Implementation observations are valuable evidence — they ground your abstract properties. But they belong in the analysis, not in the Properties Introduced table.
+Implementation observations are valuable evidence — they ground your abstract claims. But they belong in the analysis, not in the Claims Introduced table.
 
 ---
 
@@ -107,7 +107,7 @@ Start with `# ASN-NNNN: Title` followed by a date line: `*YYYY-MM-DD*`. Then wri
 - Develops the reasoning
 - States what follows (consequences)
 
-After the prose, add a **## Properties Introduced** section cataloging what this ASN established.
+After the prose, add a **## Claims Introduced** section cataloging what this ASN established.
 
 End with **## Open Questions** — what remains unclear. These may drive future ASNs. **One question per line. Each question is a single sentence, a single unknown.**
 
@@ -120,7 +120,7 @@ End with **## Open Questions** — what remains unclear. These may drive future 
 - "Under what conditions can content deletion violate address permanence?" — GOOD (abstract boundary)
 - "What does `whereoncrum` return for each of the five cases?" — BAD (implementation detail)
 
-If you find yourself wanting to ask how a specific function works, reframe: what abstract property is that function trying to satisfy? Ask about the property instead.
+If you find yourself wanting to ask how a specific function works, reframe: what abstract claim is that function trying to satisfy? Ask about the claim instead.
 
 **The reasoning is the point.** The formalism serves the argument. Let the structure follow the thought. If you stop narrating and start just producing proofs, the exploration dies.
 
@@ -174,16 +174,16 @@ You have full authority to:
 
 ---
 
-## After Writing: Properties Introduced
+## After Writing: Claims Introduced
 
-After you have finished writing the ASN (prose, formalism, open questions), go back and add a `## Properties Introduced` section between the main body and `## Open Questions`.
+After you have finished writing the ASN (prose, formalism, open questions), go back and add a `## Claims Introduced` section between the main body and `## Open Questions`.
 
 This is bookkeeping, not writing. You have just finished reasoning through the problem — now catalog what you established.
 
-For each named property, definition, or state component this ASN establishes, list:
+For each named claim, definition, or state component this ASN establishes, list:
 
 ```markdown
-## Properties Introduced
+## Claims Introduced
 
 | Label | Statement | Status |
 |-------|-----------|--------|
@@ -195,4 +195,4 @@ For each named property, definition, or state component this ASN establishes, li
 
 - **Label**: The name (P0, V2, Σ.links, T3, L1, etc.)
 - **Statement**: One-line formal or semi-formal statement
-- **Status**: `introduced` (all properties in an independent ASN are introduced — there is nothing to extend or supersede during initial exploration)
+- **Status**: `introduced` (all claims in an independent ASN are introduced — there is nothing to extend or supersede during initial exploration)

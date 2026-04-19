@@ -6,7 +6,7 @@ You are fixing a specific proof in an ASN reasoning document.
 
 The ASN is at `{{asn_path}}`. Read it, fix the issue, write it back.
 
-## Property
+## Claim
 
 **Label**: {{label}}
 
@@ -34,9 +34,9 @@ Headers must be exactly `**LABEL (PascalCaseName).**` — nothing else:
 Do not add annotations, brackets, or citations to the header. Context
 belongs in the body text after the header.
 
-### Property metadata
+### Claim metadata
 
-Each property has a `.yaml` metadata file alongside its `.md` content file:
+Each claim has a `.yaml` metadata file alongside its `.md` content file:
 
 ```yaml
 label: S7
@@ -61,7 +61,7 @@ The `*Formal Contract:*` marker is a fixed string. Do not modify it.
 
 1. Fix the proof to address the issue above.
 
-2. Ensure the property section ends with a `*Formal Contract:*` section.
+2. Ensure the claim section ends with a `*Formal Contract:*` section.
    If it is not already present, add it after the proof. If it exists
    but needs updating after the fix, update it. Only include applicable
    fields. Example:
@@ -81,20 +81,20 @@ The `*Formal Contract:*` marker is a fixed string. Do not modify it.
    - *Definition:* — the construction or computation rule (for definitions only)
 
    When writing the formal contract, preserve the exact conditions from the
-   property's narrative — do not simplify, expand, or add implicit type
+   claim's narrative — do not simplify, expand, or add implicit type
    constraints.
 
 3. If a fix adds new dependencies, add them to the `depends` list in
    `{{label}}.yaml`. Do not remove existing dependencies.
 
-4. If the proof needs a property that doesn't exist anywhere in the ASN
-   or its foundations, create both files for the new property:
+4. If the proof needs a claim that doesn't exist anywhere in the ASN
+   or its foundations, create both files for the new claim:
    - `{Label}.md` — derivation section with header, proof, and formal contract
    - `{Label}.yaml` — metadata with label, name, type, depends fields
    Use the label as the filename. Create them in the same directory as `{{asn_path}}`.
 
-5. Do not change anything beyond the specific property being fixed and
-   any new properties needed. Do not modify narrative prose.
+5. Do not change anything beyond the specific claim being fixed and
+   any new claims needed. Do not modify narrative prose.
 
 6. **YAML formatting.** When writing any `.yaml` file, ensure the YAML is
    valid. If a value contains colons, quotes, or spans multiple lines

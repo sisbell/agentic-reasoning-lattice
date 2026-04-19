@@ -2,21 +2,21 @@
 
 ## Pattern
 
-Per-property iterative refinement decomposes a system into independent units and converges each one separately. This works when properties are loosely coupled — fix one, move on. But some properties form tightly coupled constraint systems where each unit's correctness depends on precise alignment with its neighbors. Fixing one seam shifts another. The decomposition that enables convergence for most properties creates a bottleneck for the coupled ones.
+Per-claim iterative refinement decomposes a system into independent units and converges each one separately. This works when claims are loosely coupled — fix one, move on. But some claims form tightly coupled constraint systems where each unit's correctness depends on precise alignment with its neighbors. Fixing one seam shifts another. The decomposition that enables convergence for most claims creates a bottleneck for the coupled ones.
 
-A dependency cone is the specific shape this bottleneck takes: one property (the apex) depends on many others that are individually correct and stable. The apex keeps getting revised because no single fix can reconcile all its inputs at once.
+A dependency cone is the specific shape this bottleneck takes: one claim (the apex) depends on many others that are individually correct and stable. The apex keeps getting revised because no single fix can reconcile all its inputs at once.
 
 ## Structure
 
 ![Dependency cone](../diagrams/dependency-cone.svg)
 
-The dependencies form a DAG, not a cycle. The foundations converged early — they're simple, loosely coupled properties that per-property refinement handles well. The apex is a complex property that must reconcile all of them simultaneously. Each per-finding fix adjusts one seam with one neighbor, which shifts another seam, which the next review flags.
+The dependencies form a DAG, not a cycle. The foundations converged early — they're simple, loosely coupled claims that per-claim refinement handles well. The apex is a complex claim that must reconcile all of them simultaneously. Each per-finding fix adjusts one seam with one neighbor, which shifts another seam, which the next review flags.
 
-The cone boundary is the same-ASN cluster — the set of properties reviewed as a unit. Cross-ASN foundations sit outside the cone, loaded as labels only, providing context without being part of the focused review.
+The cone boundary is the same-ASN cluster — the set of claims reviewed as a unit. Cross-ASN foundations sit outside the cone, loaded as labels only, providing context without being part of the focused review.
 
 ## Cause
 
-The per-property constraint that drives convergence for loosely coupled properties prevents it for tightly coupled ones. When a property has N stable dependencies and its proof must reference all of them consistently — correct dependency lists, accurate contracts, precise cross-references — fixing one inconsistency at a time can't reach a global solution. The reviser sees one finding but never the full picture.
+The per-claim constraint that drives convergence for loosely coupled claims prevents it for tightly coupled ones. When a claim has N stable dependencies and its proof must reference all of them consistently — correct dependency lists, accurate contracts, precise cross-references — fixing one inconsistency at a time can't reach a global solution. The reviser sees one finding but never the full picture.
 
 This is analogous to iterative methods for solving systems of equations. Gauss-Seidel iteration (one variable at a time) converges when the system is diagonally dominant (loose coupling). For tightly coupled systems, direct solution (simultaneous treatment) is needed.
 
@@ -24,11 +24,11 @@ This is analogous to iterative methods for solving systems of equations. Gauss-S
 
 The pattern is detectable mechanically from revision history:
 
-1. One property has significantly more touches than its dependencies in recent review commits
+1. One claim has significantly more touches than its dependencies in recent review commits
 2. Its dependencies have low or zero touch counts in the same window
 3. The pattern persists across multiple review cycles
 
-The asymmetry — apex thrashing, dependencies stable — distinguishes a cone from general non-convergence where multiple properties are all changing.
+The asymmetry — apex thrashing, dependencies stable — distinguishes a cone from general non-convergence where multiple claims are all changing.
 
 ## Resolution
 
@@ -37,10 +37,10 @@ Narrow the scope to the coupled set and resolve it as a unit:
 1. Assemble the apex and its same-ASN dependencies as a single context
 2. Load only the cross-ASN foundation labels the cone references
 3. Review the cone as a constraint system — "are these jointly consistent" rather than "find any issue in the full ASN"
-4. Revise with all cone properties visible, enabling coordinated fixes
+4. Revise with all cone claims visible, enabling coordinated fixes
 5. Once the cone converges, resume full-ASN review to verify nothing broke
 
-The narrower context focuses the reviewer on the constraint system instead of scattering attention across unrelated properties. For ASN-0036, this reduced review context from ~90K to ~37K characters.
+The narrower context focuses the reviewer on the constraint system instead of scattering attention across unrelated claims. For ASN-0036, this reduced review context from ~90K to ~37K characters.
 
 ## Resolution stages
 
@@ -48,7 +48,7 @@ The narrower context focuses the reviewer on the constraint system instead of sc
 
 When a cone is resolved through focused review, the findings progress through distinct stages. Each stage only becomes visible after the previous one is resolved — you can't see mathematical precision issues until the citations are correct, and you can't see structural organization until the proofs are complete. The cone peels layers.
 
-**Stage 1: Citation accuracy.** Wrong foundation properties cited. Missing preconditions in contracts. Different names used for the same operation. These are surface issues — the proof is right but the references are wrong.
+**Stage 1: Citation accuracy.** Wrong foundation claims cited. Missing preconditions in contracts. Different names used for the same operation. These are surface issues — the proof is right but the references are wrong.
 
 *Observed: TumblerAdd→OrdinalShift, missing T3/GlobalUniqueness/S7c in contracts, shift/inc equivocation.*
 
@@ -60,27 +60,27 @@ When a cone is resolved through focused review, the findings progress through di
 
 *Observed: AX-1 expanded to cover content store, S5 rewritten from isolated-state to execution-trace model, S3 pre-state/post-state formula inconsistency.*
 
-**Stage 4: Mathematical precision.** Unstated assumptions about the domain. Properties that are derivable but asserted as axioms. Proofs that claim a specific scope when the argument is more general.
+**Stage 4: Mathematical precision.** Unstated assumptions about the domain. Claims that are derivable but asserted as axioms. Proofs that claim a specific scope when the argument is more general.
 
 *Observed: natural-number discreteness unstated, S8-vdepth promoted from design requirement to theorem, subspace-universal scope in VIP narrowed to "text-subspace."*
 
-**Stage 5: Structural organization.** Phantom dependencies. Redundant properties whose postconditions duplicate other properties. Mathematical insights about edge cases.
+**Stage 5: Structural organization.** Phantom dependencies. Redundant claims whose postconditions duplicate other claims. Mathematical insights about edge cases.
 
 *Observed: phantom dependencies (referenced but not stated), D-CTG postcondition duplicating D-CTG-depth, VIP empty-case insight (infinitely many mutually exclusive valid positions).*
 
 ## Structural reorganization
 
-Cones don't just review — they reorganize. When focused review reveals that a property is doing multiple jobs, the cone extracts the separate concerns into new properties. This is [extract/absorb](extract-absorb.md) happening inside a regional review.
+Cones don't just review — they reorganize. When focused review reveals that a claim is doing multiple jobs, the cone extracts the separate concerns into new claims. This is [extract/absorb](extract-absorb.md) happening inside a regional review.
 
 Observed during the D-CTG-depth cone on ASN-0036 (8 cycles):
 
-- **Cycle 2**: S8-depth was bundling an axiom and correspondence-run results under a single property. The cone extracted S8-crun (CorrespondenceRun) as its own property, created E₁(a) (ElementSubspaceProjection) as a missing formal definition, and updated S7c, S8, and ValidInsertionPosition to reference the new properties.
+- **Cycle 2**: S8-depth was bundling an axiom and correspondence-run results under a single claim. The cone extracted S8-crun (CorrespondenceRun) as its own claim, created E₁(a) (ElementSubspaceProjection) as a missing formal definition, and updated S7c, S8, and ValidInsertionPosition to reference the new claims.
 - **Cycle 3**: S8-depth, D-CTG, and S8-fin all used inductive proofs citing an initial state that had no formal definition. The cone created AX-1 (InitialEmptyState) and anchored all three base cases to it. Reclassified S8-depth from Axiom to Invariant because it now had a proof.
 - **Cycle 4**: The three invariant proofs assumed an implicit closed-world transition relation. The cone created AX-5 to formalize it.
 
-The cone touched 33 of 43 properties in the ASN — 77% — because extraction ripples through consumers. Each structural change updated downstream references, which triggered further findings in subsequent cycles. The edits were individually correct (extractions, missing definitions, citation updates) but the breadth of changes is why D-CTG-depth took 8 cycles to converge.
+The cone touched 33 of 43 claims in the ASN — 77% — because extraction ripples through consumers. Each structural change updated downstream references, which triggered further findings in subsequent cycles. The edits were individually correct (extractions, missing definitions, citation updates) but the breadth of changes is why D-CTG-depth took 8 cycles to converge.
 
-This reorganization pattern suggests cones operate at two levels: **review** (are these jointly consistent?) and **refactor** (should these be structured differently?). The refactoring emerges from the review — the cone sees that a property needs splitting because the review can't reconcile its multiple roles.
+This reorganization pattern suggests cones operate at two levels: **review** (are these jointly consistent?) and **refactor** (should these be structured differently?). The refactoring emerges from the review — the cone sees that a claim needs splitting because the review can't reconcile its multiple roles.
 
 ## Leads to
 
@@ -92,4 +92,4 @@ This reorganization pattern suggests cones operate at two levels: **review** (ar
 
 ## Origin
 
-Discovered during ASN-0036 formalization on the Xanadu project, reviews 60-65. S8 (FiniteCorrespondenceRunDecomposition) was touched in 4 of 6 consecutive full-review commits while its 7 dependencies were touched 0-1 times. The full-review had already converged the loosely coupled properties (S7, ValidInsertionPosition, S3) in earlier rounds — what remained was the tightly coupled S8 core.
+Discovered during ASN-0036 formalization on the Xanadu project, reviews 60-65. S8 (FiniteCorrespondenceRunDecomposition) was touched in 4 of 6 consecutive full-review commits while its 7 dependencies were touched 0-1 times. The full-review had already converged the loosely coupled claims (S7, ValidInsertionPosition, S3) in earlier rounds — what remained was the tightly coupled S8 core.

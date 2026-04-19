@@ -1,12 +1,12 @@
 """
-Local Review verify step — per-property 7-point checklist verification.
+Local Review verify step — per-claim 7-point checklist verification.
 
-Builds a minimal context (property section + dependency sections) and
+Builds a minimal context (claim section + dependency sections) and
 calls opus to verify the proof. Returns structured results for the
 convergence loop.
 
 Step function for the orchestrator (scripts/local-review.py):
-- review_property: verify one property's proof, return (status, finding_text)
+- review_claim: verify one claim's proof, return (status, finding_text)
 """
 
 import json
@@ -71,23 +71,23 @@ def _log_usage(step, elapsed, asn_num, label=""):
 
 def _build_proof_context(asn_num, label, deps_data, sections,
                          foundation_cache=None):
-    """Build verification context for a single property.
+    """Build verification context for a single claim.
 
-    Returns (property_section, dependency_text) where dependency_text
+    Returns (claim_section, dependency_text) where dependency_text
     contains all sections referenced by follows_from.
     """
-    prop_data = deps_data.get("properties", {}).get(label, {})
-    follows_from = prop_data.get("follows_from", [])
+    claim_data = deps_data.get("claims", {}).get(label, {})
+    follows_from = claim_data.get("follows_from", [])
 
-    property_section = sections.get(label, "")
-    if not property_section:
+    claim_section = sections.get(label, "")
+    if not claim_section:
         return "", ""
 
     # Collect dependency sections
     dep_parts = []
 
     # Internal dependencies (same ASN)
-    all_labels = set(deps_data.get("properties", {}).keys())
+    all_labels = set(deps_data.get("claims", {}).keys())
     for dep_label in follows_from:
         if dep_label in all_labels and dep_label in sections:
             dep_parts.append(f"### {dep_label}\n\n{sections[dep_label]}")
@@ -123,11 +123,11 @@ def _build_proof_context(asn_num, label, deps_data, sections,
                     break
 
     dependency_text = "\n\n".join(dep_parts) if dep_parts else "(none)"
-    return property_section, dependency_text
+    return claim_section, dependency_text
 
 
-def review_property(asn_num, label, deps_data, sections, foundation_cache=None):
-    """Verify one property's proof.
+def review_claim(asn_num, label, deps_data, sections, foundation_cache=None):
+    """Verify one claim's proof.
 
     Returns:
         ("verified", None) — proof passes all checks
@@ -136,10 +136,10 @@ def review_property(asn_num, label, deps_data, sections, foundation_cache=None):
     """
     asn_label = f"ASN-{asn_num:04d}"
 
-    property_section, dependency_text = _build_proof_context(
+    claim_section, dependency_text = _build_proof_context(
         asn_num, label, deps_data, sections, foundation_cache)
 
-    if not property_section:
+    if not claim_section:
         print(f"  [VERIFY] {label}: no section found — skipping",
               file=sys.stderr)
         return "error", None
@@ -147,7 +147,7 @@ def review_property(asn_num, label, deps_data, sections, foundation_cache=None):
     template = VERIFY_TEMPLATE.read_text()
     prompt = (template
               .replace("{{label}}", label)
-              .replace("{{property_section}}", property_section)
+              .replace("{{claim_section}}", claim_section)
               .replace("{{dependency_sections}}", dependency_text))
 
     print(f"  [VERIFY] {label} ({len(prompt) // 1024}KB)...",
