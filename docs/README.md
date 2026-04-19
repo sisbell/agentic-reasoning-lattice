@@ -18,7 +18,7 @@ Complete index of the documentation. The root [README](../README.md) is the proj
 
 ## Design notes
 
-- [Design notes](design-notes/README.md) — architectural choices and aggregate observations that aren't patterns. Verification V-Cycle, Domain Language Emergence, Self-Healing.
+- [Design notes](design-notes/README.md) — architectural choices and aggregate observations that aren't patterns. Review V-Cycle, Domain Language Emergence, Self-Healing.
 
 ## Deployment-specific
 

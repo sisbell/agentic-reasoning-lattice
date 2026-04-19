@@ -412,7 +412,7 @@ def generate_formalization_deps(asn_num):
     """Parse the formalization property table and generate dependency data.
 
     Table-only: reads _table.md status column for follows_from. No prose
-    scanning. For formalization and modeling pipelines.
+    scanning. For formalization and verification pipelines.
 
     Returns a dict suitable for YAML serialization, or None on failure.
     """

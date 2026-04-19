@@ -12,7 +12,7 @@ At some point, the narrative and the formal content must be separated. The forma
 
 A monolithic reasoning document becomes a set of per-property file pairs. Each property gets two files: a YAML file carrying metadata (label, name, type, dependencies, vocabulary) and a markdown file carrying the body (statement, justification, proof).
 
-The metadata makes the formal structure explicit: what this property is, what it depends on, what notation it introduces. The body preserves the interleaved narrative and formal content because formalization's reviewers need the narrative to understand the proof. Full separation comes later, at modeling, when only the formal contracts enter mechanical verification.
+The metadata makes the formal structure explicit: what this property is, what it depends on, what notation it introduces. The body preserves the interleaved narrative and formal content because formalization's reviewers need the narrative to understand the proof. Full separation comes later, at verification, when only the formal contracts enter mechanical checking.
 
 The metadata at blueprinting time is deliberately incomplete. Type classifications are best-effort, dependencies are extracted from prose but may be imprecise, vocabulary attribution has minor errors. Formalization tightens all of it. Blueprinting just needs to get the structure right enough that formalization can operate per-property.
 

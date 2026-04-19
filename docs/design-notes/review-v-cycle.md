@@ -1,4 +1,4 @@
-# Verification V-Cycle
+# Review V-Cycle
 
 *Design note. See [Formalization Guide](../guides/formalization.md) for the practical pipeline reference.*
 
@@ -6,7 +6,7 @@
 
 Iterative formal verification at a single scale stalls when properties are tightly coupled. Local review (one property at a time) converges fast on independent properties but can't resolve cross-property consistency. Global review (full system scan) can find cross-property issues but wastes attention on noise and converges slowly. Neither scale alone is efficient across the full range of verification problems.
 
-The Verification V-Cycle addresses this by cycling through three scales of review, each handling the error class it's efficient at. The architecture is inspired by multigrid methods in numerical analysis (Brandt 1977), where multi-scale cycling converges faster than single-scale iteration by matching the solver to the error structure.
+The Review V-Cycle addresses this by cycling through three scales of review, each handling the error class it's efficient at. The architecture is inspired by multigrid methods in numerical analysis (Brandt 1977), where multi-scale cycling converges faster than single-scale iteration by matching the solver to the error structure.
 
 ## Scales
 
@@ -18,7 +18,7 @@ The Verification V-Cycle addresses this by cycling through three scales of revie
 
 ## Cycle Structure
 
-![Verification V-Cycle](../diagrams/verification-v-cycle.svg)
+![Review V-Cycle](../diagrams/review-v-cycle.svg)
 
 Each pass follows an upward-then-downward path:
 
@@ -66,11 +66,11 @@ These are not efficiency arguments. They describe what each scale is architectur
 
 ## Relationship to Multigrid Methods
 
-The Verification V-Cycle adapts the multigrid V-cycle from numerical analysis. In multigrid, iterative relaxation on a fine grid eliminates high-frequency errors quickly but stalls on low-frequency (smooth) errors. Projecting the residual to a coarser grid makes the smooth error oscillatory and therefore easy to fix. Cycling between grid levels converges in O(N) operations — optimal.
+The Review V-Cycle adapts the multigrid V-cycle from numerical analysis. In multigrid, iterative relaxation on a fine grid eliminates high-frequency errors quickly but stalls on low-frequency (smooth) errors. Projecting the residual to a coarser grid makes the smooth error oscillatory and therefore easy to fix. Cycling between grid levels converges in O(N) operations — optimal.
 
 The analogy:
 
-| Multigrid | Verification V-Cycle |
+| Multigrid | Review V-Cycle |
 |-----------|------|
 | Fine grid relaxation | Property scale (local-review, contract-review) |
 | Medium grid | Regional review (regional-sweep) |
@@ -102,4 +102,4 @@ The cycle includes a mechanical detection mechanism for regional-scale problems.
 
 ## Origin
 
-Developed during formalization of ASN-0036 on the Xanadu project (Strand Model, 31 properties). The flat review cycle (proof → contract → cross, repeat) ran 65+ reviews without converging on tightly coupled properties around S8 (FiniteCorrespondenceRunDecomposition). Analysis of git revision history revealed the [dependency cone](../patterns/dependency-cone.md) pattern. The cone mechanism reduced review context by 58% and produced higher-quality findings. Generalizing from reactive cone detection to proactive multi-scale cycling produced the Verification V-Cycle architecture.
+Developed during formalization of ASN-0036 on the Xanadu project (Strand Model, 31 properties). The flat review cycle (proof → contract → cross, repeat) ran 65+ reviews without converging on tightly coupled properties around S8 (FiniteCorrespondenceRunDecomposition). Analysis of git revision history revealed the [dependency cone](../patterns/dependency-cone.md) pattern. The cone mechanism reduced review context by 58% and produced higher-quality findings. Generalizing from reactive cone detection to proactive multi-scale cycling produced the Review V-Cycle architecture.

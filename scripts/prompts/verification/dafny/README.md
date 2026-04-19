@@ -1,11 +1,11 @@
-# Dafny Modeling Pipeline
+# Dafny Verification Pipeline
 
 ## Steps
 
 ### Step 1: Translate (`scripts/dafny.py`)
 
 **Prompt:** `translate-property.md` + `dafny-reference.dfy`
-**Script:** `scripts/lib/modeling/dafny/translate.py`
+**Script:** `scripts/lib/verification/dafny/translate.py`
 **Function:** `translate_one()`
 
 Per-property translation. Agent converts a formal contract into verified
@@ -15,7 +15,7 @@ modules from vault/5-proofs/ as imports.
 The agent writes the .dfy file, runs `dafny verify`, and self-corrects
 incrementally until the solver accepts the proof.
 
-### Step 2: Verify (`scripts/lib/modeling/dafny/verify.py`)
+### Step 2: Verify (`scripts/lib/verification/dafny/verify.py`)
 
 **Function:** `verify(path)`
 
@@ -24,7 +24,7 @@ Three-way mechanical check:
 - **proof_failure** — compiles but solver rejects proof
 - **compile_failure** — doesn't compile after 24 turns (generation failure)
 
-### Step 3: Validate (`scripts/lib/modeling/dafny/validate.py`)
+### Step 3: Validate (`scripts/lib/verification/dafny/validate.py`)
 
 **Prompt:** `validate-contract.md`
 **Function:** `validate(dafny_source, formal_contract, label)`
@@ -33,9 +33,9 @@ Compare Dafny requires/ensures against formal contract fields.
 Output: CLEAN or FLAG with detailed mismatch description.
 Only runs on verified code.
 
-Batch mode: `validate_batch(asn_num, modeling_dir)`
+Batch mode: `validate_batch(asn_num, verification_dir)`
 
-### Step 4: Align → Validate cycle (`scripts/lib/modeling/dafny/align.py`)
+### Step 4: Align → Validate cycle (`scripts/lib/verification/dafny/align.py`)
 
 **Prompt:** `align-with-contract.md`
 **Function:** `align_validate_cycle(dfy_path, formal_contract, label)`
@@ -68,8 +68,8 @@ Also provides standalone fix entry point via `align.py main()` for
 | File | Purpose |
 |------|---------|
 | `scripts/dafny.py` | Top-level wrapper → translate.py |
-| `scripts/lib/modeling/dafny/translate.py` | Generation loop + orchestration |
-| `scripts/lib/modeling/dafny/verify.py` | Mechanical dafny verify (three-way) |
-| `scripts/lib/modeling/dafny/validate.py` | Contract validation (CLEAN/FLAG) |
-| `scripts/lib/modeling/dafny/align.py` | Contract alignment + fix cycle |
-| `scripts/lib/modeling/dafny/common.py` | Shared utilities |
+| `scripts/lib/verification/dafny/translate.py` | Generation loop + orchestration |
+| `scripts/lib/verification/dafny/verify.py` | Mechanical dafny verify (three-way) |
+| `scripts/lib/verification/dafny/validate.py` | Contract validation (CLEAN/FLAG) |
+| `scripts/lib/verification/dafny/align.py` | Contract alignment + fix cycle |
+| `scripts/lib/verification/dafny/common.py` | Shared utilities |

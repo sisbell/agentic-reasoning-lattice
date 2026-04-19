@@ -19,7 +19,7 @@ automated pipelines.
    ```
 
 3. **Understand what changed:**
-   - New proof module promoted from modeling?
+   - New proof module promoted from verification?
    - Existing foundation updated (new lemma, refactored helper)?
    - Bridge lemma added for downstream use?
 

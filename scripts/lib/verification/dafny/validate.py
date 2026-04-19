@@ -6,11 +6,11 @@ Compares each generated .dfy file against its formal contract from
 per-property files in vault/3-formalization/. Flags mismatches for
 author review.
 
-Output: per-property review files in vault/3-modeling/dafny/ASN-NNNN/reviews/
+Output: per-property review files in vault/3-verification/dafny/ASN-NNNN/reviews/
 
 Usage:
-    python scripts/lib/modeling/dafny/validate.py 34
-    python scripts/lib/modeling/dafny/validate.py 34 --dry-run
+    python scripts/lib/verification/dafny/validate.py 34
+    python scripts/lib/verification/dafny/validate.py 34 --dry-run
 """
 
 import argparse
@@ -26,7 +26,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import (WORKSPACE, FORMALIZATION_DIR, DAFNY_DIR, USAGE_LOG)
 from lib.shared.common import find_asn, build_label_index
 
-PROMPT_TEMPLATE = WORKSPACE / "scripts" / "prompts" / "modeling" / "dafny" / "validate-contract.md"
+PROMPT_TEMPLATE = WORKSPACE / "scripts" / "prompts" / "verification" / "dafny" / "validate-contract.md"
 
 
 def validate(dafny_source, formal_contract, label):

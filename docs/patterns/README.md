@@ -41,7 +41,7 @@ Patterns of convergence — when iteration stops, relative to the downstream ver
 
 Convergence is always relative to what consumes the output next. Different verifiers imply different stopping criteria; the underlying iterative machinery is the same. Candidates observed in this system, with pattern documentation status noted:
 
-- **Ground State** — V-cycle convergence across all scales (property, cluster, system review all agree). Defined in [glossary](../glossary.md#g); discussed in [Verification V-Cycle](../design-notes/verification-v-cycle.md). Not yet a standalone pattern doc.
+- **Ground State** — V-cycle convergence across all scales (property, cluster, system review all agree). Defined in [glossary](../glossary.md#g); discussed in [Review V-Cycle](../design-notes/review-v-cycle.md). Not yet a standalone pattern doc.
 - **Saturation** — probe-archive convergence: new questions become answerable from the existing archive rather than requiring new probes (Gregory's 80-test finding). Discussed in [Self-Healing](../design-notes/self-healing.md). Not yet a standalone pattern doc.
 - **Hypothesis articulation** — science-deployment convergence: claim stated precisely enough that another lab could reproduce the test. Not yet documented; conjectured from the reproducibility / falsifiability framing.
 

@@ -36,7 +36,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Citation, inline.** A reference in the proof narrative like "by NAT-wellorder." Part of proof content, not metadata.
 
-**Cluster scale.** [Verification V-Cycle](design-notes/verification-v-cycle.md) scope between property and system — reviewing a dependency cone as a unit.
+**Cluster scale.** [Review V-Cycle](design-notes/review-v-cycle.md) scope between property and system — reviewing a dependency cone as a unit.
 
 **Cone, dependency.** A cluster of tightly coupled properties where an apex keeps being revised while dependencies are stable. See [Dependency Cone pattern](patterns/dependency-cone.md).
 
@@ -70,7 +70,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 - **Internal driver** — active work inside the same ASN produces drift within that ASN. Continuous.
 - **Passive driver** — work in an upstream ASN produces drift in downstream consumers. Event-driven.
 
-**Downward pass.** Second phase of the [V-cycle](design-notes/verification-v-cycle.md) — re-verifying at narrower scales after wider-scale corrections.
+**Downward pass.** Second phase of the [V-cycle](design-notes/review-v-cycle.md) — re-verifying at narrower scales after wider-scale corrections.
 
 **Domain language emergence.** The process by which the system coins new prose words for concepts it will reason with, as two-channel synthesis and subsequent review cycles produce claims existing vocabulary can't express. See [Domain Language Emergence](design-notes/domain-language-emergence.md).
 
@@ -100,7 +100,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Genesis Attractor.** See Attractor, Genesis.
 
-**Ground state.** The state of genuine convergence across all scales — property, cluster, and system review all agree there are no remaining issues. Distinguished from "stopped" (no finding in one scale but others can still expose issues). See [V-cycle self-evaluation](design-notes/verification-v-cycle.md#the-v-cycle-as-self-evaluation).
+**Ground state.** The state of genuine convergence across all scales — property, cluster, and system review all agree there are no remaining issues. Distinguished from "stopped" (no finding in one scale but others can still expose issues). See [V-cycle self-evaluation](design-notes/review-v-cycle.md#the-v-cycle-as-self-evaluation).
 
 ## H
 
@@ -160,7 +160,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Property lattice.** The fine granularity of the [reasoning lattice](patterns/reasoning-lattice.md) — individual properties as nodes, per-property dependencies as edges.
 
-**Property scale.** [Verification V-Cycle](design-notes/verification-v-cycle.md) scope of one property with its dependencies as fixed context.
+**Property scale.** [Review V-Cycle](design-notes/review-v-cycle.md) scope of one property with its dependencies as fixed context.
 
 ## R
 
@@ -182,7 +182,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 ## S
 
-**Scale.** Scope of a review cycle. Three canonical scales: property, cluster, system. See [Verification V-Cycle](design-notes/verification-v-cycle.md).
+**Scale.** Scope of a review cycle. Three canonical scales: property, cluster, system. See [Review V-Cycle](design-notes/review-v-cycle.md).
 
 **Scientific method.** Lineage of the primary pattern — narrow scope, refine through iteration, verify coherence. Every process in the system follows this rhythm.
 
@@ -206,7 +206,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Synthesis coinage.** [Prose coinage](patterns/prose-coinage.md) that occurs at the synthesis step when two-channel outputs are reconciled. Roughly 70% of an ASN's coinages happen here, because synthesis is where incompatible vocabularies must be merged into a single reasoning document and no existing word may fit precisely. Contrasts with [review coinage](#r) which happens during later review/revise cycles.
 
-**System scale.** [Verification V-Cycle](design-notes/verification-v-cycle.md) scope of the whole ASN with full foundation context.
+**System scale.** [Review V-Cycle](design-notes/review-v-cycle.md) scope of the whole ASN with full foundation context.
 
 ## T
 
@@ -224,11 +224,11 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Under-citation.** A proof uses a property that its Depends list doesn't include. The most common form of [Citation Drift](equilibrium/citation-drift.md).
 
-**Upward pass.** First phase of the [V-cycle](design-notes/verification-v-cycle.md) — local review → contract review → regional sweep → full-review, building confidence from narrow to wide scope.
+**Upward pass.** First phase of the [V-cycle](design-notes/review-v-cycle.md) — local review → contract review → regional sweep → full-review, building confidence from narrow to wide scope.
 
 ## V
 
-**V-cycle (Verification V-Cycle).** Multi-scale review architecture composing property, cluster, and system scales into upward and downward passes. Inspired by multigrid methods in numerical analysis. See [Verification V-Cycle](design-notes/verification-v-cycle.md).
+**V-cycle (Review V-Cycle).** Multi-scale review architecture composing property, cluster, and system scales into upward and downward passes. Inspired by multigrid methods in numerical analysis. See [Review V-Cycle](design-notes/review-v-cycle.md).
 
 **Verify the whole.** Stepping back to original scope after narrowing, to check that the refined pieces cohere. See [Verify the Whole pattern](patterns/verify-the-whole.md).
 

@@ -1,4 +1,4 @@
-"""Shared utilities for Alloy modeling pipeline."""
+"""Shared utilities for Alloy verification pipeline."""
 
 import json
 import os

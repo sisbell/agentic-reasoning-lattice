@@ -32,12 +32,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, ALLOY_DIR
 from lib.shared.common import find_asn, parallel_llm_calls, build_label_index
-from lib.modeling.alloy.translate import (
+from lib.verification.alloy.translate import (
     build_property_prompt, generate_one,
     PROMPTS_DIR, SYNTAX_REF,
 )
-from lib.modeling.alloy.align import align_validate_cycle
-from lib.modeling.alloy.common import (
+from lib.verification.alloy.align import align_validate_cycle
+from lib.verification.alloy.common import (
     read_file, invoke_claude, log_usage, step_commit,
     cleanup_property_artifacts, make_result, print_summary,
 )

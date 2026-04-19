@@ -24,10 +24,9 @@ BLUEPRINTS_DIR = VAULT / "2-blueprints"
 # Stage 3: Formalization (per-property working copies)
 FORMALIZATION_DIR = VAULT / "3-formalization"
 
-# Stage 3: Modeling
-ALLOY_DIR = VAULT / "3-modeling" / "alloy"
-DAFNY_DIR = VAULT / "3-modeling" / "dafny"
-VERIFICATION_DIR = VAULT / "3-modeling" / "verification"
+# Stage 3: Verification
+ALLOY_DIR = VAULT / "3-verification" / "alloy"
+DAFNY_DIR = VAULT / "3-verification" / "dafny"
 
 
 # Stage 4: Proofs staging (Level 2 builds, pre-curation)

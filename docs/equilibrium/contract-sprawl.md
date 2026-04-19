@@ -38,4 +38,4 @@ With the split, new facts about the concept are added as new properties, not as 
 
 - [Accretion](../patterns/accretion.md) — the pattern that prevents Contract Sprawl. Properties grow by adding new properties, not by mutating existing ones.
 - [Dependency cone](../patterns/dependency-cone.md) — can mask Contract Sprawl. A non-converging cone may look like coupling when the real cause is an apex sprawling each cycle.
-- [Verification V-Cycle](../design-notes/verification-v-cycle.md) — clean full-review followed by cones finding issues often traces back to a Genesis Attractor.
+- [Review V-Cycle](../design-notes/review-v-cycle.md) — clean full-review followed by cones finding issues often traces back to a Genesis Attractor.

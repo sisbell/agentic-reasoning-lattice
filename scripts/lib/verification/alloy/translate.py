@@ -17,11 +17,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import WORKSPACE, formal_stmts
 from lib.shared.common import find_asn
-from lib.modeling.alloy.check import check, classify_alloy_error, parse_alloy_results
-from lib.modeling.alloy.common import (read_file, invoke_claude, log_usage,
+from lib.verification.alloy.check import check, classify_alloy_error, parse_alloy_results
+from lib.verification.alloy.common import (read_file, invoke_claude, log_usage,
     ALLOY_JAR_DEFAULT)
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "modeling" / "alloy"
+PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "verification" / "alloy"
 PROPERTY_TEMPLATE = PROMPTS_DIR / "translate-property.md"
 SYNTAX_REF = PROMPTS_DIR / "syntax-reference.md"
 
@@ -101,7 +101,7 @@ def build_property_prompt(definitions, prop, syntax_ref="", dep_context=""):
     template = read_file(PROPERTY_TEMPLATE)
     if not template:
         print("  Prompt template not found at "
-              "scripts/prompts/modeling/alloy/translate-property.md",
+              "scripts/prompts/verification/alloy/translate-property.md",
               file=sys.stderr)
         sys.exit(1)
 

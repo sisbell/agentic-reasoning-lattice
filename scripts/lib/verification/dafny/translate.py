@@ -19,9 +19,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import (WORKSPACE, FORMALIZATION_DIR, PROOFS_DIR, USAGE_LOG,
                     load_manifest)
 from lib.shared.common import find_asn, assemble_readonly, build_label_index, load_property_metadata
-from lib.modeling.dafny.common import read_file
+from lib.verification.dafny.common import read_file
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "modeling" / "dafny"
+PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "verification" / "dafny"
 TEMPLATE = PROMPTS_DIR / "translate-property.md"
 DAFNY_REFERENCE = PROMPTS_DIR / "dafny-reference.dfy"
 

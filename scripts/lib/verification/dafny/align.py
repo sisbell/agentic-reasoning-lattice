@@ -6,9 +6,9 @@ Provides the align-with-contract agent call and the align-validate cycle,
 plus a standalone CLI for fixing unverified files.
 
 Usage:
-    python scripts/lib/modeling/dafny/align.py 34
-    python scripts/lib/modeling/dafny/align.py 34 --property TA3
-    python scripts/lib/modeling/dafny/align.py 34 --dry-run
+    python scripts/lib/verification/dafny/align.py 34
+    python scripts/lib/verification/dafny/align.py 34 --property TA3
+    python scripts/lib/verification/dafny/align.py 34 --dry-run
 """
 
 import argparse
@@ -24,11 +24,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, DAFNY_DIR
 from lib.shared.common import build_label_index
-from lib.modeling.dafny.common import read_file, log_usage
-from lib.modeling.dafny.verify import verify
-from lib.modeling.dafny.validate import validate
+from lib.verification.dafny.common import read_file, log_usage
+from lib.verification.dafny.verify import verify
+from lib.verification.dafny.validate import validate
 
-ALIGN_TEMPLATE = WORKSPACE / "scripts" / "prompts" / "modeling" / "dafny" / "align-with-contract.md"
+ALIGN_TEMPLATE = WORKSPACE / "scripts" / "prompts" / "verification" / "dafny" / "align-with-contract.md"
 
 
 def align(dfy_path, errors, formal_contract, model="opus",

@@ -48,4 +48,4 @@ Observed on the Xanadu demonstration. Examples of each layer:
 - [Prose Coinage](../patterns/prose-coinage.md) — the atomic event; contains the 70/30 finding and the `subspace` case study
 - [Prose Compression](../patterns/prose-compression.md) — what happens to coined prose names when formal manipulation demands symbols
 - [Channel Asymmetry](../patterns/channel-asymmetry.md) — pattern; why shape-mismatch between channels forces coinage
-- [Verification V-Cycle](verification-v-cycle.md) — the review/revise cycles that drive each narrowing stage
+- [Review V-Cycle](review-v-cycle.md) — the review/revise cycles that drive each narrowing stage

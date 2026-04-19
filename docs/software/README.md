@@ -83,5 +83,5 @@ The machinery (two-channel discovery, blueprinting, formalization, V-cycle, cone
 - [Two Data Authorities](../patterns/two-data-authorities.md) — parent pattern
 - [Legacy Software Discovery](../patterns/two-data-authorities-legacy-software.md) — grounded pattern with empirical findings
 - [Channel Asymmetry](../patterns/channel-asymmetry.md) — why shape-mismatch between channels forces coinage
-- [Verification V-Cycle](../design-notes/verification-v-cycle.md) — multi-scale review architecture
+- [Review V-Cycle](../design-notes/review-v-cycle.md) — multi-scale review architecture
 - [Science Approach](../science/README.md) — parallel framing for scientific deployments

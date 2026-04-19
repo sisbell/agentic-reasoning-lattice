@@ -11,7 +11,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import WORKSPACE
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "modeling" / "alloy"
+PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "verification" / "alloy"
 CONTRACT_REVIEW_TEMPLATE = PROMPTS_DIR / "validate-contract.md"
 
 

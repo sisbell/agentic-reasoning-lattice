@@ -76,5 +76,5 @@ The underlying machinery (two-channel discovery, blueprinting, formalization, V-
 - [Channel Asymmetry](../patterns/channel-asymmetry.md) — pattern; why shape-mismatch between channels forces coinage
 - [Channel Asymmetry in New-Science Domains](channel-asymmetry-new-science.md) — how channel asymmetry applies in scientific deployments (modality / numerical-observation axis)
 - [Two Data Authorities](../patterns/two-data-authorities.md) — parent pattern
-- [Verification V-Cycle](../design-notes/verification-v-cycle.md) — multi-scale review architecture
+- [Review V-Cycle](../design-notes/review-v-cycle.md) — multi-scale review architecture
 - [Dependency Cone](../patterns/dependency-cone.md) — tight-coupling signal; relevant for non-converging hypothesis clusters

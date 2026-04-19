@@ -20,7 +20,7 @@ Blueprinting is the meet operation on the lattice: a document-level node becomes
 
 This decomposition is what makes the V-cycle possible. Properties can be reviewed independently at narrow scope, grouped into clusters at regional scope, and reassembled at document scope. Without blueprinting, the V-cycle has nothing to traverse.
 
-## [The V-Cycle](design-notes/verification-v-cycle.md)
+## [The V-Cycle](design-notes/review-v-cycle.md)
 
 The V-cycle is the core of the methodology. It traverses the lattice at three scales, each handling the error class it is efficient at. The architecture is inspired by multigrid methods in numerical analysis (Brandt 1977): multi-scale cycling converges faster than single-scale iteration by matching the solver to the error structure.
 
@@ -45,9 +45,9 @@ Each scale converges before passing to the next — an adiabatic protocol. The V
 
 **Mechanical verification** (Dafny proofs, Alloy bounded model checking) is a validation layer within the V-cycle. It confirms that converged contracts are logically consistent and faithfully encoded. But the V-cycle catches what mechanical verification cannot — a theorem (GlobalUniqueness) passed Dafny, Alloy, and 30+ single-scale review cycles. Multi-scale review found a counterexample in 8 cycles. The V-cycle discovers; mechanical verification validates.
 
-See the [V-cycle design note](design-notes/verification-v-cycle.md) for the theoretical grounding and multigrid analogy.
+See the [V-cycle design note](design-notes/review-v-cycle.md) for the theoretical grounding and multigrid analogy.
 
-![Verification V-Cycle](diagrams/verification-v-cycle.svg)
+![Review V-Cycle](diagrams/review-v-cycle.svg)
 
 ## The Oracle
 

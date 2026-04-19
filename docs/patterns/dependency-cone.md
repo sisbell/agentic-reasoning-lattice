@@ -86,7 +86,7 @@ This reorganization pattern suggests cones operate at two levels: **review** (ar
 
 [Scope narrowing](scope-narrowing.md) — the cone is resolved by narrowing to the cluster and applying [review/revise iteration](review-revise-iteration.md) with focused context. The stages above are what the review/revise cycle finds at each layer.
 
-[Verification V-Cycle](../design-notes/verification-v-cycle.md) — the multi-scale architecture that emerged from the cone problem. Property, cluster, and system scales composed into an upward-downward pass, each handling the error class it is efficient at.
+[Review V-Cycle](../design-notes/review-v-cycle.md) — the multi-scale architecture that emerged from the cone problem. Property, cluster, and system scales composed into an upward-downward pass, each handling the error class it is efficient at.
 
 [Contract Sprawl](../equilibrium/contract-sprawl.md) — cones can mask Contract Sprawl. A cone that fails to converge may look like coupling complexity when the real cause is the apex sprawling each cycle.
 

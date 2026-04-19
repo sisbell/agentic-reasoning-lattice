@@ -12,7 +12,7 @@ from .common import invoke_claude, read_file, ALLOY_JAR_DEFAULT
 from .check import check, classify_alloy_error
 from .validate import validate
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "modeling" / "alloy"
+PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "verification" / "alloy"
 ALIGN_TEMPLATE = PROMPTS_DIR / "align-with-contract.md"
 
 

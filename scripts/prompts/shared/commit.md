@@ -32,7 +32,7 @@ Commit changes to the vault with meaningful, descriptive commit messages.
    - `review` — review saved to vault/2-review/
    - `revise` — ASN revised to address review findings
    - `alloy` — Alloy model and check results
-   - `dafny` — Dafny modeling added or updated
+   - `dafny` — Dafny verification added or updated
    - `fix` — corrected an error (wrong property, invalid proof)
 
    Examples:

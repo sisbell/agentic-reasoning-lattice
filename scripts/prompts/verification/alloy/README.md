@@ -1,11 +1,11 @@
-# Alloy Modeling Pipeline
+# Alloy Verification Pipeline
 
 ## Steps
 
 ### Step 1: Translate (`scripts/model.py alloy`)
 
 **Prompt:** `translate-property.md` + `syntax-reference.md` + `reference.als`
-**Script:** `scripts/lib/modeling/alloy.py` → `generate_one()`
+**Script:** `scripts/lib/verification/alloy.py` → `generate_one()`
 
 Per-property translation. Agent converts a formal contract into an
 Alloy model with sigs, predicates, assertions, and check commands.
@@ -18,7 +18,7 @@ Run Alloy bounded model checker. Three outcomes:
 - **SAT** on check commands — counterexample found
 - **Syntax error** — shouldn't happen after translate self-correction
 
-### Step 3: Validate (`scripts/lib/modeling/alloy.py` → `contract_review_one()`)
+### Step 3: Validate (`scripts/lib/verification/alloy.py` → `contract_review_one()`)
 
 **Prompt:** `validate-contract.md`
 
@@ -27,7 +27,7 @@ Output: CLEAN or FLAG with detailed mismatch description.
 A missing assertion means the counterexample search won't cover
 that postcondition.
 
-### Step 4: Align → Validate cycle (`scripts/lib/modeling/alloy.py` → `align_validate_cycle()`)
+### Step 4: Align → Validate cycle (`scripts/lib/verification/alloy.py` → `align_validate_cycle()`)
 
 **Prompt:** `align-with-contract.md`
 

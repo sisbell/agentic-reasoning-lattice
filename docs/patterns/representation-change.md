@@ -28,7 +28,7 @@ formal contracts with preconditions/postconditions (formalization output)
   │
   representation change: translate
   │
-Dafny/Alloy code (modeling output)
+Dafny/Alloy code (verification output)
 ```
 
 Each arrow is a representation change. The content at the top and bottom is the same claim. The form makes it progressively more precise and more mechanically checkable.
@@ -51,7 +51,7 @@ Together they produce what formalization needs: small, structured, independently
 
 Narrative prose → per-property YAML/MD pairs. The largest representation gap in the pipeline. Handled by progressive decomposition: mechanical section split → per-section property identification → per-property classification and enrichment → disassembly into file pairs → validation.
 
-### Formalization → modeling
+### Formalization → verification
 
 Formal contracts → Dafny/Alloy code. The contracts specify preconditions, postconditions, invariants. Translation maps these to executable assertions. The representation change is mechanical enough that contract accuracy determines code correctness.
 
@@ -67,8 +67,8 @@ Each [review/revise iteration](review-revise-iteration.md) cycle operates within
 
 [Scope narrowing](scope-narrowing.md) — representation change is a tool that scope narrowing reaches for when the current form doesn't support finer granularity. You can't narrow a narrative document into properties without changing its representation to structured files. Narrowing decides WHAT to focus on. Representation change provides the form that makes the focus possible. Not all narrowing requires representation change — regional review narrows to a cluster without changing form.
 
-[Narrow → Refine → Verify](narrow-refine-verify.md) — representation change serves the primary cycle but is not a phase within it. It happens when needed: before narrowing (blueprinting), after narrowing (extract/absorb), between refinement stages (formalization → modeling). Refinement operates within a single representation — the representation is stable during the review/revise loop.
+[Narrow → Refine → Verify](narrow-refine-verify.md) — representation change serves the primary cycle but is not a phase within it. It happens when needed: before narrowing (blueprinting), after narrowing (extract/absorb), between refinement stages (formalization → verification). Refinement operates within a single representation — the representation is stable during the review/revise loop.
 
 ## Origin
 
-Present from the start — the pipeline has always been discovery → blueprinting → formalization → modeling, each stage producing a different representation of the same content. The pattern was implicit in the pipeline design. It became explicit when blueprinting was redesigned from a single-pass LLM rewrite to progressive decomposition — the recognition that representation change must happen in small, verifiable steps, not in one large jump.
+Present from the start — the pipeline has always been discovery → blueprinting → formalization → verification, each stage producing a different representation of the same content. The pattern was implicit in the pipeline design. It became explicit when blueprinting was redesigned from a single-pass LLM rewrite to progressive decomposition — the recognition that representation change must happen in small, verifiable steps, not in one large jump.

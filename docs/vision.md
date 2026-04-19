@@ -57,7 +57,7 @@ Phase II agents don't just use the lattice. They grow it, read it, and evolve th
 
 ## Building the engine
 
-What exists today is the local implementation: agents running structured pipelines on a single machine, producing a verified dependency lattice through discovery, blueprinting, formalization, and modeling. The Xanadu protocol substrate — currently implemented as files, git commits, and YAML dependencies — will be rebuilt as a live linked structure.
+What exists today is the local implementation: agents running structured pipelines on a single machine, producing a verified dependency lattice through discovery, blueprinting, formalization, and verification. The Xanadu protocol substrate — currently implemented as files, git commits, and YAML dependencies — will be rebuilt as a live linked structure.
 
 When the substrate is live:
 - Every property has a permanent address, not a file path

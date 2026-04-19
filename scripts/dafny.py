@@ -34,15 +34,15 @@ from lib.shared.paths import (WORKSPACE, FORMALIZATION_DIR, DAFNY_DIR, USAGE_LOG
 from lib.shared.common import find_asn, parallel_llm_calls, build_label_index
 from lib.formalization.core.build_dependency_graph import generate_formalization_deps
 from lib.formalization.core.topological_sort import topological_sort_labels, topological_levels
-from lib.modeling.dafny.translate import (
+from lib.verification.dafny.translate import (
     build_property_list_from_asn,
     build_property_prompt, translate_one, TEMPLATE,
 )
-from lib.modeling.dafny.verify import verify
-from lib.modeling.dafny.align import align_validate_cycle
-from lib.modeling.dafny.common import read_file, run_commit, log_usage
+from lib.verification.dafny.verify import verify
+from lib.verification.dafny.align import align_validate_cycle
+from lib.verification.dafny.common import read_file, run_commit, log_usage
 
-REVIEW_PROMPT = WORKSPACE / "scripts" / "prompts" / "modeling" / "dafny" / "review-failure.md"
+REVIEW_PROMPT = WORKSPACE / "scripts" / "prompts" / "verification" / "dafny" / "review-failure.md"
 
 
 def _review_failure(prop_text, dfy_path, verification_errors):
@@ -121,7 +121,7 @@ def main():
 
     template_text = read_file(TEMPLATE)
     if not template_text:
-        print("  Prompt template not found: scripts/prompts/modeling/dafny/translate-property.md",
+        print("  Prompt template not found: scripts/prompts/verification/dafny/translate-property.md",
               file=sys.stderr)
         sys.exit(1)
 

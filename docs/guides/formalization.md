@@ -133,4 +133,4 @@ Per-property handles independent claims fast. When tightly coupled claims stall 
 
 The three scales compose: property scale handles 80% fast, cluster scale handles 15% that needs coupling context, system scale handles 5% that needs the full picture. The V-cycle iterates until all three scales converge.
 
-See [Verification V-Cycle](../design-notes/verification-v-cycle.md) for the theoretical grounding and multigrid analogy.
+See [Review V-Cycle](../design-notes/review-v-cycle.md) for the theoretical grounding and multigrid analogy.

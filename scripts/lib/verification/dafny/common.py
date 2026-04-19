@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Shared utilities for Dafny modeling scripts."""
+"""Shared utilities for Dafny verification scripts."""
 
 import json
 import subprocess
