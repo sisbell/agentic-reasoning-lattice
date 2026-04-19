@@ -36,8 +36,6 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Citation, inline.** A reference in the proof narrative like "by NAT-wellorder." Part of proof content, not metadata.
 
-**Cluster scale.** [Review V-Cycle](design-notes/review-v-cycle.md) scope between property and system — reviewing a dependency cone as a unit.
-
 **Cone, dependency.** A cluster of tightly coupled properties where an apex keeps being revised while dependencies are stable. See [Dependency Cone pattern](patterns/dependency-cone.md).
 
 **Consult authority.** During revision, return to source material to ground findings in evidence. See [Consult Authority pattern](patterns/consult-authority.md).
@@ -94,7 +92,9 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Foundation.** From a downstream ASN's perspective, any upstream ASN it depends on. Foundation content is read-only context for the downstream's review cycles.
 
-**Full-review.** System-scale review reading an entire ASN. Finds issues invisible to narrower scales: carrier-set conflation, precondition chain gaps, vocabulary collisions, issues in small properties. Renamed from cross-review.
+**Full-review.** Full-scale review reading an entire ASN. Finds issues invisible to narrower scales: carrier-set conflation, precondition chain gaps, vocabulary collisions, issues in small properties. Renamed from cross-review.
+
+**Full scale.** [Review V-Cycle](design-notes/review-v-cycle.md) scope of the whole ASN with full foundation context. Renamed from System scale.
 
 ## G
 
@@ -124,7 +124,9 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Lemma.** A property classified as an intermediate result supporting higher-level theorems.
 
-**Local-review.** Property-scale review checking logical gaps, unjustified steps, missing cases, and dependency correctness. One property at a time with its dependencies as fixed context. Renamed from proof-review.
+**Local-review.** Local-scale review checking logical gaps, unjustified steps, missing cases, and dependency correctness. One property at a time with its dependencies as fixed context. Renamed from proof-review.
+
+**Local scale.** [Review V-Cycle](design-notes/review-v-cycle.md) scope of one property with its dependencies as fixed context. Renamed from Property scale.
 
 ## M
 
@@ -160,8 +162,6 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Property lattice.** The fine granularity of the [reasoning lattice](patterns/reasoning-lattice.md) — individual properties as nodes, per-property dependencies as edges.
 
-**Property scale.** [Review V-Cycle](design-notes/review-v-cycle.md) scope of one property with its dependencies as fixed context.
-
 ## R
 
 **Rebase.** Re-verifying downstream properties after a foundation changes. Happens automatically via review/revise cycles because changed dependencies invalidate dependents' metadata.
@@ -169,6 +169,8 @@ Terms specific to this reasoning system. Cross-references point to where each te
 **Regional-review.** Focused review of a specific dependency cone with apex + dependencies as context. Resolves the cluster as a constraint system. Renamed from cone-review.
 
 **Regional-sweep.** Proactive regional-scale review walking the dependency graph bottom-up, running regional-review on every property meeting the dependency threshold. Renamed from cone-sweep.
+
+**Regional scale.** [Review V-Cycle](design-notes/review-v-cycle.md) scope between local and full — reviewing a dependency cone as a unit. Renamed from Cluster scale.
 
 **Representation change.** Progressive transformation of content through different forms (narrative → structured → formal → mechanical) without changing the underlying claim. See [Representation Change pattern](patterns/representation-change.md).
 
@@ -182,7 +184,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 ## S
 
-**Scale.** Scope of a review cycle. Three canonical scales: property, cluster, system. See [Review V-Cycle](design-notes/review-v-cycle.md).
+**Scale.** Scope of a review cycle. Three canonical scales: local, regional, full. See [Review V-Cycle](design-notes/review-v-cycle.md).
 
 **Scientific method.** Lineage of the primary pattern — narrow scope, refine through iteration, verify coherence. Every process in the system follows this rhythm.
 
@@ -206,8 +208,6 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Synthesis coinage.** [Prose coinage](patterns/prose-coinage.md) that occurs at the synthesis step when two-channel outputs are reconciled. Roughly 70% of an ASN's coinages happen here, because synthesis is where incompatible vocabularies must be merged into a single reasoning document and no existing word may fit precisely. Contrasts with [review coinage](#r) which happens during later review/revise cycles.
 
-**System scale.** [Review V-Cycle](design-notes/review-v-cycle.md) scope of the whole ASN with full foundation context.
-
 ## T
 
 **Theorem.** A property classified as a proven result.
@@ -228,7 +228,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 ## V
 
-**V-cycle (Review V-Cycle).** Multi-scale review architecture composing property, cluster, and system scales into upward and downward passes. Inspired by multigrid methods in numerical analysis. See [Review V-Cycle](design-notes/review-v-cycle.md).
+**V-cycle (Review V-Cycle).** Multi-scale review architecture composing local, regional, and full scales into upward and downward passes. Inspired by multigrid methods in numerical analysis. See [Review V-Cycle](design-notes/review-v-cycle.md).
 
 **Verify the whole.** Stepping back to original scope after narrowing, to check that the refined pieces cohere. See [Verify the Whole pattern](patterns/verify-the-whole.md).
 

@@ -8,11 +8,11 @@ Formalization transforms per-property file pairs from blueprinting into rigorous
 
 The V-cycle operates at three scales, inspired by multigrid methods (Brandt 1977):
 
-- **Property scale** — local review, contract review. One property at a time, dependencies fixed.
-- **Cluster scale** — regional sweep. A tightly coupled group of properties reviewed together.
-- **System scale** — full-review. The entire ASN reviewed at once.
+- **Local scale** — local-review, contract-review. One property at a time, dependencies fixed.
+- **Regional scale** — regional-sweep. A tightly coupled group of properties reviewed together.
+- **Full scale** — full-review. The entire ASN reviewed at once.
 
-These compose into a V-cycle: upward through scales (property → cluster → system), then downward to re-verify anything that changed.
+These compose into a V-cycle: upward through scales (local → regional → full), then downward to re-verify anything that changed.
 
 ## Stages
 
@@ -131,6 +131,6 @@ The per-property constraint is architectural. Each property is formalized indepe
 
 Per-property handles independent claims fast. When tightly coupled claims stall single-property review, a [dependency cone](../patterns/dependency-cone.md) is the signal — one apex property thrashing against stable dependencies. The regional sweep widens context to the cluster and resolves it with focused attention. Full-review catches what both narrower scales miss — gaps between distant properties that only show up at full-ASN scope.
 
-The three scales compose: property scale handles 80% fast, cluster scale handles 15% that needs coupling context, system scale handles 5% that needs the full picture. The V-cycle iterates until all three scales converge.
+The three scales compose: local scale handles 80% fast, regional scale handles 15% that needs coupling context, full scale handles 5% that needs the full picture. The V-cycle iterates until all three scales converge.
 
 See [Review V-Cycle](../design-notes/review-v-cycle.md) for the theoretical grounding and multigrid analogy.

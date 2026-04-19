@@ -24,22 +24,22 @@ This decomposition is what makes the V-cycle possible. Properties can be reviewe
 
 The V-cycle is the core of the methodology. It traverses the lattice at three scales, each handling the error class it is efficient at. The architecture is inspired by multigrid methods in numerical analysis (Brandt 1977): multi-scale cycling converges faster than single-scale iteration by matching the solver to the error structure.
 
-**Descend through meets** — decompose to property scale:
+**Descend through meets** — decompose to local scale:
 
 - **Local review** — each property reviewed independently with its dependencies as fixed context. Checks logical gaps, missing cases, dependency correctness, formal contract completeness.
 - **Contract review** — validates that each formal contract (preconditions, postconditions, invariants, frame conditions) matches the proof.
 
-**Review at cluster scale** — [dependency cones](patterns/dependency-cone.md):
+**Review at regional scale** — [dependency cones](patterns/dependency-cone.md):
 
 - **Regional sweep** — walks the dependency graph bottom-up. When tightly coupled properties stall single-scale review (one property thrashing while its dependencies are stable), the cone is detected and reviewed as a unit with focused context. Each cone converges before moving to the next.
 
-**Ascend through joins** — recompose to document scale:
+**Ascend through joins** — recompose to full scale:
 
 - **Full-review** — full ASN scan with foundation context. Catches what narrower scales miss: conflation of distinct concepts, precondition chain gaps across distant properties, scope mismatches between proof and narrative.
 
 **Descend again** — verify corrections:
 
-- Any property changed during the upward pass is re-verified at property and cluster scale on the downward pass.
+- Any property changed during the upward pass is re-verified at local and regional scale on the downward pass.
 
 Each scale converges before passing to the next — an adiabatic protocol. The V-cycle repeats until no scale changes anything in a full pass.
 

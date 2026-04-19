@@ -5,7 +5,7 @@ V-Cycle Formalization Review — multigrid-inspired convergence.
 Three scales of optimization in a V-cycle:
   Local:    local-review, contract-review (one property at a time)
   Regional: regional-sweep (high-dependency clusters, bottom-up DAG walk)
-  Global:   full-review (full ASN scan)
+  Full:     full-review (full ASN scan)
 
 Upward pass (restriction): local → regional → global — builds confidence.
 Downward pass (prolongation): regional → local — verifies corrections.
@@ -147,7 +147,7 @@ def run_vcycle(asn_num, max_passes=5, min_cone_deps=4, dry_run=False):
         # ── Upward (restriction) ──
         print(f"\n  ── Upward ──", file=sys.stderr)
 
-        # 1. Local review (property scale)
+        # 1. Local review (local scale)
         h = _git_head()
         run_local_review(asn_num, max_cycles=5, dry_run=dry_run)
         proof_changed = _get_changed_labels(asn_label, h)
@@ -181,7 +181,7 @@ def run_vcycle(asn_num, max_passes=5, min_cone_deps=4, dry_run=False):
 
         # ── Downward (prolongation) ──
         # Descend if ANY upward step changed anything — not just global.
-        # Global may miss issues due to context overload, but regional sweep
+        # Full may miss issues due to context overload, but regional sweep
         # or local fixes still need verification at finer scales.
         upward_changed = set(all_changed)
         if upward_changed:

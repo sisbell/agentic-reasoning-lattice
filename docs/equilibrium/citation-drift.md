@@ -67,7 +67,7 @@ The same split produced passive drift in ASN-0036 — its proofs still cite T0 f
 
 ## Resolution
 
-Review/revise iteration at the system scale. Full-review finds internal drift mechanically by cross-referencing proof content and Depends lists. The reviser patches the metadata one finding at a time. A few cycles converges the cleanup.
+Review/revise iteration at the full scale. Full-review finds internal drift mechanically by cross-referencing proof content and Depends lists. The reviser patches the metadata one finding at a time. A few cycles converges the cleanup.
 
 Passive drift from upstream changes requires a rebase pass — cross-ASN review or a deliberate downstream updating step triggered when the upstream event happens. A downstream ASN's own review cycles will not produce this drift on their own, but will not resolve it either unless they are told the upstream moved.
 

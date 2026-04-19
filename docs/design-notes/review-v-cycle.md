@@ -4,7 +4,7 @@
 
 ## Overview
 
-Iterative formal verification at a single scale stalls when properties are tightly coupled. Local review (one property at a time) converges fast on independent properties but can't resolve cross-property consistency. Global review (full system scan) can find cross-property issues but wastes attention on noise and converges slowly. Neither scale alone is efficient across the full range of verification problems.
+Iterative formal verification at a single scale stalls when properties are tightly coupled. Local review (one property at a time) converges fast on independent properties but can't resolve cross-property consistency. Full review (full ASN scan) can find cross-property issues but wastes attention on noise and converges slowly. Neither scale alone is efficient across the full range of verification problems.
 
 The Review V-Cycle addresses this by cycling through three scales of review, each handling the error class it's efficient at. The architecture is inspired by multigrid methods in numerical analysis (Brandt 1977), where multi-scale cycling converges faster than single-scale iteration by matching the solver to the error structure.
 
@@ -14,7 +14,7 @@ The Review V-Cycle addresses this by cycling through three scales of review, eac
 
 **Regional** — regional-sweep. Reviews dependency cones: properties with many same-ASN dependencies, processed bottom-up in topological order. Narrowed context (apex + dependencies + relevant foundation only) focuses attention on the constraint system. Catches issues that span tightly coupled clusters — the [dependency cone](../patterns/dependency-cone.md) pattern.
 
-**Global** — full-review. Full ASN scan with complete foundation context. Finds issues invisible at narrower scales: carrier-set conflation, precondition chain gaps across unrelated properties, scope mismatches between proof and narrative. Broadest view, noisiest context, slowest convergence.
+**Full** — full-review. Full ASN scan with complete foundation context. Finds issues invisible at narrower scales: carrier-set conflation, precondition chain gaps across unrelated properties, scope mismatches between proof and narrative. Broadest view, noisiest context, slowest convergence.
 
 ## Cycle Structure
 
@@ -54,11 +54,11 @@ Single-scale iteration wastes cycles: local grinds on issues it can't resolve, g
 
 ![Structural coverage](../diagrams/structural-coverage.svg)
 
-Beyond efficiency, the scales have different *structural coverage*. Some errors are not just inefficient to find at narrower scales — they are invisible. Global review is non-negotiable because of what the narrower scales cannot reach:
+Beyond efficiency, the scales have different *structural coverage*. Some errors are not just inefficient to find at narrower scales — they are invisible. Full review is non-negotiable because of what the narrower scales cannot reach:
 
 **Vocabulary collisions between distant clusters.** When a symbol is used with one meaning in one cluster and a different meaning in another, regional review cannot see the conflict. Each cone narrows context to its apex and dependencies; distant collisions fall outside every cone's window. Only full-ASN context reveals the overlap.
 
-**Issues in properties below the cone-apex threshold.** The regional sweep runs on properties with at least a threshold number of same-ASN dependencies. Small properties — definitions, axioms, single-claim auxiliaries — never qualify as cone apexes. They appear only as dependencies in someone else's cone, where the reviewer's attention is on the apex. Issues internal to these properties (unsound claims, missing axiomatic support, silent assumptions) are structurally invisible to regional sweep. Global review reads every property with equal weight.
+**Issues in properties below the cone-apex threshold.** The regional sweep runs on properties with at least a threshold number of same-ASN dependencies. Small properties — definitions, axioms, single-claim auxiliaries — never qualify as cone apexes. They appear only as dependencies in someone else's cone, where the reviewer's attention is on the apex. Issues internal to these properties (unsound claims, missing axiomatic support, silent assumptions) are structurally invisible to regional sweep. Full review reads every property with equal weight.
 
 **Cross-cone gaps in dependency declarations.** A property's YAML `depends` list is a local concern, but its correctness depends on usage across the whole ASN. A missing dependency is visible within a cone only if the dependent and the depended-upon are both in it. For dependencies that span cones, only the full-ASN view catches the omission.
 
@@ -72,9 +72,9 @@ The analogy:
 
 | Multigrid | Review V-Cycle |
 |-----------|------|
-| Fine grid relaxation | Property scale (local-review, contract-review) |
-| Medium grid | Regional review (regional-sweep) |
-| Coarse grid | Global review (full-review) |
+| Fine grid relaxation | Local scale (local-review, contract-review) |
+| Medium grid | Regional scale (regional-sweep) |
+| Coarse grid | Full scale (full-review) |
 | High-frequency error | Property-level issues (local inconsistencies) |
 | Low-frequency error | Cross-property patterns (dependency cones) |
 | Restriction | Assembling wider context |

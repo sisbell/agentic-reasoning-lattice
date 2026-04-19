@@ -18,7 +18,7 @@ python scripts/formalize.py <ASN>
 
 Produces formal contracts and rewrites proofs to Dijkstra standard. Auto-commits per dependency level. Skips cached properties — delete `_cache.json` to force full re-run.
 
-### 2. Property-scale review
+### 2. Local-scale review
 
 ```bash
 python scripts/local-review.py <ASN>
@@ -27,7 +27,7 @@ python scripts/contract-review.py <ASN>
 
 Local review checks logical gaps, missing cases, dependency correctness. Contract review validates contracts match proofs. Run until findings trend to zero.
 
-### 3. Regional sweep (cluster-scale review)
+### 3. Regional sweep (regional-scale review)
 
 ```bash
 python scripts/regional-sweep.py <ASN>
@@ -36,7 +36,7 @@ python scripts/regional-sweep.py <ASN> --cone S8    # single cone
 
 Walks the dependency graph bottom-up. Reviews tightly coupled clusters as a unit. Default max 8 cycles per cone. Use `--cone LABEL` to target a specific apex.
 
-### 4. Full-review (system-scale review)
+### 4. Full-review (full-scale review)
 
 ```bash
 python scripts/full-review.py <ASN>

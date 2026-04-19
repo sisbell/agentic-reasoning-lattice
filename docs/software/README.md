@@ -18,7 +18,7 @@ Convergence is always relative to a downstream verifier. For software reverse-en
 |---|---|---|
 | Local | local-review | proof soundness per property |
 | Regional | regional-review | cluster proof consistency |
-| Global | full-review | lattice proof consistency |
+| Full | full-review | lattice proof consistency |
 
 At each scale, the operator iterates until the verifier finds no new issues.
 
@@ -31,7 +31,7 @@ A cone is an apex property plus its dependencies. In the software case, the apex
 - All citations correctly licensed
 - Formal contracts (preconditions, postconditions, frames) are complete
 
-Global ASN convergence: all cones regionally converged, lattice-wide citation and convention consistency confirmed.
+Full ASN convergence: all cones regionally converged, lattice-wide citation and convention consistency confirmed.
 
 ## Verification: Dafny and code execution
 

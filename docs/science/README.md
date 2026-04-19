@@ -18,7 +18,7 @@ Convergence is always relative to a downstream verifier. Different domains have 
 |---|---|---|
 | Local | local-review | hypothesis articulation (testable) |
 | Regional | regional-review | cluster articulation (mutually consistent) |
-| Global | full-review | framework coherence |
+| Full | full-review | framework coherence |
 
 At each scale, the operator iterates until the relevant verifier finds no new issues. Science cones stabilize when hypotheses are articulated precisely enough to test. The [software deployment](../software/README.md) uses the same machinery with a different verifier (proof soundness via Dafny).
 
@@ -39,7 +39,7 @@ Multiple hypotheses can live in one ASN, each in its own cone. Cones converge in
 
 A hypothesis is ready when its own cone regionally converges — doesn't require the whole ASN to be globally converged. One cone can be stable while another is still cycling. The WF cone can be hypothesis-ready while the Curie cone is still being refined.
 
-Global ASN convergence (all cones regionally converged + no cross-cluster inconsistencies) is a stronger bar. Reserved for cases where the whole ASN is presented as a unified scientific model, not just a collection of independent hypotheses.
+Full ASN convergence (all cones regionally converged + no cross-cluster inconsistencies) is a stronger bar. Reserved for cases where the whole ASN is presented as a unified scientific model, not just a collection of independent hypotheses.
 
 ## Judger evaluation model
 

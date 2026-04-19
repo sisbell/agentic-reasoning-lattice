@@ -28,7 +28,7 @@
 
 <text font-family="sans-serif" font-size="14" font-weight="500" fill="#E24B4A" x="110" y="192" text-anchor="middle">σ ≠ σ</text>
 <text font-family="sans-serif" font-size="12" fill="#5F5E5A" x="110" y="214" text-anchor="middle">no cone sees both</text>
-<text font-family="sans-serif" font-size="12" fill="#5F5E5A" x="110" y="234" text-anchor="middle">only global catches this</text>
+<text font-family="sans-serif" font-size="12" fill="#5F5E5A" x="110" y="234" text-anchor="middle">only full review catches this</text>
 
 <!-- Panel 2 — Below threshold -->
 <rect x="240" y="28" width="200" height="260" rx="8" fill="none" stroke="#D3D1C7" stroke-width="0.5"/>
@@ -44,7 +44,7 @@
 
 <text font-family="sans-serif" font-size="12" fill="#5F5E5A" x="340" y="210" text-anchor="middle">always a dependency</text>
 <text font-family="sans-serif" font-size="12" fill="#5F5E5A" x="340" y="230" text-anchor="middle">never the subject of review</text>
-<text font-family="sans-serif" font-size="12" fill="#5F5E5A" x="340" y="250" text-anchor="middle">only global reads it equally</text>
+<text font-family="sans-serif" font-size="12" fill="#5F5E5A" x="340" y="250" text-anchor="middle">only full review reads it equally</text>
 
 <!-- Panel 3 — Cross-cone gap -->
 <rect x="470" y="28" width="200" height="260" rx="8" fill="none" stroke="#D3D1C7" stroke-width="0.5"/>
@@ -68,13 +68,13 @@
 <line x1="526" y1="146" x2="526" y2="178" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
 
 <text font-family="sans-serif" font-size="12" fill="#5F5E5A" x="570" y="248" text-anchor="middle">P3 uses P4 implicitly</text>
-<text font-family="sans-serif" font-size="12" fill="#5F5E5A" x="570" y="266" text-anchor="middle">only global sees both</text>
+<text font-family="sans-serif" font-size="12" fill="#5F5E5A" x="570" y="266" text-anchor="middle">only full review sees both</text>
 
 <!-- Bottom summary -->
 <rect x="10" y="306" width="660" height="56" rx="8" fill="none" stroke="#D3D1C7" stroke-width="0.5"/>
-<text font-family="sans-serif" font-size="14" font-weight="500" fill="#2C2C2A" x="340" y="326" text-anchor="middle" dominant-baseline="central">Global review is non-negotiable</text>
+<text font-family="sans-serif" font-size="14" font-weight="500" fill="#2C2C2A" x="340" y="326" text-anchor="middle" dominant-baseline="central">Full review is non-negotiable</text>
 <text font-family="sans-serif" font-size="12" fill="#444441" x="340" y="346" text-anchor="middle" dominant-baseline="central">these errors are structurally invisible at narrower scales — not just inefficient to find</text>
 
-<text font-family="sans-serif" font-size="12" fill="#5F5E5A" x="340" y="390" text-anchor="middle">Local → property-level gaps · Regional → tightly coupled clusters · Global → all three above</text>
+<text font-family="sans-serif" font-size="12" fill="#5F5E5A" x="340" y="390" text-anchor="middle">Local → property-level gaps · Regional → tightly coupled clusters · Full → all three above</text>
 
 </svg>
