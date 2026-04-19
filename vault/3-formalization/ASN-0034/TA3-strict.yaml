@@ -2,11 +2,13 @@ label: TA3-strict
 name: OrderPreservationUnderSubtractionStrict
 type: definition
 depends:
+- T0
 - T1
 - TA2
 - TumblerSub
 - ZPD
 - NAT-sub
+- NAT-zero
 - NAT-order
 summary: 'Subtracting a common lower bound from two equal-length ordered positions preserves strict order: if a < b and both
   dominate w with equal lengths, then a ⊖ w < b ⊖ w. The equal-length precondition is load-bearing — without it the piecewise
