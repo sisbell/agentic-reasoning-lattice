@@ -4,13 +4,9 @@ type: definition
 depends:
 - T0
 summary: |
-  Defines positivity for tumblers as a paired pair of predicate symbols: `Pos(t)` (positive) iff at least one
-  component is nonzero, and `Zero(t)` (zero tumbler) iff every component is zero; additionally introduces the
-  set-form `Z = {t ∈ T : Zero(t)}` as derived notation — the reification of the `Zero` predicate on the carrier T —
-  for downstream properties (notably TA7a's subspace-closure postcondition `o ⊖ w ∈ S ∪ Z`) that compose zero
-  tumblers with other sets under union, intersection, or membership. The paired predicates are introduced together
-  so that downstream properties can bind `Zero(z)` in preconditions or postcondition guards uniformly rather than
-  spelling the universal `(A i : 1 ≤ i ≤ #z : zᵢ = 0)` out inline; `Z` is introduced as its set-theoretic
-  counterpart so that set-valued consumers bind a single symbol rather than the spelled-out comprehension. The
-  ordering consequence — every positive tumbler is strictly greater under T1 than every zero tumbler of any length
-  — is established separately by a downstream ordering theorem that consumes ActionPoint.
+  Defines positivity for tumblers via two predicate symbols: `Pos(t)` (positive) iff at least one component is
+  nonzero, and `Zero(t)` (zero tumbler) iff every component is zero. Additionally introduces the set-form
+  `Z = {t ∈ T : Zero(t)}`, consumed by TA7a's subspace-closure postcondition `o ⊖ w ∈ S ∪ Z` where the union
+  with `S` requires set-valued notation. The ordering consequence — every positive tumbler is strictly greater
+  under T1 than every zero tumbler of any length — is established separately by a downstream ordering theorem
+  that consumes ActionPoint.
