@@ -50,7 +50,7 @@ Each component of the result is a natural number: for `i < k`, `rᵢ = aᵢ ∈ 
 - If `aₖ > 0`: NAT-addcompat's right order-compatibility lifts `0 ≤ aₖ` into `aₖ + wₖ ≥ 0 + wₖ`; NAT-closure's additive identity rewrites this as `aₖ + wₖ ≥ wₖ`; NAT-cancel's summand absorption rules out equality (which would force `aₖ = 0`), so NAT-order delivers `aₖ + wₖ > wₖ`, i.e., `rₖ > wₖ`. T1 case (i) at `k` yields `r > w`.
 - If `aₖ = 0`: `rₖ = wₖ` (via NAT-closure's additive identity); combined with `rᵢ = 0 = wᵢ` for `i < k` and `rᵢ = wᵢ` for `i > k`, every component agrees and `#r = #w`, so `r = w` by T3.
 
-In every case: **`a ⊕ w ≥ w`**. ∎
+The strict branches discharge `r > w` via T1 case (i); the equality branch discharges `r = w` via T3. Their disjunction `r > w ∨ r = w` is **`a ⊕ w ≥ w`** by T1's `≥` abbreviation `a ≥ b ≡ b < a ∨ b = a`. ∎
 
 Three properties of this definition — characterizations of what ⊕ does rather than postconditions to discharge — require explicit statement.
 
@@ -82,6 +82,6 @@ This is correct and intentional: advancing to "the beginning of the next chapter
   - NAT-sub (NatPartialSubtraction) — conditional closure of `k - 1` and `n - k`; inverse characterisations collapse the result-length identity.
   - ActionPoint (ActionPoint) — bounds `1 ≤ k ≤ #w`, zeros-below-action-point `wᵢ = 0` for `i < k`, and `wₖ ≥ 1`.
   - TA-Pos (PositiveTumbler) — the predicate `Pos(w)` in the precondition.
-  - T1 (LexicographicOrder) — case (i) for both ordering postconditions.
+  - T1 (LexicographicOrder) — case (i) at the divergence position for the strict-advancement postcondition and for the strict branches of dominance; `≥` abbreviation (`a ≥ b ≡ b < a ∨ b = a`) merges the dominance proof's strict and equality branches to deliver `a ⊕ w ≥ w`.
   - T3 (CanonicalRepresentation) — equality sub-case of dominance concludes `r = w` from component-wise agreement and equal length.
 - *Postconditions:* a ⊕ w ∈ T, #(a ⊕ w) = #w, a ⊕ w > a (T1), a ⊕ w ≥ w (T1, T3)
