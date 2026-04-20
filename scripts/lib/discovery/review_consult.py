@@ -33,40 +33,8 @@ from lib.discovery.consult import (
     log_usage,
 )
 
-from lib.shared.paths import REVIEWS_DIR, consultation_dir, sorted_reviews
-from lib.shared.common import find_asn
-
-
-def read_file(path):
-    try:
-        return Path(path).read_text()
-    except FileNotFoundError:
-        return ""
-
-
-def find_review(asn_label, review_spec=None):
-    """Find review file. If review_spec is None, use latest."""
-    if review_spec is None:
-        reviews = sorted_reviews(asn_label)
-        return reviews[-1] if reviews else None
-
-    path = Path(review_spec)
-    if path.exists():
-        return path
-
-    candidate = REVIEWS_DIR / asn_label / f"{review_spec}.md"
-    if candidate.exists():
-        return candidate
-
-    candidate = REVIEWS_DIR / asn_label / review_spec
-    if candidate.exists():
-        return candidate
-
-    candidate = REVIEWS_DIR / asn_label / f"{review_spec}.md"
-    if candidate.exists():
-        return candidate
-
-    return None
+from lib.shared.paths import REVIEWS_DIR, consultation_dir, find_review, sorted_reviews
+from lib.shared.common import find_asn, read_file
 
 
 def get_review_number(review_path):

@@ -106,6 +106,27 @@ def sanitize_filename(label, name):
     return re.sub(r"[^A-Za-z0-9_-]", "", name)
 
 
+def find_review(asn_label, review_spec=None):
+    """Find review file by spec. If review_spec is None, returns the latest review.
+
+    Otherwise tries: literal path, REVIEWS_DIR/asn_label/{spec}.md, and
+    REVIEWS_DIR/asn_label/{spec}. Returns None if not found.
+    """
+    if review_spec is None:
+        reviews = sorted_reviews(asn_label)
+        return reviews[-1] if reviews else None
+
+    path = Path(review_spec)
+    if path.exists():
+        return path
+
+    for candidate in (REVIEWS_DIR / asn_label / f"{review_spec}.md",
+                      REVIEWS_DIR / asn_label / review_spec):
+        if candidate.exists():
+            return candidate
+    return None
+
+
 def next_review_number(asn_label, reviews_dir=None):
     """Find the next review number for this ASN (shared sequence with all reviews)."""
     if reviews_dir is not None:

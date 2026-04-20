@@ -2,7 +2,7 @@
 Produce Contract step — Dijkstra rewrite + formal contracts per claim.
 
 Step functions for the formalize orchestrator (scripts/formalize.py):
-- find_properties_needing_quality: scan ASN for claims needing rewrite
+- find_claims_needing_quality: scan ASN for claims needing rewrite
 - quality_rewrite: rewrite one claim to Dijkstra standard with formal contract
 """
 
@@ -97,7 +97,7 @@ def _find_dirty(current_hashes, stored_hashes, deps_data):
     return dirty
 
 
-def find_properties_needing_quality(asn_num, force_all=True, force_rebuild=False):
+def find_claims_needing_quality(asn_num, force_all=True, force_rebuild=False):
     """Find claims that need a quality pass.
 
     Reads per-claim files from lattices/xanadu/formalization/ASN-NNNN/.

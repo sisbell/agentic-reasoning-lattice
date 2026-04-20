@@ -21,18 +21,12 @@ import time
 from pathlib import Path
 
 from lib.shared.paths import WORKSPACE, USAGE_LOG, LATTICE, PROOFS_DIR
+from lib.shared.common import read_file
 
 COMMIT_PROMPT = WORKSPACE / "scripts" / "prompts" / "shared" / "commit.md"
 PROOFS_COMMIT_PROMPT = WORKSPACE / "scripts" / "prompts" / "shared" / "commit-proofs.md"
 
 MODEL = "claude-sonnet-4-6"
-
-
-def read_file(path):
-    try:
-        return Path(path).read_text()
-    except FileNotFoundError:
-        return ""
 
 
 def main():

@@ -128,7 +128,6 @@ def main():
               file=sys.stderr)
         sys.exit(1)
 
-    # Output directory (flat, no modeling-N versioning)
     out_dir = ALLOY_DIR / asn_label
     out_dir.mkdir(parents=True, exist_ok=True)
     review_dir = out_dir / "reviews"
@@ -231,16 +230,16 @@ def main():
     all_results = []
     results_lock = threading.Lock()
 
-    def _process_property(prop):
-        label = prop["label"]
-        result = make_result(prop, out_dir)
-        generate_one(result, prop, definitions_text, asn_label, args,
+    def _process_claim(claim):
+        label = claim["label"]
+        result = make_result(claim, out_dir)
+        generate_one(result, claim, definitions_text, asn_label, args,
                       syntax_ref=syntax_ref,
 )
 
         # Validate contract (may re-invoke Alloy via align cycles)
         if not args.skip_check and result["als_path"].exists():
-            section = prop["body"]
+            section = claim["body"]
             if section:
                 contract_result, reason, a_cost = align_validate_cycle(
                     result["als_path"], section, label,
@@ -258,7 +257,7 @@ def main():
         review_path = review_dir / f"{label}.md"
         if status == "counterexample":
             analysis = _review_counterexample(
-                prop["body"], result["als_path"],
+                claim["body"], result["als_path"],
                 result.get("alloy_output", ""))
             result["review_analysis"] = analysis
             with open(review_path, "w") as rf:
@@ -289,7 +288,7 @@ def main():
         return label, result
 
     parallel_llm_calls(
-        candidates, _process_property, max_workers=args.workers)
+        candidates, _process_claim, max_workers=args.workers)
 
     # Counters for summary
     flag_count = sum(1 for r in all_results

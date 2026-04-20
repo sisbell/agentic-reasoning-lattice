@@ -24,7 +24,7 @@ from lib.shared.common import find_asn, invoke_claude, parallel_llm_calls, dump_
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "blueprinting"
 
 
-def _load_properties(sections_dir):
+def _load_claims(sections_dir):
     """Load all claims from section YAML files. Returns [(yaml_path, index, prop), ...]."""
     claims = []
     for yaml_path in sorted(sections_dir.glob("*.yaml")):
@@ -128,7 +128,7 @@ def enrich_asn(asn_num):
         print(f"  No sections directory — run decompose first", file=sys.stderr)
         return False
 
-    claims = _load_properties(sections_dir)
+    claims = _load_claims(sections_dir)
     print(f"\n  [ENRICH] {asn_label}", file=sys.stderr)
     print(f"  {len(claims)} claims to enrich", file=sys.stderr)
 
@@ -148,7 +148,7 @@ def enrich_asn(asn_num):
 
     for pass_name, template_path, fields in passes:
         # Reload claims each pass (files updated by previous pass)
-        claims = _load_properties(sections_dir)
+        claims = _load_claims(sections_dir)
         ok, fail = _run_pass(pass_name, template_path, claims, fields)
         total_ok += ok
         total_fail += fail

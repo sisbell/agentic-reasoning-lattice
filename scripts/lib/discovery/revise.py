@@ -23,51 +23,14 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, VOCABULARY, REVIEWS_DIR, USAGE_LOG, sorted_reviews
-from lib.shared.common import find_asn
+from lib.shared.paths import WORKSPACE, VOCABULARY, REVIEWS_DIR, USAGE_LOG, sorted_reviews, find_review
+from lib.shared.common import find_asn, read_file
 from lib.shared.foundation import load_foundation_statements
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
 DISCOVERY_PROMPT = PROMPTS_DIR / "instructions.md"
 
 MODEL = "claude-opus-4-7"
-
-
-def read_file(path):
-    try:
-        return Path(path).read_text()
-    except FileNotFoundError:
-        return ""
-
-
-def find_review(asn_label, review_spec=None):
-    """Find review file. If review_spec is None, use latest."""
-    if review_spec is None:
-        # Latest review
-        reviews = sorted_reviews(asn_label)
-        return reviews[-1] if reviews else None
-
-    # Try as-is first (full path)
-    path = Path(review_spec)
-    if path.exists():
-        return path
-
-    # Try in nested ASN dir (new layout)
-    candidate = REVIEWS_DIR / asn_label / f"{review_spec}.md"
-    if candidate.exists():
-        return candidate
-
-    # Try in nested ASN dir as-is
-    candidate = REVIEWS_DIR / asn_label / review_spec
-    if candidate.exists():
-        return candidate
-
-    # Try with .md in nested dir
-    candidate = REVIEWS_DIR / asn_label / f"{review_spec}.md"
-    if candidate.exists():
-        return candidate
-
-    return None
 
 
 def build_prompt(asn_path, review_content, vocab, consultation_content=None, asn_number=None):

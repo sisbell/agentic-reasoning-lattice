@@ -28,7 +28,7 @@ from lib.shared.common import find_asn, step_commit_asn, build_label_index, para
 from lib.formalization.core.build_dependency_graph import generate_formalization_deps
 from lib.formalization.core.topological_sort import topological_sort_labels, topological_levels
 from lib.formalization.formalize.produce_contract import (
-    find_properties_needing_quality, produce_contract,
+    find_claims_needing_quality, produce_contract,
     _has_formal_contract, _downstream_dependents, _compute_hash,
 )
 import hashlib
@@ -94,7 +94,7 @@ def run_formalize(asn_num, max_cycles=5, mode="incremental",
     for cycle in range(1, max_cycles + 1):
         # Find claims needing quality
         force = force_rebuild or (single_label is not None)
-        needs, current_hashes = find_properties_needing_quality(
+        needs, current_hashes = find_claims_needing_quality(
             asn_num, force_all=force_all, force_rebuild=force)
 
         # Filter to single label

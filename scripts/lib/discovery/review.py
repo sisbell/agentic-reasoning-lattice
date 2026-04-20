@@ -27,7 +27,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, VOCABULARY, REVIEWS_DIR, USAGE_LOG, MANIFESTS_DIR, sorted_reviews, load_manifest, open_issues_path
-from lib.shared.common import find_asn
+from lib.shared.common import find_asn, read_file
 from lib.shared.foundation import load_foundation_statements
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
@@ -47,13 +47,6 @@ def load_hints(asn_number):
     if not hints:
         return ""
     return "\n".join(f"- {h}" for h in hints)
-
-
-def read_file(path):
-    try:
-        return Path(path).read_text()
-    except FileNotFoundError:
-        return ""
 
 
 def load_open_issues(asn_number):

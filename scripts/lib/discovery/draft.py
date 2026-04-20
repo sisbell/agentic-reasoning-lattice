@@ -24,18 +24,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, NOTES_DIR, VOCABULARY, USAGE_LOG, consultation_dir, load_manifest
+from lib.shared.common import read_file
 from lib.shared.foundation import load_foundation_statements
 
 DISCOVERY_PROMPT = WORKSPACE / "scripts" / "prompts" / "discovery" / "instructions.md"
 
 MODEL = "claude-opus-4-7"
-
-
-def read_file(path):
-    try:
-        return Path(path).read_text()
-    except FileNotFoundError:
-        return ""
 
 
 def load_prompt(path):

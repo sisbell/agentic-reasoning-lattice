@@ -33,6 +33,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, CONSULTATIONS_DIR, USAGE_LOG
+from lib.shared.common import read_file
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery" / "consultation"
 TEST_HARNESS = WORKSPACE / "udanax-test-harness"
@@ -40,13 +41,6 @@ KB_PATH = TEST_HARNESS / "knowledge-base" / "kb-formal.md"
 
 _total_usage = {"input_tokens": 0, "output_tokens": 0, "cost_usd": 0.0, "calls": 0}
 _usage_lock = threading.Lock()
-
-
-def read_file(path):
-    try:
-        return Path(path).read_text()
-    except FileNotFoundError:
-        return ""
 
 
 def invoke_claude(prompt, model="sonnet", label="", allow_tools=False,

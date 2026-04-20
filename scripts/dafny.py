@@ -155,8 +155,6 @@ def main():
             matches.extend(found)
         index_rows = matches
 
-    # --- Output directory (flat, no modeling-N) ---
-
     out_dir = DAFNY_DIR / asn_label
     out_dir.mkdir(parents=True, exist_ok=True)
     review_dir = out_dir / "reviews"

@@ -49,7 +49,7 @@ def _extract_formal_contract(md_text):
     return md_text[idx:].strip()
 
 
-def _load_property_statement(dep_asn_num, label):
+def _load_claim_statement(dep_asn_num, label):
     """Load one claim's foundation statement from per-claim files.
 
     Returns formatted section text or None if not found.
@@ -129,7 +129,7 @@ def load_foundation_statements(asn_id):
             sys.exit(1)
 
         for label in all_meta:
-            stmt = _load_property_statement(dep_id, label)
+            stmt = _load_claim_statement(dep_id, label)
             if stmt:
                 sections.append(stmt)
 
@@ -153,7 +153,7 @@ def load_foundation_for_labels(asn_id, labels):
     for label in labels:
         found = False
         for dep_id in all_dep_ids:
-            stmt = _load_property_statement(dep_id, label)
+            stmt = _load_claim_statement(dep_id, label)
             if stmt:
                 sections.append(stmt)
                 found = True

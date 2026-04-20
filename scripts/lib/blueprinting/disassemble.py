@@ -17,7 +17,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, BLUEPRINTS_DIR
+from lib.shared.paths import WORKSPACE, BLUEPRINTS_DIR, blueprint_claims_dir
 from lib.shared.common import find_asn, dump_yaml, step_commit_asn
 
 
@@ -29,7 +29,7 @@ def disassemble_asn(asn_num, dry_run=False):
         return False
 
     sections_dir = BLUEPRINTS_DIR / asn_label / "sections"
-    properties_dir = BLUEPRINTS_DIR / asn_label / "claims"
+    claims_dir = blueprint_claims_dir(asn_label)
 
     if not sections_dir.exists():
         print(f"  No sections directory — run decompose first", file=sys.stderr)
@@ -37,10 +37,10 @@ def disassemble_asn(asn_num, dry_run=False):
 
     print(f"\n  [DISASSEMBLE] {asn_label}", file=sys.stderr)
     print(f"  Sections: {sections_dir.relative_to(WORKSPACE)}", file=sys.stderr)
-    print(f"  Output:   {properties_dir.relative_to(WORKSPACE)}", file=sys.stderr)
+    print(f"  Output:   {claims_dir.relative_to(WORKSPACE)}", file=sys.stderr)
 
     if not dry_run:
-        properties_dir.mkdir(parents=True, exist_ok=True)
+        claims_dir.mkdir(parents=True, exist_ok=True)
 
     # Collect all claims from section YAMLs
     prop_count = 0
@@ -92,8 +92,8 @@ def disassemble_asn(asn_num, dry_run=False):
                 if dry_run:
                     print(f"    {stem}.yaml + {stem}.md  ({label})", file=sys.stderr)
                 else:
-                    dump_yaml(meta, properties_dir / f"{stem}.yaml")
-                    (properties_dir / f"{stem}.md").write_text(md_content + "\n")
+                    dump_yaml(meta, claims_dir / f"{stem}.yaml")
+                    (claims_dir / f"{stem}.md").write_text(md_content + "\n")
                     print(f"    {stem}.yaml + {stem}.md", file=sys.stderr)
 
                 prop_count += 1
@@ -124,7 +124,7 @@ def disassemble_asn(asn_num, dry_run=False):
             if dry_run:
                 print(f"    {out_name}  (structural)", file=sys.stderr)
             else:
-                shutil.copy2(md_path, properties_dir / out_name)
+                shutil.copy2(md_path, claims_dir / out_name)
                 print(f"    {out_name}  (structural)", file=sys.stderr)
 
             structural_count += 1

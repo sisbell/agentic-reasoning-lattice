@@ -12,18 +12,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import WORKSPACE, ALLOY_DIR, USAGE_LOG, sanitize_filename
+from lib.shared.common import read_file
 
 ALLOY_JAR_DEFAULT = (
     "/Applications/Alloy.app/Contents/Resources/org.alloytools.alloy.dist.jar"
 )
 COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
-
-
-def read_file(path):
-    try:
-        return Path(path).read_text()
-    except FileNotFoundError:
-        return ""
 
 
 def invoke_claude(prompt, out_path, model="opus", effort=None,

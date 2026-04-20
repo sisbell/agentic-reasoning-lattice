@@ -15,7 +15,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, BLUEPRINTS_DIR
+from lib.shared.paths import blueprint_claims_dir
 from lib.shared.common import find_asn
 
 
@@ -29,17 +29,17 @@ def validate_asn(asn_num):
     if asn_path is None:
         return [f"ASN-{asn_num:04d} not found"], []
 
-    properties_dir = BLUEPRINTS_DIR / asn_label / "claims"
-    if not properties_dir.exists():
+    claims_dir = blueprint_claims_dir(asn_label)
+    if not claims_dir.exists():
         return [f"No claims directory — run disassemble first"], []
 
     errors = []
     warnings = []
 
     # Collect all YAML and MD files
-    yaml_files = sorted(f for f in properties_dir.glob("*.yaml"))
-    md_files = sorted(f for f in properties_dir.glob("*.md") if not f.name.startswith("_"))
-    structural_files = sorted(f for f in properties_dir.glob("_*.md"))
+    yaml_files = sorted(f for f in claims_dir.glob("*.yaml"))
+    md_files = sorted(f for f in claims_dir.glob("*.md") if not f.name.startswith("_"))
+    structural_files = sorted(f for f in claims_dir.glob("_*.md"))
 
     yaml_stems = {f.stem for f in yaml_files}
     md_stems = {f.stem for f in md_files}
@@ -111,10 +111,10 @@ def print_validation(asn_num):
     _, asn_label = find_asn(str(asn_num))
     errors, warnings = validate_asn(asn_num)
 
-    properties_dir = BLUEPRINTS_DIR / asn_label / "claims"
-    yaml_count = len(list(properties_dir.glob("*.yaml"))) if properties_dir.exists() else 0
-    md_count = len([f for f in properties_dir.glob("*.md") if not f.name.startswith("_")]) if properties_dir.exists() else 0
-    structural_count = len(list(properties_dir.glob("_*.md"))) if properties_dir.exists() else 0
+    claims_dir = blueprint_claims_dir(asn_label)
+    yaml_count = len(list(claims_dir.glob("*.yaml"))) if claims_dir.exists() else 0
+    md_count = len([f for f in claims_dir.glob("*.md") if not f.name.startswith("_")]) if claims_dir.exists() else 0
+    structural_count = len(list(claims_dir.glob("_*.md"))) if claims_dir.exists() else 0
 
     print(f"\n  [VALIDATE] {asn_label}", file=sys.stderr)
     print(f"  {yaml_count} claims, {md_count} .md files, {structural_count} structural",

@@ -10,13 +10,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import WORKSPACE, USAGE_LOG
-
-
-def read_file(path):
-    try:
-        return Path(path).read_text()
-    except FileNotFoundError:
-        return ""
+from lib.shared.common import read_file
 
 
 def run_commit(hint=""):

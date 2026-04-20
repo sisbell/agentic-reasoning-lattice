@@ -33,7 +33,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import (
     WORKSPACE, NOTES_DIR, USAGE_LOG, MANIFESTS_DIR, load_manifest, LATTICE,
 )
-from lib.shared.common import stage_asn_files
+from lib.shared.common import read_file, stage_asn_files
 
 CONSULT_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "consult.py"
 DISCOVER_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "draft.py"
@@ -42,13 +42,6 @@ COMMIT_PROMPT = WORKSPACE / "scripts" / "prompts" / "shared" / "commit.md"
 COMMIT_MODEL = "claude-sonnet-4-6"
 
 STEPS = ["questions", "consult", "discover", "commit"]
-
-
-def read_file(path):
-    try:
-        return Path(path).read_text()
-    except FileNotFoundError:
-        return ""
 
 
 def load_prompt(path):

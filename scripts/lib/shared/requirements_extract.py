@@ -26,26 +26,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, NOTES_DIR, REQUIREMENTS_DIR, USAGE_LOG
+from lib.shared.common import find_asn, read_file
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "requirements"
 TEMPLATE = PROMPTS_DIR / "extract-features.md"
-
-
-def read_file(path):
-    try:
-        return Path(path).read_text()
-    except FileNotFoundError:
-        return ""
-
-
-def resolve_asn(asn_id):
-    """Resolve an ASN identifier to a file path."""
-    num = re.sub(r"[^0-9]", "", str(asn_id))
-    if not num:
-        return None
-    label = f"ASN-{int(num):04d}"
-    matches = sorted(NOTES_DIR.glob(f"{label}-*.md"))
-    return matches[0] if matches else None
 
 
 def asn_label(path):
@@ -150,7 +134,7 @@ def main():
     if args.asns:
         asn_files = []
         for a in args.asns:
-            path = resolve_asn(a)
+            path, _ = find_asn(a)
             if path:
                 asn_files.append(path)
             else:

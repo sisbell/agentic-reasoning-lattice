@@ -18,7 +18,8 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, NOTES_DIR, MANIFESTS_DIR, EXAMPLES_DIR
+from lib.shared.paths import WORKSPACE, EXAMPLES_DIR, formal_stmts
+from lib.shared.common import find_asn
 
 PROMPTS = WORKSPACE / "scripts" / "prompts" / "examples"
 
@@ -28,20 +29,9 @@ GENERATE_PROMPT = PROMPTS / "derive-examples.md"
 REVIEW_PROMPT = PROMPTS / "review.md"
 
 
-def find_asn_file(asn_num):
-    """Find the ASN markdown file."""
-    label = f"ASN-{asn_num:04d}"
-    matches = list(NOTES_DIR.glob(f"{label}-*.md"))
-    if not matches:
-        print(f"[ERROR] No ASN file found for {label}", file=sys.stderr)
-        sys.exit(1)
-    return matches[0]
-
-
 def find_formal_statements(asn_num):
     """Find formal-statements.md for an ASN. Returns path or None."""
-    label = f"ASN-{asn_num:04d}"
-    path = MANIFESTS_DIR / label / "formal-statements.md"
+    path = formal_stmts(asn_num)
     if path.exists():
         return path
     return None
@@ -183,10 +173,13 @@ def main():
                         help="Max review/revise cycles (default: 15)")
     args = parser.parse_args()
 
-    asn_file = find_asn_file(args.asn)
-    formal_stmts = find_formal_statements(args.asn)
-    spec_file = formal_stmts if formal_stmts else asn_file
-    if formal_stmts:
+    asn_file, _ = find_asn(args.asn)
+    if asn_file is None:
+        print(f"[ERROR] No ASN file found for ASN-{args.asn:04d}", file=sys.stderr)
+        sys.exit(1)
+    stmts_path = find_formal_statements(args.asn)
+    spec_file = stmts_path if stmts_path else asn_file
+    if stmts_path:
         print(f"  [SPEC] Using formal-statements.md", file=sys.stderr)
     else:
         print(f"  [SPEC] No formal-statements.md — using raw ASN", file=sys.stderr)
