@@ -10,6 +10,7 @@ Complete index of the documentation. The root [README](../README.md) is the proj
 - [Blueprinting](blueprinting.md) — meet operation: document → atomic claims
 - [Formalization](formalization.md) — precision as a discovery tool
 - [Architecture](architecture.md) — structural hierarchy (domain / lattice / campaign / inquiry / note / claim) and the lattice lifecycle
+- [Coupling Principle](principles/coupling.md) — core quality discipline. Prose and formal content are authored as a pair; the coupling is what keeps discovery generative and formalization convergent. Why the system can operate at all and make new discoveries.
 - [Glossary](glossary.md) — system-specific terms and their definitions
 
 ## Pattern language

@@ -38,7 +38,7 @@ Each pass follows an upward-then-downward path:
 
 The upward pass builds confidence — each scale inherits a cleaner state from the one below it. The downward pass verifies — corrections from wider scales are checked at narrower scales with higher precision.
 
-**Convergence**: when no scale changes anything in a full pass — local, regional, and global all agree that the note is clean.
+**Convergence**: when no scale changes anything in a full pass — local, regional, and global all agree that the note is clean. "Clean" is given an objective measure by [The Coupling Principle](../principles/coupling.md): each artifact's prose:formal ratio holds near its target (90/10 for notes, 70/30 for claim files). Divergence from target is [Surface Expansion](../equilibrium/surface-expansion.md) and manifests as one of three Sprawl patterns.
 
 ## Why Multi-Scale Works
 
@@ -89,8 +89,9 @@ Full-review findings that appear to be cone-level issues are diagnostic signals 
 There is no noise in a truly converged system. What looks like noise at full-review is a signal that a lower scale is incomplete. The pattern of findings tells you where the incompleteness lives:
 
 - **Full-review finds a vocabulary collision** → genuine structural issue, regional sweep is architecturally unable to see it
-- **Full-review finds something that looks like a cone-level issue** → regional sweep did not converge, go back. See [Contract Sprawl](../equilibrium/contract-sprawl.md) for a specific failure mode that produces this signal.
-- **Full-review finds nothing** → lower scales reached genuine ground state, convergence is real
+- **Full-review finds something that looks like a cone-level issue** → regional sweep did not converge, go back. See [Contract Sprawl](../equilibrium/contract-sprawl.md), [Prose Sprawl](../equilibrium/prose-sprawl.md), and [Index Sprawl](../equilibrium/index-sprawl.md) for specific failure modes that produce this signal — all instances of [Surface Expansion](../equilibrium/surface-expansion.md) against the coupling target.
+- **Full-review finds ratio drift from the coupling target** without site-specific Sprawl → the V-cycle's review/revise prompts themselves are driving expansion. The fix is at the prompt level, not the content level. See [The Coupling Principle](../principles/coupling.md) for the prompt-design constraint.
+- **Full-review finds nothing and the ratio holds at target** → lower scales reached genuine ground state, convergence is real
 
 This self-evaluation claim is what makes the V-cycle a protocol substrate rather than just a verification procedure. A system that can detect incomplete convergence in its own processes can improve those processes — adjusting scope, reconfiguring cone boundaries, reallocating agent computation. The pattern language systematically reduces wasted computation by routing problems to the scale that can resolve them. The V-cycle's self-diagnostic signal is what makes that routing improvable over time.
 
@@ -103,3 +104,5 @@ The cycle includes a mechanical detection mechanism for regional-scale problems.
 ## Origin
 
 Developed during formalization of ASN-0036 on the Xanadu project (Strand Model, 31 claims). The flat review cycle (proof → contract → cross, repeat) ran 65+ reviews without converging on tightly coupled claims around S8 (FiniteCorrespondenceRunDecomposition). Analysis of git revision history revealed the [dependency cone](../patterns/dependency-cone.md) pattern. The cone mechanism reduced review context by 58% and produced higher-quality findings. Generalizing from reactive cone detection to proactive multi-scale cycling produced the Review V-Cycle architecture.
+
+Running the V-cycle on ASN-0034 (April 2026) surfaced a distinct class of finding: across ~6 cycles and 80 claim files, total surface grew to 190,940 words without converging. Full-review detected the growth as [Surface Expansion](../equilibrium/surface-expansion.md); a compress pass restored the 70/30 target at 49,843 words. The diagnostic revealed that the V-cycle's review/revise prompts themselves were driving the expansion — the prompts' textual-fix default was the mechanism. [The Coupling Principle](../principles/coupling.md) names the discipline the prompts must enforce to prevent the expansion on the next run.
