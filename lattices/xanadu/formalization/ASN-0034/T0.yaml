@@ -5,8 +5,6 @@ depends: []
 summary: |
   Posits the carrier set T as the set of all finite sequences of natural numbers with at least
   one component, and introduces the length operator (#) and component projection (aᵢ) as
-  primitives. Also fixes the subcarrier ℕ⁺ = {n ∈ ℕ : n > 0} of strictly positive naturals, which
-  downstream properties (notably T4b and T6) cite as the value domain of non-zero components. This
-  is an axiom, not a derivation — it establishes the raw material from which every other property
-  in the system is built. The standard arithmetic facts about ℕ that proofs need are separated
-  into their own axioms so each proof cites only what it actually uses.
+  primitives. This is an axiom, not a derivation — it establishes the raw material from which
+  every other property in the system is built. The standard arithmetic facts about ℕ that proofs
+  need are separated into their own axioms so each proof cites only what it actually uses.

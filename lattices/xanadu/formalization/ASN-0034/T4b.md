@@ -30,7 +30,7 @@ By T3 the components of `t` are fixed, so the separator positions, field boundar
 - *Preconditions:* `t` satisfies T3 (component sequence fixed by sequence identity). `t` satisfies T4 (`zeros(t) ≤ 3`, no two zeros adjacent, `t₁ ≠ 0`, `t_{#t} ≠ 0`).
 - *Definition:* `fields : T ⇀ Seq(ℕ⁺) × Seq(ℕ⁺) × Seq(ℕ⁺) × Seq(ℕ⁺)` has domain exactly the T4-valid subset of `T`. Let `s₁ < s₂ < ... < s_k` enumerate the zero positions of `t`, `k = zeros(t) ∈ {0, 1, 2, 3}`, with sentinels `s₀ = 0` and `s_{k+1} = #t + 1`. The `(i+1)`-th field segment (for `0 ≤ i ≤ k`) is `(t_{s_i + 1}, ..., t_{s_{i+1} - 1})`. Then `fields(t) = (N(t), U(t), D(t), E(t))` assigns these `k + 1` segments to the first `k + 1` components in order and `ε` to the remaining `3 - k`. Outside the T4-valid subdomain, `fields(t)` is not assigned a value.
 - *Depends:*
-  - T0 (CarrierSetDefinition) — supplies ℕ as the carrier and ℕ⁺ as the positive subcarrier; supplies `#t ≥ 1`.
+  - T0 (CarrierSetDefinition) — supplies ℕ as the carrier; supplies `#t ≥ 1`.
   - NAT-zero (NatZeroMinimum) — supplies `0 ≤ tᵢ` for every component.
   - NAT-discrete (NatDiscreteness) — at `m = 0`, promotes non-zero components to strictly positive.
   - NAT-order (NatStrictTotalOrder) — licenses the strictly increasing enumeration of zero positions and the inequality manipulations on them.
