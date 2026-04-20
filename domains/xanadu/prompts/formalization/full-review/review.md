@@ -42,7 +42,7 @@ Read the foundation statements carefully, then read the ASN as a whole. Apply th
 - Every set membership claim must respect the definitions in scope
 - Every "by similar reasoning" must actually transfer
 - Every case analysis must cover its stated domain. When coverage is incomplete, the question is often whether the domain claim is correctly stated — not whether more cases should be added
-- Prose that does not advance reasoning is noise the precise reader must work around. Defensive justifications, exhaustiveness claims, use-site inventories, and essay content in structural slots degrade the argument. When you have to skip past meta-prose to follow the claim, that is a finding
+- Prose that does not advance reasoning is noise the precise reader must work around. Defensive justifications, exhaustiveness claims, use-site inventories, and essay content in structural slots degrade the argument. When you have to skip past meta-prose to follow the claim, that is a finding. But concrete examples, analogies, and statements of what the operation does or does not do are not meta-prose even when they sit in the wrong slot — flag their placement, not their existence
 
 ## Output Format
 
