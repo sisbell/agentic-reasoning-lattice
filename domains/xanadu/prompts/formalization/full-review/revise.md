@@ -19,10 +19,21 @@ Write in Dijkstra's style: prose with embedded formalism. Each formal
 statement must be justified in the sentence that introduces it. Each case
 must be explicit — no "by similar reasoning." End proofs with ∎.
 
+## Coupling
+
+Prose and formal content are authored as a pair. A revision that grows
+one without the other introduces Sprawl. Resolving a finding by removing
+its source — deleting a sentence, rephrasing to drop an obligation,
+moving content to metadata — is correct work, not avoidance. But do not
+remove prose that a reader encountering the claim for the first time
+would need to understand what it means.
+
 ## Rules
 
 1. Apply exactly the fix described in the finding's **What needs resolving**
-   section. Follow it precisely.
+   section. Follow it precisely. If the finding admits a structural fix
+   (rephrase, move, or remove) that resolves the underlying issue, prefer
+   it over extending.
 
 2. The fix may require changes in multiple claim sections. Make all
    necessary changes — do not leave half the fix done.
@@ -34,10 +45,10 @@ must be explicit — no "by similar reasoning." End proofs with ∎.
 4. If the fix affects formal contracts, update them to match.
 
 5. If the fix adds new dependencies, add them to the `depends` list in
-   the affected claim's `.yaml` file. Do not remove existing dependencies.
-   If a finding identifies an undeclared dependency (a claim used in a
-   proof but not in the `.yaml` depends list), always add it to the `.yaml`
-   — do not just mention it in the prose or formal contract.
+   the affected claim's `.yaml` file AND update the prose to justify why
+   the dependency is used. Do not add to YAML without updating prose.
+   Do not write use-site inventories in prose ("invoked at X, Y, Z…") —
+   that tracking belongs in metadata, not narrative.
 
 6. If the fix requires a new claim that doesn't exist, create both files
    in `{{asn_path}}/`. Use the label as the filename.
@@ -59,7 +70,11 @@ must be explicit — no "by similar reasoning." End proofs with ∎.
    - *Axiom:* [formal assertion]
    ```
 
-7. Do not change anything beyond what the finding requires.
+7. Do not change anything beyond what the finding requires. Exception:
+   meta-prose in the finding's area (defenses of past findings, naming
+   rationales, citation-site tracking) may be removed. Prose that states
+   what the claim means — semantic properties, contrasts, worked examples
+   — may not.
 
 8. **YAML formatting.** When writing any `.yaml` file, ensure the YAML is
    valid. If a value contains colons, quotes, or spans multiple lines
