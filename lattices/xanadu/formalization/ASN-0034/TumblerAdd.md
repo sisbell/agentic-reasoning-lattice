@@ -79,7 +79,7 @@ This is correct and intentional: advancing to "the beginning of the next chapter
   - NAT-zero (NatZeroMinimum) — lower bound `0 ≤ n` at dichotomy sites.
   - NAT-order (NatStrictTotalOrder) — defining clause unfolds `≤` at dichotomy and strict-promotion sites; transitivity composes bounds.
   - NAT-wellorder (NatWellOrdering) — least element of `{j : 1 ≤ j < k ∧ aⱼ > 0}` in the divergence sub-case.
-  - NAT-sub (NatPartialSubtraction) — conditional closure of `k - 1` and `n - k`; inverse characterisations collapse the result-length identity.
+  - NAT-sub (NatPartialSubtraction) — conditional closure of `k - 1` and `n - k`; right-inverse `(m − n) + n = m` at `(k − 1) + 1 = k` and left-inverse `n + (m − n) = m` at `k + (n − k) = n` collapse the result-length identity.
   - ActionPoint (ActionPoint) — bounds `1 ≤ k ≤ #w`, zeros-below-action-point `wᵢ = 0` for `i < k`, and `wₖ ≥ 1`.
   - TA-Pos (PositiveTumbler) — the predicate `Pos(w)` in the precondition.
   - T1 (LexicographicOrder) — case (i) at the divergence position for the strict-advancement postcondition and for the strict branches of dominance; `≥` abbreviation (`a ≥ b ≡ b < a ∨ b = a`) merges the dominance proof's strict and equality branches to deliver `a ⊕ w ≥ w`.
