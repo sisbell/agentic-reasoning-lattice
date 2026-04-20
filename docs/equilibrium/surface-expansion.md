@@ -66,6 +66,18 @@ Two specific cases in that history are preserved as reviewer-offered-escape-not-
 
 Both cases offered the structural fix in writing. Both took the textual fix. Both produced Sprawl that required separate cleanup.
 
+## Surface expansion blinds review
+
+A second-order observation from the April 2026 V-cycle rerun of ASN-0034/TumblerAdd, after the compress pass and coupling-prompt updates.
+
+Three cycles of the rerun produced three findings: a missing NAT-discrete contrapositive citation in T1 Case 1, an unstitched `≥` abbreviation in TumblerAdd's dominance conclusion, and an ambiguous NAT-cancel summand-absorption form. All three were genuine coupling gaps. All three were present throughout the pre-compress review history. **None had been found in the earlier cycles.**
+
+Surface expansion does not just consume review cycles with noise — it prevents the reviewer from detecting real structural issues. A bloated file can run convergence cycles indefinitely without surfacing the coupling gaps it contains, because the reviewer's attention is occupied by the defensive meta-prose the Sprawl produced. Signal stays below the noise floor.
+
+This reframes the cost of Sprawl. Beyond the direct cost (wasted cycles, ratio drift, maintenance burden), Sprawl silently corrupts the review process itself. Convergence is not merely delayed — it is unreachable on Sprawl-accumulating files, because the defects the review cycle is meant to find stay hidden.
+
+The discipline the Coupling Principle enforces is therefore not a cleanliness preference. Restoring a file to its target ratio does not just reduce waste; it restores the reviewer's capability to find and fix coupling gaps that may have accumulated invisibly throughout the Sprawl-affected cycles.
+
 ## Related
 
 - [Contract Sprawl](contract-sprawl.md), [Prose Sprawl](prose-sprawl.md), [Index Sprawl](index-sprawl.md) — site-specific manifestations of surface expansion. Use these for diagnosis once expansion is detected; use this doc for the shared mechanism and for monitoring.
