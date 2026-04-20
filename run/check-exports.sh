@@ -11,7 +11,7 @@
 set -euo pipefail
 
 WORKSPACE="$(cd "$(dirname "$0")/.." && pwd)"
-INDEX="$WORKSPACE/vault/project-model/index.md"
+INDEX="$WORKSPACE/lattices/xanadu/project-model/index.md"
 
 # Extract active ASN numbers from index (skip deprecated/absorbed/dormant)
 active_asns=$(grep -E '^\| ASN-[0-9]+' "$INDEX" \
@@ -29,7 +29,7 @@ printf "  %-12s %-30s %-20s %-20s %s\n" "---" "-----" "-------------" "------" "
 
 for label in $active_asns; do
     # Find reasoning doc
-    asn_file=$(ls "$WORKSPACE/vault/1-reasoning-docs/${label}-"*.md 2>/dev/null | head -1)
+    asn_file=$(ls "$WORKSPACE/lattices/xanadu/discovery/notes/${label}-"*.md 2>/dev/null | head -1)
     if [ -z "$asn_file" ]; then
         continue
     fi
@@ -42,7 +42,7 @@ for label in $active_asns; do
     asn_date=$(git -C "$WORKSPACE" log -1 --format="%ci" -- "$asn_file" 2>/dev/null | cut -d' ' -f1,2 | cut -c1-16 || echo "none")
 
     # Find export file
-    export_file="$WORKSPACE/vault/project-model/${label}/formal-statements.md"
+    export_file="$WORKSPACE/lattices/xanadu/project-model/${label}/formal-statements.md"
 
     if [ ! -f "$export_file" ]; then
         printf "  %-12s %-30s %-20s %-20s %s\n" "$label" "$title" "$asn_date" "—" "MISSING"

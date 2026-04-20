@@ -100,7 +100,7 @@ def _find_dirty(current_hashes, stored_hashes, deps_data):
 def find_properties_needing_quality(asn_num, force_all=True, force_rebuild=False):
     """Find claims that need a quality pass.
 
-    Reads per-claim files from vault/3-formalization/ASN-NNNN/.
+    Reads per-claim files from lattices/xanadu/formalization/ASN-NNNN/.
 
     If force_rebuild=True, returns ALL (ignores hashes).
     If force_all=True, uses hash-based dirty detection.

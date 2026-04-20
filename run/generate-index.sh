@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Regenerate vault/project-model/index.md from ASN project yamls.
+# Regenerate lattices/xanadu/project-model/index.md from ASN project yamls.
 #
 # Groups by topic, sorts by ASN number within each group.
 # Reads stage, title, depends from each yaml.
@@ -11,7 +11,7 @@
 set -euo pipefail
 
 WORKSPACE="$(cd "$(dirname "$0")/.." && pwd)"
-MODEL_DIR="$WORKSPACE/vault/project-model"
+MODEL_DIR="$WORKSPACE/lattices/xanadu/project-model"
 INDEX="$MODEL_DIR/index.md"
 
 # Collect data from yamls
@@ -32,7 +32,7 @@ for yaml in "$MODEL_DIR"/ASN-*/project.yaml; do
     [ -z "$deps" ] && deps="—"
 
     # Compute export freshness from file timestamps
-    asn_file=$(find "$WORKSPACE/vault/1-reasoning-docs" -name "${label}-*.md" -maxdepth 1 2>/dev/null | head -1 || true)
+    asn_file=$(find "$WORKSPACE/lattices/xanadu/discovery/notes" -name "${label}-*.md" -maxdepth 1 2>/dev/null | head -1 || true)
     export_file="$asn_dir/formal-statements.md"
 
     if [ -z "$asn_file" ]; then
@@ -62,7 +62,7 @@ done
 cat > "$INDEX" << 'HEADER'
 # ASN Index
 
-Generated from vault/project-model/ASN-*/project.yaml — do not edit manually.
+Generated from lattices/xanadu/project-model/ASN-*/project.yaml — do not edit manually.
 Regenerate with: `./run/generate-index.sh`
 
 ## Foundation

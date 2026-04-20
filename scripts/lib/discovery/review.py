@@ -6,7 +6,7 @@ Loads the ASN content and shared vocabulary, injects them into a review
 prompt template, and invokes claude --print with --tools "" (review is
 pure analysis, no file access needed).
 
-Results written to vault/1-reasoning-docs-review/ for traceability.
+Results written to lattices/xanadu/discovery/review/ for traceability.
 
 Usage:
     python scripts/lib/review_check.py 4
@@ -258,7 +258,7 @@ def main():
     # Find ASN
     asn_path, asn_label = find_asn(args.asn)
     if asn_path is None:
-        print(f"  No ASN found for {args.asn} in vault/1-reasoning-docs/", file=sys.stderr)
+        print(f"  No ASN found for {args.asn} in lattices/xanadu/discovery/notes/", file=sys.stderr)
         sys.exit(1)
 
     asn_content = asn_path.read_text()
@@ -266,7 +266,7 @@ def main():
     # Read vocabulary
     vocabulary = read_file(VOCABULARY)
     if not vocabulary:
-        print("  Warning: vault/vocabulary.md not found", file=sys.stderr)
+        print("  Warning: lattices/xanadu/vocabulary.md not found", file=sys.stderr)
 
     # Build prompt
     print(f"  [REVIEW] {asn_label}", file=sys.stderr)

@@ -2,7 +2,7 @@
 """
 Formalize Patch — apply targeted fixes to formalized ASNs.
 
-Reads a patch instruction from vault/1-reasoning-docs-patches/ASN-NNNN/,
+Reads a patch instruction from lattices/xanadu/discovery/patches/ASN-NNNN/,
 applies the fix, and commits. The formalization pipeline runs afterward
 to verify correctness.
 
@@ -21,12 +21,11 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, USAGE_LOG
+from lib.shared.paths import WORKSPACE, USAGE_LOG, PATCHES_DIR
 from lib.shared.common import find_asn, step_commit_asn
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization" / "patch"
 APPLY_TEMPLATE = PROMPTS_DIR / "apply.md"
-PATCHES_DIR = WORKSPACE / "vault" / "1-reasoning-docs-patches"
 
 
 def validate(asn_num, patch_name):
@@ -109,7 +108,7 @@ def main():
         description="Apply a targeted patch to a formalized ASN")
     parser.add_argument("asn", help="ASN number (e.g., 34)")
     parser.add_argument("--patch", required=True,
-                        help="Patch filename (in vault/1-reasoning-docs-patches/ASN-NNNN/)")
+                        help="Patch filename (in lattices/xanadu/discovery/patches/ASN-NNNN/)")
     parser.add_argument("--model", "-m", default="opus",
                         choices=["opus", "sonnet"])
     parser.add_argument("--effort", default="max",

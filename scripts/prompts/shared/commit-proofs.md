@@ -1,6 +1,6 @@
 # Commit Proof Changes
 
-Commit changes to `vault/5-proofs/` — the curated, human-reviewed proof library.
+Commit changes to `lattices/xanadu/verification/proofs/` — the curated, human-reviewed proof library.
 
 These changes are deliberate promotions or updates. They should never come from
 automated pipelines.
@@ -9,13 +9,13 @@ automated pipelines.
 
 1. **Check for changes:**
    ```bash
-   git status vault/5-proofs/
+   git status lattices/xanadu/verification/proofs/
    ```
 
 2. **If changes exist, read the diffs:**
    ```bash
-   git diff vault/5-proofs/
-   git diff --cached vault/5-proofs/
+   git diff lattices/xanadu/verification/proofs/
+   git diff --cached lattices/xanadu/verification/proofs/
    ```
 
 3. **Understand what changed:**
@@ -23,9 +23,9 @@ automated pipelines.
    - Existing foundation updated (new lemma, refactored helper)?
    - Bridge lemma added for downstream use?
 
-4. **Stage only vault/5-proofs/:**
+4. **Stage only lattices/xanadu/verification/proofs/:**
    ```bash
-   git add vault/5-proofs/
+   git add lattices/xanadu/verification/proofs/
    ```
 
 5. **Generate commit message:**

@@ -2,7 +2,7 @@
 """
 Discovery Patch — apply a targeted fix to an ASN with scoped review/revise.
 
-Reads a patch instruction from vault/1-reasoning-docs-patches/ASN-NNNN/,
+Reads a patch instruction from lattices/xanadu/discovery/patches/ASN-NNNN/,
 applies the fix, propagates downstream effects, then runs a scoped
 review/revise cycle to verify correctness.
 
@@ -31,7 +31,7 @@ def main():
     parser.add_argument("asn", type=int,
                         help="ASN number to patch")
     parser.add_argument("--patch", required=True,
-                        help="Patch filename (in vault/1-reasoning-docs-patches/ASN-NNNN/)")
+                        help="Patch filename (in lattices/xanadu/discovery/patches/ASN-NNNN/)")
     parser.add_argument("--model", "-m", default="opus",
                         choices=["opus", "sonnet"])
     parser.add_argument("--effort", default="max",

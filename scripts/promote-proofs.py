@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Promote Proofs — copy verified .dfy files to vault/4-proofs-staging/ASN-NNNN/.
+Promote Proofs — copy verified .dfy files to lattices/xanadu/verification/proofs-staging/ASN-NNNN/.
 
 After a Dafny build produces verified .dfy files, this script promotes
 them so downstream ASNs can reference them.
@@ -18,14 +18,12 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, DAFNY_DIR
-
-PROOFS_DIR = WORKSPACE / "vault" / "4-proofs-staging"
+from lib.shared.paths import WORKSPACE, DAFNY_DIR, PROOFS_STAGING_DIR as PROOFS_DIR
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Promote verified .dfy files to vault/4-proofs-staging/")
+        description="Promote verified .dfy files to lattices/xanadu/verification/proofs-staging/")
     parser.add_argument("asn", help="ASN number (e.g., 34)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Show what would be done")

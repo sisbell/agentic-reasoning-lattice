@@ -1,3 +1,0 @@
-# Divergences — (Global uniqueness) (GlobalUniqueness)
-
-- **Line 25**: The ASN states GlobalUniqueness as a system-level property over all allocation events at all times. The Dafny model captures only the structural core: given that the allocation system provides one of three discriminants (ordering, non-nesting prefixes, or length difference), a ≠ b follows. The exhaustiveness argument — that every pair of distinct allocations satisfies at least one discriminant — depends on T9, T10, and T10a as system invariants, which cannot be expressed as a Dafny precondition without modeling the full allocation state machine.

@@ -2,8 +2,8 @@
 """
 Promote Blueprint — copy blueprint claims to formalization.
 
-Copies per-claim files from vault/2-blueprints/ASN-NNNN/claims/
-to vault/3-formalization/ASN-NNNN/ where formalization operates on
+Copies per-claim files from lattices/xanadu/blueprinting/ASN-NNNN/claims/
+to lattices/xanadu/formalization/ASN-NNNN/ where formalization operates on
 the files in place.
 
 Usage:

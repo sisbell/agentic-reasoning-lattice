@@ -15,7 +15,7 @@ Commit changes to the vault with meaningful, descriptive commit messages.
    - New ASN added?
    - Existing ASN revised?
    - What was the nature of the revision? (claim fix, proof completion, edge case, etc.)
-   - Was a review saved to `vault/2-review/`?
+   - Was a review saved to `lattices/xanadu/discovery/review/`?
    - Was a Dafny file added or modified?
 
 3. **Generate commit message:**
@@ -29,7 +29,7 @@ Commit changes to the vault with meaningful, descriptive commit messages.
 
    Types:
    - `discovery` — new ASN
-   - `review` — review saved to vault/2-review/
+   - `review` — review saved to lattices/xanadu/discovery/review/
    - `revise` — ASN revised to address review findings
    - `alloy` — Alloy model and check results
    - `dafny` — Dafny verification added or updated

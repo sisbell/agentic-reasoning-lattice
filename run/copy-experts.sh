@@ -14,8 +14,8 @@ fi
 src=$(printf "ASN-%04d" "$1")
 tgt=$(printf "ASN-%04d" "$2")
 
-src_dir="vault/experts/$src"
-tgt_dir="vault/experts/$tgt"
+src_dir="lattices/xanadu/discovery/consultations/$src"
+tgt_dir="lattices/xanadu/discovery/consultations/$tgt"
 
 if [ ! -d "$src_dir" ]; then
     echo "Error: $src_dir does not exist" >&2

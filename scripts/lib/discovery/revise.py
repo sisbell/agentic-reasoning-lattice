@@ -229,7 +229,7 @@ def main():
     # Find ASN
     asn_path, asn_label = find_asn(args.asn)
     if asn_path is None:
-        print(f"  No ASN found for {args.asn} in vault/1-reasoning-docs/", file=sys.stderr)
+        print(f"  No ASN found for {args.asn} in lattices/xanadu/discovery/notes/", file=sys.stderr)
         sys.exit(1)
 
     # Find review
@@ -239,7 +239,7 @@ def main():
             print(f"  Review not found: {args.review} for {asn_label}",
                   file=sys.stderr)
         else:
-            print(f"  No reviews found for {asn_label} in vault/1-reasoning-docs-review/",
+            print(f"  No reviews found for {asn_label} in lattices/xanadu/discovery/review/",
                   file=sys.stderr)
         sys.exit(1)
 
@@ -254,7 +254,7 @@ def main():
     # Load vocabulary
     vocab = read_file(VOCABULARY)
     if not vocab:
-        print("  Warning: vault/vocabulary.md not found", file=sys.stderr)
+        print("  Warning: lattices/xanadu/vocabulary.md not found", file=sys.stderr)
 
     # Load consultation results if provided
     consultation_content = None

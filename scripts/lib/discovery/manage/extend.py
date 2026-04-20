@@ -63,7 +63,7 @@ def validate(source_num, target_num, base_num, claim_labels):
     source_path, source_label = find_asn(str(source_num))
     if source_path is None:
         print(f"  [ERROR] Source ASN-{source_num:04d} not found in "
-              f"vault/1-reasoning-docs/", file=sys.stderr)
+              f"lattices/xanadu/discovery/notes/", file=sys.stderr)
         sys.exit(1)
 
     # Base manifest exists

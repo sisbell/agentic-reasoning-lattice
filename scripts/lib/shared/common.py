@@ -11,7 +11,11 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, ASNS_DIR, USAGE_LOG
+from lib.shared.paths import (
+    WORKSPACE, ASNS_DIR, USAGE_LOG,
+    REVIEWS_DIR, BLUEPRINTS_DIR, FORMALIZATION_DIR,
+    EXPERTS_DIR, PROJECT_MODEL_DIR, EXAMPLES_DIR,
+)
 
 
 # Custom YAML dumper — uses block scalars (|) for multiline strings
@@ -270,7 +274,7 @@ def parallel_llm_calls(items, worker_fn, max_workers=10):
 
 
 def assemble_readonly(asn_label):
-    """Concatenate per-claim files from vault/3-formalization/ for read-only use.
+    """Concatenate per-claim files from lattices/xanadu/formalization/ for read-only use.
 
     Returns assembled text (preamble + structural sections + claims).
     Used by cross-cutting scripts that need the whole-ASN view.
@@ -412,13 +416,13 @@ def step_commit_asn(asn_id, hint=""):
     """
     label = f"ASN-{int(asn_id):04d}"
     patterns = [
-        f"vault/1-reasoning-docs/{label}-*",
-        f"vault/1-reasoning-docs-review/{label}/",
-        f"vault/2-blueprints/{label}/",
-        f"vault/3-formalization/{label}/",
-        f"vault/0-consultations/{label}/",
-        f"vault/project-model/{label}/",
-        f"vault/6-examples/{label}/",
+        f"{ASNS_DIR.relative_to(WORKSPACE)}/{label}-*",
+        f"{REVIEWS_DIR.relative_to(WORKSPACE)}/{label}/",
+        f"{BLUEPRINTS_DIR.relative_to(WORKSPACE)}/{label}/",
+        f"{FORMALIZATION_DIR.relative_to(WORKSPACE)}/{label}/",
+        f"{EXPERTS_DIR.relative_to(WORKSPACE)}/{label}/",
+        f"{PROJECT_MODEL_DIR.relative_to(WORKSPACE)}/{label}/",
+        f"{EXAMPLES_DIR.relative_to(WORKSPACE)}/{label}/",
     ]
 
     # Stage only this ASN's files
@@ -477,7 +481,7 @@ def step_commit_asn(asn_id, hint=""):
 def step_commit(hint=""):
     """Run commit.py via subprocess. Returns True if committed.
 
-    Stages all vault/ changes. For ASN-scoped commits, use
+    Stages all lattices/xanadu/ changes. For ASN-scoped commits, use
     step_commit_asn() instead.
     """
     commit_script = WORKSPACE / "scripts" / "commit.py"

@@ -6,7 +6,7 @@ Applies targeted fixes to formalized ASNs from downstream findings
 ## Usage
 
 1. Identify the issue from pipeline output (review files, error logs)
-2. Write a patch file in `vault/1-reasoning-docs-patches/ASN-NNNN/`
+2. Write a patch file in `lattices/xanadu/discovery/patches/ASN-NNNN/`
 3. Run the patch: `python scripts/formalize-patch.py NNNN --patch file.md`
 4. Run the formalization pipeline to verify: `./run/formalize.sh --from dependency-review NNNN`
 

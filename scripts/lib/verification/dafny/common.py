@@ -20,7 +20,7 @@ def read_file(path):
 
 
 def run_commit(hint=""):
-    """Run commit.py to commit vault changes."""
+    """Run commit.py to commit lattice changes."""
     cmd = [sys.executable, str(WORKSPACE / "scripts" / "commit.py")]
     if hint:
         cmd.append(hint)

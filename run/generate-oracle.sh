@@ -2,17 +2,17 @@
 # Generate Rust oracle from verified Dafny proofs.
 #
 # Copies proof files to a temp directory, substitutes abstract types
-# with concrete ones, runs dafny translate rs, and outputs to vault/8-translation/.
+# with concrete ones, runs dafny translate rs, and outputs to lattices/xanadu/implementation/translation/.
 #
 # Usage: ./scripts/generate-oracle.sh
 
 set -euo pipefail
 
 WORKSPACE="$(cd "$(dirname "$0")/.." && pwd)"
-PROOFS="$WORKSPACE/vault/5-proofs"
-ORACLE="$WORKSPACE/vault/8-translation"
+PROOFS="$WORKSPACE/lattices/xanadu/verification/proofs"
+ORACLE="$WORKSPACE/lattices/xanadu/implementation/translation"
 TMPDIR="$(mktemp -d)"
-STAGING="$TMPDIR/vault/5-proofs"
+STAGING="$TMPDIR/lattices/xanadu/verification/proofs"
 
 trap 'rm -rf "$TMPDIR"' EXIT
 
@@ -39,8 +39,8 @@ dafny translate rs $SOURCES \
     --allow-warnings
 
 echo "[ORACLE] Cleaning source references..."
-# Replace messy temp/relative paths with clean vault/5-proofs/ references
-sed -i.bak 's|/// .*/vault/5-proofs/|/// vault/5-proofs/|g' "$ORACLE/xanadu-oracle-rust/src/xanadu_oracle.rs"
+# Replace messy temp/relative paths with clean lattices/xanadu/verification/proofs/ references
+sed -i.bak 's|/// .*/lattices/xanadu/verification/proofs/|/// lattices/xanadu/verification/proofs/|g' "$ORACLE/xanadu-oracle-rust/src/xanadu_oracle.rs"
 rm -f "$ORACLE/xanadu-oracle-rust/src/"*.bak
 
 echo "[ORACLE] Generated files:"

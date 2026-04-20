@@ -2,11 +2,11 @@
 """
 Discovery — synthesize expert consultation answers into a formal ASN.
 
-Reads consultation answers from vault/0-consultations/ASN-NNNN/consultation/answers.md,
+Reads consultation answers from lattices/xanadu/discovery/consultations/ASN-NNNN/consultation/answers.md,
 loads the discovery prompt template, and calls claude -p to write
 the ASN. Requires consultation answers to exist — run consult-experts.py first.
 
-Output: vault/1-reasoning-docs/ASN-NNNN-title.md
+Output: lattices/xanadu/discovery/notes/ASN-NNNN-title.md
 
 Usage:
     python scripts/lib/draft_discover.py --inquiry-id 4
@@ -230,7 +230,7 @@ def run_discovery(inquiry, asn_number, slug, force=False):
 **Topic**: {inquiry['title']}
 **Question**: {inquiry['question']}
 
-Write ASN-{asn_number:04d} to `vault/1-reasoning-docs/ASN-{asn_number:04d}-{slug}.md`.
+Write ASN-{asn_number:04d} to `lattices/xanadu/discovery/notes/ASN-{asn_number:04d}-{slug}.md`.
 
 Remember:
 1. Read the consultation answers above — they are your primary input.

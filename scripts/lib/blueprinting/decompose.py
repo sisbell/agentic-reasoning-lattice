@@ -106,7 +106,7 @@ def _make_worker(sections_dir):
 def decompose_asn(asn_num):
     """Decompose an ASN into sections with YAML analysis.
 
-    1. Copy ASN to vault/2-blueprints/ASN-NNNN/source.md
+    1. Copy ASN to lattices/xanadu/blueprinting/ASN-NNNN/source.md
     2. Split on ## headers → section .md files
     3. Parallel LLM calls → section .yaml files
     """

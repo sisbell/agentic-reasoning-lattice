@@ -3,10 +3,10 @@
 Per-claim Dafny contract review.
 
 Compares each generated .dfy file against its formal contract from
-per-claim files in vault/3-formalization/. Flags mismatches for
+per-claim files in lattices/xanadu/formalization/. Flags mismatches for
 author review.
 
-Output: per-claim review files in vault/3-verification/dafny/ASN-NNNN/reviews/
+Output: per-claim review files in lattices/xanadu/verification/dafny/ASN-NNNN/reviews/
 
 Usage:
     python scripts/lib/verification/dafny/validate.py 34

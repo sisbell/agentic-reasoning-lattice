@@ -12,7 +12,10 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, ASNS_DIR
+from lib.shared.paths import (
+    WORKSPACE, ASNS_DIR,
+    REVIEWS_DIR, EXPERTS_DIR, PROJECT_MODEL_DIR, EXAMPLES_DIR,
+)
 
 REVIEW_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "review.py"
 CONSULT_REVISION_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "review_consult.py"
@@ -153,11 +156,11 @@ def step_commit(hint="", asn_id=None):
     if asn_id is not None:
         label = f"ASN-{int(asn_id):04d}"
         patterns = [
-            f"vault/1-reasoning-docs/{label}-*",
-            f"vault/1-reasoning-docs-review/{label}",
-            f"vault/0-consultations/{label}",
-            f"vault/project-model/{label}/",
-            f"vault/6-examples/{label}",
+            f"{ASNS_DIR.relative_to(WORKSPACE)}/{label}-*",
+            f"{REVIEWS_DIR.relative_to(WORKSPACE)}/{label}",
+            f"{EXPERTS_DIR.relative_to(WORKSPACE)}/{label}",
+            f"{PROJECT_MODEL_DIR.relative_to(WORKSPACE)}/{label}/",
+            f"{EXAMPLES_DIR.relative_to(WORKSPACE)}/{label}",
         ]
         for pattern in patterns:
             full = str(WORKSPACE / pattern)

@@ -47,7 +47,7 @@ python scripts/full-review.py 34           # whole-ASN structural analysis
 python scripts/dependency-review.py 34     # upstream reference validation
 
 # Pick up full-review findings from a previous run:
-python scripts/full-review.py 34 --review vault/3-formalization/ASN-0034/reviews/review-7.md
+python scripts/full-review.py 34 --review lattices/xanadu/formalization/ASN-0034/reviews/review-7.md
 
 # Assembly (for downstream consumers)
 python scripts/formalization-assembly.py 34
@@ -56,7 +56,7 @@ python scripts/formalization-assembly.py 34
 ## Output structure
 
 ```
-vault/2-blueprints/ASN-NNNN/
+lattices/xanadu/blueprinting/ASN-NNNN/
   claims/
     _preamble.md
     _table.md
@@ -71,7 +71,7 @@ vault/2-blueprints/ASN-NNNN/
     triage.md
     promotion-plan.md
 
-vault/3-formalization/ASN-NNNN/
+lattices/xanadu/formalization/ASN-NNNN/
   _table.md
   _vocabulary.md
   T0a.md

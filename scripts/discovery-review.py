@@ -31,7 +31,7 @@ def main():
     # Find ASN
     asn_path, asn_label = find_asn(args.asn)
     if asn_path is None:
-        print(f"  No ASN found for {args.asn} in vault/1-reasoning-docs/", file=sys.stderr)
+        print(f"  No ASN found for {args.asn} in lattices/xanadu/discovery/notes/", file=sys.stderr)
         sys.exit(1)
 
     print(f"  [REVIEW] {asn_label} ({asn_path.name})", file=sys.stderr)

@@ -22,7 +22,7 @@ Emit raw markdown — no code fences wrapping the output.
 
 # Test Cases — Example {N}: {example name}
 
-Source: vault/6-examples/{ASN label}/examples-1.md, Example {N}
+Source: lattices/xanadu/implementation/examples/{ASN label}/examples-1.md, Example {N}
 
 ## TC-001: {short descriptive name}
 **Claim:** {label} ({case/clause})

@@ -27,7 +27,7 @@ DAFNY_REFERENCE = PROMPTS_DIR / "dafny-reference.dfy"
 
 
 def build_claim_list_from_asn(asn_num):
-    """Build claim list from per-claim files in vault/3-formalization/.
+    """Build claim list from per-claim files in lattices/xanadu/formalization/.
 
     Reads per-claim YAML for metadata, .md files for contract type detection.
 

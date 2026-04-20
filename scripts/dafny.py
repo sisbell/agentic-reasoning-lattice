@@ -2,7 +2,7 @@
 """
 Dafny — generate Dafny declarations per ASN claim.
 
-Reads per-claim files from vault/3-formalization/, generates one .dfy
+Reads per-claim files from lattices/xanadu/formalization/, generates one .dfy
 per claim using an agentic Claude session (with Read/Write/Bash tools
 to write, verify, and self-fix), validates contracts, writes per-claim reviews.
 

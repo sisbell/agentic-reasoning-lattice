@@ -26,7 +26,7 @@ Discovery and verification are ONE process:
 
 **CRITICAL: This ASN is self-contained.** You are writing one Abstract Specification Note about one topic. You do not reference, depend on, or build upon any non-foundation ASN. Foundation ASN statements are provided below — use their definitions directly. For everything else, derive from first principles — from Nelson's design intent and Gregory's implementation evidence.
 
-If you need a concept not covered by a foundation ASN, derive it locally. State what you need, justify it, and move on. Do not look for or reference `vault/foundations.md`, `vault/index.md`, or any non-foundation ASN files.
+If you need a concept not covered by a foundation ASN, derive it locally. State what you need, justify it, and move on. Do not look for or reference `lattices/xanadu/foundations.md`, `lattices/xanadu/index.md`, or any non-foundation ASN files.
 
 Each ASN is a complete, standalone argument. A reader should be able to understand it without reading anything beyond the foundations.
 
@@ -36,7 +36,7 @@ Each ASN is a complete, standalone argument. A reader should be able to understa
 
 Your topic is provided as input. Write one ASN exploring that topic.
 
-Write to `vault/1-reasoning-docs/ASN-NNNN-title.md` where NNNN is the assigned number.
+Write to `lattices/xanadu/discovery/notes/ASN-NNNN-title.md` where NNNN is the assigned number.
 
 ---
 
@@ -66,7 +66,7 @@ This order matters. If you consult Gregory first, implementation detail will sha
   ```
   The script prints a file path to stdout. Read that file to get both KB synthesis and code exploration answers. Takes 2-3 minutes. Runs two agents in parallel internally.
 
-**Important:** The scripts write results to `vault/0-consultations/.../sessions/` for traceability. Do NOT try to capture their stdout as the answer — read the file path they print, then use the Read tool on that path.
+**Important:** The scripts write results to `lattices/xanadu/discovery/consultations/.../sessions/` for traceability. Do NOT try to capture their stdout as the answer — read the file path they print, then use the Read tool on that path.
 
 **When to consult:** Nelson first on every topic — always. Gregory when you need implementation evidence or to check whether the implementation satisfies an abstract claim. Never consult to confirm what you already know.
 
@@ -158,7 +158,7 @@ Describe **state**, not execution. Never "the program then goes to..." — inste
 
 **No big blocks of notation without reasoning. Be consistent.**
 
-**Use relative paths** (e.g., `vault/1-reasoning-docs/ASN-0001-*.md`) when referencing files, never absolute paths.
+**Use relative paths** (e.g., `lattices/xanadu/discovery/notes/ASN-0001-*.md`) when referencing files, never absolute paths.
 
 ---
 

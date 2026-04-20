@@ -1,4 +1,4 @@
-"""Shared vault path constants for all pipeline scripts."""
+"""Shared lattice path constants for all pipeline scripts."""
 
 import re
 from pathlib import Path
@@ -6,41 +6,40 @@ from pathlib import Path
 import yaml
 
 WORKSPACE = Path(__file__).resolve().parent.parent.parent.parent
-VAULT = WORKSPACE / "vault"
+LATTICE = WORKSPACE / "lattices" / "xanadu"
 
-# Stage 0: Consultations (merged transcripts)
-EXPERTS_DIR = VAULT / "0-consultations"
+# Discovery stage
+EXPERTS_DIR = LATTICE / "discovery" / "consultations"
+ASNS_DIR = LATTICE / "discovery" / "notes"
+REVIEWS_DIR = LATTICE / "discovery" / "review"
+PATCHES_DIR = LATTICE / "discovery" / "patches"
 
-# Stage 1: Reasoning documents (ASNs)
-ASNS_DIR = VAULT / "1-reasoning-docs"
-VOCABULARY = VAULT / "vocabulary.md"
+# Per-lattice files
+VOCABULARY = LATTICE / "vocabulary.md"
 
-# Stage 2: Review
-REVIEWS_DIR = VAULT / "1-reasoning-docs-review"
+# Blueprinting stage
+BLUEPRINTS_DIR = LATTICE / "blueprinting"
 
-# Blueprinting
-BLUEPRINTS_DIR = VAULT / "2-blueprints"
+# Formalization stage
+FORMALIZATION_DIR = LATTICE / "formalization"
 
-# Stage 3: Formalization (per-claim working copies)
-FORMALIZATION_DIR = VAULT / "3-formalization"
+# Verification stage
+ALLOY_DIR = LATTICE / "verification" / "alloy"
+DAFNY_DIR = LATTICE / "verification" / "dafny"
+PROOFS_DIR = LATTICE / "verification" / "proofs"                     # promoted/curated
+PROOFS_STAGING_DIR = LATTICE / "verification" / "proofs-staging"     # Level 2 builds, pre-curation
+PROOF_IMPORTS = PROOFS_STAGING_DIR / "imports.md"
 
-# Stage 3: Verification
-ALLOY_DIR = VAULT / "3-verification" / "alloy"
-DAFNY_DIR = VAULT / "3-verification" / "dafny"
-
-
-# Stage 4: Proofs staging (Level 2 builds, pre-curation)
-PROOFS_DIR = VAULT / "4-proofs-staging"
-PROOF_IMPORTS = PROOFS_DIR / "imports.md"
-
-# Stage 6: Worked Examples
-EXAMPLES_DIR = VAULT / "6-examples"
-
-# Stage 7: Test Cases
-TESTCASES_DIR = VAULT / "7-test-cases"
+# Implementation stage (Xanadu-specific — reference Rust impl)
+EXAMPLES_DIR = LATTICE / "implementation" / "examples"
+TESTCASES_DIR = LATTICE / "implementation" / "test-cases"
+TRANSLATION_DIR = LATTICE / "implementation" / "translation"
 
 # Per-ASN project model (manifests, statements, deps, issues)
-PROJECT_MODEL_DIR = VAULT / "project-model"
+PROJECT_MODEL_DIR = LATTICE / "project-model"
+
+# Operational
+USAGE_LOG = LATTICE / "usage-log.jsonl"
 
 
 def asn_dir(asn_num):
@@ -66,12 +65,6 @@ def formal_stmts(asn_num):
 def open_issues_path(asn_num):
     """Path to ASN open issues file."""
     return asn_dir(asn_num) / "open-issues.md"
-
-# Requirements — Nelson's design features
-REQUIREMENTS_DIR = VAULT / "requirements"
-
-# Shared
-USAGE_LOG = VAULT / "usage-log.jsonl"
 
 
 def _review_sort_key(path):

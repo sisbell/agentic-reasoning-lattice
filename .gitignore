@@ -3,14 +3,14 @@
 __pycache__/
 .env
 .claude/
-vault/usage-log.jsonl
+lattices/xanadu/usage-log.jsonl
 nelson/literary-machines/*.pdf
 nelson/literary-machines/raw/
 notes/
 
 # Alloy checker output (receipt.json, solution files)
-vault/4-modeling/alloy/**/receipt.json
-vault/4-modeling/alloy/**/*-solution-*.md
+lattices/xanadu/verification/alloy/**/receipt.json
+lattices/xanadu/verification/alloy/**/*-solution-*.md
 worktrees/
 
 # Rust build artifacts

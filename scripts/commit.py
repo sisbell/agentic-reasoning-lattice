@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Commit vault changes with descriptive messages.
+Commit lattice changes with descriptive messages.
 
-Checks for changes in vault/, invokes claude -p with the commit prompt
+Checks for changes in lattices/xanadu/, invokes claude -p with the commit prompt
 template so it can read diffs and generate a meaningful commit message.
 
 Prints the commit hash to stdout.
@@ -20,7 +20,7 @@ import sys
 import time
 from pathlib import Path
 
-from lib.shared.paths import WORKSPACE, USAGE_LOG
+from lib.shared.paths import WORKSPACE, USAGE_LOG, LATTICE, PROOFS_DIR
 
 COMMIT_PROMPT = WORKSPACE / "scripts" / "prompts" / "shared" / "commit.md"
 PROOFS_COMMIT_PROMPT = WORKSPACE / "scripts" / "prompts" / "shared" / "commit-proofs.md"
@@ -44,14 +44,14 @@ def main():
     hint = " ".join(args)
 
     # Check for changes in the appropriate directory
-    check_path = "vault/5-proofs/" if proofs_mode else "vault/"
+    scope_dir = PROOFS_DIR if proofs_mode else LATTICE
+    check_path = str(scope_dir.relative_to(WORKSPACE)) + "/"
     result = subprocess.run(
         ["git", "status", "--porcelain", check_path],
         capture_output=True, text=True, cwd=str(WORKSPACE),
     )
     if not result.stdout.strip():
-        label = "vault/5-proofs/" if proofs_mode else "vault/"
-        print(f"  nothing to commit in {label}", file=sys.stderr)
+        print(f"  nothing to commit in {check_path}", file=sys.stderr)
         sys.exit(0)
 
     prompt_path = PROOFS_COMMIT_PROMPT if proofs_mode else COMMIT_PROMPT
@@ -67,7 +67,7 @@ def main():
 
 {hint}
 
-Check for changes in {"vault/5-proofs/" if proofs_mode else "vault/"}, read the diffs, and commit with a descriptive message.
+Check for changes in {check_path}, read the diffs, and commit with a descriptive message.
 """
 
     cmd = [

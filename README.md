@@ -62,10 +62,10 @@ See [Science Approach](docs/science/README.md) for the convergence framing, cone
 
 ## Structure
 
-- [vault/1-reasoning-docs/](vault/1-reasoning-docs/) — ASN reasoning documents (discovery output)
-- [vault/2-blueprints/](vault/2-blueprints/) — per-claim decomposition (blueprinting output)
-- [vault/3-formalization/](vault/3-formalization/) — formalized claims with contracts
-- [vault/3-verification/](vault/3-verification/) — Dafny proofs and Alloy models
-- [vault/project-model/](vault/project-model/index.md) — per-ASN manifests, exports, dependency graphs
+- [lattices/xanadu/discovery/notes/](lattices/xanadu/discovery/notes/) — ASN reasoning documents (discovery output)
+- [lattices/xanadu/blueprinting/](lattices/xanadu/blueprinting/) — per-claim decomposition (blueprinting output)
+- [lattices/xanadu/formalization/](lattices/xanadu/formalization/) — formalized claims with contracts
+- [lattices/xanadu/verification/](lattices/xanadu/verification/) — Dafny proofs and Alloy models
+- [lattices/xanadu/project-model/](lattices/xanadu/project-model/index.md) — per-ASN manifests, exports, dependency graphs
 - [scripts/](scripts/) — pipeline automation
 - [docs/](docs/README.md) — methodology, patterns, design notes, guides, runbooks

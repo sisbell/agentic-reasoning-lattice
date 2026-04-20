@@ -61,7 +61,7 @@ def _get_changed_labels(asn_label, before_hash):
     claim_dir = FORMALIZATION_DIR / asn_label
     result = subprocess.run(
         ["git", "diff", "--name-only", before_hash, "HEAD",
-         "--", f"vault/3-formalization/{asn_label}/"],
+         "--", f"lattices/xanadu/formalization/{asn_label}/"],
         capture_output=True, text=True, cwd=str(WORKSPACE),
     )
 

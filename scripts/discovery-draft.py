@@ -6,7 +6,7 @@ Orchestrates ASN production by calling step scripts:
   1. Questions: decompose inquiry into sub-questions (preview only)
   2. Consult: run all expert consultations (includes question generation)
   3. Discover: synthesize consultation answers into a formal ASN
-  4. Commit: commit vault changes
+  4. Commit: commit lattice changes
 
 Specify a step to run up to and including that step:
     python scripts/draft.py --inquiries 4 questions    # preview sub-questions
@@ -30,7 +30,10 @@ import yaml
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, ASNS_DIR, USAGE_LOG, PROJECT_MODEL_DIR, load_manifest
+from lib.shared.paths import (
+    WORKSPACE, ASNS_DIR, USAGE_LOG, PROJECT_MODEL_DIR, load_manifest,
+    LATTICE, REVIEWS_DIR, EXPERTS_DIR, EXAMPLES_DIR,
+)
 
 CONSULT_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "consult.py"
 DISCOVER_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "draft.py"
@@ -193,17 +196,17 @@ def step_discover(inquiry, force=False):
 
 
 def step_commit(hint="", asn_id=None):
-    """Commit vault changes. If asn_id given, scope to that ASN's files."""
+    """Commit lattice changes. If asn_id given, scope to that ASN's files."""
     import glob
 
     if asn_id is not None:
         label = f"ASN-{int(asn_id):04d}"
         patterns = [
-            f"vault/1-reasoning-docs/{label}-*",
-            f"vault/1-reasoning-docs-review/{label}",
-            f"vault/0-consultations/{label}",
-            f"vault/project-model/{label}/",
-            f"vault/6-examples/{label}",
+            f"{ASNS_DIR.relative_to(WORKSPACE)}/{label}-*",
+            f"{REVIEWS_DIR.relative_to(WORKSPACE)}/{label}",
+            f"{EXPERTS_DIR.relative_to(WORKSPACE)}/{label}",
+            f"{PROJECT_MODEL_DIR.relative_to(WORKSPACE)}/{label}/",
+            f"{EXAMPLES_DIR.relative_to(WORKSPACE)}/{label}",
         ]
         # Stage only this ASN's files
         for pattern in patterns:
@@ -222,7 +225,7 @@ def step_commit(hint="", asn_id=None):
                 )
 
     result = subprocess.run(
-        ["git", "status", "--porcelain", "vault/"] if asn_id is None else
+        ["git", "status", "--porcelain", str(LATTICE.relative_to(WORKSPACE)) + "/"] if asn_id is None else
         ["git", "diff", "--cached", "--stat"],
         capture_output=True, text=True, cwd=str(WORKSPACE),
     )
@@ -231,7 +234,7 @@ def step_commit(hint="", asn_id=None):
         return True
 
     skill_body = load_prompt(COMMIT_PROMPT)
-    scope = f"Only changes for {f'ASN-{int(asn_id):04d}' if asn_id else 'vault/'}"
+    scope = f"Only changes for {f'ASN-{int(asn_id):04d}' if asn_id else str(LATTICE.relative_to(WORKSPACE)) + '/'}"
     prompt = f"""{skill_body}
 
 ## Context

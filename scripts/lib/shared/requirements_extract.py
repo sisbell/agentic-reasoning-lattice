@@ -6,7 +6,7 @@ Sends the ASN content to an LLM which identifies all Nelson quotes,
 references, and design intent — then deduplicates, categorizes by
 feature area, assigns feature numbers, and maps features to ASNs.
 
-Output: vault/requirements/features.md
+Output: /features.md
 
 Usage:
     python scripts/requirements.py 4 6 9        # specific ASNs
@@ -161,7 +161,7 @@ def main():
         asn_files = sorted(ASNS_DIR.glob("ASN-*.md"))
 
     if not asn_files:
-        print("  No ASN files found in vault/1-reasoning-docs/", file=sys.stderr)
+        print("  No ASN files found in lattices/xanadu/discovery/notes/", file=sys.stderr)
         sys.exit(1)
 
     labels = [asn_label(p) for p in asn_files]

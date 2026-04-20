@@ -22,12 +22,12 @@ import sys
 import time
 from pathlib import Path
 
-WORKSPACE = Path(__file__).resolve().parent.parent
-PROMPTS = WORKSPACE / "scripts" / "prompts" / "test-cases"
-EXAMPLES_DIR = WORKSPACE / "vault" / "6-examples"
-TESTCASES_DIR = WORKSPACE / "vault" / "7-test-cases"
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from lib.shared.paths import WORKSPACE, EXAMPLES_DIR, TESTCASES_DIR, TRANSLATION_DIR
 
-ORACLE_DIR = WORKSPACE / "vault" / "8-translation" / "xanadu-oracle-rust"
+PROMPTS = WORKSPACE / "scripts" / "prompts" / "test-cases"
+
+ORACLE_DIR = TRANSLATION_DIR / "xanadu-oracle-rust"
 TESTS_DIR = ORACLE_DIR / "tests"
 
 EXTRACT_MODEL = "sonnet"

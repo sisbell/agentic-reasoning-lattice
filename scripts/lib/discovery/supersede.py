@@ -22,10 +22,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import (WORKSPACE, ASNS_DIR, PROJECT_MODEL_DIR,
+                   EXPERTS_DIR as CONSULTATIONS_DIR,
                    load_manifest, project_yaml)
 from lib.shared.common import step_commit
-
-CONSULTATIONS_DIR = WORKSPACE / "vault" / "0-consultations"
 
 
 def validate(source_num, target_num):

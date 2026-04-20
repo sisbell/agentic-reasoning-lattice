@@ -4,7 +4,7 @@
 
 ## Prerequisites
 
-- note promoted from [blueprinting](blueprinting.md) (`vault/3-formalization/ASN-NNNN/`)
+- note promoted from [blueprinting](blueprinting.md) (`lattices/xanadu/formalization/ASN-NNNN/`)
 - Upstream dependencies already formalized
 - Upstream summaries populated (run summarize on dependencies first)
 
@@ -68,7 +68,7 @@ Populates the `summary` field in each claim YAML. Required before assembly. Hash
 python scripts/formalization-assembly.py <ASN>
 ```
 
-Mechanical — reads YAML summaries + .md contracts, writes `formal-statements.md` and `dependency-graph.yaml` to `vault/project-model/`.
+Mechanical — reads YAML summaries + .md contracts, writes `formal-statements.md` and `dependency-graph.yaml` to `lattices/xanadu/project-model/`.
 
 ### 8. Individual re-runs (if needed)
 

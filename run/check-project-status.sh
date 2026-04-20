@@ -13,7 +13,7 @@
 set -euo pipefail
 
 WORKSPACE="$(cd "$(dirname "$0")/.." && pwd)"
-MODEL_DIR="$WORKSPACE/vault/project-model"
+MODEL_DIR="$WORKSPACE/lattices/xanadu/project-model"
 
 # Format unix timestamp to "Mar 22, 18:30"
 fmt_date() {
@@ -40,7 +40,7 @@ for yaml in "$MODEL_DIR"/ASN-*/project.yaml; do
     label=$(basename "$asn_dir")
 
     # Find reasoning doc
-    asn_file=$(find "$WORKSPACE/vault/1-reasoning-docs" -name "${label}-*.md" -maxdepth 1 2>/dev/null | head -1 || true)
+    asn_file=$(find "$WORKSPACE/lattices/xanadu/discovery/notes" -name "${label}-*.md" -maxdepth 1 2>/dev/null | head -1 || true)
     if [ -z "$asn_file" ]; then
         continue
     fi

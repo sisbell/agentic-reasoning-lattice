@@ -53,7 +53,7 @@ def export_one(asn_id, model="sonnet", effort="high", dry_run=False):
     """Export statements for a single ASN. Returns (asn_label, True) or (asn_id, False)."""
     asn_path, asn_label = find_asn(asn_id)
     if asn_path is None:
-        print(f"  No ASN found for {asn_id} in vault/1-reasoning-docs/",
+        print(f"  No ASN found for {asn_id} in lattices/xanadu/discovery/notes/",
               file=sys.stderr)
         return asn_id, False
 

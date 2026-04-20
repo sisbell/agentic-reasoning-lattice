@@ -12,7 +12,7 @@ Blueprinting transforms a monolithic note into per-claim file pairs (`.yaml` met
 
 Two phases:
 
-1. **Mechanical `##` split** — splits the note at section headers. Pure python, no LLM. Each `##` section becomes its own `.md` file in `vault/2-blueprints/ASN-NNNN/sections/`.
+1. **Mechanical `##` split** — splits the note at section headers. Pure python, no LLM. Each `##` section becomes its own `.md` file in `lattices/xanadu/blueprinting/ASN-NNNN/sections/`.
 
 2. **Per-section LLM analysis** — Sonnet reads each section, produces a `.yaml` file identifying the claims within it (label, name, body). Runs in parallel across sections.
 
@@ -56,12 +56,12 @@ Reports PASS/FAIL with details.
 
 ### Promote
 
-Copies per-claim `.yaml` + `.md` pairs and structural `_*.md` files from `vault/2-blueprints/ASN-NNNN/claims/` to `vault/3-formalization/ASN-NNNN/`.
+Copies per-claim `.yaml` + `.md` pairs and structural `_*.md` files from `lattices/xanadu/blueprinting/ASN-NNNN/claims/` to `lattices/xanadu/formalization/ASN-NNNN/`.
 
 ## Output Structure
 
 ```
-vault/2-blueprints/ASN-NNNN/
+lattices/xanadu/blueprinting/ASN-NNNN/
   source.md                          ← copy of the note
   sections/
     00-preamble.md                   ← mechanical split

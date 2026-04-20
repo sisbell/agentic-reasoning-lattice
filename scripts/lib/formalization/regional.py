@@ -46,13 +46,17 @@ def detect_dependency_cone(asn_num, window=5, threshold=3):
     rel_dir = claim_dir.relative_to(WORKSPACE)
 
     # Get last N review commits touching this ASN.
-    # Match both prefixes so historical cross-review commits remain findable
-    # across the rename. The older prefix was used for 194+ commits.
+    # Match both grep prefixes (cross-review + full-review) so historical
+    # commits remain findable across the prefix rename.
+    # Include both path prefixes (new lattices/xanadu/formalization + legacy
+    # vault/3-formalization) so pre-restructure history is findable too.
+    legacy_rel_dir = Path("vault") / "3-formalization" / asn_label
     try:
         result = subprocess.run(
             ["git", "log", "-E", "--grep=cross-review|full-review",
              f"-{window}",
-             "--format=%H", "--", str(rel_dir)],
+             "--format=%H", "--",
+             str(rel_dir), str(legacy_rel_dir)],
             capture_output=True, text=True, cwd=str(WORKSPACE),
         )
     except Exception:
@@ -80,7 +84,10 @@ def detect_dependency_cone(asn_num, window=5, threshold=3):
             continue
 
         for line in result.stdout.strip().split("\n"):
-            if not line.startswith(str(rel_dir)):
+            # Accept lines under either the current or the legacy formalization
+            # directory so pre-restructure history is still counted.
+            if not (line.startswith(str(rel_dir))
+                    or line.startswith(str(legacy_rel_dir))):
                 continue
             fname = Path(line).name
             # Skip reviews, structural files, non-claim files

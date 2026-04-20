@@ -10,7 +10,7 @@
 
 Per-claim translation. Agent converts a formal contract into verified
 Dafny code (up to 24 turns). Uses formal-statements.md as input, proof
-modules from vault/5-proofs/ as imports.
+modules from lattices/xanadu/verification/proofs/ as imports.
 
 The agent writes the .dfy file, runs `dafny verify`, and self-corrects
 incrementally until the solver accepts the proof.
