@@ -14,16 +14,8 @@ import os
 import subprocess
 import sys
 import time
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from lib.shared.paths import USAGE_LOG
-
-
-MODEL_FLAGS = {
-    "opus": "claude-opus-4-7",
-    "sonnet": "claude-sonnet-4-6",
-}
+from lib.shared.common import MODEL_FLAGS, log_usage
 
 
 def invoke_claude(prompt, model="opus", effort=None, allow_tools=False,
@@ -82,7 +74,8 @@ def invoke_claude(prompt, model="opus", effort=None, allow_tools=False,
         if output_file:
             output_file.write_text(text)
 
-        _append_usage_log(skill, elapsed, inp, out, cost)
+        log_usage(skill, elapsed,
+                  input_tokens=inp, output_tokens=out, cost_usd=cost)
 
         return text, {
             "input_tokens": inp,
@@ -100,19 +93,3 @@ def invoke_claude(prompt, model="opus", effort=None, allow_tools=False,
 
 def _zero_usage(elapsed):
     return {"input_tokens": 0, "output_tokens": 0, "cost_usd": 0, "elapsed_s": elapsed}
-
-
-def _append_usage_log(skill, elapsed, inp, out, cost):
-    try:
-        entry = {
-            "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
-            "skill": skill,
-            "elapsed_s": round(elapsed, 1),
-            "input_tokens": inp,
-            "output_tokens": out,
-            "cost_usd": cost,
-        }
-        with open(USAGE_LOG, "a") as f:
-            f.write(json.dumps(entry) + "\n")
-    except OSError:
-        pass
