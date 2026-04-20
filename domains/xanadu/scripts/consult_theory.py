@@ -18,17 +18,15 @@ Usage:
 """
 
 import argparse
-import json
-import os
 import re
-import subprocess
 import sys
-import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import CONSULTATIONS_DIR, USAGE_LOG, DOMAIN_PROMPTS, CHANNELS_DIR
+# Reach up from domains/xanadu/scripts/ to workspace root, then add scripts/ to path.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent / "scripts"))
+from lib.shared.paths import CONSULTATIONS_DIR, DOMAIN_PROMPTS, CHANNELS_DIR
 from lib.shared.common import read_file
+from lib.consult_common import invoke_claude as _invoke
 
 CONCEPTS_DIR = CHANNELS_DIR / "theory" / "xanadu-concepts"
 INTENT_DIR = CHANNELS_DIR / "theory" / "nelson-intent"
@@ -40,71 +38,11 @@ PROMPT_TEMPLATE = DOMAIN_PROMPTS / "discovery" / "consultation" / "nelson" / "an
 
 def invoke_claude(prompt, model="opus", effort=None, allow_tools=False,
                   output_file=None):
-    """Call claude --print with pre-assembled prompt via stdin."""
-    model_flag = {
-        "opus": "claude-opus-4-7",
-        "sonnet": "claude-sonnet-4-6",
-    }.get(model, model)
-
-    cmd = ["claude", "--print", "--model", model_flag, "--output-format", "json"]
-    if not allow_tools:
-        cmd.extend(["--tools", ""])
-
-    env = os.environ.copy()
-    env.pop("CLAUDECODE", None)
-    if effort:
-        env["CLAUDE_CODE_EFFORT_LEVEL"] = effort
-
-    start = time.time()
-    result = subprocess.run(
-        cmd, input=prompt, capture_output=True, text=True, env=env,
-        timeout=None
-    )
-    elapsed = time.time() - start
-
-    if result.returncode != 0:
-        print(f"  FAILED (exit {result.returncode}, {elapsed:.0f}s)", file=sys.stderr)
-        if result.stderr:
-            for line in result.stderr.strip().split("\n")[:3]:
-                print(f"    {line}", file=sys.stderr)
-        if output_file:
-            output_file.write_text(f"[FAILED: exit {result.returncode}]\n")
-        return ""
-
-    try:
-        data = json.loads(result.stdout)
-        text = data.get("result", "")
-        usage = data.get("usage", {})
-        cost = data.get("total_cost_usd", 0)
-        inp = (usage.get("input_tokens", 0) +
-               usage.get("cache_read_input_tokens", 0) +
-               usage.get("cache_creation_input_tokens", 0))
-        out = usage.get("output_tokens", 0)
-        print(f"  [{elapsed:.0f}s] in:{inp} out:{out} ${cost:.4f}", file=sys.stderr)
-
-        if output_file:
-            output_file.write_text(text)
-
-        try:
-            entry = {
-                "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
-                "skill": "nelson-consult",
-                "elapsed_s": round(elapsed, 1),
-                "input_tokens": inp, "output_tokens": out,
-                "cost_usd": cost,
-            }
-            with open(USAGE_LOG, "a") as f:
-                f.write(json.dumps(entry) + "\n")
-        except OSError:
-            pass
-
-        return text
-    except (json.JSONDecodeError, KeyError):
-        print(f"  [{elapsed:.0f}s] [no token data]", file=sys.stderr)
-        text = result.stdout
-        if output_file:
-            output_file.write_text(text)
-        return text
+    """Wrapper around the shared invoke_claude with nelson-consult skill."""
+    text, _ = _invoke(prompt, model=model, effort=effort,
+                      allow_tools=allow_tools, output_file=output_file,
+                      skill="nelson-consult")
+    return text
 
 
 def all_concepts():
