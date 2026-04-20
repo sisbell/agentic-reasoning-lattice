@@ -1,38 +1,38 @@
 **TA-MTO (ManyToOne).** For any displacement w with action point k and any tumblers a, b with #a ≥ k and #b ≥ k: a ⊕ w = b ⊕ w if and only if a_i = b_i for all 1 ≤ i ≤ k.
 
-*Proof.* We establish an equivalence: two tumblers produce the same result under a displacement if and only if they agree on every component up to and including the action point.
-
-Let `w` be a displacement with action point `k`, and let `a, b ∈ T` with `#a ≥ k` and `#b ≥ k`. Both additions `a ⊕ w` and `b ⊕ w` are well-defined by TA0, since the action point `k` falls within both operands' lengths. TumblerAdd's constructive definition (Definition TumblerAdd) builds each result in three regions relative to `k`:
+*Proof.* Let `w` be a displacement with action point `k`, and let `a, b ∈ T` with `#a ≥ k` and `#b ≥ k`. Both additions `a ⊕ w` and `b ⊕ w` are well-defined by TA0. TumblerAdd builds each result in three regions relative to `k`:
 
 ```
-  (a ⊕ w)ᵢ = aᵢ         for 1 ≤ i < k     (prefix copy from start)
-  (a ⊕ w)ₖ = aₖ + wₖ                       (single-component advance)
-  (a ⊕ w)ᵢ = wᵢ         for k < i ≤ #w     (tail copy from displacement)
+  (a ⊕ w)ᵢ = aᵢ         for 1 ≤ i < k     (prefix copy)
+  (a ⊕ w)ₖ = aₖ + wₖ                       (advance)
+  (a ⊕ w)ᵢ = wᵢ         for k < i ≤ #w     (tail copy)
 ```
 
-and identically for `b ⊕ w` with `bᵢ` replacing `aᵢ`. The result-length identity (TumblerAdd) gives `#(a ⊕ w) = #w = #(b ⊕ w)`.
+and identically for `b ⊕ w`. TumblerAdd gives `#(a ⊕ w) = #w = #(b ⊕ w)`.
 
-*(Forward: agreement implies equal results.)* Assume `aᵢ = bᵢ` for all `1 ≤ i ≤ k`. We show `(a ⊕ w)ᵢ = (b ⊕ w)ᵢ` at every position `i` from `1` to `#w`, which together with `#(a ⊕ w) = #(b ⊕ w) = #w` yields `a ⊕ w = b ⊕ w` by T3 (CanonicalRepresentation).
+*(Forward.)* Assume `aᵢ = bᵢ` for all `1 ≤ i ≤ k`.
 
-*Position i < k:* `(a ⊕ w)ᵢ = aᵢ = bᵢ = (b ⊕ w)ᵢ`. The first equality is TumblerAdd's prefix-copy rule; the second is the hypothesis `aᵢ = bᵢ`; the third is the prefix-copy rule applied to `b`.
+*Position i < k:* `(a ⊕ w)ᵢ = aᵢ = bᵢ = (b ⊕ w)ᵢ` by prefix-copy and the hypothesis.
 
-*Position i = k:* `(a ⊕ w)ₖ = aₖ + wₖ = bₖ + wₖ = (b ⊕ w)ₖ`. The middle step uses the hypothesis `aₖ = bₖ`.
+*Position i = k:* `(a ⊕ w)ₖ = aₖ + wₖ = bₖ + wₖ = (b ⊕ w)ₖ` by advance and the hypothesis.
 
-*Position i > k:* `(a ⊕ w)ᵢ = wᵢ = (b ⊕ w)ᵢ`. Both results take their tail from `w`; neither `a` nor `b` contributes to these positions.
+*Position i > k:* `(a ⊕ w)ᵢ = wᵢ = (b ⊕ w)ᵢ` by tail-copy.
 
-All components agree and the lengths are equal, so `a ⊕ w = b ⊕ w` by T3.
+All components agree and lengths are equal, so `a ⊕ w = b ⊕ w` by T3.
 
-*(Converse: equal results implies agreement.)* Assume `a ⊕ w = b ⊕ w`. By T3 (CanonicalRepresentation), this entails `(a ⊕ w)ᵢ = (b ⊕ w)ᵢ` at every position. We extract `aᵢ = bᵢ` for each `1 ≤ i ≤ k`.
+*(Converse.)* Assume `a ⊕ w = b ⊕ w`. By T3, `(a ⊕ w)ᵢ = (b ⊕ w)ᵢ` at every position.
 
-*Position i < k:* TumblerAdd's prefix-copy rule gives `(a ⊕ w)ᵢ = aᵢ` and `(b ⊕ w)ᵢ = bᵢ`. From `(a ⊕ w)ᵢ = (b ⊕ w)ᵢ` we obtain `aᵢ = bᵢ`.
+*Position i < k:* prefix-copy gives `(a ⊕ w)ᵢ = aᵢ` and `(b ⊕ w)ᵢ = bᵢ`, so `aᵢ = bᵢ`.
 
-*Position i = k:* TumblerAdd's advance rule gives `(a ⊕ w)ₖ = aₖ + wₖ` and `(b ⊕ w)ₖ = bₖ + wₖ`. From `(a ⊕ w)ₖ = (b ⊕ w)ₖ` we obtain `aₖ + wₖ = bₖ + wₖ`, hence `aₖ = bₖ` by right cancellation on ℕ — `n + m = p + m ⟹ n = p` (NAT-cancel) — instantiated with `m = wₖ`, `n = aₖ`, `p = bₖ`.
-
-Positions `i > k` impose no constraint on `a` or `b`: `(a ⊕ w)ᵢ = wᵢ = (b ⊕ w)ᵢ` holds regardless of `aᵢ` and `bᵢ`, since TumblerAdd's tail-copy rule draws these components entirely from `w`. ∎
-
-This gives a precise characterization of the equivalence classes: *a and b produce the same result under w if and only if they agree on the first k components, where k is the action point of w.*
+*Position i = k:* advance gives `aₖ + wₖ = bₖ + wₖ`, hence `aₖ = bₖ` by NAT-cancel with `m = wₖ`. ∎
 
 *Formal Contract:*
 - *Preconditions:* w ∈ T, Pos(w), a ∈ T, b ∈ T, #a ≥ actionPoint(w), #b ≥ actionPoint(w)
-- *Depends:* TumblerAdd (TumblerAdd) — invoked at the opening to fix the constructive definition (the three-region prefix-copy / advance / tail-copy rule and the result-length identity `#(a ⊕ w) = #w = #(b ⊕ w)`), and again at every position-by-position computation in both the forward and converse directions ("`(a ⊕ w)ᵢ = aᵢ = bᵢ = (b ⊕ w)ᵢ`. The first equality is TumblerAdd's prefix-copy rule; … TumblerAdd's advance rule gives `(a ⊕ w)ₖ = aₖ + wₖ`"); the entire case analysis at positions `i < k`, `i = k`, `i > k` is just the unfolding of TumblerAdd's three regions. TA0 (WellDefinedAddition) — invoked to discharge well-definedness ("Both additions `a ⊕ w` and `b ⊕ w` are well-defined by TA0, since the action point `k` falls within both operands' lengths"); without TA0 the existence of `a ⊕ w` and `b ⊕ w` as members of T would be unsourced. TA-Pos (PositiveTumbler) — invoked through the precondition `Pos(w)` and consumed by TA0's well-definedness obligation as well as by ActionPoint's existence claim. ActionPoint (ActionPoint) — invoked to name `k` as the action point of `w` and to license the three-region split of TumblerAdd at position `k`; the precondition `#a ≥ actionPoint(w)` and `#b ≥ actionPoint(w)` reference ActionPoint's defining function. T3 (CanonicalRepresentation) — invoked at the close of the forward direction ("All components agree and the lengths are equal, so `a ⊕ w = b ⊕ w` by T3") and at the opening of the converse direction ("By T3 (CanonicalRepresentation), this entails `(a ⊕ w)ᵢ = (b ⊕ w)ᵢ` at every position"); T3 supplies the position-wise-and-length characterisation of tumbler equality used in both directions. NAT-cancel (NatAdditionCancellation) — invoked in the converse direction at position `i = k` to apply right cancellation (`n + m = p + m ⟹ n = p` (NAT-cancel) … hence `aₖ = bₖ`); without NAT-cancel this step would appeal to background ℕ arithmetic, contrary to T0's convention.
+- *Depends:*
+  - TumblerAdd (TumblerAdd) — three-region constructive definition and result-length identity.
+  - TA0 (WellDefinedAddition) — well-definedness of `a ⊕ w` and `b ⊕ w`.
+  - TA-Pos (PositiveTumbler) — discharges `Pos(w)` for TA0 and ActionPoint.
+  - ActionPoint (ActionPoint) — names `k` and licenses the three-region split.
+  - T3 (CanonicalRepresentation) — position-wise-and-length characterisation of tumbler equality.
+  - NAT-cancel (NatAdditionCancellation) — right cancellation on ℕ at position `k`.
 - *Postconditions:* a ⊕ w = b ⊕ w ⟺ (A i : 1 ≤ i ≤ actionPoint(w) : aᵢ = bᵢ)
