@@ -1,4 +1,4 @@
-# Science Deployment: Approach
+# Science Domain: Approach
 
 *Design note. Speculative — not yet run. How the [Two Data Authorities](../patterns/two-data-authorities.md) pattern and its supporting machinery (V-cycle, regional-review, lattice) would apply to scientific discovery. Core framing: the system produces hypotheses, not discoveries. Verification happens downstream.*
 
@@ -20,7 +20,7 @@ Convergence is always relative to a downstream verifier. Different domains have 
 | Regional | regional-review | cluster articulation (mutually consistent) |
 | Full | full-review | framework coherence |
 
-At each scale, the operator iterates until the relevant verifier finds no new issues. Science cones stabilize when hypotheses are articulated precisely enough to test. The [software deployment](../software/README.md) uses the same machinery with a different verifier (proof soundness via Dafny).
+At each scale, the operator iterates until the relevant verifier finds no new issues. Science cones stabilize when hypotheses are articulated precisely enough to test. The [software domain](../software/README.md) uses the same machinery with a different verifier (proof soundness via Dafny).
 
 (All three scales use scale-based operator names: local-review, regional-review, full-review. The operator-name refactor is complete.)
 
@@ -33,13 +33,13 @@ A cone is an apex claim plus its dependencies. In the science case, it serves as
 
 Regional convergence of a cone = hypothesis ready for its scope.
 
-### Sub-cluster vs. global ASN convergence
+### Sub-cluster vs. global note convergence
 
-Multiple hypotheses can live in one ASN, each in its own cone. Cones converge independently because each apex has its own dependency set; cones don't necessarily share state.
+Multiple hypotheses can live in one note, each in its own cone. Cones converge independently because each apex has its own dependency set; cones don't necessarily share state.
 
-A hypothesis is ready when its own cone regionally converges — doesn't require the whole ASN to be globally converged. One cone can be stable while another is still cycling. The WF cone can be hypothesis-ready while the Curie cone is still being refined.
+A hypothesis is ready when its own cone regionally converges — doesn't require the whole note to be globally converged. One cone can be stable while another is still cycling. The WF cone can be hypothesis-ready while the Curie cone is still being refined.
 
-Full ASN convergence (all cones regionally converged + no cross-cluster inconsistencies) is a stronger bar. Reserved for cases where the whole ASN is presented as a unified scientific model, not just a collection of independent hypotheses.
+Full note convergence (all cones regionally converged + no cross-cluster inconsistencies) is a stronger bar. Reserved for cases where the whole note is presented as a unified scientific model, not just a collection of independent hypotheses.
 
 ## Judger evaluation model
 
@@ -60,9 +60,9 @@ Incremental evaluation lets you track progress during the run. Match rate accumu
 
 A cone can articulation-converge without match-converging. Those land in the novel-candidate bucket.
 
-## Deployment specifics for science
+## Domain specifics for science
 
-The underlying machinery (two-channel discovery, blueprinting, formalization, V-cycle, cone structure, scope promotion, lattice) is shared with the [software deployment](../software/README.md). What's specific to science:
+The underlying machinery (two-channel discovery, blueprinting, formalization, V-cycle, cone structure, scope promotion, lattice) is shared with the [software domain](../software/README.md). What's specific to science:
 
 - **Verifier at each V-cycle scale:** reproducibility-precision ("could another lab test this?") rather than proof-soundness.
 - **Data channel:** query interface over measurements / simulation tools rather than code reading. Agent answers specific mechanical questions with cited values, not whole-source dumps.
@@ -72,9 +72,9 @@ The underlying machinery (two-channel discovery, blueprinting, formalization, V-
 
 ## Related
 
-- [Software Approach](../software/README.md) — parallel framing for software reverse-engineering (the grounded deployment)
+- [Software Approach](../software/README.md) — parallel framing for software reverse-engineering (the grounded domain)
 - [Channel Asymmetry](../patterns/channel-asymmetry.md) — pattern; why shape-mismatch between channels forces coinage
-- [Channel Asymmetry in New-Science Domains](channel-asymmetry-new-science.md) — how channel asymmetry applies in scientific deployments (modality / numerical-observation axis)
+- [Channel Asymmetry in New-Science Domains](channel-asymmetry-new-science.md) — how channel asymmetry applies in scientific domains (modality / numerical-observation axis)
 - [Two Data Authorities](../patterns/two-data-authorities.md) — parent pattern
 - [Review V-Cycle](../design-notes/review-v-cycle.md) — multi-scale review architecture
 - [Dependency Cone](../patterns/dependency-cone.md) — tight-coupling signal; relevant for non-converging hypothesis clusters

@@ -1,40 +1,40 @@
 # Citation Drift
 
-A claim references a fact whose home has moved, been renamed, or never had a declared home. The reasoning is correct; the citations no longer match current structure. Accumulated across many claims, the ASN's dependency graph no longer reflects its actual reasoning — consumers of the lattice can't trace what each proof rests on.
+A claim references a fact whose home has moved, been renamed, or never had a declared home. The reasoning is correct; the citations no longer match current structure. Accumulated across many claims, the note's dependency graph no longer reflects its actual reasoning — consumers of the lattice can't trace what each proof rests on.
 
 ## Cause
 
-Citation drift has two kinds of driver. The distinction is about where the causing change happens — within the same ASN or upstream of it — not about which stage the drift appears in. Discovery and formalization both have both kinds.
+Citation drift has two kinds of driver. The distinction is about where the causing change happens — within the same note or upstream of it — not about which stage the drift appears in. Discovery and formalization both have both kinds.
 
 ![Citation drift: internal vs passive drivers](../diagrams/citation-drift.svg)
 
 ### Internal drivers (continuous)
 
-Active work inside an ASN's own review/revise cycles produces drift within that same ASN's content. Two subtypes:
+Active work inside a note's own review/revise cycles produces drift within that same note's content. Two subtypes:
 
 **Content evolution.** During a review/revise cycle, a proof or reasoning claim picks up a new step that cites a fact. The reviser rewrites the prose but doesn't update the `depends` clause. Metadata lags content by one small step. Every review cycle can produce this, in discovery as well as formalization.
 
-**In-ASN accretion.** When a new axiom or claim is added inside the ASN to hold a fact its own reasoning needs ([Accretion](../patterns/accretion.md)), the consumers of that fact inside the same ASN don't immediately update their citations. The new home exists; the old citation pattern persists until cleanup.
+**In-note accretion.** When a new axiom or claim is added inside the note to hold a fact its own reasoning needs ([Accretion](../patterns/accretion.md)), the consumers of that fact inside the same note don't immediately update their citations. The new home exists; the old citation pattern persists until cleanup.
 
-Both are expected side effects of active work. The ASN is in motion. Drift accumulates as long as motion continues.
+Both are expected side effects of active work. The note is in motion. Drift accumulates as long as motion continues.
 
 ### Passive drivers (event-driven)
 
-Changes in an upstream ASN produce drift in downstream consumers. The downstream ASN hasn't changed itself; its citations to the upstream have become stale. Three subtypes:
+Changes in an upstream note produce drift in downstream consumers. The downstream note hasn't changed itself; its citations to the upstream have become stale. Three subtypes:
 
-**Attractor splits.** When a [Genesis Attractor](contract-sprawl.md) is split — T0 into T0 + NAT-closure + NAT-order + ... — every downstream ASN that referenced the attractor carries stale citations. One upstream event produces a burst of downstream drift.
+**Attractor splits.** When a [Genesis Attractor](contract-sprawl.md) is split — T0 into T0 + NAT-closure + NAT-order + ... — every downstream note that referenced the attractor carries stale citations. One upstream event produces a burst of downstream drift.
 
-**Extractions and renames.** When an upstream ASN extracts a concept into a new claim ([Extract/Absorb](../patterns/extract-absorb.md)) or renames one (PositiveTumbler → TA-Pos), downstream prose and Depends lists that referenced the old name drift.
+**Extractions and renames.** When an upstream note extracts a concept into a new claim ([Extract/Absorb](../patterns/extract-absorb.md)) or renames one (PositiveTumbler → TA-Pos), downstream prose and Depends lists that referenced the old name drift.
 
-**Upstream accretion.** When an upstream ASN adds a new claim, downstream reasoning that would cite the new claim for precision doesn't yet know it exists. The drift is small per event but accumulates across the downstream surface as the upstream grows.
+**Upstream accretion.** When an upstream note adds a new claim, downstream reasoning that would cite the new claim for precision doesn't yet know it exists. The drift is small per event but accumulates across the downstream surface as the upstream grows.
 
-Passive drift arrives in bursts after upstream events, then stops. Downstream ASNs do not generate passive drift on their own.
+Passive drift arrives in bursts after upstream events, then stops. Downstream notes do not generate passive drift on their own.
 
 ### Why the distinction matters
 
-Internal drift is *produced* within the ASN under review and *detected* by full-review on the same ASN. A review cycle both causes and catches its own drift. Converges in a few iterations.
+Internal drift is *produced* within the note under review and *detected* by full-review on the same note. A review cycle both causes and catches its own drift. Converges in a few iterations.
 
-Passive drift is *caused* outside the ASN and *invisible* to local review. A downstream ASN's full-review may converge perfectly while the ASN still carries stale citations to an upstream that has moved on. Detection requires cross-ASN review or a rebase triggered by the upstream event.
+Passive drift is *caused* outside the note and *invisible* to local review. A downstream note's full-review may converge perfectly while the note still carries stale citations to an upstream that has moved on. Detection requires cross-note review or a rebase triggered by the upstream event.
 
 ## Signal
 
@@ -69,9 +69,9 @@ The same split produced passive drift in ASN-0036 — its proofs still cite T0 f
 
 Review/revise iteration at the full scale. Full-review finds internal drift mechanically by cross-referencing proof content and Depends lists. The reviser patches the metadata one finding at a time. A few cycles converges the cleanup.
 
-Passive drift from upstream changes requires a rebase pass — cross-ASN review or a deliberate downstream updating step triggered when the upstream event happens. A downstream ASN's own review cycles will not produce this drift on their own, but will not resolve it either unless they are told the upstream moved.
+Passive drift from upstream changes requires a rebase pass — cross-note review or a deliberate downstream updating step triggered when the upstream event happens. A downstream note's own review cycles will not produce this drift on their own, but will not resolve it either unless they are told the upstream moved.
 
-Citation drift is the expected side effect of active reorganization. Every [Contract Sprawl](contract-sprawl.md) split produces it. Every [accretion](../patterns/accretion.md) produces a small amount. The presence of drift is not a failure — it is evidence that reasoning has recently changed and metadata hasn't caught up. Full-review (for internal drift) and cross-ASN rebase (for passive drift) are the tools that resolve it.
+Citation drift is the expected side effect of active reorganization. Every [Contract Sprawl](contract-sprawl.md) split produces it. Every [accretion](../patterns/accretion.md) produces a small amount. The presence of drift is not a failure — it is evidence that reasoning has recently changed and metadata hasn't caught up. Full-review (for internal drift) and cross-note rebase (for passive drift) are the tools that resolve it.
 
 ## Related
 

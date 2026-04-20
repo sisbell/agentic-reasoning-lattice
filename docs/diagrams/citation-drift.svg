@@ -1,6 +1,6 @@
 <svg width="100%" viewBox="0 0 680 500" role="img" xmlns="http://www.w3.org/2000/svg">
   <title>Citation drift: internal vs passive drivers</title>
-  <desc>Left shows internal drift within an ASN where content evolves but metadata lags. Right shows passive drift where upstream changes leave downstream citations stale. A single review/revise resolution spans both.</desc>
+  <desc>Left shows internal drift within a note where content evolves but metadata lags. Right shows passive drift where upstream changes leave downstream citations stale. A single review/revise resolution spans both.</desc>
 
   <style>
     text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
@@ -108,7 +108,7 @@
   <rect x="120" y="438" width="440" height="44" rx="8" class="green-fill green-stroke"/>
   <text class="th green-text" x="340" y="460" text-anchor="middle" dominant-baseline="central">Review / revise iteration</text>
 
-  <text class="ts" x="170" y="498" text-anchor="middle">within ASN</text>
-  <text class="ts" x="510" y="498" text-anchor="middle">across ASNs (rebase scope)</text>
+  <text class="ts" x="170" y="498" text-anchor="middle">within note</text>
+  <text class="ts" x="510" y="498" text-anchor="middle">across notes (rebase scope)</text>
 
 </svg>

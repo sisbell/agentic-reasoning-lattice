@@ -1,0 +1,78 @@
+<svg width="100%" viewBox="0 0 680 500" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>Six-level hierarchy of the Agentic Reasoning Lattice</title>
+<desc>A vertical diagram showing six structural levels from Domain at the top to Claim at the bottom, with relationship labels on the connecting arrows.</desc>
+<style>
+  text { font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
+  .th { font-size: 14px; font-weight: 500; }
+  .ts { font-size: 12px; font-weight: 400; }
+</style>
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+</defs>
+
+<!-- Level 1: Domain -->
+<rect x="200" y="20" width="280" height="56" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+<text class="th" x="340" y="42" text-anchor="middle" dominant-baseline="central" fill="#3C3489">Domain</text>
+<text class="ts" x="340" y="60" text-anchor="middle" dominant-baseline="central" fill="#534AB7">Config bundle</text>
+
+<!-- Arrow 1→2 -->
+<line x1="340" y1="76" x2="340" y2="100" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text class="ts" x="354" y="92" text-anchor="start" fill="#5F5E5A">hosts</text>
+
+<!-- Level 2: Lattice -->
+<rect x="200" y="100" width="280" height="56" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+<text class="th" x="340" y="122" text-anchor="middle" dominant-baseline="central" fill="#085041">Lattice</text>
+<text class="ts" x="340" y="140" text-anchor="middle" dominant-baseline="central" fill="#0F6E56">Coverage target</text>
+
+<!-- Arrow 2→3 -->
+<line x1="340" y1="156" x2="340" y2="180" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text class="ts" x="354" y="172" text-anchor="start" fill="#5F5E5A">groups</text>
+
+<!-- Level 3: Campaign -->
+<rect x="200" y="180" width="280" height="56" rx="8" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+<text class="th" x="340" y="202" text-anchor="middle" dominant-baseline="central" fill="#0C447C">Campaign</text>
+<text class="ts" x="340" y="220" text-anchor="middle" dominant-baseline="central" fill="#185FA5">Bounded research effort</text>
+
+<!-- Arrow 3→4 -->
+<line x1="340" y1="236" x2="340" y2="260" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text class="ts" x="354" y="252" text-anchor="start" fill="#5F5E5A">spawns (1:many)</text>
+
+<!-- Level 4: Inquiry -->
+<rect x="200" y="260" width="280" height="56" rx="8" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+<text class="th" x="340" y="282" text-anchor="middle" dominant-baseline="central" fill="#0C447C">Inquiry</text>
+<text class="ts" x="340" y="300" text-anchor="middle" dominant-baseline="central" fill="#185FA5">One question</text>
+
+<!-- Arrow 4→5 -->
+<line x1="340" y1="316" x2="340" y2="340" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text class="ts" x="354" y="332" text-anchor="start" fill="#5F5E5A">produces (1:1)</text>
+
+<!-- Level 5: Note -->
+<rect x="200" y="340" width="280" height="56" rx="8" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
+<text class="th" x="340" y="362" text-anchor="middle" dominant-baseline="central" fill="#712B13">Note</text>
+<text class="ts" x="340" y="380" text-anchor="middle" dominant-baseline="central" fill="#993C1D">Reasoning document</text>
+
+<!-- Arrow 5→6 -->
+<line x1="340" y1="396" x2="340" y2="420" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text class="ts" x="354" y="412" text-anchor="start" fill="#5F5E5A">contains (~20–40)</text>
+
+<!-- Level 6: Claim -->
+<rect x="200" y="420" width="280" height="56" rx="8" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/>
+<text class="th" x="340" y="442" text-anchor="middle" dominant-baseline="central" fill="#633806">Claim</text>
+<text class="ts" x="340" y="460" text-anchor="middle" dominant-baseline="central" fill="#854F0B">Atomic lattice node</text>
+
+<!-- Right-side annotations -->
+<line x1="480" y1="48" x2="496" y2="48" stroke="#B4B2A9" stroke-width="0.5" stroke-dasharray="3 3"/>
+<text class="ts" x="500" y="52" text-anchor="start" fill="#5F5E5A">Verifier, channels, firewall</text>
+
+<line x1="480" y1="128" x2="496" y2="128" stroke="#B4B2A9" stroke-width="0.5" stroke-dasharray="3 3"/>
+<text class="ts" x="500" y="132" text-anchor="start" fill="#5F5E5A">Accumulated claim graph</text>
+
+<line x1="480" y1="368" x2="496" y2="368" stroke="#B4B2A9" stroke-width="0.5" stroke-dasharray="3 3"/>
+<text class="ts" x="500" y="372" text-anchor="start" fill="#5F5E5A">ASN-NNNN identifier</text>
+
+<line x1="480" y1="448" x2="496" y2="448" stroke="#B4B2A9" stroke-width="0.5" stroke-dasharray="3 3"/>
+<text class="ts" x="500" y="452" text-anchor="start" fill="#5F5E5A">Verified by external verifier</text>
+
+</svg>

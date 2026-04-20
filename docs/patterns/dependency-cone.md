@@ -12,7 +12,7 @@ A dependency cone is the specific shape this bottleneck takes: one claim (the ap
 
 The dependencies form a DAG, not a cycle. The foundations converged early — they're simple, loosely coupled claims that per-claim refinement handles well. The apex is a complex claim that must reconcile all of them simultaneously. Each per-finding fix adjusts one seam with one neighbor, which shifts another seam, which the next review flags.
 
-The cone boundary is the same-ASN cluster — the set of claims reviewed as a unit. Cross-ASN foundations sit outside the cone, loaded as labels only, providing context without being part of the focused review.
+The cone boundary is the same-note cluster — the set of claims reviewed as a unit. Cross-note foundations sit outside the cone, loaded as labels only, providing context without being part of the focused review.
 
 ## Cause
 
@@ -34,11 +34,11 @@ The asymmetry — apex thrashing, dependencies stable — distinguishes a cone f
 
 Narrow the scope to the coupled set and resolve it as a unit:
 
-1. Assemble the apex and its same-ASN dependencies as a single context
-2. Load only the cross-ASN foundation labels the cone references
-3. Review the cone as a constraint system — "are these jointly consistent" rather than "find any issue in the full ASN"
+1. Assemble the apex and its same-note dependencies as a single context
+2. Load only the cross-note foundation labels the cone references
+3. Review the cone as a constraint system — "are these jointly consistent" rather than "find any issue in the full note"
 4. Revise with all cone claims visible, enabling coordinated fixes
-5. Once the cone converges, resume full-ASN review to verify nothing broke
+5. Once the cone converges, resume full-note review to verify nothing broke
 
 The narrower context focuses the reviewer on the constraint system instead of scattering attention across unrelated claims. For ASN-0036, this reduced review context from ~90K to ~37K characters.
 
@@ -78,7 +78,7 @@ Observed during the D-CTG-depth cone on ASN-0036 (8 cycles):
 - **Cycle 3**: S8-depth, D-CTG, and S8-fin all used inductive proofs citing an initial state that had no formal definition. The cone created AX-1 (InitialEmptyState) and anchored all three base cases to it. Reclassified S8-depth from Axiom to Invariant because it now had a proof.
 - **Cycle 4**: The three invariant proofs assumed an implicit closed-world transition relation. The cone created AX-5 to formalize it.
 
-The cone touched 33 of 43 claims in the ASN — 77% — because extraction ripples through consumers. Each structural change updated downstream references, which triggered further findings in subsequent cycles. The edits were individually correct (extractions, missing definitions, citation updates) but the breadth of changes is why D-CTG-depth took 8 cycles to converge.
+The cone touched 33 of 43 claims in the note — 77% — because extraction ripples through consumers. Each structural change updated downstream references, which triggered further findings in subsequent cycles. The edits were individually correct (extractions, missing definitions, citation updates) but the breadth of changes is why D-CTG-depth took 8 cycles to converge.
 
 This reorganization pattern suggests cones operate at two levels: **review** (are these jointly consistent?) and **refactor** (should these be structured differently?). The refactoring emerges from the review — the cone sees that a claim needs splitting because the review can't reconcile its multiple roles.
 

@@ -9,6 +9,7 @@ Complete index of the documentation. The root [README](../README.md) is the proj
 - [Discovery](discovery.md) — finding formal structure through structured consultation
 - [Blueprinting](blueprinting.md) — meet operation: document → atomic claims
 - [Formalization](formalization.md) — precision as a discovery tool
+- [Architecture](architecture.md) — structural hierarchy (domain / lattice / campaign / inquiry / note / claim) and the lattice lifecycle
 - [Glossary](glossary.md) — system-specific terms and their definitions
 
 ## Pattern language
@@ -20,10 +21,10 @@ Complete index of the documentation. The root [README](../README.md) is the proj
 
 - [Design notes](design-notes/README.md) — architectural choices and aggregate observations that aren't patterns. Review V-Cycle, Domain Language Emergence, Self-Healing.
 
-## Deployment-specific
+## Domain-specific
 
-- [Software](software/README.md) — grounded deployment: reverse-engineering legacy software systems. Demonstrated on the Xanadu hypertext system.
-- [Science](science/README.md) — speculative deployment: applying the architecture to scientific discovery.
+- [Software](software/README.md) — grounded domain: reverse-engineering legacy software systems. Demonstrated on the Xanadu hypertext system.
+- [Science](science/README.md) — speculative domain: applying the architecture to scientific discovery.
 
 ## Guides and runbooks
 

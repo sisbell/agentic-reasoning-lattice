@@ -1,6 +1,6 @@
 # Vision
 
-The reasoning lattice is claims connected by links, shared through transclusion, and versioned for concurrent access. Three Xanadu protocol primitives make this possible:
+The lattice is claims connected by links, shared through transclusion, and versioned for concurrent access. Three Xanadu protocol primitives make this possible:
 
 **Links** — every dependency between claims is a bidirectional link. The lattice IS the link structure.
 

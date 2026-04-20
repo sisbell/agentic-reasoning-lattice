@@ -1,22 +1,22 @@
 # Methodology
 
-A human poses a question. The system decomposes it into channel-appropriate sub-questions, launches a structured multi-agent discovery process, and grows a reasoning lattice of verified knowledge. The lattice accumulates every finding, revision, and proof as permanent, addressable, dependency-tracked nodes. The methodology is one rhythm applied at every scale: narrow scope, refine through iteration, verify coherence.
+A human poses a question. The system decomposes it into channel-appropriate sub-questions, launches a structured multi-agent discovery process, and grows a lattice of verified knowledge. The lattice accumulates every finding, revision, and proof as permanent, addressable, dependency-tracked nodes. The methodology is one rhythm applied at every scale: narrow scope, refine through iteration, verify coherence.
 
 ![Methodology pipeline](diagrams/methodology-pipeline.svg)
 
-The unit of work is the ASN (Abstract Specification Note) — a reasoning document covering one topic. ASNs form a dependency lattice: each declares what it depends on and what it covers, building on verified foundations. At any point, some ASNs may be in discovery, others in formalization, others under V-cycle review. The dependency order determines which must stabilize first.
+The unit of work is the note (identifier prefix `ASN-NNNN`) — a document covering one topic. Notes form a dependency lattice: each declares what it depends on and what it covers, building on verified foundations. At any point, some notes may be in discovery, others in formalization, others under V-cycle review. The dependency order determines which must stabilize first.
 
 ## [Discovery](discovery.md)
 
 Two independent agent channels investigate the question. The theory channel consults established domain knowledge. The data channel analyzes raw evidence. A vocabulary firewall prevents each from using the other's terms — the data channel reasons from evidence alone, forcing hypothesis space exploration rather than retrieval of known solutions.
 
-Each inquiry is decomposed into channel-appropriate sub-questions before consultation begins — theory channel questions framed for hypothesis space, data channel questions framed for evidence space. Neither channel sees the other's sub-questions. A synthesis step integrates both channels into a structured reasoning document with dependency-mapped claims. Where the channels agree, principles are validated. Where they disagree, new hypotheses emerge.
+Each inquiry is decomposed into channel-appropriate sub-questions before consultation begins — theory channel questions framed for hypothesis space, data channel questions framed for evidence space. Neither channel sees the other's sub-questions. A synthesis step integrates both channels into a structured note with dependency-mapped claims. Where the channels agree, principles are validated. Where they disagree, new hypotheses emerge.
 
 Out-of-scope findings flagged during review become candidates for new inquiries, attaching to the lattice as new nodes. The system discovers the questions it should be asking, not just answers to questions posed. This is [scope promotion](patterns/scope-promotion.md) — how the lattice grows outward.
 
 ## [Blueprinting](blueprinting.md)
 
-Blueprinting is the meet operation on the lattice: a document-level node becomes many claim-level nodes. A reasoning document with dozens of interleaved claims is decomposed into atomic units — one file per claim, dependencies mapped, vocabulary extracted. Each claim is classified (axiom, definition, design requirement, lemma, theorem, corollary) and gets its own statement, justification, and proof.
+Blueprinting is the meet operation on the lattice: a note-level node becomes many claim-level nodes. A note with dozens of interleaved claims is decomposed into atomic units — one file per claim, dependencies mapped, vocabulary extracted. Each claim is classified (axiom, definition, design requirement, lemma, theorem, corollary) and gets its own statement, justification, and proof.
 
 This decomposition is what makes the V-cycle possible. Claims can be reviewed independently at narrow scope, grouped into clusters at regional scope, and reassembled at document scope. Without blueprinting, the V-cycle has nothing to traverse.
 
@@ -35,7 +35,7 @@ The V-cycle is the core of the methodology. It traverses the lattice at three sc
 
 **Ascend through joins** — recompose to full scale:
 
-- **Full-review** — full ASN scan with foundation context. Catches what narrower scales miss: conflation of distinct concepts, precondition chain gaps across distant claims, scope mismatches between proof and narrative.
+- **Full-review** — full note scan with foundation context. Catches what narrower scales miss: conflation of distinct concepts, precondition chain gaps across distant claims, scope mismatches between proof and narrative.
 
 **Descend again** — verify corrections:
 
@@ -71,7 +71,7 @@ See [Pattern Language for Agentic Reasoning Systems](patterns/README.md) for the
 
 ## What the Methodology Produces
 
-The methodology produces a reasoning lattice with algebraic structure:
+The methodology produces a lattice with algebraic structure:
 
 - **Meet** — shared concepts extracted into new foundation layers below both consumers. Blueprinting executes meets. [Extract/absorb](patterns/extract-absorb.md) executes meets: shared definitions become foundation nodes that dependents reference.
 - **Join** — new nodes created above multiple foundations. Synthesis executes joins. [Scope promotion](patterns/scope-promotion.md) executes joins: out-of-scope findings become first-class investigations connecting to existing nodes.
@@ -96,4 +96,4 @@ The chain of trust: human judgment establishes intent, the V-cycle makes it prec
 
 ## Origin
 
-This methodology was developed to formalize the Xanadu hypertext system — a domain where design authority (Ted Nelson) and implementation evidence (Roger Gregory's udanax-green) exist but no formal specification does. What emerged from operating the system was the recognition that the reasoning lattice, the pattern language, and the V-cycle constitute a general methodology independent of the domain being formalized. The methodology is the generalization. Xanadu is the origin.
+This methodology was developed to formalize the Xanadu hypertext system — a domain where design authority (Ted Nelson) and implementation evidence (Roger Gregory's udanax-green) exist but no formal specification does. What emerged from operating the system was the recognition that the lattice, the pattern language, and the V-cycle constitute a general methodology independent of the domain being formalized. The methodology is the generalization. Xanadu is the origin.

@@ -37,7 +37,7 @@ Each arrow is a representation change. The content at the top and bottom is the 
 
 Blueprinting is [scope narrowing](scope-narrowing.md) + representation change applied together.
 
-**Scope narrowing**: a monolithic reasoning document is decomposed into individual claims. Each claim becomes an independently addressable unit.
+**Scope narrowing**: a monolithic note is decomposed into individual claims. Each claim becomes an independently addressable unit.
 
 **Representation change**: narrative prose becomes structured metadata (YAML) + body (markdown). The narrative stays in the body for human readers. The metadata makes the formal structure explicit — label, type, dependencies, vocabulary.
 

@@ -8,10 +8,10 @@ When narrowing overshoots — when the pieces are too coupled to converge indepe
 
 ## Forces
 
-- **Broad scope can't harden.** Discovery produces a reasoning document with 29 claims. Reviewing the whole document at once can't make each claim precise — there's too much to hold in focus.
+- **Broad scope can't harden.** Discovery produces a note with 29 claims. Reviewing the whole note at once can't make each claim precise — there's too much to hold in focus.
 - **Narrow scope enables convergence.** One claim at a time, dependencies fixed. The piece is small enough to fully check. Changes don't cascade to neighbors. This is [review/revise iteration](review-revise-iteration.md) — and it works for most claims.
 - **Over-narrowing hides coupling.** Some claims can't be verified in isolation. S8 depends on 7 other claims — checking S8 alone misses the seams between them. This is the [dependency cone](dependency-cone.md).
-- **The right width is discovered, not prescribed.** You don't know the coupling in advance. You narrow, hit a wall, widen to the cluster, check again. The three scopes that formalization settled on (claim, cluster, full ASN) weren't planned — they're where the system found equilibrium.
+- **The right width is discovered, not prescribed.** You don't know the coupling in advance. You narrow, hit a wall, widen to the cluster, check again. The three scopes that formalization settled on (claim, cluster, full note) weren't planned — they're where the system found equilibrium.
 
 ## Structure
 
@@ -29,7 +29,7 @@ broad (discovery)
   └── verify the whole ←──┘
 ```
 
-The narrowing is progressive. Discovery works at full-ASN scope. Blueprinting breaks it into claims. Formalization reviews each claim. When claim-level review stalls on a [dependency cone](dependency-cone.md), regional review widens to the cluster. [Verify the whole](verify-the-whole.md) checks that the hardened pieces cohere.
+The narrowing is progressive. Discovery works at full-note scope. Blueprinting breaks it into claims. Formalization reviews each claim. When claim-level review stalls on a [dependency cone](dependency-cone.md), regional review widens to the cluster. [Verify the whole](verify-the-whole.md) checks that the hardened pieces cohere.
 
 ## Leads to
 
@@ -41,7 +41,7 @@ The narrowing is progressive. Discovery works at full-ASN scope. Blueprinting br
 
 ### Blueprinting
 
-Discovery produces a 15-page reasoning document. Blueprinting narrows: decompose into sections, enrich each section with type/dependencies/vocabulary, disassemble into per-claim file pairs. Each claim is now a self-contained unit that formalization can work on independently.
+Discovery produces a 15-page note. Blueprinting narrows: decompose into sections, enrich each section with type/dependencies/vocabulary, disassemble into per-claim file pairs. Each claim is now a self-contained unit that formalization can work on independently.
 
 ### Formalization
 

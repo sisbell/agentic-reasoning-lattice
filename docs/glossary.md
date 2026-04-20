@@ -6,11 +6,9 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 ## A
 
-**Accretion.** Growth of the reasoning lattice by adding new claims rather than mutating existing ones. The discipline that prevents [Contract Sprawl](equilibrium/contract-sprawl.md). See [Accretion pattern](patterns/accretion.md).
+**Accretion.** Growth of the lattice by adding new claims rather than mutating existing ones. The discipline that prevents [Contract Sprawl](equilibrium/contract-sprawl.md). See [Accretion pattern](patterns/accretion.md).
 
 **Apex (cone apex).** The high-dependency claim at the center of a [dependency cone](patterns/dependency-cone.md) — the one that keeps getting revised while its dependencies remain stable.
-
-**ASN (Abstract Specification Note).** A reasoning document covering one topic. The unit of work in the methodology. Declares its dependencies, contains claims, participates in the lattice.
 
 **Assembly.** The stage that exports formalized claims into `formal-statements.md` and `dependency-graph.yaml` for downstream consumers. Mechanical, no LLM.
 
@@ -22,7 +20,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 ## B
 
-**Blueprinting.** The stage that decomposes a reasoning document into per-claim file pairs (YAML metadata + MD body). Produces the structure formalization operates on. See [blueprinting guide](guides/formalization.md).
+**Blueprinting.** The stage that decomposes a note into per-claim file pairs (YAML metadata + MD body). Produces the structure formalization operates on. See [blueprinting guide](guides/formalization.md).
 
 **Boundary observation.** An out-of-scope finding captured during investigation — enough context to seed a new investigation without expanding the current one. Seed for [scope promotion](patterns/scope-promotion.md).
 
@@ -30,15 +28,13 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 ## C
 
-**Campaign.** A discovery effort investigating a specific question. Produces one or more ASNs and grows the lattice through scope promotion.
+**Campaign.** A scope-bounded research effort that spawns one or more inquiries, each producing a note. Starts with a top-level question; ends when the inquiries it spawned have been investigated and their notes attached to the lattice (or abandoned with a negative result). Scope promotion during review spawns additional inquiries within the same campaign; genuinely new questions spawn new campaigns. See [Architecture](architecture.md).
 
 **Channel asymmetry.** Shape-mismatch between the theory channel and the data channel. Prevents naive merging and forces synthesis to coin bridging vocabulary. See [Channel Asymmetry pattern](patterns/channel-asymmetry.md).
 
 **Citation, inline.** A reference in the proof narrative like "by NAT-wellorder." Part of proof content, not metadata.
 
-**Claim.** A single unit of reasoning within an ASN. An assertion — something the system says is the case, which can be verified, contested, or refuted. Has a label, type, formal contract, and dependencies. The atomic node in the claim lattice. Renamed from Property.
-
-**Claim lattice.** The fine granularity of the [reasoning lattice](patterns/reasoning-lattice.md) — individual claims as nodes, per-claim dependencies as edges. Renamed from Property lattice.
+**Claim.** A single unit of reasoning within a note. An assertion — something the system says is the case, which can be verified, contested, or refuted. Has a label, type, formal contract, and dependencies. The atomic lattice node. See [Architecture](architecture.md).
 
 **Cone, dependency.** A cluster of tightly coupled claims where an apex keeps being revised while dependencies are stable. See [Dependency Cone pattern](patterns/dependency-cone.md).
 
@@ -62,15 +58,15 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Design requirement.** A claim classified as an architectural or measurement constraint the system imposes.
 
-**Discovery.** The stage producing reasoning documents through the [two-channel architecture](patterns/two-data-authorities.md). First stage of the pipeline. See [discovery guide](discovery.md).
+**Discovery.** The stage producing notes through the [two-channel architecture](patterns/two-data-authorities.md). First stage of the pipeline. See [discovery guide](discovery.md).
 
-**Document lattice.** The coarse granularity of the [reasoning lattice](patterns/reasoning-lattice.md) — ASNs as nodes, inter-document dependencies as edges.
+**Domain.** The configuration bundle that changes when the engine runs on a different subject area: verifier binding (Dafny / Alloy for software; experimental replication for science), channel sources, vocabulary firewall word lists, foundation glossary. Two bundles that differ in any binding are different domains. A domain can host multiple lattices. See [Architecture](architecture.md).
 
 **Drift, Citation.** The state where citations (YAML depends + inline prose) no longer match the dependencies a proof actually uses. See [Citation Drift](equilibrium/citation-drift.md).
 
 **Driver (Citation Drift).** The cause class that produces drift.
-- **Internal driver** — active work inside the same ASN produces drift within that ASN. Continuous.
-- **Passive driver** — work in an upstream ASN produces drift in downstream consumers. Event-driven.
+- **Internal driver** — active work inside the same note produces drift within that note. Continuous.
+- **Passive driver** — work in an upstream note produces drift in downstream consumers. Event-driven.
 
 **Downward pass.** Second phase of the [V-cycle](design-notes/review-v-cycle.md) — re-verifying at narrower scales after wider-scale corrections.
 
@@ -90,15 +86,15 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Firewall, vocabulary.** Structural enforcement that the theory channel cannot use data-channel terms and vice versa. Prevents the LLM's training knowledge from shortcutting reasoning. See [Two Data Authorities](patterns/two-data-authorities.md).
 
-**Formal-statements export.** Curated export containing all claim summaries and formal contracts in dependency order. Written to `vault/project-model/ASN-NNNN/formal-statements.md`. Consumed by downstream ASNs as foundation.
+**Formal-statements export.** Curated export containing all claim summaries and formal contracts in dependency order. Written to `vault/project-model/ASN-NNNN/formal-statements.md`. Consumed by downstream notes as foundation.
 
 **Formalization.** The stage that rewrites proofs to Dijkstra standard, produces formal contracts, and runs the V-cycle to convergence. See [formalization guide](guides/formalization.md).
 
-**Foundation.** From a downstream ASN's perspective, any upstream ASN it depends on. Foundation content is read-only context for the downstream's review cycles.
+**Foundation.** From a downstream note's perspective, any upstream note it depends on. Foundation content is read-only context for the downstream's review cycles.
 
-**Full-review.** Full-scale review reading an entire ASN. Finds issues invisible to narrower scales: carrier-set conflation, precondition chain gaps, vocabulary collisions, issues in small claims. Renamed from cross-review.
+**Full-review.** Full-scale review reading an entire note. Finds issues invisible to narrower scales: carrier-set conflation, precondition chain gaps, vocabulary collisions, issues in small claims. Renamed from cross-review.
 
-**Full scale.** [Review V-Cycle](design-notes/review-v-cycle.md) scope of the whole ASN with full foundation context. Renamed from System scale.
+**Full scale.** [Review V-Cycle](design-notes/review-v-cycle.md) scope of the whole note with full foundation context. Renamed from System scale.
 
 ## G
 
@@ -108,11 +104,13 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 ## H
 
-**Hypothesis cluster.** A [cone](patterns/dependency-cone.md) in a science deployment: apex (hypothesis statement) plus its supporting dependencies (axioms, definitions, data citations, coined concepts). Regional convergence of a hypothesis cluster = hypothesis ready for its scope. See [Science Approach](science/README.md).
+**Hypothesis cluster.** A [cone](patterns/dependency-cone.md) in a science domain: apex (hypothesis statement) plus its supporting dependencies (axioms, definitions, data citations, coined concepts). Regional convergence of a hypothesis cluster = hypothesis ready for its scope. See [Science Approach](science/README.md).
 
 **Hypothesis space.** The space of candidate principles and concepts that could organize a domain. Explored by the theory channel. Complement to [evidence space](#e). New [prose coinage](patterns/prose-coinage.md) is a form of hypothesis generation.
 
 ## I
+
+**Inquiry.** One initial question that produces one note. 1:1 relationship with the note. A campaign spawns one or more inquiries. The unit of two-channel discovery: theory-channel and data-channel sub-questions are derived from it, consulted independently, synthesized into a single note. See [Architecture](architecture.md).
 
 **Internal driver.** See Driver.
 
@@ -124,7 +122,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Label.** A claim's stable citable handle (e.g., `T0`, `NAT-wellorder`, `TA-Pos`). Set at blueprinting, never changes.
 
-**Lattice, reasoning.** The network of verified claims connected by explicit dependencies. Grows outward through [scope promotion](patterns/scope-promotion.md), inward through [extract/absorb](patterns/extract-absorb.md). See [Reasoning Lattice pattern](patterns/reasoning-lattice.md).
+**Lattice.** The coverage target that campaigns build toward: an accumulated verified dependency graph for one subject-area focus. A domain can host multiple lattices. Xanadu is one lattice in the software domain. The lattice operates at two granularities simultaneously: during discovery, notes declare note-level dependencies (`depends:`); during formalization, claims declare claim-level dependencies (`follows_from:`). Which granularity a consuming note sees depends on the consumer's stage. Notes retire gradually as their consumers formalize; the terminal lattice is all claim-to-claim edges with note groupings as provenance metadata. See [Architecture](architecture.md).
 
 **Lemma.** A claim classified as an intermediate result supporting higher-level theorems.
 
@@ -145,6 +143,10 @@ Terms specific to this reasoning system. Cross-references point to where each te
 ## N
 
 **Narrow → Refine → Verify.** The three-phase cycle every process in the system follows. The primary pattern, rooted in the scientific method. See [Narrow → Refine → Verify](patterns/narrow-refine-verify.md).
+
+**Note.** A document covering one topic, produced by one inquiry. Contains ~20–40 claims with explicit dependency structure. The format has Dijkstra-EWD lineage: numbered, bounded, self-contained investigations carrying arbitrary formal weight. Serves as the stable interface boundary for discovery-stage consumers; its internal claim set becomes the operational surface for formalization-stage consumers. See [Architecture](architecture.md).
+
+Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Specification Note"), retained opaque for stable addressing across commits, filenames, and cross-references.
 
 ## O
 
@@ -174,7 +176,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Representation change.** Progressive transformation of content through different forms (narrative → structured → formal → mechanical) without changing the underlying claim. See [Representation Change pattern](patterns/representation-change.md).
 
-**Review coinage.** [Prose coinage](patterns/prose-coinage.md) that happens during review/revise cycles rather than at synthesis. Occurs in both discovery and formalization. Roughly 30% of an ASN's coinages. Driven by reviewer pressure surfacing a concept the current text is discussing in ad-hoc prose without a shared name. See [Synthesis coinage](#s) for contrast.
+**Review coinage.** [Prose coinage](patterns/prose-coinage.md) that happens during review/revise cycles rather than at synthesis. Occurs in both discovery and formalization. Roughly 30% of a note's coinages. Driven by reviewer pressure surfacing a concept the current text is discussing in ad-hoc prose without a shared name. See [Synthesis coinage](#s) for contrast.
 
 **Review/revise iteration.** Repeating cycles of review (finding issues), revision (fixing them), and re-review until convergence. See [Review/Revise Iteration pattern](patterns/review-revise-iteration.md).
 
@@ -204,9 +206,9 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Summarize.** The step that regenerates the `summary` YAML field using batched LLM calls. Prerequisite to assembly.
 
-**Synthesis.** The step integrating theory-channel and data-channel outputs into a structured reasoning document with dependency-mapped claims.
+**Synthesis.** The step integrating theory-channel and data-channel outputs into a structured note with dependency-mapped claims.
 
-**Synthesis coinage.** [Prose coinage](patterns/prose-coinage.md) that occurs at the synthesis step when two-channel outputs are reconciled. Roughly 70% of an ASN's coinages happen here, because synthesis is where incompatible vocabularies must be merged into a single reasoning document and no existing word may fit precisely. Contrasts with [review coinage](#r) which happens during later review/revise cycles.
+**Synthesis coinage.** [Prose coinage](patterns/prose-coinage.md) that occurs at the synthesis step when two-channel outputs are reconciled. Roughly 70% of a note's coinages happen here, because synthesis is where incompatible vocabularies must be merged into a single note and no existing word may fit precisely. Contrasts with [review coinage](#r) which happens during later review/revise cycles.
 
 ## T
 
@@ -214,7 +216,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Theory channel.** The agent channel that consults established theory (design documents, domain models) and makes predictions. Forbidden from referring to specific data. See [Two Data Authorities](patterns/two-data-authorities.md).
 
-**Transclusion.** Including one document's content by reference, not by copy. A Xanadu protocol primitive and the mechanism by which the [reasoning lattice](patterns/reasoning-lattice.md) shares content across nodes.
+**Transclusion.** Including one document's content by reference, not by copy. A Xanadu protocol primitive and the mechanism by which the [lattice](patterns/lattice.md) shares content across nodes.
 
 **Two data authorities.** The two-channel architecture with vocabulary firewall separating theory from data. See [Two Data Authorities pattern](patterns/two-data-authorities.md).
 
@@ -232,7 +234,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Verify the whole.** Stepping back to original scope after narrowing, to check that the refined pieces cohere. See [Verify the Whole pattern](patterns/verify-the-whole.md).
 
-**Vocabulary (YAML field).** Per-claim dictionary of symbols and their meanings. Shared across the ASN through aggregation.
+**Vocabulary (YAML field).** Per-claim dictionary of symbols and their meanings. Shared across the note through aggregation.
 
 **Vocabulary bridge.** Mapping domain language to structural language once so downstream proofs can cite domain concepts grounded in formal structure. See [Vocabulary Bridge pattern](patterns/vocabulary-bridge.md).
 

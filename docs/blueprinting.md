@@ -4,19 +4,19 @@
 
 ## The case for an intermediate representation
 
-A reasoning document from discovery contains the right claims, but they're embedded in narrative prose — definitions interleaved with proofs, motivating examples alongside formal statements, architectural commentary woven through derivations. This document is the ASN produced by synthesis — the join of theory and data channel outputs from a campaign inquiry. That narrative is how humans reason. But you cannot formalize narrative. You can only formalize the formal claims within it.
+A note from discovery contains the right claims, but they're embedded in narrative prose — definitions interleaved with proofs, motivating examples alongside formal statements, architectural commentary woven through derivations. The note is produced by synthesis — the join of theory and data channel outputs from an inquiry. That narrative is how humans reason. But you cannot formalize narrative. You can only formalize the formal claims within it.
 
 At some point, the narrative and the formal content must be separated. The formal claims need to stand on their own — each with a clear statement, explicit dependencies, and a classification that tells the V-cycle how to treat it. The narrative stays as context for human reviewers. This separation is what blueprinting produces.
 
 ## What blueprinting produces
 
-A monolithic reasoning document becomes a set of per-claim file pairs. Each claim gets two files: a YAML file carrying metadata (label, name, type, dependencies, vocabulary) and a markdown file carrying the body (statement, justification, proof).
+A monolithic note becomes a set of per-claim file pairs. Each claim gets two files: a YAML file carrying metadata (label, name, type, dependencies, vocabulary) and a markdown file carrying the body (statement, justification, proof).
 
 The metadata makes the formal structure explicit: what this claim is, what it depends on, what notation it introduces. The body preserves the interleaved narrative and formal content because formalization's reviewers need the narrative to understand the proof. Full separation comes later, at verification, when only the formal contracts enter mechanical checking.
 
 The metadata at blueprinting time is deliberately incomplete. Type classifications are best-effort, dependencies are extracted from prose but may be imprecise, vocabulary attribution has minor errors. Formalization tightens all of it. Blueprinting just needs to get the structure right enough that formalization can operate per-claim.
 
-This is the meet operation at the document scale — a single node in the document lattice becomes many nodes in the claim lattice, each with explicit dependencies. Blueprinting is where the two granularities of the lattice diverge.
+This is the meet operation at the note scale — a single node at the note-level becomes many nodes at the claim-level, each with explicit dependencies. Blueprinting is where the two granularities of the lattice diverge.
 
 ![Two granularities](diagrams/two-granularities.svg)
 
@@ -47,13 +47,13 @@ The claim classifications — axiom, definition, design requirement, lemma, theo
 
 The vocabulary firewall operates on domain vocabulary — theory channel terms vs data channel terms differ by domain, but the firewall mechanism is identical. Blueprinting classifies what the channels produce. Formalization verifies it. The lattice organizes it.
 
-## The reasoning document as artifact
+## The note as artifact
 
-Discovery produces reasoning documents — Dijkstra-style prose with embedded claims. Blueprinting transforms them into structured per-claim files. Formalization refines those files into precise contracts. Modeling translates the contracts into mechanically verifiable code.
+Discovery produces notes — Dijkstra-style prose with embedded claims. Blueprinting transforms them into structured per-claim files. Formalization refines those files into precise contracts. Verification translates the contracts into mechanically verifiable code.
 
 At each stage, the same system claims are represented with increasing precision. The content doesn't change. The representation does. A claim that discovery expressed as "content once stored is never modified" becomes a classified design-requirement with label S0, explicit dependencies, and eventually a formal contract with preconditions and postconditions that a theorem prover can verify.
 
-The reasoning document is frozen once it enters blueprinting. It served its purpose. The reasoning is done, the claims are found. From this point forward, the per-claim files are the working copy. This is deliberate: the reasoning document is the record of discovery. Modifying it during formalization would mix two concerns: finding claims and verifying them.
+The note is frozen once it enters blueprinting. It served its purpose. The reasoning is done, the claims are found. From this point forward, the per-claim files are the working copy. This is deliberate: the note is the record of discovery. Modifying it during formalization would mix two concerns: finding claims and verifying them.
 
 ## Why structural issues are expected
 

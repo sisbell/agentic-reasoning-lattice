@@ -31,11 +31,11 @@ A cone is an apex claim plus its dependencies. In the software case, the apex is
 - All citations correctly licensed
 - Formal contracts (preconditions, postconditions, frames) are complete
 
-Full ASN convergence: all cones regionally converged, lattice-wide citation and convention consistency confirmed.
+Full note convergence: all cones regionally converged, lattice-wide citation and convention consistency confirmed.
 
 ## Verification: Dafny and code execution
 
-Unlike the science deployment (which uses an agentic Judger to check against target principles), the software deployment's verifier is mechanical:
+Unlike the science domain (which uses an agentic Judger to check against target principles), the software domain's verifier is mechanical:
 
 - **Dafny:** checks each claim's formal contract against its proof obligations. Binary per claim: verified or fails.
 - **Code execution:** generated Rust (or equivalent) code runs and behaves as the specification claims.
@@ -69,14 +69,14 @@ The system's value is rigorous formalization of what was built, not invention of
 - **Theory channel:** Ted Nelson's *Literary Machines* and associated concept catalog. Noun-heavy descriptive prose.
 - **Data channel:** Roger Gregory's udanax-green C implementation. Verb-in-packaging function names requiring un-wrapping.
 - **Foundation output:** ASN-0034 (Tumbler Algebra) — ~80 formalized claims covering sequence arithmetic, total order, prefix, addition, subtraction, displacement, allocation discipline, span algebra.
-- **Downstream:** ASN-0036 (Strand Model) and additional ASNs build on the foundation.
+- **Downstream:** ASN-0036 (Strand Model) and additional notes build on the foundation.
 - **Verification machinery:** Dafny proofs for formal contracts, Rust codegen (in progress) for executable output.
 
-See [Legacy Software Discovery](../patterns/two-data-authorities-legacy-software.md) for the pattern-doc treatment with empirical findings from this deployment (80-test saturation, 70/30 coinage split, noun/verb source-shape asymmetry).
+See [Legacy Software Discovery](../patterns/two-data-authorities-legacy-software.md) for the pattern-doc treatment with empirical findings from this domain (80-test saturation, 70/30 coinage split, noun/verb source-shape asymmetry).
 
 ## What transfers to other domains
 
-The machinery (two-channel discovery, blueprinting, formalization, V-cycle, cone structure, scope promotion, lattice) is domain-general. What changes across domains is the verifier at each scale. The [science deployment approach](../science/README.md) describes the parallel framing for scientific discovery, where the verifier becomes experimental reproducibility rather than Dafny proof.
+The machinery (two-channel discovery, blueprinting, formalization, V-cycle, cone structure, scope promotion, lattice) is domain-general. What changes across domains is the verifier at each scale. The [science domain approach](../science/README.md) describes the parallel framing for scientific discovery, where the verifier becomes experimental reproducibility rather than Dafny proof.
 
 ## Related
 
@@ -84,4 +84,4 @@ The machinery (two-channel discovery, blueprinting, formalization, V-cycle, cone
 - [Legacy Software Discovery](../patterns/two-data-authorities-legacy-software.md) — grounded pattern with empirical findings
 - [Channel Asymmetry](../patterns/channel-asymmetry.md) — why shape-mismatch between channels forces coinage
 - [Review V-Cycle](../design-notes/review-v-cycle.md) — multi-scale review architecture
-- [Science Approach](../science/README.md) — parallel framing for scientific deployments
+- [Science Approach](../science/README.md) — parallel framing for scientific domains

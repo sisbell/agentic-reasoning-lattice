@@ -34,7 +34,7 @@ The sweet spot sits between these failure modes: **enough representational misma
 Observed on the Xanadu demonstration (see Origin).
 
 Speculative extensions — not yet observed:
-- [Channel Asymmetry in New-Science Domains](../science/channel-asymmetry-new-science.md) — how this pattern might apply in scientific deployments where theory and data meet on a different axis (modality, abstraction level).
+- [Channel Asymmetry in New-Science Domains](../science/channel-asymmetry-new-science.md) — how this pattern might apply in scientific domains where theory and data meet on a different axis (modality, abstraction level).
 
 ## Origin
 

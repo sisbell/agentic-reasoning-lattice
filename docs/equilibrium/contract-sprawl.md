@@ -4,7 +4,7 @@ A claim's formal contract keeps growing across review cycles. Each new clause in
 
 ## Cause: Genesis Attractor
 
-The claim at the genesis of a concept — the first claim in the ASN that introduces it — becomes the default home for every fact anyone needs about that concept. Downstream reasoning has nowhere else to put new facts.
+The claim at the genesis of a concept — the first claim in the note that introduces it — becomes the default home for every fact anyone needs about that concept. Downstream reasoning has nowhere else to put new facts.
 
 ## Signal
 

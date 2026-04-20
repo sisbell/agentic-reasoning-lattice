@@ -1,10 +1,10 @@
-# Runbook: Blueprinting an ASN
+# Runbook: Blueprinting a note
 
 *Updated 2026-04-12.*
 
 ## Prerequisites
 
-- ASN has converged through discovery (CONVERGED verdict)
+- note has converged through discovery (CONVERGED verdict)
 - Working tree is clean (`git status`)
 - Upstream dependencies are formalized
 

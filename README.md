@@ -1,6 +1,6 @@
 # Agentic Reasoning Lattice
 
-A multi-agent framework that accelerates verified hypothesis discovery through structured disagreement between independent evidence channels. Agents grow a reasoning lattice of permanently addressed, dependency-tracked, machine-verified knowledge — replacing ad-hoc protocols with verified protocol mathematics.
+A multi-agent framework that accelerates verified hypothesis discovery through structured disagreement between independent evidence channels. Agents grow a lattice of permanently addressed, dependency-tracked, verified claims — replacing ad-hoc knowledge with verified principles traceable to their foundations.
 
 ![Two-channel architecture](docs/diagrams/two-channel-architecture.svg)
 
@@ -52,7 +52,7 @@ See [Science Approach](docs/science/README.md) for the convergence framing, cone
 
 ### Guides
 
-- [Blueprinting guide](docs/guides/blueprinting.md) — pipeline stages, YAML format, output structure
+- [Blueprinting guide](docs/guides/blueprinting.md) — stages, YAML format, output structure
 - [Formalization guide](docs/guides/formalization.md) — review steps, caching, dependency management, convergence
 
 ### Runbooks

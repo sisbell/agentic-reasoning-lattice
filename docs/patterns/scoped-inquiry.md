@@ -51,7 +51,7 @@ The sub-questions are designed, not generated. Each one extracts a specific piec
 
 ## Applications
 
-### ASN discovery consultation
+### note discovery consultation
 
 **One question**: "What are the claims of document arrangement in the Xanadu system?"
 

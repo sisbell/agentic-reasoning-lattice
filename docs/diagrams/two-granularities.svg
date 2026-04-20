@@ -6,39 +6,39 @@
 </defs>
 
 <!-- Column headers -->
-<text font-family="sans-serif" font-size="14" font-weight="500" fill="#2C2C2A" x="120" y="30" text-anchor="middle">Document lattice</text>
-<text font-family="sans-serif" font-size="14" font-weight="500" fill="#2C2C2A" x="560" y="30" text-anchor="middle">Claim lattice</text>
+<text font-family="sans-serif" font-size="14" font-weight="500" fill="#2C2C2A" x="120" y="30" text-anchor="middle">Note-level</text>
+<text font-family="sans-serif" font-size="14" font-weight="500" fill="#2C2C2A" x="560" y="30" text-anchor="middle">Claim-level</text>
 
 <!-- Vertical divider -->
 <line x1="330" y1="44" x2="330" y2="440" stroke="#D3D1C7" stroke-width="0.5" stroke-dasharray="4 2"/>
 
-<!-- ASN A -->
+<!-- Note A -->
 <rect x="20" y="60" width="170" height="56" rx="8" fill="#FAC775" stroke="#854F0B" stroke-width="0.5"/>
-<text font-family="sans-serif" font-size="14" font-weight="500" fill="#412402" x="105" y="80" text-anchor="middle" dominant-baseline="central">ASN A</text>
+<text font-family="sans-serif" font-size="14" font-weight="500" fill="#412402" x="105" y="80" text-anchor="middle" dominant-baseline="central">Note A</text>
 <text font-family="sans-serif" font-size="12" fill="#633806" x="105" y="98" text-anchor="middle" dominant-baseline="central">depends on B and C</text>
 
 <line x1="75" y1="116" x2="60" y2="170" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
 <line x1="135" y1="116" x2="160" y2="170" stroke="#888780" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-<!-- ASN B -->
+<!-- Note B -->
 <rect x="10" y="174" width="115" height="56" rx="8" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
-<text font-family="sans-serif" font-size="14" font-weight="500" fill="#04342C" x="67" y="194" text-anchor="middle" dominant-baseline="central">ASN B</text>
+<text font-family="sans-serif" font-size="14" font-weight="500" fill="#04342C" x="67" y="194" text-anchor="middle" dominant-baseline="central">Note B</text>
 <text font-family="sans-serif" font-size="12" fill="#085041" x="67" y="212" text-anchor="middle" dominant-baseline="central">foundation</text>
 
-<!-- ASN C -->
+<!-- Note C -->
 <rect x="145" y="174" width="115" height="56" rx="8" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
-<text font-family="sans-serif" font-size="14" font-weight="500" fill="#04342C" x="202" y="194" text-anchor="middle" dominant-baseline="central">ASN C</text>
+<text font-family="sans-serif" font-size="14" font-weight="500" fill="#04342C" x="202" y="194" text-anchor="middle" dominant-baseline="central">Note C</text>
 <text font-family="sans-serif" font-size="12" fill="#085041" x="202" y="212" text-anchor="middle" dominant-baseline="central">foundation</text>
 
-<text font-family="sans-serif" font-size="12" fill="#5F5E5A" x="120" y="258" text-anchor="middle">one node = one ASN</text>
+<text font-family="sans-serif" font-size="12" fill="#5F5E5A" x="120" y="258" text-anchor="middle">one node = one note</text>
 <text font-family="sans-serif" font-size="12" fill="#5F5E5A" x="120" y="274" text-anchor="middle">discovery operates here</text>
 
 <!-- Blueprinting -->
 <rect x="248" y="60" width="160" height="56" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
 <text font-family="sans-serif" font-size="14" font-weight="500" fill="#26215C" x="328" y="80" text-anchor="middle" dominant-baseline="central">Blueprinting</text>
-<text font-family="sans-serif" font-size="12" fill="#3C3489" x="328" y="98" text-anchor="middle" dominant-baseline="central">meet — 1 ASN → N claims</text>
+<text font-family="sans-serif" font-size="12" fill="#3C3489" x="328" y="98" text-anchor="middle" dominant-baseline="central">meet — 1 note → N claims</text>
 
-<!-- Arrow from ASN A to Blueprinting -->
+<!-- Arrow from Note A to Blueprinting -->
 <line x1="190" y1="88" x2="246" y2="88" stroke="#534AB7" stroke-width="1.5" marker-end="url(#arrow)"/>
 
 <!-- Arrows to claims -->

@@ -18,11 +18,11 @@
 
 <!-- LEFT SIDE — Meet -->
 <rect x="30" y="30" width="140" height="50" rx="8" fill="#FAC775" stroke="#854F0B" stroke-width="0.5"/>
-<text font-family="sans-serif" font-size="14" font-weight="500" fill="#412402" x="100" y="50" text-anchor="middle" dominant-baseline="central">ASN A</text>
+<text font-family="sans-serif" font-size="14" font-weight="500" fill="#412402" x="100" y="50" text-anchor="middle" dominant-baseline="central">Note A</text>
 <text font-family="sans-serif" font-size="12" fill="#633806" x="100" y="68" text-anchor="middle" dominant-baseline="central">defines concept X</text>
 
 <rect x="210" y="30" width="140" height="50" rx="8" fill="#FAC775" stroke="#854F0B" stroke-width="0.5"/>
-<text font-family="sans-serif" font-size="14" font-weight="500" fill="#412402" x="280" y="50" text-anchor="middle" dominant-baseline="central">ASN B</text>
+<text font-family="sans-serif" font-size="14" font-weight="500" fill="#412402" x="280" y="50" text-anchor="middle" dominant-baseline="central">Note B</text>
 <text font-family="sans-serif" font-size="12" fill="#633806" x="280" y="68" text-anchor="middle" dominant-baseline="central">defines concept X</text>
 
 <line x1="100" y1="80" x2="100" y2="148" stroke="#534AB7" stroke-width="1.5" marker-end="url(#arrow-purple)"/>
@@ -30,7 +30,7 @@
 <text font-family="sans-serif" font-size="12" fill="#534AB7" x="190" y="138" text-anchor="middle">meet — extract shared concept</text>
 
 <rect x="110" y="152" width="160" height="50" rx="8" fill="#CECBF6" stroke="#534AB7" stroke-width="0.5"/>
-<text font-family="sans-serif" font-size="14" font-weight="500" fill="#26215C" x="190" y="172" text-anchor="middle" dominant-baseline="central">Foundation ASN</text>
+<text font-family="sans-serif" font-size="14" font-weight="500" fill="#26215C" x="190" y="172" text-anchor="middle" dominant-baseline="central">Foundation note</text>
 <text font-family="sans-serif" font-size="12" fill="#3C3489" x="190" y="190" text-anchor="middle" dominant-baseline="central">concept X — canonical</text>
 
 <line x1="155" y1="152" x2="115" y2="82" stroke="#534AB7" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#arrow-purple)"/>
@@ -54,18 +54,18 @@
 <text font-family="sans-serif" font-size="12" fill="#1D9E75" x="556" y="114" text-anchor="start">scope promotion</text>
 
 <rect x="410" y="142" width="200" height="50" rx="8" fill="#C0DD97" stroke="#3B6D11" stroke-width="0.5"/>
-<text font-family="sans-serif" font-size="14" font-weight="500" fill="#173404" x="510" y="162" text-anchor="middle" dominant-baseline="central">New ASN — join</text>
+<text font-family="sans-serif" font-size="14" font-weight="500" fill="#173404" x="510" y="162" text-anchor="middle" dominant-baseline="central">New note — join</text>
 <text font-family="sans-serif" font-size="12" fill="#27500A" x="510" y="180" text-anchor="middle" dominant-baseline="central">builds on C and D</text>
 
 <line x1="455" y1="264" x2="465" y2="194" stroke="#1D9E75" stroke-width="1.5" marker-end="url(#arrow-green)"/>
 <line x1="565" y1="264" x2="555" y2="194" stroke="#1D9E75" stroke-width="1.5" marker-end="url(#arrow-green)"/>
 
 <rect x="390" y="268" width="130" height="50" rx="8" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
-<text font-family="sans-serif" font-size="14" font-weight="500" fill="#04342C" x="455" y="288" text-anchor="middle" dominant-baseline="central">ASN C</text>
+<text font-family="sans-serif" font-size="14" font-weight="500" fill="#04342C" x="455" y="288" text-anchor="middle" dominant-baseline="central">Note C</text>
 <text font-family="sans-serif" font-size="12" fill="#085041" x="455" y="306" text-anchor="middle" dominant-baseline="central">existing node</text>
 
 <rect x="540" y="268" width="130" height="50" rx="8" fill="#9FE1CB" stroke="#0F6E56" stroke-width="0.5"/>
-<text font-family="sans-serif" font-size="14" font-weight="500" fill="#04342C" x="605" y="288" text-anchor="middle" dominant-baseline="central">ASN D</text>
+<text font-family="sans-serif" font-size="14" font-weight="500" fill="#04342C" x="605" y="288" text-anchor="middle" dominant-baseline="central">Note D</text>
 <text font-family="sans-serif" font-size="12" fill="#085041" x="605" y="306" text-anchor="middle" dominant-baseline="central">existing node</text>
 
 <text font-family="sans-serif" font-size="12" fill="#1D9E75" x="510" y="360" text-anchor="middle">lattice grows upward</text>

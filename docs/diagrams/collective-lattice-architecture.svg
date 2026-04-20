@@ -5,9 +5,9 @@
 </marker>
 </defs>
 
-<!-- Shared reasoning lattice — center -->
+<!-- Shared lattice — center -->
 <rect x="190" y="210" width="300" height="110" rx="16" fill="#F5C4B3" stroke="#993C1D" stroke-width="0.5"/>
-<text font-family="sans-serif" font-size="14" font-weight="500" fill="#4A1B0C" x="340" y="240" text-anchor="middle" dominant-baseline="central">Shared reasoning lattice</text>
+<text font-family="sans-serif" font-size="14" font-weight="500" fill="#4A1B0C" x="340" y="240" text-anchor="middle" dominant-baseline="central">Shared lattice</text>
 <text font-family="sans-serif" font-size="12" fill="#712B13" x="340" y="260" text-anchor="middle" dominant-baseline="central">Permanent addresses · bidirectional links</text>
 
 <!-- Lattice nodes -->

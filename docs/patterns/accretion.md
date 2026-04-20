@@ -36,7 +36,7 @@ The reviser reads the structure and follows it. Structure determines behavior.
 
 [Contract Sprawl](../equilibrium/contract-sprawl.md) — Accretion is the discipline that prevents Contract Sprawl. A Genesis Attractor forms when downstream reasoning has nowhere to put new facts; Accretion provides that home as a new claim rather than a mutation of the introducer.
 
-[Reasoning lattice](reasoning-lattice.md) — Accretion is how the lattice grows inward (new foundational facts) and outward (new derived facts). [Scope Promotion](scope-promotion.md) is accretion applied to boundary observations; [Extract/Absorb](extract-absorb.md) is accretion applied to shared concepts pulled from existing claims.
+[Lattice](lattice.md) — Accretion is how the lattice grows inward (new foundational facts) and outward (new derived facts). [Scope Promotion](scope-promotion.md) is accretion applied to boundary observations; [Extract/Absorb](extract-absorb.md) is accretion applied to shared concepts pulled from existing claims.
 
 ## Origin
 

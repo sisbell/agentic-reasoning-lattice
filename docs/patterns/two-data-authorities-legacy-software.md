@@ -6,7 +6,7 @@
 
 Legacy software systems embed principles that were never written down explicitly. The original designer had intent; the code has behavior. Over time the two diverge, documentation drifts, and the actual system is understood by no one completely. Reading either side alone is insufficient — the designer's writings are gestural and may not match what shipped; the code is un-interpreted mechanical behavior with implementation-specific naming.
 
-The pattern: treat the designer's material as the theory channel and the working implementation as the data channel. Constrain each so neither contaminates the other. Synthesize into a single reasoning document that reconciles intent with behavior, coining names for the correspondences that bridge the two.
+The pattern: treat the designer's material as the theory channel and the working implementation as the data channel. Constrain each so neither contaminates the other. Synthesize into a single note that reconciles intent with behavior, coining names for the correspondences that bridge the two.
 
 ## Forces
 
@@ -53,7 +53,7 @@ Working implementation (source + live system) ──→ data channel ─┘
 ## Leads to
 
 - [Prose Coinage](prose-coinage.md) — the atomic event of inventing a bridging term at the correspondence between channels
-- [Reasoning Lattice](reasoning-lattice.md) — the synthesis output accumulates into an interlinked body of claims
+- [Lattice](lattice.md) — the synthesis output accumulates into an interlinked body of claims
 - [Domain Language Emergence](../design-notes/domain-language-emergence.md) — the aggregate phenomenon of vocabulary building up through repeated coinage
 
 ## Origin

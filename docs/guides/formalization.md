@@ -10,7 +10,7 @@ The V-cycle operates at three scales, inspired by multigrid methods (Brandt 1977
 
 - **Local scale** — local-review, contract-review. One claim at a time, dependencies fixed.
 - **Regional scale** — regional-sweep. A tightly coupled group of claims reviewed together.
-- **Full scale** — full-review. The entire ASN reviewed at once.
+- **Full scale** — full-review. The entire note reviewed at once.
 
 These compose into a V-cycle: upward through scales (local → regional → full), then downward to re-verify anything that changed.
 
@@ -33,13 +33,13 @@ Rewrites every non-definition, non-axiom claim's proof to Dijkstra standard and 
 
 ### Cluster-Scale Review: Regional Sweep
 
-**Regional sweep** — Walks the dependency graph bottom-up. For each claim with enough same-ASN dependencies, assembles the full dependency cone (apex + all direct dependents) and runs a focused review/revise loop with the entire cone as context.
+**Regional sweep** — Walks the dependency graph bottom-up. For each claim with enough same-note dependencies, assembles the full dependency cone (apex + all direct dependents) and runs a focused review/revise loop with the entire cone as context.
 
 Per-claim review stalls on tightly coupled claims — one claim keeps getting revised while its dependencies sit stable. This is a [dependency cone](../patterns/dependency-cone.md). The regional sweep detects these clusters and reviews them as a unit. The loop runs until the reviewer finds no issues or max cycles is reached.
 
 ### System-Scale Review: Full-Review
 
-**Full-review** — Reads the entire assembled ASN (all claims) + foundation statements. Finds issues that narrower scales can't catch: carrier-set conflation, precondition chain gaps, circular reasoning across claims. Reviser agent can edit multiple `.md` files and update `.yaml` depends (add-only).
+**Full-review** — Reads the entire assembled note (all claims) + foundation statements. Finds issues that narrower scales can't catch: carrier-set conflation, precondition chain gaps, circular reasoning across claims. Reviser agent can edit multiple `.md` files and update `.yaml` depends (add-only).
 
 ### V-Cycle Orchestrator
 
@@ -66,7 +66,7 @@ Requires summaries to exist (run summarize first). Milliseconds, not minutes.
 
 ### Foundation Loading
 
-Downstream ASNs load foundation dependencies directly from per-claim YAML (summary) + .md (formal contract) files. No export gate — if the per-claim files exist and have summaries, they can be loaded.
+Downstream notes load foundation dependencies directly from per-claim YAML (summary) + .md (formal contract) files. No export gate — if the per-claim files exist and have summaries, they can be loaded.
 
 ## Caching
 
@@ -83,7 +83,7 @@ Dependencies are tracked in per-claim `.yaml` files under the `depends` field.
 - **Add-only**: when a proof revision introduces a new dependency, the reviser adds it. Existing dependencies are never removed by automation.
 - **Why add-only**: extra dependencies are cosmetic noise (unnecessary import). Missing dependencies are dangerous (build failures, hidden gaps). The asymmetry is intentional.
 - **Manual removal**: if a dependency is genuinely wrong, remove it manually from the `.yaml` file.
-- **Cross-ASN deps**: resolved mechanically by scanning upstream ASN formalization directories for matching labels.
+- **Cross-note deps**: resolved mechanically by scanning upstream note formalization directories for matching labels.
 
 ## YAML Metadata Format
 
@@ -129,7 +129,7 @@ The `.yaml` is the metadata source of truth. The `.md` is what the LLM reads and
 
 The per-claim constraint is architectural. Each claim is formalized independently — its dependencies are immutable context. This is like solving a system of equations one variable at a time with the others fixed. It converges. Multi-claim formalization would be like solving them all simultaneously — it can oscillate.
 
-Per-claim handles independent claims fast. When tightly coupled claims stall single-claim review, a [dependency cone](../patterns/dependency-cone.md) is the signal — one apex claim thrashing against stable dependencies. The regional sweep widens context to the cluster and resolves it with focused attention. Full-review catches what both narrower scales miss — gaps between distant claims that only show up at full-ASN scope.
+Per-claim handles independent claims fast. When tightly coupled claims stall single-claim review, a [dependency cone](../patterns/dependency-cone.md) is the signal — one apex claim thrashing against stable dependencies. The regional sweep widens context to the cluster and resolves it with focused attention. Full-review catches what both narrower scales miss — gaps between distant claims that only show up at full-note scope.
 
 The three scales compose: local scale handles 80% fast, regional scale handles 15% that needs coupling context, full scale handles 5% that needs the full picture. The V-cycle iterates until all three scales converge.
 

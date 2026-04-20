@@ -37,7 +37,7 @@ The constraint is a vocabulary firewall — each channel is prohibited from usin
 
 ## Leads to
 
-[Reasoning lattice](reasoning-lattice.md) — the synthesis output becomes a reasoning document in the lattice. The two-authority process produces the raw material that the lattice organizes.
+[Lattice](lattice.md) — the synthesis output becomes a note in the lattice. The two-authority process produces the raw material that the lattice organizes.
 
 [Review/revise iteration](review-revise-iteration.md) — the quality of discovery output determines how much work formalization must do. Clean two-authority discovery → fewer gaps → faster review/revise convergence.
 
@@ -59,7 +59,7 @@ The constraint is a vocabulary firewall — each channel is prohibited from usin
 
 **Vocabulary firewall**: theory channel cannot say "the code does X." Evidence channel cannot say "Nelson requires X."
 
-**Synthesis**: integrates both into ASN reasoning documents with dependency-mapped claims. Each claim traces to theory, evidence, or both. Disagreements become open questions or new claims.
+**Synthesis**: integrates both into notes with dependency-mapped claims. Each claim traces to theory, evidence, or both. Disagreements become open questions or new claims.
 
 ### What it discovered
 

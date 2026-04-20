@@ -41,19 +41,19 @@ Each finding goes back through scope narrowing — fix it at the narrowest scope
 
 ### In discovery
 
-The synthesis agent reads all authority responses and assembles a reasoning document. Before it's done, it verifies the whole: do the theory findings and evidence findings cohere? Are there contradictions? The synthesis step IS the verification — it checks that the narrowed inquiries (scoped to each authority) produced a consistent whole.
+The synthesis agent reads all authority responses and assembles a note. Before it's done, it verifies the whole: do the theory findings and evidence findings cohere? Are there contradictions? The synthesis step IS the verification — it checks that the narrowed inquiries (scoped to each authority) produced a consistent whole.
 
 **What it catches**: theory says "immutable content store" but evidence shows "editing commands modify content." The contradiction becomes a finding — S0 (content immutability) is about existing content, not about the content store as a whole. New content can be added; existing content cannot be changed. The whole-verification caught an apparent contradiction that neither authority would flag in isolation.
 
 ### In formalization
 
-Full-review reads the entire assembled ASN and checks that the hardened claims cohere. Each claim was reviewed and revised at claim scope. Full-review verifies at ASN scope.
+Full-review reads the entire assembled note and checks that the hardened claims cohere. Each claim was reviewed and revised at claim scope. Full-review verifies at note scope.
 
-**What it catches**: S8's proof uses D-CTG for contiguous range structure but never declares the dependency. At claim scope, S8's proof looks fine — D-CTG is just something it references. At whole-ASN scope, the missing dependency is visible because the reviewer can see both S8 and D-CTG and notice the undeclared relationship.
+**What it catches**: S8's proof uses D-CTG for contiguous range structure but never declares the dependency. At claim scope, S8's proof looks fine — D-CTG is just something it references. At whole-note scope, the missing dependency is visible because the reviewer can see both S8 and D-CTG and notice the undeclared relationship.
 
 ### In regional review
 
-Regional review is verify-the-whole at cluster scope. The cluster's claims have been hardened individually. Regional review assembles them and checks coherence — but only within the cluster, not the full ASN.
+Regional review is verify-the-whole at cluster scope. The cluster's claims have been hardened individually. Regional review assembles them and checks coherence — but only within the cluster, not the full note.
 
 **What it catches**: S4's contract omits T3 as a precondition. At claim scope, S4 looks fine. At S7's cone scope, the reviewer sees that S7 depends on S4 providing T3-based guarantees, but S4's contract doesn't promise them. The seam between S4 and S7 is only visible when both are in context.
 
@@ -61,18 +61,18 @@ Regional review is verify-the-whole at cluster scope. The cluster's claims have 
 
 When a shared concept is extracted into a foundation layer, every consuming document now depends on the extracted version instead of its own copy. The extraction isn't just mechanical replacement — the consuming documents must be verified against the shared definition. Did the extraction change the meaning? Do the proofs still hold? Do the dependency chains still resolve?
 
-**What it catches**: two ASNs defined "tumbler arithmetic" slightly differently. Extracting it into a shared foundation forces one definition. Verify the whole checks that both ASNs still cohere with the shared version — the one whose definition shifted may need proof adjustments.
+**What it catches**: two notes defined "tumbler arithmetic" slightly differently. Extracting it into a shared foundation forces one definition. Verify the whole checks that both notes still cohere with the shared version — the one whose definition shifted may need proof adjustments.
 
-### Between ASNs
+### Between notes
 
-When formalization of one ASN discovers something that affects another (a scope promotion finding), the lattice as a whole needs verification. Does the new node cohere with its neighbors? Do the dependency declarations match? This is verify-the-whole at lattice scope — the broadest verification in the system.
+When formalization of one note discovers something that affects another (a scope promotion finding), the lattice as a whole needs verification. Does the new node cohere with its neighbors? Do the dependency declarations match? This is verify-the-whole at lattice scope — the broadest verification in the system.
 
 ## Pair with scope narrowing
 
 Scope narrowing and verify the whole always appear together. Every narrowing step needs a corresponding verification at the original width:
 
 - Discovery narrows via scoped inquiry → synthesis verifies the whole consultation
-- Blueprinting narrows into claims → formalization narrows further, then full-review verifies the whole ASN
+- Blueprinting narrows into claims → formalization narrows further, then full-review verifies the whole note
 - Regional review narrows to a cluster → re-verifies the cluster's coherence
 - Extract/absorb narrows a shared concept into one definition → verify consuming documents still cohere
 
@@ -80,4 +80,4 @@ Narrowing without verification produces pieces that don't fit. Verification with
 
 ## Origin
 
-Verify the whole was present before scope narrowing was named. The full-review step existed from the first formalization runs — it was always clear that per-claim review couldn't catch everything. The pattern was recognized when the same structure appeared at every scale: synthesis in discovery (verify the consultation), full-review in formalization (verify the ASN), regional review (verify the cluster). The same check, at different widths, for the same reason — narrowing creates seams, verification finds them.
+Verify the whole was present before scope narrowing was named. The full-review step existed from the first formalization runs — it was always clear that per-claim review couldn't catch everything. The pattern was recognized when the same structure appeared at every scale: synthesis in discovery (verify the consultation), full-review in formalization (verify the note), regional review (verify the cluster). The same check, at different widths, for the same reason — narrowing creates seams, verification finds them.

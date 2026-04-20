@@ -4,7 +4,7 @@
 
 ## Overview
 
-Blueprinting transforms a monolithic ASN reasoning document into per-claim file pairs (`.yaml` metadata + `.md` body) ready for formalization. The process runs: decompose → enrich → disassemble → validate → promote.
+Blueprinting transforms a monolithic note into per-claim file pairs (`.yaml` metadata + `.md` body) ready for formalization. The process runs: decompose → enrich → disassemble → validate → promote.
 
 ## Stages
 
@@ -12,7 +12,7 @@ Blueprinting transforms a monolithic ASN reasoning document into per-claim file 
 
 Two phases:
 
-1. **Mechanical `##` split** — splits the ASN at section headers. Pure python, no LLM. Each `##` section becomes its own `.md` file in `vault/2-blueprints/ASN-NNNN/sections/`.
+1. **Mechanical `##` split** — splits the note at section headers. Pure python, no LLM. Each `##` section becomes its own `.md` file in `vault/2-blueprints/ASN-NNNN/sections/`.
 
 2. **Per-section LLM analysis** — Sonnet reads each section, produces a `.yaml` file identifying the claims within it (label, name, body). Runs in parallel across sections.
 
@@ -62,7 +62,7 @@ Copies per-claim `.yaml` + `.md` pairs and structural `_*.md` files from `vault/
 
 ```
 vault/2-blueprints/ASN-NNNN/
-  source.md                          ← copy of the ASN
+  source.md                          ← copy of the note
   sections/
     00-preamble.md                   ← mechanical split
     01-two-components-of-state.md

@@ -4,7 +4,7 @@
 
 ## Symbolic theory × numerical observation
 
-A common class of scientific deployments would pair symbolic predictive theory (equations, named operators from established formalism) with numerical observational data (measurements, spectra, simulation outputs). Materials science, physics, and much of chemistry fit this shape.
+A common class of scientific domains would pair symbolic predictive theory (equations, named operators from established formalism) with numerical observational data (measurements, spectra, simulation outputs). Materials science, physics, and much of chemistry fit this shape.
 
 The incommensurability here lives primarily on **modality** — theory speaks in equations and named operators; data speaks in values and instrument metadata. These don't concatenate: a numeric spectrum can't be pasted into a formal expression without interpretation. **Abstraction level** contributes secondarily: theory idealizes (non-interacting electrons, perfect lattices), data is specific (real samples with impurities, defects, finite size).
 

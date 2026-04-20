@@ -37,7 +37,7 @@
 
 <rect x="270" y="90" width="140" height="56" rx="6" fill="#D3D1C7" stroke="#888780" stroke-width="0.5"/>
 <text font-family="sans-serif" font-size="14" font-weight="500" fill="#2C2C2A" x="340" y="112" text-anchor="middle" dominant-baseline="central">Axiom AX1</text>
-<text font-family="sans-serif" font-size="12" fill="#444441" x="340" y="130" text-anchor="middle" dominant-baseline="central">0 same-ASN deps</text>
+<text font-family="sans-serif" font-size="12" fill="#444441" x="340" y="130" text-anchor="middle" dominant-baseline="central">0 same-note deps</text>
 
 <line x1="250" y1="164" x2="430" y2="164" stroke="#E24B4A" stroke-width="1" stroke-dasharray="4 2"/>
 <text font-family="sans-serif" font-size="12" fill="#A32D2D" x="340" y="180" text-anchor="middle">cone threshold — never qualifies as apex</text>

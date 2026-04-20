@@ -4,7 +4,7 @@
 
 ## Overview
 
-Iterative formal verification at a single scale stalls when claims are tightly coupled. Local review (one claim at a time) converges fast on independent claims but can't resolve cross-claim consistency. Full review (full ASN scan) can find cross-claim issues but wastes attention on noise and converges slowly. Neither scale alone is efficient across the full range of verification problems.
+Iterative formal verification at a single scale stalls when claims are tightly coupled. Local review (one claim at a time) converges fast on independent claims but can't resolve cross-claim consistency. Full review (full note scan) can find cross-claim issues but wastes attention on noise and converges slowly. Neither scale alone is efficient across the full range of verification problems.
 
 The Review V-Cycle addresses this by cycling through three scales of review, each handling the error class it's efficient at. The architecture is inspired by multigrid methods in numerical analysis (Brandt 1977), where multi-scale cycling converges faster than single-scale iteration by matching the solver to the error structure.
 
@@ -12,9 +12,9 @@ The Review V-Cycle addresses this by cycling through three scales of review, eac
 
 **Local** — formalize, local-review, contract-review. One claim at a time, dependencies as fixed context. Fast convergence on claim-level issues: logical gaps, missing cases, contract mismatches. Cannot see cross-claim consistency problems.
 
-**Regional** — regional-sweep. Reviews dependency cones: claims with many same-ASN dependencies, processed bottom-up in topological order. Narrowed context (apex + dependencies + relevant foundation only) focuses attention on the constraint system. Catches issues that span tightly coupled clusters — the [dependency cone](../patterns/dependency-cone.md) pattern.
+**Regional** — regional-sweep. Reviews dependency cones: claims with many same-note dependencies, processed bottom-up in topological order. Narrowed context (apex + dependencies + relevant foundation only) focuses attention on the constraint system. Catches issues that span tightly coupled clusters — the [dependency cone](../patterns/dependency-cone.md) pattern.
 
-**Full** — full-review. Full ASN scan with complete foundation context. Finds issues invisible at narrower scales: carrier-set conflation, precondition chain gaps across unrelated claims, scope mismatches between proof and narrative. Broadest view, noisiest context, slowest convergence.
+**Full** — full-review. Full note scan with complete foundation context. Finds issues invisible at narrower scales: carrier-set conflation, precondition chain gaps across unrelated claims, scope mismatches between proof and narrative. Broadest view, noisiest context, slowest convergence.
 
 ## Cycle Structure
 
@@ -38,7 +38,7 @@ Each pass follows an upward-then-downward path:
 
 The upward pass builds confidence — each scale inherits a cleaner state from the one below it. The downward pass verifies — corrections from wider scales are checked at narrower scales with higher precision.
 
-**Convergence**: when no scale changes anything in a full pass — local, regional, and global all agree that the ASN is clean.
+**Convergence**: when no scale changes anything in a full pass — local, regional, and global all agree that the note is clean.
 
 ## Why Multi-Scale Works
 
@@ -56,11 +56,11 @@ Single-scale iteration wastes cycles: local grinds on issues it can't resolve, g
 
 Beyond efficiency, the scales have different *structural coverage*. Some errors are not just inefficient to find at narrower scales — they are invisible. Full review is non-negotiable because of what the narrower scales cannot reach:
 
-**Vocabulary collisions between distant clusters.** When a symbol is used with one meaning in one cluster and a different meaning in another, regional review cannot see the conflict. Each cone narrows context to its apex and dependencies; distant collisions fall outside every cone's window. Only full-ASN context reveals the overlap.
+**Vocabulary collisions between distant clusters.** When a symbol is used with one meaning in one cluster and a different meaning in another, regional review cannot see the conflict. Each cone narrows context to its apex and dependencies; distant collisions fall outside every cone's window. Only full-note context reveals the overlap.
 
-**Issues in claims below the cone-apex threshold.** The regional sweep runs on claims with at least a threshold number of same-ASN dependencies. Small claims — definitions, axioms, single-claim auxiliaries — never qualify as cone apexes. They appear only as dependencies in someone else's cone, where the reviewer's attention is on the apex. Issues internal to these claims (unsound claims, missing axiomatic support, silent assumptions) are structurally invisible to regional sweep. Full review reads every claim with equal weight.
+**Issues in claims below the cone-apex threshold.** The regional sweep runs on claims with at least a threshold number of same-note dependencies. Small claims — definitions, axioms, single-claim auxiliaries — never qualify as cone apexes. They appear only as dependencies in someone else's cone, where the reviewer's attention is on the apex. Issues internal to these claims (unsound claims, missing axiomatic support, silent assumptions) are structurally invisible to regional sweep. Full review reads every claim with equal weight.
 
-**Cross-cone gaps in dependency declarations.** A claim's YAML `depends` list is a local concern, but its correctness depends on usage across the whole ASN. A missing dependency is visible within a cone only if the dependent and the depended-upon are both in it. For dependencies that span cones, only the full-ASN view catches the omission.
+**Cross-cone gaps in dependency declarations.** A claim's YAML `depends` list is a local concern, but its correctness depends on usage across the whole note. A missing dependency is visible within a cone only if the dependent and the depended-upon are both in it. For dependencies that span cones, only the full-note view catches the omission.
 
 These are not efficiency arguments. They describe what each scale is architecturally positioned to detect. The V-cycle's value is not just faster convergence — it is complete coverage that no single scale provides.
 

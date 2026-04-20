@@ -2,7 +2,7 @@
 
 ## Pattern
 
-An agent coins a new prose word for a concept the reasoning will refer to from that point forward. The concept is one no existing vocabulary precisely captures; the coined word gives it a handle. The word enters the ASN's narrative and becomes available for subsequent claims, proofs, and downstream ASN consumption.
+An agent coins a new prose word for a concept the reasoning will refer to from that point forward. The concept is one no existing vocabulary precisely captures; the coined word gives it a handle. The word enters the note's narrative and becomes available for subsequent claims, proofs, and downstream note consumption.
 
 Each coinage is a hypothesis — a structural claim about the domain proposing that the named concept exists and has the claims the reasoning requires of it. Coinage is how the system seeds hypothesis space.
 
@@ -12,8 +12,8 @@ Each coinage is a hypothesis — a structural claim about the domain proposing t
 
 - **Two channels produce outputs with incompatible or incomplete vocabularies.** The theory channel uses one set of words; the data channel uses another. Neither fully captures the reconciled concept synthesis is trying to express.
 - **Borrowed terms are imprecise.** Using an existing word that almost-but-not-quite fits propagates the mismatch into every subsequent claim that builds on it.
-- **Unnamed concepts can't be cited.** Without a word, the concept cannot be referenced from another claim, another ASN, or another proof step. It stays buried in the prose of one paragraph.
-- **Naming commits.** Once coined, the word propagates through review cycles, into downstream ASNs, into formalization. A poor choice is expensive to revert.
+- **Unnamed concepts can't be cited.** Without a word, the concept cannot be referenced from another claim, another note, or another proof step. It stays buried in the prose of one paragraph.
+- **Naming commits.** Once coined, the word propagates through review cycles, into downstream notes, into formalization. A poor choice is expensive to revert.
 
 ## Structure
 
@@ -25,10 +25,10 @@ Two-channel outputs ─ prose from theory + prose from data
                 ├── existing word fits? ── use it
                 └── no existing word precise enough? ── coin a new word
                         │
-                        └── word enters ASN narrative
+                        └── word enters note narrative
                                 │
-                                ├── referenced in subsequent claims within the ASN
-                                ├── adopted by downstream ASNs through their own review cycles
+                                ├── referenced in subsequent claims within the note
+                                ├── adopted by downstream notes through their own review cycles
                                 └── candidate for prose compression when formal manipulation requires a symbol
 ```
 
@@ -45,7 +45,7 @@ The coinage is a single event with downstream consequences. The same word gets c
 
 Prose coinage happens in two distinct modes:
 
-**Synthesis coinage.** The stage where two-channel outputs get reconciled into a single reasoning document. Coining happens in bulk here — roughly 70% of an ASN's prose coinages appear in the first draft from synthesis.
+**Synthesis coinage.** The stage where two-channel outputs get reconciled into a single note. Coining happens in bulk here — roughly 70% of a note's prose coinages appear in the first draft from synthesis.
 
 **Review-driven coinage.** When a reviewer surfaces a concept the current text is discussing in ad-hoc prose without a shared name, revise coins one. This happens in both discovery review cycles AND formalization review cycles (local-review, contract-review, regional-review, full-review).
 
@@ -57,17 +57,17 @@ Roughly 70% of coinage happens in synthesis; the remaining 30% is review-driven 
 
 [Prose compression](prose-compression.md) — once a coined word is stable and used frequently in formal manipulation, it gets compressed to a symbol. The coinage precedes the compression; both refer to the same concept in different forms.
 
-[Domain language emergence](../design-notes/domain-language-emergence.md) — aggregates many Prose Coinage events across an ASN and across the lattice into the observed phenomenon of a system-wide vocabulary that accumulates through operation.
+[Domain language emergence](../design-notes/domain-language-emergence.md) — aggregates many Prose Coinage events across a note and across the lattice into the observed phenomenon of a system-wide vocabulary that accumulates through operation.
 
 [Review/revise iteration](review-revise-iteration.md) — reviewer pressure surfaces concepts that need names; revise performs the coinage or refines an earlier one.
 
-[Vocabulary bridge](vocabulary-bridge.md) — a coined word may become a bridging term used across multiple ASNs, connecting domain language from one foundation layer to structural language in another.
+[Vocabulary bridge](vocabulary-bridge.md) — a coined word may become a bridging term used across multiple notes, connecting domain language from one foundation layer to structural language in another.
 
 ## Origin
 
-Observed in every ASN that went through synthesis, and in review cycles at both discovery and formalization stages.
+Observed in every note that went through synthesis, and in review cycles at both discovery and formalization stages.
 
-**Synthesis coinage.** ASN-0034's first draft (commit `efb2cf66`, March 2026) already contained coined words including `divergence`, `action point`, `displacement`, `inc`, `zeros`, `sig`, `shift`, `zero tumbler`. Each was a new prose word at the moment of synthesis — neither Nelson's design documents nor Gregory's C source code used them in that form. They were coined to reconcile the two channels' outputs into a single reasoning document.
+**Synthesis coinage.** ASN-0034's first draft (commit `efb2cf66`, March 2026) already contained coined words including `divergence`, `action point`, `displacement`, `inc`, `zeros`, `sig`, `shift`, `zero tumbler`. Each was a new prose word at the moment of synthesis — neither Nelson's design documents nor Gregory's C source code used them in that form. They were coined to reconcile the two channels' outputs into a single note.
 
 **Discovery-stage review coinage.** ASN-0036's most-cited invented concept, `subspace`, was coined during review/revise cycle 1 (commit `639de0a6`, March 2026) — the reviewer pressed on S8's correspondence-run partition claim, and the reviser coined `subspace(v) = v₁` along with the S8-depth axiom to name the part of a V-position that stays constant within a run.
 

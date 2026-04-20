@@ -36,8 +36,8 @@ The consultation is not a separate step in the pipeline. It happens inside the r
 
 ## When it doesn't apply
 
-- In formalization, agents work from the reasoning document itself. The "authority" is the proof and the foundation statements — already in context. There is no external source to consult.
-- When the source has been exhausted — every relevant passage has been incorporated into the reasoning document. Further consultation returns nothing new.
+- In formalization, agents work from the note itself. The "authority" is the proof and the foundation statements — already in context. There is no external source to consult.
+- When the source has been exhausted — every relevant passage has been incorporated into the note. Further consultation returns nothing new.
 
 ## Leads to
 
@@ -55,7 +55,7 @@ During discovery, the reviewer flags an issue: "S7 claims document-level allocat
 
 ### Discovery refinement
 
-A finding claims Gregory's implementation handles a specific edge case. The reviser consults the evidence channel's source (udanax-green code) to verify the claim before incorporating it. The consultation finds the implementation does handle it, but through a different mechanism than the finding described. The revision corrects both the finding and the reasoning document.
+A finding claims Gregory's implementation handles a specific edge case. The reviser consults the evidence channel's source (udanax-green code) to verify the claim before incorporating it. The consultation finds the implementation does handle it, but through a different mechanism than the finding described. The revision corrects both the finding and the note.
 
 ### When it prevents drift
 

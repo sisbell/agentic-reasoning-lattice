@@ -6,7 +6,7 @@ This is the scientific method operationalized for autonomous agents.
 
 In science: form a specific hypothesis (narrow), test and revise through experiment (refine), submit to peer review and replication (verify). The cycle repeats — each pass tightens the knowledge. The body of published, peer-reviewed literature is the trace of repeated cycles.
 
-In agentic reasoning: scope a question (narrow), iteratively improve through review and revision (refine), check coherence against everything else (verify). The cycle repeats. The reasoning lattice is the trace.
+In agentic reasoning: scope a question (narrow), iteratively improve through review and revision (refine), check coherence against everything else (verify). The cycle repeats. The lattice is the trace.
 
 The pattern language documented here is not a new method. It is the set of practical discoveries about what happens when autonomous agents operationalize the scientific method on structured reasoning — the failure modes they encounter, the adjustments they make, and the structures that emerge.
 
@@ -37,7 +37,7 @@ Narrow a broad question into targeted sub-questions scoped to each authority ([s
 
 ### Formalization
 
-Narrow the ASN into per-claim scope. Refine each claim's proof and contract through review/revise iteration. [Verify the whole](verify-the-whole.md) ASN through full-review.
+Narrow the note into per-claim scope. Refine each claim's proof and contract through review/revise iteration. [Verify the whole](verify-the-whole.md) note through full-review.
 
 ### Extract/absorb
 
@@ -62,7 +62,7 @@ The three-phase cycle is the primitive. The other patterns either participate in
 - [Scoped inquiry](scoped-inquiry.md) — narrowing applied to questions rather than documents.
 - [Two data authorities](two-data-authorities.md) — the architecture that scoped inquiry operates within.
 - [Scope promotion](scope-promotion.md) — findings at the boundary that seed new cycles.
-- [Reasoning lattice](reasoning-lattice.md) — the structure that accumulates the output of repeated cycles.
+- [Lattice](lattice.md) — the structure that accumulates the output of repeated cycles.
 - Extract/absorb — a cycle that restructures the lattice when shared concepts emerge.
 
 ## Origin

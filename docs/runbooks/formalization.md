@@ -1,10 +1,10 @@
-# Runbook: Formalizing an ASN
+# Runbook: Formalizing a note
 
 *Updated 2026-04-14.*
 
 ## Prerequisites
 
-- ASN promoted from [blueprinting](blueprinting.md) (`vault/3-formalization/ASN-NNNN/`)
+- note promoted from [blueprinting](blueprinting.md) (`vault/3-formalization/ASN-NNNN/`)
 - Upstream dependencies already formalized
 - Upstream summaries populated (run summarize on dependencies first)
 
@@ -42,7 +42,7 @@ Walks the dependency graph bottom-up. Reviews tightly coupled clusters as a unit
 python scripts/full-review.py <ASN>
 ```
 
-Full ASN scan with foundation context. Catches carrier-set conflation, precondition chain gaps, scope mismatches.
+Full note scan with foundation context. Catches carrier-set conflation, precondition chain gaps, scope mismatches.
 
 ### 5. V-Cycle (all scales composed)
 
