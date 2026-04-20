@@ -21,10 +21,10 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, USAGE_LOG, REVIEWS_DIR
+from lib.shared.paths import WORKSPACE, USAGE_LOG, REVIEWS_DIR, DOMAIN_PROMPTS
 from lib.shared.common import find_asn, extract_claim_sections
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "blueprinting" / "format"
+PROMPTS_DIR = DOMAIN_PROMPTS / "blueprinting" / "format"
 REVIEW_TEMPLATE = PROMPTS_DIR / "review.md"
 REVISE_TEMPLATE = PROMPTS_DIR / "revise.md"
 

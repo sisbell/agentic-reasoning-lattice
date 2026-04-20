@@ -25,10 +25,10 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, NOTES_DIR, REQUIREMENTS_DIR, USAGE_LOG
+from lib.shared.paths import WORKSPACE, NOTES_DIR, REQUIREMENTS_DIR, USAGE_LOG, DOMAIN_PROMPTS
 from lib.shared.common import find_asn, read_file
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "requirements"
+PROMPTS_DIR = DOMAIN_PROMPTS / "requirements"
 TEMPLATE = PROMPTS_DIR / "extract-features.md"
 
 
@@ -42,8 +42,7 @@ def build_prompt(asn_contents, existing_features):
     """Assemble prompt from template + ASN content."""
     template = read_file(TEMPLATE)
     if not template:
-        print("  Prompt template not found: "
-              "scripts/prompts/requirements/extract-features.md",
+        print(f"  Prompt template not found: {TEMPLATE.relative_to(WORKSPACE)}",
               file=sys.stderr)
         sys.exit(1)
 

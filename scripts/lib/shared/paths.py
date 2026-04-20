@@ -1,12 +1,19 @@
 """Shared lattice path constants for all pipeline scripts."""
 
+import os
 import re
 from pathlib import Path
 
 import yaml
 
 WORKSPACE = Path(__file__).resolve().parent.parent.parent.parent
-LATTICE = WORKSPACE / "lattices" / "xanadu"
+
+# Lattice identity — parameterized via LATTICE env var, defaults to "xanadu".
+# A second lattice (e.g. materials) switches every lattice-scoped path at once.
+LATTICE_NAME = os.environ.get("LATTICE", "xanadu")
+LATTICE = WORKSPACE / "lattices" / LATTICE_NAME
+DOMAIN = WORKSPACE / "domains" / LATTICE_NAME
+DOMAIN_PROMPTS = DOMAIN / "prompts"
 
 # Discovery stage
 CONSULTATIONS_DIR = LATTICE / "discovery" / "consultations"

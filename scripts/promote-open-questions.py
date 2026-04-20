@@ -18,14 +18,14 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE
+from lib.shared.paths import WORKSPACE, DOMAIN_PROMPTS
 from lib.shared.common import find_asn, invoke_claude, read_file, log_usage, step_commit_asn
 from lib.discovery.promotion.promote import (
     load_existing_inquiries, next_asn_number, parse_promoted,
     create_note_yaml, load_existing_promotion, save_promotion_report,
 )
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery" / "promotion"
+PROMPTS_DIR = DOMAIN_PROMPTS / "discovery" / "promotion"
 TEMPLATE = PROMPTS_DIR / "promote-open-questions.md"
 
 

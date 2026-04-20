@@ -26,11 +26,11 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, VOCABULARY, REVIEWS_DIR, USAGE_LOG, MANIFESTS_DIR, sorted_reviews, load_manifest, open_issues_path
+from lib.shared.paths import WORKSPACE, VOCABULARY, REVIEWS_DIR, USAGE_LOG, MANIFESTS_DIR, DOMAIN_PROMPTS, sorted_reviews, load_manifest, open_issues_path
 from lib.shared.common import find_asn, read_file
 from lib.shared.foundation import load_foundation_statements
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
+PROMPTS_DIR = DOMAIN_PROMPTS / "discovery"
 REVIEW_TEMPLATE = PROMPTS_DIR / "review.md"
 
 
@@ -108,7 +108,7 @@ def build_prompt(asn_content, vocabulary, out_of_scope="", hints="",
     template_path = REVIEW_TEMPLATE
     template = read_file(template_path)
     if not template:
-        print("  Review prompt template not found at scripts/prompts/review.md",
+        print(f"  Review prompt template not found at {template_path.relative_to(WORKSPACE)}",
               file=sys.stderr)
         sys.exit(1)
 

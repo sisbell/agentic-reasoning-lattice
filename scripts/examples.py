@@ -18,10 +18,10 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, EXAMPLES_DIR, formal_stmts
+from lib.shared.paths import WORKSPACE, EXAMPLES_DIR, DOMAIN_PROMPTS, formal_stmts
 from lib.shared.common import find_asn
 
-PROMPTS = WORKSPACE / "scripts" / "prompts" / "examples"
+PROMPTS = DOMAIN_PROMPTS / "examples"
 
 GENERATE_MODEL = "claude-sonnet-4-6"
 REVIEW_MODELS = ["claude-sonnet-4-6"]

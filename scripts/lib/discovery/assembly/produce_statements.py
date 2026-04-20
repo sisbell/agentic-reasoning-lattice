@@ -13,10 +13,10 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, USAGE_LOG, formal_stmts, note_dir
+from lib.shared.paths import WORKSPACE, USAGE_LOG, DOMAIN_PROMPTS, formal_stmts, note_dir
 from lib.shared.common import find_asn, invoke_claude
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery" / "assembly"
+PROMPTS_DIR = DOMAIN_PROMPTS / "discovery" / "assembly"
 TEMPLATE = PROMPTS_DIR / "produce-statements.md"
 
 

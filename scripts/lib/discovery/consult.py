@@ -29,10 +29,10 @@ from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, CONSULTATIONS_DIR, USAGE_LOG, load_manifest, load_excluded_covers
+from lib.shared.paths import WORKSPACE, CONSULTATIONS_DIR, USAGE_LOG, DOMAIN_PROMPTS, load_manifest, load_excluded_covers
 from lib.shared.common import read_file
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery" / "consultation"
+PROMPTS_DIR = DOMAIN_PROMPTS / "discovery" / "consultation"
 TEST_HARNESS = WORKSPACE / "udanax-test-harness"
 KB_SYNTHESIS = TEST_HARNESS / "knowledge-base" / "kb-synthesis.md"
 
@@ -147,7 +147,7 @@ def _call_decompose(prompt, label, model="opus"):
 
 def filter_questions(inquiry_text, out_of_scope, questions, covers_text=""):
     """Filter questions for scope using a cheap LLM call. Returns filtered list."""
-    template = read_file(WORKSPACE / "scripts" / "prompts" / "discovery" / "consultation" / "filter-questions.md")
+    template = read_file(PROMPTS_DIR / "filter-questions.md")
     if not template:
         print("  [WARN] filter-questions.md not found, skipping filter",
               file=sys.stderr)

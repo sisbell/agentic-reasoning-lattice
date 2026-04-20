@@ -23,9 +23,9 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, EXAMPLES_DIR, TEST_CASES_DIR, TRANSLATION_DIR
+from lib.shared.paths import WORKSPACE, EXAMPLES_DIR, TEST_CASES_DIR, TRANSLATION_DIR, DOMAIN_PROMPTS
 
-PROMPTS = WORKSPACE / "scripts" / "prompts" / "test-cases"
+PROMPTS = DOMAIN_PROMPTS / "test-cases"
 
 ORACLE_DIR = TRANSLATION_DIR / "xanadu-oracle-rust"
 TESTS_DIR = ORACLE_DIR / "tests"

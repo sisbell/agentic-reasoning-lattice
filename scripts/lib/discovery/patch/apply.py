@@ -14,12 +14,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import (WORKSPACE, REVIEWS_DIR, VOCABULARY, PATCHES_DIR,
-                   next_review_number)
+                   DOMAIN_PROMPTS, next_review_number)
 from lib.shared.common import (read_file, find_asn, invoke_claude, invoke_claude_agent,
                          log_usage, step_commit_asn)
 from lib.shared.foundation import load_foundation_statements
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery" / "patch"
+PROMPTS_DIR = DOMAIN_PROMPTS / "discovery" / "patch"
 PATCH_TEMPLATE = PROMPTS_DIR / "apply.md"
 PATCH_REVIEW_TEMPLATE = PROMPTS_DIR / "review.md"
 PATCH_REVISE_TEMPLATE = PROMPTS_DIR / "revise.md"

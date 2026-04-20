@@ -32,10 +32,10 @@ from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, CONSULTATIONS_DIR, USAGE_LOG
+from lib.shared.paths import WORKSPACE, CONSULTATIONS_DIR, USAGE_LOG, DOMAIN_PROMPTS
 from lib.shared.common import read_file
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery" / "consultation"
+PROMPTS_DIR = DOMAIN_PROMPTS / "discovery" / "consultation"
 TEST_HARNESS = WORKSPACE / "udanax-test-harness"
 KB_PATH = TEST_HARNESS / "knowledge-base" / "kb-formal.md"
 

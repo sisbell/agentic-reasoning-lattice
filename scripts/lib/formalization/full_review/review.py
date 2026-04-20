@@ -15,11 +15,11 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, load_manifest
+from lib.shared.paths import WORKSPACE, DOMAIN_PROMPTS, load_manifest
 from lib.shared.common import read_file, invoke_claude
 from lib.shared.foundation import load_foundation_statements, load_foundation_for_labels
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization" / "full-review"
+PROMPTS_DIR = DOMAIN_PROMPTS / "formalization" / "full-review"
 REVIEW_TEMPLATE = PROMPTS_DIR / "review.md"
 
 

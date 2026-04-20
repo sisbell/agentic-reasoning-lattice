@@ -27,7 +27,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, CONSULTATIONS_DIR, USAGE_LOG
+from lib.shared.paths import WORKSPACE, CONSULTATIONS_DIR, USAGE_LOG, DOMAIN_PROMPTS
 from lib.shared.common import read_file
 
 CONCEPTS_DIR = WORKSPACE / "nelson" / "xanadu-concepts"
@@ -35,7 +35,7 @@ INTENT_DIR = WORKSPACE / "nelson" / "nelson-intent"
 LM_TOC = WORKSPACE / "nelson" / "literary-machines" / "table-of-contents.md"
 LM_INVENTORY = WORKSPACE / "nelson" / "literary-machines" / "inventory.md"
 LM_RAW_DIR = WORKSPACE / "nelson" / "literary-machines" / "raw"
-PROMPT_TEMPLATE = WORKSPACE / "scripts" / "prompts" / "discovery" / "consultation" / "nelson" / "answer.md"
+PROMPT_TEMPLATE = DOMAIN_PROMPTS / "discovery" / "consultation" / "nelson" / "answer.md"
 
 
 def invoke_claude(prompt, model="opus", effort=None, allow_tools=False,

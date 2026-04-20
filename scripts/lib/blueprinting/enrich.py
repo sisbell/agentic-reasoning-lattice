@@ -17,11 +17,11 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, BLUEPRINTS_DIR
+from lib.shared.paths import WORKSPACE, BLUEPRINTS_DIR, DOMAIN_PROMPTS
 from lib.shared.common import find_asn, invoke_claude, parallel_llm_calls, dump_yaml, step_commit_asn
 
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "blueprinting"
+PROMPTS_DIR = DOMAIN_PROMPTS / "blueprinting"
 
 
 def _load_claims(sections_dir):

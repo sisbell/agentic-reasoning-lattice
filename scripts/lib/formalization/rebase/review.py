@@ -22,17 +22,17 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, formal_stmts, load_manifest, dep_graph
+from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, DOMAIN_PROMPTS, formal_stmts, load_manifest, dep_graph
 from lib.shared.common import find_asn, assemble_readonly, read_file
 from lib.shared.foundation import load_foundation_statements
 from lib.formalization.core.build_dependency_graph import generate_discovery_deps
 from lib.formalization.core.finding import Finding
 from lib.blueprinting.lint import build_label_map, scan_reasoning_doc, get_dep_chain
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "rebase"
+PROMPTS_DIR = DOMAIN_PROMPTS / "rebase"
 REVIEW_TEMPLATE = PROMPTS_DIR / "review.md"
-DEP_REPORT_TEMPLATE = WORKSPACE / "scripts" / "prompts" / "shared" / "dependency-report.md"
-EXT_PROMPT_TEMPLATE = WORKSPACE / "scripts" / "prompts" / "formalization" / "rebase" / "verify-extension.md"
+DEP_REPORT_TEMPLATE = DOMAIN_PROMPTS / "shared" / "dependency-report.md"
+EXT_PROMPT_TEMPLATE = DOMAIN_PROMPTS / "formalization" / "rebase" / "verify-extension.md"
 
 
 # ---------------------------------------------------------------------------

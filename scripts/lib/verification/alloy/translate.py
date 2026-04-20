@@ -15,13 +15,13 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
-from lib.shared.paths import WORKSPACE, formal_stmts
+from lib.shared.paths import WORKSPACE, DOMAIN_PROMPTS, formal_stmts
 from lib.shared.common import find_asn
 from lib.verification.alloy.check import check, classify_alloy_error, parse_alloy_results
 from lib.verification.alloy.common import (read_file, invoke_claude, log_usage,
     ALLOY_JAR_DEFAULT)
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "verification" / "alloy"
+PROMPTS_DIR = DOMAIN_PROMPTS / "verification" / "alloy"
 CLAIM_TEMPLATE = PROMPTS_DIR / "translate-claim.md"
 SYNTAX_REF = PROMPTS_DIR / "syntax-reference.md"
 
@@ -100,8 +100,7 @@ def build_claim_prompt(definitions, prop, syntax_ref="", dep_context=""):
     """Assemble prompt for a single claim from per-claim template."""
     template = read_file(CLAIM_TEMPLATE)
     if not template:
-        print("  Prompt template not found at "
-              "scripts/prompts/verification/alloy/translate-claim.md",
+        print(f"  Prompt template not found at {CLAIM_TEMPLATE.relative_to(WORKSPACE)}",
               file=sys.stderr)
         sys.exit(1)
 

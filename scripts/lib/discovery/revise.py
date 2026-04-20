@@ -23,11 +23,11 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, VOCABULARY, REVIEWS_DIR, USAGE_LOG, sorted_reviews, find_review
+from lib.shared.paths import WORKSPACE, VOCABULARY, REVIEWS_DIR, USAGE_LOG, DOMAIN_PROMPTS, sorted_reviews, find_review
 from lib.shared.common import find_asn, read_file
 from lib.shared.foundation import load_foundation_statements
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
+PROMPTS_DIR = DOMAIN_PROMPTS / "discovery"
 DISCOVERY_PROMPT = PROMPTS_DIR / "instructions.md"
 
 MODEL = "claude-opus-4-7"
@@ -37,7 +37,7 @@ def build_prompt(asn_path, review_content, vocab, consultation_content=None, asn
     """Build revise prompt: discovery methodology + vocab + revise assignment + review."""
     skill_body = read_file(DISCOVERY_PROMPT)
     if not skill_body:
-        print("  Discovery prompt not found at scripts/prompts/discovery/core/discovery.md",
+        print(f"  Discovery prompt not found at {DISCOVERY_PROMPT.relative_to(WORKSPACE)}",
               file=sys.stderr)
         sys.exit(1)
 

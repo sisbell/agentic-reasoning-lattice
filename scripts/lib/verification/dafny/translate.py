@@ -17,11 +17,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import (WORKSPACE, FORMALIZATION_DIR, PROOFS_DIR, USAGE_LOG,
-                    load_manifest)
+                    DOMAIN_PROMPTS, load_manifest)
 from lib.shared.common import find_asn, assemble_readonly, build_label_index, load_claim_metadata
 from lib.verification.dafny.common import read_file
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "verification" / "dafny"
+PROMPTS_DIR = DOMAIN_PROMPTS / "verification" / "dafny"
 TEMPLATE = PROMPTS_DIR / "translate-claim.md"
 DAFNY_REFERENCE = PROMPTS_DIR / "dafny-reference.dfy"
 

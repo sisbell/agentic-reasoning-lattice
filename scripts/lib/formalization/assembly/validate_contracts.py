@@ -15,13 +15,13 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, USAGE_LOG
+from lib.shared.paths import WORKSPACE, USAGE_LOG, DOMAIN_PROMPTS
 from lib.shared.common import find_asn, extract_claim_sections, invoke_claude
 from lib.formalization.core.build_dependency_graph import (
     find_claim_table, parse_table_row, detect_columns,
 )
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization" / "assembly"
+PROMPTS_DIR = DOMAIN_PROMPTS / "formalization" / "assembly"
 VALIDATE_TEMPLATE = PROMPTS_DIR / "validate-contracts.md"
 
 

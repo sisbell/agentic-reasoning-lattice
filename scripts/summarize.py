@@ -23,13 +23,13 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR
+from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, DOMAIN_PROMPTS
 from lib.shared.common import (
     find_asn, build_label_index, load_claim_metadata,
     dump_yaml, invoke_claude, step_commit_asn,
 )
 
-PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "formalization"
+PROMPTS_DIR = DOMAIN_PROMPTS / "formalization"
 SUMMARIZE_TEMPLATE = PROMPTS_DIR / "summarize.md"
 BATCH_SIZE = 5
 
