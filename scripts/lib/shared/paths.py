@@ -38,6 +38,9 @@ TRANSLATION_DIR = LATTICE / "implementation" / "translation"
 # Per-note manifests (metadata, statements, deps, issues)
 MANIFESTS_DIR = LATTICE / "manifests"
 
+# Requirements (Nelson feature extraction)
+REQUIREMENTS_DIR = LATTICE / "requirements"
+
 # Operational
 USAGE_LOG = LATTICE / "usage-log.jsonl"
 
@@ -45,6 +48,13 @@ USAGE_LOG = LATTICE / "usage-log.jsonl"
 def note_dir(asn_num):
     """Per-note manifest directory."""
     return MANIFESTS_DIR / f"ASN-{int(asn_num):04d}"
+
+
+def consultation_dir(asn):
+    """Per-ASN consultation directory. Accepts int or ASN-NNNN label."""
+    if isinstance(asn, str) and asn.startswith("ASN-"):
+        return CONSULTATIONS_DIR / asn
+    return CONSULTATIONS_DIR / f"ASN-{int(asn):04d}"
 
 
 def note_yaml(asn_num):

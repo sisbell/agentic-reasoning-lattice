@@ -31,9 +31,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import (
-    WORKSPACE, NOTES_DIR, USAGE_LOG, MANIFESTS_DIR, load_manifest,
-    LATTICE, REVIEWS_DIR, CONSULTATIONS_DIR, EXAMPLES_DIR,
+    WORKSPACE, NOTES_DIR, USAGE_LOG, MANIFESTS_DIR, load_manifest, LATTICE,
 )
+from lib.shared.common import stage_asn_files
 
 CONSULT_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "consult.py"
 DISCOVER_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "draft.py"
@@ -197,32 +197,8 @@ def step_discover(inquiry, force=False):
 
 def step_commit(hint="", asn_id=None):
     """Commit lattice changes. If asn_id given, scope to that ASN's files."""
-    import glob
-
     if asn_id is not None:
-        label = f"ASN-{int(asn_id):04d}"
-        patterns = [
-            f"{NOTES_DIR.relative_to(WORKSPACE)}/{label}-*",
-            f"{REVIEWS_DIR.relative_to(WORKSPACE)}/{label}",
-            f"{CONSULTATIONS_DIR.relative_to(WORKSPACE)}/{label}",
-            f"{MANIFESTS_DIR.relative_to(WORKSPACE)}/{label}/",
-            f"{EXAMPLES_DIR.relative_to(WORKSPACE)}/{label}",
-        ]
-        # Stage only this ASN's files
-        for pattern in patterns:
-            full = str(WORKSPACE / pattern)
-            matches = glob.glob(full)
-            if matches:
-                subprocess.run(
-                    ["git", "add"] + matches,
-                    capture_output=True, text=True, cwd=str(WORKSPACE),
-                )
-            dirpath = WORKSPACE / pattern
-            if dirpath.is_dir():
-                subprocess.run(
-                    ["git", "add", str(dirpath)],
-                    capture_output=True, text=True, cwd=str(WORKSPACE),
-                )
+        stage_asn_files(f"ASN-{int(asn_id):04d}")
 
     result = subprocess.run(
         ["git", "status", "--porcelain", str(LATTICE.relative_to(WORKSPACE)) + "/"] if asn_id is None else

@@ -23,7 +23,7 @@ import yaml
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, NOTES_DIR, CONSULTATIONS_DIR, VOCABULARY, USAGE_LOG, load_manifest
+from lib.shared.paths import WORKSPACE, NOTES_DIR, VOCABULARY, USAGE_LOG, consultation_dir, load_manifest
 from lib.shared.foundation import load_foundation_statements
 
 DISCOVERY_PROMPT = WORKSPACE / "scripts" / "prompts" / "discovery" / "instructions.md"
@@ -195,7 +195,7 @@ def run_discovery(inquiry, asn_number, slug, force=False):
         return outfile
 
     # Require consultation answers
-    answers_path = CONSULTATIONS_DIR / f"ASN-{asn_number:04d}" / "consultation" / "answers.md"
+    answers_path = consultation_dir(asn_number) / "consultation" / "answers.md"
     if not answers_path.exists():
         print(f"  [ERROR] No consultation answers at {answers_path.relative_to(WORKSPACE)}",
               file=sys.stderr)

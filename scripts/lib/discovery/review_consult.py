@@ -33,7 +33,8 @@ from lib.discovery.consult import (
     log_usage,
 )
 
-from lib.shared.paths import NOTES_DIR, REVIEWS_DIR, CONSULTATIONS_DIR, sorted_reviews
+from lib.shared.paths import REVIEWS_DIR, consultation_dir, sorted_reviews
+from lib.shared.common import find_asn
 
 
 def read_file(path):
@@ -41,18 +42,6 @@ def read_file(path):
         return Path(path).read_text()
     except FileNotFoundError:
         return ""
-
-
-def find_asn(asn_id):
-    """Find ASN file by number. Accepts 9, 09, 0009, ASN-0009."""
-    num = re.sub(r"[^0-9]", "", str(asn_id))
-    if not num:
-        return None, None
-    label = f"ASN-{int(num):04d}"
-    matches = sorted(NOTES_DIR.glob(f"{label}-*.md"))
-    if matches:
-        return matches[0], label
-    return None, label
 
 
 def find_review(asn_label, review_spec=None):
@@ -397,7 +386,7 @@ def main():
         sys.exit(1)
 
     # Save categorization output
-    output_dir = CONSULTATIONS_DIR / asn_label
+    output_dir = consultation_dir(asn_label)
     output_dir.mkdir(parents=True, exist_ok=True)
     consult_subdir = output_dir / f"consultation-{review_num}"
     consult_subdir.mkdir(parents=True, exist_ok=True)

@@ -26,7 +26,8 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, NOTES_DIR, VOCABULARY, REVIEWS_DIR, USAGE_LOG, MANIFESTS_DIR, sorted_reviews, load_manifest, open_issues_path
+from lib.shared.paths import WORKSPACE, VOCABULARY, REVIEWS_DIR, USAGE_LOG, MANIFESTS_DIR, sorted_reviews, load_manifest, open_issues_path
+from lib.shared.common import find_asn
 from lib.shared.foundation import load_foundation_statements
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
@@ -53,25 +54,6 @@ def read_file(path):
         return Path(path).read_text()
     except FileNotFoundError:
         return ""
-
-
-def find_asn(asn_id):
-    """Find ASN file by number. Accepts 9, 09, 0009, ASN-0009, or full path."""
-    # If it's an existing file path, use it directly
-    path = Path(asn_id)
-    if path.exists():
-        label = re.match(r"(ASN-\d+)", path.stem)
-        return path, label.group(1) if label else path.stem
-
-    # Normalize to 4-digit number
-    num = re.sub(r"[^0-9]", "", str(asn_id))
-    if not num:
-        return None, None
-    label = f"ASN-{int(num):04d}"
-    matches = sorted(NOTES_DIR.glob(f"{label}-*.md"))
-    if matches:
-        return matches[0], label
-    return None, label
 
 
 def load_open_issues(asn_number):

@@ -23,7 +23,8 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, VOCABULARY, NOTES_DIR, REVIEWS_DIR, USAGE_LOG, sorted_reviews
+from lib.shared.paths import WORKSPACE, VOCABULARY, REVIEWS_DIR, USAGE_LOG, sorted_reviews
+from lib.shared.common import find_asn
 from lib.shared.foundation import load_foundation_statements
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
@@ -37,19 +38,6 @@ def read_file(path):
         return Path(path).read_text()
     except FileNotFoundError:
         return ""
-
-
-def find_asn(asn_id):
-    """Find ASN file by number. Accepts 9, 09, 0009, ASN-0009, etc."""
-    # Normalize to 4-digit number
-    num = re.sub(r"[^0-9]", "", str(asn_id))
-    if not num:
-        return None, None
-    label = f"ASN-{int(num):04d}"
-    matches = sorted(NOTES_DIR.glob(f"{label}-*.md"))
-    if matches:
-        return matches[0], label
-    return None, label
 
 
 def find_review(asn_label, review_spec=None):

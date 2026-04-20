@@ -6,7 +6,7 @@ Sends the ASN content to an LLM which identifies all Nelson quotes,
 references, and design intent — then deduplicates, categorizes by
 feature area, assigns feature numbers, and maps features to ASNs.
 
-Output: /features.md
+Output: lattices/xanadu/requirements/features.md
 
 Usage:
     python scripts/requirements.py 4 6 9        # specific ASNs

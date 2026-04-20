@@ -5,34 +5,19 @@ Shared by the review orchestrator (scripts/discovery-review.py) and the
 revision loop orchestrator (lib/discovery/revise.py).
 """
 
-import glob
 import re
 import subprocess
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import (
-    WORKSPACE, NOTES_DIR,
-    REVIEWS_DIR, CONSULTATIONS_DIR, MANIFESTS_DIR, EXAMPLES_DIR,
-)
+from lib.shared.paths import WORKSPACE
+from lib.shared.common import find_asn, stage_asn_files
 
 REVIEW_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "review.py"
 CONSULT_REVISION_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "review_consult.py"
 REVISE_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "revise.py"
 COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
-
-
-def find_asn(asn_id):
-    """Find ASN file by number. Accepts 9, 09, 0009, ASN-0009."""
-    num = re.sub(r"[^0-9]", "", str(asn_id))
-    if not num:
-        return None, None
-    label = f"ASN-{int(num):04d}"
-    matches = sorted(NOTES_DIR.glob(f"{label}-*.md"))
-    if matches:
-        return matches[0], label
-    return None, label
 
 
 def step_review(asn_id):
@@ -152,30 +137,8 @@ def step_commit(hint="", asn_id=None):
     """Run commit.py. If asn_id is provided, stage only that ASN's files."""
     print(f"\n  === COMMIT ===", file=sys.stderr)
 
-    # Stage only this ASN's files if scoped
     if asn_id is not None:
-        label = f"ASN-{int(asn_id):04d}"
-        patterns = [
-            f"{NOTES_DIR.relative_to(WORKSPACE)}/{label}-*",
-            f"{REVIEWS_DIR.relative_to(WORKSPACE)}/{label}",
-            f"{CONSULTATIONS_DIR.relative_to(WORKSPACE)}/{label}",
-            f"{MANIFESTS_DIR.relative_to(WORKSPACE)}/{label}/",
-            f"{EXAMPLES_DIR.relative_to(WORKSPACE)}/{label}",
-        ]
-        for pattern in patterns:
-            full = str(WORKSPACE / pattern)
-            matches = glob.glob(full)
-            if matches:
-                subprocess.run(
-                    ["git", "add"] + matches,
-                    capture_output=True, text=True, cwd=str(WORKSPACE),
-                )
-            dirpath = WORKSPACE / pattern
-            if dirpath.is_dir():
-                subprocess.run(
-                    ["git", "add", str(dirpath)],
-                    capture_output=True, text=True, cwd=str(WORKSPACE),
-                )
+        stage_asn_files(f"ASN-{int(asn_id):04d}")
 
     cmd = [sys.executable, str(COMMIT_SCRIPT)]
     if hint:

@@ -118,10 +118,11 @@ def find_asn(asn_id, asns_dir=None):
 
     Returns (path, label).
     """
-    path = Path(asn_id)
-    if path.exists():
-        label = re.match(r"(ASN-\d+)", path.stem)
-        return path, label.group(1) if label else path.stem
+    if isinstance(asn_id, (str, Path)):
+        path = Path(asn_id)
+        if path.exists():
+            label = re.match(r"(ASN-\d+)", path.stem)
+            return path, label.group(1) if label else path.stem
 
     num = re.sub(r"[^0-9]", "", str(asn_id))
     if not num:
@@ -407,6 +408,35 @@ def _extract_sections_by_labels(asn_text, labels, truncate=True):
     return sections
 
 
+def stage_asn_files(label):
+    """Stage git files scoped to a single ASN. Returns True if anything staged.
+
+    `glob.glob` matches both the markdown note file and any directories
+    named `ASN-NNNN`; `git add` on a directory stages its contents.
+    """
+    import glob
+    patterns = [
+        NOTES_DIR / f"{label}-*",
+        REVIEWS_DIR / label,
+        BLUEPRINTS_DIR / label,
+        FORMALIZATION_DIR / label,
+        CONSULTATIONS_DIR / label,
+        MANIFESTS_DIR / label,
+        EXAMPLES_DIR / label,
+    ]
+    staged = False
+    for p in patterns:
+        matches = glob.glob(str(p))
+        if matches:
+            result = subprocess.run(
+                ["git", "add"] + matches,
+                capture_output=True, text=True, cwd=str(WORKSPACE),
+            )
+            if result.returncode == 0:
+                staged = True
+    return staged
+
+
 def step_commit_asn(asn_id, hint=""):
     """Stage and commit only files belonging to a specific ASN.
 
@@ -415,41 +445,7 @@ def step_commit_asn(asn_id, hint=""):
     two ASN pipelines won't include each other's changes.
     """
     label = f"ASN-{int(asn_id):04d}"
-    patterns = [
-        f"{NOTES_DIR.relative_to(WORKSPACE)}/{label}-*",
-        f"{REVIEWS_DIR.relative_to(WORKSPACE)}/{label}/",
-        f"{BLUEPRINTS_DIR.relative_to(WORKSPACE)}/{label}/",
-        f"{FORMALIZATION_DIR.relative_to(WORKSPACE)}/{label}/",
-        f"{CONSULTATIONS_DIR.relative_to(WORKSPACE)}/{label}/",
-        f"{MANIFESTS_DIR.relative_to(WORKSPACE)}/{label}/",
-        f"{EXAMPLES_DIR.relative_to(WORKSPACE)}/{label}/",
-    ]
-
-    # Stage only this ASN's files
-    import glob
-    staged = False
-    for pattern in patterns:
-        matches = glob.glob(str(WORKSPACE / pattern), recursive=True)
-        if matches:
-            result = subprocess.run(
-                ["git", "add"] + matches,
-                capture_output=True, text=True, cwd=str(WORKSPACE),
-            )
-            if result.returncode == 0 and matches:
-                staged = True
-
-    # Also stage any directories (git add needs trailing / for dirs)
-    for pattern in patterns:
-        if pattern.endswith("/"):
-            dirpath = WORKSPACE / pattern.rstrip("/")
-            if dirpath.exists():
-                subprocess.run(
-                    ["git", "add", str(dirpath)],
-                    capture_output=True, text=True, cwd=str(WORKSPACE),
-                )
-                staged = True
-
-    if not staged:
+    if not stage_asn_files(label):
         print(f"  [COMMIT] No changes for {label}", file=sys.stderr)
         return False
 
