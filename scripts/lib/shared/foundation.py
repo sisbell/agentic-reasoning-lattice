@@ -11,7 +11,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, PROJECT_MODEL_DIR, load_manifest
+from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, MANIFESTS_DIR, load_manifest
 from lib.shared.common import build_label_index, load_claim_metadata
 
 
@@ -21,11 +21,11 @@ def find_extensions(base_id):
     Scans project model manifests for extends: <base_id> and returns
     their ASN IDs sorted numerically.
     """
-    if not PROJECT_MODEL_DIR.exists():
+    if not MANIFESTS_DIR.exists():
         return []
 
     extensions = []
-    for path in sorted(PROJECT_MODEL_DIR.glob("ASN-*/project.yaml")):
+    for path in sorted(MANIFESTS_DIR.glob("ASN-*/note.yaml")):
         try:
             with open(path) as f:
                 m_data = yaml.safe_load(f) or {}

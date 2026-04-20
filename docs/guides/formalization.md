@@ -57,7 +57,7 @@ Generates 1-3 sentence summaries for claim YAML files. These summaries populate 
 
 ### Assembly
 
-Mechanical, no LLM. Reads YAML summaries + .md formal contracts and writes two export files in `lattices/xanadu/project-model/ASN-NNNN/`:
+Mechanical, no LLM. Reads YAML summaries + .md formal contracts and writes two export files in `lattices/xanadu/manifests/ASN-NNNN/`:
 
 - `formal-statements.md` — summary + formal contract per claim, in dependency order
 - `dependency-graph.yaml` — structured dependency data for discovery and rebase

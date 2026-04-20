@@ -14,8 +14,8 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
-from lib.shared.paths import (WORKSPACE, ASNS_DIR, PROJECT_MODEL_DIR,
-                   load_manifest, project_yaml, formal_stmts)
+from lib.shared.paths import (WORKSPACE, ASNS_DIR, MANIFESTS_DIR,
+                   load_manifest, note_yaml, formal_stmts)
 from lib.shared.common import read_file, find_asn, invoke_claude, log_usage, step_commit
 from lib.shared.foundation import find_extensions, load_foundation_statements
 
@@ -75,7 +75,7 @@ def validate(source_num, target_num, base_num, claim_labels):
 
     # Target does not exist
     target_label = f"ASN-{target_num:04d}"
-    target_yaml = project_yaml(target_num)
+    target_yaml = note_yaml(target_num)
     target_asns = list(ASNS_DIR.glob(f"{target_label}-*.md"))
     if target_yaml.exists():
         print(f"  [ERROR] {target_label} already exists in project model",
@@ -173,7 +173,7 @@ def write_manifest(target_num, title, base_num, source_num, depends,
         f'claims {", ".join(claims)} from {source_label}."\n'
     )
 
-    path = project_yaml(target_num)
+    path = note_yaml(target_num)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content)
     return path

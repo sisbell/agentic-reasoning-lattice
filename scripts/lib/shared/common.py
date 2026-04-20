@@ -14,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import (
     WORKSPACE, ASNS_DIR, USAGE_LOG,
     REVIEWS_DIR, BLUEPRINTS_DIR, FORMALIZATION_DIR,
-    EXPERTS_DIR, PROJECT_MODEL_DIR, EXAMPLES_DIR,
+    EXPERTS_DIR, MANIFESTS_DIR, EXAMPLES_DIR,
 )
 
 
@@ -421,7 +421,7 @@ def step_commit_asn(asn_id, hint=""):
         f"{BLUEPRINTS_DIR.relative_to(WORKSPACE)}/{label}/",
         f"{FORMALIZATION_DIR.relative_to(WORKSPACE)}/{label}/",
         f"{EXPERTS_DIR.relative_to(WORKSPACE)}/{label}/",
-        f"{PROJECT_MODEL_DIR.relative_to(WORKSPACE)}/{label}/",
+        f"{MANIFESTS_DIR.relative_to(WORKSPACE)}/{label}/",
         f"{EXAMPLES_DIR.relative_to(WORKSPACE)}/{label}/",
     ]
 

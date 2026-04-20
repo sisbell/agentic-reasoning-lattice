@@ -86,7 +86,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Firewall, vocabulary.** Structural enforcement that the theory channel cannot use data-channel terms and vice versa. Prevents the LLM's training knowledge from shortcutting reasoning. See [Two Data Authorities](patterns/two-data-authorities.md).
 
-**Formal-statements export.** Curated export containing all claim summaries and formal contracts in dependency order. Written to `lattices/xanadu/project-model/ASN-NNNN/formal-statements.md`. Consumed by downstream notes as foundation.
+**Formal-statements export.** Curated export containing all claim summaries and formal contracts in dependency order. Written to `lattices/xanadu/manifests/ASN-NNNN/formal-statements.md`. Consumed by downstream notes as foundation.
 
 **Formalization.** The stage that rewrites proofs to Dijkstra standard, produces formal contracts, and runs the V-cycle to convergence. See [formalization guide](guides/formalization.md).
 

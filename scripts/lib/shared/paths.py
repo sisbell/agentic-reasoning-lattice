@@ -35,21 +35,21 @@ EXAMPLES_DIR = LATTICE / "implementation" / "examples"
 TESTCASES_DIR = LATTICE / "implementation" / "test-cases"
 TRANSLATION_DIR = LATTICE / "implementation" / "translation"
 
-# Per-ASN project model (manifests, statements, deps, issues)
-PROJECT_MODEL_DIR = LATTICE / "project-model"
+# Per-note manifests (metadata, statements, deps, issues)
+MANIFESTS_DIR = LATTICE / "manifests"
 
 # Operational
 USAGE_LOG = LATTICE / "usage-log.jsonl"
 
 
 def asn_dir(asn_num):
-    """Per-ASN project model directory."""
-    return PROJECT_MODEL_DIR / f"ASN-{int(asn_num):04d}"
+    """Per-note manifest directory."""
+    return MANIFESTS_DIR / f"ASN-{int(asn_num):04d}"
 
 
-def project_yaml(asn_num):
-    """Path to ASN project manifest."""
-    return asn_dir(asn_num) / "project.yaml"
+def note_yaml(asn_num):
+    """Path to a note's metadata YAML."""
+    return asn_dir(asn_num) / "note.yaml"
 
 
 def dep_graph(asn_num):
@@ -141,8 +141,8 @@ def lint_global_path(kind):
 
 
 def load_manifest(asn_id):
-    """Load a manifest file for an ASN. Returns dict or empty dict."""
-    path = project_yaml(asn_id)
+    """Load a note's manifest YAML. Returns dict or empty dict."""
+    path = note_yaml(asn_id)
     try:
         with open(path) as f:
             return yaml.safe_load(f) or {}

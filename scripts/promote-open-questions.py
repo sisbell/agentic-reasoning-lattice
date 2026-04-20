@@ -3,7 +3,7 @@
 Promote Open Questions — evaluate ASN open questions for new ASN creation.
 
 Reads an ASN's open questions section, asks Claude which warrant their own
-ASN, creates project.yaml for each promoted question.
+ASN, creates note.yaml for each promoted question.
 
 Usage:
     python scripts/promote-open-questions.py 34
@@ -22,7 +22,7 @@ from lib.shared.paths import WORKSPACE
 from lib.shared.common import find_asn, invoke_claude, read_file, log_usage, step_commit_asn
 from lib.discovery.promotion.promote import (
     load_existing_inquiries, next_asn_number, parse_promoted,
-    create_project_yaml, load_existing_promotion, save_promotion_report,
+    create_note_yaml, load_existing_promotion, save_promotion_report,
 )
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery" / "promotion"
@@ -100,7 +100,7 @@ def main():
             gregory = item.get("gregory", 10)
             print(f"    ASN-{cur_num:04d}: {item['title']} [{area}]",
                   file=sys.stderr)
-            create_project_yaml(cur_num, item["title"], item["question"],
+            create_note_yaml(cur_num, item["title"], item["question"],
                                 area, asn_num, nelson=nelson, gregory=gregory)
             created.append(cur_num)
             cur_num += 1

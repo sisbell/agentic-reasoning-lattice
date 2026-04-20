@@ -68,7 +68,7 @@ Populates the `summary` field in each claim YAML. Required before assembly. Hash
 python scripts/formalization-assembly.py <ASN>
 ```
 
-Mechanical — reads YAML summaries + .md contracts, writes `formal-statements.md` and `dependency-graph.yaml` to `lattices/xanadu/project-model/`.
+Mechanical — reads YAML summaries + .md contracts, writes `formal-statements.md` and `dependency-graph.yaml` to `lattices/xanadu/manifests/`.
 
 ### 8. Individual re-runs (if needed)
 

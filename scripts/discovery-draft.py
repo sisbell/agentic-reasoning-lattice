@@ -31,7 +31,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import (
-    WORKSPACE, ASNS_DIR, USAGE_LOG, PROJECT_MODEL_DIR, load_manifest,
+    WORKSPACE, ASNS_DIR, USAGE_LOG, MANIFESTS_DIR, load_manifest,
     LATTICE, REVIEWS_DIR, EXPERTS_DIR, EXAMPLES_DIR,
 )
 
@@ -64,7 +64,7 @@ def load_inquiries():
     """Load all ASN definitions from project model directory."""
     import re
     inquiries = []
-    for path in sorted(PROJECT_MODEL_DIR.glob("ASN-*/project.yaml")):
+    for path in sorted(MANIFESTS_DIR.glob("ASN-*/note.yaml")):
         m = re.match(r"ASN-(\d+)", path.parent.name)
         if not m:
             continue
@@ -205,7 +205,7 @@ def step_commit(hint="", asn_id=None):
             f"{ASNS_DIR.relative_to(WORKSPACE)}/{label}-*",
             f"{REVIEWS_DIR.relative_to(WORKSPACE)}/{label}",
             f"{EXPERTS_DIR.relative_to(WORKSPACE)}/{label}",
-            f"{PROJECT_MODEL_DIR.relative_to(WORKSPACE)}/{label}/",
+            f"{MANIFESTS_DIR.relative_to(WORKSPACE)}/{label}/",
             f"{EXAMPLES_DIR.relative_to(WORKSPACE)}/{label}",
         ]
         # Stage only this ASN's files

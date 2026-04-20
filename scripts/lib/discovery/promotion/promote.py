@@ -1,10 +1,10 @@
 """
 Promotion step functions — shared by open-questions and out-of-scope orchestrators.
 
-- load_existing_inquiries: read title + question from all project.yaml files
+- load_existing_inquiries: read title + question from all note.yaml files
 - next_asn_number: find next available ASN number
 - parse_promoted: parse LLM promotion output into structured items
-- create_project_yaml: write a new ASN project manifest
+- create_note_yaml: write a new ASN project manifest
 - load_existing_promotion: read previous promotion report for an ASN
 - save_promotion_report: write promotion report
 """
@@ -16,16 +16,16 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, PROJECT_MODEL_DIR, asn_dir
+from lib.shared.paths import WORKSPACE, MANIFESTS_DIR, asn_dir
 
 
 def load_existing_inquiries():
-    """Read title + question from all project.yaml files.
+    """Read title + question from all note.yaml files.
 
     Returns formatted text for injection into the promotion prompt.
     """
     entries = []
-    for yaml_path in sorted(PROJECT_MODEL_DIR.glob("ASN-*/project.yaml")):
+    for yaml_path in sorted(MANIFESTS_DIR.glob("ASN-*/note.yaml")):
         try:
             data = yaml.safe_load(yaml_path.read_text())
         except Exception:
@@ -41,7 +41,7 @@ def load_existing_inquiries():
 def next_asn_number():
     """Find the next available ASN number."""
     max_num = 0
-    for d in PROJECT_MODEL_DIR.iterdir():
+    for d in MANIFESTS_DIR.iterdir():
         if d.is_dir():
             m = re.match(r"ASN-(\d+)", d.name)
             if m:
@@ -110,15 +110,15 @@ def parse_promoted(text):
     return items
 
 
-def create_project_yaml(asn_num, title, question, area, source_asn,
+def create_note_yaml(asn_num, title, question, area, source_asn,
                         nelson=10, gregory=10):
-    """Create a new project.yaml for a promoted ASN.
+    """Create a new note.yaml for a promoted ASN.
 
     Returns the path to the created file.
     """
     out_dir = asn_dir(asn_num)
     out_dir.mkdir(parents=True, exist_ok=True)
-    out_path = out_dir / "project.yaml"
+    out_path = out_dir / "note.yaml"
 
     content = f"""# ASN-{asn_num:04d} — {title}
 title: "{title}"
@@ -151,7 +151,7 @@ def load_existing_promotion(asn_num, kind):
 
 
 def save_promotion_report(asn_num, kind, text):
-    """Save promotion report to the ASN's project-model directory.
+    """Save promotion report to the ASN's manifests directory.
 
     kind: "open-questions" or "out-of-scope"
     """

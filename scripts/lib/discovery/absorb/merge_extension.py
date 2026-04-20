@@ -26,8 +26,8 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
-from lib.shared.paths import (WORKSPACE, ASNS_DIR, PROJECT_MODEL_DIR,
-                   REVIEWS_DIR, load_manifest, project_yaml, formal_stmts)
+from lib.shared.paths import (WORKSPACE, ASNS_DIR, MANIFESTS_DIR,
+                   REVIEWS_DIR, load_manifest, note_yaml, formal_stmts)
 from lib.shared.common import (read_file, find_asn, invoke_claude, invoke_claude_agent,
                          log_usage, step_commit)
 
@@ -349,7 +349,7 @@ def step_cleanup(ext_num):
     """Step 5: Remove extension's project model and export file."""
     ext_label = f"ASN-{ext_num:04d}"
 
-    yaml_path = project_yaml(ext_num)
+    yaml_path = note_yaml(ext_num)
     if yaml_path.exists():
         yaml_path.unlink()
         print(f"  [REMOVED] {yaml_path.relative_to(WORKSPACE)}",

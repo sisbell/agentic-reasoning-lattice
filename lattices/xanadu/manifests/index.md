@@ -1,16 +1,16 @@
 # ASN Index
 
-Generated from vault/project-model/ASN-*/project.yaml — do not edit manually.
+Generated from lattices/xanadu/manifests/ASN-*/note.yaml — do not edit manually.
 Regenerate with: `./run/generate-index.sh`
 
 ## Foundation
 
 | ASN | Title | Stage | Export | Depends |
 |-----|-------|-------|--------|---------|
-| ASN-0034 | Tumbler Algebra | formalized | current | — |
-| ASN-0040 | Tumbler Baptism | discovery | current | 34 |
+| ASN-0034 | Tumbler Algebra | formalized | stale | — |
+| ASN-0040 | Tumbler Baptism | discovery | stale | 34 |
 | ASN-0042 | Tumbler Ownership | discovery | stale | 34,40 |
-| ASN-0045 | Tumbler Fields | discovery | current | 34 |
+| ASN-0045 | Tumbler Fields | discovery | stale | 34 |
 
 ## Operations
 
@@ -22,10 +22,10 @@ Regenerate with: `./run/generate-index.sh`
 | ASN-0051 | Link Projection Displacement | discovery | stale | 34,36,43,47,53,58 |
 | ASN-0053 | Span Algebra | discovery | stale | 34 |
 | ASN-0058 | Bundle Algebra | discovery | stale | 34,36,53 |
-| ASN-0059 | INSERT Operation | discovery | current | 34,36,47,53,58 |
-| ASN-0061 | DELETE Operation | discovery | current | 34,36,43,47,53,58 |
-| ASN-0065 | REARRANGE Operation | discovery | current | 34,36,47,53,58 |
-| ASN-0067 | COPY Operation | discovery | current | 34,36,43,47,53,58 |
+| ASN-0059 | INSERT Operation | discovery | stale | 34,36,47,53,58 |
+| ASN-0061 | DELETE Operation | discovery | stale | 34,36,43,47,53,58 |
+| ASN-0065 | REARRANGE Operation | discovery | stale | 34,36,47,53,58 |
+| ASN-0067 | COPY Operation | discovery | stale | 34,36,43,47,53,58 |
 | ASN-0068 | COMPAREVERSIONS Operation | inquiry | — | 34,36,47,53,58 |
 | ASN-0069 | CREATENEWVERSION Operation | inquiry | — | 34,36,47,53,58 |
 | ASN-0070 | FOLLOWLINK Operation | inquiry | — | 34,36,43,47,53,58 |

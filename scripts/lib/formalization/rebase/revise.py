@@ -32,7 +32,7 @@ def format_finding_for_reviser(findings):
             f"**Required**: Fix the {f.category} issue — "
             f"{'update the reference to use the canonical upstream label' if f.category == 'stale-label' else ''}"
             f"{'add the missing dependency to the claim table' if f.category == 'missing-dep' else ''}"
-            f"{'add the ASN to the depends list in project.yaml' if f.category == 'undeclared-asn' else ''}"
+            f"{'add the ASN to the depends list in note.yaml' if f.category == 'undeclared-asn' else ''}"
             f"{'add the label to the follows_from list in the claim table' if f.category == 'prose-only' else ''}"
             f"{f.detail if f.category in ('cross-ref', 'extension-gap') else ''}"
         )

@@ -18,7 +18,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, ASNS_DIR, PROJECT_MODEL_DIR, EXAMPLES_DIR
+from lib.shared.paths import WORKSPACE, ASNS_DIR, MANIFESTS_DIR, EXAMPLES_DIR
 
 PROMPTS = WORKSPACE / "scripts" / "prompts" / "examples"
 
@@ -41,7 +41,7 @@ def find_asn_file(asn_num):
 def find_formal_statements(asn_num):
     """Find formal-statements.md for an ASN. Returns path or None."""
     label = f"ASN-{asn_num:04d}"
-    path = PROJECT_MODEL_DIR / label / "formal-statements.md"
+    path = MANIFESTS_DIR / label / "formal-statements.md"
     if path.exists():
         return path
     return None

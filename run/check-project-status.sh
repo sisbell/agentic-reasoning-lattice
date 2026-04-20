@@ -13,7 +13,7 @@
 set -euo pipefail
 
 WORKSPACE="$(cd "$(dirname "$0")/.." && pwd)"
-MODEL_DIR="$WORKSPACE/lattices/xanadu/project-model"
+MANIFESTS_DIR="$WORKSPACE/lattices/xanadu/manifests"
 
 # Format unix timestamp to "Mar 22, 18:30"
 fmt_date() {
@@ -33,7 +33,7 @@ printf "  %-12s %-24s %-16s %-16s %-14s %-18s\n" \
 export_issues=0
 dep_issues=0
 
-for yaml in "$MODEL_DIR"/ASN-*/project.yaml; do
+for yaml in "$MANIFESTS_DIR"/ASN-*/note.yaml; do
     [ -f "$yaml" ] || continue
 
     asn_dir=$(dirname "$yaml")
@@ -87,7 +87,7 @@ for yaml in "$MODEL_DIR"/ASN-*/project.yaml; do
         stale_dep=""
         for dep in $deps; do
             dep_label=$(printf "ASN-%04d" "$dep")
-            dep_export="$MODEL_DIR/${dep_label}/formal-statements.md"
+            dep_export="$MANIFESTS_DIR/${dep_label}/formal-statements.md"
             [ -f "$dep_export" ] || continue
 
             dep_ts=$(git -C "$WORKSPACE" log -1 --format="%ct" -- "$dep_export" 2>/dev/null || echo "0")

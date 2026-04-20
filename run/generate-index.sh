@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Regenerate lattices/xanadu/project-model/index.md from ASN project yamls.
+# Regenerate lattices/xanadu/manifests/index.md from ASN project yamls.
 #
 # Groups by topic, sorts by ASN number within each group.
 # Reads stage, title, depends from each yaml.
@@ -11,14 +11,14 @@
 set -euo pipefail
 
 WORKSPACE="$(cd "$(dirname "$0")/.." && pwd)"
-MODEL_DIR="$WORKSPACE/lattices/xanadu/project-model"
-INDEX="$MODEL_DIR/index.md"
+MANIFESTS_DIR="$WORKSPACE/lattices/xanadu/manifests"
+INDEX="$MANIFESTS_DIR/index.md"
 
 # Collect data from yamls
 declare -a foundations=()
 declare -a operations=()
 
-for yaml in "$MODEL_DIR"/ASN-*/project.yaml; do
+for yaml in "$MANIFESTS_DIR"/ASN-*/note.yaml; do
     [ -f "$yaml" ] || continue
 
     asn_dir=$(dirname "$yaml")
@@ -62,7 +62,7 @@ done
 cat > "$INDEX" << 'HEADER'
 # ASN Index
 
-Generated from lattices/xanadu/project-model/ASN-*/project.yaml — do not edit manually.
+Generated from lattices/xanadu/manifests/ASN-*/note.yaml — do not edit manually.
 Regenerate with: `./run/generate-index.sh`
 
 ## Foundation

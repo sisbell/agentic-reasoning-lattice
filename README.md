@@ -66,6 +66,6 @@ See [Science Approach](docs/science/README.md) for the convergence framing, cone
 - [lattices/xanadu/blueprinting/](lattices/xanadu/blueprinting/) — per-claim decomposition (blueprinting output)
 - [lattices/xanadu/formalization/](lattices/xanadu/formalization/) — formalized claims with contracts
 - [lattices/xanadu/verification/](lattices/xanadu/verification/) — Dafny proofs and Alloy models
-- [lattices/xanadu/project-model/](lattices/xanadu/project-model/index.md) — per-ASN manifests, exports, dependency graphs
+- [lattices/xanadu/manifests/](lattices/xanadu/manifests/index.md) — per-ASN manifests, exports, dependency graphs
 - [scripts/](scripts/) — pipeline automation
 - [docs/](docs/README.md) — methodology, patterns, design notes, guides, runbooks

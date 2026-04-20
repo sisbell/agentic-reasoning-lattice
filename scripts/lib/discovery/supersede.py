@@ -21,9 +21,9 @@ import yaml
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import (WORKSPACE, ASNS_DIR, PROJECT_MODEL_DIR,
+from lib.shared.paths import (WORKSPACE, ASNS_DIR, MANIFESTS_DIR,
                    EXPERTS_DIR as CONSULTATIONS_DIR,
-                   load_manifest, project_yaml)
+                   load_manifest, note_yaml)
 from lib.shared.common import step_commit
 
 
@@ -33,14 +33,14 @@ def validate(source_num, target_num):
     target_label = f"ASN-{target_num:04d}"
 
     # Source project model must exist
-    source_yaml = project_yaml(source_num)
+    source_yaml = note_yaml(source_num)
     if not source_yaml.exists():
         print(f"  [ERROR] {source_label} has no project model",
               file=sys.stderr)
         sys.exit(1)
 
     # Target must not exist
-    target_yaml = project_yaml(target_num)
+    target_yaml = note_yaml(target_num)
     if target_yaml.exists():
         print(f"  [ERROR] {target_label} already exists in project model",
               file=sys.stderr)
@@ -57,8 +57,8 @@ def validate(source_num, target_num):
 
 def copy_project_model(source_num, target_num, source_label, target_label):
     """Copy project model YAML with updated ASN number."""
-    source_yaml = project_yaml(source_num)
-    target_yaml = project_yaml(target_num)
+    source_yaml = note_yaml(source_num)
+    target_yaml = note_yaml(target_num)
 
     content = source_yaml.read_text()
 
@@ -105,7 +105,7 @@ def copy_consultations(source_num, target_num, source_label, target_label):
 
 def remove_source(source_num, source_label):
     """Remove the source project model."""
-    source_yaml = project_yaml(source_num)
+    source_yaml = note_yaml(source_num)
     if source_yaml.exists():
         source_yaml.unlink()
         print(f"  [REMOVED] {source_yaml.relative_to(WORKSPACE)}",
