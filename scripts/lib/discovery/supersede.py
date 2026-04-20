@@ -21,8 +21,8 @@ import yaml
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import (WORKSPACE, ASNS_DIR, MANIFESTS_DIR,
-                   EXPERTS_DIR as CONSULTATIONS_DIR,
+from lib.shared.paths import (WORKSPACE, NOTES_DIR, MANIFESTS_DIR,
+                   CONSULTATIONS_DIR as CONSULTATIONS_DIR,
                    load_manifest, note_yaml)
 from lib.shared.common import step_commit
 
@@ -46,7 +46,7 @@ def validate(source_num, target_num):
               file=sys.stderr)
         sys.exit(1)
 
-    target_asns = list(ASNS_DIR.glob(f"{target_label}-*.md"))
+    target_asns = list(NOTES_DIR.glob(f"{target_label}-*.md"))
     if target_asns:
         print(f"  [ERROR] {target_label} already exists in reasoning docs",
               file=sys.stderr)

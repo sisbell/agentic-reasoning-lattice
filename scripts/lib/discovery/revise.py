@@ -23,7 +23,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, VOCABULARY, ASNS_DIR, REVIEWS_DIR, USAGE_LOG, sorted_reviews
+from lib.shared.paths import WORKSPACE, VOCABULARY, NOTES_DIR, REVIEWS_DIR, USAGE_LOG, sorted_reviews
 from lib.shared.foundation import load_foundation_statements
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery"
@@ -46,7 +46,7 @@ def find_asn(asn_id):
     if not num:
         return None, None
     label = f"ASN-{int(num):04d}"
-    matches = sorted(ASNS_DIR.glob(f"{label}-*.md"))
+    matches = sorted(NOTES_DIR.glob(f"{label}-*.md"))
     if matches:
         return matches[0], label
     return None, label

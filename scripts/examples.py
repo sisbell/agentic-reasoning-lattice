@@ -18,7 +18,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, ASNS_DIR, MANIFESTS_DIR, EXAMPLES_DIR
+from lib.shared.paths import WORKSPACE, NOTES_DIR, MANIFESTS_DIR, EXAMPLES_DIR
 
 PROMPTS = WORKSPACE / "scripts" / "prompts" / "examples"
 
@@ -31,7 +31,7 @@ REVIEW_PROMPT = PROMPTS / "review.md"
 def find_asn_file(asn_num):
     """Find the ASN markdown file."""
     label = f"ASN-{asn_num:04d}"
-    matches = list(ASNS_DIR.glob(f"{label}-*.md"))
+    matches = list(NOTES_DIR.glob(f"{label}-*.md"))
     if not matches:
         print(f"[ERROR] No ASN file found for {label}", file=sys.stderr)
         sys.exit(1)
@@ -192,10 +192,10 @@ def main():
         print(f"  [SPEC] No formal-statements.md — using raw ASN", file=sys.stderr)
     label = f"ASN-{args.asn:04d}"
 
-    asn_dir = EXAMPLES_DIR / label
-    asn_dir.mkdir(parents=True, exist_ok=True)
-    examples_file = asn_dir / "examples-1.md"
-    review_dir = asn_dir / "reviews"
+    example_dir = EXAMPLES_DIR / label
+    example_dir.mkdir(parents=True, exist_ok=True)
+    examples_file = example_dir / "examples-1.md"
+    review_dir = example_dir / "reviews"
     review_dir.mkdir(parents=True, exist_ok=True)
 
     # Count existing reviews to know where we are

@@ -16,7 +16,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, MANIFESTS_DIR, asn_dir
+from lib.shared.paths import WORKSPACE, MANIFESTS_DIR, note_dir
 
 
 def load_existing_inquiries():
@@ -116,7 +116,7 @@ def create_note_yaml(asn_num, title, question, area, source_asn,
 
     Returns the path to the created file.
     """
-    out_dir = asn_dir(asn_num)
+    out_dir = note_dir(asn_num)
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / "note.yaml"
 
@@ -144,7 +144,7 @@ def load_existing_promotion(asn_num, kind):
     kind: "open-questions" or "out-of-scope"
     Returns content or empty string.
     """
-    path = asn_dir(asn_num) / f"promotion-{kind}.md"
+    path = note_dir(asn_num) / f"promotion-{kind}.md"
     if path.exists():
         return path.read_text().strip()
     return ""
@@ -155,7 +155,7 @@ def save_promotion_report(asn_num, kind, text):
 
     kind: "open-questions" or "out-of-scope"
     """
-    out_dir = asn_dir(asn_num)
+    out_dir = note_dir(asn_num)
     out_dir.mkdir(parents=True, exist_ok=True)
     path = out_dir / f"promotion-{kind}.md"
     path.write_text(text + "\n")

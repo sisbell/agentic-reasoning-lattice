@@ -23,7 +23,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, EXAMPLES_DIR, TESTCASES_DIR, TRANSLATION_DIR
+from lib.shared.paths import WORKSPACE, EXAMPLES_DIR, TEST_CASES_DIR, TRANSLATION_DIR
 
 PROMPTS = WORKSPACE / "scripts" / "prompts" / "test-cases"
 
@@ -341,7 +341,7 @@ def codegen_case(case_num, case_text, oracle_api, harness_src):
 def cmd_codegen(args):
     """Generate Rust #[test] files from test cases."""
     label = f"ASN-{args.asn:04d}"
-    tc_dir = TESTCASES_DIR / label
+    tc_dir = TEST_CASES_DIR / label
 
     if not tc_dir.exists():
         print(f"[ERROR] No test cases found: {tc_dir}", file=sys.stderr)
@@ -451,7 +451,7 @@ def cmd_extract(args):
                   file=sys.stderr)
             sys.exit(1)
 
-    out_dir = TESTCASES_DIR / label
+    out_dir = TEST_CASES_DIR / label
     out_dir.mkdir(parents=True, exist_ok=True)
     review_dir = out_dir / "reviews"
     review_dir.mkdir(parents=True, exist_ok=True)

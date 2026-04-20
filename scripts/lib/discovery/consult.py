@@ -29,7 +29,7 @@ from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, EXPERTS_DIR, USAGE_LOG, load_manifest, load_excluded_covers
+from lib.shared.paths import WORKSPACE, CONSULTATIONS_DIR, USAGE_LOG, load_manifest, load_excluded_covers
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery" / "consultation"
 TEST_HARNESS = WORKSPACE / "udanax-test-harness"
@@ -690,7 +690,7 @@ def main():
     total_start = time.time()
 
     # Check for existing questions file (editable by user)
-    existing_questions_path = EXPERTS_DIR / f"ASN-{asn_label}" / "consultation" / "questions.md"
+    existing_questions_path = CONSULTATIONS_DIR / f"ASN-{asn_label}" / "consultation" / "questions.md"
     if not args.dry_run and existing_questions_path.exists() and not args.regenerate:
         print(f"  [LOAD] Using existing questions from {existing_questions_path.relative_to(WORKSPACE)}",
               file=sys.stderr)
@@ -721,7 +721,7 @@ def main():
     print(f"", file=sys.stderr)
 
     # Save questions
-    output_dir = EXPERTS_DIR / f"ASN-{asn_label}"
+    output_dir = CONSULTATIONS_DIR / f"ASN-{asn_label}"
     init_dir = output_dir / "consultation"
     init_dir.mkdir(parents=True, exist_ok=True)
     questions_path = init_dir / "questions.md"

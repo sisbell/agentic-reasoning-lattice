@@ -25,7 +25,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, ASNS_DIR, REQUIREMENTS_DIR, USAGE_LOG
+from lib.shared.paths import WORKSPACE, NOTES_DIR, REQUIREMENTS_DIR, USAGE_LOG
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "requirements"
 TEMPLATE = PROMPTS_DIR / "extract-features.md"
@@ -44,7 +44,7 @@ def resolve_asn(asn_id):
     if not num:
         return None
     label = f"ASN-{int(num):04d}"
-    matches = sorted(ASNS_DIR.glob(f"{label}-*.md"))
+    matches = sorted(NOTES_DIR.glob(f"{label}-*.md"))
     return matches[0] if matches else None
 
 
@@ -158,7 +158,7 @@ def main():
         if not asn_files:
             sys.exit(1)
     else:
-        asn_files = sorted(ASNS_DIR.glob("ASN-*.md"))
+        asn_files = sorted(NOTES_DIR.glob("ASN-*.md"))
 
     if not asn_files:
         print("  No ASN files found in lattices/xanadu/discovery/notes/", file=sys.stderr)

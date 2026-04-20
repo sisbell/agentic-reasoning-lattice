@@ -13,7 +13,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, USAGE_LOG, formal_stmts, asn_dir
+from lib.shared.paths import WORKSPACE, USAGE_LOG, formal_stmts, note_dir
 from lib.shared.common import find_asn, invoke_claude
 
 PROMPTS_DIR = WORKSPACE / "scripts" / "prompts" / "discovery" / "assembly"
@@ -96,7 +96,7 @@ def export_one(asn_id, model="sonnet", effort="high", dry_run=False):
 
     # Write output
     asn_num = int(re.sub(r"[^0-9]", "", asn_label))
-    asn_dir(asn_num).mkdir(parents=True, exist_ok=True)
+    note_dir(asn_num).mkdir(parents=True, exist_ok=True)
     out_path = formal_stmts(asn_num)
     out_path.write_text(text + "\n")
 

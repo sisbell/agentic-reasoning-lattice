@@ -23,7 +23,7 @@ import yaml
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, ASNS_DIR, EXPERTS_DIR, VOCABULARY, USAGE_LOG, load_manifest
+from lib.shared.paths import WORKSPACE, NOTES_DIR, CONSULTATIONS_DIR, VOCABULARY, USAGE_LOG, load_manifest
 from lib.shared.foundation import load_foundation_statements
 
 DISCOVERY_PROMPT = WORKSPACE / "scripts" / "prompts" / "discovery" / "instructions.md"
@@ -187,7 +187,7 @@ Do not run ad-hoc expert consultations during discovery. All consultation was do
 
 def run_discovery(inquiry, asn_number, slug, force=False):
     """Run xan-discovery to write the ASN. Returns path to ASN file or None."""
-    outfile = ASNS_DIR / f"ASN-{asn_number:04d}-{slug}.md"
+    outfile = NOTES_DIR / f"ASN-{asn_number:04d}-{slug}.md"
 
     if outfile.exists() and not force:
         print(f"  [SKIP] {outfile.name} already exists (use --force to overwrite)",
@@ -195,7 +195,7 @@ def run_discovery(inquiry, asn_number, slug, force=False):
         return outfile
 
     # Require consultation answers
-    answers_path = EXPERTS_DIR / f"ASN-{asn_number:04d}" / "consultation" / "answers.md"
+    answers_path = CONSULTATIONS_DIR / f"ASN-{asn_number:04d}" / "consultation" / "answers.md"
     if not answers_path.exists():
         print(f"  [ERROR] No consultation answers at {answers_path.relative_to(WORKSPACE)}",
               file=sys.stderr)
@@ -257,7 +257,7 @@ Remember:
               file=sys.stderr)
         return outfile
 
-    written = list(ASNS_DIR.glob(f"ASN-{asn_number:04d}-*.md"))
+    written = list(NOTES_DIR.glob(f"ASN-{asn_number:04d}-*.md"))
     if written:
         actual = written[0]
         print(f"  [OK] {actual.name} ({actual.stat().st_size} bytes) [different filename]",
@@ -267,7 +267,7 @@ Remember:
     print(f"  [WARN] ASN file not found — saving raw response", file=sys.stderr)
     response = data.get("result", "")
     if response:
-        fallback = ASNS_DIR / f"ASN-{asn_number:04d}-{slug}-response.md"
+        fallback = NOTES_DIR / f"ASN-{asn_number:04d}-{slug}-response.md"
         fallback.write_text(response)
         return fallback
 
@@ -287,7 +287,7 @@ def main():
     asn_number = inquiry["id"]
     slug = slugify(inquiry["title"])
 
-    ASNS_DIR.mkdir(parents=True, exist_ok=True)
+    NOTES_DIR.mkdir(parents=True, exist_ok=True)
 
     print(f"ASN-{asn_number:04d}: {inquiry['title']}", file=sys.stderr)
 

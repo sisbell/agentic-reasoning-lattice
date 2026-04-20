@@ -26,7 +26,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
-from lib.shared.paths import (WORKSPACE, ASNS_DIR, MANIFESTS_DIR,
+from lib.shared.paths import (WORKSPACE, NOTES_DIR, MANIFESTS_DIR,
                    REVIEWS_DIR, load_manifest, note_yaml, formal_stmts)
 from lib.shared.common import (read_file, find_asn, invoke_claude, invoke_claude_agent,
                          log_usage, step_commit)

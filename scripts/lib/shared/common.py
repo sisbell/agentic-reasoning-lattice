@@ -12,9 +12,9 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import (
-    WORKSPACE, ASNS_DIR, USAGE_LOG,
+    WORKSPACE, NOTES_DIR, USAGE_LOG,
     REVIEWS_DIR, BLUEPRINTS_DIR, FORMALIZATION_DIR,
-    EXPERTS_DIR, MANIFESTS_DIR, EXAMPLES_DIR,
+    CONSULTATIONS_DIR, MANIFESTS_DIR, EXAMPLES_DIR,
 )
 
 
@@ -127,7 +127,7 @@ def find_asn(asn_id, asns_dir=None):
     if not num:
         return None, None
     label = f"ASN-{int(num):04d}"
-    d = asns_dir or ASNS_DIR
+    d = asns_dir or NOTES_DIR
     matches = sorted(d.glob(f"{label}-*.md"))
     if matches:
         return matches[0], label
@@ -416,11 +416,11 @@ def step_commit_asn(asn_id, hint=""):
     """
     label = f"ASN-{int(asn_id):04d}"
     patterns = [
-        f"{ASNS_DIR.relative_to(WORKSPACE)}/{label}-*",
+        f"{NOTES_DIR.relative_to(WORKSPACE)}/{label}-*",
         f"{REVIEWS_DIR.relative_to(WORKSPACE)}/{label}/",
         f"{BLUEPRINTS_DIR.relative_to(WORKSPACE)}/{label}/",
         f"{FORMALIZATION_DIR.relative_to(WORKSPACE)}/{label}/",
-        f"{EXPERTS_DIR.relative_to(WORKSPACE)}/{label}/",
+        f"{CONSULTATIONS_DIR.relative_to(WORKSPACE)}/{label}/",
         f"{MANIFESTS_DIR.relative_to(WORKSPACE)}/{label}/",
         f"{EXAMPLES_DIR.relative_to(WORKSPACE)}/{label}/",
     ]

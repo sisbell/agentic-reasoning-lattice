@@ -19,7 +19,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import (
-    WORKSPACE, FORMALIZATION_DIR, blueprint_properties_dir,
+    WORKSPACE, FORMALIZATION_DIR, blueprint_claims_dir,
 )
 from lib.shared.common import find_asn, step_commit_asn
 
@@ -31,7 +31,7 @@ def promote_blueprint(asn_num, dry_run=False):
         print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
         return False
 
-    src = blueprint_properties_dir(asn_label)
+    src = blueprint_claims_dir(asn_label)
     if not src.exists():
         print(f"  No blueprint found for {asn_label}", file=sys.stderr)
         return False

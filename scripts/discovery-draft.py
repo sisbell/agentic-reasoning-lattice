@@ -31,8 +31,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import (
-    WORKSPACE, ASNS_DIR, USAGE_LOG, MANIFESTS_DIR, load_manifest,
-    LATTICE, REVIEWS_DIR, EXPERTS_DIR, EXAMPLES_DIR,
+    WORKSPACE, NOTES_DIR, USAGE_LOG, MANIFESTS_DIR, load_manifest,
+    LATTICE, REVIEWS_DIR, CONSULTATIONS_DIR, EXAMPLES_DIR,
 )
 
 CONSULT_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "consult.py"
@@ -202,9 +202,9 @@ def step_commit(hint="", asn_id=None):
     if asn_id is not None:
         label = f"ASN-{int(asn_id):04d}"
         patterns = [
-            f"{ASNS_DIR.relative_to(WORKSPACE)}/{label}-*",
+            f"{NOTES_DIR.relative_to(WORKSPACE)}/{label}-*",
             f"{REVIEWS_DIR.relative_to(WORKSPACE)}/{label}",
-            f"{EXPERTS_DIR.relative_to(WORKSPACE)}/{label}",
+            f"{CONSULTATIONS_DIR.relative_to(WORKSPACE)}/{label}",
             f"{MANIFESTS_DIR.relative_to(WORKSPACE)}/{label}/",
             f"{EXAMPLES_DIR.relative_to(WORKSPACE)}/{label}",
         ]
@@ -350,7 +350,7 @@ def main():
         ids = set(int(x) for x in args.inquiries.split(","))
         inquiries = [i for i in inquiries if i["id"] in ids]
 
-    ASNS_DIR.mkdir(parents=True, exist_ok=True)
+    NOTES_DIR.mkdir(parents=True, exist_ok=True)
 
     target_idx = STEPS.index(args.step)
     steps_label = " → ".join(STEPS[:target_idx + 1])

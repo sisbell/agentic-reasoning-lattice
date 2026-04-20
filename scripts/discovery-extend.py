@@ -17,7 +17,7 @@ from lib.discovery.manage.extend import (
     parse_registry_labels, validate, derive_names, compute_depends,
     build_prompt, strip_preamble, write_manifest,
 )
-from lib.shared.paths import WORKSPACE, ASNS_DIR, formal_stmts
+from lib.shared.paths import WORKSPACE, NOTES_DIR, formal_stmts
 from lib.shared.common import read_file, invoke_claude, log_usage, step_commit
 from lib.shared.foundation import load_foundation_statements
 
@@ -92,8 +92,8 @@ def main():
     text = strip_preamble(text)
 
     # Write reasoning doc
-    ASNS_DIR.mkdir(parents=True, exist_ok=True)
-    asn_path = ASNS_DIR / f"{target_label}-{slug}.md"
+    NOTES_DIR.mkdir(parents=True, exist_ok=True)
+    asn_path = NOTES_DIR / f"{target_label}-{slug}.md"
     asn_path.write_text(text + "\n")
     print(f"  [WROTE] {asn_path.relative_to(WORKSPACE)}", file=sys.stderr)
 

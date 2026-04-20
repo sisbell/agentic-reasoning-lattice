@@ -13,8 +13,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import (
-    WORKSPACE, ASNS_DIR,
-    REVIEWS_DIR, EXPERTS_DIR, MANIFESTS_DIR, EXAMPLES_DIR,
+    WORKSPACE, NOTES_DIR,
+    REVIEWS_DIR, CONSULTATIONS_DIR, MANIFESTS_DIR, EXAMPLES_DIR,
 )
 
 REVIEW_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "review.py"
@@ -29,7 +29,7 @@ def find_asn(asn_id):
     if not num:
         return None, None
     label = f"ASN-{int(num):04d}"
-    matches = sorted(ASNS_DIR.glob(f"{label}-*.md"))
+    matches = sorted(NOTES_DIR.glob(f"{label}-*.md"))
     if matches:
         return matches[0], label
     return None, label
@@ -156,9 +156,9 @@ def step_commit(hint="", asn_id=None):
     if asn_id is not None:
         label = f"ASN-{int(asn_id):04d}"
         patterns = [
-            f"{ASNS_DIR.relative_to(WORKSPACE)}/{label}-*",
+            f"{NOTES_DIR.relative_to(WORKSPACE)}/{label}-*",
             f"{REVIEWS_DIR.relative_to(WORKSPACE)}/{label}",
-            f"{EXPERTS_DIR.relative_to(WORKSPACE)}/{label}",
+            f"{CONSULTATIONS_DIR.relative_to(WORKSPACE)}/{label}",
             f"{MANIFESTS_DIR.relative_to(WORKSPACE)}/{label}/",
             f"{EXAMPLES_DIR.relative_to(WORKSPACE)}/{label}",
         ]

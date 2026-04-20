@@ -11,7 +11,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, formal_stmts, asn_dir
+from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, formal_stmts, note_dir
 from lib.shared.common import find_asn, build_label_index, load_claim_metadata
 from lib.shared.foundation import _extract_formal_contract
 
@@ -87,7 +87,7 @@ def assemble_formal_statements(asn_num):
     output = "\n".join(parts) + "\n"
 
     # Write
-    out_dir = asn_dir(asn_num)
+    out_dir = note_dir(asn_num)
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = formal_stmts(asn_num)
     out_path.write_text(output)

@@ -9,8 +9,8 @@ WORKSPACE = Path(__file__).resolve().parent.parent.parent.parent
 LATTICE = WORKSPACE / "lattices" / "xanadu"
 
 # Discovery stage
-EXPERTS_DIR = LATTICE / "discovery" / "consultations"
-ASNS_DIR = LATTICE / "discovery" / "notes"
+CONSULTATIONS_DIR = LATTICE / "discovery" / "consultations"
+NOTES_DIR = LATTICE / "discovery" / "notes"
 REVIEWS_DIR = LATTICE / "discovery" / "review"
 PATCHES_DIR = LATTICE / "discovery" / "patches"
 
@@ -32,7 +32,7 @@ PROOF_IMPORTS = PROOFS_STAGING_DIR / "imports.md"
 
 # Implementation stage (Xanadu-specific — reference Rust impl)
 EXAMPLES_DIR = LATTICE / "implementation" / "examples"
-TESTCASES_DIR = LATTICE / "implementation" / "test-cases"
+TEST_CASES_DIR = LATTICE / "implementation" / "test-cases"
 TRANSLATION_DIR = LATTICE / "implementation" / "translation"
 
 # Per-note manifests (metadata, statements, deps, issues)
@@ -42,29 +42,29 @@ MANIFESTS_DIR = LATTICE / "manifests"
 USAGE_LOG = LATTICE / "usage-log.jsonl"
 
 
-def asn_dir(asn_num):
+def note_dir(asn_num):
     """Per-note manifest directory."""
     return MANIFESTS_DIR / f"ASN-{int(asn_num):04d}"
 
 
 def note_yaml(asn_num):
     """Path to a note's metadata YAML."""
-    return asn_dir(asn_num) / "note.yaml"
+    return note_dir(asn_num) / "note.yaml"
 
 
 def dep_graph(asn_num):
     """Path to ASN dependency graph YAML."""
-    return asn_dir(asn_num) / "dependency-graph.yaml"
+    return note_dir(asn_num) / "dependency-graph.yaml"
 
 
 def formal_stmts(asn_num):
     """Path to ASN formal statements export."""
-    return asn_dir(asn_num) / "formal-statements.md"
+    return note_dir(asn_num) / "formal-statements.md"
 
 
 def open_issues_path(asn_num):
     """Path to ASN open issues file."""
-    return asn_dir(asn_num) / "open-issues.md"
+    return note_dir(asn_num) / "open-issues.md"
 
 
 def _review_sort_key(path):
@@ -76,10 +76,10 @@ def _review_sort_key(path):
 def sorted_reviews(asn_label, reviews_dir=None):
     """Return review files for an ASN, sorted by numeric review number."""
     d = reviews_dir or REVIEWS_DIR
-    asn_dir = d / asn_label
-    if not asn_dir.exists():
+    note_subdir = d / asn_label
+    if not note_subdir.exists():
         return []
-    return sorted(asn_dir.glob("review-*.md"), key=_review_sort_key)
+    return sorted(note_subdir.glob("review-*.md"), key=_review_sort_key)
 
 
 def sanitize_filename(label, name):
@@ -99,12 +99,12 @@ def sanitize_filename(label, name):
 def next_review_number(asn_label, reviews_dir=None):
     """Find the next review number for this ASN (shared sequence with all reviews)."""
     if reviews_dir is not None:
-        asn_dir = reviews_dir
+        note_subdir = reviews_dir
     else:
-        asn_dir = REVIEWS_DIR / asn_label
-    if not asn_dir.exists():
+        note_subdir = REVIEWS_DIR / asn_label
+    if not note_subdir.exists():
         return 1
-    existing = sorted(asn_dir.glob("review-*.md"))
+    existing = sorted(note_subdir.glob("review-*.md"))
     if not existing:
         return 1
     nums = []
@@ -115,7 +115,7 @@ def next_review_number(asn_label, reviews_dir=None):
     return max(nums, default=0) + 1
 
 
-def blueprint_properties_dir(asn_label):
+def blueprint_claims_dir(asn_label):
     """Per-ASN blueprint claims directory."""
     return BLUEPRINTS_DIR / asn_label / "claims"
 
