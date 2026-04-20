@@ -16,7 +16,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, USAGE_LOG, FORMALIZATION_DIR, DOMAIN_PROMPTS, formal_stmts
+from lib.shared.paths import USAGE_LOG, FORMALIZATION_DIR, DOMAIN_PROMPTS, formal_stmts
 from lib.shared.common import find_asn, invoke_claude, build_label_index, load_claim_metadata
 from lib.formalization.core.build_dependency_graph import generate_formalization_deps
 

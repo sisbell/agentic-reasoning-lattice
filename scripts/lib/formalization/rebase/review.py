@@ -22,7 +22,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, DOMAIN_PROMPTS, formal_stmts, load_manifest, dep_graph
+from lib.shared.paths import FORMALIZATION_DIR, DOMAIN_PROMPTS, formal_stmts, load_manifest, dep_graph
 from lib.shared.common import find_asn, assemble_readonly, read_file
 from lib.shared.foundation import load_foundation_statements
 from lib.formalization.core.build_dependency_graph import generate_discovery_deps

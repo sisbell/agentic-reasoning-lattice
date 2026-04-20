@@ -9,7 +9,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
-from lib.shared.paths import WORKSPACE, DOMAIN_PROMPTS
+from lib.shared.paths import DOMAIN_PROMPTS
 
 PROMPTS_DIR = DOMAIN_PROMPTS / "verification" / "alloy"
 CONTRACT_REVIEW_TEMPLATE = PROMPTS_DIR / "validate-contract.md"
