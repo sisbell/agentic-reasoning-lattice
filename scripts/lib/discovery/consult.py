@@ -241,8 +241,8 @@ def decompose_inquiry(inquiry_text, num_nelson=10, num_gregory=10, model="opus",
 
     kb = read_file(KB_SYNTHESIS)
     if not kb:
-        print("  [WARN] KB synthesis not found at "
-              "udanax-test-harness/knowledge-base/kb-synthesis.md", file=sys.stderr)
+        print(f"  [WARN] KB synthesis not found at {KB_SYNTHESIS.relative_to(WORKSPACE)}",
+              file=sys.stderr)
 
     gregory_prompt = gregory_template.format(
         inquiry=inquiry_text,

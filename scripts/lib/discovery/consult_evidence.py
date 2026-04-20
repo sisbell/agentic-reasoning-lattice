@@ -13,11 +13,11 @@ For batch consultations (consult-experts.py pipeline), Gregory logic is
 inlined directly — this script is NOT called as a subprocess.
 
 Usage:
-    python scripts/consult.py gregory "What happens to I-address allocation after DELETE?"
-    python scripts/consult.py gregory --kb-only "question"
-    python scripts/consult.py gregory --code-only "question"
-    python scripts/consult.py gregory --effort max "question"
-    echo "question" | python scripts/consult.py gregory --stdin
+    python scripts/consult.py evidence "What happens to I-address allocation after DELETE?"
+    python scripts/consult.py evidence --kb-only "question"
+    python scripts/consult.py evidence --code-only "question"
+    python scripts/consult.py evidence --effort max "question"
+    echo "question" | python scripts/consult.py evidence --stdin
 """
 
 import argparse
@@ -32,7 +32,7 @@ from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import CONSULTATIONS_DIR, USAGE_LOG, DOMAIN_PROMPTS, CHANNELS_DIR
+from lib.shared.paths import WORKSPACE, CONSULTATIONS_DIR, USAGE_LOG, DOMAIN_PROMPTS, CHANNELS_DIR
 from lib.shared.common import read_file
 
 PROMPTS_DIR = DOMAIN_PROMPTS / "discovery" / "consultation"
@@ -129,7 +129,7 @@ def build_kb_prompt(question):
         print("  KB prompt template not found", file=sys.stderr)
         sys.exit(1)
     if not kb:
-        print("  KB file not found at udanax-test-harness/knowledge-base/kb-formal.md", file=sys.stderr)
+        print(f"  KB file not found at {KB_PATH.relative_to(WORKSPACE)}", file=sys.stderr)
         sys.exit(1)
     return template.replace("{{kb}}", kb).replace("{{question}}", question)
 

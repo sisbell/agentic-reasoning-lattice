@@ -12,9 +12,9 @@ For batch consultations (consult-experts.py pipeline), Nelson logic is
 inlined directly — this script is NOT called as a subprocess.
 
 Usage:
-    python scripts/consult.py nelson "What is Nelson's intent for withdrawal?"
-    python scripts/consult.py nelson --with-png "What is Nelson's intent for withdrawal?"
-    echo "question" | python scripts/consult.py nelson --stdin
+    python scripts/consult.py theory "What is Nelson's intent for withdrawal?"
+    python scripts/consult.py theory --with-png "What is Nelson's intent for withdrawal?"
+    echo "question" | python scripts/consult.py theory --stdin
 """
 
 import argparse

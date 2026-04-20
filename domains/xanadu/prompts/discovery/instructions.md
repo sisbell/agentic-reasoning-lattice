@@ -56,13 +56,13 @@ This order matters. If you consult Gregory first, implementation detail will sha
 
 - **Nelson:** Run the script, then read the output file:
   ```
-  Bash: python scripts/lib/consult_nelson.py --with-png --effort max --asn NNNN "your question here"
+  Bash: python scripts/consult.py theory --with-png --effort max --asn NNNN "your question here"
   ```
   The script prints a file path to stdout. Read that file to get Nelson's answer. Takes 2-3 minutes.
 
 - **Gregory:** Run the script, then read the output file:
   ```
-  Bash: python scripts/lib/consult_gregory.py --effort max --asn NNNN "your question here"
+  Bash: python scripts/consult.py evidence --effort max --asn NNNN "your question here"
   ```
   The script prints a file path to stdout. Read that file to get both KB synthesis and code exploration answers. Takes 2-3 minutes. Runs two agents in parallel internally.
 
