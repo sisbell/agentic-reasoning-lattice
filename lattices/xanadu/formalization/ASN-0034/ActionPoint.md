@@ -1,6 +1,6 @@
 **ActionPoint (ActionPoint).** For w ∈ T with Pos(w), the *action point* of w is actionPoint(w) = min({i : 1 ≤ i ≤ #w ∧ wᵢ ≠ 0}).
 
-*Derivation.* The set {i : 1 ≤ i ≤ #w ∧ wᵢ ≠ 0} is a nonempty subset of ℕ: nonempty by TA-Pos, a subset of ℕ because its elements are indices with 1 ≤ i ≤ #w. By NAT-wellorder, this set has a least element, which min names. Hence actionPoint(w) is a member of the set, giving 1 ≤ actionPoint(w) ≤ #w. For any i with 1 ≤ i < actionPoint(w), wᵢ = 0: otherwise i would be a smaller member of the set, contradicting minimality. For w_{actionPoint(w)} ≥ 1: the definition gives w_{actionPoint(w)} ≠ 0; by NAT-zero, 0 ≤ w_{actionPoint(w)}; by NAT-order's definition m ≤ n ⟺ m < n ∨ m = n, this unfolds to 0 < w_{actionPoint(w)} ∨ 0 = w_{actionPoint(w)}, and w_{actionPoint(w)} ≠ 0 excludes the equality, leaving 0 < w_{actionPoint(w)}. NAT-discrete's contrapositive m < n ⟹ m + 1 ≤ n at m = 0, n = w_{actionPoint(w)} yields 0 + 1 ≤ w_{actionPoint(w)}; NAT-closure's additive identity 0 + 1 = 1 rewrites this to 1 ≤ w_{actionPoint(w)}. ∎
+*Derivation.* The set {i : 1 ≤ i ≤ #w ∧ wᵢ ≠ 0} is a nonempty subset of ℕ: nonempty by TA-Pos, a subset of ℕ because its elements are indices with 1 ≤ i ≤ #w. By NAT-wellorder, this set has a least element, which min names. Hence actionPoint(w) is a member of the set, giving 1 ≤ actionPoint(w) ≤ #w. For any i with 1 ≤ i < actionPoint(w), wᵢ = 0: otherwise i would be a smaller member of the set, contradicting minimality. For w_{actionPoint(w)} ≥ 1: the definition gives w_{actionPoint(w)} ≠ 0; by NAT-zero, 0 ≤ w_{actionPoint(w)}; by NAT-order's definition m ≤ n ⟺ m < n ∨ m = n, this unfolds to 0 < w_{actionPoint(w)} ∨ 0 = w_{actionPoint(w)}, and w_{actionPoint(w)} ≠ 0 excludes the equality, leaving 0 < w_{actionPoint(w)}. NAT-discrete's forward direction m < n ⟹ m + 1 ≤ n at m = 0, n = w_{actionPoint(w)} yields 0 + 1 ≤ w_{actionPoint(w)}; NAT-closure's additive identity 0 + 1 = 1 rewrites this to 1 ≤ w_{actionPoint(w)}. ∎
 
 *Formal Contract:*
 - *Preconditions:* w ∈ T, Pos(w)
@@ -11,6 +11,6 @@
   - NAT-wellorder (NatWellOrdering) — least-element principle making min well-defined.
   - NAT-zero (NatZeroMinimum) — supplies 0 ≤ w_{actionPoint(w)}.
   - NAT-order (NatStrictTotalOrder) — definition of ≤, trichotomy, irreflexivity.
-  - NAT-discrete (NatDiscreteness) — contrapositive m < n ⟹ m + 1 ≤ n.
+  - NAT-discrete (NatDiscreteness) — forward direction m < n ⟹ m + 1 ≤ n.
   - NAT-closure (NatArithmeticClosureAndIdentity) — additive identity 0 + 1 = 1.
 - *Postconditions:* 1 ≤ actionPoint(w) ≤ #w; wᵢ = 0 for all 1 ≤ i < actionPoint(w); w_{actionPoint(w)} ≥ 1
