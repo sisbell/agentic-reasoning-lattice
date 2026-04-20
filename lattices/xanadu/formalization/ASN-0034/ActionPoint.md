@@ -10,7 +10,7 @@
   - TA-Pos (PositiveTumbler) — supplies Pos(w) and the existential making the set nonempty.
   - NAT-wellorder (NatWellOrdering) — least-element principle making min well-defined.
   - NAT-zero (NatZeroMinimum) — supplies 0 ≤ w_{actionPoint(w)}.
-  - NAT-order (NatStrictTotalOrder) — definition of ≤, trichotomy, irreflexivity.
+  - NAT-order (NatStrictTotalOrder) — definition of ≤ as `m ≤ n ⟺ m < n ∨ m = n`.
   - NAT-discrete (NatDiscreteness) — forward direction m < n ⟹ m + 1 ≤ n.
   - NAT-closure (NatArithmeticClosureAndIdentity) — additive identity 0 + 1 = 1.
 - *Postconditions:* 1 ≤ actionPoint(w) ≤ #w; wᵢ = 0 for all 1 ≤ i < actionPoint(w); w_{actionPoint(w)} ≥ 1

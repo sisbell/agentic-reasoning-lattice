@@ -13,5 +13,4 @@ summary: |
   spelling the universal `(A i : 1 ≤ i ≤ #z : zᵢ = 0)` out inline; `Z` is introduced as its set-theoretic
   counterpart so that set-valued consumers bind a single symbol rather than the spelled-out comprehension. The
   ordering consequence — every positive tumbler is strictly greater under T1 than every zero tumbler of any length
-  — is established separately by a downstream ordering theorem (TA-PosDom) that consumes ActionPoint and therefore
-  sits downstream of both TA-Pos and ActionPoint.
+  — is established separately by a downstream ordering theorem that consumes ActionPoint.
