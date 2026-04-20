@@ -47,7 +47,7 @@ Each component of the result is a natural number: for `i < k`, `rᵢ = aᵢ ∈ 
 *Case some `aⱼ > 0` for `j < k`.* NAT-wellorder applied to `{j : 1 ≤ j < k ∧ aⱼ > 0}` supplies the least such `j`. For `1 ≤ i < j`: `aᵢ = 0` by minimality of `j`, `wᵢ = 0` by ActionPoint, `rᵢ = aᵢ`, so `rᵢ = wᵢ = 0`. At `j`: `wⱼ = 0` by ActionPoint, `rⱼ = aⱼ > 0`, so `rⱼ > wⱼ`. The bound `j ≤ #w` follows from `j < k ≤ #w` via NAT-order. T1 case (i) at `j` yields `r > w`.
 
 *Case `aᵢ = 0` for all `i < k`.* Then `rₖ = aₖ + wₖ`. Sub-case split on `aₖ > 0 ∨ aₖ = 0` from NAT-zero + NAT-order:
-- If `aₖ > 0`: NAT-addcompat's right order-compatibility lifts `0 ≤ aₖ` into `aₖ + wₖ ≥ 0 + wₖ`; NAT-closure's additive identity rewrites this as `aₖ + wₖ ≥ wₖ`; NAT-cancel's summand absorption rules out equality (which would force `aₖ = 0`), so NAT-order delivers `aₖ + wₖ > wₖ`, i.e., `rₖ > wₖ`. T1 case (i) at `k` yields `r > w`.
+- If `aₖ > 0`: NAT-addcompat's right order-compatibility lifts `0 ≤ aₖ` into `aₖ + wₖ ≥ 0 + wₖ`; NAT-closure's additive identity rewrites this as `aₖ + wₖ ≥ wₖ`; NAT-cancel's symmetric summand absorption `n + m = m ⟹ n = 0`, instantiated at `n = aₖ, m = wₖ`, rules out equality (which would force `aₖ = 0`), so NAT-order delivers `aₖ + wₖ > wₖ`, i.e., `rₖ > wₖ`. T1 case (i) at `k` yields `r > w`.
 - If `aₖ = 0`: `rₖ = wₖ` (via NAT-closure's additive identity); combined with `rᵢ = 0 = wᵢ` for `i < k` and `rᵢ = wᵢ` for `i > k`, every component agrees and `#r = #w`, so `r = w` by T3.
 
 The strict branches discharge `r > w` via T1 case (i); the equality branch discharges `r = w` via T3. Their disjunction `r > w ∨ r = w` is **`a ⊕ w ≥ w`** by T1's `≥` abbreviation `a ≥ b ≡ b < a ∨ b = a`. ∎
@@ -75,7 +75,7 @@ This is correct and intentional: advancing to "the beginning of the next chapter
   - T0 (CarrierSetDefinition) — membership in T; `aⱼ, aₖ ∈ ℕ` for dichotomy sites.
   - NAT-closure (NatArithmeticClosureAndIdentity) — closure of ℕ under addition at `rₖ = aₖ + wₖ`; additive identity `0 + wₖ = wₖ` in the dominance proof.
   - NAT-addcompat (NatAdditionOrderAndSuccessor) — left order-compatibility and strict successor inequality for strict advancement; right order-compatibility for dominance sub-case `aₖ > 0`.
-  - NAT-cancel (NatAdditionCancellation) — summand absorption rules out `aₖ + wₖ = wₖ` in the dominance sub-case `aₖ > 0`.
+  - NAT-cancel (NatAdditionCancellation) — summand absorption symmetric form `n + m = m ⟹ n = 0`, instantiated at `n = aₖ, m = wₖ`, rules out `aₖ + wₖ = wₖ` in the dominance sub-case `aₖ > 0`.
   - NAT-zero (NatZeroMinimum) — lower bound `0 ≤ n` at dichotomy sites.
   - NAT-order (NatStrictTotalOrder) — defining clause unfolds `≤` at dichotomy and strict-promotion sites; transitivity composes bounds.
   - NAT-wellorder (NatWellOrdering) — least element of `{j : 1 ≤ j < k ∧ aⱼ > 0}` in the divergence sub-case.
