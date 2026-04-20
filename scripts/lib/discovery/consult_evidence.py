@@ -32,11 +32,11 @@ from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, CONSULTATIONS_DIR, USAGE_LOG, DOMAIN_PROMPTS
+from lib.shared.paths import CONSULTATIONS_DIR, USAGE_LOG, DOMAIN_PROMPTS, CHANNELS_DIR
 from lib.shared.common import read_file
 
 PROMPTS_DIR = DOMAIN_PROMPTS / "discovery" / "consultation"
-TEST_HARNESS = WORKSPACE / "udanax-test-harness"
+TEST_HARNESS = CHANNELS_DIR / "evidence" / "udanax-test-harness"
 KB_PATH = TEST_HARNESS / "knowledge-base" / "kb-formal.md"
 
 _total_usage = {"input_tokens": 0, "output_tokens": 0, "cost_usd": 0.0, "calls": 0}

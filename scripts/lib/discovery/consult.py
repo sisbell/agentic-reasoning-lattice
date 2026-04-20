@@ -29,18 +29,18 @@ from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, CONSULTATIONS_DIR, USAGE_LOG, DOMAIN_PROMPTS, load_manifest, load_excluded_covers
+from lib.shared.paths import WORKSPACE, CONSULTATIONS_DIR, USAGE_LOG, DOMAIN_PROMPTS, CHANNELS_DIR, load_manifest, load_excluded_covers
 from lib.shared.common import read_file
 
 PROMPTS_DIR = DOMAIN_PROMPTS / "discovery" / "consultation"
-TEST_HARNESS = WORKSPACE / "udanax-test-harness"
+TEST_HARNESS = CHANNELS_DIR / "evidence" / "udanax-test-harness"
 KB_SYNTHESIS = TEST_HARNESS / "knowledge-base" / "kb-synthesis.md"
 
 # Nelson source paths
-CONCEPTS_DIR = WORKSPACE / "nelson" / "xanadu-concepts"
-INTENT_DIR = WORKSPACE / "nelson" / "nelson-intent"
-LM_TOC = WORKSPACE / "nelson" / "literary-machines" / "table-of-contents.md"
-LM_INVENTORY = WORKSPACE / "nelson" / "literary-machines" / "inventory.md"
+CONCEPTS_DIR = CHANNELS_DIR / "theory" / "xanadu-concepts"
+INTENT_DIR = CHANNELS_DIR / "theory" / "nelson-intent"
+LM_TOC = CHANNELS_DIR / "theory" / "literary-machines" / "table-of-contents.md"
+LM_INVENTORY = CHANNELS_DIR / "theory" / "literary-machines" / "inventory.md"
 NELSON_PROMPT_TEMPLATE = PROMPTS_DIR / "nelson" / "answer.md"
 
 # Gregory source paths

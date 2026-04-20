@@ -5,8 +5,8 @@ from pathlib import Path
 
 LIB = Path(__file__).resolve().parent / "lib" / "discovery"
 CMDS = {
-    "nelson":  LIB / "consult_nelson.py",
-    "gregory": LIB / "consult_gregory.py",
+    "theory":   LIB / "consult_theory.py",
+    "evidence": LIB / "consult_evidence.py",
 }
 
 def main():

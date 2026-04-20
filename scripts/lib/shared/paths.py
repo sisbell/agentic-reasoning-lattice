@@ -14,6 +14,7 @@ LATTICE_NAME = os.environ.get("LATTICE", "xanadu")
 LATTICE = WORKSPACE / "lattices" / LATTICE_NAME
 DOMAIN = WORKSPACE / "domains" / LATTICE_NAME
 DOMAIN_PROMPTS = DOMAIN / "prompts"
+CHANNELS_DIR = DOMAIN / "channels"
 
 # Discovery stage
 CONSULTATIONS_DIR = LATTICE / "discovery" / "consultations"
