@@ -31,30 +31,24 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent / "scripts"))
 from lib.shared.paths import WORKSPACE, CONSULTATIONS_DIR, DOMAIN_PROMPTS, CHANNELS_DIR
 from lib.shared.common import read_file
-from lib.consult_common import invoke_claude as _invoke
+from lib.consult_common import invoke_claude as _invoke, get_total_usage
 
 PROMPTS_DIR = DOMAIN_PROMPTS / "discovery" / "consultation"
 TEST_HARNESS = CHANNELS_DIR / "evidence" / "udanax-test-harness"
 KB_PATH = TEST_HARNESS / "knowledge-base" / "kb-formal.md"
-
-_total_usage = {"input_tokens": 0, "output_tokens": 0, "cost_usd": 0.0, "calls": 0}
-_usage_lock = threading.Lock()
+KB_SYNTHESIS_PATH = TEST_HARNESS / "knowledge-base" / "kb-synthesis.md"
+GENERATE_QUESTIONS_PROMPT = PROMPTS_DIR / "gregory" / "generate-questions.md"
 
 
 def invoke_claude(prompt, model="sonnet", label="", allow_tools=False,
                   cwd=None, effort=None, output_file=None):
-    """Wrapper around the shared invoke_claude that also accumulates
-    per-process totals across parallel KB + code calls."""
-    text, usage = _invoke(prompt, model=model, effort=effort,
-                          allow_tools=allow_tools, cwd=cwd,
-                          output_file=output_file,
-                          skill=f"consult-gregory:{label}",
-                          label=label)
-    with _usage_lock:
-        _total_usage["input_tokens"] += usage["input_tokens"]
-        _total_usage["output_tokens"] += usage["output_tokens"]
-        _total_usage["cost_usd"] += usage["cost_usd"]
-        _total_usage["calls"] += 1
+    """Wrapper around the shared invoke_claude that returns just the text
+    (consult_common already tracks per-process totals)."""
+    text, _ = _invoke(prompt, model=model, effort=effort,
+                      allow_tools=allow_tools, cwd=cwd,
+                      output_file=output_file,
+                      skill=f"consult-gregory:{label}",
+                      label=label)
     return text
 
 
@@ -100,6 +94,86 @@ def run_code(question, model="sonnet", effort=None, output_file=None):
     return invoke_claude(prompt, model=model, label="code",
                          allow_tools=True, cwd=str(TEST_HARNESS),
                          effort=effort, output_file=output_file)
+
+
+def _parse_numbered(response):
+    """Parse numbered questions (1. foo, 2. bar) into a list of strings.
+    Strips any stray authority tags like [gregory] in case they appear."""
+    questions = []
+    for line in response.strip().split("\n"):
+        line = line.strip()
+        if not line or not (line[0].isdigit() and "." in line[:4]):
+            continue
+        q = line.split(".", 1)[1].strip()
+        if q.startswith("[gregory]"):
+            q = q[len("[gregory]"):].strip()
+        questions.append(q)
+    return questions
+
+
+def generate_questions(inquiry_text, n=10, model="opus", out_of_scope=""):
+    """Generate N evidence-side sub-questions for an inquiry.
+    Injects the KB synthesis as context (Gregory's technical vocabulary).
+    Returns a list of question strings."""
+    template = read_file(GENERATE_QUESTIONS_PROMPT)
+    if not template:
+        print(f"  [ERROR] {GENERATE_QUESTIONS_PROMPT.name} not found",
+              file=sys.stderr)
+        sys.exit(1)
+
+    kb = read_file(KB_SYNTHESIS_PATH)
+    if not kb:
+        print(f"  [WARN] KB synthesis not found at "
+              f"{KB_SYNTHESIS_PATH.relative_to(WORKSPACE)}", file=sys.stderr)
+        kb = ""
+
+    out_of_scope_block = (
+        f"\n## Scope Exclusions\n\nDO NOT generate questions about: {out_of_scope}\n"
+        if out_of_scope else ""
+    )
+    prompt = template.format(
+        inquiry=inquiry_text,
+        kb=kb,
+        num_questions=n,
+        out_of_scope=out_of_scope_block,
+    )
+
+    print(f"  [DECOMPOSE:gregory] {n} questions, "
+          f"{len(prompt) // 1024}KB prompt...", file=sys.stderr)
+    text, _ = _invoke(prompt, model=model, skill="pre-consult:gregory",
+                      label="gregory")
+    return _parse_numbered(text)
+
+
+def run_consultation(question, label="", model="sonnet", effort="max"):
+    """Run a single evidence consultation (KB + code in parallel).
+    Returns combined answer text. Used by the full-discovery orchestrator."""
+    kb_result = [None]
+    code_result = [None]
+
+    def _kb():
+        kb_result[0] = run_kb(question, model=model, effort=effort)
+
+    def _code():
+        code_result[0] = run_code(question, model=model, effort=effort)
+
+    print(f"  [{label}] Starting KB + code in parallel...", file=sys.stderr)
+    kb_thread = threading.Thread(target=_kb)
+    code_thread = threading.Thread(target=_code)
+    kb_thread.start()
+    code_thread.start()
+    kb_thread.join()
+    code_thread.join()
+
+    parts = []
+    if kb_result[0]:
+        parts.append(f"## KB Synthesis\n\n{kb_result[0]}")
+    if code_result[0]:
+        parts.append(f"## Code Exploration\n\n{code_result[0]}")
+
+    combined = "\n\n---\n\n".join(parts) if parts else "[No answer]"
+    print(f"  [{label}] Done", file=sys.stderr)
+    return combined
 
 
 def main():
@@ -192,9 +266,10 @@ def main():
     # Print the output file path (small stdout — avoids Bash capture bug)
     print(str(combined))
 
-    print(f"\n  [TOTAL] {elapsed:.0f}s | {_total_usage['calls']} calls | "
-          f"in:{_total_usage['input_tokens']} out:{_total_usage['output_tokens']} "
-          f"${_total_usage['cost_usd']:.4f}", file=sys.stderr)
+    totals = get_total_usage()
+    print(f"\n  [TOTAL] {elapsed:.0f}s | {totals['calls']} calls | "
+          f"in:{totals['input_tokens']} out:{totals['output_tokens']} "
+          f"${totals['cost_usd']:.4f}", file=sys.stderr)
     print(f"  [LOG] {consult_dir}", file=sys.stderr)
 
 

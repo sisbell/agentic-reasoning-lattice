@@ -23,18 +23,16 @@ from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-# Import expert consultation functions from consult
-from lib.discovery.consult import (
-    _invoke_claude,
-    _run_nelson,
-    _run_gregory,
-    _total_usage,
-    _usage_lock,
-    log_usage,
+from lib.shared.paths import (
+    REVIEWS_DIR, DOMAIN, consultation_dir, find_review, sorted_reviews,
 )
+from lib.shared.common import find_asn, read_file, log_usage
+from lib.consult_common import invoke_claude, get_total_usage
 
-from lib.shared.paths import REVIEWS_DIR, consultation_dir, find_review, sorted_reviews
-from lib.shared.common import find_asn, read_file
+# Per-domain consultation modules live under domains/<LATTICE>/scripts/.
+sys.path.insert(0, str(DOMAIN / "scripts"))
+import consult_theory   # noqa: E402
+import consult_evidence  # noqa: E402
 
 
 def get_review_number(review_path):
@@ -205,7 +203,8 @@ def run_targeted_consultations(items, model="opus"):
 
         for idx, (item_idx, question) in enumerate(nelson_work):
             def run_n(ii=item_idx, q=question, n=idx + 1):
-                answer = _run_nelson(q, n, model=model, effort="max")
+                answer = consult_theory.run_consultation(
+                    q, label=f"Q{n}:theory", model=model, effort="max")
                 items[ii]["nelson_answer"] = answer
             t = threading.Thread(target=run_n)
             threads.append(t)
@@ -220,7 +219,9 @@ def run_targeted_consultations(items, model="opus"):
         print(f"  [GREGORY] Running {len(gregory_work)} consultations sequentially...",
               file=sys.stderr)
         for idx, (item_idx, question) in enumerate(gregory_work):
-            answer = _run_gregory(question, idx + 1, model="sonnet", effort="max")
+            answer = consult_evidence.run_consultation(
+                question, label=f"Q{idx + 1}:evidence",
+                model="sonnet", effort="max")
             items[item_idx]["gregory_answer"] = answer
         print(f"  [GREGORY] All done", file=sys.stderr)
 
@@ -344,9 +345,10 @@ def main():
     prompt = build_categorization_prompt(asn_content, revise_section)
     print(f"  [CATEGORIZE] Prompt: {len(prompt) // 1024}KB", file=sys.stderr)
 
-    response = _invoke_claude(
+    response, _ = invoke_claude(
         prompt, model=args.model, effort="max",
         allow_tools=False, label="categorize",
+        skill="review-consult:categorize",
     )
 
     if not response:
@@ -417,10 +419,10 @@ def main():
     print(f"  Total: {total_elapsed:.0f}s ({total_elapsed/60:.1f}min)",
           file=sys.stderr)
 
-    with _usage_lock:
-        if _total_usage["calls"] > 0:
-            print(f"  Total cost: ${_total_usage['cost_usd']:.4f} "
-                  f"({_total_usage['calls']} calls)", file=sys.stderr)
+    totals = get_total_usage()
+    if totals["calls"] > 0:
+        print(f"  Total cost: ${totals['cost_usd']:.4f} "
+              f"({totals['calls']} calls)", file=sys.stderr)
 
     print(f"  Output: {results_path}", file=sys.stderr)
 

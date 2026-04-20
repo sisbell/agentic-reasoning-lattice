@@ -34,6 +34,7 @@ LM_TOC = CHANNELS_DIR / "theory" / "literary-machines" / "table-of-contents.md"
 LM_INVENTORY = CHANNELS_DIR / "theory" / "literary-machines" / "inventory.md"
 LM_RAW_DIR = CHANNELS_DIR / "theory" / "literary-machines" / "raw"
 PROMPT_TEMPLATE = DOMAIN_PROMPTS / "discovery" / "consultation" / "nelson" / "answer.md"
+GENERATE_QUESTIONS_PROMPT = DOMAIN_PROMPTS / "discovery" / "consultation" / "nelson" / "generate-questions.md"
 
 
 def invoke_claude(prompt, model="opus", effort=None, allow_tools=False,
@@ -61,6 +62,58 @@ def all_intent():
     for f in files:
         parts.append(f"### {f.stem}\n{f.read_text()}")
     return "\n\n".join(parts)
+
+
+def _parse_numbered(response):
+    """Parse numbered questions (1. foo, 2. bar) into a list of strings.
+    Strips any stray authority tags like [nelson] in case they appear."""
+    questions = []
+    for line in response.strip().split("\n"):
+        line = line.strip()
+        if not line or not (line[0].isdigit() and "." in line[:4]):
+            continue
+        q = line.split(".", 1)[1].strip()
+        if q.startswith("[nelson]"):
+            q = q[len("[nelson]"):].strip()
+        questions.append(q)
+    return questions
+
+
+def generate_questions(inquiry_text, n=10, model="opus", out_of_scope=""):
+    """Generate N theory-side sub-questions for an inquiry.
+    Returns a list of question strings."""
+    template = read_file(GENERATE_QUESTIONS_PROMPT)
+    if not template:
+        print(f"  [ERROR] {GENERATE_QUESTIONS_PROMPT.name} not found",
+              file=sys.stderr)
+        sys.exit(1)
+
+    out_of_scope_block = (
+        f"\n## Scope Exclusions\n\nDO NOT generate questions about: {out_of_scope}\n"
+        if out_of_scope else ""
+    )
+    prompt = template.format(
+        inquiry=inquiry_text,
+        num_questions=n,
+        out_of_scope=out_of_scope_block,
+    )
+
+    print(f"  [DECOMPOSE:nelson] {n} questions, "
+          f"{len(prompt) // 1024}KB prompt...", file=sys.stderr)
+    text, _ = _invoke(prompt, model=model, skill="pre-consult:nelson",
+                      label="nelson")
+    return _parse_numbered(text)
+
+
+def run_consultation(question, label="", model="opus", effort="max"):
+    """Run a single theory consultation. Returns answer text.
+    Used by the full-discovery orchestrator; no tool access, no image loading."""
+    prompt = build_prompt(question, with_png=False)
+    print(f"  [{label}] Prompt: {len(prompt) // 1024}KB", file=sys.stderr)
+    skill = f"consult:{label}" if label else "consult:nelson"
+    text, _ = _invoke(prompt, model=model, effort=effort, allow_tools=False,
+                      skill=skill, label=label)
+    return text
 
 
 def build_prompt(question, with_png=False):

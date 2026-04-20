@@ -13,9 +13,32 @@ import json
 import os
 import subprocess
 import sys
+import threading
 import time
 
 from lib.shared.common import MODEL_FLAGS, log_usage
+
+
+# Process-local usage accumulator. Every invoke_claude call updates it
+# under _usage_lock. Readers (e.g. the full-discovery orchestrator) can
+# read the dict at any point to print a cross-call total.
+_total_usage = {"input_tokens": 0, "output_tokens": 0, "cost_usd": 0.0, "calls": 0}
+_usage_lock = threading.Lock()
+
+
+def reset_total_usage():
+    """Zero the process-local usage accumulator."""
+    with _usage_lock:
+        _total_usage["input_tokens"] = 0
+        _total_usage["output_tokens"] = 0
+        _total_usage["cost_usd"] = 0.0
+        _total_usage["calls"] = 0
+
+
+def get_total_usage():
+    """Snapshot the current process-local usage totals."""
+    with _usage_lock:
+        return dict(_total_usage)
 
 
 def invoke_claude(prompt, model="opus", effort=None, allow_tools=False,
@@ -76,6 +99,12 @@ def invoke_claude(prompt, model="opus", effort=None, allow_tools=False,
 
         log_usage(skill, elapsed,
                   input_tokens=inp, output_tokens=out, cost_usd=cost)
+
+        with _usage_lock:
+            _total_usage["input_tokens"] += inp
+            _total_usage["output_tokens"] += out
+            _total_usage["cost_usd"] += cost
+            _total_usage["calls"] += 1
 
         return text, {
             "input_tokens": inp,
