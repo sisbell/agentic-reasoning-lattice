@@ -50,9 +50,9 @@ Each component of the result is a natural number: for `i < k`, `rᵢ = aᵢ ∈ 
 - If `aₖ > 0`: NAT-addcompat's right order-compatibility lifts `0 ≤ aₖ` into `aₖ + wₖ ≥ 0 + wₖ`; NAT-closure's additive identity rewrites this as `aₖ + wₖ ≥ wₖ`; NAT-cancel's summand absorption rules out equality (which would force `aₖ = 0`), so NAT-order delivers `aₖ + wₖ > wₖ`, i.e., `rₖ > wₖ`. T1 case (i) at `k` yields `r > w`.
 - If `aₖ = 0`: `rₖ = wₖ` (via NAT-closure's additive identity); combined with `rᵢ = 0 = wᵢ` for `i < k` and `rᵢ = wᵢ` for `i > k`, every component agrees and `#r = #w`, so `r = w` by T3.
 
-In every case: **`a ⊕ w ≥ w`**.
+In every case: **`a ⊕ w ≥ w`**. ∎
 
-Three properties of this definition require explicit statement:
+Three properties of this definition — characterizations of what ⊕ does rather than postconditions to discharge — require explicit statement.
 
 **No carry propagation:** The sum `aₖ + wₖ` at the action point is a single natural-number addition. There is no carry into position `k - 1`. This is why the operation is fast — constant time regardless of tumbler length.
 
@@ -66,7 +66,7 @@ Three properties of this definition require explicit statement:
 [1, 1, 999] ⊕ [0, 2]  = [1, 3]
 ```
 
-This is correct and intentional: advancing to "the beginning of the next chapter" lands at the same place regardless of where you were within the current chapter. ∎
+This is correct and intentional: advancing to "the beginning of the next chapter" lands at the same place regardless of where you were within the current chapter.
 
 *Formal Contract:*
 - *Preconditions:* a ∈ T, w ∈ T, Pos(w), actionPoint(w) ≤ #a
