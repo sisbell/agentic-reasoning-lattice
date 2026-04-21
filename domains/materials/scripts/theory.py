@@ -51,6 +51,10 @@ def all_corpus():
     global _CACHED_CORPUS
     if _CACHED_CORPUS is None:
         _CACHED_CORPUS = _concat_md_files(CORPUS_DIR)
+    if not _CACHED_CORPUS:
+        raise RuntimeError(
+            f"theory corpus is empty at {CORPUS_DIR} — "
+            f"add .md source files before running theory consultations")
     return _CACHED_CORPUS
 
 
