@@ -34,12 +34,12 @@ from lib.shared.paths import (
     load_manifest, load_excluded_covers,
 )
 from lib.shared.common import read_file
-from lib.consult_common import invoke_claude, get_total_usage, reset_total_usage
+from lib.consult_common import (
+    invoke_claude, get_total_usage, reset_total_usage,
+    load_domain_consult_modules,
+)
 
-# Per-domain consultation modules live under domains/<LATTICE>/scripts/
-sys.path.insert(0, str(DOMAIN / "scripts"))
-import consult_theory   # noqa: E402 — domain module, loaded after path setup
-import consult_evidence  # noqa: E402
+consult_theory, consult_evidence = load_domain_consult_modules(DOMAIN)
 
 PROMPTS_DIR = DOMAIN_PROMPTS / "discovery" / "consultation"
 

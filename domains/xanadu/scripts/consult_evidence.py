@@ -31,7 +31,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent / "scripts"))
 from lib.shared.paths import WORKSPACE, CONSULTATIONS_DIR, DOMAIN_PROMPTS, CHANNELS_DIR
 from lib.shared.common import read_file
-from lib.consult_common import invoke_claude as _invoke, get_total_usage
+from lib.consult_common import (
+    invoke_claude as _invoke,
+    get_total_usage,
+    parse_numbered,
+    format_out_of_scope_block,
+)
 
 PROMPTS_DIR = DOMAIN_PROMPTS / "discovery" / "consultation"
 TEST_HARNESS = CHANNELS_DIR / "evidence" / "udanax-test-harness"
@@ -96,21 +101,6 @@ def run_code(question, model="sonnet", effort=None, output_file=None):
                          effort=effort, output_file=output_file)
 
 
-def _parse_numbered(response):
-    """Parse numbered questions (1. foo, 2. bar) into a list of strings.
-    Strips any stray authority tags like [gregory] in case they appear."""
-    questions = []
-    for line in response.strip().split("\n"):
-        line = line.strip()
-        if not line or not (line[0].isdigit() and "." in line[:4]):
-            continue
-        q = line.split(".", 1)[1].strip()
-        if q.startswith("[gregory]"):
-            q = q[len("[gregory]"):].strip()
-        questions.append(q)
-    return questions
-
-
 def generate_questions(inquiry_text, n=10, model="opus", out_of_scope=""):
     """Generate N evidence-side sub-questions for an inquiry.
     Injects the KB synthesis as context (Gregory's technical vocabulary).
@@ -127,22 +117,18 @@ def generate_questions(inquiry_text, n=10, model="opus", out_of_scope=""):
               f"{KB_SYNTHESIS_PATH.relative_to(WORKSPACE)}", file=sys.stderr)
         kb = ""
 
-    out_of_scope_block = (
-        f"\n## Scope Exclusions\n\nDO NOT generate questions about: {out_of_scope}\n"
-        if out_of_scope else ""
-    )
     prompt = template.format(
         inquiry=inquiry_text,
         kb=kb,
         num_questions=n,
-        out_of_scope=out_of_scope_block,
+        out_of_scope=format_out_of_scope_block(out_of_scope),
     )
 
     print(f"  [DECOMPOSE:gregory] {n} questions, "
           f"{len(prompt) // 1024}KB prompt...", file=sys.stderr)
     text, _ = _invoke(prompt, model=model, skill="pre-consult:gregory",
                       label="gregory")
-    return _parse_numbered(text)
+    return parse_numbered(text, tags_to_strip=("[gregory]",))
 
 
 def run_consultation(question, label="", model="sonnet", effort="max"):

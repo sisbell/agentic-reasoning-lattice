@@ -26,7 +26,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent / "scripts"))
 from lib.shared.paths import CONSULTATIONS_DIR, DOMAIN_PROMPTS, CHANNELS_DIR
 from lib.shared.common import read_file
-from lib.consult_common import invoke_claude as _invoke
+from lib.consult_common import (
+    invoke_claude as _invoke,
+    parse_numbered,
+    format_out_of_scope_block,
+)
 
 CONCEPTS_DIR = CHANNELS_DIR / "theory" / "xanadu-concepts"
 INTENT_DIR = CHANNELS_DIR / "theory" / "nelson-intent"
@@ -46,37 +50,38 @@ def invoke_claude(prompt, model="opus", effort=None, allow_tools=False,
     return text
 
 
+def _concat_md_files(directory):
+    """Concatenate all .md files in a directory, each headed by its filename stem."""
+    return "\n\n".join(
+        f"### {f.stem}\n{f.read_text()}"
+        for f in sorted(directory.glob("*.md"))
+    )
+
+
+# Cache concepts, intent, TOC, and inventory at module load — these are
+# static curated corpora and don't change during a consultation run.
+# Caching avoids re-reading 36+2+2 files for every theory question in a
+# batch (N-fold redundant I/O otherwise).
+_CACHED_CONCEPTS = None
+_CACHED_INTENT = None
+_CACHED_TOC = None
+_CACHED_INVENTORY = None
+
+
 def all_concepts():
-    """Read all curated concept files."""
-    files = sorted(CONCEPTS_DIR.glob("*.md"))
-    parts = []
-    for f in files:
-        parts.append(f"### {f.stem}\n{f.read_text()}")
-    return "\n\n".join(parts)
+    """Return the concatenated concept corpus (cached)."""
+    global _CACHED_CONCEPTS
+    if _CACHED_CONCEPTS is None:
+        _CACHED_CONCEPTS = _concat_md_files(CONCEPTS_DIR)
+    return _CACHED_CONCEPTS
 
 
 def all_intent():
-    """Read all design intent files."""
-    files = sorted(INTENT_DIR.glob("*.md"))
-    parts = []
-    for f in files:
-        parts.append(f"### {f.stem}\n{f.read_text()}")
-    return "\n\n".join(parts)
-
-
-def _parse_numbered(response):
-    """Parse numbered questions (1. foo, 2. bar) into a list of strings.
-    Strips any stray authority tags like [nelson] in case they appear."""
-    questions = []
-    for line in response.strip().split("\n"):
-        line = line.strip()
-        if not line or not (line[0].isdigit() and "." in line[:4]):
-            continue
-        q = line.split(".", 1)[1].strip()
-        if q.startswith("[nelson]"):
-            q = q[len("[nelson]"):].strip()
-        questions.append(q)
-    return questions
+    """Return the concatenated intent corpus (cached)."""
+    global _CACHED_INTENT
+    if _CACHED_INTENT is None:
+        _CACHED_INTENT = _concat_md_files(INTENT_DIR)
+    return _CACHED_INTENT
 
 
 def generate_questions(inquiry_text, n=10, model="opus", out_of_scope=""):
@@ -88,21 +93,17 @@ def generate_questions(inquiry_text, n=10, model="opus", out_of_scope=""):
               file=sys.stderr)
         sys.exit(1)
 
-    out_of_scope_block = (
-        f"\n## Scope Exclusions\n\nDO NOT generate questions about: {out_of_scope}\n"
-        if out_of_scope else ""
-    )
     prompt = template.format(
         inquiry=inquiry_text,
         num_questions=n,
-        out_of_scope=out_of_scope_block,
+        out_of_scope=format_out_of_scope_block(out_of_scope),
     )
 
     print(f"  [DECOMPOSE:nelson] {n} questions, "
           f"{len(prompt) // 1024}KB prompt...", file=sys.stderr)
     text, _ = _invoke(prompt, model=model, skill="pre-consult:nelson",
                       label="nelson")
-    return _parse_numbered(text)
+    return parse_numbered(text, tags_to_strip=("[nelson]",))
 
 
 def run_consultation(question, label="", model="opus", effort="max"):
@@ -117,10 +118,16 @@ def run_consultation(question, label="", model="opus", effort="max"):
 
 
 def build_prompt(question, with_png=False):
+    global _CACHED_TOC, _CACHED_INVENTORY
     template = read_file(PROMPT_TEMPLATE)
     if not template:
         print("  prompt template not found", file=sys.stderr)
         sys.exit(1)
+
+    if _CACHED_TOC is None:
+        _CACHED_TOC = read_file(LM_TOC)
+    if _CACHED_INVENTORY is None:
+        _CACHED_INVENTORY = read_file(LM_INVENTORY)
 
     raw_dir = str(LM_RAW_DIR) if with_png else ""
 
@@ -129,9 +136,9 @@ def build_prompt(question, with_png=False):
     ).replace(
         "{{intent}}", all_intent()
     ).replace(
-        "{{toc}}", read_file(LM_TOC)
+        "{{toc}}", _CACHED_TOC
     ).replace(
-        "{{inventory}}", read_file(LM_INVENTORY)
+        "{{inventory}}", _CACHED_INVENTORY
     ).replace(
         "{{raw_dir}}", raw_dir
     ).replace(

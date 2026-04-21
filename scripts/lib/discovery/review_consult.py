@@ -27,12 +27,11 @@ from lib.shared.paths import (
     REVIEWS_DIR, DOMAIN, consultation_dir, find_review, sorted_reviews,
 )
 from lib.shared.common import find_asn, read_file, log_usage
-from lib.consult_common import invoke_claude, get_total_usage
+from lib.consult_common import (
+    invoke_claude, get_total_usage, load_domain_consult_modules,
+)
 
-# Per-domain consultation modules live under domains/<LATTICE>/scripts/.
-sys.path.insert(0, str(DOMAIN / "scripts"))
-import consult_theory   # noqa: E402
-import consult_evidence  # noqa: E402
+consult_theory, consult_evidence = load_domain_consult_modules(DOMAIN)
 
 
 def get_review_number(review_path):

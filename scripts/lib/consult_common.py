@@ -122,3 +122,37 @@ def invoke_claude(prompt, model="opus", effort=None, allow_tools=False,
 
 def _zero_usage(elapsed):
     return {"input_tokens": 0, "output_tokens": 0, "cost_usd": 0, "elapsed_s": elapsed}
+
+
+def parse_numbered(response, tags_to_strip=()):
+    """Parse numbered lines (`1. foo`, `2. bar`) into a list of strings.
+    Optionally strips leading authority tags like `[nelson]` or `[gregory]`
+    if they appear. Returns the trimmed question strings."""
+    questions = []
+    for line in response.strip().split("\n"):
+        line = line.strip()
+        if not line or not (line[0].isdigit() and "." in line[:4]):
+            continue
+        q = line.split(".", 1)[1].strip()
+        for tag in tags_to_strip:
+            if q.startswith(tag):
+                q = q[len(tag):].strip()
+                break
+        questions.append(q)
+    return questions
+
+
+def format_out_of_scope_block(out_of_scope):
+    """Format the scope-exclusion block injected into generate-questions prompts."""
+    if not out_of_scope:
+        return ""
+    return f"\n## Scope Exclusions\n\nDO NOT generate questions about: {out_of_scope}\n"
+
+
+def load_domain_consult_modules(domain_path):
+    """Add `<domain_path>/scripts/` to sys.path and import consult_theory and
+    consult_evidence. Returns (theory_module, evidence_module)."""
+    sys.path.insert(0, str(domain_path / "scripts"))
+    import consult_theory  # noqa: E402
+    import consult_evidence  # noqa: E402
+    return consult_theory, consult_evidence
