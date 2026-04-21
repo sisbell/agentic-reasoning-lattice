@@ -40,39 +40,32 @@ Write to `lattices/xanadu/discovery/notes/ASN-NNNN-title.md` where NNNN is the a
 
 ---
 
+## Expert Consultation Answers
+
+Nelson answered questions about design intent; Gregory answered questions about implementation behavior. These answers are your primary input for this ASN.
+
+**Use these results as your foundation.** Synthesize these answers into a formal specification.
+
+<details>
+<summary>Consultation Answers (click to expand)</summary>
+
+{{consultation_answers}}
+
+</details>
+
+---
+
 ## The Two Authorities
 
 **Ted Nelson** — The designer. Created Xanadu, wrote Literary Machines. Defines what the system SHOULD do. His words establish semantic intent.
 
 **Roger Gregory** — The implementer. Built udanax-green. Knows what the system DOES do. His code is behavioral ground truth.
 
-### Consultation Order: Nelson First
+### Expert Answers Available
 
-**CRITICAL: Consult Nelson FIRST for every new topic.** Nelson's design intent shapes the specification. Start with what the system MUST guarantee according to its designer. Then consult Gregory for evidence — does the implementation satisfy this? How?
+Consultation answers are provided above. They contain focused answers from Nelson (design intent) and Gregory (implementation evidence) on your topic. **Read them first** — they are your primary evidence base.
 
-This order matters. If you consult Gregory first, implementation detail will shape your definitions. If you consult Nelson first, design intent shapes your definitions and Gregory provides evidence.
-
-**To consult them:**
-
-- **Nelson:** Run the script, then read the output file:
-  ```
-  Bash: python scripts/consult.py theory --with-png --effort max --asn NNNN "your question here"
-  ```
-  The script prints a file path to stdout. Read that file to get Nelson's answer. Takes 2-3 minutes.
-
-- **Gregory:** Run the script, then read the output file:
-  ```
-  Bash: python scripts/consult.py evidence --effort max --asn NNNN "your question here"
-  ```
-  The script prints a file path to stdout. Read that file to get both KB synthesis and code exploration answers. Takes 2-3 minutes. Runs two agents in parallel internally.
-
-**Important:** The scripts write results to `lattices/xanadu/discovery/consultations/.../sessions/` for traceability. Do NOT try to capture their stdout as the answer — read the file path they print, then use the Read tool on that path.
-
-**When to consult:** Nelson first on every topic — always. Gregory when you need implementation evidence or to check whether the implementation satisfies an abstract claim. Never consult to confirm what you already know.
-
-**How to ask:** One focused question per call. Each question targets ONE guarantee or ONE claim. If you need to understand three aspects of INSERT, make three separate calls — not one call with three sub-questions. Compound questions get shallow answers; focused questions get deep ones.
-
-Ask about **guarantees**, not **mechanisms**. "What must the addressing system guarantee about permanence?" not "How does the tumbler data structure work?" Gregory's answers should be evidence for or against abstract claims, not definitions of implementation structures.
+Do not run ad-hoc expert consultations during discovery. All consultation was done upstream. Focus on synthesizing the provided answers into a formal specification.
 
 ---
 
@@ -196,3 +189,18 @@ For each named claim, definition, or state component this ASN establishes, list:
 - **Label**: The name (P0, V2, Σ.links, T3, L1, etc.)
 - **Statement**: One-line formal or semi-formal statement
 - **Status**: `introduced` (all claims in an independent ASN are introduced — there is nothing to extend or supersede during initial exploration)
+{{vocabulary_section}}{{foundation_section}}
+
+## Your Assignment
+
+**ASN Number**: {{asn_number}}
+**Topic**: {{title}}
+**Question**: {{question}}
+
+Write {{asn_number}} to `lattices/xanadu/discovery/notes/{{asn_number}}-{{slug}}.md`.
+
+Remember:
+1. Read the consultation answers above — they are your primary input.
+2. Synthesize Nelson's design intent with Gregory's implementation evidence.
+3. Derive everything locally — do not reference other ASNs except foundation ASNs (provided above). Use foundation definitions for addressing, ordering, subspaces, and spans.
+4. Claims must be abstract — would an alternative implementation need them?{{out_of_scope_note}}

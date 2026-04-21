@@ -1,16 +1,21 @@
 #!/usr/bin/env python3
 """
-Discovery — synthesize expert consultation answers into a formal ASN.
+Discovery — synthesize expert consultation answers into a formal note.
 
-Reads consultation answers from lattices/xanadu/discovery/consultations/ASN-NNNN/consultation/answers.md,
-loads the discovery prompt template, and calls claude -p to write
-the ASN. Requires consultation answers to exist — run consult-experts.py first.
+Reads consultation answers from the lattice's consultations dir, loads
+the domain's discovery prompt template, substitutes placeholders, and
+calls claude -p to write the note.
 
-Output: lattices/xanadu/discovery/notes/ASN-NNNN-title.md
+The template (domains/<lattice>/prompts/discovery/instructions.md) is the
+single source of truth for the prompt. Placeholders supplied by this
+script: {{consultation_answers}}, {{asn_number}}, {{title}}, {{question}},
+{{slug}}, {{foundation_section}}, {{vocabulary_section}}, {{out_of_scope_note}}.
+
+Output: lattices/<lattice>/discovery/notes/ASN-NNNN-title.md
 
 Usage:
-    python scripts/lib/draft_discover.py --inquiry-id 4
-    python scripts/lib/draft_discover.py --inquiry-id 4 --force   # overwrite existing ASN
+    python scripts/lib/discovery/draft.py --inquiry-id 4
+    python scripts/lib/discovery/draft.py --inquiry-id 4 --force
 """
 
 import argparse
@@ -130,53 +135,28 @@ def invoke_claude(prompt, model=None, max_turns=30,
         return None, elapsed
 
 
-def build_discovery_prompt(answers_content):
-    """Build the discovery skill with consultation answers injected.
+def build_discovery_prompt(inquiry, asn_number, slug, answers_content,
+                           foundation, vocab, scope_note):
+    """Build the discovery prompt by substituting placeholders in the template.
 
-    Inserts answers after the Starting Point section (topic → data → method)
-    and updates consultation instructions to note answers are available.
+    The domain's instructions.md is the single source of truth; this function
+    just fills in dynamic values. Section separators for the optional
+    foundation and vocabulary blocks are encoded inside the substituted value
+    (prefixed with \\n\\n) so the template stays clean and empty sections
+    disappear cleanly.
     """
-    skill_body = load_prompt(DISCOVERY_PROMPT)
-
-    # Insert answers after "## Starting Point" section
-    starting_marker = "## Starting Point"
-    sp_start = skill_body.find(starting_marker)
-    if sp_start != -1:
-        sp_end = skill_body.find("---", sp_start)
-        if sp_end != -1:
-            answers_section = f"""---
-
-## Expert Consultation Answers
-
-Nelson answered questions about design intent; Gregory answered questions about implementation behavior. These answers are your primary input for this ASN.
-
-**Use these results as your foundation.** Synthesize these answers into a formal specification.
-
-<details>
-<summary>Consultation Answers (click to expand)</summary>
-
-{answers_content}
-
-</details>
-
-"""
-            skill_body = skill_body[:sp_end] + answers_section + skill_body[sp_end:]
-
-    # Update the consultation section to note answers are available
-    consult_marker = "### Consultation Order: Nelson First"
-    consult_start = skill_body.find(consult_marker)
-    if consult_start != -1:
-        consult_end = skill_body.find("---", consult_start)
-        if consult_end != -1:
-            skill_body = skill_body[:consult_start] + """### Expert Answers Available
-
-Consultation answers are provided above. They contain focused answers from Nelson (design intent) and Gregory (implementation evidence) on your topic. **Read them first** — they are your primary evidence base.
-
-Do not run ad-hoc expert consultations during discovery. All consultation was done upstream. Focus on synthesizing the provided answers into a formal specification.
-
-""" + skill_body[consult_end:]
-
-    return skill_body
+    template = load_prompt(DISCOVERY_PROMPT)
+    vocab_section = f"\n\n## Shared Vocabulary\n\n{vocab}" if vocab else ""
+    foundation_section = f"\n\n{foundation}" if foundation else ""
+    return (template
+        .replace("{{consultation_answers}}", answers_content)
+        .replace("{{asn_number}}", f"ASN-{asn_number:04d}")
+        .replace("{{title}}", inquiry["title"])
+        .replace("{{question}}", inquiry["question"])
+        .replace("{{slug}}", slug)
+        .replace("{{foundation_section}}", foundation_section)
+        .replace("{{vocabulary_section}}", vocab_section)
+        .replace("{{out_of_scope_note}}", scope_note))
 
 
 def run_discovery(inquiry, asn_number, slug, force=False):
@@ -193,48 +173,26 @@ def run_discovery(inquiry, asn_number, slug, force=False):
     if not answers_path.exists():
         print(f"  [ERROR] No consultation answers at {answers_path.relative_to(WORKSPACE)}",
               file=sys.stderr)
-        print(f"  Run consult-experts.py first: python scripts/consult-experts.py --inquiry-id {asn_number}",
+        print(f"  Run decompose.py first: python scripts/lib/discovery/decompose.py --inquiry-id {asn_number}",
               file=sys.stderr)
         return None
 
     answers_content = answers_path.read_text()
-    skill_body = build_discovery_prompt(answers_content)
     print(f"  [DISCOVERY] Using answers from {answers_path.relative_to(WORKSPACE)}",
           file=sys.stderr)
 
     vocab = read_file(VOCABULARY)
-    prompt_parts = [skill_body]
-
-    if vocab:
-        prompt_parts.append(f"## Shared Vocabulary\n\n{vocab}")
-
     foundation = load_foundation_statements(asn_number)
-    if foundation:
-        prompt_parts.append(foundation)
-
     out_of_scope = inquiry.get("out_of_scope", "")
     scope_note = (f"\n5. The following topics are OUT OF SCOPE for this ASN — "
                   f"do not define claims or operations for them, even if the "
                   f"consultation answers discuss them: {out_of_scope}"
                   if out_of_scope else "")
 
-    assignment = f"""## Your Assignment
-
-**ASN Number**: ASN-{asn_number:04d}
-**Topic**: {inquiry['title']}
-**Question**: {inquiry['question']}
-
-Write ASN-{asn_number:04d} to `lattices/xanadu/discovery/notes/ASN-{asn_number:04d}-{slug}.md`.
-
-Remember:
-1. Read the consultation answers above — they are your primary input.
-2. Synthesize Nelson's design intent with Gregory's implementation evidence.
-3. Derive everything locally — do not reference other ASNs except foundation ASNs (provided above). Use foundation definitions for addressing, ordering, subspaces, and spans.
-4. Claims must be abstract — would an alternative implementation need them?{scope_note}
-"""
-    prompt_parts.append(assignment)
-
-    prompt = "\n\n".join(prompt_parts)
+    prompt = build_discovery_prompt(
+        inquiry, asn_number, slug, answers_content,
+        foundation, vocab, scope_note,
+    )
     print(f"  [DISCOVERY] {len(prompt)} chars (~{len(prompt)//4} tokens)",
           file=sys.stderr)
 
