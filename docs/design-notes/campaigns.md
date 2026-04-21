@@ -30,11 +30,9 @@ All three are legitimate research moves. None was expressible with a single doma
 
 ## Why vocabulary lives at the campaign level
 
-This is the central architectural commitment. See memory: `project_vocabulary_is_pairing_level.md`.
+This is the central architectural commitment.
 
 **Vocabulary is a bridge between two specific authorities.** Maxwell bridges to DP differently than Clausius bridges to DP. Maxwell bridges to Regnault differently than Maxwell bridges to DP. A vocabulary without a specific pairing has no referents.
-
-Xanadu's existing `lattices/xanadu/vocabulary.md` looks lattice-wide only because xanadu happens to have one pairing (nelson × gregory). Under the campaign model it is correctly understood as "the nelson+gregory campaign's bridge vocab."
 
 The vocabulary's **primary user is the reviewer**, not the drafter. The drafter synthesizes from two channel-local consultation outputs; the reviewer has to interpret the resulting claims against *both* authorities — that is where the bridge pays off. The `{{vocabulary}}` placeholder in `review.md` is the load-bearing integration point.
 
@@ -42,7 +40,7 @@ Vocabulary is **curated upfront** when a new campaign is created (not emergent f
 
 ## Why pairing collapsed into campaign
 
-Initial design distinguished "pairing" (mechanism: two channels) from "campaign" (pairing + target + inquiries). External design review pushed back: a pairing without a target or inquiries is inert, and a campaign without a pairing is meaningless. They are the same concept. Two names for one thing was the pattern the broader refactor has been systematically eliminating.
+One might naturally distinguish "pairing" (mechanism: two channels) from "campaign" (pairing + target + inquiries). The distinction doesn't survive scrutiny: a pairing without a target or inquiries is inert, and a campaign without a pairing is meaningless. They are the same concept, and introducing both names was a second source of truth for one structure.
 
 The collapsed form: a campaign *is* (pair, target, vocabulary, inquiries). No separate pairing entity in the filesystem.
 
@@ -64,7 +62,7 @@ domains/<lattice>/channels/
     └── meta.yaml                             # description, type
 ```
 
-Each ASN's campaign context is resolved at pipeline invocation via `scripts/lib/shared/campaign.py::resolve_campaign(asn_id)`, which returns the channel names, vocabulary path, and target. All discovery-stage scripts read vocabulary and corpora through this resolver.
+Each ASN's campaign context is resolved at pipeline invocation: the ASN's manifest is read, the bound campaign is identified (or inherited from the lattice default), and its channels, vocabulary, and target are loaded. All discovery-stage scripts read vocabulary and corpora through this resolution step — there is no direct pipeline access to channel content bypassing the campaign.
 
 ## What campaigns do not enforce
 
@@ -74,32 +72,17 @@ Each ASN's campaign context is resolved at pipeline invocation via `scripts/lib/
 
 ## Extraction of shared foundations
 
-The most important structural dynamic in multi-campaign lattices is that **duplication between independently-drafted ASNs is a discovery signal**, not a cleanup problem. See memory: `project_duplication_is_discovery_signal.md`.
+The most important structural dynamic in multi-campaign lattices is that **duplication between independently-drafted ASNs is a discovery signal**, not a cleanup problem.
 
-Two ASNs in different campaigns (e.g., Maxwell+DP and Clausius+DP) will both need to state the observational commitments their framework rests on (temperature transitivity, heat-flow direction, specific-heat well-definedness). Rather than pre-splitting ASN-0002 to extract its observational layer, we let both ASNs independently articulate their observational commitments, then:
+Two ASNs in different campaigns often need to state the same underlying commitments — the observational or structural claims that any framework addressing the domain must make (e.g., when two theoretical frameworks examine the same empirical regime, both will independently articulate commitments like transitivity, well-definedness, and additivity of the observable quantities). Rather than pre-splitting an existing ASN to extract its shared layer, we let both ASNs independently articulate their commitments, then:
 
 1. The reviewer flags the duplication across the two ASNs.
 2. The shared claims are extracted into a new foundation ASN both campaigns depend on.
 3. The extracted foundation contains exactly what both needed — no more, no less.
 
-The extraction is better informed by two concrete ASNs than by any pre-planned split. "Splitting after the second ASN exists is pattern-matching against real content." Shared foundations emerge from the process; the architecture makes space for them without predicting them.
-
-## Migration status
-
-- **Materials** — adopted campaign architecture (this refactor, 2026-04-21). One campaign so far: `dulong-petit-maxwell`.
-- **Xanadu** — not migrated. Deferred as a separate effort because xanadu's prompts have byte-identity constraints and its ASN count (60+) makes migration delicate. When xanadu migrates, its current lattice becomes a single-campaign lattice (`campaigns/xanadu-docuverse/` with channels = `nelson-design-corpus`, `udanax-harness`). No ASN-manifest edits needed — lattice default inheritance covers them all.
-
-## CLI
-
-No user-facing flag. The campaign is resolved from the ASN's manifest (or lattice default) at pipeline invocation. Users create new campaigns by scaffolding the directory structure (or using the `new-campaign` helper), author ASNs with `campaign: <name>` if non-default, and run the pipeline as usual:
-
-```bash
-LATTICE=materials ./run/run-discovery.sh 2
-```
+The extraction is better informed by two concrete ASNs than by any pre-planned split. Splitting after a second ASN exists is pattern-matching against real content rather than guessing at the boundary in advance. Shared foundations emerge from the process; the architecture makes space for them without predicting them.
 
 ## Related
 
-- [Vocabulary is pairing-level](project_vocabulary_is_pairing_level memory) — the load-bearing architectural commitment.
-- [Duplication is a discovery signal](project_duplication_is_discovery_signal memory) — how shared foundations emerge.
 - [Channel asymmetry](../patterns/channel-asymmetry.md) — the pattern the channels realize.
 - [Discovery guide](../guides/discovery.md) — practical manifest schema and campaign-binding reference.
