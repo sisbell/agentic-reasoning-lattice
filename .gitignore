@@ -6,7 +6,7 @@ __pycache__/
 lattices/xanadu/usage-log.jsonl
 domains/xanadu/channels/theory/literary-machines/*.pdf
 domains/xanadu/channels/theory/literary-machines/raw/
-notes/
+/notes/
 
 # Alloy checker output (receipt.json, solution files)
 lattices/xanadu/verification/alloy/**/receipt.json
