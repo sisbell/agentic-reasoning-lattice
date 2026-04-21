@@ -68,7 +68,13 @@ def build_prompt(question):
 
 
 def generate_questions(inquiry_text, n=10, model="opus", out_of_scope=""):
-    """Generate N evidence-side sub-questions for an inquiry. Returns list of strings."""
+    """Generate N evidence-side sub-questions for an inquiry. Returns list of strings.
+
+    Injects the evidence corpus so the generator can target specific substances,
+    measurements, and patterns that actually appear in the data — matching
+    xanadu's Gregory generator which injects a KB synthesis for the same reason.
+    See docs/design-notes/question-generator-context.md.
+    """
     template = read_file(GENERATE_QUESTIONS_PROMPT)
     if not template:
         print(f"  [ERROR] {GENERATE_QUESTIONS_PROMPT.name} not found", file=sys.stderr)
@@ -76,6 +82,7 @@ def generate_questions(inquiry_text, n=10, model="opus", out_of_scope=""):
 
     prompt = template.format(
         inquiry=inquiry_text,
+        corpus=all_corpus(),
         num_questions=n,
         out_of_scope=format_out_of_scope_block(out_of_scope),
     )
