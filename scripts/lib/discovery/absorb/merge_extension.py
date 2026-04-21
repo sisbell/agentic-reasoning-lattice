@@ -149,10 +149,11 @@ def step_integration_review(base_num, base_path, claim_labels,
     """
     from lib.shared.paths import VOCABULARY, REVIEWS_DIR, next_review_number
     from lib.shared.foundation import load_foundation_statements
+    from lib.shared.campaign import resolve_campaign
 
     base_label = f"ASN-{int(base_num):04d}"
     base_content = base_path.read_text()
-    vocabulary = read_file(VOCABULARY)
+    vocabulary = read_file(resolve_campaign(base_num)["vocabulary_path"])
     foundation = load_foundation_statements(base_num)
 
     template = read_file(ABSORB_REVIEW_TEMPLATE)
@@ -203,9 +204,10 @@ def step_integration_revise(base_num, base_path, claim_labels,
     """Step 2b: Fix integration issues found by review."""
     from lib.shared.paths import VOCABULARY
     from lib.shared.foundation import load_foundation_statements
+    from lib.shared.campaign import resolve_campaign
 
     base_label = f"ASN-{int(base_num):04d}"
-    vocabulary = read_file(VOCABULARY)
+    vocabulary = read_file(resolve_campaign(base_num)["vocabulary_path"])
     foundation = load_foundation_statements(base_num)
 
     template = read_file(ABSORB_REVISE_TEMPLATE)

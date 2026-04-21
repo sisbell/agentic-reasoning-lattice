@@ -18,6 +18,7 @@ from lib.shared.paths import (WORKSPACE, REVIEWS_DIR, VOCABULARY, PATCHES_DIR,
 from lib.shared.common import (read_file, find_asn, invoke_claude, invoke_claude_agent,
                          log_usage, step_commit_asn)
 from lib.shared.foundation import load_foundation_statements
+from lib.shared.campaign import resolve_campaign
 
 PROMPTS_DIR = DOMAIN_PROMPTS / "discovery" / "patch"
 PATCH_TEMPLATE = PROMPTS_DIR / "apply.md"
@@ -76,7 +77,7 @@ def step_patch_review(asn_num, asn_path, asn_label, patch_content,
                       model, effort):
     """Step 2a: Scoped review of the patch."""
     asn_content = asn_path.read_text()
-    vocabulary = read_file(VOCABULARY)
+    vocabulary = read_file(resolve_campaign(asn_num)["vocabulary_path"])
     foundation = load_foundation_statements(asn_num)
 
     template = read_file(PATCH_REVIEW_TEMPLATE)
@@ -119,7 +120,7 @@ def step_patch_review(asn_num, asn_path, asn_label, patch_content,
 def step_patch_revise(asn_num, asn_path, asn_label, patch_content,
                       review_text, model, effort):
     """Step 2b: Fix patch issues."""
-    vocabulary = read_file(VOCABULARY)
+    vocabulary = read_file(resolve_campaign(asn_num)["vocabulary_path"])
     foundation = load_foundation_statements(asn_num)
 
     template = read_file(PATCH_REVISE_TEMPLATE)

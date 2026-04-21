@@ -24,6 +24,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, VOCABULARY, REVIEWS_DIR, USAGE_LOG, NOTES_DIR, DOMAIN_PROMPTS, sorted_reviews, find_review
+from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn, read_file
 from lib.shared.foundation import load_foundation_statements
 
@@ -202,10 +203,11 @@ def main():
               file=sys.stderr)
         sys.exit(0)
 
-    # Load vocabulary
-    vocab = read_file(VOCABULARY)
+    # Load vocabulary via campaign resolver
+    vocab_path = resolve_campaign(asn_label)["vocabulary_path"]
+    vocab = read_file(vocab_path)
     if not vocab:
-        print(f"  Warning: {VOCABULARY.relative_to(WORKSPACE)} not found", file=sys.stderr)
+        print(f"  Warning: {vocab_path.relative_to(WORKSPACE)} not found", file=sys.stderr)
 
     # Load consultation results if provided
     consultation_content = None

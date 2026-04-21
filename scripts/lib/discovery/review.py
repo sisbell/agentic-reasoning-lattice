@@ -27,6 +27,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, VOCABULARY, REVIEWS_DIR, USAGE_LOG, MANIFESTS_DIR, NOTES_DIR, DOMAIN_PROMPTS, sorted_reviews, load_manifest, open_issues_path
+from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn, read_file
 from lib.shared.foundation import load_foundation_statements
 
@@ -238,10 +239,11 @@ def main():
 
     asn_content = asn_path.read_text()
 
-    # Read vocabulary
-    vocabulary = read_file(VOCABULARY)
+    # Read vocabulary via campaign resolver
+    vocab_path = resolve_campaign(asn_label)["vocabulary_path"]
+    vocabulary = read_file(vocab_path)
     if not vocabulary:
-        print(f"  Warning: {VOCABULARY.relative_to(WORKSPACE)} not found", file=sys.stderr)
+        print(f"  Warning: {vocab_path.relative_to(WORKSPACE)} not found", file=sys.stderr)
 
     # Build prompt
     print(f"  [REVIEW] {asn_label}", file=sys.stderr)
