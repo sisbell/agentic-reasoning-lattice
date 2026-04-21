@@ -61,9 +61,11 @@ Define the translational vis viva of molecule m, and the body's mean translation
 
 Before formulating the temperature functional we name a modeling commitment we will rely on; its full formal content is stated as premise (iv) of §"Conservation through encounters" below. Under the *centres-of-force modeling of encounters*, an encounter between two molecules is treated as a conservative central interaction between the pair's centres of mass, derived from a scalar pair potential that vanishes outside a finite sphere of action; no other coupling of the pair is posited at the encounter level. This is a modeling commitment about inter-molecular interaction during an encounter, distinct from the constitutional use of "centre of force" in §"The constitutional commitment" above, which named one admissible internal structure of a single molecule.
 
-**[P.temp_functional]** In the equilibrium regime, in the dilute regime, and under the centres-of-force modeling of encounters, the temperature of a body is a strictly monotone function of B.T̄ alone: for bodies B₁, B₂ at equilibrium,
+**[P.temp_functional]** In the equilibrium regime, in the dilute regime, and under the centres-of-force modeling of encounters, the temperature of a body is a strictly monotone function of B.T̄ alone: for bodies B₁, B₂ at equilibrium sharing a common species composition,
 - temp(B₁) = temp(B₂) ⇔ B₁.T̄ = B₂.T̄,
 - temp(B₁) < temp(B₂) ⇔ B₁.T̄ < B₂.T̄.
+
+The restriction to a common species composition is deliberate. Within the scope of this claim a single temperature functional is attached per composition, and the claim commits only to its strict monotonicity in B.T̄ across bodies of that same composition; whether the same functional applies across distinct compositions is a separate commitment, recorded as P.temp_functional_species_independent in §"Sharing of translational vis viva between species" below.
 
 The content of this claim is that the functional depends on B.mass and B.v, not on B.eint. The internal compartment drops out of the temperature functional at equilibrium.
 
@@ -88,9 +90,11 @@ so the mean internal energy sits at (β_k − 1) times the mean translational vi
 
 This is forced by construction: m.eint ≥ 0 (by Σ.eint) and T(m) ≥ 0, so β_k = 1 + Σ eint / Σ T ≥ 1.
 
-**[P.beta_unity_iff_no_internal]** β_k = 1 iff species k carries no internal degree of freedom capable of exchanging energy with translation through encounters.
+**[P.beta_unity_if_no_internal]** If species k carries no internal degree of freedom capable of exchanging energy with translation through encounters, then β_k = 1.
 
-A pure centre of force, having no internal structure at all, is the clearest case of β = 1. More generally, a molecule may carry internal modes (rotations, oscillations) that are dynamically decoupled from translation by the particular encounter law, in which case those modes cannot be excited by encounters and β = 1 holds regardless. Which realizations of β = 1 actually obtain depends on the force law one assumes for the encounter, which the theory does not prescribe in general; the structural statement P.beta_unity_iff_no_internal is what the theory commits to.
+A pure centre of force, having no internal structure at all, is the clearest case: there is no internal compartment for m.eint to populate, so β = 1 by construction. More generally, a molecule may carry internal modes (rotations, oscillations) that are dynamically decoupled from translation by the particular encounter law, in which case those modes cannot be excited by encounters and β = 1 holds regardless. Which realizations of β = 1 actually obtain depends on the force law one assumes for the encounter, which the theory does not prescribe in general.
+
+Only one direction of the implication is grounded in the present apparatus. The converse — β_k = 1 ⇒ no exchangeable internal DOF — does not follow. The theory imports β_k − 1 as a species-characteristic equilibrium apportionment value following Clausius (see P.enc_ratio_equilibration), and does not commit to a strictly positive lower bound on that value when an exchangeable DOF is present. A species whose internal DOF is coupled to translation through the encounter law but whose equilibrium share happens to be zero would produce β_k = 1 while an exchangeable DOF exists; the present apparatus contains no derivation that forbids such a case. We therefore state the implication one-way and do not promote it to an iff.
 
 **[P.beta_species_invariant]** β_k depends only on molecular species, not on the state of the body or its temperature, within the regime in which the equilibrium apportionment holds.
 
@@ -227,10 +231,10 @@ These gaps are boundaries of the theory's promise, not flaws of the specificatio
 | Σ.eint | Each m ∈ B.mols has m.eint : ℝ⁺₀ (J) | introduced |
 | Σ.species | Each m ∈ B.mols has m.species ∈ Species; species is an equivalence class under common mass, internal constitution, and force laws | introduced |
 | P.heat_as_motion | Heat content of a body equals B.E = (+ m : m ∈ B.mols : ½ m.mass (m.v·m.v) + m.eint); no separate material stock of heat exists | introduced |
-| P.temp_functional | At equilibrium, in the dilute regime with centres-of-force modeling of encounters, temperature is a strictly monotone function of mean translational vis viva per molecule B.T̄ alone, independent of the internal compartment and of the specific form of the intermolecular force law (postulated within this note; the theory's derivation goes through the Maxwellian form of the equilibrium velocity distribution, which is outside scope here) | introduced |
+| P.temp_functional | At equilibrium, in the dilute regime with centres-of-force modeling of encounters, for bodies of common species composition, temperature is a strictly monotone function of mean translational vis viva per molecule B.T̄ alone, independent of the internal compartment and of the specific form of the intermolecular force law (postulated within this note; the theory's derivation goes through the Maxwellian form of the equilibrium velocity distribution, which is outside scope here) | introduced |
 | P.temp_functional_species_independent | At equilibrium, in the dilute regime with centres-of-force modeling of encounters, the temperature functional from P.temp_functional is the same for any body regardless of its species composition (postulated within this note; the theory's derivation goes through detailed balance on the stationary cross-species velocity distribution, which is outside scope here) | introduced |
 | P.beta_bounds | β_k ≥ 1 for every molecular species k | introduced |
-| P.beta_unity_iff_no_internal | β_k = 1 iff species k has no internal degree of freedom that can exchange energy with translation through encounters | introduced |
+| P.beta_unity_if_no_internal | If species k has no internal degree of freedom that can exchange energy with translation through encounters, then β_k = 1 (implication only; the converse is not grounded in the present apparatus, since the theory imports β_k − 1 as a species-characteristic apportionment value without committing to a strict positive lower bound when an exchangeable DOF is present) | introduced |
 | P.beta_species_invariant | β_k depends only on molecular species, not on body state or temperature, within the regime in which the equilibrium apportionment holds | introduced |
 | P.enc_momentum | Each encounter preserves total linear momentum, strictly per encounter | introduced |
 | P.enc_energy | Each encounter between an isolated pair preserves total energy (translational + internal), strictly per encounter; under (iv) the two pieces are each separately conserved because U(r) couples only to COM coordinates | introduced |
