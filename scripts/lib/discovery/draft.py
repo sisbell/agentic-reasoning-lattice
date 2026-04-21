@@ -182,7 +182,7 @@ def run_discovery(inquiry, asn_number, slug, force=False):
     print(f"  [DISCOVERY] Using answers from {answers_path.relative_to(WORKSPACE)}",
           file=sys.stderr)
 
-    vocab = read_file(resolve_campaign(asn_number)["vocabulary_path"])
+    vocab = read_file(resolve_campaign(asn_number).vocabulary_path)
     foundation = load_foundation_statements(asn_number)
     out_of_scope = inquiry.get("out_of_scope", "")
     scope_note = (f"\n5. The following topics are OUT OF SCOPE for this ASN — "

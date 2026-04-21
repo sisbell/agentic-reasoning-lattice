@@ -239,11 +239,7 @@ def main():
 
     asn_content = asn_path.read_text()
 
-    # Read vocabulary via campaign resolver
-    vocab_path = resolve_campaign(asn_label)["vocabulary_path"]
-    vocabulary = read_file(vocab_path)
-    if not vocabulary:
-        print(f"  Warning: {vocab_path.relative_to(WORKSPACE)} not found", file=sys.stderr)
+    vocabulary = read_file(resolve_campaign(asn_label).vocabulary_path)
 
     # Build prompt
     print(f"  [REVIEW] {asn_label}", file=sys.stderr)

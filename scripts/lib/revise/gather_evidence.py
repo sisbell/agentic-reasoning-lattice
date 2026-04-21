@@ -85,8 +85,8 @@ def run_targeted_consultations(items, asn_id, model="opus"):
     Mutates items in place, populating item['answers'][role].
     """
     campaign = resolve_campaign(asn_id)
-    theory_channel = campaign["theory_channel"]
-    evidence_channel = campaign["evidence_channel"]
+    theory_channel = campaign.theory_channel
+    evidence_channel = campaign.evidence_channel
 
     theory_work = []
     evidence_work = []

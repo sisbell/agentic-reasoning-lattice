@@ -54,11 +54,13 @@ def main():
             sys.exit(1)
         meta_path = ch_dir / "meta.yaml"
         if not meta_path.exists():
-            print(f"  [WARN] {role} channel is missing meta.yaml at {meta_path}",
+            print(f"  [ERROR] {role} channel is missing meta.yaml at {meta_path}",
                   file=sys.stderr)
-            print(f"         assign-channels prompt substitution will fail "
-                  f"without it.",
+            print(f"          Add meta.yaml with a `description:` field before "
+                  f"creating a campaign that binds this channel — the "
+                  f"assign-channels prompt requires it.",
                   file=sys.stderr)
+            sys.exit(1)
 
     # Validate campaign name is not taken
     cdir = campaign_dir(args.name)

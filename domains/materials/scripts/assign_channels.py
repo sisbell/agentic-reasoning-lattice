@@ -59,8 +59,8 @@ def build_prompt(asn_content, revise_section, asn_id):
         raise FileNotFoundError(f"prompt template not found: {PROMPT_TEMPLATE}")
 
     campaign = resolve_campaign(asn_id)
-    theory_description = _channel_description(campaign["theory_channel"])
-    evidence_description = _channel_description(campaign["evidence_channel"])
+    theory_description = _channel_description(campaign.theory_channel)
+    evidence_description = _channel_description(campaign.evidence_channel)
 
     return template.format(
         asn_content=asn_content,

@@ -203,11 +203,7 @@ def main():
               file=sys.stderr)
         sys.exit(0)
 
-    # Load vocabulary via campaign resolver
-    vocab_path = resolve_campaign(asn_label)["vocabulary_path"]
-    vocab = read_file(vocab_path)
-    if not vocab:
-        print(f"  Warning: {vocab_path.relative_to(WORKSPACE)} not found", file=sys.stderr)
+    vocab = read_file(resolve_campaign(asn_label).vocabulary_path)
 
     # Load consultation results if provided
     consultation_content = None

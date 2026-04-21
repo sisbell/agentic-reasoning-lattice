@@ -133,8 +133,8 @@ def decompose_inquiry(inquiry_text, num_theory=10, num_evidence=10, model="opus"
     vocabulary fence. This orchestrator just calls them and merges results.
     """
     campaign = resolve_campaign(asn_id)
-    theory_channel = campaign["theory_channel"]
-    evidence_channel = campaign["evidence_channel"]
+    theory_channel = campaign.theory_channel
+    evidence_channel = campaign.evidence_channel
 
     theory_qs = theory.generate_questions(
         inquiry_text, theory_channel, n=num_theory, model=model, out_of_scope=out_of_scope,
@@ -222,8 +222,8 @@ def run_consultations(questions, consult_dir, asn_id, theory_model="opus",
     consultations bind to.
     """
     campaign = resolve_campaign(asn_id)
-    theory_channel = campaign["theory_channel"]
-    evidence_channel = campaign["evidence_channel"]
+    theory_channel = campaign.theory_channel
+    evidence_channel = campaign.evidence_channel
 
     results = [None] * len(questions)
 

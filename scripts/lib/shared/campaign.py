@@ -4,12 +4,15 @@ A campaign binds a (theory channel, evidence channel) pair to a target and a
 curated bridge vocabulary. Each ASN binds to exactly one campaign via its
 manifest's `campaign:` field, or inherits the lattice's `default_campaign`.
 
-The resolver takes an ASN id and returns the campaign's channel names,
-vocabulary path, and target. All pipeline stages that need channel content or
-vocab route through here.
+The resolver takes an ASN id and returns a CampaignContext with the campaign's
+channel names, vocabulary path, and target. All pipeline stages that need
+channel content or vocab route through here.
 """
 
+import functools
 import re
+from dataclasses import dataclass
+from pathlib import Path
 
 import yaml
 
@@ -23,31 +26,35 @@ class ConfigError(Exception):
     """Raised when campaign configuration is missing or malformed."""
 
 
+@dataclass(frozen=True)
+class CampaignContext:
+    name: str
+    theory_channel: str
+    evidence_channel: str
+    target: str
+    vocabulary_path: Path
+
+
+_ASN_ID_RE = re.compile(r"^(?:ASN-)?0*(\d+)$")
+
+
 def _asn_int(asn_id):
-    """Coerce 2, '2', '0002', 'ASN-0002' to int 2."""
+    """Coerce 2, '2', '0002', 'ASN-0002' to int 2. Rejects anything else."""
     if isinstance(asn_id, int):
         return asn_id
-    num = re.sub(r"[^0-9]", "", str(asn_id))
-    if not num:
+    m = _ASN_ID_RE.match(str(asn_id).strip())
+    if not m:
         raise ConfigError(f"Cannot parse ASN id: {asn_id!r}")
-    return int(num)
+    return int(m.group(1))
 
 
 def resolve_campaign(asn_id):
-    """Resolve an ASN's campaign context.
+    """Resolve an ASN's campaign context. Cached per ASN id within a process."""
+    return _resolve_cached(_asn_int(asn_id))
 
-    Returns dict with keys:
-      name:             campaign name (str)
-      theory_channel:   channel name bound to the theory role (str)
-      evidence_channel: channel name bound to the evidence role (str)
-      target:           campaign target description (str, may be empty)
-      vocabulary_path:  path to the campaign's vocabulary.md (Path)
 
-    Raises ConfigError if no campaign is bound (no `campaign:` in the ASN
-    manifest and no `default_campaign` in the lattice config) or if the
-    named campaign's directory/config is missing.
-    """
-    asn_num = _asn_int(asn_id)
+@functools.lru_cache(maxsize=None)
+def _resolve_cached(asn_num):
     manifest = load_manifest(asn_num)
     name = manifest.get("campaign") or load_lattice_config().get("default_campaign")
     if not name:
@@ -78,10 +85,10 @@ def resolve_campaign(asn_id):
             f"(got theory={theory!r}, evidence={evidence!r} from {cfg_path})."
         )
 
-    return {
-        "name": name,
-        "theory_channel": theory,
-        "evidence_channel": evidence,
-        "target": cfg.get("target", ""),
-        "vocabulary_path": campaign_vocab(name),
-    }
+    return CampaignContext(
+        name=name,
+        theory_channel=theory,
+        evidence_channel=evidence,
+        target=cfg.get("target", ""),
+        vocabulary_path=campaign_vocab(name),
+    )

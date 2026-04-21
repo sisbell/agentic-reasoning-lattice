@@ -24,7 +24,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent / "scripts"))
 from lib.shared.paths import CONSULTATIONS_DIR, DOMAIN_PROMPTS, CHANNELS_DIR
-from lib.shared.common import read_file
+from lib.shared.common import read_file, concat_md_files
 from lib.shared.campaign import resolve_campaign
 from lib.consult import (
     invoke_claude as _invoke,
@@ -39,20 +39,12 @@ GENERATE_QUESTIONS_PROMPT = DOMAIN_PROMPTS / "discovery" / "consultation" / "the
 _CACHED_CORPUS_BY_CHANNEL = {}
 
 
-def _concat_md_files(directory):
-    """Concatenate all .md files under a directory (recursive), each headed by filename stem."""
-    return "\n\n".join(
-        f"### {f.stem}\n{f.read_text()}"
-        for f in sorted(directory.rglob("*.md"))
-    )
-
-
 def all_corpus(channel):
     """Return the concatenated corpus for the named channel, cached by channel name."""
     if channel in _CACHED_CORPUS_BY_CHANNEL:
         return _CACHED_CORPUS_BY_CHANNEL[channel]
     corpus_dir = CHANNELS_DIR / channel
-    corpus = _concat_md_files(corpus_dir)
+    corpus = concat_md_files(corpus_dir)
     if not corpus:
         raise RuntimeError(
             f"theory corpus is empty at {corpus_dir} — "
@@ -124,7 +116,7 @@ def main():
     if args.channel:
         channel = args.channel
     elif args.asn:
-        channel = resolve_campaign(args.asn)["theory_channel"]
+        channel = resolve_campaign(args.asn).theory_channel
     else:
         parser.error("Provide --asn (to resolve via campaign) or --channel (explicit)")
 

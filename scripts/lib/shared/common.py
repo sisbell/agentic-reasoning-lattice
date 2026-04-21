@@ -111,6 +111,16 @@ def read_file(path):
         return ""
 
 
+def concat_md_files(directory):
+    """Concatenate all .md files under a directory (recursive),
+    each headed by filename stem.
+    """
+    return "\n\n".join(
+        f"### {f.stem}\n{f.read_text()}"
+        for f in sorted(Path(directory).rglob("*.md"))
+    )
+
+
 
 
 def find_asn(asn_id, asns_dir=None):

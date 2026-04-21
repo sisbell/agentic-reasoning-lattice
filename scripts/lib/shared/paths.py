@@ -24,8 +24,6 @@ PATCHES_DIR = LATTICE / "discovery" / "patches"
 
 # Per-lattice files
 VOCABULARY = LATTICE / "vocabulary.md"
-
-# Campaign-aware lattice config and campaigns directory
 LATTICE_CONFIG = LATTICE / "config.yaml"
 CAMPAIGNS_DIR = LATTICE / "campaigns"
 
