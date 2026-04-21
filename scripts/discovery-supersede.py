@@ -65,7 +65,7 @@ def main():
           file=sys.stderr)
     print(f"  [NEXT] Generate questions: ./run/questions.sh {args.target}",
           file=sys.stderr)
-    print(f"  [NEXT] Or consult+draft: python scripts/draft.py "
+    print(f"  [NEXT] Or consult+draft: python scripts/discovery-draft.py "
           f"--inquiries {args.target} --resume consult", file=sys.stderr)
 
 

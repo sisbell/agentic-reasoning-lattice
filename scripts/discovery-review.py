@@ -63,7 +63,7 @@ def main():
         step_commit(f"Review {asn_label}", asn_id=asn_number)
         elapsed = time.time() - start
         print(f"\n  [REVIEW] Done ({elapsed:.0f}s)", file=sys.stderr)
-        print(f"  REVISE items found. Run: python scripts/revise.py {args.asn}",
+        print(f"  REVISE items found. Run: python scripts/discovery-revise.py {args.asn}",
               file=sys.stderr)
         sys.exit(0)
 

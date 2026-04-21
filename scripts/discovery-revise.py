@@ -7,12 +7,12 @@ revision loop: consult on REVISE findings, revise the ASN, commit.
 Multiple cycles re-review between revisions.
 
 Usage:
-    python scripts/revise.py 9              # 1 cycle: consult → revise → commit (latest review)
-    python scripts/revise.py 9 --cycle 3    # 3 cycles (first uses latest review, rest do review → revise)
-    python scripts/revise.py 9 --converge   # loop until CONVERGED (max 15)
-    python scripts/revise.py 9 --converge 8 # loop until CONVERGED (max 8)
-    python scripts/revise.py 9 --cycles 3   # force 3 rounds, ignore convergence
-    python scripts/revise.py 9 --resume revise  # skip consult, go straight to revise
+    python scripts/discovery-revise.py 9              # 1 cycle: consult → revise → commit (latest review)
+    python scripts/discovery-revise.py 9 --cycle 3    # 3 cycles (first uses latest review, rest do review → revise)
+    python scripts/discovery-revise.py 9 --converge   # loop until CONVERGED (max 15)
+    python scripts/discovery-revise.py 9 --converge 8 # loop until CONVERGED (max 8)
+    python scripts/discovery-revise.py 9 --cycles 3   # force 3 rounds, ignore convergence
+    python scripts/discovery-revise.py 9 --resume revise  # skip consult, go straight to revise
 """
 
 import argparse
@@ -119,7 +119,7 @@ def main():
             if not reviews:
                 print(f"  [REVISE] No reviews found for {asn_label}",
                       file=sys.stderr)
-                print(f"  Run: python scripts/review.py {args.asn}",
+                print(f"  Run: python scripts/discovery-review.py {args.asn}",
                       file=sys.stderr)
                 sys.exit(1)
             review_path = str(reviews[-1])

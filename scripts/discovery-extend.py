@@ -113,10 +113,10 @@ def main():
                 f"into {base_label} extension")
 
     # Hints
-    print(f"\n  [NEXT] Review: python scripts/review.py {args.target}",
+    print(f"\n  [NEXT] Review: python scripts/discovery-review.py {args.target}",
           file=sys.stderr)
     print(f"  [NEXT] Or review/revise loop: "
-          f"python scripts/revise.py {args.target} --converge",
+          f"python scripts/discovery-revise.py {args.target} --converge",
           file=sys.stderr)
     print(f"  [NEXT] Then export: python scripts/normalize.py {args.target}",
           file=sys.stderr)

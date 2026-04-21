@@ -9,15 +9,15 @@ Orchestrates ASN production by calling step scripts:
   4. Commit: commit lattice changes
 
 Specify a step to run up to and including that step:
-    python scripts/draft.py --inquiries 4 questions    # preview sub-questions
-    python scripts/draft.py --inquiries 4 consult      # questions + consultations
-    python scripts/draft.py --inquiries 4 discover     # consult + discover
-    python scripts/draft.py --inquiries 4              # full pipeline (all steps)
-    python scripts/draft.py                            # all inquiries, full pipeline
+    python scripts/discovery-draft.py --inquiries 4 questions    # preview sub-questions
+    python scripts/discovery-draft.py --inquiries 4 consult      # questions + consultations
+    python scripts/discovery-draft.py --inquiries 4 discover     # consult + discover
+    python scripts/discovery-draft.py --inquiries 4              # full pipeline (all steps)
+    python scripts/discovery-draft.py                            # all inquiries, full pipeline
 
 Resume from a specific step (skip earlier steps):
-    python scripts/draft.py --inquiries 4 --resume discover  # skip consult
-    python scripts/draft.py --inquiries 4 --resume commit    # just commit
+    python scripts/discovery-draft.py --inquiries 4 --resume discover  # skip consult
+    python scripts/discovery-draft.py --inquiries 4 --resume commit    # just commit
 """
 
 import argparse
@@ -267,7 +267,7 @@ def run_pipeline(inquiry, target_step, resume_from=None, force=False, dry_run=Fa
     if "questions" in run_steps and target_step == "questions":
         result = step_questions(inquiry)
         print(f"\n  [NEXT] Run consultation + draft: "
-              f"python scripts/draft.py --inquiries {asn_number} --resume consult",
+              f"python scripts/discovery-draft.py --inquiries {asn_number} --resume consult",
               file=sys.stderr)
         return result
 
@@ -290,10 +290,10 @@ def run_pipeline(inquiry, target_step, resume_from=None, force=False, dry_run=Fa
 
     # Hint for next step
     if target_step in ("discover", "commit"):
-        print(f"\n  [NEXT] Run review: python scripts/review.py {asn_number}",
+        print(f"\n  [NEXT] Run review: python scripts/discovery-review.py {asn_number}",
               file=sys.stderr)
         print(f"  [NEXT] Or review/revise loop: "
-              f"python scripts/revise.py {asn_number} --converge",
+              f"python scripts/discovery-revise.py {asn_number} --converge",
               file=sys.stderr)
 
     return True
