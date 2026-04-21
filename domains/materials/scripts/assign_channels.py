@@ -15,9 +15,12 @@ import re
 import sys
 from pathlib import Path
 
+import yaml
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent / "scripts"))
-from lib.shared.paths import DOMAIN_PROMPTS
+from lib.shared.paths import DOMAIN_PROMPTS, CHANNELS_DIR
 from lib.shared.common import read_file
+from lib.shared.campaign import resolve_campaign
 
 
 PROMPT_TEMPLATE = DOMAIN_PROMPTS / "revise" / "assign-channels.md"
@@ -28,12 +31,43 @@ DISPLAY_NAMES = {
 }
 
 
-def build_prompt(asn_content, revise_section):
-    """Build the channel-assignment prompt for a review's REVISE section."""
+def _channel_description(channel_name):
+    """Read the channel's description from its meta.yaml."""
+    meta_path = CHANNELS_DIR / channel_name / "meta.yaml"
+    try:
+        meta = yaml.safe_load(meta_path.read_text()) or {}
+    except FileNotFoundError:
+        raise FileNotFoundError(
+            f"channel meta.yaml not found: {meta_path}"
+        )
+    description = meta.get("description", "").strip()
+    if not description:
+        raise ValueError(
+            f"channel {channel_name} meta.yaml missing `description:` field"
+        )
+    return description
+
+
+def build_prompt(asn_content, revise_section, asn_id):
+    """Build the channel-assignment prompt for a review's REVISE section.
+
+    Resolves the ASN's campaign, reads each bound channel's meta.yaml
+    description, and substitutes into the prompt template.
+    """
     template = read_file(PROMPT_TEMPLATE)
     if not template:
         raise FileNotFoundError(f"prompt template not found: {PROMPT_TEMPLATE}")
-    return template.format(asn_content=asn_content, revise_section=revise_section)
+
+    campaign = resolve_campaign(asn_id)
+    theory_description = _channel_description(campaign["theory_channel"])
+    evidence_description = _channel_description(campaign["evidence_channel"])
+
+    return template.format(
+        asn_content=asn_content,
+        revise_section=revise_section,
+        theory_description=theory_description,
+        evidence_description=evidence_description,
+    )
 
 
 _AUTHORITY_TO_ROLE = {

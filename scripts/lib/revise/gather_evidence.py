@@ -240,7 +240,7 @@ def main():
 
     # Step 1: Assign channels to each REVISE item
     print(f"  [ASSIGN] Building prompt...", file=sys.stderr)
-    prompt = assign_channels.build_prompt(asn_content, revise_section)
+    prompt = assign_channels.build_prompt(asn_content, revise_section, asn_label)
     print(f"  [ASSIGN] Prompt: {len(prompt) // 1024}KB", file=sys.stderr)
 
     response, _ = invoke_claude(
