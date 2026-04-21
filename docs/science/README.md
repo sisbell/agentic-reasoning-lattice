@@ -1,12 +1,31 @@
 # Science Domain: Approach
 
-*Design note. Speculative — not yet run. How the [Two Data Authorities](../patterns/two-data-authorities.md) pattern and its supporting machinery (V-cycle, regional-review, lattice) would apply to scientific discovery. Core framing: the system produces hypotheses, not discoveries. Verification happens downstream.*
+*Design note. Discovery stage first-run landed on a materials lattice (April 2026); downstream stages (V-cycle regional review, Judger match-eval) still to run. How the [Two Data Authorities](../patterns/two-data-authorities.md) pattern and its supporting machinery (V-cycle, regional-review, lattice) applies to scientific discovery. Core framing: the system produces hypotheses, not discoveries. Verification happens downstream.*
 
 ## Core claim
 
 The system produces **hypotheses**, not discoveries — candidate principles articulated precisely enough to be tested. Verification (experimental, replication, or match against known answers) happens outside the system.
 
 For a rediscovery evaluation, a hypothesis becomes a "finding" when it matches a known target. The AI still produced a hypothesis; the matching is external judgment.
+
+## Observed on materials (discovery stage)
+
+First run landed on the Dulong–Petit target: Maxwell's 1867 *Dynamical Theory of Gases* (theory channel) paired with Dulong & Petit's 1819 specific-heat paper (evidence channel). Two notes produced:
+
+- **ASN-0001** (broad inquiry, no `out_of_scope`): 18 claims spanning ontology, temperature, pressure, phases, intermolecular forces, Dulong–Petit. A survey.
+- **ASN-0002** (foundation inquiry, `out_of_scope` excluding pressure/phase/transport): 15 claims disciplined to the constitution+heat layer. Explicitly flagged what is *postulated* from Clausius vs *derived*. Cleaner foundation.
+
+What discovery demonstrated:
+- **Hypothesis-shaped output:** both notes produced P-claims (propositions) and Σ-states (abstract state) with explicit "introduced" status — the shape the Judger needs.
+- **Memorization discipline held:** neither note short-circuited to 3R, Boltzmann, Einstein/Debye, or "statistical mechanics." The DP regularity was correctly framed as approximate and regime-gated, consistent with Maxwell's β framework rather than the modern answer. Two minor terminology leaks ("degrees of freedom" once, an `equipartition` label) but prose stayed in-era.
+- **Scope discipline via `out_of_scope`:** ASN-0002's narrower inquiry + explicit exclusions produced a tighter, more honest foundation note than ASN-0001's broad inquiry. Confirms the pattern that broad inquiries survey and narrower inquiries tighten.
+- **Channel asymmetry on the modality axis:** theory channel carried vocabulary (vis viva, β, elastic encounter) and voice constraints; evidence channel carried the whole 1819 corpus. The configuration ran as predicted, but the corpus contained no unnamed anomaly — the coinage-at-anomalies prediction of the pattern was not exercised. What did emerge was scope-softening: the synthesis relabeled the corpus's "equal-atomic-heat-capacity law" as "atomic-heat regularity," refusing to inherit the strength of the historical name.
+
+What remains untested:
+- Whether the V-cycle regional-review operator converges hypothesis cones on materials notes.
+- Whether the Judger match-eval correctly identifies rediscovery vs novel candidate.
+- Whether scope promotion behaves as it does on the software domain.
+- Whether the channel-asymmetry pattern's coinage-at-anomalies prediction holds on materials. The Dulong–Petit corpus names its own central observation ("law of Dulong and Petit"), so no unnamed anomaly forced coinage in this run. A corpus with observations that existing vocabulary cannot absorb would be needed to test the prediction.
 
 ## Convergence framework
 

@@ -25,7 +25,7 @@ Complete index of the documentation. The root [README](../README.md) is the proj
 ## Domain-specific
 
 - [Software](software/README.md) — grounded domain: reverse-engineering legacy software systems. Demonstrated on the Xanadu hypertext system.
-- [Science](science/README.md) — speculative domain: applying the architecture to scientific discovery.
+- [Science](science/README.md) — applying the architecture to scientific discovery. Discovery stage landed on a materials lattice (Maxwell 1867 + Dulong–Petit 1819); downstream stages still to run.
 
 ## Guides and runbooks
 

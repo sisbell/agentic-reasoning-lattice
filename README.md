@@ -49,7 +49,7 @@ See [Science Approach](docs/science/README.md) for the convergence framing, cone
 ### Deployments
 
 - [Software](docs/software/README.md) — grounded deployment on legacy software reverse-engineering (Xanadu)
-- [Science](docs/science/README.md) — speculative deployment on scientific discovery
+- [Science](docs/science/README.md) — deployment on scientific discovery (discovery stage landed on a materials lattice; downstream stages still to run)
 
 ### Guides
 
