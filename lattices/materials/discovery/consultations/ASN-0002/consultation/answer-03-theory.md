@@ -1,0 +1,17 @@
+## Question 3 [theory]
+
+> How does the theory characterize the internal constitution of a molecule such that vis viva may reside in modes beyond translational motion?
+
+The theory admits several candidate constitutions for a molecule, and what non-translational modes (if any) exist depends on which constitution is assumed.
+
+**Candidate constitutions.** Molecules "may be mere points, or pure centres of force endowed with inertia, or the capacity of performing work while losing velocity. They may be systems of several such centres of force, bound together by their mutual actions… Finally, if necessary, we may suppose them to be small solid bodies of a determinate form; but in this case we must assume a new set of forces binding the parts of these small bodies together, and so introduce a molecular theory of the second order" [1867-maxwell-dynamical-theory-of-gases]. Maxwell also notes that the extension and impenetrability of sensible bodies "have no application to the theory of molecules."
+
+**Modes permitted by each structure.** "The actual energy of a moving body consists of two parts, one due to the motion of its centre of gravity, and the other due to the motions of its parts relative to the centre of gravity. If the body is of invariable form, the motions of its parts relative to the centre of gravity consist entirely of rotation, but if the parts of the body are not rigidly connected, their motions may consist of oscillations of various kinds, as well as rotation of the whole body." Crucially, "If the molecules are pure centres of force, there can be no energy of rotation, and the whole energy is reduced to that of translation."
+
+**Summary in the ratio β.** "In all other cases the whole energy of the molecule may be represented by ½Mv²β, where β is the ratio of the total energy to the energy of translation." β varies molecule-to-molecule and encounter-to-encounter, "but it will have an average value depending on the nature of the molecules, as has been shown by Clausius," and "can be determined if we know either of the specific heats of the gas, or the ratio between them."
+
+**Agnosticism about the internal form.** At the medium level the energy is written ½M{(u+ξ)² + …} + ½EM, where "½EM is the internal part of the energy of the molecule, the form of which is at present unknown." Following Clausius, Maxwell *assumes* Ē = (β−1)(ξ²+η²+ζ²), so that, "except in very violent disturbances, this ratio is always preserved."
+
+**Collision treatment.** "If we suppose the molecules to be bodies, or systems of bodies, capable of rotation, internal vibration, or any form of energy other than simple motion of translation, these results will be modified. The value of θ and the final velocities of the molecules will depend on the amount of internal energy in each molecule before the encounter, and on the particular form of that energy at every instant during the mutual action. We have no means of determining such intricate actions in the present state of our knowledge of molecules," so Maxwell assumes θ averages to its pure-centres-of-force value, and that translational and internal energies reach "by repeated small exchanges, a final ratio… of 1 to β − 1."
+
+In short: the corpus characterises internal constitution permissively (point, centre-of-force, group, or rigid body with second-order internal forces), tracks only a single aggregate ratio β, and treats the detailed *form* of the internal energy as outside the reach of the theory.
