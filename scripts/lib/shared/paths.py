@@ -25,6 +25,10 @@ PATCHES_DIR = LATTICE / "discovery" / "patches"
 # Per-lattice files
 VOCABULARY = LATTICE / "vocabulary.md"
 
+# Campaign-aware lattice config and campaigns directory
+LATTICE_CONFIG = LATTICE / "config.yaml"
+CAMPAIGNS_DIR = LATTICE / "campaigns"
+
 # Blueprinting stage
 BLUEPRINTS_DIR = LATTICE / "blueprinting"
 
@@ -187,6 +191,30 @@ def load_manifest(asn_id):
             return yaml.safe_load(f) or {}
     except FileNotFoundError:
         return {}
+
+
+def load_lattice_config():
+    """Load the lattice-level config.yaml. Returns dict or empty dict."""
+    try:
+        with open(LATTICE_CONFIG) as f:
+            return yaml.safe_load(f) or {}
+    except FileNotFoundError:
+        return {}
+
+
+def campaign_dir(name):
+    """Path to a campaign directory."""
+    return CAMPAIGNS_DIR / name
+
+
+def campaign_config(name):
+    """Path to a campaign's config.yaml."""
+    return campaign_dir(name) / "config.yaml"
+
+
+def campaign_vocab(name):
+    """Path to a campaign's vocabulary.md."""
+    return campaign_dir(name) / "vocabulary.md"
 
 
 def load_excluded_covers(asn_id):
