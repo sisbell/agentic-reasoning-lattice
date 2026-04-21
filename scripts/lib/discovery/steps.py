@@ -15,7 +15,7 @@ from lib.shared.paths import WORKSPACE
 from lib.shared.common import find_asn, stage_asn_files
 
 REVIEW_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "review.py"
-CONSULT_REVISION_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "review_consult.py"
+CONSULT_REVISION_SCRIPT = WORKSPACE / "scripts" / "lib" / "revise" / "gather_evidence.py"
 REVISE_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "revise.py"
 COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
 
@@ -68,7 +68,7 @@ def has_revise_items(review_path):
 
 
 def step_consult_revision(asn_id, review_path):
-    """Run review_consult.py. Returns consultation results path or None."""
+    """Run gather_evidence.py. Returns consultation results path or None."""
     print(f"\n  === CONSULT ===", file=sys.stderr)
     cmd = [sys.executable, str(CONSULT_REVISION_SCRIPT), str(asn_id)]
 

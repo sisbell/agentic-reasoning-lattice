@@ -31,7 +31,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent / "scripts"))
 from lib.shared.paths import WORKSPACE, CONSULTATIONS_DIR, DOMAIN_PROMPTS, CHANNELS_DIR
 from lib.shared.common import read_file
-from lib.consult_common import (
+from lib.consult import (
     invoke_claude as _invoke,
     get_total_usage,
     parse_numbered,
@@ -48,7 +48,7 @@ GENERATE_QUESTIONS_PROMPT = PROMPTS_DIR / "gregory" / "generate-questions.md"
 def invoke_claude(prompt, model="sonnet", label="", allow_tools=False,
                   cwd=None, effort=None, output_file=None):
     """Wrapper around the shared invoke_claude that returns just the text
-    (consult_common already tracks per-process totals)."""
+    (lib.consult already tracks per-process totals)."""
     text, _ = _invoke(prompt, model=model, effort=effort,
                       allow_tools=allow_tools, cwd=cwd,
                       output_file=output_file,

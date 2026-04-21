@@ -505,8 +505,8 @@ def step_commit(hint=""):
 
 
 def step_consult(asn_id, review_path):
-    """Run review_consult.py via subprocess. Returns consultation path or None."""
-    consult_script = WORKSPACE / "scripts" / "lib" / "review_consult.py"
+    """Run gather_evidence.py via subprocess. Returns consultation path or None."""
+    consult_script = WORKSPACE / "scripts" / "lib" / "revise" / "gather_evidence.py"
     cmd = [sys.executable, str(consult_script), str(asn_id)]
 
     import re as _re

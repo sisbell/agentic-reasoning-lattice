@@ -36,7 +36,7 @@ from lib.shared.paths import (
 )
 from lib.shared.common import read_file, stage_asn_files
 
-CONSULT_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "consult.py"
+CONSULT_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "decompose.py"
 DISCOVER_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "draft.py"
 COMMIT_PROMPT = DOMAIN_PROMPTS / "shared" / "commit.md"
 

@@ -8,10 +8,10 @@ consultations for items that need external evidence. Produces a results file for
 revise agent to consume.
 
 Usage:
-    python scripts/lib/review_consult.py 9              # latest review
-    python scripts/lib/review_consult.py 9 review-3     # specific review
-    python scripts/lib/review_consult.py 9 --dry-run    # categorize only, no consultations
-    python scripts/lib/review_consult.py 9 --model sonnet  # override model (default: opus)
+    python scripts/lib/revise/gather_evidence.py 9              # latest review
+    python scripts/lib/revise/gather_evidence.py 9 review-3     # specific review
+    python scripts/lib/revise/gather_evidence.py 9 --dry-run    # categorize only, no consultations
+    python scripts/lib/revise/gather_evidence.py 9 --model sonnet  # override model (default: opus)
 """
 
 import argparse
@@ -27,11 +27,11 @@ from lib.shared.paths import (
     REVIEWS_DIR, DOMAIN, consultation_dir, find_review, sorted_reviews,
 )
 from lib.shared.common import find_asn, read_file, log_usage
-from lib.consult_common import (
+from lib.consult import (
     invoke_claude, get_total_usage, load_domain_consult_modules,
 )
 
-consult_theory, consult_evidence = load_domain_consult_modules(DOMAIN)
+theory, evidence = load_domain_consult_modules(DOMAIN)
 
 
 def get_review_number(review_path):
@@ -202,7 +202,7 @@ def run_targeted_consultations(items, model="opus"):
 
         for idx, (item_idx, question) in enumerate(nelson_work):
             def run_n(ii=item_idx, q=question, n=idx + 1):
-                answer = consult_theory.run_consultation(
+                answer = theory.run_consultation(
                     q, label=f"Q{n}:theory", model=model, effort="max")
                 items[ii]["nelson_answer"] = answer
             t = threading.Thread(target=run_n)
@@ -218,7 +218,7 @@ def run_targeted_consultations(items, model="opus"):
         print(f"  [GREGORY] Running {len(gregory_work)} consultations sequentially...",
               file=sys.stderr)
         for idx, (item_idx, question) in enumerate(gregory_work):
-            answer = consult_evidence.run_consultation(
+            answer = evidence.run_consultation(
                 question, label=f"Q{idx + 1}:evidence",
                 model="sonnet", effort="max")
             items[item_idx]["gregory_answer"] = answer

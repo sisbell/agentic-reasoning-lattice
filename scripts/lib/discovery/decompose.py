@@ -1,24 +1,24 @@
 #!/usr/bin/env python3
 """
-Consult experts — decompose an inquiry into focused questions, then consult
-both channels (theory and evidence).
+Decompose an inquiry into focused questions, then consult both channels
+(theory and evidence).
 
-Generic orchestrator: decomposes via the per-domain consult_theory and
-consult_evidence modules, merges questions into a labeled list, filters for
-scope, dispatches (theory in parallel, evidence sequential — the evidence
-calls each run KB + source in parallel internally), saves per-question
-answers, assembles a combined output.
+Generic orchestrator: decomposes via the per-domain theory and evidence
+channel modules, merges questions into a labeled list, filters for scope,
+dispatches (theory in parallel, evidence sequential — the evidence calls
+each run KB + source in parallel internally), saves per-question answers,
+assembles a combined output.
 
 Domain-specific logic (role identity, prompt composition, source loading,
-citation formats) lives in domains/<LATTICE>/scripts/consult_theory.py and
-consult_evidence.py. The orchestrator knows only role names: "theory" and
+citation formats) lives in domains/<LATTICE>/scripts/theory.py and
+evidence.py. The orchestrator knows only role names: "theory" and
 "evidence".
 
 Usage:
-    python scripts/lib/discovery/consult.py --inquiry-id 4
-    python scripts/lib/discovery/consult.py "What must INSERT preserve and establish?"
-    python scripts/lib/discovery/consult.py --inquiry-id 4 --theory 5 --evidence 5
-    python scripts/lib/discovery/consult.py --inquiry-id 4 --dry-run
+    python scripts/lib/discovery/decompose.py --inquiry-id 4
+    python scripts/lib/discovery/decompose.py "What must INSERT preserve and establish?"
+    python scripts/lib/discovery/decompose.py --inquiry-id 4 --theory 5 --evidence 5
+    python scripts/lib/discovery/decompose.py --inquiry-id 4 --dry-run
 """
 
 import argparse
@@ -34,12 +34,12 @@ from lib.shared.paths import (
     load_manifest, load_excluded_covers,
 )
 from lib.shared.common import read_file
-from lib.consult_common import (
+from lib.consult import (
     invoke_claude, get_total_usage, reset_total_usage,
     load_domain_consult_modules,
 )
 
-consult_theory, consult_evidence = load_domain_consult_modules(DOMAIN)
+theory, evidence = load_domain_consult_modules(DOMAIN)
 
 PROMPTS_DIR = DOMAIN_PROMPTS / "discovery" / "consultation"
 
@@ -131,10 +131,10 @@ def decompose_inquiry(inquiry_text, num_theory=10, num_evidence=10, model="opus"
     Each per-domain module owns its own question-generation prompt and
     vocabulary fence. This orchestrator just calls them and merges results.
     """
-    theory_qs = consult_theory.generate_questions(
+    theory_qs = theory.generate_questions(
         inquiry_text, n=num_theory, model=model, out_of_scope=out_of_scope,
     )
-    evidence_qs = consult_evidence.generate_questions(
+    evidence_qs = evidence.generate_questions(
         inquiry_text, n=num_evidence, model=model, out_of_scope=out_of_scope,
     )
 
@@ -237,7 +237,7 @@ def run_consultations(questions, consult_dir, theory_model="opus",
             role, question = questions[i]
 
             def run_t(idx=i, q=question, r=role):
-                answer = consult_theory.run_consultation(
+                answer = theory.run_consultation(
                     q, label=f"Q{idx + 1}:theory",
                     model=theory_model, effort=effort,
                 )
@@ -257,7 +257,7 @@ def run_consultations(questions, consult_dir, theory_model="opus",
               file=sys.stderr)
         for i in evidence_indices:
             role, question = questions[i]
-            answer = consult_evidence.run_consultation(
+            answer = evidence.run_consultation(
                 question, label=f"Q{i + 1}:evidence",
                 model=evidence_model, effort=effort,
             )

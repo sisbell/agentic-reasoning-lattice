@@ -11,8 +11,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import DOMAIN
 
 CMDS = {
-    "theory":   DOMAIN / "scripts" / "consult_theory.py",
-    "evidence": DOMAIN / "scripts" / "consult_evidence.py",
+    "theory":   DOMAIN / "scripts" / "theory.py",
+    "evidence": DOMAIN / "scripts" / "evidence.py",
 }
 
 def main():

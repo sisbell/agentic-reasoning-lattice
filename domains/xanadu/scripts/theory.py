@@ -26,7 +26,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent / "scripts"))
 from lib.shared.paths import CONSULTATIONS_DIR, DOMAIN_PROMPTS, CHANNELS_DIR
 from lib.shared.common import read_file
-from lib.consult_common import (
+from lib.consult import (
     invoke_claude as _invoke,
     parse_numbered,
     format_out_of_scope_block,

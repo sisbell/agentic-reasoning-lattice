@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""Shared utilities for per-domain consultation scripts.
+"""Shared consultation operation primitives.
 
-Each domain's consult_theory.py and consult_evidence.py import from here.
-This module holds only the engine-level primitives that don't vary by
-domain: Claude CLI invocation, token/cost extraction, usage-log append.
+The atomic verb: consult one channel with one question. Each domain's
+channel scripts (domains/<d>/scripts/theory.py, evidence.py) import from
+here. This module holds only the engine-level primitives that don't vary
+by domain: Claude CLI invocation, token/cost extraction, usage-log append.
 
 Domain-specific logic (source loading, prompt composition, role identity)
-lives in the per-domain scripts, not here.
+lives in the per-domain channel scripts, not here.
 """
 
 import json
@@ -150,9 +151,9 @@ def format_out_of_scope_block(out_of_scope):
 
 
 def load_domain_consult_modules(domain_path):
-    """Add `<domain_path>/scripts/` to sys.path and import consult_theory and
-    consult_evidence. Returns (theory_module, evidence_module)."""
+    """Add `<domain_path>/scripts/` to sys.path and import the theory and
+    evidence channel modules. Returns (theory_module, evidence_module)."""
     sys.path.insert(0, str(domain_path / "scripts"))
-    import consult_theory  # noqa: E402
-    import consult_evidence  # noqa: E402
-    return consult_theory, consult_evidence
+    import theory  # noqa: E402
+    import evidence  # noqa: E402
+    return theory, evidence
