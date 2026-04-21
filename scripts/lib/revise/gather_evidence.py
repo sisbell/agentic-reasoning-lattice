@@ -63,13 +63,13 @@ def extract_revise_section(review_content):
 
 # ─── Step 1: Helpers ─────────────────────────────────────────────
 
-def category_label(roles, display_names):
+def category_label(roles):
     """Derive a display category from the set of channels a finding needs."""
     if not roles:
         return "INTERNAL"
     if len(roles) >= 2:
         return "BOTH"
-    return display_names[next(iter(roles))].upper()
+    return assign_channels.DISPLAY_NAMES[next(iter(roles))].upper()
 
 
 # ─── Step 2: Run consultations ───────────────────────────────────
@@ -82,7 +82,7 @@ def run_targeted_consultations(items, model="opus"):
 
     Mutates items in place, populating item['answers'][role].
     """
-    theory_work = []   # (item_index, question)
+    theory_work = []
     evidence_work = []
 
     for i, item in enumerate(items):
@@ -158,7 +158,7 @@ def build_results(asn_label, review_path, items):
     parts += ["## Consultation Results", ""]
 
     for item in consulted:
-        category = category_label(item["questions"].keys(), display_names)
+        category = category_label(item["questions"].keys())
         parts += [
             f"### Issue {item['number']}: {item['title']}",
             "",
@@ -270,9 +270,8 @@ def main():
           f"{internal_count} internal, {consult_count} need consultation",
           file=sys.stderr)
 
-    display_names = assign_channels.DISPLAY_NAMES
     for item in items:
-        tag = category_label(item["questions"].keys(), display_names)
+        tag = category_label(item["questions"].keys())
         print(f"    Issue {item['number']}: {tag} — {item['title']}",
               file=sys.stderr)
 
