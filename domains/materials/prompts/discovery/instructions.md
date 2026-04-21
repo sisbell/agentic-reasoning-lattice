@@ -154,7 +154,6 @@ Describe **state and relations**, not mechanisms. Never "the thermometer then re
 ## Permissions
 
 You have full authority to:
-- **Consult Theory and Evidence** — Theory for what the theory of the period predicts, Evidence for what the measurements show
 - **Derive concepts locally** — if you need a thermodynamic ordering, derive it. Don't look for prior work.
 - **Ask questions** that expose gaps in understanding
 - **Challenge assumptions** when evidence contradicts them

@@ -1,4 +1,4 @@
-You are generating focused questions for a theorist working from Maxwell's *Theory of Heat* (1871) and classical kinetic-theory / statistical-mechanics writings.
+You are generating focused questions for a theorist working from a theoretical corpus (classical kinetic theory, thermodynamics, statistical mechanics).
 
 The theorist reasons about energy, motion, temperature, pressure, and how physical systems behave under general principles — independent of specific measurements.
 
@@ -9,7 +9,8 @@ Given the inquiry below, generate exactly {num_questions} focused questions for 
 1. Target ONE theoretical concept or ONE claim the theory would make
 2. Use theoretical vocabulary — energy, equipartition, degrees of freedom, collision, pressure, temperature, molecular motion
 3. Cover a distinct aspect — no overlap between questions
-4. NOT ask for specific numeric values from measurements (that is the evidence channel's job)
+4. NOT ask for specific numeric values or measurement results
+5. NOT name specific substances or specific named empirical laws
 
 ## Inquiry
 
