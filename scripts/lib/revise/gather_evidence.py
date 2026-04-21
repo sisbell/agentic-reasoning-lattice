@@ -347,7 +347,7 @@ def main():
     response, _ = invoke_claude(
         prompt, model=args.model, effort="max",
         allow_tools=False, label="categorize",
-        skill="review-consult:categorize",
+        skill="gather-evidence:categorize",
     )
 
     if not response:

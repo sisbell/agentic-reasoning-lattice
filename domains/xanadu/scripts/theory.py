@@ -8,8 +8,8 @@ With --with-png, also enables tool access for reading page images.
 Transcripts written to lattices/xanadu/discovery/consultations/.../sessions/ for traceability.
 Prints the output file path to stdout.
 
-For batch consultations (consult-experts.py pipeline), Nelson logic is
-inlined directly — this script is NOT called as a subprocess.
+For batch consultations (discovery decompose pipeline), Nelson logic is
+imported directly — this script is NOT called as a subprocess.
 
 Usage:
     python scripts/consult.py theory "What is Nelson's intent for withdrawal?"

@@ -9,8 +9,8 @@ Runs two independent claude --print processes with the same question:
 Both run in parallel. Transcripts written to lattices/xanadu/discovery/consultations/.../sessions/ for traceability.
 Prints the output file path to stdout.
 
-For batch consultations (consult-experts.py pipeline), Gregory logic is
-inlined directly — this script is NOT called as a subprocess.
+For batch consultations (discovery decompose pipeline), Gregory logic is
+imported directly — this script is NOT called as a subprocess.
 
 Usage:
     python scripts/consult.py evidence "What happens to I-address allocation after DELETE?"
