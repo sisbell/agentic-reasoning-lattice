@@ -10,7 +10,9 @@ For a rediscovery evaluation, a hypothesis becomes a "finding" when it matches a
 
 ## Observed on materials (discovery stage)
 
-First run landed on the Dulong–Petit target: Maxwell's 1867 *Dynamical Theory of Gases* (theory channel) paired with Dulong & Petit's 1819 specific-heat paper (evidence channel). Two notes produced:
+First run landed on the Dulong–Petit target under a single-campaign materials lattice (`dulong-petit-maxwell`): Maxwell's 1867 *Dynamical Theory of Gases* (theory channel) paired with Dulong & Petit's 1819 specific-heat paper (evidence channel). See [Campaigns](../design-notes/campaigns.md) for how campaigns bind a channel pair to a target and bridge vocabulary, letting one lattice support multiple simultaneous investigations.
+
+Two notes produced:
 
 - **ASN-0001** (broad inquiry, no `out_of_scope`): 18 claims spanning ontology, temperature, pressure, phases, intermolecular forces, Dulong–Petit. A survey.
 - **ASN-0002** (foundation inquiry, `out_of_scope` excluding pressure/phase/transport): 15 claims disciplined to the constitution+heat layer. Explicitly flagged what is *postulated* from Clausius vs *derived*. Cleaner foundation.
