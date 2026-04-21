@@ -77,17 +77,7 @@ def main():
     )
 
     vocab_path = campaign_vocab(args.name)
-    vocab_path.write_text(
-        f"# Bridge Vocabulary — {args.name}\n\n"
-        f"*Unified names bridging the `{args.theory}` (theory) and "
-        f"`{args.evidence}` (evidence) channels. Used by the reviewer "
-        f"to interpret ASN claims against both authorities coherently.*\n\n"
-        f"*Curated upfront by reading both corpora and coining unified "
-        f"names for concepts the two authorities refer to differently. "
-        f"Not normative — use these terms consistently but derive "
-        f"properties independently.*\n\n"
-        f"## [empty — curate before authoring ASNs in this campaign]\n"
-    )
+    vocab_path.write_text("")
 
     # Report
     print(f"  [OK] Campaign scaffolded: {cdir.relative_to(WORKSPACE)}/")
