@@ -1,0 +1,15 @@
+## Question 4 [theory]
+
+> How does the theory partition energy among the internal modes of a polyatomic constituent?
+
+The corpus partitions molecular energy into two parts only — translation of the centre of gravity and a single lumped "internal" reservoir — and does *not* resolve the internal reservoir into distinct modes.
+
+**The two-part split.** "The actual energy of a moving body consists of two parts, one due to the motion of its centre of gravity, and the other due to the motions of its parts relative to the centre of gravity. If the body is of invariable form, the motions of its parts relative to the centre of gravity consist entirely of rotation, but if the parts of the body are not rigidly connected, their motions may consist of oscillations of various kinds, as well as rotation of the whole body." [1867-maxwell-dynamical-theory-of-gases]
+
+**One scalar parameter, not a per-mode partition.** Maxwell rolls rotation and internal oscillation together into a single ratio β: "the whole energy of the molecule may be represented by ½Mv²β, where β is the ratio of the total energy to the energy of translation." Equivalently, the internal part alone is (β−1) times the translational *vis viva*: "$\bar{E} = (\beta - 1)(\overline{\xi^2}+\overline{\eta^2}+\overline{\zeta^2})$." The limiting case — "If the molecules are pure centres of force, there can be no energy of rotation, and the whole energy is reduced to that of translation" — gives β = 1.
+
+**Equilibration mechanism.** The corpus asserts, without mechanical derivation, that the two reservoirs reach a fixed ratio through many collisions: "in a great many encounters the energy of translation and the internal energy of the molecules arrive, by repeated small exchanges, at a final ratio, which we shall suppose to be that of 1 to β − 1." The assumption is made "with Clausius that the ratio of the mean energy of internal motion to that of agitation tends continually towards a definite value (β − 1)."
+
+**Explicit renunciation of a finer partition.** The corpus acknowledges it cannot divide the internal energy among its sub-modes: "We have no means of determining such intricate actions in the present state of our knowledge of molecules, so that we must content ourselves with the assumption that the value of θ is, on an average, the same as for pure centres of force, and that the final velocities differ from the initial velocities only by quantities which may in each collision be neglected." β is instead fixed empirically from specific heats: "The value of β can be determined if we know either of the specific heats of the gas, or the ratio between them," with γ = (2+3β)/(3β), whence β = (2/3)·1/(γ−1).
+
+**Limit of the corpus.** The corpus therefore does *not* answer — and explicitly says it cannot answer from first principles — how energy is apportioned *within* the internal reservoir (e.g., rotation vs. vibration, or among individual oscillation modes) of a polyatomic constituent. It delivers only a single translation-to-internal ratio, phenomenologically calibrated.
