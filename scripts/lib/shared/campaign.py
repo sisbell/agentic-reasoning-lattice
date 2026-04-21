@@ -9,6 +9,8 @@ vocabulary path, and target. All pipeline stages that need channel content or
 vocab route through here.
 """
 
+import re
+
 import yaml
 
 from lib.shared.paths import (
@@ -19,6 +21,16 @@ from lib.shared.paths import (
 
 class ConfigError(Exception):
     """Raised when campaign configuration is missing or malformed."""
+
+
+def _asn_int(asn_id):
+    """Coerce 2, '2', '0002', 'ASN-0002' to int 2."""
+    if isinstance(asn_id, int):
+        return asn_id
+    num = re.sub(r"[^0-9]", "", str(asn_id))
+    if not num:
+        raise ConfigError(f"Cannot parse ASN id: {asn_id!r}")
+    return int(num)
 
 
 def resolve_campaign(asn_id):
@@ -35,11 +47,12 @@ def resolve_campaign(asn_id):
     manifest and no `default_campaign` in the lattice config) or if the
     named campaign's directory/config is missing.
     """
-    manifest = load_manifest(asn_id)
+    asn_num = _asn_int(asn_id)
+    manifest = load_manifest(asn_num)
     name = manifest.get("campaign") or load_lattice_config().get("default_campaign")
     if not name:
         raise ConfigError(
-            f"No campaign bound for ASN-{int(asn_id):04d}. "
+            f"No campaign bound for ASN-{asn_num:04d}. "
             f"Set `campaign:` in the ASN manifest or `default_campaign:` in "
             f"{LATTICE_CONFIG}."
         )

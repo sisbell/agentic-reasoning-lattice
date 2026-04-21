@@ -29,6 +29,7 @@ from lib.shared.paths import (
     WORKSPACE, REVIEWS_DIR, NOTES_DIR, DOMAIN, consultation_dir,
     find_review, sorted_reviews,
 )
+from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn, read_file, log_usage
 from lib.consult import (
     invoke_claude, get_total_usage, load_domain_consult_modules,
@@ -75,7 +76,7 @@ def category_label(roles):
 
 # ─── Step 2: Run consultations ───────────────────────────────────
 
-def run_targeted_consultations(items, model="opus"):
+def run_targeted_consultations(items, asn_id, model="opus"):
     """Run channel consultations for items that have questions assigned.
 
     Theory consultations run in parallel (no tools).
@@ -83,6 +84,10 @@ def run_targeted_consultations(items, model="opus"):
 
     Mutates items in place, populating item['answers'][role].
     """
+    campaign = resolve_campaign(asn_id)
+    theory_channel = campaign["theory_channel"]
+    evidence_channel = campaign["evidence_channel"]
+
     theory_work = []
     evidence_work = []
 
@@ -102,7 +107,8 @@ def run_targeted_consultations(items, model="opus"):
         for idx, (item_idx, question) in enumerate(theory_work):
             def run_t(ii=item_idx, q=question, n=idx + 1):
                 answer = theory.run_consultation(
-                    q, label=f"Q{n}:theory", model=model, effort="max")
+                    q, theory_channel, label=f"Q{n}:theory",
+                    model=model, effort="max")
                 items[ii]["answers"]["theory"] = answer
             t = threading.Thread(target=run_t)
             threads.append(t)
@@ -117,7 +123,7 @@ def run_targeted_consultations(items, model="opus"):
               file=sys.stderr)
         for idx, (item_idx, question) in enumerate(evidence_work):
             answer = evidence.run_consultation(
-                question, label=f"Q{idx + 1}:evidence",
+                question, evidence_channel, label=f"Q{idx + 1}:evidence",
                 model="sonnet", effort="max")
             items[item_idx]["answers"]["evidence"] = answer
         print(f"  [EVIDENCE] All done", file=sys.stderr)
@@ -288,7 +294,7 @@ def main():
     # Step 2: Run consultations for items that need them
     if consult_count > 0:
         print(f"", file=sys.stderr)
-        run_targeted_consultations(items, model=args.model)
+        run_targeted_consultations(items, asn_label, model=args.model)
     else:
         print(f"  [CONSULT] All items internal, no consultations needed",
               file=sys.stderr)

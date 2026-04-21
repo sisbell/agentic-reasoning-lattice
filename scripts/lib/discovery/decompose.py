@@ -33,6 +33,7 @@ from lib.shared.paths import (
     WORKSPACE, CONSULTATIONS_DIR, DOMAIN_PROMPTS, DOMAIN,
     load_manifest, load_excluded_covers,
 )
+from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
 from lib.consult import (
     invoke_claude, get_total_usage, reset_total_usage,
@@ -131,11 +132,15 @@ def decompose_inquiry(inquiry_text, num_theory=10, num_evidence=10, model="opus"
     Each per-domain module owns its own question-generation prompt and
     vocabulary fence. This orchestrator just calls them and merges results.
     """
+    campaign = resolve_campaign(asn_id)
+    theory_channel = campaign["theory_channel"]
+    evidence_channel = campaign["evidence_channel"]
+
     theory_qs = theory.generate_questions(
-        inquiry_text, n=num_theory, model=model, out_of_scope=out_of_scope,
+        inquiry_text, theory_channel, n=num_theory, model=model, out_of_scope=out_of_scope,
     )
     evidence_qs = evidence.generate_questions(
-        inquiry_text, n=num_evidence, model=model, out_of_scope=out_of_scope,
+        inquiry_text, evidence_channel, n=num_evidence, model=model, out_of_scope=out_of_scope,
     )
 
     all_qs = [("theory", q) for q in theory_qs] + [("evidence", q) for q in evidence_qs]
@@ -202,7 +207,7 @@ def _load_existing_answers(consult_dir, questions):
     return existing
 
 
-def run_consultations(questions, consult_dir, theory_model="opus",
+def run_consultations(questions, consult_dir, asn_id, theory_model="opus",
                       evidence_model="sonnet", effort="max"):
     """Run all consultations. Theory in parallel, evidence sequential.
 
@@ -212,7 +217,14 @@ def run_consultations(questions, consult_dir, theory_model="opus",
     Theory: no tools, safe to parallelize.
     Evidence: each call runs KB + source in parallel internally. Run
     sequentially across calls because source exploration uses tools.
+
+    The ASN's campaign determines which channels the theory and evidence
+    consultations bind to.
     """
+    campaign = resolve_campaign(asn_id)
+    theory_channel = campaign["theory_channel"]
+    evidence_channel = campaign["evidence_channel"]
+
     results = [None] * len(questions)
 
     existing = _load_existing_answers(consult_dir, questions)
@@ -238,7 +250,7 @@ def run_consultations(questions, consult_dir, theory_model="opus",
 
             def run_t(idx=i, q=question, r=role):
                 answer = theory.run_consultation(
-                    q, label=f"Q{idx + 1}:theory",
+                    q, theory_channel, label=f"Q{idx + 1}:theory",
                     model=theory_model, effort=effort,
                 )
                 results[idx] = (r, q, answer)
@@ -258,7 +270,7 @@ def run_consultations(questions, consult_dir, theory_model="opus",
         for i in evidence_indices:
             role, question = questions[i]
             answer = evidence.run_consultation(
-                question, label=f"Q{i + 1}:evidence",
+                question, evidence_channel, label=f"Q{i + 1}:evidence",
                 model=evidence_model, effort=effort,
             )
             results[i] = (role, question, answer)
@@ -412,7 +424,7 @@ def main():
     print(f"  [CONSULT] Firing {len(questions)} consultations...",
           file=sys.stderr)
     consult_start = time.time()
-    results = run_consultations(questions, init_dir)
+    results = run_consultations(questions, init_dir, asn_id)
     consult_elapsed = time.time() - consult_start
     print(f"  [CONSULT] All done ({consult_elapsed:.0f}s)", file=sys.stderr)
 
