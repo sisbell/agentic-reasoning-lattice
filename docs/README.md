@@ -29,6 +29,7 @@ Complete index of the documentation. The root [README](../README.md) is the proj
 
 ## Guides and runbooks
 
+- [Discovery guide](guides/discovery.md) — note manifest schema, campaign binding, channel artifacts
 - [Blueprinting guide](guides/blueprinting.md) — pipeline stages, YAML format, output structure
 - [Formalization guide](guides/formalization.md) — review steps, caching, dependency management, convergence
 - [Blueprinting runbook](runbooks/blueprinting.md) — step-by-step execution
