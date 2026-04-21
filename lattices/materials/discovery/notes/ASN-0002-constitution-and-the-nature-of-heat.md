@@ -15,7 +15,8 @@ Let a body B possess a finite multiset B.mols of constituent units, which we sha
 
 - an inertial mass m.mass ∈ ℝ⁺ (kg),
 - a translational velocity m.v ∈ ℝ³ (m/s) of its centre of mass,
-- an internal energy m.eint ∈ ℝ⁺₀ (J) of motions of its parts relative to the centre of mass.
+- an internal energy m.eint ∈ ℝ⁺₀ (J) of motions of its parts relative to the centre of mass,
+- a species label m.species ∈ Species identifying its kind.
 
 These give the abstract state components:
 
@@ -23,6 +24,9 @@ These give the abstract state components:
 **[Σ.mass]** Each m ∈ B.mols has m.mass : ℝ⁺ (kg).
 **[Σ.v]** Each m ∈ B.mols has m.v : ℝ³ (m/s).
 **[Σ.eint]** Each m ∈ B.mols has m.eint : ℝ⁺₀ (J).
+**[Σ.species]** Each m ∈ B.mols has m.species ∈ Species.
+
+The species label is primitive in the formalism but not arbitrary: the theory individuates species as equivalence classes of molecules sharing a common mass, a common internal constitution, and common force laws governing their encounters — both with molecules of their own kind and with molecules of any other. Within a species, mass is a kind-level constant: (A m₁, m₂ : m₁.species = m₂.species : m₁.mass = m₂.mass), and we write M_k for the common mass of species k. We abbreviate species_k(B.mols) ≡ {m ∈ B.mols : m.species = k}. What distinguishes one species label from another is the parameter tuple the label stands for; the labels themselves are primitive notation.
 
 What the theory does *not* commit to is the molecule's internal structure. A molecule may be a mere point, a centre of force endowed with inertia, a system of several such centres, or a rigid body of determinate form (in which case the rigidity is itself a substructural assumption, carrying a "molecular theory of the second order" with its own inner binding forces). These are substantively different pictures, and the theory declares that its downstream commitments do not discriminate between them. What matters is the abstraction: an inertial mass, a centre-of-mass velocity, and a scalar "internal energy" compartment.
 
@@ -61,9 +65,11 @@ Define the translational vis viva of molecule m, and the body's mean translation
 
 The content of this claim is that the functional depends on B.mass and B.v, not on B.eint. The internal compartment drops out of the temperature functional at equilibrium.
 
-Why the theory commits to this. Suppose two bodies are in thermal contact. Their molecules interact at the boundary. What is exchanged across that boundary is translational motion — the internal compartment of a molecule does not detach from that molecule and migrate across. If heat flow is what regulates the approach to equilibrium, and if heat is energy of motion, then what equilibrates is the exchange of translational vis viva. The vanishing of that exchange is the equilibrium condition.
+Why the theory commits to this, and why the argument is not a one-step derivation. One might think equilibration selects translational vis viva because only translational motion is exchanged across the boundary between molecules — but the encounter apparatus stated below does not preserve the translational/internal partition per encounter: total energy is conserved, yet energy may flow between a molecule's translational and internal compartments during an encounter. The exchange-across-boundary argument alone does not pin down what equilibrates.
 
-That the equilibrium quantity is mean per *molecule* rather than per unit mass or per unit volume follows from the bilateral character of encounters: each encounter is between individual molecules, and the steady state is per-molecule. The claim is declared independent of the detailed law of intermolecular force: whatever molecules are, whatever forces they exert on each other, the equilibrium criterion is equality of mean translational vis viva per molecule. The derivation is a separate concern; we record here the commitment.
+The derivation rests instead on two further modeling commitments. First, encounters are treated as between *centres of force*: under this approximation, the only integral relating initial and final speeds of an encounter pair is M₁a² + M₂b² = M₁a'² + M₂b'² — conservation of translational vis viva at encounter boundaries, with internal energy carried along untouched by the constraint. Second, at equilibrium the one-molecule velocity distribution is stationary under the encounter process (a detailed-balance condition: for any admissible quadruple (a, b, a', b'), f₁(a)f₂(b) = f₁(a')f₂(b')). Together these force the equilibrium distributions to be Maxwellian with equal mean translational vis viva per molecule. The internal compartment is handled separately, by the equilibrium apportionment postulate introduced below, not by the same argument.
+
+That the equilibrium quantity is mean per *molecule* rather than per unit mass or per unit volume follows from the bilateral character of encounters: each encounter is between individual molecules, and stationarity is therefore per-molecule. The result is declared independent of the specific intermolecular force law — the Maxwellian conclusion does not depend on the functional form of the inter-centre force, only on the centres-of-force modeling of the encounter and the stationarity condition. We record P.temp_functional as the commitment whose support rests on the dilute regime (so that encounters factor into discrete pairwise episodes at all) and on the centres-of-force modeling of encounters; outside those conditions the derivation does not run, and the commitment must be regarded as a postulate pending a different argument.
 
 ## The internal compartment and the ratio β
 
@@ -82,19 +88,21 @@ This is forced by construction: m.eint ≥ 0 (by Σ.eint) and T(m) ≥ 0, so β_
 
 **[P.beta_unity_iff_no_internal]** β_k = 1 iff species k carries no internal degree of freedom capable of exchanging energy with translation through encounters.
 
-A pure centre of force has no such degree. A perfectly smooth elastic sphere has none that encounters can excite, since collisions transmit force only along the line of centres and therefore transfer no angular momentum; whatever rotation such a sphere carries is decoupled from thermal equilibration. Both cases have β = 1.
+A pure centre of force, having no internal structure at all, is the clearest case of β = 1. More generally, a molecule may carry internal modes (rotations, oscillations) that are dynamically decoupled from translation by the particular encounter law, in which case those modes cannot be excited by encounters and β = 1 holds regardless. Which realizations of β = 1 actually obtain depends on the force law one assumes for the encounter, which the theory does not prescribe in general; the structural statement P.beta_unity_iff_no_internal is what the theory commits to.
 
-**[P.beta_species_invariant]** β_k depends only on molecular species, not on the state of the body or its temperature, in the classical regime where internal modes are fully active.
+**[P.beta_species_invariant]** β_k depends only on molecular species, not on the state of the body or its temperature, within the regime in which the equilibrium apportionment holds.
 
 Two things require honesty.
 
 First, the apportionment 1 : (β−1) is *postulated*, not derived. The internal dynamics of an encounter, in the presence of internal modes, are beyond what the theory can determine. The postulate (attributed to Clausius) is that many encounters drive the translational–internal ratio to a stable equilibrium value; the value is fixed by constitution, but the mechanism of approach is not specified. Violent disturbances can break the apportionment; the commitment is for the equilibrium regime alone.
 
-Second, β is empirically accessible through the specific-heat ratio γ = c_p/c_v, via γ = (2 + 3β)/(3β), equivalently β = (2/3) · 1/(γ − 1). A measured γ > 1 determines β; γ = 5/3 gives β = 1, and γ ∈ (1, 5/3) gives β ∈ (1, ∞). Thus β, though undetermined by direct inspection of the molecule, is pinned by observable heat-capacity ratios.
+Second, β is in principle empirically accessible through observable heat-capacity ratios. The specific relation between β and the ratio of specific heats requires additional apparatus — pressure, volume, and the work done by a body against its external pressure during expansion — that this note does not introduce. We defer the derivation of that relation to a later specification that develops the requisite pressure–volume–temperature machinery. What matters here is structural: β, though underdetermined by direct inspection of the molecule, is pinned by observables the theory can access once it develops that apparatus, so the apportionment is not a hidden parameter in the long run.
 
 ## Conservation through encounters
 
-An encounter between two molecules is an interaction episode, bounded in time, during which velocities and internal states change under their mutual force. Outside encounters, molecules move freely: translational velocities are constant, and the internal energy of each molecule is unchanged.
+The encounter apparatus we now state applies in the *dilute regime*: molecules spend most of their time beyond each other's sphere of sensible action, so interactions factor into discrete pairwise encounters brief in duration (and in length) compared to free-flight intervals, and the probability that three or more molecules are simultaneously within each other's spheres of action is negligible. This is the regime of a gas. For dense bodies — liquids and solids, where molecules remain continuously within mutual range and there is no free flight to speak of — the encounter decomposition fails, and the theory declines to commit to the form of encounter-level dynamics there; it notes only that an analogous law relating temperature to molecular energy is to be expected for dense bodies, without furnishing its precise form.
+
+An encounter between two molecules is then an interaction episode, bounded in time, during which velocities and internal states change under their mutual force. Outside encounters, molecules move freely: translational velocities are constant, and the internal energy of each molecule is unchanged.
 
 Let (m₁, m₂) be an encounter pair, with primed quantities denoting post-encounter states. The theory imposes:
 
@@ -118,10 +126,14 @@ This claim passes from dynamics to statistics. No individual encounter need pres
 
 Consider two species of molecule, k = 1, 2, coexisting in a body or in bodies held in thermal contact. Let M_k and v̄²_k denote species mass and species mean-square speed at equilibrium.
 
-**[P.equipartition]** At thermal equilibrium between species 1 and 2, mean translational vis viva per molecule is equal:
+P.temp_functional is a single-body statement: it fixes that each body's temperature is a strictly monotone function of its own B.T̄. To move from there to a cross-species claim, two further commitments are needed. First, the temperature functional must be *species-independent*: the same functional of B.T̄ applies to any body regardless of the species composition, so that equality of temperature across two bodies of different species means equality in a common functional form. Second, the stationarity argument behind P.temp_functional must be run at the cross-species level — for encounters between a species-1 and a species-2 molecule, not merely within-species encounters.
+
+The second step is the detailed-balance argument for cross-species encounters in the dilute regime. Under the centres-of-force modeling of cross-species encounters, the only constraint relating initial pair-speeds (a, b) of a species-1 and a species-2 molecule to their post-encounter speeds (a', b') is M₁a² + M₂b² = M₁a'² + M₂b'². At a stationary equilibrium, f₁(a)f₂(b) = f₁(a')f₂(b') for every pair satisfying that constraint. The only solutions are Maxwellian distributions whose moduli α₁, α₂ satisfy M₁α₁² = M₂α₂², which translates to equality of mean translational vis viva per molecule across species.
+
+**[P.equipartition]** At thermal equilibrium between species 1 and 2, in the dilute regime with cross-species encounters modeled as between centres of force, the mean translational vis viva per molecule is equal across species:
   M₁ · v̄²₁ = M₂ · v̄²₂.
 
-This is the per-molecule equality applied across species; it is the same content as P.temp_functional, stated for pairs.
+P.equipartition is a *derived* consequence of (i) P.temp_functional, (ii) the species-independence of the temperature functional, and (iii) the modeling commitments under which the detailed-balance argument runs at cross-species level. It is not simply "P.temp_functional restated" — moving from single-body to cross-species adds commitments that the single-body statement alone does not carry.
 
 Two consequences illuminate what temperature measures.
 
@@ -149,11 +161,13 @@ The measurement regime was held structurally uniform across substances: a narrow
 
 We extract the abstract constraint:
 
-**[P.atomic_heat_regularity]** In the classical regime where internal molecular modes are fully active, the heat capacity per atom of a simple elemental body is approximately species-independent.
+**[P.atomic_heat_regularity]** Within the regime covered by the 1819 corpus — elemental solids near ambient temperature, with the measurement window 5° to 10° centigrade above a 0 °C surrounding — the heat capacity per atom of a simple elemental body is approximately species-independent.
 
-The word "approximately" is load-bearing. The theory does not commit to strict equality; it commits to a regularity whose residual variation is absorbed into species-specific β. For elemental solids in the 1819 regime, β-variation across species is small enough that the product clusters within 4.2 %. The regularity fits comfortably inside P.equipartition: if each atom carries the same mean translational vis viva at a common temperature, and if β varies only modestly across the species measured, then heat capacity per atom must cluster.
+The word "approximately" is load-bearing. The theory does not commit to strict equality; it commits to a regularity whose residual variation it would naturally absorb into species-specific β. For the elemental solids in the 1819 regime, β-variation across species is small enough that the product clusters within 4.2 %.
 
-The regime condition is essential. At temperatures low enough that internal modes become dynamically inaccessible, β effectively falls, and the regularity is lost. The 1819 measurements sit in a regime where all classical modes are active; the regularity applies there.
+The regularity is consistent with what the theory says about per-molecule heat capacity in a body: if each atom carries a common mean vis viva at a common temperature, and if β varies only modestly across the species measured, then heat capacity per atom must cluster. But the theory cannot *derive* the regularity from its encounter apparatus, because solids are not dilute — the encounter decomposition on which the detailed-balance argument for P.equipartition depends does not apply. P.atomic_heat_regularity is thus a registered empirical regularity: the theory notes it, and notes its consistency with the per-molecule structure of temperature, but does not pretend to derive it from the dilute-regime apparatus. Whether the equilibrium apportionment extends to dense bodies — and thereby whether the regularity is structural or contingent — is not settled by the theory as developed here.
+
+The regime of the regularity is empirical, not theoretical: the measurements cover a narrow window near ambient, on thirteen elemental solids, with no data at substantially colder or hotter conditions. Whether the regularity extends beyond that window is not determined by the evidence in the corpus. Hydrogen, measured as a gas by different experimenters, gives a product noticeably smaller than the solids; this is flagged as a probable experimental artifact of rapid cooling rather than a commitment of the theory. The corpus leaves unresolved whether the deviation is artifact or substance.
 
 ## The primacy of motion
 
@@ -175,7 +189,9 @@ The *per-encounter dynamics* of internal modes are underdetermined. The equilibr
 
 The *off-equilibrium* relation between temperature and the internal compartment is underdetermined. P.temp_functional holds in the equilibrium regime; the apparatus built here does not address states where the molecular velocity distribution has not stabilised.
 
-The *low-temperature regime* is underdetermined. β is declared a species-invariant only in the classical regime where all internal modes are fully active; the theory as stated makes no commitment below that regime, where β may effectively vary with state.
+The *dense regime* is underdetermined. The encounter apparatus on which P.temp_functional and P.equipartition rest presupposes that molecular interactions factor into discrete pairwise episodes with free flight between them — the dilute regime of a gas. For solids and liquids, where molecules remain continuously within each other's spheres of action, the decomposition fails. The theory as stated does not commit to the form of molecular dynamics or the structure of thermal equilibration in dense bodies; P.atomic_heat_regularity is registered there as evidence, not derived from the apparatus.
+
+The *domain of validity of β-invariance* is underdetermined in the strong sense: the theory does not tell us the bounds of the regime in which the equilibrium apportionment 1 : (β − 1) holds, and the 1819 corpus's measurements sit within a narrow empirical window. The theory commits to β-invariance in the regime where the apportionment holds, and remains silent about how far that regime extends.
 
 These gaps are boundaries of the theory's promise, not flaws of the specification. The downstream claims — temperature equality, specific-heat ratios, the atomic-heat regularity — are claims about averages at equilibrium, and they stand without the gaps being filled.
 
@@ -189,16 +205,17 @@ These gaps are boundaries of the theory's promise, not flaws of the specificatio
 | Σ.mass | Each m ∈ B.mols has m.mass : ℝ⁺ (kg) | introduced |
 | Σ.v | Each m ∈ B.mols has m.v : ℝ³ (m/s) | introduced |
 | Σ.eint | Each m ∈ B.mols has m.eint : ℝ⁺₀ (J) | introduced |
+| Σ.species | Each m ∈ B.mols has m.species ∈ Species; species is an equivalence class under common mass, internal constitution, and force laws | introduced |
 | P.heat_as_motion | Heat content of a body equals B.E = (+ m : m ∈ B.mols : ½ m.mass (m.v·m.v) + m.eint); no separate material stock of heat exists | introduced |
-| P.temp_functional | At equilibrium, temperature is a strictly monotone function of mean translational vis viva per molecule B.T̄ alone, independent of the internal compartment and the intermolecular force law | introduced |
+| P.temp_functional | At equilibrium, in the dilute regime with centres-of-force modeling of encounters, temperature is a strictly monotone function of mean translational vis viva per molecule B.T̄ alone, independent of the internal compartment and of the specific form of the intermolecular force law | introduced |
 | P.beta_bounds | β_k ≥ 1 for every molecular species k | introduced |
 | P.beta_unity_iff_no_internal | β_k = 1 iff species k has no internal degree of freedom that can exchange energy with translation through encounters | introduced |
-| P.beta_species_invariant | β_k depends only on molecular species, not on body state or temperature, in the classical regime where internal modes are fully active | introduced |
+| P.beta_species_invariant | β_k depends only on molecular species, not on body state or temperature, within the regime in which the equilibrium apportionment holds | introduced |
 | P.enc_momentum | Each encounter preserves total linear momentum, strictly per encounter | introduced |
 | P.enc_energy | Each encounter between an isolated pair preserves total energy (translational + internal), strictly per encounter | introduced |
 | P.enc_ratio_equilibration | At equilibrium the mean ratio of internal to translational vis viva per molecule of a species is (β−1), maintained as a steady state; per-encounter fluctuations average out | introduced |
-| P.equipartition | At thermal equilibrium between species 1 and 2, M₁·v̄²₁ = M₂·v̄²₂: mean translational vis viva per molecule is equal across species | introduced |
-| P.atomic_heat_regularity | In the classical regime, heat capacity per atom of a simple elemental body is approximately species-independent | introduced |
+| P.equipartition | At thermal equilibrium between species 1 and 2, in the dilute regime with centres-of-force modeling of cross-species encounters, M₁·v̄²₁ = M₂·v̄²₂: mean translational vis viva per molecule is equal across species | introduced |
+| P.atomic_heat_regularity | Within the regime covered by the 1819 corpus (elemental solids near ambient temperature), heat capacity per atom of a simple elemental body is approximately species-independent | introduced |
 | P.motion_primacy | The state variables responsible for heat reside in molecular motion; heat vanishes iff all molecular motion vanishes | introduced |
 
 ## Open Questions
@@ -210,3 +227,6 @@ These gaps are boundaries of the theory's promise, not flaws of the specificatio
 - In what regime must the atomic-heat regularity hold, and what abstract change in the equilibrium apportionment causes the regularity to fail outside that regime?
 - What invariant must any dynamical model of an encounter with internal modes preserve for the translational–internal equilibration to converge on 1 : (β−1) rather than drift?
 - What does any valid realization require of the relation between the zero of molecular motion and the zero of the temperature scale?
+- What must any valid realization commit to regarding molecular dynamics in the dense regime, where the encounter decomposition fails and there is no free flight between interactions?
+- Under what modeling assumptions, besides the centres-of-force abstraction, does the stationarity argument for cross-species encounters yield equality of mean translational vis viva per molecule?
+- Under what structural condition on the temperature functional is its *species-independence* guaranteed, so that equality of temperature between two species-distinct bodies entails equality of B.T̄ in a common functional form?
