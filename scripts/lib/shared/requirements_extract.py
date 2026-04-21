@@ -144,7 +144,7 @@ def main():
         asn_files = sorted(NOTES_DIR.glob("ASN-*.md"))
 
     if not asn_files:
-        print("  No ASN files found in lattices/xanadu/discovery/notes/", file=sys.stderr)
+        print(f"  No ASN files found in {NOTES_DIR.relative_to(WORKSPACE)}/", file=sys.stderr)
         sys.exit(1)
 
     labels = [asn_label(p) for p in asn_files]

@@ -14,7 +14,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
-from lib.shared.paths import (NOTES_DIR, MANIFESTS_DIR, DOMAIN_PROMPTS,
+from lib.shared.paths import (WORKSPACE, NOTES_DIR, MANIFESTS_DIR, DOMAIN_PROMPTS,
                    load_manifest, note_yaml, formal_stmts)
 from lib.shared.common import read_file, find_asn, invoke_claude, log_usage, step_commit
 from lib.shared.foundation import find_extensions, load_foundation_statements
@@ -63,7 +63,7 @@ def validate(source_num, target_num, base_num, claim_labels):
     source_path, source_label = find_asn(str(source_num))
     if source_path is None:
         print(f"  [ERROR] Source ASN-{source_num:04d} not found in "
-              f"lattices/xanadu/discovery/notes/", file=sys.stderr)
+              f"{NOTES_DIR.relative_to(WORKSPACE)}/", file=sys.stderr)
         sys.exit(1)
 
     # Base manifest exists

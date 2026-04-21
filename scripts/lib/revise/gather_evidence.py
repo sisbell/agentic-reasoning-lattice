@@ -26,7 +26,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import (
-    REVIEWS_DIR, DOMAIN, consultation_dir, find_review, sorted_reviews,
+    WORKSPACE, REVIEWS_DIR, NOTES_DIR, DOMAIN, consultation_dir,
+    find_review, sorted_reviews,
 )
 from lib.shared.common import find_asn, read_file, log_usage
 from lib.consult import (
@@ -200,7 +201,7 @@ def main():
     # Find ASN
     asn_path, asn_label = find_asn(args.asn)
     if asn_path is None:
-        print(f"  No ASN found for {args.asn} in lattices/xanadu/discovery/notes/", file=sys.stderr)
+        print(f"  No ASN found for {args.asn} in {NOTES_DIR.relative_to(WORKSPACE)}/", file=sys.stderr)
         sys.exit(1)
 
     # Find review
@@ -210,7 +211,7 @@ def main():
             print(f"  Review not found: {args.review} for {asn_label}",
                   file=sys.stderr)
         else:
-            print(f"  No reviews found for {asn_label} in lattices/xanadu/discovery/review/",
+            print(f"  No reviews found for {asn_label} in {REVIEWS_DIR.relative_to(WORKSPACE)}/",
                   file=sys.stderr)
         sys.exit(1)
 

@@ -89,7 +89,7 @@ def _format_review_path(asn_label):
 def step_format_review(asn_num):
     """Run format review. Returns (is_clean, findings_text).
 
-    Saves findings to lattices/xanadu/discovery/review/ASN-NNNN/format-review.md.
+    Saves findings to the lattice's discovery/review/ASN-NNNN/format-review.md.
     """
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
@@ -172,7 +172,7 @@ def normalize_format(asn_num):
     """Run format normalization. Returns True if clean.
 
     Format review/revise cycle (up to 30 cycles).
-    Findings saved to lattices/xanadu/discovery/review/ASN-NNNN/format-review.md.
+    Findings saved to the lattice's discovery/review/ASN-NNNN/format-review.md.
     """
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:

@@ -2,7 +2,7 @@
 """
 Formalize Patch — apply targeted fixes to formalized ASNs.
 
-Reads a patch instruction from lattices/xanadu/discovery/patches/ASN-NNNN/,
+Reads a patch instruction from the lattice's discovery/patches/ASN-NNNN/ directory,
 applies the fix, and commits. The formalization pipeline runs afterward
 to verify correctness.
 
@@ -108,7 +108,7 @@ def main():
         description="Apply a targeted patch to a formalized ASN")
     parser.add_argument("asn", help="ASN number (e.g., 34)")
     parser.add_argument("--patch", required=True,
-                        help="Patch filename (in lattices/xanadu/discovery/patches/ASN-NNNN/)")
+                        help="Patch filename (in the lattice's discovery/patches/ASN-NNNN/ directory)")
     parser.add_argument("--model", "-m", default="opus",
                         choices=["opus", "sonnet"])
     parser.add_argument("--effort", default="max",

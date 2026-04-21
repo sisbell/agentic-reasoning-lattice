@@ -20,6 +20,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.discovery.steps import (
     find_asn, step_review, step_commit, has_revise_items,
 )
+from lib.shared.paths import WORKSPACE, NOTES_DIR
 
 
 def main():
@@ -31,7 +32,7 @@ def main():
     # Find ASN
     asn_path, asn_label = find_asn(args.asn)
     if asn_path is None:
-        print(f"  No ASN found for {args.asn} in lattices/xanadu/discovery/notes/", file=sys.stderr)
+        print(f"  No ASN found for {args.asn} in {NOTES_DIR.relative_to(WORKSPACE)}/", file=sys.stderr)
         sys.exit(1)
 
     print(f"  [REVIEW] {asn_label} ({asn_path.name})", file=sys.stderr)

@@ -6,7 +6,7 @@ Loads the ASN content and shared vocabulary, injects them into a review
 prompt template, and invokes claude --print with --tools "" (review is
 pure analysis, no file access needed).
 
-Results written to lattices/xanadu/discovery/review/ for traceability.
+Results written to the lattice's discovery/review/ directory for traceability.
 
 Usage:
     python scripts/lib/review_check.py 4
@@ -26,7 +26,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, VOCABULARY, REVIEWS_DIR, USAGE_LOG, MANIFESTS_DIR, DOMAIN_PROMPTS, sorted_reviews, load_manifest, open_issues_path
+from lib.shared.paths import WORKSPACE, VOCABULARY, REVIEWS_DIR, USAGE_LOG, MANIFESTS_DIR, NOTES_DIR, DOMAIN_PROMPTS, sorted_reviews, load_manifest, open_issues_path
 from lib.shared.common import find_asn, read_file
 from lib.shared.foundation import load_foundation_statements
 
@@ -233,7 +233,7 @@ def main():
     # Find ASN
     asn_path, asn_label = find_asn(args.asn)
     if asn_path is None:
-        print(f"  No ASN found for {args.asn} in lattices/xanadu/discovery/notes/", file=sys.stderr)
+        print(f"  No ASN found for {args.asn} in {NOTES_DIR.relative_to(WORKSPACE)}/", file=sys.stderr)
         sys.exit(1)
 
     asn_content = asn_path.read_text()
@@ -241,7 +241,7 @@ def main():
     # Read vocabulary
     vocabulary = read_file(VOCABULARY)
     if not vocabulary:
-        print("  Warning: lattices/xanadu/vocabulary.md not found", file=sys.stderr)
+        print(f"  Warning: {VOCABULARY.relative_to(WORKSPACE)} not found", file=sys.stderr)
 
     # Build prompt
     print(f"  [REVIEW] {asn_label}", file=sys.stderr)

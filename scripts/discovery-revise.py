@@ -21,7 +21,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import sorted_reviews
+from lib.shared.paths import WORKSPACE, NOTES_DIR, sorted_reviews
 
 from lib.discovery.steps import (
     find_asn,
@@ -88,7 +88,7 @@ def main():
     # Find ASN
     asn_path, asn_label = find_asn(args.asn)
     if asn_path is None:
-        print(f"  No ASN found for {args.asn} in lattices/xanadu/discovery/notes/", file=sys.stderr)
+        print(f"  No ASN found for {args.asn} in {NOTES_DIR.relative_to(WORKSPACE)}/", file=sys.stderr)
         sys.exit(1)
 
     asn_number = int(asn_label.replace("ASN-", ""))

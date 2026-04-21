@@ -5,7 +5,7 @@ Revise an ASN based on review feedback.
 Loads the discovery prompt (methodology, notation, rigor standards),
 injects vocabulary, appends the review content, and runs claude -p
 with tools so the agent can read the ASN, make targeted fixes, and
-consult Nelson/Gregory if needed.
+consult the configured channels if needed.
 
 Usage:
     python scripts/lib/review_revise.py 9              # ASN-0009 + latest review
@@ -23,7 +23,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, VOCABULARY, REVIEWS_DIR, USAGE_LOG, DOMAIN_PROMPTS, sorted_reviews, find_review
+from lib.shared.paths import WORKSPACE, VOCABULARY, REVIEWS_DIR, USAGE_LOG, NOTES_DIR, DOMAIN_PROMPTS, sorted_reviews, find_review
 from lib.shared.common import find_asn, read_file
 from lib.shared.foundation import load_foundation_statements
 
@@ -180,7 +180,7 @@ def main():
     # Find ASN
     asn_path, asn_label = find_asn(args.asn)
     if asn_path is None:
-        print(f"  No ASN found for {args.asn} in lattices/xanadu/discovery/notes/", file=sys.stderr)
+        print(f"  No ASN found for {args.asn} in {NOTES_DIR.relative_to(WORKSPACE)}/", file=sys.stderr)
         sys.exit(1)
 
     # Find review
@@ -190,7 +190,7 @@ def main():
             print(f"  Review not found: {args.review} for {asn_label}",
                   file=sys.stderr)
         else:
-            print(f"  No reviews found for {asn_label} in lattices/xanadu/discovery/review/",
+            print(f"  No reviews found for {asn_label} in {REVIEWS_DIR.relative_to(WORKSPACE)}/",
                   file=sys.stderr)
         sys.exit(1)
 
@@ -205,7 +205,7 @@ def main():
     # Load vocabulary
     vocab = read_file(VOCABULARY)
     if not vocab:
-        print("  Warning: lattices/xanadu/vocabulary.md not found", file=sys.stderr)
+        print(f"  Warning: {VOCABULARY.relative_to(WORKSPACE)} not found", file=sys.stderr)
 
     # Load consultation results if provided
     consultation_content = None

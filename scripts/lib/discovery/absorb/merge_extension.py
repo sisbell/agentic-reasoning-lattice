@@ -145,7 +145,7 @@ def step_integration_review(base_num, base_path, claim_labels,
                             model, effort):
     """Step 2a: Targeted integration review (not generic review).
 
-    Writes review to lattices/xanadu/discovery/review/ASN-NNNN/ for traceability.
+    Writes review to the lattice's discovery/review/ASN-NNNN/ directory for traceability.
     """
     from lib.shared.paths import VOCABULARY, REVIEWS_DIR, next_review_number
     from lib.shared.foundation import load_foundation_statements
