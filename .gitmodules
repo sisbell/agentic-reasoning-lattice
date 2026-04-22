@@ -1,3 +1,3 @@
 [submodule "udanax-test-harness"]
-	path = domains/xanadu/channels/gregory/udanax-test-harness
+	path = channels/gregory/resources/udanax-test-harness
 	url = git@github.com:sisbell/udanax-test-harness.git

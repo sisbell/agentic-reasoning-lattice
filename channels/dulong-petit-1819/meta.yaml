@@ -1,3 +1,4 @@
 name: dulong-petit-1819
+role_hint: evidence
 description: "Dulong & Petit's 1819 memoir on specific heats of elementary solids. The measured heat-capacity data."
 type: single-source
