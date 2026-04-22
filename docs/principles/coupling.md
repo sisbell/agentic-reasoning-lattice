@@ -98,6 +98,7 @@ What doesn't vary is the *coupling principle*: prose and formal content are auth
 
 ## Related
 
+- [Validation Principle](validation.md) — the sibling principle. Coupling governs within-file health (prose:formal ratio); Validation governs across-file structural health (invariants checked mechanically before review).
 - [Surface Expansion](../equilibrium/surface-expansion.md) — the failure mode this principle's signals detect. Surface expansion is a decoupling event.
 - [Contract Sprawl](../equilibrium/contract-sprawl.md), [Prose Sprawl](../equilibrium/prose-sprawl.md), [Index Sprawl](../equilibrium/index-sprawl.md) — specific decoupling manifestations in claim files.
 - [Narrow → Refine → Verify](../patterns/narrow-refine-verify.md) — the cycle that operates within each artifact's active period.

@@ -31,7 +31,7 @@ A post-hoc analysis found that roughly three-quarters of the sweep's findings we
 
 **Reference the contract in prompts.** The review and revise prompts for stages operating on the structured output name the contract's rules. The reviewer can flag root causes ("this body exists in two files") rather than symptoms ("this definition appears twice"). The reviser can check for canonical homes before inlining content.
 
-The first instance is the blueprinting output contract, documented at [Claim File Contract](../design-notes/claim-file-contract.md).
+The first instance is the blueprinting output contract, documented at [Claim File Contract](../design-notes/claim-file-contract.md). The operational pattern that runs the validator and applies fixes is [Validate Before Review](../patterns/validate-before-review.md); the design commitment behind it is the [Validation Principle](../principles/validation.md).
 
 ## Related
 
@@ -39,3 +39,5 @@ The first instance is the blueprinting output contract, documented at [Claim Fil
 - [Contract Sprawl](contract-sprawl.md), [Prose Sprawl](prose-sprawl.md), [Surface Expansion](surface-expansion.md) — gravitational content failures that compound alongside structural failures at the same site. Fixing content discipline does not fix missing contracts. Fixing contracts does not fix content discipline.
 - [Self-Healing Areas](../design-notes/self-healing.md) — the mechanical signals from an uncontracted representation change (duplicate declarations, dangling references, metadata disagreement, dependency cycles) are self-healing candidates once the contract defines what to check.
 - [The Coupling Principle](../principles/coupling.md) — addresses content health within a file. Uncontracted Representation Change addresses structural health across files. Neither subsumes the other.
+- [The Validation Principle](../principles/validation.md) — the design commitment that preventing this failure mode falls under. Every representation must have a structural contract and validation before review.
+- [Validate Before Review](../patterns/validate-before-review.md) — the operational pattern that resolves this failure mode once a contract exists. The validator checks the contract; per-invariant revise recipes fix the violations.

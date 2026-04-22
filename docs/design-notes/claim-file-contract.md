@@ -18,6 +18,12 @@ Invariants apply to committed output, not to intermediate state. A revise that d
 
 A revise is free to violate any invariant mid-step as long as the commit satisfies all of them.
 
+## Authority
+
+A claim's identity appears on three surfaces: the yaml `label` field, the file's stem, and the markdown bold declaration. When these disagree, the yaml `label` is authoritative. Filename (invariant #2) and markdown declaration (invariant #3) must conform to yaml `label`. Cross-file references — `depends` entries, inline citations, exports — resolve against the yaml `label`.
+
+Consequence: when a mismatch is found, the fix is to change the filename or the markdown declaration, not the yaml `label`. Relabeling cascades through every reference in the lattice; the other two are local.
+
 ## Structural invariants
 
 ### Steady-state — validator runs before every review cycle and after every revise commit
@@ -26,25 +32,27 @@ A revise is free to violate any invariant mid-step as long as the commit satisfi
 
 2. **Filename matches label.** The yaml `label` field equals the file's stem. `T4a.yaml` declares `label: T4a`.
 
-3. **YAML well-formed.** Parses as YAML. Required fields present (`label`, `name`, `type`, `summary`, `depends`). Types as declared in the blueprinting schema.
+3. **Declaration matches label.** The markdown body contains exactly one bold claim-declaration of the form `**<Label> (<Name>).**`. The label-position equals the yaml `label` field; the parenthetical equals the yaml `name` field (when `label == name`, the parenthetical repeats it — redundant but uniform). The parenthetical is required in all cases; this uniformity makes the declaration textually distinguishable from proof-narrative emphasis (e.g., `**Positivity.**`, `**Length.**`). Type keywords (*axiom*, *definition*, *design-requirement*, *lemma*, *theorem*, *corollary*) do not appear in the label-position — those live in the yaml `type` field.
 
-4. **Depends agreement.** The yaml `depends:` list and the markdown Formal Contract Depends section name the same set of claims. No additions or omissions in either surface.
+4. **YAML well-formed.** Parses as YAML. Required fields present (`label`, `name`, `type`, `summary`, `depends`). Types as declared in the blueprinting schema.
 
-5. **References resolve.** Every claim named in a `depends` list, a citation, or a Formal Contract Depends section exists as a file pair in the lattice.
+5. **Depends agreement.** The yaml `depends:` list and the markdown Formal Contract Depends section name the same set of claims. No additions or omissions in either surface.
 
-6. **Declared symbols resolve.** Every symbol declared in a claim's yaml `vocabulary` field either (a) originates in this claim or (b) originates in a claim reachable through the transitive `depends` closure. No symbol use with an undeclared or unreachable source.
+6. **References resolve.** Every claim named in a `depends` list, a citation, or a Formal Contract Depends section exists as a file pair in the lattice.
 
-7. **Acyclic dependency graph.** The `depends` relation across all file pairs in the lattice is a DAG.
+7. **Declared symbols resolve.** Every symbol declared in a claim's yaml `vocabulary` field either (a) originates in this claim or (b) originates in a claim reachable through the transitive `depends` closure. No symbol use with an undeclared or unreachable source.
 
-8. **Body uniqueness.** A given claim's body (bold declaration, proof, formal contract) appears in exactly one file — the file whose label matches the claim. No claim's body is inlined into another claim's file.
+8. **Acyclic dependency graph.** The `depends` relation across all file pairs in the lattice is a DAG.
+
+9. **Body uniqueness.** A given claim's body (bold declaration, proof, formal contract) appears in exactly one file — the file whose label matches the claim. No claim's body is inlined into another claim's file.
 
 ### Transition-checkable — validator runs once, at the end of blueprinting
 
-9. **Source coverage.** Every claim in the source ASN produces exactly one file pair. No source claim is dropped; no source claim is duplicated into multiple pairs.
+10. **Source coverage.** Every claim in the source ASN produces exactly one file pair. No source claim is dropped; no source claim is duplicated into multiple pairs.
 
-10. **No orphan output.** Every file pair in the output corresponds to a claim in the source ASN. Blueprinting does not invent claims.
+11. **No orphan output.** Every file pair in the output corresponds to a claim in the source ASN. Blueprinting does not invent claims.
 
-11. **Content preservation.** Each source claim's narrative, proof, and formal contract text appears — substantively, not necessarily byte-identically — in its corresponding file pair. A mechanical version of this check: the output file pair's non-boilerplate text is non-empty and contains the claim's summary terms. Anything stronger is a semantic check and belongs to review.
+12. **Content preservation.** Each source claim's narrative, proof, and formal contract text appears — substantively, not necessarily byte-identically — in its corresponding file pair. A mechanical version of this check: the output file pair's non-boilerplate text is non-empty and contains the claim's summary terms. Anything stronger is a semantic check and belongs to review.
 
 ## Semantic invariants — review enforces, not validator
 
@@ -74,6 +82,8 @@ Running the validator before the reviewer eliminates the reviewer's work on mech
 
 ## Related
 
+- [The Validation Principle](../principles/validation.md) — the design commitment this contract serves. The principle requires every representation to have a structural contract; this contract is the first instance.
+- [Validate Before Review](../patterns/validate-before-review.md) — the operational pattern that consumes this contract. Its validator runs the contract's structural invariants; its per-invariant revise recipes address the violations it finds.
 - [Uncontracted Representation Change](../equilibrium/uncontracted-representation-change.md) — the failure mode this contract addresses. The T4 sweep's non-convergence was a concrete instance: sixteen cycles spent on symptoms of structural violations because no contract specified what well-formed per-claim output meant.
 - [Representation Change](../patterns/representation-change.md) — the pattern this contract's existence is a consequence of. Every representation change introduces new structural rules; this contract is the first such rule set written down.
 - [Blueprinting guide](../guides/blueprinting.md) — the stage whose output this contract governs.

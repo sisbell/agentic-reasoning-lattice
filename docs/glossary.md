@@ -244,6 +244,12 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 
 ## V
 
+**Validate-before-review.** The pattern of running a mechanical structural-invariant check (validator + per-invariant fix recipes) before each review cycle, so the LLM reviewer sees structurally sound state and spends its cycles on semantic issues. See [Validate Before Review](patterns/validate-before-review.md).
+
+**Validation Principle.** Design commitment that every representation the system operates on must have a structural contract, and no LLM review cycle operates on state that has not been mechanically verified against that contract. Sibling to the [Coupling Principle](principles/coupling.md): coupling governs within-file content health, validation governs across-file structural health. See [The Validation Principle](principles/validation.md).
+
+**Validator.** Mechanical check (pure code, no LLM) of a representation's [structural invariants](#s) against its contract. Exhaustive and cheap; free of the add-bias that compromises LLM-based structural fixes.
+
 **V-cycle (Review V-Cycle).** Multi-scale review architecture composing local, regional, and full scales into upward and downward passes. Inspired by multigrid methods in numerical analysis. See [Review V-Cycle](design-notes/review-v-cycle.md).
 
 **Verify the whole.** Stepping back to original scope after narrowing, to check that the refined pieces cohere. See [Verify the Whole pattern](patterns/verify-the-whole.md).
