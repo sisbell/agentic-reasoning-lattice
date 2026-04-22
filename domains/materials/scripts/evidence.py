@@ -24,7 +24,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent / "scripts"))
-from lib.shared.paths import CONSULTATIONS_DIR, DOMAIN_PROMPTS, CHANNELS_DIR
+from lib.shared.paths import CONSULTATIONS_DIR, CHANNELS_DIR, prompt_path
 from lib.shared.common import read_file, concat_md_files
 from lib.shared.campaign import resolve_campaign
 from lib.consult import (
@@ -33,8 +33,8 @@ from lib.consult import (
     format_out_of_scope_block,
 )
 
-PROMPT_TEMPLATE = DOMAIN_PROMPTS / "discovery" / "consultation" / "evidence" / "answer.md"
-GENERATE_QUESTIONS_PROMPT = DOMAIN_PROMPTS / "discovery" / "consultation" / "evidence" / "generate-questions.md"
+PROMPT_TEMPLATE = prompt_path("discovery/consultation/evidence/answer.md")
+GENERATE_QUESTIONS_PROMPT = prompt_path("discovery/consultation/evidence/generate-questions.md")
 
 
 _CACHED_CORPUS_BY_CHANNEL = {}
