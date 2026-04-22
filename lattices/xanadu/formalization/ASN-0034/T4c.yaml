@@ -9,7 +9,7 @@ depends:
 - NAT-order
 - NAT-closure
 - NAT-addcompat
-- NAT-sub
+- NAT-card
 summary: |
   On the T4-valid subset of T (tumblers satisfying zeros(t) ≤ 3, no two zeros adjacent,
   t₁ ≠ 0, t_{#t} ≠ 0), T4c defines the four hierarchical level labels — node address,
@@ -17,12 +17,12 @@ summary: |
   node address, zeros(t) = 1 ↔ user address, zeros(t) = 2 ↔ document address,
   zeros(t) = 3 ↔ element address. The biconditionals are definitional — they assign
   labels to zero-count values rather than bridging two independently characterised
-  notions. NAT-closure posits 1 ∈ ℕ and closes ℕ under addition, grounding the
+  notions. NAT-card axiomatizes the cardinality operator |·| on subsets of every
+  initial segment {1, …, n} ⊆ ℕ with codomain ℕ, grounding zeros(t) ∈ ℕ for the
+  definition zeros(t) = |{i : 1 ≤ i ≤ #t ∧ tᵢ = 0}| (the zero-index subset lies in
+  {1, …, #t}). NAT-closure posits 1 ∈ ℕ and closes ℕ under addition, grounding the
   numerals 2 := 1 + 1 ∈ ℕ and 3 := 2 + 1 ∈ ℕ used in both exhaustion's bound
-  zeros(t) ≤ 3 and injectivity's chain 0 < 1 < 2 < 3; NAT-sub supplies the
-  partial subtraction m − n on ℕ under m ≥ n, completing the ℕ-arithmetic palette
-  shared with T4, T4a, T4b (where partial subtraction is invoked) so that every
-  claim in the T4 family reads against a single arithmetic foundation. T4's bound
+  zeros(t) ≤ 3 and injectivity's chain 0 < 1 < 2 < 3. T4's bound
   zeros(t) ≤ 3 together with NAT-zero and NAT-discrete supplies exhaustion on
   the T4-valid subdomain (every T4-valid tumbler receives a label);
   the four labels are pairwise distinct because the zero counts 0, 1, 2, 3 are

@@ -1,0 +1,15 @@
+label: NAT-card
+name: NatFiniteSetCardinality
+type: axiom
+depends: []
+summary: |
+  The cardinality operator |·| is a well-defined total function on subsets of every
+  initial segment {1, 2, …, n} ⊆ ℕ (n ∈ ℕ), with codomain ℕ. For such S, |S| ∈ ℕ is
+  the unique k such that S admits a strictly increasing enumeration s₁ < s₂ < … < s_k
+  under < on ℕ with S = {s₁, …, s_k} (empty enumeration at k = 0, giving |∅| = 0),
+  and |S| ≤ n. Uniqueness of k follows because NAT-order's trichotomy forces two
+  strictly increasing enumerations of the same set to agree element-by-element.
+  The operator is distinct from T0's tumbler-length #· : T → ℕ, which acts on
+  sequences rather than sets. NAT-card is the foundation citation for every claim
+  that invokes |·| — in particular the definition zeros(t) = |{i : 1 ≤ i ≤ #t ∧ tᵢ = 0}|
+  in T4 and its downstream consumers T4a, T4b, T4c.
