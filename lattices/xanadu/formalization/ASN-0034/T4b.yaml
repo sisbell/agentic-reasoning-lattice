@@ -5,7 +5,6 @@ depends:
 - T0
 - T4
 - T4a
-- T4c
 - NAT-zero
 - NAT-discrete
 - NAT-order
@@ -16,10 +15,10 @@ summary: |
   for the unique zero-length sequence; this differs from T0's T (which fixes #a ≥ 1 for
   every a ∈ T) only by adjoining ε, so the codomain accommodates the absence marker. On
   that subdomain it returns (N(t), U(t), D(t), E(t)) with absent fields represented by ε.
-  Field absence is defined via T4c's level assignment — field X is
-  absent in t iff X is not in the field set of t's hierarchical level (node {N}, user
-  {N, U}, document {N, U, D}, element {N, U, D, E}) — and the biconditional X(t) = ε iff
-  X is absent in t is discharged by inspection of the case construction on zeros(t).
+  Field absence is defined directly in terms of zeros(t) — N is never absent on the
+  T4-valid subdomain; U is absent iff zeros(t) = 0; D is absent iff zeros(t) ≤ 1;
+  E is absent iff zeros(t) ≤ 2 — and the biconditional X(t) = ε iff X is absent in t
+  is discharged by inspection of the case construction on zeros(t).
   The absence pattern is fixed by zeros(t) ∈ {0, 1, 2, 3}, and component-access notation
   t.X₁ is defined iff X(t) ≠ ε — in particular t.E₁ requires zeros(t) = 3. T4a's reverse
   direction supplies the segment-length inequalities (s₁ ≥ 2, s_k ≤ #t − 1, s_{j+1} ≥

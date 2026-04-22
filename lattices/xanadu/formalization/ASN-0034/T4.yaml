@@ -5,6 +5,6 @@ depends:
 - T0
 - NAT-zero
 - NAT-discrete
-summary: 'Valid tumblers encode a four-level containment hierarchy (node, user, document, element) using zero-valued components
-  as field separators. The axiom constrains separator placement: at most three zeros, none adjacent, and neither the first
-  nor last component may be zero — guaranteeing every field segment is non-empty.'
+summary: 'Valid tumblers encode a four-level containment hierarchy (node, user, document, element), with each position `i`
+  satisfying `tᵢ = 0` serving as a field separator. The axiom constrains separator placement: at most three zeros, none
+  adjacent, and neither the first nor last component may be zero — guaranteeing every field segment is non-empty.'

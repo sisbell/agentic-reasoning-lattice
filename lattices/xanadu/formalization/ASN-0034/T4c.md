@@ -4,7 +4,7 @@ The four biconditionals are the definition of the labels. The proof obligation r
 
 *Exhaustion.* By T4, every T4-valid tumbler satisfies `zeros(t) ≤ 3`, and by NAT-zero, `0 ≤ zeros(t)`. These bounds alone do not fix `zeros(t) ∈ {0, 1, 2, 3}` — without discreteness the segment could harbor intermediate values. NAT-discrete supplies the missing step: applied at `m ∈ {0, 1, 2}`, each instance promotes `m < zeros(t)` to `m + 1 ≤ zeros(t)`, so from `0 < zeros(t)` obtain `1 ≤ zeros(t)`, from `1 < zeros(t)` obtain `2 ≤ zeros(t)`, and from `2 < zeros(t)` obtain `3 ≤ zeros(t)`; the upper bound `zeros(t) ≤ 3` blocks any further promotion. Hence `zeros(t) ∈ {0, 1, 2, 3}`.
 
-*Injectivity.* The values `0, 1, 2, 3` are pairwise distinct by NAT-order trichotomy, and `zeros(t)` is single-valued. Therefore distinct zero counts induce distinct labels.
+*Injectivity.* The values `0, 1, 2, 3` are pairwise distinct in ℕ. NAT-addcompat's strict successor inequality `n < n + 1`, instantiated at `n ∈ {0, 1, 2}`, gives `0 < 1`, `1 < 2`, and `2 < 3`; NAT-order transitivity chains these to `0 < 1 < 2 < 3`, so `m < n` holds for every pair with `m` preceding `n` in the chain; NAT-order irreflexivity then excludes `m = n` for each such pair. Since `zeros(t)` is single-valued, distinct zero counts induce distinct labels.
 
 *Surjectivity.* Each zero count is realised by a T4-valid witness:
 
@@ -21,6 +21,7 @@ Each witness is checked against T4's field-segment clauses directly. ∎
   - T0 (CarrierSetDefinition) — fixes ℕ as the codomain of `zeros(t)` and the component domain of the witnesses.
   - NAT-zero (NatZeroMinimum) — supplies `0 ≤ zeros(t)` for the exhaustion step.
   - NAT-discrete (NatDiscreteness) — supplies the absence of values strictly between consecutive integers, promoting each strict inequality `m < zeros(t)` (for `m ∈ {0, 1, 2}`) to `m + 1 ≤ zeros(t)` so that the segment `0 ≤ zeros(t) ≤ 3` collapses to `{0, 1, 2, 3}`.
-  - NAT-order (NatStrictTotalOrder) — supplies pairwise distinctness of `0, 1, 2, 3` for injectivity.
+  - NAT-order (NatStrictTotalOrder) — supplies transitivity to chain `0 < 1 < 2 < 3` and irreflexivity to exclude equality within the chain, so that `0, 1, 2, 3` are pairwise distinct for injectivity.
+  - NAT-addcompat (NatAdditionOrderAndSuccessor) — supplies the strict successor inequality `n < n + 1`, instantiated at `n ∈ {0, 1, 2}` to obtain the base links `0 < 1`, `1 < 2`, `2 < 3` in injectivity's chain.
   - T4 (HierarchicalParsing) — supplies the T4-valid subdomain constraints, used in exhaustion and in validating the surjectivity witnesses.
 - *Postconditions:* `(A t ∈ T : t is T4-valid :: (zeros(t) = 0 ↔ t is a node address) ∧ (zeros(t) = 1 ↔ t is a user address) ∧ (zeros(t) = 2 ↔ t is a document address) ∧ (zeros(t) = 3 ↔ t is an element address))`. The four labels are pairwise distinct, and each is realised by some T4-valid tumbler. Outside this subdomain, T4c assigns no level; consumers must discharge T4-validity before reading a level off `zeros(t)`.
