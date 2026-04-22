@@ -21,8 +21,10 @@ summary: |
   pairwise distinct in ℕ — NAT-addcompat's strict successor inequality n < n + 1
   (at n = 0, 1, 2) supplies 0 < 1, 1 < 2, 2 < 3, NAT-order transitivity chains
   these to 0 < 1 < 2 < 3, and NAT-order irreflexivity excludes equality within
-  the chain — and zeros(t) is single-valued; and each label is realised by a
-  concrete T4-valid witness. The claim is universally quantified
+  the chain — and zeros(t) is single-valued. T4c does not claim realisation:
+  existence of a T4-valid tumbler at each zero count is not underwritten by
+  the foundations in scope, so T4c stands as a pure definition on whatever
+  T4-valid tumblers exist. The claim is universally quantified
   over the T4-valid subdomain and assigns no level outside it. No dependency on
   T4b is required because the labels are defined by T4c directly in terms of zero
   count, not in terms of T4b's fields(t) decomposition; a downstream reading that

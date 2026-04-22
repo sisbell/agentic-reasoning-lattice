@@ -15,7 +15,7 @@ The absence pattern of `fields(t)` is fixed by case analysis on `zeros(t) ∈ {0
 
 The component-access notation `t.X₁` denotes the first component of `X(t)` and is defined iff `X(t) ≠ ε`: `t.N₁` is defined for every T4-valid `t`; `t.U₁` iff `zeros(t) ≥ 1`; `t.D₁` iff `zeros(t) ≥ 2`; `t.E₁` iff `zeros(t) = 3`.
 
-*Derivation.* A position `i` satisfies `tᵢ = 0` iff `i` is a field separator. Forward: every separator has value 0 in the T4 address format `N₁. ... .Nₐ . 0 . U₁. ... .Uᵦ . 0 . D₁. ... .Dᵧ . 0 . E₁. ... .Eδ`. Reverse: if `tᵢ = 0` then T4 assigns `i` the role of separator; non-zero positions are strictly positive by NAT-zero and NAT-discrete at `m = 0` on T0's carrier ℕ, so they carry field components. Thus `{i : 1 ≤ i ≤ #t ∧ tᵢ = 0}` is exactly the set of separator positions.
+*Derivation.* By T4's stipulation, the separator positions of `t` are exactly `{i : 1 ≤ i ≤ #t ∧ tᵢ = 0}`, and every non-separator position carries a field component — strictly positive by NAT-zero and NAT-discrete at `m = 0` on T0's carrier ℕ.
 
 Let the zero positions in increasing order be `s₁ < s₂ < ... < s_k`, with `k = zeros(t) ∈ {0, 1, 2, 3}` by T4 and the enumeration licensed by NAT-order. Since `t` is T4-valid, the field-segment constraint (i)–(iii) holds, and T4a's reverse direction converts it to the conclusion that every field segment of `t` is non-empty. Re-expressed in terms of the zero positions: `s₁ ≥ 2` and `s_k ≤ #t - 1` (when `k ≥ 1`), and `s_{j+1} ≥ s_j + 2` for every interior `j` with `1 ≤ j < k`. Compute `fields(t)` case by case, citing the relevant inequality for each segment:
 
@@ -28,7 +28,7 @@ By T0, each `tᵢ` is the value of the `i`-th component of `t` — a function of
 
 *Formal Contract:*
 - *Preconditions:* `t` satisfies T4 (`zeros(t) ≤ 3`, no two zeros adjacent, `t₁ ≠ 0`, `t_{#t} ≠ 0`).
-- *Definition:* `fields : T ⇀ Seq(ℕ⁺) × Seq(ℕ⁺) × Seq(ℕ⁺) × Seq(ℕ⁺)` has domain exactly the T4-valid subset of `T`. Let `s₁ < s₂ < ... < s_k` enumerate the zero positions of `t`, `k = zeros(t) ∈ {0, 1, 2, 3}`, with sentinels `s₀ = 0` and `s_{k+1} = #t + 1`. The `(i+1)`-th field segment (for `0 ≤ i ≤ k`) is `(t_{s_i + 1}, ..., t_{s_{i+1} - 1})`. Then `fields(t) = (N(t), U(t), D(t), E(t))` assigns these `k + 1` segments to the first `k + 1` components in order and `ε` to the remaining `3 - k`. Outside the T4-valid subdomain, `fields(t)` is not assigned a value.
+- *Definition:* `fields : T ⇀ Seq(ℕ⁺) × Seq(ℕ⁺) × Seq(ℕ⁺) × Seq(ℕ⁺)` has domain exactly the T4-valid subset of `T`. Let `s₁ < s₂ < ... < s_k` enumerate the zero positions of `t`, with `k = zeros(t) ∈ {0, 1, 2, 3}`. The value `fields(t) = (N(t), U(t), D(t), E(t))` is fixed by case on `k`: for `k = 0`, `N(t) = (t₁, ..., t_{#t})` and `U(t) = D(t) = E(t) = ε`; for `k = 1`, `N(t) = (t₁, ..., t_{s₁ - 1})`, `U(t) = (t_{s₁ + 1}, ..., t_{#t})`, and `D(t) = E(t) = ε`; for `k = 2`, `N(t) = (t₁, ..., t_{s₁ - 1})`, `U(t) = (t_{s₁ + 1}, ..., t_{s₂ - 1})`, `D(t) = (t_{s₂ + 1}, ..., t_{#t})`, and `E(t) = ε`; for `k = 3`, `N(t) = (t₁, ..., t_{s₁ - 1})`, `U(t) = (t_{s₁ + 1}, ..., t_{s₂ - 1})`, `D(t) = (t_{s₂ + 1}, ..., t_{s₃ - 1})`, and `E(t) = (t_{s₃ + 1}, ..., t_{#t})`. The segment-length inequalities `s₁ ≥ 2`, `s_k ≤ #t - 1` (when `k ≥ 1`), and `s_{j+1} ≥ s_j + 2` (T4a's reverse direction) keep every index `s_i ± 1` appearing above within `{1, …, #t}`. Outside the T4-valid subdomain, `fields(t)` is not assigned a value.
 - *Depends:*
   - T0 (CarrierSetDefinition) — supplies ℕ as the carrier; supplies `#t ≥ 1`.
   - NAT-zero (NatZeroMinimum) — supplies `0 ≤ tᵢ` for every component.
