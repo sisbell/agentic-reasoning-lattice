@@ -21,7 +21,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, USAGE_LOG, PATCHES_DIR, DOMAIN_PROMPTS, prompt_path
+from lib.shared.paths import WORKSPACE, USAGE_LOG, PATCHES_DIR, prompt_path
 from lib.shared.common import find_asn, step_commit_asn
 
 APPLY_TEMPLATE = prompt_path("formalization/patch/apply.md")

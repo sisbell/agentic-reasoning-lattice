@@ -17,11 +17,10 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import BLUEPRINTS_DIR, DOMAIN_PROMPTS, prompt_path
+from lib.shared.paths import BLUEPRINTS_DIR, prompt_path
 from lib.shared.common import find_asn, invoke_claude, parallel_llm_calls, dump_yaml, step_commit_asn
 
 
-PROMPTS_DIR = DOMAIN_PROMPTS / "blueprinting"
 
 
 def _load_claims(sections_dir):
@@ -138,8 +137,8 @@ def enrich_asn(asn_num):
 
     passes = [
         ("type",  prompt_path("blueprinting/enrich-type.md"),  ["type"]),
-        ("deps",  PROMPTS_DIR / "enrich-deps.md",  ["depends", "literature_citations"]),
-        ("vocab", PROMPTS_DIR / "enrich-vocab.md",  ["vocabulary"]),
+        ("deps",  prompt_path("blueprinting/enrich-deps.md"),  ["depends", "literature_citations"]),
+        ("vocab", prompt_path("blueprinting/enrich-vocab.md"),  ["vocabulary"]),
     ]
 
     total_ok = 0

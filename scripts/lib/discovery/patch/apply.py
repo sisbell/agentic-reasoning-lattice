@@ -20,10 +20,9 @@ from lib.shared.common import (read_file, find_asn, invoke_claude, invoke_claude
 from lib.shared.foundation import load_foundation_statements
 from lib.shared.campaign import resolve_campaign
 
-PROMPTS_DIR = DOMAIN_PROMPTS / "discovery" / "patch"
 PATCH_TEMPLATE = prompt_path("discovery/patch/apply.md")
 PATCH_REVIEW_TEMPLATE = prompt_path("discovery/patch/review.md")
-PATCH_REVISE_TEMPLATE = PROMPTS_DIR / "revise.md"
+PATCH_REVISE_TEMPLATE = prompt_path("discovery/patch/revise.md")
 
 
 def validate(asn_num, patch_name):

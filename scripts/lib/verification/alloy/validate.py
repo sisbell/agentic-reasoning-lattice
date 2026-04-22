@@ -9,7 +9,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
-from lib.shared.paths import DOMAIN_PROMPTS, prompt_path
+from lib.shared.paths import prompt_path
 
 CONTRACT_REVIEW_TEMPLATE = prompt_path("verification/alloy/validate-contract.md")
 

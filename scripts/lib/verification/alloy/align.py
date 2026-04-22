@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
-from lib.shared.paths import DOMAIN_PROMPTS, prompt_path
+from lib.shared.paths import prompt_path
 
 from .common import invoke_claude, read_file, ALLOY_JAR_DEFAULT
 from .check import check, classify_alloy_error

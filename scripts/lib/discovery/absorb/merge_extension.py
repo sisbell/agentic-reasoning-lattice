@@ -33,10 +33,9 @@ from lib.shared.common import (read_file, find_asn, invoke_claude, invoke_claude
                          log_usage, step_commit)
 
 
-PROMPTS_DIR = DOMAIN_PROMPTS / "discovery" / "absorb"
 ABSORB_BASE_TEMPLATE = prompt_path("discovery/absorb/merge-extension.md")
 ABSORB_REVIEW_TEMPLATE = prompt_path("discovery/absorb/review.md")
-ABSORB_REVISE_TEMPLATE = PROMPTS_DIR / "revise.md"
+ABSORB_REVISE_TEMPLATE = prompt_path("discovery/absorb/revise.md")
 ABSORB_SOURCE_TEMPLATE = prompt_path("discovery/absorb/update-citations-in-source.md")
 
 

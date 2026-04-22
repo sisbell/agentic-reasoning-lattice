@@ -21,7 +21,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import (WORKSPACE, FORMALIZATION_DIR, USAGE_LOG, DOMAIN_PROMPTS,
+from lib.shared.paths import (WORKSPACE, FORMALIZATION_DIR, USAGE_LOG,
                     prompt_path, next_review_number, load_manifest)
 from lib.shared.common import find_asn, read_file, assemble_readonly, step_commit_asn
 from lib.shared.foundation import load_foundation_statements

@@ -22,7 +22,7 @@ SHARED_PROMPTS = WORKSPACE / "domains" / "_shared" / "prompts"
 
 
 def prompt_path(subpath):
-    """Resolve a prompt path.
+    """Resolve a prompt subpath to a Path.
 
     Prefers a lattice-specific override under DOMAIN_PROMPTS if it exists;
     otherwise returns the shared path under SHARED_PROMPTS. Neither file is

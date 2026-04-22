@@ -42,8 +42,6 @@ from lib.consult import (
 
 theory, evidence = load_domain_consult_modules(DOMAIN)
 
-PROMPTS_DIR = DOMAIN_PROMPTS / "discovery" / "consultation"
-
 
 def load_inquiry(inquiry_id):
     """Load inquiry from project model manifest."""
