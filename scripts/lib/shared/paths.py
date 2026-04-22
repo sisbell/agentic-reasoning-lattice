@@ -13,22 +13,23 @@ WORKSPACE = Path(__file__).resolve().parent.parent.parent.parent
 LATTICE_NAME = os.environ.get("LATTICE", "xanadu")
 LATTICE = WORKSPACE / "lattices" / LATTICE_NAME
 DOMAIN = WORKSPACE / "domains" / LATTICE_NAME
-DOMAIN_PROMPTS = DOMAIN / "prompts"
 CHANNELS_DIR = DOMAIN / "channels"
 
-# Shared-prompts tier — prompts that apply across lattices (structural,
-# domain-neutral). Resolver prefers lattice-specific overrides.
-SHARED_PROMPTS = WORKSPACE / "domains" / "_shared" / "prompts"
+# Pipeline-stage prompts tier — shared defaults plus per-lattice overrides.
+# Resolver prefers lattice-specific overrides.
+SHARED_PROMPTS = WORKSPACE / "prompts" / "shared"
+LATTICE_PROMPTS = WORKSPACE / "prompts" / LATTICE_NAME
+DOMAIN_PROMPTS = LATTICE_PROMPTS  # legacy alias, removed in commit 5
 
 
 def prompt_path(subpath):
     """Resolve a prompt subpath to a Path.
 
-    Prefers a lattice-specific override under DOMAIN_PROMPTS if it exists;
+    Prefers a lattice-specific override under LATTICE_PROMPTS if it exists;
     otherwise returns the shared path under SHARED_PROMPTS. Neither file is
     required to exist — callers handle missing-file errors at read time.
     """
-    lattice = DOMAIN_PROMPTS / subpath
+    lattice = LATTICE_PROMPTS / subpath
     if lattice.exists():
         return lattice
     return SHARED_PROMPTS / subpath
