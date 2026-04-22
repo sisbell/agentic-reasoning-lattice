@@ -1,9 +1,13 @@
 label: NAT-discrete
 name: NatDiscreteness
 type: axiom
-depends: []
+depends:
+  - NAT-order
+  - NAT-closure
 summary: |
   No natural number lies strictly between `n` and `n + 1`; formally, `m < n ⟹ m + 1 ≤ n`,
-  equivalently `m ≤ n < m + 1 ⟹ n = m`. This discreteness axiom is independent of strict
-  total order — it rules out the density that characterizes ℝ while leaving ℕ's order
-  structure otherwise intact.
+  equivalently `m ≤ n < m + 1 ⟹ n = m`. This discreteness axiom is content-independent
+  of strict total order — it rules out the density that characterizes ℝ while leaving ℕ's
+  order structure otherwise intact — but its statement cites the non-strict `≤` (defined
+  in NAT-order by `m ≤ n ⟺ m < n ∨ m = n`) and the successor term `m + 1` (grounded by
+  NAT-closure's `1 ∈ ℕ` and addition-closure), so both appear in the Depends slot.

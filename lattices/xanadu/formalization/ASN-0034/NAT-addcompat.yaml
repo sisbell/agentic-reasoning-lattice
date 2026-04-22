@@ -1,7 +1,9 @@
 label: NAT-addcompat
 name: NatAdditionOrderAndSuccessor
 type: axiom
-depends: []
+depends:
+  - NAT-order
+  - NAT-closure
 summary: |
   Addition on ℕ is non-strictly monotone with respect to order on either side:
   if `p ≤ n` then `m + p ≤ m + n` (left) and `p + m ≤ n + m` (right) for all
@@ -14,4 +16,6 @@ summary: |
   with NAT-cancel (to rule out the equality `#p₁ + k'₂ = #p₂ + k'₂`) and NAT-order
   (to weaken `<` to `≤` and to re-strengthen `≤` with non-equality back to
   `<`). Additionally, every natural number is strictly less than its
-  successor: `n < n + 1`.
+  successor: `n < n + 1`. The axiom body cites the non-strict `≤` defined in
+  NAT-order and the addition/`1`-constants supplied by NAT-closure, so both
+  foundations appear in the Depends slot.
