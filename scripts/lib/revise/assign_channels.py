@@ -11,9 +11,7 @@ parsing.
 
 import re
 
-import yaml
-
-from lib.shared.paths import prompt_path, WORKSPACE
+from lib.shared.paths import prompt_path, load_channel_meta
 from lib.shared.common import read_file
 from lib.shared.campaign import resolve_campaign
 
@@ -30,12 +28,7 @@ def _capitalize_channel(name):
 
 
 def _channel_description(channel_name):
-    meta_path = WORKSPACE / "channels" / channel_name / "meta.yaml"
-    try:
-        meta = yaml.safe_load(meta_path.read_text()) or {}
-    except FileNotFoundError:
-        raise FileNotFoundError(f"channel meta.yaml not found: {meta_path}")
-    desc = (meta.get("description") or "").strip()
+    desc = (load_channel_meta(channel_name).get("description") or "").strip()
     if not desc:
         raise ValueError(
             f"channel {channel_name} meta.yaml missing `description:` field")
@@ -90,9 +83,14 @@ def parse(response, asn_id):
     or None), questions (dict[role, question_text]; empty when internal).
     """
     campaign = resolve_campaign(asn_id)
-    authority_to_role = dict(_ROLE_LABELS)
-    authority_to_role[_capitalize_channel(campaign.theory_channel)] = "theory"
-    authority_to_role[_capitalize_channel(campaign.evidence_channel)] = "evidence"
+    # Build channel-name mappings first; hardcoded role labels are applied
+    # last so they always win — protects against a channel name that happens
+    # to collide with "Theory"/"Evidence" being bound to the opposite role.
+    authority_to_role = {
+        _capitalize_channel(campaign.theory_channel): "theory",
+        _capitalize_channel(campaign.evidence_channel): "evidence",
+    }
+    authority_to_role.update(_ROLE_LABELS)
 
     items = []
     current = None

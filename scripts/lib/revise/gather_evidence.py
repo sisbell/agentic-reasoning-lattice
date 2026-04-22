@@ -28,11 +28,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import (
-    WORKSPACE, REVIEWS_DIR, NOTES_DIR, consultation_dir,
-    find_review, sorted_reviews,
+    WORKSPACE, REVIEWS_DIR, NOTES_DIR, consultation_dir, find_review,
 )
 from lib.shared.campaign import resolve_campaign
-from lib.shared.common import find_asn, read_file, log_usage
+from lib.shared.common import find_asn
 from lib.consult import (
     invoke_claude, get_total_usage, dispatch_run_consultation,
 )
@@ -63,7 +62,7 @@ def extract_revise_section(review_content):
     return "\n".join(revise_lines).strip()
 
 
-# ─── Step 2: Run consultations ───────────────────────────────────
+# ─── Run consultations ───────────────────────────────────
 
 def run_targeted_consultations(items, asn_id, model="opus"):
     """Run channel consultations for items that have questions assigned.
@@ -118,7 +117,7 @@ def run_targeted_consultations(items, asn_id, model="opus"):
         print(f"  [EVIDENCE] All done", file=sys.stderr)
 
 
-# ─── Step 3: Write results ───────────────────────────────────────
+# ─── Write results ───────────────────────────────────────
 
 def build_results(asn_label, review_path, items):
     """Build the consultation results markdown file."""

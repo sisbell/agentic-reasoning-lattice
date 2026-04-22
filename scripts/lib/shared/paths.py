@@ -231,6 +231,16 @@ def campaign_vocab(name):
     return campaign_dir(name) / "vocabulary.md"
 
 
+def load_channel_meta(channel_name):
+    """Read and parse a channel's meta.yaml. Raises FileNotFoundError if
+    the file is missing."""
+    meta_path = CHANNELS_DIR / channel_name / "meta.yaml"
+    try:
+        return yaml.safe_load(meta_path.read_text()) or {}
+    except FileNotFoundError:
+        raise FileNotFoundError(f"channel meta.yaml not found: {meta_path}")
+
+
 def load_excluded_covers(asn_id):
     """Load combined covers text for an ASN's depends + already_covered.
 
