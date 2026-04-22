@@ -13,3 +13,9 @@
 **ASN**: TA-Pos body: "The converse direction — `Pos(t)` implies `t` is T1-greater than every zero tumbler — does hold, but its proof consumes ActionPoint and T1, and is established separately."
 **Issue**: This sentence adds no definitional content to TA-Pos. It is a use-site inventory / forward reference announcing that a converse relationship between `Pos` and T1's `>` holds and has its proof elsewhere. TA-Pos's formal contract defines `Pos`, `Zero`, and `Z` — it does not establish, nor depend on, any converse theorem. No downstream claim in this ASN cites TA-Pos for "Pos(t) implies t is T1-greater than every zero tumbler"; the claim that `actionPoint` does that work lives in ActionPoint and any T1-greater result lives in the separately-established claim the sentence gestures at. The preceding `[0, 0]` example is a concrete divergence illustration (not meta-prose by the stated rule), but this trailing sentence is meta-commentary about where a different theorem lives — exactly the kind of "established separately" pointer the precise reader must work around.
 **What needs resolving**: Either remove the forward-reference sentence from TA-Pos's body, or relocate it to a commentary/meta-note slot adjacent to the axiom — TA-Pos's claim body should carry only the content the formal contract commits to, not a pointer to a converse theorem whose proof and statement live in a different claim.
+
+## Result
+
+Regional review not converged after 1 cycles.
+
+*Elapsed: 265s*

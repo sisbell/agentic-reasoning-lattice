@@ -1,0 +1,15 @@
+# Regional Review — ASN-0034/ActionPoint (cycle 1)
+
+*2026-04-21 22:31*
+
+### TA-Pos's divergence example uses bracket-list notation not defined by T0
+**Foundation**: T0 (CarrierSetDefinition) — defines `T = {d₁.d₂. ... .dₙ : each dᵢ ∈ ℕ, n ≥ 1}`, fixing dot-separated notation as the established way to write tumblers.
+**ASN**: TA-Pos body: "The all-zero tumbler `[0, 0]` exhibits the divergence: under T1, `[0] < [0, 0]` by the prefix rule, yet `Zero([0, 0])` holds."
+**Issue**: T0 writes elements of T as `d₁.d₂. ... .dₙ` — dot-separated components. TA-Pos's concrete example writes `[0, 0]` and `[0]` — bracketed, comma-separated lists. No claim in the ASN identifies `[x₁, ..., xₙ]` with the dot-separated tumbler `x₁.x₂. ... .xₙ`, nor is bracket notation introduced as alternate syntax. A precise reader following T0's carrier specification must either silently adopt an unstated notational convention or read `[0, 0]` as a notation the ASN has not defined. The example is load-bearing — it is how TA-Pos concretely establishes that `Pos` and a putative `> 0` diverge — so the notation gap lands exactly where the divergence claim needs to be unambiguous.
+**What needs resolving**: Either use T0's dot notation in TA-Pos's example (e.g., `0.0` and `0`), or introduce bracket-list notation explicitly — either in T0 or at the point of use in TA-Pos — as a defined alternate syntax for tumblers, so the example's tumblers resolve against the stated carrier.
+
+### TA-Pos's body cites T1's prefix rule and lexicographic `>` but does not declare T1 as a dependency
+**Foundation**: TA-Pos (PositiveTumbler) — formal contract declares `Depends: T0 (CarrierSetDefinition)`.
+**ASN**: TA-Pos body: "The predicate `Pos(t)` is not written `t > 0`, because `>` already denotes T1's lexicographic ordering, and the two notions diverge. The all-zero tumbler `[0, 0]` exhibits the divergence: under T1, `[0] < [0, 0]` by the prefix rule, yet `Zero([0, 0])` holds."
+**Issue**: Two distinct statements in this paragraph rest on T1 content: (i) "`>` denotes T1's lexicographic ordering", a claim about T1's symbol reservation, and (ii) "under T1, `[0] < [0, 0]` by the prefix rule", a claim whose truth requires T1's ordering and prefix rule as stated premises. TA-Pos's formal contract lists only T0. If the divergence illustration is load-bearing content of TA-Pos (the paragraph is sited inside the claim body, not a commentary slot), the Depends list is missing T1; if it is purely motivational meta-prose about notation choice, the paragraph sits in a slot the formal contract does not commit to. The current arrangement commits the body to facts the contract does not license.
+**What needs resolving**: Either add T1 (LexicographicOrder or whichever claim supplies the prefix rule and `<`) to TA-Pos's Depends list, matching the body's reliance on T1, or relocate the divergence paragraph out of the claim body into a commentary/meta-note slot so the formal contract and its declared dependencies remain the sole content of the claim proper.
