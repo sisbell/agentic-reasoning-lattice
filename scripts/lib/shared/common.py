@@ -178,12 +178,20 @@ def invoke_claude(prompt, *, model="opus", effort="max", tools=None):
         print(f"  FAILED (exit {result.returncode}, {elapsed:.0f}s)",
               file=sys.stderr)
         if result.stderr:
-            for line in result.stderr.strip().split("\n")[:3]:
-                print(f"    {line}", file=sys.stderr)
+            for line in result.stderr.strip().split("\n")[:5]:
+                print(f"    stderr: {line}", file=sys.stderr)
+        if result.stdout:
+            for line in result.stdout.strip().split("\n")[:5]:
+                print(f"    stdout: {line[:300]}", file=sys.stderr)
         return "", elapsed
 
     try:
         data = json.loads(result.stdout)
+        if data.get("is_error"):
+            print(f"  FAILED (is_error in JSON, {elapsed:.0f}s)", file=sys.stderr)
+            print(f"    api_error_status: {data.get('api_error_status')}", file=sys.stderr)
+            print(f"    result: {str(data.get('result', ''))[:300]}", file=sys.stderr)
+            return "", elapsed
         text = data.get("result", "")
         return text, elapsed
     except (json.JSONDecodeError, KeyError):
