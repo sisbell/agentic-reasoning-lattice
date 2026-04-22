@@ -13,10 +13,11 @@ Complete index of the documentation. The root [README](../README.md) is the proj
 - [Coupling Principle](principles/coupling.md) — core quality discipline. Prose and formal content are authored as a pair; the coupling is what keeps discovery generative and formalization convergent. Why the system can operate at all and make new discoveries.
 - [Glossary](glossary.md) — system-specific terms and their definitions
 
-## Pattern language
+## How the system works, fails, and is disciplined
 
-- [Patterns](patterns/README.md) — operationally discovered patterns for agentic reasoning systems. The primary cycle (Narrow → Refine → Verify), patterns that adjust or feed it, patterns that seed hypothesis space, and the structure that accumulates output.
-- [Equilibrium (failure modes)](equilibrium/README.md) — disequilibrium patterns the system can slip into: contract sprawl, citation drift. How each forms and how the system corrects.
+- [Patterns](patterns/README.md) — observed structural regularities. The primary cycle (Narrow → Refine → Verify), patterns that adjust or feed it, patterns that seed hypothesis space, and the structure that accumulates output.
+- [Principles](principles/coupling.md) — design commitments the system enforces. The coupling principle (prose:formal ratio as health signal) lives here.
+- [Equilibrium (failure modes)](equilibrium/README.md) — specific ways the system fails to converge. Gravitational (continuous pressure requiring permanent discipline), transitional (acts at representation boundaries, fixable once per boundary), and oscillatory (acts at sites of undecidability, fixable by establishing an arbitrating criterion).
 
 ## Design notes
 

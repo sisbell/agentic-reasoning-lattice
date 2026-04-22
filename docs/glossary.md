@@ -100,6 +100,8 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Genesis Attractor.** See Attractor, Genesis.
 
+**Gravitational failure.** An [equilibrium](equilibrium/) pattern whose force acts continuously across review cycles. Requires permanent discipline — prompt framing, coupling monitoring, authoring habits — not a one-time fix. Contrasts with [transitional failure](#t) and [oscillatory failure](#o). Contract Sprawl, Prose Sprawl, Surface Expansion, Index Sprawl, Citation Drift are gravitational.
+
 **Ground state.** The state of genuine convergence across all scales — claim, cluster, and system review all agree there are no remaining issues. Distinguished from "stopped" (no finding in one scale but others can still expose issues). See [V-cycle self-evaluation](design-notes/review-v-cycle.md#the-v-cycle-as-self-evaluation).
 
 ## H
@@ -152,6 +154,8 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 
 **Open surface.** A claim structure that leaves no explicit home for new sub-facts (e.g., "with its standard claims"). Sets the conditions for a [Genesis Attractor](equilibrium/contract-sprawl.md) to form.
 
+**Oscillatory failure.** An [equilibrium](equilibrium/) pattern whose force acts at a site of undecidability — two resolutions are both locally valid and nothing in the cycle arbitrates between them. Fixed by establishing the arbitrating criterion (a contract, a convention, or an explicit scope ruling), which varies by subtype. Contrasts with [gravitational failure](#g) and [transitional failure](#t). [Reverse-Course Oscillation](equilibrium/reverse-course-oscillation.md) is the oscillatory pattern documented so far.
+
 **Over-citation.** A Depends entry for a claim the proof doesn't actually use. A form of [Citation Drift](equilibrium/citation-drift.md).
 
 ## P
@@ -176,6 +180,8 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 
 **Representation change.** Progressive transformation of content through different forms (narrative → structured → formal → mechanical) without changing the underlying claim. See [Representation Change pattern](patterns/representation-change.md).
 
+**Reverse-Course Oscillation.** An [oscillatory failure](#o) in which a reviser's change in cycle N is undone in cycle N+1 because two locally-valid resolutions exist and the cycle has no shared criterion to pick between them. Subtypes by source of undecidability: contract-absent, judgment-call, exhaustiveness-vs-restraint. See [Reverse-Course Oscillation](equilibrium/reverse-course-oscillation.md).
+
 **Review coinage.** [Prose coinage](patterns/prose-coinage.md) that happens during review/revise cycles rather than at synthesis. Occurs in both discovery and formalization. Roughly 30% of a note's coinages. Driven by reviewer pressure surfacing a concept the current text is discussing in ad-hoc prose without a shared name. See [Synthesis coinage](#s) for contrast.
 
 **Review/revise iteration.** Repeating cycles of review (finding issues), revision (fixing them), and re-review until convergence. See [Review/Revise Iteration pattern](patterns/review-revise-iteration.md).
@@ -198,9 +204,13 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 
 **Self-healing rebase.** When a foundation claim changes, dependents automatically re-verify through the same narrow → refine → verify cycles that built them.
 
+**Self-Report Laundering.** A failure mode of [self-healing](design-notes/self-healing.md#observation-layer-limitation): an evaluator reads the summaries an LLM process produced about itself (commit messages, stats, finding counts) rather than the artifacts it produced (diffs, code, outputs). The generator's own voice gets re-surfaced to the evaluator as if it were independent evidence. Addressed by the [Audit by Content](design-notes/audit-by-content.md) design rule. Lives in the self-healing map rather than the equilibrium patterns because it is a failure of the observation machinery, not of the artifact content.
+
 **Signal.** A mechanical indicator that a disequilibrium pattern is occurring (e.g., a claim's contract growing across cycles signals [Contract Sprawl](equilibrium/contract-sprawl.md)).
 
 **Sprawl.** See Contract Sprawl.
+
+**Structural finding.** A review finding whose root cause is structural rather than semantic — duplicated declarations, dangling references, metadata disagreement, dependency-graph cycles. Symptom of an [Uncontracted Representation Change](equilibrium/uncontracted-representation-change.md).
 
 **Summary.** 1-3 sentence YAML field describing what a claim claims. Produced by the summarize step. Used by downstream foundation loading.
 
@@ -218,11 +228,15 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 
 **Transclusion.** Including one document's content by reference, not by copy. A Xanadu protocol primitive and the mechanism by which the [lattice](patterns/lattice.md) shares content across nodes.
 
+**Transitional failure.** An [equilibrium](equilibrium/) pattern whose force acts at a representation boundary introduced by a pipeline transition. Fixed once per boundary (by specifying and enforcing the output contract that the transition introduces); does not recur unless a new encapsulation is introduced elsewhere. Contrasts with [gravitational failure](#g) and [oscillatory failure](#o). [Uncontracted Representation Change](equilibrium/uncontracted-representation-change.md) is the transitional pattern documented so far.
+
 **Two data authorities.** The two-channel architecture with vocabulary firewall separating theory from data. See [Two Data Authorities pattern](patterns/two-data-authorities.md).
 
 **Type.** YAML classification of a claim: axiom, definition, design requirement, lemma, theorem, corollary.
 
 ## U
+
+**Uncontracted Representation Change.** A [transitional failure](#t) at a [representation change](patterns/representation-change.md) where the pipeline introduces a new unit of structure without specifying what well-formed output means. The structure lands on disk, but no contract says what must hold, and downstream reviewers spend cycles on symptoms of unnamed violations. See [Uncontracted Representation Change](equilibrium/uncontracted-representation-change.md).
 
 **Under-citation.** A proof uses a claim that its Depends list doesn't include. The most common form of [Citation Drift](equilibrium/citation-drift.md).
 

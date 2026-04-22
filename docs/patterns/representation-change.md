@@ -69,6 +69,8 @@ Each [review/revise iteration](review-revise-iteration.md) cycle operates within
 
 [Narrow → Refine → Verify](narrow-refine-verify.md) — representation change serves the primary cycle but is not a phase within it. It happens when needed: before narrowing (blueprinting), after narrowing (extract/absorb), between refinement stages (formalization → verification). Refinement operates within a single representation — the representation is stable during the review/revise loop.
 
+[Uncontracted Representation Change](../equilibrium/uncontracted-representation-change.md) — the failure mode when a representation change is performed without specifying what well-formed output means at the new representation. Each arrow in the structure above carries implicit validity rules; the failure occurs when those rules stay implicit.
+
 ## Origin
 
 Present from the start — the pipeline has always been discovery → blueprinting → formalization → verification, each stage producing a different representation of the same content. The pattern was implicit in the pipeline design. It became explicit when blueprinting was redesigned from a single-pass LLM rewrite to progressive decomposition — the recognition that representation change must happen in small, verifiable steps, not in one large jump.
