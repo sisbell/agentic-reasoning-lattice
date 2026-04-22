@@ -5,6 +5,7 @@ depends:
 - T0
 - T4
 - NAT-zero
+- NAT-discrete
 - NAT-order
 summary: |
   On the T4-valid subset of T (tumblers satisfying zeros(t) ≤ 3, no two zeros adjacent,
@@ -13,14 +14,13 @@ summary: |
   node address, zeros(t) = 1 ↔ user address, zeros(t) = 2 ↔ document address,
   zeros(t) = 3 ↔ element address. The biconditionals are definitional — they assign
   labels to zero-count values rather than bridging two independently characterised
-  notions — so the induced mapping from zero count to hierarchical level is a
-  bijection {0, 1, 2, 3} → {node, user, document, element} by construction. T4's
-  bound zeros(t) ≤ 3 supplies exhaustion on the T4-valid subdomain; injectivity
-  holds because distinct zero counts induce distinct labels on the single-valued
-  zeros function, and surjectivity holds because each count is realised by a
-  concrete T4-valid witness. The claim is universally quantified over the T4-valid
-  subdomain and assigns no level outside it. No dependency on T4b is required
-  because the labels are defined by T4c directly in terms of zero count, not in
-  terms of T4b's fields(t) decomposition; a downstream reading that characterises
-  levels by the presence or absence of particular field segments would require
-  T4b and is not the content of T4c.
+  notions. T4's bound zeros(t) ≤ 3 together with NAT-zero and NAT-discrete supplies
+  exhaustion on the T4-valid subdomain (every T4-valid tumbler receives a label);
+  the four labels are pairwise distinct because the zero counts 0, 1, 2, 3 are
+  pairwise distinct in ℕ (NAT-order) and zeros(t) is single-valued; and each label
+  is realised by a concrete T4-valid witness. The claim is universally quantified
+  over the T4-valid subdomain and assigns no level outside it. No dependency on
+  T4b is required because the labels are defined by T4c directly in terms of zero
+  count, not in terms of T4b's fields(t) decomposition; a downstream reading that
+  characterises levels by the presence or absence of particular field segments
+  would require T4b and is not the content of T4c.
