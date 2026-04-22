@@ -1,0 +1,15 @@
+# Regional Review — ASN-0034/ActionPoint (cycle 2)
+
+*2026-04-21 22:36*
+
+### ActionPoint derivation uses `0 + 1 = 1` but no claim establishes `1 ∈ ℕ`
+**Foundation**: NAT-closure (NatArithmeticClosureAndIdentity) — formal contract states `(A n ∈ ℕ :: 0 + n = n)` as the additive-identity axiom, universally quantified over `n ∈ ℕ`.
+**ASN**: ActionPoint derivation: "NAT-discrete's forward direction m < n ⟹ m + 1 ≤ n at m = 0, n = w_{actionPoint(w)} yields 0 + 1 ≤ w_{actionPoint(w)}; NAT-closure's additive identity 0 + 1 = 1 rewrites this to 1 ≤ w_{actionPoint(w)}."
+**Issue**: Applying NAT-closure's `(A n ∈ ℕ :: 0 + n = n)` at `n = 1` to obtain `0 + 1 = 1` requires `1 ∈ ℕ` as the witness for instantiation. No claim in the ASN states `1 ∈ ℕ` as axiom content. It is derivable — NAT-zero supplies `0 ∈ ℕ` and NAT-closure's successor clause `(A n ∈ ℕ :: n + 1 ∈ ℕ)` at `n = 0` yields `0 + 1 ∈ ℕ`, which combined with `0 + 1 = 1` gives `1 ∈ ℕ` — but the derivation skips this step, silently assuming `1 ∈ ℕ`. The postcondition `w_{actionPoint(w)} ≥ 1` is load-bearing (it is what downstream claims cite), and the final rewrite introduces `1` without a stated membership license.
+**What needs resolving**: Either add the short step deriving `1 ∈ ℕ` from NAT-zero and NAT-closure's successor clause before invoking the additive-identity rewrite, or add `1 ∈ ℕ` as an explicit clause of some axiom body the derivation already cites, so the instantiation `n = 1` in NAT-closure's additive identity is licensed by stated content.
+
+### TA-Pos's divergence example overloads `0` as both a length-1 tumbler and the natural number zero
+**Foundation**: T0 (CarrierSetDefinition) — writes tumblers as `d₁.d₂. ... .dₙ` with `n ≥ 1`, so a length-1 tumbler collapses to a single component with no syntactic marker. NAT-zero, NAT-closure, NAT-discrete all use `0` as the natural number.
+**ASN**: TA-Pos body: "The all-zero tumbler `0.0` exhibits the divergence: under T1, `0 < 0.0` by the prefix rule, yet `Zero(0.0)` holds."
+**Issue**: In `0 < 0.0`, the prefix rule requires both operands to be tumblers, so the left-hand `0` denotes a length-1 tumbler whose single component is the natural number `0`. Elsewhere in this ASN (NAT-order's `¬(n < n)`, NAT-zero's `0 ≤ n`, NAT-closure's `0 + n = n`, NAT-discrete's `m + 1 ≤ n` at `m = 0`, and ActionPoint's derivation), `0` denotes the natural number. T0 provides no notation distinguishing a length-1 tumbler from its sole component — both are written `0`. The symbol carries two meanings in adjacent claims, distinguished only by which side of the relation it sits on. The divergence illustration is load-bearing content of TA-Pos, and its correctness under the prefix rule rests on the reader silently reassigning `0`'s domain mid-sentence.
+**What needs resolving**: Either introduce a disambiguating notation for length-1 tumblers in T0 (e.g., an explicit `⟨0⟩` form, or `0.` with a trailing separator) and use it in TA-Pos's example, or rewrite the divergence illustration using tumblers of length ≥ 2 on both sides so no operand of `<` coincides syntactically with the natural-number zero used elsewhere.
