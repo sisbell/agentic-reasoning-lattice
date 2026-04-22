@@ -32,9 +32,11 @@ summary: |
   inequalities (s₁ ≥ 2, s_k ≤ #t − 1, s_{j+1} ≥ s_j + 2) that discharge
   non-emptiness of every listed sub-sequence. NAT-closure grounds the numeral
   2 := 1 + 1 in ℕ and the sums s_i + 1, s_i + 2 appearing in the case construction;
-  NAT-sub's conditional-closure clause at s_i ≥ 1 (T0's index domain) and #t ≥ 1
-  (T0) gives s_i − 1 and #t − 1 in ℕ for the sub-sequence upper indices and for
-  the inequality s_k ≤ #t − 1. NAT-card's enumeration characterisation of |·|
+  T4b locally unpacks #t ≥ 1 from T0's nonempty qualification of t ∈ T (the length
+  of a nonempty sequence is at least 1), and NAT-sub's conditional-closure clause
+  at s_i ≥ 1 (T0's index domain) and this locally unpacked #t ≥ 1 gives s_i − 1
+  and #t − 1 in ℕ for the sub-sequence upper indices and for the inequality
+  s_k ≤ #t − 1. NAT-card's enumeration characterisation of |·|
   identifies the length k of the strictly increasing enumeration s₁ < s₂ < … < s_k
   of the zero-index subset with zeros(t), so k = zeros(t) in the case analysis
   on k. Well-definedness follows because T4's role-assignment makes zeros exactly

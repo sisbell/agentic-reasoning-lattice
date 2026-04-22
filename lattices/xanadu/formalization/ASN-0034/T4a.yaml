@@ -17,7 +17,9 @@ summary: |
   the semantic reading that every present field contributes at least one component.
   NAT-closure grounds the numerals `2 := 1 + 1` and `3 := 2 + 1` in ℕ, and the sums
   `s_i + 1`, `s_i + 2`, `#t + 1` appearing in the proof's sentinel and inequality
-  manipulations; NAT-sub's conditional-closure clause at `#t ≥ 1` (T0) yields
-  `#t − 1 ∈ ℕ`, making `s_k ≤ #t − 1` a comparison of two ℕ-elements. NAT-card's
+  manipulations; T4a locally unpacks `#t ≥ 1` from T0's nonempty qualification of
+  `t ∈ T` (the length of a nonempty sequence is at least 1), and NAT-sub's
+  conditional-closure clause at this `#t ≥ 1` yields `#t − 1 ∈ ℕ`, making
+  `s_k ≤ #t − 1` a comparison of two ℕ-elements. NAT-card's
   enumeration characterisation of `|·|` identifies the length `k` of the strictly
   increasing enumeration `s₁ < s₂ < … < s_k` of the zero-index subset with `zeros(t)`.
