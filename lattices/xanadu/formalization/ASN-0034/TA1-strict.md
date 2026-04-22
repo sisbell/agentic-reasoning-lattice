@@ -28,7 +28,7 @@ In both cases, `a ⊕ w < b ⊕ w`. ∎
   - TA0 (WellDefinedAddition) — `a ⊕ w, b ⊕ w ∈ T`; length identity `#(a ⊕ w) = #w`.
   - TumblerAdd — constructive component-wise definition.
   - NAT-order (NatStrictTotalOrder) — trichotomy; defining clause `m ≤ n ⟺ m < n ∨ m = n`; transitivity of `<`; irreflexivity.
-  - NAT-addcompat (NatAdditionOrderAndSuccessor) — strict successor `n < n + 1`; right order-compatibility `n ≥ p ⟹ n + m ≥ p + m`.
+  - NAT-addcompat (NatAdditionOrderAndSuccessor) — strict successor `n < n + 1`; right order-compatibility `p ≤ n ⟹ p + m ≤ n + m`.
   - NAT-cancel (NatAdditionCancellation) — right cancellation `n + m = p + m ⟹ n = p`.
 - *Postconditions:* a ⊕ w < b ⊕ w
 

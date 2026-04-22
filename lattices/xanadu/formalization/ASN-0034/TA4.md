@@ -8,7 +8,7 @@
 
 Since `aₖ ∈ ℕ` (T0 component typing at `k = #a`), NAT-zero supplies `0 ≤ aₖ`, which NAT-order's defining clause `m ≤ n ⟺ m < n ∨ m = n` at `m = 0, n = aₖ` unfolds to `aₖ > 0 ∨ aₖ = 0`.
 
-*Case 1: `aₖ > 0`.* NAT-addcompat's right order-compatibility (`n ≥ p ⟹ n + m ≥ p + m`, at `n = aₖ, p = 0, m = wₖ`) lifts `0 ≤ aₖ` to `aₖ + wₖ ≥ 0 + wₖ`; NAT-closure's additive identity rewrites `0 + wₖ = wₖ`, giving `aₖ + wₖ ≥ wₖ`. NAT-cancel's symmetric summand absorption `n + m = m ⟹ n = 0` rules out the equality disjunct, which would force `aₖ = 0` and contradict `aₖ > 0` by NAT-order's irreflexivity. NAT-order's defining clause at `m = wₖ, n = aₖ + wₖ` then yields `aₖ + wₖ > wₖ`, i.e., `rₖ > wₖ`. Combined with pre-divergence agreement at `i < k`, ZPD's minimality identifies `k = zpd(r, w)`. TumblerSub produces `sᵢ = 0` for `i < k`, `sₖ = (aₖ + wₖ) − wₖ = aₖ` (NAT-sub right-telescoping), and nothing beyond (since `#r = k`). Hence `s = [0, ..., 0, aₖ]` of length `k`, which by T3 and the precondition `aᵢ = 0` for `i < k` equals `a`.
+*Case 1: `aₖ > 0`.* NAT-addcompat's right order-compatibility (`p ≤ n ⟹ p + m ≤ n + m`, at `p = 0, n = aₖ, m = wₖ`) lifts `0 ≤ aₖ` to `0 + wₖ ≤ aₖ + wₖ`; NAT-closure's additive identity rewrites `0 + wₖ = wₖ`, giving `wₖ ≤ aₖ + wₖ`. NAT-cancel's symmetric summand absorption `n + m = m ⟹ n = 0` rules out the equality disjunct, which would force `aₖ = 0` and contradict `aₖ > 0` by NAT-order's irreflexivity. NAT-order's defining clause at `m = wₖ, n = aₖ + wₖ` then yields `aₖ + wₖ > wₖ`, i.e., `rₖ > wₖ`. Combined with pre-divergence agreement at `i < k`, ZPD's minimality identifies `k = zpd(r, w)`. TumblerSub produces `sᵢ = 0` for `i < k`, `sₖ = (aₖ + wₖ) − wₖ = aₖ` (NAT-sub right-telescoping), and nothing beyond (since `#r = k`). Hence `s = [0, ..., 0, aₖ]` of length `k`, which by T3 and the precondition `aᵢ = 0` for `i < k` equals `a`.
 
 *Case 2: `aₖ = 0`.* Then `rₖ = aₖ + wₖ = 0 + wₖ = wₖ` (NAT-closure). Combined with `rᵢ = 0 = wᵢ` for `i < k` and `#r = k = #w`, T3 gives `r = w`. The padded projections agree throughout `{1, ..., k}`, so `zpd(r, w)` is undefined (ZPD case-split) and TumblerSub's no-divergence branch yields the zero tumbler of length `k`. By the precondition, this is `a`.
 
@@ -29,7 +29,7 @@ Gregory's analysis confirms that `⊕` and `⊖` are NOT inverses in general. Th
   - T3 (CanonicalRepresentation) — componentwise and length equality imply tumbler equality
   - ZPD (ZPD) — case-split (undefined when padded projections agree); minimality at first disagreement
   - NAT-closure (NatArithmeticClosureAndIdentity) — additive identity `0 + n = n`
-  - NAT-addcompat (NatAdditionOrderAndSuccessor) — right order-compatibility `n ≥ p ⟹ n + m ≥ p + m`
+  - NAT-addcompat (NatAdditionOrderAndSuccessor) — right order-compatibility `p ≤ n ⟹ p + m ≤ n + m`
   - NAT-cancel (NatAdditionCancellation) — symmetric summand absorption `n + m = m ⟹ n = 0`
   - NAT-zero (NatZeroMinimum) — lower bound `0 ≤ n` for `n ∈ ℕ`
   - NAT-order (NatStrictTotalOrder) — trichotomy on length pair; defining clause `≤ ⟺ < ∨ =`; irreflexivity
