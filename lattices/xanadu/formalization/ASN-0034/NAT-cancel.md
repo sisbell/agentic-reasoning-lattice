@@ -5,7 +5,7 @@
 - Summand absorption, standard form: `m + n = m ⟹ n = 0` for every `m, n ∈ ℕ`.
 - Summand absorption, symmetric form: `n + m = m ⟹ n = 0` for every `m, n ∈ ℕ`.
 
-Both summand-absorption forms are stated independently because T0's NAT-* enumeration does not include commutativity of addition on ℕ, so neither form is derivable from the other. The same reason governs the independent statement of left and right cancellation.
+Both summand-absorption forms are stated independently because the NAT-* axioms of this ASN do not include commutativity of addition on ℕ, so neither form is derivable from the other. The same reason governs the independent statement of left and right cancellation.
 
 *Formal Contract:*
 - *Axiom:* `(A m, n, p ∈ ℕ : m + n = m + p : n = p)` (left cancellation); `(A m, n, p ∈ ℕ : n + m = p + m : n = p)` (right cancellation); `(A m, n ∈ ℕ : m + n = m : n = 0)` (summand absorption, standard form); `(A m, n ∈ ℕ : n + m = m : n = 0)` (summand absorption, symmetric form).

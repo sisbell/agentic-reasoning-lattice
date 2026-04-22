@@ -23,3 +23,9 @@
 **ASN**: TA-Pos Definition: "`Pos(t)` iff `(E i : 1 ≤ i ≤ #t : tᵢ ≠ 0)` …". ActionPoint Definition and derivation: "S = {i : 1 ≤ i ≤ #w ∧ wᵢ ≠ 0}", and "a subset of ℕ because its elements are indices with 1 ≤ i ≤ #w".
 **Issue**: T0's axiom commits that components take values in ℕ (`aᵢ ∈ ℕ`) and that length is in ℕ (`#· : T → ℕ`). It does not commit that the index domain of `·ᵢ` is ℕ — the phrase "at each component position" leaves the type of positions unsaid. TA-Pos's bounded quantifier `(E i : 1 ≤ i ≤ #t : …)` presupposes `i ∈ ℕ` for `≤` to be well-formed; ActionPoint's derivation explicitly invokes `S ⊆ ℕ` with the gloss "because its elements are indices with 1 ≤ i ≤ #w" — a justification that assumes, rather than derives, index ℕ-membership. The load-bearing step is ActionPoint's appeal to NAT-wellorder, whose precondition `S ⊆ ℕ` is exactly what this gap leaves unsecured. Component-position-is-ℕ is standard convention, but T0's axiom does not encode it, so consumers rest on an unstated premise.
 **What needs resolving**: Either extend T0's axiom to state that the index domain of `·ᵢ` is ℕ (or equivalently that `·ᵢ : T × {1, …, #a} → ℕ` with `{1, …, #a} ⊆ ℕ`), or rewrite ActionPoint's derivation to cite whatever T0 content *does* license `S ⊆ ℕ`, so the NAT-wellorder precondition is discharged against stated axiom content rather than an implicit convention.
+
+## Result
+
+Regional review not converged after 8 cycles.
+
+*Elapsed: 4281s*
