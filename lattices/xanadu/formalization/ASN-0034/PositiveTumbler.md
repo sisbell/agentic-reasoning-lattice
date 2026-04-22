@@ -1,6 +1,6 @@
 ## Zero tumblers and positivity
 
-**TA-Pos (PositiveTumbler).** A tumbler `t ∈ T` is *positive*, written `Pos(t)`, iff `(E i : 1 ≤ i ≤ #t : tᵢ ≠ 0)`. A tumbler `t ∈ T` is a *zero tumbler*, written `Zero(t)`, iff `(A i : 1 ≤ i ≤ #t : tᵢ = 0)`. Here `tᵢ` is a natural number by T0's carrier, and the literal `0` against which it is compared is the `0 ∈ ℕ` posited by NAT-zero; the equalities and inequalities in the two clauses are thus well-typed within ℕ.
+**TA-Pos (PositiveTumbler).** A tumbler `t ∈ T` is *positive*, written `Pos(t)`, iff `(E i : 1 ≤ i ≤ #t : tᵢ ≠ 0)`. A tumbler `t ∈ T` is a *zero tumbler*, written `Zero(t)`, iff `(A i : 1 ≤ i ≤ #t : tᵢ = 0)`. Here `tᵢ` is a natural number by T0's carrier, the literal `0` against which it is compared is the `0 ∈ ℕ` posited by NAT-zero, the numeral `1` bounding the quantifier range is the `1 ∈ ℕ` posited by NAT-closure, and the relation `≤` bounding that range is the non-strict companion of `<` defined on ℕ by NAT-order; the equalities and inequalities in the two clauses are thus well-typed within ℕ.
 
 The set of zero tumblers is written **Z** = {t ∈ T : Zero(t)}.
 
@@ -9,5 +9,7 @@ The set of zero tumblers is written **Z** = {t ∈ T : Zero(t)}.
 - *Depends:*
   - T0 (CarrierSetDefinition) — carrier `T`, length `#t`, component projection `tᵢ`.
   - NAT-zero (NatZeroMinimum) — supplies `0 ∈ ℕ` for the literal appearing in `tᵢ = 0` and `tᵢ ≠ 0`.
+  - NAT-order (NatStrictTotalOrder) — supplies `≤` on ℕ for the bounded-quantifier range `1 ≤ i ≤ #t`.
+  - NAT-closure (NatArithmeticClosureAndIdentity) — supplies `1 ∈ ℕ` for the numeral bounding that range.
 
 *Note on notation (outside the formal contract).* The predicate `Pos(t)` is not written `t > 0`, because `>` is reserved elsewhere for a lexicographic ordering on tumblers under which a zero tumbler may strictly exceed another zero tumbler: the length-1 tumbler `0` is a proper prefix of the length-2 tumbler `0.0`, and under the prefix rule of that ordering `0 < 0.0`, so `0.0 > 0` even though `Zero(0.0)` holds. Writing `Pos(t)` as `t > 0` would therefore conflate two distinct relations. The lexicographic ordering and its prefix rule alluded to here are supplied by claims outside this region and enter no obligation of TA-Pos.

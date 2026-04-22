@@ -2,5 +2,5 @@ label: NAT-wellorder
 name: NatWellOrdering
 type: axiom
 depends: []
-summary: Every nonempty subset of ℕ contains a least element under `<`, making `min(S)` unconditionally well-defined for any
-  nonempty S ⊆ ℕ. This well-ordering principle is what grounds induction and termination arguments over natural numbers.
+summary: Every nonempty subset of ℕ contains a least element under `<`. This well-ordering principle is what grounds induction
+  and termination arguments over natural numbers.
