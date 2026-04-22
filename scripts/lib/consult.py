@@ -10,6 +10,7 @@ Domain-specific logic (source loading, prompt composition, role identity)
 lives in the per-domain channel scripts, not here.
 """
 
+import importlib.util
 import json
 import os
 import re
@@ -17,9 +18,11 @@ import subprocess
 import sys
 import threading
 import time
+from pathlib import Path
 
 from lib.shared.common import MODEL_FLAGS, log_usage
 from lib.shared.campaign import resolve_campaign
+from lib.shared.paths import WORKSPACE
 
 
 # Process-local usage accumulator. Every invoke_claude call updates it
@@ -194,3 +197,22 @@ def resolve_channel_from_args(args, role):
         return getattr(resolve_campaign(args.asn), f"{role}_channel")
     raise SystemExit(
         "error: provide --asn (to resolve via campaign) or --channel (explicit)")
+
+
+def load_channel_plugin(channel_name):
+    """Load channels/<name>/consultations/consult.py as a module.
+
+    Returns the module, which is expected to expose:
+      generate_questions(inquiry, n=10, model="opus", out_of_scope="") -> list[str]
+      consult(question, label="", model="opus", effort="max") -> str
+
+    Raises FileNotFoundError if the channel plugin is missing.
+    """
+    path = WORKSPACE / "channels" / channel_name / "consultations" / "consult.py"
+    if not path.exists():
+        raise FileNotFoundError(f"Channel plugin not found: {path}")
+    spec = importlib.util.spec_from_file_location(
+        f"channels.{channel_name}.consult", path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
