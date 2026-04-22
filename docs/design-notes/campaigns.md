@@ -56,10 +56,13 @@ lattices/<lattice>/
 └── manifests/
     └── ASN-NNNN/note.yaml                   # optional: campaign: <name>
 
-domains/<lattice>/channels/
+channels/                                    # top-level plugin registry (cross-lattice)
 └── <channel-name>/
-    ├── corpus*.md                            # source material
-    └── meta.yaml                             # description, type
+    ├── meta.yaml                             # identity + channel-specific config
+    ├── resources/                            # source material (corpus, submodules, KBs, etc.)
+    └── consultations/
+        ├── consult.py                        # plugin exposing generate_questions(), consult()
+        └── *.md                              # channel-specific consultation prompt templates
 ```
 
 Each ASN's campaign context is resolved at pipeline invocation: the ASN's manifest is read, the bound campaign is identified (or inherited from the lattice default), and its channels, vocabulary, and target are loaded. All discovery-stage scripts read vocabulary and corpora through this resolution step — there is no direct pipeline access to channel content bypassing the campaign.

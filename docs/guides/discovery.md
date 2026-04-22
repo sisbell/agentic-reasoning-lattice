@@ -70,14 +70,23 @@ Each campaign lives at `lattices/<lattice>/campaigns/<name>/` with two files:
 
 ### Channel artifacts
 
-Channels live at `domains/<lattice>/channels/<name>/` with:
-- One or more `.md` corpus files (the source material the consultation agent reads).
-- **`meta.yaml`** — declares the channel's description (used by the channel-assignment prompt) and its type:
-  ```yaml
-  name: maxwell-1867
-  description: "Maxwell's dynamical theory of gases (1867). The theory of this period."
-  type: single-source
-  ```
+Channels live at `channels/<name>/` (top-level, cross-lattice registry) and are self-contained plugins:
+```
+channels/<name>/
+├── meta.yaml                  # identity + channel-specific config
+├── resources/                 # source content (files, submodules, etc.)
+└── consultations/
+    ├── consult.py             # plugin exposing generate_questions() and consult()
+    └── *.md                   # channel-specific consultation prompts
+```
+The `meta.yaml` declares the channel's identity and description:
+```yaml
+name: maxwell-1867
+role_hint: theory
+description: "Maxwell's dynamical theory of gases (1867). The theory of this period."
+type: single-source
+```
+Campaigns reference channels by bare name; the orchestrator loads `channels/<name>/consultations/consult.py` via the plugin loader at `scripts/lib/consult.py::load_channel_plugin`.
 
 ## Creating a new ASN
 
@@ -93,7 +102,7 @@ The pipeline resolves the ASN's campaign at every stage (draft, review, revise, 
 
 See [the `new-campaign` helper](../../scripts/new-campaign.py) when implemented. Manually:
 
-1. Ensure the theory and evidence channel directories exist at `domains/<lattice>/channels/<name>/` with a `meta.yaml` and corpus files.
+1. Ensure the theory and evidence channel plugins exist at `channels/<name>/` (meta.yaml, resources/, consultations/ with consult.py + prompts).
 2. Create `lattices/<lattice>/campaigns/<name>/config.yaml` with the channel bindings and target.
 3. Curate `lattices/<lattice>/campaigns/<name>/vocabulary.md` by reading both corpora and coining unified names for terms the authorities name differently.
 4. Author an ASN with `campaign: <name>` in its manifest and run the pipeline.
