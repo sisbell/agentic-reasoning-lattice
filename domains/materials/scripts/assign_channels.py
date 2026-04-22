@@ -18,12 +18,12 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent / "scripts"))
-from lib.shared.paths import DOMAIN_PROMPTS, CHANNELS_DIR
+from lib.shared.paths import CHANNELS_DIR, prompt_path
 from lib.shared.common import read_file
 from lib.shared.campaign import resolve_campaign
 
 
-PROMPT_TEMPLATE = DOMAIN_PROMPTS / "revise" / "assign-channels.md"
+PROMPT_TEMPLATE = prompt_path("revise/assign-channels.md")
 
 DISPLAY_NAMES = {
     "theory": "Theory",
