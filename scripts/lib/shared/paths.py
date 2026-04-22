@@ -16,6 +16,23 @@ DOMAIN = WORKSPACE / "domains" / LATTICE_NAME
 DOMAIN_PROMPTS = DOMAIN / "prompts"
 CHANNELS_DIR = DOMAIN / "channels"
 
+# Shared-prompts tier — prompts that apply across lattices (structural,
+# domain-neutral). Resolver prefers lattice-specific overrides.
+SHARED_PROMPTS = WORKSPACE / "domains" / "_shared" / "prompts"
+
+
+def prompt_path(subpath):
+    """Resolve a prompt path.
+
+    Prefers a lattice-specific override under DOMAIN_PROMPTS if it exists;
+    otherwise returns the shared path under SHARED_PROMPTS. Neither file is
+    required to exist — callers handle missing-file errors at read time.
+    """
+    lattice = DOMAIN_PROMPTS / subpath
+    if lattice.exists():
+        return lattice
+    return SHARED_PROMPTS / subpath
+
 # Discovery stage
 CONSULTATIONS_DIR = LATTICE / "discovery" / "consultations"
 NOTES_DIR = LATTICE / "discovery" / "notes"
