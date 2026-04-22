@@ -23,7 +23,8 @@ summary: |
   {1, …, #t}). NAT-closure posits 1 ∈ ℕ and closes ℕ under addition, grounding the
   numerals 2 := 1 + 1 ∈ ℕ and 3 := 2 + 1 ∈ ℕ used in both exhaustion's bound
   zeros(t) ≤ 3 and injectivity's chain 0 < 1 < 2 < 3. T4's bound
-  zeros(t) ≤ 3, NAT-zero's 0 ≤ zeros(t), NAT-order's trichotomy (case-splitting
+  zeros(t) ≤ 3, NAT-zero's 0 < zeros(t) ∨ 0 = zeros(t) (equivalently 0 ≤ zeros(t)
+  via NAT-order's definition of ≤), NAT-order's trichotomy (case-splitting
   zeros(t) against each m ∈ {0, 1, 2, 3} into zeros(t) < m, zeros(t) = m, or
   m < zeros(t), with the first branch excluded at each step by trichotomy's
   exactly-one clause — the cumulative lower bound m ≤ zeros(t) unfolds to
