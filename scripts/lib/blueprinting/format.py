@@ -21,12 +21,11 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, USAGE_LOG, REVIEWS_DIR, DOMAIN_PROMPTS
+from lib.shared.paths import WORKSPACE, USAGE_LOG, REVIEWS_DIR, prompt_path
 from lib.shared.common import find_asn, extract_claim_sections
 
-PROMPTS_DIR = DOMAIN_PROMPTS / "blueprinting" / "format"
-REVIEW_TEMPLATE = PROMPTS_DIR / "review.md"
-REVISE_TEMPLATE = PROMPTS_DIR / "revise.md"
+REVIEW_TEMPLATE = prompt_path("blueprinting/format/review.md")
+REVISE_TEMPLATE = prompt_path("blueprinting/format/revise.md")
 
 MAX_CYCLES = 30
 

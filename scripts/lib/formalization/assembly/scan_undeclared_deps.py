@@ -24,10 +24,10 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, DOMAIN_PROMPTS, load_manifest, formal_stmts, dep_graph
+from lib.shared.paths import WORKSPACE, prompt_path, load_manifest, formal_stmts, dep_graph
 from lib.shared.common import find_asn, read_file, extract_claim_sections, build_label_index, dump_yaml
 
-PROMPT_TEMPLATE = DOMAIN_PROMPTS / "formalization" / "assembly" / "scan-dependency.md"
+PROMPT_TEMPLATE = prompt_path("formalization/assembly/scan-dependency.md")
 
 
 # ---------------------------------------------------------------------------

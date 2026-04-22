@@ -14,11 +14,10 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, USAGE_LOG, DOMAIN_PROMPTS
+from lib.shared.paths import WORKSPACE, USAGE_LOG, prompt_path
 from lib.shared.common import find_asn
 
-PROMPTS_DIR = DOMAIN_PROMPTS / "formalization" / "local-review"
-REVISE_TEMPLATE = PROMPTS_DIR / "revise.md"
+REVISE_TEMPLATE = prompt_path("formalization/local-review/revise.md")
 
 
 def revise(asn_num, label, finding_text, claim_path=None):

@@ -23,9 +23,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, EXAMPLES_DIR, TEST_CASES_DIR, TRANSLATION_DIR, DOMAIN_PROMPTS
-
-PROMPTS = DOMAIN_PROMPTS / "test-cases"
+from lib.shared.paths import WORKSPACE, EXAMPLES_DIR, TEST_CASES_DIR, TRANSLATION_DIR, prompt_path
 
 ORACLE_DIR = TRANSLATION_DIR / "xanadu-oracle-rust"
 TESTS_DIR = ORACLE_DIR / "tests"
@@ -33,9 +31,9 @@ TESTS_DIR = ORACLE_DIR / "tests"
 EXTRACT_MODEL = "sonnet"
 REVIEW_MODEL = "sonnet"
 CODEGEN_MODEL = "sonnet"
-EXTRACT_PROMPT = PROMPTS / "extract.md"
-REVIEW_PROMPT = PROMPTS / "review.md"
-CODEGEN_PROMPT = PROMPTS / "codegen.md"
+EXTRACT_PROMPT = prompt_path("test-cases/extract.md")
+REVIEW_PROMPT = prompt_path("test-cases/review.md")
+CODEGEN_PROMPT = prompt_path("test-cases/codegen.md")
 
 
 

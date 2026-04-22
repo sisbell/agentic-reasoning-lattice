@@ -23,10 +23,10 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
-from lib.shared.paths import (WORKSPACE, FORMALIZATION_DIR, DAFNY_DIR, USAGE_LOG, DOMAIN_PROMPTS)
+from lib.shared.paths import (WORKSPACE, FORMALIZATION_DIR, DAFNY_DIR, USAGE_LOG, prompt_path)
 from lib.shared.common import find_asn, build_label_index
 
-PROMPT_TEMPLATE = DOMAIN_PROMPTS / "verification" / "dafny" / "validate-contract.md"
+PROMPT_TEMPLATE = prompt_path("verification/dafny/validate-contract.md")
 
 
 def validate(dafny_source, formal_contract, label):

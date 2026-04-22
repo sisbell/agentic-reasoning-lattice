@@ -14,11 +14,11 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, BLUEPRINTS_DIR, DOMAIN_PROMPTS
+from lib.shared.paths import WORKSPACE, BLUEPRINTS_DIR, prompt_path
 from lib.shared.common import find_asn, invoke_claude, parallel_llm_calls, step_commit_asn
 
 
-PROMPT_PATH = DOMAIN_PROMPTS / "blueprinting" / "decompose.md"
+PROMPT_PATH = prompt_path("blueprinting/decompose.md")
 
 # Sections that are structural — no LLM analysis needed
 SKIP_HEADERS = {

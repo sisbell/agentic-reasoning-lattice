@@ -18,15 +18,13 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, EXAMPLES_DIR, DOMAIN_PROMPTS, formal_stmts
+from lib.shared.paths import WORKSPACE, EXAMPLES_DIR, prompt_path, formal_stmts
 from lib.shared.common import find_asn
-
-PROMPTS = DOMAIN_PROMPTS / "examples"
 
 GENERATE_MODEL = "claude-sonnet-4-6"
 REVIEW_MODELS = ["claude-sonnet-4-6"]
-GENERATE_PROMPT = PROMPTS / "derive-examples.md"
-REVIEW_PROMPT = PROMPTS / "review.md"
+GENERATE_PROMPT = prompt_path("examples/derive-examples.md")
+REVIEW_PROMPT = prompt_path("examples/review.md")
 
 
 def find_formal_statements(asn_num):

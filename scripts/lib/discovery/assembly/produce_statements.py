@@ -13,11 +13,10 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, USAGE_LOG, NOTES_DIR, DOMAIN_PROMPTS, formal_stmts, note_dir
+from lib.shared.paths import WORKSPACE, USAGE_LOG, NOTES_DIR, prompt_path, formal_stmts, note_dir
 from lib.shared.common import find_asn, invoke_claude
 
-PROMPTS_DIR = DOMAIN_PROMPTS / "discovery" / "assembly"
-TEMPLATE = PROMPTS_DIR / "produce-statements.md"
+TEMPLATE = prompt_path("discovery/assembly/produce-statements.md")
 
 
 def _build_prompt(asn_content):
