@@ -1,11 +1,16 @@
 label: T0
 name: CarrierSetDefinition
 type: axiom
-depends: []
+depends:
+  - NAT-closure
+  - NAT-order
 summary: |
-  Posits the carrier set T as the set of all finite sequences of natural numbers with at least
-  one component, and introduces the length operator (#) and component projection (aᵢ) as
-  primitives. Commits that for each a ∈ T the component projection's index domain {1, …, #a}
-  is a subset of ℕ, so bounded quantifiers of the form `1 ≤ i ≤ #a` are well-formed over ℕ.
-  This is an axiom, not a derivation — it establishes the raw material from which every other
-  property in the system is built.
+  Posits the carrier set T as the set of finite sequences of natural numbers, and
+  introduces the length operator (#) and component projection (aᵢ) as primitives. Commits
+  that for each a ∈ T the component projection's index domain {1, …, #a} is a subset of ℕ,
+  so bounded quantifiers of the form `1 ≤ i ≤ #a` are well-formed over ℕ. Formalizes
+  nonemptiness as `(A a ∈ T :: #a ≥ 1)`, drawing `1 ∈ ℕ` from NAT-closure and the
+  order relation from NAT-order's non-strict companion `≤`; without this clause the case
+  `#a = 0` would leave the index range empty and collapse Pos/Zero predicates to mutual
+  vacuity on the same tumbler. This is an axiom, not a derivation — it establishes the
+  raw material from which every other property in the system is built.

@@ -8,8 +8,12 @@ depends:
 - NAT-closure
 summary: |
   Defines positivity for tumblers via two predicate symbols: `Pos(t)` (positive) iff at least one component is
-  nonzero, and `Zero(t)` (zero tumbler) iff every component is zero. Additionally introduces the set-form
-  `Z = {t ∈ T : Zero(t)}`, consumed by TA7a's subspace-closure postcondition `o ⊖ w ∈ S ∪ Z` where the union
-  with `S` requires set-valued notation. The ordering consequence — every positive tumbler is strictly greater
-  under T1 than every zero tumbler of any length — is established separately by a downstream ordering theorem
-  that consumes ActionPoint.
+  nonzero, and `Zero(t)` (zero tumbler) iff every component is zero. The `Pos` matrix is written as the
+  classical negation `¬(tᵢ = 0)` rather than `tᵢ ≠ 0`, so no inequality symbol beyond `=` is required on ℕ.
+  Commits the complementarity clause `(A t ∈ T :: Pos(t) ⟺ ¬Zero(t))`, obtained from the defining clauses
+  by the DeMorgan duality of bounded quantifiers; T0's nonemptiness clause `#a ≥ 1` keeps the index range
+  nonvacuous so the partition of `T` into positives and zero tumblers is genuine rather than an empty-range
+  coincidence. Additionally introduces the set-form `Z = {t ∈ T : Zero(t)}`, consumed by TA7a's
+  subspace-closure postcondition `o ⊖ w ∈ S ∪ Z` where the union with `S` requires set-valued notation. The
+  ordering consequence — every positive tumbler is strictly greater under T1 than every zero tumbler of any
+  length — is established separately by a downstream ordering theorem that consumes ActionPoint.

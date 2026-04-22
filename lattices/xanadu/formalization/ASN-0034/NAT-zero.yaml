@@ -1,13 +1,14 @@
 label: NAT-zero
 name: NatZeroMinimum
 type: axiom
-depends: []
+depends:
+  - NAT-order
 summary: |
   Fixes 0 as the minimum of ℕ via the pair `0 ∈ ℕ` and `(A n ∈ ℕ :: 0 < n ∨ 0 = n)`.
-  The second clause is phrased with the primitives `<` and `=` rather than the defined
-  `≤`, so NAT-zero is independent of NAT-order (which gives strict total order but does
-  not identify 0 as the minimum) and NAT-wellorder (which gives ℕ a least element but
-  does not name that element 0). Supplies `0 ∈ ℕ` for zero-padded components and
-  literal-zero sites across the ASN, and the disjunction `0 < n ∨ 0 = n` needed —
-  combined with `n ≠ 0` to rule out the equality case — to instantiate NAT-discrete
-  at `m = 0` and derive the inference `n ≠ 0 ⟹ n ≥ 1`.
+  The minimum reading — that no `n ∈ ℕ` satisfies `n < 0` — is not delivered by the
+  axiom body alone; it is lifted from the disjunction by NAT-order's irreflexivity
+  `¬(n < n)` and transitivity `m < n ∧ n < p ⟹ m < p`, so NAT-order is declared in
+  Depends. Supplies `0 ∈ ℕ` for zero-padded components and literal-zero sites across
+  the ASN, and the disjunction `0 < n ∨ 0 = n` — combined with `n ≠ 0` to rule out
+  the equality case — to instantiate NAT-discrete at `m = 0` and derive the inference
+  `n ≠ 0 ⟹ n ≥ 1`.
