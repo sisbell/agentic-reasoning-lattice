@@ -199,6 +199,9 @@ def resolve_channel_from_args(args, role):
         "error: provide --asn (to resolve via campaign) or --channel (explicit)")
 
 
+_plugin_cache = {}
+
+
 def load_channel_plugin(channel_name):
     """Load channels/<name>/consultations/consult.py as a module.
 
@@ -206,8 +209,12 @@ def load_channel_plugin(channel_name):
       generate_questions(inquiry, n=10, model="opus", out_of_scope="") -> list[str]
       consult(question, label="", model="opus", effort="max") -> str
 
-    Raises FileNotFoundError if the channel plugin is missing.
+    Raises FileNotFoundError if the channel plugin is missing. Cached per
+    process so the module (and its corpus/template caches) is shared across
+    calls within a decompose run.
     """
+    if channel_name in _plugin_cache:
+        return _plugin_cache[channel_name]
     path = WORKSPACE / "channels" / channel_name / "consultations" / "consult.py"
     if not path.exists():
         raise FileNotFoundError(f"Channel plugin not found: {path}")
@@ -215,4 +222,5 @@ def load_channel_plugin(channel_name):
         f"channels.{channel_name}.consult", path)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
+    _plugin_cache[channel_name] = mod
     return mod

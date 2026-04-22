@@ -37,10 +37,33 @@ from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
 from lib.consult import (
     invoke_claude, get_total_usage, reset_total_usage,
-    load_domain_consult_modules,
+    load_domain_consult_modules, load_channel_plugin,
 )
 
 theory, evidence = load_domain_consult_modules(DOMAIN)
+
+
+def _dispatch_generate_questions(channel, role, inquiry, n, model, out_of_scope):
+    """Prefer channel plugin; fall back to lattice script for un-migrated channels."""
+    try:
+        plugin = load_channel_plugin(channel)
+        return plugin.generate_questions(
+            inquiry, n=n, model=model, out_of_scope=out_of_scope)
+    except FileNotFoundError:
+        mod = theory if role == "theory" else evidence
+        return mod.generate_questions(
+            inquiry, channel, n=n, model=model, out_of_scope=out_of_scope)
+
+
+def _dispatch_run_consultation(channel, role, question, label, model, effort):
+    """Prefer channel plugin; fall back to lattice script for un-migrated channels."""
+    try:
+        plugin = load_channel_plugin(channel)
+        return plugin.consult(question, label=label, model=model, effort=effort)
+    except FileNotFoundError:
+        mod = theory if role == "theory" else evidence
+        return mod.run_consultation(
+            question, channel, label=label, model=model, effort=effort)
 
 
 def load_inquiry(inquiry_id):
@@ -134,12 +157,10 @@ def decompose_inquiry(inquiry_text, num_theory=10, num_evidence=10, model="opus"
     theory_channel = campaign.theory_channel
     evidence_channel = campaign.evidence_channel
 
-    theory_qs = theory.generate_questions(
-        inquiry_text, theory_channel, n=num_theory, model=model, out_of_scope=out_of_scope,
-    )
-    evidence_qs = evidence.generate_questions(
-        inquiry_text, evidence_channel, n=num_evidence, model=model, out_of_scope=out_of_scope,
-    )
+    theory_qs = _dispatch_generate_questions(
+        theory_channel, "theory", inquiry_text, num_theory, model, out_of_scope)
+    evidence_qs = _dispatch_generate_questions(
+        evidence_channel, "evidence", inquiry_text, num_evidence, model, out_of_scope)
 
     all_qs = [("theory", q) for q in theory_qs] + [("evidence", q) for q in evidence_qs]
 
@@ -247,8 +268,9 @@ def run_consultations(questions, consult_dir, asn_id, theory_model="opus",
             role, question = questions[i]
 
             def run_t(idx=i, q=question, r=role):
-                answer = theory.run_consultation(
-                    q, theory_channel, label=f"Q{idx + 1}:theory",
+                answer = _dispatch_run_consultation(
+                    theory_channel, "theory", q,
+                    label=f"Q{idx + 1}:theory",
                     model=theory_model, effort=effort,
                 )
                 results[idx] = (r, q, answer)
@@ -267,8 +289,9 @@ def run_consultations(questions, consult_dir, asn_id, theory_model="opus",
               file=sys.stderr)
         for i in evidence_indices:
             role, question = questions[i]
-            answer = evidence.run_consultation(
-                question, evidence_channel, label=f"Q{i + 1}:evidence",
+            answer = _dispatch_run_consultation(
+                evidence_channel, "evidence", question,
+                label=f"Q{i + 1}:evidence",
                 model=evidence_model, effort=effort,
             )
             results[i] = (role, question, answer)
