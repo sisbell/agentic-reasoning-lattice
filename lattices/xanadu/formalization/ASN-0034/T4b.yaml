@@ -19,7 +19,9 @@ summary: |
   T4-valid subdomain; U is absent iff zeros(t) = 0; D is absent iff zeros(t) ≤ 1;
   E is absent iff zeros(t) ≤ 2 — and the biconditional X(t) = ε iff X is absent in t
   is discharged by inspection of the case construction on zeros(t).
-  The absence pattern is fixed by zeros(t) ∈ {0, 1, 2, 3}, and component-access notation
+  The absence pattern is fixed by zeros(t) ∈ {0, 1, 2, 3}, and the component-access
+  notation t.X₁ := (X(t))₁ is grounded in T0's subscript: ℕ⁺ ⊆ ℕ embeds every nonempty
+  element of Seq(ℕ⁺) into T, so T0's projection applies to X(t) whenever X(t) ≠ ε. Hence
   t.X₁ is defined iff X(t) ≠ ε — in particular t.E₁ requires zeros(t) = 3. T4a's reverse
   direction supplies the segment-length inequalities (s₁ ≥ 2, s_k ≤ #t − 1, s_{j+1} ≥
   s_j + 2) that discharge non-emptiness of every listed sub-sequence. Well-definedness

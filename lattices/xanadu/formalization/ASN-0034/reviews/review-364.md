@@ -1,0 +1,15 @@
+# Regional Review — ASN-0034/T4a (cycle 7)
+
+*2026-04-22 02:41*
+
+### T4 prose asserts T4a's conclusion as a definitional identification before T4a proves it
+**Foundation**: T4a's stated postcondition — "the three positional conditions (i), (ii), (iii) hold if and only if every field segment of `t` is non-empty"
+**ASN**: T4 prose, immediately after the *field-segment constraint* is named: "The *field segments* of `t` are the maximal contiguous sub-sequences of non-zero positions — `k+1` of them when `zeros(t) = k`, separated by the zeros — **and the field-segment constraint is exactly the requirement that all of them are non-empty**." A few sentences later: "**T4a (SyntacticEquivalence)** proves that the field-segment constraint is equivalent to the condition that every field segment of `t` is non-empty."
+**Issue**: The first sentence identifies the field-segment constraint (defined positionally as conditions (i)–(iii)) with segment non-emptiness as if by definition ("is exactly the requirement"). The second sentence then promises a proof of that same identification as T4a's content. If the definitional identification stands, T4a's proof is redundant work; if T4a's proof is load-bearing, the prose overreaches by asserting its conclusion before it is proved. The reader cannot tell which framing is authoritative, and T4b's citations of "T4a's reverse direction" become harder to locate in the claim chain.
+**What needs resolving**: Either mark the prose statement explicitly as a forward reference to T4a (not a definition), or drop T4a's proof if the identification is intended to be primitive.
+
+### `t.X₁` component access on `Seq(ℕ⁺)` values is not grounded in T0's projection
+**Foundation**: T0 defines `aᵢ` only for `a ∈ T` and `i ∈ {1, …, #a}`
+**ASN**: T4b prose: "The component-access notation `t.X₁` denotes the first component of `X(t)` and is defined iff `X(t) ≠ ε`: `t.N₁` always defined on T4-valid `t`; `t.U₁` iff `zeros(t) ≥ 1`; `t.D₁` iff `zeros(t) ≥ 2`; `t.E₁` iff `zeros(t) = 3`." T4b signature: "`N, U, D, E : T ⇀ Seq(ℕ⁺)`".
+**Issue**: T0 supplies component projection `·ᵢ` only for elements of `T` (nonempty finite sequences over ℕ). `X(t)` lives in `Seq(ℕ⁺)`, a distinct carrier introduced in T4b to accommodate `ε`. Nothing in this ASN extends T0's projection to `Seq(ℕ⁺)` elements, nor states that a nonempty element of `Seq(ℕ⁺)` embeds into `T` and inherits the projection. The notation `t.X₁` also diverges syntactically from T0's `aᵢ` — the dot-accessor is introduced without relating it to the subscript notation of T0. A precise reader reaching "`t.N₁`" cannot discharge its definedness from axioms in scope.
+**What needs resolving**: Either extend T0's component projection (or introduce a new projection) over `Seq(ℕ⁺)`, or state explicitly that a nonempty `X(t) ∈ Seq(ℕ⁺)` is an element of `T` and `(X(t))₁` is T0's projection applied to it, then bridge the `t.X₁` notation to that operator.
