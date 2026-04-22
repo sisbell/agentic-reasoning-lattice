@@ -4,8 +4,8 @@ __pycache__/
 .env
 .claude/
 lattices/*/usage-log.jsonl
-domains/xanadu/channels/theory/literary-machines/*.pdf
-domains/xanadu/channels/theory/literary-machines/raw/
+domains/xanadu/channels/nelson/literary-machines/*.pdf
+domains/xanadu/channels/nelson/literary-machines/raw/
 /notes/
 
 # Alloy checker output (receipt.json, solution files)

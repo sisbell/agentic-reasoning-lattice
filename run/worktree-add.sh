@@ -21,6 +21,6 @@ fi
 
 git worktree add "$wt" -b "$branch" HEAD --quiet
 git -C "$wt" submodule update --init --quiet
-make -C "$wt/domains/xanadu/channels/evidence/udanax-test-harness" --quiet
-make -C "$wt/domains/xanadu/channels/evidence/udanax-test-harness" golden --quiet
+make -C "$wt/domains/xanadu/channels/gregory/udanax-test-harness" --quiet
+make -C "$wt/domains/xanadu/channels/gregory/udanax-test-harness" golden --quiet
 echo "$wt"
