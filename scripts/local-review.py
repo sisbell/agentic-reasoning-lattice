@@ -28,6 +28,7 @@ from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, next_review_number
 from lib.shared.common import find_asn, parallel_llm_calls, step_commit_asn, build_label_index
 from lib.formalization.core.build_dependency_graph import generate_formalization_deps
 from lib.formalization.core.topological_sort import topological_sort_labels
+from lib.formalization.gate import run_validate_gate
 from lib.formalization.local_review.review import review_claim
 from lib.formalization.local_review.revise import revise
 
@@ -142,6 +143,14 @@ def run_local_review(asn_num, max_cycles=5, mode="incremental",
                       + (f" (dirty set)" if cycle > 1 and mode == "incremental" else ""))
         print(f"\n  [CYCLE {cycle}/{max_cycles}] {label_desc}",
               file=sys.stderr)
+
+        scope = set(review_labels)
+        gate_result = run_validate_gate(asn_label, scope_labels=scope)
+        if gate_result != "clean":
+            print(f"  [GATE] halted — structural violations remain "
+                  f"({gate_result}); aborting local-review",
+                  file=sys.stderr)
+            return "failed"
 
         # Pre-populate foundation cache (shared read-only data)
         from lib.shared.paths import formal_stmts, load_manifest

@@ -75,6 +75,45 @@ def _md_counterpart(filename):
     return filename
 
 
+def filter_findings_by_scope(findings, scope_labels):
+    """Restrict findings to those touching labels in scope_labels.
+
+    A finding is in scope if:
+      - its file's stem is in scope_labels, OR
+      - it's a cycle finding (file=None) and a scope label appears in the detail.
+
+    scope_labels=None passes everything through.
+    """
+    if scope_labels is None:
+        return list(findings)
+    relevant = []
+    for f in findings:
+        if f.get("file"):
+            stem = Path(f["file"]).stem
+            if stem in scope_labels:
+                relevant.append(f)
+        else:
+            detail = f.get("detail", "")
+            if any(lbl in detail for lbl in scope_labels):
+                relevant.append(f)
+    return relevant
+
+
+def commit_file(path, message):
+    """Stage a single file and commit. Returns True on success."""
+    try:
+        subprocess.run(["git", "add", "--", str(path)],
+                       cwd=REPO_ROOT, check=True,
+                       capture_output=True)
+        subprocess.run(["git", "commit", "-m", message],
+                       cwd=REPO_ROOT, check=True,
+                       capture_output=True)
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"    [commit failed] {e}", file=sys.stderr)
+        return False
+
+
 def group_findings_by_file(findings, rule):
     """Group findings by the file that needs editing.
 
@@ -241,11 +280,15 @@ def process_propose(rule, tools, claim_dir, findings):
     return data.get("result", "")
 
 
-def run_pass(pass_spec, asn_label, claim_dir, findings, dry_run, file_filter):
+def run_pass(pass_spec, asn_label, claim_dir, findings, dry_run,
+             file_filter, *, scope_labels=None, commit=False,
+             require_git_clean=True):
     rule = pass_spec["rule"]
     mode = pass_spec["mode"]
     tools = pass_spec["tools"]
     pairs = VALIDATOR.load_pairs(claim_dir)
+    if scope_labels is not None:
+        findings = filter_findings_by_scope(findings, scope_labels)
     print(f"\n=== Pass: {rule} ({mode}) ===")
 
     if mode == "propose":
@@ -270,13 +313,14 @@ def run_pass(pass_spec, asn_label, claim_dir, findings, dry_run, file_filter):
         print(f"  no findings for this rule; skipping")
         return
 
-    target_paths = [claim_dir / fn for fn in groups]
-    dirty = git_clean_check(target_paths)
-    if dirty:
-        print(f"  uncommitted changes in target files; aborting pass:", file=sys.stderr)
-        for d in dirty:
-            print(f"    {d}", file=sys.stderr)
-        return
+    if require_git_clean:
+        target_paths = [claim_dir / fn for fn in groups]
+        dirty = git_clean_check(target_paths)
+        if dirty:
+            print(f"  uncommitted changes in target files; aborting pass:", file=sys.stderr)
+            for d in dirty:
+                print(f"    {d}", file=sys.stderr)
+            return
 
     for filename, file_findings in sorted(groups.items()):
         print(f"\n  {filename} ({len(file_findings)} finding(s))")
@@ -320,8 +364,75 @@ def run_pass(pass_spec, asn_label, claim_dir, findings, dry_run, file_filter):
             real_path = claim_dir / filename
             shutil.copy2(scratch_path, real_path)
             print(f"    [APPLIED] {filename}")
+            if commit:
+                commit_file(
+                    real_path,
+                    f"validate-revise(asn): {rule} on {filename}",
+                )
 
         shutil.rmtree(scratch_path.parent, ignore_errors=True)
+
+
+def run_passes(asn_label, *, scope_labels=None, rules=None, mode="apply",
+               commit=False, from_pass=1, to_pass=None, file_filter=None):
+    """Programmatic entry: run validate-revise passes over an ASN.
+
+    scope_labels: iterable of claim labels to restrict findings to; None = all.
+    rules:        iterable of rule names to run; None = all passes in order.
+    mode:         "apply" or "dry-run".
+    commit:       if True, git-commit each applied file; skip git-clean precheck.
+    from_pass:    1-indexed start pass (CLI compatibility).
+    to_pass:      1-indexed end pass inclusive (CLI compatibility); None = len(PASSES).
+    file_filter:  restrict to one filename (e.g., "T4.md"); None = all affected.
+
+    Returns (before_count, after_count) — finding counts before and after the run.
+    Counts are scoped via scope_labels when provided.
+    """
+    dry_run = (mode == "dry-run")
+    if to_pass is None:
+        to_pass = len(PASSES)
+
+    claim_dir = VALIDATOR.formalization_dir(asn_label)
+    if not claim_dir.exists():
+        raise FileNotFoundError(f"No formalization directory: {claim_dir}")
+
+    rule_filter = set(rules) if rules is not None else None
+    scope = set(scope_labels) if scope_labels is not None else None
+
+    selected_passes = []
+    for i, p in enumerate(PASSES, start=1):
+        if i < from_pass or i > to_pass:
+            continue
+        if rule_filter is not None and p["rule"] not in rule_filter:
+            continue
+        selected_passes.append((i, p))
+
+    print(f"[VALIDATE-REVISE] {asn_label} ({'dry-run' if dry_run else 'APPLY'})")
+    print(f"  claim dir: {claim_dir}")
+    if scope is not None:
+        print(f"  scope: {sorted(scope)}")
+
+    if not selected_passes:
+        print("  no passes selected")
+        return (0, 0)
+
+    baseline = run_validator(asn_label)
+    before_count = len(filter_findings_by_scope(baseline, scope))
+    print(f"\n  baseline: {before_count} finding(s) in scope")
+
+    findings = baseline
+    for i, p in selected_passes:
+        print(f"\n----- Pass {i}/{len(PASSES)} -----")
+        run_pass(p, asn_label, claim_dir, findings, dry_run, file_filter,
+                 scope_labels=scope, commit=commit,
+                 require_git_clean=not commit)
+        findings = run_validator(asn_label)
+        in_scope = len(filter_findings_by_scope(findings, scope))
+        print(f"\n  after pass {i}: {in_scope} finding(s) remaining (in scope)")
+
+    after_count = len(filter_findings_by_scope(findings, scope))
+    print("\n[VALIDATE-REVISE] done")
+    return (before_count, after_count)
 
 
 def main():
@@ -341,42 +452,24 @@ def main():
                             help="apply changes to real files")
     args = parser.parse_args()
 
-    dry_run = not args.apply
     _, asn_label = find_asn(args.asn)
     if asn_label is None:
         print(f"ASN-{args.asn} not found", file=sys.stderr)
         return 2
-    claim_dir = VALIDATOR.formalization_dir(asn_label)
-    if not claim_dir.exists():
-        print(f"No formalization directory: {claim_dir}", file=sys.stderr)
+
+    try:
+        run_passes(
+            asn_label,
+            rules=[args.rule] if args.rule else None,
+            mode="apply" if args.apply else "dry-run",
+            commit=False,
+            from_pass=args.from_pass,
+            to_pass=args.to_pass,
+            file_filter=args.file,
+        )
+    except FileNotFoundError as e:
+        print(str(e), file=sys.stderr)
         return 2
-
-    print(f"[STRUCTURAL-REVISE] {asn_label} ({'dry-run' if dry_run else 'APPLY'})")
-    print(f"  claim dir: {claim_dir}")
-
-    selected_passes = []
-    for i, p in enumerate(PASSES, start=1):
-        if i < args.from_pass or i > args.to_pass:
-            continue
-        if args.rule and p["rule"] != args.rule:
-            continue
-        selected_passes.append((i, p))
-
-    if not selected_passes:
-        print("  no passes selected")
-        return 0
-
-    findings = run_validator(asn_label)
-    print(f"\n  baseline: {len(findings)} finding(s) across all rules")
-
-    for i, p in selected_passes:
-        print(f"\n----- Pass {i}/{len(PASSES)} -----")
-        run_pass(p, asn_label, claim_dir, findings, dry_run, args.file)
-        # Re-validate between passes so later passes see current state
-        findings = run_validator(asn_label)
-        print(f"\n  after pass {i}: {len(findings)} finding(s) remaining")
-
-    print("\n[STRUCTURAL-REVISE] done")
     return 0
 
 

@@ -212,6 +212,15 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
     for cycle in range(1, max_cycles + 1):
         print(f"\n  [CYCLE {cycle}/{max_cycles}]", file=sys.stderr)
 
+        from lib.formalization.gate import run_validate_gate
+        scope = {apex_label} | set(dep_labels)
+        gate_result = run_validate_gate(asn_label, scope_labels=scope)
+        if gate_result != "clean":
+            print(f"  [GATE] halted — structural violations remain in cone "
+                  f"({gate_result}); aborting regional-review",
+                  file=sys.stderr)
+            return "failed"
+
         # Assemble just the cone
         cone_content = assemble_cone(asn_label, apex_label, dep_labels)
 

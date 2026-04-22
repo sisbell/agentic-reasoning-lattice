@@ -32,6 +32,7 @@ from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, next_review_number
 from lib.shared.common import find_asn, assemble_readonly, step_commit_asn
 from lib.formalization.full_review.review import run_review, extract_findings
 from lib.formalization.full_review.revise import revise
+from lib.formalization.gate import run_validate_gate
 from lib.formalization.regional import detect_dependency_cone, run_regional_review
 
 
@@ -63,6 +64,13 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
 
     for cycle in range(1, max_cycles + 1):
         print(f"\n  [CYCLE {cycle}/{max_cycles}]", file=sys.stderr)
+
+        gate_result = run_validate_gate(asn_label, scope_labels=None)
+        if gate_result != "clean":
+            print(f"  [GATE] halted — structural violations remain "
+                  f"({gate_result}); aborting full-review",
+                  file=sys.stderr)
+            return "failed"
 
         # Assemble per-claim files for whole-ASN review
         asn_content = assemble_readonly(asn_label)
