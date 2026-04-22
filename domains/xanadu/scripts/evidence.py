@@ -1,23 +1,25 @@
 #!/usr/bin/env python3
 """
-Gregory ad-hoc consultation — for the discovery agent's follow-up questions.
+Evidence consultation for the xanadu domain.
 
 Runs two independent claude --print processes with the same question:
   1. KB agent: prompt template + injected KB (no tools, fast)
   2. Code agent: prompt template + tool access (tools, thorough)
 
-Both run in parallel. Transcripts written to lattices/xanadu/discovery/consultations/.../sessions/ for traceability.
-Prints the output file path to stdout.
+Both run in parallel. Transcripts written to
+lattices/xanadu/discovery/consultations/.../sessions/ for traceability.
+Prints the combined output file path to stdout.
 
-For batch consultations (discovery decompose pipeline), Gregory logic is
+The channel is chosen per call (typically from the ASN's campaign binding).
+
+For batch consultations (discovery decompose pipeline), evidence logic is
 imported directly — this script is NOT called as a subprocess.
 
 Usage:
-    python scripts/consult.py evidence "What happens to I-address allocation after DELETE?"
-    python scripts/consult.py evidence --kb-only "question"
-    python scripts/consult.py evidence --code-only "question"
-    python scripts/consult.py evidence --effort max "question"
-    echo "question" | python scripts/consult.py evidence --stdin
+    python scripts/consult.py evidence "What happens after DELETE?" --asn 34
+    python scripts/consult.py evidence --kb-only "..." --asn 34
+    python scripts/consult.py evidence --code-only "..." --asn 34
+    echo "question" | python scripts/consult.py evidence --stdin --asn 34
 """
 
 import argparse
@@ -29,8 +31,9 @@ from pathlib import Path
 
 # Reach up from domains/xanadu/scripts/ to workspace root, then add scripts/ to path.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent / "scripts"))
-from lib.shared.paths import WORKSPACE, CONSULTATIONS_DIR, DOMAIN_PROMPTS, CHANNELS_DIR
+from lib.shared.paths import WORKSPACE, CONSULTATIONS_DIR, CHANNELS_DIR, prompt_path
 from lib.shared.common import read_file
+from lib.shared.campaign import resolve_campaign
 from lib.consult import (
     invoke_claude as _invoke,
     get_total_usage,
@@ -38,83 +41,89 @@ from lib.consult import (
     format_out_of_scope_block,
 )
 
-PROMPTS_DIR = DOMAIN_PROMPTS / "discovery" / "consultation"
-TEST_HARNESS = CHANNELS_DIR / "evidence" / "udanax-test-harness"
-KB_PATH = TEST_HARNESS / "knowledge-base" / "kb-formal.md"
-KB_SYNTHESIS_PATH = TEST_HARNESS / "knowledge-base" / "kb-synthesis.md"
-GENERATE_QUESTIONS_PROMPT = PROMPTS_DIR / "gregory" / "generate-questions.md"
+
+def _test_harness(channel):
+    return CHANNELS_DIR / channel / "udanax-test-harness"
 
 
-def invoke_claude(prompt, model="sonnet", label="", allow_tools=False,
+def _kb_path(channel):
+    return _test_harness(channel) / "knowledge-base" / "kb-formal.md"
+
+
+def _kb_synthesis_path(channel):
+    return _test_harness(channel) / "knowledge-base" / "kb-synthesis.md"
+
+
+def invoke_claude(prompt, channel, model="sonnet", label="", allow_tools=False,
                   cwd=None, effort=None, output_file=None):
-    """Wrapper around the shared invoke_claude that returns just the text
-    (lib.consult already tracks per-process totals)."""
+    """Wrapper around the shared invoke_claude that returns just the text."""
     text, _ = _invoke(prompt, model=model, effort=effort,
                       allow_tools=allow_tools, cwd=cwd,
                       output_file=output_file,
-                      skill=f"consult-gregory:{label}",
+                      skill=f"consult-{channel}:{label}",
                       label=label)
     return text
 
 
-def build_kb_prompt(question):
+def build_kb_prompt(question, channel):
     """Assemble KB synthesis prompt from template + injected KB."""
-    template = read_file(PROMPTS_DIR / "gregory" / "answer-from-kb.md")
-    kb = read_file(KB_PATH)
+    template = read_file(prompt_path("discovery/consultation/evidence/answer-from-kb.md"))
+    kb = read_file(_kb_path(channel))
     if not template:
         print("  KB prompt template not found", file=sys.stderr)
         sys.exit(1)
     if not kb:
-        print(f"  KB file not found at {KB_PATH.relative_to(WORKSPACE)}", file=sys.stderr)
+        print(f"  KB file not found at {_kb_path(channel).relative_to(WORKSPACE)}",
+              file=sys.stderr)
         sys.exit(1)
     return template.replace("{{kb}}", kb).replace("{{question}}", question)
 
 
-def build_code_prompt(question):
+def build_code_prompt(question, channel):
     """Assemble code exploration prompt from template."""
-    template = read_file(PROMPTS_DIR / "gregory" / "answer-from-code.md")
+    template = read_file(prompt_path("discovery/consultation/evidence/answer-from-code.md"))
     if not template:
         print("  Code prompt template not found", file=sys.stderr)
         sys.exit(1)
     return template.replace("{{question}}", question)
 
 
-def run_kb(question, model="sonnet", effort=None, output_file=None):
+def run_kb(question, channel, model="sonnet", effort=None, output_file=None):
     """Run the KB synthesis agent. No tools — pure synthesis from injected KB."""
     print("  [KB]", file=sys.stderr)
-    prompt = build_kb_prompt(question)
+    prompt = build_kb_prompt(question, channel)
     print(f"  Prompt: {len(prompt) // 1024}KB (~{len(prompt) // 4} tokens)",
           file=sys.stderr)
-    return invoke_claude(prompt, model=model, label="kb",
+    return invoke_claude(prompt, channel, model=model, label="kb",
                          allow_tools=False, effort=effort,
                          output_file=output_file)
 
 
-def run_code(question, model="sonnet", effort=None, output_file=None):
+def run_code(question, channel, model="sonnet", effort=None, output_file=None):
     """Run the code exploration agent with tool access, cwd=test harness."""
     print("  [CODE]", file=sys.stderr)
-    prompt = build_code_prompt(question)
+    prompt = build_code_prompt(question, channel)
     print(f"  Prompt: {len(prompt) // 1024}KB (~{len(prompt) // 4} tokens)",
           file=sys.stderr)
-    return invoke_claude(prompt, model=model, label="code",
-                         allow_tools=True, cwd=str(TEST_HARNESS),
+    return invoke_claude(prompt, channel, model=model, label="code",
+                         allow_tools=True, cwd=str(_test_harness(channel)),
                          effort=effort, output_file=output_file)
 
 
-def generate_questions(inquiry_text, n=10, model="opus", out_of_scope=""):
+def generate_questions(inquiry_text, channel, n=10, model="opus", out_of_scope=""):
     """Generate N evidence-side sub-questions for an inquiry.
-    Injects the KB synthesis as context (Gregory's technical vocabulary).
+    Injects the KB synthesis as context (technical vocabulary).
     Returns a list of question strings."""
-    template = read_file(GENERATE_QUESTIONS_PROMPT)
+    template_path = prompt_path("discovery/consultation/evidence/generate-questions.md")
+    template = read_file(template_path)
     if not template:
-        print(f"  [ERROR] {GENERATE_QUESTIONS_PROMPT.name} not found",
-              file=sys.stderr)
+        print(f"  [ERROR] {template_path.name} not found", file=sys.stderr)
         sys.exit(1)
 
-    kb = read_file(KB_SYNTHESIS_PATH)
+    kb = read_file(_kb_synthesis_path(channel))
     if not kb:
         print(f"  [WARN] KB synthesis not found at "
-              f"{KB_SYNTHESIS_PATH.relative_to(WORKSPACE)}", file=sys.stderr)
+              f"{_kb_synthesis_path(channel).relative_to(WORKSPACE)}", file=sys.stderr)
         kb = ""
 
     prompt = template.format(
@@ -124,24 +133,24 @@ def generate_questions(inquiry_text, n=10, model="opus", out_of_scope=""):
         out_of_scope=format_out_of_scope_block(out_of_scope),
     )
 
-    print(f"  [DECOMPOSE:gregory] {n} questions, "
+    print(f"  [DECOMPOSE:{channel}] {n} questions, "
           f"{len(prompt) // 1024}KB prompt...", file=sys.stderr)
-    text, _ = _invoke(prompt, model=model, skill="pre-consult:gregory",
-                      label="gregory")
-    return parse_numbered(text, tags_to_strip=("[gregory]",))
+    text, _ = _invoke(prompt, model=model, skill=f"pre-consult:{channel}",
+                      label=channel)
+    return parse_numbered(text, tags_to_strip=(f"[{channel}]",))
 
 
-def run_consultation(question, label="", model="sonnet", effort="max"):
+def run_consultation(question, channel, label="", model="sonnet", effort="max"):
     """Run a single evidence consultation (KB + code in parallel).
     Returns combined answer text. Used by the full-discovery orchestrator."""
     kb_result = [None]
     code_result = [None]
 
     def _kb():
-        kb_result[0] = run_kb(question, model=model, effort=effort)
+        kb_result[0] = run_kb(question, channel, model=model, effort=effort)
 
     def _code():
-        code_result[0] = run_code(question, model=model, effort=effort)
+        code_result[0] = run_code(question, channel, model=model, effort=effort)
 
     print(f"  [{label}] Starting KB + code in parallel...", file=sys.stderr)
     kb_thread = threading.Thread(target=_kb)
@@ -163,7 +172,7 @@ def run_consultation(question, label="", model="sonnet", effort="max"):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Gregory split consultation")
+    parser = argparse.ArgumentParser(description="Evidence consultation (xanadu)")
     parser.add_argument("question", nargs="?", help="The question to ask")
     parser.add_argument("--stdin", action="store_true",
                         help="Read question from stdin")
@@ -176,7 +185,9 @@ def main():
     parser.add_argument("--code-only", action="store_true",
                         help="Run code exploration agent only")
     parser.add_argument("--asn", default=None,
-                        help="ASN number for consultation log naming")
+                        help="ASN number — resolves campaign to pick the evidence channel")
+    parser.add_argument("--channel", default=None,
+                        help="Explicit evidence channel name (overrides --asn resolution)")
     args = parser.parse_args()
 
     if args.stdin:
@@ -189,20 +200,27 @@ def main():
     if not question:
         parser.error("Empty question")
 
+    if args.channel:
+        channel = args.channel
+    elif args.asn:
+        channel = resolve_campaign(args.asn).evidence_channel
+    else:
+        parser.error("Provide --asn (to resolve via campaign) or --channel (explicit)")
+
     # Create consultation log directory
     prefix = f"ASN-{args.asn}" if args.asn else "adhoc"
     prefix_dir = CONSULTATIONS_DIR / prefix / "sessions"
     prefix_dir.mkdir(parents=True, exist_ok=True)
-    existing = sorted(prefix_dir.glob("gregory-*/"))
+    existing = sorted(prefix_dir.glob(f"{channel}-*/"))
     next_num = 1
+    pat = re.compile(rf"{re.escape(channel)}-(\d+)$")
     for d in existing:
-        m = re.search(r"gregory-(\d+)$", d.name)
+        m = pat.search(d.name)
         if m:
             next_num = max(next_num, int(m.group(1)) + 1)
-    consult_dir = prefix_dir / f"gregory-{next_num}"
+    consult_dir = prefix_dir / f"{channel}-{next_num}"
     consult_dir.mkdir(parents=True, exist_ok=True)
 
-    # Save the question
     (consult_dir / "question.md").write_text(question + "\n")
 
     start = time.time()
@@ -211,22 +229,21 @@ def main():
     code_file = consult_dir / "code-answer.md"
 
     if args.kb_only:
-        run_kb(question, model=args.model, effort=args.effort,
+        run_kb(question, channel, model=args.model, effort=args.effort,
                output_file=kb_file)
     elif args.code_only:
-        run_code(question, model=args.model, effort=args.effort,
+        run_code(question, channel, model=args.model, effort=args.effort,
                  output_file=code_file)
     else:
-        # Run both in parallel
         kb_thread = threading.Thread(
             target=run_kb,
-            args=(question,),
+            args=(question, channel),
             kwargs={"model": args.model, "effort": args.effort,
                     "output_file": kb_file}
         )
         code_thread = threading.Thread(
             target=run_code,
-            args=(question,),
+            args=(question, channel),
             kwargs={"model": args.model, "effort": args.effort,
                     "output_file": code_file}
         )
@@ -238,9 +255,8 @@ def main():
 
     elapsed = time.time() - start
 
-    # Build combined output file
     combined = consult_dir / "combined.md"
-    parts = [f"# Gregory Consultation\n\n**Question:** {question}\n"]
+    parts = [f"# {channel.capitalize()} Consultation\n\n**Question:** {question}\n"]
 
     if kb_file.exists() and kb_file.stat().st_size > 0:
         parts.append(f"\n## KB Synthesis\n\n{kb_file.read_text()}")
@@ -249,7 +265,6 @@ def main():
 
     combined.write_text("\n".join(parts))
 
-    # Print the output file path (small stdout — avoids Bash capture bug)
     print(str(combined))
 
     totals = get_total_usage()
