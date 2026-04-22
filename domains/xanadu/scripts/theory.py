@@ -20,7 +20,6 @@ Usage:
 """
 
 import argparse
-import re
 import sys
 from pathlib import Path
 
@@ -28,15 +27,18 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent / "scripts"))
 from lib.shared.paths import CONSULTATIONS_DIR, CHANNELS_DIR, prompt_path
 from lib.shared.common import read_file
-from lib.shared.campaign import resolve_campaign
 from lib.consult import (
     invoke_claude as _invoke,
     parse_numbered,
     format_out_of_scope_block,
+    next_session_dir,
+    resolve_channel_from_args,
 )
 
 PROMPT_TEMPLATE = prompt_path("discovery/consultation/theory/answer.md")
 GENERATE_QUESTIONS_PROMPT = prompt_path("discovery/consultation/theory/generate-questions.md")
+
+_CACHED_TEMPLATE = None
 
 
 def _channel_dir(channel):
@@ -44,15 +46,15 @@ def _channel_dir(channel):
 
 
 def _concat_md_files(directory):
-    """Concatenate all .md files in a directory, each headed by its filename stem."""
+    """Flat-only concatenation of .md files in a directory, each headed by its
+    filename stem. Distinct from shared concat_md_files, which recurses —
+    xanadu's xanadu-concepts/ and nelson-intent/ sources rely on flat-only."""
     return "\n\n".join(
         f"### {f.stem}\n{f.read_text()}"
         for f in sorted(directory.glob("*.md"))
     )
 
 
-# Static corpora are cached per channel — xanadu today has only one theory
-# channel (nelson), but the dict keeps the code honest if a second shows up.
 _CACHED_CONCEPTS_BY_CHANNEL = {}
 _CACHED_INTENT_BY_CHANNEL = {}
 _CACHED_TOC_BY_CHANNEL = {}
@@ -125,10 +127,13 @@ def run_consultation(question, channel, label="", model="opus", effort="max"):
 
 
 def build_prompt(question, channel, with_png=False):
-    template = read_file(PROMPT_TEMPLATE)
-    if not template:
-        print("  prompt template not found", file=sys.stderr)
-        sys.exit(1)
+    global _CACHED_TEMPLATE
+    if _CACHED_TEMPLATE is None:
+        _CACHED_TEMPLATE = read_file(PROMPT_TEMPLATE)
+        if not _CACHED_TEMPLATE:
+            print("  prompt template not found", file=sys.stderr)
+            sys.exit(1)
+    template = _CACHED_TEMPLATE
 
     raw_dir = str(_lm_raw_dir(channel)) if with_png else ""
 
@@ -174,25 +179,10 @@ def main():
     if not question:
         parser.error("Empty question")
 
-    if args.channel:
-        channel = args.channel
-    elif args.asn:
-        channel = resolve_campaign(args.asn).theory_channel
-    else:
-        parser.error("Provide --asn (to resolve via campaign) or --channel (explicit)")
+    channel = resolve_channel_from_args(args, "theory")
 
     prefix = f"ASN-{args.asn}" if args.asn else "adhoc"
-    prefix_dir = CONSULTATIONS_DIR / prefix / "sessions"
-    prefix_dir.mkdir(parents=True, exist_ok=True)
-    existing = sorted(prefix_dir.glob(f"{channel}-*/"))
-    next_num = 1
-    pat = re.compile(rf"{re.escape(channel)}-(\d+)$")
-    for d in existing:
-        m = pat.search(d.name)
-        if m:
-            next_num = max(next_num, int(m.group(1)) + 1)
-    consult_dir = prefix_dir / f"{channel}-{next_num}"
-    consult_dir.mkdir(parents=True, exist_ok=True)
+    consult_dir = next_session_dir(CONSULTATIONS_DIR / prefix / "sessions", channel)
     (consult_dir / "question.md").write_text(question + "\n")
     answer_file = consult_dir / "answer.md"
 

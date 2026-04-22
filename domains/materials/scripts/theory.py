@@ -18,25 +18,31 @@ Usage:
 """
 
 import argparse
-import re
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent / "scripts"))
 from lib.shared.paths import CONSULTATIONS_DIR, CHANNELS_DIR, prompt_path
 from lib.shared.common import read_file, concat_md_files
-from lib.shared.campaign import resolve_campaign
 from lib.consult import (
     invoke_claude as _invoke,
     parse_numbered,
     format_out_of_scope_block,
+    next_session_dir,
+    resolve_channel_from_args,
 )
 
 PROMPT_TEMPLATE = prompt_path("discovery/consultation/theory/answer.md")
 GENERATE_QUESTIONS_PROMPT = prompt_path("discovery/consultation/theory/generate-questions.md")
 
-
 _CACHED_CORPUS_BY_CHANNEL = {}
+_CACHED_TEMPLATES = {}
+
+
+def _load_template(path):
+    if path not in _CACHED_TEMPLATES:
+        _CACHED_TEMPLATES[path] = read_file(path)
+    return _CACHED_TEMPLATES[path]
 
 
 def all_corpus(channel):
@@ -54,7 +60,7 @@ def all_corpus(channel):
 
 
 def build_prompt(question, channel):
-    template = read_file(PROMPT_TEMPLATE)
+    template = _load_template(PROMPT_TEMPLATE)
     if not template:
         print(f"  prompt template not found: {PROMPT_TEMPLATE}", file=sys.stderr)
         sys.exit(1)
@@ -63,7 +69,7 @@ def build_prompt(question, channel):
 
 def generate_questions(inquiry_text, channel, n=10, model="opus", out_of_scope=""):
     """Generate N theory-side sub-questions for an inquiry. Returns list of strings."""
-    template = read_file(GENERATE_QUESTIONS_PROMPT)
+    template = _load_template(GENERATE_QUESTIONS_PROMPT)
     if not template:
         print(f"  [ERROR] {GENERATE_QUESTIONS_PROMPT.name} not found", file=sys.stderr)
         sys.exit(1)
@@ -113,24 +119,10 @@ def main():
     if not question:
         parser.error("Empty question")
 
-    if args.channel:
-        channel = args.channel
-    elif args.asn:
-        channel = resolve_campaign(args.asn).theory_channel
-    else:
-        parser.error("Provide --asn (to resolve via campaign) or --channel (explicit)")
+    channel = resolve_channel_from_args(args, "theory")
 
-    prefix = f"ASN-{args.asn}" if args.asn else "adhoc"
-    prefix_dir = CONSULTATIONS_DIR / prefix / "sessions"
-    prefix_dir.mkdir(parents=True, exist_ok=True)
-    existing = sorted(prefix_dir.glob("theory-*/"))
-    next_num = 1
-    for d in existing:
-        m = re.search(r"theory-(\d+)$", d.name)
-        if m:
-            next_num = max(next_num, int(m.group(1)) + 1)
-    consult_dir = prefix_dir / f"theory-{next_num}"
-    consult_dir.mkdir(parents=True, exist_ok=True)
+    asn_prefix = f"ASN-{args.asn}" if args.asn else "adhoc"
+    consult_dir = next_session_dir(CONSULTATIONS_DIR / asn_prefix / "sessions", "theory")
     (consult_dir / "question.md").write_text(question + "\n")
     answer_file = consult_dir / "answer.md"
 

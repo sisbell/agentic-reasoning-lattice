@@ -12,12 +12,14 @@ lives in the per-domain channel scripts, not here.
 
 import json
 import os
+import re
 import subprocess
 import sys
 import threading
 import time
 
 from lib.shared.common import MODEL_FLAGS, log_usage
+from lib.shared.campaign import resolve_campaign
 
 
 # Process-local usage accumulator. Every invoke_claude call updates it
@@ -157,3 +159,38 @@ def load_domain_consult_modules(domain_path):
     import theory  # noqa: E402
     import evidence  # noqa: E402
     return theory, evidence
+
+
+def next_session_dir(parent, prefix):
+    """Create and return the next numbered session dir under `parent`.
+
+    Scans for existing `{prefix}-N/` dirs, picks max(N)+1, mkdirs the result
+    (and its parents). Used by consultation scripts to number per-call
+    transcript dirs under lattices/<L>/discovery/consultations/. The prefix
+    is typically a channel name (xanadu) or a role name (materials).
+    """
+    parent.mkdir(parents=True, exist_ok=True)
+    pat = re.compile(rf"{re.escape(prefix)}-(\d+)$")
+    next_num = 1
+    for d in parent.glob(f"{prefix}-*/"):
+        m = pat.search(d.name)
+        if m:
+            next_num = max(next_num, int(m.group(1)) + 1)
+    consult_dir = parent / f"{prefix}-{next_num}"
+    consult_dir.mkdir(parents=True, exist_ok=True)
+    return consult_dir
+
+
+def resolve_channel_from_args(args, role):
+    """Pick the channel name from CLI args for a consultation script.
+
+    `role` is 'theory' or 'evidence'. Prefers an explicit --channel, falls
+    back to resolving via --asn's campaign. Exits via argparse error if
+    neither is provided.
+    """
+    if args.channel:
+        return args.channel
+    if args.asn:
+        return getattr(resolve_campaign(args.asn), f"{role}_channel")
+    raise SystemExit(
+        "error: provide --asn (to resolve via campaign) or --channel (explicit)")

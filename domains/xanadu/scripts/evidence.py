@@ -23,7 +23,6 @@ Usage:
 """
 
 import argparse
-import re
 import sys
 import time
 import threading
@@ -33,13 +32,26 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent / "scripts"))
 from lib.shared.paths import WORKSPACE, CONSULTATIONS_DIR, CHANNELS_DIR, prompt_path
 from lib.shared.common import read_file
-from lib.shared.campaign import resolve_campaign
 from lib.consult import (
     invoke_claude as _invoke,
     get_total_usage,
     parse_numbered,
     format_out_of_scope_block,
+    next_session_dir,
+    resolve_channel_from_args,
 )
+
+KB_TEMPLATE_PATH = prompt_path("discovery/consultation/evidence/answer-from-kb.md")
+CODE_TEMPLATE_PATH = prompt_path("discovery/consultation/evidence/answer-from-code.md")
+GENERATE_QUESTIONS_PROMPT = prompt_path("discovery/consultation/evidence/generate-questions.md")
+
+_CACHED_TEMPLATES = {}
+
+
+def _load_template(path):
+    if path not in _CACHED_TEMPLATES:
+        _CACHED_TEMPLATES[path] = read_file(path)
+    return _CACHED_TEMPLATES[path]
 
 
 def _test_harness(channel):
@@ -54,20 +66,9 @@ def _kb_synthesis_path(channel):
     return _test_harness(channel) / "knowledge-base" / "kb-synthesis.md"
 
 
-def invoke_claude(prompt, channel, model="sonnet", label="", allow_tools=False,
-                  cwd=None, effort=None, output_file=None):
-    """Wrapper around the shared invoke_claude that returns just the text."""
-    text, _ = _invoke(prompt, model=model, effort=effort,
-                      allow_tools=allow_tools, cwd=cwd,
-                      output_file=output_file,
-                      skill=f"consult-{channel}:{label}",
-                      label=label)
-    return text
-
-
 def build_kb_prompt(question, channel):
     """Assemble KB synthesis prompt from template + injected KB."""
-    template = read_file(prompt_path("discovery/consultation/evidence/answer-from-kb.md"))
+    template = _load_template(KB_TEMPLATE_PATH)
     kb = read_file(_kb_path(channel))
     if not template:
         print("  KB prompt template not found", file=sys.stderr)
@@ -81,7 +82,7 @@ def build_kb_prompt(question, channel):
 
 def build_code_prompt(question, channel):
     """Assemble code exploration prompt from template."""
-    template = read_file(prompt_path("discovery/consultation/evidence/answer-from-code.md"))
+    template = _load_template(CODE_TEMPLATE_PATH)
     if not template:
         print("  Code prompt template not found", file=sys.stderr)
         sys.exit(1)
@@ -94,9 +95,10 @@ def run_kb(question, channel, model="sonnet", effort=None, output_file=None):
     prompt = build_kb_prompt(question, channel)
     print(f"  Prompt: {len(prompt) // 1024}KB (~{len(prompt) // 4} tokens)",
           file=sys.stderr)
-    return invoke_claude(prompt, channel, model=model, label="kb",
-                         allow_tools=False, effort=effort,
-                         output_file=output_file)
+    text, _ = _invoke(prompt, model=model, effort=effort, allow_tools=False,
+                      output_file=output_file,
+                      skill=f"consult-{channel}:kb", label="kb")
+    return text
 
 
 def run_code(question, channel, model="sonnet", effort=None, output_file=None):
@@ -105,19 +107,19 @@ def run_code(question, channel, model="sonnet", effort=None, output_file=None):
     prompt = build_code_prompt(question, channel)
     print(f"  Prompt: {len(prompt) // 1024}KB (~{len(prompt) // 4} tokens)",
           file=sys.stderr)
-    return invoke_claude(prompt, channel, model=model, label="code",
-                         allow_tools=True, cwd=str(_test_harness(channel)),
-                         effort=effort, output_file=output_file)
+    text, _ = _invoke(prompt, model=model, effort=effort, allow_tools=True,
+                      cwd=str(_test_harness(channel)), output_file=output_file,
+                      skill=f"consult-{channel}:code", label="code")
+    return text
 
 
 def generate_questions(inquiry_text, channel, n=10, model="opus", out_of_scope=""):
     """Generate N evidence-side sub-questions for an inquiry.
     Injects the KB synthesis as context (technical vocabulary).
     Returns a list of question strings."""
-    template_path = prompt_path("discovery/consultation/evidence/generate-questions.md")
-    template = read_file(template_path)
+    template = _load_template(GENERATE_QUESTIONS_PROMPT)
     if not template:
-        print(f"  [ERROR] {template_path.name} not found", file=sys.stderr)
+        print(f"  [ERROR] {GENERATE_QUESTIONS_PROMPT.name} not found", file=sys.stderr)
         sys.exit(1)
 
     kb = read_file(_kb_synthesis_path(channel))
@@ -200,27 +202,10 @@ def main():
     if not question:
         parser.error("Empty question")
 
-    if args.channel:
-        channel = args.channel
-    elif args.asn:
-        channel = resolve_campaign(args.asn).evidence_channel
-    else:
-        parser.error("Provide --asn (to resolve via campaign) or --channel (explicit)")
+    channel = resolve_channel_from_args(args, "evidence")
 
-    # Create consultation log directory
     prefix = f"ASN-{args.asn}" if args.asn else "adhoc"
-    prefix_dir = CONSULTATIONS_DIR / prefix / "sessions"
-    prefix_dir.mkdir(parents=True, exist_ok=True)
-    existing = sorted(prefix_dir.glob(f"{channel}-*/"))
-    next_num = 1
-    pat = re.compile(rf"{re.escape(channel)}-(\d+)$")
-    for d in existing:
-        m = pat.search(d.name)
-        if m:
-            next_num = max(next_num, int(m.group(1)) + 1)
-    consult_dir = prefix_dir / f"{channel}-{next_num}"
-    consult_dir.mkdir(parents=True, exist_ok=True)
-
+    consult_dir = next_session_dir(CONSULTATIONS_DIR / prefix / "sessions", channel)
     (consult_dir / "question.md").write_text(question + "\n")
 
     start = time.time()
