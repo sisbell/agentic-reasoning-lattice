@@ -28,12 +28,12 @@ import yaml
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, NOTES_DIR, VOCABULARY, USAGE_LOG, DOMAIN_PROMPTS, consultation_dir, load_manifest
+from lib.shared.paths import WORKSPACE, NOTES_DIR, VOCABULARY, USAGE_LOG, LATTICE_PROMPTS, consultation_dir, load_manifest
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
 from lib.shared.foundation import load_foundation_statements
 
-DISCOVERY_PROMPT = DOMAIN_PROMPTS / "discovery" / "instructions.md"
+DISCOVERY_PROMPT = LATTICE_PROMPTS / "discovery" / "instructions.md"
 
 MODEL = "claude-opus-4-7"
 

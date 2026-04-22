@@ -30,7 +30,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import (WORKSPACE, FORMALIZATION_DIR, DAFNY_DIR, USAGE_LOG,
-                    DOMAIN_PROMPTS, prompt_path, load_manifest)
+                    LATTICE_PROMPTS, prompt_path, load_manifest)
 from lib.shared.common import find_asn, parallel_llm_calls, build_label_index
 from lib.formalization.core.build_dependency_graph import generate_formalization_deps
 from lib.formalization.core.topological_sort import topological_sort_labels, topological_levels

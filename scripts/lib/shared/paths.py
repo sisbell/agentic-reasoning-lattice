@@ -19,7 +19,6 @@ CHANNELS_DIR = DOMAIN / "channels"
 # Resolver prefers lattice-specific overrides.
 SHARED_PROMPTS = WORKSPACE / "prompts" / "shared"
 LATTICE_PROMPTS = WORKSPACE / "prompts" / LATTICE_NAME
-DOMAIN_PROMPTS = LATTICE_PROMPTS  # legacy alias, removed in commit 5
 
 
 def prompt_path(subpath):

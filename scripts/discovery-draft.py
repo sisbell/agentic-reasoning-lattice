@@ -31,14 +31,14 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import (
-    WORKSPACE, NOTES_DIR, USAGE_LOG, MANIFESTS_DIR, DOMAIN_PROMPTS,
+    WORKSPACE, NOTES_DIR, USAGE_LOG, MANIFESTS_DIR, LATTICE_PROMPTS,
     load_manifest, LATTICE,
 )
 from lib.shared.common import read_file, stage_asn_files
 
 CONSULT_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "decompose.py"
 DISCOVER_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "draft.py"
-COMMIT_PROMPT = DOMAIN_PROMPTS / "shared" / "commit.md"
+COMMIT_PROMPT = LATTICE_PROMPTS / "shared" / "commit.md"
 
 COMMIT_MODEL = "claude-sonnet-4-6"
 

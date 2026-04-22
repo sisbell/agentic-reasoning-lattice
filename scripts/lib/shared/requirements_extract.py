@@ -25,10 +25,10 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, NOTES_DIR, REQUIREMENTS_DIR, USAGE_LOG, DOMAIN_PROMPTS
+from lib.shared.paths import WORKSPACE, NOTES_DIR, REQUIREMENTS_DIR, USAGE_LOG, LATTICE_PROMPTS
 from lib.shared.common import find_asn, read_file
 
-PROMPTS_DIR = DOMAIN_PROMPTS / "requirements"
+PROMPTS_DIR = LATTICE_PROMPTS / "requirements"
 TEMPLATE = PROMPTS_DIR / "extract-features.md"
 
 

@@ -32,11 +32,12 @@ from lib.shared.paths import (
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn, read_file, log_usage
 from lib.consult import (
-    invoke_claude, get_total_usage, load_domain_consult_modules,
+    invoke_claude, get_total_usage,
+    add_domain_scripts_to_path, dispatch_run_consultation,
 )
 
-theory, evidence = load_domain_consult_modules(DOMAIN)
-import assign_channels  # noqa: E402  sys.path set by load_domain_consult_modules
+add_domain_scripts_to_path(DOMAIN)
+import assign_channels  # noqa: E402  sys.path set above
 
 
 def get_review_number(review_path):
@@ -106,8 +107,8 @@ def run_targeted_consultations(items, asn_id, model="opus"):
 
         for idx, (item_idx, question) in enumerate(theory_work):
             def run_t(ii=item_idx, q=question, n=idx + 1):
-                answer = theory.run_consultation(
-                    q, theory_channel, label=f"Q{n}:theory",
+                answer = dispatch_run_consultation(
+                    theory_channel, q, label=f"Q{n}:theory",
                     model=model, effort="max")
                 items[ii]["answers"]["theory"] = answer
             t = threading.Thread(target=run_t)
@@ -122,8 +123,8 @@ def run_targeted_consultations(items, asn_id, model="opus"):
         print(f"  [EVIDENCE] Running {len(evidence_work)} consultations sequentially...",
               file=sys.stderr)
         for idx, (item_idx, question) in enumerate(evidence_work):
-            answer = evidence.run_consultation(
-                question, evidence_channel, label=f"Q{idx + 1}:evidence",
+            answer = dispatch_run_consultation(
+                evidence_channel, question, label=f"Q{idx + 1}:evidence",
                 model="sonnet", effort="max")
             items[item_idx]["answers"]["evidence"] = answer
         print(f"  [EVIDENCE] All done", file=sys.stderr)

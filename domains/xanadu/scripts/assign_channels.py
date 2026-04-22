@@ -17,11 +17,11 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent / "scripts"))
-from lib.shared.paths import DOMAIN_PROMPTS
+from lib.shared.paths import LATTICE_PROMPTS
 from lib.shared.common import read_file
 
 
-PROMPT_TEMPLATE = DOMAIN_PROMPTS / "revise" / "assign-channels.md"
+PROMPT_TEMPLATE = LATTICE_PROMPTS / "revise" / "assign-channels.md"
 
 DISPLAY_NAMES = {
     "theory": "Nelson",

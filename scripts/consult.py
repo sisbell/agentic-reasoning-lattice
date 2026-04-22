@@ -1,103 +1,77 @@
 #!/usr/bin/env python3
-"""Consult — ad-hoc expert consultation.
+"""Consult — ad-hoc channel consultation.
 
-Dispatches to a channel plugin if one exists at channels/<name>/; otherwise
-falls back to the per-lattice scripts under domains/<lattice>/scripts/.
-The fallback is temporary — removed once all channels are migrated to plugins.
+Resolves the target channel (via --asn → campaign, or explicit --channel),
+loads the channel plugin at channels/<name>/consultations/consult.py, and
+invokes its consult(). Wraps the call with transcript-dir creation and
+answer-file writing — one place, not per-channel.
 """
 import argparse
-import re
-import subprocess
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import DOMAIN, CONSULTATIONS_DIR, WORKSPACE
+from lib.shared.paths import CONSULTATIONS_DIR
 from lib.shared.campaign import resolve_campaign
 from lib.consult import load_channel_plugin, next_session_dir
 
 
-def _peek_channel(role, args_list):
-    """Peek at argv to determine which channel this invocation targets.
-    Returns the channel name, or None if it can't be determined up front
-    (in which case we fall through to the lattice-script subprocess path,
-    which handles its own arg parsing).
-    """
-    peek = argparse.ArgumentParser(add_help=False)
-    peek.add_argument("--asn", default=None)
-    peek.add_argument("--channel", default=None)
-    known, _ = peek.parse_known_args(args_list)
-    if known.channel:
-        return known.channel
-    if known.asn:
-        ctx = resolve_campaign(known.asn)
-        return ctx.theory_channel if role == "theory" else ctx.evidence_channel
-    return None
-
-
-def _run_plugin(plugin, role, args_list):
-    """Handle the plugin path: parse our minimal flags, create a session dir,
-    invoke the plugin's consult(), write transcript, print the answer path."""
-    p = argparse.ArgumentParser()
-    p.add_argument("question", nargs="?")
-    p.add_argument("--stdin", action="store_true")
-    p.add_argument("--model", "-m", default="opus")
-    p.add_argument("--effort", default="max")
-    p.add_argument("--asn", default=None)
-    p.add_argument("--channel", default=None)
-    args = p.parse_args(args_list)
+def main():
+    parser = argparse.ArgumentParser(description="Ad-hoc channel consultation")
+    parser.add_argument("role", choices=["theory", "evidence"])
+    parser.add_argument("question", nargs="?")
+    parser.add_argument("--stdin", action="store_true")
+    parser.add_argument("--model", "-m", default="opus")
+    parser.add_argument("--effort", default="max")
+    parser.add_argument("--asn", default=None)
+    parser.add_argument("--channel", default=None)
+    # Channel-specific flags — passed through to plugins that recognize them.
+    parser.add_argument("--with-png", action="store_true",
+                        help="Nelson-specific: enable page-image tool access")
+    parser.add_argument("--kb-only", action="store_true",
+                        help="Gregory-specific: KB agent only")
+    parser.add_argument("--code-only", action="store_true",
+                        help="Gregory-specific: code agent only")
+    args = parser.parse_args()
 
     if args.stdin:
         question = sys.stdin.read().strip()
     elif args.question:
         question = args.question
     else:
-        p.error("Provide a question or use --stdin")
+        parser.error("Provide a question or use --stdin")
     if not question:
-        p.error("Empty question")
+        parser.error("Empty question")
 
-    # Resolve channel (may have already been peeked, but this is the authoritative read)
     if args.channel:
         channel = args.channel
-    else:
+    elif args.asn:
         ctx = resolve_campaign(args.asn)
-        channel = ctx.theory_channel if role == "theory" else ctx.evidence_channel
+        channel = ctx.theory_channel if args.role == "theory" else ctx.evidence_channel
+    else:
+        parser.error("Provide --asn (to resolve via campaign) or --channel (explicit)")
+
+    plugin = load_channel_plugin(channel)
 
     prefix = f"ASN-{args.asn}" if args.asn else "adhoc"
     consult_dir = next_session_dir(CONSULTATIONS_DIR / prefix / "sessions", channel)
     (consult_dir / "question.md").write_text(question + "\n")
     answer_file = consult_dir / "answer.md"
 
+    extra = {}
+    if args.with_png:
+        extra["with_png"] = True
+    if args.kb_only:
+        extra["kb_only"] = True
+    if args.code_only:
+        extra["code_only"] = True
+
     print(f"  [{channel.upper()}] consulting...", file=sys.stderr)
-    answer = plugin.consult(question, model=args.model, effort=args.effort)
+    answer = plugin.consult(
+        question, model=args.model, effort=args.effort, **extra)
     answer_file.write_text(answer)
     print(str(answer_file))
     print(f"  [LOG] {consult_dir}", file=sys.stderr)
-
-
-def main():
-    if len(sys.argv) < 2 or sys.argv[1] not in ("theory", "evidence"):
-        print(f"Usage: consult.py <theory|evidence> [args...]", file=sys.stderr)
-        sys.exit(1)
-    role = sys.argv[1]
-    rest = sys.argv[2:]
-
-    channel = _peek_channel(role, rest)
-    if channel:
-        try:
-            plugin = load_channel_plugin(channel)
-            _run_plugin(plugin, role, rest)
-            return
-        except FileNotFoundError:
-            pass  # fall through to lattice-script path
-
-    # Fallback: subprocess to the lattice script (removed in commit 5)
-    script = DOMAIN / "scripts" / f"{role}.py"
-    if not script.exists():
-        print(f"consult.py: no plugin for channel {channel!r} and no {script}",
-              file=sys.stderr)
-        sys.exit(1)
-    sys.exit(subprocess.run([sys.executable, str(script)] + rest).returncode)
 
 
 if __name__ == "__main__":

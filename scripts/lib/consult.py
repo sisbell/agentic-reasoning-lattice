@@ -155,13 +155,10 @@ def format_out_of_scope_block(out_of_scope):
     return f"\n## Scope Exclusions\n\nDO NOT generate questions about: {out_of_scope}\n"
 
 
-def load_domain_consult_modules(domain_path):
-    """Add `<domain_path>/scripts/` to sys.path and import the theory and
-    evidence channel modules. Returns (theory_module, evidence_module)."""
+def add_domain_scripts_to_path(domain_path):
+    """Add `<domain_path>/scripts/` to sys.path so domain-specific helper
+    modules (e.g. assign_channels) can be imported by pipeline code."""
     sys.path.insert(0, str(domain_path / "scripts"))
-    import theory  # noqa: E402
-    import evidence  # noqa: E402
-    return theory, evidence
 
 
 def next_session_dir(parent, prefix):
@@ -200,6 +197,20 @@ def resolve_channel_from_args(args, role):
 
 
 _plugin_cache = {}
+
+
+def dispatch_generate_questions(channel, inquiry, n, model, out_of_scope):
+    """Load the channel plugin and call its generate_questions."""
+    plugin = load_channel_plugin(channel)
+    return plugin.generate_questions(
+        inquiry, n=n, model=model, out_of_scope=out_of_scope)
+
+
+def dispatch_run_consultation(channel, question, label, model, effort, **extra):
+    """Load the channel plugin and call its consult."""
+    plugin = load_channel_plugin(channel)
+    return plugin.consult(
+        question, label=label, model=model, effort=effort, **extra)
 
 
 def load_channel_plugin(channel_name):

@@ -14,7 +14,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import (WORKSPACE, REVIEWS_DIR, VOCABULARY, PATCHES_DIR,
-                   DOMAIN_PROMPTS, prompt_path, next_review_number)
+                   LATTICE_PROMPTS, prompt_path, next_review_number)
 from lib.shared.common import (read_file, find_asn, invoke_claude, invoke_claude_agent,
                          log_usage, step_commit_asn)
 from lib.shared.foundation import load_foundation_statements

@@ -23,12 +23,12 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, VOCABULARY, REVIEWS_DIR, USAGE_LOG, NOTES_DIR, DOMAIN_PROMPTS, sorted_reviews, find_review
+from lib.shared.paths import WORKSPACE, VOCABULARY, REVIEWS_DIR, USAGE_LOG, NOTES_DIR, LATTICE_PROMPTS, sorted_reviews, find_review
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn, read_file
 from lib.shared.foundation import load_foundation_statements
 
-PROMPTS_DIR = DOMAIN_PROMPTS / "discovery"
+PROMPTS_DIR = LATTICE_PROMPTS / "discovery"
 DISCOVERY_PROMPT = PROMPTS_DIR / "instructions.md"
 
 MODEL = "claude-opus-4-7"

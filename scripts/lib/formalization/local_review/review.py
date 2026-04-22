@@ -18,10 +18,10 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import USAGE_LOG, DOMAIN_PROMPTS, formal_stmts
+from lib.shared.paths import USAGE_LOG, LATTICE_PROMPTS, formal_stmts
 from lib.shared.common import find_asn
 
-PROMPTS_DIR = DOMAIN_PROMPTS / "formalization" / "local-review"
+PROMPTS_DIR = LATTICE_PROMPTS / "formalization" / "local-review"
 REVIEW_TEMPLATE = PROMPTS_DIR / "review.md"
 
 
