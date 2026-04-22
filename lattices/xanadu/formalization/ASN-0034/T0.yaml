@@ -6,5 +6,4 @@ summary: |
   Posits the carrier set T as the set of all finite sequences of natural numbers with at least
   one component, and introduces the length operator (#) and component projection (aᵢ) as
   primitives. This is an axiom, not a derivation — it establishes the raw material from which
-  every other property in the system is built. The standard arithmetic facts about ℕ that proofs
-  need are separated into their own axioms so each proof cites only what it actually uses.
+  every other property in the system is built.
