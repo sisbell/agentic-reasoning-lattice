@@ -114,6 +114,29 @@ def commit_file(path, message):
         return False
 
 
+def commit_all_staged(message):
+    """Stage all modifications (including already-staged renames via git mv)
+    and commit. Returns True on success, False if nothing to commit."""
+    # Check if there's anything to commit (staged or unstaged tracked changes).
+    status = subprocess.run(
+        ["git", "status", "--porcelain"],
+        cwd=REPO_ROOT, capture_output=True, text=True,
+    )
+    if not status.stdout.strip():
+        return False
+    try:
+        subprocess.run(["git", "add", "-u"],
+                       cwd=REPO_ROOT, check=True,
+                       capture_output=True)
+        subprocess.run(["git", "commit", "-m", message],
+                       cwd=REPO_ROOT, check=True,
+                       capture_output=True)
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"    [commit failed] {e}", file=sys.stderr)
+        return False
+
+
 def group_findings_by_file(findings, rule):
     """Group findings by the file that needs editing.
 
@@ -342,7 +365,16 @@ def run_pass(pass_spec, asn_label, claim_dir, findings, dry_run,
                 print(f"    claude invocation failed", file=sys.stderr)
                 continue
             print(f"    done in {elapsed:.0f}s")
-            subprocess.run(["git", "diff", "--stat", "HEAD"], cwd=REPO_ROOT)
+            subprocess.run(["git", "diff", "--cached", "--stat", "HEAD"],
+                           cwd=REPO_ROOT)
+            if commit:
+                committed = commit_all_staged(
+                    f"validate-revise(asn): {rule} on {filename}"
+                )
+                if committed:
+                    print(f"    [committed] {filename}")
+                else:
+                    print(f"    [no changes to commit] {filename}")
             continue
 
         diff, scratch_path = process_file_scratch(
