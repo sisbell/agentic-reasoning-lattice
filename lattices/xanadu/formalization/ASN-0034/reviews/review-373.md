@@ -19,3 +19,9 @@
 **ASN**: T4c Exhaustion: "At `m = 0`: the case `zeros(t) < 0` is excluded by **NAT-zero's `0 ≤ zeros(t)`** via the exactly-one route just described". T4c Formal Contract Depends: "**NAT-zero (NatZeroMinimum) — supplies `0 ≤ zeros(t)` for the exhaustion step.**"
 **Issue**: NAT-zero's axiom body was rephrased specifically to avoid `≤` (so that NAT-zero is self-contained and does not presuppose NAT-order). But T4c's body and Depends both cite NAT-zero as directly supplying `0 ≤ zeros(t)` — a formulation that now lives only in NAT-order's *definition* of `≤` applied to NAT-zero's disjunction. A precise reader auditing "which axiom in scope yields `0 ≤ zeros(t)`?" finds that no single axiom does; NAT-zero supplies `0 < zeros(t) ∨ 0 = zeros(t)` and NAT-order's definition of `≤` re-expresses that as `0 ≤ zeros(t)`. T4c attributes the combined result to NAT-zero alone.
 **What needs resolving**: Either rephrase T4c's cite to "NAT-zero's `0 < zeros(t) ∨ 0 = zeros(t)` (equivalently `0 ≤ zeros(t)` via NAT-order's definition of `≤`)" and update T4c's Depends role for NAT-zero accordingly, or restore `0 ≤ n` to NAT-zero's axiom body (re-introducing the NAT-order presupposition the earlier rephrasing was chosen to avoid).
+
+## Result
+
+Regional review not converged after 8 cycles.
+
+*Elapsed: 10867s*
