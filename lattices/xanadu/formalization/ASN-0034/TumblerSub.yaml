@@ -10,8 +10,6 @@ depends:
 - TA-Pos
 - ActionPoint
 - TumblerAdd
-- D0
-- D1
 - NAT-order
 - NAT-addcompat
 - NAT-sub

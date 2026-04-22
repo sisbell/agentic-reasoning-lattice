@@ -1,6 +1,8 @@
 **AllocatedSet (AllocatedSet).** Defines `allocated(s)`, the set of addresses allocated in state s, as the union of realized per-allocator domains, and establishes the bridge between T10a's unindexed chain `dom(A)` and the state-indexed realized domain `domₛ(A)`.
 
-A *state* `s` is the configuration of the allocator tree: which allocators have been activated and, for each allocator A, the count `nₛ(A) ≥ 0` of sibling increments performed. The *realized domain* of A at s is the finite set
+Let Σ denote the system's transition vocabulary and let 𝒮 denote the state space of the allocation system. Each `op ∈ Σ` is a partial function `op : 𝒮 ⇀ 𝒮`. The predicate `op(s) defined` abbreviates `s ∈ dom(op)`; when it holds, `op(s) ∈ 𝒮` is the unique successor state. A state transition `s → s'` is exactly a pair `(s, op(s))` with `op ∈ Σ` and `s ∈ dom(op)`.
+
+A *state* `s ∈ 𝒮` is the configuration of the allocator tree: which allocators have been activated and, for each allocator A, the count `nₛ(A) ≥ 0` of sibling increments performed. The *realized domain* of A at s is the finite set
 
   domₛ(A) = {t₀, t₁, …, t_{nₛ(A)}}
 
@@ -24,13 +26,13 @@ T10a restricts sibling production to `inc(·, 0)`, so `domₛ(A)` can only grow 
 
 *Formal Contract:*
 - *Definitions:*
-  - *State:* s ∈ 𝒮, a configuration of the allocator tree — the set of activated allocators and, for each, the count nₛ(A).
+  - *State space:* 𝒮 is the state space of the allocation system; `s ∈ 𝒮` is a configuration of the allocator tree — the set of activated allocators and, for each, the count nₛ(A).
+  - *Transition vocabulary:* Σ is the system's transition vocabulary; each `op ∈ Σ` is a partial function `op : 𝒮 ⇀ 𝒮`. The predicate `op(s) defined` abbreviates `s ∈ dom(op)`; when it holds, `op(s) ∈ 𝒮` is the unique successor state.
   - *Realized domain:* domₛ(A) = {t₀, …, t_{nₛ(A)}} where tᵢ₊₁ = inc(tᵢ, 0).
   - *Allocated set:* allocated(s) = ⋃ { domₛ(A) : A activated in s }.
   - *Initial state:* allocated(s₀) = {t₀} where t₀ is the root's base address.
-  - *State transition:* s → s' is the application of one op ∈ Σ. Allocation-affecting transitions either advance an allocator's frontier or spawn a child allocator.
+  - *State transition:* s → s' is the pair `(s, op(s))` with `op ∈ Σ` and `s ∈ dom(op)`. Allocation-affecting transitions either advance an allocator's frontier or spawn a child allocator.
   - *Domain embedding:* (i) `domₛ(A) ⊆ dom(A)`; (ii) `domₛ(A) = {tᵢ : 0 ≤ i ≤ nₛ(A)}` with enumeration indices preserved; (iii) `dom(A) ⊇ ⋃ { domₛ(A) : s reachable from s₀ }`, reverse inclusion not asserted. Predicates over `dom(A)` defined by the `tᵢ`-indexed chain — `same_allocator` (T10a), `allocated_before` (T9), T9's forward-ordering — apply unchanged to pairs in `domₛ(A)` by (i) and (ii).
 - *Depends:*
   - T10a (AllocatorDiscipline) — allocator tree structure and the per-allocator chain `dom(A) = {tₙ : n ≥ 0}`.
   - T9 (ForwardAllocation) — `allocated_before` ordering and per-allocator forward-ordering conclusion.
-  - NoDeallocation (NoDeallocation) — transition vocabulary Σ and closure frame.

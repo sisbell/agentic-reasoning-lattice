@@ -3,7 +3,6 @@ name: ForwardAllocation
 type: lemma
 depends:
 - T1
-- T8
 - T10a
 - T10a.6
 - T10a.7
