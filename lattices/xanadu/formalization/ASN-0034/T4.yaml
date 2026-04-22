@@ -6,6 +6,8 @@ depends:
 - NAT-zero
 - NAT-discrete
 - NAT-order
+- NAT-closure
 summary: 'Valid tumblers encode a four-level containment hierarchy (node, user, document, element), with each position `i`
   satisfying `tᵢ = 0` serving as a field separator. The axiom constrains separator placement: at most three zeros, none
-  adjacent, and neither the first nor last component may be zero — guaranteeing every field segment is non-empty.'
+  adjacent, and neither the first nor last component may be zero — guaranteeing every field segment is non-empty. NAT-closure
+  grounds the numerals `2 := 1 + 1` and `3 := 2 + 1` in ℕ so that `zeros(t) ≤ 3` compares two ℕ-elements.'

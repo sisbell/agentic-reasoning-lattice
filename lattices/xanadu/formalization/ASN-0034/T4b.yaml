@@ -8,6 +8,8 @@ depends:
 - NAT-zero
 - NAT-discrete
 - NAT-order
+- NAT-closure
+- NAT-sub
 summary: |
   fields : T ⇀ Seq(ℕ⁺) × Seq(ℕ⁺) × Seq(ℕ⁺) × Seq(ℕ⁺) is a partial function whose domain
   is exactly the T4-valid subset of T (at most three zeros, no two adjacent, t₁ ≠ 0,
@@ -23,8 +25,13 @@ summary: |
   notation t.X₁ := (X(t))₁ is grounded in T0's subscript: ℕ⁺ ⊆ ℕ embeds every nonempty
   element of Seq(ℕ⁺) into T, so T0's projection applies to X(t) whenever X(t) ≠ ε. Hence
   t.X₁ is defined iff X(t) ≠ ε — in particular t.E₁ requires zeros(t) = 3. T4a's reverse
-  direction supplies the segment-length inequalities (s₁ ≥ 2, s_k ≤ #t − 1, s_{j+1} ≥
-  s_j + 2) that discharge non-emptiness of every listed sub-sequence. Well-definedness
+  direction supplies, from T4's field-segment constraint, the conclusion that every field
+  segment is non-empty; T4b locally re-expresses this as the segment-length inequalities
+  (s₁ ≥ 2, s_k ≤ #t − 1, s_{j+1} ≥ s_j + 2) that discharge non-emptiness of every listed
+  sub-sequence. NAT-closure grounds the numeral 2 := 1 + 1 in ℕ and the sums s_i + 1, s_i + 2
+  appearing in the case construction; NAT-sub's conditional-closure clause at s_i ≥ 1 (T0's
+  index domain) and #t ≥ 1 (T0) gives s_i − 1 and #t − 1 in ℕ for the sub-sequence upper
+  indices and for the inequality s_k ≤ #t − 1. Well-definedness
   follows because T4's role-assignment makes zeros exactly the field separators and T0
   identifies each tᵢ as a function of t, so the scan result is determined by t.
   Outside the T4-valid subdomain (zeros(t) ≥ 4, or zeros(t) ≤ 3 with a violated

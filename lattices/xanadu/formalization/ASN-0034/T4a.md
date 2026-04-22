@@ -1,6 +1,6 @@
 **T4a (SyntacticEquivalence).** T4's field-segment constraint — stated positionally as (i) no two zeros are adjacent, (ii) `t₁ ≠ 0`, (iii) `t_{#t} ≠ 0` — is equivalent to the condition that every *field segment* of `t` is non-empty, where the field segments are the `zeros(t) + 1` maximal contiguous sub-sequences of non-zero positions delimited by the zeros.
 
-Let `t ∈ T` be a tumbler with `zeros(t) ≤ 3`. Set `k = zeros(t) ∈ {0, 1, 2, 3}` with zeros at positions `s₁ < s₂ < … < s_k` (strict increase by NAT-order). Set `s₀ = 0` and `s_{k+1} = #t + 1` as sentinels. The `k + 1` field segments of `t` are the index ranges `(s_i, s_{i+1})` for `i = 0, 1, …, k` — i.e. the component sub-sequences `t[s_i + 1 .. s_{i+1} - 1]`. A segment is non-empty precisely when `s_{i+1} ≥ s_i + 2`. Every index not in `{s₁, …, s_k}` is a non-zero position; by T0 the carrier is ℕ, NAT-zero gives `0 ≤ tᵢ`, and NAT-discrete at `m = 0` rules out `0 ≤ tᵢ < 1` under `tᵢ ≠ 0`, so such a position carries a strictly positive value.
+Let `t ∈ T` be a tumbler with `zeros(t) ≤ 3`. Set `k = zeros(t) ∈ {0, 1, 2, 3}` with zeros at positions `s₁ < s₂ < … < s_k` (strict increase by NAT-order). Set `s₀ = 0` and `s_{k+1} = #t + 1` as sentinels. The arithmetic in what follows — the numerals `2` and `3`, the sums `s_i + 1`, `s_i + 2`, and `#t + 1`, and the partial subtraction `#t − 1` — is grounded thus: NAT-closure posits `1 ∈ ℕ` and closes ℕ under addition, so `2 := 1 + 1 ∈ ℕ`, `3 := 2 + 1 ∈ ℕ`, and each of `s_i + 1`, `s_i + 2`, `#t + 1` lies in ℕ; NAT-sub's conditional-closure clause applied at the hypothesis `#t ≥ 1` (T0) and `1 ∈ ℕ` gives `#t − 1 ∈ ℕ`. The `k + 1` field segments of `t` are the index ranges `(s_i, s_{i+1})` for `i = 0, 1, …, k` — i.e. the component sub-sequences `t[s_i + 1 .. s_{i+1} - 1]`. A segment is non-empty precisely when `s_{i+1} ≥ s_i + 2`. Every index not in `{s₁, …, s_k}` is a non-zero position; by T0 the carrier is ℕ, NAT-zero gives `0 ≤ tᵢ`, and NAT-discrete at `m = 0` rules out `0 ≤ tᵢ < 1` under `tᵢ ≠ 0`, so such a position carries a strictly positive value.
 
 *Forward.* Assume every field segment is non-empty. We derive each positional condition.
 
@@ -23,9 +23,11 @@ All segments — first, interior, and last — are non-empty. ∎
 *Formal Contract:*
 - *Preconditions:* `t ∈ T` with `zeros(t) ≤ 3`. The field-segment constraint of full T4-validity is *not* assumed; it appears as the conclusion of the Forward direction and the local hypothesis of the Reverse direction.
 - *Depends:*
-  - T0 (CarrierSetDefinition) — fixes the carrier as ℕ.
+  - T0 (CarrierSetDefinition) — fixes the carrier as ℕ; supplies `#t ≥ 1` as the precondition for `#t − 1 ∈ ℕ`.
   - NAT-zero (NatZeroMinimum) — supplies the lower bound `0 ≤ tᵢ`.
   - NAT-discrete (NatDiscreteness) — converts `0 ≤ tᵢ` and `tᵢ ≠ 0` into `tᵢ ≥ 1`.
   - NAT-order (NatStrictTotalOrder) — licenses the strictly increasing enumeration `s₁ < s₂ < … < s_k` and the position inequalities.
+  - NAT-closure (NatArithmeticClosureAndIdentity) — supplies `1 ∈ ℕ` and closure of ℕ under addition, grounding the numerals `2 := 1 + 1 ∈ ℕ` and `3 := 2 + 1 ∈ ℕ` used in `s₁ ≥ 2` and `zeros(t) ≤ 3`, and the sums `s_i + 1`, `s_i + 2`, `#t + 1` used to name the sentinels and the interior-segment inequality.
+  - NAT-sub (NatPartialSubtraction) — conditional-closure clause applied at `#t ≥ 1` (T0) and `1 ∈ ℕ` (NAT-closure) gives `#t − 1 ∈ ℕ`, making `s_k ≤ #t − 1` a comparison of two ℕ-elements.
   - T4 (HierarchicalParsing) — supplies the positional conditions (i), (ii), (iii), the field-segment terminology, and the zero-count bound `zeros(t) ≤ 3`.
 - *Postconditions:* The three positional conditions (i), (ii), (iii) hold if and only if every field segment of `t` is non-empty.
