@@ -346,16 +346,15 @@ claims:
     type: corollary
     name: UniqueParse
     follows_from:
-    - T3
     - T4
     - T4a
+    - T4c
   T4c:
     status: corollary
     type: corollary
     name: LevelDetermination
     follows_from:
     - T4
-    - T4b
   T5:
     status: definition
     type: definition

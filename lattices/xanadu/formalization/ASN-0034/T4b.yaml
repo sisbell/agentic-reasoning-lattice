@@ -3,22 +3,29 @@ name: UniqueParse
 type: corollary
 depends:
 - T0
-- T3
 - T4
 - T4a
+- T4c
 - NAT-zero
 - NAT-discrete
 - NAT-order
 summary: |
   fields : T ⇀ Seq(ℕ⁺) × Seq(ℕ⁺) × Seq(ℕ⁺) × Seq(ℕ⁺) is a partial function whose domain
   is exactly the T4-valid subset of T (at most three zeros, no two adjacent, t₁ ≠ 0,
-  t_{#t} ≠ 0). On that subdomain it returns (N(t), U(t), D(t), E(t)) with absent fields
-  represented by ε. The marker is unambiguous because T4a forces every present field
-  segment to be non-empty, so X(t) = ε iff field X is absent in t. The absence pattern
-  is fixed by zeros(t) ∈ {0, 1, 2, 3}, and component-access notation t.X₁ is defined iff
-  X(t) ≠ ε — in particular t.E₁ requires zeros(t) = 3. Well-definedness follows because
-  T4's role-assignment makes zeros exactly the field separators and T3's canonical
-  representation ensures no alternative encoding could yield a different scan result.
+  t_{#t} ≠ 0). Seq(X) denotes the set of finite, possibly empty sequences over X, with ε
+  for the unique zero-length sequence; this differs from T0's T (which fixes #a ≥ 1 for
+  every a ∈ T) only by adjoining ε, so the codomain accommodates the absence marker. On
+  that subdomain it returns (N(t), U(t), D(t), E(t)) with absent fields represented by ε.
+  Field absence is defined via T4c's level assignment — field X is
+  absent in t iff X is not in the field set of t's hierarchical level (node {N}, user
+  {N, U}, document {N, U, D}, element {N, U, D, E}) — and the biconditional X(t) = ε iff
+  X is absent in t is discharged by inspection of the case construction on zeros(t).
+  The absence pattern is fixed by zeros(t) ∈ {0, 1, 2, 3}, and component-access notation
+  t.X₁ is defined iff X(t) ≠ ε — in particular t.E₁ requires zeros(t) = 3. T4a's reverse
+  direction supplies the segment-length inequalities (s₁ ≥ 2, s_k ≤ #t − 1, s_{j+1} ≥
+  s_j + 2) that discharge non-emptiness of every listed sub-sequence. Well-definedness
+  follows because T4's role-assignment makes zeros exactly the field separators and T0
+  identifies each tᵢ as a function of t, so the scan result is determined by t.
   Outside the T4-valid subdomain (zeros(t) ≥ 4, or zeros(t) ≤ 3 with a violated
   field-segment constraint) this corollary assigns no value to fields(t); consumers must
   discharge T4-validity as a precondition.

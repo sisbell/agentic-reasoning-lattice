@@ -20,3 +20,9 @@ One new issue remains.
 **Issue**: The previous cycle's fix for the undefined-`≥` issue restated NAT-addcompat's contract in terms of `≤`, removing the contract-level dependence on `≥`. But T1's proof body still uses `>` and `≥` on ℕ at several genuinely load-bearing steps — including the central contradictions in two transitivity sub-cases. NAT-order supplies only `<` (axiomatic) and `≤` (defined); neither `>` nor `≥` is given for ℕ anywhere in this ASN. The tumbler-side `a ≥ b` is explicitly defined in T1's Abbreviations, making the absence of an analogous ℕ-side definition a visible asymmetry. A reader resolving "`k₂ > n ≥ k₁`" against the ASN's vocabulary has no stated definition to bind either symbol to.
 
 **What needs resolving**: Either extend NAT-order's formal contract to introduce `>` and `≥` on ℕ (e.g., `m > n ⟺ n < m` and `m ≥ n ⟺ n ≤ m`), or rewrite T1's proof body to state these steps using only `<` and `≤` (for instance, "`n < n + 1`, so from `k₁ ≤ n` and `k₂ = n + 1` obtain `k₁ < k₂`"), so the proof remains within the vocabulary NAT-order actually establishes.
+
+## Result
+
+Regional review converged after 4 cycles.
+
+*Elapsed: 2333s*
