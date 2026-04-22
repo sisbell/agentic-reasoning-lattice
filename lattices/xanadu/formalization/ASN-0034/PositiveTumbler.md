@@ -4,7 +4,7 @@
 
 The set of zero tumblers is written **Z** = {t ∈ T : Zero(t)}.
 
-The predicate `Pos(t)` is not written `t > 0`, because `>` already denotes T1's lexicographic ordering, and the two notions diverge. The zero tumbler `0.0.0` exhibits the divergence: under T1, `0.0 < 0.0.0` by the prefix rule (the length-2 tumbler `0.0` is a proper prefix of the length-3 tumbler `0.0.0`), yet `Zero(0.0.0)` holds.
+The predicate `Pos(t)` is not written `t > 0`, because `>` already denotes T1's lexicographic ordering, and the two notions diverge. The zero tumbler `0.0` exhibits the divergence: under T1, `0 < 0.0` by the prefix rule (the length-1 tumbler `0` is a proper prefix of the length-2 tumbler `0.0`), so `0.0 > 0`, yet `Zero(0.0)` holds, hence `¬Pos(0.0)`.
 
 *Formal Contract:*
 - *Definition:* `Pos(t)` iff `(E i : 1 ≤ i ≤ #t : tᵢ ≠ 0)`; `Zero(t)` iff `(A i : 1 ≤ i ≤ #t : tᵢ = 0)`; **Z** = {t ∈ T : Zero(t)}.
