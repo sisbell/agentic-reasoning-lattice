@@ -12,8 +12,7 @@ WORKSPACE = Path(__file__).resolve().parent.parent.parent.parent
 # A second lattice (e.g. materials) switches every lattice-scoped path at once.
 LATTICE_NAME = os.environ.get("LATTICE", "xanadu")
 LATTICE = WORKSPACE / "lattices" / LATTICE_NAME
-DOMAIN = WORKSPACE / "domains" / LATTICE_NAME
-CHANNELS_DIR = DOMAIN / "channels"
+CHANNELS_DIR = WORKSPACE / "channels"
 
 # Pipeline-stage prompts tier — shared defaults plus per-lattice overrides.
 # Resolver prefers lattice-specific overrides.

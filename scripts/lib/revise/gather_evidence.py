@@ -6,8 +6,10 @@ Reads a review's REVISE items + the ASN, asks an LLM to decide which channels
 (theory and/or evidence) each finding needs, then runs those channel
 consultations. Produces a results file for the revise agent to consume.
 
-Domain-specific logic (the assignment prompt, the parser, and the display-name
-map from role to authority) lives in domains/<LATTICE>/scripts/assign_channels.py.
+Assignment prompt, parser, and display-name logic live in the shared
+lib module scripts/lib/revise/assign_channels.py — tolerant parser that
+handles both role-labeled ("Theory"/"Evidence") and channel-named
+("Nelson"/"Gregory"/"Maxwell-1867"/...) responses.
 
 Usage:
     python scripts/lib/revise/gather_evidence.py 9              # latest review
@@ -26,18 +28,15 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import (
-    WORKSPACE, REVIEWS_DIR, NOTES_DIR, DOMAIN, consultation_dir,
+    WORKSPACE, REVIEWS_DIR, NOTES_DIR, consultation_dir,
     find_review, sorted_reviews,
 )
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn, read_file, log_usage
 from lib.consult import (
-    invoke_claude, get_total_usage,
-    add_domain_scripts_to_path, dispatch_run_consultation,
+    invoke_claude, get_total_usage, dispatch_run_consultation,
 )
-
-add_domain_scripts_to_path(DOMAIN)
-import assign_channels  # noqa: E402  sys.path set above
+from lib.revise import assign_channels
 
 
 def get_review_number(review_path):
@@ -62,17 +61,6 @@ def extract_revise_section(review_content):
             revise_lines.append(line)
 
     return "\n".join(revise_lines).strip()
-
-
-# ─── Step 1: Helpers ─────────────────────────────────────────────
-
-def category_label(roles):
-    """Derive a display category from the set of channels a finding needs."""
-    if not roles:
-        return "INTERNAL"
-    if len(roles) >= 2:
-        return "BOTH"
-    return assign_channels.DISPLAY_NAMES[next(iter(roles))].upper()
 
 
 # ─── Step 2: Run consultations ───────────────────────────────────
@@ -134,7 +122,7 @@ def run_targeted_consultations(items, asn_id, model="opus"):
 
 def build_results(asn_label, review_path, items):
     """Build the consultation results markdown file."""
-    display_names = assign_channels.DISPLAY_NAMES
+    display_names = assign_channels.display_names(asn_label)
     review_name = Path(review_path).name
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
 
@@ -166,7 +154,7 @@ def build_results(asn_label, review_path, items):
     parts += ["## Consultation Results", ""]
 
     for item in consulted:
-        category = category_label(item["questions"].keys())
+        category = assign_channels.category_label(item["questions"].keys(), asn_label)
         parts += [
             f"### Issue {item['number']}: {item['title']}",
             "",
@@ -267,7 +255,7 @@ def main():
     )
     print(f"  [ASSIGN] Saved to {cat_path}", file=sys.stderr)
 
-    items = assign_channels.parse(response)
+    items = assign_channels.parse(response, asn_label)
     if not items:
         print(f"  [ASSIGN] No items parsed from response", file=sys.stderr)
         sys.exit(1)
@@ -279,7 +267,7 @@ def main():
           file=sys.stderr)
 
     for item in items:
-        tag = category_label(item["questions"].keys())
+        tag = assign_channels.category_label(item["questions"].keys(), asn_label)
         print(f"    Issue {item['number']}: {tag} — {item['title']}",
               file=sys.stderr)
 

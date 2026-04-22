@@ -3,16 +3,16 @@
 Decompose an inquiry into focused questions, then consult both channels
 (theory and evidence).
 
-Generic orchestrator: decomposes via the per-domain theory and evidence
-channel modules, merges questions into a labeled list, filters for scope,
-dispatches (theory in parallel, evidence sequential — the evidence calls
-each run KB + source in parallel internally), saves per-question answers,
-assembles a combined output.
+Generic orchestrator: decomposes via channel plugins at
+channels/<name>/consultations/consult.py, merges questions into a labeled
+list, filters for scope, dispatches (theory in parallel, evidence
+sequential — the evidence calls each run KB + source in parallel
+internally), saves per-question answers, assembles a combined output.
 
-Domain-specific logic (role identity, prompt composition, source loading,
-citation formats) lives in domains/<LATTICE>/scripts/theory.py and
-evidence.py. The orchestrator knows only role names: "theory" and
-"evidence".
+Channel-specific logic (role identity, prompt composition, source loading,
+citation formats) lives in the channel plugin. The orchestrator knows
+only role names: "theory" and "evidence", resolved to channel names via
+the ASN's campaign.
 
 Usage:
     python scripts/lib/discovery/decompose.py --inquiry-id 4

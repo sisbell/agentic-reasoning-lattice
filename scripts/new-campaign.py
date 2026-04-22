@@ -3,7 +3,7 @@
 Scaffold a new campaign in a lattice.
 
 Validates that the named theory and evidence channels exist under
-domains/<lattice>/channels/, and that the campaign name is not already
+channels/, and that the campaign name is not already
 taken. Creates the campaign directory with config.yaml and a stub
 vocabulary.md ready for upfront curation.
 
@@ -35,9 +35,9 @@ def main():
     parser.add_argument("--name", required=True,
                         help="Campaign name (used as the directory name)")
     parser.add_argument("--theory", required=True,
-                        help="Theory channel name (must exist under domains/<lattice>/channels/)")
+                        help="Theory channel name (must exist under channels/)")
     parser.add_argument("--evidence", required=True,
-                        help="Evidence channel name (must exist under domains/<lattice>/channels/)")
+                        help="Evidence channel name (must exist under channels/)")
     parser.add_argument("--target", required=True,
                         help="One-line prose description of the campaign's target")
     args = parser.parse_args()

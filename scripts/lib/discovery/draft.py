@@ -6,7 +6,8 @@ Reads consultation answers from the lattice's consultations dir, loads
 the domain's discovery prompt template, substitutes placeholders, and
 calls claude -p to write the note.
 
-The template (domains/<lattice>/prompts/discovery/instructions.md) is the
+The template (prompts/<lattice>/discovery/instructions.md, with shared
+fallback at prompts/shared/discovery/instructions.md) is the
 single source of truth for the prompt. Placeholders supplied by this
 script: {{consultation_answers}}, {{asn_number}}, {{title}}, {{question}},
 {{slug}}, {{foundation_section}}, {{vocabulary_section}}, {{out_of_scope_note}}.

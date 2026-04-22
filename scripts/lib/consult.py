@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 """Shared consultation operation primitives.
 
-The atomic verb: consult one channel with one question. Each domain's
-channel scripts (domains/<d>/scripts/theory.py, evidence.py) import from
-here. This module holds only the engine-level primitives that don't vary
-by domain: Claude CLI invocation, token/cost extraction, usage-log append.
+The atomic verb: consult one channel with one question. Channel plugins
+under channels/<name>/consultations/consult.py use the primitives here
+(invoke_claude, parse_numbered, format_out_of_scope_block) to build their
+own generate_questions and consult functions. Pipeline orchestrators use
+load_channel_plugin to resolve a channel name to its plugin module and
+dispatch_* to route calls through it.
 
-Domain-specific logic (source loading, prompt composition, role identity)
-lives in the per-domain channel scripts, not here.
+This module holds only engine-level primitives that don't vary by channel:
+Claude CLI invocation, token/cost extraction, usage-log append, session-
+dir numbering, channel-arg resolution.
 """
 
 import importlib.util
@@ -153,12 +156,6 @@ def format_out_of_scope_block(out_of_scope):
     if not out_of_scope:
         return ""
     return f"\n## Scope Exclusions\n\nDO NOT generate questions about: {out_of_scope}\n"
-
-
-def add_domain_scripts_to_path(domain_path):
-    """Add `<domain_path>/scripts/` to sys.path so domain-specific helper
-    modules (e.g. assign_channels) can be imported by pipeline code."""
-    sys.path.insert(0, str(domain_path / "scripts"))
 
 
 def next_session_dir(parent, prefix):
