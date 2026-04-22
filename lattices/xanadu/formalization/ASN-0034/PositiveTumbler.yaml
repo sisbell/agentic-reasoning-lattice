@@ -3,7 +3,6 @@ name: PositiveTumbler
 type: definition
 depends:
 - T0
-- T1
 summary: |
   Defines positivity for tumblers via two predicate symbols: `Pos(t)` (positive) iff at least one component is
   nonzero, and `Zero(t)` (zero tumbler) iff every component is zero. Additionally introduces the set-form
