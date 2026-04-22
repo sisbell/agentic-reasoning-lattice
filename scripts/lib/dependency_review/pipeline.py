@@ -22,12 +22,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import (WORKSPACE, FORMALIZATION_DIR, USAGE_LOG, DOMAIN_PROMPTS,
-                    next_review_number, load_manifest)
+                    prompt_path, next_review_number, load_manifest)
 from lib.shared.common import find_asn, read_file, assemble_readonly, step_commit_asn
 from lib.shared.foundation import load_foundation_statements
 
-DEP_REPORT_TEMPLATE = DOMAIN_PROMPTS / "shared" / "dependency-report.md"
-REVISE_TEMPLATE = DOMAIN_PROMPTS / "rebase" / "revise.md"
+DEP_REPORT_TEMPLATE = prompt_path("shared/dependency-report.md")
+REVISE_TEMPLATE = prompt_path("rebase/revise.md")
 
 
 def run_dependency_report(asn_num):

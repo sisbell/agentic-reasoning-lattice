@@ -16,7 +16,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import USAGE_LOG, FORMALIZATION_DIR, DOMAIN_PROMPTS, formal_stmts
+from lib.shared.paths import USAGE_LOG, FORMALIZATION_DIR, DOMAIN_PROMPTS, prompt_path, formal_stmts
 from lib.shared.common import find_asn, invoke_claude, build_label_index, load_claim_metadata
 from lib.formalization.core.build_dependency_graph import generate_formalization_deps
 
@@ -24,7 +24,7 @@ from lib.formalization.assembly.validate_contracts import validate_contract
 
 PROMPTS_DIR = DOMAIN_PROMPTS / "formalization" / "formalize"
 QUALITY_TEMPLATE = PROMPTS_DIR / "produce-contract.md"
-REVIEW_REWRITE_TEMPLATE = PROMPTS_DIR / "review-rewrite.md"
+REVIEW_REWRITE_TEMPLATE = prompt_path("formalization/formalize/review-rewrite.md")
 
 
 def _log_usage(step, elapsed, asn_num, label=""):

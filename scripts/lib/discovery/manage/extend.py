@@ -15,13 +15,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import (WORKSPACE, NOTES_DIR, MANIFESTS_DIR, DOMAIN_PROMPTS,
-                   load_manifest, note_yaml, formal_stmts)
+                   prompt_path, load_manifest, note_yaml, formal_stmts)
 from lib.shared.common import read_file, find_asn, invoke_claude, log_usage, step_commit
 from lib.shared.foundation import find_extensions, load_foundation_statements
 
 
-PROMPTS_DIR = DOMAIN_PROMPTS / "discovery" / "manage"
-EXTEND_TEMPLATE = PROMPTS_DIR / "extend.md"
+EXTEND_TEMPLATE = prompt_path("discovery/manage/extend.md")
 
 
 def parse_registry_labels(asn_content):

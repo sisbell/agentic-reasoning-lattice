@@ -22,7 +22,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import (WORKSPACE, USAGE_LOG, REVIEWS_DIR, DOMAIN_PROMPTS,
-                   formal_stmts, load_manifest,
+                   prompt_path, formal_stmts, load_manifest,
                    next_review_number)
 from lib.shared.common import find_asn, extract_claim_sections, step_commit_asn
 from lib.formalization.core.build_dependency_graph import (find_claim_table, parse_table_row,
@@ -30,7 +30,7 @@ from lib.formalization.core.build_dependency_graph import (find_claim_table, par
 from lib.formalization.core.topological_sort import topological_sort_labels
 
 PROMPTS_DIR = DOMAIN_PROMPTS / "formalization" / "formalize"
-REPAIR_TEMPLATE = PROMPTS_DIR / "extract-proof.md"
+REPAIR_TEMPLATE = prompt_path("formalization/formalize/extract-proof.md")
 
 
 def _log_usage(step, elapsed, asn_num, label=""):

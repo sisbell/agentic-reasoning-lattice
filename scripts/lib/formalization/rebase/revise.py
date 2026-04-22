@@ -14,12 +14,11 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, USAGE_LOG, DOMAIN_PROMPTS
+from lib.shared.paths import WORKSPACE, USAGE_LOG, DOMAIN_PROMPTS, prompt_path
 from lib.shared.common import find_asn
 from lib.formalization.core.finding import Finding
 
-PROMPTS_DIR = DOMAIN_PROMPTS / "rebase"
-REVISE_TEMPLATE = PROMPTS_DIR / "revise.md"
+REVISE_TEMPLATE = prompt_path("rebase/revise.md")
 
 
 def format_finding_for_reviser(findings):

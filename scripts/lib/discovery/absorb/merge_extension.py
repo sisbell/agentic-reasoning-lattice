@@ -27,17 +27,17 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import (WORKSPACE, NOTES_DIR, MANIFESTS_DIR,
-                   REVIEWS_DIR, DOMAIN_PROMPTS,
+                   REVIEWS_DIR, DOMAIN_PROMPTS, prompt_path,
                    load_manifest, note_yaml, formal_stmts)
 from lib.shared.common import (read_file, find_asn, invoke_claude, invoke_claude_agent,
                          log_usage, step_commit)
 
 
 PROMPTS_DIR = DOMAIN_PROMPTS / "discovery" / "absorb"
-ABSORB_BASE_TEMPLATE = PROMPTS_DIR / "merge-extension.md"
-ABSORB_REVIEW_TEMPLATE = PROMPTS_DIR / "review.md"
+ABSORB_BASE_TEMPLATE = prompt_path("discovery/absorb/merge-extension.md")
+ABSORB_REVIEW_TEMPLATE = prompt_path("discovery/absorb/review.md")
 ABSORB_REVISE_TEMPLATE = PROMPTS_DIR / "revise.md"
-ABSORB_SOURCE_TEMPLATE = PROMPTS_DIR / "update-citations-in-source.md"
+ABSORB_SOURCE_TEMPLATE = prompt_path("discovery/absorb/update-citations-in-source.md")
 
 
 def parse_extension_labels(ext_content):

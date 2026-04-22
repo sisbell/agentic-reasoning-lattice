@@ -15,12 +15,11 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import DOMAIN_PROMPTS, load_manifest
+from lib.shared.paths import DOMAIN_PROMPTS, prompt_path, load_manifest
 from lib.shared.common import read_file, invoke_claude
 from lib.shared.foundation import load_foundation_statements, load_foundation_for_labels
 
-PROMPTS_DIR = DOMAIN_PROMPTS / "formalization" / "full-review"
-REVIEW_TEMPLATE = PROMPTS_DIR / "review.md"
+REVIEW_TEMPLATE = prompt_path("formalization/full-review/review.md")
 
 
 def run_review(asn_num, asn_content, asn_label, previous_findings="", model="opus",

@@ -17,7 +17,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import BLUEPRINTS_DIR, DOMAIN_PROMPTS
+from lib.shared.paths import BLUEPRINTS_DIR, DOMAIN_PROMPTS, prompt_path
 from lib.shared.common import find_asn, invoke_claude, parallel_llm_calls, dump_yaml, step_commit_asn
 
 
@@ -137,7 +137,7 @@ def enrich_asn(asn_num):
         return True
 
     passes = [
-        ("type",  PROMPTS_DIR / "enrich-type.md",  ["type"]),
+        ("type",  prompt_path("blueprinting/enrich-type.md"),  ["type"]),
         ("deps",  PROMPTS_DIR / "enrich-deps.md",  ["depends", "literature_citations"]),
         ("vocab", PROMPTS_DIR / "enrich-vocab.md",  ["vocabulary"]),
     ]

@@ -22,13 +22,13 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
-from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, DAFNY_DIR, DOMAIN_PROMPTS
+from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, DAFNY_DIR, DOMAIN_PROMPTS, prompt_path
 from lib.shared.common import build_label_index
 from lib.verification.dafny.common import read_file, log_usage
 from lib.verification.dafny.verify import verify
 from lib.verification.dafny.validate import validate
 
-ALIGN_TEMPLATE = DOMAIN_PROMPTS / "verification" / "dafny" / "align-with-contract.md"
+ALIGN_TEMPLATE = prompt_path("verification/dafny/align-with-contract.md")
 
 
 def align(dfy_path, errors, formal_contract, model="opus",

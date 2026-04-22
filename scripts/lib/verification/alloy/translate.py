@@ -15,15 +15,15 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
-from lib.shared.paths import WORKSPACE, DOMAIN_PROMPTS, formal_stmts
+from lib.shared.paths import WORKSPACE, DOMAIN_PROMPTS, prompt_path, formal_stmts
 from lib.shared.common import find_asn
 from lib.verification.alloy.check import check, classify_alloy_error, parse_alloy_results
 from lib.verification.alloy.common import (read_file, invoke_claude, log_usage,
     ALLOY_JAR_DEFAULT)
 
 PROMPTS_DIR = DOMAIN_PROMPTS / "verification" / "alloy"
-CLAIM_TEMPLATE = PROMPTS_DIR / "translate-claim.md"
-SYNTAX_REF = PROMPTS_DIR / "syntax-reference.md"
+CLAIM_TEMPLATE = prompt_path("verification/alloy/translate-claim.md")
+SYNTAX_REF = prompt_path("verification/alloy/syntax-reference.md")
 
 
 # Header patterns:

@@ -30,7 +30,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import (WORKSPACE, FORMALIZATION_DIR, DAFNY_DIR, USAGE_LOG,
-                    DOMAIN_PROMPTS, load_manifest)
+                    DOMAIN_PROMPTS, prompt_path, load_manifest)
 from lib.shared.common import find_asn, parallel_llm_calls, build_label_index
 from lib.formalization.core.build_dependency_graph import generate_formalization_deps
 from lib.formalization.core.topological_sort import topological_sort_labels, topological_levels
@@ -42,7 +42,7 @@ from lib.verification.dafny.verify import verify
 from lib.verification.dafny.align import align_validate_cycle
 from lib.verification.dafny.common import read_file, run_commit, log_usage
 
-REVIEW_PROMPT = DOMAIN_PROMPTS / "verification" / "dafny" / "review-failure.md"
+REVIEW_PROMPT = prompt_path("verification/dafny/review-failure.md")
 
 
 def _review_failure(claim_text, dfy_path, verification_errors):

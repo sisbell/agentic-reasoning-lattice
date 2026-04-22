@@ -30,11 +30,11 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, ALLOY_DIR
+from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, ALLOY_DIR, prompt_path
 from lib.shared.common import find_asn, parallel_llm_calls, build_label_index
 from lib.verification.alloy.translate import (
     build_claim_prompt, generate_one,
-    PROMPTS_DIR, SYNTAX_REF,
+    SYNTAX_REF,
 )
 from lib.verification.alloy.align import align_validate_cycle
 from lib.verification.alloy.common import (
@@ -42,7 +42,7 @@ from lib.verification.alloy.common import (
     cleanup_claim_artifacts, make_result, print_summary,
 )
 
-REVIEW_PROMPT = PROMPTS_DIR / "review-counterexample.md"
+REVIEW_PROMPT = prompt_path("verification/alloy/review-counterexample.md")
 
 
 def _review_counterexample(claim_text, als_path, checker_output):

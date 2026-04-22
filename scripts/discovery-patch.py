@@ -18,10 +18,10 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE
+from lib.shared.paths import WORKSPACE, prompt_path
 from lib.shared.common import read_file, invoke_claude, log_usage, step_commit_asn
 from lib.discovery.patch.apply import (
-    validate, step_apply, step_review_revise, PROMPTS_DIR,
+    validate, step_apply, step_review_revise,
 )
 
 
@@ -50,7 +50,7 @@ def main():
     print(f"  [PATCH] {asn_label} ← {patch_path.name}", file=sys.stderr)
 
     if args.report:
-        report_template = read_file(PROMPTS_DIR / "report.md")
+        report_template = read_file(prompt_path("discovery/patch/report.md"))
         if not report_template:
             print("  [ERROR] Patch report prompt not found", file=sys.stderr)
             sys.exit(1)

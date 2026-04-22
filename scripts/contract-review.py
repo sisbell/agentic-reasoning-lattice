@@ -22,12 +22,12 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, DOMAIN_PROMPTS, next_review_number
+from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, DOMAIN_PROMPTS, prompt_path, next_review_number
 from lib.shared.common import find_asn, invoke_claude, parallel_llm_calls, step_commit_asn, build_label_index, aggregate_vocabulary
 from lib.formalization.assembly.validate_contracts import validate_contract
 from lib.formalization.formalize.produce_contract import _has_formal_contract
 
-FIX_CONTRACT_TEMPLATE = DOMAIN_PROMPTS / "formalization" / "contract-review" / "fix-contract.md"
+FIX_CONTRACT_TEMPLATE = prompt_path("formalization/contract-review/fix-contract.md")
 
 
 def _hash_content(text):

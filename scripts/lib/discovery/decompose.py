@@ -31,7 +31,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import (
     WORKSPACE, CONSULTATIONS_DIR, DOMAIN_PROMPTS, DOMAIN,
-    load_manifest, load_excluded_covers,
+    prompt_path, load_manifest, load_excluded_covers,
 )
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
@@ -66,7 +66,7 @@ def load_inquiry(inquiry_id):
 
 def filter_questions(inquiry_text, out_of_scope, questions, covers_text=""):
     """Filter questions for scope. Returns filtered list of (role, question) tuples."""
-    template = read_file(PROMPTS_DIR / "filter-questions.md")
+    template = read_file(prompt_path("discovery/consultation/filter-questions.md"))
     if not template:
         print("  [WARN] filter-questions.md not found, skipping filter",
               file=sys.stderr)
