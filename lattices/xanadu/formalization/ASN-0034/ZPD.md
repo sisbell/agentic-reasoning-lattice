@@ -12,7 +12,7 @@ The function is partial: undefined precisely when `â` and `ŵ` agree everywhere
   - NAT-zero (NatZeroMinimum) — supplies `0 ∈ ℕ` for the padding clauses `âᵢ = 0`, `ŵᵢ = 0`.
   - NAT-order (NatStrictTotalOrder) — trichotomy on `(#a, #w)` selects `L` and dispatches the shared-position bound `k ≤ #a ∧ k ≤ #w` and sub-case boundaries `#a + 1`, `#w + 1`.
   - NAT-wellorder (NatWellOrdering) — least-element principle for `min {k : 1 ≤ k ≤ L ∧ âₖ ≠ ŵₖ}`.
-  - NAT-closure (NatArithmeticClosureAndIdentity) — successor closure for `#a + 1`, `#w + 1` in the postcondition.
+  - NAT-closure (NatArithmeticClosureAndIdentity) — addition closure instantiated at `(#a, 1)` and `(#w, 1)`, with `1 ∈ ℕ` from the same axiom, places `#a + 1` and `#w + 1` in ℕ in the postcondition.
   - Divergence (Divergence) — two-case structure (component divergence; prefix divergence) and domain restriction `a ≠ b` consumed by the Relationship-to-Divergence postcondition.
 - *Codomain:* When defined, `zpd(a, w) ∈ {1, ..., L}`, with `L = #a` in sub-cases (α), (γ) and `L = #w` in sub-case (β).
 - *Partiality:* `zpd(a, w)` is undefined iff `a` and `w` are zero-padded-equal.

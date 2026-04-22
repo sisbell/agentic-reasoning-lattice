@@ -8,7 +8,7 @@ For every tumbler and every component position, there exists a tumbler whose val
 
 — the sequence obtained from `t` by replacing its `i`-th component with `M + 1`.
 
-*(i)* `t' ∈ T`. The sequence `t'` has length `n ≥ 1`; for `j ≠ i`, `dⱼ ∈ ℕ` by hypothesis; for `j = i`, `M + 1 ∈ ℕ` by successor-closure of ℕ. Hence `t' ∈ T`.
+*(i)* `t' ∈ T`. The sequence `t'` has length `n ≥ 1`; for `j ≠ i`, `dⱼ ∈ ℕ` by hypothesis; for `j = i`, `M + 1 ∈ ℕ` by NAT-closure's addition closure at `(M, 1)` with `1 ∈ ℕ` from the same axiom. Hence `t' ∈ T`.
 
 *(ii)* `t'` agrees with `t` at every position `j ≠ i`, by construction.
 
@@ -20,5 +20,5 @@ For every tumbler and every component position, there exists a tumbler whose val
 - *Postcondition:* For every tumbler `t ∈ T` and every component position `i` with `1 ≤ i ≤ #t`, and for every bound `M ∈ ℕ`, there exists `t' ∈ T` with `#t' = #t` that agrees with `t` at all positions except `i`, where `t'.dᵢ > M`.
 - *Depends:*
   - T0 (CarrierSetDefinition) — carrier characterisation of T, length operator `#·`, component projection `·ᵢ`.
-  - NAT-closure (NatArithmeticClosureAndIdentity) — successor-closure `(A n ∈ ℕ :: n + 1 ∈ ℕ)`.
+  - NAT-closure (NatArithmeticClosureAndIdentity) — addition closure `(A m, n ∈ ℕ :: m + n ∈ ℕ)` instantiated at `(M, 1)` with `1 ∈ ℕ` from the same axiom to place `M + 1 ∈ ℕ`.
   - NAT-addcompat (NatAdditionOrderAndSuccessor) — strict successor inequality `(A n ∈ ℕ :: n < n + 1)`.

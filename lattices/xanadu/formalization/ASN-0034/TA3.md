@@ -52,5 +52,5 @@ In every case, `a ⊖ w ≤ b ⊖ w`. ∎
   - NAT-zero (NatZeroMinimum) — `0 ∈ ℕ` for padded components and literal-zero result components; lower bound at `(b ⊖ w)_p` in Sub-case A2's `≠ 0 ⟹ > 0` step.
   - NAT-order (NatStrictTotalOrder) — trichotomy at `(#a, #w)`, `(#b, #w)`, `(L_{a,w}, L_{b,w})`, `(dₐ, d_b)`; defining clause `m ≤ n ⟺ m < n ∨ m = n` for ≥/> conversions and the `≠ 0 ⟹ > 0` step; transitivity composing length and divergence-position bounds.
   - NAT-discrete (NatDiscreteness) — forward direction `m < n ⟹ m + 1 ≤ n` supplying T1 case (ii)'s successor witness at `(#a, #b)` in A1 and A3, and at `(L_{a,w}, L_{b,w})` in A2.
-  - NAT-closure (NatArithmeticClosureAndIdentity) — successor closure `n + 1 ∈ ℕ` for the T1 case (ii) witnesses formed in A1, A2, A3.
+  - NAT-closure (NatArithmeticClosureAndIdentity) — addition closure instantiated at `(n, 1)` with `1 ∈ ℕ` from the same axiom places `n + 1 ∈ ℕ` for the T1 case (ii) witnesses formed in A1, A2, A3.
 - *Postconditions:* a ⊖ w ≤ b ⊖ w

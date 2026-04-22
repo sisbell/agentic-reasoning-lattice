@@ -19,5 +19,5 @@ The function is symmetric: `divergence(a, b) = divergence(b, a)`. In case (i), t
   - T3 (CanonicalRepresentation) — exhaustiveness: if neither case applies, all shared components agree and `#a = #b`, so `a = b`, contradicting `a ≠ b`.
   - NAT-order (NatStrictTotalOrder) — trichotomy at length pair `(#a, #b)` splits case (ii) into sub-cases (ii-a)/(ii-b); trichotomy at candidate pair `(k, k')` discharges case (i)'s uniqueness argument.
   - NAT-wellorder (NatWellOrdering) — least-element principle selects case (i)'s `k` from the nonempty subset `{i ∈ ℕ : 1 ≤ i ∧ i ≤ #a ∧ i ≤ #b ∧ aᵢ ≠ bᵢ}`.
-  - NAT-closure (NatArithmeticClosureAndIdentity) — successor-closure `(A n ∈ ℕ :: n + 1 ∈ ℕ)` well-types case (ii)'s values `#a + 1` and `#b + 1` as ℕ.
+  - NAT-closure (NatArithmeticClosureAndIdentity) — addition closure instantiated at `(#a, 1)` and `(#b, 1)`, with `1 ∈ ℕ` from the same axiom, well-types case (ii)'s values `#a + 1` and `#b + 1` as ℕ.
 - *Postconditions:* `divergence(a, b) ∈ ℕ`; exactly one of case (i) or case (ii) applies; in case (i), `divergence(a, b) = k` is the unique least index satisfying `1 ≤ k ∧ k ≤ #a ∧ k ≤ #b ∧ aₖ ≠ bₖ ∧ (A i : 1 ≤ i < k : aᵢ = bᵢ)`; in case (ii), `divergence(a, b) = #a + 1` in sub-case (ii-a) and `divergence(a, b) = #b + 1` in sub-case (ii-b); `divergence(a, b) = divergence(b, a)` for all `a ≠ b`.

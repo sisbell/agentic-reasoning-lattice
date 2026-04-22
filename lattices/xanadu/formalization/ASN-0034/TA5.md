@@ -39,7 +39,7 @@ In both cases `t'` is a finite sequence of natural numbers with length ≥ 1, so
 - *Definition:* `inc(t, k)`: when `k = 0`, modify position `sig(t)` (TA5-SIG) to `t_{sig(t)} + 1`; when `k > 0`, extend by `k` positions with `k - 1` zeros and final `1`.
 - *Depends:*
   - T0 (CarrierSetDefinition) — characterisation of `T` as finite ℕ-sequences of length ≥ 1; discharges `t' ∈ T`.
-  - NAT-closure (NatArithmeticClosureAndIdentity) — successor closure gives `t_{sig(t)} + 1 ∈ ℕ` and `1 = 0 + 1 ∈ ℕ`.
+  - NAT-closure (NatArithmeticClosureAndIdentity) — addition closure instantiated at `(t_{sig(t)}, 1)` gives `t_{sig(t)} + 1 ∈ ℕ`, and at `(0, 1)` gives `0 + 1 ∈ ℕ`, with `1 ∈ ℕ` from the same axiom.
   - NAT-addcompat (NatAdditionOrderAndSuccessor) — strict successor inequality `n < n + 1` for Case `k = 0`; left order-compatibility `1 ≤ k ⟹ #t + 1 ≤ #t + k` for Case `k > 0`.
   - NAT-zero (NatZeroMinimum) — `0 ∈ ℕ` for the `k − 1` field separators; `0 ≤ k` as premise for NAT-discrete.
   - NAT-discrete (NatDiscreteness) — instantiated at `m = 0` with `0 ≤ k` to sharpen `k > 0` to `k ≥ 1`.

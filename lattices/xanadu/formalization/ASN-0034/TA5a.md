@@ -17,7 +17,7 @@
   - T0 (CarrierSetDefinition) — fixes carrier ℕ so every `tᵢ ∈ ℕ`.
   - NAT-zero (NatZeroMinimum) — lower bound `0 ≤ n` on ℕ.
   - NAT-discrete (NatDiscreteness) — with NAT-zero yields non-zero ⇒ strictly positive on ℕ.
-  - NAT-closure (NatArithmeticClosureAndIdentity) — successor closure `n + 1 ∈ ℕ` at case `k = 0`.
+  - NAT-closure (NatArithmeticClosureAndIdentity) — addition closure instantiated at `(t_{sig(t)}, 1)` with `1 ∈ ℕ` from the same axiom places `t_{sig(t)} + 1 ∈ ℕ` at case `k = 0`.
   - NAT-addcompat (NatAdditionOrderAndSuccessor) — strict successor inequality `n < n + 1` at case `k = 0`.
   - NAT-sub (NatPartialSubtraction) — places `k - 1 ∈ ℕ` and sharpens `k ≥ 3` to `k - 1 ≥ 2` at case `k ≥ 3`.
   - TA5 (HierarchicalIncrement) — TA5(b) agreement clauses; TA5(c) for `k = 0`; TA5(d) for `k ≥ 1`.
