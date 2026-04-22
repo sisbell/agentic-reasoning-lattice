@@ -1,12 +1,12 @@
 # Vocabulary — ASN-0034
 
 - **< (on T)** — lexicographic order: a < b iff ∃ k ≥ 1 with aᵢ = bᵢ for all i < k, and either (i) k ≤ min(m,n) ∧ aₖ < bₖ, or (ii) k = m+1 ≤ n
-- **D(t)** — document field of tumbler t, the third component of fields(t); a finite sequence over ℕ⁺, equal to ε iff the field is absent (zeros(t) ≤ 1)
-- **E(t)** — element field of tumbler t, the fourth component of fields(t); a finite sequence over ℕ⁺, equal to ε iff the field is absent (zeros(t) ≤ 2)
-- **N(t)** — node field of tumbler t, the first component of fields(t); a finite sequence over ℕ⁺, non-empty for every t ∈ T
+- **D(t)** — document field of tumbler t, the third projection established by T4b; partial function T ⇀ T returning a nonempty finite sequence of components in ℕ⁺, defined iff zeros(t) ≥ 2 (undefined when the field is absent)
+- **E(t)** — element field of tumbler t, the fourth projection established by T4b; partial function T ⇀ T returning a nonempty finite sequence of components in ℕ⁺, defined iff zeros(t) = 3 (undefined when the field is absent)
+- **N(t)** — node field of tumbler t, the first projection established by T4b; partial function T ⇀ T returning a nonempty finite sequence of components in ℕ⁺, defined on every T4-valid t
 - **S** — set of ordinals with all positive components: S = {o ∈ T : #o ≥ 1 ∧ (A i : 1 ≤ i ≤ #o : oᵢ > 0)}
 - **T** — the set of all tumblers (all finite sequences over ℕ with length ≥ 1)
-- **U(t)** — user field of tumbler t, the second component of fields(t); a finite sequence over ℕ⁺, equal to ε iff the field is absent (zeros(t) = 0)
+- **U(t)** — user field of tumbler t, the second projection established by T4b; partial function T ⇀ T returning a nonempty finite sequence of components in ℕ⁺, defined iff zeros(t) ≥ 1 (undefined when the field is absent)
 - **Z** — set of zero tumblers: Z = {t ∈ T : Zero(t)}
 - **action point** — least position k with wₖ > 0 (implying wᵢ = 0 for all i < k)
 - **allocated_before(a, b)** — predicate: a = tᵢ and b = tⱼ with i < j in dom(A), the allocator's inc(·, 0) sibling stream (T9)
@@ -19,7 +19,7 @@
 - **element field** — E₁. ... .Eδ — the fourth field of an address tumbler, identifying the content element
 - **element-local displacement** — a positive tumbler w with action point k satisfying 1 ≤ k ≤ m, operating on within-subspace ordinals only
 - **field separator** — a position `i` of `t` with `tᵢ = 0`; used as structural delimiter between address fields
-- **fields(t)** — partial function fields : T ⇀ Seq(ℕ⁺) × Seq(ℕ⁺) × Seq(ℕ⁺) × Seq(ℕ⁺) with fields(t) = (N(t), U(t), D(t), E(t)), defined exactly on the T4-valid subset of T — those tumblers satisfying T4's constraints (at most three zero-valued components, no two zeros adjacent, t₁ ≠ 0, t_{#t} ≠ 0); well-definedness on that subdomain is established by T4b (UniqueParse). Absent fields are represented by the empty sequence ε, with absence defined via T4c's level assignment — X is absent in t iff X is not in the field set of t's level (node {N}, user {N, U}, document {N, U, D}, element {N, U, D, E}). On T4-valid tumblers the presence pattern, indexed by zeros(t) ∈ {0, 1, 2, 3}, is: 0 → only N; 1 → N, U; 2 → N, U, D; 3 → all four. For t ∈ T that is not T4-valid (e.g., zeros(t) ≥ 4, or zeros(t) ≤ 3 but violating the field-segment constraint such as [0,1,0,2] or [1,0,0,2]), fields(t) is undefined and every consumer must discharge T4-validity before invoking it
+- **fields(t)** — informal name for the bundle of four partial projections N, U, D, E : T ⇀ T established by T4b (UniqueParse); each projection returns a nonempty finite sequence of components in ℕ⁺ when defined. The domain of N is the T4-valid subset of T — tumblers satisfying T4's constraints (at most three zero-valued components, no two zeros adjacent, t₁ ≠ 0, t_{#t} ≠ 0); the domains of U, D, E are further restricted by zeros(t). Field absence is encoded by partiality of the corresponding projection — X is absent in t iff t ∉ dom(X), with absence aligned with T4c's level assignment (node {N}, user {N, U}, document {N, U, D}, element {N, U, D, E}). On T4-valid tumblers the presence pattern, indexed by zeros(t) ∈ {0, 1, 2, 3}, is: 0 → only N defined; 1 → N, U defined; 2 → N, U, D defined; 3 → all four defined. For t ∈ T that is not T4-valid (e.g., zeros(t) ≥ 4, or zeros(t) ≤ 3 but violating the field-segment constraint such as [0,1,0,2] or [1,0,0,2]), every projection is undefined and consumers must discharge T4-validity before invoking any of them
 - **first divergence position** — the least positive integer k at which two tumblers disagree — either aₖ ≠ bₖ at some k ≤ min(m,n), or one tumbler is exhausted at k = min(m,n)+1
 - **inc(t, k)** — hierarchical increment: when k = 0, increments position sig(t) by 1 (sibling); when k > 0, extends t by k positions with k−1 zero separators and final 1 (child creation)
 - **node field** — N₁. ... .Nₐ — the first field of an address tumbler, identifying the server
