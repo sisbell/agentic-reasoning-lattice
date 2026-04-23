@@ -1,7 +1,9 @@
 label: NAT-card
 name: NatFiniteSetCardinality
 type: axiom
-depends: []
+depends:
+- T0
+- NAT-order
 summary: |
   The cardinality operator |·| is a well-defined total function on subsets of every
   initial segment {1, 2, …, n} ⊆ ℕ (n ∈ ℕ), with codomain ℕ. For such S, |S| ∈ ℕ is
