@@ -22,7 +22,12 @@ The strict inequality `#t₁ < #t₂` forces `t₁ ≠ t₂`, so `(t₁, t₂)` 
   - NAT-discrete (NatDiscreteness) — sharpens `k > 0` on ℕ to `k ≥ 1`.
   - NAT-addcompat (NatAdditionOrderAndSuccessor) — order-compatibility lifts `1 ≤ k` to `#t₁ + 1 ≤ #t₁ + k`; strict successor gives `#t₁ < #t₁ + 1`.
   - NAT-order (NatStrictTotalOrder) — chains the strict inequality and weakens `<` to `≤` for Prefix.
+  - NAT-wellorder (NatWellOrdering) — well-ordering of ℕ underwrites the termination/induction backdrop for the length-based arithmetic.
   - TA5 (HierarchicalIncrement) — (d) gives `#t₂ = #t₁ + k`; (b) gives agreement on positions `1..#t₁`.
   - Prefix (PrefixRelation) — converts agreement plus `#t₁ ≤ #t₂` into `t₁ ≼ t₂`.
+  - T1 (LexicographicOrder) — strict total order on T underlying TA5's inc ordering of `t₀ ≺ t₁ ≺ t₂`.
+  - T10 (PartitionIndependence) — the partition theorem whose allocator-level preconditions T10a.2 supplies; context for why the sibling restriction matters.
   - T10a (AllocatorDiscipline) — the discipline whose relaxation is considered.
   - T10a.2 (NonNestingSiblingPrefixes) — the clause falsified by the constructed pair.
+  - T10a.5 (CrossAllocatorIncomparability) — cross-allocator non-nesting result that T10a.2 complements on the within-allocator side.
+  - T10a.6 (DomainDisjointness) — domain-disjointness corollary that rests on T10a.2 alongside T10a.5.
