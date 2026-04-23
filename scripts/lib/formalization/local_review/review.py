@@ -159,11 +159,18 @@ def review_claim(asn_num, label, deps_data, sections, foundation_cache=None):
         print(f" error ({elapsed:.0f}s)", file=sys.stderr)
         return "error", None
 
-    if "RESULT: CLEAN" in text:
-        print(f" clean ({elapsed:.0f}s)", file=sys.stderr)
+    if re.search(r'^VERDICT:\s*CONVERGED\s*$', text, re.MULTILINE):
+        print(f" verdict=CONVERGED ({elapsed:.0f}s)", file=sys.stderr)
         return "verified", None
 
-    # FOUND — extract finding text
-    print(f" FOUND ({elapsed:.0f}s)", file=sys.stderr)
+    if re.search(r'^VERDICT:\s*REVISE\s*$', text, re.MULTILINE):
+        problem_match = re.search(r'\*\*Problem\*\*:\s*(.+)', text)
+        problem = problem_match.group(1).strip() if problem_match else ""
+        preview = (problem[:70] + "...") if len(problem) > 70 else problem
+        suffix = f" — {preview}" if preview else ""
+        print(f" verdict=REVISE ({elapsed:.0f}s){suffix}", file=sys.stderr)
+        return "found", text
 
+    print(f" verdict=UNKNOWN ({elapsed:.0f}s) — treating as found",
+          file=sys.stderr)
     return "found", text
