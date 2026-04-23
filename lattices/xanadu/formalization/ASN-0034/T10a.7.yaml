@@ -5,6 +5,7 @@ depends:
 - T10a
 - TA5
 - T1
+- NAT-order
 summary: Within a single allocator, the sequential enumeration of its domain is injective — distinct indices always produce
   distinct addresses. Because each step strictly increases under the tumbler order, the full enumeration is strictly monotone,
   making the index of any address a single-valued function of that address. Together with T10a.6, this makes the enumeration

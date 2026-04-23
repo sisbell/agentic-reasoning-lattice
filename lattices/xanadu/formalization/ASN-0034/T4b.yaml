@@ -21,12 +21,12 @@ summary: |
   absent in t iff t ∉ dom(X) — so no external absence marker is required. The
   four domains are fixed by zeros(t): dom(N) is the T4-valid subset of T (N is
   never absent); dom(U) restricts dom(N) to zeros(t) ≥ 1; dom(D) to zeros(t) ≥ 2;
-  dom(E) to zeros(t) = 3. Presence pattern, quantified per-k and not pre-committing
-  to exhaustion — for each k ∈ ℕ with 0 ≤ k ≤ 3 (T4 supplies zeros(t) ≤ 3;
-  NAT-zero supplies 0 ≤ zeros(t)) at which zeros(t) = k: k = 0 → only N defined;
+  dom(E) to zeros(t) = 3. Presence pattern, made exhaustive over dom(N) by T4's
+  Exhaustion Consequence zeros(t) ∈ {0, 1, 2, 3} for every T4-valid t — for each
+  k ∈ ℕ with 0 ≤ k ≤ 3 at which zeros(t) = k: k = 0 → only N defined;
   k = 1 → N, U defined; k = 2 → N, U, D defined; k = 3 → all four defined.
-  Exhaustion of zeros(t) ∈ {0, 1, 2, 3} over the T4-valid subdomain is not
-  asserted here and is discharged downstream by T4c's Exhaustion paragraph.
+  The four cases collectively cover every T4-valid t, so the four projections are
+  well-defined on their stated domains.
   The component-access notation t.X₁ := (X(t))₁ is grounded in T0's subscript:
   ℕ⁺ ⊆ ℕ embeds every nonempty all-ℕ⁺-component sequence into T, so T0's projection
   applies to X(t) whenever X is defined at t. Hence t.X₁ is defined iff X is

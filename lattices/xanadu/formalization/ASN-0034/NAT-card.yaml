@@ -7,13 +7,22 @@ depends:
 - NAT-zero
 - T0
 summary: |
-  The cardinality operator |·| is a well-defined total function on subsets of every
-  initial segment {1, 2, …, n} ⊆ ℕ (n ∈ ℕ), with codomain ℕ. For such S, |S| ∈ ℕ is
-  the unique k such that S admits a strictly increasing enumeration s₁ < s₂ < … < s_k
+  The cardinality operator |·| is postulated as a primitive total function on subsets
+  of every initial segment {1, 2, …, n} ⊆ ℕ (n ∈ ℕ), with codomain ℕ. For such S,
+  |S| ∈ ℕ is a k for which S admits a strictly increasing enumeration s₁ < s₂ < … < s_k
   under < on ℕ with S = {s₁, …, s_k} (empty enumeration at k = 0, giving |∅| = 0),
-  and |S| ≤ n. Uniqueness of k follows because NAT-order's trichotomy forces two
-  strictly increasing enumerations of the same set to agree element-by-element.
-  The operator is distinct from T0's tumbler-length #· : T → ℕ, which acts on
-  sequences rather than sets. NAT-card is the foundation citation for every claim
-  that invokes |·| — in particular the definition zeros(t) = |{i : 1 ≤ i ≤ #t ∧ tᵢ = 0}|
-  in T4 and its downstream consumers T4a, T4b, T4c.
+  and |S| ≤ n. Existence of the enumeration for every S, the postulate's selection
+  of a single k per S, and the upper bound |S| ≤ n are all clauses of the axiom,
+  since the available NAT-foundations supply no induction principle or
+  well-foundedness of < on ℕ with which to construct an enumeration (e.g., by
+  repeatedly extracting the minimum of S \ {s₁, …, s_{i-1}}), to force two strictly
+  increasing enumerations of the same finite set to agree element-by-element and
+  share the same length, or to derive |S| ≤ n from the enumeration by stepping the
+  index bound s_i ≥ i across all 1 ≤ i ≤ k plus a discrete-successor step on ℕ.
+  NAT-order's strict-total-order discipline (including trichotomy) is used only to
+  keep the "strictly increasing enumeration" predicate well-formed, not to derive
+  uniqueness of k or the upper bound. The operator is distinct from T0's
+  tumbler-length #· : T → ℕ, which acts on sequences rather than sets. NAT-card is
+  the foundation citation for every claim that invokes |·| — in particular the
+  definition zeros(t) = |{i : 1 ≤ i ≤ #t ∧ tᵢ = 0}| in T4 and its downstream
+  consumers T4a, T4b, T4c.
