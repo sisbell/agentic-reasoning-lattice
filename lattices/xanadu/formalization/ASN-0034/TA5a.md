@@ -14,6 +14,7 @@
 - *Precondition:* `t` satisfies T4; `k ≥ 0`.
 - *Depends:*
   - T4 (HierarchicalParsing) — the four positional clauses being checked; boundary clause `t_{#t} ≠ 0` used in cases `k = 0, 1, 2`; no-adjacent-zeros clause is the violated clause at `k ≥ 3`.
+  - T4a (SyntacticEquivalence) — bridges T4's positional conditions with the non-empty-field-segment reading, supporting the case `k ≥ 3` interpretation that adjacent zeros create an empty field.
   - T0 (CarrierSetDefinition) — fixes carrier ℕ so every `tᵢ ∈ ℕ`.
   - NAT-zero (NatZeroMinimum) — lower bound `0 ≤ n` on ℕ.
   - NAT-discrete (NatDiscreteness) — with NAT-zero yields non-zero ⇒ strictly positive on ℕ.
