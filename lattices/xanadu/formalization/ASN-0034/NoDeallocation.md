@@ -6,4 +6,5 @@ Let Σ, 𝒮, and `allocated(s)` be as defined in AllocatedSet — the transitio
 
 *Formal Contract:*
 - *Axiom:* `(A op ∈ Σ, s ∈ 𝒮 :: op(s) defined ⟹ allocated(s) ⊆ allocated(op(s)))`, where Σ is the system's complete (closed) transition vocabulary of partial functions on 𝒮 and 𝒮 is the state space of the allocation system. Frame assumption: Σ is closed.
-- *Depends:* AllocatedSet (AllocatedSet) — supplies the transition vocabulary Σ, the state space 𝒮, and the symbol `allocated(s) = ⋃ { domₛ(A) : A activated in s }`.
+- *Depends:*
+  - AllocatedSet (AllocatedSet) — supplies the transition vocabulary Σ, the state space 𝒮, and the symbol `allocated(s) = ⋃ { domₛ(A) : A activated in s }`.
