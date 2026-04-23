@@ -1,7 +1,8 @@
 label: NAT-cancel
 name: NatAdditionCancellation
 type: axiom
-depends: []
+depends:
+- NAT-closure
 summary: |
   Addition on ℕ is cancellative on either side and absorbs at a summand:
   `m + n = m + p ⟹ n = p` (left cancellation), `n + m = p + m ⟹ n = p` (right
