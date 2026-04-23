@@ -40,7 +40,7 @@ Consequence: when a mismatch is found, the fix is to change the filename or the 
 
 6. **References resolve.** Every claim named in a `depends` list, a citation, or a Formal Contract Depends section exists as a file pair in the lattice.
 
-7. **Declared symbols resolve.** Every symbol declared in a claim's yaml `vocabulary` field either (a) originates in this claim or (b) originates in a claim reachable through the transitive `depends` closure. No symbol use with an undeclared or unreachable source.
+7. **Declared symbols resolve.** Every tracked symbol used in a claim's Formal Contract structural fields (Axiom, Definition, Preconditions, Postconditions, Invariant, Frame) must resolve, via the claim's transitive `depends` closure, to an owning claim — or be a primitive. The v1 implementation uses a curated symbol-owners table (`lattices/<lattice>/symbol-owners.yaml`) mapping tracked symbols to their owning claim labels; symbols not in the table are ignored (false-negative tolerant; false-positive intolerant). Aspirational form: per-claim yaml `vocabulary` fields replace the table. The current approach catches the common cases at lower authoring cost and can migrate to per-claim vocabulary later without changing the invariant's definition.
 
 8. **Acyclic dependency graph.** The `depends` relation across all file pairs in the lattice is a DAG.
 

@@ -43,6 +43,7 @@ def _run_validator(asn_label):
     findings.extend(VALIDATE.check_filename_matches_label(pairs))
     findings.extend(VALIDATE.check_depends_agreement(pairs))
     findings.extend(VALIDATE.check_references_resolve(pairs))
+    findings.extend(VALIDATE.check_declared_symbols_resolve(pairs))
     findings.extend(VALIDATE.check_acyclic_dependency_graph(pairs))
     findings.extend(VALIDATE.check_declaration_and_body_uniqueness(pairs))
     return findings

@@ -16,15 +16,11 @@ Implemented invariants:
   4. YAML well-formed (parses; required fields present; type is a valid keyword)
   5. Depends agreement (yaml depends list ↔ md Formal Contract Depends section)
   6. References resolve (every yaml/md Depends entry names an existing claim label)
+  7. Declared symbols resolve (v1: curated symbol-owners table per lattice,
+                               in place of per-claim yaml vocabulary fields)
   8. Acyclic dependency graph (no cycles in the yaml depends DAG)
   9. Body uniqueness (primary: cross-file bold declaration;
                       secondary: >1 Formal Contract block per file)
-
-Not implemented:
-
-  7. Declared symbols resolve — skipped. The contract assumes a per-claim yaml
-     `vocabulary` field; this lattice has none (vocabulary is aggregated into a
-     single `_vocabulary.md`). Revisit if per-claim vocabulary is introduced.
 
 Usage:
     python scripts/formalization-validate.py <ASN>
@@ -57,6 +53,79 @@ VALID_TYPES = {
     "axiom", "definition", "design-requirement", "lemma", "theorem", "corollary",
 }
 REQUIRED_YAML_FIELDS = ("label", "name", "type", "summary", "depends")
+
+SINGLE_CHAR_SYMBOLS = re.compile(r"[<≤≥>≠=∈∉⊆⊇⇒⇔∀∃∧∨¬+−⊕⊖⊗⨀]")
+MULTICHAR_SYMBOLS = [
+    ("#·", re.compile(r"#·")),
+    ("|·|", re.compile(r"\|·\|")),
+]
+STRUCTURAL_FIELDS = ("Axiom", "Definition", "Preconditions", "Postconditions",
+                     "Invariant", "Frame")
+FIELD_BULLET_RE = re.compile(r"^-\s+\*(\w[\w-]*)[:*]", re.MULTILINE)
+
+
+def _extract_structural_fc_text(md_text):
+    """Return Formal Contract content restricted to structural fields.
+
+    Structural fields are the ones whose content is the claim's own
+    load-bearing assertion: Axiom, Definition, Preconditions,
+    Postconditions, Invariant, Frame. Depends descriptions (which
+    mention other claims' symbols as documentation) are excluded.
+    Trailing prose after the bulleted field list is also excluded —
+    that prose is commentary, not structural content.
+
+    Only the first Formal Contract block is considered — subsequent FC
+    blocks belong to inlined bodies (a body-uniqueness violation) and
+    should not attribute their symbols to this file.
+    """
+    fc_match = FORMAL_CONTRACT_RE.search(md_text)
+    if not fc_match:
+        return ""
+
+    collected = []
+    in_structural_field = False
+    for line in md_text[fc_match.end():].split("\n"):
+        # End of FC block: next bold claim-declaration
+        if re.match(r"^\*\*[A-Za-z]", line):
+            break
+        # Top-level field bullet
+        m = re.match(r"^-\s+\*(\w[\w-]*)[:*]", line)
+        if m:
+            field = m.group(1)
+            in_structural_field = field in STRUCTURAL_FIELDS
+            if in_structural_field:
+                collected.append(line)
+            continue
+        # Continuation lines are kept only if indented (part of the
+        # current structural bullet). An unindented non-empty line is
+        # trailing prose — ends the structured list.
+        if in_structural_field:
+            if line == "" or line.startswith((" ", "\t")):
+                collected.append(line)
+            else:
+                in_structural_field = False
+
+    return "\n".join(collected)
+
+
+def _repo_root():
+    return Path(__file__).resolve().parent.parent
+
+
+def _load_symbol_config():
+    """Return the symbol-owners config for the xanadu lattice.
+
+    Returns a dict with 'primitives' (list) and 'owners' (dict).
+    Missing config file is treated as empty (check becomes a no-op).
+    """
+    path = _repo_root() / "lattices" / "xanadu" / "symbol-owners.yaml"
+    if not path.exists():
+        return {"primitives": [], "owners": {}}
+    data = yaml.safe_load(path.read_text()) or {}
+    return {
+        "primitives": data.get("primitives") or [],
+        "owners": data.get("owners") or {},
+    }
 
 
 def formalization_dir(asn_label):
@@ -252,6 +321,90 @@ def check_references_resolve(pairs):
     return findings
 
 
+def check_declared_symbols_resolve(pairs, config=None):
+    """Every tracked symbol used in a claim's Formal Contract block must
+    resolve via the claim's transitive depends closure to an owning
+    claim (or be a primitive). Implements invariant #7.
+
+    Scope is the Formal Contract block only — not preamble or proof
+    prose. A symbol in the Formal Contract is structurally required by
+    the claim; a symbol in preamble or proof prose is often descriptive
+    (e.g., "T4a uses NAT-sub's `−`") and not a structural dependence.
+
+    The config (primitives + owners) is curated at
+    lattices/xanadu/symbol-owners.yaml. Untracked symbols (not in either
+    list) are ignored — v1 accepts false negatives; false positives are
+    the hard constraint.
+    """
+    if config is None:
+        config = _load_symbol_config()
+    primitives = set(config.get("primitives") or [])
+    owners = config.get("owners") or {}
+
+    graph = {}
+    for entry in pairs.values():
+        data = entry["yaml"]
+        if isinstance(data, dict) and data.get("label"):
+            graph[data["label"]] = list(data.get("depends") or [])
+
+    def closure(label):
+        seen = set()
+        stack = [label]
+        while stack:
+            l = stack.pop()
+            if l in seen:
+                continue
+            seen.add(l)
+            stack.extend(graph.get(l, []))
+        return seen
+
+    findings = []
+    for stem, entry in sorted(pairs.items()):
+        data = entry["yaml"]
+        text = entry["md"]
+        if not isinstance(data, dict) or text is None:
+            continue
+        label = data.get("label")
+        if not label:
+            continue
+
+        # Restrict to the structural fields of the first Formal Contract
+        # block (Axiom, Definition, Preconditions, Postconditions,
+        # Invariant, Frame). Preamble, proof prose, and Depends
+        # descriptions are excluded — they commonly mention other
+        # claims' symbols as documentation without structurally using
+        # them, which would false-flag.
+        fc_region = _extract_structural_fc_text(text)
+        if not fc_region:
+            continue
+
+        symbols_used = set(SINGLE_CHAR_SYMBOLS.findall(fc_region))
+        for tok, pat in MULTICHAR_SYMBOLS:
+            if pat.search(fc_region):
+                symbols_used.add(tok)
+
+        deps = closure(label)
+
+        for sym in sorted(symbols_used):
+            if sym in primitives:
+                continue
+            owner = owners.get(sym)
+            if owner is None:
+                continue
+            if owner == label:
+                continue
+            if owner in deps:
+                continue
+            findings.append({
+                "rule": "declared-symbols-resolve",
+                "file": f"{stem}.md",
+                "line": None,
+                "detail": f"uses '{sym}' but does not depend on its owner '{owner}'",
+            })
+
+    return findings
+
+
 def check_acyclic_dependency_graph(pairs):
     """Detect cycles in the yaml depends graph. Dangling refs are ignored here
     — they're reported by references-resolve."""
@@ -416,6 +569,7 @@ def main():
     findings.extend(check_filename_matches_label(pairs))
     findings.extend(check_depends_agreement(pairs))
     findings.extend(check_references_resolve(pairs))
+    findings.extend(check_declared_symbols_resolve(pairs))
     findings.extend(check_acyclic_dependency_graph(pairs))
     findings.extend(check_declaration_and_body_uniqueness(pairs))
 
