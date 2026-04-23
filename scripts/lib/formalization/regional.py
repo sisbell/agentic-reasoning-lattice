@@ -25,8 +25,11 @@ from lib.shared.common import (
     step_commit_asn,
 )
 from lib.formalization.full_review.review import (
-    run_review, extract_findings, filter_revise,
+    run_review, extract_findings, filter_revise, parse_missing_references,
 )
+
+
+MAX_EXPANSIONS = 5
 from lib.formalization.full_review.revise import revise
 from lib.formalization.core.build_dependency_graph import generate_formalization_deps
 from lib.formalization.core.topological_sort import topological_levels
@@ -236,13 +239,40 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
                   file=sys.stderr)
             return "failed"
 
-        # Assemble just the cone
-        cone_content = assemble_cone(asn_label, apex_label, dep_labels)
+        # Review with lazy cone expansion: if the reviewer flags claim
+        # labels it saw referenced but not shown, expand the cone to
+        # include them and re-review. Bounded by MAX_EXPANSIONS. Only the
+        # final stable review is saved and acted on.
+        current_deps = list(dep_labels)
+        expansion_round = 0
+        while True:
+            cone_content = assemble_cone(asn_label, apex_label, current_deps)
+            verdict, findings_text, elapsed = run_review(
+                asn_num, cone_content, asn_label, previous_findings,
+                model=model, foundation_labels=cross_asn_deps)
 
-        # Run review with narrowed foundation
-        verdict, findings_text, elapsed = run_review(
-            asn_num, cone_content, asn_label, previous_findings, model=model,
-            foundation_labels=cross_asn_deps)
+            if verdict == "ERROR":
+                break
+
+            missing = parse_missing_references(findings_text)
+            real_missing = [
+                m for m in missing
+                if m in asn_labels
+                and m not in current_deps
+                and m != apex_label
+            ]
+
+            if not real_missing:
+                break
+            if expansion_round >= MAX_EXPANSIONS:
+                print(f"  [EXPAND] max rounds ({MAX_EXPANSIONS}) reached; "
+                      f"unresolved: {real_missing}", file=sys.stderr)
+                break
+
+            expansion_round += 1
+            print(f"  [EXPAND] round {expansion_round}: adding "
+                  f"{real_missing} to cone", file=sys.stderr)
+            current_deps.extend(real_missing)
 
         if verdict == "ERROR":
             print(f"\n  [REGIONAL-REVIEW] FAILED on cycle {cycle} (review error). Skipping.",

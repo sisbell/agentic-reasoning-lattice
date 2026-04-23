@@ -24,6 +24,10 @@ REVIEW_TEMPLATE = prompt_path("formalization/full-review/review.md")
 
 _VERDICT_RE = re.compile(r'^VERDICT:\s*(CONVERGED|OBSERVE|REVISE)\s*$', re.MULTILINE)
 _CLASS_RE = re.compile(r'\*\*Class\*\*:\s*(REVISE|OBSERVE)', re.IGNORECASE)
+_MISSING_RE = re.compile(
+    r'^MISSING-REFERENCES:\s*\n((?:\S.*\n)+)',
+    re.MULTILINE,
+)
 
 
 def parse_verdict(text):
@@ -31,6 +35,16 @@ def parse_verdict(text):
     mandatory VERDICT line, or 'UNKNOWN' if the line is missing."""
     m = _VERDICT_RE.search(text)
     return m.group(1) if m else "UNKNOWN"
+
+
+def parse_missing_references(text):
+    """Return a list of claim labels the reviewer flagged as referenced
+    but not present in the content shown. Empty list when the section
+    is absent or empty."""
+    m = _MISSING_RE.search(text)
+    if not m:
+        return []
+    return [line.strip() for line in m.group(1).splitlines() if line.strip()]
 
 
 def run_review(asn_num, asn_content, asn_label, previous_findings="", model="opus",

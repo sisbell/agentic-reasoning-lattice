@@ -67,6 +67,19 @@ The test: would an incorrect fix for this finding be worse than leaving it? If y
 **What needs resolving**: [REVISE only — what the ASN must establish or change, without prescribing how]
 ```
 
+If the content you were shown references claim labels by name (in Depends lists, prose citations, proof invocations) whose bodies do not appear in the content, list those labels before the VERDICT line. Example:
+
+```
+MISSING-REFERENCES:
+NAT-wellorder
+NAT-discrete
+Divergence
+
+VERDICT: REVISE
+```
+
+One label per line, terminated by a blank line. Emit the bare label (e.g. `NAT-wellorder`, `T10a.3`) — not the prose form `NAT-wellorder (NatWellOrdering)` or the human-readable name. If nothing is missing, omit the section entirely.
+
 VERDICT: CONVERGED | OBSERVE | REVISE
 
 Output the VERDICT line as plain text, exactly as shown — no markdown bold, no asterisks.
