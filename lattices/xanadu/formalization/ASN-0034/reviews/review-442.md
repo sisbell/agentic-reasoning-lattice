@@ -34,3 +34,9 @@
 **Issue**: TA-strict's proof is "immediate from TumblerAdd's ordering-guarantee postcondition `a ⊕ w > a`". If TumblerAdd commits to that ordering postcondition, it already commits — on its own contract — to the well-typedness of its two sides; citing TA0 to re-establish membership is a double citation of the same source.
 
 VERDICT: REVISE
+
+## Result
+
+Regional review converged after 2 cycles.
+
+*Elapsed: 523s*
