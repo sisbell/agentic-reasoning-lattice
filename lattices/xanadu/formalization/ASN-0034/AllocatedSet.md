@@ -34,5 +34,8 @@ T10a restricts sibling production to `inc(·, 0)`, so `domₛ(A)` can only grow 
   - *State transition:* s → s' is the pair `(s, op(s))` with `op ∈ Σ` and `s ∈ dom(op)`. Allocation-affecting transitions either advance an allocator's frontier or spawn a child allocator.
   - *Domain embedding:* (i) `domₛ(A) ⊆ dom(A)`; (ii) `domₛ(A) = {tᵢ : 0 ≤ i ≤ nₛ(A)}` with enumeration indices preserved; (iii) `dom(A) ⊇ ⋃ { domₛ(A) : s reachable from s₀ }`, reverse inclusion not asserted. Predicates over `dom(A)` defined by the `tᵢ`-indexed chain — `same_allocator` (T10a), `allocated_before` (T9), T9's forward-ordering — apply unchanged to pairs in `domₛ(A)` by (i) and (ii).
 - *Depends:*
-  - T10a (AllocatorDiscipline) — allocator tree structure and the per-allocator chain `dom(A) = {tₙ : n ≥ 0}`.
+  - T0 (CarrierSetDefinition) — the carrier T of tumblers and the component-projection / length primitives used to index each allocator's chain.
+  - T0(a) (UnboundedComponentValues) — component values are unbounded at every position, underwriting the inexhaustibility of the sibling `inc(·,0)` chain.
+  - T0(b) (UnboundedLength) — tumbler length is unbounded, so allocator nesting via deep increments is not capped.
   - T9 (ForwardAllocation) — `allocated_before` ordering and per-allocator forward-ordering conclusion.
+  - T10a (AllocatorDiscipline) — allocator tree structure and the per-allocator chain `dom(A) = {tₙ : n ≥ 0}`.
