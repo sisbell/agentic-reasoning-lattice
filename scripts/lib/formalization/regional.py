@@ -30,6 +30,13 @@ from lib.formalization.core.build_dependency_graph import generate_formalization
 from lib.formalization.core.topological_sort import topological_levels
 
 
+# End-of-cone compress pass — disabled 2026-04-22 pending re-evaluation
+# under the Dijkstra-voice reviser. The generative reviser should not
+# produce the meta-prose accumulation that compress was built to clean up.
+# Flip to True to re-enable without touching anything else.
+_COMPRESS_ENABLED = False
+
+
 def detect_dependency_cone(asn_num, window=5, threshold=3):
     """Detect a dependency cone from git history.
 
@@ -208,7 +215,6 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
     # Capture baseline SHA so the end-of-cone compress pass knows which
     # files changed during this cone.
     from lib.shared.common import git_head_sha
-    from lib.formalization.compress import compress_changed_files_since
     baseline_sha = git_head_sha()
 
     start_time = time.time()
@@ -300,7 +306,8 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
     # introduced across the cycles. Scoped to files this cone actually
     # changed (via baseline SHA diff). No-op if nothing changed or if
     # dry-run is set.
-    if not failed:
+    if _COMPRESS_ENABLED and not failed:
+        from lib.formalization.compress import compress_changed_files_since
         compress_changed_files_since(
             claim_dir, baseline_sha, asn_num,
             apex_label=apex_label, dry_run=dry_run,
