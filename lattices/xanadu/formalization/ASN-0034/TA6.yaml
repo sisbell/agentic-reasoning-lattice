@@ -4,13 +4,11 @@ type: corollary
 depends:
 - T0
 - T1
-- T3
 - T4
 - TA-Pos
 - TA-PosDom
 - NAT-zero
 - NAT-order
-- NAT-discrete
 - NAT-wellorder
 summary: |
   No tumbler with `Zero(t)` is a valid address — every zero tumbler is excluded by the boundary rule T4 enforces on
