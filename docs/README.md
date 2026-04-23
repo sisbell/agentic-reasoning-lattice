@@ -24,6 +24,10 @@ Complete index of the documentation. The root [README](../README.md) is the proj
 
 - [Design notes](design-notes/README.md) — architectural choices and aggregate observations that aren't patterns. Review V-Cycle, Domain Language Emergence, Self-Healing.
 
+## Practices
+
+- [Practices](practices/README.md) — guidance for humans authoring the artifacts the system operates on — prompt writing, note writing, and related disciplines. Distinct from design notes (which describe system-level rules); practices describe what a person editing the content should do.
+
 ## Domain-specific
 
 - [Software](software/README.md) — grounded domain: reverse-engineering legacy software systems. Demonstrated on the Xanadu hypertext system.

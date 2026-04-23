@@ -6,7 +6,12 @@ Prose is legitimately where reasoning lives at the formalization stage. What gro
 
 ## Forces
 
-**Defensive justification.** The reviser answers review findings by inlining rebuttals in the prose. "We avoid the binary-minimum operator because...", "This bundling is chosen because...", "ActionPoint does not appear in this list because...". Each rebuttal addresses a past finding at the cost of new surface for future findings.
+**Reviser add-bias.** When the reviser agent is handed a finding to fix, its default reflex is to *add* prose rather than restructure or delete. Two sub-modes:
+
+- *Defensive justification.* The reviser answers review findings by inlining rebuttals in the prose. "We avoid the binary-minimum operator because...", "This bundling is chosen because...", "ActionPoint does not appear in this list because...". Each rebuttal addresses a past finding at the cost of new surface for future findings.
+- *Move rather than delete.* When a reviewer says "drop X," the reviser relocates X to a different paragraph and considers the finding addressed. The drift persists; the next reviewer flags it again in its new home.
+
+Together these constitute reviser add-bias: the prose grows monotonically even when each individual finding asked for simplification. The discipline that resists it is prompt-level, not finding-level — see [Reviser Prompt Discipline](../practices/reviser-prompt-discipline.md).
 
 **Genesis Attractor.** A file positioned as the authoritative home for a concept pulls prose about that concept even after structural splits close other channels. T0's role as "definition of the carrier and its operators" attracted ℕ-arithmetic prose back into T0 after its contract had been slimmed to the carrier set only. See [Contract Sprawl: Limits of the Resolution](contract-sprawl.md#limits-of-the-resolution).
 
@@ -28,6 +33,11 @@ The claim's word count grows across review cycles faster than its reasoning cont
 
 A mature claim file whose prose:structure ratio is not decreasing — or is rising — across cycles is showing Prose Sprawl.
 
+Additional signal specific to reviser add-bias:
+
+- **Finding N+1 flags content added in cycle N's revise.** If review cycle 5 flags a sentence the reviser introduced in cycle 1 or cycle 3, the driving force is the reviser's additions, not pre-existing prose drift. The revise commits are where the bloat originates.
+- **Flagged-and-relocated content.** A paragraph flagged in cycle N reappears in a nearby paragraph in cycle N+1. Detectable from commit diffs: the reviser's revise commit shows a deletion *and* an insertion of similar content in a different location.
+
 ## Example: T0's ℕ preamble
 
 After the T0 split (see [Contract Sprawl](contract-sprawl.md)), T0's contract was reduced to the carrier set only. Its *prose*, however, grew a ~950-word run-on paragraph that enumerated all nine NAT-* axioms, justified the bundling of each, enumerated downstream consumers of each clause, defended the exhaustiveness of the enumeration, and explained why commutativity was excluded.
@@ -35,6 +45,16 @@ After the T0 split (see [Contract Sprawl](contract-sprawl.md)), T0's contract wa
 None of the paragraph advanced the claim about `T = finite sequences over ℕ`. All of it was meta: the structure of a list in a different file, the usage pattern of axioms declared in different files, and defenses against reviewer findings that had asked about that structure.
 
 Four cycles, four distinct review findings, four prose extensions. No convergence.
+
+## Example: ASN-0034 TA-Pos cone (April 2026)
+
+A six-cycle regional sweep on TA-Pos produced a cleaner instance of the add-bias pattern with a measurable trajectory. Findings per cycle: **5 → 1 → 1 → 2 → 4 → 4** — not monotonically decreasing.
+
+The cycle-5 uptick contained defensive prose the reviser had introduced in cycle 1 when fixing the Pos/Zero dichotomy finding: a parenthetical about "a hypothetical length-0 tumbler" whose behavior under the biconditional was irrelevant because T0 excludes length-0 tumblers from `T`. Cycle 5 flagged the defensive prose. Cycle 6 then flagged it again — explicitly: "the response moved it to the content-of-partition paragraph rather than dropping it." The reviser had relocated rather than deleted.
+
+Cycle 6 also flagged two other reviser-added pieces: a variable slip (`a` → `#t`) in T0 prose introduced when adding the `1 ≤ #a` axiom, and a misframed universal-as-existential in TA-Pos's Pos/Zero "witness" prose added in cycle 1.
+
+The cone was halted after cycle 7 without convergence. Of ~17 findings across six cycles, four were reviser-introduced drift. The cone's pre-existing semantic issues (missing dichotomy, unformalized nonemptiness, overclaimed "additive identity") were legitimate and produced real axiomatic improvements — but each correct fix came with defensive prose that became the next cycle's review surface.
 
 ## Resolution
 
@@ -54,6 +74,7 @@ Removing these does not lose reasoning. It removes anti-reasoning — prose whos
 
 ## Related
 
+- [Reviser Prompt Discipline](../practices/reviser-prompt-discipline.md) — the practice for humans authoring the content-reviser prompts. Resisting add-bias at the prompt level is where the force is most cheaply prevented; catching it afterwards requires compress passes or content review cycles.
 - [The Coupling Principle](../principles/coupling.md) — prose sprawl is a coupling violation: the prose:formal ratio drifts above the 70/30 target. The coupling principle's signal table and feedback loop show how this detection drives V-Cycle prompt calibration.
 - [Contract Sprawl](contract-sprawl.md) — shares forces. Contract Sprawl concentrates in structural sections; Prose Sprawl concentrates in narrative.
 - [Index Sprawl](index-sprawl.md) — enumerative prose is a specific surface form of Prose Sprawl.

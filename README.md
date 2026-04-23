@@ -46,10 +46,10 @@ See [Science Approach](docs/science/README.md) for the convergence framing, cone
 - [Review V-Cycle](docs/design-notes/review-v-cycle.md) — multi-scale review architecture and multigrid analogy
 - [Glossary](docs/glossary.md) — system-specific terms and their definitions
 
-### Deployments
+### Domains
 
-- [Software](docs/software/README.md) — grounded deployment on legacy software reverse-engineering (Xanadu)
-- [Science](docs/science/README.md) — deployment on scientific discovery (discovery stage landed on a materials lattice; downstream stages still to run)
+- [Software](docs/software/README.md) — grounded domain on legacy software reverse-engineering (Xanadu)
+- [Science](docs/science/README.md) — domain for scientific discovery (discovery stage landed on a materials lattice; downstream stages still to run)
 
 ### Guides
 
@@ -63,10 +63,10 @@ See [Science Approach](docs/science/README.md) for the convergence framing, cone
 
 ## Structure
 
-- [lattices/xanadu/discovery/notes/](lattices/xanadu/discovery/notes/) — ASN reasoning documents (discovery output)
-- [lattices/xanadu/blueprinting/](lattices/xanadu/blueprinting/) — per-claim decomposition (blueprinting output)
-- [lattices/xanadu/formalization/](lattices/xanadu/formalization/) — formalized claims with contracts
-- [lattices/xanadu/verification/](lattices/xanadu/verification/) — Dafny proofs and Alloy models
-- [lattices/xanadu/manifests/](lattices/xanadu/manifests/index.md) — per-ASN manifests, exports, dependency graphs
-- [scripts/](scripts/) — pipeline automation
-- [docs/](docs/README.md) — methodology, patterns, design notes, guides, runbooks
+- [lattices/xanadu/](lattices/xanadu/) — xanadu (software) domain lattice: discovery notes, blueprints, formalized claims, verification, manifests
+- [lattices/materials/](lattices/materials/) — materials (science) domain lattice (Maxwell 1867 + Dulong–Petit 1819)
+- [channels/](channels/) — channel plugins per domain (theory and evidence sources: Nelson/Gregory for xanadu, Maxwell/Dulong-Petit for materials)
+- [prompts/](prompts/) — stage prompts organized by lattice (shared, xanadu, materials)
+- [scripts/](scripts/) — pipeline automation (discovery, blueprinting, formalization, verification, validation)
+- [run/](run/) — shell entry points for common pipeline invocations
+- [docs/](docs/README.md) — methodology, patterns, principles, design notes, practices, guides, runbooks
