@@ -31,5 +31,3 @@ In both cases, `a ⊕ w < b ⊕ w`. ∎
   - NAT-addcompat (NatAdditionOrderAndSuccessor) — strict successor `n < n + 1`; right order-compatibility `p ≤ n ⟹ p + m ≤ n + m`.
   - NAT-cancel (NatAdditionCancellation) — right cancellation `n + m = p + m ⟹ n = p`.
 - *Postconditions:* a ⊕ w < b ⊕ w
-
-But TA1 alone does not guarantee that addition *advances* a position. It preserves relative order between two positions but is silent about the relationship between `a` and `a ⊕ w`. We need:
