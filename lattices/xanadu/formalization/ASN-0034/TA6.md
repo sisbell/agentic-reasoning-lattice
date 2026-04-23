@@ -19,7 +19,6 @@
   - TA-PosDom (PositiveDominatesZero) — postcondition `(A t ∈ T, z ∈ T : Pos(t) ∧ Zero(z) :: z < t)` cited directly.
   - NAT-zero (NatZeroMinimum) — lower bound `0 ≤ n` for `n ∈ ℕ`.
   - NAT-order (NatStrictTotalOrder) — `m ≤ n ⟺ m < n ∨ m = n` and irreflexivity of `<`, used to establish `tⱼ > 0 ⟺ tⱼ ≠ 0` on ℕ.
-  - NAT-wellorder (NatWellOrdering) — well-ordering of ℕ inherited via TA-PosDom's case analysis.
 - *Postconditions:*
   (a) `(A t ∈ T : Zero(t) ⟹ t is not a valid address)`.
   (b) `(A s, t ∈ T : Zero(s) ∧ (E j : 1 ≤ j ≤ #t : tⱼ > 0) ⟹ s < t)`.

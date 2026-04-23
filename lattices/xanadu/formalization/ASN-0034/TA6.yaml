@@ -9,7 +9,6 @@ depends:
 - TA-PosDom
 - NAT-zero
 - NAT-order
-- NAT-wellorder
 summary: |
   No tumbler with `Zero(t)` is a valid address — every zero tumbler is excluded by the boundary rule T4 enforces on
   first components. As a sentinel benefit, every zero tumbler is strictly less than every positive tumbler under the
