@@ -11,9 +11,8 @@ The set of zero tumblers is written **Z** = {t ∈ T : Zero(t)}.
 *Formal Contract:*
 - *Definition:* `Pos(t)` iff `(E i ∈ ℕ : 1 ≤ i ≤ #t : ¬(tᵢ = 0))`; `Zero(t)` iff `(A i ∈ ℕ : 1 ≤ i ≤ #t : tᵢ = 0)`; **Z** = {t ∈ T : Zero(t)}.
 - *Complementarity:* `(A t ∈ T :: Pos(t) ⟺ ¬Zero(t))`.
-- *Nonvacuity of the partition:* the index range `1 ≤ i ≤ #t` in the Pos/Zero clauses is nonempty for every `t ∈ T`, by T0's `(A a ∈ T :: 1 ≤ #a)`.
 - *Depends:*
-  - T0 (CarrierSetDefinition) — carrier `T`, length `#t`, component projection `tᵢ`, and the nonemptiness clause `(A a ∈ T :: 1 ≤ #a)` underwriting the Nonvacuity clause.
+  - T0 (CarrierSetDefinition) — carrier `T`, length `#t`, component projection `tᵢ`, and the nonemptiness clause `(A a ∈ T :: 1 ≤ #a)` cited in the partition-consequence prose.
   - NAT-zero (NatZeroMinimum) — supplies `0 ∈ ℕ` for the literal appearing in `tᵢ = 0`.
   - NAT-order (NatStrictTotalOrder) — supplies `≤` on ℕ for the bounded-quantifier range `1 ≤ i ≤ #t`.
   - NAT-closure (NatArithmeticClosureAndIdentity) — supplies `1 ∈ ℕ` for the numeral bounding that range.
