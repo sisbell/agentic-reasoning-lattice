@@ -2,6 +2,8 @@ label: NAT-order
 name: NatStrictTotalOrder
 type: axiom
 depends: []
-summary: 'The natural numbers are strictly totally ordered by `<`: no number precedes itself, the order is transitive, and
+summary: |
+  The natural numbers are strictly totally ordered by `<`: no number precedes itself, the order is transitive, and
   for any two naturals exactly one of less-than, equality, or greater-than holds. The non-strict companion `≤` is defined
-  from `<` directly and inherits these guarantees.'
+  from `<` directly, and the reverse companions `≥` and `>` are defined as the converses of `≤` and `<`; all three defined
+  relations inherit the strict-total-order guarantees through their unfoldings.

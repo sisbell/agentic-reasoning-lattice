@@ -1,4 +1,4 @@
-**NAT-order (NatStrictTotalOrder).** The binary relation `<` on ℕ is a strict total order, with non-strict companion `≤` defined by `m ≤ n ⟺ m < n ∨ m = n`.
+**NAT-order (NatStrictTotalOrder).** The binary relation `<` on ℕ is a strict total order, with non-strict companion `≤` defined by `m ≤ n ⟺ m < n ∨ m = n` and reverse companions `≥` and `>` defined by `m ≥ n ⟺ n ≤ m` and `m > n ⟺ n < m`.
 
 Strict total order on ℕ means three properties hold jointly:
 - Irreflexivity: `¬(n < n)` for every `n ∈ ℕ`
@@ -7,7 +7,9 @@ Strict total order on ℕ means three properties hold jointly:
 
 The axiom slot introduces `<` before constraining it: the first clause `< ⊆ ℕ × ℕ` posits `<` as a binary relation on ℕ, and the three strict-total-order clauses that follow then constrain that relation. NAT-closure follows the same register for the arithmetic primitive, opening its axiom slot with the signature `+ : ℕ × ℕ → ℕ` before the unit-membership and left-identity clauses.
 
+The Definition slot introduces the non-strict companion `≤` from `<` and logical equality, and the reverse companions `≥` and `>` as the converses of `≤` and `<` respectively. These are notational definitions, not additional axioms: every downstream occurrence of `m ≥ n`, `m > n` unfolds to `n ≤ m`, `n < m` and inherits the strict-total-order properties through that unfolding.
+
 *Formal Contract:*
 - *Axiom:* `< ⊆ ℕ × ℕ` (`<` is a binary relation on ℕ); `(A n ∈ ℕ :: ¬(n < n))` (irreflexivity); `(A m, n, p ∈ ℕ : m < n ∧ n < p : m < p)` (transitivity); `(A m, n ∈ ℕ :: m < n ∨ m = n ∨ n < m)` (totality).
-- *Definition:* `(A m, n ∈ ℕ :: m ≤ n ⟺ m < n ∨ m = n)`.
-- *Depends:* (none). NAT-order is the root of the NAT foundation: the strict-order primitive `<` is posited directly on ℕ by the axiom's first clause, not derived from an earlier axiom, and the non-strict companion `≤` is defined using only `<` and logical equality.
+- *Definition:* `(A m, n ∈ ℕ :: m ≤ n ⟺ m < n ∨ m = n)`; `(A m, n ∈ ℕ :: m ≥ n ⟺ n ≤ m)`; `(A m, n ∈ ℕ :: m > n ⟺ n < m)`.
+- *Depends:* (none). NAT-order is the root of the NAT foundation: the strict-order primitive `<` is posited directly on ℕ by the axiom's first clause, not derived from an earlier axiom, and the non-strict companion `≤` together with the reverse companions `≥` and `>` are defined using only `<` and logical equality.
