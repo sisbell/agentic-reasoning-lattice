@@ -50,11 +50,16 @@ In all three cases both sides produce the same sequence of length `#c`, so `(a �
   - TA0 (WellDefinedAddition) — preconditions `Pos(w)`, `actionPoint(w) ≤ #x`; result-length `#(x ⊕ w) = #w`.
   - TA-Pos (PositiveTumbler) — existential definition of `Pos(·)`; consumed to establish `Pos(b ⊕ c)`.
   - ActionPoint (ActionPoint) — definition `actionPoint(w) = min{i : wᵢ ≠ 0}`; bounds `1 ≤ actionPoint(w) ≤ #w`; zeros-below; minimum-nonzero `w_{actionPoint(w)} ≥ 1`.
+  - T1 (LexicographicOrder) — supplies the `<` and `≥` on tumblers under which TumblerAdd's strict-advancement and dominance postconditions (`a ⊕ w > a`, `a ⊕ w ≥ w`) are stated; TumblerAdd's contract, consumed by this proof, is interpretable only with T1 in scope.
   - T3 (CanonicalRepresentation) — component-wise equality plus equal length implies tumbler equality.
   - NAT-addassoc (NatAdditionAssociative) — `(m + n) + p = m + (n + p)` on ℕ; used in Case 2.
   - NAT-addcompat (NatAdditionOrderAndSuccessor) — left order-compatibility and strict successor `n < n + 1`; used in sub-case `k_b = k_c`.
+  - NAT-cancel (NatAdditionCancellation) — symmetric summand absorption `n + m = m ⟹ n = 0`, on which TumblerAdd's dominance sub-case `aₖ > 0` rests; required in scope for the consumed TumblerAdd contract.
   - NAT-closure (NatArithmeticClosureAndIdentity) — additive identity `0 + n = n` and closure under `+`.
+  - NAT-discrete (NatDiscreteness) — forward direction `m < n ⟹ m + 1 ≤ n`, on which ActionPoint's minimum-nonzero clause `1 ≤ w_{actionPoint(w)}` rests; this proof invokes that clause directly when lifting `b_{k_b} ≥ 1` and `c_{k_c} ≥ 1`.
   - NAT-order (NatStrictTotalOrder) — trichotomy, transitivity, `m ≤ n ⟺ m < n ∨ m = n`.
+  - NAT-sub (NatPartialSubtraction) — conditional closure of `k − 1` and `n − k` and the inverse collapses on which TumblerAdd's result-length identity `#(a ⊕ w) = #w` rests; that identity, exported through TA0, supplies the right-side length `#(a ⊕ s) = #c` here.
+  - NAT-wellorder (NatWellOrdering) — least-element principle on which ActionPoint's existence-and-uniqueness construction of `actionPoint(w)` rests; this proof invokes ActionPoint's definition and bounds directly when computing `actionPoint(s) = min(k_b, k_c)`.
   - NAT-zero (NatZeroMinimum) — lower bound `0 ≤ n`; used in `≥ 1 → > 0` lifts.
 - *Postconditions:* `(a ⊕ b) ⊕ c = a ⊕ (b ⊕ c)`; `#((a ⊕ b) ⊕ c) = #(a ⊕ (b ⊕ c)) = #c`; `Pos(b ⊕ c)`; `actionPoint(b ⊕ c) = min(k_b, k_c)`.
 
