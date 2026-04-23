@@ -103,7 +103,6 @@ def run_local_review(asn_num, max_cycles=5, mode="incremental",
     start_time = time.time()
     all_findings = {}   # label → finding_text (latest)
     all_verified = set()
-    all_observed = {}   # label → observation_text (latest)
     converged = False
     had_findings = False
 
@@ -167,6 +166,7 @@ def run_local_review(asn_num, max_cycles=5, mode="incremental",
         cycle_findings = {}   # label → list[(title, cls, body)] of REVISE
         cycle_observed = {}   # label → list[(title, cls, body)] of OBSERVE
         cycle_verified = set()
+        cycle_errored = set()
 
         def _verify_one(label):
             verdict, findings = review_claim(
@@ -177,12 +177,14 @@ def run_local_review(asn_num, max_cycles=5, mode="incremental",
 
         for label, result_tuple in results:
             if result_tuple is None:
+                cycle_errored.add(label)
                 continue
             verdict, findings = result_tuple
             if verdict == "CONVERGED":
                 cycle_verified.add(label)
                 continue
             if verdict == "ERROR":
+                cycle_errored.add(label)
                 continue
             if not findings:
                 # UNKNOWN verdict with no parseable findings — skip conservatively
@@ -198,7 +200,6 @@ def run_local_review(asn_num, max_cycles=5, mode="incremental",
         for label in cycle_findings:
             all_verified.discard(label)
         all_findings.update(cycle_findings)
-        all_observed.update(cycle_observed)
 
         # Update verification cache — save hashes for claims whose contract
         # is sound (CONVERGED or OBSERVE-only). OBSERVE is non-load-bearing,
@@ -208,8 +209,9 @@ def run_local_review(asn_num, max_cycles=5, mode="incremental",
             content = sections.get(label, "")
             if content:
                 verified_hashes[label] = _hash_content(content)
-        # Invalidate cache for claims with REVISE findings
-        for label in cycle_findings:
+        # Invalidate cache for claims with REVISE findings or review errors —
+        # an errored claim must be re-reviewed next run, not silently skipped.
+        for label in set(cycle_findings) | cycle_errored:
             verified_hashes.pop(label, None)
         _save_verified_hashes(cache_path, verified_hashes)
 
@@ -236,13 +238,15 @@ def run_local_review(asn_num, max_cycles=5, mode="incremental",
                 if cycle_findings:
                     rf.write(f"## REVISE\n\n")
                     for label, findings in cycle_findings.items():
+                        rf.write(f"### {label}\n\n")
                         for (_title, _cls, body) in findings:
-                            rf.write(f"**Claim**: {label}\n\n{body}\n\n")
+                            rf.write(f"{body.replace('### ', '#### ', 1)}\n\n")
                 if cycle_observed:
                     rf.write(f"## OBSERVE\n\n")
                     for label, findings in cycle_observed.items():
+                        rf.write(f"### {label}\n\n")
                         for (_title, _cls, body) in findings:
-                            rf.write(f"**Claim**: {label}\n\n{body}\n\n")
+                            rf.write(f"{body.replace('### ', '#### ', 1)}\n\n")
                 rf.write(f"{len(cycle_verified)} verified, "
                          f"{n_observe_findings} observed, "
                          f"{n_revise_findings} found.\n")
