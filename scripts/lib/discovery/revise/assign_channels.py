@@ -15,7 +15,7 @@ from lib.shared.paths import prompt_path, load_channel_meta
 from lib.shared.common import read_file
 from lib.shared.campaign import resolve_campaign
 
-PROMPT_TEMPLATE = prompt_path("revise/assign-channels.md")
+PROMPT_TEMPLATE = prompt_path("discovery/revise/assign-channels.md")
 
 # Always-recognized role labels, regardless of channels bound.
 _ROLE_LABELS = {"Theory": "theory", "Evidence": "evidence"}

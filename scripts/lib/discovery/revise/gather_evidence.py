@@ -7,15 +7,15 @@ Reads a review's REVISE items + the ASN, asks an LLM to decide which channels
 consultations. Produces a results file for the revise agent to consume.
 
 Assignment prompt, parser, and display-name logic live in the shared
-lib module scripts/lib/revise/assign_channels.py — tolerant parser that
-handles both role-labeled ("Theory"/"Evidence") and channel-named
+lib module scripts/lib/discovery/revise/assign_channels.py — tolerant parser
+that handles both role-labeled ("Theory"/"Evidence") and channel-named
 ("Nelson"/"Gregory"/"Maxwell-1867"/...) responses.
 
 Usage:
-    python scripts/lib/revise/gather_evidence.py 9              # latest review
-    python scripts/lib/revise/gather_evidence.py 9 review-3     # specific review
-    python scripts/lib/revise/gather_evidence.py 9 --dry-run    # assign only, no consultations
-    python scripts/lib/revise/gather_evidence.py 9 --model sonnet  # override model (default: opus)
+    python scripts/lib/discovery/revise/gather_evidence.py 9              # latest review
+    python scripts/lib/discovery/revise/gather_evidence.py 9 review-3     # specific review
+    python scripts/lib/discovery/revise/gather_evidence.py 9 --dry-run    # assign only, no consultations
+    python scripts/lib/discovery/revise/gather_evidence.py 9 --model sonnet  # override model (default: opus)
 """
 
 import argparse
@@ -26,7 +26,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import (
     WORKSPACE, REVIEWS_DIR, NOTES_DIR, consultation_dir, find_review,
 )
@@ -35,7 +35,7 @@ from lib.shared.common import find_asn
 from lib.consult import (
     invoke_claude, get_total_usage, dispatch_run_consultation,
 )
-from lib.revise import assign_channels
+from lib.discovery.revise import assign_channels
 
 
 def get_review_number(review_path):
