@@ -255,7 +255,7 @@ def process_file_scratch(rule, tools, claim_dir, filename, findings, pairs):
     shutil.copy2(real_path, scratch_path)
 
     prompt = build_prompt(rule, scratch_path, findings, pairs, claim_dir)
-    print(f"    [{rule}] invoking reviser on {filename}...", flush=True)
+    print(f"    {filename}: invoking... ", end="", flush=True)
     data, elapsed = invoke_claude_agent(
         prompt,
         model="opus",
@@ -265,9 +265,9 @@ def process_file_scratch(rule, tools, claim_dir, filename, findings, pairs):
         cwd=scratch_dir,
     )
     if data is None:
-        print(f"    [{rule}] claude invocation failed for {filename}", file=sys.stderr)
+        print(f"claude invocation failed", file=sys.stderr)
         return None, scratch_path
-    print(f"    [{rule}] done in {elapsed:.0f}s", flush=True)
+    print(f"{elapsed:.0f}s", end="", flush=True)
 
     after = scratch_path.read_text()
     diff = unified_diff(before, after, filename)
@@ -283,7 +283,7 @@ def process_propose(rule, tools, claim_dir, findings):
               .replace("{findings_list}", findings_text)
               .replace("{claim_dir}", str(claim_dir))
               .replace("{yaml_bundle}", ""))
-    print(f"    [{rule}] invoking proposer...", flush=True)
+    print(f"    invoking proposer... ", end="", flush=True)
     data, elapsed = invoke_claude_agent(
         prompt,
         model="opus",
@@ -293,14 +293,16 @@ def process_propose(rule, tools, claim_dir, findings):
         cwd=claim_dir,
     )
     if data is None:
+        print(f"failed", file=sys.stderr)
         return None
-    print(f"    [{rule}] done in {elapsed:.0f}s", flush=True)
+    print(f"{elapsed:.0f}s", flush=True)
     return data.get("result", "")
 
 
 def run_pass(pass_spec, asn_label, claim_dir, findings, dry_run,
              file_filter, *, scope_labels=None, commit=False,
-             require_git_clean=True, skip_pairs=None):
+             require_git_clean=True, skip_pairs=None,
+             pass_index=None, total_passes=None):
     """Run one pass. Returns a set of (filename, rule) pairs where the reviser
     produced no change — the gate uses this to avoid re-invoking on known
     declines in later iterations."""
@@ -312,7 +314,10 @@ def run_pass(pass_spec, asn_label, claim_dir, findings, dry_run,
     declined = set()
     if scope_labels is not None:
         findings = filter_findings_by_scope(findings, scope_labels)
-    print(f"\n=== Pass: {rule} ({mode}) ===")
+
+    index_prefix = (f"pass {pass_index}/{total_passes} "
+                    if pass_index is not None and total_passes is not None
+                    else "pass ")
 
     if mode == "propose":
         rule_findings = [f for f in findings if f["rule"] == rule]
@@ -320,24 +325,34 @@ def run_pass(pass_spec, asn_label, claim_dir, findings, dry_run,
             rule_findings = [f for f in rule_findings
                              if f.get("file") == file_filter or not f.get("file")]
         if not rule_findings:
-            print(f"  no findings; skipping")
             return declined
+        print(f"  {index_prefix}{rule} (propose): "
+              f"{len(rule_findings)} finding(s)")
         output = process_propose(rule, tools, claim_dir, rule_findings)
         if output:
-            print("\n--- proposal ---")
+            print("--- proposal ---")
             print(output)
-            print("--- end proposal ---\n")
+            print("--- end proposal ---")
         return declined
 
     groups = group_findings_by_file(findings, rule)
     if file_filter:
         groups = {k: v for k, v in groups.items() if k == file_filter}
     skipped = sorted(fn for fn in groups if (Path(fn).stem, rule) in skip_pairs)
-    for fn in skipped:
-        print(f"  [skip] {fn} (declined earlier in gate)")
     groups = {k: v for k, v in groups.items() if k not in set(skipped)}
+    if not groups and not skipped:
+        return declined
+
+    file_word = "file" if len(groups) == 1 else "files"
+    if groups:
+        print(f"  {index_prefix}{rule}: {len(groups)} {file_word}")
+    elif skipped:
+        print(f"  {index_prefix}{rule}: all skipped (declined earlier)")
+
+    for fn in skipped:
+        print(f"    {fn}: skipped (declined earlier in gate)")
+
     if not groups:
-        print(f"  no findings for this rule; skipping")
         return declined
 
     if require_git_clean:
@@ -350,15 +365,11 @@ def run_pass(pass_spec, asn_label, claim_dir, findings, dry_run,
             return declined
 
     for filename, file_findings in sorted(groups.items()):
-        print(f"\n  {filename} ({len(file_findings)} finding(s))")
-
         if mode == "apply" and rule == "filename-label-mismatch":
             if dry_run:
-                print(f"    [SKIP] filename renames not supported in dry-run "
-                      f"(would need lattice-wide reference scan). Run with --apply "
-                      f"to execute, or propose manually.")
+                print(f"    {filename}: SKIP (renames require --apply)")
                 continue
-            print(f"    [filename-label-mismatch] in-place rename + reference update")
+            print(f"    {filename}: renaming... ", end="", flush=True)
             file_path = claim_dir / filename
             prompt = build_prompt(rule, file_path, file_findings, pairs, claim_dir)
             data, elapsed = invoke_claude_agent(
@@ -366,58 +377,54 @@ def run_pass(pass_spec, asn_label, claim_dir, findings, dry_run,
                 tools=tools, max_turns=30, cwd=REPO_ROOT,
             )
             if data is None:
-                print(f"    claude invocation failed", file=sys.stderr)
+                print(f"failed", file=sys.stderr)
                 continue
-            print(f"    done in {elapsed:.0f}s")
-            subprocess.run(["git", "diff", "--cached", "--stat", "HEAD"],
-                           cwd=REPO_ROOT)
+            print(f"{elapsed:.0f}s", end="", flush=True)
             if commit:
                 committed = commit_all_staged(
                     f"validate-revise(asn): {rule} on {filename}"
                 )
                 if committed:
-                    print(f"    [committed] {filename}")
+                    print(f" → committed")
                 else:
-                    print(f"    [declined] {filename} (no change)")
+                    print(f" → declined (no change)")
                     declined.add((Path(filename).stem, rule))
+            else:
+                print(f" → applied (uncommitted)")
             continue
 
         diff, scratch_path = process_file_scratch(
             rule, tools, claim_dir, filename, file_findings, pairs
         )
         if diff is None:
+            print(f" → invocation failed", file=sys.stderr)
             continue
 
         if not diff:
-            print(f"    [declined] {filename} (no change)")
+            print(f" → declined (no change)")
             declined.add((Path(filename).stem, rule))
             shutil.rmtree(scratch_path.parent, ignore_errors=True)
             continue
 
         if dry_run:
-            print("\n--- proposed diff ---")
+            print(f" → proposed diff:")
             print(diff)
-            print("--- end diff ---\n")
             shutil.rmtree(scratch_path.parent, ignore_errors=True)
             continue
 
         real_path = claim_dir / filename
         shutil.copy2(scratch_path, real_path)
-        subprocess.run(
-            ["git", "diff", "--stat", "--", str(real_path)],
-            cwd=REPO_ROOT,
-        )
         if commit:
             committed = commit_file(
                 real_path,
                 f"validate-revise(asn): {rule} on {filename}",
             )
             if committed:
-                print(f"    [committed] {filename}")
+                print(f" → committed")
             else:
-                print(f"    [commit failed] {filename}")
+                print(f" → commit failed")
         else:
-            print(f"    [applied] {filename}")
+            print(f" → applied (uncommitted)")
 
         shutil.rmtree(scratch_path.parent, ignore_errors=True)
 
@@ -466,35 +473,32 @@ def run_passes(asn_label, *, scope_labels=None, rules=None, mode="apply",
             continue
         selected_passes.append((i, p))
 
-    print(f"[VALIDATE-REVISE] {asn_label} ({'dry-run' if dry_run else 'APPLY'})")
-    print(f"  claim dir: {claim_dir}")
-    if scope is not None:
-        print(f"  scope: {sorted(scope)}")
-
     if not selected_passes:
-        print("  no passes selected")
+        print(f"[VALIDATE-REVISE] {asn_label} "
+              f"({'dry-run' if dry_run else 'APPLY'}) — no passes selected")
         return (0, 0, declined)
 
     baseline = run_validator(asn_label)
     before_count = len(filter_findings_by_scope(baseline, scope))
-    print(f"\n  baseline: {before_count} finding(s) in scope")
+    print(f"[VALIDATE-REVISE] {asn_label} "
+          f"({'dry-run' if dry_run else 'APPLY'}) — "
+          f"{before_count} finding(s) in scope")
 
     findings = baseline
+    total = len(PASSES)
     for i, p in selected_passes:
-        print(f"\n----- Pass {i}/{len(PASSES)} -----")
         pass_declined = run_pass(
             p, asn_label, claim_dir, findings, dry_run, file_filter,
             scope_labels=scope, commit=commit,
             require_git_clean=not commit, skip_pairs=declined,
+            pass_index=i, total_passes=total,
         )
         if pass_declined:
             declined |= pass_declined
         findings = run_validator(asn_label)
-        in_scope = len(filter_findings_by_scope(findings, scope))
-        print(f"\n  after pass {i}: {in_scope} finding(s) remaining (in scope)")
 
     after_count = len(filter_findings_by_scope(findings, scope))
-    print("\n[VALIDATE-REVISE] done")
+    print(f"[VALIDATE-REVISE] done — {after_count} remaining")
     return (before_count, after_count, declined)
 
 
