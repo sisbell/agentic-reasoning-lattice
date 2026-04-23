@@ -20,6 +20,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import USAGE_LOG, prompt_path, formal_stmts
 from lib.shared.common import find_asn
+from lib.formalization.full_review.review import (
+    extract_findings, filter_revise, parse_verdict,
+)
 
 REVIEW_TEMPLATE = prompt_path("formalization/local-review/review.md")
 
@@ -128,11 +131,10 @@ def _build_proof_context(asn_num, label, deps_data, sections,
 def review_claim(asn_num, label, deps_data, sections, foundation_cache=None):
     """Review one claim's proof.
 
-    Returns:
-        ("verified", None) — VERDICT CONVERGED, contract is sound
-        ("observed", text) — VERDICT OBSERVE, contract sound but something noted
-        ("found", text) — VERDICT REVISE, contract integrity issue
-        ("error", None) — review call failed
+    Returns (verdict, findings):
+        verdict   — "CONVERGED" | "OBSERVE" | "REVISE" | "UNKNOWN" | "ERROR"
+        findings  — list of (title, cls, body) tuples on non-CONVERGED/ERROR;
+                    None on CONVERGED or ERROR.
     """
     asn_label = f"ASN-{asn_num:04d}"
 
@@ -158,28 +160,18 @@ def review_claim(asn_num, label, deps_data, sections, foundation_cache=None):
 
     if not text:
         print(f" error ({elapsed:.0f}s)", file=sys.stderr)
-        return "error", None
+        return "ERROR", None
 
-    if re.search(r'^VERDICT:\s*CONVERGED\s*$', text, re.MULTILINE):
+    verdict = parse_verdict(text)
+
+    if verdict == "CONVERGED":
         print(f" verdict=CONVERGED ({elapsed:.0f}s)", file=sys.stderr)
-        return "verified", None
+        return "CONVERGED", None
 
-    if re.search(r'^VERDICT:\s*OBSERVE\s*$', text, re.MULTILINE):
-        obs_match = re.search(r'\*\*Observation\*\*:\s*(.+)', text)
-        obs = obs_match.group(1).strip() if obs_match else ""
-        preview = (obs[:70] + "...") if len(obs) > 70 else obs
-        suffix = f" — {preview}" if preview else ""
-        print(f" verdict=OBSERVE ({elapsed:.0f}s){suffix}", file=sys.stderr)
-        return "observed", text
-
-    if re.search(r'^VERDICT:\s*REVISE\s*$', text, re.MULTILINE):
-        problem_match = re.search(r'\*\*Problem\*\*:\s*(.+)', text)
-        problem = problem_match.group(1).strip() if problem_match else ""
-        preview = (problem[:70] + "...") if len(problem) > 70 else problem
-        suffix = f" — {preview}" if preview else ""
-        print(f" verdict=REVISE ({elapsed:.0f}s){suffix}", file=sys.stderr)
-        return "found", text
-
-    print(f" verdict=UNKNOWN ({elapsed:.0f}s) — treating as found",
+    findings = extract_findings(text)
+    n_revise = sum(1 for f in findings if f[1] == "REVISE")
+    n_observe = sum(1 for f in findings if f[1] == "OBSERVE")
+    counts = f"{len(findings)} finding(s) ({n_revise} REVISE, {n_observe} OBSERVE)"
+    print(f" verdict={verdict} ({elapsed:.0f}s) — {counts}",
           file=sys.stderr)
-    return "found", text
+    return verdict, findings

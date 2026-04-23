@@ -31,6 +31,7 @@ from lib.formalization.core.topological_sort import topological_sort_labels
 from lib.formalization.gate import run_validate_gate
 from lib.formalization.local_review.review import review_claim
 from lib.formalization.local_review.revise import revise
+from lib.formalization.full_review.review import filter_revise
 
 
 def _hash_content(text):
@@ -163,27 +164,35 @@ def run_local_review(asn_num, max_cycles=5, mode="incremental",
                 foundation_cache[dep_asn] = stmt_path.read_text()
 
         # Review all claims in parallel (verify is read-only)
-        cycle_findings = {}
-        cycle_observed = {}
+        cycle_findings = {}   # label → list[(title, cls, body)] of REVISE
+        cycle_observed = {}   # label → list[(title, cls, body)] of OBSERVE
         cycle_verified = set()
 
         def _verify_one(label):
-            result, finding_text = review_claim(
+            verdict, findings = review_claim(
                 asn_num, label, deps_data, sections, foundation_cache)
-            return label, (result, finding_text)
+            return label, (verdict, findings)
 
         results = parallel_llm_calls(review_labels, _verify_one, max_workers=10)
 
         for label, result_tuple in results:
             if result_tuple is None:
                 continue
-            result, finding_text = result_tuple
-            if result == "verified":
+            verdict, findings = result_tuple
+            if verdict == "CONVERGED":
                 cycle_verified.add(label)
-            elif result == "observed":
-                cycle_observed[label] = finding_text
-            elif result == "found":
-                cycle_findings[label] = finding_text
+                continue
+            if verdict == "ERROR":
+                continue
+            if not findings:
+                # UNKNOWN verdict with no parseable findings — skip conservatively
+                continue
+            revise_findings = filter_revise(findings)
+            observe_findings = [f for f in findings if f[1] == "OBSERVE"]
+            if revise_findings:
+                cycle_findings[label] = revise_findings
+            if observe_findings:
+                cycle_observed[label] = observe_findings
 
         all_verified.update(cycle_verified)
         for label in cycle_findings:
@@ -192,9 +201,9 @@ def run_local_review(asn_num, max_cycles=5, mode="incremental",
         all_observed.update(cycle_observed)
 
         # Update verification cache — save hashes for claims whose contract
-        # is sound (CONVERGED or OBSERVE). OBSERVE is non-load-bearing by
-        # definition, so it does not invalidate the cache.
-        sound = cycle_verified | set(cycle_observed)
+        # is sound (CONVERGED or OBSERVE-only). OBSERVE is non-load-bearing,
+        # so it does not invalidate the cache.
+        sound = cycle_verified | (set(cycle_observed) - set(cycle_findings))
         for label in sound:
             content = sections.get(label, "")
             if content:
@@ -204,8 +213,11 @@ def run_local_review(asn_num, max_cycles=5, mode="incremental",
             verified_hashes.pop(label, None)
         _save_verified_hashes(cache_path, verified_hashes)
 
-        print(f"\n  {len(cycle_findings)} found, "
-              f"{len(cycle_observed)} observed, "
+        n_revise_findings = sum(len(v) for v in cycle_findings.values())
+        n_observe_findings = sum(len(v) for v in cycle_observed.values())
+        print(f"\n  {n_revise_findings} REVISE finding(s) across "
+              f"{len(cycle_findings)} claim(s), "
+              f"{n_observe_findings} OBSERVE, "
               f"{len(cycle_verified)} verified",
               file=sys.stderr)
 
@@ -223,15 +235,17 @@ def run_local_review(asn_num, max_cycles=5, mode="incremental",
                 rf.write(f"\n\n")
                 if cycle_findings:
                     rf.write(f"## REVISE\n\n")
-                    for label, finding_text in cycle_findings.items():
-                        rf.write(f"### {label}\n\n{finding_text}\n\n")
+                    for label, findings in cycle_findings.items():
+                        for (_title, _cls, body) in findings:
+                            rf.write(f"**Claim**: {label}\n\n{body}\n\n")
                 if cycle_observed:
                     rf.write(f"## OBSERVE\n\n")
-                    for label, obs_text in cycle_observed.items():
-                        rf.write(f"### {label}\n\n{obs_text}\n\n")
+                    for label, findings in cycle_observed.items():
+                        for (_title, _cls, body) in findings:
+                            rf.write(f"**Claim**: {label}\n\n{body}\n\n")
                 rf.write(f"{len(cycle_verified)} verified, "
-                         f"{len(cycle_observed)} observed, "
-                         f"{len(cycle_findings)} found.\n")
+                         f"{n_observe_findings} observed, "
+                         f"{n_revise_findings} found.\n")
 
         if not cycle_findings:
             converged = True
@@ -240,7 +254,7 @@ def run_local_review(asn_num, max_cycles=5, mode="incremental",
             if not had_findings and not cycle_observed:
                 print(f"  Nothing to do.", file=sys.stderr)
             elif cycle_observed:
-                print(f"  {len(cycle_observed)} observation(s) logged.",
+                print(f"  {n_observe_findings} observation(s) logged.",
                       file=sys.stderr)
             break
 
@@ -249,14 +263,15 @@ def run_local_review(asn_num, max_cycles=5, mode="incremental",
         if dry_run:
             break
 
-        # Revise each found claim
+        # Revise each REVISE finding (per-finding granularity, matches full-review)
         changed = set()
-        for label, finding_text in cycle_findings.items():
+        for label, findings in cycle_findings.items():
             stem = _label_index.get(label, label)
             claim_path = claim_dir / f"{stem}.md"
-            ok = revise(asn_num, label, finding_text, claim_path=claim_path)
-            if ok:
-                changed.add(label)
+            for (_title, _cls, body) in findings:
+                ok = revise(asn_num, label, body, claim_path=claim_path)
+                if ok:
+                    changed.add(label)
 
         if not changed:
             print(f"  No changes made — stopping.", file=sys.stderr)

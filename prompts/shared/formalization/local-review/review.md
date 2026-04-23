@@ -104,31 +104,31 @@ Use them as ground truth when checking the reasoning.
 
 The test: would an incorrect fix for this finding be worse than leaving it? If yes, REVISE. If no, OBSERVE.
 
-## Output
+## Output Format
 
-If the claim's contract is sound and you notice nothing worth logging:
-
-```
-VERDICT: CONVERGED
-```
-
-If the contract is sound but you noticed a non-load-bearing imperfection:
+For each finding, emit a block in this format:
 
 ```
-VERDICT: OBSERVE
-
-**Observation**: [what you noticed]
-**Note**: [why it does not affect downstream citation; what a consumer would do about it, if anything]
+### [brief title]
+**Class**: REVISE | OBSERVE
+**Issue**: [what is wrong — be specific about the gap, with concrete example if possible]
+**Required**: [REVISE only — what would fix it; omit for OBSERVE]
 ```
 
-If there is a contract integrity issue:
+After all findings, emit a VERDICT line on its own:
 
 ```
-VERDICT: REVISE
-
-**Problem**: [specific description of the gap, with concrete example if possible]
-**Required**: [what would fix it]
+VERDICT: CONVERGED | OBSERVE | REVISE
 ```
+
+Output the VERDICT line as plain text, exactly as shown — no markdown bold, no asterisks.
+
+**VERDICT** is mandatory.
+- **CONVERGED** — zero findings of any kind. Emit no finding blocks; emit only the VERDICT line.
+- **OBSERVE** — observations only, no correctness issues. Emit one or more OBSERVE-class finding blocks.
+- **REVISE** — at least one correctness issue. Emit the REVISE-class block(s); OBSERVE-class blocks may accompany them. VERDICT is REVISE whenever any finding is REVISE, regardless of how many OBSERVE findings accompany.
+
+A claim can carry multiple findings. Do not bury a REVISE under an OBSERVE — emit every finding you have, each with its own block and Class.
 
 Be specific. Cite the exact text that is wrong or missing. Construct a
 counterexample if the claim misses a case.
