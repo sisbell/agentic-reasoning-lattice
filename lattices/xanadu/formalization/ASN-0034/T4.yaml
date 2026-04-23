@@ -18,3 +18,6 @@ summary: |
   initial segment `{1, …, n} ⊆ ℕ` with codomain ℕ, grounding the definition
   `zeros(t) = |{i : 1 ≤ i ≤ #t ∧ tᵢ = 0}|` so that `zeros(t) ∈ ℕ`; NAT-card also fixes `|·|`
   as a set-level operator distinct from T0's tumbler-length `#·`, which acts on sequences.
+  As a Consequence, `zeros(t) ∈ {0, 1, 2, 3}` for every T4-valid tumbler — derived from the
+  bound `zeros(t) ≤ 3`, NAT-zero's `0 ≤ zeros(t)`, NAT-order's trichotomy, and NAT-discrete
+  — so the Axiom's per-`k` schema collectively covers every T4-valid tumbler.
