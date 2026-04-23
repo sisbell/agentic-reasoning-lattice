@@ -32,17 +32,17 @@ In both cases `t'` is a finite sequence of natural numbers with length ≥ 1, so
 
 *Case `k = 0`.* Let `j = sig(t)`. By (b), `t'ᵢ = tᵢ` for all `i ≠ j`, so the tumblers agree on positions `1 ≤ i < j`. At position `j`, `t'_j = t_j + 1 > t_j` by NAT-addcompat's strict successor inequality. Since `j = sig(t) ≤ m = #t = #t'`, both tumblers have a component at `j`. T1 case (i) yields `t < t'`.
 
-*Case `k > 0`.* By (b), the tumblers agree on positions `1 ≤ i ≤ m`. T1 case (ii) requires `#t + 1 ≤ #t'`. NAT-discrete (instantiated at `m = 0`, `n = k`) discharges its strict antecedent against the case hypothesis `0 < k` and yields `1 ≤ k`. NAT-addcompat's order-compatibility of addition (instantiated at `m = #t`, `p = 1`, `n = k`) lifts `1 ≤ k` to `#t + 1 ≤ #t + k = #t'`. T1 case (ii) yields `t < t'`. ∎
+*Case `k > 0`.* By (b), the tumblers agree on positions `1 ≤ i ≤ m`. T1 case (ii) requires `#t + 1 ≤ #t'`. NAT-discrete (instantiated at `m = 0`, `n = k`) discharges its strict antecedent against the case hypothesis `0 < k` and yields `0 + 1 ≤ k`; NAT-closure's left-identity clause `0 + n = n` (instantiated at `n = 1`) rewrites `0 + 1` to `1`, so `1 ≤ k`. NAT-addcompat's order-compatibility of addition (instantiated at `m = #t`, `p = 1`, `n = k`) lifts `1 ≤ k` to `#t + 1 ≤ #t + k = #t'`. T1 case (ii) yields `t < t'`. ∎
 
 *Formal Contract:*
 - *Preconditions:* `t ∈ T`, `k ≥ 0`.
 - *Definition:* `inc(t, k)`: when `k = 0`, modify position `sig(t)` (TA5-SIG) to `t_{sig(t)} + 1`; when `k > 0`, extend by `k` positions with `k - 1` zeros and final `1`.
 - *Depends:*
   - T0 (CarrierSetDefinition) — characterisation of `T` as finite ℕ-sequences of length ≥ 1; discharges `t' ∈ T`.
-  - NAT-closure (NatArithmeticClosureAndIdentity) — addition closure instantiated at `(t_{sig(t)}, 1)` gives `t_{sig(t)} + 1 ∈ ℕ`, and at `(0, 1)` gives `0 + 1 ∈ ℕ`, with `1 ∈ ℕ` from the same axiom.
+  - NAT-closure (NatArithmeticClosureAndIdentity) — addition closure instantiated at `(t_{sig(t)}, 1)` gives `t_{sig(t)} + 1 ∈ ℕ`, and at `(0, 1)` gives `0 + 1 ∈ ℕ`, with `1 ∈ ℕ` from the same axiom; the left-identity clause `0 + n = n` instantiated at `n = 1` rewrites NAT-discrete's consequent `0 + 1 ≤ k` to `1 ≤ k` in Case `k > 0`.
   - NAT-addcompat (NatAdditionOrderAndSuccessor) — strict successor inequality `n < n + 1` for Case `k = 0`; left order-compatibility `1 ≤ k ⟹ #t + 1 ≤ #t + k` for Case `k > 0`.
   - NAT-zero (NatZeroMinimum) — `0 ∈ ℕ` supplies both the literal value of the `k − 1` field separators and the legal `m`-value for instantiating NAT-discrete at `m = 0`.
-  - NAT-discrete (NatDiscreteness) — instantiated at `m = 0`, `n = k`; the strict antecedent `0 < k` is the case hypothesis itself, so the axiom delivers `1 ≤ k` directly.
+  - NAT-discrete (NatDiscreteness) — instantiated at `m = 0`, `n = k`; the strict antecedent `0 < k` is the case hypothesis itself, so the axiom yields `0 + 1 ≤ k`, which NAT-closure's left identity rewrites to `1 ≤ k`.
   - T1 (LexicographicOrder) — case (i) at divergence position `sig(t)` for `k = 0`; case (ii) with proper-prefix `#t + 1 ≤ #t'` for `k > 0`.
   - TA5-SIG (LastSignificantPosition) — resolves `sig(t)` in the definition and postconditions (b), (c).
 - *Postconditions:* `t' ∈ T`. (a) `t' > t` under T1. (b) When `k = 0`: `(A i : 1 ≤ i ≤ #t ∧ i ≠ sig(t) : t'ᵢ = tᵢ)`. When `k > 0`: `(A i : 1 ≤ i ≤ #t : t'ᵢ = tᵢ)`. (c) When `k = 0`: `#t' = #t`, `t'_{sig(t)} = t_{sig(t)} + 1`. (d) When `k > 0`: `#t' = #t + k`, positions `#t + 1 ... #t + k - 1` are `0`, position `#t + k` is `1`.
