@@ -129,8 +129,9 @@ def review_claim(asn_num, label, deps_data, sections, foundation_cache=None):
     """Review one claim's proof.
 
     Returns:
-        ("verified", None) — proof passes all checks
-        ("found", finding_text) — issue found, finding_text has Problem + Required
+        ("verified", None) — VERDICT CONVERGED, contract is sound
+        ("observed", text) — VERDICT OBSERVE, contract sound but something noted
+        ("found", text) — VERDICT REVISE, contract integrity issue
         ("error", None) — review call failed
     """
     asn_label = f"ASN-{asn_num:04d}"
@@ -162,6 +163,14 @@ def review_claim(asn_num, label, deps_data, sections, foundation_cache=None):
     if re.search(r'^VERDICT:\s*CONVERGED\s*$', text, re.MULTILINE):
         print(f" verdict=CONVERGED ({elapsed:.0f}s)", file=sys.stderr)
         return "verified", None
+
+    if re.search(r'^VERDICT:\s*OBSERVE\s*$', text, re.MULTILINE):
+        obs_match = re.search(r'\*\*Observation\*\*:\s*(.+)', text)
+        obs = obs_match.group(1).strip() if obs_match else ""
+        preview = (obs[:70] + "...") if len(obs) > 70 else obs
+        suffix = f" — {preview}" if preview else ""
+        print(f" verdict=OBSERVE ({elapsed:.0f}s){suffix}", file=sys.stderr)
+        return "observed", text
 
     if re.search(r'^VERDICT:\s*REVISE\s*$', text, re.MULTILINE):
         problem_match = re.search(r'\*\*Problem\*\*:\s*(.+)', text)

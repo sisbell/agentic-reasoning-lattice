@@ -102,6 +102,7 @@ def run_local_review(asn_num, max_cycles=5, mode="incremental",
     start_time = time.time()
     all_findings = {}   # label → finding_text (latest)
     all_verified = set()
+    all_observed = {}   # label → observation_text (latest)
     converged = False
     had_findings = False
 
@@ -163,6 +164,7 @@ def run_local_review(asn_num, max_cycles=5, mode="incremental",
 
         # Review all claims in parallel (verify is read-only)
         cycle_findings = {}
+        cycle_observed = {}
         cycle_verified = set()
 
         def _verify_one(label):
@@ -178,6 +180,8 @@ def run_local_review(asn_num, max_cycles=5, mode="incremental",
             result, finding_text = result_tuple
             if result == "verified":
                 cycle_verified.add(label)
+            elif result == "observed":
+                cycle_observed[label] = finding_text
             elif result == "found":
                 cycle_findings[label] = finding_text
 
@@ -185,45 +189,62 @@ def run_local_review(asn_num, max_cycles=5, mode="incremental",
         for label in cycle_findings:
             all_verified.discard(label)
         all_findings.update(cycle_findings)
+        all_observed.update(cycle_observed)
 
-        # Update verification cache — save hashes for verified claims
-        for label in cycle_verified:
+        # Update verification cache — save hashes for claims whose contract
+        # is sound (CONVERGED or OBSERVE). OBSERVE is non-load-bearing by
+        # definition, so it does not invalidate the cache.
+        sound = cycle_verified | set(cycle_observed)
+        for label in sound:
             content = sections.get(label, "")
             if content:
                 verified_hashes[label] = _hash_content(content)
-        # Invalidate cache for claims with findings
+        # Invalidate cache for claims with REVISE findings
         for label in cycle_findings:
             verified_hashes.pop(label, None)
         _save_verified_hashes(cache_path, verified_hashes)
 
-        print(f"\n  {len(cycle_findings)} found, {len(cycle_verified)} verified",
+        print(f"\n  {len(cycle_findings)} found, "
+              f"{len(cycle_observed)} observed, "
+              f"{len(cycle_verified)} verified",
               file=sys.stderr)
+
+        # Write review file whenever there's anything non-CONVERGED to log
+        if cycle_findings or cycle_observed:
+            review_dir.mkdir(parents=True, exist_ok=True)
+            review_num = next_review_number(asn_label, reviews_dir=review_dir)
+            review_path = review_dir / f"review-{review_num}.md"
+            with open(review_path, "w") as rf:
+                rf.write(f"# Local Review — {asn_label} (cycle {cycle})\n\n")
+                rf.write(f"*{time.strftime('%Y-%m-%d %H:%M')}*\n\n")
+                rf.write(f"{len(review_labels)} claims")
+                if cycle > 1 and mode == "incremental":
+                    rf.write(f" ({', '.join(sorted(review_labels))})")
+                rf.write(f"\n\n")
+                if cycle_findings:
+                    rf.write(f"## REVISE\n\n")
+                    for label, finding_text in cycle_findings.items():
+                        rf.write(f"### {label}\n\n{finding_text}\n\n")
+                if cycle_observed:
+                    rf.write(f"## OBSERVE\n\n")
+                    for label, obs_text in cycle_observed.items():
+                        rf.write(f"### {label}\n\n{obs_text}\n\n")
+                rf.write(f"{len(cycle_verified)} verified, "
+                         f"{len(cycle_observed)} observed, "
+                         f"{len(cycle_findings)} found.\n")
 
         if not cycle_findings:
             converged = True
             print(f"\n  Converged after {cycle} cycle{'s' if cycle > 1 else ''}.",
                   file=sys.stderr)
-            if not had_findings:
+            if not had_findings and not cycle_observed:
                 print(f"  Nothing to do.", file=sys.stderr)
+            elif cycle_observed:
+                print(f"  {len(cycle_observed)} observation(s) logged.",
+                      file=sys.stderr)
             break
 
         had_findings = True
-
-        # New review file per cycle
-        review_dir.mkdir(parents=True, exist_ok=True)
-        review_num = next_review_number(asn_label, reviews_dir=review_dir)
-        review_path = review_dir / f"review-{review_num}.md"
-        with open(review_path, "w") as rf:
-            rf.write(f"# Local Review — {asn_label} (cycle {cycle})\n\n")
-            rf.write(f"*{time.strftime('%Y-%m-%d %H:%M')}*\n\n")
-            rf.write(f"{len(review_labels)} claims")
-            if cycle > 1 and mode == "incremental":
-                rf.write(f" ({', '.join(sorted(review_labels))})")
-            rf.write(f"\n\n")
-            for label, finding_text in cycle_findings.items():
-                rf.write(f"### {label}\n\n{finding_text}\n\n")
-            rf.write(f"{len(cycle_verified)} verified, "
-                     f"{len(cycle_findings)} found.\n")
 
         if dry_run:
             break

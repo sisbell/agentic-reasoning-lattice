@@ -96,15 +96,32 @@ Use them as ground truth when checking the reasoning.
    claim in the provided dependencies establishes? If so, flag as REVISE and
    describe the missing claim that should be created.
 
+## Classifying what you find
+
+- **REVISE** — the claim is wrong, incomplete, or ungrounded. Correctness errors, missing axioms, broken precondition chains, ungrounded operators, hand-waved proofs, missing edge cases. Must be fixed.
+
+- **OBSERVE** — the claim is correct but the precise reader noticed something. Loose phrasing, tighter quantifier possible, alternative framing, minor style. Logged for the record. Does not trigger revision.
+
+The test: would an incorrect fix for this finding be worse than leaving it? If yes, REVISE. If no, OBSERVE.
+
 ## Output
 
-If the claim's contract is sound and complete:
+If the claim's contract is sound and you notice nothing worth logging:
 
 ```
 VERDICT: CONVERGED
 ```
 
-If there is a contract issue:
+If the contract is sound but you noticed a non-load-bearing imperfection:
+
+```
+VERDICT: OBSERVE
+
+**Observation**: [what you noticed]
+**Note**: [why it does not affect downstream citation; what a consumer would do about it, if anything]
+```
+
+If there is a contract integrity issue:
 
 ```
 VERDICT: REVISE
