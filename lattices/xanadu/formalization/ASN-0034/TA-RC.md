@@ -38,5 +38,3 @@ We have exhibited `a ≠ b` with `a ⊕ w = b ⊕ w`, both sides well-defined: r
   - ActionPoint (ActionPoint) — minimum-position formula fixing `k = 2`.
   - TumblerAdd (TumblerAdd) — three-region rule computing each side.
 - *Postconditions:* ∃ a, b, w ∈ T : Pos(w) ∧ actionPoint(w) ≤ #a ∧ actionPoint(w) ≤ #b ∧ a ≠ b ∧ a ⊕ w = b ⊕ w
-
-The mechanism is tail replacement: any two starts that agree on components 1..k and differ only on components after k produce the same result under any displacement with action point k. Formally:
