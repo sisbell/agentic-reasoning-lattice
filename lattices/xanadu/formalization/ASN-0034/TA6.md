@@ -13,11 +13,15 @@
 *Formal Contract:*
 - *Depends:*
   - T0 (CarrierSetDefinition) — `#t ≥ 1` and components in ℕ.
+  - T1 (LexicographicOrder) — strict total order `<` on T under which `s < t` is asserted.
+  - T3 (CanonicalRepresentation) — component-wise tumbler equality underpinning the `Zero(t)` characterization.
   - T4 (HierarchicalParsing) — boundary clause `t₁ ≠ 0`.
   - TA-Pos (PositiveTumbler) — definitions of `Pos(t)` and `Zero(t)`.
   - TA-PosDom (PositiveDominatesZero) — postcondition `(A t ∈ T, z ∈ T : Pos(t) ∧ Zero(z) :: z < t)` cited directly.
   - NAT-zero (NatZeroMinimum) — lower bound `0 ≤ n` for `n ∈ ℕ`.
   - NAT-order (NatStrictTotalOrder) — `m ≤ n ⟺ m < n ∨ m = n` and irreflexivity of `<`, used to establish `tⱼ > 0 ⟺ tⱼ ≠ 0` on ℕ.
+  - NAT-discrete (NatDiscreteness) — discreteness of ℕ supporting the `tⱼ > 0 ⟺ tⱼ ≠ 0` step.
+  - NAT-wellorder (NatWellOrdering) — well-ordering of ℕ inherited via TA-PosDom's case analysis.
 - *Postconditions:*
   (a) `(A t ∈ T : Zero(t) ⟹ t is not a valid address)`.
   (b) `(A s, t ∈ T : Zero(s) ∧ (E j : 1 ≤ j ≤ #t : tⱼ > 0) ⟹ s < t)`.
