@@ -47,6 +47,7 @@ VALIDATOR = _load_validator()
 PASSES = [
     {"rule": "body-uniqueness",            "mode": "apply",   "tools": "Read,Edit"},
     {"rule": "declaration-label-mismatch", "mode": "apply",   "tools": "Read,Edit"},
+    {"rule": "declared-symbols-resolve",   "mode": "apply",   "tools": "Read,Edit"},
     {"rule": "depends-agreement",          "mode": "apply",   "tools": "Read,Edit"},
     {"rule": "references-resolve",         "mode": "apply",   "tools": "Read,Edit"},
     {"rule": "filename-label-mismatch",    "mode": "apply",   "tools": "Read,Edit,Grep,Bash"},
@@ -57,15 +58,7 @@ PASSES = [
 def run_validator(asn_label):
     claim_dir = VALIDATOR.formalization_dir(asn_label)
     pairs = VALIDATOR.load_pairs(claim_dir)
-    findings = []
-    findings.extend(VALIDATOR.check_file_pair_completeness(pairs))
-    findings.extend(VALIDATOR.check_yaml_well_formed(pairs))
-    findings.extend(VALIDATOR.check_filename_matches_label(pairs))
-    findings.extend(VALIDATOR.check_depends_agreement(pairs))
-    findings.extend(VALIDATOR.check_references_resolve(pairs))
-    findings.extend(VALIDATOR.check_acyclic_dependency_graph(pairs))
-    findings.extend(VALIDATOR.check_declaration_and_body_uniqueness(pairs))
-    return findings
+    return VALIDATOR.run_all_checks(pairs)
 
 
 def _md_counterpart(filename):
@@ -193,6 +186,8 @@ def build_yaml_bundle(rule, filename, pairs, claim_dir):
                     if isinstance(data, dict) and data.get("label") == dep:
                         labels_to_include.append(other_stem)
                         break
+    elif rule == "declared-symbols-resolve":
+        labels_to_include.append(stem)
     else:
         return ""
 

@@ -37,16 +37,7 @@ REVISE = _load("formalization_validate_revise",
 def _run_validator(asn_label):
     claim_dir = VALIDATE.formalization_dir(asn_label)
     pairs = VALIDATE.load_pairs(claim_dir)
-    findings = []
-    findings.extend(VALIDATE.check_file_pair_completeness(pairs))
-    findings.extend(VALIDATE.check_yaml_well_formed(pairs))
-    findings.extend(VALIDATE.check_filename_matches_label(pairs))
-    findings.extend(VALIDATE.check_depends_agreement(pairs))
-    findings.extend(VALIDATE.check_references_resolve(pairs))
-    findings.extend(VALIDATE.check_declared_symbols_resolve(pairs))
-    findings.extend(VALIDATE.check_acyclic_dependency_graph(pairs))
-    findings.extend(VALIDATE.check_declaration_and_body_uniqueness(pairs))
-    return findings
+    return VALIDATE.run_all_checks(pairs)
 
 
 def run_validate_gate(asn_label, scope_labels=None, max_iterations=3):

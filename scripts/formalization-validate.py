@@ -397,7 +397,7 @@ def check_declared_symbols_resolve(pairs, config=None):
                 continue
             findings.append({
                 "rule": "declared-symbols-resolve",
-                "file": f"{stem}.md",
+                "file": f"{stem}.yaml",
                 "line": None,
                 "detail": f"uses '{sym}' but does not depend on its owner '{owner}'",
             })
@@ -544,6 +544,22 @@ def check_declaration_and_body_uniqueness(pairs):
     return findings
 
 
+def run_all_checks(pairs):
+    """Run every implemented invariant check in one pass. Returns a list of
+    findings. Used by this script's main(), the gate, and validate-revise
+    to avoid triplicating the check list."""
+    findings = []
+    findings.extend(check_file_pair_completeness(pairs))
+    findings.extend(check_yaml_well_formed(pairs))
+    findings.extend(check_filename_matches_label(pairs))
+    findings.extend(check_depends_agreement(pairs))
+    findings.extend(check_references_resolve(pairs))
+    findings.extend(check_declared_symbols_resolve(pairs))
+    findings.extend(check_acyclic_dependency_graph(pairs))
+    findings.extend(check_declaration_and_body_uniqueness(pairs))
+    return findings
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Validate formalization-stage claim files against "
@@ -563,15 +579,7 @@ def main():
         return 2
 
     pairs = load_pairs(claim_dir)
-    findings = []
-    findings.extend(check_file_pair_completeness(pairs))
-    findings.extend(check_yaml_well_formed(pairs))
-    findings.extend(check_filename_matches_label(pairs))
-    findings.extend(check_depends_agreement(pairs))
-    findings.extend(check_references_resolve(pairs))
-    findings.extend(check_declared_symbols_resolve(pairs))
-    findings.extend(check_acyclic_dependency_graph(pairs))
-    findings.extend(check_declaration_and_body_uniqueness(pairs))
+    findings = run_all_checks(pairs)
 
     print(f"[FORMALIZATION-VALIDATE] {asn_label} ({claim_dir})")
     if not findings:
