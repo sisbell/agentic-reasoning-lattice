@@ -1,6 +1,6 @@
 # The Validation Principle
 
-Every representation the system operates on must have a structural contract, and no LLM review cycle operates on state whose contract has not been mechanically verified. Structural integrity is a precondition for meaningful review — not a thing review checks, but a thing that must hold before review begins.
+Every representation the system operates on has a structural contract, and no LLM review cycle operates on state whose contract has not been mechanically verified. Structural integrity is a precondition for meaningful review — not a thing review checks, but a thing that must hold before review begins.
 
 ## Why
 
@@ -10,21 +10,24 @@ Mechanical validation is cheap, exhaustive, and free of add-bias. A validator th
 
 The principle: get structural issues out of the reviewer's path. The reviewer's job is finding semantic issues — derivation gaps, regime mismatches, smuggled postulates, missing consequences. That job cannot begin productively until the state the reviewer reads is structurally sound.
 
-## The parallel with coupling
+## The parallel with coupling and voice
 
 The [Coupling Principle](coupling.md) governs content health within a file. Prose and formal content are authored as a pair; their ratio signals whether the file is healthy. Divergence signals sprawl.
 
 The Validation Principle governs structural health across files. Each representation has a contract; mechanical checks signal whether the structure is sound. Violations signal that the representation change was uncontracted or that subsequent operations broke invariants.
 
-Neither subsumes the other. A claim file can have perfect coupling (70/30, no sprawl) while the ASN as a whole has broken structure (that same claim's body duplicated in three files). A structurally perfect ASN can have severe coupling violations within individual files. The reviewer needs both axes clean to do its real work.
+The [Voice Principle](voice.md) governs output quality of LLM agents. Positive style structure constrains the reviser to load-bearing prose by construction. Where validation uses enumeration (a closed set of mechanically checkable rules), voice uses positive structure (an open set that can't be enumerated). Validation is the case where enumeration works — structural invariants are finite and checkable. Voice is the case where it doesn't — prose quality is open-ended and judgment-based. The two principles use different mechanisms because they govern different kinds of constraint.
 
-| | Coupling | Validation |
-|---|---|---|
-| Scope | Within a file | Across files |
-| What it monitors | Prose:formal ratio | Structural invariants |
-| How it's checked | Ratio computation | Mechanical validator |
-| Failure mode when absent | [Surface Expansion](../equilibrium/surface-expansion.md) | [Uncontracted Representation Change](../equilibrium/uncontracted-representation-change.md) |
-| What the reviewer sees when it fails | Meta-prose noise | Structural noise |
+No principle subsumes another. A claim file can have perfect coupling (70/30, no sprawl), perfect structure (all invariants hold), and still contain reviser-drift prose that voice discipline would have prevented. The reviewer needs all three axes clean to do its real work.
+
+| | Coupling | Validation | Voice |
+|---|---|---|---|
+| Scope | Within a file | Across files | LLM output quality |
+| What it monitors | Prose:formal ratio | Structural invariants | Prose form |
+| How it's checked | Ratio computation | Mechanical validator | Positive style structure |
+| Mechanism | Monitoring | Enumeration (closed set) | Definition (open set) |
+| Failure mode when absent | [Surface Expansion](../equilibrium/surface-expansion.md) | [Uncontracted Representation Change](../equilibrium/uncontracted-representation-change.md) | [Prose Sprawl](../equilibrium/prose-sprawl.md) via add-bias |
+| What the reviewer sees when it fails | Meta-prose noise | Structural noise | Reviser drift |
 
 ## The contract
 
@@ -51,6 +54,7 @@ The T1 cone on the same ASN — whose state happened to satisfy the structural i
 ## Related
 
 - [Coupling Principle](coupling.md) — the parallel principle for content health within files.
+- [Voice Principle](voice.md) — the parallel principle for LLM output quality. Validation uses enumeration (structural invariants are a closed set). Voice uses positive structure (prose quality is an open set). The two principles use different mechanisms because they govern different kinds of constraint.
 - [Validate-Before-Review](../patterns/validate-before-review.md) — the operational pattern that enforces this principle.
 - [Uncontracted Representation Change](../equilibrium/uncontracted-representation-change.md) — the failure mode when a representation has no contract to validate against.
 - [Claim File Contract](../design-notes/claim-file-contract.md) — the first instance of a structural contract.

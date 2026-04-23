@@ -14,7 +14,7 @@ Convergence is coupling-holding at the artifact's natural ratio, not monotonic c
 
 **Defensive justification.** Revisers answer review findings by inlining rebuttals into the prose rather than restructuring away the finding's premise. Each rebuttal addresses a past finding at the cost of new surface for future ones.
 
-**Reviser verbosity default.** LLM revisers, instructed toward "rigor" or "precision," produce prose expansion by default. Without explicit downward pressure, every cycle adds. The cost is hidden per-cycle — a few hundred words — but compounds across cycles and across files.
+**Tightening findings that trigger revision.** When every reviewer observation — including loose phrasing, minor style, and quantifier precision — triggers a revise cycle, each cycle adds surface through fixes that are correct but not worth their cost. The growth is driven not by the reviser's bias alone but by the volume of findings that reach the reviser.
 
 All four forces above drive prose expansion. The opposite direction — formal content growing without corresponding prose — is also surface expansion but manifests silently as stalled generative output rather than visible bloat. See the asymmetric failure modes in [The Coupling Principle](../principles/coupling.md).
 
@@ -35,23 +35,17 @@ Once expansion is confirmed, the Sprawl patterns take over as site-specific diag
 
 ## Resolution
 
-**Prefer structural fixes over textual fixes.** When a review finding admits both a structural resolution and a textual one, take the structural resolution. Restructuring — rephrasing, splitting, moving, or *deleting* the source of the finding — removes surface. Textual extension adds it. Across many cycles the difference between adding and removing compounds: systems that default to textual fixes grow monotonically; systems that default to structural fixes converge.
+Two mechanisms contain surface expansion, operating at different points in the pipeline.
 
-Concrete moves, in rough order of preference:
+**Voice discipline constrains what the reviser writes.** The [Voice Principle](../principles/voice.md) defines well-formed output through positive style structure — the Dijkstra voice, where every formal statement must be justified in the sentence that introduces it, every claim must be named, and state is described rather than narrated. Under this discipline, non-reasoning prose has no slot to land in. The structure itself is the constraint. Enumerated prohibition lists ("delete > restructure > add") proved unstable — too lax and the reviser adds; too strict and the reviser over-deletes. Voice discipline sidesteps the Goldilocks problem by defining what good prose looks like rather than listing what bad prose looks like.
 
-1. **Delete.** Remove the sentence, list, or paragraph that produced the finding. Often this is an exhaustiveness claim, a meta-comment, or a defensive justification a reviewer has correctly flagged as problematic.
-2. **Rephrase to remove an obligation.** "The standard properties of ℕ that downstream proofs cite are..." commits the file to enumerating them. "ℕ has its standard properties; specific axioms are stated in their own files" does not.
-3. **Move to the right surface.** Citation tracking belongs in metadata or the dependency graph. Design rationale belongs in design docs. Neither belongs in claim prose.
-4. **Split or rename to change a file's role.** If a finding only makes sense when the file is playing an authoritative-directory role, change the scope statement so the file is not that directory.
-5. **Extend (last resort).** If content genuinely belongs in the file and no structural move dissolves the finding, add — but add minimal prose, not a defense.
+**Finding classification constrains what reaches the reviser.** The REVISE/OBSERVE classification in the review prompt separates correctness findings (must act) from tightening observations (logged, no action). Tightening findings — the class most likely to produce expansion when acted on — do not trigger revision. The growth driver is removed because the reviser never sees the findings whose fixes would have added surface.
 
-Removing is a valid response. A reviser's reply of "I removed the sentence that attracted this finding" is correct work, not avoidance.
+Together: voice shapes what the reviser writes when it does act, and classification determines when the reviser acts at all. Neither alone is sufficient — voice without classification still processes too many findings; classification without voice still produces add-biased fixes on the findings that do reach the reviser.
 
-**When textual fixes are correct.** Genuine errors in reasoning, missing definitions, and incomplete proofs are textual by nature — add the missing content. The guidance is specifically against *meta-prose accretion*: prose whose role is to defend, justify, enumerate, or track rather than to reason.
+**When textual fixes are correct.** Genuine errors in reasoning, missing definitions, and incomplete proofs are textual by nature — add the missing content. The discipline is specifically against *meta-prose accretion*: prose whose role is to defend, justify, enumerate, or track rather than to reason. These categories remain useful as diagnostic markers — their presence signals that expansion has occurred — but the resolution is voice discipline plus finding classification, not a stripping checklist.
 
-**For site-specific resolution, see the Sprawl patterns.** Contract Sprawl resolves by splitting Genesis Attractors. Prose Sprawl resolves by stripping categorical bloat classes. Index Sprawl resolves by dropping exhaustiveness claims at their source.
-
-**For the shared discipline, enforce at the reviser level.** The structural-first default has to be present in the reviser's instructions. A pattern doc alone cannot prevent expansion; the prompt that generates revisions is where the default actually operates — see the prompt design section of [The Coupling Principle](../principles/coupling.md) for the specific constraint on V-Cycle prompts.
+**For site-specific resolution, see the Sprawl patterns.** Contract Sprawl resolves by splitting Genesis Attractors. Prose Sprawl resolves by voice-constrained revision. Index Sprawl resolves by dropping exhaustiveness claims at their source.
 
 ## Origin
 
@@ -81,7 +75,8 @@ The discipline the Coupling Principle enforces is therefore not a cleanliness pr
 ## Related
 
 - [Contract Sprawl](contract-sprawl.md), [Prose Sprawl](prose-sprawl.md), [Index Sprawl](index-sprawl.md) — site-specific manifestations of surface expansion. Use these for diagnosis once expansion is detected; use this doc for the shared mechanism and for monitoring.
-- [The Coupling Principle](../principles/coupling.md) — the parent discipline. Surface expansion is a coupling violation; the coupling principle's feedback loop shows how detection flows from delta-from-target through the Sprawl patterns to V-Cycle prompt calibration.
+- [The Voice Principle](../principles/voice.md) — the discipline that contains add-bias. Positive voice structure constrains the reviser to load-bearing prose by construction, replacing enumerated prohibition lists that proved unstable.
+- [The Coupling Principle](../principles/coupling.md) — the parent discipline. Surface expansion is a coupling violation; the coupling principle's feedback loop shows how detection flows from delta-from-target through the Sprawl patterns.
 - [Accretion](../patterns/accretion.md) — the healthy growth pattern. Accretion adds new claims without mutating existing ones; surface expansion is what happens when claims mutate instead.
-- [Review/Revise Iteration](../patterns/review-revise-iteration.md) — the cycle within which expansion or contraction happens. Each iteration is a decision point where structural vs textual defaults play out.
-- [Review V-Cycle](../design-notes/review-v-cycle.md) — the full-review scale at which cumulative surface expansion becomes detectable across multiple claims at once.
+- [Review/Revise Iteration](../patterns/review-revise-iteration.md) — the cycle within which expansion or contraction happens. Each iteration is a decision point where the voice discipline and finding classification operate.
+- [Review V-Cycle](../design-notes/review-v-cycle.md) — the full-review scale at which cumulative surface expansion becomes detectable across multiple claims at once. The REVISE/OBSERVE classification operates within the V-Cycle's review prompts.

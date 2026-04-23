@@ -12,7 +12,7 @@ Unlike [gravitational failures](README.md#gravitational-patterns) (monotonic gro
 
 **Partial cross-cycle visibility.** The agent running cycle N+1 does not see cycle N's diff. It sees only the current state and its own finding. A change that looks arbitrary-but-locally-defensible in cycle N+1 may be exactly the change cycle N made. Without history visibility, each cycle is blind to its own recent past.
 
-**Add-bias flipping with restraint-bias.** A reviser prompt that rewards completeness and a reviewer prompt that rewards concision together produce cycles that alternate between expansion and contraction on the same content. The prompts are fine in isolation; the feedback loop between them has no damping.
+**Add-bias flipping with restraint-bias.** A reviser prompt that rewards completeness and a reviewer prompt that rewards concision together produce cycles that alternate between expansion and contraction on the same content. The REVISE/OBSERVE classification reduces this force significantly — many judgment-call findings ("example could be tighter," "qualifier slightly loose") become OBSERVE and never reach the reviser. The oscillation doesn't start because the trigger doesn't fire. The force remains for REVISE-class findings that genuinely admit two valid resolutions, but the surface area is smaller.
 
 ## Signal
 
@@ -27,7 +27,7 @@ The undecidability has multiple sources, and the resolution differs by source.
 
 **Contract-absent oscillation.** Two resolutions look locally valid because no rule says which is canonical. "T4a cited without statement" could be fixed by inlining the body into the citing file or by leaving the citation and relying on the canonical home — both work locally, neither is ratified. This is the [Uncontracted Representation Change](uncontracted-representation-change.md) case. Disappears when the contract is written.
 
-**Judgment-call oscillation.** The choice is genuinely a matter of editorial judgment — whether an example adds value or adds bloat, whether a qualifier clarifies or clutters. No structural contract can arbitrate. Disappears when a convention is established (in the prompt, in a style note, or in an explicit ruling from upstream).
+**Judgment-call oscillation.** The choice is genuinely a matter of editorial judgment — whether an example adds value or adds bloat, whether a qualifier clarifies or clutters. No structural contract can arbitrate. The REVISE/OBSERVE classification prevents most judgment-call oscillation from starting — tightening observations stay in OBSERVE and never trigger revision. For the residual cases where a judgment call reaches REVISE, the oscillation disappears when a convention is established (in the prompt, in a style note, or in an explicit ruling from upstream).
 
 **Exhaustiveness-vs-restraint oscillation.** One cycle flags "missing cases"; the next flags "overextended scope." The scope of the claim itself is unsettled. Disappears when the scope is explicitly declared — either by the authoring prompt or by a meta-review that settles the question.
 
@@ -53,5 +53,6 @@ Every resolution takes the same shape: establish the criterion the cycle can def
 ## Related
 
 - [Uncontracted Representation Change](uncontracted-representation-change.md) — the contract-absent subtype of oscillation has the same cause and the same resolution. Oscillation is one observable signal of an uncontracted representation change; the other signals (structural findings, multiple cones patching the same gap) are complementary.
-- [Review V-Cycle](../design-notes/review-v-cycle.md) — oscillation is a pathology of the review/revise loop. The V-cycle's wider scales (regional, full) can see oscillations that local-scale review cannot, because they see cross-cycle diff history.
+- [The Voice Principle](../principles/voice.md) — voice discipline reduces the add-bias side of the oscillation loop. The Dijkstra voice constrains the reviser to load-bearing prose, narrowing the space of plausible resolutions for any given finding. Fewer plausible resolutions means less room for alternation.
+- [Review V-Cycle](../design-notes/review-v-cycle.md) — oscillation is a pathology of the review/revise loop. The V-cycle's wider scales (regional, full) can see oscillations that local-scale review cannot, because they see cross-cycle diff history. The REVISE/OBSERVE classification within the V-Cycle prevents most judgment-call oscillation from starting.
 - [Self-Healing Areas](../design-notes/self-healing.md#convergence-and-cycle-health) — oscillation detection is a speculative self-healing target; the mechanical signal (symmetric cross-cycle diffs) meets the viability criterion.

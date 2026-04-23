@@ -30,11 +30,11 @@ Both failure directions are real, and the [Review V-Cycle](../design-notes/revie
 
 **The observed operational failure is prose expansion.** In practice, review cycles inflate prose through defensive justification, meta-commentary, exhaustiveness claims, and textual fixes that add surface without adding reasoning content. This is the dynamic that produced ASN-0034's 190,940-word bloat. Review findings trigger additions; each addition becomes a new target for future findings; prose grows monotonically. This is [Surface Expansion](../equilibrium/surface-expansion.md) — the failure the current system has actually hit, repeatedly.
 
-**The theoretical failure is premature formalization.** A review finding that says "this section should be stated more formally" during discovery attacks the generative substrate. It replaces the imprecise prose where next questions come from with declarative notation that cannot generate its own next move. This failure has not been the V-Cycle's tendency — but it is the failure the coupling principle predicts would be worse, because it is silent.
+**The opposite failure is uncoupled formalization.** A review finding that pushes formal notation without corresponding prose growth replaces the derivation and proof content that makes the formal statement meaningful. This failure has not been the V-Cycle's tendency — but the coupling principle predicts it would be harder to detect, because it masquerades as rigor.
 
-**The discipline is coupling, not direction.** Review prompts must not push toward *either* surface uncoupled from the other. A revision that adds prose without a corresponding formal anchor is prose sprawl. A revision that adds formal notation without motivating prose is premature formalization. The correct review finding pushes toward coupling: "this formal statement lacks motivating prose" or "this narrative section needs a formal anchor." The incorrect review finding pushes one surface in isolation: "elaborate on this explanation" (uncoupled prose growth) or "state this more formally" (uncoupled formalization).
+**The discipline is coupling, not direction.** Review prompts must not push toward *either* surface uncoupled from the other. A revision that adds prose without a corresponding formal anchor is prose sprawl. A revision that adds formal notation without motivating prose is uncoupled formalization. The correct review finding pushes toward coupling: "this formal statement lacks motivating prose" or "this narrative section needs a formal anchor." The incorrect review finding pushes one surface in isolation: "elaborate on this explanation" (uncoupled prose growth) or "state this more formally" (uncoupled formalization).
 
-This constraint applies at all three V-Cycle scales during discovery. Local-review, regional-review, and full-review prompts for discovery-stage artifacts must enforce coupling — not protect one surface at the expense of the other, but ensure that every revision that grows one surface grows the other, or restructures to shrink both.
+This constraint applies at all three V-Cycle scales. Local-review, regional-review, and full-review prompts for claim files must enforce coupling — not protect one surface at the expense of the other, but ensure that every revision that grows one surface grows the other, or restructures to shrink both.
 
 ## The coupling per artifact
 
@@ -58,25 +58,24 @@ The ratio settles at **~70% prose / 30% formal** because contracts are compact s
 - **Coupling signal:** contracts and their proofs grow together, cycle by cycle
 - **Convergence signal:** ratio holds across cycles; word counts stabilize; review findings don't reintroduce resolved issues
 
-**Divergence signals Sprawl.** Too much formal (essay content invading contract or Depends slots) is [Contract Sprawl](../equilibrium/contract-sprawl.md). Too much prose (meta-commentary accreting around stable proofs) is [Prose Sprawl](../equilibrium/prose-sprawl.md). Either is [Surface Expansion](../equilibrium/surface-expansion.md) against the 70/30 target — a decoupling where one half grows without the other.
+**Divergence signals Sprawl.** Too much formal (essay content invading contract or Depends slots) is [Contract Sprawl](../equilibrium/contract-sprawl.md). Too much prose (meta-commentary accreting around stable proofs) is [Prose Sprawl](../equilibrium/prose-sprawl.md). Either is [Surface Expansion](../equilibrium/surface-expansion.md) against the 70/30 target — a decoupling where one half grows without the other. The [Voice Principle](voice.md) is the discipline that contains add-bias at this stage — positive style structure constrains the reviser to load-bearing prose by construction, and the REVISE/OBSERVE classification in the review prompt prevents tightening findings from reaching the reviser at all.
 
 Note that the asymmetry described above applies differently in formalization than in discovery. In formalization, the generative work is already done — the claims exist, and the task is to prove them. The prose:formal balance here is about proof quality, not about generative capacity. Both directions of divergence are genuine failures, and neither is silent in the way that premature formalization is during discovery.
 
 ## The signal: delta from target
 
-A monitor tracks the delta from target for each active artifact.
+![Coupling principle feedback loop](coupling-feedback-loop.svg)
+
+A monitor tracks the delta from target for each active claim file.
 
 | Artifact | Target | Divergence direction | Diagnosis |
 |----------|--------|----------------------|-----------|
-| Note | 90/10 | significantly above 90% prose | hand-waving (loud failure) |
-| Note | 90/10 | significantly below 90% prose | premature formalization (silent failure) |
-| Claim file | 70/30 | significantly above 70% prose | Prose Sprawl |
-| Claim file | 70/30 | significantly below 70% prose | Contract Sprawl |
+| Claim file | 70/30 | significantly above 70% prose | Prose Sprawl (loud failure) |
+| Claim file | 70/30 | significantly below 70% prose | Contract Sprawl (silent failure) |
 
-The delta is a single number; its sign is a diagnosis. Precise tolerance bands are not yet established — current observations (two notes, one compress pass) suggest ±2–5 points, but this should be recalibrated as more notes complete formalization. Monitoring is scoped to active artifacts — a note freezes after its content migrates to claim files and stops being tracked.
+The delta is a single number; its sign is a diagnosis. Precise tolerance bands are not yet established — current observations (one compress pass) suggest ±2–5 points, but this should be recalibrated as more notes complete formalization. This monitoring binds to the [Review V-Cycle](../design-notes/review-v-cycle.md), which operates on claim files during formalization at all three scales.
 
-![Coupling feedback loop](../diagrams/coupling-feedback-loop.svg)
-
+The notes 90/10 ratio is an empirical observation from discovery — it shows that coupling exists across both artifacts — but there is no named enforcement mechanism for it during discovery. The V-Cycle does not run during discovery.
 
 ## Empirical basis
 
@@ -98,9 +97,11 @@ What doesn't vary is the *coupling principle*: prose and formal content are auth
 
 ## Related
 
-- [Validation Principle](validation.md) — the sibling principle. Coupling governs within-file health (prose:formal ratio); Validation governs across-file structural health (invariants checked mechanically before review).
+- [Validation Principle](validation.md) — the sibling principle for structural health across files. Coupling monitors within-file ratio; Validation checks across-file invariants mechanically before review.
+- [Voice Principle](voice.md) — the sibling principle for LLM output quality. Coupling defines what healthy content looks like (the ratio). Voice defines what well-formed output looks like (the style structure). At formalization stage, Voice is the mechanism that keeps the ratio near target — positive style discipline constrains the reviser to load-bearing prose, preventing the add-bias that drives ratio drift.
 - [Surface Expansion](../equilibrium/surface-expansion.md) — the failure mode this principle's signals detect. Surface expansion is a decoupling event.
 - [Contract Sprawl](../equilibrium/contract-sprawl.md), [Prose Sprawl](../equilibrium/prose-sprawl.md), [Index Sprawl](../equilibrium/index-sprawl.md) — specific decoupling manifestations in claim files.
+- [Vocabulary and Lattice Lifecycle](../vocabulary-and-lattice-lifecycle.md) — the three transitions (blueprint, promote, assemble) define the artifact boundaries this principle operates within.
 - [Narrow → Refine → Verify](../patterns/narrow-refine-verify.md) — the cycle that operates within each artifact's active period.
 - [Review V-Cycle](../design-notes/review-v-cycle.md) — the multi-scale review that detects decoupling at local, regional, and full scales. Discovery-stage prompts at all three scales must protect the prose surface.
 - [Accretion](../patterns/accretion.md) — the healthy growth discipline that keeps prose and formal coupled.

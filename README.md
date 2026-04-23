@@ -38,7 +38,7 @@ See [Science Approach](docs/science/README.md) for the convergence framing, cone
 
 - [Vision](docs/vision.md) — hypothesis space navigation, semantic communication substrate, Lamarckian evolution, building the engine
 - [Methodology](docs/methodology.md) — inquiry decomposition, two-channel discovery, V-cycle review, pattern language
-- [Coupling Principle](docs/principles/coupling.md) — core quality discipline. Prose and formal content are authored as a pair; the coupling is why the system can make new discoveries rather than stalling or drifting into hand-waving.
+- [Principles](docs/principles/README.md) — three disciplines that keep the review cycle on its real job: [Coupling](docs/principles/coupling.md) (prose and formal content authored as a pair), [Validation](docs/principles/validation.md) (structural contract as a precondition for review), and [Voice](docs/principles/voice.md) (positive style structure constrains LLM output by construction). Why the system can make new discoveries rather than stalling or drifting.
 - [Discovery](docs/discovery.md) — finding formal structure through structured consultation
 - [Blueprinting](docs/blueprinting.md) — meet operation: document → atomic claims
 - [Formalization](docs/formalization.md) — precision as a discovery tool, reasoning that improves itself

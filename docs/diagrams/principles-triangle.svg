@@ -1,0 +1,47 @@
+<svg width="100%" viewBox="0 0 680 520" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>The three principles forming a quality boundary around semantic review</title>
+<desc>A triangle diagram showing Coupling, Validation, and Voice as three sides protecting semantic review in the center, with failure modes outside each side.</desc>
+
+<!-- Triangle -->
+<path d="M340 80 L560 420 L120 420 Z" fill="none" stroke="#B4B2A9" stroke-width="1.5" opacity="0.5"/>
+
+<!-- Center label -->
+<text x="340" y="300" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="14px" font-weight="500" fill="#2C2C2A">Semantic review</text>
+<text x="340" y="322" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="12px" fill="#5F5E5A">Derivation gaps, regime mismatches,</text>
+<text x="340" y="338" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="12px" fill="#5F5E5A">smuggled postulates, missing consequences</text>
+
+<!-- COUPLING - left side -->
+<g transform="rotate(-58 188 241)">
+<rect x="118" y="215" width="140" height="52" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+<text x="188" y="237" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="14px" font-weight="500" fill="#085041">Coupling</text>
+<text x="188" y="255" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="12px" fill="#0F6E56">ratio monitoring</text>
+</g>
+
+<!-- VALIDATION - bottom side -->
+<rect x="270" y="394" width="140" height="52" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+<text x="340" y="414" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="14px" font-weight="500" fill="#3C3489">Validation</text>
+<text x="340" y="432" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="12px" fill="#534AB7">enumeration</text>
+
+<!-- VOICE - right side -->
+<g transform="rotate(58 492 241)">
+<rect x="422" y="215" width="140" height="52" rx="8" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
+<text x="492" y="237" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="14px" font-weight="500" fill="#712B13">Voice</text>
+<text x="492" y="255" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="12px" fill="#993C1D">positive definition</text>
+</g>
+
+<!-- Surface Expansion - outside left -->
+<rect x="20" y="282" width="130" height="44" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+<text x="85" y="298" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="14px" font-weight="500" fill="#444441">Surface expansion</text>
+<text x="85" y="314" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="12px" fill="#5F5E5A">meta-prose noise</text>
+
+<!-- Uncontracted Rep Change - outside bottom -->
+<rect x="198" y="466" width="284" height="44" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+<text x="340" y="482" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="14px" font-weight="500" fill="#444441">Uncontracted representation change</text>
+<text x="340" y="498" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="12px" fill="#5F5E5A">structural noise</text>
+
+<!-- Prose Sprawl - outside right -->
+<rect x="530" y="282" width="130" height="44" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+<text x="595" y="298" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="14px" font-weight="500" fill="#444441">Prose sprawl</text>
+<text x="595" y="314" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="12px" fill="#5F5E5A">reviser drift</text>
+
+</svg>

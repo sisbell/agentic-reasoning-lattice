@@ -11,7 +11,7 @@ Prose is legitimately where reasoning lives at the formalization stage. What gro
 - *Defensive justification.* The reviser answers review findings by inlining rebuttals in the prose. "We avoid the binary-minimum operator because...", "This bundling is chosen because...", "ActionPoint does not appear in this list because...". Each rebuttal addresses a past finding at the cost of new surface for future findings.
 - *Move rather than delete.* When a reviewer says "drop X," the reviser relocates X to a different paragraph and considers the finding addressed. The drift persists; the next reviewer flags it again in its new home.
 
-Together these constitute reviser add-bias: the prose grows monotonically even when each individual finding asked for simplification. The discipline that resists it is prompt-level, not finding-level — see [Reviser Prompt Discipline](../practices/reviser-prompt-discipline.md).
+Together these constitute reviser add-bias: the prose grows monotonically even when each individual finding asked for simplification. The discipline that contains it is the [Voice Principle](../principles/voice.md) — positive style structure that leaves no slot for non-reasoning prose, rather than enumerated prohibitions that leave gaps.
 
 **Genesis Attractor.** A file positioned as the authoritative home for a concept pulls prose about that concept even after structural splits close other channels. T0's role as "definition of the carrier and its operators" attracted ℕ-arithmetic prose back into T0 after its contract had been slimmed to the carrier set only. See [Contract Sprawl: Limits of the Resolution](contract-sprawl.md#limits-of-the-resolution).
 
@@ -19,7 +19,7 @@ Together these constitute reviser add-bias: the prose grows monotonically even w
 
 **Citation accounting in prose.** Instead of metadata, reviser writes out use sites inline: "invoked at twenty-two distinct sites, each a clause of NAT-order's Axiom. Irreflexivity is invoked once, at part (a) Case (i)...". Belongs in structured metadata or dependency graphs, never in prose.
 
-**Reviser prompt rewards verbosity.** Instructions interpreted as calling for "rigor" or "precision" by LLMs produce prose expansion by default. The prose layer has no downward pressure; every revision cycle adds surface.
+**Tightening findings that trigger revision.** When every reviewer observation — including loose phrasing, minor style, and quantifier precision — triggers a revise cycle, each cycle adds surface through fixes that are correct but not worth their cost. The growth is driven not by the reviser's bias alone but by the volume of findings that reach the reviser. The REVISE/OBSERVE classification in the review prompt addresses this by preventing tightening findings from triggering revision at all.
 
 ## Signal
 
@@ -58,25 +58,31 @@ The cone was halted after cycle 7 without convergence. Of ~17 findings across si
 
 ## Resolution
 
-**Prefer structural fixes over textual extensions.** Most review findings that produce Prose Sprawl offered the reviewer two resolutions: a textual extension and a structural fix. The textual fix was taken by default and the file grew. The structural fix — delete the meta-claim, rephrase the exhaustiveness, route citation tracking to metadata — eliminates the source of the finding. This is the [Surface Expansion](surface-expansion.md) discipline applied to the prose surface.
+Two mechanisms contain Prose Sprawl, operating at different points in the pipeline:
 
-**Strip categorical bloat classes.** Regardless of force, certain prose classes are never load-bearing reasoning:
+**Voice discipline constrains what the reviser writes.** The [Voice Principle](../principles/voice.md) replaces enumerated prohibitions ("do not add defensive justifications, do not add meta-commentary...") with a positive style structure: the Dijkstra voice, where every formal statement must be justified in the sentence that introduces it, every claim must be named, and state is described rather than narrated. Under this discipline, non-reasoning prose has no slot to land in — the structure itself is the constraint. Empirically, the same cones that produced sprawl under prescriptive prohibition lists produced net-shrinking prose under voice discipline.
+
+**Finding classification constrains what reaches the reviser.** The REVISE/OBSERVE classification in the review prompt separates correctness findings (must act) from tightening observations (logged, no action). Tightening findings — the class most likely to produce sprawl when acted on — do not trigger revision. The growth driver is removed because the reviser never sees the findings whose fixes would have added surface.
+
+Together: voice shapes what the reviser writes when it does act, and classification determines when the reviser acts at all. Neither alone is sufficient — voice without classification still processes too many findings; classification without voice still produces add-biased fixes on the findings that do reach the reviser.
+
+**Diagnostic markers remain useful.** Regardless of the resolution mechanism, certain prose classes are never load-bearing reasoning and their presence is a signal that sprawl has occurred:
 
 - Citation-site enumeration (belongs in structured metadata)
-- Exhaustiveness claims (delete unless cheaply provable)
-- Bundling-justification paragraphs (one sentence if needed; delete the rest)
-- Naming-choice meta-explanation (the name speaks for itself)
+- Exhaustiveness claims (defensible only if cheaply provable)
+- Bundling-justification paragraphs
+- Naming-choice meta-explanation
 - Inline design-decision commentary about other files
 
-Removing these does not lose reasoning. It removes anti-reasoning — prose whose role was to defend against past findings rather than to argue for the claim.
+These are recognition aids, not a stripping checklist. The discipline that prevents them is voice; the markers tell you when voice has slipped.
 
 **Change the site's role if it is also a Genesis Attractor.** Removing content without rewriting the scope statement leaves the attractor active; content re-accumulates in the next review cycle. The role has to change.
 
 ## Related
 
-- [Reviser Prompt Discipline](../practices/reviser-prompt-discipline.md) — the practice for humans authoring the content-reviser prompts. Resisting add-bias at the prompt level is where the force is most cheaply prevented; catching it afterwards requires compress passes or content review cycles.
+- [The Voice Principle](../principles/voice.md) — the discipline that contains add-bias. Positive voice structure constrains the reviser to load-bearing prose by construction, replacing enumerated prohibition lists that proved unstable.
 - [The Coupling Principle](../principles/coupling.md) — prose sprawl is a coupling violation: the prose:formal ratio drifts above the 70/30 target. The coupling principle's signal table and feedback loop show how this detection drives V-Cycle prompt calibration.
 - [Contract Sprawl](contract-sprawl.md) — shares forces. Contract Sprawl concentrates in structural sections; Prose Sprawl concentrates in narrative.
 - [Index Sprawl](index-sprawl.md) — enumerative prose is a specific surface form of Prose Sprawl.
 - [Surface Expansion](surface-expansion.md) — the shared mechanism across Contract/Prose/Index Sprawl. Prose Sprawl is the narrative-surface manifestation; monitoring and the general discipline live at the Surface Expansion level.
-- [Review V-Cycle](../design-notes/review-v-cycle.md) — prose bloat is detected at full-review when cycle findings reference prose introduced by the previous cycle's revisions.
+- [Review V-Cycle](../design-notes/review-v-cycle.md) — prose bloat is detected at full-review when cycle findings reference prose introduced by the previous cycle's revisions. The REVISE/OBSERVE classification operates within the V-Cycle's review prompts.

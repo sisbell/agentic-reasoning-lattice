@@ -10,14 +10,13 @@ Complete index of the documentation. The root [README](../README.md) is the proj
 - [Blueprinting](blueprinting.md) — meet operation: document → atomic claims
 - [Formalization](formalization.md) — precision as a discovery tool
 - [Architecture](architecture.md) — structural hierarchy (domain / lattice / campaign / inquiry / note / claim) and the lattice lifecycle
-- [Coupling Principle](principles/coupling.md) — core quality discipline. Prose and formal content are authored as a pair; the coupling is what keeps discovery generative and formalization convergent. Why the system can operate at all and make new discoveries.
-- [Validation Principle](principles/validation.md) — structural integrity is a precondition for meaningful review. Every representation has a structural contract, and no LLM review cycle operates on state that hasn't been mechanically verified. Sibling to Coupling: coupling governs within-file health, validation governs across-file health.
+- [Principles](principles/README.md) — three disciplines that keep the review cycle focused on its real job: [Coupling](principles/coupling.md) (prose and formal content authored as a pair), [Validation](principles/validation.md) (structural contract as a precondition for review), and [Voice](principles/voice.md) (positive style structure constrains LLM output by construction). Coupling and validation monitor and check; voice prevents problems from being generated. All three are needed.
 - [Glossary](glossary.md) — system-specific terms and their definitions
 
 ## How the system works, fails, and is disciplined
 
 - [Patterns](patterns/README.md) — observed structural regularities. The primary cycle (Narrow → Refine → Verify), patterns that adjust or feed it, patterns that seed hypothesis space, and the structure that accumulates output.
-- [Principles](principles/coupling.md) — design commitments the system enforces. Coupling (prose:formal ratio as health signal) and Validation (structural contract as review precondition) live here.
+- [Principles](principles/README.md) — design commitments the system enforces. Coupling (prose:formal ratio as health signal), Validation (structural contract as review precondition), and Voice (positive style structure constraining LLM output) live here.
 - [Equilibrium (failure modes)](equilibrium/README.md) — specific ways the system fails to converge. Gravitational (continuous pressure requiring permanent discipline), transitional (acts at representation boundaries, fixable once per boundary), and oscillatory (acts at sites of undecidability, fixable by establishing an arbitrating criterion).
 
 ## Design notes

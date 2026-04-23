@@ -4,4 +4,6 @@ Guidance for humans working on the system — prompt authors, note authors, revi
 
 ## Practices
 
-- [Reviser Prompt Discipline](reviser-prompt-discipline.md) — writing content-reviser prompts so they resist [reviser add-bias](../equilibrium/prose-sprawl.md#forces). Five directives (prefer deletion, don't relocate, don't justify excluded cases, no meta-commentary, minimum addition) and where they apply across the prompt set.
+No practices are documented at this time. The one earlier entry — a rank-ordering discipline for LLM revisers — was superseded by the [Voice Principle](../principles/voice.md), which reframed the constraint as a positive style structure carried in the prompts themselves rather than as human-facing guidance. See the principles' [Why three, not one](../principles/README.md#why-three-not-one) and [How the principles were found](../principles/README.md#how-the-principles-were-found) for the full story.
+
+This directory is preserved as a placeholder for future human-facing practices distinct from what the system enforces automatically.
