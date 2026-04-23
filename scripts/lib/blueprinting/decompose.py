@@ -74,15 +74,9 @@ def analyze_section(section_content):
     if not result:
         return None
 
-    # Strip code fences if present
-    text = result.strip()
-    if text.startswith("```"):
-        first_nl = text.index("\n")
-        text = text[first_nl + 1:]
-    if text.endswith("```"):
-        text = text[:-3].rstrip()
+    from lib.shared.common import strip_code_fence
+    text = strip_code_fence(result)
 
-    # Skip if no claims found
     if "- label:" not in text:
         return None
 

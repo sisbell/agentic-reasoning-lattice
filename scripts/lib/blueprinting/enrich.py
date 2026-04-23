@@ -51,12 +51,8 @@ def _call_llm(prompt):
     if not result:
         return None
 
-    text = result.strip()
-    if text.startswith("```"):
-        first_nl = text.index("\n")
-        text = text[first_nl + 1:]
-    if text.endswith("```"):
-        text = text[:-3].rstrip()
+    from lib.shared.common import strip_code_fence
+    text = strip_code_fence(result)
 
     try:
         return yaml.safe_load(text)

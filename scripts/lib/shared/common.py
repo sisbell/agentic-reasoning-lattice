@@ -198,6 +198,32 @@ def invoke_claude(prompt, *, model="opus", effort="max", tools=None):
         return result.stdout.strip(), elapsed
 
 
+def strip_code_fence(text):
+    """Strip leading/trailing ``` code fences from an LLM response.
+
+    Handles opening ``` on its own line (with optional language tag) and
+    closing ``` either on its own line or appended to the last line.
+    """
+    text = text.strip()
+    if text.startswith("```"):
+        nl = text.find("\n")
+        if nl == -1:
+            return ""
+        text = text[nl + 1:]
+    if text.endswith("```"):
+        text = text[:-3].rstrip()
+    return text
+
+
+def git_head_sha(cwd=None):
+    """Return the current HEAD SHA. cwd defaults to WORKSPACE."""
+    result = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=str(cwd or WORKSPACE), capture_output=True, text=True,
+    )
+    return result.stdout.strip()
+
+
 def invoke_claude_agent(prompt, *, model="opus", effort="max",
                         tools="Read,Write,Bash", max_turns=12, cwd=None):
     """Call claude -p (agent mode). Returns (json_data, elapsed)."""

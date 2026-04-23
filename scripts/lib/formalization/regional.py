@@ -207,8 +207,9 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
 
     # Capture baseline SHA so the end-of-cone compress pass knows which
     # files changed during this cone.
-    from lib.formalization.compress import _git_head_sha, compress_changed_files_since
-    baseline_sha = _git_head_sha()
+    from lib.shared.common import git_head_sha
+    from lib.formalization.compress import compress_changed_files_since
+    baseline_sha = git_head_sha()
 
     start_time = time.time()
     previous_findings = history

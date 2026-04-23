@@ -16,34 +16,19 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from shared.paths import WORKSPACE, prompt_path
-from shared.common import invoke_claude, step_commit_asn
+from shared.common import (
+    invoke_claude,
+    step_commit_asn,
+    strip_code_fence,
+    git_head_sha,
+)
 
 
-COMPRESS_TEMPLATE_PATH = prompt_path("formalization/compress.md")
+_TEMPLATE = prompt_path("formalization/compress.md").read_text()
 
 # Refuse to write a compressed result that shrinks below this fraction
 # of the original. Guards against truncated or malformed LLM responses.
 MIN_RATIO = 0.20
-
-
-def _build_prompt(file_content):
-    template = COMPRESS_TEMPLATE_PATH.read_text()
-    return f"{template}\n\n{file_content}\n"
-
-
-def _strip_fence(text):
-    """Some models emit a leading/trailing code fence despite instructions;
-    strip it so the written content is raw markdown."""
-    text = text.strip()
-    if text.startswith("```"):
-        lines = text.split("\n")
-        # Drop first fence line
-        lines = lines[1:]
-        # Drop trailing fence if present
-        if lines and lines[-1].startswith("```"):
-            lines = lines[:-1]
-        text = "\n".join(lines)
-    return text
 
 
 def compress_file(path):
@@ -56,7 +41,7 @@ def compress_file(path):
     if not original.strip():
         return False
 
-    prompt = _build_prompt(original)
+    prompt = f"{_TEMPLATE}\n\n{original}\n"
     print(f"  [COMPRESS] {path.name}...", end="", file=sys.stderr, flush=True)
 
     output, elapsed = invoke_claude(prompt, model="opus", effort="max")
@@ -66,7 +51,7 @@ def compress_file(path):
         print(f"    [compress empty response] skipping", file=sys.stderr)
         return False
 
-    cleaned = _strip_fence(output)
+    cleaned = strip_code_fence(output)
     if not cleaned.endswith("\n"):
         cleaned += "\n"
 
@@ -83,14 +68,6 @@ def compress_file(path):
     print(f"    [compressed] {len(original)} → {len(cleaned)} chars "
           f"({ratio:.0%})", file=sys.stderr)
     return True
-
-
-def _git_head_sha():
-    result = subprocess.run(
-        ["git", "rev-parse", "HEAD"],
-        cwd=str(WORKSPACE), capture_output=True, text=True,
-    )
-    return result.stdout.strip()
 
 
 def _changed_md_files(claim_dir, baseline_sha):
@@ -129,8 +106,8 @@ def compress_changed_files_since(claim_dir, baseline_sha, asn_num,
         try:
             if compress_file(path):
                 compressed += 1
-        except Exception as e:
-            print(f"    [compress error on {path.name}] {e}", file=sys.stderr)
+        except OSError as e:
+            print(f"    [compress I/O error on {path.name}] {e}", file=sys.stderr)
             continue
 
     if compressed == 0:
