@@ -24,7 +24,9 @@ from lib.shared.common import (
     find_asn, build_label_index, load_claim_metadata,
     step_commit_asn,
 )
-from lib.formalization.full_review.review import run_review, extract_findings
+from lib.formalization.full_review.review import (
+    run_review, extract_findings, filter_revise,
+)
 from lib.formalization.full_review.revise import revise
 from lib.formalization.core.build_dependency_graph import generate_formalization_deps
 from lib.formalization.core.topological_sort import topological_levels
@@ -220,6 +222,7 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
     start_time = time.time()
     previous_findings = history
     had_findings = False
+    verdict = "CONVERGED"
 
     for cycle in range(1, max_cycles + 1):
         print(f"\n  [CYCLE {cycle}/{max_cycles}]", file=sys.stderr)
@@ -237,23 +240,23 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
         cone_content = assemble_cone(asn_label, apex_label, dep_labels)
 
         # Run review with narrowed foundation
-        findings_text, elapsed = run_review(
+        verdict, findings_text, elapsed = run_review(
             asn_num, cone_content, asn_label, previous_findings, model=model,
             foundation_labels=cross_asn_deps)
 
-        if findings_text == "ERROR":
+        if verdict == "ERROR":
             print(f"\n  [REGIONAL-REVIEW] FAILED on cycle {cycle} (review error). Skipping.",
                   file=sys.stderr)
             break
 
-        if findings_text is None:
+        if verdict == "CONVERGED":
             print(f"\n  [REGIONAL-REVIEW] Converged after {cycle} cycle{'s' if cycle > 1 else ''}.",
                   file=sys.stderr)
             break
 
         had_findings = True
 
-        # Save review
+        # Save review (OBSERVE findings preserved for next cycle's context)
         review_dir.mkdir(parents=True, exist_ok=True)
         review_num = next_review_number(asn_label, reviews_dir=review_dir)
         review_path = review_dir / f"review-{review_num}.md"
@@ -263,17 +266,26 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
             rf.write(findings_text + "\n")
 
         findings = extract_findings(findings_text)
-        for title, _ in findings:
-            print(f"\n  ### {title}", file=sys.stderr)
+        for title, cls, _ in findings:
+            print(f"\n  ### [{cls}] {title}", file=sys.stderr)
 
-        if dry_run:
-            print(f"\n  [DRY RUN] {len(findings)} findings, no fixes.",
+        previous_findings = (previous_findings + "\n\n" + findings_text).strip()
+
+        if verdict == "OBSERVE":
+            print(f"\n  [REGIONAL-REVIEW] Observations only after {cycle} cycle"
+                  f"{'s' if cycle > 1 else ''} — no revisions triggered.",
                   file=sys.stderr)
             break
 
-        # Revise each finding
+        revise_findings = filter_revise(findings)
+        if dry_run:
+            print(f"\n  [DRY RUN] {len(revise_findings)} revise finding(s), no fixes.",
+                  file=sys.stderr)
+            break
+
+        # Revise each REVISE-class finding
         any_changed = False
-        for title, finding_text in findings:
+        for title, _cls, finding_text in revise_findings:
             ok = revise(asn_num, title, finding_text, claim_dir=claim_dir)
             if ok:
                 any_changed = True
@@ -285,11 +297,9 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
         step_commit_asn(asn_num,
                         f"regional-review(asn): {asn_label}/{apex_label} — cycle {cycle}")
 
-        previous_findings = (previous_findings + "\n\n" + findings_text).strip()
-
     elapsed = time.time() - start_time
-    failed = (findings_text == "ERROR")
-    converged = not failed and (not had_findings or (findings_text is None))
+    failed = (verdict == "ERROR")
+    converged = not failed and (not had_findings or verdict in ("CONVERGED", "OBSERVE"))
 
     if had_findings and not failed:
         with open(review_path, "a") as rf:

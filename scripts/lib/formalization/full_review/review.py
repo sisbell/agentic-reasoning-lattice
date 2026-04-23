@@ -6,8 +6,9 @@ pipelines can't catch: carrier-set conflation, precondition chain gaps,
 arguments that assume what they prove, missing cases.
 
 Step functions for the orchestrator (scripts/full-review.py):
-- run_review: run Opus deep review, return findings text
-- extract_findings: parse findings into (title, text) tuples
+- run_review: run Opus deep review, return (verdict, text, elapsed)
+- extract_findings: parse findings into (title, cls, text) tuples
+- filter_revise: narrow findings to REVISE-class only
 """
 
 import re
@@ -21,10 +22,24 @@ from lib.shared.foundation import load_foundation_statements, load_foundation_fo
 
 REVIEW_TEMPLATE = prompt_path("formalization/full-review/review.md")
 
+_VERDICT_RE = re.compile(r'^VERDICT:\s*(CONVERGED|OBSERVE|REVISE)\s*$', re.MULTILINE)
+_CLASS_RE = re.compile(r'\*\*Class\*\*:\s*(REVISE|OBSERVE)', re.IGNORECASE)
+
+
+def parse_verdict(text):
+    """Return 'CONVERGED' | 'OBSERVE' | 'REVISE' from the reviewer's
+    mandatory VERDICT line, or 'UNKNOWN' if the line is missing."""
+    m = _VERDICT_RE.search(text)
+    return m.group(1) if m else "UNKNOWN"
+
 
 def run_review(asn_num, asn_content, asn_label, previous_findings="", model="opus",
                foundation_labels=None):
-    """Run Opus deep review. Returns (findings_text, elapsed) or (None, elapsed).
+    """Run Opus deep review. Returns (verdict, text, elapsed).
+
+    verdict ∈ {'CONVERGED', 'OBSERVE', 'REVISE', 'UNKNOWN', 'ERROR'}.
+    On ERROR, text is None. On UNKNOWN, the VERDICT line was missing;
+    text is still returned so the caller can decide how to handle it.
 
     If foundation_labels is provided, only loads foundation statements for
     those specific labels (for regional review). Otherwise loads all.
@@ -39,7 +54,7 @@ def run_review(asn_num, asn_content, asn_label, previous_findings="", model="opu
     template = read_file(REVIEW_TEMPLATE)
     if not template:
         print(f"  [ERROR] Audit template not found", file=sys.stderr)
-        return None, 0
+        return "ERROR", None, 0
 
     manifest = load_manifest(asn_num)
     depends = manifest.get("depends", []) if manifest else []
@@ -62,23 +77,21 @@ def run_review(asn_num, asn_content, asn_label, previous_findings="", model="opu
 
     if not text:
         print(f"  FAILED (exit 1, {elapsed:.0f}s)", file=sys.stderr)
-        return "ERROR", elapsed
+        return "ERROR", None, elapsed
 
-    if "NO NEW ISSUES" in text:
-        print(f" NO NEW ISSUES ({elapsed:.0f}s)", file=sys.stderr)
-        return None, elapsed
-
-    # Count findings (### headers)
+    verdict = parse_verdict(text)
     finding_count = len(re.findall(r'^### ', text, re.MULTILINE))
-    print(f" {finding_count} findings ({elapsed:.0f}s)", file=sys.stderr)
+    print(f" verdict={verdict}, {finding_count} finding(s) ({elapsed:.0f}s)",
+          file=sys.stderr)
 
-    return text, elapsed
+    return verdict, text, elapsed
 
 
 def extract_findings(text):
     """Extract individual findings from review output.
 
-    Returns list of (title, finding_text) tuples.
+    Returns list of (title, cls, finding_text) tuples where cls is
+    'REVISE', 'OBSERVE', or 'UNKNOWN' (Class field missing).
     """
     findings = []
     parts = re.split(r'^### ', text, flags=re.MULTILINE)
@@ -86,5 +99,13 @@ def extract_findings(text):
         lines = part.strip().split('\n', 1)
         title = lines[0].strip()
         body = lines[1].strip() if len(lines) > 1 else ""
-        findings.append((title, f"### {title}\n{body}"))
+        cls_match = _CLASS_RE.search(body)
+        cls = cls_match.group(1).upper() if cls_match else "UNKNOWN"
+        findings.append((title, cls, f"### {title}\n{body}"))
     return findings
+
+
+def filter_revise(findings):
+    """Narrow findings to REVISE-class only. UNKNOWN falls through to
+    REVISE (conservative — if the reviewer didn't classify, act on it)."""
+    return [f for f in findings if f[1] in ("REVISE", "UNKNOWN")]

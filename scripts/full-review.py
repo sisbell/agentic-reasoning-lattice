@@ -30,7 +30,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, next_review_number
 from lib.shared.common import find_asn, assemble_readonly, step_commit_asn
-from lib.formalization.full_review.review import run_review, extract_findings
+from lib.formalization.full_review.review import (
+    run_review, extract_findings, filter_revise,
+)
 from lib.formalization.full_review.revise import revise
 from lib.formalization.gate import run_validate_gate
 from lib.formalization.regional import detect_dependency_cone, run_regional_review
@@ -76,10 +78,15 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
         asn_content = assemble_readonly(asn_label)
 
         # Run review
-        findings_text, elapsed = run_review(
+        verdict, findings_text, elapsed = run_review(
             asn_num, asn_content, asn_label, previous_findings, model=model)
 
-        if findings_text is None:
+        if verdict == "ERROR":
+            print(f"\n  [FULL-REVIEW] FAILED on cycle {cycle} (review error).",
+                  file=sys.stderr)
+            break
+
+        if verdict == "CONVERGED":
             converged = True
             print(f"\n  Converged after {cycle} cycle{'s' if cycle > 1 else ''}.",
                   file=sys.stderr)
@@ -89,7 +96,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
 
         had_findings = True
 
-        # New review file per cycle
+        # New review file per cycle (OBSERVE findings preserved for next cycle)
         review_dir.mkdir(parents=True, exist_ok=True)
         review_num = next_review_number(asn_label, reviews_dir=review_dir)
         review_path = review_dir / f"review-{review_num}.md"
@@ -98,25 +105,34 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
             rf.write(f"*{time.strftime('%Y-%m-%d %H:%M')}*\n\n")
             rf.write(findings_text + "\n")
 
-        # Parse individual findings
         findings = extract_findings(findings_text)
+        for title, cls, _ in findings:
+            print(f"\n  ### [{cls}] {title}", file=sys.stderr)
 
-        # Print findings
-        for title, _ in findings:
-            print(f"\n  ### {title}", file=sys.stderr)
+        # Accumulate findings for next cycle's "existing open issues"
+        previous_findings = (previous_findings + "\n\n" + findings_text).strip()
+
+        if verdict == "OBSERVE":
+            converged = True
+            print(f"\n  Observations only after {cycle} cycle"
+                  f"{'s' if cycle > 1 else ''} — no revisions triggered.",
+                  file=sys.stderr)
+            break
+
+        revise_findings = filter_revise(findings)
 
         if dry_run or max_cycles == 1:
             if dry_run:
-                print(f"\n  [DRY RUN] {len(findings)} findings, no fixes.",
+                print(f"\n  [DRY RUN] {len(revise_findings)} revise finding(s), no fixes.",
                       file=sys.stderr)
             else:
-                print(f"\n  Single pass — {len(findings)} findings, no fixes.",
+                print(f"\n  Single pass — {len(revise_findings)} revise finding(s), no fixes.",
                       file=sys.stderr)
             break
 
-        # Revise each finding
+        # Revise each REVISE-class finding
         any_changed = False
-        for title, finding_text in findings:
+        for title, _cls, finding_text in revise_findings:
             ok = revise(asn_num, title, finding_text, claim_dir=claim_dir)
             if ok:
                 any_changed = True
@@ -128,9 +144,6 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
         # Commit
         step_commit_asn(asn_num,
                         f"full-review(asn): {asn_label} — cycle {cycle}")
-
-        # Accumulate findings for next cycle's "existing open issues"
-        previous_findings = (previous_findings + "\n\n" + findings_text).strip()
 
         # Check for dependency cone
         cone = detect_dependency_cone(asn_num)

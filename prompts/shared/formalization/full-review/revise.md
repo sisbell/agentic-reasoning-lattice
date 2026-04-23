@@ -15,59 +15,68 @@ The ASN is at `{{asn_path}}`. Read it, apply the fix, write it back.
 
 ## Style
 
-Write in Dijkstra's style: prose with embedded formalism. Each formal
-statement must be justified in the sentence that introduces it. Each case
-must be explicit — no "by similar reasoning." End proofs with ∎.
+Write in Dijkstra's actual EWD style: **prose with embedded formalism**.
+The program is a mathematical object described through text, not code
+blocks. Every formal statement must be justified in the sentence that
+introduces it. The reasoning IS the specification.
 
-## Coupling
+### Notation
 
-Prose and formal content are authored as a pair. A revision that grows
-one without the other introduces Sprawl. But do not remove prose that a
-reader encountering the claim for the first time would need to
-understand what it means.
+- **wp reasoning**: Use weakest preconditions — `wp(S, R)` — to derive
+  what must hold. Reasoning flows backward from the postcondition.
+- **Dot notation**: `dom.ispace`, `ispace.a`, `#s`
+- **Three-part quantifiers**: `(★ vars : range : term)` — e.g.,
+  `(A a : a ∈ dom.ispace : ispace.a = v)`,
+  `(N i : 0 ≤ i < #s : s.i = x)`,
+  `(+ i : 0 ≤ i < N : A.i)`
+- **Everywhere operator**: `[P]` denotes that predicate P is universally
+  true
+- **Guarded commands**: `if B → S [] B → S fi` and `do B → S od`
+- **Calculational chains**: `P = {hint} Q ⇒ {hint} R` for multi-step
+  derivations
+- **Half-open intervals**: Prefer `0 ≤ i < N` — the math is cleaner
 
-## Discipline — Resolution ranking
+### Rigor
 
-When a review finding admits multiple resolutions that would close it
-equally well, follow this ranking:
+- **Named invariants**: Label them P0, P1, J0, etc. "INSERT preserves P2"
+  is verifiable. "INSERT preserves the invariant" is hand-waving.
+- **Every claim justified**: In prose, in the sentence that introduces it.
+- **Frame conditions**: Every operation must state what it does NOT change.
+  The frame is as important as the effect.
+- **Invariant strengthening**: When a proof won't go through, the
+  invariant may be too weak. Strengthen it until the proof becomes
+  obvious. The difficulty is a signal, not an obstacle.
+- **Well-definedness**: Before you use a function, establish that its
+  argument is in its domain.
+- **No "by similar reasoning"**: If cases differ, show each case.
+- **Termination**: For loop reasoning (`do ... od`), introduce a bound
+  function `t`.
 
-    delete > restructure > add
+### Voice
 
-This is a tiebreaker for close calls, not a mandate. Findings that
-require adding (a missing axiom, a missing precondition, a needed
-clarification deletion wouldn't preserve) produce additions regardless.
-The ranking applies only when the choice between valid resolutions is
-genuinely judgment.
+Write in the **discovery voice** — first person plural, narrating the
+derivation as logical necessity. "We are looking for..." / "We observe
+that..." / "This suggests..."
 
-Within that scope, five directives:
+Describe **state**, not execution. Never "the program then goes to..." —
+instead "the state satisfies..."
 
-1. **Prefer deletion over addition.** If a finding can be resolved by
-   deleting the flagged construction or its surrounding justification,
-   delete. Only add when no deletion resolves the finding.
+**No big blocks of notation without reasoning. Be consistent.**
 
-2. **When a finding says drop X, drop X — do not relocate.** Moving X
-   to a different paragraph, rephrasing X in a new place, or folding X
-   into an adjacent clause all leave the drift in the file. Relocation
-   is not deletion.
+### What not to write
 
-3. **Do not justify excluded cases.** If a claim's carrier or precondition
-   excludes a case, do not write prose about what would happen in that
-   case. Defensive prose for cases that cannot arise is dead weight.
-
-4. **No meta-commentary.** No "this structure is exhaustive," no
-   "matches the convention in sibling claims," no inline citation-site
-   enumeration, no defensive justification of past findings.
-
-5. **When adding is required, add the minimum.** A missing axiom is an
-   axiom statement — not an axiom plus a paragraph explaining why it is
-   needed plus a defense of its bundling.
+- No defensive prose for cases a precondition already excludes.
+- No meta-commentary ("this structure is exhaustive," "matches the
+  convention in sibling claims").
+- No inline citation-site inventories ("invoked at X, Y, Z…").
+- No justification paragraphs for design choices.
+- No relocation of flagged content to a different paragraph — relocation
+  is not removal.
 
 ## Rules
 
 1. Apply exactly the fix described in the finding's **What needs resolving**
-   section. Follow it precisely. If the finding admits a structural fix
-   (rephrase, move, or remove) that resolves the underlying issue, prefer
-   it over extending.
+   section. Follow it precisely.
 
 2. The fix may require changes in multiple claim sections. Make all
    necessary changes — do not leave half the fix done.
@@ -81,8 +90,6 @@ Within that scope, five directives:
 5. If the fix adds new dependencies, add them to the `depends` list in
    the affected claim's `.yaml` file AND update the prose to justify why
    the dependency is used. Do not add to YAML without updating prose.
-   Do not write use-site inventories in prose ("invoked at X, Y, Z…") —
-   that tracking belongs in metadata, not narrative.
 
 6. If the fix requires a new claim that doesn't exist, create both files
    in `{{asn_path}}/`. Use the label as the filename.
@@ -104,11 +111,7 @@ Within that scope, five directives:
    - *Axiom:* [formal assertion]
    ```
 
-7. Do not change anything beyond what the finding requires. Exception:
-   meta-prose in the finding's area (defenses of past findings, naming
-   rationales, citation-site tracking) may be removed. Prose that states
-   what the claim means — semantic properties, contrasts, worked examples
-   — may not.
+7. Do not change anything beyond what the finding requires.
 
 8. **YAML formatting.** When writing any `.yaml` file, ensure the YAML is
    valid. If a value contains colons, quotes, or spans multiple lines
