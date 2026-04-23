@@ -20,11 +20,11 @@ import sys
 import time
 from pathlib import Path
 
-from lib.shared.paths import WORKSPACE, USAGE_LOG, LATTICE, PROOFS_DIR, LATTICE_PROMPTS
+from lib.shared.paths import WORKSPACE, USAGE_LOG, LATTICE, PROOFS_DIR, prompt_path
 from lib.shared.common import read_file
 
-COMMIT_PROMPT = LATTICE_PROMPTS / "shared" / "commit.md"
-PROOFS_COMMIT_PROMPT = LATTICE_PROMPTS / "shared" / "commit-proofs.md"
+COMMIT_PROMPT = prompt_path("shared/commit.md")
+PROOFS_COMMIT_PROMPT = prompt_path("shared/commit-proofs.md")
 
 MODEL = "claude-sonnet-4-6"
 
@@ -54,6 +54,12 @@ def main():
         print(f"  Commit prompt not found at {prompt_path.relative_to(WORKSPACE)}",
               file=sys.stderr)
         sys.exit(1)
+
+    lattice_dir = str(LATTICE.relative_to(WORKSPACE))
+    proofs_dir = str(PROOFS_DIR.relative_to(WORKSPACE))
+    skill_body = (skill_body
+                  .replace("{{lattice_dir}}", lattice_dir)
+                  .replace("{{proofs_dir}}", proofs_dir))
 
     prompt = f"""{skill_body}
 

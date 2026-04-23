@@ -1,6 +1,6 @@
 # Commit Proof Changes
 
-Commit changes to `lattices/xanadu/verification/proofs/` — the curated, human-reviewed proof library.
+Commit changes to `{{proofs_dir}}` — the curated, human-reviewed proof library.
 
 These changes are deliberate promotions or updates. They should never come from
 automated pipelines.
@@ -9,13 +9,13 @@ automated pipelines.
 
 1. **Check for changes:**
    ```bash
-   git status lattices/xanadu/verification/proofs/
+   git status {{proofs_dir}}
    ```
 
 2. **If changes exist, read the diffs:**
    ```bash
-   git diff lattices/xanadu/verification/proofs/
-   git diff --cached lattices/xanadu/verification/proofs/
+   git diff {{proofs_dir}}
+   git diff --cached {{proofs_dir}}
    ```
 
 3. **Understand what changed:**
@@ -23,9 +23,9 @@ automated pipelines.
    - Existing foundation updated (new lemma, refactored helper)?
    - Bridge lemma added for downstream use?
 
-4. **Stage only lattices/xanadu/verification/proofs/:**
+4. **Stage only `{{proofs_dir}}`:**
    ```bash
-   git add lattices/xanadu/verification/proofs/
+   git add {{proofs_dir}}
    ```
 
 5. **Generate commit message:**
@@ -40,10 +40,13 @@ automated pipelines.
    - `promote(TumblerAlgebra): LexicographicOrder, MutualInverse from modeling-1`
    - `promote(Foundation): refactor Pad helpers for clarity`
 
-6. **Commit:**
+6. **Commit only files within scope:**
    ```bash
-   git commit -m "<message>"
+   git commit -m "<message>" -- {{proofs_dir}}
    ```
+   The `-- {{proofs_dir}}` path spec restricts the commit to staged
+   changes within scope. Anything staged outside scope remains in the
+   index and is not included.
 
 7. **Report:** Show the commit hash and summary.
 

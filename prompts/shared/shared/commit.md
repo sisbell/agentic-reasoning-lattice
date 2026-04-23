@@ -1,22 +1,25 @@
-# Commit Vault Changes
+# Commit Lattice Changes
 
-Commit changes to the vault with meaningful, descriptive commit messages.
+Commit changes to the lattice with meaningful, descriptive commit messages.
 
 ## Process
 
-1. **Read the staged diff:**
+1. **Read the staged diff within scope:**
    ```bash
-   git diff --cached
+   git diff --cached -- {{lattice_dir}}
    ```
    The correct files are already staged. Do NOT run `git add` — staging
    is handled by the caller for concurrent safety.
+
+   If this scoped diff is empty, stop and report that nothing in scope
+   was staged. Do not commit.
 
 2. **Understand what changed:**
    - New ASN added?
    - Existing ASN revised?
    - What was the nature of the revision? (claim fix, proof completion, edge case, etc.)
-   - Was a review saved to `lattices/xanadu/discovery/review/`?
-   - Was a Dafny file added or modified?
+   - Was a review saved to `{{lattice_dir}}/discovery/review/`?
+   - Was a verification artifact added or modified?
 
 3. **Generate commit message:**
 
@@ -27,13 +30,16 @@ Commit changes to the vault with meaningful, descriptive commit messages.
    <what changed and why>
    ```
 
-   Types:
+   Semantic types (apply across lattices):
    - `discovery` — new ASN
-   - `review` — review saved to lattices/xanadu/discovery/review/
+   - `review` — review saved to the lattice's review directory
    - `revise` — ASN revised to address review findings
+   - `fix` — corrected an error (wrong claim, invalid proof)
+
+   Tool-specific types (vary by lattice's verification stack):
    - `alloy` — Alloy model and check results
    - `dafny` — Dafny verification added or updated
-   - `fix` — corrected an error (wrong claim, invalid proof)
+   - Other verifier types as the lattice uses them
 
    Examples:
    - `discovery(asn): ASN-0004 Content Insertion`
@@ -43,10 +49,13 @@ Commit changes to the vault with meaningful, descriptive commit messages.
    - `dafny(asn): ASN-0004 — formalize POST1-POST5, F0-F3`
    - `fix(asn): ASN-0004 correct D2 proof — missing d2≠doc precondition`
 
-4. **Commit:**
+4. **Commit only files within scope:**
    ```bash
-   git commit -m "<message>"
+   git commit -m "<message>" -- {{lattice_dir}}
    ```
+   The `-- {{lattice_dir}}` path spec restricts the commit to staged
+   changes within scope. Anything staged outside scope remains in the
+   index and is not included.
 
 5. **Report:** Show the commit hash and summary.
 

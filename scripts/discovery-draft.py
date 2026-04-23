@@ -31,27 +31,14 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import (
-    WORKSPACE, NOTES_DIR, USAGE_LOG, MANIFESTS_DIR, LATTICE_PROMPTS,
-    load_manifest, LATTICE,
+    WORKSPACE, NOTES_DIR, MANIFESTS_DIR, load_manifest,
 )
-from lib.shared.common import read_file, stage_asn_files
+from lib.discovery.steps import step_commit
 
 CONSULT_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "decompose.py"
 DISCOVER_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "draft.py"
-COMMIT_PROMPT = LATTICE_PROMPTS / "shared" / "commit.md"
-
-COMMIT_MODEL = "claude-sonnet-4-6"
 
 STEPS = ["questions", "consult", "discover", "commit"]
-
-
-def load_prompt(path):
-    """Load prompt template file."""
-    content = read_file(path)
-    if not content:
-        print(f"  [ERROR] Prompt not found: {path}", file=sys.stderr)
-        sys.exit(1)
-    return content
 
 
 def load_inquiries():
@@ -187,59 +174,6 @@ def step_discover(inquiry, force=False):
 
     print(f"  [DISCOVER] No ASN file ({elapsed:.0f}s)")
     return None
-
-
-def step_commit(hint="", asn_id=None):
-    """Commit lattice changes. If asn_id given, scope to that ASN's files."""
-    if asn_id is not None:
-        stage_asn_files(f"ASN-{int(asn_id):04d}")
-
-    result = subprocess.run(
-        ["git", "status", "--porcelain", str(LATTICE.relative_to(WORKSPACE)) + "/"] if asn_id is None else
-        ["git", "diff", "--cached", "--stat"],
-        capture_output=True, text=True, cwd=str(WORKSPACE),
-    )
-    if not result.stdout.strip():
-        print(f"  [COMMIT] nothing to commit")
-        return True
-
-    skill_body = load_prompt(COMMIT_PROMPT)
-    scope = f"Only changes for {f'ASN-{int(asn_id):04d}' if asn_id else str(LATTICE.relative_to(WORKSPACE)) + '/'}"
-    prompt = f"""{skill_body}
-
-## Context
-
-{hint}
-
-{scope}. Read the diffs and commit with a descriptive message.
-"""
-
-    cmd = [
-        "claude", "-p",
-        "--model", COMMIT_MODEL,
-        "--output-format", "json",
-        "--max-turns", "8",
-        "--allowedTools", "Bash,Read",
-    ]
-
-    env = os.environ.copy()
-    env.pop("CLAUDECODE", None)
-    env["CLAUDE_CODE_EFFORT_LEVEL"] = "high"
-
-    print(f"  [COMMIT] reading diff, generating message...")
-    start = time.time()
-    result = subprocess.run(
-        cmd, input=prompt, capture_output=True, text=True, env=env,
-        cwd=str(WORKSPACE),
-    )
-    elapsed = time.time() - start
-
-    if result.returncode != 0:
-        print(f"  [COMMIT] failed ({elapsed:.0f}s) — changes left unstaged")
-        return False
-
-    print(f"  [COMMIT] done ({elapsed:.0f}s)")
-    return True
 
 
 # ─── Pipeline ─────────────────────────────────────────────────
