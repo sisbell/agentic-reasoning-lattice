@@ -10,6 +10,7 @@ depends:
 - NAT-zero
 - NAT-discrete
 - NAT-order
+- NAT-closure
 summary: |
   Containment queries (same server? same account? same document? one address a prefix of
   another?) can be decided by extracting and comparing the relevant field sequences from the

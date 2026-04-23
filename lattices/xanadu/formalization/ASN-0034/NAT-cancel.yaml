@@ -7,11 +7,13 @@ depends:
 summary: |
   Addition on ℕ is cancellative on either side and absorbs at a summand:
   `m + n = m + p ⟹ n = p` (left cancellation), `n + m = p + m ⟹ n = p` (right
-  cancellation), `m + n = m ⟹ n = 0` (summand absorption, standard form), and
-  `n + m = m ⟹ n = 0` (summand absorption, symmetric form), for every
-  `m, n, p ∈ ℕ`. Both summand-absorption forms are stated as independent axiom
-  clauses because the NAT-* axioms of this ASN do not include commutativity
-  of addition on ℕ — mirroring NAT-addcompat's left/right order
-  compatibility split. Stated as an axiom alongside the other NAT-* facts so
-  downstream proofs can cite it directly without appealing to an implicit
-  "standard properties of ℕ" clause.
+  cancellation), and `m + n = m ⟹ n = 0` (summand absorption), for every
+  `m, n, p ∈ ℕ`. Left and right cancellation are stated as independent clauses
+  because the NAT-* axioms of this ASN do not include commutativity of
+  addition on ℕ, so neither is derivable from the other. The mirror
+  absorption form `n + m = m ⟹ n = 0` is deliberately omitted because it is
+  derivable from right cancellation together with NAT-closure's left identity
+  `0 + m = m`, so including it would make the axiom set non-minimal. Stated
+  as an axiom alongside the other NAT-* facts so downstream proofs can cite
+  it directly without appealing to an implicit "standard properties of ℕ"
+  clause.
