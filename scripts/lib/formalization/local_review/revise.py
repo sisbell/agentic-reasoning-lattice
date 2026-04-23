@@ -35,7 +35,7 @@ def revise(asn_num, label, finding_text, claim_path=None):
     template = REVISE_TEMPLATE.read_text()
     rel_path = claim_path.relative_to(WORKSPACE)
     prompt = (template
-        .replace("{{asn_path}}", str(rel_path))
+        .replace("{{claim_file}}", str(rel_path))
         .replace("{{label}}", label)
         .replace("{{finding}}", finding_text))
 

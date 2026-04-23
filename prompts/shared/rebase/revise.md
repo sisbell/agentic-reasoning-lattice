@@ -4,7 +4,7 @@ You are fixing dependency reference issues in an ASN reasoning document.
 
 ## ASN File
 
-The ASN is at `{{asn_path}}`. Read it, apply the fixes, write it back.
+The ASN is at `{{asn_file}}`. Read it, apply the fixes, write it back.
 
 ## Report
 

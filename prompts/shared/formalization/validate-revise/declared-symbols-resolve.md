@@ -56,26 +56,6 @@ Only the `depends` list changes.
 4. Do not change any other yaml field: `label`, `name`, `type`, `summary`, or anything else must remain byte-identical.
 5. Do not edit the companion markdown file. The depends-agreement pass that runs after this one automatically syncs the md Depends section from the yaml.
 
-## Discipline — Resolution ranking
-
-When a review finding admits multiple resolutions that would close it equally well, follow this ranking:
-
-    delete > restructure > add
-
-This is a tiebreaker for close calls, not a mandate. Findings that require adding (a missing axiom, a missing precondition, a needed clarification deletion wouldn't preserve) produce additions regardless. The ranking applies only when the choice between valid resolutions is genuinely judgment.
-
-Within that scope, five directives:
-
-1. **Prefer deletion over addition.** If a finding can be resolved by deleting the flagged construction or its surrounding justification, delete. Only add when no deletion resolves the finding. (For this invariant, adding is always the fix — the missing dependency must be named.)
-
-2. **When a finding says drop X, drop X — do not relocate.** Moving X to a different paragraph, rephrasing X in a new place, or folding X into an adjacent clause all leave the drift in the file. Relocation is not deletion.
-
-3. **Do not justify excluded cases.** If a claim's carrier or precondition excludes a case, do not write prose about what would happen in that case.
-
-4. **No meta-commentary.** No "this structure is exhaustive," no "matches the convention in sibling claims," no inline citation-site enumeration, no defensive justification of past findings.
-
-5. **When adding is required, add the minimum.** A missing owner is a label added to `depends` — not a label plus an inline comment explaining why the dependency is needed plus a defense of its placement.
-
 ## Tools
 
 Read, Edit. Read the yaml. Edit the `depends` list only. No other file, no other field.

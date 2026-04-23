@@ -26,42 +26,6 @@ prompt — do not attempt to read files, search, or use tools.
 
 {{finding}}
 
-## Discipline — Resolution ranking
-
-When a review finding admits multiple resolutions that would close it
-equally well, follow this ranking:
-
-    delete > restructure > add
-
-This is a tiebreaker for close calls, not a mandate. Findings that
-require adding (a missing precondition, a missing postcondition, a
-needed Depends entry) produce additions regardless. The ranking applies
-only when the choice between valid resolutions is genuinely judgment.
-
-Within that scope, five directives:
-
-1. **Prefer deletion over addition.** If a finding can be resolved by
-   deleting a flagged field or a dead-weight Depends entry, delete.
-   Only add when no deletion resolves the finding.
-
-2. **When a finding says drop X, drop X — do not relocate.** Moving a
-   condition from Preconditions to Frame (or rephrasing it into a
-   different field) leaves the drift in the contract. Relocation is
-   not deletion.
-
-3. **Do not justify excluded cases.** If the proof does not handle a
-   case, do not add a precondition to exclude it unless the finding
-   asks. Contracts describe what the proof delivers, not what it
-   avoids.
-
-4. **No meta-commentary.** No "this list is exhaustive," no structural
-   asides in Depends descriptions, no explanatory notes beyond the
-   one-line "what's used" phrase per dependency.
-
-5. **When adding is required, add the minimum.** A missing precondition
-   is the precondition — not the precondition plus a paragraph
-   explaining why it is needed.
-
 ## Task
 
 Fix ONLY the `*Formal Contract:*` section at the end of the claim.

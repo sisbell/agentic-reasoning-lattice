@@ -38,7 +38,7 @@ sentence that introduces it.
 
 ## ASN File
 
-The ASN is at `{{asn_path}}`.
+The ASN is at `{{asn_file}}`.
 
 ## Rules
 

@@ -1,10 +1,10 @@
-# Proof Revision
+# Claim Revision
 
-You are fixing a specific proof in an ASN reasoning document.
+You are fixing a specific claim in an ASN reasoning document.
 
-## ASN File
+## Claim File
 
-The ASN is at `{{asn_path}}`. Read it, fix the issue, write it back.
+The claim is at `{{claim_file}}`. Read it, fix the issue, write it back.
 
 ## Claim
 
@@ -16,45 +16,53 @@ The ASN is at `{{asn_path}}`. Read it, fix the issue, write it back.
 
 ## Style
 
-Write in Dijkstra's style: prose with embedded formalism. Each formal
-statement must be justified in the sentence that introduces it. Each case
-must be explicit — no "by similar reasoning." End proofs with ∎.
+Write in Dijkstra's actual EWD style: **prose with embedded formalism**.
+Every formal statement must be justified in the sentence that introduces
+it. The reasoning IS the specification. Each case must be explicit — no
+"by similar reasoning." End proofs with ∎.
 
-## Discipline — Resolution ranking
+### Notation
 
-When a review finding admits multiple resolutions that would close it
-equally well, follow this ranking:
+- **wp reasoning**: Use weakest preconditions — `wp(S, R)` — to derive
+  what must hold. Reasoning flows backward from the postcondition.
+- **Dot notation**: `dom.ispace`, `ispace.a`, `#s`
+- **Three-part quantifiers**: `(★ vars : range : term)` — e.g.,
+  `(A a : a ∈ dom.ispace : ispace.a = v)`,
+  `(N i : 0 ≤ i < #s : s.i = x)`,
+  `(+ i : 0 ≤ i < N : A.i)`
+- **Everywhere operator**: `[P]` denotes that predicate P is universally
+  true
+- **Guarded commands**: `if B → S [] B → S fi` and `do B → S od`
+- **Calculational chains**: `P = {hint} Q ⇒ {hint} R` for multi-step
+  derivations
+- **Half-open intervals**: Prefer `0 ≤ i < N` — the math is cleaner
 
-    delete > restructure > add
+### Rigor
 
-This is a tiebreaker for close calls, not a mandate. Findings that
-require adding (a missing axiom, a missing precondition, a needed
-clarification deletion wouldn't preserve) produce additions regardless.
-The ranking applies only when the choice between valid resolutions is
-genuinely judgment.
+- **Named invariants**: Label them P0, P1, J0, etc. "INSERT preserves P2"
+  is verifiable. "INSERT preserves the invariant" is hand-waving.
+- **Every claim justified**: In prose, in the sentence that introduces it.
+- **Frame conditions**: Every operation must state what it does NOT change.
+  The frame is as important as the effect.
+- **Invariant strengthening**: When a proof won't go through, the
+  invariant may be too weak. Strengthen it until the proof becomes
+  obvious. The difficulty is a signal, not an obstacle.
+- **Well-definedness**: Before you use a function, establish that its
+  argument is in its domain.
+- **No "by similar reasoning"**: If cases differ, show each case.
+- **Termination**: For loop reasoning (`do ... od`), introduce a bound
+  function `t`.
 
-Within that scope, five directives:
+### Voice
 
-1. **Prefer deletion over addition.** If a finding can be resolved by
-   deleting the flagged construction or its surrounding justification,
-   delete. Only add when no deletion resolves the finding.
+Write in the **discovery voice** — first person plural, narrating the
+derivation as logical necessity. "We are looking for..." / "We observe
+that..." / "This suggests..."
 
-2. **When a finding says drop X, drop X — do not relocate.** Moving X
-   to a different paragraph, rephrasing X in a new place, or folding X
-   into an adjacent clause all leave the drift in the file. Relocation
-   is not deletion.
+Describe **state**, not execution. Never "the program then goes to..." —
+instead "the state satisfies..."
 
-3. **Do not justify excluded cases.** If a claim's carrier or precondition
-   excludes a case, do not write prose about what would happen in that
-   case. Defensive prose for cases that cannot arise is dead weight.
-
-4. **No meta-commentary.** No "this structure is exhaustive," no
-   "matches the convention in sibling claims," no inline citation-site
-   enumeration, no defensive justification of past findings.
-
-5. **When adding is required, add the minimum.** A missing axiom is an
-   axiom statement — not an axiom plus a paragraph explaining why it is
-   needed plus a defense of its bundling.
+**No big blocks of notation without reasoning. Be consistent.**
 
 ## Format Reference
 
@@ -95,42 +103,51 @@ The `*Formal Contract:*` marker is a fixed string. Do not modify it.
 
 ## Rules
 
-1. Fix the proof to address the issue above.
+1. Fix the claim to address the issue. Apply exactly the fix described
+   in the finding's **Required** section.
 
 2. Ensure the claim section ends with a `*Formal Contract:*` section.
-   If it is not already present, add it after the proof. If it exists
+   If it is not already present, add it after the body. If it exists
    but needs updating after the fix, update it. Only include applicable
-   fields. Example:
+   fields:
 
-   ```
-   *Formal Contract:*
-   - *Preconditions:* w > 0, actionPoint(w) ≤ #a
-   - *Postconditions:* a ⊕ w ∈ T, #(a ⊕ w) = #w
-   ```
-
-   Fields:
    - *Preconditions:* — what must hold before
    - *Postconditions:* — what is guaranteed after
-   - *Invariant:* — what holds across all state transitions (for every s → s')
+   - *Invariant:* — what holds across all state transitions
    - *Frame:* — what is preserved / not changed
    - *Axiom:* — fundamental assertion by definition or design, not derived
-   - *Definition:* — the construction or computation rule (for definitions only)
+   - *Definition:* — the construction or computation rule
 
-   When writing the formal contract, preserve the exact conditions from the
-   claim's narrative — do not simplify, expand, or add implicit type
+   When writing the formal contract, preserve the exact conditions from
+   the claim's narrative — do not simplify, expand, or add implicit type
    constraints.
 
-3. If a fix adds new dependencies, add them to the `depends` list in
-   `{{label}}.yaml`. Do not remove existing dependencies.
+3. Do not change anything beyond the specific claim being fixed.
 
-4. If the proof needs a claim that doesn't exist anywhere in the ASN
-   or its foundations, create both files for the new claim:
-   - `{Label}.md` — derivation section with header, proof, and formal contract
-   - `{Label}.yaml` — metadata with label, name, type, depends fields
-   Use the label as the filename. Create them in the same directory as `{{asn_path}}`.
+4. If the fix adds new dependencies, add them to the `depends` list in
+   `{{label}}.yaml` AND update the prose to justify why the dependency
+   is used. Do not remove existing dependencies.
 
-5. Do not change anything beyond the specific claim being fixed and
-   any new claims needed. Do not modify narrative prose.
+5. If the fix needs a claim that doesn't exist anywhere in the ASN
+   or its foundations, create both files in the same directory as
+   `{{claim_file}}`:
+
+   `{Label}.yaml`:
+   ```yaml
+   label: AX-1
+   name: InitialEmpty
+   type: axiom
+   depends:
+     - D2
+   ```
+
+   `{Label}.md`:
+   ```markdown
+   **AX-1 (InitialEmpty).** [definition or statement]
+
+   *Formal Contract:*
+   - *Axiom:* [formal assertion]
+   ```
 
 6. **YAML formatting.** When writing any `.yaml` file, ensure the YAML is
    valid. If a value contains colons, quotes, or spans multiple lines

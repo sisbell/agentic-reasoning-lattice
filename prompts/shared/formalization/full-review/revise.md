@@ -5,9 +5,12 @@ Unlike per-claim fixes, this issue may span multiple claims
 or involve the relationship between the ASN's language and its
 foundation's definitions.
 
-## ASN File
+## Claim Files
 
-The ASN is at `{{asn_path}}`. Read it, apply the fix, write it back.
+The ASN's claim files live in the directory `{{claim_dir}}/`. Each claim
+has its own `.md` (body + Formal Contract) and `.yaml` (metadata) pair.
+The finding identifies which claim(s) need editing; read those files,
+apply the fix, write them back.
 
 ## Finding
 
@@ -63,16 +66,6 @@ instead "the state satisfies..."
 
 **No big blocks of notation without reasoning. Be consistent.**
 
-### What not to write
-
-- No defensive prose for cases a precondition already excludes.
-- No meta-commentary ("this structure is exhaustive," "matches the
-  convention in sibling claims").
-- No inline citation-site inventories ("invoked at X, Y, Z…").
-- No justification paragraphs for design choices.
-- No relocation of flagged content to a different paragraph — relocation
-  is not removal.
-
 ## Rules
 
 1. Apply exactly the fix described in the finding's **What needs resolving**
@@ -92,7 +85,7 @@ instead "the state satisfies..."
    the dependency is used. Do not add to YAML without updating prose.
 
 6. If the fix requires a new claim that doesn't exist, create both files
-   in `{{asn_path}}/`. Use the label as the filename.
+   in `{{claim_dir}}/`. Use the label as the filename.
 
    `{Label}.yaml`:
    ```yaml

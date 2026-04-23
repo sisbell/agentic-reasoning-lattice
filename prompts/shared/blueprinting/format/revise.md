@@ -28,7 +28,7 @@ reviewer found the issues listed below. Fix each one in the ASN file.
 
 ## ASN File
 
-The ASN is at `{{asn_path}}`. Read it, fix the format issues, write it back.
+The ASN is at `{{asn_file}}`. Read it, fix the format issues, write it back.
 
 ## Format Findings
 

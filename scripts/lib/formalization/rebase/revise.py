@@ -50,7 +50,7 @@ def revise(asn_num, label, findings):
     template = REVISE_TEMPLATE.read_text()
     rel_path = asn_path.relative_to(WORKSPACE)
     prompt = (template
-        .replace("{{asn_path}}", str(rel_path))
+        .replace("{{asn_file}}", str(rel_path))
         .replace("{{report}}", finding_text))
 
     cmd = [

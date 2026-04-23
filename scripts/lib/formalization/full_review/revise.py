@@ -37,7 +37,7 @@ def revise(asn_num, title, finding_text, claim_dir=None):
     # The finding may not have a single label — use the title
     # Point agent at the formalization directory (contains per-claim files)
     prompt = (template
-        .replace("{{asn_path}}", str(rel_path))
+        .replace("{{claim_dir}}", str(rel_path))
         .replace("{{label}}", title)
         .replace("{{finding}}", finding_text))
 

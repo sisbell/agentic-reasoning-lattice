@@ -255,7 +255,7 @@ def repair_section(asn_num, label, thin_section, host_section,
               .replace("{{thin_section}}", thin_section)
               .replace("{{host_section}}", host_section or "(no embedded proof found)")
               .replace("{{dependency_sections}}", dependency_text)
-              .replace("{{asn_path}}", str(rel_path)))
+              .replace("{{asn_file}}", str(rel_path)))
 
     for cycle in range(1, max_cycles + 1):
         print(f"  [REPAIR] {label} (cycle {cycle}, "
