@@ -265,7 +265,7 @@ def process_file_scratch(rule, tools, claim_dir, filename, findings, pairs):
         cwd=scratch_dir,
     )
     if data is None:
-        print(f"claude invocation failed", file=sys.stderr)
+        print(f" → claude invocation failed", flush=True)
         return None, scratch_path
     print(f"{elapsed:.0f}s", end="", flush=True)
 
@@ -338,8 +338,9 @@ def run_pass(pass_spec, asn_label, claim_dir, findings, dry_run,
     groups = group_findings_by_file(findings, rule)
     if file_filter:
         groups = {k: v for k, v in groups.items() if k == file_filter}
-    skipped = sorted(fn for fn in groups if (Path(fn).stem, rule) in skip_pairs)
-    groups = {k: v for k, v in groups.items() if k not in set(skipped)}
+    skipped_set = {fn for fn in groups if (Path(fn).stem, rule) in skip_pairs}
+    skipped = sorted(skipped_set)
+    groups = {k: v for k, v in groups.items() if k not in skipped_set}
     if not groups and not skipped:
         return declined
 
@@ -397,7 +398,6 @@ def run_pass(pass_spec, asn_label, claim_dir, findings, dry_run,
             rule, tools, claim_dir, filename, file_findings, pairs
         )
         if diff is None:
-            print(f" → invocation failed", file=sys.stderr)
             continue
 
         if not diff:
