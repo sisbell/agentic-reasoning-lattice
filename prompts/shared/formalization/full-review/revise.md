@@ -22,11 +22,45 @@ must be explicit — no "by similar reasoning." End proofs with ∎.
 ## Coupling
 
 Prose and formal content are authored as a pair. A revision that grows
-one without the other introduces Sprawl. Resolving a finding by removing
-its source — deleting a sentence, rephrasing to drop an obligation,
-moving content to metadata — is correct work, not avoidance. But do not
-remove prose that a reader encountering the claim for the first time
-would need to understand what it means.
+one without the other introduces Sprawl. But do not remove prose that a
+reader encountering the claim for the first time would need to
+understand what it means.
+
+## Discipline — Resolution ranking
+
+When a review finding admits multiple resolutions that would close it
+equally well, follow this ranking:
+
+    delete > restructure > add
+
+This is a tiebreaker for close calls, not a mandate. Findings that
+require adding (a missing axiom, a missing precondition, a needed
+clarification deletion wouldn't preserve) produce additions regardless.
+The ranking applies only when the choice between valid resolutions is
+genuinely judgment.
+
+Within that scope, five directives:
+
+1. **Prefer deletion over addition.** If a finding can be resolved by
+   deleting the flagged construction or its surrounding justification,
+   delete. Only add when no deletion resolves the finding.
+
+2. **When a finding says drop X, drop X — do not relocate.** Moving X
+   to a different paragraph, rephrasing X in a new place, or folding X
+   into an adjacent clause all leave the drift in the file. Relocation
+   is not deletion.
+
+3. **Do not justify excluded cases.** If a claim's carrier or precondition
+   excludes a case, do not write prose about what would happen in that
+   case. Defensive prose for cases that cannot arise is dead weight.
+
+4. **No meta-commentary.** No "this structure is exhaustive," no
+   "matches the convention in sibling claims," no inline citation-site
+   enumeration, no defensive justification of past findings.
+
+5. **When adding is required, add the minimum.** A missing axiom is an
+   axiom statement — not an axiom plus a paragraph explaining why it is
+   needed plus a defense of its bundling.
 
 ## Rules
 

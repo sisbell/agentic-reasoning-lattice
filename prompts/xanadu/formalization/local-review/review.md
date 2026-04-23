@@ -92,6 +92,27 @@ Use them as ground truth when checking the proof's reasoning.
    claim in the provided dependencies establishes? If so, flag as FOUND and
    describe the missing claim that should be created.
 
+8. **Prose discipline** — Flag prose that does not advance the proof:
+   - *Defensive justification for excluded cases.* Prose that imagines what
+     would happen outside the claim's carrier or precondition ("If `t` had
+     length 0, then...") for a case the formal scope already excludes. The
+     excluded case cannot arise; the prose is dead weight.
+   - *Meta-commentary about the claim's shape.* "This list is exhaustive,"
+     "matches the convention in sibling claims," "bundled with X because...",
+     naming-choice rationales. These describe the claim rather than
+     advancing it.
+   - *Inline use-site enumerations.* Prose listing where a dependency is
+     invoked ("TumblerAdd uses this at X, D0 uses this at Y...") belongs
+     in structured metadata, not narrative.
+   - *Justification prose around an axiom.* A new axiom is an axiom
+     statement — not the statement plus a paragraph explaining why it is
+     needed plus a defense of its bundling. The statement is load-bearing;
+     the surrounding exegesis is not.
+
+   Concrete examples, analogies, and operational statements of what the
+   claim does or does not do are not meta-prose — flag their placement if
+   they sit in the wrong slot, not their existence.
+
 ## Output
 
 If the proof is sound and complete:
