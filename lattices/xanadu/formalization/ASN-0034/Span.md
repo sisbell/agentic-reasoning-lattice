@@ -1,6 +1,4 @@
-## Definition (Span)
-
-**Definition (Span).** A *span* is the address-set `span(s, ℓ) = {t ∈ T : s ≤ t < s ⊕ ℓ}` determined by a pair `(s, ℓ)` where `s ∈ T` is a start address and `ℓ ∈ T` is a length — a positive tumbler used as a displacement whose action point satisfies `actionPoint(ℓ) ≤ #s`.
+**Span (Span).** A *span* is the address-set `span(s, ℓ) = {t ∈ T : s ≤ t < s ⊕ ℓ}` determined by a pair `(s, ℓ)` where `s ∈ T` is a start address and `ℓ ∈ T` is a length — a positive tumbler used as a displacement whose action point satisfies `actionPoint(ℓ) ≤ #s`.
 
 *Formal Contract:*
 - *Preconditions:* `s ∈ T`, `ℓ ∈ T`, `Pos(ℓ)`, `actionPoint(ℓ) ≤ #s`
