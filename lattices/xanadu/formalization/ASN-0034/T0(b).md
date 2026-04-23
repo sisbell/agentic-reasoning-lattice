@@ -14,7 +14,8 @@ that is, `t = d₁.d₂. ... .dₙ` with `dᵢ = 1` for all `1 ≤ i ≤ n`.
 
 *Formal Contract:*
 - *Postcondition:* For every `n ∈ ℕ` with `n ≥ 1`, there exists `t ∈ T` with `#t ≥ n`.
-- *Depends:* T0 (CarrierSetDefinition) — carrier characterisation of T as finite sequences over ℕ with length ≥ 1, and the length operator `#·`.
+- *Depends:*
+  - T0 (CarrierSetDefinition) — carrier characterisation of T as finite sequences over ℕ with length ≥ 1, and the length operator `#·`.
 
 T0(b) is what separates the tumbler design from fixed-width addressing. Nelson: "New items may be continually inserted in tumbler-space while the other addresses remain valid." The word "continually" carries the weight — the process of creating new addresses never terminates. Between any two sibling addresses, the forking mechanism can always create children: "One digit can become several by a forking or branching process. This consists of creating successive new digits to the right." Each daughter can have daughters without limit.
 
