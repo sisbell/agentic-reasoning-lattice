@@ -13,8 +13,8 @@ summary: |
   Commits two distinct clauses: the complementarity `(A t ∈ T :: Pos(t) ⟺ ¬Zero(t))`, which follows from
   the defining clauses by the DeMorgan duality of bounded quantifiers and holds whether or not the index
   range is empty; and the non-vacuity of the partition, resting on T0's `(A a ∈ T :: 1 ≤ #a)` to guarantee
-  that the index range `1 ≤ i ≤ #t` is nonempty for every `t ∈ T`, so `Pos(t)` witnesses a nonzero component
-  and `Zero(t)` witnesses a component equal to `0`. Additionally introduces the set-form
+  that the index range `1 ≤ i ≤ #t` is nonempty for every `t ∈ T`, so `Pos(t)` exhibits a nonzero component
+  and `Zero(t)` makes every component equal to `0`. Additionally introduces the set-form
   `Z = {t ∈ T : Zero(t)}`, consumed by TA7a's subspace-closure postcondition `o ⊖ w ∈ S ∪ Z` where the
   union with `S` requires set-valued notation. The
   ordering consequence — every positive tumbler is strictly greater under T1 than every zero tumbler of any

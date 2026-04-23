@@ -4,9 +4,10 @@ type: axiom
 depends:
   - NAT-zero
 summary: |
-  Posits `1 ∈ ℕ`, closes ℕ under binary addition (`m + n ∈ ℕ`), and fixes
-  `0` as the left additive identity (`0 + n = n`). Successor closure
-  `n + 1 ∈ ℕ` is the instance of addition closure at `(n, 1)` rather than a
-  separate axiom. The right-identity form `n + 0 = n` is not axiomatized;
-  commutativity of `+` is not enumerated, so the mirrored clause is not
-  derivable from this axiom alone.
+  Posits the binary operation `+ : ℕ × ℕ → ℕ` directly on ℕ (not derived from
+  any earlier axiom), asserts `1 ∈ ℕ`, and fixes `0` as the left additive
+  identity (`0 + n = n`). The closure clause `m + n ∈ ℕ` renders the codomain
+  commitment in the signature of `+`. Successor closure `n + 1 ∈ ℕ` is the
+  instance of addition closure at `(n, 1)` rather than a separate axiom. The
+  right-identity form `n + 0 = n` is not axiomatized; commutativity of `+` is
+  not enumerated, so the mirrored clause is not derivable from this axiom alone.
