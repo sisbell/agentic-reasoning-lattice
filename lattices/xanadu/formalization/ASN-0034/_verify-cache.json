@@ -22,7 +22,6 @@
   "TA0": "43fbce5f0b454df1",
   "T10a.6": "3a518b048ef2c826",
   "ZPD": "76baef432cd4ab13",
-  "TS1": "685040e7926028e3",
   "Divergence": "7fba99d5fd8f46a4",
   "TA2": "fc23c4438e96559d",
   "D0": "f5c916a477cda451",
@@ -78,5 +77,7 @@
   "NAT-cancel": "f53703a7783ee98d",
   "TA4": "e25060d7107e936d",
   "GlobalUniqueness": "e4694be82420d08a",
-  "TA5a": "d0d7d350624e7114"
+  "TA5a": "d0d7d350624e7114",
+  "TA1-strict": "f70321e50eaf59c7",
+  "TS1": "685040e7926028e3"
 }

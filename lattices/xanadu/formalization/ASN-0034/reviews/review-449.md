@@ -134,3 +134,9 @@ VERDICT: OBSERVE
 VERDICT: OBSERVE
 
 12 verified, 21 observed, 1 found.
+
+## Result
+
+Converged after 4 cycles. 58 verified.
+
+*Elapsed: 4475s*
