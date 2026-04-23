@@ -9,7 +9,7 @@ A separate consequence concerns the content of the partition: T0's clause `(A a 
 The set of zero tumblers is written **Z** = {t ∈ T : Zero(t)}.
 
 *Formal Contract:*
-- *Definition:* `Pos(t)` iff `(E i ∈ ℕ : 1 ≤ i ≤ #t : ¬(tᵢ = 0))`; `Zero(t)` iff `(A i ∈ ℕ : 1 ≤ i ≤ #t : tᵢ = 0)`; **Z** = {t ∈ T : Zero(t)}.
+- *Definition:* `(A t ∈ T :: Pos(t) ⟺ (E i ∈ ℕ : 1 ≤ i ≤ #t : ¬(tᵢ = 0)))`; `(A t ∈ T :: Zero(t) ⟺ (A i ∈ ℕ : 1 ≤ i ≤ #t : tᵢ = 0))`; **Z** = {t ∈ T : Zero(t)}.
 - *Complementarity:* `(A t ∈ T :: Pos(t) ⟺ ¬Zero(t))`.
 - *Depends:*
   - T0 (CarrierSetDefinition) — carrier `T`, length `#t`, component projection `tᵢ`, and the nonemptiness clause `(A a ∈ T :: 1 ≤ #a)` cited in the partition-consequence prose.
