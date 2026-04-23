@@ -332,7 +332,7 @@ def run_pass(pass_spec, asn_label, claim_dir, findings, dry_run,
     groups = group_findings_by_file(findings, rule)
     if file_filter:
         groups = {k: v for k, v in groups.items() if k == file_filter}
-    skipped = sorted(fn for fn in groups if (fn, rule) in skip_pairs)
+    skipped = sorted(fn for fn in groups if (Path(fn).stem, rule) in skip_pairs)
     for fn in skipped:
         print(f"  [skip] {fn} (declined earlier in gate)")
     groups = {k: v for k, v in groups.items() if k not in set(skipped)}
@@ -379,7 +379,7 @@ def run_pass(pass_spec, asn_label, claim_dir, findings, dry_run,
                     print(f"    [committed] {filename}")
                 else:
                     print(f"    [declined] {filename} (no change)")
-                    declined.add((filename, rule))
+                    declined.add((Path(filename).stem, rule))
             continue
 
         diff, scratch_path = process_file_scratch(
@@ -390,7 +390,7 @@ def run_pass(pass_spec, asn_label, claim_dir, findings, dry_run,
 
         if not diff:
             print(f"    [declined] {filename} (no change)")
-            declined.add((filename, rule))
+            declined.add((Path(filename).stem, rule))
             shutil.rmtree(scratch_path.parent, ignore_errors=True)
             continue
 

@@ -42,13 +42,17 @@ def _run_validator(asn_label):
 
 def _actionable(findings, declined):
     """Subset of findings that the reviser should act on: non-cycle,
-    not-yet-declined by reviser judgment."""
+    not-yet-declined by reviser judgment.
+
+    Declined keys are (stem, rule) — yaml/md variants of the same claim
+    share a stem, so a decline on either side suppresses the other.
+    """
     out = []
     for f in findings:
         if f["rule"] == "acyclic-depends":
             continue
         filename = f.get("file")
-        if filename and (filename, f["rule"]) in declined:
+        if filename and (Path(filename).stem, f["rule"]) in declined:
             continue
         out.append(f)
     return out
