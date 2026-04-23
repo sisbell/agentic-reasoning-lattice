@@ -353,6 +353,17 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
             apex_label=apex_label, dry_run=dry_run,
         )
 
+    # Commit any residue that per-cycle commits didn't catch: the Result
+    # section appended to the last review file, cache updates, and
+    # OBSERVE-only cycles whose review files are never reached by the
+    # in-loop step_commit_asn (which only runs after a REVISE-driven
+    # revise succeeds). step_commit_asn no-ops if nothing is staged.
+    if not failed and not dry_run:
+        step_commit_asn(
+            asn_num,
+            f"regional-review(asn): {asn_label}/{apex_label} — final",
+        )
+
     if failed:
         return "failed"
     return "converged" if converged else "not_converged"

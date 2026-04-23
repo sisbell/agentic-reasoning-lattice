@@ -168,9 +168,10 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
 
     print(f"  Elapsed: {elapsed:.0f}s", file=sys.stderr)
 
-    if had_findings and not dry_run and not converged:
-        step_commit_asn(asn_num,
-                        f"full-review(asn): {asn_label} — not converged")
+    if not dry_run:
+        hint = (f"full-review(asn): {asn_label}"
+                f"{'' if converged else ' — not converged'}")
+        step_commit_asn(asn_num, hint)
 
     return "converged" if converged else "not_converged"
 

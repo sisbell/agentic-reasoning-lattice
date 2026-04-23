@@ -105,6 +105,7 @@ def run_local_review(asn_num, max_cycles=5, mode="incremental",
     all_verified = set()
     converged = False
     had_findings = False
+    review_path = None
 
     for cycle in range(1, max_cycles + 1):
         # Generate fresh deps
@@ -299,7 +300,7 @@ def run_local_review(asn_num, max_cycles=5, mode="incremental",
 
     # Append final result to last review file
     elapsed = time.time() - start_time
-    if had_findings:
+    if review_path is not None:
         with open(review_path, "a") as rf:
             rf.write(f"\n## Result\n\n")
             if converged:
@@ -315,7 +316,7 @@ def run_local_review(asn_num, max_cycles=5, mode="incremental",
 
     print(f"  Elapsed: {elapsed:.0f}s", file=sys.stderr)
 
-    if had_findings and not dry_run:
+    if not dry_run:
         step_commit_asn(asn_num, hint="local-review")
 
     return "converged" if converged else "not_converged"
