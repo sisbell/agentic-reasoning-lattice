@@ -205,6 +205,11 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
     # Load review history for the apex
     history = _extract_apex_history(asn_label, apex_label)
 
+    # Capture baseline SHA so the end-of-cone compress pass knows which
+    # files changed during this cone.
+    from lib.formalization.compress import _git_head_sha, compress_changed_files_since
+    baseline_sha = _git_head_sha()
+
     start_time = time.time()
     previous_findings = history
     had_findings = False
@@ -289,6 +294,17 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
             rf.write(f"\n*Elapsed: {elapsed:.0f}s*\n")
 
     print(f"  [REGIONAL-REVIEW] Elapsed: {elapsed:.0f}s", file=sys.stderr)
+
+    # End-of-cone compress pass — strip accumulated meta-commentary drift
+    # introduced across the cycles. Scoped to files this cone actually
+    # changed (via baseline SHA diff). No-op if nothing changed or if
+    # dry-run is set.
+    if not failed:
+        compress_changed_files_since(
+            claim_dir, baseline_sha, asn_num,
+            apex_label=apex_label, dry_run=dry_run,
+        )
+
     if failed:
         return "failed"
     return "converged" if converged else "not_converged"
