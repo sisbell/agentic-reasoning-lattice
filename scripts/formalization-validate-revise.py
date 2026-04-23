@@ -300,11 +300,16 @@ def process_propose(rule, tools, claim_dir, findings):
 
 def run_pass(pass_spec, asn_label, claim_dir, findings, dry_run,
              file_filter, *, scope_labels=None, commit=False,
-             require_git_clean=True):
+             require_git_clean=True, skip_pairs=None):
+    """Run one pass. Returns a set of (filename, rule) pairs where the reviser
+    produced no change — the gate uses this to avoid re-invoking on known
+    declines in later iterations."""
     rule = pass_spec["rule"]
     mode = pass_spec["mode"]
     tools = pass_spec["tools"]
     pairs = VALIDATOR.load_pairs(claim_dir)
+    skip_pairs = skip_pairs or set()
+    declined = set()
     if scope_labels is not None:
         findings = filter_findings_by_scope(findings, scope_labels)
     print(f"\n=== Pass: {rule} ({mode}) ===")
@@ -316,20 +321,24 @@ def run_pass(pass_spec, asn_label, claim_dir, findings, dry_run,
                              if f.get("file") == file_filter or not f.get("file")]
         if not rule_findings:
             print(f"  no findings; skipping")
-            return
+            return declined
         output = process_propose(rule, tools, claim_dir, rule_findings)
         if output:
             print("\n--- proposal ---")
             print(output)
             print("--- end proposal ---\n")
-        return
+        return declined
 
     groups = group_findings_by_file(findings, rule)
     if file_filter:
         groups = {k: v for k, v in groups.items() if k == file_filter}
+    skipped = sorted(fn for fn in groups if (fn, rule) in skip_pairs)
+    for fn in skipped:
+        print(f"  [skip] {fn} (declined earlier in gate)")
+    groups = {k: v for k, v in groups.items() if k not in set(skipped)}
     if not groups:
         print(f"  no findings for this rule; skipping")
-        return
+        return declined
 
     if require_git_clean:
         target_paths = [claim_dir / fn for fn in groups]
@@ -338,7 +347,7 @@ def run_pass(pass_spec, asn_label, claim_dir, findings, dry_run,
             print(f"  uncommitted changes in target files; aborting pass:", file=sys.stderr)
             for d in dirty:
                 print(f"    {d}", file=sys.stderr)
-            return
+            return declined
 
     for filename, file_findings in sorted(groups.items()):
         print(f"\n  {filename} ({len(file_findings)} finding(s))")
@@ -369,7 +378,8 @@ def run_pass(pass_spec, asn_label, claim_dir, findings, dry_run,
                 if committed:
                     print(f"    [committed] {filename}")
                 else:
-                    print(f"    [no changes to commit] {filename}")
+                    print(f"    [declined] {filename} (no change)")
+                    declined.add((filename, rule))
             continue
 
         diff, scratch_path = process_file_scratch(
@@ -379,29 +389,44 @@ def run_pass(pass_spec, asn_label, claim_dir, findings, dry_run,
             continue
 
         if not diff:
-            print(f"    [no change]")
+            print(f"    [declined] {filename} (no change)")
+            declined.add((filename, rule))
             shutil.rmtree(scratch_path.parent, ignore_errors=True)
             continue
 
-        print("\n--- proposed diff ---")
-        print(diff)
-        print("--- end diff ---\n")
+        if dry_run:
+            print("\n--- proposed diff ---")
+            print(diff)
+            print("--- end diff ---\n")
+            shutil.rmtree(scratch_path.parent, ignore_errors=True)
+            continue
 
-        if not dry_run:
-            real_path = claim_dir / filename
-            shutil.copy2(scratch_path, real_path)
-            print(f"    [APPLIED] {filename}")
-            if commit:
-                commit_file(
-                    real_path,
-                    f"validate-revise(asn): {rule} on {filename}",
-                )
+        real_path = claim_dir / filename
+        shutil.copy2(scratch_path, real_path)
+        subprocess.run(
+            ["git", "diff", "--stat", "--", str(real_path)],
+            cwd=REPO_ROOT,
+        )
+        if commit:
+            committed = commit_file(
+                real_path,
+                f"validate-revise(asn): {rule} on {filename}",
+            )
+            if committed:
+                print(f"    [committed] {filename}")
+            else:
+                print(f"    [commit failed] {filename}")
+        else:
+            print(f"    [applied] {filename}")
 
         shutil.rmtree(scratch_path.parent, ignore_errors=True)
 
+    return declined
+
 
 def run_passes(asn_label, *, scope_labels=None, rules=None, mode="apply",
-               commit=False, from_pass=1, to_pass=None, file_filter=None):
+               commit=False, from_pass=1, to_pass=None, file_filter=None,
+               skip_pairs=None):
     """Programmatic entry: run validate-revise passes over an ASN.
 
     scope_labels: iterable of claim labels to restrict findings to; None = all.
@@ -412,8 +437,14 @@ def run_passes(asn_label, *, scope_labels=None, rules=None, mode="apply",
     to_pass:      1-indexed end pass inclusive (CLI compatibility); None = len(PASSES).
     file_filter:  restrict to one filename (e.g., "T4.md"); None = all affected.
 
-    Returns (before_count, after_count) — finding counts before and after the run.
-    Counts are scoped via scope_labels when provided.
+    skip_pairs:   set of (filename, rule) tuples the reviser declined on in a
+                  prior call; run_pass skips matching groups. Newly-declined
+                  pairs discovered during this call are unioned into the
+                  returned set.
+
+    Returns (before_count, after_count, declined) — finding counts before and
+    after the run, plus the accumulated (filename, rule) declines. Counts are
+    scoped via scope_labels when provided.
     """
     dry_run = (mode == "dry-run")
     if to_pass is None:
@@ -425,6 +456,7 @@ def run_passes(asn_label, *, scope_labels=None, rules=None, mode="apply",
 
     rule_filter = set(rules) if rules is not None else None
     scope = set(scope_labels) if scope_labels is not None else None
+    declined = set(skip_pairs) if skip_pairs else set()
 
     selected_passes = []
     for i, p in enumerate(PASSES, start=1):
@@ -441,7 +473,7 @@ def run_passes(asn_label, *, scope_labels=None, rules=None, mode="apply",
 
     if not selected_passes:
         print("  no passes selected")
-        return (0, 0)
+        return (0, 0, declined)
 
     baseline = run_validator(asn_label)
     before_count = len(filter_findings_by_scope(baseline, scope))
@@ -450,16 +482,20 @@ def run_passes(asn_label, *, scope_labels=None, rules=None, mode="apply",
     findings = baseline
     for i, p in selected_passes:
         print(f"\n----- Pass {i}/{len(PASSES)} -----")
-        run_pass(p, asn_label, claim_dir, findings, dry_run, file_filter,
-                 scope_labels=scope, commit=commit,
-                 require_git_clean=not commit)
+        pass_declined = run_pass(
+            p, asn_label, claim_dir, findings, dry_run, file_filter,
+            scope_labels=scope, commit=commit,
+            require_git_clean=not commit, skip_pairs=declined,
+        )
+        if pass_declined:
+            declined |= pass_declined
         findings = run_validator(asn_label)
         in_scope = len(filter_findings_by_scope(findings, scope))
         print(f"\n  after pass {i}: {in_scope} finding(s) remaining (in scope)")
 
     after_count = len(filter_findings_by_scope(findings, scope))
     print("\n[VALIDATE-REVISE] done")
-    return (before_count, after_count)
+    return (before_count, after_count, declined)
 
 
 def main():

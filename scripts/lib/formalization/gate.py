@@ -40,24 +40,48 @@ def _run_validator(asn_label):
     return VALIDATE.run_all_checks(pairs)
 
 
+def _actionable(findings, declined):
+    """Subset of findings that the reviser should act on: non-cycle,
+    not-yet-declined by reviser judgment."""
+    out = []
+    for f in findings:
+        if f["rule"] == "acyclic-depends":
+            continue
+        filename = f.get("file")
+        if filename and (filename, f["rule"]) in declined:
+            continue
+        out.append(f)
+    return out
+
+
 def run_validate_gate(asn_label, scope_labels=None, max_iterations=3):
     """Run validator + validate-revise until clean or iterations exhausted.
 
+    The gate tracks (filename, rule) pairs where the reviser produced no
+    change — those are treated as declined-by-design and not re-attempted.
+    A declined pair still surfaces in validator output; the gate just stops
+    acting on it.
+
     Returns:
-      "clean"  — no fixable findings in scope (cycles may be logged)
-      "dirty"  — findings remain after max_iterations
+      "clean"  — no actionable findings in scope (cycles/declines may remain)
+      "dirty"  — actionable findings remain after max_iterations or halted
       "failed" — reviser raised an exception
     """
     scope = set(scope_labels) if scope_labels is not None else None
+    declined = set()
+    prev_actionable = None
 
     for iteration in range(1, max_iterations + 1):
         findings = _run_validator(asn_label)
         relevant = REVISE.filter_findings_by_scope(findings, scope)
-
         cycle_findings = [f for f in relevant if f["rule"] == "acyclic-depends"]
-        fixable = [f for f in relevant if f["rule"] != "acyclic-depends"]
+        actionable = _actionable(relevant, declined)
 
-        if not fixable:
+        if not actionable:
+            if declined:
+                print(f"  [GATE] {len(declined)} (file, rule) pair(s) "
+                      f"declined by reviser; treating as terminal",
+                      file=sys.stderr)
             if cycle_findings:
                 print(f"  [GATE] {len(cycle_findings)} cycle finding(s) "
                       f"in scope (propose-only; not blocking):",
@@ -66,25 +90,28 @@ def run_validate_gate(asn_label, scope_labels=None, max_iterations=3):
                     print(f"    {f['detail']}", file=sys.stderr)
             return "clean"
 
-        print(f"  [GATE iter {iteration}] {len(fixable)} fixable "
+        if prev_actionable is not None and len(actionable) >= prev_actionable:
+            print(f"  [GATE] no progress ({prev_actionable} → "
+                  f"{len(actionable)} actionable); halting",
+                  file=sys.stderr)
+            return "dirty"
+        prev_actionable = len(actionable)
+
+        print(f"  [GATE iter {iteration}] {len(actionable)} actionable "
               f"finding(s) in scope; invoking validate-revise",
               file=sys.stderr)
 
         try:
-            before, after = REVISE.run_passes(
+            _before, _after, declined = REVISE.run_passes(
                 asn_label,
                 scope_labels=scope,
                 mode="apply",
                 commit=True,
+                skip_pairs=declined,
             )
         except Exception as e:
             print(f"  [GATE] reviser raised: {e}", file=sys.stderr)
             return "failed"
-
-        if after >= before:
-            print(f"  [GATE] no progress ({before} → {after}); halting",
-                  file=sys.stderr)
-            return "dirty"
 
     print(f"  [GATE] max iterations ({max_iterations}) reached; "
           f"halting with remaining findings",
