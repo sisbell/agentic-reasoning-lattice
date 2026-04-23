@@ -2,7 +2,7 @@
 
 **OrdinalDisplacement (OrdinalDisplacement).** For natural number n ≥ 1 and depth m ≥ 1, the *ordinal displacement* δ(n, m) is the tumbler [0, 0, ..., 0, n] of length m — zero at positions 1 through m − 1, and n at position m. Its action point is m.
 
-δ(n, m) is a finite sequence of length m ≥ 1 over ℕ, so δ(n, m) ∈ T by T0. Component typing: the m-th component is n, with `n ∈ ℕ` from the precondition; positions 1..m−1 are 0, with `0 ∈ ℕ` from NAT-zero's `(A n ∈ ℕ :: 0 ≤ n)`.
+δ(n, m) is a finite sequence of length m ≥ 1 over ℕ, so δ(n, m) ∈ T by T0. Component typing: the m-th component is n, with `n ∈ ℕ` from the precondition; positions 1..m−1 are 0, with `0 ∈ ℕ` from NAT-zero's first axiom clause `0 ∈ ℕ`.
 
 The length postcondition `#δ(n, m) = m` holds by construction from the Definition clause.
 
