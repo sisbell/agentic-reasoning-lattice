@@ -64,7 +64,7 @@ Note that the asymmetry described above applies differently in formalization tha
 
 ## The signal: delta from target
 
-![Coupling principle feedback loop](coupling-feedback-loop.svg)
+![Coupling principle feedback loop](../diagrams/coupling-feedback-loop.svg)
 
 A monitor tracks the delta from target for each active claim file.
 
@@ -101,7 +101,7 @@ What doesn't vary is the *coupling principle*: prose and formal content are auth
 - [Voice Principle](voice.md) — the sibling principle for LLM output quality. Coupling defines what healthy content looks like (the ratio). Voice defines what well-formed output looks like (the style structure). At formalization stage, Voice is the mechanism that keeps the ratio near target — positive style discipline constrains the reviser to load-bearing prose, preventing the add-bias that drives ratio drift.
 - [Surface Expansion](../equilibrium/surface-expansion.md) — the failure mode this principle's signals detect. Surface expansion is a decoupling event.
 - [Contract Sprawl](../equilibrium/contract-sprawl.md), [Prose Sprawl](../equilibrium/prose-sprawl.md), [Index Sprawl](../equilibrium/index-sprawl.md) — specific decoupling manifestations in claim files.
-- [Vocabulary and Lattice Lifecycle](../vocabulary-and-lattice-lifecycle.md) — the three transitions (blueprint, promote, assemble) define the artifact boundaries this principle operates within.
+- [Architecture — Lattice Lifecycle](../architecture.md) — the three transitions (blueprint, promote, assemble) define the artifact boundaries this principle operates within.
 - [Narrow → Refine → Verify](../patterns/narrow-refine-verify.md) — the cycle that operates within each artifact's active period.
 - [Review V-Cycle](../design-notes/review-v-cycle.md) — the multi-scale review that detects decoupling at local, regional, and full scales. Discovery-stage prompts at all three scales must protect the prose surface.
 - [Accretion](../patterns/accretion.md) — the healthy growth discipline that keeps prose and formal coupled.
