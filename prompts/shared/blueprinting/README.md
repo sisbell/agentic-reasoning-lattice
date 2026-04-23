@@ -37,14 +37,14 @@ python scripts/promote-blueprint.py NNNN
 Review and converge proofs, contracts, and cross-claim consistency.
 
 ```bash
-# Full review cycle (local → contract → full → dependency)
-python scripts/formalization-review.py NNNN
+# V-cycle (local → regional-sweep → full, then downward re-check of affected cones/claims)
+python scripts/formalization-vcycle.py NNNN
 
 # Or run steps individually:
 python scripts/local-review.py NNNN          # verify proofs, fix gaps
-python scripts/contract-review.py NNNN       # validate contracts, fix mismatches
+python scripts/regional-sweep.py NNNN        # cone-scoped review across the DAG
 python scripts/full-review.py NNNN           # whole-ASN structural analysis
-python scripts/dependency-review.py NNNN     # upstream reference validation
+python scripts/dependency-review.py NNNN     # upstream reference validation (standalone)
 
 # Pick up full-review findings from a previous run:
 python scripts/full-review.py NNNN --review lattices/<lattice>/formalization/ASN-NNNN/reviews/review-N.md

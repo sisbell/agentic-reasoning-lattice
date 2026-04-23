@@ -3,7 +3,7 @@
 V-Cycle Formalization Review — multigrid-inspired convergence.
 
 Three scales of optimization in a V-cycle:
-  Local:    local-review, contract-review (one claim at a time)
+  Local:    local-review (one claim at a time)
   Regional: regional-sweep (high-dependency clusters, bottom-up DAG walk)
   Full:     full-review (full ASN scan)
 
@@ -35,11 +35,9 @@ from lib.formalization.core.build_dependency_graph import generate_formalization
 
 # Hyphenated script names need importlib
 _local_review = importlib.import_module("local-review")
-_contract_review = importlib.import_module("contract-review")
 _full_review = importlib.import_module("full-review")
 
 run_local_review = _local_review.run_local_review
-run_contract_review = _contract_review.run_contract_review
 run_full_review = _full_review.run_full_review
 
 
@@ -117,8 +115,14 @@ def _downstream_labels(changed_labels, deps_data):
     return downstream
 
 
-def run_vcycle(asn_num, max_passes=5, min_cone_deps=4, dry_run=False):
+def run_vcycle(asn_num, max_passes=5, min_cone_deps=4, dry_run=False,
+               force=False):
     """Run V-cycle formalization review.
+
+    force: if True, the first pass ignores local-review's verify cache so
+    every claim is re-checked from a clean slate. Later passes and the
+    downward re-check always honor the cache — only changed hashes get
+    re-reviewed, matching normal V-cycle semantics.
 
     Returns "converged" or "not_converged".
     """
@@ -149,29 +153,23 @@ def run_vcycle(asn_num, max_passes=5, min_cone_deps=4, dry_run=False):
 
         # 1. Local review (local scale)
         h = _git_head()
-        run_local_review(asn_num, max_cycles=5, dry_run=dry_run)
+        run_local_review(asn_num, max_cycles=8, dry_run=dry_run,
+                         force=force and pass_num == 1)
         proof_changed = _get_changed_labels(asn_label, h)
         all_changed |= proof_changed
         print(f"  [LOCAL-REVIEW] → {len(proof_changed)} changed",
               file=sys.stderr)
 
-        # 2. Contract review (local)
+        # 2. Regional sweep (regional)
         h = _git_head()
-        run_contract_review(asn_num, max_cycles=5, dry_run=dry_run)
-        contract_changed = _get_changed_labels(asn_label, h)
-        all_changed |= contract_changed
-        print(f"  [CONTRACT-REVIEW] → {len(contract_changed)} changed",
-              file=sys.stderr)
-
-        # 3. Regional sweep (regional)
-        h = _git_head()
-        run_regional_sweep(asn_num, min_deps=min_cone_deps, dry_run=dry_run)
+        run_regional_sweep(asn_num, min_deps=min_cone_deps,
+                           max_cycles=12, dry_run=dry_run)
         cone_changed = _get_changed_labels(asn_label, h)
         all_changed |= cone_changed
         print(f"  [REGIONAL-SWEEP] → {len(cone_changed)} changed",
               file=sys.stderr)
 
-        # 4. Full review (global)
+        # 3. Full review (global)
         h = _git_head()
         run_full_review(asn_num, max_cycles=3, dry_run=dry_run)
         global_changed = _get_changed_labels(asn_label, h)
@@ -188,30 +186,28 @@ def run_vcycle(asn_num, max_passes=5, min_cone_deps=4, dry_run=False):
             print(f"\n  ── Downward ({len(upward_changed)} labels affected) ──",
                   file=sys.stderr)
 
-            # 5. Regional: re-check affected cones
+            # 4. Regional: re-check affected cones
             h = _git_head()
             affected_cones = _affected_cones(upward_changed, asn_num, min_cone_deps)
             for apex, deps in affected_cones:
                 print(f"  [REGIONAL-REVIEW] {apex} ({len(deps)} deps)",
                       file=sys.stderr)
-                run_regional_review(asn_num, apex, deps, max_cycles=2,
+                run_regional_review(asn_num, apex, deps, max_cycles=8,
                                 dry_run=dry_run)
             regional_changed = _get_changed_labels(asn_label, h)
             all_changed |= regional_changed
             print(f"  [REGIONAL-REVIEW] → {len(regional_changed)} changed",
                   file=sys.stderr)
 
-            # 6-7. Local: re-check affected claims
+            # 5. Local: re-check affected claims
             affected = upward_changed | regional_changed
             if deps_data:
                 affected |= _downstream_labels(affected, deps_data)
 
             h = _git_head()
             for label in sorted(affected):
-                run_local_review(asn_num, max_cycles=2, single_label=label,
+                run_local_review(asn_num, max_cycles=8, single_label=label,
                                  dry_run=dry_run)
-                run_contract_review(asn_num, max_cycles=2, single_label=label,
-                                    dry_run=dry_run)
             local_changed = _get_changed_labels(asn_label, h)
             all_changed |= local_changed
             print(f"  [LOCAL-RECHECK] → {len(local_changed)} changed",
@@ -254,12 +250,16 @@ def main():
                         help="Minimum same-ASN deps for regional sweep (default: 4)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Review only, don't fix")
+    parser.add_argument("--force", action="store_true",
+                        help="Ignore local-review's verify cache on the "
+                             "first pass (clean-slate re-check)")
     args = parser.parse_args()
 
     asn_num = int(re.sub(r"[^0-9]", "", args.asn))
     result = run_vcycle(asn_num, max_passes=args.max_passes,
                          min_cone_deps=args.min_cone_deps,
-                         dry_run=args.dry_run)
+                         dry_run=args.dry_run,
+                         force=args.force)
     sys.exit(0 if result == "converged" else 1)
 
 

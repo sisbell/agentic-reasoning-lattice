@@ -22,10 +22,9 @@ Produces formal contracts and rewrites proofs to Dijkstra standard. Auto-commits
 
 ```bash
 python scripts/local-review.py <ASN>
-python scripts/contract-review.py <ASN>
 ```
 
-Local review checks logical gaps, missing cases, dependency correctness. Contract review validates contracts match proofs. Run until findings trend to zero.
+Local review checks logical gaps, missing cases, dependency correctness, and formal-contract/narrative alignment. Run until findings trend to zero.
 
 ### 3. Regional sweep (regional-scale review)
 
@@ -52,7 +51,7 @@ python scripts/formalization-vcycle.py <ASN> --max-passes 3
 python scripts/formalization-vcycle.py <ASN> --dry-run
 ```
 
-Runs the full upward-downward pass: local → contract → regional-sweep → full-review → regional re-check → local re-check → contract re-check. Converged when no scale changes anything in a full pass.
+Runs the full upward-downward pass: local → regional-sweep → full-review → regional re-check → local re-check. Converged when no scale changes anything in a full pass.
 
 ### 6. Summarize
 

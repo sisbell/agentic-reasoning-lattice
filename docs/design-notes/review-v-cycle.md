@@ -10,7 +10,7 @@ The Review V-Cycle addresses this by cycling through three scales of review, eac
 
 ## Scales
 
-**Local** — formalize, local-review, contract-review. One claim at a time, dependencies as fixed context. Fast convergence on claim-level issues: logical gaps, missing cases, contract mismatches. Cannot see cross-claim consistency problems.
+**Local** — formalize, local-review. One claim at a time, dependencies as fixed context. Fast convergence on claim-level issues: logical gaps, missing cases, contract mismatches. Cannot see cross-claim consistency problems.
 
 **Regional** — regional-sweep. Reviews dependency cones: claims with many same-note dependencies, processed bottom-up in topological order. Narrowed context (apex + dependencies + relevant foundation only) focuses attention on the constraint system. Catches issues that span tightly coupled clusters — the [dependency cone](../patterns/dependency-cone.md) pattern.
 
@@ -25,15 +25,13 @@ Each pass follows an upward-then-downward path:
 ```
 ── Upward ──
   1. formalize         local     produce formal contracts
-  2. local-review      local     fix proofs
-  3. contract-review   local     fix contracts
-  4. regional-sweep    regional  fix clusters (bottom-up DAG walk)
-  5. full-review       global    broad scan
+  2. local-review      local     fix proofs and contracts
+  3. regional-sweep    regional  fix clusters (bottom-up DAG walk)
+  4. full-review       global    broad scan
 
 ── Downward ──
-  6. regional-review   regional  re-check cones affected by upward changes
-  7. local-review      local     re-check claims affected by steps 5-6
-  8. contract-review   local     re-check contracts affected by steps 5-7
+  5. regional-review   regional  re-check cones affected by upward changes
+  6. local-review      local     re-check claims affected by steps 3-5
 ```
 
 The upward pass builds confidence — each scale inherits a cleaner state from the one below it. The downward pass verifies — corrections from wider scales are checked at narrower scales with higher precision.
@@ -72,7 +70,7 @@ The analogy:
 
 | Multigrid | Review V-Cycle |
 |-----------|------|
-| Fine grid relaxation | Local scale (local-review, contract-review) |
+| Fine grid relaxation | Local scale (local-review) |
 | Medium grid | Regional scale (regional-sweep) |
 | Coarse grid | Full scale (full-review) |
 | High-frequency error | Claim-level issues (local inconsistencies) |

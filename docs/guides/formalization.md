@@ -8,7 +8,7 @@ Formalization transforms per-claim file pairs from blueprinting into rigorously 
 
 The V-cycle operates at three scales, inspired by multigrid methods (Brandt 1977):
 
-- **Local scale** — local-review, contract-review. One claim at a time, dependencies fixed.
+- **Local scale** — local-review. One claim at a time, dependencies fixed. Covers proof soundness and contract-narrative alignment.
 - **Regional scale** — regional-sweep. A tightly coupled group of claims reviewed together.
 - **Full scale** — full-review. The entire note reviewed at once.
 
@@ -27,9 +27,7 @@ Rewrites every non-definition, non-axiom claim's proof to Dijkstra standard and 
 
 ### Claim-Scale Review
 
-**Local review** — For each claim, sends the body + dependency context to the LLM. Checks logical gaps, unjustified steps, missing cases, dependency correctness, formal contract completeness. On FOUND, a reviser agent edits the `.md` file. If new dependencies are discovered, the reviser adds them to the `.yaml` depends list (add-only).
-
-**Contract review** — Validates that each formal contract matches the proof. On MISMATCH, rewrites the contract. Vocabulary context is aggregated from all claim YAMLs automatically.
+**Local review** — For each claim, sends the body + dependency context to the LLM. Checks logical gaps, unjustified steps, missing cases, dependency correctness, and formal-contract/narrative alignment. On REVISE, a reviser agent edits the `.md` file. If new dependencies are discovered, the reviser adds them to the `.yaml` depends list (add-only).
 
 ### Cluster-Scale Review: Regional Sweep
 
@@ -45,9 +43,9 @@ Per-claim review stalls on tightly coupled claims — one claim keeps getting re
 
 Composes all three scales into a single upward-downward pass:
 
-1. **Upward pass:** local review → contract review → regional sweep → full-review
+1. **Upward pass:** local review → regional sweep → full-review
 2. **Dirty set detection:** after full-review, check which claims changed via git diff
-3. **Downward pass:** for any changed claims, run regional review on affected cones, then re-run proof and contract review on the changed claims
+3. **Downward pass:** for any changed claims, run regional review on affected cones, then re-run local review on the changed claims
 
 The downward pass fires on ANY change during the upward pass. Each scale handles the errors it is efficient at.
 
