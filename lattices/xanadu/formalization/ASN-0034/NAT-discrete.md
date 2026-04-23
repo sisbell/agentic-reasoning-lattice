@@ -6,4 +6,4 @@ No natural number lies strictly between `n` and its successor `n + 1`: whenever 
 - *Axiom:* `(A m, n ∈ ℕ :: m < n ⟹ m + 1 ≤ n)`; equivalently `(A m, n ∈ ℕ :: m ≤ n < m + 1 ⟹ n = m)` (discreteness).
 - *Depends:*
   - NAT-order (NatStrictTotalOrder) — supplies the non-strict companion `≤` (defined by `m ≤ n ⟺ m < n ∨ m = n`), used in both the consequent `m + 1 ≤ n` and the equivalent antecedent `m ≤ n`.
-  - NAT-closure (NatArithmeticClosureAndIdentity) — posits `1 ∈ ℕ` and closes ℕ under addition, so the successor `m + 1 ∈ ℕ` and the inequalities `m + 1 ≤ n` and `n < m + 1` are comparisons of two ℕ-elements.
+  - NAT-closure (NatArithmeticClosureAndIdentity, this ASN) — posits `1 ∈ ℕ` and closes ℕ under addition, so the successor `m + 1 ∈ ℕ` and the inequalities `m + 1 ≤ n` and `n < m + 1` are comparisons of two ℕ-elements.

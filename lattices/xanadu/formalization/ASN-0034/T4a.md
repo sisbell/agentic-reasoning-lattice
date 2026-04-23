@@ -27,8 +27,8 @@ All segments — first, interior, and last — are non-empty. ∎
   - NAT-zero (NatZeroMinimum) — supplies the lower bound `0 ≤ tᵢ`.
   - NAT-discrete (NatDiscreteness) — converts `0 ≤ tᵢ` and `tᵢ ≠ 0` into `tᵢ ≥ 1`.
   - NAT-order (NatStrictTotalOrder) — licenses the strictly increasing enumeration `s₁ < s₂ < … < s_k` and the position inequalities.
-  - NAT-closure (NatArithmeticClosureAndIdentity) — supplies `1 ∈ ℕ` and closure of ℕ under addition, grounding the numerals `2 := 1 + 1 ∈ ℕ` and `3 := 2 + 1 ∈ ℕ` used in `s₁ ≥ 2` and `zeros(t) ≤ 3`, and the sums `s_i + 1`, `s_i + 2`, `#t + 1` used to name the sentinels and the interior-segment inequality.
-  - NAT-sub (NatPartialSubtraction) — conditional-closure clause applied at the locally unpacked `#t ≥ 1` (from T0's nonempty qualification of `t ∈ T`) and `1 ∈ ℕ` (NAT-closure) gives `#t − 1 ∈ ℕ`, making `s_k ≤ #t − 1` a comparison of two ℕ-elements.
-  - NAT-card (NatFiniteSetCardinality) — via the enumeration characterisation of `|·|`, identifies the length `k` of the strictly increasing enumeration `s₁ < s₂ < … < s_k` of the zero-index subset `{i : 1 ≤ i ≤ #t ∧ tᵢ = 0} ⊆ {1, …, #t}` with `zeros(t)`, so that `k = zeros(t)`.
+  - NAT-closure (NatArithmeticClosureAndIdentity, this ASN) — supplies `1 ∈ ℕ` and closure of ℕ under addition, grounding the numerals `2 := 1 + 1 ∈ ℕ` and `3 := 2 + 1 ∈ ℕ` used in `s₁ ≥ 2` and `zeros(t) ≤ 3`, and the sums `s_i + 1`, `s_i + 2`, `#t + 1` used to name the sentinels and the interior-segment inequality.
+  - NAT-sub (NatPartialSubtraction, this ASN) — conditional-closure clause applied at the locally unpacked `#t ≥ 1` (from T0's nonempty qualification of `t ∈ T`) and `1 ∈ ℕ` (NAT-closure) gives `#t − 1 ∈ ℕ`, making `s_k ≤ #t − 1` a comparison of two ℕ-elements.
+  - NAT-card (NatFiniteSetCardinality, this ASN) — via the enumeration characterisation of `|·|`, identifies the length `k` of the strictly increasing enumeration `s₁ < s₂ < … < s_k` of the zero-index subset `{i : 1 ≤ i ≤ #t ∧ tᵢ = 0} ⊆ {1, …, #t}` with `zeros(t)`, so that `k = zeros(t)`.
   - T4 (HierarchicalParsing) — supplies the positional conditions (i), (ii), (iii), the field-segment terminology, and the zero-count bound `zeros(t) ≤ 3`.
 - *Postconditions:* The three positional conditions (i), (ii), (iii) hold if and only if every field segment of `t` is non-empty.
