@@ -3,15 +3,9 @@ name: ZeroTumblers
 type: corollary
 depends:
 - T0
-- T1
 - T4
 - TA-Pos
-- TA-PosDom
-- NAT-zero
-- NAT-order
 summary: |
   No tumbler with `Zero(t)` is a valid address — every zero tumbler is excluded by the boundary rule T4 enforces on
-  first components. As a sentinel benefit, every zero tumbler is strictly less than every positive tumbler under the
-  lexicographic order, making them safe lower-bound markers for uninitialized values and unbounded span endpoints.
-  Binds TA-Pos's paired `Pos`/`Zero` predicate symbols so that Conjunct 1's hypothesis `Zero(t)` and Conjunct 2's
-  hypothesis `Zero(s)` are single-symbol guards rather than spelled-out universals.
+  first components. The companion ordering fact (every zero tumbler is strictly below every positive tumbler under T1)
+  is stated and proved once at TA-PosDom; this claim cites TA-Pos only to fix the `Zero` predicate's meaning.
