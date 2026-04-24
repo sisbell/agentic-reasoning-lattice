@@ -10,3 +10,9 @@
 **What needs resolving**: The ASN must either remove the NAT-sub-targeted justification paragraph entirely (the two dominance facts stand on their own derivations below), or replace it with a single sentence that states what the lemma asserts and defers the motivation to downstream ASNs' own Depends lists. The `n + m ≥ n` claim, if it is load-bearing for the ASN's exports, should be stated as its own *Consequence* with an explicit derivation rather than left as an aside.
 
 VERDICT: REVISE
+
+## Result
+
+Regional review converged after 2 cycles.
+
+*Elapsed: 283s*
