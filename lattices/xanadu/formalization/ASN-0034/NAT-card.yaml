@@ -8,7 +8,7 @@ depends:
 - T0
 summary: |
   The cardinality operator |·| is postulated as a primitive total function on subsets
-  of every initial segment {1, 2, …, n} ⊆ ℕ (n ∈ ℕ), with codomain ℕ. For such S,
+  of every initial segment {j ∈ ℕ : 1 ≤ j ≤ n} ⊆ ℕ (n ∈ ℕ), with codomain ℕ. For such S,
   |S| ∈ ℕ is the unique k for which there exists a strictly increasing function
   f : {j ∈ ℕ : 1 ≤ j ≤ k} → ℕ with image S (at k = 0 the domain is empty, f is the
   empty function, vacuously strictly increasing with image ∅, forcing S = ∅ and
