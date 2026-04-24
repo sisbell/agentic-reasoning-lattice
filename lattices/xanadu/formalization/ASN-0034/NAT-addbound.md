@@ -1,0 +1,13 @@
+**NAT-addbound (NatAdditionDominatesRightOperand).** For every `m, n ∈ ℕ`, the sum `m + n` is bounded below by its right operand: `m + n ≥ n`.
+
+The fact is derivable from three NAT foundations and recorded as a named theorem so that NAT-sub's right-telescoping clause `(m + n) − n = m` can discharge the implicit precondition `m + n ≥ n` — required by NAT-sub's own conditional-closure clause to make `(m + n) − n` denote an ℕ-element — without each downstream consumer re-deriving the lift.
+
+Fix `m, n ∈ ℕ`. NAT-zero's minimality clause `(A k ∈ ℕ :: 0 < k ∨ 0 = k)`, instantiated at `k := m`, delivers `0 < m ∨ 0 = m`; NAT-order's defining equivalence `a ≤ b ⟺ a < b ∨ a = b`, instantiated at `(a, b) := (0, m)`, rewrites this disjunction as `0 ≤ m`. NAT-addcompat's right order compatibility `(A m', n', p ∈ ℕ : p ≤ n' : p + m' ≤ n' + m')`, instantiated under the renaming `(p, n', m') := (0, m, n)`, then yields the implication `0 ≤ m ⟹ 0 + n ≤ m + n`; modus ponens with the just-established `0 ≤ m` gives `0 + n ≤ m + n`. NAT-closure's left additive identity `(A k ∈ ℕ :: 0 + k = k)`, instantiated at `k := n`, rewrites the left-hand side to `n`, leaving `n ≤ m + n`. NAT-order's defining equivalence `a ≥ b ⟺ b ≤ a`, instantiated at `(a, b) := (m + n, n)`, then converts this to the stated `m + n ≥ n`. The choice of `m, n` was arbitrary, so the conclusion holds universally. ∎
+
+*Formal Contract:*
+- *Postconditions:* `(A m, n ∈ ℕ :: m + n ≥ n)` (the sum dominates its right operand).
+- *Depends:*
+  - NAT-zero (NatZeroMinimum) — supplies the minimality clause `(A k ∈ ℕ :: 0 < k ∨ 0 = k)`, instantiated at `k := m` to obtain `0 ≤ m` once NAT-order's `≤`-definition unfolds the disjunction.
+  - NAT-addcompat (NatAdditionOrderAndSuccessor) — supplies the right order compatibility clause `(A m', n', p ∈ ℕ : p ≤ n' : p + m' ≤ n' + m')`; instantiating at `(p, n', m') := (0, m, n)` lifts `0 ≤ m` to `0 + n ≤ m + n`.
+  - NAT-closure (NatArithmeticClosureAndIdentity) — supplies the left additive identity `(A k ∈ ℕ :: 0 + k = k)`, instantiated at `k := n` to rewrite `0 + n ≤ m + n` to `n ≤ m + n`, and underpins the binary operation `+` whose value `m + n` is here bounded below by `n`.
+  - NAT-order (NatStrictTotalOrder) — supplies the defining equivalences `a ≤ b ⟺ a < b ∨ a = b` (used at `(0, m)` to convert NAT-zero's disjunction to `0 ≤ m`) and `a ≥ b ⟺ b ≤ a` (used at `(m + n, n)` to convert `n ≤ m + n` to the stated `m + n ≥ n`).

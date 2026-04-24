@@ -7,8 +7,10 @@ depends:
 - T4a
 - T4b
 - T0
+- NAT-order
 - NAT-cancel
 - NAT-addassoc
+- NAT-closure
 summary: |
   For two T4-valid element-level addresses (tumblers satisfying the T4 constraints with exactly
   three zero delimiters), differing in the first element-field component forces the tumblers

@@ -5,9 +5,11 @@ depends:
   - NAT-order
   - NAT-closure
 summary: |
-  No natural number lies strictly between `n` and `n + 1`; formally, `m < n ⟹ m + 1 ≤ n`,
-  equivalently `m ≤ n < m + 1 ⟹ n = m`. This discreteness axiom is content-independent
-  of strict total order — it rules out the density that characterizes ℝ while leaving ℕ's
-  order structure otherwise intact — but its statement cites the non-strict `≤` (defined
-  in NAT-order by `m ≤ n ⟺ m < n ∨ m = n`) and the successor term `m + 1` (grounded by
-  NAT-closure's `1 ∈ ℕ` and addition-closure), so both appear in the Depends slot.
+  No natural number lies strictly between `n` and `n + 1`. The axiom form is
+  `m < n ⟹ m + 1 ≤ n`; the familiar no-interval reformulation
+  `m ≤ n < m + 1 ⟹ n = m` is recorded as a Consequence rather than a second axiom,
+  because each direction of the equivalence leans on NAT-order clauses beyond the
+  `≤`-definition — exactly-one trichotomy, irreflexivity, and disjointness of `<` and
+  `=`. The axiom cites the non-strict `≤` (defined in NAT-order by
+  `m ≤ n ⟺ m < n ∨ m = n`) and the successor term `m + 1` (grounded by NAT-closure's
+  `1 ∈ ℕ` and addition-closure), so both appear in the Depends slot.

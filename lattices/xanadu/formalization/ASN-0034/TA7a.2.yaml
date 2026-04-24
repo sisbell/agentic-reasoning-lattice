@@ -1,0 +1,18 @@
+label: TA7a.2
+name: SubspaceDivergenceResidue
+type: corollary
+depends:
+- TA7a
+- T0
+- TA-Pos
+- ActionPoint
+- TA2
+- TumblerSub
+- ZPD
+- NAT-order
+- NAT-zero
+summary: |
+  Characterises the interior-divergence residue of `⊖`: when the action point
+  of `w` is 1 and `o₁ = w₁` with `o ≠ w`, the first padded disagreement lies
+  at some `d > 1`, and TumblerSub's pre-divergence-zero clause forces
+  `r₁ = 0`, placing the result in `T \ S`.

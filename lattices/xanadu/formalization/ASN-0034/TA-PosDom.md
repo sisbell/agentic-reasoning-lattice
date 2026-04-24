@@ -4,7 +4,7 @@
 
 *Case `#z ≥ k`.* For `1 ≤ i < k`, `zᵢ = 0` (from `Zero(z)`, since `i < k ≤ #z`) and `tᵢ = 0` (by (ii)), so `zᵢ = tᵢ`. The case hypothesis gives `k ≤ #z`, and (i) gives `k ≤ #t`. At `i = k`: `zₖ = 0` (from `Zero(z)`), and (iii) supplies `0 < tₖ`, so `zₖ < tₖ`. By T1 case (i) with witness `k`, `z < t`.
 
-*Case `#z < k`.* For `1 ≤ i ≤ #z`, `i < k`, so `tᵢ = 0` (by (ii)) and `zᵢ = 0` (from `Zero(z)`), giving `tᵢ = zᵢ`. From `#z < k` and (i)'s `k ≤ #t`, NAT-order's `<`/`≤` composition yields `#z < #t`. NAT-discrete (with NAT-order) gives `m < n ⟹ m + 1 ≤ n` for `m, n ∈ ℕ`; at `m = #z, n = #t` this yields `#z + 1 ≤ #t`. By T1 case (ii) with witness `#z + 1`, `z < t`. ∎
+*Case `#z < k`.* For `1 ≤ i ≤ #z`, `i < k`, so `tᵢ = 0` (by (ii)) and `zᵢ = 0` (from `Zero(z)`), giving `tᵢ = zᵢ`. From `#z < k` and (i)'s `k ≤ #t`, NAT-order's `<`/`≤` composition yields `#z < #t`. NAT-discrete (with NAT-order) gives `m < n ⟹ m + 1 ≤ n` for `m, n ∈ ℕ`; at `m = #z, n = #t` this yields `#z + 1 ≤ #t`. T1's schema also requires its witness to satisfy the top-level bound `1 ≤ #z + 1`: T0 supplies `1 ≤ #z` from the nonemptiness of `z ∈ T`, NAT-addcompat's strict successor inequality gives `#z < #z + 1`, and NAT-order's `<`/`≤` composition of `1 ≤ #z` with `#z < #z + 1` yields `1 < #z + 1`, hence `1 ≤ #z + 1` via the `≤`-defining clause `m ≤ n ⟺ m < n ∨ m = n`. By T1 case (ii) with witness `#z + 1`, `z < t`. ∎
 
 *Formal Contract:*
 - *Preconditions:* `t ∈ T`, `Pos(t)`; `z ∈ T`, `Zero(z)`.
@@ -14,6 +14,7 @@
   - NAT-wellorder (NatWellOrdering) — least-element principle applied to `S` to supply the minimal index `k`.
   - NAT-zero (NatZeroMinimum) — disjunction axiom `(A n ∈ ℕ :: 0 < n ∨ 0 = n)` instantiated at `n = tₖ` to derive `0 < tₖ` from `tₖ ≠ 0`.
   - NAT-discrete (NatDiscreteness) — forward form `m < n ⟹ m + 1 ≤ n`, used at `m = #z, n = #t`.
-  - NAT-order (NatStrictTotalOrder) — `<`/`≤` transitivity and irreflexivity used both in the least-element witness and in the case analyses.
+  - NAT-addcompat (NatAdditionOrderAndSuccessor) — strict successor inequality `#z < #z + 1`, used with NAT-order's `<`/`≤` composition to discharge T1's top-level schema bound `1 ≤ #z + 1` for the witness `#z + 1` in Case `#z < k`.
+  - NAT-order (NatStrictTotalOrder) — `<`/`≤` transitivity and irreflexivity used both in the least-element witness and in the case analyses, and the `≤`-defining clause `m ≤ n ⟺ m < n ∨ m = n` used to compose strict with non-strict bounds (including the discharge of `1 ≤ #z + 1`).
   - T1 (LexicographicOrder) — case (i) in `#z ≥ k`, case (ii) in `#z < k`.
 - *Postconditions:* `(A t ∈ T, z ∈ T : Pos(t) ∧ Zero(z) :: z < t)`.

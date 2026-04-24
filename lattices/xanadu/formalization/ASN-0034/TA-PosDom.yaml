@@ -8,6 +8,7 @@ depends:
 - NAT-order
 - NAT-zero
 - NAT-discrete
+- NAT-addcompat
 - NAT-wellorder
 summary: |
   Every positive tumbler is strictly greater under T1 than every zero tumbler of any length. Established by

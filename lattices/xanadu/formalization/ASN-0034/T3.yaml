@@ -1,5 +1,5 @@
 label: T3
-name: CanonicalRepresentation
+name: SequenceEqualityIsComponentwise
 type: corollary
 depends:
 - T0

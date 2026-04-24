@@ -4,6 +4,7 @@ type: axiom
 depends:
 - NAT-closure
 - NAT-order
+- NAT-addbound
 summary: |
   Subtraction on ℕ is a partial binary operation defined when the minuend is at least
   the subtrahend. The difference `m − n` is the unique natural number satisfying

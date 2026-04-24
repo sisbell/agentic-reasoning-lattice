@@ -1,0 +1,17 @@
+label: NAT-addbound
+name: NatAdditionDominatesRightOperand
+type: theorem
+depends:
+- NAT-zero
+- NAT-closure
+- NAT-addcompat
+- NAT-order
+summary: |
+  For every `m, n ∈ ℕ`, the sum `m + n` is bounded below by its right operand:
+  `m + n ≥ n`. Derivable from NAT-zero (which gives `0 ≤ m`), NAT-addcompat's
+  right order compatibility (which lifts `0 ≤ m` to `0 + n ≤ m + n`), and
+  NAT-closure's left additive identity (which rewrites `0 + n` to `n`). Posited
+  as a named theorem so that NAT-sub's right-telescoping clause `(m + n) − n = m`
+  can discharge the implicit `m + n ≥ n` precondition of NAT-sub's own
+  conditional-closure clause without each downstream consumer having to
+  re-derive the lift.

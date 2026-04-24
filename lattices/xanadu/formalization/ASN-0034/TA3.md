@@ -26,15 +26,15 @@ If a first disagreement exists at `p ∈ 1, ..., L_{a,w}`, then `p > #a` and `(a
 
 *Sub-case B1: `a` is zero-padded-equal to `w`.* Then `a ⊖ w` is the zero tumbler of length `L_{a,w}`. At position `j`, `wⱼ = aⱼ`, so `bⱼ > wⱼ`. The pair `(b, w)` diverges at or before `j`, making `b ⊖ w` positive. By TA6, `a ⊖ w < b ⊖ w`.
 
-For the remaining sub-cases, `dₐ = zpd(a, w)` is well-defined. The zero-padded divergence `d_b = zpd(b, w)` is also well-defined: if `b` were zero-padded-equal to `w`, then at `dₐ`, `a_{dₐ} > w_{dₐ} = b_{dₐ}`, while `aᵢ = wᵢ = bᵢ` for `i < dₐ`; Case B's `j` forces `dₐ ≤ j`, giving `dₐ ≤ #a ∧ dₐ ≤ #b`, making `dₐ` a T1 case (i) witness for `a > b` — contradicting `a < b`.
+For the remaining sub-cases, `dₐ = zpd(a, w)` is well-defined, so TumblerSub's precondition consequence applied to `(a, w)` under `a ≥ w` gives `a_{dₐ} > w_{dₐ}`. The zero-padded divergence `d_b = zpd(b, w)` is also well-defined: if `b` were zero-padded-equal to `w`, then `b_{dₐ} = w_{dₐ}` by that equality, so combined with TumblerSub's consequence, `a_{dₐ} > w_{dₐ} = b_{dₐ}`, while `aᵢ = wᵢ = bᵢ` for `i < dₐ`; Case B's `j` forces `dₐ ≤ j`, giving `dₐ ≤ #a ∧ dₐ ≤ #b`, making `dₐ` a T1 case (i) witness for `a > b` — contradicting `a < b`.
 
 NAT-order's trichotomy on `(dₐ, d_b)` partitions into three sub-cases.
 
 *Sub-case B2: `dₐ = d_b = d`.* For `i < d`, both results are zero. Since `a, b` agree with `w` before `d`, and `aⱼ < bⱼ`, we have `j ≥ d`. If `j = d`: NAT-sub's strict monotonicity at `a_d < b_d` with both `≥ w_d` yields `a_d - w_d < b_d - w_d`, so `a ⊖ w < b ⊖ w` by T1 case (i). If `j > d`: `a_d = b_d`, both results agree at `d`; at `d < i < j`, both copy matching minuend components; at `j`, `(a ⊖ w)ⱼ = aⱼ < bⱼ = (b ⊖ w)ⱼ`. By T1 case (i), `a ⊖ w < b ⊖ w`.
 
-*Sub-case B3: `dₐ < d_b`.* At `dₐ`, `a_{dₐ} ≠ w_{dₐ}` but `b_{dₐ} = w_{dₐ}`. Since `aᵢ = bᵢ` for `i < dₐ`, the first disagreement between `a` and `b` is at `dₐ`, giving `j = dₐ` with `a_{dₐ} < b_{dₐ} = w_{dₐ}`. But `a ≥ w` requires `a_{dₐ} ≥ w_{dₐ}` — contradiction. This case is impossible.
+*Sub-case B3: `dₐ < d_b`.* At `dₐ`, `a_{dₐ} ≠ w_{dₐ}` but `b_{dₐ} = w_{dₐ}`. Since `aᵢ = bᵢ` for `i < dₐ`, the first disagreement between `a` and `b` is at `dₐ`, giving `j = dₐ` with `a_{dₐ} < b_{dₐ} = w_{dₐ}`. But TumblerSub's precondition consequence applied to `(a, w)` under `a ≥ w`, with `zpd(a, w) = dₐ` defined, gives `a_{dₐ} > w_{dₐ}` — contradicting `a_{dₐ} < w_{dₐ}`. This case is impossible.
 
-*Sub-case B4: `dₐ > d_b`.* At `d_b`, `b_{d_b} ≠ w_{d_b}` but `a_{d_b} = w_{d_b}`. The first disagreement between `a` and `b` is at `d_b`, giving `j = d_b` with `a_{d_b} = w_{d_b} < b_{d_b}` (since `b ≥ w` forces `b_{d_b} > w_{d_b}`). Then `(a ⊖ w)_{d_b} = 0` since `d_b < dₐ`, and `(b ⊖ w)_{d_b} = b_{d_b} - w_{d_b} > 0` by NAT-sub's strict positivity. At `i < d_b`, both results are zero. By T1 case (i), `a ⊖ w < b ⊖ w`.
+*Sub-case B4: `dₐ > d_b`.* At `d_b`, `b_{d_b} ≠ w_{d_b}` but `a_{d_b} = w_{d_b}`. The first disagreement between `a` and `b` is at `d_b`, giving `j = d_b` with `a_{d_b} = w_{d_b} < b_{d_b}`, where the strict inequality `b_{d_b} > w_{d_b}` comes from TumblerSub's precondition consequence applied to `(b, w)` under `b ≥ w`, with `zpd(b, w) = d_b` defined. Then `(a ⊖ w)_{d_b} = 0` since `d_b < dₐ`, and `(b ⊖ w)_{d_b} = b_{d_b} - w_{d_b} > 0` by NAT-sub's strict positivity. At `i < d_b`, both results are zero. By T1 case (i), `a ⊖ w < b ⊖ w`.
 
 In every case, `a ⊖ w ≤ b ⊖ w`. ∎
 
@@ -42,7 +42,7 @@ In every case, `a ⊖ w ≤ b ⊖ w`. ∎
 - *Preconditions:* a ∈ T, b ∈ T, w ∈ T, a < b, a ≥ w, b ≥ w
 - *Depends:*
   - TA2 (WellDefinedSubtraction) — `a ⊖ w, b ⊖ w ∈ T`; result components in ℕ.
-  - TumblerSub (TumblerSub) — component-wise subtraction definition: zero-padding, three-phase formula, length-pair dispatch naming `L_{x,w}`.
+  - TumblerSub (TumblerSub) — component-wise subtraction definition: zero-padding, three-phase formula, length-pair dispatch naming `L_{x,w}`; precondition consequence that when `zpd(x, w)` is defined under `x ≥ w`, `x_{zpd(x,w)} > w_{zpd(x,w)}` holds — invoked in the preamble to Sub-cases B2–B4 to supply `a_{dₐ} > w_{dₐ}`, in Sub-case B3 to contradict `a_{dₐ} < w_{dₐ}`, and in Sub-case B4 applied to `(b, w)` for the strict divergence-point inequality `b_{d_b} > w_{d_b}`; conditional postcondition `Pos(x ⊖ w)` when `zpd(x, w)` is defined — used in Sub-cases A1, A3, and B1 to conclude `b ⊖ w` is positive from the existence of zero-padded divergence.
   - ZPD (ZeroPaddedDivergence) — existence biconditional, first-position characterisation, pre-zpd agreement, Relationship-to-Divergence for the `dₐ ≤ #a` claim under both T1 case (i) and case (ii) for `w < a`.
   - T1 (LexicographicOrder) — strict ordering `<` and derived `≤`; case (i) shared-position bound in conjunction form; case (ii) prefix characterisation.
   - T3 (CanonicalRepresentation) — equality from component-wise agreement at equal length in Sub-case A2's `L_{a,w} = L_{b,w}` branch.
