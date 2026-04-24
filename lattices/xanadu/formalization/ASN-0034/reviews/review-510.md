@@ -16,3 +16,9 @@
 **Issue**: The note explains the notational choice by appealing to a "separate tumbler ordering" which is not defined in this ASN and is not cited as a forward reference to any named downstream claim. TA-PosDom establishes that under T1 zero tumblers are in fact all dominated by positive tumblers, so the reader cannot reconcile the stated reservation of `>` against any ordering present in the ASN. As it is explicitly flagged "outside the formal contract," soundness is unaffected, but the motivation is ungrounded prose.
 
 VERDICT: REVISE
+
+## Result
+
+Regional review converged after 2 cycles.
+
+*Elapsed: 2277s*
