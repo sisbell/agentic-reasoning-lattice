@@ -5,12 +5,16 @@ depends:
 - NAT-closure
 - NAT-order
 - NAT-addbound
+- NAT-zero
+- NAT-discrete
 summary: |
   Subtraction on ℕ is a partial binary operation defined when the minuend is at least
   the subtrahend. The difference `m − n` is the unique natural number satisfying
-  `(m − n) + n = m` (equivalently `n + (m − n) = m`); strict minuend yields strict
-  positivity (`m > n ⟹ m − n ≥ 1`); telescoping `(m + n) − n = m` and strict
-  monotonicity `m < n ∧ m ≥ p ∧ n ≥ p ⟹ m − p < n − p` are bundled as additional
-  clauses so the per-step citation convention covers every subtraction step that
-  TumblerSub, TA2, TA3, TA3-strict, TA4, TA7a, ReverseInverse, D0, D1, and D2
-  invoke at a divergence point or round-trip.
+  `(m − n) + n = m` (equivalently `n + (m − n) = m`); telescoping `(m + n) − n = m`
+  and strict monotonicity `m < n ∧ m ≥ p ∧ n ≥ p ⟹ m − p < n − p` are bundled as
+  additional axiom clauses. Strict positivity `m > n ⟹ m − n ≥ 1` is exported as a
+  Consequence rather than an axiom clause, since lifting `m − n ≠ 0` to `m − n ≥ 1`
+  leans on NAT-discrete's discreteness of ℕ — a structural commitment beyond
+  subtraction-structure alone. The per-step citation convention covers every
+  subtraction step that TumblerSub, TA2, TA3, TA3-strict, TA4, TA7a, ReverseInverse,
+  D0, D1, and D2 invoke at a divergence point or round-trip.

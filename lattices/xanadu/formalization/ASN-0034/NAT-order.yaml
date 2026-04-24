@@ -4,8 +4,10 @@ type: axiom
 depends: []
 summary: |
   The natural numbers are strictly totally ordered by `<`: no number precedes itself (irreflexivity), the order is
-  transitive, any two naturals are related by at least one of `<`, `=`, `>` (at-least-one trichotomy), and `<` is
-  disjoint from `=` (the clause `m < n ⟹ m ≠ n`). The four axiom clauses together export *exactly-one trichotomy*
-  as a Consequence: for any two naturals, exactly one of less-than, equality, or greater-than holds. The non-strict
-  companion `≤` is defined from `<` directly, and the reverse companions `≥` and `>` are defined as the converses of
-  `≤` and `<`; all three defined relations inherit the strict-total-order guarantees through their unfoldings.
+  transitive, and any two naturals are related by at least one of `<`, `=`, `>` (at-least-one trichotomy). The
+  three axiom clauses together with indiscernibility of `=` export *exactly-one trichotomy* as a Consequence: for
+  any two naturals, exactly one of less-than, equality, or greater-than holds; disjointness of `<` and `=`
+  (`m < n ⟹ m ≠ n`) follows as the contrapositive of the mutual-exclusion clause `¬(m < n ∧ m = n)` and is exported
+  alongside exactly-one trichotomy. The non-strict companion `≤` is defined from `<` directly, and the reverse
+  companions `≥` and `>` are defined as the converses of `≤` and `<`; all three defined relations inherit the
+  strict-total-order guarantees through their unfoldings.
