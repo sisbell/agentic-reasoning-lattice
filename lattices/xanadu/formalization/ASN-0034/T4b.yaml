@@ -38,10 +38,9 @@ summary: |
   Reverse direction outputs without a subtractive rewrite (the last-segment
   inequality is kept in NAT-discrete's native +1 form rather than converted to
   s_k ≤ #t − 1). NAT-closure grounds the numeral 2 := 1 + 1 in ℕ and the sums
-  s_i + 1, s_i + 2 appearing in the case construction; T4b locally unpacks
-  #t ≥ 1 from T0's nonempty qualification of t ∈ T (the length of a nonempty
-  sequence is at least 1) for the k = 0 branch where the sole segment equals t
-  itself, and NAT-sub's conditional-closure clause at s_i ≥ 1 (T0's index domain)
+  s_i + 1, s_i + 2 appearing in the case construction; T4b cites T0's
+  Axiom's nonemptiness clause (A a ∈ T :: 1 ≤ #a) at a := t directly for
+  #t ≥ 1, for the k = 0 branch where the sole segment equals t itself, and NAT-sub's conditional-closure clause at s_i ≥ 1 (T0's index domain)
   gives s_i − 1 in ℕ for the sub-sequence upper indices. NAT-card's enumeration
   characterisation of |·|
   identifies the length k of the strictly increasing enumeration s₁ < s₂ < … < s_k

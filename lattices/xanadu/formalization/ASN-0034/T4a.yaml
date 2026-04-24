@@ -20,9 +20,9 @@ summary: |
   reduces the last-segment upper bound `s_{k+1} − 1 = (#t + 1) − 1` to `#t`, so the
   last segment is the ℕ-interval `[s_k + 1, #t]` and its non-emptiness is the `+1`
   form `s_k + 1 ≤ #t` — the form NAT-discrete outputs directly from
-  `s_k < #t ⟹ s_k + 1 ≤ #t`, avoiding a subtractive detour. T4a locally unpacks
-  `#t ≥ 1` from T0's nonempty qualification of `t ∈ T` to underwrite the `k = 0`
-  branches. NAT-card's enumeration characterisation of `|·|` identifies the length
+  `s_k < #t ⟹ s_k + 1 ≤ #t`, avoiding a subtractive detour. T4a cites T0's
+  Axiom's nonemptiness clause `(A a ∈ T :: 1 ≤ #a)` at `a := t` directly for
+  `#t ≥ 1`, underwriting the `k = 0` branches. NAT-card's enumeration characterisation of `|·|` identifies the length
   `k` of the strictly increasing enumeration `s₁ < s₂ < … < s_k` of the zero-index
   subset with `zeros(t)`. T4's Exhaustion Consequence `zeros(t) ∈ {0, 1, 2, 3}` —
   whose derivation uses only the bound plus NAT-zero, NAT-order's trichotomy, and
