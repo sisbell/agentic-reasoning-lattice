@@ -29,16 +29,15 @@ summary: |
   m < zeros(t), with the first branch excluded at each step by trichotomy's
   exactly-one clause — the cumulative lower bound m ≤ zeros(t) unfolds to
   m < zeros(t) ∨ m = zeros(t), so one of the other two trichotomy alternatives
-  holds and the third is forbidden, without appeal to transitivity, irreflexivity,
-  or substitution of equals under <), and NAT-discrete (promoting
+  holds and the third is forbidden), and NAT-discrete (promoting
   m < zeros(t) to m + 1 ≤ zeros(t)) together supply exhaustion on
   the T4-valid subdomain (every T4-valid tumbler receives a label);
   the four labels are pairwise distinct because the zero counts 0, 1, 2, 3 are
   pairwise distinct in ℕ — NAT-addcompat's strict successor inequality n < n + 1
   (at n = 0, 1, 2) supplies 0 < 1, 1 < 2, 2 < 3, NAT-order transitivity chains
-  these to 0 < 1 < 2 < 3, and NAT-order's disjointness of < and = (m < n ⟹ m ≠ n)
-  excludes equality within the chain directly from the strict inequalities,
-  without appeal to substitution of equals under < — and zeros(t) is single-valued. T4c does not claim realisation —
+  these to 0 < 1 < 2 < 3, and NAT-order's exactly-one Consequence conjunct
+  ¬(m < n ∧ m = n) — equivalently m < n ⟹ m ≠ n — excludes equality within
+  the chain directly from the strict inequalities — and zeros(t) is single-valued. T4c does not claim realisation —
   existence of a T4-valid tumbler at each zero count is not asserted, so T4c
   stands as a pure definition on whatever T4-valid tumblers exist. The claim is universally quantified
   over the T4-valid subdomain and assigns no level outside it. No dependency on
