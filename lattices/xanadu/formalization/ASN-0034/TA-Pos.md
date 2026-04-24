@@ -1,6 +1,6 @@
 ## Zero tumblers and positivity
 
-**TA-Pos (PositiveTumbler).** A tumbler `t ∈ T` is *positive*, written `Pos(t)`, iff `(E i ∈ ℕ : 1 ≤ i ≤ #t : ¬(tᵢ = 0))`. A tumbler `t ∈ T` is a *zero tumbler*, written `Zero(t)`, iff `(A i ∈ ℕ : 1 ≤ i ≤ #t : tᵢ = 0)`. The bound variable `i` is typed to ℕ because the projection `tᵢ` is defined by T0 only on the index domain `{1, …, #t} ⊆ ℕ` and the bounding relation `≤` is ℕ-typed; the explicit `i ∈ ℕ` keeps parity with the `(A n ∈ ℕ :: …)` form used by the sibling NAT axioms. `tᵢ` itself is a natural number by T0's carrier, the literal `0` against which it is compared is the `0 ∈ ℕ` posited by NAT-zero, the numeral `1` bounding the quantifier range is the `1 ∈ ℕ` posited by NAT-closure, and the relation `≤` bounding that range is the non-strict companion of `<` defined on ℕ by NAT-order; the equality `tᵢ = 0` and the bounding inequalities `1 ≤ i ≤ #t` in the two clauses are thus well-typed within ℕ, and the negation `¬` in the `Pos` clause is classical propositional negation applied to that equality, requiring no additional symbol on ℕ.
+**TA-Pos (PositiveTumbler).** A tumbler `t ∈ T` is *positive*, written `Pos(t)`, iff `(E i ∈ ℕ : 1 ≤ i ≤ #t : ¬(tᵢ = 0))`. A tumbler `t ∈ T` is a *zero tumbler*, written `Zero(t)`, iff `(A i ∈ ℕ : 1 ≤ i ≤ #t : tᵢ = 0)`.
 
 The two predicates are complementary: `(A t ∈ T :: Pos(t) ⟺ ¬Zero(t))`. Every tumbler in `T` is either positive or a zero tumbler, and none is both. This equivalence rests on logic alone: the matrix of the `Pos` clause is the negation of the matrix of the `Zero` clause, and by the DeMorgan duality of bounded quantifiers, `(E i ∈ ℕ : 1 ≤ i ≤ #t : ¬(tᵢ = 0)) ⟺ ¬(A i ∈ ℕ : 1 ≤ i ≤ #t : tᵢ = 0)`.
 
@@ -10,7 +10,7 @@ The set of zero tumblers is written **Z** = {t ∈ T : Zero(t)}.
 
 *Formal Contract:*
 - *Definition:* `(A t ∈ T :: Pos(t) ⟺ (E i ∈ ℕ : 1 ≤ i ≤ #t : ¬(tᵢ = 0)))`; `(A t ∈ T :: Zero(t) ⟺ (A i ∈ ℕ : 1 ≤ i ≤ #t : tᵢ = 0))`; **Z** = {t ∈ T : Zero(t)}.
-- *Complementarity:* `(A t ∈ T :: Pos(t) ⟺ ¬Zero(t))`.
+- *Consequence:* `(A t ∈ T :: Pos(t) ⟺ ¬Zero(t))`.
 - *Depends:*
   - T0 (CarrierSetDefinition) — carrier `T`, length `#t`, component projection `tᵢ`, and the nonemptiness clause `(A a ∈ T :: 1 ≤ #a)` cited in the partition-consequence prose.
   - NAT-zero (NatZeroMinimum) — supplies `0 ∈ ℕ` for the literal appearing in `tᵢ = 0`.

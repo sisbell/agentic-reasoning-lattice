@@ -7,10 +7,6 @@ Strict total order on ℕ means three clauses hold jointly:
 
 The three clauses jointly export *exactly-one trichotomy* as a Consequence: for any `m, n ∈ ℕ`, exactly one of `m < n`, `m = n`, `n < m` holds. Exactly-one is the at-least-one disjunction conjoined with three pairwise mutual-exclusion clauses. `¬(m < n ∧ n < m)` follows from transitivity — which chains `m < n` and `n < m` to `m < m` — against irreflexivity. `¬(m < n ∧ m = n)` follows by substituting `m = n` into `m < n` via indiscernibility of `=`, rewriting to `m < m`, which irreflexivity at `n := m` rules out. `¬(m = n ∧ n < m)` follows by the same substitution applied to `n < m`: rewriting under `m = n` yields `m < m`, again against irreflexivity. The familiar implicational form `m < n ⟹ m ≠ n` is the mutual-exclusion conjunct `¬(m < n ∧ m = n)` rewritten by the classical equivalence `¬(A ∧ B) ⟺ (A ⟹ ¬B)`, so a consumer wanting the implicational form unfolds it from the exactly-one trichotomy bullet at the point of use.
 
-The axiom slot introduces `<` before constraining it: the first clause `< ⊆ ℕ × ℕ` posits `<` as a binary relation on ℕ, and the three strict-total-order clauses that follow then constrain that relation.
-
-The Definition slot introduces the non-strict companion `≤` from `<` and logical equality, and the reverse companions `≥` and `>` as the converses of `≤` and `<` respectively.
-
 *Formal Contract:*
 - *Axiom:* `< ⊆ ℕ × ℕ` (`<` is a binary relation on ℕ); `(A n ∈ ℕ :: ¬(n < n))` (irreflexivity); `(A m, n, p ∈ ℕ : m < n ∧ n < p : m < p)` (transitivity); `(A m, n ∈ ℕ :: m < n ∨ m = n ∨ n < m)` (at-least-one trichotomy).
 - *Consequence:* Exactly-one trichotomy: `(A m, n ∈ ℕ :: (m < n ∨ m = n ∨ n < m) ∧ ¬(m < n ∧ n < m) ∧ ¬(m < n ∧ m = n) ∧ ¬(m = n ∧ n < m))`. The disjunction is the at-least-one axiom clause directly; `¬(m < n ∧ n < m)` follows from transitivity and irreflexivity; `¬(m < n ∧ m = n)` follows by substituting `m = n` into `m < n` via indiscernibility of `=`, rewriting to `m < m` against irreflexivity at `n := m`; `¬(m = n ∧ n < m)` follows by the same substitution applied to `n < m`.
