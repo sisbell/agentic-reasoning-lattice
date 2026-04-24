@@ -1,6 +1,6 @@
 ## Tumbler arithmetic
 
-The system requires an operation that advances a position by a displacement — for computing span endpoints and shifting positions. This operation is tumbler addition (⊕), constructed here as TumblerAdd. It is not arithmetic on numbers but a position-advance operation in a hierarchical address space. Its inverse — tumbler subtraction (⊖), which recovers the displacement between two positions — is a companion operation carried by a separate claim.
+The system requires an operation that advances a position by a displacement — for computing span endpoints and shifting positions. This operation is tumbler addition (⊕), constructed here as TumblerAdd. It is not arithmetic on numbers but a position-advance operation in a hierarchical address space. Its inverse — tumbler subtraction (⊖), which recovers the displacement between two positions — is constructed as TumblerSub.
 
 A displacement `w` is a tumbler whose leading zeros say "stay at these hierarchical levels" and whose first nonzero component says "advance here." Components after the advance point describe the structure of the landing position within the target region.
 
