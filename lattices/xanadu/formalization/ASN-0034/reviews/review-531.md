@@ -24,3 +24,9 @@ Reading the ASN end-to-end against the foundation chain, checking that every inf
 **Issue**: Under the formal definition `absent iff t ∉ dom(X)`, `N` *is* absent at every `t ∈ T` that is not T4-valid, because `dom(N)` is the T4-valid subset. The earlier prose "`N` is never absent" is therefore true only when scoped to the T4-valid subdomain, and the parenthetical scope ("on the whole T4-valid subdomain") must be carried by the reader when re-reading the formal definition. A single-meaning-throughout reading prefers either relativising the formal definition to the T4-valid subdomain explicitly, or stating "`N` is never absent on its domain's outer subdomain" rather than "never absent" simpliciter.
 
 VERDICT: REVISE
+
+## Result
+
+Regional review converged after 3 cycles.
+
+*Elapsed: 3371s*
