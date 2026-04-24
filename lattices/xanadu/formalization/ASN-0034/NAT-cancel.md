@@ -6,8 +6,6 @@
 
 Summand absorption is recorded as a consequence rather than an axiom because both its posited form `m + n = m ⟹ n = 0` and its mirror form `n + m = m ⟹ n = 0` are derivable from the two cancellation axioms together with NAT-closure's two-sided additive identity. From the hypothesis `m + n = m` and NAT-closure's right identity `m + 0 = m` we have `m + n = m + 0`; left cancellation, instantiated at `p := 0`, then delivers `n = 0`. The mirror form admits the parallel walk: from the hypothesis `n + m = m` and NAT-closure's left identity `0 + m = m` we have `n + m = 0 + m`; right cancellation, instantiated at `p := 0`, then delivers `n = 0`.
 
-Two primitives appear in these clauses that are not introduced here. The binary operation `+` is the one posited by NAT-closure's signature clause `+ : ℕ × ℕ → ℕ`; all clauses use `+` at exactly that arity. The literal `0` appearing on the right-hand side of the absorption conclusion is the `0 ∈ ℕ` posited by NAT-zero — NAT-cancel introduces no constant of its own, so without NAT-zero supplying the symbol the absorption conclusion `n = 0` would reference an ungrounded literal.
-
 *Formal Contract:*
 - *Axiom:* `(A m, n, p ∈ ℕ : m + n = m + p : n = p)` (left cancellation); `(A m, n, p ∈ ℕ : n + m = p + m : n = p)` (right cancellation).
 - *Consequence:* `(A m, n ∈ ℕ : m + n = m : n = 0)` (summand absorption, posited form) — derived from the left-cancellation axiom and NAT-closure's right additive identity `n + 0 = n` instantiated at `n := m`, as shown in the preceding prose; the mirror form `(A m, n ∈ ℕ : n + m = m : n = 0)` is the parallel consequence, derived from right cancellation and NAT-closure's left additive identity `0 + n = n` instantiated at `n := m`.
