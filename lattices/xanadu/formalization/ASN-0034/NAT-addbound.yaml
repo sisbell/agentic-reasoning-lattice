@@ -1,5 +1,5 @@
 label: NAT-addbound
-name: NatAdditionDominatesRightOperand
+name: NatAdditionDominatesOperands
 type: theorem
 depends:
 - NAT-zero
@@ -7,11 +7,18 @@ depends:
 - NAT-addcompat
 - NAT-order
 summary: |
-  For every `m, n ∈ ℕ`, the sum `m + n` is bounded below by its right operand:
-  `m + n ≥ n`. Derivable from NAT-zero (which gives `0 ≤ m`), NAT-addcompat's
-  right order compatibility (which lifts `0 ≤ m` to `0 + n ≤ m + n`), and
-  NAT-closure's left additive identity (which rewrites `0 + n` to `n`). Posited
-  as a named theorem so that NAT-sub's right-telescoping clause `(m + n) − n = m`
-  can discharge the implicit `m + n ≥ n` precondition of NAT-sub's own
-  conditional-closure clause without each downstream consumer having to
-  re-derive the lift.
+  For every `m, n ∈ ℕ`, the sum `m + n` is bounded below by each of its
+  operands: `m + n ≥ n` (right dominance) and `m + n ≥ m` (left dominance).
+  Both sides are stated independently because commutativity of addition
+  is not enumerated — without `m + n = n + m`, neither form is derivable
+  from the other. Right dominance follows from NAT-zero (which gives
+  `0 ≤ m`), NAT-addcompat's right order compatibility (which lifts
+  `0 ≤ m` to `0 + n ≤ m + n`), and NAT-closure's left additive identity
+  (which rewrites `0 + n` to `n`). Left dominance follows by the parallel
+  route through NAT-zero's `0 ≤ n`, NAT-addcompat's left order
+  compatibility, and NAT-closure's right additive identity. Posited
+  jointly as a named theorem so that NAT-sub's right- and left-telescoping
+  clauses `(m + n) − n = m` and `(n + m) − n = m` can discharge their
+  implicit preconditions `m + n ≥ n` and `n + m ≥ n` (the latter via
+  instantiation of left dominance at `(m, n) := (n, m)`) without each
+  downstream consumer having to re-derive the lifts.

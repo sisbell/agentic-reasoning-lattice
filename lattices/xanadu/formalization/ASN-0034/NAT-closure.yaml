@@ -5,6 +5,11 @@ depends:
   - NAT-zero
 summary: |
   Posits the binary operation `+ : ℕ × ℕ → ℕ` directly on ℕ, asserts
-  `1 ∈ ℕ`, and fixes `0` as the left additive identity (`0 + n = n`).
+  `1 ∈ ℕ`, and fixes `0` as a two-sided additive identity: left
+  (`0 + n = n`) and right (`n + 0 = n`). Both sides are stated
+  independently because commutativity of addition is not enumerated,
+  so neither identity is derivable from the other — mirroring the
+  both-sided-coverage pattern used throughout the NAT-* foundation
+  (inverse, telescoping, compatibility, cancellation, dominance).
   Closure of ℕ under addition is carried by the signature's codomain
   commitment.
