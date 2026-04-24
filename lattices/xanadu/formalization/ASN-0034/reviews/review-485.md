@@ -19,3 +19,9 @@ Reading the ASN against previous findings and the reviewer instructions, I check
 **What needs resolving**: (OBSERVE only)
 
 VERDICT: REVISE
+
+## Result
+
+Regional review converged after 5 cycles.
+
+*Elapsed: 1384s*
