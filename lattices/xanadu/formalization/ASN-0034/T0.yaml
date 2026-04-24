@@ -7,7 +7,7 @@ depends:
 summary: |
   Posits the carrier set T as the set of finite sequences of natural numbers, and
   introduces the length operator (#) and component projection (aᵢ) as primitives. Commits
-  that for each a ∈ T the component projection's index domain {1, …, #a} is a subset of ℕ,
+  that for each a ∈ T the component projection's index domain is `{j ∈ ℕ : 1 ≤ j ≤ #a}`,
   so bounded quantifiers of the form `1 ≤ i ≤ #a` are well-formed over ℕ. Formalizes
   nonemptiness as `(A a ∈ T :: 1 ≤ #a)`, drawing `1 ∈ ℕ` from NAT-closure and the
   non-strict relation `≤` from NAT-order; without this clause the case
