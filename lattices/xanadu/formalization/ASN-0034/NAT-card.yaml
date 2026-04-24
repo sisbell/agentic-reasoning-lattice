@@ -13,8 +13,6 @@ summary: |
   f : {j ∈ ℕ : 1 ≤ j ≤ k} → ℕ with image S (at k = 0 the domain is empty, f is the
   empty function, vacuously strictly increasing with image ∅, forcing S = ∅ and
   |∅| = 0 without recourse to a convention on empty lists), and |S| ≤ n.
-  Existence-and-uniqueness of k — placed inside the quantifier by the definite
-  article — and the upper bound |S| ≤ n are clauses of the axiom, not consequences.
   NAT-order's strict-total-order discipline keeps the "strictly increasing function"
   predicate well-formed. The operator is distinct from T0's tumbler-length
   #· : T → ℕ, which acts on sequences rather than sets. NAT-card is the foundation
