@@ -24,3 +24,9 @@
 **What needs resolving**: T4a should either (a) cite T4's Exhaustion Consequence to license `k ∈ {0, 1, 2, 3}`, adding it to the T4 entry in Depends, or (b) derive the exhaustion inline from the preconditions it already cites (NAT-zero, NAT-discrete, NAT-order). Picking one removes the silent step; the present text does neither.
 
 VERDICT: REVISE
+
+## Result
+
+Regional review converged after 3 cycles.
+
+*Elapsed: 2965s*
