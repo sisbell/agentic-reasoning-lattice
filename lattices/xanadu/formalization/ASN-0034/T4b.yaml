@@ -6,7 +6,6 @@ depends:
 - T4
 - T4a
 - NAT-zero
-- NAT-discrete
 - NAT-order
 - NAT-closure
 - NAT-sub
@@ -16,7 +15,9 @@ summary: |
   element sub-sequences of a T4-valid tumbler and are well-defined and uniquely
   determined by t. Each projection's image lies in the subset of T whose every
   component is in ℕ⁺ — a nonempty finite sequence over ℕ (by T0)
-  with every component strictly positive by NAT-zero and NAT-discrete at m = 0.
+  with every component strictly positive by NAT-zero (the disjunction
+  0 < n ∨ 0 = n at n := tᵢ excludes the equality branch via the
+  non-separator distinction tᵢ ≠ 0).
   Field absence is encoded by partiality of the corresponding projection — X is
   absent in t iff t ∉ dom(X) — so no external absence marker is required. The
   four domains are fixed by zeros(t): dom(N) is the T4-valid subset of T (N is
