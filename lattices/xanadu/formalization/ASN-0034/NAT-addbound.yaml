@@ -16,9 +16,4 @@ summary: |
   `0 ≤ m` to `0 + n ≤ m + n`), and NAT-closure's left additive identity
   (which rewrites `0 + n` to `n`). Left dominance follows by the parallel
   route through NAT-zero's `0 ≤ n`, NAT-addcompat's left order
-  compatibility, and NAT-closure's right additive identity. Posited
-  jointly as a named theorem so that NAT-sub's right- and left-telescoping
-  clauses `(m + n) − n = m` and `(n + m) − n = m` can discharge their
-  implicit preconditions `m + n ≥ n` and `n + m ≥ n` (the latter via
-  instantiation of left dominance at `(m, n) := (n, m)`) without each
-  downstream consumer having to re-derive the lifts.
+  compatibility, and NAT-closure's right additive identity.
