@@ -6,4 +6,4 @@ In words: `0` is itself a natural number, and every natural number is either str
 - *Axiom:* `0 ∈ ℕ` (zero is a natural number); `(A n ∈ ℕ :: 0 < n ∨ 0 = n)` (every natural number is strictly above or equal to zero).
 - *Consequence:* `(A n ∈ ℕ :: ¬(n < 0))` (no natural number is strictly below zero — the minimum reading).
 - *Depends:*
-  - NAT-order (NatStrictTotalOrder) — supplies the strict-order primitive `<` used in the second axiom clause; under the hypothesis `n < 0`, transitivity `m < n ∧ n < p ⟹ m < p` reduces the `0 < n` branch of the disjunction to `0 < 0`, and indiscernibility of `=` rewrites `n < 0` under `0 = n` to the same `0 < 0` in the equality branch; irreflexivity `¬(n < n)` then contradicts `0 < 0` in both branches, lifting the disjunction `0 < n ∨ 0 = n` to the *Consequence:* bullet `¬(n < 0)`.
+  - NAT-order (NatStrictTotalOrder) — supplies `<` for the axiom's second clause and the irreflexivity `¬(n < n)` + transitivity `m < n ∧ n < p ⟹ m < p` used in the body's derivation of the *Consequence:* bullet `¬(n < 0)`.

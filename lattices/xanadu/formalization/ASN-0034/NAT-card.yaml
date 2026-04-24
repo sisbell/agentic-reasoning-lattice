@@ -9,13 +9,13 @@ depends:
 summary: |
   The cardinality operator |·| is postulated as a primitive total function on subsets
   of every initial segment {1, 2, …, n} ⊆ ℕ (n ∈ ℕ), with codomain ℕ. For such S,
-  |S| ∈ ℕ is a k for which S admits a strictly increasing enumeration s₁ < s₂ < … < s_k
-  under < on ℕ with S = {s₁, …, s_k} (empty enumeration at k = 0, giving |∅| = 0),
-  and |S| ≤ n. Existence of the enumeration, uniqueness of k, and the upper bound
-  |S| ≤ n are all clauses of the axiom, not consequences. NAT-order's
-  strict-total-order discipline keeps the "strictly increasing enumeration" predicate
-  well-formed. The operator is distinct from T0's tumbler-length #· : T → ℕ, which
-  acts on sequences rather than sets. NAT-card is the foundation citation for every
-  claim that invokes |·| — in particular the definition
-  zeros(t) = |{i : 1 ≤ i ≤ #t ∧ tᵢ = 0}| in T4 and its downstream consumers T4a,
-  T4b, T4c.
+  |S| ∈ ℕ is the unique k for which S admits a strictly increasing enumeration
+  s₁ < s₂ < … < s_k under < on ℕ with S = {s₁, …, s_k} (empty enumeration at k = 0,
+  giving |∅| = 0), and |S| ≤ n. Existence-and-uniqueness of k — placed inside the
+  quantifier by the definite article — and the upper bound |S| ≤ n are clauses of
+  the axiom, not consequences. NAT-order's strict-total-order discipline keeps the
+  "strictly increasing enumeration" predicate well-formed. The operator is distinct
+  from T0's tumbler-length #· : T → ℕ, which acts on sequences rather than sets.
+  NAT-card is the foundation citation for every claim that invokes |·| — in
+  particular the definition zeros(t) = |{i : 1 ≤ i ≤ #t ∧ tᵢ = 0}| in T4 and its
+  downstream consumers T4a, T4b, T4c.
