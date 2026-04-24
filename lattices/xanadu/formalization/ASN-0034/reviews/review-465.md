@@ -17,3 +17,9 @@ Two downstream claims in the same ASN contradict this:
 **What needs resolving**: Pick one. If disjointness is not separately exported (NAT-order's current stance), rewrite NAT-sub's strict-positivity derivation and its Depends bullet, and NAT-discrete's equivalence-note text and Depends bullet, to cite "the exactly-one-trichotomy Consequence's `¬(m < n ∧ m = n)` conjunct (used contrapositively)" — the target NAT-order designates. If the citations in NAT-sub / NAT-discrete are correct and disjointness is in fact separately needed by downstream consumers as a named target, reverse NAT-order's demotion and add `(A m, n ∈ ℕ : m < n : m ≠ n)` as its own `*Consequence:*` bullet with its one-line contrapositive derivation. The three claims must realise the same answer to "is there a named disjointness Consequence in NAT-order?".
 
 VERDICT: REVISE
+
+## Result
+
+Regional review not converged after 8 cycles.
+
+*Elapsed: 7948s*
