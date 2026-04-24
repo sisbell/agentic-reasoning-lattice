@@ -33,14 +33,17 @@ summary: |
   defined at t — in particular t.E₁ requires zeros(t) = 3. T4a's reverse direction
   supplies, from T4's field-segment constraint, the conclusion that every field
   segment is non-empty; T4b locally re-expresses this as the segment-length
-  inequalities (s₁ ≥ 2, s_k ≤ #t − 1, s_{j+1} ≥ s_j + 2) that discharge
-  non-emptiness of every listed sub-sequence. NAT-closure grounds the numeral
-  2 := 1 + 1 in ℕ and the sums s_i + 1, s_i + 2 appearing in the case construction;
-  T4b locally unpacks #t ≥ 1 from T0's nonempty qualification of t ∈ T (the length
-  of a nonempty sequence is at least 1), and NAT-sub's conditional-closure clause
-  at s_i ≥ 1 (T0's index domain) and this locally unpacked #t ≥ 1 gives s_i − 1
-  and #t − 1 in ℕ for the sub-sequence upper indices and for the inequality
-  s_k ≤ #t − 1. NAT-card's enumeration characterisation of |·|
+  inequalities (s₁ ≥ 2, s_k + 1 ≤ #t, s_{j+1} ≥ s_j + 2) that discharge
+  non-emptiness of every listed sub-sequence, consuming the native forms T4a's
+  Reverse direction outputs without a subtractive rewrite (the last-segment
+  inequality is kept in NAT-discrete's native +1 form rather than converted to
+  s_k ≤ #t − 1). NAT-closure grounds the numeral 2 := 1 + 1 in ℕ and the sums
+  s_i + 1, s_i + 2 appearing in the case construction; T4b locally unpacks
+  #t ≥ 1 from T0's nonempty qualification of t ∈ T (the length of a nonempty
+  sequence is at least 1) for the k = 0 branch where the sole segment equals t
+  itself, and NAT-sub's conditional-closure clause at s_i ≥ 1 (T0's index domain)
+  gives s_i − 1 in ℕ for the sub-sequence upper indices. NAT-card's enumeration
+  characterisation of |·|
   identifies the length k of the strictly increasing enumeration s₁ < s₂ < … < s_k
   of the zero-index subset with zeros(t), so k = zeros(t) in the case analysis
   on k. Well-definedness follows because T4's role-assignment makes zeros exactly

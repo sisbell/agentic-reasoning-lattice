@@ -24,4 +24,8 @@ summary: |
   `#t ≥ 1` from T0's nonempty qualification of `t ∈ T` to underwrite the `k = 0`
   branches. NAT-card's enumeration characterisation of `|·|` identifies the length
   `k` of the strictly increasing enumeration `s₁ < s₂ < … < s_k` of the zero-index
-  subset with `zeros(t)`.
+  subset with `zeros(t)`. T4's Exhaustion Consequence `zeros(t) ∈ {0, 1, 2, 3}` —
+  whose derivation uses only the bound plus NAT-zero, NAT-order's trichotomy, and
+  NAT-discrete, so it applies under T4a's precondition without requiring the
+  field-segment constraint — pins `k ∈ {0, 1, 2, 3}` in the setup's enumeration,
+  closing the citation chain for the four-case presentation that follows.
