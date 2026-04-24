@@ -4,7 +4,7 @@
 - Right order compatibility: `p ≤ n ⟹ p + m ≤ n + m` for every `m, n, p ∈ ℕ`.
 - Strict successor inequality: `n < n + 1` for every `n ∈ ℕ`.
 
-The left/right compatibility clauses invoke the non-strict `≤` *defined* in NAT-order (by `m ≤ n ⟺ m < n ∨ m = n`) and the binary addition closed over ℕ by NAT-closure; the strict successor inequality uses NAT-order's primitive strict relation `<` together with that same closed addition and NAT-closure's `1 ∈ ℕ`. Both foundations are declared in the Depends slot so that the axiom body can be read without silently importing them.
+The left/right compatibility clauses invoke the non-strict `≤` *defined* in NAT-order (by `m ≤ n ⟺ m < n ∨ m = n`) and the binary addition closed over ℕ by NAT-closure; the strict successor inequality uses NAT-order's primitive strict relation `<` together with that same closed addition and NAT-closure's `1 ∈ ℕ`.
 
 *Formal Contract:*
 - *Axiom:* `(A m, n, p ∈ ℕ : p ≤ n : m + p ≤ m + n)` (left order compatibility); `(A m, n, p ∈ ℕ : p ≤ n : p + m ≤ n + m)` (right order compatibility); `(A n ∈ ℕ :: n < n + 1)` (strict successor inequality).
