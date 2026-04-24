@@ -16,3 +16,9 @@ One new item:
 **What needs resolving**: Drop the "In words: `0` is itself a natural number, and every natural number is either strictly above `0` or equal to it." sentence. Begin the body at "Combined with NAT-order's irreflexivity `¬(n < n)` and transitivity `m < n ∧ n < p ⟹ m < p`, these clauses identify `0` as the minimum: `(A n ∈ ℕ :: ¬(n < 0))`." — or, if the reader needs help linking "these clauses" to the axiom, replace the preamble with a short referential cue rather than a full English paraphrase.
 
 VERDICT: REVISE
+
+## Result
+
+Regional review not converged after 8 cycles.
+
+*Elapsed: 2551s*
