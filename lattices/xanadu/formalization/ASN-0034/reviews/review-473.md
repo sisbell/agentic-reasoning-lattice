@@ -52,3 +52,9 @@
 **What needs resolving**: — (OBSERVE)
 
 VERDICT: REVISE
+
+## Result
+
+Regional review not converged after 8 cycles.
+
+*Elapsed: 4774s*
