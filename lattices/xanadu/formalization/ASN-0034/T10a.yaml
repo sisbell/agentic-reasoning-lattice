@@ -3,7 +3,6 @@ name: AllocatorDiscipline
 type: design-requirement
 depends:
 - Prefix
-- T10
 - T4
 - T0
 - TA5
