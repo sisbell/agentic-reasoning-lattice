@@ -3,13 +3,19 @@ name: NatArithmeticClosureAndIdentity
 type: axiom
 depends:
   - NAT-zero
+  - NAT-order
 summary: |
   Posits the binary operation `+ : ℕ × ℕ → ℕ` directly on ℕ, asserts
-  `1 ∈ ℕ`, and fixes `0` as a two-sided additive identity: left
-  (`0 + n = n`) and right (`n + 0 = n`). Both sides are stated
-  independently because commutativity of addition is not enumerated,
-  so neither identity is derivable from the other — mirroring the
-  both-sided-coverage pattern used throughout the NAT-* foundation
+  `1 ∈ ℕ` together with the distinctness clause `0 < 1` that separates
+  the two named constants, and fixes `0` as a two-sided additive identity:
+  left (`0 + n = n`) and right (`n + 0 = n`). The distinctness clause is
+  not redundant: without it the remaining NAT-* clauses admit a trivial
+  model interpreting `1` as `0`, which would collapse T0's nonemptiness
+  clause `(A a ∈ T :: 1 ≤ #a)` to the vacuous `0 ≤ #a` and destabilise
+  NAT-card's initial-segment anatomy `{1, …, n}` at `n = 0`. Both identity
+  sides are stated independently because commutativity of addition is not
+  enumerated, so neither identity is derivable from the other — mirroring
+  the both-sided-coverage pattern used throughout the NAT-* foundation
   (inverse, telescoping, compatibility, cancellation, dominance).
   Closure of ℕ under addition is carried by the signature's codomain
   commitment.
