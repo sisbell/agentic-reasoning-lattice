@@ -5,15 +5,16 @@ depends:
 - NAT-closure
 - NAT-zero
 summary: |
-  Addition on ℕ is cancellative on either side and absorbs at a summand:
-  `m + n = m + p ⟹ n = p` (left cancellation), `n + m = p + m ⟹ n = p` (right
-  cancellation), and `m + n = m ⟹ n = 0` (summand absorption), for every
-  `m, n, p ∈ ℕ`. Left and right cancellation are stated as independent clauses
-  because the NAT-* axioms of this ASN do not include commutativity of
-  addition on ℕ, so neither is derivable from the other. The mirror
-  absorption form `n + m = m ⟹ n = 0` is deliberately omitted because it is
-  derivable from right cancellation together with NAT-closure's left identity
-  `0 + m = m`, so including it would make the axiom set non-minimal. Stated
-  as an axiom alongside the other NAT-* facts so downstream proofs can cite
-  it directly without appealing to an implicit "standard properties of ℕ"
-  clause.
+  Addition on ℕ is cancellative on either side: `m + n = m + p ⟹ n = p`
+  (left cancellation) and `n + m = p + m ⟹ n = p` (right cancellation), for
+  every `m, n, p ∈ ℕ`, stated as independent axiom clauses because the
+  NAT-* axioms of this ASN do not include commutativity of addition on ℕ,
+  so neither is derivable from the other. Summand absorption
+  `m + n = m ⟹ n = 0` is recorded as a consequence rather than an axiom:
+  from `m + n = m` and NAT-closure's right identity `m + 0 = m`, the
+  rewrite `m + n = m + 0` together with left cancellation at `p := 0`
+  yields `n = 0`; the mirror form `n + m = m ⟹ n = 0` is the parallel
+  consequence via right cancellation and NAT-closure's left identity
+  `0 + m = m`. Cancellation is stated axiomatically alongside the other
+  NAT-* facts so downstream proofs can cite it directly without appealing
+  to an implicit "standard properties of ℕ" clause.

@@ -1,0 +1,12 @@
+# Regional Review — ASN-0034/NAT-addbound (cycle 5)
+
+*2026-04-24 00:40*
+
+### NAT-cancel's independence claim for summand absorption rests on a false premise about NAT-closure
+**Class**: REVISE
+**Foundation**: n/a (foundation ASN)
+**ASN**: NAT-cancel prose — "Summand absorption in the posited form `m + n = m ⟹ n = 0` is independent of cancellation because its derivation would require the right identity `m + 0 = m`, and NAT-closure supplies only the left identity `0 + n = n`; without commutativity, that left identity cannot be rearranged into the right identity that a cancellation-based derivation would need."
+**Issue**: The premise is factually wrong. NAT-closure's own axiom slot lists **both** identities: `(A n ∈ ℕ :: 0 + n = n)` (left additive identity) **and** `(A n ∈ ℕ :: n + 0 = n)` (right additive identity). NAT-addbound's left-dominance derivation cites exactly this — "NAT-closure's right additive identity `(A k ∈ ℕ :: k + 0 = k)`, instantiated at `k := m`". So the right identity is present in the foundation, not absent. With the right identity in hand, summand absorption is derivable from left cancellation alone: from `m + n = m`, rewrite the RHS via right identity to `m + n = m + 0`, then left cancellation at `p := 0` yields `n = 0`. Consequently the axiom list is non-minimal — summand absorption sits as a clause that follows from left cancellation plus NAT-closure — and the prose argument for its independence contradicts the same NAT-closure body the rest of the ASN cites (and NAT-addbound demonstrably uses). The mirror form `n + m = m ⟹ n = 0` was already acknowledged as derivable via right cancellation + left identity in NAT-cancel's own prose; by identical reasoning the posited form is derivable via left cancellation + right identity.
+**What needs resolving**: Either relocate summand absorption from Axiom to Consequence (with a derivation from left cancellation and NAT-closure's right identity, mirroring the mirror-form walk already in the prose) and correct the independence paragraph to reflect NAT-closure's actual content, or — if the author intends NAT-closure to carry only a left identity — delete the right-identity clause from NAT-closure, reroute NAT-addbound's left-dominance derivation through a different argument, and only then retain summand absorption as an axiom. As written, the prose claim, NAT-closure's axiom list, and NAT-addbound's proof cannot all be correct simultaneously.
+
+VERDICT: REVISE
