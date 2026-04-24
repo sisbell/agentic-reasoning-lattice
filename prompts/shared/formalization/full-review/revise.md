@@ -78,7 +78,12 @@ instead "the state satisfies..."
    (e.g., replacing "T" with "the set of T4-valid addresses"), apply the
    change consistently everywhere the term appears in the affected context.
 
-4. If the fix affects formal contracts, update them to match.
+4. If the fix affects formal contracts, update them to match. If the
+   contract's top-level field shape changes (e.g., adding or removing
+   an *Axiom:* or *Definition:* field, or reframing a derived result as
+   a posit), update `type:` in the affected claim's `.yaml` to match.
+   Valid values (lowercase): `axiom`, `definition`, `theorem`,
+   `corollary`, `lemma`, `design-requirement`.
 
 5. If the fix adds new dependencies, add them to the `depends` list in
    the affected claim's `.yaml` file AND update the prose to justify why

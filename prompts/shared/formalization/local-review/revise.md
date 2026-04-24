@@ -95,7 +95,9 @@ depends:
 
 To add new dependencies, append to the `depends` list in the `.yaml` file.
 Do not remove existing dependencies — only add new ones.
-Do not change `label`, `name`, or `type` — those are set during blueprinting.
+Do not change `label` or `name` — those are set during blueprinting. The
+`type` field is a mirror of the Formal Contract's shape; update it when
+the shape changes (see rule 2).
 
 ### Formal Contract
 
@@ -117,6 +119,13 @@ The `*Formal Contract:*` marker is a fixed string. Do not modify it.
    - *Frame:* — what is preserved / not changed
    - *Axiom:* — fundamental assertion by definition or design, not derived
    - *Definition:* — the construction or computation rule
+
+   Keep yaml `type` in sync. If your fix changes the claim's logical
+   role (e.g., by editing the Formal Contract's top-level field shape —
+   adding or removing an *Axiom:* or *Definition:* field, or reframing
+   a derived result as a posit), update `type:` in {{label}}.yaml to
+   match. Valid values (lowercase): `axiom`, `definition`, `theorem`,
+   `corollary`, `lemma`, `design-requirement`.
 
    When writing the formal contract, preserve the exact conditions from
    the claim's narrative — do not simplify, expand, or add implicit type
