@@ -1,4 +1,4 @@
-**TA4 (PartialInverse).** `(A a, w : Pos(w) ∧ k = #a ∧ #w = k ∧ (A i : 1 ≤ i < k : aᵢ = 0) : (a ⊕ w) ⊖ w = a)`, where `k` is the action point of `w`.
+**TA4 (PartialInverse).** `(A a, w ∈ T : Pos(w) ∧ k = #a ∧ #w = k ∧ (A i : 1 ≤ i < k : aᵢ = 0) : (a ⊕ w) ⊖ w = a)`, where `k` is the action point of `w`.
 
 *Proof.* Let `k` denote the action point of `w` (ActionPoint): the least position `i` with `wᵢ > 0`, so `wᵢ = 0` for `i < k` and `wₖ > 0`. `Pos(w)` guarantees `k` exists (TA-Pos).
 

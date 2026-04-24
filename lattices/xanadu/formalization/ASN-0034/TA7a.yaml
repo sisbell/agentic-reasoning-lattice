@@ -4,14 +4,12 @@ type: definition
 depends:
 - T0
 - T1
-- T4
 - TA-Pos
 - ActionPoint
 - TumblerAdd
 - TumblerSub
 - TA0
 - TA2
-- TA6
 - NAT-sub
 - NAT-closure
 - NAT-addcompat

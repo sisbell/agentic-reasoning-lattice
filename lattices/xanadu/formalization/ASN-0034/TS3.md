@@ -18,7 +18,7 @@ By TA0's carrier postcondition, `u ∈ T`. By OrdinalShift, `shift(u, n₂) = u 
 - At `i = m`: `Lₘ = uₘ + n₂ = (vₘ + n₁) + n₂`.
 - `#L = m`.
 
-**Right side.** By NAT-closure, `n₁ + n₂ ∈ ℕ`. By NAT-addcompat (right and left order compatibility at `n₁ ≥ 1` and `n₂ ≥ 1`, and strict successor `1 < 1 + 1`) composed through NAT-order's defining clause and transitivity of `<`: `n₁ + n₂ ≥ 1 + n₂ ≥ 2 ≥ 1`. By OrdinalShift, `shift(v, n₁ + n₂) = v ⊕ δ(n₁ + n₂, m)` with `actionPoint(δ(n₁ + n₂, m)) = m ≤ m = #v`. Let `R = v ⊕ δ(n₁ + n₂, m)`. By TumblerAdd with `k = m`:
+**Right side.** By NAT-closure, `n₁ + n₂ ∈ ℕ`. We derive `n₁ + n₂ ≥ 1` via the chain `n₁ + n₂ ≥ 1 + n₂ ≥ 1 + 1 ≥ 1`: the first step applies NAT-addcompat right order-compatibility to `1 ≤ n₁`; the second applies NAT-addcompat left order-compatibility to `1 ≤ n₂`; the third unfolds NAT-addcompat's strict successor inequality `1 < 1 + 1` through NAT-order's defining clause `m ≤ n ⟺ m < n ∨ m = n`. By OrdinalShift, `shift(v, n₁ + n₂) = v ⊕ δ(n₁ + n₂, m)` with `actionPoint(δ(n₁ + n₂, m)) = m ≤ m = #v`. Let `R = v ⊕ δ(n₁ + n₂, m)`. By TumblerAdd with `k = m`:
 
 - For `1 ≤ i < m`: `Rᵢ = vᵢ`.
 - At `i = m`: `Rₘ = vₘ + (n₁ + n₂)`.

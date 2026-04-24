@@ -3,7 +3,7 @@
 *Derivation.* Let `t₀ ∈ T`, fix `k > 0`, and let `t₁ = inc(t₀, 0)` and `t₂ = inc(t₁, k)` be co-sibling outputs of one allocator under the relaxation.
 
 1. From TA5(d), conclude `#t₂ = #t₁ + k`.
-2. From `k > 0` with NAT-zero (`0 ≤ k`) and NAT-discrete (at `m = 0`, no `n` satisfies `0 ≤ n < 1` except `n = 0`), conclude `k ≥ 1`.
+2. From `k > 0` with NAT-zero (`0 ≤ k`) and NAT-discrete's no-interval form at `m = 0` (`0 ≤ n < 0 + 1 ⟹ n = 0`, instantiated at `n = k`), conclude `k ≥ 0 + 1`; NAT-closure supplies `1 ∈ ℕ` and its left-identity clause `0 + n = n` (instantiated at `n = 1`) rewrites `0 + 1` to `1`, yielding `k ≥ 1`.
 3. From `1 ≤ k` by NAT-addcompat (order-compatibility, `m = #t₁, p = 1, n = k`), conclude `#t₁ + 1 ≤ #t₁ + k`.
 4. From NAT-addcompat (strict successor at `n = #t₁`), conclude `#t₁ < #t₁ + 1`.
 5. From (3), (4) by NAT-order (`m ≤ n ⟺ m < n ∨ m = n`), conclude `#t₁ < #t₁ + k = #t₂`.
@@ -19,7 +19,8 @@ The strict inequality `#t₁ < #t₂` forces `t₁ ≠ t₂`, so `(t₁, t₂)` 
 - *Depends:*
   - T0 (CarrierSetDefinition) — carrier `T`, length `#·`.
   - NAT-zero (NatZeroMinimum) — supplies `0 ≤ k` to instantiate NAT-discrete at `m = 0`.
-  - NAT-discrete (NatDiscreteness) — sharpens `k > 0` on ℕ to `k ≥ 1`.
+  - NAT-discrete (NatDiscreteness) — no-interval form at `m = 0` with `n = k` yields `k ≥ 0 + 1`, which NAT-closure's left identity rewrites to `k ≥ 1`.
+  - NAT-closure (NatArithmeticClosureAndIdentity) — supplies `1 ∈ ℕ` (the symbol in `k ≥ 1`) and the left-identity clause `0 + n = n` (instantiated at `n = 1`) used to rewrite NAT-discrete's conclusion `k ≥ 0 + 1` to `k ≥ 1`.
   - NAT-addcompat (NatAdditionOrderAndSuccessor) — order-compatibility lifts `1 ≤ k` to `#t₁ + 1 ≤ #t₁ + k`; strict successor gives `#t₁ < #t₁ + 1`.
   - NAT-order (NatStrictTotalOrder) — chains the strict inequality and weakens `<` to `≤` for Prefix.
   - TA5 (HierarchicalIncrement) — (d) gives `#t₂ = #t₁ + k`; (b) gives agreement on positions `1..#t₁`.

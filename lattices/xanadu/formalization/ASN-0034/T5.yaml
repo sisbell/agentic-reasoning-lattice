@@ -6,6 +6,7 @@ depends:
 - T1
 - T3
 - NAT-order
+- NAT-addcompat
 - NAT-wellorder
 summary: If two tumblers a and c share a common prefix p, then every tumbler b between them in the lexicographic order also
   shares that prefix. This means every prefix-defined subtree occupies a contiguous interval on the tumbler line — no address
