@@ -102,7 +102,7 @@ Use them as ground truth when checking the reasoning.
 
 - **OBSERVE** — the claim is correct but the precise reader noticed something. Loose phrasing, tighter quantifier possible, alternative framing, minor style. Logged for the record. Does not trigger revision.
 
-The test: would an incorrect fix for this finding be worse than leaving it? If yes, REVISE. If no, OBSERVE.
+Default to REVISE. A finding is REVISE if it surfaces an ungrounded symbol, unjustified inference, missing case, unsound proof step, structural inconsistency, silent precondition, or unresolved reference — anything a downstream consumer could hit. A finding is OBSERVE only when the claim is sound as written and the observation is strictly about framing, phrasing, or stylistic preference that a reasonable reader could leave unchanged without affecting soundness. If you are hesitating between REVISE and OBSERVE, it is REVISE.
 
 ## Output Format
 
