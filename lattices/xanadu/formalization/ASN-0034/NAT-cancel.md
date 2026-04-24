@@ -4,7 +4,7 @@
 - Right cancellation (axiom): `n + m = p + m ⟹ n = p` for every `m, n, p ∈ ℕ`.
 - Summand absorption (consequence): `m + n = m ⟹ n = 0` for every `m, n ∈ ℕ`.
 
-Summand absorption is recorded as a consequence rather than an axiom because both its posited form `m + n = m ⟹ n = 0` and its mirror form `n + m = m ⟹ n = 0` are derivable from the two cancellation axioms together with NAT-closure's two-sided additive identity. From the hypothesis `m + n = m` and NAT-closure's right identity `m + 0 = m` we have `m + n = m + 0`; left cancellation, instantiated at `p := 0`, then delivers `n = 0`. The mirror form admits the parallel walk: from the hypothesis `n + m = m` and NAT-closure's left identity `0 + m = m` we have `n + m = 0 + m`; right cancellation, instantiated at `p := 0`, then delivers `n = 0`.
+Summand absorption follows from cancellation and NAT-closure's two-sided additive identity, in both its posited form `m + n = m ⟹ n = 0` and its mirror form `n + m = m ⟹ n = 0`. From the hypothesis `m + n = m` and NAT-closure's right identity `m + 0 = m` we have `m + n = m + 0`; left cancellation, instantiated at `p := 0`, then delivers `n = 0`. The mirror form admits the parallel walk: from the hypothesis `n + m = m` and NAT-closure's left identity `0 + m = m` we have `n + m = 0 + m`; right cancellation, instantiated at `p := 0`, then delivers `n = 0`.
 
 *Formal Contract:*
 - *Axiom:* `(A m, n, p ∈ ℕ : m + n = m + p : n = p)` (left cancellation); `(A m, n, p ∈ ℕ : n + m = p + m : n = p)` (right cancellation).
