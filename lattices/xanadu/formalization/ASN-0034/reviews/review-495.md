@@ -21,3 +21,9 @@ Reading the full ASN after the prior cycle's fixes landed.
 **What needs resolving**: Either extend T0's Axiom to include an explicit extensional-equality clause for T (and have T3 cite that clause), or reposition T3 as an axiom — the carrier's extensional-equality property — rather than a theorem with a one-paragraph proof that begs the question.
 
 VERDICT: REVISE
+
+## Result
+
+Regional review converged after 8 cycles.
+
+*Elapsed: 5756s*
