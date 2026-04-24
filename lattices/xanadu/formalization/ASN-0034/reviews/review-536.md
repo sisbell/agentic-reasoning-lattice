@@ -12,3 +12,9 @@ Reading the ASN carefully — foundation-only, no external statements to cite ag
 **What needs resolving**: T0 should either export a comprehension/constructor axiom characterising which sequences over ℕ inhabit T, or TumblerAdd must cite a different mechanism for discharging `a ⊕ w ∈ T` from the component-level construction.
 
 VERDICT: REVISE
+
+## Result
+
+Regional review converged after 2 cycles.
+
+*Elapsed: 1268s*
