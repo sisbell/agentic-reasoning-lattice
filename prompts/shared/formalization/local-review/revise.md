@@ -119,13 +119,15 @@ The `*Formal Contract:*` marker is a fixed string. Do not modify it.
    - *Frame:* — what is preserved / not changed
    - *Axiom:* — fundamental assertion by definition or design, not derived
    - *Definition:* — the construction or computation rule
+   - *Consequence:* — a fact derived from the claim's Axiom/Definition clauses (possibly with declared deps), exposed for downstream citation rather than re-derivation; the claim's yaml `type` is unchanged (an axiom with a Consequence is still `type: axiom`)
 
    Keep yaml `type` in sync. If your fix changes the claim's logical
    role (e.g., by editing the Formal Contract's top-level field shape —
    adding or removing an *Axiom:* or *Definition:* field, or reframing
    a derived result as a posit), update `type:` in {{label}}.yaml to
    match. Valid values (lowercase): `axiom`, `definition`, `theorem`,
-   `corollary`, `lemma`, `design-requirement`.
+   `corollary`, `consequence` (alias for `corollary`), `lemma`,
+   `design-requirement`.
 
    When writing the formal contract, preserve the exact conditions from
    the claim's narrative — do not simplify, expand, or add implicit type

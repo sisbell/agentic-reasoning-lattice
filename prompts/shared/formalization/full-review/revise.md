@@ -83,7 +83,8 @@ instead "the state satisfies..."
    an *Axiom:* or *Definition:* field, or reframing a derived result as
    a posit), update `type:` in the affected claim's `.yaml` to match.
    Valid values (lowercase): `axiom`, `definition`, `theorem`,
-   `corollary`, `lemma`, `design-requirement`.
+   `corollary`, `consequence` (alias for `corollary`), `lemma`,
+   `design-requirement`.
 
 5. If the fix adds new dependencies, add them to the `depends` list in
    the affected claim's `.yaml` file AND update the prose to justify why

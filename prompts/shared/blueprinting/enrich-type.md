@@ -30,7 +30,7 @@ When evidence seems to conflict (e.g., a claim labeled "design requirement" in t
 ## YAML output
 
 ```yaml
-type: <axiom | definition | design-requirement | lemma | theorem | corollary>
+type: <axiom | definition | design-requirement | lemma | theorem | corollary | consequence>
 ```
 
 ## Claim

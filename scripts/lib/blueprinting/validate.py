@@ -19,7 +19,7 @@ from lib.shared.paths import blueprint_claims_dir
 from lib.shared.common import find_asn
 
 
-VALID_TYPES = {"axiom", "definition", "design-requirement", "lemma", "theorem", "corollary"}
+VALID_TYPES = {"axiom", "definition", "design-requirement", "lemma", "theorem", "corollary", "consequence"}
 REQUIRED_FIELDS = {"label", "name", "type", "depends"}
 
 

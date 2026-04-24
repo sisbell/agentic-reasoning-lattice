@@ -4,7 +4,7 @@
 
 You are fixing a structural violation of invariant #3 from the Claim File Contract:
 
-> **Declaration matches label.** The markdown body contains exactly one bold claim-declaration of the form `**<Label> (<Name>).**`. The label-position equals the yaml `label` field; the parenthetical equals the yaml `name` field (when `label == name`, the parenthetical repeats it — redundant but uniform). The parenthetical is required in all cases. Type keywords (*axiom*, *definition*, *design-requirement*, *lemma*, *theorem*, *corollary*) do not appear in the label-position.
+> **Declaration matches label.** The markdown body contains exactly one bold claim-declaration of the form `**<Label> (<Name>).**`. The label-position equals the yaml `label` field; the parenthetical equals the yaml `name` field (when `label == name`, the parenthetical repeats it — redundant but uniform). The parenthetical is required in all cases. Type keywords (*axiom*, *definition*, *design-requirement*, *lemma*, *theorem*, *corollary*, *consequence*) do not appear in the label-position.
 
 The yaml `label` is authoritative. The filename and the markdown declaration must conform to it. In this file, the markdown declaration does not match the yaml label — typically because it uses a type keyword (like "Definition") in the label position instead of the claim's actual label.
 

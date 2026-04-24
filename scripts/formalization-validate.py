@@ -47,10 +47,10 @@ FORMAL_CONTRACT_RE = re.compile(r"^\*Formal Contract:\*\s*$", re.MULTILINE)
 DEPENDS_MARKER_RE = re.compile(r"^-\s*\*Depends:\*")
 DEP_ENTRY_RE = re.compile(r"^\s+-\s+([A-Za-z0-9()-]+(?:\.[0-9]+)?)(?:\s|$|,)")
 TYPE_KEYWORDS = {
-    "Axiom", "Definition", "Design-requirement", "Lemma", "Theorem", "Corollary",
+    "Axiom", "Definition", "Design-requirement", "Lemma", "Theorem", "Corollary", "Consequence",
 }
 VALID_TYPES = {
-    "axiom", "definition", "design-requirement", "lemma", "theorem", "corollary",
+    "axiom", "definition", "design-requirement", "lemma", "theorem", "corollary", "consequence",
 }
 REQUIRED_YAML_FIELDS = ("label", "name", "type", "summary", "depends")
 
@@ -60,7 +60,7 @@ MULTICHAR_SYMBOLS = [
     ("|·|", re.compile(r"\|·\|")),
 ]
 STRUCTURAL_FIELDS = ("Axiom", "Definition", "Preconditions", "Postconditions",
-                     "Invariant", "Frame")
+                     "Invariant", "Frame", "Consequence")
 FIELD_BULLET_RE = re.compile(r"^-\s+\*(\w[\w-]*)[:*]", re.MULTILINE)
 
 
