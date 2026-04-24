@@ -1,6 +1,6 @@
 label: T3
 name: SequenceEqualityIsComponentwise
-type: corollary
+type: axiom
 depends:
 - T0
 summary: Tumbler equality is exactly component-wise sequence equality — two tumblers are equal if and only if they have the
