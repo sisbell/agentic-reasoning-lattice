@@ -5,7 +5,6 @@ depends:
 - NAT-order
 - NAT-closure
 - NAT-zero
-- T0
 summary: |
   The cardinality operator |·| is postulated as a primitive total function on subsets
   of every initial segment {j ∈ ℕ : 1 ≤ j ≤ n} ⊆ ℕ (n ∈ ℕ), with codomain ℕ. For such S,
