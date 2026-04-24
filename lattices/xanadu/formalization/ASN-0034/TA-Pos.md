@@ -16,5 +16,3 @@ The set of zero tumblers is written **Z** = {t ∈ T : Zero(t)}.
   - NAT-zero (NatZeroMinimum) — supplies `0 ∈ ℕ` for the literal appearing in `tᵢ = 0`.
   - NAT-order (NatStrictTotalOrder) — supplies `≤` on ℕ for the bounded-quantifier range `1 ≤ i ≤ #t`.
   - NAT-closure (NatArithmeticClosureAndIdentity) — supplies `1 ∈ ℕ` for the numeral bounding that range.
-
-*Note on notation (outside the formal contract).* The predicate `Pos(t)` is written with a dedicated symbol rather than as `t > 0`: `>` is reserved for a separate tumbler ordering under which zero tumblers need not all be minimal, so writing `Pos(t)` as `t > 0` would conflate the two relations.
