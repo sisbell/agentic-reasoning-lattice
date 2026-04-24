@@ -38,7 +38,7 @@ rᵢ   =  ⎨ aₖ + wₖ      if i = k        (single-component advance)
 
 The result `a ⊕ w = [r₁, ..., rₚ]` has length `p = (k - 1) + 1 + (n - k) = n = #w`, where `k - 1 ∈ ℕ` and `n - k ∈ ℕ` are well-defined by NAT-sub's conditional closure under `k ≥ 1` and `n ≥ k`, and the collapses `(k - 1) + 1 = k` and `k + (n - k) = n` are NAT-sub's right- and left-inverse characterisations. Since `n ≥ 1`, the result has at least one component. *Result-length identity:* **`#(a ⊕ w) = #w`**.
 
-Each component of the result is a natural number: for `i < k`, `rᵢ = aᵢ ∈ ℕ` since `a ∈ T` and `k ≤ m`; at the action point, `rₖ = aₖ + wₖ ∈ ℕ` by NAT-closure; for `i > k`, `rᵢ = wᵢ ∈ ℕ`. Therefore **`a ⊕ w ∈ T`** by T0.
+Each component of the result is a natural number: for `i < k`, `rᵢ = aᵢ ∈ ℕ` since `a ∈ T` and `k ≤ m`; at the action point, `rₖ = aₖ + wₖ ∈ ℕ` by NAT-closure; for `i > k`, `rᵢ = wᵢ ∈ ℕ`. The map `i ↦ rᵢ` therefore assigns a natural number to each `i ∈ {j ∈ ℕ : 1 ≤ j ≤ p}`, and `p = n ≥ 1`; T0's comprehension clause, instantiated at length `p` and component map `r`, supplies a tumbler in T whose length is `p` and whose `i`-th component is `rᵢ`. Therefore **`a ⊕ w ∈ T`**.
 
 *Strict advancement.* From `wₖ ≥ 1`, NAT-addcompat's left order-compatibility gives `aₖ + wₖ ≥ aₖ + 1`, and its strict successor inequality gives `aₖ + 1 > aₖ`. NAT-order composes these into `aₖ + wₖ > aₖ`, i.e., `rₖ > aₖ`. For `1 ≤ i < k`, `rᵢ = aᵢ`. Since `k ≤ #a` and `k ≤ #(a ⊕ w) = n`, T1 case (i) at divergence position `k` yields **`a ⊕ w > a`**.
 
@@ -72,7 +72,7 @@ This is correct and intentional: advancing to "the beginning of the next chapter
 - *Preconditions:* a ∈ T, w ∈ T, Pos(w), actionPoint(w) ≤ #a
 - *Definition:* k = actionPoint(w); rᵢ = aᵢ if i < k; rₖ = aₖ + wₖ; rᵢ = wᵢ if i > k
 - *Depends:*
-  - T0 (CarrierSetDefinition) — membership in T; `aⱼ, aₖ ∈ ℕ` for dichotomy sites.
+  - T0 (CarrierSetDefinition) — comprehension clause, instantiated at result-length `p ≥ 1` and the component map `i ↦ rᵢ` valued in ℕ, discharges `a ⊕ w ∈ T`; component projection supplies `aⱼ, aₖ ∈ ℕ` for dichotomy sites.
   - NAT-closure (NatArithmeticClosureAndIdentity) — closure of ℕ under addition at `rₖ = aₖ + wₖ`; additive identity `0 + wₖ = wₖ` in the dominance proof.
   - NAT-addcompat (NatAdditionOrderAndSuccessor) — left order-compatibility and strict successor inequality for strict advancement; right order-compatibility for dominance sub-case `aₖ > 0`.
   - NAT-cancel (NatAdditionCancellation) — summand absorption symmetric form `n + m = m ⟹ n = 0`, instantiated at `n = aₖ, m = wₖ`, rules out `aₖ + wₖ = wₖ` in the dominance sub-case `aₖ > 0`.
