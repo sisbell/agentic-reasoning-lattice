@@ -3,6 +3,7 @@ name: LastSignificantPosition
 type: definition
 depends:
 - T0
+- NAT-closure
 - NAT-wellorder
 - NAT-order
 - NAT-discrete
