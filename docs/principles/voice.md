@@ -38,7 +38,7 @@ Three principles govern what must hold for the review cycle to do its job:
 |-----------|--------|-----------|-----------------|
 | [Coupling](coupling.md) | Content health within a file | Ratio monitoring | Prose:formal balance — neither sprawls without the other |
 | [Validation](validation.md) | Structural health across files | Mechanical invariant checking | The reviewer sees structurally sound state |
-| **Voice** | Output quality of LLM agents | Positive style structure | The reviser produces well-formed prose by construction |
+| **Voice** | Output quality of LLM agents | Positive style structure | The reviser produces well-formed prose by construction; the reviewer speaks only when compelled |
 
 Coupling and validation use monitoring and checking — they detect problems. Voice prevents problems from being generated. The three are complementary: voice shapes what the LLM writes, validation checks the structure of what was written, coupling checks the balance of what was written.
 
@@ -56,10 +56,19 @@ Under voice discipline, add-bias is contained by the structure itself. When ever
 
 This parallels how Dijkstra's "goto considered harmful" worked. The essay succeeded not because it banned goto but because it defined structured programming — a positive structure (sequence, selection, iteration) that left no natural place for goto. The prohibition was a consequence of the structure, not the cause of the discipline.
 
+## Voice operates at both layers
+
+The same [production drive](../design-notes/production-drive.md) that creates add-bias at the revision layer creates pressure at the review layer: the LLM reviewer, having read the content, wants to produce findings and push them toward action. Without an off-ramp (the OBSERVE category), every observation becomes a mandatory revision — and the system over-revises.
+
+OBSERVE is the off-ramp: the reviewer produces its observation without triggering a revise cycle. But the off-ramp must be calibrated so legitimate action items don't get swept into it. Voice discipline is the upstream control — "Dijkstra speaks only when genuinely compelled" reduces the volume of findings generated in the first place, so fewer findings need routing through the off-ramp. A REVISE-first discrimination test then routes the findings that are generated: findings default to REVISE when they surface an ungrounded symbol, unjustified inference, missing case, or structural inconsistency; OBSERVE is reserved for strictly non-load-bearing observations where a reasonable reader could leave the claim unchanged. Voice reduces volume. The test improves routing. Together they keep the off-ramp functioning without absorbing action items.
+
+The principle's scope therefore extends to both the reviser (how to write) and the reviewer (when to speak). The production drive operates at both layers. Voice discipline addresses both — constraining additions to be load-bearing at the revision layer, and making silence a disciplined performance at the review layer.
+
 ## Related
 
 - [Coupling Principle](coupling.md) — governs content health. Voice governs output quality. Together they shape what the reviser produces and how it balances.
 - [Validation Principle](validation.md) — governs structural health through enumeration. Voice governs prose quality through positive structure. The two principles use different mechanisms because they operate on different kinds of constraint (closed vs open).
+- [Production Drive](../design-notes/production-drive.md) — the LLM behavioral force that voice discipline counteracts at both layers. Add-bias at the revision layer and over-action at the classification layer are manifestations of the same drive. OBSERVE and OUT_OF_SCOPE are the off-ramps; voice discipline reduces the volume that needs routing through them.
 - [Surface Expansion](../equilibrium/surface-expansion.md) — the failure mode that voice discipline contains. Surface expansion is driven by add-bias; voice discipline constrains additions to be load-bearing.
 - [Prose Sprawl](../equilibrium/prose-sprawl.md) — the specific manifestation voice discipline prevents. The sprawl force is still present; the voice structure leaves it no room to accumulate.
 - [Review V-Cycle](../design-notes/review-v-cycle.md) — the review machinery where voice discipline operates. The Dijkstra voice is carried in both the reviewer prompt (how to read) and the reviser prompt (how to write).
