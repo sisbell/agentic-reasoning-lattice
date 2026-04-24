@@ -1,6 +1,6 @@
 **NAT-closure (NatArithmeticClosureAndIdentity).** The binary operation `+ : ℕ × ℕ → ℕ` is posited directly on ℕ; the numeral `1` is in ℕ and is strictly above `0`; and `0` is a two-sided additive identity for `+`.
 
-The signature `+ : ℕ × ℕ → ℕ` carries two load-bearing commitments. Its domain `ℕ × ℕ` makes `+` total on the naturals — every pair of naturals has a sum — and its codomain `ℕ` closes the operation under addition, so compositional terms like `(m + n) + p` re-enter the signature without a side condition. Totality rules out partial addition and closure rules out sums that escape ℕ; together they are what lets callers chain `+` across steps without carrying a well-definedness obligation at each application.
+The signature `+ : ℕ × ℕ → ℕ` carries two load-bearing commitments. Its domain `ℕ × ℕ` makes `+` total on the naturals — every pair of naturals has a sum — and its codomain `ℕ` closes the operation under addition, so compositional terms like `(m + n) + p` re-enter the signature without a side condition. Totality rules out partial addition and closure rules out sums that escape ℕ.
 
 The pair `1 ∈ ℕ` and `0 < 1` names a second constant in ℕ and locates it in the strict order. `0 < 1` entails `0 ≠ 1` against NAT-order's exactly-one trichotomy, which forbids `0 < 1 ∧ 0 = 1`. Beyond distinctness, `0 < 1` pins `1` strictly above `0`.
 
