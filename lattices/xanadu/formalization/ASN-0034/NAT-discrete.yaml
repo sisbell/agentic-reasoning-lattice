@@ -8,8 +8,11 @@ summary: |
   No natural number lies strictly between `n` and `n + 1`. The axiom form is
   `m < n ⟹ m + 1 ≤ n`; the familiar no-interval reformulation
   `m ≤ n < m + 1 ⟹ n = m` is recorded as a Consequence rather than a second axiom,
-  because each direction of the equivalence leans on NAT-order clauses beyond the
-  `≤`-definition — exactly-one trichotomy, irreflexivity, and disjointness of `<` and
-  `=`. The axiom cites the non-strict `≤` (defined in NAT-order by
-  `m ≤ n ⟺ m < n ∨ m = n`) and the successor term `m + 1` (grounded by NAT-closure's
-  `1 ∈ ℕ` and addition-closure), so both appear in the Depends slot.
+  because it is derivable from the axiom body via NAT-order's `≤`-definition,
+  exactly-one trichotomy, and irreflexivity. The converse direction also holds,
+  making the two formulations interderivable (the converse additionally cites
+  NAT-order's disjointness clause `m < n ⟹ m ≠ n`), but that equivalence is recorded
+  as a separate note — the Consequence itself is the forward conditional only. The
+  axiom cites the non-strict `≤` (defined in NAT-order by `m ≤ n ⟺ m < n ∨ m = n`)
+  and the successor term `m + 1` (grounded by NAT-closure's `1 ∈ ℕ` and
+  addition-closure), so both appear in the Depends slot.

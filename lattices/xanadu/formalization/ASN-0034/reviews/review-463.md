@@ -1,0 +1,25 @@
+# Regional Review — ASN-0034/NAT-addbound (cycle 6)
+
+*2026-04-24 00:54*
+
+### NAT-discrete Consequence claims "bidirectional" derivation but the conditional it states needs only forward
+**Class**: REVISE
+**Foundation**: n/a (foundation ASN)
+**ASN**: NAT-discrete Consequence — `(A m, n ∈ ℕ :: m ≤ n < m + 1 ⟹ n = m)` (no-interval form) — "derived bidirectionally from the axiom together with NAT-order (the `≤`-definition, the exactly-one-trichotomy clause `¬(a < b ∧ b < a)`, irreflexivity, and the disjointness clause `m < n ⟹ m ≠ n`) as shown in the preceding prose".
+**Issue**: The Consequence is a one-directional conditional: `m ≤ n < m + 1 ⟹ n = m`. Deriving it from the axiom needs only the forward direction (axiom ⟹ no-interval). The reverse direction in the prose walks no-interval ⟹ axiom, i.e., derives the *axiom* from the *Consequence* — but the axiom is posited, not to be derived. That reverse walk proves a separate claim (that axiom and no-interval form are interderivable), which is an equivalence, not the Consequence as stated. Describing the Consequence derivation as "bidirectional" inflates what the Consequence claims; a reader who counts what is actually being shown will find one direction serving the Consequence and one direction serving something else (an equivalence argument for why the form is recorded as Consequence rather than as a second axiom). The two purposes are conflated in a single walk labelled as the derivation.
+**What needs resolving**: Either reduce the derivation to the forward direction (the one that actually delivers the Consequence) and either drop the reverse walk or relocate it as an explicit equivalence note separate from the Consequence-derivation slot; or, if the intent is to assert equivalence of axiom and no-interval form as a distinct named claim, split it out and derive both directions under that claim. As written, a one-directional Consequence statement is attached to a bidirectional derivation whose reverse half establishes something the Consequence does not claim.
+
+### Pentagonal cross-reference sprawl in the "deliberate substitute for commutativity" meta-prose
+**Class**: REVISE
+**Foundation**: n/a
+**ASN**: NAT-closure, NAT-addcompat, NAT-sub, NAT-cancel, NAT-addbound — each contains a paragraph of the form "Both-sided coverage is the foundation's deliberate substitute for the absent commutativity axiom, matching the same design choice NAT-X makes for its …-pair, NAT-Y makes for its …-pair, NAT-Z makes for its …-pair, and NAT-W makes for its …-pair." Each of the five claims names the other four in its list.
+**Issue**: The same structural rationale — that both-sided clauses substitute for undeclared commutativity — is stated five times, and each statement now contains a four-way citation to the other sites where the rationale is also stated. This is O(n²) meta-prose: adding a sixth both-sided pair would require updating five existing paragraphs to add a reference to the new site. The paragraphs catalogue what the foundation *does not have* (commutativity) rather than what the axioms assert, and the citation network among them has no reader purpose — a reader who has seen the rationale once does not need to see it four more times, nor does each site need to list the others. This is a specific mutation of the previously-flagged "defensive meta-prose accretes" pattern: the meta-prose did not shrink between cycles, it cross-linked.
+**What needs resolving**: Collapse the five paragraphs. One statement of the "no commutativity, so both-sided" principle — at a single site in the ASN, or as a preamble before the individual claims — suffices; the individual claims can then state what the axiom says without each listing the other four. The cross-references to "NAT-X makes the same choice" encode a structural observation that does not depend on the site of observation; making it at the foundation level, once, removes the quadratic growth and removes the forward-references introduced by (e.g.) NAT-closure pointing at NAT-sub which appears later in the document.
+
+### "Unfolds via ≤-definition" describes weakening, not unfolding
+**Class**: OBSERVE
+**Foundation**: n/a
+**ASN**: NAT-sub strict-monotonicity prose — "The `b < a` case unfolds via NAT-order's `≤`-definition to `b ≤ a`"; NAT-sub strict-positivity prose — "NAT-order's reverse companion `m > n ⟺ n < m` and the `≤`-definition deliver `n ≤ m`, hence `m ≥ n`".
+**Issue**: "Unfolding" a definition normally means replacing the defined term with its definition: unfolding `m ≤ n` yields `m < n ∨ m = n`. In both sites the move is the opposite: from `b < a` (a hypothesis in one disjunct shape), conclude `b ≤ a` (the defined term) by noting that `b < a` is one disjunct of the unfolded form. That is weakening (or folding), not unfolding. The difference is navigational, not logical — the step is sound — but calling it "unfolds" and having other sites in the same document genuinely unfold `≤` to `< ∨ =` (NAT-addbound's right-dominance derivation unfolds `0 < m ∨ 0 = m` *to* `0 ≤ m`, also called "unfolds") leaves the term doing double duty in opposite directions.
+
+VERDICT: REVISE
