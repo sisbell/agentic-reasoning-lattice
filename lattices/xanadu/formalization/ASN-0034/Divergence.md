@@ -13,7 +13,6 @@ The function is symmetric: `divergence(a, b) = divergence(b, a)`. In case (i), t
 - *Definition:* (i) if `(∃ k : 1 ≤ k ∧ k ≤ #a ∧ k ≤ #b : aₖ ≠ bₖ)`, then `divergence(a, b)` is the least `k` satisfying `1 ≤ k ∧ k ≤ #a ∧ k ≤ #b ∧ aₖ ≠ bₖ ∧ (A i : 1 ≤ i < k : aᵢ = bᵢ)` (equivalently, the unique such `k`, the universal conjunct being the minimality condition restated); (ii) if `#a ≠ #b ∧ (A i : 1 ≤ i ≤ #a ∧ i ≤ #b : aᵢ = bᵢ)`, then `divergence(a, b) = #a + 1` when `#a < #b` (sub-case (ii-a)) and `divergence(a, b) = #b + 1` when `#b < #a` (sub-case (ii-b)).
 - *Depends:*
   - T0 (CarrierSetDefinition) — supplies `a, b ∈ T`, lengths `#a, #b`, and component projections `aₖ, bₖ, aᵢ, bᵢ` as ℕ-valued, making component (in)equalities well-formed.
-  - T1 (LexicographicOrder) — Divergence formalizes T1's "first divergence position"; case (i) corresponds to T1 case (i) and case (ii) (with sub-cases (ii-a)/(ii-b)) corresponds to T1 case (ii).
   - T3 (CanonicalRepresentation) — exhaustiveness: if neither case applies, all shared components agree and `#a = #b`, so `a = b`, contradicting `a ≠ b`.
   - NAT-order (NatStrictTotalOrder) — trichotomy at length pair `(#a, #b)` splits case (ii) into sub-cases (ii-a)/(ii-b).
   - NAT-wellorder (NatWellOrdering) — existence of a least element in the nonempty subset `{k ∈ ℕ : 1 ≤ k ∧ k ≤ #a ∧ k ≤ #b ∧ aₖ ≠ bₖ}` grounds case (i)'s designating description, so "the least such `k`" is non-vacuous.

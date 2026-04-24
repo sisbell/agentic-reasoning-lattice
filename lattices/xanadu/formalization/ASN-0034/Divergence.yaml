@@ -3,7 +3,6 @@ name: Divergence
 type: corollary
 depends:
 - T0
-- T1
 - T3
 - NAT-order
 - NAT-wellorder
