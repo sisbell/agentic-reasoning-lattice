@@ -42,7 +42,7 @@ class EmitTestBase(unittest.TestCase):
 class EmitReviewTests(EmitTestBase):
     def test_emit_review_classifier(self):
         review_path = self._write_under_root(
-            "lattices/xanadu/formalization/ASN-0001/reviews/review-1.md",
+            "lattices/xanadu/claim-convergence/ASN-0001/reviews/review-1.md",
             "# Review\n",
         )
         link_id = emit_review(self.store, review_path)
@@ -51,7 +51,7 @@ class EmitReviewTests(EmitTestBase):
         self.assertEqual(rec["from_set"], [])
         self.assertEqual(
             rec["to_set"],
-            ["lattices/xanadu/formalization/ASN-0001/reviews/review-1.md"],
+            ["lattices/xanadu/claim-convergence/ASN-0001/reviews/review-1.md"],
         )
 
 
@@ -72,9 +72,9 @@ class EmitFindingsTests(EmitTestBase):
 
     def test_one_revise(self):
         review_path = self._write_under_root(
-            "lattices/xanadu/formalization/ASN-0001/reviews/review-1.md", "x",
+            "lattices/xanadu/claim-convergence/ASN-0001/reviews/review-1.md", "x",
         )
-        index = {"T0": "lattices/xanadu/formalization/ASN-0001/T0.md"}
+        index = {"T0": "lattices/xanadu/claim-convergence/ASN-0001/T0.md"}
         findings = self._findings(
             {"title": "missing precondition", "cls": "REVISE", "target_label": "T0"},
         )
@@ -92,9 +92,9 @@ class EmitFindingsTests(EmitTestBase):
 
     def test_observe_classified_correctly(self):
         review_path = self._write_under_root(
-            "lattices/xanadu/formalization/ASN-0001/reviews/review-1.md", "x",
+            "lattices/xanadu/claim-convergence/ASN-0001/reviews/review-1.md", "x",
         )
-        index = {"T0": "lattices/xanadu/formalization/ASN-0001/T0.md"}
+        index = {"T0": "lattices/xanadu/claim-convergence/ASN-0001/T0.md"}
         findings = self._findings(
             {"title": "naming nit", "cls": "OBSERVE", "target_label": "T0"},
         )
@@ -108,9 +108,9 @@ class EmitFindingsTests(EmitTestBase):
 
     def test_skips_unresolvable_target(self):
         review_path = self._write_under_root(
-            "lattices/xanadu/formalization/ASN-0001/reviews/review-1.md", "x",
+            "lattices/xanadu/claim-convergence/ASN-0001/reviews/review-1.md", "x",
         )
-        index = {"T0": "lattices/xanadu/formalization/ASN-0001/T0.md"}
+        index = {"T0": "lattices/xanadu/claim-convergence/ASN-0001/T0.md"}
         findings = self._findings(
             {"title": "good", "cls": "REVISE", "target_label": "T0"},
             {"title": "bad", "cls": "REVISE", "target_label": "DoesNotExist"},
@@ -125,12 +125,12 @@ class EmitFindingsTests(EmitTestBase):
 
     def test_returns_input_order(self):
         review_path = self._write_under_root(
-            "lattices/xanadu/formalization/ASN-0001/reviews/review-1.md", "x",
+            "lattices/xanadu/claim-convergence/ASN-0001/reviews/review-1.md", "x",
         )
         index = {
-            "T0": "lattices/xanadu/formalization/ASN-0001/T0.md",
-            "T1": "lattices/xanadu/formalization/ASN-0001/T1.md",
-            "T2": "lattices/xanadu/formalization/ASN-0001/T2.md",
+            "T0": "lattices/xanadu/claim-convergence/ASN-0001/T0.md",
+            "T1": "lattices/xanadu/claim-convergence/ASN-0001/T1.md",
+            "T2": "lattices/xanadu/claim-convergence/ASN-0001/T2.md",
         }
         findings = self._findings(
             {"title": "one", "cls": "REVISE", "target_label": "T2"},
@@ -146,9 +146,9 @@ class EmitFindingsTests(EmitTestBase):
 
     def test_materializes_at_expected_path(self):
         review_path = self._write_under_root(
-            "lattices/xanadu/formalization/ASN-0034/reviews/review-46.md", "x",
+            "lattices/xanadu/claim-convergence/ASN-0034/reviews/review-46.md", "x",
         )
-        index = {"S7": "lattices/xanadu/formalization/ASN-0034/S7.md"}
+        index = {"S7": "lattices/xanadu/claim-convergence/ASN-0034/S7.md"}
         findings = self._findings(
             {"title": "issue A", "cls": "REVISE", "target_label": "S7"},
         )
@@ -167,9 +167,9 @@ class EmitFindingsTests(EmitTestBase):
 
     def test_falls_back_to_foundation_when_asn_missing(self):
         review_path = self._write_under_root(
-            "lattices/xanadu/formalization/ASN-0001/reviews/review-1.md", "x",
+            "lattices/xanadu/claim-convergence/ASN-0001/reviews/review-1.md", "x",
         )
-        index = {"NAT-zero": "lattices/xanadu/formalization/ASN-0034/NAT-zero.md"}
+        index = {"NAT-zero": "lattices/xanadu/claim-convergence/ASN-0034/NAT-zero.md"}
         body = (
             "### Cross-cone observation\n"
             "**Class**: REVISE\n"

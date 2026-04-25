@@ -28,13 +28,13 @@ def _load(name, path):
     return mod
 
 
-VALIDATE = _load("formalization_validate", _SCRIPTS / "formalization-validate.py")
-REVISE = _load("formalization_validate_revise",
-               _SCRIPTS / "formalization-validate-revise.py")
+VALIDATE = _load("convergence_validate", _SCRIPTS / "convergence-validate.py")
+REVISE = _load("convergence_validate_revise",
+               _SCRIPTS / "convergence-validate-revise.py")
 
 
 def _run_validator(asn_label):
-    claim_dir = VALIDATE.formalization_dir(asn_label)
+    claim_dir = VALIDATE.claim_convergence_dir(asn_label)
     pairs = VALIDATE.load_pairs(claim_dir)
     return VALIDATE.run_all_checks(pairs)
 

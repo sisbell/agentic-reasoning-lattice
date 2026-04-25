@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Promote Blueprint — copy blueprint claims to formalization.
+Promote Blueprint — copy blueprint claims to claim convergence.
 
 Copies per-claim files from lattices/xanadu/blueprinting/ASN-NNNN/claims/
-to lattices/xanadu/formalization/ASN-NNNN/ where formalization operates on
+to lattices/xanadu/claim-convergence/ASN-NNNN/ where claim convergence operates on
 the files in place.
 
 Usage:
@@ -19,13 +19,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import (
-    WORKSPACE, FORMALIZATION_DIR, blueprint_claims_dir,
+    WORKSPACE, CLAIM_CONVERGENCE_DIR, blueprint_claims_dir,
 )
 from lib.shared.common import find_asn, step_commit_asn
 
 
 def promote_blueprint(asn_num, dry_run=False):
-    """Copy blueprint claims to formalization."""
+    """Copy blueprint claims to claim convergence."""
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
         print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
@@ -36,7 +36,7 @@ def promote_blueprint(asn_num, dry_run=False):
         print(f"  No blueprint found for {asn_label}", file=sys.stderr)
         return False
 
-    dst = FORMALIZATION_DIR / asn_label
+    dst = CLAIM_CONVERGENCE_DIR / asn_label
 
     print(f"\n  [PROMOTE] {asn_label}", file=sys.stderr)
     print(f"  Source: {src.relative_to(WORKSPACE)}", file=sys.stderr)
@@ -74,7 +74,7 @@ def promote_blueprint(asn_num, dry_run=False):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Promote blueprint to formalization")
+        description="Promote blueprint to claim convergence")
     parser.add_argument("asn", help="ASN number (e.g., 34)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Show what would be done")

@@ -20,7 +20,7 @@ from lib.shared.paths import prompt_path, load_manifest
 from lib.shared.common import read_file, invoke_claude
 from lib.shared.foundation import load_foundation_statements, load_foundation_for_labels
 
-REVIEW_TEMPLATE = prompt_path("formalization/full-review/review.md")
+REVIEW_TEMPLATE = prompt_path("claim-convergence/full-review/review.md")
 
 _VERDICT_RE = re.compile(r'^VERDICT:\s*(CONVERGED|OBSERVE|REVISE)\s*$', re.MULTILINE)
 _CLASS_RE = re.compile(r'\*\*Class\*\*:\s*(REVISE|OBSERVE)', re.IGNORECASE)

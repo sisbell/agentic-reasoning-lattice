@@ -1,13 +1,13 @@
-"""formalization-validate-revise — apply mechanical fixes driven by validator findings.
+"""convergence-validate-revise — apply mechanical fixes driven by validator findings.
 
-Paired with formalization-validate.py: that script finds structural-invariant
+Paired with convergence-validate.py: that script finds structural-invariant
 violations; this one applies per-invariant fixes. Loop is validator finds →
 reviser fixes → validator re-runs between passes. Six passes in order:
 body-uniqueness, declaration-label-mismatch, depends-agreement,
 references-resolve, filename-label-mismatch, acyclic-depends (propose-only).
 
 Usage:
-    python scripts/formalization-validate-revise.py 34 [--dry-run|--apply]
+    python scripts/convergence-validate-revise.py 34 [--dry-run|--apply]
                                                         [--rule RULE]
                                                         [--file FILE]
                                                         [--from-pass N]
@@ -28,13 +28,13 @@ from shared.common import invoke_claude_agent, find_asn
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-PROMPT_DIR = REPO_ROOT / "prompts" / "shared" / "formalization" / "validate-revise"
+PROMPT_DIR = REPO_ROOT / "prompts" / "shared" / "claim-convergence" / "validate-revise"
 
 
 def _load_validator():
     spec = importlib.util.spec_from_file_location(
-        "formalization_validate",
-        Path(__file__).resolve().parent / "formalization-validate.py",
+        "convergence_validate",
+        Path(__file__).resolve().parent / "convergence-validate.py",
     )
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
@@ -56,7 +56,7 @@ PASSES = [
 
 
 def run_validator(asn_label):
-    claim_dir = VALIDATOR.formalization_dir(asn_label)
+    claim_dir = VALIDATOR.claim_convergence_dir(asn_label)
     pairs = VALIDATOR.load_pairs(claim_dir)
     return VALIDATOR.run_all_checks(pairs)
 
@@ -457,9 +457,9 @@ def run_passes(asn_label, *, scope_labels=None, rules=None, mode="apply",
     if to_pass is None:
         to_pass = len(PASSES)
 
-    claim_dir = VALIDATOR.formalization_dir(asn_label)
+    claim_dir = VALIDATOR.claim_convergence_dir(asn_label)
     if not claim_dir.exists():
-        raise FileNotFoundError(f"No formalization directory: {claim_dir}")
+        raise FileNotFoundError(f"No claim-convergence directory: {claim_dir}")
 
     rule_filter = set(rules) if rules is not None else None
     scope = set(scope_labels) if scope_labels is not None else None

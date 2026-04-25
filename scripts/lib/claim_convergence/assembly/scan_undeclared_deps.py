@@ -27,7 +27,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, prompt_path, load_manifest, formal_stmts, dep_graph
 from lib.shared.common import find_asn, read_file, extract_claim_sections, build_label_index, dump_yaml
 
-PROMPT_TEMPLATE = prompt_path("formalization/assembly/scan-dependency.md")
+PROMPT_TEMPLATE = prompt_path("claim-convergence/assembly/scan-dependency.md")
 
 
 # ---------------------------------------------------------------------------
@@ -261,8 +261,8 @@ def scan_asn(asn_num, model="sonnet", effort="high", dry_run=False):
         return None
 
     # Build deps from per-claim YAMLs
-    from lib.formalization.core.build_dependency_graph import generate_formalization_deps
-    deps = generate_formalization_deps(asn_num)
+    from lib.claim_convergence.core.build_dependency_graph import generate_claim_convergence_deps
+    deps = generate_claim_convergence_deps(asn_num)
     if deps is None:
         print(f"  [ERROR] Could not build deps from per-claim YAMLs",
               file=sys.stderr)
@@ -333,8 +333,8 @@ def scan_asn(asn_num, model="sonnet", effort="high", dry_run=False):
         print(f"  [WROTE] {deps_path.relative_to(WORKSPACE)}", file=sys.stderr)
 
         # Update per-claim YAML depends fields
-        from lib.shared.paths import FORMALIZATION_DIR
-        claim_dir = FORMALIZATION_DIR / asn_label
+        from lib.shared.paths import CLAIM_CONVERGENCE_DIR
+        claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
         if claim_dir.exists():
             _label_index = build_label_index(claim_dir)
             for label, claim_data in deps.get("claims", {}).items():

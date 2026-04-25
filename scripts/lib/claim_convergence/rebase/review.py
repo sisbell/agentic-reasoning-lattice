@@ -6,7 +6,7 @@ Pass 2: Cross-reference (LLM) — name mismatches, local redefinitions
 Pass 3: Extension (LLM) — extends/parallels claims verified semantically
 Pass 4: Dependency report (LLM) — structural drift, registry misclassification
 
-Step functions for the orchestrator (scripts/formalization-rebase.py):
+Step functions for the orchestrator (scripts/convergence-rebase.py):
 - run_review: run all four passes, return list of Finding objects
 """
 
@@ -22,16 +22,16 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import FORMALIZATION_DIR, prompt_path, formal_stmts, load_manifest, dep_graph
+from lib.shared.paths import CLAIM_CONVERGENCE_DIR, prompt_path, formal_stmts, load_manifest, dep_graph
 from lib.shared.common import find_asn, assemble_readonly, read_file
 from lib.shared.foundation import load_foundation_statements
-from lib.formalization.core.build_dependency_graph import generate_discovery_deps
-from lib.formalization.core.finding import Finding
+from lib.claim_convergence.core.build_dependency_graph import generate_discovery_deps
+from lib.claim_convergence.core.finding import Finding
 from lib.blueprinting.lint import build_label_map, scan_reasoning_doc, get_dep_chain
 
 REVIEW_TEMPLATE = prompt_path("rebase/review.md")
 DEP_REPORT_TEMPLATE = prompt_path("shared/dependency-report.md")
-EXT_PROMPT_TEMPLATE = prompt_path("formalization/rebase/verify-extension.md")
+EXT_PROMPT_TEMPLATE = prompt_path("claim-convergence/rebase/verify-extension.md")
 
 
 # ---------------------------------------------------------------------------
@@ -640,7 +640,7 @@ def _check_cross_references(asn_num, target_labels=None):
     all_labels = list(deps_data.get("claims", {}).keys())
 
     # Read per-claim files if available
-    claim_dir = FORMALIZATION_DIR / asn_label
+    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
     if claim_dir.exists():
         from lib.shared.common import load_claim_sections
         local_sections = load_claim_sections(claim_dir)

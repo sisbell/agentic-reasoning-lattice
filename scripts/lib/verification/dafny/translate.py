@@ -16,7 +16,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
-from lib.shared.paths import (WORKSPACE, FORMALIZATION_DIR, PROOFS_DIR, USAGE_LOG,
+from lib.shared.paths import (WORKSPACE, CLAIM_CONVERGENCE_DIR, PROOFS_DIR, USAGE_LOG,
                     LATTICE_PROMPTS, load_manifest)
 from lib.shared.common import find_asn, assemble_readonly, build_label_index, load_claim_metadata
 from lib.verification.dafny.common import read_file
@@ -27,7 +27,7 @@ DAFNY_REFERENCE = PROMPTS_DIR / "dafny-reference.dfy"
 
 
 def build_claim_list_from_asn(asn_num):
-    """Build claim list from per-claim files in lattices/xanadu/formalization/.
+    """Build claim list from per-claim files in lattices/xanadu/claim-convergence/.
 
     Reads per-claim YAML for metadata, .md files for contract type detection.
 
@@ -37,7 +37,7 @@ def build_claim_list_from_asn(asn_num):
     if asn_label is None:
         return []
 
-    claim_dir = FORMALIZATION_DIR / asn_label
+    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
     if not claim_dir.exists():
         return []
 

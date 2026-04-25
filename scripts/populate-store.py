@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Populate the protocol substrate's structural layer from claim YAML/MD artifacts.
 
-Walks every ASN under the lattice's formalization directory and ensures
+Walks every ASN under the lattice's claim-convergence directory and ensures
 claim, contract.<kind>, and citation links exist in the store.
 Idempotent: re-running adds only newly-discovered links.
 

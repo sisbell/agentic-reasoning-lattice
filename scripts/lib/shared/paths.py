@@ -46,8 +46,8 @@ CAMPAIGNS_DIR = LATTICE / "campaigns"
 # Blueprinting stage
 BLUEPRINTS_DIR = LATTICE / "blueprinting"
 
-# Formalization stage
-FORMALIZATION_DIR = LATTICE / "formalization"
+# Claim convergence stage
+CLAIM_CONVERGENCE_DIR = LATTICE / "claim-convergence"
 
 # Verification stage
 ALLOY_DIR = LATTICE / "verification" / "alloy"

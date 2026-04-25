@@ -22,7 +22,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
-from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, DAFNY_DIR, prompt_path
+from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, DAFNY_DIR, prompt_path
 from lib.shared.common import build_label_index
 from lib.verification.dafny.common import read_file, log_usage
 from lib.verification.dafny.verify import verify
@@ -157,7 +157,7 @@ def main():
           file=sys.stderr)
 
     # Load formal contracts from per-claim files
-    claim_dir = FORMALIZATION_DIR / asn_label
+    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
     contract_sections = {}
     label_map = {}
     if claim_dir.exists():

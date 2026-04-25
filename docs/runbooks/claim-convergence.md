@@ -1,19 +1,19 @@
-# Runbook: Formalizing a note
+# Runbook: Claim convergence on a note
 
 *Updated 2026-04-25.*
 
 ## Prerequisites
 
-- note promoted from [blueprinting](blueprinting.md) (`lattices/xanadu/formalization/ASN-NNNN/`)
-- Upstream dependencies already formalized
+- note promoted from [blueprinting](blueprinting.md) (`lattices/xanadu/claim-convergence/ASN-NNNN/`)
+- Upstream dependencies already converged
 - Upstream summaries populated (run summarize on dependencies first)
 
 ## Steps
 
-### 1. Formalize
+### 1. Converge
 
 ```bash
-python scripts/formalize.py <ASN>
+python scripts/converge.py <ASN>
 ```
 
 Produces formal contracts and rewrites proofs to Dijkstra standard. Auto-commits per dependency level. Skips cached claims — delete `_cache.json` to force full re-run.
@@ -26,11 +26,11 @@ python scripts/populate-store.py
 
 Imports claim, contract, and citation links from claim YAMLs into `lattices/xanadu/_store/`. Idempotent — re-run any time. Required before review/revise so the convergence predicate has data to evaluate.
 
-### 3. Regional sweep (per-cone review)
+### 3. Cone sweep (per-cone review)
 
 ```bash
-python scripts/regional-sweep.py <ASN>
-python scripts/regional-sweep.py <ASN> --cone S8    # single apex
+python scripts/cone-sweep.py <ASN>
+python scripts/cone-sweep.py <ASN> --cone S8    # single apex
 ```
 
 Walks the dependency graph bottom-up. Reviews tightly coupled clusters as a unit. Default max 8 cycles per cone, plus a +1 confirmation review when the work loop hits the cap. Use `--cone LABEL` to target a specific apex.
@@ -41,7 +41,7 @@ Walks the dependency graph bottom-up. Reviews tightly coupled clusters as a unit
 python scripts/full-review.py <ASN>
 ```
 
-Whole-ASN scan with foundation context. Catches cross-cone issues that per-cone review misses. Same predicate-driven termination as regional sweep.
+Whole-ASN scan with foundation context. Catches cross-cone issues that per-cone review misses. Same predicate-driven termination as cone sweep.
 
 ### 5. Summarize
 
@@ -54,7 +54,7 @@ Populates the `summary` field in each claim YAML. Required before assembly. Hash
 ### 6. Assembly
 
 ```bash
-python scripts/formalization-assembly.py <ASN>
+python scripts/convergence-assembly.py <ASN>
 ```
 
 Mechanical — reads YAML summaries + .md contracts, writes `formal-statements.md` and `dependency-graph.yaml` to `lattices/xanadu/manifests/`.
@@ -62,9 +62,9 @@ Mechanical — reads YAML summaries + .md contracts, writes `formal-statements.m
 ### 7. Individual re-runs (if needed)
 
 ```bash
-python scripts/formalize.py <ASN> --dry-run         # list candidates
-python scripts/formalize.py <ASN> --label T8         # single claim
-python scripts/regional-sweep.py <ASN> --cone T8    # single apex review
+python scripts/converge.py <ASN> --dry-run         # list candidates
+python scripts/converge.py <ASN> --label T8         # single claim
+python scripts/cone-sweep.py <ASN> --cone T8    # single apex review
 ```
 
 ## Querying the link graph
@@ -92,7 +92,7 @@ s = Store()
 is_converged(s)
 
 # Per-claim
-is_claim_converged(s, "lattices/xanadu/formalization/ASN-0034/T3.md")
+is_claim_converged(s, "lattices/xanadu/claim-convergence/ASN-0034/T3.md")
 
 # Per-ASN
 is_asn_converged(s, "ASN-0034")
@@ -101,13 +101,13 @@ is_asn_converged(s, "ASN-0034")
 unresolved_revise_comments(s)
 
 # Open revise comments for one claim
-unresolved_revise_comments(s, "lattices/xanadu/formalization/ASN-0034/T3.md")
+unresolved_revise_comments(s, "lattices/xanadu/claim-convergence/ASN-0034/T3.md")
 
 # Every claim path the lattice knows about
 all_claim_paths(s)
 
 # Contract kind for a claim (e.g., "axiom", "theorem")
-current_contract_kind(s, "lattices/xanadu/formalization/ASN-0034/T0.md")
+current_contract_kind(s, "lattices/xanadu/claim-convergence/ASN-0034/T0.md")
 ```
 
 **Lower-level primitives** (Xanadu-aligned):
@@ -115,7 +115,7 @@ current_contract_kind(s, "lattices/xanadu/formalization/ASN-0034/T0.md")
 ```python
 # Find all citations from a claim
 s.find_links(
-    from_set=["lattices/xanadu/formalization/ASN-0034/T3.md"],
+    from_set=["lattices/xanadu/claim-convergence/ASN-0034/T3.md"],
     type_set=["citation"],
 )
 
@@ -124,7 +124,7 @@ s.find_links(type_set=["review"])
 
 # Count comments on a claim
 s.find_num_links(
-    to_set=["lattices/xanadu/formalization/ASN-0034/T3.md"],
+    to_set=["lattices/xanadu/claim-convergence/ASN-0034/T3.md"],
     type_set=["comment"],
 )
 ```
@@ -145,4 +145,4 @@ truth and is git-versioned alongside the lattice.
 
 ---
 
-See the [Claim Convergence Protocol](../protocols/claim-convergence-protocol.md) for the predicate contract and the [implementation plan](../plans/claim-convergence-implementation.md) for stage-1 architecture.
+See the [Claim Convergence Protocol](../protocols/claim-convergence-protocol.md) for the predicate contract and stage-1 architecture.

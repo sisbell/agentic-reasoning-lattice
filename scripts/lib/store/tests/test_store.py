@@ -26,7 +26,7 @@ class MakeLinkTests(StoreTestBase):
     def test_make_link_and_get_roundtrip(self):
         link_id = self.store.make_link(
             from_set=["_store/findings/review-1/0.md"],
-            to_set=["lattices/xanadu/formalization/ASN-0034/T3.md"],
+            to_set=["lattices/xanadu/claim-convergence/ASN-0034/T3.md"],
             type_set=["comment.revise"],
             ts="2026-04-24T00:00:00Z",
         )
@@ -34,7 +34,7 @@ class MakeLinkTests(StoreTestBase):
         self.assertEqual(rec["id"], link_id)
         self.assertEqual(rec["type_set"], ["comment.revise"])
         self.assertEqual(rec["from_set"], ["_store/findings/review-1/0.md"])
-        self.assertEqual(rec["to_set"], ["lattices/xanadu/formalization/ASN-0034/T3.md"])
+        self.assertEqual(rec["to_set"], ["lattices/xanadu/claim-convergence/ASN-0034/T3.md"])
         self.assertEqual(rec["ts"], "2026-04-24T00:00:00Z")
 
     def test_one_sided_classifier(self):

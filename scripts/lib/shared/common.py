@@ -13,7 +13,7 @@ import yaml
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import (
     WORKSPACE, NOTES_DIR, USAGE_LOG,
-    REVIEWS_DIR, BLUEPRINTS_DIR, FORMALIZATION_DIR,
+    REVIEWS_DIR, BLUEPRINTS_DIR, CLAIM_CONVERGENCE_DIR,
     CONSULTATIONS_DIR, MANIFESTS_DIR, EXAMPLES_DIR,
 )
 
@@ -319,14 +319,14 @@ def parallel_llm_calls(items, worker_fn, max_workers=10):
 
 
 def assemble_readonly(asn_label):
-    """Concatenate per-claim files from lattices/xanadu/formalization/ for read-only use.
+    """Concatenate per-claim files from lattices/xanadu/claim-convergence/ for read-only use.
 
     Returns assembled text (preamble + structural sections + claims).
     Used by cross-cutting scripts that need the whole-ASN view.
     """
-    from lib.shared.paths import FORMALIZATION_DIR
+    from lib.shared.paths import CLAIM_CONVERGENCE_DIR
 
-    claim_dir = FORMALIZATION_DIR / asn_label
+    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
     if not claim_dir.exists():
         return ""
 
@@ -463,7 +463,7 @@ def stage_asn_files(label):
         NOTES_DIR / f"{label}-*",
         REVIEWS_DIR / label,
         BLUEPRINTS_DIR / label,
-        FORMALIZATION_DIR / label,
+        CLAIM_CONVERGENCE_DIR / label,
         CONSULTATIONS_DIR / label,
         MANIFESTS_DIR / label,
         EXAMPLES_DIR / label,

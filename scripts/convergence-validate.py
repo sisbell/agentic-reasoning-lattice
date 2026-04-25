@@ -1,8 +1,8 @@
-"""formalization-validate — structural invariants on formalization-stage claim files.
+"""convergence-validate — structural invariants on claim-convergence-stage claim files.
 
 Runs mechanical checks from the Claim File Contract
 (docs/design-notes/claim-file-contract.md) against
-lattices/<lattice>/formalization/ASN-NNNN/.
+lattices/<lattice>/claim-convergence/ASN-NNNN/.
 
 yaml `label` is the authoritative identity for each claim. Filename (invariant
 #2) and markdown bold declaration (invariant #3) must conform to it. These
@@ -23,8 +23,8 @@ Implemented invariants:
                       secondary: >1 Formal Contract block per file)
 
 Usage:
-    python scripts/formalization-validate.py <ASN>
-    python scripts/formalization-validate.py 34
+    python scripts/convergence-validate.py <ASN>
+    python scripts/convergence-validate.py 34
 """
 
 import argparse
@@ -131,9 +131,9 @@ def _load_symbol_config():
     }
 
 
-def formalization_dir(asn_label):
+def claim_convergence_dir(asn_label):
     repo_root = Path(__file__).resolve().parent.parent
-    return repo_root / "lattices" / "xanadu" / "formalization" / asn_label
+    return repo_root / "lattices" / "xanadu" / "claim-convergence" / asn_label
 
 
 def line_of_offset(text, offset):
@@ -633,7 +633,7 @@ def run_all_checks(pairs, store=None, label_index=None):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Validate formalization-stage claim files against "
+        description="Validate claim-convergence-stage claim files against "
                     "the Claim File Contract.")
     parser.add_argument("asn", help="ASN number (e.g., 34)")
     args = parser.parse_args()
@@ -644,9 +644,9 @@ def main():
         print(f"ASN-{asn_num:04d} not found", file=sys.stderr)
         return 2
 
-    claim_dir = formalization_dir(asn_label)
+    claim_dir = claim_convergence_dir(asn_label)
     if not claim_dir.exists():
-        print(f"No formalization directory: {claim_dir}", file=sys.stderr)
+        print(f"No claim-convergence directory: {claim_dir}", file=sys.stderr)
         return 2
 
     pairs = load_pairs(claim_dir)

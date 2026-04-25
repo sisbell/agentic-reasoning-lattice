@@ -28,15 +28,15 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, next_review_number
+from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, next_review_number
 from lib.shared.common import find_asn, assemble_readonly, step_commit_asn
-from lib.formalization.full_review.review import (
+from lib.claim_convergence.full_review.review import (
     run_review, extract_findings, filter_revise,
 )
-from lib.formalization.full_review.revise import revise
-from lib.formalization.gate import run_validate_gate
-from lib.formalization.regional import (
-    detect_dependency_cone, run_regional_review, _retry_unresolved_revises,
+from lib.claim_convergence.full_review.revise import revise
+from lib.claim_convergence.gate import run_validate_gate
+from lib.claim_convergence.cone import (
+    detect_dependency_cone, run_cone_review, _retry_unresolved_revises,
 )
 from lib.store.store import Store
 from lib.store.emit import emit_review, emit_findings
@@ -54,13 +54,13 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
         print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
         return "failed"
 
-    review_dir = FORMALIZATION_DIR / asn_label / "reviews"
+    review_dir = CLAIM_CONVERGENCE_DIR / asn_label / "reviews"
 
     print(f"\n  [FULL-REVIEW] {asn_label}", file=sys.stderr)
 
-    claim_dir = FORMALIZATION_DIR / asn_label
+    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
     if not claim_dir.exists():
-        print(f"  No formalization directory for {asn_label}", file=sys.stderr)
+        print(f"  No claim-convergence directory for {asn_label}", file=sys.stderr)
         return "failed"
 
     print(f"  Directory: {claim_dir.relative_to(WORKSPACE)}", file=sys.stderr)
@@ -179,7 +179,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
         cone = detect_dependency_cone(asn_num)
         if cone:
             apex, deps = cone
-            run_regional_review(asn_num, apex, deps, max_cycles=3,
+            run_cone_review(asn_num, apex, deps, max_cycles=3,
                             dry_run=dry_run, model=model)
 
         # Natural convergence check: this cycle's reviewer filed no revises
@@ -285,9 +285,9 @@ def run_revise_from_review(asn_num, review_spec):
         print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
         return False
 
-    claim_dir = FORMALIZATION_DIR / asn_label
+    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
     if not claim_dir.exists():
-        print(f"  No formalization directory for {asn_label}", file=sys.stderr)
+        print(f"  No claim-convergence directory for {asn_label}", file=sys.stderr)
         return False
 
     # Resolve review spec to path
@@ -354,7 +354,7 @@ def main():
     if args.cone:
         # Force regional review — load deps from YAML, skip detection
         _, asn_label = find_asn(str(asn_num))
-        claim_dir = FORMALIZATION_DIR / asn_label
+        claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
         from lib.shared.common import load_claim_metadata, build_label_index
         asn_labels = set(build_label_index(claim_dir).keys())
         meta = load_claim_metadata(claim_dir, label=args.cone)
@@ -362,7 +362,7 @@ def main():
             print(f"  Claim {args.cone} not found", file=sys.stderr)
             sys.exit(1)
         dep_labels = [d for d in meta.get("depends", []) if d in asn_labels]
-        result = run_regional_review(asn_num, args.cone, dep_labels,
+        result = run_cone_review(asn_num, args.cone, dep_labels,
                                   max_cycles=args.max_cycles,
                                   dry_run=args.dry_run,
                                   model=args.model)

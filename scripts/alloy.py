@@ -2,7 +2,7 @@
 """
 Alloy — generate Alloy models per ASN claim with bounded checking.
 
-Reads per-claim files from lattices/xanadu/formalization/, generates one .als
+Reads per-claim files from lattices/xanadu/claim-convergence/, generates one .als
 per claim using an agentic Claude session (with Bash access to run Alloy
 and self-fix syntax errors), validates contracts, writes per-claim reviews.
 
@@ -30,7 +30,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, ALLOY_DIR, prompt_path
+from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, ALLOY_DIR, prompt_path
 from lib.shared.common import find_asn, parallel_llm_calls, build_label_index
 from lib.verification.alloy.translate import (
     build_claim_prompt, generate_one,
@@ -121,9 +121,9 @@ def main():
 
     # Load from per-claim files
     asn_num = int(re.search(r'\d+', asn_label).group())
-    claim_dir = FORMALIZATION_DIR / asn_label
+    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
     if not claim_dir.exists():
-        print(f"  No formalization directory for {asn_label}", file=sys.stderr)
+        print(f"  No claim-convergence directory for {asn_label}", file=sys.stderr)
         print(f"  Run: python scripts/promote-blueprint.py {args.asn}",
               file=sys.stderr)
         sys.exit(1)

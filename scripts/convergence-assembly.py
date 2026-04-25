@@ -6,10 +6,10 @@ Mechanically assembles the export from YAML summaries + .md formal contracts.
 No LLM calls. Requires summaries — run summarize.py first.
 
 Usage:
-    python scripts/formalization-assembly.py 34
-    python scripts/formalization-assembly.py 34 36 40
-    python scripts/formalization-assembly.py 34 --deps-only
-    python scripts/formalization-assembly.py 34 --dry-run
+    python scripts/convergence-assembly.py 34
+    python scripts/convergence-assembly.py 34 36 40
+    python scripts/convergence-assembly.py 34 --deps-only
+    python scripts/convergence-assembly.py 34 --dry-run
 """
 
 import argparse
@@ -21,8 +21,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, formal_stmts, dep_graph, load_manifest
 from lib.shared.common import find_asn
-from lib.formalization.assembly.produce_interface import assemble_formal_statements
-from lib.formalization.core.build_dependency_graph import generate_formalization_deps, write_deps_yaml
+from lib.claim_convergence.assembly.produce_interface import assemble_formal_statements
+from lib.claim_convergence.core.build_dependency_graph import generate_claim_convergence_deps, write_deps_yaml
 
 COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
 
@@ -30,7 +30,7 @@ COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
 def _generate_deps(asn_num, label):
     """Generate deps YAML from per-claim metadata."""
     try:
-        deps = generate_formalization_deps(asn_num)
+        deps = generate_claim_convergence_deps(asn_num)
         if deps:
             path = write_deps_yaml(asn_num, deps)
             print(f"  [DEPS] {path.relative_to(WORKSPACE)} "

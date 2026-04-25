@@ -1,7 +1,7 @@
 """End-of-cone compress hook.
 
 Strips accumulated meta-commentary bloat from claim files using the
-compress prompt at `prompts/shared/formalization/compress.md`. Runs
+compress prompt at `prompts/shared/claim-convergence/compress.md`. Runs
 once per cone at the end of regional-review's loop, compressing only
 the files that changed during the cone.
 
@@ -24,7 +24,7 @@ from shared.common import (
 )
 
 
-_TEMPLATE = prompt_path("formalization/compress.md").read_text()
+_TEMPLATE = prompt_path("claim-convergence/compress.md").read_text()
 
 # Refuse to write a compressed result that shrinks below this fraction
 # of the original. Guards against truncated or malformed LLM responses.

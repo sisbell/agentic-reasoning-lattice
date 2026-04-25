@@ -22,7 +22,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, formal_stmts, dep_graph
 from lib.shared.common import find_asn
 from lib.discovery.assembly.produce_statements import export_one
-from lib.formalization.core.build_dependency_graph import generate_discovery_deps, write_deps_yaml
+from lib.claim_convergence.core.build_dependency_graph import generate_discovery_deps, write_deps_yaml
 
 COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
 
@@ -45,7 +45,7 @@ def _generate_deps(asn_num, label):
         return
 
     try:
-        from lib.formalization.assembly.scan_undeclared_deps import scan_asn
+        from lib.claim_convergence.assembly.scan_undeclared_deps import scan_asn
         scan_asn(asn_num, model="sonnet", effort="high")
     except Exception as e:
         print(f"  [DEPS] WARNING: LLM dep scan failed for {label}: {e}",

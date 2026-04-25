@@ -4,7 +4,7 @@ Validate Contracts — check formal contracts against proof sections.
 Per-claim LLM validation: reads each claim's proof section and
 formal contract, reports MATCH or MISMATCH with detailed findings.
 
-Step function for the orchestrator (scripts/formalization-assembly.py):
+Step function for the orchestrator (scripts/convergence-assembly.py):
 - validate_contracts(asn_num) → list of (label, detail) mismatches
 """
 
@@ -17,11 +17,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import USAGE_LOG, prompt_path
 from lib.shared.common import find_asn, extract_claim_sections, invoke_claude
-from lib.formalization.core.build_dependency_graph import (
+from lib.claim_convergence.core.build_dependency_graph import (
     find_claim_table, parse_table_row, detect_columns,
 )
 
-VALIDATE_TEMPLATE = prompt_path("formalization/assembly/validate-contracts.md")
+VALIDATE_TEMPLATE = prompt_path("claim-convergence/assembly/validate-contracts.md")
 
 
 def _extract_formal_contract(section_text):

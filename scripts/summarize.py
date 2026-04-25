@@ -23,13 +23,13 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, prompt_path
+from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, prompt_path
 from lib.shared.common import (
     find_asn, build_label_index, load_claim_metadata,
     dump_yaml, invoke_claude, step_commit_asn,
 )
 
-SUMMARIZE_TEMPLATE = prompt_path("formalization/summarize.md")
+SUMMARIZE_TEMPLATE = prompt_path("claim-convergence/summarize.md")
 BATCH_SIZE = 5
 
 
@@ -125,9 +125,9 @@ def run_summarize(asn_num, force=False, dry_run=False):
         print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
         return False
 
-    claim_dir = FORMALIZATION_DIR / asn_label
+    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
     if not claim_dir.exists():
-        print(f"  No formalization directory for {asn_label}", file=sys.stderr)
+        print(f"  No claim-convergence directory for {asn_label}", file=sys.stderr)
         return False
 
     label_index = build_label_index(claim_dir)

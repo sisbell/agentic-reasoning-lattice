@@ -55,12 +55,12 @@ See [Science Approach](docs/science/README.md) for the convergence framing, cone
 ### Guides
 
 - [Blueprinting guide](docs/guides/blueprinting.md) — stages, YAML format, output structure
-- [Claim convergence guide](docs/guides/formalization.md) — review steps, caching, dependency management, convergence
+- [Claim convergence guide](docs/guides/claim-convergence.md) — review steps, caching, dependency management, convergence
 
 ### Runbooks
 
 - [Blueprinting runbook](docs/runbooks/blueprinting.md) — step-by-step execution
-- [Claim convergence runbook](docs/runbooks/formalization.md) — step-by-step execution
+- [Claim convergence runbook](docs/runbooks/claim-convergence.md) — step-by-step execution
 
 ## Structure
 

@@ -1,15 +1,14 @@
 """
-Regional-scale V-cycle operators: regional-review (one cone) and
-regional-sweep (across all qualifying cones), plus cone detection
-and assembly helpers.
+Cone-scope review operators: cone-review (one cone) and cone-sweep
+(across all qualifying cones), plus cone detection and assembly helpers.
 
 A dependency cone is a claim (the apex) that sits atop many stable
 dependencies and can't converge under per-finding revision. See
 docs/patterns/dependency-cone.md for the pattern.
 
 - detect_dependency_cone: reactive, from git history
-- run_regional_review: focused review/revise loop on one cone
-- run_regional_sweep: proactive bottom-up DAG walk, reviews all qualifying cones
+- run_cone_review: focused review/revise loop on one cone
+- run_cone_sweep: proactive bottom-up DAG walk, reviews all qualifying cones
 """
 
 import re
@@ -19,20 +18,20 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, next_review_number
+from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, next_review_number
 from lib.shared.common import (
     find_asn, build_label_index,
     step_commit_asn,
 )
-from lib.formalization.full_review.review import (
+from lib.claim_convergence.full_review.review import (
     run_review, extract_findings, filter_revise, parse_missing_references,
 )
 
 
 MAX_EXPANSIONS = 5
-from lib.formalization.full_review.revise import revise
-from lib.formalization.core.build_dependency_graph import generate_formalization_deps
-from lib.formalization.core.topological_sort import topological_levels
+from lib.claim_convergence.full_review.revise import revise
+from lib.claim_convergence.core.build_dependency_graph import generate_claim_convergence_deps
+from lib.claim_convergence.core.topological_sort import topological_levels
 from lib.store.store import Store
 from lib.store.emit import emit_review, emit_findings
 from lib.store.populate import build_cross_asn_label_index
@@ -87,13 +86,13 @@ def detect_dependency_cone(asn_num, window=5, threshold=3):
     if asn_label is None:
         return None
 
-    claim_dir = FORMALIZATION_DIR / asn_label
+    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
     rel_dir = claim_dir.relative_to(WORKSPACE)
 
     # Get last N review commits touching this ASN.
     # Match both grep prefixes (cross-review + full-review) so historical
     # commits remain findable across the prefix rename.
-    # Include both path prefixes (new lattices/xanadu/formalization + legacy
+    # Include both path prefixes (new lattices/xanadu/claim-convergence + legacy
     # vault/3-formalization) so pre-restructure history is findable too.
     legacy_rel_dir = Path("vault") / "3-formalization" / asn_label
     try:
@@ -129,7 +128,7 @@ def detect_dependency_cone(asn_num, window=5, threshold=3):
             continue
 
         for line in result.stdout.strip().split("\n"):
-            # Accept lines under either the current or the legacy formalization
+            # Accept lines under either the current or the legacy convergence
             # directory so pre-restructure history is still counted.
             if not (line.startswith(str(rel_dir))
                     or line.startswith(str(legacy_rel_dir))):
@@ -187,7 +186,7 @@ def assemble_cone(asn_label, apex_label, dep_labels):
 
     Returns concatenated text of apex + same-ASN dependency claims.
     """
-    claim_dir = FORMALIZATION_DIR / asn_label
+    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
     label_index = build_label_index(claim_dir)
     parts = []
 
@@ -205,7 +204,7 @@ def assemble_cone(asn_label, apex_label, dep_labels):
 
 def _extract_apex_history(asn_label, apex_label, max_reviews=5):
     """Extract recent review findings that mention the apex label."""
-    review_dir = FORMALIZATION_DIR / asn_label / "reviews"
+    review_dir = CLAIM_CONVERGENCE_DIR / asn_label / "reviews"
     if not review_dir.exists():
         return ""
 
@@ -225,9 +224,9 @@ def _extract_apex_history(asn_label, apex_label, max_reviews=5):
     return "\n\n---\n\n".join(reversed(relevant))
 
 
-def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
+def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
                         dry_run=False, model="opus"):
-    """Run a focused regional-scale review/revise loop on one dependency cone.
+    """Run a focused cone-scope review/revise loop on one dependency cone.
 
     Same structure as full-review but with narrower context:
     only the apex and its same-ASN dependencies.
@@ -238,7 +237,7 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
     if asn_label is None:
         return "failed"
 
-    claim_dir = FORMALIZATION_DIR / asn_label
+    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
     review_dir = claim_dir / "reviews"
 
     print(f"\n  [REGIONAL-REVIEW] {apex_label} + {len(dep_labels)} deps",
@@ -292,12 +291,12 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
         if not dry_run:
             _retry_unresolved_revises(store, asn_num, claim_dir, [apex_md_path])
 
-        from lib.formalization.gate import run_validate_gate
+        from lib.claim_convergence.gate import run_validate_gate
         scope = {apex_label} | set(dep_labels)
         gate_result = run_validate_gate(asn_label, scope_labels=scope)
         if gate_result != "clean":
             print(f"  [GATE] halted — structural violations remain in cone "
-                  f"({gate_result}); aborting regional-review",
+                  f"({gate_result}); aborting cone-review",
                   file=sys.stderr)
             store.close()
             return "failed"
@@ -349,7 +348,7 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
         review_num = next_review_number(asn_label, reviews_dir=review_dir)
         review_path = review_dir / f"review-{review_num}.md"
         with open(review_path, "w") as rf:
-            rf.write(f"# Regional Review — {asn_label}/{apex_label} (cycle {cycle})\n\n")
+            rf.write(f"# Cone Review — {asn_label}/{apex_label} (cycle {cycle})\n\n")
             rf.write(f"*{time.strftime('%Y-%m-%d %H:%M')}*\n\n")
             rf.write(findings_text + "\n")
         final_review_path = review_path
@@ -400,7 +399,7 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
 
         if revise_findings or any_changed:
             step_commit_asn(asn_num,
-                            f"regional-review(asn): {asn_label}/{apex_label} — cycle {cycle}")
+                            f"cone-review(asn): {asn_label}/{apex_label} — cycle {cycle}")
 
         # Natural convergence check: this cycle's reviewer filed no revises
         # AND predicate True. The cycle's review is the natural confirmation;
@@ -426,7 +425,7 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
         print(f"\n  [CONFIRMATION REVIEW]", file=sys.stderr)
         _retry_unresolved_revises(store, asn_num, claim_dir, [apex_md_path])
 
-        from lib.formalization.gate import run_validate_gate
+        from lib.claim_convergence.gate import run_validate_gate
         scope = {apex_label} | set(dep_labels)
         gate_result = run_validate_gate(asn_label, scope_labels=scope)
         if gate_result != "clean":
@@ -446,7 +445,7 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
                 review_num = next_review_number(asn_label, reviews_dir=review_dir)
                 confirm_review_path = review_dir / f"review-{review_num}.md"
                 with open(confirm_review_path, "w") as rf:
-                    rf.write(f"# Regional Review (Confirmation) — "
+                    rf.write(f"# Cone Review (Confirmation) — "
                              f"{asn_label}/{apex_label}\n\n")
                     rf.write(f"*{time.strftime('%Y-%m-%d %H:%M')}*\n\n")
                     rf.write(confirm_findings_text + "\n")
@@ -479,9 +478,9 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
         with open(final_review_path, "a") as rf:
             rf.write(f"\n## Result\n\n")
             if converged:
-                rf.write(f"Regional review converged.\n")
+                rf.write(f"Cone review converged.\n")
             else:
-                rf.write(f"Regional review not converged after {cycle} cycle(s).\n")
+                rf.write(f"Cone review not converged after {cycle} cycle(s).\n")
             rf.write(f"\n*Elapsed: {elapsed:.0f}s*\n")
 
     print(f"  [REGIONAL-REVIEW] Elapsed: {elapsed:.0f}s", file=sys.stderr)
@@ -491,7 +490,7 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
     # changed (via baseline SHA diff). No-op if nothing changed or if
     # dry-run is set.
     if _COMPRESS_ENABLED and not failed:
-        from lib.formalization.compress import compress_changed_files_since
+        from lib.claim_convergence.compress import compress_changed_files_since
         compress_changed_files_since(
             claim_dir, baseline_sha, asn_num,
             apex_label=apex_label, dry_run=dry_run,
@@ -505,7 +504,7 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
     if not failed and not dry_run:
         step_commit_asn(
             asn_num,
-            f"regional-review(asn): {asn_label}/{apex_label} — final",
+            f"cone-review(asn): {asn_label}/{apex_label} — final",
         )
 
     store.close()
@@ -515,11 +514,11 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
     return "converged" if converged else "not_converged"
 
 
-def run_regional_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False, model="opus"):
-    """Proactive regional-scale sweep — bottom-up DAG walk.
+def run_cone_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False, model="opus"):
+    """Proactive cone-scope sweep — bottom-up DAG walk.
 
     For each claim with >= min_deps same-ASN dependencies,
-    run a regional review. Process in topological order (foundations first)
+    run a cone review. Process in topological order (foundations first)
     so each cone's dependencies are stable when it runs.
 
     Returns "converged" or "not_converged".
@@ -529,12 +528,12 @@ def run_regional_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False, model="
         print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
         return "failed"
 
-    claim_dir = FORMALIZATION_DIR / asn_label
+    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
     if not claim_dir.exists():
-        print(f"  No formalization directory for {asn_label}", file=sys.stderr)
+        print(f"  No claim-convergence directory for {asn_label}", file=sys.stderr)
         return "failed"
 
-    deps_data = generate_formalization_deps(asn_num)
+    deps_data = generate_claim_convergence_deps(asn_num)
     if not deps_data:
         print(f"  No dependency data for {asn_label}", file=sys.stderr)
         return "failed"
@@ -570,7 +569,7 @@ def run_regional_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False, model="
                     continue
 
                 cones_reviewed += 1
-                result = run_regional_review(
+                result = run_cone_review(
                     asn_num, label, same_deps,
                     max_cycles=max_cycles, dry_run=dry_run, model=model)
 

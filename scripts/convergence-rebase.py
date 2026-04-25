@@ -6,10 +6,10 @@ Four review passes (mechanical, cross-reference, extension, dependency-report)
 with a convergence loop. Format gate runs on entry to each cycle.
 
 Usage:
-    python scripts/formalization-rebase.py 40
-    python scripts/formalization-rebase.py 40 --max-cycles 1     # single pass, no fixing
-    python scripts/formalization-rebase.py 40 --mode incremental  # track dirty set
-    python scripts/formalization-rebase.py 40 --dry-run           # show what would run
+    python scripts/convergence-rebase.py 40
+    python scripts/convergence-rebase.py 40 --max-cycles 1     # single pass, no fixing
+    python scripts/convergence-rebase.py 40 --mode incremental  # track dirty set
+    python scripts/convergence-rebase.py 40 --dry-run           # show what would run
 """
 
 import argparse
@@ -20,11 +20,11 @@ from collections import defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, load_manifest, next_review_number
+from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, load_manifest, next_review_number
 from lib.shared.common import find_asn, step_commit_asn
-from lib.formalization.core.build_dependency_graph import generate_discovery_deps
-from lib.formalization.rebase.review import run_review
-from lib.formalization.rebase.revise import revise
+from lib.claim_convergence.core.build_dependency_graph import generate_discovery_deps
+from lib.claim_convergence.rebase.review import run_review
+from lib.claim_convergence.rebase.revise import revise
 
 
 def _group_by_label(findings):
@@ -56,7 +56,7 @@ def _apply_name_fixes(asn_num, findings):
     if asn_label is None:
         return set()
 
-    claim_dir = FORMALIZATION_DIR / asn_label
+    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
     if not claim_dir.exists():
         return set()
 
@@ -113,7 +113,7 @@ def run_rebase(asn_num, max_cycles=5, mode="full_sweep", dry_run=False):
               file=sys.stderr)
         return "converged"
 
-    review_dir = FORMALIZATION_DIR / asn_label / "reviews"
+    review_dir = CLAIM_CONVERGENCE_DIR / asn_label / "reviews"
 
     print(f"\n  [REBASE] {asn_label} (depends: {depends})", file=sys.stderr)
 

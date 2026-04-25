@@ -11,7 +11,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, MANIFESTS_DIR, load_manifest
+from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, MANIFESTS_DIR, load_manifest
 from lib.shared.common import build_label_index, load_claim_metadata
 
 
@@ -55,7 +55,7 @@ def _load_claim_statement(dep_asn_num, label):
     Returns formatted section text or None if not found.
     """
     asn_label = f"ASN-{int(dep_asn_num):04d}"
-    claim_dir = FORMALIZATION_DIR / asn_label
+    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
     if not claim_dir.exists():
         return None
 
@@ -108,9 +108,9 @@ def load_foundation_statements(asn_id):
     sections = []
     for dep_id in all_dep_ids:
         asn_label = f"ASN-{int(dep_id):04d}"
-        claim_dir = FORMALIZATION_DIR / asn_label
+        claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
         if not claim_dir.exists():
-            print(f"  [ERROR] No formalization dir for {asn_label}",
+            print(f"  [ERROR] No claim-convergence dir for {asn_label}",
                   file=sys.stderr)
             continue
 

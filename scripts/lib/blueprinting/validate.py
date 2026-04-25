@@ -101,7 +101,7 @@ def validate_asn(asn_num):
             errors.append(f"EMPTY_BODY | {mf.name}")
 
     # Dependency validation is deferred — labels are resolved mechanically
-    # against upstream ASN formalization directories during promote/formalization.
+    # against upstream ASN claim-convergence directories during promote/claim-convergence.
 
     return errors, warnings
 

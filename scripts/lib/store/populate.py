@@ -1,7 +1,7 @@
 """Populate the link store's structural layer from claim YAML/MD artifacts.
 
 Imports claim classifier, contract.<kind> classifier, and citation links by
-walking every ASN under the formalization directory. Idempotent: re-runs
+walking every ASN under the claim-convergence directory. Idempotent: re-runs
 add only newly-discovered links.
 
 Reviews, comments, resolutions, finding documents, and rationales are
@@ -15,18 +15,18 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import FORMALIZATION_DIR, WORKSPACE
+from lib.shared.paths import CLAIM_CONVERGENCE_DIR, WORKSPACE
 
 
-def populate_structural(store, formalization_dir=None):
+def populate_structural(store, claim_convergence_dir=None):
     """Walk every ASN and ensure structural links exist in the store.
 
     Returns a stats dict:
         claims_seen, claims_added, contracts_added,
         citations_seen, citations_added, unresolved_labels
     """
-    formalization_dir = Path(formalization_dir) if formalization_dir else FORMALIZATION_DIR
-    label_index = build_cross_asn_label_index(formalization_dir)
+    claim_convergence_dir = Path(claim_convergence_dir) if claim_convergence_dir else CLAIM_CONVERGENCE_DIR
+    label_index = build_cross_asn_label_index(claim_convergence_dir)
 
     stats = {
         "claims_seen": 0,
@@ -37,7 +37,7 @@ def populate_structural(store, formalization_dir=None):
         "unresolved_labels": [],
     }
 
-    for asn_dir in sorted(p for p in formalization_dir.iterdir() if p.is_dir()):
+    for asn_dir in sorted(p for p in claim_convergence_dir.iterdir() if p.is_dir()):
         for yaml_path in sorted(asn_dir.glob("*.yaml")):
             if yaml_path.name.startswith("_"):
                 continue
@@ -52,15 +52,15 @@ def populate_structural(store, formalization_dir=None):
     return stats
 
 
-def build_cross_asn_label_index(formalization_dir=None):
+def build_cross_asn_label_index(claim_convergence_dir=None):
     """Return {label: repo-relative md path} across every ASN.
 
     Skips underscore-prefixed yaml files. Cross-ASN dependencies in
     the lattice use bare labels — no ASN prefix — so a flat index works.
     """
-    formalization_dir = Path(formalization_dir) if formalization_dir else FORMALIZATION_DIR
+    claim_convergence_dir = Path(claim_convergence_dir) if claim_convergence_dir else CLAIM_CONVERGENCE_DIR
     index = {}
-    for asn_dir in sorted(p for p in formalization_dir.iterdir() if p.is_dir()):
+    for asn_dir in sorted(p for p in claim_convergence_dir.iterdir() if p.is_dir()):
         for yaml_path in sorted(asn_dir.glob("*.yaml")):
             if yaml_path.name.startswith("_"):
                 continue

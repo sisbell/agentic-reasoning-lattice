@@ -2,7 +2,7 @@
 """
 Dafny — generate Dafny declarations per ASN claim.
 
-Reads per-claim files from lattices/xanadu/formalization/, generates one .dfy
+Reads per-claim files from lattices/xanadu/claim-convergence/, generates one .dfy
 per claim using an agentic Claude session (with Read/Write/Bash tools
 to write, verify, and self-fix), validates contracts, writes per-claim reviews.
 
@@ -29,11 +29,11 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import (WORKSPACE, FORMALIZATION_DIR, DAFNY_DIR, USAGE_LOG,
+from lib.shared.paths import (WORKSPACE, CLAIM_CONVERGENCE_DIR, DAFNY_DIR, USAGE_LOG,
                     LATTICE_PROMPTS, prompt_path, load_manifest)
 from lib.shared.common import find_asn, parallel_llm_calls, build_label_index
-from lib.formalization.core.build_dependency_graph import generate_formalization_deps
-from lib.formalization.core.topological_sort import topological_sort_labels, topological_levels
+from lib.claim_convergence.core.build_dependency_graph import generate_claim_convergence_deps
+from lib.claim_convergence.core.topological_sort import topological_sort_labels, topological_levels
 from lib.verification.dafny.translate import (
     build_claim_list_from_asn,
     build_claim_prompt, translate_one, TEMPLATE,
@@ -111,9 +111,9 @@ def main():
 
     asn_number = int(re.sub(r"[^0-9]", "", str(args.asn)))
     asn_label = f"ASN-{asn_number:04d}"
-    claim_dir = FORMALIZATION_DIR / asn_label
+    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
     if not claim_dir.exists():
-        print(f"  No formalization directory for {asn_label}",
+        print(f"  No claim-convergence directory for {asn_label}",
               file=sys.stderr)
         print(f"  Run: python scripts/promote-blueprint.py {args.asn}",
               file=sys.stderr)
@@ -175,7 +175,7 @@ def main():
 
     # --- Dependency graph ---
 
-    deps_data = generate_formalization_deps(asn_number)
+    deps_data = generate_claim_convergence_deps(asn_number)
 
     # --- Hash cache — skip unchanged ---
 

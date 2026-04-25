@@ -10,10 +10,10 @@ Regional sweep alternates with full-review under the convergence
 protocol; together they cover the per-cone and whole-ASN scopes.
 
 Usage:
-    python scripts/regional-sweep.py 36
-    python scripts/regional-sweep.py 36 --min-deps 3
-    python scripts/regional-sweep.py 36 --cone GlobalUniqueness
-    python scripts/regional-sweep.py 36 --dry-run
+    python scripts/cone-sweep.py 36
+    python scripts/cone-sweep.py 36 --min-deps 3
+    python scripts/cone-sweep.py 36 --cone GlobalUniqueness
+    python scripts/cone-sweep.py 36 --dry-run
 """
 
 import argparse
@@ -22,9 +22,9 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.formalization.regional import run_regional_sweep, run_regional_review
+from lib.claim_convergence.cone import run_cone_sweep, run_cone_review
 from lib.shared.common import find_asn, build_label_index
-from lib.shared.paths import FORMALIZATION_DIR
+from lib.shared.paths import CLAIM_CONVERGENCE_DIR
 from lib.store.store import Store
 from lib.store.populate import build_cross_asn_label_index
 
@@ -49,7 +49,7 @@ def main():
 
     if args.cone:
         _, asn_label = find_asn(str(asn_num))
-        claim_dir = FORMALIZATION_DIR / asn_label
+        claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
         asn_labels = set(build_label_index(claim_dir).keys())
         if args.cone not in asn_labels:
             print(f"  Claim {args.cone} not found", file=sys.stderr)
@@ -69,12 +69,12 @@ def main():
             ]
         finally:
             store.close()
-        result = run_regional_review(asn_num, args.cone, dep_labels,
+        result = run_cone_review(asn_num, args.cone, dep_labels,
                                       max_cycles=args.max_cycles,
                                       dry_run=args.dry_run, model=args.model)
         sys.exit(0 if result == "converged" else 1)
 
-    result = run_regional_sweep(asn_num, min_deps=args.min_deps,
+    result = run_cone_sweep(asn_num, min_deps=args.min_deps,
                                  max_cycles=args.max_cycles,
                                  dry_run=args.dry_run, model=args.model)
     sys.exit(0 if result == "converged" else 1)

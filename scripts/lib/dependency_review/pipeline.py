@@ -21,7 +21,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import (WORKSPACE, FORMALIZATION_DIR, USAGE_LOG,
+from lib.shared.paths import (WORKSPACE, CLAIM_CONVERGENCE_DIR, USAGE_LOG,
                     prompt_path, next_review_number, load_manifest)
 from lib.shared.common import find_asn, read_file, assemble_readonly, step_commit_asn
 from lib.shared.foundation import load_foundation_statements
@@ -102,8 +102,8 @@ def revise_report(asn_num, report_text):
     if asn_path is None:
         return False
 
-    # Point agent at formalization directory if available
-    claim_dir = FORMALIZATION_DIR / asn_label
+    # Point agent at claim-convergence directory if available
+    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
     if claim_dir.exists():
         rel_path = claim_dir.relative_to(WORKSPACE)
     else:
@@ -168,7 +168,7 @@ def run_dependency_review(asn_num, max_cycles=10, dry_run=False):
               file=sys.stderr)
         return "converged"
 
-    review_dir = FORMALIZATION_DIR / asn_label / "reviews"
+    review_dir = CLAIM_CONVERGENCE_DIR / asn_label / "reviews"
 
     print(f"\n  [DEPENDENCY-REVIEW] {asn_label}", file=sys.stderr)
 

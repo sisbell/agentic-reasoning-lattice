@@ -19,7 +19,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, load_manifest, formal_stmts, dep_graph
+from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, load_manifest, formal_stmts, dep_graph
 from lib.shared.common import find_asn, load_claim_metadata, build_label_index
 from lib.store.store import Store
 from lib.store.populate import build_cross_asn_label_index
@@ -411,11 +411,11 @@ def _scan_prose_citations(sections, own_labels, foundation_labels):
 # Main: generate deps YAML
 # ---------------------------------------------------------------------------
 
-def generate_formalization_deps(asn_num):
-    """Parse the formalization claim table and generate dependency data.
+def generate_claim_convergence_deps(asn_num):
+    """Parse the claim-convergence claim table and generate dependency data.
 
     Table-only: reads _table.md status column for follows_from. No prose
-    scanning. For formalization and verification pipelines.
+    scanning. For claim convergence and verification pipelines.
 
     Returns a dict suitable for YAML serialization, or None on failure.
     """
@@ -434,7 +434,7 @@ def generate_discovery_deps(asn_num):
 
 
 # Backward compatibility alias
-generate_deps = generate_formalization_deps
+generate_deps = generate_claim_convergence_deps
 
 
 def _generate_deps_core(asn_num, prose_citations=False):
@@ -448,7 +448,7 @@ def _generate_deps_core(asn_num, prose_citations=False):
         return None
 
     # Read from per-claim YAMLs
-    claim_dir = FORMALIZATION_DIR / asn_label
+    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
 
     # Get manifest for ASN-level depends
     manifest = load_manifest(asn_num)

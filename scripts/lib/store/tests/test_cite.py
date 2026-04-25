@@ -21,10 +21,10 @@ class CiteTestBase(unittest.TestCase):
         )
         self.addCleanup(self.store.close)
         self.label_index = {
-            "T0": "lattices/xanadu/formalization/ASN-0001/T0.md",
-            "T1": "lattices/xanadu/formalization/ASN-0001/T1.md",
+            "T0": "lattices/xanadu/claim-convergence/ASN-0001/T0.md",
+            "T1": "lattices/xanadu/claim-convergence/ASN-0001/T1.md",
         }
-        self.from_claim = "lattices/xanadu/formalization/ASN-0001/T2.md"
+        self.from_claim = "lattices/xanadu/claim-convergence/ASN-0001/T2.md"
 
 
 class EmitCitationTests(CiteTestBase):
@@ -35,7 +35,7 @@ class EmitCitationTests(CiteTestBase):
         rec = self.store.get(link_id)
         self.assertEqual(
             rec["to_set"],
-            ["lattices/xanadu/formalization/ASN-0001/T0.md"],
+            ["lattices/xanadu/claim-convergence/ASN-0001/T0.md"],
         )
 
     def test_returns_created_true_first_time(self):
@@ -69,7 +69,7 @@ class EmitCitationTests(CiteTestBase):
         self.assertEqual(rec["from_set"], [self.from_claim])
         self.assertEqual(
             rec["to_set"],
-            ["lattices/xanadu/formalization/ASN-0001/T0.md"],
+            ["lattices/xanadu/claim-convergence/ASN-0001/T0.md"],
         )
         self.assertEqual(rec["type_set"], ["citation"])
 

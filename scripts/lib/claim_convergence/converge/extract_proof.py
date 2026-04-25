@@ -25,11 +25,11 @@ from lib.shared.paths import (WORKSPACE, USAGE_LOG, REVIEWS_DIR,
                    prompt_path, formal_stmts, load_manifest,
                    next_review_number)
 from lib.shared.common import find_asn, extract_claim_sections, step_commit_asn
-from lib.formalization.core.build_dependency_graph import (find_claim_table, parse_table_row,
-                              detect_columns, generate_formalization_deps)
-from lib.formalization.core.topological_sort import topological_sort_labels
+from lib.claim_convergence.core.build_dependency_graph import (find_claim_table, parse_table_row,
+                              detect_columns, generate_claim_convergence_deps)
+from lib.claim_convergence.core.topological_sort import topological_sort_labels
 
-REPAIR_TEMPLATE = prompt_path("formalization/formalize/extract-proof.md")
+REPAIR_TEMPLATE = prompt_path("claim-convergence/converge/extract-proof.md")
 
 
 def _log_usage(step, elapsed, asn_num, label=""):
@@ -339,7 +339,7 @@ def step_repair_sections(asn_num):
     incomplete_map = needs_repair_map
 
     # Generate deps for context building
-    deps_data = generate_formalization_deps(asn_num)
+    deps_data = generate_claim_convergence_deps(asn_num)
     if deps_data is None:
         return 0, 0, 0
 
@@ -413,7 +413,7 @@ def main():
             print(f"  {args.label} not found or already has proof",
                   file=sys.stderr)
             sys.exit(1)
-        deps_data = generate_formalization_deps(asn_num)
+        deps_data = generate_claim_convergence_deps(asn_num)
         asn_path, _ = find_asn(str(asn_num))
         text = asn_path.read_text()
         all_labels = list(deps_data.get("claims", {}).keys())

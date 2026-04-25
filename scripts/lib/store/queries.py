@@ -51,23 +51,23 @@ def is_converged(store):
     return not unresolved_revise_comments(store)
 
 
-def is_asn_converged(store, asn_label, formalization_dir=None):
+def is_asn_converged(store, asn_label, claim_convergence_dir=None):
     """The protocol predicate scoped to one ASN's claims.
 
     Conjunction of `is_claim_converged` over every claim in
-    `lattices/<lattice>/formalization/<asn_label>/`. Vacuously true on a
+    `lattices/<lattice>/claim-convergence/<asn_label>/`. Vacuously true on a
     nonexistent or empty ASN — coverage is choreography's responsibility,
     not the predicate's.
     """
     from pathlib import Path
     import sys
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-    from lib.shared.paths import FORMALIZATION_DIR, WORKSPACE
+    from lib.shared.paths import CLAIM_CONVERGENCE_DIR, WORKSPACE
 
-    formalization_dir = (
-        Path(formalization_dir) if formalization_dir else FORMALIZATION_DIR
+    claim_convergence_dir = (
+        Path(claim_convergence_dir) if claim_convergence_dir else CLAIM_CONVERGENCE_DIR
     )
-    asn_dir = formalization_dir / asn_label
+    asn_dir = claim_convergence_dir / asn_label
     if not asn_dir.exists():
         return True
     workspace_resolved = Path(WORKSPACE).resolve()

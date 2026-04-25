@@ -56,7 +56,7 @@ Reports PASS/FAIL with details.
 
 ### Promote
 
-Copies per-claim `.yaml` + `.md` pairs and structural `_*.md` files from `lattices/xanadu/blueprinting/ASN-NNNN/claims/` to `lattices/xanadu/formalization/ASN-NNNN/`.
+Copies per-claim `.yaml` + `.md` pairs and structural `_*.md` files from `lattices/xanadu/blueprinting/ASN-NNNN/claims/` to `lattices/xanadu/claim-convergence/ASN-NNNN/`.
 
 ## Output Structure
 

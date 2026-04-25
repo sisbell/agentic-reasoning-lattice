@@ -8,12 +8,12 @@ convergence: rewrite all needing quality → re-check → rewrite dirty
 set + dependents → converge.
 
 Usage:
-    python scripts/formalize.py 40
-    python scripts/formalize.py 40 --max-cycles 1     # single pass
-    python scripts/formalize.py 40 --mode full_sweep   # check all each cycle
-    python scripts/formalize.py 40 --label B0a         # single claim
-    python scripts/formalize.py 40 --dry-run           # list what needs quality
-    python scripts/formalize.py 40 --contracts-only    # only missing contracts
+    python scripts/converge.py 40
+    python scripts/converge.py 40 --max-cycles 1     # single pass
+    python scripts/converge.py 40 --mode full_sweep   # check all each cycle
+    python scripts/converge.py 40 --label B0a         # single claim
+    python scripts/converge.py 40 --dry-run           # list what needs quality
+    python scripts/converge.py 40 --contracts-only    # only missing contracts
 """
 
 import argparse
@@ -23,11 +23,11 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, next_review_number
+from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, next_review_number
 from lib.shared.common import find_asn, step_commit_asn, build_label_index, parallel_llm_calls
-from lib.formalization.core.build_dependency_graph import generate_formalization_deps
-from lib.formalization.core.topological_sort import topological_sort_labels, topological_levels
-from lib.formalization.formalize.produce_contract import (
+from lib.claim_convergence.core.build_dependency_graph import generate_claim_convergence_deps
+from lib.claim_convergence.core.topological_sort import topological_sort_labels, topological_levels
+from lib.claim_convergence.converge.produce_contract import (
     find_claims_needing_quality, produce_contract,
     _has_formal_contract, _downstream_dependents, _compute_hash,
 )
@@ -70,10 +70,10 @@ def run_formalize(asn_num, max_cycles=5, mode="incremental",
 
     print(f"\n  [FORMALIZE] {asn_label}", file=sys.stderr)
 
-    review_dir = FORMALIZATION_DIR / asn_label / "reviews"
-    claim_dir = FORMALIZATION_DIR / asn_label
+    review_dir = CLAIM_CONVERGENCE_DIR / asn_label / "reviews"
+    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
     if not claim_dir.exists():
-        print(f"  No formalization directory for {asn_label}", file=sys.stderr)
+        print(f"  No claim-convergence directory for {asn_label}", file=sys.stderr)
         print(f"  Run: python scripts/promote-blueprint.py {asn_num}",
               file=sys.stderr)
         return "failed"
@@ -114,7 +114,7 @@ def run_formalize(asn_num, max_cycles=5, mode="incremental",
             break
 
         # Sort in dependency order
-        deps_data = generate_formalization_deps(asn_num)
+        deps_data = generate_claim_convergence_deps(asn_num)
         ordered = topological_sort_labels(deps_data) if deps_data else []
         needs_labels = {n["label"] for n in needs}
         needs_map = {n["label"]: n for n in needs}

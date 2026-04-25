@@ -1,7 +1,7 @@
 """
 Produce Contract step — Dijkstra rewrite + formal contracts per claim.
 
-Step functions for the formalize orchestrator (scripts/formalize.py):
+Step functions for the formalize orchestrator (scripts/converge.py):
 - find_claims_needing_quality: scan ASN for claims needing rewrite
 - quality_rewrite: rewrite one claim to Dijkstra standard with formal contract
 """
@@ -16,14 +16,14 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import USAGE_LOG, FORMALIZATION_DIR, prompt_path, formal_stmts
+from lib.shared.paths import USAGE_LOG, CLAIM_CONVERGENCE_DIR, prompt_path, formal_stmts
 from lib.shared.common import find_asn, invoke_claude, build_label_index, load_claim_metadata
-from lib.formalization.core.build_dependency_graph import generate_formalization_deps
+from lib.claim_convergence.core.build_dependency_graph import generate_claim_convergence_deps
 
-from lib.formalization.assembly.validate_contracts import validate_contract
+from lib.claim_convergence.assembly.validate_contracts import validate_contract
 
-QUALITY_TEMPLATE = prompt_path("formalization/formalize/produce-contract.md")
-REVIEW_REWRITE_TEMPLATE = prompt_path("formalization/formalize/review-rewrite.md")
+QUALITY_TEMPLATE = prompt_path("claim-convergence/converge/produce-contract.md")
+REVIEW_REWRITE_TEMPLATE = prompt_path("claim-convergence/converge/review-rewrite.md")
 
 
 def _log_usage(step, elapsed, asn_num, label=""):
@@ -99,7 +99,7 @@ def _find_dirty(current_hashes, stored_hashes, deps_data):
 def find_claims_needing_quality(asn_num, force_all=True, force_rebuild=False):
     """Find claims that need a quality pass.
 
-    Reads per-claim files from lattices/xanadu/formalization/ASN-NNNN/.
+    Reads per-claim files from lattices/xanadu/claim-convergence/ASN-NNNN/.
 
     If force_rebuild=True, returns ALL (ignores hashes).
     If force_all=True, uses hash-based dirty detection.
@@ -109,9 +109,9 @@ def find_claims_needing_quality(asn_num, force_all=True, force_rebuild=False):
     if asn_path is None:
         return [], {}
 
-    claim_dir = FORMALIZATION_DIR / asn_label
+    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
     if not claim_dir.exists():
-        print(f"  No formalization directory for {asn_label}", file=sys.stderr)
+        print(f"  No claim-convergence directory for {asn_label}", file=sys.stderr)
         return [], {}
     label_index = build_label_index(claim_dir)
     _filename_to_label = {f"{stem}.md": lbl for lbl, stem in label_index.items()}
@@ -146,7 +146,7 @@ def find_claims_needing_quality(asn_num, force_all=True, force_rebuild=False):
         return candidates, {}
 
     # Hash-based dirty detection
-    deps_data = generate_formalization_deps(asn_num)
+    deps_data = generate_claim_convergence_deps(asn_num)
     if deps_data is None:
         return candidates, {}
 
@@ -215,7 +215,7 @@ def _review_rewrite(pre_section, post_section, label):
 
 def _build_dep_context(asn_num, label):
     """Build dependency context for a claim — same-ASN files + foundation excerpts."""
-    deps_data = generate_formalization_deps(asn_num)
+    deps_data = generate_claim_convergence_deps(asn_num)
     if not deps_data:
         return "(none)"
 
@@ -224,7 +224,7 @@ def _build_dep_context(asn_num, label):
     all_labels = set(deps_data.get("claims", {}).keys())
 
     _, asn_label = find_asn(str(asn_num))
-    claim_dir = FORMALIZATION_DIR / asn_label
+    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
     _label_index = build_label_index(claim_dir)
 
     dep_parts = []

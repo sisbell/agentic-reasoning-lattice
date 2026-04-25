@@ -3,7 +3,7 @@
 Per-claim Dafny contract review.
 
 Compares each generated .dfy file against its formal contract from
-per-claim files in lattices/xanadu/formalization/. Flags mismatches for
+per-claim files in lattices/xanadu/claim-convergence/. Flags mismatches for
 author review.
 
 Output: per-claim review files in lattices/xanadu/verification/dafny/ASN-NNNN/reviews/
@@ -23,7 +23,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
-from lib.shared.paths import (WORKSPACE, FORMALIZATION_DIR, DAFNY_DIR, USAGE_LOG, prompt_path)
+from lib.shared.paths import (WORKSPACE, CLAIM_CONVERGENCE_DIR, DAFNY_DIR, USAGE_LOG, prompt_path)
 from lib.shared.common import find_asn, build_label_index
 
 PROMPT_TEMPLATE = prompt_path("verification/dafny/validate-contract.md")
@@ -83,9 +83,9 @@ def validate_batch(asn_num, dfy_dir, dry_run=False):
     print(f"  [CONTRACT] {asn_label}", file=sys.stderr)
 
     # Read contract sections from per-claim files
-    claim_dir = FORMALIZATION_DIR / asn_label
+    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
     if not claim_dir.exists():
-        print(f"  No formalization directory for {asn_label}", file=sys.stderr)
+        print(f"  No claim-convergence directory for {asn_label}", file=sys.stderr)
         return None
 
     dfy_files = sorted(dfy_dir.glob("*.dfy"))

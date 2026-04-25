@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-Formalize Patch — apply targeted fixes to formalized ASNs.
+Converge Patch — apply targeted fixes to ASNs in claim convergence.
 
 Reads a patch instruction from the lattice's discovery/patches/ASN-NNNN/ directory,
-applies the fix, and commits. The formalization pipeline runs afterward
+applies the fix, and commits. The claim-convergence pipeline runs afterward
 to verify correctness.
 
 Usage:
-    python scripts/formalize-patch.py 34 --patch patch-ta5.md
-    python scripts/formalize-patch.py 34 --patch patch-ta5.md --dry-run
+    python scripts/converge-patch.py 34 --patch patch-ta5.md
+    python scripts/converge-patch.py 34 --patch patch-ta5.md --dry-run
 """
 
 import argparse
@@ -24,7 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, USAGE_LOG, PATCHES_DIR, prompt_path
 from lib.shared.common import find_asn, step_commit_asn
 
-APPLY_TEMPLATE = prompt_path("formalization/patch/apply.md")
+APPLY_TEMPLATE = prompt_path("claim-convergence/patch/apply.md")
 
 
 def validate(asn_num, patch_name):
@@ -89,7 +89,7 @@ def step_apply(asn_num, asn_path, asn_label, patch_content, model, effort):
     try:
         entry = {
             "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
-            "skill": "formalize-patch",
+            "skill": "converge-patch",
             "asn": asn_label,
             "elapsed_s": round(elapsed, 1),
             "cost_usd": cost,
@@ -104,7 +104,7 @@ def step_apply(asn_num, asn_path, asn_label, patch_content, model, effort):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Apply a targeted patch to a formalized ASN")
+        description="Apply a targeted patch to an ASN in claim convergence")
     parser.add_argument("asn", help="ASN number (e.g., 34)")
     parser.add_argument("--patch", required=True,
                         help="Patch filename (in the lattice's discovery/patches/ASN-NNNN/ directory)")
@@ -135,9 +135,9 @@ def main():
     step_commit_asn(asn_num,
                     hint=f"patch(asn): {asn_label} apply {patch_path.name}")
 
-    print(f"\n  [NEXT] Run formalization pipeline to verify:",
+    print(f"\n  [NEXT] Run claim convergence pipeline to verify:",
           file=sys.stderr)
-    print(f"  ./run/formalize.sh --from dependency-review {asn_num}",
+    print(f"  ./run/converge.sh --from dependency-review {asn_num}",
           file=sys.stderr)
 
 

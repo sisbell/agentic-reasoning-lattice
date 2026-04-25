@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, USAGE_LOG, prompt_path
 from lib.shared.common import find_asn, read_file
 
-REVISE_TEMPLATE = prompt_path("formalization/full-review/revise.md")
+REVISE_TEMPLATE = prompt_path("claim-convergence/full-review/revise.md")
 
 
 def revise(asn_num, title, finding_text, claim_dir=None,
@@ -34,16 +34,16 @@ def revise(asn_num, title, finding_text, claim_dir=None,
     if asn_path is None:
         return False
 
-    # Use formalization directory if provided
+    # Use claim-convergence directory if provided
     if claim_dir is None:
-        from lib.shared.paths import FORMALIZATION_DIR
-        claim_dir = FORMALIZATION_DIR / asn_label
+        from lib.shared.paths import CLAIM_CONVERGENCE_DIR
+        claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
 
     template = read_file(REVISE_TEMPLATE)
     rel_path = claim_dir.relative_to(WORKSPACE)
 
     # The finding may not have a single label — use the title
-    # Point agent at the formalization directory (contains per-claim files)
+    # Point agent at the claim-convergence directory (contains per-claim files)
     prompt = (template
         .replace("{{claim_dir}}", str(rel_path))
         .replace("{{label}}", title)

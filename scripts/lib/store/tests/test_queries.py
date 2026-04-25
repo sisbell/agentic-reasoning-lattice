@@ -209,10 +209,10 @@ class AsnConvergedTests(QueriesTestBase):
         from unittest import mock
         from pathlib import Path as _Path
         self.tmp_root = _Path(self.tmp.name)
-        self.formalization_dir = (
-            self.tmp_root / "lattices" / "xanadu" / "formalization"
+        self.claim_convergence_dir = (
+            self.tmp_root / "lattices" / "xanadu" / "claim-convergence"
         )
-        self.formalization_dir.mkdir(parents=True)
+        self.claim_convergence_dir.mkdir(parents=True)
         self.workspace_patcher = mock.patch(
             "lib.shared.paths.WORKSPACE", self.tmp_root,
         )
@@ -220,7 +220,7 @@ class AsnConvergedTests(QueriesTestBase):
         self.addCleanup(self.workspace_patcher.stop)
 
     def _make_claim(self, asn, label):
-        asn_dir = self.formalization_dir / asn
+        asn_dir = self.claim_convergence_dir / asn
         asn_dir.mkdir(parents=True, exist_ok=True)
         yaml_path = asn_dir / f"{label}.yaml"
         md_path = asn_dir / f"{label}.md"
@@ -234,7 +234,7 @@ class AsnConvergedTests(QueriesTestBase):
         self.assertTrue(
             is_asn_converged(
                 self.store, "ASN-9999",
-                formalization_dir=self.formalization_dir,
+                claim_convergence_dir=self.claim_convergence_dir,
             )
         )
 
@@ -250,7 +250,7 @@ class AsnConvergedTests(QueriesTestBase):
         self.assertFalse(
             is_asn_converged(
                 self.store, "ASN-0001",
-                formalization_dir=self.formalization_dir,
+                claim_convergence_dir=self.claim_convergence_dir,
             )
         )
 
