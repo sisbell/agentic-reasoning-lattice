@@ -1,6 +1,5 @@
 label: AX-3
 name: InfiniteTypeDomains
-type: axiom
 vocabulary:
 - symbol: Doc
   meaning: 'The document identifier space: {d ∈ T : zeros(d) = 2}, countably infinite'

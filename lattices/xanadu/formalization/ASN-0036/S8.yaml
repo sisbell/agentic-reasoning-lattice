@@ -1,6 +1,5 @@
 label: S8
 name: FiniteCorrespondenceRunDecomposition
-type: theorem
 vocabulary:
 - symbol: correspondence runs {(vⱼ, aⱼ, nⱼ)}
   meaning: a finite set of triples where vⱼ is a starting V-position, aⱼ is the corresponding starting I-address, and nⱼ is

@@ -1,6 +1,5 @@
 label: T4
 name: HierarchicalParsing
-type: axiom
 summary: |
   Valid tumblers encode a four-level containment hierarchy (node, user, document, element),
   with each position `i` satisfying `tᵢ = 0` serving as a field separator. The axiom

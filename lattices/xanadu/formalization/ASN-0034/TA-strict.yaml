@@ -1,6 +1,5 @@
 label: TA-strict
 name: StrictIncrease
-type: corollary
 summary: |
   A named corollary exporting TumblerAdd's ordering-guarantee postcondition a ⊕ w > a as a single labelled fact for
   downstream use. Under the preconditions a ∈ T, Pos(w), actionPoint(w) ≤ #a, TA-strict restates TumblerAdd's third

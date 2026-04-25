@@ -1,6 +1,5 @@
 label: T4b
 name: UniqueParse
-type: corollary
 summary: |
   Four partial functions N, U, D, E : T ⇀ T extract the node, user, document, and
   element sub-sequences of a T4-valid tumbler and are well-defined and uniquely

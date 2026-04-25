@@ -1,6 +1,5 @@
 label: S8-crun
 name: CorrespondenceRun
-type: definition
 vocabulary:
 - symbol: v + 0 = v
   meaning: 'Identity case of ordinal displacement notation: adding zero displacement to a V-position returns it unchanged'

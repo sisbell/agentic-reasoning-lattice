@@ -1,6 +1,5 @@
 label: T7
 name: FirstElementFieldDistinction
-type: corollary
 summary: |
   For two T4-valid element-level addresses (tumblers satisfying the T4 constraints with exactly
   three zero delimiters), differing in the first element-field component forces the tumblers

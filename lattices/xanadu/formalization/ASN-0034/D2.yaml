@@ -1,6 +1,5 @@
 label: D2
 name: DisplacementUnique
-type: corollary
 summary: 'Proves that the displacement carrying a to b is unique: any positive tumbler w satisfying a ⊕ w = b must equal the
   canonical displacement b ⊖ a. The argument applies left cancellation after D1 supplies a second witness, so no two distinct
   displacements can produce the same target from the same source.'

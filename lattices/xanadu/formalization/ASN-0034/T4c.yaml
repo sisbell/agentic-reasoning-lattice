@@ -1,6 +1,5 @@
 label: T4c
 name: LevelDetermination
-type: corollary
 summary: |
   On the T4-valid subset of T (tumblers satisfying zeros(t) ≤ 3, no two zeros adjacent,
   t₁ ≠ 0, t_{#t} ≠ 0), T4c defines the four hierarchical level labels — node address,

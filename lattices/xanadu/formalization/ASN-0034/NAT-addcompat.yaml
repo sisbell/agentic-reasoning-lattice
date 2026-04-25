@@ -1,6 +1,5 @@
 label: NAT-addcompat
 name: NatAdditionOrderAndSuccessor
-type: axiom
 summary: |
   Addition on ℕ is non-strictly monotone with respect to order on either side:
   if `p ≤ n` then `m + p ≤ m + n` (left) and `p + m ≤ n + m` (right) for all

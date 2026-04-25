@@ -1,6 +1,5 @@
 label: T9
 name: ForwardAllocation
-type: lemma
 summary: |
   When two addresses are produced by the same allocator and one is allocated before the other, the earlier-allocated
   address is strictly smaller under the tumbler total order. Domain disjointness (T10a.6) fixes the witnessing allocator

@@ -1,6 +1,5 @@
 label: ZPD
 name: ZeroPaddedDivergence
-type: definition
 summary: |
   Defines the zero-padded divergence `zpd(a, w)` as the first position at which two tumblers disagree after both are
   extended to a common length `L` by appending zeros, where `L` — the longer of `#a` and `#w` — is selected by NAT-order

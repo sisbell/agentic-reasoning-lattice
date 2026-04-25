@@ -1,6 +1,5 @@
 label: TA4
 name: PartialInverse
-type: corollary
 summary: 'Tumbler addition and subtraction are partial inverses only under tight structural conditions: (a ⊕ w) ⊖ w = a holds
   exactly when the action point of w coincides with the last position of a and all components of a before that position are
   zero. The restriction is necessary because addition discards the trailing structure of its first argument below the action

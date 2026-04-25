@@ -1,6 +1,5 @@
 label: ValidInsertionPosition
 name: ValidInsertionPosition
-type: definition
 vocabulary:
 - symbol: valid insertion position
   meaning: Given depth m ≥ 2, a V-position v in subspace S of document d satisfying D-CTG, where either V_S(d) is non-empty

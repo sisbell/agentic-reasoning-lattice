@@ -1,6 +1,5 @@
 label: T6
 name: DecidableContainment
-type: corollary
 summary: |
   Containment queries (same server? same account? same document? one address a prefix of
   another?) can be decided by extracting and comparing the relevant field sequences from the

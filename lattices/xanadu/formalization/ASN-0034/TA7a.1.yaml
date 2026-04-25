@@ -1,6 +1,5 @@
 label: TA7a.1
 name: SubspaceLengthResidue
-type: corollary
 summary: |
   Characterises the length-overflow residue of `⊖`: when `#w > #o` under the
   other preconditions of TA7a's subtraction conjunct, the result lies in

@@ -1,6 +1,5 @@
 label: TA7a
 name: SubspaceClosure
-type: definition
 summary: |
   Defines the subspace **S** as the set of tumblers with all positive
   components and establishes strict S-closure for ⊕ and ⊖ under tight

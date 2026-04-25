@@ -1,6 +1,5 @@
 label: T4a
 name: SyntacticEquivalence
-type: corollary
 summary: |
   The three positional conditions from T4 (no adjacent zeros, nonzero first and last
   components) are logically equivalent to the condition that every field segment of

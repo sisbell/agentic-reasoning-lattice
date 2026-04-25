@@ -1,6 +1,5 @@
 label: T10a
 name: AllocatorDiscipline
-type: design-requirement
 summary: Allocators must produce sibling addresses exclusively by shallow increment inc(·,0), and may spawn child allocators
   only via a single deep increment with k'∈{1,2} subject to TA5a's zero-count bound zeros(t) ≤ 2 at k'=2 (k'=1 preserves T4
   unconditionally on T4-valid t). This discipline ensures all outputs have controlled prefix relationships, prevents length

@@ -1,6 +1,5 @@
 label: NAT-cancel
 name: NatAdditionCancellation
-type: axiom
 summary: |
   Addition on ℕ is cancellative on either side: `m + n = m + p ⟹ n = p`
   (left cancellation) and `n + m = p + m ⟹ n = p` (right cancellation), for

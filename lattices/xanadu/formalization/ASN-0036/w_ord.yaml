@@ -1,6 +1,5 @@
 label: w_ord
 name: OrdinalDisplacementProjection
-type: definition
 vocabulary:
 - symbol: w_ord
   meaning: 'Ordinal projection of displacement w: the sequence [w₂, ..., wₘ] obtained by dropping the first component (the

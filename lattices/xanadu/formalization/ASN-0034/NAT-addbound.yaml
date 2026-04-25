@@ -1,6 +1,5 @@
 label: NAT-addbound
 name: NatAdditionDominatesOperands
-type: theorem
 summary: |
   For every `m, n ∈ ℕ`, the sum `m + n` is bounded below by each of its
   operands: `m + n ≥ n` (right dominance) and `m + n ≥ m` (left dominance).

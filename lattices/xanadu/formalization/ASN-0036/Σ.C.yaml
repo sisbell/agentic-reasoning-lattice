@@ -1,6 +1,5 @@
 label: Σ.C
 name: ContentStore
-type: definition
 vocabulary:
 - symbol: Σ.C
   meaning: 'The content store: a partial function from tumblers to content values, mapping Istream addresses to content'

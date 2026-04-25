@@ -1,6 +1,5 @@
 label: D-CTG-depth
 name: SharedPrefixReduction
-type: lemma
 literature_citations:
 - LM 4/20
 - LM 4/31

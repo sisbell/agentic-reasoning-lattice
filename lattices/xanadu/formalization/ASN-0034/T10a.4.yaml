@@ -1,6 +1,5 @@
 label: T10a.4
 name: T4PreservationUnderDiscipline
-type: corollary
 summary: Every address produced anywhere in an allocator tree conforming to T10a satisfies T4 (HierarchicalParsing). The root
   base address satisfies T4 by the initialization constraint, and TA5a (IncrementPreservesT4) propagates the invariant through
   every inc(·, 0) and inc(·, k') step, so T4 compliance holds at all depths by induction.

@@ -1,6 +1,5 @@
 label: NAT-discrete
 name: NatDiscreteness
-type: axiom
 summary: |
   No natural number lies strictly between `n` and `n + 1`. The axiom form is
   `m < n ⟹ m + 1 ≤ n`; the familiar no-interval reformulation
