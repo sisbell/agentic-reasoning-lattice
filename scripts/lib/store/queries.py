@@ -1,7 +1,7 @@
 """Convergence query helpers for the Claim Convergence Protocol.
 
 Read-only logic composed entirely over `Store.find_links`. The protocol
-predicate (per docs/protocols/claim-convergence-protocol-v2.md):
+predicate (per docs/protocols/claim-convergence-protocol.md):
 
     For every document with a `claim` classifier, every `comment.revise`
     link targeting that claim has a matching `resolution` link.
