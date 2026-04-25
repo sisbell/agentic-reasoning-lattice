@@ -86,9 +86,9 @@ instead "the state satisfies..."
    `corollary`, `consequence` (alias for `corollary`), `lemma`,
    `design-requirement`.
 
-5. If the fix adds new dependencies, add them to the `depends` list in
-   the affected claim's `.yaml` file AND update the prose to justify why
-   the dependency is used. Do not add to YAML without updating prose.
+5. **Adding dependencies.** When you add a dependency, run:
+       python scripts/cite.py --to <label>
+   Justify the new dependency in prose.
 
 6. If the fix requires a new claim that doesn't exist, create both files
    in `{{claim_dir}}/`. Use the label as the filename.
@@ -98,8 +98,6 @@ instead "the state satisfies..."
    label: AX-1
    name: InitialEmpty
    type: axiom
-   depends:
-     - D2
    ```
 
    `{Label}.md`:
