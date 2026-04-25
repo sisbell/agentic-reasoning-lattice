@@ -21,6 +21,8 @@ import yaml
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, load_manifest, formal_stmts, dep_graph
 from lib.shared.common import find_asn, load_claim_metadata, build_label_index
+from lib.store.store import Store
+from lib.store.populate import build_cross_asn_label_index
 
 
 # ---------------------------------------------------------------------------
@@ -459,20 +461,38 @@ def _generate_deps_core(asn_num, prose_citations=False):
               file=sys.stderr)
         return None
 
-    claims = {}
-    for label, data in metadata.items():
-        prop = {"status": data.get("type", "introduced")}
+    # Read follows_from from substrate citation links (per-claim YAML's
+    # depends field is no longer canonical).
+    store = Store()
+    try:
+        cross_index = build_cross_asn_label_index()
+        rev_index = {p: l for l, p in cross_index.items()}
 
-        if data.get("type"):
-            prop["type"] = data["type"]
+        claims = {}
+        for label, data in metadata.items():
+            prop = {"status": data.get("type", "introduced")}
 
-        if data.get("name"):
-            prop["name"] = data["name"]
+            if data.get("type"):
+                prop["type"] = data["type"]
 
-        if data.get("depends"):
-            prop["follows_from"] = data["depends"]
+            if data.get("name"):
+                prop["name"] = data["name"]
 
-        claims[label] = prop
+            from_path = cross_index.get(label)
+            if from_path:
+                follows = [
+                    rev_index[link["to_set"][0]]
+                    for link in store.find_links(
+                        from_set=[from_path], type_set=["citation"],
+                    )
+                    if link["to_set"] and rev_index.get(link["to_set"][0])
+                ]
+                if follows:
+                    prop["follows_from"] = follows
+
+            claims[label] = prop
+    finally:
+        store.close()
 
     # Read per-claim .md files for prose citation scanning
     from lib.shared.common import load_claim_sections
