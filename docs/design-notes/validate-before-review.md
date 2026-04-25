@@ -26,7 +26,7 @@ Per-invariant recipes also make the contract auditable. Each recipe corresponds 
 
 ## Why validate at every scale, not just once
 
-The V-Cycle operates at three scales (local, regional, full). Each scale's revise pass can break invariants — a regional-revise that inlines one claim's body into another's file to reconcile notation violates uniqueness; a full-revise that renames a file without cascading references violates filename-label-match and reference-resolution at once. Invariants are not established once and preserved automatically. Every mutation can break them. Running the validator before each scale's review cycle catches what the previous scale's revisions introduced.
+The [claim convergence protocol](../protocols/claim-convergence-protocol.md) operates at three scales (local, regional, full). Each scale's revise pass can break invariants — a regional-revise that inlines one claim's body into another's file to reconcile notation violates uniqueness; a full-revise that renames a file without cascading references violates filename-label-match and reference-resolution at once. Invariants are not established once and preserved automatically. Every mutation can break them. Running the validator before each scale's review cycle catches what the previous scale's revisions introduced.
 
 The cost is acceptable. Mechanical validation is fast compared to LLM review. The alternative — validating once at the start and trusting that revise passes preserve invariants — requires every revise prompt to encode structural awareness, which is the conflation the two-pass design exists to avoid.
 
@@ -45,4 +45,4 @@ A fix may legitimately break an invariant mid-step — delete a duplicate body, 
 - [Validate Before Review](../patterns/validate-before-review.md) — the pattern these decisions serve.
 - [The Validation Principle](../principles/validation.md) — the commitment behind the pattern.
 - [Claim File Contract](claim-file-contract.md) — the structural contract the validator checks against. The contract's rules drive the validator's checklist and the per-invariant recipe set.
-- [Review V-Cycle](review-v-cycle.md) — the review machinery this runs before at each scale.
+- [Claim Convergence Protocol](../protocols/claim-convergence-protocol.md) — the review machinery this runs before at each scale.

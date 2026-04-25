@@ -62,7 +62,7 @@ Both cases offered the structural fix in writing. Both took the textual fix. Bot
 
 ## Surface expansion blinds review
 
-A second-order observation from the April 2026 V-cycle rerun of ASN-0034/TumblerAdd, after the compress pass and coupling-prompt updates.
+A second-order observation from the April 2026 claim-convergence rerun of ASN-0034/TumblerAdd, after the compress pass and coupling-prompt updates.
 
 Three cycles of the rerun produced three findings: a missing NAT-discrete contrapositive citation in T1 Case 1, an unstitched `≥` abbreviation in TumblerAdd's dominance conclusion, and an ambiguous NAT-cancel summand-absorption form. All three were genuine coupling gaps. All three were present throughout the pre-compress review history. **None had been found in the earlier cycles.**
 
@@ -79,4 +79,4 @@ The discipline the Coupling Principle enforces is therefore not a cleanliness pr
 - [The Coupling Principle](../principles/coupling.md) — the parent discipline. Surface expansion is a coupling violation; the coupling principle's feedback loop shows how detection flows from delta-from-target through the Sprawl patterns.
 - [Accretion](../patterns/accretion.md) — the healthy growth pattern. Accretion adds new claims without mutating existing ones; surface expansion is what happens when claims mutate instead.
 - [Review/Revise Iteration](../patterns/review-revise-iteration.md) — the cycle within which expansion or contraction happens. Each iteration is a decision point where the voice discipline and finding classification operate.
-- [Review V-Cycle](../design-notes/review-v-cycle.md) — the full-review scale at which cumulative surface expansion becomes detectable across multiple claims at once. The REVISE/OBSERVE classification operates within the V-Cycle's review prompts.
+- [Claim Convergence Protocol](../protocols/claim-convergence-protocol.md) — the full-review scale at which cumulative surface expansion becomes detectable across multiple claims at once. The REVISE/OBSERVE classification operates within the protocol's review prompts.

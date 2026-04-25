@@ -78,4 +78,4 @@ Citation drift is the expected side effect of active reorganization. Every [Cont
 - [Review/Revise Iteration](../patterns/review-revise-iteration.md) — the mechanism that resolves drift. Full-review finds each gap; the reviser patches the metadata; cycles converge.
 - [Contract Sprawl](contract-sprawl.md) — a split produces a burst of passive drift in every downstream consumer of the attractor. Cleanup is required follow-up.
 - [Accretion](../patterns/accretion.md) — new claims introduced as accretion produce small internal drift until downstream proofs discover the new home.
-- [Review V-Cycle](../design-notes/review-v-cycle.md) — drift is the main thing full-review catches. Its scattered per-claim nature is precisely what narrower scales miss.
+- [Claim Convergence Protocol](../protocols/claim-convergence-protocol.md) — drift is the main thing full-review catches. Its scattered per-claim nature is precisely what narrower scales miss.

@@ -81,8 +81,8 @@ These are recognition aids, not a stripping checklist. The discipline that preve
 ## Related
 
 - [The Voice Principle](../principles/voice.md) — the discipline that contains add-bias. Positive voice structure constrains the reviser to load-bearing prose by construction, replacing enumerated prohibition lists that proved unstable.
-- [The Coupling Principle](../principles/coupling.md) — prose sprawl is a coupling violation: the prose:formal ratio drifts above the 70/30 target. The coupling principle's signal table and feedback loop show how this detection drives V-Cycle prompt calibration.
+- [The Coupling Principle](../principles/coupling.md) — prose sprawl is a coupling violation: the prose:formal ratio drifts above the 70/30 target. The coupling principle's signal table and feedback loop show how this detection drives claim-convergence prompt calibration.
 - [Contract Sprawl](contract-sprawl.md) — shares forces. Contract Sprawl concentrates in structural sections; Prose Sprawl concentrates in narrative.
 - [Index Sprawl](index-sprawl.md) — enumerative prose is a specific surface form of Prose Sprawl.
 - [Surface Expansion](surface-expansion.md) — the shared mechanism across Contract/Prose/Index Sprawl. Prose Sprawl is the narrative-surface manifestation; monitoring and the general discipline live at the Surface Expansion level.
-- [Review V-Cycle](../design-notes/review-v-cycle.md) — prose bloat is detected at full-review when cycle findings reference prose introduced by the previous cycle's revisions. The REVISE/OBSERVE classification operates within the V-Cycle's review prompts.
+- [Claim Convergence Protocol](../protocols/claim-convergence-protocol.md) — prose bloat is detected at full-review when cycle findings reference prose introduced by the previous cycle's revisions. The REVISE/OBSERVE classification operates within the protocol's review prompts.

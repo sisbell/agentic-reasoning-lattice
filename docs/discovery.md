@@ -58,7 +58,7 @@ The lattice grows through this process. Foundation notes emerge at the bottom �
 
 ## Entering blueprinting
 
-At some point the lattice has enough structure to see which notes everything else rests on. These foundations need to be put on rigorous standing — formal contracts, mechanical verification, the full weight of the V-cycle. [Blueprinting](blueprinting.md) is that transition. It can only happen bottom-up: a foundation must be solid before anything built on it can be trusted.
+At some point the lattice has enough structure to see which notes everything else rests on. These foundations need to be put on rigorous standing — formal contracts, mechanical verification, the full weight of the [claim convergence protocol](protocols/claim-convergence-protocol.md). [Blueprinting](blueprinting.md) is that transition. It can only happen bottom-up: a foundation must be solid before anything built on it can be trusted.
 
 A note is ready to enter blueprinting when three conditions hold:
 

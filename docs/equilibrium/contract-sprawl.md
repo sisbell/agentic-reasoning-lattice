@@ -63,4 +63,4 @@ Complete resolution requires changing the site's *role*, not just its content. E
 - [Index Sprawl](index-sprawl.md) — the Genesis Attractor's enumerative form; a sibling failure.
 - [Surface Expansion](surface-expansion.md) — the shared mechanism across Contract/Prose/Index Sprawl. Contract Sprawl is the contract-surface manifestation; monitoring lives at the Surface Expansion level.
 - [Dependency cone](../patterns/dependency-cone.md) — can mask Contract Sprawl. A non-converging cone may look like coupling when the real cause is an apex sprawling each cycle.
-- [Review V-Cycle](../design-notes/review-v-cycle.md) — clean full-review followed by cones finding issues often traces back to a Genesis Attractor.
+- [Claim Convergence Protocol](../protocols/claim-convergence-protocol.md) — clean full-review followed by cones finding issues often traces back to a Genesis Attractor.

@@ -10,7 +10,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Apex (cone apex).** The high-dependency claim at the center of a [dependency cone](patterns/dependency-cone.md) — the one that keeps getting revised while its dependencies remain stable.
 
-**Assembly.** The stage that exports formalized claims into `formal-statements.md` and `dependency-graph.yaml` for downstream consumers. Mechanical, no LLM.
+**Assembly.** The stage that exports converged claims into `formal-statements.md` and `dependency-graph.yaml` for downstream consumers. Mechanical, no LLM.
 
 **Attractor, Genesis.** A claim that becomes the default home for every fact anyone needs about a concept it introduces. Cause of [Contract Sprawl](equilibrium/contract-sprawl.md).
 
@@ -20,7 +20,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 ## B
 
-**Blueprinting.** The stage that decomposes a note into per-claim file pairs (YAML metadata + MD body). A [representation change](patterns/representation-change.md) that introduces structural invariants specified in the [Claim File Contract](design-notes/claim-file-contract.md). Produces the structure formalization operates on. See [Blueprinting](blueprinting.md).
+**Blueprinting.** The stage that decomposes a note into per-claim file pairs (YAML metadata + MD body). A [representation change](patterns/representation-change.md) that introduces structural invariants specified in the [Claim File Contract](design-notes/claim-file-contract.md). Produces the structure claim convergence operates on. See [Blueprinting](blueprinting.md).
 
 **Boundary observation.** An out-of-scope finding captured during investigation — enough context to seed a new investigation without expanding the current one. Seed for [scope promotion](patterns/scope-promotion.md).
 
@@ -39,6 +39,8 @@ Terms specific to this reasoning system. Cross-references point to where each te
 **Citation, inline.** A reference in the proof narrative like "by NAT-wellorder." Part of proof content, not metadata.
 
 **Claim.** A single unit of reasoning within a note. An assertion — something the system says is the case, which can be verified, contested, or refuted. Has a label, type, formal contract, and dependencies. The atomic lattice node. See [Architecture](architecture.md).
+
+**Claim convergence.** The stage that takes per-claim files from blueprinting and runs review/revise cycles until each claim's reasoning is sound. Not cleanup — discovery under precision constraint. Scope narrowing to per-claim files is itself epistemically productive. See [Claim Convergence](claim-convergence.md); protocol details in [Claim Convergence Protocol](protocols/claim-convergence-protocol.md).
 
 **Claim File Contract.** The structural contract specifying what well-formed per-claim file state looks like after blueprinting. Concrete rules, mechanically checkable: one body per file, filename matches label, references resolve, metadata agrees with content, no dependency cycles. The first instance of the output contract the [Validation Principle](principles/validation.md) requires. See [Claim File Contract](design-notes/claim-file-contract.md).
 
@@ -64,7 +66,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Design requirement.** A claim classified as an architectural or measurement constraint the system imposes.
 
-**Discovery.** The stage producing notes through the [two-channel architecture](patterns/two-data-authorities.md). First stage of the pipeline. See [Discovery](discovery.md).
+**Discovery.** The stage producing notes through the [two-channel architecture](patterns/two-data-authorities.md). First stage. See [Discovery](discovery.md).
 
 **Domain.** The logical configuration of a lattice — which verifier, which channels, which vocabulary firewall. Expressed in `lattices/<L>/config.yaml`, not as a separate directory. Two configurations that differ in any binding are different domains. The domain is what you swap to move the engine from one subject area to another. See [Architecture](architecture.md).
 
@@ -73,8 +75,6 @@ Terms specific to this reasoning system. Cross-references point to where each te
 **Driver (Citation Drift).** The cause class that produces drift.
 - **Internal driver** — active work inside the same note produces drift within that note. Continuous.
 - **Passive driver** — work in an upstream note produces drift in downstream consumers. Event-driven.
-
-**Downward pass.** Second phase of the [V-cycle](design-notes/review-v-cycle.md) — re-verifying at narrower scales after wider-scale corrections.
 
 **Domain language emergence.** The process by which the system coins new prose words for concepts it will reason with, as two-channel synthesis and subsequent review cycles produce claims existing vocabulary can't express. See [Domain Language Emergence](design-notes/domain-language-emergence.md).
 
@@ -92,19 +92,17 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 ## F
 
-**Finding classification.** The reviewer's classification of each finding as requiring action or not. Correctness issues (broken precondition chains, missing axioms, ungrounded operators) must be fixed. Tightening observations (loose phrasing, minor style, alternative framings) are logged but do not trigger revision. Prevents [Surface Expansion](equilibrium/surface-expansion.md) by keeping tightening findings from reaching the reviser. See [Formalization](formalization.md).
+**Finding classification.** The reviewer's classification of each finding as requiring action or not. Correctness issues (broken precondition chains, missing axioms, ungrounded operators) must be fixed. Tightening observations (loose phrasing, minor style, alternative framings) are logged but do not trigger revision. Prevents [Surface Expansion](equilibrium/surface-expansion.md) by keeping tightening findings from reaching the reviser. See [Claim Convergence](claim-convergence.md).
 
 **Firewall, vocabulary.** Structural enforcement that the theory channel cannot use evidence-channel terms and vice versa. Prevents the LLM's training knowledge from shortcutting reasoning. See [Discovery](discovery.md).
 
 **Formal-statements export.** Curated export containing all claim summaries and formal contracts in dependency order. Consumed by downstream notes as foundation.
 
-**Formalization.** The stage that rewrites proofs to Dijkstra standard, produces formal contracts, and runs the V-cycle to convergence. Not cleanup — discovery under precision constraint. Scope narrowing to per-claim files is itself epistemically productive. See [Formalization](formalization.md).
-
 **Foundation.** From a downstream note's perspective, any upstream note it depends on. Foundation content is read-only context for the downstream's review cycles.
 
 **Full-review.** Full-scale review reading an entire note. Finds issues invisible to narrower scales: carrier-set conflation, precondition chain gaps, vocabulary collisions, issues in small claims. Renamed from cross-review.
 
-**Full scale.** [Review V-Cycle](design-notes/review-v-cycle.md) scope of the whole note with full foundation context. Renamed from System scale.
+**Full scale.** [Claim Convergence Protocol](protocols/claim-convergence-protocol.md) scope of the whole note with full foundation context. Renamed from System scale.
 
 ## G
 
@@ -112,7 +110,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Gravitational failure.** An [equilibrium](equilibrium/) pattern whose force acts continuously across review cycles. Requires permanent discipline — prompt framing, coupling monitoring, voice structure — not a one-time fix. Contrasts with [transitional failure](#t) and [oscillatory failure](#o). Contract Sprawl, Prose Sprawl, Surface Expansion, Index Sprawl, Citation Drift are gravitational.
 
-**Ground state.** The state of genuine convergence across all scales — claim, cluster, and system review all agree there are no remaining issues. Distinguished from "stopped" (no finding in one scale but others can still expose issues). See [V-cycle self-evaluation](design-notes/review-v-cycle.md#the-v-cycle-as-self-evaluation).
+**Ground state.** The state of genuine convergence across all scales — local, regional, and full review all agree there are no remaining issues. Distinguished from "stopped" (no finding in one scale but others can still expose issues). See [Claim Convergence Protocol](protocols/claim-convergence-protocol.md).
 
 ## H
 
@@ -136,13 +134,13 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Label.** A claim's stable citable handle (e.g., `T0`, `NAT-wellorder`, `TA-Pos`). Set at blueprinting, never changes.
 
-**Lattice.** The coverage target that campaigns build toward: an accumulated verified dependency graph for one subject-area focus. The lattice operates at two granularities simultaneously: during discovery, notes declare note-level dependencies (`depends:`); during formalization, claims declare claim-level dependencies (`follows_from:`). Which granularity a consuming note sees depends on the consumer's stage. Notes retire gradually as their consumers formalize; the terminal lattice is all claim-to-claim edges with note groupings as provenance metadata. See [Architecture](architecture.md).
+**Lattice.** The coverage target that campaigns build toward: an accumulated verified dependency graph for one subject-area focus. The lattice operates at two granularities simultaneously: during discovery, notes declare note-level dependencies (`depends:`); during claim convergence, claims declare claim-level dependencies (`follows_from:`). Which granularity a consuming note sees depends on the consumer's stage. Notes retire gradually as their consumers enter claim convergence; the terminal lattice is all claim-to-claim edges with note groupings as provenance metadata. See [Architecture](architecture.md).
 
 **Lemma.** A claim classified as an intermediate result supporting higher-level theorems.
 
 **Local-review.** Local-scale review checking logical gaps, unjustified steps, missing cases, and dependency correctness. One claim at a time with its dependencies as fixed context. The contract gate: does this claim validly export what downstream claims can cite? Renamed from proof-review.
 
-**Local scale.** [Review V-Cycle](design-notes/review-v-cycle.md) scope of one claim with its dependencies as fixed context. Renamed from Claim scale.
+**Local scale.** [Claim Convergence Protocol](protocols/claim-convergence-protocol.md) scope of one claim with its dependencies as fixed context. Renamed from Claim scale.
 
 ## M
 
@@ -152,13 +150,13 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Metadata.** What the YAML file holds — label, name, type, summary, depends, vocabulary. Describes the claim; does not constitute its reasoning.
 
-**Modeling.** The stage translating formal contracts into mechanically verifiable code (Dafny, Alloy). Follows formalization.
+**Modeling.** The stage translating formal contracts into mechanically verifiable code (Dafny, Alloy). Follows claim convergence.
 
 ## N
 
 **Narrow → Refine → Verify.** The three-phase cycle every process in the system follows. The primary pattern, rooted in the scientific method. See [Narrow → Refine → Verify](patterns/narrow-refine-verify.md).
 
-**Note.** A document covering one topic, produced by one inquiry. Contains ~20–40 claims with explicit dependency structure. The format has Dijkstra-EWD lineage: numbered, bounded, self-contained investigations carrying arbitrary formal weight. Serves as the stable interface boundary for discovery-stage consumers; its internal claim set becomes the operational surface for formalization-stage consumers. See [Architecture](architecture.md).
+**Note.** A document covering one topic, produced by one inquiry. Contains ~20–40 claims with explicit dependency structure. The format has Dijkstra-EWD lineage: numbered, bounded, self-contained investigations carrying arbitrary formal weight. Serves as the stable interface boundary for discovery-stage consumers; its internal claim set becomes the operational surface for claim-convergence-stage consumers. See [Architecture](architecture.md).
 
 Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Specification Note"), retained opaque for stable addressing across commits, filenames, and cross-references.
 
@@ -190,13 +188,13 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 
 **Regional-sweep.** Proactive regional-scale review walking the dependency graph bottom-up, running regional-review on every claim meeting the dependency threshold. Renamed from cone-sweep.
 
-**Regional scale.** [Review V-Cycle](design-notes/review-v-cycle.md) scope between local and full — reviewing a dependency cone as a unit. Renamed from Cluster scale.
+**Regional scale.** [Claim Convergence Protocol](protocols/claim-convergence-protocol.md) scope between local and full — reviewing a dependency cone as a unit. Renamed from Cluster scale.
 
 **Representation change.** Progressive transformation of content through different forms (narrative → structured → formal → mechanical) without changing the underlying claim. Each change introduces structural rules at the new form. See [Representation Change pattern](patterns/representation-change.md).
 
 **Reverse-Course Oscillation.** An [oscillatory failure](#o) in which a reviser's change in cycle N is undone in cycle N+1 because two locally-valid resolutions exist and the cycle has no shared criterion to pick between them. Subtypes by source of undecidability: contract-absent, judgment-call, exhaustiveness-vs-restraint. Partially contained by finding classification (judgment-call findings become observations and never trigger revision). See [Reverse-Course Oscillation](equilibrium/reverse-course-oscillation.md).
 
-**Review coinage.** [Prose coinage](patterns/prose-coinage.md) that happens during review/revise cycles rather than at synthesis. Occurs in both discovery and formalization. Roughly 30% of a note's coinages. Driven by reviewer pressure surfacing a concept the current text is discussing in ad-hoc prose without a shared name. See [Synthesis coinage](#s) for contrast.
+**Review coinage.** [Prose coinage](patterns/prose-coinage.md) that happens during review/revise cycles rather than at synthesis. Occurs in both discovery and claim convergence. Roughly 30% of a note's coinages. Driven by reviewer pressure surfacing a concept the current text is discussing in ad-hoc prose without a shared name. See [Synthesis coinage](#s) for contrast.
 
 **Review/revise iteration.** Repeating cycles of review (finding issues), revision (fixing them), and re-review until convergence. See [Review/Revise Iteration pattern](patterns/review-revise-iteration.md).
 
@@ -206,7 +204,7 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 
 ## S
 
-**Scale.** Scope of a review cycle. Three canonical scales: local, regional, full. See [Review V-Cycle](design-notes/review-v-cycle.md).
+**Scale.** Scope of a review cycle. Three canonical scales: local, regional, full. See [Claim Convergence Protocol](protocols/claim-convergence-protocol.md).
 
 **Scientific method.** Lineage of the primary pattern — narrow scope, refine through iteration, verify coherence. Every process in the system follows this rhythm.
 
@@ -242,7 +240,7 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 
 **Theory channel.** The agent channel that consults established theory (design documents, domain models) and makes predictions. Forbidden from referring to specific evidence. Its question generator sees a vocabulary list of the framework's own terms (vocabulary-in-prompt) because theory space is conceptual and listable. See [Discovery](discovery.md).
 
-**Transitional failure.** An [equilibrium](equilibrium/) pattern whose force acts at a representation boundary introduced by a pipeline transition. Fixed once per boundary (by specifying and enforcing the output contract that the transition introduces); recurs at every new boundary because producing is easier than specifying. Contrasts with [gravitational failure](#g) and [oscillatory failure](#o). [Uncontracted Representation Change](equilibrium/uncontracted-representation-change.md) is the transitional pattern documented so far.
+**Transitional failure.** An [equilibrium](equilibrium/) pattern whose force acts at a representation boundary introduced by a stage transition. Fixed once per boundary (by specifying and enforcing the output contract that the transition introduces); recurs at every new boundary because producing is easier than specifying. Contrasts with [gravitational failure](#g) and [oscillatory failure](#o). [Uncontracted Representation Change](equilibrium/uncontracted-representation-change.md) is the transitional pattern documented so far.
 
 **Two-channel architecture.** The two-channel design with vocabulary firewall separating theory from evidence. Each channel consults its own corpus independently; synthesis is the first place both perspectives meet. See [Discovery](discovery.md).
 
@@ -254,8 +252,6 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 
 **Under-citation.** A proof uses a claim that its Depends list doesn't include. The most common form of [Citation Drift](equilibrium/citation-drift.md).
 
-**Upward pass.** First phase of the [V-cycle](design-notes/review-v-cycle.md) — local review → contract review → regional sweep → full-review, building confidence from narrow to wide scope.
-
 ## V
 
 **Validate-before-review.** The pattern of running a mechanical structural-invariant check (validator + per-invariant fix recipes) before each review cycle, so the LLM reviewer sees structurally sound state and spends its cycles on semantic issues. See [Validate Before Review](patterns/validate-before-review.md) and [design note](design-notes/validate-before-review.md).
@@ -263,8 +259,6 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 **Validation Principle.** Design commitment that every representation the system operates on must have a structural contract, and no LLM review cycle operates on state that has not been mechanically verified against that contract. Uses enumeration because structural invariants are a closed, mechanically checkable set. Sibling to the [Coupling Principle](principles/coupling.md) and [Voice Principle](principles/voice.md). See [The Validation Principle](principles/validation.md).
 
 **Validator.** Mechanical check (pure code, no LLM) of a representation's structural invariants against its contract. Exhaustive and cheap; free of the add-bias that compromises LLM-based structural fixes.
-
-**V-cycle (Review V-Cycle).** Multi-scale review architecture composing local, regional, and full scales into upward and downward passes. Inspired by multigrid methods in numerical analysis. See [Review V-Cycle](design-notes/review-v-cycle.md).
 
 **Verify the whole.** Stepping back to original scope after narrowing, to check that the refined pieces cohere. See [Verify the Whole pattern](patterns/verify-the-whole.md).
 

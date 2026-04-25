@@ -6,7 +6,7 @@
 
 A note from discovery contains the right claims, but they're embedded in narrative prose — definitions interleaved with proofs, motivating examples alongside formal statements, architectural commentary woven through derivations. The note is produced by synthesis — the join of theory and evidence channel outputs from an inquiry. That narrative is how humans reason. But you cannot formalize narrative. You can only formalize the formal claims within it.
 
-At some point, the narrative and the formal content must be separated. The formal claims need to stand on their own — each with a clear statement, explicit dependencies, and a classification that tells the V-cycle how to treat it. The narrative stays as context for human reviewers. This separation is what blueprinting produces.
+At some point, the narrative and the formal content must be separated. The formal claims need to stand on their own — each with a clear statement, explicit dependencies, and a classification that tells the [claim convergence protocol](protocols/claim-convergence-protocol.md) how to treat it. The narrative stays as context for human reviewers. This separation is what blueprinting produces.
 
 ## What blueprinting produces
 
@@ -24,7 +24,7 @@ This is the meet operation at the note scale — a single node at the note-level
 
 ## The contract at the boundary
 
-Blueprinting is the transition most vulnerable to [Uncontracted Representation Change](equilibrium/uncontracted-representation-change.md). The unit of encapsulation changes shape — one file becomes many — and every invariant that makes the per-claim form meaningful comes into existence at this moment. If the transition doesn't enforce them, downstream formalization operates on malformed state, and the V-cycle spends its cycles on structural violations that no agent can name.
+Blueprinting is the transition most vulnerable to [Uncontracted Representation Change](equilibrium/uncontracted-representation-change.md). The unit of encapsulation changes shape — one file becomes many — and every invariant that makes the per-claim form meaningful comes into existence at this moment. If the transition doesn't enforce them, downstream review operates on malformed state, and the claim convergence protocol spends its cycles on structural violations that no agent can name.
 
 The [Claim File Contract](design-notes/claim-file-contract.md) specifies what well-formed output looks like. A post-blueprinting validation pass checks the contract mechanically. This same validator runs again before each formalization review cycle — the [validate-before-review](patterns/validate-before-review.md) pattern — ensuring that structural soundness is maintained through the review/revise cycles that follow.
 
@@ -42,7 +42,7 @@ Each layer refines what the previous produced. The section split doesn't know ab
 
 ## Claim types across domains
 
-The claim classifications — axiom, definition, design requirement, lemma, theorem, corollary — are domain-independent. What changes across domains is what fills each type, not the type itself. The V-cycle treats each type the same way regardless of domain: axioms are accepted, definitions are named, theorems are proven.
+The claim classifications — axiom, definition, design requirement, lemma, theorem, corollary — are domain-independent. What changes across domains is what fills each type, not the type itself. The claim convergence protocol treats each type the same way regardless of domain: axioms are accepted, definitions are named, theorems are proven.
 
 | Type | Software specification | Materials science | Legal reasoning | Clinical |
 |------|----------------------|-------------------|-----------------|----------|
@@ -67,4 +67,4 @@ The note is frozen once it enters blueprinting. It served its purpose. The reaso
 
 Discovery agents reason to understand, not to verify. They name claims inconsistently, embed definitions inside proofs, derive intermediate results that other claims need but never formally declare. A claim might be labeled "axiom" in one sentence and proven from other claims in the next paragraph. Two definitions might share a section because the author was thinking about them together, even though they're logically independent.
 
-These are not bugs. They're the natural result of writing to understand rather than writing to verify. Blueprinting exists because the discovery process is messy and the formalization process needs clean inputs. The [Claim File Contract](design-notes/claim-file-contract.md) names what "clean" means — not perfect semantic content, but structurally valid form that the V-cycle can operate on.
+These are not bugs. They're the natural result of writing to understand rather than writing to verify. Blueprinting exists because the discovery process is messy and downstream review needs clean inputs. The [Claim File Contract](design-notes/claim-file-contract.md) names what "clean" means — not perfect semantic content, but structurally valid form that claim convergence can operate on.

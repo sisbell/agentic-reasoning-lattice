@@ -67,6 +67,82 @@ python scripts/formalize.py <ASN> --label T8         # single claim
 python scripts/regional-sweep.py <ASN> --cone T8    # single apex review
 ```
 
+## Querying the link graph
+
+The substrate at `lattices/xanadu/_store/` carries the protocol's runtime
+state — claims, contracts, citations, comments, resolutions. The
+convergence predicate evaluates over this graph; the orchestrators
+consume it; operators can query it directly for inspection.
+
+```python
+import sys; sys.path.insert(0, "scripts")
+from lib.store.store import Store
+from lib.store.queries import (
+    is_converged, is_claim_converged, is_asn_converged,
+    unresolved_revise_comments, all_claim_paths, current_contract_kind,
+)
+
+s = Store()
+```
+
+**Common queries:**
+
+```python
+# Lattice-wide convergence
+is_converged(s)
+
+# Per-claim
+is_claim_converged(s, "lattices/xanadu/formalization/ASN-0034/T3.md")
+
+# Per-ASN
+is_asn_converged(s, "ASN-0034")
+
+# All open revise comments (across the lattice)
+unresolved_revise_comments(s)
+
+# Open revise comments for one claim
+unresolved_revise_comments(s, "lattices/xanadu/formalization/ASN-0034/T3.md")
+
+# Every claim path the lattice knows about
+all_claim_paths(s)
+
+# Contract kind for a claim (e.g., "axiom", "theorem")
+current_contract_kind(s, "lattices/xanadu/formalization/ASN-0034/T0.md")
+```
+
+**Lower-level primitives** (Xanadu-aligned):
+
+```python
+# Find all citations from a claim
+s.find_links(
+    from_set=["lattices/xanadu/formalization/ASN-0034/T3.md"],
+    type_set=["citation"],
+)
+
+# Find all reviews
+s.find_links(type_set=["review"])
+
+# Count comments on a claim
+s.find_num_links(
+    to_set=["lattices/xanadu/formalization/ASN-0034/T3.md"],
+    type_set=["comment"],
+)
+```
+
+**Inspecting JSONL directly:**
+
+```bash
+# How many links of each type?
+jq -r '.type_set[0]' lattices/xanadu/_store/links.jsonl | sort | uniq -c
+
+# Find any link by content match
+grep "T3.md" lattices/xanadu/_store/links.jsonl | jq .
+```
+
+The SQLite index at `lattices/xanadu/_store/index.db` is rebuildable
+from JSONL via `Store().rebuild_index()`. The JSONL is the source of
+truth and is git-versioned alongside the lattice.
+
 ---
 
-See the [formalization guide](../guides/formalization.md) for how the V-cycle works and the [V-cycle design note](../design-notes/review-v-cycle.md) for the multi-scale architecture.
+See the [Claim Convergence Protocol](../protocols/claim-convergence-protocol.md) for the predicate contract and the [implementation plan](../plans/claim-convergence-implementation.md) for stage-1 architecture.

@@ -1,6 +1,6 @@
 # Science Domain: Approach
 
-*Design note. Discovery stage first-run landed on a materials lattice (April 2026); downstream stages (V-cycle regional review, Judger match-eval) still to run. How the [Two Data Authorities](../patterns/two-data-authorities.md) pattern and its supporting machinery (V-cycle, regional-review, lattice) applies to scientific discovery. Core framing: the system produces hypotheses, not discoveries. Verification happens downstream.*
+*Design note. Discovery stage first-run landed on a materials lattice (April 2026); downstream stages (claim convergence regional review, Judger match-eval) still to run. How the [Two Data Authorities](../patterns/two-data-authorities.md) pattern and its supporting machinery (claim convergence protocol, regional-review, lattice) applies to scientific discovery. Core framing: the system produces hypotheses, not discoveries. Verification happens downstream.*
 
 ## Core claim
 
@@ -24,7 +24,7 @@ What discovery demonstrated:
 - **Channel asymmetry on the modality axis:** theory channel carried vocabulary (vis viva, β, elastic encounter) and voice constraints; evidence channel carried the whole 1819 corpus. The configuration ran as predicted, but the corpus contained no unnamed anomaly — the coinage-at-anomalies prediction of the pattern was not exercised. What did emerge was scope-softening: the synthesis relabeled the corpus's "equal-atomic-heat-capacity law" as "atomic-heat regularity," refusing to inherit the strength of the historical name.
 
 What remains untested:
-- Whether the V-cycle regional-review operator converges hypothesis cones on materials notes.
+- Whether the claim-convergence regional-review operator converges hypothesis cones on materials notes.
 - Whether the Judger match-eval correctly identifies rediscovery vs novel candidate.
 - Whether scope promotion behaves as it does on the software domain.
 - Whether the channel-asymmetry pattern's coinage-at-anomalies prediction holds on materials. The Dulong–Petit corpus names its own central observation ("law of Dulong and Petit"), so no unnamed anomaly forced coinage in this run. A corpus with observations that existing vocabulary cannot absorb would be needed to test the prediction.
@@ -83,9 +83,9 @@ A cone can articulation-converge without match-converging. Those land in the nov
 
 ## Domain specifics for science
 
-The underlying machinery (two-channel discovery, blueprinting, formalization, V-cycle, cone structure, scope promotion, lattice) is shared with the [software domain](../software/README.md). What's specific to science:
+The underlying machinery (two-channel discovery, blueprinting, claim convergence, cone structure, scope promotion, lattice) is shared with the [software domain](../software/README.md). What's specific to science:
 
-- **Verifier at each V-cycle scale:** reproducibility-precision ("could another lab test this?") rather than proof-soundness.
+- **Verifier at each claim-convergence scale:** reproducibility-precision ("could another lab test this?") rather than proof-soundness.
 - **Data channel:** query interface over measurements / simulation tools rather than code reading. Agent answers specific mechanical questions with cited values, not whole-source dumps.
 - **Theory channel:** often more formally pre-shaped than a legacy-software designer's prose (equations and named operators already present). See [channel asymmetry in new-science domains](channel-asymmetry-new-science.md) for the shape implications.
 - **Convergence bar:** protocol-specifiable rather than proof-citable.
@@ -97,5 +97,5 @@ The underlying machinery (two-channel discovery, blueprinting, formalization, V-
 - [Channel Asymmetry](../patterns/channel-asymmetry.md) — pattern; why shape-mismatch between channels forces coinage
 - [Channel Asymmetry in New-Science Domains](channel-asymmetry-new-science.md) — how channel asymmetry applies in scientific domains (modality / numerical-observation axis)
 - [Two Data Authorities](../patterns/two-data-authorities.md) — parent pattern
-- [Review V-Cycle](../design-notes/review-v-cycle.md) — multi-scale review architecture
+- [Claim Convergence Protocol](../protocols/claim-convergence-protocol.md) — multi-scale review architecture
 - [Dependency Cone](../patterns/dependency-cone.md) — tight-coupling signal; relevant for non-converging hypothesis clusters

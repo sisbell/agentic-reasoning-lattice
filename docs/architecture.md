@@ -48,26 +48,27 @@ Campaigns build a lattice by spawning inquiries. Each inquiry produces one note.
 ## Directory layout
 
 ```
-scripts/              # pipeline engine (domain-neutral)
+scripts/              # protocol engine (domain-neutral)
 channels/             # channel plugins (flat namespace, cross-lattice)
 prompts/
-├── shared/           # shared pipeline prompts
+├── shared/           # shared protocol prompts
 ├── xanadu/           # lattice-specific overrides
 └── materials/        # lattice-specific overrides
 lattices/
 ├── xanadu/
 │   ├── config.yaml   # domain config: default campaign, verifier, firewall
+│   ├── _store/       # substrate: links + documents (protocol state)
 │   ├── campaigns/    # campaign configs + bridge vocabularies
 │   ├── discovery/    # notes, consultations
 │   ├── blueprinting/
-│   ├── formalization/
+│   ├── convergence/  # claim convergence: per-claim files, review history
 │   └── verification/
 └── materials/
     └── ...           # same structure
 docs/
 ```
 
-Four top-level directories, each with one job. `scripts/` is engine code. `channels/` is source-material plugins. `prompts/` is prompt templates outside agent browse paths. `lattices/` is pure accumulated state — campaigns, notes, claim files, and their review history. No prompts, no channels, no code inside the lattice.
+Four top-level directories, each with one job. `scripts/` is engine code. `channels/` is source-material plugins. `prompts/` is prompt templates outside agent browse paths. `lattices/` is pure accumulated state — campaigns, notes, claim files, their review history, and the substrate that holds protocol state. No prompts, no channels, no code inside the lattice.
 
 Channels and prompts live outside lattices to prevent agent browsing — an agent working in `lattices/xanadu/` cannot find its own review prompt or another channel's source material.
 
@@ -75,7 +76,7 @@ Channels and prompts live outside lattices to prevent agent browsing — an agen
 
 ## The lattice lifecycle
 
-The lattice is one structure that matures from coarse-grained to fine-grained as its notes progress through the pipeline. Three explicit operations gate that maturation.
+The lattice is one structure that matures from coarse-grained to fine-grained as its notes progress through the [maturation protocol](protocols/maturation-protocol.md). Three explicit operations gate that maturation.
 
 ![Lattice lifecycle transitions](./diagrams/lattice-lifecycle-transitions.svg)
 
@@ -83,9 +84,9 @@ The lattice is one structure that matures from coarse-grained to fine-grained as
 
 **Blueprint.** Decomposes the note's claims into individual per-claim files. The claims already exist in the note's prose; blueprinting gives each one its own file. This is a [representation change](patterns/representation-change.md) that introduces structural invariants specified in the [Claim File Contract](design-notes/claim-file-contract.md) — one body per file, filename matches label, references resolve, metadata agrees with content, no dependency cycles. The claims are not yet referenceable by other notes. The note's internal structure is taking shape; its external surface hasn't changed.
 
-**Promote.** Makes the note's claim set available to formalization-stage consumers. From this point, any note in formalization can reference individual claims in this note via `follows_from`. This is the gate that enables downstream formalization.
+**Promote.** Makes the note's claim set available to claim-convergence-stage consumers. From this point, any note in claim convergence can reference individual claims in this note via `follows_from`. This is the gate that enables downstream convergence.
 
-**Assemble.** Packages the formalized claims back into the note form. From this point, discovery-stage consumers see the updated note. This is the gate that refreshes the note-level surface.
+**Assemble.** Packages the converged claims back into the note form. From this point, discovery-stage consumers see the updated note. This is the gate that refreshes the note-level surface.
 
 ### The visibility rule
 
@@ -93,21 +94,21 @@ Which granularity a consuming note sees depends on the consumer's stage:
 
 **Consumer in discovery** (e.g., ASN-0040 depends on ASN-0034): sees ASN-0034 as an assembled note. Claim-level changes inside ASN-0034 are invisible until assemble is called. The note boundary is an opaque interface.
 
-**Consumer in formalization** (e.g., ASN-0036 depends on ASN-0034): sees ASN-0034's promoted claim set directly. Claims in ASN-0036 reference specific claims in ASN-0034 by label. The note boundary is transparent.
+**Consumer in claim convergence** (e.g., ASN-0036 depends on ASN-0034): sees ASN-0034's promoted claim set directly. Claims in ASN-0036 reference specific claims in ASN-0034 by label. The note boundary is transparent.
 
 ### Ripple behavior
 
 Changes to a dependency's claims ripple differently depending on the consumer's stage:
 
-**Formalization-stage consumers** see changes after the dependency's blueprint is promoted. Ripple at claim granularity, gated by promote.
+**Claim-convergence-stage consumers** see changes after the dependency's blueprint is promoted. Ripple at claim granularity, gated by promote.
 
 **Discovery-stage consumers** see changes after the dependency is reassembled into note form. Ripple at note granularity, gated by assemble.
 
 Nothing ripples automatically. Both transitions are explicit operations.
 
-### Formalization order
+### Convergence order
 
-A note's dependencies must be promoted before the note itself can formalize against them — you cannot write `follows_from` edges into claims that don't exist yet. The lattice matures bottom-up through the dependency graph: foundations promote first, then the notes that depend on them formalize.
+A note's dependencies must be promoted before the note itself can converge against them — you cannot write `follows_from` edges into claims that don't exist yet. The lattice matures bottom-up through the dependency graph: foundations promote first, then the notes that depend on them enter claim convergence.
 
 ### Two levels of dependency
 
@@ -115,28 +116,26 @@ Both are real and operational, serving different stages:
 
 **Note-level** (`depends: [ASN-NNNN]` in YAML): declared during discovery. Coarse-grained. Tells the system which notes relate to which and determines what gets loaded as foundation context.
 
-**Claim-level** (`follows_from: [<claim-ref>]` per claim): declared during formalization. Fine-grained. These are the edges that get formally verified and constitute the authoritative dependency structure.
+**Claim-level** (`follows_from: [<claim-ref>]` per claim): declared during claim convergence. Fine-grained. These are the edges that get formally verified and constitute the authoritative dependency structure. In protocol terms, these are `citation` links in the substrate.
 
 ### The terminal state
 
-When every note has been formalized, every dependency is claim-to-claim. Note groupings persist as provenance metadata ("these 34 claims originated in ASN-0034") but carry no dependency weight. The terminal lattice is a pure claim graph.
+When every note's claims have converged, every dependency is claim-to-claim. Note groupings persist as provenance metadata ("these 34 claims originated in ASN-0034") but carry no dependency weight. The terminal lattice is a pure claim graph.
 
-Notes do not retire at a single moment. They retire gradually as their discovery-stage consumers formalize. The last note boundary dissolves when the last consumer formalizes.
+Notes do not retire at a single moment. They retire gradually as their discovery-stage consumers enter claim convergence. The last note boundary dissolves when the last consumer converges.
 
 ---
 
-## Pipeline stages
+## The protocol architecture
 
-Discovery → Blueprinting → Formalization → Verification.
+The system is a set of protocols sharing a substrate. The [maturation protocol](protocols/maturation-protocol.md) governs transitions between stage protocols. Each stage protocol has a convergence criterion. Content doesn't flow through stages — it sits in the substrate and the governing protocol changes when transition conditions are met.
 
-Each stage operates on the same content in a progressively more precise representation. The [Review V-Cycle](design-notes/review-v-cycle.md) — local-review, regional-review, full-review — runs inside formalization. "Verification" refers exclusively to the external-verifier stage (Dafny/Alloy in software; experimental replication in science).
+**Discovery → Blueprinting → Claim Convergence → Verification.**
 
-Before each formalization review cycle, a structural validation pass runs: the mechanical validator checks the [Claim File Contract](design-notes/claim-file-contract.md), and per-invariant fix recipes resolve any violations. This is the [validate-before-review](patterns/validate-before-review.md) pattern enforcing the [Validation Principle](principles/validation.md) — structural integrity as a precondition for meaningful review.
+Each stage operates on the same content in a progressively more precise representation. The [claim convergence protocol](protocols/claim-convergence-protocol.md) is the most elaborated — with explicit safety and liveness properties, a convergence predicate on the link graph, and a separation of protocol from choreography. "Verification" refers exclusively to the external-verifier stage (Dafny/Alloy in software; experimental replication in science).
+
+Before each review cycle within claim convergence, a structural validation pass runs: the mechanical validator checks the [Claim File Contract](design-notes/claim-file-contract.md), and per-invariant fix recipes resolve any violations. This is the [validate-before-review](patterns/validate-before-review.md) pattern enforcing the [Validation Principle](principles/validation.md) — structural integrity as a precondition for meaningful review.
 
 Three principles form the quality boundary for the review cycle: [Coupling](principles/coupling.md) (content balance within files), [Validation](principles/validation.md) (structural integrity across files), [Voice](principles/voice.md) (output quality through positive style structure). See the [principles README](principles/README.md).
-
-## Scale labels
-
-Local / Regional / Full — aligned one-to-one with operator names (`local-review`, `regional-review`, `full-review`).
 
 ---

@@ -40,4 +40,4 @@ Derived from ASN-0034's T4 sweep. Two cones ran eight cycles each without conver
 - [The Coupling Principle](../principles/coupling.md) — the parallel principle for content health. Coupling monitors within-file health; validation monitors across-file health.
 - [Representation Change](representation-change.md) — the pattern whose output this validates.
 - [Uncontracted Representation Change](../equilibrium/uncontracted-representation-change.md) — the failure mode when no contract exists to validate against. This pattern cannot operate without a contract.
-- [Validate-Before-Review Implementation](../design-notes/validate-before-review.md) — how this pattern is implemented: the two-pass cycle, per-invariant fix recipes, and integration with the Review V-Cycle.
+- [Validate-Before-Review Implementation](../design-notes/validate-before-review.md) — how this pattern is implemented: the two-pass cycle, per-invariant fix recipes, and integration with the [claim convergence protocol](../protocols/claim-convergence-protocol.md).

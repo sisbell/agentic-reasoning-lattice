@@ -26,15 +26,15 @@ This makes the prose:formal balance asymmetric in a way that matters for system 
 
 ### Prompt design implication
 
-Both failure directions are real, and the [Review V-Cycle](../design-notes/review-v-cycle.md) has produced both — but unevenly.
+Both failure directions are real, and the [claim convergence protocol](../protocols/claim-convergence-protocol.md) has produced both — but unevenly.
 
 **The observed operational failure is prose expansion.** In practice, review cycles inflate prose through defensive justification, meta-commentary, exhaustiveness claims, and textual fixes that add surface without adding reasoning content. This is the dynamic that produced ASN-0034's 190,940-word bloat. Review findings trigger additions; each addition becomes a new target for future findings; prose grows monotonically. This is [Surface Expansion](../equilibrium/surface-expansion.md) — the failure the current system has actually hit, repeatedly.
 
-**The opposite failure is uncoupled formalization.** A review finding that pushes formal notation without corresponding prose growth replaces the derivation and proof content that makes the formal statement meaningful. This failure has not been the V-Cycle's tendency — but the coupling principle predicts it would be harder to detect, because it masquerades as rigor.
+**The opposite failure is uncoupled formalization.** A review finding that pushes formal notation without corresponding prose growth replaces the derivation and proof content that makes the formal statement meaningful. This failure has not been the protocol's tendency — but the coupling principle predicts it would be harder to detect, because it masquerades as rigor.
 
 **The discipline is coupling, not direction.** Review prompts must not push toward *either* surface uncoupled from the other. A revision that adds prose without a corresponding formal anchor is prose sprawl. A revision that adds formal notation without motivating prose is uncoupled formalization. The correct review finding pushes toward coupling: "this formal statement lacks motivating prose" or "this narrative section needs a formal anchor." The incorrect review finding pushes one surface in isolation: "elaborate on this explanation" (uncoupled prose growth) or "state this more formally" (uncoupled formalization).
 
-This constraint applies at all three V-Cycle scales. Local-review, regional-review, and full-review prompts for claim files must enforce coupling — not protect one surface at the expense of the other, but ensure that every revision that grows one surface grows the other, or restructures to shrink both.
+This constraint applies at all three claim-convergence scales. Local-review, regional-review, and full-review prompts for claim files must enforce coupling — not protect one surface at the expense of the other, but ensure that every revision that grows one surface grows the other, or restructures to shrink both.
 
 ## The coupling per artifact
 
@@ -73,9 +73,9 @@ A monitor tracks the delta from target for each active claim file.
 | Claim file | 70/30 | significantly above 70% prose | Prose Sprawl (loud failure) |
 | Claim file | 70/30 | significantly below 70% prose | Contract Sprawl (silent failure) |
 
-The delta is a single number; its sign is a diagnosis. Precise tolerance bands are not yet established — current observations (one compress pass) suggest ±2–5 points, but this should be recalibrated as more notes complete formalization. This monitoring binds to the [Review V-Cycle](../design-notes/review-v-cycle.md), which operates on claim files during formalization at all three scales.
+The delta is a single number; its sign is a diagnosis. Precise tolerance bands are not yet established — current observations (one compress pass) suggest ±2–5 points, but this should be recalibrated as more notes complete formalization. This monitoring binds to the [claim convergence protocol](../protocols/claim-convergence-protocol.md), which operates on claim files during formalization at all three scales.
 
-The notes 90/10 ratio is an empirical observation from discovery — it shows that coupling exists across both artifacts — but there is no named enforcement mechanism for it during discovery. The V-Cycle does not run during discovery.
+The notes 90/10 ratio is an empirical observation from discovery — it shows that coupling exists across both artifacts — but there is no named enforcement mechanism for it during discovery. The claim convergence protocol does not run during discovery.
 
 ## Empirical basis
 
@@ -103,5 +103,5 @@ What doesn't vary is the *coupling principle*: prose and formal content are auth
 - [Contract Sprawl](../equilibrium/contract-sprawl.md), [Prose Sprawl](../equilibrium/prose-sprawl.md), [Index Sprawl](../equilibrium/index-sprawl.md) — specific decoupling manifestations in claim files.
 - [Architecture — Lattice Lifecycle](../architecture.md) — the three transitions (blueprint, promote, assemble) define the artifact boundaries this principle operates within.
 - [Narrow → Refine → Verify](../patterns/narrow-refine-verify.md) — the cycle that operates within each artifact's active period.
-- [Review V-Cycle](../design-notes/review-v-cycle.md) — the multi-scale review that detects decoupling at local, regional, and full scales. Discovery-stage prompts at all three scales must protect the prose surface.
+- [Claim Convergence Protocol](../protocols/claim-convergence-protocol.md) — the multi-scale review that detects decoupling at local, regional, and full scales. Discovery-stage prompts at all three scales must protect the prose surface.
 - [Accretion](../patterns/accretion.md) — the healthy growth discipline that keeps prose and formal coupled.

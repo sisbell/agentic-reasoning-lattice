@@ -1,6 +1,6 @@
 # Software Reverse-Engineering: Approach
 
-*Design note. Grounded — demonstrated on the Xanadu hypertext system. How the [Two Data Authorities](../patterns/two-data-authorities.md) pattern and supporting machinery (V-cycle, regional-review, lattice) apply to legacy software reverse-engineering. Core framing: the system produces formal specifications, not new implementations.*
+*Design note. Grounded — demonstrated on the Xanadu hypertext system. How the [Two Data Authorities](../patterns/two-data-authorities.md) pattern and supporting machinery (claim convergence protocol, regional-review, lattice) apply to legacy software reverse-engineering. Core framing: the system produces formal specifications, not new implementations.*
 
 ## Core claim
 
@@ -76,12 +76,12 @@ See [Legacy Software Discovery](../patterns/two-data-authorities-legacy-software
 
 ## What transfers to other domains
 
-The machinery (two-channel discovery, blueprinting, formalization, V-cycle, cone structure, scope promotion, lattice) is domain-general. What changes across domains is the verifier at each scale. The [science domain approach](../science/README.md) describes the parallel framing for scientific discovery, where the verifier becomes experimental reproducibility rather than Dafny proof.
+The machinery (two-channel discovery, blueprinting, claim convergence, cone structure, scope promotion, lattice) is domain-general. What changes across domains is the verifier at each scale. The [science domain approach](../science/README.md) describes the parallel framing for scientific discovery, where the verifier becomes experimental reproducibility rather than Dafny proof.
 
 ## Related
 
 - [Two Data Authorities](../patterns/two-data-authorities.md) — parent pattern
 - [Legacy Software Discovery](../patterns/two-data-authorities-legacy-software.md) — grounded pattern with empirical findings
 - [Channel Asymmetry](../patterns/channel-asymmetry.md) — why shape-mismatch between channels forces coinage
-- [Review V-Cycle](../design-notes/review-v-cycle.md) — multi-scale review architecture
+- [Claim Convergence Protocol](../protocols/claim-convergence-protocol.md) — multi-scale review architecture
 - [Science Approach](../science/README.md) — parallel framing for scientific domains

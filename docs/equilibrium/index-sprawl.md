@@ -54,7 +54,7 @@ The same force produces Index Sprawl inside Depends entries — ZPD.md's Depends
 
 ## Related
 
-- [The Coupling Principle](../principles/coupling.md) — index sprawl is a coupling violation: surface grows without advancing reasoning in either direction. The coupling principle's feedback loop shows how this detection drives V-Cycle prompt calibration.
+- [The Coupling Principle](../principles/coupling.md) — index sprawl is a coupling violation: surface grows without advancing reasoning in either direction. The coupling principle's feedback loop shows how this detection drives claim-convergence prompt calibration.
 - [Prose Sprawl](prose-sprawl.md) — enumerations are one specific surface form of Prose Sprawl; Index Sprawl is the subset that specifically lists external entities.
 - [Contract Sprawl](contract-sprawl.md) — a Genesis Attractor whose contract has been split often re-grows as an index of what was split out.
 - [Surface Expansion](surface-expansion.md) — the shared mechanism across Contract/Prose/Index Sprawl. Index Sprawl is the enumeration-surface manifestation; monitoring and the general discipline live at the Surface Expansion level.
