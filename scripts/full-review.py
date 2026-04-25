@@ -36,6 +36,9 @@ from lib.formalization.full_review.review import (
 from lib.formalization.full_review.revise import revise
 from lib.formalization.gate import run_validate_gate
 from lib.formalization.regional import detect_dependency_cone, run_regional_review
+from lib.store.store import Store
+from lib.store.emit import emit_review, emit_findings
+from lib.store.populate import build_cross_asn_label_index
 
 
 def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
@@ -64,6 +67,9 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
     previous_findings = ""
     had_findings = False
 
+    store = Store()
+    label_index = build_cross_asn_label_index()
+
     for cycle in range(1, max_cycles + 1):
         print(f"\n  [CYCLE {cycle}/{max_cycles}]", file=sys.stderr)
 
@@ -72,6 +78,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
             print(f"  [GATE] halted — structural violations remain "
                   f"({gate_result}); aborting full-review",
                   file=sys.stderr)
+            store.close()
             return "failed"
 
         # Assemble per-claim files for whole-ASN review
@@ -106,6 +113,14 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
             rf.write(findings_text + "\n")
 
         findings = extract_findings(findings_text)
+
+        emit_review(store, review_path)
+        emitted_findings = emit_findings(
+            store, review_path, findings,
+            asn_label, review_path.stem, label_index,
+        )
+        emitted_by_title = {e["title"]: e for e in emitted_findings}
+
         for title, cls, _ in findings:
             print(f"\n  ### [{cls}] {title}", file=sys.stderr)
 
@@ -133,9 +148,24 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
         # Revise each REVISE-class finding
         any_changed = False
         for title, _cls, finding_text in revise_findings:
-            ok = revise(asn_num, title, finding_text, claim_dir=claim_dir)
+            emitted = emitted_by_title.get(title)
+            comment_id = emitted["comment_id"] if emitted else None
+            claim_path = emitted["claim_path"] if emitted else None
+            ok = revise(asn_num, title, finding_text, claim_dir=claim_dir,
+                        comment_id=comment_id, claim_path=claim_path)
             if ok:
                 any_changed = True
+                if comment_id:
+                    resolutions = store.find_links(
+                        to_set=[comment_id], type_set=["resolution"],
+                    )
+                    if not resolutions:
+                        print(
+                            f"  [WARN] revise succeeded but no resolution "
+                            f"link emitted for finding '{title}' "
+                            f"(comment {comment_id})",
+                            file=sys.stderr,
+                        )
 
         if not any_changed:
             print(f"  No changes made — stopping.", file=sys.stderr)
@@ -173,6 +203,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
                 f"{'' if converged else ' — not converged'}")
         step_commit_asn(asn_num, hint)
 
+    store.close()
     return "converged" if converged else "not_converged"
 
 

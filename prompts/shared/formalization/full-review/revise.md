@@ -126,3 +126,11 @@ instead "the state satisfies..."
    Do not write a plain scalar summary that contains an unescaped colon
    followed by a space — YAML will parse it as a key-value separator and
    break the file.
+
+## Decision output
+
+When done, run one of:
+  python scripts/decide.py accept
+  python scripts/decide.py reject --rationale "<one or two sentences>"
+
+REJECT only when the finding is incorrect. If you edited files, end with ACCEPT.

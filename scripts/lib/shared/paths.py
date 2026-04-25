@@ -70,6 +70,13 @@ REQUIREMENTS_DIR = LATTICE / "requirements"
 # Operational
 USAGE_LOG = LATTICE / "usage-log.jsonl"
 
+# Protocol substrate store (claim convergence protocol stage 1 — bootstrap toward Xanadu)
+STORE_DIR = LATTICE / "_store"
+STORE_LOG = STORE_DIR / "links.jsonl"
+STORE_INDEX = STORE_DIR / "index.db"
+FINDINGS_DIR = STORE_DIR / "findings"
+RATIONALES_DIR = STORE_DIR / "rationales"
+
 
 def note_dir(asn_num):
     """Per-note manifest directory."""

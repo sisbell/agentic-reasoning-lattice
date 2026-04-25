@@ -33,6 +33,9 @@ MAX_EXPANSIONS = 5
 from lib.formalization.full_review.revise import revise
 from lib.formalization.core.build_dependency_graph import generate_formalization_deps
 from lib.formalization.core.topological_sort import topological_levels
+from lib.store.store import Store
+from lib.store.emit import emit_review, emit_findings
+from lib.store.populate import build_cross_asn_label_index
 
 
 # End-of-cone compress pass — disabled 2026-04-22 pending re-evaluation
@@ -227,6 +230,9 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
     had_findings = False
     verdict = "CONVERGED"
 
+    store = Store()
+    label_index = build_cross_asn_label_index()
+
     for cycle in range(1, max_cycles + 1):
         print(f"\n  [CYCLE {cycle}/{max_cycles}]", file=sys.stderr)
 
@@ -237,6 +243,7 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
             print(f"  [GATE] halted — structural violations remain in cone "
                   f"({gate_result}); aborting regional-review",
                   file=sys.stderr)
+            store.close()
             return "failed"
 
         # Review with lazy cone expansion: if the reviewer flags claim
@@ -296,6 +303,14 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
             rf.write(findings_text + "\n")
 
         findings = extract_findings(findings_text)
+
+        emit_review(store, review_path)
+        emitted_findings = emit_findings(
+            store, review_path, findings,
+            asn_label, review_path.stem, label_index,
+        )
+        emitted_by_title = {e["title"]: e for e in emitted_findings}
+
         for title, cls, _ in findings:
             print(f"\n  ### [{cls}] {title}", file=sys.stderr)
 
@@ -316,9 +331,24 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
         # Revise each REVISE-class finding
         any_changed = False
         for title, _cls, finding_text in revise_findings:
-            ok = revise(asn_num, title, finding_text, claim_dir=claim_dir)
+            emitted = emitted_by_title.get(title)
+            comment_id = emitted["comment_id"] if emitted else None
+            claim_path = emitted["claim_path"] if emitted else None
+            ok = revise(asn_num, title, finding_text, claim_dir=claim_dir,
+                        comment_id=comment_id, claim_path=claim_path)
             if ok:
                 any_changed = True
+                if comment_id:
+                    resolutions = store.find_links(
+                        to_set=[comment_id], type_set=["resolution"],
+                    )
+                    if not resolutions:
+                        print(
+                            f"  [WARN] revise succeeded but no resolution "
+                            f"link emitted for finding '{title}' "
+                            f"(comment {comment_id})",
+                            file=sys.stderr,
+                        )
 
         if not any_changed:
             print(f"  No changes made — stopping.", file=sys.stderr)
@@ -363,6 +393,8 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
             asn_num,
             f"regional-review(asn): {asn_label}/{apex_label} — final",
         )
+
+    store.close()
 
     if failed:
         return "failed"

@@ -20,8 +20,16 @@ from lib.shared.common import find_asn, read_file
 REVISE_TEMPLATE = prompt_path("formalization/full-review/revise.md")
 
 
-def revise(asn_num, title, finding_text, claim_dir=None):
-    """Apply fix for one finding. Returns True if changes made."""
+def revise(asn_num, title, finding_text, claim_dir=None,
+           comment_id=None, claim_path=None):
+    """Apply fix for one finding. Returns True if changes made.
+
+    `comment_id` and `claim_path` are passed through to the reviser via
+    env vars so the agent can call `scripts/decide.py` to close the comment
+    in the link store. When either is None, the agent can still run but
+    won't be able to invoke decide.py — callers that care about resolution
+    links should pass both.
+    """
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
         return False
@@ -45,12 +53,16 @@ def revise(asn_num, title, finding_text, claim_dir=None):
         "claude", "-p",
         "--model", "claude-opus-4-7",
         "--output-format", "json",
-        "--allowedTools", "Edit,Write,Read,Glob,Grep",
+        "--allowedTools", "Edit,Write,Read,Glob,Grep,Bash",
     ]
 
     env = os.environ.copy()
     env.pop("CLAUDECODE", None)
     env["CLAUDE_CODE_EFFORT_LEVEL"] = "max"
+    if comment_id and claim_path:
+        env["PROTOCOL_COMMENT_ID"] = comment_id
+        env["PROTOCOL_CLAIM_PATH"] = claim_path
+        env["PROTOCOL_ASN_LABEL"] = asn_label
 
     print(f"  [REVISE] {title}...", end="", file=sys.stderr, flush=True)
 
