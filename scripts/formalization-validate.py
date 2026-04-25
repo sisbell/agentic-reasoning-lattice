@@ -38,6 +38,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
 from shared.common import find_asn
 from store.store import Store
 from store.populate import build_cross_asn_label_index
+from store.queries import current_contract_kind
+from store.schema import VALID_SUBTYPES
+
+VALID_TYPES = VALID_SUBTYPES["contract"]
 
 
 DECLARATION_RE = re.compile(
@@ -51,10 +55,7 @@ DEP_ENTRY_RE = re.compile(r"^\s+-\s+([A-Za-z0-9()-]+(?:\.[0-9]+)?)(?:\s|$|,)")
 TYPE_KEYWORDS = {
     "Axiom", "Definition", "Design-requirement", "Lemma", "Theorem", "Corollary", "Consequence",
 }
-VALID_TYPES = {
-    "axiom", "definition", "design-requirement", "lemma", "theorem", "corollary", "consequence",
-}
-REQUIRED_YAML_FIELDS = ("label", "name", "type", "summary")
+REQUIRED_YAML_FIELDS = ("label", "name", "summary")
 
 SINGLE_CHAR_SYMBOLS = re.compile(r"[<≤≥>≠=∈∉⊆⊇⇒⇔∀∃∧∨¬+−⊕⊖⊗⨀]")
 MULTICHAR_SYMBOLS = [
@@ -228,13 +229,37 @@ def check_yaml_well_formed(pairs):
                     "line": None,
                     "detail": f"required field '{field}' is empty",
                 })
-        prop_type = data.get("type")
-        if prop_type and prop_type not in VALID_TYPES:
+    return findings
+
+
+def check_contract_classifier_present(pairs, store, label_index):
+    """Every claim must have a contract.<kind> classifier link in the store
+    with a valid subtype. This replaces the old yaml type-validity check.
+    """
+    findings = []
+    for stem, entry in sorted(pairs.items()):
+        data = entry["yaml"]
+        if not isinstance(data, dict):
+            continue
+        label = data.get("label")
+        if not label:
+            continue
+        md_path = label_index.get(label)
+        kind = current_contract_kind(store, md_path) if md_path else None
+        if kind is None:
             findings.append({
-                "rule": "invalid-type",
+                "rule": "missing-contract-classifier",
                 "file": f"{stem}.yaml",
                 "line": None,
-                "detail": f"type='{prop_type}' not in {sorted(VALID_TYPES)}",
+                "detail": "no contract.<kind> classifier link in the store",
+            })
+            continue
+        if kind not in VALID_TYPES:
+            findings.append({
+                "rule": "invalid-contract-classifier",
+                "file": f"{stem}.yaml",
+                "line": None,
+                "detail": f"contract kind '{kind}' not in {sorted(VALID_TYPES)}",
             })
     return findings
 
@@ -593,6 +618,7 @@ def run_all_checks(pairs, store=None, label_index=None):
         findings = []
         findings.extend(check_file_pair_completeness(pairs))
         findings.extend(check_yaml_well_formed(pairs))
+        findings.extend(check_contract_classifier_present(pairs, store, label_index))
         findings.extend(check_filename_matches_label(pairs))
         findings.extend(check_depends_agreement(pairs, citation_graph))
         findings.extend(check_references_resolve(pairs, citation_graph))
