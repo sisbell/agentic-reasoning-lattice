@@ -23,8 +23,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.formalization.regional import run_regional_sweep, run_regional_review
-from lib.shared.common import find_asn, build_label_index, load_claim_metadata
+from lib.shared.common import find_asn, build_label_index
 from lib.shared.paths import FORMALIZATION_DIR
+from lib.store.store import Store
+from lib.store.populate import build_cross_asn_label_index
 
 
 def main():
@@ -49,11 +51,24 @@ def main():
         _, asn_label = find_asn(str(asn_num))
         claim_dir = FORMALIZATION_DIR / asn_label
         asn_labels = set(build_label_index(claim_dir).keys())
-        meta = load_claim_metadata(claim_dir, label=args.cone)
-        if not meta:
+        if args.cone not in asn_labels:
             print(f"  Claim {args.cone} not found", file=sys.stderr)
             sys.exit(1)
-        dep_labels = [d for d in meta.get("depends", []) if d in asn_labels]
+        store = Store()
+        try:
+            label_index = build_cross_asn_label_index()
+            apex_path = label_index.get(args.cone)
+            rev_index = {p: l for l, p in label_index.items()}
+            cites = store.find_links(
+                from_set=[apex_path], type_set=["citation"],
+            ) if apex_path else []
+            dep_labels = [
+                rev_index[link["to_set"][0]]
+                for link in cites
+                if link["to_set"] and rev_index.get(link["to_set"][0]) in asn_labels
+            ]
+        finally:
+            store.close()
         result = run_regional_review(asn_num, args.cone, dep_labels,
                                       max_cycles=args.max_cycles,
                                       dry_run=args.dry_run, model=args.model)

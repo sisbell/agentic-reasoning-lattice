@@ -36,6 +36,8 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
 from shared.common import find_asn
+from store.store import Store
+from store.populate import build_cross_asn_label_index
 
 
 DECLARATION_RE = re.compile(
@@ -52,7 +54,7 @@ TYPE_KEYWORDS = {
 VALID_TYPES = {
     "axiom", "definition", "design-requirement", "lemma", "theorem", "corollary", "consequence",
 }
-REQUIRED_YAML_FIELDS = ("label", "name", "type", "summary", "depends")
+REQUIRED_YAML_FIELDS = ("label", "name", "type", "summary")
 
 SINGLE_CHAR_SYMBOLS = re.compile(r"[<≤≥>≠=∈∉⊆⊇⇒⇔∀∃∧∨¬+−⊕⊖⊗⨀]")
 MULTICHAR_SYMBOLS = [
@@ -219,7 +221,7 @@ def check_yaml_well_formed(pairs):
                 })
                 continue
             value = data[field]
-            if field != "depends" and not value:
+            if not value:
                 findings.append({
                     "rule": "missing-field",
                     "file": f"{stem}.yaml",
@@ -256,36 +258,73 @@ def parse_md_depends(md_text):
     return labels
 
 
-def check_depends_agreement(pairs):
+def _build_citation_graph(pairs, store, label_index):
+    """Build {label: [dep_labels]} from the substrate's citation links.
+
+    For each claim with a known label and md path, follow citation links
+    out of its md path. Map each citation's to_set[0] back to a label via
+    the cross-ASN index. Citations to documents outside the index appear
+    as labels that aren't in `pairs.values()` and will be flagged by
+    check_references_resolve, matching the pre-migration behavior on
+    yaml depends entries.
+    """
+    rev_index = {p: l for l, p in label_index.items()}
+    graph = {}
+    for entry in pairs.values():
+        data = entry["yaml"]
+        if not isinstance(data, dict):
+            continue
+        label = data.get("label")
+        if not label:
+            continue
+        from_path = label_index.get(label)
+        if not from_path:
+            graph[label] = []
+            continue
+        deps = []
+        for link in store.find_links(from_set=[from_path], type_set=["citation"]):
+            if not link["to_set"]:
+                continue
+            dep_label = rev_index.get(link["to_set"][0])
+            if dep_label:
+                deps.append(dep_label)
+        graph[label] = deps
+    return graph
+
+
+def check_depends_agreement(pairs, citation_graph):
     findings = []
     for stem, entry in sorted(pairs.items()):
         data = entry["yaml"]
         text = entry["md"]
         if not isinstance(data, dict) or text is None:
             continue
-        yaml_deps = set(data.get("depends") or [])
+        label = data.get("label")
+        if not label:
+            continue
+        store_deps = set(citation_graph.get(label, []))
         md_deps = parse_md_depends(text)
-        only_in_yaml = yaml_deps - md_deps
-        only_in_md = md_deps - yaml_deps
-        if only_in_yaml:
+        only_in_store = store_deps - md_deps
+        only_in_md = md_deps - store_deps
+        if only_in_store:
             findings.append({
                 "rule": "depends-agreement",
-                "file": f"{stem}.yaml",
+                "file": f"{stem}.md",
                 "line": None,
-                "detail": f"in yaml but not in md Depends: {sorted(only_in_yaml)}",
+                "detail": f"in store citations but not in md Depends: {sorted(only_in_store)}",
             })
         if only_in_md:
             findings.append({
                 "rule": "depends-agreement",
                 "file": f"{stem}.md",
                 "line": None,
-                "detail": f"in md Depends but not in yaml: {sorted(only_in_md)}",
+                "detail": f"in md Depends but not in store citations: {sorted(only_in_md)}",
             })
     return findings
 
 
-def check_references_resolve(pairs):
-    """Every yaml depends entry and md Depends entry must name a claim whose
+def check_references_resolve(pairs, citation_graph):
+    """Every store citation and md Depends entry must name a claim whose
     yaml.label exists in the lattice. Inline prose citations are not checked."""
     findings = []
     labels = set()
@@ -299,13 +338,14 @@ def check_references_resolve(pairs):
         text = entry["md"]
 
         if isinstance(data, dict):
-            for dep in data.get("depends") or []:
+            this_label = data.get("label")
+            for dep in citation_graph.get(this_label, []):
                 if dep not in labels:
                     findings.append({
                         "rule": "references-resolve",
-                        "file": f"{stem}.yaml",
+                        "file": f"{stem}.md",
                         "line": None,
-                        "detail": f"depends on '{dep}' — no claim has that label",
+                        "detail": f"citation to '{dep}' — no claim has that label",
                     })
 
         if text:
@@ -321,9 +361,9 @@ def check_references_resolve(pairs):
     return findings
 
 
-def check_declared_symbols_resolve(pairs, config=None):
+def check_declared_symbols_resolve(pairs, citation_graph, config=None):
     """Every tracked symbol used in a claim's Formal Contract block must
-    resolve via the claim's transitive depends closure to an owning
+    resolve via the claim's transitive citation closure to an owning
     claim (or be a primitive). Implements invariant #7.
 
     Scope is the Formal Contract block only — not preamble or proof
@@ -341,11 +381,7 @@ def check_declared_symbols_resolve(pairs, config=None):
     primitives = set(config.get("primitives") or [])
     owners = config.get("owners") or {}
 
-    graph = {}
-    for entry in pairs.values():
-        data = entry["yaml"]
-        if isinstance(data, dict) and data.get("label"):
-            graph[data["label"]] = list(data.get("depends") or [])
+    graph = citation_graph
 
     def closure(label):
         seen = set()
@@ -405,18 +441,10 @@ def check_declared_symbols_resolve(pairs, config=None):
     return findings
 
 
-def check_acyclic_dependency_graph(pairs):
-    """Detect cycles in the yaml depends graph. Dangling refs are ignored here
+def check_acyclic_dependency_graph(pairs, citation_graph):
+    """Detect cycles in the citation subgraph. Dangling refs are ignored here
     — they're reported by references-resolve."""
-    graph = {}
-    for entry in pairs.values():
-        data = entry["yaml"]
-        if not isinstance(data, dict):
-            continue
-        label = data.get("label")
-        if not label:
-            continue
-        graph[label] = list(data.get("depends") or [])
+    graph = {label: list(deps) for label, deps in citation_graph.items()}
 
     WHITE, GRAY, BLACK = 0, 1, 2
     color = {label: WHITE for label in graph}
@@ -544,20 +572,37 @@ def check_declaration_and_body_uniqueness(pairs):
     return findings
 
 
-def run_all_checks(pairs):
+def run_all_checks(pairs, store=None, label_index=None):
     """Run every implemented invariant check in one pass. Returns a list of
     findings. Used by this script's main(), the gate, and validate-revise
-    to avoid triplicating the check list."""
-    findings = []
-    findings.extend(check_file_pair_completeness(pairs))
-    findings.extend(check_yaml_well_formed(pairs))
-    findings.extend(check_filename_matches_label(pairs))
-    findings.extend(check_depends_agreement(pairs))
-    findings.extend(check_references_resolve(pairs))
-    findings.extend(check_declared_symbols_resolve(pairs))
-    findings.extend(check_acyclic_dependency_graph(pairs))
-    findings.extend(check_declaration_and_body_uniqueness(pairs))
-    return findings
+    to avoid triplicating the check list.
+
+    Citation invariants now query the substrate. If `store` is not provided,
+    a Store is opened with default paths and closed at function exit.
+    """
+    own_store = store is None
+    if own_store:
+        store = Store()
+        label_index = build_cross_asn_label_index()
+    elif label_index is None:
+        label_index = build_cross_asn_label_index()
+
+    try:
+        citation_graph = _build_citation_graph(pairs, store, label_index)
+
+        findings = []
+        findings.extend(check_file_pair_completeness(pairs))
+        findings.extend(check_yaml_well_formed(pairs))
+        findings.extend(check_filename_matches_label(pairs))
+        findings.extend(check_depends_agreement(pairs, citation_graph))
+        findings.extend(check_references_resolve(pairs, citation_graph))
+        findings.extend(check_declared_symbols_resolve(pairs, citation_graph))
+        findings.extend(check_acyclic_dependency_graph(pairs, citation_graph))
+        findings.extend(check_declaration_and_body_uniqueness(pairs))
+        return findings
+    finally:
+        if own_store:
+            store.close()
 
 
 def main():

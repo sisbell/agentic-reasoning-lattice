@@ -21,7 +21,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, next_review_number
 from lib.shared.common import (
-    find_asn, build_label_index, load_claim_metadata,
+    find_asn, build_label_index,
     step_commit_asn,
 )
 from lib.formalization.full_review.review import (
@@ -120,13 +120,23 @@ def detect_dependency_cone(asn_num, window=5, threshold=3):
     if touch_counts[apex] < threshold:
         return None
 
-    # Load apex dependencies (same-ASN only)
+    # Load apex dependencies (same-ASN only) from the substrate's citation links.
     asn_labels = set(label_index.keys())
-    meta = load_claim_metadata(claim_dir, label=apex)
-    if not meta:
-        return None
-
-    dep_labels = [d for d in meta.get("depends", []) if d in asn_labels]
+    apex_path = str(
+        (claim_dir / f"{label_index[apex]}.md").relative_to(WORKSPACE)
+    )
+    store = Store()
+    try:
+        cross_index = build_cross_asn_label_index()
+        rev_index = {p: l for l, p in cross_index.items()}
+        cites = store.find_links(from_set=[apex_path], type_set=["citation"])
+        dep_labels = [
+            rev_index[link["to_set"][0]]
+            for link in cites
+            if link["to_set"] and rev_index.get(link["to_set"][0]) in asn_labels
+        ]
+    finally:
+        store.close()
 
     # Check if dependencies are stable relative to apex
     # Apex should have at least 2x the touches of any single dep
@@ -204,16 +214,26 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
     print(f"\n  [REGIONAL-REVIEW] {apex_label} + {len(dep_labels)} deps",
           file=sys.stderr)
 
-    # Collect cross-ASN deps for narrowed foundation loading
+    store = Store()
+    label_index = build_cross_asn_label_index()
+
+    # Collect cross-ASN deps for narrowed foundation loading.
+    # Read from the substrate's citation links rather than YAML's depends.
     asn_labels = set(build_label_index(claim_dir).keys())
     all_cone_labels = [apex_label] + dep_labels
+    rev_index = {p: l for l, p in label_index.items()}
     cross_asn_deps = []
     for label in all_cone_labels:
-        meta = load_claim_metadata(claim_dir, label=label)
-        if meta:
-            for d in meta.get("depends", []):
-                if d not in asn_labels and d not in cross_asn_deps:
-                    cross_asn_deps.append(d)
+        from_path = label_index.get(label)
+        if not from_path:
+            continue
+        for link in store.find_links(from_set=[from_path], type_set=["citation"]):
+            if not link["to_set"]:
+                continue
+            dep_label = rev_index.get(link["to_set"][0])
+            if (dep_label and dep_label not in asn_labels
+                    and dep_label not in cross_asn_deps):
+                cross_asn_deps.append(dep_label)
 
     print(f"  Foundation: {len(cross_asn_deps)} cross-ASN deps", file=sys.stderr)
 
@@ -229,9 +249,6 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
     previous_findings = history
     had_findings = False
     verdict = "CONVERGED"
-
-    store = Store()
-    label_index = build_cross_asn_label_index()
 
     for cycle in range(1, max_cycles + 1):
         print(f"\n  [CYCLE {cycle}/{max_cycles}]", file=sys.stderr)
@@ -435,22 +452,35 @@ def run_regional_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False, model="
     cones_reviewed = 0
     any_not_converged = False
 
-    for level_idx, level_labels in enumerate(levels):
-        for label in level_labels:
-            meta = load_claim_metadata(claim_dir, label=label)
-            if not meta:
-                continue
-            same_deps = [d for d in meta.get("depends", []) if d in asn_labels]
-            if len(same_deps) < min_deps:
-                continue
+    store = Store()
+    label_index = build_cross_asn_label_index()
+    rev_index = {p: l for l, p in label_index.items()}
+    try:
+        for level_idx, level_labels in enumerate(levels):
+            for label in level_labels:
+                from_path = label_index.get(label)
+                if not from_path:
+                    continue
+                same_deps = [
+                    rev_index[link["to_set"][0]]
+                    for link in store.find_links(
+                        from_set=[from_path], type_set=["citation"],
+                    )
+                    if link["to_set"]
+                    and rev_index.get(link["to_set"][0]) in asn_labels
+                ]
+                if len(same_deps) < min_deps:
+                    continue
 
-            cones_reviewed += 1
-            result = run_regional_review(
-                asn_num, label, same_deps,
-                max_cycles=max_cycles, dry_run=dry_run, model=model)
+                cones_reviewed += 1
+                result = run_regional_review(
+                    asn_num, label, same_deps,
+                    max_cycles=max_cycles, dry_run=dry_run, model=model)
 
-            if result != "converged":
-                any_not_converged = True
+                if result != "converged":
+                    any_not_converged = True
+    finally:
+        store.close()
 
     elapsed = time.time() - start_time
     if cones_reviewed == 0:
