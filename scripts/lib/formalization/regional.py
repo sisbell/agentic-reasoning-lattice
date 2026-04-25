@@ -36,6 +36,36 @@ from lib.formalization.core.topological_sort import topological_levels
 from lib.store.store import Store
 from lib.store.emit import emit_review, emit_findings
 from lib.store.populate import build_cross_asn_label_index
+from lib.store.queries import is_claim_converged, unresolved_revise_comments
+
+
+def _retry_unresolved_revises(store, asn_num, claim_dir, scope_md_paths):
+    """Re-feed open revise comments to the reviser at the top of a cycle.
+
+    For each unresolved comment.revise targeting a scope path, fetch its
+    finding text from the comment's source (the finding document under
+    `_store/findings/...`) and call `revise()` again. The reviser closes
+    via `decide.py accept` (with edit) or `decide.py reject` (with rationale).
+    """
+    for scope_path in scope_md_paths:
+        if not scope_path:
+            continue
+        for c in unresolved_revise_comments(store, scope_path):
+            if not c["from_set"]:
+                continue
+            finding_path = WORKSPACE / c["from_set"][0]
+            if not finding_path.exists():
+                continue
+            finding_text = finding_path.read_text()
+            findings = extract_findings(finding_text)
+            if not findings:
+                continue
+            title = findings[0][0]
+            target_path = c["to_set"][0] if c["to_set"] else None
+            print(f"  [RETRY] re-feeding open comment {c['id']} ({title})",
+                  file=sys.stderr)
+            revise(asn_num, title, finding_text, claim_dir=claim_dir,
+                   comment_id=c["id"], claim_path=target_path)
 
 
 # End-of-cone compress pass — disabled 2026-04-22 pending re-evaluation
@@ -249,9 +279,18 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
     previous_findings = history
     had_findings = False
     verdict = "CONVERGED"
+    apex_md_path = label_index.get(apex_label)
+    naturally_converged = False
+    last_cycle_revise_count = -1
+    final_review_path = None
 
     for cycle in range(1, max_cycles + 1):
         print(f"\n  [CYCLE {cycle}/{max_cycles}]", file=sys.stderr)
+
+        # Retry pass: re-feed any open revise comments from prior cycles
+        # or invocations to the reviser. Reviser closes via decide.py.
+        if not dry_run:
+            _retry_unresolved_revises(store, asn_num, claim_dir, [apex_md_path])
 
         from lib.formalization.gate import run_validate_gate
         scope = {apex_label} | set(dep_labels)
@@ -303,14 +342,9 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
                   file=sys.stderr)
             break
 
-        if verdict == "CONVERGED":
-            print(f"\n  [REGIONAL-REVIEW] Converged after {cycle} cycle{'s' if cycle > 1 else ''}.",
-                  file=sys.stderr)
-            break
-
+        # Always write review file + emit_review (records the review event
+        # in the substrate even when reviewer was CONVERGED with no findings)
         had_findings = True
-
-        # Save review (OBSERVE findings preserved for next cycle's context)
         review_dir.mkdir(parents=True, exist_ok=True)
         review_num = next_review_number(asn_label, reviews_dir=review_dir)
         review_path = review_dir / f"review-{review_num}.md"
@@ -318,6 +352,7 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
             rf.write(f"# Regional Review — {asn_label}/{apex_label} (cycle {cycle})\n\n")
             rf.write(f"*{time.strftime('%Y-%m-%d %H:%M')}*\n\n")
             rf.write(findings_text + "\n")
+        final_review_path = review_path
 
         findings = extract_findings(findings_text)
 
@@ -333,13 +368,9 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
 
         previous_findings = (previous_findings + "\n\n" + findings_text).strip()
 
-        if verdict == "OBSERVE":
-            print(f"\n  [REGIONAL-REVIEW] Observations only after {cycle} cycle"
-                  f"{'s' if cycle > 1 else ''} — no revisions triggered.",
-                  file=sys.stderr)
-            break
-
         revise_findings = filter_revise(findings)
+        last_cycle_revise_count = len(revise_findings)
+
         if dry_run:
             print(f"\n  [DRY RUN] {len(revise_findings)} revise finding(s), no fixes.",
                   file=sys.stderr)
@@ -367,24 +398,90 @@ def run_regional_review(asn_num, apex_label, dep_labels, max_cycles=3,
                             file=sys.stderr,
                         )
 
-        if not any_changed:
-            print(f"  No changes made — stopping.", file=sys.stderr)
+        if revise_findings or any_changed:
+            step_commit_asn(asn_num,
+                            f"regional-review(asn): {asn_label}/{apex_label} — cycle {cycle}")
+
+        # Natural convergence check: this cycle's reviewer filed no revises
+        # AND predicate True. The cycle's review is the natural confirmation;
+        # no +1 needed.
+        if last_cycle_revise_count == 0 and is_claim_converged(store, apex_md_path):
+            print(f"\n  [REGIONAL-REVIEW] Natural convergence at cycle {cycle}.",
+                  file=sys.stderr)
+            naturally_converged = True
             break
 
-        step_commit_asn(asn_num,
-                        f"regional-review(asn): {asn_label}/{apex_label} — cycle {cycle}")
+        # No-progress short-circuit: revises filed but reviser couldn't fix any.
+        # Without progress, looping won't help; break and let +1 confirmation run.
+        if revise_findings and not any_changed:
+            print(f"  [REGIONAL-REVIEW] Revises filed but no fixes applied this cycle. "
+                  f"Breaking to confirmation.", file=sys.stderr)
+            break
+
+    failed = (verdict == "ERROR")
+
+    # +1 confirmation cycle (only if we didn't naturally converge and aren't failed/dry-run)
+    confirmation_revise_count = 0
+    if not failed and not dry_run and not naturally_converged:
+        print(f"\n  [CONFIRMATION REVIEW]", file=sys.stderr)
+        _retry_unresolved_revises(store, asn_num, claim_dir, [apex_md_path])
+
+        from lib.formalization.gate import run_validate_gate
+        scope = {apex_label} | set(dep_labels)
+        gate_result = run_validate_gate(asn_label, scope_labels=scope)
+        if gate_result != "clean":
+            print(f"  [GATE] halted on confirmation — structural violations remain "
+                  f"({gate_result})", file=sys.stderr)
+            failed = True
+        else:
+            cone_content = assemble_cone(asn_label, apex_label, dep_labels)
+            confirm_verdict, confirm_findings_text, _ = run_review(
+                asn_num, cone_content, asn_label, previous_findings,
+                model=model, foundation_labels=cross_asn_deps,
+            )
+            if confirm_verdict == "ERROR":
+                failed = True
+            else:
+                review_dir.mkdir(parents=True, exist_ok=True)
+                review_num = next_review_number(asn_label, reviews_dir=review_dir)
+                confirm_review_path = review_dir / f"review-{review_num}.md"
+                with open(confirm_review_path, "w") as rf:
+                    rf.write(f"# Regional Review (Confirmation) — "
+                             f"{asn_label}/{apex_label}\n\n")
+                    rf.write(f"*{time.strftime('%Y-%m-%d %H:%M')}*\n\n")
+                    rf.write(confirm_findings_text + "\n")
+                final_review_path = confirm_review_path
+
+                confirm_findings = extract_findings(confirm_findings_text)
+                emit_review(store, confirm_review_path)
+                emit_findings(
+                    store, confirm_review_path, confirm_findings,
+                    asn_label, confirm_review_path.stem, label_index,
+                )
+                confirmation_revise_count = len(filter_revise(confirm_findings))
 
     elapsed = time.time() - start_time
-    failed = (verdict == "ERROR")
-    converged = not failed and (not had_findings or verdict in ("CONVERGED", "OBSERVE"))
+    if failed:
+        converged = False
+    elif naturally_converged:
+        converged = True
+    elif dry_run:
+        # In dry_run we exit after first review; no convergence judgment.
+        converged = (last_cycle_revise_count == 0)
+    else:
+        # +1 confirmation ran; converged iff predicate True AND confirmation quiet
+        converged = (
+            confirmation_revise_count == 0
+            and is_claim_converged(store, apex_md_path)
+        )
 
-    if had_findings and not failed:
-        with open(review_path, "a") as rf:
+    if final_review_path is not None and not failed:
+        with open(final_review_path, "a") as rf:
             rf.write(f"\n## Result\n\n")
             if converged:
-                rf.write(f"Regional review converged after {cycle} cycles.\n")
+                rf.write(f"Regional review converged.\n")
             else:
-                rf.write(f"Regional review not converged after {cycle} cycles.\n")
+                rf.write(f"Regional review not converged after {cycle} cycle(s).\n")
             rf.write(f"\n*Elapsed: {elapsed:.0f}s*\n")
 
     print(f"  [REGIONAL-REVIEW] Elapsed: {elapsed:.0f}s", file=sys.stderr)
