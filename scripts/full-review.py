@@ -35,10 +35,13 @@ from lib.formalization.full_review.review import (
 )
 from lib.formalization.full_review.revise import revise
 from lib.formalization.gate import run_validate_gate
-from lib.formalization.regional import detect_dependency_cone, run_regional_review
+from lib.formalization.regional import (
+    detect_dependency_cone, run_regional_review, _retry_unresolved_revises,
+)
 from lib.store.store import Store
 from lib.store.emit import emit_review, emit_findings
 from lib.store.populate import build_cross_asn_label_index
+from lib.store.queries import is_asn_converged
 
 
 def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
@@ -63,15 +66,29 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
     print(f"  Directory: {claim_dir.relative_to(WORKSPACE)}", file=sys.stderr)
 
     start_time = time.time()
-    converged = False
     previous_findings = ""
     had_findings = False
+    naturally_converged = False
+    last_cycle_revise_count = -1
+    final_review_path = None
+    review_path = None
+    verdict = "CONVERGED"
 
     store = Store()
     label_index = build_cross_asn_label_index()
 
+    asn_claim_md_paths = [
+        str(yaml_path.with_suffix(".md").relative_to(WORKSPACE))
+        for yaml_path in claim_dir.glob("*.yaml")
+        if not yaml_path.name.startswith("_")
+    ]
+
     for cycle in range(1, max_cycles + 1):
         print(f"\n  [CYCLE {cycle}/{max_cycles}]", file=sys.stderr)
+
+        # Retry pass: re-feed any open revise comments to the reviser
+        if not dry_run:
+            _retry_unresolved_revises(store, asn_num, claim_dir, asn_claim_md_paths)
 
         gate_result = run_validate_gate(asn_label, scope_labels=None)
         if gate_result != "clean":
@@ -93,17 +110,9 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
                   file=sys.stderr)
             break
 
-        if verdict == "CONVERGED":
-            converged = True
-            print(f"\n  Converged after {cycle} cycle{'s' if cycle > 1 else ''}.",
-                  file=sys.stderr)
-            if not had_findings:
-                print(f"  Nothing to do.", file=sys.stderr)
-            break
-
+        # Always write review file + emit_review (records the review event
+        # in the substrate even when reviewer was CONVERGED with no findings)
         had_findings = True
-
-        # New review file per cycle (OBSERVE findings preserved for next cycle)
         review_dir.mkdir(parents=True, exist_ok=True)
         review_num = next_review_number(asn_label, reviews_dir=review_dir)
         review_path = review_dir / f"review-{review_num}.md"
@@ -111,6 +120,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
             rf.write(f"# Full Review — {asn_label} (cycle {cycle})\n\n")
             rf.write(f"*{time.strftime('%Y-%m-%d %H:%M')}*\n\n")
             rf.write(findings_text + "\n")
+        final_review_path = review_path
 
         findings = extract_findings(findings_text)
 
@@ -127,14 +137,8 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
         # Accumulate findings for next cycle's "existing open issues"
         previous_findings = (previous_findings + "\n\n" + findings_text).strip()
 
-        if verdict == "OBSERVE":
-            converged = True
-            print(f"\n  Observations only after {cycle} cycle"
-                  f"{'s' if cycle > 1 else ''} — no revisions triggered.",
-                  file=sys.stderr)
-            break
-
         revise_findings = filter_revise(findings)
+        last_cycle_revise_count = len(revise_findings)
 
         if dry_run or max_cycles == 1:
             if dry_run:
@@ -167,33 +171,92 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
                             file=sys.stderr,
                         )
 
-        if not any_changed:
-            print(f"  No changes made — stopping.", file=sys.stderr)
-            break
+        if revise_findings or any_changed:
+            step_commit_asn(asn_num,
+                            f"full-review(asn): {asn_label} — cycle {cycle}")
 
-        # Commit
-        step_commit_asn(asn_num,
-                        f"full-review(asn): {asn_label} — cycle {cycle}")
-
-        # Check for dependency cone
+        # Check for dependency cone (existing thrash detection)
         cone = detect_dependency_cone(asn_num)
         if cone:
             apex, deps = cone
             run_regional_review(asn_num, apex, deps, max_cycles=3,
                             dry_run=dry_run, model=model)
 
-    # Append final result to last review file
+        # Natural convergence check: this cycle's reviewer filed no revises
+        # AND predicate True. The cycle's review is the natural confirmation.
+        if last_cycle_revise_count == 0 and is_asn_converged(store, asn_label):
+            print(f"\n  [FULL-REVIEW] Natural convergence at cycle {cycle}.",
+                  file=sys.stderr)
+            naturally_converged = True
+            break
+
+        # No-progress short-circuit: revises filed but reviser couldn't fix any
+        if revise_findings and not any_changed:
+            print(f"  [FULL-REVIEW] Revises filed but no fixes applied this cycle. "
+                  f"Breaking to confirmation.", file=sys.stderr)
+            break
+
+    failed = (verdict == "ERROR")
+
+    # +1 confirmation cycle (only if not naturally converged, not failed, not dry-run/single-pass)
+    confirmation_revise_count = 0
+    if not failed and not dry_run and max_cycles > 1 and not naturally_converged:
+        print(f"\n  [CONFIRMATION REVIEW]", file=sys.stderr)
+        _retry_unresolved_revises(store, asn_num, claim_dir, asn_claim_md_paths)
+
+        gate_result = run_validate_gate(asn_label, scope_labels=None)
+        if gate_result != "clean":
+            print(f"  [GATE] halted on confirmation — structural violations "
+                  f"({gate_result})", file=sys.stderr)
+            failed = True
+        else:
+            asn_content = assemble_readonly(asn_label)
+            confirm_verdict, confirm_findings_text, _ = run_review(
+                asn_num, asn_content, asn_label, previous_findings, model=model,
+            )
+            if confirm_verdict == "ERROR":
+                failed = True
+            else:
+                review_dir.mkdir(parents=True, exist_ok=True)
+                review_num = next_review_number(asn_label, reviews_dir=review_dir)
+                confirm_review_path = review_dir / f"review-{review_num}.md"
+                with open(confirm_review_path, "w") as rf:
+                    rf.write(f"# Full Review (Confirmation) — {asn_label}\n\n")
+                    rf.write(f"*{time.strftime('%Y-%m-%d %H:%M')}*\n\n")
+                    rf.write(confirm_findings_text + "\n")
+                final_review_path = confirm_review_path
+
+                confirm_findings = extract_findings(confirm_findings_text)
+                emit_review(store, confirm_review_path)
+                emit_findings(
+                    store, confirm_review_path, confirm_findings,
+                    asn_label, confirm_review_path.stem, label_index,
+                )
+                confirmation_revise_count = len(filter_revise(confirm_findings))
+
     elapsed = time.time() - start_time
-    if had_findings:
-        with open(review_path, "a") as rf:
+    if failed:
+        converged = False
+    elif naturally_converged:
+        converged = True
+    elif dry_run or max_cycles == 1:
+        converged = (last_cycle_revise_count == 0)
+    else:
+        converged = (
+            confirmation_revise_count == 0
+            and is_asn_converged(store, asn_label)
+        )
+
+    if final_review_path is not None and not failed:
+        with open(final_review_path, "a") as rf:
             rf.write(f"\n## Result\n\n")
             if converged:
-                rf.write(f"Converged after {cycle} cycle{'s' if cycle > 1 else ''}.\n")
+                rf.write(f"Converged.\n")
             else:
-                rf.write(f"Not converged after {cycle} cycles.\n")
+                rf.write(f"Not converged after {cycle} cycle(s).\n")
             rf.write(f"\n*Elapsed: {elapsed:.0f}s*\n")
 
-        print(f"\n  Review: {review_path.relative_to(WORKSPACE)}",
+        print(f"\n  Review: {final_review_path.relative_to(WORKSPACE)}",
               file=sys.stderr)
 
     print(f"  Elapsed: {elapsed:.0f}s", file=sys.stderr)
@@ -204,6 +267,8 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
         step_commit_asn(asn_num, hint)
 
     store.close()
+    if failed:
+        return "failed"
     return "converged" if converged else "not_converged"
 
 
