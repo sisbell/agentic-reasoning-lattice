@@ -51,6 +51,36 @@ def is_converged(store):
     return not unresolved_revise_comments(store)
 
 
+def is_asn_converged(store, asn_label, formalization_dir=None):
+    """The protocol predicate scoped to one ASN's claims.
+
+    Conjunction of `is_claim_converged` over every claim in
+    `lattices/<lattice>/formalization/<asn_label>/`. Vacuously true on a
+    nonexistent or empty ASN — coverage is choreography's responsibility,
+    not the predicate's.
+    """
+    from pathlib import Path
+    import sys
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+    from lib.shared.paths import FORMALIZATION_DIR, WORKSPACE
+
+    formalization_dir = (
+        Path(formalization_dir) if formalization_dir else FORMALIZATION_DIR
+    )
+    asn_dir = formalization_dir / asn_label
+    if not asn_dir.exists():
+        return True
+    workspace_resolved = Path(WORKSPACE).resolve()
+    for yaml_path in asn_dir.glob("*.yaml"):
+        if yaml_path.name.startswith("_"):
+            continue
+        md_path = yaml_path.with_suffix(".md")
+        rel = str(md_path.resolve().relative_to(workspace_resolved))
+        if not is_claim_converged(store, rel):
+            return False
+    return True
+
+
 def current_contract_kind(store, claim_md_path):
     """Return the contract subtype string for a claim, or None.
 

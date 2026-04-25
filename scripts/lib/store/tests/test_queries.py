@@ -8,7 +8,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.store.queries import (
     all_claim_paths, current_contract_kind, has_resolution,
-    is_claim_converged, is_converged, unresolved_revise_comments,
+    is_asn_converged, is_claim_converged, is_converged,
+    unresolved_revise_comments,
 )
 from lib.store.store import Store
 
@@ -199,6 +200,58 @@ class HelperTests(QueriesTestBase):
         )
         self.assertEqual(
             all_claim_paths(self.store), ["S7.md", "T0.md", "T3.md"],
+        )
+
+
+class AsnConvergedTests(QueriesTestBase):
+    def setUp(self):
+        super().setUp()
+        from unittest import mock
+        from pathlib import Path as _Path
+        self.tmp_root = _Path(self.tmp.name)
+        self.formalization_dir = (
+            self.tmp_root / "lattices" / "xanadu" / "formalization"
+        )
+        self.formalization_dir.mkdir(parents=True)
+        self.workspace_patcher = mock.patch(
+            "lib.shared.paths.WORKSPACE", self.tmp_root,
+        )
+        self.workspace_patcher.start()
+        self.addCleanup(self.workspace_patcher.stop)
+
+    def _make_claim(self, asn, label):
+        asn_dir = self.formalization_dir / asn
+        asn_dir.mkdir(parents=True, exist_ok=True)
+        yaml_path = asn_dir / f"{label}.yaml"
+        md_path = asn_dir / f"{label}.md"
+        yaml_path.write_text(f"label: {label}\nname: T\n")
+        md_path.write_text(f"# {label}\n")
+        rel = str(md_path.resolve().relative_to(self.tmp_root.resolve()))
+        return rel
+
+    def test_with_no_claims_returns_true(self):
+        # Nonexistent ASN dir — vacuously true.
+        self.assertTrue(
+            is_asn_converged(
+                self.store, "ASN-9999",
+                formalization_dir=self.formalization_dir,
+            )
+        )
+
+    def test_blocks_on_unresolved_claim(self):
+        claim_path = self._make_claim("ASN-0001", "T0")
+        # File a revise comment with no resolution.
+        self.store.make_link(
+            from_set=["_store/findings/ASN-0001/r1/0.md"],
+            to_set=[claim_path],
+            type_set=["comment.revise"],
+            ts="t1",
+        )
+        self.assertFalse(
+            is_asn_converged(
+                self.store, "ASN-0001",
+                formalization_dir=self.formalization_dir,
+            )
         )
 
 
