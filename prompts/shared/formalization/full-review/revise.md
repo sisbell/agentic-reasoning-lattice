@@ -78,13 +78,7 @@ instead "the state satisfies..."
    (e.g., replacing "T" with "the set of T4-valid addresses"), apply the
    change consistently everywhere the term appears in the affected context.
 
-4. If the fix affects formal contracts, update them to match. If the
-   contract's top-level field shape changes (e.g., adding or removing
-   an *Axiom:* or *Definition:* field, or reframing a derived result as
-   a posit), update `type:` in the affected claim's `.yaml` to match.
-   Valid values (lowercase): `axiom`, `definition`, `theorem`,
-   `corollary`, `consequence` (alias for `corollary`), `lemma`,
-   `design-requirement`.
+4. If the fix affects formal contracts, update them to match.
 
 5. **Adding dependencies.** When you add a dependency, run:
        python scripts/cite.py --to <label>
@@ -97,7 +91,6 @@ instead "the state satisfies..."
    ```yaml
    label: AX-1
    name: InitialEmpty
-   type: axiom
    ```
 
    `{Label}.md`:
