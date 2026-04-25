@@ -23,6 +23,7 @@ from lib.shared.paths import WORKSPACE, FORMALIZATION_DIR, load_manifest, formal
 from lib.shared.common import find_asn, load_claim_metadata, build_label_index
 from lib.store.store import Store
 from lib.store.populate import build_cross_asn_label_index
+from lib.store.queries import current_contract_kind
 
 
 # ---------------------------------------------------------------------------
@@ -470,15 +471,15 @@ def _generate_deps_core(asn_num, prose_citations=False):
 
         claims = {}
         for label, data in metadata.items():
-            prop = {"status": data.get("type", "introduced")}
-
-            if data.get("type"):
-                prop["type"] = data["type"]
+            from_path = cross_index.get(label)
+            contract_kind = current_contract_kind(store, from_path)
+            prop = {"status": contract_kind or "introduced"}
+            if contract_kind:
+                prop["type"] = contract_kind
 
             if data.get("name"):
                 prop["name"] = data["name"]
 
-            from_path = cross_index.get(label)
             if from_path:
                 follows = [
                     rev_index[link["to_set"][0]]
