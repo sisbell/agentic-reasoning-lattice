@@ -23,7 +23,6 @@ The pipeline will:
 - Add table rows for the new claims (format checker)
 - Generate formal contracts (quality rewriter)
 - Validate contracts (contract validation)
-- Verify proofs (local-review)
 
 ## Steps
 

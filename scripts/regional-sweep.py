@@ -6,8 +6,8 @@ Walks the dependency DAG bottom-up, running focused regional reviews on
 claims with >= N same-ASN dependencies. Each regional review assembles
 just the apex + its dependencies (the cone), with narrowed foundation loading.
 
-This is the "regional" optimization stage in the V-cycle:
-  local-review (local) → contract-review (local) → regional-sweep (regional) → full-review (global)
+Regional sweep alternates with full-review under the convergence
+protocol; together they cover the per-cone and whole-ASN scopes.
 
 Usage:
     python scripts/regional-sweep.py 36

@@ -8,7 +8,6 @@ review cycle operates on state that has not been mechanically verified.
 Filter semantics per driver (set by passing scope_labels):
   - full-review:   scope_labels=None (whole ASN)
   - regional:      scope_labels={apex} | deps
-  - local-review:  scope_labels=set(review_labels)
 
 Cycle findings (acyclic-depends) are propose-only; the gate logs them as
 warnings but does not try to fix them, and does not block the driver.

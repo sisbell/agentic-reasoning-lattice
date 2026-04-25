@@ -1,6 +1,6 @@
 # Runbook: Formalizing a note
 
-*Updated 2026-04-14.*
+*Updated 2026-04-25.*
 
 ## Prerequisites
 
@@ -18,42 +18,32 @@ python scripts/formalize.py <ASN>
 
 Produces formal contracts and rewrites proofs to Dijkstra standard. Auto-commits per dependency level. Skips cached claims — delete `_cache.json` to force full re-run.
 
-### 2. Local-scale review
+### 2. Populate the substrate
 
 ```bash
-python scripts/local-review.py <ASN>
+python scripts/populate-store.py
 ```
 
-Local review checks logical gaps, missing cases, dependency correctness, and formal-contract/narrative alignment. Run until findings trend to zero.
+Imports claim, contract, and citation links from claim YAMLs into `lattices/xanadu/_store/`. Idempotent — re-run any time. Required before review/revise so the convergence predicate has data to evaluate.
 
-### 3. Regional sweep (regional-scale review)
+### 3. Regional sweep (per-cone review)
 
 ```bash
 python scripts/regional-sweep.py <ASN>
-python scripts/regional-sweep.py <ASN> --cone S8    # single cone
+python scripts/regional-sweep.py <ASN> --cone S8    # single apex
 ```
 
-Walks the dependency graph bottom-up. Reviews tightly coupled clusters as a unit. Default max 8 cycles per cone. Use `--cone LABEL` to target a specific apex.
+Walks the dependency graph bottom-up. Reviews tightly coupled clusters as a unit. Default max 8 cycles per cone, plus a +1 confirmation review when the work loop hits the cap. Use `--cone LABEL` to target a specific apex.
 
-### 4. Full-review (full-scale review)
+### 4. Full-review (whole-ASN review)
 
 ```bash
 python scripts/full-review.py <ASN>
 ```
 
-Full note scan with foundation context. Catches carrier-set conflation, precondition chain gaps, scope mismatches.
+Whole-ASN scan with foundation context. Catches cross-cone issues that per-cone review misses. Same predicate-driven termination as regional sweep.
 
-### 5. V-Cycle (all scales composed)
-
-```bash
-python scripts/formalization-vcycle.py <ASN>
-python scripts/formalization-vcycle.py <ASN> --max-passes 3
-python scripts/formalization-vcycle.py <ASN> --dry-run
-```
-
-Runs the full upward-downward pass: local → regional-sweep → full-review → regional re-check → local re-check. Converged when no scale changes anything in a full pass.
-
-### 6. Summarize
+### 5. Summarize
 
 ```bash
 python scripts/summarize.py <ASN>
@@ -61,7 +51,7 @@ python scripts/summarize.py <ASN>
 
 Populates the `summary` field in each claim YAML. Required before assembly. Hash-cached — only regenerates changed claims.
 
-### 7. Assembly
+### 6. Assembly
 
 ```bash
 python scripts/formalization-assembly.py <ASN>
@@ -69,12 +59,12 @@ python scripts/formalization-assembly.py <ASN>
 
 Mechanical — reads YAML summaries + .md contracts, writes `formal-statements.md` and `dependency-graph.yaml` to `lattices/xanadu/manifests/`.
 
-### 8. Individual re-runs (if needed)
+### 7. Individual re-runs (if needed)
 
 ```bash
 python scripts/formalize.py <ASN> --dry-run         # list candidates
 python scripts/formalize.py <ASN> --label T8         # single claim
-python scripts/local-review.py <ASN> --label T8      # single claim review
+python scripts/regional-sweep.py <ASN> --cone T8    # single apex review
 ```
 
 ---
