@@ -19,8 +19,12 @@ summary: |
   0 < 1 < 2 < 3, and NAT-order's exactly-one trichotomy Consequence conjunct
   ¬(m < n ∧ m = n) — equivalently m < n ⟹ m ≠ n — excludes equality within the
   chain directly from the strict inequalities — and zeros(t) is single-valued.
-  NAT-closure posits 1 ∈ ℕ and closes ℕ under addition, grounding the numerals
-  2 := 1 + 1 ∈ ℕ and 3 := 2 + 1 ∈ ℕ used in injectivity's chain 0 < 1 < 2 < 3.
+  NAT-zero's first Axiom clause 0 ∈ ℕ licenses the n = 0 instantiation of
+  NAT-addcompat's n < n + 1 to obtain the base link 0 < 1, and grounds the
+  literal 0 used in the label-defining biconditional zeros(t) = 0 ↔ t is a
+  node address. NAT-closure posits 1 ∈ ℕ and closes ℕ under addition, grounding
+  the numerals 2 := 1 + 1 ∈ ℕ and 3 := 2 + 1 ∈ ℕ used in injectivity's chain
+  0 < 1 < 2 < 3.
   T4c does not claim realisation — existence of a T4-valid tumbler at each zero
   count is not asserted, so T4c stands as a pure definition on whatever T4-valid
   tumblers exist. The claim is universally quantified over the T4-valid subdomain
