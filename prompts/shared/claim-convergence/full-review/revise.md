@@ -101,6 +101,15 @@ instead "the state satisfies..."
    - *Axiom:* [formal assertion]
    ```
 
+   After writing both files, classify the new claim by running:
+
+       PROTOCOL_CLAIM_PATH=<path-to-the-new-md-file> python scripts/classify.py --kind <kind>
+
+   where `<kind>` is one of `axiom`, `definition`, `theorem`, `lemma`,
+   `corollary`, `consequence`, `design-requirement` — match the marker
+   you used in the Formal Contract section. This emits the claim's
+   `contract.<kind>` classifier link in the substrate.
+
 7. Do not change anything beyond what the finding requires.
 
 8. **YAML formatting.** When writing any `.yaml` file, ensure the YAML is
