@@ -7,8 +7,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.store.queries import (
-    all_claim_paths, has_resolution, is_claim_converged,
-    is_converged, unresolved_revise_comments,
+    all_claim_paths, current_contract_kind, has_resolution,
+    is_claim_converged, is_converged, unresolved_revise_comments,
 )
 from lib.store.store import Store
 
@@ -200,6 +200,17 @@ class HelperTests(QueriesTestBase):
         self.assertEqual(
             all_claim_paths(self.store), ["S7.md", "T0.md", "T3.md"],
         )
+
+
+class ContractKindTests(QueriesTestBase):
+    def test_returns_kind_for_single_classifier(self):
+        self.store.make_link(
+            from_set=[], to_set=["T0.md"], type_set=["contract.axiom"], ts="t1",
+        )
+        self.assertEqual(current_contract_kind(self.store, "T0.md"), "axiom")
+
+    def test_returns_none_when_no_classifier(self):
+        self.assertIsNone(current_contract_kind(self.store, "T0.md"))
 
 
 if __name__ == "__main__":

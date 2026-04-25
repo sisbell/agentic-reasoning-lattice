@@ -49,3 +49,23 @@ def is_converged(store):
     happened?) is the choreography's responsibility, not the predicate's.
     """
     return not unresolved_revise_comments(store)
+
+
+def current_contract_kind(store, claim_md_path):
+    """Return the contract subtype string for a claim, or None.
+
+    Picks the most recently-created `contract.<kind>` classifier link
+    targeting the claim. Links are permanent — multiple classifiers may
+    accumulate over time; the latest by `ts` is the current kind.
+    Returns the bare subtype, e.g., "axiom", "theorem", "corollary".
+    """
+    if not claim_md_path:
+        return None
+    links = store.find_links(to_set=[claim_md_path], type_set=["contract"])
+    if not links:
+        return None
+    latest = max(links, key=lambda l: l["ts"])
+    type_str = latest["type_set"][0]
+    if "." in type_str:
+        return type_str.split(".", 1)[1]
+    return None
