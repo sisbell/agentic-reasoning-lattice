@@ -1,6 +1,5 @@
 label: S8a
 name: VPositionWellFormedness
 type: design-requirement
-depends: []
 literature_citations:
 - LM 4/30

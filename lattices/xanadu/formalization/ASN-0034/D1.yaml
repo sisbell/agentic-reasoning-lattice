@@ -1,19 +1,6 @@
 label: D1
 name: DisplacementRoundTrip
 type: lemma
-depends:
-- Divergence
-- T1
-- ZPD
-- TumblerSub
-- TA-Pos
-- ActionPoint
-- TA0
-- TumblerAdd
-- T3
-- NAT-sub
-- NAT-addcompat
-- NAT-order
 summary: 'Proves the displacement round-trip identity: when a < b, the divergence point does not exceed a''s length, and a
   is no longer than b, then a ⊕ (b ⊖ a) = b exactly. This is the affirmative half of D0''s conditional — the length constraint
   #a ≤ #b is the precise condition that closes the round-trip.'

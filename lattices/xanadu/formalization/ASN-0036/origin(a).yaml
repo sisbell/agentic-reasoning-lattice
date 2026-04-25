@@ -1,9 +1,6 @@
 label: origin(a)
 name: DocumentLevelPrefix
 type: definition
-depends:
-- T4
-- S7b
 vocabulary:
 - symbol: origin(a)
   meaning: The document-level prefix of I-address a, computed as (fields(a).node).0.(fields(a).user).0.(fields(a).document)

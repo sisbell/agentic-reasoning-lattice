@@ -1,17 +1,3 @@
 label: D-CTG
 name: VContiguity
 type: theorem
-depends:
-- AX-1
-- Σ.M(d)
-- subspace(v)
-- V_S(d)
-- S8-fin
-- S8-depth
-- T0
-- T0(a)
-- T1
-- T3
-- OrdinalShift
-- AX-5
-- D-DOC

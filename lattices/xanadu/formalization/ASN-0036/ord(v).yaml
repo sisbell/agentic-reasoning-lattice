@@ -1,10 +1,6 @@
 label: ord(v)
 name: OrdinalExtraction
 type: definition
-depends:
-- S8a
-- TA7a
-- T0
 vocabulary:
 - symbol: ord(v)
   meaning: The ordinal of a V-position v — the tumbler [v₂, ..., vₘ] obtained by stripping the subspace identifier (first

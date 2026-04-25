@@ -1,17 +1,6 @@
 label: T6
 name: DecidableContainment
 type: corollary
-depends:
-- T0
-- T3
-- T4
-- T4a
-- T4b
-- NAT-zero
-- NAT-discrete
-- NAT-order
-- NAT-closure
-- NAT-card
 summary: |
   Containment queries (same server? same account? same document? one address a prefix of
   another?) can be decided by extracting and comparing the relevant field sequences from the

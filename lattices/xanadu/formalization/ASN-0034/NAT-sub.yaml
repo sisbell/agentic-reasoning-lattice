@@ -1,13 +1,6 @@
 label: NAT-sub
 name: NatPartialSubtraction
 type: axiom
-depends:
-- NAT-closure
-- NAT-order
-- NAT-addbound
-- NAT-addcompat
-- NAT-zero
-- NAT-discrete
 summary: |
   Subtraction on ℕ is a partial binary operation defined when the minuend is at least
   the subtrahend. The difference `m − n` is the unique natural number satisfying

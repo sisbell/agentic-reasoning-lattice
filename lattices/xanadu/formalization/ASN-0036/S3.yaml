@@ -1,8 +1,3 @@
 label: S3
 name: ReferentialIntegrity
 type: design-requirement
-depends:
-- AX-1
-- S1
-- S2
-- D-DOC

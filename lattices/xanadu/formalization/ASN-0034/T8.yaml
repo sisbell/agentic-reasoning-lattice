@@ -1,9 +1,6 @@
 label: T8
 name: AllocationPermanence
 type: theorem
-depends:
-- AllocatedSet
-- NoDeallocation
 summary: 'The set of allocated addresses grows monotonically across every state transition: once an address enters the allocated
   set it is never removed. This follows directly from the absence of any removal operation in the transition vocabulary, so
   the guarantee covers all present and future operations.'

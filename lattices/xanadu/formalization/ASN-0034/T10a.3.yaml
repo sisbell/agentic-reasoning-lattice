@@ -1,16 +1,6 @@
 label: T10a.3
 name: LengthSeparation
 type: corollary
-depends:
-- T10a
-- T10a.1
-- T3
-- TA5
-- T0
-- NAT-addcompat
-- NAT-sub
-- NAT-zero
-- NAT-discrete
 summary: Child allocator outputs are strictly longer than any output of their parent allocator, with length increasing additively
   at each spawning step. Along any lineage the cumulative length offset equals the sum of the spawning increments, so outputs
   at different nesting depths always differ in length and therefore never coincide (by T3).

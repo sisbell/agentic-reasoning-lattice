@@ -1,25 +1,6 @@
 label: GlobalUniqueness
 name: GlobalUniqueness
 type: theorem
-depends:
-- T1
-- T3
-- T4
-- T9
-- T10
-- T10a
-- T10a.1
-- T10a.3
-- T10a.4
-- T10a.8
-- TA5
-- TA5-SigValid
-- Prefix
-- AllocatedSet
-- NAT-addcompat
-- NAT-cancel
-- NAT-order
-- NAT-addassoc
 summary: No two distinct allocation events — whether from the same allocator, sibling allocators, or allocators at different
   hierarchy depths — ever produce the same address. The proof proceeds by strong induction on allocator tree depth, with five
   cases ruling out every possible collision scenario. As a consequence, each address belongs to exactly one allocator's domain.

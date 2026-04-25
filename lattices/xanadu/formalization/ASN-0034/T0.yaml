@@ -1,9 +1,6 @@
 label: T0
 name: CarrierSetDefinition
 type: axiom
-depends:
-  - NAT-closure
-  - NAT-order
 summary: |
   Posits the carrier set T as the set of finite sequences of natural numbers, and
   introduces the length operator (#) and component projection (aᵢ) as primitives. Commits

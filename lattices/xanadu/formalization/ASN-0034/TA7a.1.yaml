@@ -1,17 +1,6 @@
 label: TA7a.1
 name: SubspaceLengthResidue
 type: corollary
-depends:
-- TA7a
-- T0
-- T1
-- T3
-- TA-Pos
-- TA2
-- TumblerSub
-- ZPD
-- NAT-order
-- NAT-zero
 summary: |
   Characterises the length-overflow residue of `⊖`: when `#w > #o` under the
   other preconditions of TA7a's subtraction conjunct, the result lies in

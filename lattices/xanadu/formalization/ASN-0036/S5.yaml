@@ -1,13 +1,3 @@
 label: S5
 name: UnrestrictedSharing
 type: theorem
-depends:
-- AX-1
-- AX-2
-- AX-3
-- S0
-- S1
-- S2
-- S3
-- S4
-- S6

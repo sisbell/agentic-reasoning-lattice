@@ -1,13 +1,6 @@
 label: T4
 name: HierarchicalParsing
 type: axiom
-depends:
-- T0
-- NAT-zero
-- NAT-discrete
-- NAT-order
-- NAT-closure
-- NAT-card
 summary: |
   Valid tumblers encode a four-level containment hierarchy (node, user, document, element),
   with each position `i` satisfying `tᵢ = 0` serving as a field separator. The axiom

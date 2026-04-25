@@ -1,11 +1,6 @@
 label: TA0
 name: WellDefinedAddition
 type: corollary
-depends:
-- TumblerAdd
-- T0
-- TA-Pos
-- ActionPoint
 summary: |
   A named corollary exporting TumblerAdd's first two postconditions a ⊕ w ∈ T and #(a ⊕ w) = #w as a single labelled
   well-definedness fact for downstream use. Under the preconditions a ∈ T, w ∈ T, Pos(w), actionPoint(w) ≤ #a, TA0

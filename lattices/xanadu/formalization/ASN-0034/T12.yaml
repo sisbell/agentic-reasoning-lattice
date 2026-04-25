@@ -1,12 +1,6 @@
 label: T12
 name: SpanWellDefinedness
 type: corollary
-depends:
-- Span
-- T0
-- T1
-- TA0
-- TA-strict
 summary: |
   For any (s, ℓ) satisfying the preconditions of Definition (Span), the set span(s, ℓ) has three
   theorem-level properties: the endpoint s⊕ℓ exists in T (TA0), the set is non-empty because s is

@@ -1,6 +1,3 @@
 label: S9
 name: TwoStreamSeparation
 type: corollary
-depends:
-- S0
-- S3

@@ -1,8 +1,3 @@
 label: AX-6
 name: MinimumPresence
 type: axiom
-depends:
-- V_S(d)
-- S8-depth
-- S8-vdepth
-- S8a

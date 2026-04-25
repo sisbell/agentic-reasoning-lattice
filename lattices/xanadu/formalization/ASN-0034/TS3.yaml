@@ -1,18 +1,5 @@
 label: TS3
 name: ShiftComposition
 type: lemma
-depends:
-- TumblerAdd
-- T3
-- OrdinalShift
-- NAT-addassoc
-- NAT-closure
-- NAT-addcompat
-- NAT-order
-- TA0
-- OrdinalDisplacement
-- T0
-- TA-Pos
-- ActionPoint
 summary: 'Two successive shifts compose into a single shift: applying shift by n₁ and then by n₂ is identical to a single
   shift by n₁ + n₂. Shift preserves tumbler length throughout.'

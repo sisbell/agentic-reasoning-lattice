@@ -1,15 +1,6 @@
 label: TA-PosDom
 name: PositiveDominatesZero
 type: theorem
-depends:
-- T0
-- T1
-- TA-Pos
-- NAT-order
-- NAT-zero
-- NAT-discrete
-- NAT-addcompat
-- NAT-wellorder
 summary: |
   Every positive tumbler is strictly greater under T1 than every zero tumbler of any length. Established by
   constructing the first nonzero index `k` of the positive tumbler inline via NAT-wellorder on the set of nonzero

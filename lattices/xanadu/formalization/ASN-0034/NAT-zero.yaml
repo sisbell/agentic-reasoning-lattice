@@ -1,8 +1,6 @@
 label: NAT-zero
 name: NatZeroMinimum
 type: axiom
-depends:
-  - NAT-order
 summary: |
   Fixes 0 as the minimum of ℕ via the pair `0 ∈ ℕ` and `(A n ∈ ℕ :: 0 < n ∨ 0 = n)`,
   together with the exported *Consequence:* `(A n ∈ ℕ :: ¬(n < 0))`. The consequence

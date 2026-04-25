@@ -1,11 +1,6 @@
 label: TA-Pos
 name: PositiveTumbler
 type: definition
-depends:
-- T0
-- NAT-zero
-- NAT-order
-- NAT-closure
 summary: |
   Defines positivity for tumblers via two predicate symbols: `Pos(t)` (positive) iff at least one component is
   nonzero, and `Zero(t)` (zero tumbler) iff every component is zero. The `Pos` matrix is written as the

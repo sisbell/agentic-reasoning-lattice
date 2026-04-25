@@ -1,8 +1,3 @@
 label: S7d
 name: HierarchicalAllocationDiscipline
 type: design-requirement
-depends:
-- T4
-- T10a
-- S7b
-- origin(a)

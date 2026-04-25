@@ -1,15 +1,6 @@
 label: T1
 name: LexicographicOrder
 type: definition
-depends:
-- T0
-- T3
-- NAT-order
-- NAT-closure
-- NAT-addcompat
-- NAT-cancel
-- NAT-discrete
-- NAT-wellorder
 summary: 'Defines a strict total order on T by lexicographic comparison: two tumblers are compared component-by-component
   left to right, with the first disagreement deciding the outcome, and a shorter tumbler preceding any proper extension of
   itself. The order is irreflexive, satisfies trichotomy, and is transitive — making any two tumblers comparable and giving

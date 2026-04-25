@@ -1,17 +1,5 @@
 label: TS1
 name: ShiftOrderPreservation
 type: lemma
-depends:
-- TA1-strict
-- OrdinalShift
-- OrdinalDisplacement
-- Divergence
-- T3
-- T0
-- T1
-- TA-Pos
-- ActionPoint
-- NAT-order
-- NAT-wellorder
 summary: 'Shift is order-preserving on equal-length tumblers: if v₁ < v₂ and both have length m, shifting both by the same
   positive amount n yields shift(v₁, n) < shift(v₂, n). The relative ordering of same-length tumblers is invariant under shift.'

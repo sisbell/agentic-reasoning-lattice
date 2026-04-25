@@ -1,7 +1,6 @@
 label: NAT-order
 name: NatStrictTotalOrder
 type: axiom
-depends: []
 summary: |
   The natural numbers are strictly totally ordered by `<`: no number precedes itself (irreflexivity), the order is
   transitive, and any two naturals are related by at least one of `<`, `=`, `>` (at-least-one trichotomy). The

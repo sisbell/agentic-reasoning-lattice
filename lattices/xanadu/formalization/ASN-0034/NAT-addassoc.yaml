@@ -1,8 +1,6 @@
 label: NAT-addassoc
 name: NatAdditionAssociative
 type: axiom
-depends:
-- NAT-closure
 summary: |
   Addition on ℕ is associative: `(m + n) + p = m + (n + p)` for every `m, n, p ∈ ℕ`.
   Registered as one of the nine NAT-* axioms inside T0's enumeration (declared

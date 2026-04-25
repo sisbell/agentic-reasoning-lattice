@@ -1,20 +1,6 @@
 label: TA7a
 name: SubspaceClosure
 type: definition
-depends:
-- T0
-- T1
-- TA-Pos
-- ActionPoint
-- TumblerAdd
-- TumblerSub
-- TA0
-- TA2
-- NAT-sub
-- NAT-closure
-- NAT-addcompat
-- NAT-order
-- NAT-zero
 summary: |
   Defines the subspace **S** as the set of tumblers with all positive
   components and establishes strict S-closure for ⊕ and ⊖ under tight

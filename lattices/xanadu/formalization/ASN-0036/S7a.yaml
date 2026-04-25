@@ -1,6 +1,3 @@
 label: S7a
 name: DocumentScopedAllocation
 type: design-requirement
-depends:
-- T4
-- S7b

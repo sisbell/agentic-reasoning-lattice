@@ -1,16 +1,6 @@
 label: S8-crun
 name: CorrespondenceRun
 type: definition
-depends:
-- Σ.M(d)
-- S8-depth
-- TumblerAdd
-- OrdinalShift
-- S8-vdepth
-- S3
-- S7b
-- S7c
-- E₁(a)
 vocabulary:
 - symbol: v + 0 = v
   meaning: 'Identity case of ordinal displacement notation: adding zero displacement to a V-position returns it unchanged'

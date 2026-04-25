@@ -1,22 +1,6 @@
 label: TA4
 name: PartialInverse
 type: corollary
-depends:
-- TumblerAdd
-- TumblerSub
-- T0
-- TA-Pos
-- TA0
-- ActionPoint
-- T1
-- T3
-- ZPD
-- NAT-closure
-- NAT-addcompat
-- NAT-cancel
-- NAT-zero
-- NAT-order
-- NAT-sub
 summary: 'Tumbler addition and subtraction are partial inverses only under tight structural conditions: (a ⊕ w) ⊖ w = a holds
   exactly when the action point of w coincides with the last position of a and all components of a before that position are
   zero. The restriction is necessary because addition discards the trailing structure of its first argument below the action

@@ -1,13 +1,5 @@
 label: TS2
 name: ShiftInjectivity
 type: lemma
-depends:
-- TA-MTO
-- T3
-- OrdinalShift
-- OrdinalDisplacement
-- T0
-- TA-Pos
-- ActionPoint
 summary: 'Shift is injective over same-length tumblers: if shifting v₁ and v₂ by the same positive amount n yields identical
   results, then v₁ and v₂ must have been equal. This rules out any collisions introduced by the shift operation.'

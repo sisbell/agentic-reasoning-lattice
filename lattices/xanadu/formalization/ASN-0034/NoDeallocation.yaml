@@ -1,8 +1,6 @@
 label: NoDeallocation
 name: NoDeallocation
 type: axiom
-depends:
-- AllocatedSet
 summary: 'Every state transition in the system is required to leave the allocated address set at least as large as it found
   it — no operation may remove a previously allocated address. This formalizes the permanence guarantee: once a tumbler is
   allocated, it remains allocated for all time.'

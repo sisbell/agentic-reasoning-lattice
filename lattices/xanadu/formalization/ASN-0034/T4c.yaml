@@ -1,13 +1,6 @@
 label: T4c
 name: LevelDetermination
 type: corollary
-depends:
-- T0
-- NAT-order
-- NAT-closure
-- NAT-addcompat
-- NAT-card
-- T4
 summary: |
   On the T4-valid subset of T (tumblers satisfying zeros(t) ≤ 3, no two zeros adjacent,
   t₁ ≠ 0, t_{#t} ≠ 0), T4c defines the four hierarchical level labels — node address,

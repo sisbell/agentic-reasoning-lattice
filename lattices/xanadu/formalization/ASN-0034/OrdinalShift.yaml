@@ -1,17 +1,6 @@
 label: OrdinalShift
 name: OrdinalShift
 type: corollary
-depends:
-- TA0
-- TumblerAdd
-- OrdinalDisplacement
-- T0
-- TA-Pos
-- ActionPoint
-- NAT-zero
-- NAT-addcompat
-- NAT-closure
-- NAT-order
 summary: 'Shifting a tumbler v by n increments only its last component by n, leaving all earlier components unchanged, and
   is computed as tumbler addition v ⊕ δ(n, #v). The result has the same length and same prefix as v, with the final component
   strictly increased.'

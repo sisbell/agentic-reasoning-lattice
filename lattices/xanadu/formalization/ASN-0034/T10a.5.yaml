@@ -1,21 +1,6 @@
 label: T10a.5
 name: CrossAllocatorIncomparability
 type: corollary
-depends:
-- T10a
-- T10a.1
-- T10a.3
-- T10a.4
-- T4
-- T0
-- NAT-zero
-- NAT-discrete
-- NAT-closure
-- NAT-addcompat
-- TA5
-- TA5-SigValid
-- T3
-- Prefix
 summary: 'Any two allocators that are not in an ancestor-descendant relationship produce mutually prefix-incomparable outputs
   — no output of one can be a prefix of any output of the other. The argument traces to the lowest common ancestor: the two
   spawning paths diverge at sibling outputs of that ancestor, and length separation (T10a.3) together with T4-based component

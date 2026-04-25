@@ -1,9 +1,6 @@
 label: AX-5
 name: ClosedWorldTransition
 type: axiom
-depends:
-  - Σ.C
-  - Σ.M(d)
 vocabulary:
 - symbol: Op
   meaning: 'The complete set of state-modifying operations: {INSERT, DELETE, COPY, MOVE, REARRANGE, APPEND}'

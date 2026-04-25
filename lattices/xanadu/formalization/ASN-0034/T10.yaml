@@ -1,12 +1,6 @@
 label: T10
 name: PartitionIndependence
 type: theorem
-depends:
-- T0
-- T3
-- Prefix
-- NAT-order
-- NAT-wellorder
 summary: 'If two tumblers p₁ and p₂ are incomparable — neither is a prefix of the other — then every address beneath p₁ is
   distinct from every address beneath p₂, with no communication or central registry required. This is the formal basis for
   coordination-free allocation: the prefix hierarchy partitions address space so that independent owners of disjoint subtrees

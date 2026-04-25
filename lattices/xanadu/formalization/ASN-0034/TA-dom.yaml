@@ -1,13 +1,6 @@
 label: TA-dom
 name: DisplacementDominance
 type: corollary
-depends:
-- TumblerAdd
-- TA0
-- TA-Pos
-- ActionPoint
-- T1
-- T3
 summary: |
   A named corollary exporting TumblerAdd's dominance-guarantee postcondition a ⊕ w ≥ w as a single labelled fact for
   downstream use. Under the preconditions a ∈ T, w ∈ T, Pos(w), actionPoint(w) ≤ #a, TA-dom restates TumblerAdd's

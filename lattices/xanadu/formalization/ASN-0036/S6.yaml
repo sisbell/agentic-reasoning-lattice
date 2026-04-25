@@ -1,6 +1,3 @@
 label: S6
 name: PersistenceIndependence
 type: corollary
-depends:
-- S0
-- S1

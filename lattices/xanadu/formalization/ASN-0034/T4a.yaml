@@ -1,14 +1,6 @@
 label: T4a
 name: SyntacticEquivalence
 type: corollary
-depends:
-- T0
-- T4
-- NAT-discrete
-- NAT-order
-- NAT-closure
-- NAT-sub
-- NAT-card
 summary: |
   The three positional conditions from T4 (no adjacent zeros, nonzero first and last
   components) are logically equivalent to the condition that every field segment of

@@ -1,7 +1,3 @@
 label: S8-fin
 name: FiniteArrangement
 type: design-requirement
-depends:
-- AX-1
-- AX-5
-- D-DOC

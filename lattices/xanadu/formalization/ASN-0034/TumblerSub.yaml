@@ -1,21 +1,6 @@
 label: TumblerSub
 name: TumblerSub
 type: definition
-depends:
-- T0
-- T1
-- T3
-- Divergence
-- ZPD
-- TA-Pos
-- ActionPoint
-- NAT-cancel
-- NAT-closure
-- NAT-discrete
-- NAT-order
-- NAT-sub
-- NAT-wellorder
-- NAT-zero
 summary: |
   Defines component-wise tumbler subtraction `a ⊖ w`, producing a result whose nonzero components begin at the first
   zero-padded divergence point and whose length is `L` — the longer of `#a` and `#w`, named by NAT-order trichotomy on

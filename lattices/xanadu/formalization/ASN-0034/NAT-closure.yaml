@@ -1,9 +1,6 @@
 label: NAT-closure
 name: NatArithmeticClosureAndIdentity
 type: axiom
-depends:
-  - NAT-zero
-  - NAT-order
 summary: |
   Posits the binary operation `+ : ℕ × ℕ → ℕ` directly on ℕ, asserts
   `1 ∈ ℕ` together with the distinctness clause `0 < 1` that separates
