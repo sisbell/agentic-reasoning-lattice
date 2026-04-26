@@ -33,7 +33,7 @@ CREATE INDEX IF NOT EXISTS idx_endpoints_link ON endpoints(link_id);
 """
 
 
-VALID_TYPES = {"claim", "review", "contract", "citation", "comment", "resolution"}
+VALID_TYPES = {"claim", "review", "contract", "citation", "comment", "resolution", "retraction"}
 
 VALID_SUBTYPES = {
     "contract": {

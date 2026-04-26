@@ -27,6 +27,7 @@ from lib.shared.common import find_asn, build_label_index
 from lib.shared.paths import CLAIM_CONVERGENCE_DIR
 from lib.store.store import Store
 from lib.store.populate import build_cross_asn_label_index
+from lib.store.queries import active_links
 
 
 def main():
@@ -59,8 +60,8 @@ def main():
             label_index = build_cross_asn_label_index()
             apex_path = label_index.get(args.cone)
             rev_index = {p: l for l, p in label_index.items()}
-            cites = store.find_links(
-                from_set=[apex_path], type_set=["citation"],
+            cites = active_links(
+                store, "citation", from_set=[apex_path],
             ) if apex_path else []
             dep_labels = [
                 rev_index[link["to_set"][0]]

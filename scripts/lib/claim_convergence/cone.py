@@ -35,7 +35,7 @@ from lib.claim_convergence.core.topological_sort import topological_levels
 from lib.store.store import Store
 from lib.store.emit import emit_review, emit_findings
 from lib.store.populate import build_cross_asn_label_index
-from lib.store.queries import is_claim_converged, unresolved_revise_comments
+from lib.store.queries import is_claim_converged, unresolved_revise_comments, active_links
 
 
 def _retry_unresolved_revises(store, asn_num, claim_dir, scope_md_paths):
@@ -158,7 +158,7 @@ def detect_dependency_cone(asn_num, window=5, threshold=3):
     try:
         cross_index = build_cross_asn_label_index()
         rev_index = {p: l for l, p in cross_index.items()}
-        cites = store.find_links(from_set=[apex_path], type_set=["citation"])
+        cites = active_links(store, "citation", from_set=[apex_path])
         dep_labels = [
             rev_index[link["to_set"][0]]
             for link in cites
@@ -256,7 +256,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
         from_path = label_index.get(label)
         if not from_path:
             continue
-        for link in store.find_links(from_set=[from_path], type_set=["citation"]):
+        for link in active_links(store, "citation", from_set=[from_path]):
             if not link["to_set"]:
                 continue
             dep_label = rev_index.get(link["to_set"][0])
@@ -559,8 +559,8 @@ def run_cone_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False, model="opus
                     continue
                 same_deps = [
                     rev_index[link["to_set"][0]]
-                    for link in store.find_links(
-                        from_set=[from_path], type_set=["citation"],
+                    for link in active_links(
+                        store, "citation", from_set=[from_path],
                     )
                     if link["to_set"]
                     and rev_index.get(link["to_set"][0]) in asn_labels

@@ -16,6 +16,39 @@ def has_resolution(store, comment_id):
     return bool(store.find_links(to_set=[comment_id], type_set=["resolution"]))
 
 
+def active_links(store, type_str, from_set=None, to_set=None):
+    """Return links of `type_str` that have not been retracted.
+
+    A retraction is a link of type `"retraction"` whose to_set holds
+    the link id of the retracted link (link-to-link pointer). This
+    helper performs the two-query subtraction:
+
+      1. Fetch candidate links by type/endpoints
+      2. Fetch all retraction links and exclude candidates whose id
+         appears as the to_set referent of any retraction
+
+    Filters LIKE-match results to exact `type_str` to avoid pulling in
+    unrelated subtypes (e.g., a query for "citation" would otherwise
+    match any future "citation.*" subtype via SQL LIKE).
+
+    Use this in place of `store.find_links(type_set=[type_str], ...)`
+    wherever the consumer wants the "active" set, ignoring retracted
+    history.
+    """
+    retracted_ids = set()
+    for r in store.find_links(type_set=["retraction"]):
+        if r["type_set"] == ["retraction"]:
+            retracted_ids.update(r["to_set"])
+    candidates = store.find_links(
+        from_set=from_set, to_set=to_set, type_set=[type_str],
+    )
+    return [
+        link for link in candidates
+        if link["type_set"] == [type_str]
+        and link["id"] not in retracted_ids
+    ]
+
+
 def all_claim_paths(store):
     """Every document path classified as a claim. Sorted for determinism."""
     paths = set()

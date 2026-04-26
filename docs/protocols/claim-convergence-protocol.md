@@ -33,8 +33,9 @@ These link types extend the convergence protocol's vocabulary for the claim doma
 | `claim` | (flat, one-sided) | Classifier: document is a claim |
 | `contract` | `axiom`, `definition`, `theorem`, `corollary`, `lemma`, `consequence`, `design-requirement` | Formal structure attached to a claim. Subtypes name structural kinds. |
 | `citation` | (flat) | Claim depends on claim |
+| `retraction` | (flat) | Nullifies a previously-filed link. `to_set` holds the retracted link's id (link-to-link pointer). Used to retract stale citations when proof revisions remove use-sites. |
 
-Combined with the convergence protocol's three link types (`review`, `comment`, `resolution`), the claim convergence protocol operates with six link types total.
+Combined with the convergence protocol's three link types (`review`, `comment`, `resolution`), the claim convergence protocol operates with seven link types total.
 
 ### Two layers on one graph
 
@@ -46,6 +47,14 @@ The `citation` link is the lattice edge. The lattice — the dependency structur
 The convergence protocol's link types (`review`, `comment`, `resolution`) are protocol machinery operating on the lattice. Reviews observe claims. Comments target them. Resolutions close comments. None of these change the dependency structure — they check whether the existing structure is sound.
 
 The two layers interact when the reviser creates a new claim as part of closing a comment — apparatus extraction promotes inline reasoning to a named claim. The `resolution.edit` that closes the comment also adds a node to the lattice (new `claim` classifier, new `citation` links). Protocol activity produces lattice growth.
+
+### Retraction and proof evolution
+
+Citations are immutable (SUB1: substrate permanence). When a proof revision removes a use-site for a dep, the original `citation` link cannot be deleted — but it should no longer count toward the dependency graph. The protocol handles this with `retraction`: a flat top-level link whose `to_set` holds the retracted link's id, not a document path. The retraction is itself an immutable link; it nullifies its target by structural reference rather than by mutation. Append-only is preserved at every layer.
+
+Graph queries computing the active dependency set must subtract retracted citations. The `active_links(store, "citation", ...)` helper in `lib.store.queries` performs this subtraction in one call. All consumers that build a citation graph (validator, dependency-graph builder, cone-sweep) use the helper rather than `find_links` directly. The reviser invokes `scripts/retract.py --to <label>` to file a retraction during a revision that removes a dep from a claim's md `*Depends:*` section.
+
+Retraction generalizes beyond citations — the same mechanism works for retracting a wrong `resolution.reject`, a reversed `provenance.extract`, or any future link type that needs nullification. The `retraction` link type is flat (no subtypes) because the semantics are uniform: "this link no longer counts." What was retracted is discoverable from the `to_set` referent.
 
 ---
 

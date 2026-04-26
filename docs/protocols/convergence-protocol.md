@@ -22,6 +22,8 @@ Three link types. One classifier (`review`). Two express relationships (`comment
 
 Subtypes are valid when they change the structure or invariants of what the link carries. `comment.revise` requires resolution; `comment.observe` does not. `resolution.edit` means the document was changed. `resolution.reject` means the document was not changed — a rationale document explains the refusal.
 
+The convergence module does not file `retraction` links itself, but the substrate vocabulary supports them — a `retraction` link points at the id of a previously-filed link to nullify it without violating SUB1 permanence. This module's predicate operates on `comment.revise` and `resolution`; retraction is used by claim convergence (for stale citations) and is documented there. Specializations are responsible for using an `active_links`-style helper when computing graph state if they care about retraction, since the substrate's `find_links` query does not subtract retractions automatically.
+
 ### No versioning primitive
 
 Documents are referenced by path, not by version. The protocol carries no versioning primitive.

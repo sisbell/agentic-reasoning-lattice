@@ -38,7 +38,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
 from shared.common import find_asn
 from store.store import Store
 from store.populate import build_cross_asn_label_index
-from store.queries import current_contract_kind
+from store.queries import current_contract_kind, active_links
 from store.schema import VALID_SUBTYPES
 
 VALID_TYPES = VALID_SUBTYPES["contract"]
@@ -307,7 +307,7 @@ def _build_citation_graph(pairs, store, label_index):
             graph[label] = []
             continue
         deps = []
-        for link in store.find_links(from_set=[from_path], type_set=["citation"]):
+        for link in active_links(store, "citation", from_set=[from_path]):
             if not link["to_set"]:
                 continue
             dep_label = rev_index.get(link["to_set"][0])

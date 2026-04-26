@@ -23,7 +23,7 @@ from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, load_manifest, fo
 from lib.shared.common import find_asn, load_claim_metadata, build_label_index
 from lib.store.store import Store
 from lib.store.populate import build_cross_asn_label_index
-from lib.store.queries import current_contract_kind
+from lib.store.queries import current_contract_kind, active_links
 
 
 # ---------------------------------------------------------------------------
@@ -483,8 +483,8 @@ def _generate_deps_core(asn_num, prose_citations=False):
             if from_path:
                 follows = [
                     rev_index[link["to_set"][0]]
-                    for link in store.find_links(
-                        from_set=[from_path], type_set=["citation"],
+                    for link in active_links(
+                        store, "citation", from_set=[from_path],
                     )
                     if link["to_set"] and rev_index.get(link["to_set"][0])
                 ]
