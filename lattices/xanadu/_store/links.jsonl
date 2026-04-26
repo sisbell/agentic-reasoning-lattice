@@ -1132,3 +1132,4 @@
 {"from_set": ["lattices/xanadu/_store/findings/ASN-0034/review-556/0.md"], "id": "l_2e5e9c47c8cc", "op": "create", "to_set": ["lattices/xanadu/claim-convergence/ASN-0034/NAT-closure.md"], "ts": "2026-04-26T01:44:31Z", "type_set": ["comment.observe"]}
 {"from_set": ["lattices/xanadu/_store/findings/ASN-0034/review-556/1.md"], "id": "l_fc9fe52865b7", "op": "create", "to_set": ["lattices/xanadu/claim-convergence/ASN-0034/T4.md"], "ts": "2026-04-26T01:44:31Z", "type_set": ["comment.observe"]}
 {"from_set": ["lattices/xanadu/_store/findings/ASN-0034/review-556/2.md"], "id": "l_027724c77435", "op": "create", "to_set": ["lattices/xanadu/claim-convergence/ASN-0034/T4b.md"], "ts": "2026-04-26T01:44:31Z", "type_set": ["comment.observe"]}
+{"from_set": [], "id": "l_1ce75bfbeec8", "op": "create", "to_set": ["lattices/xanadu/claim-convergence/ASN-0034/reviews/review-557.md"], "ts": "2026-04-26T01:57:47Z", "type_set": ["review"]}
