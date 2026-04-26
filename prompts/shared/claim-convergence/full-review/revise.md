@@ -84,6 +84,15 @@ instead "the state satisfies..."
        python scripts/cite.py --to <label>
    Justify the new dependency in prose.
 
+   **Removing dependencies.** When you remove a dependency from a claim's
+   md `*Depends:*` section because the proof no longer uses it, retract
+   the substrate citation:
+       python scripts/retract.py --to <label>
+   This files a `retraction` link pointing at the now-stale citation. The
+   citation remains in the substrate (append-only) but no longer counts
+   toward the dependency graph. Use this whenever you delete a Depends
+   bullet, never just edit the md without retracting.
+
 6. If the fix requires a new claim that doesn't exist, create both files
    in `{{claim_dir}}/`. Use the label as the filename.
 
