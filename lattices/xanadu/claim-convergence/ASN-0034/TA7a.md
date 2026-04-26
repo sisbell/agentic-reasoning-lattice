@@ -45,6 +45,7 @@ The restriction to element-local displacements is necessary: an unrestricted dis
   - ActionPoint (ActionPoint) — defines `k = actionPoint(w)` as the least non-zero position of `w` and supplies the minimum-value clause `w_k ≥ 1` used in the Conjunct 1 action-point positivity chain; the prefix-zero characterisation justifies the narrative remark that `k ≥ 2 ⟹ w₁ = 0`.
   - TumblerAdd (TumblerAdd) — three-region componentwise construction of `r = o ⊕ w` used in Conjunct 1 (pre-action copy from `o`, action-point sum `oₖ + wₖ`, tail copy from `w`).
   - TumblerSub (TumblerSub) — zero-padding under NAT-order trichotomy, ZPD-based divergence dispatch, and componentwise formula used in Conjunct 2; the divergence-at-1 branch is the one selected by `o₁ > w₁`.
+  - ZPD (ZeroPaddedDivergence) — minimality clause `zpd(a, w) = min {k : 1 ≤ k ≤ L ∧ âₖ ≠ ŵₖ}` fixes `zpd(o, w) = 1` in Conjunct 2 from the position-1 disagreement `o₁ ≠ w₁` (itself supplied by `o₁ > w₁`); this divergence index is the dispatch key consumed by TumblerSub's componentwise formula at the divergence point.
   - TA0 (WellDefinedAddition) — delivers `o ⊕ w ∈ T` and `#(o ⊕ w) = #w` from the `⊕`-preconditions; the S-strengthening in Conjunct 1 rests on this T-closure.
   - TA2 (WellDefinedSubtraction) — delivers `o ⊖ w ∈ T` from the `⊖`-preconditions; the S-strengthening in Conjunct 2 rests on this T-closure.
   - NAT-addcompat (NatAdditionOrderAndSuccessor) — left order-compatibility and strict successor jointly establishing `oₖ + wₖ > oₖ` at the action point of `⊕`.
