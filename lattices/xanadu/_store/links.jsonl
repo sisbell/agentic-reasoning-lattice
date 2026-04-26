@@ -1364,3 +1364,12 @@
 {"from_set": ["lattices/xanadu/claim-convergence/ASN-0034/TA3-strict.md"], "id": "l_bbd6a895b37f", "op": "create", "to_set": ["l_13a351443f58"], "ts": "2026-04-26T23:08:01Z", "type_set": ["retraction"]}
 {"from_set": ["lattices/xanadu/claim-convergence/ASN-0034/TA5a.md"], "id": "l_aeaf62e342f1", "op": "create", "to_set": ["l_67d36e4eea3b"], "ts": "2026-04-26T23:20:22Z", "type_set": ["retraction"]}
 {"from_set": ["lattices/xanadu/claim-convergence/ASN-0034/TA5a.md"], "id": "l_f598b9297c58", "op": "create", "to_set": ["l_644356a7d135"], "ts": "2026-04-26T23:20:22Z", "type_set": ["retraction"]}
+{"from_set": ["lattices/xanadu/claim-convergence/ASN-0034/T10a.md"], "id": "l_06dcdc6f4bbe", "op": "create", "to_set": ["l_5fc3cb7aebc6"], "ts": "2026-04-26T23:26:26Z", "type_set": ["retraction"]}
+{"from_set": ["lattices/xanadu/claim-convergence/ASN-0034/T10a.md"], "id": "l_63c986ab17e7", "op": "create", "to_set": ["l_4029e30f31f4"], "ts": "2026-04-26T23:26:26Z", "type_set": ["retraction"]}
+{"from_set": ["lattices/xanadu/claim-convergence/ASN-0034/T10a.md"], "id": "l_d5a314a8374a", "op": "create", "to_set": ["l_a8d995a2fc15"], "ts": "2026-04-26T23:26:26Z", "type_set": ["retraction"]}
+{"from_set": ["lattices/xanadu/claim-convergence/ASN-0034/T10a.md"], "id": "l_bdb1cd591d56", "op": "create", "to_set": ["l_b140059e6842"], "ts": "2026-04-26T23:26:26Z", "type_set": ["retraction"]}
+{"from_set": ["lattices/xanadu/claim-convergence/ASN-0034/T10a.md"], "id": "l_c8965ee6de9c", "op": "create", "to_set": ["l_4956da34726c"], "ts": "2026-04-26T23:26:27Z", "type_set": ["retraction"]}
+{"from_set": ["lattices/xanadu/claim-convergence/ASN-0034/T10a.md"], "id": "l_7e08acf5f1d0", "op": "create", "to_set": ["l_b266ed0fe0bb"], "ts": "2026-04-26T23:26:27Z", "type_set": ["retraction"]}
+{"from_set": ["lattices/xanadu/claim-convergence/ASN-0034/T10a.md"], "id": "l_b9575b091761", "op": "create", "to_set": ["l_6041131d0f42"], "ts": "2026-04-26T23:26:27Z", "type_set": ["retraction"]}
+{"from_set": ["lattices/xanadu/claim-convergence/ASN-0034/T10a.md"], "id": "l_16bf9d82b8b9", "op": "create", "to_set": ["l_b31d7d0c8d8f"], "ts": "2026-04-26T23:26:27Z", "type_set": ["retraction"]}
+{"from_set": ["lattices/xanadu/claim-convergence/ASN-0034/T10a.md"], "id": "l_450f8102c7bd", "op": "create", "to_set": ["l_0e62b781795a"], "ts": "2026-04-26T23:26:27Z", "type_set": ["retraction"]}
