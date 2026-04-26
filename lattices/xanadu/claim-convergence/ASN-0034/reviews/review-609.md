@@ -1,0 +1,17 @@
+# Cone Review — ASN-0034/TA3 (cycle 3)
+
+*2026-04-26 06:50*
+
+### Preamble's bound `dₐ ≤ #a ∧ dₐ ≤ #b` is derived inside a proof-by-contradiction but cited as a standalone fact in B2/B4
+**Class**: REVISE
+**Foundation**: (n/a — internal)
+**ASN**: TA3, Case B preamble:
+> "The zero-padded divergence `d_b = zpd(b, w)` is also well-defined: were `b` zero-padded-equal to `w`, ZPD's padded equality would give `b̂_{dₐ} = ŵ_{dₐ}` … chaining ZPD's pre-divergence agreement `âᵢ = ŵᵢ` for `i < dₐ` with the hypothesised `b̂ᵢ = ŵᵢ` gives `âᵢ = b̂ᵢ` for `i < dₐ`. Case B's first-disagreement witness `aⱼ < bⱼ` (with `j ≤ #a ∧ j ≤ #b`) forces `dₐ ≤ j`: were `dₐ > j`, … `âⱼ = b̂ⱼ` from `j < dₐ` would give `aⱼ = bⱼ`, contradicting `aⱼ < bⱼ`. Hence `dₐ ≤ j`, giving `dₐ ≤ #a ∧ dₐ ≤ #b`; … making `dₐ` a T1 case (i) witness for `a > b` — contradicting `a < b`."
+
+Then B2 cites this bound: "The preamble's `d ≤ #a ∧ d ≤ #b` lets padded projections coincide with native at `d` and earlier"; B4 likewise: "With `d_b < dₐ ≤ #a ∧ ≤ #b` (preamble)".
+
+**Issue**: The chain `âᵢ = b̂ᵢ for i < dₐ` is built from the hypothesised `b̂ᵢ = ŵᵢ` (the assumption being refuted), and the step `dₐ ≤ j` invokes `âⱼ = b̂ⱼ from j < dₐ` — i.e., the hypothesised chain. So the bound `dₐ ≤ j`, and the consequent `dₐ ≤ #a ∧ dₐ ≤ #b`, lives entirely inside the proof-by-contradiction that `d_b` is defined. After exiting that block (with `d_b` defined), we do not retain `dₐ ≤ #a ∧ dₐ ≤ #b` as an established fact. Yet sub-cases B2 and B4 cite it as if standalone. The bound supports B2's chain `â_d = a_d, b̂_d = b_d` (needed to convert TumblerSub's padded-projection inequality into the native form NAT-sub strict monotonicity is applied to) and B4's `aᵢ = bᵢ for i < d_b`; without it, those steps are unsupported.
+
+**What needs resolving**: Either re-derive `dₐ ≤ #a ∧ dₐ ≤ #b` (and the analogous bounds B4 needs at `d_b`) outside the contradiction block — perhaps directly from Case B's witness `aⱼ < bⱼ` (`j ≤ #a ∧ j ≤ #b`) by a hypothesis-free argument using ZPD's pre-divergence agreement on `(a, w)` and TumblerSub's `â_{dₐ} > ŵ_{dₐ}` — and lift it out of the `d_b`-defined sub-proof; or restructure B2/B4 to argue on padded projections without requiring `dₐ ≤ #a` and `dₐ ≤ #b` (or `d_b ≤ #a, ≤ #b`) as global facts.
+
+VERDICT: REVISE
