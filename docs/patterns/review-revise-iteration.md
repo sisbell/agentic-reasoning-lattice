@@ -2,9 +2,9 @@
 
 ## Pattern
 
-An agent reviews a body of work against criteria, produces findings, and a second pass (or agent) revises the work to address each finding. The revised work is reviewed again. The cycle repeats until no new findings emerge.
+An agent reviews a body of work against criteria, produces findings, and a second agent revises the work to address each finding. The revised work is reviewed again. The cycle repeats until every concern raised has been addressed — by edit or by reasoned rejection.
 
-The cycle has a natural convergence property: each revision reduces the number of issues, and no revision introduces issues outside its scope. When the reviewer finds nothing, the work satisfies the criteria.
+This pattern is formally specified as the [convergence protocol](../protocols/convergence-protocol.md). The pattern describes the observed behavior. The protocol specifies the properties that must hold: every `comment.revise` has a `resolution`, resolved comments stay resolved, no work is lost between invocations.
 
 ## Forces
 
@@ -12,22 +12,25 @@ The cycle has a natural convergence property: each revision reduces the number o
 - **Agents are imperfect revisers.** A fix may introduce new issues or incompletely address the finding. Re-review catches these.
 - **Findings must be specific.** The reviewer tells the reviser what to fix — not general quality complaints, but actionable findings. The reviser follows the finding precisely.
 - **Scope must be bounded.** The reviser only changes what the finding requires. Without this discipline, each revision creates unbounded side effects and the cycle diverges.
+- **The reviser can refuse.** If a finding is incorrect, the reviser creates a rejection rationale rather than applying a harmful fix. Refusal is a valid resolution — it closes the comment without changing the document.
 
 ## Structure
 
 ```
-review → findings → revise → commit → review → findings → ...
-         │                                       │
-         └── if none: converged ─────────────────┘
+review → findings → revise → review → findings → ...
+         │                             │
+         └── if none: converged ───────┘
 ```
 
-The review and revise steps may be the same agent or different agents. The reviewer needs read access to the work. The reviser needs write access. Separating them enforces the discipline that the reviewer identifies and the reviser acts.
+The reviewer reads and produces findings. The reviser reads findings and edits (or rejects). The convergence predicate — every `comment.revise` has a `resolution` — determines when the cycle is done. Neither the reviewer's verdict nor the cycle count decides convergence; the state of the link graph does.
 
 ## Why it needs multiple cycles
 
 Surface issues mask deeper ones. A reviewer looking at wrong citations can't see the logical gap beneath them. Once the citations are fixed, the gap becomes visible. Once the logic is fixed, the mathematical imprecision becomes visible. Each layer masks the next.
 
 This means the cycle doesn't fix a flat list of known issues. It excavates — each pass clears a layer and reveals the next. The depth is unknown in advance. You discover it as you dig.
+
+### Excavation stages
 
 The findings progress through predictable stages:
 
@@ -37,51 +40,52 @@ The findings progress through predictable stages:
 4. **Mathematical precision** — unstated domain assumptions, claims asserted when derivable, proofs claiming specific scope when argument is general.
 5. **Structural organization** — phantom dependencies, redundant claims, edge-case insights.
 
-This progression was observed independently in ASN-0034 discovery (reviews 14-31), ASN-0036 discovery (reviews 1-26), and ASN-0036 formalization regional reviews. The same stages, same order, across different notes and different pipeline stages.
+This progression was observed independently in ASN-0034 discovery (reviews 14–31), ASN-0036 discovery (reviews 1–26), and ASN-0036 claim convergence regional reviews. The same stages, same order, across different notes and different protocol stages. The convergence protocol deliberately does not prescribe finding order — this ordering is an empirical regularity, not a protocol property.
 
 ## When it converges
 
-- Each finding is addressed in one revision
+- Each finding is addressed in one revision — by edit or by rejection
 - Revisions don't create new issues outside their scope
 - The reviewer is consistent — it doesn't flag something it previously accepted
-- All layers have been excavated — the reviewer finds nothing new
+- All layers have been excavated — the reviewer files zero new `comment.revise` links
 
 ## When it stalls
 
-- Revisions create side effects that generate new findings (oscillation)
+- Revisions create side effects that generate new findings — [reverse-course oscillation](../equilibrium/reverse-course-oscillation.md)
 - The reviewer contradicts itself across cycles
 - The work is tightly coupled — fixing one part shifts another (see [dependency cone](dependency-cone.md))
+- The reviser rejects findings that the reviewer re-files — reject cycling
+
+Detecting stalls is a choreography and monitoring concern, not a protocol property. See the [claim convergence design note](../design-notes/claim-convergence.md) for detection strategies.
+
+## Finding classification
+
+The reviewer classifies each finding by whether it requires action:
+
+- **`comment.revise`** — the document is wrong, incomplete, or ungrounded. Requires resolution.
+- **`comment.observe`** — the document is correct but the reviewer noticed something. Recorded, no resolution required.
+
+OBSERVE is the off-ramp for the [production drive](../design-notes/production-drive.md) — the LLM's tendency to generate findings and push them toward action. Without it, every observation becomes a mandatory revision and the cycle over-revises. The convergence predicate tracks only REVISE comments; OBSERVE accumulates as audit trail.
+
+At discovery scale, the classification is REVISE / OUT_OF_SCOPE rather than REVISE / OBSERVE. OUT_OF_SCOPE channels the production drive into [scope promotion](scope-promotion.md) — engagement with adjacent material becomes a new inquiry rather than a mandatory fix to the current note.
 
 ## Applications
 
-### Local review
+The pattern applies wherever an LLM reviews and revises content iteratively. The [convergence protocol](../protocols/convergence-protocol.md) is the general specification. Domain-specific protocols extend it:
 
-**Scope**: one claim at a time, dependencies as fixed context.
-**Review criteria**: 7-point checklist — logical gaps, unjustified steps, missing cases, dependency correctness, formal contract completeness.
-**Reviser**: agent with Edit tools, operates on the claim's `.md` file.
-**Convergence**: typically 2-5 cycles per claim.
+**[Claim convergence](../protocols/claim-convergence-protocol.md).** The convergence protocol applied to per-claim files in the lattice. Adds structural validation (validate-before-review), lattice structure (`claim`, `contract`, `citation` links), scope strategies (adaptive and comprehensive as choreography), and the Dijkstra voice for both reviewer and reviser.
 
-### Contract review
-
-**Scope**: one claim at a time.
-**Review criteria**: formal contract matches what the proof establishes. Preconditions, postconditions, invariants, frame conditions.
-**Reviser**: contract rewriter — regenerates the contract section.
-**Convergence**: typically 1-3 cycles. Mechanical — less LLM judgment involved.
-
-### Full review
-
-**Scope**: entire note + foundation statements.
-**Review criteria**: cross-claim consistency — carrier-set conflation, precondition chain gaps, scope mismatches, undeclared dependencies.
-**Reviser**: agent with Edit/Write tools, can modify multiple claims per finding.
-**Convergence**: slow — broad context means noisy findings. May stall on [dependency cones](dependency-cone.md).
-
-### Regional review
-
-**Scope**: one claim + its same-note dependencies, narrowed foundation.
-**Review criteria**: same as full-review, but focused on the constraint system around one high-dependency claim.
-**Reviser**: same as full-review.
-**Convergence**: faster than full-review — narrower context produces more precise findings. Typically 1-3 cycles per cone.
+**Discovery review.** The convergence protocol applied to notes. Adds OUT_OF_SCOPE as the off-ramp (instead of OBSERVE). No structural validation — notes have no claim file contract. Convergence signals readiness for blueprinting.
 
 ## Origin
 
-The review/revise cycle was the first pattern to emerge. Initial formalization attempts used single-pass LLM rewriting — produce a contract, move on. Quality was inconsistent. Adding a review step that checked the output and fed findings back to a reviser transformed the process. The cycle became the fundamental unit of all pipeline stages.
+The review/revise cycle was the first pattern to emerge. Initial attempts used single-pass LLM rewriting — produce a contract, move on. Quality was inconsistent. Adding a review step that checked the output and fed findings back to a reviser transformed the process. The cycle became the fundamental unit of all protocol stages.
+
+## Related
+
+- [Convergence Protocol](../protocols/convergence-protocol.md) — the formal specification of this pattern. The predicate, link types, safety and liveness properties.
+- [Claim Convergence Protocol](../protocols/claim-convergence-protocol.md) — the convergence protocol applied to claims, with lattice structure and a specific algorithm.
+- [Dependency Cone](dependency-cone.md) — when tightly coupled documents stall single-document review, the cone is reviewed as a unit.
+- [Validate Before Review](validate-before-review.md) — structural validation before each review cycle clears noise from the reviewer's path.
+- [Reverse-Course Oscillation](../equilibrium/reverse-course-oscillation.md) — a failure mode of the review/revise cycle where findings alternate without converging.
+- [Production Drive](../design-notes/production-drive.md) — the LLM behavioral force that OBSERVE and OUT_OF_SCOPE channel safely.

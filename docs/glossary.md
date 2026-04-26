@@ -2,7 +2,7 @@
 
 Terms specific to this reasoning system. Cross-references point to where each term is discussed substantively.
 
-[A](#a) · [B](#b) · [C](#c) · [D](#d) · [E](#e) · [F](#f) · [G](#g) · [H](#h) · [I](#i) · [J](#j) · [L](#l) · [M](#m) · [N](#n) · [O](#o) · [P](#p) · [R](#r) · [S](#s) · [T](#t) · [U](#u) · [V](#v) · [Y](#y)
+[A](#a) · [B](#b) · [C](#c) · [D](#d) · [E](#e) · [F](#f) · [G](#g) · [H](#h) · [I](#i) · [J](#j) · [L](#l) · [M](#m) · [N](#n) · [O](#o) · [P](#p) · [Q](#q) · [R](#r) · [S](#s) · [T](#t) · [U](#u) · [V](#v) · [Y](#y)
 
 ## A
 
@@ -14,7 +14,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Attractor, Genesis.** A claim that becomes the default home for every fact anyone needs about a concept it introduces. Cause of [Contract Sprawl](equilibrium/contract-sprawl.md).
 
-**Authority.** A source the reasoning system consults — for example, Nelson's design documents (theory authority) or Gregory's implementation (evidence authority). See [Two-Channel Architecture](patterns/two-data-authorities.md).
+**Authority.** A source the reasoning system consults — for example, Nelson's design documents (theory authority) or Gregory's implementation (evidence authority). See [Two-Channel Architecture](two-channel-architecture.md).
 
 **Axiom.** A claim classified as assumed rather than derived. Stated without proof.
 
@@ -26,7 +26,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Bridge citation.** A citation to a claim that licenses an inference step between two other concepts in a proof. Missing bridge citations are a subtype of [Citation Drift](equilibrium/citation-drift.md#subtype-bridge-citations).
 
-**Bridge vocabulary.** The unified terms that make a campaign's two channels speak coherently. Curated at campaign creation time, not emergent. Campaign-level because it bridges two specific channels — different pairings produce different bridges. The primary consumer is the reviewer, who must interpret claims against both channels' terminology. See [Architecture](architecture.md).
+**Bridge vocabulary.** The unified terms that make a campaign's two channels speak coherently. Curated at campaign creation time, not emergent. Campaign-level because it bridges two specific channels — different pairings produce different bridges. The primary consumer is the reviewer during note convergence, who must interpret claims against both channels' terminology. See [Two-Channel Architecture](two-channel-architecture.md).
 
 ## C
 
@@ -36,7 +36,11 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Channel asymmetry.** Shape-mismatch between the theory channel and the evidence channel. Theory space is conceptual and listable (vocabulary-in-prompt). Evidence space is specific and must be seen (corpus-in-prompt). Prevents naive merging and forces synthesis to coin bridging vocabulary. See [Channel Asymmetry pattern](patterns/channel-asymmetry.md).
 
+**Choreography.** How a protocol's predicate is driven true in practice — which scope to use, what order to review in, when to alternate strategies, what to assemble as context. Distinguished from the [protocol](#p) itself, which defines only the predicate. Different choreographies satisfy the same predicate. The protocol IS the predicate; everything else is choreography. See [Claim Convergence Protocol](protocols/claim-convergence-protocol.md).
+
 **Citation, inline.** A reference in the proof narrative like "by NAT-wellorder." Part of proof content, not metadata.
+
+**Citation (link type).** The substrate link that records a dependency between two reasoning units — claim→claim during claim convergence, note→note during note convergence. The lattice edge. Distinct from [inline citation](#c) (proof-narrative reference). See [Convergence Protocol](protocols/convergence-protocol.md).
 
 **Claim.** A single unit of reasoning within a note. An assertion — something the system says is the case, which can be verified, contested, or refuted. Has a label, type, formal contract, and dependencies. The atomic lattice node. See [Architecture](architecture.md).
 
@@ -44,13 +48,23 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Claim File Contract.** The structural contract specifying what well-formed per-claim file state looks like after blueprinting. Concrete rules, mechanically checkable: one body per file, filename matches label, references resolve, metadata agrees with content, no dependency cycles. The first instance of the output contract the [Validation Principle](principles/validation.md) requires. See [Claim File Contract](design-notes/claim-file-contract.md).
 
+**Comment (link type).** A substrate link recording a reviewer finding on a document. Subtypes carry the classification: `comment.revise` requires resolution and participates in the [convergence predicate](#c); `comment.observe` is a non-blocking observation (claim convergence only); `comment.out-of-scope` is a non-blocking signal that the lattice needs structural work (note convergence only). See [Convergence Protocol](protocols/convergence-protocol.md).
+
 **Cone, dependency.** A cluster of tightly coupled claims where an apex keeps being revised while dependencies are stable. See [Dependency Cone pattern](patterns/dependency-cone.md).
 
 **Consult authority.** During revision, return to source material to ground findings in evidence. See [Consult Authority pattern](patterns/consult-authority.md).
 
+**Convergence predicate.** The graph property that defines when a document set has converged: every `comment.revise` link targeting a document in the set has a matching `resolution` link. Document-type-neutral. Both note convergence and claim convergence use this same predicate. See [Convergence Protocol](protocols/convergence-protocol.md).
+
+**Convergence protocol.** The document-type-neutral module specifying the convergence predicate, the comment/resolution link types, and the safety/liveness properties any review/revise process must satisfy. Specialized by [note convergence](#n) (for notes during discovery) and [claim convergence](#c) (for claims after blueprinting). See [Convergence Protocol](protocols/convergence-protocol.md).
+
 **Content.** What the `.md` file holds — narrative, proof, formal contract claims. Distinct from metadata.
 
 **Contract, formal.** The structured claim section of a claim (`*Formal Contract:*`): preconditions, postconditions, invariants, axiom, definition. Part of content.
+
+**Contract (link type).** A substrate link classifying a claim by structural kind: `contract.axiom`, `contract.definition`, `contract.theorem`, `contract.corollary`, `contract.lemma`, `contract.consequence`, `contract.design-requirement`. Subtypes name structurally distinct kinds with different required fields. See [Claim Convergence Protocol](protocols/claim-convergence-protocol.md).
+
+**Coverage.** The choreography's obligation to actually conduct reviews at sufficient scope. The [convergence predicate](#c) is trivially satisfied when no reviews have happened — the protocol says "all filed concerns are addressed," not "sufficient examination has occurred." Coverage is what closes that gap. A protocol-level non-guarantee; a choreography-level requirement. See [Claim Convergence Protocol](protocols/claim-convergence-protocol.md).
 
 **Contract Sprawl.** A claim's formal contract keeps growing across cycles because it is a [Genesis Attractor](equilibrium/contract-sprawl.md). See [Contract Sprawl](equilibrium/contract-sprawl.md).
 
@@ -66,7 +80,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Design requirement.** A claim classified as an architectural or measurement constraint the system imposes.
 
-**Discovery.** The stage producing notes through the [two-channel architecture](patterns/two-data-authorities.md). First stage. See [Discovery](discovery.md).
+**Discovery.** The first stage. Combines three mechanisms to bring new knowledge into the lattice: the [two-channel architecture](two-channel-architecture.md) generates an initial note from independent theory and evidence channels; the [note convergence protocol](protocols/note-convergence-protocol.md) drives the note to stability through review/revise cycles; the [maturation protocol](protocols/maturation-protocol.md) executes the lattice operations (extract, absorb, scope promotion) that discovery's findings trigger. See [Discovery](discovery.md).
 
 **Domain.** The logical configuration of a lattice — which verifier, which channels, which vocabulary firewall. Expressed in `lattices/<L>/config.yaml`, not as a separate directory. Two configurations that differ in any binding are different domains. The domain is what you swap to move the engine from one subject area to another. See [Architecture](architecture.md).
 
@@ -82,7 +96,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Enumerated surface.** A claim structure that pre-identifies where sub-facts will live (e.g., `T10a.1`, `T10a.2`, ...). Invites [accretion](patterns/accretion.md); prevents Genesis Attractors forming.
 
-**Evidence channel.** The agent channel that reads raw evidence (implementation code, experimental measurements) and reports patterns. Forbidden from using theory-level vocabulary. Its question generator sees the corpus itself at generation time (corpus-in-prompt) because evidence space is specific and must be seen. See [Discovery](discovery.md).
+**Evidence channel.** The agent channel that reads raw evidence (implementation code, experimental measurements) and reports patterns. Forbidden from using theory-level vocabulary. Its question generator sees the corpus itself at generation time (corpus-in-prompt) because evidence space is specific and must be seen. See [Two-Channel Architecture](two-channel-architecture.md).
 
 **Evidence space.** The space of observed behaviors and measurements the evidence channel reports. Complement to [hypothesis space](#h).
 
@@ -92,9 +106,9 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 ## F
 
-**Finding classification.** The reviewer's classification of each finding as requiring action or not. Correctness issues (broken precondition chains, missing axioms, ungrounded operators) must be fixed. Tightening observations (loose phrasing, minor style, alternative framings) are logged but do not trigger revision. Prevents [Surface Expansion](equilibrium/surface-expansion.md) by keeping tightening findings from reaching the reviser. See [Claim Convergence](claim-convergence.md).
+**Finding classification.** The reviewer's classification of each finding by how it should be handled. Two binary schemes apply at different scales. **Note convergence** uses REVISE / OUT_OF_SCOPE — REVISE must fix in-note; OUT_OF_SCOPE signals maturation that adjacent material is missing or misplaced. **Claim convergence** uses REVISE / OBSERVE — REVISE must fix; OBSERVE logs the observation without triggering revision. Both schemes prevent [Surface Expansion](equilibrium/surface-expansion.md) by keeping non-correctness findings from reaching the reviser. See [Note Convergence Protocol](protocols/note-convergence-protocol.md), [Claim Convergence Protocol](protocols/claim-convergence-protocol.md).
 
-**Firewall, vocabulary.** Structural enforcement that the theory channel cannot use evidence-channel terms and vice versa. Prevents the LLM's training knowledge from shortcutting reasoning. See [Discovery](discovery.md).
+**Firewall, vocabulary.** Structural enforcement that the theory channel cannot use evidence-channel terms and vice versa. Prevents the LLM's training knowledge from shortcutting reasoning. See [Two-Channel Architecture](two-channel-architecture.md).
 
 **Formal-statements export.** Curated export containing all claim summaries and formal contracts in dependency order. Consumed by downstream notes as foundation.
 
@@ -110,9 +124,11 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Gravitational failure.** An [equilibrium](equilibrium/) pattern whose force acts continuously across review cycles. Requires permanent discipline — prompt framing, coupling monitoring, voice structure — not a one-time fix. Contrasts with [transitional failure](#t) and [oscillatory failure](#o). Contract Sprawl, Prose Sprawl, Surface Expansion, Index Sprawl, Citation Drift are gravitational.
 
-**Ground state.** The state of genuine convergence across all scales — local, regional, and full review all agree there are no remaining issues. Distinguished from "stopped" (no finding in one scale but others can still expose issues). See [Claim Convergence Protocol](protocols/claim-convergence-protocol.md).
+**Ground state.** The state of genuine convergence — regional and full review both agree there are no remaining issues, and the [convergence predicate](#c) holds. Distinguished from "stopped" (no finding at one scale but others can still expose issues). See [Claim Convergence Protocol](protocols/claim-convergence-protocol.md).
 
 ## H
+
+**Hard reset.** A defined operation in the [maturation protocol](#m) for the case where a foundation turns out to be wrong, not merely incomplete. The note re-enters discovery; its freeze is revoked; all dependents that entered claim convergence against its claims must also reset. A `provenance.reset` link records the cascade. Expensive and destructive — used when the alternative (leaving dependents on a known-bad foundation) is worse. See [Maturation Protocol](protocols/maturation-protocol.md).
 
 **Hypothesis cluster.** A [cone](patterns/dependency-cone.md) in a science domain: apex (hypothesis statement) plus its supporting dependencies (axioms, definitions, data citations, coined concepts). Regional convergence of a hypothesis cluster = hypothesis ready for its scope.
 
@@ -136,21 +152,25 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Lattice.** The coverage target that campaigns build toward: an accumulated verified dependency graph for one subject-area focus. The lattice operates at two granularities simultaneously: during discovery, notes declare note-level dependencies (`depends:`); during claim convergence, claims declare claim-level dependencies (`follows_from:`). Which granularity a consuming note sees depends on the consumer's stage. Notes retire gradually as their consumers enter claim convergence; the terminal lattice is all claim-to-claim edges with note groupings as provenance metadata. See [Architecture](architecture.md).
 
+**Lattice operation.** Collective term for the three structural operations the [maturation protocol](#m) executes on lattice signals: **extract** (claims move down, into a new foundation below consumers), **absorb** (claims move toward natural home, into an existing note), **scope promotion** (questions move out, opening a new inquiry). Distinct from convergence — operations reshape the lattice; convergence stabilizes content within fixed structure. Triggered by signals from note convergence (duplicate derivations, `comment.out-of-scope` findings). See [Maturation Protocol](protocols/maturation-protocol.md).
+
 **Lemma.** A claim classified as an intermediate result supporting higher-level theorems.
 
-**Local-review.** Local-scale review checking logical gaps, unjustified steps, missing cases, and dependency correctness. One claim at a time with its dependencies as fixed context. The contract gate: does this claim validly export what downstream claims can cite? Renamed from proof-review.
+**Local-review.** *Retired.* Single-claim review at local scale was retired during V-cycle consolidation when regional and full scope were found sufficient to expose all classes of finding. See [Claim Convergence Protocol](protocols/claim-convergence-protocol.md).
 
-**Local scale.** [Claim Convergence Protocol](protocols/claim-convergence-protocol.md) scope of one claim with its dependencies as fixed context. Renamed from Claim scale.
+**Local scale.** *Retired.* See [Local-review](#l).
 
 ## M
 
 **Markdown body (`.md`).** The file that holds a claim's content: narrative, proof, formal contract.
 
+**Maturation protocol.** The meta-protocol that supervises stage protocols and executes lattice operations. Drives content from question to verified knowledge through note convergence, blueprinting, claim convergence, and verification. Owns the three lattice operations (extract, absorb, scope promotion) and the transition conditions between stages. Reaches [quiescence](#q), not convergence — settles when no transitions or operations are pending. See [Maturation Protocol](protocols/maturation-protocol.md).
+
 **Meet.** Lattice operation. A concept shared by two nodes is extracted into a new foundation layer below both. [Extract/absorb](patterns/extract-absorb.md) executes a meet.
 
 **Metadata.** What the YAML file holds — label, name, type, summary, depends, vocabulary. Describes the claim; does not constitute its reasoning.
 
-**Modeling.** The stage translating formal contracts into mechanically verifiable code (Dafny, Alloy). Follows claim convergence.
+**Modeling.** The stage translating formal contracts into mechanically verifiable code (Dafny, Alloy). Follows claim convergence. Part of the verification protocol's input phase. See [Maturation Protocol](protocols/maturation-protocol.md).
 
 ## N
 
@@ -160,9 +180,13 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Specification Note"), retained opaque for stable addressing across commits, filenames, and cross-references.
 
+**Note convergence.** The protocol that drives notes to convergence through review/revise cycles within discovery. Specializes the [convergence protocol](#c) with `note` classifier, `citation` link type (note→note dependencies), and `comment.out-of-scope` subtype. Finding classification is REVISE / OUT_OF_SCOPE — there is no OBSERVE at this scale. Out-of-scope findings signal the [maturation protocol](#m) that adjacent material is missing or misplaced. See [Note Convergence Protocol](protocols/note-convergence-protocol.md).
+
 ## O
 
 **Open surface.** A claim structure that leaves no explicit home for new sub-facts (e.g., "with its standard claims"). Sets the conditions for a [Genesis Attractor](equilibrium/contract-sprawl.md) to form.
+
+**Out-of-scope finding.** A reviewer finding (`comment.out-of-scope`) during note convergence that flags a valid concern whose resolution lies outside the current note. Does not block the convergence predicate. Subscribed to by the [maturation protocol](#m), which routes the finding to one of three lattice operations: absorb (existing home), scope promotion (new inquiry), or extract (new foundation). The off-ramp for the [production drive](design-notes/production-drive.md) at note scale, replacing OBSERVE which is used at claim scale. See [Note Convergence Protocol](protocols/note-convergence-protocol.md).
 
 **Oscillatory failure.** An [equilibrium](equilibrium/) pattern whose force acts at a site of undecidability — two resolutions are both locally valid and nothing in the cycle arbitrates between them. Fixed by establishing the arbitrating criterion (a contract, a convention, or an explicit scope ruling), which varies by subtype. Contrasts with [gravitational failure](#g) and [transitional failure](#t). [Reverse-Course Oscillation](equilibrium/reverse-course-oscillation.md) is the oscillatory pattern documented so far.
 
@@ -174,11 +198,19 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 
 **Pattern language.** The patterns that govern how agents produce verified knowledge. See [patterns README](patterns/README.md).
 
+**Production drive.** The LLM behavioral force that drives generation of output regardless of whether new output is warranted. Manifests as findings on already-clean material, prose growth without reasoning growth, contract sprawl, and other [Surface Expansion](equilibrium/surface-expansion.md) symptoms. Channeled productively by the OBSERVE off-ramp (claim convergence) and the OUT_OF_SCOPE off-ramp (note convergence) — engagement gets a place to go that doesn't trigger destructive revision. See [Production Drive](design-notes/production-drive.md).
+
 **Prose coinage.** The atomic event of coining a new prose word for a concept no existing vocabulary captures precisely (e.g., "action point," "divergence," "subspace"). Occurs in two modes: [synthesis coinage](#s) and [review coinage](#r). Precedes [prose compression](patterns/prose-compression.md). See [Prose Coinage pattern](patterns/prose-coinage.md).
 
 **Prose compression.** A prose-named concept gets a symbol for compact formal manipulation (e.g., "tumbler addition" → `⊕`). Same concept, compressed form. Produced by [review/revise iteration](patterns/review-revise-iteration.md) as concepts are used frequently enough that compact notation pays for itself. See [Prose Compression pattern](patterns/prose-compression.md).
 
 **Prose Sprawl.** A claim's narrative prose grows across review cycles without corresponding growth in reasoning content. The narrative form of [Surface Expansion](equilibrium/surface-expansion.md). Contained by the [Voice Principle](principles/voice.md) (positive style structure) and finding classification (tightening observations don't reach the reviser). See [Prose Sprawl](equilibrium/prose-sprawl.md).
+
+**Provenance link.** A flat substrate audit link recording structural moves the [maturation protocol](#m) executes. Subtypes: `provenance.extract` (records source notes when material is extracted into a new foundation), `provenance.absorb` (records source when material is moved into an existing note), `provenance.reset` (records cascade when [hard reset](#h) revokes a foundation). Not protocol machinery — not load-bearing for any predicate. Supports replay and structural-history reconstruction. See [Maturation Protocol](protocols/maturation-protocol.md).
+
+## Q
+
+**Quiescence.** The stopping condition of the [maturation protocol](#m): no transition conditions are met and no lattice operation signals are pending. Different from convergence (a graph property that becomes true) and different from pure dispatch (fire once and done). Maturation iterates without converging in the predicate sense — it settles. See [Maturation Protocol](protocols/maturation-protocol.md).
 
 ## R
 
@@ -192,9 +224,13 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 
 **Representation change.** Progressive transformation of content through different forms (narrative → structured → formal → mechanical) without changing the underlying claim. Each change introduces structural rules at the new form. See [Representation Change pattern](patterns/representation-change.md).
 
+**Resolution (link type).** A substrate link that closes a `comment.revise`. Subtypes: `resolution.edit` (the document was edited to address the finding) or `resolution.reject` (the finding was refused, with a rationale document linked). Once a resolution exists, the predicate counts the comment as resolved — the convergence predicate ignores resolved comments. Once created, a resolution link is permanent (no retraction). See [Convergence Protocol](protocols/convergence-protocol.md).
+
 **Reverse-Course Oscillation.** An [oscillatory failure](#o) in which a reviser's change in cycle N is undone in cycle N+1 because two locally-valid resolutions exist and the cycle has no shared criterion to pick between them. Subtypes by source of undecidability: contract-absent, judgment-call, exhaustiveness-vs-restraint. Partially contained by finding classification (judgment-call findings become observations and never trigger revision). See [Reverse-Course Oscillation](equilibrium/reverse-course-oscillation.md).
 
 **Review coinage.** [Prose coinage](patterns/prose-coinage.md) that happens during review/revise cycles rather than at synthesis. Occurs in both discovery and claim convergence. Roughly 30% of a note's coinages. Driven by reviewer pressure surfacing a concept the current text is discussing in ad-hoc prose without a shared name. See [Synthesis coinage](#s) for contrast.
+
+**Review (link type / document classifier).** A substrate `review` classifier marks a document as a review record. Comment links from that review attach the findings it produced. Each review cycle produces one review document; comment links accumulate across cycles. See [Convergence Protocol](protocols/convergence-protocol.md).
 
 **Review/revise iteration.** Repeating cycles of review (finding issues), revision (fixing them), and re-review until convergence. See [Review/Revise Iteration pattern](patterns/review-revise-iteration.md).
 
@@ -222,7 +258,11 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 
 **Sprawl.** See Contract Sprawl, Prose Sprawl, Index Sprawl.
 
+**Stage protocol.** A protocol that drives one representation toward completion within the [maturation protocol](#m). Four stage protocols: [note convergence](#n), blueprinting, [claim convergence](#c), verification. Each has its own participants, exchange format, and convergence criterion. The maturation protocol supervises transitions between them. Distinct from the meta-protocol that supervises them. See [Maturation Protocol](protocols/maturation-protocol.md).
+
 **Structural finding.** A review finding whose root cause is structural rather than semantic — duplicated declarations, dangling references, metadata disagreement, dependency-graph cycles. Symptom of an [Uncontracted Representation Change](equilibrium/uncontracted-representation-change.md).
+
+**Substrate.** The persistent, append-only graph of documents and typed links between them. Provides the operational foundation all protocols build on: link permanence (no link is removed once created), query soundness, count consistency. Implementation is filesystem-backed (`_store/links.jsonl` plus a SQLite index). Protocols are stated in terms of link existence and type, not storage mechanism — substrate is replaceable as long as its properties hold. See [Convergence Protocol](protocols/convergence-protocol.md).
 
 **Summary.** 1-3 sentence YAML field describing what a claim claims. Produced by the summarize step. Used by downstream foundation loading.
 
@@ -230,7 +270,7 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 
 **Surface Expansion.** Across successive review cycles, a claim's textual surface grows monotonically without corresponding growth in reasoning content. The shared mechanism underneath [Contract Sprawl](equilibrium/contract-sprawl.md), [Prose Sprawl](equilibrium/prose-sprawl.md), and [Index Sprawl](equilibrium/index-sprawl.md). Contained by the [Voice Principle](principles/voice.md) (constrains what the reviser writes) and finding classification (constrains what reaches the reviser). See [Surface Expansion](equilibrium/surface-expansion.md).
 
-**Synthesis.** The step integrating theory-channel and evidence-channel outputs into a structured note with dependency-mapped claims.
+**Synthesis.** The step integrating theory-channel and evidence-channel outputs into a structured note with dependency-mapped claims. The first place both perspectives meet — agreements validate, disagreements seed new hypotheses. Roughly 70% of a note's vocabulary coinage happens here. See [Two-Channel Architecture](two-channel-architecture.md).
 
 **Synthesis coinage.** [Prose coinage](patterns/prose-coinage.md) that occurs at the synthesis step when two-channel outputs are reconciled. Roughly 70% of a note's coinages happen here, because synthesis is where incompatible vocabularies must be merged into a single note and no existing word may fit precisely. Contrasts with [review coinage](#r) which happens during later review/revise cycles.
 
@@ -238,11 +278,13 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 
 **Theorem.** A claim classified as a proven result.
 
-**Theory channel.** The agent channel that consults established theory (design documents, domain models) and makes predictions. Forbidden from referring to specific evidence. Its question generator sees a vocabulary list of the framework's own terms (vocabulary-in-prompt) because theory space is conceptual and listable. See [Discovery](discovery.md).
+**Theory channel.** The agent channel that consults established theory (design documents, domain models) and makes predictions. Forbidden from referring to specific evidence. Its question generator sees a vocabulary list of the framework's own terms (vocabulary-in-prompt) because theory space is conceptual and listable. See [Two-Channel Architecture](two-channel-architecture.md).
+
+**Transition condition.** What the [maturation protocol](#m) evaluates to decide a representation is ready to advance to the next stage. Each transition has a readiness signal (predicate truth or sustained quiet) and a handoff artifact (what gets passed to the next stage). Transitions: discovery→blueprinting (note convergence predicate plus sustained quiet), blueprinting→claim convergence (claim file contract validates), claim convergence→verification (claim convergence predicate plus coverage), verification→done. See [Maturation Protocol](protocols/maturation-protocol.md).
 
 **Transitional failure.** An [equilibrium](equilibrium/) pattern whose force acts at a representation boundary introduced by a stage transition. Fixed once per boundary (by specifying and enforcing the output contract that the transition introduces); recurs at every new boundary because producing is easier than specifying. Contrasts with [gravitational failure](#g) and [oscillatory failure](#o). [Uncontracted Representation Change](equilibrium/uncontracted-representation-change.md) is the transitional pattern documented so far.
 
-**Two-channel architecture.** The two-channel design with vocabulary firewall separating theory from evidence. Each channel consults its own corpus independently; synthesis is the first place both perspectives meet. See [Discovery](discovery.md).
+**Two-channel architecture.** The mechanism that produces new knowledge for the lattice. Two independent agent channels (theory and evidence) investigate a question under enforced vocabulary separation. A synthesis agent integrates their outputs into a structured note. The note then enters [note convergence](#n) for review/revise cycles. The architecture governs how the initial note is generated, not how it matures. See [Two-Channel Architecture](two-channel-architecture.md).
 
 **Type.** YAML classification of a claim: axiom, definition, design requirement, lemma, theorem, corollary.
 

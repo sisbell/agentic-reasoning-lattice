@@ -1,6 +1,6 @@
 # Two Data Authorities — Legacy Software Discovery
 
-*An instantiation of [Two Data Authorities](two-data-authorities.md) for reverse-engineering the principles behind legacy software systems.*
+*An instantiation of [Two Data Authorities](two-data-authorities.md) for reverse-engineering the principles behind legacy software systems. The concrete channel architecture this instantiation runs on is the [Two-Channel Architecture](../two-channel-architecture.md).*
 
 ## Pattern
 

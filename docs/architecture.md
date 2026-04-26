@@ -59,9 +59,9 @@ lattices/
 │   ├── config.yaml   # domain config: default campaign, verifier, firewall
 │   ├── _store/       # substrate: links + documents (protocol state)
 │   ├── campaigns/    # campaign configs + bridge vocabularies
-│   ├── discovery/    # notes, consultations
+│   ├── discovery/         # notes, consultations
 │   ├── blueprinting/
-│   ├── convergence/  # claim convergence: per-claim files, review history
+│   ├── claim-convergence/ # per-claim files, review history
 │   └── verification/
 └── materials/
     └── ...           # same structure
@@ -132,7 +132,12 @@ The system is a set of protocols sharing a substrate. The [maturation protocol](
 
 **Discovery → Blueprinting → Claim Convergence → Verification.**
 
-Each stage operates on the same content in a progressively more precise representation. The [claim convergence protocol](protocols/claim-convergence-protocol.md) is the most elaborated — with explicit safety and liveness properties, a convergence predicate on the link graph, and a separation of protocol from choreography. "Verification" refers exclusively to the external-verifier stage (Dafny/Alloy in software; experimental replication in science).
+Each stage operates on the same content in a progressively more precise representation. Two stage protocols are formally specified with explicit safety and liveness properties, convergence predicates on the link graph, and separation of protocol from choreography:
+
+- The [note convergence protocol](protocols/note-convergence-protocol.md) drives notes toward stability during discovery. Findings classified as `comment.revise` or `comment.out-of-scope`. OUT_OF_SCOPE signals feed lattice operations in the maturation protocol.
+- The [claim convergence protocol](protocols/claim-convergence-protocol.md) drives claims toward formal precision after blueprinting. Findings classified as `comment.revise` or `comment.observe`. OBSERVE is the off-ramp for the [production drive](design-notes/production-drive.md).
+
+Both specialize the [convergence protocol](protocols/convergence-protocol.md) — a document-type-neutral module providing the shared predicate, link types, and properties. "Verification" refers exclusively to the external-verifier stage (Dafny/Alloy in software; experimental replication in science).
 
 Before each review cycle within claim convergence, a structural validation pass runs: the mechanical validator checks the [Claim File Contract](design-notes/claim-file-contract.md), and per-invariant fix recipes resolve any violations. This is the [validate-before-review](patterns/validate-before-review.md) pattern enforcing the [Validation Principle](principles/validation.md) — structural integrity as a precondition for meaningful review.
 

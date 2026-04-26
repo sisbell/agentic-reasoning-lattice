@@ -13,6 +13,15 @@ Complete index of the documentation. The root [README](../README.md) is the proj
 - [Principles](principles/README.md) — three disciplines that keep the review cycle focused on its real job: [Coupling](principles/coupling.md) (prose and formal content authored as a pair), [Validation](principles/validation.md) (structural contract as a precondition for review), and [Voice](principles/voice.md) (positive style structure constrains LLM output by construction). Coupling and validation monitor and check; voice prevents problems from being generated. All three are needed.
 - [Glossary](glossary.md) — system-specific terms and their definitions
 
+## Agentic Protocols
+
+The system is a stack of protocols sharing a substrate. The convergence protocol defines the shared predicate and link types; note convergence and claim convergence specialize it for different scales; the maturation protocol orchestrates transitions between stages and executes lattice operations. Following the modular formalism of Cachin (*Reliable and Secure Distributed Programming*), but for LLM-agent coordination rather than distributed nodes.
+
+- [Convergence Protocol](protocols/convergence-protocol.md) — the document-type-neutral module. Convergence predicate, comment/resolution link types, safety/liveness properties shared by all review/revise processes.
+- [Note Convergence Protocol](protocols/note-convergence-protocol.md) — drives notes to stability during discovery. Specializes the convergence protocol for notes; adds `comment.out-of-scope` as the off-ramp that feeds lattice operations.
+- [Claim Convergence Protocol](protocols/claim-convergence-protocol.md) — drives claims to formal precision after blueprinting. Specializes the convergence protocol for claims; adds structural validation, the algorithm, and correctness arguments.
+- [Maturation Protocol](protocols/maturation-protocol.md) — the meta-protocol governing transitions between stage protocols and executing lattice operations (extract, absorb, scope promotion). Reaches quiescence rather than convergence.
+
 ## How the system works, fails, and is disciplined
 
 - [Patterns](patterns/README.md) — observed structural regularities. The primary cycle (Narrow → Refine → Verify), patterns that adjust or feed it, patterns that seed hypothesis space, and the structure that accumulates output.
@@ -22,10 +31,6 @@ Complete index of the documentation. The root [README](../README.md) is the proj
 ## Design notes
 
 - [Design notes](design-notes/README.md) — architectural choices and aggregate observations that aren't patterns. Domain Language Emergence, Self-Healing, Production Drive.
-
-## Practices
-
-- [Practices](practices/README.md) — guidance for humans authoring the artifacts the system operates on — prompt writing, note writing, and related disciplines. Distinct from design notes (which describe system-level rules); practices describe what a person editing the content should do.
 
 ## Domain-specific
 

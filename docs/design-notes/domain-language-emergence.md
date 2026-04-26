@@ -10,10 +10,10 @@
 ![Progressive Narrowing](../diagrams/progressive-narrowing-funnel.svg)
 The vocabulary a note ends up with is the product of a funnel. Each stage removes variance and leaves a more precise, more citable, more manipulable set of terms:
 
-1. **Channels (widest).** The theory channel and data channel each pull in terms from their source material — design documents, literature, source code, observed data. This is the raw, unfiltered vocabulary available to the note.
+1. **Channels (widest).** The theory channel and evidence channel each pull in terms from their source material — design documents, literature, source code, observed data. This is the raw, unfiltered vocabulary available to the note.
 2. **Synthesis / first draft (first narrowing).** Synthesis reconciles the two channels into a single note, coining new prose where no existing term fits. The bulk of coinage happens here — roughly 70% of a note's invented vocabulary appears in the first draft.
-3. **Discovery review/revise (second narrowing).** Review/revise cycles press on ad-hoc prose — coining more terms, compressing recurring prose concepts to symbols ([prose compression](../patterns/prose-compression.md)), or pulling upstream terms in to replace local phrasings. Roughly 30% of discovery-stage coinage happens here, typically the precision-critical terms that first-draft synthesis glossed over.
-4. **Formalization review/revise (third narrowing).** Formalization cycles continue compression where needed, split sprawling contracts into dedicated claims ([accretion](../patterns/accretion.md)), and coin structural names for previously-implicit concepts. The distinctive work at this stage is structural partitioning and final tightening — producing a set of terms and symbols that can participate in proofs and mechanical verification.
+3. **[Note convergence](../protocols/note-convergence-protocol.md) (second narrowing).** Review/revise cycles press on ad-hoc prose — coining more terms, compressing recurring prose concepts to symbols ([prose compression](../patterns/prose-compression.md)), or pulling upstream terms in to replace local phrasings. Roughly 30% of discovery-stage coinage happens here, typically the precision-critical terms that first-draft synthesis glossed over.
+4. **[Claim convergence](../protocols/claim-convergence-protocol.md) (third narrowing).** Claim convergence cycles continue compression where needed, split sprawling contracts into dedicated claims ([accretion](../patterns/accretion.md)), and coin structural names for previously-implicit concepts. The distinctive work at this stage is structural partitioning and final tightening — producing a set of terms and symbols that can participate in proofs and mechanical verification.
 
 Each narrowing is driven by review pressure. Nothing in this pipeline selects vocabulary for compactness on its own; terms survive because a reviewer judged them worth keeping and a reviser committed to them. The funnel is a side effect of iterative precision pressure, not a design goal.
 
@@ -31,7 +31,7 @@ This note is about how the second layer behaves across notes.
 
 **Hold notes in discovery longer than feels necessary.** Most concept invention happens in discovery; formalization adds further narrowing and occasional structural coinage but operates on what discovery produced. Short discovery periods mean incomplete vocabulary that formalization has to work around.
 
-**Vocabulary convergence is a readiness signal.** When new discovery review/revise cycles stop producing new terms, the note is done inventing. That's when discovery has produced enough language to support formalization.
+**Vocabulary convergence is a readiness signal.** When new note convergence review/revise cycles stop producing new terms, the note is done inventing. That's when discovery has produced enough language to support claim convergence.
 
 **The system produces externalized knowledge.** Every term coined is in natural language, named, and addressable. Concepts don't live in agent latent space; they live in the lattice as first-class citable entities. This is an architectural bias — the system trades the richness of unnamed meaning for the cumulative knowledge benefits of naming.
 
@@ -48,4 +48,5 @@ Observed on the Xanadu demonstration. Examples of each layer:
 - [Prose Coinage](../patterns/prose-coinage.md) — the atomic event; contains the 70/30 finding and the `subspace` case study
 - [Prose Compression](../patterns/prose-compression.md) — what happens to coined prose names when formal manipulation demands symbols
 - [Channel Asymmetry](../patterns/channel-asymmetry.md) — pattern; why shape-mismatch between channels forces coinage
-- [Claim Convergence Protocol](../protocols/claim-convergence-protocol.md) — the review/revise cycles that drive each narrowing stage
+- [Note Convergence Protocol](../protocols/note-convergence-protocol.md) — the review/revise cycles that drive the second narrowing stage
+- [Claim Convergence Protocol](../protocols/claim-convergence-protocol.md) — the review/revise cycles that drive the third narrowing stage

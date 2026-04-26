@@ -20,7 +20,7 @@ Agents grow the lattice by creating permanent links and reasoning trails — the
 
 A human-posed question is decomposed into channel-appropriate sub-questions. Two independent agent channels — one consulting established theory, one analyzing raw evidence — are separated by a vocabulary firewall that forces hypothesis space exploration. The theory channel cannot use evidence-specific terms. The evidence channel cannot retrieve known solutions from theoretical vocabulary. A synthesis agent integrates both into a structured reasoning document with dependency-mapped claims. Where the channels agree, principles are validated. Where they disagree, new hypotheses emerge.
 
-Each reasoning document is decomposed into atomic claims (blueprinting — a meet operation), then driven toward convergence through the [claim convergence protocol](docs/protocols/claim-convergence-protocol.md). Convergence is a predicate on the link graph: every `comment.revise` targeting a claim has a matching `resolution`. The protocol defines when convergence is reached; how to get there — scope strategy, review order, context assembly — is choreography. Mechanical verification (Dafny proofs, Alloy bounded model checking) confirms logical consistency. Every verified node is a testable prediction — the oracle traces failures back to the specific claim and evidence channel that diverged.
+Each synthesized document is driven to stability by the [note convergence protocol](docs/protocols/note-convergence-protocol.md), then decomposed into atomic claims (blueprinting — a meet operation), then driven toward formal precision by the [claim convergence protocol](docs/protocols/claim-convergence-protocol.md). Convergence is a predicate on the link graph: every `comment.revise` has a matching `resolution`. Both protocols specialize the document-type-neutral [convergence protocol](docs/protocols/convergence-protocol.md). The protocol defines when convergence is reached; how to get there — scope strategy, review order, context assembly — is choreography. Mechanical verification (Dafny proofs, Alloy bounded model checking) confirms logical consistency. Every verified node is a testable prediction — the oracle traces failures back to the specific claim and evidence channel that diverged.
 
 Out-of-scope findings flagged during review become [new inquiries](docs/patterns/scope-promotion.md), attaching to the lattice as new nodes. The system discovers the questions it should be asking, not just answers to questions posed.
 
@@ -34,16 +34,24 @@ In a science deployment, the system produces hypotheses, not discoveries. Verifi
 
 See [Science Approach](docs/science/README.md) for the convergence framing, cone-as-hypothesis-cluster structure, and the Judger evaluation model.
 
+## Agentic Protocols
+
+The system is a stack of protocols sharing a substrate. The convergence protocol defines the shared predicate and link types; note convergence and claim convergence specialize it for different scales; the maturation protocol orchestrates transitions between stages and executes lattice operations. Following the modular formalism of Cachin (*Reliable and Secure Distributed Programming*), but for LLM-agent coordination rather than distributed nodes.
+
+- [Convergence Protocol](docs/protocols/convergence-protocol.md) — the document-type-neutral module. Convergence predicate, comment/resolution link types, safety/liveness properties shared by all review/revise processes.
+- [Note Convergence Protocol](docs/protocols/note-convergence-protocol.md) — drives notes to stability during discovery. Specializes the convergence protocol for notes; adds `comment.out-of-scope` as the off-ramp that feeds lattice operations.
+- [Claim Convergence Protocol](docs/protocols/claim-convergence-protocol.md) — drives claims to formal precision after blueprinting. Specializes the convergence protocol for claims; adds structural validation, the algorithm, and correctness arguments.
+- [Maturation Protocol](docs/protocols/maturation-protocol.md) — the meta-protocol governing transitions between stage protocols and executing lattice operations (extract, absorb, scope promotion). Reaches quiescence rather than convergence.
+
 ## Documentation
 
 - [Vision](docs/vision.md) — hypothesis space navigation, semantic communication substrate, Lamarckian evolution, building the engine
 - [Methodology](docs/methodology.md) — inquiry decomposition, two-channel discovery, claim convergence, pattern language
 - [Principles](docs/principles/README.md) — three disciplines that keep the review cycle on its real job: [Coupling](docs/principles/coupling.md) (prose and formal content authored as a pair), [Validation](docs/principles/validation.md) (structural contract as a precondition for review), and [Voice](docs/principles/voice.md) (positive style structure constrains LLM output by construction). Why the system can make new discoveries rather than stalling or drifting.
+- [Two-Channel Architecture](docs/two-channel-architecture.md) — independent theory and evidence channels, vocabulary firewall, channel asymmetry, synthesis. The mechanism that produces new knowledge for the lattice.
 - [Discovery](docs/discovery.md) — finding formal structure through structured consultation
 - [Blueprinting](docs/blueprinting.md) — meet operation: document → atomic claims
 - [Claim Convergence](docs/claim-convergence.md) — precision as a discovery tool, reasoning that improves itself
-- [Claim Convergence Protocol](docs/protocols/claim-convergence-protocol.md) — the protocol specification: link types, convergence predicate, safety/liveness properties, algorithm, correctness arguments
-- [Maturation Protocol](docs/protocols/maturation-protocol.md) — the meta-protocol governing transitions between stage protocols
 - [Pattern Language](docs/patterns/README.md) — operationally discovered patterns for agentic reasoning systems
 - [Glossary](docs/glossary.md) — system-specific terms and their definitions
 

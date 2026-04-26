@@ -1,43 +1,48 @@
-# Validate Before Review
+# Validate Before Review — Design
 
-Structural violations should be resolved mechanically before semantic review begins. When an LLM reviewer sees structural violations, it reports them as textual symptoms and the reviser resolves them textually — creating new violations through add-bias that compound across cycles. Structural noise also drowns semantic findings when both compete for the reviewer's attention. Separating them makes the review cycle converge on what it's actually for.
+*Design note. The design decisions behind the [validate-before-review](../patterns/validate-before-review.md) pattern.*
 
-## Forces
+## Invariants
 
-**Structural violations dominate early cycles.** When input state has unresolved structural violations, the majority of review findings are structural. The reviewer discovers them one per cycle, framed as textual observations. A mechanical validator discovers them all at once.
+When a representation change splits one artifact into many files, conditions come into existence that must hold for the structure to mean anything. One body per file. Filename matches label. References resolve. Metadata agrees with content. No dependency cycles. These are invariants — conditions that must be true at every stable point, not just at creation.
 
-**Add-bias compounds structural fixes.** A reviewer reports "X defined twice." A reviser resolves it by inlining — creating a new violation while closing the reported one. Mechanical fix recipes resolve violations structurally (point to canonical home, delete duplicate, reconcile metadata) without the extend-by-default bias.
+If an invariant is violated, the structure looks intact but operations on it produce wrong results silently. The structural contract ([Claim File Contract](claim-file-contract.md)) names the invariant set. The validator checks them. The design decisions below follow from taking these conditions seriously.
 
-**Semantic review on broken state is wasted work.** A reviewer finding a genuine derivation gap in a file whose declaration is duplicated elsewhere produces a fix that may land in the wrong copy. Structural soundness is a precondition for semantic fixes to stick.
+## Why two passes, not one
 
-**The reviewer can't name what it's seeing.** A reviewer reading concatenated file content sees "ℕ⁺ defined twice" — a textual symptom. It cannot see "T4a's body exists in both T4.md and T4a.md" — the structural cause. The reviewer lacks the framing to distinguish a content error from a structural violation. A validator has exactly that framing because it checks against a contract.
+The original design ran one pass: an LLM reviewer finds all issues (structural and semantic), an LLM reviser fixes them. This doesn't converge when structural violations are present — the reviewer finds structural symptoms one per cycle, and the reviser's fixes introduce new structural violations through add-bias. Structural and semantic concerns need different tools. The two-pass design separates them: a mechanical pass for structural invariants, then an LLM pass for semantic issues.
 
-## Signal
+## Why mechanical validation, not LLM validation
 
-Signals the pattern is absent or being violated:
+An LLM reviewer reading "X defined twice" sees a textual symptom. It cannot distinguish "valid inline reference" from "canonical body duplicated across files" because file boundaries were stripped during assembly. A mechanical validator checks against the structural contract directly — it knows which file each declaration lives in, which references resolve, whether metadata agrees. The validator operates on the representation's actual structure, not on a flattened textual projection of it.
 
-- A cone's review findings are predominantly structural (duplicates, dangling references, metadata disagreement) rather than semantic (derivation gaps, regime mismatches)
-- The reviewer's findings are mechanically checkable — a script could verify each one without understanding the reasoning
-- Cones oscillate or fail to converge despite findings being addressed each cycle
-- The reviser's fixes for structural findings create new structural violations
+Mechanical validation is also exhaustive and cheap. It finds every violation in one pass. LLM review finds one per cycle at LLM cost. For the structural invariants in the claim-file contract, mechanical checking is strictly superior.
 
-## Structure
+## Why per-invariant fix recipes, not a general structural reviser
 
-Two separate passes, different tools, different concerns:
+A single "fix structural issues" prompt would face the same add-bias problem as the reviewer — given multiple violations, the reviser picks the easiest textual fix rather than the correct structural one. Per-invariant recipes constrain the reviser to one violation class at a time with a specific resolution strategy. "Body exists in two files — identify canonical home, remove duplicate" is a clearer instruction than "fix structural issues."
 
-1. **Validate-revise.** Mechanical validator checks the structural contract. Targeted fixes resolve violations. Repeats until clean.
-2. **Review-revise.** LLM reviewer reads structurally sound state. Produces semantic findings. Reviser applies fixes. This is the existing review cycle, unchanged.
+Per-invariant recipes also make the contract auditable. Each recipe corresponds to one contract rule. When a new invariant is added to the contract, it gets one new recipe. When an invariant is retired, its recipe is removed. The mapping is one-to-one.
 
-The boundary between them is clean: can a script check it without understanding the content? Validate-revise. Does checking it require reading the reasoning? Review-revise.
+## Why validate before every review, not just once
 
-## Origin
+The [claim convergence protocol](../protocols/claim-convergence-protocol.md) alternates review cycles at different scopes. Each cycle's revise pass can break invariants — a reviser that inlines one claim's body into another's file to reconcile notation violates uniqueness; a reviser that renames a file without cascading references violates filename-label-match and reference-resolution at once. Invariants are not established once and preserved automatically. Every mutation can break them. Running the validator before each review cycle catches what the previous cycle's revisions introduced.
 
-Derived from ASN-0034's T4 sweep. Two cones ran eight cycles each without converging. Post-hoc analysis found three-quarters of findings were mechanically checkable structural violations. Separating structural validation from semantic review resolved the non-convergence by eliminating structural noise before the reviewer saw the state. The T1 cone on the same ASN — structurally sound input — converged in four cycles with semantic review alone.
+The cost is acceptable. Mechanical validation is fast compared to LLM review. The alternative — validating once at the start and trusting that revise passes preserve invariants — requires every revise prompt to encode structural awareness, which is the conflation the two-pass design exists to avoid.
+
+## What goes in the structural contract vs what stays with the reviewer
+
+The boundary: can a script check it without understanding the content? If yes, it's a structural invariant — the validator checks it. If no, it's a semantic invariant — the reviewer checks it.
+
+"One body per file" is structural — a script can detect duplicate bold declarations. "Postconditions match what the proof establishes" is semantic — checking it requires reading the reasoning. This boundary is clean in practice. The grey zone is small — "every symbol used cites a defining source" is borderline (a script can check citation presence but not whether the citation is the right one). When in doubt, put it in the validator. A false positive from the validator costs one unnecessary fix. A missed structural violation in review costs cycles of non-convergence.
+
+## Intermediate states during fixes
+
+A fix may legitimately break an invariant mid-step — delete a duplicate body, then update references that pointed at it. The invariant holds at the committed output of each validate-revise cycle, not at every intermediate write. The contract must state this explicitly so the validator checks at the right granularity.
 
 ## Related
 
-- [The Validation Principle](../principles/validation.md) — the design commitment this pattern operationalizes.
-- [The Coupling Principle](../principles/coupling.md) — the parallel principle for content health. Coupling monitors within-file health; validation monitors across-file health.
-- [Representation Change](representation-change.md) — the pattern whose output this validates.
-- [Uncontracted Representation Change](../equilibrium/uncontracted-representation-change.md) — the failure mode when no contract exists to validate against. This pattern cannot operate without a contract.
-- [Validate-Before-Review Implementation](../design-notes/validate-before-review.md) — how this pattern is implemented: the two-pass cycle, per-invariant fix recipes, and integration with the [claim convergence protocol](../protocols/claim-convergence-protocol.md).
+- [Validate Before Review](../patterns/validate-before-review.md) — the pattern these decisions serve.
+- [The Validation Principle](../principles/validation.md) — the commitment behind the pattern.
+- [Claim File Contract](claim-file-contract.md) — the structural contract the validator checks against. The contract's rules drive the validator's checklist and the per-invariant recipe set.
+- [Claim Convergence Protocol](../protocols/claim-convergence-protocol.md) — the protocol this runs before each review cycle.

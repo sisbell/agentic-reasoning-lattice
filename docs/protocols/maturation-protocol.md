@@ -4,9 +4,11 @@
 
 ## Overview
 
-The maturation protocol supervises four stage protocols connected by transition conditions. Each stage protocol drives one representation toward completion. The maturation protocol monitors readiness signals and triggers transitions between stages. It is a meta-protocol — different in kind from the stage protocols it supervises. The stage protocols have agents doing review/revise work. The maturation protocol has transition conditions connecting them.
+The maturation protocol supervises stage protocols connected by transition conditions. Each stage protocol drives one representation toward completion. The maturation protocol monitors readiness signals, triggers transitions between stages, and executes lattice operations that reshape the structure the stage protocols operate on.
 
-Multiple notes can be in different stages simultaneously. One foundation note in verification, a second note in claim convergence, a third still in discovery. The ordering constraint is dependency — foundations must mature before dependents — not a global sequence. The maturation protocol manages the lattice, not a pipeline.
+It is a meta-protocol — different in kind from the stage protocols it supervises. The stage protocols have agents doing review/revise work with convergence predicates. The maturation protocol has transition conditions connecting them and lattice operations reshaping them.
+
+Multiple notes can be in different stages simultaneously. One foundation note in verification, a second note in claim convergence, a third still in discovery. Foundations maturing before dependents reduces rework, but the protocol does not enforce this ordering as a hard gate — it handles the rework when it occurs. The maturation protocol manages the lattice, not a pipeline.
 
 ## The representations
 
@@ -14,7 +16,7 @@ Content matures through four representations, each progressively more precise:
 
 | Representation | Form | Produced by |
 |---|---|---|
-| **Note** | Narrative prose with embedded claims | Discovery protocol |
+| **Note** | Narrative prose with embedded claims | Discovery + [note convergence](note-convergence-protocol.md) |
 | **Claim files** | Per-claim YAML metadata + markdown body | Blueprinting protocol |
 | **Converged contracts** | Formally precise claims where every revise comment has a resolution | [Claim convergence protocol](claim-convergence-protocol.md) |
 | **Verified code** | Mechanically checked assertions | Verification protocol |
@@ -23,17 +25,19 @@ Each transition is a [representation change](../patterns/representation-change.m
 
 ## The stage protocols
 
-Four stage protocols execute within the maturation protocol. Each has defined participants, exchange format, and convergence criterion:
+Four stage protocols execute within the maturation protocol. Each has a convergence criterion:
 
-**Discovery protocol.** A campaign binds a theory channel and an evidence channel to a target. The inquiry is decomposed into channel-appropriate sub-questions. Each channel consults its corpus independently. A synthesis agent integrates both channels into a note. Review/revise cycles deepen the note's reasoning. Operates at note scale — one document, broad context, generative prose as the substrate.
+**[Note convergence protocol](note-convergence-protocol.md).** Drives notes toward stability through review/revise cycles. Finding classification is REVISE / OUT_OF_SCOPE. The convergence predicate — every `comment.revise` has a `resolution` — determines when a note is ready for blueprinting. OUT_OF_SCOPE findings generate signals that maturation consumes for lattice operations. Operates at note scale.
 
 **Blueprinting protocol.** Progressive decomposition of a note into per-claim file pairs — mechanical section split, per-section claim identification, per-claim classification and dependency extraction. Post-decomposition validation checks the output against the [Claim File Contract](../design-notes/claim-file-contract.md).
 
-**[Claim convergence protocol](claim-convergence-protocol.md).** The convergence predicate — every `comment.revise` has a matching `resolution` — drives claims toward formal precision. Finding classification (REVISE/OBSERVE) prevents tightening observations from triggering action. Scope strategies (adaptive, comprehensive) are choreography decisions within the protocol, not protocol-level constructs. Operates at claim scale — per-claim files, narrow focus, precision as the objective.
+**[Claim convergence protocol](claim-convergence-protocol.md).** The convergence predicate — every `comment.revise` has a matching `resolution` — drives claims toward formal precision. Finding classification is REVISE / OBSERVE. Scope strategies (adaptive, comprehensive) are choreography decisions within the protocol. Operates at claim scale.
 
 **Verification protocol.** Converged contracts are translated into mechanically verifiable code — Dafny for logical consistency, Alloy for bounded model checking, experimental replication for science domains. Failures route back to the appropriate upstream protocol with the verification failure as a finding.
 
-The [validate-before-review](../patterns/validate-before-review.md) pattern is instantiated by any protocol that runs LLM review on structured content. Claim convergence instantiates it before each review at either scope. Blueprinting instantiates it as post-decomposition validation. It is a reusable pattern, not a sub-protocol of any single stage.
+The [validate-before-review](../patterns/validate-before-review.md) pattern is instantiated by any protocol that runs LLM review on structured content. Claim convergence instantiates it before each review. Blueprinting instantiates it as post-decomposition validation. It is a reusable pattern, not a sub-protocol of any single stage.
+
+Both convergence protocols specialize the [convergence protocol](convergence-protocol.md) — the document-type-neutral module that provides the predicate, comment/resolution link types, and safety/liveness properties.
 
 ## Transition conditions and artifacts
 
@@ -41,13 +45,15 @@ Each transition has a readiness signal and a handoff artifact — what is evalua
 
 ### Discovery → blueprinting
 
-**Readiness signal.** The note's review/revise cycles produce diminishing returns. Concrete indicators: zero new vocabulary coinages across the last N cycles, few or no substantive findings, new cycles producing wordsmithing rather than reasoning. Additionally: the note must be a foundation in the lattice (dependencies must have transitioned first), and no other note in discovery owns claims that belong here.
+**Readiness signal.** The note convergence predicate holds — every `comment.revise` on the note has a `resolution` — and the choreography observes sustained quiet: few or no substantive findings across the last N cycles, zero new vocabulary coinages, new cycles producing wordsmithing rather than reasoning. Additionally: no other note in discovery owns claims that naturally belong here.
+
+Waiting for foundation dependencies to converge their claims before blueprinting reduces rework — foundation contracts will be stable and downstream citations won't need re-verification. But the protocol does not enforce this as a gate. A note can enter blueprinting against non-converged foundations. When those foundations later converge and their contracts tighten, the dependent's review cycles will find issues traceable to the changes. The protocol handles the rework through its normal feedback path — new `comment.revise` links filed, predicate goes false, convergence resumes.
 
 **Handoff artifact.** The note file (markdown), plus the note's vocabulary (terms coined during discovery), plus its declared note-level dependencies (`depends: [ASN-NNNN]`). The note is frozen at handoff — it becomes the record of discovery, not a living document.
 
 ### Blueprinting → claim convergence
 
-**Readiness signal.** The post-blueprinting validator returns zero violations against the [Claim File Contract](../design-notes/claim-file-contract.md). Structural form is valid — one body per file, references resolve, metadata agrees, no dependency cycles.
+**Readiness signal.** The post-blueprinting validator returns zero violations against the [Claim File Contract](../design-notes/claim-file-contract.md). This is a structural validation result, not a convergence predicate in the graph-property sense — blueprinting's completion criterion is mechanical checking, not resolved comments. Structural form is valid — one body per file, references resolve, metadata agrees, no dependency cycles.
 
 **Handoff artifact.** The claim file set: per-claim `.md` + `.yaml` pairs, plus the campaign's bridge vocabulary, plus foundation statements from upstream ASNs. Semantic content may be imprecise; structural form must be valid.
 
@@ -55,7 +61,7 @@ Each transition has a readiness signal and a handoff artifact — what is evalua
 
 **Readiness signal.** The convergence predicate holds — every `comment.revise` on every claim has a matching `resolution` — and the choreography's coverage obligation is met (reviews have actually been conducted at sufficient scope).
 
-**Handoff artifact.** Converged claim files with formally precise contracts — preconditions, postconditions, invariants, frame conditions, axioms, definitions. Each contract preserves the exact conditions from the claim's narrative.
+**Handoff artifact.** Converged claim files with formally precise contracts — preconditions, postconditions, invariants, frame conditions, axioms, definitions. Each contract preserves the exact conditions from the claim's narrative. The specific input format for verification (which files, what structure, how contracts map to verifier input) is not yet fully specified — this is a known gap that will be resolved when the verification protocol is formalized.
 
 ### Verification → done (or back)
 
@@ -65,39 +71,87 @@ Each transition has a readiness signal and a handoff artifact — what is evalua
 
 ## Lattice operations
 
-Two operations reshape the lattice during maturation without being stage transitions:
+Three operations reshape the lattice during maturation. They are not stage transitions — they are structural changes to the lattice itself. The stage protocols generate signals. Maturation acts on them.
 
-**Extract.** Two notes independently derive the same concept. The shared concept is extracted into a new foundation note that both depend on. This is the meet operation — the extracted foundation is the greatest common element below both consumers. The new foundation enters discovery as a new note. The consuming notes' dependencies update to reference it.
+### Extract — claims move down
 
-**Absorb.** A note in discovery contains claims that naturally belong in another note. The claims are absorbed into the receiving note. The source note's scope contracts.
+Two notes converge with derivations that independently establish the same concept. The shared concept is extracted into a new foundation note. Both consuming notes gain `citation` links to the new foundation; their bodies shrink to reference rather than re-derive. The new foundation enters note convergence.
 
-Both operations can trigger re-entry into discovery for affected notes. They are lattice-level operations within the maturation protocol — they restructure what's being matured, not how maturation proceeds. Extract is how foundation layers are discovered. Absorb is how notes find their natural boundaries.
+**Worked example.** Notes A and B both contain a definition of the same primitive operation, derived independently from different starting points. Maturation observes the duplication via cross-note review and extracts the definition into foundation note F. A and B add `citation` links to F. F enters note convergence as a fresh note. A and B re-enter note convergence with their scope contracted.
+
+**Signal:** structural duplication detected across notes.
+
+### Absorb — claims move toward natural home
+
+Note A contains material that more naturally belongs in existing note B. The material is moved to B. A's content shrinks; B re-enters note convergence with absorbed material.
+
+**Worked example.** During note convergence on note A, a reviewer files `comment.out-of-scope` noting that one of A's derivations is a tangent whose natural home is existing note B. Maturation moves the derivation to B. B re-enters note convergence; A converges without the tangent.
+
+**Signal:** a `comment.out-of-scope` whose content has an identifiable existing home.
+
+### Scope promotion — questions move out
+
+A `comment.out-of-scope` finding flags a question the current note cannot answer and that no existing note owns. Maturation creates a new inquiry note seeded by the finding. The current note is unchanged; a new sibling appears in the lattice.
+
+**Worked example.** During note convergence on a note about a particular composition operator, a reviewer files `comment.out-of-scope` noting that the operator's behavior under iteration is a separate question worth pursuing. No existing note covers it. Maturation creates a new inquiry "behavior under iteration" with the finding as seed.
+
+**Signal:** a `comment.out-of-scope` whose content cannot be absorbed into any existing note.
+
+### The boundary: REVISE-with-extract vs OUT_OF_SCOPE
+
+Two finding patterns share surface area but resolve differently:
+
+**REVISE-with-extract.** A `comment.revise` finding is resolved by an edit that extracts material into a new foundation. The reviser's `resolution.edit` shrinks the note and adds citations to the extracted foundation. This is an in-note correctness issue — the note was carrying material that should be its own foundation. The note convergence protocol handles the resolution. Maturation handles the extract that follows.
+
+**OUT_OF_SCOPE-with-promote.** A `comment.out-of-scope` finding signals that adjacent material is missing or misplaced — the current note is fine, but the lattice around it needs another node. Maturation handles the entire operation.
+
+The boundary: REVISE-with-extract is "this note is carrying material that should be its own foundation." OUT_OF_SCOPE is "this note is fine; the lattice needs another node." The reviewer's classification draws the line.
+
+### Provenance links
+
+Lattice operations leave audit trails. When extract creates foundation F from material drawn from notes A and B, a `provenance.extract` link records the move. When absorb relocates material from A to B, a `provenance.absorb` link records the source. These are flat audit links — not protocol machinery, not load-bearing for any predicate. They support replay and structural-history reconstruction. Maturation files them when it executes the operation.
 
 ## Dependency ordering
 
-The maturation protocol's ordering constraint is dependency, not stage. A note can only transition when its upstream dependencies have matured past the same point:
+Foundations converging before dependents is the efficient path, not the only path. When a foundation's claims are stable, dependents cite stable contracts and review cycles are shorter. When a foundation is still converging, dependents may cite contracts that later tighten — producing rework when the tightened contracts surface new findings downstream.
 
-- A note cannot blueprint if it depends on a note that hasn't blueprinted and converged
-- A claim cannot converge if its foundation claims haven't converged
-- A claim cannot verify if its cited dependencies haven't verified
+The protocol is correct either way. The convergence predicate doesn't check foundation maturity. It checks whether `comment.revise` links have resolutions. If a foundation changes after a dependent has converged, new review cycles file new `comment.revise` links on the dependent. The predicate goes false. The protocol resumes. Same outcome, more cycles.
 
-The lattice matures bottom-up. Foundations transition first. Dependents follow. The protocol doesn't enforce this through a global schedule — it follows from the transition conditions themselves. A note whose dependencies haven't matured won't meet its transition condition because its review cycles will keep finding issues traceable to immature foundations.
+The efficient ordering:
+
+- Blueprint foundation notes first — their claim structure stabilizes before dependents cite it
+- Converge foundation claims before converging dependents — tightened contracts don't cascade rework
+- Verify foundations before verifying dependents — verified contracts don't change
+
+This ordering is a choreography recommendation. The maturation protocol recommends it. The convergence predicates enforce correctness regardless of whether it's followed.
+
+## Hard reset
+
+When a foundation turns out to be wrong — not incomplete, but wrong — a hard reset may be necessary. A note re-enters discovery. Its freeze is revoked. All dependents that entered claim convergence against its claims must also reset — their citation links point at claims that are now unstable. The cascade follows the dependency graph upward.
+
+Hard reset is a defined operation, not an error. It is expensive and destructive. A `provenance.reset` link on each affected note records the cascade. The alternative — leaving dependents building on a known-bad foundation — is worse.
+
+Hard reset is distinct from the foundation-change feedback path. Foundation change handles a foundation whose contracts tightened or shifted during normal convergence — dependents absorb the changes through new `comment.revise` links. Hard reset handles a foundation whose premises were incorrect — dependents can't just re-converge, they may need to re-blueprint because the claim structure itself may change.
 
 ## Feedback paths
 
-Maturation is not strictly forward. Three feedback paths route content backward:
+Maturation is not strictly forward. Two feedback paths route content backward:
 
-**Verification failure.** A contract is inconsistent. The claim re-enters claim convergence with the failure as a finding. If the failure reveals a fundamental gap, the claim routes back to discovery.
+**Verification failure.** A contract is inconsistent. The claim re-enters claim convergence with the failure as a `comment.revise`. If the failure reveals a fundamental gap, the claim routes back to discovery via hard reset.
 
-**Claim convergence discovery.** Claim convergence surfaces findings that discovery missed — missing axioms, false claims, ungrounded operators. These are reasoning contributions produced by per-claim scrutiny. Resolved within claim convergence — convergence is itself discovery under a precision constraint.
+**Foundation change.** When a foundation claim changes, dependent notes carry stale citations. Their review cycles detect the staleness through findings traceable to the changed foundation. The maturation protocol doesn't push changes downstream — the convergence predicates detect staleness naturally through new `comment.revise` links filed on affected dependents.
 
-**Foundation change.** When a foundation claim changes, dependent notes carry stale citations. Their review cycles detect the staleness through findings traceable to the changed foundation. The protocol doesn't push changes downstream — the transition conditions detect staleness naturally.
+## Quiescence
+
+Lattice operations can trigger re-entry into note convergence, which can generate new `comment.out-of-scope` signals, which can trigger further lattice operations. This settles down — eventually no more triggers fire. But "no more triggers fire" is not a predicate on the link graph. It is quiescence — the absence of activity.
+
+Maturation reaches quiescence when no transition conditions are met and no lattice operation signals are pending. This is different from convergence (a graph property that becomes true) and different from pure dispatch (fire once and done). The maturation protocol iterates without converging in the predicate sense. It settles.
 
 ## Participants
 
-**Agents.** Each stage protocol has its own agents — channels, synthesizers, reviewers, revisers, validators, scope assemblers, translators, verifiers. The agents within a stage protocol are defined by that protocol. The maturation protocol doesn't have agents of its own — it has transition conditions that the stage protocols' outputs satisfy or don't.
+**Agents.** Each stage protocol has its own agents — channels, synthesizers, reviewers, revisers, validators, scope assemblers, translators, verifiers. The agents within a stage protocol are defined by that protocol. The maturation protocol doesn't have agents of its own — it has transition conditions and lattice operation triggers that the stage protocols' outputs satisfy or don't.
 
-**Human.** The human participates in the maturation protocol at defined exchange points:
+**Human (current executor).** The human is currently the maturation protocol's executor — evaluating transition conditions, triggering stage protocols, deciding when to run lattice operations. The human participates at defined exchange points:
 
 - **Pose the initial question.** The question that starts a campaign.
 - **Create campaigns.** Choose the channel pairing, curate the bridge vocabulary, set the target. Campaigns are parameters of the maturation protocol — they exist before any stage protocol runs.
@@ -119,22 +173,18 @@ Two future architectures are possible:
 
 The choice depends on how reliable the transition conditions become. Unreliable conditions need centralized judgment (a supervisor that can reason about edge cases). Reliable conditions can be decentralized (a signal is a signal). The current state — human as supervisor — is the starting point. The protocol design doesn't depend on the choice; the transition conditions and handoff artifacts are the same either way.
 
-## What this replaces
-
-The original architecture described a fixed pipeline — discovery → blueprinting → formalization → verification — with a human deciding when each stage runs.
-
-The maturation protocol subsumes that design. The pipeline becomes stage protocols connected by transition conditions. "Formalization" becomes the claim convergence protocol. Human orchestration becomes agent-evaluable transition conditions (eventually). The lattice is the substrate that tracks where everything is and what's ready to transition.
-
-The representations are the same. The ordering constraint is the same. What changes is the framing — from a pipeline run by a human to a protocol that monitors readiness and routes content through whatever transition applies.
-
 ## Related
 
+- [Convergence Protocol](convergence-protocol.md) — the document-type-neutral module both convergence protocols specialize.
+- [Note Convergence Protocol](note-convergence-protocol.md) — the stage protocol that drives notes to stability during discovery.
 - [Claim Convergence Protocol](claim-convergence-protocol.md) — the stage protocol that drives claims to formal precision.
 - [Architecture](../architecture.md) — the six-level hierarchy and lattice structure the maturation protocol operates on.
 - [Representation Change](../patterns/representation-change.md) — each transition is a representation change.
 - [Validate Before Review](../patterns/validate-before-review.md) — a reusable pattern instantiated by multiple stage protocols.
 - [Uncontracted Representation Change](../equilibrium/uncontracted-representation-change.md) — the failure mode when a transition lacks an output contract.
 - [Claim File Contract](../design-notes/claim-file-contract.md) — the output contract for the blueprinting → claim convergence transition.
-- [Extract/Absorb](../patterns/extract-absorb.md) — lattice operations within the maturation protocol.
-- [Scope Promotion](../patterns/scope-promotion.md) — how discovery generates new inquiries within a campaign.
+- [Extract/Absorb](../patterns/extract-absorb.md) — lattice operations described in §Lattice operations.
+- [Scope Promotion](../patterns/scope-promotion.md) — lattice operation described in §Lattice operations.
 - [The Validation Principle](../principles/validation.md), [The Coupling Principle](../principles/coupling.md), [The Voice Principle](../principles/voice.md) — the quality boundary for all stage protocols.
+
+This protocol replaces the pipeline and V-cycle architecture described in earlier versions of the system.

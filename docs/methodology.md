@@ -14,13 +14,11 @@ Campaign architecture is what makes framework comparison possible. Two campaigns
 
 ## [Discovery](discovery.md)
 
-Two independent agent channels investigate the question. The theory channel consults established domain knowledge. The evidence channel analyzes raw empirical data, measurements, or implementation artifacts. A vocabulary firewall prevents each from using the other's terms — the evidence channel reasons from evidence alone, forcing hypothesis space exploration rather than retrieval of known solutions.
-
-Each inquiry is decomposed into channel-appropriate sub-questions before consultation begins — theory channel questions framed for hypothesis space, evidence channel questions framed for evidence space. Neither channel sees the other's sub-questions. A synthesis step integrates both channels into a structured note with dependency-mapped claims. Where the channels agree, principles are validated. Where they disagree, new hypotheses emerge.
+Discovery is how new knowledge enters the lattice. The [two-channel architecture](two-channel-architecture.md) decomposes a question into independent investigations — one consulting established theory, one analyzing raw evidence — separated by a vocabulary firewall that forces hypothesis space exploration rather than retrieval. A synthesis agent integrates both channels into a structured note with dependency-mapped claims. Where the channels agree, principles are validated. Where they disagree, new hypotheses emerge.
 
 The two channels receive different context at question-generation time. Theory generators see a vocabulary list — the stable conceptual terms of the theoretical framework. Evidence generators see the corpus itself — the specific measurements, code, or artifacts they will be asked about. This asymmetry matches the representational difference between the channels: theory space is conceptual and listable, evidence space is specific and must be seen to be questioned precisely.
 
-Out-of-scope findings flagged during review become candidates for new inquiries, attaching to the lattice as new nodes. The system discovers the questions it should be asking, not just answers to questions posed. This is [scope promotion](patterns/scope-promotion.md) — how the lattice grows outward.
+The [note convergence protocol](protocols/note-convergence-protocol.md) drives the synthesized note toward stability through review/revise cycles. Findings are classified as `comment.revise` (must fix) or `comment.out-of-scope` (valid concern, belongs elsewhere). Out-of-scope findings become candidates for new inquiries through [scope promotion](patterns/scope-promotion.md) — the system discovers the questions it should be asking, not just answers to questions posed.
 
 ## [Blueprinting](blueprinting.md)
 
