@@ -36,9 +36,7 @@ The [maturation protocol](maturation-protocol.md)'s lattice operations restructu
 - **Absorb** moves material from one note into another. The source note's outbound citations may become stale — claims that depended on a now-departed prefix no longer have a use-site for those citations.
 - **Extract** spins claims out into a new foundation note. The original note retains a citation to the new foundation but loses the citations it had into the now-redundant claims that were extracted.
 
-Retraction is the protocol-level mechanism for handling these stale citations. The reviser during a re-entry note-convergence cycle (which the maturation protocol triggers after each operation) inspects the note's prose, identifies citations no longer supported by use-sites, and files retractions via `scripts/retract.py`. Citation-graph consumers use the `active_links` helper (in `lib.store.queries`) to subtract retracted links automatically.
-
-The substrate is still append-only: the original citations and the retractions both persist. The retraction nullifies the citation for graph queries without violating SUB1 permanence.
+The protocol uses the substrate's retraction mechanism ([SUB4–SUB5](substrate.md)) to nullify these stale citations. The reviser during a re-entry note-convergence cycle (which the maturation protocol triggers after each operation) inspects the note's prose, identifies citations no longer supported by use-sites, and files retractions via ⟨ Retract ⟩. Retraction of a `resolution` link re-opens the comment it closed — the convergence predicate evaluates against active links, so the retracted resolution no longer counts. Retraction semantics (shadow interpretation, idempotence, depth behavior) are specified in the [Substrate Module](substrate.md).
 
 ### Finding classification
 
@@ -59,13 +57,13 @@ OUT_OF_SCOPE channels the [production drive](../design-notes/production-drive.md
 
 ### 2.1 Convergence protocol
 
-Provides the predicate, comment/resolution machinery, and core safety and liveness properties. See [convergence protocol](convergence-protocol.md).
+Provides the predicate, comment/resolution machinery, and core safety and liveness properties. See [convergence protocol](convergence-protocol.md). The predicate evaluates against active links.
 
 **Properties inherited.** S1–S6, L1–L4.
 
 ### 2.2 Substrate
 
-Inherited via the convergence module. Provides SUB1 (permanence), SUB2 (query soundness), SUB3 (count consistency).
+The persistent, append-only link graph. See [Substrate Module](substrate.md). This protocol relies on SUB1–SUB3 (inherited via the convergence protocol) and additionally on SUB4–SUB6 (retraction semantics) for stale citation handling after lattice operations.
 
 ---
 
@@ -77,7 +75,7 @@ Inherited from convergence module. Reads assembled context and produces comment 
 
 ### Reviser
 
-Inherited from convergence module. Resolves `comment.revise` links via `resolution.edit` (note edited) or `resolution.reject` (finding refused with rationale document). Takes no action on `comment.out-of-scope` — those are non-blocking and handled by the maturation protocol.
+Inherited from convergence module. Resolves `comment.revise` links via `resolution.edit` (note edited) or `resolution.reject` (finding refused with rationale document). Takes no action on `comment.out-of-scope` — those are non-blocking and handled by the maturation protocol. During re-entry cycles after lattice operations, the reviser also identifies stale citations and files retractions.
 
 ### Scope assembler
 
@@ -85,10 +83,11 @@ Constructs the context the reviewer sees. The scope strategy is a choreography d
 
 ### Events
 
-The events from the [convergence module](convergence-protocol.md) operate identically with note-typed targets. Two additional requests:
+The events from the [convergence module](convergence-protocol.md) operate identically with note-typed targets. Three additional requests:
 
 - ⟨ RegisterNote | doc ⟩ — attach a `note` classifier to doc.
 - ⟨ Cite | source, target ⟩ — create a `citation` link from source note to target note.
+- ⟨ Retract | link_id ⟩ — create a `retraction` link nullifying the referenced link.
 
 All other requests (FileComment, ResolveEdit, ResolveReject, EvaluateConvergence) and indications (CommentFiled, ResolutionFiled, Converged, NotConverged) are inherited unchanged. The `comment.out-of-scope` class in CommentFiled indications is the signal maturation subscribes to for lattice operations.
 
@@ -98,9 +97,11 @@ All other requests (FileComment, ResolveEdit, ResolveReject, EvaluateConvergence
 
 Inherits the predicate from the [convergence protocol](convergence-protocol.md):
 
-> For every `comment.revise` link targeting the note, there exists a matching `resolution` link.
+> For every active `comment.revise` link targeting the note, there exists a matching active `resolution` link.
 
 `comment.out-of-scope` links do not participate. A note may converge with arbitrarily many open out-of-scope comments — by design. Out-of-scope comments are not findings against the note; they are signals that the lattice needs structural work.
+
+Retraction of a `citation` link does not affect the convergence predicate — citation retraction changes the note's dependency graph but doesn't affect any active `comment.revise` or active `resolution`, so the predicate is unchanged. Retraction of a `resolution` link does affect the predicate — the retracted resolution no longer counts, and the comment it closed becomes unresolved again.
 
 ---
 
@@ -108,11 +109,13 @@ Inherits the predicate from the [convergence protocol](convergence-protocol.md):
 
 ### 5.1 Safety
 
-Inherits S1–S6 from the convergence module. Adds:
+The note convergence protocol adds the following safety properties to those inherited from the [convergence protocol](convergence-protocol.md) (S1–S6) and relies on [substrate](substrate.md) properties SUB4–SUB6 for retraction:
 
 **N1 (Out-of-scope non-blocking).** A `comment.out-of-scope` link never creates a resolution obligation on the target note. The convergence predicate ignores `comment.out-of-scope` links entirely.
 
 **N2 (Out-of-scope durability).** A `comment.out-of-scope` link, once created, persists until maturation acts on it. The link is the substrate-level record that a question exists outside the current note. Out-of-scope is never silently dropped.
+
+**N3 (Retraction idempotence).** A `retraction` link targeting an already-retracted link does not change the computed active-link set. Multiple retractions of the same link are permitted and produce the same graph state as a single retraction.
 
 ### 5.2 Quality boundary
 
@@ -180,17 +183,19 @@ upon ⟨ Engage | note, N ⟩ do
     indicate ⟨ Converged | note ⟩
 ```
 
-Same shape as the claim convergence algorithm (§5 of [Claim Convergence Protocol](claim-convergence-protocol.md)). Differences: no Validate step (notes have no structural-contract analog at this scale), and the scope is a single note rather than a configurable claim set.
+Same shape as the claim convergence algorithm (§5 of [Claim Convergence Protocol](claim-convergence-protocol.md)). Differences: no Validate step, and the scope is a single note rather than a configurable claim set.
+
+Notes have no structural-contract analog at this scale. Claim files have the [Claim File Contract](../design-notes/claim-file-contract.md) — one body per file, filename matches label, references resolve, metadata agrees. Notes are prose-dominated documents whose structure is deliberately informal during discovery. Imposing a structural contract on notes would constrain the generative process that discovery depends on. Structural validation enters at note decomposition, when the representation changes to per-claim files.
 
 Natural convergence (the `break` path) avoids a redundant confirmation review. If cycle K's review filed zero revise comments and the predicate is already true, that review just confirmed convergence — running another review to confirm what was just confirmed wastes an invocation. The +1 confirmation only runs when the work loop exhausted N cycles without a quiet review coinciding with predicate truth.
 
 ### 6.3 RetryOpenRevises
 
-For every `comment.revise` on note without a matching `resolution`, invoke V on the comment with its finding. V either edits the note and emits ⟨ ResolveEdit ⟩, or refuses and emits ⟨ ResolveReject ⟩ with rationale document. `comment.out-of-scope` links are not retried — they are non-blocking and handled by maturation, not by V.
+For every active `comment.revise` on note without a matching active `resolution`, invoke V on the comment with its finding. V either edits the note and emits ⟨ ResolveEdit ⟩, or refuses and emits ⟨ ResolveReject ⟩ with rationale document. `comment.out-of-scope` links are not retried — they are non-blocking and handled by maturation, not by V.
 
 ### 6.4 Review
 
-Invoke R on note with assembled context (the note plus its citation foundations). R returns the set fs of findings, each classified as `comment.revise` or `comment.out-of-scope`.
+Invoke R on note with assembled context. The scope strategy is a choreography decision (§3); typically the note plus its citation foundations. R returns the set fs of findings, each classified as `comment.revise` or `comment.out-of-scope`.
 
 ### 6.5 EmitFindings
 
@@ -198,7 +203,7 @@ For each finding in fs: register the finding document, file the corresponding co
 
 ### 6.6 Revise
 
-For each new `comment.revise` filed in the current cycle, invoke V. V resolves the comment as in §6.3. `comment.out-of-scope` links filed in the current cycle are not acted on — they accumulate as signals for maturation.
+For each new `comment.revise` filed in the current cycle, invoke V. V resolves the comment as in §6.3. `comment.out-of-scope` links filed in the current cycle are not acted on — they accumulate as signals for maturation. When a revision removes a dependency from the note's prose, the reviser files a ⟨ Retract ⟩ on the corresponding `citation` link.
 
 ---
 
@@ -208,7 +213,7 @@ For each new `comment.revise` filed in the current cycle, invoke V. V resolves t
 
 If ⟨ Converged | note ⟩ is indicated, the predicate holds at that moment.
 
-*Argument.* The algorithm indicates Converged only after IsConverged?(note) returns true. By the convergence protocol's S1, every revise comment on note has a matching resolution at evaluation time. By SUB1, neither comments nor resolutions are removable; the predicate's truth at indication persists until new comments arrive. `comment.out-of-scope` links do not participate in the predicate (N1), so their presence at any count does not affect the indication.
+*Argument.* The algorithm indicates Converged only after IsConverged?(note) returns true. By the convergence protocol's S1, every active `comment.revise` on note has a matching active `resolution` at evaluation time. By SUB1, neither comments nor resolutions are removable; the predicate's truth at indication persists until new comments arrive or a `resolution` is retracted (per SUB4–SUB5). `comment.out-of-scope` links do not participate in the predicate (N1), so their presence at any count does not affect the indication.
 
 ### Liveness (L1 — reviser responsiveness)
 
@@ -232,6 +237,14 @@ If Engage i exits NotConverged with k open revise comments, then Engage (i + 1) 
 
 `comment.out-of-scope` links accumulate across cycles and across invocations. They do not block convergence (N1) but remain visible to maturation indefinitely (N2). The algorithm files them but does not consume them. Whether maturation acts on them is outside this protocol's scope.
 
+### Retraction and convergence (N3)
+
+Retraction of a `citation` link does not affect the convergence predicate — citation retraction changes the note's dependency graph but doesn't affect any active `comment.revise` or active `resolution`, so the predicate is unchanged.
+
+Retraction of a `resolution` link *does* affect the convergence predicate — the retracted resolution no longer counts (per SUB5, active state evaluation), and the comment it closed becomes unresolved. The predicate goes false. The algorithm handles this through RetryOpenRevises (§6.3), which re-feeds the now-unresolved comment to the reviser on the next cycle.
+
+N3 (retraction idempotence) inherits from SUB6: multiple retractions of the same link produce the same graph state as a single retraction.
+
 ---
 
 ## 8 Composition
@@ -247,6 +260,7 @@ The [maturation protocol](maturation-protocol.md) decides when to activate this 
 ## Related
 
 - [Convergence Protocol](convergence-protocol.md) — the document-type-neutral module this protocol specializes.
+- [Substrate Module](substrate.md) — the persistent link graph. Provides retraction semantics (SUB4–SUB6) used for stale citation handling after lattice operations.
 - [Consultation Protocol](consultation-protocol.md) — the upstream producer. Generates the initial note this protocol refines.
 - [Claim Convergence Protocol](claim-convergence-protocol.md) — the sibling specialization at claim scale.
 - [Review/Revise Iteration](../patterns/review-revise-iteration.md) — the empirical pattern underlying this protocol. Battle-tested across a dozen ASNs.

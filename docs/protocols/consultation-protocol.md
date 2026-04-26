@@ -32,12 +32,7 @@ Sub-questions and raw channel answers are choreography concerns, not protocol pr
 
 ### 2.1 Substrate
 
-Persistent, append-only graph of documents and typed links.
-
-**Properties relied upon.**
-
-- SUB1 (Permanence). No link is ever removed once created.
-- SUB2 (Query soundness). FindLinks returns exactly the links satisfying the constraint conjunction.
+The persistent, append-only link graph. See [Substrate Module](substrate.md). This protocol relies on SUB1 (permanence — for the `synthesis` provenance link) and SUB2 (query soundness). Consultation does not file or interact with retraction links; SUB4–SUB6 are not relied upon.
 
 ### 2.2 Channels
 

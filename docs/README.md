@@ -23,6 +23,7 @@ The system is a stack of protocols sharing a substrate. Production-shaped protoc
 - [Note Decomposition Protocol](protocols/note-decomposition-protocol.md) — *production*. Decomposes a converged note into per-claim file pairs conforming to the Claim File Contract. The boundary between note convergence and claim convergence; a representation change.
 - [Claim Convergence Protocol](protocols/claim-convergence-protocol.md) — *convergence*. Drives claims to formal precision after note decomposition. Specializes the convergence protocol for claims; adds structural validation, the algorithm, and correctness arguments.
 - [Convergence Protocol](protocols/convergence-protocol.md) — the document-type-neutral foundation. Convergence predicate, comment/resolution link types, safety/liveness properties shared by both convergence-shaped specializations.
+- [Substrate Module](protocols/substrate.md) — the persistent, append-only link graph every protocol reads from and writes to. Defines retraction as a substrate operation (link-to-link nullification) and the `ActiveLinks` query that subtracts retracted links from results. Properties: SUB1 permanence, SUB2 query soundness, SUB3 count consistency, SUB4–SUB5 retraction nullify-and-shadow, SUB6 retraction idempotence.
 - [Maturation Protocol](protocols/maturation-protocol.md) — the meta-protocol governing transitions between stage protocols and executing lattice operations (extract, absorb, scope promotion). Reaches quiescence rather than convergence.
 
 ## How the system works, fails, and is disciplined

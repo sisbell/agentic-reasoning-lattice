@@ -34,19 +34,21 @@ The absence is deliberate. A predicate that tracks "latest version" lets unresol
 
 ### Substrate
 
-A persistent, append-only graph of documents and typed links between them.
+The persistent, append-only link graph. See [Substrate Module](substrate.md) for the full specification.
 
-**Operations.**
+**Operations relied upon.**
 
 - ⟨ MakeLink | from, to, types ⟩ — append a new link, return its address.
-- ⟨ FindLinks | home, from, to, types ⟩ — return links matching the constraint conjunction.
-- ⟨ FindNumLinks | home, from, to, types ⟩ — return the count matching the constraints.
+- ⟨ FindLinks | home, from, to, types ⟩ — return all links matching the constraint conjunction.
+- ⟨ ActiveLinks | home, from, to, types ⟩ — return all matching links that are not retracted (per SUB4, SUB5).
 
 **Properties relied upon.**
 
 - SUB1 (Permanence). No link is ever removed once created.
 - SUB2 (Query soundness). FindLinks returns exactly the links satisfying the constraint conjunction.
 - SUB3 (Count consistency). FindNumLinks(args) = |FindLinks(args)|.
+
+The convergence protocol does not itself file retraction links. Specializations that extend it (claim convergence, note convergence) may retract resolution links, which affects the predicate — a retracted resolution no longer counts toward closing a comment. The predicate evaluates against active links to handle this correctly.
 
 ---
 
@@ -91,16 +93,18 @@ Observes unresolved `comment.revise` links and responds in one of two ways. If t
 
 ### The predicate
 
-> For every document in the set, every `comment.revise` link targeting that document has a matching `resolution` link.
+> For every document in the set, every active `comment.revise` link targeting that document has a matching active `resolution` link.
+
+The predicate evaluates against active links (via the substrate's ActiveLinks query, per [SUB4–SUB5](substrate.md)). A retracted resolution no longer counts toward closing a comment — the comment becomes unresolved. A retracted comment no longer creates a resolution obligation. In practice, the convergence protocol itself does not file retractions; specializations that do (claim convergence, note convergence) rely on this active-link evaluation to keep the predicate correct after retraction.
 
 No scope qualifiers. The protocol doesn't know what scope strategy produced the comments. It knows whether they're resolved — by edit or by rejection.
 
-No "latest version." Every revise comment ever filed blocks until explicitly resolved.
+No "latest version." Every active revise comment blocks until explicitly resolved.
 
 ### What convergence is not
 
 - Not "enough cycles ran."
-- Not "last pass had no findings" — a comment from three cycles ago still blocks if unresolved.
+- Not "last pass had no findings" — an active comment from three cycles ago still blocks if unresolved.
 - Not "reviewer said OBSERVE" — `comment.observe` links don't participate in the predicate.
 - Not "latest version is clean" — there is no "latest version."
 
@@ -118,25 +122,25 @@ The predicate defines WHAT convergence is. Choreography defines HOW the protocol
 
 ### 5.1 Safety
 
-**S1 (Predicate definition).** ⟨ Converged | D ⟩ is indicated iff for every `comment.revise` link targeting any document in D, there exists at least one `resolution` link (of either subtype) closing it. Per-document convergence is the predicate restricted to one document. Set-wide convergence is the conjunction.
+**S1 (Predicate definition).** ⟨ Converged | D ⟩ is indicated iff for every active `comment.revise` link targeting any document in D, there exists at least one active `resolution` link (of either subtype) closing it. Per-document convergence is the predicate restricted to one document. Set-wide convergence is the conjunction.
 
-**S2 (Resolution permanence).** Once a `resolution` link exists closing a `comment`, it is never removed. (Inherited from SUB1.)
+**S2 (Resolution permanence).** Once a `resolution` link exists closing a `comment`, it is never removed from the substrate. (Inherited from SUB1.) A resolution may be retracted by a specialization protocol, making it inactive for predicate evaluation — but the link itself persists in the substrate and remains visible to FindLinks.
 
-**S3 (Accumulation).** Comments and resolutions accumulate. None is removed. (Inherited from SUB1.)
+**S3 (Accumulation).** Comments and resolutions accumulate in the substrate. None is removed. (Inherited from SUB1.) The convergence protocol itself does not retract comments or resolutions. Specializations may retract resolutions (re-opening a comment) using the substrate's retraction mechanism; the predicate handles this correctly by evaluating against active links.
 
 **S4 (Comment integrity).** A `comment.observe` link never creates a resolution obligation. Only `comment.revise` participates in the convergence predicate.
 
-**S5 (Indication soundness).** If ⟨ Converged | D ⟩ is indicated, the predicate holds at the moment of indication. Convergence may later become false if new `comment.revise` links are filed.
+**S5 (Indication soundness).** If ⟨ Converged | D ⟩ is indicated, the predicate holds at the moment of indication. Convergence may later become false if new `comment.revise` links are filed or if an existing resolution is retracted.
 
 **S6 (Commitment preservation).** On `resolution.edit`, every commitment present in the document before the edit is present after. Edits change form, not meaning. On `resolution.reject`, the document is unchanged.
 
 ### 5.2 Liveness
 
-**L1 (Reviser responsiveness).** If a `comment.revise` link exists without a matching `resolution`, and a reviser agent is active, then eventually a `resolution` link is created closing it.
+**L1 (Reviser responsiveness).** If an active `comment.revise` link exists without a matching active `resolution`, and a reviser agent is active, then eventually a `resolution` link is created closing it.
 
 **L2 (Reviewer responsiveness).** If an ⟨ EvaluateConvergence | D ⟩ request is made and a reviewer agent is active, then eventually either ⟨ Converged | D ⟩ or ⟨ NotConverged | D, open_comments ⟩ is indicated.
 
-**L3 (Progress).** If agents are active and the document set is finite, then the number of `comment.revise` links without matching `resolution` links is eventually non-increasing.
+**L3 (Progress).** If agents are active and the document set is finite, then the number of active `comment.revise` links without matching active `resolution` links is eventually non-increasing.
 
 **L4 (Cross-invocation progress).** Unresolved `comment.revise` links persist across protocol invocations (from SUB1, S3). No work is lost between invocations.
 
@@ -148,14 +152,18 @@ The predicate defines WHAT convergence is. Choreography defines HOW the protocol
 
 **No ordering guarantee.** The protocol does not prescribe the order in which documents are reviewed or comments are resolved.
 
+**No retraction guarantee.** The convergence protocol does not retract links. Specializations that use retraction (via the [substrate](substrate.md)) are responsible for the consequences — a retracted resolution re-opens its comment; the predicate evaluates accordingly.
+
 **Operational monitoring.** Detecting non-convergence — oscillation, reject cycling, classification bias — is a choreography and monitoring concern, not a protocol property.
 
 ---
 
 ## Related
 
+- [Substrate Module](substrate.md) — the persistent link graph this protocol operates on. Provides permanence, query operations, and retraction semantics.
 - [Review/Revise Iteration](../patterns/review-revise-iteration.md) — the empirical pattern this protocol formalizes. Excavation stages, convergence dynamics, stall conditions.
 - [Production Drive](../design-notes/production-drive.md) — the LLM behavioral force that OBSERVE channels safely.
+- [Note Convergence Protocol](note-convergence-protocol.md) — uses this module for notes, adding OUT_OF_SCOPE classification and lattice growth signals.
 - [Claim Convergence Protocol](claim-convergence-protocol.md) — uses this module for claims, adding lattice structure, structural validation, and a claim-specific algorithm.
 
 ## References
