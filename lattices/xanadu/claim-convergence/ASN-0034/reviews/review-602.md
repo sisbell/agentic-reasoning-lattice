@@ -1,0 +1,12 @@
+# Cone Review — ASN-0034/T10a (cycle 6)
+
+*2026-04-26 05:12*
+
+### T4(i) on `t'` is not explicitly discharged in cases `k = 0` and `k = 1`
+**Class**: REVISE
+**Foundation**: T4 (HierarchicalParsing) — invariant has four conjuncts, each requiring discharge on `t'`. T4(i) is the bound `zeros(t') ≤ 3`.
+**ASN**: TA5a, Case `k = 0` ("...so `zeros(t') = zeros(t)`. For T4(ii)..., For T4(iv)..., For T4(iii)..., T4 preserved unconditionally.") and Case `k = 1` ("...so `zeros(t') = zeros(t)`. For T4(ii) on `t'`,...; For T4(iv)...; For T4(iii)... T4 preserved unconditionally.").
+**Issue**: Cases `k = 0` and `k = 1` open with the four-conjunct T4 statement "(i) `zeros(t) ≤ 3`, (ii) no two zeros adjacent, (iii) `t₁ ≠ 0`, (iv) `t_{#t} ≠ 0`" and close with "T4 preserved unconditionally", but the body labels only (ii), (iii), (iv). T4(i) on `t'` — i.e. `zeros(t') ≤ 3` — is never labeled. The fact is implicitly available — the case establishes `zeros(t') = zeros(t)`, and combining with T4(i) on `t` (`zeros(t) ≤ 3`) gives `zeros(t') ≤ 3` — but the case body never assembles the one-step chain into a T4(i) discharge. By contrast, Case `k = 2` does explicitly assemble this chain at the conclusion ("T4 preserved iff `zeros(t) + 1 ≤ 3`, i.e., `zeros(t) ≤ 2`"), and the previous review cycle made T4(iv) explicit in Case `k = 0` for exactly the same reason — yet the parallel T4(i) gap in Cases `k = 0` and `k = 1` was overlooked. The conclusion "T4 preserved unconditionally" rests on a conjunct the reader is asked to fill in.
+**What needs resolving**: Add an explicit T4(i) bullet to Cases `k = 0` and `k = 1` — using the already-established `zeros(t') = zeros(t)` together with T4(i) on `t` to conclude `zeros(t') ≤ 3` — paralleling the boundary discharge already present for T4(ii), T4(iii), T4(iv) in those cases (and the explicit `zeros(t) + 1 ≤ 3` discharge in Case `k = 2`), so that all four T4 conjuncts are individually checked off before "T4 preserved unconditionally" is asserted.
+
+VERDICT: REVISE
