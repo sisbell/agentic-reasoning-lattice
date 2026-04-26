@@ -1362,3 +1362,5 @@
 {"from_set": ["lattices/xanadu/claim-convergence/ASN-0034/TumblerSub.md"], "id": "l_723bc02a82b4", "op": "create", "to_set": ["l_c44c755b3678"], "ts": "2026-04-26T23:02:30Z", "type_set": ["retraction"]}
 {"from_set": ["lattices/xanadu/claim-convergence/ASN-0034/T6.md"], "id": "l_633e939667ba", "op": "create", "to_set": ["l_0709b77b1393"], "ts": "2026-04-26T23:06:50Z", "type_set": ["retraction"]}
 {"from_set": ["lattices/xanadu/claim-convergence/ASN-0034/TA3-strict.md"], "id": "l_bbd6a895b37f", "op": "create", "to_set": ["l_13a351443f58"], "ts": "2026-04-26T23:08:01Z", "type_set": ["retraction"]}
+{"from_set": ["lattices/xanadu/claim-convergence/ASN-0034/TA5a.md"], "id": "l_aeaf62e342f1", "op": "create", "to_set": ["l_67d36e4eea3b"], "ts": "2026-04-26T23:20:22Z", "type_set": ["retraction"]}
+{"from_set": ["lattices/xanadu/claim-convergence/ASN-0034/TA5a.md"], "id": "l_f598b9297c58", "op": "create", "to_set": ["l_644356a7d135"], "ts": "2026-04-26T23:20:22Z", "type_set": ["retraction"]}
