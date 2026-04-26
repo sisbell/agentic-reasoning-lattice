@@ -2,6 +2,6 @@ label: Prefix
 name: PrefixRelation
 summary: 'Defines the prefix relation p ≼ q: p''s length does not exceed q''s and every component of p matches the corresponding
   component of q. A proper prefix p ≺ q additionally requires p ≠ q, which forces #p < #q strictly — equal-length agreement
-  would make the tumblers identical by T3. Two derived postconditions are exported: proper-prefix length (p ≺ q ⟹ #p < #q)
-  and reflexivity (∀t ∈ T :: t ≼ t), the latter discharged by NAT-order''s ≤-at-equal-arguments step together with equality
-  reflexivity at each index.'
+  would make the tumblers identical by T3. The non-prefix notation p ⋠ q abbreviates ¬(p ≼ q). Two derived postconditions
+  are exported: proper-prefix length (p ≺ q ⟹ #p < #q) and reflexivity (∀t ∈ T :: t ≼ t), the latter discharged by NAT-order''s
+  ≤-at-equal-arguments step together with equality reflexivity at each index.'

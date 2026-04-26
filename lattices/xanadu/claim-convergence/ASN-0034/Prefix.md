@@ -1,7 +1,7 @@
-**Prefix (PrefixRelation).** The prefix relation on tumblers: `p ≼ q` iff `#p ≤ #q ∧ (∀i : 1 ≤ i ≤ #p : qᵢ = pᵢ)`. A proper prefix `p ≺ q` requires `p ≼ q` with `p ≠ q`.
+**Prefix (PrefixRelation).** The prefix relation on tumblers: `p ≼ q` iff `#p ≤ #q ∧ (∀i : 1 ≤ i ≤ #p : qᵢ = pᵢ)`. A proper prefix `p ≺ q` requires `p ≼ q` with `p ≠ q`. We write `p ⋠ q` for the negation `¬(p ≼ q)` — read "p is not a prefix of q".
 
 *Formal Contract:*
-- *Definition:* `p ≼ q` iff `#p ≤ #q ∧ (∀i : 1 ≤ i ≤ #p : qᵢ = pᵢ)`. Proper prefix: `p ≺ q` iff `p ≼ q ∧ p ≠ q`.
+- *Definition:* `p ≼ q` iff `#p ≤ #q ∧ (∀i : 1 ≤ i ≤ #p : qᵢ = pᵢ)`. Proper prefix: `p ≺ q` iff `p ≼ q ∧ p ≠ q`. Non-prefix: `p ⋠ q` iff `¬(p ≼ q)`.
 - *Depends:*
   - T0 (CarrierSetDefinition) — length `#p` and component projection `pᵢ` for `p ∈ T`.
   - NAT-order (NatStrictTotalOrder) — `≤` on ℕ for length comparison and index range; defining clause `m ≤ n ⟺ m < n ∨ m = n`.
