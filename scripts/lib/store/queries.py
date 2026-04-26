@@ -3,29 +3,47 @@
 Read-only logic composed entirely over `Store.find_links`. The protocol
 predicate (per docs/protocols/claim-convergence-protocol.md):
 
-    For every document with a `claim` classifier, every `comment.revise`
-    link targeting that claim has a matching `resolution` link.
+    For every document with a `claim` classifier, every active
+    `comment.revise` link targeting that claim has a matching active
+    `resolution` link.
+
+A link is *active* if no `retraction` link nullifies it. Retracted
+revises drop out of the predicate (they no longer represent an active
+complaint); retracted resolutions stop satisfying it.
 
 Helpers below evaluate that predicate at lattice and per-claim scope, plus
 expose the unresolved-comment listing for diagnostic callers.
 """
 
 
-def has_resolution(store, comment_id):
-    """True iff any resolution link targets this comment id."""
-    return bool(store.find_links(to_set=[comment_id], type_set=["resolution"]))
+def _retracted_link_ids(store):
+    """Set of link ids that have been retracted.
+
+    A retraction is a link of type `"retraction"` whose to_set holds
+    the link id of the link being nullified.
+    """
+    ids = set()
+    for r in store.find_links(type_set=["retraction"]):
+        if r["type_set"] == ["retraction"]:
+            ids.update(r["to_set"])
+    return ids
+
+
+def has_resolution(store, comment_id, _retracted=None):
+    """True iff any active resolution link targets this comment id.
+
+    `_retracted` is an optional pre-computed set of retracted link ids;
+    callers iterating over many comments pass it once to avoid re-querying.
+    """
+    retracted = _retracted_link_ids(store) if _retracted is None else _retracted
+    return any(
+        r["id"] not in retracted
+        for r in store.find_links(to_set=[comment_id], type_set=["resolution"])
+    )
 
 
 def active_links(store, type_str, from_set=None, to_set=None):
     """Return links of `type_str` that have not been retracted.
-
-    A retraction is a link of type `"retraction"` whose to_set holds
-    the link id of the retracted link (link-to-link pointer). This
-    helper performs the two-query subtraction:
-
-      1. Fetch candidate links by type/endpoints
-      2. Fetch all retraction links and exclude candidates whose id
-         appears as the to_set referent of any retraction
 
     Filters LIKE-match results to exact `type_str` to avoid pulling in
     unrelated subtypes (e.g., a query for "citation" would otherwise
@@ -35,17 +53,14 @@ def active_links(store, type_str, from_set=None, to_set=None):
     wherever the consumer wants the "active" set, ignoring retracted
     history.
     """
-    retracted_ids = set()
-    for r in store.find_links(type_set=["retraction"]):
-        if r["type_set"] == ["retraction"]:
-            retracted_ids.update(r["to_set"])
+    retracted = _retracted_link_ids(store)
     candidates = store.find_links(
         from_set=from_set, to_set=to_set, type_set=[type_str],
     )
     return [
         link for link in candidates
         if link["type_set"] == [type_str]
-        and link["id"] not in retracted_ids
+        and link["id"] not in retracted
     ]
 
 
@@ -58,16 +73,23 @@ def all_claim_paths(store):
 
 
 def unresolved_revise_comments(store, claim_path=None):
-    """Every comment.revise link without a matching resolution.
+    """Every active comment.revise link without an active resolution.
 
-    If claim_path is given, scopes to comments targeting that claim.
-    Otherwise spans the whole graph.
+    Retracted revises are excluded (the retraction nullifies the
+    complaint). A resolution that has itself been retracted does not
+    satisfy the predicate. If claim_path is given, scopes to comments
+    targeting that claim; otherwise spans the whole graph.
     """
+    retracted = _retracted_link_ids(store)
     revises = store.find_links(
         to_set=[claim_path] if claim_path else None,
         type_set=["comment.revise"],
     )
-    return [c for c in revises if not has_resolution(store, c["id"])]
+    return [
+        c for c in revises
+        if c["id"] not in retracted
+        and not has_resolution(store, c["id"], _retracted=retracted)
+    ]
 
 
 def is_claim_converged(store, claim_path):

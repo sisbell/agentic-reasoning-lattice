@@ -255,6 +255,70 @@ class AsnConvergedTests(QueriesTestBase):
         )
 
 
+class RetractionAwarenessTests(QueriesTestBase):
+    """A retraction nullifies the link it targets. Convergence queries
+    must honor this for both comment.revise and resolution links."""
+
+    def _claim(self, path="T3.md", ts="t1"):
+        self.store.make_link(
+            from_set=[], to_set=[path], type_set=["claim"], ts=ts,
+        )
+
+    def _retract(self, link_id, ts):
+        return self.store.make_link(
+            from_set=[], to_set=[link_id], type_set=["retraction"], ts=ts,
+        )
+
+    def test_retracted_resolution_unblocks_unresolved(self):
+        # A revise was resolved, but the resolution itself was later
+        # retracted — the comment is unresolved again.
+        self._claim()
+        comment_id, res_id = _make_resolved_revise(
+            self.store, "T3.md", "f.md", ts_seed=2,
+        )
+        self.assertTrue(is_claim_converged(self.store, "T3.md"))
+        self._retract(res_id, ts="t10")
+        self.assertFalse(has_resolution(self.store, comment_id))
+        self.assertFalse(is_claim_converged(self.store, "T3.md"))
+        self.assertEqual(
+            [c["id"] for c in unresolved_revise_comments(self.store, "T3.md")],
+            [comment_id],
+        )
+
+    def test_retracted_revise_drops_from_unresolved(self):
+        # An unresolved revise that is retracted no longer blocks
+        # convergence and no longer appears in the unresolved set.
+        self._claim()
+        comment_id = self.store.make_link(
+            from_set=["f.md"], to_set=["T3.md"],
+            type_set=["comment.revise"], ts="t2",
+        )
+        self.assertFalse(is_claim_converged(self.store, "T3.md"))
+        self._retract(comment_id, ts="t3")
+        self.assertTrue(is_claim_converged(self.store, "T3.md"))
+        self.assertEqual(unresolved_revise_comments(self.store, "T3.md"), [])
+
+    def test_retracted_revise_isolation(self):
+        # Retracting one revise must not affect other claims' state.
+        self._claim("T3.md", ts="t1")
+        self._claim("T4.md", ts="t2")
+        retracted = self.store.make_link(
+            from_set=["f1.md"], to_set=["T3.md"],
+            type_set=["comment.revise"], ts="t3",
+        )
+        unresolved_t4 = self.store.make_link(
+            from_set=["f2.md"], to_set=["T4.md"],
+            type_set=["comment.revise"], ts="t4",
+        )
+        self._retract(retracted, ts="t5")
+        self.assertTrue(is_claim_converged(self.store, "T3.md"))
+        self.assertFalse(is_claim_converged(self.store, "T4.md"))
+        self.assertEqual(
+            [c["id"] for c in unresolved_revise_comments(self.store)],
+            [unresolved_t4],
+        )
+
+
 class ContractKindTests(QueriesTestBase):
     def test_returns_kind_for_single_classifier(self):
         self.store.make_link(
