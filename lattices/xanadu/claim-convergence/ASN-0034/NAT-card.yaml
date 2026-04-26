@@ -8,8 +8,7 @@ summary: |
   empty function, vacuously strictly increasing with image ∅, forcing S = ∅ and
   |∅| = 0 without recourse to a convention on empty lists), and |S| ≤ n.
   NAT-order's strict-total-order discipline keeps the "strictly increasing function"
-  predicate well-formed. The operator is distinct from T0's tumbler-length
-  #· : T → ℕ, which acts on sequences rather than sets. NAT-card is the foundation
+  predicate well-formed. NAT-card is the foundation
   citation for every claim that invokes |·| — in particular the definition
   zeros(t) = |{i : 1 ≤ i ≤ #t ∧ tᵢ = 0}| in T4 and its downstream consumers T4a,
   T4b, T4c.

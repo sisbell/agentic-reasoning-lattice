@@ -2,18 +2,20 @@ label: T4
 name: HierarchicalParsing
 summary: |
   Valid address tumblers encode a four-level containment hierarchy (node, user, document,
-  element). T4 separates definitional from axiomatic content: its Definition slot fixes the
+  element). T4 is purely definitional: its Definition slot fixes the
   *zero-count* `zeros(t)`, names a position `i` a *field separator* iff `tᵢ = 0`, defines the
   *T4-valid* predicate as the conjunction `zeros(t) ≤ 3 ∧ no two zeros adjacent ∧ t₁ ≠ 0 ∧
   t_{#t} ≠ 0` (the last three collectively the *field-segment constraint*), and gives the
-  per-`k` canonical written form. The substantive Axiom is then a single constraint — every
-  tumbler `t ∈ T` used as an address is T4-valid — which guarantees every field segment is
-  non-empty (proved as T4a). NAT-closure grounds the numerals `2 := 1 + 1` and `3 := 2 + 1`
+  per-`k` canonical written form. T4 does not assert which `t ∈ T` satisfy the predicate —
+  downstream consumers (T4b's projection domains, T4c's level subdomain) carry T4-validity
+  as an explicit precondition. T4a proves the field-segment constraint equivalent to every
+  field segment of `t` being non-empty under the bound `zeros(t) ≤ 3`. NAT-closure grounds the numerals `2 := 1 + 1` and `3 := 2 + 1`
   in ℕ so that `zeros(t) ≤ 3` compares two ℕ-elements. NAT-card axiomatizes the cardinality
   operator `|·|` on subsets of every initial segment `{1, …, n} ⊆ ℕ` with codomain ℕ,
   grounding the definition `zeros(t) = |{i : 1 ≤ i ≤ #t ∧ tᵢ = 0}|` so that `zeros(t) ∈ ℕ`;
-  NAT-card also fixes `|·|` as a set-level operator distinct from T0's tumbler-length `#·`,
-  which acts on sequences. As a Consequence, `(A t ∈ T : zeros(t) ≤ 3 : zeros(t) ∈ {0, 1, 2, 3})` —
+  T4's body — where both `|·|` and T0's tumbler-length `#·` are in use — carries the
+  disambiguation that `|·|` acts on sets while `#·` acts on sequences. As a Consequence,
+  `(A t ∈ T : zeros(t) ≤ 3 : zeros(t) ∈ {0, 1, 2, 3})` —
   universally quantified by the bound alone, since the field-segment constraint of full
   T4-validity plays no role in the derivation (which uses only the bound, NAT-zero's
   `0 ≤ zeros(t)`, NAT-order's trichotomy, NAT-discrete, and NAT-closure's left additive
