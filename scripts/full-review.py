@@ -29,11 +29,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import (
-    WORKSPACE, CLAIM_CONVERGENCE_DIR, FINDINGS_DIR, next_review_number,
+    WORKSPACE, CLAIM_CONVERGENCE_DIR, next_review_number, review_meta_path,
 )
 from lib.shared.common import find_asn, assemble_readonly, step_commit_asn
 from lib.claim_convergence.full_review.review import (
     run_review, extract_findings, filter_revise,
+    cycle_verdict, findings_summary,
 )
 from lib.claim_convergence.full_review.revise import revise
 from lib.claim_convergence.gate import run_validate_gate
@@ -69,7 +70,6 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
 
     start_time = time.time()
     previous_findings = ""
-    had_findings = False
     naturally_converged = False
     last_cycle_revise_count = -1
     final_review_path = None
@@ -111,46 +111,29 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
                   file=sys.stderr)
             break
 
-        # Emit findings + meta (records the review event in the substrate
-        # even when reviewer was CONVERGED with no findings).
-        had_findings = True
         review_num = next_review_number(asn_label, reviews_dir=review_dir)
         review_stem = f"review-{review_num}"
-        meta_path_synthetic = FINDINGS_DIR / asn_label / review_stem / "_meta.md"
+        meta_path = review_meta_path(asn_label, review_num)
 
         findings = extract_findings(findings_text)
-
         emitted_findings = emit_findings(
-            store, meta_path_synthetic, findings,
+            store, meta_path, findings,
             asn_label, review_stem, label_index,
         )
         emitted_by_title = {e["title"]: e for e in emitted_findings}
 
-        cycle_revise_count = len(filter_revise(findings))
-        cycle_verdict = (
-            "CONVERGED" if (verdict == "CONVERGED" and cycle_revise_count == 0)
-            else ("REVISE" if cycle_revise_count > 0 else verdict)
-        )
-        observe_count = len(findings) - cycle_revise_count
-        if findings:
-            findings_summary = (
-                f"{cycle_revise_count} REVISE, {observe_count} OBSERVE"
-                if observe_count else f"{cycle_revise_count} REVISE"
-            ) if cycle_revise_count else f"{observe_count} OBSERVE"
-        else:
-            findings_summary = "0 findings"
-
+        revise_count = len(filter_revise(findings))
         emit_meta(
             store, asn_label, review_num,
             title=f"Full Review — {asn_label} (cycle {cycle})",
             timestamp=time.strftime("%Y-%m-%d %H:%M"),
             scope=f"{asn_label} (full)",
-            verdict=cycle_verdict,
-            findings_summary=findings_summary,
+            verdict=cycle_verdict(verdict, revise_count),
+            findings_summary=findings_summary(findings, revise_count),
             emitted_findings=emitted_findings,
             elapsed_seconds=elapsed,
         )
-        final_review_path = meta_path_synthetic
+        final_review_path = meta_path
 
         for title, cls, _ in findings:
             print(f"\n  ### [{cls}] {title}", file=sys.stderr)
@@ -240,7 +223,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
             else:
                 review_num = next_review_number(asn_label, reviews_dir=review_dir)
                 review_stem = f"review-{review_num}"
-                confirm_meta_path = FINDINGS_DIR / asn_label / review_stem / "_meta.md"
+                confirm_meta_path = review_meta_path(asn_label, review_num)
 
                 confirm_findings = extract_findings(confirm_findings_text)
                 emitted_findings = emit_findings(
@@ -248,29 +231,15 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
                     asn_label, review_stem, label_index,
                 )
                 confirmation_revise_count = len(filter_revise(confirm_findings))
-                observe_count = len(confirm_findings) - confirmation_revise_count
-                if confirm_findings:
-                    findings_summary = (
-                        f"{confirmation_revise_count} REVISE, {observe_count} OBSERVE"
-                        if observe_count else f"{confirmation_revise_count} REVISE"
-                    ) if confirmation_revise_count else f"{observe_count} OBSERVE"
-                else:
-                    findings_summary = "0 findings"
-
-                confirm_verdict_label = (
-                    "CONVERGED" if (confirm_verdict == "CONVERGED"
-                                    and confirmation_revise_count == 0)
-                    else ("REVISE" if confirmation_revise_count > 0
-                          else confirm_verdict)
-                )
-
                 emit_meta(
                     store, asn_label, review_num,
                     title=f"Full Review (Confirmation) — {asn_label}",
                     timestamp=time.strftime("%Y-%m-%d %H:%M"),
                     scope=f"{asn_label} (full)",
-                    verdict=confirm_verdict_label,
-                    findings_summary=findings_summary,
+                    verdict=cycle_verdict(confirm_verdict, confirmation_revise_count),
+                    findings_summary=findings_summary(
+                        confirm_findings, confirmation_revise_count,
+                    ),
                     emitted_findings=emitted_findings,
                     elapsed_seconds=confirm_elapsed,
                 )

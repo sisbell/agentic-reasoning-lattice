@@ -78,6 +78,11 @@ FINDINGS_DIR = STORE_DIR / "findings"
 RATIONALES_DIR = STORE_DIR / "rationales"
 
 
+def review_meta_path(asn_label, review_num):
+    """Path to a review event's _meta.md under the substrate findings dir."""
+    return FINDINGS_DIR / asn_label / f"review-{review_num}" / "_meta.md"
+
+
 def note_dir(asn_num):
     """Per-note manifest directory."""
     return MANIFESTS_DIR / f"ASN-{int(asn_num):04d}"

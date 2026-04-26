@@ -9,6 +9,7 @@ Step functions for the orchestrator (scripts/full-review.py):
 - run_review: run Opus deep review, return (verdict, text, elapsed)
 - extract_findings: parse findings into (title, cls, text) tuples
 - filter_revise: narrow findings to REVISE-class only
+- cycle_verdict, findings_summary: format meta fields for emit_meta
 """
 
 import re
@@ -123,3 +124,29 @@ def filter_revise(findings):
     """Narrow findings to REVISE-class only. UNKNOWN falls through to
     REVISE (conservative — if the reviewer didn't classify, act on it)."""
     return [f for f in findings if f[1] in ("REVISE", "UNKNOWN")]
+
+
+def cycle_verdict(reviewer_verdict, revise_count):
+    """Reconcile reviewer's verdict line with the per-finding revise count.
+
+    Reviewer may emit VERDICT: CONVERGED while still filing REVISE-class
+    findings (rare but possible). The cycle's effective verdict reflects
+    what was actually filed.
+    """
+    if reviewer_verdict == "CONVERGED" and revise_count == 0:
+        return "CONVERGED"
+    if revise_count > 0:
+        return "REVISE"
+    return reviewer_verdict
+
+
+def findings_summary(findings, revise_count):
+    """Format a one-line summary of findings counts: '1 REVISE, 2 OBSERVE'."""
+    if not findings:
+        return "0 findings"
+    observe_count = len(findings) - revise_count
+    if revise_count and observe_count:
+        return f"{revise_count} REVISE, {observe_count} OBSERVE"
+    if revise_count:
+        return f"{revise_count} REVISE"
+    return f"{observe_count} OBSERVE"

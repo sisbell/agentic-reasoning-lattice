@@ -17,13 +17,17 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, FINDINGS_DIR, next_review_number
+from lib.shared.paths import (
+    WORKSPACE, CLAIM_CONVERGENCE_DIR, FINDINGS_DIR,
+    next_review_number, review_meta_path,
+)
 from lib.shared.common import (
     find_asn, build_label_index,
     step_commit_asn,
 )
 from lib.claim_convergence.full_review.review import (
     run_review, extract_findings, filter_revise, parse_missing_references,
+    cycle_verdict, findings_summary,
 )
 
 
@@ -201,17 +205,16 @@ def _extract_apex_history(asn_label, apex_label, max_reviews=5):
 
     Sources from both legacy review files (claim-convergence/<asn>/reviews/)
     and the substrate finding documents (_store/findings/<asn>/review-N/).
-    Sorted by review number; the most recent `max_reviews` are filtered to
-    those that mention apex_label.
+    Sorted by review number; only the most recent `max_reviews` are read.
     """
-    bodies = []  # list of (review_num, text)
+    sources = []  # (review_num, kind, path)
 
     legacy_dir = CLAIM_CONVERGENCE_DIR / asn_label / "reviews"
     if legacy_dir.exists():
         for rf in legacy_dir.glob("review-*.md"):
             m = re.search(r'review-(\d+)$', rf.stem)
             if m:
-                bodies.append((int(m.group(1)), rf.read_text().strip()))
+                sources.append((int(m.group(1)), "legacy", rf))
 
     findings_dir = FINDINGS_DIR / asn_label
     if findings_dir.exists():
@@ -219,21 +222,27 @@ def _extract_apex_history(asn_label, apex_label, max_reviews=5):
             if not sub.is_dir():
                 continue
             m = re.search(r'review-(\d+)$', sub.name)
-            if not m:
-                continue
+            if m:
+                sources.append((int(m.group(1)), "substrate", sub))
+
+    sources.sort(key=lambda x: x[0], reverse=True)
+
+    relevant = []
+    for _, kind, path in sources[:max_reviews]:
+        if kind == "legacy":
+            text = path.read_text().strip()
+        else:
             parts = []
-            meta = sub / "_meta.md"
+            meta = path / "_meta.md"
             if meta.exists():
                 parts.append(meta.read_text().strip())
-            for finding in sorted(sub.glob("*.md")):
+            for finding in sorted(path.glob("*.md")):
                 if finding.name == "_meta.md":
                     continue
                 parts.append(finding.read_text().strip())
-            if parts:
-                bodies.append((int(m.group(1)), "\n\n".join(parts)))
-
-    bodies.sort(key=lambda x: x[0], reverse=True)
-    relevant = [text for _, text in bodies[:max_reviews] if apex_label in text]
+            text = "\n\n".join(parts)
+        if text and apex_label in text:
+            relevant.append(text)
 
     if not relevant:
         return "(no recent findings)"
@@ -293,7 +302,6 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
 
     start_time = time.time()
     previous_findings = history
-    had_findings = False
     verdict = "CONVERGED"
     apex_md_path = label_index.get(apex_label)
     naturally_converged = False
@@ -358,50 +366,29 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
                   file=sys.stderr)
             break
 
-        # Emit findings + meta (records the review event in the substrate
-        # even when reviewer was CONVERGED with no findings).
-        had_findings = True
         review_num = next_review_number(asn_label, reviews_dir=review_dir)
         review_stem = f"review-{review_num}"
-        # Synthetic path for emit_findings' review_md_path arg (it's used as
-        # the comment link's source provenance label only, doesn't have to exist).
-        meta_dir = FINDINGS_DIR / asn_label / review_stem
-        meta_path_synthetic = meta_dir / "_meta.md"
+        meta_path = review_meta_path(asn_label, review_num)
 
         findings = extract_findings(findings_text)
-
         emitted_findings = emit_findings(
-            store, meta_path_synthetic, findings,
+            store, meta_path, findings,
             asn_label, review_stem, label_index,
         )
         emitted_by_title = {e["title"]: e for e in emitted_findings}
 
-        # Cycle-level verdict from reviewer's classification + revise count
-        cycle_revise_count = len(filter_revise(findings))
-        cycle_verdict = (
-            "CONVERGED" if (verdict == "CONVERGED" and cycle_revise_count == 0)
-            else ("REVISE" if cycle_revise_count > 0 else verdict)
-        )
-        observe_count = len(findings) - cycle_revise_count
-        if findings:
-            findings_summary = (
-                f"{cycle_revise_count} REVISE, {observe_count} OBSERVE"
-                if observe_count else f"{cycle_revise_count} REVISE"
-            ) if cycle_revise_count else f"{observe_count} OBSERVE"
-        else:
-            findings_summary = "0 findings"
-
+        revise_count = len(filter_revise(findings))
         emit_meta(
             store, asn_label, review_num,
             title=f"Cone Review — {asn_label}/{apex_label} (cycle {cycle})",
             timestamp=time.strftime("%Y-%m-%d %H:%M"),
             scope=f"{apex_label} + {len(dep_labels)} deps (cone)",
-            verdict=cycle_verdict,
-            findings_summary=findings_summary,
+            verdict=cycle_verdict(verdict, revise_count),
+            findings_summary=findings_summary(findings, revise_count),
             emitted_findings=emitted_findings,
             elapsed_seconds=elapsed,
         )
-        final_review_path = meta_path_synthetic
+        final_review_path = meta_path
 
         for title, cls, _ in findings:
             print(f"\n  ### [{cls}] {title}", file=sys.stderr)
@@ -484,7 +471,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
             else:
                 review_num = next_review_number(asn_label, reviews_dir=review_dir)
                 review_stem = f"review-{review_num}"
-                confirm_meta_path = FINDINGS_DIR / asn_label / review_stem / "_meta.md"
+                confirm_meta_path = review_meta_path(asn_label, review_num)
 
                 confirm_findings = extract_findings(confirm_findings_text)
                 emitted_findings = emit_findings(
@@ -492,29 +479,15 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
                     asn_label, review_stem, label_index,
                 )
                 confirmation_revise_count = len(filter_revise(confirm_findings))
-                observe_count = len(confirm_findings) - confirmation_revise_count
-                if confirm_findings:
-                    findings_summary = (
-                        f"{confirmation_revise_count} REVISE, {observe_count} OBSERVE"
-                        if observe_count else f"{confirmation_revise_count} REVISE"
-                    ) if confirmation_revise_count else f"{observe_count} OBSERVE"
-                else:
-                    findings_summary = "0 findings"
-
-                confirm_verdict_label = (
-                    "CONVERGED" if (confirm_verdict == "CONVERGED"
-                                    and confirmation_revise_count == 0)
-                    else ("REVISE" if confirmation_revise_count > 0
-                          else confirm_verdict)
-                )
-
                 emit_meta(
                     store, asn_label, review_num,
                     title=f"Cone Review (Confirmation) — {asn_label}/{apex_label}",
                     timestamp=time.strftime("%Y-%m-%d %H:%M"),
                     scope=f"{apex_label} + {len(dep_labels)} deps (cone)",
-                    verdict=confirm_verdict_label,
-                    findings_summary=findings_summary,
+                    verdict=cycle_verdict(confirm_verdict, confirmation_revise_count),
+                    findings_summary=findings_summary(
+                        confirm_findings, confirmation_revise_count,
+                    ),
                     emitted_findings=emitted_findings,
                     elapsed_seconds=confirm_elapsed,
                 )
