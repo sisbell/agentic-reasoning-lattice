@@ -17,6 +17,8 @@ Usage:
 import argparse
 import difflib
 import importlib.util
+import json
+import re
 import shutil
 import subprocess
 import sys
@@ -25,6 +27,20 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
 from shared.common import invoke_claude_agent, find_asn
+from store.populate import build_cross_asn_label_index
+from store.retract import emit_retraction
+from store.store import Store
+
+
+VALID_ACTIONS = {"ADD", "RETRACT", "SKIP"}
+
+
+class DecisionsCorruption(Exception):
+    """Raised when the reviser's __decisions.json sidecar violates the contract.
+
+    Distinguishes protocol corruption (must be surfaced loudly) from
+    legitimate decline (all-SKIP decisions).
+    """
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -242,6 +258,100 @@ def unified_diff(before_text, after_text, path_label):
     ))
 
 
+_BULLET_LABEL_RE = re.compile(r"^\+\s*-\s+([A-Za-z][\w.-]*)\b")
+
+
+def _added_bullet_labels(diff_text):
+    """Extract labels from added bullets in a unified diff.
+
+    Looks for lines starting with `+  - <label>` and returns the set of
+    labels. Used to validate that an ADD decision has a corresponding
+    edit in the diff.
+    """
+    labels = set()
+    for line in diff_text.splitlines():
+        m = _BULLET_LABEL_RE.match(line)
+        if m:
+            labels.add(m.group(1))
+    return labels
+
+
+def parse_decisions(scratch_dir, valid_labels, label_index, diff_text):
+    """Read and validate `__decisions.json` from scratch_dir.
+
+    Returns the list of validated decision dicts.
+    Raises DecisionsCorruption with a specific reason on any violation.
+    """
+    decisions_path = Path(scratch_dir) / "__decisions.json"
+    if not decisions_path.exists():
+        raise DecisionsCorruption("__decisions.json not written by reviser")
+    try:
+        raw = json.loads(decisions_path.read_text())
+    except json.JSONDecodeError as e:
+        raise DecisionsCorruption(f"__decisions.json is not valid JSON: {e}")
+    if not isinstance(raw, list):
+        raise DecisionsCorruption("__decisions.json must be a JSON array")
+
+    added_labels = _added_bullet_labels(diff_text)
+    valid_labels = set(valid_labels)
+
+    decisions = []
+    for i, entry in enumerate(raw):
+        if not isinstance(entry, dict):
+            raise DecisionsCorruption(f"decision {i} is not an object")
+        label = entry.get("label")
+        action = entry.get("action")
+        if not isinstance(label, str):
+            raise DecisionsCorruption(f"decision {i} missing string `label`")
+        if not isinstance(action, str) or action not in VALID_ACTIONS:
+            raise DecisionsCorruption(
+                f"decision for {label!r}: action {action!r} not in {sorted(VALID_ACTIONS)}"
+            )
+        if label not in valid_labels:
+            raise DecisionsCorruption(
+                f"decision for {label!r}: label not in findings list"
+            )
+        if label not in label_index:
+            raise DecisionsCorruption(
+                f"decision for {label!r}: label not in lattice label_index"
+            )
+        if action == "ADD" and label not in added_labels:
+            raise DecisionsCorruption(
+                f"decision for {label!r}: action=ADD but no matching bullet in diff"
+            )
+        decisions.append({
+            "label": label,
+            "action": action,
+            "rationale": entry.get("rationale", ""),
+        })
+    return decisions
+
+
+def apply_retract_decisions(store, decisions, claim_path, label_index):
+    """Emit a retraction for each RETRACT decision. Returns count emitted.
+
+    On the first emit_retraction failure (citation not found — substrate
+    inconsistent with the validator's finding), re-raises as
+    DecisionsCorruption so the caller surfaces it loudly.
+    """
+    emitted = 0
+    for d in decisions:
+        if d["action"] != "RETRACT":
+            continue
+        try:
+            link_id, created = emit_retraction(
+                store, claim_path, d["label"], label_index,
+            )
+        except (ValueError, KeyError) as e:
+            raise DecisionsCorruption(
+                f"retracting {d['label']!r} failed: {e}"
+            )
+        emitted += 1
+        if d["rationale"]:
+            print(f"    [retract] {d['label']}: {d['rationale']}", file=sys.stderr)
+    return emitted
+
+
 def process_file_scratch(rule, tools, claim_dir, filename, findings, pairs):
     """Passes 1-4: copy target file to scratch, let Claude edit scratch, diff.
 
@@ -365,6 +475,8 @@ def run_pass(pass_spec, asn_label, claim_dir, findings, dry_run,
                 print(f"    {d}", file=sys.stderr)
             return declined
 
+    label_index = build_cross_asn_label_index() if rule == "depends-agreement" else None
+
     for filename, file_findings in sorted(groups.items()):
         if mode == "apply" and rule == "filename-label-mismatch":
             if dry_run:
@@ -400,31 +512,89 @@ def run_pass(pass_spec, asn_label, claim_dir, findings, dry_run,
         if diff is None:
             continue
 
-        if not diff:
-            print(f" → declined (no change)")
+        decisions = None
+        if rule == "depends-agreement":
+            # Collect labels mentioned in any finding's detail (only_in_store
+            # detail format: "in store citations but not in md Depends: ['X', 'Y']").
+            valid_labels = set()
+            for f in file_findings:
+                m = re.search(r"\[(.*)\]", f["detail"])
+                if m:
+                    for tok in m.group(1).split(","):
+                        lbl = tok.strip().strip("'\"")
+                        if lbl:
+                            valid_labels.add(lbl)
+            try:
+                decisions = parse_decisions(
+                    scratch_path.parent, valid_labels, label_index, diff,
+                )
+            except DecisionsCorruption as e:
+                print(f" → ERROR (depends-agreement): {filename}: {e}",
+                      file=sys.stderr)
+                shutil.rmtree(scratch_path.parent, ignore_errors=True)
+                continue
+
+        retract_decisions = [
+            d for d in (decisions or []) if d["action"] == "RETRACT"
+        ]
+        all_skip = (
+            decisions is not None
+            and decisions
+            and all(d["action"] == "SKIP" for d in decisions)
+        )
+
+        if not diff and not retract_decisions:
+            if all_skip:
+                rationale_summary = "; ".join(
+                    f"{d['label']}: {d['rationale']}" for d in decisions
+                )
+                print(f" → declined (all SKIP: {rationale_summary})")
+            else:
+                print(f" → declined (no change)")
             declined.add((Path(filename).stem, rule))
             shutil.rmtree(scratch_path.parent, ignore_errors=True)
             continue
 
         if dry_run:
-            print(f" → proposed diff:")
-            print(diff)
+            if diff:
+                print(f" → proposed diff:")
+                print(diff)
+            if retract_decisions:
+                labels = ", ".join(d["label"] for d in retract_decisions)
+                print(f" → WOULD RETRACT: {labels}")
             shutil.rmtree(scratch_path.parent, ignore_errors=True)
             continue
 
         real_path = claim_dir / filename
-        shutil.copy2(scratch_path, real_path)
-        if commit:
+        if diff:
+            shutil.copy2(scratch_path, real_path)
+
+        retracted_count = 0
+        if retract_decisions:
+            real_claim_path = str(real_path.resolve().relative_to(REPO_ROOT.resolve()))
+            try:
+                with Store() as store:
+                    retracted_count = apply_retract_decisions(
+                        store, retract_decisions, real_claim_path, label_index,
+                    )
+            except DecisionsCorruption as e:
+                print(f" → ERROR (depends-agreement): {filename}: {e}",
+                      file=sys.stderr)
+                shutil.rmtree(scratch_path.parent, ignore_errors=True)
+                continue
+
+        if commit and diff:
             committed = commit_file(
                 real_path,
                 f"validate-revise(asn): {rule} on {filename}",
             )
-            if committed:
-                print(f" → committed")
-            else:
-                print(f" → commit failed")
+            status = "committed" if committed else "commit failed"
+        elif diff:
+            status = "applied (uncommitted)"
         else:
-            print(f" → applied (uncommitted)")
+            status = "applied (no md change)"
+        suffix = f" + {retracted_count} retracted" if retracted_count else ""
+        print(f" → {status}{suffix}")
 
         shutil.rmtree(scratch_path.parent, ignore_errors=True)
 
