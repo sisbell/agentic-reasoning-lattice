@@ -13,7 +13,12 @@ summary: |
   operator `|·|` on subsets of every initial segment `{1, …, n} ⊆ ℕ` with codomain ℕ,
   grounding the definition `zeros(t) = |{i : 1 ≤ i ≤ #t ∧ tᵢ = 0}|` so that `zeros(t) ∈ ℕ`;
   NAT-card also fixes `|·|` as a set-level operator distinct from T0's tumbler-length `#·`,
-  which acts on sequences. As a Consequence, `zeros(t) ∈ {0, 1, 2, 3}` for every T4-valid
-  tumbler — derived from the bound `zeros(t) ≤ 3`, NAT-zero's `0 ≤ zeros(t)`, NAT-order's
-  trichotomy, and NAT-discrete — so the per-`k` canonical written form collectively covers
-  every T4-valid tumbler.
+  which acts on sequences. As a Consequence, `(A t ∈ T : zeros(t) ≤ 3 : zeros(t) ∈ {0, 1, 2, 3})` —
+  universally quantified by the bound alone, since the field-segment constraint of full
+  T4-validity plays no role in the derivation (which uses only the bound, NAT-zero's
+  `0 ≤ zeros(t)`, NAT-order's trichotomy, NAT-discrete, and NAT-closure's left additive
+  identity). Every T4-valid tumbler discharges the hypothesis a fortiori via the first
+  conjunct of T4-valid, so the per-`k` canonical written form collectively covers every
+  T4-valid tumbler; downstream consumers with hypothesis `zeros(t) ≤ 3` only (T4a directly;
+  T4b transitively) cite the Consequence at their use-site without a meta-argument about
+  which derivation steps are needed.

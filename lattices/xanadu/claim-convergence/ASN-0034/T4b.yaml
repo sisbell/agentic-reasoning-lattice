@@ -13,8 +13,10 @@ summary: |
   four domains are fixed by zeros(t): dom(N) is the T4-valid subset of T (N is
   never absent); dom(U) restricts dom(N) to zeros(t) ≥ 1; dom(D) to zeros(t) ≥ 2;
   dom(E) to zeros(t) = 3. Presence pattern, made exhaustive over dom(N) by T4's
-  Exhaustion Consequence zeros(t) ∈ {0, 1, 2, 3} for every T4-valid t — for each
-  k ∈ ℕ with 0 ≤ k ≤ 3 at which zeros(t) = k: k = 0 → only N defined;
+  Exhaustion Consequence (A t ∈ T : zeros(t) ≤ 3 : zeros(t) ∈ {0, 1, 2, 3}) —
+  universally quantified by the bound alone, instantiated at every T4-valid t
+  (zeros(t) ≤ 3 by the first conjunct of T4-valid) — for each k ∈ ℕ with
+  0 ≤ k ≤ 3 at which zeros(t) = k: k = 0 → only N defined;
   k = 1 → N, U defined; k = 2 → N, U, D defined; k = 3 → all four defined.
   The four cases collectively cover every T4-valid t, so the four projections are
   well-defined on their stated domains.
