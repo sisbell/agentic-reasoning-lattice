@@ -231,6 +231,39 @@ class ApplyRetractDecisionsTests(unittest.TestCase):
             )
 
 
+class DumpFailureTranscriptTests(unittest.TestCase):
+    """Verify diagnostic transcript dump writes to the expected location
+    with the expected content. Patches LATTICE so writes are isolated."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.lattice_root = Path(self.tmp.name)
+        self._orig_lattice = CVR.LATTICE
+        CVR.LATTICE = self.lattice_root
+        self.addCleanup(lambda: setattr(CVR, "LATTICE", self._orig_lattice))
+
+    def test_writes_transcript_to_failures_dir(self):
+        path = CVR._dump_failure_transcript(
+            "ASN-0034", "TA5a.md", attempt=1,
+            transcript="agent said this", reason="missing __decisions.json",
+        )
+        self.assertTrue(path.exists())
+        text = path.read_text()
+        self.assertIn("missing __decisions.json", text)
+        self.assertIn("agent said this", text)
+        self.assertIn("TA5a.md", text)
+        self.assertIn("attempt 1", text)
+        # Path shape: lattice/_store/_failures/validate-revise/<asn>/<file>.<ts>.attempt<N>.txt
+        self.assertEqual(
+            path.parent,
+            self.lattice_root / "_store" / "_failures"
+            / "validate-revise" / "ASN-0034",
+        )
+        self.assertTrue(path.name.startswith("TA5a.md."))
+        self.assertTrue(path.name.endswith(".attempt1.txt"))
+
+
 class AddedBulletLabelsTests(unittest.TestCase):
     def test_extracts_added_bullets(self):
         diff = (

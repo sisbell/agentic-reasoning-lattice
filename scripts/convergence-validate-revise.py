@@ -27,12 +27,14 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
 from shared.common import invoke_claude_agent, find_asn
+from shared.paths import LATTICE
 from store.populate import build_cross_asn_label_index
 from store.retract import emit_retraction
 from store.store import Store
 
 
 VALID_ACTIONS = {"ADD", "RETRACT", "SKIP"}
+MAX_REVISER_ATTEMPTS = 2
 
 
 class DecisionsCorruption(Exception):
@@ -352,10 +354,37 @@ def apply_retract_decisions(store, decisions, claim_path, label_index):
     return emitted
 
 
+def _dump_failure_transcript(asn_label, filename, attempt, transcript, reason):
+    """Write a corruption transcript to a lattice-local failures dir.
+
+    Returns the dump path so callers can mention it in the user-visible
+    error message. Path: lattices/<lattice>/_store/_failures/validate-revise/
+    <asn_label>/<filename>.<ts>.attempt<N>.txt (gitignored).
+    """
+    import time as _time
+    safe_ts = _time.strftime("%Y%m%dT%H%M%SZ", _time.gmtime())
+    out_dir = LATTICE / "_store" / "_failures" / "validate-revise" / asn_label
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_path = out_dir / f"{filename}.{safe_ts}.attempt{attempt}.txt"
+    body = (
+        f"# Validate-revise corruption: {filename} (attempt {attempt})\n"
+        f"# Reason: {reason}\n"
+        f"# Timestamp: {safe_ts}\n"
+        f"\n"
+        f"--- BEGIN AGENT TRANSCRIPT ---\n"
+        f"{transcript}\n"
+        f"--- END AGENT TRANSCRIPT ---\n"
+    )
+    out_path.write_text(body)
+    return out_path
+
+
 def process_file_scratch(rule, tools, claim_dir, filename, findings, pairs):
     """Passes 1-4: copy target file to scratch, let Claude edit scratch, diff.
 
-    Returns (diff_text, scratch_path).
+    Returns (diff_text, scratch_path, transcript).
+    transcript is data["result"] (agent's final text); empty string on
+    CLI failure. Used for diagnostic dump on DecisionsCorruption.
     """
     real_path = claim_dir / filename
     before = real_path.read_text()
@@ -376,12 +405,13 @@ def process_file_scratch(rule, tools, claim_dir, filename, findings, pairs):
     )
     if data is None:
         print(f" → claude invocation failed", flush=True)
-        return None, scratch_path
+        return None, scratch_path, ""
     print(f"{elapsed:.0f}s", end="", flush=True)
 
     after = scratch_path.read_text()
     diff = unified_diff(before, after, filename)
-    return diff, scratch_path
+    transcript = data.get("result", "") or ""
+    return diff, scratch_path, transcript
 
 
 def process_propose(rule, tools, claim_dir, findings):
@@ -506,17 +536,19 @@ def run_pass(pass_spec, asn_label, claim_dir, findings, dry_run,
                 print(f" → applied (uncommitted)")
             continue
 
-        diff, scratch_path = process_file_scratch(
-            rule, tools, claim_dir, filename, file_findings, pairs
-        )
-        if diff is None:
-            continue
-
+        # Bounded retry: corruption may be a one-off LLM lapse. Retry once;
+        # persistent corruption falls through to the error path with the
+        # transcript dumped for diagnosis.
+        diff = None
+        scratch_path = None
         decisions = None
+        cli_failed = False
+        corrupted = False
+
+        valid_labels = set()
         if rule == "depends-agreement":
-            # Collect labels mentioned in any finding's detail (only_in_store
-            # detail format: "in store citations but not in md Depends: ['X', 'Y']").
-            valid_labels = set()
+            # Collect labels from finding detail (only_in_store format:
+            # "in store citations but not in md Depends: ['X', 'Y']").
             for f in file_findings:
                 m = re.search(r"\[(.*)\]", f["detail"])
                 if m:
@@ -524,15 +556,41 @@ def run_pass(pass_spec, asn_label, claim_dir, findings, dry_run,
                         lbl = tok.strip().strip("'\"")
                         if lbl:
                             valid_labels.add(lbl)
+
+        for attempt in range(1, MAX_REVISER_ATTEMPTS + 1):
+            diff, scratch_path, transcript = process_file_scratch(
+                rule, tools, claim_dir, filename, file_findings, pairs
+            )
+            if diff is None:
+                cli_failed = True
+                break
+            if rule != "depends-agreement":
+                break
             try:
                 decisions = parse_decisions(
                     scratch_path.parent, valid_labels, label_index, diff,
                 )
+                break
             except DecisionsCorruption as e:
+                dump = _dump_failure_transcript(
+                    asn_label, filename, attempt, transcript, str(e),
+                )
+                if attempt < MAX_REVISER_ATTEMPTS:
+                    print(f"\n    [retry {attempt}/{MAX_REVISER_ATTEMPTS}] "
+                          f"{e}; transcript: {dump}", file=sys.stderr)
+                    shutil.rmtree(scratch_path.parent, ignore_errors=True)
+                    continue
                 print(f" → ERROR (depends-agreement): {filename}: {e}",
                       file=sys.stderr)
+                print(f"   transcript: {dump}", file=sys.stderr)
                 shutil.rmtree(scratch_path.parent, ignore_errors=True)
-                continue
+                corrupted = True
+                break
+
+        if cli_failed:
+            continue
+        if corrupted:
+            continue
 
         retract_decisions = [
             d for d in (decisions or []) if d["action"] == "RETRACT"
