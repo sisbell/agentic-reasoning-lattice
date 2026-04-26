@@ -1,0 +1,19 @@
+# Cone Review — ASN-0034/T10a (cycle 7)
+
+*2026-04-26 05:18*
+
+### T4(iv) misattributed in Depends list for case `k = 0`
+**Class**: REVISE
+**Foundation**: T4 (HierarchicalParsing) — clause T4(iv) `t_{#t} ≠ 0`
+**ASN**: TA5a, Depends list, T4 entry: "boundary clause `t_{#t} ≠ 0` (iv) used at case `k = 0` (via TA5-SigValid's `sig(t) = #t`) to give `t_{sig(t)} ≠ 0` **for the NAT chain that yields `t_{sig(t)} + 1 ≠ 0`**". And the corresponding proof prose: "by T4(iv), `t_{#t} ≠ 0`; hence `t_{sig(t)} ≠ 0`. By NAT-closure, `t_{sig(t)} + 1 ∈ ℕ`; by NAT-zero and NAT-addcompat, `t_{sig(t)} + 1 > t_{sig(t)} ≥ 0`, so `t_{sig(t)} + 1 ≠ 0`."
+**Issue**: The NAT chain `t_{sig(t)} + 1 > t_{sig(t)} ≥ 0` (from NAT-addcompat's strict successor and NAT-zero's `0 ≤ n`) yields `t_{sig(t)} + 1 > 0`, hence `t_{sig(t)} + 1 ≠ 0`, *independently of whether `t_{sig(t)} = 0`*. The fact `t_{sig(t)} ≠ 0` (derived from T4(iv) via TA5-SigValid) is asserted mid-chain but never consumed in deriving `t_{sig(t)} + 1 ≠ 0`. T4(iv) is, however, genuinely used in case `k = 0` — at the zero-index set equality argument ("at `i = sig(t)` neither `tᵢ = 0` nor `t'ᵢ = 0`, so position `sig(t)` lies outside both the original and the primed zero-index subsets"), where excluding `i = sig(t)` from the *original* zero-index set requires `t_{sig(t)} ≠ 0`. The Depends entry's attribution to "the NAT chain that yields `t_{sig(t)} + 1 ≠ 0`" therefore mis-states the use site. The proof prose compounds the error by inserting "hence `t_{sig(t)} ≠ 0`" right before the NAT chain begins, suggesting it sets up the chain — but the chain doesn't need it, and the actual consumer (the zero-index set equality) is structurally elsewhere in the case.
+**What needs resolving**: Re-attribute T4(iv) at case `k = 0` in the Depends entry to its actual use site — the zero-index-set equality argument (excluding position `sig(t)` from the original zero-index set via `t_{sig(t)} ≠ 0`) — and reorder the proof prose so the `t_{sig(t)} ≠ 0` derivation sits with the zero-index-set step that consumes it, rather than mid-NAT-chain where it is asserted but unused. Alternatively, if T4(iv) is genuinely needed for the NAT chain on a tighter reading (e.g., to obtain `t_{sig(t)} > 0` rather than `≥ 0`), make that consumption explicit at the chain's last step.
+
+### Case `k = 2` lacks explicit T4(i) on `t'` bullet
+**Class**: REVISE
+**Foundation**: T4 (HierarchicalParsing) — invariant has four conjuncts, each requiring discharge on `t'`
+**ASN**: TA5a, Case `k = 2`: walks T4(ii), then T4(iv), then T4(iii), and concludes "T4 preserved iff `zeros(t) + 1 ≤ 3`, i.e., `zeros(t) ≤ 2`."
+**Issue**: After cycle 6's revision, Cases `k = 0` and `k = 1` both carry an explicit "For T4(i) on `t'`, the established `zeros(t') = zeros(t)` together with T4(i) on `t` (`zeros(t) ≤ 3`) gives `zeros(t') ≤ 3`" bullet, paralleling the T4(ii), T4(iii), T4(iv) bullets — every T4 conjunct individually labeled. Case `k = 2` does not. Its T4(i) discharge is folded into the case-closing iff "T4 preserved iff `zeros(t) + 1 ≤ 3`", which conflates two facts (T4(i)'s threshold on `t'` is `zeros(t') ≤ 3 = zeros(t) + 1 ≤ 3`, equivalent to `zeros(t) ≤ 2`) into the case conclusion. The previous review cycle's principle — "all four T4 conjuncts are individually checked off before 'T4 preserved' is asserted" — was applied to `k = 0` and `k = 1` but not to `k = 2`, leaving the same kind of gap (one labeled conjunct missing) that the previous cycle flagged.
+**What needs resolving**: Add an explicit "For T4(i) on `t'`, the established `zeros(t') = zeros(t) + 1` together with T4(i) on `t` (`zeros(t) ≤ 3`) gives `zeros(t') ≤ 3` iff `zeros(t) + 1 ≤ 3`, equivalently `zeros(t) ≤ 2`" bullet to case `k = 2`, paralleling the T4(i) bullets in cases `k = 0` and `k = 1`, and let the case conclusion read off the `zeros(t) ≤ 2` threshold from this labeled bullet rather than introducing the iff at the case-closing line.
+
+VERDICT: REVISE
