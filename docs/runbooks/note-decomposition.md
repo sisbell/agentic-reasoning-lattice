@@ -1,4 +1,4 @@
-# Runbook: Blueprinting a note
+# Runbook: Note Decomposition
 
 *Updated 2026-04-12.*
 
@@ -40,4 +40,4 @@ python scripts/validate.py <ASN>
 
 ---
 
-See the [blueprinting guide](../guides/blueprinting.md) for how the pipeline stages work, output structure, and design decisions.
+See the [note decomposition guide](../guides/note-decomposition.md) for how the pipeline stages work, output structure, and design decisions.

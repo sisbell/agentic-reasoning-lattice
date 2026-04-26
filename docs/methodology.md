@@ -14,19 +14,19 @@ Campaign architecture is what makes framework comparison possible. Two campaigns
 
 ## [Discovery](discovery.md)
 
-Discovery is how new knowledge enters the lattice. The [two-channel architecture](two-channel-architecture.md) decomposes a question into independent investigations — one consulting established theory, one analyzing raw evidence — separated by a vocabulary firewall that forces hypothesis space exploration rather than retrieval. A synthesis agent integrates both channels into a structured note with dependency-mapped claims. Where the channels agree, principles are validated. Where they disagree, new hypotheses emerge.
+Discovery is how new knowledge enters the lattice. The [two-channel architecture](two-channel-architecture.md) decomposes a question into independent investigations — one consulting established theory, one analyzing raw evidence — separated by a vocabulary firewall that forces hypothesis space exploration rather than retrieval. The [consultation protocol](protocols/consultation-protocol.md) governs this process with explicit safety properties: the vocabulary firewall is structural (C1), channels are independent (C2), and synthesis doesn't fabricate (C6). A synthesis agent integrates both channels into a structured note with dependency-mapped claims. Where the channels agree, principles are validated. Where they disagree, new hypotheses emerge.
 
 The two channels receive different context at question-generation time. Theory generators see a vocabulary list — the stable conceptual terms of the theoretical framework. Evidence generators see the corpus itself — the specific measurements, code, or artifacts they will be asked about. This asymmetry matches the representational difference between the channels: theory space is conceptual and listable, evidence space is specific and must be seen to be questioned precisely.
 
 The [note convergence protocol](protocols/note-convergence-protocol.md) drives the synthesized note toward stability through review/revise cycles. Findings are classified as `comment.revise` (must fix) or `comment.out-of-scope` (valid concern, belongs elsewhere). Out-of-scope findings become candidates for new inquiries through [scope promotion](patterns/scope-promotion.md) — the system discovers the questions it should be asking, not just answers to questions posed.
 
-## [Blueprinting](blueprinting.md)
+## [Note Decomposition](note-decomposition.md)
 
-Blueprinting is the meet operation on the lattice: a note-level node becomes many claim-level nodes. A note with dozens of interleaved claims is decomposed into atomic units — one file per claim, dependencies mapped, vocabulary extracted. Each claim is classified (axiom, definition, design requirement, lemma, theorem, corollary) and gets its own statement, justification, and proof.
+Note decomposition is the meet operation on the lattice: a note-level node becomes many claim-level nodes. A note with dozens of interleaved claims is decomposed into atomic units — one file per claim, dependencies mapped, vocabulary extracted. Each claim is classified (axiom, definition, design requirement, lemma, theorem, corollary) and gets its own statement, justification, and proof.
 
 This decomposition is a [representation change](patterns/representation-change.md) — the content stays the same but the form changes from narrative to structured per-claim files. The representation change introduces structural invariants that must hold for the per-claim form to mean anything: one body per file, filename matches label, references resolve, metadata agrees with content, no dependency cycles. These invariants are specified in the [Claim File Contract](design-notes/claim-file-contract.md).
 
-This decomposition is what makes claim convergence possible. Claims can be reviewed independently, grouped into clusters, or reviewed as a complete set. Without blueprinting, the claim convergence protocol has nothing to operate on.
+This decomposition is what makes claim convergence possible. Claims can be reviewed independently, grouped into clusters, or reviewed as a complete set. Without note decomposition, the claim convergence protocol has nothing to operate on.
 
 ## The Three Principles
 
@@ -72,7 +72,7 @@ This is a property of the lattice structure, not a feature bolted on. Permanent 
 
 The patterns govern how the system operates. They were discovered through operation — each observed before it was named. The primary pattern is [narrow → refine → verify](patterns/narrow-refine-verify.md), the scientific method operationalized for agents. The remaining patterns describe what happens in practice: when review stalls ([dependency cone](patterns/dependency-cone.md)), how questions decompose ([scoped inquiry](patterns/scoped-inquiry.md)), how domain and formal language connect ([vocabulary bridge](patterns/vocabulary-bridge.md)), how the lattice grows ([scope promotion](patterns/scope-promotion.md), [extract/absorb](patterns/extract-absorb.md)), how structural validation precedes semantic review ([validate before review](patterns/validate-before-review.md)).
 
-The patterns compose — every process in the system, at every scale, follows the same narrow → refine → verify rhythm. Discovery narrows questions to channels. Blueprinting narrows documents to claims. Claim convergence narrows review to the scope that matches the issue. The pattern language systematically reduces wasted agent computation by routing each problem to the scope that can resolve it.
+The patterns compose — every process in the system, at every scale, follows the same narrow → refine → verify rhythm. Discovery narrows questions to channels. Note decomposition narrows documents to claims. Claim convergence narrows review to the scope that matches the issue. The pattern language systematically reduces wasted agent computation by routing each problem to the scope that can resolve it.
 
 See [Pattern Language for Agentic Reasoning Systems](patterns/README.md) for the full catalog.
 
@@ -80,7 +80,7 @@ See [Pattern Language for Agentic Reasoning Systems](patterns/README.md) for the
 
 The methodology produces a lattice with algebraic structure:
 
-- **Meet** — shared concepts extracted into new foundation layers below both consumers. Blueprinting executes meets. [Extract/absorb](patterns/extract-absorb.md) executes meets: shared definitions become foundation nodes that dependents reference.
+- **Meet** — shared concepts extracted into new foundation layers below both consumers. Note decomposition executes meets. [Extract/absorb](patterns/extract-absorb.md) executes meets: shared definitions become foundation nodes that dependents reference.
 - **Join** — new nodes created above multiple foundations. Synthesis executes joins. [Scope promotion](patterns/scope-promotion.md) executes joins: out-of-scope findings become first-class investigations connecting to existing nodes.
 
 The lattice order — which nodes depend on which — is discovered, not imposed. Foundation layers emerge when multiple higher-level documents independently define the same concept. New domain vocabulary emerges because the mathematics requires it, not prescribed in advance.

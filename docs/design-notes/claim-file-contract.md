@@ -1,8 +1,8 @@
 # Claim File Contract
 
-The output contract for blueprinting. Specifies what well-formed per-claim files look like — what must be true when blueprinting finishes, and what must remain true across every review/revise cycle. The first instance of the transition-contract resolution for [Uncontracted Representation Change](../equilibrium/uncontracted-representation-change.md).
+The output contract for note decomposition. Specifies what well-formed per-claim files look like — what must be true when note decomposition finishes, and what must remain true across every review/revise cycle. The first instance of the transition-contract resolution for [Uncontracted Representation Change](../equilibrium/uncontracted-representation-change.md).
 
-Scope: this contract governs the per-claim `{label}.yaml` and `{label}.md` file pairs produced by blueprinting. Other artifacts emitted at other stages — the foundation index, the vocabulary aggregation, the `formal-statements.md` export — are separate representation changes with their own contracts. Don't bundle them.
+Scope: this contract governs the per-claim `{label}.yaml` and `{label}.md` file pairs produced by the [note decomposition protocol](../protocols/note-decomposition-protocol.md). Other artifacts emitted at other stages — the foundation index, the vocabulary aggregation, the `formal-statements.md` export — are separate representation changes with their own contracts. Don't bundle them.
 
 ## Two axes
 
@@ -10,7 +10,7 @@ Every invariant is classified along two axes:
 
 **Enforcement.** Structural invariants are mechanically checkable without LLM interpretation — a validator enforces them. Semantic invariants require reading content and judging it — review enforces them. These are disjoint: if an invariant can be expressed as a structural check, it is one. If it requires judgment, it isn't. The whole point of the contract is to keep structural checks out of the review loop.
 
-**Checkability window.** Steady-state invariants are verifiable from the output files alone; they must hold after every revise commit. Transition-checkable invariants require the source artifact (the pre-blueprinting ASN) for comparison; they can only be verified at the moment of the transition. After the first revise, the source is no longer the authoritative comparison point — the committed output is.
+**Checkability window.** Steady-state invariants are verifiable from the output files alone; they must hold after every revise commit. Transition-checkable invariants require the source artifact (the pre-decomposition note) for comparison; they can only be verified at the moment of the transition. After the first revise, the source is no longer the authoritative comparison point — the committed output is.
 
 ## Transactional scope
 
@@ -34,7 +34,7 @@ Consequence: when a mismatch is found, the fix is to change the filename or the 
 
 3. **Declaration matches label.** The markdown body contains exactly one bold claim-declaration of the form `**<Label> (<Name>).**`. The label-position equals the yaml `label` field; the parenthetical equals the yaml `name` field (when `label == name`, the parenthetical repeats it — redundant but uniform). The parenthetical is required in all cases; this uniformity makes the declaration textually distinguishable from proof-narrative emphasis (e.g., `**Positivity.**`, `**Length.**`). Type keywords (*axiom*, *definition*, *design-requirement*, *lemma*, *theorem*, *corollary*) do not appear in the label-position — those live in the yaml `type` field.
 
-4. **YAML well-formed.** Parses as YAML. Required fields present (`label`, `name`, `type`, `summary`, `depends`). Types as declared in the blueprinting schema.
+4. **YAML well-formed.** Parses as YAML. Required fields present (`label`, `name`, `type`, `summary`, `depends`). Types as declared in the decomposition schema.
 
 5. **Depends agreement.** The yaml `depends:` list and the markdown Formal Contract Depends section name the same set of claims. No additions or omissions in either surface.
 
@@ -46,17 +46,17 @@ Consequence: when a mismatch is found, the fix is to change the filename or the 
 
 9. **Body uniqueness.** A given claim's body (bold declaration, proof, formal contract) appears in exactly one file — the file whose label matches the claim. No claim's body is inlined into another claim's file.
 
-### Transition-checkable — validator runs once, at the end of blueprinting
+### Transition-checkable — validator runs once, at the end of note decomposition
 
-10. **Source coverage.** Every claim in the source ASN produces exactly one file pair. No source claim is dropped; no source claim is duplicated into multiple pairs.
+10. **Source coverage.** Every claim in the source note produces exactly one file pair. No source claim is dropped; no source claim is duplicated into multiple pairs.
 
-11. **No orphan output.** Every file pair in the output corresponds to a claim in the source ASN. Blueprinting does not invent claims.
+11. **No orphan output.** Every file pair in the output corresponds to a claim in the source note. Note decomposition does not invent claims.
 
 12. **Content preservation.** Each source claim's narrative, proof, and formal contract text appears — substantively, not necessarily byte-identically — in its corresponding file pair. A mechanical version of this check: the output file pair's non-boilerplate text is non-empty and contains the claim's summary terms. Anything stronger is a semantic check and belongs to review.
 
 ## Semantic invariants — review enforces, not validator
 
-These are established at blueprinting and must be preserved by authoring discipline. They surface as review findings when violated, not as validator errors.
+These are established at note decomposition and must be preserved by authoring discipline. They surface as review findings when violated, not as validator errors.
 
 S1. **Summary matches body.** The yaml `summary` describes what the `.md` body claims. Not a restatement of the formal contract; not stale after a revise changes the body.
 
@@ -68,7 +68,7 @@ S3. **Symbol usage matches declaration.** A symbol declared with a given signatu
 
 Three points where the contract is checked:
 
-- **End of blueprinting.** Validator runs all structural invariants (steady-state and transition-checkable). Catches blueprinting bugs before they become inherited state downstream.
+- **End of note decomposition.** Validator runs all structural invariants (steady-state and transition-checkable). Catches decomposition bugs before they become inherited state downstream.
 - **Before each review cycle.** Validator runs steady-state structural invariants only. Catches drift introduced by prior revise commits, manual edits, or foundation rebases. Runs before the reviewer so the reviewer does not spend cycles on mechanically-detectable symptoms.
 - **During review.** Reviewer checks semantic invariants as part of its normal operation. Validator does not touch these.
 
@@ -86,5 +86,6 @@ Running the validator before the reviewer eliminates the reviewer's work on mech
 - [Validate Before Review](../patterns/validate-before-review.md) — the operational pattern that consumes this contract. Its validator runs the contract's structural invariants; its per-invariant revise recipes address the violations it finds.
 - [Uncontracted Representation Change](../equilibrium/uncontracted-representation-change.md) — the failure mode this contract addresses. The T4 sweep's non-convergence was a concrete instance: sixteen cycles spent on symptoms of structural violations because no contract specified what well-formed per-claim output meant.
 - [Representation Change](../patterns/representation-change.md) — the pattern this contract's existence is a consequence of. Every representation change introduces new structural rules; this contract is the first such rule set written down.
-- [Blueprinting guide](../guides/blueprinting.md) — the stage whose output this contract governs.
+- [Note Decomposition Protocol](../protocols/note-decomposition-protocol.md) — the protocol whose output this contract governs.
+- [Note Decomposition](../note-decomposition.md) — the narrative guide for the stage.
 - [Self-Healing Areas](self-healing.md) — the steady-state structural invariants here are the mechanical-signal self-healing candidates named in that map.

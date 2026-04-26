@@ -60,7 +60,7 @@ lattices/
 │   ├── _store/       # substrate: links + documents (protocol state)
 │   ├── campaigns/    # campaign configs + bridge vocabularies
 │   ├── discovery/         # notes, consultations
-│   ├── blueprinting/
+│   ├── note-decomposition/  # intermediate decomposition output
 │   ├── claim-convergence/ # per-claim files, review history
 │   └── verification/
 └── materials/
@@ -82,7 +82,7 @@ The lattice is one structure that matures from coarse-grained to fine-grained as
 
 ### The three transitions
 
-**Blueprint.** Decomposes the note's claims into individual per-claim files. The claims already exist in the note's prose; blueprinting gives each one its own file. This is a [representation change](patterns/representation-change.md) that introduces structural invariants specified in the [Claim File Contract](design-notes/claim-file-contract.md) — one body per file, filename matches label, references resolve, metadata agrees with content, no dependency cycles. The claims are not yet referenceable by other notes. The note's internal structure is taking shape; its external surface hasn't changed.
+**Decompose.** Decomposes the note's claims into individual per-claim files. The claims already exist in the note's prose; note decomposition gives each one its own file. This is a [representation change](patterns/representation-change.md) that introduces structural invariants specified in the [Claim File Contract](design-notes/claim-file-contract.md) — one body per file, filename matches label, references resolve, metadata agrees with content, no dependency cycles. The claims are not yet referenceable by other notes. The note's internal structure is taking shape; its external surface hasn't changed.
 
 **Promote.** Makes the note's claim set available to claim-convergence-stage consumers. From this point, any note in claim convergence can reference individual claims in this note via `follows_from`. This is the gate that enables downstream convergence.
 
@@ -100,7 +100,7 @@ Which granularity a consuming note sees depends on the consumer's stage:
 
 Changes to a dependency's claims ripple differently depending on the consumer's stage:
 
-**Claim-convergence-stage consumers** see changes after the dependency's blueprint is promoted. Ripple at claim granularity, gated by promote.
+**Claim-convergence-stage consumers** see changes after the dependency's decomposition is promoted. Ripple at claim granularity, gated by promote.
 
 **Discovery-stage consumers** see changes after the dependency is reassembled into note form. Ripple at note granularity, gated by assemble.
 
@@ -130,14 +130,16 @@ Notes do not retire at a single moment. They retire gradually as their discovery
 
 The system is a set of protocols sharing a substrate. The [maturation protocol](protocols/maturation-protocol.md) governs transitions between stage protocols. Each stage protocol has a convergence criterion. Content doesn't flow through stages — it sits in the substrate and the governing protocol changes when transition conditions are met.
 
-**Discovery → Blueprinting → Claim Convergence → Verification.**
+**Discovery → Note Decomposition → Claim Convergence → Verification.**
 
-Each stage operates on the same content in a progressively more precise representation. Two stage protocols are formally specified with explicit safety and liveness properties, convergence predicates on the link graph, and separation of protocol from choreography:
+Each stage operates on the same content in a progressively more precise representation. Five protocols are formally specified:
 
+- The [consultation protocol](protocols/consultation-protocol.md) produces the initial note from a campaign-bound inquiry. Two channels consulted under enforced vocabulary separation; output synthesized into a note. One-shot.
 - The [note convergence protocol](protocols/note-convergence-protocol.md) drives notes toward stability during discovery. Findings classified as `comment.revise` or `comment.out-of-scope`. OUT_OF_SCOPE signals feed lattice operations in the maturation protocol.
-- The [claim convergence protocol](protocols/claim-convergence-protocol.md) drives claims toward formal precision after blueprinting. Findings classified as `comment.revise` or `comment.observe`. OBSERVE is the off-ramp for the [production drive](design-notes/production-drive.md).
+- The [note decomposition protocol](protocols/note-decomposition-protocol.md) decomposes a converged note into per-claim file pairs satisfying the [Claim File Contract](design-notes/claim-file-contract.md). One-shot.
+- The [claim convergence protocol](protocols/claim-convergence-protocol.md) drives claims toward formal precision after note decomposition. Findings classified as `comment.revise` or `comment.observe`. OBSERVE is the off-ramp for the [production drive](design-notes/production-drive.md).
 
-Both specialize the [convergence protocol](protocols/convergence-protocol.md) — a document-type-neutral module providing the shared predicate, link types, and properties. "Verification" refers exclusively to the external-verifier stage (Dafny/Alloy in software; experimental replication in science).
+Both convergence protocols specialize the [convergence protocol](protocols/convergence-protocol.md) — a document-type-neutral module providing the shared predicate, link types, and properties. "Verification" refers exclusively to the external-verifier stage (Dafny/Alloy in software; experimental replication in science).
 
 Before each review cycle within claim convergence, a structural validation pass runs: the mechanical validator checks the [Claim File Contract](design-notes/claim-file-contract.md), and per-invariant fix recipes resolve any violations. This is the [validate-before-review](patterns/validate-before-review.md) pattern enforcing the [Validation Principle](principles/validation.md) — structural integrity as a precondition for meaningful review.
 

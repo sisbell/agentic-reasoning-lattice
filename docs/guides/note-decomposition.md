@@ -1,4 +1,4 @@
-# Guide: Blueprinting
+# Guide: Note Decomposition
 
 *Updated 2026-04-12.*
 

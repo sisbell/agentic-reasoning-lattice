@@ -235,6 +235,7 @@ The [maturation protocol](maturation-protocol.md) decides when to activate this 
 ## Related
 
 - [Convergence Protocol](convergence-protocol.md) — the document-type-neutral module this protocol specializes.
+- [Consultation Protocol](consultation-protocol.md) — the upstream producer. Generates the initial note this protocol refines.
 - [Claim Convergence Protocol](claim-convergence-protocol.md) — the sibling specialization at claim scale.
 - [Review/Revise Iteration](../patterns/review-revise-iteration.md) — the empirical pattern underlying this protocol. Battle-tested across a dozen ASNs.
 - [Maturation Protocol](maturation-protocol.md) — the meta-protocol that activates note convergence and executes lattice operations on its signals.

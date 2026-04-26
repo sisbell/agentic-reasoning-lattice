@@ -16,44 +16,71 @@ Content matures through four representations, each progressively more precise:
 
 | Representation | Form | Produced by |
 |---|---|---|
-| **Note** | Narrative prose with embedded claims | Discovery + [note convergence](note-convergence-protocol.md) |
-| **Claim files** | Per-claim YAML metadata + markdown body | Blueprinting protocol |
-| **Converged contracts** | Formally precise claims where every revise comment has a resolution | [Claim convergence protocol](claim-convergence-protocol.md) |
+| **Note** | Narrative prose with embedded claims | [Consultation](protocols/consultation-protocol.md) + [note convergence](protocols/note-convergence-protocol.md) |
+| **Claim files** | Per-claim YAML metadata + markdown body | [Note decomposition protocol](protocols/note-decomposition-protocol.md) |
+| **Converged contracts** | Formally precise claims where every revise comment has a resolution | [Claim convergence protocol](protocols/claim-convergence-protocol.md) |
 | **Verified code** | Mechanically checked assertions | Verification protocol |
 
 Each transition is a [representation change](../patterns/representation-change.md). The content doesn't change. The form makes it progressively more checkable.
 
 ## The stage protocols
 
-Four stage protocols execute within the maturation protocol. Each has a convergence criterion:
+Five protocols execute within the maturation protocol. Each has a defined completion criterion:
 
-**[Note convergence protocol](note-convergence-protocol.md).** Drives notes toward stability through review/revise cycles. Finding classification is REVISE / OUT_OF_SCOPE. The convergence predicate — every `comment.revise` has a `resolution` — determines when a note is ready for blueprinting. OUT_OF_SCOPE findings generate signals that maturation consumes for lattice operations. Operates at note scale.
+**[Consultation protocol](protocols/consultation-protocol.md).** Produces the initial note from a campaign-bound inquiry. Two independent channels (theory and evidence) are consulted under enforced vocabulary separation; their outputs are synthesized into a structured note. One-shot — terminates on output production. The consultation protocol is the upstream producer for note convergence; together they constitute the discovery stage.
 
-**Blueprinting protocol.** Progressive decomposition of a note into per-claim file pairs — mechanical section split, per-section claim identification, per-claim classification and dependency extraction. Post-decomposition validation checks the output against the [Claim File Contract](../design-notes/claim-file-contract.md).
+**[Note convergence protocol](protocols/note-convergence-protocol.md).** Drives notes toward stability through review/revise cycles. Finding classification is REVISE / OUT_OF_SCOPE. The convergence predicate — every `comment.revise` has a `resolution` — determines when a note is ready for decomposition. OUT_OF_SCOPE findings generate signals that maturation consumes for lattice operations. Operates at note scale.
 
-**[Claim convergence protocol](claim-convergence-protocol.md).** The convergence predicate — every `comment.revise` has a matching `resolution` — drives claims toward formal precision. Finding classification is REVISE / OBSERVE. Scope strategies (adaptive, comprehensive) are choreography decisions within the protocol. Operates at claim scale.
+**[Note decomposition protocol](protocols/note-decomposition-protocol.md).** Decomposes a converged note into per-claim file pairs — mechanical section split, per-section claim identification, per-claim classification and dependency extraction. Post-decomposition validation checks the output against the [Claim File Contract](../design-notes/claim-file-contract.md). One-shot — terminates when the structural contract holds on the output.
+
+**[Claim convergence protocol](protocols/claim-convergence-protocol.md).** The convergence predicate — every `comment.revise` has a matching `resolution` — drives claims toward formal precision. Finding classification is REVISE / OBSERVE. Scope strategies (adaptive, comprehensive) are choreography decisions within the protocol. Operates at claim scale.
 
 **Verification protocol.** Converged contracts are translated into mechanically verifiable code — Dafny for logical consistency, Alloy for bounded model checking, experimental replication for science domains. Failures route back to the appropriate upstream protocol with the verification failure as a finding.
 
-The [validate-before-review](../patterns/validate-before-review.md) pattern is instantiated by any protocol that runs LLM review on structured content. Claim convergence instantiates it before each review. Blueprinting instantiates it as post-decomposition validation. It is a reusable pattern, not a sub-protocol of any single stage.
+The [validate-before-review](../patterns/validate-before-review.md) pattern is instantiated by any protocol that runs LLM review on structured content. Claim convergence instantiates it before each review. Note decomposition instantiates it as post-decomposition validation. It is a reusable pattern, not a sub-protocol of any single stage.
 
-Both convergence protocols specialize the [convergence protocol](convergence-protocol.md) — the document-type-neutral module that provides the predicate, comment/resolution link types, and safety/liveness properties.
+Both convergence protocols specialize the [convergence protocol](protocols/convergence-protocol.md) — the document-type-neutral module that provides the predicate, comment/resolution link types, and safety/liveness properties. The two one-shot protocols (consultation and note decomposition) share the production shape — terminate on output, no convergence predicate — but do not share a formal module.
 
 ## Transition conditions and artifacts
 
-Each transition has a readiness signal and a handoff artifact — what is evaluated, and what is passed to the next stage:
+```
+Module: Maturation
+  Uses: Consultation, NoteConvergence, NoteDecomposition, ClaimConvergence, Verification
 
-### Discovery → blueprinting
+  Consultation → NoteConvergence
+    Precondition: ⟨ NoteProduced ⟩ indicated
+    Artifact: synthesized note with dependency-mapped claims
+
+  NoteConvergence → NoteDecomposition
+    Precondition: ⟨ Converged | note ⟩ indicated, sustained quiet observed
+    Artifact: frozen note (markdown + vocabulary + note-level dependencies)
+
+  NoteDecomposition → ClaimConvergence
+    Precondition: ⟨ ClaimSetProduced ⟩ indicated, Claim File Contract holds
+    Artifact: per-claim file set with claim/contract/citation/decomposition links
+
+  ClaimConvergence → Verification
+    Precondition: ⟨ Converged ⟩ indicated, coverage met
+    Artifact: claim files with formally precise contracts
+
+  Verification → Done | HardReset
+    Precondition: mechanical verification passes (or fails)
+    Artifact (on failure): verification failure traced to specific claim
+```
+
+Each transition has a readiness signal and a handoff artifact — what is evaluated, and what is passed to the next stage. Detail below:
+
+### Discovery → note decomposition
 
 **Readiness signal.** The note convergence predicate holds — every `comment.revise` on the note has a `resolution` — and the choreography observes sustained quiet: few or no substantive findings across the last N cycles, zero new vocabulary coinages, new cycles producing wordsmithing rather than reasoning. Additionally: no other note in discovery owns claims that naturally belong here.
 
-Waiting for foundation dependencies to converge their claims before blueprinting reduces rework — foundation contracts will be stable and downstream citations won't need re-verification. But the protocol does not enforce this as a gate. A note can enter blueprinting against non-converged foundations. When those foundations later converge and their contracts tighten, the dependent's review cycles will find issues traceable to the changes. The protocol handles the rework through its normal feedback path — new `comment.revise` links filed, predicate goes false, convergence resumes.
+Waiting for foundation dependencies to converge their claims before decomposition reduces rework — foundation contracts will be stable and downstream citations won't need re-verification. But the protocol does not enforce this as a gate. A note can enter decomposition against non-converged foundations. When those foundations later converge and their contracts tighten, the dependent's review cycles will find issues traceable to the changes. The protocol handles the rework through its normal feedback path — new `comment.revise` links filed, predicate goes false, convergence resumes.
 
 **Handoff artifact.** The note file (markdown), plus the note's vocabulary (terms coined during discovery), plus its declared note-level dependencies (`depends: [ASN-NNNN]`). The note is frozen at handoff — it becomes the record of discovery, not a living document.
 
-### Blueprinting → claim convergence
+### Note decomposition → claim convergence
 
-**Readiness signal.** The post-blueprinting validator returns zero violations against the [Claim File Contract](../design-notes/claim-file-contract.md). This is a structural validation result, not a convergence predicate in the graph-property sense — blueprinting's completion criterion is mechanical checking, not resolved comments. Structural form is valid — one body per file, references resolve, metadata agrees, no dependency cycles.
+**Readiness signal.** The post-decomposition validator returns zero violations against the [Claim File Contract](../design-notes/claim-file-contract.md). This is a structural validation result, not a convergence predicate in the graph-property sense — decomposition's completion criterion is mechanical checking, not resolved comments. Structural form is valid — one body per file, references resolve, metadata agrees, no dependency cycles.
 
 **Handoff artifact.** The claim file set: per-claim `.md` + `.yaml` pairs, plus the campaign's bridge vocabulary, plus foundation statements from upstream ASNs. Semantic content may be imprecise; structural form must be valid.
 
@@ -119,7 +146,7 @@ The protocol is correct either way. The convergence predicate doesn't check foun
 
 The efficient ordering:
 
-- Blueprint foundation notes first — their claim structure stabilizes before dependents cite it
+- Decompose foundation notes first — their claim structure stabilizes before dependents cite it
 - Converge foundation claims before converging dependents — tightened contracts don't cascade rework
 - Verify foundations before verifying dependents — verified contracts don't change
 
@@ -131,7 +158,7 @@ When a foundation turns out to be wrong — not incomplete, but wrong — a hard
 
 Hard reset is a defined operation, not an error. It is expensive and destructive. A `provenance.reset` link on each affected note records the cascade. The alternative — leaving dependents building on a known-bad foundation — is worse.
 
-Hard reset is distinct from the foundation-change feedback path. Foundation change handles a foundation whose contracts tightened or shifted during normal convergence — dependents absorb the changes through new `comment.revise` links. Hard reset handles a foundation whose premises were incorrect — dependents can't just re-converge, they may need to re-blueprint because the claim structure itself may change.
+Hard reset is distinct from the foundation-change feedback path. Foundation change handles a foundation whose contracts tightened or shifted during normal convergence — dependents absorb the changes through new `comment.revise` links. Hard reset handles a foundation whose premises were incorrect — dependents can't just re-converge, they may need to re-decompose because the claim structure itself may change.
 
 ## Feedback paths
 
@@ -155,34 +182,36 @@ Maturation reaches quiescence when no transition conditions are met and no latti
 
 - **Pose the initial question.** The question that starts a campaign.
 - **Create campaigns.** Choose the channel pairing, curate the bridge vocabulary, set the target. Campaigns are parameters of the maturation protocol — they exist before any stage protocol runs.
-- **Set transition thresholds.** How many diminishing-return cycles before blueprinting? How strict is the claim file contract? These are policy decisions.
+- **Set transition thresholds.** How many diminishing-return cycles before decomposition? How strict is the claim file contract? These are policy decisions.
 - **Intervene on transition misfires.** If a transition condition fires prematurely or fails to fire when it should, the human overrides. This is the fallback for transition conditions that don't yet capture what readiness actually means for this domain.
 - **Evaluate final output.** Are the verified claims the right claims? Do they answer the question? Are the open questions worth pursuing as new campaigns?
 
 The human's role shifts as transition conditions improve. Early in a domain's life, the human intervenes frequently — transition conditions are uncalibrated. Later, the human monitors and evaluates. The protocol runs. The human judges.
 
-## The supervision question
+## The supervision architecture
 
-The maturation protocol currently has no explicit supervisor agent. The human triggers transitions by running scripts. The transition conditions are evaluated by the human reading the stage protocol's output.
+The human is the maturation protocol's executor for the foreseeable future. The human triggers transitions by running scripts, evaluates transition conditions by reading stage protocol output, and decides when to run lattice operations. This is a deliberate architectural choice, not a gap waiting to be filled — the transition conditions are not yet reliable enough to automate, and the lattice operations require judgment the system cannot yet provide.
 
-Two future architectures are possible:
+Two future architectures become possible as transition conditions mature:
 
-**Explicit supervisor.** An agent watches the lattice, evaluates transition conditions, and triggers stage protocols. Centralized orchestration.
+**Explicit supervisor.** An agent watches the lattice, evaluates transition conditions, and triggers stage protocols. Centralized orchestration. Becomes viable when transition conditions are precise enough that an agent can evaluate them without human judgment.
 
-**Emergent transitions.** Each stage protocol publishes a readiness signal on completion. The next stage protocol subscribes and starts when the signal arrives. Decentralized.
+**Emergent transitions.** Each stage protocol publishes a readiness signal on completion. The next stage protocol subscribes and starts when the signal arrives. Decentralized. Becomes viable when transition conditions are reliable enough that a signal is sufficient — no reasoning about edge cases needed.
 
-The choice depends on how reliable the transition conditions become. Unreliable conditions need centralized judgment (a supervisor that can reason about edge cases). Reliable conditions can be decentralized (a signal is a signal). The current state — human as supervisor — is the starting point. The protocol design doesn't depend on the choice; the transition conditions and handoff artifacts are the same either way.
+The protocol design doesn't depend on which architecture eventually replaces human supervision. The transition conditions and handoff artifacts are the same — only who evaluates them changes.
 
 ## Related
 
-- [Convergence Protocol](convergence-protocol.md) — the document-type-neutral module both convergence protocols specialize.
-- [Note Convergence Protocol](note-convergence-protocol.md) — the stage protocol that drives notes to stability during discovery.
-- [Claim Convergence Protocol](claim-convergence-protocol.md) — the stage protocol that drives claims to formal precision.
+- [Convergence Protocol](protocols/convergence-protocol.md) — the document-type-neutral module both convergence protocols specialize.
+- [Consultation Protocol](protocols/consultation-protocol.md) — the upstream producer that generates initial notes from campaign inquiries.
+- [Note Convergence Protocol](protocols/note-convergence-protocol.md) — the stage protocol that drives notes to stability during discovery.
+- [Note Decomposition Protocol](protocols/note-decomposition-protocol.md) — the stage protocol that decomposes notes into per-claim files.
+- [Claim Convergence Protocol](protocols/claim-convergence-protocol.md) — the stage protocol that drives claims to formal precision.
 - [Architecture](../architecture.md) — the six-level hierarchy and lattice structure the maturation protocol operates on.
 - [Representation Change](../patterns/representation-change.md) — each transition is a representation change.
 - [Validate Before Review](../patterns/validate-before-review.md) — a reusable pattern instantiated by multiple stage protocols.
 - [Uncontracted Representation Change](../equilibrium/uncontracted-representation-change.md) — the failure mode when a transition lacks an output contract.
-- [Claim File Contract](../design-notes/claim-file-contract.md) — the output contract for the blueprinting → claim convergence transition.
+- [Claim File Contract](../design-notes/claim-file-contract.md) — the output contract for the note decomposition → claim convergence transition.
 - [Extract/Absorb](../patterns/extract-absorb.md) — lattice operations described in §Lattice operations.
 - [Scope Promotion](../patterns/scope-promotion.md) — lattice operation described in §Lattice operations.
 - [The Validation Principle](../principles/validation.md), [The Coupling Principle](../principles/coupling.md), [The Voice Principle](../principles/voice.md) — the quality boundary for all stage protocols.

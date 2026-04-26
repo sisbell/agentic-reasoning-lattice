@@ -5,9 +5,10 @@ Complete index of the documentation. The root [README](../README.md) is the proj
 ## Core reference
 
 - [Vision](vision.md) — hypothesis space navigation, semantic communication substrate, building the engine
-- [Methodology](methodology.md) — inquiry decomposition, two-channel discovery, claim convergence
+- [Methodology](methodology.md) — inquiry decomposition, two-channel discovery, note decomposition, claim convergence
+- [Two-Channel Architecture](two-channel-architecture.md) — independent theory and evidence channels, vocabulary firewall, channel asymmetry, synthesis. The mechanism that produces new knowledge for the lattice.
 - [Discovery](discovery.md) — finding formal structure through structured consultation
-- [Blueprinting](blueprinting.md) — meet operation: document → atomic claims
+- [Note Decomposition](note-decomposition.md) — meet operation: document → atomic claims
 - [Claim Convergence](claim-convergence.md) — precision as a discovery tool
 - [Architecture](architecture.md) — structural hierarchy (domain / lattice / campaign / inquiry / note / claim) and the lattice lifecycle
 - [Principles](principles/README.md) — three disciplines that keep the review cycle focused on its real job: [Coupling](principles/coupling.md) (prose and formal content authored as a pair), [Validation](principles/validation.md) (structural contract as a precondition for review), and [Voice](principles/voice.md) (positive style structure constrains LLM output by construction). Coupling and validation monitor and check; voice prevents problems from being generated. All three are needed.
@@ -15,11 +16,13 @@ Complete index of the documentation. The root [README](../README.md) is the proj
 
 ## Agentic Protocols
 
-The system is a stack of protocols sharing a substrate. The convergence protocol defines the shared predicate and link types; note convergence and claim convergence specialize it for different scales; the maturation protocol orchestrates transitions between stages and executes lattice operations. Following the modular formalism of Cachin (*Reliable and Secure Distributed Programming*), but for LLM-agent coordination rather than distributed nodes.
+The system is a stack of protocols sharing a substrate. Production-shaped protocols (consultation, note decomposition) produce artifacts to a contract; convergence-shaped protocols (note convergence, claim convergence) iterate on those artifacts until a graph predicate holds; the convergence module factors out what the convergence-shaped protocols share; the maturation protocol orchestrates the pipeline and executes lattice operations. Following the modular formalism of Cachin (*Reliable and Secure Distributed Programming*), but for LLM-agent coordination rather than distributed nodes. See [protocols overview](protocols/README.md) for layering and reading order.
 
-- [Convergence Protocol](protocols/convergence-protocol.md) — the document-type-neutral module. Convergence predicate, comment/resolution link types, safety/liveness properties shared by all review/revise processes.
-- [Note Convergence Protocol](protocols/note-convergence-protocol.md) — drives notes to stability during discovery. Specializes the convergence protocol for notes; adds `comment.out-of-scope` as the off-ramp that feeds lattice operations.
-- [Claim Convergence Protocol](protocols/claim-convergence-protocol.md) — drives claims to formal precision after blueprinting. Specializes the convergence protocol for claims; adds structural validation, the algorithm, and correctness arguments.
+- [Consultation Protocol](protocols/consultation-protocol.md) — *production*. Produces an initial note from a campaign-bound inquiry. Two channels (theory and evidence) consult under enforced vocabulary separation; a synthesizer integrates their outputs.
+- [Note Convergence Protocol](protocols/note-convergence-protocol.md) — *convergence*. Drives notes to stability during discovery. Specializes the convergence protocol for notes; `comment.out-of-scope` is the off-ramp that feeds lattice operations.
+- [Note Decomposition Protocol](protocols/note-decomposition-protocol.md) — *production*. Decomposes a converged note into per-claim file pairs conforming to the Claim File Contract. The boundary between note convergence and claim convergence; a representation change.
+- [Claim Convergence Protocol](protocols/claim-convergence-protocol.md) — *convergence*. Drives claims to formal precision after note decomposition. Specializes the convergence protocol for claims; adds structural validation, the algorithm, and correctness arguments.
+- [Convergence Protocol](protocols/convergence-protocol.md) — the document-type-neutral foundation. Convergence predicate, comment/resolution link types, safety/liveness properties shared by both convergence-shaped specializations.
 - [Maturation Protocol](protocols/maturation-protocol.md) — the meta-protocol governing transitions between stage protocols and executing lattice operations (extract, absorb, scope promotion). Reaches quiescence rather than convergence.
 
 ## How the system works, fails, and is disciplined
@@ -40,7 +43,7 @@ The system is a stack of protocols sharing a substrate. The convergence protocol
 ## Guides and runbooks
 
 - [Discovery guide](guides/discovery.md) — note manifest schema, campaign binding, channel artifacts
-- [Blueprinting guide](guides/blueprinting.md) — pipeline stages, YAML format, output structure
+- [Note decomposition guide](guides/note-decomposition.md) — pipeline stages, YAML format, output structure
 - [Claim convergence guide](guides/claim-convergence.md) — review steps, caching, dependency management, convergence
-- [Blueprinting runbook](runbooks/blueprinting.md) — step-by-step execution
+- [Note decomposition runbook](runbooks/note-decomposition.md) — step-by-step execution
 - [Claim convergence runbook](runbooks/claim-convergence.md) — step-by-step execution

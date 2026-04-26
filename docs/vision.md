@@ -17,7 +17,7 @@ Together they provide:
 - Live dependencies — when a foundation claim is updated, consumers see the update through transclusion
 - No conflicts — versioned snapshots mean agents never interfere with each other's work
 - Growth without coordination — new claims link into the lattice without central planning
-- Focused reasoning — links and transclusion let agents narrow to any cluster of claims directly, without assembling files or breaking documents apart. Blueprinting and claim convergence are no longer separate stages — they are reasoning at different scopes on the same linked structure
+- Focused reasoning — links and transclusion let agents narrow to any cluster of claims directly, without assembling files or breaking documents apart. Note decomposition and claim convergence are no longer separate stages — they are reasoning at different scopes on the same linked structure
 
 ## The protocol as discovery engine
 
@@ -51,19 +51,19 @@ The versioned lattice is the fine-tuning curriculum. Every campaign's reasoning 
 
 This is Lamarckian evolution: acquired reasoning is directly transmissible. An agent that discovers a new principle through structured disagreement encodes that principle as a verified lattice node. Subsequent agents build on it through transclusion — the discovery propagates through the collective without retraining from scratch.
 
-The claim convergence protocol governs how evolution happens: the convergence predicate — every comment.revise has a resolution — must hold before claims become foundations for dependent work. The maturation protocol sequences the stages: discovery stabilizes before blueprinting, blueprinting satisfies the structural contract before convergence begins, convergence reaches its predicate before verification runs. Evolution is gradual and controlled — not simultaneous multi-objective optimization, but structured incremental improvement where each layer is stable before the next builds on it.
+The claim convergence protocol governs how evolution happens: the convergence predicate — every comment.revise has a resolution — must hold before claims become foundations for dependent work. The maturation protocol sequences the stages: discovery stabilizes before note decomposition, note decomposition satisfies the structural contract before convergence begins, convergence reaches its predicate before verification runs. Evolution is gradual and controlled — not simultaneous multi-objective optimization, but structured incremental improvement where each layer is stable before the next builds on it.
 
 Phase II agents don't just use the lattice. They grow it, read it, and evolve through it. The protocol substrate is both the communication medium and the evolutionary record.
 
 ## Building the engine
 
-What exists today is the local implementation: agents running structured protocols on a single machine, producing a verified dependency lattice through discovery, blueprinting, claim convergence, and verification. The Xanadu protocol substrate — currently implemented as files, git commits, and YAML dependencies — will be rebuilt as a live linked structure.
+What exists today is the local implementation: agents running structured protocols on a single machine, producing a verified dependency lattice through discovery, note decomposition, claim convergence, and verification. The Xanadu protocol substrate — currently implemented as files, git commits, and YAML dependencies — will be rebuilt as a live linked structure.
 
 When the substrate is live:
 - Every claim has a permanent address, not a file path
 - Every dependency is a bidirectional link, not a YAML field
 - Every version is a permanent snapshot, not a git commit
-- Blueprinting and claim convergence are reasoning at different scopes on the same linked structure, not separate protocol stages
+- Note decomposition and claim convergence are reasoning at different scopes on the same linked structure, not separate protocol stages
 
 The engine scales what works locally into something that works distributedly. Distributed agents trace reasoning trails through permanent links, share verified principles through transclusion, and work concurrently through versioned snapshots — without coordination, without copying, without conflict.
 
