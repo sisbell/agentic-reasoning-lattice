@@ -25,8 +25,20 @@ In addition to the convergence module's `review`, `comment`, and `resolution`:
 |---|---|---|
 | `note` | (flat, one-sided) | Classifier: document is a note |
 | `citation` | (flat) | Note depends on note |
+| `retraction` | (flat) | Nullifies a previously-filed link. `to_set` holds the retracted link's id (link-to-link pointer). Used at note scale to retract stale `citation` links left behind by [maturation](maturation-protocol.md) operations. |
 
 The `citation` link is the lattice edge at note scale. The note dependency graph — which notes assume foundations from which — is the citation subgraph. Note convergence operates on individual notes; the citation graph is what maturation traverses to decide what enters convergence next.
+
+### Retraction after absorb and extract
+
+The [maturation protocol](maturation-protocol.md)'s lattice operations restructure note content without removing the substrate links from prior states:
+
+- **Absorb** moves material from one note into another. The source note's outbound citations may become stale — claims that depended on a now-departed prefix no longer have a use-site for those citations.
+- **Extract** spins claims out into a new foundation note. The original note retains a citation to the new foundation but loses the citations it had into the now-redundant claims that were extracted.
+
+Retraction is the protocol-level mechanism for handling these stale citations. The reviser during a re-entry note-convergence cycle (which the maturation protocol triggers after each operation) inspects the note's prose, identifies citations no longer supported by use-sites, and files retractions via `scripts/retract.py`. Citation-graph consumers use the `active_links` helper (in `lib.store.queries`) to subtract retracted links automatically.
+
+The substrate is still append-only: the original citations and the retractions both persist. The retraction nullifies the citation for graph queries without violating SUB1 permanence.
 
 ### Finding classification
 
