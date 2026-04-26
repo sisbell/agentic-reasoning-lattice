@@ -16,9 +16,9 @@ Content matures through four representations, each progressively more precise:
 
 | Representation | Form | Produced by |
 |---|---|---|
-| **Note** | Narrative prose with embedded claims | [Consultation](protocols/consultation-protocol.md) + [note convergence](protocols/note-convergence-protocol.md) |
-| **Claim files** | Per-claim YAML metadata + markdown body | [Note decomposition protocol](protocols/note-decomposition-protocol.md) |
-| **Converged contracts** | Formally precise claims where every revise comment has a resolution | [Claim convergence protocol](protocols/claim-convergence-protocol.md) |
+| **Note** | Narrative prose with embedded claims | [Consultation](consultation-protocol.md) + [note convergence](note-convergence-protocol.md) |
+| **Claim files** | Per-claim YAML metadata + markdown body | [Note decomposition protocol](note-decomposition-protocol.md) |
+| **Converged contracts** | Formally precise claims where every revise comment has a resolution | [Claim convergence protocol](claim-convergence-protocol.md) |
 | **Verified code** | Mechanically checked assertions | Verification protocol |
 
 Each transition is a [representation change](../patterns/representation-change.md). The content doesn't change. The form makes it progressively more checkable.
@@ -27,19 +27,19 @@ Each transition is a [representation change](../patterns/representation-change.m
 
 Five protocols execute within the maturation protocol. Each has a defined completion criterion:
 
-**[Consultation protocol](protocols/consultation-protocol.md).** Produces the initial note from a campaign-bound inquiry. Two independent channels (theory and evidence) are consulted under enforced vocabulary separation; their outputs are synthesized into a structured note. One-shot — terminates on output production. The consultation protocol is the upstream producer for note convergence; together they constitute the discovery stage.
+**[Consultation protocol](consultation-protocol.md).** Produces the initial note from a campaign-bound inquiry. Two independent channels (theory and evidence) are consulted under enforced vocabulary separation; their outputs are synthesized into a structured note. One-shot — terminates on output production. The consultation protocol is the upstream producer for note convergence; together they constitute the discovery stage.
 
-**[Note convergence protocol](protocols/note-convergence-protocol.md).** Drives notes toward stability through review/revise cycles. Finding classification is REVISE / OUT_OF_SCOPE. The convergence predicate — every `comment.revise` has a `resolution` — determines when a note is ready for decomposition. OUT_OF_SCOPE findings generate signals that maturation consumes for lattice operations. Operates at note scale.
+**[Note convergence protocol](note-convergence-protocol.md).** Drives notes toward stability through review/revise cycles. Finding classification is REVISE / OUT_OF_SCOPE. The convergence predicate — every `comment.revise` has a `resolution` — determines when a note is ready for decomposition. OUT_OF_SCOPE findings generate signals that maturation consumes for lattice operations. Operates at note scale.
 
-**[Note decomposition protocol](protocols/note-decomposition-protocol.md).** Decomposes a converged note into per-claim file pairs — mechanical section split, per-section claim identification, per-claim classification and dependency extraction. Post-decomposition validation checks the output against the [Claim File Contract](../design-notes/claim-file-contract.md). One-shot — terminates when the structural contract holds on the output.
+**[Note decomposition protocol](note-decomposition-protocol.md).** Decomposes a converged note into per-claim file pairs — mechanical section split, per-section claim identification, per-claim classification and dependency extraction. Post-decomposition validation checks the output against the [Claim File Contract](../design-notes/claim-file-contract.md). One-shot — terminates when the structural contract holds on the output.
 
-**[Claim convergence protocol](protocols/claim-convergence-protocol.md).** The convergence predicate — every `comment.revise` has a matching `resolution` — drives claims toward formal precision. Finding classification is REVISE / OBSERVE. Scope strategies (adaptive, comprehensive) are choreography decisions within the protocol. Operates at claim scale.
+**[Claim convergence protocol](claim-convergence-protocol.md).** The convergence predicate — every `comment.revise` has a matching `resolution` — drives claims toward formal precision. Finding classification is REVISE / OBSERVE. Scope strategies (adaptive, comprehensive) are choreography decisions within the protocol. Operates at claim scale.
 
 **Verification protocol.** Converged contracts are translated into mechanically verifiable code — Dafny for logical consistency, Alloy for bounded model checking, experimental replication for science domains. Failures route back to the appropriate upstream protocol with the verification failure as a finding.
 
 The [validate-before-review](../patterns/validate-before-review.md) pattern is instantiated by any protocol that runs LLM review on structured content. Claim convergence instantiates it before each review. Note decomposition instantiates it as post-decomposition validation. It is a reusable pattern, not a sub-protocol of any single stage.
 
-Both convergence protocols specialize the [convergence protocol](protocols/convergence-protocol.md) — the document-type-neutral module that provides the predicate, comment/resolution link types, and safety/liveness properties. The two one-shot protocols (consultation and note decomposition) share the production shape — terminate on output, no convergence predicate — but do not share a formal module.
+Both convergence protocols specialize the [convergence protocol](convergence-protocol.md) — the document-type-neutral module that provides the predicate, comment/resolution link types, and safety/liveness properties. The two one-shot protocols (consultation and note decomposition) share the production shape — terminate on output, no convergence predicate — but do not share a formal module.
 
 ## Transition conditions and artifacts
 
@@ -202,11 +202,11 @@ The protocol design doesn't depend on which architecture eventually replaces hum
 
 ## Related
 
-- [Convergence Protocol](protocols/convergence-protocol.md) — the document-type-neutral module both convergence protocols specialize.
-- [Consultation Protocol](protocols/consultation-protocol.md) — the upstream producer that generates initial notes from campaign inquiries.
-- [Note Convergence Protocol](protocols/note-convergence-protocol.md) — the stage protocol that drives notes to stability during discovery.
-- [Note Decomposition Protocol](protocols/note-decomposition-protocol.md) — the stage protocol that decomposes notes into per-claim files.
-- [Claim Convergence Protocol](protocols/claim-convergence-protocol.md) — the stage protocol that drives claims to formal precision.
+- [Convergence Protocol](convergence-protocol.md) — the document-type-neutral module both convergence protocols specialize.
+- [Consultation Protocol](consultation-protocol.md) — the upstream producer that generates initial notes from campaign inquiries.
+- [Note Convergence Protocol](note-convergence-protocol.md) — the stage protocol that drives notes to stability during discovery.
+- [Note Decomposition Protocol](note-decomposition-protocol.md) — the stage protocol that decomposes notes into per-claim files.
+- [Claim Convergence Protocol](claim-convergence-protocol.md) — the stage protocol that drives claims to formal precision.
 - [Architecture](../architecture.md) — the six-level hierarchy and lattice structure the maturation protocol operates on.
 - [Representation Change](../patterns/representation-change.md) — each transition is a representation change.
 - [Validate Before Review](../patterns/validate-before-review.md) — a reusable pattern instantiated by multiple stage protocols.

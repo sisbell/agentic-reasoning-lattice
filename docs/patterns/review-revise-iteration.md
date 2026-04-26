@@ -56,7 +56,7 @@ This progression was observed independently in ASN-0034 discovery (reviews 14–
 - The work is tightly coupled — fixing one part shifts another (see [dependency cone](dependency-cone.md))
 - The reviser rejects findings that the reviewer re-files — reject cycling
 
-Detecting stalls is a choreography and monitoring concern, not a protocol property. See the [claim convergence design note](../design-notes/claim-convergence.md) for detection strategies.
+Detecting stalls is a choreography and monitoring concern, not a protocol property. See [Claim Convergence](../claim-convergence.md) for detection strategies.
 
 ## Finding classification
 

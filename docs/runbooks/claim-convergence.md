@@ -4,7 +4,7 @@
 
 ## Prerequisites
 
-- note promoted from [blueprinting](blueprinting.md) (`lattices/xanadu/claim-convergence/ASN-NNNN/`)
+- note promoted from [note decomposition](note-decomposition.md) (`lattices/xanadu/claim-convergence/ASN-NNNN/`)
 - Upstream dependencies already converged
 - Upstream summaries populated (run summarize on dependencies first)
 

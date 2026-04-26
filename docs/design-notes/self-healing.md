@@ -18,7 +18,7 @@ Criterion 1 is load-bearing for a specific reason: see [Observation-layer limita
 
 **Review convergence.** The convergence predicate — every `comment.revise` has a `resolution` — drives loop termination. Any participant can evaluate it at any time from the link graph. *Automated.*
 
-**Non-converging cones.** A cone hitting max_cycles without the predicate becoming true. Already visible in output. Could be surfaced as a first-class alert and cross-referenced with sprawl signals on the apex claim. Non-convergence detection — oscillation, reject cycling, classification bias — is a choreography and monitoring concern. See [Claim Convergence Design Note](claim-convergence.md) for detection strategies. *Detectable, not yet surfaced.*
+**Non-converging cones.** A cone hitting max_cycles without the predicate becoming true. Already visible in output. Could be surfaced as a first-class alert and cross-referenced with sprawl signals on the apex claim. Non-convergence detection — oscillation, reject cycling, classification bias — is a choreography and monitoring concern. See [Claim Convergence](../claim-convergence.md) for detection strategies. *Detectable, not yet surfaced.*
 
 **Oscillation detection.** When a file region is modified in opposite directions across consecutive cycles (add in cycle N, remove in cycle N+1), the cone is stuck — not failing to converge but actively oscillating. Sharper signal than cycle-count stationarity. Detectable from diff-level analysis across cycles. *Speculative.*
 
@@ -81,4 +81,4 @@ For the operational discipline that addresses self-report laundering in evaluati
 - [The Coupling Principle](../principles/coupling.md) — the coupling feedback loop is itself a self-healing mechanism operating through prompt calibration
 - [Production Drive](production-drive.md) — the LLM behavioral force that compromises self-healing through classification miscalibration
 - [Convergence Protocol](../protocols/convergence-protocol.md) — the predicate is itself a mechanical self-healing signal: evaluable by any participant at any time
-- [Claim Convergence Design Note](claim-convergence.md) — non-convergence detection strategies (oscillation, reject cycling, classification bias)
+- [Claim Convergence](../claim-convergence.md) — non-convergence detection strategies (oscillation, reject cycling, classification bias)
