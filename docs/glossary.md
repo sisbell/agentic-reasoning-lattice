@@ -8,6 +8,8 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Accretion.** Growth of the lattice by adding new claims rather than mutating existing ones. The discipline that prevents [Contract Sprawl](equilibrium/contract-sprawl.md). See [Accretion pattern](patterns/accretion.md).
 
+**Adaptive scope.** A claim convergence scope strategy where context grows on demand — the reviewer requests missing references, the scope assembler expands the cone, the review re-runs. Catches within-cone issues efficiently without preloading the whole foundation. Counterpart to [comprehensive scope](#c). A choreography decision, not a protocol-level construct. See [Claim Convergence Protocol](protocols/claim-convergence-protocol.md).
+
 **Apex (cone apex).** The high-dependency claim at the center of a [dependency cone](patterns/dependency-cone.md) — the one that keeps getting revised while its dependencies remain stable.
 
 **Assembly.** The stage that exports converged claims into `formal-statements.md` and `dependency-graph.yaml` for downstream consumers. Mechanical, no LLM.
@@ -49,6 +51,12 @@ Terms specific to this reasoning system. Cross-references point to where each te
 **Comment (link type).** A substrate link recording a reviewer finding on a document. Subtypes carry the classification: `comment.revise` requires resolution and participates in the [convergence predicate](#c); `comment.observe` is a non-blocking observation (claim convergence only); `comment.out-of-scope` is a non-blocking signal that the lattice needs structural work (note convergence only). See [Convergence Protocol](protocols/convergence-protocol.md).
 
 **Cone, dependency.** A cluster of tightly coupled claims where an apex keeps being revised while dependencies are stable. See [Dependency Cone pattern](patterns/dependency-cone.md).
+
+**Cone-review.** Focused review of a specific dependency cone — apex claim plus its declared dependencies as context. Resolves the cluster as a constraint system. The operational name for cone-scoped review under [adaptive scope](#a) in the [claim convergence protocol](protocols/claim-convergence-protocol.md).
+
+**Cone-sweep.** Proactive walking of the dependency DAG bottom-up, running cone-review on every apex meeting the dependency-frequency threshold. Implemented in `scripts/cone-sweep.py`. A choreography that satisfies the protocol's coverage obligation by exhausting the apex set.
+
+**Comprehensive scope.** A claim convergence scope strategy where the entire note (or full cone) is loaded into review context before the review runs. Catches cross-cone issues that adaptive scope can miss — vocabulary collisions, citation inconsistencies between dependency clusters, gaps invisible to within-cone reasoning. Counterpart to [adaptive scope](#a). A choreography decision, not a protocol-level construct. See [Claim Convergence Protocol](protocols/claim-convergence-protocol.md).
 
 **Consult authority.** During revision, return to source material to ground findings in evidence. See [Consult Authority pattern](patterns/consult-authority.md).
 
@@ -116,9 +124,9 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Foundation.** From a downstream note's perspective, any upstream note it depends on. Foundation content is read-only context for the downstream's review cycles.
 
-**Full-review.** Full-scale review reading an entire note. Finds issues invisible to narrower scales: carrier-set conflation, precondition chain gaps, vocabulary collisions, issues in small claims. Renamed from cross-review.
+**Full-review.** Review reading an entire note's claim set at once. The operational name for review under [comprehensive scope](#c). Finds issues invisible to cone-scoped review: carrier-set conflation, precondition chain gaps, vocabulary collisions, issues in small claims that adaptive scope didn't reach.
 
-**Full scale.** [Claim Convergence Protocol](protocols/claim-convergence-protocol.md) scope of the whole note with full foundation context. Renamed from System scale.
+**Full scale.** Legacy name for [comprehensive scope](#c) — review of the whole note with full foundation context.
 
 ## G
 
@@ -126,13 +134,13 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Gravitational failure.** An [equilibrium](equilibrium/) pattern whose force acts continuously across review cycles. Requires permanent discipline — prompt framing, coupling monitoring, voice structure — not a one-time fix. Contrasts with [transitional failure](#t) and [oscillatory failure](#o). Contract Sprawl, Prose Sprawl, Surface Expansion, Index Sprawl, Citation Drift are gravitational.
 
-**Ground state.** The state of genuine convergence — regional and full review both agree there are no remaining issues, and the [convergence predicate](#c) holds. Distinguished from "stopped" (no finding at one scale but others can still expose issues). See [Claim Convergence Protocol](protocols/claim-convergence-protocol.md).
+**Ground state.** The state of genuine convergence — both [adaptive-scope](#a) (cone) and [comprehensive-scope](#c) review agree there are no remaining issues, and the [convergence predicate](#c) holds. Distinguished from "stopped" (no finding at one scope but the other can still expose issues). See [Claim Convergence Protocol](protocols/claim-convergence-protocol.md).
 
 ## H
 
 **Hard reset.** A defined operation in the [maturation protocol](#m) for the case where a foundation turns out to be wrong, not merely incomplete. The note re-enters discovery; its freeze is revoked; all dependents that entered claim convergence against its claims must also reset. A `provenance.reset` link records the cascade. Expensive and destructive — used when the alternative (leaving dependents on a known-bad foundation) is worse. See [Maturation Protocol](protocols/maturation-protocol.md).
 
-**Hypothesis cluster.** A [cone](patterns/dependency-cone.md) in a science domain: apex (hypothesis statement) plus its supporting dependencies (axioms, definitions, data citations, coined concepts). Regional convergence of a hypothesis cluster = hypothesis ready for its scope.
+**Hypothesis cluster.** A [cone](patterns/dependency-cone.md) in a science domain: apex (hypothesis statement) plus its supporting dependencies (axioms, definitions, data citations, coined concepts). Convergence of a hypothesis cluster under [adaptive scope](#a) = hypothesis ready for its scope.
 
 **Hypothesis space.** The space of candidate principles and concepts that could organize a domain. Explored by the theory channel. Complement to [evidence space](#e). New [prose coinage](patterns/prose-coinage.md) is a form of hypothesis generation.
 
@@ -158,7 +166,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Lemma.** A claim classified as an intermediate result supporting higher-level theorems.
 
-**Local-review.** *Retired.* Single-claim review at local scale was retired during V-cycle consolidation when regional and full scope were found sufficient to expose all classes of finding. See [Claim Convergence Protocol](protocols/claim-convergence-protocol.md).
+**Local-review.** *Retired.* Single-claim review was retired during V-cycle consolidation when [adaptive scope](#a) (cone) and [comprehensive scope](#c) were found sufficient to expose all classes of finding. See [Claim Convergence Protocol](protocols/claim-convergence-protocol.md).
 
 **Local scale.** *Retired.* See [Local-review](#l).
 
@@ -222,12 +230,6 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 
 **Rebase.** Re-verifying downstream claims after a foundation changes. Happens automatically via review/revise cycles because changed dependencies invalidate dependents' metadata.
 
-**Regional-review.** Focused review of a specific dependency cone with apex + dependencies as context. Resolves the cluster as a constraint system. Renamed from cone-review.
-
-**Regional-sweep.** Proactive regional-scale review walking the dependency graph bottom-up, running regional-review on every claim meeting the dependency threshold. Renamed from cone-sweep.
-
-**Regional scale.** [Claim Convergence Protocol](protocols/claim-convergence-protocol.md) scope between local and full — reviewing a dependency cone as a unit. Renamed from Cluster scale.
-
 **Representation change.** Progressive transformation of content through different forms (narrative → structured → formal → mechanical) without changing the underlying claim. Each change introduces structural rules at the new form. See [Representation Change pattern](patterns/representation-change.md).
 
 **Resolution (link type).** A substrate link that closes a `comment.revise`. Subtypes: `resolution.edit` (the document was edited to address the finding) or `resolution.reject` (the finding was refused, with a rationale document linked). Once a resolution exists, the predicate counts the comment as resolved — the convergence predicate ignores resolved comments. Once created, a resolution link is permanent (no retraction). See [Convergence Protocol](protocols/convergence-protocol.md).
@@ -246,7 +248,7 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 
 ## S
 
-**Scale.** Scope of a review cycle. Three canonical scales: local, regional, full. See [Claim Convergence Protocol](protocols/claim-convergence-protocol.md).
+**Scale.** Scope of a review cycle. Two scopes in current claim convergence: [adaptive scope](#a) (cone — apex plus dependencies, expanded on demand) and [comprehensive scope](#c) (whole note plus full foundation). The legacy three-scale model (local/regional/full) was consolidated to two during V-cycle work; local was retired. See [Claim Convergence Protocol](protocols/claim-convergence-protocol.md).
 
 **Scientific method.** Lineage of the primary pattern — narrow scope, refine through iteration, verify coherence. Every process in the system follows this rhythm.
 

@@ -103,7 +103,7 @@ What doesn't vary is the *coupling principle*: prose and formal content are auth
 - [Voice Principle](voice.md) — the sibling principle for LLM output quality. Coupling defines what healthy content looks like (the ratio). Voice defines what well-formed output looks like (the style structure). During claim convergence, Voice is the mechanism that keeps the ratio near target — positive style discipline constrains the reviser to load-bearing prose, preventing the add-bias that drives ratio drift.
 - [Surface Expansion](../equilibrium/surface-expansion.md) — the failure mode this principle's signals detect. Surface expansion is a decoupling event.
 - [Contract Sprawl](../equilibrium/contract-sprawl.md), [Prose Sprawl](../equilibrium/prose-sprawl.md), [Index Sprawl](../equilibrium/index-sprawl.md) — specific decoupling manifestations in claim files.
-- [Architecture — Lattice Lifecycle](../architecture.md) — the three transitions (blueprint, promote, assemble) define the artifact boundaries this principle operates within.
+- [Architecture — Lattice Lifecycle](../architecture.md) — the three transitions (decompose, promote, assemble) define the artifact boundaries this principle operates within.
 - [Narrow → Refine → Verify](../patterns/narrow-refine-verify.md) — the cycle that operates within each artifact's active period.
 - [Claim Convergence Protocol](../protocols/claim-convergence-protocol.md) — the protocol whose review cycles this principle's signals monitor.
 - [Note Convergence Protocol](../protocols/note-convergence-protocol.md) — the protocol governing note-level review where the 90/10 ratio applies.

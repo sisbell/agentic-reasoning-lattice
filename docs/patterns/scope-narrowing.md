@@ -11,25 +11,25 @@ When narrowing overshoots — when the pieces are too coupled to converge indepe
 - **Broad scope can't harden.** Discovery produces a note with 29 claims. Reviewing the whole note at once can't make each claim precise — there's too much to hold in focus.
 - **Narrow scope enables convergence.** One claim at a time, dependencies fixed. The piece is small enough to fully check. Changes don't cascade to neighbors. This is [review/revise iteration](review-revise-iteration.md) — and it works for most claims.
 - **Over-narrowing hides coupling.** Some claims can't be verified in isolation. S8 depends on 7 other claims — checking S8 alone misses the seams between them. This is the [dependency cone](dependency-cone.md).
-- **The right width is discovered, not prescribed.** You don't know the coupling in advance. You narrow, hit a wall, widen to the cluster, check again. The three scopes that formalization settled on (claim, cluster, full note) weren't planned — they're where the system found equilibrium.
+- **The right width is discovered, not prescribed.** You don't know the coupling in advance. You narrow, hit a wall, widen to the cluster, check again. The scope strategies that claim convergence settled on (cone-scoped and comprehensive) weren't planned — they're where the system found equilibrium.
 
 ## Structure
 
 ```
 broad (discovery)
   │
-  narrow ──→ per-claim (formalization)
+  narrow ──→ per-claim (claim convergence)
   │            │
   │            stalls on coupling
   │            │
-  │            widen ──→ per-cluster (regional review)
+  │            widen ──→ per-cone (cone-scoped review)
   │                        │
   │                        verify coherence
   │                        │
   └── verify the whole ←──┘
 ```
 
-The narrowing is progressive. Discovery works at full-note scope. Blueprinting breaks it into claims. Formalization reviews each claim. When claim-level review stalls on a [dependency cone](dependency-cone.md), regional review widens to the cluster. [Verify the whole](verify-the-whole.md) checks that the hardened pieces cohere.
+The narrowing is progressive. Discovery works at full-note scope. Note decomposition breaks it into claims. Claim convergence reviews each claim. When claim-level review stalls on a [dependency cone](dependency-cone.md), cone-scoped review widens to the cluster. [Verify the whole](verify-the-whole.md) checks that the hardened pieces cohere.
 
 ## Leads to
 
@@ -39,20 +39,20 @@ The narrowing is progressive. Discovery works at full-note scope. Blueprinting b
 
 ## Applications
 
-### Blueprinting
+### Note decomposition
 
-Discovery produces a 15-page note. Blueprinting narrows: decompose into sections, enrich each section with type/dependencies/vocabulary, disassemble into per-claim file pairs. Each claim is now a self-contained unit that formalization can work on independently.
+Discovery produces a 15-page note. Note decomposition narrows: decompose into sections, enrich each section with type/dependencies/vocabulary, disassemble into per-claim file pairs. Each claim is now a self-contained unit that claim convergence can work on independently.
 
-### Formalization
+### Claim convergence
 
-Formalization narrows further: review one claim at a time. Local review checks the proof. Contract review checks the contract. Each review cycle operates within the claim's scope, with dependencies as fixed context.
+Claim convergence narrows further: review one claim at a time. The reviewer checks the proof, the contract, the dependencies. Each review cycle operates within the claim's scope, with dependencies as fixed context.
 
-When local review converged 31 of 32 claims but kept cycling on S8, the narrowing had overshot. S8's 7 dependencies created coupling that claim-scope review couldn't resolve. Widening to the S8 cone (apex + dependencies) gave the reviewer enough context to see the constraint system. The scope matched the coupling.
+When review converged 31 of 32 claims but kept cycling on S8, the narrowing had overshot. S8's 7 dependencies created coupling that claim-scope review couldn't resolve. Widening to the S8 cone (apex + dependencies) gave the reviewer enough context to see the constraint system. The scope matched the coupling.
 
 ### Discovery
 
-Even discovery uses scope narrowing. Scoped inquiry narrows the question along authority boundaries — theory gets theory questions, evidence gets evidence questions. Each authority works within its narrowed scope. The synthesis step verifies the whole.
+Even discovery uses scope narrowing. The [consultation protocol](../protocols/consultation-protocol.md) narrows the question along channel boundaries — theory gets theory questions, evidence gets evidence questions. Each channel works within its narrowed scope. The synthesis step verifies the whole.
 
 ## Origin
 
-The narrowing was present from the start — blueprinting was created because discovery-scale documents were too broad to formalize. The adjustment (widening when stuck) was discovered through the dependency cone on ASN-0036. The pattern was recognized when the history showed a consistent sequence: narrow to make progress, hit a wall at tight coupling, widen until the problem is visible, settle at the scope that matches.
+The narrowing was present from the start — note decomposition was created because discovery-scale documents were too broad to converge. The adjustment (widening when stuck) was discovered through the dependency cone on ASN-0036. The pattern was recognized when the history showed a consistent sequence: narrow to make progress, hit a wall at tight coupling, widen until the problem is visible, settle at the scope that matches.

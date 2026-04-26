@@ -67,6 +67,6 @@ The three-phase cycle is the primitive. The other patterns either participate in
 
 ## Origin
 
-Discovered in this conversation. Scope narrowing, review/revise iteration, and verify the whole were documented as separate patterns. Each was observed independently at different times — review/revise from the first formalization runs, scope narrowing from the blueprinting redesign, verify the whole from full-review.
+Discovered in this conversation. Scope narrowing, review/revise iteration, and verify the whole were documented as separate patterns. Each was observed independently at different times — review/revise from the first formalization runs, scope narrowing from the note decomposition redesign, verify the whole from full-review.
 
 The insight that they are one rhythm came from listing every process in the system and seeing the same three phases in each: discovery, formalization, extract/absorb, regional review, scope promotion. Three steps, same order, everywhere. The patterns we documented separately are phases of a single cycle.

@@ -10,15 +10,15 @@ Each coinage is a hypothesis — a structural claim about the domain proposing t
 
 ## Forces
 
-- **Two channels produce outputs with incompatible or incomplete vocabularies.** The theory channel uses one set of words; the data channel uses another. Neither fully captures the reconciled concept synthesis is trying to express.
+- **Two channels produce outputs with incompatible or incomplete vocabularies.** The theory channel uses one set of words; the evidence channel uses another. Neither fully captures the reconciled concept synthesis is trying to express.
 - **Borrowed terms are imprecise.** Using an existing word that almost-but-not-quite fits propagates the mismatch into every subsequent claim that builds on it.
 - **Unnamed concepts can't be cited.** Without a word, the concept cannot be referenced from another claim, another note, or another proof step. It stays buried in the prose of one paragraph.
-- **Naming commits.** Once coined, the word propagates through review cycles, into downstream notes, into formalization. A poor choice is expensive to revert.
+- **Naming commits.** Once coined, the word propagates through review cycles, into downstream notes, into claim convergence. A poor choice is expensive to revert.
 
 ## Structure
 
 ```
-Two-channel outputs ─ prose from theory + prose from data
+Two-channel outputs ─ prose from theory + prose from evidence
         │
         └── synthesis reconciles
                 │
@@ -45,13 +45,13 @@ The coinage is a single event with downstream consequences. The same word gets c
 
 Prose coinage happens in two distinct modes:
 
-**Synthesis coinage.** The stage where two-channel outputs get reconciled into a single note. Coining happens in bulk here — roughly 70% of a note's prose coinages appear in the first draft from synthesis.
+**Synthesis coinage.** The stage where two-channel outputs get reconciled into a single note. Coining happens in bulk here — most of a note's prose coinages appear in the first draft from synthesis.
 
-**Review-driven coinage.** When a reviewer surfaces a concept the current text is discussing in ad-hoc prose without a shared name, revise coins one. This happens in both discovery review cycles AND formalization review cycles (local-review, regional-review, full-review).
+**Review-driven coinage.** When a reviewer surfaces a concept the current text is discussing in ad-hoc prose without a shared name, revise coins one. This happens in both discovery review cycles AND claim convergence review cycles.
 
-Discovery-stage review-driven coinage in ASN-0036 produced `subspace` in review cycle 1. Formalization-stage review-driven coinage produced terms like `execution trace`, `initial empty state` (AX-1), `allocation-mediated entry` (AX-2), `hierarchical allocation discipline` (S7d), `element subspace projection` (E₁) — none of which existed in the first draft. Each was coined during regional review when the reviewer pressed on a concept the current text hadn't named.
+Discovery-stage review-driven coinage in ASN-0036 produced `subspace` in review cycle 1. Claim-convergence-stage review-driven coinage produced terms like `execution trace`, `initial empty state` (AX-1), `allocation-mediated entry` (AX-2), `hierarchical allocation discipline` (S7d), `element subspace projection` (E₁) — none of which existed in the first draft. Each was coined during cone-scoped review when the reviewer pressed on a concept the current text hadn't named.
 
-Roughly 70% of coinage happens in synthesis; the remaining 30% is review-driven and occurs across both discovery and formalization.
+Most coinage happens in synthesis; the remainder is review-driven and occurs across both discovery and claim convergence.
 
 ## Leads to
 
@@ -65,17 +65,17 @@ Roughly 70% of coinage happens in synthesis; the remaining 30% is review-driven 
 
 ## Origin
 
-Observed in every note that went through synthesis, and in review cycles at both discovery and formalization stages.
+Observed in every note that went through synthesis, and in review cycles at both discovery and claim convergence stages.
 
 **Synthesis coinage.** ASN-0034's first draft (commit `efb2cf66`, March 2026) already contained coined words including `divergence`, `action point`, `displacement`, `inc`, `zeros`, `sig`, `shift`, `zero tumbler`. Each was a new prose word at the moment of synthesis — neither Nelson's design documents nor Gregory's C source code used them in that form. They were coined to reconcile the two channels' outputs into a single note.
 
 **Discovery-stage review coinage.** ASN-0036's most-cited invented concept, `subspace`, was coined during review/revise cycle 1 (commit `639de0a6`, March 2026) — the reviewer pressed on S8's correspondence-run partition claim, and the reviser coined `subspace(v) = v₁` along with the S8-depth axiom to name the part of a V-position that stays constant within a run.
 
-**Formalization-stage review coinage.** During ASN-0036's regional review work (April 2026), several new prose concepts were coined that didn't exist in the discovery document:
+**Claim-convergence-stage review coinage.** During ASN-0036's cone-scoped review work (April 2026), several new prose concepts were coined that didn't exist in the discovery document:
 - `execution trace` — coined during S5 cone cycle 1 to restructure S5's proof from model-theoretic to operational
 - `initial empty state` (AX-1) — coined to name the starting point of execution traces
 - `allocation-mediated entry` (AX-2) — coined to constrain how content enters `dom(C)`
-- `hierarchical allocation discipline` (S7d) — coined during S7 regional review when the decomposition required a name for this constraint
+- `hierarchical allocation discipline` (S7d) — coined during S7 cone-scoped review when the decomposition required a name for this constraint
 - `element subspace projection` (E₁) — coined alongside its symbol during D-CTG-depth cone cycle 2
 
 Each of these is the same pattern operating at a different stage — a reviewer surfaces a concept the current text hadn't named; the reviser coins it.

@@ -75,7 +75,7 @@ The pattern applies wherever an LLM reviews and revises content iteratively. The
 
 **[Claim convergence](../protocols/claim-convergence-protocol.md).** The convergence protocol applied to per-claim files in the lattice. Adds structural validation (validate-before-review), lattice structure (`claim`, `contract`, `citation` links), scope strategies (adaptive and comprehensive as choreography), and the Dijkstra voice for both reviewer and reviser.
 
-**Discovery review.** The convergence protocol applied to notes. Adds OUT_OF_SCOPE as the off-ramp (instead of OBSERVE). No structural validation — notes have no claim file contract. Convergence signals readiness for blueprinting.
+**[Discovery review](../protocols/note-convergence-protocol.md).** The convergence protocol applied to notes. Adds OUT_OF_SCOPE as the off-ramp (instead of OBSERVE). No structural validation — notes have no claim file contract. Convergence signals readiness for [note decomposition](../note-decomposition.md).
 
 ## Origin
 
@@ -84,6 +84,7 @@ The review/revise cycle was the first pattern to emerge. Initial attempts used s
 ## Related
 
 - [Convergence Protocol](../protocols/convergence-protocol.md) — the formal specification of this pattern. The predicate, link types, safety and liveness properties.
+- [Note Convergence Protocol](../protocols/note-convergence-protocol.md) — the convergence protocol applied to notes, with OUT_OF_SCOPE routing and lattice growth signals.
 - [Claim Convergence Protocol](../protocols/claim-convergence-protocol.md) — the convergence protocol applied to claims, with lattice structure and a specific algorithm.
 - [Dependency Cone](dependency-cone.md) — when tightly coupled documents stall single-document review, the cone is reviewed as a unit.
 - [Validate Before Review](validate-before-review.md) — structural validation before each review cycle clears noise from the reviewer's path.

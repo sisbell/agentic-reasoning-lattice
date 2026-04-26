@@ -203,13 +203,13 @@ If Engage i exits NotConverged with k open revise comments, then Engage (i + 1) 
 
 ### Within the maturation protocol
 
-The [maturation protocol](maturation-protocol.md) activates claim convergence when blueprinting's predicate holds and claim convergence's preconditions are met — structural form satisfies the [Claim File Contract](../design-notes/claim-file-contract.md).
+The [maturation protocol](maturation-protocol.md) activates claim convergence when note decomposition's structural contract holds and claim convergence's preconditions are met — structural form satisfies the [Claim File Contract](../design-notes/claim-file-contract.md).
 
 ```
 Module: Maturation
-  Uses: Discovery, Blueprinting, ClaimConvergence, Verification
+  Uses: Discovery, NoteDecomposition, ClaimConvergence, Verification
   
-  Transition: Blueprinting → ClaimConvergence
+  Transition: NoteDecomposition → ClaimConvergence
     Precondition: structural validation returns zero violations
     Artifact: claim file set satisfying the claim file contract
   
@@ -238,6 +238,7 @@ The protocol's properties are stated in terms of link existence and type, not st
 ## Related
 
 - [Convergence Protocol](convergence-protocol.md) — the document-type-neutral module this protocol extends.
+- [Note Convergence Protocol](note-convergence-protocol.md) — the sibling specialization at note scale.
 - [Review/Revise Iteration](../patterns/review-revise-iteration.md) — the empirical pattern underlying this protocol. Observed independently across discovery and claim convergence.
 - [Validate Before Review](../patterns/validate-before-review.md) — the pattern underlying CS1.
 - [The Validation Principle](../principles/validation.md) — structural integrity as a precondition for meaningful review.
@@ -245,6 +246,7 @@ The protocol's properties are stated in terms of link existence and type, not st
 - [The Voice Principle](../principles/voice.md) — output quality discipline for reviewer and reviser.
 - [Production Drive](../design-notes/production-drive.md) — the LLM behavioral force motivating the revise/observe classification.
 - [Maturation Protocol](maturation-protocol.md) — the meta-protocol composing this module with other stage protocols.
+- [Claim Convergence](../claim-convergence.md) — rationale: why two scopes, why local was retired, the T3 incident, the multigrid analogy.
 
 ## References
 

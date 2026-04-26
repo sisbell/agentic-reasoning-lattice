@@ -14,7 +14,7 @@ This is the same force that produces add-bias at the revision layer. The reviser
 
 Classification categories that permit production without triggering action are the design response to the production drive.
 
-**OBSERVE** (formalization review). The reviewer produces its observation — satisfying the drive — without triggering a revise cycle. Without OBSERVE, every observation the reviewer generates becomes REVISE. The reviewer can't say "I noticed this, it's not worth acting on." Every tightening opportunity, every stylistic preference, every minor quantifier imprecision triggers a revision whose fix adds surface that becomes the next cycle's review target. The result is [Surface Expansion](../equilibrium/surface-expansion.md) driven not by the reviser's bias but by the reviewer's inability to observe without acting.
+**OBSERVE** (claim convergence review). The reviewer produces its observation — satisfying the drive — without triggering a revise cycle. Without OBSERVE, every observation the reviewer generates becomes REVISE. The reviewer can't say "I noticed this, it's not worth acting on." Every tightening opportunity, every stylistic preference, every minor quantifier imprecision triggers a revision whose fix adds surface that becomes the next cycle's review target. The result is [Surface Expansion](../equilibrium/surface-expansion.md) driven not by the reviser's bias but by the reviewer's inability to observe without acting.
 
 **OUT_OF_SCOPE** (discovery review). The reviewer engages with interesting material it encounters — satisfying the drive — without committing the note to covering it. Without OUT_OF_SCOPE, the reviewer's engagement with adjacent topics becomes in-scope derivation. The note expands to cover material that belongs in a future inquiry. OUT_OF_SCOPE channels the engagement into [scope promotion](../patterns/scope-promotion.md) — the finding becomes a candidate for a new inquiry rather than an obligation on the current note.
 
@@ -22,7 +22,7 @@ Both off-ramps have the same structure: they let the LLM produce (satisfying the
 
 ## What goes wrong without off-ramps
 
-The system operated without OBSERVE during early formalization. Every reviewer finding was binary — CLEAN or FOUND. Every FOUND triggered a revise. The result: tightening findings (loose phrasing, minor style, alternative framings) generated revisions whose fixes added prose, whose prose generated new findings, whose findings generated new revisions. The surface expanded monotonically. Cones ran eight cycles without converging. The reviewer was doing its job (noticing real imperfections) and the system was punishing it (every observation forced action).
+The system operated without OBSERVE during early claim convergence. Every reviewer finding was binary — CLEAN or FOUND. Every FOUND triggered a revise. The result: tightening findings (loose phrasing, minor style, alternative framings) generated revisions whose fixes added prose, whose prose generated new findings, whose findings generated new revisions. The surface expanded monotonically. Cones ran eight cycles without converging. The reviewer was doing its job (noticing real imperfections) and the system was punishing it (every observation forced action).
 
 Adding OBSERVE gave the reviewer a way to notice without forcing action. The convergence criterion changed from "zero findings" (unreachable — prose is never perfect under infinite scrutiny) to "zero REVISE findings" (reachable — correctness issues are exhaustible). The off-ramp made convergence possible.
 
@@ -41,6 +41,9 @@ Voice reduces volume. The discrimination test routes what remains. Together they
 ## Related
 
 - [The Voice Principle](../principles/voice.md) — voice discipline reduces the volume of findings the production drive generates. The off-ramp handles what remains after voice has done its work.
+- [Convergence Protocol](../protocols/convergence-protocol.md) — the off-ramp categories (OBSERVE, OUT_OF_SCOPE) are specializations of the convergence protocol's `comment` subtypes. Only `comment.revise` participates in the convergence predicate.
+- [Note Convergence Protocol](../protocols/note-convergence-protocol.md) — uses OUT_OF_SCOPE as the off-ramp. Channels the production drive into lattice growth through scope promotion.
+- [Claim Convergence Protocol](../protocols/claim-convergence-protocol.md) — uses OBSERVE as the off-ramp. Channels the production drive into audit trail without blocking convergence.
 - [Surface Expansion](../equilibrium/surface-expansion.md) — the failure mode when there is no off-ramp. Every observation triggers action; action adds surface; surface generates observations. The off-ramp breaks the loop.
 - [Prose Sprawl](../equilibrium/prose-sprawl.md) — add-bias is the revision-layer manifestation of the same production drive. Voice discipline addresses add-bias at revision; the off-ramp addresses the production drive at classification.
 - [Scope Promotion](../patterns/scope-promotion.md) — OUT_OF_SCOPE is an off-ramp that produces real lattice growth. The production drive's engagement with adjacent material, channeled through scope promotion, becomes new inquiries.

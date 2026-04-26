@@ -6,7 +6,7 @@ A concept already named in prose gets a symbol for formal manipulation. The pros
 
 "Tumbler addition" becomes `⊕`. "Ordinal displacement" becomes `δ`. "Prefix relation" becomes `≼`. The symbol is a compressed form of the same concept, not a new one.
 
-**Prose compression is required for formal manipulation.** Algebraic chains, preconditions and postconditions, mechanical verification all need compact notation. Prose alone cannot support `(a ⊕ b) ⊕ c = a ⊕ (b ⊕ c)`. Every concept that will participate in formal reasoning must be compressed to a symbol at some point. Compression can happen during discovery (so formalization inherits the symbols) or during formalization itself (review cycles perform it as part of their work). Either way, the formal contracts that emerge at the end depend on compression having happened.
+**Prose compression is required for formal manipulation.** Algebraic chains, preconditions and postconditions, mechanical verification all need compact notation. Prose alone cannot support `(a ⊕ b) ⊕ c = a ⊕ (b ⊕ c)`. Every concept that will participate in formal reasoning must be compressed to a symbol at some point. Compression can happen during discovery (so claim convergence inherits the symbols) or during claim convergence itself (review cycles perform it as part of their work). Either way, the formal contracts that emerge at the end depend on compression having happened.
 
 ## Forces
 
@@ -30,7 +30,7 @@ The compression step happens when the concept has stabilized enough to warrant c
 
 ## Produced by
 
-[Review/Revise iteration](review-revise-iteration.md) — prose compression is a consequence of review/revise cycles in either discovery or formalization. A concept gets coined in prose; the concept gets used in reasoning; review notices the prose form is verbose, recurring, or hard to manipulate; revise introduces a symbol. Without review pressure detecting the need for compression, it doesn't happen. Examples and evidence in the Origin section below.
+[Review/Revise iteration](review-revise-iteration.md) — prose compression is a consequence of review/revise cycles in either discovery or claim convergence. A concept gets coined in prose; the concept gets used in reasoning; review notices the prose form is verbose, recurring, or hard to manipulate; revise introduces a symbol. Without review pressure detecting the need for compression, it doesn't happen. Examples and evidence in the Origin section below.
 
 ## Leads to
 
@@ -40,16 +40,16 @@ The compression step happens when the concept has stabilized enough to warrant c
 
 ## Origin
 
-Observed in both discovery and formalization stages. The trigger in both cases is review pressure finding prose that should be a symbol; the specific mechanism differs by stage.
+Observed in both discovery and claim convergence stages. The trigger in both cases is review pressure finding prose that should be a symbol; the specific mechanism differs by stage.
 
 **Discovery-stage compression.** ASN-0034's formal contracts are dense with compressed notation (`a ⊕ w`, `a ⊖ w`, `a ≼ b`, `δ(n, m)`, `zpd(a, w)`, `sig(t)`). Each symbol has a prose antecedent — "tumbler addition," "tumbler subtraction," "prefix relation," "ordinal displacement," "zero-padded divergence," "last significant position." The prose names came from [prose coinage](prose-coinage.md); the symbols came from subsequent compression when formal manipulation required compact expression. Direct evidence: `δ` in ASN-0034 went from 1 use in the first draft to 59 in the final version — the symbol got adopted systematically as discovery review cycles tightened the notation.
 
-**Formalization-stage compression.** Compression also happens during formalization's own review cycles, often accompanied by extracting the concept into its own claim. Three cases from ASN-0036 regional review:
+**Claim-convergence-stage compression.** Compression also happens during claim convergence's own review cycles, often accompanied by extracting the concept into its own claim. Three cases from ASN-0036 cone-scoped review:
 
-- **`E₁(a)` (ElementSubspaceProjection)** — created in D-CTG-depth cone cycle 2. Before: proofs used prose like "the element-field projection of a." After: `E₁(a)` as a named function with formal contract. Trigger: regional review found "E₁ undefined" — postcondition 3 in S8-crun was using the concept without naming it.
+- **`E₁(a)` (ElementSubspaceProjection)** — created in D-CTG-depth cone cycle 2. Before: proofs used prose like "the element-field projection of a." After: `E₁(a)` as a named function with formal contract. Trigger: cone-scoped review found "E₁ undefined" — postcondition 3 in S8-crun was using the concept without naming it.
 - **`origin(a)` (DocumentLevelPrefix)** — created in S7 cone cycle 2. Before: proofs used "the document-level prefix obtained by truncating the element field from a's decomposition." After: `origin(a)` as a named function, cited from S7 and its consequences.
 - **`S8-crun` (CorrespondenceRun)** — extracted from S8-depth during D-CTG-depth cone cycle 2. The concept "correspondence run" existed as prose within S8-depth; extraction gave it its own claim and formal contract with the tuple `(v, a, n)` as its citable structure.
 
-The formalization-stage compressions tend to be more structural — the new symbol often comes with a new claim that holds its formal contract. Discovery-stage compressions often keep the symbol inside an existing claim's narrative. Both are the same pattern operating at different stages.
+The claim-convergence-stage compressions tend to be more structural — the new symbol often comes with a new claim that holds its formal contract. Discovery-stage compressions often keep the symbol inside an existing claim's narrative. Both are the same pattern operating at different stages.
 
 Prose compression is what makes the system's formal contracts tractable. Without it, every contract would be paragraphs of prose and no proof could be mechanically checked. Without prose backing, the notation would have no shared meaning for agents to reason about.

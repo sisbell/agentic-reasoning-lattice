@@ -2,7 +2,7 @@
 
 A claim's narrative prose — the derivation, preamble, or argumentative commentary around the Formal Contract — keeps growing across review cycles. The math stays sound; the prose accumulates meta-commentary that does not advance the reasoning.
 
-Prose is legitimately where reasoning lives at the formalization stage. What grows under Prose Sprawl is *non-reasoning prose* — citation tracking, exhaustiveness claims, bundling justifications, and design-decision asides that belong in no layer of the claim.
+Prose is legitimately where reasoning lives at the claim convergence stage. What grows under Prose Sprawl is *non-reasoning prose* — citation tracking, exhaustiveness claims, bundling justifications, and design-decision asides that belong in no layer of the claim.
 
 ## Forces
 
@@ -48,7 +48,7 @@ Four cycles, four distinct review findings, four prose extensions. No convergenc
 
 ## Example: ASN-0034 TA-Pos cone (April 2026)
 
-A six-cycle regional sweep on TA-Pos produced a cleaner instance of the add-bias pattern with a measurable trajectory. Findings per cycle: **5 → 1 → 1 → 2 → 4 → 4** — not monotonically decreasing.
+A six-cycle cone sweep on TA-Pos produced a cleaner instance of the add-bias pattern with a measurable trajectory. Findings per cycle: **5 → 1 → 1 → 2 → 4 → 4** — not monotonically decreasing.
 
 The cycle-5 uptick contained defensive prose the reviser had introduced in cycle 1 when fixing the Pos/Zero dichotomy finding: a parenthetical about "a hypothetical length-0 tumbler" whose behavior under the biconditional was irrelevant because T0 excludes length-0 tumblers from `T`. Cycle 5 flagged the defensive prose. Cycle 6 then flagged it again — explicitly: "the response moved it to the content-of-partition paragraph rather than dropping it." The reviser had relocated rather than deleted.
 
@@ -58,7 +58,7 @@ The cone was halted after cycle 7 without convergence. Of ~17 findings across si
 
 ## Resolution
 
-Two mechanisms contain Prose Sprawl, operating at different points in the pipeline:
+Two mechanisms contain Prose Sprawl, operating at different points in the review process:
 
 **Voice discipline constrains what the reviser writes.** The [Voice Principle](../principles/voice.md) replaces enumerated prohibitions ("do not add defensive justifications, do not add meta-commentary...") with a positive style structure: the Dijkstra voice, where every formal statement must be justified in the sentence that introduces it, every claim must be named, and state is described rather than narrated. Under this discipline, non-reasoning prose has no slot to land in — the structure itself is the constraint. Empirically, the same cones that produced sprawl under prescriptive prohibition lists produced net-shrinking prose under voice discipline.
 
@@ -85,4 +85,4 @@ These are recognition aids, not a stripping checklist. The discipline that preve
 - [Contract Sprawl](contract-sprawl.md) — shares forces. Contract Sprawl concentrates in structural sections; Prose Sprawl concentrates in narrative.
 - [Index Sprawl](index-sprawl.md) — enumerative prose is a specific surface form of Prose Sprawl.
 - [Surface Expansion](surface-expansion.md) — the shared mechanism across Contract/Prose/Index Sprawl. Prose Sprawl is the narrative-surface manifestation; monitoring and the general discipline live at the Surface Expansion level.
-- [Claim Convergence Protocol](../protocols/claim-convergence-protocol.md) — prose bloat is detected at full-review when cycle findings reference prose introduced by the previous cycle's revisions. The REVISE/OBSERVE classification operates within the protocol's review prompts.
+- [Claim Convergence Protocol](../protocols/claim-convergence-protocol.md) — prose bloat is detected at comprehensive scope when cycle findings reference prose introduced by the previous cycle's revisions. The REVISE/OBSERVE classification operates within the protocol's review prompts.

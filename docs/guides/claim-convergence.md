@@ -4,7 +4,7 @@
 
 ## Overview
 
-Claim convergence transforms per-claim file pairs from blueprinting into rigorously proven specifications with formal contracts. Each claim is reviewed and revised independently — its dependencies are immutable context. See [why per-claim review converges](#why-per-claim-review-converges).
+Claim convergence transforms per-claim file pairs from note decomposition into rigorously proven specifications with formal contracts. Each claim is reviewed and revised independently — its dependencies are immutable context. See [why per-claim review converges](#why-per-claim-review-converges).
 
 Review operates at two scales:
 
