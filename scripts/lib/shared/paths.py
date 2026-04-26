@@ -161,21 +161,34 @@ def find_review(asn_label, review_spec=None):
 
 
 def next_review_number(asn_label, reviews_dir=None):
-    """Find the next review number for this ASN (shared sequence with all reviews)."""
-    if reviews_dir is not None:
-        note_subdir = reviews_dir
-    else:
-        note_subdir = REVIEWS_DIR / asn_label
-    if not note_subdir.exists():
-        return 1
-    existing = sorted(note_subdir.glob("review-*.md"))
-    if not existing:
-        return 1
+    """Find the next review number for this ASN.
+
+    Sources from two places, taking max+1 across both:
+      1. Legacy review files (review-N.md) under `reviews_dir` if provided —
+         caller-supplied path, typically `claim-convergence/<asn>/reviews/`.
+         Not written by current code, but historical numbers are respected.
+      2. Current review directories (review-N/) under `_store/findings/<asn>/`
+         — created by `emit_meta` + `emit_findings`.
+    """
     nums = []
-    for p in existing:
-        m = re.search(r"review-(\d+)\.md$", p.name)
-        if m:
-            nums.append(int(m.group(1)))
+
+    # Legacy review files (numbered review-N.md). Caller passes the dir.
+    if reviews_dir is not None and Path(reviews_dir).exists():
+        for p in Path(reviews_dir).glob("review-*.md"):
+            m = re.search(r"review-(\d+)\.md$", p.name)
+            if m:
+                nums.append(int(m.group(1)))
+
+    # Current review directories (review-N/ under FINDINGS_DIR/asn).
+    findings_subdir = FINDINGS_DIR / asn_label
+    if findings_subdir.exists():
+        for p in findings_subdir.glob("review-*"):
+            if not p.is_dir():
+                continue
+            m = re.search(r"review-(\d+)$", p.name)
+            if m:
+                nums.append(int(m.group(1)))
+
     return max(nums, default=0) + 1
 
 

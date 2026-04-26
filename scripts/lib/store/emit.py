@@ -27,6 +27,58 @@ def emit_review(store, review_md_path):
     )
 
 
+def emit_meta(store, asn_label, review_num, *, title, timestamp, scope,
+              verdict, findings_summary, emitted_findings, elapsed_seconds,
+              findings_dir=None):
+    """Write the review event's meta file to `_store/findings/<asn>/review-N/`
+    and emit the `review` classifier link pointing at it.
+
+    The meta file replaces the legacy `claim-convergence/<asn>/reviews/review-N.md`.
+    Findings (the prose bodies) live in `_store/findings/<asn>/review-N/<n>.md`,
+    written separately by `emit_findings`.
+
+    Args:
+      asn_label: e.g. "ASN-0034"
+      review_num: integer, the review number
+      title: e.g. "Cone Review — ASN-0034/T4 (cycle 1)"
+      timestamp: pre-formatted timestamp string
+      scope: human description, e.g. "T4 + 6 deps (cone)"
+      verdict: "CONVERGED" | "REVISE" | "OBSERVE" | "FAILED"
+      findings_summary: e.g. "1 REVISE, 2 OBSERVE" (or "0 findings")
+      emitted_findings: list of dicts from emit_findings (each has title, cls,
+                       finding_path). Used to write the manifest.
+      elapsed_seconds: float, used for the Elapsed line.
+
+    Returns the link id of the review classifier link.
+    """
+    findings_root = Path(findings_dir) if findings_dir else Path(FINDINGS_DIR)
+    review_stem = f"review-{review_num}"
+    meta_dir = findings_root / asn_label / review_stem
+    meta_dir.mkdir(parents=True, exist_ok=True)
+    meta_path = meta_dir / "_meta.md"
+
+    lines = [
+        f"# {title}",
+        "",
+        f"*{timestamp}*",
+        "",
+        f"**Scope:** {scope}",
+        f"**Verdict:** {verdict}",
+        f"**Findings:** {findings_summary}",
+        f"**Elapsed:** {elapsed_seconds:.0f}s",
+    ]
+    if emitted_findings:
+        lines.extend(["", "## Findings", ""])
+        for ef in emitted_findings:
+            finding_filename = Path(ef["finding_path"]).name
+            cls = ef.get("cls", "REVISE")
+            title_text = ef.get("title", "(untitled)")
+            lines.append(f"- {finding_filename} — {title_text} *({cls})*")
+    meta_path.write_text("\n".join(lines) + "\n")
+
+    return emit_review(store, meta_path)
+
+
 def emit_findings(store, review_md_path, findings, asn_label, review_stem,
                   label_index, findings_dir=None):
     """Materialize each finding as a document and emit a comment link.

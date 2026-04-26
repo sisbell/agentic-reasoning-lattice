@@ -6,19 +6,18 @@ A dependency cone is a claim (the apex) that sits atop many stable
 dependencies and can't converge under per-finding revision. See
 docs/patterns/dependency-cone.md for the pattern.
 
-- detect_dependency_cone: reactive, from git history
+- detect_dependency_cone: reactive, from substrate review history
 - run_cone_review: focused review/revise loop on one cone
 - run_cone_sweep: proactive bottom-up DAG walk, reviews all qualifying cones
 """
 
 import re
-import subprocess
 import sys
 import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, next_review_number
+from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, FINDINGS_DIR, next_review_number
 from lib.shared.common import (
     find_asn, build_label_index,
     step_commit_asn,
@@ -33,7 +32,7 @@ from lib.claim_convergence.full_review.revise import revise
 from lib.claim_convergence.core.build_dependency_graph import generate_claim_convergence_deps
 from lib.claim_convergence.core.topological_sort import topological_levels
 from lib.store.store import Store
-from lib.store.emit import emit_review, emit_findings
+from lib.store.emit import emit_findings, emit_meta
 from lib.store.populate import build_cross_asn_label_index
 from lib.store.queries import is_claim_converged, unresolved_revise_comments, active_links
 
@@ -75,11 +74,13 @@ _COMPRESS_ENABLED = False
 
 
 def detect_dependency_cone(asn_num, window=5, threshold=3):
-    """Detect a dependency cone from git history.
+    """Detect a dependency cone from substrate review history.
 
-    Scans the last `window` full-review commits for this ASN.
-    If one claim has >= `threshold` touches while its YAML
-    dependencies have <= 1 touch, returns (apex_label, dep_labels).
+    Looks at the last `window` review events for this ASN (review classifier
+    links sorted by timestamp). Counts active comment.revise links sourced
+    from those reviews' finding documents, grouped by target claim. If one
+    claim has >= `threshold` revise comments while its dependencies are
+    stable (each <= half the apex's count), returns (apex_label, dep_labels).
     Otherwise returns None.
     """
     _, asn_label = find_asn(str(asn_num))
@@ -87,98 +88,91 @@ def detect_dependency_cone(asn_num, window=5, threshold=3):
         return None
 
     claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
-    rel_dir = claim_dir.relative_to(WORKSPACE)
-
-    # Get last N review commits touching this ASN.
-    # Match both grep prefixes (cross-review + full-review) so historical
-    # commits remain findable across the prefix rename.
-    # Include both path prefixes (new lattices/xanadu/claim-convergence + legacy
-    # vault/3-formalization) so pre-restructure history is findable too.
-    legacy_rel_dir = Path("vault") / "3-formalization" / asn_label
-    try:
-        result = subprocess.run(
-            ["git", "log", "-E", "--grep=cross-review|full-review",
-             f"-{window}",
-             "--format=%H", "--",
-             str(rel_dir), str(legacy_rel_dir)],
-            capture_output=True, text=True, cwd=str(WORKSPACE),
-        )
-    except Exception:
+    if not claim_dir.exists():
         return None
 
-    commits = result.stdout.strip().split("\n")
-    commits = [c for c in commits if c]
-
-    if len(commits) < threshold:
-        return None
-
-    # Count claim file touches per commit
-    touch_counts = {}  # label → count
     label_index = build_label_index(claim_dir)
-    stem_to_label = {stem: lbl for lbl, stem in label_index.items()}
-
-    for commit_hash in commits:
-        try:
-            result = subprocess.run(
-                ["git", "diff-tree", "--no-commit-id", "--name-only", "-r",
-                 commit_hash],
-                capture_output=True, text=True, cwd=str(WORKSPACE),
-            )
-        except Exception:
-            continue
-
-        for line in result.stdout.strip().split("\n"):
-            # Accept lines under either the current or the legacy convergence
-            # directory so pre-restructure history is still counted.
-            if not (line.startswith(str(rel_dir))
-                    or line.startswith(str(legacy_rel_dir))):
-                continue
-            fname = Path(line).name
-            # Skip reviews, structural files, non-claim files
-            if "reviews/" in line or fname.startswith("_") or fname.startswith("."):
-                continue
-            stem = fname.replace(".md", "").replace(".yaml", "")
-            label = stem_to_label.get(stem, stem)
-            touch_counts[label] = touch_counts.get(label, 0) + 1
-
-    if not touch_counts:
-        return None
-
-    # Find candidate apex: most-touched claim above threshold
-    apex = max(touch_counts, key=touch_counts.get)
-    if touch_counts[apex] < threshold:
-        return None
-
-    # Load apex dependencies (same-ASN only) from the substrate's citation links.
     asn_labels = set(label_index.keys())
-    apex_path = str(
-        (claim_dir / f"{label_index[apex]}.md").relative_to(WORKSPACE)
+
+    findings_prefix = str((FINDINGS_DIR / asn_label).relative_to(WORKSPACE))
+    legacy_reviews_prefix = str(
+        (claim_dir / "reviews").relative_to(WORKSPACE)
     )
+
     store = Store()
     try:
+        scoped_reviews = []
+        for r in store.find_links(type_set=["review"]):
+            if not r["to_set"]:
+                continue
+            target = r["to_set"][0]
+            if (target.startswith(findings_prefix)
+                    or target.startswith(legacy_reviews_prefix)):
+                scoped_reviews.append(r)
+
+        scoped_reviews.sort(key=lambda r: r["ts"], reverse=True)
+        recent = scoped_reviews[:window]
+        if len(recent) < threshold:
+            return None
+
+        # Collect review-N stems from the window. The review classifier link
+        # may target either `_store/findings/<asn>/review-N/_meta.md` (current)
+        # or the legacy `claim-convergence/<asn>/reviews/review-N.md` (old).
+        # Finding documents always live at `_store/findings/<asn>/review-N/n.md`,
+        # so match on the `review-N` stem rather than absolute parent path.
+        recent_stems = set()
+        for r in recent:
+            target_path = Path(r["to_set"][0])
+            stem = (
+                target_path.parent.name
+                if target_path.stem == "_meta"
+                else target_path.stem
+            )
+            if stem.startswith("review-"):
+                recent_stems.add(stem)
+
         cross_index = build_cross_asn_label_index()
-        rev_index = {p: l for l, p in cross_index.items()}
+        path_to_label = {p: l for l, p in cross_index.items()}
+
+        revise_counts = {}
+        for link in active_links(store, "comment.revise"):
+            if not link["from_set"] or not link["to_set"]:
+                continue
+            src_parent = Path(link["from_set"][0]).parent.name
+            if src_parent not in recent_stems:
+                continue
+            claim_label = path_to_label.get(link["to_set"][0])
+            if claim_label in asn_labels:
+                revise_counts[claim_label] = revise_counts.get(claim_label, 0) + 1
+
+        if not revise_counts:
+            return None
+
+        apex = max(revise_counts, key=revise_counts.get)
+        apex_count = revise_counts[apex]
+        if apex_count < threshold:
+            return None
+
+        apex_path = cross_index.get(apex)
+        if not apex_path:
+            return None
         cites = active_links(store, "citation", from_set=[apex_path])
         dep_labels = [
-            rev_index[link["to_set"][0]]
+            path_to_label[link["to_set"][0]]
             for link in cites
-            if link["to_set"] and rev_index.get(link["to_set"][0]) in asn_labels
+            if link["to_set"]
+            and path_to_label.get(link["to_set"][0]) in asn_labels
         ]
+
+        max_dep = max((revise_counts.get(d, 0) for d in dep_labels), default=0)
+        if max_dep > apex_count // 2:
+            return None
+
+        print(f"  [CONE] Detected: {apex} ({apex_count} revises, "
+              f"{len(dep_labels)} stable deps)", file=sys.stderr)
+        return (apex, dep_labels)
     finally:
         store.close()
-
-    # Check if dependencies are stable relative to apex
-    # Apex should have at least 2x the touches of any single dep
-    apex_count = touch_counts[apex]
-    max_dep_touches = max(
-        (touch_counts.get(d, 0) for d in dep_labels), default=0
-    )
-    if max_dep_touches > apex_count // 2:
-        return None  # Dependencies are also thrashing — not a cone
-
-    print(f"  [CONE] Detected: {apex} ({touch_counts[apex]} touches, "
-          f"{len(dep_labels)} stable deps)", file=sys.stderr)
-    return (apex, dep_labels)
 
 
 def assemble_cone(asn_label, apex_label, dep_labels):
@@ -203,20 +197,43 @@ def assemble_cone(asn_label, apex_label, dep_labels):
 
 
 def _extract_apex_history(asn_label, apex_label, max_reviews=5):
-    """Extract recent review findings that mention the apex label."""
-    review_dir = CLAIM_CONVERGENCE_DIR / asn_label / "reviews"
-    if not review_dir.exists():
-        return ""
+    """Extract recent review findings that mention the apex label.
 
-    review_files = sorted(review_dir.glob("review-*.md"),
-                          key=lambda f: int(re.search(r'\d+', f.stem).group()),
-                          reverse=True)
+    Sources from both legacy review files (claim-convergence/<asn>/reviews/)
+    and the substrate finding documents (_store/findings/<asn>/review-N/).
+    Sorted by review number; the most recent `max_reviews` are filtered to
+    those that mention apex_label.
+    """
+    bodies = []  # list of (review_num, text)
 
-    relevant = []
-    for rf in review_files[:max_reviews]:
-        text = rf.read_text()
-        if apex_label in text:
-            relevant.append(text.strip())
+    legacy_dir = CLAIM_CONVERGENCE_DIR / asn_label / "reviews"
+    if legacy_dir.exists():
+        for rf in legacy_dir.glob("review-*.md"):
+            m = re.search(r'review-(\d+)$', rf.stem)
+            if m:
+                bodies.append((int(m.group(1)), rf.read_text().strip()))
+
+    findings_dir = FINDINGS_DIR / asn_label
+    if findings_dir.exists():
+        for sub in findings_dir.glob("review-*"):
+            if not sub.is_dir():
+                continue
+            m = re.search(r'review-(\d+)$', sub.name)
+            if not m:
+                continue
+            parts = []
+            meta = sub / "_meta.md"
+            if meta.exists():
+                parts.append(meta.read_text().strip())
+            for finding in sorted(sub.glob("*.md")):
+                if finding.name == "_meta.md":
+                    continue
+                parts.append(finding.read_text().strip())
+            if parts:
+                bodies.append((int(m.group(1)), "\n\n".join(parts)))
+
+    bodies.sort(key=lambda x: x[0], reverse=True)
+    relevant = [text for _, text in bodies[:max_reviews] if apex_label in text]
 
     if not relevant:
         return "(no recent findings)"
@@ -341,26 +358,50 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
                   file=sys.stderr)
             break
 
-        # Always write review file + emit_review (records the review event
-        # in the substrate even when reviewer was CONVERGED with no findings)
+        # Emit findings + meta (records the review event in the substrate
+        # even when reviewer was CONVERGED with no findings).
         had_findings = True
-        review_dir.mkdir(parents=True, exist_ok=True)
         review_num = next_review_number(asn_label, reviews_dir=review_dir)
-        review_path = review_dir / f"review-{review_num}.md"
-        with open(review_path, "w") as rf:
-            rf.write(f"# Cone Review — {asn_label}/{apex_label} (cycle {cycle})\n\n")
-            rf.write(f"*{time.strftime('%Y-%m-%d %H:%M')}*\n\n")
-            rf.write(findings_text + "\n")
-        final_review_path = review_path
+        review_stem = f"review-{review_num}"
+        # Synthetic path for emit_findings' review_md_path arg (it's used as
+        # the comment link's source provenance label only, doesn't have to exist).
+        meta_dir = FINDINGS_DIR / asn_label / review_stem
+        meta_path_synthetic = meta_dir / "_meta.md"
 
         findings = extract_findings(findings_text)
 
-        emit_review(store, review_path)
         emitted_findings = emit_findings(
-            store, review_path, findings,
-            asn_label, review_path.stem, label_index,
+            store, meta_path_synthetic, findings,
+            asn_label, review_stem, label_index,
         )
         emitted_by_title = {e["title"]: e for e in emitted_findings}
+
+        # Cycle-level verdict from reviewer's classification + revise count
+        cycle_revise_count = len(filter_revise(findings))
+        cycle_verdict = (
+            "CONVERGED" if (verdict == "CONVERGED" and cycle_revise_count == 0)
+            else ("REVISE" if cycle_revise_count > 0 else verdict)
+        )
+        observe_count = len(findings) - cycle_revise_count
+        if findings:
+            findings_summary = (
+                f"{cycle_revise_count} REVISE, {observe_count} OBSERVE"
+                if observe_count else f"{cycle_revise_count} REVISE"
+            ) if cycle_revise_count else f"{observe_count} OBSERVE"
+        else:
+            findings_summary = "0 findings"
+
+        emit_meta(
+            store, asn_label, review_num,
+            title=f"Cone Review — {asn_label}/{apex_label} (cycle {cycle})",
+            timestamp=time.strftime("%Y-%m-%d %H:%M"),
+            scope=f"{apex_label} + {len(dep_labels)} deps (cone)",
+            verdict=cycle_verdict,
+            findings_summary=findings_summary,
+            emitted_findings=emitted_findings,
+            elapsed_seconds=elapsed,
+        )
+        final_review_path = meta_path_synthetic
 
         for title, cls, _ in findings:
             print(f"\n  ### [{cls}] {title}", file=sys.stderr)
@@ -434,30 +475,50 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
             failed = True
         else:
             cone_content = assemble_cone(asn_label, apex_label, dep_labels)
-            confirm_verdict, confirm_findings_text, _ = run_review(
+            confirm_verdict, confirm_findings_text, confirm_elapsed = run_review(
                 asn_num, cone_content, asn_label, previous_findings,
                 model=model, foundation_labels=cross_asn_deps,
             )
             if confirm_verdict == "ERROR":
                 failed = True
             else:
-                review_dir.mkdir(parents=True, exist_ok=True)
                 review_num = next_review_number(asn_label, reviews_dir=review_dir)
-                confirm_review_path = review_dir / f"review-{review_num}.md"
-                with open(confirm_review_path, "w") as rf:
-                    rf.write(f"# Cone Review (Confirmation) — "
-                             f"{asn_label}/{apex_label}\n\n")
-                    rf.write(f"*{time.strftime('%Y-%m-%d %H:%M')}*\n\n")
-                    rf.write(confirm_findings_text + "\n")
-                final_review_path = confirm_review_path
+                review_stem = f"review-{review_num}"
+                confirm_meta_path = FINDINGS_DIR / asn_label / review_stem / "_meta.md"
 
                 confirm_findings = extract_findings(confirm_findings_text)
-                emit_review(store, confirm_review_path)
-                emit_findings(
-                    store, confirm_review_path, confirm_findings,
-                    asn_label, confirm_review_path.stem, label_index,
+                emitted_findings = emit_findings(
+                    store, confirm_meta_path, confirm_findings,
+                    asn_label, review_stem, label_index,
                 )
                 confirmation_revise_count = len(filter_revise(confirm_findings))
+                observe_count = len(confirm_findings) - confirmation_revise_count
+                if confirm_findings:
+                    findings_summary = (
+                        f"{confirmation_revise_count} REVISE, {observe_count} OBSERVE"
+                        if observe_count else f"{confirmation_revise_count} REVISE"
+                    ) if confirmation_revise_count else f"{observe_count} OBSERVE"
+                else:
+                    findings_summary = "0 findings"
+
+                confirm_verdict_label = (
+                    "CONVERGED" if (confirm_verdict == "CONVERGED"
+                                    and confirmation_revise_count == 0)
+                    else ("REVISE" if confirmation_revise_count > 0
+                          else confirm_verdict)
+                )
+
+                emit_meta(
+                    store, asn_label, review_num,
+                    title=f"Cone Review (Confirmation) — {asn_label}/{apex_label}",
+                    timestamp=time.strftime("%Y-%m-%d %H:%M"),
+                    scope=f"{apex_label} + {len(dep_labels)} deps (cone)",
+                    verdict=confirm_verdict_label,
+                    findings_summary=findings_summary,
+                    emitted_findings=emitted_findings,
+                    elapsed_seconds=confirm_elapsed,
+                )
+                final_review_path = confirm_meta_path
 
     elapsed = time.time() - start_time
     if failed:
