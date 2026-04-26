@@ -48,7 +48,7 @@ PASSES = [
     {"rule": "body-uniqueness",            "mode": "apply",   "tools": "Read,Edit"},
     {"rule": "declaration-label-mismatch", "mode": "apply",   "tools": "Read,Edit"},
     {"rule": "declared-symbols-resolve",   "mode": "apply",   "tools": "Read,Edit"},
-    {"rule": "depends-agreement",          "mode": "apply",   "tools": "Read,Edit,Bash"},
+    {"rule": "depends-agreement",          "mode": "apply",   "tools": "Read,Edit"},
     {"rule": "references-resolve",         "mode": "apply",   "tools": "Read,Edit"},
     {"rule": "filename-label-mismatch",    "mode": "apply",   "tools": "Read,Edit,Grep,Bash"},
     {"rule": "acyclic-depends",            "mode": "propose", "tools": "Read"},

@@ -57,21 +57,6 @@ The first yaml below is the companion yaml for the file being fixed. Its `depend
    - Do NOT restructure the file to add a structured Depends section. That's a larger design call.
    - Instead, leave such files unchanged and note it in your final summary. Their findings will be surfaced in the judgment-required pass.
 
-## Alternative: retract instead of add
-
-The finding `in store citations but not in md Depends: [...]` admits two interpretations:
-
-- **The proof actually uses X but the md Depends list is missing the entry.** Resolution: add the bullet (rule 2 above).
-- **The proof does not use X; the substrate citation is stale from a prior proof version.** Resolution: retract the substrate citation. Run:
-
-      PROTOCOL_CLAIM_PATH=<file_path> python scripts/retract.py --to <label>
-
-  This files a `retraction` link pointing at the stale citation's link id. The citation remains in the substrate (append-only) but no longer counts toward the dependency graph; the depends-agreement check will pass on the next validator pass.
-
-**How to choose.** Read the md body (Axiom, Definition, Proof, Derivation, Preconditions, Postconditions) and grep for the dep's label or any of its declared symbols. If you find a use-site, add the bullet. If you cannot find any use-site after thorough inspection, retract — do not fabricate a gloss to pass the check, and do not "leave the md unchanged and decline the fix" (the previous default — retraction is now the principled fix).
-
-The mirror direction (`in md Depends but not in store citations`) does not have a retract path. That finding means the md asserts a dep that was never properly emitted via `cite.py`. Resolution: emit the citation via `python scripts/cite.py --to <label>` and verify the md entry is correct.
-
 ## Do not
 
 - Do not change the yaml file.
@@ -85,4 +70,4 @@ If a finding looks incorrect, it is almost always format drift (wrong first toke
 
 ## Tools
 
-Read, Edit, Bash. Read the companion yaml and the depended-upon yamls for authoritative labels and names. Edit only the markdown Depends section. Use Bash to invoke `scripts/retract.py` or `scripts/cite.py` when the resolution is to update the substrate rather than the md.
+Read, Edit. Read the companion yaml and the depended-upon yamls for authoritative labels and names. Edit only the markdown Depends section.
