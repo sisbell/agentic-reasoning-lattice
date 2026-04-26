@@ -1,0 +1,9 @@
+label: NAT-carrier
+name: NatCarrierSet
+summary: |
+  Posits `ℕ` as a set, the primitive carrier on which the rest of the NAT-* claims (and T0
+  in turn) operate. Every Cartesian product `ℕ × ℕ`, every membership `x ∈ ℕ`, and every
+  set-builder `{j ∈ ℕ : ...}` appearing in NAT-order, NAT-zero, NAT-closure, NAT-discrete,
+  and downstream consumers presupposes this declaration. No further structure — order,
+  zero, addition, discreteness — is asserted here; those commitments are layered on top by
+  the dedicated NAT-* claims.
