@@ -28,8 +28,6 @@ Following the modular formalism of Cachin (*Reliable and Secure Distributed Prog
 
 The `claim`, `citation`, and `contract` link types are inherited from the [claim convergence protocol](claim-convergence-protocol.md) — note decomposition is the protocol that creates them. The `decomposition` link is this protocol's own provenance primitive (analog of consultation's `synthesis` link).
 
-Note decomposition does not file `retraction` links. Retraction is a [claim convergence](claim-convergence-protocol.md#retraction-and-proof-evolution) concern — a revisor responding to proof evolution that removes a use-site files a retraction during convergence cycles. Decomposition produces a fresh claim set from a converged note; there are no stale citations to retract at this stage.
-
 ---
 
 ## 2 Modules used
