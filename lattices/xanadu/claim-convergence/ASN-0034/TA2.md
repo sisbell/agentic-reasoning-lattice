@@ -8,17 +8,17 @@ Let `⊖` denote tumbler subtraction: given two positions, compute the displacem
 
 *Case 1: no divergence.* The padded sequences of `a` and `w` agree at every position. TumblerSub produces `[0, ..., 0]` of length `L`. Since `#a ≥ 1` and `#w ≥ 1` by T0, `L ≥ 1`. Each component is `0 ∈ ℕ` by NAT-zero. Hence the result is in T.
 
-*Case 2: divergence at position `k`.* TumblerSub defines `r = a ⊖ w` componentwise: `rᵢ = 0` for `i < k`, `rₖ = aₖ - wₖ`, `rᵢ = aᵢ` for `i > k` (zero-padded values throughout), with `#r = L`.
+*Case 2: divergence at position `k`.* TumblerSub defines `r = a ⊖ w` componentwise on ZPD's padded projections `â`, `ŵ`: `rᵢ = 0` for `i < k`, `rₖ = âₖ - ŵₖ`, `rᵢ = âᵢ` for `i > k`, with `#r = L`.
 
 *Pre-divergence* (`i < k`): `rᵢ = 0 ∈ ℕ` by NAT-zero.
 
 *Divergence point* (`i = k`): The padded sequences differ, so by T3 `a ≠ w`; combined with `a ≥ w` this gives `a > w` under T1.
 
-- *Sub-case (i): T1 component divergence.* There exists a first position `j` with `j ≤ #a ∧ j ≤ #w`, `aⱼ > wⱼ`, and `aᵢ = wᵢ` for all `i < j`. By ZPD's minimality, `k = j`. At `k`, `aₖ > wₖ`, so `aₖ ≥ wₖ` by NAT-order, and NAT-sub yields `rₖ = aₖ - wₖ ∈ ℕ`.
+- *Sub-case (i): T1 component divergence.* There exists a first position `j` with `j ≤ #a ∧ j ≤ #w`, `aⱼ > wⱼ`, and `aᵢ = wᵢ` for all `i < j` (native projections, well-defined on the shared native domain). By ZPD's minimality, `k = j`. At `k`, `aₖ > wₖ`; since `k ≤ #a ∧ k ≤ #w` the padded projections coincide with native (`âₖ = aₖ`, `ŵₖ = wₖ`), giving `âₖ > ŵₖ`, so `âₖ ≥ ŵₖ` by NAT-order, and NAT-sub yields `rₖ = âₖ - ŵₖ ∈ ℕ`.
 
-- *Sub-case (ii): T1 prefix relationship.* `w` is a proper prefix of `a`: `#w < #a` and `aᵢ = wᵢ` for `i ≤ #w`. Padding extends `w` with zeros (NAT-zero) at positions `#w + 1` through `L = #a`. Some position `i > #w` has `aᵢ ≠ 0`, else the padded sequences would agree. By ZPD's minimality, `k = min{i : #w < i ≤ L ∧ aᵢ ≠ 0}`. At `k`, `aₖ ≠ 0 = wₖ`. From NAT-zero's `0 ≤ aₖ` and NAT-order's `m ≤ n ⟺ m < n ∨ m = n`, the `aₖ = 0` disjunct is excluded, yielding `aₖ > 0 = wₖ`. Then `aₖ ≥ wₖ` by NAT-order, and NAT-sub yields `rₖ = aₖ - 0 ∈ ℕ`.
+- *Sub-case (ii): T1 prefix relationship.* `w` is a proper prefix of `a`: `#w < #a` and `aᵢ = wᵢ` for `i ≤ #w` (native). ZPD's padded projection `ŵ` extends `w` with zeros (NAT-zero) at positions `#w + 1` through `L = #a`. Some position `i > #w` has `âᵢ ≠ 0` (with `âᵢ = aᵢ` from `i ≤ #a`), else the padded sequences would agree. By ZPD's minimality, `k = min{i : #w < i ≤ L ∧ âᵢ ≠ 0}`. At `k`, `âₖ ≠ 0 = ŵₖ`. From NAT-zero's `0 ≤ âₖ` and NAT-order's `m ≤ n ⟺ m < n ∨ m = n`, the `âₖ = 0` disjunct is excluded, yielding `âₖ > 0 = ŵₖ`. Then `âₖ ≥ ŵₖ` by NAT-order, and NAT-sub yields `rₖ = âₖ - ŵₖ ∈ ℕ`.
 
-*Tail* (`i > k`): `rᵢ = aᵢ` (zero-padded). If `i ≤ #a`, `aᵢ ∈ ℕ` by T0. If `i > #a`, `aᵢ = 0 ∈ ℕ` by NAT-zero.
+*Tail* (`i > k`): `rᵢ = âᵢ`. If `i ≤ #a`, `âᵢ = aᵢ ∈ ℕ` by T0. If `i > #a`, `âᵢ = 0 ∈ ℕ` by NAT-zero.
 
 The result has length `L ≥ 1` (since `#a ≥ 1` and `#w ≥ 1` by T0) with every component in ℕ, hence in T. ∎
 
@@ -30,7 +30,7 @@ The result has length `L ≥ 1` (since `#a ≥ 1` and `#w ≥ 1` by T0) with eve
   - T1 (LexicographicOrder) — derives `a > w` from `a ≥ w ∧ a ≠ w`; supplies component-divergence and prefix cases at the divergence point.
   - T3 (CanonicalRepresentation) — `a = w` iff same length and components; used to conclude `a ≠ w` from the existence of a padded divergence.
   - ZPD (ZeroPaddedDivergence) — minimality property identifying `k = zpd(a, w)` in both sub-cases.
-  - NAT-sub (NatPartialSubtraction) — conditional-closure clause discharging `rₖ ∈ ℕ` once `aₖ ≥ wₖ`.
-  - NAT-zero (NatZeroMinimum) — supplies `0 ∈ ℕ` for literal zeros (pre-divergence components, tail padding past `#a`, prefix padding of `w`, and the zero tumbler of Case 1); lower bound `0 ≤ aₖ` for the `≠ 0 ⟹ > 0` step.
-  - NAT-order (NatStrictTotalOrder) — trichotomy on `(#a, #w)` naming `L`; defining clause `m ≤ n ⟺ m < n ∨ m = n` used to convert strict inequalities into weak form for NAT-sub and to unfold `0 ≤ aₖ` in sub-case (ii).
+  - NAT-sub (NatPartialSubtraction) — conditional-closure clause discharging `rₖ ∈ ℕ` once `âₖ ≥ ŵₖ` (instantiated on ZPD's padded projections so the operands are well-defined when `k > #w`).
+  - NAT-zero (NatZeroMinimum) — supplies `0 ∈ ℕ` for literal zeros (pre-divergence components, ZPD's padded extension of `a` past `#a`, ZPD's padded extension of `w` past `#w`, and the zero tumbler of Case 1); lower bound `0 ≤ âₖ` for the `≠ 0 ⟹ > 0` step.
+  - NAT-order (NatStrictTotalOrder) — trichotomy on `(#a, #w)` naming `L`; defining clause `m ≤ n ⟺ m < n ∨ m = n` used to convert strict inequalities into weak form for NAT-sub and to unfold `0 ≤ âₖ` in sub-case (ii).
 - *Postconditions:* a ⊖ w ∈ T, #(a ⊖ w) = L where `L = #a` if `#a ≥ #w`, else `L = #w`.
