@@ -1,3 +1,5 @@
+Tumbler addition is not, in general, invertible by `⊖`. TumblerAdd builds `a ⊕ w` in three regions keyed on the action point `k` of `w`: positions `i < k` retain `aᵢ`, position `k` accumulates `aₖ + wₖ`, and positions `i > k` are supplied by `w`. Whatever content `a` carries past position `k` is overwritten by `w`'s tail and cannot be recovered. Even with `#a = k` ruling out that loss, the recovery `(a ⊕ w) ⊖ w = a` further requires that `a`'s prefix vanish (`aᵢ = 0` for `1 ≤ i < k`), so that the first divergence between `a ⊕ w` and `w` falls at position `k` rather than at some earlier nonzero entry of `a` that would mislead TumblerSub's divergence-keyed dispatch. Together with `Pos(w)` (so the action point exists, by TA-Pos) and `#w = k`, these are the structural conditions under which we can establish a partial inverse.
+
 **TA4 (PartialInverse).** `(A a, w ∈ T : Pos(w) ∧ k = #a ∧ #w = k ∧ (A i : 1 ≤ i < k : aᵢ = 0) : (a ⊕ w) ⊖ w = a)`, where `k` is the action point of `w`.
 
 *Proof.* Let `k` denote the action point of `w` (ActionPoint): the least position `i` with `wᵢ > 0`, so `wᵢ = 0` for `i < k` and `wₖ > 0`. `Pos(w)` guarantees `k` exists (TA-Pos).
@@ -13,8 +15,6 @@ Since `aₖ ∈ ℕ` (T0 component typing at `k = #a`), NAT-zero supplies `0 ≤
 *Case 2: `aₖ = 0`.* Then `rₖ = aₖ + wₖ = 0 + wₖ = wₖ` (NAT-closure). Combined with `rᵢ = 0 = wᵢ` for `i < k` and `#r = k = #w`, T3 gives `r = w`. The padded projections agree throughout `{1, ..., k}`, so `zpd(r, w)` is undefined (ZPD case-split) and TumblerSub's no-divergence branch yields the zero tumbler of length `k`. By the precondition, this is `a`.
 
 In both cases, `(a ⊕ w) ⊖ w = a`. ∎
-
-Gregory's analysis confirms that `⊕` and `⊖` are NOT inverses in general. The implementation's `absadd` is asymmetric: the first argument supplies the high-level prefix, the second supplies the low-level suffix. When `d = a ⊖ b` strips a common prefix (reducing the exponent), `b ⊕ d` puts the difference in the wrong operand position — `absadd`'s else branch discards the first argument entirely and returns the second. The operand-order asymmetry causes total information loss even before any digit overflow.
 
 *Formal Contract:*
 - *Preconditions:* `a ∈ T`, `w ∈ T`, `Pos(w)`, `k = #a`, `#w = k`, `(A i : 1 ≤ i < k : aᵢ = 0)`, where `k` is the action point of `w`

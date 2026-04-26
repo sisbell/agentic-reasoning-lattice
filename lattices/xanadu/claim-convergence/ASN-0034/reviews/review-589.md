@@ -1,0 +1,13 @@
+# Cone Review — ASN-0034/TA4 (cycle 1)
+
+*2026-04-26 02:04*
+
+Reading the ASN now to find issues that span multiple claims.
+
+### Implementation comparison paragraph in TA4
+**Class**: REVISE
+**ASN**: TA4 (PartialInverse), the paragraph immediately after the proof's ∎: "Gregory's analysis confirms that `⊕` and `⊖` are NOT inverses in general. The implementation's `absadd` is asymmetric: the first argument supplies the high-level prefix, the second supplies the low-level suffix. When `d = a ⊖ b` strips a common prefix (reducing the exponent), `b ⊕ d` puts the difference in the wrong operand position — `absadd`'s else branch discards the first argument entirely and returns the second. The operand-order asymmetry causes total information loss even before any digit overflow."
+**Issue**: Two distinct problems compounded. (1) The placement is wrong — this paragraph sits in a structural slot between the proof and the Formal Contract, breaking the formal flow of the claim. The observation that ⊕/⊖ are not inverses in general (motivating TA4's narrow precondition) belongs in the prose intro to TA4, not after the proof closes. (2) The implementation discussion (`absadd`, "else branch", "operand-order asymmetry", "digit overflow") refers to symbols and behaviors that exist nowhere in this ASN's formal vocabulary. `absadd` is not defined or cited in the ASN; "exponent", "digit overflow", and "high-level prefix / low-level suffix" are implementation-level concepts not licensed by T0/TumblerAdd/TumblerSub. A precise reader cannot verify or even check these claims against the formal content.
+**What needs resolving**: Remove the implementation-comparison content (it belongs in implementation notes, not in a foundation ASN). If the scope-justification observation ("⊕ and ⊖ are not inverses in general, hence the narrow precondition") is worth keeping, relocate it to the prose intro before the formal statement of TA4 and frame it strictly in the ASN's formal vocabulary (⊕, ⊖, the operands and their preconditions) without referring to implementation symbols.
+
+VERDICT: REVISE

@@ -1247,3 +1247,6 @@
 {"from_set": ["lattices/xanadu/_store/findings/ASN-0034/review-587/2.md"], "id": "l_b84dc6bc94a0", "op": "create", "to_set": ["lattices/xanadu/claim-convergence/ASN-0034/NAT-sub.md"], "ts": "2026-04-26T08:31:02Z", "type_set": ["comment.observe"]}
 {"from_set": ["lattices/xanadu/claim-convergence/ASN-0034/T0.md"], "id": "l_1ce651e0bf2b", "op": "create", "to_set": ["l_42604b01b652"], "ts": "2026-04-26T08:39:04Z", "type_set": ["resolution.edit"]}
 {"from_set": [], "id": "l_e957ead9b76b", "op": "create", "to_set": ["lattices/xanadu/claim-convergence/ASN-0034/reviews/review-588.md"], "ts": "2026-04-26T08:54:02Z", "type_set": ["review"]}
+{"from_set": [], "id": "l_f3f1b59e7a32", "op": "create", "to_set": ["lattices/xanadu/claim-convergence/ASN-0034/reviews/review-589.md"], "ts": "2026-04-26T09:04:14Z", "type_set": ["review"]}
+{"from_set": ["lattices/xanadu/_store/findings/ASN-0034/review-589/0.md"], "id": "l_d6eea362230d", "op": "create", "to_set": ["lattices/xanadu/claim-convergence/ASN-0034/TA4.md"], "ts": "2026-04-26T09:04:14Z", "type_set": ["comment.revise"]}
+{"from_set": ["lattices/xanadu/claim-convergence/ASN-0034/TA4.md"], "id": "l_f263ac99175d", "op": "create", "to_set": ["l_d6eea362230d"], "ts": "2026-04-26T09:06:55Z", "type_set": ["resolution.edit"]}
