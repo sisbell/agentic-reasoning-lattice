@@ -122,7 +122,107 @@ In addition to the convergence module's:
 
 ---
 
-## 6 Composition
+## 6 Algorithm: iterative convergence
+
+Implements: Note Convergence Protocol (§1–§5) over the [Convergence Protocol](convergence-protocol.md).
+Uses: Substrate, Reviewer agent (R), Reviser agent (V).
+
+The algorithm engages a note and drives the predicate true through cycles of review and revise. Each cycle is a deterministic sequence of agent invocations against the substrate. Convergence is decided by the substrate's predicate, never by an agent's verdict alone.
+
+### 6.1 State
+
+- *note* — the engaged note.
+- N — work-cycle bound. Implementation-defined; typical values reflect empirical convergence depth (notes converge in 15–30 cycles).
+- k — current cycle index.
+- *naturallyConverged* — boolean; set when a work cycle observes both predicate truth and a quiet review.
+
+### 6.2 Cycle
+
+```
+upon ⟨ Engage | note, N ⟩ do
+  k ← 0
+  naturallyConverged ← false
+
+  while k < N do
+    k ← k + 1
+    RetryOpenRevises(note)              ; §6.3
+    fs ← Review(note)                   ; §6.4
+    EmitFindings(note, fs)              ; §6.5
+    Revise(note, fs)                    ; §6.6
+    if no comment.revise was filed in this cycle
+       and IsConverged?(note) then
+      naturallyConverged ← true
+      break
+
+  if not naturallyConverged then
+    RetryOpenRevises(note)
+    fs ← Review(note)                   ; +1 confirmation: review only
+    EmitFindings(note, fs)
+    if no comment.revise was filed in the confirmation
+       and IsConverged?(note) then
+      indicate ⟨ Converged | note ⟩
+    else
+      let O = OpenRevises(note)
+      indicate ⟨ NotConverged | note, O ⟩
+  else
+    indicate ⟨ Converged | note ⟩
+```
+
+Same shape as the claim convergence algorithm (§5 of [Claim Convergence Protocol](claim-convergence-protocol.md)). Differences: no Validate step (notes have no structural-contract analog at this scale), and the scope is a single note rather than a configurable claim set.
+
+Natural convergence (the `break` path) avoids a redundant confirmation review. If cycle K's review filed zero revise comments and the predicate is already true, that review just confirmed convergence — running another review to confirm what was just confirmed wastes an invocation. The +1 confirmation only runs when the work loop exhausted N cycles without a quiet review coinciding with predicate truth.
+
+### 6.3 RetryOpenRevises
+
+For every `comment.revise` on note without a matching `resolution`, invoke V on the comment with its finding. V either edits the note and emits ⟨ ResolveEdit ⟩, or refuses and emits ⟨ ResolveReject ⟩ with rationale document. `comment.out-of-scope` links are not retried — they are non-blocking and handled by maturation, not by V.
+
+### 6.4 Review
+
+Invoke R on note with assembled context (the note plus its citation foundations). R returns the set fs of findings, each classified as `comment.revise` or `comment.out-of-scope`.
+
+### 6.5 EmitFindings
+
+For each finding in fs: register the finding document, file the corresponding comment via ⟨ FileComment ⟩, and record the review event. After EmitFindings, every finding is observable through the substrate. `comment.out-of-scope` links are filed but do not enter the predicate; they are visible to maturation as signals (per N2).
+
+### 6.6 Revise
+
+For each new `comment.revise` filed in the current cycle, invoke V. V resolves the comment as in §6.3. `comment.out-of-scope` links filed in the current cycle are not acted on — they accumulate as signals for maturation.
+
+---
+
+## 7 Correctness
+
+### Safety (S1, S5 — indication soundness)
+
+If ⟨ Converged | note ⟩ is indicated, the predicate holds at that moment.
+
+*Argument.* The algorithm indicates Converged only after IsConverged?(note) returns true. By the convergence protocol's S1, every revise comment on note has a matching resolution at evaluation time. By SUB1, neither comments nor resolutions are removable; the predicate's truth at indication persists until new comments arrive. `comment.out-of-scope` links do not participate in the predicate (N1), so their presence at any count does not affect the indication.
+
+### Liveness (L1 — reviser responsiveness)
+
+If V always produces a resolution for every `comment.revise` it is given, then for every open revise comment on note, eventually a resolution exists.
+
+*Argument.* Open revise comments persist across invocations (SUB1, S3). At the start of every cycle, RetryOpenRevises (§6.3) re-feeds every open revise comment to V. Under the assumption, V produces a closing resolution. Within at most one cycle per comment, all open comments are resolved. `comment.out-of-scope` links are skipped per protocol — they are non-blocking and don't generate work for V.
+
+### Bounded work per engagement
+
+Each Engage performs at most N + 1 review invocations and at most N revise rounds.
+
+*Argument.* The cycle structure (§6.2) bounds work-loop reviews by N. The confirmation contributes one additional review and zero revise rounds.
+
+### Cross-invocation progress (L4)
+
+If Engage i exits NotConverged with k open revise comments, then Engage (i + 1) begins its first retry pass with k re-feedings. Under the responsiveness assumption, all k close within (i + 1)'s first cycle.
+
+*Argument.* By SUB1, the k open comments persist between invocations. RetryOpenRevises is the first action of each cycle.
+
+### Out-of-scope persistence
+
+`comment.out-of-scope` links accumulate across cycles and across invocations. They do not block convergence (N1) but remain visible to maturation indefinitely (N2). The algorithm files them but does not consume them. Whether maturation acts on them is outside this protocol's scope.
+
+---
+
+## 8 Composition
 
 ### Within the maturation protocol
 
