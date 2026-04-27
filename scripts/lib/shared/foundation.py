@@ -1,7 +1,8 @@
 """Load foundation ASN statements for injection into prompts.
 
-Reads directly from per-claim YAML (summary) + .md (formal contract)
-files. No dependency on pre-built export files.
+Reads metadata via `load_claim_metadata` (substrate-sourced — name from
+the substrate name link, summary from the description sidecar) and the
+Formal Contract section from each claim's .md.
 """
 
 import re
@@ -98,8 +99,9 @@ def _dep_ids_with_extensions(asn_id):
 def load_foundation_statements(asn_id):
     """Load all foundation statements from per-claim files.
 
-    Reads YAML summaries + .md formal contracts for every claim
-    in each dependency ASN. Errors if summaries are missing.
+    Reads substrate-sourced summaries (description sidecars) + .md
+    formal contracts for every claim in each dependency ASN. Errors if
+    summaries are missing.
     """
     all_dep_ids = _dep_ids_with_extensions(asn_id)
     if not all_dep_ids:
@@ -139,8 +141,8 @@ def load_foundation_statements(asn_id):
 def load_foundation_for_labels(asn_id, labels):
     """Load foundation statements for specific labels from per-claim files.
 
-    Reads YAML summary + .md formal contract for each label.
-    Warns if a label is not found in any dependency ASN.
+    Reads the substrate-sourced summary + .md formal contract for each
+    label. Warns if a label is not found in any dependency ASN.
     """
     if not labels:
         return ""

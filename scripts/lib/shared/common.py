@@ -38,70 +38,100 @@ def dump_yaml(data, path):
                   allow_unicode=True, sort_keys=False, width=120)
 
 
+_ATTR_SUFFIXES = (".label.md", ".name.md", ".description.md")
+
+
+def _is_claim_md(name):
+    return (not name.startswith("_")
+            and name.endswith(".md")
+            and not name.endswith(_ATTR_SUFFIXES))
+
+
 def build_label_index(claim_dir):
-    """Scan YAML files in a directory, return {label: filename_stem} dict."""
-    index = {}
-    for yf in Path(claim_dir).glob("*.yaml"):
-        with open(yf) as f:
-            data = yaml.safe_load(f)
-        if data and "label" in data:
-            index[data["label"]] = yf.stem
-    return index
+    """Return {label: filename_stem} for an ASN's claims.
+
+    The filename stem is the label in the post-yaml architecture, so
+    this is an identity map keyed by every claim md in the directory.
+    """
+    return {
+        p.stem: p.stem
+        for p in Path(claim_dir).glob("*.md")
+        if _is_claim_md(p.name)
+    }
 
 
 def load_claim_metadata(claim_dir, label=None):
-    """Load YAML metadata for one or all claims.
+    """Load substrate-sourced metadata for one or all claims.
 
-    If label is given, returns single dict (or None if not found).
-    If label is None, returns {label: dict} for all claims.
+    Returns a dict (or {label: dict}) with keys:
+    - label   : filename stem
+    - name    : first line of <stem>.name.md (substrate name link's doc)
+    - summary : full content of <stem>.description.md (legacy alias —
+                callers historically read this from yaml.summary; the
+                substrate equivalent is the description link)
+    - type    : the contract.<kind> classifier on the claim's md path
+
+    All fields are optional; absent ones simply don't appear in the dict.
     """
     claim_dir = Path(claim_dir)
-    if label is not None:
-        index = build_label_index(claim_dir)
-        stem = index.get(label)
-        if stem is None:
-            return None
-        yf = claim_dir / f"{stem}.yaml"
-        with open(yf) as f:
-            return yaml.safe_load(f)
 
-    result = {}
-    for yf in sorted(claim_dir.glob("*.yaml")):
-        with open(yf) as f:
-            data = yaml.safe_load(f)
-        if data and "label" in data:
-            result[data["label"]] = data
-    return result
+    def _read_sidecar_first_line(stem, kind):
+        doc = claim_dir / f"{stem}.{kind}.md"
+        if not doc.exists():
+            return None
+        content = doc.read_text().strip()
+        if not content:
+            return None
+        return content.split("\n", 1)[0].strip() or None
+
+    def _read_sidecar_full(stem, kind):
+        doc = claim_dir / f"{stem}.{kind}.md"
+        if not doc.exists():
+            return None
+        content = doc.read_text().strip()
+        return content or None
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+    from lib.store.store import Store
+    from lib.store.queries import current_contract_kind
+
+    workspace = Path(WORKSPACE).resolve()
+
+    def _build(store, stem):
+        result = {"label": stem}
+        name = _read_sidecar_first_line(stem, "name")
+        if name:
+            result["name"] = name
+        desc = _read_sidecar_full(stem, "description")
+        if desc:
+            result["summary"] = desc
+        md_rel = str(
+            (claim_dir / f"{stem}.md").resolve().relative_to(workspace)
+        )
+        kind = current_contract_kind(store, md_rel)
+        if kind:
+            result["type"] = kind
+        return result
+
+    with Store() as store:
+        if label is not None:
+            if not (claim_dir / f"{label}.md").exists():
+                return None
+            return _build(store, label)
+        return {
+            p.stem: _build(store, p.stem)
+            for p in sorted(claim_dir.glob("*.md"))
+            if _is_claim_md(p.name)
+        }
 
 
 def aggregate_vocabulary(claim_dir):
-    """Read vocabulary field from all claim YAMLs, return formatted markdown string.
+    """Vestigial. yaml.vocabulary is no longer maintained anywhere.
 
-    Aggregates all vocabulary entries across all claims into a single
-    string suitable for passing to LLM prompts. Sorted alphabetically,
-    deduplicated by symbol.
+    Returns the empty-state string for backward compatibility with
+    callers that pass the result into prompt templates.
     """
-    claim_dir = Path(claim_dir)
-    seen = {}  # symbol → meaning (dedup)
-
-    for yf in sorted(claim_dir.glob("*.yaml")):
-        with open(yf) as f:
-            data = yaml.safe_load(f)
-        if not data:
-            continue
-        for entry in data.get("vocabulary", []) or []:
-            if isinstance(entry, dict) and "symbol" in entry and "meaning" in entry:
-                sym = entry["symbol"]
-                if sym not in seen:
-                    seen[sym] = entry["meaning"]
-
-    if not seen:
-        return "(no vocabulary)"
-
-    lines = []
-    for sym in sorted(seen.keys()):
-        lines.append(f"- **{sym}** — {seen[sym]}")
-    return "\n".join(lines)
+    return "(no vocabulary)"
 
 
 def read_file(path):
@@ -346,25 +376,17 @@ def assemble_readonly(asn_label):
 
 
 def load_claim_sections(claim_dir):
-    """Load per-claim files into a dict, indexed by both filename stem
-    and original label (from YAML metadata).
+    """Load per-claim md files into a {stem: content} dict.
 
-    Lookup by either filename stem or label will work.
+    Label = filename stem in the post-yaml architecture, so a single
+    key per claim is sufficient.
     """
     claim_dir = Path(claim_dir)
-    label_index = build_label_index(claim_dir)
-    stem_to_label = {stem: lbl for lbl, stem in label_index.items()}
     sections = {}
     for f in sorted(claim_dir.glob("*.md")):
-        if f.name.startswith("_"):
+        if not _is_claim_md(f.name):
             continue
-        content = f.read_text()
-        stem = f.name.replace(".md", "")
-        sections[stem] = content
-        # Also index by original label if different from stem
-        label = stem_to_label.get(stem, stem)
-        if label != stem:
-            sections[label] = content
+        sections[f.stem] = f.read_text()
     return sections
 
 

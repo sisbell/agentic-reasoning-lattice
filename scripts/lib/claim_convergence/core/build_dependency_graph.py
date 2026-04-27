@@ -447,18 +447,17 @@ def _generate_deps_core(asn_num, prose_citations=False):
         print(f"  [ERROR] ASN-{asn_num:04d} not found", file=sys.stderr)
         return None
 
-    # Read from per-claim YAMLs
     claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
 
     # Get manifest for ASN-level depends
     manifest = load_manifest(asn_num)
     depends = manifest.get("depends", [])
 
-    # Build claims dict from YAML metadata
+    # Build claims dict from substrate-sourced metadata
     metadata = load_claim_metadata(claim_dir) if claim_dir.exists() else {}
 
     if not metadata:
-        print(f"  [ERROR] No per-claim YAML files found in {claim_dir}",
+        print(f"  [ERROR] No per-claim files found in {claim_dir}",
               file=sys.stderr)
         return None
 
