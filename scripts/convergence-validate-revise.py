@@ -505,7 +505,11 @@ def run_pass(pass_spec, asn_label, claim_dir, findings, dry_run,
                 print(f"    {d}", file=sys.stderr)
             return declined
 
-    label_index = build_cross_asn_label_index() if rule == "depends-agreement" else None
+    if rule == "depends-agreement":
+        with Store() as store:
+            label_index = build_cross_asn_label_index(store=store)
+    else:
+        label_index = None
 
     for filename, file_findings in sorted(groups.items()):
         if mode == "apply" and rule == "filename-label-mismatch":

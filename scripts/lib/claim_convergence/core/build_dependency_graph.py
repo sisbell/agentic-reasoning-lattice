@@ -466,7 +466,7 @@ def _generate_deps_core(asn_num, prose_citations=False):
     # depends field is no longer canonical).
     store = Store()
     try:
-        cross_index = build_cross_asn_label_index()
+        cross_index = build_cross_asn_label_index(store=store)
         rev_index = {p: l for l, p in cross_index.items()}
 
         claims = {}

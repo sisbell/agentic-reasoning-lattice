@@ -135,7 +135,7 @@ def detect_dependency_cone(asn_num, window=5, threshold=3):
             if stem.startswith("review-"):
                 recent_stems.add(stem)
 
-        cross_index = build_cross_asn_label_index()
+        cross_index = build_cross_asn_label_index(store=store)
         path_to_label = {p: l for l, p in cross_index.items()}
 
         revise_counts = {}
@@ -270,7 +270,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
           file=sys.stderr)
 
     store = Store()
-    label_index = build_cross_asn_label_index()
+    label_index = build_cross_asn_label_index(store=store)
 
     # Collect cross-ASN deps for narrowed foundation loading.
     # Read from the substrate's citation links rather than YAML's depends.
@@ -583,7 +583,7 @@ def run_cone_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False, model="opus
     any_not_converged = False
 
     store = Store()
-    label_index = build_cross_asn_label_index()
+    label_index = build_cross_asn_label_index(store=store)
     rev_index = {p: l for l, p in label_index.items()}
     try:
         for level_idx, level_labels in enumerate(levels):

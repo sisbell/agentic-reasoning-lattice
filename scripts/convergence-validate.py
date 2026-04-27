@@ -751,9 +751,9 @@ def run_all_checks(pairs, store=None, label_index=None, claim_dir=None):
     own_store = store is None
     if own_store:
         store = Store()
-        label_index = build_cross_asn_label_index()
+        label_index = build_cross_asn_label_index(store=store)
     elif label_index is None:
-        label_index = build_cross_asn_label_index()
+        label_index = build_cross_asn_label_index(store=store)
 
     try:
         citation_graph = _build_citation_graph(pairs, store, label_index)

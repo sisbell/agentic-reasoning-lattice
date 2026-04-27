@@ -52,12 +52,42 @@ def populate_structural(store, claim_convergence_dir=None):
     return stats
 
 
-def build_cross_asn_label_index(claim_convergence_dir=None):
+def build_cross_asn_label_index(claim_convergence_dir=None, store=None):
     """Return {label: repo-relative md path} across every ASN.
 
-    Skips underscore-prefixed yaml files. Cross-ASN dependencies in
-    the lattice use bare labels — no ASN prefix — so a flat index works.
+    Sources from substrate `label` links when a `store` is provided —
+    the canonical post-migration path. Falls back to walking `*.yaml`
+    files when no store is given; that path exists for the bootstrap
+    case (`populate_structural`), where the substrate has no label
+    links yet because we are populating it for the first time.
+
+    Cross-ASN dependencies in the lattice use bare labels — no ASN
+    prefix — so a flat index works.
     """
+    if store is not None:
+        return _build_label_index_from_substrate(store)
+    return _build_label_index_from_yaml(claim_convergence_dir)
+
+
+def _build_label_index_from_substrate(store):
+    from lib.store.queries import active_links
+    workspace = Path(WORKSPACE).resolve()
+    index = {}
+    for link in active_links(store, "label"):
+        if not link["from_set"] or not link["to_set"]:
+            continue
+        md_path = link["from_set"][0]
+        doc_path = link["to_set"][0]
+        full = workspace / doc_path
+        if not full.exists():
+            continue
+        first_line = full.read_text().strip().split("\n", 1)[0].strip()
+        if first_line:
+            index[first_line] = md_path
+    return index
+
+
+def _build_label_index_from_yaml(claim_convergence_dir=None):
     claim_convergence_dir = Path(claim_convergence_dir) if claim_convergence_dir else CLAIM_CONVERGENCE_DIR
     index = {}
     for asn_dir in sorted(p for p in claim_convergence_dir.iterdir() if p.is_dir()):

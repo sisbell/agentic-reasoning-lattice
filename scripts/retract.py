@@ -47,7 +47,7 @@ def main():
     store = Store()
     try:
         try:
-            label_index = build_cross_asn_label_index()
+            label_index = build_cross_asn_label_index(store=store)
             link_id, created = emit_retraction(
                 store, claim_path, args.to, label_index,
             )

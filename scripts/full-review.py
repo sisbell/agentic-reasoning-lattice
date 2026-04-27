@@ -76,7 +76,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
     verdict = "CONVERGED"
 
     store = Store()
-    label_index = build_cross_asn_label_index()
+    label_index = build_cross_asn_label_index(store=store)
 
     asn_claim_md_paths = [
         str(yaml_path.with_suffix(".md").relative_to(WORKSPACE))

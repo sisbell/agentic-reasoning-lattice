@@ -57,7 +57,7 @@ def main():
             sys.exit(1)
         store = Store()
         try:
-            label_index = build_cross_asn_label_index()
+            label_index = build_cross_asn_label_index(store=store)
             apex_path = label_index.get(args.cone)
             rev_index = {p: l for l, p in label_index.items()}
             cites = active_links(
