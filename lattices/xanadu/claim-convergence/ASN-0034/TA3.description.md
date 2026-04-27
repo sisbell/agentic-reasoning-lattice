@@ -1,0 +1,1 @@
+Tumbler subtraction preserves weak order: if a < b and both addresses are at least as large as the subtrahend w, then subtracting w from a yields a result no greater than subtracting w from b. The guarantee is weak (≤ rather than strict <) because equal results are possible when a and b diverge only below the subtraction point.

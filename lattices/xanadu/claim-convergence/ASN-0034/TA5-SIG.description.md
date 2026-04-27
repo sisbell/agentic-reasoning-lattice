@@ -1,0 +1,1 @@
+Defines sig(t) as the index of the rightmost nonzero component of tumbler t; for an all-zero tumbler, sig(t) = #t by convention. The result always satisfies 1 ≤ sig(t) ≤ #t, giving a well-defined handle on where a tumbler's significant content ends.

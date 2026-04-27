@@ -1,0 +1,1 @@
+When the action point of the displacement lands at or after the divergence point of two strictly ordered positions, addition preserves strict order — the original ordering relationship survives intact. If the action point falls before the divergence, the two results collapse to equality; order degrades but never reverses.

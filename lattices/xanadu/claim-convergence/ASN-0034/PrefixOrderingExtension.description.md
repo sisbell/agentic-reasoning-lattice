@@ -1,0 +1,1 @@
+If p₁ < p₂ and neither is a prefix of the other, then every tumbler extending p₁ precedes every tumbler extending p₂ under T1. The divergence position witnessing p₁ < p₂ carries through to all extensions, so the relative order of the two prefix subtrees is fully determined by the prefixes alone.

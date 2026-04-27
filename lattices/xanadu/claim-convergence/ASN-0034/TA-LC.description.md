@@ -1,0 +1,1 @@
+TumblerAdd is left-cancellative: if a ⊕ x = a ⊕ y with both additions well-defined, then x = y. Differing action points between x and y lead to immediate contradiction via TumblerAdd's prefix-copy rule; once a shared action point is established, component-wise equality at every position and equal lengths force x = y by canonical representation.

@@ -1,0 +1,1 @@
+T10a's restriction of the sibling stream to inc(·, 0) is not merely sufficient but necessary. Relaxing it to admit inc(·, k) with any k > 0 produces a co-sibling pair where the first output is a strict prefix of the second, directly falsifying T10a.2 (NonNestingSiblingPrefixes); since the construction is parametric in k, every relaxation witnesses a failing pair.

@@ -1,0 +1,1 @@
+For every tumbler and every component position within it, no natural number bounds the values that can appear at that position — there always exists a tumbler of the same depth whose component at that position exceeds any given bound. This establishes that address space within any subtree is inexhaustible, and no finite quota limits allocation beneath any node.

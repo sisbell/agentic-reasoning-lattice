@@ -1,0 +1,3 @@
+Characterises the self-subtraction residue: for `o ∈ S`, the no-divergence
+branch of TumblerSub produces `o ⊖ o = [0, ..., 0]`, the zero tumbler of
+length `#o`, placing it in **Z**.

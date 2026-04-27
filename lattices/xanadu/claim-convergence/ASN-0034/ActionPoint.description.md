@@ -1,0 +1,1 @@
+Defines the action point of a positive tumbler as the index of its first nonzero component. Because the tumbler is positive, at least one nonzero component exists, so the minimum is always well-defined and falls within the tumbler's length.

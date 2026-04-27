@@ -1,0 +1,1 @@
+For any valid address satisfying T4, the signature function sig(t) equals the length of the tumbler — that is, the last component is always the rightmost nonzero position. This follows directly from T4's field-segment constraint, which forbids a zero final component.

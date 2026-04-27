@@ -1,0 +1,4 @@
+Characterises the length-overflow residue of `⊖`: when `#w > #o` under the
+other preconditions of TA7a's subtraction conjunct, the result lies in
+`T \ S` because zero-padding of the minuend places `r_{#w} = 0`, violating
+the universal positivity clause of **S**.

@@ -1,0 +1,3 @@
+No tumbler with `Zero(t)` is a valid address — every zero tumbler is excluded by the boundary rule T4 enforces on
+first components. The companion ordering fact (every zero tumbler is strictly below every positive tumbler under T1)
+is stated and proved once at TA-PosDom; this claim cites TA-Pos only to fix the `Zero` predicate's meaning.

@@ -1,0 +1,1 @@
+No two distinct allocation events — whether from the same allocator, sibling allocators, or allocators at different hierarchy depths — ever produce the same address. The proof proceeds by strong induction on allocator tree depth, with five cases ruling out every possible collision scenario. As a consequence, each address belongs to exactly one allocator's domain.

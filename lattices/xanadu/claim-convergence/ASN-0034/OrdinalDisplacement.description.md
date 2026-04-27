@@ -1,0 +1,1 @@
+δ(n, m) is the canonical "pure depth-m shift" tumbler — a sequence of length m that is zero everywhere except at the last position, which holds n ≥ 1. It acts at depth m and serves as the unit displacement that later shift operations are built from.

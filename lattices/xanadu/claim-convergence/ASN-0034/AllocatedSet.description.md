@@ -1,0 +1,1 @@
+Defines the concrete set of allocated addresses at any reachable system state as the union of finite prefixes drawn from each activated allocator's theoretical domain. Establishes that allocation-relevant properties proved over T10a's abstract per-allocator chains transfer without modification to the realized finite prefixes seen in any actual execution state.

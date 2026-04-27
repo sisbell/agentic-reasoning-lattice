@@ -1,0 +1,1 @@
+Adding the same positive displacement to two ordered positions preserves their relative order weakly: a < b implies a ⊕ w ≤ b ⊕ w. This holds universally — regardless of where the action point falls relative to the divergence — so no ordering relationship can be reversed by a common advancement.

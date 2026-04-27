@@ -1,0 +1,1 @@
+Tumbler addition is associative: (a ⊕ b) ⊕ c = a ⊕ (b ⊕ c) whenever action points are properly ordered (k_b ≤ #a and k_c ≤ #b). The result length always equals the length of the rightmost operand, and the effective action point of a composed displacement b ⊕ c is min(k_b, k_c).

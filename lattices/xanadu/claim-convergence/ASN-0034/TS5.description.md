@@ -1,0 +1,1 @@
+Larger shift amounts produce strictly larger results on the same tumbler: if n₂ > n₁ ≥ 1, then shift(v, n₂) > shift(v, n₁). The output of shift is strictly monotone in the shift amount.

@@ -1,0 +1,13 @@
+Defines positivity for tumblers via two predicate symbols: `Pos(t)` (positive) iff at least one component is
+nonzero, and `Zero(t)` (zero tumbler) iff every component is zero. The `Pos` matrix is written as the
+classical negation `¬(tᵢ = 0)` rather than `tᵢ ≠ 0`, so no inequality symbol beyond `=` is required on ℕ.
+Commits one clause beyond the defining ones: the complementarity `(A t ∈ T :: Pos(t) ⟺ ¬Zero(t))`,
+which follows from the defining clauses by the DeMorgan duality of bounded quantifiers and holds whether
+or not the index range is empty. The partition-content consequence — that T0's `(A a ∈ T :: 1 ≤ #a)`
+forces the index range `1 ≤ i ≤ #t` to be nonempty for every `t ∈ T`, so `Pos(t)` exhibits a nonzero
+component and `Zero(t)` makes every component equal to `0` — is a derived consequence stated in prose
+rather than a separate contract clause, since it restates T0's nonemptiness axiom applied to the Pos/Zero
+quantifier ranges. Additionally introduces the set-form `Z = {t ∈ T : Zero(t)}`, consumed by TA7a's
+subspace-closure postcondition `o ⊖ w ∈ S ∪ Z` where the union with `S` requires set-valued notation.
+The ordering consequence — every positive tumbler is strictly greater under T1 than every zero tumbler of
+any length — is established separately by a downstream ordering theorem that consumes ActionPoint.

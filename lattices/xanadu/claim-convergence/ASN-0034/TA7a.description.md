@@ -1,0 +1,7 @@
+Defines the subspace **S** as the set of tumblers with all positive
+components and establishes strict S-closure for ⊕ and ⊖ under tight
+preconditions. For ⊕: `o ∈ S ∧ Pos(w) ∧ k ≤ #o ∧ (tail-positivity of w)`
+gives `o ⊕ w ∈ S`. For ⊖: `o ∈ S ∧ Pos(w) ∧ o ≥ w ∧ #w ≤ #o ∧ o₁ > w₁`
+gives `o ⊖ w ∈ S`. The T-only residues — length overflow, interior
+divergence, self-subtraction to **Z** — are relocated to sub-claims
+TA7a.1, TA7a.2, TA7a.3 on the complementary precondition fragments.

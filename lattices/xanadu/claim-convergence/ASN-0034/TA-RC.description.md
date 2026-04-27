@@ -1,0 +1,1 @@
+TumblerAdd is not right-cancellative: distinct tumblers a ≠ b can satisfy a ⊕ w = b ⊕ w for the same positive displacement w. The mechanism is tail replacement — any two starting positions that agree up to the action point but differ beyond it are mapped to the same result, so the starting position cannot be recovered from the result alone.
