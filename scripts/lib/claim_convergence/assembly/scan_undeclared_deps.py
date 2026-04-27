@@ -24,8 +24,11 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, prompt_path, load_manifest, formal_stmts, dep_graph
-from lib.shared.common import find_asn, read_file, extract_claim_sections, build_label_index, dump_yaml
+from lib.shared.paths import WORKSPACE, prompt_path, load_manifest, formal_stmts
+from lib.shared.common import find_asn, read_file, extract_claim_sections
+from lib.store.store import Store
+from lib.store.cite import emit_citation
+from lib.store.populate import build_cross_asn_label_index
 
 PROMPT_TEMPLATE = prompt_path("claim-convergence/assembly/scan-dependency.md")
 
@@ -326,33 +329,25 @@ def scan_asn(asn_num, model="sonnet", effort="high", dry_run=False):
           file=sys.stderr)
 
     if not dry_run and new_deps_found > 0:
-        # Write updated deps YAML
-        with open(deps_path, "w") as f:
-            yaml.dump(deps, f, default_flow_style=False, sort_keys=False,
-                      allow_unicode=True, width=120)
-        print(f"  [WROTE] {deps_path.relative_to(WORKSPACE)}", file=sys.stderr)
-
-        # Update per-claim YAML depends fields
+        # File new dependencies as substrate citation links. emit_citation
+        # is idempotent — pre-existing citations are no-ops, only new
+        # follows_from entries produce links.
         from lib.shared.paths import CLAIM_CONVERGENCE_DIR
         claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
         if claim_dir.exists():
-            _label_index = build_label_index(claim_dir)
-            for label, claim_data in deps.get("claims", {}).items():
-                stem = _label_index.get(label)
-                if stem is None:
-                    continue
-                yaml_path = claim_dir / f"{stem}.yaml"
-                if not yaml_path.exists():
-                    continue
-                with open(yaml_path) as yf:
-                    ydata = yaml.safe_load(yf)
-                new_deps = claim_data.get("follows_from", [])
-                old_deps = ydata.get("depends", [])
-                # Add-only: merge new deps into existing
-                merged = list(dict.fromkeys(old_deps + [d for d in new_deps if d not in old_deps]))
-                if merged != old_deps:
-                    ydata["depends"] = merged
-                    dump_yaml(ydata, yaml_path)
+            with Store() as store:
+                label_index = build_cross_asn_label_index(store=store)
+                for label, claim_data in deps.get("claims", {}).items():
+                    md_path = label_index.get(label)
+                    if md_path is None:
+                        continue
+                    for dep_label in claim_data.get("follows_from", []):
+                        if dep_label not in label_index:
+                            continue
+                        try:
+                            emit_citation(store, md_path, dep_label, label_index)
+                        except KeyError:
+                            continue
 
     return deps
 
