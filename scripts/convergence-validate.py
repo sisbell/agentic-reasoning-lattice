@@ -4,23 +4,22 @@ Runs mechanical checks from the Claim File Contract
 (docs/design-notes/claim-file-contract.md) against
 lattices/<lattice>/claim-convergence/ASN-NNNN/.
 
-yaml `label` is the authoritative identity for each claim. Filename (invariant
-#2) and markdown bold declaration (invariant #3) must conform to it. These
-checks compare both surfaces against the yaml.
+The filename stem is the claim's label. Substrate links (claim,
+contract.<kind>, citation, label, name, description) carry the rest of
+the claim's structural metadata. The bold markdown declaration
+(invariant #3) must use the filename stem in the label-position.
 
 Implemented invariants:
 
   1. File pair completeness (every yaml has md and vice versa)
-  2. Filename matches label
-  3. Declaration matches label (includes type-keyword subtype)
-  4. YAML well-formed (parses; required fields present; type is a valid keyword)
-  5. Depends agreement (yaml depends list ↔ md Formal Contract Depends section)
-  6. References resolve (every yaml/md Depends entry names an existing claim label)
-  7. Declared symbols resolve (v1: curated symbol-owners table per lattice,
-                               in place of per-claim yaml vocabulary fields)
-  8. Acyclic dependency graph (no cycles in the yaml depends DAG)
-  9. Body uniqueness (primary: cross-file bold declaration;
+  2. Declaration matches label (includes type-keyword subtype)
+  3. Depends agreement (substrate citations ↔ md Formal Contract Depends section)
+  4. References resolve (every md Depends entry names an existing claim label)
+  5. Declared symbols resolve (v1: curated symbol-owners table per lattice)
+  6. Acyclic dependency graph (no cycles in the citation DAG)
+  7. Body uniqueness (primary: cross-file bold declaration;
                       secondary: >1 Formal Contract block per file)
+  8. Substrate attribute shape, doc format, coverage (label/name/description)
 
 Usage:
     python scripts/convergence-validate.py <ASN>
@@ -55,8 +54,6 @@ DEP_ENTRY_RE = re.compile(r"^\s+-\s+([A-Za-z0-9()-]+(?:\.[0-9]+)?)(?:\s|$|,)")
 TYPE_KEYWORDS = {
     "Axiom", "Definition", "Design-requirement", "Lemma", "Theorem", "Corollary", "Consequence",
 }
-REQUIRED_YAML_FIELDS = ("label", "name", "summary")
-
 # Substrate-owned document attribute kinds; their sibling docs are
 # `<stem>.<kind>.md` and aren't claim files in their own right.
 ATTRIBUTE_KINDS = ("label", "name", "description")
@@ -198,56 +195,6 @@ def check_file_pair_completeness(pairs):
                 "line": None,
                 "detail": f"yaml exists but no {stem}.md",
             })
-    return findings
-
-
-def check_yaml_well_formed(pairs):
-    findings = []
-    for stem, entry in sorted(pairs.items()):
-        if entry["yaml_error"]:
-            findings.append({
-                "rule": "yaml-error",
-                "file": f"{stem}.yaml",
-                "line": None,
-                "detail": f"YAML parse error: {entry['yaml_error']}",
-            })
-            continue
-        data = entry["yaml"]
-        if data is None:
-            if entry["md"] is not None:
-                findings.append({
-                    "rule": "yaml-error",
-                    "file": f"{stem}.yaml",
-                    "line": None,
-                    "detail": "empty YAML document",
-                })
-            continue
-        if not isinstance(data, dict):
-            findings.append({
-                "rule": "yaml-error",
-                "file": f"{stem}.yaml",
-                "line": None,
-                "detail": f"top level is not a mapping "
-                          f"(got {type(data).__name__})",
-            })
-            continue
-        for field in REQUIRED_YAML_FIELDS:
-            if field not in data:
-                findings.append({
-                    "rule": "missing-field",
-                    "file": f"{stem}.yaml",
-                    "line": None,
-                    "detail": f"missing required field '{field}'",
-                })
-                continue
-            value = data[field]
-            if not value:
-                findings.append({
-                    "rule": "missing-field",
-                    "file": f"{stem}.yaml",
-                    "line": None,
-                    "detail": f"required field '{field}' is empty",
-                })
     return findings
 
 
@@ -497,24 +444,6 @@ def check_acyclic_dependency_graph(pairs, citation_graph):
     return findings
 
 
-def check_filename_matches_label(pairs):
-    findings = []
-    for stem, entry in sorted(pairs.items()):
-        data = entry["yaml"]
-        if not isinstance(data, dict):
-            continue
-        label = data.get("label")
-        if label and label != stem:
-            findings.append({
-                "rule": "filename-label-mismatch",
-                "file": f"{stem}.yaml",
-                "line": None,
-                "detail": f"yaml label '{label}' but file stem '{stem}' "
-                          f"(rename file to '{label}.{{yaml,md}}')",
-            })
-    return findings
-
-
 def check_declaration_and_body_uniqueness(pairs):
     """Checks invariants #3 (declaration matches label) and #9 (body uniqueness).
 
@@ -715,9 +644,7 @@ def run_all_checks(pairs, store=None, label_index=None, claim_dir=None):
 
         findings = []
         findings.extend(check_file_pair_completeness(pairs))
-        findings.extend(check_yaml_well_formed(pairs))
         findings.extend(check_contract_classifier_present(pairs, store, label_index))
-        findings.extend(check_filename_matches_label(pairs))
         findings.extend(check_depends_agreement(pairs, citation_graph))
         findings.extend(check_references_resolve(pairs, citation_graph))
         findings.extend(check_declared_symbols_resolve(pairs, citation_graph))
