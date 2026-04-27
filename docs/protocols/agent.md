@@ -6,7 +6,7 @@ An agent is a document. The doc's address is the agent's identity; the doc's con
 
 The result: each agent is first-class — addressable, readable, portable. Consumers ask "what does this agent do?" by navigating to the agent's address and reading. They ask "who manages this operation?" by querying the substrate.
 
-The module sits above the [Substrate](substrate.md) and uses substrate primitives unchanged. §7 explains why agent-layer concerns are extracted as their own module rather than folded into the substrate.
+The module sits above the [Substrate](substrate.md) and uses substrate primitives unchanged.
 
 ---
 
@@ -213,17 +213,7 @@ This pattern lets asserters retire agents from current use without losing the ab
 
 ---
 
-## 7 Why this is a separate module
-
-The substrate mirrors what Xanadu natively models — documents, links, retraction, document-general attributes. Agents are not a Xanadu primitive. Putting agent-identity machinery in the substrate would extend the substrate's vocabulary with concepts Xanadu does not natively provide.
-
-Extracting the agent module keeps the substrate Xanadu-aligned and makes the agent extension explicit. Future readers see two clean stories: "here is what Xanadu provides" (substrate) and "here is what we add for the agent paradigm" (agent module). Different audiences need each story; bundling them obscures both.
-
-The same logic applies to subtype-burying alternatives. An earlier proposal added `review.claim` / `review.note` as substrate subtypes to distinguish reviews from different orchestrators. That approach hid the agent layer inside the substrate type system, encoding orchestration concerns as flavors of `review` and forcing every consumer to learn an implicit taxonomy. Making the agent layer its own module is more honest: the concept exists, has a name, and lives where future work can extend it without touching the substrate.
-
----
-
-## 8 Current implementation
+## 7 Current implementation
 
 ### Schema
 
@@ -275,11 +265,11 @@ def emit_manages(store, agent_doc_path, operation_link_id):
 
 ### Agent docs
 
-Stage-1 placement: `lattices/<lattice>/agents/<role>.md`. Examples:
+Stage-1 placement: `lattices/<lattice>/_store/agents/<role>.md`. Agent docs live under `_store/` because their lifecycle is substrate-managed (classified, retracted, re-emitted via the agent module's operations) — same convention as review meta docs (`_store/findings/...`) and rejection rationales (`_store/rationales/...`). Authored claim and note md files, by contrast, are not substrate-lifecycle artifacts and live outside `_store/`. Examples:
 
-- `lattices/xanadu/agents/cone-review.md` — focused review of a dependency cone.
-- `lattices/xanadu/agents/full-review.md` — whole-ASN review.
-- `lattices/xanadu/agents/note-review.md` — review of a discovery note.
+- `lattices/xanadu/_store/agents/cone-review.md` — focused review of a dependency cone.
+- `lattices/xanadu/_store/agents/full-review.md` — whole-ASN review.
+- `lattices/xanadu/_store/agents/note-review.md` — review of a discovery note.
 
 ### Wall-clock timestamps as a bridge
 
@@ -291,7 +281,7 @@ The specification's ordering claim (A3) cites T9, not timestamps. As link IDs be
 
 ## Related
 
-- [Substrate Module](substrate.md) — the data layer the agent module is built on. Agents are not Xanadu primitives; the substrate stays aligned with Xanadu's native model.
+- [Substrate Module](substrate.md) — the data layer the agent module is built on.
 - [Tumbler Algebra (ASN-0034)](../../lattices/xanadu/claim-convergence/ASN-0034/) — the algebraic foundation for substrate addresses. T9 and TA5(a) are cited by A3 and §5.
 - [Substrate Migration Trajectory](../design-notes/substrate-migration-trajectory.md) — the forward-portability commitment. The agent module's links are ordinary substrate links; they migrate the same way every other link does at the Xanadu cut.
 - [Convergence Protocol](convergence-protocol.md) — defines `review`, `comment`, `resolution`. Convergence protocols use the agent module to attribute their work.

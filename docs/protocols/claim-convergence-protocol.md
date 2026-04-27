@@ -28,6 +28,22 @@ A mechanical checker that evaluates claim documents against a structural contrac
 - SV2 (Soundness). Every reported violation is a genuine violation.
 - SV3 (Determinism). Given the same input, the validator produces the same output. No LLM, no judgment.
 
+### 1.4 Agent module
+
+Claim convergence has multiple within-collective process kinds — cone-review (focused on a dependency cone) and full-review (whole-ASN). Both file `review`-shaped operations into the same substrate within a single asserter's namespace. Without agent attribution, these operations are structurally indistinguishable at the substrate level; with the [agent module](agent.md), each kind has a stable agent identity and the substrate can answer per-process queries (e.g., "what's the latest cone-review on this apex?").
+
+**Operations relied upon.**
+
+- ⟨ EmitAgent | agent_doc ⟩ — file the `agent` classifier on the agent's descriptor doc. Idempotent.
+- ⟨ EmitManages | agent_doc, operation ⟩ — file a `manages` link from the agent doc to each operation link the agent produces.
+
+**Properties relied upon.**
+
+- A3 (Manager resolution within an asserter). Per-agent trajectory queries return a deterministic answer within an asserter's allocator.
+- A6 (Classifier retraction is well-defined). Decommissioning an agent role retracts its classifier without affecting prior management history.
+
+Implementations of claim convergence MUST emit_agent for each review-producing process at startup and emit_manages for each operation link the process files. These calls live inside the algorithm's event handlers — EmitAgent runs once before §5.2's cycle loop begins; EmitManages runs inside EmitFindings (§5.6) for review/comment links and inside Revise (§5.7) for resolution links. They do not appear as separate steps in the pseudocode, matching the existing pattern for substrate MakeLink calls. The within-cycle algorithm reads "this cycle's reviser" as scoped to the agent currently running the loop; cross-invocation queries (e.g., "did the most recent cone-review on this apex converge?") rely on agent-scoped manages links.
+
 ---
 
 ## 2 Claim-specific link types
@@ -39,9 +55,8 @@ These link types extend the convergence protocol's vocabulary for the claim doma
 | `claim` | (flat, one-sided) | Classifier: document is a claim |
 | `contract` | `axiom`, `definition`, `theorem`, `corollary`, `lemma`, `consequence`, `design-requirement` | Formal structure attached to a claim. Subtypes name structural kinds. |
 | `citation` | (flat) | Claim depends on claim |
-| `retraction` | (flat) | Nullifies a previously-filed link. `to_set` holds the retracted link's id (link-to-link pointer). Used to retract stale citations when proof revisions remove use-sites. |
 
-Combined with the convergence protocol's three link types (`review`, `comment`, `resolution`), the claim convergence protocol operates with seven link types total.
+Combined with the convergence protocol's three link types (`review`, `comment`, `resolution`), the claim convergence protocol defines six link types total. It also uses substrate-provided `retraction` (per §1.2) to nullify stale `citation` links when proof revisions remove use-sites.
 
 ### Two layers on one graph
 
@@ -128,6 +143,8 @@ Implements: Claim Convergence Protocol (§1–§4) over the [Convergence Protoco
 Uses: Substrate, Reviewer agent (R), Reviser agent (V), Structural Validation (§1.2).
 
 The algorithm engages a scope — a single claim, a cone, or an entire ASN — and drives the predicate true through cycles of review and revise. Each cycle is a deterministic sequence of agent invocations against the substrate. Convergence is decided by the substrate's predicate, never by an agent's verdict alone.
+
+Agent attribution is bookkeeping at file time, not a control-flow concern of the algorithm. Operation links filed inside EmitFindings (§5.6) and Revise (§5.7) carry `manages` attribution per §1.4; the natural-convergence check in §5.2 counts `comment.revise` filed in this cycle by this cycle's reviser, scoped implicitly because the loop is single-threaded.
 
 ### 5.1 State
 
@@ -271,6 +288,7 @@ The protocol's properties are stated in terms of link existence and type, not st
 
 - [Convergence Protocol](convergence-protocol.md) — the document-type-neutral module this protocol extends.
 - [Substrate Module](substrate.md) — the persistent link graph. Provides retraction semantics (SUB4–SUB6) used for citation pruning.
+- [Agent Module](agent.md) — the agent identity and management-attribution layer this protocol depends on (per §1.4). Cone-review and full-review file `agent` and `manages` links so per-process trajectories are queryable from the substrate.
 - [Note Convergence Protocol](note-convergence-protocol.md) — the sibling specialization at note scale.
 - [Review/Revise Iteration](../patterns/review-revise-iteration.md) — the empirical pattern underlying this protocol. Observed independently across discovery and claim convergence.
 - [Validate Before Review](../patterns/validate-before-review.md) — the pattern underlying CS1.

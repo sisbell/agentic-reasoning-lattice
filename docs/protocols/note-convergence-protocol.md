@@ -25,7 +25,8 @@ In addition to the convergence module's `review`, `comment`, and `resolution`:
 |---|---|---|
 | `note` | (flat, one-sided) | Classifier: document is a note |
 | `citation` | (flat) | Note depends on note |
-| `retraction` | (flat) | Nullifies a previously-filed link. `to_set` holds the retracted link's id (link-to-link pointer). Used at note scale to retract stale `citation` links left behind by [maturation](maturation-protocol.md) operations. |
+
+This protocol also uses substrate-provided `retraction` (per §2.2) to nullify stale `citation` links left behind by [maturation](maturation-protocol.md) operations.
 
 The `citation` link is the lattice edge at note scale. The note dependency graph — which notes assume foundations from which — is the citation subgraph. Note convergence operates on individual notes; the citation graph is what maturation traverses to decide what enters convergence next.
 
@@ -64,6 +65,22 @@ Provides the predicate, comment/resolution machinery, and core safety and livene
 ### 2.2 Substrate
 
 The persistent, append-only link graph. See [Substrate Module](substrate.md). This protocol relies on SUB1–SUB3 (inherited via the convergence protocol) and additionally on SUB4–SUB6 (retraction semantics) for stale citation handling after lattice operations.
+
+### 2.3 Agent module
+
+Note convergence currently has a single within-collective process kind (note-review). The protocol carries the agent-attribution requirement to keep the substrate structurally unambiguous against future expansion — e.g., adding a focused-review kind, or running side-by-side with another note-revising activity within the same collective. Pre-instrumenting avoids retrofit; the single-process current state trivially satisfies the per-agent trajectory contract.
+
+**Operations relied upon.**
+
+- ⟨ EmitAgent | agent_doc ⟩ — file the `agent` classifier on the note-review agent's descriptor doc. Idempotent.
+- ⟨ EmitManages | agent_doc, operation ⟩ — file a `manages` link from the agent doc to each operation link the agent produces.
+
+**Properties relied upon.**
+
+- A3 (Manager resolution within an asserter). Per-agent trajectory queries return a deterministic answer within an asserter's allocator.
+- A6 (Classifier retraction is well-defined).
+
+Implementations of note convergence MUST emit_agent for the note-review process at startup and emit_manages for each operation link it files. These calls live inside the algorithm's event handlers — EmitAgent runs once before §6.2's cycle loop begins; EmitManages runs inside EmitFindings (§6.5) for review/comment links and inside Revise (§6.6) for resolution links. They do not appear as separate steps in the pseudocode, matching the existing pattern for substrate MakeLink calls.
 
 ---
 
@@ -143,6 +160,8 @@ Implements: Note Convergence Protocol (§1–§5) over the [Convergence Protocol
 Uses: Substrate, Reviewer agent (R), Reviser agent (V).
 
 The algorithm engages a note and drives the predicate true through cycles of review and revise. Each cycle is a deterministic sequence of agent invocations against the substrate. Convergence is decided by the substrate's predicate, never by an agent's verdict alone.
+
+Agent attribution is bookkeeping at file time, not a control-flow concern of the algorithm. Operation links filed inside EmitFindings (§6.5) and Revise (§6.6) carry `manages` attribution per §2.3; the natural-convergence check in §6.2 counts `comment.revise` filed in this cycle by this cycle's reviser, scoped implicitly because the loop is single-threaded.
 
 ### 6.1 State
 
@@ -261,6 +280,7 @@ The [maturation protocol](maturation-protocol.md) decides when to activate this 
 
 - [Convergence Protocol](convergence-protocol.md) — the document-type-neutral module this protocol specializes.
 - [Substrate Module](substrate.md) — the persistent link graph. Provides retraction semantics (SUB4–SUB6) used for stale citation handling after lattice operations.
+- [Agent Module](agent.md) — the agent identity and management-attribution layer this protocol depends on (per §2.3). The note-review process files `agent` and `manages` links to keep the substrate ready for future multi-process expansion.
 - [Consultation Protocol](consultation-protocol.md) — the upstream producer. Generates the initial note this protocol refines.
 - [Claim Convergence Protocol](claim-convergence-protocol.md) — the sibling specialization at claim scale.
 - [Review/Revise Iteration](../patterns/review-revise-iteration.md) — the empirical pattern underlying this protocol. Battle-tested across a dozen ASNs.
