@@ -110,11 +110,19 @@ instead "the state satisfies..."
    - *Axiom:* [formal assertion]
    ```
 
-   After writing both files, classify the new claim by running:
+   After writing both files, emit the new claim's substrate attribute
+   links and classifier by running:
 
+       PROTOCOL_CLAIM_PATH=<path-to-the-new-md-file> python scripts/label.py --to <label>
+       PROTOCOL_CLAIM_PATH=<path-to-the-new-md-file> python scripts/name.py --to <name>
        PROTOCOL_CLAIM_PATH=<path-to-the-new-md-file> python scripts/classify.py --kind <kind>
 
-   where `<kind>` is one of `axiom`, `definition`, `theorem`, `lemma`,
+   `label.py` and `name.py` write the sibling `<stem>.label.md` and
+   `<stem>.name.md` docs and file `label` / `name` substrate links from
+   the claim md. Use the same values you wrote in the yaml `label:` and
+   `name:` fields.
+
+   `<kind>` is one of `axiom`, `definition`, `theorem`, `lemma`,
    `corollary`, `consequence`, `design-requirement` — match the marker
    you used in the Formal Contract section. This emits the claim's
    `contract.<kind>` classifier link in the substrate.
