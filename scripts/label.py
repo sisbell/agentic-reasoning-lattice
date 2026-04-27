@@ -1,0 +1,56 @@
+#!/usr/bin/env python3
+"""Reviser-callable CLI to set a claim's label.
+
+Usage:
+
+    PROTOCOL_CLAIM_PATH=lattices/.../T0.md python scripts/label.py --to T0
+
+Writes `<stem>.label.md` next to the claim md (edit-in-place if it
+already exists) and emits a `label` link from the claim md to the
+sibling doc. Idempotent.
+
+Prints the link id on success; exits non-zero on error.
+"""
+
+import argparse
+import os
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+from store.attributes import emit_attribute
+from store.store import Store
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--to", required=True,
+        help="The label string (e.g., T0, NAT-cancel).",
+    )
+    args = parser.parse_args()
+
+    claim_path = os.environ.get("PROTOCOL_CLAIM_PATH")
+    if not claim_path:
+        print("error: PROTOCOL_CLAIM_PATH env var not set", file=sys.stderr)
+        return 1
+
+    store = Store()
+    try:
+        try:
+            link_id, created = emit_attribute(
+                store, claim_path, "label", args.to,
+            )
+        except ValueError as e:
+            print(f"error: {e}", file=sys.stderr)
+            return 1
+        print(link_id)
+        if not created:
+            print("(already exists)", file=sys.stderr)
+    finally:
+        store.close()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
