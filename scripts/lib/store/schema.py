@@ -35,9 +35,11 @@ CREATE INDEX IF NOT EXISTS idx_endpoints_link ON endpoints(link_id);
 
 VALID_TYPES = {
     # Protocol-defined
-    "claim", "review", "contract", "citation", "comment", "resolution",
+    "claim", "note", "review", "contract", "citation", "comment", "resolution",
     # Substrate-owned (general-purpose document primitives)
     "retraction", "label", "name", "description",
+    # Agent module
+    "agent", "manages",
 }
 
 VALID_SUBTYPES = {
@@ -45,7 +47,7 @@ VALID_SUBTYPES = {
         "axiom", "definition", "theorem", "corollary", "lemma",
         "consequence", "design-requirement",
     },
-    "comment": {"revise", "observe"},
+    "comment": {"revise", "observe", "out-of-scope"},
     "resolution": {"edit", "reject"},
 }
 
