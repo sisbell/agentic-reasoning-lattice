@@ -6,4 +6,5 @@ Combined with NAT-order's irreflexivity `¬(n < n)` and transitivity `m < n ∧ 
 - *Axiom:* `0 ∈ ℕ` (zero is a natural number); `(A n ∈ ℕ :: 0 < n ∨ 0 = n)` (every natural number is strictly above or equal to zero).
 - *Consequence:* `(A n ∈ ℕ :: ¬(n < 0))` (no natural number is strictly below zero — the minimum reading).
 - *Depends:*
+  - NAT-carrier (NatCarrierSet) — supplies `ℕ` as the underlying set appearing in the membership clause `0 ∈ ℕ` and over which the bounded quantifiers `(A n ∈ ℕ :: 0 < n ∨ 0 = n)` of the axiom's second clause and `(A n ∈ ℕ :: ¬(n < 0))` of the *Consequence:* range.
   - NAT-order (NatStrictTotalOrder) — supplies `<` for the axiom's second clause and the irreflexivity `¬(n < n)` + transitivity `m < n ∧ n < p ⟹ m < p` used in the body's derivation of the *Consequence:* bullet `¬(n < 0)`.
