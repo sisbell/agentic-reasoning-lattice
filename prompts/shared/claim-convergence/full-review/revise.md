@@ -8,9 +8,10 @@ foundation's definitions.
 ## Claim Files
 
 The ASN's claim files live in the directory `{{claim_dir}}/`. Each claim
-has its own `.md` (body + Formal Contract) and `.yaml` (metadata) pair.
-The finding identifies which claim(s) need editing; read those files,
-apply the fix, write them back.
+is a single `.md` file (body + Formal Contract). Substrate links carry
+the claim's metadata (label, name, description, type, citations). The
+finding identifies which claim(s) need editing; read those files, apply
+the fix, write them back.
 
 ## Finding
 
@@ -93,14 +94,8 @@ instead "the state satisfies..."
    toward the dependency graph. Use this whenever you delete a Depends
    bullet, never just edit the md without retracting.
 
-6. If the fix requires a new claim that doesn't exist, create both files
-   in `{{claim_dir}}/`. Use the label as the filename.
-
-   `{Label}.yaml`:
-   ```yaml
-   label: AX-1
-   name: InitialEmpty
-   ```
+6. If the fix requires a new claim that doesn't exist, create the
+   markdown file in `{{claim_dir}}/`. Use the label as the filename.
 
    `{Label}.md`:
    ```markdown
@@ -110,17 +105,17 @@ instead "the state satisfies..."
    - *Axiom:* [formal assertion]
    ```
 
-   After writing both files, emit the new claim's substrate attribute
+   After writing the file, emit the new claim's substrate attribute
    links and classifier by running:
 
        PROTOCOL_CLAIM_PATH=<path-to-the-new-md-file> python scripts/label.py --to <label>
        PROTOCOL_CLAIM_PATH=<path-to-the-new-md-file> python scripts/name.py --to <name>
        PROTOCOL_CLAIM_PATH=<path-to-the-new-md-file> python scripts/classify.py --kind <kind>
 
-   `label.py` and `name.py` write the sibling `<stem>.label.md` and
-   `<stem>.name.md` docs and file `label` / `name` substrate links from
-   the claim md. Use the same values you wrote in the yaml `label:` and
-   `name:` fields.
+   `label.py` writes `<stem>.label.md` (whose first line is the label
+   string, equal to the filename stem) and files the substrate `label`
+   link. `name.py` does the same for the canonical `name` and the
+   substrate `name` link.
 
    `<kind>` is one of `axiom`, `definition`, `theorem`, `lemma`,
    `corollary`, `consequence`, `design-requirement` — match the marker
@@ -128,21 +123,6 @@ instead "the state satisfies..."
    `contract.<kind>` classifier link in the substrate.
 
 7. Do not change anything beyond what the finding requires.
-
-8. **YAML formatting.** When writing any `.yaml` file, ensure the YAML is
-   valid. If a value contains colons, quotes, or spans multiple lines
-   (common in `summary` fields with math notation), use a literal block
-   scalar (`|`) or a quoted string. For example:
-
-   ```yaml
-   summary: |
-     Defines dom(A) = ⋃{domₛ(A) : s reachable} — the colon in the set
-     comprehension requires a block scalar or quoting.
-   ```
-
-   Do not write a plain scalar summary that contains an unescaped colon
-   followed by a space — YAML will parse it as a key-value separator and
-   break the file.
 
 ## Decision output
 

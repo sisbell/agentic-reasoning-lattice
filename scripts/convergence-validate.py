@@ -31,7 +31,7 @@ import re
 import sys
 from pathlib import Path
 
-import yaml
+import yaml  # for lattices/xanadu/symbol-owners.yaml only; no claim yaml is read
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
 from shared.common import find_asn
@@ -157,45 +157,18 @@ def _is_attr_doc(name):
 
 
 def load_pairs(claim_dir):
-    """Return {stem: {yaml, md, yaml_error}} across every .yaml/.md in the dir."""
+    """Return {stem: {md: md_text}} across every claim .md in the dir.
+
+    Substrate attribute docs (`<stem>.label.md`, `<stem>.name.md`,
+    `<stem>.description.md`) are skipped — they are siblings of claim
+    md files, not claims themselves.
+    """
     pairs = {}
-    for yaml_path in claim_dir.glob("*.yaml"):
-        if yaml_path.name.startswith("_"):
-            continue
-        stem = yaml_path.stem
-        entry = pairs.setdefault(stem, {"yaml": None, "md": None, "yaml_error": None})
-        try:
-            entry["yaml"] = yaml.safe_load(yaml_path.read_text())
-        except yaml.YAMLError as e:
-            entry["yaml_error"] = str(e)
     for md_path in claim_dir.glob("*.md"):
         if md_path.name.startswith("_") or _is_attr_doc(md_path.name):
             continue
-        stem = md_path.stem
-        entry = pairs.setdefault(stem, {"yaml": None, "md": None, "yaml_error": None})
-        entry["md"] = md_path.read_text()
+        pairs[md_path.stem] = {"md": md_path.read_text()}
     return pairs
-
-
-def check_file_pair_completeness(pairs):
-    findings = []
-    for stem, entry in sorted(pairs.items()):
-        has_yaml = entry["yaml"] is not None or entry["yaml_error"] is not None
-        if not has_yaml and entry["md"] is not None:
-            findings.append({
-                "rule": "missing-yaml",
-                "file": f"{stem}.md",
-                "line": None,
-                "detail": f"body exists but no {stem}.yaml",
-            })
-        if has_yaml and entry["md"] is None:
-            findings.append({
-                "rule": "missing-md",
-                "file": f"{stem}.yaml",
-                "line": None,
-                "detail": f"yaml exists but no {stem}.md",
-            })
-    return findings
 
 
 def check_contract_classifier_present(pairs, store, label_index):
@@ -209,7 +182,7 @@ def check_contract_classifier_present(pairs, store, label_index):
         if kind is None:
             findings.append({
                 "rule": "missing-contract-classifier",
-                "file": f"{stem}.yaml",
+                "file": f"{stem}.md",
                 "line": None,
                 "detail": "no contract.<kind> classifier link in the store",
             })
@@ -217,7 +190,7 @@ def check_contract_classifier_present(pairs, store, label_index):
         if kind not in VALID_TYPES:
             findings.append({
                 "rule": "invalid-contract-classifier",
-                "file": f"{stem}.yaml",
+                "file": f"{stem}.md",
                 "line": None,
                 "detail": f"contract kind '{kind}' not in {sorted(VALID_TYPES)}",
             })
@@ -398,7 +371,7 @@ def check_declared_symbols_resolve(pairs, citation_graph, config=None):
                 continue
             findings.append({
                 "rule": "declared-symbols-resolve",
-                "file": f"{stem}.yaml",
+                "file": f"{stem}.md",
                 "line": None,
                 "detail": f"uses '{sym}' but does not depend on its owner '{owner}'",
             })
@@ -643,7 +616,6 @@ def run_all_checks(pairs, store=None, label_index=None, claim_dir=None):
         citation_graph = _build_citation_graph(pairs, store, label_index)
 
         findings = []
-        findings.extend(check_file_pair_completeness(pairs))
         findings.extend(check_contract_classifier_present(pairs, store, label_index))
         findings.extend(check_depends_agreement(pairs, citation_graph))
         findings.extend(check_references_resolve(pairs, citation_graph))

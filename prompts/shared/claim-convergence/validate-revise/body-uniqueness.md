@@ -4,7 +4,7 @@
 
 You are fixing a structural violation of invariant #9 from the Claim File Contract:
 
-> **Body uniqueness.** A given claim's body (bold declaration + proof + Formal Contract) appears in exactly one file — the file whose yaml `label` matches the claim. No claim's body is inlined into another claim's file.
+> **Body uniqueness.** A given claim's body (bold declaration + proof + Formal Contract) appears in exactly one file — the file whose filename stem equals the claim's label. No claim's body is inlined into another claim's file.
 
 This file contains the body of one or more OTHER claims, inlined as if they were part of this file. Those other claims have their own canonical files. Your job is to remove the inlined bodies. This file's own claim stays intact.
 
@@ -23,7 +23,7 @@ A claim file contains exactly one bold declaration of the form `**<Label> (<Name
 ## Fix instructions
 
 1. Read the file.
-2. Identify the file's OWN claim: the bold declaration whose label matches the yaml.label of this file (typically the first bold declaration in the file). This is what must be preserved.
+2. Identify the file's OWN claim: the bold declaration whose label matches the file's stem (typically the first bold declaration in the file). This is what must be preserved.
 3. For each finding of the form "declaration of X (canonical home: X.md)":
    - Find the bold declaration `**X (...).**` in the file.
    - Delete that declaration line.
@@ -38,7 +38,6 @@ A claim file contains exactly one bold declaration of the form `**<Label> (<Name
 - Do not alter the file's own declaration, own proof, or own Formal Contract block.
 - Do not extend, restructure, or refactor surrounding prose.
 - Do not add meta-commentary, comments, or "removed" markers.
-- Do not change yaml files.
 - Do not commit.
 
 ## On apparent false positives

@@ -25,17 +25,17 @@ md Formal Contract block:
 - *Postconditions:* ...
 ```
 
-Each md depends entry: `  - <label> (<name>) — <brief description>`. The `<label>` is the first token after the bullet and must equal the depended claim's `yaml.label`. Not a kind keyword ("Definition"), not a sub-reference ("T1(c)").
+Each md depends entry: `  - <label> (<name>) — <brief description>`. The `<label>` is the first token after the bullet and must equal the depended claim's filename stem. Not a kind keyword ("Definition"), not a sub-reference ("T1(c)").
 
 ## File to fix
 
 {file_path}
 
-## Authoritative yamls (do not edit; use for labels and names)
+## Canonical metadata (use verbatim; do not guess)
 
-The first yaml below is the companion yaml for the file being fixed. The yamls after it are for each claim referenced by the substrate's active citations from this file, giving the `name` field to use in md Depends entries.
+The first row below is the companion claim being fixed. The rows after it are each claim referenced by the substrate's active citations from this file, giving the canonical `name` to use in md Depends entries.
 
-{yaml_bundle}
+{metadata_bundle}
 
 ## Findings in this file
 
@@ -49,13 +49,13 @@ For each finding above, decide its resolution by reading the proof body of the f
 
 Read the md body (Axiom, Definition, Proof, Derivation, Preconditions, Postconditions). Locate any specific proof step, cited lemma, or used symbol the dep supplies.
 
-- **Use-site found** → **ADD**: insert `  - <label> (<name>) — <brief description>` into the `*Depends:*` block, using label and name from the depended yaml and a gloss naming the concrete usage.
+- **Use-site found** → **ADD**: insert `  - <label> (<name>) — <brief description>` into the `*Depends:*` block, using label and name from the metadata block above and a gloss naming the concrete usage.
 - **No use-site anywhere in the proof** → **RETRACT**: leave md unchanged. The substrate citation is stale from a prior proof version. The orchestrator will file a `retraction` link nullifying it.
 - **Uncertain** → **SKIP**: leave md unchanged; describe your doubt in the rationale.
 
 Do NOT fabricate a use-site to justify ADD. Do NOT silently delete bullets you didn't check.
 
-For md entries whose first token is a type keyword (Definition, Axiom, Lemma, Theorem, Corollary, Design-requirement) or a sub-reference (`T1(c)`), rewrite the first token to the actual label from yaml. Preserve sub-reference notation as descriptive prose where meaningful (e.g., "transitivity clause T1(c)").
+For md entries whose first token is a type keyword (Definition, Axiom, Lemma, Theorem, Corollary, Design-requirement) or a sub-reference (`T1(c)`), rewrite the first token to the actual label from the metadata block. Preserve sub-reference notation as descriptive prose where meaningful (e.g., "transitivity clause T1(c)").
 
 If the md file has no `*Depends:*` section at all (some files embed dependencies inline in the Axiom prose), do NOT restructure the file. Mark all `only_in_store` findings for it as SKIP and note the form in your rationale.
 
@@ -88,11 +88,10 @@ The orchestrator validates this file:
 ## Do not
 
 - Do not edit the proof, Axiom body, Preconditions, Postconditions, or non-Depends content.
-- Do not edit yaml files.
 - Do not call `git`, `bash`, or any script directly. The orchestrator owns substrate writes.
 - Do not commit.
 - Do not restructure a file that uses inline-in-Axiom depends form to use a separate block.
 
 ## Tools
 
-`Read`, `Edit`. Read the file being fixed and (in the prompt above) any companion or depended yamls; edit the file's md Depends section and create `__decisions.json`.
+`Read`, `Edit`. Read the file being fixed; edit the file's md Depends section and create `__decisions.json`. Use the metadata block above for label/name lookups.

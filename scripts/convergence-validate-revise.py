@@ -4,7 +4,7 @@ Paired with convergence-validate.py: that script finds structural-invariant
 violations; this one applies per-invariant fixes. Loop is validator finds →
 reviser fixes → validator re-runs between passes. Six passes in order:
 body-uniqueness, declaration-label-mismatch, depends-agreement,
-references-resolve, filename-label-mismatch, acyclic-depends (propose-only).
+references-resolve, acyclic-depends (propose-only).
 
 Usage:
     python scripts/convergence-validate-revise.py 34 [--dry-run|--apply]
@@ -65,10 +65,9 @@ VALIDATOR = _load_validator()
 PASSES = [
     {"rule": "body-uniqueness",            "mode": "apply",   "tools": "Read,Edit"},
     {"rule": "declaration-label-mismatch", "mode": "apply",   "tools": "Read,Edit"},
-    {"rule": "declared-symbols-resolve",   "mode": "apply",   "tools": "Read,Edit"},
+    {"rule": "declared-symbols-resolve",   "mode": "apply",   "tools": "Read,Bash"},
     {"rule": "depends-agreement",          "mode": "apply",   "tools": "Read,Edit"},
     {"rule": "references-resolve",         "mode": "apply",   "tools": "Read,Edit"},
-    {"rule": "filename-label-mismatch",    "mode": "apply",   "tools": "Read,Edit,Grep,Bash"},
     {"rule": "acyclic-depends",            "mode": "propose", "tools": "Read"},
 ]
 
@@ -173,57 +172,67 @@ def format_findings_list(findings):
     return "\n".join(lines)
 
 
-def build_yaml_bundle(rule, filename, pairs, claim_dir):
-    """Return a markdown-formatted block of relevant yaml file contents, or ''.
+def build_metadata_bundle(rule, filename, pairs, claim_dir):
+    """Return a markdown block of (label, name) pairs for the claim being
+    fixed plus its dependencies (for depends-agreement / references-resolve), or ''.
 
-    The reviser needs authoritative label/name data from yaml but must never
-    edit yaml. Embedding yaml content in the prompt removes the guessing
-    failure mode (name-hallucination) and narrows the reviser's surface.
+    Sources:
+    - label = filename stem (the dictionary keys in pairs)
+    - name = first line of the substrate `name` link's sibling doc
+      (queried via active_links)
+
+    The reviser uses this to write the correct `**<Label> (<Name>).**`
+    declaration form and the `- <Label> (<Name>) — gloss` Depends entries.
     """
+    sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+    from store.queries import active_links
+    from store.populate import build_cross_asn_label_index
+    from shared.paths import WORKSPACE
+
     stem = Path(filename).stem
-    companion = pairs.get(stem, {}).get("yaml")
+    labels_to_include = [stem]
 
-    labels_to_include = []
-    if rule in ("declaration-label-mismatch", "filename-label-mismatch"):
-        labels_to_include.append(stem)
-    elif rule == "depends-agreement":
-        labels_to_include.append(stem)
-        if isinstance(companion, dict):
-            for dep in (companion.get("depends") or []):
-                for other_stem, entry in pairs.items():
-                    data = entry.get("yaml")
-                    if isinstance(data, dict) and data.get("label") == dep:
-                        labels_to_include.append(other_stem)
-                        break
-    elif rule == "references-resolve":
-        labels_to_include.append(stem)
-        if isinstance(companion, dict):
-            for dep in (companion.get("depends") or []):
-                for other_stem, entry in pairs.items():
-                    data = entry.get("yaml")
-                    if isinstance(data, dict) and data.get("label") == dep:
-                        labels_to_include.append(other_stem)
-                        break
-    elif rule == "declared-symbols-resolve":
-        labels_to_include.append(stem)
-    else:
+    workspace = Path(WORKSPACE).resolve()
+
+    with Store() as store:
+        label_index = build_cross_asn_label_index(store=store)
+
+        if rule in ("depends-agreement", "references-resolve"):
+            md_rel = str(
+                (claim_dir / f"{stem}.md").resolve().relative_to(workspace)
+            )
+            for link in active_links(store, "citation", from_set=[md_rel]):
+                if link["to_set"]:
+                    dep_stem = Path(link["to_set"][0]).stem
+                    if dep_stem not in labels_to_include:
+                        labels_to_include.append(dep_stem)
+        elif rule not in (
+            "declaration-label-mismatch", "body-uniqueness",
+            "declared-symbols-resolve",
+        ):
+            return ""
+
+        rows = []
+        seen = set()
+        for label in labels_to_include:
+            if label in seen:
+                continue
+            seen.add(label)
+            md_path = label_index.get(label)
+            name = "(no substrate name link)"
+            if md_path:
+                name_links = active_links(store, "name", from_set=[md_path])
+                if name_links and name_links[0]["to_set"]:
+                    full = workspace / name_links[0]["to_set"][0]
+                    if full.exists():
+                        first = full.read_text().strip().split("\n", 1)[0].strip()
+                        if first:
+                            name = first
+            rows.append(f"- `{label}` — {name}")
+
+    if not rows:
         return ""
-
-    seen = set()
-    blocks = []
-    for s in labels_to_include:
-        if s in seen:
-            continue
-        seen.add(s)
-        yaml_path = claim_dir / f"{s}.yaml"
-        if not yaml_path.exists():
-            continue
-        content = yaml_path.read_text().rstrip()
-        blocks.append(f"### `{s}.yaml`\n\n```yaml\n{content}\n```")
-
-    if not blocks:
-        return ""
-    return "\n\n".join(blocks)
+    return "### Claim metadata (label · name from substrate)\n\n" + "\n".join(rows)
 
 
 def build_prompt(rule, file_path, findings, pairs, claim_dir):
@@ -231,11 +240,13 @@ def build_prompt(rule, file_path, findings, pairs, claim_dir):
     if not template_path.exists():
         raise FileNotFoundError(f"missing prompt template: {template_path}")
     template = template_path.read_text()
-    yaml_bundle = build_yaml_bundle(rule, Path(file_path).name, pairs, claim_dir)
+    metadata_bundle = build_metadata_bundle(
+        rule, Path(file_path).name, pairs, claim_dir,
+    )
     return (template
             .replace("{file_path}", str(file_path))
             .replace("{findings_list}", format_findings_list(findings))
-            .replace("{yaml_bundle}", yaml_bundle))
+            .replace("{metadata_bundle}", metadata_bundle))
 
 
 def git_clean_check(files):
@@ -422,7 +433,7 @@ def process_propose(rule, tools, claim_dir, findings):
     prompt = (template
               .replace("{findings_list}", findings_text)
               .replace("{claim_dir}", str(claim_dir))
-              .replace("{yaml_bundle}", ""))
+              .replace("{metadata_bundle}", ""))
     print(f"    invoking proposer... ", end="", flush=True)
     data, elapsed = invoke_claude_agent(
         prompt,
@@ -512,34 +523,6 @@ def run_pass(pass_spec, asn_label, claim_dir, findings, dry_run,
         label_index = None
 
     for filename, file_findings in sorted(groups.items()):
-        if mode == "apply" and rule == "filename-label-mismatch":
-            if dry_run:
-                print(f"    {filename}: SKIP (renames require --apply)")
-                continue
-            print(f"    {filename}: renaming... ", end="", flush=True)
-            file_path = claim_dir / filename
-            prompt = build_prompt(rule, file_path, file_findings, pairs, claim_dir)
-            data, elapsed = invoke_claude_agent(
-                prompt, model="opus", effort="max",
-                tools=tools, max_turns=30, cwd=REPO_ROOT,
-            )
-            if data is None:
-                print(f"failed", file=sys.stderr)
-                continue
-            print(f"{elapsed:.0f}s", end="", flush=True)
-            if commit:
-                committed = commit_all_staged(
-                    f"validate-revise(asn): {rule} on {filename}"
-                )
-                if committed:
-                    print(f" → committed")
-                else:
-                    print(f" → declined (no change)")
-                    declined.add((Path(filename).stem, rule))
-            else:
-                print(f" → applied (uncommitted)")
-            continue
-
         # Bounded retry: corruption may be a one-off LLM lapse. Retry once;
         # persistent corruption falls through to the error path with the
         # transcript dumped for diagnosis.
