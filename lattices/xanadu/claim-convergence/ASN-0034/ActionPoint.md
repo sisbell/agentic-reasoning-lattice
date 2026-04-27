@@ -6,6 +6,7 @@
 - *Preconditions:* w ∈ T, Pos(w)
 - *Definition:* actionPoint(w) is the unique m ∈ S with (A n ∈ S :: m ≤ n), where S = {i ∈ ℕ : 1 ≤ i ≤ #w ∧ wᵢ ≠ 0}.
 - *Depends:*
+  - NAT-carrier (NatCarrierSet) — supplies `ℕ` as the underlying set appearing in the comprehension `S = {i ∈ ℕ : 1 ≤ i ≤ #w ∧ wᵢ ≠ 0}` defining S, over which the bounded universal `(A i ∈ ℕ : 1 ≤ i < actionPoint(w) : wᵢ = 0)` of the *Postconditions:* ranges, and as the ambient set whose elements the bound variables `m, n` of NAT-wellorder's least-element principle `(E m ∈ S :: (A n ∈ S :: m ≤ n))` inhabit when instantiated on S (since `S ⊆ ℕ`).
   - T0 (CarrierSetDefinition) — supplies T, #w, component projection wᵢ, the commitment that the index domain `{1, …, #w}` of w is a subset of ℕ, and the commitment that the component projection delivers ℕ-valued components (i.e., `wᵢ ∈ ℕ` for each `i ∈ {1, …, #w}`), which types `w_{actionPoint(w)}` as a natural number and thereby licenses the NAT-zero and NAT-discrete instantiations at `n = w_{actionPoint(w)}`.
   - TA-Pos (PositiveTumbler) — supplies Pos(w) and the existential making S nonempty.
   - NAT-wellorder (NatWellOrdering) — least-element principle giving existence of m ∈ S with (A n ∈ S :: m ≤ n).
