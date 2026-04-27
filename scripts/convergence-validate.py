@@ -256,14 +256,8 @@ def check_contract_classifier_present(pairs, store, label_index):
     with a valid subtype. This replaces the old yaml type-validity check.
     """
     findings = []
-    for stem, entry in sorted(pairs.items()):
-        data = entry["yaml"]
-        if not isinstance(data, dict):
-            continue
-        label = data.get("label")
-        if not label:
-            continue
-        md_path = label_index.get(label)
+    for stem in sorted(pairs):
+        md_path = label_index.get(stem)
         kind = current_contract_kind(store, md_path) if md_path else None
         if kind is None:
             findings.append({
@@ -314,16 +308,10 @@ def _build_citation_graph(pairs, store, label_index):
     """
     rev_index = {p: l for l, p in label_index.items()}
     graph = {}
-    for entry in pairs.values():
-        data = entry["yaml"]
-        if not isinstance(data, dict):
-            continue
-        label = data.get("label")
-        if not label:
-            continue
-        from_path = label_index.get(label)
+    for stem in pairs:
+        from_path = label_index.get(stem)
         if not from_path:
-            graph[label] = []
+            graph[stem] = []
             continue
         deps = []
         for link in active_links(store, "citation", from_set=[from_path]):
@@ -332,21 +320,17 @@ def _build_citation_graph(pairs, store, label_index):
             dep_label = rev_index.get(link["to_set"][0])
             if dep_label:
                 deps.append(dep_label)
-        graph[label] = deps
+        graph[stem] = deps
     return graph
 
 
 def check_depends_agreement(pairs, citation_graph):
     findings = []
     for stem, entry in sorted(pairs.items()):
-        data = entry["yaml"]
         text = entry["md"]
-        if not isinstance(data, dict) or text is None:
+        if text is None:
             continue
-        label = data.get("label")
-        if not label:
-            continue
-        store_deps = set(citation_graph.get(label, []))
+        store_deps = set(citation_graph.get(stem, []))
         md_deps = parse_md_depends(text)
         only_in_store = store_deps - md_deps
         only_in_md = md_deps - store_deps
@@ -368,29 +352,23 @@ def check_depends_agreement(pairs, citation_graph):
 
 
 def check_references_resolve(pairs, citation_graph):
-    """Every store citation and md Depends entry must name a claim whose
-    yaml.label exists in the lattice. Inline prose citations are not checked."""
+    """Every store citation and md Depends entry must name a claim that
+    exists in the lattice (i.e., has a file pair). Inline prose citations
+    are not checked."""
     findings = []
-    labels = set()
-    for entry in pairs.values():
-        data = entry["yaml"]
-        if isinstance(data, dict) and data.get("label"):
-            labels.add(data["label"])
+    labels = set(pairs.keys())
 
     for stem, entry in sorted(pairs.items()):
-        data = entry["yaml"]
         text = entry["md"]
 
-        if isinstance(data, dict):
-            this_label = data.get("label")
-            for dep in citation_graph.get(this_label, []):
-                if dep not in labels:
-                    findings.append({
-                        "rule": "references-resolve",
-                        "file": f"{stem}.md",
-                        "line": None,
-                        "detail": f"citation to '{dep}' — no claim has that label",
-                    })
+        for dep in citation_graph.get(stem, []):
+            if dep not in labels:
+                findings.append({
+                    "rule": "references-resolve",
+                    "file": f"{stem}.md",
+                    "line": None,
+                    "detail": f"citation to '{dep}' — no claim has that label",
+                })
 
         if text:
             for dep in sorted(parse_md_depends(text)):
@@ -440,12 +418,8 @@ def check_declared_symbols_resolve(pairs, citation_graph, config=None):
 
     findings = []
     for stem, entry in sorted(pairs.items()):
-        data = entry["yaml"]
         text = entry["md"]
-        if not isinstance(data, dict) or text is None:
-            continue
-        label = data.get("label")
-        if not label:
+        if text is None:
             continue
 
         # Restrict to the structural fields of the first Formal Contract
@@ -463,7 +437,7 @@ def check_declared_symbols_resolve(pairs, citation_graph, config=None):
             if pat.search(fc_region):
                 symbols_used.add(tok)
 
-        deps = closure(label)
+        deps = closure(stem)
 
         for sym in sorted(symbols_used):
             if sym in primitives:
@@ -471,7 +445,7 @@ def check_declared_symbols_resolve(pairs, citation_graph, config=None):
             owner = owners.get(sym)
             if owner is None:
                 continue
-            if owner == label:
+            if owner == stem:
                 continue
             if owner in deps:
                 continue
@@ -548,20 +522,13 @@ def check_declaration_and_body_uniqueness(pairs):
     non-own-label declaration.
     """
     findings = []
-    labels_to_stem = {}
-    for stem, entry in pairs.items():
-        data = entry["yaml"]
-        if isinstance(data, dict) and data.get("label"):
-            labels_to_stem[data["label"]] = stem
+    labels = set(pairs.keys())
 
     for stem, entry in sorted(pairs.items()):
         text = entry["md"]
-        data = entry["yaml"]
-        if text is None or not isinstance(data, dict):
+        if text is None:
             continue
-        own_label = data.get("label")
-        if not own_label:
-            continue
+        own_label = stem
 
         own_decl_count = 0
         for m in DECLARATION_RE.finditer(text):
@@ -579,13 +546,13 @@ def check_declaration_and_body_uniqueness(pairs):
                               f"(expected '{own_label}')",
                 })
                 continue
-            if decl_label in labels_to_stem:
+            if decl_label in labels:
                 findings.append({
                     "rule": "body-uniqueness",
                     "file": f"{stem}.md",
                     "line": line_no,
                     "detail": f"declaration of {decl_label} "
-                              f"(canonical home: {labels_to_stem[decl_label]}.md)",
+                              f"(canonical home: {decl_label}.md)",
                 })
                 continue
             findings.append({
@@ -601,7 +568,7 @@ def check_declaration_and_body_uniqueness(pairs):
                 "rule": "declaration-label-mismatch",
                 "file": f"{stem}.md",
                 "line": None,
-                "detail": f"no bold declaration matches own yaml.label '{own_label}'",
+                "detail": f"no bold declaration matches own label '{own_label}'",
             })
 
         contract_count = len(FORMAL_CONTRACT_RE.findall(text))
@@ -623,14 +590,8 @@ def check_attribute_link_shape(pairs, store, label_index, kind):
     a separate concern — this check operates only on links that exist.
     """
     findings = []
-    for stem, entry in sorted(pairs.items()):
-        data = entry["yaml"]
-        if not isinstance(data, dict):
-            continue
-        label = data.get("label")
-        if not label:
-            continue
-        md_path = label_index.get(label)
+    for stem in sorted(pairs):
+        md_path = label_index.get(stem)
         if not md_path:
             continue
         from pathlib import PurePosixPath
@@ -675,14 +636,8 @@ def check_attribute_coverage(pairs, store, label_index, kind):
     Coverage is not enforced for `description` — see COVERED_ATTRIBUTE_KINDS.
     """
     findings = []
-    for stem, entry in sorted(pairs.items()):
-        data = entry["yaml"]
-        if not isinstance(data, dict):
-            continue
-        label = data.get("label")
-        if not label:
-            continue
-        md_path = label_index.get(label)
+    for stem in sorted(pairs):
+        md_path = label_index.get(stem)
         if not md_path:
             continue
         links = active_links(store, kind, from_set=[md_path])
