@@ -30,6 +30,8 @@ from lib.shared.paths import WORKSPACE, VOCABULARY, REVIEWS_DIR, USAGE_LOG, MANI
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn, read_file
 from lib.shared.foundation import load_foundation_statements
+from lib.store.emit import emit_review
+from lib.store.store import Store
 
 PROMPTS_DIR = LATTICE_PROMPTS / "discovery"
 REVIEW_TEMPLATE = PROMPTS_DIR / "review.md"
@@ -290,6 +292,11 @@ def main():
             next_num = max(next_num, int(m.group(1)) + 1)
     output_path = REVIEWS_DIR / asn_label / f"review-{next_num}.md"
     output_path.write_text(text + "\n")
+
+    # File a `review` classifier link in the substrate so subsequent
+    # passes (revise, maturation) can locate this review's document.
+    with Store() as store:
+        emit_review(store, output_path)
 
     # Process resolved open issues
     process_resolved_issues(asn_number, text)
