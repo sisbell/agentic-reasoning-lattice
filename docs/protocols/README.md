@@ -73,6 +73,7 @@ Listed by pipeline position. The shape of each is one-line:
 ### Foundation
 
 - **[Substrate Module](substrate.md)** — the persistent, append-only link graph every protocol reads from and writes to. Defines the substrate's operations (MakeLink, FindLinks, FindNumLinks, Retract, ActiveLinks) and properties (SUB1 permanence, SUB2 query soundness, SUB3 count consistency, SUB4–SUB5 retraction nullify-and-shadow, SUB6 retraction idempotence). Defines `retraction` as the only substrate-level link type; all other link types are protocol-defined.
+- **[Agent Module](agent.md)** — the agent identity layer above the substrate. Defines `agent` (classifies a doc as an agent — its address is the agent's identity) and `manages` (declares an agent is currently responsible for an operation). Lets convergence protocols and other modules attribute their work to specific agents (cone-review, full-review, etc.) without protocol identity leaking into the substrate's type system. Cites T9 from the [tumbler algebra](../../lattices/xanadu/claim-convergence/ASN-0034/) for per-asserter ordering. Properties A1–A6, LA1–LA2.
 - **[Convergence Protocol](convergence-protocol.md)** — the document-type-neutral foundation. Defines the convergence predicate (every active `comment.revise` has a matching active `resolution`), the three core link types (`review`, `comment`, `resolution`), and the safety/liveness properties any review/revise process must satisfy. No algorithm — algorithm is choreography.
 
 ### Meta
@@ -84,10 +85,11 @@ Listed by pipeline position. The shape of each is one-line:
 For someone new to the protocols, reading bottom-up tracks the actual dependency:
 
 1. **[Substrate Module](substrate.md)** — the link graph every protocol uses. The vocabulary (links, retraction, active queries) is defined here.
-2. **[Convergence Protocol](convergence-protocol.md)** — the shared foundation. Once this is clear, both convergence-shaped specializations are straightforward.
-3. **[Note Convergence Protocol](note-convergence-protocol.md)** or **[Claim Convergence Protocol](claim-convergence-protocol.md)** — pick whichever scale matches your interest. They're independent specializations of the foundation.
-4. **[Consultation Protocol](consultation-protocol.md)** and **[Note Decomposition Protocol](note-decomposition-protocol.md)** — the production-shaped protocols. Easier to read after you know what convergence looks like, since these produce input for it.
-5. **[Maturation Protocol](maturation-protocol.md)** — composition over the pipeline. Easier to read after the stage protocols are familiar.
+2. **[Agent Module](agent.md)** — the identity layer extending the substrate for the agent paradigm. Short module; introduces `agent` and `manages` and the per-asserter ordering rule cited via T9.
+3. **[Convergence Protocol](convergence-protocol.md)** — the shared foundation. Once this is clear, both convergence-shaped specializations are straightforward.
+4. **[Note Convergence Protocol](note-convergence-protocol.md)** or **[Claim Convergence Protocol](claim-convergence-protocol.md)** — pick whichever scale matches your interest. They're independent specializations of the foundation.
+5. **[Consultation Protocol](consultation-protocol.md)** and **[Note Decomposition Protocol](note-decomposition-protocol.md)** — the production-shaped protocols. Easier to read after you know what convergence looks like, since these produce input for it.
+6. **[Maturation Protocol](maturation-protocol.md)** — composition over the pipeline. Easier to read after the stage protocols are familiar.
 
 For someone already familiar with the system's behavior, top-down works too: maturation explains the pipeline; stage protocols explain how each stage drives toward its predicate or contract; the convergence module factors out what the convergence-shaped protocols share.
 
