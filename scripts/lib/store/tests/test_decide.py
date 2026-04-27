@@ -22,7 +22,7 @@ class DecideTestBase(unittest.TestCase):
         self.addCleanup(self.store.close)
         self.claim_path = "lattices/xanadu/claim-convergence/ASN-0001/T0.md"
         self.comment_id = self.store.make_link(
-            from_set=["_store/findings/ASN-0001/review-1/0.md"],
+            from_set=["_store/documents/findings/ASN-0001/review-1/0.md"],
             to_set=[self.claim_path],
             type_set=["comment.revise"],
         )

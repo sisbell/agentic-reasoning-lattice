@@ -94,7 +94,7 @@ class ConvergenceTests(QueriesTestBase):
         )
         self.store.make_link(
             from_set=[],
-            to_set=[comment_id, "_store/rationales/r1.md"],
+            to_set=[comment_id, "_store/documents/rationales/r1.md"],
             type_set=["resolution.reject"], ts="t3",
         )
         self.assertTrue(is_claim_converged(self.store, "T3.md"))
@@ -110,7 +110,7 @@ class ConvergenceTests(QueriesTestBase):
             type_set=["comment.revise"], ts="t10",
         )
         self.store.make_link(
-            from_set=[], to_set=[comment_b, "_store/rationales/r.md"],
+            from_set=[], to_set=[comment_b, "_store/documents/rationales/r.md"],
             type_set=["resolution.reject"], ts="t11",
         )
         self.assertTrue(is_claim_converged(self.store, "T3.md"))
@@ -242,7 +242,7 @@ class AsnConvergedTests(QueriesTestBase):
         claim_path = self._make_claim("ASN-0001", "T0")
         # File a revise comment with no resolution.
         self.store.make_link(
-            from_set=["_store/findings/ASN-0001/r1/0.md"],
+            from_set=["_store/documents/findings/ASN-0001/r1/0.md"],
             to_set=[claim_path],
             type_set=["comment.revise"],
             ts="t1",

@@ -16,7 +16,7 @@ class EmitTestBase(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         self.root = Path(self.tmp.name)
-        self.findings_dir = self.root / "_store" / "findings"
+        self.findings_dir = self.root / "_store" / "documents" / "findings"
         self.workspace_patcher = mock.patch(
             "lib.store.emit.WORKSPACE", self.root,
         )
@@ -160,7 +160,7 @@ class EmitFindingsTests(EmitTestBase):
         finding_full = self.root / results[0]["finding_path"]
         self.assertTrue(finding_full.exists())
         self.assertIn(
-            "_store/findings/ASN-0034/review-46/0.md",
+            "_store/documents/findings/ASN-0034/review-46/0.md",
             results[0]["finding_path"],
         )
         self.assertIn("**Class**: REVISE", finding_full.read_text())

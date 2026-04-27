@@ -74,8 +74,14 @@ USAGE_LOG = LATTICE / "usage-log.jsonl"
 STORE_DIR = LATTICE / "_store"
 STORE_LOG = STORE_DIR / "links.jsonl"
 STORE_INDEX = STORE_DIR / "index.db"
-FINDINGS_DIR = STORE_DIR / "findings"
-RATIONALES_DIR = STORE_DIR / "rationales"
+# Substrate-managed documents live under _store/documents/. Structural
+# state (links.jsonl, index.db) and diagnostic artifacts (_failures/) sit
+# alongside as siblings; documents are the content the substrate's links
+# reference.
+STORE_DOCS_DIR = STORE_DIR / "documents"
+FINDINGS_DIR = STORE_DOCS_DIR / "findings"
+RATIONALES_DIR = STORE_DOCS_DIR / "rationales"
+AGENTS_DIR = STORE_DOCS_DIR / "agents"
 
 
 def review_meta_path(asn_label, review_num):
