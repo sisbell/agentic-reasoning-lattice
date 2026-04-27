@@ -13,6 +13,7 @@ The set of zero tumblers is written **Z** = {t ∈ T : Zero(t)}.
 - *Consequence:* `(A t ∈ T :: Pos(t) ⟺ ¬Zero(t))`.
 - *Depends:*
   - T0 (CarrierSetDefinition) — carrier `T`, length `#t`, component projection `tᵢ`, and the nonemptiness clause `(A a ∈ T :: 1 ≤ #a)` cited in prose to unpack the Definition's quantifier ranges.
+  - NAT-carrier (NatCarrierSet) — supplies `ℕ` as the underlying set appearing in the bounded existential `(E i ∈ ℕ : 1 ≤ i ≤ #t : ¬(tᵢ = 0))` of the `Pos` clause and the bounded universal `(A i ∈ ℕ : 1 ≤ i ≤ #t : tᵢ = 0)` of the `Zero` clause, over which the index variable `i` ranges before being further restricted by the carrier-side clause `i ∈ ℕ` and the term-side range `1 ≤ i ≤ #t`.
   - NAT-zero (NatZeroMinimum) — supplies `0 ∈ ℕ` for the literal appearing in `tᵢ = 0`.
   - NAT-order (NatStrictTotalOrder) — supplies `≤` on ℕ for the bounded-quantifier range `1 ≤ i ≤ #t`.
   - NAT-closure (NatArithmeticClosureAndIdentity) — supplies `1 ∈ ℕ` for the numeral bounding that range.
