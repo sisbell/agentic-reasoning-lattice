@@ -1,7 +1,0 @@
-label: AX-3
-name: InfiniteTypeDomains
-vocabulary:
-- symbol: Doc
-  meaning: 'The document identifier space: {d ∈ T : zeros(d) = 2}, countably infinite'
-- symbol: VPos(S)
-  meaning: 'The V-position space within subspace S: {v ∈ T : zeros(v) = 0 ∧ v₁ = S}, countably infinite for each S ≥ 1'

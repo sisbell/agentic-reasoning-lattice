@@ -1,8 +1,0 @@
-label: NAT-closure
-name: NatArithmeticClosureAndIdentity
-summary: |
-  Posits the binary operation `+ : ℕ × ℕ → ℕ` directly on ℕ, asserts
-  `1 ∈ ℕ` together with the distinctness clause `0 < 1` that separates
-  the two named constants, and fixes `0` as a two-sided additive identity:
-  left (`0 + n = n`) and right (`n + 0 = n`). Closure of ℕ under addition
-  is carried by the signature's codomain commitment.

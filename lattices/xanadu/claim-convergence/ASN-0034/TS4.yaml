@@ -1,4 +1,0 @@
-label: TS4
-name: ShiftStrictIncrease
-summary: Shifting a tumbler by any positive amount strictly increases it — the shifted result is always greater than the original
-  under the lexicographic order. This makes shift a strict advance with no fixed points.

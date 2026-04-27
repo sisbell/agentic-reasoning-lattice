@@ -1,6 +1,0 @@
-label: origin(a)
-name: DocumentLevelPrefix
-vocabulary:
-- symbol: origin(a)
-  meaning: The document-level prefix of I-address a, computed as (fields(a).node).0.(fields(a).user).0.(fields(a).document)
-    — the tumbler N.0.U.0.D identifying the document that allocated a

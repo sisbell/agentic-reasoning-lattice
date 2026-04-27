@@ -1,6 +1,0 @@
-label: TumblerAdd
-name: TumblerAdd
-summary: 'Defines tumbler addition (⊕) as a hierarchical position-advance operation: below the action point components are
-  copied from the base address, at the action point the components are summed, and above the action point components are taken
-  from the displacement. The result always strictly exceeds the base address and is at least as large as the displacement
-  itself.'

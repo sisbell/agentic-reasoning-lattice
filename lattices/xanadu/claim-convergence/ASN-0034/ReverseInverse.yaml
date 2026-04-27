@@ -1,5 +1,0 @@
-label: ReverseInverse
-name: ReverseInverse
-summary: Under the conditions that a and w share the same length k, a ≥ w, w is positive, and a has all-zero components before
-  w's action point, subtracting w from a and then adding w back recovers a exactly. This establishes that tumbler subtraction
-  and addition are mutually inverse within this constrained setting.

@@ -1,6 +1,0 @@
-label: E₁(a)
-name: ElementSubspaceProjection
-vocabulary:
-- symbol: E₁(a)
-  meaning: The element subspace identifier — the first component of the element field in the four-field decomposition of I-address
-    a

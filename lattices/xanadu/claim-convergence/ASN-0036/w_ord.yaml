@@ -1,6 +1,0 @@
-label: w_ord
-name: OrdinalDisplacementProjection
-vocabulary:
-- symbol: w_ord
-  meaning: 'Ordinal projection of displacement w: the sequence [w₂, ..., wₘ] obtained by dropping the first component (the
-    subspace identifier) from w, defined when w₁ = 0 and #w ≥ 2'

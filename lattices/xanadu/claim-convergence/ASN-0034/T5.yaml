@@ -1,5 +1,0 @@
-label: T5
-name: ContiguousSubtrees
-summary: If two tumblers a and c share a common prefix p, then every tumbler b between them in the lexicographic order also
-  shares that prefix. This means every prefix-defined subtree occupies a contiguous interval on the tumbler line — no address
-  from an unrelated subtree can appear between two addresses in the same subtree.

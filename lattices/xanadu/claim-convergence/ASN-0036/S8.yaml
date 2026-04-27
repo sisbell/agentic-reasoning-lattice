@@ -1,8 +1,0 @@
-label: S8
-name: FiniteCorrespondenceRunDecomposition
-vocabulary:
-- symbol: correspondence runs {(vⱼ, aⱼ, nⱼ)}
-  meaning: a finite set of triples where vⱼ is a starting V-position, aⱼ is the corresponding starting I-address, and nⱼ is
-    the run length; each run represents a contiguous block of content that entered the arrangement as a unit
-- symbol: '#runs(d)'
-  meaning: the number of correspondence runs in the decomposition of document d's arrangement

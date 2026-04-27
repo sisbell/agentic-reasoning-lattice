@@ -1,4 +1,0 @@
-label: T10a.1
-name: UniformSiblingLength
-summary: All siblings produced by a single allocator share the same tumbler length as the base address. Because sibling production
-  uses only inc(·, 0), which preserves length by TA5, the entire sibling stream is length-uniform.

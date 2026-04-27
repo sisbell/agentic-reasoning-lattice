@@ -1,5 +1,0 @@
-label: OrdAddHom
-name: OrdinalAdditionHomomorphism
-vocabulary:
-- symbol: w_ord
-  meaning: The ordinal part of displacement w, defined as [w₂, ..., wₘ] — i.e., ord(w)

@@ -78,10 +78,12 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
     store = Store()
     label_index = build_cross_asn_label_index(store=store)
 
+    _ATTR_SUFFIXES = (".label.md", ".name.md", ".description.md")
     asn_claim_md_paths = [
-        str(yaml_path.with_suffix(".md").relative_to(WORKSPACE))
-        for yaml_path in claim_dir.glob("*.yaml")
-        if not yaml_path.name.startswith("_")
+        str(md_path.relative_to(WORKSPACE))
+        for md_path in claim_dir.glob("*.md")
+        if not md_path.name.startswith("_")
+        and not md_path.name.endswith(_ATTR_SUFFIXES)
     ]
 
     for cycle in range(1, max_cycles + 1):

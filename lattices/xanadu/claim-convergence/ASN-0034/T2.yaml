@@ -1,6 +1,0 @@
-label: T2
-name: IntrinsicComparison
-summary: |
-  The tumbler order from T1 is computable from the two tumblers alone, consulting no external state — only their component
-  sequences and lengths. The comparison terminates after examining a number of component pairs bounded by both #a and #b,
-  making it both intrinsic and bounded.
