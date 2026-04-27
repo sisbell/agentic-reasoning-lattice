@@ -36,7 +36,7 @@ REVISE = _load("convergence_validate_revise",
 def _run_validator(asn_label):
     claim_dir = VALIDATE.claim_convergence_dir(asn_label)
     pairs = VALIDATE.load_pairs(claim_dir)
-    return VALIDATE.run_all_checks(pairs)
+    return VALIDATE.run_all_checks(pairs, claim_dir=claim_dir)
 
 
 def _actionable(findings, declined):

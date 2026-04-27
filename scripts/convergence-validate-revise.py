@@ -76,7 +76,7 @@ PASSES = [
 def run_validator(asn_label):
     claim_dir = VALIDATOR.claim_convergence_dir(asn_label)
     pairs = VALIDATOR.load_pairs(claim_dir)
-    return VALIDATOR.run_all_checks(pairs)
+    return VALIDATOR.run_all_checks(pairs, claim_dir=claim_dir)
 
 
 def _md_counterpart(filename):

@@ -57,6 +57,10 @@ TYPE_KEYWORDS = {
 }
 REQUIRED_YAML_FIELDS = ("label", "name", "summary")
 
+# Substrate-owned document attribute kinds; their sibling docs are
+# `<stem>.<kind>.md` and aren't claim files in their own right.
+ATTRIBUTE_KINDS = ("label", "name", "description")
+
 SINGLE_CHAR_SYMBOLS = re.compile(r"[<≤≥>≠=∈∉⊆⊇⇒⇔∀∃∧∨¬+−⊕⊖⊗⨀]")
 MULTICHAR_SYMBOLS = [
     ("#·", re.compile(r"#·")),
@@ -140,6 +144,17 @@ def line_of_offset(text, offset):
     return text.count("\n", 0, offset) + 1
 
 
+_ATTR_SUFFIXES = tuple(f".{k}.md" for k in ATTRIBUTE_KINDS)
+
+
+def _is_attr_doc(name):
+    """Filename for a substrate-owned attribute doc (.label.md / .name.md /
+    .description.md). These are siblings of claim md files, not claims
+    themselves; load_pairs skips them so they don't appear as orphan
+    md files lacking yaml siblings."""
+    return name.endswith(_ATTR_SUFFIXES)
+
+
 def load_pairs(claim_dir):
     """Return {stem: {yaml, md, yaml_error}} across every .yaml/.md in the dir."""
     pairs = {}
@@ -153,7 +168,7 @@ def load_pairs(claim_dir):
         except yaml.YAMLError as e:
             entry["yaml_error"] = str(e)
     for md_path in claim_dir.glob("*.md"):
-        if md_path.name.startswith("_"):
+        if md_path.name.startswith("_") or _is_attr_doc(md_path.name):
             continue
         stem = md_path.stem
         entry = pairs.setdefault(stem, {"yaml": None, "md": None, "yaml_error": None})
@@ -597,13 +612,101 @@ def check_declaration_and_body_uniqueness(pairs):
     return findings
 
 
-def run_all_checks(pairs, store=None, label_index=None):
+def check_attribute_link_shape(pairs, store, label_index, kind):
+    """For each claim with a `<kind>` substrate attribute link, verify its
+    shape: from_set is the claim md path, to_set is `<stem>.<kind>.md`,
+    type_set is exactly `[<kind>]`. Coverage (whether the link exists) is
+    a separate concern — this check operates only on links that exist.
+    """
+    findings = []
+    for stem, entry in sorted(pairs.items()):
+        data = entry["yaml"]
+        if not isinstance(data, dict):
+            continue
+        label = data.get("label")
+        if not label:
+            continue
+        md_path = label_index.get(label)
+        if not md_path:
+            continue
+        from pathlib import PurePosixPath
+        expected_to = str(
+            PurePosixPath(md_path).with_suffix(f".{kind}.md")
+        )
+
+        for link in active_links(store, kind, from_set=[md_path]):
+            if link["type_set"] != [kind]:
+                findings.append({
+                    "rule": f"{kind}-link-shape",
+                    "file": f"{stem}.md",
+                    "line": None,
+                    "detail": (f"link {link['id']}: type_set "
+                               f"{link['type_set']} != [{kind!r}]"),
+                })
+                continue
+            if link["from_set"] != [md_path]:
+                findings.append({
+                    "rule": f"{kind}-link-shape",
+                    "file": f"{stem}.md",
+                    "line": None,
+                    "detail": (f"link {link['id']}: from_set "
+                               f"{link['from_set']} != [{md_path!r}]"),
+                })
+                continue
+            if link["to_set"] != [expected_to]:
+                findings.append({
+                    "rule": f"{kind}-link-shape",
+                    "file": f"{stem}.md",
+                    "line": None,
+                    "detail": (f"link {link['id']}: to_set "
+                               f"{link['to_set']} != [{expected_to!r}]"),
+                })
+    return findings
+
+
+def check_attribute_doc_format(claim_dir, kind):
+    """For each `<stem>.<kind>.md` doc in claim_dir, verify content format.
+    Common rule: doc must be non-empty.
+    Label-specific (stage-1 bridge): the first line must equal the
+    filename stem.
+    """
+    findings = []
+    suffix = f".{kind}.md"
+    for doc in sorted(claim_dir.glob(f"*{suffix}")):
+        if doc.name.startswith("_"):
+            continue
+        content = doc.read_text()
+        if not content.strip():
+            findings.append({
+                "rule": f"{kind}-doc-format",
+                "file": doc.name,
+                "line": None,
+                "detail": f"{kind} doc is empty",
+            })
+            continue
+        if kind == "label":
+            first_line = content.split("\n", 1)[0].rstrip()
+            stem = doc.name[:-len(suffix)]
+            if first_line != stem:
+                findings.append({
+                    "rule": "label-doc-format",
+                    "file": doc.name,
+                    "line": 1,
+                    "detail": (f"first line {first_line!r} must equal "
+                               f"filename stem {stem!r}"),
+                })
+    return findings
+
+
+def run_all_checks(pairs, store=None, label_index=None, claim_dir=None):
     """Run every implemented invariant check in one pass. Returns a list of
     findings. Used by this script's main(), the gate, and validate-revise
     to avoid triplicating the check list.
 
     Citation invariants now query the substrate. If `store` is not provided,
     a Store is opened with default paths and closed at function exit.
+    `claim_dir` is required for substrate-attribute doc-format checks; if
+    omitted those checks are skipped.
     """
     own_store = store is None
     if own_store:
@@ -625,6 +728,10 @@ def run_all_checks(pairs, store=None, label_index=None):
         findings.extend(check_declared_symbols_resolve(pairs, citation_graph))
         findings.extend(check_acyclic_dependency_graph(pairs, citation_graph))
         findings.extend(check_declaration_and_body_uniqueness(pairs))
+        for kind in ATTRIBUTE_KINDS:
+            findings.extend(check_attribute_link_shape(pairs, store, label_index, kind))
+            if claim_dir is not None:
+                findings.extend(check_attribute_doc_format(claim_dir, kind))
         return findings
     finally:
         if own_store:
@@ -650,7 +757,7 @@ def main():
         return 2
 
     pairs = load_pairs(claim_dir)
-    findings = run_all_checks(pairs)
+    findings = run_all_checks(pairs, claim_dir=claim_dir)
 
     print(f"[FORMALIZATION-VALIDATE] {asn_label} ({claim_dir})")
     if not findings:
