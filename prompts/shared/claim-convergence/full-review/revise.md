@@ -79,7 +79,17 @@ instead "the state satisfies..."
    (e.g., replacing "T" with "the set of T4-valid addresses"), apply the
    change consistently everywhere the term appears in the affected context.
 
-4. If the fix affects formal contracts, update them to match.
+4. If the fix affects formal contracts, update them to match. If the
+   contract's top-level field shape changes — adding or removing an
+   `*Axiom:*` or `*Definition:*` field, or reframing a derived result
+   as a posit — re-classify the claim by running:
+
+       PROTOCOL_CLAIM_PATH=<path-to-the-claim-md> python scripts/classify.py --kind <new>
+
+   `<new>` is one of `axiom`, `definition`, `theorem`, `lemma`,
+   `corollary`, `consequence`, `design-requirement` — match the new
+   top-level field. The latest classifier wins; the prior link stays
+   in the substrate (append-only) but is no longer the current kind.
 
 5. **Adding dependencies.** When you add a dependency, run:
        python scripts/cite.py --to <label>
