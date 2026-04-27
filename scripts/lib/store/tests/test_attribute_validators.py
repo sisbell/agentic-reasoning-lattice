@@ -101,6 +101,65 @@ class CheckAttributeLinkShapeTests(AttributeValidatorTestBase):
             self.assertEqual(findings, [], f"{kind} should be clean")
 
 
+class CheckAttributeCoverageTests(AttributeValidatorTestBase):
+    def test_claim_with_label_and_name_no_findings(self):
+        emit_attribute(self.store, self.claim_rel, "label", "T0",
+                       lattice_root=self.root)
+        emit_attribute(self.store, self.claim_rel, "name", "T",
+                       lattice_root=self.root)
+        for kind in ("label", "name"):
+            findings = VAL.check_attribute_coverage(
+                self.pairs, self.store, self.label_index, kind,
+            )
+            self.assertEqual(findings, [], f"{kind} should be clean")
+
+    def test_missing_name_link_flagged(self):
+        emit_attribute(self.store, self.claim_rel, "label", "T0",
+                       lattice_root=self.root)
+        findings = VAL.check_attribute_coverage(
+            self.pairs, self.store, self.label_index, "name",
+        )
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0]["rule"], "name-coverage")
+        self.assertIn("no active name link", findings[0]["detail"])
+
+    def test_missing_label_link_flagged(self):
+        emit_attribute(self.store, self.claim_rel, "name", "T",
+                       lattice_root=self.root)
+        findings = VAL.check_attribute_coverage(
+            self.pairs, self.store, self.label_index, "label",
+        )
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0]["rule"], "label-coverage")
+        self.assertIn("no active label link", findings[0]["detail"])
+
+    def test_duplicate_active_link_flagged(self):
+        emit_attribute(self.store, self.claim_rel, "name", "T",
+                       lattice_root=self.root)
+        # File a second name link directly via the store, bypassing
+        # emit_attribute's idempotency. Different to_set so the content
+        # hash (and link id) differ.
+        other_doc = "lattices/xanadu/claim-convergence/ASN-0001/T0.alt.md"
+        self.store.make_link(
+            from_set=[self.claim_rel],
+            to_set=[other_doc],
+            type_set=["name"],
+        )
+        findings = VAL.check_attribute_coverage(
+            self.pairs, self.store, self.label_index, "name",
+        )
+        self.assertEqual(len(findings), 1)
+        self.assertIn("2 active name links", findings[0]["detail"])
+
+    def test_description_not_enforced_at_run_all_checks(self):
+        # description coverage is intentionally not in the enforced set;
+        # confirm by inspecting the constant rather than running the full
+        # pipeline (which needs a fully-formed lattice).
+        self.assertNotIn("description", VAL.COVERED_ATTRIBUTE_KINDS)
+        self.assertIn("label", VAL.COVERED_ATTRIBUTE_KINDS)
+        self.assertIn("name", VAL.COVERED_ATTRIBUTE_KINDS)
+
+
 class CheckAttributeDocFormatTests(AttributeValidatorTestBase):
     def _write_doc(self, kind, content):
         (self.claim_dir / f"T0.{kind}.md").write_text(content)

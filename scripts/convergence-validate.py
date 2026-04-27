@@ -60,6 +60,10 @@ REQUIRED_YAML_FIELDS = ("label", "name", "summary")
 # Substrate-owned document attribute kinds; their sibling docs are
 # `<stem>.<kind>.md` and aren't claim files in their own right.
 ATTRIBUTE_KINDS = ("label", "name", "description")
+# Kinds whose presence on every claim is enforced. description is omitted
+# intentionally — descriptions are optional content, not a structural
+# requirement.
+COVERED_ATTRIBUTE_KINDS = ("label", "name")
 
 SINGLE_CHAR_SYMBOLS = re.compile(r"[<≤≥>≠=∈∉⊆⊇⇒⇔∀∃∧∨¬+−⊕⊖⊗⨀]")
 MULTICHAR_SYMBOLS = [
@@ -664,6 +668,42 @@ def check_attribute_link_shape(pairs, store, label_index, kind):
     return findings
 
 
+def check_attribute_coverage(pairs, store, label_index, kind):
+    """For each claim in `pairs`, verify it has exactly one active
+    substrate `<kind>` link (I1: label, I2: name).
+
+    Coverage is not enforced for `description` — see COVERED_ATTRIBUTE_KINDS.
+    """
+    findings = []
+    for stem, entry in sorted(pairs.items()):
+        data = entry["yaml"]
+        if not isinstance(data, dict):
+            continue
+        label = data.get("label")
+        if not label:
+            continue
+        md_path = label_index.get(label)
+        if not md_path:
+            continue
+        links = active_links(store, kind, from_set=[md_path])
+        if not links:
+            findings.append({
+                "rule": f"{kind}-coverage",
+                "file": f"{stem}.md",
+                "line": None,
+                "detail": f"no active {kind} link from claim md",
+            })
+        elif len(links) > 1:
+            findings.append({
+                "rule": f"{kind}-coverage",
+                "file": f"{stem}.md",
+                "line": None,
+                "detail": (f"{len(links)} active {kind} links "
+                           f"(expected 1)"),
+            })
+    return findings
+
+
 def check_attribute_doc_format(claim_dir, kind):
     """For each `<stem>.<kind>.md` doc in claim_dir, verify content format.
     Common rule: doc must be non-empty.
@@ -732,6 +772,8 @@ def run_all_checks(pairs, store=None, label_index=None, claim_dir=None):
             findings.extend(check_attribute_link_shape(pairs, store, label_index, kind))
             if claim_dir is not None:
                 findings.extend(check_attribute_doc_format(claim_dir, kind))
+            if kind in COVERED_ATTRIBUTE_KINDS:
+                findings.extend(check_attribute_coverage(pairs, store, label_index, kind))
         return findings
     finally:
         if own_store:
