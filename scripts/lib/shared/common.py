@@ -388,21 +388,31 @@ def parallel_llm_calls(items, worker_fn, max_workers=10):
 
 
 def assemble_readonly(asn_label):
-    """Concatenate per-claim files from lattices/xanadu/claim-convergence/ for read-only use.
+    """Concatenate the source-note structural sections + per-claim files
+    for read-only whole-ASN consumption.
 
-    Returns assembled text (preamble + structural sections + claims).
+    Returns assembled text (structural sections first, then claim bodies).
     Used by cross-cutting scripts that need the whole-ASN view.
     """
-    from lib.shared.paths import CLAIM_CONVERGENCE_DIR, CLAIM_DIR
+    from lib.shared.paths import (
+        CLAIM_CONVERGENCE_DIR, CLAIM_DIR, CLAIM_DERIVATION_DIR,
+    )
 
     cc_dir = CLAIM_CONVERGENCE_DIR / asn_label
+    structural_dir = CLAIM_DERIVATION_DIR / asn_label / "structural"
     docs_dir = CLAIM_DIR / asn_label
 
     parts = []
 
-    # Structural files (preamble, worked example, vocabulary, etc.)
-    # live alongside reviews/caches as work products.
-    if cc_dir.exists():
+    # Structural sections (preamble, worked example, etc.) — sections of
+    # the source note that contain no claims. Produced by transclude as
+    # workspace artifacts.
+    if structural_dir.exists():
+        for f in sorted(structural_dir.glob("*.md")):
+            parts.append(f.read_text().strip())
+    # Legacy fallback: pre-D2 lattices kept structural files alongside
+    # the convergence loop's caches under claim-convergence/<asn>/_*.md.
+    elif cc_dir.exists():
         for f in sorted(cc_dir.glob("_*.md")):
             parts.append(f.read_text().strip())
 

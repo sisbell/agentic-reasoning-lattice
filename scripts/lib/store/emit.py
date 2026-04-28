@@ -51,6 +51,55 @@ def emit_inquiry(store, inquiry_md_path):
     return _emit_classifier(store, inquiry_md_path, "inquiry")
 
 
+def emit_claim(store, claim_md_path):
+    """Classify a doc as a claim. Idempotent. Returns (link_id, created).
+
+    Filed by claim derivation per the Claim File Contract (invariant #4):
+    every claim body markdown carries exactly one active `claim` classifier
+    link in the substrate."""
+    return _emit_classifier(store, claim_md_path, "claim")
+
+
+def emit_contract(store, claim_md_path, kind):
+    """File a `contract.<kind>` classifier on the claim body markdown.
+    Idempotent on (doc, kind). Returns (link_id, created).
+
+    `kind` must be one of: axiom, definition, theorem, corollary, lemma,
+    consequence, design-requirement.
+
+    Filed by claim derivation per the Claim File Contract (invariant #4):
+    every claim body carries exactly one active `contract.<kind>` classifier
+    declaring its formal status."""
+    return _emit_classifier(store, claim_md_path, f"contract.{kind}")
+
+
+def emit_derivation(store, note_md_path, claim_md_path):
+    """File a `provenance.derivation` link from source note to claim doc.
+    Idempotent on (note, claim) pair. Returns (link_id, created).
+
+    Filed by claim derivation per the Claim File Contract (invariant #13):
+    each claim's body carries exactly one active `provenance.derivation`
+    link recording that this claim was derived from this note. The link
+    persists permanently regardless of subsequent edits to either doc.
+    Sibling of `provenance.synthesis` (inquiry → note) and the maturation
+    provenance subtypes."""
+    note_rel = _lattice_relative(note_md_path)
+    claim_rel = _lattice_relative(claim_md_path)
+    candidates = active_links(
+        store, "provenance.derivation",
+        from_set=[note_rel], to_set=[claim_rel],
+    )
+    for link in candidates:
+        if (link["from_set"] == [note_rel]
+                and link["to_set"] == [claim_rel]):
+            return link["id"], False
+    link_id = store.make_link(
+        from_set=[note_rel], to_set=[claim_rel],
+        type_set=["provenance.derivation"],
+    )
+    return link_id, True
+
+
 def emit_synthesis(store, inquiry_md_path, note_md_path):
     """File a `provenance.synthesis` link from inquiry to the produced note.
     Idempotent on active (inquiry, note) pair. Returns (link_id, created).

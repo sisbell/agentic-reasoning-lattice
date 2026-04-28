@@ -8,7 +8,8 @@ from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.store.emit import (
-    emit_campaign, emit_findings, emit_inquiry, emit_note,
+    emit_campaign, emit_claim, emit_contract, emit_derivation,
+    emit_findings, emit_inquiry, emit_note,
     emit_note_findings, emit_review, emit_synthesis,
 )
 from lib.store.store import Store
@@ -170,6 +171,109 @@ class EmitSynthesisTests(EmitTestBase):
         a_id, _ = emit_synthesis(self.store, self.inq_path, self.note_path)
         b_id, _ = emit_synthesis(self.store, other_inq, other_note)
         self.assertNotEqual(a_id, b_id)
+
+
+class EmitClaimTests(EmitTestBase):
+    def test_first_call_creates_classifier(self):
+        claim_path = self._write_under_root(
+            "_docuverse/documents/claim/ASN-0001/T0.md", "# T0\n",
+        )
+        link_id, created = emit_claim(self.store, claim_path)
+        self.assertTrue(created)
+        rec = self.store.get(link_id)
+        self.assertEqual(rec["type_set"], ["claim"])
+        self.assertEqual(rec["from_set"], [])
+        self.assertEqual(
+            rec["to_set"],
+            ["_docuverse/documents/claim/ASN-0001/T0.md"],
+        )
+
+    def test_repeated_call_is_idempotent(self):
+        claim_path = self._write_under_root(
+            "_docuverse/documents/claim/ASN-0001/T0.md", "x",
+        )
+        first_id, created1 = emit_claim(self.store, claim_path)
+        second_id, created2 = emit_claim(self.store, claim_path)
+        self.assertTrue(created1)
+        self.assertFalse(created2)
+        self.assertEqual(first_id, second_id)
+
+
+class EmitContractTests(EmitTestBase):
+    def test_files_subtype_link(self):
+        claim_path = self._write_under_root(
+            "_docuverse/documents/claim/ASN-0001/T0.md", "# T0\n",
+        )
+        link_id, created = emit_contract(self.store, claim_path, "definition")
+        self.assertTrue(created)
+        rec = self.store.get(link_id)
+        self.assertEqual(rec["type_set"], ["contract.definition"])
+        self.assertEqual(rec["from_set"], [])
+        self.assertEqual(
+            rec["to_set"],
+            ["_docuverse/documents/claim/ASN-0001/T0.md"],
+        )
+
+    def test_idempotent_per_kind(self):
+        claim_path = self._write_under_root(
+            "_docuverse/documents/claim/ASN-0001/T0.md", "x",
+        )
+        a, _ = emit_contract(self.store, claim_path, "theorem")
+        b, c2 = emit_contract(self.store, claim_path, "theorem")
+        self.assertEqual(a, b)
+        self.assertFalse(c2)
+
+    def test_distinct_kinds_get_distinct_links(self):
+        claim_path = self._write_under_root(
+            "_docuverse/documents/claim/ASN-0001/T0.md", "x",
+        )
+        a, _ = emit_contract(self.store, claim_path, "theorem")
+        b, _ = emit_contract(self.store, claim_path, "lemma")
+        self.assertNotEqual(a, b)
+
+
+class EmitDerivationTests(EmitTestBase):
+    def setUp(self):
+        super().setUp()
+        self.note_path = self._write_under_root(
+            "_docuverse/documents/note/ASN-0001-foo.md", "# Note\n",
+        )
+        self.claim_path = self._write_under_root(
+            "_docuverse/documents/claim/ASN-0001/T0.md", "# T0\n",
+        )
+
+    def test_first_call_creates_link(self):
+        link_id, created = emit_derivation(
+            self.store, self.note_path, self.claim_path,
+        )
+        self.assertTrue(created)
+        rec = self.store.get(link_id)
+        self.assertEqual(rec["type_set"], ["provenance.derivation"])
+        self.assertEqual(
+            rec["from_set"],
+            ["_docuverse/documents/note/ASN-0001-foo.md"],
+        )
+        self.assertEqual(
+            rec["to_set"],
+            ["_docuverse/documents/claim/ASN-0001/T0.md"],
+        )
+
+    def test_repeated_call_is_idempotent(self):
+        a, _ = emit_derivation(self.store, self.note_path, self.claim_path)
+        b, c2 = emit_derivation(self.store, self.note_path, self.claim_path)
+        self.assertEqual(a, b)
+        self.assertFalse(c2)
+
+    def test_distinct_pairs_get_distinct_links(self):
+        other_note = self._write_under_root(
+            "_docuverse/documents/note/ASN-0002-bar.md", "x",
+        )
+        other_claim = self._write_under_root(
+            "_docuverse/documents/claim/ASN-0002/T1.md", "y",
+        )
+        a, _ = emit_derivation(self.store, self.note_path, self.claim_path)
+        b, _ = emit_derivation(self.store, other_note, other_claim)
+        self.assertNotEqual(a, b)
 
 
 class EmitNoteTests(EmitTestBase):
