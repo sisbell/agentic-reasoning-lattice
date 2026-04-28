@@ -31,7 +31,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import (
-    WORKSPACE, NOTES_DIR, MANIFESTS_DIR,
+    WORKSPACE, NOTE_DIR, MANIFESTS_DIR,
 )
 from lib.note_convergence.steps import step_commit
 
@@ -255,7 +255,7 @@ def main():
         ids = set(int(x) for x in args.inquiries.split(","))
         inquiries = [i for i in inquiries if i["id"] in ids]
 
-    NOTES_DIR.mkdir(parents=True, exist_ok=True)
+    NOTE_DIR.mkdir(parents=True, exist_ok=True)
 
     target_idx = STEPS.index(args.step)
     steps_label = " → ".join(STEPS[:target_idx + 1])

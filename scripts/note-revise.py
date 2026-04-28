@@ -21,7 +21,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, NOTES_DIR, sorted_reviews
+from lib.shared.paths import WORKSPACE, NOTE_DIR, sorted_reviews
 from lib.store.store import attributed_to
 
 from lib.note_convergence.steps import (
@@ -90,7 +90,7 @@ def main():
     # Find ASN
     asn_path, asn_label = find_asn(args.asn)
     if asn_path is None:
-        print(f"  No ASN found for {args.asn} in {NOTES_DIR.relative_to(WORKSPACE)}/", file=sys.stderr)
+        print(f"  No ASN found for {args.asn} in {NOTE_DIR.relative_to(WORKSPACE)}/", file=sys.stderr)
         sys.exit(1)
 
     asn_number = int(asn_label.replace("ASN-", ""))

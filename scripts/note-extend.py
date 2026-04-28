@@ -17,7 +17,7 @@ from lib.maturation.manage.extend import (
     parse_registry_labels, validate, derive_names, compute_depends,
     build_prompt, strip_preamble, write_manifest,
 )
-from lib.shared.paths import WORKSPACE, NOTES_DIR, formal_stmts
+from lib.shared.paths import WORKSPACE, NOTE_DIR, formal_stmts
 from lib.shared.common import read_file, find_asn, invoke_claude, log_usage, step_commit
 from lib.shared.foundation import load_foundation_for_note
 
@@ -95,8 +95,8 @@ def main():
     text = strip_preamble(text)
 
     # Write reasoning doc
-    NOTES_DIR.mkdir(parents=True, exist_ok=True)
-    asn_path = NOTES_DIR / f"{target_label}-{slug}.md"
+    NOTE_DIR.mkdir(parents=True, exist_ok=True)
+    asn_path = NOTE_DIR / f"{target_label}-{slug}.md"
     asn_path.write_text(text + "\n")
     print(f"  [WROTE] {asn_path.relative_to(WORKSPACE)}", file=sys.stderr)
 

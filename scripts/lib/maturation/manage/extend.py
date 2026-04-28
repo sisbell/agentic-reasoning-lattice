@@ -14,7 +14,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
-from lib.shared.paths import (WORKSPACE, LATTICE, NOTES_DIR, MANIFESTS_DIR,
+from lib.shared.paths import (WORKSPACE, LATTICE, NOTE_DIR, MANIFESTS_DIR,
                    prompt_path, load_inquiry, inquiry_doc_path,
                    note_yaml, formal_stmts)
 from lib.shared.common import read_file, find_asn, invoke_claude, log_usage, step_commit
@@ -63,7 +63,7 @@ def validate(source_num, target_num, base_num, claim_labels):
     source_path, source_label = find_asn(str(source_num))
     if source_path is None:
         print(f"  [ERROR] Source ASN-{source_num:04d} not found in "
-              f"{NOTES_DIR.relative_to(WORKSPACE)}/", file=sys.stderr)
+              f"{NOTE_DIR.relative_to(WORKSPACE)}/", file=sys.stderr)
         sys.exit(1)
 
     # Base inquiry exists
@@ -76,7 +76,7 @@ def validate(source_num, target_num, base_num, claim_labels):
     # Target does not exist
     target_label = f"ASN-{target_num:04d}"
     target_yaml = note_yaml(target_num)
-    target_asns = list(NOTES_DIR.glob(f"{target_label}-*.md"))
+    target_asns = list(NOTE_DIR.glob(f"{target_label}-*.md"))
     if target_yaml.exists():
         print(f"  [ERROR] {target_label} already exists in project model",
               file=sys.stderr)

@@ -90,9 +90,9 @@ def build_note_label_index(store):
 
 
 def is_note_path(doc_path):
-    """True iff doc_path is under any lattice's discovery/notes/ directory."""
+    """True iff doc_path is under any lattice's substrate-managed note dir."""
     rel = str(doc_path)
-    return "/discovery/notes/" in rel
+    return "/_store/documents/note/" in rel or rel.startswith("_store/documents/note/")
 
 
 def aggregate_asn_deps(store, asn_label, claim_convergence_dir=None):

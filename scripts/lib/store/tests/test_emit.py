@@ -130,7 +130,7 @@ class EmitSynthesisTests(EmitTestBase):
             "_store/documents/inquiry/ASN-0001.md", "x",
         )
         self.note_path = self._write_under_root(
-            "discovery/notes/ASN-0001-foo.md", "# Foo\n",
+            "_store/documents/note/ASN-0001-foo.md", "# Foo\n",
         )
 
     def test_first_call_creates_link(self):
@@ -146,7 +146,7 @@ class EmitSynthesisTests(EmitTestBase):
         )
         self.assertEqual(
             rec["to_set"],
-            ["discovery/notes/ASN-0001-foo.md"],
+            ["_store/documents/note/ASN-0001-foo.md"],
         )
 
     def test_repeated_call_is_idempotent(self):
@@ -165,7 +165,7 @@ class EmitSynthesisTests(EmitTestBase):
             "_store/documents/inquiry/ASN-0002.md", "x",
         )
         other_note = self._write_under_root(
-            "discovery/notes/ASN-0002-bar.md", "y",
+            "_store/documents/note/ASN-0002-bar.md", "y",
         )
         a_id, _ = emit_synthesis(self.store, self.inq_path, self.note_path)
         b_id, _ = emit_synthesis(self.store, other_inq, other_note)
@@ -175,7 +175,7 @@ class EmitSynthesisTests(EmitTestBase):
 class EmitNoteTests(EmitTestBase):
     def test_first_call_creates_classifier(self):
         note_path = self._write_under_root(
-            "discovery/notes/ASN-0001-foo.md", "# Note\n",
+            "_store/documents/note/ASN-0001-foo.md", "# Note\n",
         )
         link_id, created = emit_note(self.store, note_path)
         self.assertTrue(created)
@@ -184,12 +184,12 @@ class EmitNoteTests(EmitTestBase):
         self.assertEqual(rec["from_set"], [])
         self.assertEqual(
             rec["to_set"],
-            ["discovery/notes/ASN-0001-foo.md"],
+            ["_store/documents/note/ASN-0001-foo.md"],
         )
 
     def test_repeated_call_is_idempotent(self):
         note_path = self._write_under_root(
-            "discovery/notes/ASN-0001-foo.md", "# Note\n",
+            "_store/documents/note/ASN-0001-foo.md", "# Note\n",
         )
         first_id, created1 = emit_note(self.store, note_path)
         second_id, created2 = emit_note(self.store, note_path)
@@ -199,10 +199,10 @@ class EmitNoteTests(EmitTestBase):
 
     def test_distinct_notes_get_distinct_classifiers(self):
         a = self._write_under_root(
-            "discovery/notes/ASN-0001-a.md", "a",
+            "_store/documents/note/ASN-0001-a.md", "a",
         )
         b = self._write_under_root(
-            "discovery/notes/ASN-0002-b.md", "b",
+            "_store/documents/note/ASN-0002-b.md", "b",
         )
         a_id, _ = emit_note(self.store, a)
         b_id, _ = emit_note(self.store, b)
@@ -347,9 +347,9 @@ class EmitNoteFindingsTests(EmitTestBase):
             self.root / "_store" / "documents" / "findings" / "notes"
         )
         self.note_path = self._write_under_root(
-            "discovery/notes/ASN-0001-foo.md", "# Note\n",
+            "_store/documents/note/ASN-0001-foo.md", "# Note\n",
         )
-        self.note_rel = "discovery/notes/ASN-0001-foo.md"
+        self.note_rel = "_store/documents/note/ASN-0001-foo.md"
 
     def test_revise_finding_emits_comment_revise(self):
         findings = [("Issue 1: bad", "REVISE", "### Issue 1: bad\nbody\n")]

@@ -25,7 +25,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, NOTES_DIR, REQUIREMENTS_DIR, USAGE_LOG, LATTICE_PROMPTS
+from lib.shared.paths import WORKSPACE, NOTE_DIR, REQUIREMENTS_DIR, USAGE_LOG, LATTICE_PROMPTS
 from lib.shared.common import find_asn, read_file
 
 PROMPTS_DIR = LATTICE_PROMPTS / "requirements"
@@ -141,10 +141,10 @@ def main():
         if not asn_files:
             sys.exit(1)
     else:
-        asn_files = sorted(NOTES_DIR.glob("ASN-*.md"))
+        asn_files = sorted(NOTE_DIR.glob("ASN-*.md"))
 
     if not asn_files:
-        print(f"  No ASN files found in {NOTES_DIR.relative_to(WORKSPACE)}/", file=sys.stderr)
+        print(f"  No ASN files found in {NOTE_DIR.relative_to(WORKSPACE)}/", file=sys.stderr)
         sys.exit(1)
 
     labels = [asn_label(p) for p in asn_files]

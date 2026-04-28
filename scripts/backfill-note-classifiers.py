@@ -3,7 +3,7 @@
 
 Notes drafted before draft.py started emitting `note` classifiers are
 present on disk but absent from the substrate's note classifier index.
-This script walks NOTES_DIR and calls emit_note on each ASN-NNNN-*.md
+This script walks NOTE_DIR and calls emit_note on each ASN-NNNN-*.md
 file. Idempotent — re-running is a no-op (emit_note returns the existing
 classifier id).
 
@@ -17,7 +17,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
-from shared.paths import NOTES_DIR, WORKSPACE
+from shared.paths import NOTE_DIR, WORKSPACE
 from store.emit import emit_note
 from store.store import Store
 
@@ -33,14 +33,14 @@ def main():
 
     label = "APPLY" if apply_mode else "DRY-RUN"
     print(f"[backfill-note-classifiers] {label}")
-    print(f"  NOTES_DIR = {NOTES_DIR.relative_to(WORKSPACE)}")
+    print(f"  NOTE_DIR = {NOTE_DIR.relative_to(WORKSPACE)}")
     print()
 
-    if not NOTES_DIR.exists():
-        print(f"  no NOTES_DIR found at {NOTES_DIR}", file=sys.stderr)
+    if not NOTE_DIR.exists():
+        print(f"  no NOTE_DIR found at {NOTE_DIR}", file=sys.stderr)
         return 1
 
-    notes = sorted(NOTES_DIR.glob("ASN-*.md"))
+    notes = sorted(NOTE_DIR.glob("ASN-*.md"))
     print(f"  Found {len(notes)} note files")
     print()
 

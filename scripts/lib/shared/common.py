@@ -12,7 +12,7 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import (
-    WORKSPACE, NOTES_DIR, USAGE_LOG,
+    WORKSPACE, NOTE_DIR, USAGE_LOG,
     REVIEWS_DIR, BLUEPRINTS_DIR, CLAIM_CONVERGENCE_DIR,
     CONSULTATIONS_DIR, MANIFESTS_DIR, EXAMPLES_DIR,
     CLAIM_FINDINGS_DIR, NOTE_FINDINGS_DIR, RATIONALE_DIR, STORE_LOG,
@@ -206,7 +206,7 @@ def find_asn(asn_id, asns_dir=None):
     if not num:
         return None, None
     label = f"ASN-{int(num):04d}"
-    d = asns_dir or NOTES_DIR
+    d = asns_dir or NOTE_DIR
     matches = sorted(d.glob(f"{label}-*.md"))
     if matches:
         return matches[0], label
@@ -520,7 +520,7 @@ def stage_asn_files(label):
     """
     import glob
     patterns = [
-        NOTES_DIR / f"{label}-*",
+        NOTE_DIR / f"{label}-*",
         REVIEWS_DIR / label,
         BLUEPRINTS_DIR / label,
         CLAIM_CONVERGENCE_DIR / label,

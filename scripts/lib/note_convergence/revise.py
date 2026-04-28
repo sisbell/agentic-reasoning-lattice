@@ -23,7 +23,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, LATTICE, VOCABULARY, REVIEWS_DIR, USAGE_LOG, NOTES_DIR, LATTICE_PROMPTS, sorted_reviews, find_review
+from lib.shared.paths import WORKSPACE, LATTICE, VOCABULARY, REVIEWS_DIR, USAGE_LOG, NOTE_DIR, LATTICE_PROMPTS, sorted_reviews, find_review
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn, read_file
 from lib.shared.foundation import load_foundation_for_note
@@ -250,7 +250,7 @@ def main():
     # Find ASN
     asn_path, asn_label = find_asn(args.asn)
     if asn_path is None:
-        print(f"  No ASN found for {args.asn} in {NOTES_DIR.relative_to(WORKSPACE)}/", file=sys.stderr)
+        print(f"  No ASN found for {args.asn} in {NOTE_DIR.relative_to(WORKSPACE)}/", file=sys.stderr)
         sys.exit(1)
 
     note_rel = str(asn_path.resolve().relative_to(LATTICE.resolve()))

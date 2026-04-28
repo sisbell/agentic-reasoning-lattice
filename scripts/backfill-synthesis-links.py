@@ -26,7 +26,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
-from shared.paths import INQUIRY_DIR, NOTES_DIR, WORKSPACE
+from shared.paths import INQUIRY_DIR, NOTE_DIR, WORKSPACE
 from store.emit import emit_synthesis
 from store.store import Store
 
@@ -43,7 +43,7 @@ def main():
     label = "APPLY" if apply_mode else "DRY-RUN"
     print(f"[backfill-synthesis-links] {label}")
     print(f"  INQUIRY_DIR = {INQUIRY_DIR.relative_to(WORKSPACE)}")
-    print(f"  NOTES_DIR     = {NOTES_DIR.relative_to(WORKSPACE)}")
+    print(f"  NOTE_DIR     = {NOTE_DIR.relative_to(WORKSPACE)}")
     print()
 
     if not INQUIRY_DIR.exists():
@@ -60,7 +60,7 @@ def main():
         if not m:
             continue
         asn_label = m.group(1)
-        candidates = sorted(NOTES_DIR.glob(f"{asn_label}-*.md"))
+        candidates = sorted(NOTE_DIR.glob(f"{asn_label}-*.md"))
         if not candidates:
             print(f"  ! {asn_label} inquiry has no drafted note — skipping",
                   file=sys.stderr)

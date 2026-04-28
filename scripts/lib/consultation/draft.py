@@ -12,7 +12,7 @@ single source of truth for the prompt. Placeholders supplied by this
 script: {{consultation_answers}}, {{asn_number}}, {{title}}, {{question}},
 {{slug}}, {{foundation_section}}, {{vocabulary_section}}, {{out_of_scope_note}}.
 
-Output: lattices/<lattice>/discovery/notes/ASN-NNNN-title.md
+Output: lattices/<lattice>/_store/documents/note/ASN-NNNN-title.md
 
 Usage:
     python scripts/lib/consultation/draft.py --inquiry-id 4
@@ -30,7 +30,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import (
-    WORKSPACE, NOTES_DIR, VOCABULARY, USAGE_LOG, LATTICE_PROMPTS,
+    WORKSPACE, NOTE_DIR, VOCABULARY, USAGE_LOG, LATTICE_PROMPTS,
     consultation_dir, inquiry_doc_path,
     load_inquiry as load_inquiry_frontmatter,
 )
@@ -169,7 +169,7 @@ def build_discovery_prompt(inquiry, asn_number, slug, answers_content,
 
 def run_discovery(inquiry, asn_number, slug, force=False):
     """Run xan-discovery to write the ASN. Returns path to ASN file or None."""
-    outfile = NOTES_DIR / f"ASN-{asn_number:04d}-{slug}.md"
+    outfile = NOTE_DIR / f"ASN-{asn_number:04d}-{slug}.md"
 
     if outfile.exists() and not force:
         print(f"  [SKIP] {outfile.name} already exists (use --force to overwrite)",
@@ -222,7 +222,7 @@ def run_discovery(inquiry, asn_number, slug, force=False):
               file=sys.stderr)
         return outfile
 
-    written = list(NOTES_DIR.glob(f"ASN-{asn_number:04d}-*.md"))
+    written = list(NOTE_DIR.glob(f"ASN-{asn_number:04d}-*.md"))
     if written:
         actual = written[0]
         print(f"  [OK] {actual.name} ({actual.stat().st_size} bytes) [different filename]",
@@ -232,7 +232,7 @@ def run_discovery(inquiry, asn_number, slug, force=False):
     print(f"  [WARN] ASN file not found — saving raw response", file=sys.stderr)
     response = data.get("result", "")
     if response:
-        fallback = NOTES_DIR / f"ASN-{asn_number:04d}-{slug}-response.md"
+        fallback = NOTE_DIR / f"ASN-{asn_number:04d}-{slug}-response.md"
         fallback.write_text(response)
         return fallback
 
@@ -252,7 +252,7 @@ def main():
     asn_number = inquiry["id"]
     slug = slugify(inquiry["title"])
 
-    NOTES_DIR.mkdir(parents=True, exist_ok=True)
+    NOTE_DIR.mkdir(parents=True, exist_ok=True)
 
     print(f"ASN-{asn_number:04d}: {inquiry['title']}", file=sys.stderr)
 

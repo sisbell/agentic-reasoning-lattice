@@ -34,7 +34,6 @@ def prompt_path(subpath):
 
 # Discovery stage
 CONSULTATIONS_DIR = LATTICE / "discovery" / "consultations"
-NOTES_DIR = LATTICE / "discovery" / "notes"
 REVIEWS_DIR = LATTICE / "discovery" / "review"
 PATCHES_DIR = LATTICE / "discovery" / "patches"
 
@@ -82,6 +81,7 @@ RATIONALE_DIR = STORE_DOCS_DIR / "rationale"
 AGENT_DIR = STORE_DOCS_DIR / "agent"
 CAMPAIGN_DIR = STORE_DOCS_DIR / "campaign"
 INQUIRY_DIR = STORE_DOCS_DIR / "inquiry"
+NOTE_DIR = STORE_DOCS_DIR / "note"
 
 # Findings split by inquiry-target kind: claim convergence vs note convergence.
 # Each kind owns its own ASN namespace under documents/findings/, so review

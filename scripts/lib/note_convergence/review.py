@@ -26,7 +26,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, VOCABULARY, REVIEWS_DIR, USAGE_LOG, MANIFESTS_DIR, NOTES_DIR, NOTE_FINDINGS_DIR, LATTICE_PROMPTS, sorted_reviews, load_inquiry, open_issues_path
+from lib.shared.paths import WORKSPACE, VOCABULARY, REVIEWS_DIR, USAGE_LOG, MANIFESTS_DIR, NOTE_DIR, NOTE_FINDINGS_DIR, LATTICE_PROMPTS, sorted_reviews, load_inquiry, open_issues_path
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn, read_file
 from lib.shared.foundation import load_foundation_for_note
@@ -321,7 +321,7 @@ def main():
 
     asn_path, asn_label = find_asn(args.asn)
     if asn_path is None:
-        print(f"  No ASN found for {args.asn} in {NOTES_DIR.relative_to(WORKSPACE)}/",
+        print(f"  No ASN found for {args.asn} in {NOTE_DIR.relative_to(WORKSPACE)}/",
               file=sys.stderr)
         sys.exit(1)
 

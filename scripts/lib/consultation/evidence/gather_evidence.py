@@ -28,7 +28,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import (
-    WORKSPACE, REVIEWS_DIR, NOTES_DIR, consultation_dir, find_review,
+    WORKSPACE, REVIEWS_DIR, NOTE_DIR, consultation_dir, find_review,
 )
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn
@@ -195,7 +195,7 @@ def main():
     # Find ASN
     asn_path, asn_label = find_asn(args.asn)
     if asn_path is None:
-        print(f"  No ASN found for {args.asn} in {NOTES_DIR.relative_to(WORKSPACE)}/", file=sys.stderr)
+        print(f"  No ASN found for {args.asn} in {NOTE_DIR.relative_to(WORKSPACE)}/", file=sys.stderr)
         sys.exit(1)
 
     # Find review

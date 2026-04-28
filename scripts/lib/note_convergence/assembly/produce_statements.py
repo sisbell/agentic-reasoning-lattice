@@ -13,7 +13,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, USAGE_LOG, NOTES_DIR, prompt_path, formal_stmts, note_dir
+from lib.shared.paths import WORKSPACE, USAGE_LOG, NOTE_DIR, prompt_path, formal_stmts, note_dir
 from lib.shared.common import find_asn, invoke_claude
 
 TEMPLATE = prompt_path("discovery/assembly/produce-statements.md")
@@ -52,7 +52,7 @@ def export_one(asn_id, model="sonnet", effort="high", dry_run=False):
     """Export statements for a single ASN. Returns (asn_label, True) or (asn_id, False)."""
     asn_path, asn_label = find_asn(asn_id)
     if asn_path is None:
-        print(f"  No ASN found for {asn_id} in {NOTES_DIR.relative_to(WORKSPACE)}/",
+        print(f"  No ASN found for {asn_id} in {NOTE_DIR.relative_to(WORKSPACE)}/",
               file=sys.stderr)
         return asn_id, False
 

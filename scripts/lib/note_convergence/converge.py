@@ -19,7 +19,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.common import find_asn, step_commit_asn
-from lib.shared.paths import NOTES_DIR, WORKSPACE, LATTICE
+from lib.shared.paths import NOTE_DIR, WORKSPACE, LATTICE
 from lib.note_convergence.review import (
     commit_note_review, run_note_review,
 )
@@ -37,7 +37,7 @@ def run_note_convergence(asn_num, max_cycles=15, dry_run=False, model="opus",
     """
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
-        print(f"  ASN-{asn_num:04d} not found in {NOTES_DIR.relative_to(WORKSPACE)}/",
+        print(f"  ASN-{asn_num:04d} not found in {NOTE_DIR.relative_to(WORKSPACE)}/",
               file=sys.stderr)
         return "failed"
 
