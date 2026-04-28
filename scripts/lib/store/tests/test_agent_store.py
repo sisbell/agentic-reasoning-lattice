@@ -78,7 +78,7 @@ class AgentStoreMakeLinkTests(AgentStoreBase):
         self.assertEqual(len(active), 1)
 
     def test_make_link_attributes_subtypes(self):
-        finding_path = "_store/documents/findings/claims/ASN-0001/review-1/0.md"
+        finding_path = "_workspace/findings/claims/ASN-0001/review-1/0.md"
         link_id = self.agent_store.make_link(
             from_set=[finding_path], to_set=[CLAIM_PATH],
             type_set=["comment.revise"],

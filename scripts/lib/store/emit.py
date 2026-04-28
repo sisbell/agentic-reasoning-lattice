@@ -1,7 +1,7 @@
 """Helpers translating reviewer outputs into link writes.
 
 Each review run materializes its findings as documents under
-`_store/documents/findings/{kind}/{asn}/{review_stem}/{n}.md` (kind ∈
+`_workspace/findings/{kind}/{asn}/{review_stem}/{n}.md` (kind ∈
 {claims, notes}) and emits comment links from those documents to their
 target claims/notes, plus a `review` classifier link on the review
 markdown itself.

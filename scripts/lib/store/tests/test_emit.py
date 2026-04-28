@@ -19,7 +19,7 @@ class EmitTestBase(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         self.root = Path(self.tmp.name)
-        self.findings_dir = self.root / "_store" / "documents" / "findings" / "claims"
+        self.findings_dir = self.root / "_workspace" / "findings" / "claims"
         self.lattice_patcher = mock.patch(
             "lib.store.emit.LATTICE", self.root,
         )
@@ -314,7 +314,7 @@ class EmitFindingsTests(EmitTestBase):
         finding_full = self.root / results[0]["finding_path"]
         self.assertTrue(finding_full.exists())
         self.assertIn(
-            "_store/documents/findings/claims/ASN-0034/review-46/0.md",
+            "_workspace/findings/claims/ASN-0034/review-46/0.md",
             results[0]["finding_path"],
         )
         self.assertIn("**Class**: REVISE", finding_full.read_text())
@@ -344,7 +344,7 @@ class EmitNoteFindingsTests(EmitTestBase):
     def setUp(self):
         super().setUp()
         self.note_findings_dir = (
-            self.root / "_store" / "documents" / "findings" / "notes"
+            self.root / "_workspace" / "findings" / "notes"
         )
         self.note_path = self._write_under_root(
             "_store/documents/note/ASN-0001-foo.md", "# Note\n",
@@ -382,7 +382,7 @@ class EmitNoteFindingsTests(EmitTestBase):
             findings_dir=self.note_findings_dir,
         )
         self.assertIn(
-            "_store/documents/findings/notes/ASN-0001/review-1/0.md",
+            "_workspace/findings/notes/ASN-0001/review-1/0.md",
             results[0]["finding_path"],
         )
         full = self.root / results[0]["finding_path"]

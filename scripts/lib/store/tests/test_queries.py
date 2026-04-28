@@ -240,7 +240,7 @@ class AsnConvergedTests(QueriesTestBase):
         claim_path = self._make_claim("ASN-0001", "T0")
         # File a revise comment with no resolution.
         self.store.make_link(
-            from_set=["_store/documents/findings/ASN-0001/r1/0.md"],
+            from_set=["_workspace/findings/ASN-0001/r1/0.md"],
             to_set=[claim_path],
             type_set=["comment.revise"],
             ts="t1",

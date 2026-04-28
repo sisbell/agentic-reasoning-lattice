@@ -84,11 +84,16 @@ INQUIRY_DIR = STORE_DOCS_DIR / "inquiry"
 NOTE_DIR = STORE_DOCS_DIR / "note"
 CLAIM_DIR = STORE_DOCS_DIR / "claim"
 
+# Loop work products. Sibling to _store/. Holds artifacts produced by the
+# convergence/decomposition loops — review findings, scratch caches, and
+# similar — that aren't substrate-classified documents.
+WORKSPACE_DIR = LATTICE / "_workspace"
+
 # Findings split by inquiry-target kind: claim convergence vs note convergence.
-# Each kind owns its own ASN namespace under documents/findings/, so review
+# Each kind owns its own ASN namespace under _workspace/findings/, so review
 # numbering and substrate queries are scoped per kind.
-CLAIM_FINDINGS_DIR = STORE_DOCS_DIR / "findings" / "claims"
-NOTE_FINDINGS_DIR = STORE_DOCS_DIR / "findings" / "notes"
+CLAIM_FINDINGS_DIR = WORKSPACE_DIR / "findings" / "claims"
+NOTE_FINDINGS_DIR = WORKSPACE_DIR / "findings" / "notes"
 
 
 def _findings_dir_for_kind(kind):
