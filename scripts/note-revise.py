@@ -22,6 +22,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, NOTES_DIR, sorted_reviews
+from lib.store.store import attributed_to
 
 from lib.note_convergence.steps import (
     find_asn,
@@ -55,6 +56,7 @@ def is_mechanical_review(review_path):
         return False
 
 
+@attributed_to("note-review")
 def main():
     parser = argparse.ArgumentParser(
         description="Revise pipeline — consult and revise from existing review")

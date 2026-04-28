@@ -21,8 +21,10 @@ from lib.note_convergence.steps import (
     find_asn, step_review, step_commit, has_revise_items,
 )
 from lib.shared.paths import WORKSPACE, NOTES_DIR
+from lib.store.store import attributed_to
 
 
+@attributed_to("note-review")
 def main():
     parser = argparse.ArgumentParser(
         description="Review an ASN — produce findings and stop")
