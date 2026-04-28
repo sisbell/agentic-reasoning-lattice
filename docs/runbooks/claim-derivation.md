@@ -1,43 +1,40 @@
 # Runbook: Claim Derivation
 
-*Updated 2026-04-12.*
-
 ## Prerequisites
 
-- note has converged through discovery (CONVERGED verdict)
+- The note has converged through note convergence
 - Working tree is clean (`git status`)
-- Upstream dependencies are formalized
+- Upstream dependencies are derived (their claim docs and substrate links exist)
 
 ## Steps
 
 ### 1. Run the full pipeline
 
 ```bash
-python scripts/blueprint.py <ASN>
+python scripts/derive-claims.py <ASN>
 ```
 
-This runs the entire blueprinting pipeline to completion (decompose → enrich → transclude → validate), auto-committing each stage.
+Phases (each commits automatically):
 
-### 2. Check validation
+1. **decompose** — mechanical `##` split + per-section LLM analysis → section yamls in `_workspace/claim-derivation/<asn>/sections/`
+2. **enrich** — three LLM passes per claim (type, depends, vocabulary) updating section yamls in place
+3. **transclude** — project source-note regions as per-claim docs in `_docuverse/documents/claim/<asn>/`; emit substrate links (`claim`, `contract.<kind>`, `citation`, `label`, `name`, `provenance.derivation`)
+4. **validate-transclude** — substring check: each claim body is a byte-substring of its source note (Claim File Contract invariant 12 at transclude exit)
+5. **produce-contract** — synthesize Formal Contract section in each claim's body markdown
+6. **validate-gate** — comprehensive Claim File Contract validator with bounded structural-only fix recipes; same gate claim convergence runs before each review cycle
 
-Validate runs automatically at the end. Must report PASS before promoting.
+Pipeline returns success when the gate reports clean. On failure, partial output is left in place with diagnostic; downstream stages do not operate on a failed derivation.
 
-### 3. Promote to formalization
+### 2. Individual phase re-runs (debugging)
 
 ```bash
-python scripts/promote-blueprint.py <ASN>
-```
-
-### 4. Individual re-runs (if needed)
-
-```bash
-python scripts/decompose.py <ASN>
-python scripts/enrich.py <ASN>
-python scripts/transclude.py <ASN>
-python scripts/transclude.py <ASN> --dry-run
-python scripts/validate.py <ASN>
+python scripts/derive-claims-split.py <ASN>
+python scripts/derive-claims-enrich.py <ASN>
+python scripts/derive-claims-transclude.py <ASN>          # accepts --dry-run
+python scripts/derive-claims-validate-transclude.py <ASN>
+python scripts/derive-claims-produce-contract.py <ASN>    # accepts --force / --label
 ```
 
 ---
 
-See the [claim derivation guide](../guides/claim-derivation.md) for how the pipeline stages work, output structure, and design decisions.
+See the [claim derivation guide](../guides/claim-derivation.md) for how the pipeline stages work, output structure, and design decisions. Protocol details in the [Claim Derivation Protocol](../protocols/claim-derivation-protocol.md).

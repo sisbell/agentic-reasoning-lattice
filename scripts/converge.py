@@ -75,7 +75,7 @@ def run_formalize(asn_num, max_cycles=5, mode="incremental",
     claim_dir = CLAIM_DIR / asn_label
     if not claim_dir.exists():
         print(f"  No claim doc directory for {asn_label}", file=sys.stderr)
-        print(f"  Run: python scripts/promote-blueprint.py {asn_num}",
+        print(f"  Run: python scripts/derive-claims.py {asn_num}",
               file=sys.stderr)
         return "failed"
 

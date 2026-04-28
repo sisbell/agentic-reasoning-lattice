@@ -41,9 +41,6 @@ PATCHES_DIR = LATTICE / "discovery" / "patches"
 VOCABULARY = LATTICE / "vocabulary.md"
 LATTICE_CONFIG = LATTICE / "config.yaml"
 
-# Blueprinting stage
-BLUEPRINTS_DIR = LATTICE / "blueprinting"
-
 # Claim convergence stage
 CLAIM_CONVERGENCE_DIR = LATTICE / "claim-convergence"
 
@@ -270,31 +267,6 @@ def next_review_number(asn_label, *, kind, reviews_dir=None):
                 nums.append(int(m.group(1)))
 
     return max(nums, default=0) + 1
-
-
-def blueprint_claims_dir(asn_label):
-    """Per-ASN blueprint claims directory."""
-    return BLUEPRINTS_DIR / asn_label / "claims"
-
-
-def blueprint_lint_dir(asn_label):
-    """Per-ASN blueprint lint directory."""
-    return BLUEPRINTS_DIR / asn_label / "lint"
-
-
-def blueprint_global_lint_dir():
-    """Global blueprint lint directory (cross-ASN results)."""
-    return BLUEPRINTS_DIR / "lint"
-
-
-def lint_path(asn_label, kind):
-    """Path to a per-ASN lint result file (e.g., status.md, deps.md, inline.md)."""
-    return blueprint_lint_dir(asn_label) / f"{kind}.md"
-
-
-def lint_global_path(kind):
-    """Path to a global lint result file (e.g., deps-global.md)."""
-    return blueprint_global_lint_dir() / f"{kind}.md"
 
 
 def load_inquiry(asn_id):
