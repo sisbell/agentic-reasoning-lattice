@@ -1,0 +1,7 @@
+{"from_set": [], "id": "l_b06108812c2e", "op": "create", "to_set": ["_docuverse/documents/note/ASN-0001-heat-and-the-constitution-of-matter.md"], "ts": "2026-04-28T02:12:43Z", "type_set": ["note"]}
+{"from_set": [], "id": "l_4b0844910f98", "op": "create", "to_set": ["_docuverse/documents/note/ASN-0002-constitution-and-the-nature-of-heat.md"], "ts": "2026-04-28T02:12:43Z", "type_set": ["note"]}
+{"from_set": [], "id": "l_7363cf6fa7c5", "op": "create", "to_set": ["_docuverse/documents/campaign/dulong-petit-maxwell/campaign.md"], "ts": "2026-04-28T05:06:02Z", "type_set": ["campaign"]}
+{"from_set": [], "id": "l_8ee75228afa1", "op": "create", "to_set": ["_docuverse/documents/inquiry/ASN-0001.md"], "ts": "2026-04-28T05:18:12Z", "type_set": ["inquiry"]}
+{"from_set": [], "id": "l_b4d4cc2000f4", "op": "create", "to_set": ["_docuverse/documents/inquiry/ASN-0002.md"], "ts": "2026-04-28T05:18:12Z", "type_set": ["inquiry"]}
+{"from_set": ["_docuverse/documents/inquiry/ASN-0001.md"], "id": "l_e849cb245541", "op": "create", "to_set": ["_docuverse/documents/note/ASN-0001-heat-and-the-constitution-of-matter.md"], "ts": "2026-04-28T06:01:43Z", "type_set": ["synthesis"]}
+{"from_set": ["_docuverse/documents/inquiry/ASN-0002.md"], "id": "l_7ecf6c1a5e29", "op": "create", "to_set": ["_docuverse/documents/note/ASN-0002-constitution-and-the-nature-of-heat.md"], "ts": "2026-04-28T06:01:43Z", "type_set": ["synthesis"]}

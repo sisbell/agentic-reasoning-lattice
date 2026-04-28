@@ -210,7 +210,7 @@ The substrate does not enforce protocol-defined types. It stores whatever type s
 
 ## 6 Current implementation
 
-The current substrate is filesystem-backed: `lattices/<lattice>/_store/`. Links are YAML files in the store directory. Documents are files in the lattice directory tree. Attribute docs sit sibling to their parent document. FindLinks and FindNumLinks are implemented as filtered directory scans with type-prefix matching.
+The current substrate is filesystem-backed: `lattices/<lattice>/_docuverse/`. Links are YAML files in the store directory. Documents are files in the lattice directory tree. Attribute docs sit sibling to their parent document. FindLinks and FindNumLinks are implemented as filtered directory scans with type-prefix matching.
 
 The substrate specification is implementation-independent. Any backing store satisfying SUB1–SUB6 supports the protocols. See [Substrate Migration Trajectory](../design-notes/substrate-migration-trajectory.md) for the evolution path from the current implementation.
 
@@ -226,7 +226,7 @@ The substrate specification is implementation-independent. Any backing store sat
 - [Convergence Protocol](convergence-protocol.md) — the first consumer. Uses SUB1–SUB3 for comment/resolution accumulation and predicate evaluation.
 - [Claim Convergence Protocol](claim-convergence-protocol.md) — uses retraction for stale citations during proof evolution (prune).
 - [Note Convergence Protocol](note-convergence-protocol.md) — uses retraction for stale citations after absorb and extract operations.
-- [Architecture](../architecture.md) — the `_store/` directory in the lattice structure.
+- [Architecture](../architecture.md) — the `_docuverse/` directory in the lattice structure.
 - [Substrate Migration Trajectory](../design-notes/substrate-migration-trajectory.md) — the evolution path from filesystem-backed to native link graph.
 - [Vision](../vision.md) — the broader architectural trajectory.
 

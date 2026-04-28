@@ -94,7 +94,7 @@ class ConvergenceTests(QueriesTestBase):
         )
         self.store.make_link(
             from_set=[],
-            to_set=[comment_id, "_store/documents/rationale/r1.md"],
+            to_set=[comment_id, "_docuverse/documents/rationale/r1.md"],
             type_set=["resolution.reject"], ts="t3",
         )
         self.assertTrue(is_claim_converged(self.store, "T3.md"))
@@ -110,7 +110,7 @@ class ConvergenceTests(QueriesTestBase):
             type_set=["comment.revise"], ts="t10",
         )
         self.store.make_link(
-            from_set=[], to_set=[comment_b, "_store/documents/rationale/r.md"],
+            from_set=[], to_set=[comment_b, "_docuverse/documents/rationale/r.md"],
             type_set=["resolution.reject"], ts="t11",
         )
         self.assertTrue(is_claim_converged(self.store, "T3.md"))

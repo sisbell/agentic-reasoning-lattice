@@ -254,7 +254,7 @@ class DumpFailureTranscriptTests(unittest.TestCase):
         self.assertIn("agent said this", text)
         self.assertIn("TA5a.md", text)
         self.assertIn("attempt 1", text)
-        # Path shape: lattice/_store/_failures/validate-revise/<asn>/<file>.<ts>.attempt<N>.txt
+        # Path shape: lattice/_docuverse/_failures/validate-revise/<asn>/<file>.<ts>.attempt<N>.txt
         self.assertEqual(
             path.parent,
             self.lattice_root / "_store" / "_failures"

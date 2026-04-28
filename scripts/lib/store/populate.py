@@ -92,7 +92,7 @@ def build_note_label_index(store):
 def is_note_path(doc_path):
     """True iff doc_path is under any lattice's substrate-managed note dir."""
     rel = str(doc_path)
-    return "/_store/documents/note/" in rel or rel.startswith("_store/documents/note/")
+    return "/_docuverse/documents/note/" in rel or rel.startswith("_docuverse/documents/note/")
 
 
 def aggregate_asn_deps(store, asn_label, claim_root_dir=None):
@@ -128,7 +128,7 @@ def aggregate_asn_deps(store, asn_label, claim_root_dir=None):
             if not link["to_set"]:
                 continue
             to_path = link["to_set"][0]
-            m = re.search(r"_store/documents/claim/(ASN-\d+)/", to_path)
+            m = re.search(r"_docuverse/documents/claim/(ASN-\d+)/", to_path)
             if m and m.group(1) != asn_label:
                 deps.add(int(m.group(1).split("-")[1]))
     return sorted(deps)

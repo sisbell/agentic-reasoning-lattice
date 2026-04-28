@@ -12,7 +12,7 @@ single source of truth for the prompt. Placeholders supplied by this
 script: {{consultation_answers}}, {{asn_number}}, {{title}}, {{question}},
 {{slug}}, {{foundation_section}}, {{vocabulary_section}}, {{out_of_scope_note}}.
 
-Output: lattices/<lattice>/_store/documents/note/ASN-NNNN-title.md
+Output: lattices/<lattice>/_docuverse/documents/note/ASN-NNNN-title.md
 
 Usage:
     python scripts/lib/consultation/draft.py --inquiry-id 4

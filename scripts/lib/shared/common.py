@@ -15,7 +15,7 @@ from lib.shared.paths import (
     WORKSPACE, NOTE_DIR, USAGE_LOG,
     REVIEWS_DIR, BLUEPRINTS_DIR, CLAIM_CONVERGENCE_DIR, CLAIM_DIR,
     CONSULTATIONS_DIR, MANIFESTS_DIR, EXAMPLES_DIR,
-    CLAIM_FINDINGS_DIR, NOTE_FINDINGS_DIR, RATIONALE_DIR, STORE_LOG,
+    CLAIM_FINDINGS_DIR, NOTE_FINDINGS_DIR, RATIONALE_DIR, DOCUVERSE_LOG,
 )
 
 
@@ -537,7 +537,7 @@ def stage_asn_files(label):
         CLAIM_FINDINGS_DIR / label,
         NOTE_FINDINGS_DIR / label,
         RATIONALE_DIR / label,
-        STORE_LOG,
+        DOCUVERSE_LOG,
     ]
     staged = False
     for p in patterns:

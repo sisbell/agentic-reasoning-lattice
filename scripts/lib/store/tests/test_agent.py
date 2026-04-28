@@ -31,8 +31,8 @@ class AgentLibTestBase(unittest.TestCase):
             index_path=self.root / "_store" / "index.db",
         )
         self.addCleanup(self.store.close)
-        self.agent_doc = "_store/documents/agent/cone-review.md"
-        self.other_agent_doc = "_store/documents/agent/full-review.md"
+        self.agent_doc = "_docuverse/documents/agent/cone-review.md"
+        self.other_agent_doc = "_docuverse/documents/agent/full-review.md"
         # A throwaway operation link to manage. Use a simple claim link.
         self.op_id = self.store.make_link(
             from_set=[], to_set=["claim-convergence/ASN-0001/T0.md"],

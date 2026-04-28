@@ -30,7 +30,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
-from shared.paths import LATTICE, WORKSPACE, STORE_DIR, STORE_DOCS_DIR, STORE_LOG
+from shared.paths import LATTICE, WORKSPACE, DOCUVERSE_DIR, DOCUVERSE_DOCS_DIR, DOCUVERSE_LOG
 from store.store import Store
 
 
@@ -91,19 +91,19 @@ def main():
 
     label = "APPLY" if apply_mode else "DRY-RUN"
     print(f"[migrate-store-documents-dir] {label}")
-    print(f"  STORE_DIR        = {STORE_DIR.relative_to(WORKSPACE)}")
-    print(f"  STORE_DOCS_DIR   = {STORE_DOCS_DIR.relative_to(WORKSPACE)}")
+    print(f"  DOCUVERSE_DIR        = {DOCUVERSE_DIR.relative_to(WORKSPACE)}")
+    print(f"  DOCUVERSE_DOCS_DIR   = {DOCUVERSE_DOCS_DIR.relative_to(WORKSPACE)}")
     print()
 
-    if not STORE_DIR.exists():
-        print(f"  no STORE_DIR found at {STORE_DIR}", file=sys.stderr)
+    if not DOCUVERSE_DIR.exists():
+        print(f"  no DOCUVERSE_DIR found at {DOCUVERSE_DIR}", file=sys.stderr)
         return 1
 
     # Plan the moves.
     moves = []
     for kind in OLD_KIND_DIRS:
-        old = STORE_DIR / kind
-        new = STORE_DOCS_DIR / kind
+        old = DOCUVERSE_DIR / kind
+        new = DOCUVERSE_DOCS_DIR / kind
         if old.exists() and not new.exists():
             moves.append((old, new))
         elif old.exists() and new.exists():
@@ -130,7 +130,7 @@ def main():
     print()
 
     # Dry-run JSONL pass.
-    modified = migrate_jsonl(STORE_LOG, prefix_old_to_new, dry_run=True)
+    modified = migrate_jsonl(DOCUVERSE_LOG, prefix_old_to_new, dry_run=True)
     print(f"  links.jsonl: {modified} records would be rewritten")
     print()
 
@@ -139,14 +139,14 @@ def main():
         return 0
 
     # APPLY.
-    STORE_DOCS_DIR.mkdir(parents=True, exist_ok=True)
+    DOCUVERSE_DOCS_DIR.mkdir(parents=True, exist_ok=True)
     for old, new in moves:
         new.parent.mkdir(parents=True, exist_ok=True)
         shutil.move(str(old), str(new))
         print(f"  moved {old.relative_to(WORKSPACE)} → "
               f"{new.relative_to(WORKSPACE)}")
 
-    actual = migrate_jsonl(STORE_LOG, prefix_old_to_new, dry_run=False)
+    actual = migrate_jsonl(DOCUVERSE_LOG, prefix_old_to_new, dry_run=False)
     print(f"  links.jsonl: rewrote {actual} records")
 
     # Rebuild the index from the migrated JSONL.
@@ -158,7 +158,7 @@ def main():
     print(f"  index.db: rebuilt from migrated JSONL")
     print()
     print("  Migration applied. Substrate diff under "
-          f"{STORE_DIR.relative_to(WORKSPACE)}/.")
+          f"{DOCUVERSE_DIR.relative_to(WORKSPACE)}/.")
     return 0
 
 

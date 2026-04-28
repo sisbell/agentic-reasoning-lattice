@@ -25,7 +25,7 @@ from lib.store.store import (
 )
 
 
-AGENT_DOC = "_store/documents/agent/cone-review.md"
+AGENT_DOC = "_docuverse/documents/agent/cone-review.md"
 CLAIM_PATH = "claim-convergence/ASN-0001/T0.md"
 
 
@@ -90,7 +90,7 @@ class AgentStoreMakeLinkTests(AgentStoreBase):
         self.assertEqual(len(active), 1)
 
     def test_agent_type_is_not_attributed(self):
-        other_agent = "_store/documents/agent/full-review.md"
+        other_agent = "_docuverse/documents/agent/full-review.md"
         link_id = self.agent_store.make_link(
             from_set=[], to_set=[other_agent], type_set=["agent"],
         )
@@ -180,7 +180,7 @@ class AgentContextTests(_EnvIsolatedTests):
         self.assertNotIn(AGENT_DOC_ENV_VAR, os.environ)
 
     def test_nested_contexts_restore_outer(self):
-        outer = "_store/documents/agent/full-review.md"
+        outer = "_docuverse/documents/agent/full-review.md"
         inner = AGENT_DOC
         with agent_context(outer):
             self.assertEqual(os.environ[AGENT_DOC_ENV_VAR], outer)

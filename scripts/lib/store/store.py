@@ -29,7 +29,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import STORE_LOG, STORE_INDEX, agent_doc_path
+from lib.shared.paths import DOCUVERSE_LOG, DOCUVERSE_INDEX, agent_doc_path
 from lib.store.schema import (
     SCHEMA_SQL, make_link_id, validate_type, utcnow_iso,
 )
@@ -40,8 +40,8 @@ AGENT_DOC_ENV_VAR = "XANADU_AGENT_DOC"
 
 class Store:
     def __init__(self, log_path=None, index_path=None):
-        self.log_path = Path(log_path) if log_path else Path(STORE_LOG)
-        self.index_path = Path(index_path) if index_path else Path(STORE_INDEX)
+        self.log_path = Path(log_path) if log_path else Path(DOCUVERSE_LOG)
+        self.index_path = Path(index_path) if index_path else Path(DOCUVERSE_INDEX)
 
         self.log_path.parent.mkdir(parents=True, exist_ok=True)
         self.index_path.parent.mkdir(parents=True, exist_ok=True)

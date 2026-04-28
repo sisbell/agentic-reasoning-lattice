@@ -369,7 +369,7 @@ def _dump_failure_transcript(asn_label, filename, attempt, transcript, reason):
     """Write a corruption transcript to a lattice-local failures dir.
 
     Returns the dump path so callers can mention it in the user-visible
-    error message. Path: lattices/<lattice>/_store/_failures/validate-revise/
+    error message. Path: lattices/<lattice>/_docuverse/_failures/validate-revise/
     <asn_label>/<filename>.<ts>.attempt<N>.txt (gitignored).
     """
     import time as _time

@@ -57,7 +57,7 @@ prompts/
 lattices/
 ├── xanadu/
 │   ├── config.yaml   # domain config: default campaign, verifier, firewall
-│   ├── _store/       # substrate: links + documents (protocol state)
+│   ├── _docuverse/       # substrate: links + documents (protocol state)
 │   ├── campaigns/    # campaign configs + bridge vocabularies
 │   ├── discovery/         # notes, consultations
 │   ├── note-decomposition/  # intermediate decomposition output

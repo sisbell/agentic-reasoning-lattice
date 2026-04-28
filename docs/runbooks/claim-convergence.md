@@ -24,7 +24,7 @@ Produces formal contracts and rewrites proofs to Dijkstra standard. Auto-commits
 python scripts/populate-store.py
 ```
 
-Imports claim, contract, and citation links from claim YAMLs into `lattices/xanadu/_store/`. Idempotent — re-run any time. Required before review/revise so the convergence predicate has data to evaluate.
+Imports claim, contract, and citation links from claim YAMLs into `lattices/xanadu/_docuverse/`. Idempotent — re-run any time. Required before review/revise so the convergence predicate has data to evaluate.
 
 ### 3. Cone sweep (per-cone review)
 
@@ -69,7 +69,7 @@ python scripts/cone-sweep.py <ASN> --cone T8    # single apex review
 
 ## Querying the link graph
 
-The substrate at `lattices/xanadu/_store/` carries the protocol's runtime
+The substrate at `lattices/xanadu/_docuverse/` carries the protocol's runtime
 state — claims, contracts, citations, comments, resolutions. The
 convergence predicate evaluates over this graph; the orchestrators
 consume it; operators can query it directly for inspection.
@@ -133,13 +133,13 @@ s.find_num_links(
 
 ```bash
 # How many links of each type?
-jq -r '.type_set[0]' lattices/xanadu/_store/links.jsonl | sort | uniq -c
+jq -r '.type_set[0]' lattices/xanadu/_docuverse/links.jsonl | sort | uniq -c
 
 # Find any link by content match
-grep "T3.md" lattices/xanadu/_store/links.jsonl | jq .
+grep "T3.md" lattices/xanadu/_docuverse/links.jsonl | jq .
 ```
 
-The SQLite index at `lattices/xanadu/_store/index.db` is rebuildable
+The SQLite index at `lattices/xanadu/_docuverse/index.db` is rebuildable
 from JSONL via `Store().rebuild_index()`. The JSONL is the source of
 truth and is git-versioned alongside the lattice.
 

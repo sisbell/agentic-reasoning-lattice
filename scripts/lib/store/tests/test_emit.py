@@ -61,7 +61,7 @@ class EmitReviewTests(EmitTestBase):
 class EmitInquiryTests(EmitTestBase):
     def test_first_call_creates_classifier(self):
         inq_path = self._write_under_root(
-            "_store/documents/inquiry/ASN-0001.md",
+            "_docuverse/documents/inquiry/ASN-0001.md",
             "---\ntitle: Foo\n---\n# Inquiry: Foo\n",
         )
         link_id, created = emit_inquiry(self.store, inq_path)
@@ -71,12 +71,12 @@ class EmitInquiryTests(EmitTestBase):
         self.assertEqual(rec["from_set"], [])
         self.assertEqual(
             rec["to_set"],
-            ["_store/documents/inquiry/ASN-0001.md"],
+            ["_docuverse/documents/inquiry/ASN-0001.md"],
         )
 
     def test_repeated_call_is_idempotent(self):
         inq_path = self._write_under_root(
-            "_store/documents/inquiry/ASN-0001.md", "x",
+            "_docuverse/documents/inquiry/ASN-0001.md", "x",
         )
         first_id, created1 = emit_inquiry(self.store, inq_path)
         second_id, created2 = emit_inquiry(self.store, inq_path)
@@ -86,10 +86,10 @@ class EmitInquiryTests(EmitTestBase):
 
     def test_distinct_inquiries_get_distinct_classifiers(self):
         a = self._write_under_root(
-            "_store/documents/inquiry/ASN-0001.md", "a",
+            "_docuverse/documents/inquiry/ASN-0001.md", "a",
         )
         b = self._write_under_root(
-            "_store/documents/inquiry/ASN-0002.md", "b",
+            "_docuverse/documents/inquiry/ASN-0002.md", "b",
         )
         a_id, _ = emit_inquiry(self.store, a)
         b_id, _ = emit_inquiry(self.store, b)
@@ -99,7 +99,7 @@ class EmitInquiryTests(EmitTestBase):
 class EmitCampaignTests(EmitTestBase):
     def test_first_call_creates_classifier(self):
         camp_path = self._write_under_root(
-            "_store/documents/campaign/foo/campaign.md",
+            "_docuverse/documents/campaign/foo/campaign.md",
             "---\nname: foo\ntheory: nelson\nevidence: gregory\n---\n",
         )
         link_id, created = emit_campaign(self.store, camp_path)
@@ -109,12 +109,12 @@ class EmitCampaignTests(EmitTestBase):
         self.assertEqual(rec["from_set"], [])
         self.assertEqual(
             rec["to_set"],
-            ["_store/documents/campaign/foo/campaign.md"],
+            ["_docuverse/documents/campaign/foo/campaign.md"],
         )
 
     def test_repeated_call_is_idempotent(self):
         camp_path = self._write_under_root(
-            "_store/documents/campaign/foo/campaign.md", "x",
+            "_docuverse/documents/campaign/foo/campaign.md", "x",
         )
         first_id, created1 = emit_campaign(self.store, camp_path)
         second_id, created2 = emit_campaign(self.store, camp_path)
@@ -127,10 +127,10 @@ class EmitSynthesisTests(EmitTestBase):
     def setUp(self):
         super().setUp()
         self.inq_path = self._write_under_root(
-            "_store/documents/inquiry/ASN-0001.md", "x",
+            "_docuverse/documents/inquiry/ASN-0001.md", "x",
         )
         self.note_path = self._write_under_root(
-            "_store/documents/note/ASN-0001-foo.md", "# Foo\n",
+            "_docuverse/documents/note/ASN-0001-foo.md", "# Foo\n",
         )
 
     def test_first_call_creates_link(self):
@@ -142,11 +142,11 @@ class EmitSynthesisTests(EmitTestBase):
         self.assertEqual(rec["type_set"], ["synthesis"])
         self.assertEqual(
             rec["from_set"],
-            ["_store/documents/inquiry/ASN-0001.md"],
+            ["_docuverse/documents/inquiry/ASN-0001.md"],
         )
         self.assertEqual(
             rec["to_set"],
-            ["_store/documents/note/ASN-0001-foo.md"],
+            ["_docuverse/documents/note/ASN-0001-foo.md"],
         )
 
     def test_repeated_call_is_idempotent(self):
@@ -162,10 +162,10 @@ class EmitSynthesisTests(EmitTestBase):
 
     def test_distinct_pairs_get_distinct_links(self):
         other_inq = self._write_under_root(
-            "_store/documents/inquiry/ASN-0002.md", "x",
+            "_docuverse/documents/inquiry/ASN-0002.md", "x",
         )
         other_note = self._write_under_root(
-            "_store/documents/note/ASN-0002-bar.md", "y",
+            "_docuverse/documents/note/ASN-0002-bar.md", "y",
         )
         a_id, _ = emit_synthesis(self.store, self.inq_path, self.note_path)
         b_id, _ = emit_synthesis(self.store, other_inq, other_note)
@@ -175,7 +175,7 @@ class EmitSynthesisTests(EmitTestBase):
 class EmitNoteTests(EmitTestBase):
     def test_first_call_creates_classifier(self):
         note_path = self._write_under_root(
-            "_store/documents/note/ASN-0001-foo.md", "# Note\n",
+            "_docuverse/documents/note/ASN-0001-foo.md", "# Note\n",
         )
         link_id, created = emit_note(self.store, note_path)
         self.assertTrue(created)
@@ -184,12 +184,12 @@ class EmitNoteTests(EmitTestBase):
         self.assertEqual(rec["from_set"], [])
         self.assertEqual(
             rec["to_set"],
-            ["_store/documents/note/ASN-0001-foo.md"],
+            ["_docuverse/documents/note/ASN-0001-foo.md"],
         )
 
     def test_repeated_call_is_idempotent(self):
         note_path = self._write_under_root(
-            "_store/documents/note/ASN-0001-foo.md", "# Note\n",
+            "_docuverse/documents/note/ASN-0001-foo.md", "# Note\n",
         )
         first_id, created1 = emit_note(self.store, note_path)
         second_id, created2 = emit_note(self.store, note_path)
@@ -199,10 +199,10 @@ class EmitNoteTests(EmitTestBase):
 
     def test_distinct_notes_get_distinct_classifiers(self):
         a = self._write_under_root(
-            "_store/documents/note/ASN-0001-a.md", "a",
+            "_docuverse/documents/note/ASN-0001-a.md", "a",
         )
         b = self._write_under_root(
-            "_store/documents/note/ASN-0002-b.md", "b",
+            "_docuverse/documents/note/ASN-0002-b.md", "b",
         )
         a_id, _ = emit_note(self.store, a)
         b_id, _ = emit_note(self.store, b)
@@ -347,9 +347,9 @@ class EmitNoteFindingsTests(EmitTestBase):
             self.root / "_workspace" / "findings" / "notes"
         )
         self.note_path = self._write_under_root(
-            "_store/documents/note/ASN-0001-foo.md", "# Note\n",
+            "_docuverse/documents/note/ASN-0001-foo.md", "# Note\n",
         )
-        self.note_rel = "_store/documents/note/ASN-0001-foo.md"
+        self.note_rel = "_docuverse/documents/note/ASN-0001-foo.md"
 
     def test_revise_finding_emits_comment_revise(self):
         findings = [("Issue 1: bad", "REVISE", "### Issue 1: bad\nbody\n")]

@@ -265,11 +265,11 @@ def emit_manages(store, agent_doc_path, operation_link_id):
 
 ### Agent docs
 
-Stage-1 placement: `lattices/<lattice>/_store/documents/agent/<role>.md`. Agent docs live under `_store/documents/` because their lifecycle is substrate-managed (classified, retracted, re-emitted via the agent module's operations) — same convention as inquiry docs (`_store/documents/inquiry/...`) and campaign descriptors (`_store/documents/campaign/<name>/`). Loop work products that aren't substrate-typed — review finding docs (`_workspace/findings/...`) — live in the workspace area alongside `_store/`. Examples:
+Stage-1 placement: `lattices/<lattice>/_docuverse/documents/agent/<role>.md`. Agent docs live under `_docuverse/documents/` because their lifecycle is substrate-managed (classified, retracted, re-emitted via the agent module's operations) — same convention as inquiry docs (`_docuverse/documents/inquiry/...`) and campaign descriptors (`_docuverse/documents/campaign/<name>/`). Loop work products that aren't substrate-typed — review finding docs (`_workspace/findings/...`) — live in the workspace area alongside `_docuverse/`. Examples:
 
-- `lattices/xanadu/_store/documents/agent/cone-review.md` — focused review of a dependency cone.
-- `lattices/xanadu/_store/documents/agent/full-review.md` — whole-ASN review.
-- `lattices/xanadu/_store/documents/agent/note-review.md` — review of a discovery note.
+- `lattices/xanadu/_docuverse/documents/agent/cone-review.md` — focused review of a dependency cone.
+- `lattices/xanadu/_docuverse/documents/agent/full-review.md` — whole-ASN review.
+- `lattices/xanadu/_docuverse/documents/agent/note-review.md` — review of a discovery note.
 
 ### Wall-clock timestamps as a bridge
 

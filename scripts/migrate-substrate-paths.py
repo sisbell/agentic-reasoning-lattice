@@ -25,7 +25,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
-from shared.paths import STORE_LOG
+from shared.paths import DOCUVERSE_LOG
 from shared.migrate_substrate_paths import migrate_paths
 from store.store import Store
 
@@ -57,8 +57,8 @@ def main():
              "is given, the default substitution is replaced.",
     )
     parser.add_argument(
-        "--jsonl", default=str(STORE_LOG),
-        help=f"Path to substrate JSONL (default: {STORE_LOG}).",
+        "--jsonl", default=str(DOCUVERSE_LOG),
+        help=f"Path to substrate JSONL (default: {DOCUVERSE_LOG}).",
     )
     args = parser.parse_args()
 

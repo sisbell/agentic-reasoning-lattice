@@ -20,7 +20,7 @@ orchestrator before spawning the reviser):
     PROTOCOL_ASN_LABEL     — the ASN label (for rationale doc placement)
 
 On reject, materializes the rationale document under
-_store/documents/rationale/{ASN}/{comment_id}.md and writes a resolution.reject
+_docuverse/documents/rationale/{ASN}/{comment_id}.md and writes a resolution.reject
 link binding the comment and the rationale.
 
 Prints the new resolution link id on success; exits non-zero on error.

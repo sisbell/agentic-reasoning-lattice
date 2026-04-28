@@ -4,8 +4,8 @@ __pycache__/
 .env
 .claude/
 lattices/*/usage-log.jsonl
-lattices/*/_store/index.db
-lattices/*/_store/_failures/
+lattices/*/_docuverse/index.db
+lattices/*/_docuverse/_failures/
 channels/nelson/resources/literary-machines/*.pdf
 channels/nelson/resources/literary-machines/raw/
 /notes/

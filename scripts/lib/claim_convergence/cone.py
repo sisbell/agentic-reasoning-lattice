@@ -46,7 +46,7 @@ def _retry_unresolved_revises(store, asn_num, claim_dir, scope_md_paths):
 
     For each unresolved comment.revise targeting a scope path, fetch its
     finding text from the comment's source (the finding document under
-    `_store/findings/...`) and call `revise()` again. The reviser closes
+    `_docuverse/findings/...`) and call `revise()` again. The reviser closes
     via `decide.py accept` (with edit) or `decide.py reject` (with rationale).
     """
     for scope_path in scope_md_paths:
@@ -120,9 +120,9 @@ def detect_dependency_cone(asn_num, window=5, threshold=3):
             return None
 
         # Collect review-N stems from the window. The review classifier link
-        # may target either `_store/findings/<asn>/review-N/_meta.md` (current)
+        # may target either `_docuverse/findings/<asn>/review-N/_meta.md` (current)
         # or the legacy `claim-convergence/<asn>/reviews/review-N.md` (old).
-        # Finding documents always live at `_store/findings/<asn>/review-N/n.md`,
+        # Finding documents always live at `_docuverse/findings/<asn>/review-N/n.md`,
         # so match on the `review-N` stem rather than absolute parent path.
         recent_stems = set()
         for r in recent:
@@ -204,7 +204,7 @@ def _extract_apex_history(asn_label, apex_label, max_reviews=5):
     """Extract recent review findings that mention the apex label.
 
     Sources from both legacy review files (claim-convergence/<asn>/reviews/)
-    and the substrate finding documents (_store/findings/<asn>/review-N/).
+    and the substrate finding documents (_docuverse/findings/<asn>/review-N/).
     Sorted by review number; only the most recent `max_reviews` are read.
     """
     sources = []  # (review_num, kind, path)

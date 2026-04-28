@@ -64,12 +64,12 @@ class MakeLinkTests(StoreTestBase):
             from_set=["f.md"], to_set=["c.md"], type_set=["comment.revise"], ts="t1",
         )
         rej_id = self.store.make_link(
-            from_set=[], to_set=[comment_id, "_store/documents/rationale/r1.md"],
+            from_set=[], to_set=[comment_id, "_docuverse/documents/rationale/r1.md"],
             type_set=["resolution.reject"], ts="t2",
         )
         self.assertEqual(len(self.store.find_links(to_set=[comment_id])), 1)
         self.assertEqual(
-            len(self.store.find_links(to_set=["_store/documents/rationale/r1.md"])), 1,
+            len(self.store.find_links(to_set=["_docuverse/documents/rationale/r1.md"])), 1,
         )
         self.assertEqual(self.store.find_links(to_set=[comment_id])[0]["id"], rej_id)
 

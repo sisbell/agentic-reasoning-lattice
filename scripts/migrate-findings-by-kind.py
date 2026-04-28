@@ -28,7 +28,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
 from shared.paths import (
-    LATTICE, WORKSPACE, STORE_DOCS_DIR, STORE_LOG,
+    LATTICE, WORKSPACE, DOCUVERSE_DOCS_DIR, DOCUVERSE_LOG,
     CLAIM_FINDINGS_DIR,
 )
 from store.store import Store
@@ -45,11 +45,11 @@ def main():
 
     label = "APPLY" if apply_mode else "DRY-RUN"
     print(f"[migrate-findings-by-kind] {label}")
-    print(f"  STORE_DOCS_DIR     = {STORE_DOCS_DIR.relative_to(WORKSPACE)}")
+    print(f"  DOCUVERSE_DOCS_DIR     = {DOCUVERSE_DOCS_DIR.relative_to(WORKSPACE)}")
     print(f"  CLAIM_FINDINGS_DIR = {CLAIM_FINDINGS_DIR.relative_to(WORKSPACE)}")
     print()
 
-    findings_dir = STORE_DOCS_DIR / "findings"
+    findings_dir = DOCUVERSE_DOCS_DIR / "findings"
     if not findings_dir.exists():
         print(f"  no findings/ dir found at {findings_dir}", file=sys.stderr)
         return 1
@@ -90,7 +90,7 @@ def main():
           f"findings/notes/)")
     print()
 
-    modified = _count_modified(STORE_LOG, prefix_old, prefix_new)
+    modified = _count_modified(DOCUVERSE_LOG, prefix_old, prefix_new)
     print(f"  links.jsonl: {modified} records would be rewritten")
     print()
 
@@ -106,7 +106,7 @@ def main():
         print(f"  moved {old.relative_to(WORKSPACE)} → "
               f"{new.relative_to(WORKSPACE)}")
 
-    actual = _rewrite_jsonl(STORE_LOG, prefix_old, prefix_new)
+    actual = _rewrite_jsonl(DOCUVERSE_LOG, prefix_old, prefix_new)
     print(f"  links.jsonl: rewrote {actual} records")
 
     # Rebuild the index from the migrated JSONL.

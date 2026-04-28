@@ -115,7 +115,7 @@ def is_asn_converged(store, asn_label, claim_root_dir=None):
     """The protocol predicate scoped to one ASN's claims.
 
     Conjunction of `is_doc_converged` over every claim body markdown
-    under `_store/documents/claim/<asn_label>/`. Vacuously true on a
+    under `_docuverse/documents/claim/<asn_label>/`. Vacuously true on a
     nonexistent or empty ASN — coverage is choreography's responsibility,
     not the predicate's.
     """

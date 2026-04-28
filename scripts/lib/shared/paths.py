@@ -68,25 +68,25 @@ REQUIREMENTS_DIR = LATTICE / "requirements"
 # Operational
 USAGE_LOG = LATTICE / "usage-log.jsonl"
 
-# Protocol substrate store (claim convergence protocol stage 1 — bootstrap toward Xanadu)
-STORE_DIR = LATTICE / "_store"
-STORE_LOG = STORE_DIR / "links.jsonl"
-STORE_INDEX = STORE_DIR / "index.db"
-# Substrate-managed documents live under _store/documents/. Structural
-# state (links.jsonl, index.db) and diagnostic artifacts (_failures/) sit
-# alongside as siblings; documents are the content the substrate's links
-# reference.
-STORE_DOCS_DIR = STORE_DIR / "documents"
-RATIONALE_DIR = STORE_DOCS_DIR / "rationale"
-AGENT_DIR = STORE_DOCS_DIR / "agent"
-CAMPAIGN_DIR = STORE_DOCS_DIR / "campaign"
-INQUIRY_DIR = STORE_DOCS_DIR / "inquiry"
-NOTE_DIR = STORE_DOCS_DIR / "note"
-CLAIM_DIR = STORE_DOCS_DIR / "claim"
+# The docuverse — Nelson's term for the universe of typed, linked
+# documents. The substrate (links.jsonl + index.db) plus all
+# substrate-classified documents live here.
+DOCUVERSE_DIR = LATTICE / "_docuverse"
+DOCUVERSE_LOG = DOCUVERSE_DIR / "links.jsonl"
+DOCUVERSE_INDEX = DOCUVERSE_DIR / "index.db"
+# Substrate-classified documents live under _docuverse/documents/.
+# Structural state (links.jsonl, index.db) sits alongside as a sibling.
+DOCUVERSE_DOCS_DIR = DOCUVERSE_DIR / "documents"
+RATIONALE_DIR = DOCUVERSE_DOCS_DIR / "rationale"
+AGENT_DIR = DOCUVERSE_DOCS_DIR / "agent"
+CAMPAIGN_DIR = DOCUVERSE_DOCS_DIR / "campaign"
+INQUIRY_DIR = DOCUVERSE_DOCS_DIR / "inquiry"
+NOTE_DIR = DOCUVERSE_DOCS_DIR / "note"
+CLAIM_DIR = DOCUVERSE_DOCS_DIR / "claim"
 
-# Loop work products. Sibling to _store/. Holds artifacts produced by the
-# convergence/decomposition loops — review findings, scratch caches, and
-# similar — that aren't substrate-classified documents.
+# Loop work products. Sibling to _docuverse/. Holds artifacts produced
+# by the convergence/decomposition loops — review findings, scratch
+# caches, and similar — that aren't substrate-classified documents.
 WORKSPACE_DIR = LATTICE / "_workspace"
 
 # Findings split by inquiry-target kind: claim convergence vs note convergence.
