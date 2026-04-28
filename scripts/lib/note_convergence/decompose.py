@@ -32,6 +32,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import (
     WORKSPACE, CONSULTATIONS_DIR, LATTICE_PROMPTS,
     prompt_path, load_inquiry as load_inquiry_frontmatter,
+    load_channel_meta,
 )
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
@@ -39,6 +40,20 @@ from lib.consult import (
     invoke_claude, get_total_usage, reset_total_usage,
     dispatch_generate_questions, dispatch_run_consultation,
 )
+
+
+def _channel_default_questions(channel_name, fallback=10):
+    """Per-channel default consultation depth.
+
+    Reads `default_questions` from the channel's meta.yaml. The channel
+    is the natural home for this — depth reflects the corpus's character
+    (broad theory vs specific evidence), not the campaign that binds them.
+    """
+    try:
+        meta = load_channel_meta(channel_name)
+    except FileNotFoundError:
+        return fallback
+    return int(meta.get("default_questions", fallback))
 
 
 def load_inquiry(inquiry_id):
@@ -343,11 +358,12 @@ def main():
 
     inquiry_title = "Ad-hoc inquiry"
     asn_label = "adhoc"
-    num_theory = 10
-    num_evidence = 10
     out_of_scope = ""
     asn_id = None
 
+    # Resolve the campaign to find which channels we'll consult, so we
+    # can pull each channel's default_questions before applying inquiry
+    # or CLI overrides.
     if args.inquiry_id:
         inquiry = load_inquiry(args.inquiry_id)
         inquiry_text = inquiry["question"]
@@ -355,12 +371,20 @@ def main():
         asn_label = f"{args.inquiry_id:04d}"
         asn_id = args.inquiry_id
         out_of_scope = inquiry.get("out_of_scope", "")
+        campaign = resolve_campaign(args.inquiry_id)
+        num_theory = _channel_default_questions(campaign.theory_channel)
+        num_evidence = _channel_default_questions(campaign.evidence_channel)
         agents = inquiry.get("agents", {})
-        # Manifest may use legacy "nelson"/"gregory" keys or the new "theory"/"evidence".
-        num_theory = agents.get("theory", agents.get("nelson", 10))
-        num_evidence = agents.get("evidence", agents.get("gregory", 10))
+        if "theory" in agents:
+            num_theory = agents["theory"]
+        if "evidence" in agents:
+            num_evidence = agents["evidence"]
     elif args.question:
         inquiry_text = args.question
+        # No inquiry → no campaign → no per-channel defaults; fall back
+        # to a reasonable hardcoded count. CLI args can still override.
+        num_theory = 10
+        num_evidence = 10
     else:
         parser.error("Provide a question or --inquiry-id")
 
