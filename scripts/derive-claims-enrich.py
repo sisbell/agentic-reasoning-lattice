@@ -1,4 +1,4 @@
-"""Enrich claim YAMLs — add type, dependencies, vocabulary.
+"""Enrich claim YAMLs — add type, dependencies, signature.
 
 Usage:
     python scripts/derive-claims-enrich.py <ASN>

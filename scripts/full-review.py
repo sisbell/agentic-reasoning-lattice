@@ -42,6 +42,7 @@ from lib.shared.validate_gate import run_validate_gate
 from lib.claim_convergence.cone import (
     detect_dependency_cone, run_cone_review, _retry_unresolved_revises,
 )
+from lib.store.attributes import ATTRIBUTE_SUFFIXES
 from lib.store.store import attributed_to, default_store
 from lib.store.emit import emit_findings, emit_meta
 from lib.store.populate import build_cross_asn_label_index
@@ -80,12 +81,11 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
     store = default_store()
     label_index = build_cross_asn_label_index(store=store)
 
-    _ATTR_SUFFIXES = (".label.md", ".name.md", ".description.md", ".vocabulary.md")
     asn_claim_md_paths = [
         str(md_path.relative_to(LATTICE))
         for md_path in claim_dir.glob("*.md")
         if not md_path.name.startswith("_")
-        and not md_path.name.endswith(_ATTR_SUFFIXES)
+        and not md_path.name.endswith(ATTRIBUTE_SUFFIXES)
     ]
 
     for cycle in range(1, max_cycles + 1):

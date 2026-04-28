@@ -23,7 +23,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, CLAIM_DIR, prompt_path, next_review_number
-from lib.shared.common import find_asn, invoke_claude, parallel_llm_calls, step_commit_asn, build_label_index, aggregate_vocabulary
+from lib.shared.common import find_asn, invoke_claude, parallel_llm_calls, step_commit_asn, build_label_index, aggregate_signature
 from lib.claim_convergence.assembly.validate_contracts import validate_contract
 from lib.claim_derivation.produce_contract import _has_formal_contract
 
@@ -71,7 +71,7 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
     _filename_to_label = {f"{stem}.md": lbl for lbl, stem in label_index.items()}
     print(f"  Directory: {claim_dir.relative_to(WORKSPACE)}", file=sys.stderr)
 
-    vocabulary = aggregate_vocabulary(claim_dir)
+    signature = aggregate_signature(claim_dir)
 
     cc_dir.mkdir(parents=True, exist_ok=True)
     cache_path = cc_dir / "_contract-cache.json"
@@ -135,7 +135,7 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
         def _validate_one(item):
             label, content, f = item
             match, detail = validate_contract(label, content,
-                                              vocabulary=vocabulary,
+                                              signature=signature,
                                               dependencies=dep_contexts.get(label, ""),
                                               model=validate_model)
             return label, (match, detail, f)
@@ -193,7 +193,7 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
                       .replace("{{label}}", label)
                       .replace("{{section}}", content)
                       .replace("{{finding}}", detail)
-                      .replace("{{vocabulary}}", vocabulary)
+                      .replace("{{signature}}", signature)
                       .replace("{{dependencies}}", dep_contexts.get(label, "(none)")))
             response, elapsed = invoke_claude(prompt, model="opus",
                                               effort="high")

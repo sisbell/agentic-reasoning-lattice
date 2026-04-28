@@ -158,7 +158,7 @@ class StructuralImportTests(PopulateTestBase):
         ])
         # Add cache files that should be ignored
         (self.claim_convergence_dir / "ASN-0001" / "_contract-cache.json").write_text("{}")
-        (self.claim_convergence_dir / "ASN-0001" / "_vocabulary.md").write_text("# vocab")
+        (self.claim_convergence_dir / "ASN-0001" / "_signature.md").write_text("# sig")
         stats = populate_structural(self.store, self.claim_convergence_dir)
         self.assertEqual(stats["claims_seen"], 1)
 

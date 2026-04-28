@@ -38,7 +38,7 @@ def dump_yaml(data, path):
                   allow_unicode=True, sort_keys=False, width=120)
 
 
-_ATTR_SUFFIXES = (".label.md", ".name.md", ".description.md", ".vocabulary.md")
+from lib.store.attributes import ATTRIBUTE_SUFFIXES as _ATTR_SUFFIXES
 
 
 def _is_claim_md(name):
@@ -126,30 +126,34 @@ def load_claim_metadata(claim_dir, label=None):
         }
 
 
-def aggregate_vocabulary(claim_dir):
-    """Concatenate per-claim vocabulary sidecars into a single markdown
-    block suitable for the `{{vocabulary}}` substitution in claim
+def aggregate_signature(claim_dir):
+    """Concatenate per-claim signature sidecars into a single markdown
+    block suitable for the `{{signature}}` substitution in claim
     convergence's contract-review and validate-contracts prompts.
 
-    Reads `<label>.vocabulary.md` sidecars under `claim_dir`. Each
-    sidecar contains markdown bullets defining symbols introduced by
-    that claim. The aggregator renders one section per claim that has
-    a vocabulary sidecar; claims without vocabulary contribute
-    nothing.
+    A claim's signature is the set of non-logical symbols (constants,
+    function symbols, relation symbols) the claim introduces — formal
+    logic's precise term for what's recorded in the sidecar.
 
-    Returns "(no vocabulary)" when no vocabulary sidecars exist.
+    Reads `<label>.signature.md` sidecars under `claim_dir`. Each
+    sidecar contains markdown bullets identifying the symbols
+    introduced by that claim. The aggregator renders one section per
+    claim that has a signature sidecar; claims without signatures
+    contribute nothing.
+
+    Returns "(no signature)" when no signature sidecars exist.
     """
     claim_dir = Path(claim_dir)
     if not claim_dir.exists():
-        return "(no vocabulary)"
+        return "(no signature)"
     parts = []
-    for f in sorted(claim_dir.glob("*.vocabulary.md")):
-        stem = f.name.removesuffix(".vocabulary.md")
+    for f in sorted(claim_dir.glob("*.signature.md")):
+        stem = f.name.removesuffix(".signature.md")
         body = f.read_text().strip()
         if not body:
             continue
         parts.append(f"### {stem}\n\n{body}")
-    return "\n\n".join(parts) if parts else "(no vocabulary)"
+    return "\n\n".join(parts) if parts else "(no signature)"
 
 
 def read_file(path):
@@ -438,7 +442,7 @@ def assemble_readonly(asn_label):
         for f in sorted(docs_dir.glob("*.md")):
             if f.name.startswith("_"):
                 continue
-            if f.name.endswith((".label.md", ".name.md", ".description.md", ".vocabulary.md")):
+            if f.name.endswith(_ATTR_SUFFIXES):
                 continue
             parts.append(f.read_text().strip())
 

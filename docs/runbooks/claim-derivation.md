@@ -17,7 +17,7 @@ python scripts/derive-claims.py <ASN>
 Phases (each commits automatically):
 
 1. **decompose** — mechanical `##` split + per-section LLM analysis → section yamls in `_workspace/claim-derivation/<asn>/sections/`
-2. **enrich** — three LLM passes per claim (type, depends, vocabulary) updating section yamls in place
+2. **enrich** — three LLM passes per claim (type, depends, signature) updating section yamls in place
 3. **transclude** — project source-note regions as per-claim docs in `_docuverse/documents/claim/<asn>/`; emit substrate links (`claim`, `contract.<kind>`, `citation`, `label`, `name`, `provenance.derivation`)
 4. **validate-transclude** — substring check: each claim body is a byte-substring of its source note (Claim File Contract invariant 12 at transclude exit)
 5. **produce-contract** — synthesize Formal Contract section in each claim's body markdown

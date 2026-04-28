@@ -28,7 +28,7 @@ class IsClaimBodyTests(unittest.TestCase):
 
     def test_underscore_prefix_not_claim_body(self):
         self.assertFalse(_is_claim_body(Path("_preamble.md")))
-        self.assertFalse(_is_claim_body(Path("_vocabulary.md")))
+        self.assertFalse(_is_claim_body(Path("_signature.md")))
 
     def test_non_md_not_claim_body(self):
         self.assertFalse(_is_claim_body(Path("T0.yaml")))

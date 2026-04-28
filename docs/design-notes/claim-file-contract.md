@@ -8,7 +8,7 @@ Scope: this contract governs the per-claim outputs produced by the [claim deriva
 - three sidecar markdown files — `<label>.label.md`, `<label>.name.md`, `<label>.description.md` — carrying the claim's substrate-managed attributes,
 - substrate links classifying the body and pointing at the sidecars and at related claims (described below).
 
-Other artifacts emitted at other stages — the foundation index, the vocabulary aggregation, the `formal-statements.md` export — are separate representation changes with their own contracts. Don't bundle them.
+Other artifacts emitted at other stages — the foundation index, the signature aggregation, the `formal-statements.md` export — are separate representation changes with their own contracts. Don't bundle them.
 
 ## Two axes
 
@@ -34,11 +34,11 @@ Consequence: when a mismatch is found, the fix is to update the label sidecar or
 
 ### Steady-state — validator runs before every review cycle and after every revise commit
 
-1. **File set completeness.** For every claim in the lattice, four required files exist: `<label>.md` (body), `<label>.label.md`, `<label>.name.md`, `<label>.description.md`. A fifth, optional sidecar `<label>.vocabulary.md` exists for claims that introduce new notation (claims that define no new symbols have no vocabulary sidecar). No orphan body without the required sidecars; no orphan required sidecar without a body. An orphan vocabulary sidecar (no matching body) is a violation; a missing vocabulary sidecar (claim with no introduced notation) is not.
+1. **File set completeness.** For every claim in the lattice, four required files exist: `<label>.md` (body), `<label>.label.md`, `<label>.name.md`, `<label>.description.md`. A fifth, optional sidecar `<label>.signature.md` exists for claims that introduce non-logical symbols (claims that define no new symbols have no signature sidecar). No orphan body without the required sidecars; no orphan required sidecar without a body. An orphan signature sidecar (no matching body) is a violation; a missing signature sidecar (claim with no introduced symbols) is not.
 
 2. **Declaration matches label.** The markdown body contains exactly one bold claim-declaration of the form `**<Label> (<Name>).**`. The label-position equals the filename stem; the parenthetical equals the name sidecar's content (when label == name, the parenthetical repeats it — redundant but uniform). The parenthetical is required in all cases; this uniformity makes the declaration textually distinguishable from proof-narrative emphasis (e.g., `**Positivity.**`, `**Length.**`). Type keywords (*axiom*, *definition*, *design-requirement*, *lemma*, *theorem*, *corollary*) do not appear in the label-position — those are recorded as the substrate `contract.<kind>` classifier on the body.
 
-3. **Sidecar content well-formed.** The label sidecar contains a single line equal to the filename stem. The name sidecar contains a single line in PascalCase. The description sidecar contains markdown prose summarizing the claim's purpose; non-empty, no required structure. The vocabulary sidecar (when present) contains markdown bullets of the form ``- `<symbol>` — <meaning>``, one per symbol the claim introduces.
+3. **Sidecar content well-formed.** The label sidecar contains a single line equal to the filename stem. The name sidecar contains a single line in PascalCase. The description sidecar contains markdown prose summarizing the claim's purpose; non-empty, no required structure. The signature sidecar (when present) contains markdown bullets of the form ``- `<symbol>` — <meaning>``, one per symbol the claim introduces.
 
 4. **Substrate classification complete.** For each claim's body markdown the substrate contains:
    - exactly one active `claim` classifier link with `to_set = [body_md]`,
@@ -46,7 +46,7 @@ Consequence: when a mismatch is found, the fix is to update the label sidecar or
    - exactly one active `label` link with `from_set = [body_md], to_set = [<label>.label.md]`,
    - exactly one active `name` link with `from_set = [body_md], to_set = [<label>.name.md]`,
    - exactly one active `description` link with `from_set = [body_md], to_set = [<label>.description.md]`,
-   - exactly one active `vocabulary` link with `from_set = [body_md], to_set = [<label>.vocabulary.md]` *if* the claim introduces new notation (the sidecar exists). Claims with no introduced notation have no vocabulary link.
+   - exactly one active `signature` link with `from_set = [body_md], to_set = [<label>.signature.md]` *if* the claim introduces non-logical symbols (the sidecar exists). Claims with no introduced symbols have no signature link.
 
 5. **Depends agreement.** The set of substrate `citation` links sourced from the claim's body markdown and the set of claim labels named in the body's Formal Contract Depends section name the same set of claims. No additions or omissions in either surface.
 
@@ -76,7 +76,7 @@ S1. **Description matches body.** The description sidecar describes what the bod
 
 S2. **Exterior matches interior.** The claim's stated postconditions are delivered by its proof. Its preconditions are sufficient for the proof to proceed and do not exceed what callers must supply.
 
-S3. **Symbol usage matches declaration.** A symbol declared with a given signature or meaning in the vocabulary is used consistently with that declaration throughout the proof. (The validator can check that the declaration exists and resolves; only review can check that the usage respects the declared meaning.)
+S3. **Symbol usage matches declaration.** A symbol declared with a given meaning in the signature is used consistently with that declaration throughout the proof. (The validator can check that the declaration exists and resolves; only review can check that the usage respects the declared meaning.)
 
 ## Enforcement sites
 
@@ -91,7 +91,7 @@ Running the validator before the reviewer eliminates the reviewer's work on mech
 ## What this contract does not cover
 
 - The content of individual claims — what makes a proof correct, a description accurate, a precondition sufficient. That is review's job.
-- Artifacts other than per-claim file sets and their substrate classification. The foundation index, vocabulary aggregation, and formal-statements export each need their own contracts written at the representation changes that produce them.
+- Artifacts other than per-claim file sets and their substrate classification. The foundation index, signature aggregation, and formal-statements export each need their own contracts written at the representation changes that produce them.
 - Aesthetic or stylistic conventions (e.g., prose length, header formatting). Not invariants — conventions.
 
 ## Related

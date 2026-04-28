@@ -16,6 +16,7 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import CLAIM_DIR, LATTICE
+from lib.store.attributes import ATTRIBUTE_SUFFIXES
 
 
 def populate_structural(store, claim_root_dir=None):
@@ -116,12 +117,11 @@ def aggregate_asn_deps(store, asn_label, claim_root_dir=None):
         return []
 
     workspace = Path(LATTICE).resolve()
-    sidecar_suffixes = (".label.md", ".name.md", ".description.md", ".vocabulary.md")
     deps = set()
     for claim_md in asn_dir.glob("*.md"):
         if claim_md.name.startswith("_"):
             continue
-        if claim_md.name.endswith(sidecar_suffixes):
+        if claim_md.name.endswith(ATTRIBUTE_SUFFIXES):
             continue
         rel = str(claim_md.resolve().relative_to(workspace))
         for link in active_links(store, "citation", from_set=[rel]):

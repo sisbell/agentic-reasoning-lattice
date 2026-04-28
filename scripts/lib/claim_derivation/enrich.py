@@ -1,8 +1,11 @@
-"""Enrich claim YAMLs — add type, dependencies, vocabulary.
+"""Enrich claim YAMLs — add type, dependencies, signature.
 
-Blueprinting step: reads the section YAML files from decompose, runs
-three focused LLM passes per claim (type, deps, vocab) in parallel.
-Updates the YAML files in place.
+Reads the section YAML files from decompose, runs three focused LLM
+passes per claim (type, deps, signature) in parallel. Updates the
+YAML files in place.
+
+The signature pass extracts the non-logical symbols (constants,
+function symbols, relation symbols) the claim introduces.
 
 Usage (standalone):
     python scripts/lib/claim_derivation/enrich.py 36
@@ -112,7 +115,7 @@ def _run_pass(pass_name, template_path, claims, fields):
 
 
 def enrich_asn(asn_num):
-    """Enrich claim YAMLs with type, dependencies, vocabulary (3 passes)."""
+    """Enrich claim YAMLs with type, dependencies, signature (3 passes)."""
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
         print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
@@ -134,7 +137,7 @@ def enrich_asn(asn_num):
     passes = [
         ("type",  prompt_path("claim-derivation/enrich-type.md"),  ["type"]),
         ("deps",  prompt_path("claim-derivation/enrich-deps.md"),  ["depends", "literature_citations"]),
-        ("vocab", prompt_path("claim-derivation/enrich-vocab.md"),  ["vocabulary"]),
+        ("signature", prompt_path("claim-derivation/enrich-signature.md"),  ["signature"]),
     ]
 
     total_ok = 0
@@ -158,7 +161,7 @@ def enrich_asn(asn_num):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Enrich claim YAMLs with type, dependencies, vocabulary")
+        description="Enrich claim YAMLs with type, dependencies, signature")
     parser.add_argument("asn", help="ASN number (e.g., 36)")
     args = parser.parse_args()
 

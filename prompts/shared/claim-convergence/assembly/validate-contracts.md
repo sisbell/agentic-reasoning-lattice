@@ -9,9 +9,9 @@ is the interface between the proof and its consumers — it must be
 precise enough to verify mechanically, and complete enough that no
 proven result is lost.
 
-## Vocabulary
+## Signature
 
-{{vocabulary}}
+{{signature}}
 
 ## Dependencies
 

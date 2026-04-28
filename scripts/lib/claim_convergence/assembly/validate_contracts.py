@@ -49,7 +49,7 @@ def _log_usage(elapsed, asn_num, count):
         pass
 
 
-def validate_contract(label, section, vocabulary="", dependencies="", model="sonnet"):
+def validate_contract(label, section, signature="", dependencies="", model="sonnet"):
     """Validate one claim's contract against its proof section.
 
     Returns (match: bool, detail: str).
@@ -68,7 +68,7 @@ def validate_contract(label, section, vocabulary="", dependencies="", model="son
               .replace("{{label}}", label)
               .replace("{{proof_section}}", proof_section)
               .replace("{{formal_contract}}", contract)
-              .replace("{{vocabulary}}", vocabulary or "(none)")
+              .replace("{{signature}}", signature or "(none)")
               .replace("{{dependencies}}", dependencies or "(none)"))
 
     result, elapsed = invoke_claude(prompt, model=model, effort="high")

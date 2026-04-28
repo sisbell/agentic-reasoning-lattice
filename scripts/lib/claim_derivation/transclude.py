@@ -96,13 +96,14 @@ def _structural_slug(md_path):
     return name.split("-", 1)[1] if "-" in name else name
 
 
-def _render_vocabulary(entries):
-    """Render enrich's vocabulary list into a markdown bullet sidecar.
+def _render_signature(entries):
+    """Render enrich's signature list into a markdown bullet sidecar.
 
-    `entries` is a list of {symbol, meaning} dicts (enrich-vocab's
-    output shape). Returns a markdown string with one bullet per
-    symbol, or None if the list is empty / contains no usable
-    entries (caller skips emitting the sidecar in that case)."""
+    `entries` is a list of {symbol, meaning} dicts (enrich-signature's
+    output shape — non-logical symbols the claim introduces). Returns
+    a markdown string with one bullet per symbol, or None if the list
+    is empty / contains no usable entries (caller skips emitting the
+    sidecar in that case)."""
     if not entries:
         return None
     lines = []
@@ -184,7 +185,7 @@ def transclude_asn(asn_num, dry_run=False):
             "name": (prop.get("name") or "").strip(),
             "type": (prop.get("type") or "").strip() or None,
             "depends": [d for d in (prop.get("depends") or []) if d],
-            "vocabulary": prop.get("vocabulary") or [],
+            "signature": prop.get("signature") or [],
             "body_text": resolved.rstrip() + "\n",
         })
 
@@ -230,16 +231,17 @@ def transclude_asn(asn_num, dry_run=False):
             body_md = claims_dir / f"{stem}.md"
             body_md.write_text(c["body_text"])
 
-            # Sidecar files + content links (label, name, vocabulary).
+            # Sidecar files + content links (label, name, signature).
             # description sidecar is summarize.py's responsibility.
             emit_attribute(store, body_md, "label", c["label"])
             emit_attribute(store, body_md, "name", c["name"] or c["label"])
 
-            # Vocabulary sidecar — only when the claim defines new notation.
-            # Most claims don't; enrich returns an empty list, we skip.
-            vocab_md = _render_vocabulary(c["vocabulary"])
-            if vocab_md:
-                emit_attribute(store, body_md, "vocabulary", vocab_md)
+            # Signature sidecar — only when the claim introduces new
+            # non-logical symbols. Most claims don't; enrich returns
+            # an empty list, we skip.
+            sig_md = _render_signature(c["signature"])
+            if sig_md:
+                emit_attribute(store, body_md, "signature", sig_md)
 
             # Classifier + contract links.
             emit_claim(store, body_md)

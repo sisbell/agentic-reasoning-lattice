@@ -123,6 +123,7 @@ def is_asn_converged(store, asn_label, claim_root_dir=None):
     import sys
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
     from lib.shared.paths import CLAIM_DIR, LATTICE
+    from lib.store.attributes import ATTRIBUTE_SUFFIXES
 
     claim_root_dir = (
         Path(claim_root_dir) if claim_root_dir else CLAIM_DIR
@@ -131,11 +132,10 @@ def is_asn_converged(store, asn_label, claim_root_dir=None):
     if not asn_dir.exists():
         return True
     lattice_resolved = Path(LATTICE).resolve()
-    sidecar_suffixes = (".label.md", ".name.md", ".description.md", ".vocabulary.md")
     for md_path in asn_dir.glob("*.md"):
         if md_path.name.startswith("_"):
             continue
-        if md_path.name.endswith(sidecar_suffixes):
+        if md_path.name.endswith(ATTRIBUTE_SUFFIXES):
             continue
         rel = str(md_path.resolve().relative_to(lattice_resolved))
         if not is_doc_converged(store, rel):

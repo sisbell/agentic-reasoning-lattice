@@ -6,9 +6,9 @@ must be justified by the proof, and every result established by the
 proof must appear in the contract. Everything you need is provided in this
 prompt — do not attempt to read files, search, or use tools.
 
-## Vocabulary
+## Signature
 
-{{vocabulary}}
+{{signature}}
 
 ## Dependencies
 

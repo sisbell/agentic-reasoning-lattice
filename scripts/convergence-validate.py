@@ -40,6 +40,7 @@ from store.store import Store
 from store.populate import build_cross_asn_label_index
 from store.queries import current_contract_kind, active_links
 from store.schema import VALID_SUBTYPES
+from store.attributes import VALID_KINDS
 
 VALID_TYPES = VALID_SUBTYPES["contract"]
 
@@ -57,10 +58,10 @@ TYPE_KEYWORDS = {
 }
 # Substrate-owned document attribute kinds; their sibling docs are
 # `<stem>.<kind>.md` and aren't claim files in their own right.
-ATTRIBUTE_KINDS = ("label", "name", "description")
-# Kinds whose presence on every claim is enforced. description is omitted
-# intentionally — descriptions are optional content, not a structural
-# requirement.
+ATTRIBUTE_KINDS = tuple(sorted(VALID_KINDS))
+# Kinds whose presence on every claim is enforced. description and
+# signature are omitted intentionally — both are optional content, not
+# structural requirements.
 COVERED_ATTRIBUTE_KINDS = ("label", "name")
 
 SINGLE_CHAR_SYMBOLS = re.compile(r"[<≤≥>≠=∈∉⊆⊇⇒⇔∀∃∧∨¬+−⊕⊖⊗⨀]")
@@ -149,19 +150,19 @@ _ATTR_SUFFIXES = tuple(f".{k}.md" for k in ATTRIBUTE_KINDS)
 
 
 def _is_attr_doc(name):
-    """Filename for a substrate-owned attribute doc (.label.md / .name.md /
-    .description.md). These are siblings of claim md files, not claims
-    themselves; load_pairs skips them so they don't appear as orphan
-    md files lacking yaml siblings."""
+    """Filename for a substrate-owned attribute doc (`.<kind>.md`). These
+    are siblings of claim md files, not claims themselves; load_pairs
+    skips them so they don't appear as orphan md files lacking yaml
+    siblings."""
     return name.endswith(_ATTR_SUFFIXES)
 
 
 def load_pairs(claim_dir):
     """Return {stem: {md: md_text}} across every claim .md in the dir.
 
-    Substrate attribute docs (`<stem>.label.md`, `<stem>.name.md`,
-    `<stem>.description.md`) are skipped — they are siblings of claim
-    md files, not claims themselves.
+    Substrate attribute docs (`<stem>.<kind>.md` for any attribute kind)
+    are skipped — they are siblings of claim md files, not claims
+    themselves.
     """
     pairs = {}
     for md_path in claim_dir.glob("*.md"):

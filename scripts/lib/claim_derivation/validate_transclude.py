@@ -25,9 +25,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import CLAIM_DIR
 from lib.shared.common import find_asn
-
-
-_SIDECAR_SUFFIXES = (".label.md", ".name.md", ".description.md", ".vocabulary.md")
+from lib.store.attributes import ATTRIBUTE_SUFFIXES
 
 
 def _is_claim_body(md_path):
@@ -37,7 +35,7 @@ def _is_claim_body(md_path):
     name = md_path.name
     if name.startswith("_"):
         return False
-    if name.endswith(_SIDECAR_SUFFIXES):
+    if name.endswith(ATTRIBUTE_SUFFIXES):
         return False
     return name.endswith(".md")
 
