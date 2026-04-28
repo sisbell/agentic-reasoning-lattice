@@ -21,6 +21,7 @@ multi-element type sets (Xanadu, stacked classifiers) is non-breaking.
 """
 
 import contextlib
+import functools
 import json
 import os
 import sqlite3
@@ -28,7 +29,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import STORE_LOG, STORE_INDEX
+from lib.shared.paths import STORE_LOG, STORE_INDEX, agent_doc_path
 from lib.store.schema import (
     SCHEMA_SQL, make_link_id, validate_type, utcnow_iso,
 )
@@ -284,3 +285,24 @@ def agent_context(agent_doc):
             os.environ.pop(AGENT_DOC_ENV_VAR, None)
         else:
             os.environ[AGENT_DOC_ENV_VAR] = prior
+
+
+def attributed_to(role):
+    """Decorator: wrap an orchestrator entrypoint so its body runs inside
+    `agent_context(agent_doc_path(role))`.
+
+    Substrate writes inside the block (review/comment/resolution links)
+    get a `manages` link from the agent doc, and subprocess tools
+    (decide.py, etc.) inherit `XANADU_AGENT_DOC` so their writes are
+    attributed too.
+    """
+    agent_doc = agent_doc_path(role)
+
+    def decorator(fn):
+        @functools.wraps(fn)
+        def wrapper(*args, **kwargs):
+            with agent_context(agent_doc):
+                return fn(*args, **kwargs)
+        return wrapper
+
+    return decorator

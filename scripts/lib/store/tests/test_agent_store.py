@@ -15,6 +15,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.store.agent_store import AgentStore
@@ -49,10 +50,8 @@ class AgentStoreConstructionTests(AgentStoreBase):
     def test_construction_idempotent(self):
         a = AgentStore(self.inner, AGENT_DOC)
         b = AgentStore(self.inner, AGENT_DOC)
-        # Both wrappers see the same single classifier.
         active = active_links(self.inner, "agent", to_set=[AGENT_DOC])
         self.assertEqual(len(active), 1)
-        # Sanity: both wrappers wrap the same underlying store.
         self.assertIs(a._store, b._store)
 
 
@@ -91,8 +90,6 @@ class AgentStoreMakeLinkTests(AgentStoreBase):
         self.assertEqual(len(active), 1)
 
     def test_agent_type_is_not_attributed(self):
-        # Filing an `agent` link via the wrapped store must not produce a
-        # manages link pointing at it (would be self-management).
         other_agent = "lattices/xanadu/_store/documents/agents/full-review.md"
         link_id = self.agent_store.make_link(
             from_set=[], to_set=[other_agent], type_set=["agent"],
@@ -104,8 +101,6 @@ class AgentStoreMakeLinkTests(AgentStoreBase):
         self.assertEqual(active, [])
 
     def test_manages_type_is_not_attributed(self):
-        # If something explicitly files a manages link via the wrapped
-        # store, the wrapper must not wrap it again.
         target_id = self.inner.make_link(
             from_set=[], to_set=[CLAIM_PATH], type_set=["claim"],
         )
@@ -142,23 +137,26 @@ class AgentStoreProxyTests(AgentStoreBase):
         self.assertEqual(len(results), 1)
 
 
-class DefaultStoreTests(unittest.TestCase):
+class _EnvIsolatedTests(unittest.TestCase):
+    """Base for tests that read or set XANADU_AGENT_DOC. mock.patch.dict
+    snapshots os.environ on entry and fully restores it on cleanup.
+    """
+
     def setUp(self):
+        patcher = mock.patch.dict(os.environ, {}, clear=False)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        os.environ.pop(AGENT_DOC_ENV_VAR, None)
+
+
+class DefaultStoreTests(_EnvIsolatedTests):
+    def setUp(self):
+        super().setUp()
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         self.root = Path(self.tmp.name)
         self.log = self.root / "_store" / "links.jsonl"
         self.idx = self.root / "_store" / "index.db"
-        # Ensure env var is clean.
-        self._prior = os.environ.pop(AGENT_DOC_ENV_VAR, None)
-
-        def _restore():
-            if self._prior is not None:
-                os.environ[AGENT_DOC_ENV_VAR] = self._prior
-            else:
-                os.environ.pop(AGENT_DOC_ENV_VAR, None)
-
-        self.addCleanup(_restore)
 
     def test_no_env_var_returns_plain_store(self):
         store = default_store(log_path=self.log, index_path=self.idx)
@@ -174,18 +172,7 @@ class DefaultStoreTests(unittest.TestCase):
         self.assertEqual(store.agent_doc, AGENT_DOC)
 
 
-class AgentContextTests(unittest.TestCase):
-    def setUp(self):
-        self._prior = os.environ.pop(AGENT_DOC_ENV_VAR, None)
-
-        def _restore():
-            if self._prior is not None:
-                os.environ[AGENT_DOC_ENV_VAR] = self._prior
-            else:
-                os.environ.pop(AGENT_DOC_ENV_VAR, None)
-
-        self.addCleanup(_restore)
-
+class AgentContextTests(_EnvIsolatedTests):
     def test_sets_and_restores_when_unset(self):
         self.assertNotIn(AGENT_DOC_ENV_VAR, os.environ)
         with agent_context(AGENT_DOC):

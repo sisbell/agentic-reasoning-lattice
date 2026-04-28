@@ -30,7 +30,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import (
     WORKSPACE, CLAIM_CONVERGENCE_DIR, CLAIM_FINDINGS_DIR,
-    agent_doc_path, next_review_number, review_meta_path,
+    next_review_number, review_meta_path,
 )
 from lib.shared.common import find_asn, assemble_readonly, step_commit_asn
 from lib.claim_convergence.full_review.review import (
@@ -42,29 +42,18 @@ from lib.claim_convergence.gate import run_validate_gate
 from lib.claim_convergence.cone import (
     detect_dependency_cone, run_cone_review, _retry_unresolved_revises,
 )
-from lib.store.store import agent_context, default_store
+from lib.store.store import attributed_to, default_store
 from lib.store.emit import emit_findings, emit_meta
 from lib.store.populate import build_cross_asn_label_index
 from lib.store.queries import is_asn_converged
 
 
+@attributed_to("full-review")
 def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
     """Run the full review pipeline.
 
     Returns "converged" or "not_converged".
-
-    Operations are attributed to the full-review agent: substrate writes
-    inside the block (review/comment/resolution links) get a `manages`
-    link from the agent doc, and subprocess tools (decide.py, etc.)
-    inherit `XANADU_AGENT_DOC` so their writes are attributed too.
     """
-    with agent_context(agent_doc_path("full-review")):
-        return _run_full_review_attributed(
-            asn_num, max_cycles=max_cycles, dry_run=dry_run, model=model,
-        )
-
-
-def _run_full_review_attributed(asn_num, max_cycles=8, dry_run=False, model="opus"):
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
         print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
