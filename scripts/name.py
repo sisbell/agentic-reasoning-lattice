@@ -3,7 +3,7 @@
 
 Usage:
 
-    PROTOCOL_CLAIM_PATH=lattices/.../T0.md python scripts/name.py --to CarrierSetDefinition
+    PROTOCOL_DOC_PATH=lattices/.../T0.md python scripts/name.py --to CarrierSetDefinition
 
 Writes `<stem>.name.md` next to the claim md (edit-in-place if it
 already exists) and emits a `name` link from the claim md to the
@@ -30,9 +30,9 @@ def main():
     )
     args = parser.parse_args()
 
-    claim_path = os.environ.get("PROTOCOL_CLAIM_PATH")
+    claim_path = os.environ.get("PROTOCOL_DOC_PATH")
     if not claim_path:
-        print("error: PROTOCOL_CLAIM_PATH env var not set", file=sys.stderr)
+        print("error: PROTOCOL_DOC_PATH env var not set", file=sys.stderr)
         return 1
 
     store = default_store()

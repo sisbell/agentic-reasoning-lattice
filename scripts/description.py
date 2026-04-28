@@ -3,14 +3,14 @@
 
 Usage:
 
-    PROTOCOL_CLAIM_PATH=lattices/.../T0.md python scripts/description.py \\
+    PROTOCOL_DOC_PATH=lattices/.../T0.md python scripts/description.py \\
         --to "Defines the carrier set ℕ for tumbler addresses."
 
 For multi-line descriptions, use --from-file to read the body from a
 file (or `-` for stdin):
 
-    PROTOCOL_CLAIM_PATH=... python scripts/description.py --from-file desc.md
-    cat desc.md | PROTOCOL_CLAIM_PATH=... python scripts/description.py --from-file -
+    PROTOCOL_DOC_PATH=... python scripts/description.py --from-file desc.md
+    cat desc.md | PROTOCOL_DOC_PATH=... python scripts/description.py --from-file -
 
 Writes `<stem>.description.md` next to the claim md (edit-in-place if
 it already exists) and emits a `description` link from the claim md to
@@ -41,9 +41,9 @@ def main():
     )
     args = parser.parse_args()
 
-    claim_path = os.environ.get("PROTOCOL_CLAIM_PATH")
+    claim_path = os.environ.get("PROTOCOL_DOC_PATH")
     if not claim_path:
-        print("error: PROTOCOL_CLAIM_PATH env var not set", file=sys.stderr)
+        print("error: PROTOCOL_DOC_PATH env var not set", file=sys.stderr)
         return 1
 
     if args.from_file:

@@ -5,7 +5,7 @@ Invoked when the reviser adds a dependency:
 
     python scripts/cite.py --to <label>
 
-Reads `PROTOCOL_CLAIM_PATH` from environment (set by `revise.py` for the
+Reads `PROTOCOL_DOC_PATH` from environment (set by `revise.py` for the
 claim being revised). The label is resolved via the cross-ASN label
 index. Idempotent — re-running with the same args is a no-op.
 
@@ -31,9 +31,9 @@ def main():
     )
     args = parser.parse_args()
 
-    claim_path = os.environ.get("PROTOCOL_CLAIM_PATH")
+    claim_path = os.environ.get("PROTOCOL_DOC_PATH")
     if not claim_path:
-        print("error: PROTOCOL_CLAIM_PATH env var not set", file=sys.stderr)
+        print("error: PROTOCOL_DOC_PATH env var not set", file=sys.stderr)
         return 1
 
     store = default_store()

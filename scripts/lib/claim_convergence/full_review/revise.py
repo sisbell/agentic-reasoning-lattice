@@ -61,7 +61,7 @@ def revise(asn_num, title, finding_text, claim_dir=None,
     env["CLAUDE_CODE_EFFORT_LEVEL"] = "max"
     if comment_id and claim_path:
         env["PROTOCOL_COMMENT_ID"] = comment_id
-        env["PROTOCOL_CLAIM_PATH"] = claim_path
+        env["PROTOCOL_DOC_PATH"] = claim_path
         env["PROTOCOL_ASN_LABEL"] = asn_label
 
     print(f"  [REVISE] {title}...", end="", file=sys.stderr, flush=True)

@@ -27,6 +27,8 @@ from lib.shared.paths import WORKSPACE, VOCABULARY, REVIEWS_DIR, USAGE_LOG, NOTE
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn, read_file
 from lib.shared.foundation import load_foundation_statements
+from lib.store.queries import unresolved_revise_comments
+from lib.store.store import default_store
 
 PROMPTS_DIR = LATTICE_PROMPTS / "discovery"
 DISCOVERY_PROMPT = PROMPTS_DIR / "instructions.md"
@@ -34,8 +36,14 @@ DISCOVERY_PROMPT = PROMPTS_DIR / "instructions.md"
 MODEL = "claude-opus-4-7"
 
 
-def build_prompt(asn_path, review_content, vocab, consultation_content=None, asn_number=None):
-    """Build revise prompt: discovery methodology + vocab + revise assignment + review."""
+def build_prompt(asn_path, findings, vocab, consultation_content=None, asn_number=None):
+    """Build revise prompt: discovery methodology + per-finding instructions.
+
+    `findings` is a list of (comment_id, title, body) tuples — one per
+    open `comment.revise` link on the note. The agent is instructed to
+    address each in the note md and call decide.py per finding to close
+    the comment in the substrate.
+    """
     skill_body = read_file(DISCOVERY_PROMPT)
     if not skill_body:
         print(f"  Discovery prompt not found at {DISCOVERY_PROMPT.relative_to(WORKSPACE)}",
@@ -56,32 +64,42 @@ def build_prompt(asn_path, review_content, vocab, consultation_content=None, asn
 
     assignment = f"""## Your Assignment: REVISE {asn_label}
 
-You are revising an existing ASN based on review feedback. Read the ASN at
-`{rel_path}`, then read the review below.
+You are revising an existing ASN based on per-finding review feedback.
+Read the ASN at `{rel_path}`, then address each finding below.
 
-Address every REVISE item. OUT_OF_SCOPE items are noted but do not require changes now.
+**Do not rewrite the ASN from scratch.** Make targeted fixes per finding.
+Preserve the existing structure, notation, and reasoning where it is not
+affected by the finding.
 
-**Do not rewrite the ASN from scratch.** Make targeted fixes to address the
-specific issues raised. Preserve the existing structure, notation, and reasoning
-where it is not affected by the review.
+Write the revised ASN back to `{rel_path}`.
 
-Write the revised ASN back to `{rel_path}`."""
+For each finding below, after you have addressed it (either by editing
+the note or by deciding the finding is incorrect), close the
+corresponding comment in the link store:
+
+  python scripts/decide.py accept --comment-id <id>
+  python scripts/decide.py reject --comment-id <id> --rationale "<one or two sentences>"
+
+`accept` means you applied the fix; `reject` means the finding is
+incorrect and you wrote a rationale instead. Do this once per finding."""
 
     if consultation_content:
         assignment += f"""
 
 ## Consultation Results
 
-The following expert consultations were conducted based on this review.
-Use these answers as evidence when addressing the corresponding REVISE items.
+The following expert consultations were conducted based on the review.
+Use these answers as evidence when addressing the corresponding findings.
 
 {consultation_content}"""
 
-    assignment += f"""
-
-## Review
-
-{review_content}"""
+    assignment += "\n\n## Findings\n"
+    for n, (comment_id, title, body) in enumerate(findings, 1):
+        assignment += (
+            f"\n### Finding {n}: {title}\n"
+            f"**Comment ID:** `{comment_id}`\n\n"
+            f"{body}\n"
+        )
 
     parts.append(assignment)
 
@@ -164,11 +182,33 @@ def log_usage(asn_label, elapsed, data):
         pass
 
 
+def collect_open_revises(store, note_rel):
+    """Return list of (comment_id, title, body) for unresolved revise comments
+    on the note.
+
+    Reads each comment's source finding doc to get the finding text. Title
+    is the first non-blank line of the body, stripped of `### ` if present.
+    """
+    items = []
+    for c in unresolved_revise_comments(store, note_rel):
+        if not c["from_set"]:
+            continue
+        finding_rel = c["from_set"][0]
+        finding_full = WORKSPACE / finding_rel
+        if not finding_full.exists():
+            print(f"  [SKIP] finding doc missing: {finding_rel}",
+                  file=sys.stderr)
+            continue
+        body = finding_full.read_text().strip()
+        first_line = body.splitlines()[0] if body else ""
+        title = re.sub(r"^#+\s*", "", first_line).strip() or "(untitled)"
+        items.append((c["id"], title, body))
+    return items
+
+
 def main():
     parser = argparse.ArgumentParser(description="Revise an ASN based on review feedback")
     parser.add_argument("asn", help="ASN number (e.g., 9, 0009, ASN-0009)")
-    parser.add_argument("review", nargs="?",
-                        help="Review identifier (e.g., review-1) — omit for latest")
     parser.add_argument("--model", "-m", default="opus",
                         choices=["opus", "sonnet"],
                         help="Model (default: opus)")
@@ -184,24 +224,23 @@ def main():
         print(f"  No ASN found for {args.asn} in {NOTES_DIR.relative_to(WORKSPACE)}/", file=sys.stderr)
         sys.exit(1)
 
-    # Find review
-    review_path = find_review(asn_label, args.review)
-    if review_path is None:
-        if args.review:
-            print(f"  Review not found: {args.review} for {asn_label}",
-                  file=sys.stderr)
-        else:
-            print(f"  No reviews found for {asn_label} in {REVIEWS_DIR.relative_to(WORKSPACE)}/",
-                  file=sys.stderr)
-        sys.exit(1)
+    note_rel = str(asn_path.resolve().relative_to(WORKSPACE.resolve()))
+    asn_num = int(re.sub(r"[^0-9]", "", asn_label))
 
-    review_content = review_path.read_text()
+    # Load open findings from the substrate. Re-running this file at the
+    # top of every cycle implements RetryOpenRevises (§6.3): comments that
+    # weren't resolved by the prior session re-feed automatically.
+    with default_store() as store:
+        findings = collect_open_revises(store, note_rel)
 
-    # Check for REVISE items
-    if "## REVISE" not in review_content:
-        print(f"  No REVISE section in {review_path.name}, nothing to do",
+    if not findings:
+        print(f"  [CONVERGED] No open revise comments on {asn_label}",
               file=sys.stderr)
-        sys.exit(0)
+        print(str(asn_path))
+        sys.exit(2)
+
+    print(f"  [REVISE] {asn_label} ({asn_path.name}) — "
+          f"{len(findings)} open finding(s)", file=sys.stderr)
 
     vocab = read_file(resolve_campaign(asn_label).vocabulary_path)
 
@@ -213,45 +252,53 @@ def main():
             print(f"  Warning: consultation file not found: {args.consultation}",
                   file=sys.stderr)
             consultation_content = None
+        else:
+            print(f"  [CONSULTATION] {Path(args.consultation).name}",
+                  file=sys.stderr)
 
-    # Build prompt
     model_flag = {
         "opus": "claude-opus-4-7",
         "sonnet": "claude-sonnet-4-6",
     }.get(args.model, args.model)
 
-    print(f"  [REVISE] {asn_label} ({asn_path.name})", file=sys.stderr)
-    print(f"  [REVIEW] {review_path.name}", file=sys.stderr)
-    if consultation_content:
-        print(f"  [CONSULTATION] {Path(args.consultation).name}", file=sys.stderr)
-    asn_num = int(re.sub(r"[^0-9]", "", asn_label))
-    prompt = build_prompt(asn_path, review_content, vocab, consultation_content, asn_number=asn_num)
+    prompt = build_prompt(asn_path, findings, vocab, consultation_content,
+                          asn_number=asn_num)
     print(f"  Prompt: {len(prompt) // 1024}KB (~{len(prompt) // 4} tokens)",
           file=sys.stderr)
 
-    # Run
+    # Reviser invocations of decide.py / cite.py / retract.py / etc. read
+    # PROTOCOL_DOC_PATH and PROTOCOL_ASN_LABEL from environment. The
+    # comment id is passed per call via --comment-id since we close
+    # multiple comments in one session.
+    os.environ["PROTOCOL_DOC_PATH"] = note_rel
+    os.environ["PROTOCOL_ASN_LABEL"] = asn_label
+
     data, elapsed = invoke_claude(prompt, model=model_flag, effort=args.effort)
 
     if data is None:
         print("  Revision failed", file=sys.stderr)
         sys.exit(1)
 
-    # Log usage
     log_usage(asn_label, elapsed, data)
 
-    # Verify the ASN was modified
-    check = subprocess.run(
-        ["git", "diff", "--quiet", str(asn_path)],
-        cwd=str(WORKSPACE),
-    )
-    if check.returncode == 0:
-        print(f"  [CONVERGED] {asn_path.name} was not modified — "
-              f"review issues already addressed", file=sys.stderr)
-        print(str(asn_path))
-        sys.exit(2)  # distinct from error (1) — signals convergence
-    else:
-        print(f"  [OK] {asn_path.name}", file=sys.stderr)
+    # Report per-finding closure status. A finding is "closed" iff its
+    # comment now has an active resolution.
+    with default_store() as store:
+        remaining = collect_open_revises(store, note_rel)
+
+    closed_count = len(findings) - len(remaining)
+    print(f"  [CLOSED] {closed_count}/{len(findings)} comment(s) "
+          f"resolved this session", file=sys.stderr)
+
+    if remaining:
+        print(f"  [OPEN] {len(remaining)} comment(s) still need revision:",
+              file=sys.stderr)
+        for _, title, _ in remaining:
+            print(f"    - {title}", file=sys.stderr)
+
     print(str(asn_path))
+    if not remaining:
+        sys.exit(2)  # convergence signal
 
 
 if __name__ == "__main__":

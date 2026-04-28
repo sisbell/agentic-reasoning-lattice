@@ -6,10 +6,10 @@ Invoked when the reviser removes a dependency from a claim's md
 
     python scripts/retract.py --to <label>
 
-Reads `PROTOCOL_CLAIM_PATH` from environment (set by the protocol
+Reads `PROTOCOL_DOC_PATH` from environment (set by the protocol
 runner for the claim being revised). The label is resolved via the
 cross-ASN label index. The CLI looks up the existing citation from
-PROTOCOL_CLAIM_PATH to the labeled claim and files a retraction
+PROTOCOL_DOC_PATH to the labeled claim and files a retraction
 pointing at that specific citation link's id.
 
 Idempotent — re-running with the same args is a no-op. The substrate
@@ -39,9 +39,9 @@ def main():
     )
     args = parser.parse_args()
 
-    claim_path = os.environ.get("PROTOCOL_CLAIM_PATH")
+    claim_path = os.environ.get("PROTOCOL_DOC_PATH")
     if not claim_path:
-        print("error: PROTOCOL_CLAIM_PATH env var not set", file=sys.stderr)
+        print("error: PROTOCOL_DOC_PATH env var not set", file=sys.stderr)
         return 1
 
     store = default_store()

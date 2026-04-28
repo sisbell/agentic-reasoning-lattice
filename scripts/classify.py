@@ -6,7 +6,7 @@ kind of contract it is (axiom, theorem, definition, etc.):
 
     python scripts/classify.py --kind axiom
 
-Reads `PROTOCOL_CLAIM_PATH` from environment (set by `revise.py` for the
+Reads `PROTOCOL_DOC_PATH` from environment (set by `revise.py` for the
 claim being revised — but for new-claim creation, the reviser sets it
 to the new claim's md path before calling). Idempotent — re-running
 with the same args is a no-op.
@@ -34,9 +34,9 @@ def main():
     )
     args = parser.parse_args()
 
-    claim_path = os.environ.get("PROTOCOL_CLAIM_PATH")
+    claim_path = os.environ.get("PROTOCOL_DOC_PATH")
     if not claim_path:
-        print("error: PROTOCOL_CLAIM_PATH env var not set", file=sys.stderr)
+        print("error: PROTOCOL_DOC_PATH env var not set", file=sys.stderr)
         return 1
 
     store = default_store()

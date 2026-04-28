@@ -31,7 +31,7 @@ For each finding of the form `uses '<symbol>' but does not depend on its owner '
 
 1. Add the citation by running:
 
-       PROTOCOL_CLAIM_PATH=<path-to-the-claim-md> python scripts/cite.py --to <owner>
+       PROTOCOL_DOC_PATH=<path-to-the-claim-md> python scripts/cite.py --to <owner>
 
    Where `<path-to-the-claim-md>` is the file shown under "File to fix"
    above, and `<owner>` is the owner label from the finding (e.g.,

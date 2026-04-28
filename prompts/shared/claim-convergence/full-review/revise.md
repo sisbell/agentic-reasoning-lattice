@@ -84,7 +84,7 @@ instead "the state satisfies..."
    `*Axiom:*` or `*Definition:*` field, or reframing a derived result
    as a posit — re-classify the claim by running:
 
-       PROTOCOL_CLAIM_PATH=<path-to-the-claim-md> python scripts/classify.py --kind <new>
+       PROTOCOL_DOC_PATH=<path-to-the-claim-md> python scripts/classify.py --kind <new>
 
    `<new>` is one of `axiom`, `definition`, `theorem`, `lemma`,
    `corollary`, `consequence`, `design-requirement` — match the new
@@ -118,9 +118,9 @@ instead "the state satisfies..."
    After writing the file, emit the new claim's substrate attribute
    links and classifier by running:
 
-       PROTOCOL_CLAIM_PATH=<path-to-the-new-md-file> python scripts/label.py --to <label>
-       PROTOCOL_CLAIM_PATH=<path-to-the-new-md-file> python scripts/name.py --to <name>
-       PROTOCOL_CLAIM_PATH=<path-to-the-new-md-file> python scripts/classify.py --kind <kind>
+       PROTOCOL_DOC_PATH=<path-to-the-new-md-file> python scripts/label.py --to <label>
+       PROTOCOL_DOC_PATH=<path-to-the-new-md-file> python scripts/name.py --to <name>
+       PROTOCOL_DOC_PATH=<path-to-the-new-md-file> python scripts/classify.py --kind <kind>
 
    `label.py` writes `<stem>.label.md` (whose first line is the label
    string, equal to the filename stem) and files the substrate `label`

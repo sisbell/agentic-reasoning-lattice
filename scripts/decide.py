@@ -6,11 +6,17 @@ Invoked at the end of a revise session:
     python scripts/decide.py accept
     python scripts/decide.py reject --rationale "<one or two sentences>"
 
-Reads context from environment variables (set by the orchestrator before
-spawning the reviser):
+When a single revise session closes multiple findings (note convergence
+sets up env once and the agent iterates), the comment id can be passed
+per call:
+
+    python scripts/decide.py accept --comment-id l_abc123
+
+Otherwise reads context from environment variables (set by the
+orchestrator before spawning the reviser):
 
     PROTOCOL_COMMENT_ID    — the comment link being closed
-    PROTOCOL_CLAIM_PATH    — the claim md path (repo-relative)
+    PROTOCOL_DOC_PATH      — the doc md path (repo-relative)
     PROTOCOL_ASN_LABEL     — the ASN label (for rationale doc placement)
 
 On reject, materializes the rationale document under
@@ -30,11 +36,12 @@ from store.store import default_store
 from store.decide import emit_decision
 
 
-REQUIRED_ENV = ("PROTOCOL_COMMENT_ID", "PROTOCOL_CLAIM_PATH", "PROTOCOL_ASN_LABEL")
-
-
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--comment-id", dest="comment_id",
+        help="Comment link id to close (overrides PROTOCOL_COMMENT_ID env).",
+    )
     sub = parser.add_subparsers(dest="action", required=True)
     sub.add_parser("accept")
     p_reject = sub.add_parser("reject")
@@ -44,20 +51,24 @@ def main():
     )
     args = parser.parse_args()
 
-    for name in REQUIRED_ENV:
-        if not os.environ.get(name):
-            print(f"error: {name} env var not set", file=sys.stderr)
-            return 1
-
-    comment_id = os.environ["PROTOCOL_COMMENT_ID"]
-    claim_path = os.environ["PROTOCOL_CLAIM_PATH"]
-    asn_label = os.environ["PROTOCOL_ASN_LABEL"]
+    comment_id = args.comment_id or os.environ.get("PROTOCOL_COMMENT_ID")
+    doc_path = os.environ.get("PROTOCOL_DOC_PATH")
+    asn_label = os.environ.get("PROTOCOL_ASN_LABEL")
+    if not comment_id:
+        print("error: --comment-id or PROTOCOL_COMMENT_ID required", file=sys.stderr)
+        return 1
+    if not doc_path:
+        print("error: PROTOCOL_DOC_PATH env var not set", file=sys.stderr)
+        return 1
+    if not asn_label:
+        print("error: PROTOCOL_ASN_LABEL env var not set", file=sys.stderr)
+        return 1
 
     store = default_store()
     try:
         try:
             link_id = emit_decision(
-                store, args.action, comment_id, claim_path, asn_label,
+                store, args.action, comment_id, doc_path, asn_label,
                 rationale=getattr(args, "rationale", None),
             )
         except (KeyError, ValueError) as e:
