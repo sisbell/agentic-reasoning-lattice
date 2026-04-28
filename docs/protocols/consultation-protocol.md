@@ -264,7 +264,7 @@ Note convergence is the downstream protocol that detects what consultation faile
 
 - [Two-Channel Architecture](../two-channel-architecture.md) — narrative description of channels, vocabulary firewall, channel asymmetry, synthesis, channel plugin interface.
 - [Note Convergence Protocol](note-convergence-protocol.md) — the downstream consumer. Refines the note this protocol produces.
-- [Claim Derivation Protocol](claim-derivation-protocol.md) — the protocol that operates on the note after convergence, decomposing it into per-claim files.
+- [Claim Derivation Module](claim-derivation-module.md) — the protocol that operates on the note after convergence, decomposing it into per-claim files.
 - [Convergence Protocol](convergence-protocol.md) — the document-type-neutral module note convergence specializes (consultation does not specialize it; production protocols and convergence protocols share the substrate but not the predicate).
 - [Maturation Protocol](maturation-protocol.md) — composes consultation and note convergence within discovery.
 - [The Voice Principle](../principles/voice.md) — synthesizer's output discipline.

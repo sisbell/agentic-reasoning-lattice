@@ -164,7 +164,7 @@ Substrate
   ↑ used by
 Convergence Protocol ─── Note Convergence ─── Claim Convergence
 Consultation Protocol
-Claim Derivation Protocol
+Claim Derivation Module
 Maturation Protocol
 ```
 

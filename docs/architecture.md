@@ -136,7 +136,7 @@ Each stage operates on the same content in a progressively more precise represen
 
 - The [consultation protocol](protocols/consultation-protocol.md) produces the initial note from a campaign-bound inquiry. Two channels consulted under enforced vocabulary separation; output synthesized into a note. One-shot.
 - The [note convergence protocol](protocols/note-convergence-protocol.md) drives notes toward stability during discovery. Findings classified as `comment.revise` or `comment.out-of-scope`. OUT_OF_SCOPE signals feed lattice operations in the maturation protocol.
-- The [claim derivation protocol](protocols/claim-derivation-protocol.md) decomposes a converged note into per-claim file pairs satisfying the [Claim File Contract](design-notes/claim-file-contract.md). One-shot.
+- The [claim derivation module](protocols/claim-derivation-module.md) decomposes a converged note into per-claim file pairs satisfying the [Claim File Contract](design-notes/claim-file-contract.md). One-shot.
 - The [claim convergence protocol](protocols/claim-convergence-protocol.md) drives claims toward formal precision after claim derivation. Findings classified as `comment.revise` or `comment.observe`. OBSERVE is the off-ramp for the [production drive](design-notes/production-drive.md).
 
 Both convergence protocols specialize the [convergence protocol](protocols/convergence-protocol.md) — a document-type-neutral module providing the shared predicate, link types, and properties. "Verification" refers exclusively to the external-verifier stage (Dafny/Alloy in software; experimental replication in science).

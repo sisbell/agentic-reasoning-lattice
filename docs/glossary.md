@@ -84,7 +84,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 ## D
 
-**Decomposition (link type).** A substrate `provenance.derivation` link records that claim derivation produced a claim from a note. From = note, to = claim. Provenance trail from a note to each of its decomposed claim files. Filed by the claim derivation protocol. Sibling of `provenance.synthesis`, `provenance.extract`, `provenance.absorb`, `provenance.reset`. See [Claim Derivation Protocol](protocols/claim-derivation-protocol.md).
+**Decomposition (link type).** A substrate `provenance.derivation` link records that claim derivation produced a claim from a note. From = note, to = claim. Provenance trail from a note to each of its decomposed claim files. Filed by the claim derivation module. Sibling of `provenance.synthesis`, `provenance.extract`, `provenance.absorb`, `provenance.reset`. See [Claim Derivation Module](protocols/claim-derivation-module.md).
 
 **Definition.** A claim classified as introducing named concepts or operations.
 
@@ -200,7 +200,7 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 
 **Note convergence.** The protocol that drives notes to convergence through review/revise cycles within discovery. Specializes the [convergence protocol](#c) with `note` classifier, `citation` link type (note→note dependencies), and `comment.out-of-scope` subtype. Finding classification is REVISE / OUT_OF_SCOPE — there is no OBSERVE at this scale. Out-of-scope findings signal the [maturation protocol](#m) that adjacent material is missing or misplaced. See [Note Convergence Protocol](protocols/note-convergence-protocol.md).
 
-**Claim derivation.** The stage protocol that decomposes a converged note into per-claim file pairs (YAML metadata + Markdown body) conforming to the [Claim File Contract](#c). [Production-shaped](#p) — one-shot, terminates when the structural contract holds. The boundary between note convergence and claim convergence; a [representation change](patterns/representation-change.md) (one note → many claim files). See [Claim Derivation](claim-derivation.md); protocol details in [Claim Derivation Protocol](protocols/claim-derivation-protocol.md).
+**Claim derivation.** The stage protocol that decomposes a converged note into per-claim file pairs (YAML metadata + Markdown body) conforming to the [Claim File Contract](#c). [Production-shaped](#p) — one-shot, terminates when the structural contract holds. The boundary between note convergence and claim convergence; a [representation change](patterns/representation-change.md) (one note → many claim files). See [Claim Derivation](claim-derivation.md); protocol details in [Claim Derivation Module](protocols/claim-derivation-module.md).
 
 ## O
 

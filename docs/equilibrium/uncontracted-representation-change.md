@@ -31,7 +31,7 @@ A post-hoc analysis found that roughly three-quarters of the sweep's findings we
 
 **Reference the contract in prompts.** The review and revise prompts for stages operating on the structured output name the contract's rules. The reviewer can flag root causes ("this body exists in two files") rather than symptoms ("this definition appears twice"). The reviser can check for canonical homes before inlining content.
 
-The first instance is the claim derivation output contract, documented at [Claim File Contract](../design-notes/claim-file-contract.md). The operational pattern that runs the validator and applies fixes is [Validate Before Review](../patterns/validate-before-review.md); the design commitment behind it is the [Validation Principle](../principles/validation.md). The [claim derivation protocol](../protocols/claim-derivation-protocol.md) specifies this contract as safety property B5.
+The first instance is the claim derivation output contract, documented at [Claim File Contract](../design-notes/claim-file-contract.md). The operational pattern that runs the validator and applies fixes is [Validate Before Review](../patterns/validate-before-review.md); the design commitment behind it is the [Validation Principle](../principles/validation.md). The [claim derivation module](../protocols/claim-derivation-module.md) specifies this contract as safety property B5.
 
 ## Related
 
@@ -41,4 +41,4 @@ The first instance is the claim derivation output contract, documented at [Claim
 - [The Coupling Principle](../principles/coupling.md) — addresses content health within a file. Uncontracted Representation Change addresses structural health across files. Neither subsumes the other.
 - [The Validation Principle](../principles/validation.md) — the design commitment that preventing this failure mode falls under. Every representation must have a structural contract and validation before review.
 - [Validate Before Review](../patterns/validate-before-review.md) — the operational pattern that resolves this failure mode once a contract exists. The validator checks the contract; per-invariant revise recipes fix the violations.
-- [Claim Derivation Protocol](../protocols/claim-derivation-protocol.md) — the protocol whose structural contract (B5) is the first instance of this resolution.
+- [Claim Derivation Module](../protocols/claim-derivation-module.md) — the protocol whose structural contract (B5) is the first instance of this resolution.

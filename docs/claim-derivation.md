@@ -30,7 +30,7 @@ The [Claim File Contract](design-notes/claim-file-contract.md) specifies what we
 
 ## Decomposition as progressive refinement
 
-The [claim derivation protocol](protocols/claim-derivation-protocol.md) works in layers, each adding detail the previous layer could not see.
+The [claim derivation module](protocols/claim-derivation-module.md) works in layers, each adding detail the previous layer could not see.
 
 First, a mechanical split on section headers. No judgment — just string splitting. This produces sections of manageable size, each isolable. The split is mechanical because section boundaries are reliable markdown structure — burning an LLM call on what string splitting already solves would add cost and non-determinism for zero gain.
 
@@ -71,7 +71,7 @@ These are not bugs. They're the natural result of writing to understand rather t
 
 ## Related
 
-- [Claim Derivation Protocol](protocols/claim-derivation-protocol.md) — the formal protocol specification with safety/liveness properties, algorithm, and correctness arguments.
+- [Claim Derivation Module](protocols/claim-derivation-module.md) — the formal protocol specification with safety/liveness properties, algorithm, and correctness arguments.
 - [Claim File Contract](design-notes/claim-file-contract.md) — the structural contract the output must satisfy.
 - [Claim Convergence](claim-convergence.md) — the next stage: driving claims to formal precision.
 - [Discovery](discovery.md) — the previous stage: producing the notes that enter decomposition.

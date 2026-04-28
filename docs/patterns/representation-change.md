@@ -49,7 +49,7 @@ Together they produce what claim convergence needs: small, structured, independe
 
 ### Discovery → claim derivation
 
-Narrative prose → per-claim YAML/MD pairs. The largest representation gap in the system. Handled by progressive decomposition: mechanical section split → per-section claim identification → per-claim classification and enrichment → disassembly into file pairs → validation. See the [claim derivation protocol](../protocols/claim-derivation-protocol.md) for the formal specification.
+Narrative prose → per-claim YAML/MD pairs. The largest representation gap in the system. Handled by progressive decomposition: mechanical section split → per-section claim identification → per-claim classification and enrichment → disassembly into file pairs → validation. See the [claim derivation module](../protocols/claim-derivation-module.md) for the formal specification.
 
 ### Claim convergence → verification
 

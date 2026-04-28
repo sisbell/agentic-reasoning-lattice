@@ -66,7 +66,7 @@ Listed by pipeline position. The shape of each is one-line:
 
 ### Claim derivation → claim convergence
 
-- **[Claim Derivation Protocol](claim-derivation-protocol.md)** — *production*; one-shot, terminates when the structural contract holds. Decomposes a converged note into per-claim file pairs (YAML metadata + Markdown body) conforming to the [Claim File Contract](../design-notes/claim-file-contract.md). Safety properties: source coverage, no fabrication, content preservation, source freezing, structural contract, acyclicity, provenance recording. Stage transition (changes representation: one note → many claim files), not a producer-consumer pair. The output enters claim convergence.
+- **[Claim Derivation Module](claim-derivation-module.md)** — *production*; one-shot, terminates when the structural contract holds. Decomposes a converged note into per-claim file pairs (YAML metadata + Markdown body) conforming to the [Claim File Contract](../design-notes/claim-file-contract.md). Safety properties: source coverage, no fabrication, content preservation, source freezing, structural contract, acyclicity, provenance recording. Stage transition (changes representation: one note → many claim files), not a producer-consumer pair. The output enters claim convergence.
 
 - **[Claim Convergence Protocol](claim-convergence-protocol.md)** — *convergence*; iterative, terminates when the predicate holds. Drives claims to formal precision. Specializes the convergence protocol with `claim` classifier, `contract.<kind>` link types, `citation` (claim→claim), and structural validation. Includes the iterative algorithm and its correctness arguments.
 
@@ -88,7 +88,7 @@ For someone new to the protocols, reading bottom-up tracks the actual dependency
 2. **[Agent Module](agent.md)** — the identity layer extending the substrate for the agent paradigm. Short module; introduces `agent` and `manages` and the per-asserter ordering rule cited via T9.
 3. **[Convergence Protocol](convergence-protocol.md)** — the shared foundation. Once this is clear, both convergence-shaped specializations are straightforward.
 4. **[Note Convergence Protocol](note-convergence-protocol.md)** or **[Claim Convergence Protocol](claim-convergence-protocol.md)** — pick whichever scale matches your interest. They're independent specializations of the foundation.
-5. **[Consultation Protocol](consultation-protocol.md)** and **[Claim Derivation Protocol](claim-derivation-protocol.md)** — the production-shaped protocols. Easier to read after you know what convergence looks like, since these produce input for it.
+5. **[Consultation Protocol](consultation-protocol.md)** and **[Claim Derivation Module](claim-derivation-module.md)** — the production-shaped protocols. Easier to read after you know what convergence looks like, since these produce input for it.
 6. **[Maturation Protocol](maturation-protocol.md)** — composition over the pipeline. Easier to read after the stage protocols are familiar.
 
 For someone already familiar with the system's behavior, top-down works too: maturation explains the pipeline; stage protocols explain how each stage drives toward its predicate or contract; the convergence module factors out what the convergence-shaped protocols share.
