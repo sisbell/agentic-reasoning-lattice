@@ -22,7 +22,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, prompt_path, next_review_number
+from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, CLAIM_DIR, prompt_path, next_review_number
 from lib.shared.common import find_asn, invoke_claude, parallel_llm_calls, step_commit_asn, build_label_index, aggregate_vocabulary
 from lib.claim_convergence.assembly.validate_contracts import validate_contract
 from lib.claim_convergence.converge.produce_contract import _has_formal_contract
@@ -61,19 +61,20 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
     print(f"\n  [CONTRACT-REVIEW] {asn_label}", file=sys.stderr)
 
     review_dir = CLAIM_CONVERGENCE_DIR / asn_label / "reviews"
-    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
+    cc_dir = CLAIM_CONVERGENCE_DIR / asn_label
+    claim_dir = CLAIM_DIR / asn_label
     if not claim_dir.exists():
-        print(f"  No claim-convergence directory for {asn_label}", file=sys.stderr)
+        print(f"  No claim doc directory for {asn_label}", file=sys.stderr)
         return "failed"
 
     label_index = build_label_index(claim_dir)
     _filename_to_label = {f"{stem}.md": lbl for lbl, stem in label_index.items()}
     print(f"  Directory: {claim_dir.relative_to(WORKSPACE)}", file=sys.stderr)
 
-    # Load vocabulary from per-claim YAMLs
     vocabulary = aggregate_vocabulary(claim_dir)
 
-    cache_path = claim_dir / "_contract-cache.json"
+    cc_dir.mkdir(parents=True, exist_ok=True)
+    cache_path = cc_dir / "_contract-cache.json"
     validated_hashes = {} if force else _load_cache(cache_path)
 
     start_time = time.time()

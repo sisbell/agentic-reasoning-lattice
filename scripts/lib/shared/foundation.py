@@ -12,7 +12,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, MANIFESTS_DIR
+from lib.shared.paths import WORKSPACE, CLAIM_DIR, MANIFESTS_DIR
 from lib.shared.common import build_label_index, load_claim_metadata
 
 
@@ -56,7 +56,7 @@ def _load_claim_statement(dep_asn_num, label):
     Returns formatted section text or None if not found.
     """
     asn_label = f"ASN-{int(dep_asn_num):04d}"
-    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
+    claim_dir = CLAIM_DIR / asn_label
     if not claim_dir.exists():
         return None
 
@@ -121,9 +121,9 @@ def load_foundation_statements(asn_id, dep_ids=None):
     sections = []
     for dep_id in all_dep_ids:
         asn_label = f"ASN-{int(dep_id):04d}"
-        claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
+        claim_dir = CLAIM_DIR / asn_label
         if not claim_dir.exists():
-            print(f"  [ERROR] No claim-convergence dir for {asn_label}",
+            print(f"  [ERROR] No claim doc dir for {asn_label}",
                   file=sys.stderr)
             continue
 
@@ -160,7 +160,8 @@ def load_foundation_for_note(asn_path, asn_id):
     """
     from lib.store.populate import note_dep_asn_ids
     from lib.store.store import default_store
-    note_rel = str(asn_path.resolve().relative_to(Path(WORKSPACE).resolve()))
+    from lib.shared.paths import LATTICE
+    note_rel = str(asn_path.resolve().relative_to(Path(LATTICE).resolve()))
     with default_store() as store:
         dep_ids = note_dep_asn_ids(store, note_rel)
     return load_foundation_statements(asn_id, dep_ids=dep_ids)

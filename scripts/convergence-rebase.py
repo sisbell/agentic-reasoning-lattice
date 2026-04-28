@@ -20,7 +20,7 @@ from collections import defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, next_review_number
+from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, CLAIM_DIR, next_review_number
 from lib.shared.common import find_asn, step_commit_asn
 from lib.claim_convergence.core.build_dependency_graph import generate_discovery_deps
 from lib.claim_convergence.rebase.review import run_review
@@ -56,7 +56,7 @@ def _apply_name_fixes(asn_num, findings):
     if asn_label is None:
         return set()
 
-    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
+    claim_dir = CLAIM_DIR / asn_label
     if not claim_dir.exists():
         return set()
 

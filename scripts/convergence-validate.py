@@ -35,6 +35,7 @@ import yaml  # for lattices/xanadu/symbol-owners.yaml only; no claim yaml is rea
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
 from shared.common import find_asn
+from shared.paths import CLAIM_DIR
 from store.store import Store
 from store.populate import build_cross_asn_label_index
 from store.queries import current_contract_kind, active_links
@@ -137,8 +138,7 @@ def _load_symbol_config():
 
 
 def claim_convergence_dir(asn_label):
-    repo_root = Path(__file__).resolve().parent.parent
-    return repo_root / "lattices" / "xanadu" / "claim-convergence" / asn_label
+    return CLAIM_DIR / asn_label
 
 
 def line_of_offset(text, offset):

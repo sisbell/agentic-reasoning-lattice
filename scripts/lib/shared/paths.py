@@ -82,6 +82,7 @@ AGENT_DIR = STORE_DOCS_DIR / "agent"
 CAMPAIGN_DIR = STORE_DOCS_DIR / "campaign"
 INQUIRY_DIR = STORE_DOCS_DIR / "inquiry"
 NOTE_DIR = STORE_DOCS_DIR / "note"
+CLAIM_DIR = STORE_DOCS_DIR / "claim"
 
 # Findings split by inquiry-target kind: claim convergence vs note convergence.
 # Each kind owns its own ASN namespace under documents/findings/, so review
@@ -126,6 +127,19 @@ def consultation_dir(asn):
     if isinstance(asn, str) and asn.startswith("ASN-"):
         return CONSULTATIONS_DIR / asn
     return CONSULTATIONS_DIR / f"ASN-{int(asn):04d}"
+
+
+def claim_docs_dir(asn):
+    """Per-ASN claim files directory under the substrate document store.
+
+    Accepts int or ASN-NNNN label. Holds the per-claim body markdown plus
+    `<stem>.{label,name,description}.md` sidecars. Reviews, caches, and
+    structural section files stay alongside under
+    `claim-convergence/<asn>/` (work products, not substrate-managed).
+    """
+    if isinstance(asn, str) and asn.startswith("ASN-"):
+        return CLAIM_DIR / asn
+    return CLAIM_DIR / f"ASN-{int(asn):04d}"
 
 
 def note_yaml(asn_num):

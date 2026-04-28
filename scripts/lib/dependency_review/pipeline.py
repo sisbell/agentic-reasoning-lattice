@@ -21,7 +21,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import (WORKSPACE, CLAIM_CONVERGENCE_DIR, USAGE_LOG,
+from lib.shared.paths import (WORKSPACE, CLAIM_CONVERGENCE_DIR, CLAIM_DIR, USAGE_LOG,
                     prompt_path, next_review_number)
 from lib.shared.common import find_asn, read_file, assemble_readonly, step_commit_asn
 from lib.shared.foundation import claim_asn_dep_ids, load_foundation_for_claim_asn
@@ -102,7 +102,7 @@ def revise_report(asn_num, report_text):
         return False
 
     # Point agent at claim-convergence directory if available
-    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
+    claim_dir = CLAIM_DIR / asn_label
     if claim_dir.exists():
         rel_path = claim_dir.relative_to(WORKSPACE)
     else:

@@ -23,7 +23,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, next_review_number
+from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, CLAIM_DIR, next_review_number
 from lib.shared.common import find_asn, step_commit_asn, build_label_index, parallel_llm_calls
 from lib.claim_convergence.core.build_dependency_graph import generate_claim_convergence_deps
 from lib.claim_convergence.core.topological_sort import topological_sort_labels, topological_levels
@@ -71,15 +71,17 @@ def run_formalize(asn_num, max_cycles=5, mode="incremental",
     print(f"\n  [FORMALIZE] {asn_label}", file=sys.stderr)
 
     review_dir = CLAIM_CONVERGENCE_DIR / asn_label / "reviews"
-    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
+    cc_dir = CLAIM_CONVERGENCE_DIR / asn_label
+    claim_dir = CLAIM_DIR / asn_label
     if not claim_dir.exists():
-        print(f"  No claim-convergence directory for {asn_label}", file=sys.stderr)
+        print(f"  No claim doc directory for {asn_label}", file=sys.stderr)
         print(f"  Run: python scripts/promote-blueprint.py {asn_num}",
               file=sys.stderr)
         return "failed"
 
     _label_index = build_label_index(claim_dir)
-    cache_path = claim_dir / "_cache.json"
+    cc_dir.mkdir(parents=True, exist_ok=True)
+    cache_path = cc_dir / "_cache.json"
     cache = _load_cache(cache_path)
     print(f"  Directory: {claim_dir.relative_to(WORKSPACE)}", file=sys.stderr)
 

@@ -29,7 +29,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import (
-    WORKSPACE, LATTICE, CLAIM_CONVERGENCE_DIR, CLAIM_FINDINGS_DIR,
+    WORKSPACE, LATTICE, CLAIM_CONVERGENCE_DIR, CLAIM_DIR, CLAIM_FINDINGS_DIR,
     next_review_number, review_meta_path,
 )
 from lib.shared.common import find_asn, assemble_readonly, step_commit_asn
@@ -63,7 +63,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
 
     print(f"\n  [FULL-REVIEW] {asn_label}", file=sys.stderr)
 
-    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
+    claim_dir = CLAIM_DIR / asn_label
     if not claim_dir.exists():
         print(f"  No claim-convergence directory for {asn_label}", file=sys.stderr)
         return "failed"
@@ -304,7 +304,7 @@ def run_revise_from_review(asn_num, review_spec):
         print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
         return False
 
-    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
+    claim_dir = CLAIM_DIR / asn_label
     if not claim_dir.exists():
         print(f"  No claim-convergence directory for {asn_label}", file=sys.stderr)
         return False
@@ -373,7 +373,7 @@ def main():
     if args.cone:
         # Force regional review — load deps from YAML, skip detection
         _, asn_label = find_asn(str(asn_num))
-        claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
+        claim_dir = CLAIM_DIR / asn_label
         from lib.shared.common import load_claim_metadata, build_label_index
         asn_labels = set(build_label_index(claim_dir).keys())
         meta = load_claim_metadata(claim_dir, label=args.cone)

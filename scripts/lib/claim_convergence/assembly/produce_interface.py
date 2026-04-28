@@ -11,7 +11,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, formal_stmts, note_dir
+from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, CLAIM_DIR, formal_stmts, note_dir
 from lib.shared.common import find_asn, build_label_index, load_claim_metadata
 from lib.shared.foundation import _extract_formal_contract
 
@@ -29,7 +29,7 @@ def assemble_formal_statements(asn_num):
         print(f"  [ASSEMBLE] ASN-{asn_num:04d} not found", file=sys.stderr)
         return None
 
-    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
+    claim_dir = CLAIM_DIR / asn_label
     if not claim_dir.exists():
         print(f"  [ASSEMBLE] No claim-convergence directory for {asn_label}",
               file=sys.stderr)

@@ -13,7 +13,7 @@ import yaml
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import (
     WORKSPACE, NOTE_DIR, USAGE_LOG,
-    REVIEWS_DIR, BLUEPRINTS_DIR, CLAIM_CONVERGENCE_DIR,
+    REVIEWS_DIR, BLUEPRINTS_DIR, CLAIM_CONVERGENCE_DIR, CLAIM_DIR,
     CONSULTATIONS_DIR, MANIFESTS_DIR, EXAMPLES_DIR,
     CLAIM_FINDINGS_DIR, NOTE_FINDINGS_DIR, RATIONALE_DIR, STORE_LOG,
 )
@@ -94,8 +94,9 @@ def load_claim_metadata(claim_dir, label=None):
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
     from lib.store.store import Store
     from lib.store.queries import current_contract_kind
+    from lib.shared.paths import LATTICE
 
-    workspace = Path(WORKSPACE).resolve()
+    lattice = Path(LATTICE).resolve()
 
     def _build(store, stem):
         result = {"label": stem}
@@ -106,7 +107,7 @@ def load_claim_metadata(claim_dir, label=None):
         if desc:
             result["summary"] = desc
         md_rel = str(
-            (claim_dir / f"{stem}.md").resolve().relative_to(workspace)
+            (claim_dir / f"{stem}.md").resolve().relative_to(lattice)
         )
         kind = current_contract_kind(store, md_rel)
         if kind:
@@ -392,24 +393,29 @@ def assemble_readonly(asn_label):
     Returns assembled text (preamble + structural sections + claims).
     Used by cross-cutting scripts that need the whole-ASN view.
     """
-    from lib.shared.paths import CLAIM_CONVERGENCE_DIR
+    from lib.shared.paths import CLAIM_CONVERGENCE_DIR, CLAIM_DIR
 
-    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
-    if not claim_dir.exists():
-        return ""
+    cc_dir = CLAIM_CONVERGENCE_DIR / asn_label
+    docs_dir = CLAIM_DIR / asn_label
 
     parts = []
 
-    # Structural files first
-    for f in sorted(claim_dir.glob("_*.md")):
-        parts.append(f.read_text().strip())
-
-    # Claim files alphabetically
-    for f in sorted(claim_dir.glob("*.md")):
-        if not f.name.startswith("_"):
+    # Structural files (preamble, worked example, vocabulary, etc.)
+    # live alongside reviews/caches as work products.
+    if cc_dir.exists():
+        for f in sorted(cc_dir.glob("_*.md")):
             parts.append(f.read_text().strip())
 
-    return "\n\n---\n\n".join(parts)
+    # Claim body files live in the substrate document store.
+    if docs_dir.exists():
+        for f in sorted(docs_dir.glob("*.md")):
+            if f.name.startswith("_"):
+                continue
+            if f.name.endswith((".label.md", ".name.md", ".description.md")):
+                continue
+            parts.append(f.read_text().strip())
+
+    return "\n\n---\n\n".join(parts) if parts else ""
 
 
 def load_claim_sections(claim_dir):
@@ -524,6 +530,7 @@ def stage_asn_files(label):
         REVIEWS_DIR / label,
         BLUEPRINTS_DIR / label,
         CLAIM_CONVERGENCE_DIR / label,
+        CLAIM_DIR / label,
         CONSULTATIONS_DIR / label,
         MANIFESTS_DIR / label,
         EXAMPLES_DIR / label,

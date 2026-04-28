@@ -23,7 +23,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, prompt_path
+from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, CLAIM_DIR, prompt_path
 from lib.shared.common import (
     find_asn, build_label_index, load_claim_metadata,
     dump_yaml, invoke_claude, step_commit_asn,
@@ -125,14 +125,16 @@ def run_summarize(asn_num, force=False, dry_run=False):
         print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
         return False
 
-    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
+    claim_dir = CLAIM_DIR / asn_label
+    cc_dir = CLAIM_CONVERGENCE_DIR / asn_label
     if not claim_dir.exists():
-        print(f"  No claim-convergence directory for {asn_label}", file=sys.stderr)
+        print(f"  No claim doc directory for {asn_label}", file=sys.stderr)
         return False
 
     label_index = build_label_index(claim_dir)
     all_metadata = load_claim_metadata(claim_dir)
-    cache_path = claim_dir / "_summary-cache.json"
+    cc_dir.mkdir(parents=True, exist_ok=True)
+    cache_path = cc_dir / "_summary-cache.json"
     cache = {} if force else _load_cache(cache_path)
 
     print(f"\n  [SUMMARIZE] {asn_label} — {len(all_metadata)} claims",

@@ -29,7 +29,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import (WORKSPACE, CLAIM_CONVERGENCE_DIR, DAFNY_DIR, USAGE_LOG,
+from lib.shared.paths import (WORKSPACE, CLAIM_CONVERGENCE_DIR, CLAIM_DIR, DAFNY_DIR, USAGE_LOG,
                     LATTICE_PROMPTS, prompt_path)
 from lib.shared.common import find_asn, parallel_llm_calls, build_label_index
 from lib.claim_convergence.core.build_dependency_graph import generate_claim_convergence_deps
@@ -111,7 +111,7 @@ def main():
 
     asn_number = int(re.sub(r"[^0-9]", "", str(args.asn)))
     asn_label = f"ASN-{asn_number:04d}"
-    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
+    claim_dir = CLAIM_DIR / asn_label
     if not claim_dir.exists():
         print(f"  No claim-convergence directory for {asn_label}",
               file=sys.stderr)

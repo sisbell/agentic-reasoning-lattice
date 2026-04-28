@@ -22,7 +22,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import CLAIM_CONVERGENCE_DIR, prompt_path, formal_stmts, dep_graph
+from lib.shared.paths import CLAIM_CONVERGENCE_DIR, CLAIM_DIR, prompt_path, formal_stmts, dep_graph
 from lib.shared.common import find_asn, assemble_readonly, read_file
 from lib.shared.foundation import claim_asn_dep_ids, load_foundation_for_claim_asn
 from lib.claim_convergence.core.build_dependency_graph import generate_discovery_deps
@@ -638,7 +638,7 @@ def _check_cross_references(asn_num, target_labels=None):
     all_labels = list(deps_data.get("claims", {}).keys())
 
     # Read per-claim files if available
-    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
+    claim_dir = CLAIM_DIR / asn_label
     if claim_dir.exists():
         from lib.shared.common import load_claim_sections
         local_sections = load_claim_sections(claim_dir)

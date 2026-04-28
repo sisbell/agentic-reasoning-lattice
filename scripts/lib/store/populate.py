@@ -15,18 +15,18 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import CLAIM_CONVERGENCE_DIR, LATTICE
+from lib.shared.paths import CLAIM_DIR, LATTICE
 
 
-def populate_structural(store, claim_convergence_dir=None):
+def populate_structural(store, claim_root_dir=None):
     """Walk every ASN and ensure structural links exist in the store.
 
     Returns a stats dict:
         claims_seen, claims_added, contracts_added,
         citations_seen, citations_added, unresolved_labels
     """
-    claim_convergence_dir = Path(claim_convergence_dir) if claim_convergence_dir else CLAIM_CONVERGENCE_DIR
-    label_index = build_cross_asn_label_index(claim_convergence_dir)
+    claim_root_dir = Path(claim_root_dir) if claim_root_dir else CLAIM_DIR
+    label_index = build_cross_asn_label_index(claim_root_dir)
 
     stats = {
         "claims_seen": 0,
@@ -37,7 +37,7 @@ def populate_structural(store, claim_convergence_dir=None):
         "unresolved_labels": [],
     }
 
-    for asn_dir in sorted(p for p in claim_convergence_dir.iterdir() if p.is_dir()):
+    for asn_dir in sorted(p for p in claim_root_dir.iterdir() if p.is_dir()):
         for yaml_path in sorted(asn_dir.glob("*.yaml")):
             if yaml_path.name.startswith("_"):
                 continue
@@ -52,8 +52,8 @@ def populate_structural(store, claim_convergence_dir=None):
     return stats
 
 
-def build_cross_asn_label_index(claim_convergence_dir=None, store=None):
-    """Return {label: repo-relative md path} across every ASN.
+def build_cross_asn_label_index(claim_root_dir=None, store=None):
+    """Return {label: lattice-relative md path} across every ASN.
 
     Sources from substrate `label` links when a `store` is provided —
     the canonical post-migration path. Falls back to walking `*.yaml`
@@ -66,7 +66,7 @@ def build_cross_asn_label_index(claim_convergence_dir=None, store=None):
     """
     if store is not None:
         return _build_label_index_from_substrate(store)
-    return _build_label_index_from_yaml(claim_convergence_dir)
+    return _build_label_index_from_yaml(claim_root_dir)
 
 
 def build_note_label_index(store):
@@ -95,24 +95,22 @@ def is_note_path(doc_path):
     return "/_store/documents/note/" in rel or rel.startswith("_store/documents/note/")
 
 
-def aggregate_asn_deps(store, asn_label, claim_convergence_dir=None):
+def aggregate_asn_deps(store, asn_label, claim_root_dir=None):
     """Cross-ASN ASN ids derived from per-claim citations.
 
-    Walks every claim md in `claim_convergence_dir/<asn_label>/`, reads
+    Walks every claim md in `claim_root_dir/<asn_label>/`, reads
     the active citation links sourced from each, and extracts the
     target's ASN id from the cited claim's path. Self-references
     (within-ASN citations) are excluded — the aggregate is the set of
     ASNs this ASN depends on, not its internal graph.
 
-    Returns sorted list of int ASN ids. The same value the manifest
-    `depends:` field declares post-blueprint, but derived from substrate
-    rather than read from yaml.
+    Returns sorted list of int ASN ids.
     """
     import re
-    from lib.shared.paths import CLAIM_CONVERGENCE_DIR
+    from lib.shared.paths import CLAIM_DIR
     from lib.store.queries import active_links
 
-    cdir = Path(claim_convergence_dir) if claim_convergence_dir else CLAIM_CONVERGENCE_DIR
+    cdir = Path(claim_root_dir) if claim_root_dir else CLAIM_DIR
     asn_dir = cdir / asn_label
     if not asn_dir.exists():
         return []
@@ -130,7 +128,7 @@ def aggregate_asn_deps(store, asn_label, claim_convergence_dir=None):
             if not link["to_set"]:
                 continue
             to_path = link["to_set"][0]
-            m = re.search(r"claim-convergence/(ASN-\d+)/", to_path)
+            m = re.search(r"_store/documents/claim/(ASN-\d+)/", to_path)
             if m and m.group(1) != asn_label:
                 deps.add(int(m.group(1).split("-")[1]))
     return sorted(deps)
@@ -192,10 +190,10 @@ def _build_label_index_from_substrate(store):
     return index
 
 
-def _build_label_index_from_yaml(claim_convergence_dir=None):
-    claim_convergence_dir = Path(claim_convergence_dir) if claim_convergence_dir else CLAIM_CONVERGENCE_DIR
+def _build_label_index_from_yaml(claim_root_dir=None):
+    claim_root_dir = Path(claim_root_dir) if claim_root_dir else CLAIM_DIR
     index = {}
-    for asn_dir in sorted(p for p in claim_convergence_dir.iterdir() if p.is_dir()):
+    for asn_dir in sorted(p for p in claim_root_dir.iterdir() if p.is_dir()):
         for yaml_path in sorted(asn_dir.glob("*.yaml")):
             if yaml_path.name.startswith("_"):
                 continue

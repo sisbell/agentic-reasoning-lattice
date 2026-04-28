@@ -111,31 +111,33 @@ def is_converged(store):
     return not unresolved_revise_comments(store)
 
 
-def is_asn_converged(store, asn_label, claim_convergence_dir=None):
+def is_asn_converged(store, asn_label, claim_root_dir=None):
     """The protocol predicate scoped to one ASN's claims.
 
-    Conjunction of `is_doc_converged` over every claim in
-    `lattices/<lattice>/claim-convergence/<asn_label>/`. Vacuously true on a
+    Conjunction of `is_doc_converged` over every claim body markdown
+    under `_store/documents/claim/<asn_label>/`. Vacuously true on a
     nonexistent or empty ASN — coverage is choreography's responsibility,
     not the predicate's.
     """
     from pathlib import Path
     import sys
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-    from lib.shared.paths import CLAIM_CONVERGENCE_DIR, WORKSPACE
+    from lib.shared.paths import CLAIM_DIR, LATTICE
 
-    claim_convergence_dir = (
-        Path(claim_convergence_dir) if claim_convergence_dir else CLAIM_CONVERGENCE_DIR
+    claim_root_dir = (
+        Path(claim_root_dir) if claim_root_dir else CLAIM_DIR
     )
-    asn_dir = claim_convergence_dir / asn_label
+    asn_dir = claim_root_dir / asn_label
     if not asn_dir.exists():
         return True
-    workspace_resolved = Path(WORKSPACE).resolve()
-    for yaml_path in asn_dir.glob("*.yaml"):
-        if yaml_path.name.startswith("_"):
+    lattice_resolved = Path(LATTICE).resolve()
+    sidecar_suffixes = (".label.md", ".name.md", ".description.md")
+    for md_path in asn_dir.glob("*.md"):
+        if md_path.name.startswith("_"):
             continue
-        md_path = yaml_path.with_suffix(".md")
-        rel = str(md_path.resolve().relative_to(workspace_resolved))
+        if md_path.name.endswith(sidecar_suffixes):
+            continue
+        rel = str(md_path.resolve().relative_to(lattice_resolved))
         if not is_doc_converged(store, rel):
             return False
     return True

@@ -331,8 +331,8 @@ def scan_asn(asn_num, model="sonnet", effort="high", dry_run=False):
         # File new dependencies as substrate citation links. emit_citation
         # is idempotent — pre-existing citations are no-ops, only new
         # follows_from entries produce links.
-        from lib.shared.paths import CLAIM_CONVERGENCE_DIR
-        claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
+        from lib.shared.paths import CLAIM_CONVERGENCE_DIR, CLAIM_DIR
+        claim_dir = CLAIM_DIR / asn_label
         if claim_dir.exists():
             with default_store() as store:
                 label_index = build_cross_asn_label_index(store=store)

@@ -18,7 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import (
-    WORKSPACE, LATTICE, CLAIM_CONVERGENCE_DIR, CLAIM_FINDINGS_DIR,
+    WORKSPACE, LATTICE, CLAIM_CONVERGENCE_DIR, CLAIM_DIR, CLAIM_FINDINGS_DIR,
     next_review_number, review_meta_path,
 )
 from lib.shared.common import (
@@ -91,7 +91,7 @@ def detect_dependency_cone(asn_num, window=5, threshold=3):
     if asn_label is None:
         return None
 
-    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
+    claim_dir = CLAIM_DIR / asn_label
     if not claim_dir.exists():
         return None
 
@@ -100,7 +100,7 @@ def detect_dependency_cone(asn_num, window=5, threshold=3):
 
     findings_prefix = str((CLAIM_FINDINGS_DIR / asn_label).relative_to(LATTICE))
     legacy_reviews_prefix = str(
-        (claim_dir / "reviews").relative_to(LATTICE)
+        (CLAIM_CONVERGENCE_DIR / asn_label / "reviews").relative_to(LATTICE)
     )
 
     store = Store()
@@ -184,7 +184,7 @@ def assemble_cone(asn_label, apex_label, dep_labels):
 
     Returns concatenated text of apex + same-ASN dependency claims.
     """
-    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
+    claim_dir = CLAIM_DIR / asn_label
     label_index = build_label_index(claim_dir)
     parts = []
 
@@ -264,8 +264,8 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
     if asn_label is None:
         return "failed"
 
-    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
-    review_dir = claim_dir / "reviews"
+    claim_dir = CLAIM_DIR / asn_label
+    review_dir = CLAIM_CONVERGENCE_DIR / asn_label / "reviews"
 
     print(f"\n  [REGIONAL-REVIEW] {apex_label} + {len(dep_labels)} deps",
           file=sys.stderr)
@@ -567,7 +567,7 @@ def run_cone_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False, model="opus
         print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
         return "failed"
 
-    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
+    claim_dir = CLAIM_DIR / asn_label
     if not claim_dir.exists():
         print(f"  No claim-convergence directory for {asn_label}", file=sys.stderr)
         return "failed"

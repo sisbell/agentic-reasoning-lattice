@@ -24,7 +24,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.claim_convergence.cone import run_cone_sweep, run_cone_review
 from lib.shared.common import find_asn, build_label_index
-from lib.shared.paths import CLAIM_CONVERGENCE_DIR
+from lib.shared.paths import CLAIM_CONVERGENCE_DIR, CLAIM_DIR
 from lib.store.store import Store
 from lib.store.populate import build_cross_asn_label_index
 from lib.store.queries import active_links
@@ -50,7 +50,7 @@ def main():
 
     if args.cone:
         _, asn_label = find_asn(str(asn_num))
-        claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
+        claim_dir = CLAIM_DIR / asn_label
         asn_labels = set(build_label_index(claim_dir).keys())
         if args.cone not in asn_labels:
             print(f"  Claim {args.cone} not found", file=sys.stderr)
