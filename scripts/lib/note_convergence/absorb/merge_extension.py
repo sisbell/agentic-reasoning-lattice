@@ -14,8 +14,8 @@ Pipeline:
   5. Clean up extension artifacts
 
 Usage:
-    python scripts/discovery-absorb.py 57
-    python scripts/discovery-absorb.py 57 --dry-run
+    python scripts/note-absorb.py 57
+    python scripts/note-absorb.py 57 --dry-run
 """
 
 import re

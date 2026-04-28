@@ -1,8 +1,8 @@
 """
 Discovery pipeline step wrappers — subprocess calls to review, consult, revise, commit.
 
-Shared by the review orchestrator (scripts/discovery-review.py) and the
-revision loop orchestrator (lib/discovery/revise.py).
+Shared by the review orchestrator (scripts/note-review.py) and the
+revision loop orchestrator (lib/note_convergence/revise.py).
 """
 
 import re

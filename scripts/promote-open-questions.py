@@ -20,7 +20,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, LATTICE_PROMPTS
 from lib.shared.common import find_asn, invoke_claude, read_file, log_usage, step_commit_asn
-from lib.discovery.promotion.promote import (
+from lib.note_convergence.promotion.promote import (
     load_existing_inquiries, next_asn_number, parse_promoted,
     create_note_yaml, load_existing_promotion, save_promotion_report,
 )

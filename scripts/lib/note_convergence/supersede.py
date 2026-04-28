@@ -8,9 +8,9 @@ The old ASN is marked as deprecated. The new ASN gets:
   - The old ASN's project model is removed
 
 Usage:
-    python scripts/discovery-supersede.py --source 48 --target 59
-    python scripts/discovery-supersede.py -s 48 -t 59
-    python scripts/discovery-supersede.py -s 48 -t 59 --dry-run
+    python scripts/note-supersede.py --source 48 --target 59
+    python scripts/note-supersede.py -s 48 -t 59
+    python scripts/note-supersede.py -s 48 -t 59 --dry-run
 """
 
 import re

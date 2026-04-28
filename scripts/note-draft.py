@@ -9,15 +9,15 @@ Orchestrates ASN production by calling step scripts:
   4. Commit: commit lattice changes
 
 Specify a step to run up to and including that step:
-    python scripts/discovery-draft.py --inquiries 4 questions    # preview sub-questions
-    python scripts/discovery-draft.py --inquiries 4 consult      # questions + consultations
-    python scripts/discovery-draft.py --inquiries 4 discover     # consult + discover
-    python scripts/discovery-draft.py --inquiries 4              # full pipeline (all steps)
-    python scripts/discovery-draft.py                            # all inquiries, full pipeline
+    python scripts/note-draft.py --inquiries 4 questions    # preview sub-questions
+    python scripts/note-draft.py --inquiries 4 consult      # questions + consultations
+    python scripts/note-draft.py --inquiries 4 discover     # consult + discover
+    python scripts/note-draft.py --inquiries 4              # full pipeline (all steps)
+    python scripts/note-draft.py                            # all inquiries, full pipeline
 
 Resume from a specific step (skip earlier steps):
-    python scripts/discovery-draft.py --inquiries 4 --resume discover  # skip consult
-    python scripts/discovery-draft.py --inquiries 4 --resume commit    # just commit
+    python scripts/note-draft.py --inquiries 4 --resume discover  # skip consult
+    python scripts/note-draft.py --inquiries 4 --resume commit    # just commit
 """
 
 import argparse
@@ -33,7 +33,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import (
     WORKSPACE, NOTES_DIR, MANIFESTS_DIR, load_manifest,
 )
-from lib.discovery.steps import step_commit
+from lib.note_convergence.steps import step_commit
 
 CONSULT_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "decompose.py"
 DISCOVER_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "draft.py"
@@ -201,7 +201,7 @@ def run_pipeline(inquiry, target_step, resume_from=None, force=False, dry_run=Fa
     if "questions" in run_steps and target_step == "questions":
         result = step_questions(inquiry)
         print(f"\n  [NEXT] Run consultation + draft: "
-              f"python scripts/discovery-draft.py --inquiries {asn_number} --resume consult",
+              f"python scripts/note-draft.py --inquiries {asn_number} --resume consult",
               file=sys.stderr)
         return result
 
@@ -224,10 +224,10 @@ def run_pipeline(inquiry, target_step, resume_from=None, force=False, dry_run=Fa
 
     # Hint for next step
     if target_step in ("discover", "commit"):
-        print(f"\n  [NEXT] Run review: python scripts/discovery-review.py {asn_number}",
+        print(f"\n  [NEXT] Run review: python scripts/note-review.py {asn_number}",
               file=sys.stderr)
         print(f"  [NEXT] Or review/revise loop: "
-              f"python scripts/discovery-revise.py {asn_number} --converge",
+              f"python scripts/note-revise.py {asn_number} --converge",
               file=sys.stderr)
 
     return True

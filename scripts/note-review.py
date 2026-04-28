@@ -7,7 +7,7 @@ findings, commit the review file, and stop. Revision is handled separately
 by revise.py / discover.py.
 
 Usage:
-    python scripts/discovery-review.py 9
+    python scripts/note-review.py 9
 """
 
 import argparse
@@ -17,7 +17,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.discovery.steps import (
+from lib.note_convergence.steps import (
     find_asn, step_review, step_commit, has_revise_items,
 )
 from lib.shared.paths import WORKSPACE, NOTES_DIR
@@ -64,7 +64,7 @@ def main():
         step_commit(f"Review {asn_label}", asn_id=asn_number)
         elapsed = time.time() - start
         print(f"\n  [REVIEW] Done ({elapsed:.0f}s)", file=sys.stderr)
-        print(f"  REVISE items found. Run: python scripts/discovery-revise.py {args.asn}",
+        print(f"  REVISE items found. Run: python scripts/note-revise.py {args.asn}",
               file=sys.stderr)
         sys.exit(0)
 

@@ -2,7 +2,7 @@
 Produce Statements step — extract formal statements from a discovery ASN
 using LLM to parse narrative reasoning into structured statements.
 
-Step function for the orchestrator (scripts/discovery-export.py):
+Step function for the orchestrator (scripts/note-assembly.py):
 - export_one: invoke Claude with produce-statements.md prompt, write formal-statements.md
 """
 

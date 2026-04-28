@@ -15,8 +15,8 @@ script: {{consultation_answers}}, {{asn_number}}, {{title}}, {{question}},
 Output: lattices/<lattice>/discovery/notes/ASN-NNNN-title.md
 
 Usage:
-    python scripts/lib/discovery/draft.py --inquiry-id 4
-    python scripts/lib/discovery/draft.py --inquiry-id 4 --force
+    python scripts/lib/note_convergence/draft.py --inquiry-id 4
+    python scripts/lib/note_convergence/draft.py --inquiry-id 4 --force
 """
 
 import argparse
@@ -175,7 +175,7 @@ def run_discovery(inquiry, asn_number, slug, force=False):
     if not answers_path.exists():
         print(f"  [ERROR] No consultation answers at {answers_path.relative_to(WORKSPACE)}",
               file=sys.stderr)
-        print(f"  Run decompose.py first: python scripts/lib/discovery/decompose.py --inquiry-id {asn_number}",
+        print(f"  Run decompose.py first: python scripts/lib/note_convergence/decompose.py --inquiry-id {asn_number}",
               file=sys.stderr)
         return None
 

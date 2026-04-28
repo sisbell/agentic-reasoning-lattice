@@ -7,9 +7,9 @@ applies the fix, propagates downstream effects, then runs a scoped
 review/revise cycle to verify correctness.
 
 Usage:
-    python scripts/discovery-patch.py 63 --patch patch-1.md
-    python scripts/discovery-patch.py 63 --patch patch-1.md --dry-run
-    python scripts/discovery-patch.py 63 --patch patch-1.md --report
+    python scripts/note-patch.py 63 --patch patch-1.md
+    python scripts/note-patch.py 63 --patch patch-1.md --dry-run
+    python scripts/note-patch.py 63 --patch patch-1.md --report
 """
 
 import argparse
@@ -20,7 +20,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, prompt_path
 from lib.shared.common import read_file, invoke_claude, log_usage, step_commit_asn
-from lib.discovery.patch.apply import (
+from lib.note_convergence.patch.apply import (
     validate, step_apply, step_review_revise,
 )
 
@@ -90,7 +90,7 @@ def main():
     # Re-export
     print(f"  [EXPORT] Re-exporting {asn_label}...", file=sys.stderr)
     cmd = [sys.executable,
-           str(WORKSPACE / "scripts" / "discovery-assembly.py"),
+           str(WORKSPACE / "scripts" / "note-assembly.py"),
            str(args.asn)]
     subprocess.run(cmd, capture_output=False, text=True,
                    cwd=str(WORKSPACE))
@@ -98,7 +98,7 @@ def main():
     log_usage("patch-complete", 0, asn=args.asn)
     print(f"\n  [DONE] {asn_label} patched", file=sys.stderr)
     print(f"  [NEXT] Optional full review: "
-          f"python scripts/discovery-revise.py {args.asn} --converge",
+          f"python scripts/note-revise.py {args.asn} --converge",
           file=sys.stderr)
 
 

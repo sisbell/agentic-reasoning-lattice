@@ -3,8 +3,8 @@
 Extract claims from a source ASN into a new extension ASN.
 
 Usage:
-    python scripts/discovery-extend.py -s 53 -t 57 -b 34 --claims D0,D1
-    python scripts/discovery-extend.py --source 53 --target 57 --base 34 --claims D0,D1
+    python scripts/note-extend.py -s 53 -t 57 -b 34 --claims D0,D1
+    python scripts/note-extend.py --source 53 --target 57 --base 34 --claims D0,D1
 """
 
 import re

@@ -3,9 +3,9 @@
 Supersede an ASN with a new ASN number.
 
 Usage:
-    python scripts/discovery-supersede.py --source 48 --target 59
-    python scripts/discovery-supersede.py -s 48 -t 59
-    python scripts/discovery-supersede.py -s 48 -t 59 --dry-run
+    python scripts/note-supersede.py --source 48 --target 59
+    python scripts/note-supersede.py -s 48 -t 59
+    python scripts/note-supersede.py -s 48 -t 59 --dry-run
 """
 
 import argparse
@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.discovery.supersede import (
+from lib.note_convergence.supersede import (
     validate, copy_project_model, copy_consultations, remove_source,
 )
 from lib.shared.common import step_commit
@@ -65,7 +65,7 @@ def main():
           file=sys.stderr)
     print(f"  [NEXT] Generate questions: ./run/questions.sh {args.target}",
           file=sys.stderr)
-    print(f"  [NEXT] Or consult+draft: python scripts/discovery-draft.py "
+    print(f"  [NEXT] Or consult+draft: python scripts/note-draft.py "
           f"--inquiries {args.target} --resume consult", file=sys.stderr)
 
 

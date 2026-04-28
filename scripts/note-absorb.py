@@ -3,8 +3,8 @@
 Absorb an extension ASN back into its base and update the source.
 
 Usage:
-    python scripts/discovery-absorb.py 57
-    python scripts/discovery-absorb.py 57 --dry-run
+    python scripts/note-absorb.py 57
+    python scripts/note-absorb.py 57 --dry-run
 """
 
 import argparse
@@ -13,7 +13,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.discovery.absorb.merge_extension import (
+from lib.note_convergence.absorb.merge_extension import (
     parse_extension_labels, validate,
     step_integrate, step_review_revise, step_export,
     step_update_source, step_cleanup,

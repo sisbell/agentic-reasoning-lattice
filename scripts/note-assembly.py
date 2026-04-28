@@ -7,9 +7,9 @@ then generates the dependency graph (mechanical + LLM scan).
 Commits both artifacts.
 
 Usage:
-    python scripts/discovery-export.py 40
-    python scripts/discovery-export.py 40 --dry-run
-    python scripts/discovery-export.py 34 36 40          # multiple ASNs
+    python scripts/note-assembly.py 40
+    python scripts/note-assembly.py 40 --dry-run
+    python scripts/note-assembly.py 34 36 40          # multiple ASNs
 """
 
 import argparse
@@ -21,7 +21,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, formal_stmts, dep_graph
 from lib.shared.common import find_asn
-from lib.discovery.assembly.produce_statements import export_one
+from lib.note_convergence.assembly.produce_statements import export_one
 from lib.claim_convergence.core.build_dependency_graph import generate_discovery_deps, write_deps_yaml
 
 COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"

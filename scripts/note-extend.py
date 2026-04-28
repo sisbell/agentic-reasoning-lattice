@@ -3,8 +3,8 @@
 Extract claims from a source ASN into a new extension ASN.
 
 Usage:
-    python scripts/discovery-extend.py -s 53 -t 57 -b 34 --claims D0,D1
-    python scripts/discovery-extend.py --source 53 --target 57 --base 34 --claims D0,D1
+    python scripts/note-extend.py -s 53 -t 57 -b 34 --claims D0,D1
+    python scripts/note-extend.py --source 53 --target 57 --base 34 --claims D0,D1
 """
 
 import argparse
@@ -13,7 +13,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.discovery.manage.extend import (
+from lib.note_convergence.manage.extend import (
     parse_registry_labels, validate, derive_names, compute_depends,
     build_prompt, strip_preamble, write_manifest,
 )
@@ -113,10 +113,10 @@ def main():
                 f"into {base_label} extension")
 
     # Hints
-    print(f"\n  [NEXT] Review: python scripts/discovery-review.py {args.target}",
+    print(f"\n  [NEXT] Review: python scripts/note-review.py {args.target}",
           file=sys.stderr)
     print(f"  [NEXT] Or review/revise loop: "
-          f"python scripts/discovery-revise.py {args.target} --converge",
+          f"python scripts/note-revise.py {args.target} --converge",
           file=sys.stderr)
     print(f"  [NEXT] Then export: python scripts/normalize.py {args.target}",
           file=sys.stderr)

@@ -14,8 +14,8 @@ Usage:
 import subprocess, sys
 from pathlib import Path
 
-REVIEW = Path(__file__).resolve().parent / "discovery-review.py"
-REVISE = Path(__file__).resolve().parent / "discovery-revise.py"
+REVIEW = Path(__file__).resolve().parent / "note-review.py"
+REVISE = Path(__file__).resolve().parent / "note-revise.py"
 
 if __name__ == "__main__":
     args = sys.argv[1:]

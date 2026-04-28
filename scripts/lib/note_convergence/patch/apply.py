@@ -1,7 +1,7 @@
 """
 Patch step functions — apply, review, revise for targeted ASN fixes.
 
-Step functions for the orchestrator (scripts/discovery-patch.py):
+Step functions for the orchestrator (scripts/note-patch.py):
 - validate: check ASN and patch file exist
 - step_apply: apply patch using apply.md prompt
 - step_patch_review: scoped review using review.md prompt
