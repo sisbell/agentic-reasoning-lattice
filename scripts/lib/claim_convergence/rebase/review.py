@@ -24,7 +24,7 @@ import yaml
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import CLAIM_CONVERGENCE_DIR, prompt_path, formal_stmts, load_manifest, dep_graph
 from lib.shared.common import find_asn, assemble_readonly, read_file
-from lib.shared.foundation import load_foundation_statements
+from lib.shared.foundation import claim_asn_dep_ids, load_foundation_for_claim_asn
 from lib.claim_convergence.core.build_dependency_graph import generate_discovery_deps
 from lib.claim_convergence.core.finding import Finding
 from lib.blueprinting.lint import build_label_map, scan_reasoning_doc, get_dep_chain
@@ -143,8 +143,7 @@ def extract_claims(asn_num):
 
     # Source 2: prose keyword scan for parallels/analogs not in deps YAML
     seen = {(c.local_label, c.foundation_label) for c in claims}
-    manifest = load_manifest(asn_num)
-    depends = manifest.get("depends", [])
+    depends = claim_asn_dep_ids(asn_num)
 
     # Build label→asn map from dependency exports
     label_to_asn = {}
@@ -531,8 +530,7 @@ def _check_cross_references(asn_num, target_labels=None):
     if asn_path is None:
         return []
 
-    manifest = load_manifest(asn_num)
-    depends = manifest.get("depends", [])
+    depends = claim_asn_dep_ids(asn_num)
     if not depends:
         return []
 
@@ -768,12 +766,11 @@ def _check_dependency_report(asn_num):
     if asn_path is None:
         return []
 
-    manifest = load_manifest(asn_num)
-    depends = manifest.get("depends", []) if manifest else []
+    depends = claim_asn_dep_ids(asn_num)
     if not depends:
         return []
 
-    foundation = load_foundation_statements(asn_num)
+    foundation = load_foundation_for_claim_asn(asn_num)
     if not foundation:
         return []
 

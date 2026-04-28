@@ -39,8 +39,8 @@ PROMPT_TEMPLATE = prompt_path("claim-convergence/assembly/scan-dependency.md")
 
 def _build_available_labels(asn_num):
     """Build a formatted list of available foundation labels for the prompt."""
-    manifest = load_manifest(asn_num)
-    depends = manifest.get("depends", [])
+    from lib.shared.foundation import claim_asn_dep_ids
+    depends = claim_asn_dep_ids(asn_num)
 
     labels_by_asn = {}
     for dep_id in depends:
@@ -274,8 +274,8 @@ def scan_asn(asn_num, model="sonnet", effort="high", dry_run=False):
     asn_text = asn_path.read_text()
     sections = extract_claim_sections(asn_text)
     available_labels = _build_available_labels(asn_num)
-    manifest = load_manifest(asn_num)
-    depends = manifest.get("depends", [])
+    from lib.shared.foundation import claim_asn_dep_ids
+    depends = claim_asn_dep_ids(asn_num)
 
     # Snapshot original deps for diff after scan
     import copy

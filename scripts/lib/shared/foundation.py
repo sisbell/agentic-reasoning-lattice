@@ -164,6 +164,36 @@ def load_foundation_for_note(asn_path, asn_id):
     return load_foundation_statements(asn_id, dep_ids=dep_ids)
 
 
+def load_foundation_for_claim_asn(asn_id):
+    """Load foundation statements for a claim ASN, sourcing dep ASN ids
+    from per-claim substrate citations aggregated up to ASN granularity.
+
+    Parallels `load_foundation_for_note`. The claim-side aggregation is
+    the union of cross-ASN citations sourced from any claim md in this
+    ASN's claim-convergence directory.
+    """
+    from lib.store.populate import aggregate_asn_deps
+    from lib.store.store import default_store
+    asn_label = f"ASN-{int(asn_id):04d}"
+    with default_store() as store:
+        dep_ids = aggregate_asn_deps(store, asn_label)
+    return load_foundation_statements(asn_id, dep_ids=dep_ids)
+
+
+def claim_asn_dep_ids(asn_id):
+    """Substrate-aggregated dep ASN ids for a claim ASN.
+
+    Standalone form for callers that need the dep id list without the
+    full foundation text (e.g., load_foundation_for_labels which takes
+    labels separately).
+    """
+    from lib.store.populate import aggregate_asn_deps
+    from lib.store.store import default_store
+    asn_label = f"ASN-{int(asn_id):04d}"
+    with default_store() as store:
+        return aggregate_asn_deps(store, asn_label)
+
+
 def load_foundation_for_labels(asn_id, labels, dep_ids=None):
     """Load foundation statements for specific labels from per-claim files.
 

@@ -19,7 +19,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import prompt_path, load_manifest
 from lib.shared.common import read_file, invoke_claude
-from lib.shared.foundation import load_foundation_statements, load_foundation_for_labels
+from lib.shared.foundation import (
+    claim_asn_dep_ids, load_foundation_for_claim_asn,
+    load_foundation_for_labels,
+)
 
 REVIEW_TEMPLATE = prompt_path("claim-convergence/full-review/review.md")
 
@@ -60,9 +63,12 @@ def run_review(asn_num, asn_content, asn_label, previous_findings="", model="opu
     those specific labels (for regional review). Otherwise loads all.
     """
     if foundation_labels is not None:
-        foundation = load_foundation_for_labels(asn_num, foundation_labels)
+        foundation = load_foundation_for_labels(
+            asn_num, foundation_labels,
+            dep_ids=claim_asn_dep_ids(asn_num),
+        )
     else:
-        foundation = load_foundation_statements(asn_num)
+        foundation = load_foundation_for_claim_asn(asn_num)
     if not foundation:
         foundation = "(none — this is a foundation ASN; review internal consistency only)"
 
@@ -71,8 +77,7 @@ def run_review(asn_num, asn_content, asn_label, previous_findings="", model="opu
         print(f"  [ERROR] Audit template not found", file=sys.stderr)
         return "ERROR", None, 0
 
-    manifest = load_manifest(asn_num)
-    depends = manifest.get("depends", []) if manifest else []
+    depends = claim_asn_dep_ids(asn_num)
     depends_str = ", ".join(f"ASN-{d:04d}" for d in depends)
 
     # Pass previous findings so reviewer doesn't repeat them

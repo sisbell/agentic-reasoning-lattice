@@ -106,8 +106,8 @@ def run_rebase(asn_num, max_cycles=5, mode="full_sweep", dry_run=False):
         print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
         return "failed"
 
-    manifest = load_manifest(asn_num)
-    depends = manifest.get("depends", [])
+    from lib.shared.foundation import claim_asn_dep_ids
+    depends = claim_asn_dep_ids(asn_num)
     if not depends:
         print(f"  {asn_label} has no dependencies — nothing to rebase",
               file=sys.stderr)

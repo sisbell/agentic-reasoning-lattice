@@ -449,9 +449,9 @@ def _generate_deps_core(asn_num, prose_citations=False):
 
     claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
 
-    # Get manifest for ASN-level depends
-    manifest = load_manifest(asn_num)
-    depends = manifest.get("depends", [])
+    # ASN-level depends sourced from substrate per-claim citations
+    from lib.shared.foundation import claim_asn_dep_ids
+    depends = claim_asn_dep_ids(asn_num)
 
     # Build claims dict from substrate-sourced metadata
     metadata = load_claim_metadata(claim_dir) if claim_dir.exists() else {}
