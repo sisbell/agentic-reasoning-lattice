@@ -27,7 +27,7 @@ from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, CLAIM_DIR, next_r
 from lib.shared.common import find_asn, step_commit_asn, build_label_index, parallel_llm_calls
 from lib.claim_convergence.core.build_dependency_graph import generate_claim_convergence_deps
 from lib.claim_convergence.core.topological_sort import topological_sort_labels, topological_levels
-from lib.claim_convergence.converge.produce_contract import (
+from lib.claim_derivation.produce_contract import (
     find_claims_needing_quality, produce_contract,
     _has_formal_contract, _downstream_dependents, _compute_hash,
 )

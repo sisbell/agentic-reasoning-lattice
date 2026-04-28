@@ -25,7 +25,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, CLAIM_DIR, prompt_path, next_review_number
 from lib.shared.common import find_asn, invoke_claude, parallel_llm_calls, step_commit_asn, build_label_index, aggregate_vocabulary
 from lib.claim_convergence.assembly.validate_contracts import validate_contract
-from lib.claim_convergence.converge.produce_contract import _has_formal_contract
+from lib.claim_derivation.produce_contract import _has_formal_contract
 
 FIX_CONTRACT_TEMPLATE = prompt_path("claim-convergence/contract-review/fix-contract.md")
 

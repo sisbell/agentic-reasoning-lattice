@@ -1,9 +1,18 @@
 """
-Produce Contract step — Dijkstra rewrite + formal contracts per claim.
+Produce Contract — Dijkstra rewrite + formal contracts per claim.
 
-Step functions for the formalize orchestrator (scripts/converge.py):
+Synthesizes the Formal Contract section in each claim's body markdown.
+Initial synthesis is claim derivation's responsibility (so claim
+convergence operates on already-contract-bearing claims, satisfying the
+Claim File Contract's structural invariants from the start). Ongoing
+re-synthesis on prose-changed claims is currently driven from
+scripts/converge.py.
+
+Functions:
 - find_claims_needing_quality: scan ASN for claims needing rewrite
-- quality_rewrite: rewrite one claim to Dijkstra standard with formal contract
+  (missing contract OR prose-hash changed since last run)
+- produce_contract: rewrite one claim to Dijkstra standard with formal
+  contract; returns (ok, file_changed, response_text)
 """
 
 import hashlib
@@ -16,14 +25,14 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import USAGE_LOG, CLAIM_CONVERGENCE_DIR, prompt_path, formal_stmts
+from lib.shared.paths import USAGE_LOG, CLAIM_DIR, prompt_path, formal_stmts
 from lib.shared.common import find_asn, invoke_claude, build_label_index, load_claim_metadata
 from lib.claim_convergence.core.build_dependency_graph import generate_claim_convergence_deps
 
 from lib.claim_convergence.assembly.validate_contracts import validate_contract
 
-QUALITY_TEMPLATE = prompt_path("claim-convergence/converge/produce-contract.md")
-REVIEW_REWRITE_TEMPLATE = prompt_path("claim-convergence/converge/review-rewrite.md")
+QUALITY_TEMPLATE = prompt_path("claim-derivation/produce-contract.md")
+REVIEW_REWRITE_TEMPLATE = prompt_path("claim-derivation/review-rewrite.md")
 
 
 def _log_usage(step, elapsed, asn_num, label=""):
@@ -109,9 +118,9 @@ def find_claims_needing_quality(asn_num, force_all=True, force_rebuild=False):
     if asn_path is None:
         return [], {}
 
-    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
+    claim_dir = CLAIM_DIR / asn_label
     if not claim_dir.exists():
-        print(f"  No claim-convergence directory for {asn_label}", file=sys.stderr)
+        print(f"  No claim doc directory for {asn_label}", file=sys.stderr)
         return [], {}
     label_index = build_label_index(claim_dir)
     _filename_to_label = {f"{stem}.md": lbl for lbl, stem in label_index.items()}
@@ -224,7 +233,7 @@ def _build_dep_context(asn_num, label):
     all_labels = set(deps_data.get("claims", {}).keys())
 
     _, asn_label = find_asn(str(asn_num))
-    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
+    claim_dir = CLAIM_DIR / asn_label
     _label_index = build_label_index(claim_dir)
 
     dep_parts = []
