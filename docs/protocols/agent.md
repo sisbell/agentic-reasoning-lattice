@@ -80,7 +80,7 @@ The algebra of substrate addresses. See [`lattices/xanadu/claim-convergence/ASN-
 
 **Properties relied upon.**
 
-- **T9 (ForwardAllocation)** — [`T9.md`](../../lattices/xanadu/claim-convergence/ASN-0034/T9.md):
+- **T9 (ForwardAllocation)** — [`T9.md`](../../lattices/xanadu/_docuverse/documents/claim/ASN-0034/T9.md):
   `(A a, b : same_allocator(a, b) ∧ allocated_before(a, b) : a < b)`
   Within one allocator's sequential stream, addresses are strictly monotonically increasing. Per-allocator only; T9 makes no claim across allocators.
 - **TA5(a) (Increment strict-greater)** — supporting lemma for T9. `inc(t, 0) > t` for any `t ∈ T`.
