@@ -218,7 +218,6 @@ The substrate specification is implementation-independent. Any backing store sat
 
 - ActiveLinks is not yet implemented as a substrate operation. The `active_links` helper in `lib.store.queries` performs the retraction subtraction, but it is a protocol-layer utility rather than a substrate-level query. Migration to a substrate operation is straightforward — the helper's logic moves into the substrate's query interface.
 - Retract is not yet implemented as a substrate operation. The `scripts/retract.py` script creates retraction links via MakeLink. Migration is the same: the script's logic becomes a substrate operation.
-- Label, name, and description link types are not yet implemented. Attribute docs do not yet exist. The migration from yaml attributes to substrate-native attribute links is specified in the [name/label/description proposal](../design-notes/substrate-attributes.md) and sequenced as part of yaml retirement.
 
 ---
 

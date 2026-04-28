@@ -156,8 +156,8 @@ The algorithm is one-shot — a single ⟨ Consult ⟩ invocation produces at mo
 ### 6.1 State
 
 - *inquiry* — the input inquiry document.
-- *campaign* — resolved from the inquiry's manifest, binding (theory_channel, evidence_channel, bridge_vocabulary) to a target.
-- *N_theory*, *N_evidence* — sub-question counts (from the inquiry's manifest; per-channel, asymmetric allowed).
+- *campaign* — resolved from the inquiry (substrate `campaign` link or fallback to lattice default), binding (theory_channel, evidence_channel, bridge_vocabulary) to a target.
+- *N_theory*, *N_evidence* — sub-question counts (per-channel, asymmetric allowed). Default sourced from each channel's descriptor; the inquiry may override.
 - *answers* — accumulated answer set, filled in during phase 2.
 
 ### 6.2 Phase 1 — Decompose
@@ -219,10 +219,6 @@ The note is written to the lattice's discovery directory. A `synthesis` link is 
 ### 6.5 Termination
 
 The algorithm terminates when ⟨ NoteProduced ⟩ is indicated (success) or when any phase fails irrecoverably — channel error, synthesis failure, irrecoverable filesystem error — in which case ⟨ ConsultationFailed | inquiry, reason ⟩ is indicated and no note is created. Resume from a partial-failure state is supported via the disk-cached answer files (§6.3); restart from a fully failed state requires a fresh ⟨ Consult ⟩ invocation.
-
-### 6.6 Known gap
-
-The current implementation does not yet emit the `synthesis` link in the substrate. Provenance from inquiry to note lives in filesystem paths (the inquiry's manifest path resolves to a directory containing the note). C7 is therefore aspirational pending substrate emission.
 
 ---
 

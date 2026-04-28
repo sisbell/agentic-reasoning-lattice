@@ -265,11 +265,11 @@ def emit_manages(store, agent_doc_path, operation_link_id):
 
 ### Agent docs
 
-Stage-1 placement: `lattices/<lattice>/_store/agents/<role>.md`. Agent docs live under `_store/` because their lifecycle is substrate-managed (classified, retracted, re-emitted via the agent module's operations) — same convention as review meta docs (`_store/findings/...`) and rejection rationales (`_store/rationales/...`). Authored claim and note md files, by contrast, are not substrate-lifecycle artifacts and live outside `_store/`. Examples:
+Stage-1 placement: `lattices/<lattice>/_store/documents/agents/<role>.md`. Agent docs live under `_store/documents/` because their lifecycle is substrate-managed (classified, retracted, re-emitted via the agent module's operations) — same convention as review finding docs (`_store/documents/findings/...`), rejection rationales (`_store/documents/rationales/...`), inquiry docs (`_store/documents/inquiries/...`), and campaign descriptors (`_store/documents/campaigns/<name>/`). Examples:
 
-- `lattices/xanadu/_store/agents/cone-review.md` — focused review of a dependency cone.
-- `lattices/xanadu/_store/agents/full-review.md` — whole-ASN review.
-- `lattices/xanadu/_store/agents/note-review.md` — review of a discovery note.
+- `lattices/xanadu/_store/documents/agents/cone-review.md` — focused review of a dependency cone.
+- `lattices/xanadu/_store/documents/agents/full-review.md` — whole-ASN review.
+- `lattices/xanadu/_store/documents/agents/note-review.md` — review of a discovery note.
 
 ### Wall-clock timestamps as a bridge
 
