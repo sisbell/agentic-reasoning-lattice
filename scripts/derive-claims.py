@@ -1,15 +1,22 @@
 #!/usr/bin/env python3
 """
 Claim derivation — full pipeline:
-    decompose → enrich → transclude → produce-contract → validate-gate.
+    decompose → enrich → transclude → validate-transclude → produce-contract → validate-gate.
 
 Runs the complete claim-derivation pipeline on an ASN. Each stage commits
-its output automatically. The final phase is the validate-revise gate
-(same gate claim convergence runs before each review cycle): a bounded
-loop that runs the comprehensive validator and dispatches structural-
-only fix recipes until the Claim File Contract holds — or max iterations
-exhausted, in which case derivation fails with the unresolved findings
-left in place for diagnosis.
+its output automatically.
+
+Phase 3.5 (validate-transclude) is a quick mechanical check that each
+claim body is a byte-substring of its source note — the
+content-preservation invariant at transclude exit. If it fails,
+derivation halts before produce_contract diverges the bodies.
+
+Phase 5 (validate-gate) is the validate-revise gate (same gate claim
+convergence runs before each review cycle): a bounded loop that runs
+the comprehensive validator and dispatches structural-only fix recipes
+until the Claim File Contract holds — or max iterations exhausted, in
+which case derivation fails with the unresolved findings left in place
+for diagnosis.
 
 Usage:
     python scripts/derive-claims.py 36
@@ -28,6 +35,7 @@ from lib.claim_derivation.produce_contract import (
     find_claims_needing_quality, produce_contract,
 )
 from lib.claim_derivation.transclude import transclude_asn
+from lib.claim_derivation.validate_transclude import print_validation as validate_transclude
 from lib.shared.common import find_asn, step_commit_asn
 from lib.shared.validate_gate import run_validate_gate
 
@@ -112,6 +120,17 @@ def run_pipeline(asn_num):
         print(f"\n  [DERIVE] FAILED at transclude", file=sys.stderr)
         return False
 
+    # Phase 3.5: Validate-transclude — quick substring check; the
+    # content-preservation invariant (#12) is transition-checkable here
+    # only, before produce_contract intentionally diverges bodies.
+    ok = validate_transclude(asn_num)
+    if not ok:
+        print(f"\n  [DERIVE] FAILED at validate-transclude — "
+              f"transclude produced output that is not a byte-substring "
+              f"of the source note. Halting before produce_contract.",
+              file=sys.stderr)
+        return False
+
     # Phase 4: Produce-contract — synthesize Formal Contract sections
     ok = _step_produce_contract(asn_num)
     if not ok:
@@ -138,7 +157,8 @@ def run_pipeline(asn_num):
 def main():
     parser = argparse.ArgumentParser(
         description="Run full claim derivation pipeline: "
-                    "decompose → enrich → transclude → produce-contract → validate-gate")
+                    "decompose → enrich → transclude → validate-transclude → "
+                    "produce-contract → validate-gate")
     parser.add_argument("asn", help="ASN number (e.g., 36)")
     args = parser.parse_args()
 

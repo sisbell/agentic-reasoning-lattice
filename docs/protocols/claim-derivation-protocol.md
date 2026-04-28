@@ -157,12 +157,12 @@ These three semantic invariants are documented in the [Claim File Contract](../d
 
 ---
 
-## 6 Algorithm: split → enrich → transclude → produce-contract → validate-gate
+## 6 Algorithm: split → enrich → transclude → validate-transclude → produce-contract → validate-gate
 
 Implements: Claim Derivation Protocol (§1–§5).
 Uses: Substrate (§2.1), Structural Validator (§2.2), Decomposition prompts (§2.3).
 
-Five phases. The first three are sequential one-shots. The fourth (produce-contract) iterates per-claim with bounded retries internal to that phase. The fifth (validate-gate) is a bounded structural-only fix loop that terminates on contract satisfaction or maximum-iterations. The protocol does not run review/revise on semantic content — that is claim convergence's role.
+Six phases. The first three are sequential one-shots. The fourth (validate-transclude) is a quick mechanical substring check at the transclude exit boundary. The fifth (produce-contract) iterates per-claim with bounded retries internal to that phase. The sixth (validate-gate) is a bounded structural-only fix loop that terminates on contract satisfaction or maximum-iterations. The protocol does not run review/revise on semantic content — that is claim convergence's role.
 
 ### 6.1 State
 
@@ -223,7 +223,24 @@ upon enrichment complete do
 
 The body markdown is a verbatim byte-substring of the source note's region, resolved via the `find_in_source` helper (exact match, then whitespace-normalized). Strict by design — fuzzy matching is silent acceptance of unexplained drift, so the resolver fails loud on no-match and the failed claim is reported rather than written. Description sidecars are not emitted here — that responsibility lies with the summarize stage downstream of derivation.
 
-### 6.5 Phase 4 — Produce-contract
+### 6.5 Phase 3.5 — Validate-transclude
+
+```
+upon transclude complete do
+  for each claim_md in claim_dir:
+    if claim_md is sidecar or _-prefixed: skip
+    body ← read(claim_md).rstrip()
+    if body not in source_note_text:
+      record_violation(claim_md)
+  if any violations:
+    indicate ⟨ DerivationFailed | note, substring_violations ⟩; halt
+```
+
+Mechanical substring check, no LLM. Confirms each claim body is a byte-substring of its source note — the content-preservation invariant at the transclude exit boundary. By construction, transclude's `find_in_source` resolver returns source bytes, so this check passes if transclude is correct. Its role is runtime documentation of the contract: if transclude ever drifts, the failure surfaces here rather than silently propagating into produce-contract.
+
+This is the only phase where the substring property is enforced. Subsequent phases legitimately diverge: produce-contract appends Formal Contract sections (content not in source); validate-revise heals structural form. The Claim File Contract's invariant 12 is transition-checkable at this phase's exit only — never at derivation exit.
+
+### 6.6 Phase 4 — Produce-contract
 
 ```
 upon transclude complete do
@@ -241,7 +258,7 @@ The rewrite is bounded internally to three cycles per claim and gated by a revie
 
 After produce-contract, the body markdown is no longer a byte-substring of the source note — by design. The Claim File Contract's content-preservation invariant (transition-checkable invariant 12) holds at *transclude exit*, not at derivation exit; subsequent phases intentionally diverge.
 
-### 6.6 Phase 5 — Validate-gate
+### 6.7 Phase 5 — Validate-gate
 
 ```
 upon produce-contract complete do
@@ -261,11 +278,11 @@ The same gate that claim convergence runs before each review cycle. The validato
 
 The loop is bounded by MAX_ITER iterations (currently 3) plus a no-progress halt — if a round reduces no findings count, the gate halts. Findings the reviser declines (returns SKIP for) are tracked across iterations and not re-attempted. Acyclic-depends findings are propose-only — surfaced as warnings but not auto-fixed.
 
-### 6.7 Termination
+### 6.8 Termination
 
 The algorithm terminates on ⟨ ClaimSetProduced ⟩ or ⟨ DerivationFailed ⟩. The validate-gate has a bounded structural-healing loop; this is not a convergence loop in the note-convergence or claim-convergence sense — it does not iterate against semantic findings, only against mechanical contract violations. ⟨ DerivationFailed ⟩ leaves the partial output in place with the unresolved findings list for diagnosis; downstream stages do not operate on a failed derivation.
 
-### 6.8 Re-running on a prior derivation is destructive
+### 6.9 Re-running on a prior derivation is destructive
 
 Re-invoking the protocol on a note whose derivation has already produced a claim set will:
 - Overwrite each claim body with the byte-aligned source projection (Phase 3), discarding any edits made by claim convergence

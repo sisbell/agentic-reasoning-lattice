@@ -63,7 +63,7 @@ Consequence: when a mismatch is found, the fix is to update the label sidecar or
 
 11. **No orphan output.** Every file set in the output corresponds to a claim in the source note. Claim derivation does not invent claims.
 
-12. **Content preservation.** Each source claim's narrative, proof, and formal contract text appears — substantively, not necessarily byte-identically — in its corresponding body markdown. A mechanical version of this check: the body markdown's non-boilerplate text is non-empty and contains the claim's summary terms. Anything stronger is a semantic check and belongs to review.
+12. **Content preservation (substring at transclude exit).** At the conclusion of the transclude phase, each claim's body markdown is a byte-substring of its source note (modulo trailing whitespace). This is the simulated-transclusion guarantee at file-level substrate; under tumbler-substrate it becomes structural via VStream spans. Subsequent phases (produce_contract, validate-revise) intentionally diverge the body — produce_contract appends Formal Contract sections; validate-revise heals structural form. The substring property is **transition-checkable at transclude exit only**, not at derivation exit. The transclude commit captures the byte-aligned state in git history.
 
 13. **Provenance recording.** For each claim emitted, the substrate contains exactly one active `provenance.derivation` link with `from_set = [source_note_md], to_set = [body_md]`. The link records that this claim was derived from this note at this stage; it persists permanently regardless of subsequent edits to the body.
 
