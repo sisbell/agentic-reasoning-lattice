@@ -31,7 +31,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import (
     WORKSPACE, CONSULTATIONS_DIR, LATTICE_PROMPTS,
-    prompt_path, load_manifest, load_excluded_covers,
+    prompt_path, load_inquiry as load_inquiry_frontmatter,
 )
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
@@ -42,19 +42,25 @@ from lib.consult import (
 
 
 def load_inquiry(inquiry_id):
-    """Load inquiry from project model manifest."""
-    manifest = load_manifest(inquiry_id)
-    if not manifest:
-        print(f"  [ERROR] Manifest not found for ASN-{inquiry_id:04d}",
+    """Load inquiry content from the substrate-managed inquiry doc.
+    Returns the standard pipeline shape (id/title/question/out_of_scope/agents).
+    """
+    fm = load_inquiry_frontmatter(inquiry_id)
+    if not fm:
+        print(f"  [ERROR] Inquiry doc not found for ASN-{inquiry_id:04d}",
               file=sys.stderr)
         sys.exit(1)
-    inquiry = manifest.get("consultations", {})
+    agents = {}
+    if "n_theory" in fm:
+        agents["theory"] = fm["n_theory"]
+    if "n_evidence" in fm:
+        agents["evidence"] = fm["n_evidence"]
     return {
         "id": inquiry_id,
-        "title": manifest.get("title", ""),
-        "question": inquiry.get("question", ""),
-        "out_of_scope": manifest.get("out_of_scope", ""),
-        "agents": inquiry.get("agents", {}),
+        "title": fm.get("title", ""),
+        "question": fm.get("question", ""),
+        "out_of_scope": fm.get("out_of_scope", ""),
+        "agents": agents,
     }
 
 
@@ -139,10 +145,8 @@ def decompose_inquiry(inquiry_text, num_theory=10, num_evidence=10, model="opus"
 
     all_qs = [("theory", q) for q in theory_qs] + [("evidence", q) for q in evidence_qs]
 
-    covers_text = load_excluded_covers(asn_id) if asn_id else ""
-    if (out_of_scope or covers_text) and all_qs:
-        all_qs = filter_questions(inquiry_text, out_of_scope, all_qs,
-                                  covers_text=covers_text)
+    if out_of_scope and all_qs:
+        all_qs = filter_questions(inquiry_text, out_of_scope, all_qs)
 
     return all_qs
 

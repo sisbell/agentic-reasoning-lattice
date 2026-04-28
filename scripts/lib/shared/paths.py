@@ -376,25 +376,3 @@ def load_channel_meta(channel_name):
         raise FileNotFoundError(f"channel meta.yaml not found: {meta_path}")
 
 
-def load_excluded_covers(asn_id):
-    """Load combined covers text for an ASN's depends + already_covered.
-
-    Reads the manifest for asn_id, collects all ASN IDs from
-    depends and already_covered, then reads each of those manifests'
-    covers field. Returns a combined string for the question filter.
-    """
-    manifest = load_manifest(asn_id)
-    dep_ids = manifest.get("depends", [])
-    ac_ids = manifest.get("already_covered", [])
-    all_ids = set(dep_ids + ac_ids)
-
-    if not all_ids:
-        return ""
-
-    covers = []
-    for ref_id in sorted(all_ids):
-        ref = load_manifest(ref_id)
-        c = ref.get("covers", "")
-        if c:
-            covers.append(f"ASN-{int(ref_id):04d}: {c}")
-    return "\n".join(covers)
