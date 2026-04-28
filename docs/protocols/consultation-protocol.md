@@ -22,9 +22,9 @@ Following the modular formalism of Cachin (*Reliable and Secure Distributed Prog
 | Type | Subtypes | Role |
 |---|---|---|
 | `inquiry` | (flat, one-sided) | Classifier: document is an inquiry |
-| `synthesis` | (flat) | Records that consultation produced this note from this inquiry. From = inquiry, to = note. |
+| `provenance.synthesis` | (flat) | Records that consultation produced this note from this inquiry. From = inquiry, to = note. |
 
-Sub-questions and raw channel answers are choreography concerns, not protocol primitives. They may be persisted (substrate documents) or transient (intermediate state) — the protocol is silent on this. The substrate-level provenance trail is the inquiry → `synthesis` → note edge.
+Sub-questions and raw channel answers are choreography concerns, not protocol primitives. They may be persisted (substrate documents) or transient (intermediate state) — the protocol is silent on this. The substrate-level provenance trail is the inquiry → `provenance.synthesis` → note edge.
 
 ---
 
@@ -32,7 +32,7 @@ Sub-questions and raw channel answers are choreography concerns, not protocol pr
 
 ### 2.1 Substrate
 
-The persistent, append-only link graph. See [Substrate Module](substrate.md). This protocol relies on SUB1 (permanence — for the `synthesis` provenance link) and SUB2 (query soundness). Consultation does not file or interact with retraction links; SUB4–SUB6 are not relied upon.
+The persistent, append-only link graph. See [Substrate Module](substrate.md). This protocol relies on SUB1 (permanence — for the `provenance.synthesis` provenance link) and SUB2 (query soundness). Consultation does not file or interact with retraction links; SUB4–SUB6 are not relied upon.
 
 ### 2.2 Channels
 
@@ -84,7 +84,7 @@ Reads both channels' answers and produces a structured note in the Dijkstra voic
 
 **Indications (output upward).**
 
-- ⟨ NoteProduced | inquiry, note ⟩ — the protocol has produced a note. The note carries the `note` classifier and a `synthesis` link from the inquiry.
+- ⟨ NoteProduced | inquiry, note ⟩ — the protocol has produced a note. The note carries the `note` classifier and a `provenance.synthesis` link from the inquiry.
 - ⟨ ConsultationFailed | inquiry, reason ⟩ — the protocol could not produce a note (channel error, synthesizer failure). No note is created.
 
 ---
@@ -93,8 +93,8 @@ Reads both channels' answers and produces a structured note in the Dijkstra voic
 
 The protocol terminates on output production — no convergence predicate, no iteration. A single ⟨ Consult ⟩ request results in either:
 
-- ⟨ NoteProduced | inquiry, note ⟩ — success. The note is in the substrate and a `synthesis` link records the provenance.
-- ⟨ ConsultationFailed | inquiry, reason ⟩ — failure. No note is created; no `synthesis` link is filed.
+- ⟨ NoteProduced | inquiry, note ⟩ — success. The note is in the substrate and a `provenance.synthesis` link records the provenance.
+- ⟨ ConsultationFailed | inquiry, reason ⟩ — failure. No note is created; no `provenance.synthesis` link is filed.
 
 Termination is structural: the protocol's state machine is decompose → consult → synthesize → indicate. There is no loop. Refinement happens downstream in note convergence.
 
@@ -116,7 +116,7 @@ Termination is structural: the protocol's state machine is decompose → consult
 
 **C6 (Synthesis integrity).** Every fact present in either channel's output either appears in the synthesized note or is explicitly noted as a disagreement. The synthesizer does not fabricate facts not derivable from the channels' outputs. Where channels agree, the agreement is noted. Where they disagree, the disagreement is preserved as a finding, not resolved by the synthesizer's own judgment.
 
-**C7 (Provenance recording).** On ⟨ NoteProduced | inquiry, note ⟩, the substrate contains a `synthesis` link from the inquiry to the note and a `note` classifier on the note document. (Relies on SUB1.)
+**C7 (Provenance recording).** On ⟨ NoteProduced | inquiry, note ⟩, the substrate contains a `provenance.synthesis` link from the inquiry to the note and a `note` classifier on the note document. (Relies on SUB1.)
 
 ### 5.2 Liveness
 
@@ -214,7 +214,7 @@ upon all answers collected do
 
 The synthesizer receives all answers at once. Its prompt context includes the campaign's bridge vocabulary, the inquiry's foundation context (formal statements from upstream ASNs declared in `depends:`), and the inquiry's out-of-scope hints. The `out_of_scope` field is the same data used in both phases — in §6.2 it filters questions that would duplicate upstream work or stray outside scope; in §6.4 it guides the synthesizer to avoid re-deriving what's already established and to flag boundary material as open questions rather than claimed results. Same source, different effects: filtering prevents wasted consultation, hinting shapes the note's epistemic boundaries. The synthesis prompt enforces the Dijkstra voice — prose with embedded formalism, every statement justified where introduced.
 
-The note is written to the lattice's discovery directory. A `synthesis` link is filed in the substrate from the inquiry to the note (provenance, per C7).
+The note is written to the lattice's discovery directory. A `provenance.synthesis` link is filed in the substrate from the inquiry to the note (provenance, per C7).
 
 ### 6.5 Termination
 

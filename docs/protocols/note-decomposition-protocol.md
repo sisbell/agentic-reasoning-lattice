@@ -24,9 +24,9 @@ Following the modular formalism of Cachin (*Reliable and Secure Distributed Prog
 | `claim` | (flat, one-sided) | Classifier: document is a claim. Filed by decomposition as part of admitting each claim to the lattice. |
 | `citation` | (flat) | Claim depends on claim. Filed by decomposition from each claim's `depends:` metadata. |
 | `contract` | `axiom`, `definition`, `theorem`, `corollary`, `lemma`, `consequence`, `design-requirement` | Classifier: claim has a formal contract of this kind. Filed by decomposition from each claim's `type:` metadata. |
-| `decomposition` | (flat) | Records that decomposition produced this claim from this note. From = note, to = claim. Provenance trail from the source document to each output pair. |
+| `provenance` | `decomposition` | Records that decomposition produced this claim from this note. From = note, to = claim. Audit trail from the source document to each output pair. Sibling of the consultation protocol's `provenance.synthesis` and the maturation protocol's `provenance.{extract,absorb,reset}`. |
 
-The `claim`, `citation`, and `contract` link types are inherited from the [claim convergence protocol](claim-convergence-protocol.md) — note decomposition is the protocol that creates them. The `decomposition` link is this protocol's own provenance primitive (analog of consultation's `synthesis` link).
+The `claim`, `citation`, and `contract` link types are inherited from the [claim convergence protocol](claim-convergence-protocol.md) — note decomposition is the protocol that creates them. The `provenance.decomposition` link is this protocol's own provenance primitive (analog of consultation's `provenance.synthesis` link).
 
 ---
 
@@ -34,7 +34,7 @@ The `claim`, `citation`, and `contract` link types are inherited from the [claim
 
 ### 2.1 Substrate
 
-The persistent, append-only link graph. See [Substrate Module](substrate.md). This protocol relies on SUB1 (permanence — for the `claim`, `contract`, `citation`, and `decomposition` links it emits) and SUB2 (query soundness). Note decomposition does not file or interact with retraction links; SUB4–SUB6 are not relied upon.
+The persistent, append-only link graph. See [Substrate Module](substrate.md). This protocol relies on SUB1 (permanence — for the `claim`, `contract`, `citation`, and `provenance.decomposition` links it emits) and SUB2 (query soundness). Note decomposition does not file or interact with retraction links; SUB4–SUB6 are not relied upon.
 
 ### 2.2 Structural validator
 
@@ -93,7 +93,7 @@ Resolves structural violations reported by the validator. One violation, one fix
 
 **Indications (output upward).**
 
-- ⟨ ClaimSetProduced | note, claims ⟩ — the protocol has produced a valid claim set. Each claim carries the `claim` classifier, a `contract.<kind>` link reflecting its type, `citation` links for its declared dependencies, and a `decomposition` link from the source note.
+- ⟨ ClaimSetProduced | note, claims ⟩ — the protocol has produced a valid claim set. Each claim carries the `claim` classifier, a `contract.<kind>` link reflecting its type, `citation` links for its declared dependencies, and a `provenance.decomposition` link from the source note.
 - ⟨ DecompositionFailed | note, violations ⟩ — the validator reported violations that could not be auto-resolved. No claim set is produced.
 
 ---
@@ -125,7 +125,7 @@ Termination is structural: the protocol's state machine is split → enrich → 
 
 **B6 (Acyclicity).** The `citation` subgraph induced by the output's `depends:` lists is a directed acyclic graph. Decomposition refuses to emit ⟨ ClaimSetProduced ⟩ if it would introduce a cycle. (Subsumed by B5 but called out separately because it is the property most often violated by enricher errors.)
 
-**B7 (Provenance recording).** On ⟨ ClaimSetProduced | note, claims ⟩, the substrate contains, for each claim in the output: a `claim` classifier on the claim document, a `contract.<kind>` link reflecting its type, `citation` links for its declared dependencies, and a `decomposition` link from the source note to the claim. (Relies on SUB1.)
+**B7 (Provenance recording).** On ⟨ ClaimSetProduced | note, claims ⟩, the substrate contains, for each claim in the output: a `claim` classifier on the claim document, a `contract.<kind>` link reflecting its type, `citation` links for its declared dependencies, and a `provenance.decomposition` link from the source note to the claim. (Relies on SUB1.)
 
 ### 5.2 Liveness
 
@@ -236,7 +236,7 @@ The algorithm terminates on ⟨ ClaimSetProduced ⟩ or ⟨ DecompositionFailed 
 
 ### 6.7 Known gap
 
-The current implementation does not yet emit the substrate links specified in B7. The `claim` classifier, `contract.<kind>` classifier, `citation` links, and `decomposition` provenance link are filed by `populate-store.py` as a bootstrap mechanism, not by decomposition itself. B7 is therefore aspirational pending substrate emission inside the decomposition pipeline.
+The current implementation does not yet emit the substrate links specified in B7. The `claim` classifier, `contract.<kind>` classifier, `citation` links, and `provenance.decomposition` link are filed by `populate-store.py` as a bootstrap mechanism, not by decomposition itself. B7 is therefore aspirational pending substrate emission inside the decomposition pipeline.
 
 ---
 

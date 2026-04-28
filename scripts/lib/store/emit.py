@@ -52,12 +52,17 @@ def emit_inquiry(store, inquiry_md_path):
 
 
 def emit_synthesis(store, inquiry_md_path, note_md_path):
-    """File a `synthesis` link from inquiry to the produced note.
-    Idempotent on active (inquiry, note) pair. Returns (link_id, created)."""
+    """File a `provenance.synthesis` link from inquiry to the produced note.
+    Idempotent on active (inquiry, note) pair. Returns (link_id, created).
+
+    The link records the consultation protocol's provenance fact: this note
+    was produced by synthesizing answers from the inquiry's consultations.
+    Sibling of `provenance.decomposition` (note → claim) and the maturation
+    provenance subtypes."""
     inquiry_rel = _lattice_relative(inquiry_md_path)
     note_rel = _lattice_relative(note_md_path)
     candidates = active_links(
-        store, "synthesis",
+        store, "provenance.synthesis",
         from_set=[inquiry_rel], to_set=[note_rel],
     )
     for link in candidates:
@@ -66,7 +71,7 @@ def emit_synthesis(store, inquiry_md_path, note_md_path):
             return link["id"], False
     link_id = store.make_link(
         from_set=[inquiry_rel], to_set=[note_rel],
-        type_set=["synthesis"],
+        type_set=["provenance.synthesis"],
     )
     return link_id, True
 

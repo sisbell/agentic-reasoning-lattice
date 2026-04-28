@@ -139,7 +139,7 @@ class EmitSynthesisTests(EmitTestBase):
         )
         self.assertTrue(created)
         rec = self.store.get(link_id)
-        self.assertEqual(rec["type_set"], ["synthesis"])
+        self.assertEqual(rec["type_set"], ["provenance.synthesis"])
         self.assertEqual(
             rec["from_set"],
             ["_docuverse/documents/inquiry/ASN-0001.md"],

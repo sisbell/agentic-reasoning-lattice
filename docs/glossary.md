@@ -84,7 +84,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 ## D
 
-**Decomposition (link type).** A substrate `decomposition` link records that note decomposition produced a claim from a note. From = note, to = claim. Provenance trail from a note to each of its decomposed claim files. Filed by the note decomposition protocol. See [Note Decomposition Protocol](protocols/note-decomposition-protocol.md).
+**Decomposition (link type).** A substrate `provenance.decomposition` link records that note decomposition produced a claim from a note. From = note, to = claim. Provenance trail from a note to each of its decomposed claim files. Filed by the note decomposition protocol. Sibling of `provenance.synthesis`, `provenance.extract`, `provenance.absorb`, `provenance.reset`. See [Note Decomposition Protocol](protocols/note-decomposition-protocol.md).
 
 **Definition.** A claim classified as introducing named concepts or operations.
 
@@ -290,7 +290,7 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 
 **Synthesis.** The step integrating theory-channel and evidence-channel outputs into a structured note with dependency-mapped claims. The first place both perspectives meet — agreements validate, disagreements seed new hypotheses. Roughly 70% of a note's vocabulary coinage happens here. See [Two-Channel Architecture](two-channel-architecture.md).
 
-**Synthesis (link type).** A substrate `synthesis` link records that consultation produced a note from an inquiry. From = inquiry, to = note. Provenance trail from the inquiry to its synthesized output. Filed by the consultation protocol. See [Consultation Protocol](protocols/consultation-protocol.md).
+**Synthesis (link type).** A substrate `provenance.synthesis` link records that consultation produced a note from an inquiry. From = inquiry, to = note. Provenance trail from the inquiry to its synthesized output. Filed by the consultation protocol. Sibling of `provenance.decomposition`, `provenance.extract`, `provenance.absorb`, `provenance.reset`. See [Consultation Protocol](protocols/consultation-protocol.md).
 
 **Synthesis coinage.** [Prose coinage](patterns/prose-coinage.md) that occurs at the synthesis step when two-channel outputs are reconciled. Roughly 70% of a note's coinages happen here, because synthesis is where incompatible vocabularies must be merged into a single note and no existing word may fit precisely. Contrasts with [review coinage](#r) which happens during later review/revise cycles.
 

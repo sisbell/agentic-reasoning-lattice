@@ -37,7 +37,9 @@ VALID_TYPES = {
     # Protocol-defined
     "claim", "note", "review", "contract", "citation", "comment", "resolution",
     # Discovery / consultation
-    "inquiry", "synthesis", "campaign",
+    "inquiry", "campaign",
+    # Provenance — operation-produced-output audit links (see VALID_SUBTYPES)
+    "provenance",
     # Substrate-owned (general-purpose document primitives)
     "retraction", "label", "name", "description",
     # Agent module
@@ -51,6 +53,17 @@ VALID_SUBTYPES = {
     },
     "comment": {"revise", "observe", "out-of-scope"},
     "resolution": {"edit", "reject"},
+    # Provenance — historical audit links recording what operation produced
+    # what output from what input. Filed once at the moment the operation
+    # completes; never retracted; not evaluated by any predicate; queryable
+    # for replay and structural-history reconstruction.
+    "provenance": {
+        "synthesis",        # consultation: inquiry → note
+        "decomposition",    # note decomposition: note → claim
+        "extract",          # maturation: existing notes → new foundation
+        "absorb",           # maturation: note A material → note B
+        "reset",            # maturation: hard-reset cascade marker
+    },
 }
 
 

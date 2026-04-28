@@ -200,9 +200,9 @@ The test: "does this type make sense without knowing which protocol you're in?" 
 | `citation` | Both convergence protocols | Dependency edge (note→note or claim→claim) |
 | `note` | Note convergence protocol | Classifier: document is a note |
 | `inquiry` | Consultation protocol | Classifier: document is an inquiry |
-| `synthesis` | Consultation protocol | Provenance: inquiry produced this note |
-| `decomposition` | Note decomposition protocol | Provenance: note produced this claim set |
-| `provenance.extract`, `.absorb`, `.reset` | Maturation protocol | Audit trail for lattice operations |
+| `provenance.synthesis` | Consultation protocol | inquiry produced this note |
+| `provenance.decomposition` | Note decomposition protocol | note produced this claim |
+| `provenance.{extract,absorb,reset}` | Maturation protocol | Audit for lattice operations (extract, absorb, hard reset) |
 
 The substrate does not enforce protocol-defined types. It stores whatever type strings a MakeLink call provides. Type semantics are protocol concerns. The substrate-owned / protocol-defined distinction is about who owns the type's semantics, not about storage differences — all types are stored the same way.
 

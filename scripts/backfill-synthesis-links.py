@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""One-shot backfill: emit `synthesis` links for already-drafted notes.
+"""One-shot backfill: emit `provenance.synthesis` links for already-drafted notes.
 
 The consultation protocol records inquiry-to-note provenance via a
-`synthesis` substrate link from the inquiry md to its drafted note md
+`provenance.synthesis` substrate link from the inquiry md to its drafted note md
 (per docs/protocols/consultation-protocol.md §6.4 and C7). For new
 inquiries this is wired in note-draft.py; existing 27 inquiries pre-date
 the wiring and have no synthesis link.
 
 This script walks every inquiry doc, resolves its drafted note, and
-emits a `synthesis` link. Idempotent — re-runs are no-ops.
+emits a `provenance.synthesis` link. Idempotent — re-runs are no-ops.
 
 Run AFTER backfill-note-classifiers.py so notes have substrate
 classifiers (the link target paths are the note md paths regardless,
