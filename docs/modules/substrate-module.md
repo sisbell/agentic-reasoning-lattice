@@ -113,7 +113,7 @@ The shadow interpretation makes ActiveLinks a single-depth check: "does any retr
 
 The substrate permits retraction of any link — citations, resolutions, comments, contracts, classifiers, attribute links. The substrate does not restrict which link types can be retracted because it does not interpret link types.
 
-Protocols that build predicates on the link graph (e.g., the [convergence protocol](convergence-protocol.md)'s predicate: "every `comment.revise` has a matching `resolution`") should evaluate those predicates against active links (via ActiveLinks) rather than all links (via FindLinks). A retracted resolution no longer counts toward closing a comment. A retracted comment would no longer create a resolution obligation — though no protocol currently retracts comments; this case is theoretical.
+Protocols that build predicates on the link graph (e.g., the [convergence protocol](../protocols/convergence-protocol.md)'s predicate: "every `comment.revise` has a matching `resolution`") should evaluate those predicates against active links (via ActiveLinks) rather than all links (via FindLinks). A retracted resolution no longer counts toward closing a comment. A retracted comment would no longer create a resolution obligation — though no protocol currently retracts comments; this case is theoretical.
 
 Which link types a protocol actually retracts is a protocol-level decision, not a substrate-level one. The substrate provides the mechanism; protocols decide when to use it and constrain their own retraction discipline.
 
@@ -223,9 +223,9 @@ The substrate specification is implementation-independent. Any backing store sat
 
 ## Related
 
-- [Convergence Protocol](convergence-protocol.md) — the first consumer. Uses SUB1–SUB3 for comment/resolution accumulation and predicate evaluation.
-- [Claim Convergence Protocol](claim-convergence-protocol.md) — uses retraction for stale citations during proof evolution (prune).
-- [Note Convergence Protocol](note-convergence-protocol.md) — uses retraction for stale citations after absorb and extract operations.
+- [Convergence Protocol](../protocols/convergence-protocol.md) — the first consumer. Uses SUB1–SUB3 for comment/resolution accumulation and predicate evaluation.
+- [Claim Convergence Protocol](../protocols/claim-convergence-protocol.md) — uses retraction for stale citations during proof evolution (prune).
+- [Note Convergence Protocol](../protocols/note-convergence-protocol.md) — uses retraction for stale citations after absorb and extract operations.
 - [Architecture](../architecture.md) — the `_docuverse/` directory in the lattice structure.
 - [Substrate Migration Trajectory](../design-notes/substrate-migration-trajectory.md) — the evolution path from filesystem-backed to native link graph.
 - [Vision](../vision.md) — the broader architectural trajectory.

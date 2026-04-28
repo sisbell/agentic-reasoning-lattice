@@ -34,7 +34,7 @@ The absence is deliberate. A predicate that tracks "latest version" lets unresol
 
 ### Substrate
 
-The persistent, append-only link graph. See [Substrate Module](substrate.md) for the full specification.
+The persistent, append-only link graph. See [Substrate Module](../modules/substrate-module.md) for the full specification.
 
 **Operations relied upon.**
 
@@ -95,7 +95,7 @@ Observes unresolved `comment.revise` links and responds in one of two ways. If t
 
 > For every document in the set, every active `comment.revise` link targeting that document has a matching active `resolution` link.
 
-The predicate evaluates against active links (via the substrate's ActiveLinks query, per [SUB4–SUB5](substrate.md)). A retracted resolution no longer counts toward closing a comment — the comment becomes unresolved. A retracted comment no longer creates a resolution obligation. In practice, the convergence protocol itself does not file retractions; specializations that do (claim convergence, note convergence) rely on this active-link evaluation to keep the predicate correct after retraction.
+The predicate evaluates against active links (via the substrate's ActiveLinks query, per [SUB4–SUB5](../modules/substrate-module.md)). A retracted resolution no longer counts toward closing a comment — the comment becomes unresolved. A retracted comment no longer creates a resolution obligation. In practice, the convergence protocol itself does not file retractions; specializations that do (claim convergence, note convergence) rely on this active-link evaluation to keep the predicate correct after retraction.
 
 No scope qualifiers. The protocol doesn't know what scope strategy produced the comments. It knows whether they're resolved — by edit or by rejection.
 
@@ -152,7 +152,7 @@ The predicate defines WHAT convergence is. Choreography defines HOW the protocol
 
 **No ordering guarantee.** The protocol does not prescribe the order in which documents are reviewed or comments are resolved.
 
-**No retraction guarantee.** The convergence protocol does not retract links. Specializations that use retraction (via the [substrate](substrate.md)) are responsible for the consequences — a retracted resolution re-opens its comment; the predicate evaluates accordingly.
+**No retraction guarantee.** The convergence protocol does not retract links. Specializations that use retraction (via the [substrate](../modules/substrate-module.md)) are responsible for the consequences — a retracted resolution re-opens its comment; the predicate evaluates accordingly.
 
 **Operational monitoring.** Detecting non-convergence — oscillation, reject cycling, classification bias — is a choreography and monitoring concern, not a protocol property.
 
@@ -160,7 +160,7 @@ The predicate defines WHAT convergence is. Choreography defines HOW the protocol
 
 ## Related
 
-- [Substrate Module](substrate.md) — the persistent link graph this protocol operates on. Provides permanence, query operations, and retraction semantics.
+- [Substrate Module](../modules/substrate-module.md) — the persistent link graph this protocol operates on. Provides permanence, query operations, and retraction semantics.
 - [Review/Revise Iteration](../patterns/review-revise-iteration.md) — the empirical pattern this protocol formalizes. Excavation stages, convergence dynamics, stall conditions.
 - [Production Drive](../design-notes/production-drive.md) — the LLM behavioral force that OBSERVE channels safely.
 - [Note Convergence Protocol](note-convergence-protocol.md) — uses this module for notes, adding OUT_OF_SCOPE classification and lattice growth signals.

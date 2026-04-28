@@ -1,6 +1,6 @@
 """Unit tests for the agent module library (emit_agent, emit_manages).
 
-Per docs/protocols/agent.md:
+Per docs/modules/agent-module.md:
 - emit_agent classifies a doc as an agent. Idempotent on active classifiers.
 - emit_manages declares an agent manages an operation. Idempotent on
   active (agent, operation) pairs.

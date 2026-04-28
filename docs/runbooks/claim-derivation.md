@@ -37,4 +37,4 @@ python scripts/derive-claims-produce-contract.py <ASN>    # accepts --force / --
 
 ---
 
-See the [claim derivation guide](../guides/claim-derivation.md) for how the pipeline stages work, output structure, and design decisions. Protocol details in the [Claim Derivation Module](../protocols/claim-derivation-module.md).
+See the [claim derivation guide](../guides/claim-derivation.md) for how the pipeline stages work, output structure, and design decisions. Protocol details in the [Claim Derivation Module](../modules/claim-derivation-module.md).

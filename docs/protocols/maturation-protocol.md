@@ -17,7 +17,7 @@ Content matures through four representations, each progressively more precise:
 | Representation | Form | Produced by |
 |---|---|---|
 | **Note** | Narrative prose with embedded claims | [Consultation](consultation-protocol.md) + [note convergence](note-convergence-protocol.md) |
-| **Claim files** | Per-claim YAML metadata + markdown body | [Claim derivation protocol](claim-derivation-module.md) |
+| **Claim files** | Per-claim YAML metadata + markdown body | [Claim derivation protocol](../modules/claim-derivation-module.md) |
 | **Converged contracts** | Formally precise claims where every revise comment has a resolution | [Claim convergence protocol](claim-convergence-protocol.md) |
 | **Verified code** | Mechanically checked assertions | Verification protocol |
 
@@ -31,7 +31,7 @@ Five protocols execute within the maturation protocol. Each has a defined comple
 
 **[Note convergence protocol](note-convergence-protocol.md).** Drives notes toward stability through review/revise cycles. Finding classification is REVISE / OUT_OF_SCOPE. The convergence predicate — every active `comment.revise` has an active `resolution` — determines when a note is ready for decomposition. OUT_OF_SCOPE findings generate signals that maturation consumes for lattice operations. Operates at note scale.
 
-**[Claim derivation protocol](claim-derivation-module.md).** Decomposes a converged note into per-claim file pairs — mechanical section split, per-section claim identification, per-claim classification and dependency extraction. Post-decomposition validation checks the output against the [Claim File Contract](../design-notes/claim-file-contract.md). One-shot — terminates when the structural contract holds on the output.
+**[Claim derivation protocol](../modules/claim-derivation-module.md).** Decomposes a converged note into per-claim file pairs — mechanical section split, per-section claim identification, per-claim classification and dependency extraction. Post-decomposition validation checks the output against the [Claim File Contract](../design-notes/claim-file-contract.md). One-shot — terminates when the structural contract holds on the output.
 
 **[Claim convergence protocol](claim-convergence-protocol.md).** The convergence predicate — every active `comment.revise` has a matching active `resolution` — drives claims toward formal precision. Finding classification is REVISE / OBSERVE. Scope strategies (adaptive, comprehensive) are choreography decisions within the protocol. Operates at claim scale.
 
@@ -202,11 +202,11 @@ The protocol design doesn't depend on which architecture eventually replaces hum
 
 ## Related
 
-- [Substrate Module](substrate.md) — the persistent link graph all protocols operate on. Provides permanence, retraction, and active-link semantics.
+- [Substrate Module](../modules/substrate-module.md) — the persistent link graph all protocols operate on. Provides permanence, retraction, and active-link semantics.
 - [Convergence Protocol](convergence-protocol.md) — the document-type-neutral module both convergence protocols specialize.
 - [Consultation Protocol](consultation-protocol.md) — the upstream producer that generates initial notes from campaign inquiries.
 - [Note Convergence Protocol](note-convergence-protocol.md) — the stage protocol that drives notes to stability during discovery.
-- [Claim Derivation Module](claim-derivation-module.md) — the stage protocol that decomposes notes into per-claim files.
+- [Claim Derivation Module](../modules/claim-derivation-module.md) — the stage protocol that decomposes notes into per-claim files.
 - [Claim Convergence Protocol](claim-convergence-protocol.md) — the stage protocol that drives claims to formal precision.
 - [Architecture](../architecture.md) — the six-level hierarchy and lattice structure the maturation protocol operates on.
 - [Representation Change](../patterns/representation-change.md) — each transition is a representation change.

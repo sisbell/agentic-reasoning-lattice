@@ -37,7 +37,7 @@ The [maturation protocol](maturation-protocol.md)'s lattice operations restructu
 - **Absorb** moves material from one note into another. The source note's outbound citations may become stale — claims that depended on a now-departed prefix no longer have a use-site for those citations.
 - **Extract** spins claims out into a new foundation note. The original note retains a citation to the new foundation but loses the citations it had into the now-redundant claims that were extracted.
 
-The protocol uses the substrate's retraction mechanism ([SUB4–SUB5](substrate.md)) to nullify these stale citations. The reviser during a re-entry note-convergence cycle (which the maturation protocol triggers after each operation) inspects the note's prose, identifies citations no longer supported by use-sites, and files retractions via ⟨ Retract ⟩. Retraction of a `resolution` link re-opens the comment it closed — the convergence predicate evaluates against active links, so the retracted resolution no longer counts. Retraction semantics (shadow interpretation, idempotence, depth behavior) are specified in the [Substrate Module](substrate.md).
+The protocol uses the substrate's retraction mechanism ([SUB4–SUB5](../modules/substrate-module.md)) to nullify these stale citations. The reviser during a re-entry note-convergence cycle (which the maturation protocol triggers after each operation) inspects the note's prose, identifies citations no longer supported by use-sites, and files retractions via ⟨ Retract ⟩. Retraction of a `resolution` link re-opens the comment it closed — the convergence predicate evaluates against active links, so the retracted resolution no longer counts. Retraction semantics (shadow interpretation, idempotence, depth behavior) are specified in the [Substrate Module](../modules/substrate-module.md).
 
 ### Finding classification
 
@@ -64,7 +64,7 @@ Provides the predicate, comment/resolution machinery, and core safety and livene
 
 ### 2.2 Substrate
 
-The persistent, append-only link graph. See [Substrate Module](substrate.md). This protocol relies on SUB1–SUB3 (inherited via the convergence protocol) and additionally on SUB4–SUB6 (retraction semantics) for stale citation handling after lattice operations.
+The persistent, append-only link graph. See [Substrate Module](../modules/substrate-module.md). This protocol relies on SUB1–SUB3 (inherited via the convergence protocol) and additionally on SUB4–SUB6 (retraction semantics) for stale citation handling after lattice operations.
 
 ### 2.3 Agent module
 
@@ -126,7 +126,7 @@ Retraction of a `citation` link does not affect the convergence predicate — ci
 
 ### 5.1 Safety
 
-The note convergence protocol adds the following safety properties to those inherited from the [convergence protocol](convergence-protocol.md) (S1–S6) and relies on [substrate](substrate.md) properties SUB4–SUB6 for retraction:
+The note convergence protocol adds the following safety properties to those inherited from the [convergence protocol](convergence-protocol.md) (S1–S6) and relies on [substrate](../modules/substrate-module.md) properties SUB4–SUB6 for retraction:
 
 **N1 (Out-of-scope non-blocking).** A `comment.out-of-scope` link never creates a resolution obligation on the target note. The convergence predicate ignores `comment.out-of-scope` links entirely.
 
@@ -279,8 +279,8 @@ The [maturation protocol](maturation-protocol.md) decides when to activate this 
 ## Related
 
 - [Convergence Protocol](convergence-protocol.md) — the document-type-neutral module this protocol specializes.
-- [Substrate Module](substrate.md) — the persistent link graph. Provides retraction semantics (SUB4–SUB6) used for stale citation handling after lattice operations.
-- [Agent Module](agent.md) — the agent identity and management-attribution layer this protocol depends on (per §2.3). The note-review process files `agent` and `manages` links to keep the substrate ready for future multi-process expansion.
+- [Substrate Module](../modules/substrate-module.md) — the persistent link graph. Provides retraction semantics (SUB4–SUB6) used for stale citation handling after lattice operations.
+- [Agent Module](../modules/agent-module.md) — the agent identity and management-attribution layer this protocol depends on (per §2.3). The note-review process files `agent` and `manages` links to keep the substrate ready for future multi-process expansion.
 - [Consultation Protocol](consultation-protocol.md) — the upstream producer. Generates the initial note this protocol refines.
 - [Claim Convergence Protocol](claim-convergence-protocol.md) — the sibling specialization at claim scale.
 - [Review/Revise Iteration](../patterns/review-revise-iteration.md) — the empirical pattern underlying this protocol. Battle-tested across a dozen ASNs.

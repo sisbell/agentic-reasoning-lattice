@@ -2,7 +2,7 @@
 
 A transformation module that derives per-claim files from a converged note. Each claim becomes a body markdown file with substrate-managed sidecars (label, name, description, optionally signature) and substrate links classifying the body and recording its dependencies and provenance, conforming to the [Claim File Contract](../design-notes/claim-file-contract.md).
 
-The input is a note refined through [consultation](consultation-protocol.md) and [note convergence](note-convergence-protocol.md); the output enters [claim convergence](claim-convergence-protocol.md) for review/revise cycles.
+The input is a note refined through [consultation](../protocols/consultation-protocol.md) and [note convergence](../protocols/note-convergence-protocol.md); the output enters [claim convergence](../protocols/claim-convergence-protocol.md) for review/revise cycles.
 
 One-shot — terminates when the structural contract holds on the output. The narrative description of the derivation stage lives in [Claim Derivation](../claim-derivation.md).
 
@@ -38,7 +38,7 @@ The `claim`, `citation`, `contract`, and the substrate attribute link types are 
 
 ### 2.1 Substrate
 
-The persistent, append-only link graph. See [Substrate Module](substrate.md). This module relies on SUB1 (permanence — for the `claim`, `contract`, `citation`, and `provenance.derivation` links it emits) and SUB2 (query soundness). Claim derivation does not file or interact with retraction links; SUB4–SUB6 are not relied upon.
+The persistent, append-only link graph. See [Substrate Module](substrate-module.md). This module relies on SUB1 (permanence — for the `claim`, `contract`, `citation`, and `provenance.derivation` links it emits) and SUB2 (query soundness). Claim derivation does not file or interact with retraction links; SUB4–SUB6 are not relied upon.
 
 ### 2.2 Structural validator
 
@@ -123,7 +123,7 @@ The properties are postconditions on the module's output — "when this transfor
 
 **B3 (Content preservation).** Each source claim's narrative, proof, and formal contract text appears in its corresponding file set. Textual presence is mechanically checkable (the validator can detect empty bodies or missing contract sections). Semantic fidelity — whether the per-claim form preserves what the narrative actually meant — is not mechanically checkable and surfaces as `comment.revise` findings in claim convergence. B3 guarantees the text arrived; the quality boundary (§5.3) and downstream review guarantee it arrived intact.
 
-**B4 (Source freezing).** The source note is frozen at the moment derivation begins. It becomes the record of discovery, not a living document. Modifications to the note after derivation has started do not propagate to the claim file set. The note and the claim files are separate artifacts from this point forward. This connects to the [maturation protocol](maturation-protocol.md)'s hard reset — unfreezing is a cascading structural operation.
+**B4 (Source freezing).** The source note is frozen at the moment derivation begins. It becomes the record of discovery, not a living document. Modifications to the note after derivation has started do not propagate to the claim file set. The note and the claim files are separate artifacts from this point forward. This connects to the [maturation protocol](../protocols/maturation-protocol.md)'s hard reset — unfreezing is a cascading structural operation.
 
 **B5 (Structural contract).** On ⟨ ClaimSetProduced ⟩, every steady-state invariant of the [Claim File Contract](../design-notes/claim-file-contract.md) holds on the output: file-set completeness (body + required sidecars), declaration matches label, sidecar content well-formed, substrate classification complete (`claim`, `contract.<kind>`, `label`, `name`, `description`, optional `signature` links), depends agreement, references resolve, declared symbols resolve, acyclic dependency graph, body uniqueness. (Relies on SV1, SV2.)
 
@@ -317,7 +317,7 @@ Module: Maturation
               signature, citation, provenance.derivation)
 ```
 
-The [maturation protocol](maturation-protocol.md) governs both transitions. It activates claim derivation after note convergence's predicate holds and activates claim convergence after derivation's contract holds.
+The [maturation protocol](../protocols/maturation-protocol.md) governs both transitions. It activates claim derivation after note convergence's predicate holds and activates claim convergence after derivation's contract holds.
 
 ### Why this is a module, not a protocol
 
@@ -345,10 +345,10 @@ The trace of the failure mode this contract addresses is documented in [Uncontra
 
 - [Claim File Contract](../design-notes/claim-file-contract.md) — the structural contract this module's output must satisfy.
 - [Claim Derivation](../claim-derivation.md) — narrative description of the derivation stage.
-- [Note Convergence Protocol](note-convergence-protocol.md) — the upstream protocol whose converged output enters derivation.
-- [Claim Convergence Protocol](claim-convergence-protocol.md) — the downstream protocol that operates on derivation's output.
-- [Maturation Protocol](maturation-protocol.md) — composes claim derivation between note and claim convergence.
-- [Substrate Module](substrate.md) — the persistent link graph. Derivation writes claim/contract/citation/provenance.derivation links to it.
+- [Note Convergence Protocol](../protocols/note-convergence-protocol.md) — the upstream protocol whose converged output enters derivation.
+- [Claim Convergence Protocol](../protocols/claim-convergence-protocol.md) — the downstream protocol that operates on derivation's output.
+- [Maturation Protocol](../protocols/maturation-protocol.md) — composes claim derivation between note and claim convergence.
+- [Substrate Module](substrate-module.md) — the persistent link graph. Derivation writes claim/contract/citation/provenance.derivation links to it.
 - [Uncontracted Representation Change](../equilibrium/uncontracted-representation-change.md) — the failure mode the structural contract addresses. T3 incident trace.
 - [Validate Before Review](../patterns/validate-before-review.md) — the operational pattern that consumes the structural contract downstream.
 - [Representation Change](../patterns/representation-change.md) — claim derivation is the canonical instance.

@@ -1,6 +1,6 @@
 """Agent module library: file `agent` classifier and `manages` attribution links.
 
-Per the [Agent Module spec](../../../docs/protocols/agent.md):
+Per the [Agent Module spec](../../../docs/modules/agent-module.md):
 
 - An `agent` link classifies a doc as an agent (same shape as `claim`,
   `review`, `contract`). The agent's identity is the doc's address.

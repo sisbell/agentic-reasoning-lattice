@@ -1,6 +1,6 @@
 """Unit tests for AgentStore + default_store / agent_context.
 
-Per docs/protocols/agent.md:
+Per docs/modules/agent-module.md:
 - Wrapping a Store with AgentStore at orchestrator startup means every
   make_link from that point on is paired with a `manages` link from the
   agent doc to the new link.

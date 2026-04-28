@@ -32,7 +32,7 @@ Sub-questions and raw channel answers are choreography concerns, not protocol pr
 
 ### 2.1 Substrate
 
-The persistent, append-only link graph. See [Substrate Module](substrate.md). This protocol relies on SUB1 (permanence — for the `provenance.synthesis` provenance link) and SUB2 (query soundness). Consultation does not file or interact with retraction links; SUB4–SUB6 are not relied upon.
+The persistent, append-only link graph. See [Substrate Module](../modules/substrate-module.md). This protocol relies on SUB1 (permanence — for the `provenance.synthesis` provenance link) and SUB2 (query soundness). Consultation does not file or interact with retraction links; SUB4–SUB6 are not relied upon.
 
 ### 2.2 Channels
 
@@ -264,7 +264,7 @@ Note convergence is the downstream protocol that detects what consultation faile
 
 - [Two-Channel Architecture](../two-channel-architecture.md) — narrative description of channels, vocabulary firewall, channel asymmetry, synthesis, channel plugin interface.
 - [Note Convergence Protocol](note-convergence-protocol.md) — the downstream consumer. Refines the note this protocol produces.
-- [Claim Derivation Module](claim-derivation-module.md) — the protocol that operates on the note after convergence, decomposing it into per-claim files.
+- [Claim Derivation Module](../modules/claim-derivation-module.md) — the protocol that operates on the note after convergence, decomposing it into per-claim files.
 - [Convergence Protocol](convergence-protocol.md) — the document-type-neutral module note convergence specializes (consultation does not specialize it; production protocols and convergence protocols share the substrate but not the predicate).
 - [Maturation Protocol](maturation-protocol.md) — composes consultation and note convergence within discovery.
 - [The Voice Principle](../principles/voice.md) — synthesizer's output discipline.

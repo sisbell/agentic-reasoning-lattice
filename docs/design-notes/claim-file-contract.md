@@ -2,7 +2,7 @@
 
 The output contract for claim derivation. Specifies what well-formed per-claim files look like — what must be true when claim derivation finishes, and what must remain true across every review/revise cycle. The first instance of the transition-contract resolution for [Uncontracted Representation Change](../equilibrium/uncontracted-representation-change.md).
 
-Scope: this contract governs the per-claim outputs produced by the [claim derivation module](../protocols/claim-derivation-module.md). For each claim the protocol produces:
+Scope: this contract governs the per-claim outputs produced by the [claim derivation module](../modules/claim-derivation-module.md). For each claim the protocol produces:
 
 - a body markdown file `<label>.md` carrying the claim's prose, proof, and Formal Contract section,
 - three sidecar markdown files — `<label>.label.md`, `<label>.name.md`, `<label>.description.md` — carrying the claim's substrate-managed attributes,
@@ -100,6 +100,6 @@ Running the validator before the reviewer eliminates the reviewer's work on mech
 - [Validate Before Review](../patterns/validate-before-review.md) — the operational pattern that consumes this contract. Its validator runs the contract's structural invariants; its per-invariant revise recipes address the violations it finds.
 - [Uncontracted Representation Change](../equilibrium/uncontracted-representation-change.md) — the failure mode this contract addresses. The T4 sweep's non-convergence was a concrete instance: sixteen cycles spent on symptoms of structural violations because no contract specified what well-formed per-claim output meant.
 - [Representation Change](../patterns/representation-change.md) — the pattern this contract's existence is a consequence of. Every representation change introduces new structural rules; this contract is the first such rule set written down.
-- [Claim Derivation Module](../protocols/claim-derivation-module.md) — the protocol whose output this contract governs.
+- [Claim Derivation Module](../modules/claim-derivation-module.md) — the protocol whose output this contract governs.
 - [Claim Derivation](../claim-derivation.md) — the narrative guide for the stage.
 - [Self-Healing Areas](self-healing.md) — the steady-state structural invariants here are the mechanical-signal self-healing candidates named in that map.

@@ -1,109 +1,76 @@
-# Guide: Note Decomposition
+# Guide: Claim Derivation
 
-*Updated 2026-04-12.*
+Claim derivation is a one-shot module that transforms a converged note into per-claim files conforming to the [Claim File Contract](../design-notes/claim-file-contract.md). It sits between [note convergence](../protocols/note-convergence-protocol.md) and [claim convergence](../protocols/claim-convergence-protocol.md). For the formal specification see the [Claim Derivation Module](../modules/claim-derivation-module.md); for execution steps see the [runbook](../runbooks/claim-derivation.md).
 
-## Overview
+## Phases
 
-Blueprinting transforms a monolithic note into per-claim file pairs (`.yaml` metadata + `.md` body) ready for formalization. The process runs: decompose → enrich → transclude → validate → promote.
+Six sequential phases, each commits automatically.
 
-## Stages
+### 1. Decompose
 
-### Decompose
+Mechanical `##` split of the note's markdown into sections. Per-section LLM analysis (parallel across sections) produces structured YAML listing each section's claims (label, name, body extract, formal contract). Section YAMLs are written to `_workspace/claim-derivation/<asn>/sections/`.
 
-Two phases:
+Structural sections (PREAMBLE, Claims Introduced, Open Questions, Worked example) are skipped — they contain metadata, indexes, or illustrative content rather than derivable claims.
 
-1. **Mechanical `##` split** — splits the note at section headers. Pure python, no LLM. Each `##` section becomes its own `.md` file in `lattices/xanadu/blueprinting/ASN-NNNN/sections/`.
+### 2. Enrich
 
-2. **Per-section LLM analysis** — Sonnet reads each section, produces a `.yaml` file identifying the claims within it (label, name, body). Runs in parallel across sections.
+Three independent LLM passes per claim, parallel within and across claims. Each pass updates the section YAML in place:
 
-Structural sections (preamble, claim table, worked example, open questions) are skipped from LLM analysis — they're written as `.md` only.
+1. **Type** — classifies as axiom, definition, design-requirement, lemma, theorem, corollary, or consequence.
+2. **Dependencies** — extracts claim labels referenced in the proof or design justification.
+3. **Signature** — extracts non-logical symbols the claim introduces (constants, function symbols, relation symbols).
 
-### Enrich
+### 3. Transclude
 
-Three per-claim LLM passes, each running all claims in parallel:
+Mechanical projection — no LLM. For each claim:
 
-1. **Type** — classifies each claim: axiom, definition, design-requirement, lemma, theorem, corollary. Uses Dijkstra-school reasoning to determine if a proof is present, if the claim is a postulate, etc.
+- Writes the body markdown `<label>.md` as a verbatim byte-substring of the source note's region (resolved via exact match, then whitespace-normalized).
+- Writes the substrate-managed sidecars: `<label>.label.md`, `<label>.name.md`, `<label>.description.md`, and `<label>.signature.md` (only when the enricher's signature pass produced non-empty content).
+- Emits substrate links: `claim` and `contract.<kind>` classifiers on the body; `label` / `name` / `description` / `signature` attribute links pointing the body at its sidecars; `citation` links for declared dependencies; `provenance.derivation` link from the source note.
 
-2. **Dependencies** — extracts claim labels directly referenced in the proof or design justification. Add-only — lists what the claim uses, not transitive dependencies.
+The byte-substring discipline is strict — fuzzy matching is silent acceptance of unexplained drift, so the resolver fails loud on no-match and the failed claim is reported rather than written.
 
-3. **Vocabulary** — identifies notation this claim introduces (not uses). Distinguishes definitions from usages.
+### 4. Validate-transclude
 
-Each pass has its own focused prompt. Updates the section YAML files in place.
+Mechanical substring check, no LLM. Confirms each claim body is a byte-substring of its source note. The next phase (produce-contract) intentionally diverges from this property by appending Formal Contract sections; this check fires here so any earlier drift surfaces before that boundary rather than propagating silently.
 
-### Transclude
+### 5. Produce-contract
 
-Mechanical step — reads section YAMLs, writes per-claim file pairs:
+Per-claim LLM rewrite that synthesizes the Formal Contract section in each claim's body markdown. Bounded internally to three cycles per claim and gated by a review-rewrite prompt that checks for damage to Axioms, Preconditions, Postconditions, and other formal fields. Hash-based dirty detection skips claims whose prose is unchanged since the last successful rewrite.
 
-- `{label}.yaml` — metadata only (label, name, type, depends, vocabulary)
-- `{label}.md` — body text (statement + justification + proof + formal contract if present)
+The same `produce_contract` function lives in `lib/claim_derivation/produce_contract.py` and is reused by claim convergence's quality-pass orchestrator when prose changes during convergence dirty an existing contract.
 
-Filenames are derived from labels mechanically (strip parens, replace spaces/commas). Each YAML contains the original label for reverse lookup.
+### 6. Validate-gate
 
-Structural sections become `_` prefixed files: `_preamble.md`, `_worked-example.md`, etc.
+The same gate that claim convergence runs before each review cycle. The validator (mechanical, no LLM) runs every steady-state and transition-checkable structural invariant from the Claim File Contract. For each actionable finding it dispatches a per-rule fix-recipe prompt — operating on a constrained surface (Depends bullets, label-position tokens, citation links) and forbidden by prompt contract from modifying semantic content. Bounded by MAX_ITER iterations (currently 3) plus a no-progress halt.
 
-### Validate
-
-Mechanical checks (no LLM):
-
-- Every `.yaml` has a matching `.md` and vice versa
-- Required fields present (label, name, type, depends)
-- Valid type enum
-- No duplicate labels
-- YAML parses cleanly
-- Body files not empty
-
-Reports PASS/FAIL with details.
-
-### Promote
-
-Copies per-claim `.yaml` + `.md` pairs and structural `_*.md` files from `lattices/xanadu/blueprinting/ASN-NNNN/claims/` to `lattices/xanadu/claim-convergence/ASN-NNNN/`.
-
-## Output Structure
+## Output structure
 
 ```
-lattices/xanadu/blueprinting/ASN-NNNN/
-  source.md                          ← copy of the note
+_workspace/claim-derivation/ASN-NNNN/
   sections/
-    00-preamble.md                   ← mechanical split
+    00-preamble.md                ← mechanical split
     01-two-components-of-state.md
-    01-two-components-of-state.yaml  ← LLM structural analysis + enrichment
+    01-two-components-of-state.yaml  ← LLM analysis + enrichment (workspace-only)
     ...
-  claims/
-    S0.yaml                          ← metadata
-    S0.md                            ← body
-    S1.yaml
-    S1.md
-    Σ.C.yaml
-    Σ.C.md
-    _preamble.md                     ← structural (no YAML pair)
-    _worked-example.md
-    _open-questions.md
+
+_docuverse/documents/claim/ASN-NNNN/
+  <Label>.md                      ← body: prose, proof, Formal Contract
+  <Label>.label.md                ← label sidecar
+  <Label>.name.md                 ← name sidecar
+  <Label>.description.md          ← description sidecar
+  <Label>.signature.md            ← signature sidecar (optional)
 ```
 
-## YAML Metadata Format
+The section YAMLs in `_workspace/` are workspace-only intermediate state; the module's output is the substrate-classified claim documents and their sidecars in `_docuverse/`. Substrate links classifying each body and pointing at its sidecars live in the substrate's link store.
 
-```yaml
-label: S7
-name: StructuralAttribution
-type: theorem
-depends:
-  - S7a
-  - S7b
-  - S0
-  - S4
-  - T3
-  - T4
-vocabulary:
-  - symbol: "origin(a)"
-    meaning: "document-level prefix of I-address a"
-literature_citations:
-  - "LM 2/48"
-```
+## Re-running
 
-- **label** — stable key, never changes. Used for filenames and cross-references.
-- **name** — PascalCase. Can change during formalization.
-- **type** — classification. Set during enrich, not modified by formalization.
-- **depends** — direct dependencies only. Add-only during formalization.
-- **vocabulary** — symbols introduced by this claim.
-- **literature_citations** — external references (e.g., Nelson's Literary Machines).
+Re-invoking the module on a note whose derivation has already produced a claim set is destructive: each claim body is overwritten with the byte-aligned source projection (Phase 3), discarding any edits made by claim convergence; Formal Contracts are re-synthesized. The source note is the historical record; the claim set is the current projection. Production choreography routes prose-change cases through claim convergence's own quality pass — which reuses this module's `produce_contract` on dirty claims — not through re-running derivation.
 
+## See also
+
+- [Claim Derivation Module](../modules/claim-derivation-module.md) — formal specification with safety/liveness properties, algorithm, and correctness arguments.
+- [Claim File Contract](../design-notes/claim-file-contract.md) — the structural contract this module's output must satisfy.
+- [Claim Derivation runbook](../runbooks/claim-derivation.md) — step-by-step execution.
+- [Claim Derivation](../claim-derivation.md) — narrative description of the derivation stage.

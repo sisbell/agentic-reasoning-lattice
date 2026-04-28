@@ -6,7 +6,7 @@ An agent is a document. The doc's address is the agent's identity; the doc's con
 
 The result: each agent is first-class — addressable, readable, portable. Consumers ask "what does this agent do?" by navigating to the agent's address and reading. They ask "who manages this operation?" by querying the substrate.
 
-The module sits above the [Substrate](substrate.md) and uses substrate primitives unchanged.
+The module sits above the [Substrate](substrate-module.md) and uses substrate primitives unchanged.
 
 ---
 
@@ -58,7 +58,7 @@ Any link a consumer wants attributed to an agent — typically reviews, comments
 
 ### Substrate
 
-The persistent, append-only link graph. See [Substrate Module](substrate.md) for the full specification.
+The persistent, append-only link graph. See [Substrate Module](substrate-module.md) for the full specification.
 
 **Operations relied upon.**
 
@@ -281,7 +281,7 @@ The specification's ordering claim (A3) cites T9, not timestamps. As link IDs be
 
 ## Related
 
-- [Substrate Module](substrate.md) — the data layer the agent module is built on.
+- [Substrate Module](substrate-module.md) — the data layer the agent module is built on.
 - [Tumbler Algebra (ASN-0034)](../../lattices/xanadu/claim-convergence/ASN-0034/) — the algebraic foundation for substrate addresses. T9 and TA5(a) are cited by A3 and §5.
 - [Substrate Migration Trajectory](../design-notes/substrate-migration-trajectory.md) — the forward-portability commitment. The agent module's links are ordinary substrate links; they migrate the same way every other link does at the Xanadu cut.
-- [Convergence Protocol](convergence-protocol.md) — defines `review`, `comment`, `resolution`. Convergence protocols use the agent module to attribute their work.
+- [Convergence Protocol](../protocols/convergence-protocol.md) — defines `review`, `comment`, `resolution`. Convergence protocols use the agent module to attribute their work.

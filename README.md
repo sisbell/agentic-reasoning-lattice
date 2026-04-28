@@ -20,7 +20,7 @@ Agents grow the lattice by creating permanent links and reasoning trails — the
 
 A human-posed question is decomposed into channel-appropriate sub-questions. Two independent agent channels — one consulting established theory, one analyzing raw evidence — are separated by a vocabulary firewall that forces hypothesis space exploration. The theory channel cannot use evidence-specific terms. The evidence channel cannot retrieve known solutions from theoretical vocabulary. A synthesis agent integrates both into a structured reasoning document with dependency-mapped claims. Where the channels agree, principles are validated. Where they disagree, new hypotheses emerge.
 
-Each synthesized document is driven to stability by the [note convergence protocol](docs/protocols/note-convergence-protocol.md), then decomposed into atomic claims by the [claim derivation module](docs/protocols/claim-derivation-module.md) (a meet operation), then driven toward formal precision by the [claim convergence protocol](docs/protocols/claim-convergence-protocol.md). Convergence is a predicate on the link graph: every active `comment.revise` has a matching active `resolution`. Both protocols specialize the document-type-neutral [convergence protocol](docs/protocols/convergence-protocol.md). The protocol defines when convergence is reached; how to get there — scope strategy, review order, context assembly — is choreography. Mechanical verification (Dafny proofs, Alloy bounded model checking) confirms logical consistency. Every verified node is a testable prediction — the oracle traces failures back to the specific claim and evidence channel that diverged.
+Each synthesized document is driven to stability by the [note convergence protocol](docs/protocols/note-convergence-protocol.md), then decomposed into atomic claims by the [claim derivation module](docs/modules/claim-derivation-module.md) (a meet operation), then driven toward formal precision by the [claim convergence protocol](docs/protocols/claim-convergence-protocol.md). Convergence is a predicate on the link graph: every active `comment.revise` has a matching active `resolution`. Both protocols specialize the document-type-neutral [convergence protocol](docs/protocols/convergence-protocol.md). The protocol defines when convergence is reached; how to get there — scope strategy, review order, context assembly — is choreography. Mechanical verification (Dafny proofs, Alloy bounded model checking) confirms logical consistency. Every verified node is a testable prediction — the oracle traces failures back to the specific claim and evidence channel that diverged.
 
 Out-of-scope findings flagged during review become [new inquiries](docs/patterns/scope-promotion.md), attaching to the lattice as new nodes. The system discovers the questions it should be asking, not just answers to questions posed.
 
@@ -28,23 +28,31 @@ The system is demonstrated on the Xanadu hypertext system — deriving formal cl
 
 ## Applying to science
 
-The architecture is deployment-general. The machinery — two-channel discovery, note decomposition, claim convergence, verification — operates on abstract inputs with domain-specific verifiers. The Xanadu case uses Dafny as the verifier for proof soundness; a scientific deployment would use experimental reproducibility.
+The architecture is deployment-general. The machinery — two-channel discovery, claim derivation, claim convergence, verification — operates on abstract inputs with domain-specific verifiers. The Xanadu case uses Dafny as the verifier for proof soundness; a scientific deployment would use experimental reproducibility.
 
 In a science deployment, the system produces hypotheses, not discoveries. Verification happens externally — in a lab, through replication, or by matching against known answers for rediscovery tests. The AI's job ends at articulating claims precisely enough to be tested; reality confirms or refutes them.
 
 See [Science Approach](docs/science/README.md) for the convergence framing, cone-as-hypothesis-cluster structure, and the Judger evaluation model.
 
-## Agentic Protocols
+## Agentic Protocols and Modules
 
-The system is a stack of protocols sharing a substrate. Production-shaped protocols (consultation, note decomposition) produce artifacts to a contract; convergence-shaped protocols (note convergence, claim convergence) iterate on those artifacts until a graph predicate holds; the convergence module factors out what the convergence-shaped protocols share; the maturation protocol orchestrates the pipeline and executes lattice operations. Following the modular formalism of Cachin (*Reliable and Secure Distributed Programming*), but for LLM-agent coordination rather than distributed nodes. See [protocols overview](docs/protocols/README.md) for layering and reading order.
+The system is built from two kinds of specifications, both written in the modular formalism of Cachin (*Reliable and Secure Distributed Programming*) but adapted for LLM-agent coordination rather than distributed nodes. **Protocols** govern ongoing interaction — convergence-shaped protocols iterate until a graph predicate holds; consultation has coordination structure between participants under a vocabulary firewall. **Modules** provide transformations or services that protocols compose with — they have a precondition, a transformation or service, and a postcondition. Both share the specification surface; they differ in whether the underlying shape is interaction or transformation.
+
+See [protocols overview](docs/protocols/README.md) and [modules overview](docs/modules/README.md) for layering and reading order.
+
+### Protocols
 
 - [Consultation Protocol](docs/protocols/consultation-protocol.md) — *production*. Produces an initial note from a campaign-bound inquiry. Two channels (theory and evidence) consult under enforced vocabulary separation; a synthesizer integrates their outputs.
 - [Note Convergence Protocol](docs/protocols/note-convergence-protocol.md) — *convergence*. Drives notes to stability during discovery. Specializes the convergence protocol for notes; `comment.out-of-scope` is the off-ramp that feeds lattice operations.
-- [Claim Derivation Module](docs/protocols/claim-derivation-module.md) — *production*. Derives per-claim files from a converged note, conforming to the Claim File Contract. The boundary between note convergence and claim convergence; a representation change.
-- [Claim Convergence Protocol](docs/protocols/claim-convergence-protocol.md) — *convergence*. Drives claims to formal precision after note decomposition. Specializes the convergence protocol for claims; adds structural validation, the algorithm, and correctness arguments.
+- [Claim Convergence Protocol](docs/protocols/claim-convergence-protocol.md) — *convergence*. Drives claims to formal precision after claim derivation. Specializes the convergence protocol for claims; adds structural validation, the algorithm, and correctness arguments.
 - [Convergence Protocol](docs/protocols/convergence-protocol.md) — the document-type-neutral foundation. Convergence predicate, comment/resolution link types, safety/liveness properties shared by both convergence-shaped specializations.
-- [Substrate Module](docs/protocols/substrate.md) — the persistent, append-only link graph every protocol reads from and writes to. Defines retraction as a substrate operation (link-to-link nullification) and the `ActiveLinks` query that subtracts retracted links from results. Properties: SUB1 permanence, SUB2 query soundness, SUB3 count consistency, SUB4–SUB5 retraction nullify-and-shadow, SUB6 retraction idempotence.
 - [Maturation Protocol](docs/protocols/maturation-protocol.md) — the meta-protocol governing transitions between stage protocols and executing lattice operations (extract, absorb, scope promotion). Reaches quiescence rather than convergence.
+
+### Modules
+
+- [Substrate Module](docs/modules/substrate-module.md) — persistent, append-only link graph every protocol reads from and writes to. Defines retraction as a substrate operation (link-to-link nullification) and the `ActiveLinks` query that subtracts retracted links from results. Properties: SUB1 permanence, SUB2 query soundness, SUB3 count consistency, SUB4–SUB5 retraction nullify-and-shadow, SUB6 retraction idempotence.
+- [Agent Module](docs/modules/agent-module.md) — agent identity and operation attribution above the substrate. Defines `agent` (classifies a doc as an agent — its address is the agent's identity) and `manages` (declares an agent is currently responsible for an operation). Lets convergence protocols attribute their work to specific agents without protocol identity leaking into the substrate's type system.
+- [Claim Derivation Module](docs/modules/claim-derivation-module.md) — transforms a converged note into per-claim files conforming to the Claim File Contract. The boundary between note convergence and claim convergence; a representation change.
 
 ## Documentation
 

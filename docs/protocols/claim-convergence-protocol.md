@@ -16,7 +16,7 @@ The predicate evaluates against active links (via the substrate's ActiveLinks qu
 
 ### 1.2 Substrate
 
-The persistent, append-only link graph. See [Substrate Module](substrate.md). This protocol relies on SUB1–SUB3 (inherited via the convergence protocol) and additionally on SUB4–SUB6 (retraction semantics) for citation pruning during proof evolution.
+The persistent, append-only link graph. See [Substrate Module](../modules/substrate-module.md). This protocol relies on SUB1–SUB3 (inherited via the convergence protocol) and additionally on SUB4–SUB6 (retraction semantics) for citation pruning during proof evolution.
 
 ### 1.3 Structural validation
 
@@ -30,7 +30,7 @@ A mechanical checker that evaluates claim documents against a structural contrac
 
 ### 1.4 Agent module
 
-Claim convergence has multiple within-collective process kinds — cone-review (focused on a dependency cone) and full-review (whole-ASN). Both file `review`-shaped operations into the same substrate within a single asserter's namespace. Without agent attribution, these operations are structurally indistinguishable at the substrate level; with the [agent module](agent.md), each kind has a stable agent identity and the substrate can answer per-process queries (e.g., "what's the latest cone-review on this apex?").
+Claim convergence has multiple within-collective process kinds — cone-review (focused on a dependency cone) and full-review (whole-ASN). Both file `review`-shaped operations into the same substrate within a single asserter's namespace. Without agent attribution, these operations are structurally indistinguishable at the substrate level; with the [agent module](../modules/agent-module.md), each kind has a stable agent identity and the substrate can answer per-process queries (e.g., "what's the latest cone-review on this apex?").
 
 **Operations relied upon.**
 
@@ -74,9 +74,9 @@ The two layers interact when the reviser creates a new claim as part of closing 
 
 ### Retraction and proof evolution
 
-When a proof revision removes a use-site for a dependency, the original `citation` link cannot be deleted (SUB1) but should no longer count toward the dependency graph. The protocol uses the substrate's retraction mechanism ([SUB4–SUB5](substrate.md)) to nullify the stale citation. This is the **prune** operation — the lattice loses an edge without changing any node.
+When a proof revision removes a use-site for a dependency, the original `citation` link cannot be deleted (SUB1) but should no longer count toward the dependency graph. The protocol uses the substrate's retraction mechanism ([SUB4–SUB5](../modules/substrate-module.md)) to nullify the stale citation. This is the **prune** operation — the lattice loses an edge without changing any node.
 
-Retraction of a `resolution` link re-opens the comment it closed. The convergence predicate evaluates against active links, so the retracted resolution no longer counts — the comment becomes unresolved and re-enters the reviser's work queue on the next RetryOpenRevises pass. Retraction semantics (shadow interpretation, idempotence, depth behavior) are specified in the [Substrate Module](substrate.md).
+Retraction of a `resolution` link re-opens the comment it closed. The convergence predicate evaluates against active links, so the retracted resolution no longer counts — the comment becomes unresolved and re-enters the reviser's work queue on the next RetryOpenRevises pass. Retraction semantics (shadow interpretation, idempotence, depth behavior) are specified in the [Substrate Module](../modules/substrate-module.md).
 
 ### Retraction tooling
 
@@ -287,8 +287,8 @@ The protocol's properties are stated in terms of link existence and type, not st
 ## Related
 
 - [Convergence Protocol](convergence-protocol.md) — the document-type-neutral module this protocol extends.
-- [Substrate Module](substrate.md) — the persistent link graph. Provides retraction semantics (SUB4–SUB6) used for citation pruning.
-- [Agent Module](agent.md) — the agent identity and management-attribution layer this protocol depends on (per §1.4). Cone-review and full-review file `agent` and `manages` links so per-process trajectories are queryable from the substrate.
+- [Substrate Module](../modules/substrate-module.md) — the persistent link graph. Provides retraction semantics (SUB4–SUB6) used for citation pruning.
+- [Agent Module](../modules/agent-module.md) — the agent identity and management-attribution layer this protocol depends on (per §1.4). Cone-review and full-review file `agent` and `manages` links so per-process trajectories are queryable from the substrate.
 - [Note Convergence Protocol](note-convergence-protocol.md) — the sibling specialization at note scale.
 - [Review/Revise Iteration](../patterns/review-revise-iteration.md) — the empirical pattern underlying this protocol. Observed independently across discovery and claim convergence.
 - [Validate Before Review](../patterns/validate-before-review.md) — the pattern underlying CS1.
