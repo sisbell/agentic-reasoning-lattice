@@ -33,6 +33,8 @@ from lib.shared.paths import WORKSPACE, NOTES_DIR, VOCABULARY, USAGE_LOG, LATTIC
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
 from lib.shared.foundation import load_foundation_statements
+from lib.store.emit import emit_note
+from lib.store.store import default_store
 
 DISCOVERY_PROMPT = LATTICE_PROMPTS / "discovery" / "instructions.md"
 
@@ -248,6 +250,10 @@ def main():
     asn_path = run_discovery(inquiry, asn_number, slug, force=args.force)
 
     if asn_path:
+        with default_store() as store:
+            _, created = emit_note(store, asn_path)
+            if created:
+                print(f"  [NOTE] classifier emitted", file=sys.stderr)
         # Print the output file path to stdout (for pipeline consumption)
         print(str(asn_path))
     else:

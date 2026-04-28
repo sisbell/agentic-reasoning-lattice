@@ -7,7 +7,7 @@ from pathlib import Path
 from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
-from lib.store.emit import emit_findings, emit_review
+from lib.store.emit import emit_findings, emit_note, emit_review
 from lib.store.store import Store
 
 
@@ -53,6 +53,43 @@ class EmitReviewTests(EmitTestBase):
             rec["to_set"],
             ["lattices/xanadu/claim-convergence/ASN-0001/reviews/review-1.md"],
         )
+
+
+class EmitNoteTests(EmitTestBase):
+    def test_first_call_creates_classifier(self):
+        note_path = self._write_under_root(
+            "lattices/xanadu/discovery/notes/ASN-0001-foo.md", "# Note\n",
+        )
+        link_id, created = emit_note(self.store, note_path)
+        self.assertTrue(created)
+        rec = self.store.get(link_id)
+        self.assertEqual(rec["type_set"], ["note"])
+        self.assertEqual(rec["from_set"], [])
+        self.assertEqual(
+            rec["to_set"],
+            ["lattices/xanadu/discovery/notes/ASN-0001-foo.md"],
+        )
+
+    def test_repeated_call_is_idempotent(self):
+        note_path = self._write_under_root(
+            "lattices/xanadu/discovery/notes/ASN-0001-foo.md", "# Note\n",
+        )
+        first_id, created1 = emit_note(self.store, note_path)
+        second_id, created2 = emit_note(self.store, note_path)
+        self.assertTrue(created1)
+        self.assertFalse(created2)
+        self.assertEqual(first_id, second_id)
+
+    def test_distinct_notes_get_distinct_classifiers(self):
+        a = self._write_under_root(
+            "lattices/xanadu/discovery/notes/ASN-0001-a.md", "a",
+        )
+        b = self._write_under_root(
+            "lattices/xanadu/discovery/notes/ASN-0002-b.md", "b",
+        )
+        a_id, _ = emit_note(self.store, a)
+        b_id, _ = emit_note(self.store, b)
+        self.assertNotEqual(a_id, b_id)
 
 
 class EmitFindingsTests(EmitTestBase):

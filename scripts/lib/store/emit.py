@@ -17,6 +17,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE
+from lib.store.queries import active_links
 
 
 def emit_review(store, review_md_path):
@@ -26,6 +27,25 @@ def emit_review(store, review_md_path):
         to_set=[_repo_relative(review_md_path)],
         type_set=["review"],
     )
+
+
+def emit_note(store, note_md_path):
+    """Classify a doc as a note. Idempotent on active classifiers.
+
+    Returns (link_id, created). If an active `note` classifier already
+    targets this doc, returns its id with created=False. Otherwise files
+    a new classifier and returns (new_id, True). Same shape as
+    `emit_agent` in lib.store.agent.
+    """
+    note_rel = _repo_relative(note_md_path)
+    candidates = active_links(store, "note", to_set=[note_rel])
+    for link in candidates:
+        if link["from_set"] == [] and link["to_set"] == [note_rel]:
+            return link["id"], False
+    link_id = store.make_link(
+        from_set=[], to_set=[note_rel], type_set=["note"],
+    )
+    return link_id, True
 
 
 def emit_meta(store, asn_label, review_num, *, title, timestamp, scope,
