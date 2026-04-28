@@ -14,9 +14,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE
 from lib.shared.common import find_asn, stage_asn_files
 
-REVIEW_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "review.py"
-CONSULT_REVISION_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "revise" / "gather_evidence.py"
-REVISE_SCRIPT = WORKSPACE / "scripts" / "lib" / "discovery" / "revise.py"
+REVIEW_SCRIPT = WORKSPACE / "scripts" / "lib" / "note_convergence" / "review.py"
+CONSULT_REVISION_SCRIPT = WORKSPACE / "scripts" / "lib" / "note_convergence" / "revise" / "gather_evidence.py"
+REVISE_SCRIPT = WORKSPACE / "scripts" / "lib" / "note_convergence" / "revise.py"
 COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
 
 
