@@ -20,7 +20,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import WORKSPACE, prompt_path
 from lib.shared.common import read_file, invoke_claude, log_usage, step_commit_asn
-from lib.note_convergence.patch.apply import (
+from lib.maturation.patch.apply import (
     validate, step_apply, step_review_revise,
 )
 

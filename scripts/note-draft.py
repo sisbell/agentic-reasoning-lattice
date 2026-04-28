@@ -35,8 +35,8 @@ from lib.shared.paths import (
 )
 from lib.note_convergence.steps import step_commit
 
-CONSULT_SCRIPT = WORKSPACE / "scripts" / "lib" / "note_convergence" / "decompose.py"
-DISCOVER_SCRIPT = WORKSPACE / "scripts" / "lib" / "note_convergence" / "draft.py"
+CONSULT_SCRIPT = WORKSPACE / "scripts" / "lib" / "consultation" / "decompose.py"
+DISCOVER_SCRIPT = WORKSPACE / "scripts" / "lib" / "consultation" / "draft.py"
 
 STEPS = ["questions", "consult", "discover", "commit"]
 

@@ -13,7 +13,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.note_convergence.manage.extend import (
+from lib.maturation.manage.extend import (
     parse_registry_labels, validate, derive_names, compute_depends,
     build_prompt, strip_preamble, write_manifest,
 )

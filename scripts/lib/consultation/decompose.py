@@ -15,10 +15,10 @@ only role names: "theory" and "evidence", resolved to channel names via
 the ASN's campaign.
 
 Usage:
-    python scripts/lib/note_convergence/decompose.py --inquiry-id 4
-    python scripts/lib/note_convergence/decompose.py "What must INSERT preserve and establish?"
-    python scripts/lib/note_convergence/decompose.py --inquiry-id 4 --theory 5 --evidence 5
-    python scripts/lib/note_convergence/decompose.py --inquiry-id 4 --dry-run
+    python scripts/lib/consultation/decompose.py --inquiry-id 4
+    python scripts/lib/consultation/decompose.py "What must INSERT preserve and establish?"
+    python scripts/lib/consultation/decompose.py --inquiry-id 4 --theory 5 --evidence 5
+    python scripts/lib/consultation/decompose.py --inquiry-id 4 --dry-run
 """
 
 import argparse

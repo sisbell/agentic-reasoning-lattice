@@ -35,7 +35,7 @@ from lib.shared.common import find_asn
 from lib.consult import (
     invoke_claude, get_total_usage, dispatch_run_consultation,
 )
-from lib.note_convergence.evidence import assign_channels
+from lib.consultation.evidence import assign_channels
 
 
 def get_review_number(review_path):

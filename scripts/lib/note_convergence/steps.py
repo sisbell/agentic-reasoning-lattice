@@ -15,7 +15,7 @@ from lib.shared.paths import WORKSPACE
 from lib.shared.common import find_asn, stage_asn_files
 
 REVIEW_SCRIPT = WORKSPACE / "scripts" / "lib" / "note_convergence" / "review.py"
-CONSULT_REVISION_SCRIPT = WORKSPACE / "scripts" / "lib" / "note_convergence" / "evidence" / "gather_evidence.py"
+CONSULT_REVISION_SCRIPT = WORKSPACE / "scripts" / "lib" / "consultation" / "evidence" / "gather_evidence.py"
 REVISE_SCRIPT = WORKSPACE / "scripts" / "lib" / "note_convergence" / "revise.py"
 COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
 

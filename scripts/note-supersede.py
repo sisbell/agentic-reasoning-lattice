@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.note_convergence.supersede import (
+from lib.maturation.supersede import (
     validate, copy_project_model, copy_consultations, remove_source,
 )
 from lib.shared.common import step_commit
