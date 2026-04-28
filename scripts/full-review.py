@@ -29,7 +29,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import (
-    WORKSPACE, CLAIM_CONVERGENCE_DIR, next_review_number, review_meta_path,
+    WORKSPACE, CLAIM_CONVERGENCE_DIR, CLAIM_FINDINGS_DIR,
+    next_review_number, review_meta_path,
 )
 from lib.shared.common import find_asn, assemble_readonly, step_commit_asn
 from lib.claim_convergence.full_review.review import (
@@ -113,14 +114,15 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
                   file=sys.stderr)
             break
 
-        review_num = next_review_number(asn_label, reviews_dir=review_dir)
+        review_num = next_review_number(asn_label, kind="claim", reviews_dir=review_dir)
         review_stem = f"review-{review_num}"
-        meta_path = review_meta_path(asn_label, review_num)
+        meta_path = review_meta_path(asn_label, review_num, kind="claim")
 
         findings = extract_findings(findings_text)
         emitted_findings = emit_findings(
             store, meta_path, findings,
             asn_label, review_stem, label_index,
+            findings_dir=CLAIM_FINDINGS_DIR,
         )
         emitted_by_title = {e["title"]: e for e in emitted_findings}
 
@@ -134,6 +136,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
             findings_summary=findings_summary(findings, revise_count),
             emitted_findings=emitted_findings,
             elapsed_seconds=elapsed,
+            findings_dir=CLAIM_FINDINGS_DIR,
         )
         final_review_path = meta_path
 
@@ -223,14 +226,15 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
             if confirm_verdict == "ERROR":
                 failed = True
             else:
-                review_num = next_review_number(asn_label, reviews_dir=review_dir)
+                review_num = next_review_number(asn_label, kind="claim", reviews_dir=review_dir)
                 review_stem = f"review-{review_num}"
-                confirm_meta_path = review_meta_path(asn_label, review_num)
+                confirm_meta_path = review_meta_path(asn_label, review_num, kind="claim")
 
                 confirm_findings = extract_findings(confirm_findings_text)
                 emitted_findings = emit_findings(
                     store, confirm_meta_path, confirm_findings,
                     asn_label, review_stem, label_index,
+                    findings_dir=CLAIM_FINDINGS_DIR,
                 )
                 confirmation_revise_count = len(filter_revise(confirm_findings))
                 emit_meta(
@@ -244,6 +248,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
                     ),
                     emitted_findings=emitted_findings,
                     elapsed_seconds=confirm_elapsed,
+                    findings_dir=CLAIM_FINDINGS_DIR,
                 )
                 final_review_path = confirm_meta_path
 

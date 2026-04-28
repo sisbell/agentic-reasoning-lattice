@@ -180,7 +180,7 @@ def run_formalize(asn_num, max_cycles=5, mode="incremental",
 
                         # Write review file
                         review_dir.mkdir(parents=True, exist_ok=True)
-                        review_num = next_review_number(asn_label, reviews_dir=review_dir)
+                        review_num = next_review_number(asn_label, kind="claim", reviews_dir=review_dir)
                         rev_path = review_dir / f"review-{review_num}.md"
                         with open(rev_path, "w") as rf:
                             rf.write(f"# Formalize — {asn_label} / {label}\n\n")
@@ -201,7 +201,7 @@ def run_formalize(asn_num, max_cycles=5, mode="incremental",
                     cycle_failed += 1
                     if response and response.startswith("REJECTED:"):
                         review_dir.mkdir(parents=True, exist_ok=True)
-                        review_num = next_review_number(asn_label, reviews_dir=review_dir)
+                        review_num = next_review_number(asn_label, kind="claim", reviews_dir=review_dir)
                         rev_path = review_dir / f"review-{review_num}.md"
                         with open(rev_path, "w") as rf:
                             rf.write(f"# Produce Contract REJECTED — {asn_label} / {label}\n\n")

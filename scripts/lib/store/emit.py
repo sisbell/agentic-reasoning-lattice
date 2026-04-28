@@ -1,9 +1,10 @@
 """Helpers translating reviewer outputs into link writes.
 
 Each review run materializes its findings as documents under
-`_store/findings/{asn}/{review_stem}/{n}.md` and emits comment links from
-those documents to their target claims, plus a `review` classifier link
-on the review markdown itself.
+`_store/documents/findings/{kind}/{asn}/{review_stem}/{n}.md` (kind ∈
+{claims, notes}) and emits comment links from those documents to their
+target claims/notes, plus a `review` classifier link on the review
+markdown itself.
 
 Resolution links (the reviser's accept/reject decision) are emitted by
 `scripts/decide.py`, not by this module — the reviser invokes the tool
@@ -15,7 +16,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import FINDINGS_DIR, WORKSPACE
+from lib.shared.paths import WORKSPACE
 
 
 def emit_review(store, review_md_path):
@@ -29,12 +30,12 @@ def emit_review(store, review_md_path):
 
 def emit_meta(store, asn_label, review_num, *, title, timestamp, scope,
               verdict, findings_summary, emitted_findings, elapsed_seconds,
-              findings_dir=None):
-    """Write the review event's meta file to `_store/findings/<asn>/review-N/`
-    and emit the `review` classifier link pointing at it.
+              findings_dir):
+    """Write the review event's meta file to
+    `<findings_dir>/<asn>/review-N/_meta.md` and emit the `review`
+    classifier link pointing at it.
 
-    The meta file replaces the legacy `claim-convergence/<asn>/reviews/review-N.md`.
-    Findings (the prose bodies) live in `_store/findings/<asn>/review-N/<n>.md`,
+    Findings (the prose bodies) live in `<findings_dir>/<asn>/review-N/<n>.md`,
     written separately by `emit_findings`.
 
     Args:
@@ -48,10 +49,12 @@ def emit_meta(store, asn_label, review_num, *, title, timestamp, scope,
       emitted_findings: list of dicts from emit_findings (each has title, cls,
                        finding_path). Used to write the manifest.
       elapsed_seconds: float, used for the Elapsed line.
+      findings_dir: kind-scoped findings root (CLAIM_FINDINGS_DIR or
+                    NOTE_FINDINGS_DIR) — caller selects per protocol.
 
     Returns the link id of the review classifier link.
     """
-    findings_root = Path(findings_dir) if findings_dir else Path(FINDINGS_DIR)
+    findings_root = Path(findings_dir)
     review_stem = f"review-{review_num}"
     meta_dir = findings_root / asn_label / review_stem
     meta_dir.mkdir(parents=True, exist_ok=True)
@@ -80,7 +83,7 @@ def emit_meta(store, asn_label, review_num, *, title, timestamp, scope,
 
 
 def emit_findings(store, review_md_path, findings, asn_label, review_stem,
-                  label_index, findings_dir=None):
+                  label_index, findings_dir):
     """Materialize each finding as a document and emit a comment link.
 
     `findings` is the list of (title, cls, body) tuples from
@@ -90,11 +93,14 @@ def emit_findings(store, review_md_path, findings, asn_label, review_stem,
       - materialize a document at <findings_dir>/<asn_label>/<review_stem>/<n>.md
       - make `comment.{revise|observe}` link from finding-doc to claim-md
 
+    `findings_dir` is the kind-scoped findings root (CLAIM_FINDINGS_DIR or
+    NOTE_FINDINGS_DIR) — caller selects per protocol.
+
     Returns list of {title, cls, comment_id, claim_path, finding_path} dicts
     in input order, omitting findings whose target couldn't be resolved
     (logged to stderr).
     """
-    findings_root = Path(findings_dir) if findings_dir else Path(FINDINGS_DIR)
+    findings_root = Path(findings_dir)
     out_dir = findings_root / asn_label / review_stem
     out_dir.mkdir(parents=True, exist_ok=True)
 

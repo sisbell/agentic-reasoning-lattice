@@ -143,7 +143,7 @@ def run_rebase(asn_num, max_cycles=5, mode="full_sweep", dry_run=False):
 
         # New review file per cycle
         review_dir.mkdir(parents=True, exist_ok=True)
-        review_num = next_review_number(asn_label, reviews_dir=review_dir)
+        review_num = next_review_number(asn_label, kind="claim", reviews_dir=review_dir)
         review_path = review_dir / f"review-{review_num}.md"
         with open(review_path, "w") as rf:
             rf.write(f"# Dependency Rebase — {asn_label} (cycle {cycle})\n\n")

@@ -183,7 +183,7 @@ def step_integration_review(base_num, base_path, claim_labels,
     # Write review to file
     review_dir = REVIEWS_DIR / base_label
     review_dir.mkdir(parents=True, exist_ok=True)
-    review_num = next_review_number(base_label)
+    review_num = next_review_number(base_label, kind="note")
     review_path = review_dir / f"review-{review_num}.md"
     review_path.write_text(text + "\n")
     print(f"  [WROTE] {review_path.relative_to(WORKSPACE)}",

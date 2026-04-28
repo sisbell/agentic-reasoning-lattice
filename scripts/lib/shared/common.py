@@ -15,7 +15,7 @@ from lib.shared.paths import (
     WORKSPACE, NOTES_DIR, USAGE_LOG,
     REVIEWS_DIR, BLUEPRINTS_DIR, CLAIM_CONVERGENCE_DIR,
     CONSULTATIONS_DIR, MANIFESTS_DIR, EXAMPLES_DIR,
-    FINDINGS_DIR, RATIONALES_DIR, STORE_LOG,
+    CLAIM_FINDINGS_DIR, NOTE_FINDINGS_DIR, RATIONALES_DIR, STORE_LOG,
 )
 
 
@@ -490,7 +490,8 @@ def stage_asn_files(label):
         CONSULTATIONS_DIR / label,
         MANIFESTS_DIR / label,
         EXAMPLES_DIR / label,
-        FINDINGS_DIR / label,
+        CLAIM_FINDINGS_DIR / label,
+        NOTE_FINDINGS_DIR / label,
         RATIONALES_DIR / label,
         STORE_LOG,
     ]

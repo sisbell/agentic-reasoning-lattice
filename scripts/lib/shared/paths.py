@@ -79,14 +79,30 @@ STORE_INDEX = STORE_DIR / "index.db"
 # alongside as siblings; documents are the content the substrate's links
 # reference.
 STORE_DOCS_DIR = STORE_DIR / "documents"
-FINDINGS_DIR = STORE_DOCS_DIR / "findings"
 RATIONALES_DIR = STORE_DOCS_DIR / "rationales"
 AGENTS_DIR = STORE_DOCS_DIR / "agents"
 
+# Findings split by inquiry-target kind: claim convergence vs note convergence.
+# Each kind owns its own ASN namespace under documents/findings/, so review
+# numbering and substrate queries are scoped per kind.
+CLAIM_FINDINGS_DIR = STORE_DOCS_DIR / "findings" / "claims"
+NOTE_FINDINGS_DIR = STORE_DOCS_DIR / "findings" / "notes"
 
-def review_meta_path(asn_label, review_num):
-    """Path to a review event's _meta.md under the substrate findings dir."""
-    return FINDINGS_DIR / asn_label / f"review-{review_num}" / "_meta.md"
+
+def _findings_dir_for_kind(kind):
+    if kind == "claim":
+        return CLAIM_FINDINGS_DIR
+    if kind == "note":
+        return NOTE_FINDINGS_DIR
+    raise ValueError(f"unknown findings kind: {kind!r}")
+
+
+def review_meta_path(asn_label, review_num, *, kind):
+    """Path to a review event's _meta.md under the substrate findings dir.
+
+    `kind` selects the findings namespace: "claim" or "note".
+    """
+    return _findings_dir_for_kind(kind) / asn_label / f"review-{review_num}" / "_meta.md"
 
 
 def note_dir(asn_num):
@@ -171,15 +187,15 @@ def find_review(asn_label, review_spec=None):
     return None
 
 
-def next_review_number(asn_label, reviews_dir=None):
+def next_review_number(asn_label, *, kind, reviews_dir=None):
     """Find the next review number for this ASN.
 
-    Sources from two places, taking max+1 across both:
+    `kind` selects the findings namespace ("claim" or "note"); numbering is
+    independent per kind. Sources from two places, taking max+1 across both:
       1. Legacy review files (review-N.md) under `reviews_dir` if provided —
          caller-supplied path, typically `claim-convergence/<asn>/reviews/`.
          Not written by current code, but historical numbers are respected.
-      2. Current review directories (review-N/) under `_store/findings/<asn>/`
-         — created by `emit_meta` + `emit_findings`.
+      2. Current review directories (review-N/) under the kind's findings dir.
     """
     nums = []
 
@@ -190,8 +206,8 @@ def next_review_number(asn_label, reviews_dir=None):
             if m:
                 nums.append(int(m.group(1)))
 
-    # Current review directories (review-N/ under FINDINGS_DIR/asn).
-    findings_subdir = FINDINGS_DIR / asn_label
+    # Current review directories (review-N/ under <kind findings>/asn).
+    findings_subdir = _findings_dir_for_kind(kind) / asn_label
     if findings_subdir.exists():
         for p in findings_subdir.glob("review-*"):
             if not p.is_dir():
