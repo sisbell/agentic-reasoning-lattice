@@ -8,7 +8,8 @@ from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.store.emit import (
-    emit_findings, emit_note, emit_note_findings, emit_review,
+    emit_campaign, emit_findings, emit_inquiry, emit_note,
+    emit_note_findings, emit_review, emit_synthesis,
 )
 from lib.store.store import Store
 
@@ -55,6 +56,120 @@ class EmitReviewTests(EmitTestBase):
             rec["to_set"],
             ["lattices/xanadu/claim-convergence/ASN-0001/reviews/review-1.md"],
         )
+
+
+class EmitInquiryTests(EmitTestBase):
+    def test_first_call_creates_classifier(self):
+        inq_path = self._write_under_root(
+            "lattices/xanadu/_store/documents/inquiries/ASN-0001.md",
+            "---\ntitle: Foo\n---\n# Inquiry: Foo\n",
+        )
+        link_id, created = emit_inquiry(self.store, inq_path)
+        self.assertTrue(created)
+        rec = self.store.get(link_id)
+        self.assertEqual(rec["type_set"], ["inquiry"])
+        self.assertEqual(rec["from_set"], [])
+        self.assertEqual(
+            rec["to_set"],
+            ["lattices/xanadu/_store/documents/inquiries/ASN-0001.md"],
+        )
+
+    def test_repeated_call_is_idempotent(self):
+        inq_path = self._write_under_root(
+            "lattices/xanadu/_store/documents/inquiries/ASN-0001.md", "x",
+        )
+        first_id, created1 = emit_inquiry(self.store, inq_path)
+        second_id, created2 = emit_inquiry(self.store, inq_path)
+        self.assertTrue(created1)
+        self.assertFalse(created2)
+        self.assertEqual(first_id, second_id)
+
+    def test_distinct_inquiries_get_distinct_classifiers(self):
+        a = self._write_under_root(
+            "lattices/xanadu/_store/documents/inquiries/ASN-0001.md", "a",
+        )
+        b = self._write_under_root(
+            "lattices/xanadu/_store/documents/inquiries/ASN-0002.md", "b",
+        )
+        a_id, _ = emit_inquiry(self.store, a)
+        b_id, _ = emit_inquiry(self.store, b)
+        self.assertNotEqual(a_id, b_id)
+
+
+class EmitCampaignTests(EmitTestBase):
+    def test_first_call_creates_classifier(self):
+        camp_path = self._write_under_root(
+            "lattices/xanadu/_store/documents/campaigns/foo/campaign.md",
+            "---\nname: foo\ntheory: nelson\nevidence: gregory\n---\n",
+        )
+        link_id, created = emit_campaign(self.store, camp_path)
+        self.assertTrue(created)
+        rec = self.store.get(link_id)
+        self.assertEqual(rec["type_set"], ["campaign"])
+        self.assertEqual(rec["from_set"], [])
+        self.assertEqual(
+            rec["to_set"],
+            ["lattices/xanadu/_store/documents/campaigns/foo/campaign.md"],
+        )
+
+    def test_repeated_call_is_idempotent(self):
+        camp_path = self._write_under_root(
+            "lattices/xanadu/_store/documents/campaigns/foo/campaign.md", "x",
+        )
+        first_id, created1 = emit_campaign(self.store, camp_path)
+        second_id, created2 = emit_campaign(self.store, camp_path)
+        self.assertTrue(created1)
+        self.assertFalse(created2)
+        self.assertEqual(first_id, second_id)
+
+
+class EmitSynthesisTests(EmitTestBase):
+    def setUp(self):
+        super().setUp()
+        self.inq_path = self._write_under_root(
+            "lattices/xanadu/_store/documents/inquiries/ASN-0001.md", "x",
+        )
+        self.note_path = self._write_under_root(
+            "lattices/xanadu/discovery/notes/ASN-0001-foo.md", "# Foo\n",
+        )
+
+    def test_first_call_creates_link(self):
+        link_id, created = emit_synthesis(
+            self.store, self.inq_path, self.note_path,
+        )
+        self.assertTrue(created)
+        rec = self.store.get(link_id)
+        self.assertEqual(rec["type_set"], ["synthesis"])
+        self.assertEqual(
+            rec["from_set"],
+            ["lattices/xanadu/_store/documents/inquiries/ASN-0001.md"],
+        )
+        self.assertEqual(
+            rec["to_set"],
+            ["lattices/xanadu/discovery/notes/ASN-0001-foo.md"],
+        )
+
+    def test_repeated_call_is_idempotent(self):
+        first_id, created1 = emit_synthesis(
+            self.store, self.inq_path, self.note_path,
+        )
+        second_id, created2 = emit_synthesis(
+            self.store, self.inq_path, self.note_path,
+        )
+        self.assertTrue(created1)
+        self.assertFalse(created2)
+        self.assertEqual(first_id, second_id)
+
+    def test_distinct_pairs_get_distinct_links(self):
+        other_inq = self._write_under_root(
+            "lattices/xanadu/_store/documents/inquiries/ASN-0002.md", "x",
+        )
+        other_note = self._write_under_root(
+            "lattices/xanadu/discovery/notes/ASN-0002-bar.md", "y",
+        )
+        a_id, _ = emit_synthesis(self.store, self.inq_path, self.note_path)
+        b_id, _ = emit_synthesis(self.store, other_inq, other_note)
+        self.assertNotEqual(a_id, b_id)
 
 
 class EmitNoteTests(EmitTestBase):
