@@ -41,7 +41,7 @@ VALID_TYPES = {
     # Provenance — operation-produced-output audit links (see VALID_SUBTYPES)
     "provenance",
     # Substrate-owned (general-purpose document primitives)
-    "retraction", "label", "name", "description", "signature",
+    "retraction", "label", "name", "description", "signature", "notation",
     # Agent module
     "agent", "manages",
 }

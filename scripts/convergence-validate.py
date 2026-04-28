@@ -15,7 +15,7 @@ Implemented invariants:
   2. Declaration matches label (includes type-keyword subtype)
   3. Depends agreement (substrate citations ↔ md Formal Contract Depends section)
   4. References resolve (every md Depends entry names an existing claim label)
-  5. Declared symbols resolve (v1: curated symbol-owners table per lattice)
+  5. Declared symbols resolve (substrate: notation doc + per-claim signatures)
   6. Acyclic dependency graph (no cycles in the citation DAG)
   7. Body uniqueness (primary: cross-file bold declaration;
                       secondary: >1 Formal Contract block per file)
@@ -31,16 +31,15 @@ import re
 import sys
 from pathlib import Path
 
-import yaml  # for lattices/xanadu/symbol-owners.yaml only; no claim yaml is read
-
 sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
 from shared.common import find_asn
-from shared.paths import CLAIM_DIR
+from shared.paths import CLAIM_DIR, LATTICE
 from store.store import Store
 from store.populate import build_cross_asn_label_index
 from store.queries import current_contract_kind, active_links
 from store.schema import VALID_SUBTYPES
 from store.attributes import VALID_KINDS
+from store.notation import read_notation
 
 VALID_TYPES = VALID_SUBTYPES["contract"]
 
@@ -118,24 +117,29 @@ def _extract_structural_fc_text(md_text):
     return "\n".join(collected)
 
 
-def _repo_root():
-    return Path(__file__).resolve().parent.parent
+_BULLET_RE = re.compile(r"^- `([^`]+)`")
 
 
-def _load_symbol_config():
-    """Return the symbol-owners config for the xanadu lattice.
+def _build_symbol_owners(store):
+    """Walk the substrate's `signature` links to build a symbol-owner map.
 
-    Returns a dict with 'primitives' (list) and 'owners' (dict).
-    Missing config file is treated as empty (check becomes a no-op).
+    Returns dict[symbol -> set[owner_label]]. Multiple owners per symbol
+    are allowed (matched at check-time: owner-in-closure passes if ANY
+    owner is in closure). Empty if no signatures exist.
     """
-    path = _repo_root() / "lattices" / "xanadu" / "symbol-owners.yaml"
-    if not path.exists():
-        return {"primitives": [], "owners": {}}
-    data = yaml.safe_load(path.read_text()) or {}
-    return {
-        "primitives": data.get("primitives") or [],
-        "owners": data.get("owners") or {},
-    }
+    owners = {}
+    root = Path(LATTICE).resolve() if isinstance(LATTICE, str) else LATTICE.resolve()
+    for link in active_links(store, "signature"):
+        for sidecar_rel in link["to_set"]:
+            sidecar_abs = root / sidecar_rel
+            if not sidecar_abs.exists():
+                continue
+            owner_label = sidecar_abs.name[:-len(".signature.md")]
+            for line in sidecar_abs.read_text().splitlines():
+                m = _BULLET_RE.match(line)
+                if m:
+                    owners.setdefault(m.group(1), set()).add(owner_label)
+    return owners
 
 
 def claim_convergence_dir(asn_label):
@@ -304,7 +308,7 @@ def check_references_resolve(pairs, citation_graph):
     return findings
 
 
-def check_declared_symbols_resolve(pairs, citation_graph, config=None):
+def check_declared_symbols_resolve(pairs, citation_graph, store):
     """Every tracked symbol used in a claim's Formal Contract block must
     resolve via the claim's transitive citation closure to an owning
     claim (or be a primitive). Implements invariant #7.
@@ -314,15 +318,13 @@ def check_declared_symbols_resolve(pairs, citation_graph, config=None):
     the claim; a symbol in preamble or proof prose is often descriptive
     (e.g., "T4a uses NAT-sub's `−`") and not a structural dependence.
 
-    The config (primitives + owners) is curated at
-    lattices/xanadu/symbol-owners.yaml. Untracked symbols (not in either
-    list) are ignored — v1 accepts false negatives; false positives are
-    the hard constraint.
+    Tracked symbols come from the substrate: notation (always-in-scope
+    primitives) plus the union of all per-claim signatures. Symbols
+    outside both are ignored — v1 accepts false negatives; false
+    positives are the hard constraint.
     """
-    if config is None:
-        config = _load_symbol_config()
-    primitives = set(config.get("primitives") or [])
-    owners = config.get("owners") or {}
+    primitives = read_notation(store)
+    owners = _build_symbol_owners(store)
 
     graph = citation_graph
 
@@ -363,13 +365,14 @@ def check_declared_symbols_resolve(pairs, citation_graph, config=None):
         for sym in sorted(symbols_used):
             if sym in primitives:
                 continue
-            owner = owners.get(sym)
-            if owner is None:
+            sym_owners = owners.get(sym)
+            if not sym_owners:
                 continue
-            if owner == stem:
+            if stem in sym_owners:
                 continue
-            if owner in deps:
+            if sym_owners & deps:
                 continue
+            owner = sorted(sym_owners)[0] if len(sym_owners) == 1 else sorted(sym_owners)
             findings.append({
                 "rule": "declared-symbols-resolve",
                 "file": f"{stem}.md",
@@ -620,7 +623,7 @@ def run_all_checks(pairs, store=None, label_index=None, claim_dir=None):
         findings.extend(check_contract_classifier_present(pairs, store, label_index))
         findings.extend(check_depends_agreement(pairs, citation_graph))
         findings.extend(check_references_resolve(pairs, citation_graph))
-        findings.extend(check_declared_symbols_resolve(pairs, citation_graph))
+        findings.extend(check_declared_symbols_resolve(pairs, citation_graph, store))
         findings.extend(check_acyclic_dependency_graph(pairs, citation_graph))
         findings.extend(check_declaration_and_body_uniqueness(pairs))
         for kind in ATTRIBUTE_KINDS:
