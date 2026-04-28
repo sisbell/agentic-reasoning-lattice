@@ -97,6 +97,16 @@ def _findings_dir_for_kind(kind):
     raise ValueError(f"unknown findings kind: {kind!r}")
 
 
+def agent_doc_path(role):
+    """Workspace-relative path to an agent doc by role name.
+
+    The substrate identifies an agent by its doc address (workspace-relative
+    string), so callers wiring up `XANADU_AGENT_DOC` or invoking `emit_agent`
+    use this to get the canonical form.
+    """
+    return str((AGENTS_DIR / f"{role}.md").relative_to(WORKSPACE))
+
+
 def review_meta_path(asn_label, review_num, *, kind):
     """Path to a review event's _meta.md under the substrate findings dir.
 

@@ -20,7 +20,9 @@ The list shape is preserved in the API and JSONL so the migration to
 multi-element type sets (Xanadu, stacked classifiers) is non-breaking.
 """
 
+import contextlib
 import json
+import os
 import sqlite3
 import sys
 from pathlib import Path
@@ -30,6 +32,9 @@ from lib.shared.paths import STORE_LOG, STORE_INDEX
 from lib.store.schema import (
     SCHEMA_SQL, make_link_id, validate_type, utcnow_iso,
 )
+
+
+AGENT_DOC_ENV_VAR = "XANADU_AGENT_DOC"
 
 
 class Store:
@@ -241,3 +246,41 @@ def find_num_links(home_set=None, from_set=None, to_set=None, type_set=None):
 
 def rebuild_index():
     return _get_default().rebuild_index()
+
+
+def default_store(log_path=None, index_path=None):
+    """Return a Store, wrapped in AgentStore if `XANADU_AGENT_DOC` is set.
+
+    Orchestrators (cone-review, full-review) set the env var so subprocess
+    tools (decide.py, cite.py, classify.py, ...) that emit substrate links
+    inherit the agent identity and attribute every operation back to it.
+    Standalone CLI runs (no env var) get a plain Store — operations land
+    in the substrate without `manages` attribution, which is correct since
+    there's no registered agent acting on the user's behalf.
+    """
+    store = Store(log_path=log_path, index_path=index_path)
+    agent_doc = os.environ.get(AGENT_DOC_ENV_VAR)
+    if not agent_doc:
+        return store
+    from lib.store.agent_store import AgentStore
+    return AgentStore(store, agent_doc)
+
+
+@contextlib.contextmanager
+def agent_context(agent_doc):
+    """Bind `XANADU_AGENT_DOC` for the duration of the block.
+
+    Use to scope agent attribution around an orchestrator block. Restores
+    any prior value on exit, so nested orchestrators (e.g. full-review
+    invoking cone-review on a detected dependency cone) cleanly inherit
+    the outer agent and pop back when the inner block ends.
+    """
+    prior = os.environ.get(AGENT_DOC_ENV_VAR)
+    os.environ[AGENT_DOC_ENV_VAR] = agent_doc
+    try:
+        yield
+    finally:
+        if prior is None:
+            os.environ.pop(AGENT_DOC_ENV_VAR, None)
+        else:
+            os.environ[AGENT_DOC_ENV_VAR] = prior

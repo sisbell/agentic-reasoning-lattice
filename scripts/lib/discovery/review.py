@@ -31,7 +31,7 @@ from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn, read_file
 from lib.shared.foundation import load_foundation_statements
 from lib.store.emit import emit_review
-from lib.store.store import Store
+from lib.store.store import default_store
 
 PROMPTS_DIR = LATTICE_PROMPTS / "discovery"
 REVIEW_TEMPLATE = PROMPTS_DIR / "review.md"
@@ -295,7 +295,7 @@ def main():
 
     # File a `review` classifier link in the substrate so subsequent
     # passes (revise, maturation) can locate this review's document.
-    with Store() as store:
+    with default_store() as store:
         emit_review(store, output_path)
 
     # Process resolved open issues

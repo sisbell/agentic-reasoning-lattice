@@ -25,7 +25,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
-from store.store import Store
+from store.store import default_store
 from store.retract import emit_retraction
 from store.populate import build_cross_asn_label_index
 
@@ -44,7 +44,7 @@ def main():
         print("error: PROTOCOL_CLAIM_PATH env var not set", file=sys.stderr)
         return 1
 
-    store = Store()
+    store = default_store()
     try:
         try:
             label_index = build_cross_asn_label_index(store=store)

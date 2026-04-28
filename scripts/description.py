@@ -26,7 +26,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
 from store.attributes import emit_attribute
-from store.store import Store
+from store.store import default_store
 
 
 def main():
@@ -58,7 +58,7 @@ def main():
     else:
         body = args.to
 
-    store = Store()
+    store = default_store()
     try:
         try:
             link_id, created = emit_attribute(

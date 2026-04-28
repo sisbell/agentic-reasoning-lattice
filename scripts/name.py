@@ -19,7 +19,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
 from store.attributes import emit_attribute
-from store.store import Store
+from store.store import default_store
 
 
 def main():
@@ -35,7 +35,7 @@ def main():
         print("error: PROTOCOL_CLAIM_PATH env var not set", file=sys.stderr)
         return 1
 
-    store = Store()
+    store = default_store()
     try:
         try:
             link_id, created = emit_attribute(

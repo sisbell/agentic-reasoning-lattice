@@ -26,7 +26,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
-from store.store import Store
+from store.store import default_store
 from store.decide import emit_decision
 
 
@@ -53,7 +53,7 @@ def main():
     claim_path = os.environ["PROTOCOL_CLAIM_PATH"]
     asn_label = os.environ["PROTOCOL_ASN_LABEL"]
 
-    store = Store()
+    store = default_store()
     try:
         try:
             link_id = emit_decision(

@@ -30,7 +30,7 @@ from shared.common import invoke_claude_agent, find_asn
 from shared.paths import LATTICE
 from store.populate import build_cross_asn_label_index
 from store.retract import emit_retraction
-from store.store import Store
+from store.store import default_store
 
 
 VALID_ACTIONS = {"ADD", "RETRACT", "SKIP"}
@@ -194,7 +194,7 @@ def build_metadata_bundle(rule, filename, pairs, claim_dir):
 
     workspace = Path(WORKSPACE).resolve()
 
-    with Store() as store:
+    with default_store() as store:
         label_index = build_cross_asn_label_index(store=store)
 
         if rule in ("depends-agreement", "references-resolve"):
@@ -517,7 +517,7 @@ def run_pass(pass_spec, asn_label, claim_dir, findings, dry_run,
             return declined
 
     if rule == "depends-agreement":
-        with Store() as store:
+        with default_store() as store:
             label_index = build_cross_asn_label_index(store=store)
     else:
         label_index = None
@@ -618,7 +618,7 @@ def run_pass(pass_spec, asn_label, claim_dir, findings, dry_run,
         if retract_decisions:
             real_claim_path = str(real_path.resolve().relative_to(REPO_ROOT.resolve()))
             try:
-                with Store() as store:
+                with default_store() as store:
                     retracted_count = apply_retract_decisions(
                         store, retract_decisions, real_claim_path, label_index,
                     )
