@@ -33,7 +33,9 @@ from lib.shared.paths import WORKSPACE, NOTES_DIR, VOCABULARY, USAGE_LOG, LATTIC
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
 from lib.shared.foundation import load_foundation_statements
+from lib.store.cite import emit_citation
 from lib.store.emit import emit_note
+from lib.store.populate import build_note_label_index
 from lib.store.store import default_store
 
 DISCOVERY_PROMPT = LATTICE_PROMPTS / "discovery" / "instructions.md"
@@ -254,6 +256,38 @@ def main():
             _, created = emit_note(store, asn_path)
             if created:
                 print(f"  [NOTE] classifier emitted", file=sys.stderr)
+
+            # Emit substrate citations from the manifest depends seed.
+            # Idempotent — re-runs are no-ops. The manifest is the
+            # inquiry-time intent; substrate becomes authoritative
+            # post-draft.
+            manifest = load_manifest(asn_number) or {}
+            depends = manifest.get("depends", []) or []
+            if depends:
+                note_index = build_note_label_index(store)
+                from_path = str(
+                    asn_path.resolve().relative_to(WORKSPACE.resolve())
+                )
+                created_count = 0
+                for dep_id in depends:
+                    dep_label = f"ASN-{int(dep_id):04d}"
+                    if dep_label not in note_index:
+                        print(f"  [CITE] skipping {dep_label} — "
+                              f"no note classifier in substrate",
+                              file=sys.stderr)
+                        continue
+                    try:
+                        _, was_created = emit_citation(
+                            store, from_path, dep_label, note_index,
+                        )
+                        if was_created:
+                            created_count += 1
+                    except KeyError as e:
+                        print(f"  [CITE] {dep_label} failed: {e}",
+                              file=sys.stderr)
+                if created_count:
+                    print(f"  [CITE] {created_count} citation(s) emitted "
+                          f"from manifest depends", file=sys.stderr)
         # Print the output file path to stdout (for pipeline consumption)
         print(str(asn_path))
     else:
