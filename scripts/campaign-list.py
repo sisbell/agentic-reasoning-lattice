@@ -18,7 +18,7 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import (
-    LATTICE_NAME, CAMPAIGNS_DIR, MANIFESTS_DIR,
+    LATTICE_NAME, CAMPAIGNS_DIR, INQUIRIES_DIR,
     load_lattice_config, campaign_doc_path, campaign_vocab,
 )
 
@@ -36,13 +36,12 @@ def count_vocab_terms(vocab_path):
     return sum(1 for line in text.splitlines() if line.startswith("**"))
 
 
-def asn_campaign(manifest_path):
-    """Read an ASN manifest and return its `campaign:` value, or None."""
-    try:
-        data = yaml.safe_load(manifest_path.read_text()) or {}
-    except (FileNotFoundError, OSError):
-        return None
-    return data.get("campaign")
+def asn_campaign(inquiry_path):
+    """Read an inquiry md and return its `campaign:` frontmatter value,
+    or None. Inquiries can opt out of the lattice default by setting
+    a campaign explicitly in their frontmatter."""
+    from lib.shared.common import read_doc_frontmatter
+    return read_doc_frontmatter(inquiry_path).get("campaign")
 
 
 def _asn_label_from_dir(d):
@@ -60,26 +59,22 @@ def main():
 
     campaigns = sorted(
         d for d in CAMPAIGNS_DIR.iterdir()
-        if d.is_dir() and (d / "config.yaml").exists()
+        if d.is_dir() and (d / "campaign.md").exists()
     )
 
     if not campaigns:
         print(f"No campaigns found in {CAMPAIGNS_DIR}", file=sys.stderr)
         sys.exit(1)
 
-    # Build ASN-to-campaign mapping from manifests
+    # Build ASN-to-campaign mapping from inquiry mds
     asn_by_campaign = {c.name: [] for c in campaigns}
-    if MANIFESTS_DIR.exists():
-        for asn_dir in sorted(MANIFESTS_DIR.iterdir()):
-            if not asn_dir.is_dir():
+    if INQUIRIES_DIR.exists():
+        for path in sorted(INQUIRIES_DIR.glob("ASN-*.md")):
+            m = re.match(r"(ASN-\d+)", path.stem)
+            if m is None:
                 continue
-            label = _asn_label_from_dir(asn_dir)
-            if label is None:
-                continue
-            manifest = asn_dir / "note.yaml"
-            if not manifest.exists():
-                continue
-            bound = asn_campaign(manifest) or default_campaign
+            label = m.group(1)
+            bound = asn_campaign(path) or default_campaign
             if bound and bound in asn_by_campaign:
                 asn_by_campaign[bound].append(label)
 

@@ -42,26 +42,27 @@ STEPS = ["questions", "consult", "discover", "commit"]
 
 
 def load_inquiries():
-    """Load all ASN definitions from project model directory."""
+    """Load all inquiries from the substrate-managed inquiries dir."""
     import re
+    from lib.shared.paths import INQUIRIES_DIR
+    from lib.shared.common import read_doc_frontmatter
     inquiries = []
-    for path in sorted(MANIFESTS_DIR.glob("ASN-*/note.yaml")):
-        m = re.match(r"ASN-(\d+)", path.parent.name)
+    if not INQUIRIES_DIR.exists():
+        return inquiries
+    for path in sorted(INQUIRIES_DIR.glob("ASN-*.md")):
+        m = re.match(r"ASN-(\d+)", path.stem)
         if not m:
             continue
         asn_id = int(m.group(1))
-        manifest = load_manifest(asn_id)
-        if not manifest:
-            continue
-        inquiry = manifest.get("consultations", {})
-        if not inquiry.get("question"):
+        fm = read_doc_frontmatter(path)
+        if not fm or not fm.get("question"):
             continue
         inquiries.append({
             "id": asn_id,
-            "title": manifest.get("title", ""),
+            "title": fm.get("title", ""),
             "area": "",
-            "question": inquiry.get("question", ""),
-            "out_of_scope": manifest.get("out_of_scope", ""),
+            "question": fm.get("question", ""),
+            "out_of_scope": fm.get("out_of_scope", ""),
         })
     return inquiries
 

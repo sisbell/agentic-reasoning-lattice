@@ -129,8 +129,26 @@ def consultation_dir(asn):
 
 
 def note_yaml(asn_num):
-    """Path to a note's metadata YAML."""
+    """Legacy path to a note's metadata YAML. Pre-Phase-2 inquiry refactor.
+    Should not be referenced by new code — use inquiry_doc_path / state_yaml.
+    """
     return note_dir(asn_num) / "note.yaml"
+
+
+def inquiry_doc_path(asn_num):
+    """Path to a substrate-managed inquiry doc (md + frontmatter)."""
+    return INQUIRIES_DIR / f"ASN-{int(asn_num):04d}.md"
+
+
+def state_yaml(asn_num):
+    """Path to a per-ASN operational state file (machine-written cache).
+
+    Holds last_consistency_check, last_pipeline_run, etc. — fields that
+    don't go to substrate and don't belong in the inquiry doc. Sibling
+    of formal-statements.md and dependency-graph.yaml under
+    `manifests/ASN-NNNN/`.
+    """
+    return note_dir(asn_num) / "state.yaml"
 
 
 def dep_graph(asn_num):
@@ -256,8 +274,61 @@ def lint_global_path(kind):
 
 
 def load_manifest(asn_id):
-    """Load a note's manifest YAML. Returns dict or empty dict."""
-    path = note_yaml(asn_id)
+    """Load a note's manifest. Returns dict or empty dict.
+
+    Compat shim for the inquiry refactor: post-migration the manifest
+    yaml is gone; this synthesizes the legacy shape from the inquiry
+    doc's frontmatter + state.yaml. Falls back to the legacy
+    `note.yaml` if the new sources don't exist (eases transition;
+    can be removed once migration is universal).
+
+    The shape returned mirrors what callers of `manifest.get(field)`
+    expected pre-migration. New code should use `load_inquiry` /
+    `load_state` directly.
+    """
+    inquiry_path = inquiry_doc_path(asn_id)
+    state_path = state_yaml(asn_id)
+    if inquiry_path.exists() or state_path.exists():
+        merged = {}
+        if inquiry_path.exists():
+            from lib.shared.common import read_doc_frontmatter
+            merged.update(read_doc_frontmatter(inquiry_path))
+        if state_path.exists():
+            try:
+                with open(state_path) as f:
+                    state = yaml.safe_load(f) or {}
+                if isinstance(state, dict):
+                    merged.update(state)
+            except FileNotFoundError:
+                pass
+        # Back-compat synthesis: legacy callers expected nested
+        # `consultations: {question: ...}` or `inquiry: {question: ...}`.
+        # Frontmatter is flat post-migration; reconstruct the nested shape
+        # so shim consumers keep working until they migrate.
+        if "question" in merged:
+            merged.setdefault("consultations", {})["question"] = merged["question"]
+            merged.setdefault("inquiry", {})["question"] = merged["question"]
+        return merged
+    # Legacy fallback — pre-migration manifests still exist.
+    legacy = note_yaml(asn_id)
+    try:
+        with open(legacy) as f:
+            return yaml.safe_load(f) or {}
+    except FileNotFoundError:
+        return {}
+
+
+def load_inquiry(asn_id):
+    """Load inquiry frontmatter for an ASN. Returns dict or empty dict.
+    The inquiry-content fields only — operational state lives in
+    state.yaml (load via `load_state`)."""
+    from lib.shared.common import read_doc_frontmatter
+    return read_doc_frontmatter(inquiry_doc_path(asn_id))
+
+
+def load_state(asn_id):
+    """Load per-ASN operational state. Returns dict or empty dict."""
+    path = state_yaml(asn_id)
     try:
         with open(path) as f:
             return yaml.safe_load(f) or {}

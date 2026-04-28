@@ -1,7 +1,0 @@
-# ASN-0084 — Bundle Projection Displacement
-title: "Bundle Projection Displacement"
-source: 65
-depends: [34, 36, 53]
-
-consultations:
-  question: "Extension of ASN-0053: properties R-BLK, R-PPERM, R-SPERM from ASN-0065."
