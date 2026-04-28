@@ -47,7 +47,7 @@ import yaml
 sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
 from shared.common import write_frontmatter
 from shared.paths import (
-    INQUIRIES_DIR, MANIFESTS_DIR, WORKSPACE,
+    INQUIRY_DIR, MANIFESTS_DIR, WORKSPACE, LATTICE,
     inquiry_doc_path, state_yaml,
 )
 from store.cite import emit_citation
@@ -121,7 +121,7 @@ def main():
     label = "APPLY" if apply_mode else "DRY-RUN"
     print(f"[migrate-manifest-to-inquiry] {label}")
     print(f"  MANIFESTS_DIR  = {MANIFESTS_DIR.relative_to(WORKSPACE)}")
-    print(f"  INQUIRIES_DIR  = {INQUIRIES_DIR.relative_to(WORKSPACE)}")
+    print(f"  INQUIRY_DIR  = {INQUIRY_DIR.relative_to(WORKSPACE)}")
     print()
 
     if not MANIFESTS_DIR.exists():
@@ -158,7 +158,7 @@ def main():
         print(f"  (dry-run; no changes made. Use --apply to migrate.)")
         return 0
 
-    INQUIRIES_DIR.mkdir(parents=True, exist_ok=True)
+    INQUIRY_DIR.mkdir(parents=True, exist_ok=True)
 
     store = Store()
     inquiry_paths = {}  # asn_label → inquiry md path
@@ -204,8 +204,8 @@ def main():
                     continue
                 # emit_citation expects a label_index dict {label: path}
                 # We synthesize a single-entry index per call.
-                from_rel = str(inq_path.resolve().relative_to(WORKSPACE.resolve()))
-                dep_rel = str(dep_path.resolve().relative_to(WORKSPACE.resolve()))
+                from_rel = str(inq_path.resolve().relative_to(LATTICE.resolve()))
+                dep_rel = str(dep_path.resolve().relative_to(LATTICE.resolve()))
                 try:
                     _, created = emit_citation(
                         store, from_rel, dep_label, {dep_label: dep_rel},

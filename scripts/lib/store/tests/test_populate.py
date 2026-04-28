@@ -40,16 +40,17 @@ class PopulateTestBase(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         self.root = Path(self.tmp.name)
-        # Put the lattice under a "lattices/xanadu/claim-convergence/" path so
-        # _repo_relative() can compute paths sensibly. We patch WORKSPACE
-        # to point at self.root so the relative-path computation works.
-        self.claim_convergence_dir = self.root / "lattices" / "xanadu" / "claim-convergence"
+        # _lattice_relative() computes paths relative to LATTICE. We patch
+        # LATTICE to point at self.root so claim_convergence_dir/<asn>/<label>.md
+        # resolves to a clean lattice-relative key like
+        # "claim-convergence/<asn>/<label>.md".
+        self.claim_convergence_dir = self.root / "claim-convergence"
         self.claim_convergence_dir.mkdir(parents=True)
-        self.workspace_patcher = mock.patch(
-            "lib.store.populate.WORKSPACE", self.root,
+        self.lattice_patcher = mock.patch(
+            "lib.store.populate.LATTICE", self.root,
         )
-        self.workspace_patcher.start()
-        self.addCleanup(self.workspace_patcher.stop)
+        self.lattice_patcher.start()
+        self.addCleanup(self.lattice_patcher.stop)
 
         self.store = Store(
             log_path=self.root / "_store" / "links.jsonl",

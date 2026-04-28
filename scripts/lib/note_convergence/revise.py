@@ -23,7 +23,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, VOCABULARY, REVIEWS_DIR, USAGE_LOG, NOTES_DIR, LATTICE_PROMPTS, sorted_reviews, find_review
+from lib.shared.paths import WORKSPACE, LATTICE, VOCABULARY, REVIEWS_DIR, USAGE_LOG, NOTES_DIR, LATTICE_PROMPTS, sorted_reviews, find_review
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn, read_file
 from lib.shared.foundation import load_foundation_for_note
@@ -194,7 +194,7 @@ def collect_open_revises(store, note_rel):
         if not c["from_set"]:
             continue
         finding_rel = c["from_set"][0]
-        finding_full = WORKSPACE / finding_rel
+        finding_full = LATTICE / finding_rel
         if not finding_full.exists():
             print(f"  [SKIP] finding doc missing: {finding_rel}",
                   file=sys.stderr)
@@ -217,7 +217,7 @@ def run_revise_pass(asn_path, asn_label, findings, *,
     """
     asn_num = int(re.sub(r"[^0-9]", "", asn_label))
     vocab = read_file(resolve_campaign(asn_label).vocabulary_path)
-    note_rel = str(asn_path.resolve().relative_to(WORKSPACE.resolve()))
+    note_rel = str(asn_path.resolve().relative_to(LATTICE.resolve()))
 
     prompt = build_prompt(asn_path, findings, vocab, consultation_content,
                           asn_number=asn_num)
@@ -253,7 +253,7 @@ def main():
         print(f"  No ASN found for {args.asn} in {NOTES_DIR.relative_to(WORKSPACE)}/", file=sys.stderr)
         sys.exit(1)
 
-    note_rel = str(asn_path.resolve().relative_to(WORKSPACE.resolve()))
+    note_rel = str(asn_path.resolve().relative_to(LATTICE.resolve()))
 
     with default_store() as store:
         findings = collect_open_revises(store, note_rel)

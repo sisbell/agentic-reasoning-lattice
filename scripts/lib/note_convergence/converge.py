@@ -19,7 +19,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.common import find_asn, step_commit_asn
-from lib.shared.paths import NOTES_DIR, WORKSPACE
+from lib.shared.paths import NOTES_DIR, WORKSPACE, LATTICE
 from lib.note_convergence.review import (
     commit_note_review, run_note_review,
 )
@@ -41,7 +41,7 @@ def run_note_convergence(asn_num, max_cycles=15, dry_run=False, model="opus",
               file=sys.stderr)
         return "failed"
 
-    note_rel = str(asn_path.resolve().relative_to(WORKSPACE.resolve()))
+    note_rel = str(asn_path.resolve().relative_to(LATTICE.resolve()))
     print(f"\n  [NOTE-CONVERGE] {asn_label} ({asn_path.name})", file=sys.stderr)
 
     start_time = time.time()

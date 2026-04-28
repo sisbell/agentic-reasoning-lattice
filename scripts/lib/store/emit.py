@@ -16,7 +16,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE
+from lib.shared.paths import LATTICE
 from lib.store.queries import active_links
 
 
@@ -24,7 +24,7 @@ def emit_review(store, review_md_path):
     """Make `review` classifier link on the review markdown file."""
     return store.make_link(
         from_set=[],
-        to_set=[_repo_relative(review_md_path)],
+        to_set=[_lattice_relative(review_md_path)],
         type_set=["review"],
     )
 
@@ -54,8 +54,8 @@ def emit_inquiry(store, inquiry_md_path):
 def emit_synthesis(store, inquiry_md_path, note_md_path):
     """File a `synthesis` link from inquiry to the produced note.
     Idempotent on active (inquiry, note) pair. Returns (link_id, created)."""
-    inquiry_rel = _repo_relative(inquiry_md_path)
-    note_rel = _repo_relative(note_md_path)
+    inquiry_rel = _lattice_relative(inquiry_md_path)
+    note_rel = _lattice_relative(note_md_path)
     candidates = active_links(
         store, "synthesis",
         from_set=[inquiry_rel], to_set=[note_rel],
@@ -75,7 +75,7 @@ def _emit_classifier(store, doc_path, type_name):
     """Shared idempotent-classifier emission used by emit_note,
     emit_campaign, emit_inquiry. Skipped types live in their own
     modules (emit_agent in lib.store.agent has its own copy)."""
-    rel = _repo_relative(doc_path)
+    rel = _lattice_relative(doc_path)
     candidates = active_links(store, type_name, to_set=[rel])
     for link in candidates:
         if link["from_set"] == [] and link["to_set"] == [rel]:
@@ -177,7 +177,7 @@ def emit_findings(store, review_md_path, findings, asn_label, review_stem,
 
         finding_path = out_dir / f"{n}.md"
         finding_path.write_text(body)
-        finding_rel = _repo_relative(finding_path)
+        finding_rel = _lattice_relative(finding_path)
 
         cls_normalized = cls.upper() if cls else "REVISE"
         if cls_normalized not in {"REVISE", "OBSERVE"}:
@@ -221,12 +221,12 @@ def emit_note_findings(store, note_md_path, findings, asn_label, review_stem,
     out_dir = findings_root / asn_label / review_stem
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    note_rel = _repo_relative(note_md_path)
+    note_rel = _lattice_relative(note_md_path)
     results = []
     for n, (title, cls, body) in enumerate(findings):
         finding_path = out_dir / f"{n}.md"
         finding_path.write_text(body)
-        finding_rel = _repo_relative(finding_path)
+        finding_rel = _lattice_relative(finding_path)
 
         cls_normalized = (cls or "REVISE").upper()
         if cls_normalized == "OUT_OF_SCOPE":
@@ -270,5 +270,5 @@ def _extract_target_label(body, label_index):
     return None
 
 
-def _repo_relative(path):
-    return str(Path(path).resolve().relative_to(Path(WORKSPACE).resolve()))
+def _lattice_relative(path):
+    return str(Path(path).resolve().relative_to(Path(LATTICE).resolve()))

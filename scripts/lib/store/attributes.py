@@ -23,7 +23,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE
+from lib.shared.paths import LATTICE
 
 
 VALID_KINDS = {"label", "name", "description"}
@@ -48,9 +48,9 @@ def emit_attribute(store, claim_md_path, kind, value, lattice_root=None):
     `(existing_link_id, False)`. `created` is True only when a *new link*
     is emitted.
 
-    `lattice_root` is an optional override for repo-relative path
+    `lattice_root` is an optional override for lattice-relative path
     computation (mirrors `findings_dir` overrides elsewhere). When None,
-    uses the workspace root from `lib.shared.paths`.
+    uses the lattice root from `lib.shared.paths`.
 
     Returns (link_id, created_bool).
     Raises ValueError if `kind` is not a valid attribute kind.
@@ -60,7 +60,7 @@ def emit_attribute(store, claim_md_path, kind, value, lattice_root=None):
             f"unknown attribute kind {kind!r}; expected one of {sorted(VALID_KINDS)}"
         )
 
-    root = Path(lattice_root) if lattice_root else Path(WORKSPACE)
+    root = Path(lattice_root) if lattice_root else Path(LATTICE)
     claim_md = (root / claim_md_path).resolve() if not Path(claim_md_path).is_absolute() else Path(claim_md_path).resolve()
 
     stem = claim_md.stem

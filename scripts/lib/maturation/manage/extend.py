@@ -14,7 +14,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
-from lib.shared.paths import (WORKSPACE, NOTES_DIR, MANIFESTS_DIR,
+from lib.shared.paths import (WORKSPACE, LATTICE, NOTES_DIR, MANIFESTS_DIR,
                    prompt_path, load_inquiry, inquiry_doc_path,
                    note_yaml, formal_stmts)
 from lib.shared.common import read_file, find_asn, invoke_claude, log_usage, step_commit
@@ -116,7 +116,7 @@ def compute_depends(base_num):
     from lib.store.queries import active_links
     from lib.store.store import Store
     base_inq = inquiry_doc_path(base_num)
-    base_rel = str(base_inq.resolve().relative_to(WORKSPACE.resolve()))
+    base_rel = str(base_inq.resolve().relative_to(LATTICE.resolve()))
     deps = {base_num}
     with Store() as store:
         for link in active_links(store, "citation", from_set=[base_rel]):

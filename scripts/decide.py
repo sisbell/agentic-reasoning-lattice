@@ -16,11 +16,11 @@ Otherwise reads context from environment variables (set by the
 orchestrator before spawning the reviser):
 
     PROTOCOL_COMMENT_ID    — the comment link being closed
-    PROTOCOL_DOC_PATH      — the doc md path (repo-relative)
+    PROTOCOL_DOC_PATH      — the doc md path (lattice-relative)
     PROTOCOL_ASN_LABEL     — the ASN label (for rationale doc placement)
 
 On reject, materializes the rationale document under
-_store/rationales/{ASN}/{comment_id}.md and writes a resolution.reject
+_store/documents/rationale/{ASN}/{comment_id}.md and writes a resolution.reject
 link binding the comment and the rationale.
 
 Prints the new resolution link id on success; exits non-zero on error.

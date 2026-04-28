@@ -15,7 +15,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import CLAIM_CONVERGENCE_DIR, WORKSPACE
+from lib.shared.paths import CLAIM_CONVERGENCE_DIR, LATTICE
 
 
 def populate_structural(store, claim_convergence_dir=None):
@@ -117,7 +117,7 @@ def aggregate_asn_deps(store, asn_label, claim_convergence_dir=None):
     if not asn_dir.exists():
         return []
 
-    workspace = Path(WORKSPACE).resolve()
+    workspace = Path(LATTICE).resolve()
     sidecar_suffixes = (".label.md", ".name.md", ".description.md")
     deps = set()
     for claim_md in asn_dir.glob("*.md"):
@@ -176,7 +176,7 @@ def build_doc_label_index(store, doc_path):
 
 def _build_label_index_from_substrate(store):
     from lib.store.queries import active_links
-    workspace = Path(WORKSPACE).resolve()
+    workspace = Path(LATTICE).resolve()
     index = {}
     for link in active_links(store, "label"):
         if not link["from_set"] or not link["to_set"]:
@@ -204,7 +204,7 @@ def _build_label_index_from_yaml(claim_convergence_dir=None):
             if not data or "label" not in data:
                 continue
             md_path = yaml_path.with_suffix(".md")
-            index[data["label"]] = _repo_relative(md_path)
+            index[data["label"]] = _lattice_relative(md_path)
     return index
 
 
@@ -217,7 +217,7 @@ def import_one_claim(store, yaml_path, label_index):
     if not data or "label" not in data:
         return _empty_counts()
 
-    md_rel = _repo_relative(yaml_path.with_suffix(".md"))
+    md_rel = _lattice_relative(yaml_path.with_suffix(".md"))
     counts = _empty_counts()
 
     _, created = _ensure_link(store, [], [md_rel], ["claim"])
@@ -276,5 +276,5 @@ def _empty_counts():
     }
 
 
-def _repo_relative(path):
-    return str(Path(path).resolve().relative_to(Path(WORKSPACE).resolve()))
+def _lattice_relative(path):
+    return str(Path(path).resolve().relative_to(Path(LATTICE).resolve()))

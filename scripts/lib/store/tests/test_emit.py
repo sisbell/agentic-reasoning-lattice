@@ -20,11 +20,11 @@ class EmitTestBase(unittest.TestCase):
         self.addCleanup(self.tmp.cleanup)
         self.root = Path(self.tmp.name)
         self.findings_dir = self.root / "_store" / "documents" / "findings" / "claims"
-        self.workspace_patcher = mock.patch(
-            "lib.store.emit.WORKSPACE", self.root,
+        self.lattice_patcher = mock.patch(
+            "lib.store.emit.LATTICE", self.root,
         )
-        self.workspace_patcher.start()
-        self.addCleanup(self.workspace_patcher.stop)
+        self.lattice_patcher.start()
+        self.addCleanup(self.lattice_patcher.stop)
 
         self.store = Store(
             log_path=self.root / "_store" / "links.jsonl",
@@ -45,7 +45,7 @@ class EmitTestBase(unittest.TestCase):
 class EmitReviewTests(EmitTestBase):
     def test_emit_review_classifier(self):
         review_path = self._write_under_root(
-            "lattices/xanadu/claim-convergence/ASN-0001/reviews/review-1.md",
+            "claim-convergence/ASN-0001/reviews/review-1.md",
             "# Review\n",
         )
         link_id = emit_review(self.store, review_path)
@@ -54,14 +54,14 @@ class EmitReviewTests(EmitTestBase):
         self.assertEqual(rec["from_set"], [])
         self.assertEqual(
             rec["to_set"],
-            ["lattices/xanadu/claim-convergence/ASN-0001/reviews/review-1.md"],
+            ["claim-convergence/ASN-0001/reviews/review-1.md"],
         )
 
 
 class EmitInquiryTests(EmitTestBase):
     def test_first_call_creates_classifier(self):
         inq_path = self._write_under_root(
-            "lattices/xanadu/_store/documents/inquiries/ASN-0001.md",
+            "_store/documents/inquiry/ASN-0001.md",
             "---\ntitle: Foo\n---\n# Inquiry: Foo\n",
         )
         link_id, created = emit_inquiry(self.store, inq_path)
@@ -71,12 +71,12 @@ class EmitInquiryTests(EmitTestBase):
         self.assertEqual(rec["from_set"], [])
         self.assertEqual(
             rec["to_set"],
-            ["lattices/xanadu/_store/documents/inquiries/ASN-0001.md"],
+            ["_store/documents/inquiry/ASN-0001.md"],
         )
 
     def test_repeated_call_is_idempotent(self):
         inq_path = self._write_under_root(
-            "lattices/xanadu/_store/documents/inquiries/ASN-0001.md", "x",
+            "_store/documents/inquiry/ASN-0001.md", "x",
         )
         first_id, created1 = emit_inquiry(self.store, inq_path)
         second_id, created2 = emit_inquiry(self.store, inq_path)
@@ -86,10 +86,10 @@ class EmitInquiryTests(EmitTestBase):
 
     def test_distinct_inquiries_get_distinct_classifiers(self):
         a = self._write_under_root(
-            "lattices/xanadu/_store/documents/inquiries/ASN-0001.md", "a",
+            "_store/documents/inquiry/ASN-0001.md", "a",
         )
         b = self._write_under_root(
-            "lattices/xanadu/_store/documents/inquiries/ASN-0002.md", "b",
+            "_store/documents/inquiry/ASN-0002.md", "b",
         )
         a_id, _ = emit_inquiry(self.store, a)
         b_id, _ = emit_inquiry(self.store, b)
@@ -99,7 +99,7 @@ class EmitInquiryTests(EmitTestBase):
 class EmitCampaignTests(EmitTestBase):
     def test_first_call_creates_classifier(self):
         camp_path = self._write_under_root(
-            "lattices/xanadu/_store/documents/campaigns/foo/campaign.md",
+            "_store/documents/campaign/foo/campaign.md",
             "---\nname: foo\ntheory: nelson\nevidence: gregory\n---\n",
         )
         link_id, created = emit_campaign(self.store, camp_path)
@@ -109,12 +109,12 @@ class EmitCampaignTests(EmitTestBase):
         self.assertEqual(rec["from_set"], [])
         self.assertEqual(
             rec["to_set"],
-            ["lattices/xanadu/_store/documents/campaigns/foo/campaign.md"],
+            ["_store/documents/campaign/foo/campaign.md"],
         )
 
     def test_repeated_call_is_idempotent(self):
         camp_path = self._write_under_root(
-            "lattices/xanadu/_store/documents/campaigns/foo/campaign.md", "x",
+            "_store/documents/campaign/foo/campaign.md", "x",
         )
         first_id, created1 = emit_campaign(self.store, camp_path)
         second_id, created2 = emit_campaign(self.store, camp_path)
@@ -127,10 +127,10 @@ class EmitSynthesisTests(EmitTestBase):
     def setUp(self):
         super().setUp()
         self.inq_path = self._write_under_root(
-            "lattices/xanadu/_store/documents/inquiries/ASN-0001.md", "x",
+            "_store/documents/inquiry/ASN-0001.md", "x",
         )
         self.note_path = self._write_under_root(
-            "lattices/xanadu/discovery/notes/ASN-0001-foo.md", "# Foo\n",
+            "discovery/notes/ASN-0001-foo.md", "# Foo\n",
         )
 
     def test_first_call_creates_link(self):
@@ -142,11 +142,11 @@ class EmitSynthesisTests(EmitTestBase):
         self.assertEqual(rec["type_set"], ["synthesis"])
         self.assertEqual(
             rec["from_set"],
-            ["lattices/xanadu/_store/documents/inquiries/ASN-0001.md"],
+            ["_store/documents/inquiry/ASN-0001.md"],
         )
         self.assertEqual(
             rec["to_set"],
-            ["lattices/xanadu/discovery/notes/ASN-0001-foo.md"],
+            ["discovery/notes/ASN-0001-foo.md"],
         )
 
     def test_repeated_call_is_idempotent(self):
@@ -162,10 +162,10 @@ class EmitSynthesisTests(EmitTestBase):
 
     def test_distinct_pairs_get_distinct_links(self):
         other_inq = self._write_under_root(
-            "lattices/xanadu/_store/documents/inquiries/ASN-0002.md", "x",
+            "_store/documents/inquiry/ASN-0002.md", "x",
         )
         other_note = self._write_under_root(
-            "lattices/xanadu/discovery/notes/ASN-0002-bar.md", "y",
+            "discovery/notes/ASN-0002-bar.md", "y",
         )
         a_id, _ = emit_synthesis(self.store, self.inq_path, self.note_path)
         b_id, _ = emit_synthesis(self.store, other_inq, other_note)
@@ -175,7 +175,7 @@ class EmitSynthesisTests(EmitTestBase):
 class EmitNoteTests(EmitTestBase):
     def test_first_call_creates_classifier(self):
         note_path = self._write_under_root(
-            "lattices/xanadu/discovery/notes/ASN-0001-foo.md", "# Note\n",
+            "discovery/notes/ASN-0001-foo.md", "# Note\n",
         )
         link_id, created = emit_note(self.store, note_path)
         self.assertTrue(created)
@@ -184,12 +184,12 @@ class EmitNoteTests(EmitTestBase):
         self.assertEqual(rec["from_set"], [])
         self.assertEqual(
             rec["to_set"],
-            ["lattices/xanadu/discovery/notes/ASN-0001-foo.md"],
+            ["discovery/notes/ASN-0001-foo.md"],
         )
 
     def test_repeated_call_is_idempotent(self):
         note_path = self._write_under_root(
-            "lattices/xanadu/discovery/notes/ASN-0001-foo.md", "# Note\n",
+            "discovery/notes/ASN-0001-foo.md", "# Note\n",
         )
         first_id, created1 = emit_note(self.store, note_path)
         second_id, created2 = emit_note(self.store, note_path)
@@ -199,10 +199,10 @@ class EmitNoteTests(EmitTestBase):
 
     def test_distinct_notes_get_distinct_classifiers(self):
         a = self._write_under_root(
-            "lattices/xanadu/discovery/notes/ASN-0001-a.md", "a",
+            "discovery/notes/ASN-0001-a.md", "a",
         )
         b = self._write_under_root(
-            "lattices/xanadu/discovery/notes/ASN-0002-b.md", "b",
+            "discovery/notes/ASN-0002-b.md", "b",
         )
         a_id, _ = emit_note(self.store, a)
         b_id, _ = emit_note(self.store, b)
@@ -226,9 +226,9 @@ class EmitFindingsTests(EmitTestBase):
 
     def test_one_revise(self):
         review_path = self._write_under_root(
-            "lattices/xanadu/claim-convergence/ASN-0001/reviews/review-1.md", "x",
+            "claim-convergence/ASN-0001/reviews/review-1.md", "x",
         )
-        index = {"T0": "lattices/xanadu/claim-convergence/ASN-0001/T0.md"}
+        index = {"T0": "claim-convergence/ASN-0001/T0.md"}
         findings = self._findings(
             {"title": "missing precondition", "cls": "REVISE", "target_label": "T0"},
         )
@@ -246,9 +246,9 @@ class EmitFindingsTests(EmitTestBase):
 
     def test_observe_classified_correctly(self):
         review_path = self._write_under_root(
-            "lattices/xanadu/claim-convergence/ASN-0001/reviews/review-1.md", "x",
+            "claim-convergence/ASN-0001/reviews/review-1.md", "x",
         )
-        index = {"T0": "lattices/xanadu/claim-convergence/ASN-0001/T0.md"}
+        index = {"T0": "claim-convergence/ASN-0001/T0.md"}
         findings = self._findings(
             {"title": "naming nit", "cls": "OBSERVE", "target_label": "T0"},
         )
@@ -262,9 +262,9 @@ class EmitFindingsTests(EmitTestBase):
 
     def test_skips_unresolvable_target(self):
         review_path = self._write_under_root(
-            "lattices/xanadu/claim-convergence/ASN-0001/reviews/review-1.md", "x",
+            "claim-convergence/ASN-0001/reviews/review-1.md", "x",
         )
-        index = {"T0": "lattices/xanadu/claim-convergence/ASN-0001/T0.md"}
+        index = {"T0": "claim-convergence/ASN-0001/T0.md"}
         findings = self._findings(
             {"title": "good", "cls": "REVISE", "target_label": "T0"},
             {"title": "bad", "cls": "REVISE", "target_label": "DoesNotExist"},
@@ -279,12 +279,12 @@ class EmitFindingsTests(EmitTestBase):
 
     def test_returns_input_order(self):
         review_path = self._write_under_root(
-            "lattices/xanadu/claim-convergence/ASN-0001/reviews/review-1.md", "x",
+            "claim-convergence/ASN-0001/reviews/review-1.md", "x",
         )
         index = {
-            "T0": "lattices/xanadu/claim-convergence/ASN-0001/T0.md",
-            "T1": "lattices/xanadu/claim-convergence/ASN-0001/T1.md",
-            "T2": "lattices/xanadu/claim-convergence/ASN-0001/T2.md",
+            "T0": "claim-convergence/ASN-0001/T0.md",
+            "T1": "claim-convergence/ASN-0001/T1.md",
+            "T2": "claim-convergence/ASN-0001/T2.md",
         }
         findings = self._findings(
             {"title": "one", "cls": "REVISE", "target_label": "T2"},
@@ -300,9 +300,9 @@ class EmitFindingsTests(EmitTestBase):
 
     def test_materializes_at_expected_path(self):
         review_path = self._write_under_root(
-            "lattices/xanadu/claim-convergence/ASN-0034/reviews/review-46.md", "x",
+            "claim-convergence/ASN-0034/reviews/review-46.md", "x",
         )
-        index = {"S7": "lattices/xanadu/claim-convergence/ASN-0034/S7.md"}
+        index = {"S7": "claim-convergence/ASN-0034/S7.md"}
         findings = self._findings(
             {"title": "issue A", "cls": "REVISE", "target_label": "S7"},
         )
@@ -321,9 +321,9 @@ class EmitFindingsTests(EmitTestBase):
 
     def test_falls_back_to_foundation_when_asn_missing(self):
         review_path = self._write_under_root(
-            "lattices/xanadu/claim-convergence/ASN-0001/reviews/review-1.md", "x",
+            "claim-convergence/ASN-0001/reviews/review-1.md", "x",
         )
-        index = {"NAT-zero": "lattices/xanadu/claim-convergence/ASN-0034/NAT-zero.md"}
+        index = {"NAT-zero": "claim-convergence/ASN-0034/NAT-zero.md"}
         body = (
             "### Cross-cone observation\n"
             "**Class**: REVISE\n"
@@ -347,9 +347,9 @@ class EmitNoteFindingsTests(EmitTestBase):
             self.root / "_store" / "documents" / "findings" / "notes"
         )
         self.note_path = self._write_under_root(
-            "lattices/xanadu/discovery/notes/ASN-0001-foo.md", "# Note\n",
+            "discovery/notes/ASN-0001-foo.md", "# Note\n",
         )
-        self.note_rel = "lattices/xanadu/discovery/notes/ASN-0001-foo.md"
+        self.note_rel = "discovery/notes/ASN-0001-foo.md"
 
     def test_revise_finding_emits_comment_revise(self):
         findings = [("Issue 1: bad", "REVISE", "### Issue 1: bad\nbody\n")]

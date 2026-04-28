@@ -29,7 +29,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import (
-    WORKSPACE, CLAIM_CONVERGENCE_DIR, CLAIM_FINDINGS_DIR,
+    WORKSPACE, LATTICE, CLAIM_CONVERGENCE_DIR, CLAIM_FINDINGS_DIR,
     next_review_number, review_meta_path,
 )
 from lib.shared.common import find_asn, assemble_readonly, step_commit_asn
@@ -82,7 +82,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
 
     _ATTR_SUFFIXES = (".label.md", ".name.md", ".description.md")
     asn_claim_md_paths = [
-        str(md_path.relative_to(WORKSPACE))
+        str(md_path.relative_to(LATTICE))
         for md_path in claim_dir.glob("*.md")
         if not md_path.name.startswith("_")
         and not md_path.name.endswith(_ATTR_SUFFIXES)

@@ -26,7 +26,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
-from shared.paths import INQUIRIES_DIR, NOTES_DIR, WORKSPACE
+from shared.paths import INQUIRY_DIR, NOTES_DIR, WORKSPACE
 from store.emit import emit_synthesis
 from store.store import Store
 
@@ -42,15 +42,15 @@ def main():
 
     label = "APPLY" if apply_mode else "DRY-RUN"
     print(f"[backfill-synthesis-links] {label}")
-    print(f"  INQUIRIES_DIR = {INQUIRIES_DIR.relative_to(WORKSPACE)}")
+    print(f"  INQUIRY_DIR = {INQUIRY_DIR.relative_to(WORKSPACE)}")
     print(f"  NOTES_DIR     = {NOTES_DIR.relative_to(WORKSPACE)}")
     print()
 
-    if not INQUIRIES_DIR.exists():
-        print(f"  no INQUIRIES_DIR at {INQUIRIES_DIR}", file=sys.stderr)
+    if not INQUIRY_DIR.exists():
+        print(f"  no INQUIRY_DIR at {INQUIRY_DIR}", file=sys.stderr)
         return 1
 
-    inquiries = sorted(INQUIRIES_DIR.glob("ASN-*.md"))
+    inquiries = sorted(INQUIRY_DIR.glob("ASN-*.md"))
     print(f"  Found {len(inquiries)} inquiry doc(s)")
     print()
 

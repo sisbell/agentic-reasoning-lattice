@@ -21,14 +21,14 @@ class ClassifyTestBase(unittest.TestCase):
             index_path=self.root / "_store" / "index.db",
         )
         self.addCleanup(self.store.close)
-        self.claim_path = "lattices/xanadu/claim-convergence/ASN-0001/T0.md"
+        self.claim_path = "claim-convergence/ASN-0001/T0.md"
 
 
 class EmitClassifierTests(ClassifyTestBase):
     def test_each_valid_kind(self):
         for kind in sorted(VALID_SUBTYPES["contract"]):
             with self.subTest(kind=kind):
-                claim = f"lattices/xanadu/claim-convergence/ASN-0001/{kind}.md"
+                claim = f"claim-convergence/ASN-0001/{kind}.md"
                 link_id, created = emit_classifier(self.store, claim, kind)
                 self.assertTrue(created)
                 rec = self.store.get(link_id)

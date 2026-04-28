@@ -18,7 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import (
-    WORKSPACE, CLAIM_CONVERGENCE_DIR, CLAIM_FINDINGS_DIR,
+    WORKSPACE, LATTICE, CLAIM_CONVERGENCE_DIR, CLAIM_FINDINGS_DIR,
     next_review_number, review_meta_path,
 )
 from lib.shared.common import (
@@ -55,7 +55,7 @@ def _retry_unresolved_revises(store, asn_num, claim_dir, scope_md_paths):
         for c in unresolved_revise_comments(store, scope_path):
             if not c["from_set"]:
                 continue
-            finding_path = WORKSPACE / c["from_set"][0]
+            finding_path = LATTICE / c["from_set"][0]
             if not finding_path.exists():
                 continue
             finding_text = finding_path.read_text()
@@ -98,9 +98,9 @@ def detect_dependency_cone(asn_num, window=5, threshold=3):
     label_index = build_label_index(claim_dir)
     asn_labels = set(label_index.keys())
 
-    findings_prefix = str((CLAIM_FINDINGS_DIR / asn_label).relative_to(WORKSPACE))
+    findings_prefix = str((CLAIM_FINDINGS_DIR / asn_label).relative_to(LATTICE))
     legacy_reviews_prefix = str(
-        (claim_dir / "reviews").relative_to(WORKSPACE)
+        (claim_dir / "reviews").relative_to(LATTICE)
     )
 
     store = Store()

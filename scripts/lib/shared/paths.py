@@ -78,10 +78,10 @@ STORE_INDEX = STORE_DIR / "index.db"
 # alongside as siblings; documents are the content the substrate's links
 # reference.
 STORE_DOCS_DIR = STORE_DIR / "documents"
-RATIONALES_DIR = STORE_DOCS_DIR / "rationales"
-AGENTS_DIR = STORE_DOCS_DIR / "agents"
-CAMPAIGNS_DIR = STORE_DOCS_DIR / "campaigns"
-INQUIRIES_DIR = STORE_DOCS_DIR / "inquiries"
+RATIONALE_DIR = STORE_DOCS_DIR / "rationale"
+AGENT_DIR = STORE_DOCS_DIR / "agent"
+CAMPAIGN_DIR = STORE_DOCS_DIR / "campaign"
+INQUIRY_DIR = STORE_DOCS_DIR / "inquiry"
 
 # Findings split by inquiry-target kind: claim convergence vs note convergence.
 # Each kind owns its own ASN namespace under documents/findings/, so review
@@ -99,13 +99,13 @@ def _findings_dir_for_kind(kind):
 
 
 def agent_doc_path(role):
-    """Workspace-relative path to an agent doc by role name.
+    """Lattice-relative path to an agent doc by role name.
 
-    The substrate identifies an agent by its doc address (workspace-relative
+    The substrate identifies an agent by its doc address (lattice-relative
     string), so callers wiring up `XANADU_AGENT_DOC` or invoking `emit_agent`
     use this to get the canonical form.
     """
-    return str((AGENTS_DIR / f"{role}.md").relative_to(WORKSPACE))
+    return str((AGENT_DIR / f"{role}.md").relative_to(LATTICE))
 
 
 def review_meta_path(asn_label, review_num, *, kind):
@@ -137,7 +137,7 @@ def note_yaml(asn_num):
 
 def inquiry_doc_path(asn_num):
     """Path to a substrate-managed inquiry doc (md + frontmatter)."""
-    return INQUIRIES_DIR / f"ASN-{int(asn_num):04d}.md"
+    return INQUIRY_DIR / f"ASN-{int(asn_num):04d}.md"
 
 
 def state_yaml(asn_num):
@@ -308,7 +308,7 @@ def campaign_dir(name):
     classifier on the descriptor; inquiries link to it via the
     `campaign` link type.
     """
-    return CAMPAIGNS_DIR / name
+    return CAMPAIGN_DIR / name
 
 
 def campaign_doc_path(name):

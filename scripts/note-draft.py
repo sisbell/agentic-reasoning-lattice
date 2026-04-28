@@ -42,14 +42,14 @@ STEPS = ["questions", "consult", "discover", "commit"]
 
 
 def load_inquiries():
-    """Load all inquiries from the substrate-managed inquiries dir."""
+    """Load all inquiries from the substrate-managed inquiry dir."""
     import re
-    from lib.shared.paths import INQUIRIES_DIR
+    from lib.shared.paths import INQUIRY_DIR
     from lib.shared.common import read_doc_frontmatter
     inquiries = []
-    if not INQUIRIES_DIR.exists():
+    if not INQUIRY_DIR.exists():
         return inquiries
-    for path in sorted(INQUIRIES_DIR.glob("ASN-*.md")):
+    for path in sorted(INQUIRY_DIR.glob("ASN-*.md")):
         m = re.match(r"ASN-(\d+)", path.stem)
         if not m:
             continue

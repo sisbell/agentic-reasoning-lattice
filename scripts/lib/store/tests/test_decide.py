@@ -20,7 +20,7 @@ class DecideTestBase(unittest.TestCase):
             index_path=self.root / "_store" / "index.db",
         )
         self.addCleanup(self.store.close)
-        self.claim_path = "lattices/xanadu/claim-convergence/ASN-0001/T0.md"
+        self.claim_path = "claim-convergence/ASN-0001/T0.md"
         self.comment_id = self.store.make_link(
             from_set=["_store/documents/findings/ASN-0001/review-1/0.md"],
             to_set=[self.claim_path],
@@ -41,14 +41,14 @@ class AcceptTests(DecideTestBase):
 
 class RejectTests(DecideTestBase):
     def test_reject_materializes_rationale_and_link(self):
-        rationales = self.root / "_store" / "rationales"
+        rationale_root = self.root / "_store" / "rationale"
         link_id = emit_decision(
             self.store, "reject", self.comment_id, self.claim_path, "ASN-0001",
             rationale="The reviewer misread the contract; T0 already handles this.",
-            rationales_dir=rationales,
-            workspace=self.root,
+            rationale_dir=rationale_root,
+            lattice=self.root,
         )
-        rationale_path = rationales / "ASN-0001" / f"{self.comment_id}.md"
+        rationale_path = rationale_root / "ASN-0001" / f"{self.comment_id}.md"
         self.assertTrue(rationale_path.exists())
         self.assertIn("misread", rationale_path.read_text())
         rec = self.store.get(link_id)

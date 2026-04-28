@@ -94,7 +94,7 @@ class ConvergenceTests(QueriesTestBase):
         )
         self.store.make_link(
             from_set=[],
-            to_set=[comment_id, "_store/documents/rationales/r1.md"],
+            to_set=[comment_id, "_store/documents/rationale/r1.md"],
             type_set=["resolution.reject"], ts="t3",
         )
         self.assertTrue(is_claim_converged(self.store, "T3.md"))
@@ -110,7 +110,7 @@ class ConvergenceTests(QueriesTestBase):
             type_set=["comment.revise"], ts="t10",
         )
         self.store.make_link(
-            from_set=[], to_set=[comment_b, "_store/documents/rationales/r.md"],
+            from_set=[], to_set=[comment_b, "_store/documents/rationale/r.md"],
             type_set=["resolution.reject"], ts="t11",
         )
         self.assertTrue(is_claim_converged(self.store, "T3.md"))
@@ -213,11 +213,11 @@ class AsnConvergedTests(QueriesTestBase):
             self.tmp_root / "lattices" / "xanadu" / "claim-convergence"
         )
         self.claim_convergence_dir.mkdir(parents=True)
-        self.workspace_patcher = mock.patch(
+        self.lattice_patcher = mock.patch(
             "lib.shared.paths.WORKSPACE", self.tmp_root,
         )
-        self.workspace_patcher.start()
-        self.addCleanup(self.workspace_patcher.stop)
+        self.lattice_patcher.start()
+        self.addCleanup(self.lattice_patcher.stop)
 
     def _make_claim(self, asn, label):
         asn_dir = self.claim_convergence_dir / asn

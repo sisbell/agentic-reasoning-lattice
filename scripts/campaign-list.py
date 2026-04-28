@@ -18,7 +18,7 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import (
-    LATTICE_NAME, CAMPAIGNS_DIR, INQUIRIES_DIR,
+    LATTICE_NAME, CAMPAIGN_DIR, INQUIRY_DIR,
     load_lattice_config, campaign_doc_path, campaign_vocab,
 )
 
@@ -53,23 +53,23 @@ def main():
     lattice_config = load_lattice_config()
     default_campaign = lattice_config.get("default_campaign")
 
-    if not CAMPAIGNS_DIR.exists():
-        print(f"No campaigns directory at {CAMPAIGNS_DIR}", file=sys.stderr)
+    if not CAMPAIGN_DIR.exists():
+        print(f"No campaigns directory at {CAMPAIGN_DIR}", file=sys.stderr)
         sys.exit(1)
 
     campaigns = sorted(
-        d for d in CAMPAIGNS_DIR.iterdir()
+        d for d in CAMPAIGN_DIR.iterdir()
         if d.is_dir() and (d / "campaign.md").exists()
     )
 
     if not campaigns:
-        print(f"No campaigns found in {CAMPAIGNS_DIR}", file=sys.stderr)
+        print(f"No campaigns found in {CAMPAIGN_DIR}", file=sys.stderr)
         sys.exit(1)
 
     # Build ASN-to-campaign mapping from inquiry mds
     asn_by_campaign = {c.name: [] for c in campaigns}
-    if INQUIRIES_DIR.exists():
-        for path in sorted(INQUIRIES_DIR.glob("ASN-*.md")):
+    if INQUIRY_DIR.exists():
+        for path in sorted(INQUIRY_DIR.glob("ASN-*.md")):
             m = re.match(r"(ASN-\d+)", path.stem)
             if m is None:
                 continue

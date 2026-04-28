@@ -74,7 +74,7 @@ class CheckAttributeLinkShapeTests(AttributeValidatorTestBase):
     def test_wrong_to_set_flagged(self):
         # Manually file a link with wrong to_set (sibling pointing at the
         # wrong file, not <stem>.name.md).
-        wrong_doc = "lattices/xanadu/claim-convergence/ASN-0001/elsewhere.md"
+        wrong_doc = "claim-convergence/ASN-0001/elsewhere.md"
         self.store.make_link(
             from_set=[self.claim_rel],
             to_set=[wrong_doc],
@@ -139,7 +139,7 @@ class CheckAttributeCoverageTests(AttributeValidatorTestBase):
         # File a second name link directly via the store, bypassing
         # emit_attribute's idempotency. Different to_set so the content
         # hash (and link id) differ.
-        other_doc = "lattices/xanadu/claim-convergence/ASN-0001/T0.alt.md"
+        other_doc = "claim-convergence/ASN-0001/T0.alt.md"
         self.store.make_link(
             from_set=[self.claim_rel],
             to_set=[other_doc],
