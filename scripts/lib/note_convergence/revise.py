@@ -206,6 +206,35 @@ def collect_open_revises(store, note_rel):
     return items
 
 
+def run_revise_pass(asn_path, asn_label, findings, *,
+                    model="opus", effort="max", consultation_content=None):
+    """Run one reviser invocation that addresses `findings`.
+
+    Sets PROTOCOL_DOC_PATH and PROTOCOL_ASN_LABEL env vars. The agent
+    closes each comment via `decide.py --comment-id <id>` per the prompt.
+    Returns (data, elapsed) from invoke_claude — caller logs usage and
+    re-queries the substrate for remaining open revises.
+    """
+    asn_num = int(re.sub(r"[^0-9]", "", asn_label))
+    vocab = read_file(resolve_campaign(asn_label).vocabulary_path)
+    note_rel = str(asn_path.resolve().relative_to(WORKSPACE.resolve()))
+
+    prompt = build_prompt(asn_path, findings, vocab, consultation_content,
+                          asn_number=asn_num)
+    print(f"  Prompt: {len(prompt) // 1024}KB (~{len(prompt) // 4} tokens)",
+          file=sys.stderr)
+
+    model_flag = {
+        "opus": "claude-opus-4-7",
+        "sonnet": "claude-sonnet-4-6",
+    }.get(model, model)
+
+    os.environ["PROTOCOL_DOC_PATH"] = note_rel
+    os.environ["PROTOCOL_ASN_LABEL"] = asn_label
+
+    return invoke_claude(prompt, model=model_flag, effort=effort)
+
+
 def main():
     parser = argparse.ArgumentParser(description="Revise an ASN based on review feedback")
     parser.add_argument("asn", help="ASN number (e.g., 9, 0009, ASN-0009)")
@@ -225,11 +254,7 @@ def main():
         sys.exit(1)
 
     note_rel = str(asn_path.resolve().relative_to(WORKSPACE.resolve()))
-    asn_num = int(re.sub(r"[^0-9]", "", asn_label))
 
-    # Load open findings from the substrate. Re-running this file at the
-    # top of every cycle implements RetryOpenRevises (§6.3): comments that
-    # weren't resolved by the prior session re-feed automatically.
     with default_store() as store:
         findings = collect_open_revises(store, note_rel)
 
@@ -242,9 +267,6 @@ def main():
     print(f"  [REVISE] {asn_label} ({asn_path.name}) — "
           f"{len(findings)} open finding(s)", file=sys.stderr)
 
-    vocab = read_file(resolve_campaign(asn_label).vocabulary_path)
-
-    # Load consultation results if provided
     consultation_content = None
     if args.consultation:
         consultation_content = read_file(args.consultation)
@@ -256,33 +278,16 @@ def main():
             print(f"  [CONSULTATION] {Path(args.consultation).name}",
                   file=sys.stderr)
 
-    model_flag = {
-        "opus": "claude-opus-4-7",
-        "sonnet": "claude-sonnet-4-6",
-    }.get(args.model, args.model)
-
-    prompt = build_prompt(asn_path, findings, vocab, consultation_content,
-                          asn_number=asn_num)
-    print(f"  Prompt: {len(prompt) // 1024}KB (~{len(prompt) // 4} tokens)",
-          file=sys.stderr)
-
-    # Reviser invocations of decide.py / cite.py / retract.py / etc. read
-    # PROTOCOL_DOC_PATH and PROTOCOL_ASN_LABEL from environment. The
-    # comment id is passed per call via --comment-id since we close
-    # multiple comments in one session.
-    os.environ["PROTOCOL_DOC_PATH"] = note_rel
-    os.environ["PROTOCOL_ASN_LABEL"] = asn_label
-
-    data, elapsed = invoke_claude(prompt, model=model_flag, effort=args.effort)
-
+    data, elapsed = run_revise_pass(
+        asn_path, asn_label, findings,
+        model=args.model, effort=args.effort,
+        consultation_content=consultation_content,
+    )
     if data is None:
         print("  Revision failed", file=sys.stderr)
         sys.exit(1)
-
     log_usage(asn_label, elapsed, data)
 
-    # Report per-finding closure status. A finding is "closed" iff its
-    # comment now has an active resolution.
     with default_store() as store:
         remaining = collect_open_revises(store, note_rel)
 

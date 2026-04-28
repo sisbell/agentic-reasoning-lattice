@@ -92,9 +92,14 @@ def unresolved_revise_comments(store, claim_path=None):
     ]
 
 
-def is_claim_converged(store, claim_path):
-    """The protocol predicate, restricted to one claim."""
-    return not unresolved_revise_comments(store, claim_path)
+def is_doc_converged(store, doc_path):
+    """The protocol predicate, restricted to one document (claim or note)."""
+    return not unresolved_revise_comments(store, doc_path)
+
+
+# Backwards-compatible alias. The function is doc-neutral; legacy callers
+# that pass a claim path still work, and the inner mechanics don't change.
+is_claim_converged = is_doc_converged
 
 
 def is_converged(store):
@@ -109,7 +114,7 @@ def is_converged(store):
 def is_asn_converged(store, asn_label, claim_convergence_dir=None):
     """The protocol predicate scoped to one ASN's claims.
 
-    Conjunction of `is_claim_converged` over every claim in
+    Conjunction of `is_doc_converged` over every claim in
     `lattices/<lattice>/claim-convergence/<asn_label>/`. Vacuously true on a
     nonexistent or empty ASN — coverage is choreography's responsibility,
     not the predicate's.
@@ -131,7 +136,7 @@ def is_asn_converged(store, asn_label, claim_convergence_dir=None):
             continue
         md_path = yaml_path.with_suffix(".md")
         rel = str(md_path.resolve().relative_to(workspace_resolved))
-        if not is_claim_converged(store, rel):
+        if not is_doc_converged(store, rel):
             return False
     return True
 

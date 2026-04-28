@@ -159,6 +159,72 @@ def validate_review(text):
     return None
 
 
+def run_note_review(asn_path, asn_label, *, model="opus", effort="max"):
+    """Run a single review pass on a note. Returns (verdict, text, elapsed).
+
+    Assembles the prompt (template + vocab + foundation + scope/hints),
+    invokes Claude, validates the response structure, strips preamble,
+    parses the VERDICT line. Pure with respect to the substrate — no
+    file writes, no link emission. Caller commits with `commit_note_review`.
+
+    On invocation failure or malformed response, returns ("ERROR", text, elapsed)
+    with text possibly None.
+    """
+    asn_content = asn_path.read_text()
+    vocabulary = read_file(resolve_campaign(asn_label).vocabulary_path)
+    asn_number = int(asn_label.replace("ASN-", ""))
+    out_of_scope = load_out_of_scope(asn_number)
+    hints = load_hints(asn_number)
+
+    prompt = build_prompt(
+        asn_content, vocabulary,
+        out_of_scope=out_of_scope, hints=hints, asn_number=asn_number,
+    )
+    text, elapsed = invoke_claude(prompt, model=model, effort=effort)
+    if not text:
+        return "ERROR", None, elapsed
+
+    text = strip_preamble(text)
+    error = validate_review(text)
+    if error:
+        print(f"  MALFORMED REVIEW: {error}", file=sys.stderr)
+        return "ERROR", text, elapsed
+
+    m = re.search(r"^VERDICT:\s*(\w+)", text, re.MULTILINE)
+    verdict = m.group(1).upper() if m else "REVISE"
+    return verdict, text, elapsed
+
+
+def commit_note_review(store, asn_path, asn_label, text):
+    """Write the review file (sequential numbering) and emit substrate
+    links: `review` classifier on the file, `comment.{revise|out-of-scope}`
+    per finding. Returns (review_path, findings).
+
+    Caller passes a store so the convergence orchestrator can share one
+    store instance across the cycle. Single-pass invocations
+    (note-review.py) open their own store via `with default_store()`.
+    """
+    (REVIEWS_DIR / asn_label).mkdir(parents=True, exist_ok=True)
+    existing = sorted_reviews(asn_label)
+    next_num = 1
+    for f in existing:
+        m = re.search(r"review-(\d+)\.md$", f.name)
+        if m:
+            next_num = max(next_num, int(m.group(1)) + 1)
+    output_path = REVIEWS_DIR / asn_label / f"review-{next_num}.md"
+    output_path.write_text(text + "\n")
+
+    findings = extract_note_findings(text)
+    review_stem = f"review-{next_num}"
+    emit_review(store, output_path)
+    emit_note_findings(
+        store, asn_path, findings,
+        asn_label=asn_label, review_stem=review_stem,
+        findings_dir=NOTE_FINDINGS_DIR,
+    )
+    return output_path, findings
+
+
 def extract_note_findings(text):
     """Extract note-review findings, classified by parent section.
 
@@ -263,17 +329,12 @@ def main():
                         help="Show prompt size without invoking Claude")
     args = parser.parse_args()
 
-    # Find ASN
     asn_path, asn_label = find_asn(args.asn)
     if asn_path is None:
-        print(f"  No ASN found for {args.asn} in {NOTES_DIR.relative_to(WORKSPACE)}/", file=sys.stderr)
+        print(f"  No ASN found for {args.asn} in {NOTES_DIR.relative_to(WORKSPACE)}/",
+              file=sys.stderr)
         sys.exit(1)
 
-    asn_content = asn_path.read_text()
-
-    vocabulary = read_file(resolve_campaign(asn_label).vocabulary_path)
-
-    # Build prompt
     print(f"  [REVIEW] {asn_label}", file=sys.stderr)
     asn_number = int(asn_label.replace("ASN-", ""))
     out_of_scope = load_out_of_scope(asn_number)
@@ -282,86 +343,40 @@ def main():
     hints = load_hints(asn_number)
     if hints:
         print(f"  [HINTS] {hints}", file=sys.stderr)
-    prompt = build_prompt(asn_content, vocabulary, out_of_scope=out_of_scope,
-                          hints=hints, asn_number=asn_number,
-                          general=False)
-    print(f"  Prompt: {len(prompt) // 1024}KB (~{len(prompt) // 4} tokens est.)",
-          file=sys.stderr)
 
     if args.dry_run:
-        print(f"  [DRY RUN] Would invoke {args.model} with --tools """,
+        print(f"  [DRY RUN] Would invoke {args.model} with --tools "" effort {args.effort}",
               file=sys.stderr)
         return
 
-    # Invoke Claude
-    text, elapsed = invoke_claude(prompt, model=args.model,
-                                  effort=args.effort)
-
-    if not text:
+    verdict, text, elapsed = run_note_review(
+        asn_path, asn_label, model=args.model, effort=args.effort,
+    )
+    if verdict == "ERROR" or not text:
         print("  No review produced", file=sys.stderr)
         sys.exit(1)
 
-    # Strip any preamble before review header
-    text = strip_preamble(text)
-
-    # Validate review structure before writing
-    error = validate_review(text)
-    if error:
-        print(f"  MALFORMED REVIEW: {error}", file=sys.stderr)
-        print(f"  Response length: {len(text)} chars, {len(text.splitlines())} lines",
-              file=sys.stderr)
-        sys.exit(1)
-
-    # Write output (sequential numbering: review-1, review-2, ...)
-    (REVIEWS_DIR / asn_label).mkdir(parents=True, exist_ok=True)
-    existing = sorted_reviews(asn_label)
-    next_num = 1
-    for f in existing:
-        m = re.search(r"review-(\d+)\.md$", f.name)
-        if m:
-            next_num = max(next_num, int(m.group(1)) + 1)
-    output_path = REVIEWS_DIR / asn_label / f"review-{next_num}.md"
-    output_path.write_text(text + "\n")
-
-    # File the `review` classifier and a per-finding `comment.{revise|out-of-scope}`
-    # link for each finding parsed from the review text. The note md being
-    # reviewed is the comment target.
-    findings = extract_note_findings(text)
-    review_stem = f"review-{next_num}"
     with default_store() as store:
-        emit_review(store, output_path)
-        emit_note_findings(
-            store, asn_path, findings,
-            asn_label=asn_label, review_stem=review_stem,
-            findings_dir=NOTE_FINDINGS_DIR,
-        )
+        output_path, findings = commit_note_review(store, asn_path, asn_label, text)
+
     if findings:
         revise_count = sum(1 for _, c, _ in findings if c == "REVISE")
         oos_count = len(findings) - revise_count
         print(
             f"  [FINDINGS] {revise_count} REVISE, {oos_count} OUT_OF_SCOPE "
             f"emitted to {NOTE_FINDINGS_DIR.relative_to(WORKSPACE)}/"
-            f"{asn_label}/{review_stem}/",
+            f"{asn_label}/{output_path.parent.name}/",
             file=sys.stderr,
         )
 
-    # Process resolved open issues
     process_resolved_issues(asn_number, text)
-
-    # Parse verdict
-    verdict_match = re.search(r"^VERDICT:\s*(\w+)", text, re.MULTILINE)
-    verdict = verdict_match.group(1).upper() if verdict_match else "REVISE"
     print(f"  [VERDICT] {verdict}", file=sys.stderr)
-
-    # Log usage
     log_usage(asn_label, elapsed)
 
     # Print output file path to stdout (for pipeline consumption)
     print(str(output_path))
-
     print(f"  [WROTE] {output_path.relative_to(WORKSPACE)}", file=sys.stderr)
 
-    # Exit 2 if converged (distinct from error=1)
     if verdict == "CONVERGED":
         sys.exit(2)
 
