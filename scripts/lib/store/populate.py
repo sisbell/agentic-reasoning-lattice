@@ -95,6 +95,47 @@ def is_note_path(doc_path):
     return "/discovery/notes/" in rel
 
 
+def aggregate_asn_deps(store, asn_label, claim_convergence_dir=None):
+    """Cross-ASN ASN ids derived from per-claim citations.
+
+    Walks every claim md in `claim_convergence_dir/<asn_label>/`, reads
+    the active citation links sourced from each, and extracts the
+    target's ASN id from the cited claim's path. Self-references
+    (within-ASN citations) are excluded — the aggregate is the set of
+    ASNs this ASN depends on, not its internal graph.
+
+    Returns sorted list of int ASN ids. The same value the manifest
+    `depends:` field declares post-blueprint, but derived from substrate
+    rather than read from yaml.
+    """
+    import re
+    from lib.shared.paths import CLAIM_CONVERGENCE_DIR
+    from lib.store.queries import active_links
+
+    cdir = Path(claim_convergence_dir) if claim_convergence_dir else CLAIM_CONVERGENCE_DIR
+    asn_dir = cdir / asn_label
+    if not asn_dir.exists():
+        return []
+
+    workspace = Path(WORKSPACE).resolve()
+    sidecar_suffixes = (".label.md", ".name.md", ".description.md")
+    deps = set()
+    for claim_md in asn_dir.glob("*.md"):
+        if claim_md.name.startswith("_"):
+            continue
+        if claim_md.name.endswith(sidecar_suffixes):
+            continue
+        rel = str(claim_md.resolve().relative_to(workspace))
+        for link in active_links(store, "citation", from_set=[rel]):
+            if not link["to_set"]:
+                continue
+            to_path = link["to_set"][0]
+            m = re.search(r"claim-convergence/(ASN-\d+)/", to_path)
+            if m and m.group(1) != asn_label:
+                deps.add(int(m.group(1).split("-")[1]))
+    return sorted(deps)
+
+
 def note_dep_asn_ids(store, note_md_path):
     """Return sorted ASN ids the note depends on, sourced from substrate
     citation links.
