@@ -15,7 +15,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import (WORKSPACE, NOTES_DIR, MANIFESTS_DIR,
-                   prompt_path, load_manifest, note_yaml, formal_stmts)
+                   prompt_path, load_inquiry, inquiry_doc_path,
+                   note_yaml, formal_stmts)
 from lib.shared.common import read_file, find_asn, invoke_claude, log_usage, step_commit
 from lib.shared.foundation import find_extensions
 
@@ -65,10 +66,10 @@ def validate(source_num, target_num, base_num, claim_labels):
               f"{NOTES_DIR.relative_to(WORKSPACE)}/", file=sys.stderr)
         sys.exit(1)
 
-    # Base manifest exists
-    base_manifest = load_manifest(base_num)
+    # Base inquiry exists
+    base_manifest = load_inquiry(base_num)
     if not base_manifest:
-        print(f"  [ERROR] Base ASN-{base_num:04d} has no project model",
+        print(f"  [ERROR] Base ASN-{base_num:04d} has no inquiry doc",
               file=sys.stderr)
         sys.exit(1)
 
@@ -110,10 +111,20 @@ def derive_names(base_title, base_num):
 
 
 def compute_depends(base_num):
-    """Compute depends list: base's own depends + base itself."""
-    base_manifest = load_manifest(base_num)
-    deps = set(base_manifest.get("depends", []))
-    deps.add(base_num)
+    """Compute depends list: base's own deps (from substrate) + base itself."""
+    import re
+    from lib.store.queries import active_links
+    from lib.store.store import Store
+    base_inq = inquiry_doc_path(base_num)
+    base_rel = str(base_inq.resolve().relative_to(WORKSPACE.resolve()))
+    deps = {base_num}
+    with Store() as store:
+        for link in active_links(store, "citation", from_set=[base_rel]):
+            if not link["to_set"]:
+                continue
+            m = re.search(r"ASN-(\d+)", link["to_set"][0])
+            if m:
+                deps.add(int(m.group(1)))
     return sorted(deps)
 
 

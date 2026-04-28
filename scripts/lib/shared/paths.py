@@ -273,51 +273,6 @@ def lint_global_path(kind):
     return blueprint_global_lint_dir() / f"{kind}.md"
 
 
-def load_manifest(asn_id):
-    """Load a note's manifest. Returns dict or empty dict.
-
-    Compat shim for the inquiry refactor: post-migration the manifest
-    yaml is gone; this synthesizes the legacy shape from the inquiry
-    doc's frontmatter + state.yaml. Falls back to the legacy
-    `note.yaml` if the new sources don't exist (eases transition;
-    can be removed once migration is universal).
-
-    The shape returned mirrors what callers of `manifest.get(field)`
-    expected pre-migration. New code should use `load_inquiry` /
-    `load_state` directly.
-    """
-    inquiry_path = inquiry_doc_path(asn_id)
-    state_path = state_yaml(asn_id)
-    if inquiry_path.exists() or state_path.exists():
-        merged = {}
-        if inquiry_path.exists():
-            from lib.shared.common import read_doc_frontmatter
-            merged.update(read_doc_frontmatter(inquiry_path))
-        if state_path.exists():
-            try:
-                with open(state_path) as f:
-                    state = yaml.safe_load(f) or {}
-                if isinstance(state, dict):
-                    merged.update(state)
-            except FileNotFoundError:
-                pass
-        # Back-compat synthesis: legacy callers expected nested
-        # `consultations: {question: ...}` or `inquiry: {question: ...}`.
-        # Frontmatter is flat post-migration; reconstruct the nested shape
-        # so shim consumers keep working until they migrate.
-        if "question" in merged:
-            merged.setdefault("consultations", {})["question"] = merged["question"]
-            merged.setdefault("inquiry", {})["question"] = merged["question"]
-        return merged
-    # Legacy fallback — pre-migration manifests still exist.
-    legacy = note_yaml(asn_id)
-    try:
-        with open(legacy) as f:
-            return yaml.safe_load(f) or {}
-    except FileNotFoundError:
-        return {}
-
-
 def load_inquiry(asn_id):
     """Load inquiry frontmatter for an ASN. Returns dict or empty dict.
     The inquiry-content fields only — operational state lives in

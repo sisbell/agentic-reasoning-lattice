@@ -22,9 +22,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import (WORKSPACE, CLAIM_CONVERGENCE_DIR, USAGE_LOG,
-                    prompt_path, next_review_number, load_manifest)
+                    prompt_path, next_review_number)
 from lib.shared.common import find_asn, read_file, assemble_readonly, step_commit_asn
-from lib.shared.foundation import load_foundation_statements
+from lib.shared.foundation import claim_asn_dep_ids, load_foundation_for_claim_asn
 
 DEP_REPORT_TEMPLATE = prompt_path("shared/dependency-report.md")
 REVISE_TEMPLATE = prompt_path("rebase/revise.md")
@@ -36,12 +36,11 @@ def run_dependency_report(asn_num):
     if asn_path is None:
         return None
 
-    manifest = load_manifest(asn_num)
-    depends = manifest.get("depends", []) if manifest else []
+    depends = claim_asn_dep_ids(asn_num)
     if not depends:
         return None
 
-    foundation = load_foundation_statements(asn_num)
+    foundation = load_foundation_for_claim_asn(asn_num)
     if not foundation:
         return None
 
@@ -161,8 +160,7 @@ def run_dependency_review(asn_num, max_cycles=10, dry_run=False):
         print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
         return "failed"
 
-    manifest = load_manifest(asn_num)
-    depends = manifest.get("depends", []) if manifest else []
+    depends = claim_asn_dep_ids(asn_num)
     if not depends:
         print(f"  {asn_label} has no dependencies — nothing to check",
               file=sys.stderr)

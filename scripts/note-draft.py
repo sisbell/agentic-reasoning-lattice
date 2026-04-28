@@ -31,7 +31,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import (
-    WORKSPACE, NOTES_DIR, MANIFESTS_DIR, load_manifest,
+    WORKSPACE, NOTES_DIR, MANIFESTS_DIR,
 )
 from lib.note_convergence.steps import step_commit
 

@@ -36,7 +36,7 @@ from lib.shared.paths import (
 )
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
-from lib.shared.foundation import load_foundation_statements
+from lib.shared.foundation import load_foundation_for_note
 from lib.store.emit import emit_note, emit_synthesis
 from lib.store.store import default_store
 
@@ -190,7 +190,12 @@ def run_discovery(inquiry, asn_number, slug, force=False):
           file=sys.stderr)
 
     vocab = read_file(resolve_campaign(asn_number).vocabulary_path)
-    foundation = load_foundation_statements(asn_number)
+    # Foundation deps come from substrate citations on the inquiry md.
+    # Pre-draft, the user has already declared deps via cite.py against
+    # the inquiry — the inquiry's citation graph is authoritative here.
+    foundation = load_foundation_for_note(
+        inquiry_doc_path(asn_number), asn_number,
+    )
     out_of_scope = inquiry.get("out_of_scope", "")
     scope_note = (f"\n5. The following topics are OUT OF SCOPE for this ASN — "
                   f"do not define claims or operations for them, even if the "

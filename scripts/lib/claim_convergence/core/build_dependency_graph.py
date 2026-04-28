@@ -19,7 +19,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, load_manifest, formal_stmts, dep_graph
+from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, formal_stmts, dep_graph
 from lib.shared.common import find_asn, load_claim_metadata, build_label_index
 from lib.store.store import Store
 from lib.store.populate import build_cross_asn_label_index

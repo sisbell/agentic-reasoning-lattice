@@ -30,7 +30,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import (WORKSPACE, CLAIM_CONVERGENCE_DIR, DAFNY_DIR, USAGE_LOG,
-                    LATTICE_PROMPTS, prompt_path, load_manifest)
+                    LATTICE_PROMPTS, prompt_path)
 from lib.shared.common import find_asn, parallel_llm_calls, build_label_index
 from lib.claim_convergence.core.build_dependency_graph import generate_claim_convergence_deps
 from lib.claim_convergence.core.topological_sort import topological_sort_labels, topological_levels

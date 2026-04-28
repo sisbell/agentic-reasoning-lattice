@@ -19,7 +19,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, formal_stmts, dep_graph, load_manifest
+from lib.shared.paths import WORKSPACE, formal_stmts, dep_graph
 from lib.shared.common import find_asn
 from lib.claim_convergence.assembly.produce_interface import assemble_formal_statements
 from lib.claim_convergence.core.build_dependency_graph import generate_claim_convergence_deps, write_deps_yaml

@@ -22,7 +22,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import (WORKSPACE, NOTES_DIR, MANIFESTS_DIR,
-                   CONSULTATIONS_DIR, load_manifest, note_yaml)
+                   CONSULTATIONS_DIR, note_yaml)
 from lib.shared.common import step_commit
 
 

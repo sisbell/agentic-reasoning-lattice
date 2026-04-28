@@ -29,7 +29,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, VOCABULARY, REVIEWS_DIR, USAGE_LOG, MANIFESTS_DIR, NOTES_DIR, NOTE_FINDINGS_DIR, LATTICE_PROMPTS, sorted_reviews, load_inquiry, open_issues_path
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn, read_file
-from lib.shared.foundation import load_foundation_for_note, load_foundation_statements
+from lib.shared.foundation import load_foundation_for_note
 from lib.store.emit import emit_note_findings, emit_review
 from lib.store.store import default_store
 
@@ -96,13 +96,12 @@ def process_resolved_issues(asn_number, review_text):
 
 
 def build_prompt(asn_content, vocabulary, out_of_scope="",
-                 asn_number=None, general=False, foundation=None):
+                 asn_number=None, general=False, foundation=""):
     """Assemble review prompt from template + injected content.
 
-    `foundation` may be pre-loaded by the caller (e.g., via
-    `load_foundation_for_note` to source dep ids from substrate
-    citations). Falls back to manifest-driven `load_foundation_statements`
-    if not supplied.
+    Caller supplies `foundation` directly (typically via
+    `load_foundation_for_note`). The template's foundation slot can be
+    empty if the ASN has no upstream deps.
     """
     template_path = REVIEW_TEMPLATE
     template = read_file(template_path)
@@ -111,8 +110,6 @@ def build_prompt(asn_content, vocabulary, out_of_scope="",
               file=sys.stderr)
         sys.exit(1)
 
-    if foundation is None:
-        foundation = load_foundation_statements(asn_number)
     open_issues = load_open_issues(asn_number) if asn_number else "(none)"
 
     scope_note = (f"\n\n## Scope\n\nThe following topics are OUT OF SCOPE for this ASN. "

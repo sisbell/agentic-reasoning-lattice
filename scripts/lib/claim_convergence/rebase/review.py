@@ -22,7 +22,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import CLAIM_CONVERGENCE_DIR, prompt_path, formal_stmts, load_manifest, dep_graph
+from lib.shared.paths import CLAIM_CONVERGENCE_DIR, prompt_path, formal_stmts, dep_graph
 from lib.shared.common import find_asn, assemble_readonly, read_file
 from lib.shared.foundation import claim_asn_dep_ids, load_foundation_for_claim_asn
 from lib.claim_convergence.core.build_dependency_graph import generate_discovery_deps

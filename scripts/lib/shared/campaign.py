@@ -18,7 +18,7 @@ import yaml
 
 from lib.shared.common import read_doc_frontmatter
 from lib.shared.paths import (
-    LATTICE_CONFIG, load_manifest, load_lattice_config,
+    LATTICE_CONFIG, load_inquiry, load_lattice_config,
     campaign_dir, campaign_doc_path, campaign_vocab,
 )
 
@@ -56,12 +56,12 @@ def resolve_campaign(asn_id):
 
 @functools.lru_cache(maxsize=None)
 def _resolve_cached(asn_num):
-    manifest = load_manifest(asn_num)
-    name = manifest.get("campaign") or load_lattice_config().get("default_campaign")
+    inquiry_fm = load_inquiry(asn_num)
+    name = inquiry_fm.get("campaign") or load_lattice_config().get("default_campaign")
     if not name:
         raise ConfigError(
             f"No campaign bound for ASN-{asn_num:04d}. "
-            f"Set `campaign:` in the ASN manifest or `default_campaign:` in "
+            f"Set `campaign:` in the inquiry frontmatter or `default_campaign:` in "
             f"{LATTICE_CONFIG}."
         )
 

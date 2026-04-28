@@ -24,7 +24,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, prompt_path, load_manifest, formal_stmts
+from lib.shared.paths import WORKSPACE, prompt_path, load_inquiry, formal_stmts
 from lib.shared.common import find_asn, read_file, extract_claim_sections
 from lib.store.store import default_store
 from lib.store.cite import emit_citation
@@ -44,8 +44,7 @@ def _build_available_labels(asn_num):
 
     labels_by_asn = {}
     for dep_id in depends:
-        dep_manifest = load_manifest(dep_id)
-        title = dep_manifest.get("title", "")
+        title = load_inquiry(dep_id).get("title", "")
         label = f"ASN-{dep_id:04d}"
 
         stmt_path = formal_stmts(dep_id)

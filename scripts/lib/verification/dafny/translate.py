@@ -17,7 +17,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import (WORKSPACE, CLAIM_CONVERGENCE_DIR, PROOFS_DIR, USAGE_LOG,
-                    LATTICE_PROMPTS, load_manifest)
+                    LATTICE_PROMPTS)
 from lib.shared.common import find_asn, assemble_readonly, build_label_index, load_claim_metadata
 from lib.verification.dafny.common import read_file
 

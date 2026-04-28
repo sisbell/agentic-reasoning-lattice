@@ -28,7 +28,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import (WORKSPACE, NOTES_DIR, MANIFESTS_DIR,
                    REVIEWS_DIR, LATTICE_PROMPTS, prompt_path,
-                   load_manifest, note_yaml, formal_stmts)
+                   load_state, note_yaml, formal_stmts)
 from lib.shared.common import (read_file, find_asn, invoke_claude, invoke_claude_agent,
                          log_usage, step_commit)
 
@@ -71,18 +71,19 @@ def validate(ext_num):
     """Validate the extension ASN. Returns (base_num, source_num, ext_path)."""
     ext_label = f"ASN-{ext_num:04d}"
 
-    manifest = load_manifest(ext_num)
-    if not manifest:
-        print(f"  [ERROR] {ext_label} has no project model", file=sys.stderr)
+    state = load_state(ext_num)
+    if not state:
+        print(f"  [ERROR] {ext_label} has no state file (extends/source)",
+              file=sys.stderr)
         sys.exit(1)
 
-    base_num = manifest.get("extends")
+    base_num = state.get("extends")
     if base_num is None:
         print(f"  [ERROR] {ext_label} is not an extension ASN "
-              f"(no extends field)", file=sys.stderr)
+              f"(no extends field in state.yaml)", file=sys.stderr)
         sys.exit(1)
 
-    source_num = manifest.get("source")
+    source_num = state.get("source")
 
     # Extension reasoning doc exists
     ext_path, _ = find_asn(str(ext_num))

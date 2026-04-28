@@ -12,7 +12,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, MANIFESTS_DIR, load_manifest
+from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, MANIFESTS_DIR
 from lib.shared.common import build_label_index, load_claim_metadata
 
 
@@ -86,12 +86,14 @@ def _load_claim_statement(dep_asn_num, label):
 def _dep_ids_with_extensions(asn_id, dep_ids=None):
     """Get all dependency ASN IDs including extensions.
 
-    If `dep_ids` is provided (e.g., sourced from substrate citations on
-    a note), it overrides the manifest depends: read.
+    `dep_ids` must be supplied (sourced from substrate citations on the
+    relevant doc — note md, claim files aggregate, or inquiry md). The
+    manifest depends: field no longer exists post-Phase-2; callers
+    should route through `load_foundation_for_note` /
+    `load_foundation_for_claim_asn` which derive dep_ids from substrate.
     """
     if dep_ids is None:
-        manifest = load_manifest(asn_id)
-        dep_ids = manifest.get("depends", [])
+        dep_ids = []
     all_ids = []
     for dep_id in dep_ids:
         all_ids.append(dep_id)
