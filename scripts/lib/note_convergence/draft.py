@@ -31,12 +31,13 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import (
     WORKSPACE, NOTES_DIR, VOCABULARY, USAGE_LOG, LATTICE_PROMPTS,
-    consultation_dir, load_inquiry as load_inquiry_frontmatter,
+    consultation_dir, inquiry_doc_path,
+    load_inquiry as load_inquiry_frontmatter,
 )
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import read_file
 from lib.shared.foundation import load_foundation_statements
-from lib.store.emit import emit_note
+from lib.store.emit import emit_note, emit_synthesis
 from lib.store.store import default_store
 
 DISCOVERY_PROMPT = LATTICE_PROMPTS / "discovery" / "instructions.md"
@@ -254,9 +255,15 @@ def main():
 
     if asn_path:
         with default_store() as store:
-            _, created = emit_note(store, asn_path)
-            if created:
+            _, note_created = emit_note(store, asn_path)
+            if note_created:
                 print(f"  [NOTE] classifier emitted", file=sys.stderr)
+            inq_path = inquiry_doc_path(asn_number)
+            if inq_path.exists():
+                _, syn_created = emit_synthesis(store, inq_path, asn_path)
+                if syn_created:
+                    print(f"  [SYNTHESIS] inquiry → note link emitted",
+                          file=sys.stderr)
         # Print the output file path to stdout (for pipeline consumption)
         print(str(asn_path))
     else:
