@@ -36,6 +36,8 @@ CREATE INDEX IF NOT EXISTS idx_endpoints_link ON endpoints(link_id);
 VALID_TYPES = {
     # Protocol-defined
     "claim", "note", "review", "contract", "citation", "comment", "resolution",
+    # Discovery / consultation
+    "inquiry", "synthesis", "campaign",
     # Substrate-owned (general-purpose document primitives)
     "retraction", "label", "name", "description",
     # Agent module

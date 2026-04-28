@@ -16,9 +16,10 @@ from pathlib import Path
 
 import yaml
 
+from lib.shared.common import read_doc_frontmatter
 from lib.shared.paths import (
     LATTICE_CONFIG, load_manifest, load_lattice_config,
-    campaign_dir, campaign_config, campaign_vocab,
+    campaign_dir, campaign_doc_path, campaign_vocab,
 )
 
 
@@ -64,25 +65,22 @@ def _resolve_cached(asn_num):
             f"{LATTICE_CONFIG}."
         )
 
-    cdir = campaign_dir(name)
-    if not cdir.exists():
+    doc_path = campaign_doc_path(name)
+    if not doc_path.exists():
         raise ConfigError(
-            f"Campaign directory not found: {cdir}. "
-            f"Expected config.yaml and vocabulary.md inside."
+            f"Campaign descriptor not found: {doc_path}. "
+            f"Expected substrate-managed campaign md (run "
+            f"migrate-campaign-to-doc.py if migrating from config.yaml)."
         )
 
-    cfg_path = campaign_config(name)
-    try:
-        cfg = yaml.safe_load(cfg_path.read_text()) or {}
-    except FileNotFoundError:
-        raise ConfigError(f"Campaign config not found: {cfg_path}")
-
+    cfg = read_doc_frontmatter(doc_path)
     theory = cfg.get("theory")
     evidence = cfg.get("evidence")
     if not theory or not evidence:
         raise ConfigError(
-            f"Campaign {name} config must set `theory:` and `evidence:` "
-            f"(got theory={theory!r}, evidence={evidence!r} from {cfg_path})."
+            f"Campaign {name} descriptor must set `theory:` and `evidence:` "
+            f"in frontmatter (got theory={theory!r}, evidence={evidence!r} "
+            f"from {doc_path})."
         )
 
     return CampaignContext(

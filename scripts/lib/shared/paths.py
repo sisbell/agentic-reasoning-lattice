@@ -41,7 +41,6 @@ PATCHES_DIR = LATTICE / "discovery" / "patches"
 # Per-lattice files
 VOCABULARY = LATTICE / "vocabulary.md"
 LATTICE_CONFIG = LATTICE / "config.yaml"
-CAMPAIGNS_DIR = LATTICE / "campaigns"
 
 # Blueprinting stage
 BLUEPRINTS_DIR = LATTICE / "blueprinting"
@@ -81,6 +80,8 @@ STORE_INDEX = STORE_DIR / "index.db"
 STORE_DOCS_DIR = STORE_DIR / "documents"
 RATIONALES_DIR = STORE_DOCS_DIR / "rationales"
 AGENTS_DIR = STORE_DOCS_DIR / "agents"
+CAMPAIGNS_DIR = STORE_DOCS_DIR / "campaigns"
+INQUIRIES_DIR = STORE_DOCS_DIR / "inquiries"
 
 # Findings split by inquiry-target kind: claim convergence vs note convergence.
 # Each kind owns its own ASN namespace under documents/findings/, so review
@@ -274,17 +275,23 @@ def load_lattice_config():
 
 
 def campaign_dir(name):
-    """Path to a campaign directory."""
+    """Path to a campaign's substrate-managed directory.
+
+    Holds the descriptor (campaign.md with frontmatter + body) and the
+    bridge vocabulary (vocabulary.md). Substrate emits a `campaign`
+    classifier on the descriptor; inquiries link to it via the
+    `campaign` link type.
+    """
     return CAMPAIGNS_DIR / name
 
 
-def campaign_config(name):
-    """Path to a campaign's config.yaml."""
-    return campaign_dir(name) / "config.yaml"
+def campaign_doc_path(name):
+    """Path to a campaign's descriptor doc."""
+    return campaign_dir(name) / "campaign.md"
 
 
 def campaign_vocab(name):
-    """Path to a campaign's vocabulary.md."""
+    """Path to a campaign's bridge vocabulary."""
     return campaign_dir(name) / "vocabulary.md"
 
 

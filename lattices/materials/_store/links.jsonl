@@ -1,2 +1,3 @@
 {"from_set": [], "id": "l_b06108812c2e", "op": "create", "to_set": ["lattices/materials/discovery/notes/ASN-0001-heat-and-the-constitution-of-matter.md"], "ts": "2026-04-28T02:12:43Z", "type_set": ["note"]}
 {"from_set": [], "id": "l_4b0844910f98", "op": "create", "to_set": ["lattices/materials/discovery/notes/ASN-0002-constitution-and-the-nature-of-heat.md"], "ts": "2026-04-28T02:12:43Z", "type_set": ["note"]}
+{"from_set": [], "id": "l_7363cf6fa7c5", "op": "create", "to_set": ["lattices/materials/_store/documents/campaigns/dulong-petit-maxwell/campaign.md"], "ts": "2026-04-28T05:06:02Z", "type_set": ["campaign"]}

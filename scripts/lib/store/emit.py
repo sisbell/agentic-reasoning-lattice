@@ -37,13 +37,51 @@ def emit_note(store, note_md_path):
     a new classifier and returns (new_id, True). Same shape as
     `emit_agent` in lib.store.agent.
     """
+    return _emit_classifier(store, note_md_path, "note")
+
+
+def emit_campaign(store, campaign_md_path):
+    """Classify a doc as a campaign descriptor. Idempotent. Returns
+    (link_id, created)."""
+    return _emit_classifier(store, campaign_md_path, "campaign")
+
+
+def emit_inquiry(store, inquiry_md_path):
+    """Classify a doc as an inquiry. Idempotent. Returns (link_id, created)."""
+    return _emit_classifier(store, inquiry_md_path, "inquiry")
+
+
+def emit_synthesis(store, inquiry_md_path, note_md_path):
+    """File a `synthesis` link from inquiry to the produced note.
+    Idempotent on active (inquiry, note) pair. Returns (link_id, created)."""
+    inquiry_rel = _repo_relative(inquiry_md_path)
     note_rel = _repo_relative(note_md_path)
-    candidates = active_links(store, "note", to_set=[note_rel])
+    candidates = active_links(
+        store, "synthesis",
+        from_set=[inquiry_rel], to_set=[note_rel],
+    )
     for link in candidates:
-        if link["from_set"] == [] and link["to_set"] == [note_rel]:
+        if (link["from_set"] == [inquiry_rel]
+                and link["to_set"] == [note_rel]):
             return link["id"], False
     link_id = store.make_link(
-        from_set=[], to_set=[note_rel], type_set=["note"],
+        from_set=[inquiry_rel], to_set=[note_rel],
+        type_set=["synthesis"],
+    )
+    return link_id, True
+
+
+def _emit_classifier(store, doc_path, type_name):
+    """Shared idempotent-classifier emission used by emit_note,
+    emit_campaign, emit_inquiry. Skipped types live in their own
+    modules (emit_agent in lib.store.agent has its own copy)."""
+    rel = _repo_relative(doc_path)
+    candidates = active_links(store, type_name, to_set=[rel])
+    for link in candidates:
+        if link["from_set"] == [] and link["to_set"] == [rel]:
+            return link["id"], False
+    link_id = store.make_link(
+        from_set=[], to_set=[rel], type_set=[type_name],
     )
     return link_id, True
 

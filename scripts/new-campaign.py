@@ -23,10 +23,13 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from lib.shared.common import write_frontmatter
 from lib.shared.paths import (
     LATTICE_NAME, CAMPAIGNS_DIR, CHANNELS_DIR, WORKSPACE,
-    campaign_dir, campaign_config, campaign_vocab, load_channel_meta,
+    campaign_dir, campaign_doc_path, campaign_vocab, load_channel_meta,
 )
+from lib.store.emit import emit_campaign
+from lib.store.store import default_store
 
 
 def main():
@@ -60,33 +63,39 @@ def main():
             sys.exit(1)
 
     # Validate campaign name is not taken
-    cdir = campaign_dir(args.name)
-    if cdir.exists():
-        print(f"  [ERROR] Campaign already exists: {cdir}", file=sys.stderr)
+    doc_path = campaign_doc_path(args.name)
+    if doc_path.exists():
+        print(f"  [ERROR] Campaign already exists: {doc_path}",
+              file=sys.stderr)
         sys.exit(1)
 
-    # Create campaign dir
-    cdir.mkdir(parents=True)
+    # Substrate-managed campaign descriptor + vocabulary in same dir
+    cdir = campaign_dir(args.name)
+    cdir.mkdir(parents=True, exist_ok=True)
+    fm = {
+        "name": args.name,
+        "theory": args.theory,
+        "evidence": args.evidence,
+        "target": args.target,
+    }
+    title = args.name.replace("-", " ").title()
+    body = f"# Campaign: {title}\n"
+    doc_path.write_text(write_frontmatter(fm, body))
 
-    cfg_path = campaign_config(args.name)
-    cfg_path.write_text(
-        f"theory: {args.theory}\n"
-        f"evidence: {args.evidence}\n"
-        f"target: \"{args.target}\"\n"
-    )
+    with default_store() as store:
+        emit_campaign(store, doc_path)
 
     vocab_path = campaign_vocab(args.name)
     vocab_path.write_text("")
 
-    # Report
-    print(f"  [OK] Campaign scaffolded: {cdir.relative_to(WORKSPACE)}/")
-    print(f"       config.yaml     — theory: {args.theory}, evidence: {args.evidence}")
-    print(f"       vocabulary.md   — stub header, awaiting curation")
+    print(f"  [OK] Campaign scaffolded:")
+    print(f"       {doc_path.relative_to(WORKSPACE)}  — descriptor (theory: {args.theory}, evidence: {args.evidence})")
+    print(f"       {vocab_path.relative_to(WORKSPACE)}  — bridge vocabulary stub")
     print()
     print(f"  Next steps:")
     print(f"    1. Curate {vocab_path.relative_to(WORKSPACE)}")
     print(f"       (read both corpora; coin unified names for bridge terms)")
-    print(f"    2. Author an ASN with `campaign: {args.name}` in its manifest")
+    print(f"    2. Author an inquiry with `campaign: {args.name}` in its frontmatter")
     print(f"    3. Run discovery: ./run/run-discovery.sh <N> --lattice {LATTICE_NAME}")
 
 

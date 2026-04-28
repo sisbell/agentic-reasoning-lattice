@@ -19,7 +19,7 @@ import yaml
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import (
     LATTICE_NAME, CAMPAIGNS_DIR, MANIFESTS_DIR,
-    load_lattice_config, campaign_config, campaign_vocab,
+    load_lattice_config, campaign_doc_path, campaign_vocab,
 )
 
 
@@ -88,10 +88,8 @@ def main():
 
     for cdir in campaigns:
         name = cdir.name
-        try:
-            cfg = yaml.safe_load(campaign_config(name).read_text()) or {}
-        except (FileNotFoundError, yaml.YAMLError):
-            cfg = {}
+        from lib.shared.common import read_doc_frontmatter
+        cfg = read_doc_frontmatter(campaign_doc_path(name))
 
         is_default = " [default]" if name == default_campaign else ""
         asns = asn_by_campaign.get(name, [])
