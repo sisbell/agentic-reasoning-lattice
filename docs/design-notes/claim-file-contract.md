@@ -2,7 +2,13 @@
 
 The output contract for note decomposition. Specifies what well-formed per-claim files look like — what must be true when note decomposition finishes, and what must remain true across every review/revise cycle. The first instance of the transition-contract resolution for [Uncontracted Representation Change](../equilibrium/uncontracted-representation-change.md).
 
-Scope: this contract governs the per-claim `{label}.yaml` and `{label}.md` file pairs produced by the [note decomposition protocol](../protocols/note-decomposition-protocol.md). Other artifacts emitted at other stages — the foundation index, the vocabulary aggregation, the `formal-statements.md` export — are separate representation changes with their own contracts. Don't bundle them.
+Scope: this contract governs the per-claim outputs produced by the [note decomposition protocol](../protocols/note-decomposition-protocol.md). For each claim the protocol produces:
+
+- a body markdown file `<label>.md` carrying the claim's prose, proof, and Formal Contract section,
+- three sidecar markdown files — `<label>.label.md`, `<label>.name.md`, `<label>.description.md` — carrying the claim's substrate-managed attributes,
+- substrate links classifying the body and pointing at the sidecars and at related claims (described below).
+
+Other artifacts emitted at other stages — the foundation index, the vocabulary aggregation, the `formal-statements.md` export — are separate representation changes with their own contracts. Don't bundle them.
 
 ## Two axes
 
@@ -10,55 +16,62 @@ Every invariant is classified along two axes:
 
 **Enforcement.** Structural invariants are mechanically checkable without LLM interpretation — a validator enforces them. Semantic invariants require reading content and judging it — review enforces them. These are disjoint: if an invariant can be expressed as a structural check, it is one. If it requires judgment, it isn't. The whole point of the contract is to keep structural checks out of the review loop.
 
-**Checkability window.** Steady-state invariants are verifiable from the output files alone; they must hold after every revise commit. Transition-checkable invariants require the source artifact (the pre-decomposition note) for comparison; they can only be verified at the moment of the transition. After the first revise, the source is no longer the authoritative comparison point — the committed output is.
+**Checkability window.** Steady-state invariants are verifiable from the output files plus the substrate alone; they must hold after every revise commit. Transition-checkable invariants require the source artifact (the pre-decomposition note) for comparison; they can only be verified at the moment of the transition. After the first revise, the source is no longer the authoritative comparison point — the committed output is.
 
 ## Transactional scope
 
-Invariants apply to committed output, not to intermediate state. A revise that deletes a claim and then fixes its references has a transient broken state between the two operations. The validator does not see that state. It checks the working tree before commit. This matches database transaction semantics: constraints are checked at commit, not at each statement.
+Invariants apply to committed output, not to intermediate state. A revise that deletes a claim and then fixes its references has a transient broken state between the two operations. The validator does not see that state. It checks the working tree before commit, plus the substrate as of that commit. This matches database transaction semantics: constraints are checked at commit, not at each statement.
 
 A revise is free to violate any invariant mid-step as long as the commit satisfies all of them.
 
 ## Authority
 
-A claim's identity appears on three surfaces: the yaml `label` field, the file's stem, and the markdown bold declaration. When these disagree, the yaml `label` is authoritative. Filename (invariant #2) and markdown declaration (invariant #3) must conform to yaml `label`. Cross-file references — `depends` entries, inline citations, exports — resolve against the yaml `label`.
+A claim's identity appears on three surfaces: the **filename stem** of its body markdown, the **content of its label sidecar** (`<label>.label.md`), and the **markdown bold declaration** in the body. When these disagree, the filename stem is authoritative. The label sidecar (invariant #4) and the bold declaration (invariant #2) must conform to the stem. Cross-claim references — substrate `citation` links, inline citations, exports — resolve against the filename stem.
 
-Consequence: when a mismatch is found, the fix is to change the filename or the markdown declaration, not the yaml `label`. Relabeling cascades through every reference in the lattice; the other two are local.
+Consequence: when a mismatch is found, the fix is to update the label sidecar or the markdown declaration, not the filename. Renaming a file cascades through every reference in the lattice; the other two are local.
 
 ## Structural invariants
 
 ### Steady-state — validator runs before every review cycle and after every revise commit
 
-1. **File pair completeness.** For every label in the lattice, both `{label}.yaml` and `{label}.md` exist. No orphan yaml without a body, no orphan body without metadata.
+1. **File set completeness.** For every claim in the lattice, four files exist: `<label>.md` (body), `<label>.label.md`, `<label>.name.md`, `<label>.description.md`. No orphan body without sidecars; no orphan sidecar without a body.
 
-2. **Filename matches label.** The yaml `label` field equals the file's stem. `T4a.yaml` declares `label: T4a`.
+2. **Declaration matches label.** The markdown body contains exactly one bold claim-declaration of the form `**<Label> (<Name>).**`. The label-position equals the filename stem; the parenthetical equals the name sidecar's content (when label == name, the parenthetical repeats it — redundant but uniform). The parenthetical is required in all cases; this uniformity makes the declaration textually distinguishable from proof-narrative emphasis (e.g., `**Positivity.**`, `**Length.**`). Type keywords (*axiom*, *definition*, *design-requirement*, *lemma*, *theorem*, *corollary*) do not appear in the label-position — those are recorded as the substrate `contract.<kind>` classifier on the body.
 
-3. **Declaration matches label.** The markdown body contains exactly one bold claim-declaration of the form `**<Label> (<Name>).**`. The label-position equals the yaml `label` field; the parenthetical equals the yaml `name` field (when `label == name`, the parenthetical repeats it — redundant but uniform). The parenthetical is required in all cases; this uniformity makes the declaration textually distinguishable from proof-narrative emphasis (e.g., `**Positivity.**`, `**Length.**`). Type keywords (*axiom*, *definition*, *design-requirement*, *lemma*, *theorem*, *corollary*) do not appear in the label-position — those live in the yaml `type` field.
+3. **Sidecar content well-formed.** The label sidecar contains a single line equal to the filename stem. The name sidecar contains a single line in PascalCase. The description sidecar contains markdown prose summarizing the claim's purpose; non-empty, no required structure.
 
-4. **YAML well-formed.** Parses as YAML. Required fields present (`label`, `name`, `type`, `summary`, `depends`). Types as declared in the decomposition schema.
+4. **Substrate classification complete.** For each claim's body markdown the substrate contains:
+   - exactly one active `claim` classifier link with `to_set = [body_md]`,
+   - exactly one active `contract.<kind>` classifier link with `to_set = [body_md]` and `kind ∈ {axiom, definition, theorem, corollary, lemma, consequence, design-requirement}`,
+   - exactly one active `label` link with `from_set = [body_md], to_set = [<label>.label.md]`,
+   - exactly one active `name` link with `from_set = [body_md], to_set = [<label>.name.md]`,
+   - exactly one active `description` link with `from_set = [body_md], to_set = [<label>.description.md]`.
 
-5. **Depends agreement.** The yaml `depends:` list and the markdown Formal Contract Depends section name the same set of claims. No additions or omissions in either surface.
+5. **Depends agreement.** The set of substrate `citation` links sourced from the claim's body markdown and the set of claim labels named in the body's Formal Contract Depends section name the same set of claims. No additions or omissions in either surface.
 
-6. **References resolve.** Every claim named in a `depends` list, a citation, or a Formal Contract Depends section exists as a file pair in the lattice.
+6. **References resolve.** Every claim named in a substrate `citation` link's `to_set`, in an inline body citation, or in a Formal Contract Depends section exists as a complete file set in the lattice (per #1) and carries the substrate classification (per #4).
 
-7. **Declared symbols resolve.** Every tracked symbol used in a claim's Formal Contract structural fields (Axiom, Definition, Preconditions, Postconditions, Invariant, Frame) must resolve, via the claim's transitive `depends` closure, to an owning claim — or be a primitive. The v1 implementation uses a curated symbol-owners table (`lattices/<lattice>/symbol-owners.yaml`) mapping tracked symbols to their owning claim labels; symbols not in the table are ignored (false-negative tolerant; false-positive intolerant). Aspirational form: per-claim yaml `vocabulary` fields replace the table. The current approach catches the common cases at lower authoring cost and can migrate to per-claim vocabulary later without changing the invariant's definition.
+7. **Declared symbols resolve.** Every tracked symbol used in a claim's Formal Contract structural fields (Axiom, Definition, Preconditions, Postconditions, Invariant, Frame) must resolve, via the claim's transitive citation closure, to an owning claim — or be a primitive. The v1 implementation uses a curated symbol-owners table (`lattices/<lattice>/symbol-owners.yaml`) mapping tracked symbols to their owning claim labels; symbols not in the table are ignored (false-negative tolerant; false-positive intolerant).
 
-8. **Acyclic dependency graph.** The `depends` relation across all file pairs in the lattice is a DAG.
+8. **Acyclic dependency graph.** The substrate `citation` relation across all claim bodies in the lattice is a DAG.
 
-9. **Body uniqueness.** A given claim's body (bold declaration, proof, formal contract) appears in exactly one file — the file whose label matches the claim. No claim's body is inlined into another claim's file.
+9. **Body uniqueness.** A given claim's body (bold declaration, proof, formal contract) appears in exactly one file — the body markdown whose filename stem matches the claim. No claim's body is inlined into another claim's file.
 
 ### Transition-checkable — validator runs once, at the end of note decomposition
 
-10. **Source coverage.** Every claim in the source note produces exactly one file pair. No source claim is dropped; no source claim is duplicated into multiple pairs.
+10. **Source coverage.** Every claim in the source note produces exactly one file set. No source claim is dropped; no source claim is duplicated into multiple file sets.
 
-11. **No orphan output.** Every file pair in the output corresponds to a claim in the source note. Note decomposition does not invent claims.
+11. **No orphan output.** Every file set in the output corresponds to a claim in the source note. Note decomposition does not invent claims.
 
-12. **Content preservation.** Each source claim's narrative, proof, and formal contract text appears — substantively, not necessarily byte-identically — in its corresponding file pair. A mechanical version of this check: the output file pair's non-boilerplate text is non-empty and contains the claim's summary terms. Anything stronger is a semantic check and belongs to review.
+12. **Content preservation.** Each source claim's narrative, proof, and formal contract text appears — substantively, not necessarily byte-identically — in its corresponding body markdown. A mechanical version of this check: the body markdown's non-boilerplate text is non-empty and contains the claim's summary terms. Anything stronger is a semantic check and belongs to review.
+
+13. **Provenance recording.** For each claim emitted, the substrate contains exactly one active `provenance.derivation` link with `from_set = [source_note_md], to_set = [body_md]`. The link records that this claim was derived from this note at this stage; it persists permanently regardless of subsequent edits to the body.
 
 ## Semantic invariants — review enforces, not validator
 
 These are established at note decomposition and must be preserved by authoring discipline. They surface as review findings when violated, not as validator errors.
 
-S1. **Summary matches body.** The yaml `summary` describes what the `.md` body claims. Not a restatement of the formal contract; not stale after a revise changes the body.
+S1. **Description matches body.** The description sidecar describes what the body claims. Not a restatement of the formal contract; not stale after a revise changes the body.
 
 S2. **Exterior matches interior.** The claim's stated postconditions are delivered by its proof. Its preconditions are sufficient for the proof to proceed and do not exceed what callers must supply.
 
@@ -76,8 +89,8 @@ Running the validator before the reviewer eliminates the reviewer's work on mech
 
 ## What this contract does not cover
 
-- The content of individual claims — what makes a proof correct, a summary accurate, a precondition sufficient. That is review's job.
-- Artifacts other than per-claim file pairs. The foundation index, vocabulary aggregation, and formal-statements export each need their own contracts written at the representation changes that produce them.
+- The content of individual claims — what makes a proof correct, a description accurate, a precondition sufficient. That is review's job.
+- Artifacts other than per-claim file sets and their substrate classification. The foundation index, vocabulary aggregation, and formal-statements export each need their own contracts written at the representation changes that produce them.
 - Aesthetic or stylistic conventions (e.g., prose length, header formatting). Not invariants — conventions.
 
 ## Related
