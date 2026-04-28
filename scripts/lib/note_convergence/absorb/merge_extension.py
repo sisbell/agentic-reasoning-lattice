@@ -147,13 +147,13 @@ def step_integration_review(base_num, base_path, claim_labels,
     Writes review to the lattice's discovery/review/ASN-NNNN/ directory for traceability.
     """
     from lib.shared.paths import VOCABULARY, REVIEWS_DIR, next_review_number
-    from lib.shared.foundation import load_foundation_statements
+    from lib.shared.foundation import load_foundation_for_note
     from lib.shared.campaign import resolve_campaign
 
     base_label = f"ASN-{int(base_num):04d}"
     base_content = base_path.read_text()
     vocabulary = read_file(resolve_campaign(base_num).vocabulary_path)
-    foundation = load_foundation_statements(base_num)
+    foundation = load_foundation_for_note(base_path, base_num)
 
     template = read_file(ABSORB_REVIEW_TEMPLATE)
     if not template:
@@ -202,12 +202,12 @@ def step_integration_revise(base_num, base_path, claim_labels,
                             review_text, model, effort):
     """Step 2b: Fix integration issues found by review."""
     from lib.shared.paths import VOCABULARY
-    from lib.shared.foundation import load_foundation_statements
+    from lib.shared.foundation import load_foundation_for_note
     from lib.shared.campaign import resolve_campaign
 
     base_label = f"ASN-{int(base_num):04d}"
     vocabulary = read_file(resolve_campaign(base_num).vocabulary_path)
-    foundation = load_foundation_statements(base_num)
+    foundation = load_foundation_for_note(base_path, base_num)
 
     template = read_file(ABSORB_REVISE_TEMPLATE)
     if not template:

@@ -18,8 +18,8 @@ from lib.note_convergence.manage.extend import (
     build_prompt, strip_preamble, write_manifest,
 )
 from lib.shared.paths import WORKSPACE, NOTES_DIR, formal_stmts
-from lib.shared.common import read_file, invoke_claude, log_usage, step_commit
-from lib.shared.foundation import load_foundation_statements
+from lib.shared.common import read_file, find_asn, invoke_claude, log_usage, step_commit
+from lib.shared.foundation import load_foundation_for_note
 
 
 def main():
@@ -57,7 +57,10 @@ def main():
     base_statements = read_file(base_stmt_path) or "(No base export available)"
 
     # Load foundation for the base's dependencies
-    foundation_stmts = load_foundation_statements(args.base) if depends else ""
+    base_path, _ = find_asn(str(args.base))
+    foundation_stmts = (
+        load_foundation_for_note(base_path, args.base) if depends else ""
+    )
 
     # Build prompt
     target_label = f"ASN-{args.target:04d}"

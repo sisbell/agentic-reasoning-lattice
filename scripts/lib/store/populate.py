@@ -95,6 +95,32 @@ def is_note_path(doc_path):
     return "/discovery/notes/" in rel
 
 
+def note_dep_asn_ids(store, note_md_path):
+    """Return sorted ASN ids the note depends on, sourced from substrate
+    citation links.
+
+    Each citation is a substrate edge from the given note md to another
+    note md. The dep ASN id is parsed from the target note's filename
+    (ASN-NNNN-<slug>.md). Cross-stage citations (note → claim) are
+    skipped — only note-to-note edges count as upstream foundation here.
+    """
+    import re
+    from lib.store.queries import active_links
+    note_rel = str(note_md_path)
+    note_index_paths = set(build_note_label_index(store).values())
+    ids = []
+    for link in active_links(store, "citation", from_set=[note_rel]):
+        if not link["to_set"]:
+            continue
+        to_path = link["to_set"][0]
+        if to_path not in note_index_paths:
+            continue
+        m = re.search(r"ASN-(\d+)", Path(to_path).name)
+        if m:
+            ids.append(int(m.group(1)))
+    return sorted(set(ids))
+
+
 def build_doc_label_index(store, doc_path):
     """Return the label-to-doc index appropriate for `doc_path`.
 

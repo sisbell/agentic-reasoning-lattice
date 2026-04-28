@@ -83,10 +83,15 @@ def _load_claim_statement(dep_asn_num, label):
     return section
 
 
-def _dep_ids_with_extensions(asn_id):
-    """Get all dependency ASN IDs including extensions."""
-    manifest = load_manifest(asn_id)
-    dep_ids = manifest.get("depends", [])
+def _dep_ids_with_extensions(asn_id, dep_ids=None):
+    """Get all dependency ASN IDs including extensions.
+
+    If `dep_ids` is provided (e.g., sourced from substrate citations on
+    a note), it overrides the manifest depends: read.
+    """
+    if dep_ids is None:
+        manifest = load_manifest(asn_id)
+        dep_ids = manifest.get("depends", [])
     all_ids = []
     for dep_id in dep_ids:
         all_ids.append(dep_id)
@@ -96,14 +101,18 @@ def _dep_ids_with_extensions(asn_id):
     return all_ids
 
 
-def load_foundation_statements(asn_id):
+def load_foundation_statements(asn_id, dep_ids=None):
     """Load all foundation statements from per-claim files.
 
     Reads substrate-sourced summaries (description sidecars) + .md
     formal contracts for every claim in each dependency ASN. Errors if
     summaries are missing.
+
+    `dep_ids` overrides the manifest `depends:` read — note-side
+    callers pass substrate-derived ids via `note_dep_asn_ids`; claim-side
+    callers omit and the manifest is consulted (legacy path).
     """
-    all_dep_ids = _dep_ids_with_extensions(asn_id)
+    all_dep_ids = _dep_ids_with_extensions(asn_id, dep_ids=dep_ids)
     if not all_dep_ids:
         return ""
 
@@ -138,16 +147,35 @@ def load_foundation_statements(asn_id):
     return "\n\n---\n\n".join(sections)
 
 
-def load_foundation_for_labels(asn_id, labels):
+def load_foundation_for_note(asn_path, asn_id):
+    """Load foundation statements for a note, sourcing dep ASN ids from
+    substrate citations on the note md.
+
+    Wraps the substrate query so callers don't repeat the boilerplate.
+    Falls back to an empty list (no foundation) if the note has no
+    citations — distinct from the manifest path, which would also use
+    the manifest's depends declaration.
+    """
+    from lib.store.populate import note_dep_asn_ids
+    from lib.store.store import default_store
+    note_rel = str(asn_path.resolve().relative_to(Path(WORKSPACE).resolve()))
+    with default_store() as store:
+        dep_ids = note_dep_asn_ids(store, note_rel)
+    return load_foundation_statements(asn_id, dep_ids=dep_ids)
+
+
+def load_foundation_for_labels(asn_id, labels, dep_ids=None):
     """Load foundation statements for specific labels from per-claim files.
 
     Reads the substrate-sourced summary + .md formal contract for each
     label. Warns if a label is not found in any dependency ASN.
+
+    `dep_ids` override behaves the same as in `load_foundation_statements`.
     """
     if not labels:
         return ""
 
-    all_dep_ids = _dep_ids_with_extensions(asn_id)
+    all_dep_ids = _dep_ids_with_extensions(asn_id, dep_ids=dep_ids)
     if not all_dep_ids:
         return ""
 

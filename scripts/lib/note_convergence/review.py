@@ -29,7 +29,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, VOCABULARY, REVIEWS_DIR, USAGE_LOG, MANIFESTS_DIR, NOTES_DIR, NOTE_FINDINGS_DIR, LATTICE_PROMPTS, sorted_reviews, load_manifest, open_issues_path
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn, read_file
-from lib.shared.foundation import load_foundation_statements
+from lib.shared.foundation import load_foundation_for_note, load_foundation_statements
 from lib.store.emit import emit_note_findings, emit_review
 from lib.store.store import default_store
 
@@ -106,8 +106,14 @@ def process_resolved_issues(asn_number, review_text):
 
 
 def build_prompt(asn_content, vocabulary, out_of_scope="", hints="",
-                 asn_number=None, general=False):
-    """Assemble review prompt from template + injected content."""
+                 asn_number=None, general=False, foundation=None):
+    """Assemble review prompt from template + injected content.
+
+    `foundation` may be pre-loaded by the caller (e.g., via
+    `load_foundation_for_note` to source dep ids from substrate
+    citations). Falls back to manifest-driven `load_foundation_statements`
+    if not supplied.
+    """
     template_path = REVIEW_TEMPLATE
     template = read_file(template_path)
     if not template:
@@ -115,7 +121,8 @@ def build_prompt(asn_content, vocabulary, out_of_scope="", hints="",
               file=sys.stderr)
         sys.exit(1)
 
-    foundation = load_foundation_statements(asn_number)
+    if foundation is None:
+        foundation = load_foundation_statements(asn_number)
     open_issues = load_open_issues(asn_number) if asn_number else "(none)"
 
     scope_note = (f"\n\n## Scope\n\nThe following topics are OUT OF SCOPE for this ASN. "
@@ -175,10 +182,12 @@ def run_note_review(asn_path, asn_label, *, model="opus", effort="max"):
     asn_number = int(asn_label.replace("ASN-", ""))
     out_of_scope = load_out_of_scope(asn_number)
     hints = load_hints(asn_number)
+    foundation = load_foundation_for_note(asn_path, asn_number)
 
     prompt = build_prompt(
         asn_content, vocabulary,
         out_of_scope=out_of_scope, hints=hints, asn_number=asn_number,
+        foundation=foundation,
     )
     text, elapsed = invoke_claude(prompt, model=model, effort=effort)
     if not text:

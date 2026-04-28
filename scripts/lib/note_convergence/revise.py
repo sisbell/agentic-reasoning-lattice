@@ -26,7 +26,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE, VOCABULARY, REVIEWS_DIR, USAGE_LOG, NOTES_DIR, LATTICE_PROMPTS, sorted_reviews, find_review
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn, read_file
-from lib.shared.foundation import load_foundation_statements
+from lib.shared.foundation import load_foundation_for_note
 from lib.store.queries import unresolved_revise_comments
 from lib.store.store import default_store
 
@@ -55,7 +55,7 @@ def build_prompt(asn_path, findings, vocab, consultation_content=None, asn_numbe
     if vocab:
         parts.append(f"## Shared Vocabulary\n\n{vocab}")
 
-    foundation = load_foundation_statements(asn_number)
+    foundation = load_foundation_for_note(asn_path, asn_number)
     if foundation:
         parts.append(foundation)
 
