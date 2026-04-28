@@ -26,11 +26,11 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, VOCABULARY, REVIEWS_DIR, USAGE_LOG, MANIFESTS_DIR, NOTES_DIR, LATTICE_PROMPTS, sorted_reviews, load_manifest, open_issues_path
+from lib.shared.paths import WORKSPACE, VOCABULARY, REVIEWS_DIR, USAGE_LOG, MANIFESTS_DIR, NOTES_DIR, NOTE_FINDINGS_DIR, LATTICE_PROMPTS, sorted_reviews, load_manifest, open_issues_path
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn, read_file
 from lib.shared.foundation import load_foundation_statements
-from lib.store.emit import emit_review
+from lib.store.emit import emit_note_findings, emit_review
 from lib.store.store import default_store
 
 PROMPTS_DIR = LATTICE_PROMPTS / "discovery"
@@ -157,6 +157,36 @@ def validate_review(text):
             re.search(r"^## OUT_OF_SCOPE", text, re.MULTILINE)):
         return "missing ## REVISE or ## OUT_OF_SCOPE section"
     return None
+
+
+def extract_note_findings(text):
+    """Extract note-review findings, classified by parent section.
+
+    Note reviews have top-level `## REVISE` and `## OUT_OF_SCOPE` sections,
+    each containing `### Title` subheadings. Returns list of
+    (title, cls, body) tuples where cls ∈ {"REVISE", "OUT_OF_SCOPE"}.
+    Other top-level sections (e.g. `## RESOLVED`) are ignored — they are
+    not findings against the note.
+    """
+    findings = []
+    parts = re.split(r"^## ", text, flags=re.MULTILINE)
+    for part in parts[1:]:  # skip preamble before first ##
+        section_lines = part.split("\n", 1)
+        section_header = section_lines[0].strip()
+        section_body = section_lines[1] if len(section_lines) > 1 else ""
+        if section_header == "REVISE":
+            cls = "REVISE"
+        elif section_header == "OUT_OF_SCOPE":
+            cls = "OUT_OF_SCOPE"
+        else:
+            continue
+        finding_parts = re.split(r"^### ", section_body, flags=re.MULTILINE)
+        for fpart in finding_parts[1:]:
+            lines = fpart.strip().split("\n", 1)
+            title = lines[0].strip()
+            body = lines[1].strip() if len(lines) > 1 else ""
+            findings.append((title, cls, f"### {title}\n{body}"))
+    return findings
 
 
 def invoke_claude(prompt, model="opus", effort="max"):
@@ -293,10 +323,27 @@ def main():
     output_path = REVIEWS_DIR / asn_label / f"review-{next_num}.md"
     output_path.write_text(text + "\n")
 
-    # File a `review` classifier link in the substrate so subsequent
-    # passes (revise, maturation) can locate this review's document.
+    # File the `review` classifier and a per-finding `comment.{revise|out-of-scope}`
+    # link for each finding parsed from the review text. The note md being
+    # reviewed is the comment target.
+    findings = extract_note_findings(text)
+    review_stem = f"review-{next_num}"
     with default_store() as store:
         emit_review(store, output_path)
+        emit_note_findings(
+            store, asn_path, findings,
+            asn_label=asn_label, review_stem=review_stem,
+            findings_dir=NOTE_FINDINGS_DIR,
+        )
+    if findings:
+        revise_count = sum(1 for _, c, _ in findings if c == "REVISE")
+        oos_count = len(findings) - revise_count
+        print(
+            f"  [FINDINGS] {revise_count} REVISE, {oos_count} OUT_OF_SCOPE "
+            f"emitted to {NOTE_FINDINGS_DIR.relative_to(WORKSPACE)}/"
+            f"{asn_label}/{review_stem}/",
+            file=sys.stderr,
+        )
 
     # Process resolved open issues
     process_resolved_issues(asn_number, text)

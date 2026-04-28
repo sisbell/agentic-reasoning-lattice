@@ -163,6 +163,56 @@ def emit_findings(store, review_md_path, findings, asn_label, review_stem,
     return results
 
 
+def emit_note_findings(store, note_md_path, findings, asn_label, review_stem,
+                       findings_dir):
+    """Materialize each note-review finding as a document and emit a comment link.
+
+    Parallels `emit_findings` for notes per the Note Convergence Protocol
+    §6.5. Differences from the claim-side: the target is the note itself
+    (no per-finding label routing), and class ∈ {"REVISE", "OUT_OF_SCOPE"}
+    per protocol §1.
+
+    `findings` is a list of (title, cls, body) tuples. For each:
+      - materialize a document at <findings_dir>/<asn_label>/<review_stem>/<n>.md
+      - make `comment.{revise|out-of-scope}` link from finding-doc to note-md
+
+    Returns list of {title, cls, comment_id, note_path, finding_path} dicts
+    in input order.
+    """
+    findings_root = Path(findings_dir)
+    out_dir = findings_root / asn_label / review_stem
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    note_rel = _repo_relative(note_md_path)
+    results = []
+    for n, (title, cls, body) in enumerate(findings):
+        finding_path = out_dir / f"{n}.md"
+        finding_path.write_text(body)
+        finding_rel = _repo_relative(finding_path)
+
+        cls_normalized = (cls or "REVISE").upper()
+        if cls_normalized == "OUT_OF_SCOPE":
+            comment_type = "comment.out-of-scope"
+        else:
+            comment_type = "comment.revise"
+
+        comment_id = store.make_link(
+            from_set=[finding_rel],
+            to_set=[note_rel],
+            type_set=[comment_type],
+        )
+
+        results.append({
+            "title": title,
+            "cls": cls_normalized,
+            "comment_id": comment_id,
+            "note_path": note_rel,
+            "finding_path": finding_rel,
+        })
+
+    return results
+
+
 def _extract_target_label(body, label_index):
     """Find the target claim label from a finding body, validated against label_index.
 

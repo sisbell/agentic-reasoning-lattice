@@ -7,7 +7,9 @@ from pathlib import Path
 from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
-from lib.store.emit import emit_findings, emit_note, emit_review
+from lib.store.emit import (
+    emit_findings, emit_note, emit_note_findings, emit_review,
+)
 from lib.store.store import Store
 
 
@@ -221,6 +223,73 @@ class EmitFindingsTests(EmitTestBase):
         )
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0]["claim_path"], index["NAT-zero"])
+
+
+class EmitNoteFindingsTests(EmitTestBase):
+    def setUp(self):
+        super().setUp()
+        self.note_findings_dir = (
+            self.root / "_store" / "documents" / "findings" / "notes"
+        )
+        self.note_path = self._write_under_root(
+            "lattices/xanadu/discovery/notes/ASN-0001-foo.md", "# Note\n",
+        )
+        self.note_rel = "lattices/xanadu/discovery/notes/ASN-0001-foo.md"
+
+    def test_revise_finding_emits_comment_revise(self):
+        findings = [("Issue 1: bad", "REVISE", "### Issue 1: bad\nbody\n")]
+        results = emit_note_findings(
+            self.store, self.note_path, findings,
+            asn_label="ASN-0001", review_stem="review-1",
+            findings_dir=self.note_findings_dir,
+        )
+        self.assertEqual(len(results), 1)
+        rec = self.store.get(results[0]["comment_id"])
+        self.assertEqual(rec["type_set"], ["comment.revise"])
+        self.assertEqual(rec["from_set"], [results[0]["finding_path"]])
+        self.assertEqual(rec["to_set"], [self.note_rel])
+
+    def test_oos_finding_emits_comment_out_of_scope(self):
+        findings = [("Issue 2: scope", "OUT_OF_SCOPE", "body\n")]
+        results = emit_note_findings(
+            self.store, self.note_path, findings,
+            asn_label="ASN-0001", review_stem="review-1",
+            findings_dir=self.note_findings_dir,
+        )
+        rec = self.store.get(results[0]["comment_id"])
+        self.assertEqual(rec["type_set"], ["comment.out-of-scope"])
+
+    def test_materializes_at_expected_path(self):
+        findings = [("X", "REVISE", "### X\nbody\n")]
+        results = emit_note_findings(
+            self.store, self.note_path, findings,
+            asn_label="ASN-0001", review_stem="review-1",
+            findings_dir=self.note_findings_dir,
+        )
+        self.assertIn(
+            "_store/documents/findings/notes/ASN-0001/review-1/0.md",
+            results[0]["finding_path"],
+        )
+        full = self.root / results[0]["finding_path"]
+        self.assertTrue(full.exists())
+        self.assertIn("body", full.read_text())
+
+    def test_multiple_findings_preserve_order_and_classify(self):
+        findings = [
+            ("a", "REVISE", "### a\n"),
+            ("b", "OUT_OF_SCOPE", "### b\n"),
+            ("c", "REVISE", "### c\n"),
+        ]
+        results = emit_note_findings(
+            self.store, self.note_path, findings,
+            asn_label="ASN-0001", review_stem="review-1",
+            findings_dir=self.note_findings_dir,
+        )
+        self.assertEqual([r["title"] for r in results], ["a", "b", "c"])
+        self.assertEqual(
+            [r["cls"] for r in results],
+            ["REVISE", "OUT_OF_SCOPE", "REVISE"],
+        )
 
 
 if __name__ == "__main__":
