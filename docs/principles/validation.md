@@ -31,7 +31,7 @@ No principle subsumes another. A claim file can have perfect coupling (70/30, no
 
 ## The contract
 
-Each representation's structural contract specifies what well-formed state looks like at that representation. The contract is a schema — concrete rules, mechanically checkable. The first instance is the [Claim File Contract](../design-notes/claim-file-contract.md), which specifies valid per-claim file state after note decomposition.
+Each representation's structural contract specifies what well-formed state looks like at that representation. The contract is a schema — concrete rules, mechanically checkable. The first instance is the [Claim File Contract](../design-notes/claim-file-contract.md), which specifies valid per-claim file state after claim derivation.
 
 Contracts have two classes of rule:
 

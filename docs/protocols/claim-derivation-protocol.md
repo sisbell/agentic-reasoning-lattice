@@ -1,8 +1,8 @@
-# Note Decomposition Protocol
+# Claim Derivation Protocol
 
 The protocol that decomposes a converged note into per-claim file pairs. Takes a note (the output of [consultation](consultation-protocol.md) refined through [note convergence](note-convergence-protocol.md)) and produces a structured set of YAML metadata + Markdown body pairs, one per claim, conforming to the [Claim File Contract](../design-notes/claim-file-contract.md). The output enters [claim convergence](claim-convergence-protocol.md) for review/revise cycles.
 
-One-shot — terminates when the structural contract holds on the output. The narrative description of the decomposition stage lives in [Note Decomposition](../note-decomposition.md).
+One-shot — terminates when the structural contract holds on the output. The narrative description of the derivation stage lives in [Claim Derivation](../claim-derivation.md).
 
 Following the modular formalism of Cachin (*Reliable and Secure Distributed Programming*).
 
@@ -26,7 +26,7 @@ Following the modular formalism of Cachin (*Reliable and Secure Distributed Prog
 | `contract` | `axiom`, `definition`, `theorem`, `corollary`, `lemma`, `consequence`, `design-requirement` | Classifier: claim has a formal contract of this kind. Filed by decomposition from each claim's `type:` metadata. |
 | `provenance` | `decomposition` | Records that decomposition produced this claim from this note. From = note, to = claim. Audit trail from the source document to each output pair. Sibling of the consultation protocol's `provenance.synthesis` and the maturation protocol's `provenance.{extract,absorb,reset}`. |
 
-The `claim`, `citation`, and `contract` link types are inherited from the [claim convergence protocol](claim-convergence-protocol.md) — note decomposition is the protocol that creates them. The `provenance.decomposition` link is this protocol's own provenance primitive (analog of consultation's `provenance.synthesis` link).
+The `claim`, `citation`, and `contract` link types are inherited from the [claim convergence protocol](claim-convergence-protocol.md) — claim derivation is the protocol that creates them. The `provenance.derivation` link is this protocol's own provenance primitive (analog of consultation's `provenance.synthesis` link).
 
 ---
 
@@ -34,7 +34,7 @@ The `claim`, `citation`, and `contract` link types are inherited from the [claim
 
 ### 2.1 Substrate
 
-The persistent, append-only link graph. See [Substrate Module](substrate.md). This protocol relies on SUB1 (permanence — for the `claim`, `contract`, `citation`, and `provenance.decomposition` links it emits) and SUB2 (query soundness). Note decomposition does not file or interact with retraction links; SUB4–SUB6 are not relied upon.
+The persistent, append-only link graph. See [Substrate Module](substrate.md). This protocol relies on SUB1 (permanence — for the `claim`, `contract`, `citation`, and `provenance.derivation` links it emits) and SUB2 (query soundness). Claim derivation does not file or interact with retraction links; SUB4–SUB6 are not relied upon.
 
 ### 2.2 Structural validator
 
@@ -93,7 +93,7 @@ Resolves structural violations reported by the validator. One violation, one fix
 
 **Indications (output upward).**
 
-- ⟨ ClaimSetProduced | note, claims ⟩ — the protocol has produced a valid claim set. Each claim carries the `claim` classifier, a `contract.<kind>` link reflecting its type, `citation` links for its declared dependencies, and a `provenance.decomposition` link from the source note.
+- ⟨ ClaimSetProduced | note, claims ⟩ — the protocol has produced a valid claim set. Each claim carries the `claim` classifier, a `contract.<kind>` link reflecting its type, `citation` links for its declared dependencies, and a `provenance.derivation` link from the source note.
 - ⟨ DecompositionFailed | note, violations ⟩ — the validator reported violations that could not be auto-resolved. No claim set is produced.
 
 ---
@@ -115,7 +115,7 @@ Termination is structural: the protocol's state machine is split → enrich → 
 
 **B1 (Source coverage).** Every claim in the source note produces exactly one output file pair. No source claim is dropped; no source claim is duplicated across multiple pairs.
 
-**B2 (No fabrication).** Every output file pair corresponds to a claim in the source note. Note decomposition does not invent claims that the source did not contain.
+**B2 (No fabrication).** Every output file pair corresponds to a claim in the source note. Claim derivation does not invent claims that the source did not contain.
 
 **B3 (Content preservation).** Each source claim's narrative, proof, and formal contract text appears in its corresponding file pair. Textual presence is mechanically checkable (the validator can detect empty bodies or missing contract sections). Semantic fidelity — whether the per-claim form preserves what the narrative actually meant — is not mechanically checkable and surfaces as `comment.revise` findings in claim convergence. B3 guarantees the text arrived; the quality boundary (§5.3) and downstream review guarantee it arrived intact.
 
@@ -125,7 +125,7 @@ Termination is structural: the protocol's state machine is split → enrich → 
 
 **B6 (Acyclicity).** The `citation` subgraph induced by the output's `depends:` lists is a directed acyclic graph. Decomposition refuses to emit ⟨ ClaimSetProduced ⟩ if it would introduce a cycle. (Subsumed by B5 but called out separately because it is the property most often violated by enricher errors.)
 
-**B7 (Provenance recording).** On ⟨ ClaimSetProduced | note, claims ⟩, the substrate contains, for each claim in the output: a `claim` classifier on the claim document, a `contract.<kind>` link reflecting its type, `citation` links for its declared dependencies, and a `provenance.decomposition` link from the source note to the claim. (Relies on SUB1.)
+**B7 (Provenance recording).** On ⟨ ClaimSetProduced | note, claims ⟩, the substrate contains, for each claim in the output: a `claim` classifier on the claim document, a `contract.<kind>` link reflecting its type, `citation` links for its declared dependencies, and a `provenance.derivation` link from the source note to the claim. (Relies on SUB1.)
 
 ### 5.2 Liveness
 
@@ -147,7 +147,7 @@ These three semantic invariants are documented in the [Claim File Contract](../d
 
 ### 5.4 Deliberate non-guarantees
 
-**No semantic correctness.** Note decomposition guarantees structural form (B1–B7) but not the semantic correctness of any claim. A claim with a wrong proof, an over-stated postcondition, or an ungrounded operator passes decomposition if its structural form is valid. Semantic pressure comes from claim convergence.
+**No semantic correctness.** Claim derivation guarantees structural form (B1–B7) but not the semantic correctness of any claim. A claim with a wrong proof, an over-stated postcondition, or an ungrounded operator passes decomposition if its structural form is valid. Semantic pressure comes from claim convergence.
 
 **No semantic preservation beyond text.** B3 (content preservation) is mechanical — the words appear. Whether the per-claim form preserves what the narrative actually meant is a semantic question that surfaces in claim convergence, not decomposition.
 
@@ -159,7 +159,7 @@ These three semantic invariants are documented in the [Claim File Contract](../d
 
 ## 6 Algorithm: split → enrich → disassemble → validate
 
-Implements: Note Decomposition Protocol (§1–§5).
+Implements: Claim Derivation Protocol (§1–§5).
 Uses: Substrate (§2.1), Structural Validator (§2.2), Decomposition prompts (§2.3).
 
 The algorithm is one-shot — a single ⟨ Decompose ⟩ invocation produces at most one claim set. Four phases: split, enrich, disassemble, validate. There is no convergence loop.
@@ -236,15 +236,15 @@ The algorithm terminates on ⟨ ClaimSetProduced ⟩ or ⟨ DecompositionFailed 
 
 ### 6.7 Known gap
 
-The current implementation does not yet emit the substrate links specified in B7. The `claim` classifier, `contract.<kind>` classifier, `citation` links, and `provenance.decomposition` link are filed by `populate-store.py` as a bootstrap mechanism, not by decomposition itself. B7 is therefore aspirational pending substrate emission inside the decomposition pipeline.
+The current implementation does not yet emit the substrate links specified in B7. The `claim` classifier, `contract.<kind>` classifier, `citation` links, and `provenance.derivation` link are filed by `populate-store.py` as a bootstrap mechanism, not by decomposition itself. B7 is therefore aspirational pending substrate emission inside the decomposition pipeline.
 
 ---
 
 ## 7 Composition
 
-### Stage transition: discovery → note decomposition → claim convergence
+### Stage transition: discovery → claim derivation → claim convergence
 
-Unlike consultation (which is a producer for note convergence — same artifact throughout), note decomposition is a stage transition. It changes the representation: one note → many per-claim file pairs. The artifact at the input (a note) is not the artifact at the output (a claim set). This is a [representation change](../patterns/representation-change.md) — and the boundary most vulnerable to [Uncontracted Representation Change](../equilibrium/uncontracted-representation-change.md).
+Unlike consultation (which is a producer for note convergence — same artifact throughout), claim derivation is a stage transition. It changes the representation: one note → many per-claim file pairs. The artifact at the input (a note) is not the artifact at the output (a claim set). This is a [representation change](../patterns/representation-change.md) — and the boundary most vulnerable to [Uncontracted Representation Change](../equilibrium/uncontracted-representation-change.md).
 
 ```
 Module: Maturation
@@ -259,7 +259,7 @@ Module: Maturation
     Artifact: per-claim file set carrying claim/contract/citation/decomposition links
 ```
 
-The [maturation protocol](maturation-protocol.md) governs both transitions. It activates note decomposition after note convergence's predicate holds and activates claim convergence after decomposition's contract holds.
+The [maturation protocol](maturation-protocol.md) governs both transitions. It activates claim derivation after note convergence's predicate holds and activates claim convergence after decomposition's contract holds.
 
 ### Failure modes detected downstream
 
@@ -278,13 +278,13 @@ The structural contract is non-obvious and load-bearing. The T3 incident — a s
 ## Related
 
 - [Claim File Contract](../design-notes/claim-file-contract.md) — the structural contract this protocol's output must satisfy.
-- [Note Decomposition](../note-decomposition.md) — narrative description of the decomposition stage.
+- [Claim Derivation](../claim-derivation.md) — narrative description of the derivation stage.
 - [Note Convergence Protocol](note-convergence-protocol.md) — the upstream protocol whose converged output enters decomposition.
 - [Claim Convergence Protocol](claim-convergence-protocol.md) — the downstream protocol that operates on decomposition's output.
-- [Maturation Protocol](maturation-protocol.md) — composes note decomposition between note and claim convergence.
+- [Maturation Protocol](maturation-protocol.md) — composes claim derivation between note and claim convergence.
 - [Uncontracted Representation Change](../equilibrium/uncontracted-representation-change.md) — the failure mode the structural contract addresses. T3 incident trace.
 - [Validate Before Review](../patterns/validate-before-review.md) — the operational pattern that consumes the structural contract downstream.
-- [Representation Change](../patterns/representation-change.md) — note decomposition is the canonical instance.
+- [Representation Change](../patterns/representation-change.md) — claim derivation is the canonical instance.
 
 ## References
 

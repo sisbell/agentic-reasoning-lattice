@@ -17,7 +17,7 @@ A protocol stage introduces a new unit of structure — per-claim files, per-pro
 - **Multiple cones independently patching the same gap.** Four cones each rewrite the same notation at their own use-sites rather than extending the source definition once. The contract that would say "every symbol has one defining source" doesn't exist, so each cone invents its own local fix.
 - **Review findings that a script could catch.** If most of a cone's findings are mechanically checkable (duplicate declarations, dangling references, metadata agreement, dependency-graph acyclicity), the review cycle is doing a validator's job because no validator exists because no contract defines what to validate.
 
-## Example: ASN-0034 note decomposition
+## Example: ASN-0034 claim derivation
 
 ASN-0034 was decomposed into ~80 per-claim files. No contract specified what valid per-claim output looks like. One commit (`54f55598`) copied a claim body into a file where the same body already had a canonical home. Sixteen review cycles across two cones found symptoms — definition drift, redundant declarations, inconsistent notation — without ever surfacing the root cause. The T1 cone on the same ASN, whose output happened to satisfy the unwritten rules, converged in four cycles.
 
@@ -31,7 +31,7 @@ A post-hoc analysis found that roughly three-quarters of the sweep's findings we
 
 **Reference the contract in prompts.** The review and revise prompts for stages operating on the structured output name the contract's rules. The reviewer can flag root causes ("this body exists in two files") rather than symptoms ("this definition appears twice"). The reviser can check for canonical homes before inlining content.
 
-The first instance is the note decomposition output contract, documented at [Claim File Contract](../design-notes/claim-file-contract.md). The operational pattern that runs the validator and applies fixes is [Validate Before Review](../patterns/validate-before-review.md); the design commitment behind it is the [Validation Principle](../principles/validation.md). The [note decomposition protocol](../protocols/note-decomposition-protocol.md) specifies this contract as safety property B5.
+The first instance is the claim derivation output contract, documented at [Claim File Contract](../design-notes/claim-file-contract.md). The operational pattern that runs the validator and applies fixes is [Validate Before Review](../patterns/validate-before-review.md); the design commitment behind it is the [Validation Principle](../principles/validation.md). The [claim derivation protocol](../protocols/claim-derivation-protocol.md) specifies this contract as safety property B5.
 
 ## Related
 
@@ -41,4 +41,4 @@ The first instance is the note decomposition output contract, documented at [Cla
 - [The Coupling Principle](../principles/coupling.md) — addresses content health within a file. Uncontracted Representation Change addresses structural health across files. Neither subsumes the other.
 - [The Validation Principle](../principles/validation.md) — the design commitment that preventing this failure mode falls under. Every representation must have a structural contract and validation before review.
 - [Validate Before Review](../patterns/validate-before-review.md) — the operational pattern that resolves this failure mode once a contract exists. The validator checks the contract; per-invariant revise recipes fix the violations.
-- [Note Decomposition Protocol](../protocols/note-decomposition-protocol.md) — the protocol whose structural contract (B5) is the first instance of this resolution.
+- [Claim Derivation Protocol](../protocols/claim-derivation-protocol.md) — the protocol whose structural contract (B5) is the first instance of this resolution.

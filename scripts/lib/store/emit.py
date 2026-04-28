@@ -57,7 +57,7 @@ def emit_synthesis(store, inquiry_md_path, note_md_path):
 
     The link records the consultation protocol's provenance fact: this note
     was produced by synthesizing answers from the inquiry's consultations.
-    Sibling of `provenance.decomposition` (note → claim) and the maturation
+    Sibling of `provenance.derivation` (note → claim) and the maturation
     provenance subtypes."""
     inquiry_rel = _lattice_relative(inquiry_md_path)
     note_rel = _lattice_relative(note_md_path)

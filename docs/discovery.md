@@ -25,7 +25,7 @@ Findings are classified as `comment.revise` or `comment.out-of-scope`:
 - **`comment.revise`** — the note's reasoning is wrong, incomplete, or ungrounded. Must be resolved — by edit or by rejection.
 - **`comment.out-of-scope`** — the finding is valid but belongs elsewhere. Does not block convergence. Signals the maturation protocol that the lattice needs structural work.
 
-The convergence predicate — every `comment.revise` has a `resolution` — determines when the note has stabilized. Combined with the choreography's observation of sustained quiet (diminishing returns across cycles), convergence signals readiness for [note decomposition](note-decomposition.md).
+The convergence predicate — every `comment.revise` has a `resolution` — determines when the note has stabilized. Combined with the choreography's observation of sustained quiet (diminishing returns across cycles), convergence signals readiness for [claim derivation](claim-derivation.md).
 
 ## Growing the lattice
 
@@ -45,15 +45,15 @@ Three lattice operations — executed by the [maturation protocol](protocols/mat
 
 The lattice grows through this process. Foundation notes emerge at the bottom — discovered by noticing what keeps being re-derived. The lattice deepens as shared concepts are extracted. New domain vocabulary emerges because the mathematics requires it, not prescribed in advance.
 
-## Entering note decomposition
+## Entering claim derivation
 
-A note is ready to enter note decomposition when:
+A note is ready to enter claim derivation when:
 
 **The convergence predicate holds and sustained quiet is observed.** Review/revise cycles produce diminishing returns — few or no substantive findings, zero new vocabulary coinages, new cycles producing wordsmithing rather than reasoning. The reasoning has stabilized.
 
-**No other note in discovery owns claims that belong here.** Before entering note decomposition, scan the other notes still in discovery. If any independently derived claims that naturally belong in this note, absorb them first.
+**No other note in discovery owns claims that belong here.** Before entering claim derivation, scan the other notes still in discovery. If any independently derived claims that naturally belong in this note, absorb them first.
 
-Waiting for foundation dependencies to converge their claims before note decomposition reduces rework — but the [maturation protocol](protocols/maturation-protocol.md) does not enforce this as a gate. A note can enter note decomposition against non-converged foundations. The protocol handles the rework through its normal feedback path.
+Waiting for foundation dependencies to converge their claims before claim derivation reduces rework — but the [maturation protocol](protocols/maturation-protocol.md) does not enforce this as a gate. A note can enter claim derivation against non-converged foundations. The protocol handles the rework through its normal feedback path.
 
 The note is frozen at handoff — it becomes the record of discovery, not a living document.
 
@@ -63,7 +63,7 @@ The note is frozen at handoff — it becomes the record of discovery, not a livi
 - [Consultation Protocol](protocols/consultation-protocol.md) — the formal protocol governing channel consultation and synthesis.
 - [Note Convergence Protocol](protocols/note-convergence-protocol.md) — the protocol governing review/revise cycles on notes.
 - [Maturation Protocol](protocols/maturation-protocol.md) — the meta-protocol that handles lattice operations and transition conditions.
-- [Note Decomposition](note-decomposition.md) — the next stage: decomposing the note into per-claim files.
+- [Claim Derivation](claim-derivation.md) — the next stage: decomposing the note into per-claim files.
 - [The Voice Principle](principles/voice.md) — the Dijkstra voice present from discovery's first prompt.
 - [Scope Promotion](patterns/scope-promotion.md) — how out-of-scope findings become new inquiries.
 - [Extract/Absorb](patterns/extract-absorb.md) — lattice operations that reshape the lattice during discovery.

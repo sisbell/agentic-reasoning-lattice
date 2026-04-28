@@ -4,8 +4,8 @@ Blueprinting step: reads the enriched section YAML files from decompose+enrich,
 writes per-claim .yaml (metadata) + .md (body + formal contract) pairs.
 
 Usage (standalone):
-    python scripts/lib/note_decomposition/disassemble.py 36
-    python scripts/lib/note_decomposition/disassemble.py 36 --dry-run
+    python scripts/lib/claim_derivation/disassemble.py 36
+    python scripts/lib/claim_derivation/disassemble.py 36 --dry-run
 """
 
 import argparse
@@ -17,7 +17,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, NOTE_DECOMPOSITION_DIR, blueprint_claims_dir
+from lib.shared.paths import WORKSPACE, CLAIM_DERIVATION_DIR, blueprint_claims_dir
 from lib.shared.common import find_asn, dump_yaml, step_commit_asn
 
 
@@ -28,7 +28,7 @@ def disassemble_asn(asn_num, dry_run=False):
         print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
         return False
 
-    sections_dir = NOTE_DECOMPOSITION_DIR / asn_label / "sections"
+    sections_dir = CLAIM_DERIVATION_DIR / asn_label / "sections"
     claims_dir = blueprint_claims_dir(asn_label)
 
     if not sections_dir.exists():

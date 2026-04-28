@@ -4,7 +4,7 @@ Blueprinting step: mechanically splits the ASN at ## headers, then runs
 parallel LLM calls to produce a YAML structural analysis for each section.
 
 Usage (standalone):
-    python scripts/lib/note_decomposition/decompose.py 36
+    python scripts/lib/claim_derivation/decompose.py 36
 """
 
 import argparse
@@ -14,11 +14,11 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, NOTE_DECOMPOSITION_DIR, prompt_path
+from lib.shared.paths import WORKSPACE, CLAIM_DERIVATION_DIR, prompt_path
 from lib.shared.common import find_asn, invoke_claude, parallel_llm_calls, step_commit_asn
 
 
-PROMPT_PATH = prompt_path("note-decomposition/decompose.md")
+PROMPT_PATH = prompt_path("claim-derivation/decompose.md")
 
 # Sections that are structural — no LLM analysis needed
 SKIP_HEADERS = {
@@ -102,7 +102,7 @@ def decompose_asn(asn_num):
 
     1. Read note from `_docuverse/documents/note/<asn>-<slug>.md` (no copy)
     2. Split on ## headers → section .md files under
-       `_workspace/note-decomposition/<asn>/sections/`
+       `_workspace/claim-derivation/<asn>/sections/`
     3. Parallel LLM calls → section .yaml files alongside
     """
     asn_path, asn_label = find_asn(str(asn_num))
@@ -111,7 +111,7 @@ def decompose_asn(asn_num):
         return False
 
     # Setup directories
-    sections_dir = NOTE_DECOMPOSITION_DIR / asn_label / "sections"
+    sections_dir = CLAIM_DERIVATION_DIR / asn_label / "sections"
     sections_dir.mkdir(parents=True, exist_ok=True)
 
     # Read the source note directly from the docuverse — no copy.

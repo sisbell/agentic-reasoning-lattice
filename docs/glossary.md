@@ -46,9 +46,9 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Claim.** A single unit of reasoning within a note. An assertion — something the system says is the case, which can be verified, contested, or refuted. Has a label, type, formal contract, and dependencies. The atomic lattice node. See [Architecture](architecture.md).
 
-**Claim convergence.** The stage that takes per-claim files from note decomposition and runs review/revise cycles until each claim's reasoning is sound. Not cleanup — discovery under precision constraint. Scope narrowing to per-claim files is itself epistemically productive. See [Claim Convergence](claim-convergence.md); protocol details in [Claim Convergence Protocol](protocols/claim-convergence-protocol.md).
+**Claim convergence.** The stage that takes per-claim files from claim derivation and runs review/revise cycles until each claim's reasoning is sound. Not cleanup — discovery under precision constraint. Scope narrowing to per-claim files is itself epistemically productive. See [Claim Convergence](claim-convergence.md); protocol details in [Claim Convergence Protocol](protocols/claim-convergence-protocol.md).
 
-**Claim File Contract.** The structural contract specifying what well-formed per-claim file state looks like after note decomposition. Concrete rules, mechanically checkable: one body per file, filename matches label, references resolve, metadata agrees with content, no dependency cycles. The first instance of the output contract the [Validation Principle](principles/validation.md) requires. See [Claim File Contract](design-notes/claim-file-contract.md).
+**Claim File Contract.** The structural contract specifying what well-formed per-claim file state looks like after claim derivation. Concrete rules, mechanically checkable: one body per file, filename matches label, references resolve, metadata agrees with content, no dependency cycles. The first instance of the output contract the [Validation Principle](principles/validation.md) requires. See [Claim File Contract](design-notes/claim-file-contract.md).
 
 **Comment (link type).** A substrate link recording a reviewer finding on a document. Subtypes carry the classification: `comment.revise` requires resolution and participates in the [convergence predicate](#c); `comment.observe` is a non-blocking observation (claim convergence only); `comment.out-of-scope` is a non-blocking signal that the lattice needs structural work (note convergence only). See [Convergence Protocol](protocols/convergence-protocol.md).
 
@@ -64,7 +64,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Convergence predicate.** The graph property that defines when a document set has converged: every `comment.revise` link targeting a document in the set has a matching `resolution` link. Document-type-neutral. Both note convergence and claim convergence use this same predicate. See [Convergence Protocol](protocols/convergence-protocol.md).
 
-**Convergence protocol.** The document-type-neutral module specifying the convergence predicate, the comment/resolution link types, and the safety/liveness properties any review/revise process must satisfy. Specialized by [note convergence](#n) (for notes during discovery) and [claim convergence](#c) (for claims after note decomposition). See [Convergence Protocol](protocols/convergence-protocol.md).
+**Convergence protocol.** The document-type-neutral module specifying the convergence predicate, the comment/resolution link types, and the safety/liveness properties any review/revise process must satisfy. Specialized by [note convergence](#n) (for notes during discovery) and [claim convergence](#c) (for claims after claim derivation). See [Convergence Protocol](protocols/convergence-protocol.md).
 
 **Consultation protocol.** The protocol that produces an initial note from a campaign-bound inquiry. Two independent channels (theory and evidence) consult under enforced vocabulary separation; a synthesizer integrates their outputs into a structured note. [Production-shaped](#p) — one-shot, terminates on output production. Upstream producer for [note convergence](#n). Safety properties include the vocabulary firewall, channel independence, channel discipline, channel asymmetry, synthesis integrity, and provenance recording. See [Consultation Protocol](protocols/consultation-protocol.md).
 
@@ -84,7 +84,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 ## D
 
-**Decomposition (link type).** A substrate `provenance.decomposition` link records that note decomposition produced a claim from a note. From = note, to = claim. Provenance trail from a note to each of its decomposed claim files. Filed by the note decomposition protocol. Sibling of `provenance.synthesis`, `provenance.extract`, `provenance.absorb`, `provenance.reset`. See [Note Decomposition Protocol](protocols/note-decomposition-protocol.md).
+**Decomposition (link type).** A substrate `provenance.derivation` link records that claim derivation produced a claim from a note. From = note, to = claim. Provenance trail from a note to each of its decomposed claim files. Filed by the claim derivation protocol. Sibling of `provenance.synthesis`, `provenance.extract`, `provenance.absorb`, `provenance.reset`. See [Claim Derivation Protocol](protocols/claim-derivation-protocol.md).
 
 **Definition.** A claim classified as introducing named concepts or operations.
 
@@ -162,7 +162,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 ## L
 
-**Label.** A claim's stable citable handle (e.g., `T0`, `NAT-wellorder`, `TA-Pos`). Set at note decomposition, never changes.
+**Label.** A claim's stable citable handle (e.g., `T0`, `NAT-wellorder`, `TA-Pos`). Set at claim derivation, never changes.
 
 **Label (link type).** A substrate-owned link associating a document with a sibling `<stem>.label.md` carrying its short address (the [label](#l) string). One-line file. The substrate-native home for what is currently the filename-stem convention (filenames will not exist in Xanadu). Edit-in-place mutability: renaming a label edits the doc; the link survives. Retraction is reserved for wrong-link cases. See [Substrate Module §4](protocols/substrate.md).
 
@@ -180,7 +180,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Markdown body (`.md`).** The file that holds a claim's content: narrative, proof, formal contract.
 
-**Maturation protocol.** The meta-protocol that supervises stage protocols and executes lattice operations. Drives content from question to verified knowledge through note convergence, note decomposition, claim convergence, and verification. Owns the three lattice operations (extract, absorb, scope promotion) and the transition conditions between stages. Reaches [quiescence](#q), not convergence — settles when no transitions or operations are pending. See [Maturation Protocol](protocols/maturation-protocol.md).
+**Maturation protocol.** The meta-protocol that supervises stage protocols and executes lattice operations. Drives content from question to verified knowledge through note convergence, claim derivation, claim convergence, and verification. Owns the three lattice operations (extract, absorb, scope promotion) and the transition conditions between stages. Reaches [quiescence](#q), not convergence — settles when no transitions or operations are pending. See [Maturation Protocol](protocols/maturation-protocol.md).
 
 **Meet.** Lattice operation. A concept shared by two nodes is extracted into a new foundation layer below both. [Extract/absorb](patterns/extract-absorb.md) executes a meet.
 
@@ -200,7 +200,7 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 
 **Note convergence.** The protocol that drives notes to convergence through review/revise cycles within discovery. Specializes the [convergence protocol](#c) with `note` classifier, `citation` link type (note→note dependencies), and `comment.out-of-scope` subtype. Finding classification is REVISE / OUT_OF_SCOPE — there is no OBSERVE at this scale. Out-of-scope findings signal the [maturation protocol](#m) that adjacent material is missing or misplaced. See [Note Convergence Protocol](protocols/note-convergence-protocol.md).
 
-**Note decomposition.** The stage protocol that decomposes a converged note into per-claim file pairs (YAML metadata + Markdown body) conforming to the [Claim File Contract](#c). [Production-shaped](#p) — one-shot, terminates when the structural contract holds. The boundary between note convergence and claim convergence; a [representation change](patterns/representation-change.md) (one note → many claim files). See [Note Decomposition](note-decomposition.md); protocol details in [Note Decomposition Protocol](protocols/note-decomposition-protocol.md).
+**Claim derivation.** The stage protocol that decomposes a converged note into per-claim file pairs (YAML metadata + Markdown body) conforming to the [Claim File Contract](#c). [Production-shaped](#p) — one-shot, terminates when the structural contract holds. The boundary between note convergence and claim convergence; a [representation change](patterns/representation-change.md) (one note → many claim files). See [Claim Derivation](claim-derivation.md); protocol details in [Claim Derivation Protocol](protocols/claim-derivation-protocol.md).
 
 ## O
 
@@ -220,7 +220,7 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 
 **Production drive.** The LLM behavioral force that drives generation of output regardless of whether new output is warranted. Manifests as findings on already-clean material, prose growth without reasoning growth, contract sprawl, and other [Surface Expansion](equilibrium/surface-expansion.md) symptoms. Channeled productively by the OBSERVE off-ramp (claim convergence) and the OUT_OF_SCOPE off-ramp (note convergence) — engagement gets a place to go that doesn't trigger destructive revision. See [Production Drive](design-notes/production-drive.md).
 
-**Production protocol.** A protocol shape — one-shot, terminates on output production rather than iterating toward a graph predicate. Safety properties are output contracts plus invariants on the running execution. [Consultation](#c) and [note decomposition](#n) are production protocols. Distinct from [convergence-shaped](#c) protocols (note convergence, claim convergence) which iterate. The shape is implicit in the protocol name — readers see "consultation" or "decomposition" and know it produces; readers see "convergence" and know it iterates. See [protocols README](protocols/README.md#two-protocol-shapes).
+**Production protocol.** A protocol shape — one-shot, terminates on output production rather than iterating toward a graph predicate. Safety properties are output contracts plus invariants on the running execution. [Consultation](#c) and [claim derivation](#n) are production protocols. Distinct from [convergence-shaped](#c) protocols (note convergence, claim convergence) which iterate. The shape is implicit in the protocol name — readers see "consultation" or "decomposition" and know it produces; readers see "convergence" and know it iterates. See [protocols README](protocols/README.md#two-protocol-shapes).
 
 **Prose coinage.** The atomic event of coining a new prose word for a concept no existing vocabulary captures precisely (e.g., "action point," "divergence," "subspace"). Occurs in two modes: [synthesis coinage](#s) and [review coinage](#r). Precedes [prose compression](patterns/prose-compression.md). See [Prose Coinage pattern](patterns/prose-coinage.md).
 
@@ -276,7 +276,7 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 
 **Sprawl.** See Contract Sprawl, Prose Sprawl, Index Sprawl.
 
-**Stage protocol.** A protocol that drives one representation toward completion within the [maturation protocol](#m). Four stage protocols: [note convergence](#n), [note decomposition](#n), [claim convergence](#c), verification. Each has its own participants, exchange format, and termination criterion (a convergence predicate or an output contract, depending on shape). The maturation protocol supervises transitions between them. Distinct from the meta-protocol that supervises them, and from [consultation](#c) which is note convergence's upstream producer rather than a stage protocol. See [Maturation Protocol](protocols/maturation-protocol.md).
+**Stage protocol.** A protocol that drives one representation toward completion within the [maturation protocol](#m). Four stage protocols: [note convergence](#n), [claim derivation](#n), [claim convergence](#c), verification. Each has its own participants, exchange format, and termination criterion (a convergence predicate or an output contract, depending on shape). The maturation protocol supervises transitions between them. Distinct from the meta-protocol that supervises them, and from [consultation](#c) which is note convergence's upstream producer rather than a stage protocol. See [Maturation Protocol](protocols/maturation-protocol.md).
 
 **Structural finding.** A review finding whose root cause is structural rather than semantic — duplicated declarations, dangling references, metadata disagreement, dependency-graph cycles. Symptom of an [Uncontracted Representation Change](equilibrium/uncontracted-representation-change.md).
 
@@ -290,7 +290,7 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 
 **Synthesis.** The step integrating theory-channel and evidence-channel outputs into a structured note with dependency-mapped claims. The first place both perspectives meet — agreements validate, disagreements seed new hypotheses. Roughly 70% of a note's vocabulary coinage happens here. See [Two-Channel Architecture](two-channel-architecture.md).
 
-**Synthesis (link type).** A substrate `provenance.synthesis` link records that consultation produced a note from an inquiry. From = inquiry, to = note. Provenance trail from the inquiry to its synthesized output. Filed by the consultation protocol. Sibling of `provenance.decomposition`, `provenance.extract`, `provenance.absorb`, `provenance.reset`. See [Consultation Protocol](protocols/consultation-protocol.md).
+**Synthesis (link type).** A substrate `provenance.synthesis` link records that consultation produced a note from an inquiry. From = inquiry, to = note. Provenance trail from the inquiry to its synthesized output. Filed by the consultation protocol. Sibling of `provenance.derivation`, `provenance.extract`, `provenance.absorb`, `provenance.reset`. See [Consultation Protocol](protocols/consultation-protocol.md).
 
 **Synthesis coinage.** [Prose coinage](patterns/prose-coinage.md) that occurs at the synthesis step when two-channel outputs are reconciled. Roughly 70% of a note's coinages happen here, because synthesis is where incompatible vocabularies must be merged into a single note and no existing word may fit precisely. Contrasts with [review coinage](#r) which happens during later review/revise cycles.
 
@@ -300,7 +300,7 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 
 **Theory channel.** The agent channel that consults established theory (design documents, domain models) and makes predictions. Forbidden from referring to specific evidence. Its question generator sees a vocabulary list of the framework's own terms (vocabulary-in-prompt) because theory space is conceptual and listable. See [Two-Channel Architecture](two-channel-architecture.md).
 
-**Transition condition.** What the [maturation protocol](#m) evaluates to decide a representation is ready to advance to the next stage. Each transition has a readiness signal (predicate truth or sustained quiet) and a handoff artifact (what gets passed to the next stage). Transitions: discovery→note decomposition (note convergence predicate plus sustained quiet), note decomposition→claim convergence (claim file contract validates), claim convergence→verification (claim convergence predicate plus coverage), verification→done. See [Maturation Protocol](protocols/maturation-protocol.md).
+**Transition condition.** What the [maturation protocol](#m) evaluates to decide a representation is ready to advance to the next stage. Each transition has a readiness signal (predicate truth or sustained quiet) and a handoff artifact (what gets passed to the next stage). Transitions: discovery→claim derivation (note convergence predicate plus sustained quiet), claim derivation→claim convergence (claim file contract validates), claim convergence→verification (claim convergence predicate plus coverage), verification→done. See [Maturation Protocol](protocols/maturation-protocol.md).
 
 **Transitional failure.** An [equilibrium](equilibrium/) pattern whose force acts at a representation boundary introduced by a stage transition. Fixed once per boundary (by specifying and enforcing the output contract that the transition introduces); recurs at every new boundary because producing is easier than specifying. Contrasts with [gravitational failure](#g) and [oscillatory failure](#o). [Uncontracted Representation Change](equilibrium/uncontracted-representation-change.md) is the transitional pattern documented so far.
 

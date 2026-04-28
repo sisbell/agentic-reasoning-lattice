@@ -80,7 +80,7 @@ A cone can articulation-converge without match-converging. Those land in the nov
 
 ## Domain specifics for science
 
-The underlying machinery (two-channel discovery via the [consultation protocol](../protocols/consultation-protocol.md), note convergence, note decomposition, claim convergence, cone structure, scope promotion, lattice) is shared with the [software domain](../software/README.md). What's specific to science:
+The underlying machinery (two-channel discovery via the [consultation protocol](../protocols/consultation-protocol.md), note convergence, claim derivation, claim convergence, cone structure, scope promotion, lattice) is shared with the [software domain](../software/README.md). What's specific to science:
 
 - **Verifier at each scope:** reproducibility-precision ("could another lab test this?") rather than proof-soundness.
 - **Evidence channel:** query interface over measurements / simulation tools rather than code reading. Agent answers specific mechanical questions with cited values, not whole-source dumps.

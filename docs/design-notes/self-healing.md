@@ -48,7 +48,7 @@ Criterion 1 is load-bearing for a specific reason: see [Observation-layer limita
 
 ### Stage transitions
 
-**Vocabulary convergence (discovery → note decomposition readiness).** When a note's review/revise cycles stop introducing new coinages or new upstream terms, the note has finished its invention work. Signal: zero new italicized prose terms or coined operators across the last N cycles. The [maturation protocol](../protocols/maturation-protocol.md) uses this as part of the discovery → note decomposition transition condition alongside the [note convergence protocol](../protocols/note-convergence-protocol.md)'s predicate. *Operational as a transition signal.*
+**Vocabulary convergence (discovery → claim derivation readiness).** When a note's review/revise cycles stop introducing new coinages or new upstream terms, the note has finished its invention work. Signal: zero new italicized prose terms or coined operators across the last N cycles. The [maturation protocol](../protocols/maturation-protocol.md) uses this as part of the discovery → claim derivation transition condition alongside the [note convergence protocol](../protocols/note-convergence-protocol.md)'s predicate. *Operational as a transition signal.*
 
 **Proof correctness drift after foundation changes.** A downstream proof might remain technically valid after a foundation changes but no longer cite the most precise axiom. No mechanism currently evaluates this. *Speculative.*
 

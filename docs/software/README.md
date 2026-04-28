@@ -75,7 +75,7 @@ See [Legacy Software Discovery](../patterns/two-data-authorities-legacy-software
 
 ## What transfers to other domains
 
-The machinery (two-channel discovery via the [consultation protocol](../protocols/consultation-protocol.md), [note convergence](../protocols/note-convergence-protocol.md), [note decomposition](../protocols/note-decomposition-protocol.md), [claim convergence](../protocols/claim-convergence-protocol.md), cone structure, scope promotion, lattice) is domain-general. What changes across domains is the verifier at each scope. The [science domain approach](../science/README.md) describes the parallel framing for scientific discovery, where the verifier becomes experimental reproducibility rather than Dafny proof.
+The machinery (two-channel discovery via the [consultation protocol](../protocols/consultation-protocol.md), [note convergence](../protocols/note-convergence-protocol.md), [claim derivation](../protocols/claim-derivation-protocol.md), [claim convergence](../protocols/claim-convergence-protocol.md), cone structure, scope promotion, lattice) is domain-general. What changes across domains is the verifier at each scope. The [science domain approach](../science/README.md) describes the parallel framing for scientific discovery, where the verifier becomes experimental reproducibility rather than Dafny proof.
 
 ## Related
 

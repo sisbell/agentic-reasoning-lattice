@@ -29,7 +29,7 @@ broad (discovery)
   └── verify the whole ←──┘
 ```
 
-The narrowing is progressive. Discovery works at full-note scope. Note decomposition breaks it into claims. Claim convergence reviews each claim. When claim-level review stalls on a [dependency cone](dependency-cone.md), cone-scoped review widens to the cluster. [Verify the whole](verify-the-whole.md) checks that the hardened pieces cohere.
+The narrowing is progressive. Discovery works at full-note scope. Claim derivation breaks it into claims. Claim convergence reviews each claim. When claim-level review stalls on a [dependency cone](dependency-cone.md), cone-scoped review widens to the cluster. [Verify the whole](verify-the-whole.md) checks that the hardened pieces cohere.
 
 ## Leads to
 
@@ -39,9 +39,9 @@ The narrowing is progressive. Discovery works at full-note scope. Note decomposi
 
 ## Applications
 
-### Note decomposition
+### Claim derivation
 
-Discovery produces a 15-page note. Note decomposition narrows: decompose into sections, enrich each section with type/dependencies/vocabulary, disassemble into per-claim file pairs. Each claim is now a self-contained unit that claim convergence can work on independently.
+Discovery produces a 15-page note. Claim derivation narrows: decompose into sections, enrich each section with type/dependencies/vocabulary, disassemble into per-claim file pairs. Each claim is now a self-contained unit that claim convergence can work on independently.
 
 ### Claim convergence
 
@@ -55,4 +55,4 @@ Even discovery uses scope narrowing. The [consultation protocol](../protocols/co
 
 ## Origin
 
-The narrowing was present from the start — note decomposition was created because discovery-scale documents were too broad to converge. The adjustment (widening when stuck) was discovered through the dependency cone on ASN-0036. The pattern was recognized when the history showed a consistent sequence: narrow to make progress, hit a wall at tight coupling, widen until the problem is visible, settle at the scope that matches.
+The narrowing was present from the start — claim derivation was created because discovery-scale documents were too broad to converge. The adjustment (widening when stuck) was discovered through the dependency cone on ASN-0036. The pattern was recognized when the history showed a consistent sequence: narrow to make progress, hit a wall at tight coupling, widen until the problem is visible, settle at the scope that matches.

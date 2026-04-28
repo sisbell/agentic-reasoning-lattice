@@ -1,6 +1,6 @@
 # Claim Convergence
 
-Discovery finds the claims of a system. Note decomposition makes them individually addressable. Claim convergence makes them true.
+Discovery finds the claims of a system. Claim derivation makes them individually addressable. Claim convergence makes them true.
 
 A lattice contains candidate claims, but they carry contradictions, imprecisions, and unstated assumptions. Claims that were independently reasonable turn out to conflict when forced to coexist in a single formal system. Edge cases that narrative reasoning glossed over become unavoidable when every claim must be proven exhaustively. Claim convergence is where this resolution happens.
 
@@ -10,7 +10,7 @@ Discovery produces claims independently. Each claim is reasonable in isolation. 
 
 These contradictions are the raw material. By demanding precision — exact preconditions, exhaustive case coverage, explicit dependencies — claim convergence resolves them and surfaces structure that was hidden in the vagueness.
 
-Note decomposition delivers per-claim files whose structural form satisfies the [Claim File Contract](design-notes/claim-file-contract.md) — one body per file, references resolve, metadata agrees with content. The semantic content is deliberately incomplete: type classifications are best-effort, dependencies may be imprecise, proofs may have gaps. Claim convergence tightens all of it. But it operates on structurally valid state from the start — the [Validation Principle](principles/validation.md) guarantees this.
+Claim derivation delivers per-claim files whose structural form satisfies the [Claim File Contract](design-notes/claim-file-contract.md) — one body per file, references resolve, metadata agrees with content. The semantic content is deliberately incomplete: type classifications are best-effort, dependencies may be imprecise, proofs may have gaps. Claim convergence tightens all of it. But it operates on structurally valid state from the start — the [Validation Principle](principles/validation.md) guarantees this.
 
 ## Reasoning, not polish
 

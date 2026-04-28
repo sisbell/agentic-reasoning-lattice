@@ -9,7 +9,7 @@ A protocol defines what must hold (the convergence predicate, the output contrac
 Protocols in this system come in two shapes:
 
 - **Convergence-shaped** — iterative; terminates when a graph predicate holds. Note Convergence, Claim Convergence. Safety/liveness include indication soundness for the predicate.
-- **Production-shaped** — one-shot; terminates on output production. Consultation, Note Decomposition. Safety properties are output contracts plus invariants on the running execution.
+- **Production-shaped** — one-shot; terminates on output production. Consultation, Claim Derivation. Safety properties are output contracts plus invariants on the running execution.
 
 Both are full Cachin protocols — declared participants, declared events, declared safety/liveness. The shape is a property of how each is driven, not a separate category. The names already carry the distinction: a reader sees "Convergence" and knows it iterates; a reader sees "Consultation" or "Decomposition" and knows it produces.
 
@@ -18,8 +18,8 @@ Both are full Cachin protocols — declared participants, declared events, decla
 Content matures through four stages, each with its own protocol or protocols:
 
 ```
-─── discovery stage ──────────                ─── note decomposition → claim convergence ─        ── verification ──
- Consultation ──→ Note Convergence  ──→  Note Decomposition ──→ Claim Convergence      ──→  (Verification, TBD)
+─── discovery stage ──────────                ─── claim derivation → claim convergence ─        ── verification ──
+ Consultation ──→ Note Convergence  ──→  Claim Derivation ──→ Claim Convergence      ──→  (Verification, TBD)
  (production)     (convergence)          (production)            (convergence)
                                                                                                                 
        │                  │                       │                       │
@@ -52,7 +52,7 @@ Above the pipeline sits the meta-protocol:
                            └──────────────────────────────────────────┘
 ```
 
-The layering enforces what is actually shared vs. what is scale-specific. Both convergence protocols use the same predicate, comment/resolution machinery, and safety guarantees — written once in the convergence module. Each specialization adds what its scale needs: note convergence adds OUT_OF_SCOPE routing for lattice signals; claim convergence adds structural validation, the algorithm, and correctness arguments. The production protocols sit upstream of (consultation) or between (note decomposition) the convergence protocols — they don't specialize the convergence module because they don't have a predicate.
+The layering enforces what is actually shared vs. what is scale-specific. Both convergence protocols use the same predicate, comment/resolution machinery, and safety guarantees — written once in the convergence module. Each specialization adds what its scale needs: note convergence adds OUT_OF_SCOPE routing for lattice signals; claim convergence adds structural validation, the algorithm, and correctness arguments. The production protocols sit upstream of (consultation) or between (claim derivation) the convergence protocols — they don't specialize the convergence module because they don't have a predicate.
 
 ## The protocols
 
@@ -64,9 +64,9 @@ Listed by pipeline position. The shape of each is one-line:
 
 - **[Note Convergence Protocol](note-convergence-protocol.md)** — *convergence*; iterative, terminates when the predicate holds. Drives notes to stability through review/revise cycles. Specializes the convergence protocol with `note` classifier, `citation` link type (note→note), and `comment.out-of-scope` as the off-ramp. OUT_OF_SCOPE findings do not block the predicate; they signal the maturation protocol that the lattice needs structural work.
 
-### Note decomposition → claim convergence
+### Claim derivation → claim convergence
 
-- **[Note Decomposition Protocol](note-decomposition-protocol.md)** — *production*; one-shot, terminates when the structural contract holds. Decomposes a converged note into per-claim file pairs (YAML metadata + Markdown body) conforming to the [Claim File Contract](../design-notes/claim-file-contract.md). Safety properties: source coverage, no fabrication, content preservation, source freezing, structural contract, acyclicity, provenance recording. Stage transition (changes representation: one note → many claim files), not a producer-consumer pair. The output enters claim convergence.
+- **[Claim Derivation Protocol](claim-derivation-protocol.md)** — *production*; one-shot, terminates when the structural contract holds. Decomposes a converged note into per-claim file pairs (YAML metadata + Markdown body) conforming to the [Claim File Contract](../design-notes/claim-file-contract.md). Safety properties: source coverage, no fabrication, content preservation, source freezing, structural contract, acyclicity, provenance recording. Stage transition (changes representation: one note → many claim files), not a producer-consumer pair. The output enters claim convergence.
 
 - **[Claim Convergence Protocol](claim-convergence-protocol.md)** — *convergence*; iterative, terminates when the predicate holds. Drives claims to formal precision. Specializes the convergence protocol with `claim` classifier, `contract.<kind>` link types, `citation` (claim→claim), and structural validation. Includes the iterative algorithm and its correctness arguments.
 
@@ -88,7 +88,7 @@ For someone new to the protocols, reading bottom-up tracks the actual dependency
 2. **[Agent Module](agent.md)** — the identity layer extending the substrate for the agent paradigm. Short module; introduces `agent` and `manages` and the per-asserter ordering rule cited via T9.
 3. **[Convergence Protocol](convergence-protocol.md)** — the shared foundation. Once this is clear, both convergence-shaped specializations are straightforward.
 4. **[Note Convergence Protocol](note-convergence-protocol.md)** or **[Claim Convergence Protocol](claim-convergence-protocol.md)** — pick whichever scale matches your interest. They're independent specializations of the foundation.
-5. **[Consultation Protocol](consultation-protocol.md)** and **[Note Decomposition Protocol](note-decomposition-protocol.md)** — the production-shaped protocols. Easier to read after you know what convergence looks like, since these produce input for it.
+5. **[Consultation Protocol](consultation-protocol.md)** and **[Claim Derivation Protocol](claim-derivation-protocol.md)** — the production-shaped protocols. Easier to read after you know what convergence looks like, since these produce input for it.
 6. **[Maturation Protocol](maturation-protocol.md)** — composition over the pipeline. Easier to read after the stage protocols are familiar.
 
 For someone already familiar with the system's behavior, top-down works too: maturation explains the pipeline; stage protocols explain how each stage drives toward its predicate or contract; the convergence module factors out what the convergence-shaped protocols share.
@@ -100,7 +100,7 @@ Protocols define correctness conditions on the link graph (or output artifact, f
 - **Coverage** — whether reviews have actually happened. The convergence predicate is trivially satisfied by zero reviews. Coverage is a choreography obligation.
 - **Algorithm** (for the convergence module only) — how to drive the predicate true. The shared convergence module defines the predicate without prescribing how to make it hold; each specialization (note convergence, claim convergence) adds its own algorithm, and each production protocol describes its phases.
 - **Termination** (for convergence-shaped protocols) — convergence is not guaranteed. New revise comments can be filed indefinitely; rejected findings can be re-filed. Termination depends on choreography decisions and the finiteness of correctness issues.
-- **Idempotence** (for production-shaped protocols) — re-running on the same input produces a different output. LLM stochasticity in the channels (consultation) or in the per-claim passes (note decomposition) is real. Resume support exists; idempotence does not.
+- **Idempotence** (for production-shaped protocols) — re-running on the same input produces a different output. LLM stochasticity in the channels (consultation) or in the per-claim passes (claim derivation) is real. Resume support exists; idempotence does not.
 - **Ordering** — review order, comment-resolution order, scope assembly order, phase concurrency. Any ordering that satisfies the properties is valid.
 
 These are choreography concerns. They live in the algorithm sections, runbooks, and operational guides — not in the protocol specifications.

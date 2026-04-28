@@ -59,7 +59,7 @@ VALID_SUBTYPES = {
     # for replay and structural-history reconstruction.
     "provenance": {
         "synthesis",        # consultation: inquiry → note
-        "decomposition",    # note decomposition: note → claim
+        "derivation",       # claim derivation: note → claim
         "extract",          # maturation: existing notes → new foundation
         "absorb",           # maturation: note A material → note B
         "reset",            # maturation: hard-reset cascade marker

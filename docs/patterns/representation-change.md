@@ -20,7 +20,7 @@ narrative prose (discovery output)
   │
   representation change: decompose + structure
   │
-per-claim YAML + markdown (note decomposition output)
+per-claim YAML + markdown (claim derivation output)
   │
   representation change: converge
   │
@@ -33,9 +33,9 @@ Dafny/Alloy code (verification output)
 
 Each arrow is a representation change. The content at the top and bottom is the same claim. The form makes it progressively more precise and more mechanically checkable.
 
-## Composition: Note decomposition
+## Composition: Claim derivation
 
-Note decomposition is [scope narrowing](scope-narrowing.md) + representation change applied together.
+Claim derivation is [scope narrowing](scope-narrowing.md) + representation change applied together.
 
 **Scope narrowing**: a monolithic note is decomposed into individual claims. Each claim becomes an independently addressable unit.
 
@@ -47,9 +47,9 @@ Together they produce what claim convergence needs: small, structured, independe
 
 ## Applications
 
-### Discovery → note decomposition
+### Discovery → claim derivation
 
-Narrative prose → per-claim YAML/MD pairs. The largest representation gap in the system. Handled by progressive decomposition: mechanical section split → per-section claim identification → per-claim classification and enrichment → disassembly into file pairs → validation. See the [note decomposition protocol](../protocols/note-decomposition-protocol.md) for the formal specification.
+Narrative prose → per-claim YAML/MD pairs. The largest representation gap in the system. Handled by progressive decomposition: mechanical section split → per-section claim identification → per-claim classification and enrichment → disassembly into file pairs → validation. See the [claim derivation protocol](../protocols/claim-derivation-protocol.md) for the formal specification.
 
 ### Claim convergence → verification
 
@@ -67,10 +67,10 @@ Each [review/revise iteration](review-revise-iteration.md) cycle operates within
 
 [Scope narrowing](scope-narrowing.md) — representation change is a tool that scope narrowing reaches for when the current form doesn't support finer granularity. You can't narrow a narrative document into claims without changing its representation to structured files. Narrowing decides WHAT to focus on. Representation change provides the form that makes the focus possible. Not all narrowing requires representation change — cone-scoped review narrows to a cluster without changing form.
 
-[Narrow → Refine → Verify](narrow-refine-verify.md) — representation change serves the primary cycle but is not a phase within it. It happens when needed: before narrowing (note decomposition), after narrowing (extract/absorb), between refinement stages (claim convergence → verification). Refinement operates within a single representation — the representation is stable during the review/revise loop.
+[Narrow → Refine → Verify](narrow-refine-verify.md) — representation change serves the primary cycle but is not a phase within it. It happens when needed: before narrowing (claim derivation), after narrowing (extract/absorb), between refinement stages (claim convergence → verification). Refinement operates within a single representation — the representation is stable during the review/revise loop.
 
 [Uncontracted Representation Change](../equilibrium/uncontracted-representation-change.md) — the failure mode when a representation change is performed without specifying what well-formed output means at the new representation. Each arrow in the structure above carries implicit validity rules; the failure occurs when those rules stay implicit. The [Claim File Contract](../design-notes/claim-file-contract.md) is the first instance of making those rules explicit.
 
 ## Origin
 
-Present from the start — the system has always been discovery → note decomposition → claim convergence → verification, each stage producing a different representation of the same content. The pattern was implicit in the protocol architecture. It became explicit when note decomposition was redesigned from a single-pass LLM rewrite to progressive decomposition — the recognition that representation change must happen in small, verifiable steps, not in one large jump.
+Present from the start — the system has always been discovery → claim derivation → claim convergence → verification, each stage producing a different representation of the same content. The pattern was implicit in the protocol architecture. It became explicit when claim derivation was redesigned from a single-pass LLM rewrite to progressive decomposition — the recognition that representation change must happen in small, verifiable steps, not in one large jump.

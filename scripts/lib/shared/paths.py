@@ -95,10 +95,10 @@ WORKSPACE_DIR = LATTICE / "_workspace"
 CLAIM_FINDINGS_DIR = WORKSPACE_DIR / "findings" / "claims"
 NOTE_FINDINGS_DIR = WORKSPACE_DIR / "findings" / "notes"
 
-# Note decomposition audit trail (per-section content + LLM analyses).
-# Decomposition's intermediate state lives here; the per-claim outputs
+# Claim derivation audit trail (per-section content + LLM analyses).
+# Derivation's intermediate state lives here; the per-claim outputs
 # go to the docuverse (CLAIM_DIR) directly in D2.
-NOTE_DECOMPOSITION_DIR = WORKSPACE_DIR / "note-decomposition"
+CLAIM_DERIVATION_DIR = WORKSPACE_DIR / "claim-derivation"
 
 
 def _findings_dir_for_kind(kind):

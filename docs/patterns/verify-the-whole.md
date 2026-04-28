@@ -72,7 +72,7 @@ When claim convergence on one note discovers something that affects another (a s
 Scope narrowing and verify the whole always appear together. Every narrowing step needs a corresponding verification at the original width:
 
 - Discovery narrows via scoped inquiry → synthesis verifies the whole consultation
-- Note decomposition narrows into claims → the [claim convergence protocol](../protocols/claim-convergence-protocol.md) reviews at progressively wider scope, with comprehensive-scope review verifying the whole note
+- Claim derivation narrows into claims → the [claim convergence protocol](../protocols/claim-convergence-protocol.md) reviews at progressively wider scope, with comprehensive-scope review verifying the whole note
 - Cone-scoped review narrows to a cluster → re-verifies the cluster's coherence
 - Extract/absorb narrows a shared concept into one definition → verify consuming documents still cohere
 

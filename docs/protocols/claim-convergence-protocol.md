@@ -251,7 +251,7 @@ CS2 (retraction idempotence) inherits from SUB6: multiple retractions of the sam
 
 ### Within the maturation protocol
 
-The [maturation protocol](maturation-protocol.md) activates claim convergence when note decomposition's structural contract holds and claim convergence's preconditions are met — structural form satisfies the [Claim File Contract](../design-notes/claim-file-contract.md).
+The [maturation protocol](maturation-protocol.md) activates claim convergence when claim derivation's structural contract holds and claim convergence's preconditions are met — structural form satisfies the [Claim File Contract](../design-notes/claim-file-contract.md).
 
 ```
 Module: Maturation

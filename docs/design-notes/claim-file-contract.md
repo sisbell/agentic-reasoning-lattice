@@ -1,8 +1,8 @@
 # Claim File Contract
 
-The output contract for note decomposition. Specifies what well-formed per-claim files look like — what must be true when note decomposition finishes, and what must remain true across every review/revise cycle. The first instance of the transition-contract resolution for [Uncontracted Representation Change](../equilibrium/uncontracted-representation-change.md).
+The output contract for claim derivation. Specifies what well-formed per-claim files look like — what must be true when claim derivation finishes, and what must remain true across every review/revise cycle. The first instance of the transition-contract resolution for [Uncontracted Representation Change](../equilibrium/uncontracted-representation-change.md).
 
-Scope: this contract governs the per-claim outputs produced by the [note decomposition protocol](../protocols/note-decomposition-protocol.md). For each claim the protocol produces:
+Scope: this contract governs the per-claim outputs produced by the [claim derivation protocol](../protocols/claim-derivation-protocol.md). For each claim the protocol produces:
 
 - a body markdown file `<label>.md` carrying the claim's prose, proof, and Formal Contract section,
 - three sidecar markdown files — `<label>.label.md`, `<label>.name.md`, `<label>.description.md` — carrying the claim's substrate-managed attributes,
@@ -57,11 +57,11 @@ Consequence: when a mismatch is found, the fix is to update the label sidecar or
 
 9. **Body uniqueness.** A given claim's body (bold declaration, proof, formal contract) appears in exactly one file — the body markdown whose filename stem matches the claim. No claim's body is inlined into another claim's file.
 
-### Transition-checkable — validator runs once, at the end of note decomposition
+### Transition-checkable — validator runs once, at the end of claim derivation
 
 10. **Source coverage.** Every claim in the source note produces exactly one file set. No source claim is dropped; no source claim is duplicated into multiple file sets.
 
-11. **No orphan output.** Every file set in the output corresponds to a claim in the source note. Note decomposition does not invent claims.
+11. **No orphan output.** Every file set in the output corresponds to a claim in the source note. Claim derivation does not invent claims.
 
 12. **Content preservation.** Each source claim's narrative, proof, and formal contract text appears — substantively, not necessarily byte-identically — in its corresponding body markdown. A mechanical version of this check: the body markdown's non-boilerplate text is non-empty and contains the claim's summary terms. Anything stronger is a semantic check and belongs to review.
 
@@ -69,7 +69,7 @@ Consequence: when a mismatch is found, the fix is to update the label sidecar or
 
 ## Semantic invariants — review enforces, not validator
 
-These are established at note decomposition and must be preserved by authoring discipline. They surface as review findings when violated, not as validator errors.
+These are established at claim derivation and must be preserved by authoring discipline. They surface as review findings when violated, not as validator errors.
 
 S1. **Description matches body.** The description sidecar describes what the body claims. Not a restatement of the formal contract; not stale after a revise changes the body.
 
@@ -81,7 +81,7 @@ S3. **Symbol usage matches declaration.** A symbol declared with a given signatu
 
 Three points where the contract is checked:
 
-- **End of note decomposition.** Validator runs all structural invariants (steady-state and transition-checkable). Catches decomposition bugs before they become inherited state downstream.
+- **End of claim derivation.** Validator runs all structural invariants (steady-state and transition-checkable). Catches decomposition bugs before they become inherited state downstream.
 - **Before each review cycle.** Validator runs steady-state structural invariants only. Catches drift introduced by prior revise commits, manual edits, or foundation rebases. Runs before the reviewer so the reviewer does not spend cycles on mechanically-detectable symptoms.
 - **During review.** Reviewer checks semantic invariants as part of its normal operation. Validator does not touch these.
 
@@ -99,6 +99,6 @@ Running the validator before the reviewer eliminates the reviewer's work on mech
 - [Validate Before Review](../patterns/validate-before-review.md) — the operational pattern that consumes this contract. Its validator runs the contract's structural invariants; its per-invariant revise recipes address the violations it finds.
 - [Uncontracted Representation Change](../equilibrium/uncontracted-representation-change.md) — the failure mode this contract addresses. The T4 sweep's non-convergence was a concrete instance: sixteen cycles spent on symptoms of structural violations because no contract specified what well-formed per-claim output meant.
 - [Representation Change](../patterns/representation-change.md) — the pattern this contract's existence is a consequence of. Every representation change introduces new structural rules; this contract is the first such rule set written down.
-- [Note Decomposition Protocol](../protocols/note-decomposition-protocol.md) — the protocol whose output this contract governs.
-- [Note Decomposition](../note-decomposition.md) — the narrative guide for the stage.
+- [Claim Derivation Protocol](../protocols/claim-derivation-protocol.md) — the protocol whose output this contract governs.
+- [Claim Derivation](../claim-derivation.md) — the narrative guide for the stage.
 - [Self-Healing Areas](self-healing.md) — the steady-state structural invariants here are the mechanical-signal self-healing candidates named in that map.

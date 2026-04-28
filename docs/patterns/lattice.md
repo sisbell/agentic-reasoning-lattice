@@ -21,7 +21,7 @@ The lattice operates at two granularities simultaneously:
 
 The two are not separate structures. Note-level is a coarser view of the same lattice. Each note contains many claims. Each note-level dependency decomposes into claim-level dependencies once both endpoints have been decomposed and converged. See [Architecture](../architecture.md) for the full lifecycle and the visibility rule that governs which granularity a given consumer sees.
 
-**Note decomposition bridges the two.** It is [scope narrowing](scope-narrowing.md) + [representation change](representation-change.md) applied together: a note at the note-level becomes many per-claim file pairs at the claim-level. This is how reasoning moves from discovery's note granularity to claim convergence's claim granularity. The content is the same — the lattice gains resolution.
+**Claim derivation bridges the two.** It is [scope narrowing](scope-narrowing.md) + [representation change](representation-change.md) applied together: a note at the note-level becomes many per-claim file pairs at the claim-level. This is how reasoning moves from discovery's note granularity to claim convergence's claim granularity. The content is the same — the lattice gains resolution.
 
 With [Xanadu protocols](../vision.md), the two granularities collapse into one linked structure. Transclusion lets you view at either scope. A note is a collection of claim links. A claim is a node with links to its dependencies.
 
@@ -94,10 +94,10 @@ The lattice at the note level currently contains notes organized into layers:
 - **Structure**: ASN-0036 (strand model), ASN-0040 (tumbler baptism) — state model, addressing
 - **Dynamics**: operation notes (INSERT, DELETE, REARRANGE, COPY) — state transitions
 
-At the claim level within ASN-0034 there are 62 claims. Within ASN-0036, 32 claims. Each was discovered through note decomposition (representation change from note to claim granularity) and refined through claim convergence.
+At the claim level within ASN-0034 there are 62 claims. Within ASN-0036, 32 claims. Each was discovered through claim derivation (representation change from note to claim granularity) and refined through claim convergence.
 
 Foundation was extracted when ASN-0036 and others independently defined tumbler operations. ASN-0045 was eliminated when its claims were found to be corollaries of ASN-0034. ASN-0047 was restructured into pure transition algebra after extraction pushed bridge definitions down. Each extraction was discovered, not planned.
 
 ## Origin
 
-The note-level view emerged during discovery on the Xanadu formalization — notes accumulated, dependencies formed, shared concepts were extracted. The claim-level view emerged during claim convergence — note decomposition decomposed notes into claims, and claim convergence revealed the fine-grained dependency structure within each note. The two granularities were recognized when the same patterns (meet, join, rebase) appeared at both scales.
+The note-level view emerged during discovery on the Xanadu formalization — notes accumulated, dependencies formed, shared concepts were extracted. The claim-level view emerged during claim convergence — claim derivation decomposed notes into claims, and claim convergence revealed the fine-grained dependency structure within each note. The two granularities were recognized when the same patterns (meet, join, rebase) appeared at both scales.

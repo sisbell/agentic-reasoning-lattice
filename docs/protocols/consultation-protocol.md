@@ -228,7 +228,7 @@ The algorithm terminates when ⟨ NoteProduced ⟩ is indicated (success) or whe
 
 The consultation protocol is the upstream producer for the [note convergence protocol](note-convergence-protocol.md). The artifact — the note document — is the same throughout: consultation produces the initial draft; note convergence refines it through review/revise cycles. Both protocols operate on the same `note` classifier.
 
-This is a producer-consumer relationship, not a stage transition. Stage transitions (discovery → note decomposition → claim convergence) change the representation. Consultation → note convergence does not change representation — both operate on the same note. They differ in shape (one-shot production vs. iterative convergence), not in artifact.
+This is a producer-consumer relationship, not a stage transition. Stage transitions (discovery → claim derivation → claim convergence) change the representation. Consultation → note convergence does not change representation — both operate on the same note. They differ in shape (one-shot production vs. iterative convergence), not in artifact.
 
 ```
 Module: Discovery
@@ -264,7 +264,7 @@ Note convergence is the downstream protocol that detects what consultation faile
 
 - [Two-Channel Architecture](../two-channel-architecture.md) — narrative description of channels, vocabulary firewall, channel asymmetry, synthesis, channel plugin interface.
 - [Note Convergence Protocol](note-convergence-protocol.md) — the downstream consumer. Refines the note this protocol produces.
-- [Note Decomposition Protocol](note-decomposition-protocol.md) — the protocol that operates on the note after convergence, decomposing it into per-claim files.
+- [Claim Derivation Protocol](claim-derivation-protocol.md) — the protocol that operates on the note after convergence, decomposing it into per-claim files.
 - [Convergence Protocol](convergence-protocol.md) — the document-type-neutral module note convergence specializes (consultation does not specialize it; production protocols and convergence protocols share the substrate but not the predicate).
 - [Maturation Protocol](maturation-protocol.md) — composes consultation and note convergence within discovery.
 - [The Voice Principle](../principles/voice.md) — synthesizer's output discipline.
