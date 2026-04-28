@@ -27,7 +27,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
 from store.store import default_store
 from store.retract import emit_retraction
-from store.populate import build_cross_asn_label_index
+from store.populate import build_doc_label_index
 
 
 def main():
@@ -47,7 +47,7 @@ def main():
     store = default_store()
     try:
         try:
-            label_index = build_cross_asn_label_index(store=store)
+            label_index = build_doc_label_index(store, claim_path)
             link_id, created = emit_retraction(
                 store, claim_path, args.to, label_index,
             )

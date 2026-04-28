@@ -69,6 +69,44 @@ def build_cross_asn_label_index(claim_convergence_dir=None, store=None):
     return _build_label_index_from_yaml(claim_convergence_dir)
 
 
+def build_note_label_index(store):
+    """Return {ASN-NNNN: repo-relative note md path} across every note.
+
+    Sources from substrate `note` classifier links. Notes use their ASN
+    label (e.g., "ASN-0009") as the citation target — there is no
+    separate label primitive at note scale.
+    """
+    import re
+    from lib.store.queries import active_links
+    index = {}
+    for link in active_links(store, "note"):
+        if not link["to_set"]:
+            continue
+        note_path = link["to_set"][0]
+        m = re.search(r"(ASN-\d+)", Path(note_path).name)
+        if m:
+            index[m.group(1)] = note_path
+    return index
+
+
+def is_note_path(doc_path):
+    """True iff doc_path is under any lattice's discovery/notes/ directory."""
+    rel = str(doc_path)
+    return "/discovery/notes/" in rel
+
+
+def build_doc_label_index(store, doc_path):
+    """Return the label-to-doc index appropriate for `doc_path`.
+
+    Note docs use ASN-NNNN as the citation target; claim docs use claim
+    labels (T0, NAT-zero, ...). Callers pass the from-doc; this picks
+    the matching index for `--to <label>` resolution.
+    """
+    if is_note_path(doc_path):
+        return build_note_label_index(store)
+    return build_cross_asn_label_index(store=store)
+
+
 def _build_label_index_from_substrate(store):
     from lib.store.queries import active_links
     workspace = Path(WORKSPACE).resolve()
