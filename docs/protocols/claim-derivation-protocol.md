@@ -157,24 +157,24 @@ These three semantic invariants are documented in the [Claim File Contract](../d
 
 ---
 
-## 6 Algorithm: split → enrich → transclude → validate
+## 6 Algorithm: split → enrich → transclude → produce-contract → validate-gate
 
 Implements: Claim Derivation Protocol (§1–§5).
 Uses: Substrate (§2.1), Structural Validator (§2.2), Decomposition prompts (§2.3).
 
-The algorithm is one-shot — a single ⟨ Decompose ⟩ invocation produces at most one claim set. Four phases: split, enrich, transclude, validate. There is no convergence loop.
+Five phases. The first three are sequential one-shots. The fourth (produce-contract) iterates per-claim with bounded retries internal to that phase. The fifth (validate-gate) is a bounded structural-only fix loop that terminates on contract satisfaction or maximum-iterations. The protocol does not run review/revise on semantic content — that is claim convergence's role.
 
 ### 6.1 State
 
-- *note* — the input note document.
-- *sections* — intermediate result: list of (header, content) pairs after mechanical split.
-- *section_yamls* — intermediate result: per-section YAML analyses listing each section's claims.
-- *claim_pairs* — output: per-claim `{label}.yaml` + `{label}.md` files on disk.
+- *note* — the input note document (read directly from the docuverse, not copied).
+- *sections* — intermediate result: list of (header, content) pairs after mechanical split, written to `_workspace/claim-derivation/<asn>/sections/`.
+- *section_yamls* — intermediate result: per-section YAML analyses listing each section's claims and metadata.
+- *claim_set* — output: per-claim body markdown + sidecars in `_docuverse/documents/claim/<asn>/`, plus the substrate links described in §1.
 
 ### 6.2 Phase 1 — Split
 
 ```
-upon ⟨ Decompose | note ⟩ do
+upon ⟨ Derive | note ⟩ do
   sections ← split_at_headers(note)            ; deterministic
   section_yamls ← []
   for (header, content) in sections in parallel:
@@ -184,7 +184,7 @@ upon ⟨ Decompose | note ⟩ do
     section_yamls.append((header, yaml_analysis))
 ```
 
-Mechanical section split is deterministic — splits the note's markdown at `##` headers. Per-section LLM analysis runs in parallel across sections. Each LLM call produces structured YAML listing the section's claims (label, name, body, formal contract). The `is_structural` predicate is a closed list defined in the decomposer implementation — currently `PREAMBLE`, `Claims Introduced`, `Open Questions`, and `Worked example`. Sections matching these headers contain metadata, indexes, or illustrative content rather than derivable claims. The list extends if new structural section conventions are adopted in the note format.
+Mechanical section split is deterministic — splits the note's markdown at `##` headers. Per-section LLM analysis runs in parallel across sections. Each LLM call produces structured YAML listing the section's claims (label, name, body extract). The `is_structural` predicate is a closed list defined in the decomposer implementation — currently `PREAMBLE`, `Claims Introduced`, `Open Questions`, and `Worked example`. Sections matching these headers contain metadata, indexes, or illustrative content rather than derivable claims.
 
 ### 6.3 Phase 2 — Enrich
 
@@ -204,39 +204,75 @@ Three independent LLM passes per claim. Each pass has a focused prompt and produ
 ```
 upon enrichment complete do
   for each claim in flatten(section_yamls):
-    write_yaml({label}.yaml, claim.metadata)
-    write_md({label}.md, claim.body + claim.formal_contract)
+    body ← find_in_source(note, claim.llm_body)       ; resolver
+    if body is None:
+      record_failure(claim); continue
+    write_md(<claim_dir>/<label>.md, body)             ; source bytes, not LLM bytes
+    write_md(<claim_dir>/<label>.label.md, label)      ; sidecar
+    write_md(<claim_dir>/<label>.name.md, name)        ; sidecar
+    emit_link(claim, body_md)                          ; classifier
+    emit_link(contract.<kind>, body_md)                ; if type set
+    emit_link(label, body_md → label_sidecar)
+    emit_link(name, body_md → name_sidecar)
+    for dep in claim.depends:
+      emit_link(citation, body_md → dep_md)
+  for each emitted claim:
+    emit_link(provenance.derivation, note → body_md)
+  relocate_structural_sections(_workspace/.../structural/)
 ```
 
-Deterministic write phase — no LLM. One `{label}.yaml` (metadata) + `{label}.md` (body + formal contract) pair per declared claim. The YAML carries `label`, `name`, `type`, `summary`, `depends`, and (where present) `vocabulary`. The markdown carries the claim's narrative body and its formal contract section.
+The body markdown is a verbatim byte-substring of the source note's region, resolved via the `find_in_source` helper (exact match, then whitespace-normalized). Strict by design — fuzzy matching is silent acceptance of unexplained drift, so the resolver fails loud on no-match and the failed claim is reported rather than written. Description sidecars are not emitted here — that responsibility lies with the summarize stage downstream of derivation.
 
-### 6.5 Phase 4 — Validate
+### 6.5 Phase 4 — Produce-contract
 
 ```
-upon disassembly complete do
-  violations ← validator.check(claim_pairs)
-  if violations is empty:
-    emit_substrate_links(note, claim_pairs)    ; B7
-    indicate ⟨ ClaimSetProduced | note, claim_pairs ⟩
-  else:
-    apply_fix_recipes(violations, claim_pairs)
-    violations ← validator.check(claim_pairs)
-    if violations is empty:
-      emit_substrate_links(note, claim_pairs)
-      indicate ⟨ ClaimSetProduced | note, claim_pairs ⟩
-    else:
-      indicate ⟨ DerivationFailed | note, violations ⟩
+upon transclude complete do
+  candidates ← find_claims_needing_quality(asn)
+  for each candidate (in dependency order, parallel within levels):
+    new_body ← invoke_llm(produce_contract_prompt, candidate, dep_context)
+    review_ok ← invoke_llm(review_rewrite_prompt, candidate, new_body)
+    if review_ok:
+      write_md(claim_path, new_body)
 ```
 
-The validator runs every steady-state and transition-checkable invariant from the Claim File Contract. For violations the protocol can auto-resolve (e.g., filename-doesn't-match-label → rename file), per-invariant fix recipes apply mechanically and the validator re-runs. If violations remain after the fix pass, the protocol fails with a violation report.
+Per-claim LLM rewrite that synthesizes the Formal Contract section in each claim's body markdown. Initial synthesis is the protocol's responsibility because the Claim File Contract's steady-state structural invariants (depends agreement, references resolve, declared symbols resolve) presuppose Formal Contract presence; claim convergence operates on already-contract-bearing claims.
 
-### 6.6 Termination
+The rewrite is bounded internally to three cycles per claim and gated by a review-rewrite prompt that checks for damage to Axioms, Preconditions, Postconditions, and other formal fields. Hash-based dirty detection skips claims whose prose is unchanged since the last successful rewrite, so re-running the protocol on a previously-derived ASN is incremental.
 
-The algorithm terminates on ⟨ ClaimSetProduced ⟩ or ⟨ DerivationFailed ⟩. There is no convergence loop — the validator runs at most twice (initial check + post-fix check). If a violation cannot be auto-resolved, the protocol fails rather than looping.
+After produce-contract, the body markdown is no longer a byte-substring of the source note — by design. The Claim File Contract's content-preservation invariant (transition-checkable invariant 12) holds at *transclude exit*, not at derivation exit; subsequent phases intentionally diverge.
 
-### 6.7 Known gap
+### 6.6 Phase 5 — Validate-gate
 
-The current implementation does not yet emit the substrate links specified in B7. The `claim` classifier, `contract.<kind>` classifier, `citation` links, and `provenance.derivation` link are filed by `populate-store.py` as a bootstrap mechanism, not by decomposition itself. B7 is therefore aspirational pending substrate emission inside the decomposition pipeline.
+```
+upon produce-contract complete do
+  for iteration ∈ 1..MAX_ITER:
+    findings ← validator.run_all_checks(claim_set)
+    actionable ← filter(findings, not_declined, not_acyclic)
+    if actionable is empty:
+      indicate ⟨ ClaimSetProduced | note, claim_set ⟩
+      return
+    if no_progress(actionable, prev):
+      break
+    declined ← validate_revise.run_passes(actionable)
+  indicate ⟨ DerivationFailed | note, remaining_findings ⟩
+```
+
+The same gate that claim convergence runs before each review cycle. The validator (mechanical, no LLM) runs every steady-state and transition-checkable structural invariant from the Claim File Contract. For each actionable finding it dispatches a per-rule fix-recipe prompt to an LLM; the recipe operates on a constrained surface (Depends bullets, label-position tokens, citation links) and is forbidden by prompt contract from modifying semantic content (proofs, Axioms, Preconditions, Postconditions). Decisions are captured in structured form (`__decisions.json`) that the orchestrator validates before accepting the work.
+
+The loop is bounded by MAX_ITER iterations (currently 3) plus a no-progress halt — if a round reduces no findings count, the gate halts. Findings the reviser declines (returns SKIP for) are tracked across iterations and not re-attempted. Acyclic-depends findings are propose-only — surfaced as warnings but not auto-fixed.
+
+### 6.7 Termination
+
+The algorithm terminates on ⟨ ClaimSetProduced ⟩ or ⟨ DerivationFailed ⟩. The validate-gate has a bounded structural-healing loop; this is not a convergence loop in the note-convergence or claim-convergence sense — it does not iterate against semantic findings, only against mechanical contract violations. ⟨ DerivationFailed ⟩ leaves the partial output in place with the unresolved findings list for diagnosis; downstream stages do not operate on a failed derivation.
+
+### 6.8 Re-running on a prior derivation is destructive
+
+Re-invoking the protocol on a note whose derivation has already produced a claim set will:
+- Overwrite each claim body with the byte-aligned source projection (Phase 3), discarding any edits made by claim convergence
+- Re-synthesize Formal Contracts (Phase 4) on the freshly-projected bodies
+- Re-emit substrate links (idempotent at the classifier level; new `provenance.derivation` link emissions return the existing link's id)
+
+This is consistent with B4 (source freezing): the source note is the historical record; the claim set is the current projection. Re-running discards convergence-loop output. Production choreography routes prose-change cases through claim convergence's own quality pass (which calls produce-contract on dirty claims), not through re-running derivation.
 
 ---
 

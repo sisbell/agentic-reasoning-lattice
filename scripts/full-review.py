@@ -38,7 +38,7 @@ from lib.claim_convergence.full_review.review import (
     cycle_verdict, findings_summary,
 )
 from lib.claim_convergence.full_review.revise import revise
-from lib.claim_convergence.gate import run_validate_gate
+from lib.shared.validate_gate import run_validate_gate
 from lib.claim_convergence.cone import (
     detect_dependency_cone, run_cone_review, _retry_unresolved_revises,
 )

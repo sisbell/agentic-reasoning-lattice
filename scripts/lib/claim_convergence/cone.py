@@ -317,7 +317,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
         if not dry_run:
             _retry_unresolved_revises(store, asn_num, claim_dir, [apex_md_path])
 
-        from lib.claim_convergence.gate import run_validate_gate
+        from lib.shared.validate_gate import run_validate_gate
         scope = {apex_label} | set(dep_labels)
         gate_result = run_validate_gate(asn_label, scope_labels=scope)
         if gate_result != "clean":
@@ -456,7 +456,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
         print(f"\n  [CONFIRMATION REVIEW]", file=sys.stderr)
         _retry_unresolved_revises(store, asn_num, claim_dir, [apex_md_path])
 
-        from lib.claim_convergence.gate import run_validate_gate
+        from lib.shared.validate_gate import run_validate_gate
         scope = {apex_label} | set(dep_labels)
         gate_result = run_validate_gate(asn_label, scope_labels=scope)
         if gate_result != "clean":
