@@ -1,4 +1,4 @@
-"""Unit tests for the attributes library (label, name, description).
+"""Unit tests for the attributes library (label, name, description, vocabulary).
 
 Substrate-owned attribute links emit a typed link from a claim md to a
 sibling `<stem>.<kind>.md` doc. Edit-in-place mutability: re-emit with a
@@ -76,6 +76,40 @@ class EmitDescriptionTests(AttributesTestBase):
         rec = self.store.get(link_id)
         self.assertEqual(rec["type_set"], ["description"])
         self.assertEqual(self._attr_doc("description").read_text(), body + "\n")
+
+
+class EmitVocabularyTests(AttributesTestBase):
+    def test_creates_link_and_doc(self):
+        body = ("- `Σ.C` — The content store: a partial function "
+                "from tumblers to content values\n"
+                "- `Val` — An unspecified set of content values")
+        link_id, created = emit_attribute(
+            self.store, self.claim_rel, "vocabulary", body,
+            lattice_root=self.root,
+        )
+        self.assertTrue(created)
+        rec = self.store.get(link_id)
+        self.assertEqual(rec["type_set"], ["vocabulary"])
+        self.assertEqual(rec["from_set"], [self.claim_rel])
+        expected_doc_rel = str(
+            self._attr_doc("vocabulary").relative_to(self.root)
+        )
+        self.assertEqual(rec["to_set"], [expected_doc_rel])
+        self.assertEqual(self._attr_doc("vocabulary").read_text(), body + "\n")
+
+    def test_idempotent_on_repeated_call(self):
+        body = "- `T` — carrier set\n- `#a` — length operator"
+        first_id, c1 = emit_attribute(
+            self.store, self.claim_rel, "vocabulary", body,
+            lattice_root=self.root,
+        )
+        second_id, c2 = emit_attribute(
+            self.store, self.claim_rel, "vocabulary", body,
+            lattice_root=self.root,
+        )
+        self.assertTrue(c1)
+        self.assertFalse(c2)
+        self.assertEqual(first_id, second_id)
 
     def test_preserves_trailing_newline_when_present(self):
         body = "Prose description.\n"

@@ -38,7 +38,7 @@ def dump_yaml(data, path):
                   allow_unicode=True, sort_keys=False, width=120)
 
 
-_ATTR_SUFFIXES = (".label.md", ".name.md", ".description.md")
+_ATTR_SUFFIXES = (".label.md", ".name.md", ".description.md", ".vocabulary.md")
 
 
 def _is_claim_md(name):
@@ -127,12 +127,29 @@ def load_claim_metadata(claim_dir, label=None):
 
 
 def aggregate_vocabulary(claim_dir):
-    """Vestigial. yaml.vocabulary is no longer maintained anywhere.
+    """Concatenate per-claim vocabulary sidecars into a single markdown
+    block suitable for the `{{vocabulary}}` substitution in claim
+    convergence's contract-review and validate-contracts prompts.
 
-    Returns the empty-state string for backward compatibility with
-    callers that pass the result into prompt templates.
+    Reads `<label>.vocabulary.md` sidecars under `claim_dir`. Each
+    sidecar contains markdown bullets defining symbols introduced by
+    that claim. The aggregator renders one section per claim that has
+    a vocabulary sidecar; claims without vocabulary contribute
+    nothing.
+
+    Returns "(no vocabulary)" when no vocabulary sidecars exist.
     """
-    return "(no vocabulary)"
+    claim_dir = Path(claim_dir)
+    if not claim_dir.exists():
+        return "(no vocabulary)"
+    parts = []
+    for f in sorted(claim_dir.glob("*.vocabulary.md")):
+        stem = f.name.removesuffix(".vocabulary.md")
+        body = f.read_text().strip()
+        if not body:
+            continue
+        parts.append(f"### {stem}\n\n{body}")
+    return "\n\n".join(parts) if parts else "(no vocabulary)"
 
 
 def read_file(path):
@@ -421,7 +438,7 @@ def assemble_readonly(asn_label):
         for f in sorted(docs_dir.glob("*.md")):
             if f.name.startswith("_"):
                 continue
-            if f.name.endswith((".label.md", ".name.md", ".description.md")):
+            if f.name.endswith((".label.md", ".name.md", ".description.md", ".vocabulary.md")):
                 continue
             parts.append(f.read_text().strip())
 

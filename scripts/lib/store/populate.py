@@ -116,7 +116,7 @@ def aggregate_asn_deps(store, asn_label, claim_root_dir=None):
         return []
 
     workspace = Path(LATTICE).resolve()
-    sidecar_suffixes = (".label.md", ".name.md", ".description.md")
+    sidecar_suffixes = (".label.md", ".name.md", ".description.md", ".vocabulary.md")
     deps = set()
     for claim_md in asn_dir.glob("*.md"):
         if claim_md.name.startswith("_"):

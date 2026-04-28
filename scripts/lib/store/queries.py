@@ -131,7 +131,7 @@ def is_asn_converged(store, asn_label, claim_root_dir=None):
     if not asn_dir.exists():
         return True
     lattice_resolved = Path(LATTICE).resolve()
-    sidecar_suffixes = (".label.md", ".name.md", ".description.md")
+    sidecar_suffixes = (".label.md", ".name.md", ".description.md", ".vocabulary.md")
     for md_path in asn_dir.glob("*.md"):
         if md_path.name.startswith("_"):
             continue

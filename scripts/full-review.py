@@ -80,7 +80,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
     store = default_store()
     label_index = build_cross_asn_label_index(store=store)
 
-    _ATTR_SUFFIXES = (".label.md", ".name.md", ".description.md")
+    _ATTR_SUFFIXES = (".label.md", ".name.md", ".description.md", ".vocabulary.md")
     asn_claim_md_paths = [
         str(md_path.relative_to(LATTICE))
         for md_path in claim_dir.glob("*.md")

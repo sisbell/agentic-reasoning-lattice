@@ -1,4 +1,5 @@
-"""Library: emit a substrate-owned attribute link (`label`, `name`, `description`).
+"""Library: emit a substrate-owned attribute link (`label`, `name`,
+`description`, `vocabulary`).
 
 Substrate-owned attributes are general-purpose document primitives — any
 document can carry them, regardless of the protocol operating on it. The
@@ -8,6 +9,9 @@ substrate link associates the claim md with that sibling.
 - label: short address (e.g., "T0", "NAT-cancel"). One-line file.
 - name: canonical identity (e.g., "CarrierSetDefinition"). One-line file.
 - description: prose summary, multi-line markdown allowed.
+- vocabulary: markdown bullet list of symbols this claim defines, each as
+  ``- `<symbol>` — <meaning>``. Optional: claims that introduce no new
+  notation have no vocabulary sidecar (and no `vocabulary` link).
 
 Stage-1 mutability: attribute docs are edited in place when the value
 changes. The link survives. Same treatment as claim md files (which
@@ -26,13 +30,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import LATTICE
 
 
-VALID_KINDS = {"label", "name", "description"}
+VALID_KINDS = {"label", "name", "description", "vocabulary"}
 
 
 def emit_attribute(store, claim_md_path, kind, value, lattice_root=None):
     """Emit a `kind` attribute link from claim_md_path to a sibling doc.
 
-    `kind` must be one of "label", "name", "description".
+    `kind` must be one of "label", "name", "description", "vocabulary".
     `value` is the attribute's content (single-line for label/name;
     multi-line allowed for description).
 

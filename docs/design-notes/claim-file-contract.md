@@ -34,18 +34,19 @@ Consequence: when a mismatch is found, the fix is to update the label sidecar or
 
 ### Steady-state — validator runs before every review cycle and after every revise commit
 
-1. **File set completeness.** For every claim in the lattice, four files exist: `<label>.md` (body), `<label>.label.md`, `<label>.name.md`, `<label>.description.md`. No orphan body without sidecars; no orphan sidecar without a body.
+1. **File set completeness.** For every claim in the lattice, four required files exist: `<label>.md` (body), `<label>.label.md`, `<label>.name.md`, `<label>.description.md`. A fifth, optional sidecar `<label>.vocabulary.md` exists for claims that introduce new notation (claims that define no new symbols have no vocabulary sidecar). No orphan body without the required sidecars; no orphan required sidecar without a body. An orphan vocabulary sidecar (no matching body) is a violation; a missing vocabulary sidecar (claim with no introduced notation) is not.
 
 2. **Declaration matches label.** The markdown body contains exactly one bold claim-declaration of the form `**<Label> (<Name>).**`. The label-position equals the filename stem; the parenthetical equals the name sidecar's content (when label == name, the parenthetical repeats it — redundant but uniform). The parenthetical is required in all cases; this uniformity makes the declaration textually distinguishable from proof-narrative emphasis (e.g., `**Positivity.**`, `**Length.**`). Type keywords (*axiom*, *definition*, *design-requirement*, *lemma*, *theorem*, *corollary*) do not appear in the label-position — those are recorded as the substrate `contract.<kind>` classifier on the body.
 
-3. **Sidecar content well-formed.** The label sidecar contains a single line equal to the filename stem. The name sidecar contains a single line in PascalCase. The description sidecar contains markdown prose summarizing the claim's purpose; non-empty, no required structure.
+3. **Sidecar content well-formed.** The label sidecar contains a single line equal to the filename stem. The name sidecar contains a single line in PascalCase. The description sidecar contains markdown prose summarizing the claim's purpose; non-empty, no required structure. The vocabulary sidecar (when present) contains markdown bullets of the form ``- `<symbol>` — <meaning>``, one per symbol the claim introduces.
 
 4. **Substrate classification complete.** For each claim's body markdown the substrate contains:
    - exactly one active `claim` classifier link with `to_set = [body_md]`,
    - exactly one active `contract.<kind>` classifier link with `to_set = [body_md]` and `kind ∈ {axiom, definition, theorem, corollary, lemma, consequence, design-requirement}`,
    - exactly one active `label` link with `from_set = [body_md], to_set = [<label>.label.md]`,
    - exactly one active `name` link with `from_set = [body_md], to_set = [<label>.name.md]`,
-   - exactly one active `description` link with `from_set = [body_md], to_set = [<label>.description.md]`.
+   - exactly one active `description` link with `from_set = [body_md], to_set = [<label>.description.md]`,
+   - exactly one active `vocabulary` link with `from_set = [body_md], to_set = [<label>.vocabulary.md]` *if* the claim introduces new notation (the sidecar exists). Claims with no introduced notation have no vocabulary link.
 
 5. **Depends agreement.** The set of substrate `citation` links sourced from the claim's body markdown and the set of claim labels named in the body's Formal Contract Depends section name the same set of claims. No additions or omissions in either surface.
 

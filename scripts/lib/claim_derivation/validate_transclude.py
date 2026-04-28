@@ -27,7 +27,7 @@ from lib.shared.paths import CLAIM_DIR
 from lib.shared.common import find_asn
 
 
-_SIDECAR_SUFFIXES = (".label.md", ".name.md", ".description.md")
+_SIDECAR_SUFFIXES = (".label.md", ".name.md", ".description.md", ".vocabulary.md")
 
 
 def _is_claim_body(md_path):
