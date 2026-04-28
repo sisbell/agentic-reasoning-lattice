@@ -6,7 +6,7 @@ Runs the complete blueprinting pipeline on an ASN. Each stage commits
 its output automatically.
 
 Usage:
-    python scripts/blueprint.py 36
+    python scripts/note-decompose.py 36
 """
 
 import argparse
@@ -16,10 +16,10 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.blueprinting.decompose import decompose_asn
-from lib.blueprinting.enrich import enrich_asn
-from lib.blueprinting.disassemble import disassemble_asn
-from lib.blueprinting.validate import print_validation
+from lib.note_decomposition.decompose import decompose_asn
+from lib.note_decomposition.enrich import enrich_asn
+from lib.note_decomposition.disassemble import disassemble_asn
+from lib.note_decomposition.validate import print_validation
 
 
 def run_blueprint(asn_num):

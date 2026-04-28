@@ -4,7 +4,7 @@ Blueprinting step: reads the per-claim .yaml + .md pairs from disassemble,
 runs mechanical checks. No LLM calls.
 
 Usage (standalone):
-    python scripts/lib/blueprinting/validate.py 36
+    python scripts/lib/note_decomposition/validate.py 36
 """
 
 import argparse

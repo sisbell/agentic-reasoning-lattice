@@ -27,7 +27,7 @@ from lib.shared.common import find_asn, assemble_readonly, read_file
 from lib.shared.foundation import claim_asn_dep_ids, load_foundation_for_claim_asn
 from lib.claim_convergence.core.build_dependency_graph import generate_discovery_deps
 from lib.claim_convergence.core.finding import Finding
-from lib.blueprinting.lint import build_label_map, scan_reasoning_doc, get_dep_chain
+from lib.note_decomposition.lint import build_label_map, scan_reasoning_doc, get_dep_chain
 
 REVIEW_TEMPLATE = prompt_path("rebase/review.md")
 DEP_REPORT_TEMPLATE = prompt_path("shared/dependency-report.md")

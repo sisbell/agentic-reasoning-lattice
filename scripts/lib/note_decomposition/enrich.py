@@ -5,7 +5,7 @@ three focused LLM passes per claim (type, deps, vocab) in parallel.
 Updates the YAML files in place.
 
 Usage (standalone):
-    python scripts/lib/blueprinting/enrich.py 36
+    python scripts/lib/note_decomposition/enrich.py 36
 """
 
 import argparse
@@ -17,7 +17,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import BLUEPRINTS_DIR, prompt_path
+from lib.shared.paths import NOTE_DECOMPOSITION_DIR, prompt_path
 from lib.shared.common import find_asn, invoke_claude, parallel_llm_calls, dump_yaml, step_commit_asn
 
 
@@ -118,7 +118,7 @@ def enrich_asn(asn_num):
         print(f"  ASN-{asn_num:04d} not found", file=sys.stderr)
         return False
 
-    sections_dir = BLUEPRINTS_DIR / asn_label / "sections"
+    sections_dir = NOTE_DECOMPOSITION_DIR / asn_label / "sections"
     if not sections_dir.exists():
         print(f"  No sections directory — run decompose first", file=sys.stderr)
         return False
@@ -132,9 +132,9 @@ def enrich_asn(asn_num):
         return True
 
     passes = [
-        ("type",  prompt_path("blueprinting/enrich-type.md"),  ["type"]),
-        ("deps",  prompt_path("blueprinting/enrich-deps.md"),  ["depends", "literature_citations"]),
-        ("vocab", prompt_path("blueprinting/enrich-vocab.md"),  ["vocabulary"]),
+        ("type",  prompt_path("note-decomposition/enrich-type.md"),  ["type"]),
+        ("deps",  prompt_path("note-decomposition/enrich-deps.md"),  ["depends", "literature_citations"]),
+        ("vocab", prompt_path("note-decomposition/enrich-vocab.md"),  ["vocabulary"]),
     ]
 
     total_ok = 0
