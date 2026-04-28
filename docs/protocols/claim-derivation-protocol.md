@@ -66,7 +66,7 @@ Reads the section YAMLs from decomposition. Per-claim, runs three independent LL
 
 This three-pass decomposition (rather than one comprehensive prompt) is a deliberate choice — focused prompts produce more reliable output than broad ones, and parallel execution reduces wall-clock cost.
 
-### Disassembler
+### Transcluder
 
 Reads the enriched section YAMLs and writes per-claim `{label}.yaml` (metadata) + `{label}.md` (body + formal contract) pairs to the lattice's directory. Deterministic — no LLM. One file pair per declared claim.
 
@@ -88,13 +88,13 @@ Resolves structural violations reported by the validator. One violation, one fix
 
 - ⟨ SplitSections | note ⟩ — split the note into section analyses.
 - ⟨ Enrich | section_yamls ⟩ — augment each claim with type, dependencies, vocabulary.
-- ⟨ Disassemble | enriched_sections ⟩ — write per-claim file pairs.
+- ⟨ Transclude | enriched_sections ⟩ — write per-claim file pairs.
 - ⟨ Validate | claim_pairs ⟩ — run structural checks.
 
 **Indications (output upward).**
 
 - ⟨ ClaimSetProduced | note, claims ⟩ — the protocol has produced a valid claim set. Each claim carries the `claim` classifier, a `contract.<kind>` link reflecting its type, `citation` links for its declared dependencies, and a `provenance.derivation` link from the source note.
-- ⟨ DecompositionFailed | note, violations ⟩ — the validator reported violations that could not be auto-resolved. No claim set is produced.
+- ⟨ DerivationFailed | note, violations ⟩ — the validator reported violations that could not be auto-resolved. No claim set is produced.
 
 ---
 
@@ -103,9 +103,9 @@ Resolves structural violations reported by the validator. One violation, one fix
 The protocol terminates on output production — no convergence predicate, no iteration. A single ⟨ Decompose ⟩ request results in either:
 
 - ⟨ ClaimSetProduced | note, claims ⟩ — success. The Claim File Contract's structural invariants hold on the output. Substrate links are filed per the document model (§1).
-- ⟨ DecompositionFailed | note, violations ⟩ — failure. The validator reported invariant violations the protocol could not auto-resolve. The output is left in place but does not enter claim convergence.
+- ⟨ DerivationFailed | note, violations ⟩ — failure. The validator reported invariant violations the protocol could not auto-resolve. The output is left in place but does not enter claim convergence.
 
-Termination is structural: the protocol's state machine is split → enrich → disassemble → validate → indicate. There is no loop.
+Termination is structural: the protocol's state machine is split → enrich → transclude → validate → indicate. There is no loop.
 
 ---
 
@@ -129,7 +129,7 @@ Termination is structural: the protocol's state machine is split → enrich → 
 
 ### 5.2 Liveness
 
-**BL1 (Termination).** If the LLM phases (decompose, enrich) complete and the disassembler runs without I/O failure, then the validator either reports success — yielding ⟨ ClaimSetProduced ⟩ — or reports violations — yielding ⟨ DecompositionFailed ⟩. The protocol does not loop indefinitely.
+**BL1 (Termination).** If the LLM phases (decompose, enrich) complete and the transcluder runs without I/O failure, then the validator either reports success — yielding ⟨ ClaimSetProduced ⟩ — or reports violations — yielding ⟨ DerivationFailed ⟩. The protocol does not loop indefinitely.
 
 **BL2 (Completeness of decomposition).** Every non-structural section of the source note is processed by the decomposer. No section is silently skipped.
 
@@ -157,12 +157,12 @@ These three semantic invariants are documented in the [Claim File Contract](../d
 
 ---
 
-## 6 Algorithm: split → enrich → disassemble → validate
+## 6 Algorithm: split → enrich → transclude → validate
 
 Implements: Claim Derivation Protocol (§1–§5).
 Uses: Substrate (§2.1), Structural Validator (§2.2), Decomposition prompts (§2.3).
 
-The algorithm is one-shot — a single ⟨ Decompose ⟩ invocation produces at most one claim set. Four phases: split, enrich, disassemble, validate. There is no convergence loop.
+The algorithm is one-shot — a single ⟨ Decompose ⟩ invocation produces at most one claim set. Four phases: split, enrich, transclude, validate. There is no convergence loop.
 
 ### 6.1 State
 
@@ -199,7 +199,7 @@ upon section_yamls produced do
 
 Three independent LLM passes per claim. Each pass has a focused prompt and produces a single field. Passes run in parallel within a claim and across claims. The enriched YAML is written back to the section files in place.
 
-### 6.4 Phase 3 — Disassemble
+### 6.4 Phase 3 — Transclude
 
 ```
 upon enrichment complete do
@@ -225,14 +225,14 @@ upon disassembly complete do
       emit_substrate_links(note, claim_pairs)
       indicate ⟨ ClaimSetProduced | note, claim_pairs ⟩
     else:
-      indicate ⟨ DecompositionFailed | note, violations ⟩
+      indicate ⟨ DerivationFailed | note, violations ⟩
 ```
 
 The validator runs every steady-state and transition-checkable invariant from the Claim File Contract. For violations the protocol can auto-resolve (e.g., filename-doesn't-match-label → rename file), per-invariant fix recipes apply mechanically and the validator re-runs. If violations remain after the fix pass, the protocol fails with a violation report.
 
 ### 6.6 Termination
 
-The algorithm terminates on ⟨ ClaimSetProduced ⟩ or ⟨ DecompositionFailed ⟩. There is no convergence loop — the validator runs at most twice (initial check + post-fix check). If a violation cannot be auto-resolved, the protocol fails rather than looping.
+The algorithm terminates on ⟨ ClaimSetProduced ⟩ or ⟨ DerivationFailed ⟩. There is no convergence loop — the validator runs at most twice (initial check + post-fix check). If a violation cannot be auto-resolved, the protocol fails rather than looping.
 
 ### 6.7 Known gap
 

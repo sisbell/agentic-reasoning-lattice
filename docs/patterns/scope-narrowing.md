@@ -41,7 +41,7 @@ The narrowing is progressive. Discovery works at full-note scope. Claim derivati
 
 ### Claim derivation
 
-Discovery produces a 15-page note. Claim derivation narrows: decompose into sections, enrich each section with type/dependencies/vocabulary, disassemble into per-claim file pairs. Each claim is now a self-contained unit that claim convergence can work on independently.
+Discovery produces a 15-page note. Claim derivation narrows: decompose into sections, enrich each section with type/dependencies/vocabulary, transclude into per-claim file pairs. Each claim is now a self-contained unit that claim convergence can work on independently.
 
 ### Claim convergence
 

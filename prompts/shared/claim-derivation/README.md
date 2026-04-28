@@ -9,8 +9,8 @@ disassembling into per-claim files, and running quality checks.
 # 1. Format + names
 python scripts/blueprint.py NNNN
 
-# 2. Disassemble into per-claim files
-python scripts/disassemble.py NNNN
+# 2. Transclude into per-claim files
+python scripts/transclude.py NNNN
 
 # 3. Build vocabulary
 python scripts/build-vocabulary.py NNNN

@@ -1,11 +1,11 @@
-"""Disassemble — read section YAMLs, write per-claim file pairs.
+"""Transclude — read section YAMLs, write per-claim file pairs.
 
 Blueprinting step: reads the enriched section YAML files from decompose+enrich,
 writes per-claim .yaml (metadata) + .md (body + formal contract) pairs.
 
 Usage (standalone):
-    python scripts/lib/claim_derivation/disassemble.py 36
-    python scripts/lib/claim_derivation/disassemble.py 36 --dry-run
+    python scripts/lib/claim_derivation/transclude.py 36
+    python scripts/lib/claim_derivation/transclude.py 36 --dry-run
 """
 
 import argparse
@@ -21,7 +21,7 @@ from lib.shared.paths import WORKSPACE, CLAIM_DERIVATION_DIR, blueprint_claims_d
 from lib.shared.common import find_asn, dump_yaml, step_commit_asn
 
 
-def disassemble_asn(asn_num, dry_run=False):
+def transclude_asn(asn_num, dry_run=False):
     """Read section YAMLs, write per-claim .yaml + .md pairs."""
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
@@ -35,7 +35,7 @@ def disassemble_asn(asn_num, dry_run=False):
         print(f"  No sections directory — run decompose first", file=sys.stderr)
         return False
 
-    print(f"\n  [DISASSEMBLE] {asn_label}", file=sys.stderr)
+    print(f"\n  [TRANSCLUDE] {asn_label}", file=sys.stderr)
     print(f"  Sections: {sections_dir.relative_to(WORKSPACE)}", file=sys.stderr)
     print(f"  Output:   {claims_dir.relative_to(WORKSPACE)}", file=sys.stderr)
 
@@ -129,24 +129,24 @@ def disassemble_asn(asn_num, dry_run=False):
 
             structural_count += 1
 
-    print(f"\n  [DISASSEMBLE] {prop_count} claims, {structural_count} structural files",
+    print(f"\n  [TRANSCLUDE] {prop_count} claims, {structural_count} structural files",
           file=sys.stderr)
 
     if not dry_run:
-        step_commit_asn(asn_num, hint="disassemble")
+        step_commit_asn(asn_num, hint="transclude")
     return True
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Disassemble section YAMLs into per-claim file pairs")
+        description="Transclude section YAMLs into per-claim file pairs")
     parser.add_argument("asn", help="ASN number (e.g., 36)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Show what would be written without writing")
     args = parser.parse_args()
 
     asn_num = int(re.sub(r"[^0-9]", "", args.asn))
-    ok = disassemble_asn(asn_num, dry_run=args.dry_run)
+    ok = transclude_asn(asn_num, dry_run=args.dry_run)
     sys.exit(0 if ok else 1)
 
 

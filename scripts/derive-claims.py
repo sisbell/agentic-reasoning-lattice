@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Claim derivation — full pipeline: decompose → enrich → disassemble → validate.
+Claim derivation — full pipeline: decompose → enrich → transclude → validate.
 
 Runs the complete claim-derivation pipeline on an ASN. Each stage commits
 its output automatically.
@@ -18,7 +18,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.claim_derivation.decompose import decompose_asn
 from lib.claim_derivation.enrich import enrich_asn
-from lib.claim_derivation.disassemble import disassemble_asn
+from lib.claim_derivation.transclude import transclude_asn
 from lib.claim_derivation.validate import print_validation
 
 
@@ -38,10 +38,10 @@ def run_blueprint(asn_num):
         print(f"\n  [DERIVE] FAILED at enrich", file=sys.stderr)
         return False
 
-    # Step 3: Disassemble — section YAMLs → per-claim .yaml + .md pairs
-    ok = disassemble_asn(asn_num)
+    # Step 3: Transclude — section YAMLs → per-claim .yaml + .md pairs
+    ok = transclude_asn(asn_num)
     if not ok:
-        print(f"\n  [DERIVE] FAILED at disassemble", file=sys.stderr)
+        print(f"\n  [DERIVE] FAILED at transclude", file=sys.stderr)
         return False
 
     # Step 4: Validate — structural integrity checks
@@ -61,7 +61,7 @@ def run_blueprint(asn_num):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Run full claim derivation pipeline: decompose → enrich → disassemble → validate")
+        description="Run full claim derivation pipeline: decompose → enrich → transclude → validate")
     parser.add_argument("asn", help="ASN number (e.g., 36)")
     args = parser.parse_args()
 

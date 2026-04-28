@@ -16,7 +16,7 @@
 python scripts/blueprint.py <ASN>
 ```
 
-This runs the entire blueprinting pipeline to completion (decompose → enrich → disassemble → validate), auto-committing each stage.
+This runs the entire blueprinting pipeline to completion (decompose → enrich → transclude → validate), auto-committing each stage.
 
 ### 2. Check validation
 
@@ -33,8 +33,8 @@ python scripts/promote-blueprint.py <ASN>
 ```bash
 python scripts/decompose.py <ASN>
 python scripts/enrich.py <ASN>
-python scripts/disassemble.py <ASN>
-python scripts/disassemble.py <ASN> --dry-run
+python scripts/transclude.py <ASN>
+python scripts/transclude.py <ASN> --dry-run
 python scripts/validate.py <ASN>
 ```
 

@@ -1,6 +1,6 @@
 """Validate — check per-claim file pairs for completeness and consistency.
 
-Blueprinting step: reads the per-claim .yaml + .md pairs from disassemble,
+Blueprinting step: reads the per-claim .yaml + .md pairs from transclude,
 runs mechanical checks. No LLM calls.
 
 Usage (standalone):
@@ -31,7 +31,7 @@ def validate_asn(asn_num):
 
     claims_dir = blueprint_claims_dir(asn_label)
     if not claims_dir.exists():
-        return [f"No claims directory — run disassemble first"], []
+        return [f"No claims directory — run transclude first"], []
 
     errors = []
     warnings = []

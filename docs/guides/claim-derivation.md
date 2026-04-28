@@ -4,7 +4,7 @@
 
 ## Overview
 
-Blueprinting transforms a monolithic note into per-claim file pairs (`.yaml` metadata + `.md` body) ready for formalization. The process runs: decompose → enrich → disassemble → validate → promote.
+Blueprinting transforms a monolithic note into per-claim file pairs (`.yaml` metadata + `.md` body) ready for formalization. The process runs: decompose → enrich → transclude → validate → promote.
 
 ## Stages
 
@@ -30,7 +30,7 @@ Three per-claim LLM passes, each running all claims in parallel:
 
 Each pass has its own focused prompt. Updates the section YAML files in place.
 
-### Disassemble
+### Transclude
 
 Mechanical step — reads section YAMLs, writes per-claim file pairs:
 
