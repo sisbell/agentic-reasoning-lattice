@@ -1,6 +1,6 @@
 **T4c (LevelDetermination).** Let `zeros(t) = |{i : 1 ≤ i ≤ #t ∧ tᵢ = 0}|` as in T4, where `|·|` is the cardinality operator on subsets of initial segments of ℕ axiomatized by NAT-card (codomain ℕ, distinct from T0's tumbler-length `#·` which acts on sequences); the indexed set is a subset of `{1, …, #t} ⊆ ℕ` by T0, so NAT-card applies at `n = #t` and `zeros(t) ∈ ℕ`. On the T4-valid subset of `T` (tumblers satisfying `zeros(t) ≤ 3`, no two zeros adjacent, `t₁ ≠ 0`, `t_{#t} ≠ 0`), T4c defines four hierarchical level labels by zero count: `t` is a *node address* iff `zeros(t) = 0`, a *user address* iff `zeros(t) = 1`, a *document address* iff `zeros(t) = 2`, and an *element address* iff `zeros(t) = 3`.
 
-The four biconditionals are the definition of the labels. The proof obligation reduces to: the four zero-count values exhaust the T4-valid subdomain, and distinct values receive distinct labels. Realisation — existence of a T4-valid tumbler at each zero count — is not claimed here; T4c stands as a pure definition on whatever T4-valid tumblers exist.
+The four biconditionals are the definition of the labels. The proof obligation reduces to: the four zero-count values exhaust the T4-valid subdomain, and distinct values receive distinct labels.
 
 *Exhaustion.* By T4's Exhaustion Consequence, every T4-valid tumbler satisfies `zeros(t) ∈ {0, 1, 2, 3}`.
 
@@ -8,7 +8,7 @@ The four biconditionals are the definition of the labels. The proof obligation r
 
 *Formal Contract:*
 - *Preconditions:* `t` satisfies the T4 constraints (`zeros(t) ≤ 3`, no two zeros adjacent, `t₁ ≠ 0`, `t_{#t} ≠ 0`).
-- *Definition:* `(A t ∈ T : t is T4-valid :: (zeros(t) = 0 ↔ t is a node address) ∧ (zeros(t) = 1 ↔ t is a user address) ∧ (zeros(t) = 2 ↔ t is a document address) ∧ (zeros(t) = 3 ↔ t is an element address))`. The four biconditionals stipulate the meaning of the label terms `node address`, `user address`, `document address`, `element address` over the T4-valid subdomain — they are not derived from independently characterised notions but introduce these terms by zero count. Outside the T4-valid subdomain T4c assigns no level; consumers must discharge T4-validity before reading a level off `zeros(t)`. No existence of a T4-valid tumbler at any given zero count is asserted — T4c is a pure definition of labels on whatever T4-valid tumblers exist.
+- *Definition:* `(A t ∈ T : t is T4-valid :: (zeros(t) = 0 ↔ t is a node address) ∧ (zeros(t) = 1 ↔ t is a user address) ∧ (zeros(t) = 2 ↔ t is a document address) ∧ (zeros(t) = 3 ↔ t is an element address))`.
 - *Depends:*
   - T0 (CarrierSetDefinition) — supplies the index domain `{1, …, #t} ⊆ ℕ` that contains the zero-index subset, so NAT-card applies at `n = #t`.
   - NAT-zero (NatZeroMinimum) — supplies the first Axiom clause `0 ∈ ℕ`, which grounds the literal `0` in the label-defining biconditional `zeros(t) = 0 ↔ t is a node address`, where `zeros(t) ∈ ℕ` is compared against the ℕ-element `0`.

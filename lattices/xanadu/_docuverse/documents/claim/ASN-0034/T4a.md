@@ -22,7 +22,7 @@ All segments — first, interior, and last — are non-empty. ∎
 
 *Formal Contract:*
 - *Consequence:* The three positional conditions (i) `(A i : 1 ≤ i < #t : ¬(tᵢ = 0 ∧ tᵢ₊₁ = 0))`, (ii) `t₁ ≠ 0`, (iii) `t_{#t} ≠ 0` hold if and only if every field segment of `t` is non-empty (SyntacticEquivalence) — derived from T4's field-segment clauses and Exhaustion Consequence, T0's non-degeneracy of `t ∈ T`, NAT-order's strict total order and `≤`-definition, NAT-discrete's strict-to-`+1` promotion and no-interval Consequence, NAT-addcompat's strict successor inequality `n < n + 1`, NAT-closure's numerals and closure under addition, NAT-sub's right-telescoping clause, and NAT-card's enumeration characterisation of `|·|`, as shown in the preceding Forward and Reverse derivations; recorded as a Consequence rather than an Axiom because the biconditional is proved from T4's axioms and the foundation dependencies, not posited.
-- *Preconditions:* `t ∈ T` with `zeros(t) ≤ 3`. The field-segment constraint of full T4-validity is *not* assumed; it appears as the conclusion of the Forward direction and the local hypothesis of the Reverse direction.
+- *Preconditions:* `t ∈ T` with `zeros(t) ≤ 3`.
 - *Depends:*
   - T0 (CarrierSetDefinition) — fixes the carrier as ℕ and supplies the Axiom's nonemptiness clause `(A a ∈ T :: 1 ≤ #a)`.
   - NAT-discrete (NatDiscreteness) — supplies the strict-to-`+1` promotion `m < n ⟹ m + 1 ≤ n` and the no-interval Consequence `m ≤ n < m + 1 ⟹ n = m`.
