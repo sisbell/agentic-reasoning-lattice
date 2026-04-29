@@ -25,7 +25,7 @@ Each cycle:
 ## Tools
 
 - Reviewer: Read (assembled context).
-- Reviser: Read, Edit, Bash (`scripts/cite.py`, `scripts/retract.py`, `scripts/decide.py`).
+- Reviser: Read, Edit, Bash (`scripts/convergence-cite.py`, `scripts/link/retract.py`, `scripts/convergence-resolution.py`).
 
 ## Convergence
 

@@ -38,7 +38,7 @@ The same prompts are scoped differently — cone-review's assembled context is t
 ## Tools
 
 - Reviewer: Read (cone context).
-- Reviser: Read, Edit, Bash (`scripts/cite.py`, `scripts/retract.py`, `scripts/classify.py`, `scripts/name.py`, `scripts/label.py`).
+- Reviser: Read, Edit, Bash (`scripts/convergence-cite.py`, `scripts/link/retract.py`, `scripts/claim-classify.py`, `scripts/link/name.py`, `scripts/link/label.py`).
 
 ## Convergence
 
