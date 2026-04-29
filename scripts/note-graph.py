@@ -9,7 +9,7 @@ Usage:
 The substrate's `citation` links between notes form the dependency
 graph. This tool reads those links and renders them in human-readable
 form for inspection. Read-only — to modify the graph, run
-convergence-cite.py / link/retract.py.
+convergence-link-cite.py / substrate/retract.py.
 """
 
 import argparse

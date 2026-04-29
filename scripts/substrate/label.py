@@ -3,7 +3,7 @@
 
 Usage:
 
-    PROTOCOL_DOC_PATH=lattices/.../T0.md python scripts/link/label.py --to T0
+    PROTOCOL_DOC_PATH=lattices/.../T0.md python scripts/substrate/label.py --to T0
 
 Writes `<stem>.label.md` next to the claim md (edit-in-place if it
 already exists) and emits a `label` link from the claim md to the

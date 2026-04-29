@@ -3,7 +3,7 @@
 
 Usage:
 
-    PROTOCOL_DOC_PATH=lattices/.../T0.md python scripts/link/name.py --to CarrierSetDefinition
+    PROTOCOL_DOC_PATH=lattices/.../T0.md python scripts/substrate/name.py --to CarrierSetDefinition
 
 Writes `<stem>.name.md` next to the claim md (edit-in-place if it
 already exists) and emits a `name` link from the claim md to the

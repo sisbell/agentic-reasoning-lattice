@@ -7,7 +7,7 @@ target claims/notes, plus a `review` classifier link on the review
 markdown itself.
 
 Resolution links (the reviser's accept/reject decision) are emitted by
-`scripts/convergence-resolution.py`, not by this module — the reviser invokes the tool
+`scripts/convergence-link-resolution.py`, not by this module — the reviser invokes the tool
 directly so its action is the protocol operation.
 """
 

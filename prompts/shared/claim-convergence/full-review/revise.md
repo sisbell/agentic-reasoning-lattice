@@ -84,7 +84,7 @@ instead "the state satisfies..."
    `*Axiom:*` or `*Definition:*` field, or reframing a derived result
    as a posit — re-classify the claim by running:
 
-       PROTOCOL_DOC_PATH=<path-to-the-claim-md> python scripts/claim-classify.py --kind <new>
+       PROTOCOL_DOC_PATH=<path-to-the-claim-md> python scripts/claim-link-contract.py --kind <new>
 
    `<new>` is one of `axiom`, `definition`, `theorem`, `lemma`,
    `corollary`, `consequence`, `design-requirement` — match the new
@@ -92,13 +92,13 @@ instead "the state satisfies..."
    in the substrate (append-only) but is no longer the current kind.
 
 5. **Adding dependencies.** When you add a dependency, run:
-       python scripts/convergence-cite.py --to <label>
+       python scripts/convergence-link-cite.py --to <label>
    Justify the new dependency in prose.
 
    **Removing dependencies.** When you remove a dependency from a claim's
    md `*Depends:*` section because the proof no longer uses it, retract
    the substrate citation:
-       python scripts/link/retract.py --to <label>
+       python scripts/substrate/retract.py --to <label>
    This files a `retraction` link pointing at the now-stale citation. The
    citation remains in the substrate (append-only) but no longer counts
    toward the dependency graph. Use this whenever you delete a Depends
@@ -118,13 +118,13 @@ instead "the state satisfies..."
    After writing the file, emit the new claim's substrate attribute
    links and classifier by running:
 
-       PROTOCOL_DOC_PATH=<path-to-the-new-md-file> python scripts/link/label.py --to <label>
-       PROTOCOL_DOC_PATH=<path-to-the-new-md-file> python scripts/link/name.py --to <name>
-       PROTOCOL_DOC_PATH=<path-to-the-new-md-file> python scripts/claim-classify.py --kind <kind>
+       PROTOCOL_DOC_PATH=<path-to-the-new-md-file> python scripts/substrate/label.py --to <label>
+       PROTOCOL_DOC_PATH=<path-to-the-new-md-file> python scripts/substrate/name.py --to <name>
+       PROTOCOL_DOC_PATH=<path-to-the-new-md-file> python scripts/claim-link-contract.py --kind <kind>
 
-   `link/label.py` writes `<stem>.label.md` (whose first line is the label
+   `substrate/label.py` writes `<stem>.label.md` (whose first line is the label
    string, equal to the filename stem) and files the substrate `label`
-   link. `link/name.py` does the same for the canonical `name` and the
+   link. `substrate/name.py` does the same for the canonical `name` and the
    substrate `name` link.
 
    `<kind>` is one of `axiom`, `definition`, `theorem`, `lemma`,
@@ -137,7 +137,7 @@ instead "the state satisfies..."
 ## Decision output
 
 When done, run one of:
-  python scripts/convergence-resolution.py accept
-  python scripts/convergence-resolution.py reject --rationale "<one or two sentences>"
+  python scripts/convergence-link-resolution.py accept
+  python scripts/convergence-link-resolution.py reject --rationale "<one or two sentences>"
 
 REJECT only when the finding is incorrect. If you edited files, end with ACCEPT.

@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
-"""Reviser-callable CLI to add a citation link.
+"""Reviser-callable CLI to add a contract.<kind> classifier link.
 
-Invoked when the reviser adds a dependency:
+Invoked when the reviser creates a new claim and needs to record what
+kind of contract it is (axiom, theorem, definition, etc.):
 
-    python scripts/convergence-cite.py --to <label>
+    python scripts/claim-link-contract.py --kind axiom
 
 Reads `PROTOCOL_DOC_PATH` from environment (set by `revise.py` for the
-claim being revised). The label is resolved via the cross-ASN label
-index. Idempotent — re-running with the same args is a no-op.
+claim being revised — but for new-claim creation, the reviser sets it
+to the new claim's md path before calling). Idempotent — re-running
+with the same args is a no-op.
 
-Prints the citation link id on success; exits non-zero on error.
+Prints the classifier link id on success; exits non-zero on error.
 """
 
 import argparse
@@ -19,15 +21,16 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
 from store.store import default_store
-from store.cite import emit_citation
-from store.populate import build_doc_label_index
+from store.classify import emit_classifier
+from store.schema import VALID_SUBTYPES
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--to", required=True,
-        help="The dependency label to cite (e.g., T0, NAT-closure).",
+        "--kind", required=True,
+        choices=sorted(VALID_SUBTYPES["contract"]),
+        help="Contract kind classifier for the claim.",
     )
     args = parser.parse_args()
 
@@ -39,11 +42,8 @@ def main():
     store = default_store()
     try:
         try:
-            label_index = build_doc_label_index(store, claim_path)
-            link_id, created = emit_citation(
-                store, claim_path, args.to, label_index,
-            )
-        except KeyError as e:
+            link_id, created = emit_classifier(store, claim_path, args.kind)
+        except ValueError as e:
             print(f"error: {e}", file=sys.stderr)
             return 1
         print(link_id)

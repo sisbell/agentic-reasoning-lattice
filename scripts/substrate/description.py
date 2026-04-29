@@ -3,14 +3,14 @@
 
 Usage:
 
-    PROTOCOL_DOC_PATH=lattices/.../T0.md python scripts/link/description.py \\
+    PROTOCOL_DOC_PATH=lattices/.../T0.md python scripts/substrate/description.py \\
         --to "Defines the carrier set ℕ for tumbler addresses."
 
 For multi-line descriptions, use --from-file to read the body from a
 file (or `-` for stdin):
 
-    PROTOCOL_DOC_PATH=... python scripts/link/description.py --from-file desc.md
-    cat desc.md | PROTOCOL_DOC_PATH=... python scripts/link/description.py --from-file -
+    PROTOCOL_DOC_PATH=... python scripts/substrate/description.py --from-file desc.md
+    cat desc.md | PROTOCOL_DOC_PATH=... python scripts/substrate/description.py --from-file -
 
 Writes `<stem>.description.md` next to the claim md (edit-in-place if
 it already exists) and emits a `description` link from the claim md to

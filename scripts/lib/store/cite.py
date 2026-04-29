@@ -1,6 +1,6 @@
 """Library: emit a citation link from one claim to another.
 
-Called from `scripts/convergence-cite.py` (the reviser-callable CLI). Separated from
+Called from `scripts/convergence-link-cite.py` (the reviser-callable CLI). Separated from
 the CLI so tests exercise the logic directly.
 """
 

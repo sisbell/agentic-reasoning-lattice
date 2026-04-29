@@ -31,14 +31,14 @@ For each finding of the form `uses '<symbol>' but does not depend on its owner '
 
 1. Add the citation by running:
 
-       PROTOCOL_DOC_PATH=<path-to-the-claim-md> python scripts/convergence-cite.py --to <owner>
+       PROTOCOL_DOC_PATH=<path-to-the-claim-md> python scripts/convergence-link-cite.py --to <owner>
 
    Where `<path-to-the-claim-md>` is the file shown under "File to fix"
    above, and `<owner>` is the owner label from the finding (e.g.,
    `NAT-closure`).
 
-2. If multiple findings cite the same owner, run convergence-cite.py once
-   for that owner — it is idempotent.
+2. If multiple findings cite the same owner, run convergence-link-cite.py
+   once for that owner — it is idempotent.
 
 The citation is filed in the substrate. The companion markdown is left
 alone in this pass.
@@ -51,4 +51,4 @@ alone in this pass.
 
 ## Tools
 
-Read, Bash. Use Bash only to invoke `scripts/convergence-cite.py`.
+Read, Bash. Use Bash only to invoke `scripts/convergence-link-cite.py`.

@@ -80,7 +80,7 @@ Retraction of a `resolution` link re-opens the comment it closed. The convergenc
 
 ### Retraction tooling
 
-The reviser invokes `scripts/link/retract.py --to <label>` to file a retraction during a revision that removes a dependency from a claim's `*Depends:*` section. All consumers that build citation graphs (validator, dependency-graph builder, cone-sweep) use the substrate's ActiveLinks query rather than FindLinks directly.
+The reviser invokes `scripts/substrate/retract.py --to <label>` to file a retraction during a revision that removes a dependency from a claim's `*Depends:*` section. All consumers that build citation graphs (validator, dependency-graph builder, cone-sweep) use the substrate's ActiveLinks query rather than FindLinks directly.
 
 ---
 
