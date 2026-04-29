@@ -27,13 +27,15 @@ Other pipelines check individual claims in isolation. Your job is different: you
 - **ASN**: {{asn_label}}
 - **Declared depends**: {{depends}}
 
-## Previous Findings
+## Previously Declined Findings
+
+The findings below were raised on prior reviews of this cone and **declined as invalid by the reviser**. Each is paired with the reviser's rationale explaining why it was refused.
+
+These are not bugs to surface again. The reviser deliberated and concluded each was not a real issue. **Do not pattern-match on them** — surfacing variants of these findings will produce the same outcome (refusal). If a candidate finding has the same shape as one of these, it is almost certainly the same false positive recurring; do not surface it.
 
 {{previous_findings}}
 
 ## Review
-
-**Do not report issues already captured in "Previous Findings" above.** Only report new findings.
 
 Read the foundation statements carefully, then read the ASN as a whole. Apply the discipline of rigorous specification:
 

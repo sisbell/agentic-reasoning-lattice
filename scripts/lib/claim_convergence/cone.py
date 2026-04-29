@@ -191,45 +191,61 @@ def assemble_cone(asn_label, apex_label, dep_labels):
     return "\n\n---\n\n".join(parts)
 
 
-def _extract_apex_history(asn_label, apex_label, max_reviews=5):
-    """Extract recent review findings that mention the apex label.
+def _declined_findings_for_cone(store, cone_md_paths, max_rejects=5):
+    """Return text of recently-declined findings on this cone.
 
-    Sources from both legacy review files (claim-convergence/<asn>/reviews/)
-    and the substrate finding documents (_docuverse/findings/<asn>/review-N/).
-    Sorted by review number; only the most recent `max_reviews` are read.
+    A declined finding is a `comment.revise` targeting any cone claim
+    that was closed by `resolution.reject` (the reviser refused to act).
+    Each block contains the original finding body plus the reviser's
+    rationale text. Sorted by recency, capped at `max_rejects`.
+
+    Accepted findings (closed by `resolution.edit`) are NOT included —
+    their resolution lives in the prose itself, so re-evaluating the
+    current prose is the correct check on whether the issue persists.
+    Open findings (no resolution yet) are NOT included either — they're
+    handled by the orchestrator's retry pass at cycle entry.
+
+    The reviewer is shown only the declined ones to discourage
+    re-surfacing findings of the same shape that have already been
+    deliberated and refused.
     """
-    # Walk every aggregate review for this ASN; for each, also read the
-    # sibling per-finding docs (under finding/) keyed by the matching
-    # review-N stem. The combined text is what we search for the apex
-    # label.
-    reviews_dir = CLAIM_REVIEWS_DIR / asn_label
-    findings_dir = CLAIM_FINDINGS_DIR / asn_label
-    sources = []  # (review_num, aggregate_path, findings_subdir_or_None)
-    if reviews_dir.exists():
-        for rf in reviews_dir.glob("review-*.md"):
-            m = re.search(r'review-(\d+)$', rf.stem)
-            if not m:
-                continue
-            num = int(m.group(1))
-            findings_sub = findings_dir / rf.stem
-            sources.append((num, rf, findings_sub if findings_sub.is_dir() else None))
+    cone_paths = set(cone_md_paths)
+    rejects = store.find_links(type_set=["resolution.reject"])
+    rejects.sort(key=lambda r: r.get("ts", ""), reverse=True)
 
-    sources.sort(key=lambda x: x[0], reverse=True)
+    blocks = []
+    lattice = Path(LATTICE)
+    for r in rejects:
+        if len(blocks) >= max_rejects:
+            break
+        if not r.get("to_set") or len(r["to_set"]) < 2:
+            continue
+        comment_id = r["to_set"][0]
+        rationale_rel = r["to_set"][1]
 
-    relevant = []
-    for _, aggregate_path, findings_sub in sources[:max_reviews]:
-        parts = [aggregate_path.read_text().strip()]
-        if findings_sub is not None:
-            for finding in sorted(findings_sub.glob("*.md")):
-                parts.append(finding.read_text().strip())
-        text = "\n\n".join(p for p in parts if p)
-        if text and apex_label in text:
-            relevant.append(text)
+        comment = store.get(comment_id)
+        if comment is None or not comment.get("to_set"):
+            continue
+        if comment["to_set"][0] not in cone_paths:
+            continue
+        if not comment.get("from_set"):
+            continue
 
-    if not relevant:
-        return "(no recent findings)"
+        finding_full = lattice / comment["from_set"][0]
+        finding_body = (finding_full.read_text().strip()
+                        if finding_full.exists() else "(finding body missing)")
+        rationale_full = lattice / rationale_rel
+        rationale_text = (rationale_full.read_text().strip()
+                          if rationale_full.exists() else "(rationale missing)")
 
-    return "\n\n---\n\n".join(reversed(relevant))
+        ts = r.get("ts", "?")
+        blocks.append(
+            f"### Declined ({ts})\n\n"
+            f"**Finding (rejected as invalid):**\n\n{finding_body}\n\n"
+            f"**Reviser's rationale for declining:**\n\n{rationale_text}"
+        )
+
+    return "\n\n---\n\n".join(blocks) if blocks else ""
 
 
 @attributed_to("cone-review")
@@ -275,18 +291,22 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
 
     print(f"  Foundation: {len(cross_asn_deps)} cross-ASN deps", file=sys.stderr)
 
-    # Load review history for the apex
-    history = _extract_apex_history(asn_label, apex_label)
-
     # Capture baseline SHA so the end-of-cone compress pass knows which
     # files changed during this cone.
     from lib.shared.common import git_head_sha
     baseline_sha = git_head_sha()
 
-    start_time = time.time()
-    previous_findings = history
-    verdict = "CONVERGED"
+    # Build the cone's claim-path set once. Used to scope the declined-
+    # findings query that primes the reviewer's "do not re-raise" context.
     apex_md_path = label_index.get(apex_label)
+    cone_paths = [apex_md_path] if apex_md_path else []
+    for d in dep_labels:
+        p = label_index.get(d)
+        if p:
+            cone_paths.append(p)
+
+    start_time = time.time()
+    verdict = "CONVERGED"
     naturally_converged = False
     last_cycle_revise_count = -1
     final_review_path = None
@@ -298,6 +318,12 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
         # or invocations to the reviser. Reviser closes via convergence-link-resolution.py.
         if not dry_run:
             _retry_unresolved_revises(store, asn_num, claim_dir, [apex_md_path])
+
+        # Declined-findings context: substrate-derived list of recently-
+        # declined revises on the cone, with reviser rationales. Queried
+        # fresh each cycle so any newly-rejected finding from this run's
+        # earlier cycles is included.
+        previous_findings = _declined_findings_for_cone(store, cone_paths)
 
         from lib.shared.validate_gate import run_validate_gate
         scope = {apex_label} | set(dep_labels)
@@ -377,8 +403,6 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
 
         for title, cls, _ in findings:
             print(f"\n  ### [{cls}] {title}", file=sys.stderr)
-
-        previous_findings = (previous_findings + "\n\n" + findings_text).strip()
 
         revise_findings = filter_revise(findings)
         last_cycle_revise_count = len(revise_findings)
