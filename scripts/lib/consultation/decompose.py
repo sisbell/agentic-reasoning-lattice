@@ -40,6 +40,10 @@ from lib.consult import (
     invoke_claude, get_total_usage, reset_total_usage,
     dispatch_generate_questions, dispatch_run_consultation,
 )
+from lib.store.emit import (
+    emit_consultation_answer, emit_consultation_questions,
+)
+from lib.store.store import default_store
 
 
 def _channel_default_questions(channel_name, fallback=10):
@@ -440,6 +444,9 @@ def main():
     )
     print(f"  [SAVED] {questions_path.relative_to(WORKSPACE)}", file=sys.stderr)
 
+    with default_store() as store:
+        emit_consultation_questions(store, questions_path)
+
     if args.dry_run:
         for i, (role, q) in enumerate(questions, 1):
             print(f"{i}. [{role}] {q}")
@@ -451,6 +458,13 @@ def main():
     results = run_consultations(questions, init_dir, asn_id)
     consult_elapsed = time.time() - consult_start
     print(f"  [CONSULT] All done ({consult_elapsed:.0f}s)", file=sys.stderr)
+
+    # Classify each per-answer doc as a substrate citizen. Single-pass
+    # after the parallel consultations complete so all writes are in
+    # place before we open the store.
+    with default_store() as store:
+        for answer_md in sorted(init_dir.glob("answer-*.md")):
+            emit_consultation_answer(store, answer_md)
 
     combined = build_combined_output(inquiry_text, inquiry_title, questions, results)
 

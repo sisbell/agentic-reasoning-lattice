@@ -36,6 +36,10 @@ from lib.consult import (
     invoke_claude, get_total_usage, dispatch_run_consultation,
 )
 from lib.consultation.evidence import assign_channels
+from lib.store.emit import (
+    emit_consultation_answer, emit_consultation_assessment,
+)
+from lib.store.store import default_store
 
 
 def get_review_number(review_path):
@@ -288,6 +292,9 @@ def main():
     )
     print(f"  [ASSIGN] Saved to {cat_path}", file=sys.stderr)
 
+    with default_store() as store:
+        emit_consultation_assessment(store, cat_path)
+
     items = assign_channels.parse(response, asn_label)
     if not items:
         print(f"  [ASSIGN] No items parsed from response", file=sys.stderr)
@@ -321,6 +328,13 @@ def main():
     else:
         print(f"  [CONSULT] All items internal, no consultations needed",
               file=sys.stderr)
+
+    # Classify each per-answer doc as a substrate citizen. Single-pass
+    # after the parallel consultations complete so all writes are in
+    # place before we open the store.
+    with default_store() as store:
+        for answer_md in sorted(consult_subdir.glob("answer-*.md")):
+            emit_consultation_answer(store, answer_md)
 
     # Step 3: Write results
     results = build_results(asn_label, review_path, items)
