@@ -76,7 +76,7 @@ The persistent, append-only link graph. See [Substrate Module](substrate-module.
 
 ### Tumbler Algebra
 
-The algebra of substrate addresses. See [`lattices/xanadu/claim-convergence/ASN-0034/`](../../lattices/xanadu/claim-convergence/ASN-0034/) for the full specification.
+The algebra of substrate addresses. See [`lattices/xanadu/_docuverse/documents/claim/ASN-0034/`](../../lattices/xanadu/_docuverse/documents/claim/ASN-0034/) for the full specification.
 
 **Properties relied upon.**
 
@@ -286,6 +286,6 @@ The specification's ordering claim (A3) cites T9, not timestamps. As link IDs be
 ## Related
 
 - [Substrate Module](substrate-module.md) — the data layer the agent module is built on.
-- [Tumbler Algebra (ASN-0034)](../../lattices/xanadu/claim-convergence/ASN-0034/) — the algebraic foundation for substrate addresses. T9 and TA5(a) are cited by A3 and §5.
+- [Tumbler Algebra (ASN-0034)](../../lattices/xanadu/_docuverse/documents/claim/ASN-0034/) — the algebraic foundation for substrate addresses. T9 and TA5(a) are cited by A3 and §5.
 - [Substrate Migration Trajectory](../design-notes/substrate-migration-trajectory.md) — the forward-portability commitment. The agent module's links are ordinary substrate links; they migrate the same way every other link does at the Xanadu cut.
 - [Convergence Protocol](../protocols/convergence-protocol.md) — defines `review`, `comment`, `resolution`. Convergence protocols use the agent module to attribute their work.

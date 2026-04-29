@@ -57,11 +57,10 @@ prompts/
 lattices/
 ├── xanadu/
 │   ├── config.yaml   # domain config: default campaign, verifier, firewall
-│   ├── _docuverse/       # substrate: links + documents (protocol state)
-│   ├── campaigns/    # campaign configs + bridge vocabularies
-│   ├── discovery/         # notes, consultations
-│   ├── claim-derivation/  # intermediate decomposition output
-│   ├── claim-convergence/ # per-claim files, review history
+│   ├── _docuverse/       # substrate: links + documents (claims, notes, reviews, findings, …)
+│   ├── _workspace/       # caches and intermediate non-substrate artifacts
+│   ├── campaigns/        # campaign configs + bridge vocabularies
+│   ├── discovery/        # patches and other discovery-stage artifacts
 │   └── verification/
 └── materials/
     └── ...           # same structure

@@ -4,7 +4,7 @@
 
 ## Prerequisites
 
-- note promoted from [claim derivation](claim-derivation.md) (`lattices/xanadu/claim-convergence/ASN-NNNN/`)
+- note promoted from [claim derivation](claim-derivation.md) (per-claim docs at `lattices/xanadu/_docuverse/documents/claim/ASN-NNNN/`)
 - Upstream dependencies already converged
 - Upstream summaries populated (run summarize on dependencies first)
 
@@ -92,7 +92,7 @@ s = Store()
 is_converged(s)
 
 # Per-claim
-is_claim_converged(s, "lattices/xanadu/claim-convergence/ASN-0034/T3.md")
+is_claim_converged(s, "lattices/xanadu/_docuverse/documents/claim/ASN-0034/T3.md")
 
 # Per-ASN
 is_asn_converged(s, "ASN-0034")
@@ -101,13 +101,13 @@ is_asn_converged(s, "ASN-0034")
 unresolved_revise_comments(s)
 
 # Open revise comments for one claim
-unresolved_revise_comments(s, "lattices/xanadu/claim-convergence/ASN-0034/T3.md")
+unresolved_revise_comments(s, "lattices/xanadu/_docuverse/documents/claim/ASN-0034/T3.md")
 
 # Every claim path the lattice knows about
 all_claim_paths(s)
 
 # Contract kind for a claim (e.g., "axiom", "theorem")
-current_contract_kind(s, "lattices/xanadu/claim-convergence/ASN-0034/T0.md")
+current_contract_kind(s, "lattices/xanadu/_docuverse/documents/claim/ASN-0034/T0.md")
 ```
 
 **Lower-level primitives** (Xanadu-aligned):
@@ -115,7 +115,7 @@ current_contract_kind(s, "lattices/xanadu/claim-convergence/ASN-0034/T0.md")
 ```python
 # Find all citations from a claim
 s.find_links(
-    from_set=["lattices/xanadu/claim-convergence/ASN-0034/T3.md"],
+    from_set=["lattices/xanadu/_docuverse/documents/claim/ASN-0034/T3.md"],
     type_set=["citation"],
 )
 
@@ -124,7 +124,7 @@ s.find_links(type_set=["review"])
 
 # Count comments on a claim
 s.find_num_links(
-    to_set=["lattices/xanadu/claim-convergence/ASN-0034/T3.md"],
+    to_set=["lattices/xanadu/_docuverse/documents/claim/ASN-0034/T3.md"],
     type_set=["comment"],
 )
 ```

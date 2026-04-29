@@ -89,15 +89,23 @@ The contract kind (axiom, definition, design-requirement, lemma, theorem, coroll
 ## File Structure
 
 ```
-lattices/xanadu/claim-convergence/ASN-NNNN/
-  S0.yaml          ← metadata: label, name, summary
-  S0.md            ← body: statement + justification + proof + formal contract (incl. Depends)
-  S1.yaml
-  S1.md
-  _preamble.md     ← structural (no YAML pair)
-  _cache.json      ← hash cache (not git-tracked, delete to force re-run)
-  _summary-cache.json ← summarize hash cache
-  reviews/         ← review artifacts (timestamped)
+lattices/xanadu/_docuverse/documents/claim/ASN-NNNN/
+  S0.md                    ← claim body (statement + justification + proof + formal contract)
+  S0.label.md              ← substrate `label` sidecar
+  S0.name.md               ← substrate `name` sidecar
+  S0.description.md        ← substrate `description` sidecar
+  …                        ← per-claim files for every claim in the note
+
+lattices/xanadu/_docuverse/documents/review/claims/ASN-NNNN/
+  review-N.md              ← aggregate review docs, classified by `review`
+
+lattices/xanadu/_docuverse/documents/finding/claims/ASN-NNNN/review-N/
+  0.md, 1.md, …            ← per-finding decomposition outputs, classified by `finding`
+
+lattices/xanadu/_workspace/claim-convergence/ASN-NNNN/
+  _contract-cache.json     ← contract-validation cache (regenerable)
+  _summary-cache.json      ← summarize hash cache (regenerable)
+  _verify-cache.json       ← verifier hash cache (regenerable)
 ```
 
 The `.yaml` carries the durable identity (label, name) and the operator-readable summary. The `.md` carries the reasoning, proof, and Formal Contract — including the `Depends:` list which the substrate reads to materialize citation links. Scripts pull the body as markdown; structured queries (predicate evaluation, dependency walks) go through the link store.
