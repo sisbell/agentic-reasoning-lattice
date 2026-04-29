@@ -15,15 +15,15 @@ Run this AFTER backfill-note-classifiers.py (which establishes the
 note classifier index this script reads).
 
 Usage:
-    python3 scripts/backfill-note-citations.py --apply
-    python3 scripts/backfill-note-citations.py --dry-run  (default)
+    python3 scripts/migration_tools/backfill-note-citations.py --apply
+    python3 scripts/migration_tools/backfill-note-citations.py --dry-run  (default)
 """
 
 import argparse
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
 from shared.paths import MANIFESTS_DIR, WORKSPACE, load_manifest
 from store.cite import emit_citation
 from store.populate import build_note_label_index

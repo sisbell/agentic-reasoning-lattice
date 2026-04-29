@@ -15,9 +15,9 @@ classifiers (the link target paths are the note md paths regardless,
 but checking that the note exists on disk is enough).
 
 Usage:
-    python3 scripts/backfill-synthesis-links.py
-    python3 scripts/backfill-synthesis-links.py --apply
-    LATTICE=materials python3 scripts/backfill-synthesis-links.py --apply
+    python3 scripts/migration_tools/backfill-synthesis-links.py
+    python3 scripts/migration_tools/backfill-synthesis-links.py --apply
+    LATTICE=materials python3 scripts/migration_tools/backfill-synthesis-links.py --apply
 """
 
 import argparse
@@ -25,7 +25,7 @@ import re
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
 from shared.paths import INQUIRY_DIR, NOTE_DIR, WORKSPACE
 from store.emit import emit_synthesis
 from store.store import Store

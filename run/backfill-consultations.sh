@@ -6,4 +6,4 @@
 #   LATTICE=materials ./run/backfill-consultations.sh --min-asn 1
 #   LATTICE=xanadu    ./run/backfill-consultations.sh --dry-run
 set -euo pipefail
-exec python3 scripts/backfill-consultations.py "$@"
+exec python3 scripts/migration_tools/backfill-consultations.py "$@"

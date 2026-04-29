@@ -19,8 +19,8 @@ migrated JSONL.
 Idempotent: re-running on a migrated store is a no-op.
 
 Usage:
-    python3 scripts/migrate-store-documents-dir.py --apply
-    python3 scripts/migrate-store-documents-dir.py --dry-run  (default)
+    python3 scripts/migration_tools/migrate-store-documents-dir.py --apply
+    python3 scripts/migration_tools/migrate-store-documents-dir.py --dry-run  (default)
 """
 
 import argparse
@@ -29,7 +29,7 @@ import shutil
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
 from shared.paths import LATTICE, WORKSPACE, DOCUVERSE_DIR, DOCUVERSE_DOCS_DIR, DOCUVERSE_LOG
 from store.store import Store
 

@@ -13,9 +13,9 @@ rename:
 Override or add substitutions with `--substitution OLD=NEW` (repeatable).
 
 Usage:
-    python scripts/migrate-substrate-paths.py
-    python scripts/migrate-substrate-paths.py --dry-run
-    python scripts/migrate-substrate-paths.py --substitution old/=new/
+    python scripts/migration_tools/migrate-substrate-paths.py
+    python scripts/migration_tools/migrate-substrate-paths.py --dry-run
+    python scripts/migration_tools/migrate-substrate-paths.py --substitution old/=new/
 
 After migration, the SQLite index is rebuilt from the migrated JSONL.
 """
@@ -24,7 +24,7 @@ import argparse
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
 from shared.paths import DOCUVERSE_LOG
 from shared.migrate_substrate_paths import migrate_paths
 from store.store import Store

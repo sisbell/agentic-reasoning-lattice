@@ -8,15 +8,15 @@ file. Idempotent — re-running is a no-op (emit_note returns the existing
 classifier id).
 
 Usage:
-    python3 scripts/backfill-note-classifiers.py --apply
-    python3 scripts/backfill-note-classifiers.py --dry-run  (default)
+    python3 scripts/migration_tools/backfill-note-classifiers.py --apply
+    python3 scripts/migration_tools/backfill-note-classifiers.py --dry-run  (default)
 """
 
 import argparse
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
 from shared.paths import NOTE_DIR, WORKSPACE
 from store.emit import emit_note
 from store.store import Store

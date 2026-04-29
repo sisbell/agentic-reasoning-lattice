@@ -33,7 +33,7 @@ import re
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from lib.shared.paths import LATTICE, LATTICE_NAME
 from lib.store.emit import (
     emit_consultation_answer, emit_consultation_assessment,

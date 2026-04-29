@@ -33,9 +33,9 @@ Dropped fields (no migration target — confirmed dead):
     stage, topic, hints, already_covered
 
 Usage:
-    python3 scripts/migrate-manifest-to-inquiry.py
-    python3 scripts/migrate-manifest-to-inquiry.py --apply
-    LATTICE=materials python3 scripts/migrate-manifest-to-inquiry.py --apply
+    python3 scripts/migration_tools/migrate-manifest-to-inquiry.py
+    python3 scripts/migration_tools/migrate-manifest-to-inquiry.py --apply
+    LATTICE=materials python3 scripts/migration_tools/migrate-manifest-to-inquiry.py --apply
 """
 
 import argparse
@@ -44,7 +44,7 @@ from pathlib import Path
 
 import yaml
 
-sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
 from shared.common import write_frontmatter
 from shared.paths import (
     INQUIRY_DIR, MANIFESTS_DIR, WORKSPACE, LATTICE,

@@ -9,7 +9,7 @@ Atomic: writes to a temp file in the same directory, fsyncs, then renames.
 Idempotent: a second pass with the same substitutions is a no-op.
 
 The library function is callable from tests; the CLI wrapper lives in
-`scripts/migrate-substrate-paths.py`.
+`scripts/migration_tools/migrate-substrate-paths.py`.
 """
 
 import json

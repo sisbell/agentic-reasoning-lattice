@@ -16,8 +16,8 @@ rebuilds the index.
 Idempotent: re-running on a migrated store is a no-op.
 
 Usage:
-    python3 scripts/migrate-findings-by-kind.py --apply
-    python3 scripts/migrate-findings-by-kind.py --dry-run  (default)
+    python3 scripts/migration_tools/migrate-findings-by-kind.py --apply
+    python3 scripts/migration_tools/migrate-findings-by-kind.py --dry-run  (default)
 """
 
 import argparse
@@ -26,7 +26,7 @@ import shutil
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
 from shared.paths import (
     LATTICE, WORKSPACE, DOCUVERSE_DOCS_DIR, DOCUVERSE_LOG,
     CLAIM_FINDINGS_DIR,
