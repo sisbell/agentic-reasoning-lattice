@@ -21,10 +21,12 @@ Following the modular formalism of Cachin (*Reliable and Secure Distributed Prog
 
 | Type | Subtypes | Role |
 |---|---|---|
-| `inquiry` | (flat, one-sided) | Classifier: document is an inquiry |
-| `provenance.synthesis` | (flat) | Records that consultation produced this note from this inquiry. From = inquiry, to = note. |
+| `inquiry` | (flat, one-sided) | Classifier: document is an inquiry. |
+| `note` | (flat, one-sided) | Classifier: document is a note. Filed by synthesis on the produced note. |
+| `consultation` | `questions`, `answer`, `assessment` | Per-doc classifiers for consultation artifacts. This protocol files `consultation.questions` (one per session, on the questions doc) and `consultation.answer` (one per Q+A pair, on each per-question answer doc). The `consultation.assessment` subtype is filed by revise-cycle consultations within note convergence — it does not appear in initial-draft consultation. |
+| `provenance.synthesis` | (flat) | Records that consultation produced this note from this inquiry. `from_set = [inquiry_md], to_set = [note_md]`. |
 
-Sub-questions and raw channel answers are choreography concerns, not protocol primitives. They may be persisted (substrate documents) or transient (intermediate state) — the protocol is silent on this. The substrate-level provenance trail is the inquiry → `provenance.synthesis` → note edge.
+The questions document and per-question answer documents are substrate primitives. The questions doc captures the artifact of one question-generation act (one doc, N questions); each answer doc captures one Q+A pair (the answer text plus the question it's responding to, embedded for self-containedness). Together with the `provenance.synthesis` link, they form the substrate-citizen trail from inquiry through consultation to note.
 
 ---
 
@@ -84,7 +86,7 @@ Reads both channels' answers and produces a structured note in the Dijkstra voic
 
 **Indications (output upward).**
 
-- ⟨ NoteProduced | inquiry, note ⟩ — the protocol has produced a note. The note carries the `note` classifier and a `provenance.synthesis` link from the inquiry.
+- ⟨ NoteProduced | inquiry, note ⟩ — the protocol has produced a note. The note carries the `note` classifier and a `provenance.synthesis` link from the inquiry. The substrate also contains a `consultation.questions` classifier on the session's questions doc and one `consultation.answer` classifier per Q+A pair filed during phases 1 and 2.
 - ⟨ ConsultationFailed | inquiry, reason ⟩ — the protocol could not produce a note (channel error, synthesizer failure). No note is created.
 
 ---
@@ -116,7 +118,7 @@ Termination is structural: the protocol's state machine is decompose → consult
 
 **C6 (Synthesis integrity).** Every fact present in either channel's output either appears in the synthesized note or is explicitly noted as a disagreement. The synthesizer does not fabricate facts not derivable from the channels' outputs. Where channels agree, the agreement is noted. Where they disagree, the disagreement is preserved as a finding, not resolved by the synthesizer's own judgment.
 
-**C7 (Provenance recording).** On ⟨ NoteProduced | inquiry, note ⟩, the substrate contains a `provenance.synthesis` link from the inquiry to the note and a `note` classifier on the note document. (Relies on SUB1.)
+**C7 (Provenance recording).** On ⟨ NoteProduced | inquiry, note ⟩, the substrate contains: a `provenance.synthesis` link from the inquiry to the note; a `note` classifier on the note document; a `consultation.questions` classifier on the session's questions doc; and one `consultation.answer` classifier per per-question answer doc. The audit trail from inquiry through the intermediate consultation artifacts to the produced note is reconstructable through these substrate links alone. (Relies on SUB1.)
 
 ### 5.2 Liveness
 
@@ -168,9 +170,11 @@ upon ⟨ Consult | inquiry, campaign ⟩ do
   evidence_qs  ← evidence_channel.generate_questions(inquiry, corpus, N_evidence)
   questions    ← merge(theory_qs, evidence_qs)
   questions    ← filter_scope(questions, out_of_scope, upstream_covers)
+  write questions to questions.md
+  emit consultation.questions on questions.md
 ```
 
-Each channel's `generate_questions` runs independently. The theory channel sees the campaign's vocabulary list; the evidence channel sees the evidence corpus (channel asymmetry, C5). Neither channel's invocation sees the other's outputs (C2).
+Each channel's `generate_questions` runs independently. The theory channel sees the campaign's vocabulary list; the evidence channel sees the evidence corpus (channel asymmetry, C5). Neither channel's invocation sees the other's outputs (C2). The questions doc is filed once, classified once — it captures the artifact of one question-generation act (one doc, N questions, identity-preserved-as-set).
 
 `filter_scope` is an orchestrator-level LLM pass (not a named participant) that discards questions falling outside the inquiry's declared `out_of_scope` or duplicating content already established by upstream ASNs (loaded from the inquiry's `depends:` foundation set). It judges semantic overlap, not string match. It runs after both channels have produced their questions and before any consultation begins.
 
@@ -183,18 +187,21 @@ upon questions decomposed do
       load cached answer
     else:
       answer ← theory_channel.consult(q)
-      save answer to disk
+      save answer to disk (per-question file embedding the question)
   for q in evidence_qs sequentially:
     if answer file for q exists:
       load cached answer
     else:
       answer ← evidence_channel.consult(q)
-      save answer to disk
+      save answer to disk (per-question file embedding the question)
+  emit consultation.answer on each per-question answer file
 ```
 
 **Concurrency policy.** Theory consultations run in parallel — they don't use external tools and the channels are stateless. Evidence consultations run sequentially — each uses tools internally (KB queries, source exploration) and parallel tool use across calls would conflict with itself.
 
 **Resume support.** If an answer file for a question already exists on disk, the cached answer is loaded and the consultation is skipped. This makes the algorithm partially idempotent under failure — a process killed mid-consultation resumes where it left off rather than restarting. (The protocol itself is not idempotent — see §5.4 — because re-running on the same inquiry without cached answers produces a different note.)
+
+**Classifier emission timing.** The `consultation.answer` classifiers are filed in a single pass after the parallel/sequential consultations complete, not inside the per-call closures. Sequential emission keeps the substrate-write path single-threaded while the LLM work remains parallel. The emit helper is idempotent, so re-running the consultation on a partial state classifies any new answer files without duplicating work.
 
 ### 6.4 Phase 3 — Synthesize
 
