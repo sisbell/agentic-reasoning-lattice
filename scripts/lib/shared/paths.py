@@ -141,6 +141,25 @@ def review_aggregate_path(asn_label, review_num, *, kind):
     return _reviews_dir_for_kind(kind) / asn_label / f"review-{review_num}.md"
 
 
+def claim_doc_path(asn_label, label):
+    """Lattice-relative path to a claim's body markdown by (ASN, label).
+
+    Returns the canonical convention path
+    `_docuverse/documents/claim/<asn_label>/<label>.md` as a string.
+    Pure construction — does not check whether the file exists. Suitable
+    for both already-existing claims (the path is always conventional)
+    and freshly-created ones the LLM has just written under the same
+    convention.
+
+    Used by the link-emit CLIs (cite, retract, classify, label, name,
+    description) to translate their --label argument into the substrate
+    address. Per the Xanadu-aligned design, callers pass labels rather
+    than path strings; the path convention is the local-reference's
+    way of mapping label-as-identity to a filesystem address.
+    """
+    return f"_docuverse/documents/claim/{asn_label}/{label}.md"
+
+
 def note_dir(asn_num):
     """Per-note manifest directory."""
     return MANIFESTS_DIR / f"ASN-{int(asn_num):04d}"
