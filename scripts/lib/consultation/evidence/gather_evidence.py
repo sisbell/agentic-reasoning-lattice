@@ -64,13 +64,45 @@ def extract_revise_section(review_content):
 
 # ─── Run consultations ───────────────────────────────────
 
-def run_targeted_consultations(items, asn_id, model="opus"):
+def _answer_path(consult_subdir, issue_number, role):
+    """Per-answer file path. Mirrors decompose._answer_path so the on-disk
+    layout is uniform across draft and revise consultations."""
+    return consult_subdir / f"answer-{issue_number:02d}-{role}.md"
+
+
+def _save_answer(consult_subdir, item, role, answer):
+    """Persist one Q+A pair to its own doc, formatted to match the draft
+    path's per-answer files. Each file is the substrate-citizenship unit
+    for one consultation answer (`consultation.answer` classifier).
+
+    Format mirrors `decompose._save_answer`:
+
+        ## Question N [role]
+
+        > <question text>
+
+        <answer body>
+    """
+    question = item.get("questions", {}).get(role, "")
+    path = _answer_path(consult_subdir, item["number"], role)
+    body = answer.strip() if answer else "[No answer]"
+    path.write_text(
+        f"## Question {item['number']} [{role}]\n\n"
+        f"> {question}\n\n"
+        f"{body}\n"
+    )
+
+
+def run_targeted_consultations(items, asn_id, consult_subdir, model="opus"):
     """Run channel consultations for items that have questions assigned.
 
     Theory consultations run in parallel (no tools).
     Evidence consultations run sequentially (each runs KB + code in parallel internally).
 
-    Mutates items in place, populating item['answers'][role].
+    Mutates items in place, populating item['answers'][role]. Eagerly
+    persists each answer to its own file under `consult_subdir` so the
+    revise path produces the same per-answer artifacts the draft path
+    does — one substrate-citizen doc per Q+A pair.
     """
     campaign = resolve_campaign(asn_id)
     theory_channel = campaign.theory_channel
@@ -98,6 +130,7 @@ def run_targeted_consultations(items, asn_id, model="opus"):
                     theory_channel, q, label=f"Q{n}:theory",
                     model=model, effort="max")
                 items[ii]["answers"]["theory"] = answer
+                _save_answer(consult_subdir, items[ii], "theory", answer)
             t = threading.Thread(target=run_t)
             threads.append(t)
             t.start()
@@ -114,6 +147,7 @@ def run_targeted_consultations(items, asn_id, model="opus"):
                 evidence_channel, question, label=f"Q{idx + 1}:evidence",
                 model="sonnet", effort="max")
             items[item_idx]["answers"]["evidence"] = answer
+            _save_answer(consult_subdir, items[item_idx], "evidence", answer)
         print(f"  [EVIDENCE] All done", file=sys.stderr)
 
 
@@ -282,7 +316,8 @@ def main():
     # Step 2: Run consultations for items that need them
     if consult_count > 0:
         print(f"", file=sys.stderr)
-        run_targeted_consultations(items, asn_label, model=args.model)
+        run_targeted_consultations(items, asn_label, consult_subdir,
+                                   model=args.model)
     else:
         print(f"  [CONSULT] All items internal, no consultations needed",
               file=sys.stderr)
