@@ -35,7 +35,7 @@ Once expansion is confirmed, the Sprawl patterns take over as site-specific diag
 
 ## Resolution
 
-Two mechanisms contain surface expansion, operating at different points in the pipeline.
+Two mechanisms contain surface expansion, operating at different stages.
 
 **Voice discipline constrains what the reviser writes.** The [Voice Principle](../principles/voice.md) defines well-formed output through positive style structure — the Dijkstra voice, where every formal statement must be justified in the sentence that introduces it, every claim must be named, and state is described rather than narrated. Under this discipline, non-reasoning prose has no slot to land in. The structure itself is the constraint. Enumerated prohibition lists ("delete > restructure > add") proved unstable — too lax and the reviser adds; too strict and the reviser over-deletes. Voice discipline sidesteps the Goldilocks problem by defining what good prose looks like rather than listing what bad prose looks like.
 

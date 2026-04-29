@@ -10,7 +10,7 @@ Each was observed through operation. Resolution is not "try harder" — it is a 
 
 **Gravitational failures** act continuously. Every review cycle produces the pressure: the reviser is tempted to extend rather than restructure; exhaustiveness obligations create defense-of-completeness loops; citation accounting creeps into prose. These cannot be fixed once. They require permanent discipline — prompt framing, coupling monitoring, and the authoring habits that resist the pull.
 
-**Transitional failures** act at representation boundaries. A pipeline stage introduces a new unit of structure; its output has rules that must hold for the structure to mean anything; if the transition doesn't specify the rules, downstream stages silently operate on malformed state. The force does not recur once the boundary's contract is sound — but every new representation change introduced anywhere in the pipeline carries the same risk.
+**Transitional failures** act at representation boundaries. A stage introduces a new unit of structure; its output has rules that must hold for the structure to mean anything; if the transition doesn't specify the rules, downstream stages silently operate on malformed state. The force does not recur once the boundary's contract is sound — but every new representation change introduced anywhere in the system carries the same risk.
 
 **Oscillatory failures** act at sites of undecidability. Two resolutions both look locally valid and nothing in the cycle picks between them, so consecutive cycles pick opposite ones. The force is neither continuous nor boundary-bound — it fires wherever a review/revise pair lacks a shared criterion to defer to. Resolution is to establish the criterion: a missing contract, a missing convention, or an explicit scope ruling.
 
@@ -26,7 +26,7 @@ The distinction matters for intervention. Gravitational failures are prompt and 
 
 ## Transitional patterns
 
-- [Uncontracted Representation Change](uncontracted-representation-change.md) — a pipeline stage introduces a new unit of structure without specifying what well-formed output means. Downstream agents inherit the structure without the rules and spend review cycles on symptoms of violations that have no names. The most visible manifestation is a non-converging cone whose findings are structural (duplicated definitions, dangling references, metadata disagreement) rather than semantic.
+- [Uncontracted Representation Change](uncontracted-representation-change.md) — a stage introduces a new unit of structure without specifying what well-formed output means. Downstream agents inherit the structure without the rules and spend review cycles on symptoms of violations that have no names. The most visible manifestation is a non-converging cone whose findings are structural (duplicated definitions, dangling references, metadata disagreement) rather than semantic.
 
 ## Oscillatory patterns
 

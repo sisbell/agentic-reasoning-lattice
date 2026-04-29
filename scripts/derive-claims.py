@@ -14,7 +14,7 @@ derivation halts before produce_contract diverges the bodies.
 Phase 5 (validate-gate) is the validate-revise gate (same gate claim
 convergence runs before each review cycle): a bounded loop that runs
 the comprehensive validator and dispatches structural-only fix recipes
-until the Claim File Contract holds — or max iterations exhausted, in
+until the Claim Document Contract holds — or max iterations exhausted, in
 which case derivation fails with the unresolved findings left in place
 for diagnosis.
 
@@ -147,7 +147,7 @@ def run_pipeline(asn_num):
         print(f"\n  [DERIVE] COMPLETE ({elapsed:.0f}s)", file=sys.stderr)
     else:
         print(f"\n  [DERIVE] COMPLETE with validation violations "
-              f"({elapsed:.0f}s) — Claim File Contract does not hold; "
+              f"({elapsed:.0f}s) — Claim Document Contract does not hold; "
               f"derivation must be addressed before claim convergence.",
               file=sys.stderr)
 

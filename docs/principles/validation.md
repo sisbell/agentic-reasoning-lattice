@@ -31,7 +31,7 @@ No principle subsumes another. A claim file can have perfect coupling (70/30, no
 
 ## The contract
 
-Each representation's structural contract specifies what well-formed state looks like at that representation. The contract is a schema — concrete rules, mechanically checkable. The first instance is the [Claim File Contract](../design-notes/claim-file-contract.md), which specifies valid per-claim file state after claim derivation.
+Each representation's structural contract specifies what well-formed state looks like at that representation. The contract is a schema — concrete rules, mechanically checkable. The first instance is the [Claim Document Contract](../design-notes/claim-document-contract.md), which specifies valid per-claim file state after claim derivation.
 
 Contracts have two classes of rule:
 
@@ -57,4 +57,4 @@ The T1 cone on the same ASN — whose state happened to satisfy the structural i
 - [Voice Principle](voice.md) — the parallel principle for LLM output quality. Validation uses enumeration (structural invariants are a closed set). Voice uses positive structure (prose quality is an open set). The two principles use different mechanisms because they govern different kinds of constraint.
 - [Validate-Before-Review](../patterns/validate-before-review.md) — the operational pattern that enforces this principle.
 - [Uncontracted Representation Change](../equilibrium/uncontracted-representation-change.md) — the failure mode when a representation has no contract to validate against.
-- [Claim File Contract](../design-notes/claim-file-contract.md) — the first instance of a structural contract.
+- [Claim Document Contract](../design-notes/claim-document-contract.md) — the first instance of a structural contract.

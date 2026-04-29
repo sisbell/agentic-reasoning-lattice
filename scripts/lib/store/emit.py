@@ -54,7 +54,7 @@ def emit_inquiry(store, inquiry_md_path):
 def emit_claim(store, claim_md_path):
     """Classify a doc as a claim. Idempotent. Returns (link_id, created).
 
-    Filed by claim derivation per the Claim File Contract (invariant #4):
+    Filed by claim derivation per the Claim Document Contract (invariant #4):
     every claim body markdown carries exactly one active `claim` classifier
     link in the substrate."""
     return _emit_classifier(store, claim_md_path, "claim")
@@ -67,7 +67,7 @@ def emit_contract(store, claim_md_path, kind):
     `kind` must be one of: axiom, definition, theorem, corollary, lemma,
     consequence, design-requirement.
 
-    Filed by claim derivation per the Claim File Contract (invariant #4):
+    Filed by claim derivation per the Claim Document Contract (invariant #4):
     every claim body carries exactly one active `contract.<kind>` classifier
     declaring its formal status."""
     return _emit_classifier(store, claim_md_path, f"contract.{kind}")
@@ -77,7 +77,7 @@ def emit_derivation(store, note_md_path, claim_md_path):
     """File a `provenance.derivation` link from source note to claim doc.
     Idempotent on (note, claim) pair. Returns (link_id, created).
 
-    Filed by claim derivation per the Claim File Contract (invariant #13):
+    Filed by claim derivation per the Claim Document Contract (invariant #13):
     each claim's body carries exactly one active `provenance.derivation`
     link recording that this claim was derived from this note. The link
     persists permanently regardless of subsequent edits to either doc.

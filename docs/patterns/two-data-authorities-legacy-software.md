@@ -58,4 +58,4 @@ Working implementation (source + live system) ──→ data channel ─┘
 
 ## Origin
 
-Observed on the Xanadu demonstration: reverse-engineering udanax-green (Roger Gregory's C implementation) with Ted Nelson's *Literary Machines* as the designer's source. The two-channel setup was chosen deliberately at the start; the specific dynamics (saturation, noun/verb asymmetry, 70/30 coinage split) were observed as the pipeline ran.
+Observed on the Xanadu demonstration: reverse-engineering udanax-green (Roger Gregory's C implementation) with Ted Nelson's *Literary Machines* as the designer's source. The two-channel setup was chosen deliberately at the start; the specific dynamics (saturation, noun/verb asymmetry, 70/30 coinage split) were observed as the system ran.

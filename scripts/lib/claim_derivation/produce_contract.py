@@ -4,7 +4,7 @@ Produce Contract — Dijkstra rewrite + formal contracts per claim.
 Synthesizes the Formal Contract section in each claim's body markdown.
 Initial synthesis is claim derivation's responsibility (so claim
 convergence operates on already-contract-bearing claims, satisfying the
-Claim File Contract's structural invariants from the start). Ongoing
+Claim Document Contract's structural invariants from the start). Ongoing
 re-synthesis on prose-changed claims is currently driven from
 scripts/converge.py.
 

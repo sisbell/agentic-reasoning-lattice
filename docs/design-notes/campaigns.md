@@ -65,7 +65,7 @@ channels/                                    # top-level plugin registry (cross-
         └── *.md                              # channel-specific consultation prompt templates
 ```
 
-Each ASN's campaign context is resolved at pipeline invocation: the ASN's manifest is read, the bound campaign is identified (or inherited from the lattice default), and its channels, vocabulary, and target are loaded. All discovery-stage scripts read vocabulary and corpora through this resolution step — there is no direct pipeline access to channel content bypassing the campaign.
+Each ASN's campaign context is resolved at stage invocation: the ASN's manifest is read, the bound campaign is identified (or inherited from the lattice default), and its channels, vocabulary, and target are loaded. All discovery-stage scripts read vocabulary and corpora through this resolution step — there is no direct access to channel content bypassing the campaign.
 
 ## What campaigns do not enforce
 

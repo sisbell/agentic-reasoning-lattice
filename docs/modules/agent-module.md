@@ -181,13 +181,17 @@ The properties trace through substrate guarantees and the tumbler algebra. The a
 ```
 Substrate
   ↑ used by
-Agent module ─── Convergence Protocol ─── Note/Claim Convergence
-                  Consultation Protocol
-                  Note Decomposition Protocol
-                  Maturation Protocol
+  │
+  ├─── Agent module
+  │       ↑ used by protocols when operations need attribution
+  │
+  └─── Convergence Protocol ─── Note Convergence, Claim Convergence
+       Consultation Protocol
+       Claim Derivation Module
+       Maturation Protocol
 ```
 
-The agent module uses substrate primitives (links, retraction, queries) to provide doc-layer agent identity and operation attribution. Protocols use the agent module to attribute their work without protocol identity leaking into the substrate's type system.
+The agent module sits as a service layer over the substrate: it uses substrate primitives (links, retraction, queries) to provide doc-layer agent identity and operation attribution. Protocols use the substrate directly for their core machinery, and use the agent module on top of that when they need to attribute operations to a specific agent — without protocol identity leaking into the substrate's type system.
 
 A protocol that wants its operations attributed:
 

@@ -1,10 +1,10 @@
 # Domain Language Emergence
 
-*Design note. How the vocabulary produced by [prose coinage](../patterns/prose-coinage.md) is structured and narrowed as it moves through the pipeline.*
+*Design note. How the vocabulary produced by [prose coinage](../patterns/prose-coinage.md) is structured and narrowed as it moves through the stages.*
 
 ## Overview
 
-[Prose Coinage](../patterns/prose-coinage.md) is the atomic event: one agent, one moment, one new word. This note takes the aggregate view — what the collection of those events looks like across a note's lifecycle. The mechanics and the per-note numbers (the 70/30 split, the `subspace` case) live in the pattern. What's here is the systemic picture: how vocabulary is progressively narrowed through the pipeline, what layers it sits in, and what structural shape the invented layer takes.
+[Prose Coinage](../patterns/prose-coinage.md) is the atomic event: one agent, one moment, one new word. This note takes the aggregate view — what the collection of those events looks like across a note's lifecycle. The mechanics and the per-note numbers (the 70/30 split, the `subspace` case) live in the pattern. What's here is the systemic picture: how vocabulary is progressively narrowed through the stages, what layers it sits in, and what structural shape the invented layer takes.
 
 ## Progressive narrowing
 ![Progressive Narrowing](../diagrams/progressive-narrowing-funnel.svg)
@@ -15,7 +15,7 @@ The vocabulary a note ends up with is the product of a funnel. Each stage remove
 3. **[Note convergence](../protocols/note-convergence-protocol.md) (second narrowing).** Review/revise cycles press on ad-hoc prose — coining more terms, compressing recurring prose concepts to symbols ([prose compression](../patterns/prose-compression.md)), or pulling upstream terms in to replace local phrasings. Roughly 30% of discovery-stage coinage happens here, typically the precision-critical terms that first-draft synthesis glossed over.
 4. **[Claim convergence](../protocols/claim-convergence-protocol.md) (third narrowing).** Claim convergence cycles continue compression where needed, split sprawling contracts into dedicated claims ([accretion](../patterns/accretion.md)), and coin structural names for previously-implicit concepts. The distinctive work at this stage is structural partitioning and final tightening — producing a set of terms and symbols that can participate in proofs and mechanical verification.
 
-Each narrowing is driven by review pressure. Nothing in this pipeline selects vocabulary for compactness on its own; terms survive because a reviewer judged them worth keeping and a reviser committed to them. The funnel is a side effect of iterative precision pressure, not a design goal.
+Each narrowing is driven by review pressure. Nothing in the system selects vocabulary for compactness on its own; terms survive because a reviewer judged them worth keeping and a reviser committed to them. The funnel is a side effect of iterative precision pressure, not a design goal.
 
 ## Three layers of named content
 

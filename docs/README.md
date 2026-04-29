@@ -30,7 +30,7 @@ The system is built from two kinds of specifications, both written in the modula
 
 - [Substrate Module](modules/substrate-module.md) — persistent, append-only link graph every protocol reads from and writes to. Defines retraction as a substrate operation (link-to-link nullification) and the `ActiveLinks` query that subtracts retracted links from results. Properties: SUB1 permanence, SUB2 query soundness, SUB3 count consistency, SUB4–SUB5 retraction nullify-and-shadow, SUB6 retraction idempotence.
 - [Agent Module](modules/agent-module.md) — agent identity and operation attribution above the substrate. Defines `agent` (classifies a doc as an agent — its address is the agent's identity) and `manages` (declares an agent is currently responsible for an operation).
-- [Claim Derivation Module](modules/claim-derivation-module.md) — transforms a converged note into per-claim files conforming to the Claim File Contract. The boundary between note convergence and claim convergence; a representation change.
+- [Claim Derivation Module](modules/claim-derivation-module.md) — transforms a converged note into per-claim files conforming to the Claim Document Contract. The boundary between note convergence and claim convergence; a representation change.
 
 ## How the system works, fails, and is disciplined
 

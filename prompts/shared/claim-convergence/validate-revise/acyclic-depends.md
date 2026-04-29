@@ -2,7 +2,7 @@
 
 ## Context
 
-You are addressing a structural violation of invariant #8 from the Claim File Contract:
+You are addressing a structural violation of invariant #8 from the Claim Document Contract:
 
 > **Acyclic dependency graph.** The `depends` relation across all file pairs in the lattice is a DAG.
 

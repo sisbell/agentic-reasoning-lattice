@@ -204,7 +204,7 @@ upon ⟨ Engage | note, N ⟩ do
 
 Same shape as the claim convergence algorithm (§5 of [Claim Convergence Protocol](claim-convergence-protocol.md)). Differences: no Validate step, and the scope is a single note rather than a configurable claim set.
 
-Notes have no structural-contract analog at this scale. Claim files have the [Claim File Contract](../design-notes/claim-file-contract.md) — one body per file, filename matches label, references resolve, metadata agrees. Notes are prose-dominated documents whose structure is deliberately informal during discovery. Imposing a structural contract on notes would constrain the generative process that discovery depends on. Structural validation enters at claim derivation, when the representation changes to per-claim files.
+Notes have no structural-contract analog at this scale. Claim files have the [Claim Document Contract](../design-notes/claim-document-contract.md) — one body per file, filename matches label, references resolve, metadata agrees. Notes are prose-dominated documents whose structure is deliberately informal during discovery. Imposing a structural contract on notes would constrain the generative process that discovery depends on. Structural validation enters at claim derivation, when the representation changes to per-claim files.
 
 Natural convergence (the `break` path) avoids a redundant confirmation review. If cycle K's review filed zero revise comments and the predicate is already true, that review just confirmed convergence — running another review to confirm what was just confirmed wastes an invocation. The +1 confirmation only runs when the work loop exhausted N cycles without a quiet review coinciding with predicate truth.
 

@@ -251,19 +251,19 @@ CS2 (retraction idempotence) inherits from SUB6: multiple retractions of the sam
 
 ### Within the maturation protocol
 
-The [maturation protocol](maturation-protocol.md) activates claim convergence when claim derivation's structural contract holds and claim convergence's preconditions are met — structural form satisfies the [Claim File Contract](../design-notes/claim-file-contract.md).
+The [maturation protocol](maturation-protocol.md) activates claim convergence when claim derivation's structural contract holds and claim convergence's preconditions are met — structural form satisfies the [Claim Document Contract](../design-notes/claim-document-contract.md).
 
 ```
 Module: Maturation
-  Uses: Discovery, NoteDecomposition, ClaimConvergence, Verification
-  
-  Transition: NoteDecomposition → ClaimConvergence
+  Uses: Discovery, ClaimDerivation, ClaimConvergence, Verification
+
+  Transition: ClaimDerivation → ClaimConvergence
     Precondition: structural validation returns zero violations
-    Artifact: claim file set satisfying the claim file contract
-  
+    Artifact: claim document set satisfying the Claim Document Contract
+
   Transition: ClaimConvergence → Verification
     Precondition: ⟨ Converged ⟩ indicated, coverage met
-    Artifact: claim files with formally precise contracts
+    Artifact: claim documents with formally precise contracts
 ```
 
 On verification failure, the failing claim re-enters the protocol via a new `comment.revise` carrying the verification failure. The predicate re-evaluates to false until resolved.

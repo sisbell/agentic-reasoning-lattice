@@ -1,12 +1,12 @@
 # Claim Derivation Module
 
-A transformation module that derives per-claim files from a converged note. Each claim becomes a body markdown file with substrate-managed sidecars (label, name, description, optionally signature) and substrate links classifying the body and recording its dependencies and provenance, conforming to the [Claim File Contract](../design-notes/claim-file-contract.md).
+A transformation module that derives per-claim files from a converged note. Each claim becomes a body markdown file with substrate-managed sidecars (label, name, description, optionally signature) and substrate links classifying the body and recording its dependencies and provenance, conforming to the [Claim Document Contract](../design-notes/claim-document-contract.md).
 
 The input is a note refined through [consultation](../protocols/consultation-protocol.md) and [note convergence](../protocols/note-convergence-protocol.md); the output enters [claim convergence](../protocols/claim-convergence-protocol.md) for review/revise cycles.
 
 One-shot — terminates when the structural contract holds on the output. The narrative description of the derivation stage lives in [Claim Derivation](../claim-derivation.md).
 
-This module uses the modular formalism of Cachin (*Reliable and Secure Distributed Programming*) for its specification — events, properties, composition — but it is not a protocol in the interaction sense. Protocols govern ongoing interaction between participants with predicates across that interaction (the convergence protocols, the consultation protocol). This module provides a single transformation: note in, claim set out, postcondition verified. It is a refinement step between two protocols — an adapter that takes note convergence's output and produces claim convergence's input, with the [Claim File Contract](../design-notes/claim-file-contract.md) as the interface contract.
+This module uses the modular formalism of Cachin (*Reliable and Secure Distributed Programming*) for its specification — events, properties, composition — but it is not a protocol in the interaction sense. Protocols govern ongoing interaction between participants with predicates across that interaction (the convergence protocols, the consultation protocol). This module provides a single transformation: note in, claim set out, postcondition verified. It is a refinement step between two protocols — an adapter that takes note convergence's output and produces claim convergence's input, with the [Claim Document Contract](../design-notes/claim-document-contract.md) as the interface contract.
 
 ---
 
@@ -27,7 +27,7 @@ This module uses the modular formalism of Cachin (*Reliable and Secure Distribut
 | `claim` | (flat, one-sided) | Classifier: document is a claim. `to_set = [body_md]`. Filed by the module's transclude phase from each enriched section claim. |
 | `contract` | `axiom`, `definition`, `theorem`, `corollary`, `lemma`, `consequence`, `design-requirement` | Classifier: claim has a formal contract of this kind. `to_set = [body_md]`. Filed by transclude from the enricher's type classification. |
 | `citation` | (flat) | Claim depends on claim. `from_set = [body_md], to_set = [dep_body_md]`. Filed by transclude from the enricher's dependency extraction. |
-| `label` / `name` / `description` / `signature` | (flat) | Substrate-owned attribute links pointing each claim body at its sibling sidecar. `from_set = [body_md], to_set = [<stem>.<kind>.md]`. Filed by transclude. `signature` is conditional — present only when the claim introduces non-logical symbols (per [Claim File Contract](../design-notes/claim-file-contract.md) invariant #1: a missing signature sidecar for a claim that introduces no symbols is not a violation; an orphan sidecar without a matching body is). |
+| `label` / `name` / `description` / `signature` | (flat) | Substrate-owned attribute links pointing each claim body at its sibling sidecar. `from_set = [body_md], to_set = [<stem>.<kind>.md]`. Filed by transclude. `signature` is conditional — present only when the claim introduces non-logical symbols (per [Claim Document Contract](../design-notes/claim-document-contract.md) invariant #1: a missing signature sidecar for a claim that introduces no symbols is not a violation; an orphan sidecar without a matching body is). |
 | `provenance` | `derivation` | Records that derivation produced this claim from this note. `from_set = [note_md], to_set = [body_md]`. Audit trail from source to output. Sibling of consultation's `provenance.synthesis` and maturation's `provenance.{extract,absorb,reset}`. |
 
 The `claim`, `citation`, `contract`, and the substrate attribute link types are reused across protocols — claim derivation is the module that creates them for each derived claim. The `provenance.derivation` link is this module's own provenance primitive (analog of consultation's `provenance.synthesis`).
@@ -42,9 +42,9 @@ The persistent, append-only link graph. See [Substrate Module](substrate-module.
 
 ### 2.2 Structural validator
 
-A mechanical checker (no LLM) that evaluates the per-claim file sets against the [Claim File Contract](../design-notes/claim-file-contract.md). Used by this module's final phase and re-used by claim convergence's [validate-before-review](../patterns/validate-before-review.md) gate.
+A mechanical checker (no LLM) that evaluates the per-claim file sets against the [Claim Document Contract](../design-notes/claim-document-contract.md). Used by this module's final phase and re-used by claim convergence's [validate-before-review](../patterns/validate-before-review.md) gate.
 
-The validator's declared-symbols-resolve check (Claim File Contract invariant #7) reads two substrate-resident inputs beyond the per-claim files themselves: the lattice's notation document (the always-in-scope set of language-provided symbols, classified by a `notation` link) and the union of all `signature` sidecars (each owning claim's introduced symbols). These are substrate state, not module parameters — the validator queries them at check time.
+The validator's declared-symbols-resolve check (Claim Document Contract invariant #7) reads two substrate-resident inputs beyond the per-claim files themselves: the lattice's notation document (the always-in-scope set of language-provided symbols, classified by a `notation` link) and the union of all `signature` sidecars (each owning claim's introduced symbols). These are substrate state, not module parameters — the validator queries them at check time.
 
 **Properties relied upon.**
 
@@ -52,7 +52,7 @@ The validator's declared-symbols-resolve check (Claim File Contract invariant #7
 - SV2 (Soundness). Every reported violation is a genuine violation.
 - SV3 (Determinism). Given the same input, the validator produces the same output. No LLM, no judgment.
 
-### 2.3 Decomposition prompts
+### 2.3 Derivation prompts
 
 Per-phase LLM prompts that drive section analysis, type classification, dependency extraction, and signature extraction. The prompts enforce structured output (YAML conforming to a schema, written to `_workspace/claim-derivation/<asn>/sections/`) so downstream phases can read them mechanically without natural-language parsing. The intermediate section YAMLs are workspace artifacts only — the module's output is the substrate-classified claim documents and sidecars (§1), not these YAMLs.
 
@@ -66,7 +66,7 @@ Splits the note mechanically at `##` section headers, then invokes per-section L
 
 ### Enricher
 
-Reads the section YAMLs from decomposition. Per-claim, runs three independent LLM passes — type classification (axiom/definition/theorem/...), dependency extraction (which other claims this one cites), and signature extraction (which non-logical symbols this claim introduces). Passes are parallel within a claim and across claims. Updates the section YAMLs in place.
+Reads the section YAMLs from the decompose phase. Per-claim, runs three independent LLM passes — type classification (axiom/definition/theorem/...), dependency extraction (which other claims this one cites), and signature extraction (which non-logical symbols this claim introduces). Passes are parallel within a claim and across claims. Updates the section YAMLs in place.
 
 ### Transcluder
 
@@ -74,11 +74,11 @@ Reads the enriched section YAMLs and projects each claim into the substrate. For
 
 ### Validator
 
-Mechanical structural checker. Reads the per-claim file sets and evaluates them against the [Claim File Contract](../design-notes/claim-file-contract.md)'s structural invariants. Emits a violation report or signals validation success.
+Mechanical structural checker. Reads the per-claim file sets and evaluates them against the [Claim Document Contract](../design-notes/claim-document-contract.md)'s structural invariants. Emits a violation report or signals validation success.
 
 ### Fix recipe agent
 
-Resolves structural violations reported by the validator. One violation, one fix. Per-invariant recipes constrain each fix to one violation class with a specific resolution strategy. The recipes are documented in [Validate Before Review](../patterns/validate-before-review.md) — each invariant in the [Claim File Contract](../design-notes/claim-file-contract.md) has one corresponding recipe in the validate-before-review pattern's recipe set. Runs after the validator; the validator re-checks after fixes.
+Resolves structural violations reported by the validator. One violation, one fix. Per-invariant recipes constrain each fix to one violation class with a specific resolution strategy. The recipes are documented in [Validate Before Review](../patterns/validate-before-review.md) — each invariant in the [Claim Document Contract](../design-notes/claim-document-contract.md) has one corresponding recipe in the validate-before-review pattern's recipe set. Runs after the validator; the validator re-checks after fixes.
 
 ### Events
 
@@ -104,7 +104,7 @@ Resolves structural violations reported by the validator. One violation, one fix
 
 The module terminates on output production — no convergence predicate, no iteration. A single ⟨ Derive ⟩ request results in either:
 
-- ⟨ ClaimSetProduced | note, claims ⟩ — success. The Claim File Contract's structural invariants hold on the output. Substrate links are filed per the document model (§1).
+- ⟨ ClaimSetProduced | note, claims ⟩ — success. The Claim Document Contract's structural invariants hold on the output. Substrate links are filed per the document model (§1).
 - ⟨ DerivationFailed | note, violations ⟩ — failure. The validator reported invariant violations the module could not auto-resolve. The output is left in place but does not enter claim convergence.
 
 Termination is structural: the module's state machine is split → enrich → transclude → validate → indicate. There is no convergence loop. The validate-gate (§6.7) has a bounded structural-healing loop, but this iterates against mechanical contract violations only — it does not iterate against semantic findings and is not a convergence predicate in the protocol sense.
@@ -125,7 +125,7 @@ The properties are postconditions on the module's output — "when this transfor
 
 **B4 (Source freezing).** The source note is frozen at the moment derivation begins. It becomes the record of discovery, not a living document. Modifications to the note after derivation has started do not propagate to the claim file set. The note and the claim files are separate artifacts from this point forward. This connects to the [maturation protocol](../protocols/maturation-protocol.md)'s hard reset — unfreezing is a cascading structural operation.
 
-**B5 (Structural contract).** On ⟨ ClaimSetProduced ⟩, every steady-state invariant of the [Claim File Contract](../design-notes/claim-file-contract.md) holds on the output: file-set completeness (body + required sidecars), declaration matches label, sidecar content well-formed, substrate classification complete (`claim`, `contract.<kind>`, `label`, `name`, `description`, optional `signature` links), depends agreement, references resolve, declared symbols resolve, acyclic dependency graph, body uniqueness. (Relies on SV1, SV2.)
+**B5 (Structural contract).** On ⟨ ClaimSetProduced ⟩, every steady-state invariant of the [Claim Document Contract](../design-notes/claim-document-contract.md) holds on the output: file-set completeness (body + required sidecars), declaration matches label, sidecar content well-formed, substrate classification complete (`claim`, `contract.<kind>`, `label`, `name`, `description`, optional `signature` links), depends agreement, references resolve, declared symbols resolve, acyclic dependency graph, body uniqueness. (Relies on SV1, SV2.)
 
 **B6 (Acyclicity).** The `citation` subgraph induced by the output's `depends:` lists is a directed acyclic graph. Derivation refuses to emit ⟨ ClaimSetProduced ⟩ if it would introduce a cycle. (Subsumed by B5 but called out separately because cycles are detected by a distinct check from the rest of B5.)
 
@@ -147,7 +147,7 @@ These are review-enforced. The validator does not check them; claim convergence'
 
 **Symbol usage matches declaration.** Symbols declared in a claim's signature with a given meaning are used consistently with that declaration throughout the proof.
 
-These three semantic invariants are documented in the [Claim File Contract](../design-notes/claim-file-contract.md) as review-enforced.
+These three semantic invariants are documented in the [Claim Document Contract](../design-notes/claim-document-contract.md) as review-enforced.
 
 ### 5.4 Deliberate non-guarantees
 
@@ -166,7 +166,7 @@ These three semantic invariants are documented in the [Claim File Contract](../d
 ## 6 Algorithm: split → enrich → transclude → validate-transclude → produce-contract → validate-gate
 
 Implements: Claim Derivation Module (§1–§5).
-Uses: Substrate (§2.1), Structural Validator (§2.2), Decomposition prompts (§2.3).
+Uses: Substrate (§2.1), Structural Validator (§2.2), Derivation prompts (§2.3).
 
 Six phases. The first three are sequential one-shots. The fourth (validate-transclude) is a quick mechanical substring check at the transclude exit boundary. The fifth (produce-contract) iterates per-claim with bounded retries internal to that phase. The sixth (validate-gate) is a bounded structural-only fix loop that terminates on contract satisfaction or maximum-iterations. The module does not run review/revise on semantic content — that is claim convergence's role.
 
@@ -248,7 +248,7 @@ upon transclude complete do
     indicate ⟨ DerivationFailed | note, substring_violations ⟩; halt
 ```
 
-Mechanical substring check, no LLM. Confirms each claim body is a byte-substring of its source note. Produce-contract intentionally diverges from this property in the next phase by appending Formal Contract sections; the check fires here so any earlier drift surfaces before that boundary rather than propagating silently. See Claim File Contract invariant 12 for the property's full statement and checkability window.
+Mechanical substring check, no LLM. Confirms each claim body is a byte-substring of its source note. Produce-contract intentionally diverges from this property in the next phase by appending Formal Contract sections; the check fires here so any earlier drift surfaces before that boundary rather than propagating silently. See Claim Document Contract invariant 12 for the property's full statement and checkability window.
 
 ### 6.6 Phase 4 — Produce-contract
 
@@ -262,13 +262,13 @@ upon transclude complete do
       write_md(claim_path, new_body)
 ```
 
-Per-claim LLM rewrite that synthesizes the Formal Contract section in each claim's body markdown. Initial synthesis is the module's responsibility because the Claim File Contract's steady-state structural invariants (depends agreement, references resolve, declared symbols resolve) presuppose Formal Contract presence; claim convergence operates on already-contract-bearing claims.
+Per-claim LLM rewrite that synthesizes the Formal Contract section in each claim's body markdown. Initial synthesis is the module's responsibility because the Claim Document Contract's steady-state structural invariants (depends agreement, references resolve, declared symbols resolve) presuppose Formal Contract presence; claim convergence operates on already-contract-bearing claims.
 
 The `produce_contract` function lives in this module's library (`lib/claim_derivation/produce_contract.py`) and is reused — same code, same prompts — by claim convergence's quality-pass orchestrator when prose changes during convergence dirty an existing contract. Initial synthesis here, regeneration there; one implementation, two callers. The boundary is the caller's intent (first-time vs. dirty-claim refresh), not separate code paths.
 
 The rewrite is bounded internally to three cycles per claim and gated by a review-rewrite prompt that checks for damage to Axioms, Preconditions, Postconditions, and other formal fields. Hash-based dirty detection skips claims whose prose is unchanged since the last successful rewrite, so re-running the module on a previously-derived ASN is incremental.
 
-After produce-contract, the body markdown is no longer a byte-substring of the source note — by design. The Claim File Contract's content-preservation invariant (transition-checkable invariant 12) holds at *transclude exit*, not at derivation exit; subsequent phases intentionally diverge.
+After produce-contract, the body markdown is no longer a byte-substring of the source note — by design. The Claim Document Contract's content-preservation invariant (transition-checkable invariant 12) holds at *transclude exit*, not at derivation exit; subsequent phases intentionally diverge.
 
 ### 6.7 Phase 5 — Validate-gate
 
@@ -286,7 +286,7 @@ upon produce-contract complete do
   indicate ⟨ DerivationFailed | note, remaining_findings ⟩
 ```
 
-The same gate that claim convergence runs before each review cycle. The validator (mechanical, no LLM) runs every steady-state and transition-checkable structural invariant from the Claim File Contract. For each actionable finding it dispatches a per-rule fix-recipe prompt to an LLM; the recipe operates on a constrained surface (Depends bullets, label-position tokens, citation links) and is forbidden by prompt contract from modifying semantic content (proofs, Axioms, Preconditions, Postconditions). Decisions are captured in structured form (`__decisions.json`) that the orchestrator validates before accepting the work.
+The same gate that claim convergence runs before each review cycle. The validator (mechanical, no LLM) runs every steady-state and transition-checkable structural invariant from the Claim Document Contract. For each actionable finding it dispatches a per-rule fix-recipe prompt to an LLM; the recipe operates on a constrained surface (Depends bullets, label-position tokens, citation links) and is forbidden by prompt contract from modifying semantic content (proofs, Axioms, Preconditions, Postconditions). Decisions are captured in structured form (`__decisions.json`) that the orchestrator validates before accepting the work.
 
 The loop is bounded by MAX_ITER iterations (currently 3) plus a no-progress halt — if a round reduces no findings count, the gate halts. Findings the reviser declines (returns SKIP for) are tracked across iterations and not re-attempted. Acyclic-depends findings are propose-only — surfaced as warnings but not auto-fixed.
 
@@ -311,7 +311,7 @@ Module: Maturation
     Artifact: frozen note (markdown body, substrate-classified)
 
   Transition: ClaimDerivation → ClaimConvergence
-    Precondition: ⟨ ClaimSetProduced ⟩ indicated; Claim File Contract holds
+    Precondition: ⟨ ClaimSetProduced ⟩ indicated; Claim Document Contract holds
     Artifact: per-claim body markdown + sidecars, plus the substrate
               links (claim, contract.<kind>, label, name, description,
               signature, citation, provenance.derivation)
@@ -324,7 +324,7 @@ The [maturation protocol](../protocols/maturation-protocol.md) governs both tran
 The claim derivation module sits between two protocols in the maturation protocol's composition. Both protocols (note convergence, claim convergence) govern ongoing interaction between participants — reviewer and reviser interact through the substrate over multiple cycles, with a convergence predicate governing completion. Claim derivation does not have this shape:
 
 - Its participants do not interact — they run in sequence (split → enrich → transclude → validate).
-- It has no convergence predicate — it has a postcondition (the Claim File Contract holds).
+- It has no convergence predicate — it has a postcondition (the Claim Document Contract holds).
 - It does not iterate against semantic findings — the validate-gate iterates against structural violations only, bounded and non-semantic.
 
 It is a refinement step in the Abrial sense: precondition (note converged), transformation (derive claims), postcondition (structural contract holds). It is an adapter in the Cachin sense: it takes one module's output and produces another module's input, with properties ensuring the transformation preserves what matters. The Cachin formalism (events, properties, composition) applies to modules and protocols alike — the difference is in the interaction pattern, not in the specification structure.
@@ -343,7 +343,7 @@ The trace of the failure mode this contract addresses is documented in [Uncontra
 
 ## Related
 
-- [Claim File Contract](../design-notes/claim-file-contract.md) — the structural contract this module's output must satisfy.
+- [Claim Document Contract](../design-notes/claim-document-contract.md) — the structural contract this module's output must satisfy.
 - [Claim Derivation](../claim-derivation.md) — narrative description of the derivation stage.
 - [Note Convergence Protocol](../protocols/note-convergence-protocol.md) — the upstream protocol whose converged output enters derivation.
 - [Claim Convergence Protocol](../protocols/claim-convergence-protocol.md) — the downstream protocol that operates on derivation's output.

@@ -1,6 +1,6 @@
 # Guide: Claim Derivation
 
-Claim derivation is a one-shot module that transforms a converged note into per-claim files conforming to the [Claim File Contract](../design-notes/claim-file-contract.md). It sits between [note convergence](../protocols/note-convergence-protocol.md) and [claim convergence](../protocols/claim-convergence-protocol.md). For the formal specification see the [Claim Derivation Module](../modules/claim-derivation-module.md); for execution steps see the [runbook](../runbooks/claim-derivation.md).
+Claim derivation is a one-shot module that transforms a converged note into per-claim files conforming to the [Claim Document Contract](../design-notes/claim-document-contract.md). It sits between [note convergence](../protocols/note-convergence-protocol.md) and [claim convergence](../protocols/claim-convergence-protocol.md). For the formal specification see the [Claim Derivation Module](../modules/claim-derivation-module.md); for execution steps see the [runbook](../runbooks/claim-derivation.md).
 
 ## Phases
 
@@ -42,7 +42,7 @@ The same `produce_contract` function lives in `lib/claim_derivation/produce_cont
 
 ### 6. Validate-gate
 
-The same gate that claim convergence runs before each review cycle. The validator (mechanical, no LLM) runs every steady-state and transition-checkable structural invariant from the Claim File Contract. For each actionable finding it dispatches a per-rule fix-recipe prompt — operating on a constrained surface (Depends bullets, label-position tokens, citation links) and forbidden by prompt contract from modifying semantic content. Bounded by MAX_ITER iterations (currently 3) plus a no-progress halt.
+The same gate that claim convergence runs before each review cycle. The validator (mechanical, no LLM) runs every steady-state and transition-checkable structural invariant from the Claim Document Contract. For each actionable finding it dispatches a per-rule fix-recipe prompt — operating on a constrained surface (Depends bullets, label-position tokens, citation links) and forbidden by prompt contract from modifying semantic content. Bounded by MAX_ITER iterations (currently 3) plus a no-progress halt.
 
 ## Output structure
 
@@ -71,6 +71,6 @@ Re-invoking the module on a note whose derivation has already produced a claim s
 ## See also
 
 - [Claim Derivation Module](../modules/claim-derivation-module.md) — formal specification with safety/liveness properties, algorithm, and correctness arguments.
-- [Claim File Contract](../design-notes/claim-file-contract.md) — the structural contract this module's output must satisfy.
+- [Claim Document Contract](../design-notes/claim-document-contract.md) — the structural contract this module's output must satisfy.
 - [Claim Derivation runbook](../runbooks/claim-derivation.md) — step-by-step execution.
 - [Claim Derivation](../claim-derivation.md) — narrative description of the derivation stage.

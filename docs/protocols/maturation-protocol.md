@@ -17,7 +17,7 @@ Content matures through four representations, each progressively more precise:
 | Representation | Form | Produced by |
 |---|---|---|
 | **Note** | Narrative prose with embedded claims | [Consultation](consultation-protocol.md) + [note convergence](note-convergence-protocol.md) |
-| **Claim files** | Per-claim YAML metadata + markdown body | [Claim derivation protocol](../modules/claim-derivation-module.md) |
+| **Claim documents** | Per-claim body markdown plus substrate-managed sidecars (label, name, description, optional signature) | [Claim Derivation Module](../modules/claim-derivation-module.md) |
 | **Converged contracts** | Formally precise claims where every revise comment has a resolution | [Claim convergence protocol](claim-convergence-protocol.md) |
 | **Verified code** | Mechanically checked assertions | Verification protocol |
 
@@ -29,39 +29,42 @@ Five protocols execute within the maturation protocol. Each has a defined comple
 
 **[Consultation protocol](consultation-protocol.md).** Produces the initial note from a campaign-bound inquiry. Two independent channels (theory and evidence) are consulted under enforced vocabulary separation; their outputs are synthesized into a structured note. One-shot — terminates on output production. The consultation protocol is the upstream producer for note convergence; together they constitute the discovery stage.
 
-**[Note convergence protocol](note-convergence-protocol.md).** Drives notes toward stability through review/revise cycles. Finding classification is REVISE / OUT_OF_SCOPE. The convergence predicate — every active `comment.revise` has an active `resolution` — determines when a note is ready for decomposition. OUT_OF_SCOPE findings generate signals that maturation consumes for lattice operations. Operates at note scale.
+**[Note convergence protocol](note-convergence-protocol.md).** Drives notes toward stability through review/revise cycles. Finding classification is REVISE / OUT_OF_SCOPE. The convergence predicate — every active `comment.revise` has an active `resolution` — determines when a note is ready for derivation. OUT_OF_SCOPE findings generate signals that maturation consumes for lattice operations. Operates at note scale.
 
-**[Claim derivation protocol](../modules/claim-derivation-module.md).** Decomposes a converged note into per-claim file pairs — mechanical section split, per-section claim identification, per-claim classification and dependency extraction. Post-decomposition validation checks the output against the [Claim File Contract](../design-notes/claim-file-contract.md). One-shot — terminates when the structural contract holds on the output.
+**[Claim Derivation Module](../modules/claim-derivation-module.md).** Derives per-claim documents from a converged note — mechanical section split, per-section claim identification, per-claim classification, dependency extraction, signature extraction, then transclude (verbatim source projection) and produce-contract. Validation checks the output against the [Claim Document Contract](../design-notes/claim-document-contract.md). One-shot — terminates when the structural contract holds on the output. A module, not a protocol; see its spec for the distinction.
 
 **[Claim convergence protocol](claim-convergence-protocol.md).** The convergence predicate — every active `comment.revise` has a matching active `resolution` — drives claims toward formal precision. Finding classification is REVISE / OBSERVE. Scope strategies (adaptive, comprehensive) are choreography decisions within the protocol. Operates at claim scale.
 
 **Verification protocol.** Converged contracts are translated into mechanically verifiable code — Dafny for logical consistency, Alloy for bounded model checking, experimental replication for science domains. Failures route back to the appropriate upstream protocol with the verification failure as a finding.
 
-The [validate-before-review](../patterns/validate-before-review.md) pattern is instantiated by any protocol that runs LLM review on structured content. Claim convergence instantiates it before each review. Claim derivation instantiates it as post-decomposition validation. It is a reusable pattern, not a sub-protocol of any single stage.
+The [validate-before-review](../patterns/validate-before-review.md) pattern is instantiated by any protocol that runs LLM review on structured content. Claim convergence instantiates it before each review. Claim derivation instantiates it as post-derivation validation. It is a reusable pattern, not a sub-protocol of any single stage.
 
-Both convergence protocols specialize the [convergence protocol](convergence-protocol.md) — the document-type-neutral module that provides the predicate, comment/resolution link types, and safety/liveness properties. The two one-shot protocols (consultation and claim derivation) share the production shape — terminate on output, no convergence predicate — but do not share a formal module.
+Both convergence protocols specialize the [convergence protocol](convergence-protocol.md) — the document-type-neutral module that provides the predicate, comment/resolution link types, and safety/liveness properties. Consultation (production-shaped protocol) and claim derivation (module) both terminate on output rather than on a convergence predicate, but they're different shapes — consultation has coordination structure between participants under a vocabulary firewall; claim derivation is a sequential transformation. They do not share a formal module.
 
 ## Transition conditions and artifacts
 
 ```
 Module: Maturation
-  Uses: Consultation, NoteConvergence, NoteDecomposition, ClaimConvergence, Verification
+  Uses: Consultation, NoteConvergence, ClaimDerivation, ClaimConvergence, Verification
 
   Consultation → NoteConvergence
     Precondition: ⟨ NoteProduced ⟩ indicated
     Artifact: synthesized note with dependency-mapped claims
 
-  NoteConvergence → NoteDecomposition
+  NoteConvergence → ClaimDerivation
     Precondition: ⟨ Converged | note ⟩ indicated, sustained quiet observed
-    Artifact: frozen note (markdown + vocabulary + note-level dependencies)
+    Artifact: frozen note (markdown body, substrate-classified)
 
-  NoteDecomposition → ClaimConvergence
-    Precondition: ⟨ ClaimSetProduced ⟩ indicated, Claim File Contract holds
-    Artifact: per-claim file set with claim/contract/citation/decomposition links
+  ClaimDerivation → ClaimConvergence
+    Precondition: ⟨ ClaimSetProduced ⟩ indicated, Claim Document Contract holds
+    Artifact: per-claim documents — body markdown + sidecars
+              (label, name, description, optional signature) — plus the
+              substrate links (claim, contract.<kind>, label, name,
+              description, signature, citation, provenance.derivation)
 
   ClaimConvergence → Verification
     Precondition: ⟨ Converged ⟩ indicated, coverage met
-    Artifact: claim files with formally precise contracts
+    Artifact: claim documents with formally precise contracts
 
   Verification → Done | HardReset
     Precondition: mechanical verification passes (or fails)
@@ -74,21 +77,21 @@ Each transition has a readiness signal and a handoff artifact — what is evalua
 
 **Readiness signal.** The note convergence predicate holds — every active `comment.revise` on the note has an active `resolution` — and the choreography observes sustained quiet: few or no substantive findings across the last N cycles, zero new vocabulary coinages, new cycles producing wordsmithing rather than reasoning. Additionally: no other note in discovery owns claims that naturally belong here.
 
-Waiting for foundation dependencies to converge their claims before decomposition reduces rework — foundation contracts will be stable and downstream citations won't need re-verification. But the protocol does not enforce this as a gate. A note can enter decomposition against non-converged foundations. When those foundations later converge and their contracts tighten, the dependent's review cycles will find issues traceable to the changes. The protocol handles the rework through its normal feedback path — new `comment.revise` links filed, predicate goes false, convergence resumes.
+Waiting for foundation dependencies to converge their claims before derivation reduces rework — foundation contracts will be stable and downstream citations won't need re-verification. But the protocol does not enforce this as a gate. A note can enter derivation against non-converged foundations. When those foundations later converge and their contracts tighten, the dependent's review cycles will find issues traceable to the changes. The protocol handles the rework through its normal feedback path — new `comment.revise` links filed, predicate goes false, convergence resumes.
 
 **Handoff artifact.** The note file (markdown), plus the note's vocabulary (terms coined during discovery), plus its declared note-level dependencies (`depends: [ASN-NNNN]`). The note is frozen at handoff — it becomes the record of discovery, not a living document.
 
 ### Claim derivation → claim convergence
 
-**Readiness signal.** The post-decomposition validator returns zero violations against the [Claim File Contract](../design-notes/claim-file-contract.md). This is a structural validation result, not a convergence predicate in the graph-property sense — decomposition's completion criterion is mechanical checking, not resolved comments. Structural form is valid — one body per file, references resolve, metadata agrees, no dependency cycles.
+**Readiness signal.** The post-derivation validator returns zero violations against the [Claim Document Contract](../design-notes/claim-document-contract.md). This is a structural validation result, not a convergence predicate in the graph-property sense — derivation's completion criterion is mechanical checking, not resolved comments. Structural form is valid — one body per claim, references resolve, sidecars agree with the body, substrate classification complete, no dependency cycles.
 
-**Handoff artifact.** The claim file set: per-claim `.md` + `.yaml` pairs, plus the campaign's bridge vocabulary, plus foundation statements from upstream ASNs. Semantic content may be imprecise; structural form must be valid.
+**Handoff artifact.** The claim document set: per-claim body markdown plus substrate-managed sidecars (label, name, description, optional signature), plus the substrate links classifying each body and recording its dependencies and provenance, plus the campaign's bridge vocabulary, plus foundation statements from upstream ASNs. Semantic content may be imprecise; structural form must be valid.
 
 ### Claim convergence → verification
 
 **Readiness signal.** The convergence predicate holds — every active `comment.revise` on every claim has a matching active `resolution` — and the choreography's coverage obligation is met (reviews have actually been conducted at sufficient scope).
 
-**Handoff artifact.** Converged claim files with formally precise contracts — preconditions, postconditions, invariants, frame conditions, axioms, definitions. Each contract preserves the exact conditions from the claim's narrative. The specific input format for verification (which files, what structure, how contracts map to verifier input) is not yet fully specified — this is a known gap that will be resolved when the verification protocol is formalized.
+**Handoff artifact.** Converged claim documents with formally precise contracts — preconditions, postconditions, invariants, frame conditions, axioms, definitions. Each contract preserves the exact conditions from the claim's narrative. The specific input format for verification (which documents, what structure, how contracts map to verifier input) is not yet fully specified — this is a known gap that will be resolved when the verification protocol is formalized.
 
 ### Verification → done (or back)
 
@@ -182,7 +185,7 @@ Maturation reaches quiescence when no transition conditions are met and no latti
 
 - **Pose the initial question.** The question that starts a campaign.
 - **Create campaigns.** Choose the channel pairing, curate the bridge vocabulary, set the target. Campaigns are parameters of the maturation protocol — they exist before any stage protocol runs.
-- **Set transition thresholds.** How many diminishing-return cycles before decomposition? How strict is the claim file contract? These are policy decisions.
+- **Set transition thresholds.** How many diminishing-return cycles before derivation? How strict is the Claim Document Contract? These are policy decisions.
 - **Intervene on transition misfires.** If a transition condition fires prematurely or fails to fire when it should, the human overrides. This is the fallback for transition conditions that don't yet capture what readiness actually means for this domain.
 - **Evaluate final output.** Are the verified claims the right claims? Do they answer the question? Are the open questions worth pursuing as new campaigns?
 
@@ -206,15 +209,13 @@ The protocol design doesn't depend on which architecture eventually replaces hum
 - [Convergence Protocol](convergence-protocol.md) — the document-type-neutral module both convergence protocols specialize.
 - [Consultation Protocol](consultation-protocol.md) — the upstream producer that generates initial notes from campaign inquiries.
 - [Note Convergence Protocol](note-convergence-protocol.md) — the stage protocol that drives notes to stability during discovery.
-- [Claim Derivation Module](../modules/claim-derivation-module.md) — the stage protocol that decomposes notes into per-claim files.
+- [Claim Derivation Module](../modules/claim-derivation-module.md) — the module that derives per-claim documents from a converged note.
 - [Claim Convergence Protocol](claim-convergence-protocol.md) — the stage protocol that drives claims to formal precision.
 - [Architecture](../architecture.md) — the six-level hierarchy and lattice structure the maturation protocol operates on.
 - [Representation Change](../patterns/representation-change.md) — each transition is a representation change.
 - [Validate Before Review](../patterns/validate-before-review.md) — a reusable pattern instantiated by multiple stage protocols.
 - [Uncontracted Representation Change](../equilibrium/uncontracted-representation-change.md) — the failure mode when a transition lacks an output contract.
-- [Claim File Contract](../design-notes/claim-file-contract.md) — the output contract for the claim derivation → claim convergence transition.
+- [Claim Document Contract](../design-notes/claim-document-contract.md) — the output contract for the claim derivation → claim convergence transition.
 - [Extract/Absorb](../patterns/extract-absorb.md) — lattice operations described in §Lattice operations.
 - [Scope Promotion](../patterns/scope-promotion.md) — lattice operation described in §Lattice operations.
 - [The Validation Principle](../principles/validation.md), [The Coupling Principle](../principles/coupling.md), [The Voice Principle](../principles/voice.md) — the quality boundary for all stage protocols.
-
-This protocol replaces the pipeline and V-cycle architecture described in earlier versions of the system.

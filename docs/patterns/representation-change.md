@@ -69,7 +69,7 @@ Each [review/revise iteration](review-revise-iteration.md) cycle operates within
 
 [Narrow → Refine → Verify](narrow-refine-verify.md) — representation change serves the primary cycle but is not a phase within it. It happens when needed: before narrowing (claim derivation), after narrowing (extract/absorb), between refinement stages (claim convergence → verification). Refinement operates within a single representation — the representation is stable during the review/revise loop.
 
-[Uncontracted Representation Change](../equilibrium/uncontracted-representation-change.md) — the failure mode when a representation change is performed without specifying what well-formed output means at the new representation. Each arrow in the structure above carries implicit validity rules; the failure occurs when those rules stay implicit. The [Claim File Contract](../design-notes/claim-file-contract.md) is the first instance of making those rules explicit.
+[Uncontracted Representation Change](../equilibrium/uncontracted-representation-change.md) — the failure mode when a representation change is performed without specifying what well-formed output means at the new representation. Each arrow in the structure above carries implicit validity rules; the failure occurs when those rules stay implicit. The [Claim Document Contract](../design-notes/claim-document-contract.md) is the first instance of making those rules explicit.
 
 ## Origin
 

@@ -25,7 +25,7 @@ consultations:
 ### Fields
 
 - **`title`** (string, required) — human-readable title of the ASN.
-- **`stage`** (string) — current pipeline stage (`discovery`, `blueprinting`, etc.).
+- **`stage`** (string) — current stage (`discovery`, `blueprinting`, etc.).
 - **`topic`** (string) — a rough subject area for the ASN. Used by listing tools.
 - **`depends`** (list of ASN ids) — foundation ASNs this note builds on.
 - **`out_of_scope`** (string) — semicolon-separated list of topics the ASN deliberately excludes. Passed to the reviewer and the question generator.
@@ -54,7 +54,7 @@ consultations:
   question: "..."
 ```
 
-The pipeline resolves the active campaign when running any discovery step on that ASN: the ASN's `campaign:` takes precedence; if absent, the lattice default applies; if neither is set, the resolver raises an error (no silent fallback).
+The system resolves the active campaign when running any discovery step on that ASN: the ASN's `campaign:` takes precedence; if absent, the lattice default applies; if neither is set, the resolver raises an error (no silent fallback).
 
 ### Campaign artifacts
 
@@ -91,12 +91,12 @@ Campaigns reference channels by bare name; the orchestrator loads `channels/<nam
 ## Creating a new ASN
 
 1. Author `lattices/<lattice>/manifests/ASN-NNNN/note.yaml` with the inquiry and (if needed) a non-default `campaign:`.
-2. Run the pipeline:
+2. Run discovery:
    ```bash
    LATTICE=<lattice> ./run/run-discovery.sh NNNN
    ```
 
-The pipeline resolves the ASN's campaign at every stage (draft, review, revise, consult), loading the campaign's bridge vocabulary and the bound channels' corpora.
+The system resolves the ASN's campaign at every stage (draft, review, revise, consult), loading the campaign's bridge vocabulary and the bound channels' corpora.
 
 ## Creating a new campaign
 
@@ -105,4 +105,4 @@ See [the `new-campaign` helper](../../scripts/new-campaign.py) when implemented.
 1. Ensure the theory and evidence channel plugins exist at `channels/<name>/` (meta.yaml, resources/, consultations/ with consult.py + prompts).
 2. Create `lattices/<lattice>/campaigns/<name>/config.yaml` with the channel bindings and target.
 3. Curate `lattices/<lattice>/campaigns/<name>/vocabulary.md` by reading both corpora and coining unified names for terms the authorities name differently.
-4. Author an ASN with `campaign: <name>` in its manifest and run the pipeline.
+4. Author an ASN with `campaign: <name>` in its manifest and run discovery.

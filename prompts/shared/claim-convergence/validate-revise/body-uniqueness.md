@@ -2,7 +2,7 @@
 
 ## Context
 
-You are fixing a structural violation of invariant #9 from the Claim File Contract:
+You are fixing a structural violation of invariant #9 from the Claim Document Contract:
 
 > **Body uniqueness.** A given claim's body (bold declaration + proof + Formal Contract) appears in exactly one file — the file whose filename stem equals the claim's label. No claim's body is inlined into another claim's file.
 

@@ -6,7 +6,7 @@
 
 When a representation change splits one artifact into many files, conditions come into existence that must hold for the structure to mean anything. One body per file. Filename matches label. References resolve. Metadata agrees with content. No dependency cycles. These are invariants — conditions that must be true at every stable point, not just at creation.
 
-If an invariant is violated, the structure looks intact but operations on it produce wrong results silently. The structural contract ([Claim File Contract](claim-file-contract.md)) names the invariant set. The validator checks them. The design decisions below follow from taking these conditions seriously.
+If an invariant is violated, the structure looks intact but operations on it produce wrong results silently. The structural contract ([Claim Document Contract](claim-document-contract.md)) names the invariant set. The validator checks them. The design decisions below follow from taking these conditions seriously.
 
 ## Why two passes, not one
 
@@ -44,5 +44,5 @@ A fix may legitimately break an invariant mid-step — delete a duplicate body, 
 
 - [Validate Before Review](../patterns/validate-before-review.md) — the pattern these decisions serve.
 - [The Validation Principle](../principles/validation.md) — the commitment behind the pattern.
-- [Claim File Contract](claim-file-contract.md) — the structural contract the validator checks against. The contract's rules drive the validator's checklist and the per-invariant recipe set.
+- [Claim Document Contract](claim-document-contract.md) — the structural contract the validator checks against. The contract's rules drive the validator's checklist and the per-invariant recipe set.
 - [Claim Convergence Protocol](../protocols/claim-convergence-protocol.md) — the review machinery this runs before at each scale.

@@ -13,7 +13,7 @@ Protocols in this system come in two shapes:
 
 The companion [Modules](../modules/README.md) — Substrate, Agent, Claim Derivation — also follow Cachin's modular formalism but specify transformation rather than ongoing interaction. They provide what protocols compose with.
 
-## The pipeline
+## Stage composition
 
 Content matures through four stages, each with its own protocol or protocols:
 
@@ -40,12 +40,12 @@ Content matures through four stages, each with its own protocol or protocols:
                                       └─────────────────┘   count consistency (SUB3)
 ```
 
-Above the pipeline sits the meta-protocol:
+Above the stages sits the meta-protocol:
 
 ```
                            ┌──────────────────────────────────────────┐
                            │           Maturation Protocol            │
-                           │  composes the pipeline, manages stage    │
+                           │  composes the stage protocols, manages   │
                            │  transitions, executes lattice operations│
                            │  (extract, absorb, scope promotion);     │
                            │  reaches quiescence rather than converge │
@@ -56,7 +56,7 @@ The layering enforces what is actually shared vs. what is scale-specific. Both c
 
 ## The protocols
 
-Listed by pipeline position. The shape of each is one-line:
+Listed by stage order. The shape of each is one-line:
 
 ### Discovery stage
 
@@ -76,7 +76,7 @@ The [Claim Derivation Module](../modules/claim-derivation-module.md) sits betwee
 
 ### Meta
 
-- **[Maturation Protocol](maturation-protocol.md)** — the meta-protocol that composes the pipeline. Manages stage transitions, executes lattice operations (extract, absorb, scope promotion), and reaches [quiescence](../glossary.md#q) — the absence of pending work — rather than convergence. Owns the cascade behavior on hard reset.
+- **[Maturation Protocol](maturation-protocol.md)** — the meta-protocol that composes the stage protocols. Manages stage transitions, executes lattice operations (extract, absorb, scope promotion), and reaches [quiescence](../glossary.md#q) — the absence of pending work — rather than convergence. Owns the cascade behavior on hard reset.
 
 ## Reading order
 
@@ -86,9 +86,9 @@ For someone new, reading bottom-up tracks the actual dependency:
 2. **[Convergence Protocol](convergence-protocol.md)** — the shared foundation. Once this is clear, both convergence-shaped specializations are straightforward.
 3. **[Note Convergence Protocol](note-convergence-protocol.md)** or **[Claim Convergence Protocol](claim-convergence-protocol.md)** — pick whichever scale matches your interest. They're independent specializations of the foundation.
 4. **[Consultation Protocol](consultation-protocol.md)** — the production-shaped protocol upstream of note convergence. The [Claim Derivation Module](../modules/claim-derivation-module.md) is the transformation between note and claim convergence — read it alongside the convergence protocols it bridges.
-5. **[Maturation Protocol](maturation-protocol.md)** — composition over the pipeline. Easier to read after the stage protocols are familiar.
+5. **[Maturation Protocol](maturation-protocol.md)** — composition over the stage protocols. Easier to read after the stage protocols are familiar.
 
-For someone already familiar with the system's behavior, top-down works too: maturation explains the pipeline; stage protocols explain how each stage drives toward its predicate or contract; the convergence module factors out what the convergence-shaped protocols share.
+For someone already familiar with the system's behavior, top-down works too: maturation explains how the stages compose; stage protocols explain how each stage drives toward its predicate or contract; the convergence module factors out what the convergence-shaped protocols share.
 
 ## What the protocols don't specify
 

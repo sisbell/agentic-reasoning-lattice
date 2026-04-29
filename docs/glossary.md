@@ -48,7 +48,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Claim convergence.** The stage that takes per-claim files from claim derivation and runs review/revise cycles until each claim's reasoning is sound. Not cleanup — discovery under precision constraint. Scope narrowing to per-claim files is itself epistemically productive. See [Claim Convergence](claim-convergence.md); protocol details in [Claim Convergence Protocol](protocols/claim-convergence-protocol.md).
 
-**Claim File Contract.** The structural contract specifying what well-formed per-claim file state looks like after claim derivation. Concrete rules, mechanically checkable: one body per file, filename matches label, references resolve, metadata agrees with content, no dependency cycles. The first instance of the output contract the [Validation Principle](principles/validation.md) requires. See [Claim File Contract](design-notes/claim-file-contract.md).
+**Claim Document Contract.** The structural contract specifying what well-formed per-claim file state looks like after claim derivation. Concrete rules, mechanically checkable: one body per file, filename matches label, references resolve, metadata agrees with content, no dependency cycles. The first instance of the output contract the [Validation Principle](principles/validation.md) requires. See [Claim Document Contract](design-notes/claim-document-contract.md).
 
 **Comment (link type).** A substrate link recording a reviewer finding on a document. Subtypes carry the classification: `comment.revise` requires resolution and participates in the [convergence predicate](#c); `comment.observe` is a non-blocking observation (claim convergence only); `comment.out-of-scope` is a non-blocking signal that the lattice needs structural work (note convergence only). See [Convergence Protocol](protocols/convergence-protocol.md).
 
@@ -200,7 +200,7 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 
 **Note convergence.** The protocol that drives notes to convergence through review/revise cycles within discovery. Specializes the [convergence protocol](#c) with `note` classifier, `citation` link type (note→note dependencies), and `comment.out-of-scope` subtype. Finding classification is REVISE / OUT_OF_SCOPE — there is no OBSERVE at this scale. Out-of-scope findings signal the [maturation protocol](#m) that adjacent material is missing or misplaced. See [Note Convergence Protocol](protocols/note-convergence-protocol.md).
 
-**Claim derivation.** The stage protocol that decomposes a converged note into per-claim file pairs (YAML metadata + Markdown body) conforming to the [Claim File Contract](#c). [Production-shaped](#p) — one-shot, terminates when the structural contract holds. The boundary between note convergence and claim convergence; a [representation change](patterns/representation-change.md) (one note → many claim files). See [Claim Derivation](claim-derivation.md); protocol details in [Claim Derivation Module](modules/claim-derivation-module.md).
+**Claim derivation.** The stage protocol that decomposes a converged note into per-claim file pairs (YAML metadata + Markdown body) conforming to the [Claim Document Contract](#c). [Production-shaped](#p) — one-shot, terminates when the structural contract holds. The boundary between note convergence and claim convergence; a [representation change](patterns/representation-change.md) (one note → many claim files). See [Claim Derivation](claim-derivation.md); protocol details in [Claim Derivation Module](modules/claim-derivation-module.md).
 
 ## O
 
@@ -300,7 +300,7 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 
 **Theory channel.** The agent channel that consults established theory (design documents, domain models) and makes predictions. Forbidden from referring to specific evidence. Its question generator sees a vocabulary list of the framework's own terms (vocabulary-in-prompt) because theory space is conceptual and listable. See [Two-Channel Architecture](two-channel-architecture.md).
 
-**Transition condition.** What the [maturation protocol](#m) evaluates to decide a representation is ready to advance to the next stage. Each transition has a readiness signal (predicate truth or sustained quiet) and a handoff artifact (what gets passed to the next stage). Transitions: discovery→claim derivation (note convergence predicate plus sustained quiet), claim derivation→claim convergence (claim file contract validates), claim convergence→verification (claim convergence predicate plus coverage), verification→done. See [Maturation Protocol](protocols/maturation-protocol.md).
+**Transition condition.** What the [maturation protocol](#m) evaluates to decide a representation is ready to advance to the next stage. Each transition has a readiness signal (predicate truth or sustained quiet) and a handoff artifact (what gets passed to the next stage). Transitions: discovery→claim derivation (note convergence predicate plus sustained quiet), claim derivation→claim convergence (claim document contract validates), claim convergence→verification (claim convergence predicate plus coverage), verification→done. See [Maturation Protocol](protocols/maturation-protocol.md).
 
 **Transitional failure.** An [equilibrium](equilibrium/) pattern whose force acts at a representation boundary introduced by a stage transition. Fixed once per boundary (by specifying and enforcing the output contract that the transition introduces); recurs at every new boundary because producing is easier than specifying. Contrasts with [gravitational failure](#g) and [oscillatory failure](#o). [Uncontracted Representation Change](equilibrium/uncontracted-representation-change.md) is the transitional pattern documented so far.
 
@@ -310,7 +310,7 @@ Notes are identified by the legacy prefix `ASN-NNNN` (originally "Abstract Speci
 
 ## U
 
-**Uncontracted Representation Change.** A [transitional failure](#t) at a [representation change](patterns/representation-change.md) where the pipeline introduces a new unit of structure without specifying what well-formed output means. The structure lands on disk, but no contract says what must hold, and downstream reviewers spend cycles on symptoms of unnamed violations. See [Uncontracted Representation Change](equilibrium/uncontracted-representation-change.md).
+**Uncontracted Representation Change.** A [transitional failure](#t) at a [representation change](patterns/representation-change.md) where a stage introduces a new unit of structure without specifying what well-formed output means. The structure lands on disk, but no contract says what must hold, and downstream reviewers spend cycles on symptoms of unnamed violations. See [Uncontracted Representation Change](equilibrium/uncontracted-representation-change.md).
 
 **Under-citation.** A proof uses a claim that its Depends list doesn't include. The most common form of [Citation Drift](equilibrium/citation-drift.md).
 

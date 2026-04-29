@@ -2,7 +2,7 @@
 
 ## Context
 
-You are fixing a violation of Claim File Contract invariant #5: the
+You are fixing a violation of Claim Document Contract invariant #5: the
 claim's substrate citations are missing an owner it structurally
 requires. The validator detected a symbol used in the claim's Formal
 Contract that isn't traceable through the transitive citation closure

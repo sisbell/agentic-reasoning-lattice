@@ -2,7 +2,7 @@
 
 ## Context
 
-You are fixing a structural violation of invariant #5 from the Claim File Contract:
+You are fixing a structural violation of invariant #5 from the Claim Document Contract:
 
 > **Depends agreement.** The substrate's set of active `citation` links from this claim and the markdown Formal Contract Depends section name the same set of claims.
 

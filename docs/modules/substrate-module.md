@@ -157,11 +157,12 @@ Retraction of a `label`, `name`, or `description` link is reserved for wrong-lin
 
 ## 5 Composition
 
-Every protocol in the system uses the substrate:
+Every protocol and module in the system uses the substrate:
 
 ```
 Substrate
   ↑ used by
+Agent module
 Convergence Protocol ─── Note Convergence ─── Claim Convergence
 Consultation Protocol
 Claim Derivation Module

@@ -719,7 +719,7 @@ def run_passes(asn_label, *, scope_labels=None, rules=None, mode="apply",
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Structural reviser for claim-file-contract invariants.")
+        description="Structural reviser for claim-document-contract invariants.")
     parser.add_argument("asn", help="ASN number (e.g., 34)")
     parser.add_argument("--rule", help="restrict to one rule")
     parser.add_argument("--file", help="restrict to one filename (e.g., T4.md)")

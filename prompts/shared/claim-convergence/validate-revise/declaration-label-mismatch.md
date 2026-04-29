@@ -2,7 +2,7 @@
 
 ## Context
 
-You are fixing a structural violation of the Claim File Contract:
+You are fixing a structural violation of the Claim Document Contract:
 
 > **Declaration matches label.** The markdown body contains exactly one bold claim-declaration of the form `**<Label> (<Name>).**`. The label-position equals the filename stem; the parenthetical equals the claim's canonical `name` (the first line of the sibling `<stem>.name.md` doc, recorded by the substrate `name` link). When label and name are the same, the parenthetical repeats it — redundant but uniform. The parenthetical is required in all cases. Type keywords (*axiom*, *definition*, *design-requirement*, *lemma*, *theorem*, *corollary*, *consequence*) do not appear in the label-position.
 

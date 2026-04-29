@@ -53,4 +53,4 @@ The prompts don't cause the asymmetry. The synthesis instructions and generated 
 
 - [Two Data Authorities](two-data-authorities.md) — Channel Asymmetry serves this pattern by specifying how the two channels should relate
 - [Prose Coinage](prose-coinage.md) — the atomic event of naming that this pattern produces pressure for
-- [Domain Language Emergence](../design-notes/domain-language-emergence.md) — the aggregate view of how coined vocabulary accumulates and narrows through the pipeline
+- [Domain Language Emergence](../design-notes/domain-language-emergence.md) — the aggregate view of how coined vocabulary accumulates and narrows through the stages

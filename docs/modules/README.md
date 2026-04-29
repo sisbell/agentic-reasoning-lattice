@@ -17,11 +17,11 @@ Both share the Cachin specification surface (events, properties, composition); t
 
 - **[Agent Module](agent-module.md)** — agent identity layer above the substrate. Defines `agent` (classifies a doc as an agent — its address is the agent's identity) and `manages` (declares an agent is currently responsible for an operation). Lets convergence protocols and other modules attribute their work to specific agents (cone-review, full-review, etc.) without protocol identity leaking into the substrate's type system. Properties A1–A6, LA1–LA2.
 
-- **[Claim Derivation Module](claim-derivation-module.md)** — transforms a converged note into per-claim files conforming to the [Claim File Contract](../design-notes/claim-file-contract.md). Sits between [note convergence](../protocols/note-convergence-protocol.md) and [claim convergence](../protocols/claim-convergence-protocol.md) — a representation change, one note → many claim files. One-shot; terminates when the structural contract holds.
+- **[Claim Derivation Module](claim-derivation-module.md)** — transforms a converged note into per-claim files conforming to the [Claim Document Contract](../design-notes/claim-document-contract.md). Sits between [note convergence](../protocols/note-convergence-protocol.md) and [claim convergence](../protocols/claim-convergence-protocol.md) — a representation change, one note → many claim files. One-shot; terminates when the structural contract holds.
 
 ## When something is a module vs. a protocol
 
-If the unit's specification is "given this input, produce this output with these properties" — it's a module. The participants are pipeline stages; they don't interact.
+If the unit's specification is "given this input, produce this output with these properties" — it's a module. The participants are sequential stages; they don't interact.
 
 If the unit's specification is "participants interact under these rules and termination requires this predicate / coordination structure" — it's a protocol.
 

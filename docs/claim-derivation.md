@@ -12,7 +12,7 @@ At some point, the narrative and the formal content must be separated. The forma
 
 A monolithic note becomes a set of per-claim file pairs. Each claim gets two files: a YAML file carrying metadata (label, name, type, dependencies, vocabulary) and a markdown file carrying the body (statement, justification, proof).
 
-This is a [representation change](patterns/representation-change.md) — the content stays the same but the form changes from narrative to structured per-claim files. The change introduces structural invariants that only become meaningful at this boundary: one body per file, filename matches label, references resolve, metadata agrees with content, no dependency cycles. These invariants are specified in the [Claim File Contract](design-notes/claim-file-contract.md).
+This is a [representation change](patterns/representation-change.md) — the content stays the same but the form changes from narrative to structured per-claim files. The change introduces structural invariants that only become meaningful at this boundary: one body per file, filename matches label, references resolve, metadata agrees with content, no dependency cycles. These invariants are specified in the [Claim Document Contract](design-notes/claim-document-contract.md).
 
 The metadata makes the formal structure explicit: what this claim is, what it depends on, what notation it introduces. The body preserves the interleaved narrative and formal content because claim convergence's reviewers need the narrative to understand the proof. Full separation comes later, at verification, when only the formal contracts enter mechanical checking.
 
@@ -26,7 +26,7 @@ This is the meet operation at the note scale — a single node at the note-level
 
 Claim derivation is the transition most vulnerable to [Uncontracted Representation Change](equilibrium/uncontracted-representation-change.md). The unit of encapsulation changes shape — one file becomes many — and every invariant that makes the per-claim form meaningful comes into existence at this moment. If the transition doesn't enforce them, downstream review operates on malformed state, and the claim convergence protocol spends its cycles on structural violations that no agent can name.
 
-The [Claim File Contract](design-notes/claim-file-contract.md) specifies what well-formed output looks like. A post-decomposition validation pass checks the contract mechanically. This same validator runs again before each claim convergence review cycle — the [validate-before-review](patterns/validate-before-review.md) pattern — ensuring that structural soundness is maintained through the review/revise cycles that follow.
+The [Claim Document Contract](design-notes/claim-document-contract.md) specifies what well-formed output looks like. A post-decomposition validation pass checks the contract mechanically. This same validator runs again before each claim convergence review cycle — the [validate-before-review](patterns/validate-before-review.md) pattern — ensuring that structural soundness is maintained through the review/revise cycles that follow.
 
 ## Decomposition as progressive refinement
 
@@ -67,12 +67,12 @@ The note is frozen once it enters decomposition. It served its purpose. The reas
 
 Discovery agents reason to understand, not to verify. They name claims inconsistently, embed definitions inside proofs, derive intermediate results that other claims need but never formally declare. A claim might be labeled "axiom" in one sentence and proven from other claims in the next paragraph. Two definitions might share a section because the author was thinking about them together, even though they're logically independent.
 
-These are not bugs. They're the natural result of writing to understand rather than writing to verify. Claim derivation exists because the discovery process is messy and downstream review needs clean inputs. The [Claim File Contract](design-notes/claim-file-contract.md) names what "clean" means — not perfect semantic content, but structurally valid form that claim convergence can operate on.
+These are not bugs. They're the natural result of writing to understand rather than writing to verify. Claim derivation exists because the discovery process is messy and downstream review needs clean inputs. The [Claim Document Contract](design-notes/claim-document-contract.md) names what "clean" means — not perfect semantic content, but structurally valid form that claim convergence can operate on.
 
 ## Related
 
 - [Claim Derivation Module](modules/claim-derivation-module.md) — the formal protocol specification with safety/liveness properties, algorithm, and correctness arguments.
-- [Claim File Contract](design-notes/claim-file-contract.md) — the structural contract the output must satisfy.
+- [Claim Document Contract](design-notes/claim-document-contract.md) — the structural contract the output must satisfy.
 - [Claim Convergence](claim-convergence.md) — the next stage: driving claims to formal precision.
 - [Discovery](discovery.md) — the previous stage: producing the notes that enter decomposition.
 - [Representation Change](patterns/representation-change.md) — claim derivation is the canonical instance.

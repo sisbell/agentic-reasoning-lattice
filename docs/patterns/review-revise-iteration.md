@@ -75,7 +75,7 @@ The pattern applies wherever an LLM reviews and revises content iteratively. The
 
 **[Claim convergence](../protocols/claim-convergence-protocol.md).** The convergence protocol applied to per-claim files in the lattice. Adds structural validation (validate-before-review), lattice structure (`claim`, `contract`, `citation` links), scope strategies (adaptive and comprehensive as choreography), and the Dijkstra voice for both reviewer and reviser.
 
-**[Discovery review](../protocols/note-convergence-protocol.md).** The convergence protocol applied to notes. Adds OUT_OF_SCOPE as the off-ramp (instead of OBSERVE). No structural validation — notes have no claim file contract. Convergence signals readiness for [claim derivation](../claim-derivation.md).
+**[Discovery review](../protocols/note-convergence-protocol.md).** The convergence protocol applied to notes. Adds OUT_OF_SCOPE as the off-ramp (instead of OBSERVE). No structural validation — notes have no claim document contract. Convergence signals readiness for [claim derivation](../claim-derivation.md).
 
 ## Origin
 

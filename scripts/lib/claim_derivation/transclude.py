@@ -26,7 +26,7 @@ source note that don't contain claims) are relocated as workspace
 artifacts under `_workspace/claim-derivation/<asn>/structural/`.
 
 Description sidecars are NOT written here — that's `summarize.py`'s
-job, which runs as a follow-up stage. The Claim File Contract's
+job, which runs as a follow-up stage. The Claim Document Contract's
 description requirements (#1 file completeness, #4 description link)
 are satisfied after summarize, not at the end of transclude. This is a
 known boundary.

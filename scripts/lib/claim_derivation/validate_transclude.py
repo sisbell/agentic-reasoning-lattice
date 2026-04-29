@@ -1,7 +1,7 @@
 """Validate-transclude — verify each claim md is a byte-substring of its
 source note.
 
-Runs at transclude exit. The Claim File Contract's content-preservation
+Runs at transclude exit. The Claim Document Contract's content-preservation
 invariant (#12) is transition-checkable at this boundary only:
 produce_contract intentionally appends Formal Contract sections after
 transclude, and validate-revise heals structural form afterward —

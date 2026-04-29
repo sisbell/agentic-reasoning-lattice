@@ -1,4 +1,4 @@
-# Claim File Contract
+# Claim Document Contract
 
 The output contract for claim derivation. Specifies what well-formed per-claim files look like — what must be true when claim derivation finishes, and what must remain true across every review/revise cycle. The first instance of the transition-contract resolution for [Uncontracted Representation Change](../equilibrium/uncontracted-representation-change.md).
 

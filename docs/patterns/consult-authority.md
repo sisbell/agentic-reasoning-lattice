@@ -26,7 +26,7 @@ reviewer ──→ finding ──→ reviser
                     clear? ──→ direct revision
 ```
 
-The consultation is not a separate step in the pipeline. It happens inside the revise phase, triggered by the reviser's judgment. The authority is accessed on demand, not loaded by default.
+The consultation is not a separate stage. It happens inside the revise phase, triggered by the reviser's judgment. The authority is accessed on demand, not loaded by default.
 
 ## When it applies
 

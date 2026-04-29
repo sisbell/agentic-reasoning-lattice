@@ -3,7 +3,7 @@
 Run the transclude-exit substring validator standalone.
 
 Verifies each claim body markdown is a byte-substring of its source
-note (the Claim File Contract's content-preservation invariant at
+note (the Claim Document Contract's content-preservation invariant at
 transclude exit). Mechanical, no LLM. Skips sidecar files and
 structural underscore-prefixed files.
 

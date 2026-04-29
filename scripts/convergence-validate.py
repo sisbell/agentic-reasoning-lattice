@@ -1,7 +1,7 @@
 """convergence-validate — structural invariants on claim-convergence-stage claim files.
 
-Runs mechanical checks from the Claim File Contract
-(docs/design-notes/claim-file-contract.md) against
+Runs mechanical checks from the Claim Document Contract
+(docs/design-notes/claim-document-contract.md) against
 lattices/<lattice>/claim-convergence/ASN-NNNN/.
 
 The filename stem is the claim's label. Substrate links (claim,
@@ -641,7 +641,7 @@ def run_all_checks(pairs, store=None, label_index=None, claim_dir=None):
 def main():
     parser = argparse.ArgumentParser(
         description="Validate claim-convergence-stage claim files against "
-                    "the Claim File Contract.")
+                    "the Claim Document Contract.")
     parser.add_argument("asn", help="ASN number (e.g., 34)")
     args = parser.parse_args()
 

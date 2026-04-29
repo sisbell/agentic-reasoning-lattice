@@ -2,7 +2,7 @@
 
 ## Context
 
-You are fixing a structural violation of invariant #6 from the Claim File Contract:
+You are fixing a structural violation of invariant #6 from the Claim Document Contract:
 
 > **References resolve.** Every claim named in a `depends` list or a Formal Contract Depends section exists as a file pair in the lattice.
 
