@@ -13,7 +13,8 @@ import yaml
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import (
     WORKSPACE, NOTE_DIR, USAGE_LOG,
-    REVIEWS_DIR, CLAIM_CONVERGENCE_DIR, CLAIM_DIR,
+    CLAIM_REVIEWS_DIR, NOTE_REVIEWS_DIR,
+    CLAIM_CONVERGENCE_DIR, CLAIM_DIR,
     CONSULTATIONS_DIR, MANIFESTS_DIR, EXAMPLES_DIR,
     CLAIM_FINDINGS_DIR, NOTE_FINDINGS_DIR, RATIONALE_DIR, DOCUVERSE_LOG,
 )
@@ -558,7 +559,8 @@ def stage_asn_files(label):
     import glob
     patterns = [
         NOTE_DIR / f"{label}-*",
-        REVIEWS_DIR / label,
+        CLAIM_REVIEWS_DIR / label,
+        NOTE_REVIEWS_DIR / label,
         CLAIM_CONVERGENCE_DIR / label,
         CLAIM_DIR / label,
         CONSULTATIONS_DIR / label,
