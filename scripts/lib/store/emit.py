@@ -51,6 +51,37 @@ def emit_inquiry(store, inquiry_md_path):
     return _emit_classifier(store, inquiry_md_path, "inquiry")
 
 
+def emit_consultation_questions(store, questions_md_path):
+    """Classify a doc as a consultation's generated question set.
+    Idempotent. Returns (link_id, created).
+
+    The question set is the artifact of one question-generation act —
+    typically `questions.md` written by decompose. Tracing the set as
+    a unit (rather than per-question) preserves the generation event."""
+    return _emit_classifier(store, questions_md_path, "consultation.questions")
+
+
+def emit_consultation_answer(store, answer_md_path):
+    """Classify a doc as one Q+A pair from a consultation. Idempotent.
+    Returns (link_id, created).
+
+    Each per-answer file (`answer-NN-<role>.md`) carries one question
+    and the channel's answer; the doc is self-contained. Both draft
+    and revise consultations now produce these uniformly."""
+    return _emit_classifier(store, answer_md_path, "consultation.answer")
+
+
+def emit_consultation_assessment(store, assessment_md_path):
+    """Classify a doc as a consultation's channel-assignment record.
+    Idempotent. Returns (link_id, created).
+
+    Assessment docs are produced only by revise consultations: an LLM
+    response, persisted verbatim, that decides for each REVISE finding
+    which channel(s) to consult and drafts the focused question. The
+    audit trail of why a finding was routed where."""
+    return _emit_classifier(store, assessment_md_path, "consultation.assessment")
+
+
 def emit_claim(store, claim_md_path):
     """Classify a doc as a claim. Idempotent. Returns (link_id, created).
 

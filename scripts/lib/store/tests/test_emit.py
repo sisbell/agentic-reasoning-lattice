@@ -8,9 +8,10 @@ from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.store.emit import (
-    emit_campaign, emit_claim, emit_contract, emit_derivation,
-    emit_findings, emit_inquiry, emit_note,
-    emit_note_findings, emit_review, emit_synthesis,
+    emit_campaign, emit_claim, emit_consultation_answer,
+    emit_consultation_assessment, emit_consultation_questions,
+    emit_contract, emit_derivation, emit_findings, emit_inquiry,
+    emit_note, emit_note_findings, emit_review, emit_synthesis,
 )
 from lib.store.store import Store
 
@@ -509,6 +510,80 @@ class EmitNoteFindingsTests(EmitTestBase):
             [r["cls"] for r in results],
             ["REVISE", "OUT_OF_SCOPE", "REVISE"],
         )
+
+
+class EmitConsultationQuestionsTests(EmitTestBase):
+    def test_first_call_creates_classifier(self):
+        path = self._write_under_root(
+            "_docuverse/documents/consultation/ASN-0001/consultation/questions.md",
+            "1. What is heat?\n2. What does it consist of?\n",
+        )
+        link_id, created = emit_consultation_questions(self.store, path)
+        self.assertTrue(created)
+        rec = self.store.get(link_id)
+        self.assertEqual(rec["type_set"], ["consultation.questions"])
+        self.assertEqual(rec["from_set"], [])
+        self.assertEqual(
+            rec["to_set"],
+            ["_docuverse/documents/consultation/ASN-0001/consultation/questions.md"],
+        )
+
+    def test_idempotent(self):
+        path = self._write_under_root(
+            "_docuverse/documents/consultation/ASN-0001/consultation/questions.md", "x",
+        )
+        first_id, c1 = emit_consultation_questions(self.store, path)
+        second_id, c2 = emit_consultation_questions(self.store, path)
+        self.assertTrue(c1)
+        self.assertFalse(c2)
+        self.assertEqual(first_id, second_id)
+
+
+class EmitConsultationAnswerTests(EmitTestBase):
+    def test_first_call_creates_classifier(self):
+        path = self._write_under_root(
+            "_docuverse/documents/consultation/ASN-0001/consultation/answer-01-theory.md",
+            "## Question 1 [theory]\n\n> What is heat?\n\nHeat is...\n",
+        )
+        link_id, created = emit_consultation_answer(self.store, path)
+        self.assertTrue(created)
+        rec = self.store.get(link_id)
+        self.assertEqual(rec["type_set"], ["consultation.answer"])
+        self.assertEqual(rec["from_set"], [])
+
+    def test_distinct_answers_get_distinct_classifiers(self):
+        a = self._write_under_root(
+            "_docuverse/documents/consultation/ASN-0001/consultation/answer-01-theory.md", "a",
+        )
+        b = self._write_under_root(
+            "_docuverse/documents/consultation/ASN-0001/consultation/answer-01-evidence.md", "b",
+        )
+        a_id, _ = emit_consultation_answer(self.store, a)
+        b_id, _ = emit_consultation_answer(self.store, b)
+        self.assertNotEqual(a_id, b_id)
+
+
+class EmitConsultationAssessmentTests(EmitTestBase):
+    def test_first_call_creates_classifier(self):
+        path = self._write_under_root(
+            "_docuverse/documents/consultation/ASN-0001/consultation-1/assessment.md",
+            "# Channel Assignment — ASN-0001 review-1\n\n## Issue 1...\n",
+        )
+        link_id, created = emit_consultation_assessment(self.store, path)
+        self.assertTrue(created)
+        rec = self.store.get(link_id)
+        self.assertEqual(rec["type_set"], ["consultation.assessment"])
+        self.assertEqual(rec["from_set"], [])
+
+    def test_idempotent(self):
+        path = self._write_under_root(
+            "_docuverse/documents/consultation/ASN-0001/consultation-1/assessment.md", "x",
+        )
+        first_id, c1 = emit_consultation_assessment(self.store, path)
+        second_id, c2 = emit_consultation_assessment(self.store, path)
+        self.assertTrue(c1)
+        self.assertFalse(c2)
+        self.assertEqual(first_id, second_id)
 
 
 if __name__ == "__main__":

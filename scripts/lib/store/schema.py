@@ -37,7 +37,7 @@ VALID_TYPES = {
     # Protocol-defined
     "claim", "note", "review", "contract", "citation", "comment", "resolution",
     # Discovery / consultation
-    "inquiry", "campaign",
+    "inquiry", "campaign", "consultation",
     # Provenance — operation-produced-output audit links (see VALID_SUBTYPES)
     "provenance",
     # Substrate-owned (general-purpose document primitives)
@@ -53,6 +53,12 @@ VALID_SUBTYPES = {
     },
     "comment": {"revise", "observe", "out-of-scope"},
     "resolution": {"edit", "reject"},
+    # Consultation — per-doc classifiers for the artifacts a consultation
+    # session produces. Each subtype names the role of the doc:
+    #   questions   — the generated question set (one doc, N questions)
+    #   answer      — per Q+A pair (one doc per question/answer combo)
+    #   assessment  — channel-assignment doc (revise consultations only)
+    "consultation": {"questions", "answer", "assessment"},
     # Provenance — historical audit links recording what operation produced
     # what output from what input. Filed once at the moment the operation
     # completes; never retracted; not evaluated by any predicate; queryable
