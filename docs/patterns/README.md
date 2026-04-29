@@ -17,6 +17,7 @@ The primary cycle's three phases, each a pattern in its own right:
 - [Scope narrowing](scope-narrowing.md) — narrow scope to harden each piece. Widen when coupling stalls convergence.
 - [Review/revise iteration](review-revise-iteration.md) — find issues, fix them, re-check. The refinement loop within the narrowed scope.
 - [Validate before review](validate-before-review.md) — run a mechanical structural-invariant check before every review cycle. Keeps the reviewer focused on semantic issues by resolving structural violations up front with a validator, not an LLM.
+- [Failure-side priming](failure-side-priming.md) — when an LLM is both producer and judge in a loop, feed the next pass only previously-rejected findings (with rationales), never accepted ones. Successes are absorbed into the artifact and lose their teaching signal; failures retain it. Suppresses pattern-matching feedback loops.
 - [Verify the whole](verify-the-whole.md) — step back and check that the refined pieces cohere.
 
 Patterns that adjust or feed the cycle:
