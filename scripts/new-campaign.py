@@ -45,7 +45,7 @@ def main():
                         help="One-line prose description of the campaign's target")
     args = parser.parse_args()
 
-    # Validate channels exist and have a description in meta.yaml.
+    # Validate channels exist and are well-formed.
     for role, channel_name in (("theory", args.theory), ("evidence", args.evidence)):
         try:
             meta = load_channel_meta(channel_name)
@@ -53,14 +53,38 @@ def main():
             print(f"  [ERROR] {role} channel: {e}", file=sys.stderr)
             print(f"          Create the channel first: add resources/, "
                   f"consultations/, and meta.yaml (with a `description:` "
-                  f"field) under {CHANNELS_DIR / channel_name}.",
-                  file=sys.stderr)
+                  f"and `shape:` field) under "
+                  f"{CHANNELS_DIR / channel_name}.", file=sys.stderr)
             sys.exit(1)
         if not (meta.get("description") or "").strip():
             print(f"  [ERROR] {role} channel {channel_name} is missing "
                   f"`description:` in meta.yaml — the assign-channels prompt "
                   f"requires it.", file=sys.stderr)
             sys.exit(1)
+        shape = meta.get("shape")
+        if not shape:
+            print(f"  [ERROR] {role} channel {channel_name} is missing "
+                  f"`shape:` in meta.yaml — set it to `flat-corpus` (single "
+                  f"directory of .md sources) or `custom` (channel supplies "
+                  f"its own consultations/consult.py).", file=sys.stderr)
+            sys.exit(1)
+        ch_dir = CHANNELS_DIR / channel_name
+        if shape == "custom":
+            consult_py = ch_dir / "consultations" / "consult.py"
+            if not consult_py.exists():
+                print(f"  [ERROR] {role} channel {channel_name} declares "
+                      f"`shape: custom` but {consult_py.relative_to(ch_dir.parent.parent)} "
+                      f"does not exist.", file=sys.stderr)
+                sys.exit(1)
+        else:
+            for prompt_name in ("answer.md", "generate-questions.md"):
+                prompt_path = ch_dir / "consultations" / prompt_name
+                if not prompt_path.exists():
+                    print(f"  [ERROR] {role} channel {channel_name} "
+                          f"(shape: {shape}) is missing "
+                          f"{prompt_path.relative_to(ch_dir.parent.parent)}.",
+                          file=sys.stderr)
+                    sys.exit(1)
 
     # Validate campaign name is not taken
     doc_path = campaign_doc_path(args.name)
