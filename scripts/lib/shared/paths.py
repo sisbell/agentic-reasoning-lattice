@@ -40,9 +40,6 @@ PATCHES_DIR = LATTICE / "discovery" / "patches"
 VOCABULARY = LATTICE / "vocabulary.md"
 LATTICE_CONFIG = LATTICE / "config.yaml"
 
-# Claim convergence stage
-CLAIM_CONVERGENCE_DIR = LATTICE / "claim-convergence"
-
 # Verification stage
 ALLOY_DIR = LATTICE / "verification" / "alloy"
 DAFNY_DIR = LATTICE / "verification" / "dafny"
@@ -96,6 +93,12 @@ REVIEWS_DIR = NOTE_REVIEWS_DIR  # legacy alias, prefer NOTE_REVIEWS_DIR
 # with the matching aggregate doc by the shared `review-N` token.
 CLAIM_FINDINGS_DIR = DOCUVERSE_DOCS_DIR / "finding" / "claims"
 NOTE_FINDINGS_DIR = DOCUVERSE_DOCS_DIR / "finding" / "notes"
+
+# Claim convergence workspace — caches and intermediate prose artifacts
+# the convergence pipeline writes (per-ASN _contract-cache.json,
+# _summary-cache.json, etc.). Workspace-shaped: regeneratable, not
+# substrate citizens.
+CLAIM_CONVERGENCE_DIR = WORKSPACE_DIR / "claim-convergence"
 
 # Claim derivation audit trail (per-section content + LLM analyses).
 # Derivation's intermediate state lives here; the per-claim outputs
