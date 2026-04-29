@@ -10,7 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.store.emit import (
     emit_campaign, emit_claim, emit_consultation_answer,
     emit_consultation_assessment, emit_consultation_questions,
-    emit_contract, emit_derivation, emit_findings, emit_inquiry,
+    emit_contract, emit_derivation, emit_finding, emit_findings, emit_inquiry,
     emit_note, emit_note_findings, emit_review, emit_synthesis,
 )
 from lib.store.store import Store
@@ -58,6 +58,34 @@ class EmitReviewTests(EmitTestBase):
             rec["to_set"],
             ["claim-convergence/ASN-0001/reviews/review-1.md"],
         )
+
+
+class EmitFindingTests(EmitTestBase):
+    def test_first_call_creates_classifier(self):
+        finding_path = self._write_under_root(
+            "_docuverse/documents/finding/claims/ASN-0001/review-1/0.md",
+            "## Finding 0\nbody\n",
+        )
+        link_id, created = emit_finding(self.store, finding_path)
+        self.assertTrue(created)
+        rec = self.store.get(link_id)
+        self.assertEqual(rec["type_set"], ["finding"])
+        self.assertEqual(rec["from_set"], [])
+        self.assertEqual(
+            rec["to_set"],
+            ["_docuverse/documents/finding/claims/ASN-0001/review-1/0.md"],
+        )
+
+    def test_repeated_call_is_idempotent(self):
+        finding_path = self._write_under_root(
+            "_docuverse/documents/finding/claims/ASN-0001/review-1/0.md",
+            "## Finding 0\nbody\n",
+        )
+        first_id, first_created = emit_finding(self.store, finding_path)
+        second_id, second_created = emit_finding(self.store, finding_path)
+        self.assertTrue(first_created)
+        self.assertFalse(second_created)
+        self.assertEqual(first_id, second_id)
 
 
 class EmitInquiryTests(EmitTestBase):
@@ -275,6 +303,30 @@ class EmitDerivationTests(EmitTestBase):
         a, _ = emit_derivation(self.store, self.note_path, self.claim_path)
         b, _ = emit_derivation(self.store, other_note, other_claim)
         self.assertNotEqual(a, b)
+
+    def test_aggregate_review_to_finding(self):
+        review_path = self._write_under_root(
+            "_docuverse/documents/review/claims/ASN-0001/review-1.md",
+            "# Review 1\n",
+        )
+        finding_path = self._write_under_root(
+            "_docuverse/documents/finding/claims/ASN-0001/review-1/0.md",
+            "## Finding 0\n",
+        )
+        link_id, created = emit_derivation(
+            self.store, review_path, finding_path,
+        )
+        self.assertTrue(created)
+        rec = self.store.get(link_id)
+        self.assertEqual(rec["type_set"], ["provenance.derivation"])
+        self.assertEqual(
+            rec["from_set"],
+            ["_docuverse/documents/review/claims/ASN-0001/review-1.md"],
+        )
+        self.assertEqual(
+            rec["to_set"],
+            ["_docuverse/documents/finding/claims/ASN-0001/review-1/0.md"],
+        )
 
 
 class EmitNoteTests(EmitTestBase):

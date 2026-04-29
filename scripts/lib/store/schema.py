@@ -35,7 +35,7 @@ CREATE INDEX IF NOT EXISTS idx_endpoints_link ON endpoints(link_id);
 
 VALID_TYPES = {
     # Protocol-defined
-    "claim", "note", "review", "contract", "citation", "comment", "resolution",
+    "claim", "note", "review", "finding", "contract", "citation", "comment", "resolution",
     # Discovery / consultation
     "inquiry", "campaign", "consultation",
     # Provenance — operation-produced-output audit links (see VALID_SUBTYPES)
@@ -65,7 +65,7 @@ VALID_SUBTYPES = {
     # for replay and structural-history reconstruction.
     "provenance": {
         "synthesis",        # consultation: inquiry → note
-        "derivation",       # claim derivation: note → claim
+        "derivation",       # decomposition: note → claim, aggregate-review → finding
         "extract",          # maturation: existing notes → new foundation
         "absorb",           # maturation: note A material → note B
         "reset",            # maturation: hard-reset cascade marker

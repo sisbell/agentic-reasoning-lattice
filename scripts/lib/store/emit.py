@@ -29,6 +29,18 @@ def emit_review(store, review_md_path):
     )
 
 
+def emit_finding(store, finding_md_path):
+    """Classify a doc as a per-finding decomposition output. Idempotent.
+    Returns (link_id, created).
+
+    A finding doc holds one comment's worth of reviewer text, extracted from
+    an aggregate review doc by the convergence protocol's decomposition step.
+    The doc participates separately in a `comment.<kind>` relation to the
+    target it comments on, and in a `provenance.derivation` relation back to
+    the aggregate review it came from."""
+    return _emit_classifier(store, finding_md_path, "finding")
+
+
 def emit_note(store, note_md_path):
     """Classify a doc as a note. Idempotent on active classifiers.
 
@@ -104,28 +116,35 @@ def emit_contract(store, claim_md_path, kind):
     return _emit_classifier(store, claim_md_path, f"contract.{kind}")
 
 
-def emit_derivation(store, note_md_path, claim_md_path):
-    """File a `provenance.derivation` link from source note to claim doc.
-    Idempotent on (note, claim) pair. Returns (link_id, created).
+def emit_derivation(store, from_md_path, to_md_path):
+    """File a `provenance.derivation` link from a source doc to a derivation
+    output doc. Idempotent on (from, to) pair. Returns (link_id, created).
 
-    Filed by claim derivation per the Claim Document Contract (invariant #13):
-    each claim's body carries exactly one active `provenance.derivation`
-    link recording that this claim was derived from this note. The link
-    persists permanently regardless of subsequent edits to either doc.
-    Sibling of `provenance.synthesis` (inquiry → note) and the maturation
-    provenance subtypes."""
-    note_rel = _lattice_relative(note_md_path)
-    claim_rel = _lattice_relative(claim_md_path)
+    Records that the `to` doc was derived (decomposed) from the `from` doc.
+    Two operations file this kind of provenance:
+
+    - Claim derivation (note → claim): each claim's body carries exactly one
+      active `provenance.derivation` link from its source note. Per the Claim
+      Document Contract (invariant #13).
+    - Review decomposition (aggregate review → finding): each per-finding doc
+      carries one active `provenance.derivation` link from the aggregate
+      review it was extracted from.
+
+    The link persists permanently regardless of subsequent edits to either
+    doc. Sibling of `provenance.synthesis` (inquiry → note) and the
+    maturation provenance subtypes."""
+    from_rel = _lattice_relative(from_md_path)
+    to_rel = _lattice_relative(to_md_path)
     candidates = active_links(
         store, "provenance.derivation",
-        from_set=[note_rel], to_set=[claim_rel],
+        from_set=[from_rel], to_set=[to_rel],
     )
     for link in candidates:
-        if (link["from_set"] == [note_rel]
-                and link["to_set"] == [claim_rel]):
+        if (link["from_set"] == [from_rel]
+                and link["to_set"] == [to_rel]):
             return link["id"], False
     link_id = store.make_link(
-        from_set=[note_rel], to_set=[claim_rel],
+        from_set=[from_rel], to_set=[to_rel],
         type_set=["provenance.derivation"],
     )
     return link_id, True
