@@ -6,6 +6,7 @@ import re
 import subprocess
 import sys
 import time
+import time
 from pathlib import Path
 
 import yaml
@@ -584,40 +585,64 @@ def stage_asn_files(label):
     return staged
 
 
-def step_commit_asn(asn_id, hint=""):
+def step_commit_asn(asn_id, hint="", *, max_attempts=3, backoff_seconds=(5, 15)):
     """Stage and commit only files belonging to a specific ASN.
 
-    Stages files matching the ASN's known directory patterns, then
-    runs commit.py for the commit message. For concurrent safety —
-    two ASN pipelines won't include each other's changes.
+    Stages files matching the ASN's known directory patterns, then runs
+    commit.py for the commit message. For concurrent safety — two ASN
+    pipelines won't include each other's changes.
+
+    Retries the commit-script subprocess up to `max_attempts` times when
+    it exits non-zero. Most failures are transient (LLM API rate limit,
+    network blip during message generation). Sleeps `backoff_seconds[i]`
+    between attempts; iterates with the last value if attempts exceed
+    the tuple's length.
+
+    The substrate writes that preceded this call have already happened —
+    if the commit can't land at all, those writes leave substrate ahead
+    of git until a later commit picks up the staged-but-uncommitted
+    files. Retry is the cheap defense against that drift.
     """
     label = f"ASN-{int(asn_id):04d}"
     if not stage_asn_files(label):
         print(f"  [COMMIT] No changes for {label}", file=sys.stderr)
         return False
 
-    # Run commit.py for the message
     commit_script = WORKSPACE / "scripts" / "commit.py"
     cmd = [sys.executable, str(commit_script)]
     if hint:
         cmd.append(hint)
 
-    result = subprocess.run(
-        cmd, capture_output=True, text=True, cwd=str(WORKSPACE),
-    )
-    if result.returncode != 0:
-        print(f"  [COMMIT] FAILED", file=sys.stderr)
-        if result.stderr:
-            for line in result.stderr.strip().split("\n")[:3]:
+    last_result = None
+    for attempt in range(1, max_attempts + 1):
+        if attempt > 1:
+            wait = backoff_seconds[min(attempt - 2, len(backoff_seconds) - 1)]
+            print(f"  [COMMIT] retry {attempt}/{max_attempts} after {wait}s...",
+                  file=sys.stderr)
+            time.sleep(wait)
+
+        last_result = subprocess.run(
+            cmd, capture_output=True, text=True, cwd=str(WORKSPACE),
+        )
+        if last_result.returncode == 0:
+            break
+        print(f"  [COMMIT] attempt {attempt}/{max_attempts} failed",
+              file=sys.stderr)
+        if last_result.stderr:
+            for line in last_result.stderr.strip().split("\n")[:3]:
                 print(f"    {line}", file=sys.stderr)
+
+    if last_result is None or last_result.returncode != 0:
+        print(f"  [COMMIT] FAILED after {max_attempts} attempts — "
+              f"changes left staged for next commit", file=sys.stderr)
         return False
 
-    if result.stderr:
-        for line in result.stderr.strip().split("\n"):
+    if last_result.stderr:
+        for line in last_result.stderr.strip().split("\n"):
             print(f"  {line}", file=sys.stderr)
 
-    if result.stdout.strip():
-        print(f"  {result.stdout.strip()}", file=sys.stderr)
+    if last_result.stdout.strip():
+        print(f"  {last_result.stdout.strip()}", file=sys.stderr)
     return True
 
 
