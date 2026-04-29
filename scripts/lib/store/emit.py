@@ -249,14 +249,18 @@ def emit_meta(store, asn_label, review_num, *, title, timestamp, scope,
 
 def emit_findings(store, review_md_path, findings, asn_label, review_stem,
                   label_index, findings_dir):
-    """Materialize each finding as a document and emit a comment link.
+    """Materialize each finding as a document and emit its substrate facts.
 
     `findings` is the list of (title, cls, body) tuples from
     `extract_findings()`. For each:
       - resolve target claim via the body's `**ASN**: <label>` line
         (falls back to `**Foundation**:` if ASN is absent)
       - materialize a document at <findings_dir>/<asn_label>/<review_stem>/<n>.md
-      - make `comment.{revise|observe}` link from finding-doc to claim-md
+      - emit `finding` classifier on the per-finding doc
+      - emit `comment.{revise|observe}` from the per-finding doc to the
+        target claim
+      - emit `provenance.derivation` from the aggregate review doc
+        (`review_md_path`) to the per-finding doc
 
     `findings_dir` is the kind-scoped findings root (CLAIM_FINDINGS_DIR or
     NOTE_FINDINGS_DIR) — caller selects per protocol.
@@ -286,6 +290,8 @@ def emit_findings(store, review_md_path, findings, asn_label, review_stem,
         finding_path.write_text(body)
         finding_rel = _lattice_relative(finding_path)
 
+        emit_finding(store, finding_path)
+
         cls_normalized = cls.upper() if cls else "REVISE"
         if cls_normalized not in {"REVISE", "OBSERVE"}:
             cls_normalized = "REVISE"
@@ -296,6 +302,8 @@ def emit_findings(store, review_md_path, findings, asn_label, review_stem,
             to_set=[claim_path],
             type_set=[comment_type],
         )
+
+        emit_derivation(store, review_md_path, finding_path)
 
         results.append({
             "title": title,
@@ -308,9 +316,10 @@ def emit_findings(store, review_md_path, findings, asn_label, review_stem,
     return results
 
 
-def emit_note_findings(store, note_md_path, findings, asn_label, review_stem,
-                       findings_dir):
-    """Materialize each note-review finding as a document and emit a comment link.
+def emit_note_findings(store, note_md_path, aggregate_md_path, findings,
+                       asn_label, review_stem, findings_dir):
+    """Materialize each note-review finding as a document and emit its
+    substrate facts.
 
     Parallels `emit_findings` for notes per the Note Convergence Protocol
     §6.5. Differences from the claim-side: the target is the note itself
@@ -319,7 +328,11 @@ def emit_note_findings(store, note_md_path, findings, asn_label, review_stem,
 
     `findings` is a list of (title, cls, body) tuples. For each:
       - materialize a document at <findings_dir>/<asn_label>/<review_stem>/<n>.md
-      - make `comment.{revise|out-of-scope}` link from finding-doc to note-md
+      - emit `finding` classifier on the per-finding doc
+      - emit `comment.{revise|out-of-scope}` from the per-finding doc to
+        the note (the review's target)
+      - emit `provenance.derivation` from `aggregate_md_path` (the
+        aggregate review doc) to the per-finding doc
 
     Returns list of {title, cls, comment_id, note_path, finding_path} dicts
     in input order.
@@ -335,6 +348,8 @@ def emit_note_findings(store, note_md_path, findings, asn_label, review_stem,
         finding_path.write_text(body)
         finding_rel = _lattice_relative(finding_path)
 
+        emit_finding(store, finding_path)
+
         cls_normalized = (cls or "REVISE").upper()
         if cls_normalized == "OUT_OF_SCOPE":
             comment_type = "comment.out-of-scope"
@@ -346,6 +361,8 @@ def emit_note_findings(store, note_md_path, findings, asn_label, review_stem,
             to_set=[note_rel],
             type_set=[comment_type],
         )
+
+        emit_derivation(store, aggregate_md_path, finding_path)
 
         results.append({
             "title": title,

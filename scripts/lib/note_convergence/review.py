@@ -208,7 +208,7 @@ def commit_note_review(store, asn_path, asn_label, text):
     review_stem = f"review-{next_num}"
     emit_review(store, output_path)
     emit_note_findings(
-        store, asn_path, findings,
+        store, asn_path, output_path, findings,
         asn_label=asn_label, review_stem=review_stem,
         findings_dir=NOTE_FINDINGS_DIR,
     )

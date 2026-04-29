@@ -501,17 +501,24 @@ class EmitNoteFindingsTests(EmitTestBase):
     def setUp(self):
         super().setUp()
         self.note_findings_dir = (
-            self.root / "_workspace" / "findings" / "notes"
+            self.root / "_docuverse" / "documents" / "finding" / "notes"
         )
         self.note_path = self._write_under_root(
             "_docuverse/documents/note/ASN-0001-foo.md", "# Note\n",
         )
         self.note_rel = "_docuverse/documents/note/ASN-0001-foo.md"
+        self.aggregate_path = self._write_under_root(
+            "_docuverse/documents/review/notes/ASN-0001/review-1.md",
+            "# Review\n",
+        )
+        self.aggregate_rel = (
+            "_docuverse/documents/review/notes/ASN-0001/review-1.md"
+        )
 
     def test_revise_finding_emits_comment_revise(self):
         findings = [("Issue 1: bad", "REVISE", "### Issue 1: bad\nbody\n")]
         results = emit_note_findings(
-            self.store, self.note_path, findings,
+            self.store, self.note_path, self.aggregate_path, findings,
             asn_label="ASN-0001", review_stem="review-1",
             findings_dir=self.note_findings_dir,
         )
@@ -524,7 +531,7 @@ class EmitNoteFindingsTests(EmitTestBase):
     def test_oos_finding_emits_comment_out_of_scope(self):
         findings = [("Issue 2: scope", "OUT_OF_SCOPE", "body\n")]
         results = emit_note_findings(
-            self.store, self.note_path, findings,
+            self.store, self.note_path, self.aggregate_path, findings,
             asn_label="ASN-0001", review_stem="review-1",
             findings_dir=self.note_findings_dir,
         )
@@ -534,12 +541,12 @@ class EmitNoteFindingsTests(EmitTestBase):
     def test_materializes_at_expected_path(self):
         findings = [("X", "REVISE", "### X\nbody\n")]
         results = emit_note_findings(
-            self.store, self.note_path, findings,
+            self.store, self.note_path, self.aggregate_path, findings,
             asn_label="ASN-0001", review_stem="review-1",
             findings_dir=self.note_findings_dir,
         )
         self.assertIn(
-            "_workspace/findings/notes/ASN-0001/review-1/0.md",
+            "_docuverse/documents/finding/notes/ASN-0001/review-1/0.md",
             results[0]["finding_path"],
         )
         full = self.root / results[0]["finding_path"]
@@ -553,7 +560,7 @@ class EmitNoteFindingsTests(EmitTestBase):
             ("c", "REVISE", "### c\n"),
         ]
         results = emit_note_findings(
-            self.store, self.note_path, findings,
+            self.store, self.note_path, self.aggregate_path, findings,
             asn_label="ASN-0001", review_stem="review-1",
             findings_dir=self.note_findings_dir,
         )
@@ -562,6 +569,26 @@ class EmitNoteFindingsTests(EmitTestBase):
             [r["cls"] for r in results],
             ["REVISE", "OUT_OF_SCOPE", "REVISE"],
         )
+
+    def test_finding_classifier_and_provenance_emitted(self):
+        findings = [("X", "REVISE", "### X\nbody\n")]
+        results = emit_note_findings(
+            self.store, self.note_path, self.aggregate_path, findings,
+            asn_label="ASN-0001", review_stem="review-1",
+            findings_dir=self.note_findings_dir,
+        )
+        finding_rel = results[0]["finding_path"]
+        # finding classifier
+        cls_links = self.store.find_links(
+            type_set=["finding"], to_set=[finding_rel],
+        )
+        self.assertEqual(len(cls_links), 1)
+        # provenance.derivation from aggregate to finding
+        prov_links = self.store.find_links(
+            type_set=["provenance.derivation"],
+            from_set=[self.aggregate_rel], to_set=[finding_rel],
+        )
+        self.assertEqual(len(prov_links), 1)
 
 
 class EmitConsultationQuestionsTests(EmitTestBase):
