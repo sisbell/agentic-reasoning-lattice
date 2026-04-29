@@ -19,7 +19,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, formal_stmts, dep_graph
+from lib.shared.paths import WORKSPACE, CLAIM_DIR, formal_stmts, dep_graph
 from lib.shared.common import find_asn, load_claim_metadata, build_label_index
 from lib.store.store import Store
 from lib.store.populate import build_cross_asn_label_index
@@ -447,7 +447,7 @@ def _generate_deps_core(asn_num, prose_citations=False):
         print(f"  [ERROR] ASN-{asn_num:04d} not found", file=sys.stderr)
         return None
 
-    claim_dir = CLAIM_CONVERGENCE_DIR / asn_label
+    claim_dir = CLAIM_DIR / asn_label
 
     # ASN-level depends sourced from substrate per-claim citations
     from lib.shared.foundation import claim_asn_dep_ids
