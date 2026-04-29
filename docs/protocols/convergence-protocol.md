@@ -61,7 +61,7 @@ Reviewer and reviser are roles in the protocol, not necessarily distinct agents.
 
 ### Reviewer
 
-Reads assembled context and produces comment links on documents it observes. Each comment is classified:
+Reads assembled context and produces (a) one aggregate review document classified by `review`, and (b) per-finding documents — one per finding — each classified by `finding`, each carrying a `comment.<class>` link to the document the finding is about and a `provenance.derivation` link from the aggregate. Each comment is classified:
 
 - `comment.revise` — the document is wrong, incomplete, or ungrounded. Requires resolution.
 - `comment.observe` — the document is correct but the reviewer noticed something. Recorded, no resolution required.
@@ -76,14 +76,17 @@ Observes unresolved `comment.revise` links and responds in one of two ways. If t
 
 **Requests (input from above).**
 
-- ⟨ FileComment | review, document, class, finding ⟩ — create a `comment` link of subtype class from review to document, with finding as content.
+- ⟨ FileReview | aggregate_doc ⟩ — emit the `review` classifier on the aggregate review document.
+- ⟨ FileFinding | aggregate, finding_doc, document, class, finding_text ⟩ — write the finding doc with content `finding_text`; emit the `finding` classifier on the finding doc; emit a `comment.<class>` link from the finding doc to the document being commented on; emit a `provenance.derivation` link from `aggregate` to `finding_doc`. All four substrate operations execute together as a single decomposition step; partial failure leaves the substrate in a consistent (no-half-finding) state.
 - ⟨ ResolveEdit | comment, document ⟩ — create a `resolution.edit` link closing comment. The document has been edited.
 - ⟨ ResolveReject | comment, document, rationale ⟩ — create a `resolution.reject` link closing comment. The rationale is a document linked to both.
 - ⟨ EvaluateConvergence | document_set ⟩ — evaluate the convergence predicate over a set of documents.
 
 **Indications (output upward).**
 
-- ⟨ CommentFiled | document, comment, class ⟩ — a comment has been created.
+- ⟨ ReviewFiled | aggregate_doc ⟩ — an aggregate review document has been classified.
+- ⟨ FindingFiled | aggregate, finding_doc, comment_id, document, class ⟩ — one finding has been decomposed from `aggregate` into `finding_doc`, with a `comment.<class>` linking it to `document`.
+- ⟨ CommentFiled | document, comment, class ⟩ — a comment has been created. (Equivalent to FindingFiled with the finding-doc and aggregate fields elided; retained for backwards compatibility with consumers that subscribe at the comment level.)
 - ⟨ ResolutionFiled | comment, resolution, subtype ⟩ — a comment has been closed.
 - ⟨ Converged | document_set ⟩ — the convergence predicate holds over the set.
 - ⟨ NotConverged | document_set, open_comments ⟩ — the predicate does not hold.

@@ -15,7 +15,8 @@ Extends the [convergence protocol](convergence-protocol.md) document model with 
 | Classifier | What the document is |
 |---|---|
 | `note` | A note document. Narrative prose with embedded reasoning and claims. |
-| `review` | A review document (inherited from convergence module). |
+| `review` | An aggregate review document (inherited from convergence module). |
+| `finding` | One finding decomposed from a review (inherited from convergence module). |
 
 ### Link types
 
@@ -218,7 +219,7 @@ Invoke R on note with assembled context. The scope strategy is a choreography de
 
 ### 6.5 EmitFindings
 
-For each finding in fs: register the finding document, file the corresponding comment via ⟨ FileComment ⟩, and record the review event. After EmitFindings, every finding is observable through the substrate. `comment.out-of-scope` links are filed but do not enter the predicate; they are visible to maturation as signals (per N2).
+Emits the substrate facts for one review event. First, ⟨ FileReview | aggregate_doc ⟩ classifies the aggregate review document. Then, for each finding in fs: invoke ⟨ FileFinding | aggregate_doc, finding_doc, note, class, body ⟩ — writes the finding doc, classifies it as `finding`, files a `comment.<class>` link from the finding doc to the note (the review's target), and files a `provenance.derivation` link from the aggregate to the finding doc. After EmitFindings completes, the substrate carries one `review` link, N `finding` links, N `comment.<class>` links (each `revise` or `out-of-scope`), and N `provenance.derivation` links. `comment.out-of-scope` links are filed but do not enter the predicate; they are visible to maturation as signals (per N2).
 
 ### 6.6 Revise
 

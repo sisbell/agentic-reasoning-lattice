@@ -203,7 +203,7 @@ Invoke R on scope with assembled context. R returns the set fs of findings, each
 
 ### 5.6 EmitFindings
 
-For each finding in fs: register the finding document, file the corresponding comment via ⟨ FileComment ⟩, and record the review event. After EmitFindings, every finding is observable through the substrate.
+Emits the substrate facts for one review event. First, ⟨ FileReview | aggregate_doc ⟩ classifies the aggregate review document. Then, for each finding in fs: invoke ⟨ FileFinding | aggregate_doc, finding_doc, target_claim, class, body ⟩ — writes the finding doc, classifies it as `finding`, files a `comment.<class>` link from the finding doc to the target claim, and files a `provenance.derivation` link from the aggregate to the finding doc. After EmitFindings completes, the substrate carries one `review` link, N `finding` links, N `comment.<class>` links, and N `provenance.derivation` links — each finding is observable both as a standalone substrate citizen and as a derivation of the aggregate review event that produced it.
 
 ### 5.7 Revise
 
