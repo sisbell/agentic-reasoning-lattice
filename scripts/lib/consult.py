@@ -25,7 +25,7 @@ from pathlib import Path
 
 from lib.shared.common import MODEL_FLAGS, log_usage
 from lib.shared.campaign import resolve_campaign
-from lib.shared.paths import WORKSPACE
+from lib.shared.paths import WORKSPACE, CHANNELS_DIR, load_channel_meta
 
 
 # Process-local usage accumulator. Every invoke_claude call updates it
@@ -211,21 +211,39 @@ def dispatch_run_consultation(channel, question, label, model, effort, **extra):
 
 
 def load_channel_plugin(channel_name):
-    """Load channels/<name>/consultations/consult.py as a module.
+    """Construct or load the channel plugin, dispatching on `meta.yaml.shape`.
 
-    Returns the module, which is expected to expose:
+    Returns an object exposing:
       generate_questions(inquiry, n=10, model="opus", out_of_scope="") -> list[str]
       consult(question, label="", model="opus", effort="max") -> str
 
-    Raises FileNotFoundError if the channel plugin is missing. Cached per
-    process so the module (and its corpus/template caches) is shared across
-    calls within a decompose run.
+    For `shape: flat-corpus` (and any other registered shape) the plugin
+    is constructed directly from `meta.yaml` + the channel's standard
+    paths — no per-channel Python required. For `shape: custom` the
+    runtime loads `consultations/consult.py` as a module.
+
+    Cached per process so the corpus and prompt-template caches are
+    shared across calls within a decompose run.
     """
     if channel_name in _plugin_cache:
         return _plugin_cache[channel_name]
-    path = WORKSPACE / "channels" / channel_name / "consultations" / "consult.py"
+
+    channel_dir = CHANNELS_DIR / channel_name
+    meta = load_channel_meta(channel_name)
+    shape = meta.get("shape")
+
+    if shape != "custom":
+        from lib.consult_patterns import build_plugin
+        plugin = build_plugin(meta, channel_dir)
+        _plugin_cache[channel_name] = plugin
+        return plugin
+
+    path = channel_dir / "consultations" / "consult.py"
     if not path.exists():
-        raise FileNotFoundError(f"Channel plugin not found: {path}")
+        raise FileNotFoundError(
+            f"channel {channel_name!r} declares shape: custom but "
+            f"{path} does not exist"
+        )
     spec = importlib.util.spec_from_file_location(
         f"channels.{channel_name}.consult", path)
     mod = importlib.util.module_from_spec(spec)

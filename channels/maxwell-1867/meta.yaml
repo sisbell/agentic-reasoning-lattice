@@ -2,4 +2,5 @@ name: maxwell-1867
 role_hint: theory
 description: "Maxwell's dynamical theory of gases (1867). The theory of this period."
 type: single-source
+shape: flat-corpus
 default_questions: 10

@@ -1,18 +1,22 @@
 """Consultation-shape patterns — factories used by channel plugins.
 
 Each factory returns a (generate_questions, consult) pair matching the
-channel-plugin interface. Channels sharing a consultation shape (e.g.
-flat-corpus single-invocation) opt in by importing and calling the
-factory with their specific paths and metadata.
+channel-plugin interface. The runtime dispatches to a factory based on
+the `shape:` field in a channel's meta.yaml — see `build_plugin` below.
 
-Channels whose shape is unique (Nelson's multi-section template, Gregory's
-parallel KB+code workflow) write their own consult.py from scratch and do
-not use any factory here.
+Registered shapes:
+  - flat-corpus: single directory of .md source files concatenated into
+    a {{corpus}} slot in the answer prompt. Used by maxwell-1867 and
+    dulong-petit-1819. No per-channel Python required.
+  - custom: channel writes its own consult.py module exposing
+    `generate_questions` and `consult`. Used by nelson and gregory,
+    whose shapes don't fit a registered pattern.
 
-Extract a new pattern only when a second channel needs the same shape.
+Add a new shape only when a second channel needs the same one.
 """
 
 import sys
+from types import SimpleNamespace
 
 from lib.shared.common import read_file, concat_md_files
 from lib.consult import (
@@ -20,6 +24,51 @@ from lib.consult import (
     parse_numbered,
     format_out_of_scope_block,
 )
+
+
+def build_plugin(meta, channel_dir):
+    """Construct a channel plugin from `meta` (parsed meta.yaml) and the
+    channel's directory. Dispatches on `meta['shape']`.
+
+    Returns an object exposing `generate_questions` and `consult`,
+    matching the channel-plugin interface that
+    `lib.consult.load_channel_plugin` returns. For `shape: flat-corpus`
+    the object is a SimpleNamespace built around the factory's two
+    closures; for `shape: custom` the caller should not invoke this
+    helper and instead load `consultations/consult.py` directly.
+
+    Raises ValueError for unknown or missing shape values.
+    """
+    shape = meta.get("shape")
+    if shape is None:
+        raise ValueError(
+            f"channel {meta.get('name', '?')!r} meta.yaml is missing the "
+            f"`shape:` field; expected one of {sorted(_SHAPES) + ['custom']}"
+        )
+    if shape == "custom":
+        raise ValueError(
+            "shape 'custom' is not built by the registry — load the "
+            "channel's consultations/consult.py directly"
+        )
+    builder = _SHAPES.get(shape)
+    if builder is None:
+        raise ValueError(
+            f"channel {meta.get('name', '?')!r} declares unknown shape "
+            f"{shape!r}; expected one of {sorted(_SHAPES) + ['custom']}"
+        )
+    return builder(meta, channel_dir)
+
+
+def _build_flat_corpus(meta, channel_dir):
+    consultations = channel_dir / "consultations"
+    gen_q, consult_fn = flat_corpus(
+        resources_dir=channel_dir / "resources",
+        answer_prompt=consultations / "answer.md",
+        gen_questions_prompt=consultations / "generate-questions.md",
+        role_label=meta["role_hint"],
+        channel_name=meta["name"],
+    )
+    return SimpleNamespace(generate_questions=gen_q, consult=consult_fn)
 
 
 def flat_corpus(
@@ -105,3 +154,8 @@ def flat_corpus(
         return text
 
     return generate_questions, consult
+
+
+_SHAPES = {
+    "flat-corpus": _build_flat_corpus,
+}

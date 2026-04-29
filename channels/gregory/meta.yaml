@@ -1,4 +1,5 @@
 name: gregory
 role_hint: evidence
 description: "Roger Gregory's udanax-green implementation (C source + behavioral KB)"
+shape: custom
 default_questions: 10

@@ -1,4 +1,5 @@
 name: nelson
 role_hint: theory
 description: "Ted Nelson's design intent and Literary Machines corpus"
+shape: custom
 default_questions: 10
