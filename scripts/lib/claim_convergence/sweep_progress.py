@@ -1,25 +1,28 @@
 """Workspace-side progress tracking for cone-sweep resumability.
 
-Records the sweep's intent (params) and per-apex progress so an
-interrupted sweep can resume on restart without re-doing already-
-processed cones. Pipeline-orchestration state — lives in workspace,
-never in substrate (a cycle-completion tag would conflate orchestrator
+Records which apexes have been done in an in-progress sweep so a
+killed run can resume without redoing finished work. Pipeline-
+orchestration state — lives in workspace, never in substrate
+(a cycle-completion or sweep-progress fact would conflate orchestrator
 run state with lattice content; substrate-module §1 reserves substrate
 links for facts about documents, not facts about pipeline runs).
 
 File: `<WORKSPACE_DIR>/cone-sweep/<asn-label>/progress.json`
 
 Schema:
-    {
-      "started_at":  ISO-8601 timestamp,
-      "min_deps":    int,           # the sweep's threshold
-      "all":         bool,          # --all override flag (force re-review)
-      "completed":   [labels...]    # apexes done in this sweep
-    }
+    {"completed": ["NAT-addbound", "T4", ...]}    # apex labels
 
-The apex order itself is recomputed at sweep start (the DAG may have
-shifted between runs); only the labels-completed set is replayed.
-On natural completion, the file is cleared.
+Behavior contract:
+    - run_cone_sweep reads `completed` at start (default mode only).
+    - `--all` mode unconditionally clears the file at start (fresh sweep).
+    - During a sweep, an apex is added to `completed` exactly when the
+      convergence predicate holds for it. The same write happens whether
+      the apex was processed (cone-review run) or skipped (predicate
+      already True at visit). Apexes that did NOT converge are left out,
+      so subsequent visits re-process them.
+    - On natural completion, the file is cleared.
+    - To start a fresh sweep before completion: run with `--all`, or
+      delete the file by hand.
 """
 
 import json
@@ -58,7 +61,8 @@ def write_progress(asn_label, data):
 
 
 def clear_progress(asn_label):
-    """Remove the progress file on natural sweep completion."""
+    """Remove the progress file. Called on natural sweep completion and
+    at the start of an `--all` sweep."""
     path = progress_path(asn_label)
     if path.exists():
         path.unlink()
@@ -68,21 +72,3 @@ def clear_progress(asn_label):
             parent.rmdir()
         except OSError:
             pass
-
-
-def matches_params(saved, current):
-    """Whether `saved` progress's params match `current`. Mismatched
-    params (different min_deps or --all flag) means a different sweep
-    intent, so saved progress isn't resumable.
-
-    Both args are dicts (or None for `saved`).
-    """
-    if saved is None:
-        return False
-    return (saved.get("min_deps") == current.get("min_deps")
-            and saved.get("all") == current.get("all"))
-
-
-def make_params(*, min_deps, all_mode):
-    """Build the params dict that goes into `progress.json`."""
-    return {"min_deps": min_deps, "all": all_mode}

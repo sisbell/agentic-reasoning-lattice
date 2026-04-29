@@ -571,26 +571,21 @@ def run_cone_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False,
     levels = topological_levels(deps_data)
     asn_labels = set(build_label_index(claim_dir).keys())
 
-    # Progress: resume from a prior sweep if the params match.
+    # Workspace progress: skip apexes already done in this in-progress sweep.
+    # `--all` unconditionally clears prior progress (it's a fresh re-review of
+    # every cone). Otherwise, resume by replaying the completed set.
     from lib.claim_convergence.sweep_progress import (
         read_progress, write_progress, clear_progress,
-        matches_params, make_params,
     )
-    current_params = make_params(min_deps=min_deps, all_mode=all_mode)
-    saved = read_progress(asn_label)
-    if matches_params(saved, current_params):
-        completed = set(saved.get("completed", []))
-        print(f"\n  [REGIONAL-SWEEP] resuming — {len(completed)} apex(es) "
-              f"already completed in this sweep", file=sys.stderr)
-        progress = saved
-    else:
-        if saved is not None:
-            print(f"\n  [REGIONAL-SWEEP] discarding stale progress "
-                  f"(params changed)", file=sys.stderr)
+    if all_mode:
+        clear_progress(asn_label)
         completed = set()
-        progress = dict(current_params)
-        progress["started_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-        progress["completed"] = []
+    else:
+        saved = read_progress(asn_label)
+        completed = set(saved.get("completed", [])) if saved else set()
+        if completed:
+            print(f"\n  [REGIONAL-SWEEP] resuming — {len(completed)} "
+                  f"apex(es) already done in this sweep", file=sys.stderr)
 
     print(f"\n  [REGIONAL-SWEEP] {asn_label} — {len(asn_labels)} claims, "
           f"min_deps={min_deps}{'  --all' if all_mode else ''}",
@@ -621,36 +616,39 @@ def run_cone_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False,
                 if len(same_deps) < min_deps:
                     continue
 
-                # Workspace gate: already processed in this sweep?
+                # Workspace gate: already done in this sweep run.
                 if label in completed:
                     cones_skipped += 1
                     continue
 
-                # Substrate gate: predicate already True? (skip unless --all)
-                if not all_mode and is_claim_converged(store, from_path):
+                # Decide whether to process. Both `--all` and predicate-False
+                # process; predicate-True in default mode skips the work.
+                if all_mode:
+                    cones_reviewed += 1
+                    result = run_cone_review(
+                        asn_num, label, same_deps,
+                        max_cycles=max_cycles, dry_run=dry_run, model=model)
+                    if result != "converged":
+                        any_not_converged = True
+                elif is_claim_converged(store, from_path):
                     print(f"  [REGIONAL-SWEEP] {label}: predicate True, skipping",
                           file=sys.stderr)
                     cones_skipped += 1
+                else:
+                    cones_reviewed += 1
+                    result = run_cone_review(
+                        asn_num, label, same_deps,
+                        max_cycles=max_cycles, dry_run=dry_run, model=model)
+                    if result != "converged":
+                        any_not_converged = True
+
+                # Uniform marking: mark completed iff the predicate now holds.
+                # This makes `completed` mean exactly "predicate True at the
+                # time this apex was visited" — same answer for skip and
+                # process paths. Apexes that didn't converge stay re-visitable.
+                if is_claim_converged(store, from_path):
                     completed.add(label)
-                    progress["completed"] = sorted(completed)
-                    write_progress(asn_label, progress)
-                    continue
-
-                cones_reviewed += 1
-                result = run_cone_review(
-                    asn_num, label, same_deps,
-                    max_cycles=max_cycles, dry_run=dry_run, model=model)
-
-                if result != "converged":
-                    any_not_converged = True
-
-                # Mark this apex done regardless of converge/not_converge —
-                # we attempted it; a re-run with --all can revisit. A future
-                # non-all run will skip via the predicate gate if work was
-                # actually closed, or visit again if open revises remain.
-                completed.add(label)
-                progress["completed"] = sorted(completed)
-                write_progress(asn_label, progress)
+                    write_progress(asn_label, {"completed": sorted(completed)})
     finally:
         store.close()
 
