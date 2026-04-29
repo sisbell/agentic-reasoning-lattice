@@ -33,7 +33,7 @@ def prompt_path(subpath):
     return SHARED_PROMPTS / subpath
 
 # Discovery stage
-CONSULTATIONS_DIR = LATTICE / "discovery" / "consultations"
+CONSULTATIONS_DIR = LATTICE / "_docuverse" / "documents" / "consultation"
 REVIEWS_DIR = LATTICE / "discovery" / "review"
 PATCHES_DIR = LATTICE / "discovery" / "patches"
 

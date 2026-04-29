@@ -163,7 +163,7 @@ def next_session_dir(parent, prefix):
 
     Scans for existing `{prefix}-N/` dirs, picks max(N)+1, mkdirs the result
     (and its parents). Used by consultation scripts to number per-call
-    transcript dirs under lattices/<L>/discovery/consultations/. The prefix
+    transcript dirs under lattices/<L>/_docuverse/documents/consultation/. The prefix
     is typically a channel name (xanadu) or a role name (materials).
     """
     parent.mkdir(parents=True, exist_ok=True)
