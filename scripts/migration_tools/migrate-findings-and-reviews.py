@@ -61,21 +61,36 @@ REVIEW_DIR_RE = re.compile(r"^review-\d+$")
 
 
 def _findings_moves(workspace_findings_root, kind):
-    """Yield (src_dir, dst_dir) tuples for one ASN's per-review subdirs.
+    """Yield (src_file, dst_file) tuples for one ASN's findings.
 
-    workspace_findings_root: e.g. _workspace/findings/claims
-    kind: "claims" or "notes" (just used to build the dst)
+    Per-finding files (numeric stem like 0.md) go to
+    `_docuverse/documents/finding/{kind}/ASN-N/review-N/<i>.md`.
+
+    `_meta.md` is the workspace-style aggregate review (semantically
+    equivalent to claim-convergence's older `review-N.md`); it goes to
+    `_docuverse/documents/review/{kind}/ASN-N/review-N.md` so that all
+    aggregate review docs live in one place regardless of which era's
+    convention produced them.
     """
     if not workspace_findings_root.exists():
         return
-    dst_root = DOCUVERSE_DOCS_DIR / "finding" / kind
+    finding_dst_root = DOCUVERSE_DOCS_DIR / "finding" / kind
+    review_dst_root = DOCUVERSE_DOCS_DIR / "review" / kind
     for asn_dir in sorted(workspace_findings_root.iterdir()):
         if not asn_dir.is_dir() or not ASN_RE.match(asn_dir.name):
             continue
         for review_dir in sorted(asn_dir.iterdir()):
             if not review_dir.is_dir() or not REVIEW_DIR_RE.match(review_dir.name):
                 continue
-            yield (review_dir, dst_root / asn_dir.name / review_dir.name)
+            for f in sorted(review_dir.iterdir()):
+                if not f.is_file() or f.suffix != ".md":
+                    continue
+                if f.name == "_meta.md":
+                    yield (f, review_dst_root / asn_dir.name
+                              / f"{review_dir.name}.md")
+                else:
+                    yield (f, finding_dst_root / asn_dir.name
+                              / review_dir.name / f.name)
 
 
 def _claim_review_moves():
@@ -124,49 +139,45 @@ def _move_file(src, dst, dry_run):
     return True
 
 
-def _move_dir(src, dst, dry_run):
-    """Move every file under `src` into `dst`. Skip files already at `dst`."""
-    moved = 0
-    for f in sorted(src.rglob("*")):
-        if not f.is_file():
-            continue
-        rel = f.relative_to(src)
-        target = dst / rel
-        if target.exists():
-            continue
-        if dry_run:
-            moved += 1
-            continue
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.move(str(f), str(target))
-        moved += 1
-    # Try to remove now-empty source dir tree (only outside dry_run).
-    if not dry_run:
-        for d in sorted(src.rglob("*"), reverse=True):
-            if d.is_dir():
-                try:
-                    d.rmdir()
-                except OSError:
-                    pass
-        try:
-            src.rmdir()
-        except OSError:
-            pass
-    return moved
-
-
 def _path_substitutions():
     """Build the substrate-path prefix substitutions.
 
-    The two _workspace/findings/* and discovery/review/ prefixes are
-    flat; claim-convergence/ASN-NNNN/reviews/ is per-ASN, so we
-    enumerate the ASN dirs that exist on disk.
+    Workspace `_meta.md` files (per-review aggregate docs in the
+    workspace-style decomposition) are renamed to `review-N.md` and
+    relocated to `_docuverse/documents/review/`. Each is a specific
+    full-path substitution and must come *first* in dict iteration
+    order — `transform_string` is first-match-wins, so these specific
+    rules need to fire before the general `_workspace/findings/...`
+    prefix would match and route them under finding/.
     """
-    subs = {
-        "_workspace/findings/claims/": "_docuverse/documents/finding/claims/",
-        "_workspace/findings/notes/":  "_docuverse/documents/finding/notes/",
-        "discovery/review/":           "_docuverse/documents/review/notes/",
-    }
+    subs = {}
+
+    # Specific _meta.md substitutions (full-path, must precede general prefix)
+    for kind in ("claims", "notes"):
+        ws_root = WORKSPACE_DIR / "findings" / kind
+        if not ws_root.exists():
+            continue
+        for asn_dir in sorted(ws_root.iterdir()):
+            if not asn_dir.is_dir() or not ASN_RE.match(asn_dir.name):
+                continue
+            for review_dir in sorted(asn_dir.iterdir()):
+                if not review_dir.is_dir() or not REVIEW_DIR_RE.match(review_dir.name):
+                    continue
+                meta = review_dir / "_meta.md"
+                if not meta.exists():
+                    continue
+                old = (f"_workspace/findings/{kind}/{asn_dir.name}/"
+                       f"{review_dir.name}/_meta.md")
+                new = (f"_docuverse/documents/review/{kind}/{asn_dir.name}/"
+                       f"{review_dir.name}.md")
+                subs[old] = new
+
+    # General prefix substitutions (per-finding docs stay under finding/)
+    subs["_workspace/findings/claims/"] = "_docuverse/documents/finding/claims/"
+    subs["_workspace/findings/notes/"]  = "_docuverse/documents/finding/notes/"
+    subs["discovery/review/"]           = "_docuverse/documents/review/notes/"
+
+    # Per-ASN claim-convergence reviews
     if CLAIM_CONVERGENCE_DIR.exists():
         for asn_dir in sorted(CLAIM_CONVERGENCE_DIR.iterdir()):
             if not asn_dir.is_dir() or not ASN_RE.match(asn_dir.name):
@@ -256,34 +267,50 @@ def main():
     if args.dry_run:
         print("DRY RUN — no files moved, no substrate writes.", file=sys.stderr)
 
+    # Compute substrate path substitutions BEFORE the file moves so the
+    # specific `_meta.md` mappings can enumerate workspace dirs while the
+    # source files still exist.
+    subs = _path_substitutions()
+
     # === Phase 1: file moves ===
     print("\n=== Phase 1: file moves ===", file=sys.stderr)
     move_groups = [
         ("workspace findings (claims)",
-         _findings_moves(WORKSPACE_DIR / "findings" / "claims", "claims"),
-         "dir"),
+         _findings_moves(WORKSPACE_DIR / "findings" / "claims", "claims")),
         ("workspace findings (notes)",
-         _findings_moves(WORKSPACE_DIR / "findings" / "notes", "notes"),
-         "dir"),
-        ("claim-convergence reviews", _claim_review_moves(), "file"),
-        ("discovery/review (notes)",  _note_review_moves(), "file"),
+         _findings_moves(WORKSPACE_DIR / "findings" / "notes", "notes")),
+        ("claim-convergence reviews", _claim_review_moves()),
+        ("discovery/review (notes)",  _note_review_moves()),
     ]
     total_moved = 0
-    for label, items, kind in move_groups:
+    for label, items in move_groups:
         moved = 0
         for src, dst in items:
-            if kind == "dir":
-                moved += _move_dir(src, dst, args.dry_run)
-            else:
-                if _move_file(src, dst, args.dry_run):
-                    moved += 1
+            if _move_file(src, dst, args.dry_run):
+                moved += 1
         print(f"  {label:36s} {moved} file(s)", file=sys.stderr)
         total_moved += moved
     print(f"  total moved: {total_moved}", file=sys.stderr)
 
+    # Clean up empty source directories left behind after workspace moves.
+    if not args.dry_run:
+        for kind in ("claims", "notes"):
+            ws_root = WORKSPACE_DIR / "findings" / kind
+            if not ws_root.exists():
+                continue
+            for sub in sorted(ws_root.rglob("*"), reverse=True):
+                if sub.is_dir():
+                    try:
+                        sub.rmdir()
+                    except OSError:
+                        pass
+            try:
+                ws_root.rmdir()
+            except OSError:
+                pass
+
     # === Phase 2: substrate path rewrite ===
     print("\n=== Phase 2: substrate path rewrite ===", file=sys.stderr)
-    subs = _path_substitutions()
     print(f"  {len(subs)} path-prefix substitutions", file=sys.stderr)
     if args.dry_run:
         changed = migrate_paths(DOCUVERSE_LOG, subs, dry_run=True)
