@@ -24,8 +24,8 @@ Up to 3 cycles per invocation by default — cones converge faster than whole-AS
 ## Trigger
 
 - Detected automatically by full-review: an apex with high recent revise activity while its deps are stable.
-- Explicit invocation: `python scripts/full-review.py <asn> --cone <apex>`.
-- Bulk sweep: `python scripts/cone-sweep.py <asn>` walks high-dependency cones in DAG order.
+- Explicit invocation: `python scripts/claim-full-review.py <asn> --cone <apex>`.
+- Bulk sweep: `python scripts/claim-cone-sweep.py <asn>` walks high-dependency cones in DAG order.
 
 ## Prompts
 
