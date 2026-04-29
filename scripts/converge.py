@@ -23,7 +23,8 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, CLAIM_DIR, next_review_number
+from lib.shared.paths import (WORKSPACE, CLAIM_CONVERGENCE_DIR, CLAIM_DIR,
+                                CLAIM_REVIEWS_DIR, next_review_number)
 from lib.shared.common import find_asn, step_commit_asn, build_label_index, parallel_llm_calls
 from lib.claim_convergence.core.build_dependency_graph import generate_claim_convergence_deps
 from lib.claim_convergence.core.topological_sort import topological_sort_labels, topological_levels
@@ -70,7 +71,7 @@ def run_formalize(asn_num, max_cycles=5, mode="incremental",
 
     print(f"\n  [FORMALIZE] {asn_label}", file=sys.stderr)
 
-    review_dir = CLAIM_CONVERGENCE_DIR / asn_label / "reviews"
+    review_dir = CLAIM_REVIEWS_DIR / asn_label
     cc_dir = CLAIM_CONVERGENCE_DIR / asn_label
     claim_dir = CLAIM_DIR / asn_label
     if not claim_dir.exists():

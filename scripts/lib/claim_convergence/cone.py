@@ -19,7 +19,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import (
     WORKSPACE, LATTICE, CLAIM_CONVERGENCE_DIR, CLAIM_DIR, CLAIM_FINDINGS_DIR,
-    next_review_number, review_meta_path,
+    CLAIM_REVIEWS_DIR, next_review_number, review_aggregate_path,
 )
 from lib.shared.common import (
     find_asn, build_label_index,
@@ -98,10 +98,7 @@ def detect_dependency_cone(asn_num, window=5, threshold=3):
     label_index = build_label_index(claim_dir)
     asn_labels = set(label_index.keys())
 
-    findings_prefix = str((CLAIM_FINDINGS_DIR / asn_label).relative_to(LATTICE))
-    legacy_reviews_prefix = str(
-        (CLAIM_CONVERGENCE_DIR / asn_label / "reviews").relative_to(LATTICE)
-    )
+    reviews_prefix = str((CLAIM_REVIEWS_DIR / asn_label).relative_to(LATTICE))
 
     store = Store()
     try:
@@ -110,8 +107,7 @@ def detect_dependency_cone(asn_num, window=5, threshold=3):
             if not r["to_set"]:
                 continue
             target = r["to_set"][0]
-            if (target.startswith(findings_prefix)
-                    or target.startswith(legacy_reviews_prefix)):
+            if target.startswith(reviews_prefix):
                 scoped_reviews.append(r)
 
         scoped_reviews.sort(key=lambda r: r["ts"], reverse=True)
@@ -120,18 +116,13 @@ def detect_dependency_cone(asn_num, window=5, threshold=3):
             return None
 
         # Collect review-N stems from the window. The review classifier link
-        # may target either `_docuverse/findings/<asn>/review-N/_meta.md` (current)
-        # or the legacy `claim-convergence/<asn>/reviews/review-N.md` (old).
-        # Finding documents always live at `_docuverse/findings/<asn>/review-N/n.md`,
-        # so match on the `review-N` stem rather than absolute parent path.
+        # targets `_docuverse/documents/review/claims/<asn>/review-N.md`; per-
+        # finding docs sit under `_docuverse/documents/finding/claims/<asn>/
+        # review-N/<n>.md` and pair with their aggregate by the shared stem.
         recent_stems = set()
         for r in recent:
             target_path = Path(r["to_set"][0])
-            stem = (
-                target_path.parent.name
-                if target_path.stem == "_meta"
-                else target_path.stem
-            )
+            stem = target_path.stem
             if stem.startswith("review-"):
                 recent_stems.add(stem)
 
@@ -207,40 +198,31 @@ def _extract_apex_history(asn_label, apex_label, max_reviews=5):
     and the substrate finding documents (_docuverse/findings/<asn>/review-N/).
     Sorted by review number; only the most recent `max_reviews` are read.
     """
-    sources = []  # (review_num, kind, path)
-
-    legacy_dir = CLAIM_CONVERGENCE_DIR / asn_label / "reviews"
-    if legacy_dir.exists():
-        for rf in legacy_dir.glob("review-*.md"):
-            m = re.search(r'review-(\d+)$', rf.stem)
-            if m:
-                sources.append((int(m.group(1)), "legacy", rf))
-
+    # Walk every aggregate review for this ASN; for each, also read the
+    # sibling per-finding docs (under finding/) keyed by the matching
+    # review-N stem. The combined text is what we search for the apex
+    # label.
+    reviews_dir = CLAIM_REVIEWS_DIR / asn_label
     findings_dir = CLAIM_FINDINGS_DIR / asn_label
-    if findings_dir.exists():
-        for sub in findings_dir.glob("review-*"):
-            if not sub.is_dir():
+    sources = []  # (review_num, aggregate_path, findings_subdir_or_None)
+    if reviews_dir.exists():
+        for rf in reviews_dir.glob("review-*.md"):
+            m = re.search(r'review-(\d+)$', rf.stem)
+            if not m:
                 continue
-            m = re.search(r'review-(\d+)$', sub.name)
-            if m:
-                sources.append((int(m.group(1)), "substrate", sub))
+            num = int(m.group(1))
+            findings_sub = findings_dir / rf.stem
+            sources.append((num, rf, findings_sub if findings_sub.is_dir() else None))
 
     sources.sort(key=lambda x: x[0], reverse=True)
 
     relevant = []
-    for _, kind, path in sources[:max_reviews]:
-        if kind == "legacy":
-            text = path.read_text().strip()
-        else:
-            parts = []
-            meta = path / "_meta.md"
-            if meta.exists():
-                parts.append(meta.read_text().strip())
-            for finding in sorted(path.glob("*.md")):
-                if finding.name == "_meta.md":
-                    continue
+    for _, aggregate_path, findings_sub in sources[:max_reviews]:
+        parts = [aggregate_path.read_text().strip()]
+        if findings_sub is not None:
+            for finding in sorted(findings_sub.glob("*.md")):
                 parts.append(finding.read_text().strip())
-            text = "\n\n".join(parts)
+        text = "\n\n".join(p for p in parts if p)
         if text and apex_label in text:
             relevant.append(text)
 
@@ -265,7 +247,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
         return "failed"
 
     claim_dir = CLAIM_DIR / asn_label
-    review_dir = CLAIM_CONVERGENCE_DIR / asn_label / "reviews"
+    review_dir = CLAIM_REVIEWS_DIR / asn_label
 
     print(f"\n  [REGIONAL-REVIEW] {apex_label} + {len(dep_labels)} deps",
           file=sys.stderr)
@@ -369,7 +351,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
 
         review_num = next_review_number(asn_label, kind="claim", reviews_dir=review_dir)
         review_stem = f"review-{review_num}"
-        meta_path = review_meta_path(asn_label, review_num, kind="claim")
+        meta_path = review_aggregate_path(asn_label, review_num, kind="claim")
 
         findings = extract_findings(findings_text)
         emitted_findings = emit_findings(
@@ -389,7 +371,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
             findings_summary=findings_summary(findings, revise_count),
             emitted_findings=emitted_findings,
             elapsed_seconds=elapsed,
-            findings_dir=CLAIM_FINDINGS_DIR,
+            reviews_dir=CLAIM_REVIEWS_DIR,
         )
         final_review_path = meta_path
 
@@ -474,7 +456,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
             else:
                 review_num = next_review_number(asn_label, kind="claim", reviews_dir=review_dir)
                 review_stem = f"review-{review_num}"
-                confirm_meta_path = review_meta_path(asn_label, review_num, kind="claim")
+                confirm_meta_path = review_aggregate_path(asn_label, review_num, kind="claim")
 
                 confirm_findings = extract_findings(confirm_findings_text)
                 emitted_findings = emit_findings(
@@ -494,7 +476,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
                     ),
                     emitted_findings=emitted_findings,
                     elapsed_seconds=confirm_elapsed,
-                    findings_dir=CLAIM_FINDINGS_DIR,
+                    reviews_dir=CLAIM_REVIEWS_DIR,
                 )
                 final_review_path = confirm_meta_path
 

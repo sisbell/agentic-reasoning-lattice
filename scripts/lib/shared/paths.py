@@ -34,7 +34,6 @@ def prompt_path(subpath):
 
 # Discovery stage
 CONSULTATIONS_DIR = LATTICE / "_docuverse" / "documents" / "consultation"
-REVIEWS_DIR = LATTICE / "discovery" / "review"
 PATCHES_DIR = LATTICE / "discovery" / "patches"
 
 # Per-lattice files
@@ -82,15 +81,21 @@ NOTE_DIR = DOCUVERSE_DOCS_DIR / "note"
 CLAIM_DIR = DOCUVERSE_DOCS_DIR / "claim"
 
 # Loop work products. Sibling to _docuverse/. Holds artifacts produced
-# by the convergence/decomposition loops — review findings, scratch
-# caches, and similar — that aren't substrate-classified documents.
+# by the convergence/decomposition loops that aren't themselves
+# substrate-classified documents (scratch caches, intermediate state).
 WORKSPACE_DIR = LATTICE / "_workspace"
 
-# Findings split by inquiry-target kind: claim convergence vs note convergence.
-# Each kind owns its own ASN namespace under _workspace/findings/, so review
-# numbering and substrate queries are scoped per kind.
-CLAIM_FINDINGS_DIR = WORKSPACE_DIR / "findings" / "claims"
-NOTE_FINDINGS_DIR = WORKSPACE_DIR / "findings" / "notes"
+# Aggregate review docs (classified by `review`). Split by inquiry-target
+# kind so review numbering and substrate queries are scoped per kind.
+CLAIM_REVIEWS_DIR = DOCUVERSE_DOCS_DIR / "review" / "claims"
+NOTE_REVIEWS_DIR = DOCUVERSE_DOCS_DIR / "review" / "notes"
+REVIEWS_DIR = NOTE_REVIEWS_DIR  # legacy alias, prefer NOTE_REVIEWS_DIR
+
+# Per-finding decomposition outputs (classified by `finding`, related to
+# their target by `comment.<kind>`). Each per-review subdirectory pairs
+# with the matching aggregate doc by the shared `review-N` token.
+CLAIM_FINDINGS_DIR = DOCUVERSE_DOCS_DIR / "finding" / "claims"
+NOTE_FINDINGS_DIR = DOCUVERSE_DOCS_DIR / "finding" / "notes"
 
 # Claim derivation audit trail (per-section content + LLM analyses).
 # Derivation's intermediate state lives here; the per-claim outputs
@@ -106,6 +111,14 @@ def _findings_dir_for_kind(kind):
     raise ValueError(f"unknown findings kind: {kind!r}")
 
 
+def _reviews_dir_for_kind(kind):
+    if kind == "claim":
+        return CLAIM_REVIEWS_DIR
+    if kind == "note":
+        return NOTE_REVIEWS_DIR
+    raise ValueError(f"unknown review kind: {kind!r}")
+
+
 def agent_doc_path(role):
     """Lattice-relative path to an agent doc by role name.
 
@@ -116,12 +129,13 @@ def agent_doc_path(role):
     return str((AGENT_DIR / f"{role}.md").relative_to(LATTICE))
 
 
-def review_meta_path(asn_label, review_num, *, kind):
-    """Path to a review event's _meta.md under the substrate findings dir.
+def review_aggregate_path(asn_label, review_num, *, kind):
+    """Path to a review event's aggregate doc under the docuverse review dir.
 
-    `kind` selects the findings namespace: "claim" or "note".
+    `kind` selects the namespace: "claim" or "note". Returns the path
+    `<reviews_dir>/<asn_label>/review-<n>.md`.
     """
-    return _findings_dir_for_kind(kind) / asn_label / f"review-{review_num}" / "_meta.md"
+    return _reviews_dir_for_kind(kind) / asn_label / f"review-{review_num}.md"
 
 
 def note_dir(asn_num):

@@ -22,7 +22,9 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, CLAIM_DIR, prompt_path, next_review_number
+from lib.shared.paths import (WORKSPACE, CLAIM_CONVERGENCE_DIR, CLAIM_DIR,
+                                CLAIM_REVIEWS_DIR, prompt_path,
+                                next_review_number)
 from lib.shared.common import find_asn, invoke_claude, parallel_llm_calls, step_commit_asn, build_label_index, aggregate_signature
 from lib.claim_convergence.assembly.validate_contracts import validate_contract
 from lib.claim_derivation.produce_contract import _has_formal_contract
@@ -60,7 +62,7 @@ def run_contract_review(asn_num, max_cycles=5, dry_run=False,
 
     print(f"\n  [CONTRACT-REVIEW] {asn_label}", file=sys.stderr)
 
-    review_dir = CLAIM_CONVERGENCE_DIR / asn_label / "reviews"
+    review_dir = CLAIM_REVIEWS_DIR / asn_label
     cc_dir = CLAIM_CONVERGENCE_DIR / asn_label
     claim_dir = CLAIM_DIR / asn_label
     if not claim_dir.exists():

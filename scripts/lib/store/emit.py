@@ -192,13 +192,16 @@ def _emit_classifier(store, doc_path, type_name):
 
 def emit_meta(store, asn_label, review_num, *, title, timestamp, scope,
               verdict, findings_summary, emitted_findings, elapsed_seconds,
-              findings_dir):
-    """Write the review event's meta file to
-    `<findings_dir>/<asn>/review-N/_meta.md` and emit the `review`
-    classifier link pointing at it.
+              reviews_dir):
+    """Write the review event's aggregate doc to
+    `<reviews_dir>/<asn>/review-N.md` and emit the `review` classifier
+    link pointing at it.
 
-    Findings (the prose bodies) live in `<findings_dir>/<asn>/review-N/<n>.md`,
-    written separately by `emit_findings`.
+    The aggregate is the reviewer's full output — header, scope,
+    verdict, finding-summary table, elapsed time. Per-finding bodies
+    live separately in `<findings_dir>/<asn>/review-N/<n>.md` (written
+    by `emit_findings`); the aggregate links to those filenames in its
+    summary table but doesn't carry their bodies.
 
     Args:
       asn_label: e.g. "ASN-0034"
@@ -209,18 +212,18 @@ def emit_meta(store, asn_label, review_num, *, title, timestamp, scope,
       verdict: "CONVERGED" | "REVISE" | "OBSERVE" | "FAILED"
       findings_summary: e.g. "1 REVISE, 2 OBSERVE" (or "0 findings")
       emitted_findings: list of dicts from emit_findings (each has title, cls,
-                       finding_path). Used to write the manifest.
+                       finding_path). Used to write the summary table.
       elapsed_seconds: float, used for the Elapsed line.
-      findings_dir: kind-scoped findings root (CLAIM_FINDINGS_DIR or
-                    NOTE_FINDINGS_DIR) — caller selects per protocol.
+      reviews_dir: kind-scoped aggregate-review root (CLAIM_REVIEWS_DIR
+                   or NOTE_REVIEWS_DIR) — caller selects per protocol.
 
     Returns the link id of the review classifier link.
     """
-    findings_root = Path(findings_dir)
+    reviews_root = Path(reviews_dir)
     review_stem = f"review-{review_num}"
-    meta_dir = findings_root / asn_label / review_stem
-    meta_dir.mkdir(parents=True, exist_ok=True)
-    meta_path = meta_dir / "_meta.md"
+    asn_dir = reviews_root / asn_label
+    asn_dir.mkdir(parents=True, exist_ok=True)
+    meta_path = asn_dir / f"{review_stem}.md"
 
     lines = [
         f"# {title}",

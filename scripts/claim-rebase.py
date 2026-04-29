@@ -20,7 +20,8 @@ from collections import defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lib.shared.paths import WORKSPACE, CLAIM_CONVERGENCE_DIR, CLAIM_DIR, next_review_number
+from lib.shared.paths import (WORKSPACE, CLAIM_CONVERGENCE_DIR, CLAIM_DIR,
+                                CLAIM_REVIEWS_DIR, next_review_number)
 from lib.shared.common import find_asn, step_commit_asn
 from lib.claim_convergence.core.build_dependency_graph import generate_discovery_deps
 from lib.claim_convergence.rebase.review import run_review
@@ -113,7 +114,7 @@ def run_rebase(asn_num, max_cycles=5, mode="full_sweep", dry_run=False):
               file=sys.stderr)
         return "converged"
 
-    review_dir = CLAIM_CONVERGENCE_DIR / asn_label / "reviews"
+    review_dir = CLAIM_REVIEWS_DIR / asn_label
 
     print(f"\n  [REBASE] {asn_label} (depends: {depends})", file=sys.stderr)
 
