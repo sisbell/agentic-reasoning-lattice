@@ -269,7 +269,7 @@ def emit_manages(store, agent_doc_path, operation_link_id):
 
 ### Agent docs
 
-Stage-1 placement: `lattices/<lattice>/_docuverse/documents/agent/<role>.md`. Agent docs live under `_docuverse/documents/` because their lifecycle is substrate-managed (classified, retracted, re-emitted via the agent module's operations) — same convention as inquiry docs (`_docuverse/documents/inquiry/...`) and campaign descriptors (`_docuverse/documents/campaign/<name>/`). Loop work products that aren't substrate-typed — review finding docs (`_workspace/findings/...`) — live in the workspace area alongside `_docuverse/`. Examples:
+Stage-1 placement: `lattices/<lattice>/_docuverse/documents/agent/<role>.md`. Agent docs live under `_docuverse/documents/` because their lifecycle is substrate-managed (classified, retracted, re-emitted via the agent module's operations) — same convention as the other substrate-classified documents under `_docuverse/documents/` (inquiry, campaign, claim, note, review, finding, …). Loop work products that aren't substrate-typed — pipeline caches, intermediate prose, scratch state — live in the parallel workspace area `_workspace/` alongside `_docuverse/`. Examples:
 
 - `lattices/xanadu/_docuverse/documents/agent/cone-review.md` — focused review of a dependency cone.
 - `lattices/xanadu/_docuverse/documents/agent/full-review.md` — whole-ASN review.

@@ -14,11 +14,14 @@ Everything the protocol manipulates is either a document (content) or a link (ty
 
 | Type | Subtypes | Role |
 |---|---|---|
-| `review` | (flat, one-sided) | Classifier: document is a review |
+| `review` | (flat, one-sided) | Classifier: document is an aggregate review (the reviewer's full output) |
+| `finding` | (flat, one-sided) | Classifier: document is one finding extracted from a review |
 | `comment` | `revise`, `observe` | Finding observes a document. Subtypes classify the finding. |
 | `resolution` | `edit`, `reject` | Closes a comment. Edit: the document was changed. Reject: the finding was refused. |
 
-Three link types. One classifier (`review`). Two express relationships (`comment`, `resolution`).
+Four link types. Two classifiers (`review`, `finding`). Two express relationships (`comment`, `resolution`).
+
+A review event produces one aggregate review document and N finding documents (one per individual finding the reviewer surfaced). The aggregate carries the reviewer's full output — title, scope, verdict, summary table; it is classified by `review`. Each finding doc carries one finding's prose; it is classified by `finding`, holds the from-side of a `comment.<class>` relation to the document being commented on, and carries a `provenance.derivation` link from the aggregate review documenting the decomposition. The aggregate-to-finding relationship is many-to-one logically and N-to-1 in the substrate; a finding has exactly one aggregate, an aggregate has zero or more findings.
 
 Subtypes are valid when they change the structure or invariants of what the link carries. `comment.revise` requires resolution; `comment.observe` does not. `resolution.edit` means the document was changed. `resolution.reject` means the document was not changed — a rationale document explains the refusal.
 

@@ -193,7 +193,8 @@ The test: "does this type make sense without knowing which protocol you're in?" 
 
 | Link type | Defined by | Purpose |
 |---|---|---|
-| `review` | Convergence protocol | Classifier: document is a review |
+| `review` | Convergence protocol | Classifier: document is an aggregate review |
+| `finding` | Convergence protocol | Classifier: document is one finding decomposed from a review |
 | `comment` (.revise, .observe, .out-of-scope) | Convergence protocol | Finding targeting a document |
 | `resolution` (.edit, .reject) | Convergence protocol | Closes a comment |
 | `claim` | Claim convergence protocol | Classifier: document is a claim |
@@ -202,7 +203,7 @@ The test: "does this type make sense without knowing which protocol you're in?" 
 | `note` | Note convergence protocol | Classifier: document is a note |
 | `inquiry` | Consultation protocol | Classifier: document is an inquiry |
 | `provenance.synthesis` | Consultation protocol | inquiry produced this note |
-| `provenance.derivation` | Claim derivation protocol | note produced this claim |
+| `provenance.derivation` | Claim derivation + Convergence protocols | note produced this claim, or aggregate-review produced this finding |
 | `provenance.{extract,absorb,reset}` | Maturation protocol | Audit for lattice operations (extract, absorb, hard reset) |
 
 The substrate does not enforce protocol-defined types. It stores whatever type strings a MakeLink call provides. Type semantics are protocol concerns. The substrate-owned / protocol-defined distinction is about who owns the type's semantics, not about storage differences — all types are stored the same way.
