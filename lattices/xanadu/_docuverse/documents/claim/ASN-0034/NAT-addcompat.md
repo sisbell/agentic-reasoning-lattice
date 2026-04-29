@@ -7,5 +7,6 @@
 *Formal Contract:*
 - *Axiom:* `(A m, n, p ∈ ℕ : p ≤ n : m + p ≤ m + n)` (left order compatibility); `(A m, n, p ∈ ℕ : p ≤ n : p + m ≤ n + m)` (right order compatibility); `(A n ∈ ℕ :: n < n + 1)` (strict successor inequality).
 - *Depends:*
+  - NAT-carrier (NatCarrierSet) — supplies `ℕ` as the underlying set over which the bounded universals `(A m, n, p ∈ ℕ : p ≤ n : m + p ≤ m + n)` and `(A m, n, p ∈ ℕ : p ≤ n : p + m ≤ n + m)` of the two compatibility clauses range, and over which the bounded universal `(A n ∈ ℕ :: n < n + 1)` of the strict successor inequality ranges.
   - NAT-order (NatStrictTotalOrder) — supplies the primitive strict order `<` (used in the strict successor inequality `n < n + 1`) and its non-strict companion `≤` (defined by `m ≤ n ⟺ m < n ∨ m = n`, used in the antecedents `p ≤ n` and the consequents `m + p ≤ m + n` and `p + m ≤ n + m` of both compatibility clauses).
   - NAT-closure (NatArithmeticClosureAndIdentity) — posits `1 ∈ ℕ` and closes ℕ under addition, so every sum `m + p`, `m + n`, `p + m`, `n + m`, and `n + 1` appearing in the axiom lies in ℕ, and the successor inequality `n < n + 1` compares two ℕ-elements.
