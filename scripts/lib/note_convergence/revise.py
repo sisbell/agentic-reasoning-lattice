@@ -210,7 +210,7 @@ def run_revise_pass(asn_path, asn_label, findings, *,
                     model="opus", effort="max", consultation_content=None):
     """Run one reviser invocation that addresses `findings`.
 
-    Sets PROTOCOL_DOC_PATH and PROTOCOL_ASN_LABEL env vars. The agent
+    Sets PROTOCOL_ASN_LABEL env var. The agent
     closes each comment via `convergence-link-resolution.py --comment-id <id>` per the prompt.
     Returns (data, elapsed) from invoke_claude — caller logs usage and
     re-queries the substrate for remaining open revises.
@@ -229,7 +229,6 @@ def run_revise_pass(asn_path, asn_label, findings, *,
         "sonnet": "claude-sonnet-4-6",
     }.get(model, model)
 
-    os.environ["PROTOCOL_DOC_PATH"] = note_rel
     os.environ["PROTOCOL_ASN_LABEL"] = asn_label
 
     return invoke_claude(prompt, model=model_flag, effort=effort)

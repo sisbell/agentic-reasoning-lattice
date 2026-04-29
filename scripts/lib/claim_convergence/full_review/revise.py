@@ -24,11 +24,16 @@ def revise(asn_num, title, finding_text, claim_dir=None,
            comment_id=None, claim_path=None):
     """Apply fix for one finding. Returns True if changes made.
 
-    `comment_id` and `claim_path` are passed through to the reviser via
-    env vars so the agent can call `scripts/convergence-link-resolution.py` to close
-    the comment in the link store. When either is None, the agent can still run
-    but won't be able to invoke convergence-link-resolution.py — callers that care about resolution
-    links should pass both.
+    `comment_id` is passed through to the reviser via PROTOCOL_COMMENT_ID
+    so the agent can call `scripts/convergence-link-resolution.py` to
+    close the comment. When None, the agent can still run but won't be
+    able to invoke convergence-link-resolution.py — callers that care
+    about resolution links should pass it.
+
+    `claim_path` is retained for backwards compatibility with the call
+    sites' wiring; it's no longer passed through to the reviser (the
+    reviser-side CLIs now resolve doc addresses from labels via the
+    claim path convention, never from ambient path strings).
     """
     asn_path, asn_label = find_asn(str(asn_num))
     if asn_path is None:
@@ -59,9 +64,8 @@ def revise(asn_num, title, finding_text, claim_dir=None,
     env = os.environ.copy()
     env.pop("CLAUDECODE", None)
     env["CLAUDE_CODE_EFFORT_LEVEL"] = "max"
-    if comment_id and claim_path:
+    if comment_id:
         env["PROTOCOL_COMMENT_ID"] = comment_id
-        env["PROTOCOL_DOC_PATH"] = claim_path
         env["PROTOCOL_ASN_LABEL"] = asn_label
 
     print(f"  [REVISE] {title}...", end="", file=sys.stderr, flush=True)

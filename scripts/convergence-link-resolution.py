@@ -4,7 +4,8 @@
 Invoked at the end of a revise session:
 
     python scripts/convergence-link-resolution.py accept
-    python scripts/convergence-link-resolution.py reject --rationale "<one or two sentences>"
+    python scripts/convergence-link-resolution.py reject \\
+        --rationale "<one or two sentences>"
 
 When a single revise session closes multiple findings (note convergence
 sets up env once and the agent iterates), the comment id can be passed
@@ -16,12 +17,13 @@ Otherwise reads context from environment variables (set by the
 orchestrator before spawning the reviser):
 
     PROTOCOL_COMMENT_ID    — the comment link being closed
-    PROTOCOL_DOC_PATH      — the doc md path (lattice-relative)
     PROTOCOL_ASN_LABEL     — the ASN label (for rationale doc placement)
 
-On reject, materializes the rationale document under
-_docuverse/documents/rationale/{ASN}/{comment_id}.md and writes a resolution.reject
-link binding the comment and the rationale.
+The doc the resolution applies to is derived by reading the comment's
+`to_set` from the substrate; callers do not pass a path string. On
+reject, materializes the rationale document under
+_docuverse/documents/rationale/{ASN}/{comment_id}.md and writes a
+resolution.reject link binding the comment and the rationale.
 
 Prints the new resolution link id on success; exits non-zero on error.
 """
@@ -52,13 +54,9 @@ def main():
     args = parser.parse_args()
 
     comment_id = args.comment_id or os.environ.get("PROTOCOL_COMMENT_ID")
-    doc_path = os.environ.get("PROTOCOL_DOC_PATH")
     asn_label = os.environ.get("PROTOCOL_ASN_LABEL")
     if not comment_id:
         print("error: --comment-id or PROTOCOL_COMMENT_ID required", file=sys.stderr)
-        return 1
-    if not doc_path:
-        print("error: PROTOCOL_DOC_PATH env var not set", file=sys.stderr)
         return 1
     if not asn_label:
         print("error: PROTOCOL_ASN_LABEL env var not set", file=sys.stderr)
@@ -66,6 +64,19 @@ def main():
 
     store = default_store()
     try:
+        # Resolve the doc the resolution applies to from the comment's to_set.
+        # Callers pass a comment id, never a path.
+        comment = store.get(comment_id)
+        if comment is None:
+            print(f"error: comment {comment_id} not found in substrate",
+                  file=sys.stderr)
+            return 1
+        if not comment.get("to_set"):
+            print(f"error: comment {comment_id} has empty to_set",
+                  file=sys.stderr)
+            return 1
+        doc_path = comment["to_set"][0]
+
         try:
             link_id = emit_decision(
                 store, args.action, comment_id, doc_path, asn_label,

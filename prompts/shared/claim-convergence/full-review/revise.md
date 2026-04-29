@@ -84,7 +84,7 @@ instead "the state satisfies..."
    `*Axiom:*` or `*Definition:*` field, or reframing a derived result
    as a posit — re-classify the claim by running:
 
-       PROTOCOL_DOC_PATH=<path-to-the-claim-md> python scripts/claim-link-contract.py --kind <new>
+       python scripts/claim-link-contract.py --label <claim-label> --kind <new>
 
    `<new>` is one of `axiom`, `definition`, `theorem`, `lemma`,
    `corollary`, `consequence`, `design-requirement` — match the new
@@ -92,13 +92,13 @@ instead "the state satisfies..."
    in the substrate (append-only) but is no longer the current kind.
 
 5. **Adding dependencies.** When you add a dependency, run:
-       python scripts/convergence-link-cite.py --to <label>
+       python scripts/convergence-link-cite.py --from <claim-label> --to <dep-label>
    Justify the new dependency in prose.
 
    **Removing dependencies.** When you remove a dependency from a claim's
    md `*Depends:*` section because the proof no longer uses it, retract
    the substrate citation:
-       python scripts/substrate/retract.py --to <label>
+       python scripts/substrate/retract.py --from <claim-label> --to <dep-label>
    This files a `retraction` link pointing at the now-stale citation. The
    citation remains in the substrate (append-only) but no longer counts
    toward the dependency graph. Use this whenever you delete a Depends
@@ -118,9 +118,9 @@ instead "the state satisfies..."
    After writing the file, emit the new claim's substrate attribute
    links and classifier by running:
 
-       PROTOCOL_DOC_PATH=<path-to-the-new-md-file> python scripts/substrate/label.py --to <label>
-       PROTOCOL_DOC_PATH=<path-to-the-new-md-file> python scripts/substrate/name.py --to <name>
-       PROTOCOL_DOC_PATH=<path-to-the-new-md-file> python scripts/claim-link-contract.py --kind <kind>
+       python scripts/substrate/label.py --label <label>
+       python scripts/substrate/name.py --label <label> --to <name>
+       python scripts/claim-link-contract.py --label <label> --kind <kind>
 
    `substrate/label.py` writes `<stem>.label.md` (whose first line is the label
    string, equal to the filename stem) and files the substrate `label`

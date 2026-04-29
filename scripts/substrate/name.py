@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """Reviser-callable CLI to set a claim's canonical name.
 
-Usage:
+    python scripts/substrate/name.py --label T0 --to CarrierSetDefinition
 
-    PROTOCOL_DOC_PATH=lattices/.../T0.md python scripts/substrate/name.py --to CarrierSetDefinition
-
-Writes `<stem>.name.md` next to the claim md (edit-in-place if it
-already exists) and emits a `name` link from the claim md to the
-sibling doc. Idempotent.
+The label identifies the claim; the script resolves it to the
+canonical doc address via the claim path convention
+(`_docuverse/documents/claim/<asn>/<label>.md`) keyed off the
+`PROTOCOL_ASN_LABEL` env var, writes `<stem>.name.md` next to the
+claim md (edit-in-place), and emits the substrate `name` link.
+Idempotent.
 
 Prints the link id on success; exits non-zero on error.
 """
@@ -18,6 +19,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
+from shared.paths import claim_doc_path
 from store.attributes import emit_attribute
 from store.store import default_store
 
@@ -25,15 +27,21 @@ from store.store import default_store
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
+        "--label", required=True,
+        help="Label of the claim being named (e.g., T0).",
+    )
+    parser.add_argument(
         "--to", required=True,
-        help="The canonical name (e.g., CarrierSetDefinition).",
+        help="The canonical name string (e.g., CarrierSetDefinition).",
     )
     args = parser.parse_args()
 
-    claim_path = os.environ.get("PROTOCOL_DOC_PATH")
-    if not claim_path:
-        print("error: PROTOCOL_DOC_PATH env var not set", file=sys.stderr)
+    asn_label = os.environ.get("PROTOCOL_ASN_LABEL")
+    if not asn_label:
+        print("error: PROTOCOL_ASN_LABEL env var not set", file=sys.stderr)
         return 1
+
+    claim_path = claim_doc_path(asn_label, args.label)
 
     store = default_store()
     try:

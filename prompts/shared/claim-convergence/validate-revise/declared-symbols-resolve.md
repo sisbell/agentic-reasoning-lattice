@@ -31,11 +31,11 @@ For each finding of the form `uses '<symbol>' but does not depend on its owner '
 
 1. Add the citation by running:
 
-       PROTOCOL_DOC_PATH=<path-to-the-claim-md> python scripts/convergence-link-cite.py --to <owner>
+       python scripts/convergence-link-cite.py --from <claim-label> --to <owner>
 
-   Where `<path-to-the-claim-md>` is the file shown under "File to fix"
-   above, and `<owner>` is the owner label from the finding (e.g.,
-   `NAT-closure`).
+   Where `<claim-label>` is the label of the file shown under "File to
+   fix" above (the filename stem, e.g., `T0` for `T0.md`), and
+   `<owner>` is the owner label from the finding (e.g., `NAT-closure`).
 
 2. If multiple findings cite the same owner, run convergence-link-cite.py
    once for that owner — it is idempotent.
