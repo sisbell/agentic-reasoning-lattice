@@ -1,11 +1,12 @@
 """Library: emit a contract.<kind> classifier link for a claim.
 
-Called from `scripts/classify.py` (the reviser-callable CLI). Separated
+Called from `scripts/claim-classify.py` (the reviser-callable CLI). Separated
 from the CLI so tests exercise the logic directly.
 
-Reviser tooling parallel: `cite.py` adds citation, `decide.py` adds
-resolution, `classify.py` adds contract.<kind>. All three are explicit
-substrate writes the reviser performs as part of completing its work.
+Reviser tooling parallel: `convergence-cite.py` adds citation,
+`convergence-resolution.py` adds resolution, `claim-classify.py` adds
+contract.<kind>. All three are explicit substrate writes the reviser
+performs as part of completing its work.
 """
 
 from lib.store.schema import VALID_SUBTYPES

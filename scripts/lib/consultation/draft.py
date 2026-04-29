@@ -191,7 +191,7 @@ def run_discovery(inquiry, asn_number, slug, force=False):
 
     vocab = read_file(resolve_campaign(asn_number).vocabulary_path)
     # Foundation deps come from substrate citations on the inquiry md.
-    # Pre-draft, the user has already declared deps via cite.py against
+    # Pre-draft, the user has already declared deps via convergence-cite.py against
     # the inquiry — the inquiry's citation graph is authoritative here.
     foundation = load_foundation_for_note(
         inquiry_doc_path(asn_number), asn_number,

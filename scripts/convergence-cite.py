@@ -3,7 +3,7 @@
 
 Invoked when the reviser adds a dependency:
 
-    python scripts/cite.py --to <label>
+    python scripts/convergence-cite.py --to <label>
 
 Reads `PROTOCOL_DOC_PATH` from environment (set by `revise.py` for the
 claim being revised). The label is resolved via the cross-ASN label

@@ -11,7 +11,7 @@ managed operation. Without that skip, the wrapper would recurse on its
 own attribution emission.
 
 Cross-process attribution: orchestrators that invoke subprocesses (e.g.
-cone-review → reviser → decide.py) set `XANADU_AGENT_DOC` so each
+cone-review → reviser → convergence-resolution.py) set `XANADU_AGENT_DOC` so each
 subprocess that uses `default_store()` picks up the same agent identity.
 """
 

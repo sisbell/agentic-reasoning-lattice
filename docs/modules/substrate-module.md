@@ -218,7 +218,7 @@ The substrate specification is implementation-independent. Any backing store sat
 ### Known gaps
 
 - ActiveLinks is not yet implemented as a substrate operation. The `active_links` helper in `lib.store.queries` performs the retraction subtraction, but it is a protocol-layer utility rather than a substrate-level query. Migration to a substrate operation is straightforward — the helper's logic moves into the substrate's query interface.
-- Retract is not yet implemented as a substrate operation. The `scripts/retract.py` script creates retraction links via MakeLink. Migration is the same: the script's logic becomes a substrate operation.
+- Retract is not yet implemented as a substrate operation. The `scripts/link/retract.py` script creates retraction links via MakeLink. Migration is the same: the script's logic becomes a substrate operation.
 
 ---
 

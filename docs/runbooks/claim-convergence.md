@@ -21,7 +21,7 @@ Produces formal contracts and rewrites proofs to Dijkstra standard. Auto-commits
 ### 2. Populate the substrate
 
 ```bash
-python scripts/populate-store.py
+python scripts/migration_tools/populate-store.py
 ```
 
 Imports claim, contract, and citation links from claim YAMLs into `lattices/xanadu/_docuverse/`. Idempotent — re-run any time. Required before review/revise so the convergence predicate has data to evaluate.

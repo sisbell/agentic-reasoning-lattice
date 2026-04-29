@@ -6,7 +6,7 @@ Per docs/modules/agent-module.md:
   agent doc to the new link.
 - Attribution skips `agent` and `manages` types themselves.
 - `default_store()` reads XANADU_AGENT_DOC and wraps automatically so
-  subprocesses (decide.py, cite.py, ...) attribute operations to the
+  subprocesses (convergence-resolution.py, convergence-cite.py, ...) attribute operations to the
   invoking orchestrator's agent.
 """
 

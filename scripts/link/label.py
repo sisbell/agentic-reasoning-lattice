@@ -3,7 +3,7 @@
 
 Usage:
 
-    PROTOCOL_DOC_PATH=lattices/.../T0.md python scripts/label.py --to T0
+    PROTOCOL_DOC_PATH=lattices/.../T0.md python scripts/link/label.py --to T0
 
 Writes `<stem>.label.md` next to the claim md (edit-in-place if it
 already exists) and emits a `label` link from the claim md to the
@@ -17,7 +17,7 @@ import os
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
 from store.attributes import emit_attribute
 from store.store import default_store
 

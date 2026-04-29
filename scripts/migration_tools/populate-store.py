@@ -6,7 +6,7 @@ claim, contract.<kind>, and citation links exist in the store.
 Idempotent: re-running adds only newly-discovered links.
 
 Usage:
-    python3 scripts/populate-store.py [--dry-run]
+    python3 scripts/migration_tools/populate-store.py [--dry-run]
 
 Exit code:
     0   normal completion
@@ -18,7 +18,7 @@ import argparse
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
 from store.store import Store
 from store.populate import populate_structural
 

@@ -1,6 +1,6 @@
 """Library: retract a citation link by filing a retraction that points at it.
 
-Called from `scripts/retract.py` (the reviser-callable CLI). Separated
+Called from `scripts/link/retract.py` (the reviser-callable CLI). Separated
 from the CLI so tests exercise the logic directly.
 
 A retraction is a top-level link of type `"retraction"` whose to_set

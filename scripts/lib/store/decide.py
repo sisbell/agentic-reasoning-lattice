@@ -1,6 +1,6 @@
 """Library: emit a resolution.edit or resolution.reject link.
 
-Called from `scripts/decide.py` (the agent-callable CLI). Separated from
+Called from `scripts/convergence-resolution.py` (the agent-callable CLI). Separated from
 the CLI so tests exercise the logic directly without subprocess overhead.
 """
 

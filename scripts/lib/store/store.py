@@ -253,7 +253,8 @@ def default_store(log_path=None, index_path=None):
     """Return a Store, wrapped in AgentStore if `XANADU_AGENT_DOC` is set.
 
     Orchestrators (cone-review, full-review) set the env var so subprocess
-    tools (decide.py, cite.py, classify.py, ...) that emit substrate links
+    tools (convergence-resolution.py, convergence-cite.py, claim-classify.py,
+    link/*.py) that emit substrate links
     inherit the agent identity and attribute every operation back to it.
     Standalone CLI runs (no env var) get a plain Store — operations land
     in the substrate without `manages` attribution, which is correct since
@@ -293,8 +294,8 @@ def attributed_to(role):
 
     Substrate writes inside the block (review/comment/resolution links)
     get a `manages` link from the agent doc, and subprocess tools
-    (decide.py, etc.) inherit `XANADU_AGENT_DOC` so their writes are
-    attributed too.
+    (convergence-resolution.py, etc.) inherit `XANADU_AGENT_DOC` so their
+    writes are attributed too.
     """
     agent_doc = agent_doc_path(role)
 

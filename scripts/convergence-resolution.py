@@ -3,14 +3,14 @@
 
 Invoked at the end of a revise session:
 
-    python scripts/decide.py accept
-    python scripts/decide.py reject --rationale "<one or two sentences>"
+    python scripts/convergence-resolution.py accept
+    python scripts/convergence-resolution.py reject --rationale "<one or two sentences>"
 
 When a single revise session closes multiple findings (note convergence
 sets up env once and the agent iterates), the comment id can be passed
 per call:
 
-    python scripts/decide.py accept --comment-id l_abc123
+    python scripts/convergence-resolution.py accept --comment-id l_abc123
 
 Otherwise reads context from environment variables (set by the
 orchestrator before spawning the reviser):

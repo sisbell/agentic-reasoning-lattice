@@ -41,7 +41,7 @@ def build_prompt(asn_path, findings, vocab, consultation_content=None, asn_numbe
 
     `findings` is a list of (comment_id, title, body) tuples — one per
     open `comment.revise` link on the note. The agent is instructed to
-    address each in the note md and call decide.py per finding to close
+    address each in the note md and call convergence-resolution.py per finding to close
     the comment in the substrate.
     """
     skill_body = read_file(DISCOVERY_PROMPT)
@@ -77,8 +77,8 @@ For each finding below, after you have addressed it (either by editing
 the note or by deciding the finding is incorrect), close the
 corresponding comment in the link store:
 
-  python scripts/decide.py accept --comment-id <id>
-  python scripts/decide.py reject --comment-id <id> --rationale "<one or two sentences>"
+  python scripts/convergence-resolution.py accept --comment-id <id>
+  python scripts/convergence-resolution.py reject --comment-id <id> --rationale "<one or two sentences>"
 
 `accept` means you applied the fix; `reject` means the finding is
 incorrect and you wrote a rationale instead. Do this once per finding."""
@@ -211,7 +211,7 @@ def run_revise_pass(asn_path, asn_label, findings, *,
     """Run one reviser invocation that addresses `findings`.
 
     Sets PROTOCOL_DOC_PATH and PROTOCOL_ASN_LABEL env vars. The agent
-    closes each comment via `decide.py --comment-id <id>` per the prompt.
+    closes each comment via `convergence-resolution.py --comment-id <id>` per the prompt.
     Returns (data, elapsed) from invoke_claude — caller logs usage and
     re-queries the substrate for remaining open revises.
     """

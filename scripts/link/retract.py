@@ -4,7 +4,7 @@
 Invoked when the reviser removes a dependency from a claim's md
 *Depends:* section because the proof no longer uses it:
 
-    python scripts/retract.py --to <label>
+    python scripts/link/retract.py --to <label>
 
 Reads `PROTOCOL_DOC_PATH` from environment (set by the protocol
 runner for the claim being revised). The label is resolved via the
@@ -24,7 +24,7 @@ import os
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
 from store.store import default_store
 from store.retract import emit_retraction
 from store.populate import build_doc_label_index

@@ -4,7 +4,7 @@
 Invoked when the reviser creates a new claim and needs to record what
 kind of contract it is (axiom, theorem, definition, etc.):
 
-    python scripts/classify.py --kind axiom
+    python scripts/claim-classify.py --kind axiom
 
 Reads `PROTOCOL_DOC_PATH` from environment (set by `revise.py` for the
 claim being revised — but for new-claim creation, the reviser sets it

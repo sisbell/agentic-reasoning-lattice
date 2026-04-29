@@ -47,7 +47,7 @@ def _retry_unresolved_revises(store, asn_num, claim_dir, scope_md_paths):
     For each unresolved comment.revise targeting a scope path, fetch its
     finding text from the comment's source (the finding document under
     `_docuverse/findings/...`) and call `revise()` again. The reviser closes
-    via `decide.py accept` (with edit) or `decide.py reject` (with rationale).
+    via `convergence-resolution.py accept` (with edit) or `convergence-resolution.py reject` (with rationale).
     """
     for scope_path in scope_md_paths:
         if not scope_path:
@@ -313,7 +313,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
         print(f"\n  [CYCLE {cycle}/{max_cycles}]", file=sys.stderr)
 
         # Retry pass: re-feed any open revise comments from prior cycles
-        # or invocations to the reviser. Reviser closes via decide.py.
+        # or invocations to the reviser. Reviser closes via convergence-resolution.py.
         if not dry_run:
             _retry_unresolved_revises(store, asn_num, claim_dir, [apex_md_path])
 

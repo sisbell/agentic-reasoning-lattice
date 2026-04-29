@@ -25,9 +25,9 @@ def revise(asn_num, title, finding_text, claim_dir=None,
     """Apply fix for one finding. Returns True if changes made.
 
     `comment_id` and `claim_path` are passed through to the reviser via
-    env vars so the agent can call `scripts/decide.py` to close the comment
-    in the link store. When either is None, the agent can still run but
-    won't be able to invoke decide.py — callers that care about resolution
+    env vars so the agent can call `scripts/convergence-resolution.py` to close
+    the comment in the link store. When either is None, the agent can still run
+    but won't be able to invoke convergence-resolution.py — callers that care about resolution
     links should pass both.
     """
     asn_path, asn_label = find_asn(str(asn_num))
