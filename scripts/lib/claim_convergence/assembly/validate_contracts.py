@@ -4,7 +4,7 @@ Validate Contracts — check formal contracts against proof sections.
 Per-claim LLM validation: reads each claim's proof section and
 formal contract, reports MATCH or MISMATCH with detailed findings.
 
-Step function for the orchestrator (scripts/convergence-assembly.py):
+Step function for the orchestrator (scripts/claim-assembly.py):
 - validate_contracts(asn_num) → list of (label, detail) mismatches
 """
 

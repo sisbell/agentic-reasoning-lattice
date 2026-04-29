@@ -1,13 +1,13 @@
-"""convergence-validate-revise — apply mechanical fixes driven by validator findings.
+"""claim-validate-revise — apply mechanical fixes driven by validator findings.
 
-Paired with convergence-validate.py: that script finds structural-invariant
+Paired with claim-validate.py: that script finds structural-invariant
 violations; this one applies per-invariant fixes. Loop is validator finds →
 reviser fixes → validator re-runs between passes. Six passes in order:
 body-uniqueness, declaration-label-mismatch, depends-agreement,
 references-resolve, acyclic-depends (propose-only).
 
 Usage:
-    python scripts/convergence-validate-revise.py 34 [--dry-run|--apply]
+    python scripts/claim-validate-revise.py 34 [--dry-run|--apply]
                                                         [--rule RULE]
                                                         [--file FILE]
                                                         [--from-pass N]
@@ -51,8 +51,8 @@ PROMPT_DIR = REPO_ROOT / "prompts" / "shared" / "claim-convergence" / "validate-
 
 def _load_validator():
     spec = importlib.util.spec_from_file_location(
-        "convergence_validate",
-        Path(__file__).resolve().parent / "convergence-validate.py",
+        "claim_validate",
+        Path(__file__).resolve().parent / "claim-validate.py",
     )
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)

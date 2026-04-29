@@ -29,8 +29,8 @@ Imports claim, contract, and citation links from claim YAMLs into `lattices/xana
 ### 3. Cone sweep (per-cone review)
 
 ```bash
-python scripts/cone-sweep.py <ASN>
-python scripts/cone-sweep.py <ASN> --cone S8    # single apex
+python scripts/claim-cone-sweep.py <ASN>
+python scripts/claim-cone-sweep.py <ASN> --cone S8    # single apex
 ```
 
 Walks the dependency graph bottom-up. Reviews tightly coupled clusters as a unit. Default max 8 cycles per cone, plus a +1 confirmation review when the work loop hits the cap. Use `--cone LABEL` to target a specific apex.
@@ -38,7 +38,7 @@ Walks the dependency graph bottom-up. Reviews tightly coupled clusters as a unit
 ### 4. Full-review (whole-ASN review)
 
 ```bash
-python scripts/full-review.py <ASN>
+python scripts/claim-full-review.py <ASN>
 ```
 
 Whole-ASN scan with foundation context. Catches cross-cone issues that per-cone review misses. Same predicate-driven termination as cone sweep.
@@ -54,7 +54,7 @@ Populates the `summary` field in each claim YAML. Required before assembly. Hash
 ### 6. Assembly
 
 ```bash
-python scripts/convergence-assembly.py <ASN>
+python scripts/claim-assembly.py <ASN>
 ```
 
 Mechanical — reads YAML summaries + .md contracts, writes `formal-statements.md` and `dependency-graph.yaml` to `lattices/xanadu/manifests/`.
@@ -64,7 +64,7 @@ Mechanical — reads YAML summaries + .md contracts, writes `formal-statements.m
 ```bash
 python scripts/converge.py <ASN> --dry-run         # list candidates
 python scripts/converge.py <ASN> --label T8         # single claim
-python scripts/cone-sweep.py <ASN> --cone T8    # single apex review
+python scripts/claim-cone-sweep.py <ASN> --cone T8    # single apex review
 ```
 
 ## Querying the link graph

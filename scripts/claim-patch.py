@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-Converge Patch — apply targeted fixes to ASNs in claim convergence.
+Claim Patch — apply targeted fixes to ASNs in claim convergence.
 
 Reads a patch instruction from the lattice's discovery/patches/ASN-NNNN/ directory,
 applies the fix, and commits. The claim-convergence pipeline runs afterward
 to verify correctness.
 
 Usage:
-    python scripts/converge-patch.py 34 --patch patch-ta5.md
-    python scripts/converge-patch.py 34 --patch patch-ta5.md --dry-run
+    python scripts/claim-patch.py 34 --patch patch-ta5.md
+    python scripts/claim-patch.py 34 --patch patch-ta5.md --dry-run
 """
 
 import argparse
@@ -89,7 +89,7 @@ def step_apply(asn_num, asn_path, asn_label, patch_content, model, effort):
     try:
         entry = {
             "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
-            "skill": "converge-patch",
+            "skill": "claim-patch",
             "asn": asn_label,
             "elapsed_s": round(elapsed, 1),
             "cost_usd": cost,

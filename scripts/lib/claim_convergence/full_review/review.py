@@ -5,7 +5,7 @@ Reads the entire ASN + foundation and finds issues that per-claim
 pipelines can't catch: carrier-set conflation, precondition chain gaps,
 arguments that assume what they prove, missing cases.
 
-Step functions for the orchestrator (scripts/full-review.py):
+Step functions for the orchestrator (scripts/claim-full-review.py):
 - run_review: run Opus deep review, return (verdict, text, elapsed)
 - extract_findings: parse findings into (title, cls, text) tuples
 - filter_revise: narrow findings to REVISE-class only

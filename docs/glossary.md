@@ -56,7 +56,7 @@ Terms specific to this reasoning system. Cross-references point to where each te
 
 **Cone-review.** Focused review of a specific dependency cone — apex claim plus its declared dependencies as context. Resolves the cluster as a constraint system. The operational name for cone-scoped review under [adaptive scope](#a) in the [claim convergence protocol](protocols/claim-convergence-protocol.md).
 
-**Cone-sweep.** Proactive walking of the dependency DAG bottom-up, running cone-review on every apex meeting the dependency-frequency threshold. Implemented in `scripts/cone-sweep.py`. A choreography that satisfies the protocol's coverage obligation by exhausting the apex set.
+**Cone-sweep.** Proactive walking of the dependency DAG bottom-up, running cone-review on every apex meeting the dependency-frequency threshold. Implemented in `scripts/claim-cone-sweep.py`. A choreography that satisfies the protocol's coverage obligation by exhausting the apex set.
 
 **Comprehensive scope.** A claim convergence scope strategy where the entire note (or full cone) is loaded into review context before the review runs. Catches cross-cone issues that adaptive scope can miss — vocabulary collisions, citation inconsistencies between dependency clusters, gaps invisible to within-cone reasoning. Counterpart to [adaptive scope](#a). A choreography decision, not a protocol-level construct. See [Claim Convergence Protocol](protocols/claim-convergence-protocol.md).
 

@@ -15,10 +15,10 @@ revised while its dependencies are stable, switches to a focused
 regional review/revise loop to accelerate convergence.
 
 Usage:
-    python scripts/full-review.py 40
-    python scripts/full-review.py 40 --max-cycles 1     # single pass, no fixing
-    python scripts/full-review.py 40 --dry-run           # review only
-    python scripts/full-review.py 36 --cone S8           # force regional review on cone apex S8
+    python scripts/claim-full-review.py 40
+    python scripts/claim-full-review.py 40 --max-cycles 1     # single pass, no fixing
+    python scripts/claim-full-review.py 40 --dry-run           # review only
+    python scripts/claim-full-review.py 36 --cone S8           # force regional review on cone apex S8
 """
 
 import argparse

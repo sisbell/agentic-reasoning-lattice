@@ -1,5 +1,5 @@
 """Unit tests for the substrate-attribute validator rules in
-convergence-validate.py:
+claim-validate.py:
 
 - check_attribute_link_shape (I4/I5/I6)
 - check_attribute_doc_format (I7/I8/I9)
@@ -23,8 +23,8 @@ from lib.store.store import Store
 def _load_validator():
     repo_root = Path(__file__).resolve().parents[4]
     spec = importlib.util.spec_from_file_location(
-        "convergence_validate",
-        repo_root / "scripts" / "convergence-validate.py",
+        "claim_validate",
+        repo_root / "scripts" / "claim-validate.py",
     )
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)

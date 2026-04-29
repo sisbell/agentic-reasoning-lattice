@@ -24,7 +24,7 @@ from lib.store.store import Store
 def _load_orchestrator():
     repo_root = Path(__file__).resolve().parents[4]
     spec = importlib.util.spec_from_file_location(
-        "cvr", repo_root / "scripts" / "convergence-validate-revise.py",
+        "cvr", repo_root / "scripts" / "claim-validate-revise.py",
     )
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)

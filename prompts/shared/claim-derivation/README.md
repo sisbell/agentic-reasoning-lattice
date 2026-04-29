@@ -38,15 +38,15 @@ Review and converge proofs, contracts, and cross-claim consistency.
 
 ```bash
 # Convergence protocol — regional sweep + whole-ASN review
-python scripts/regional-sweep.py NNNN        # cone-scoped review across the DAG
-python scripts/full-review.py NNNN           # whole-ASN structural analysis
-python scripts/dependency-review.py NNNN     # upstream reference validation (standalone)
+python scripts/claim-cone-sweep.py NNNN        # cone-scoped review across the DAG
+python scripts/claim-full-review.py NNNN       # whole-ASN structural analysis
+python scripts/claim-dependency-review.py NNNN # upstream reference validation (standalone)
 
 # Pick up full-review findings from a previous run:
-python scripts/full-review.py NNNN --review lattices/<lattice>/formalization/ASN-NNNN/reviews/review-N.md
+python scripts/claim-full-review.py NNNN --review lattices/<lattice>/formalization/ASN-NNNN/reviews/review-N.md
 
 # Assembly (for downstream consumers)
-python scripts/formalization-assembly.py NNNN
+python scripts/claim-assembly.py NNNN
 ```
 
 `NNNN` is the ASN number (zero-padded to four digits, e.g. `34` → ASN-0034). `<lattice>` is the lattice directory name.

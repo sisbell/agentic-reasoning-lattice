@@ -6,9 +6,9 @@ and fixes findings. Designed to run between contract-review and
 full-review.
 
 Usage:
-    python scripts/dependency-review.py 40
-    python scripts/dependency-review.py 40 --max-cycles 1     # single pass, no fixing
-    python scripts/dependency-review.py 40 --dry-run           # review only
+    python scripts/claim-dependency-review.py 40
+    python scripts/claim-dependency-review.py 40 --max-cycles 1     # single pass, no fixing
+    python scripts/claim-dependency-review.py 40 --dry-run           # review only
 """
 
 import argparse

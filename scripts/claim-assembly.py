@@ -6,10 +6,10 @@ Mechanically assembles the export from YAML summaries + .md formal contracts.
 No LLM calls. Requires summaries — run summarize.py first.
 
 Usage:
-    python scripts/convergence-assembly.py 34
-    python scripts/convergence-assembly.py 34 36 40
-    python scripts/convergence-assembly.py 34 --deps-only
-    python scripts/convergence-assembly.py 34 --dry-run
+    python scripts/claim-assembly.py 34
+    python scripts/claim-assembly.py 34 36 40
+    python scripts/claim-assembly.py 34 --deps-only
+    python scripts/claim-assembly.py 34 --dry-run
 """
 
 import argparse

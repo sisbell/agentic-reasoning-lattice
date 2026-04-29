@@ -28,9 +28,9 @@ def _load(name, path):
     return mod
 
 
-VALIDATE = _load("convergence_validate", _SCRIPTS / "convergence-validate.py")
-REVISE = _load("convergence_validate_revise",
-               _SCRIPTS / "convergence-validate-revise.py")
+VALIDATE = _load("claim_validate", _SCRIPTS / "claim-validate.py")
+REVISE = _load("claim_validate_revise",
+               _SCRIPTS / "claim-validate-revise.py")
 
 
 def _run_validator(asn_label):

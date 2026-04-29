@@ -1,4 +1,4 @@
-"""convergence-validate — structural invariants on claim-convergence-stage claim files.
+"""claim-validate — structural invariants on claim-convergence-stage claim files.
 
 Runs mechanical checks from the Claim Document Contract
 (docs/design-notes/claim-document-contract.md) against
@@ -22,8 +22,8 @@ Implemented invariants:
   8. Substrate attribute shape, doc format, coverage (label/name/description)
 
 Usage:
-    python scripts/convergence-validate.py <ASN>
-    python scripts/convergence-validate.py 34
+    python scripts/claim-validate.py <ASN>
+    python scripts/claim-validate.py 34
 """
 
 import argparse

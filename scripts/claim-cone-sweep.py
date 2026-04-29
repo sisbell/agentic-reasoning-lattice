@@ -10,10 +10,10 @@ Regional sweep alternates with full-review under the convergence
 protocol; together they cover the per-cone and whole-ASN scopes.
 
 Usage:
-    python scripts/cone-sweep.py 36
-    python scripts/cone-sweep.py 36 --min-deps 3
-    python scripts/cone-sweep.py 36 --cone GlobalUniqueness
-    python scripts/cone-sweep.py 36 --dry-run
+    python scripts/claim-cone-sweep.py 36
+    python scripts/claim-cone-sweep.py 36 --min-deps 3
+    python scripts/claim-cone-sweep.py 36 --cone GlobalUniqueness
+    python scripts/claim-cone-sweep.py 36 --dry-run
 """
 
 import argparse

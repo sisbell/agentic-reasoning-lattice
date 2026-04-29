@@ -7,10 +7,10 @@ with formal contracts. On MISMATCH, re-runs produce-contract (opus)
 to rewrite the contract with full proof + deps context.
 
 Usage:
-    python scripts/contract-review.py 34
-    python scripts/contract-review.py 34 --label T1
-    python scripts/contract-review.py 34 --dry-run
-    python scripts/contract-review.py 34 --max-cycles 1
+    python scripts/claim-contract-review.py 34
+    python scripts/claim-contract-review.py 34 --label T1
+    python scripts/claim-contract-review.py 34 --dry-run
+    python scripts/claim-contract-review.py 34 --max-cycles 1
 """
 
 import argparse

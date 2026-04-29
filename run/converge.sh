@@ -42,28 +42,28 @@ for i in $(seq 1 "$CYCLES"); do
     case "${FROM:-converge}" in
         converge)
             python scripts/converge.py "$ASN" &&
-            python scripts/contract-review.py "$ASN" &&
-            python scripts/dependency-review.py "$ASN" &&
-            python scripts/full-review.py "$ASN" &&
-            python scripts/contract-review.py "$ASN"
+            python scripts/claim-contract-review.py "$ASN" &&
+            python scripts/claim-dependency-review.py "$ASN" &&
+            python scripts/claim-full-review.py "$ASN" &&
+            python scripts/claim-contract-review.py "$ASN"
             ;;
         contract-review)
-            python scripts/contract-review.py "$ASN" &&
-            python scripts/dependency-review.py "$ASN" &&
-            python scripts/full-review.py "$ASN" &&
-            python scripts/contract-review.py "$ASN"
+            python scripts/claim-contract-review.py "$ASN" &&
+            python scripts/claim-dependency-review.py "$ASN" &&
+            python scripts/claim-full-review.py "$ASN" &&
+            python scripts/claim-contract-review.py "$ASN"
             ;;
         dependency-review)
-            python scripts/dependency-review.py "$ASN" &&
-            python scripts/full-review.py "$ASN" &&
-            python scripts/contract-review.py "$ASN"
+            python scripts/claim-dependency-review.py "$ASN" &&
+            python scripts/claim-full-review.py "$ASN" &&
+            python scripts/claim-contract-review.py "$ASN"
             ;;
         full-review)
-            python scripts/full-review.py "$ASN" &&
-            python scripts/contract-review.py "$ASN"
+            python scripts/claim-full-review.py "$ASN" &&
+            python scripts/claim-contract-review.py "$ASN"
             ;;
         contract-review-final)
-            python scripts/contract-review.py "$ASN"
+            python scripts/claim-contract-review.py "$ASN"
             ;;
         *)
             echo "Unknown step: $FROM" >&2

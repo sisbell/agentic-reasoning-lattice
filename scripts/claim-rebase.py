@@ -6,10 +6,10 @@ Four review passes (mechanical, cross-reference, extension, dependency-report)
 with a convergence loop. Format gate runs on entry to each cycle.
 
 Usage:
-    python scripts/convergence-rebase.py 40
-    python scripts/convergence-rebase.py 40 --max-cycles 1     # single pass, no fixing
-    python scripts/convergence-rebase.py 40 --mode incremental  # track dirty set
-    python scripts/convergence-rebase.py 40 --dry-run           # show what would run
+    python scripts/claim-rebase.py 40
+    python scripts/claim-rebase.py 40 --max-cycles 1     # single pass, no fixing
+    python scripts/claim-rebase.py 40 --mode incremental  # track dirty set
+    python scripts/claim-rebase.py 40 --dry-run           # show what would run
 """
 
 import argparse

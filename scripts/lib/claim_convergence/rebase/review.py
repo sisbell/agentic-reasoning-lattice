@@ -6,7 +6,7 @@ Pass 2: Cross-reference (LLM) — name mismatches, local redefinitions
 Pass 3: Extension (LLM) — extends/parallels claims verified semantically
 Pass 4: Dependency report (LLM) — structural drift, registry misclassification
 
-Step functions for the orchestrator (scripts/convergence-rebase.py):
+Step functions for the orchestrator (scripts/claim-rebase.py):
 - run_review: run all four passes, return list of Finding objects
 """
 
