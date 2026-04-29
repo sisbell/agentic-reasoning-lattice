@@ -44,6 +44,10 @@ def main():
                         help="Model for review (default: opus)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Review only, don't fix")
+    parser.add_argument("--all", action="store_true",
+                        help="Force re-review of every qualifying cone, including "
+                             "ones whose convergence predicate already holds. "
+                             "Default: skip-if-converged (cheap resume).")
     args = parser.parse_args()
 
     asn_num = int(re.sub(r"[^0-9]", "", args.asn))
@@ -77,7 +81,8 @@ def main():
 
     result = run_cone_sweep(asn_num, min_deps=args.min_deps,
                                  max_cycles=args.max_cycles,
-                                 dry_run=args.dry_run, model=args.model)
+                                 dry_run=args.dry_run, model=args.model,
+                                 all_mode=args.all)
     sys.exit(0 if result == "converged" else 1)
 
 

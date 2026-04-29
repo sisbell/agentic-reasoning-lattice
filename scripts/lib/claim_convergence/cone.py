@@ -535,12 +535,21 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
     return "converged" if converged else "not_converged"
 
 
-def run_cone_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False, model="opus"):
+def run_cone_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False,
+                   model="opus", all_mode=False):
     """Proactive cone-scope sweep — bottom-up DAG walk.
 
     For each claim with >= min_deps same-ASN dependencies,
     run a cone review. Process in topological order (foundations first)
     so each cone's dependencies are stable when it runs.
+
+    Resumable: writes progress to
+    `_workspace/cone-sweep/<asn>/progress.json` at apex transitions.
+    On restart, skips apexes already completed in the same sweep
+    (matched by min_deps + all_mode params). Within a sweep, also
+    skips apexes whose convergence predicate already holds — unless
+    `all_mode=True`, which forces re-review of every cone (useful
+    for surfacing new observations on prior-clean apexes).
 
     Returns "converged" or "not_converged".
     """
@@ -562,11 +571,34 @@ def run_cone_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False, model="opus
     levels = topological_levels(deps_data)
     asn_labels = set(build_label_index(claim_dir).keys())
 
+    # Progress: resume from a prior sweep if the params match.
+    from lib.claim_convergence.sweep_progress import (
+        read_progress, write_progress, clear_progress,
+        matches_params, make_params,
+    )
+    current_params = make_params(min_deps=min_deps, all_mode=all_mode)
+    saved = read_progress(asn_label)
+    if matches_params(saved, current_params):
+        completed = set(saved.get("completed", []))
+        print(f"\n  [REGIONAL-SWEEP] resuming — {len(completed)} apex(es) "
+              f"already completed in this sweep", file=sys.stderr)
+        progress = saved
+    else:
+        if saved is not None:
+            print(f"\n  [REGIONAL-SWEEP] discarding stale progress "
+                  f"(params changed)", file=sys.stderr)
+        completed = set()
+        progress = dict(current_params)
+        progress["started_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        progress["completed"] = []
+
     print(f"\n  [REGIONAL-SWEEP] {asn_label} — {len(asn_labels)} claims, "
-          f"min_deps={min_deps}", file=sys.stderr)
+          f"min_deps={min_deps}{'  --all' if all_mode else ''}",
+          file=sys.stderr)
 
     start_time = time.time()
     cones_reviewed = 0
+    cones_skipped = 0
     any_not_converged = False
 
     store = Store()
@@ -589,6 +621,21 @@ def run_cone_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False, model="opus
                 if len(same_deps) < min_deps:
                     continue
 
+                # Workspace gate: already processed in this sweep?
+                if label in completed:
+                    cones_skipped += 1
+                    continue
+
+                # Substrate gate: predicate already True? (skip unless --all)
+                if not all_mode and is_claim_converged(store, from_path):
+                    print(f"  [REGIONAL-SWEEP] {label}: predicate True, skipping",
+                          file=sys.stderr)
+                    cones_skipped += 1
+                    completed.add(label)
+                    progress["completed"] = sorted(completed)
+                    write_progress(asn_label, progress)
+                    continue
+
                 cones_reviewed += 1
                 result = run_cone_review(
                     asn_num, label, same_deps,
@@ -596,15 +643,28 @@ def run_cone_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False, model="opus
 
                 if result != "converged":
                     any_not_converged = True
+
+                # Mark this apex done regardless of converge/not_converge —
+                # we attempted it; a re-run with --all can revisit. A future
+                # non-all run will skip via the predicate gate if work was
+                # actually closed, or visit again if open revises remain.
+                completed.add(label)
+                progress["completed"] = sorted(completed)
+                write_progress(asn_label, progress)
     finally:
         store.close()
 
     elapsed = time.time() - start_time
-    if cones_reviewed == 0:
+    if cones_reviewed == 0 and cones_skipped == 0:
         print(f"\n  [REGIONAL-SWEEP] No claims with >= {min_deps} same-ASN deps.",
               file=sys.stderr)
     else:
-        print(f"\n  [REGIONAL-SWEEP] {cones_reviewed} cones reviewed in {elapsed:.0f}s",
+        print(f"\n  [REGIONAL-SWEEP] {cones_reviewed} reviewed, "
+              f"{cones_skipped} skipped, in {elapsed:.0f}s",
               file=sys.stderr)
+
+    # Natural completion → clear progress (no resume needed next time).
+    if not dry_run:
+        clear_progress(asn_label)
 
     return "not_converged" if any_not_converged else "converged"
