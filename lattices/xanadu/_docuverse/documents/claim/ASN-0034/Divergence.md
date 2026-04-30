@@ -1,4 +1,4 @@
-**Divergence (Divergence).** For tumblers `a, b ∈ T` with `a ≠ b`, the *divergence* `divergence(a, b)` is defined by two cases corresponding to the two cases of T1.
+**Divergence (Divergence).** For tumblers `a, b ∈ T` with `a ≠ b`, the *divergence* `divergence(a, b)` is defined by two cases reflecting the two ways distinct finite sequences over ℕ can fail to coincide: at a shared position by component mismatch, or by one being a proper prefix of the other.
 
   (i) If there exists `k` with `1 ≤ k ∧ k ≤ #a ∧ k ≤ #b` and `aₖ ≠ bₖ`, then `divergence(a, b)` is the least such `k` — equivalently, the unique `k` satisfying `1 ≤ k ∧ k ≤ #a ∧ k ≤ #b ∧ aₖ ≠ bₖ ∧ (A i : 1 ≤ i < k : aᵢ = bᵢ)`, the universal conjunct restating minimality — component divergence at a shared position.
 
@@ -17,6 +17,4 @@ The function is symmetric: `divergence(a, b) = divergence(b, a)`. In case (i), t
   - NAT-order (NatStrictTotalOrder) — trichotomy at length pair `(#a, #b)` splits case (ii) into sub-cases (ii-a)/(ii-b).
   - NAT-wellorder (NatWellOrdering) — existence of a least element in the nonempty subset `{k ∈ ℕ : 1 ≤ k ∧ k ≤ #a ∧ k ≤ #b ∧ aₖ ≠ bₖ}` grounds case (i)'s designating description, so "the least such `k`" is non-vacuous.
   - NAT-closure (NatArithmeticClosureAndIdentity) — addition closure instantiated at `(#a, 1)` and `(#b, 1)`, with `1 ∈ ℕ` from the same axiom, well-types case (ii)'s values `#a + 1` and `#b + 1` as ℕ.
-- *Forward References:*
-  - T1 (LexicographicOrder) — provides the two-case structure (component mismatch at a shared position; proper prefix) that the Divergence definition mirrors; cited as motivation for the case split, not consumed by the proof.
 - *Postconditions:* `divergence(a, b) ∈ ℕ`; exactly one of case (i) or case (ii) applies; in case (ii), `divergence(a, b) = #a + 1` in sub-case (ii-a) and `divergence(a, b) = #b + 1` in sub-case (ii-b); `divergence(a, b) = divergence(b, a)` for all `a ≠ b`.
