@@ -18,6 +18,8 @@ that is, `t = d₁.d₂. ... .dₙ` with `dᵢ = 1` for all `1 ≤ i ≤ n`.
   - T0 (CarrierSetDefinition) — carrier characterisation of T as finite sequences over ℕ with length ≥ 1, and the length operator `#·`.
   - NAT-closure (NatArithmeticClosureAndIdentity) — supplies `1 ∈ ℕ`, required to conclude that each witness component `dᵢ = 1` lies in ℕ.
   - NAT-order (NatStrictTotalOrder) — supplies the defining clause `m ≤ n ⟺ m < n ∨ m = n` and the converse `n ≥ n ⟺ n ≤ n`, required to lift `n = n` (reflexivity of equality) to `n ≥ n` and hence discharge `#t ≥ n`.
+- *Forward References:*
+  - T0(a) (UnboundedComponentValues) — named as the sibling dimension (unlimited siblings at any level) to contrast with the nesting-depth unboundedness established here
 
 T0(b) is what separates the tumbler design from fixed-width addressing. Nelson: "New items may be continually inserted in tumbler-space while the other addresses remain valid." The word "continually" carries the weight — the process of creating new addresses never terminates. Between any two sibling addresses, the forking mechanism can always create children: "One digit can become several by a forking or branching process. This consists of creating successive new digits to the right." Each daughter can have daughters without limit.
 
