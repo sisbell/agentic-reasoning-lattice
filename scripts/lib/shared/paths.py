@@ -99,6 +99,10 @@ NOTE_FINDINGS_DIR = DOCUVERSE_DOCS_DIR / "finding" / "notes"
 # claim's ASN directory.
 CITATION_RESOLVE_DIR = DOCUVERSE_DOCS_DIR / "citation-resolve" / "claims"
 
+# Signature-resolve operation outputs. Same shape as CITATION_RESOLVE_DIR:
+# one doc per resolve run, named `<claim-label>-<run-N>.md`.
+SIGNATURE_RESOLVE_DIR = DOCUVERSE_DOCS_DIR / "signature-resolve" / "claims"
+
 # Claim convergence workspace — caches and intermediate prose artifacts
 # the convergence pipeline writes (per-ASN _contract-cache.json,
 # _summary-cache.json, etc.). Workspace-shaped: regeneratable, not
