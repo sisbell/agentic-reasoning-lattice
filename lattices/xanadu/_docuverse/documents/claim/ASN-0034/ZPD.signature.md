@@ -1,0 +1,3 @@
+- `zpd` — partial binary function on tumblers returning the least index where their zero-padded extensions first disagree
+- `â` — zero-padded projection of tumbler `a` extended to length `L`, with trailing components set to `0`
+- `ŵ` — zero-padded projection of tumbler `w` extended to length `L`, with trailing components set to `0`
