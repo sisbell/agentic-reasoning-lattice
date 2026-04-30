@@ -45,6 +45,10 @@ In both cases `t'` is a finite sequence of natural numbers with length ≥ 1, so
   - NAT-discrete (NatDiscreteness) — instantiated at `m = 0`, `n = k`; the strict antecedent `0 < k` is the case hypothesis itself, so the axiom yields `0 + 1 ≤ k`, which NAT-closure's left identity rewrites to `1 ≤ k`.
   - T1 (LexicographicOrder) — case (i) at divergence position `sig(t)` for `k = 0`; case (ii) with proper-prefix `#t + 1 ≤ #t'` for `k > 0`.
   - TA5-SIG (LastSignificantPosition) — resolves `sig(t)` in the definition and postconditions (b), (c).
+- *Forward References:*
+  - TA5-SigValid (SigOnValidAddresses) — refines TA5 to T4-valid inputs, establishing `sig(t) = #t`; TA5 names it to explain the valid-address consequence of `inc(t, 0)`.
+  - TA5a (IncrementPreservesT4) — elaborates TA5 by establishing the precise T4-preservation conditions for `inc(t, k)`; TA5 names it as the downstream analysis site.
+  - T4 (HierarchicalParsing) — named in the prose as the validity predicate that TA5-SigValid requires and TA5a analyzes; TA5's own proof does not invoke T4.
 - *Postconditions:* `t' ∈ T`. (a) `t' > t` under T1. (b) When `k = 0`: `(A i : 1 ≤ i ≤ #t ∧ i ≠ sig(t) : t'ᵢ = tᵢ)`. When `k > 0`: `(A i : 1 ≤ i ≤ #t : t'ᵢ = tᵢ)`. (c) When `k = 0`: `#t' = #t`, `t'_{sig(t)} = t_{sig(t)} + 1`. (d) When `k > 0`: `#t' = #t + k`, positions `#t + 1 ... #t + k - 1` are `0`, position `#t + k` is `1`.
 
 `inc(t, 0)` does not produce the immediate successor of `t` in the total order. It produces the smallest same-length tumbler that agrees with `t` on positions `1, ..., sig(t) − 1` and has a strictly larger component at position `sig(t)`. When `sig(t) = #t` (which holds for valid addresses by TA5-SigValid), this is the next peer at the same hierarchical depth. When `sig(t) < #t`, same-length tumblers lie between `t` and `inc(t, 0)` — for example, `(2, 0, 1)` lies between `(2, 0, 0)` and `inc((2, 0, 0), 0) = (3, 0, 0)`. The gap between `t` and `inc(t, 0)` contains the entire subtree of `t`: all tumblers `t.x₁. ... .xₘ`. The true immediate successor in the total order is `t.0` by T1 case (ii).
