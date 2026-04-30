@@ -48,6 +48,8 @@ Links pointing at these documents are immutable (SUB1). The link survives; the c
 
 Append a new link to the graph. Returns the link's unique ID. The link is immediately visible to subsequent queries.
 
+Some link types require a subtype — bare-parent writes are rejected at MakeLink time (e.g., `citation` must be `citation.depends`, `citation.forward`, or `citation.resolve`). Implementations enforce this through a schema constraint set; the constraint is a property of the type vocabulary, not of MakeLink itself.
+
 ### 2.2 FindLinks
 
 ⟨ FindLinks | home, from, to, type_set ⟩ → links
@@ -108,6 +110,12 @@ The shadow interpretation makes ActiveLinks a single-depth check: "does any retr
 ### Retraction idempotence
 
 **SUB6 (Retraction idempotence).** Multiple retraction links targeting the same link ID produce the same computed active set as a single retraction. Filing a retraction on an already-retracted link is permitted and is a no-op for graph state.
+
+### Emit-against-active idempotency
+
+Library helpers that emit links idempotently (e.g., `emit_citation`, `emit_attribute`) check for an existing match against ActiveLinks, not raw FindLinks. A retracted prior link does not satisfy idempotency — re-emitting after a retraction creates a fresh active link, which is the caller's intent (they want this link to be active now). The retraction stays in place as audit history; the new link's ID differs from the retracted one.
+
+This is a library-level convention, not a substrate property. The substrate itself permits make_link to create a new link with the same content as a retracted one (different timestamp → different link ID); the convention is in how higher-level emitters construct their existence checks.
 
 ### Predicate evaluation under retraction
 

@@ -1,6 +1,6 @@
 # Claim Convergence Protocol
 
-The convergence protocol applied to claims in the lattice. Adds lattice structure (`claim`, `contract`, `citation` links), structural validation, and a specific algorithm for driving convergence through reviewer/reviser choreography.
+The convergence protocol applied to claims in the lattice. Adds lattice structure (`claim`, `contract`, `citation.{depends, forward}` links), structural validation, citation resolution, and a specific algorithm for driving convergence through reviewer/reviser choreography.
 
 ---
 
@@ -54,33 +54,36 @@ These link types extend the convergence protocol's vocabulary for the claim doma
 |---|---|---|
 | `claim` | (flat, one-sided) | Classifier: document is a claim |
 | `contract` | `axiom`, `definition`, `theorem`, `corollary`, `lemma`, `consequence`, `design-requirement` | Formal structure attached to a claim. Subtypes name structural kinds. |
-| `citation` | (flat) | Claim depends on claim |
+| `citation` | `depends`, `forward`, `resolve` | Directional link between claims (`depends` / `forward`) plus classifier on citation-resolve outputs (`resolve`). Bare `citation` is invalid — every write must specify a subtype. |
+| `provenance` | `derivation` (among others) | Audit chain. Citation-resolve emits `provenance.derivation` from each resolve doc to every citation link (and retraction) it produced, making the resolution traceable end-to-end. |
 
-Combined with the convergence protocol's three link types (`review`, `comment`, `resolution`), the claim convergence protocol defines six link types total. It also uses substrate-provided `retraction` (per §1.2) to nullify stale `citation` links when proof revisions remove use-sites.
+Combined with the convergence protocol's three link types (`review`, `comment`, `resolution`), the claim convergence protocol works with seven link types total. It also uses substrate-provided `retraction` (per §1.2) to nullify stale `citation.depends` and `citation.forward` links when reasoning evolves.
 
 ### Two layers on one graph
 
-The `citation` link is the lattice edge. The lattice — the dependency structure of claims — is the citation subgraph of the link graph. Three operations act on this subgraph:
+The `citation.depends` link is the lattice edge. The lattice — the dependency structure of claims — is the `citation.depends` subgraph of the link graph. Three operations act on this subgraph:
 
-- **Meet** (extract): a new claim is created below two consumers that independently derived the same concept. Both get `citation` links pointing to it. The shared concept has a home.
-- **Join** (scope promotion): a new claim is created above existing foundations. It gets `citation` links pointing down to what it builds on.
-- **Prune** (retraction): a `citation` link that no longer reflects the current proof is nullified by a `retraction` link. The claim and its former dependency both remain. The edge between them no longer counts.
+- **Meet** (extract): a new claim is created below two consumers that independently derived the same concept. Both get `citation.depends` links pointing to it. The shared concept has a home.
+- **Join** (scope promotion): a new claim is created above existing foundations. It gets `citation.depends` links pointing down to what it builds on.
+- **Prune** (retraction): a `citation.depends` link that no longer reflects the current reasoning is nullified by a `retraction` link. The claim and its former dependency both remain. The edge between them no longer counts. (Forward citations are pruned the same way when a claim stops naming a downstream concept; pruning a `citation.forward` is structural cleanup, not lattice reshaping, since forward citations don't participate in the dependency lattice.)
 
-Meet and join grow the lattice — they add nodes and edges. Prune tightens it — it removes edges without changing any node. All three are structural operations; none affects the convergence predicate, which operates on `comment` and `resolution` links, not `citation` links.
+`citation.forward` is the *non-lattice* directional link — a claim names a downstream claim (a refinement, an elaboration, a navigation pointer) without depending on it. Forward citations are scaffolding for the reader, not grounding for the reasoning. They appear in a claim's `*Forward References:*` section and as `citation.forward` links in the substrate, but they do not participate in the dependency lattice. None of meet, join, or prune act on them.
+
+Meet and join grow the lattice — they add nodes and `citation.depends` edges. Prune tightens it — it removes edges without changing any node. All three are structural operations; none affects the convergence predicate, which operates on `comment` and `resolution` links, not citations.
 
 The convergence protocol's link types (`review`, `comment`, `resolution`) are protocol machinery operating on the lattice. Reviews observe claims. Comments target them. Resolutions close comments. None of these change the dependency structure — they check whether the existing structure is sound.
 
-The two layers interact when the reviser creates a new claim as part of closing a comment — apparatus extraction promotes inline reasoning to a named claim. The `resolution.edit` that closes the comment also adds a node to the lattice (new `claim` classifier, new `citation` links). Protocol activity produces lattice growth. And when a `resolution.edit` removes a dependency from a proof, the reviser files a `retraction` link — protocol activity produces lattice pruning.
+The two layers interact when the reviser creates a new claim as part of closing a comment — apparatus extraction promotes inline reasoning to a named claim. The `resolution.edit` that closes the comment also adds a node to the lattice (new `claim` classifier, new citations). Protocol activity produces lattice growth. And when a `resolution.edit` removes a dependency from a proof, the reviser files a `retraction` link on the corresponding `citation.depends` — protocol activity produces lattice pruning.
 
 ### Retraction and proof evolution
 
-When a proof revision removes a use-site for a dependency, the original `citation` link cannot be deleted (SUB1) but should no longer count toward the dependency graph. The protocol uses the substrate's retraction mechanism ([SUB4–SUB5](../modules/substrate-module.md)) to nullify the stale citation. This is the **prune** operation — the lattice loses an edge without changing any node.
+When a proof revision removes a use-site for a dependency, the original `citation.depends` link cannot be deleted (SUB1) but should no longer count toward the dependency graph. The protocol uses the substrate's retraction mechanism ([SUB4–SUB5](../modules/substrate-module.md)) to nullify the stale citation. This is the **prune** operation — the lattice loses an edge without changing any node. The same retraction mechanism applies to `citation.forward` when a claim's prose stops naming a downstream concept; pruning a forward citation does not change the dependency lattice but cleans up the substrate's record of who-names-whom.
 
 Retraction of a `resolution` link re-opens the comment it closed. The convergence predicate evaluates against active links, so the retracted resolution no longer counts — the comment becomes unresolved and re-enters the reviser's work queue on the next RetryOpenRevises pass. Retraction semantics (shadow interpretation, idempotence, depth behavior) are specified in the [Substrate Module](../modules/substrate-module.md).
 
 ### Retraction tooling
 
-The reviser invokes `scripts/substrate/retract.py --to <label>` to file a retraction during a revision that removes a dependency from a claim's `*Depends:*` section. All consumers that build citation graphs (validator, dependency-graph builder, cone-sweep) use the substrate's ActiveLinks query rather than FindLinks directly.
+The reviser invokes `scripts/substrate/retract.py --to <label>` to file a retraction during a revision that removes a dependency from a claim's `*Depends:*` section. All consumers that build citation graphs (validator, dependency-graph builder, cone-sweep, citation-resolve) use the substrate's ActiveLinks query rather than FindLinks directly. `emit_citation` itself uses ActiveLinks for its idempotency check — a previously-retracted citation does not block re-emission, so re-typing a label after it was retracted produces a fresh active link.
 
 ---
 
@@ -104,6 +107,21 @@ Inherits the convergence protocol's reviser role. Additionally operates in the D
 
 Constructs the context the reviewer sees. The scope strategy (adaptive, comprehensive, or any other) is a choreography decision. The protocol defines no scope strategies — only the predicate that any choreography must satisfy.
 
+For dependency-cone reviews specifically, the scope assembler walks the substrate's `citation.depends` graph transitively from the apex, returning the apex plus every same-ASN claim reachable through backward grounding. Cross-ASN deps are delivered separately via curated foundation summaries. `citation.forward` is deliberately not followed — the cone is the apex's grounding chain, not its downstream tree.
+
+### Citation Resolver
+
+A lattice-construction participant. For each claim in scope, types every claim-label reference appearing in the claim's prose into one of two directions:
+
+- `citation.depends` — the claim's correctness rests on the cited claim (backward).
+- `citation.forward` — the claim names the cited claim as a downstream concept and stands without it (forward).
+
+Operates per claim, no DAG order — each claim's classifications depend only on its own prose, the substrate's existing classifications for that claim, and the bodies of referenced claims (read on demand). Labels appearing in the prose but absent from the substrate are validated against the cross-ASN label index; invalid labels fail loudly.
+
+Outputs a `citation-resolve` document per claim per run (only when classifications or retractions are produced), classified in the substrate as `citation.resolve`, with `provenance.derivation` links from the resolve doc to every citation/retraction it emitted.
+
+Citation-resolve is the protocol's lattice-builder. The reviewer/reviser pair acts on a typed lattice; citation-resolve produces it. It runs as a distinct stage (§5.X) — not interleaved per cycle — because soundness review and lattice construction are separable concerns.
+
 ### Claim-specific events
 
 In addition to the convergence protocol's events:
@@ -111,9 +129,10 @@ In addition to the convergence protocol's events:
 **Requests.**
 
 - ⟨ RegisterClaim | doc ⟩ — attach a `claim` classifier to doc, admitting it to the lattice.
-- ⟨ Cite | source, target ⟩ — create a `citation` link from source to target.
+- ⟨ Cite | source, target, direction ⟩ — create a `citation.<direction>` link from source to target. `direction` ∈ {`depends`, `forward`}.
 - ⟨ AttachContract | claim, kind ⟩ — create a `contract` link of subtype kind on claim.
 - ⟨ Retract | link_id ⟩ — create a `retraction` link nullifying the referenced link.
+- ⟨ ResolveCitations | claim ⟩ — invoke citation-resolve on claim; types every label reference in its prose.
 
 ---
 
@@ -207,7 +226,49 @@ Emits the substrate facts for one review event. First, ⟨ FileReview | aggregat
 
 ### 5.7 Revise
 
-For each new `comment.revise` filed in the current cycle, invoke V. V resolves the comment as in §5.3. When a revision removes a dependency from a claim's proof, the reviser files a ⟨ Retract ⟩ on the corresponding `citation` link — pruning the lattice edge that no longer reflects the reasoning.
+For each new `comment.revise` filed in the current cycle, invoke V. V resolves the comment as in §5.3. When a revision removes a dependency from a claim's proof, the reviser files a ⟨ Retract ⟩ on the corresponding `citation.depends` (or `citation.forward`) link — pruning the lattice edge that no longer reflects the reasoning.
+
+### 5.8 ResolveCitations (lattice-builder stage)
+
+Distinct from the iterative cycle of §5.2: a one-pass-per-claim transformation that types every claim-label reference in a claim's prose. Composed with §5.2 — typically run before engaging a scope so the cycle operates on a typed lattice — and not interleaved per cycle.
+
+```
+upon ⟨ ResolveCitations | claim ⟩ do
+  existing_depends  ← active_links(citation.depends, from=claim)
+  existing_forwards ← active_links(citation.forward,  from=claim)
+
+  ⟨ classifications, retractions ⟩ ← Classify(claim, existing_depends, existing_forwards)
+                                        ; one focused agent call; outputs structured
+
+  if classifications = ∅ and retractions = ∅ then
+    return ⟨ Resolved | claim, no-op ⟩    ; idempotent: no resolve doc, no commit
+
+  validate_labels(classifications, retractions)   ; cross-ASN label index lookup; fail-loud
+
+  apply_md_changes(claim, classifications, retractions)
+                                        ; insert bullets in *Depends:* / *Forward References:*;
+                                        ; remove bullets for retractions; dedup against
+                                        ; labels already in the section
+  resolve_doc ← persist_resolve_output(claim, classifications, retractions)
+
+  emit_classifier(citation.resolve, on=resolve_doc)
+  for c in classifications:
+    link ← Cite(claim, c.label, c.direction)
+    emit_provenance(derivation, from=resolve_doc, to=link)
+  for r in retractions:
+    link ← Retract(active_citation(claim, r.label, r.direction))
+    emit_provenance(derivation, from=resolve_doc, to=link)
+
+  indicate ⟨ Resolved | claim, |classifications|, |retractions| ⟩
+```
+
+The agent's classification call (Classify) takes the claim's `.md`, the substrate-sourced lists of already-classified labels, and produces the new `(classifications, retractions)`. The orchestrator validates labels against the cross-ASN index, then performs the substrate writes — Cite, Retract, classifier, provenance — atomically per claim. If Sonnet returns a label that doesn't resolve, validation fails before any write.
+
+A no-op call (Sonnet finds nothing to classify and nothing to retract) produces no resolve doc and no substrate writes, by design — the audit trail records changes, not checks.
+
+`Cite(claim, label, direction)` calls `emit_citation` which uses ActiveLinks for its idempotency check (§3 Retraction tooling). A previously-retracted citation does not block a fresh emission — re-typing a label after retraction creates a new active link, with the prior retraction left in place as audit history.
+
+ResolveCitations composes naturally with the iterative cycle: typed citations populate the substrate before §5.2 begins; cycle-internal revisions can then file new ⟨ Cite ⟩ events through the reviser without needing a separate resolve pass — until a revise creates a new claim or substantially restructures references, at which point ResolveCitations on the affected claims keeps the lattice typed.
 
 ---
 
@@ -239,7 +300,7 @@ If Engage i exits NotConverged with k open revise comments, then Engage (i + 1) 
 
 ### Retraction and convergence (CS2)
 
-Retraction of a `citation` link does not affect the convergence predicate — citation retraction changes the lattice's dependency structure but doesn't affect any active `comment.revise` or active `resolution`, so the predicate is unchanged.
+Retraction of a `citation.depends` or `citation.forward` link does not affect the convergence predicate — citation retraction changes the lattice's dependency structure (for `citation.depends`) or the structural reference record (for `citation.forward`), but doesn't affect any active `comment.revise` or active `resolution`, so the predicate is unchanged.
 
 Retraction of a `resolution` link *does* affect the convergence predicate — the retracted resolution no longer counts (per SUB5, active state evaluation), and the comment it closed becomes unresolved. The predicate goes false. The algorithm handles this through RetryOpenRevises (§5.3), which re-feeds the now-unresolved comment to the reviser on the next cycle.
 
