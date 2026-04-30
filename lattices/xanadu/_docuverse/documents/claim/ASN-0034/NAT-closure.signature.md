@@ -1,2 +1,2 @@
-- `+`
-- `1`
+- `+` — binary addition operation on ℕ, with signature `+ : ℕ × ℕ → ℕ`
+- `1` — the second named constant in ℕ, distinct from `0` in the strict order
