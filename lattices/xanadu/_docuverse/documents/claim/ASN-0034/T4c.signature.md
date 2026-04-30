@@ -1,0 +1,4 @@
+- `node address` — unary predicate on T; `t is a node address` iff `zeros(t) = 0` on the T4-valid subdomain
+- `user address` — unary predicate on T; `t is a user address` iff `zeros(t) = 1` on the T4-valid subdomain
+- `document address` — unary predicate on T; `t is a document address` iff `zeros(t) = 2` on the T4-valid subdomain
+- `element address` — unary predicate on T; `t is an element address` iff `zeros(t) = 3` on the T4-valid subdomain
