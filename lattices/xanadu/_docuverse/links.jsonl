@@ -4504,3 +4504,4 @@
 {"from_set": ["_docuverse/documents/agent/cone-review.md"], "id": "l_56a393f41fca", "op": "create", "to_set": ["l_f12cfea13a3f"], "ts": "2026-04-30T19:48:16Z", "type_set": ["manages"]}
 {"from_set": [], "id": "l_1d50f6f4e8a2", "op": "create", "to_set": ["_docuverse/documents/review/claims/ASN-0034/review-737.md"], "ts": "2026-04-30T19:56:54Z", "type_set": ["review"]}
 {"from_set": ["_docuverse/documents/agent/cone-review.md"], "id": "l_cacd8d18f823", "op": "create", "to_set": ["l_1d50f6f4e8a2"], "ts": "2026-04-30T19:56:54Z", "type_set": ["manages"]}
+{"from_set": ["_docuverse/documents/claim/ASN-0034/ActionPoint.md"], "id": "l_7d6a6c072b0c", "op": "create", "to_set": ["_docuverse/documents/claim/ASN-0034/ActionPoint.signature.md"], "ts": "2026-04-30T20:00:45Z", "type_set": ["signature"]}
