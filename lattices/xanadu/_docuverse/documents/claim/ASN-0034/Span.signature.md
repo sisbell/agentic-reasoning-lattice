@@ -1,0 +1,1 @@
+- `span` — function mapping a start address `s` and length `ℓ` to the set of all tumblers in the interval `[s, s ⊕ ℓ)`
