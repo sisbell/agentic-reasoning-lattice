@@ -1,0 +1,1 @@
+- `inc` — binary operation `inc : T × ℕ → T`; takes a tumbler and a non-negative level and produces the next sibling (`k = 0`) or a new child (`k > 0`) address
