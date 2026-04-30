@@ -17,4 +17,6 @@ The function is symmetric: `divergence(a, b) = divergence(b, a)`. In case (i), t
   - NAT-order (NatStrictTotalOrder) — trichotomy at length pair `(#a, #b)` splits case (ii) into sub-cases (ii-a)/(ii-b).
   - NAT-wellorder (NatWellOrdering) — existence of a least element in the nonempty subset `{k ∈ ℕ : 1 ≤ k ∧ k ≤ #a ∧ k ≤ #b ∧ aₖ ≠ bₖ}` grounds case (i)'s designating description, so "the least such `k`" is non-vacuous.
   - NAT-closure (NatArithmeticClosureAndIdentity) — addition closure instantiated at `(#a, 1)` and `(#b, 1)`, with `1 ∈ ℕ` from the same axiom, well-types case (ii)'s values `#a + 1` and `#b + 1` as ℕ.
+- *Forward References:*
+  - T1 (LexicographicOrder) — provides the two-case structure (component mismatch at a shared position; proper prefix) that the Divergence definition mirrors; cited as motivation for the case split, not consumed by the proof.
 - *Postconditions:* `divergence(a, b) ∈ ℕ`; exactly one of case (i) or case (ii) applies; in case (ii), `divergence(a, b) = #a + 1` in sub-case (ii-a) and `divergence(a, b) = #b + 1` in sub-case (ii-b); `divergence(a, b) = divergence(b, a)` for all `a ≠ b`.
