@@ -1,0 +1,3 @@
+- `≼` — prefix relation on tumblers; `p ≼ q` iff `#p ≤ #q` and all components of `p` match those of `q` positionally
+- `≺` — proper prefix relation; `p ≺ q` iff `p ≼ q ∧ p ≠ q`
+- `⋠` — non-prefix relation; `p ⋠ q` iff `¬(p ≼ q)`
