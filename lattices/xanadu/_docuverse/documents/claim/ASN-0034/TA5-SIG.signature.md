@@ -1,0 +1,1 @@
+- `sig` — the last-significant-position function `sig : T → ℕ`, mapping each tumbler to the rightmost nonzero component index, or to `#t` when all components are zero
