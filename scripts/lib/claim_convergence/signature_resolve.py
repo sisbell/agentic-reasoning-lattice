@@ -212,13 +212,34 @@ def _read_sidecar_symbols(claim_dir, claim_label):
     return symbols
 
 
+def _strip_prefix_drift(sym, desc):
+    """Strip a leading ``\\`<sym>\\` —`` (or ``\\`<sym>\\` -``) from desc.
+
+    Sonnet sometimes drifts into writing the full bullet shape into the
+    description, which doubles the symbol when the renderer adds its
+    own prefix. This guard removes the redundancy if it appears.
+    """
+    desc = desc.lstrip()
+    prefixes = (
+        f"`{sym}` — ",
+        f"`{sym}` - ",
+        f"`{sym}`—",
+        f"`{sym}`-",
+    )
+    for p in prefixes:
+        if desc.startswith(p):
+            return desc[len(p):].lstrip()
+    return desc
+
+
 def _render_sidecar(symbols_with_descriptions):
     """Render the signature sidecar markdown for a list of (sym, desc) pairs."""
     if not symbols_with_descriptions:
         return ""
     lines = []
     for sym, desc in symbols_with_descriptions:
-        lines.append(f"- `{sym}` — {desc}")
+        clean_desc = _strip_prefix_drift(sym, desc)
+        lines.append(f"- `{sym}` — {clean_desc}")
     return "\n".join(lines) + "\n"
 
 

@@ -51,7 +51,7 @@ REMOVES:
 
 If the claim introduces nothing new (most consumer claims), emit `INTRODUCES: []`. Same for removals: `REMOVES: []`. Both empty when the claim's contract has no symbol-level changes.
 
-The `description` should be terse and tied to use sites in *this* claim's Formal Contract. Match the style of existing signature bullets in the lattice: `` `<symbol>` — <role> ``.
+The `description` is the **role text only** — terse, tied to use sites in *this* claim's Formal Contract. Do NOT prefix the description with the symbol, backticks, or a dash; the renderer formats `- \`<symbol>\` — <description>` for you. If you write `description: "\`ℕ\` — the carrier set..."`, the rendered bullet ends up `` - `ℕ` — `ℕ` — the carrier set... `` (doubled).
 
 # Examples
 
