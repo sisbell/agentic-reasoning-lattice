@@ -1,15 +1,27 @@
-"""Sonnet REVISE/OBSERVE classifier — confirms reviewer self-classification.
+"""Sonnet REVISE/OBSERVE classifier — overrides reviewer self-classification.
 
 The reviewer self-classifies each finding (`**Class**: REVISE | OBSERVE`).
 This module runs an independent Sonnet pass against the strict test
-("would the artifact be wrong without the fix?") and emits a WARN when
-its verdict disagrees with the reviewer's. The classifier never
-overrides; it only surfaces disagreement for audit.
+("would the artifact be wrong without the fix?") and overrides the
+reviewer's class when the two disagree.
+
+The override is justified empirically: across the disagreements observed
+on ASN-0034 cone-sweep, the classifier was right ~73% of the time and
+the reviewer was right ~27%. The classifier's failure mode is mild
+(over-flagging prose-clarity issues as REVISE — extra revise work, no
+correctness loss); the reviewer's failure mode is severe (under-flagging
+contract-completeness and proof-step-grounding defects — real defects
+left in the artifact).
+
+When an override happens, the finding's body is annotated with
+`**Effective class**:` and `**Classifier rationale**:` lines below the
+reviewer's `**Class**:` line. Both readings are preserved on disk:
+the reviewer's original call and the classifier's verdict that won.
 
 Usage:
     findings = extract_findings(text)  # (title, reviewer_cls, body) tuples
-    warn_on_disagreement(findings)     # prints [WARN] lines on stderr
-    revise_findings = filter_revise(findings)  # uses reviewer's class
+    apply_classifier_verdict(findings) # mutates list; logs overrides
+    revise_findings = filter_revise(findings)  # uses effective class
 """
 
 import json
@@ -79,27 +91,57 @@ def classify_finding(finding_body, model="claude-sonnet-4-6"):
     return cls, rationale, cost
 
 
-def warn_on_disagreement(findings, model="claude-sonnet-4-6"):
-    """Confirm the reviewer's self-classification with an independent
-    Sonnet pass. Emits a WARN line on stderr for each disagreement.
-    Never modifies the input or downstream behavior.
+def _annotate_body(body, classifier_cls, rationale):
+    """Insert effective-class + rationale lines after the reviewer's
+    `**Class**:` line. Preserves the reviewer's original call as audit
+    history. If the body has no `**Class**:` line (legacy or malformed),
+    appends the annotation at the end so it isn't lost."""
+    lines = body.split("\n")
+    rationale_line = (
+        f"**Classifier rationale**: {rationale}" if rationale
+        else "**Classifier rationale**: (none provided)"
+    )
+    annotation = [
+        f"**Effective class**: {classifier_cls} (classifier override)",
+        rationale_line,
+    ]
+    for i, line in enumerate(lines):
+        if line.strip().lower().startswith("**class**"):
+            for offset, ann in enumerate(annotation, 1):
+                lines.insert(i + offset, ann)
+            return "\n".join(lines)
+    return body.rstrip() + "\n\n" + "\n".join(annotation) + "\n"
+
+
+def apply_classifier_verdict(findings, model="claude-sonnet-4-6"):
+    """Run the classifier on each finding. When the classifier disagrees
+    with the reviewer's class, override the finding's class with the
+    classifier's verdict and annotate the body. Mutates `findings` in
+    place — each (title, cls, body) tuple is replaced when an override
+    occurs.
+
+    The override is logged to stderr with `[CLASSIFIER OVERRIDE]` so the
+    operator can spot which classifications changed mid-run; the body
+    annotation is the persistent audit trail.
 
     `findings` is the list produced by `extract_findings` —
     (title, reviewer_cls, body) tuples.
     """
     total_cost = 0.0
-    disagreements = 0
-    for title, reviewer_cls, body in findings:
+    overrides = 0
+    for i, (title, reviewer_cls, body) in enumerate(findings):
         cls, rationale, cost = classify_finding(body, model=model)
         total_cost += cost
         if cls in _VALID_CLASSES and reviewer_cls in _VALID_CLASSES and cls != reviewer_cls:
-            disagreements += 1
-            print(f"  [CLASSIFIER WARN] reviewer={reviewer_cls} classifier={cls}: "
-                  f"{title[:70]}", file=sys.stderr)
+            overrides += 1
+            print(f"  [CLASSIFIER OVERRIDE] reviewer={reviewer_cls} → "
+                  f"classifier={cls}: {title[:70]}", file=sys.stderr)
             if rationale:
-                print(f"  [CLASSIFIER WARN]   rationale: {rationale}",
+                print(f"  [CLASSIFIER OVERRIDE]   rationale: {rationale}",
                       file=sys.stderr)
+            annotated = _annotate_body(body, cls, rationale)
+            findings[i] = (title, cls, annotated)
     if findings:
-        print(f"  [CLASSIFIER] {len(findings)} finding(s) confirmed, "
-              f"{disagreements} disagreement(s), ${total_cost:.4f}",
+        print(f"  [CLASSIFIER] {len(findings)} finding(s) processed, "
+              f"{overrides} override(s), ${total_cost:.4f}",
               file=sys.stderr)

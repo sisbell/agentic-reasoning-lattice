@@ -29,7 +29,7 @@ from lib.claim_convergence.full_review.review import (
     run_review, extract_findings, filter_revise,
     cycle_verdict, findings_summary,
 )
-from lib.claim_convergence.finding_classifier import warn_on_disagreement
+from lib.claim_convergence.finding_classifier import apply_classifier_verdict
 
 
 from lib.claim_convergence.full_review.revise import revise
@@ -390,7 +390,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
         meta_path = review_aggregate_path(asn_label, review_num, kind="claim")
 
         findings = extract_findings(findings_text)
-        warn_on_disagreement(findings)
+        apply_classifier_verdict(findings)
         emitted_findings = emit_findings(
             store, meta_path, findings,
             asn_label, review_stem, label_index,
@@ -494,7 +494,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
                 confirm_meta_path = review_aggregate_path(asn_label, review_num, kind="claim")
 
                 confirm_findings = extract_findings(confirm_findings_text)
-                warn_on_disagreement(confirm_findings)
+                apply_classifier_verdict(confirm_findings)
                 emitted_findings = emit_findings(
                     store, confirm_meta_path, confirm_findings,
                     asn_label, review_stem, label_index,
