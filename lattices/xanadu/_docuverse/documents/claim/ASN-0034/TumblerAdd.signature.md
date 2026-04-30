@@ -1,1 +1,1 @@
-- `⊕`
+- `⊕` — binary position-advance operation on T; given start position `a` and displacement `w`, computes the tumbler reached by advancing at the action point of `w`
