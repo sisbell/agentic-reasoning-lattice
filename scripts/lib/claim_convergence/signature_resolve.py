@@ -147,14 +147,12 @@ def _parse_response(text):
     if rem_idx < intro_idx:
         raise ValueError("REMOVES appears before INTRODUCES")
 
-    # Take only the first paragraph after each section header — Sonnet
-    # may append prose explanation (sometimes wrapped in code fences)
-    # which YAML safe_load can't handle. The actual YAML list is always
-    # in the first paragraph.
-    intro_block = text[intro_idx + len("INTRODUCES:"):rem_idx]
-    rem_block = text[rem_idx + len("REMOVES:"):]
-    intro_yaml = strip_code_fence(intro_block.split("\n\n", 1)[0].strip())
-    rem_yaml = strip_code_fence(rem_block.split("\n\n", 1)[0].strip())
+    intro_yaml = strip_code_fence(
+        text[intro_idx + len("INTRODUCES:"):rem_idx].strip()
+    )
+    rem_yaml = strip_code_fence(
+        text[rem_idx + len("REMOVES:"):].strip()
+    )
 
     try:
         introduces = yaml.safe_load(intro_yaml) or []
@@ -214,34 +212,13 @@ def _read_sidecar_symbols(claim_dir, claim_label):
     return symbols
 
 
-def _strip_prefix_drift(sym, desc):
-    """Strip a leading ``\\`<sym>\\` —`` (or ``\\`<sym>\\` -``) from desc.
-
-    Sonnet sometimes drifts into writing the full bullet shape into the
-    description, which doubles the symbol when the renderer adds its
-    own prefix. This guard removes the redundancy if it appears.
-    """
-    desc = desc.lstrip()
-    prefixes = (
-        f"`{sym}` — ",
-        f"`{sym}` - ",
-        f"`{sym}`—",
-        f"`{sym}`-",
-    )
-    for p in prefixes:
-        if desc.startswith(p):
-            return desc[len(p):].lstrip()
-    return desc
-
-
 def _render_sidecar(symbols_with_descriptions):
     """Render the signature sidecar markdown for a list of (sym, desc) pairs."""
     if not symbols_with_descriptions:
         return ""
     lines = []
     for sym, desc in symbols_with_descriptions:
-        clean_desc = _strip_prefix_drift(sym, desc)
-        lines.append(f"- `{sym}` — {clean_desc}")
+        lines.append(f"- `{sym}` — {desc}")
     return "\n".join(lines) + "\n"
 
 
