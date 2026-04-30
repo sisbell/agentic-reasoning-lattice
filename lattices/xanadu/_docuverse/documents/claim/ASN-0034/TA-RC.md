@@ -6,7 +6,7 @@ The converse — right cancellation — does not hold.
 
 *Proof.* We exhibit three specific tumblers and verify the claim by direct computation.
 
-Let `a = [1, 3, 5]`, `b = [1, 3, 7]`, and `w = [0, 2, 4]`. The third components differ (`5 ≠ 7`), so `a ≠ b` by T3.
+Let `a = [1, 3, 5]`, `b = [1, 3, 7]`, and `w = [0, 2, 4]`. Each is a length-3 nonempty finite sequence over ℕ; T0's comprehension clause, instantiated at `p = 3` and the component maps `r_a(1)=1, r_a(2)=3, r_a(3)=5`, `r_b(1)=1, r_b(2)=3, r_b(3)=7`, and `r_w(1)=0, r_w(2)=2, r_w(3)=4`, supplies witness tumblers in `T` with these lengths and components, establishing `a, b, w ∈ T`. The third components differ (`5 ≠ 7`), so `a ≠ b` by T3.
 
 The displacement `w` has action point `k = 2`, since `w₁ = 0` and `w₂ = 2 > 0`. TA0 requires `actionPoint(w) ≤ #a` and `actionPoint(w) ≤ #b`; both reduce to `2 ≤ 3`, which holds.
 
@@ -32,6 +32,7 @@ We have exhibited `a ≠ b` with `a ⊕ w = b ⊕ w`, both sides well-defined: r
 
 *Formal Contract:*
 - *Depends:*
+  - T0 (CarrierSetDefinition) — comprehension clause, instantiated at length `p = 3` with the component maps for `a = [1,3,5]`, `b = [1,3,7]`, and `w = [0,2,4]` respectively, establishes `a, b, w ∈ T` — the carrier-set membership presupposed by every condition cited below.
   - T3 (CanonicalRepresentation) — inequality from a single component disagreement.
   - TA0 (WellDefinedAddition) — action-point bound for well-definedness.
   - TA-Pos (PositiveTumbler) — positivity of `w` licensing the action point.
