@@ -147,12 +147,14 @@ def _parse_response(text):
     if rem_idx < intro_idx:
         raise ValueError("REMOVES appears before INTRODUCES")
 
-    intro_yaml = strip_code_fence(
-        text[intro_idx + len("INTRODUCES:"):rem_idx].strip()
-    )
-    rem_yaml = strip_code_fence(
-        text[rem_idx + len("REMOVES:"):].strip()
-    )
+    # Take only the first paragraph after each section header — Sonnet
+    # may append prose explanation (sometimes wrapped in code fences)
+    # which YAML safe_load can't handle. The actual YAML list is always
+    # in the first paragraph.
+    intro_block = text[intro_idx + len("INTRODUCES:"):rem_idx]
+    rem_block = text[rem_idx + len("REMOVES:"):]
+    intro_yaml = strip_code_fence(intro_block.split("\n\n", 1)[0].strip())
+    rem_yaml = strip_code_fence(rem_block.split("\n\n", 1)[0].strip())
 
     try:
         introduces = yaml.safe_load(intro_yaml) or []
