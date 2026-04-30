@@ -4518,3 +4518,4 @@
 {"from_set": ["_docuverse/documents/claim/ASN-0034/T4c.md"], "id": "l_d1f9e16e53f3", "op": "create", "to_set": ["_docuverse/documents/claim/ASN-0034/T4c.signature.md"], "ts": "2026-04-30T20:25:58Z", "type_set": ["signature"]}
 {"from_set": ["_docuverse/documents/claim/ASN-0034/T7.md"], "id": "l_18f2ea6130f8", "op": "create", "to_set": ["_docuverse/documents/claim/ASN-0034/T7.signature.md"], "ts": "2026-04-30T20:27:38Z", "type_set": ["signature"]}
 {"from_set": ["_docuverse/documents/claim/ASN-0034/T9.md"], "id": "l_25ce19417a0f", "op": "create", "to_set": ["_docuverse/documents/claim/ASN-0034/T9.signature.md"], "ts": "2026-04-30T20:28:33Z", "type_set": ["signature"]}
+{"from_set": ["_docuverse/documents/claim/ASN-0034/TA-Pos.md"], "id": "l_6c5c1a76da5b", "op": "create", "to_set": ["_docuverse/documents/claim/ASN-0034/TA-Pos.signature.md"], "ts": "2026-04-30T20:28:56Z", "type_set": ["signature"]}
