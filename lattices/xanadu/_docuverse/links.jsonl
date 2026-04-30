@@ -3542,3 +3542,6 @@
 {"from_set": [], "id": "l_ded67e9fe713", "op": "create", "to_set": ["_docuverse/documents/citation-resolve/claims/ASN-0034/D0-1.md"], "ts": "2026-04-30T04:22:38Z", "type_set": ["citation.resolve"]}
 {"from_set": ["_docuverse/documents/claim/ASN-0034/D0.md"], "id": "l_f14ecb66458e", "op": "create", "to_set": ["_docuverse/documents/claim/ASN-0034/D1.md"], "ts": "2026-04-30T04:22:38Z", "type_set": ["citation.forward"]}
 {"from_set": ["_docuverse/documents/citation-resolve/claims/ASN-0034/D0-1.md"], "id": "l_6d2396ad7b5d", "op": "create", "to_set": ["l_f14ecb66458e"], "ts": "2026-04-30T04:22:38Z", "type_set": ["provenance.derivation"]}
+{"from_set": [], "id": "l_3ea2cc5054e0", "op": "create", "to_set": ["_docuverse/documents/citation-resolve/claims/ASN-0034/D2-1.md"], "ts": "2026-04-30T04:27:19Z", "type_set": ["citation.resolve"]}
+{"from_set": ["_docuverse/documents/claim/ASN-0034/D2.md"], "id": "l_74c3b46b7d66", "op": "create", "to_set": ["_docuverse/documents/claim/ASN-0034/D0.md"], "ts": "2026-04-30T04:27:19Z", "type_set": ["citation.forward"]}
+{"from_set": ["_docuverse/documents/citation-resolve/claims/ASN-0034/D2-1.md"], "id": "l_4301779477a6", "op": "create", "to_set": ["l_74c3b46b7d66"], "ts": "2026-04-30T04:27:19Z", "type_set": ["provenance.derivation"]}
