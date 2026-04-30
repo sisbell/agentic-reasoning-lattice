@@ -53,10 +53,12 @@ VALID_SUBTYPES = {
     },
     "comment": {"revise", "observe", "out-of-scope"},
     "resolution": {"edit", "reject"},
-    # Citation — directional link between two claims:
+    # Citation — directional link between two claims, plus the
+    # classifier marking citation-resolve operation outputs:
     #   depends   — backward: this claim's correctness rests on the cited claim
     #   forward   — forward: this claim names a downstream claim it does not depend on
-    "citation": {"depends", "forward"},
+    #   resolve   — classifier on a citation-resolve output document
+    "citation": {"depends", "forward", "resolve"},
     # Consultation — per-doc classifiers for the artifacts a consultation
     # session produces. Each subtype names the role of the doc:
     #   questions   — the generated question set (one doc, N questions)
