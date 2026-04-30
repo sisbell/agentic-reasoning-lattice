@@ -1,0 +1,1 @@
+- `ℕ` — the carrier set of natural numbers; underlying domain for all NAT-* operations and relations

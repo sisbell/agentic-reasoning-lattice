@@ -4491,3 +4491,4 @@
 {"from_set": ["_docuverse/documents/agent/cone-review.md"], "id": "l_bb84c67d6b00", "op": "create", "to_set": ["l_78625fae86e4"], "ts": "2026-04-30T19:40:19Z", "type_set": ["manages"]}
 {"from_set": ["_docuverse/documents/claim/ASN-0034/NAT-order.md"], "id": "l_ad209630d1ea", "op": "create", "to_set": ["l_2b5cbe4eabe4"], "ts": "2026-04-30T19:42:07Z", "type_set": ["resolution.edit"]}
 {"from_set": ["_docuverse/documents/agent/cone-review.md"], "id": "l_32ec3454dfda", "op": "create", "to_set": ["l_ad209630d1ea"], "ts": "2026-04-30T19:42:07Z", "type_set": ["manages"]}
+{"from_set": ["_docuverse/documents/claim/ASN-0034/NAT-carrier.md"], "id": "l_d8fc2fe74c0d", "op": "create", "to_set": ["_docuverse/documents/claim/ASN-0034/NAT-carrier.signature.md"], "ts": "2026-04-30T19:43:15Z", "type_set": ["signature"]}
