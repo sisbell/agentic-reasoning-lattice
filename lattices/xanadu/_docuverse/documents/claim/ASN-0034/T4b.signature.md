@@ -1,0 +1,6 @@
+- `N` — node-field projection partial function `N : T ⇀ T`; defined on the T4-valid subdomain, returning the maximal initial non-zero sub-sequence of `t` before the first separator
+- `U` — user-field projection partial function `U : T ⇀ T`; defined on `{t ∈ dom(N) : zeros(t) ≥ 1}`, returning the non-zero sub-sequence between the first and second separators
+- `D` — document-field projection partial function `D : T ⇀ T`; defined on `{t ∈ dom(N) : zeros(t) ≥ 2}`, returning the non-zero sub-sequence between the second and third separators
+- `E` — element-field projection partial function `E : T ⇀ T`; defined on `{t ∈ dom(N) : zeros(t) = 3}`, returning the non-zero sub-sequence after the third separator
+- `ℕ⁺` — the set `{n ∈ ℕ : 0 < n}` of strictly positive naturals; the common image type of all four projections
+- `·.X₁` — dot-accessor notation `t.X₁ := (X(t))₁`; T0's component projection at index 1 applied to the field projection `X(t)`, defined iff `X(t)` is defined
