@@ -1,3 +1,4 @@
-- `<`
-- `≤`
-- `≥`
+- `<` — strict total order relation on ℕ; binary relation `< ⊆ ℕ × ℕ` satisfying irreflexivity, transitivity, and at-least-one trichotomy
+- `≤` — non-strict companion order, defined as `m ≤ n ⟺ m < n ∨ m = n`
+- `≥` — reverse non-strict order, defined as `m ≥ n ⟺ n ≤ m`
+- `>` — reverse strict order, defined as `m > n ⟺ n < m`
