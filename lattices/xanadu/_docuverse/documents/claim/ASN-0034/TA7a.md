@@ -53,6 +53,10 @@ The restriction to element-local displacements is necessary: an unrestricted dis
   - NAT-sub (NatPartialSubtraction) — strict-positivity clause `m > n ⟹ m − n ≥ 1` discharges `r₁ > 0` at the divergence point of Conjunct 2.
   - NAT-closure (NatArithmeticClosureAndIdentity) — supplies `1 ∈ ℕ` for the numerals in quantifier bounds and in `wₖ ≥ 1`; additive identity required in scope for the consumed contracts of TumblerAdd, TumblerSub, TA-Pos, and ActionPoint.
   - NAT-zero (NatZeroMinimum) — supplies `0 ∈ ℕ` for the literal `0` in the **S** positivity clause `oᵢ > 0` and for the zero-padding semantics of TumblerSub consumed in Conjunct 2.
+- *Forward References:*
+  - TA7a.1 (SubspaceLengthResidue) — handles the complementary length-overflow residue case (`#w > #o`) relocated from TA7a's precondition lattice
+  - TA7a.2 (SubspaceDivergenceResidue) — handles the complementary leading-zero residue case (`o₁ = w₁`) relocated from TA7a's precondition lattice
+  - TA7a.3 (SubspaceZeroResidue) — handles the complementary self-subtraction residue case (collapse to Z) relocated from TA7a's precondition lattice
 - *Postconditions:* `o ⊕ w ∈ S` with `#(o ⊕ w) = #w`; `o ⊖ w ∈ S` with `#(o ⊖ w) = #o`.
 - *Frame:* The subspace identifier `N` is not an operand and is never modified.
 - *Definition:* **S** = {o ∈ T : #o ≥ 1 ∧ (A i : 1 ≤ i ≤ #o : oᵢ > 0)}.
