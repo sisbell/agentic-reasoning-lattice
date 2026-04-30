@@ -209,12 +209,32 @@ def _bullet_label(bullet_line):
     return bullet_line[4:].split(None, 1)[0]
 
 
+def _existing_section_labels(lines, header):
+    """Return the set of labels already bulleted in the named section,
+    or an empty set if the section is absent."""
+    section = _find_section(lines, header)
+    if section is None:
+        return set()
+    start_idx, last_bullet_idx = section
+    labels = set()
+    for j in range(start_idx + 1, last_bullet_idx + 1):
+        line = lines[j]
+        if line.startswith("  - "):
+            labels.add(_bullet_label(line))
+    return labels
+
+
 def _apply_changes(claim_md_path, classifications, retractions):
     """Apply classifications (insert bullets) and retractions (remove
     bullets) to the claim's .md.
 
     Retractions are applied first (so a reclassify works correctly:
     retract old direction, insert new direction).
+
+    Bullet inserts are de-duplicated against labels already in the
+    target section — Sonnet may re-classify a label whose bullet is
+    already present, and we don't want to grow the section with
+    duplicates.
     """
     lines = claim_md_path.read_text().split("\n")
 
@@ -248,29 +268,35 @@ def _apply_changes(claim_md_path, classifications, retractions):
                 f"no {DEPENDS_HEADER!r} section in {claim_md_path}; "
                 f"cannot add depends bullets"
             )
-        _, last_bullet_idx = section
-        for c in reversed(depends_to_add):
-            lines.insert(last_bullet_idx + 1, "  " + c["bullet"].lstrip())
+        existing = _existing_section_labels(lines, DEPENDS_HEADER)
+        depends_to_add = [c for c in depends_to_add if c["label"] not in existing]
+        if depends_to_add:
+            _, last_bullet_idx = _find_section(lines, DEPENDS_HEADER)
+            for c in reversed(depends_to_add):
+                lines.insert(last_bullet_idx + 1, "  " + c["bullet"].lstrip())
 
     if forwards_to_add:
-        section = _find_section(lines, FORWARD_HEADER)
-        if section is None:
-            depends_section = _find_section(lines, DEPENDS_HEADER)
-            if depends_section is None:
-                raise ValueError(
-                    f"cannot create {FORWARD_HEADER!r}: no {DEPENDS_HEADER!r} "
-                    f"to anchor it after in {claim_md_path}"
-                )
-            _, depends_last = depends_section
-            new_block = [FORWARD_HEADER]
-            for c in forwards_to_add:
-                new_block.append("  " + c["bullet"].lstrip())
-            for ln in reversed(new_block):
-                lines.insert(depends_last + 1, ln)
-        else:
-            _, last_bullet_idx = section
-            for c in reversed(forwards_to_add):
-                lines.insert(last_bullet_idx + 1, "  " + c["bullet"].lstrip())
+        existing = _existing_section_labels(lines, FORWARD_HEADER)
+        forwards_to_add = [c for c in forwards_to_add if c["label"] not in existing]
+        if forwards_to_add:
+            section = _find_section(lines, FORWARD_HEADER)
+            if section is None:
+                depends_section = _find_section(lines, DEPENDS_HEADER)
+                if depends_section is None:
+                    raise ValueError(
+                        f"cannot create {FORWARD_HEADER!r}: no {DEPENDS_HEADER!r} "
+                        f"to anchor it after in {claim_md_path}"
+                    )
+                _, depends_last = depends_section
+                new_block = [FORWARD_HEADER]
+                for c in forwards_to_add:
+                    new_block.append("  " + c["bullet"].lstrip())
+                for ln in reversed(new_block):
+                    lines.insert(depends_last + 1, ln)
+            else:
+                _, last_bullet_idx = section
+                for c in reversed(forwards_to_add):
+                    lines.insert(last_bullet_idx + 1, "  " + c["bullet"].lstrip())
 
     claim_md_path.write_text("\n".join(lines))
 
