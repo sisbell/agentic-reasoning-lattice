@@ -4513,3 +4513,4 @@
 {"from_set": ["_docuverse/documents/claim/ASN-0034/Span.md"], "id": "l_5cbf36f0c777", "op": "create", "to_set": ["_docuverse/documents/claim/ASN-0034/Span.signature.md"], "ts": "2026-04-30T20:19:27Z", "type_set": ["signature"]}
 {"from_set": ["_docuverse/documents/claim/ASN-0034/T1.md"], "id": "l_3c1d54beacbb", "op": "create", "to_set": ["_docuverse/documents/claim/ASN-0034/T1.signature.md"], "ts": "2026-04-30T20:20:23Z", "type_set": ["signature"]}
 {"from_set": ["_docuverse/documents/claim/ASN-0034/T10a.md"], "id": "l_dcc1819a5684", "op": "create", "to_set": ["_docuverse/documents/claim/ASN-0034/T10a.signature.md"], "ts": "2026-04-30T20:21:30Z", "type_set": ["signature"]}
+{"from_set": ["_docuverse/documents/claim/ASN-0034/T4.md"], "id": "l_e48d65139710", "op": "create", "to_set": ["_docuverse/documents/claim/ASN-0034/T4.signature.md"], "ts": "2026-04-30T20:24:12Z", "type_set": ["signature"]}
