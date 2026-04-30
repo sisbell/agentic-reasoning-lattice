@@ -26,13 +26,12 @@ from lib.shared.common import (
     step_commit_asn,
 )
 from lib.claim_convergence.full_review.review import (
-    run_review, extract_findings, filter_revise, parse_missing_references,
+    run_review, extract_findings, filter_revise,
     cycle_verdict, findings_summary,
 )
 from lib.claim_convergence.finding_classifier import warn_on_disagreement
 
 
-MAX_EXPANSIONS = 5
 from lib.claim_convergence.full_review.revise import revise
 from lib.claim_convergence.core.build_dependency_graph import generate_claim_convergence_deps
 from lib.claim_convergence.core.topological_sort import topological_levels
@@ -192,6 +191,34 @@ def assemble_cone(asn_label, apex_label, dep_labels):
     return "\n\n---\n\n".join(parts)
 
 
+def transitive_same_asn_deps(store, apex_path, asn_labels, rev_index):
+    """BFS through citation.depends from `apex_path`, returning the
+    list of same-ASN labels reachable (excluding the apex itself).
+
+    Walks only `citation.depends` (backward grounding); forward citations
+    are deliberately not followed — the cone is the apex's grounding
+    chain, not the downstream tree. Same-ASN only — cross-ASN deps are
+    delivered separately via foundation_statements.
+    """
+    visited = {apex_path}
+    queue = [apex_path]
+    deps = []
+    while queue:
+        cur = queue.pop(0)
+        for link in active_links(store, "citation.depends", from_set=[cur]):
+            if not link["to_set"]:
+                continue
+            target = link["to_set"][0]
+            if target in visited:
+                continue
+            visited.add(target)
+            label = rev_index.get(target)
+            if label and label in asn_labels:
+                deps.append(label)
+                queue.append(target)
+    return deps
+
+
 def _declined_findings_for_cone(store, cone_md_paths, max_rejects=5):
     """Return text of recently-declined findings on this cone.
 
@@ -266,17 +293,26 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
     claim_dir = CLAIM_DIR / asn_label
     review_dir = CLAIM_REVIEWS_DIR / asn_label
 
+    store = default_store()
+    label_index = build_cross_asn_label_index(store=store)
+    asn_labels = set(build_label_index(claim_dir).keys())
+    rev_index = {p: l for l, p in label_index.items()}
+
+    # Walk the citation.depends graph transitively from the apex to get
+    # the full grounding chain for soundness review. Replaces whatever
+    # `dep_labels` the caller passed (typically direct deps) — substrate
+    # is now the source of truth.
+    apex_md_path = label_index.get(apex_label)
+    if apex_md_path:
+        dep_labels = transitive_same_asn_deps(
+            store, apex_md_path, asn_labels, rev_index,
+        )
+
     print(f"\n  [REGIONAL-REVIEW] {apex_label} + {len(dep_labels)} deps",
           file=sys.stderr)
 
-    store = default_store()
-    label_index = build_cross_asn_label_index(store=store)
-
     # Collect cross-ASN deps for narrowed foundation loading.
-    # Read from the substrate's citation links rather than YAML's depends.
-    asn_labels = set(build_label_index(claim_dir).keys())
     all_cone_labels = [apex_label] + dep_labels
-    rev_index = {p: l for l, p in label_index.items()}
     cross_asn_deps = []
     for label in all_cone_labels:
         from_path = label_index.get(label)
@@ -299,7 +335,6 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
 
     # Build the cone's claim-path set once. Used to scope the declined-
     # findings query that primes the reviewer's "do not re-raise" context.
-    apex_md_path = label_index.get(apex_label)
     cone_paths = [apex_md_path] if apex_md_path else []
     for d in dep_labels:
         p = label_index.get(d)
@@ -336,40 +371,14 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
             store.close()
             return "failed"
 
-        # Review with lazy cone expansion: if the reviewer flags claim
-        # labels it saw referenced but not shown, expand the cone to
-        # include them and re-review. Bounded by MAX_EXPANSIONS. Only the
-        # final stable review is saved and acted on.
-        current_deps = list(dep_labels)
-        expansion_round = 0
-        while True:
-            cone_content = assemble_cone(asn_label, apex_label, current_deps)
-            verdict, findings_text, elapsed = run_review(
-                asn_num, cone_content, asn_label, previous_findings,
-                model=model, foundation_labels=cross_asn_deps)
-
-            if verdict == "ERROR":
-                break
-
-            missing = parse_missing_references(findings_text)
-            real_missing = [
-                m for m in missing
-                if m in asn_labels
-                and m not in current_deps
-                and m != apex_label
-            ]
-
-            if not real_missing:
-                break
-            if expansion_round >= MAX_EXPANSIONS:
-                print(f"  [EXPAND] max rounds ({MAX_EXPANSIONS}) reached; "
-                      f"unresolved: {real_missing}", file=sys.stderr)
-                break
-
-            expansion_round += 1
-            print(f"  [EXPAND] round {expansion_round}: adding "
-                  f"{real_missing} to cone", file=sys.stderr)
-            current_deps.extend(real_missing)
+        # Review on the complete cone in one pass. Cone-assembly walks
+        # the citation.depends graph transitively from the apex, so the
+        # full grounding chain is in scope from round 0; lazy expansion
+        # via reviewer-emitted MISSING-REFERENCES is no longer needed.
+        cone_content = assemble_cone(asn_label, apex_label, dep_labels)
+        verdict, findings_text, elapsed = run_review(
+            asn_num, cone_content, asn_label, previous_findings,
+            model=model, foundation_labels=cross_asn_deps)
 
         if verdict == "ERROR":
             print(f"\n  [REGIONAL-REVIEW] FAILED on cycle {cycle} (review error). Skipping.",
