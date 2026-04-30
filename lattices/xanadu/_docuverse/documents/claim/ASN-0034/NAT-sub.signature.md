@@ -1,1 +1,1 @@
-- `−`
+- `−` — partial binary subtraction operation on ℕ, with signature `− : {(m, n) ∈ ℕ × ℕ : m ≥ n} → ℕ`
