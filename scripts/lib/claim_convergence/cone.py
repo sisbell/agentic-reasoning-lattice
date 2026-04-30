@@ -29,6 +29,7 @@ from lib.claim_convergence.full_review.review import (
     run_review, extract_findings, filter_revise, parse_missing_references,
     cycle_verdict, findings_summary,
 )
+from lib.claim_convergence.finding_classifier import warn_on_disagreement
 
 
 MAX_EXPANSIONS = 5
@@ -250,7 +251,7 @@ def _declined_findings_for_cone(store, cone_md_paths, max_rejects=5):
 
 @attributed_to("cone-review")
 def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
-                        dry_run=False, model="opus"):
+                        dry_run=False, model="sonnet"):
     """Run a focused cone-scope review/revise loop on one dependency cone.
 
     Same structure as full-review but with narrower context:
@@ -380,6 +381,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
         meta_path = review_aggregate_path(asn_label, review_num, kind="claim")
 
         findings = extract_findings(findings_text)
+        warn_on_disagreement(findings)
         emitted_findings = emit_findings(
             store, meta_path, findings,
             asn_label, review_stem, label_index,
@@ -483,6 +485,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
                 confirm_meta_path = review_aggregate_path(asn_label, review_num, kind="claim")
 
                 confirm_findings = extract_findings(confirm_findings_text)
+                warn_on_disagreement(confirm_findings)
                 emitted_findings = emit_findings(
                     store, confirm_meta_path, confirm_findings,
                     asn_label, review_stem, label_index,
@@ -560,7 +563,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
 
 
 def run_cone_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False,
-                   model="opus", all_mode=False):
+                   model="sonnet", all_mode=False):
     """Proactive cone-scope sweep — bottom-up DAG walk.
 
     For each claim with >= min_deps same-ASN dependencies,
