@@ -9,6 +9,8 @@
   - T0 (CarrierSetDefinition) — `#t ≥ 1` and components in ℕ.
   - T4 (HierarchicalParsing) — boundary clause `t₁ ≠ 0`.
   - TA-Pos (PositiveTumbler) — definition of `Zero(t)`.
+- *Forward References:*
+  - TA-PosDom (PositiveDominatesZero) — uses zero tumblers as the dominated class in its ordering result; TA6 sentinels are the context for that pairing.
 - *Postcondition:* `(A t ∈ T : Zero(t) ⟹ t is not a valid address)`.
 
 Zero tumblers thus exist in `T` but lie outside the address-valid subset; paired with TA-PosDom's ordering result they act as sentinels — uninitialized markers, unbounded span endpoints, and lower bounds.
