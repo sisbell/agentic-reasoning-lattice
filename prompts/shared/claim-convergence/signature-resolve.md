@@ -37,16 +37,16 @@ What does **not** count as introduced:
 
 # Output
 
-Output exactly this structure. No preamble.
+Output exactly this structure. No preamble. Both `symbol` and `description` (and `reason` for removals) MUST be wrapped in double quotes — the parser is YAML-based and unquoted values containing `:` (e.g., set-builder notation `{i ∈ ℕ : 1 ≤ i ≤ #w}`) will break parsing.
 
 ```
 INTRODUCES:
-- symbol: <symbol>
-  description: <one short sentence: what role this symbol plays in this claim's contract>
+- symbol: "<symbol>"
+  description: "<one short sentence: what role this symbol plays in this claim's contract>"
 
 REMOVES:
-- symbol: <symbol>
-  reason: <why this symbol is no longer in the claim's contract>
+- symbol: "<symbol>"
+  reason: "<why this symbol is no longer in the claim's contract>"
 ```
 
 If the claim introduces nothing new (most consumer claims), emit `INTRODUCES: []`. Same for removals: `REMOVES: []`. Both empty when the claim's contract has no symbol-level changes.
@@ -59,8 +59,8 @@ A foundation claim introducing one symbol:
 
 ```
 INTRODUCES:
-- symbol: ℕ
-  description: the carrier set of natural numbers; underlying domain for arithmetic and order claims downstream
+- symbol: "ℕ"
+  description: "the carrier set of natural numbers; underlying domain for arithmetic and order claims downstream"
 
 REMOVES: []
 ```
@@ -69,12 +69,12 @@ A foundation claim introducing several:
 
 ```
 INTRODUCES:
-- symbol: <
-  description: strict total order on ℕ; relation `< ⊆ ℕ × ℕ`
-- symbol: ≤
-  description: companion non-strict order, defined as `m ≤ n ⟺ m < n ∨ m = n`
-- symbol: ≥
-  description: reverse non-strict order, defined as `a ≥ b ⟺ b ≤ a`
+- symbol: "<"
+  description: "strict total order on ℕ; relation `< ⊆ ℕ × ℕ`"
+- symbol: "≤"
+  description: "companion non-strict order, defined as `m ≤ n ⟺ m < n ∨ m = n`"
+- symbol: "≥"
+  description: "reverse non-strict order, defined as `a ≥ b ⟺ b ≤ a`"
 
 REMOVES: []
 ```
