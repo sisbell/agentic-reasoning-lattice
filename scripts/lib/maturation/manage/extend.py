@@ -119,7 +119,7 @@ def compute_depends(base_num):
     base_rel = str(base_inq.resolve().relative_to(LATTICE.resolve()))
     deps = {base_num}
     with Store() as store:
-        for link in active_links(store, "citation", from_set=[base_rel]):
+        for link in active_links(store, "citation.depends", from_set=[base_rel]):
             if not link["to_set"]:
                 continue
             m = re.search(r"ASN-(\d+)", link["to_set"][0])

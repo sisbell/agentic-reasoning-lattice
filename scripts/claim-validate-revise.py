@@ -201,7 +201,7 @@ def build_metadata_bundle(rule, filename, pairs, claim_dir):
             md_rel = str(
                 (claim_dir / f"{stem}.md").resolve().relative_to(workspace)
             )
-            for link in active_links(store, "citation", from_set=[md_rel]):
+            for link in active_links(store, "citation.depends", from_set=[md_rel]):
                 if link["to_set"]:
                     dep_stem = Path(link["to_set"][0]).stem
                     if dep_stem not in labels_to_include:

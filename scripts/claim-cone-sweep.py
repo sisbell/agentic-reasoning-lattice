@@ -65,7 +65,7 @@ def main():
             apex_path = label_index.get(args.cone)
             rev_index = {p: l for l, p in label_index.items()}
             cites = active_links(
-                store, "citation", from_set=[apex_path],
+                store, "citation.depends", from_set=[apex_path],
             ) if apex_path else []
             dep_labels = [
                 rev_index[link["to_set"][0]]

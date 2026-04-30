@@ -53,6 +53,10 @@ VALID_SUBTYPES = {
     },
     "comment": {"revise", "observe", "out-of-scope"},
     "resolution": {"edit", "reject"},
+    # Citation — directional link between two claims:
+    #   depends   — backward: this claim's correctness rests on the cited claim
+    #   forward   — forward: this claim names a downstream claim it does not depend on
+    "citation": {"depends", "forward"},
     # Consultation — per-doc classifiers for the artifacts a consultation
     # session produces. Each subtype names the role of the doc:
     #   questions   — the generated question set (one doc, N questions)
@@ -72,6 +76,12 @@ VALID_SUBTYPES = {
     },
 }
 
+# Types that must always carry a subtype — bare parent writes are invalid.
+# Citation has two directional kinds (depends/forward), and writing the
+# bare parent loses the direction; require the subtype to keep the link
+# graph self-describing.
+REQUIRES_SUBTYPE = {"citation"}
+
 
 def validate_type(type_str):
     """Raise ValueError if type_str is not a known parent or parent.subtype."""
@@ -85,6 +95,12 @@ def validate_type(type_str):
     else:
         if type_str not in VALID_TYPES:
             raise ValueError(f"unknown type: {type_str!r}")
+        if type_str in REQUIRES_SUBTYPE:
+            valid = sorted(VALID_SUBTYPES.get(type_str, set()))
+            raise ValueError(
+                f"type {type_str!r} requires a subtype "
+                f"(one of: {', '.join(f'{type_str}.{s}' for s in valid)})"
+            )
 
 
 def make_link_id(type_str, from_set, to_set, ts):

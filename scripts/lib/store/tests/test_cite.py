@@ -71,7 +71,7 @@ class EmitCitationTests(CiteTestBase):
             rec["to_set"],
             ["claim-convergence/ASN-0001/T0.md"],
         )
-        self.assertEqual(rec["type_set"], ["citation"])
+        self.assertEqual(rec["type_set"], ["citation.depends"])
 
 
 if __name__ == "__main__":

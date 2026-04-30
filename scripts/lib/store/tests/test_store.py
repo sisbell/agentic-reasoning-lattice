@@ -105,7 +105,7 @@ class FindLinksTests(StoreTestBase):
         )
         self.cite = self.store.make_link(
             from_set=["claim-a.md"], to_set=["claim-b.md"],
-            type_set=["citation"], ts="t3",
+            type_set=["citation.depends"], ts="t3",
         )
 
     def test_find_by_type_exact(self):
@@ -174,7 +174,10 @@ class FindNumLinksTests(StoreTestBase):
 
 class ValidationTests(unittest.TestCase):
     def test_validate_type_accepts_known(self):
+        from lib.store.schema import REQUIRES_SUBTYPE
         for t in VALID_TYPES:
+            if t in REQUIRES_SUBTYPE:
+                continue  # bare parent rejected; subtype variants tested below
             validate_type(t)
         for parent, subs in VALID_SUBTYPES.items():
             for sub in subs:
@@ -187,6 +190,10 @@ class ValidationTests(unittest.TestCase):
             validate_type("comment.unknown")
         with self.assertRaises(ValueError):
             validate_type("unknownparent.sub")
+
+    def test_validate_type_rejects_bare_when_subtype_required(self):
+        with self.assertRaises(ValueError):
+            validate_type("citation")
 
 
 class LinkIdTests(unittest.TestCase):

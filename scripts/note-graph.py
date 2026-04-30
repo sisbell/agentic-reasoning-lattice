@@ -40,7 +40,7 @@ def build_edges(store):
     path_to_label = {p: l for l, p in note_index.items()}
 
     edges = []
-    for link in active_links(store, "citation"):
+    for link in active_links(store, "citation.depends"):
         if not link["from_set"] or not link["to_set"]:
             continue
         src = link["from_set"][0]

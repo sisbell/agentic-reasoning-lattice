@@ -124,7 +124,7 @@ def aggregate_asn_deps(store, asn_label, claim_root_dir=None):
         if claim_md.name.endswith(ATTRIBUTE_SUFFIXES):
             continue
         rel = str(claim_md.resolve().relative_to(workspace))
-        for link in active_links(store, "citation", from_set=[rel]):
+        for link in active_links(store, "citation.depends", from_set=[rel]):
             if not link["to_set"]:
                 continue
             to_path = link["to_set"][0]
@@ -148,7 +148,7 @@ def note_dep_asn_ids(store, note_md_path):
     note_rel = str(note_md_path)
     note_index_paths = set(build_note_label_index(store).values())
     ids = []
-    for link in active_links(store, "citation", from_set=[note_rel]):
+    for link in active_links(store, "citation.depends", from_set=[note_rel]):
         if not link["to_set"]:
             continue
         to_path = link["to_set"][0]
@@ -234,7 +234,7 @@ def import_one_claim(store, yaml_path, label_index):
         if dep_path is None:
             counts["unresolved"].append((data["label"], dep_label))
             continue
-        _, created = _ensure_link(store, [md_rel], [dep_path], ["citation"])
+        _, created = _ensure_link(store, [md_rel], [dep_path], ["citation.depends"])
         counts["citation"] += int(created)
 
     return counts

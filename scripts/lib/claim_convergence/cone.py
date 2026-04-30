@@ -152,7 +152,7 @@ def detect_dependency_cone(asn_num, window=5, threshold=3):
         apex_path = cross_index.get(apex)
         if not apex_path:
             return None
-        cites = active_links(store, "citation", from_set=[apex_path])
+        cites = active_links(store, "citation.depends", from_set=[apex_path])
         dep_labels = [
             path_to_label[link["to_set"][0]]
             for link in cites
@@ -282,7 +282,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
         from_path = label_index.get(label)
         if not from_path:
             continue
-        for link in active_links(store, "citation", from_set=[from_path]):
+        for link in active_links(store, "citation.depends", from_set=[from_path]):
             if not link["to_set"]:
                 continue
             dep_label = rev_index.get(link["to_set"][0])
@@ -635,7 +635,7 @@ def run_cone_sweep(asn_num, min_deps=4, max_cycles=8, dry_run=False,
                 same_deps = [
                     rev_index[link["to_set"][0]]
                     for link in active_links(
-                        store, "citation", from_set=[from_path],
+                        store, "citation.depends", from_set=[from_path],
                     )
                     if link["to_set"]
                     and rev_index.get(link["to_set"][0]) in asn_labels

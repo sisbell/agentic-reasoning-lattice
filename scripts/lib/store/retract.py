@@ -11,7 +11,7 @@ helper in `lib.store.queries`.
 """
 
 
-def emit_retraction(store, from_claim_path, to_label, label_index):
+def emit_retraction(store, from_claim_path, to_label, label_index, *, direction="depends"):
     """Retract the citation from from_claim_path to the claim labeled to_label.
 
     Looks up the existing citation link, then files a retraction whose
@@ -19,6 +19,9 @@ def emit_retraction(store, from_claim_path, to_label, label_index):
 
     `label_index` maps labels to repo-relative md paths (use
     `lib.store.populate.build_cross_asn_label_index`).
+
+    `direction` ∈ {"depends", "forward"} selects which directional
+    citation to retract.
 
     Idempotent: if a retraction already targets the citation's link id,
     returns its id with created=False without calling make_link.
@@ -32,17 +35,18 @@ def emit_retraction(store, from_claim_path, to_label, label_index):
     if to_label not in label_index:
         raise KeyError(f"label '{to_label}' not in label index")
     to_path = label_index[to_label]
+    type_str = f"citation.{direction}"
 
     # Find the citation to retract. find_links uses LIKE matching on type,
-    # so filter to exact ["citation"] to avoid pulling in unrelated subtypes.
+    # so filter to exact [type_str] to avoid pulling in unrelated subtypes.
     citations = [
         link
         for link in store.find_links(
             from_set=[from_claim_path],
             to_set=[to_path],
-            type_set=["citation"],
+            type_set=[type_str],
         )
-        if link["type_set"] == ["citation"]
+        if link["type_set"] == [type_str]
         and link["from_set"] == [from_claim_path]
         and link["to_set"] == [to_path]
     ]

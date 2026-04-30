@@ -483,7 +483,7 @@ def _generate_deps_core(asn_num, prose_citations=False):
                 follows = [
                     rev_index[link["to_set"][0]]
                     for link in active_links(
-                        store, "citation", from_set=[from_path],
+                        store, "citation.depends", from_set=[from_path],
                     )
                     if link["to_set"] and rev_index.get(link["to_set"][0])
                 ]

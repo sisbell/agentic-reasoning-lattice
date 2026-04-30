@@ -239,7 +239,7 @@ def _build_citation_graph(pairs, store, label_index):
             graph[stem] = []
             continue
         deps = []
-        for link in active_links(store, "citation", from_set=[from_path]):
+        for link in active_links(store, "citation.depends", from_set=[from_path]):
             if not link["to_set"]:
                 continue
             dep_label = rev_index.get(link["to_set"][0])

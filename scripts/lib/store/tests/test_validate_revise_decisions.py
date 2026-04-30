@@ -183,7 +183,7 @@ class ApplyRetractDecisionsTests(unittest.TestCase):
         )
         self.assertEqual(n, 1)
         active = active_links(
-            self.store, "citation", from_set=[self.from_claim],
+            self.store, "citation.depends", from_set=[self.from_claim],
         )
         self.assertEqual(len(active), 2)
 
