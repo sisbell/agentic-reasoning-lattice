@@ -1,0 +1,1 @@
+- `shift` — function mapping (v, n) with v ∈ T and n ≥ 1 to the tumbler obtained by advancing v's final component by n
