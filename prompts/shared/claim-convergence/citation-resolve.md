@@ -65,6 +65,11 @@ For each label in the prose not in the currently-classified lists, output a CLAS
 
 For each currently-classified label no longer in the prose (or whose direction is wrong), output a RETRACTION — plus a CLASSIFICATION if the direction changed.
 
-If both lists are empty, output two empty headers.
+If a section has no items, emit an empty YAML list — `[]` — on the same line as the header. Never write `(none)`, `None`, or any prose placeholder. The parser requires both blocks to be valid YAML lists.
+
+```
+CLASSIFICATIONS: []
+RETRACTIONS: []
+```
 
 Match the bullet style of the claim's existing `*Depends:*` entries — same voice, same shape.

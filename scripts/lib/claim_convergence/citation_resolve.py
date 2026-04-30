@@ -130,11 +130,15 @@ def _parse_response(text):
 
     if not isinstance(classifications, list):
         raise ValueError(
-            f"CLASSIFICATIONS must be a list, got {type(classifications).__name__}"
+            f"CLASSIFICATIONS must be a list, got "
+            f"{type(classifications).__name__}: {classifications!r}\n"
+            f"--- raw block ---\n{cls_yaml}"
         )
     if not isinstance(retractions, list):
         raise ValueError(
-            f"RETRACTIONS must be a list, got {type(retractions).__name__}"
+            f"RETRACTIONS must be a list, got "
+            f"{type(retractions).__name__}: {retractions!r}\n"
+            f"--- raw block ---\n{ret_yaml}"
         )
 
     for c in classifications:
