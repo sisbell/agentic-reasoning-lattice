@@ -1,1 +1,1 @@
-- `|·|`
+- `|·|` — primitive cardinality operator; `|S|` is the unique `k ∈ ℕ` enumerating the elements of `S` via a strictly increasing function
