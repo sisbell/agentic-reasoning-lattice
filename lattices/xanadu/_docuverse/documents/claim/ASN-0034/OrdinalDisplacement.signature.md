@@ -1,0 +1,1 @@
+- `δ` — the ordinal displacement function; maps (n, m) with n ≥ 1, m ≥ 1 to the tumbler [0, …, 0, n] of length m, with action point m
