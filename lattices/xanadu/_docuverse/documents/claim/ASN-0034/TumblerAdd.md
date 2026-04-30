@@ -85,5 +85,5 @@ This is correct and intentional: advancing to "the beginning of the next chapter
   - T1 (LexicographicOrder) — case (i) at the divergence position for the strict-advancement postcondition and for the strict branches of dominance; `≥` abbreviation (`a ≥ b ≡ b < a ∨ b = a`) merges the dominance proof's strict and equality branches to deliver `a ⊕ w ≥ w`.
   - T3 (CanonicalRepresentation, this ASN) — equality sub-case of dominance concludes `r = w` from component-wise agreement and equal length.
 - *Forward References:*
-  - TumblerSub (TumblerSub) — the inverse operation constructed downstream; TumblerAdd's correctness does not depend on it.
+  - TumblerSub (TumblerSub) — the inverse operation, constructed below in this ASN; TumblerAdd's correctness does not depend on it.
 - *Postconditions:* a ⊕ w ∈ T, #(a ⊕ w) = #w, a ⊕ w > a (T1), a ⊕ w ≥ w (T1, T3)
