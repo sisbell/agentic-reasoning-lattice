@@ -94,6 +94,11 @@ REVIEWS_DIR = NOTE_REVIEWS_DIR  # legacy alias, prefer NOTE_REVIEWS_DIR
 CLAIM_FINDINGS_DIR = DOCUVERSE_DOCS_DIR / "finding" / "claims"
 NOTE_FINDINGS_DIR = DOCUVERSE_DOCS_DIR / "finding" / "notes"
 
+# Citation-resolve operation outputs (classified by `citation.resolve`).
+# One doc per resolve run, named `<claim-label>-<run-N>.md` under the
+# claim's ASN directory.
+CITATION_RESOLVE_DIR = DOCUVERSE_DOCS_DIR / "citation-resolve" / "claims"
+
 # Claim convergence workspace — caches and intermediate prose artifacts
 # the convergence pipeline writes (per-ASN _contract-cache.json,
 # _summary-cache.json, etc.). Workspace-shaped: regeneratable, not

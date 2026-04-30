@@ -26,7 +26,8 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from lib.shared.paths import (
-    LATTICE, CLAIM_DIR, prompt_path, claim_doc_path,
+    LATTICE, CLAIM_DIR, CITATION_RESOLVE_DIR,
+    prompt_path, claim_doc_path,
 )
 from lib.shared.common import (
     find_asn, build_label_index, read_file, invoke_claude,
@@ -40,9 +41,6 @@ from lib.store.retract import emit_retraction
 
 
 PROMPT_TEMPLATE = prompt_path("claim-convergence/citation-resolve.md")
-CITATION_RESOLVE_DIR = (
-    LATTICE / "_docuverse" / "documents" / "citation-resolve" / "claims"
-)
 
 DEPENDS_HEADER = "- *Depends:*"
 FORWARD_HEADER = "- *Forward References:*"
