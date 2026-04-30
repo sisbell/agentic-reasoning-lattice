@@ -1,0 +1,1 @@
+- `divergence` — binary function on distinct tumblers returning the ℕ-position where they first differ (component mismatch or prefix overshoot)
