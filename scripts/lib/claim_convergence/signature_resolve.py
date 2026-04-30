@@ -319,9 +319,10 @@ def run_resolve(asn_num, claim_label, model="sonnet"):
 
     introduces, removes = _parse_response(text)
 
-    if not introduces and not removes and not existing_signature:
-        # Claim has no signature now and Sonnet found nothing to add.
-        print(f"  [SIG-RESOLVE] {claim_label}: no symbols introduced",
+    if not introduces and not removes:
+        # No changes — sidecar already reflects truth (whether populated
+        # or absent). No write, no resolve doc, no commit.
+        print(f"  [SIG-RESOLVE] {claim_label}: no changes",
               file=sys.stderr)
         return "ok"
 
@@ -338,12 +339,6 @@ def run_resolve(asn_num, claim_label, model="sonnet"):
 
     new_pairs = [(s, existing_map[s]) for s in existing_map]
     new_sidecar_text = _render_sidecar(new_pairs)
-
-    if not new_pairs and not existing_pairs:
-        # Nothing changed and nothing existed
-        print(f"  [SIG-RESOLVE] {claim_label}: no-op",
-              file=sys.stderr)
-        return "ok"
 
     # If sidecar would be empty after removes, write empty (the sidecar
     # file is allowed to be empty; the substrate link stays).
