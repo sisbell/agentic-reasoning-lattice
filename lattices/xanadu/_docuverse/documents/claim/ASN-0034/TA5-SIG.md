@@ -13,6 +13,7 @@ In both cases `1 ≤ sig(t) ≤ #t`, since `#t ≥ 1` for every `t ∈ T`.
 - *Definition:* `sig(t) = max({i : 1 ≤ i ≤ #t ∧ tᵢ ≠ 0})` when `(E i : 1 ≤ i ≤ #t : tᵢ ≠ 0)`; `sig(t) = #t` when `(A i : 1 ≤ i ≤ #t : tᵢ = 0)`.
 - *Depends:*
   - T0 (CarrierSetDefinition) — supplies `t ∈ T` as finite ℕ-sequences with `#t ≥ 1`, component projection `tᵢ`, and the length `#t`.
+  - NAT-zero (NatZeroMinimum) — supplies `0 ∈ ℕ` for the literal `0` appearing in the set-comprehension condition `tᵢ ≠ 0` of the nonzero-case definition `sig(t) = max({i : 1 ≤ i ≤ #t ∧ tᵢ ≠ 0})` and in the all-zero condition `(A i : 1 ≤ i ≤ #t : tᵢ = 0)` of the all-zero-case definition.
   - NAT-closure (NatArithmeticClosureAndIdentity) — supplies `1 ∈ ℕ` and closure of ℕ under addition.
   - NAT-wellorder (NatWellOrdering) — supplies the least-element principle.
   - NAT-order (NatStrictTotalOrder) — supplies the `≤`-defining clause `p ≤ q ⟺ p < q ∨ p = q` and transitivity of `<`.
