@@ -4,11 +4,11 @@ The signature is what this claim contributes to the lattice's symbol vocabulary.
 
 # What counts as introduced
 
-A symbol `s` is introduced by this claim iff *all* of:
+A symbol is introduced by this claim iff *all* of:
 
-- `s` appears in this claim's Formal Contract (Axiom, Definition, Postcondition, body prose) as a non-logical primitive — a constant, function symbol, relation symbol, or operator
-- `s` is **not** in the notation primitives list below (those are language-level, always in scope)
-- `s` is **not** owned by any of this claim's transitively-cited dependencies (those provide it; this claim consumes it)
+- It appears in this claim's Formal Contract (Axiom, Definition, Postcondition, body prose) as a non-logical primitive — a constant, function symbol, relation symbol, or operator
+- It is **not** in the notation primitives list below (those are language-level, always in scope)
+- It is **not** owned by any of this claim's transitively-cited dependencies (those provide it; this claim consumes it)
 
 What does **not** count as introduced:
 
@@ -35,53 +35,85 @@ What does **not** count as introduced:
 
 {{existing_signature}}
 
-# Output
+# Output format
 
-Output exactly this structure. No preamble. Both `symbol` and `description` (and `reason` for removals) MUST be wrapped in double quotes — the parser is YAML-based and unquoted values containing `:` (e.g., set-builder notation `{i ∈ ℕ : 1 ≤ i ≤ #w}`) will break parsing.
+Output ONLY the structured block below. Two YAML lists, each terminated by their final item. NO trailing prose, NO commentary, NO code fences, NO explanation. The first character of your response is `I` (of `INTRODUCES:`); the last meaningful character is the closing `]` of `REMOVES: []` or the last quote of the last `reason:` value.
 
 ```
 INTRODUCES:
-- symbol: "<symbol>"
-  description: "<one short sentence: what role this symbol plays in this claim's contract>"
+- bullet: "- `<symbol>` — <one short sentence stating the role this symbol plays in this claim's contract>"
 
 REMOVES:
 - symbol: "<symbol>"
   reason: "<why this symbol is no longer in the claim's contract>"
 ```
 
-If the claim introduces nothing new (most consumer claims), emit `INTRODUCES: []`. Same for removals: `REMOVES: []`. Both empty when the claim's contract has no symbol-level changes.
+If the claim introduces nothing new (most consumer claims), emit `INTRODUCES: []`.
+If nothing is being removed (almost always), emit `REMOVES: []`.
 
-The `description` is the **role text only** — terse, tied to use sites in *this* claim's Formal Contract. Do NOT prefix the description with the symbol, backticks, or a dash; the renderer formats `- \`<symbol>\` — <description>` for you. If you write `description: "\`ℕ\` — the carrier set..."`, the rendered bullet ends up `` - `ℕ` — `ℕ` — the carrier set... `` (doubled).
+The `bullet` value is the **complete bullet line** including the leading `- `, the backticked symbol, the em-dash, and the role text — exactly as it should appear in the sidecar. The renderer writes it verbatim. Always wrap in double quotes.
+
+# Why everything is one field for INTRODUCES
+
+The bullet is a single string so you can't accidentally double the symbol prefix. Whatever you write in `bullet:` is what ends up in the sidecar. Match the existing-lattice style: ``- `<sym>` — <role>``.
 
 # Examples
 
-A foundation claim introducing one symbol:
+## Good — foundation claim introducing one symbol
 
 ```
 INTRODUCES:
-- symbol: "ℕ"
-  description: "the carrier set of natural numbers; underlying domain for arithmetic and order claims downstream"
+- bullet: "- `ℕ` — the carrier set of natural numbers; underlying domain for all NAT-* operations and relations"
 
 REMOVES: []
 ```
 
-A foundation claim introducing several:
+## Good — foundation claim introducing several
 
 ```
 INTRODUCES:
-- symbol: "<"
-  description: "strict total order on ℕ; relation `< ⊆ ℕ × ℕ`"
-- symbol: "≤"
-  description: "companion non-strict order, defined as `m ≤ n ⟺ m < n ∨ m = n`"
-- symbol: "≥"
-  description: "reverse non-strict order, defined as `a ≥ b ⟺ b ≤ a`"
+- bullet: "- `<` — strict total order on ℕ; relation `< ⊆ ℕ × ℕ`"
+- bullet: "- `≤` — companion non-strict order, defined as `m ≤ n ⟺ m < n ∨ m = n`"
+- bullet: "- `≥` — reverse non-strict order, defined as `a ≥ b ⟺ b ≤ a`"
 
 REMOVES: []
 ```
 
-A consumer claim (most claims):
+## Good — consumer claim, nothing introduced
 
 ```
 INTRODUCES: []
 REMOVES: []
 ```
+
+## Bad — trailing prose (DO NOT)
+
+```
+INTRODUCES: []
+REMOVES: []
+
+This claim is a pure consumer; every symbol traces upstream.
+```
+
+(The trailing prose breaks parsing. Output stops at `REMOVES: []`.)
+
+## Bad — code-fenced wrapper (DO NOT)
+
+````
+```
+INTRODUCES: []
+REMOVES: []
+```
+````
+
+(No code fences around the output. The two YAML lists are the response, raw.)
+
+## Bad — split symbol/description fields (DO NOT)
+
+```
+INTRODUCES:
+- symbol: "ℕ"
+  description: "the carrier set"
+```
+
+(The format is single-field `bullet:`, not split. The bullet IS the markdown line.)

@@ -180,11 +180,20 @@ def _parse_response(text):
     for entry in introduces:
         if not isinstance(entry, dict):
             raise ValueError(f"INTRODUCES entry not a dict: {entry}")
-        for field in ("symbol", "description"):
-            if field not in entry:
-                raise ValueError(
-                    f"INTRODUCES entry missing {field!r}: {entry}"
-                )
+        if "bullet" not in entry:
+            raise ValueError(f"INTRODUCES entry missing 'bullet': {entry}")
+        bullet = entry["bullet"]
+        if not isinstance(bullet, str) or not bullet.startswith("- `"):
+            raise ValueError(
+                f"INTRODUCES bullet must start with '- `<symbol>`': {entry}"
+            )
+        m = re.match(r"^- `([^`]+)`", bullet)
+        if not m:
+            raise ValueError(
+                f"INTRODUCES bullet has no parseable symbol: {bullet!r}"
+            )
+        # Stash the parsed symbol on the entry so callers don't re-parse.
+        entry["symbol"] = m.group(1)
 
     for entry in removes:
         if not isinstance(entry, dict):
@@ -199,40 +208,31 @@ def _parse_response(text):
 # ---------------------------------------------------------------------------
 # Sidecar manipulation
 
-def _read_sidecar_symbols(claim_dir, claim_label):
-    """Return the set of symbols already in the signature sidecar."""
-    sig_text = _claim_signature_text(claim_dir, claim_label)
-    if not sig_text:
-        return set()
-    symbols = set()
-    for line in sig_text.split("\n"):
-        m = re.match(r"^\s*-\s+`([^`]+)`", line)
-        if m:
-            symbols.add(m.group(1))
-    return symbols
+def _existing_sidecar_bullets(claim_dir, claim_label):
+    """Return [(symbol, bullet_line), ...] from the existing sidecar.
 
-
-def _render_sidecar(symbols_with_descriptions):
-    """Render the signature sidecar markdown for a list of (sym, desc) pairs."""
-    if not symbols_with_descriptions:
-        return ""
-    lines = []
-    for sym, desc in symbols_with_descriptions:
-        lines.append(f"- `{sym}` — {desc}")
-    return "\n".join(lines) + "\n"
-
-
-def _existing_sidecar_pairs(claim_dir, claim_label):
-    """Return [(symbol, description), ...] from the existing sidecar."""
+    The bullet_line is the complete `- \`<sym>\` — <role>` line as
+    written. We index by symbol so adds/removes can target by symbol;
+    the bullet text is the persisted form.
+    """
     sig_text = _claim_signature_text(claim_dir, claim_label)
     if not sig_text:
         return []
     pairs = []
     for line in sig_text.split("\n"):
-        m = re.match(r"^\s*-\s+`([^`]+)`(?:\s*[—-]\s*(.+))?", line)
+        line = line.rstrip()
+        m = re.match(r"^\s*-\s+`([^`]+)`", line)
         if m:
-            pairs.append((m.group(1), (m.group(2) or "").strip()))
+            pairs.append((m.group(1), line))
     return pairs
+
+
+def _render_sidecar(symbol_bullet_pairs):
+    """Render the signature sidecar markdown from a list of
+    (symbol, bullet_line) pairs. The bullet_line is written verbatim."""
+    if not symbol_bullet_pairs:
+        return ""
+    return "\n".join(b for _, b in symbol_bullet_pairs) + "\n"
 
 
 # ---------------------------------------------------------------------------
@@ -327,17 +327,18 @@ def run_resolve(asn_num, claim_label, model="sonnet"):
         return "ok"
 
     # Compute new sidecar content from existing + introduces - removes.
-    existing_pairs = _existing_sidecar_pairs(claim_dir, claim_label)
-    existing_map = dict(existing_pairs)
+    # Each entry is (symbol, full_bullet_line). Symbol is the key for
+    # add/remove; the bullet is what gets written verbatim.
+    existing = _existing_sidecar_bullets(claim_dir, claim_label)
+    bullets_by_symbol = dict(existing)
 
-    remove_symbols = {r["symbol"] for r in removes}
-    for sym in remove_symbols:
-        existing_map.pop(sym, None)
+    for entry in removes:
+        bullets_by_symbol.pop(entry["symbol"], None)
 
     for entry in introduces:
-        existing_map[entry["symbol"]] = entry["description"]
+        bullets_by_symbol[entry["symbol"]] = entry["bullet"]
 
-    new_pairs = [(s, existing_map[s]) for s in existing_map]
+    new_pairs = [(s, bullets_by_symbol[s]) for s in bullets_by_symbol]
     new_sidecar_text = _render_sidecar(new_pairs)
 
     # If sidecar would be empty after removes, write empty (the sidecar
