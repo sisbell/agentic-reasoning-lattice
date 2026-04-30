@@ -1,1 +1,1 @@
-- `⊖`
+- `⊖` — binary tumbler subtraction operator; given `a, w ∈ T` with `a ≥ w`, yields the component-wise difference at the first point of zero-padded divergence
