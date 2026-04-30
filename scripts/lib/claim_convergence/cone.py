@@ -18,8 +18,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import (
-    WORKSPACE, LATTICE, CLAIM_CONVERGENCE_DIR, CLAIM_DIR, CLAIM_FINDINGS_DIR,
-    CLAIM_REVIEWS_DIR, next_review_number, review_aggregate_path,
+    WORKSPACE, LATTICE, WORKSPACE_DIR, CLAIM_CONVERGENCE_DIR, CLAIM_DIR,
+    CLAIM_FINDINGS_DIR, CLAIM_REVIEWS_DIR,
+    next_review_number, review_aggregate_path,
 )
 from lib.shared.common import (
     find_asn, build_label_index,
@@ -385,6 +386,14 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
                   file=sys.stderr)
             break
 
+        # Persist raw reviewer output for diagnosis. emit_findings drops
+        # findings whose Foundation/ASN body fields don't yield a parseable
+        # target label; without this dump the bodies are lost.
+        raw_dir = WORKSPACE_DIR / "cone-sweep" / asn_label / "raw"
+        raw_dir.mkdir(parents=True, exist_ok=True)
+        raw_path = raw_dir / f"{apex_label}-cycle{cycle}.txt"
+        raw_path.write_text(findings_text)
+
         review_num = next_review_number(asn_label, kind="claim", reviews_dir=review_dir)
         review_stem = f"review-{review_num}"
         meta_path = review_aggregate_path(asn_label, review_num, kind="claim")
@@ -398,14 +407,19 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
         )
         emitted_by_title = {e["title"]: e for e in emitted_findings}
 
-        revise_count = len(filter_revise(findings))
+        # Count only findings that actually emitted — skipped findings
+        # (no parseable target) won't drive revise work, so they shouldn't
+        # be counted toward the cycle's revise total.
+        emitted_titles = set(emitted_by_title.keys())
+        emitted_for_filter = [f for f in findings if f[0] in emitted_titles]
+        revise_count = len(filter_revise(emitted_for_filter))
         emit_meta(
             store, asn_label, review_num,
             title=f"Cone Review — {asn_label}/{apex_label} (cycle {cycle})",
             timestamp=time.strftime("%Y-%m-%d %H:%M"),
             scope=f"{apex_label} + {len(dep_labels)} deps (cone)",
             verdict=cycle_verdict(verdict, revise_count),
-            findings_summary=findings_summary(findings, revise_count),
+            findings_summary=findings_summary(emitted_for_filter, revise_count),
             emitted_findings=emitted_findings,
             elapsed_seconds=elapsed,
             reviews_dir=CLAIM_REVIEWS_DIR,
@@ -415,7 +429,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
         for title, cls, _ in findings:
             print(f"\n  ### [{cls}] {title}", file=sys.stderr)
 
-        revise_findings = filter_revise(findings)
+        revise_findings = filter_revise(emitted_for_filter)
         last_cycle_revise_count = len(revise_findings)
 
         if dry_run:
@@ -423,12 +437,24 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
                   file=sys.stderr)
             break
 
-        # Revise each REVISE-class finding
+        # Revise each REVISE-class finding. Orphans (findings whose target
+        # didn't parse) are excluded above by filtering against
+        # emitted_titles, so this loop only sees findings the substrate
+        # actually accepted. Defensive check preserved as a loud guard
+        # against future regressions.
         any_changed = False
         for title, _cls, finding_text in revise_findings:
             emitted = emitted_by_title.get(title)
-            comment_id = emitted["comment_id"] if emitted else None
-            claim_path = emitted["claim_path"] if emitted else None
+            if emitted is None:
+                print(
+                    f"  [WARN] orphan revise skipped — finding '{title[:70]}' "
+                    f"has no emitted target (target unparseable from "
+                    f"Foundation/ASN). Raw reviewer output at: {raw_path}",
+                    file=sys.stderr,
+                )
+                continue
+            comment_id = emitted["comment_id"]
+            claim_path = emitted["claim_path"]
             ok = revise(asn_num, title, finding_text, claim_dir=claim_dir,
                         comment_id=comment_id, claim_path=claim_path)
             if ok:
@@ -489,6 +515,12 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
             if confirm_verdict == "ERROR":
                 failed = True
             else:
+                # Persist raw reviewer output for diagnosis (same as cycle path).
+                confirm_raw_dir = WORKSPACE_DIR / "cone-sweep" / asn_label / "raw"
+                confirm_raw_dir.mkdir(parents=True, exist_ok=True)
+                confirm_raw_path = confirm_raw_dir / f"{apex_label}-confirm.txt"
+                confirm_raw_path.write_text(confirm_findings_text)
+
                 review_num = next_review_number(asn_label, kind="claim", reviews_dir=review_dir)
                 review_stem = f"review-{review_num}"
                 confirm_meta_path = review_aggregate_path(asn_label, review_num, kind="claim")
@@ -500,7 +532,12 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
                     asn_label, review_stem, label_index,
                     findings_dir=CLAIM_FINDINGS_DIR,
                 )
-                confirmation_revise_count = len(filter_revise(confirm_findings))
+                # Count only emitted findings — orphans don't drive work.
+                confirm_emitted_titles = {e["title"] for e in emitted_findings}
+                confirm_emitted_for_filter = [
+                    f for f in confirm_findings if f[0] in confirm_emitted_titles
+                ]
+                confirmation_revise_count = len(filter_revise(confirm_emitted_for_filter))
                 emit_meta(
                     store, asn_label, review_num,
                     title=f"Cone Review (Confirmation) — {asn_label}/{apex_label}",
@@ -508,7 +545,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
                     scope=f"{apex_label} + {len(dep_labels)} deps (cone)",
                     verdict=cycle_verdict(confirm_verdict, confirmation_revise_count),
                     findings_summary=findings_summary(
-                        confirm_findings, confirmation_revise_count,
+                        confirm_emitted_for_filter, confirmation_revise_count,
                     ),
                     emitted_findings=emitted_findings,
                     elapsed_seconds=confirm_elapsed,
