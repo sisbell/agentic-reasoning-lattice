@@ -1,1 +1,1 @@
-- `0`
+- `0` — the minimum natural number; the constant posited by the axiom `0 ∈ ℕ` and `(A n ∈ ℕ :: 0 < n ∨ 0 = n)`
