@@ -1,0 +1,1 @@
+- `S` — the subspace of positive-component tumblers; defined as `{o ∈ T : #o ≥ 1 ∧ (A i : 1 ≤ i ≤ #o : oᵢ > 0)}` and used as the domain and codomain in both the `⊕`- and `⊖`-closure postconditions
