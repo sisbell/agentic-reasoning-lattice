@@ -471,6 +471,29 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
                             file=sys.stderr,
                         )
 
+        # Sync substrate citation links to the .md as the source of
+        # truth. The agentic reviser may have edited *Depends:* /
+        # *Forward References:* sections without emitting matching
+        # cite/retract calls; auto-correct closes the drift before the
+        # cycle commits, so substrate can't diverge from prose.
+        from lib.store.sync import sync_claim_citations
+        for label in [apex_label] + dep_labels:
+            md_rel = label_index.get(label)
+            if not md_rel:
+                continue
+            changes = sync_claim_citations(store, md_rel, label_index)
+            if changes is None:
+                continue
+            for direction in ("depends", "forward"):
+                for added in changes[direction]["added"]:
+                    print(f"  [DRIFT-FIX] {label}: emitted citation.{direction} "
+                          f"→ {added} (in *{'Depends' if direction == 'depends' else 'Forward References'}:*)",
+                          file=sys.stderr)
+                for retracted in changes[direction]["retracted"]:
+                    print(f"  [DRIFT-FIX] {label}: retracted citation.{direction} "
+                          f"→ {retracted} (no longer in *{'Depends' if direction == 'depends' else 'Forward References'}:*)",
+                          file=sys.stderr)
+
         if revise_findings or any_changed:
             step_commit_asn(asn_num,
                             f"cone-review(asn): {asn_label}/{apex_label} — cycle {cycle}")

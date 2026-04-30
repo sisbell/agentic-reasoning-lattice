@@ -46,6 +46,11 @@ def main():
         help="The dependency label whose citation should be retracted "
              "(e.g., NAT-cancel, T0).",
     )
+    parser.add_argument(
+        "--direction", choices=("depends", "forward"), default="depends",
+        help="Direction of the citation being retracted: depends "
+             "(backward, default) or forward.",
+    )
     args = parser.parse_args()
 
     asn_label = os.environ.get("PROTOCOL_ASN_LABEL")
@@ -61,6 +66,7 @@ def main():
             label_index = build_doc_label_index(store, claim_path)
             link_id, created = emit_retraction(
                 store, claim_path, args.to, label_index,
+                direction=args.direction,
             )
         except (KeyError, ValueError) as e:
             print(f"error: {e}", file=sys.stderr)

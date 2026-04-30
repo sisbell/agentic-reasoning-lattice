@@ -37,6 +37,12 @@ def main():
         "--to", required=True,
         help="Label of the dependency being cited (e.g., T0, NAT-closure).",
     )
+    parser.add_argument(
+        "--direction", choices=("depends", "forward"), default="depends",
+        help="Direction of the citation: depends (backward, default) or "
+             "forward (this claim names a downstream claim it does not "
+             "depend on).",
+    )
     args = parser.parse_args()
 
     asn_label = os.environ.get("PROTOCOL_ASN_LABEL")
@@ -52,6 +58,7 @@ def main():
             label_index = build_doc_label_index(store, claim_path)
             link_id, created = emit_citation(
                 store, claim_path, args.to, label_index,
+                direction=args.direction,
             )
         except KeyError as e:
             print(f"error: {e}", file=sys.stderr)
