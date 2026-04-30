@@ -3752,3 +3752,11 @@
 {"from_set": ["_docuverse/documents/agent/cone-review.md"], "id": "l_313ac09233e6", "op": "create", "to_set": ["l_404a220786e8"], "ts": "2026-04-30T06:44:31Z", "type_set": ["manages"]}
 {"from_set": [], "id": "l_2228a790d80c", "op": "create", "to_set": ["_docuverse/documents/review/claims/ASN-0034/review-670.md"], "ts": "2026-04-30T06:44:31Z", "type_set": ["review"]}
 {"from_set": ["_docuverse/documents/agent/cone-review.md"], "id": "l_0e2b3468d2bf", "op": "create", "to_set": ["l_2228a790d80c"], "ts": "2026-04-30T06:44:31Z", "type_set": ["manages"]}
+{"from_set": [], "id": "l_49a833d1f0f3", "op": "create", "to_set": ["_docuverse/documents/finding/claims/ASN-0034/review-671/0.md"], "ts": "2026-04-30T06:53:32Z", "type_set": ["finding"]}
+{"from_set": ["_docuverse/documents/agent/cone-review.md"], "id": "l_71199b5db1a3", "op": "create", "to_set": ["l_49a833d1f0f3"], "ts": "2026-04-30T06:53:32Z", "type_set": ["manages"]}
+{"from_set": ["_docuverse/documents/finding/claims/ASN-0034/review-671/0.md"], "id": "l_d034d2a73698", "op": "create", "to_set": ["_docuverse/documents/claim/ASN-0034/NAT-closure.md"], "ts": "2026-04-30T06:53:32Z", "type_set": ["comment.observe"]}
+{"from_set": ["_docuverse/documents/agent/cone-review.md"], "id": "l_9a1ede1aa1e1", "op": "create", "to_set": ["l_d034d2a73698"], "ts": "2026-04-30T06:53:32Z", "type_set": ["manages"]}
+{"from_set": ["_docuverse/documents/review/claims/ASN-0034/review-671.md"], "id": "l_ef7401a3e3ae", "op": "create", "to_set": ["_docuverse/documents/finding/claims/ASN-0034/review-671/0.md"], "ts": "2026-04-30T06:53:32Z", "type_set": ["provenance.derivation"]}
+{"from_set": ["_docuverse/documents/agent/cone-review.md"], "id": "l_70c2028851a0", "op": "create", "to_set": ["l_ef7401a3e3ae"], "ts": "2026-04-30T06:53:32Z", "type_set": ["manages"]}
+{"from_set": [], "id": "l_28d8a5f8e09d", "op": "create", "to_set": ["_docuverse/documents/review/claims/ASN-0034/review-671.md"], "ts": "2026-04-30T06:53:32Z", "type_set": ["review"]}
+{"from_set": ["_docuverse/documents/agent/cone-review.md"], "id": "l_de9926c3482a", "op": "create", "to_set": ["l_28d8a5f8e09d"], "ts": "2026-04-30T06:53:32Z", "type_set": ["manages"]}
