@@ -69,6 +69,8 @@ Default to REVISE. A finding is REVISE if it surfaces an ungrounded symbol, unju
 **What needs resolving**: [REVISE only — what the ASN must establish or change, without prescribing how]
 ```
 
+`### ` is reserved for findings only. Each `### `-prefixed section must include the structured fields above (**Class**, **Foundation**, **ASN**, **Issue**, **What needs resolving**); the parser ignores any `### `-prefixed section that lacks them. Audit narrative — per-claim summaries, dependency-graph traces, "this proof is sound" notes — uses plain prose paragraphs, not `### ` headers. If you have nothing to flag, output `VERDICT: CONVERGED` directly with no preceding sections.
+
 VERDICT: CONVERGED | OBSERVE | REVISE
 
 Output the VERDICT line as plain text, exactly as shown — no markdown bold, no asterisks.

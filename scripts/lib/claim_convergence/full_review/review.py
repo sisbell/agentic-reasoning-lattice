@@ -93,11 +93,25 @@ def run_review(asn_num, asn_content, asn_label, previous_findings="", model="opu
     return verdict, text, elapsed
 
 
+_FINDING_FIELD_RE = re.compile(
+    r'^\s*\*\*(Class|Foundation|ASN|Issue|What needs resolving)\*\*\s*:',
+    re.MULTILINE,
+)
+
+
 def extract_findings(text):
     """Extract individual findings from review output.
 
     Returns list of (title, cls, finding_text) tuples where cls is
     'REVISE', 'OBSERVE', or 'UNKNOWN' (Class field missing).
+
+    A `### `-prefixed section is treated as a finding only if its body
+    contains at least one finding field (**Class**, **Foundation**,
+    **ASN**, **Issue**, or **What needs resolving**). Sections without
+    any of these are narrative/audit prose using `### ` as a heading;
+    they are ignored. This guards against the reviewer drifting into
+    a per-claim audit format that misuses `### ` for non-finding
+    section headers.
     """
     findings = []
     parts = re.split(r'^### ', text, flags=re.MULTILINE)
@@ -105,6 +119,8 @@ def extract_findings(text):
         lines = part.strip().split('\n', 1)
         title = lines[0].strip()
         body = lines[1].strip() if len(lines) > 1 else ""
+        if not _FINDING_FIELD_RE.search(body):
+            continue
         cls_match = _CLASS_RE.search(body)
         cls = cls_match.group(1).upper() if cls_match else "UNKNOWN"
         findings.append((title, cls, f"### {title}\n{body}"))
