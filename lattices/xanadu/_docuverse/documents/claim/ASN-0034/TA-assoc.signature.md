@@ -1,0 +1,1 @@
+- `min` — binary minimum operator on ℕ; `min(m, n)` returns the lesser of two natural numbers under NAT-order, used here to characterize `actionPoint(b ⊕ c) = min(actionPoint(b), actionPoint(c))`
