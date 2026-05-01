@@ -67,7 +67,7 @@ By induction, `U(d)` holds for all `d ≥ 0`; since every allocator has finite d
   - NAT-addcompat (NatAdditionOrderAndSuccessor) — left and right order compatibility.
   - NAT-cancel (NatAdditionCancellation) — right cancellation `n + m = p + m ⟹ n = p`.
   - NAT-order (NatStrictTotalOrder) — trichotomy, `≤` definition, transitivity, irreflexivity.
-  - NAT-addassoc (NatAdditionAssociative) — `(m + n) + p = m + (n + p)`.
+  - NAT-addassoc (NatAdditionAssociative) — `(m + n) + p = m + (n + p)`. Consumed in Case 5's sub-case `k'₁ > k'₂` (with `(k'₁, k'₂) = (2, 1)`): instantiated at `(m, n, p) = (#p₁, 1, 1)` to regroup `#p₁ + (1 + 1) = (#p₁ + 1) + 1`, which (combined with T4's *Numerals* definition `2 := 1 + 1`) identifies `#p₁ + 2 = (#p₁ + 1) + 1`, putting the equation `#p₁ + 2 = #p₂ + 1` into the form `(#p₁ + 1) + 1 = #p₂ + 1` so that NAT-cancel can fire on the trailing `+ 1` to yield `#p₂ = #p₁ + 1`.
 - *Invariant:* For every pair of addresses `a, b` arising from distinct allocation events in any reachable system state: `a ≠ b`.
 - *Postconditions:* (1) Domain Disjointness — for distinct `A₁ ≠ A₂`, `dom(A₁) ∩ dom(A₂) = ∅`. (2) Well-defined owning allocator — each address value belongs to at most one allocator's domain.
 - *Proof structure:* Strong induction on allocator tree depth *d*. Claim `U(d)`: all pairs at depth ≤ *d* produce distinct outputs. Base (`d = 0`): sole root, Case 1. Step: Cases 1–5 are self-contained; the `p₁ = p₂` routing invokes `U(d)` to establish shared parentage, then applies T10a's per-parent uniqueness.
