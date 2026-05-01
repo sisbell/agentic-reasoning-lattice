@@ -1,0 +1,1 @@
+The current T1.md file already contains the correct (γ)-impossible derivation: it uses NAT-addcompat's `n < n + 1` (not `m < m + 1`) in both branches and yields `n < m` (not `m < n`), with the conclusion 'either way `n < m`,' contradicting `m < n`. The finding misreads the file — what it prescribes in 'What needs resolving' is exactly what is already written at line 27.

@@ -14,5 +14,5 @@ TA-strict exports TumblerAdd's ordering postcondition as a single labelled fact 
   - TA0 (WellDefinedAddition) — membership `a ⊕ w ∈ T` so T1's ordering applies to the left-hand side.
   - T1 (LexicographicOrder) — meaning of the strict ordering `>`.
 - *Forward References:*
-  - T12 (Spans) — downstream user of this corollary; cites TA-strict for span well-definedness rather than TumblerAdd's full postcondition list.
+  - T12 (SpanWellDefinedness) — downstream user of this corollary; cites TA-strict for span well-definedness rather than TumblerAdd's full postcondition list.
 - *Postconditions:* `a ⊕ w > a`
