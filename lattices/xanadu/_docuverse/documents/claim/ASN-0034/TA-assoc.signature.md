@@ -1,1 +1,1 @@
-- `min` — binary minimum operator on ℕ; `min(m, n)` returns the lesser of two natural numbers under NAT-order, used here to characterize `actionPoint(b ⊕ c) = min(actionPoint(b), actionPoint(c))`
+(No new non-logical symbols introduced; the claim characterizes `⊕` and `actionPoint` using already-declared signatures from upstream claims, and states the `actionPoint(b ⊕ c)` postcondition as a pair of NAT-order-trichotomy implications rather than via a primitive `min`.)
