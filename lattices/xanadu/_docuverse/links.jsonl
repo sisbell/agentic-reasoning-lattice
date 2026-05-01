@@ -4968,3 +4968,15 @@
 {"from_set": ["_docuverse/documents/agent/cone-review.md"], "id": "l_8f1ff20f280d", "op": "create", "to_set": ["l_a3f6211255b5"], "ts": "2026-05-01T10:57:21Z", "type_set": ["manages"]}
 {"from_set": ["_docuverse/documents/claim/ASN-0034/T10a.1.md"], "id": "l_51752b195460", "op": "create", "to_set": ["l_c8260b1d13d2"], "ts": "2026-05-01T11:01:54Z", "type_set": ["resolution.edit"]}
 {"from_set": ["_docuverse/documents/agent/cone-review.md"], "id": "l_5e3b6257132a", "op": "create", "to_set": ["l_51752b195460"], "ts": "2026-05-01T11:01:54Z", "type_set": ["manages"]}
+{"from_set": [], "id": "l_39de59217f03", "op": "create", "to_set": ["_docuverse/documents/finding/claims/ASN-0034/review-812/0.md"], "ts": "2026-05-01T11:38:39Z", "type_set": ["finding"]}
+{"from_set": ["_docuverse/documents/agent/cone-review.md"], "id": "l_0640e774dbaa", "op": "create", "to_set": ["l_39de59217f03"], "ts": "2026-05-01T11:38:39Z", "type_set": ["manages"]}
+{"from_set": ["_docuverse/documents/finding/claims/ASN-0034/review-812/0.md"], "id": "l_4f4c7d532f27", "op": "create", "to_set": ["_docuverse/documents/claim/ASN-0034/NAT-addassoc.md"], "ts": "2026-05-01T11:38:39Z", "type_set": ["comment.revise"]}
+{"from_set": ["_docuverse/documents/agent/cone-review.md"], "id": "l_e073c958630e", "op": "create", "to_set": ["l_4f4c7d532f27"], "ts": "2026-05-01T11:38:39Z", "type_set": ["manages"]}
+{"from_set": ["_docuverse/documents/review/claims/ASN-0034/review-812.md"], "id": "l_4f6ca17e7a4f", "op": "create", "to_set": ["_docuverse/documents/finding/claims/ASN-0034/review-812/0.md"], "ts": "2026-05-01T11:38:39Z", "type_set": ["provenance.derivation"]}
+{"from_set": ["_docuverse/documents/agent/cone-review.md"], "id": "l_addb2e1fb921", "op": "create", "to_set": ["l_4f6ca17e7a4f"], "ts": "2026-05-01T11:38:39Z", "type_set": ["manages"]}
+{"from_set": [], "id": "l_4d05dae16974", "op": "create", "to_set": ["_docuverse/documents/review/claims/ASN-0034/review-812.md"], "ts": "2026-05-01T11:38:39Z", "type_set": ["review"]}
+{"from_set": ["_docuverse/documents/agent/cone-review.md"], "id": "l_2702206110cb", "op": "create", "to_set": ["l_4d05dae16974"], "ts": "2026-05-01T11:38:39Z", "type_set": ["manages"]}
+{"from_set": ["_docuverse/documents/claim/ASN-0034/T10a.3.md"], "id": "l_fd1fdb9771db", "op": "create", "to_set": ["_docuverse/documents/claim/ASN-0034/NAT-addassoc.md"], "ts": "2026-05-01T11:42:13Z", "type_set": ["citation.depends"]}
+{"from_set": ["_docuverse/documents/agent/cone-review.md"], "id": "l_0c2e7b4237ba", "op": "create", "to_set": ["l_fd1fdb9771db"], "ts": "2026-05-01T11:42:13Z", "type_set": ["manages"]}
+{"from_set": ["_docuverse/documents/claim/ASN-0034/NAT-addassoc.md"], "id": "l_4dd18e9b3c41", "op": "create", "to_set": ["l_4f4c7d532f27"], "ts": "2026-05-01T11:42:21Z", "type_set": ["resolution.edit"]}
+{"from_set": ["_docuverse/documents/agent/cone-review.md"], "id": "l_bf2b711b9449", "op": "create", "to_set": ["l_4dd18e9b3c41"], "ts": "2026-05-01T11:42:21Z", "type_set": ["manages"]}
