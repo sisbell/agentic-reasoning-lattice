@@ -1,0 +1,21 @@
+Working through each claim systematically.
+
+**NAT-sub.** Strict monotonicity: the b < a sub-case converts b < a to b ≤ a via the ≤-definition, applies NAT-addcompat's non-strict right compatibility to get b + p ≤ a + p, then splits via ≤ and discharges both branches. Correct — strict compatibility is not available, so the non-strict route with contradiction is the right approach. Strict positivity: the 0 + n = m → n = m collapse and the NAT-zero disjunction → NAT-discrete chain are both sound.
+
+**T0, T3.** T3's reverse direction via Leibniz's law is standard logical machinery, correctly unlisted in Depends.
+
+**ZPD.** Symmetry: sub-case swap (β)↔(γ) preserves L and the disagreement predicate is symmetric; sound. Relationship-to-Divergence: for case (i), padded projections coincide with native projections for k ≤ min(#a,#w), so zpd = divergence = k; for case (ii), NAT-discrete bridges #a < k to #a + 1 ≤ k; sound.
+
+**TumblerSub.** The a ≠ w derivation handles all four index-zone pairings correctly: the (i > #a ∧ i > #w) case is excluded by the hypothesis âᵢ ≠ ŵᵢ (both padded to 0, so they agree). Divergence case (i) correctly eliminates T1 case (ii) by instantiating the prefix agreement at i := k ≤ #w. Divergence case (ii) sub-case (ii-b) correctly derives a < w via T1(ii) and contradicts w < a. Sub-case (ii-a) correctly establishes âₖ > 0 = ŵₖ via NAT-zero's disjunction and the excluded equality branch. The Pos derivation and actionPoint identification are sound.
+
+**T1 trichotomy.** Case 3 (β)/(γ) impossibility arguments: the (γ)-impossible sub-case under m < n uses n < n + 1 (not m < m + 1), matching the correct instantiation. Case 3's ≤-expansion arguments for m ≠ n are sound. Transitivity sub-cases (i,i), (ii,i), (i,ii), (ii,ii) all land correctly; (ii,ii) uses NAT-cancel to pass from m + 1 = n + 1 to m = n. The prefix-agreement condition aᵢ = cᵢ for i < k is covered by the opening "For all i < k₁ ∧ i < k₂, aᵢ = bᵢ = cᵢ" statement, which subsumes the necessary range in all three k-comparison cases.
+
+**ActionPoint.** The 1 ≤ w_{actionPoint(w)} derivation chain — NAT-zero disjunction → exclude equality → NAT-discrete → NAT-closure left identity — is complete. The uniqueness argument via irreflexivity and transitivity exhausts all four pairing cases. The wᵢ = 0 for i < actionPoint(w) proof correctly discharges i ≤ #w from the chained transitivity steps.
+
+**NAT-addbound.** Both dominance derivations correctly route through NAT-zero's minimality, NAT-addcompat compatibility, and the respective identity clause. No circularity in the dependency chain (NAT-addbound does not depend on NAT-sub).
+
+**Divergence.** Case exhaustiveness: ¬case(i) → shared agreement universal; ¬case(ii) with shared agreement → #a = #b; then T3 gives a = b, contradicting a ≠ b. Mutual exclusivity: case(i)'s witness falsifies case(ii)'s universal. Sub-case length derivations (i ≤ #a → i ≤ #b under #a < #b) correctly split via ≤-definition and apply transitivity in the strict branch and substitution in the equality branch.
+
+All precondition chains are unbroken. All cases are covered. All set membership claims respect definitions in scope. No hand-waved steps.
+
+VERDICT: CONVERGED

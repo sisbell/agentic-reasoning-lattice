@@ -1,0 +1,21 @@
+The review reads NAT-zero through TumblerSub in dependency order, checking every proof step, precondition chain, and case analysis.
+
+**NAT-carrier / NAT-zero / NAT-order / NAT-closure / NAT-addcompat / NAT-addbound / NAT-cancel / NAT-discrete / NAT-wellorder.** All axioms well-formed, all stated consequences derivable from their own proof walks. NAT-sub's strict-monotonicity trichotomy discharges all three branches (a<b, a=b, b<a) correctly; the b<a case's right-order-compatibility instantiation is sound. Strict-positivity's chain through NAT-zero's disjunction → NAT-discrete → NAT-closure left-identity is correct.
+
+**T0 / T3.** T0's depends (NAT-carrier for ℕ, NAT-closure for 1 ∈ ℕ, NAT-order for ≤) are complete. T3's forward direction consumes T0's extensionality clause directly; reverse direction uses Leibniz's law on T0's length and projection operators.
+
+**T1 (LexicographicOrder).** Irreflexivity: both sub-cases collapse to `m+1 ≤ m` or `n < n`, both contradictions. Trichotomy Case 1 applies NAT-discrete contrapositively to rule out `m<n` and `n<m` from exhaustion-shape negations, then T3 closes `a=b`. Case 2 handles the no-reverse-witness argument through all three relative positions of k and k′ correctly. Case 3's `m≠n` derivation uses the correct NAT-addcompat instantiation (`m < m+1` for β, `n < n+1` for γ). Transitivity walks all four sub-case combinations; sub-case (i,ii) yields `n+1 ≤ n` collapsed via NAT-addcompat and irreflexivity; sub-case (ii,ii) reaches `m<n` contradicting `m=n` by NAT-cancel then trichotomy.
+
+**Divergence.** Mutual exclusivity and exhaustiveness correctly argued via T3's contrapositive. Symmetry holds under operand swap for both case structures. NAT-wellorder grounds the least-element designation in case (i).
+
+**ZPD.** Symmetry argument: (α) is self-symmetric, (β)/(γ) swap under exchange yielding same L, disagreement predicate symmetric under ≠-symmetry. Relationship-to-Divergence: case (i) coincidence of padded and native projections at shared positions is correct; case (ii) NAT-discrete bridges the strict bound `#a < k` to `#a+1 ≤ k`. Partiality condition correctly characterised.
+
+**TA-Pos.** Complementarity follows from DeMorgan duality on the quantifier pair. T0 nonemptiness cited correctly to ground non-vacuousness.
+
+**ActionPoint.** Four-pairing uniqueness proof walks all combinations using only transitivity and irreflexivity. The derivation `wᵢ = 0` for `i < actionPoint(w)` correctly chains `actionPoint(w) ≤ #w` through two branches, then uses the universal's minimality to contradict the `i ∈ S` supposition. The `1 ≤ w_{actionPoint(w)}` derivation via NAT-zero disjunction → NAT-discrete → NAT-closure left-identity is correct.
+
+**TumblerSub.** The `a ≠ w` discharge from padded disagreement via T3's contrapositive covers all three zones (shared native domain, padding zone of a, padding zone of w) without gap. Both Divergence cases for `(w,a)` yield `âₖ > ŵₖ`: case (i) identifies T1's witness with the Divergence position via uniqueness; case (ii) eliminates sub-case (ii-b) via T1(ii), then uses ZPD minimality to place k above #w, giving ŵₖ = 0 and âₖ ≠ 0. The Pos derivation via NAT-sub's right-inverse and left-identity contradiction is correct. The actionPoint identification uses membership plus least-element from Definition's rᵢ=0 for i<k, both correctly discharged.
+
+No precondition chain breaks, no ungrounded symbols, no skipped cases, no proof steps that require verification and lack it.
+
+VERDICT: CONVERGED

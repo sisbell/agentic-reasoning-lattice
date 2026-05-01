@@ -1,0 +1,18 @@
+Reading the ASN as a system: checking dependency closure, precondition chains, and cross-claim consistency throughout.
+
+The carrier-set, order, arithmetic, and comprehension claims (NAT-carrier through NAT-sub) form a closed, well-founded dependency DAG with no circularity. T0's extensionality supplies T3's forward direction; T3 is used before it is defined in TumblerAdd and T1, but no circularity results since T3 depends only on T0.
+
+TumblerAdd's result-length calculation, strict-advancement proof, and dominance proof are all case-complete. The dominance case split on `(∃j < k : aⱼ > 0)` handles k = 1 (vacuous prefix agreement) without gap. ActionPoint's uniqueness proof walks all four disjunct pairings from the two ≤ expansions, including the equality-and-strict pair handled by the "analogously" case. T1's trichotomy and transitivity proofs walk their stated cases; sub-case (i, ii) and (ii, ii) in transitivity terminate in contradiction via the correct NAT-addcompat instantiation. OrdinalDisplacement's `n ≥ 1 → n ≠ 0` derivation correctly chains NAT-closure's `0 < 1` consequence through NAT-order's ≤-definition and exactly-one trichotomy.
+
+One dependency gap survives the full pass:
+
+---
+
+### OrdinalShift missing NAT-carrier in Depends
+**Class**: REVISE
+**Foundation**: NAT-carrier (NatCarrierSet) — "ℕ is a set"
+**ASN**: OrdinalShift (OrdinalShift) — Formal Contract *Preconditions:* `v ∈ T, n ∈ ℕ, n ≥ 1`; Formal Contract *Depends:* section (NAT-carrier absent)
+**Issue**: OrdinalShift's precondition `n ∈ ℕ` uses ℕ directly as a carrier set. NAT-carrier is the sole claim that establishes ℕ as a set. It is absent from OrdinalShift's Depends. OrdinalDisplacement — which has the same precondition pattern (`n ∈ ℕ, m ∈ ℕ`) — explicitly cites NAT-carrier with the annotation "supplies `ℕ` as the underlying set appearing in the Precondition membership clauses `n ∈ ℕ` and `m ∈ ℕ`." OrdinalShift and OrdinalDisplacement are structurally parallel; the omission in OrdinalShift is inconsistent with the convention the ASN establishes for every claim that directly names ℕ in its preconditions. A dependency-chain walker tracing OrdinalShift's precondition `n ∈ ℕ` finds no direct path to the claim that grounds ℕ as a set.
+**What needs resolving**: NAT-carrier must be added to OrdinalShift's Depends, citing that it supplies ℕ as the underlying set for the precondition membership clause `n ∈ ℕ`.
+
+VERDICT: REVISE

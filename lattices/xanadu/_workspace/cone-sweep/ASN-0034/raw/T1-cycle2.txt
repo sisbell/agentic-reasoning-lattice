@@ -1,0 +1,12 @@
+### T3 claim header: malformed GCL quantifier
+
+**Class**: OBSERVE
+**Foundation**: T0 (CarrierSetDefinition) — extensionality clause `(A a, b ∈ T : #a = #b ∧ (A i ∈ ℕ : 1 ≤ i ≤ #a : aᵢ = bᵢ) : a = b)`
+**ASN**: T3 (CanonicalRepresentation) — claim header `(A a, b ∈ T : #a = #b ∧ (A i : 1 ≤ i ≤ #a : aᵢ = bᵢ) ≡ a = b)`
+**Issue**: Two notation departures from the GCL form used elsewhere in the ASN. First, the quantifier uses a single `:` after `∈ T` (the GCL range separator), making what follows the range predicate with no body — the `≡ a = b` tail has no preceding `:` to introduce it as the body expression. The intended reading, `(A a, b ∈ T :: #a = #b ∧ ... ≡ a = b)`, requires `::` (no additional range restriction, biconditional as body). Second, the inner quantifier over `i` drops `∈ ℕ` that T0's extensionality clause carries explicitly: T0 writes `(A i ∈ ℕ : 1 ≤ i ≤ #a : aᵢ = bᵢ)`, T3's header writes `(A i : 1 ≤ i ≤ #a : aᵢ = bᵢ)` with the carrier implicit. The Formal Contract's postcondition (`a = b ⟺ #a = #b ∧ (A i : 1 ≤ i ≤ #a : aᵢ = bᵢ)`) states the intended content without ambiguity, and both directions of the proof are sound — the forward direction from T0 extensionality, the reverse from Leibniz's law. No downstream consumer reading the postcondition is misled.
+
+---
+
+The NAT-* foundation chain is internally consistent: all operators are grounded in their cited dependencies, the consequence derivations walk their cases, and the dependency DAG is acyclic with NAT-carrier as the sole root. T1's trichotomy and transitivity proofs are complete: the three-way partition of divergence positions is exhaustive and mutually exclusive, NAT-wellorder is correctly invoked on a nonempty ℕ-subset, every sub-case in transitivity produces a concrete witness satisfying all three clauses of the T1 definition (agreement, domain bound, comparison condition), and no case is discharged by "similar reasoning."
+
+VERDICT: OBSERVE

@@ -1,0 +1,27 @@
+The ASN is a foundation ASN; review is internal consistency only. I read each claim and its proof against the stated axioms, tracing every cross-claim dependency, precondition chain, and case split.
+
+**Dependency graph.** The ordering NAT-carrier → NAT-zero / NAT-order → NAT-closure → NAT-addcompat / NAT-cancel / NAT-wellorder / NAT-discrete → NAT-addbound → NAT-sub is acyclic. The tumbler layer T0 → T3 → T1 / Divergence / TA-Pos → ActionPoint → TumblerAdd → TA0 → TA1-strict is acyclic. No circular dependency is present.
+
+**NAT-order.** Exactly-one trichotomy is derived correctly from at-least-one plus three pairwise exclusion arguments (irreflexivity and transitivity). The four-case ≤-transitivity proof is complete.
+
+**NAT-closure / NAT-cancel / NAT-addcompat / NAT-addbound / NAT-discrete / NAT-sub.** Consequence derivations checked against the stated axioms. NAT-addbound's right and left dominance derivations are correct. NAT-sub's strict-monotonicity and strict-positivity derivations are complete; the chain NAT-sub → NAT-addbound → NAT-addcompat / NAT-zero / NAT-closure / NAT-order is grounded.
+
+**T0 / T3.** T3's biconditional is proved in both directions—forward via T0's extensionality clause, reverse via Leibniz's law. The claim that the index domain is nonempty is correctly backed by T0's nonemptiness axiom.
+
+**TA-Pos.** The Pos/Zero complementarity follows by DeMorgan duality on the bounded quantifiers. Both quantifiers are non-vacuous because T0 guarantees `1 ≤ #t`.
+
+**ActionPoint.** Existence from NAT-wellorder on the nonempty set S, uniqueness by four-case antisymmetry argument, zeros-below-action-point by contradiction (chain through T0 component access + NAT-order transitivity + NAT-order irreflexivity), and `1 ≤ w_{actionPoint(w)}` via NAT-zero disjunction + NAT-discrete + NAT-closure—all fully walked.
+
+**TumblerAdd.** Result-length identity `(k−1)+1+(n−k) = n` is established using NAT-sub right-inverse at `(k,1)` and left-inverse at `(#w,k)`, with required preconditions `k ≥ 1` and `#w ≥ k` supplied by ActionPoint. Component membership in ℕ is verified at each position (prefix via T0, action point via NAT-closure, tail via T0). Strict advancement uses T1 case (i) at `k` with all four preconditions (agreement before `k`, `k ≤ #a`, `k ≤ #(a⊕w) = #w`, and `rₖ > aₖ`) established. Dominance proof exhausts both outer cases (some `aⱼ > 0` for `j < k`; all `aᵢ = 0` for `i < k`) and both inner sub-cases (`aₖ > 0` via NAT-cancel summand-absorption to rule out equality; `aₖ = 0` discharging to `r = w` via T3). The `k = 1` edge case (vacuous prefix) and `k = #w` edge case (empty tail) are correctly handled within the general argument.
+
+**T1.** Irreflexivity: cases (i) and (ii) both reduced to contradiction. Trichotomy: three-case analysis (no divergence position → `a = b` by T3; α-divergence → exactly one of `a < b` or `b < a` with explicit exclusion of reverse witnesses at all three sub-positions; β/γ-divergence → prefix order with reverse excluded by the `n+1 ≤ m` / `m+1 ≤ n` contradiction). Transitivity: all four `(k₁ rel k₂)` combinations walked; sub-case (i,ii) correctly terminated in contradiction; sub-case (ii,ii) correctly terminated via NAT-cancel and NAT-order trichotomy.
+
+**Divergence.** Case (i) least-element grounded by NAT-wellorder. Case (ii) sub-case range reduction (showing `i ≤ #a ⇒ i ≤ #b` under `#a < #b`) is walked via the `≤`-definition and `<`-transitivity/substitution. Mutual exclusivity, exhaustiveness (using T3 to derive `a = b` if neither case applies), and symmetry are all correctly argued.
+
+**TA0.** Immediate from TumblerAdd's first two postconditions. ✓
+
+**TA1-strict.** Divergence case (ii) is ruled out for each NAT-order trichotomy sub-case via `#a+1 ≤ #a` / `#b+1 ≤ #b` contradictions. The T1 witness for `a < b` is aligned with the divergence position `j` via three-way trichotomy (each non-`k'=j` branch produces contradiction). Cases `k = j` and `k > j` are exhaustive under the precondition `k ≥ j`, and both are fully discharged to `a⊕w < b⊕w` via T1 case (i) with all access preconditions verified.
+
+No dependency is ungrounded and no case is omitted.
+
+VERDICT: CONVERGED

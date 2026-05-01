@@ -1,0 +1,27 @@
+Reading the full dependency cone front-to-back: NAT-carrier → NAT-order → NAT-zero → NAT-closure → NAT-discrete → NAT-card → T0 → T4. Checking axiom packages, consequence derivations, and cross-claim dependency annotations.
+
+---
+
+**NAT-carrier.** Trivial foundation. ✓
+
+**NAT-order.** Exactly-one trichotomy: three mutual-exclusion clauses are each discharged by a substitution into irreflexivity. All four cases of `≤`-transitivity are handled. ✓
+
+**NAT-zero.** Consequence `¬(n < 0)` by contradiction in two branches, each terminating in `0 < 0` via transitivity or indiscernibility. NAT-carrier correctly present in Depends (the previously declined finding is stale). ✓
+
+**NAT-closure.** Consequence `0 < 1`: instantiate successor-positivity at `n := 0` to get `0 < 0 + 1`; left-identity at `n := 1` gives `0 + 1 = 1`; substitutivity closes to `0 < 1`. All three steps grounded. ✓
+
+**NAT-discrete.** No-interval Consequence: assume `m ≤ n < m + 1`; split `m ≤ n` into `m < n` (discharged by contradiction via the axiom + exactly-one trichotomy + irreflexivity) and `m = n` (gives `n = m` directly). Both branches correctly terminated. ✓
+
+**NAT-card.** Upper-bound clause is a necessary separate axiom (pigeonhole is not derivable without induction). Empty-domain case at `k = 0` handled by vacuous strictly-increasing condition. `0 < 1` correctly attributed to NAT-closure, not NAT-zero. ✓
+
+**T0.** Axiom package (nonemptiness, projection signature, comprehension, extensionality) is self-consistent. The `≥` in the comprehension axiom `p ≥ 1` is definitionally equivalent to `1 ≤ p` and NAT-order is cited. ✓
+
+**T4.** Checking the two non-trivial derivations:
+
+*tᵢ₊₁ well-definedness.* Upper bound `i + 1 ≤ #t`: NAT-discrete at `(i, #t)` from `i < #t`. Lower bound `1 ≤ i + 1`: successor-positivity at `n := i` gives `0 < i + 1`; NAT-discrete at `(0, i + 1)` gives `0 + 1 ≤ i + 1`; left-identity at `n := 1` rewrites to `1 ≤ i + 1`. Both bounds justified, `i + 1 ∈ {j ∈ ℕ : 1 ≤ j ≤ #t}`. ✓
+
+*Exhaustion.* The proof walks `zeros(t) ∈ ℕ` against `zeros(t) ≤ 3` by 4-step descent: at each value `m ∈ {0, 1, 2, 3}`, NAT-zero / the accumulated lower bound rules out `zeros(t) < m` via exactly-one trichotomy; the remaining case `m < zeros(t)` is promoted to `m + 1 ≤ zeros(t)` by NAT-discrete; the Numeral definitions `2 := 1 + 1`, `3 := 2 + 1` perform the rewriting. At the final step, `3 ≤ zeros(t)` excludes `zeros(t) < 3` and `zeros(t) ≤ 3` excludes `3 < zeros(t)`, forcing `zeros(t) = 3`. Every branch terminates in `{0, 1, 2, 3}`. ✓
+
+All dependency citations are complete and correctly attributed. The DAG is acyclic. No ungrounded symbols, no missing cases, no hand-waved steps.
+
+VERDICT: CONVERGED

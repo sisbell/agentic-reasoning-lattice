@@ -1,0 +1,11 @@
+The ASN is internally consistent. Dependency chains are unbroken, every quantifier range is discharged before use, the Exhaustion proof walks all four branches without shortcut, and the Forward/Reverse derivations in T4a close both directions of the biconditional. No ungrounded symbols, no missing cases, no frame violations.
+
+One local observation to log:
+
+### T4a interior-segment: condition (i) invocation elides an activation step
+**Class**: OBSERVE
+**Foundation**: T4 (HierarchicalParsing) — condition (i) `(A i : 1 ≤ i < #t : ¬(tᵢ = 0 ∧ tᵢ₊₁ = 0))`
+**ASN**: T4a (SyntacticEquivalence), Reverse interior-segment paragraph — "With `1 ≤ s_i < #t` in hand, condition (i) at `j := s_i` forbids `s_{i+1} = s_i + 1`"
+**Issue**: The surrounding proof walks every inference at fine granularity — the full page spent discharging `1 ≤ s_i < #t` before invoking condition (i) is characteristic of the established standard. But the connection from "condition (i) at `j := s_i`" to "forbids `s_{i+1} = s_i + 1`" is compressed: applying condition (i) yields `¬(t_{s_i} = 0 ∧ t_{s_i+1} = 0)`; activating its first conjunct requires citing that `t_{s_i} = 0` by definition of the zero-position enumeration; this gives `t_{s_i+1} ≠ 0`; hence `s_i + 1` is not a zero position; hence `s_{i+1} ≠ s_i + 1`. The conclusion is correct, but the inferential gap between invoking the condition and the forbidden equality is three definitional steps that the proof does not name, inconsistent with the rigor of the paragraph that precedes it.
+
+VERDICT: OBSERVE

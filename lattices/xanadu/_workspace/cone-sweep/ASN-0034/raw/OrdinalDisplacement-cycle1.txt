@@ -1,0 +1,32 @@
+Reading the full dependency graph before any per-claim checks.
+
+**Dependency topology** — NAT-carrier ← NAT-order ← NAT-zero ← NAT-closure ← NAT-discrete; NAT-carrier ← NAT-wellorder ← ActionPoint; T0 and TA-Pos sit above the NAT layer; OrdinalDisplacement sits at the apex. No cycles.
+
+**NAT-carrier / NAT-order / NAT-zero** — each is axiom-only with correct scoping. NAT-zero's minimality consequence (¬(n < 0)) is proved in two clean cases via NAT-order's irreflexivity and transitivity. Depends lists are complete.
+
+**NAT-closure** — the 0 < 1 consequence derivation chains successor-positivity at n := 0 through left-identity at n := 1 and substitutivity; no gap.
+
+**NAT-wellorder** — statement is a straightforward least-element axiom; depends correctly on NAT-carrier and NAT-order for the ≤ in the inner universal.
+
+**NAT-discrete** — the no-interval consequence is derived from the axiom. Case m < n is exhausted: m + 1 ≤ n unfolds to two subcases, both contradictory against n < m + 1 (one by ¬(a < b ∧ b < a), one by substitution and irreflexivity). Case m = n gives n = m by symmetry. Coverage is complete.
+
+**T0** — comprehension and extensionality together give a unique tumbler for each (length, component-map) pair. All appearances of ℕ, 1, and ≤ trace to the three cited dependencies.
+
+**TA-Pos** — the Pos/Zero complementarity is a pure DeMorgan duality over the shared index range; T0's nonemptiness clause is correctly invoked only to note the predicates are non-degenerate, not as a premise of the equivalence itself.
+
+**ActionPoint** — the critical claim. Checked in detail:
+
+- *S nonempty*: Pos(w) directly witnesses the existential; TA-Pos cited. ✓
+- *S ⊆ ℕ*: by the i ∈ ℕ carrier in the comprehension. ✓
+- *Existence of minimum*: NAT-wellorder applied to S. ✓
+- *Uniqueness*: m₁, m₂ ∈ S (both drawn from the least-element clause); instantiating each condition at the other element gives m₁ ≤ m₂ and m₂ ≤ m₁. All four cases from unfolding via NAT-order's definition are discharged — three by contradiction (transitivity → irreflexivity or substitution → irreflexivity), the fourth directly. ✓
+- *Zero-prefix postcondition*: the i ≤ #w sub-step chains i < actionPoint(w) with actionPoint(w) ≤ #w (unfolded as two sub-cases) to reach i < #w, then folds to i ≤ #w. Membership of i in S and the minimum condition then force contradiction on both disjuncts. ✓
+- *1 ≤ w_{actionPoint(w)}*: NAT-zero's disjunction axiom instantiated at w_{actionPoint(w)} ∈ ℕ (typed by T0's component projection); equality excluded by membership in S; NAT-discrete at (0, w_{actionPoint(w)}) gives 0 + 1 ≤ w_{actionPoint(w)}; NAT-closure's left-identity rewrites to 1 ≤ w_{actionPoint(w)}. ✓
+
+All three postconditions established.
+
+**OrdinalDisplacement** — T0's comprehension axiom licenses δ(n, m) ∈ T with p = m (precondition m ≥ 1 ∈ ℕ) and the component map (zeros from NAT-zero, n from precondition). The n ≠ 0 promotion chains NAT-closure's 0 < 1 consequence through NAT-order's ≤-unfolding on n ≥ 1, then uses the ¬(0 < n ∧ 0 = n) conjunct to exclude 0 = n. Pos(δ(n, m)) is witnessed at position m. actionPoint = m follows from S = {m} (range 1 ≤ i < m vacuous when m = 1, all zero otherwise; position m nonzero). All four postconditions established.
+
+**Cross-claim symbol consistency** — every appearance of ℕ, 0, 1, ≤, <, + is grounded in the correct dependency throughout; no symbol shifts meaning across claims.
+
+VERDICT: CONVERGED

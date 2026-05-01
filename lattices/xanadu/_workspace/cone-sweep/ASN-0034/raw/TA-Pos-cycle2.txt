@@ -1,0 +1,21 @@
+Reading the ASN as a system, tracing symbols through the dependency DAG.
+
+---
+
+### `≥` in T0 comprehension axiom unacknowledged in Depends annotation
+**Class**: OBSERVE
+**Foundation**: NAT-order (NatStrictTotalOrder) — Definition clause `(A m, n ∈ ℕ :: m ≥ n ⟺ n ≤ m)`
+**ASN**: T0 (CarrierSetDefinition) — Formal Contract *Depends:* entry for NAT-order; comprehension axiom `(A p ∈ ℕ : p ≥ 1 : ...)`
+**Issue**: The comprehension axiom uses `≥` as `p ≥ 1`. NAT-order's *Definition* section exports `≥` via `m ≥ n ⟺ n ≤ m`, so `≥` is grounded — NAT-order IS listed as a dependency. But the NAT-order annotation in T0's *Depends* reads only "supplies the non-strict relation `≤`…" and names two specific sites; `≥` does not appear anywhere in the annotation. A reader auditing symbol provenance in T0 finds `≥` in the formal contract and nothing in the Depends annotations pointing to its source. The grounding chain is intact; the annotation is the incomplete party.
+
+---
+
+### NAT-closure body justifies axiom form rather than stating it
+**Class**: OBSERVE
+**Foundation**: NAT-closure (NatArithmeticClosureAndIdentity) — successor-positivity axiom `(A n ∈ ℕ :: 0 < n + 1)`
+**ASN**: NAT-closure body — "This derivation pins down only the single sum `0 + 1`; without the universal clause, a model could satisfy the signature, the identity laws, and the bare `0 < 1` while still permitting `m + 1 = 0` at some `m ≥ 1`. The universal clause closes that gap uniformly across ℕ."
+**Issue**: This passage explains why the universal form of the axiom was chosen over a weaker alternative. It does not state what the axiom asserts, derive a consequence from it, or discharge a proof obligation. The content — "here is a model that would invalidate a weaker version" — is editorial motivation, not mathematical advance. The precise reader working through the body must skip it to follow the argument from axioms to the `0 < 1` consequence.
+
+---
+
+VERDICT: OBSERVE

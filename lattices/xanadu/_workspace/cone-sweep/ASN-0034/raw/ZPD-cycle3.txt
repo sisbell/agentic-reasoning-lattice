@@ -1,0 +1,21 @@
+**Dependency DAG — no cycles.** NAT-carrier ← NAT-order ← NAT-zero ← NAT-closure ← T0 ← T3; NAT-wellorder shares the NAT-carrier/NAT-order base. Divergence draws on T0, T3, NAT-order, NAT-wellorder, NAT-closure. ZPD extends with NAT-zero, NAT-discrete, Divergence. All dependency edges point strictly downward.
+
+**NAT-carrier.** Bare declaration; nothing to check.
+
+**NAT-order.** Axioms ground the three strict-order clauses cleanly. Exactly-one trichotomy derivation: all three mutual-exclusion arguments reduce to `m < m` via transitivity or `=`-substitution, then irreflexivity closes each. ✓ ≤-transitivity: four cases fully walked; each discharges via `<`-transitivity or `=`-substitution. ✓
+
+**NAT-zero.** Proof of `¬(n < 0)`: case `0 < n` chains with `n < 0` via transitivity to `0 < 0`, refuted by irreflexivity; case `0 = n` substitutes into `n < 0` to get `0 < 0`, same refutation. Both cases closed. ✓
+
+**NAT-wellorder.** Axiom-only; depends on NAT-carrier (for ℕ) and NAT-order (for ≤). ✓
+
+**NAT-closure.** `0 < 1` consequence: successor-positivity at n := 0 gives `0 < 0 + 1`; left-identity at n := 1 (requires `1 ∈ ℕ`, provided by own axiom) gives `0 + 1 = 1`; substitutivity closes to `0 < 1`. ✓
+
+**T0.** Comprehension and extensionality axioms are stated precisely; `1 ∈ ℕ` from NAT-closure, `≤` from NAT-order, `ℕ` from NAT-carrier — all grounded. ✓
+
+**T3.** Forward direction: T0's extensionality clause, instantiated. ✓ Reverse direction: `a = b` → `#a = #b` by Leibniz on `#·`; for each i in the common index domain, `aᵢ = bᵢ` by Leibniz on component projection. Index domains coincide since `#a = #b`. ✓
+
+**Divergence.** Mutual exclusivity: case (i)'s component mismatch at a shared position falsifies case (ii)'s universal agreement. ✓ Exhaustiveness: neither case applying yields all-shared-agreement plus `#a = #b`, so T3 (via T0 extensionality) gives `a = b`, contradicting `a ≠ b`. The reduction of the shared range to `1 ≤ i ≤ #a` under `#a < #b` is fully discharged: unfold `i ≤ #a` into `i < #a ∨ i = #a`; in the strict branch, `<`-transitivity at `(i, #a, #b)` gives `i < #b`; in the equality branch, substituting `i = #a` into `#a < #b` gives `i < #b`. Both branches yield `i ≤ #b`. ✓ Symmetry: case (i)'s qualifying set is invariant under swap (∧-commutativity, ≠-symmetry, =-symmetry); case (ii) sub-cases exchange, both yielding one-plus the shorter length. ✓ NAT-wellorder grounds `min` in case (i); nonemptiness is the case (i) hypothesis. NAT-closure types `#a + 1` and `#b + 1`. ✓
+
+**ZPD.** Trichotomy selects L deterministically. Padded projections are well-typed: native portions by T0; padding values `0 ∈ ℕ` by NAT-zero. NAT-wellorder grounds `min {k : 1 ≤ k ≤ L ∧ âₖ ≠ ŵₖ}` when the set is nonempty. Symmetry: sub-case (α) is self-symmetric; (β) and (γ) swap under exchange, preserving L (always the longer operand's length) and the symmetric disagreement predicate. ✓ Relationship-to-Divergence case (i): positions before k agree natively (Divergence minimality), so `âᵢ = ŵᵢ` for i < k; at k the native projections disagree, so `âₖ ≠ ŵₖ`; zpd therefore finds k. ✓ Case (ii), sub-case (β): padded `âₖ = 0` for k > #a; first disagreement satisfies `#a < k` (strict); NAT-discrete bridges `#a < k ⟹ #a + 1 ≤ k`, yielding `zpd(a, w) ≥ #a + 1 = divergence(a, w)`. ✓ Sub-case (γ) is symmetric. ✓
+
+VERDICT: CONVERGED

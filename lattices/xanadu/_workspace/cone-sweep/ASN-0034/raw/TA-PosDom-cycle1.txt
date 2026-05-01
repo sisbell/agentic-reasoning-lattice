@@ -1,0 +1,33 @@
+**Review narrative:**
+
+NAT-carrier, NAT-order, NAT-zero, NAT-closure, NAT-addcompat, NAT-discrete, NAT-cancel, NAT-wellorder: All axiom-level claims. Derived consequences — NAT-discrete's no-interval form and NAT-closure's `0 < 1` — are both proved correctly.
+
+T0, T3: T0's axioms are self-consistent. T3's biconditional proof is complete: the forward direction invokes T0's extensionality directly; the reverse direction uses Leibniz's law on `#·` and `·ᵢ`.
+
+T1 (LexicographicOrder): The three-part proof is the most substantial. Part (a) is immediate. Part (b)'s divergence-position construction correctly partitions `T × T` into three exhaustive, mutually exclusive cases — (α), (β), (γ) are pairwise exclusive by NAT-addcompat's successor inequality — and NAT-wellorder delivers the first divergence position when one exists. The "no reverse witness" sub-arguments in Cases 2 and 3 correctly close all three positional sub-cases (`k < k'`, `k' = k`, `k' < k`) by contradiction. Part (c) handles all four case combinations of how `a < b` and `b < c` are each witnessed; sub-case (i, ii) contradicts `k ≤ n` against `k = n + 1`; sub-case (ii, ii) derives `m = n` via NAT-cancel then contradicts it via the `m + 1 ≤ n` expansion.
+
+TA-PosDom: The minimal-index extraction via NAT-wellorder, properties (i)–(iii) of `k`, and the two-case split on `#z` vs `k` are all correct. The agreement obligation for the T1(ii) witness in Case `#z < k` is discharged by the trichotomy-at-`(i, #z)` argument that excludes the `#z < i` branch, reducing the generic `i` with `1 ≤ i < #z + 1` to `i ≤ #z`, which is exactly T1(ii)'s native range.
+
+Dependency graph: Acyclic. No circularity detected. All Depends citations match the symbols actually used in each Formal Contract.
+
+Two observations follow.
+
+---
+
+### T3 quantifier — missing ∈ ℕ carrier annotation on bound variable i
+**Class**: OBSERVE
+**Foundation**: T0 (CarrierSetDefinition) — extensionality axiom writes `(A i ∈ ℕ : 1 ≤ i ≤ #a : aᵢ = bᵢ)` with explicit carrier.
+**ASN**: T3 (CanonicalRepresentation) — body `(A a, b ∈ T : #a = #b ∧ (A i : 1 ≤ i ≤ #a : aᵢ = bᵢ) ≡ a = b)` and Formal Contract postcondition `a = b ⟺ #a = #b ∧ (A i : 1 ≤ i ≤ #a : aᵢ = bᵢ)`.
+**Issue**: The quantifier over `i` omits the `∈ ℕ` carrier annotation. T0's extensionality, T1's agreement condition `(A i ∈ ℕ : 1 ≤ i < k : aᵢ = bᵢ)`, and TA-Pos's index quantifiers all carry the annotation explicitly. T3's formulation of the same range leaves the domain of `i` implicit. The intended domain is ℕ — unambiguous from context — but the notation is inconsistent with the rest of the ASN.
+
+---
+
+### TA-PosDom Depends cites "</<= transitivity" not listed in NAT-order's Formal Contract
+**Class**: OBSERVE
+**Foundation**: NAT-order (NatStrictTotalOrder) — Formal Contract postconditions: `<`-transitivity (axiom) and `≤`-transitivity (consequence). No mixed composition form appears.
+**ASN**: TA-PosDom (PositiveDominatesZero) — Depends: "NAT-order (NatStrictTotalOrder) — `<`/`≤` transitivity and irreflexivity used both in the least-element witness and in the case analyses."
+**Issue**: The Depends annotation names "`<`/`≤` transitivity" — `m < n ∧ n ≤ p ⟹ m < p` and its `≤`/`<` mirror — as a property drawn from NAT-order. These forms are derivable (expand `≤` via the defining clause, then apply `<`-transitivity or Leibniz's law), and T1's transitivity proof performs exactly this expansion inline. But the mixed composition is not listed as a consequence in NAT-order's Formal Contract. A reader consulting NAT-order's stated postconditions to audit the citation would not find the named property there.
+
+---
+
+VERDICT: OBSERVE

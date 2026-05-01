@@ -1,0 +1,19 @@
+The NAT-* foundation claims are internally sound: irreflexivity, trichotomy, and transitivity of `<` on ℕ are derived correctly from the stated axioms; ≤-transitivity falls out cleanly from the four-case unfold; the cancellation and subtraction consequences follow their stated derivation paths without gap. The strictly-formal dependency chains for NAT-zero → NAT-carrier, NAT-addbound → NAT-addcompat, and NAT-sub → NAT-addbound are complete.
+
+T0's extensionality and comprehension axioms are correctly applied throughout. T3 is a clean restatement of extensionality; its forward and reverse directions are both grounded.
+
+ActionPoint's uniqueness proof is complete: the four pairings of `m₁ ≤ m₂ ∧ m₂ ≤ m₁` are exhausted via irreflexivity and transitivity alone. The `wᵢ = 0` discharge for `i < actionPoint(w)` is carried through the full chain — membership in S, instantiation of the lower-bound universal, and contradiction in both disjuncts of the ≤-unfolding. The `1 ≤ w_{actionPoint(w)}` step correctly threads NAT-zero's disjunction axiom → NAT-discrete → NAT-closure's left identity.
+
+TumblerAdd's result-length computation is sound: NAT-sub's conditional closure grounds `k − 1 ∈ ℕ` and `n − k ∈ ℕ` from `1 ≤ k` and `k ≤ n` respectively; the right- and left-inverse characterisations collapse the three-term sum to `n` without requiring commutativity. Strict advancement threads the case split on the two disjuncts of `aₖ + 1 ≤ aₖ + wₖ` correctly; both branches converge to `aₖ < aₖ + wₖ`. The dominance proof's three-way case structure is exhaustive: Case A (some `aⱼ > 0` for `j < k`) and Case B (all zeros before `k`, sub-split on `aₖ > 0 ∨ aₖ = 0`) partition the space exactly by NAT-zero's disjunction.
+
+T1's trichotomy proof is complete. The three cases — no divergence position, first divergence satisfying (α), first divergence satisfying (β) or (γ) — partition `T × T` and are handled via NAT-wellorder, NAT-order's trichotomy, and T3. The sub-case (i, ii) of the transitivity proof correctly reaches contradiction from `k ≤ n` (T1(i) on the first premise) and `k = n + 1` (T1(ii) on the second) via NAT-addcompat's successor inequality. Sub-case (ii, ii) correctly derives `m < n` from `m + 1 ≤ n` and then contradicts `m = n`. The `k₂ < k₁` case's T1(ii)-impossible argument uses NAT-discrete's forward direction contrapositively without error. TA0 exports TumblerAdd's first two postconditions cleanly.
+
+One observation on TumblerAdd's result-length identity:
+
+### TumblerAdd: "Since n ≥ 1" lacks an explicit derivation
+**Class**: OBSERVE
+**Foundation**: T0 (CarrierSetDefinition) — comprehension clause requires `p ≥ 1`; NAT-order — `≤`-transitivity consequence
+**ASN**: TumblerAdd (TumblerAdd), result-length identity: "Since `n ≥ 1`, the result has at least one component. … T0's comprehension clause, instantiated at length `p` and component map `r`, supplies a tumbler in T."
+**Issue**: T0's comprehension clause has precondition `p ≥ 1`. The proof discharges this by asserting "Since `n ≥ 1`" without naming the derivation. The ground is already in scope: ActionPoint's postcondition `1 ≤ k ≤ n = #w`, combined with NAT-order's `≤`-transitivity consequence, delivers `1 ≤ n`. The T0 Depends entry acknowledges "instantiated at result-length `p ≥ 1`" but does not cite the nonemptiness clause or the ActionPoint bounds as the source. The claim is correct; the discharge mechanism is implicit.
+
+VERDICT: OBSERVE

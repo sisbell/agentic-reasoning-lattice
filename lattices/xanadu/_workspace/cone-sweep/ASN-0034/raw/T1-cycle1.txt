@@ -1,0 +1,29 @@
+## Audit Narrative
+
+**NAT foundation claims.** NAT-carrier is a root axiom with no dependencies. NAT-order's exactly-one trichotomy consequence is derived cleanly: `¬(m<n∧n<m)` via transitivity→irreflexivity; `¬(m<n∧m=n)` and `¬(m=n∧n<m)` each via indiscernibility of `=` into irreflexivity. The ≤-transitivity four-case walk is complete and each branch discharges. NAT-zero's consequence `¬(n<0)` is proved by contradiction using both disjuncts of the axiom's second clause against transitivity and irreflexivity. NAT-closure's consequence `0<1` is derived by two-step instantiation of successor-positivity and left-identity with substitutivity. NAT-discrete's no-interval consequence walks both branches of the `m≤n` split and discharges the `m<n` branch by contradiction via two sub-branches of `m+1≤n`, with the `m=n` branch delivering `n=m` directly. NAT-addcompat and NAT-wellorder are pure axiom claims; nothing to verify. NAT-cancel's summand-absorption consequence correctly uses right identity (`m+0=m`) with left cancellation for the posited form, and left identity (`0+m=m`) with right cancellation for the mirror form. All dependency citations across the NAT claims are present and correctly annotated.
+
+**T0 and T3.** T0 posits the carrier with five axiom clauses; the dependency chain to NAT-carrier, NAT-closure (for `1∈ℕ`), and NAT-order (for `≤` in index domains) is complete. T3's forward direction instantiates T0's extensionality clause directly; the reverse direction applies Leibniz's law to the length operator and component projections, both of which are well-defined functions supplied by T0. The biconditional is fully discharged.
+
+**T1 irreflexivity.** Case (i) hits NAT-order irreflexivity on `aₖ<aₖ`. Case (ii) derives `m+1≤m` from `k=m+1≤m`, expands via the `≤`-clause, and rules out both disjuncts using NAT-addcompat's `m<m+1` and NAT-order trichotomy.
+
+**T1 trichotomy.** The divergence-position apparatus is correctly constructed: positions `k≥1` satisfying (α) (shared-domain mismatch), (β) (first exhaustion beyond `a`), or (γ) (first exhaustion beyond `b`). Positions `k>m+1` cannot satisfy any clause—(α) requires `k≤m`, (β) requires `k=m+1`, and (γ) requires `k=n+1≤m` which is impossible when `k>m`—so the set is correctly bounded. NAT-wellorder is applied to the nonempty subset of ℕ when divergences exist; the minimum is well-defined.
+
+Case 1 (no divergence): NAT-discrete's contrapositive from `¬(m+1≤n)` gives `¬(m<n)`; symmetrically `¬(n<m)`; NAT-order trichotomy at `(m,n)` forces `m=n`; T3 closes to `a=b`. Irreflexivity (part a) then gives `¬(a<b)` and `¬(b<a)`.
+
+Case 2 (first divergence is (α)): `a≠b` via T3 (component mismatch). NAT-order trichotomy at `(aₖ,bₖ)` delivers one of `aₖ<bₖ` or `bₖ<aₖ`. The "no reverse witness" argument is exhaustive across three sub-cases (`k<k'`, `k'=k`, `k'<k`), each ruled out by the agreement failure, trichotomy, or minimality of `k` combined with NAT-addcompat and the `≤`-expansion.
+
+Case 3 (first divergence is (β) or (γ)): minimality of `k` rules out any (α) mismatch at shared positions (each shared index `j` satisfies `j<k` via NAT-addcompat's `m<m+1` or `n<n+1`). Both (β) and (γ) force `m≠n` via the `≤`-expansion and NAT-addcompat. NAT-order trichotomy then splits `m<n` vs. `n<m`. Under `m<n`, clause (γ) is ruled out (it would give `n<m`, contradicting trichotomy), so `k` satisfies (β); the prefix witness is constructed and the no-reverse-witness argument is complete. The case `n<m` is symmetric.
+
+All four mutual-exclusion conjuncts of the trichotomy postcondition are discharged in each branch.
+
+**T1 transitivity.** The three-way split on `k₁<k₂`, `k₂<k₁`, `k₁=k₂` is exhaustive by NAT-order trichotomy on ℕ. The opening chain `aᵢ=bᵢ=cᵢ` for `i<min(k₁,k₂)` supplies the agreement condition for all witnesses constructed below.
+
+Case `k₁<k₂`: `k₂≤p` follows from T1's defining clauses in both (i) and (ii) sub-cases; `k₁<p` follows via the `≤`-expansion of `k₂≤p` combined with `k₁<k₂`; agreement at `k₁` for `b<c` is in range since `k₁<k₂`. Both T1(i) and T1(ii) sub-cases produce valid witnesses for `a<c`.
+
+Case `k₂<k₁`: T1(ii) for `b<c` is ruled out because either sub-case of `a<b` gives `k₁≤n<n+1=k₂`, contradicting `k₂<k₁` by trichotomy. So `b<c` is necessarily via T1(i). Both sub-cases of `a<b` then establish `k₂≤m` (via the `≤`-expansion of `k₁≤m` combined with `k₂<k₁`, or via NAT-discrete contrapositive when `k₁=m+1`), and a valid T1(i) witness at `k₂` for `a<c` is produced.
+
+Case `k₁=k₂=k`: four sub-cases. (i,i) delivers `aₖ<cₖ` by NAT-order transitivity, with `k≤m` from T1(i) for `a<b` and `k≤p` from T1(i) for `b<c`. (ii,i) delivers `m+1≤p` from `k=m+1` and `k≤p`. (i,ii) is contradictory: `k≤n` from T1(i) and `k=n+1` from T1(ii) give `n+1≤n`, contradicted by NAT-addcompat and trichotomy. (ii,ii) is contradictory: `m+1=n+1` gives `m=n` by NAT-cancel right-cancellation at `1`, but `m+1≤n` expanded via the `≤`-clause and NAT-addcompat gives `m<n`, contradicting `m=n`. All realizable combinations produce witnesses. ∎
+
+**Dependency graph.** The declared dependency DAG is acyclic and complete. Every symbol appearing in each claim's axiom, definition, and proof is grounded in a cited dependency. No claim accesses a function or relation without citing its source.
+
+VERDICT: CONVERGED

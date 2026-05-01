@@ -1,0 +1,31 @@
+I read the ASN as a system, checking each claim's proof, the dependency chains, and the cross-claim interactions that no per-claim review can see.
+
+**NAT-carrier / NAT-zero / NAT-order / NAT-closure / NAT-addcompat / NAT-discrete / NAT-cancel / NAT-wellorder**: All posited correctly as axioms. NAT-closure's `0 < 1` consequence derives cleanly via the successor-positivity clause instantiated at n=0 and left-identity at n=1. NAT-zero's minimum consequence (`¬(n < 0)`) is sound: both branches (0 < n with n < 0 → transitivity → 0 < 0; and 0 = n → substitution → n < n) hit irreflexivity. Dependency citations are complete.
+
+**NAT-addbound**: Both dominance consequences derive correctly from NAT-zero (to get `0 ≤ m` / `0 ≤ n`), NAT-addcompat (order compatibility), and NAT-closure (identity laws). No circular dependency: NAT-sub depends on NAT-addbound but NAT-addbound does not depend on NAT-sub. ✓
+
+**NAT-sub**: Both inverse characterisations are posited directly — no commutativity gap. Strict monotonicity proof walks all three trichotomy cases at `(a, b)` correctly, dispatching `a = b` via irreflexivity and `b < a` via the `¬(x < y ∧ y < x)` clause. Strict positivity: the `m − n = 0` contradiction chain through right-inverse → left-identity → `n = m` → exactly-one trichotomy → contradiction is sound. Telescoping preconditions discharged by NAT-addbound. ✓
+
+**T0**: Foundation axiom. Extensionality, comprehension, projection, and nonemptiness clauses are well-formed. Dependencies (NAT-carrier, NAT-closure for `1 ∈ ℕ`, NAT-order for `≤`) are correct and complete.
+
+**T3**: Forward direction from T0 extensionality; reverse direction by Leibniz's law. Biconditional correctly stated. ✓
+
+**ActionPoint**: S is nonempty by TA-Pos; NAT-wellorder supplies least element. Uniqueness argument correctly distributes the two ≤-bounds into four disjunctive pairings, dispatches cases 1–3 via irreflexivity/transitivity, leaves case 4 (`m₁ = m₂`). Zeros-below proof correctly chains `i < actionPoint(w) ≤ #w` through both ≤-branches to get `i < #w` → `i ≤ #w`, then closes contradiction via minimality. `1 ≤ w_k` via NAT-zero disjunction, NAT-discrete, and NAT-closure left-identity is sound. ✓
+
+**T1**: Irreflexivity: case (i) hits NAT-order irreflexivity on ℕ; case (ii) hits `m + 1 ≤ m` ruled out by NAT-addcompat + trichotomy. Trichotomy: NAT-wellorder over the non-empty divergence set (when it exists); Case 1's `m = n` from NAT-discrete contrapositive + trichotomy + T3 is sound; Cases 2 and 3 correctly exclude the reverse witness at every sub-split. The `m ≠ n` argument in Case 3 routes both the `m + 1 < n` and `m + 1 = n` sub-branches to `m < n` via NAT-addcompat. Transitivity: sub-cases (i,i), (ii,i), (i,ii), (ii,ii) are all walked; (i,ii) correctly terminates in contradiction at `n + 1 ≤ n`; (ii,ii) reaches `m < n` and `m = n` from NAT-cancel, then contradicts via trichotomy. No sub-case is skipped. ✓
+
+**TA-Pos**: DeMorgan duality is exact; T0 nonemptiness grounds both quantifiers as non-vacuous. ✓
+
+**TA0**: Directly re-exports TumblerAdd postconditions under matching preconditions. ✓
+
+**TumblerAdd**: All four postconditions are established.
+- Closure: T0 comprehension at `p = n ≥ 1` with map `i ↦ rᵢ` valued in ℕ. ✓
+- Length: NAT-sub right-inverse at `(k, 1)` gives `(k−1)+1 = k`; left-inverse at `(n, k)` gives `k + (n−k) = n`; parsed left-associatively, no associativity axiom required. ✓
+- Strict advancement: NAT-addcompat left compatibility at `1 ≤ wₖ` gives `aₖ + 1 ≤ aₖ + wₖ`; successor inequality `aₖ < aₖ + 1`; two-branch case on the ≤-expansion both yield `aₖ < aₖ + wₖ`; T1(i) at k with `k ≤ #a` and `k ≤ #w = #(a ⊕ w)`. ✓
+- Dominance: Three-case structure (some `aⱼ > 0` for `j < k`; all zeros and `aₖ > 0`; all zeros and `aₖ = 0`) is exhaustive. Each strict branch dispatches via T1(i) at the correct divergence position; equality branch reaches `r = w` via T3. k = 1 degenerate case correctly falls into the "all zeros" branch vacuously. ✓
+
+**TA-LC**: Cases `k₁ < k₂` and `k₂ < k₁` each derive a zero action-point component via NAT-cancel summand absorption, contradicting ActionPoint's `wₖ ≥ 1`. Case `k₁ = k₂ = k`: prefix zeros by ActionPoint definition; action-point equality by NAT-cancel left cancellation; tail equality by tail-copy; length equality by result-length identity; T3 closes. ✓
+
+No ungrounded symbols, no missing cases, no broken precondition chains, no circular dependencies.
+
+VERDICT: CONVERGED

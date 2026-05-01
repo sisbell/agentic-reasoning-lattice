@@ -1,0 +1,32 @@
+I will read each claim and proof systematically, checking dependency chains, proof coverage, and cross-claim consistency.
+
+---
+
+**T0 (CarrierSetDefinition)** — Axioms, comprehension, extensionality, and dependency citations all check out. The index-domain bound `{j ∈ ℕ : 1 ≤ j ≤ #a}` is consistently typed throughout.
+
+**NAT-carrier, NAT-order, NAT-zero, NAT-closure, NAT-addcompat, NAT-discrete, NAT-wellorder, NAT-card, NAT-addbound** — All axiom-only or shallow-derived claims. Dependency graphs are acyclic. Both NAT-addbound dominance derivations discharge via NAT-zero + NAT-addcompat + NAT-closure + NAT-order. NAT-sub's strict-monotonicity and strict-positivity derivations walk their cases correctly; all three trichotomy sub-case dispatches close without gap.
+
+**TA5-SIG (LastSignificantPosition)** — The max(S)-via-least-of-U argument is the structural core. I traced it in full:
+
+- U ⊆ ℕ by construction; #t ∈ U because every i ∈ S satisfies i ≤ #t by the index-domain constraint — U ≠ ∅ ✓
+- NAT-wellorder delivers m = least(U), m ∈ U ✓
+- Contradiction argument (m ∉ S → i < m for all i ∈ S → i + 1 ≤ m → i ≤ m − 1 → m − 1 ∈ U, contradicting minimality): the two sub-cases on i + 1 ≤ m (split into i + 1 = m and i + 1 < m) are fully walked; right-telescoping and strict-monotonicity at p = 1 close both ✓
+- The four sub-cases on (1 < i₀ ∨ 1 = i₀) × (i₀ + 1 < m ∨ i₀ + 1 = m) all close on 1 < m, supplying m ≥ 1 for NAT-sub conditional closure ✓
+- Uniqueness of least element via antisymmetry ✓
+- Postcondition 1 ≤ sig(t) ≤ #t: nonzero case from m ∈ S ⊆ {1,…,#t}; all-zero case from #t ≥ 1 ✓
+
+**T4 (HierarchicalParsing)** — Well-definedness of tᵢ₊₁ in the non-adjacency clause (upper bound via NAT-discrete, lower bound via successor-positivity + NAT-discrete + left-identity) is properly discharged. Exhaustion consequence walks the four-value case analysis correctly using NAT-zero + NAT-discrete + NAT-closure numerals.
+
+**TA5-SigValid (SigOnValidAddresses)** — One OBSERVE below. Proof otherwise correct: #t ∈ S (1 ≤ #t from T0, #t ≤ #t by reflexivity, t_{#t} ≠ 0 from T4) → sig(t) ≥ #t; TA5-SIG postcondition → sig(t) ≤ #t; antisymmetry → sig(t) = #t ✓
+
+---
+
+### Redundant NAT-zero invocation in TA5-SigValid
+**Class**: OBSERVE
+**Foundation**: TA5-SIG (LastSignificantPosition) — nonzero-case precondition `(E i : 1 ≤ i ≤ #t : tᵢ ≠ 0)`
+**ASN**: TA5-SigValid (SigOnValidAddresses) — proof body: "NAT-zero supplies `0 < t_{#t} ∨ 0 = t_{#t}`; T4's `t_{#t} ≠ 0` excludes the equality branch, leaving `0 < t_{#t}`. Since `t_{#t} > 0`, by TA5-SIG, `sig(t) = max(S)`"
+**Issue**: TA5-SIG's nonzero case is triggered by `(E i : 1 ≤ i ≤ #t : tᵢ ≠ 0)`. T4 directly supplies `t_{#t} ≠ 0`, and the witness i = #t satisfies the index bounds (1 ≤ #t ≤ #t from T0). The NAT-zero invocation establishes the stronger `0 < t_{#t}` from `t_{#t} ≠ 0`, but TA5-SIG's case condition is `≠ 0`, not `> 0`. The detour through NAT-zero (which converts T4's ≠ form to the equivalent > form) adds no logical content — T4's conjunct is already in the exact shape TA5-SIG requires. The NAT-zero dependency in the Depends list is an over-citation.
+
+---
+
+VERDICT: OBSERVE

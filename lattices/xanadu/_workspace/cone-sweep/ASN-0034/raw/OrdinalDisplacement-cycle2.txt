@@ -1,0 +1,37 @@
+Reading the specification as a system, tracing every precondition chain, proof case, and cross-claim dependency.
+
+**NAT-carrier / NAT-zero / NAT-order / NAT-closure / NAT-discrete / NAT-wellorder** — foundations examined. Dependency topology is acyclic: NAT-carrier ← NAT-order ← NAT-zero ← NAT-closure ← NAT-discrete; NAT-wellorder ← NAT-carrier + NAT-order. No circularity.
+
+NAT-zero's consequence `¬(n < 0)` is sound: the two-case split on `0 < n ∨ 0 = n` discharges against transitivity and irreflexivity in both branches.
+
+NAT-order's exactly-one trichotomy: all three mutual-exclusion conjuncts are discharged individually (transitivity + irreflexivity for `¬(m<n ∧ n<m)`; indiscernibility + irreflexivity for the two mixed cases). The four-case `≤`-transitivity proof covers `</<`, `</=`, `=/<`, `=/=` completely.
+
+NAT-closure's consequence `0 < 1`: successor-positivity at n:=0 gives `0 < 0+1`; left-identity at n:=1 gives `0+1=1`; substitutivity yields `0 < 1`. Clean.
+
+NAT-discrete's no-interval consequence: the case split on `m ≤ n` yields two branches; `m < n` leads to `m+1 ≤ n` by the axiom, which combined with `n < m+1` is contradictory in both disjuncts of `m+1 ≤ n` (trichotomy and irreflexivity); `m = n` gives `n = m` by symmetry. Both branches terminate correctly.
+
+**T0** — axiom set (carrier, length, nonemptiness, component projection, comprehension, extensionality) is internally consistent. Comprehension + extensionality together characterise T as exactly the nonempty finite sequences over ℕ: comprehension supplies existence, extensionality supplies uniqueness. Depends chain (NAT-carrier, NAT-closure, NAT-order) is complete for every symbol appearing in the axioms.
+
+**TA-Pos** — the complementarity `Pos(t) ⟺ ¬Zero(t)` is a direct DeMorgan duality: `(E i : P(i) : ¬Q(i)) ⟺ ¬(A i : P(i) : Q(i))` with double-negation elimination. The vacuity remark in prose is grounded in T0's nonemptiness clause `(A a ∈ T :: 1 ≤ #a)` and is offered as explanatory context, not an exported consequence — acceptable.
+
+**ActionPoint** — the most complex derivation.
+
+*S nonempty*: Pos(w) is the existential `(E i ∈ ℕ : 1 ≤ i ≤ #w : wᵢ ≠ 0)`, whose witness lands in S by the membership conditions. ✓
+
+*S ⊆ ℕ*: the comprehension restricts to `i ∈ ℕ` by construction. ✓
+
+*Existence*: NAT-wellorder applied to (S ⊆ ℕ, S ≠ ∅) gives m ∈ S with `(A n ∈ S :: m ≤ n)`. ✓
+
+*Uniqueness*: given two minima m₁, m₂, mutual membership gives m₁ ≤ m₂ and m₂ ≤ m₁. The four-case analysis on the unfolded disjunctions dispatches the three non-equality pairings to irreflexivity violations and accepts the equality pairing directly. ✓
+
+*Zeros before action point*: the contradiction proof for any `i` with `1 ≤ i < actionPoint(w)` and `wᵢ ≠ 0` fully discharges the three remaining membership conditions for i ∈ S (carrier, lower bound, upper bound via the `actionPoint(w) ≤ #w` chain through NAT-order transitivity/definition). The minimality instantiation and the final case split on `actionPoint(w) ≤ i` both close against irreflexivity. When `actionPoint(w) = 1` the range `1 ≤ i < 1` is empty; the universal holds vacuously and the contradiction argument never fires — logically correct.
+
+*1 ≤ w_{actionPoint(w)}*: membership in S gives `w_{actionPoint(w)} ≠ 0`; NAT-zero's disjunction at that component excludes the equality branch; NAT-discrete at (m=0, n=w_{actionPoint(w)}) gives `0+1 ≤ w_{actionPoint(w)}`; NAT-closure's left-identity at n=1 rewrites to `1 ≤ w_{actionPoint(w)}`. Each instantiation premise is satisfied (0 ∈ ℕ from NAT-zero, component ∈ ℕ from T0's projection typing, 1 ∈ ℕ from NAT-closure). ✓
+
+**OrdinalDisplacement** — the `n ≥ 1 ⟹ n ≠ 0` chain: `n ≥ 1` unfolds to `1 ≤ n` (by `≥` definition) to `1 < n ∨ 1 = n` (by `≤` definition); both disjuncts yield `0 < n` (by `<`-transitivity with `0 < 1` in the first case, substitution in the second); the exactly-one-trichotomy conjunct `¬(0 < n ∧ 0 = n)` with `0 < n` in hand gives `0 ≠ n`, hence `n ≠ 0` by symmetry. ✓
+
+The claim that `actionPoint(δ(n,m)) = m` rests on S = {m}: the definition of δ makes positions 1..m−1 zero (so outside S) and position m equal to n ≠ 0 (so in S); positions above m are outside the index domain `1 ≤ i ≤ m`. The singleton {m} has minimum m. ✓ The case m = 1 (no leading zeros) is handled by the empty leading range without special treatment.
+
+All postconditions are established. All dependency citations are complete and accurate. No operator appears without a grounding citation. No proof skips a case or hand-waves an edge.
+
+VERDICT: CONVERGED

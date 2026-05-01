@@ -1,0 +1,33 @@
+I will read the full ASN systematically — dependency graph, each claim's axioms and proof, all case analyses, and the formal contracts — before forming findings.
+
+**NAT-carrier.** Foundational; no dependencies. Sound.
+
+**NAT-order.** Axioms posit `<`; exactly-one trichotomy is derived correctly from irreflexivity, transitivity, and at-least-one trichotomy. The three mutual-exclusion arguments each reduce to `m < m` or `n < n` against irreflexivity. `≤`-transitivity is derived by exhausting four cases from the two `≤`-unfoldings. Depends is NAT-carrier only. Sound.
+
+**NAT-zero.** The consequence `¬(n < 0)` is derived by contradiction: assuming `n < 0` and applying the axiom's disjunction, both branches (`0 < n` and `0 = n`) chain through transitivity or substitution to `0 < 0`, blocked by irreflexivity. NAT-carrier and NAT-order correctly listed. Sound.
+
+**NAT-wellorder.** Axiom with no proof obligation. Uses `≤` from NAT-order; `ℕ` from NAT-carrier. Sound.
+
+**NAT-closure.** Consequence `0 < 1`: instantiate successor-positivity at `n := 0` to get `0 < 0 + 1`; apply left-identity at `n := 1` to get `0 + 1 = 1`; substitute. Requires `0 ∈ ℕ` (NAT-zero) and `1 ∈ ℕ` (own axiom) for the instantiations. Sound.
+
+**NAT-discrete.** The no-interval consequence is derived cleanly: in the `m < n` branch, discreteness yields `m + 1 ≤ n`, which unfolds to two sub-cases both contradicting the hypothesis `n < m + 1` (one by exactly-one trichotomy, one by irreflexivity after rewriting). The `m = n` branch yields `n = m` directly. The axiom's use of `m + 1` is grounded by NAT-closure. Sound.
+
+**T0.** Comprehension, extensionality, length, and component projection are all axioms; no proof obligation. Index-domain bounds use `≤` (NAT-order) and `1` (NAT-closure); both listed. Sound.
+
+**T3.** Forward direction applies T0's extensionality clause directly. Reverse direction applies Leibniz's law to `a = b` to derive `#a = #b` and pointwise component equality. The index domain is the same for both tumblers once `#a = #b` is established, so `bᵢ` is in scope on the range `1 ≤ i ≤ #a`. Depends is T0 only. Sound — but see finding below.
+
+**Divergence.** Case analysis: case (i) is the first shared-position disagreement; case (ii) is strict prefix. Mutual exclusivity: case (i) witnesses a disagreeing shared position, directly falsifying case (ii)'s universal-agreement hypothesis. Exhaustiveness: if neither applies, shared agreement and `#a = #b` together satisfy T3's precondition, giving `a = b`, contradicting `a ≠ b`. The sub-case (ii-a)/(ii-b) derivations unfold `i ≤ #a` against the NAT-order definition and chain through transitivity or substitution correctly. Symmetry in case (i) holds because the qualifying conjunction is pointwise symmetric; in case (ii), swapped sub-cases both select one-plus the shorter length. NAT-wellorder grounds the least-`k` in case (i). Sound.
+
+**ZPD.** `L` is uniquely selected by exactly-one trichotomy. Padded projections are well-typed (`0 ∈ ℕ` from NAT-zero; native components from T0). NAT-wellorder grounds `min {k : 1 ≤ k ≤ L ∧ âₖ ≠ ŵₖ}` when the set is nonempty. Relationship to Divergence: in case (i), the disagreement position `k ≤ #a ∧ k ≤ #w` falls in the native region of both padded projections, so `zpd = divergence = k`. In case (ii) sub-case (β), all native positions agree, so the first padded disagreement `k` satisfies `#a < k`; NAT-discrete's forward direction `m < n ⟹ m + 1 ≤ n` at `(#a, k)` yields `zpd ≥ #a + 1 = divergence`. Sub-case (γ) is symmetric. Symmetry postcondition: (α) is self-symmetric; (β) and (γ) swap, yielding the same `L`. Partiality: undefined iff zero-padded-equal, explicitly stated. Sound.
+
+---
+
+### T3 headline claim uses `:` where `::` is needed for the biconditional body
+**Class**: OBSERVE
+**Foundation**: (none — notation issue internal to this foundation ASN)
+**ASN**: T3 (CanonicalRepresentation) — opening claim `(A a, b ∈ T : #a = #b ∧ (A i : 1 ≤ i ≤ #a : aᵢ = bᵢ) ≡ a = b)`
+**Issue**: Throughout the ASN, `(A vars : range : body)` places the range between the two colons and the body after the second colon (e.g., T0's extensionality `(A a, b ∈ T : #a = #b ∧ ... : a = b)`), while `(A vars :: body)` marks the no-range form. T3's headline uses a single `:` where `::` is needed: as written, `#a = #b ∧ (A i : 1 ≤ i ≤ #a : aᵢ = bᵢ) ≡ a = b` is parsed as the range with an empty body, giving a vacuously true claim. The intended reading — a biconditional body with no range restriction — requires `::`. The Formal Contract postcondition states the biconditional correctly as `a = b ⟺ #a = #b ∧ (A i : 1 ≤ i ≤ #a : aᵢ = bᵢ)`, so the mathematical content is sound; the ambiguity is confined to the headline.
+
+---
+
+VERDICT: OBSERVE

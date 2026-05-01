@@ -1,0 +1,23 @@
+**Carrier and foundations (T0, NAT-*).**
+
+T0's axiom inventory is correct. NAT-carrier, NAT-closure, and NAT-order supply exactly the symbols T0 uses: ℕ as the codomain of `#·` and the component projection, `1 ∈ ℕ` for the lower bound `1 ≤ #a`, and `≤` for the index-domain bounds. The comprehension and extensionality axioms are well-formed under those dependencies. The `p ≥ 1` in the comprehension unfolds to `1 ≤ p` via NAT-order's definition of `≥`; NAT-order's annotation need not enumerate `≥` separately since `≥` is definitionally transparent.
+
+NAT-carrier, NAT-zero, NAT-order, NAT-closure, and NAT-wellorder form an acyclic dependency chain. NAT-zero's derivation of `¬(n < 0)` — case-splitting the axiom `0 < n ∨ 0 = n`, applying `<`-transitivity in the strict branch and `=`-substitution in the equality branch, concluding `0 < 0` against irreflexivity in each — is walked in full. NAT-closure's derivation of `0 < 1` — successor-positivity at `n := 0` then left-identity at `n := 1` then substitutivity — is correctly attributed to its own axioms plus the NAT-zero and NAT-order dependencies. NAT-order's exactly-one trichotomy and `≤`-transitivity are both walked to completion; all four cases of the `≤`-transitivity proof discharge.
+
+**T3 (CanonicalRepresentation).**
+
+The biconditional reading of `(A a, b ∈ T : ... ≡ a = b)` is confirmed by the postcondition. The forward direction applies T0's extensionality clause directly; the reverse direction applies Leibniz's law to `#·` and to each index-parameterized projection. The partial-function concern for the component projection dissolves: `a = b` implies `#a = #b`, so both projections share the same index domain, and Leibniz applies without issue. The implicit domain `ℕ` for `i` in T3 is consistent with T0's explicit `i ∈ ℕ`; the notational drop is harmless given the single dependency on T0.
+
+**Divergence.**
+
+*Well-definedness of case (i).* The set `S = {k ∈ ℕ : 1 ≤ k ∧ k ≤ #a ∧ k ≤ #b ∧ aₖ ≠ bₖ}` is a nonempty subset of ℕ by case (i)'s hypothesis; NAT-wellorder supplies a least element. Uniqueness of the minimality-characterised `k` is sound: if `k₁ < k₂` both satisfy the conjunction, `k₂`'s minimality clause `(A i : 1 ≤ i < k₂ : aᵢ = bᵢ)` covers `i = k₁`, contradicting `aₖ₁ ≠ bₖ₁`.
+
+*Range simplification in case (ii).* For sub-case (ii-a) with `#a < #b`, the reduction of `1 ≤ i ≤ #a ∧ i ≤ #b` to `1 ≤ i ≤ #a` is walked by splitting `i ≤ #a` into `i < #a` (giving `i < #b` by `<`-transitivity) and `i = #a` (giving `i < #b` by `=`-substitution into `#a < #b`). The symmetric reduction for sub-case (ii-b) follows identically with roles swapped.
+
+*Mutual exclusivity and exhaustiveness.* Mutual exclusivity: any `k` from case (i) with `aₖ ≠ bₖ` directly falsifies case (ii)'s universal agreement. Exhaustiveness: `¬case(i)` gives universal agreement at shared positions; `¬case(ii)` then forces `#a = #b`; Leibniz on `#a = #b` collapses the shared range to `1 ≤ i ≤ #a`; T3 then yields `a = b`, contradicting the precondition `a ≠ b`.
+
+*Symmetry.* In case (i), the qualifying set `S` is unchanged under operand swap (∧-commutativity, ≠-symmetry, =-symmetry), so the same least element obtains. In case (ii), swapping exchanges sub-cases (ii-a) and (ii-b); both select one-past the shorter length, so the value is the same.
+
+*Postconditions.* `divergence(a, b) ∈ ℕ`: case (i) yields a member of `S ⊆ ℕ`; case (ii) yields `#a + 1` or `#b + 1`, both in ℕ by NAT-closure's `+ : ℕ × ℕ → ℕ` with `1 ∈ ℕ`. All stated postconditions are established by the arguments.
+
+VERDICT: CONVERGED

@@ -1,0 +1,53 @@
+Reading the entire ASN as a system. I will trace every dependency link, walk every proof, and check every quantifier range.
+
+---
+
+**NAT-carrier** — no dependencies, trivial. Sound.
+
+**NAT-order** — axioms: `< ⊆ ℕ × ℕ`, irreflexivity, transitivity, at-least-one trichotomy. Defined companions `≤`, `≥`, `>`. Two consequences.
+
+Exactly-one trichotomy: the at-least-one disjunction is the axiom directly. `¬(m < n ∧ n < m)`: transitivity chains to `m < m`, irreflexivity closes. `¬(m < n ∧ m = n)`: substitute `m = n` into `m < n` yields `m < m`, irreflexivity closes. `¬(m = n ∧ n < m)`: same substitution into `n < m` yields `m < m`, closes. All three mutual-exclusion clauses covered. ✓
+
+`≤`-transitivity: unfolds to four cases `(< ∧ <)`, `(< ∧ =)`, `(= ∧ <)`, `(= ∧ =)`. Each discharges cleanly. ✓
+
+Depends: only NAT-carrier. NAT-order introduces no specific elements (`0`, `1`), only structural relation. ✓
+
+**NAT-zero** — axioms: `0 ∈ ℕ`, `(A n ∈ ℕ :: 0 < n ∨ 0 = n)`. Consequence: `¬(n < 0)`. Depends: NAT-carrier, NAT-order.
+
+Proof of consequence: suppose `n < 0`. The axiom forces `0 < n ∨ 0 = n`. Case `0 < n`: transitivity with `n < 0` yields `0 < 0`, blocked by irreflexivity. Case `0 = n`: substituting into `n < 0` yields `0 < 0`, blocked by irreflexivity. Both cases closed. ✓
+
+NAT-carrier listed in Depends (NAT-carrier declined finding is stale — verified present). ✓
+
+**NAT-closure** — axioms: `+ : ℕ × ℕ → ℕ`, `1 ∈ ℕ`, left identity, right identity, successor positivity. Consequence: `0 < 1`. Depends: NAT-carrier, NAT-zero, NAT-order.
+
+Proof of `0 < 1`: successor-positivity at `n := 0` (requires `0 ∈ ℕ` from NAT-zero ✓) yields `0 < 0 + 1`; left-identity at `n := 1` (requires `1 ∈ ℕ` from own axiom ✓) yields `0 + 1 = 1`; substitutivity gives `0 < 1`. ✓
+
+**T0** — axioms: `T` set, `#· : T → ℕ`, nonemptiness, component projection, comprehension, extensionality. Depends: NAT-carrier, NAT-closure, NAT-order.
+
+Symbols used: `ℕ` → NAT-carrier ✓; `1` → NAT-closure ✓; `≤`, `≥` → NAT-order ✓. T0 does not use `0` or `+` in its formal contract — NAT-zero absent from Depends is correct. ✓
+
+Comprehension + extensionality: comprehension asserts existence, extensionality forces uniqueness at equal length and components. Together they pin down one tumbler per `(p, r)` pair. ✓
+
+Index domains `{j ∈ ℕ : 1 ≤ j ≤ #a}`: `#a ∈ ℕ` (from `#· : T → ℕ`), `1 ∈ ℕ` (NAT-closure), `≤` (NAT-order). Well-formed for any `a ∈ T`. Nonemptiness `1 ≤ #a` ensures domain is never empty. ✓
+
+**TA-Pos** — definitions: `Pos(t)` existential, `Zero(t)` universal, `Z` set. Consequence: `Pos(t) ⟺ ¬Zero(t)`. Depends: T0, NAT-carrier, NAT-zero, NAT-order, NAT-closure.
+
+DeMorgan: `¬(A i ∈ ℕ : 1 ≤ i ≤ #t : tᵢ = 0) ⟺ (E i ∈ ℕ : 1 ≤ i ≤ #t : ¬(tᵢ = 0))` is standard. The unfolding of `Zero(t)` definition, application of DeMorgan, and folding into `Pos(t)` definition is clean. ✓
+
+Vacuity note: T0's `(A a ∈ T :: 1 ≤ #a)` ensures the index domain is nonempty for every `t ∈ T`, so neither the universal (Zero) nor the existential (Pos) can be decided by vacuity. The partition is genuine. ✓
+
+Dependency graph: NAT-carrier → ∅; NAT-order → {NAT-carrier}; NAT-zero → {NAT-carrier, NAT-order}; NAT-closure → {NAT-carrier, NAT-zero, NAT-order}; T0 → {NAT-carrier, NAT-closure, NAT-order}; TA-Pos → {T0, NAT-carrier, NAT-zero, NAT-order, NAT-closure}. Acyclic. ✓
+
+One observation:
+
+---
+
+### Meta-prose in NAT-closure motivates axiom choice rather than advancing derivation
+**Class**: OBSERVE
+**Foundation**: NAT-closure (NatArithmeticClosureAndIdentity)
+**ASN**: NAT-closure body — "This derivation pins down only the single sum `0 + 1`; without the universal clause, a model could satisfy the signature, the identity laws, and the bare `0 < 1` while still permitting `m + 1 = 0` at some `m ≥ 1`. The universal clause closes that gap uniformly across ℕ."
+**Issue**: These two sentences explain why the universal form of the successor-positivity axiom was chosen — to exclude models permitting `m + 1 = 0` for `m ≥ 1`. This is motivation for the axiom's form, not a step in the derivation of the Consequence `0 < 1`. A reader following the formal proof — instantiate at `n := 0`, apply left-identity, substitute — passes through this passage without using it. It is prose around an axiom that explains why the axiom is needed rather than what the axiom says.
+
+---
+
+VERDICT: OBSERVE

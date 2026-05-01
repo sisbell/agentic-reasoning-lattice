@@ -1,0 +1,15 @@
+**Dependency structure.** Six claims form a strict DAG: NAT-carrier ← NAT-order ← NAT-zero ← NAT-closure ← NAT-addcompat ← NAT-addbound. No circular dependencies.
+
+**NAT-order.** The exactly-one trichotomy derivation is complete. Three pairwise mutual-exclusion clauses are needed; all three are discharged: ¬(m<n ∧ n<m) via transitivity→irreflexivity; ¬(m<n ∧ m=n) via substitution m=n into m<n→m<m against irreflexivity; ¬(m=n ∧ n<m) by the symmetric substitution. The ≤-transitivity proof walks all four cases from unfolding two ≤-hypotheses; each case discharges correctly. The instantiation "irreflexivity at n:=m" is unambiguous — the bound variable n in ¬(n<n) is specialised to m, yielding ¬(m<m).
+
+**NAT-zero.** The minimality consequence ¬(n<0) is derived by contradiction over both disjuncts of the axiom's second clause; both arms reach 0<0 against irreflexivity. Proof is complete.
+
+**NAT-closure.** The consequence 0<1 is derived in two steps: successor-positivity at n:=0 gives 0<0+1; left-identity at n:=1 gives 0+1=1; Leibniz substitution yields 0<1. The instantiation at n:=1 requires 1∈ℕ, which is NAT-closure's own axiom — no forward dependency needed. The prose justification that the universal 0<n+1 cannot be replaced by the bare consequence 0<1 is sound: NAT-zero's minimality clause leaves 0=m+1 open for m≥1 unless the universal forecloses it.
+
+**NAT-addcompat.** All three axioms are correctly typed. The compatibility clauses use ≤ from NAT-order; the successor inequality uses + and 1 from NAT-closure. No derivations are claimed; the axioms are posited directly. The dependency on NAT-closure is necessary and correct.
+
+**NAT-addbound.** The right-dominance proof is step-by-step. The NAT-addcompat right-compatibility universal is instantiated under the renaming (p,n',m'):=(0,m,n); the antecedent 0≤m is supplied by converting NAT-zero's minimality disjunction via NAT-order's ≤-definition; the consequent 0+n≤m+n simplifies via NAT-closure's left identity to n≤m+n; NAT-order's ≥-definition converts this to m+n≥n. The left-dominance proof is symmetric and equally complete. No step invokes a principle outside the declared dependencies.
+
+**Symbol grounding.** Every symbol — ℕ, <, ≤, ≥, >, 0, 1, + — traces to an axiom within the dependency cone. NAT-carrier grounds ℕ as a set; NAT-order grounds < and its companions; NAT-zero grounds 0; NAT-closure grounds + and 1.
+
+VERDICT: CONVERGED

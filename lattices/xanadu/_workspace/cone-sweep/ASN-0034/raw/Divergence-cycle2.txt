@@ -1,0 +1,21 @@
+Reading the full ASN system — dependency DAG, proof steps, and cross-claim consistency — before writing findings.
+
+---
+
+### T3 formal statement drops explicit ℕ-annotation that T0 formal contract requires
+**Class**: OBSERVE
+**Foundation**: T0 (CarrierSetDefinition)
+**ASN**: T3 (CanonicalRepresentation) — formal statement `(A a, b ∈ T : #a = #b ∧ (A i : 1 ≤ i ≤ #a : aᵢ = bᵢ) ≡ a = b)`, and the postcondition `a = b ⟺ #a = #b ∧ (A i : 1 ≤ i ≤ #a : aᵢ = bᵢ)`
+**Issue**: T0's formal contract extensionality axiom writes `(A i ∈ ℕ : 1 ≤ i ≤ #a : aᵢ = bᵢ)` with explicit `i ∈ ℕ`. T3's forward direction applies that axiom, but T3's stated antecedent is `(A i : 1 ≤ i ≤ #a : aᵢ = bᵢ)`, dropping the ℕ-binding. The same omission appears in Divergence's formal contract at `(A i : 1 ≤ i < k : aᵢ = bᵢ)` and `(A i : 1 ≤ i ≤ #a ∧ i ≤ #b : aᵢ = bᵢ)`. Since `≤` is typed on ℕ (NAT-order), the implied domain is recoverable from context, and the claims are sound as written; but the document is not internally consistent about whether the index variable's membership in ℕ is stated or assumed.
+
+---
+
+### Divergence symmetry proof for case (ii) abbreviates the sub-case cross-check
+**Class**: OBSERVE
+**Foundation**: (none — internal to Divergence)
+**ASN**: Divergence (Divergence) — symmetry argument, case (ii): "swapping `(a, b)` exchanges sub-cases (ii-a) and (ii-b); both select one-plus the shorter tumbler's length"
+**Issue**: The stated argument is correct but the sub-case cross-check is not exhibited. For concreteness: when `#a < #b`, `divergence(a, b)` is in sub-case (ii-a) and equals `#a + 1`. For `divergence(b, a)`, the condition is still case (ii) (same length inequality `#b ≠ #a`, same component-agreement by `=`-symmetry), but now `#b > #a` places it in sub-case (ii-b) for `divergence(b, a)`, yielding `#a + 1`. The claim that the two values coincide rests on recognising that in each sub-case the result is `min(#a, #b) + 1`, and `min` is symmetric — a step the prose asserts but does not derive.
+
+---
+
+VERDICT: OBSERVE
