@@ -1,0 +1,1 @@
+Finding mis-cites the claim text. TumblerAdd.md line 85 already reads '`a ≥ b ≡ b < a ∨ b = a`' (verified by byte-level inspection), and the proof body at line 53 also has the correct disjunction. The bug described — both disjuncts being '`b < a`' — is not present in the file.
