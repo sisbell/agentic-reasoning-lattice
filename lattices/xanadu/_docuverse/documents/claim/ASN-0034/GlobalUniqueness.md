@@ -39,7 +39,7 @@ So `p₂` extends `p₁` by one position. By T10a.4, `p₂` is T4-valid; by T4 c
 
 Every pair in Case 5 thus satisfies `#a ≠ #b`; by T3, `a ≠ b`.
 
-*Exhaustiveness.* Every pair of distinct allocation events has well-defined producing allocators. Same producing allocator: Case 1. Different, one is root: Case 2. Both non-root, non-nesting prefixes: Case 3. Both non-root, `p₁ = p₂`: let `P₁`, `P₂` be parents at depth ≤ *d*. If `P₁ ≠ P₂`, the two spawning events are distinct yet yield the same output `p₁`, contradicting `U(d)`. So `P₁ = P₂`: same parent, same `t`, parameters `k'₁, k'₂ ∈ {1, 2}`. T10a's per-parent uniqueness excludes `k'₁ = k'₂`, so `{k'₁, k'₂} = {1, 2}`; the TA5(d)/T10a.8 argument of Case 5 gives different zero counts, routing to Case 4. Both non-root, strict nesting: Case 4 or Case 5 by zero count.
+*Exhaustiveness.* Every pair of distinct allocation events has well-defined producing allocators. Same producing allocator: Case 1. Different, one is root: Case 2. Both non-root, non-nesting prefixes: Case 3. Both non-root, `p₁ = p₂`: let `Pᵢ = parent(Aᵢ)`, so `pᵢ ∈ dom(Pᵢ)` (the domain prefix of `Aᵢ` is by construction an output of its parent). T10a.6 gives `dom(P₁) ∩ dom(P₂) = ∅` for distinct allocators; the shared value `p₁ = p₂` therefore forces `P₁ = P₂`: same parent, same domain element `t = p₁ = p₂`, parameters `k'₁, k'₂ ∈ {1, 2}`. T10a's per-parent uniqueness — at most one child-spawning event per `(t, k')` — excludes `k'₁ = k'₂` (else `A₁ = A₂` by T10a's identity criterion, contradicting distinctness), so `{k'₁, k'₂} = {1, 2}`; the TA5(d)/T10a.8 argument of Case 5 gives different zero counts, routing to Case 4. Both non-root, strict nesting: Case 4 or Case 5 by zero count.
 
 By induction, `U(d)` holds for all `d ≥ 0`; since every allocator has finite depth, GlobalUniqueness follows. ∎
 
@@ -58,6 +58,7 @@ By induction, `U(d)` holds for all `d ≥ 0`; since every allocator has finite d
   - T10a.1 (UniformSiblingLength) — every sibling shares the allocator's base length.
   - T10a.3 (LengthSeparation) — descendants at depth `d ≥ 1` have length `≥ γ + d`.
   - T10a.4 (T4Preservation) — every domain prefix is T4-valid.
+  - T10a.6 (DomainDisjointness) — for distinct allocators `X ≠ Y`, `dom(X) ∩ dom(Y) = ∅`. Consumed in exhaustiveness's `p₁ = p₂` routing: from the parents' domains containing the shared value, T10a.6 forces `P₁ = P₂` without invoking the inductive hypothesis.
   - T10a.8 (UniformSiblingZeroCount) — base zero count lifts to all siblings.
   - T3 (CanonicalRepresentation) — tumbler equality requires position-wise agreement.
   - T4 (HierarchicalParsing) — clause (iv) `t_{#t} ≠ 0` on T4-valid addresses.
@@ -70,4 +71,4 @@ By induction, `U(d)` holds for all `d ≥ 0`; since every allocator has finite d
   - NAT-addassoc (NatAdditionAssociative) — `(m + n) + p = m + (n + p)`. Consumed in Case 5's sub-case `k'₁ > k'₂` (with `(k'₁, k'₂) = (2, 1)`): instantiated at `(m, n, p) = (#p₁, 1, 1)` to regroup `#p₁ + (1 + 1) = (#p₁ + 1) + 1`, which (combined with T4's *Numerals* definition `2 := 1 + 1`) identifies `#p₁ + 2 = (#p₁ + 1) + 1`, putting the equation `#p₁ + 2 = #p₂ + 1` into the form `(#p₁ + 1) + 1 = #p₂ + 1` so that NAT-cancel can fire on the trailing `+ 1` to yield `#p₂ = #p₁ + 1`.
 - *Invariant:* For every pair of addresses `a, b` arising from distinct allocation events in any reachable system state: `a ≠ b`.
 - *Postconditions:* (1) Domain Disjointness — for distinct `A₁ ≠ A₂`, `dom(A₁) ∩ dom(A₂) = ∅`. (2) Well-defined owning allocator — each address value belongs to at most one allocator's domain.
-- *Proof structure:* Strong induction on allocator tree depth *d*. Claim `U(d)`: all pairs at depth ≤ *d* produce distinct outputs. Base (`d = 0`): sole root, Case 1. Step: Cases 1–5 are self-contained; the `p₁ = p₂` routing invokes `U(d)` to establish shared parentage, then applies T10a's per-parent uniqueness.
+- *Proof structure:* Strong induction on allocator tree depth *d*. Claim `U(d)`: all pairs at depth ≤ *d* produce distinct outputs. Base (`d = 0`): sole root, Case 1. Step: Cases 1–5 are self-contained; the `p₁ = p₂` routing invokes T10a.6 (domain disjointness on the parent pair) to establish shared parentage, then applies T10a's per-parent uniqueness.

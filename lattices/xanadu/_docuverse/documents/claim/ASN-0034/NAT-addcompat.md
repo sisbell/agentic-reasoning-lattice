@@ -1,8 +1,8 @@
 **NAT-addcompat (NatAdditionOrderAndSuccessor).** Addition on ℕ is compatible with the order on either side, and `n < n + 1` for every `n ∈ ℕ`.
 
-- Left order compatibility: `p ≤ n ⟹ m + p ≤ m + n` for every `m, n, p ∈ ℕ`.
-- Right order compatibility: `p ≤ n ⟹ p + m ≤ n + m` for every `m, n, p ∈ ℕ`.
-- Strict successor inequality: `n < n + 1` for every `n ∈ ℕ`.
+The two compatibility clauses are posited independently because at this stratum no commutativity has been declared: neither NAT-closure nor any predecessor supplies `(A x, y ∈ ℕ :: x + y = y + x)`, so the prefix `m + ·` of the left clause cannot be rewritten as the suffix `· + m` of the right. A model that orders its left additions faithfully while distorting its right ones satisfies left compatibility and violates right; neither clause yields the other in the absence of commutativity, and proofs that add a fixed summand on either side need both placements directly.
+
+The strict successor inequality `n < n + 1` is bundled with the compatibility clauses rather than placed in NAT-closure beside the *Consequence:* `0 < 1`. NAT-closure's successor-positivity clause `(A n ∈ ℕ :: 0 < n + 1)` locates `n + 1` only above the constant `0`: instantiated at `n := 0` and rewritten by the left-identity `(A k ∈ ℕ :: 0 + k = k)` at `k := 1`, it yields `0 < 1`. The strict successor inequality is the stronger, schematic statement that `+1` strictly advances every `n ∈ ℕ`, so it sits with the other clauses parameterised in `n` that connect `+` to `<` and `≤`, not with the constant inequality NAT-closure derives.
 
 *Formal Contract:*
 - *Axiom:* `(A m, n, p ∈ ℕ : p ≤ n : m + p ≤ m + n)` (left order compatibility); `(A m, n, p ∈ ℕ : p ≤ n : p + m ≤ n + m)` (right order compatibility); `(A n ∈ ℕ :: n < n + 1)` (strict successor inequality).
