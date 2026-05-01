@@ -11,6 +11,7 @@
     "NAT-sub",
     "OrdinalDisplacement",
     "OrdinalShift",
+    "PartitionMonotonicity",
     "ReverseInverse",
     "Span",
     "T1",

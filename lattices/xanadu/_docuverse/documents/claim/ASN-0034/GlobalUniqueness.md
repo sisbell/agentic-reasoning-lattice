@@ -35,7 +35,7 @@ By NAT-order trichotomy on `(k'₁, k'₂)`:
 - *Sub-case `k'₁ < k'₂`*: NAT-addcompat (left) lifts `k'₁ ≤ k'₂` to `#p₁ + k'₁ ≤ #p₁ + k'₂`; NAT-addcompat (right) lifts `#p₁ ≤ #p₂` to `#p₁ + k'₂ ≤ #p₂ + k'₂`, sharpened to strict by NAT-cancel ruling out `#p₁ + k'₂ = #p₂ + k'₂`. NAT-order transitivity gives `#p₁ + k'₁ < #p₂ + k'₂`, contradicting the assumed equality by NAT-order irreflexivity.
 - *Remaining case `k'₁ > k'₂`*: with values in `{1, 2}`, `(k'₁, k'₂) = (2, 1)`, so `#p₁ + 2 = #p₂ + 1`. Rewriting `2 = 1 + 1` and applying NAT-addassoc gives `(#p₁ + 1) + 1 = #p₂ + 1`; NAT-cancel yields `#p₂ = #p₁ + 1`.
 
-So `p₂` extends `p₁` by one position. By T10a.4, `p₂` is T4-valid; by T4 clause (iii), `p₂[#p₂] ≠ 0`. Hence `zeros(p₂) = zeros(p₁)`. With `k'₁ = 2`, TA5(d) gives `zeros(c₀(A₁)) = zeros(p₁) + 1`; with `k'₂ = 1`, `zeros(c₀(A₂)) = zeros(p₂) = zeros(p₁)`. T10a.8 lifts each base zero count to every sibling. Therefore `zeros(a) ≠ zeros(b)` for every `a ∈ dom(A₁)`, `b ∈ dom(A₂)` — routing the pair to Case 4 and contradicting Case 5's same-zero-count assumption.
+So `p₂` extends `p₁` by one position. By T10a.4, `p₂` is T4-valid; by T4 clause (iv), `p₂[#p₂] ≠ 0`. Hence `zeros(p₂) = zeros(p₁)`. With `k'₁ = 2`, TA5(d) gives `zeros(c₀(A₁)) = zeros(p₁) + 1`; with `k'₂ = 1`, `zeros(c₀(A₂)) = zeros(p₂) = zeros(p₁)`. T10a.8 lifts each base zero count to every sibling. Therefore `zeros(a) ≠ zeros(b)` for every `a ∈ dom(A₁)`, `b ∈ dom(A₂)` — routing the pair to Case 4 and contradicting Case 5's same-zero-count assumption.
 
 Every pair in Case 5 thus satisfies `#a ≠ #b`; by T3, `a ≠ b`.
 
@@ -60,7 +60,7 @@ By induction, `U(d)` holds for all `d ≥ 0`; since every allocator has finite d
   - T10a.4 (T4Preservation) — every domain prefix is T4-valid.
   - T10a.8 (UniformSiblingZeroCount) — base zero count lifts to all siblings.
   - T3 (CanonicalRepresentation) — tumbler equality requires position-wise agreement.
-  - T4 (HierarchicalParsing) — clause (iii) `t_{#t} ≠ 0` on T4-valid addresses.
+  - T4 (HierarchicalParsing) — clause (iv) `t_{#t} ≠ 0` on T4-valid addresses.
   - TA5 (HierarchicalIncrement) — (b) agreement on `1 ≤ i ≤ #t`; (c) `#inc(t, 0) = #t` with single-position modification; (d) `#inc(t, k') = #t + k'` and zero-separator bookkeeping.
   - TA5-SigValid (TA5-SigValid) — `sig(cₙ) = #cₙ` for T4-valid `cₙ`.
   - Prefix (PrefixRelation) — ≼ definition and `p ≺ q ⟹ #p < #q`.
