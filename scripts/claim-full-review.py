@@ -45,7 +45,7 @@ from lib.claim_convergence.cone import (
 from lib.backend.schema import ATTRIBUTE_SUFFIXES
 from lib.agent import attributed_to
 from lib.febe.session import open_session
-from lib.backend.emit import emit_findings, emit_meta
+from lib.claim_convergence.findings import emit_findings, emit_meta
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.claim_convergence.predicates import is_asn_converged
 
@@ -131,7 +131,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
         # second emit_meta overwrites the review doc with the finalized
         # summary table.
         review_link = emit_meta(
-            store, asn_label, review_num,
+            session, asn_label, review_num,
             title=f"Full Review — {asn_label} (cycle {cycle})",
             timestamp=time.strftime("%Y-%m-%d %H:%M"),
             scope=f"{asn_label} (full)",
@@ -143,7 +143,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
         )
         review_addr = review_link.to_set[0] if review_link.to_set else None
         emitted_findings = emit_findings(
-            store, review_addr, findings,
+            session, review_addr, findings,
             asn_label, review_stem, label_index,
             findings_dir=CLAIM_FINDINGS_DIR,
         )
@@ -151,7 +151,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
 
         revise_count = len(filter_revise(findings))
         emit_meta(
-            store, asn_label, review_num,
+            session, asn_label, review_num,
             title=f"Full Review — {asn_label} (cycle {cycle})",
             timestamp=time.strftime("%Y-%m-%d %H:%M"),
             scope=f"{asn_label} (full)",
@@ -256,7 +256,7 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
                 confirm_findings = extract_findings(confirm_findings_text)
                 # Same two-pass pattern as the cycle review.
                 confirm_review_link = emit_meta(
-                    store, asn_label, review_num,
+                    session, asn_label, review_num,
                     title=f"Full Review (Confirmation) — {asn_label}",
                     timestamp=time.strftime("%Y-%m-%d %H:%M"),
                     scope=f"{asn_label} (full)",
@@ -271,13 +271,13 @@ def run_full_review(asn_num, max_cycles=8, dry_run=False, model="opus"):
                     if confirm_review_link.to_set else None
                 )
                 emitted_findings = emit_findings(
-                    store, confirm_review_addr, confirm_findings,
+                    session, confirm_review_addr, confirm_findings,
                     asn_label, review_stem, label_index,
                     findings_dir=CLAIM_FINDINGS_DIR,
                 )
                 confirmation_revise_count = len(filter_revise(confirm_findings))
                 emit_meta(
-                    store, asn_label, review_num,
+                    session, asn_label, review_num,
                     title=f"Full Review (Confirmation) — {asn_label}",
                     timestamp=time.strftime("%Y-%m-%d %H:%M"),
                     scope=f"{asn_label} (full)",

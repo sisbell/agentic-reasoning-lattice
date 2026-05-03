@@ -30,7 +30,8 @@ from lib.shared.paths import WORKSPACE, VOCABULARY, REVIEWS_DIR, USAGE_LOG, MANI
 from lib.shared.campaign import resolve_campaign
 from lib.shared.common import find_asn, read_file
 from lib.shared.foundation import load_foundation_for_note
-from lib.backend.emit import emit_note_findings, emit_review
+from lib.backend.emit import emit_review
+from lib.note_convergence.findings import emit_note_findings
 from lib.febe.session import open_session
 
 PROMPTS_DIR = LATTICE_PROMPTS / "discovery"
@@ -185,14 +186,14 @@ def run_note_review(asn_path, asn_label, *, model="opus", effort="max"):
     return verdict, text, elapsed
 
 
-def commit_note_review(store, asn_path, asn_label, text):
+def commit_note_review(session, asn_path, asn_label, text):
     """Write the review file (sequential numbering) and emit substrate
     links: `review` classifier on the file, `comment.{revise|out-of-scope}`
     per finding. Returns (review_path, findings).
 
-    Caller passes a store so the convergence orchestrator can share one
-    store instance across the cycle. Single-pass invocations
-    (note-review.py) open their own store via `with default_store()`.
+    Caller passes a session so the convergence orchestrator can share
+    one Session instance across the cycle. Single-pass invocations
+    (note-review.py) open their own via `open_session()`.
     """
     (REVIEWS_DIR / asn_label).mkdir(parents=True, exist_ok=True)
     existing = sorted_reviews(asn_label)
@@ -202,17 +203,23 @@ def commit_note_review(store, asn_path, asn_label, text):
         if m:
             next_num = max(next_num, int(m.group(1)) + 1)
     output_path = REVIEWS_DIR / asn_label / f"review-{next_num}.md"
-    output_path.write_text(text + "\n")
+    body = text + "\n"
 
     findings = extract_note_findings(text)
     review_stem = f"review-{next_num}"
-    output_rel = str(output_path.resolve().relative_to(store.lattice_dir.resolve()))
-    output_addr = store.register_path(output_rel)
-    asn_rel = str(asn_path.resolve().relative_to(store.lattice_dir.resolve()))
-    asn_addr = store.register_path(asn_rel)
-    emit_review(store, output_addr)
+    lattice_root = session.store.lattice_dir.resolve()
+    output_rel = str(output_path.resolve().relative_to(lattice_root))
+    asn_rel = str(asn_path.resolve().relative_to(lattice_root))
+
+    # 1. Document write (review aggregate)
+    session.update_document(output_rel, body)
+
+    # 2. Substrate facts
+    output_addr = session.register_path(output_rel)
+    asn_addr = session.register_path(asn_rel)
+    emit_review(session.store, output_addr)
     emit_note_findings(
-        store, asn_addr, output_addr, findings,
+        session, asn_addr, output_addr, findings,
         asn_label=asn_label, review_stem=review_stem,
         findings_dir=NOTE_FINDINGS_DIR,
     )
@@ -349,7 +356,7 @@ def main():
 
     from lib.shared.paths import LATTICE
     session = open_session(LATTICE)
-    output_path, findings = commit_note_review(session.store, asn_path, asn_label, text)
+    output_path, findings = commit_note_review(session, asn_path, asn_label, text)
 
     if findings:
         revise_count = sum(1 for _, c, _ in findings if c == "REVISE")

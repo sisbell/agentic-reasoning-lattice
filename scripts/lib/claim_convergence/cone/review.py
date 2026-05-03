@@ -19,7 +19,7 @@ from lib.claim_convergence.full_review.revise import revise
 from lib.claim_convergence.finding_classifier import apply_classifier_verdict
 from lib.agent import attributed_to
 from lib.febe.session import open_session
-from lib.backend.emit import emit_findings, emit_meta
+from lib.claim_convergence.findings import emit_findings, emit_meta
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.claim_convergence.predicates import is_claim_converged
 from lib.claim_convergence.sync import sync_claim_citations
@@ -150,7 +150,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
         # classifier, returning the link record so we can use its homedoc
         # (which is the review doc's address) for derivation provenance.
         review_link = emit_meta(
-            store, asn_label, review_num,
+            session, asn_label, review_num,
             title=f"Cone Review — {asn_label}/{apex_label} (cycle {cycle})",
             timestamp=time.strftime("%Y-%m-%d %H:%M"),
             scope=f"{apex_label} + {len(dep_labels)} deps (cone)",
@@ -162,7 +162,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
         )
         review_addr = review_link.to_set[0] if review_link.to_set else None
         emitted_findings = emit_findings(
-            store, review_addr, findings,
+            session, review_addr, findings,
             asn_label, review_stem, label_index,
             findings_dir=CLAIM_FINDINGS_DIR,
         )
@@ -174,7 +174,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
         revise_count = len(filter_revise(emitted_for_filter))
         # Re-emit meta with final verdict + summary + emitted findings table.
         emit_meta(
-            store, asn_label, review_num,
+            session, asn_label, review_num,
             title=f"Cone Review — {asn_label}/{apex_label} (cycle {cycle})",
             timestamp=time.strftime("%Y-%m-%d %H:%M"),
             scope=f"{apex_label} + {len(dep_labels)} deps (cone)",
@@ -298,7 +298,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
                 confirm_findings = extract_findings(confirm_findings_text)
                 apply_classifier_verdict(confirm_findings)
                 confirm_review_link = emit_meta(
-                    store, asn_label, review_num,
+                    session, asn_label, review_num,
                     title=f"Cone Review (Confirmation) — {asn_label}/{apex_label}",
                     timestamp=time.strftime("%Y-%m-%d %H:%M"),
                     scope=f"{apex_label} + {len(dep_labels)} deps (cone)",
@@ -313,7 +313,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
                     if confirm_review_link.to_set else None
                 )
                 emitted_findings = emit_findings(
-                    store, confirm_review_addr, confirm_findings,
+                    session, confirm_review_addr, confirm_findings,
                     asn_label, review_stem, label_index,
                     findings_dir=CLAIM_FINDINGS_DIR,
                 )
@@ -323,7 +323,7 @@ def run_cone_review(asn_num, apex_label, dep_labels, max_cycles=3,
                 ]
                 confirmation_revise_count = len(filter_revise(confirm_emitted_for_filter))
                 emit_meta(
-                    store, asn_label, review_num,
+                    session, asn_label, review_num,
                     title=f"Cone Review (Confirmation) — {asn_label}/{apex_label}",
                     timestamp=time.strftime("%Y-%m-%d %H:%M"),
                     scope=f"{apex_label} + {len(dep_labels)} deps (cone)",

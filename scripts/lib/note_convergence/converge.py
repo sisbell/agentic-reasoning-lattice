@@ -80,7 +80,7 @@ def run_note_convergence(asn_num, max_cycles=15, dry_run=False, model="opus",
         # EmitFindings (§6.5)
         with open_session(LATTICE) as session:
             review_path, findings = commit_note_review(
-                session.store, asn_path, asn_label, text,
+                session, asn_path, asn_label, text,
             )
         last_review_path = review_path
         revise_findings = [f for f in findings if f[1] == "REVISE"]
@@ -141,7 +141,7 @@ def run_note_convergence(asn_num, max_cycles=15, dry_run=False, model="opus",
         else:
             with open_session(LATTICE) as session:
                 review_path, findings = commit_note_review(
-                    session.store, asn_path, asn_label, text,
+                    session, asn_path, asn_label, text,
                 )
             last_review_path = review_path
             confirmation_revise_count = sum(
