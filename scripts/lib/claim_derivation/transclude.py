@@ -50,8 +50,9 @@ from lib.shared.paths import (
 )
 from lib.shared.common import find_asn, step_commit_asn
 from lib.backend.emit import (
-    emit_attribute, emit_citation, emit_claim, emit_contract, emit_derivation,
+    emit_citation, emit_claim, emit_contract, emit_derivation,
 )
+from lib.lattice.attributes import emit_attribute
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.febe.session import open_session
 
@@ -242,12 +243,12 @@ def transclude_asn(asn_num, dry_run=False):
             body_md.write_text(c["body_text"])
 
             # Sidecar files + content links (label, name, signature).
-            emit_attribute(store, body_md, "label", c["label"])
-            emit_attribute(store, body_md, "name", c["name"] or c["label"])
+            emit_attribute(session, body_md, "label", c["label"])
+            emit_attribute(session, body_md, "name", c["name"] or c["label"])
 
             sig_md = _render_signature(c["signature"])
             if sig_md:
-                emit_attribute(store, body_md, "signature", sig_md)
+                emit_attribute(session, body_md, "signature", sig_md)
 
             # Classifier + contract — need the body's tumbler address.
             body_rel = str(body_md.resolve().relative_to(lattice_root))
